@@ -3034,9 +3034,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Caker/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Caker;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = Fred78290;
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Caked need SSH access to running VM and create virtual network";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Caker need SSH access to running VM and create virtual network";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -3082,9 +3082,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Caker/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Caker;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = Fred78290;
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Caked need SSH access to running VM and create virtual network";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Caker need SSH access to running VM and create virtual network";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
