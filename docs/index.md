@@ -40,17 +40,17 @@ Available features include:
 
 ## Quick Start
 
-Get started with Caker by following our [Getting Started Guide](getting-started).
+Get started with Caker by following our [Getting Started Guide]({% link getting-started.md %}).
 
 ## Documentation
 
-- [Getting Started](getting-started) - Setup and first steps
-- [Architecture](architecture) - System design and components
-- [Development](development) - Contributing and building from source
-- [Command Summary](command-summary) - Complete command reference
-- [Troubleshooting](troubleshooting) - Common issues and solutions
-- [FAQ](faq) - Frequently asked questions
-- [Release Notes](release-notes) - Version history and changes
+- [Getting Started]({% link getting-started.md %}) - Setup and first steps
+- [Architecture]({% link architecture.md %}) - System design and components
+- [Development]({% link development.md %}) - Contributing and building from source
+- [Command Summary]({% link command-summary.md %}) - Complete command reference
+- [Troubleshooting]({% link troubleshooting.md %}) - Common issues and solutions
+- [FAQ]({% link faq.md %}) - Frequently asked questions
+- [Release Notes]({% link release-notes.md %}) - Version history and changes
 
 ## Repository Map
 
