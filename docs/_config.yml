@@ -1,0 +1,66 @@
+title: Caker
+description: Swift-based virtualization platform for macOS
+url: https://caker.aldunelabs.com/
+baseurl: /
+
+# Theme
+theme: minima
+plugins:
+  - jekyll-feed
+
+# Site header
+header_pages:
+  - getting-started.md
+  - architecture.md
+  - development.md
+  - troubleshooting.md
+  - faq.md
+
+# Metadata
+author:
+  name: Fred78290
+
+# Social links
+github_username: Fred78290
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Navigation
+navigation:
+  - name: Home
+    url: /
+  - name: Getting Started
+    url: /getting-started
+  - name: Architecture
+    url: /architecture  
+  - name: Development
+    url: /development
+  - name: Command Summary
+    url: /command-summary
+  - name: Troubleshooting
+    url: /troubleshooting
+  - name: FAQ
+    url: /faq
+  - name: Release Notes
+    url: /release-notes
+
+# Exclude files
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
