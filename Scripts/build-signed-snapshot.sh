@@ -8,6 +8,12 @@ CURDIR=${PWD}
 
 if [ -f ${CURDIR}/.env ]; then
 	source ${CURDIR}/.env
+
+	export P12_PASSWORD
+	export KEYCHAIN_PASSWORD
+	export APP_PASSWORD
+	export APPLE_ID
+	export TEAM_ID
 else
 	echo "Warning: .env file not found, using default values for environment variables"
 	if [ -z "$TEAM_ID" ]; then
