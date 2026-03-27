@@ -31,7 +31,7 @@ bundle install
 
 ### Run locally
 ```bash
-bundle exec jekyll serve
+bundle exec jekyll serve --baseurl=
 ```
 
 The site will be available at `http://localhost:4000/caker`
