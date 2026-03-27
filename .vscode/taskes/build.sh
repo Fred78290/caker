@@ -11,7 +11,7 @@ export VERSION_TAG=${VERSION_TAG:=SNAPSHOT-$SNAPSHOT}
 
 /usr/bin/swift build -Xswiftc -diagnostic-style=llvm
 
-codesign --sign - --entitlements Resources/dev.entitlements --force "${BUILDDIR}/caker"
+codesign --sign - --entitlements Resources/dev.entitlements --force "${BUILDDIR}/Caker"
 codesign --sign - --entitlements Resources/dev.entitlements --force "${BUILDDIR}/caked"
 codesign --sign - --entitlements Resources/dev.entitlements --force "${BUILDDIR}/cakectl"
 
@@ -32,7 +32,7 @@ actool "${RESOURCESDIR}/Assets.xcassets" \
 	--minimum-deployment-target 15.0 \
 	--platform macosx
 
-cp -c "${BUILDDIR}/caker" "${PKGDIR}/Contents/MacOS/caker"
+cp -c "${BUILDDIR}/Caker" "${PKGDIR}/Contents/MacOS/Caker"
 cp -c "${BUILDDIR}/caked" "${PKGDIR}/Contents/PlugIns/caked"
 cp -c "${BUILDDIR}/cakectl" "${PKGDIR}/Contents/PlugIns/cakectl"
 cp -c "${RESOURCESDIR}/Document.icns" "${PKGDIR}/Contents/Resources/Document.icns"

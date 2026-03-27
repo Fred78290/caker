@@ -7,6 +7,10 @@ pushd "$(dirname ${BASH_SOURCE[0]})" >/dev/null
 CI_DIR=${PWD}
 popd > /dev/null
 
+if [ -f ${CI_DIR}/../.env ]; then
+	source ${CI_DIR}/../.env
+fi
+
 echo "Building Caker distribution packages for version ${VERSION}..."
 
 # Vérifier que les variables d'environnement nécessaires sont définies

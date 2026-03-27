@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 VERSION=${VERSION_TAG:=SNAPSHOT}
 set -ex
 pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
@@ -8,8 +10,8 @@ DMGDIR=${CURDIR}/.ci/dmg
 DMGFILE=${CURDIR}/Caker-${VERSION}.dmg
 popd > /dev/null
 
-if [ -f .env ]; then
-	source .env
+if [ -f ${CURDIR}/.env ]; then
+	source ${CURDIR}/.env
 fi
 
 echo "Creating DMG for version ${VERSION}"

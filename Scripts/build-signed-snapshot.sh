@@ -1,12 +1,13 @@
 #!/bin/bash
+set -e
 
 export VERSION_TAG=SNAPSHOT-$(git rev-parse --short HEAD)
 VERSION=${VERSION_TAG:=SNAPSHOT}
 pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
 CURDIR=${PWD}
 
-if [ -f .env ]; then
-	source .env
+if [ -f ${CURDIR}/.env ]; then
+	source ${CURDIR}/.env
 else
 	echo "Warning: .env file not found, using default values for environment variables"
 	if [ -z "$TEAM_ID" ]; then
@@ -21,7 +22,8 @@ popd
 
 echo "Building version ${VERSION} with team ID ${TEAM_ID}"
 
-./Scripts/build-signed-release.sh
+/usr/bin/swift build -c release --arch x86_64
+/usr/bin/swift build -c release --arch arm64
 
 echo "Publishing version ${VERSION} with team ID ${TEAM_ID}"
 if [ -f .ci/create-dist.sh ]; then

@@ -1,12 +1,8 @@
-codesign --sign - --entitlements Resources/dev.entitlements --force "${BUILDDIR}/caker"
-codesign --sign - --entitlements Resources/dev.entitlements --force "${BUILDDIR}/caked"
-codesign --sign - --entitlements Resources/dev.entitlements --force "${BUILDDIR}/cakectl"
+SNAPSHOT=$(git rev-parse --short=8 HEAD)
+export VERSION_TAG=${VERSION_TAG:=SNAPSHOT-$SNAPSHOT}
 
 rm -Rf "${PKGDIR}"
 mkdir -p "${ASSETS}" "${PKGDIR}/Contents/MacOS" "${PKGDIR}/Contents/PlugIns" "${PKGDIR}/Contents/Resources" "${PKGDIR}/Contents/Resources/Icons"
-
-SNAPSHOT=$(git rev-parse --short=8 HEAD)
-export VERSION_TAG=${VERSION_TAG:=SNAPSHOT-$SNAPSHOT}
 
 actool "${RESOURCESDIR}/Assets.xcassets" \
 	--compile "${ASSETS}" \
@@ -23,7 +19,6 @@ actool "${RESOURCESDIR}/Assets.xcassets" \
 	--minimum-deployment-target 15.0 \
 	--platform macosx
 
-cp -c "${BUILDDIR}/caker" "${PKGDIR}/Contents/MacOS/caker"
 cp -c "${BUILDDIR}/Caker" "${PKGDIR}/Contents/MacOS/Caker"
 cp -c "${BUILDDIR}/caked" "${PKGDIR}/Contents/PlugIns/caked"
 cp -c "${BUILDDIR}/cakectl" "${PKGDIR}/Contents/PlugIns/cakectl"
@@ -36,13 +31,33 @@ cp -c "${CURDIR}/Resources/Caker.provisionprofile" "${PKGDIR}/Contents/embedded.
 
 envsubst < "${CURDIR}/Resources/Info.plist" > "${PKGDIR}/Contents/Info.plist"
 
-mkdir -p .bin
+if [ -n "${RELEASE}" ] && [ -n "${TEAM_ID}" ]; then
+	echo "Build and sign release binaries for version ${VERSION_TAG}, team ID ${TEAM_ID}"
+	codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
+		--options runtime \
+		--preserve-metadata\=identifier,entitlements,flags \
+		--entitlements Resources/release.entitlements \
+		--force "${PKGDIR}/Contents/PlugIns/caked"
 
-cat > .bin/caked <<EOF
-#!/bin/sh
-exec "${PKGDIR}/Contents/MacOS/caked" "\$@"
-EOF
-chmod +x .bin/caked
+	codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
+		--options runtime \
+		--preserve-metadata\=identifier,entitlements,flags \
+		--entitlements Resources/release.entitlements \
+		--force "${PKGDIR}/Contents/PlugIns/cakectl"
 
-rm -f .bin/cakectl
-ln -s "${PKGDIR}/Contents/Resources/cakectl" .bin/cakectl
+	codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
+		--options runtime \
+		--preserve-metadata\=identifier,entitlements,flags \
+		--entitlements Resources/release.entitlements \
+		--force "${PKGDIR}/Contents/MacOS/Caker"
+
+	codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
+		--options runtime \
+		--entitlements Resources/release.entitlements \
+		--force "${PKGDIR}"
+else
+	echo "Build unsigned debug binaries"
+	codesign --sign - --entitlements Resources/dev.entitlements --force "${PKGDIR}/Contents/PlugIns/caked"
+	codesign --sign - --entitlements Resources/dev.entitlements --force "${PKGDIR}/Contents/PlugIns/cakectl"
+	codesign --sign - --entitlements Resources/dev.entitlements --force "${PKGDIR}/Contents/MacOS/Caker"
+fi
