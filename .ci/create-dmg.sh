@@ -117,7 +117,8 @@ if [ -n "${APPLE_ID}" ] && [ -n "${APP_PASSWORD}" ]; then
 	else
 		KEYCHAIN_OPTIONS=
 	fi
-	
+
+	# Mzmo xcrun notarytool log --apple-id ${APPLE_ID} --team-id ${TEAM_ID} --password "${APP_PASSWORD}" 0611530c-fe18-42fa-8d27-dbe700b96684
 	xcrun notarytool submit "${DMGFILE}" ${KEYCHAIN_OPTIONS} \
 			--apple-id ${APPLE_ID} \
 			--team-id ${TEAM_ID} \
