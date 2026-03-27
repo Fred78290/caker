@@ -24,6 +24,7 @@ actool "${RESOURCESDIR}/Assets.xcassets" \
 	--platform macosx
 
 cp -c "${BUILDDIR}/caker" "${PKGDIR}/Contents/MacOS/caker"
+cp -c "${BUILDDIR}/Caker" "${PKGDIR}/Contents/MacOS/Caker"
 cp -c "${BUILDDIR}/caked" "${PKGDIR}/Contents/PlugIns/caked"
 cp -c "${BUILDDIR}/cakectl" "${PKGDIR}/Contents/PlugIns/cakectl"
 cp -c "${RESOURCESDIR}/Document.icns" "${PKGDIR}/Contents/Resources/Document.icns"

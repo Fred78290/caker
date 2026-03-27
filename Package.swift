@@ -9,7 +9,7 @@ let package = Package(
 	],
 	products: [
 		.executable(name: "caked", targets: ["caked"]),
-		.executable(name: "caker", targets: ["caker"]),
+		.executable(name: "Caker", targets: ["caker"]),
 		.executable(name: "cakectl", targets: ["cakectl"]),
 		.library(name: "CakedLib", targets: ["CakedLib"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"]),
