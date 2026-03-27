@@ -722,6 +722,66 @@
 			"name": "cakectl build linux",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/cakectl",
 			"preLaunchTask": "Build signed"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Debug caked",
+			"target": "caked",
+			"configuration": "debug",
+			"preLaunchTask": "swift: Build Debug caked"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Release caked",
+			"target": "caked",
+			"configuration": "release",
+			"preLaunchTask": "swift: Build Release caked"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Debug caker",
+			"target": "caker",
+			"configuration": "debug",
+			"preLaunchTask": "swift: Build Debug caker"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Release caker",
+			"target": "caker",
+			"configuration": "release",
+			"preLaunchTask": "swift: Build Release caker"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Debug cakectl",
+			"target": "cakectl",
+			"configuration": "debug",
+			"preLaunchTask": "swift: Build Debug cakectl"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Release cakectl",
+			"target": "cakectl",
+			"configuration": "release",
+			"preLaunchTask": "swift: Build Release cakectl"
 		}
 	]
 }
