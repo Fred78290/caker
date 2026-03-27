@@ -24,14 +24,14 @@ import CakeAgentLib
 
  */
 
-struct EmbedProvisionProfile: Decodable {
-	var name: String
-	var appIDName: String
-	var platform: [String]
-	var isXcodeManaged: Bool? = false
-	var creationDate: Date
-	var expirationDate: Date
-	var entitlements: Entitlements
+public struct EmbedProvisionProfile: Decodable {
+	public var name: String
+	public var appIDName: String
+	public var platform: [String]
+	public var isXcodeManaged: Bool? = false
+	public var creationDate: Date
+	public var expirationDate: Date
+	public var entitlements: Entitlements
 
 	private enum CodingKeys: String, CodingKey {
 		case name = "Name"
@@ -44,12 +44,12 @@ struct EmbedProvisionProfile: Decodable {
 	}
 
 	// Sublevel: decode entitlements informations
-	struct Entitlements: Decodable {
-		let keychainAccessGroups: [String]
-		let getTaskAllow: Bool
-		let apsEnvironment: Environment
-		let vmNetworking: Bool
-		let securityVirtualization: Bool
+	public struct Entitlements: Decodable {
+		public let keychainAccessGroups: [String]
+		public let getTaskAllow: Bool
+		public let apsEnvironment: Environment
+		public let vmNetworking: Bool
+		public let securityVirtualization: Bool
 
 		private enum CodingKeys: String, CodingKey {
 			case keychainAccessGroups = "keychain-access-groups"
@@ -59,11 +59,11 @@ struct EmbedProvisionProfile: Decodable {
 			case securityVirtualization = "com.apple.security.virtualization"
 		}
 
-		enum Environment: String, Decodable {
+		public enum Environment: String, Decodable {
 			case development, production, disabled
 		}
 
-		init(keychainAccessGroups: [String], getTaskAllow: Bool, apsEnvironment: Environment, vmNetworking: Bool, securityVirtualization: Bool) {
+		public init(keychainAccessGroups: [String], getTaskAllow: Bool, apsEnvironment: Environment, vmNetworking: Bool, securityVirtualization: Bool) {
 			self.keychainAccessGroups = keychainAccessGroups
 			self.getTaskAllow = getTaskAllow
 			self.apsEnvironment = apsEnvironment
@@ -71,14 +71,14 @@ struct EmbedProvisionProfile: Decodable {
 			self.securityVirtualization = securityVirtualization
 		}
 
-		init(from decoder: Decoder) throws {
+		public init(from decoder: Decoder) throws {
 			let container = try decoder.container(keyedBy: CodingKeys.self)
 
 			let keychainAccessGroups = try container.decodeIfPresent([String].self, forKey: .keychainAccessGroups)
 			let getTaskAllow = try container.decodeIfPresent(Bool.self, forKey: .getTaskAllow)
 			let apsEnvironment = try container.decodeIfPresent(Environment.self, forKey: .apsEnvironment)
-			let vmNetworking = try container.decodeIfPresent(Bool.self, forKey: .apsEnvironment)
-			let securityVirtualization = try container.decodeIfPresent(Bool.self, forKey: .vmNetworking)
+			let vmNetworking = try container.decodeIfPresent(Bool.self, forKey: .vmNetworking)
+			let securityVirtualization = try container.decodeIfPresent(Bool.self, forKey: .securityVirtualization)
 
 			self.init(keychainAccessGroups: keychainAccessGroups ?? [], getTaskAllow: getTaskAllow ?? false, apsEnvironment: apsEnvironment ?? .disabled, vmNetworking: vmNetworking ?? false, securityVirtualization: securityVirtualization ?? false)
 		}
@@ -88,14 +88,22 @@ struct EmbedProvisionProfile: Decodable {
 // Factory methods
 extension EmbedProvisionProfile {
 	// Read mobileprovision file embedded in app.
-	static func load() throws -> EmbedProvisionProfile? {
+	public static func load() throws -> EmbedProvisionProfile? {
 		let mainBundle = Bundle.main
 
 		guard let path = mainBundle.url(forResource: "embedded", withExtension: "provisionprofile") else {
-			let local = mainBundle.bundleURL.appendingPathComponent("Contents").appendingPathComponent("embedded.provisionprofile")
-
-			if FileManager.default.fileExists(atPath: local.path) {
-				return try load(local)
+			if mainBundle.bundlePath.hasSuffix("PlugIns") {
+				let local = mainBundle.bundleURL.appendingPathComponent("../embedded.provisionprofile").absoluteURL
+				
+				if FileManager.default.fileExists(atPath: local.path) {
+					return try load(local)
+				}
+			} else {
+				let local = mainBundle.bundleURL.appendingPathComponent("Contents").appendingPathComponent("embedded.provisionprofile")
+				
+				if FileManager.default.fileExists(atPath: local.path) {
+					return try load(local)
+				}
 			}
 
 			return nil
@@ -105,7 +113,7 @@ extension EmbedProvisionProfile {
 	}
 
 	// Read a .mobileprovision file on disk
-	static func load(_ profilePath: URL) throws -> EmbedProvisionProfile? {
+	public static func load(_ profilePath: URL) throws -> EmbedProvisionProfile? {
 		guard let plistDataString = String(data: try Data(contentsOf: profilePath), encoding: .isoLatin1) else {
 			return nil
 		}
@@ -122,6 +130,10 @@ extension EmbedProvisionProfile {
 		guard let plist = extractedPlist.appending("</plist>").data(using: .isoLatin1) else { return nil }
 		let decoder = PropertyListDecoder()
 
+#if DEBUG
+		print(String(data: plist, encoding: .utf8) ?? "Unable to decode plist as UTF-8 string")
+#endif
+
 		do {
 			return try decoder.decode(EmbedProvisionProfile.self, from: plist)
 		} catch {
@@ -130,3 +142,4 @@ extension EmbedProvisionProfile {
 		}
 	}
 }
+
