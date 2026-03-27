@@ -6,6 +6,7 @@ import GRPC
 import GRPCLib
 import NIO
 import CakeAgentLib
+import CakedLib
 import Logging
 
 struct CommonOptions: ParsableArguments {
@@ -50,11 +51,28 @@ struct Root: ParsableCommand {
 		return sigintSrc
 	}()
 
+	private static func discussion() -> String {
+		let vmNetworking: Bool
+
+		#if XDEBUG
+		print("wait for attachement of the debugger (lldb attach \(getpid())) and press enter to continue...")
+		_ = readLine()
+		#endif
+
+		if let profile = try? EmbedProvisionProfile.load() {
+			vmNetworking = profile.entitlements.vmNetworking
+		} else {
+			vmNetworking = false
+		}
+
+		return "Caked \(CI.version) - Hypervisor running VM on macOS with a focus on security, performance and integration, with vmnet networking: \(vmNetworking)"
+	}
+
 	nonisolated(unsafe)
 	static var configuration = CommandConfiguration(
 			commandName: "\(Home.cakedCommandName)",
 			usage: "\(Home.cakedCommandName) <subcommand>",
-			discussion: "\(Home.cakedCommandName) is an hypervisor running VM",
+			discussion: discussion(),
 			version: CI.version,
 			subcommands: [
 				Build.self,
