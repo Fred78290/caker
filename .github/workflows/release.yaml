@@ -23,6 +23,7 @@ env:
   RUN_PYTEST: false
   #PATH: "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:${{ github.workspace }}/.bin"
   CAKE_HOME: "${{ github.workspace }}/.cake"
+  PKGDIR: "${{ github.workspace }}/.ci/pkg/Caker.app"
 jobs:
   build:
     if: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
@@ -143,14 +144,14 @@ jobs:
       - name: Run tests
         run: |
           # Run tests for the Swift package
-          export PATH=${GITHUB_WORKSPACE}/dist/Caker.app/Contents/PlugIns:$PATH
+          export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:$PATH
           swift test|grep -v Compiling|grep -v CoreData
 
       - name: Run integration tests
         if: steps.check.outputs.run_pytest == 'true'
         run: |
           # Run tests for the Swift package
-          export PATH=${GITHUB_WORKSPACE}/dist/Caker.app/Contents/PlugIns:$PATH
+          export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:$PATH
           if [ -z "$(command -v virtualenv)" ]; then
             brew install virtualenv
           fi

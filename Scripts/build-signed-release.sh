@@ -6,7 +6,7 @@ set -e
 
 pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
 CURDIR="${PWD}"
-PKGDIR="${CURDIR}/dist/Caker.app"
+PKGDIR="${PKGDIR:-${CURDIR}/dist/Caker.app}"
 popd > /dev/null
 
 if [ -f ${CURDIR}/.env ]; then
