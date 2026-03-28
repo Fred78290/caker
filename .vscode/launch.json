@@ -782,6 +782,26 @@
 			"target": "cakectl",
 			"configuration": "release",
 			"preLaunchTask": "swift: Build Release cakectl"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Debug Caker",
+			"target": "Caker",
+			"configuration": "debug",
+			"preLaunchTask": "swift: Build Debug Caker"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Release Caker",
+			"target": "Caker",
+			"configuration": "release",
+			"preLaunchTask": "swift: Build Release Caker"
 		}
 	]
 }
