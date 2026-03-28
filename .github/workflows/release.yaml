@@ -132,9 +132,13 @@ jobs:
           cd qcow2convert
           ./build.sh
 
+      - name: Install the Apple certificate and provisioning profile
+        run: |
+          ./.ci/setup-keychain.sh ${RUNNER_TEMP}/app-signing.keychain-db
+  
       - name: Build Swift package
         run: |
-          ./Scripts/build-signed-release.sh
+          ./Scripts/build-signed-release.sh ${RUNNER_TEMP}/app-signing.keychain-db
  
       - name: Run tests
         run: |
@@ -156,11 +160,6 @@ jobs:
           pip install -r requirements.txt
           pytest --verbose --junit-xml=pytest-junit.xml
 
-      - name: Install the Apple certificate and provisioning profile
-        if: steps.version.outputs.build_package == 'true'
-        run: |
-          ./.ci/setup-keychain.sh ${RUNNER_TEMP}/app-signing.keychain-db
-  
       - name: package
         if: steps.version.outputs.build_package == 'true'
         run: |
@@ -198,6 +197,6 @@ jobs:
           ./Scripts/publish-wiki.sh "${OWNER}" "${REPO}"
 
       - name: Clean up keychain and provisioning profile
-        if: steps.version.outputs.build_package == 'true'
+        if: always()
         run: |
           security delete-keychain ${RUNNER_TEMP}/app-signing.keychain-db

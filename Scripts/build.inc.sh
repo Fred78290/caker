@@ -33,7 +33,7 @@ envsubst < "${CURDIR}/Resources/Info.plist" > "${PKGDIR}/Contents/Info.plist"
 
 if [ -n "${RELEASE}" ] && [ -n "${TEAM_ID}" ]; then
 	echo "Build and sign release binaries for version ${VERSION_TAG}, team ID ${TEAM_ID}"
-	codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
 		--options runtime \
 		--preserve-metadata\=identifier,entitlements,flags \
 		--entitlements Resources/release.entitlements \
@@ -45,13 +45,13 @@ if [ -n "${RELEASE}" ] && [ -n "${TEAM_ID}" ]; then
 		--entitlements Resources/release.entitlements \
 		--force "${PKGDIR}/Contents/PlugIns/cakectl"
 
-	codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
 		--options runtime \
 		--preserve-metadata\=identifier,entitlements,flags \
 		--entitlements Resources/release.entitlements \
 		--force "${PKGDIR}/Contents/MacOS/Caker"
 
-	codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
 		--options runtime \
 		--entitlements Resources/release.entitlements \
 		--force "${PKGDIR}"
