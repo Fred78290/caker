@@ -58,7 +58,9 @@ Quick command reference for common daily operations.
   - `caked certificates get`
   - `caked certificates generate`
 - Service mode:
-  - `caked service ...`
+  - `caked service listen --secure`
+  - `caked service status`
+  - `caked service stop`
 
 ## Useful global options
 
@@ -70,8 +72,8 @@ Quick command reference for common daily operations.
 
 ## Docs links
 
-- Detailed command groups: [Command Summary](Command-Summary)
-- Troubleshooting: [Troubleshooting](Troubleshooting)
+- Detailed command groups: [Command Summary](command-summary)
+- Troubleshooting: [Troubleshooting](troubleshooting)
 
 ## Real workflows
 

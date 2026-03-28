@@ -20,14 +20,14 @@ Contributor guide: [CONTRIBUTING.md](https://github.com/Fred78290/caker/blob/mai
 
 ## Quick links
 
-- [Getting Started](Getting-Started)
-- [Architecture](Architecture)
-- [Development](Development)
-- [Troubleshooting](Troubleshooting)
-- [FAQ](FAQ)
-- [Release Notes](Release-Notes)
-- [Command Summary](Command-Summary)
-- [Cheat Sheet](Cheat-Sheet)
+- [Getting Started](getting-started)
+- [Architecture](architecture)
+- [Development](development)
+- [Troubleshooting](troubleshooting)
+- [FAQ](faq)
+- [Release Notes](release-notes)
+- [Command Summary](command-summary)
+- [Cheat Sheet](cheat-sheet)
 
 ## Repository map
 
