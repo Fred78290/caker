@@ -26,7 +26,7 @@ pkgbuild --root "${PKGDIR}" \
 		--version ${VERSION_TAG} \
 		--scripts "${PKGDIR}/scripts" \
 		--install-location "/Applications" \
-		--sign "Developer ID Installer: Frederic BOLTZ (${TEAM_ID})" \
+		--sign "Developer ID Installer: ${DEVELOPER_ID}" \
 		${KEYCHAIN_OPTIONS} \
 		"${CURDIR}/Caker-${VERSION_TAG}.pkg"
 

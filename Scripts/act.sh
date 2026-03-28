@@ -8,5 +8,5 @@ act push --workflows "${CURDIR}/.github/workflows/release.yaml" \
 	--secret-file "${CURDIR}/.env"\
 	--var-file "${CURDIR}/.vars" \
 	--platform self-hosted="-self-hosted" \
-	--eventpath "${CURDIR}/payload.json" \
+	--eventpath "${CURDIR}/act.json" \
 	--local-repository "https://github.com/Fred78290/caker@snapshot=${CURDIR}"

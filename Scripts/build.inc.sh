@@ -31,30 +31,71 @@ cp -c "${CURDIR}/Resources/Caker.provisionprofile" "${PKGDIR}/Contents/embedded.
 
 envsubst < "${CURDIR}/Resources/Info.plist" > "${PKGDIR}/Contents/Info.plist"
 
-if [ -n "${RELEASE}" ] && [ -n "${TEAM_ID}" ]; then
-	echo "Build and sign release binaries for version ${VERSION_TAG}, team ID ${TEAM_ID}"
-	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
-		--options runtime \
-		--preserve-metadata\=identifier,entitlements,flags \
-		--entitlements Resources/release.entitlements \
-		--force "${PKGDIR}/Contents/PlugIns/caked"
+if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
+	echo "Build and sign release binaries for version ${VERSION_TAG}, developer ID ${DEVELOPER_ID}"
 
-	codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
-		--options runtime \
-		--preserve-metadata\=identifier,entitlements,flags \
-		--entitlements Resources/release.entitlements \
-		--force "${PKGDIR}/Contents/PlugIns/cakectl"
+	if [ -n "${CODESIGN_REQUIREMENT}" ]; then
+		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/caked/)
+		echo "Using custom code signing requirement: ${REQUIREMENTS}"
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--timestamp \
+			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements Resources/release.entitlements \
+			--requirement="${REQUIREMENTS}" \
+			--force "${PKGDIR}/Contents/PlugIns/caked"
 
-	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
-		--options runtime \
-		--preserve-metadata\=identifier,entitlements,flags \
-		--entitlements Resources/release.entitlements \
-		--force "${PKGDIR}/Contents/MacOS/Caker"
+		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/cakectl/)
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--timestamp \
+			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements Resources/release.entitlements \
+			--requirement="${REQUIREMENTS}" \
+			--force "${PKGDIR}/Contents/PlugIns/cakectl"
 
-	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" \
-		--options runtime \
-		--entitlements Resources/release.entitlements \
-		--force "${PKGDIR}"
+		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--timestamp \
+			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements Resources/release.entitlements \
+			--requirement="${REQUIREMENTS}" \
+			--force "${PKGDIR}/Contents/MacOS/Caker"
+
+		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--timestamp \
+			--entitlements Resources/release.entitlements \
+			--requirement="${REQUIREMENTS}" \
+			--force "${PKGDIR}"
+	else
+		echo "Warning: CODESIGN_REQUIREMENT not set, skipping requirement check for code signing"
+
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements Resources/release.entitlements \
+			--force "${PKGDIR}/Contents/PlugIns/caked"
+
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements Resources/release.entitlements \
+			--force "${PKGDIR}/Contents/PlugIns/cakectl"
+
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements Resources/release.entitlements \
+			--force "${PKGDIR}/Contents/MacOS/Caker"
+
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--entitlements Resources/release.entitlements \
+			--force "${PKGDIR}"
+	fi
 else
 	echo "Build unsigned debug binaries"
 	codesign --sign - --entitlements Resources/dev.entitlements --force "${PKGDIR}/Contents/PlugIns/caked"

@@ -1,20 +1,21 @@
 #!/bin/bash
 set -e
 
-VERSION=${VERSION_TAG:=SNAPSHOT}
-set -ex
+SNAPSHOT=$(git rev-parse --short=8 HEAD)
+VERSION_TAG=${VERSION_TAG:=SNAPSHOT-$SNAPSHOT}
+
 pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
 CURDIR=${PWD}
 PKGDIR=${CURDIR}/.ci/pkg/Caker.app
 DMGDIR=${CURDIR}/.ci/dmg
-DMGFILE=${CURDIR}/Caker-${VERSION}.dmg
+DMGFILE=${CURDIR}/Caker-${VERSION_TAG}.dmg
 popd > /dev/null
 
 if [ -f ${CURDIR}/.env ]; then
 	source ${CURDIR}/.env
 fi
 
-echo "Creating DMG for version ${VERSION}"
+echo "Creating DMG for version ${VERSION_TAG}, developer ID ${DEVELOPER_ID}"
 
 # Vérifier que l'application existe
 if [ ! -d "${PKGDIR}" ]; then
@@ -37,21 +38,15 @@ cp -R "${PKGDIR}" "${DMGDIR}/"
 echo "Creating symbolic link to Applications..."
 ln -sf /Applications "${DMGDIR}/Applications"
 
-# Signer l'application dans le dossier DMG (re-signature pour s'assurer que tout est correct)
-#if [ -n "${TEAM_ID}" ]; then
-#	echo "Code signing Caker.app..."
-#	codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" --options runtime --entitlements Resources/release.entitlements --force --deep "${DMGDIR}/Caker.app"
-#fi
-
 # Créer un DMG temporaire en lecture/écriture
 echo "Creating temporary DMG..."
 TEMP_DMG="${DMGFILE}.temp.dmg"
-hdiutil create -srcfolder "${DMGDIR}" -volname "Caker ${VERSION}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size 400m "${TEMP_DMG}"
+hdiutil create -srcfolder "${DMGDIR}" -volname "Caker ${VERSION_TAG}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size 600m "${TEMP_DMG}"
 
 # Monter le DMG temporaire
 echo "Mounting temporary DMG..."
 DEVICE=$(hdiutil attach -readwrite -noverify -noautoopen "${TEMP_DMG}" | egrep '^/dev/' | sed 1q | awk '{print $1}')
-MOUNT_POINT="/Volumes/Caker ${VERSION}"
+MOUNT_POINT="/Volumes/Caker ${VERSION_TAG}"
 
 # Attendre que le montage soit prêt
 sleep 2
@@ -71,7 +66,7 @@ fi
 echo "Configuring DMG appearance..."
 osascript <<EOF
 tell application "Finder"
-    tell disk "Caker ${VERSION}"
+    tell disk "Caker ${VERSION_TAG}"
         open
         set current view of container window to icon view
         set toolbar visible of container window to false
@@ -105,9 +100,9 @@ hdiutil convert "${TEMP_DMG}" -format UDZO -imagekey zlib-level=9 -o "${DMGFILE}
 rm -f "${TEMP_DMG}"
 
 # Signer le DMG si possible
-if [ -n "${TEAM_ID}" ]; then
+if [ -n "${DEVELOPER_ID}" ]; then
 	echo "Code signing DMG..."
-	codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" --options runtime --force "${DMGFILE}"
+	codesign --sign "Developer ID Application: ${DEVELOPER_ID}" --options runtime --force "${DMGFILE}"
 fi
 
 # Notariser le DMG si nécessaire
