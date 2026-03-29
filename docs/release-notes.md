@@ -106,7 +106,7 @@ nav_order: 8
 ## How to update this wiki
 
 1. Edit pages in the local `wiki/` directory.
-2. Review changes and keep navigation in sync (`Home.md` and `_Sidebar.md`).
+2. Review changes and keep navigation in sync (`home.md` and `_sidebar.md`).
 3. (Optional) Create a dated release note entry automatically with:
 	- `./Scripts/new-wiki-release-entry.sh`
 	- or `./Scripts/new-wiki-release-entry.sh YYYY-MM-DD`
