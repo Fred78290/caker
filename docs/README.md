@@ -99,12 +99,11 @@ git push
 
 ### Content Conversion
 
-The sync process automatically:
+The sync process currently:
 - Adds Jekyll frontmatter to each page
-- Converts wiki-style links to docs-style links
-- Updates image references for proper GitHub Pages paths
-- Maintains proper navigation order
+- Replaces specific wiki icon paths with their docs equivalents
 
+Additional conversions (such as general wiki-style links, image paths, or navigation ordering) should be handled manually or by future tooling.
 ## Theme and Customization
 
 The site uses the `minima` theme. To customize:
