@@ -106,9 +106,9 @@ The sync process currently:
 Additional conversions (such as general wiki-style links, image paths, or navigation ordering) should be handled manually or by future tooling.
 ## Theme and Customization
 
-The site uses the `minima` theme. To customize:
+The site uses the `pages-themes/architect` remote theme (`remote_theme: pages-themes/architect@v0.2.0`). To customize:
 
-1. Override theme files by creating them locally
+1. Override theme files by creating them locally (e.g. `_layouts/`, `_includes/`)
 2. Modify `_config.yml` for site-wide settings
 3. Add custom CSS in `assets/css/style.scss`
 
