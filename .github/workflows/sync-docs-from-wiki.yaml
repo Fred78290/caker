@@ -49,9 +49,19 @@ jobs:
             echo "sync_needed=true" >> $GITHUB_OUTPUT
             exit 0
           fi
+
+          # Determine the range of commits for this run (full push range when available)
+          BEFORE_SHA="${{ github.event.before }}"
+          AFTER_SHA="${{ github.sha }}"
+          if [[ -n "$BEFORE_SHA" && "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]]; then
+            DIFF_RANGE="$BEFORE_SHA..$AFTER_SHA"
+          else
+            # Fallback for initial pushes or non-push events: diff the latest commit only
+            DIFF_RANGE="$AFTER_SHA"
+          fi
           
-          # Check if there are actual changes to wiki files in the last commit
-          WIKI_CHANGES=$(git diff --name-only HEAD~1 HEAD | grep -E "^wiki/" || true)
+          # Check if there are actual changes to wiki files in the computed commit range
+          WIKI_CHANGES=$(git diff --name-only "$DIFF_RANGE" | grep -E "^wiki/" || true)
           
           if [[ -n "$WIKI_CHANGES" ]]; then
             echo "Wiki changes detected:"
