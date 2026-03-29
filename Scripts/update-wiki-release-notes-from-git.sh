@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RELEASE_NOTES_FILE="${ROOT_DIR}/wiki/Release-Notes.md"
+RELEASE_NOTES_FILE="${ROOT_DIR}/wiki/release-notes.md"
 BRANCH_NAME="${1:-$(git -C "${ROOT_DIR}" rev-parse --abbrev-ref HEAD)}"
 DATE_VALUE="${2:-$(date +%F)}"
 MAX_COMMITS="${MAX_COMMITS:-20}"
