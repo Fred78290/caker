@@ -80,7 +80,7 @@ The sync process automatically handles:
 
 # After (docs)
 ---
-layout: page
+layout: default
 title: Getting Started
 nav_order: 2
 ---
