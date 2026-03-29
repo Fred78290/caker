@@ -11,7 +11,7 @@ on:
       force_sync:
         description: 'Force synchronization even if no wiki changes detected'
         required: false
-        default: 'false'
+        default: false
         type: boolean
 
 permissions:
@@ -93,10 +93,10 @@ jobs:
             WIKI_CHANGES=$(git diff --name-only HEAD~1 HEAD | grep -E "^wiki/" | head -5 || true)
             COMMIT_MSG="docs: sync from wiki updates
 
-Updated documentation from wiki changes:
-$(echo "$WIKI_CHANGES" | sed 's/^/- /')
+            Updated documentation from wiki changes:
+            $(echo "$WIKI_CHANGES" | sed 's/^/- /')
 
-[skip ci]"
+            [skip ci]"
             git commit -m "$COMMIT_MSG"
             git push
           fi
