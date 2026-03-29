@@ -224,14 +224,16 @@ public struct VMBuilder {
 			imageURL = URL(string: options.image)!
 		}
 
+		let imageIsFile = imageURL.isFileURL || imageURL.host == nil
+
 		if sourceImage == .raw {
 			let temporaryDiskURL: URL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("tmp-disk-\(UUID().uuidString)")
 
-			if imageURL.isFileURL == false {
-				imageURL = try await CloudImageConverter.downloadRemoteFile(fromURL: imageURL, toURL: temporaryDiskURL, runMode: runMode, progressHandler: progressHandler)
-			} else {
+			if imageIsFile {
 				imageURL.resolveSymlinksInPath()
 				try FileManager.default.copyItem(at: imageURL, to: temporaryDiskURL)
+			} else {
+				imageURL = try await CloudImageConverter.downloadRemoteFile(fromURL: imageURL, toURL: temporaryDiskURL, runMode: runMode, progressHandler: progressHandler)
 			}
 
 			_ = try FileManager.default.replaceItemAt(location.diskURL, withItemAt: temporaryDiskURL)
@@ -245,7 +247,7 @@ public struct VMBuilder {
 
 			try templateLocation.copyTo(location)
 		} else if sourceImage == .qcow2 {
-			if imageURL.isFileURL {
+			if imageIsFile {
 				try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: location.diskURL, progressHandler: progressHandler)
 			} else {
 				try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
@@ -258,13 +260,13 @@ public struct VMBuilder {
 				throw ServiceError(pulled.message)
 			}
 		} else if sourceImage == .iso {
-			if imageURL.isFileURL == false {
+			if imageIsFile == false {
 				options.image = try await CloudImageConverter.downloadISO(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
 			}
 
 		} else if sourceImage == .ipsw {
 			#if arch(arm64)
-			if imageURL.isFileURL == false {
+			if imageIsFile == false {
 				options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
 			}
 			#else
