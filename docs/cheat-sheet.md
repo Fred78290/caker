@@ -64,7 +64,9 @@ Quick command reference for common daily operations.
   - `caked certificates get`
   - `caked certificates generate`
 - Service mode:
-  - `caked service ...`
+  - `caked service listen --secure`
+  - `caked service status`
+  - `caked service stop`
 
 ## Useful global options
 

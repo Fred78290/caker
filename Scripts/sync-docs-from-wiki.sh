@@ -40,14 +40,6 @@ convert_wiki_to_docs() {
   
   # Convert wiki content to docs format
   sed \
-    -e 's/\[Getting Started\](Getting-Started)/[Getting Started](getting-started)/g' \
-    -e 's/\[Architecture\](Architecture)/[Architecture](architecture)/g' \
-    -e 's/\[Development\](Development)/[Development](development)/g' \
-    -e 's/\[Troubleshooting\](Troubleshooting)/[Troubleshooting](troubleshooting)/g' \
-    -e 's/\[FAQ\](FAQ)/[FAQ](faq)/g' \
-    -e 's/\[Release Notes\](Release-Notes)/[Release Notes](release-notes)/g' \
-    -e 's/\[Command Summary\](Command-Summary)/[Command Summary](command-summary)/g' \
-    -e 's/\[Cheat Sheet\](Cheat-Sheet)/[Cheat Sheet](cheat-sheet)/g' \
     -e 's|Resources/CakedAppIcon\.png|{{ "/assets/images/CakedAppIcon.png" \| relative_url }}|g' \
     "${wiki_file}" >> "${docs_file}"
 }
@@ -56,48 +48,48 @@ convert_wiki_to_docs() {
 echo "📝 Converting wiki pages to docs format..."
 
 # Getting Started (nav_order: 2)
-if [[ -f "${WIKI_DIR}/Getting-Started.md" ]]; then
-  convert_wiki_to_docs "${WIKI_DIR}/Getting-Started.md" "${DOCS_DIR}/getting-started.md" "Getting Started" "2"
+if [[ -f "${WIKI_DIR}/getting-started.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/getting-started.md" "${DOCS_DIR}/getting-started.md" "Getting Started" "2"
 fi
 
 # Architecture (nav_order: 3)
-if [[ -f "${WIKI_DIR}/Architecture.md" ]]; then
-  convert_wiki_to_docs "${WIKI_DIR}/Architecture.md" "${DOCS_DIR}/architecture.md" "Architecture" "3"
+if [[ -f "${WIKI_DIR}/architecture.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/architecture.md" "${DOCS_DIR}/architecture.md" "Architecture" "3"
 fi
 
 # Development (nav_order: 4)
-if [[ -f "${WIKI_DIR}/Development.md" ]]; then
-  convert_wiki_to_docs "${WIKI_DIR}/Development.md" "${DOCS_DIR}/development.md" "Development" "4"
+if [[ -f "${WIKI_DIR}/development.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/development.md" "${DOCS_DIR}/development.md" "Development" "4"
 fi
 
 # Command Summary (nav_order: 5)
-if [[ -f "${WIKI_DIR}/Command-Summary.md" ]]; then
-  convert_wiki_to_docs "${WIKI_DIR}/Command-Summary.md" "${DOCS_DIR}/command-summary.md" "Command Summary" "5"
+if [[ -f "${WIKI_DIR}/command-summary.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/command-summary.md" "${DOCS_DIR}/command-summary.md" "Command Summary" "5"
 fi
 
 # Troubleshooting (nav_order: 6)
-if [[ -f "${WIKI_DIR}/Troubleshooting.md" ]]; then
-  convert_wiki_to_docs "${WIKI_DIR}/Troubleshooting.md" "${DOCS_DIR}/troubleshooting.md" "Troubleshooting" "6"
+if [[ -f "${WIKI_DIR}/troubleshooting.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/troubleshooting.md" "${DOCS_DIR}/troubleshooting.md" "Troubleshooting" "6"
 fi
 
 # FAQ (nav_order: 7)
-if [[ -f "${WIKI_DIR}/FAQ.md" ]]; then
-  convert_wiki_to_docs "${WIKI_DIR}/FAQ.md" "${DOCS_DIR}/faq.md" "FAQ" "7"
+if [[ -f "${WIKI_DIR}/faq.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/faq.md" "${DOCS_DIR}/faq.md" "FAQ" "7"
 fi
 
 # Release Notes (nav_order: 8)
-if [[ -f "${WIKI_DIR}/Release-Notes.md" ]]; then
-  convert_wiki_to_docs "${WIKI_DIR}/Release-Notes.md" "${DOCS_DIR}/release-notes.md" "Release Notes" "8"
+if [[ -f "${WIKI_DIR}/release-notes.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/release-notes.md" "${DOCS_DIR}/release-notes.md" "Release Notes" "8"
 fi
 
 # Cheat Sheet (nav_order: 9)
-if [[ -f "${WIKI_DIR}/Cheat-Sheet.md" ]]; then
-  convert_wiki_to_docs "${WIKI_DIR}/Cheat-Sheet.md" "${DOCS_DIR}/cheat-sheet.md" "Cheat Sheet" "9"
+if [[ -f "${WIKI_DIR}/cheat-sheet.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/cheat-sheet.md" "${DOCS_DIR}/cheat-sheet.md" "Cheat Sheet" "9"
 fi
 
 # Update main index page from wiki Home
-if [[ -f "${WIKI_DIR}/Home.md" ]]; then
-  echo "  📄 Updating home page from wiki Home.md"
+if [[ -f "${WIKI_DIR}/home.md" ]]; then
+  echo "  📄 Updating home page from wiki home.md"
   
   # Create updated index.md
   {
@@ -120,15 +112,7 @@ if [[ -f "${WIKI_DIR}/Home.md" ]]; then
     echo ""
     
     # Add content from wiki Home, skipping the title and initial content
-    tail -n +10 "${WIKI_DIR}/Home.md" | sed \
-      -e 's/\[Getting Started\](Getting-Started)/[Getting Started](getting-started)/g' \
-      -e 's/\[Architecture\](Architecture)/[Architecture](architecture)/g' \
-      -e 's/\[Development\](Development)/[Development](development)/g' \
-      -e 's/\[Troubleshooting\](Troubleshooting)/[Troubleshooting](troubleshooting)/g' \
-      -e 's/\[FAQ\](FAQ)/[FAQ](faq)/g' \
-      -e 's/\[Release Notes\](Release-Notes)/[Release Notes](release-notes)/g' \
-      -e 's/\[Command Summary\](Command-Summary)/[Command Summary](command-summary)/g' \
-      -e 's/\[Cheat Sheet\](Cheat-Sheet)/[Cheat Sheet](cheat-sheet)/g'
+    tail -n +10 "${WIKI_DIR}/home.md"
       
   } > "${DOCS_DIR}/index.md"
 fi

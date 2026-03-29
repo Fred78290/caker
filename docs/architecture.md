@@ -27,3 +27,14 @@ nav_order: 3
 - resource allocation
 - health monitoring
 - logging and diagnostics
+
+## Repository Structure
+
+```
+Sources/
+├── caked/          # Daemon implementation
+├── caker/          # GUI app
+├── cakectl/        # CLI client
+├── cakedlib/       # Shared libraries
+└── grpc/           # gRPC definitions and generated code
+```
