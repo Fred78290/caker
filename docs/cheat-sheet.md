@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: Cheat Sheet
 nav_order: 9
 ---

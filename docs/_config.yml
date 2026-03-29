@@ -4,8 +4,10 @@ url: https://caker.aldunelabs.com
 baseurl: ""
 
 # Theme
-theme: minima
+remote_theme: pages-themes/architect@v0.2.0
+#theme: minima
 plugins:
+  - jekyll-remote-theme
   - jekyll-feed
 
 # Site header

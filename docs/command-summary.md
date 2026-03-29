@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: Command Summary
 nav_order: 5
 ---
