@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: Getting Started
 nav_order: 2
 ---
@@ -24,7 +24,7 @@ If build scripts fail, verify:
 - signing entitlements in `Resources/`
 - local Xcode signing configuration
 
-## Core Commands
+## Core commands
 
 The project contains two principal binaries:
 

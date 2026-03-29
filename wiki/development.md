@@ -1,9 +1,3 @@
----
-layout: default
-title: Development
-nav_order: 4
----
-
 # Development
 
 ## Code organization

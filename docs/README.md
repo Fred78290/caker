@@ -1,6 +1,6 @@
 # GitHub Pages Setup for Caker
 
-This directory contains the GitHub Pages documentation site for Caker. The site is built using Jekyll and provides a comprehensive documentation experience.
+This directory contains the GitHub Pages documentation site for Caker. The site is built using Jekyll and provides a comprehensive documentation experience at **https://caker.aldunelabs.com**.
 
 ## Activating GitHub Pages
 
@@ -11,8 +11,9 @@ To activate GitHub Pages for this repository:
 3. Under "Source", select "Deploy from a branch"
 4. Choose "main" branch and "/docs" folder
 5. Click "Save"
+6. Configure your custom domain in the Pages settings (already done via CNAME file)
 
-GitHub will automatically build and deploy your site at: `https://Fred78290.github.io/caker`
+GitHub will automatically build and deploy your site at: `https://caker.aldunelabs.com`
 
 ## Local Development
 
@@ -34,13 +35,14 @@ bundle install
 bundle exec jekyll serve --baseurl=
 ```
 
-The site will be available at `http://localhost:4000/caker`
+The site will be available at `http://localhost:4000`
 
 ## File Structure
 
 ```
 docs/
 ├── _config.yml          # Jekyll configuration
+├── CNAME                # Custom domain configuration
 ├── index.md             # Home page
 ├── getting-started.md   # Getting started guide
 ├── architecture.md      # Architecture overview
@@ -54,35 +56,75 @@ docs/
     └── images/         # Images and assets
 ```
 
-## Updating Documentation
+## Syncing with Wiki
 
-1. Edit the Markdown files in this directory
-2. Commit and push changes to the `main` branch
-3. GitHub Pages will automatically rebuild the site
+The content in this directory is automatically synchronized from the `wiki/` folder when wiki changes are pushed to the main branch. The synchronization can also be triggered manually.
 
-For major structural changes, test locally first using the local development setup above.
+### Automatic Synchronization
 
+A GitHub Action automatically:
+1. Detects changes to the `wiki/` directory
+2. Converts wiki content to GitHub Pages format
+3. Commits and pushes the updates
+4. Rebuilds the GitHub Pages site
+
+### Manual Synchronization
+
+To manually sync docs from wiki changes:
+
+```bash
+# Full sync with detailed output
+./Scripts/sync-docs-from-wiki.sh
+
+# Quick sync with summary
+./Scripts/quick-sync-docs.sh
+
+# Then commit and push
+git add docs/
+git commit -m "docs: sync from wiki"
+git push
+```
+
+### When to Update
+
+**Update wiki (`wiki/`) when:**
+- Making content changes
+- Adding new documentation
+- Updating existing guides
+
+**The docs folder will automatically sync from wiki changes via:**
+- GitHub Action on push to main (if wiki files changed)
+- Manual script execution
+- GitHub Actions workflow dispatch
+
+### Content Conversion
+
+The sync process currently:
+- Adds Jekyll frontmatter to each page
+- Replaces specific wiki icon paths with their docs equivalents
+
+Additional conversions (such as general wiki-style links, image paths, or navigation ordering) should be handled manually or by future tooling.
 ## Theme and Customization
 
-The site uses the `minima` theme. To customize:
+The site uses the `pages-themes/architect` remote theme (`remote_theme: pages-themes/architect@v0.2.0`). To customize:
 
-1. Override theme files by creating them locally
+1. Override theme files by creating them locally (e.g. `_layouts/`, `_includes/`)
 2. Modify `_config.yml` for site-wide settings
 3. Add custom CSS in `assets/css/style.scss`
 
-## Syncing with Wiki
+### Custom Domain
 
-The content in this directory is based on the `wiki/` folder in the repository root. When updating documentation:
-
-1. Update files in `docs/` for GitHub Pages
-2. Update corresponding files in `wiki/` for GitHub Wiki
-3. Use the provided scripts to publish wiki changes
+The site is configured to use the custom domain `caker.aldunelabs.com`:
+- DNS should point to GitHub Pages IP addresses
+- CNAME file in this directory contains the domain name
+- GitHub Pages settings should be configured for the custom domain
 
 ## Additional Features
 
 The Jekyll site provides:
 
 - **Navigation**: Automatic sidebar navigation
+- **Search**: Built-in search functionality (theme dependent)
 - **Mobile-friendly**: Responsive design
 - **SEO**: Meta tags and structured data
 - **Syntax highlighting**: Code blocks with language support

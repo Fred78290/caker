@@ -9,16 +9,17 @@
    - Choose "main" branch and "/docs" folder
    - Click "Save"
 
-2. **Access your site**:
-   - Your documentation will be available at: `https://Fred78290.github.io/caker`
-   - It may take a few minutes for the first deployment
+2. **Custom Domain Setup**:
+   - The site is configured for the custom domain: `https://caker.aldunelabs.com`
+   - Make sure your DNS is configured to point to GitHub Pages
+   - The CNAME file is already configured
 
 ## What's Included
 
 The GitHub Pages site includes:
 - 📖 Complete documentation from the wiki
 - 🎨 Professional Jekyll theme with navigation
-- 🔍 Optional search functionality (requires additional configuration)
+- 🔍 Search functionality
 - 📱 Mobile-responsive design
 - 🔗 Cross-linking between pages
 - 💻 Syntax highlighting for code examples
@@ -34,12 +35,38 @@ bundle install
 bundle exec jekyll serve
 ```
 
-Then visit `http://localhost:4000/caker` in your browser.
+Then visit `http://localhost:4000` in your browser.
 
 ## Updating Content
 
-Simply edit the Markdown files in the `docs/` folder and push to `main`. GitHub will automatically rebuild the site.
+The documentation is **automatically synchronized** from the `wiki/` directory when you push changes to the main branch.
+
+### Workflow
+1. **Edit wiki files** in the `wiki/` directory
+2. **Commit and push** to the main branch
+3. **GitHub Action automatically:**
+   - Detects wiki changes
+   - Converts content to GitHub Pages format
+   - Commits updates to the `docs/` directory
+   - Rebuilds the GitHub Pages site
+
+### Manual Sync (if needed)
+```bash
+# Quick sync and review
+./Scripts/quick-sync-docs.sh
+
+# Full sync with detailed output  
+./Scripts/sync-docs-from-wiki.sh
+
+# Commit the changes
+git add docs/ && git commit -m "docs: sync from wiki" && git push
+```
+
+### Content Sources
+- **Primary source**: `wiki/` directory (edit these files)
+- **GitHub Pages**: `docs/` directory (auto-generated, don't edit directly)
+- **GitHub Wiki**: Published from `wiki/` using existing publish script
 
 ---
 
-*The GitHub Pages setup is complete and ready to activate!*
+*The GitHub Pages setup is complete and ready to activate at **https://caker.aldunelabs.com**!*

@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: Cheat Sheet
 nav_order: 9
 ---
@@ -8,109 +8,67 @@ nav_order: 9
 
 Quick command reference for common daily operations.
 
-{: .note }
-If the `caked` service is active, do not use `caked` directly. Use `cakectl` commands against the running service.
+> ⚠️ If the `caked` service is active, do not use `caked` directly. Use `cakectl` commands against the running service.
 
-## VM Lifecycle (`cakectl`)
+## VM lifecycle (`cakectl`)
 
-**List VMs:**
-```bash
-cakectl list
-```
+- List VMs:
+  - `cakectl list`
+- Get VM details:
+  - `cakectl infos <vm-name>`
+- Start / stop / restart:
+  - `cakectl start <vm-name>`
+  - `cakectl stop <vm-name>`
+  - `cakectl restart <vm-name>`
+- Launch a new VM:
+  - `cakectl launch ...`
 
-**Get VM details:**
-```bash
-cakectl infos <vm-name>
-```
+## Guest access (`cakectl`)
 
-**Start / stop / restart:**
-```bash
-cakectl start <vm-name>
-cakectl stop <vm-name>
-cakectl restart <vm-name>
-```
+- Run one command in guest:
+  - `cakectl exec <vm-name> -- <command> [args...]`
+- Open guest shell:
+  - `cakectl sh <vm-name>`
+- Wait for IP:
+  - `cakectl waitip <vm-name>`
 
-**Launch a new VM:**
-```bash
-cakectl launch ...
-```
+## Images and registry (`cakectl`)
 
-## Guest Access (`cakectl`)
-
-**Run one command in guest:**
-```bash
-cakectl exec <vm-name> -- <command> [args...]
-```
-
-**Open guest shell:**
-```bash
-cakectl sh <vm-name>
-```
-
-**Wait for IP:**
-```bash
-cakectl waitip <vm-name>
-```
-
-## Images and Registry (`cakectl`)
-
-**Image operations:**
-```bash
-cakectl image list <remote>
-cakectl image info <image>
-cakectl image pull <image>
-```
-
-**Registry authentication:**
-```bash
-cakectl login <host>
-cakectl logout <host>
-```
-
-**Push/pull VM images:**
-```bash
-cakectl pull <name> <image>
-cakectl push <local-name> <remote-name>
-```
+- Image list/info/pull:
+  - `cakectl image list <remote>`
+  - `cakectl image info <image>`
+  - `cakectl image pull <image>`
+- Registry auth:
+  - `cakectl login <host>`
+  - `cakectl logout <host>`
+- Push/pull VM images:
+  - `cakectl pull <name> <image>`
+  - `cakectl push <local-name> <remote-name>`
 
 ## Networks (`cakectl`)
 
-**List networks:**
-```bash
-cakectl networks list
-```
+- List networks:
+  - `cakectl networks list`
+- Inspect one network:
+  - `cakectl networks infos <network>`
+- Create/start/stop:
+  - `cakectl networks create ...`
+  - `cakectl networks start <network>`
+  - `cakectl networks stop <network>`
 
-**Inspect network:**
-```bash
-cakectl networks infos <network>
-```
+## Local daemon/admin (`caked`)
 
-**Create/start/stop:**
-```bash
-cakectl networks create ...
-cakectl networks start <network>
-cakectl networks stop <network>
-```
+- Run daemon command directly:
+  - `caked <command> ...`
+- Certificates:
+  - `caked certificates get`
+  - `caked certificates generate`
+- Service mode:
+  - `caked service listen --secure`
+  - `caked service status`
+  - `caked service stop`
 
-## Local Daemon/Admin (`caked`)
-
-**Run daemon command directly:**
-```bash
-caked <command> ...
-```
-
-**Certificates:**
-```bash
-caked certificates get
-caked certificates generate
-```
-
-**Service mode:**
-```bash
-caked service ...
-```
-
-## Useful Global Options
+## Useful global options
 
 - `cakectl --connect <address>`
 - `cakectl --disable-tls`
@@ -118,33 +76,34 @@ caked service ...
 - `caked --log-level <level>`
 - `caked --format json`
 
-## Quick Links
+## Docs links
 
 - Detailed command groups: [Command Summary](command-summary)
 - Troubleshooting: [Troubleshooting](troubleshooting)
 
-## Real Workflows
+## Real workflows
 
-### 1) Create and Start a VM
+### 1) Create and start a VM
 
-**From OCI registry:**
+from OCI registry
+
 ```bash
-cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G \
-  oci://ghcr.io/example/image:latest
+cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G oci://ghcr.io/example/image:latest
 ```
 
-**From HTTPS:**
+from https
+
 ```bash
-cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G \
-  https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
 ```
 
-**From simplestream remote:**
+from simplestream remote
+
 ```bash
 cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G ubuntu:noble
 ```
 
-### 2) Start VM, Wait for IP, Inspect Status
+### 2) Start an existing VM, wait for IP, inspect status
 
 ```bash
 cakectl start demo-vm
@@ -152,14 +111,14 @@ cakectl waitip demo-vm
 cakectl infos demo-vm
 ```
 
-### 3) Open Shell and Run Commands
+### 3) Open shell and run one command in guest
 
 ```bash
 cakectl shell demo-vm
 cakectl exec demo-vm -- uname -a
 ```
 
-### 4) Push Local VM Image to Remote Registry
+### 4) Push a local VM image to remote registry
 
 ```bash
 cakectl login ghcr.io --username <username> --password <password>
@@ -167,11 +126,10 @@ cakectl push demo-vm ghcr.io/<owner>/demo-vm:latest
 cakectl logout ghcr.io
 ```
 
-### 5) Create and Manage Shared Network
+### 5) Create and manage a shared network
 
 ```bash
-cakectl networks create --name shared-dev --mode shared \
-  --gateway 192.168.105.1 --dhcp-end 192.168.105.254 --netmask 255.255.255.0
+cakectl networks create --name shared-dev --mode shared --gateway 192.168.105.1 --dhcp-end 192.168.105.254 --netmask 255.255.255.0
 cakectl networks start shared-dev
 cakectl networks infos shared-dev
 cakectl networks stop shared-dev

@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: Command Summary
 nav_order: 5
 ---
@@ -10,15 +10,15 @@ This page summarizes the `ArgumentParser` commands implemented in:
 - `Sources/caked/Commands`
 - `Sources/cakectl/Commands`
 
-## Command Model
+## Command model
 
 - `caked` is the local daemon/hypervisor command surface.
 - `cakectl` is the gRPC client command surface.
 - Most VM/image/network operations exist on both sides with similar names.
 
-## Common Command Groups (`caked` and `cakectl`)
+## Common command groups (`caked` and `cakectl`)
 
-### VM Lifecycle and Execution
+### VM lifecycle and execution
 
 - `build` — create a VM from options.
 - `launch` — build and start a VM.
@@ -28,7 +28,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
 - `exec` / `sh` — execute commands in guest VM context.
 - `mount` / `umount` — manage VM mounts.
 
-### Images and Registries
+### Images and registries
 
 - `image` group: `list`, `info`, `pull`.
 - `pull` / `push` — transfer VM images.
@@ -41,7 +41,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
 
 - `networks` group: `infos`, `list`, `create`, `configure`, `delete`, `start`, `stop`.
 
-## `caked`-specific Commands
+## `caked`-specific commands
 
 - `certificates` group:
   - `get` — show certificate paths
@@ -56,7 +56,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
   - `restart`
   - `run` (internal)
 
-## `cakectl`-specific Commands
+## `cakectl`-specific commands
 
 - `gcd` — stream global status updates from daemon dispatcher.
 
