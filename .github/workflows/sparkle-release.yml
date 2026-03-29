@@ -1,0 +1,205 @@
+name: 🚀 Release with Sparkle
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 1.2.3)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Pre-release?'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  XCODE_VERSION: "15.4"
+  MACOS_VERSION: "15"
+
+jobs:
+  build-and-release:
+    name: 📦 Build and release
+    runs-on: macos-14
+    
+    steps:
+    - name: 🛒 Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: 🍎 Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: ${{ env.XCODE_VERSION }}
+        
+    - name: 🛠️ Install dependencies
+      run: |
+        brew install sparkle create-dmg
+        
+    - name: 📊 Detect version
+      id: version
+      run: |
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+        fi
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Detected version: $VERSION"
+        
+    - name: 🔐 Setup Sparkle keys
+      env:
+        SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
+      run: |
+        mkdir -p .sparkle
+        echo "$SPARKLE_PRIVATE_KEY" > .sparkle/sparkle_private_key.pem
+        echo "$SPARKLE_PUBLIC_KEY" > .sparkle/sparkle_public_key.pem
+        
+        # Automatic Info.plist update
+        plutil -replace SUPublicEDKey -string "$SPARKLE_PUBLIC_KEY" Caker/Caker/Info.plist
+        
+    - name: 📝 Update version
+      run: |
+        VERSION="${{ steps.version.outputs.VERSION }}"
+        plutil -replace CFBundleShortVersionString -string "$VERSION" Caker/Caker/Info.plist
+        plutil -replace CFBundleVersion -string "$VERSION" Caker/Caker/Info.plist
+        
+    - name: 🔨 Build release
+      run: |
+        chmod +x Scripts/*.sh
+        ./Scripts/build-signed-release.sh "$(pwd)"
+        
+    - name: 📦 Create DMG
+      id: dmg
+      run: |
+        VERSION="${{ steps.version.outputs.VERSION }}"
+        
+        # Find built application
+        BUILT_APP=$(find . -name "Caker.app" -type d | head -1)
+        if [[ -z "$BUILT_APP" ]]; then
+          echo "❌ Caker.app application not found"
+          exit 1
+        fi
+        
+        mkdir -p build
+        DMG_PATH="build/Caker-$VERSION.dmg"
+        
+        create-dmg \
+          --volname "Caker $VERSION" \
+          --window-pos 200 120 \
+          --window-size 800 600 \
+          --icon-size 100 \
+          --app-drop-link 600 300 \
+          --no-internet-enable \
+          "$DMG_PATH" \
+          "$BUILT_APP"
+          
+        echo "DMG_PATH=$DMG_PATH" >> $GITHUB_OUTPUT
+        echo "DMG created: $DMG_PATH"
+        
+    - name: 🔐 Sign with Sparkle
+      id: sparkle
+      run: |
+        VERSION="${{ steps.version.outputs.VERSION }}"
+        DMG_PATH="${{ steps.dmg.outputs.DMG_PATH }}"
+        
+        chmod +x Scripts/sparkle-sign-release.sh
+        ./Scripts/sparkle-sign-release.sh "$VERSION" "$DMG_PATH"
+        
+        # Extract signature from appcast file
+        SIGNATURE=$(grep -A 10 "sparkle:edSignature" appcast/appcast.xml | head -1 | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/')
+        echo "SIGNATURE=$SIGNATURE" >> $GITHUB_OUTPUT
+        
+    - name: 📋 Generate release notes
+      id: notes
+      run: |
+        VERSION="${{ steps.version.outputs.VERSION }}"
+        NOTES_FILE="release-notes.md"
+        
+        # Create release notes
+        cat > "$NOTES_FILE" << EOF
+        ## 🎉 Caker $VERSION
+        
+        New version of Caker with improvements and bug fixes.
+        
+        ### 🆕 What's New
+        - Performance improvements
+        - Bug fixes
+        - Automatic updates via Sparkle
+        
+        ### 🔧 Technical Information
+        - **Compatibility**: macOS ${{ env.MACOS_VERSION }}+
+        - **Architecture**: Apple Silicon + Intel
+        - **Signature**: Ed25519 (Sparkle)
+        - **Updates**: Automatic
+        
+        ### 📥 Installation
+        1. Download the DMG file
+        2. Open it and drag Caker to Applications
+        3. Future updates will be automatic
+        
+        EOF
+        
+        echo "NOTES_FILE=$NOTES_FILE" >> $GITHUB_OUTPUT
+        
+    - name: 📤 Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ steps.version.outputs.VERSION }}
+        name: Caker ${{ steps.version.outputs.VERSION }}
+        body_path: ${{ steps.notes.outputs.NOTES_FILE }}
+        files: ${{ steps.dmg.outputs.DMG_PATH }}
+        draft: false
+        prerelease: ${{ github.event.inputs.prerelease || false }}
+        
+    - name: 📡 Generate Custom Appcast
+      run: |
+        # Install dependencies for appcast generation
+        brew install jq
+        
+        # Make scripts executable
+        chmod +x Scripts/sparkle-generate-appcast-xml.sh
+        chmod +x Scripts/sparkle-deploy-appcast.sh
+        
+        # Generate custom XML appcast
+        ./Scripts/sparkle-generate-appcast-xml.sh --releases 10
+        
+    - name: 🌐 Deploy Appcast to GitHub Pages
+      if: github.event.inputs.prerelease != 'true'
+      run: |
+        # Configure git
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Deploy appcast automatically
+        ./Scripts/sparkle-deploy-appcast.sh --force
+        
+    - name: 🧪 Verification
+      run: |
+        VERSION="${{ steps.version.outputs.VERSION }}"
+        DMG_PATH="${{ steps.dmg.outputs.DMG_PATH }}"
+        
+        echo "✅ Build verification:"
+        echo "• Version: $VERSION"
+        echo "• DMG: $DMG_PATH ($(stat -f%z "$DMG_PATH" | numfmt --to=iec))"
+        echo "• Signature: ${{ steps.sparkle.outputs.SIGNATURE }}"
+        echo "• Release URL: https://github.com/${{ github.repository }}/releases/tag/v$VERSION"
+        
+        # Verify DMG integrity
+        hdiutil verify "$DMG_PATH"
+        
+    - name: 📊 Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: caker-release-${{ steps.version.outputs.VERSION }}
+        path: |
+          ${{ steps.dmg.outputs.DMG_PATH }}
+          appcast/
+          ${{ steps.notes.outputs.NOTES_FILE }}
+        retention-days: 90

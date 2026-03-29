@@ -37,3 +37,12 @@ __pycache__/
 .ci/dmg/
 
 *.dmg
+
+# Sparkle - Production configuration
+.sparkle/
+sparkle_private_key.pem
+sparkle_public_key.pem
+releases/
+appcast/
+*.sparkle.signature
+release-notes-*.html

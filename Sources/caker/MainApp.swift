@@ -7,6 +7,7 @@ import SwiftUI
 import SwifterSwiftUI
 import Logging
 import Security
+import Sparkle
 
 @MainActor
 func alertError(_ messageText: String, _ informativeText: String) {
@@ -105,9 +106,20 @@ struct MainApp: App {
 	
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 	
+	// Sparkle updater
+	private let updaterController: SPUStandardUpdaterController
+	
 	init() {
 		_ = try? MainAppParseArgument.parse(CommandLine.arguments)
 		self.appState = AppState.shared
+		
+		// Initialize Sparkle updater
+		self.updaterController = SPUStandardUpdaterController(
+			startingUpdater: true,
+			updaterDelegate: nil,
+			userDriverDelegate: nil
+		)
+		
 		Self.app = self
 	}
 	
@@ -249,6 +261,10 @@ struct MainApp: App {
 			.alert("Create template", isPresented: $createTemplate) {
 				CreateTemplateView()
 			}
+		}
+		
+		CommandGroup(after: .appInfo) {
+			CheckForUpdatesView(updater: updaterController.updater)
 		}
 		
 		CommandMenu("Service") {
