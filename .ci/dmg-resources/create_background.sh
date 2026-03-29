@@ -11,7 +11,7 @@ if python3 -c "import PIL" 2>/dev/null; then
     python3 create_background.py
 elif command -v convert >/dev/null 2>&1; then
     echo "Using ImageMagick to create background..."
-    magick convert -size 500x300 gradient:#f0f0f0-#e0e0e0 \
+    magick convert -size 800x400 gradient:#f0f0f0-#e0e0e0 \
             -gravity South \
 			-font /Library/Fonts/SF-Pro-Rounded-Medium.otf \
             -pointsize 24 \
@@ -24,7 +24,7 @@ else
     echo "Creating a simple background with available tools..."
     
     # Créer une image simple avec un fond uni
-    cat > background_simple.png << 'EOF'
+    cat > background.png << 'EOF'
 iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==
 EOF
     
