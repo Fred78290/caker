@@ -23,7 +23,7 @@ Available features include:
 ## Documentation
 
 - **📖 GitHub Pages**: [https://caker.aldunelabs.com](https://caker.aldunelabs.com) - Complete documentation with navigation and search
-- **📚 Local wiki**: [wiki/Home.md](wiki/Home.md) - Source wiki files
+- **📚 Local wiki**: [wiki/home.md](wiki/home.md) - Source wiki files
 
 The documentation is automatically synchronized from the `wiki/` directory to GitHub Pages when changes are pushed to the main branch.
 
