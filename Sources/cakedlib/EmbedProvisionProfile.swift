@@ -130,10 +130,6 @@ extension EmbedProvisionProfile {
 		guard let plist = extractedPlist.appending("</plist>").data(using: .isoLatin1) else { return nil }
 		let decoder = PropertyListDecoder()
 
-#if DEBUG
-		print(String(data: plist, encoding: .utf8) ?? "Unable to decode plist as UTF-8 string")
-#endif
-
 		do {
 			return try decoder.decode(EmbedProvisionProfile.self, from: plist)
 		} catch {
