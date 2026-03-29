@@ -40,7 +40,7 @@ convert_wiki_to_docs() {
   
   # Convert wiki content to docs format
   sed \
-    -e 's|Resources/CakedAppIcon\.png|{{ "/assets/images/CakedAppIcon.png" \| relative_url }}|g' \
+    -e 's|Resources/CakedAppIcon\.png|{{ "/assets/images/CakedAppIcon.png" | relative_url }}|g' \
     "${wiki_file}" >> "${docs_file}"
 }
 
