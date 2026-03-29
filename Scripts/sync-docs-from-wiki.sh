@@ -29,7 +29,7 @@ convert_wiki_to_docs() {
   # Create frontmatter
   {
     echo "---"
-    echo "layout: page"
+    echo "layout: default"
     echo "title: ${title}"
     if [[ -n "${nav_order}" ]]; then
       echo "nav_order: ${nav_order}"
@@ -94,7 +94,7 @@ if [[ -f "${WIKI_DIR}/home.md" ]]; then
   # Create updated index.md
   {
     echo "---"
-    echo "layout: home"
+    echo "layout: default"
     echo "title: Home"
     echo "nav_order: 1"
     echo "---"
