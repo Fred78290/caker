@@ -61,6 +61,11 @@ WIKI_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || echo master)"
 find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
 cp -R "${WIKI_DIR}/." .
 
+# GitHub Wiki requires _Sidebar.md (capital S) for the sidebar to be recognised
+if [[ -f "_sidebar.md" && ! -f "_Sidebar.md" ]]; then
+  mv "_sidebar.md" "_Sidebar.md"
+fi
+
 git add .
 
 if git diff --cached --quiet; then
