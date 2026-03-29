@@ -83,7 +83,7 @@ final class CloudInitTests: XCTestCase {
 
 			var networkconfig = networkConfig
 			let sharedNetAddress = try CloudInitTests.getSharedNetAddress().split(separator: ".")
-			let sharedNetAddressStr = sharedNetAddress[0] + "." + sharedNetAddress[1] + "." + sharedNetAddress[2] + ".10"
+			let sharedNetAddressStr = "\(sharedNetAddress[0]).\(sharedNetAddress[1]).\(sharedNetAddress[2]).10"
 
 			networkconfig.replace("$$Shared_Net_Address$$", with: sharedNetAddressStr)
 
@@ -159,7 +159,7 @@ final class CloudInitTests: XCTestCase {
 		}
 	}
 
-	func buildVM(name: String, image: String) async throws {
+	func buildVM(name: String, image: String, imageSource: ImageSource?) async throws {
 		var options: BuildOptions = BuildOptions()
 		let tempVMLocation: VMLocation = try VMLocation.tempDirectory(runMode: .user)
 
@@ -176,6 +176,8 @@ final class CloudInitTests: XCTestCase {
 		options.otherGroup = ["sudo"]
 		options.clearPassword = true
 		options.image = image
+		options.imageSource = imageSource
+		options.autostart = false
 		options.nested = true
 		options.autoinstall = false
 		options.suspendable = true
@@ -200,7 +202,7 @@ final class CloudInitTests: XCTestCase {
 	}
 
 	func testBuildVMWithCloudImage() async throws {
-		try await buildVM(name: noble_cloud_image, image: ubuntuCloudImage)
+		try await buildVM(name: noble_cloud_image, image: ubuntuCloudImage, imageSource: .qcow2)
 	}
 
 	func testBuildVMWithQCow2() async throws {
@@ -212,31 +214,31 @@ final class CloudInitTests: XCTestCase {
 			try? tmpQcow2.delete()
 		}
 
-		try await buildVM(name: noble_qcow2_image, image: "qcow2://\(tempLocation.path)")
+		try await buildVM(name: noble_qcow2_image, image: "qcow2://\(tempLocation.path)", imageSource: .qcow2)
 	}
 
 	func testBuildVMWithOCI() async throws {
-		try await buildVM(name: noble_oci_image, image: "ocis://ghcr.io/cirruslabs/ubuntu:latest")
+		try await buildVM(name: noble_oci_image, image: "ocis://ghcr.io/cirruslabs/ubuntu:latest", imageSource: .oci)
 	}
 
 	func testBuildVMWithContainer() async throws {
-		try await buildVM(name: noble_container_image, image: "images:ubuntu/noble/cloud")
+		try await buildVM(name: noble_container_image, image: "images:ubuntu/noble/cloud", imageSource: .stream)
 	}
 
 	func testBuildVMWithLXDContainers() async throws {
-		try await buildVM(name: noble_lxd_image, image: "ubuntu:noble")
+		try await buildVM(name: noble_lxd_image, image: "ubuntu:noble", imageSource: .stream)
 	}
 
 	func testBuildMustFail() async throws {
 		do {
-			try await buildVM(name: noble_must_fail_image, image: "zlib://devregistry.aldunelabs.com/ubuntu:latest")
+			try await buildVM(name: noble_must_fail_image, image: "zlib://devregistry.aldunelabs.com/ubuntu:latest", imageSource: nil)
 			XCTFail("Error needs to be thrown")
 		} catch {
 		}
 	}
 
 	func testLaunchVMWithCloudImage() async throws {
-		try await buildVM(name: noble_cloud_image, image: ubuntuCloudImage)
+		try await buildVM(name: noble_cloud_image, image: ubuntuCloudImage, imageSource: .qcow2)
 		let location: VMLocation = try StorageLocation(runMode: .user).find(noble_cloud_image)
 		let eventLoop = self.group.any()
 		let promise = eventLoop.makePromise(of: String.self)
@@ -276,7 +278,7 @@ final class CloudInitTests: XCTestCase {
 	}
 
 	func testCurrentStatusUpdate() async throws {
-		try await buildVM(name: noble_cloud_image, image: ubuntuCloudImage)
+		try await buildVM(name: noble_cloud_image, image: ubuntuCloudImage, imageSource: .qcow2)
 		let location: VMLocation = try StorageLocation(runMode: .user).find(noble_cloud_image)
 		let eventLoop = self.group.any()
 		let promise = eventLoop.makePromise(of: String.self)
