@@ -28,6 +28,8 @@ if [ -f "${CURDIR}/.env" ]; then
 	export DEVELOPER_ID
 	export BUILD_CERTIFICATE_BASE64
 	export CODESIGN_REQUIREMENT
+	export SPARKLE_PUBLIC_KEY
+	export SPARKLE_PRIVATE_KEY
 else
 	echo "Warning: .env file not found, using default values for environment variables"
 	if [ -z "$TEAM_ID" ] || [ -z "$APPLE_ID" ] || [ -z "$P12_PASSWORD" ] || [ -z "$KEYCHAIN_PASSWORD" ] || [ -z "$APP_PASSWORD" ]; then
