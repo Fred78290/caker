@@ -10,6 +10,8 @@ on:
       - 'docs/**'
       - 'wiki/**'
       - '.github/workflows/publish-wiki.yaml'
+      - '.github/workflows/sync-docs-from-wiki.yaml'
+      - '.github/workflows/sparkle-release.yml'
 
 env:
   BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
