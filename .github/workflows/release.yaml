@@ -24,6 +24,9 @@ env:
   #PATH: "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:${{ github.workspace }}/.bin"
   CAKE_HOME: "${{ github.workspace }}/.cake"
   PKGDIR: "${{ github.workspace }}/.ci/pkg/Caker.app"
+  NOTARYZATION: true
+  SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+  SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
 jobs:
   build:
     if: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
@@ -101,16 +104,28 @@ jobs:
           VERSION_TAG="${GITHUB_REF##*/}"
           PACKAGE=false
 
-          if [ -z "$(command -v envsubst)"]; then
-            brew install envsubst
+          if [ "${{ steps.check.outputs.install_brew }}" == "true" ]; then
+            brew install sparkle create-dmg envsubst jq
+          else
+            if [ -z "$(command -v envsubst)"]; then
+              brew install envsubst
+            fi
+            if [ -z "$(command -v jq)"]; then
+              brew install jq
+            fi
+            if [ -z "$(command -v create-dmg)"]; then
+              brew install create-dmg
+            fi
           fi
 
           if [[ "${VERSION_TAG}" == "snapshot" ]]; then
             VERSION_TAG=SNAPSHOT-$(git rev-parse --short HEAD)
             PACKAGE=true
+            RELEASE=false
           elif [[ "${VERSION_TAG}" == v* ]]; then
             VERSION_TAG="${VERSION_TAG:1}"
             PACKAGE=true
+            RELEASE=true
           fi
 
           if [ ${PACKAGE} == "true" ] && [ ${GITHUB_EVENT_NAME} != "push" ]; then
@@ -119,6 +134,8 @@ jobs:
 
           echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
           echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
+          echo "RELEASE=${RELEASE}" >> $GITHUB_ENV
+          echo "build_release=${RELEASE}" >> $GITHUB_OUTPUT
           echo "build_package=${PACKAGE}" >> $GITHUB_OUTPUT
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
 
@@ -132,21 +149,20 @@ jobs:
         run: |
           cd qcow2convert
           ./build.sh
-
       - name: Install the Apple certificate and provisioning profile
         run: |
           ./.ci/setup-keychain.sh ${RUNNER_TEMP}/app-signing.keychain-db
   
-      - name: Build Swift package
-        run: |
-          ./Scripts/build-signed-release.sh ${RUNNER_TEMP}/app-signing.keychain-db
- 
       - name: Run tests
         run: |
           # Run tests for the Swift package
           export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:$PATH
           swift test|grep -v Compiling|grep -v CoreData
 
+      - name: Build Swift package
+        run: |
+          ./Scripts/build-signed-release.sh ${RUNNER_TEMP}/app-signing.keychain-db
+ 
       - name: Run integration tests
         if: steps.check.outputs.run_pytest == 'true'
         run: |
@@ -164,8 +180,14 @@ jobs:
       - name: package
         if: steps.version.outputs.build_package == 'true'
         run: |
-          export VERSION_TAG="${GITHUB_REF##*/}"
+          export VERSION_TAG="${{ steps.version.outputs.version_tag }}"
           ./.ci/create-pkg.sh ${RUNNER_TEMP}/app-signing.keychain-db
+
+      - name: dmg
+        if: steps.version.outputs.build_package == 'true'
+        run: |
+          export VERSION_TAG="${{ steps.version.outputs.version_tag }}"
+          ./.ci/create-dmg.sh ${RUNNER_TEMP}/app-signing.keychain-db
 
       - name: "Create release"
         env:
@@ -173,9 +195,16 @@ jobs:
         if: steps.version.outputs.build_package == 'true'
         run: |
           if [ ${GITHUB_REF##*/} == "snapshot" ]; then
-            gh release create --prerelease --generate-notes --title "${VERSION_TAG}" "${VERSION_TAG}" ./.ci/Caker-${VERSION_TAG}.pkg
+            gh release create --prerelease --generate-notes \
+              --title "${VERSION_TAG}" "${VERSION_TAG}" \
+              ./.ci/pkg/Caker.app \
+              ./.ci/Caker-${VERSION_TAG}.dmg \
+              ./.ci/Caker-${VERSION_TAG}.pkg
           else
-            gh release create --generate-notes --title "${VERSION_TAG}" "${VERSION_TAG}" ./.ci/Caker-${VERSION_TAG}.pkg
+            gh release create --generate-notes --title "${VERSION_TAG}" "${VERSION_TAG}" \
+              ./.ci/pkg/Caker.app \
+              ./.ci/Caker-${VERSION_TAG}.dmg \
+              ./.ci/Caker-${VERSION_TAG}.pkg
           fi
 
       - name: "Update release notes from git log"
@@ -196,6 +225,26 @@ jobs:
           OWNER="${GITHUB_REPOSITORY%%/*}"
           REPO="${GITHUB_REPOSITORY##*/}"
           ./Scripts/publish-wiki.sh "${OWNER}" "${REPO}"
+
+      - name: 📡 Generate Custom Appcast
+        if: steps.version.outputs.build_release == 'true'
+        run: |          
+          # Make scripts executable
+          chmod +x Scripts/sparkle-generate-appcast-xml.sh
+          chmod +x Scripts/sparkle-deploy-appcast.sh
+          
+          # Generate custom XML appcast
+          ./Scripts/sparkle-generate-appcast-xml.sh --releases 10
+
+      - name: 🌐 Deploy Appcast to GitHub Pages
+        if: steps.version.outputs.build_release != 'true'
+        run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Deploy appcast automatically
+          ./Scripts/sparkle-deploy-appcast.sh --force
 
       - name: Clean up keychain and provisioning profile
         if: always()
