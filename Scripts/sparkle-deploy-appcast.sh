@@ -5,8 +5,8 @@ set -euo pipefail
 # This script deploys the generated appcast to GitHub Pages
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-PATH="$HOMEBREW_PREFIX/Caskroom/sparkle/2.9.0/bin:$PATH" # Ensure scripts are in PATH for subcommands
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+PATH="${HOMEBREW_PREFIX}/Caskroom/sparkle/2.9.0/bin:${PATH}" # Ensure scripts are in PATH for subcommands
 
 # Colors for output
 RED='\033[0;31m'
@@ -46,14 +46,14 @@ check_dependencies() {
     if [ ${#missing_deps[@]} -ne 0 ]; then
         echo -e "${RED}❌ Missing dependencies:${NC}"
         for dep in "${missing_deps[@]}"; do
-            echo "   • $dep"
+            echo "   • ${dep}"
         done
         exit 1
     fi
 }
 
 check_git_status() {
-    cd "$PROJECT_ROOT"
+    cd "${PROJECT_ROOT}"
     
     # Check if we're in a git repository
     if ! git rev-parse --git-dir &> /dev/null; then
@@ -76,7 +76,7 @@ check_git_status() {
 }
 
 check_changes() {
-    cd "$PROJECT_ROOT"
+    cd "${PROJECT_ROOT}"
     
     # Check if there are changes in docs/appcast/
     if git diff --quiet docs/appcast/; then
@@ -91,7 +91,7 @@ check_changes() {
 }
 
 show_changes() {
-    cd "$PROJECT_ROOT"
+    cd "${PROJECT_ROOT}"
     
     echo -e "${YELLOW}📊 Changes to be deployed:${NC}"
     echo
@@ -106,11 +106,11 @@ show_changes() {
     head -20 docs/appcast/appcast.xml | sed 's/^/  /'
     
     local item_count=$(grep -c '<item>' docs/appcast/appcast.xml || echo "0")
-    echo -e "${GREEN}  ... ($item_count release items total)${NC}"
+    echo -e "${GREEN}  ... (${item_count} release items total)${NC}"
 }
 
 deploy_appcast() {
-    cd "$PROJECT_ROOT"
+    cd "${PROJECT_ROOT}"
     
     echo -e "${YELLOW}🚀 Deploying appcast to GitHub Pages...${NC}"
     
@@ -127,23 +127,23 @@ deploy_appcast() {
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     local item_count=$(grep -c '<item>' docs/appcast/appcast.xml || echo "0")
     
-    git commit -m "🌐 Update Sparkle appcast - $item_count releases ($timestamp)" || {
+    git commit -m "🌐 Update Sparkle appcast - ${item_count} releases (${timestamp})" || {
         echo -e "${YELLOW}⚠️  No changes to commit${NC}"
         return 0
     }
     
     # Push to remote
     local branch="${1:-main}"
-    echo -e "${YELLOW}📤 Pushing to branch: $branch${NC}"
+    echo -e "${YELLOW}📤 Pushing to branch: ${branch}${NC}"
     
-    if git push origin "$branch"; then
+    if git push origin "${branch}"; then
         echo -e "${GREEN}✅ Successfully deployed appcast${NC}"
         
         # Show deployment URL
         echo
         echo -e "${BLUE}🌐 Appcast URLs:${NC}"
-        echo -e "   Production: ${GREEN}https://fred78290.github.io/caker/appcast/appcast.xml${NC}"
-        echo -e "   GitHub: ${GREEN}https://github.com/Fred78290/caker/blob/$branch/docs/appcast/appcast.xml${NC}"
+        echo -e "   Production: ${GREEN}https://caker.aldunelabs.com/appcast/appcast.xml${NC}"
+        echo -e "   GitHub: ${GREEN}https://github.com/Fred78290/caker/blob/${branch}/docs/appcast/appcast.xml${NC}"
     else
         echo -e "${RED}❌ Failed to push changes${NC}"
         exit 1
@@ -157,16 +157,16 @@ validate_deployment() {
     sleep 2
     
     # Try to fetch the deployed appcast
-    local appcast_url="https://fred78290.github.io/caker/appcast/appcast.xml"
+    local appcast_url="https://caker.aldunelabs.com/appcast/appcast.xml"
     
     if command -v curl &> /dev/null; then
         echo -e "${YELLOW}📡 Testing appcast URL...${NC}"
         
-        if curl -sSf "$appcast_url" > /dev/null 2>&1; then
-            echo -e "${GREEN}✅ Appcast is accessible at $appcast_url${NC}"
+        if curl -sSf "${appcast_url}" > /dev/null 2>&1; then
+            echo -e "${GREEN}✅ Appcast is accessible at ${appcast_url}${NC}"
         else
             echo -e "${YELLOW}⚠️  Appcast may not be immediately available (GitHub Pages deployment in progress)${NC}"
-            echo -e "${YELLOW}   URL: $appcast_url${NC}"
+            echo -e "${YELLOW}   URL: ${appcast_url}${NC}"
         fi
     fi
 }
@@ -208,14 +208,14 @@ main() {
     check_git_status
     
     # Check for changes unless forced
-    if [ "$force" = false ] && ! check_changes; then
+    if [ "${force}" = false ] && ! check_changes; then
         echo -e "${GREEN}✅ No deployment needed${NC}"
         exit 0
     fi
     
     show_changes
     
-    if [ "$dry_run" = true ]; then
+    if [ "${dry_run}" = true ]; then
         echo -e "${YELLOW}🔍 Dry run complete - no changes deployed${NC}"
         exit 0
     fi
@@ -224,8 +224,8 @@ main() {
     read -p "Deploy appcast to GitHub Pages? [y/N] " -n 1 -r
     echo
     
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        deploy_appcast "$branch"
+    if [[ ${REPLY} =~ ^[Yy]$ ]]; then
+        deploy_appcast "${branch}"
         validate_deployment
         echo -e "${GREEN}🎉 Appcast deployment completed!${NC}"
     else

@@ -6,9 +6,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-KEYS_DIR="$PROJECT_ROOT/.sparkle"
-PATH="$HOMEBREW_PREFIX/Caskroom/sparkle/2.9.0/bin:$PATH" # Ensure scripts are in PATH for subcommands
+PROJECT_ROOT="$(dirname "${SCRIPT_DIR}")"
+KEYS_DIR="${PROJECT_ROOT}/.sparkle"
+PATH="${HOMEBREW_PREFIX}/Caskroom/sparkle/2.9.0/bin:${PATH}" # Ensure scripts are in PATH for subcommands
 
 # Colors for output
 RED='\033[0;31m'
@@ -20,7 +20,7 @@ echo -e "${GREEN}🔐 Sparkle production configuration for Caker${NC}"
 echo
 
 # Create keys folder (ignored by git)
-mkdir -p "$KEYS_DIR"
+mkdir -p "${KEYS_DIR}"
 
 # Check if Sparkle is installed
 if ! command -v generate_keys &> /dev/null; then
@@ -38,30 +38,32 @@ if ! command -v generate_keys &> /dev/null; then
 fi
 
 # Check if keys already exist
-if [[ -f "$KEYS_DIR/sparkle_private_key.pem" && -f "$KEYS_DIR/sparkle_public_key.pem" ]]; then
+if [[ -f "${KEYS_DIR}/sparkle_private_key.pem" && -f "${KEYS_DIR}/sparkle_public_key.pem" ]]; then
     echo -e "${YELLOW}⚠️  Sparkle keys already exist${NC}"
-    echo "Keys found in: $KEYS_DIR"
+    echo "Keys found in: ${KEYS_DIR}"
     echo
     read -p "Do you want to regenerate them? (y/N): " -n 1 -r
     echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    if [[ ! ${REPLY} =~ ^[Yy]$ ]]; then
         echo -e "${GREEN}✅ Using existing keys${NC}"
         echo
         echo -e "${YELLOW}Current public key:${NC}"
-        cat "$KEYS_DIR/sparkle_public_key.pem"
+        cat "${KEYS_DIR}/sparkle_public_key.pem"
         exit 0
     fi
     
     echo -e "${YELLOW}🔄 Regenerating keys...${NC}"
-    rm -f "$KEYS_DIR/sparkle_private_key.pem" "$KEYS_DIR/sparkle_public_key.pem"
+    rm -f "${KEYS_DIR}/sparkle_private_key.pem" "${KEYS_DIR}/sparkle_public_key.pem"
+    security delete-generic-password -l "Private key for signing Sparkle updates" 2>/dev/null || true
 fi
 
 # Generate new keys
 echo -e "${GREEN}🔑 Generating new Ed25519 keys...${NC}"
-cd "$KEYS_DIR"
+cd "${KEYS_DIR}"
 
 # Use Sparkle tool to generate keys
-generate_keys
+$(generate_keys | grep <string>|sed -E 's/.*<string>(.*)<\/string>.*/\1/') > sparkle_public_key.pem
+generate_keys -x sparkle_private_key.pem
 
 # Check that keys were generated
 if [[ ! -f "sparkle_private_key.pem" || ! -f "sparkle_public_key.pem" ]]; then
@@ -78,33 +80,12 @@ echo "$(cat sparkle_public_key.pem)"
 echo
 
 # Automatically update Info.plist
-PLIST_FILE="$PROJECT_ROOT/Caker/Caker/Info.plist"
 PUBLIC_KEY="$(cat sparkle_public_key.pem)"
-
-if [[ -f "$PLIST_FILE" ]]; then
-    echo -e "${GREEN}🔄 Automatically updating Info.plist...${NC}"
-    
-    # Backup original file
-    cp "$PLIST_FILE" "$PLIST_FILE.backup"
-    
-    # Replace public key
-    if command -v plutil &> /dev/null; then
-        plutil -replace SUPublicEDKey -string "$PUBLIC_KEY" "$PLIST_FILE"
-        echo -e "${GREEN}✅ Info.plist updated with new public key${NC}"
-    else
-        # Fallback with sed if plutil is not available
-        sed -i '' "s/REPLACEME_WITH_ACTUAL_PUBLIC_KEY/$PUBLIC_KEY/g" "$PLIST_FILE"
-        echo -e "${GREEN}✅ Info.plist updated (fallback method)${NC}"
-    fi
-else
-    echo -e "${YELLOW}⚠️  Info.plist file not found: $PLIST_FILE${NC}"
-    echo "Please manually update the SUPublicEDKey value"
-fi
 
 echo
 echo -e "${GREEN}🔒 Security configuration${NC}"
-echo "• Private key: $KEYS_DIR/sparkle_private_key.pem"
-echo "• Public key: $KEYS_DIR/sparkle_public_key.pem"
+echo "• Private key: ${KEYS_DIR}/sparkle_private_key.pem"
+echo "• Public key: ${KEYS_DIR}/sparkle_public_key.pem"
 echo
 echo -e "${RED}⚠️  IMPORTANT: Never commit the private key!${NC}"
 echo "The .sparkle folder is ignored by git by default."
