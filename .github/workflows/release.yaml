@@ -116,7 +116,7 @@ jobs:
             brew install sparkle create-dmg envsubst jq libxml2
           else
             if [ -z "$(command -v envsubst)"]; then
-              brew install envsubst
+              brew install gettext
             fi
             if [ -z "$(command -v jq)"]; then
               brew install jq
