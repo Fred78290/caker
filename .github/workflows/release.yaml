@@ -27,6 +27,9 @@ env:
   NOTARYZATION: true
   SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
   SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
+
+permissions:
+  contents: write
 jobs:
   build:
     if: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
