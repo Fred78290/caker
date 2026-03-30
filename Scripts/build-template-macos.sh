@@ -51,7 +51,7 @@ sudo systemsetup -setsleep Off 2>/dev/null
 SAFARI_PID=\$!
 disown
 sleep 30
-kill -9 \$SAFARI_PID
+kill -9 \${SAFARI_PID}
 # Enable Safari's remote automation
 sudo safaridriver --enable
 # Disable screen lock

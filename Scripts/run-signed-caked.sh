@@ -1,20 +1,19 @@
 #!/bin/bash
 
-pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
-CURDIR=${PWD}
-PKGDIR=${CURDIR}/dist/Caker.app
-popd > /dev/null
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+PKGDIR="${PROJECT_ROOT}/dist/Caker.app"
 
-BUILDDIR=${CURDIR}/.build/debug
-RESOURCESDIR=${CURDIR}/Caker/Caker/Content
-ASSETS=${BUILDDIR}/assets
+BUILDDIR="${PROJECT_ROOT}/.build/debug"
+RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
+ASSETS="${BUILDDIR}/assets"
 
-[ -f *.swiftdeps ] && sudo rm -rf ${CURDIR}/.build ${CURDIR}/*.o ${CURDIR}/*.d ${CURDIR}/*.swiftdeps ${CURDIR}/*.swiftdeps~
+[ -f *.swiftdeps ] && sudo rm -rf ${PROJECT_ROOT}/.build ${PROJECT_ROOT}/*.o ${PROJECT_ROOT}/*.d ${PROJECT_ROOT}/*.swiftdeps ${PROJECT_ROOT}/*.swiftdeps~
 
 set -e
 
 /usr/bin/swift build
 
-source ${CURDIR}/Scripts/build.inc.sh
+source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 
-exec ${PKGDIR}/Contents/PlugIns/caked "$@"
+exec "${PKGDIR}/Contents/PlugIns/caked" "$@"

@@ -36,7 +36,7 @@ Common causes:
 
 ```bash
 # Using token authentication
-GH_TOKEN="$GITHUB_TOKEN" ./Scripts/publish-wiki.sh Fred78290 caker
+GH_TOKEN="${GITHUB_TOKEN}" ./Scripts/publish-wiki.sh Fred78290 caker
 
 # Using SSH authentication
 USE_SSH=1 ./Scripts/publish-wiki.sh Fred78290 caker

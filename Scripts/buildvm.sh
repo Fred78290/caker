@@ -6,22 +6,21 @@ set -e
 # Help tool to inspect the disk image
 # qemu-img convert -p -f raw -O vmdk ~/.cake/vms/opensuse/disk.img ~/Virtual\ Machines.localized/ubuntu-desktop.vmwarevm/linux.vmdk
 
-pushd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null
-CURDIR="${PWD}"
-PKGDIR="${CURDIR}/dist/Caker.app"
-popd > /dev/null
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+PKGDIR="${PROJECT_ROOT}/dist/Caker.app"
 
-BUILDDIR="${CURDIR}/.build/debug"
-RESOURCESDIR="${CURDIR}/Caker/Caker/Content"
+BUILDDIR="${PROJECT_ROOT}/.build/debug"
+RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
 
-if [ -z "$VMNAME" ]; then
+if [ -z "${VMNAME}" ]; then
     VMNAME=linux
 fi
 
 /usr/bin/swift build
 
-source "${CURDIR}/Scripts/build.inc.sh"
+source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
 DISK_SIZE=20
@@ -131,16 +130,16 @@ write_files:
 
     if test "\$(grep ^ID= /etc/os-release | cut -d= -f 2)" = "alpine"
     then
-        hostname openstack-dev-k3s-worker-\$SUFFIX
+        hostname openstack-dev-k3s-worker-\${SUFFIX}
         apk add docker
         rc-update add docker default
         service docker start
     else
       if test -n "\$(command -v hostnamectl)"
       then
-          hostnamectl set-hostname openstack-dev-k3s-worker-\$SUFFIX
+          hostnamectl set-hostname openstack-dev-k3s-worker-\${SUFFIX}
       else
-          echo "openstack-dev-k3s-worker-\$SUFFIX" > /etc/hostname
+          echo "openstack-dev-k3s-worker-\${SUFFIX}" > /etc/hostname
       fi
 
       if [ "${DOCKER}" == "YES" ]; then
@@ -189,7 +188,7 @@ packages:
 EOF
 fi
 
-COMMON_OPTIONS="--autostart --user admin --password admin --main-group=${MAINGROUP} --clear-password --display-refit --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --cloud-init=/tmp/user-data.yaml"
+COMMON_OPTIONS="--autostart --user admin --password admin --main-group=${MAINGROUP} --clear-password --display-refit --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=${HOME}/.ssh/id_rsa.pub --cloud-init=/tmp/user-data.yaml"
 NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --network=en0 --network=shared --network=host --console=file"
 NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --network=en0 --console=file"
 MOUNT_OPTIONS="--mount=~/Projects --mount=~/Downloads"

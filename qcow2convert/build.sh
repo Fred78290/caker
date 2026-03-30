@@ -1,6 +1,6 @@
 #!/bin/bash
 TMPDIR=$(mktemp -d)
-trap 'rm -rf "$TMPDIR"' EXIT
+trap 'rm -rf "${TMPDIR}"' EXIT
 pushd ${TMPDIR}
 git clone https://github.com/Fred78290/gomobile.git
 cd gomobile
@@ -9,7 +9,7 @@ go install ./cmd/gomobile
 go install ./cmd/gobind
 popd
 
-export PATH=$PATH:~/go/bin
+export PATH=${PATH}:~/go/bin
 
 rm -rf Qcow2convert.xcframework
 

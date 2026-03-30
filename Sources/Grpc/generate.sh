@@ -16,19 +16,19 @@
 set -eu
 
 here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-root="$here/.."
+root="${here}/.."
 protoc=$(which protoc)
 build_dir=$(mktemp -d)
 
 # Checkout and build the plugins.
-git clone https://github.com/grpc/grpc-swift -b "release/1.x" --depth 1 "$build_dir"
-/usr/bin/swift build --package-path "$build_dir" --product protoc-gen-swift
-/usr/bin/swift build --package-path "$build_dir" --product protoc-gen-grpc-swift
+git clone https://github.com/grpc/grpc-swift -b "release/1.x" --depth 1 "${build_dir}"
+/usr/bin/swift build --package-path "${build_dir}" --product protoc-gen-swift
+/usr/bin/swift build --package-path "${build_dir}" --product protoc-gen-grpc-swift
 
 # Grab the plugin paths.
-bin_path=$(/usr/bin/swift build --package-path "$build_dir" --show-bin-path)
-protoc_gen_swift="$bin_path/protoc-gen-swift"
-protoc_gen_grpc_swift="$bin_path/protoc-gen-grpc-swift"
+bin_path=$(/usr/bin/swift build --package-path "${build_dir}" --show-bin-path)
+protoc_gen_swift="${bin_path}/protoc-gen-swift"
+protoc_gen_grpc_swift="${bin_path}/protoc-gen-grpc-swift"
 
 # Generates gRPC by invoking protoc with the gRPC Swift plugin.
 # Parameters:
@@ -38,13 +38,13 @@ protoc_gen_grpc_swift="$bin_path/protoc-gen-grpc-swift"
 # - $4 onwards: options to forward to the plugin
 function generate_grpc {
   local proto=$1
-  local args=("--plugin=$protoc_gen_grpc_swift" "--proto_path=${2}" "--grpc-swift_out=${3}")
+  local args=("--plugin=${protoc_gen_grpc_swift}" "--proto_path=${2}" "--grpc-swift_out=${3}")
 
   for option in "${@:4}"; do
-    args+=("--grpc-swift_opt=$option")
+    args+=("--grpc-swift_opt=${option}")
   done
 
-  invoke_protoc "${args[@]}" "$proto"
+  invoke_protoc "${args[@]}" "${proto}"
 }
 
 # Generates messages by invoking protoc with the Swift plugin.
@@ -55,30 +55,30 @@ function generate_grpc {
 # - $4 onwards: options to forward to the plugin
 function generate_message {
   local proto=$1
-  local args=("--plugin=$protoc_gen_swift" "--proto_path=$2" "--swift_out=$3")
+  local args=("--plugin=${protoc_gen_swift}" "--proto_path=$2" "--swift_out=$3")
 
   for option in "${@:4}"; do
-    args+=("--swift_opt=$option")
+    args+=("--swift_opt=${option}")
   done
 
-  invoke_protoc "${args[@]}" "$proto"
+  invoke_protoc "${args[@]}" "${proto}"
 }
 
 function invoke_protoc {
   # Setting -x when running the script produces a lot of output, instead boil
   # just echo out the protoc invocations.
-  echo "$protoc" "$@"
-  "$protoc" "$@"
+  echo "${protoc}" "$@"
+  "${protoc}" "$@"
 }
 
 #- EXAMPLES -------------------------------------------------------------------
 
 function generate_service {
-  local proto="$here/service.proto"
-  local output="$root/Grpc"
+  local proto="${here}/service.proto"
+  local output="${root}/Grpc"
 
-  generate_message "$proto" "$(dirname "$proto")" "$output" "Visibility=Public"
-  generate_grpc "$proto" "$(dirname "$proto")" "$output" "Visibility=Public"
+  generate_message "${proto}" "$(dirname "${proto}")" "${output}" "Visibility=Public"
+  generate_grpc "${proto}" "$(dirname "${proto}")" "${output}" "Visibility=Public"
 
   /usr/bin/swift build --target GRPCLib
 }

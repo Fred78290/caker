@@ -81,7 +81,7 @@ To avoid running privileged or costly automation from pull requests, workflows m
 Wiki source lives in the local `wiki/` folder.
 
 - Publish manually:
-	- `GH_TOKEN="$GITHUB_TOKEN" ./Scripts/publish-wiki.sh <owner> <repo>`
+	- `GH_TOKEN="${GITHUB_TOKEN}" ./Scripts/publish-wiki.sh <owner> <repo>`
 	- or `USE_SSH=1 ./Scripts/publish-wiki.sh <owner> <repo>`
 - Add release notes entry template quickly:
 	- `./Scripts/new-wiki-release-entry.sh`

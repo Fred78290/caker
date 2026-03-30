@@ -1,13 +1,14 @@
 #!/bin/bash
-CURDIR=$1
+PROJECT_ROOT=$1
 
-PKGDIR=${CURDIR}/dist/Caker.app
-BUILDDIR="${CURDIR}/.build/debug"
-RESOURCESDIR="${CURDIR}/Caker/Caker/Content"
+PKGDIR="${PROJECT_ROOT}/dist/Caker.app"
+BUILDDIR="${PROJECT_ROOT}/.build/debug"
+RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
-SNAPSHOT=$(git rev-parse --short=8 HEAD)
+SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
+SPARKLE_PUBLIC_KEY=$(cat "${PROJECT_ROOT}/.sparkle/sparkle_public_key.pem" | tr -d '\n')
 
-export VERSION_TAG=${VERSION_TAG:=SNAPSHOT-$SNAPSHOT}
+export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 
 /usr/bin/swift build -Xswiftc -diagnostic-style=llvm
 
@@ -39,7 +40,9 @@ cp -c "${RESOURCESDIR}/Document.icns" "${PKGDIR}/Contents/Resources/Document.icn
 cp -c "${RESOURCESDIR}/MenuBarIcon.png" "${PKGDIR}/Contents/Resources/MenuBarIcon.png"
 cp -c "${ASSETS}/AppIcon.icns" "${PKGDIR}/Contents/Resources/AppIcon.icns"
 cp -c "${ASSETS}/Assets.car" "${PKGDIR}/Contents/Resources/Assets.car"
-cp -c "${CURDIR}/Resources/Icons/"*.png "${PKGDIR}/Contents/Resources/Icons"
-cp -c "${CURDIR}/Resources/Caker.provisionprofile" "${PKGDIR}/Contents/embedded.provisionprofile"
+cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${PKGDIR}/Contents/Resources/Icons"
+cp -c "${PROJECT_ROOT}/Resources/Caker.provisionprofile" "${PKGDIR}/Contents/embedded.provisionprofile"
 
-envsubst < "${CURDIR}/Resources/Info.plist" > "${PKGDIR}/Contents/Info.plist"
+plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" "${PKGDIR}/Contents/Info.plist"
+plutil -replace CFBundleShortVersionString -string "$(echo ${VERSION} | awk -F '[.-]' '{print tolower($1)}')" "${PKGDIR}/Contents/Info.plist"
+plutil -replace CFBundleVersion -string "${VERSION}" "${PKGDIR}/Contents/Info.plist"

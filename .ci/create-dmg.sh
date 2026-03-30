@@ -1,18 +1,18 @@
 #!/bin/bash
 set -e
 
-SNAPSHOT=$(git rev-parse --short=8 HEAD)
-VERSION_TAG=${VERSION_TAG:=SNAPSHOT-$SNAPSHOT}
+SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
+VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 NOTARYZATION=${NOTARYZATION:=false}
 
-pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
-CURDIR="${PWD}"
-PKGDIR="${PKGDIR:-${CURDIR}/.ci/pkg/}"/Caker.app
-DMGFILE="${CURDIR}/Caker-${VERSION_TAG}.dmg"
-popd > /dev/null
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-if [ -f "${CURDIR}/.env" ]; then
-	source "${CURDIR}/.env"
+PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/}"/Caker.app
+DMGFILE="${PROJECT_ROOT}/Caker-${VERSION}.dmg"
+
+if [ -f "${PROJECT_ROOT}/.env" ]; then
+	source "${PROJECT_ROOT}/.env"
 fi
 
 if [ -n "$1" ]; then
@@ -21,7 +21,7 @@ else
 	KEYCHAIN_OPTIONS=
 fi
 
-echo "Creating DMG for version ${VERSION_TAG}, developer ID ${DEVELOPER_ID}"
+echo "Creating DMG for version ${VERSION}, developer ID ${DEVELOPER_ID}"
 
 # Vérifier que l'application existe
 if [ ! -d "${PKGDIR}" ]; then
@@ -42,7 +42,7 @@ rm -f "${DMGFILE}"
 
 # Préparer les options create-dmg
 CREATE_DMG_OPTIONS=(
-	--volname "Caker ${VERSION_TAG}"
+	--volname "Caker ${VERSION}"
 	--window-pos 200 120
 	--window-size 800 400
 	--icon-size 100
@@ -52,12 +52,12 @@ CREATE_DMG_OPTIONS=(
 )
 
 # Retirer les options pour les fichiers qui n'existent pas
-if [ -f "${CURDIR}/.ci/dmg-resources/volume.icns" ]; then
-	CREATE_DMG_OPTIONS+=("--volicon" "${CURDIR}/.ci/dmg-resources/volume.icns")
+if [ -f "${PROJECT_ROOT}/.ci/dmg-resources/volume.icns" ]; then
+	CREATE_DMG_OPTIONS+=("--volicon" "${PROJECT_ROOT}/.ci/dmg-resources/volume.icns")
 fi
 
-if [ -f "${CURDIR}/.ci/dmg-resources/background.png" ]; then
-	CREATE_DMG_OPTIONS+=("--background" "${CURDIR}/.ci/dmg-resources/background.png")
+if [ -f "${PROJECT_ROOT}/.ci/dmg-resources/background.png" ]; then
+	CREATE_DMG_OPTIONS+=("--background" "${PROJECT_ROOT}/.ci/dmg-resources/background.png")
 fi
 
 # Créer le DMG avec create-dmg

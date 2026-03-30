@@ -6,12 +6,12 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$SCRIPT_DIR"
-PATH="$HOMEBREW_PREFIX/Caskroom/sparkle/2.9.0/bin:$PATH" # Ensure scripts are in PATH for subcommands
+PROJECT_ROOT="${SCRIPT_DIR}"
+PATH="${HOMEBREW_PREFIX}/Caskroom/sparkle/2.9.0/bin:${PATH}" # Ensure scripts are in PATH for subcommands
 
 # Load configuration
-if [[ -f "$PROJECT_ROOT/sparkle.conf" ]]; then
-    source "$PROJECT_ROOT/sparkle.conf"
+if [[ -f "${PROJECT_ROOT}/sparkle.conf" ]]; then
+    source "${PROJECT_ROOT}/sparkle.conf"
 fi
 
 # Colors for output
@@ -75,20 +75,20 @@ log() {
     shift
     local message="$*"
     
-    case "$level" in
-        "info")  echo -e "${BLUE}ℹ️  $message${NC}" ;;
-        "ok")    echo -e "${GREEN}✅ $message${NC}" ;;
-        "warn")  echo -e "${YELLOW}⚠️  $message${NC}" ;;
-        "error") echo -e "${RED}❌ $message${NC}" ;;
-        "step")  echo -e "${PURPLE}🔹 $message${NC}" ;;
+    case "${level}" in
+        "info")  echo -e "${BLUE}ℹ️  ${message}${NC}" ;;
+        "ok")    echo -e "${GREEN}✅ ${message}${NC}" ;;
+        "warn")  echo -e "${YELLOW}⚠️  ${message}${NC}" ;;
+        "error") echo -e "${RED}❌ ${message}${NC}" ;;
+        "step")  echo -e "${PURPLE}🔹 ${message}${NC}" ;;
     esac
 }
 
 # Automatically detect version
 detect_version() {
     if [[ -n "${SPARKLE_VERSION:-}" ]]; then
-        echo "$SPARKLE_VERSION"
-    elif command -v git &> /dev/null && [[ -d "$PROJECT_ROOT/.git" ]]; then
+        echo "${SPARKLE_VERSION}"
+    elif command -v git &> /dev/null && [[ -d "${PROJECT_ROOT}/.git" ]]; then
         if git describe --tags --exact-match 2>/dev/null; then
             git describe --tags --exact-match | sed 's/^v//'
         else
@@ -128,7 +128,7 @@ cmd_setup() {
     fi
     
     # Generate keys
-    "$PROJECT_ROOT/Scripts/sparkle-generate-keys.sh"
+    "${PROJECT_ROOT}/Scripts/sparkle-generate-keys.sh"
     
     # Check configuration
     cmd_status
@@ -142,23 +142,23 @@ cmd_setup() {
 
 # Générer les clés
 cmd_keys() {
-    "$PROJECT_ROOT/Scripts/sparkle-generate-keys.sh"
+    "${PROJECT_ROOT}/Scripts/sparkle-generate-keys.sh"
 }
 
 # Show configuration
 cmd_config() {
     log step "Current Sparkle configuration"
     echo
-    echo "📁 Project: $PROJECT_ROOT"
+    echo "📁 Project: ${PROJECT_ROOT}"
     echo "📱 App: ${APP_NAME:-Caker}"
     echo "📦 Bundle ID: ${BUNDLE_ID:-com.aldunelabs.caker}"
     echo "🔗 Repository: ${GITHUB_REPO:-Fred78290/caker}"
     echo "📡 Appcast: ${APPCAST_URL:-GitHub Releases}"
     echo "🔄 Interval: ${UPDATE_CHECK_INTERVAL:-86400}s"
     echo
-    if [[ -f "$PROJECT_ROOT/.sparkle/sparkle_public_key.pem" ]]; then
+    if [[ -f "${PROJECT_ROOT}/.sparkle/sparkle_public_key.pem" ]]; then
         echo "🔑 Public key:"
-        cat "$PROJECT_ROOT/.sparkle/sparkle_public_key.pem"
+        cat "${PROJECT_ROOT}/.sparkle/sparkle_public_key.pem"
     fi
 }
 
@@ -170,7 +170,7 @@ cmd_status() {
     local status=0
     
     # Check keys
-    if [[ -f "$PROJECT_ROOT/.sparkle/sparkle_private_key.pem" && -f "$PROJECT_ROOT/.sparkle/sparkle_public_key.pem" ]]; then
+    if [[ -f "${PROJECT_ROOT}/.sparkle/sparkle_private_key.pem" && -f "${PROJECT_ROOT}/.sparkle/sparkle_public_key.pem" ]]; then
         log ok "Signing keys present"
     else
         log error "Signing keys missing"
@@ -178,8 +178,8 @@ cmd_status() {
     fi
     
     # Check Info.plist
-    if [[ -f "$PROJECT_ROOT/Caker/Caker/Info.plist" ]]; then
-        if grep -q "REPLACEME_WITH_ACTUAL_PUBLIC_KEY" "$PROJECT_ROOT/Caker/Caker/Info.plist" 2>/dev/null; then
+    if [[ -f "${PROJECT_ROOT}/Caker/Caker/Info.plist" ]]; then
+        if grep -q "REPLACEME_WITH_ACTUAL_PUBLIC_KEY" "${PROJECT_ROOT}/Caker/Caker/Info.plist" 2>/dev/null; then
             log warn "Info.plist not configured (placeholder public key)"
             status=1
         else
@@ -191,7 +191,7 @@ cmd_status() {
     fi
     
     # Check Package.swift
-    if grep -q "sparkle-project/Sparkle" "$PROJECT_ROOT/Package.swift" 2>/dev/null; then
+    if grep -q "sparkle-project/Sparkle" "${PROJECT_ROOT}/Package.swift" 2>/dev/null; then
         log ok "Sparkle dependency present in Package.swift"
     else
         log error "Sparkle dependency missing in Package.swift"
@@ -207,13 +207,13 @@ cmd_status() {
     fi
     
     echo
-    if [[ $status -eq 0 ]]; then
+    if [[ ${status} -eq 0 ]]; then
         log ok "Sparkle configuration complete and functional"
     else
         log warn "Incomplete configuration - run: ./sparkle.sh setup"
     fi
     
-    return $status
+    return ${status}
 }
 
 # Build with integration
@@ -221,18 +221,18 @@ cmd_build() {
     local build_type="${1:-release}"
     local version="${2:-$(detect_version)}"
     
-    log step "Sparkle build: $build_type (v$version)"
-    "$PROJECT_ROOT/Scripts/sparkle-build-integration.sh" "$build_type" "$version"
+    log step "Sparkle build: ${build_type} (v${version})"
+    "${PROJECT_ROOT}/Scripts/sparkle-build-integration.sh" "${build_type}" "${version}"
 }
 
 # Clean
 cmd_clean() {
     log step "Cleaning build files"
     
-    rm -rf "$PROJECT_ROOT/build"
-    rm -rf "$PROJECT_ROOT/releases"
-    rm -rf "$PROJECT_ROOT/DerivedData"
-    rm -rf "$PROJECT_ROOT/.build"
+    rm -rf "${PROJECT_ROOT}/build"
+    rm -rf "${PROJECT_ROOT}/releases"
+    rm -rf "${PROJECT_ROOT}/DerivedData"
+    rm -rf "${PROJECT_ROOT}/.build"
     
     log ok "Cleanup completed"
 }
@@ -242,27 +242,27 @@ cmd_sign() {
     local version="$1"
     local file="$2"
     
-    log step "Sparkle signing: $file (v$version)"
-    "$PROJECT_ROOT/Scripts/sparkle-sign-release.sh" "$version" "$file"
+    log step "Sparkle signing: ${file} (v${version})"
+    "${PROJECT_ROOT}/Scripts/sparkle-sign-release.sh" "${version}" "${file}"
 }
 
 # Complete release
 cmd_release() {
     local version="${1:-$(detect_version)}"
     
-    log step "Complete release v$version"
+    log step "Complete release v${version}"
     
     # Build
-    cmd_build release "$version"
+    cmd_build release "${version}"
     
     # Find generated file
-    local dmg_file="$PROJECT_ROOT/build/Caker-$version.dmg"
-    if [[ ! -f "$dmg_file" ]]; then
-        dmg_file="$PROJECT_ROOT/releases/Caker-$version.dmg"
+    local dmg_file="${PROJECT_ROOT}/build/Caker-${version}.dmg"
+    if [[ ! -f "${dmg_file}" ]]; then
+        dmg_file="${PROJECT_ROOT}/releases/Caker-${version}.dmg"
     fi
     
-    if [[ -f "$dmg_file" ]]; then
-        log ok "Release v$version generated: $dmg_file"
+    if [[ -f "${dmg_file}" ]]; then
+        log ok "Release v${version} generated: ${dmg_file}"
     else
         log error "Release file not found"
         return 1
@@ -273,34 +273,34 @@ cmd_release() {
 cmd_github() {
     local version="$1"
     local file="$2"
-    local description="${3:-Release v$version}"
+    local description="${3:-Release v${version}}"
     
-    log step "GitHub publication: v$version"
-    "$PROJECT_ROOT/Scripts/sparkle-github-release.sh" "$version" "$file" "$description"
+    log step "GitHub publication: v${version}"
+    "${PROJECT_ROOT}/Scripts/sparkle-github-release.sh" "${version}" "${file}" "${description}"
 }
 
 # Appcast management
 cmd_appcast() {
     local action="${1:-generate}"
     
-    case "$action" in
+    case "${action}" in
         "generate")
             log step "Generating custom XML appcast"
-            "$PROJECT_ROOT/Scripts/sparkle-generate-appcast-xml.sh"
+            "${PROJECT_ROOT}/Scripts/sparkle-generate-appcast-xml.sh"
             ;;
         "deploy")
             log step "Deploying appcast to GitHub Pages"
-            "$PROJECT_ROOT/Scripts/sparkle-deploy-appcast.sh"
+            "${PROJECT_ROOT}/Scripts/sparkle-deploy-appcast.sh"
             ;;
         "status")
             log step "Checking appcast status"
             
             # Check if appcast file exists
-            if [[ -f "$PROJECT_ROOT/docs/appcast/appcast.xml" ]]; then
-                local item_count=$(grep -c '<item>' "$PROJECT_ROOT/docs/appcast/appcast.xml" || echo "0")
-                log ok "Appcast file exists with $item_count releases"
+            if [[ -f "${PROJECT_ROOT}/docs/appcast/appcast.xml" ]]; then
+                local item_count=$(grep -c '<item>' "${PROJECT_ROOT}/docs/appcast/appcast.xml" || echo "0")
+                log ok "Appcast file exists with ${item_count} releases"
                 echo "📄 File: docs/appcast/appcast.xml"
-                echo "🌐 URL: https://fred78290.github.io/caker/appcast/appcast.xml"
+                echo "🌐 URL: https://caker.aldunelabs.com/appcast/appcast.xml"
             else
                 log error "Appcast file not found"
                 echo "Run: ./sparkle.sh appcast generate"
@@ -309,8 +309,8 @@ cmd_appcast() {
             
             # Test if URL is accessible
             if command -v curl &> /dev/null; then
-                local appcast_url="https://fred78290.github.io/caker/appcast/appcast.xml"
-                if curl -sSf "$appcast_url" > /dev/null 2>&1; then
+                local appcast_url="https://caker.aldunelabs.com/appcast/appcast.xml"
+                if curl -sSf "${appcast_url}" > /dev/null 2>&1; then
                     log ok "Appcast is accessible online"
                 else
                     log warn "Appcast URL not accessible (may need deployment)"

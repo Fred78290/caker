@@ -39,5 +39,5 @@ Checks:
 ## Useful commands
 
 - `swift build`
-- `GH_TOKEN="$GITHUB_TOKEN" ./Scripts/publish-wiki.sh Fred78290 caker`
+- `GH_TOKEN="${GITHUB_TOKEN}" ./Scripts/publish-wiki.sh Fred78290 caker`
 - `USE_SSH=1 ./Scripts/publish-wiki.sh Fred78290 caker`

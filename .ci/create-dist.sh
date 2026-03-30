@@ -2,8 +2,8 @@
 # Script pour créer à la fois le package PKG et le DMG de Caker
 set -e
 
-SNAPSHOT=$(git rev-parse --short=8 HEAD)
-export VERSION_TAG=${VERSION_TAG:=SNAPSHOT-$SNAPSHOT}
+SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
+export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 
 pushd "$(dirname ${BASH_SOURCE[0]})" >/dev/null
 CI_DIR=${PWD}
@@ -13,7 +13,7 @@ if [ -f ${CI_DIR}/../.env ]; then
 	source ${CI_DIR}/../.env
 fi
 
-echo "Building Caker distribution packages for version ${VERSION_TAG}..."
+echo "Building Caker distribution packages for version ${VERSION}..."
 
 # Vérifier que les variables d'environnement nécessaires sont définies
 if [ -z "${DEVELOPER_ID}" ]; then
@@ -36,8 +36,8 @@ fi
 
 echo ""
 echo "Distribution packages created successfully:"
-echo "  PKG: $(dirname ${CI_DIR})/Caker-${VERSION_TAG}.pkg"
-echo "  DMG: $(dirname ${CI_DIR})/Caker-${VERSION_TAG}.dmg"
+echo "  PKG: $(dirname ${CI_DIR})/Caker-${VERSION}.pkg"
+echo "  DMG: $(dirname ${CI_DIR})/Caker-${VERSION}.dmg"
 echo ""
 echo "The PKG can be used for installation via command line or deployment tools."
 echo "The DMG provides a user-friendly drag-and-drop installation experience."

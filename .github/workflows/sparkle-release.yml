@@ -49,8 +49,8 @@ jobs:
           VERSION="${{ github.ref_name }}"
           VERSION="${VERSION#v}"
         fi
-        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-        echo "Detected version: $VERSION"
+        echo "VERSION=${VERSION}" >> ${GITHUB_OUTPUT}
+        echo "Detected version: ${VERSION}"
         
     - name: 🔐 Setup Sparkle keys
       env:
@@ -58,17 +58,17 @@ jobs:
         SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
       run: |
         mkdir -p .sparkle
-        echo "$SPARKLE_PRIVATE_KEY" > .sparkle/sparkle_private_key.pem
-        echo "$SPARKLE_PUBLIC_KEY" > .sparkle/sparkle_public_key.pem
+        echo "${SPARKLE_PRIVATE_KEY}" > .sparkle/sparkle_private_key.pem
+        echo "${SPARKLE_PUBLIC_KEY}" > .sparkle/sparkle_public_key.pem
         
         # Automatic Info.plist update
-        plutil -replace SUPublicEDKey -string "$SPARKLE_PUBLIC_KEY" Caker/Caker/Info.plist
+        plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" Caker/Caker/Info.plist
         
     - name: 📝 Update version
       run: |
         VERSION="${{ steps.version.outputs.VERSION }}"
-        plutil -replace CFBundleShortVersionString -string "$VERSION" Caker/Caker/Info.plist
-        plutil -replace CFBundleVersion -string "$VERSION" Caker/Caker/Info.plist
+        plutil -replace CFBundleShortVersionString -string "${VERSION}" Caker/Caker/Info.plist
+        plutil -replace CFBundleVersion -string "${VERSION}" Caker/Caker/Info.plist
         
     - name: 🔨 Build release
       run: |
@@ -82,26 +82,26 @@ jobs:
         
         # Find built application
         BUILT_APP=$(find . -name "Caker.app" -type d | head -1)
-        if [[ -z "$BUILT_APP" ]]; then
+        if [[ -z "${BUILT_APP}" ]]; then
           echo "❌ Caker.app application not found"
           exit 1
         fi
         
         mkdir -p build
-        DMG_PATH="build/Caker-$VERSION.dmg"
+        DMG_PATH="build/Caker-${VERSION}.dmg"
         
         create-dmg \
-          --volname "Caker $VERSION" \
+          --volname "Caker ${VERSION}" \
           --window-pos 200 120 \
           --window-size 800 600 \
           --icon-size 100 \
           --app-drop-link 600 300 \
           --no-internet-enable \
-          "$DMG_PATH" \
-          "$BUILT_APP"
+          "${DMG_PATH}" \
+          "${BUILT_APP}"
           
-        echo "DMG_PATH=$DMG_PATH" >> $GITHUB_OUTPUT
-        echo "DMG created: $DMG_PATH"
+        echo "DMG_PATH=${DMG_PATH}" >> ${GITHUB_OUTPUT}
+        echo "DMG created: ${DMG_PATH}"
         
     - name: 🔐 Sign with Sparkle
       id: sparkle
@@ -110,11 +110,11 @@ jobs:
         DMG_PATH="${{ steps.dmg.outputs.DMG_PATH }}"
         
         chmod +x Scripts/sparkle-sign-release.sh
-        ./Scripts/sparkle-sign-release.sh "$VERSION" "$DMG_PATH"
+        ./Scripts/sparkle-sign-release.sh "${VERSION}" "${DMG_PATH}"
         
         # Extract signature from appcast file
         SIGNATURE=$(grep -A 10 "sparkle:edSignature" appcast/appcast.xml | head -1 | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/')
-        echo "SIGNATURE=$SIGNATURE" >> $GITHUB_OUTPUT
+        echo "SIGNATURE=${SIGNATURE}" >> ${GITHUB_OUTPUT}
         
     - name: 📋 Generate release notes
       id: notes
@@ -123,8 +123,8 @@ jobs:
         NOTES_FILE="release-notes.md"
         
         # Create release notes
-        cat > "$NOTES_FILE" << EOF
-        ## 🎉 Caker $VERSION
+        cat > "${NOTES_FILE}" << EOF
+        ## 🎉 Caker ${VERSION}
         
         New version of Caker with improvements and bug fixes.
         
@@ -146,7 +146,7 @@ jobs:
         
         EOF
         
-        echo "NOTES_FILE=$NOTES_FILE" >> $GITHUB_OUTPUT
+        echo "NOTES_FILE=${NOTES_FILE}" >> ${GITHUB_OUTPUT}
         
     - name: 📤 Create GitHub Release
       uses: softprops/action-gh-release@v2
@@ -186,13 +186,13 @@ jobs:
         DMG_PATH="${{ steps.dmg.outputs.DMG_PATH }}"
         
         echo "✅ Build verification:"
-        echo "• Version: $VERSION"
-        echo "• DMG: $DMG_PATH ($(stat -f%z "$DMG_PATH" | numfmt --to=iec))"
+        echo "• Version: ${VERSION}"
+        echo "• DMG: ${DMG_PATH} ($(stat -f%z "${DMG_PATH}" | numfmt --to=iec))"
         echo "• Signature: ${{ steps.sparkle.outputs.SIGNATURE }}"
-        echo "• Release URL: https://github.com/${{ github.repository }}/releases/tag/v$VERSION"
+        echo "• Release URL: https://github.com/${{ github.repository }}/releases/tag/v${VERSION}"
         
         # Verify DMG integrity
-        hdiutil verify "$DMG_PATH"
+        hdiutil verify "${DMG_PATH}"
         
     - name: 📊 Upload Artifacts
       uses: actions/upload-artifact@v4

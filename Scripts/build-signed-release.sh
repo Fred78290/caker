@@ -32,7 +32,7 @@ sudo rm -rf "${CURDIR}/.ci/pkg/Caker.app" "${CURDIR}/.build" "${CURDIR}"/*.o "${
 mkdir -p ${BUILDDIR}
 
 for FILE in Caker caked cakectl; do
-	lipo -create "${CURDIR}/.build/x86_64-apple-macosx/release/$FILE" "${CURDIR}/.build/arm64-apple-macosx/release/$FILE" -output "${BUILDDIR}/$FILE"
+	lipo -create "${CURDIR}/.build/x86_64-apple-macosx/release/${FILE}" "${CURDIR}/.build/arm64-apple-macosx/release/${FILE}" -output "${BUILDDIR}/${FILE}"
 done
 
 source "${CURDIR}/Scripts/build.inc.sh"

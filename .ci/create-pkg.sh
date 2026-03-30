@@ -1,16 +1,15 @@
 #!/bin/bash
 set -e
 
-SNAPSHOT=$(git rev-parse --short=8 HEAD)
-VERSION_TAG=${VERSION_TAG:=SNAPSHOT-$SNAPSHOT}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
-CURDIR=${PWD}
-PKGDIR=${CURDIR}/.ci/pkg
-popd > /dev/null
+SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
+VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
+PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg}"
 
-if [ -f ${CURDIR}/.env ]; then
-	source ${CURDIR}/.env
+if [ -f "${PROJECT_ROOT}/.env" ]; then
+	source "${PROJECT_ROOT}/.env"
 fi
 
 if [ -n "$1" ]; then
@@ -19,20 +18,20 @@ else
 	KEYCHAIN_OPTIONS=
 fi
 
-echo "Creating package for version ${VERSION_TAG}, team ID ${TEAM_ID}"
+echo "Creating package for version ${VERSION}, team ID ${TEAM_ID}"
 
 pkgbuild --root "${PKGDIR}" \
 		--identifier com.aldunelabs.caker \
-		--version ${VERSION_TAG} \
+		--version ${VERSION} \
 		--scripts "${PKGDIR}/scripts" \
 		--install-location "/Applications" \
 		--sign "Developer ID Installer: ${DEVELOPER_ID}" \
 		${KEYCHAIN_OPTIONS} \
-		"${CURDIR}/Caker-${VERSION_TAG}.pkg"
+		"${PROJECT_ROOT}/Caker-${VERSION}.pkg"
 
 echo "Submitting package for notarization"
 
-xcrun notarytool submit "${CURDIR}/Caker-${VERSION_TAG}.pkg" ${KEYCHAIN_OPTIONS} \
+xcrun notarytool submit "${PROJECT_ROOT}/Caker-${VERSION}.pkg" ${KEYCHAIN_OPTIONS} \
 		--apple-id ${APPLE_ID} \
 		--team-id ${TEAM_ID} \
 		--password "${APP_PASSWORD}" \
@@ -40,4 +39,4 @@ xcrun notarytool submit "${CURDIR}/Caker-${VERSION_TAG}.pkg" ${KEYCHAIN_OPTIONS}
 
 echo "Stapling package"
 
-xcrun stapler staple "${CURDIR}/Caker-${VERSION_TAG}.pkg"
+xcrun stapler staple "${PROJECT_ROOT}/Caker-${VERSION}.pkg"

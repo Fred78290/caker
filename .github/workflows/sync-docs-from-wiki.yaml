@@ -45,31 +45,31 @@ jobs:
         id: check-changes
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.force_sync }}" == "true" ]]; then
-            echo "force_sync=true" >> $GITHUB_OUTPUT
-            echo "sync_needed=true" >> $GITHUB_OUTPUT
+            echo "force_sync=true" >> ${GITHUB_OUTPUT}
+            echo "sync_needed=true" >> ${GITHUB_OUTPUT}
             exit 0
           fi
 
           # Determine the range of commits for this run (full push range when available)
           BEFORE_SHA="${{ github.event.before }}"
           AFTER_SHA="${{ github.sha }}"
-          if [[ -n "$BEFORE_SHA" && "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]]; then
-            DIFF_RANGE="$BEFORE_SHA..$AFTER_SHA"
+          if [[ -n "${BEFORE_SHA}" && "${BEFORE_SHA}" != "0000000000000000000000000000000000000000" ]]; then
+            DIFF_RANGE="${BEFORE_SHA}..${AFTER_SHA}"
           else
             # Fallback for initial pushes or non-push events: diff the latest commit only
-            DIFF_RANGE="$AFTER_SHA"
+            DIFF_RANGE="${AFTER_SHA}"
           fi
           
           # Check if there are actual changes to wiki files in the computed commit range
-          WIKI_CHANGES=$(git diff --name-only "$DIFF_RANGE" | grep -E "^wiki/" || true)
+          WIKI_CHANGES=$(git diff --name-only "${DIFF_RANGE}" | grep -E "^wiki/" || true)
           
-          if [[ -n "$WIKI_CHANGES" ]]; then
+          if [[ -n "${WIKI_CHANGES}" ]]; then
             echo "Wiki changes detected:"
-            echo "$WIKI_CHANGES"
-            echo "sync_needed=true" >> $GITHUB_OUTPUT
+            echo "${WIKI_CHANGES}"
+            echo "sync_needed=true" >> ${GITHUB_OUTPUT}
           else
             echo "No wiki changes detected in this push"
-            echo "sync_needed=false" >> $GITHUB_OUTPUT
+            echo "sync_needed=false" >> ${GITHUB_OUTPUT}
           fi
 
       - name: Sync documentation from wiki
@@ -85,11 +85,11 @@ jobs:
           # Check if there are changes to commit
           if git diff --quiet docs/; then
             echo "No changes to docs files detected"
-            echo "docs_changed=false" >> $GITHUB_OUTPUT
+            echo "docs_changed=false" >> ${GITHUB_OUTPUT}
           else
             echo "Changes to docs files detected:"
             git diff --name-only docs/
-            echo "docs_changed=true" >> $GITHUB_OUTPUT
+            echo "docs_changed=true" >> ${GITHUB_OUTPUT}
           fi
 
       - name: Commit and push docs updates
@@ -104,10 +104,10 @@ jobs:
             COMMIT_MSG="docs: sync from wiki updates
 
             Updated documentation from wiki changes:
-            $(echo "$WIKI_CHANGES" | sed 's/^/- /')
+            $(echo "${WIKI_CHANGES}" | sed 's/^/- /')
 
             [skip ci]"
-            git commit -m "$COMMIT_MSG"
+            git commit -m "${COMMIT_MSG}"
             git push
           fi
 
