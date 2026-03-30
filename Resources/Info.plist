@@ -42,7 +42,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>${VERSION_TAG}</string>
+	<string>${VERSION}</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
 		<string>MacOSX</string>
@@ -63,7 +63,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>${VERSION_TAG}</string>
+	<string>${VERSION}</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
@@ -169,13 +169,13 @@
 		</dict>
 	</array>
 	<key>SUFeedURL</key>
-	<string>https://fred78290.github.io/caker/appcast/appcast.xml</string>
+	<string>https://caker.aldunelabs.com/appcast/appcast.xml</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUScheduledCheckInterval</key>
 	<integer>86400</integer>
 	<key>SUPublicEDKey</key>
-	<string>WJhWPnMkgsVLGzHVYX17+YhgMV1yqqqqcZUW5cqGoeg=</string>
+	<string>REPLACEME_WITH_ACTUAL_PUBLIC_KEY</string>
 	<key>SUAllowsAutomaticUpdates</key>
 	<true/>
 </dict>
