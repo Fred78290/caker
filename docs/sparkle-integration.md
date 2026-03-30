@@ -96,7 +96,7 @@ struct MainApp: App {
 #### Info.plist
 ```xml
 <key>SUFeedURL</key>
-<string>https://github.com/Fred78290/caker/releases.atom</string>
+<string>https://caker.aldunelabs.com/appcast/appcast.xml</string>
 <key>SUEnableAutomaticChecks</key>
 <true/>
 <key>SUScheduledCheckInterval</key>
@@ -134,7 +134,7 @@ struct MainApp: App {
 ./Scripts/sparkle-generate-keys.sh
 
 # Integrated build with Sparkle
-./Scripts/sparkle-build-integration.sh release 1.2.3
+./Scripts/sparkle-build-integration.sh 1.2.3
 
 # Signing an existing release  
 ./Scripts/sparkle-sign-release.sh 1.2.3 /path/to/Caker.dmg
@@ -214,7 +214,7 @@ git push origin v1.2.3
 Caker now uses a **custom XML appcast** instead of GitHub releases feed for enhanced control:
 
 ```
-https://fred78290.github.io/caker/appcast/appcast.xml
+https://caker.aldunelabs.com/appcast/appcast.xml
 ```
 
 **Advantages of custom appcast:**
@@ -250,7 +250,7 @@ For different hosting needs:
 
 1. **GitHub Pages** (current setup):
    ```
-   https://fred78290.github.io/caker/appcast.xml
+   https://caker.aldunelabs.com/appcast/appcast.xml
    ```
 
 2. **Custom server**:

@@ -41,7 +41,7 @@ docs/appcast/
 The appcast is configured in `Caker/Caker/Info.plist`:
 ```xml
 <key>SUFeedURL</key>
-<string>https://fred78290.github.io/caker/appcast/appcast.xml</string>
+<string>https://caker.aldunelabs.com/appcast/appcast.xml</string>
 ```
 
 ## 📄 Appcast Format
@@ -79,7 +79,7 @@ The generated XML follows the Sparkle RSS 2.0 format:
 ## 🌐 Deployment
 
 The appcast is automatically deployed to GitHub Pages at:
-- **Production URL**: https://fred78290.github.io/caker/appcast/appcast.xml
+- **Production URL**: https://caker.aldunelabs.com/appcast/appcast.xml
 - **GitHub Source**: https://github.com/Fred78290/caker/blob/main/docs/appcast/appcast.xml
 
 ## 🔄 Automatic Updates
@@ -135,7 +135,7 @@ The GitHub Actions workflow automatically:
 ## 📊 Monitoring
 
 - **GitHub Pages status**: Check repository settings → Pages
-- **Appcast accessibility**: https://fred78290.github.io/caker/appcast/appcast.xml
+- **Appcast accessibility**: https://caker.aldunelabs.com/appcast/appcast.xml
 - **XML validation**: Use browser or XML validator
 
 ## 🆚 vs GitHub Feed
