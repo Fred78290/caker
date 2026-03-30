@@ -3,6 +3,9 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+BUILD_DIR="${PROJECT_ROOT}/build"
+
+mkdir -p "${BUILD_DIR}"
 
 SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
@@ -27,11 +30,11 @@ pkgbuild --root "${PKGDIR}" \
 		--install-location "/Applications" \
 		--sign "Developer ID Installer: ${DEVELOPER_ID}" \
 		${KEYCHAIN_OPTIONS} \
-		"${PROJECT_ROOT}/Caker-${VERSION}.pkg"
+		"${PROJECT_ROOT}/build/Caker-${VERSION}.pkg"
 
 echo "Submitting package for notarization"
 
-xcrun notarytool submit "${PROJECT_ROOT}/Caker-${VERSION}.pkg" ${KEYCHAIN_OPTIONS} \
+xcrun notarytool submit "${PROJECT_ROOT}/build/Caker-${VERSION}.pkg" ${KEYCHAIN_OPTIONS} \
 		--apple-id ${APPLE_ID} \
 		--team-id ${TEAM_ID} \
 		--password "${APP_PASSWORD}" \
@@ -39,4 +42,4 @@ xcrun notarytool submit "${PROJECT_ROOT}/Caker-${VERSION}.pkg" ${KEYCHAIN_OPTION
 
 echo "Stapling package"
 
-xcrun stapler staple "${PROJECT_ROOT}/Caker-${VERSION}.pkg"
+xcrun stapler staple "${PROJECT_ROOT}/build/Caker-${VERSION}.pkg"

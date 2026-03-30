@@ -1,15 +1,18 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+BUILD_DIR="${PROJECT_ROOT}/build"
+
+mkdir -p "${BUILD_DIR}"
+
+PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/}"/Caker.app
+DMGFILE="${BUILD_DIR}/Caker-${VERSION}.dmg"
+
 SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 NOTARYZATION=${NOTARYZATION:=false}
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-
-PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/}"/Caker.app
-DMGFILE="${PROJECT_ROOT}/Caker-${VERSION}.dmg"
 
 if [ -f "${PROJECT_ROOT}/.env" ]; then
 	source "${PROJECT_ROOT}/.env"
