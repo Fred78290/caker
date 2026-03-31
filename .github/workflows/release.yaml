@@ -22,14 +22,15 @@ env:
   APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   HOMEBREW_NO_AUTO_UPDATE: 1
-  RUN_PYTEST: false
+  RUN_PYTEST: ${{ github.env.RUN_PYTEST }}
+  RUN_SWIFT_TESTS: ${{ github.env.RUN_SWIFT_TESTS }}
   #PATH: "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:${{ github.workspace }}/.bin"
   CAKE_HOME: "${{ github.workspace }}/.cake"
   PKGDIR: "${{ github.workspace }}/.ci/pkg/Caker.app"
   NOTARYZATION: true
   SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
   SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
-
+  SETUP_KEYCHAIN: ${{ github.env.SETUP_KEYCHAIN }}
 permissions:
   contents: write
 jobs:
@@ -42,7 +43,7 @@ jobs:
         id: check
         run: |
           echo "run_pytest=${RUN_PYTEST}" >> ${GITHUB_OUTPUT}
-          if [ ${RUNNER_ENVIRONMENT} == "github-hosted" ]; then
+          if [ "${RUNNER_ENVIRONMENT}" == "github-hosted" ]; then
             echo "Running on github-hosted runner, checking for required tools..."
             echo PATH=${PATH}
             if [ -z "$(command -v python)" ]; then
@@ -115,23 +116,29 @@ jobs:
           PACKAGE=false
 
           if [ "${{ steps.check.outputs.install_brew }}" == "true" ]; then
-            brew install sparkle create-dmg envsubst jq libxml2
+            brew install sparkle create-dmg gettext jq libxml2
           else
-            if [ -z "$(command -v envsubst)"]; then
+            if [ -z "$(command -v envsubst)"  ]; then
               brew install gettext
             fi
-            if [ -z "$(command -v jq)"]; then
+            if [ -z "$(command -v jq)" ]; then
               brew install jq
             fi
-            if [ -z "$(command -v create-dmg)"]; then
+            if [ -z "$(command -v create-dmg)" ]; then
               brew install create-dmg
             fi
-            if [ -z "$(command -v xmllint)"]; then
+            if [ -z "$(command -v xmllint)" ]; then
               brew install libxml2
             fi
           fi
           
           HOMEBREW_PREFIX=$(brew config|grep HOMEBREW_PREFIX|cut -d ' ' -f 2)
+
+          if [ "${SETUP_KEYCHAIN}" == "true" ]; then
+            KEYCHAIN_PATH="${RUNNER_TEMP}/app-signing.keychain-db"
+          else
+            KEYCHAIN_PATH=""
+          fi
 
           if [[ "${VERSION}" == "snapshot" ]]; then
             VERSION="SNAPSHOT-$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)"
@@ -156,6 +163,7 @@ jobs:
           echo "PACKAGE=${PACKAGE}" >> ${GITHUB_ENV}
           echo "RELEASE=${RELEASE}" >> ${GITHUB_ENV}
           echo "HOMEBREW_PREFIX=${HOMEBREW_PREFIX}" >> ${GITHUB_ENV}
+          echo "KEYCHAIN_PATH=${KEYCHAIN_PATH}" >> ${GITHUB_ENV}
 
           echo "build_release=${RELEASE}" >> ${GITHUB_OUTPUT}
           echo "build_package=${PACKAGE}" >> ${GITHUB_OUTPUT}
@@ -163,6 +171,7 @@ jobs:
           echo "pkg_path=${PKG_PATH}" >> ${GITHUB_OUTPUT}
           echo "dmg_path=${DMG_PATH}" >> ${GITHUB_OUTPUT}
           echo "homebrew_prefix=${HOMEBREW_PREFIX}" >> ${GITHUB_OUTPUT}
+          echo "keychain_path=${KEYCHAIN_PATH}" >> ${GITHUB_OUTPUT}
 
           TMPFILE=$(mktemp)
           envsubst < Sources/cakedlib/CI/CI.swift > ${TMPFILE}
@@ -176,23 +185,31 @@ jobs:
           cd qcow2convert
           ./build.sh
       - name: 🛠️ Install the Apple certificate and provisioning profile
+        id: setup_keychain
+        if: github.env.SETUP_KEYCHAIN == 'true'
         run: |
-          ./.ci/setup-keychain.sh ${RUNNER_TEMP}/app-signing.keychain-db
+          ./.ci/setup-keychain.sh "${KEYCHAIN_PATH}"
   
       - name: 🧪 Run tests
         id: tests
+        if: github.env.RUN_SWIFT_TESTS == 'true'
         run: |
           # Run tests for the Swift package
           export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:${PATH}
           swift test|grep -v Compiling|grep -v CoreData
 
       - name: 👷 Build Swift package
+        id: build
+        env:
+          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
         run: |
-          ./Scripts/build-signed-release.sh ${RUNNER_TEMP}/app-signing.keychain-db
+          ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}"
  
       - name: 🧪 Run integration tests
         id: integration_tests
         if: steps.check.outputs.run_pytest == 'true'
+        env:
+          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
         run: |
           # Run tests for the Swift package
           export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:${PATH}
@@ -208,16 +225,20 @@ jobs:
       - name: 📦 Package
         id: package
         if: steps.version.outputs.build_package == 'true'
+        env:
+          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
         run: |
           export VERSION="${{ steps.version.outputs.version }}"
-          ./.ci/create-pkg.sh ${RUNNER_TEMP}/app-signing.keychain-db
+          ./.ci/create-pkg.sh "${KEYCHAIN_PATH}"
 
       - name: 💿 Create DMG
         id: create_dmg
         if: steps.version.outputs.build_package == 'true'
+        env:
+          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
         run: |
           export VERSION="${{ steps.version.outputs.version }}"
-          ./.ci/create-dmg.sh ${RUNNER_TEMP}/app-signing.keychain-db
+          ./.ci/create-dmg.sh "${KEYCHAIN_PATH}"
 
       - name: 📝 Update release notes from git log
         id: update-release-notes
@@ -296,6 +317,8 @@ jobs:
 
       - name: 🧹 Clean up keychain and provisioning profile
         id: cleanup
-        if: always()
+        env:
+          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
+        if: always() && github.env.SETUP_KEYCHAIN == 'true'
         run: |
-          security delete-keychain ${RUNNER_TEMP}/app-signing.keychain-db
+          security delete-keychain "${KEYCHAIN_PATH}"
