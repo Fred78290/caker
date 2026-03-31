@@ -113,7 +113,7 @@ jobs:
         ./Scripts/sparkle-sign-release.sh "${VERSION}" "${DMG_PATH}"
         
         # Extract signature from appcast file
-        SIGNATURE=$(grep -A 10 "sparkle:edSignature" appcast/appcast.xml | head -1 | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/')
+        SIGNATURE=$(grep -A 10 "sparkle:edSignature" docs/appcast/appcast.xml | head -1 | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/')
         echo "SIGNATURE=${SIGNATURE}" >> ${GITHUB_OUTPUT}
         
     - name: 📋 Generate release notes
