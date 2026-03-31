@@ -175,7 +175,7 @@
 	<key>SUScheduledCheckInterval</key>
 	<integer>86400</integer>
 	<key>SUPublicEDKey</key>
-	<string>REPLACEME_WITH_ACTUAL_PUBLIC_KEY</string>
+	<string>WJhWPnMkgsVLGzHVYX17+YhgMV1yqqqqcZUW5cqGoeg=</string>
 	<key>SUAllowsAutomaticUpdates</key>
 	<true/>
 </dict>
