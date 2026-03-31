@@ -7,7 +7,7 @@ BUILD_DIR="${PROJECT_ROOT}/build"
 
 mkdir -p "${BUILD_DIR}"
 
-PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/}"/Caker.app
+PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/Caker.app}"
 DMGFILE="${BUILD_DIR}/Caker-${VERSION}.dmg"
 
 SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
