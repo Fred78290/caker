@@ -70,6 +70,16 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--requirement="${REQUIREMENTS}" \
 			--force "${PKGDIR}/Contents/PlugIns/cakectl"
 
+
+		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--timestamp \
+			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
+			--force "${PKGDIR}/Contents/Frameworks/Sparkle.framework/Versions/Current"
+
+
 		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
@@ -105,6 +115,12 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
+			--force "${PKGDIR}/Contents/Frameworks/Sparkle.framework/Versions/Current"
+
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--force "${PKGDIR}/Contents/MacOS/Caker"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
@@ -116,5 +132,6 @@ else
 	echo "Build unsigned debug binaries"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${PKGDIR}/Contents/PlugIns/caked"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${PKGDIR}/Contents/PlugIns/cakectl"
+	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${PKGDIR}/Contents/Frameworks/Sparkle.framework/Versions/Current"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${PKGDIR}/Contents/MacOS/Caker"
 fi
