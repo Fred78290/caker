@@ -117,7 +117,7 @@ if [[ "${BUILD_TYPE}" == "release" ]]; then
         --icon "Caker.app" 200 190 \
         --hide-extension "Caker.app" \
         --app-drop-link 600 185 \
-        --background "${PROJECT_ROOT}/.ci/dmg-resources/background.png"
+        --background "${PROJECT_ROOT}/.ci/dmg-resources/background.png" \
         "${DIST_DIR}/${DMG_NAME}" \
         "${BUILT_APP}"
     
