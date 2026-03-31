@@ -9,7 +9,7 @@ mkdir -p "${BUILD_DIR}"
 
 SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
-PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg}"
+PKGDIR=$(dirname "${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/Caker.app}")
 
 if [ -f "${PROJECT_ROOT}/.env" ]; then
 	source "${PROJECT_ROOT}/.env"
