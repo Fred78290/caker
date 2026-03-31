@@ -19,10 +19,12 @@ actool "${RESOURCESDIR}/Assets.xcassets" \
 	--minimum-deployment-target 15.0 \
 	--platform macosx
 
+SPARKLE_FRAMEWORK="${PKGDIR}/Contents/Frameworks/Sparkle.framework"
+
 cp -R "${BUILDDIR}/Sparkle.framework" "${PKGDIR}/Contents/Frameworks/"
 
-for FILE in Headers PrivateHeaders Modules; do
-	FILE="${PKGDIR}/Contents/Frameworks/Sparkle.framework/${FILE}"
+for FILE in Headers PrivateHeaders Modules Versions/Current/XPCServices/Downloader.xpc; do
+	FILE="${SPARKLE_FRAMEWORK}/${FILE}"
 	
 	if [ -d "${FILE}" ]; then
 		rm -rf "${FILE}"
@@ -50,6 +52,26 @@ plutil -replace CFBundleVersion -string "${VERSION}" "${PKGDIR}/Contents/Info.pl
 if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 	echo "Build and sign release binaries for version ${VERSION}, developer ID ${DEVELOPER_ID}"
 
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--force "${SPARKLE_FRAMEWORK}/Versions/Current/XPCServices/Installer.xpc"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--force "${SPARKLE_FRAMEWORK}/Versions/Current/Updater.app"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--force "${SPARKLE_FRAMEWORK}/Versions/Current/Autoupdate"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--force "${SPARKLE_FRAMEWORK}"
+
 	if [ -n "${CODESIGN_REQUIREMENT}" ]; then
 		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/caked/)
 		echo "Using custom code signing requirement: ${REQUIREMENTS}"
@@ -69,16 +91,6 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--requirement="${REQUIREMENTS}" \
 			--force "${PKGDIR}/Contents/PlugIns/cakectl"
-
-
-		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
-		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
-			--options runtime \
-			--timestamp \
-			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--force "${PKGDIR}/Contents/Frameworks/Sparkle.framework/Versions/Current"
-
 
 		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
@@ -110,12 +122,6 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--force "${PKGDIR}/Contents/PlugIns/cakectl"
-
-		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
-			--options runtime \
-			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--force "${PKGDIR}/Contents/Frameworks/Sparkle.framework/Versions/Current"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
