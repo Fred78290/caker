@@ -69,7 +69,7 @@ caker/
 
 #### Package.swift
 ```swift
-.package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0")
+.package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.1")
 //...
 .product(name: "Sparkle", package: "Sparkle")
 ```
