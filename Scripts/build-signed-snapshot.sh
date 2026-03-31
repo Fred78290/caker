@@ -31,7 +31,7 @@ if [ -f "${PROJECT_ROOT}/.env" ]; then
 	export CODESIGN_REQUIREMENT
 	export SPARKLE_PUBLIC_KEY
 	export SPARKLE_PRIVATE_KEY
-	export NOTARYZATION=true
+	export NOTARYZATION
 	export SETUP_KEYCHAIN=false
 else
 	echo "Warning: .env file not found, using default values for environment variables"
@@ -54,7 +54,13 @@ else
 fi
 
 echo "Building version ${VERSION} with developer ID ${DEVELOPER_ID}"
-"${PROJECT_ROOT}/Scripts/build-signed-release.sh" "${KEYCHAIN_PATH}"
+if [ ${NOTARYZATION} == true ]; then
+	echo "Notarization enabled, will sign with Developer ID and submit to Apple for notarization"
+	"${PROJECT_ROOT}/Scripts/build-signed-release.sh" "${KEYCHAIN_PATH}"
+else
+	echo "Notarization disabled, will sign with Developer ID but not submit to Apple"
+	"${PROJECT_ROOT}/Scripts/build-signed-debug.sh" "${KEYCHAIN_PATH}"
+fi
 
 echo "Publishing version ${VERSION} with developer ID ${DEVELOPER_ID}"
 "${PROJECT_ROOT}/.ci/create-dist.sh" "${KEYCHAIN_PATH}"
