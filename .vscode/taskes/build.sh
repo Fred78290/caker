@@ -43,6 +43,8 @@ cp -c "${ASSETS}/Assets.car" "${PKGDIR}/Contents/Resources/Assets.car"
 cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${PKGDIR}/Contents/Resources/Icons"
 cp -c "${PROJECT_ROOT}/Resources/Caker.provisionprofile" "${PKGDIR}/Contents/embedded.provisionprofile"
 
+cp "${PROJECT_ROOT}/Resources/Info.plist" "${PKGDIR}/Contents/Info.plist"
+
 plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" "${PKGDIR}/Contents/Info.plist"
 plutil -replace CFBundleShortVersionString -string "$(echo ${VERSION} | awk -F '[.-]' '{print tolower($1)}')" "${PKGDIR}/Contents/Info.plist"
 plutil -replace CFBundleVersion -string "${VERSION}" "${PKGDIR}/Contents/Info.plist"
