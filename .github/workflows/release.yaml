@@ -22,15 +22,15 @@ env:
   APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   HOMEBREW_NO_AUTO_UPDATE: 1
-  RUN_PYTEST: ${{ github.env.RUN_PYTEST }}
-  RUN_SWIFT_TESTS: ${{ github.env.RUN_SWIFT_TESTS }}
+  RUN_PYTEST: ${{ vars.RUN_PYTEST }}
+  RUN_SWIFT_TESTS: ${{ vars.RUN_SWIFT_TESTS }}
   #PATH: "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:${{ github.workspace }}/.bin"
   CAKE_HOME: "${{ github.workspace }}/.cake"
   PKGDIR: "${{ github.workspace }}/.ci/pkg/Caker.app"
   NOTARYZATION: true
   SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
   SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
-  SETUP_KEYCHAIN: ${{ github.env.SETUP_KEYCHAIN }}
+  SETUP_KEYCHAIN: ${{ vars.SETUP_KEYCHAIN }}
 permissions:
   contents: write
 jobs:
