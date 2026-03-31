@@ -32,6 +32,7 @@ if [ -f "${PROJECT_ROOT}/.env" ]; then
 	export SPARKLE_PUBLIC_KEY
 	export SPARKLE_PRIVATE_KEY
 	export NOTARYZATION=true
+	export SETUP_KEYCHAIN=false
 else
 	echo "Warning: .env file not found, using default values for environment variables"
 	if [ -z "${TEAM_ID}" ] || [ -z "${APPLE_ID}" ] || [ -z "$P12_PASSWORD" ] || [ -z "${KEYCHAIN_PASSWORD}" ] || [ -z "${APP_PASSWORD}" ]; then
@@ -44,15 +45,19 @@ pushd qcow2convert
 ./build.sh
 popd
 
+if [ "${SETUP_KEYCHAIN}" == true ]; then
+	trap "cleanup" EXIT
+	KEYCHAIN_PATH="${RUNNER_TEMP}/app-signing.keychain-db"
+	"${PROJECT_ROOT}/.ci/setup-keychain.sh" "${KEYCHAIN_PATH}"
+else
+	KEYCHAIN_PATH=""
+fi
+
 echo "Building version ${VERSION} with developer ID ${DEVELOPER_ID}"
-
-"${PROJECT_ROOT}/.ci/setup-keychain.sh" "${RUNNER_TEMP}/app-signing.keychain-db"
-"${PROJECT_ROOT}/Scripts/build-signed-release.sh" "${RUNNER_TEMP}/app-signing.keychain-db"
-
-trap "cleanup" EXIT
+"${PROJECT_ROOT}/Scripts/build-signed-release.sh" "${KEYCHAIN_PATH}"
 
 echo "Publishing version ${VERSION} with developer ID ${DEVELOPER_ID}"
-"${PROJECT_ROOT}/.ci/create-dist.sh" "${RUNNER_TEMP}/app-signing.keychain-db"
+"${PROJECT_ROOT}/.ci/create-dist.sh" "${KEYCHAIN_PATH}"
 "${PROJECT_ROOT}/Scripts/sparkle-sign-release.sh" "${VERSION}" "${DMG_PATH}"
 
 popd >/dev/null
