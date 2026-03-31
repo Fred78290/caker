@@ -46,7 +46,7 @@ if [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
 	plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" "${PKGDIR}/Contents/Info.plist"
 fi
 
-plutil -replace CFBundleShortVersionString -string "$(echo ${VERSION} | awk -F '[.-]' '{print tolower($1)}')" "${PKGDIR}/Contents/Info.plist"
+plutil -replace CFBundleShortVersionString -string "${VERSION}" "${PKGDIR}/Contents/Info.plist"
 plutil -replace CFBundleVersion -string "${VERSION}" "${PKGDIR}/Contents/Info.plist"
 
 if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
