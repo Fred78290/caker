@@ -26,7 +26,7 @@ echo "Creating package for version ${VERSION}, team ID ${TEAM_ID}"
 pkgbuild --root "${PKGDIR}" \
 		--identifier com.aldunelabs.caker \
 		--version ${VERSION} \
-		--scripts "${PKGDIR}/scripts" \
+		--scripts "${PROJECT_ROOT}/.ci/pkg/scripts" \
 		--install-location "/Applications" \
 		--sign "Developer ID Installer: ${DEVELOPER_ID}" \
 		${KEYCHAIN_OPTIONS} \
