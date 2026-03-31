@@ -87,7 +87,6 @@ if [ -n "${DEVELOPER_ID}" ]; then
 				--team-id ${TEAM_ID} \
 				--password "${APP_PASSWORD}" \
 				--wait
-		spctl -a -t exec -vv "${DMG_PATH}"
 
 		echo "Stapling DMG..."
 		xcrun stapler staple "${DMG_PATH}"

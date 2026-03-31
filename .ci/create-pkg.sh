@@ -44,6 +44,5 @@ if [ ${NOTARYZATION} == true ]; then
 				--wait
 
 		echo "Stapling package"
-		spctl -a -t exec -vv "${PKG_PATH}"
 		xcrun stapler staple "${PKG_PATH}"
 fi
