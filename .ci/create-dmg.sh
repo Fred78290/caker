@@ -1,18 +1,17 @@
 #!/bin/bash
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-BUILD_DIR="${PROJECT_ROOT}/build"
-
-mkdir -p "${BUILD_DIR}"
-
-PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/Caker.app}"
-DMGFILE="${BUILD_DIR}/Caker-${VERSION}.dmg"
-
 SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 NOTARYZATION=${NOTARYZATION:=false}
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/Caker.app}"
+DMG_PATH="${DMG_PATH:-${PROJECT_ROOT}/build/Caker-${VERSION}.dmg}"
+
+mkdir -p "$(dirname "${DMG_PATH}")"
 
 if [ -f "${PROJECT_ROOT}/.env" ]; then
 	source "${PROJECT_ROOT}/.env"
@@ -41,7 +40,7 @@ if ! command -v create-dmg &> /dev/null; then
 fi
 
 # Nettoyer le fichier DMG existant
-rm -f "${DMGFILE}"
+rm -f "${DMG_PATH}"
 
 # Préparer les options create-dmg
 CREATE_DMG_OPTIONS=(
@@ -65,12 +64,12 @@ fi
 
 # Créer le DMG avec create-dmg
 echo "Creating DMG with create-dmg..."
-create-dmg "${CREATE_DMG_OPTIONS[@]}" "${DMGFILE}" "${PKGDIR}"
+create-dmg "${CREATE_DMG_OPTIONS[@]}" "${DMG_PATH}" "${PKGDIR}"
 
 # Signer le DMG si possible
 if [ -n "${DEVELOPER_ID}" ]; then
 	echo "Code signing DMG..."
-	codesign --sign "Developer ID Application: ${DEVELOPER_ID}" --options runtime --force "${DMGFILE}"
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" --options runtime --force "${DMG_PATH}"
 
 	# Notariser le DMG si nécessaire
 	if [ ${NOTARYZATION} == "true" ] && [ -n "${APPLE_ID}" ] && [ -n "${APP_PASSWORD}" ]; then
@@ -83,15 +82,15 @@ if [ -n "${DEVELOPER_ID}" ]; then
 		fi
 
 		# Mzmo xcrun notarytool log --apple-id ${APPLE_ID} --team-id ${TEAM_ID} --password "${APP_PASSWORD}" 0611530c-fe18-42fa-8d27-dbe700b96684
-		xcrun notarytool submit "${DMGFILE}" ${KEYCHAIN_OPTIONS} \
+		xcrun notarytool submit "${DMG_PATH}" ${KEYCHAIN_OPTIONS} \
 				--apple-id ${APPLE_ID} \
 				--team-id ${TEAM_ID} \
 				--password "${APP_PASSWORD}" \
 				--wait
 		
 		echo "Stapling DMG..."
-		xcrun stapler staple "${DMGFILE}"
+		xcrun stapler staple "${DMG_PATH}"
 	fi
 fi
 
-echo "DMG creation completed: ${DMGFILE}"
+echo "DMG creation completed: ${DMG_PATH}"

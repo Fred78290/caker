@@ -227,6 +227,7 @@ jobs:
         if: steps.version.outputs.build_package == 'true'
         env:
           KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
+          PKG_PATH: ${{ steps.version.outputs.pkg_path }}
         run: |
           export VERSION="${{ steps.version.outputs.version }}"
           ./.ci/create-pkg.sh "${KEYCHAIN_PATH}"
@@ -236,6 +237,7 @@ jobs:
         if: steps.version.outputs.build_package == 'true'
         env:
           KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
+          DMG_PATH: ${{ steps.version.outputs.dmg_path }}
         run: |
           export VERSION="${{ steps.version.outputs.version }}"
           ./.ci/create-dmg.sh "${KEYCHAIN_PATH}"
@@ -302,17 +304,19 @@ jobs:
         id: create_release
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          DMG_PATH: ${{ steps.version.outputs.dmg_path }}
+          PKG_PATH: ${{ steps.version.outputs.pkg_path }}
         if: steps.version.outputs.build_package == 'true'
         run: |
           if [ ${GITHUB_REF##*/} == "snapshot" ]; then
             gh release create --prerelease --generate-notes \
               --title "${VERSION}" "${VERSION}" \
-              ./.ci/Caker-${VERSION}.dmg \
-              ./.ci/Caker-${VERSION}.pkg
+              "${DMG_PATH}" \
+              "${PKG_PATH}"
           else
             gh release create --generate-notes --title "${VERSION}" "${VERSION}" \
-              ./.ci/Caker-${VERSION}.dmg \
-              ./.ci/Caker-${VERSION}.pkg
+              "${DMG_PATH}" \
+              "${PKG_PATH}"
           fi
 
       - name: 🧹 Clean up keychain and provisioning profile
