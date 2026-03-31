@@ -2,7 +2,7 @@ SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 
 rm -Rf "${PKGDIR}"
-mkdir -p "${ASSETS}" "${PKGDIR}/Contents/MacOS" "${PKGDIR}/Contents/PlugIns" "${PKGDIR}/Contents/Resources" "${PKGDIR}/Contents/Resources/Icons"
+mkdir -p "${ASSETS}" "${PKGDIR}/Contents/Frameworks" "${PKGDIR}/Contents/MacOS" "${PKGDIR}/Contents/PlugIns" "${PKGDIR}/Contents/Resources" "${PKGDIR}/Contents/Resources/Icons"
 
 actool "${RESOURCESDIR}/Assets.xcassets" \
 	--compile "${ASSETS}" \
@@ -19,6 +19,16 @@ actool "${RESOURCESDIR}/Assets.xcassets" \
 	--minimum-deployment-target 15.0 \
 	--platform macosx
 
+cp -R "${BUILDDIR}/Sparkle.framework" "${PKGDIR}/Contents/Frameworks/"
+
+for FILE in Headers PrivateHeaders Modules; do
+	FILE="${PKGDIR}/Contents/Frameworks/Sparkle.framework/${FILE}"
+	
+	if [ -d "${FILE}" ]; then
+		rm -rf "${FILE}"
+	fi
+done
+
 cp -c "${BUILDDIR}/Caker" "${PKGDIR}/Contents/MacOS/Caker"
 cp -c "${BUILDDIR}/caked" "${PKGDIR}/Contents/PlugIns/caked"
 cp -c "${BUILDDIR}/cakectl" "${PKGDIR}/Contents/PlugIns/cakectl"
@@ -30,7 +40,10 @@ cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${PKGDIR}/Contents/Resources/Icon
 cp -c "${PROJECT_ROOT}/Resources/Caker.provisionprofile" "${PKGDIR}/Contents/embedded.provisionprofile"
 cp -c "${PROJECT_ROOT}/Resources/Info.plist" "${PKGDIR}/Contents/Info.plist"
 
-plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" "${PKGDIR}/Contents/Info.plist"
+if [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
+	plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" "${PKGDIR}/Contents/Info.plist"
+fi
+
 plutil -replace CFBundleShortVersionString -string "$(echo ${VERSION} | awk -F '[.-]' '{print tolower($1)}')" "${PKGDIR}/Contents/Info.plist"
 plutil -replace CFBundleVersion -string "${VERSION}" "${PKGDIR}/Contents/Info.plist"
 
