@@ -11,6 +11,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PKGDIR="${PROJECT_ROOT}/dist/Caker.app"
 
 BUILDDIR="${PROJECT_ROOT}/.build/debug"
+BINARYDIR="${PROJECT_ROOT}/.build/debug"
 RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
 

@@ -29,9 +29,9 @@ for FILE in Headers PrivateHeaders Modules; do
 	fi
 done
 
-cp -c "${BUILDDIR}/Caker" "${PKGDIR}/Contents/MacOS/Caker"
-cp -c "${BUILDDIR}/caked" "${PKGDIR}/Contents/PlugIns/caked"
-cp -c "${BUILDDIR}/cakectl" "${PKGDIR}/Contents/PlugIns/cakectl"
+cp -c "${BINARYDIR}/Caker" "${PKGDIR}/Contents/MacOS/Caker"
+cp -c "${BINARYDIR}/caked" "${PKGDIR}/Contents/PlugIns/caked"
+cp -c "${BINARYDIR}/cakectl" "${PKGDIR}/Contents/PlugIns/cakectl"
 cp -c "${RESOURCESDIR}/Document.icns" "${PKGDIR}/Contents/Resources/Document.icns"
 cp -c "${RESOURCESDIR}/MenuBarIcon.png" "${PKGDIR}/Contents/Resources/MenuBarIcon.png"
 cp -c "${ASSETS}/AppIcon.icns" "${PKGDIR}/Contents/Resources/AppIcon.icns"
