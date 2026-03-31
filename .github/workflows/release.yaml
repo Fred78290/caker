@@ -154,8 +154,9 @@ jobs:
             PACKAGE=false
           fi
 
-          PKG_PATH="${GITHUB_WORKSPACE}/.ci/Caker-${VERSION}.pkg"
-          DMG_PATH="${GITHUB_WORKSPACE}/.ci/Caker-${VERSION}.dmg"
+          mkdir -p "${GITHUB_WORKSPACE}/build"
+          PKG_PATH="${GITHUB_WORKSPACE}/build/Caker.pkg"
+          DMG_PATH="${GITHUB_WORKSPACE}/build/Caker.dmg"
 
           echo "PKG_PATH=${PKG_PATH}" >> ${GITHUB_ENV}
           echo "DMG_PATH=${DMG_PATH}" >> ${GITHUB_ENV}
