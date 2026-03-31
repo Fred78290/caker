@@ -1,8 +1,8 @@
-SNAPSHOT=$(git rev-parse --short=8 HEAD)
-export VERSION_TAG=${VERSION_TAG:=SNAPSHOT-$SNAPSHOT}
+SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
+export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 
 rm -Rf "${PKGDIR}"
-mkdir -p "${ASSETS}" "${PKGDIR}/Contents/MacOS" "${PKGDIR}/Contents/PlugIns" "${PKGDIR}/Contents/Resources" "${PKGDIR}/Contents/Resources/Icons"
+mkdir -p "${ASSETS}" "${PKGDIR}/Contents/Frameworks" "${PKGDIR}/Contents/MacOS" "${PKGDIR}/Contents/PlugIns" "${PKGDIR}/Contents/Resources" "${PKGDIR}/Contents/Resources/Icons"
 
 actool "${RESOURCESDIR}/Assets.xcassets" \
 	--compile "${ASSETS}" \
@@ -19,20 +19,58 @@ actool "${RESOURCESDIR}/Assets.xcassets" \
 	--minimum-deployment-target 15.0 \
 	--platform macosx
 
-cp -c "${BUILDDIR}/Caker" "${PKGDIR}/Contents/MacOS/Caker"
-cp -c "${BUILDDIR}/caked" "${PKGDIR}/Contents/PlugIns/caked"
-cp -c "${BUILDDIR}/cakectl" "${PKGDIR}/Contents/PlugIns/cakectl"
+SPARKLE_FRAMEWORK="${PKGDIR}/Contents/Frameworks/Sparkle.framework"
+
+cp -R "${BUILDDIR}/Sparkle.framework" "${PKGDIR}/Contents/Frameworks/"
+
+for FILE in Headers PrivateHeaders Modules Versions/Current/XPCServices/Downloader.xpc; do
+	FILE="${SPARKLE_FRAMEWORK}/${FILE}"
+	
+	if [ -d "${FILE}" ]; then
+		rm -rf "${FILE}"
+	fi
+done
+
+cp -c "${BINARYDIR}/Caker" "${PKGDIR}/Contents/MacOS/Caker"
+cp -c "${BINARYDIR}/caked" "${PKGDIR}/Contents/PlugIns/caked"
+cp -c "${BINARYDIR}/cakectl" "${PKGDIR}/Contents/PlugIns/cakectl"
 cp -c "${RESOURCESDIR}/Document.icns" "${PKGDIR}/Contents/Resources/Document.icns"
 cp -c "${RESOURCESDIR}/MenuBarIcon.png" "${PKGDIR}/Contents/Resources/MenuBarIcon.png"
 cp -c "${ASSETS}/AppIcon.icns" "${PKGDIR}/Contents/Resources/AppIcon.icns"
 cp -c "${ASSETS}/Assets.car" "${PKGDIR}/Contents/Resources/Assets.car"
-cp -c "${CURDIR}/Resources/Icons/"*.png "${PKGDIR}/Contents/Resources/Icons"
-cp -c "${CURDIR}/Resources/Caker.provisionprofile" "${PKGDIR}/Contents/embedded.provisionprofile"
+cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${PKGDIR}/Contents/Resources/Icons"
+cp -c "${PROJECT_ROOT}/Resources/Caker.provisionprofile" "${PKGDIR}/Contents/embedded.provisionprofile"
+cp -c "${PROJECT_ROOT}/Resources/Info.plist" "${PKGDIR}/Contents/Info.plist"
 
-envsubst < "${CURDIR}/Resources/Info.plist" > "${PKGDIR}/Contents/Info.plist"
+if [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
+	plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" "${PKGDIR}/Contents/Info.plist"
+fi
+
+plutil -replace CFBundleShortVersionString -string "${VERSION}" "${PKGDIR}/Contents/Info.plist"
+plutil -replace CFBundleVersion -string "${VERSION}" "${PKGDIR}/Contents/Info.plist"
 
 if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
-	echo "Build and sign release binaries for version ${VERSION_TAG}, developer ID ${DEVELOPER_ID}"
+	echo "Build and sign release binaries for version ${VERSION}, developer ID ${DEVELOPER_ID}"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--force "${SPARKLE_FRAMEWORK}/Versions/Current/XPCServices/Installer.xpc"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--force "${SPARKLE_FRAMEWORK}/Versions/Current/Updater.app"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--force "${SPARKLE_FRAMEWORK}/Versions/Current/Autoupdate"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--force "${SPARKLE_FRAMEWORK}"
 
 	if [ -n "${CODESIGN_REQUIREMENT}" ]; then
 		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/caked/)
@@ -41,7 +79,7 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--options runtime \
 			--timestamp \
 			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements Resources/release.entitlements \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--requirement="${REQUIREMENTS}" \
 			--force "${PKGDIR}/Contents/PlugIns/caked"
 
@@ -50,7 +88,7 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--options runtime \
 			--timestamp \
 			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements Resources/release.entitlements \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--requirement="${REQUIREMENTS}" \
 			--force "${PKGDIR}/Contents/PlugIns/cakectl"
 
@@ -59,7 +97,7 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--options runtime \
 			--timestamp \
 			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements Resources/release.entitlements \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--requirement="${REQUIREMENTS}" \
 			--force "${PKGDIR}/Contents/MacOS/Caker"
 
@@ -67,7 +105,7 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
-			--entitlements Resources/release.entitlements \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--requirement="${REQUIREMENTS}" \
 			--force "${PKGDIR}"
 	else
@@ -76,29 +114,30 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements Resources/release.entitlements \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--force "${PKGDIR}/Contents/PlugIns/caked"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements Resources/release.entitlements \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--force "${PKGDIR}/Contents/PlugIns/cakectl"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements Resources/release.entitlements \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--force "${PKGDIR}/Contents/MacOS/Caker"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
-			--entitlements Resources/release.entitlements \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--force "${PKGDIR}"
 	fi
 else
 	echo "Build unsigned debug binaries"
-	codesign --sign - --entitlements Resources/dev.entitlements --force "${PKGDIR}/Contents/PlugIns/caked"
-	codesign --sign - --entitlements Resources/dev.entitlements --force "${PKGDIR}/Contents/PlugIns/cakectl"
-	codesign --sign - --entitlements Resources/dev.entitlements --force "${PKGDIR}/Contents/MacOS/Caker"
+	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${PKGDIR}/Contents/PlugIns/caked"
+	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${PKGDIR}/Contents/PlugIns/cakectl"
+	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${PKGDIR}/Contents/Frameworks/Sparkle.framework/Versions/Current"
+	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${PKGDIR}/Contents/MacOS/Caker"
 fi

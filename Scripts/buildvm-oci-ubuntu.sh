@@ -1,16 +1,16 @@
 #!/bin/bash
-pushd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null
-CURDIR="${PWD}"
-PKGDIR="${CURDIR}/dist/Caker.app"
-popd > /dev/null
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+PKGDIR="${PROJECT_ROOT}/dist/Caker.app"
 
-BUILDDIR="${CURDIR}/.build/debug"
-RESOURCESDIR="${CURDIR}/Caker/Caker/Content"
+BUILDDIR="${PROJECT_ROOT}/.build/debug"
+BINARYDIR="${PROJECT_ROOT}/.build/debug"
+RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
 
 /usr/bin/swift build
 
-source "${CURDIR}/Scripts/build.inc.sh"
+source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 OCI_IMAGE=ocis://ghcr.io/cirruslabs/ubuntu:latest
 DISK_SIZE=20
 CMD="${PKGDIR}/Contents/PlugIns/caked"

@@ -1,7 +1,7 @@
 import Foundation
 
 public struct CI {
-	private static let rawVersion = "${VERSION_TAG}"
+	private static let rawVersion = "${VERSION}"
 
 	public static var version: String {
 		rawVersion.expanded() ? rawVersion : "SNAPSHOT"

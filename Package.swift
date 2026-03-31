@@ -56,6 +56,7 @@ let package = Package(
 		.package(url: "https://github.com/orchetect/SwiftRadix", exact: "1.3.1"),
 		.package(url: "https://github.com/sersoft-gmbh/swift-sysctl.git", exact: "1.8.0"),
 		.package(url: "https://github.com/swiftlang/swift-subprocess.git", revision: "7928f39b374b3403224c3a243da6326bdf7c918a"),
+		.package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.1"),
 		//.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
 		//.package(url: "https://github.com/apple/swift-collections.git", exact: "1.2.1"),
 		//.package(url: "https://github.com/apple/swift-nio-transport-services.git", exact: "1.24.0"),
@@ -154,7 +155,14 @@ let package = Package(
 			.product(name: "SwiftTerm", package: "SwiftTerm"),
 			.product(name: "FileMonitor", package: "FileMonitor"),
 			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
-			.product(name: "SwiftletUtilities", package: "SwiftletUtilities")
+			.product(name: "SwiftletUtilities", package: "SwiftletUtilities"),
+			.product(name: "Sparkle", package: "Sparkle"),
+		],
+		linkerSettings: [
+			.unsafeFlags([
+				"-Xlinker", "-rpath",
+				"-Xlinker", "@executable_path/../Frameworks"
+			])
 		]),
 		.executableTarget(name: "caked", dependencies: [
 			.target(name: "GRPCLib"),

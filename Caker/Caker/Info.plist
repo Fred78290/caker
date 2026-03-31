@@ -116,5 +116,15 @@
 			</dict>
 		</dict>
 	</array>
+	<key>SUFeedURL</key>
+	<string>https://caker.aldunelabs.com/appcast/appcast.xml</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
+	<key>SUPublicEDKey</key>
+	<string>WJhWPnMkgsVLGzHVYX17+YhgMV1yqqqqcZUW5cqGoeg=</string>
+	<key>SUAllowsAutomaticUpdates</key>
+	<true/>
 </dict>
 </plist>

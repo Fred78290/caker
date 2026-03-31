@@ -51,7 +51,7 @@ sudo systemsetup -setsleep Off 2>/dev/null
 SAFARI_PID=\$!
 disown
 sleep 30
-kill -9 \$SAFARI_PID
+kill -9 \${SAFARI_PID}
 # Enable Safari's remote automation
 sudo safaridriver --enable
 # Disable screen lock
@@ -80,7 +80,7 @@ MACOS_NUMBER=$(cat "${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/sw-vers-product-version.
 
 ${COMMAND} stop ${RESOLVE_VM_NAME}
 ${COMMAND} template create ${RESOLVE_VM_NAME} macos-${MACOS_VERSION}-vanilla
-${COMMAND} push ${RESOLVE_VM_NAME} ${REGISTRY}/macos-$MACOS_VERSION-vanilla:latest ${REGISTRY}/macos-${MACOS_VERSION}-vanilla:${MACOS_NUMBER}
+${COMMAND} push ${RESOLVE_VM_NAME} ${REGISTRY}/macos-${MACOS_VERSION}-vanilla:latest ${REGISTRY}/macos-${MACOS_VERSION}-vanilla:${MACOS_NUMBER}
 ${COMMAND} delete ${RESOLVE_VM_NAME}
 
 rm -rf "${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}"

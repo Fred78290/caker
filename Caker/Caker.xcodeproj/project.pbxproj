@@ -101,6 +101,8 @@
 		9B3601AB2E211A6800889BFD /* CreateTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */; };
 		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
 		9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */; };
+		9B3E2C692F7BDA1D003BF05E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3E2C682F7BDA1D003BF05E /* Sparkle */; };
+		9B3E2C6B2F7BDAD2003BF05E /* CheckForUpdatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */; };
 		9B44388A2EBC9C12008BB2BB /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4438892EBC9C12008BB2BB /* Dynamic */; };
 		9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */; };
 		9B4438902EBDE9AD008BB2BB /* RemoteWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */; };
@@ -738,6 +740,7 @@
 		9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSettingsView.swift; sourceTree = "<group>"; };
 		9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTemplateView.swift; sourceTree = "<group>"; };
 		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
+		9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdatesView.swift; sourceTree = "<group>"; };
 		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
 		9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteWizard.swift; sourceTree = "<group>"; };
 		9B4517E62F067E7B0088F093 /* GraphCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphCapsule.swift; sourceTree = "<group>"; };
@@ -1099,6 +1102,7 @@
 				9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */,
 				9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */,
 				9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */,
+				9B3E2C692F7BDA1D003BF05E /* Sparkle in Frameworks */,
 				9B08B4AD2F7436F1009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */,
 				9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */,
 				9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */,
@@ -1377,6 +1381,7 @@
 			children = (
 				9B5F4B522F728AF200AE1991 /* Authorization.swift */,
 				9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */,
+				9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */,
 				9B5D7BCD2EAA9602001FB96E /* Color.swift */,
 				9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */,
 				9B30BA482E0BDB5600256A9D /* FileHelpers.swift */,
@@ -2034,6 +2039,7 @@
 				9B0D1A452E2BAA2700D70267 /* FileMonitor */,
 				9B75308D2E65E557000736B3 /* RoyalVNCKitStatic */,
 				9B13C3422F0AD87C0099F00F /* CakeAgentLib */,
+				9B3E2C682F7BDA1D003BF05E /* Sparkle */,
 			);
 			productName = Caker;
 			productReference = 9B464A542D5A3DA000164BF5 /* Caker.app */;
@@ -2360,6 +2366,7 @@
 				9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */,
 				9B35667D2F27DDE700C5E12F /* XCRemoteSwiftPackageReference "zlib" */,
 				9BC1F9962F6D469A00A83B33 /* XCRemoteSwiftPackageReference "swift-subprocess" */,
+				9B3E2C672F7BDA1D003BF05E /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -2412,7 +2419,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path\nOSVERSION=$(uname -r|cut -d'.' -f 1)\n\nif [ \"$OSVERSION\" -lt 25 ]; then\n  mkdir ${CONFIGURATION_BUILD_DIR}/Frameworks\n  cp /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib ${CONFIGURATION_BUILD_DIR}/Frameworks\nfi\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path\nOSVERSION=$(uname -r|cut -d'.' -f 1)\n\nif [ \"${OSVERSION}\" -lt 25 ]; then\n  mkdir ${CONFIGURATION_BUILD_DIR}/Frameworks\n  cp /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib ${CONFIGURATION_BUILD_DIR}/Frameworks\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -2519,6 +2526,7 @@
 				9B215B752E0C391500AFC89D /* NetworkAttachementDetailView.swift in Sources */,
 				9B2BFAC52DFED25E000045C3 /* MountView.swift in Sources */,
 				9B3601A32E2116E600889BFD /* SettingsView.swift in Sources */,
+				9B3E2C6B2F7BDAD2003BF05E /* CheckForUpdatesView.swift in Sources */,
 				9B15FE6B2E69CC5600B23147 /* VMSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3432,6 +3440,14 @@
 				kind = branch;
 			};
 		};
+		9B3E2C672F7BDA1D003BF05E /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
+			requirement = {
+				kind = exactVersion;
+				version = 2.9.1;
+			};
+		};
 		9B464B832D5A3F0300164BF5 /* XCRemoteSwiftPackageReference "Dynamic" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mhdhejazi/Dynamic";
@@ -3796,6 +3812,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */;
 			productName = RoyalVNCKitStatic;
+		};
+		9B3E2C682F7BDA1D003BF05E /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B3E2C672F7BDA1D003BF05E /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 		9B4438892EBC9C12008BB2BB /* Dynamic */ = {
 			isa = XCSwiftPackageProductDependency;

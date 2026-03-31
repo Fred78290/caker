@@ -10,8 +10,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 def create_dmg_background():
-    # Dimensions du DMG (500x300 pixels)
-    width, height = 500, 300
+    # Dimensions du DMG (800x340 pixels)
+    width, height = 800, 340
     
     # Créer une nouvelle image avec un gradient bleu doux
     img = Image.new('RGBA', (width, height), color='white')
@@ -42,7 +42,7 @@ def create_dmg_background():
     bbox = draw.textbbox((0, 0), text, font=font)
     text_width = bbox[2] - bbox[0]
     text_x = (width - text_width) // 2
-    text_y = height - 40
+    text_y = height - 50
     
     # Ajouter des cercles décoratifs discrets
     #circle_color = (9, 64, 128, 100)

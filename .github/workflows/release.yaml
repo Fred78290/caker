@@ -10,6 +10,8 @@ on:
       - 'docs/**'
       - 'wiki/**'
       - '.github/workflows/publish-wiki.yaml'
+      - '.github/workflows/sync-docs-from-wiki.yaml'
+      - '.github/workflows/sparkle-release.yml'
 
 env:
   BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -20,10 +22,17 @@ env:
   APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   HOMEBREW_NO_AUTO_UPDATE: 1
-  RUN_PYTEST: false
+  RUN_PYTEST: ${{ vars.RUN_PYTEST }}
+  RUN_SWIFT_TESTS: ${{ vars.RUN_SWIFT_TESTS }}
   #PATH: "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:${{ github.workspace }}/.bin"
   CAKE_HOME: "${{ github.workspace }}/.cake"
   PKGDIR: "${{ github.workspace }}/.ci/pkg/Caker.app"
+  NOTARYZATION: true
+  SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+  SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
+  SETUP_KEYCHAIN: ${{ vars.SETUP_KEYCHAIN }}
+permissions:
+  contents: write
 jobs:
   build:
     if: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
@@ -33,57 +42,61 @@ jobs:
       - name: Check tools
         id: check
         run: |
-          echo "run_pytest=${RUN_PYTEST}" >> $GITHUB_OUTPUT
-          if [ $RUNNER_ENVIRONMENT == "github-hosted" ]; then
+          echo "run_pytest=${RUN_PYTEST}" >> ${GITHUB_OUTPUT}
+          if [ "${RUNNER_ENVIRONMENT}" == "github-hosted" ]; then
             echo "Running on github-hosted runner, checking for required tools..."
-            echo PATH=$PATH
+            echo PATH=${PATH}
             if [ -z "$(command -v python)" ]; then
-              echo "install_python=true" >> $GITHUB_OUTPUT
+              echo "install_python=true" >> ${GITHUB_OUTPUT}
             else
-              echo "install_python=false" >> $GITHUB_OUTPUT
+              echo "install_python=false" >> ${GITHUB_OUTPUT}
             fi
 
             if [ -z "$(command -v go)" ]; then
-              echo "install_golang=true" >> $GITHUB_OUTPUT
+              echo "install_golang=true" >> ${GITHUB_OUTPUT}
             else
-              echo "install_golang=false" >> $GITHUB_OUTPUT
+              echo "install_golang=false" >> ${GITHUB_OUTPUT}
             fi
 
             if [ -z "$(command -v brew)" ]; then
-              echo "install_brew=true" >> $GITHUB_OUTPUT
+              echo "install_brew=true" >> ${GITHUB_OUTPUT}
             else
-              echo "install_brew=false" >> $GITHUB_OUTPUT
+              echo "install_brew=false" >> ${GITHUB_OUTPUT}
             fi
 
             if [ -z "$(command -v swift)" ]; then
-              echo "install_swift=true" >> $GITHUB_OUTPUT
+              echo "install_swift=true" >> ${GITHUB_OUTPUT}
             else
-              echo "install_swift=false" >> $GITHUB_OUTPUT
+              echo "install_swift=false" >> ${GITHUB_OUTPUT}
             fi
           else
             echo "Not running on github-hosted runner, skipping tool checks."
-            echo "install_python=false" >> $GITHUB_OUTPUT
-            echo "install_golang=false" >> $GITHUB_OUTPUT
-            echo "install_brew=false" >> $GITHUB_OUTPUT
-            echo "install_swift=false" >> $GITHUB_OUTPUT
+            echo "install_python=false" >> ${GITHUB_OUTPUT}
+            echo "install_golang=false" >> ${GITHUB_OUTPUT}
+            echo "install_brew=false" >> ${GITHUB_OUTPUT}
+            echo "install_swift=false" >> ${GITHUB_OUTPUT}
           fi
 
-      - name: checkout
+      - name: 🛠️ checkout
+        id: checkout
         uses: actions/checkout@v4.2.2
         with:
           submodules: recursive
  
-      - name: Set up Homebrew
+      - name: 🛠️ Setup Homebrew
+        id: homebrew
         if: steps.check.outputs.install_brew == 'true'
         uses: Homebrew/actions/setup-homebrew@master
 
-      - name: Setup Python
+      - name: 🛠️ Setup Python
+        id: python
         uses: actions/setup-python@v5
         if: steps.check.outputs.install_python == 'true'
         with:
           python-version: '3.13' 
 
-      - name: Setup Go
+      - name: 🛠️ Setup Go
+        id: go
         if: steps.check.outputs.install_golang == 'true'
         uses: actions/setup-go@v5.4.0
         with:
@@ -91,67 +104,116 @@ jobs:
           cache: true
           cache-dependency-path: qcow2convert/go.mod
 
-      - name: Setup Swift
+      - name: 🛠️ Setup Swift
+        id: swift
         if: steps.check.outputs.install_swift == 'true'
         uses: swift-actions/setup-swift@v2.3.0
 
-      - name: Version
+      - name: 📊 Version
         id: version
         run: |
-          VERSION_TAG="${GITHUB_REF##*/}"
+          VERSION="${GITHUB_REF##*/}"
           PACKAGE=false
 
-          if [ -z "$(command -v envsubst)"]; then
-            brew install envsubst
+          if [ "${{ steps.check.outputs.install_brew }}" == "true" ]; then
+            brew install sparkle create-dmg gettext jq libxml2
+          else
+            if [ -z "$(command -v envsubst)"  ]; then
+              brew install gettext
+            fi
+            if [ -z "$(command -v jq)" ]; then
+              brew install jq
+            fi
+            if [ -z "$(command -v create-dmg)" ]; then
+              brew install create-dmg
+            fi
+            if [ -z "$(command -v xmllint)" ]; then
+              brew install libxml2
+            fi
+          fi
+          
+          HOMEBREW_PREFIX=$(brew config|grep HOMEBREW_PREFIX|cut -d ' ' -f 2)
+
+          if [ "${SETUP_KEYCHAIN}" == "true" ]; then
+            KEYCHAIN_PATH="${RUNNER_TEMP}/app-signing.keychain-db"
+          else
+            KEYCHAIN_PATH=""
           fi
 
-          if [[ "${VERSION_TAG}" == "snapshot" ]]; then
-            VERSION_TAG=SNAPSHOT-$(git rev-parse --short HEAD)
+          if [[ "${VERSION}" == "snapshot" ]]; then
+            VERSION="SNAPSHOT-$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)"
             PACKAGE=true
-          elif [[ "${VERSION_TAG}" == v* ]]; then
-            VERSION_TAG="${VERSION_TAG:1}"
+            RELEASE=false
+          elif [[ "${VERSION}" == v* ]]; then
+            VERSION="${VERSION:1}"
             PACKAGE=true
+            RELEASE=true
           fi
 
           if [ ${PACKAGE} == "true" ] && [ ${GITHUB_EVENT_NAME} != "push" ]; then
             PACKAGE=false
           fi
 
-          echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
-          echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
-          echo "build_package=${PACKAGE}" >> $GITHUB_OUTPUT
-          echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
+          mkdir -p "${GITHUB_WORKSPACE}/build"
+          PKG_PATH="${GITHUB_WORKSPACE}/build/Caker.pkg"
+          DMG_PATH="${GITHUB_WORKSPACE}/build/Caker.dmg"
+
+          echo "PKG_PATH=${PKG_PATH}" >> ${GITHUB_ENV}
+          echo "DMG_PATH=${DMG_PATH}" >> ${GITHUB_ENV}
+          echo "VERSION=${VERSION}" >> ${GITHUB_ENV}
+          echo "PACKAGE=${PACKAGE}" >> ${GITHUB_ENV}
+          echo "RELEASE=${RELEASE}" >> ${GITHUB_ENV}
+          echo "HOMEBREW_PREFIX=${HOMEBREW_PREFIX}" >> ${GITHUB_ENV}
+          echo "KEYCHAIN_PATH=${KEYCHAIN_PATH}" >> ${GITHUB_ENV}
+
+          echo "build_release=${RELEASE}" >> ${GITHUB_OUTPUT}
+          echo "build_package=${PACKAGE}" >> ${GITHUB_OUTPUT}
+          echo "version=${VERSION}" >> ${GITHUB_OUTPUT}
+          echo "pkg_path=${PKG_PATH}" >> ${GITHUB_OUTPUT}
+          echo "dmg_path=${DMG_PATH}" >> ${GITHUB_OUTPUT}
+          echo "homebrew_prefix=${HOMEBREW_PREFIX}" >> ${GITHUB_OUTPUT}
+          echo "keychain_path=${KEYCHAIN_PATH}" >> ${GITHUB_OUTPUT}
 
           TMPFILE=$(mktemp)
-          envsubst < Sources/cakedlib/CI/CI.swift > $TMPFILE
-          cp $TMPFILE Sources/cakedlib/CI/CI.swift
-          envsubst < Resources/Info.plist > $TMPFILE
-          cp $TMPFILE Resources/Info.plist
+          envsubst < Sources/cakedlib/CI/CI.swift > ${TMPFILE}
+          cp ${TMPFILE} Sources/cakedlib/CI/CI.swift
+          envsubst < Resources/Info.plist > ${TMPFILE}
+          cp ${TMPFILE} Resources/Info.plist
 
-      - name: Build QCow2convert framework
+      - name: 👷 Build QCow2convert framework
+        id: build_qcow2convert
         run: |
           cd qcow2convert
           ./build.sh
-
-      - name: Install the Apple certificate and provisioning profile
+      - name: 🛠️ Install the Apple certificate and provisioning profile
+        id: setup_keychain
+        if: github.env.SETUP_KEYCHAIN == 'true'
         run: |
-          ./.ci/setup-keychain.sh ${RUNNER_TEMP}/app-signing.keychain-db
+          ./.ci/setup-keychain.sh "${KEYCHAIN_PATH}"
   
-      - name: Build Swift package
-        run: |
-          ./Scripts/build-signed-release.sh ${RUNNER_TEMP}/app-signing.keychain-db
- 
-      - name: Run tests
+      - name: 🧪 Run tests
+        id: tests
+        if: github.env.RUN_SWIFT_TESTS == 'true'
         run: |
           # Run tests for the Swift package
-          export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:$PATH
+          export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:${PATH}
           swift test|grep -v Compiling|grep -v CoreData
 
-      - name: Run integration tests
+      - name: 👷 Build Swift package
+        id: build
+        env:
+          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
+        run: |
+          ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}"
+ 
+      - name: 🧪 Run integration tests
+        id: integration_tests
         if: steps.check.outputs.run_pytest == 'true'
+        env:
+          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
         run: |
           # Run tests for the Swift package
-          export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:$PATH
+          export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:${PATH}
           if [ -z "$(command -v virtualenv)" ]; then
             brew install virtualenv
           fi
@@ -161,32 +223,36 @@ jobs:
           pip install -r requirements.txt
           pytest --verbose --junit-xml=pytest-junit.xml
 
-      - name: package
+      - name: 📦 Package
+        id: package
         if: steps.version.outputs.build_package == 'true'
-        run: |
-          export VERSION_TAG="${GITHUB_REF##*/}"
-          ./.ci/create-pkg.sh ${RUNNER_TEMP}/app-signing.keychain-db
-
-      - name: "Create release"
         env:
-          VERSION_TAG: ${{ steps.version.outputs.version_tag }}
-        if: steps.version.outputs.build_package == 'true'
+          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
+          PKG_PATH: ${{ steps.version.outputs.pkg_path }}
         run: |
-          if [ ${GITHUB_REF##*/} == "snapshot" ]; then
-            gh release create --prerelease --generate-notes --title "${VERSION_TAG}" "${VERSION_TAG}" ./.ci/Caker-${VERSION_TAG}.pkg
-          else
-            gh release create --generate-notes --title "${VERSION_TAG}" "${VERSION_TAG}" ./.ci/Caker-${VERSION_TAG}.pkg
-          fi
+          export VERSION="${{ steps.version.outputs.version }}"
+          ./.ci/create-pkg.sh "${KEYCHAIN_PATH}"
 
-      - name: "Update release notes from git log"
+      - name: 💿 Create DMG
+        id: create_dmg
+        if: steps.version.outputs.build_package == 'true'
+        env:
+          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
+          DMG_PATH: ${{ steps.version.outputs.dmg_path }}
+        run: |
+          export VERSION="${{ steps.version.outputs.version }}"
+          ./.ci/create-dmg.sh "${KEYCHAIN_PATH}"
+
+      - name: 📝 Update release notes from git log
+        id: update-release-notes
         env:
           RELEASE_PATHS: Sources wiki .github/workflows
-          MAX_COMMITS: "20"
+          MAX_COMMITS: "100"
         if: steps.version.outputs.build_package == 'true'
         run: |
           ./Scripts/update-wiki-release-notes-from-git.sh "${GITHUB_REF_NAME}"
 
-      - name: Publish wiki
+      - name: 📖 Publish wiki
         env:
           GH_TOKEN: ${{ secrets.WIKI_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
@@ -197,7 +263,67 @@ jobs:
           REPO="${GITHUB_REPOSITORY##*/}"
           ./Scripts/publish-wiki.sh "${OWNER}" "${REPO}"
 
-      - name: Clean up keychain and provisioning profile
-        if: always()
+      - name: 🔐 Setup Sparkle keys
+        id: sparkle_keys
+        if: steps.version.outputs.build_release == 'true'
         run: |
-          security delete-keychain ${RUNNER_TEMP}/app-signing.keychain-db
+          mkdir -p .sparkle
+          echo "${SPARKLE_PRIVATE_KEY}" > .sparkle/sparkle_private_key.pem
+          echo "${SPARKLE_PUBLIC_KEY}" > .sparkle/sparkle_public_key.pem
+
+      - name: 📡 Generate Custom Appcast
+        id: appcast
+        if: steps.version.outputs.build_release == 'true'
+        env:
+          DMG_PATH: ${{ steps.version.outputs.dmg_path }}
+          VERSION: ${{ steps.version.outputs.version }}
+          HOMEBREW_PREFIX: ${{ steps.version.outputs.homebrew_prefix }}
+        run: |          
+          # Make scripts executable
+          chmod +x Scripts/sparkle-generate-appcast-xml.sh
+          chmod +x Scripts/sparkle-deploy-appcast.sh
+          
+          # Generate custom XML appcast
+          ./Scripts/sparkle-generate-appcast-xml.sh --releases 10
+
+      - name: 🌐 Deploy Appcast to GitHub Pages
+        id: deploy-appcast
+        if: steps.version.outputs.build_release == 'true'
+        env:
+          DMG_PATH: ${{ steps.version.outputs.dmg_path }}
+          VERSION: ${{ steps.version.outputs.version }}
+          HOMEBREW_PREFIX: ${{ steps.version.outputs.homebrew_prefix }}
+        run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Deploy appcast automatically
+          ./Scripts/sparkle-deploy-appcast.sh --force
+
+      - name: 📡 Publish release
+        id: create_release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          DMG_PATH: ${{ steps.version.outputs.dmg_path }}
+          PKG_PATH: ${{ steps.version.outputs.pkg_path }}
+        if: steps.version.outputs.build_package == 'true'
+        run: |
+          if [ ${GITHUB_REF##*/} == "snapshot" ]; then
+            gh release create --prerelease --generate-notes \
+              --title "${VERSION}" "${VERSION}" \
+              "${DMG_PATH}" \
+              "${PKG_PATH}"
+          else
+            gh release create --generate-notes --title "${VERSION}" "${VERSION}" \
+              "${DMG_PATH}" \
+              "${PKG_PATH}"
+          fi
+
+      - name: 🧹 Clean up keychain and provisioning profile
+        id: cleanup
+        env:
+          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
+        if: always() && github.env.SETUP_KEYCHAIN == 'true'
+        run: |
+          security delete-keychain "${KEYCHAIN_PATH}"

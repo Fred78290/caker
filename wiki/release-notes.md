@@ -105,7 +105,7 @@
 	- `./Scripts/new-wiki-release-entry.sh`
 	- or `./Scripts/new-wiki-release-entry.sh YYYY-MM-DD`
 4. Publish with:
-	- `GH_TOKEN="$GITHUB_TOKEN" ./Scripts/publish-wiki.sh Fred78290 caker`
+	- `GH_TOKEN="${GITHUB_TOKEN}" ./Scripts/publish-wiki.sh Fred78290 caker`
 	- or `USE_SSH=1 ./Scripts/publish-wiki.sh Fred78290 caker`
 5. Add notable documentation updates in the new dated entry.
 

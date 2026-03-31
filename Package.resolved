@@ -1,5 +1,5 @@
 {
-  "originHash" : "b526bcc08f4d9d80f3b09abfcdb5432e877f59159b34a98e8e9cd89b31520aab",
+  "originHash" : "9518a25b0efcc3385e4ff3bc7af96145cdca0662d198e313a2e5861726fdcbe1",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -145,6 +145,15 @@
       "location" : "https://github.com/Fred78290/Shout.git",
       "state" : {
         "revision" : "9bd074b3d0943e391021cf7a86360fd5f82268cc"
+      }
+    },
+    {
+      "identity" : "sparkle",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sparkle-project/Sparkle",
+      "state" : {
+        "revision" : "066e75a8b3e99962685d6a90cdd5293ebffd9261",
+        "version" : "2.9.1"
       }
     },
     {
