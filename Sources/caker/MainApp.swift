@@ -491,22 +491,24 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path) == false
 
 			if needsPathsFile || needsSudoersFile {
-				let authorization = try Authorization.requestAdminAuthorizationIfNeeded("/usr/bin/install")
+				var contents: [String] = [
+					"#!/bin/sh\n"
+				]
 
-				defer {
-					if let authorization {
-						AuthorizationFree(authorization, [.destroyRights])
-					}
-				}
-				
 				if needsPathsFile {
 					let content = pluginPath.hasSuffix("\n") ? pluginPath : "\(pluginPath)\n"
-					try installRootOwnedFile(content: content, to: pathsFile, mode: "0644", authorization: authorization)
+
+					try contents.append(contentsOf: installRootOwnedFile(content: content, to: pathsFile, mode: "0644"))
 				}
 				
 				if needsSudoersFile {
 					let content = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
-					try installRootOwnedFile(content: content, to: sudoersFile, mode: "0440", authorization: authorization)
+
+					try contents.append(contentsOf: installRootOwnedFile(content: content, to: sudoersFile, mode: "0440"))
+				}
+				
+				if geteuid() != 0 && contents.count > 1 {
+					try print(runPrivileged(contents))
 				}
 			}
 		} catch {
@@ -520,23 +522,31 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		}
 	}
 
-	private static func installRootOwnedFile(content: String, to destination: URL, mode: String, authorization: AuthorizationRef?) throws {
+	private static func installRootOwnedFile(content: String, to destination: URL, mode: String) throws -> [String] {
 		let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString)")
 		let parent = destination.deletingLastPathComponent()
 		let logger = CakeAgentLib.Logger("MainUIAppDelegate")
+		var result: [String] = []
 
 		try content.write(to: temporaryFile, atomically: true, encoding: .utf8)
-		defer {
-			try? FileManager.default.removeItem(at: temporaryFile)
-		}
 
 		if geteuid() == 0 {
+			defer {
+				try? FileManager.default.removeItem(at: temporaryFile)
+			}
+
 			try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+
 			logger.debug(try Shell.command("/usr/bin/install", arguments: ["-o", "root", "-g", "wheel", "-m", mode, temporaryFile.path, destination.path]))
 		} else {
-			logger.debug(try Authorization.runPrivileged("/usr/bin/install", arguments: ["-d", "-m", "755", parent.path], authorization: authorization))
-			logger.debug(try Authorization.runPrivileged("/usr/bin/install", arguments: ["-o", "root", "-g", "wheel", "-m", mode, temporaryFile.path, destination.path], authorization: authorization))
+			result.append(contentsOf: [
+				"/usr/bin/install -d -m 755 \(parent.path)",
+				"/usr/bin/install -o root -g wheel -m \(mode) \(temporaryFile.path) \(destination.path)",
+				"rm -f \(temporaryFile.path)"
+			])
 		}
+
+		return result
 	}
 
 	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
@@ -570,4 +580,25 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 		}
 	}
+
+	private static func runPrivileged(_ commands: [String]) throws -> String {
+		let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString).sh")
+		let appleScript = "do shell script \"\(temporaryFile.path)\" with administrator privileges"
+
+		try commands.joined(separator: "\n").write(to: temporaryFile, atomically: true, encoding: .utf8)
+		
+		defer {
+			try? FileManager.default.removeItem(at: temporaryFile)
+		}
+
+		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: temporaryFile.path)
+
+		return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
+	}
+
+	private static func shellQuote(_ value: String) -> String {
+		let escaped = value.replacingOccurrences(of: "'", with: "'\\''")
+		return "'\(escaped)'"
+	}
+
 }
