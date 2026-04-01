@@ -15,4 +15,7 @@ chgroup staff /etc/sudoers.d/caked
 chmod 0440 /etc/sudoers.d/caked
 
 # Install the Caker service
-/Applications/Caker.app/Contents/PlugIns/caked service install --system
+/Applications/Caker.app/Contents/PlugIns/caked certificates generate
+
+# Install the Caker service
+/Applications/Caker.app/Contents/PlugIns/caked service install
