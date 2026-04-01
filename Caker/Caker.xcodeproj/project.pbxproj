@@ -778,7 +778,6 @@
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		9B4EA8202F76902C0044C18E /* caker.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; name = caker.provisionprofile; path = ../../Resources/caker.provisionprofile; sourceTree = "<group>"; };
 		9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswiftCompatibilitySpan.dylib; path = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib"; sourceTree = "<absolute>"; };
 		9B57E9CF2E745FB600C5601D /* ViewSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSize.swift; sourceTree = "<group>"; };
 		9B5A37752ED4BDA8007B59B0 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
@@ -1433,7 +1432,6 @@
 				9B96B0102F4B68380069C970 /* CakerTests */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
 				9B464A552D5A3DA000164BF5 /* Products */,
-				9B4EA8242F7691040044C18E /* Resources */,
 				9B464ADD2D5A3E0300164BF5 /* Sources */,
 				9B345C152DB4EB700047D00B /* Tests */,
 			);
@@ -1442,6 +1440,7 @@
 		9B464A552D5A3DA000164BF5 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */,
 				9B464A542D5A3DA000164BF5 /* Caker.app */,
 				9B464B4F2D5A3E5C00164BF5 /* cakectl */,
 				9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */,
@@ -1547,15 +1546,6 @@
 				9B464C492D5A427100164BF5 /* Virtualization.framework */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		9B4EA8242F7691040044C18E /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */,
-				9B4EA8202F76902C0044C18E /* caker.provisionprofile */,
-			);
-			path = Resources;
 			sourceTree = "<group>";
 		};
 		9B5A377E2ED4BDA8007B59B0 /* VNCLib */ = {
