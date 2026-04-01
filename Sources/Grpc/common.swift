@@ -175,7 +175,7 @@ public struct Utils {
 
 			cakeHomeDir = cakeHomeDir.resolvingSymlinksInPath()
 
-			homeDirectories[runMode.isSystem] = cakeHomeDir
+			homeDirectories[runMode.isSystem] = cakeHomeDir.absoluteURL
 
 			return cakeHomeDir
 		}
