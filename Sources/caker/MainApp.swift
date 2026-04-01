@@ -455,6 +455,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
+		Self.ensureCertificates()
 		Self.ensurePrivilegedBootstrapFiles()
 
 		if isDockIconHidden {
@@ -463,6 +464,21 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			NSApp.setActivationPolicy(.regular)
 			EnvironmentValues().openWindow(id: "home")
 			NSApp.windows.first?.makeKeyAndOrderFront(nil)
+		}
+	}
+
+	static func ensureCertificates() {
+		do {
+			_ = try CertificatesLocation.createCertificats(runMode: .app)
+			_ = try CertificatesLocation.createAgentCertificats(runMode: .app)
+		} catch {
+			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure certificates: \(error.localizedDescription)")
+
+			MainActor.assumeIsolated {
+				alertError("Certificates", "Failed to install certificates. Please check the logs for more information.")
+			}
+
+			NSApp.terminate(self)
 		}
 	}
 

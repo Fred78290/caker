@@ -31,8 +31,14 @@ public struct CertificatesLocation: Codable {
 		self.serverCertURL = URL(fileURLWithPath: "server.pem", relativeTo: certHome).absoluteURL
 	}
 
+	public func isValid() -> Bool {
+		self.files.allSatisfy {
+			FileManager.default.fileExists(atPath: $0.path)
+		}
+	}
+
 	public func createCertificats(subject: String, numberOfYears: Int = 10, _ force: Bool = false) throws -> CertificatesLocation {
-		if force || FileManager.default.fileExists(atPath: self.serverKeyURL.path) == false {
+		if force || self.isValid() == false {
 			try FileManager.default.createDirectory(at: self.certHome, withIntermediateDirectories: true)
 			try RSAKeyGenerator.generateClientServerCertificate(
 				subject: subject, numberOfYears: numberOfYears,
@@ -44,18 +50,18 @@ public struct CertificatesLocation: Codable {
 		return self
 	}
 
-	public static func getCertificats(runMode: Utils.RunMode) throws -> CertificatesLocation {
-		return CertificatesLocation(certHome: URL(fileURLWithPath: "certs", isDirectory: true, relativeTo: try Utils.getHome(runMode: runMode)))
+	public static func getCertificats(_ certHome: String = "certs", runMode: Utils.RunMode) throws -> CertificatesLocation {
+		try CertificatesLocation(certHome: Utils.getHome(runMode: runMode).appending(path: certHome, directoryHint: .isDirectory))
 	}
 
 	public static func createCertificats(runMode: Utils.RunMode, force: Bool = false) throws -> CertificatesLocation {
-		let certs: CertificatesLocation = try getCertificats(runMode: runMode)
+		let certs = try getCertificats(runMode: runMode)
 
 		return try certs.createCertificats(subject: "Caker", force)
 	}
 
 	public static func createAgentCertificats(runMode: Utils.RunMode, force: Bool = false) throws -> CertificatesLocation {
-		let certs: CertificatesLocation = CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(runMode: runMode)))
+		let certs = try getCertificats("agent", runMode: runMode)
 
 		return try certs.createCertificats(subject: "CakeAgent", force)
 	}
