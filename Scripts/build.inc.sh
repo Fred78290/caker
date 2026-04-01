@@ -38,6 +38,7 @@ cp -c "${RESOURCESDIR}/Document.icns" "${PKGDIR}/Contents/Resources/Document.icn
 cp -c "${RESOURCESDIR}/MenuBarIcon.png" "${PKGDIR}/Contents/Resources/MenuBarIcon.png"
 cp -c "${ASSETS}/AppIcon.icns" "${PKGDIR}/Contents/Resources/AppIcon.icns"
 cp -c "${ASSETS}/Assets.car" "${PKGDIR}/Contents/Resources/Assets.car"
+cp -c "${PROJECT_ROOT}/Resources/Prompt.png" "${PKGDIR}/Contents/Resources/Prompt.png"
 cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${PKGDIR}/Contents/Resources/Icons"
 cp -c "${PROJECT_ROOT}/Resources/Caker.provisionprofile" "${PKGDIR}/Contents/embedded.provisionprofile"
 cp -c "${PROJECT_ROOT}/Resources/Info.plist" "${PKGDIR}/Contents/Info.plist"
