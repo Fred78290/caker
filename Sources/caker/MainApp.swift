@@ -401,13 +401,13 @@ struct MainApp: App {
 	
 	static func runAgent(runMode: Utils.RunMode) throws {
 		guard var pluginsURL = Bundle.main.cakedBundleURL else {
-			throw ServiceError("Plugins path is missing")
+			throw ServiceError("Caked bundle path is missing")
 		}
 
 		pluginsURL = pluginsURL.appendingPathComponent(Home.cakedCommandName)
 
 		guard try pluginsURL.exists() else {
-			throw ServiceError("Agent executable is missing")
+			throw ServiceError("Caked executable is missing")
 		}
 
 		// Launch off the main thread to avoid QoS inversions and UI stalls
