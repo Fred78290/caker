@@ -40,6 +40,6 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>Fred78290</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Caker need SSH access to running VM and create virtual network</string>
+	<string>Caker needs SSH access to running VM and create virtual network</string>
 </dict>
 </plist>
