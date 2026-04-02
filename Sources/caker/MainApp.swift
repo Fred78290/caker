@@ -400,11 +400,15 @@ struct MainApp: App {
 	}
 	
 	static func runAgent(runMode: Utils.RunMode) throws {
-		guard var pluginsURL = Bundle.main.builtInPlugInsURL else {
+		guard var pluginsURL = Bundle.main.cakedBundleURL else {
 			throw ServiceError("Plugins path is missing")
 		}
 
 		pluginsURL = pluginsURL.appendingPathComponent(Home.cakedCommandName)
+
+		guard try pluginsURL.exists() else {
+			throw ServiceError("Agent executable is missing")
+		}
 
 		// Launch off the main thread to avoid QoS inversions and UI stalls
 		Task.detached(priority: .background) {
@@ -483,10 +487,13 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	static func ensurePrivilegedBootstrapFiles() {
+		guard let pluginPath = Bundle.main.cakedBundlePath else {
+			return
+		}
+
 		do {
 			let pathsFile = URL(fileURLWithPath: "/etc/paths.d/com.aldunelabs.caker")
 			let sudoersFile = URL(fileURLWithPath: "/etc/sudoers.d/caked")
-			let pluginPath = Bundle.main.builtInPlugInsPath ?? Bundle.main.bundleURL.appendingPathComponent("Contents/PlugIns").path
 			let needsPathsFile = FileManager.default.fileExists(atPath: pathsFile.path) == false
 			let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path) == false
 

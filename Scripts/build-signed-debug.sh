@@ -12,6 +12,7 @@ BUILDDIR="${PROJECT_ROOT}/.build/debug"
 BINARYDIR="${PROJECT_ROOT}/.build/debug"
 RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
+SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 
 sudo rm -rf "${PROJECT_ROOT}/.build" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 
