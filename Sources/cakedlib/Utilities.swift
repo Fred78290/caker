@@ -34,7 +34,7 @@ extension Bundle {
 			return nil
 		}
 
-		guard isDirectory else {
+		guard isDirectory.boolValue else {
 			return nil
 		}
 
