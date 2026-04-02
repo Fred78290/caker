@@ -34,6 +34,10 @@ extension Bundle {
 			return nil
 		}
 
+		guard isDirectory else {
+			return nil
+		}
+
 		return cakedBundleURL
 	}
 }
