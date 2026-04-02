@@ -95,12 +95,13 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 		--force "${SPARKLE_FRAMEWORK}"
 
 	if [ -n "${CODESIGN_REQUIREMENT}" ]; then
-		echo "Using custom code signing requirement: ${REQUIREMENTS}"
 		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/cakectl/)
+		echo "Using custom code signing requirement: ${REQUIREMENTS}"
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
 			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--requirement="${REQUIREMENTS}" \
 			--force "${CAKED_APP}/MacOS/cakectl"
 
