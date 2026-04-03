@@ -13,6 +13,35 @@ extension Date {
 	}
 }
 
+extension Bundle {
+	public var cakedBundlePath: String? {
+		guard let url = self.cakedBundleURL else {
+			return nil
+		}
+		
+		return url.path
+	}
+	
+	public var cakedBundleURL: URL? {
+		guard let pluginURL = self.builtInPlugInsURL else {
+			return nil
+		}
+		
+		let cakedBundleURL = pluginURL.appendingPathComponent("caked.bundle/Contents/MacOS").absoluteURL
+		var isDirectory: ObjCBool = false
+
+		guard FileManager.default.fileExists(atPath: cakedBundleURL.path, isDirectory: &isDirectory) else {
+			return nil
+		}
+
+		guard isDirectory.boolValue else {
+			return nil
+		}
+
+		return cakedBundleURL
+	}
+}
+
 public func processExist(_ runningPID: pid_t) throws -> (running: Bool, processName: String, pid: pid_t) {
 	// Requesting the pid of 0 from systcl will return all pids
 	var mib = [CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0]
@@ -203,14 +232,18 @@ extension URL: Purgeable {
 			}
 		}
 
+		let main = Bundle.main
+
 		let pathd = [
-			Bundle.main.builtInPlugInsPath,
-			Bundle.main.privateFrameworksPath,
-			Bundle.main.sharedFrameworksPath,
-			Bundle.main.sharedSupportPath,
-			Bundle.main.resourcePath,
+			main.cakedBundlePath,
+			main.builtInPlugInsPath,
+			main.privateFrameworksPath,
+			main.sharedFrameworksPath,
+			main.sharedSupportPath,
+			main.resourcePath,
 			ProcessInfo.processInfo.environment["PATH"],
-			"/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin"]
+			"/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin"
+		]
 
 		return pathd.compactMap {
 			guard let path = $0 else {

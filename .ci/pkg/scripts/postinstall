@@ -2,12 +2,12 @@
 
 set -e
 
-echo "/Applications/Caker.app/Contents/PlugIns" > /etc/paths.d/com.aldunelabs.caker
+echo "/Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS" > /etc/paths.d/com.aldunelabs.caker
 
 # Create sudoers file for Caker
 cat <<EOF > /etc/sudoers.d/caked
 # Caker sudoers file
-%everyone ALL=(root:wheel) NOPASSWD: /Applications/Caker.app/Contents/PlugIns/caked
+%everyone ALL=(root:wheel) NOPASSWD: /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked
 EOF
 
 chgroup staff /etc/sudoers.d/caked

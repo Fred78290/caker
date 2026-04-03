@@ -330,8 +330,6 @@
 		9BE0B6FE2F1E4CBD0040EDD4 /* TaskQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE0B6FD2F1E4CBD0040EDD4 /* TaskQueue.swift */; };
 		9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */; };
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
-		9BE569EC2DFEF9840086B9C7 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		9BE569ED2DFEF9840086B9C7 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */; };
 		9BE9BE7C2EB774FE00220700 /* ColorSchemeModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */; };
 		9BEAA1502F37B073005ACC9D /* BuildHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */; };
@@ -533,6 +531,12 @@
 		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
 		9BF8AE6A2F43915700DE5EAB /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */; };
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
+		9BFE86A62F7E59DC005CC9B2 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		9BFE87182F7E6202005CC9B2 /* caked.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9BFE876F2F7E64F1005CC9B2 /* embedded.provisionprofile in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */; };
+		9BFE87702F7E65F0005CC9B2 /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
+		9BFE87DC2F7E6B67005CC9B2 /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -549,20 +553,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 9B464C5B2D5A459B00164BF5;
 			remoteInfo = GRPCLib;
-		};
-		9B2BFA812DFED1D6000045C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 9B464B4E2D5A3E5C00164BF5;
-			remoteInfo = cakectl;
-		};
-		9B2BFA832DFED1D6000045C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 9BEBC68D2DF43FEE0092B196;
-			remoteInfo = caked;
 		};
 		9B2BFA852DFED1EA000045C3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -627,6 +617,27 @@
 			remoteGlobalIDString = 9BEBC68D2DF43FEE0092B196;
 			remoteInfo = caked;
 		};
+		9BFE86A12F7E59B8005CC9B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9B464B4E2D5A3E5C00164BF5;
+			remoteInfo = cakectl;
+		};
+		9BFE86A32F7E59B8005CC9B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9BEBC68D2DF43FEE0092B196;
+			remoteInfo = caked;
+		};
+		9BFE87162F7E61F1005CC9B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9BFE869C2F7E592B005CC9B2;
+			remoteInfo = bundle;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -666,8 +677,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				9BE569EC2DFEF9840086B9C7 /* cakectl in CopyFiles */,
-				9BE569ED2DFEF9840086B9C7 /* caked in CopyFiles */,
+				9BFE87182F7E6202005CC9B2 /* caked.bundle in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -679,6 +689,27 @@
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
+		};
+		9BFE86A52F7E59C8005CC9B2 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				9BFE86A62F7E59DC005CC9B2 /* cakectl in CopyFiles */,
+				9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9BFE876E2F7E64D9005CC9B2 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents;
+			dstSubfolderSpec = 1;
+			files = (
+				9BFE876F2F7E64F1005CC9B2 /* embedded.provisionprofile in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -1056,6 +1087,49 @@
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
 		9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
 		9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCIManagement.swift; sourceTree = "<group>"; };
+		9BFE869D2F7E592B005CC9B2 /* caked.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = caked.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BFE871B2F7E6480005CC9B2 /* almalinux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = almalinux.png; sourceTree = "<group>"; };
+		9BFE871C2F7E6480005CC9B2 /* alpine.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = alpine.png; sourceTree = "<group>"; };
+		9BFE871D2F7E6480005CC9B2 /* arch-linux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "arch-linux.png"; sourceTree = "<group>"; };
+		9BFE871E2F7E6480005CC9B2 /* backtrack.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = backtrack.png; sourceTree = "<group>"; };
+		9BFE871F2F7E6480005CC9B2 /* centos.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = centos.png; sourceTree = "<group>"; };
+		9BFE87202F7E6480005CC9B2 /* debian.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = debian.png; sourceTree = "<group>"; };
+		9BFE87212F7E6480005CC9B2 /* elementary-os.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "elementary-os.png"; sourceTree = "<group>"; };
+		9BFE87222F7E6480005CC9B2 /* fedora.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fedora.png; sourceTree = "<group>"; };
+		9BFE87232F7E6480005CC9B2 /* gentoo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gentoo.png; sourceTree = "<group>"; };
+		9BFE87242F7E6480005CC9B2 /* knoppix.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = knoppix.png; sourceTree = "<group>"; };
+		9BFE87252F7E6480005CC9B2 /* kubuntu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = kubuntu.png; sourceTree = "<group>"; };
+		9BFE87262F7E6480005CC9B2 /* linux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = linux.png; sourceTree = "<group>"; };
+		9BFE87272F7E6480005CC9B2 /* lubuntu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lubuntu.png; sourceTree = "<group>"; };
+		9BFE87282F7E6480005CC9B2 /* mac.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mac.png; sourceTree = "<group>"; };
+		9BFE87292F7E6480005CC9B2 /* mandriva.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mandriva.png; sourceTree = "<group>"; };
+		9BFE872A2F7E6480005CC9B2 /* mint.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mint.png; sourceTree = "<group>"; };
+		9BFE872B2F7E6480005CC9B2 /* openwrt.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = openwrt.png; sourceTree = "<group>"; };
+		9BFE872C2F7E6480005CC9B2 /* pop-os.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pop-os.png"; sourceTree = "<group>"; };
+		9BFE872D2F7E6480005CC9B2 /* red-hat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "red-hat.png"; sourceTree = "<group>"; };
+		9BFE872E2F7E6480005CC9B2 /* slackware.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = slackware.png; sourceTree = "<group>"; };
+		9BFE872F2F7E6480005CC9B2 /* suse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = suse.png; sourceTree = "<group>"; };
+		9BFE87302F7E6480005CC9B2 /* syllable.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = syllable.png; sourceTree = "<group>"; };
+		9BFE87312F7E6480005CC9B2 /* ubuntu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ubuntu.png; sourceTree = "<group>"; };
+		9BFE87322F7E6480005CC9B2 /* webos.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = webos.png; sourceTree = "<group>"; };
+		9BFE87332F7E6480005CC9B2 /* xubuntu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = xubuntu.png; sourceTree = "<group>"; };
+		9BFE87362F7E6480005CC9B2 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		9BFE87372F7E6480005CC9B2 /* caked.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = caked.plist; sourceTree = "<group>"; };
+		9BFE87382F7E6480005CC9B2 /* Caked.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Caked.xcf; sourceTree = "<group>"; };
+		9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CakedAppIcon.png; sourceTree = "<group>"; };
+		9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = embedded.provisionprofile; sourceTree = "<group>"; };
+		9BFE873B2F7E6480005CC9B2 /* dev.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = dev.entitlements; sourceTree = "<group>"; };
+		9BFE873C2F7E6480005CC9B2 /* Document.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Document.icns; sourceTree = "<group>"; };
+		9BFE873D2F7E6480005CC9B2 /* Document.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Document.png; sourceTree = "<group>"; };
+		9BFE873E2F7E6480005CC9B2 /* Document.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Document.xcf; sourceTree = "<group>"; };
+		9BFE873F2F7E6480005CC9B2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9BFE87402F7E6480005CC9B2 /* menubar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = menubar.png; sourceTree = "<group>"; };
+		9BFE87412F7E6480005CC9B2 /* menubar.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = menubar.xcf; sourceTree = "<group>"; };
+		9BFE87422F7E6480005CC9B2 /* Prompt.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Prompt.png; sourceTree = "<group>"; };
+		9BFE87432F7E6480005CC9B2 /* release.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = release.entitlements; sourceTree = "<group>"; };
+		9BFE87442F7E6480005CC9B2 /* VM.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = VM.png; sourceTree = "<group>"; };
+		9BFE87452F7E6480005CC9B2 /* VM.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = VM.xcf; sourceTree = "<group>"; };
+		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -1282,6 +1356,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9BFE869A2F7E592B005CC9B2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -1432,6 +1513,7 @@
 				9B96B0102F4B68380069C970 /* CakerTests */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
 				9B464A552D5A3DA000164BF5 /* Products */,
+				9BFE87462F7E6480005CC9B2 /* Resources */,
 				9B464ADD2D5A3E0300164BF5 /* Sources */,
 				9B345C152DB4EB700047D00B /* Tests */,
 			);
@@ -1447,6 +1529,7 @@
 				9BEBC68E2DF43FEE0092B196 /* caked */,
 				9BEBC7072DF440560092B196 /* libCakedLib.a */,
 				9B96B00F2F4B68380069C970 /* CakerTests.xctest */,
+				9BFE869D2F7E592B005CC9B2 /* caked.bundle */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1981,6 +2064,72 @@
 			path = OCI;
 			sourceTree = "<group>";
 		};
+		9BFE87342F7E6480005CC9B2 /* Icons */ = {
+			isa = PBXGroup;
+			children = (
+				9BFE871B2F7E6480005CC9B2 /* almalinux.png */,
+				9BFE871C2F7E6480005CC9B2 /* alpine.png */,
+				9BFE871D2F7E6480005CC9B2 /* arch-linux.png */,
+				9BFE871E2F7E6480005CC9B2 /* backtrack.png */,
+				9BFE871F2F7E6480005CC9B2 /* centos.png */,
+				9BFE87202F7E6480005CC9B2 /* debian.png */,
+				9BFE87212F7E6480005CC9B2 /* elementary-os.png */,
+				9BFE87222F7E6480005CC9B2 /* fedora.png */,
+				9BFE87232F7E6480005CC9B2 /* gentoo.png */,
+				9BFE87242F7E6480005CC9B2 /* knoppix.png */,
+				9BFE87252F7E6480005CC9B2 /* kubuntu.png */,
+				9BFE87262F7E6480005CC9B2 /* linux.png */,
+				9BFE87272F7E6480005CC9B2 /* lubuntu.png */,
+				9BFE87282F7E6480005CC9B2 /* mac.png */,
+				9BFE87292F7E6480005CC9B2 /* mandriva.png */,
+				9BFE872A2F7E6480005CC9B2 /* mint.png */,
+				9BFE872B2F7E6480005CC9B2 /* openwrt.png */,
+				9BFE872C2F7E6480005CC9B2 /* pop-os.png */,
+				9BFE872D2F7E6480005CC9B2 /* red-hat.png */,
+				9BFE872E2F7E6480005CC9B2 /* slackware.png */,
+				9BFE872F2F7E6480005CC9B2 /* suse.png */,
+				9BFE87302F7E6480005CC9B2 /* syllable.png */,
+				9BFE87312F7E6480005CC9B2 /* ubuntu.png */,
+				9BFE87322F7E6480005CC9B2 /* webos.png */,
+				9BFE87332F7E6480005CC9B2 /* xubuntu.png */,
+			);
+			path = Icons;
+			sourceTree = "<group>";
+		};
+		9BFE87352F7E6480005CC9B2 /* macOS */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = macOS;
+			sourceTree = "<group>";
+		};
+		9BFE87462F7E6480005CC9B2 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				9BFE87362F7E6480005CC9B2 /* AppIcon.icns */,
+				9BFE87372F7E6480005CC9B2 /* caked.plist */,
+				9BFE87382F7E6480005CC9B2 /* Caked.xcf */,
+				9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */,
+				9BFE873B2F7E6480005CC9B2 /* dev.entitlements */,
+				9BFE873C2F7E6480005CC9B2 /* Document.icns */,
+				9BFE873D2F7E6480005CC9B2 /* Document.png */,
+				9BFE873E2F7E6480005CC9B2 /* Document.xcf */,
+				9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */,
+				9BFE87342F7E6480005CC9B2 /* Icons */,
+				9BFE873F2F7E6480005CC9B2 /* Info.plist */,
+				9BFE87352F7E6480005CC9B2 /* macOS */,
+				9BFE87402F7E6480005CC9B2 /* menubar.png */,
+				9BFE87412F7E6480005CC9B2 /* menubar.xcf */,
+				9BFE87422F7E6480005CC9B2 /* Prompt.png */,
+				9BFE87432F7E6480005CC9B2 /* release.entitlements */,
+				9BFE87DB2F7E6B67005CC9B2 /* VM.icns */,
+				9BFE87442F7E6480005CC9B2 /* VM.png */,
+				9BFE87452F7E6480005CC9B2 /* VM.xcf */,
+			);
+			name = Resources;
+			path = ../Resources;
+			sourceTree = SOURCE_ROOT;
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -2015,8 +2164,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				9B2BFA822DFED1D6000045C3 /* PBXTargetDependency */,
-				9B2BFA842DFED1D6000045C3 /* PBXTargetDependency */,
+				9BFE87172F7E61F1005CC9B2 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				9B464A562D5A3DA000164BF5 /* Caker */,
@@ -2272,6 +2420,29 @@
 			productReference = 9BEBC7072DF440560092B196 /* libCakedLib.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		9BFE869C2F7E592B005CC9B2 /* bundle */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9BFE869E2F7E592B005CC9B2 /* Build configuration list for PBXNativeTarget "bundle" */;
+			buildPhases = (
+				9BFE86992F7E592B005CC9B2 /* Sources */,
+				9BFE869A2F7E592B005CC9B2 /* Frameworks */,
+				9BFE869B2F7E592B005CC9B2 /* Resources */,
+				9BFE86A52F7E59C8005CC9B2 /* CopyFiles */,
+				9BFE876E2F7E64D9005CC9B2 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9BFE86A22F7E59B8005CC9B2 /* PBXTargetDependency */,
+				9BFE86A42F7E59B8005CC9B2 /* PBXTargetDependency */,
+			);
+			name = bundle;
+			packageProductDependencies = (
+			);
+			productName = bundle;
+			productReference = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -2304,6 +2475,9 @@
 					};
 					9BEBC7062DF440560092B196 = {
 						CreatedOnToolsVersion = 16.4;
+					};
+					9BFE869C2F7E592B005CC9B2 = {
+						CreatedOnToolsVersion = 26.4;
 					};
 				};
 			};
@@ -2370,6 +2544,7 @@
 				9B464C5B2D5A459B00164BF5 /* GRPCLib */,
 				9BEBC7062DF440560092B196 /* CakedLib */,
 				9B96B00E2F4B68380069C970 /* CakerTests */,
+				9BFE869C2F7E592B005CC9B2 /* bundle */,
 			);
 		};
 /* End PBXProject section */
@@ -2387,6 +2562,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				9B96B0182F4B68480069C970 /* TestPlan.xctestplan in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9BFE869B2F7E592B005CC9B2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9BFE87702F7E65F0005CC9B2 /* VM.png in Resources */,
+				9BFE87DC2F7E6B67005CC9B2 /* VM.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2808,6 +2992,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9BFE86992F7E592B005CC9B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -2820,16 +3011,6 @@
 			isa = PBXTargetDependency;
 			target = 9B464C5B2D5A459B00164BF5 /* GRPCLib */;
 			targetProxy = 9B21E00D2F4C676800870AD7 /* PBXContainerItemProxy */;
-		};
-		9B2BFA822DFED1D6000045C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 9B464B4E2D5A3E5C00164BF5 /* cakectl */;
-			targetProxy = 9B2BFA812DFED1D6000045C3 /* PBXContainerItemProxy */;
-		};
-		9B2BFA842DFED1D6000045C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 9BEBC68D2DF43FEE0092B196 /* caked */;
-			targetProxy = 9B2BFA832DFED1D6000045C3 /* PBXContainerItemProxy */;
 		};
 		9B2BFA862DFED1EA000045C3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2875,6 +3056,21 @@
 			isa = PBXTargetDependency;
 			target = 9BEBC68D2DF43FEE0092B196 /* caked */;
 			targetProxy = 9BEBC8112DF440FD0092B196 /* PBXContainerItemProxy */;
+		};
+		9BFE86A22F7E59B8005CC9B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9B464B4E2D5A3E5C00164BF5 /* cakectl */;
+			targetProxy = 9BFE86A12F7E59B8005CC9B2 /* PBXContainerItemProxy */;
+		};
+		9BFE86A42F7E59B8005CC9B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9BEBC68D2DF43FEE0092B196 /* caked */;
+			targetProxy = 9BFE86A32F7E59B8005CC9B2 /* PBXContainerItemProxy */;
+		};
+		9BFE87172F7E61F1005CC9B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9BFE869C2F7E592B005CC9B2 /* bundle */;
+			targetProxy = 9BFE87162F7E61F1005CC9B2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -3248,12 +3444,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = LE7988HTRN;
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = ../Resources/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
@@ -3274,12 +3467,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = LE7988HTRN;
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = ../Resources/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
@@ -3317,6 +3507,60 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9BFE869F2F7E592B005CC9B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ../Resources/caked.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = caked;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSPrincipalClass = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_NAME = caked;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Debug;
+		};
+		9BFE86A02F7E592B005CC9B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ../Resources/caked.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = caked;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSPrincipalClass = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_NAME = caked;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				WRAPPER_EXTENSION = bundle;
 			};
 			name = Release;
 		};
@@ -3391,6 +3635,15 @@
 			buildConfigurations = (
 				9BEBC70E2DF440560092B196 /* Debug */,
 				9BEBC70F2DF440560092B196 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9BFE869E2F7E592B005CC9B2 /* Build configuration list for PBXNativeTarget "bundle" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9BFE869F2F7E592B005CC9B2 /* Debug */,
+				9BFE86A02F7E592B005CC9B2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

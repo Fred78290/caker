@@ -1,8 +1,18 @@
 SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 
+CAKER_APP="${PKGDIR}/Contents"
+CAKED_APP="${CAKER_APP}/PlugIns/caked.app/Contents"
+
 rm -Rf "${PKGDIR}"
-mkdir -p "${ASSETS}" "${PKGDIR}/Contents/Frameworks" "${PKGDIR}/Contents/MacOS" "${PKGDIR}/Contents/PlugIns" "${PKGDIR}/Contents/Resources" "${PKGDIR}/Contents/Resources/Icons"
+mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
+	"${CAKER_APP}/MacOS" \
+	"${CAKER_APP}/Resources" \
+	"${CAKER_APP}/Resources/Icons" \
+	"${CAKER_APP}/PlugIns" \
+	\
+	"${CAKED_APP}/Resources" \
+	"${CAKED_APP}/MacOS"
 
 actool "${RESOURCESDIR}/Assets.xcassets" \
 	--compile "${ASSETS}" \
@@ -19,9 +29,9 @@ actool "${RESOURCESDIR}/Assets.xcassets" \
 	--minimum-deployment-target 15.0 \
 	--platform macosx
 
-SPARKLE_FRAMEWORK="${PKGDIR}/Contents/Frameworks/Sparkle.framework"
+SPARKLE_FRAMEWORK="${CAKER_APP}/Frameworks/Sparkle.framework"
 
-cp -R "${BUILDDIR}/Sparkle.framework" "${PKGDIR}/Contents/Frameworks/"
+cp -R "${BUILDDIR}/Sparkle.framework" "${CAKER_APP}/Frameworks/"
 
 for FILE in Headers PrivateHeaders Modules Versions/Current/XPCServices/Downloader.xpc; do
 	FILE="${SPARKLE_FRAMEWORK}/${FILE}"
@@ -31,24 +41,35 @@ for FILE in Headers PrivateHeaders Modules Versions/Current/XPCServices/Download
 	fi
 done
 
-cp -c "${BINARYDIR}/Caker" "${PKGDIR}/Contents/MacOS/Caker"
-cp -c "${BINARYDIR}/caked" "${PKGDIR}/Contents/PlugIns/caked"
-cp -c "${BINARYDIR}/cakectl" "${PKGDIR}/Contents/PlugIns/cakectl"
-cp -c "${RESOURCESDIR}/Document.icns" "${PKGDIR}/Contents/Resources/Document.icns"
-cp -c "${RESOURCESDIR}/MenuBarIcon.png" "${PKGDIR}/Contents/Resources/MenuBarIcon.png"
-cp -c "${ASSETS}/AppIcon.icns" "${PKGDIR}/Contents/Resources/AppIcon.icns"
-cp -c "${ASSETS}/Assets.car" "${PKGDIR}/Contents/Resources/Assets.car"
-cp -c "${PROJECT_ROOT}/Resources/Prompt.png" "${PKGDIR}/Contents/Resources/Prompt.png"
-cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${PKGDIR}/Contents/Resources/Icons"
-cp -c "${PROJECT_ROOT}/Resources/Caker.provisionprofile" "${PKGDIR}/Contents/embedded.provisionprofile"
-cp -c "${PROJECT_ROOT}/Resources/Info.plist" "${PKGDIR}/Contents/Info.plist"
+cp -c "${BINARYDIR}/Caker" "${CAKER_APP}/MacOS/Caker"
+cp -c "${BINARYDIR}/cakectl" "${CAKED_APP}/MacOS/cakectl"
+cp -c "${BINARYDIR}/caked" "${CAKED_APP}/MacOS/caked"
+
+cp -c "${RESOURCESDIR}/Document.icns" "${CAKER_APP}/Resources/Document.icns"
+cp -c "${RESOURCESDIR}/MenuBarIcon.png" "${CAKER_APP}/Resources/MenuBarIcon.png"
+
+cp -c "${ASSETS}/AppIcon.icns" "${CAKER_APP}/Resources/AppIcon.icns"
+cp -c "${ASSETS}/Assets.car" "${CAKER_APP}/Resources/Assets.car"
+
+cp -c "${PROJECT_ROOT}/Resources/Prompt.png" "${CAKER_APP}/Resources/Prompt.png"
+cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${CAKER_APP}/Resources/Icons"
+cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
+cp -c "${PROJECT_ROOT}/Resources/Info.plist" "${CAKER_APP}/Info.plist"
+
+cp -c "${ASSETS}/AppIcon.icns" "${CAKED_APP}/Resources/AppIcon.icns"
+cp -c "${ASSETS}/Assets.car" "${CAKED_APP}/Resources/Assets.car"
+cp -c "${PROJECT_ROOT}/Resources/caked.plist" "${CAKED_APP}/Info.plist"
+cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
 
 if [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
-	plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" "${PKGDIR}/Contents/Info.plist"
+	plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" "${CAKER_APP}/Info.plist"
 fi
 
-plutil -replace CFBundleShortVersionString -string "${VERSION}" "${PKGDIR}/Contents/Info.plist"
-plutil -replace CFBundleVersion -string "${VERSION}" "${PKGDIR}/Contents/Info.plist"
+plutil -replace CFBundleShortVersionString -string "${VERSION}" "${CAKER_APP}/Info.plist"
+plutil -replace CFBundleVersion -string "${VERSION}" "${CAKER_APP}/Info.plist"
+
+plutil -replace CFBundleShortVersionString -string "${VERSION}" "${CAKED_APP}/Info.plist"
+plutil -replace CFBundleVersion -string "${VERSION}" "${CAKED_APP}/Info.plist"
 
 if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 	echo "Build and sign release binaries for version ${VERSION}, developer ID ${DEVELOPER_ID}"
@@ -74,7 +95,7 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 		--force "${SPARKLE_FRAMEWORK}"
 
 	if [ -n "${CODESIGN_REQUIREMENT}" ]; then
-		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/caked/)
+		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/cakectl/)
 		echo "Using custom code signing requirement: ${REQUIREMENTS}"
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
@@ -82,16 +103,7 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--requirement="${REQUIREMENTS}" \
-			--force "${PKGDIR}/Contents/PlugIns/caked"
-
-		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/cakectl/)
-		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
-			--options runtime \
-			--timestamp \
-			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--requirement="${REQUIREMENTS}" \
-			--force "${PKGDIR}/Contents/PlugIns/cakectl"
+			--force "${CAKED_APP}/MacOS/cakectl"
 
 		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
@@ -100,7 +112,16 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--requirement="${REQUIREMENTS}" \
-			--force "${PKGDIR}/Contents/MacOS/Caker"
+			--force "${CAKED_APP}/MacOS/caked"
+
+		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--timestamp \
+			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
+			--requirement="${REQUIREMENTS}" \
+			--force "${CAKER_APP}/MacOS/Caker"
 
 		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
@@ -116,19 +137,19 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--force "${PKGDIR}/Contents/PlugIns/caked"
+			--force "${CAKED_APP}/MacOS/cakectl"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--force "${PKGDIR}/Contents/PlugIns/cakectl"
+			--force "${CAKED_APP}/MacOS/caked"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--force "${PKGDIR}/Contents/MacOS/Caker"
+			--force "${CAKER_APP}/MacOS/Caker"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
@@ -137,8 +158,8 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 	fi
 else
 	echo "Build unsigned debug binaries"
-	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${PKGDIR}/Contents/PlugIns/caked"
-	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${PKGDIR}/Contents/PlugIns/cakectl"
-	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${PKGDIR}/Contents/Frameworks/Sparkle.framework/Versions/Current"
-	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${PKGDIR}/Contents/MacOS/Caker"
+	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${CAKED_APP}/MacOS/cakectl"
+	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${CAKED_APP}/MacOS/caked"
+	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${CAKER_APP}/Frameworks/Sparkle.framework/Versions/Current"
+	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/dev.entitlements" --force "${CAKER_APP}/MacOS/Caker"
 fi

@@ -568,11 +568,11 @@ extension View {
 }
 
 extension NSApplication {
-	public func setDockIcon(_ name: String = "AppIcon", ofType: String = "icns") {
+	public func setDockIcon(_ name: String = "VM", ofType: String = "icns") {
 		var customIcon: NSImage? = nil
-		let path = Bundle.main.bundleURL.appendingPathComponent("../resources/\(name).\(ofType)").absoluteURL
+		let path = Bundle.main.bundleURL.appendingPathComponent("../Resources/\(name).\(ofType)").absoluteURL
 
-		if FileManager.default.fileExists(atPath: path.path()) {
+		if FileManager.default.fileExists(atPath: path.path) {
 			customIcon = NSImage(contentsOf: path)
 		} else if let path = Bundle.main.path(forResource: name, ofType: ofType) {
 			customIcon = NSImage(contentsOfFile: path)
