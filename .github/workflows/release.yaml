@@ -243,15 +243,6 @@ jobs:
           export VERSION="${{ steps.version.outputs.version }}"
           ./.ci/create-dmg.sh "${KEYCHAIN_PATH}"
 
-      - name: 📝 Update release notes from git log
-        id: update-release-notes
-        env:
-          RELEASE_PATHS: Sources wiki .github/workflows
-          MAX_COMMITS: "100"
-        if: steps.version.outputs.build_package == 'true'
-        run: |
-          ./Scripts/update-wiki-release-notes-from-git.sh "${GITHUB_REF_NAME}"
-
       - name: 📖 Publish wiki
         env:
           GH_TOKEN: ${{ secrets.WIKI_TOKEN }}
@@ -262,6 +253,25 @@ jobs:
           OWNER="${GITHUB_REPOSITORY%%/*}"
           REPO="${GITHUB_REPOSITORY##*/}"
           ./Scripts/publish-wiki.sh "${OWNER}" "${REPO}"
+
+      - name: 📡 Publish release
+        id: create_release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          DMG_PATH: ${{ steps.version.outputs.dmg_path }}
+          PKG_PATH: ${{ steps.version.outputs.pkg_path }}
+        if: steps.version.outputs.build_package == 'true'
+        run: |
+          if [ ${GITHUB_REF##*/} == "snapshot" ]; then
+            gh release create --prerelease --generate-notes \
+              --title "${VERSION}" "${VERSION}" \
+              "${DMG_PATH}" \
+              "${PKG_PATH}"
+          else
+            gh release create --generate-notes --title "${VERSION}" "${VERSION}" \
+              "${DMG_PATH}" \
+              "${PKG_PATH}"
+          fi
 
       - name: 🔐 Setup Sparkle keys
         id: sparkle_keys
@@ -301,24 +311,14 @@ jobs:
           # Deploy appcast automatically
           ./Scripts/sparkle-deploy-appcast.sh --force
 
-      - name: 📡 Publish release
-        id: create_release
+      - name: 📝 Update release notes from git log
+        id: update-release-notes
         env:
-          VERSION: ${{ steps.version.outputs.version }}
-          DMG_PATH: ${{ steps.version.outputs.dmg_path }}
-          PKG_PATH: ${{ steps.version.outputs.pkg_path }}
+          RELEASE_PATHS: Sources wiki .github/workflows
+          MAX_COMMITS: "100"
         if: steps.version.outputs.build_package == 'true'
         run: |
-          if [ ${GITHUB_REF##*/} == "snapshot" ]; then
-            gh release create --prerelease --generate-notes \
-              --title "${VERSION}" "${VERSION}" \
-              "${DMG_PATH}" \
-              "${PKG_PATH}"
-          else
-            gh release create --generate-notes --title "${VERSION}" "${VERSION}" \
-              "${DMG_PATH}" \
-              "${PKG_PATH}"
-          fi
+          ./Scripts/update-wiki-release-notes-from-git.sh "${GITHUB_REF_NAME}"
 
       - name: 🧹 Clean up keychain and provisioning profile
         id: cleanup
