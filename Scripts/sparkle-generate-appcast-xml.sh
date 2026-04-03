@@ -100,10 +100,8 @@ get_releases_data() {
 get_dmg_info() {
     local release_tag="$1"
     local assets_json="$2"
-    
-    # Find DMG asset
-    local dmg_data=$(echo "${assets_json}" | jq -r '.[] | select(.name | test("\\.dmg$")) | {name, download_url: .browser_download_url, size}' | head -1)
-    
+    local dmg_data=$(echo "${assets_json}" | jq -r '.[] | select(.name | test("\\.dmg$")) | {name: .name, download_url: .browser_download_url, size: .size}')
+
     if [ "${dmg_data}" = "null" ] || [ -z "${dmg_data}" ]; then
         echo "null"
         return
@@ -193,7 +191,7 @@ generate_release_item() {
     local pub_date=$(format_date "${published_at}")
     
     # Clean up release notes (escape HTML, limit length)
-    local description=$(echo "${body}" | head -c 1000 | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g')
+    local description=$(echo "${body}" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g')
     
     cat << EOF
         <item>
