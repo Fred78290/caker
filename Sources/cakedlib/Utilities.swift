@@ -27,7 +27,7 @@ extension Bundle {
 			return nil
 		}
 		
-		let cakedBundleURL = pluginURL.appendingPathComponent("caked.app/Contents/MacOS").absoluteURL
+		let cakedBundleURL = pluginURL.appendingPathComponent("caked.bundle/Contents/MacOS").absoluteURL
 		var isDirectory: ObjCBool = false
 
 		guard FileManager.default.fileExists(atPath: cakedBundleURL.path, isDirectory: &isDirectory) else {

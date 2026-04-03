@@ -533,7 +533,7 @@
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
 		9BFE86A62F7E59DC005CC9B2 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		9BFE87182F7E6202005CC9B2 /* caked.app in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9BFE87182F7E6202005CC9B2 /* caked.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9BFE876F2F7E64F1005CC9B2 /* embedded.provisionprofile in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */; };
 		9BFE87702F7E65F0005CC9B2 /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
 		9BFE87DC2F7E6B67005CC9B2 /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
@@ -677,7 +677,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				9BFE87182F7E6202005CC9B2 /* caked.app in CopyFiles */,
+				9BFE87182F7E6202005CC9B2 /* caked.bundle in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1087,7 +1087,7 @@
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
 		9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
 		9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCIManagement.swift; sourceTree = "<group>"; };
-		9BFE869D2F7E592B005CC9B2 /* caked.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = caked.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BFE869D2F7E592B005CC9B2 /* caked.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = caked.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BFE871B2F7E6480005CC9B2 /* almalinux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = almalinux.png; sourceTree = "<group>"; };
 		9BFE871C2F7E6480005CC9B2 /* alpine.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = alpine.png; sourceTree = "<group>"; };
 		9BFE871D2F7E6480005CC9B2 /* arch-linux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "arch-linux.png"; sourceTree = "<group>"; };
@@ -1529,7 +1529,7 @@
 				9BEBC68E2DF43FEE0092B196 /* caked */,
 				9BEBC7072DF440560092B196 /* libCakedLib.a */,
 				9B96B00F2F4B68380069C970 /* CakerTests.xctest */,
-				9BFE869D2F7E592B005CC9B2 /* caked.app */,
+				9BFE869D2F7E592B005CC9B2 /* caked.bundle */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2440,7 +2440,7 @@
 			packageProductDependencies = (
 			);
 			productName = bundle;
-			productReference = 9BFE869D2F7E592B005CC9B2 /* caked.app */;
+			productReference = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -3533,7 +3533,7 @@
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				WRAPPER_EXTENSION = app;
+				WRAPPER_EXTENSION = bundle;
 			};
 			name = Debug;
 		};
@@ -3560,7 +3560,7 @@
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				WRAPPER_EXTENSION = app;
+				WRAPPER_EXTENSION = bundle;
 			};
 			name = Release;
 		};
