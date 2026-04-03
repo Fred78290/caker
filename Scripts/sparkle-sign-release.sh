@@ -8,9 +8,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 KEYS_DIR="${PROJECT_ROOT}/.sparkle"
-RELEASES_DIR="${PROJECT_ROOT}/releases"
+RELEASES_DIR="${PROJECT_ROOT}/build"
 APPCAST_DIR="${PROJECT_ROOT}/docs/appcast"
+BRANCH_NAME="$(git -C "${PROJECT_ROOT}" rev-parse --abbrev-ref HEAD)"
+DATE_VALUE="$(date +%F)"
 PATH="${HOMEBREW_PREFIX}/Caskroom/sparkle/2.9.0/bin:${PATH}" # Ensure scripts are in PATH for subcommands
+RELEASE_PATHS="Sources wiki"
+SECTION_TITLE="## ${DATE_VALUE} (Git log summary - ${BRANCH_NAME})"
 
 # Colors for output
 RED='\033[0;31m'
@@ -28,6 +32,7 @@ fi
 VERSION="$1"
 RELEASE_FILE="$2"
 
+# Check if version contains snapshot
 echo -e "${GREEN}🚀 Sparkle release signing${NC}"
 echo "Version: ${VERSION}"
 echo "File: ${RELEASE_FILE}"
@@ -76,30 +81,33 @@ echo
 
 # Generate release information
 RELEASE_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
-RELEASE_NOTES_FILE="${APPCAST_DIR}/release-notes-${VERSION}.html"
+RELEASE_NOTES_FILE="${APPCAST_DIR}/release-notes-$VERSION.html"
 
-# Create default release notes if they don't exist
-if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
-    echo -e "${YELLOW}📝 Creating default release notes...${NC}"
-    cat > "${RELEASE_NOTES_FILE}" << EOF
+read -r -a PATH_FILTERS <<< "${RELEASE_PATHS}"
+
+SINCE_TAG="$(git -C "${PROJECT_ROOT}" describe --tags --abbrev=0)..HEAD"
+COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'<li>%s</li>' "${SINCE_TAG}" -- "${PATH_FILTERS[@]}")"
+
+if [[ -z "${COMMITS_RAW}" ]]; then
+  COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'<li>%s</li>' "${SINCE_TAG}")"
+fi
+
+if [[ -z "${COMMITS_RAW}" ]]; then
+  echo "${YELLOW}⚠️ No commits found to generate summary.${NC}"
+  exit 0
+fi
+
+cat > "${RELEASE_NOTES_FILE}" << EOF
 <h2>Caker ${VERSION}</h2>
 <p>New version of Caker with improvements and bug fixes.</p>
 
-<h3>What's new</h3>
+<h3>${SECTION_TITLE}</h3>
 <ul>
-    <li>Performance improvements</li>
-    <li>Minor bug fixes</li>
-</ul>
-
-<h3>Technical information</h3>
-<ul>
-    <li>macOS 15+ compatibility</li>
-    <li>Automatic updates via Sparkle</li>
+    ${COMMITS_RAW}
 </ul>
 EOF
-    echo -e "${YELLOW}⚠️  Default release notes created${NC}"
-    echo "Edit the file: ${RELEASE_NOTES_FILE}"
-fi
+
+echo -e "${GREEN}✅  Release notes created${NC}"
 
 # Update or create appcast
 APPCAST_FILE="${APPCAST_DIR}/appcast.xml"
@@ -121,7 +129,7 @@ cat > "${TEMP_ITEM}" << EOF
 EOF
 
 # Create or update appcast
-if [[ ! -f "${APPCAST_FILE}" ]]; then
+if [[ ! -f "${APPCAST_FILE}" ]] || [[ -z $(grep -o '<item>' "${APPCAST_FILE}") ]]; then
     echo -e "${GREEN}📄 Creating appcast file...${NC}"
     cat > "${APPCAST_FILE}" << EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -138,10 +146,18 @@ EOF
 else
     echo -e "${GREEN}🔄 Updating appcast file...${NC}"
     # Insert new item after <link> line
-    sed -i '' '/^[[:space:]]*<link>/r '"${TEMP_ITEM}" "${APPCAST_FILE}"
+    sed -i '' '/^[[:space:]]*<item>/r '"${TEMP_ITEM}" "${APPCAST_FILE}"
 fi
 
+xmllint --format "${APPCAST_FILE}" > "${TEMP_ITEM}" && mv "${TEMP_ITEM}" "${APPCAST_FILE}"
+
 rm "${TEMP_ITEM}"
+
+if [[ "${VERSION}" =~ SNAPSHOT ]]; then
+    URL="https://github.com/Fred78290/caker/releases/download/${VERSION}/${RELEASE_FILENAME}"
+else
+    URL="https://github.com/Fred78290/caker/releases/download/v${VERSION}/${RELEASE_FILENAME}"
+fi
 
 # Summary
 echo -e "${GREEN}✅ Release ${VERSION} signed and appcast updated${NC}"
@@ -157,4 +173,4 @@ echo "2. Publish appcast XML on your web server"
 echo "3. Update SUFeedURL in Info.plist if necessary"
 echo
 echo "🔗 GitHub download URL:"
-echo "https://github.com/Fred78290/caker/releases/download/v${VERSION}/${RELEASE_FILENAME}"
+echo "${URL}"
