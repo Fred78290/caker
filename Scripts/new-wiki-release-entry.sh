@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RELEASE_NOTES_FILE="${ROOT_DIR}/wiki/Release-Notes.md"
+RELEASE_NOTES_FILE="${ROOT_DIR}/wiki/release-notes.md"
 ENTRY_DATE="${1:-$(date +%F)}"
 
 if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
@@ -51,4 +51,4 @@ fi
 
 mv "${TMP_FILE}" "${RELEASE_NOTES_FILE}"
 
-echo "New entry added ${ENTRY_DATE} in wiki/Release-Notes.md"
+echo "New entry added ${ENTRY_DATE} in wiki/release-notes.md"
