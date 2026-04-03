@@ -187,13 +187,13 @@ jobs:
           ./build.sh
       - name: 🛠️ Install the Apple certificate and provisioning profile
         id: setup_keychain
-        if: github.env.SETUP_KEYCHAIN == 'true'
+        if: vars.SETUP_KEYCHAIN == 'true'
         run: |
           ./.ci/setup-keychain.sh "${KEYCHAIN_PATH}"
   
       - name: 🧪 Run tests
         id: tests
-        if: github.env.RUN_SWIFT_TESTS == 'true'
+        if: vars.RUN_SWIFT_TESTS == 'true'
         run: |
           # Run tests for the Swift package
           export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:${PATH}
@@ -202,7 +202,7 @@ jobs:
       - name: 👷 Build Swift package
         id: build
         env:
-          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
+          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
         run: |
           ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}"
  
@@ -210,7 +210,7 @@ jobs:
         id: integration_tests
         if: steps.check.outputs.run_pytest == 'true'
         env:
-          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
+          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
         run: |
           # Run tests for the Swift package
           export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:${PATH}
@@ -227,7 +227,7 @@ jobs:
         id: package
         if: steps.version.outputs.build_package == 'true'
         env:
-          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
+          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
           PKG_PATH: ${{ steps.version.outputs.pkg_path }}
         run: |
           export VERSION="${{ steps.version.outputs.version }}"
@@ -237,7 +237,7 @@ jobs:
         id: create_dmg
         if: steps.version.outputs.build_package == 'true'
         env:
-          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
+          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
           DMG_PATH: ${{ steps.version.outputs.dmg_path }}
         run: |
           export VERSION="${{ steps.version.outputs.version }}"
@@ -323,7 +323,7 @@ jobs:
       - name: 🧹 Clean up keychain and provisioning profile
         id: cleanup
         env:
-          KEYCHAIN_PATH: ${{ github.env.KEYCHAIN_PATH }}
-        if: always() && github.env.SETUP_KEYCHAIN == 'true'
+          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
+        if: always() && vars.SETUP_KEYCHAIN == 'true'
         run: |
           security delete-keychain "${KEYCHAIN_PATH}"
