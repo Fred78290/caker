@@ -13,7 +13,7 @@
 	<key>CFBundleIconName</key>
 	<string>VM</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.aldunelabs.caker.caked</string>
+	<string>com.aldunelabs.caker</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
