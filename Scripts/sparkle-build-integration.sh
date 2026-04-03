@@ -53,7 +53,7 @@ if [[ "${VERSION}" == "$(date +%Y.%m.%d)" ]]; then
     fi
 fi
 
-DMG_NAME="Caker-${VERSION}.dmg"
+DMG_NAME="Caker.dmg"
 
 # Selection of appropriate build script
 case "${BUILD_TYPE}" in

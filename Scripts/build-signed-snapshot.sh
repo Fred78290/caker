@@ -11,7 +11,7 @@ export VERSION=SNAPSHOT-$(git rev-parse --short HEAD)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 BUILD_DIR="${PROJECT_ROOT}/build"
-DMG_PATH="${BUILD_DIR}/Caker-${VERSION}.dmg"
+DMG_PATH="${BUILD_DIR}/Caker.dmg"
 
 export RUNNER_TEMP="${PROJECT_ROOT}/tmp"
 export PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/Caker.app}"
@@ -65,5 +65,3 @@ fi
 echo "Publishing version ${VERSION} with developer ID ${DEVELOPER_ID}"
 "${PROJECT_ROOT}/.ci/create-dist.sh" "${KEYCHAIN_PATH}"
 "${PROJECT_ROOT}/Scripts/sparkle-sign-release.sh" "${VERSION}" "${DMG_PATH}"
-
-popd >/dev/null

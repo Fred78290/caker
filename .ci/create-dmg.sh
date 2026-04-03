@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/Caker.app}"
-DMG_PATH="${DMG_PATH:-${PROJECT_ROOT}/build/Caker-${VERSION}.dmg}"
+DMG_PATH="${DMG_PATH:-${PROJECT_ROOT}/build/Caker.dmg}"
 
 mkdir -p "$(dirname "${DMG_PATH}")"
 

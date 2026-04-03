@@ -8,7 +8,7 @@ NOTARYZATION=${NOTARYZATION:=false}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PKGDIR=$(dirname "${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/Caker.app}")
-PKG_PATH="${PKG_PATH:-${PROJECT_ROOT}/build/Caker-${VERSION}.pkg}"
+PKG_PATH="${PKG_PATH:-${PROJECT_ROOT}/build/Caker.pkg}"
 
 mkdir -p "$(dirname "${PKG_PATH}")"
 

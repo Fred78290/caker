@@ -37,8 +37,8 @@ fi
 
 echo ""
 echo "Distribution packages created successfully:"
-echo "  PKG: ${PROJECT_ROOT}/build/Caker-${VERSION}.pkg"
-echo "  DMG: ${PROJECT_ROOT}/build/Caker-${VERSION}.dmg"
+echo "  PKG: ${PROJECT_ROOT}/build/Caker.pkg"
+echo "  DMG: ${PROJECT_ROOT}/build/Caker.dmg"
 echo ""
 echo "The PKG can be used for installation via command line or deployment tools."
 echo "The DMG provides a user-friendly drag-and-drop installation experience."

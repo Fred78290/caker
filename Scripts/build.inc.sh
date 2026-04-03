@@ -2,7 +2,7 @@ SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 
 CAKER_APP="${PKGDIR}/Contents"
-CAKED_APP="${CAKER_APP}/PlugIns/caked.app/Contents"
+CAKED_APP="${CAKER_APP}/PlugIns/caked.bundle/Contents"
 
 rm -Rf "${PKGDIR}"
 mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
@@ -56,8 +56,8 @@ cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${CAKER_APP}/Resources/Icons"
 cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
 cp -c "${PROJECT_ROOT}/Resources/Info.plist" "${CAKER_APP}/Info.plist"
 
-cp -c "${ASSETS}/AppIcon.icns" "${CAKED_APP}/Resources/AppIcon.icns"
-cp -c "${ASSETS}/Assets.car" "${CAKED_APP}/Resources/Assets.car"
+cp -c "${PROJECT_ROOT}/Resources/VM.icns" "${CAKED_APP}/Resources/VM.icns"
+cp -c "${PROJECT_ROOT}/Resources/VM.png" "${CAKED_APP}/Resources/VM.png"
 cp -c "${PROJECT_ROOT}/Resources/caked.plist" "${CAKED_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
 
@@ -94,18 +94,14 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 		--timestamp \
 		--force "${SPARKLE_FRAMEWORK}"
 
-	if [ -n "${CODESIGN_REQUIREMENT}" ]; then
-		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/cakectl/)
-		echo "Using custom code signing requirement: ${REQUIREMENTS}"
-		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
-			--options runtime \
-			--timestamp \
-			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--requirement="${REQUIREMENTS}" \
-			--force "${CAKED_APP}/MacOS/cakectl"
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--preserve-metadata=identifier,entitlements,flags \
+		--force "${CAKED_APP}/MacOS/cakectl"
 
-		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
+	if [ -n "${CODESIGN_REQUIREMENT}" ]; then
+		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/caked/)
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
@@ -122,6 +118,14 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
 			--requirement="${REQUIREMENTS}" \
 			--force "${CAKER_APP}/MacOS/Caker"
+
+		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--timestamp \
+			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
+			--requirement="${REQUIREMENTS}" \
+			--force "${CAKER_APP}/PlugIns/caked.bundle"
 
 		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
@@ -137,7 +141,7 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--force "${CAKED_APP}/MacOS/cakectl"
+			--force "${CAKED_APP}/MacOS/caked"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
@@ -149,7 +153,7 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--force "${CAKER_APP}/MacOS/Caker"
+			--force "${CAKER_APP}/PlugIns/caked.bundle"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
