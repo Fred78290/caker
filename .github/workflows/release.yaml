@@ -19,6 +19,7 @@ env:
   KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
   APPLE_ID: ${{ secrets.APPLE_ID }}
   TEAM_ID: ${{ secrets.TEAM_ID }}
+  DEVELOPER_ID: ${{ secrets.DEVELOPER_ID }}
   APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   HOMEBREW_NO_AUTO_UPDATE: 1
