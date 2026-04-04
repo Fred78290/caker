@@ -278,9 +278,7 @@ jobs:
         if: steps.version.outputs.build_package == 'true'
         run: |
           chmod +x ./Scripts/publish-wiki.sh
-          OWNER="${GITHUB_REPOSITORY%%/*}"
-          REPO="${GITHUB_REPOSITORY##*/}"
-          ./Scripts/publish-wiki.sh "${OWNER}" "${REPO}"
+          ./Scripts/publish-wiki.sh "${GITHUB_REPOSITORY}"
 
       - name: 📡 Publish release
         id: create_release
