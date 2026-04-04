@@ -274,6 +274,15 @@ jobs:
               "${PKG_PATH}"
           fi
 
+      - name: 👷 Setup Sparkle
+        id: setup_sparkle
+        if: steps.version.outputs.build_release == 'true'
+        run: |
+          rm -rf .bin
+          curl -L https://github.com/sparkle-project/Sparkle/releases/download/2.9.1/Sparkle-for-Swift-Package-Manager.zip -o /tmp/sparkle.zip
+          unzip -o -j /tmp/sparkle.zip bin/generate_appcast bin/sign_update bin/generate_keys -d .bin
+          rm -rf /tmp/sparkle.zip
+
       - name: 🔐 Setup Sparkle keys
         id: sparkle_keys
         if: steps.version.outputs.build_release == 'true'
