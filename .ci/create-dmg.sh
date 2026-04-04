@@ -86,7 +86,9 @@ if [ -n "${DEVELOPER_ID}" ]; then
 				--apple-id ${APPLE_ID} \
 				--team-id ${TEAM_ID} \
 				--password "${APP_PASSWORD}" \
-				--wait
+				--wait | tee /tmp/notarization.log
+				
+		grep "id:" /tmp/notarization.log | head -n 1 | awk '{print $2}' | xargs -I {} xcrun notarytool log --apple-id ${APPLE_ID} --team-id ${TEAM_ID} --password "${APP_PASSWORD}" {}
 
 		echo "Stapling DMG..."
 		xcrun stapler staple "${DMG_PATH}"

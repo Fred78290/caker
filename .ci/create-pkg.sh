@@ -41,7 +41,9 @@ if [ ${NOTARYZATION} == true ]; then
 				--apple-id ${APPLE_ID} \
 				--team-id ${TEAM_ID} \
 				--password "${APP_PASSWORD}" \
-				--wait
+				--wait | tee /tmp/notarization.log
+				
+		grep "id:" /tmp/notarization.log | head -n 1 | awk '{print $2}' | xargs -I {} xcrun notarytool log --apple-id ${APPLE_ID} --team-id ${TEAM_ID} --password "${APP_PASSWORD}" {}
 
 		echo "Stapling package"
 		xcrun stapler staple "${PKG_PATH}"
