@@ -7,7 +7,7 @@ on:
     paths:
       - wiki/**
       - Scripts/publish-wiki.sh
-      - Scripts/new-wiki-release-entry.sh
+      - Scripts/update-wiki-release-notes-from-git.sh
   workflow_dispatch:
 
 permissions:

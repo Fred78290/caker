@@ -9,6 +9,33 @@ on:
     paths-ignore:
       - 'docs/**'
       - 'wiki/**'
+      - 'templates/**'
+      - Scripts/act-wiki.sh
+      - Scripts/act.sh
+      - Scripts/build-signed-debug.sh
+      - Scripts/build-signed-snapshot.sh
+      - Scripts/build-template-macos-test.sh
+      - Scripts/build-template-macos.sh
+      - Scripts/buildvm-oci-macos.sh
+      - Scripts/buildvm-oci-macos.sh
+      - Scripts/buildvm-oci-ubuntu.sh
+      - Scripts/buildvm-oci-ubuntu.sh
+      - Scripts/buildvm-service.sh
+      - Scripts/buildvm-service.sh
+      - Scripts/buildvm.sh
+      - Scripts/buildvm.sh
+      - Scripts/debug-docs.sh
+      - Scripts/generate.sh
+      - Scripts/new-wiki-release-entry.sh
+      - Scripts/png_to_icns.sh
+      - Scripts/publish-wiki.sh
+      - Scripts/publish-wiki.sh
+      - Scripts/quick-sync-docs.sh
+      - Scripts/run-signed-cakectl.sh
+      - Scripts/run-signed-caked.sh
+      - Scripts/sparkle-generate-keys.sh
+      - Scripts/sync-docs-from-wiki.sh
+      - Scripts/update-wiki-release-notes-from-git.sh
       - '.github/workflows/publish-wiki.yaml'
       - '.github/workflows/sync-docs-from-wiki.yaml'
       - '.github/workflows/sparkle-release.yml'
