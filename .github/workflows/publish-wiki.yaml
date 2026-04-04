@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - wiki/**
+      - '.github/workflows/publish-wiki.yaml'
       - Scripts/publish-wiki.sh
       - Scripts/update-wiki-release-notes-from-git.sh
   workflow_dispatch:
@@ -20,7 +21,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-
+        with:
+          submodules: recursive
+          fetch-depth: 0
       - name: Update release notes from git log
         run: |
           chmod +x ./Scripts/update-wiki-release-notes-from-git.sh
