@@ -80,7 +80,7 @@ jobs:
 
       - name: 🛠️ checkout
         id: checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6
         with:
           submodules: recursive
  
@@ -91,7 +91,7 @@ jobs:
 
       - name: 🛠️ Setup Python
         id: python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         if: steps.check.outputs.install_python == 'true'
         with:
           python-version: '3.13' 
@@ -99,7 +99,7 @@ jobs:
       - name: 🛠️ Setup Go
         id: go
         if: steps.check.outputs.install_golang == 'true'
-        uses: actions/setup-go@v5.4.0
+        uses: actions/setup-go@v6
         with:
           go-version: '>=1.23.0'
           cache: true
@@ -108,7 +108,7 @@ jobs:
       - name: 🛠️ Setup Swift
         id: swift
         if: steps.check.outputs.install_swift == 'true'
-        uses: swift-actions/setup-swift@v2.3.0
+        uses: swift-actions/setup-swift@v2.4.0
 
       - name: 📊 Version
         id: version
