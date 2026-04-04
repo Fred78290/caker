@@ -6,15 +6,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "${SCRIPT_DIR}")"
-KEYS_DIR="${PROJECT_ROOT}/.sparkle"
-PATH="${PROJECT_ROOT}/.bin:${PATH}" # Ensure scripts are in PATH for subcommands
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+source "${SCRIPT_DIR}/common.sh"
 
 echo -e "${GREEN}🔐 Sparkle production configuration for Caker${NC}"
 echo

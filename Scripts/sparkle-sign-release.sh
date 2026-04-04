@@ -6,21 +6,11 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-KEYS_DIR="${PROJECT_ROOT}/.sparkle"
-RELEASES_DIR="${PROJECT_ROOT}/build"
-APPCAST_DIR="${PROJECT_ROOT}/docs/appcast"
-BRANCH_NAME="$(git -C "${PROJECT_ROOT}" rev-parse --abbrev-ref HEAD)"
-DATE_VALUE="$(date +%F)"
-PATH="${PROJECT_ROOT}/.bin:${PATH}" # Ensure scripts are in PATH for subcommands
+
+source "${SCRIPT_DIR}/common.sh"
+
 RELEASE_PATHS="Sources wiki"
 SECTION_TITLE="## ${DATE_VALUE} (Git log summary - ${BRANCH_NAME})"
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
 
 # Parameter validation
 if [[ $# -lt 2 ]]; then
@@ -85,12 +75,18 @@ RELEASE_NOTES_FILE="${APPCAST_DIR}/release-notes-$VERSION.html"
 
 read -r -a PATH_FILTERS <<< "${RELEASE_PATHS}"
 
-SINCE_TAG="$(git -C "${PROJECT_ROOT}" describe --tags --abbrev=0)..HEAD"
-COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'<li>%s</li>' "${SINCE_TAG}" -- "${PATH_FILTERS[@]}")"
+LAST_RELEASE_TAG="$(gh release list --repo ${GITHUB_REPOSITORY} --exclude-pre-releases --json name,tagName,publishedAt,isDraft,isPrerelease | jq -r '.[0].tagName//""')"
 
-if [[ -z "${COMMITS_RAW}" ]]; then
-  COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'<li>%s</li>' "${SINCE_TAG}")"
+if [ -n "${LAST_RELEASE_TAG}" ]; then
+    COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'<li>%s</li>' "${SINCE_TAG}" -- "${PATH_FILTERS[@]}")"
+
+    if [[ -z "${COMMITS_RAW}" ]]; then
+    COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'<li>%s</li>' "${SINCE_TAG}")"
+    fi
+else
+  COMMITS_RAW="<li>First release</li>"
 fi
+
 
 if [[ -z "${COMMITS_RAW}" ]]; then
   echo "${YELLOW}⚠️ No commits found to generate summary.${NC}"
@@ -119,7 +115,7 @@ cat > "${TEMP_ITEM}" << EOF
             <title>Caker ${VERSION}</title>
             <description><![CDATA[$(cat "${RELEASE_NOTES_FILE}")]]></description>
             <pubDate>${RELEASE_DATE}</pubDate>
-            <enclosure url="https://github.com/Fred78290/caker/releases/download/v${VERSION}/${RELEASE_FILENAME}"
+            <enclosure url="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/${RELEASE_FILENAME}"
                        sparkle:version="${VERSION}"
                        sparkle:shortVersionString="${VERSION}"
                        length="${FILE_SIZE}"
@@ -138,7 +134,7 @@ if [[ ! -f "${APPCAST_FILE}" ]] || [[ -z $(grep -o '<item>' "${APPCAST_FILE}") ]
         <title>Caker Updates</title>
         <description>Automatic updates for Caker</description>
         <language>en</language>
-        <link>https://github.com/Fred78290/caker</link>
+        <link>https://github.com/${GITHUB_REPOSITORY}</link>
 $(cat "${TEMP_ITEM}")
     </channel>
 </rss>
@@ -154,9 +150,9 @@ xmllint --format "${APPCAST_FILE}" > "${TEMP_ITEM}" && mv "${TEMP_ITEM}" "${APPC
 rm "${TEMP_ITEM}"
 
 if [[ "${VERSION}" =~ SNAPSHOT ]]; then
-    URL="https://github.com/Fred78290/caker/releases/download/${VERSION}/${RELEASE_FILENAME}"
+    URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${VERSION}/${RELEASE_FILENAME}"
 else
-    URL="https://github.com/Fred78290/caker/releases/download/v${VERSION}/${RELEASE_FILENAME}"
+    URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/${RELEASE_FILENAME}"
 fi
 
 # Summary

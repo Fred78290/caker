@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-WIKI_DIR="${ROOT_DIR}/wiki"
-DOCS_DIR="${ROOT_DIR}/docs"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+source "${SCRIPT_DIR}/common.sh"
+
+REMOTE_URL="$(git -C "${PROJECT_ROOT}" config --get remote.origin.url || true)"
 
 echo "🔄 Synchronizing documentation from wiki to GitHub Pages..."
 
@@ -105,10 +107,10 @@ if [[ -f "${WIKI_DIR}/home.md" ]]; then
     echo ""
     echo "**Caker** is a Swift-native virtualization platform for macOS that streamlines VM lifecycle management from development to operations. It combines a powerful daemon (\`caked\`) with a practical CLI (\`cakectl\`) so teams can build, run, inspect, and automate virtual machines consistently."
     echo ""
-    echo "[![Build](https://github.com/Fred78290/caker/actions/workflows/release.yaml/badge.svg?branch=main)](https://github.com/Fred78290/caker/actions/workflows/release.yaml)"
-    echo "[![Publish Wiki](https://github.com/Fred78290/caker/actions/workflows/publish-wiki.yaml/badge.svg?branch=main)](https://github.com/Fred78290/caker/actions/workflows/publish-wiki.yaml)"
+    echo "[![Build](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/release.yaml/badge.svg?branch=main)](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/release.yaml)"
+    echo "[![Publish Wiki](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/publish-wiki.yaml/badge.svg?branch=main)](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/publish-wiki.yaml)"
     echo "[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://caker.aldunelabs.com)"
-    echo "[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://github.com/Fred78290/caker/blob/main/LICENSE)"
+    echo "[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://github.com/${GITHUB_REPOSITORY}/blob/main/LICENSE)"
     echo ""
     
     # Add content from wiki Home, skipping the title and initial content
@@ -121,7 +123,7 @@ echo "✅ Wiki to docs synchronization completed!"
 echo ""
 echo "📋 Updated files:"
 find "${DOCS_DIR}" -name "*.md" -type f | sort | while read -r file; do
-  echo "  • ${file#${ROOT_DIR}/}"
+  echo "  • ${file#${PROJECT_ROOT}/}"
 done
 
 echo ""

@@ -6,15 +6,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PATH="${PROJECT_ROOT}/.bin:${PATH}" # Ensure scripts are in PATH for subcommands
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+source "${SCRIPT_DIR}/common.sh"
 
 # Parameter validation
 if [[ $# -lt 2 ]]; then
@@ -137,13 +130,13 @@ gh release edit "${RELEASE_TAG}" --draft=false
 rm -f "${GITHUB_NOTES_FILE}"
 
 # Check download URL
-DOWNLOAD_URL="https://github.com/Fred78290/caker/releases/download/${RELEASE_TAG}/$(basename "${RELEASE_FILE}")"
+DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/$(basename "${RELEASE_FILE}")"
 
 echo -e "${GREEN}✅ Release published successfully${NC}"
 echo
 echo -e "${BLUE}📋 Publication details:${NC}"
 echo "• Tag: ${RELEASE_TAG}"
-echo "• URL: https://github.com/Fred78290/caker/releases/tag/${RELEASE_TAG}"
+echo "• URL: https://github.com/${GITHUB_REPOSITORY}/releases/tag/${RELEASE_TAG}"
 echo "• Download: ${DOWNLOAD_URL}"
 echo "• Appcast: ${PROJECT_ROOT}/docs/appcast/appcast.xml"
 echo

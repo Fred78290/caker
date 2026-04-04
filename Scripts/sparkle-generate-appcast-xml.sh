@@ -5,31 +5,8 @@ set -euo pipefail
 # Generates a complete XML appcast for Sparkle updates
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PATH="${PROJECT_ROOT}/.bin:${PATH}" # Ensure scripts are in PATH for subcommands
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Configuration
-if [ -z "${GITHUB_REPOSITORY:-}" ]; then
-  REMOTE_URL="$(git -C "${PROJECT_ROOT}" config --get remote.origin.url || true)"
-
-  if [[ -n "${REMOTE_URL}" ]]; then
-    if [[ "${REMOTE_URL}" =~ github.com[:/]([^/]+)/([^/.]+)(\.git)?$ ]]; then
-      GITHUB_REPOSITORY="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
-    fi
-  fi
-fi
-
-GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-Fred78290/caker}"
-APPCAST_DIR="${PROJECT_ROOT}/docs/appcast"
-APPCAST_FILE="${APPCAST_DIR}/appcast.xml"
-MAX_RELEASES=10  # Number of recent releases to include
+source "${SCRIPT_DIR}/common.sh"
 
 print_header() {
     echo -e "${BLUE}🚀 Sparkle Custom Appcast Generator${NC}"
@@ -150,7 +127,7 @@ generate_xml_header() {
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
     <channel>
         <title>Caker Updates</title>
-        <link>https://github.com/Fred78290/caker</link>
+        <link>https://github.com/${GITHUB_REPOSITORY}</link>
         <description>Automatic updates for Caker - Virtual Machine Management Tool</description>
         <language>en</language>
         <lastBuildDate>$(date '+%a, %d %b %Y %H:%M:%S %z')</lastBuildDate>

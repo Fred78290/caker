@@ -6,20 +6,11 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-KEYS_DIR="${PROJECT_ROOT}/.sparkle"
-PATH="${PROJECT_ROOT}/.bin:${PATH}" # Ensure scripts are in PATH for subcommands
-DIST_DIR="${PROJECT_ROOT}/build"
-APP_NAME="Caker.app"
+
+source "${SCRIPT_DIR}/common.sh"
+
 BUILD_TYPE="${1:-release}"
 VERSION="${2:-$(date +%Y.%m.%d)}"
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
 
 echo -e "${BLUE}🏧️  Integrated build with Sparkle${NC}"
 echo "Build type: ${BUILD_TYPE}"

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RELEASE_NOTES_FILE="${ROOT_DIR}/wiki/release-notes.md"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+RELEASE_NOTES_FILE="${PROJECT_ROOT}/wiki/release-notes.md"
 ENTRY_DATE="${1:-$(date +%F)}"
 
 if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then

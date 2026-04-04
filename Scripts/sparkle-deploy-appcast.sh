@@ -5,15 +5,8 @@ set -euo pipefail
 # This script deploys the generated appcast to GitHub Pages
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PATH="${PROJECT_ROOT}/.bin:${PATH}" # Ensure scripts are in PATH for subcommands
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+source "${SCRIPT_DIR}/common.sh"
 
 print_header() {
     echo -e "${BLUE}🌐 Sparkle Appcast Deployment${NC}"
@@ -28,6 +21,7 @@ print_usage() {
     echo "  -h, --help           Show this help message"
     echo "  -f, --force          Force deployment even if no changes"
     echo "  -d, --dry-run        Show what would be deployed without actually deploying"
+    echo "  -r, --repo REPO      GitHub repository in the format owner/repo (default: Fred78290/caker)"
     echo "  --branch BRANCH      Target branch for GitHub Pages (default: main)"
     echo
     echo "Examples:"
@@ -134,6 +128,7 @@ deploy_appcast() {
     
     # Push to remote
     local branch="${1:-main}"
+    local github_repository="${2:-Fred78290/caker}"
     echo -e "${YELLOW}📤 Pushing to branch: ${branch}${NC}"
     
     if git push origin "${branch}"; then
@@ -143,7 +138,7 @@ deploy_appcast() {
         echo
         echo -e "${BLUE}🌐 Appcast URLs:${NC}"
         echo -e "   Production: ${GREEN}https://caker.aldunelabs.com/appcast/appcast.xml${NC}"
-        echo -e "   GitHub: ${GREEN}https://github.com/Fred78290/caker/blob/${branch}/docs/appcast/appcast.xml${NC}"
+        echo -e "   GitHub: ${GREEN}https://github.com/${github_repository}/blob/${branch}/docs/appcast/appcast.xml${NC}"
     else
         echo -e "${RED}❌ Failed to push changes${NC}"
         exit 1
@@ -191,6 +186,10 @@ main() {
                 dry_run=true
                 shift
                 ;;
+            -r|--repo)
+                GITHUB_REPOSITORY="$2"
+                shift 2
+                ;;
             --branch)
                 branch="$2"
                 shift 2
@@ -202,7 +201,19 @@ main() {
                 ;;
         esac
     done
-    
+
+    if [ -z "${GITHUB_REPOSITORY:-}" ]; then
+        REMOTE_URL="$(git -C "${PROJECT_ROOT}" config --get remote.origin.url || true)"
+
+        if [[ -n "${REMOTE_URL}" ]]; then
+            if [[ "${REMOTE_URL}" =~ github.com[:/]([^/]+)/([^/.]+)(\.git)?$ ]]; then
+            GITHUB_REPOSITORY="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+            fi
+        fi
+    fi
+
+    GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-Fred78290/caker}"
+
     print_header
     check_dependencies
     check_git_status
@@ -225,7 +236,7 @@ main() {
     echo
     
     if [[ ${REPLY} =~ ^[Yy]$ ]]; then
-        deploy_appcast "${branch}"
+        deploy_appcast "${branch}" "${GITHUB_REPOSITORY}"
         validate_deployment
         echo -e "${GREEN}🎉 Appcast deployment completed!${NC}"
     else

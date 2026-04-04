@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RELEASE_NOTES_FILE="${ROOT_DIR}/wiki/release-notes.md"
-BRANCH_NAME="${1:-$(git -C "${ROOT_DIR}" rev-parse --abbrev-ref HEAD)}"
-DATE_VALUE="${2:-$(date +%F)}"
-MAX_COMMITS="${MAX_COMMITS:-20}"
-RELEASE_PATHS="${RELEASE_PATHS:-Sources wiki}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+source "${SCRIPT_DIR}/common.sh"
 
 if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
   echo "Error: file not found: ${RELEASE_NOTES_FILE}" >&2
@@ -22,12 +19,12 @@ fi
 
 read -r -a PATH_FILTERS <<< "${RELEASE_PATHS}"
 
-COMMITS_RAW="$(git -C "${ROOT_DIR}" --no-pager log --no-merges --pretty=format:'- %s' -n "${MAX_COMMITS}" -- "${PATH_FILTERS[@]}")"
+COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'- %s' -n "${MAX_COMMITS}" -- "${PATH_FILTERS[@]}")"
 
 COMMAND_USED="git log --no-merges --oneline -n ${MAX_COMMITS} -- ${RELEASE_PATHS}"
 
 if [[ -z "${COMMITS_RAW}" ]]; then
-  COMMITS_RAW="$(git -C "${ROOT_DIR}" --no-pager log --no-merges --pretty=format:'- %s' -n "${MAX_COMMITS}")"
+  COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'- %s' -n "${MAX_COMMITS}")"
   COMMAND_USED="git log --no-merges --oneline -n ${MAX_COMMITS}"
 fi
 
