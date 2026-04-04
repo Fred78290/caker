@@ -31,7 +31,9 @@ jobs:
           GH_TOKEN: ${{ secrets.WIKI_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
         run: |
+          if [ -z "$(git config user.name || true)" ]; then
+              git config --global user.name "github-actions[bot]"
+              git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          fi
           chmod +x ./Scripts/publish-wiki.sh
-          OWNER="${GITHUB_REPOSITORY%%/*}"
-          REPO="${GITHUB_REPOSITORY##*/}"
-          ./Scripts/publish-wiki.sh "${OWNER}" "${REPO}"
+          ./Scripts/publish-wiki.sh "${GITHUB_REPOSITORY}"
