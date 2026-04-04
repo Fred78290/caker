@@ -22,9 +22,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Update release notes from git log
-        env:
-          RELEASE_PATHS: Sources wiki .github/workflows
-          MAX_COMMITS: "20"
         run: |
           chmod +x ./Scripts/update-wiki-release-notes-from-git.sh
           ./Scripts/update-wiki-release-notes-from-git.sh "${GITHUB_REF_NAME}"

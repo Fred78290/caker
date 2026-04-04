@@ -10,7 +10,7 @@ DATE_VALUE="$(date +%F)"
 WIKI_DIR="${PROJECT_ROOT}/wiki"
 DOCS_DIR="${PROJECT_ROOT}/docs"
 RELEASE_NOTES_FILE="${WIKI_DIR}/release-notes.md"
-RELEASE_PATHS="${RELEASE_PATHS:-Sources wiki}"
+RELEASE_PATHS="${RELEASE_PATHS:-Sources wiki .github/workflows}"
 MAX_COMMITS="${MAX_COMMITS:-20}"
 
 # Colors for output
