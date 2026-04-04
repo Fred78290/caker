@@ -44,7 +44,7 @@ echo "Cloning remote wiki: ${WIKI_REMOTE_DISPLAY}"
 git clone "${WIKI_REMOTE}" "${TMP_DIR}/wiki-repo"
 
 cd "${TMP_DIR}/wiki-repo"
-git config user.name "${GITHUB_REPOSITORY%%/*}"
+git config --global user.name "${GITHUB_REPOSITORY%%/*}"
 WIKI_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || echo master)"
 
 find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
