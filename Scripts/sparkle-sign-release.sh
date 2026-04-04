@@ -12,7 +12,7 @@ RELEASES_DIR="${PROJECT_ROOT}/build"
 APPCAST_DIR="${PROJECT_ROOT}/docs/appcast"
 BRANCH_NAME="$(git -C "${PROJECT_ROOT}" rev-parse --abbrev-ref HEAD)"
 DATE_VALUE="$(date +%F)"
-PATH="${HOMEBREW_PREFIX}/Caskroom/sparkle/2.9.0/bin:${PATH}" # Ensure scripts are in PATH for subcommands
+PATH="${PROJECT_ROOT}/.bin:${PATH}" # Ensure scripts are in PATH for subcommands
 RELEASE_PATHS="Sources wiki"
 SECTION_TITLE="## ${DATE_VALUE} (Git log summary - ${BRANCH_NAME})"
 
