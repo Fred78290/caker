@@ -232,17 +232,9 @@ main() {
         exit 0
     fi
     
-    echo
-    read -p "Deploy appcast to GitHub Pages? [y/N] " -n 1 -r
-    echo
-    
-    if [[ ${REPLY} =~ ^[Yy]$ ]]; then
-        deploy_appcast "${branch}" "${GITHUB_REPOSITORY}"
-        validate_deployment
-        echo -e "${GREEN}🎉 Appcast deployment completed!${NC}"
-    else
-        echo -e "${YELLOW}❌ Deployment cancelled${NC}"
-    fi
+    deploy_appcast "${branch}" "${GITHUB_REPOSITORY}"
+    validate_deployment
+    echo -e "${GREEN}🎉 Appcast deployment completed!${NC}"
 }
 
 # Run main function if script is executed directly

@@ -295,7 +295,7 @@ jobs:
               "${DMG_PATH}" \
               "${PKG_PATH}"
           else
-            gh release create --generate-notes --title "${VERSION}" "${VERSION}" \
+            gh release create --generate-notes --title "v${VERSION}" "v${VERSION}" \
               "${DMG_PATH}" \
               "${PKG_PATH}"
           fi
