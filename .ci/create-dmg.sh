@@ -2,7 +2,6 @@
 set -e
 
 SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
-VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 NOTARYZATION=${NOTARYZATION:=false}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -23,7 +22,7 @@ else
 	KEYCHAIN_OPTIONS=
 fi
 
-echo "Creating DMG for version ${VERSION}, developer ID ${DEVELOPER_ID}"
+echo "Creating DMG, developer ID ${DEVELOPER_ID}"
 
 # Vérifier que l'application existe
 if [ ! -d "${PKGDIR}" ]; then
@@ -42,9 +41,10 @@ fi
 # Nettoyer le fichier DMG existant
 rm -f "${DMG_PATH}"
 
+
 # Préparer les options create-dmg
 CREATE_DMG_OPTIONS=(
-	--volname "Caker ${VERSION}"
+	--volname "Caker"
 	--window-pos 200 120
 	--window-size 800 400
 	--icon-size 100
