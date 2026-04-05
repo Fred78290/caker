@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -xeuo pipefail
 
 # Deploy Sparkle Appcast to GitHub Pages
 # This script deploys the generated appcast to GitHub Pages
