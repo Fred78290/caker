@@ -1,16 +1,15 @@
 #!/bin/bash
 set -e
 
-SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 NOTARYZATION=${NOTARYZATION:=false}
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/Caker.app}"
 DMG_PATH="${DMG_PATH:-${PROJECT_ROOT}/build/Caker.dmg}"
+DMG_DIR="$(dirname "${DMG_PATH}")"
 
-mkdir -p "$(dirname "${DMG_PATH}")"
+mkdir -p "${DMG_DIR}"
 
 if [ -f "${PROJECT_ROOT}/.env" ]; then
 	source "${PROJECT_ROOT}/.env"
@@ -31,40 +30,57 @@ if [ ! -d "${PKGDIR}" ]; then
 	exit 1
 fi
 
-# Vérifier que create-dmg est disponible
-if ! command -v create-dmg &> /dev/null; then
-	echo "Error: create-dmg is not installed"
-	echo "Install it with: brew install create-dmg"
-	exit 1
-fi
-
 # Nettoyer le fichier DMG existant
 rm -f "${DMG_PATH}"
 
+if [ -f "${PROJECT_ROOT}/.ci/dmg-resources/DS_Store" ]; then
+	mkdir -p "${DMG_DIR}/dmg-resources/.background"
 
-# Préparer les options create-dmg
-CREATE_DMG_OPTIONS=(
-	--volname "Caker"
-	--window-pos 200 120
-	--window-size 800 400
-	--icon-size 100
-	--icon "Caker.app" 200 190
-	--hide-extension "Caker.app"
-	--app-drop-link 600 185
-)
+	ditto "${PKGDIR}" "${DMG_DIR}/dmg-resources/Caker.app"
 
-# Retirer les options pour les fichiers qui n'existent pas
-if [ -f "${PROJECT_ROOT}/.ci/dmg-resources/volume.icns" ]; then
-	CREATE_DMG_OPTIONS+=("--volicon" "${PROJECT_ROOT}/.ci/dmg-resources/volume.icns")
+	cp "${PROJECT_ROOT}/.ci/dmg-resources/background.png" "${DMG_DIR}/dmg-resources/.background/background.png"
+	cp "${PROJECT_ROOT}/.ci/dmg-resources/DS_Store" "${DMG_DIR}/dmg-resources/.DS_Store"
+	ln -s /Applications "${DMG_DIR}/dmg-resources/Applications"
+
+	hdiutil create \
+		-volname "Caker" \
+		-srcfolder "${DMG_DIR}/dmg-resources" \
+		-ov \
+		-format UDZO \
+		"${DMG_PATH}"
+
+else
+	# Vérifier que create-dmg est disponible
+	if ! command -v create-dmg &> /dev/null; then
+		echo "Error: create-dmg is not installed"
+		echo "Install it with: brew install create-dmg"
+		exit 1
+	fi
+
+	# Préparer les options create-dmg
+	CREATE_DMG_OPTIONS=(
+		--volname "Caker"
+		--window-pos 200 120
+		--window-size 800 400
+		--icon-size 100
+		--icon "Caker.app" 200 190
+		--hide-extension "Caker.app"
+		--app-drop-link 600 185
+	)
+
+	# Retirer les options pour les fichiers qui n'existent pas
+	if [ -f "${PROJECT_ROOT}/.ci/dmg-resources/volume.icns" ]; then
+		CREATE_DMG_OPTIONS+=("--volicon" "${PROJECT_ROOT}/.ci/dmg-resources/volume.icns")
+	fi
+
+	if [ -f "${PROJECT_ROOT}/.ci/dmg-resources/background.png" ]; then
+		CREATE_DMG_OPTIONS+=("--background" "${PROJECT_ROOT}/.ci/dmg-resources/background.png")
+	fi
+
+	# Créer le DMG avec create-dmg
+	echo "Creating DMG with create-dmg..."
+	create-dmg "${CREATE_DMG_OPTIONS[@]}" "${DMG_PATH}" "${PKGDIR}"
 fi
-
-if [ -f "${PROJECT_ROOT}/.ci/dmg-resources/background.png" ]; then
-	CREATE_DMG_OPTIONS+=("--background" "${PROJECT_ROOT}/.ci/dmg-resources/background.png")
-fi
-
-# Créer le DMG avec create-dmg
-echo "Creating DMG with create-dmg..."
-create-dmg "${CREATE_DMG_OPTIONS[@]}" "${DMG_PATH}" "${PKGDIR}"
 
 # Signer le DMG si possible
 if [ -n "${DEVELOPER_ID}" ]; then
