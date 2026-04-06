@@ -1,5 +1,5 @@
 #!/bin/bash
-set -xeuo pipefail
+set -euo pipefail
 
 # Deploy Sparkle Appcast to GitHub Pages
 # This script deploys the generated appcast to GitHub Pages
@@ -116,7 +116,7 @@ deploy_appcast() {
     git config --global user.name "${GITHUB_REPOSITORY%%/*}"
     set -x
     # Add appcast files
-    git add docs/appcast/
+    git add -f docs/appcast/appcast.xml
     
     # Create commit
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')

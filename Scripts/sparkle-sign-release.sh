@@ -145,8 +145,6 @@ fi
 
 xmllint --format "${APPCAST_FILE}" > "${TEMP_ITEM}" && mv "${TEMP_ITEM}" "${APPCAST_FILE}"
 
-rm "${TEMP_ITEM}"
-
 if [[ "${VERSION}" =~ SNAPSHOT ]]; then
     URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${VERSION}/${RELEASE_FILENAME}"
 else
