@@ -116,7 +116,7 @@ deploy_appcast() {
     git config --global user.name "${GITHUB_REPOSITORY%%/*}"
     set -x
     # Add appcast files
-    git add -f docs/appcast/appcast.xml
+    git add docs/appcast/appcast.xml
     
     # Create commit
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
