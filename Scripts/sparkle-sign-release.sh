@@ -9,13 +9,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source "${SCRIPT_DIR}/common.sh"
 
-RELEASE_PATHS="Sources wiki"
+RELEASE_PATHS="${RELEASE_PATHS:-Sources wiki}"
 SECTION_TITLE="## ${DATE_VALUE} (Git log summary - ${BRANCH_NAME})"
 
 # Parameter validation
 if [[ $# -lt 2 ]]; then
     echo -e "${RED}❌ Usage: $0 <version> <release-file>${NC}"
-    echo "Example: $0 1.2.3 /path/to/Caker-1.2.3.dmg"
+    echo "Example: $0 1.2.3 /path/to/Caker.dmg"
     exit 1
 fi
 
@@ -47,31 +47,24 @@ if ! command -v sign_update &> /dev/null; then
 fi
 
 # Create necessary folders
-mkdir -p "${RELEASES_DIR}"
 mkdir -p "${APPCAST_DIR}"
 
 # Copy release file
 RELEASE_FILENAME="$(basename "${RELEASE_FILE}")"
-RELEASE_DEST="${RELEASES_DIR}/${RELEASE_FILENAME}"
-
-if [[ "${RELEASE_FILE}" != "${RELEASE_DEST}" ]]; then
-    echo -e "${GREEN}📁 Copying release file...${NC}"
-    cp "${RELEASE_FILE}" "${RELEASE_DEST}"
-fi
 
 # Get file size
-FILE_SIZE=$(stat -f%z "${RELEASE_DEST}")
+FILE_SIZE=$(stat -f%z "${RELEASE_FILE}")
 
 # Sign file
 echo -e "${GREEN}🔐 Signing file with Sparkle...${NC}"
-SIGNATURE=$(sign_update "${RELEASE_DEST}" "${KEYS_DIR}/sparkle_private_key.pem")
+SIGNATURE=$(sign_update "${RELEASE_FILE}" "${KEYS_DIR}/sparkle_private_key.pem")
 
 echo -e "${GREEN}✅ Signature generated:${NC} ${SIGNATURE}"
 echo
 
 # Generate release information
 RELEASE_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
-RELEASE_NOTES_FILE="${APPCAST_DIR}/release-notes-$VERSION.html"
+RELEASE_NOTES_FILE="/tmp/release-notes.html"
 LAST_RELEASE_TAG="$(gh release list --repo ${GITHUB_REPOSITORY} --exclude-pre-releases --json name,tagName,publishedAt,isDraft,isPrerelease | jq -r '.[0].tagName//""')"
 
 if [ -n "${LAST_RELEASE_TAG}" ]; then
@@ -84,7 +77,6 @@ if [ -n "${LAST_RELEASE_TAG}" ]; then
 else
   COMMITS_RAW="<li>First release</li>"
 fi
-
 
 if [[ -z "${COMMITS_RAW}" ]]; then
   echo "${YELLOW}⚠️ No commits found to generate summary.${NC}"
@@ -107,13 +99,19 @@ echo -e "${GREEN}✅  Release notes created${NC}"
 APPCAST_FILE="${APPCAST_DIR}/appcast.xml"
 TEMP_ITEM=$(mktemp)
 
+if [[ "${VERSION}" =~ SNAPSHOT ]]; then
+    RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${VERSION}/${RELEASE_FILENAME}"
+else
+    RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/${RELEASE_FILENAME}"
+fi
+
 # Create new item
 cat > "${TEMP_ITEM}" << EOF
         <item>
             <title>Caker ${VERSION}</title>
             <description><![CDATA[$(cat "${RELEASE_NOTES_FILE}")]]></description>
             <pubDate>${RELEASE_DATE}</pubDate>
-            <enclosure url="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/${RELEASE_FILENAME}"
+            <enclosure url="${RELEASE_URL}"
                        sparkle:version="${VERSION}"
                        sparkle:shortVersionString="${VERSION}"
                        length="${FILE_SIZE}"
@@ -145,17 +143,11 @@ fi
 
 xmllint --format "${APPCAST_FILE}" > "${TEMP_ITEM}" && mv "${TEMP_ITEM}" "${APPCAST_FILE}"
 
-if [[ "${VERSION}" =~ SNAPSHOT ]]; then
-    URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${VERSION}/${RELEASE_FILENAME}"
-else
-    URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/${RELEASE_FILENAME}"
-fi
-
 # Summary
 echo -e "${GREEN}✅ Release ${VERSION} signed and appcast updated${NC}"
 echo
 echo "📁 Generated files:"
-echo "• Signed release: ${RELEASE_DEST}"
+echo "• Signed release: ${RELEASE_FILE}"
 echo "• Appcast XML: ${APPCAST_FILE}"
 echo "• Release notes: ${RELEASE_NOTES_FILE}"
 echo
@@ -165,4 +157,4 @@ echo "2. Publish appcast XML on your web server"
 echo "3. Update SUFeedURL in Info.plist if necessary"
 echo
 echo "🔗 GitHub download URL:"
-echo "${URL}"
+echo "${RELEASE_URL}"

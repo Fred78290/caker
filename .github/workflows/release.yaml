@@ -2,14 +2,15 @@ name: Release
 on:
   push:
     branches:
-    - 'main'
+      - "main"
     tags:
-      - 'v*'
-      - 'snapshot'
+      - "v*"
+      - "snapshot"
+      - "sparkle"
     paths-ignore:
-      - 'docs/**'
-      - 'wiki/**'
-      - 'templates/**'
+      - "docs/**"
+      - "wiki/**"
+      - "templates/**"
       - Scripts/act-wiki.sh
       - Scripts/act.sh
       - Scripts/build-signed-debug.sh
@@ -36,9 +37,9 @@ on:
       - Scripts/sparkle-generate-keys.sh
       - Scripts/sync-docs-from-wiki.sh
       - Scripts/update-wiki-release-notes-from-git.sh
-      - '.github/workflows/publish-wiki.yaml'
-      - '.github/workflows/sync-docs-from-wiki.yaml'
-      - '.github/workflows/sparkle-release.yml'
+      - .github/workflows/publish-wiki.yaml
+      - .github/workflows/sync-docs-from-wiki.yaml
+      - .github/workflows/sparkle-release.yml
 
 env:
   BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -52,10 +53,9 @@ env:
   HOMEBREW_NO_AUTO_UPDATE: 1
   RUN_PYTEST: ${{ vars.RUN_PYTEST }}
   RUN_SWIFT_TESTS: ${{ vars.RUN_SWIFT_TESTS }}
-  #PATH: "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:${{ github.workspace }}/.bin"
   CAKE_HOME: "${{ github.workspace }}/.cake"
   PKGDIR: "${{ github.workspace }}/.ci/pkg/Caker.app"
-  NOTARYZATION: true
+  NOTARYZATION: ${{ vars.NOTARYZATION }}
   SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
   SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
   SETUP_KEYCHAIN: ${{ vars.SETUP_KEYCHAIN }}
@@ -66,6 +66,10 @@ jobs:
     if: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
     runs-on: self-hosted
     timeout-minutes: 60
+    outputs:
+      build_release: ${{ steps.version.outputs.build_release }}
+      build_package: ${{ steps.version.outputs.build_package }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Check tools
         id: check
@@ -111,7 +115,7 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
- 
+
       - name: 🛠️ Setup Homebrew
         id: homebrew
         if: steps.check.outputs.install_brew == 'true'
@@ -122,14 +126,14 @@ jobs:
         uses: actions/setup-python@v6
         if: steps.check.outputs.install_python == 'true'
         with:
-          python-version: '3.13' 
+          python-version: "3.13"
 
       - name: 🛠️ Setup Go
         id: go
         if: steps.check.outputs.install_golang == 'true'
         uses: actions/setup-go@v6
         with:
-          go-version: '>=1.23.0'
+          go-version: ">=1.23.0"
           cache: true
           cache-dependency-path: qcow2convert/go.mod
 
@@ -145,7 +149,7 @@ jobs:
           PACKAGE=false
 
           if [ "${{ steps.check.outputs.install_brew }}" == "true" ]; then
-            brew install sparkle create-dmg gettext jq libxml2
+            brew install create-dmg gettext jq libxml2
           else
             if [ -z "$(command -v envsubst)"  ]; then
               brew install gettext
@@ -160,8 +164,6 @@ jobs:
               brew install libxml2
             fi
           fi
-          
-          HOMEBREW_PREFIX=$(brew config|grep HOMEBREW_PREFIX|cut -d ' ' -f 2)
 
           if [ "${SETUP_KEYCHAIN}" == "true" ]; then
             KEYCHAIN_PATH="${RUNNER_TEMP}/app-signing.keychain-db"
@@ -192,7 +194,6 @@ jobs:
           echo "VERSION=${VERSION}" >> ${GITHUB_ENV}
           echo "PACKAGE=${PACKAGE}" >> ${GITHUB_ENV}
           echo "RELEASE=${RELEASE}" >> ${GITHUB_ENV}
-          echo "HOMEBREW_PREFIX=${HOMEBREW_PREFIX}" >> ${GITHUB_ENV}
           echo "KEYCHAIN_PATH=${KEYCHAIN_PATH}" >> ${GITHUB_ENV}
 
           echo "build_release=${RELEASE}" >> ${GITHUB_OUTPUT}
@@ -200,11 +201,13 @@ jobs:
           echo "version=${VERSION}" >> ${GITHUB_OUTPUT}
           echo "pkg_path=${PKG_PATH}" >> ${GITHUB_OUTPUT}
           echo "dmg_path=${DMG_PATH}" >> ${GITHUB_OUTPUT}
-          echo "homebrew_prefix=${HOMEBREW_PREFIX}" >> ${GITHUB_OUTPUT}
+          echo "version_path=${GITHUB_WORKSPACE}/build/version.txt" >> ${GITHUB_OUTPUT}
           echo "keychain_path=${KEYCHAIN_PATH}" >> ${GITHUB_OUTPUT}
 
+          echo -n "${VERSION}" > "${GITHUB_WORKSPACE}/build/version.txt"
+
           export VERSION="${VERSION}"
-          
+
           TMPFILE=$(mktemp)
           envsubst < Sources/cakedlib/CI/CI.swift > ${TMPFILE}
           cp ${TMPFILE} Sources/cakedlib/CI/CI.swift
@@ -214,12 +217,13 @@ jobs:
         run: |
           cd qcow2convert
           ./build.sh
+
       - name: 🛠️ Install the Apple certificate and provisioning profile
         id: setup_keychain
         if: vars.SETUP_KEYCHAIN == 'true'
         run: |
           ./.ci/setup-keychain.sh "${KEYCHAIN_PATH}"
-  
+
       - name: 🧪 Run tests
         id: tests
         if: vars.RUN_SWIFT_TESTS == 'true'
@@ -234,7 +238,7 @@ jobs:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
         run: |
           ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}"
- 
+
       - name: 🧪 Run integration tests
         id: integration_tests
         if: steps.check.outputs.run_pytest == 'true'
@@ -272,89 +276,17 @@ jobs:
           export VERSION="${{ steps.version.outputs.version }}"
           ./.ci/create-dmg.sh "${KEYCHAIN_PATH}"
 
-      - name: 📖 Publish wiki
-        env:
-          GH_TOKEN: ${{ secrets.WIKI_TOKEN }}
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: 📦 Upload build artifacts
+        uses: actions/upload-artifact@v7
         if: steps.version.outputs.build_package == 'true'
-        run: |
-          chmod +x ./Scripts/publish-wiki.sh
-          ./Scripts/publish-wiki.sh "${GITHUB_REPOSITORY}"
-
-      - name: 📡 Publish release
-        id: create_release
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-          DMG_PATH: ${{ steps.version.outputs.dmg_path }}
-          PKG_PATH: ${{ steps.version.outputs.pkg_path }}
-        if: steps.version.outputs.build_package == 'true'
-        run: |
-          if [ ${GITHUB_REF##*/} == "snapshot" ]; then
-            gh release create --prerelease --generate-notes \
-              --title "${VERSION}" "${VERSION}" \
-              "${DMG_PATH}" \
-              "${PKG_PATH}"
-          else
-            gh release create --generate-notes --title "v${VERSION}" "v${VERSION}" \
-              "${DMG_PATH}" \
-              "${PKG_PATH}"
-          fi
-
-      - name: 👷 Setup Sparkle
-        id: setup_sparkle
-        if: steps.version.outputs.build_release == 'true'
-        run: |
-          rm -rf .bin
-          curl -L https://github.com/sparkle-project/Sparkle/releases/download/2.9.1/Sparkle-for-Swift-Package-Manager.zip -o /tmp/sparkle.zip
-          unzip -o -j /tmp/sparkle.zip bin/generate_appcast bin/sign_update bin/generate_keys -d .bin
-          rm -rf /tmp/sparkle.zip
-
-      - name: 🔐 Setup Sparkle keys
-        id: sparkle_keys
-        if: steps.version.outputs.build_release == 'true'
-        run: |
-          mkdir -p .sparkle
-          echo "${SPARKLE_PRIVATE_KEY}" > .sparkle/sparkle_private_key.pem
-          echo "${SPARKLE_PUBLIC_KEY}" > .sparkle/sparkle_public_key.pem
-
-      - name: 📡 Generate Custom Appcast
-        id: appcast
-        if: steps.version.outputs.build_release == 'true'
-        env:
-          DMG_PATH: ${{ steps.version.outputs.dmg_path }}
-          VERSION: ${{ steps.version.outputs.version }}
-          HOMEBREW_PREFIX: ${{ steps.version.outputs.homebrew_prefix }}
-        run: |          
-          # Make scripts executable
-          chmod +x Scripts/sparkle-generate-appcast-xml.sh
-          chmod +x Scripts/sparkle-deploy-appcast.sh
-          
-          # Generate custom XML appcast
-          ./Scripts/sparkle-generate-appcast-xml.sh --releases 10
-
-      - name: 🌐 Deploy Appcast to GitHub Pages
-        id: deploy-appcast
-        if: steps.version.outputs.build_release == 'true'
-        env:
-          DMG_PATH: ${{ steps.version.outputs.dmg_path }}
-          VERSION: ${{ steps.version.outputs.version }}
-          HOMEBREW_PREFIX: ${{ steps.version.outputs.homebrew_prefix }}
-        run: |
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Deploy appcast automatically
-          ./Scripts/sparkle-deploy-appcast.sh --force
-
-      - name: 📝 Update release notes from git log
-        id: update-release-notes
-        env:
-          RELEASE_PATHS: Sources wiki .github/workflows
-          MAX_COMMITS: "100"
-        if: steps.version.outputs.build_package == 'true'
-        run: |
-          ./Scripts/update-wiki-release-notes-from-git.sh "${GITHUB_REF_NAME}"
+        with:
+          name: build-outputs
+          path: |
+            ${{ steps.version.outputs.dmg_path }}
+            ${{ steps.version.outputs.pkg_path }}
+            ${{ steps.version.outputs.version_path }}
+          retention-days: 1
+          overwrite: true
 
       - name: 🧹 Clean up keychain and provisioning profile
         id: cleanup
@@ -363,3 +295,69 @@ jobs:
         if: always() && vars.SETUP_KEYCHAIN == 'true'
         run: |
           security delete-keychain "${KEYCHAIN_PATH}"
+
+  publish:
+    if: needs.build.outputs.build_package == 'true'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: 📱 Download build artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: build-outputs
+          path: build/
+
+      - name: 📡 Publish package on GitHub
+        id: publish_package
+        env:
+          VERSION: "${{ needs.build.outputs.version }}"
+        run: |
+          # Get the version from the build job outputs
+          # Check if the release already exists
+          if [ ${VERSION##*/} == "snapshot" ]; then
+              echo "Snapshot version: ${VERSION}"
+              PUB_VERSION="v${VERSION}"
+          else
+              echo "Release version: ${VERSION}"
+              PUB_VERSION="${VERSION}"
+          fi
+
+          if gh release view "${PUB_VERSION}" > /dev/null 2>&1; then
+            echo "Release ${PUB_VERSION} already exists, skipping creation."
+          else
+            echo "Creating release ${PUB_VERSION}..."
+            if [ ${GITHUB_REF##*/} == "snapshot" ]; then
+              gh release create --prerelease --generate-notes \
+                --title "${PUB_VERSION}" "${PUB_VERSION}" \
+                "./build/Caker.dmg" \
+                "./build/Caker.pkg"
+            else
+              gh release create --generate-notes \
+                --title "${PUB_VERSION}" "${PUB_VERSION}" \
+                "./build/Caker.dmg" \
+                "./build/Caker.pkg"
+            fi
+          fi
+
+  wiki:
+    if: needs.build.outputs.build_release == 'true'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: 📖 Publish wiki
+        env:
+          GH_TOKEN: ${{ secrets.WIKI_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          chmod +x ./Scripts/publish-wiki.sh
+          ./Scripts/publish-wiki.sh "${GITHUB_REPOSITORY}"
+
+      - name: 📝 Update release notes from git log
+        id: update-release-notes
+        env:
+          RELEASE_PATHS: Sources wiki .github/workflows
+          MAX_COMMITS: "100"
+        run: |
+          ./Scripts/update-wiki-release-notes-from-git.sh "${GITHUB_REF_NAME}"
