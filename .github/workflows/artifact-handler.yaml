@@ -150,11 +150,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Deploy appcast automatically
-          ./Scripts/sparkle-deploy-appcast.sh --force
-
-
-      - name: 🧹 Cleanup
-        if: always()
-        run: |
-          echo "Cleaning up temporary files..."
-          rm -rf ./build
+          sh -x -- ./Scripts/sparkle-deploy-appcast.sh --force
