@@ -203,11 +203,11 @@ jobs:
           echo "homebrew_prefix=${HOMEBREW_PREFIX}" >> ${GITHUB_OUTPUT}
           echo "keychain_path=${KEYCHAIN_PATH}" >> ${GITHUB_OUTPUT}
 
+          export VERSION="${VERSION}"
+          
           TMPFILE=$(mktemp)
           envsubst < Sources/cakedlib/CI/CI.swift > ${TMPFILE}
           cp ${TMPFILE} Sources/cakedlib/CI/CI.swift
-          envsubst < Resources/Info.plist > ${TMPFILE}
-          cp ${TMPFILE} Resources/Info.plist
 
       - name: 👷 Build QCow2convert framework
         id: build_qcow2convert
