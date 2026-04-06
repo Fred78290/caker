@@ -328,12 +328,12 @@ jobs:
           else
             echo "Creating release ${PUB_VERSION}..."
             if [ ${GITHUB_REF##*/} == "snapshot" ]; then
-              gh release create --prerelease --generate-notes \
+              gh release create --repo "${GITHUB_REPOSITORY}" --prerelease --generate-notes \
                 --title "${PUB_VERSION}" "${PUB_VERSION}" \
                 "./build/Caker.dmg" \
                 "./build/Caker.pkg"
             else
-              gh release create --generate-notes \
+              gh release create --repo "${GITHUB_REPOSITORY}" --generate-notes \
                 --title "${PUB_VERSION}" "${PUB_VERSION}" \
                 "./build/Caker.dmg" \
                 "./build/Caker.pkg"
