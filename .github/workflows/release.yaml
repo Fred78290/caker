@@ -50,7 +50,6 @@ env:
   DEVELOPER_ID: ${{ secrets.DEVELOPER_ID }}
   APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  HOMEBREW_NO_AUTO_UPDATE: 1
   RUN_PYTEST: ${{ vars.RUN_PYTEST }}
   RUN_SWIFT_TESTS: ${{ vars.RUN_SWIFT_TESTS }}
   CAKE_HOME: "${{ github.workspace }}/.cake"
