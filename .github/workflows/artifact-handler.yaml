@@ -137,7 +137,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           # Generate custom XML appcast
-          set -x -- ./Scripts/sparkle-sign-release.sh "${VERSION}" ./build/Caker.dmg
+          sh -x -- ./Scripts/sparkle-sign-release.sh "${VERSION}" ./build/Caker.dmg
 
 
       - name: 🌐 Deploy Appcast to GitHub Pages
