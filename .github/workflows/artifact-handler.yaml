@@ -65,7 +65,7 @@ jobs:
           
           if [ "${BUILD_SUCCESS}" == "success" ]; then
             # For workflow_run events, we can check if wiki job exists and ran
-            WIKI_SUCCESS=$(echo "${JOBS_DATA}" | jq -r '.jobs[] | select(.name == "wiki") | .conclusion'")
+            WIKI_SUCCESS=$(echo "${JOBS_DATA}" | jq -r '.jobs[] | select(.name == "wiki") | .conclusion')
             
             if [ "${{ github.event_name }}" == "workflow_dispatch" ] || [ "${WIKI_SUCCESS}" == "success" ]; then
               echo "should_process=true" >> $GITHUB_OUTPUT

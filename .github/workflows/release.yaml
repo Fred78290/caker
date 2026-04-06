@@ -39,7 +39,7 @@ on:
       - Scripts/update-wiki-release-notes-from-git.sh
       - .github/workflows/publish-wiki.yaml
       - .github/workflows/sync-docs-from-wiki.yaml
-      - .github/workflows/sparkle-release.yml
+      - .github/workflows/artifact-handler.yaml
 
 env:
   BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
