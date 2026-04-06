@@ -57,7 +57,7 @@ FILE_SIZE=$(stat -f%z "${RELEASE_FILE}")
 
 # Sign file
 echo -e "${GREEN}🔐 Signing file with Sparkle...${NC}"
-SIGNATURE=$(sign_update "${RELEASE_FILE}" "${KEYS_DIR}/sparkle_private_key.pem")
+SIGNATURE=$(sign_update "${RELEASE_FILE}" --ed-key-file "${KEYS_DIR}/sparkle_private_key.pem")
 
 echo -e "${GREEN}✅ Signature generated:${NC} ${SIGNATURE}"
 echo
