@@ -346,6 +346,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - name: 🛠️ checkout
+        id: checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
       - name: 📖 Publish wiki
         env:
           GH_TOKEN: ${{ secrets.WIKI_TOKEN }}
