@@ -316,11 +316,11 @@ jobs:
           # Get the version from the build job outputs
           # Check if the release already exists
           if [ ${VERSION##*/} == "snapshot" ]; then
-              echo "Snapshot version: ${VERSION}"
-              PUB_VERSION="v${VERSION}"
-          else
-              echo "Release version: ${VERSION}"
               PUB_VERSION="${VERSION}"
+              echo "Snapshot version: ${VERSION}"
+          else
+              PUB_VERSION="v${VERSION}"
+              echo "Release version: ${VERSION}"
           fi
 
           if gh release view "${PUB_VERSION}" > /dev/null 2>&1; then

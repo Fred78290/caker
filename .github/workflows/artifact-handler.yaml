@@ -82,7 +82,7 @@ jobs:
   process-artifacts:
     if: ${{ needs.check-release-type.outputs.should_process == 'true' }}
     needs: check-release-type
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 30
 
     steps:
