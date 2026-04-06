@@ -9,8 +9,6 @@ dist/
 Sources/cakectl/Ignored/
 *.log
 *.pkg
-*.jpg
-*.xcf
 *.o
 *.d
 *.swiftdeps
@@ -22,7 +20,6 @@ Caker/Caker.xcodeproj/xcuserdata
 actions-runner/
 .bin/
 .deps/
-Sources/WebUI/node_modules/
 sysroot-*
 build-*
 Library/
@@ -40,9 +37,7 @@ build/
 
 # Sparkle - Production configuration
 .sparkle/
-sparkle_private_key.pem
-sparkle_public_key.pem
 releases/
-appcast/
 *.sparkle.signature
 release-notes-*.html
+/.cake/
