@@ -230,7 +230,6 @@ cmd_clean() {
     log step "Cleaning build files"
     
     rm -rf "${PROJECT_ROOT}/build"
-    rm -rf "${PROJECT_ROOT}/releases"
     rm -rf "${PROJECT_ROOT}/DerivedData"
     rm -rf "${PROJECT_ROOT}/.build"
     
@@ -256,10 +255,7 @@ cmd_release() {
     cmd_build release "${version}"
     
     # Find generated file
-    local dmg_file="${PROJECT_ROOT}/build/Caker-${version}.dmg"
-    if [[ ! -f "${dmg_file}" ]]; then
-        dmg_file="${PROJECT_ROOT}/releases/Caker-${version}.dmg"
-    fi
+    local dmg_file="${PROJECT_ROOT}/build/Caker.dmg"
     
     if [[ -f "${dmg_file}" ]]; then
         log ok "Release v${version} generated: ${dmg_file}"

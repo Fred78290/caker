@@ -65,16 +65,18 @@ echo
 # Generate release information
 RELEASE_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
 RELEASE_NOTES_FILE="/tmp/release-notes.html"
-LAST_RELEASE_TAG="$(gh release list --repo ${GITHUB_REPOSITORY} --exclude-pre-releases --json name,tagName,publishedAt,isDraft,isPrerelease | jq -r '.[0].tagName//""')"
+LAST_RELEASE_TAG="$(gh release list --repo ${GITHUB_REPOSITORY} --exclude-pre-releases --json name,tagName,publishedAt,isDraft,isPrerelease | jq -r '.[1].tagName//""')"
 
 if [ -n "${LAST_RELEASE_TAG}" ]; then
     SINCE_TAG="${LAST_RELEASE_TAG}...HEAD"
+    FIRST_RELEASE=false
     COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'<li>%s</li>' "${SINCE_TAG}" -- "${RELEASE_PATHS}")"
 
     if [[ -z "${COMMITS_RAW}" ]]; then
     COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'<li>%s</li>' "${SINCE_TAG}")"
     fi
 else
+  FIRST_RELEASE=true
   COMMITS_RAW="<li>First release</li>"
 fi
 
@@ -121,7 +123,7 @@ cat > "${TEMP_ITEM}" << EOF
 EOF
 
 # Create or update appcast
-if [[ ! -f "${APPCAST_FILE}" ]] || [[ -z $(grep -o '<item>' "${APPCAST_FILE}") ]]; then
+if [ ${FIRST_RELEASE} == "true" ]; then
     echo -e "${GREEN}📄 Creating appcast file...${NC}"
     cat > "${APPCAST_FILE}" << EOF
 <?xml version="1.0" encoding="utf-8"?>

@@ -1,45 +1,9 @@
 name: Release
 on:
   push:
-    branches:
-      - "main"
     tags:
       - "v*"
       - "snapshot"
-      - "sparkle"
-    paths-ignore:
-      - "docs/**"
-      - "wiki/**"
-      - "templates/**"
-      - Scripts/act-wiki.sh
-      - Scripts/act.sh
-      - Scripts/build-signed-debug.sh
-      - Scripts/build-signed-snapshot.sh
-      - Scripts/build-template-macos-test.sh
-      - Scripts/build-template-macos.sh
-      - Scripts/buildvm-oci-macos.sh
-      - Scripts/buildvm-oci-macos.sh
-      - Scripts/buildvm-oci-ubuntu.sh
-      - Scripts/buildvm-oci-ubuntu.sh
-      - Scripts/buildvm-service.sh
-      - Scripts/buildvm-service.sh
-      - Scripts/buildvm.sh
-      - Scripts/buildvm.sh
-      - Scripts/debug-docs.sh
-      - Scripts/generate.sh
-      - Scripts/new-wiki-release-entry.sh
-      - Scripts/png_to_icns.sh
-      - Scripts/publish-wiki.sh
-      - Scripts/publish-wiki.sh
-      - Scripts/quick-sync-docs.sh
-      - Scripts/run-signed-cakectl.sh
-      - Scripts/run-signed-caked.sh
-      - Scripts/sparkle-generate-keys.sh
-      - Scripts/sync-docs-from-wiki.sh
-      - Scripts/update-wiki-release-notes-from-git.sh
-      - .github/workflows/publish-wiki.yaml
-      - .github/workflows/sync-docs-from-wiki.yaml
-      - .github/workflows/artifact-handler.yaml
 
 env:
   BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -58,8 +22,10 @@ env:
   SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
   SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
   SETUP_KEYCHAIN: ${{ vars.SETUP_KEYCHAIN }}
+
 permissions:
   contents: write
+
 jobs:
   build:
     if: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
@@ -297,12 +263,12 @@ jobs:
 
   publish:
     if: needs.build.outputs.build_package == 'true'
-    needs: build
+    needs: [build, sparkle-sign]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: 📱 Download build artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: build-outputs
           path: build/
@@ -367,3 +333,56 @@ jobs:
           MAX_COMMITS: "100"
         run: |
           ./Scripts/update-wiki-release-notes-from-git.sh "${GITHUB_REF_NAME}"
+
+
+  sparkle-sign:
+    if: needs.build.outputs.build_release == 'true'
+    needs: build
+    runs-on: self-hosted
+    timeout-minutes: 30
+    env:
+      VERSION: "${{ needs.build.outputs.version }}"
+    steps:
+      - name: 🛠️ checkout
+        id: checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: 📱 Download build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: build-outputs
+          path: build/
+
+      - name: 👷 Setup Sparkle
+        id: setup_sparkle
+        run: |
+          rm -rf .bin
+          curl -L https://github.com/sparkle-project/Sparkle/releases/download/2.9.1/Sparkle-for-Swift-Package-Manager.zip -o /tmp/sparkle.zip
+          unzip -o -j /tmp/sparkle.zip bin/generate_appcast bin/sign_update bin/generate_keys -d .bin
+          rm -rf /tmp/sparkle.zip
+
+      - name: 🔐 Setup Sparkle keys
+        id: sparkle_keys
+        run: |
+          mkdir -p .sparkle
+          echo "${SPARKLE_PRIVATE_KEY}" > .sparkle/sparkle_private_key.pem
+          echo "${SPARKLE_PUBLIC_KEY}" > .sparkle/sparkle_public_key.pem
+
+      - name: 📡 Generate Custom Appcast
+        id: appcast
+        run: |
+          # Generate custom XML appcast
+          sh -x -- ./Scripts/sparkle-sign-release.sh "${VERSION}" ./build/Caker.dmg
+
+      - name: 🌐 Deploy Appcast to GitHub Pages
+        id: deploy-appcast
+        run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Deploy appcast automatically
+          sh -x -- ./Scripts/sparkle-deploy-appcast.sh --force
