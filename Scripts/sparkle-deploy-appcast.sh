@@ -114,7 +114,6 @@ deploy_appcast() {
         git config user.email "github-actions[bot]@users.noreply.github.com"
     fi
     git config --global user.name "${GITHUB_REPOSITORY%%/*}"
-    set -x
     # Add appcast files
     git add docs/appcast/appcast.xml
     
