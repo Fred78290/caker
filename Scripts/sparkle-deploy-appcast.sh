@@ -131,7 +131,7 @@ deploy_appcast() {
     local github_repository="${2:-Fred78290/caker}"
     echo -e "${YELLOW}📤 Pushing to branch: ${branch}${NC}"
     
-    if git push origin "${branch}"; then
+    if git push; then
         echo -e "${GREEN}✅ Successfully deployed appcast${NC}"
         
         # Show deployment URL
