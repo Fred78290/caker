@@ -1,30 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
-    <channel>
-        <title>Caker Updates</title>
-        <description>Automatic updates for Caker</description>
-        <language>en</language>
-        <link>https://github.com/Fred78290/caker</link>
-        <item>
-            <title>Caker 0.0.0</title>
-            <description><![CDATA[<h2>Caker 0.0.0</h2>
-<p>New version of Caker with improvements and bug fixes.</p>
-
-<h3>## 2026-04-07 (Git log summary - main)</h3>
-<ul>
-    <li>Add Sparkle key secrets and remove Homebrew auto-update</li>
-<li>Updates Sparkle signing to use explicit key file flag</li>
-<li>Wrong typo</li>
-<li>Debug</li>
-<li>Enables debug mode for deployment script and removes cleanup</li>
-</ul>]]></description>
-            <pubDate>mar., 07 avr. 2026 06:59:27 +0000</pubDate>
-            <enclosure url="https://github.com/Fred78290/caker/releases/download/v0.0.0/Caker.dmg"
-                       sparkle:version="0.0.0"
-                       sparkle:shortVersionString="0.0.0"
-                       length="179227357"
-                       type="application/octet-stream"
-                       sparkle:edSignature="sparkle:edSignature="68r6RpTGG4K9QVcMTFPrZSDUSnKyZO1zY+UH/F9EsOnn9kR+rdTAqNJlIAwcjF4vgZZKuRspEMuTp9QvHIATDg==" length="179227357"" />
-        </item>
-    </channel>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>Caker Updates</title>
+    <link>https://github.com/Fred78290/caker</link>
+    <description>Automatic updates for Caker - Virtual Machine Management Tool</description>
+    <language>en</language>
+    <lastBuildDate>$(date '+%a, %d %b %Y %H:%M:%S %z')</lastBuildDate>
+    <docs>https://fred78290.github.io/caker/</docs>
+    <generator>Sparkle Custom Appcast Generator</generator>
+  </channel>
 </rss>
