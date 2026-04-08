@@ -123,9 +123,8 @@ cat > "${TEMP_ITEM}" << EOF
 EOF
 
 # Create or update appcast
-if [ ${FIRST_RELEASE} == "true" ]; then
-    echo -e "${GREEN}📄 Creating appcast file...${NC}"
-    cat > "${APPCAST_FILE}" << EOF
+echo -e "${GREEN}📄 Creating appcast file...${NC}"
+cat > "${APPCAST_FILE}" << EOF
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
     <channel>
@@ -137,11 +136,6 @@ $(cat "${TEMP_ITEM}")
     </channel>
 </rss>
 EOF
-else
-    echo -e "${GREEN}🔄 Updating appcast file...${NC}"
-    # Insert new item after <link> line
-    sed -i '' '/^[[:space:]]*<item>/r '"${TEMP_ITEM}" "${APPCAST_FILE}"
-fi
 
 xmllint --format "${APPCAST_FILE}" > "${TEMP_ITEM}" && mv "${TEMP_ITEM}" "${APPCAST_FILE}"
 
