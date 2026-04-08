@@ -203,8 +203,6 @@ jobs:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
         run: |
           ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}"
-          git fetch origin main
-          git reset --hard origin/main
 
       - name: 🧪 Run integration tests
         id: integration_tests
@@ -262,6 +260,16 @@ jobs:
         if: always() && vars.SETUP_KEYCHAIN == 'true'
         run: |
           security delete-keychain "${KEYCHAIN_PATH}"
+
+
+      - name: 🧹 Clean up repo
+        id: cleanup-repo
+        if: always()
+        run: |
+          # Reset git working directory
+          export
+          git clean -fd
+          git reset --hard HEAD
 
   publish:
     if: needs.build.outputs.build_package == 'true'
