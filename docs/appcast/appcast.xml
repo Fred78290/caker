@@ -14,13 +14,13 @@
 <ul>
     <li>First release</li>
 </ul>]]></description>
-            <pubDate>mer., 08 avr. 2026 09:17:50 +0000</pubDate>
+            <pubDate>mer., 08 avr. 2026 12:44:06 +0000</pubDate>
             <enclosure url="https://github.com/Fred78290/caker/releases/download/v0.0.0/Caker.dmg"
                        sparkle:version="0.0.0"
                        sparkle:shortVersionString="0.0.0"
-                       length="179297705"
+                       length="179225089"
                        type="application/octet-stream"
-                       sparkle:edSignature="sparkle:edSignature="qlj3WcXMUE/nXpO5U80u50i2qv6v6DR7erOoCJWgFhbj0bF8cgzhpvZBqRwXdT4bCpAPQLGDCwkVDKQrfHkcAg==" length="179297705"" />
+                       sparkle:edSignature="sparkle:edSignature="knqyNTv4vothduu7CkAwily/p4vvqq8lfy9D2v07HWzhBaJBySWHfUntwLeIRPAoPEthp3qjvGIJ1+osJKl8AA==" length="179225089"" />
         </item>
     </channel>
 </rss>
