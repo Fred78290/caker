@@ -116,7 +116,6 @@ cat > "${TEMP_ITEM}" << EOF
             <enclosure url="${RELEASE_URL}"
                        sparkle:version="${VERSION}"
                        sparkle:shortVersionString="${VERSION}"
-                       length="${FILE_SIZE}"
                        type="application/octet-stream"
                        ${SIGNATURE}/>
         </item>
