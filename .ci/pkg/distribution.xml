@@ -1,0 +1,18 @@
+<installer-gui-script minSpecVersion="1">
+  <title>Caker</title>
+  <license file="LICENSE.txt" mime-type="text/plain"/>
+  <readme file="README.html" mime-type="text/html"/>
+  <background mime-type="image/png" file="icon.png" alignment="left" scaling="none"/>
+  <background-darkAqua mime-type="image/png" file="icon.png" alignment="left" scaling="none"/>
+  <options hostArchitectures="arm64,x86_64" customize="never" require-scripts="false"/>
+  <domains enable_localSystem="true"/>
+
+  <choices-outline>
+    <line choice="Caker.choice"/>
+  </choices-outline>
+  <choice title="Caker (universal)" id="Caker.choice">
+    <pkg-ref id="Caker.pkg"/>
+  </choice>
+
+  <pkg-ref id="Caker.pkg">Caker.pkg</pkg-ref>
+</installer-gui-script>

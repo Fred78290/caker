@@ -7,10 +7,11 @@ NOTARYZATION=${NOTARYZATION:=false}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PKGDIR=$(dirname "${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/Caker.app}")
+PKGDIR=$(dirname "${PKGDIR:-${PROJECT_ROOT}/dist/Caker.app}")
 PKG_PATH="${PKG_PATH:-${PROJECT_ROOT}/build/Caker.pkg}"
 
 mkdir -p "$(dirname "${PKG_PATH}")"
+mkdir -p "${PROJECT_ROOT}/.ci/pkg/components"
 
 if [ -f "${PROJECT_ROOT}/.env" ]; then
 	source "${PROJECT_ROOT}/.env"
@@ -31,7 +32,9 @@ pkgbuild --root "${PKGDIR}" \
 		--install-location "/Applications" \
 		--sign "Developer ID Installer: ${DEVELOPER_ID}" \
 		${KEYCHAIN_OPTIONS} \
-		"${PKG_PATH}"
+		"${PROJECT_ROOT}/.ci/pkg/components/Caker.pkg"
+
+productbuild --distribution "${PROJECT_ROOT}/.ci/pkg/distribution.xml" --resources "${PROJECT_ROOT}/.ci/pkg/resources" --package-path "${PROJECT_ROOT}/.ci/pkg/components" "${PKG_PATH}"
 
 if [ ${NOTARYZATION} == true ]; then
 		echo "Notarization enabled, will submit package to Apple for notarization"
