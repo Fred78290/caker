@@ -118,7 +118,7 @@ cat > "${TEMP_ITEM}" << EOF
                        sparkle:shortVersionString="${VERSION}"
                        length="${FILE_SIZE}"
                        type="application/octet-stream"
-                       sparkle:edSignature="${SIGNATURE}" />
+                       ${SIGNATURE}/>
         </item>
 EOF
 
