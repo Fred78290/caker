@@ -1,26 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
-    <channel>
-        <title>Caker Updates</title>
-        <description>Automatic updates for Caker</description>
-        <language>en</language>
-        <link>https://github.com/Fred78290/caker</link>
-        <item>
-            <title>Caker 0.0.0</title>
-            <description><![CDATA[<h2>Caker 0.0.0</h2>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+  <channel>
+    <title>Caker Updates</title>
+    <description>Automatic updates for Caker</description>
+    <language>en</language>
+    <link>https://github.com/Fred78290/caker</link>
+    <item>
+      <title>Caker 0.0.0</title>
+      <description><![CDATA[<h2>Caker 0.0.0</h2>
 <p>New version of Caker with improvements and bug fixes.</p>
 
-<h3>## 2026-04-08 (Git log summary - HEAD)</h3>
+<h3>## 2026-04-09 (Git log summary - HEAD)</h3>
 <ul>
     <li>First release</li>
 </ul>]]></description>
-            <pubDate>mer., 08 avr. 2026 16:53:19 +0000</pubDate>
-            <enclosure url="https://github.com/Fred78290/caker/releases/download/v0.0.0/Caker.dmg"
-                       sparkle:version="0.0.0"
-                       sparkle:shortVersionString="0.0.0"
-                       length="179227299"
-                       type="application/octet-stream"
-                       sparkle:edSignature="fime0PTMiw8bsg4bsQUy2cxQ9WKAEvh98LkbyhRV0YJQWoPk3fx6K5G2rOXDrMgGhvoH5IpK6mYQztd9Pw91DA==" length="179227299"/>
-        </item>
-    </channel>
+      <pubDate>mer., 08 avr. 2026 22:10:24 +0000</pubDate>
+      <enclosure url="https://github.com/Fred78290/caker/releases/download/v0.0.0/Caker.dmg" sparkle:version="0.0.0" sparkle:shortVersionString="0.0.0" type="application/octet-stream" sparkle:edSignature="hQ76Ms3HWC6Fvl7mH6LN6bvIuJvTQz2vfwtV1X0OHireJlj3RUTbs1S/XYzOmSMPu6anxp0KF61J2iTyCSCTBQ==" length="179225591"/>
+    </item>
+  </channel>
 </rss>
