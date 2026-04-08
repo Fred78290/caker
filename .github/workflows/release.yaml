@@ -392,7 +392,7 @@ jobs:
         id: appcast
         run: |
           # Generate custom XML appcast
-          sh -x -- ./Scripts/sparkle-sign-release.sh "${VERSION}" ./build/Caker.dmg
+          ./Scripts/sparkle-sign-release.sh "${VERSION}" ./build/Caker.dmg
 
       - name: 🌐 Deploy Appcast to GitHub Pages
         id: deploy-appcast
@@ -402,4 +402,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Deploy appcast automatically
-          sh -x -- ./Scripts/sparkle-deploy-appcast.sh --force
+          ./Scripts/sparkle-deploy-appcast.sh --force
