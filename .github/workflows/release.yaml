@@ -139,11 +139,11 @@ jobs:
           if [[ "${VERSION}" == "snapshot" ]]; then
             VERSION="SNAPSHOT-$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)"
             PACKAGE=true
-            RELEASE=false
+            BUILDRELEASE=false
           elif [[ "${VERSION}" == v* ]]; then
             VERSION="${VERSION:1}"
             PACKAGE=true
-            RELEASE=true
+            BUILDRELEASE=true
           fi
 
           if [ ${PACKAGE} == "true" ] && [ ${GITHUB_EVENT_NAME} != "push" ]; then
@@ -158,10 +158,10 @@ jobs:
           echo "DMG_PATH=${DMG_PATH}" >> ${GITHUB_ENV}
           echo "VERSION=${VERSION}" >> ${GITHUB_ENV}
           echo "PACKAGE=${PACKAGE}" >> ${GITHUB_ENV}
-          echo "RELEASE=${RELEASE}" >> ${GITHUB_ENV}
+          echo "BUILDRELEASE=${BUILDRELEASE}" >> ${GITHUB_ENV}
           echo "KEYCHAIN_PATH=${KEYCHAIN_PATH}" >> ${GITHUB_ENV}
 
-          echo "build_release=${RELEASE}" >> ${GITHUB_OUTPUT}
+          echo "build_release=${BUILDRELEASE}" >> ${GITHUB_OUTPUT}
           echo "build_package=${PACKAGE}" >> ${GITHUB_OUTPUT}
           echo "version=${VERSION}" >> ${GITHUB_OUTPUT}
           echo "pkg_path=${PKG_PATH}" >> ${GITHUB_OUTPUT}
