@@ -196,14 +196,14 @@ jobs:
         run: |
           # Run tests for the Swift package
           export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:${PATH}
-          swift test|grep -v Compiling|grep -v CoreData
+          swift test 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving|CoreData'
 
       - name: 👷 Build Swift package
         id: build
         env:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
         run: |
-          ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}" | grep -v 'Compiling|Fetch|Comput|Creating|Working|Write'
+          sh -x ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}" 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving'
 
       - name: 🧪 Run integration tests
         id: integration_tests
