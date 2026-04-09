@@ -22,6 +22,7 @@ env:
   SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
   SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
   SETUP_KEYCHAIN: ${{ vars.SETUP_KEYCHAIN }}
+  CODESIGN_REQUIREMENT: ${{ secrets.CODESIGN_REQUIREMENT }}
 
 permissions:
   contents: write
@@ -202,7 +203,7 @@ jobs:
         env:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
         run: |
-          ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}"
+          ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}" | grep -v Compiling
 
       - name: 🧪 Run integration tests
         id: integration_tests
