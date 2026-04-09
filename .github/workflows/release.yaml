@@ -203,7 +203,7 @@ jobs:
         env:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
         run: |
-          ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}" | grep -v Compiling
+          ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}" | grep -v 'Compiling|Fetch|Comput|Creating|Working|Write'
 
       - name: 🧪 Run integration tests
         id: integration_tests
