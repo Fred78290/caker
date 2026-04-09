@@ -5,7 +5,7 @@ NOTARYZATION=${NOTARYZATION:=false}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-PKGDIR="${PKGDIR:-${PROJECT_ROOT}/.ci/pkg/Caker.app}"
+PKGDIR="${PKGDIR:-${PROJECT_ROOT}/dist/Caker.app}"
 DMG_PATH="${DMG_PATH:-${PROJECT_ROOT}/build/Caker.dmg}"
 DMG_DIR="$(dirname "${DMG_PATH}")"
 
