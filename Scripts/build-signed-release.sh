@@ -7,13 +7,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PKGDIR="${PKGDIR:-${PROJECT_ROOT}/dist/Caker.app}"
+KEYCHAIN_OPTIONS=${1:-}
 
 if [ -f ${PROJECT_ROOT}/.env ]; then
 	source ${PROJECT_ROOT}/.env
 fi
 
-if [ -n "$1" ]; then
-	KEYCHAIN_OPTIONS="--keychain $1"
+if [ -n "${KEYCHAIN_OPTIONS}" ]; then
+	KEYCHAIN_OPTIONS="--keychain ${KEYCHAIN_OPTIONS}"
 else
 	KEYCHAIN_OPTIONS=
 fi
