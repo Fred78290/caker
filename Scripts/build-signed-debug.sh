@@ -2,7 +2,7 @@
 
 # helper script to build and run a signed caked binary
 # usage: ./scripts/run-signed.sh run sonoma-base
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
