@@ -25,18 +25,30 @@ fi
 
 echo "Creating package for version ${VERSION}, team ID ${TEAM_ID}"
 
-pkgbuild --root "${PKGDIR}" \
+pkgbuild ${KEYCHAIN_OPTIONS} --root "${PKGDIR}" \
 		--identifier com.aldunelabs.caker \
 		--version ${VERSION} \
 		--scripts "${PROJECT_ROOT}/.ci/pkg/scripts" \
 		--install-location "/Applications" \
-		--sign "Developer ID Installer: ${DEVELOPER_ID}" \
-		${KEYCHAIN_OPTIONS} \
 		"${PROJECT_ROOT}/.ci/pkg/components/Caker.pkg"
 
-productbuild --distribution "${PROJECT_ROOT}/.ci/pkg/distribution.xml" --resources "${PROJECT_ROOT}/.ci/pkg/resources" --package-path "${PROJECT_ROOT}/.ci/pkg/components" "${PKG_PATH}"
 
-codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Installer: ${DEVELOPER_ID}" "${PKG_PATH}"
+#pkgbuild ${KEYCHAIN_OPTIONS} --root "${PKGDIR}" \
+#		--identifier com.aldunelabs.caker \
+#		--version ${VERSION} \
+#		--scripts "${PROJECT_ROOT}/.ci/pkg/scripts" \
+#		--install-location "/Applications" \
+#		--timestamp \
+#		--sign "Developer ID Installer: ${DEVELOPER_ID}" \
+#		"${PROJECT_ROOT}/.ci/pkg/components/Caker.pkg"
+
+productbuild ${KEYCHAIN_OPTIONS} \
+	--identifier com.aldunelabs.caker \
+	--distribution "${PROJECT_ROOT}/.ci/pkg/distribution.xml" \
+	--resources "${PROJECT_ROOT}/.ci/pkg/resources" \
+	--package-path "${PROJECT_ROOT}/.ci/pkg/components" \
+	--sign "Developer ID Installer: ${DEVELOPER_ID}" \
+	"${PKG_PATH}"
 
 if [ ${NOTARYZATION} == true ]; then
 		echo "Notarization enabled, will submit package to Apple for notarization"
