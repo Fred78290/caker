@@ -10,8 +10,8 @@ env:
   P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
   KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
   APPLE_ID: ${{ secrets.APPLE_ID }}
-  TEAM_ID: ${{ secrets.TEAM_ID }}
-  DEVELOPER_ID: ${{ secrets.DEVELOPER_ID }}
+  TEAM_ID: ${{ vars.TEAM_ID }}
+  DEVELOPER_ID: ${{ vars.DEVELOPER_ID }}
   APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   RUN_PYTEST: ${{ vars.RUN_PYTEST }}
@@ -22,7 +22,7 @@ env:
   SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
   SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
   SETUP_KEYCHAIN: ${{ vars.SETUP_KEYCHAIN }}
-  CODESIGN_REQUIREMENT: ${{ secrets.CODESIGN_REQUIREMENT }}
+  CODESIGN_REQUIREMENT: ${{ vars.CODESIGN_REQUIREMENT }}
 
 permissions:
   contents: write
