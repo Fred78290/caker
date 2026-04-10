@@ -20,6 +20,12 @@ VERSION="$1"
 RELEASE_FILE="$2"
 RELEASE_DESCRIPTION="${3:-New version of Caker ${VERSION}}"
 
+if [[ "${VERSION}" =~ SNAPSHOT ]]; then
+    APPCAST_FILE="${APPCAST_DIR}/appcast-prerelease.xml"
+else
+    APPCAST_FILE="${APPCAST_DIR}/appcast.xml"
+fi
+
 echo -e "${BLUE}🚀 GitHub publication with Sparkle${NC}"
 echo "Version: ${VERSION}"
 echo "File: ${RELEASE_FILE}"
@@ -138,7 +144,7 @@ echo -e "${BLUE}📋 Publication details:${NC}"
 echo "• Tag: ${RELEASE_TAG}"
 echo "• URL: https://github.com/${GITHUB_REPOSITORY}/releases/tag/${RELEASE_TAG}"
 echo "• Download: ${DOWNLOAD_URL}"
-echo "• Appcast: ${PROJECT_ROOT}/docs/appcast/appcast.xml"
+echo "• Appcast: ${APPCAST_FILE}"
 echo
 echo -e "${YELLOW}📤 Next steps:${NC}"
 echo "1. Check release on GitHub"
@@ -147,14 +153,13 @@ echo "3. Deploy appcast XML on your server"
 echo "4. Test automatic updates"
 
 # Optional: Publish appcast via GitHub Pages
-APPCAST_FILE="${PROJECT_ROOT}/docs/appcast/appcast.xml"
 if [[ -f "${APPCAST_FILE}" ]]; then
     echo
     echo -e "${BLUE}📡 Options to publish appcast:${NC}"
     echo "1. GitHub Pages: Copy appcast/ to docs/ and enable Pages"
-    echo "2. Personal server: Manual upload of appcast.xml"
+    echo "2. Personal server: Manual upload of $(basename ${APPCAST_FILE}) to your hosting"
     echo "3. CDN: Upload to your preferred CDN"
     echo
     echo "Example URL for GitHub Pages:"
-    echo "https://caker.aldunelabs.com/appcast/appcast.xml"
+    echo "https://caker.aldunelabs.com/appcast/$(basename ${APPCAST_FILE})"
 fi

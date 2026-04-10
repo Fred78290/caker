@@ -104,7 +104,7 @@ get_sparkle_signature() {
                 generate_appcast \
                     --ed-key-file "${PROJECT_ROOT}/.sparkle/sparkle_private_key.pem" \
                     --download-url-prefix "" \
-                    --output-file "/tmp/temp_appcast.xml" "${dmg_path}" 2>/dev/null | grep 'sparkle:edSignature' | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/' || echo ""
+                    --output-file "/tmp/temp_$(basename ${APPCAST_FILE})" "${dmg_path}" 2>/dev/null | grep 'sparkle:edSignature' | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/' || echo ""
             fi
         fi
     fi
@@ -274,11 +274,11 @@ display_summary() {
     echo -e "${BLUE}==================${NC}"
     echo -e "📁 File: ${GREEN}${APPCAST_FILE}${NC}"
     echo -e "📏 Size: ${GREEN}$(wc -c < "${APPCAST_FILE}" | xargs) bytes${NC}"
-    echo -e "🔗 URL: ${GREEN}https://caker.aldunelabs.com/appcast/appcast.xml${NC}"
+    echo -e "🔗 URL: ${GREEN}https://caker.aldunelabs.com/appcast/$(basename ${APPCAST_FILE})${NC}"
     echo
     echo -e "${YELLOW}💡 Next steps:${NC}"
     echo "1. Update Info.plist to use custom appcast:"
-    echo "   SUFeedURL = https://caker.aldunelabs.com/appcast/appcast.xml"
+    echo "   SUFeedURL = https://caker.aldunelabs.com/appcast/$(basename ${APPCAST_FILE})"
     echo "2. Deploy to GitHub Pages or your preferred hosting"
     echo "3. Test with a debug build"
 }
@@ -303,7 +303,6 @@ main() {
             -o|--output)
                 output_dir="$2"
                 APPCAST_DIR="${output_dir}"
-                APPCAST_FILE="${APPCAST_DIR}/appcast.xml"
                 shift 2
                 ;;
             -r|--releases)
@@ -322,7 +321,13 @@ main() {
                 ;;
         esac
     done
-    
+
+    if [[ "${VERSION}" =~ SNAPSHOT ]]; then
+        APPCAST_FILE="${APPCAST_DIR}/appcast-prerelease.xml"
+    else
+        APPCAST_FILE="${APPCAST_DIR}/appcast.xml"
+    fi
+
     print_header
     check_dependencies
     get_releases_data "${releases_count}"

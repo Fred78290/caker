@@ -98,12 +98,13 @@ EOF
 echo -e "${GREEN}✅  Release notes created${NC}"
 
 # Update or create appcast
-APPCAST_FILE="${APPCAST_DIR}/appcast.xml"
 TEMP_ITEM=$(mktemp)
 
 if [[ "${VERSION}" =~ SNAPSHOT ]]; then
+    APPCAST_FILE="${APPCAST_DIR}/appcast-prerelease.xml"
     RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${VERSION}/${RELEASE_FILENAME}"
 else
+    APPCAST_FILE="${APPCAST_DIR}/appcast.xml"
     RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/${RELEASE_FILENAME}"
 fi
 

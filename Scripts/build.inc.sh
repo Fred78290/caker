@@ -62,6 +62,13 @@ cp -c "${PROJECT_ROOT}/Resources/caked.plist" "${CAKED_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
 
 if [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
+	if [[ "${VERSION}" =~ SNAPSHOT ]]; then
+		APPCAST_URL="https://caker.aldunelabs.com/appcast/appcast-prerelease.xml"
+	else
+		APPCAST_URL="https://caker.aldunelabs.com/appcast/appcast.xml"
+	fi
+
+	plutil -replace SUFeedURL -string "${APPCAST_URL}" "${CAKER_APP}/Info.plist"
 	plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" "${CAKER_APP}/Info.plist"
 fi
 

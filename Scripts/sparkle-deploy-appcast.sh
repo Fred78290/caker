@@ -19,6 +19,7 @@ print_usage() {
     echo
     echo "Options:"
     echo "  -h, --help           Show this help message"
+    echo "  -v, --version        Deployed version"
     echo "  -f, --force          Force deployment even if no changes"
     echo "  -d, --dry-run        Show what would be deployed without actually deploying"
     echo "  -r, --repo REPO      GitHub repository in the format owner/repo (default: Fred78290/caker)"
@@ -62,8 +63,8 @@ check_git_status() {
     fi
     
     # Check if appcast.xml exists
-    if [ ! -f "docs/appcast/appcast.xml" ]; then
-        echo -e "${RED}❌ Appcast file not found: docs/appcast/appcast.xml${NC}"
+    if [ ! -f "${APPCAST_FILE}" ]; then
+        echo -e "${RED}❌ Appcast file not found: ${APPCAST_FILE}${NC}"
         echo "Run: ./Scripts/sparkle-generate-appcast-xml.sh"
         exit 1
     fi
@@ -97,9 +98,9 @@ show_changes() {
     echo -e "${YELLOW}📄 Appcast content preview:${NC}"
     
     # Show first few lines of appcast
-    head -20 docs/appcast/appcast.xml | sed 's/^/  /'
+    head -20 "${APPCAST_FILE}" | sed 's/^/  /'
     
-    local item_count=$(grep -c '<item>' docs/appcast/appcast.xml || echo "0")
+    local item_count=$(grep -c '<item>' "${APPCAST_FILE}" || echo "0")
     echo -e "${GREEN}  ... (${item_count} release items total)${NC}"
 }
 
@@ -115,11 +116,11 @@ deploy_appcast() {
     fi
     git config --global user.name "${GITHUB_REPOSITORY%%/*}"
     # Add appcast files
-    git add docs/appcast/appcast.xml
+    git add "${APPCAST_FILE}"
     
     # Create commit
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    local item_count=$(grep -c '<item>' docs/appcast/appcast.xml || echo "0")
+    local item_count=$(grep -c '<item>' "${APPCAST_FILE}" || echo "0")
     
     git commit -m "🌐 Update Sparkle appcast - ${item_count} releases (${timestamp})" || {
         echo -e "${YELLOW}⚠️  No changes to commit${NC}"
@@ -137,8 +138,8 @@ deploy_appcast() {
         # Show deployment URL
         echo
         echo -e "${BLUE}🌐 Appcast URLs:${NC}"
-        echo -e "   Production: ${GREEN}https://caker.aldunelabs.com/appcast/appcast.xml${NC}"
-        echo -e "   GitHub: ${GREEN}https://github.com/${github_repository}/blob/${branch}/docs/appcast/appcast.xml${NC}"
+        echo -e "   Production: ${GREEN}https://caker.aldunelabs.com/appcast/$(basename "${APPCAST_FILE}")${NC}"
+        echo -e "   GitHub: ${GREEN}https://github.com/${github_repository}/blob/${branch}/docs/appcast/$(basename "${APPCAST_FILE}")${NC}"
     else
         echo -e "${RED}❌ Failed to push changes${NC}"
         exit 1
@@ -152,7 +153,7 @@ validate_deployment() {
     sleep 2
     
     # Try to fetch the deployed appcast
-    local appcast_url="https://caker.aldunelabs.com/appcast/appcast.xml"
+    local appcast_url="https://caker.aldunelabs.com/appcast/$(basename "${APPCAST_FILE}")"
     
     if command -v curl &> /dev/null; then
         echo -e "${YELLOW}📡 Testing appcast URL...${NC}"
@@ -178,6 +179,10 @@ main() {
                 print_usage
                 exit 0
                 ;;
+            -v|--version)
+                VERSION="$2"
+                shift 2
+                ;;
             -f|--force)
                 force=true
                 shift
@@ -202,12 +207,18 @@ main() {
         esac
     done
 
+    if [[ "${VERSION}" =~ SNAPSHOT ]]; then
+        APPCAST_FILE="${APPCAST_DIR}/appcast-prerelease.xml"
+    else
+        APPCAST_FILE="${APPCAST_DIR}/appcast.xml"
+    fi
+
     if [ -z "${GITHUB_REPOSITORY:-}" ]; then
         REMOTE_URL="$(git -C "${PROJECT_ROOT}" config --get remote.origin.url || true)"
 
         if [[ -n "${REMOTE_URL}" ]]; then
             if [[ "${REMOTE_URL}" =~ github.com[:/]([^/]+)/([^/.]+)(\.git)?$ ]]; then
-            GITHUB_REPOSITORY="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+                GITHUB_REPOSITORY="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
             fi
         fi
     fi

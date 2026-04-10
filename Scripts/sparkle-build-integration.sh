@@ -17,6 +17,12 @@ echo "Build type: ${BUILD_TYPE}"
 echo "Version: ${VERSION}"
 echo
 
+if [[ "${VERSION}" =~ SNAPSHOT ]]; then
+    APPCAST_FILE="${APPCAST_DIR}/appcast-prerelease.xml"
+else
+    APPCAST_FILE="${APPCAST_DIR}/appcast.xml"
+fi
+
 # Function to detect version from git
 detect_version() {
     if command -v git &> /dev/null && [[ -d "${PROJECT_ROOT}/.git" ]]; then
@@ -127,7 +133,7 @@ if [[ "${BUILD_TYPE}" == "release" && -n "${BUILT_DMG:-}" && -f "${BUILT_DMG}" ]
         echo "• Version: ${VERSION}"
         echo "• File: ${BUILT_DMG}"
         echo "• Signature: Sparkle Ed25519"
-        echo "• Appcast: ${PROJECT_ROOT}/docs/appcast/appcast.xml"
+        echo "• Appcast: ${APPCAST_FILE}"
         echo
         echo -e "${YELLOW}📤 Next steps:${NC}"
         echo "1. Test DMG installation"
