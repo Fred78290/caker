@@ -10,12 +10,12 @@
       <description><![CDATA[<h2>Caker 0.0.0</h2>
 <p>New version of Caker with improvements and bug fixes.</p>
 
-<h3>## 2026-04-09 (Git log summary - HEAD)</h3>
+<h3>## 2026-04-10 (Git log summary - HEAD)</h3>
 <ul>
     <li>First release</li>
 </ul>]]></description>
-      <pubDate>mer., 08 avr. 2026 22:10:24 +0000</pubDate>
-      <enclosure url="https://github.com/Fred78290/caker/releases/download/v0.0.0/Caker.dmg" sparkle:version="0.0.0" sparkle:shortVersionString="0.0.0" type="application/octet-stream" sparkle:edSignature="hQ76Ms3HWC6Fvl7mH6LN6bvIuJvTQz2vfwtV1X0OHireJlj3RUTbs1S/XYzOmSMPu6anxp0KF61J2iTyCSCTBQ==" length="179225591"/>
+      <pubDate>ven., 10 avr. 2026 14:00:10 +0000</pubDate>
+      <enclosure url="https://github.com/Fred78290/caker/releases/download/v0.0.0/Caker.dmg" sparkle:version="0.0.0" sparkle:shortVersionString="0.0.0" type="application/octet-stream" sparkle:edSignature="u9QEuMEkENMOCxb2/n4FUqBhDJ6SOI1hr1IkIvlbMvQ62VR7Cvmu3Vf88OGrdOUMNUKcCqxkou+GJMetCBFWAA==" length="179458086"/>
     </item>
   </channel>
 </rss>
