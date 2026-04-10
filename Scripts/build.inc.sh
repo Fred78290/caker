@@ -101,38 +101,34 @@ if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
 		--force "${CAKED_APP}/MacOS/cakectl"
 
 	if [ -n "${CODESIGN_REQUIREMENT}" ]; then
-		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/caked/)
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--requirement="${REQUIREMENTS}" \
+			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/caked}" \
 			--force "${CAKED_APP}/MacOS/caked"
 
-		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--requirement="${REQUIREMENTS}" \
+			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
 			--force "${CAKER_APP}/MacOS/Caker"
 
-		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--requirement="${REQUIREMENTS}" \
+			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
 			--force "${CAKER_APP}/PlugIns/caked.bundle"
 
-		REQUIREMENTS=$(echo -n "${CODESIGN_REQUIREMENT}"|sed s/__IDENTIFIER__/com.aldunelabs.caker/)
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
 			--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
-			--requirement="${REQUIREMENTS}" \
+			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
 			--force "${PKGDIR}"
 	else
 		echo "Warning: CODESIGN_REQUIREMENT not set, skipping requirement check for code signing"
