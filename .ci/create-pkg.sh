@@ -36,6 +36,8 @@ pkgbuild --root "${PKGDIR}" \
 
 productbuild --distribution "${PROJECT_ROOT}/.ci/pkg/distribution.xml" --resources "${PROJECT_ROOT}/.ci/pkg/resources" --package-path "${PROJECT_ROOT}/.ci/pkg/components" "${PKG_PATH}"
 
+codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Installer: ${DEVELOPER_ID}" "${PKG_PATH}"
+
 if [ ${NOTARYZATION} == true ]; then
 		echo "Notarization enabled, will submit package to Apple for notarization"
 		echo "Submitting package for notarization"
