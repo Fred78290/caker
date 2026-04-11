@@ -10,6 +10,7 @@ import GRPCLib
 import GRPC
 import NIO
 import Combine
+import SwiftUI
 
 extension VMLocation.Status {
 	init(_ from : Caked_VirtualMachineStatus) {
@@ -66,7 +67,7 @@ extension CurrentStatusHandler {
 					case .usage(let usage):
 						statusStream.yield(.usage(usage))
 					case .failure(let reason):
-						statusStream.yield(.error(ServiceError(reason)))
+						statusStream.yield(.error(ServiceError(LocalizedStringKey(stringLiteral: reason))))
 					default:
 						break
 					}

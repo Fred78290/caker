@@ -98,7 +98,7 @@ struct CakerMenuBarExtraScene: Scene {
 			Button("Quit") {
 				NSApp.terminate(self)
 			}.keyboardShortcut("Q")
-				.help("Terminate UTM and stop all running VMs.")
+				.help("Terminate Caker and stop all running VMs.")
 		} label: {
 			if let path = Bundle.main.path(forResource: "MenuBarIcon", ofType: "png") {
 				Image(nsImage: NSImage(contentsOfFile: path) ?? NSImage()).resizable()

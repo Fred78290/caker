@@ -11,6 +11,7 @@ import CakeAgentLib
 import GRPCLib
 import GRPC
 import NIO
+import SwiftUI
 
 extension InfosHandler {
 	public static func infos(client: CakedServiceClient?, vmURL: URL, runMode: Utils.RunMode) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
@@ -32,7 +33,7 @@ extension InfosHandler {
 		}).response.wait().vms.status
 
 		if reply.success == false {
-			throw ServiceError(reply.reason)
+			throw ServiceError(LocalizedStringKey(stringLiteral: reply.reason))
 		}
 
 		return (VMInformations(reply.infos), CakedConfiguration(reply.config))

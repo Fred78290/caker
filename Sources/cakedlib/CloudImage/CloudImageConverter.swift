@@ -2,6 +2,7 @@ import Foundation
 import GRPCLib
 import Qcow2convert
 import CakeAgentLib
+import SwiftUI
 
 class CloudImageConverter {
 	private static func step(_ message: String, progressHandler: ProgressObserver.BuildProgressHandler?) {
@@ -95,7 +96,7 @@ class CloudImageConverter {
 			progress: progressHandlerImpl)
 		{
 			if converter.convert() < 0 {
-				throw ServiceError(String(data: outputData, encoding: .utf8)!)
+				throw ServiceError(LocalizedStringKey(stringLiteral: String(data: outputData, encoding: .utf8)!))
 			}
 		}
 	}

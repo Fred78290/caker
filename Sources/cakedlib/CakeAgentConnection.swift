@@ -7,6 +7,7 @@ import NIOCore
 import NIOPosix
 import NIOSSL
 import SwiftProtobuf
+import SwiftUI
 
 extension Caked_RunReply {
 	private func print(_ out: Data, err: Bool) {
@@ -263,7 +264,7 @@ extension CakeAgentClient {
 
 		return try Caked_MountReply.with { reply in
 			if case CakeAgent.MountReply.OneOf_Response.error(let v)? = response.response {
-				throw ServiceError(v)
+				throw ServiceError(LocalizedStringKey(stringLiteral: v))
 			} else {
 				reply.mounts = response.mounts.map { mount in
 					Caked_MountVirtioFSReply.with {
@@ -297,7 +298,7 @@ extension CakeAgentClient {
 
 		return try Caked_MountReply.with { reply in
 			if case CakeAgent.MountReply.OneOf_Response.error(let v)? = response.response {
-				throw ServiceError(v)
+				throw ServiceError(LocalizedStringKey(stringLiteral: v))
 			} else {
 				reply.mounts = response.mounts.map { mount in
 					Caked_MountVirtioFSReply.with {

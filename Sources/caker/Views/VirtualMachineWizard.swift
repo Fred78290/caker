@@ -956,7 +956,7 @@ struct VirtualMachineWizard: View {
 					}
 					
 					if build.builded == false {
-						progressHandler(.terminated(.failure(ServiceError(build.reason)), "Create virtual machine failed"))
+						progressHandler(.terminated(.failure(ServiceError(LocalizedStringKey(stringLiteral: build.reason))), "Create virtual machine failed"))
 					}
 				},
 				onCancel: {
@@ -1043,3 +1043,4 @@ struct VirtualMachineWizard: View {
 #Preview {
 	VirtualMachineWizard()
 }
+

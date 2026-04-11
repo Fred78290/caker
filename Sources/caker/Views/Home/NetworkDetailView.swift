@@ -164,7 +164,7 @@ struct NetworkDetailView: View {
 							let result = AppState.shared.startNetwork(networkName: self.currentItem.name)
 
 							if result.started == false {
-								alertError(ServiceError(result.reason))
+								alertError("Start network failed", result.reason)
 							} else {
 								self.currentItem.endpoint = result.reason
 								self.reloadNetwork = true
@@ -175,7 +175,7 @@ struct NetworkDetailView: View {
 							let result = AppState.shared.stopNetwork(networkName: self.currentItem.name)
 
 							if result.stopped == false {
-								alertError(ServiceError(result.reason))
+								alertError("Stop network failed", result.reason)
 							} else {
 								self.currentItem.endpoint = ""
 								self.reloadNetwork = true

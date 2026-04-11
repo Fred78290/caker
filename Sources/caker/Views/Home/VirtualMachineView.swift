@@ -40,6 +40,8 @@ struct VirtualMachineView: View {
 	init(_ vm: VirtualMachineDocument, selected: Bool) {
 		let lastScreenshot = vm.lastScreenshot
 
+		//_ = WizardModel.ItemView(.name, title: "Name \(selected)" , systemImage: "character.cursor.ibeam")
+		_ = String(localized: "Name \(selected)")
 		self.vm = vm
 		self.selected = selected
 		_screenshot = State(initialValue: lastScreenshot)
@@ -223,4 +225,3 @@ struct VirtualMachineView: View {
 #Preview {
 	VirtualMachineView(AppState.shared.virtualMachines.first!.value, selected: false)
 }
-

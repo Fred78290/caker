@@ -11,6 +11,7 @@ import GRPC
 import GRPCLib
 import NIO
 import CakeAgentLib
+import SwiftUI
 
 public struct ExecuteHandler {
 	public static func execute(on: EventLoop, runMode: Utils.RunMode, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, client: CakeAgentConnection) async throws {
@@ -24,7 +25,7 @@ public struct ExecuteHandler {
 				let build = await BuildHandler.build(options: .init(name: vmname), runMode: runMode, progressHandler: ProgressObserver.progressHandler)
 
 				if build.builded == false {
-					throw ServiceError(build.reason)
+					throw ServiceError(LocalizedStringKey(stringLiteral: build.reason))
 				}
 			}
 		}
@@ -37,7 +38,7 @@ public struct ExecuteHandler {
 			let started = CakedLib.StartHandler.startVM(on: Utilities.group.next(), location: location, screenSize: nil, vncPassword: nil, vncPort: 0, waitIPTimeout: 180, startMode: .background, gcd: false, runMode: runMode)
 
 			if started.started == false {
-				throw ServiceError(started.reason)
+				throw ServiceError(LocalizedStringKey(stringLiteral: started.reason))
 			}
 		}
 

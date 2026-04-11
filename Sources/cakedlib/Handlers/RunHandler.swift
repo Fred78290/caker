@@ -3,6 +3,7 @@ import Foundation
 import GRPC
 import GRPCLib
 import NIO
+import SwiftUI
 
 public struct RunHandler {
 	public static func run(name: String, command: String, arguments: [String], input: Data?, client: CakeAgentConnection, callOptions: CallOptions?, runMode: Utils.RunMode) async throws -> Caked_RunReply {
@@ -17,7 +18,7 @@ public struct RunHandler {
 				let build = await BuildHandler.build(options: .init(name: vmname), runMode: runMode, progressHandler: ProgressObserver.progressHandler)
 
 				if build.builded == false {
-					throw ServiceError(build.reason)
+					throw ServiceError(LocalizedStringKey(stringLiteral: build.reason))
 				}
 			}
 		}
@@ -30,7 +31,7 @@ public struct RunHandler {
 			let start = CakedLib.StartHandler.startVM(on: Utilities.group.next(), location: location, screenSize: nil, vncPassword: nil, vncPort: 0, waitIPTimeout: 180, startMode: .background, gcd: false, runMode: runMode)
 
 			if start.started == false {
-				throw ServiceError(start.reason)
+				throw ServiceError(LocalizedStringKey(stringLiteral: start.reason))
 			}
 		}
 

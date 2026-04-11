@@ -14,6 +14,9 @@ mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 	"${CAKED_APP}/Resources" \
 	"${CAKED_APP}/MacOS"
 
+/Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile \
+        --output-directory ${CAKER_APP}/Resources ${PROJECT_ROOT}/Sources/caker/Localizable.xcstrings
+
 actool "${RESOURCESDIR}/Assets.xcassets" \
 	--compile "${ASSETS}" \
 	--output-format human-readable-text \

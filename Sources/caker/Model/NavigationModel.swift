@@ -52,7 +52,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 		}
 	}
 
-	var title: String {
+	var title: LocalizedStringKey {
 		switch self {
 		case .images:
 			return "Cloud images"
@@ -61,7 +61,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 		case .networks:
 			return "Networks"
 		case .virtualMachine:
-			return "Virtual Machines"
+			return "Virtual machines"
 		}
 	}
 }

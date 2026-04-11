@@ -8,6 +8,7 @@ import Semaphore
 import Shout
 import Socket
 import Virtualization
+import SwiftUI
 
 private let kScreenshotPeriodSeconds = 5.0
 
@@ -1164,7 +1165,7 @@ extension VirtualMachine {
 						continuation.resume(with: .success(success))
 					} else if case .failure(let error) = result {
 						if let err = error as? SSHError {
-							continuation.resume(with: .failure(ServiceError(err.kind.description)))
+							continuation.resume(with: .failure(ServiceError(LocalizedStringKey(stringLiteral: err.kind.description))))
 						} else if let err = error as? Socket.Error {
 							if err.errorCode == Socket.SOCKET_ERR_GETADDRINFO_FAILED {
 								continuation.resume(with: .failure(ServiceError("SSH server not responding")))

@@ -623,7 +623,7 @@ class AppState: ObservableObject, Observable {
 			let result = try ScreenSizeHandler.setScreenSize(client: self.serviceClient, vmURL: vmURL, width: Int(screenSize.width), height: Int(screenSize.height), runMode: self.runMode)
 			
 			if result.success == false {
-				await alertError(result.reason, "Failed to set VM screen size")
+				await alertError("Failed to set VM screen size", result.reason)
 			}
 		} catch {
 			await alertError(error)
@@ -636,7 +636,7 @@ class AppState: ObservableObject, Observable {
 			
 			if result.success == false {
 				DispatchQueue.main.async {
-					alertError(result.reason, "Failed to get VM screen size")
+					alertError("Failed to get VM screen size", result.reason)
 				}
 			} else {
 				return .init(width: CGFloat(result.width), height: CGFloat(result.height))
@@ -745,7 +745,7 @@ class AppState: ObservableObject, Observable {
 					self.removeVirtualMachineDocument(vm.url)
 				} else {
 					DispatchQueue.main.async {
-						alertError(ServiceError(result.reason))
+						alertError("Delete failed", result.reason)
 					}
 				}
 			} catch {
@@ -772,7 +772,7 @@ class AppState: ObservableObject, Observable {
 				self.reloadNetworks()
 			} else {
 				DispatchQueue.main.async {
-					alertError(ServiceError(result.reason))
+					alertError("Delete failed", result.reason)
 				}
 			}
 		}
@@ -794,7 +794,7 @@ class AppState: ObservableObject, Observable {
 				self.reloadTemplates()
 			} else {
 				DispatchQueue.main.async {
-					alertError(ServiceError(result.reason))
+					alertError("Delete failed", result.reason)
 				}
 			}
 		}
@@ -816,7 +816,7 @@ class AppState: ObservableObject, Observable {
 				self.reloadTemplates()
 			} else {
 				DispatchQueue.main.async {
-					alertError(ServiceError(result.reason))
+					alertError("Delete failed", result.reason)
 				}
 			}
 		}

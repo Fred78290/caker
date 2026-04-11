@@ -248,7 +248,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var launchVMExternally: Bool? = nil
 	@Published var cpuInfos = CpuInfos()
 	@Published var memoryInfos = MemoryInfo()
-	@Published var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
+	@Published var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
 	@Published var ipaddresses: [String] = []
 	@Published var screenshot: Data!
 	

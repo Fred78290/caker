@@ -8,7 +8,7 @@
 import SwiftUI
 
 protocol ToolbarSettingItem<ID>: Identifiable where ID: Hashable {
-	var title: String { get }
+	var title: LocalizedStringKey { get }
 	var systemImage: String { get }
 }
 

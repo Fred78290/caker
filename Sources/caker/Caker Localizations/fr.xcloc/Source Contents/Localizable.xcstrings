@@ -1,0 +1,481 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%@ is already running" : {
+      "shouldTranslate" : false
+    },
+    "%@ is not sudoable" : {
+      "shouldTranslate" : false
+    },
+    "%@ not found in path" : {
+      "shouldTranslate" : false
+    },
+    "About Caked" : {
+      "shouldTranslate" : false
+    },
+    "Agent installation failed on %@" : {
+      "shouldTranslate" : false
+    },
+    "agent not installed: missing plist at %@" : {
+      "shouldTranslate" : false
+    },
+    "Bad NAT66 prefix %@" : {
+      "shouldTranslate" : false
+    },
+    "Bad network configuration %@" : {
+      "shouldTranslate" : false
+    },
+    "caked not found" : {
+      "shouldTranslate" : false
+    },
+    "caked not found in path" : {
+      "shouldTranslate" : false
+    },
+    "Caked service is not running" : {
+      "shouldTranslate" : false
+    },
+    "Can't create vmnet configuration: %@" : {
+      "shouldTranslate" : false
+    },
+    "Can't create vmnet network: %@" : {
+      "shouldTranslate" : false
+    },
+    "Can't get data" : {
+      "shouldTranslate" : false
+    },
+    "Cannot create ShellCaked for file URL: %@" : {
+      "shouldTranslate" : false
+    },
+    "Connecting to VNC" : {
+      "shouldTranslate" : false
+    },
+    "connection address must be specified" : {
+      "shouldTranslate" : false
+    },
+    "dhcp end %@ is not in the range of the network %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "dhcp end %1$@ is not in the range of the network %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Failed to connect to VMRunService" : {
+      "shouldTranslate" : false
+    },
+    "Failed to kill network process %@" : {
+      "shouldTranslate" : false
+    },
+    "Failed to kill process %@" : {
+      "shouldTranslate" : false
+    },
+    "Failed to kill process %@: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Failed to kill process %1$@: %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Failed to reconfigure network: %@" : {
+      "shouldTranslate" : false
+    },
+    "Failed to restart network %@" : {
+      "shouldTranslate" : false
+    },
+    "Failed to serialize config" : {
+      "shouldTranslate" : false
+    },
+    "Failed to set DHCP lease time" : {
+      "shouldTranslate" : false
+    },
+    "Failed to set NAT66 prefix (%@)" : {
+      "shouldTranslate" : false
+    },
+    "Failed to set permissions 0644 on PID file at %@: errno=%d" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Failed to set permissions 0644 on PID file at %1$@: errno=%2$d"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Failed to start interface %@" : {
+      "shouldTranslate" : false
+    },
+    "Failed to start VM %@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Failed to start VM %1$@, %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Failed to stop caked service %d" : {
+      "shouldTranslate" : false
+    },
+    "file already exists: %@" : {
+      "shouldTranslate" : false
+    },
+    "File not found" : {
+      "shouldTranslate" : false
+    },
+    "Gateway %@ is already in use" : {
+      "shouldTranslate" : false
+    },
+    "HTTP error: %lld for URL: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "HTTP error: %1$lld for URL: %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "image doesn't offer qcow2 image" : {
+      "shouldTranslate" : false
+    },
+    "image for %@ not found" : {
+      "shouldTranslate" : false
+    },
+    "Instance %@ is deleted and cannot be imported." : {
+      "shouldTranslate" : false
+    },
+    "Instance %@ is not in a stopped state, current state: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Instance %1$@ is not in a stopped state, current state: %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "interface is required for bridged mode" : {
+      "shouldTranslate" : false
+    },
+    "Internal error" : {
+      "shouldTranslate" : false
+    },
+    "Invalid dhcp end %@" : {
+      "shouldTranslate" : false
+    },
+    "Invalid dhcp lease %d" : {
+      "shouldTranslate" : false
+    },
+    "Invalid gateway %@" : {
+      "shouldTranslate" : false
+    },
+    "Invalid memory size for instance %@." : {
+      "shouldTranslate" : false
+    },
+    "Invalid NAT66 prefix %@" : {
+      "shouldTranslate" : false
+    },
+    "Invalid netmask %@" : {
+      "shouldTranslate" : false
+    },
+    "IPSW is only available on arm64 architecture: %@" : {
+      "shouldTranslate" : false
+    },
+    "JSON decode failed for URL: %@ with error: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "JSON decode failed for URL: %1$@ with error: %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "macOS VMs are only supported on Apple Silicon Macs" : {
+      "shouldTranslate" : false
+    },
+    "malformed url: %@" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ doesn't exists" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ failed to start: %d, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Network %1$@ failed to start: %2$d, %3$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Network %@ stopped: %d" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Network %1$@ stopped: %2$d"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "No disk files found in the specified directory: %@" : {
+      "shouldTranslate" : false
+    },
+    "No free network address available" : {
+      "shouldTranslate" : false
+    },
+    "No instance found: %@" : {
+      "shouldTranslate" : false
+    },
+    "No registered instance found for source: %@" : {
+      "shouldTranslate" : false
+    },
+    "No Virtual Machines directory found at %@." : {
+      "shouldTranslate" : false
+    },
+    "No VMX files found in the specified directory: %@" : {
+      "shouldTranslate" : false
+    },
+    "Not a file URL: %@" : {
+      "shouldTranslate" : false
+    },
+    "PID file %@ did not appear within the expected time" : {
+      "shouldTranslate" : false
+    },
+    "PID file %@ did not stopped within the expected time" : {
+      "shouldTranslate" : false
+    },
+    "PID file %@ doesn't exists" : {
+      "shouldTranslate" : false
+    },
+    "PID file exists at %@ but process died" : {
+      "shouldTranslate" : false
+    },
+    "qemu-img binary not found. Please install qemu to import VMWare files." : {
+      "shouldTranslate" : false
+    },
+    "remote %@ not found" : {
+      "shouldTranslate" : false
+    },
+    "remote stream %@ not found" : {
+      "shouldTranslate" : false
+    },
+    "setsockopt(SO_RCVBUF) returned %d" : {
+      "shouldTranslate" : false
+    },
+    "setsockopt(SO_SNDBUF) returned %d, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "setsockopt(SO_SNDBUF) returned %1$d, %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Socket device not found on port:%lld" : {
+      "shouldTranslate" : false
+    },
+    "Socket error: %d" : {
+      "shouldTranslate" : false
+    },
+    "socket_vmnet not found in path" : {
+      "shouldTranslate" : false
+    },
+    "SSH server not responding" : {
+      "shouldTranslate" : false
+    },
+    "sudo not found in path" : {
+      "shouldTranslate" : false
+    },
+    "the new file size %@ is lesser than the current disk size of %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "the new file size %1$@ is lesser than the current disk size of %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "The provided path is not a directory or a .vmx file." : {
+      "shouldTranslate" : false
+    },
+    "The provided path is not a directory. Please provide a valid Virtual Machines directory." : {
+      "shouldTranslate" : false
+    },
+    "Unable to configure network" : {
+      "shouldTranslate" : false
+    },
+    "Unable to convert PEM to data" : {
+      "shouldTranslate" : false
+    },
+    "Unable to create CGEvent for %u" : {
+      "shouldTranslate" : false
+    },
+    "unable to create NSEvent" : {
+      "shouldTranslate" : false
+    },
+    "Unable to create SCPreferences" : {
+      "shouldTranslate" : false
+    },
+    "unable to create socket with exit code %@" : {
+      "shouldTranslate" : false
+    },
+    "unable to get remote cakeagent" : {
+      "shouldTranslate" : false
+    },
+    "Unable to init VNKeyMapper: no keyboard" : {
+      "shouldTranslate" : false
+    },
+    "Unable to init VNKeyMapper: no keyboard layout data" : {
+      "shouldTranslate" : false
+    },
+    "Unable to load SCPreferences" : {
+      "shouldTranslate" : false
+    },
+    "Unknown command %@" : {
+      "shouldTranslate" : false
+    },
+    "unsupported address scheme: %@" : {
+      "shouldTranslate" : false
+    },
+    "Unsupported architecture" : {
+      "shouldTranslate" : false
+    },
+    "Unsupported console URL %@" : {
+      "shouldTranslate" : false
+    },
+    "Unsupported hardware model" : {
+      "shouldTranslate" : false
+    },
+    "Unsupported image type" : {
+      "shouldTranslate" : false
+    },
+    "unsupported image url: %@" : {
+      "shouldTranslate" : false
+    },
+    "unsupported listening address scheme: %@" : {
+      "shouldTranslate" : false
+    },
+    "Unsupported pixel format" : {
+      "shouldTranslate" : false
+    },
+    "Unsupported plateform" : {
+      "shouldTranslate" : false
+    },
+    "Unsupported restore image" : {
+      "shouldTranslate" : false
+    },
+    "Unsupported scheme" : {
+      "shouldTranslate" : false
+    },
+    "unsupported url: %@" : {
+      "shouldTranslate" : false
+    },
+    "utimes(2) failed: %@" : {
+      "shouldTranslate" : false
+    },
+    "VM \"%@\" exited with code %d" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VM \"%1$@\" exited with code %2$d"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "VM %@ does not have a VNC connection" : {
+      "shouldTranslate" : false
+    },
+    "vm %@ is not running" : {
+      "shouldTranslate" : false
+    },
+    "VM %@ is not running" : {
+      "shouldTranslate" : false
+    },
+    "VM already exists" : {
+      "shouldTranslate" : false
+    },
+    "VM is not correctly inited, missing files: (%@, %@ or %@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VM is not correctly inited, missing files: (%1$@, %2$@ or %3$@)"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "VM is running, please stop it before resizing the disk" : {
+      "shouldTranslate" : false
+    },
+    "VM not found" : {
+      "shouldTranslate" : false
+    },
+    "VM not found %@" : {
+      "shouldTranslate" : false
+    },
+    "VMWare network %@ not found in the system." : {
+      "shouldTranslate" : false
+    },
+    "VMX file contains locked disk attachment %@. Please unlock the disk or stop virtual machine before importing." : {
+      "shouldTranslate" : false
+    },
+    "VNC connected" : {
+      "shouldTranslate" : false
+    },
+    "VNC disconnected unexpectedly" : {
+      "shouldTranslate" : false
+    },
+    "VNC disconnecting" : {
+      "shouldTranslate" : false
+    },
+    "VNC not connected" : {
+      "shouldTranslate" : false
+    },
+    "Wrong URL for template" : {
+      "shouldTranslate" : false
+    },
+    "Wrong URL: %@. Cannot extract name" : {
+      "shouldTranslate" : false
+    },
+    "zlib described a larger decompressed size (%llu) than the actual data (%llu)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "zlib described a larger decompressed size (%1$llu) than the actual data (%2$llu)"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "zlib did not decompress the expected number of bytes (%llu)" : {
+      "shouldTranslate" : false
+    }
+  },
+  "version" : "1.2"
+}

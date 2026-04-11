@@ -12,6 +12,7 @@ import NIO
 import FileMonitor
 import FileMonitorShared
 import Combine
+import SwiftUI
 
 typealias AsyncThrowingStreamCakedCurrentStatusReply = (
 	stream: AsyncThrowingStream<Caked_CurrentStatus, Error>,
@@ -353,7 +354,7 @@ public struct CurrentStatusHandler {
 									}
 								case .failure(let reason):
 									self.logger.debug("Failure for VM \(self.location.name), \(reason)")
-									self.statusStream.yield(.error(ServiceError(reason)))
+									self.statusStream.yield(.error(ServiceError(LocalizedStringKey(stringLiteral: reason))))
 								default:
 									break
 								}

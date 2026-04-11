@@ -1,0 +1,96 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Caked service is not running" : {
+      "shouldTranslate" : false
+    },
+    "Control" : {
+      "shouldTranslate" : false
+    },
+    "Failed to get group %@" : {
+      "shouldTranslate" : false
+    },
+    "Failed to start networks %@" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ doesn't exists" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ is default nated, please use a different network" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ is handled natively, please use a different network" : {
+      "shouldTranslate" : false
+    },
+    "no CAKEAGENT_VMNAME header" : {
+      "shouldTranslate" : false
+    },
+    "No listen address provided" : {
+      "shouldTranslate" : false
+    },
+    "Pause" : {
+      "shouldTranslate" : false
+    },
+    "pidfile is required when using vmfd" : {
+      "shouldTranslate" : false
+    },
+    "Request Stop" : {
+      "shouldTranslate" : false
+    },
+    "Restart" : {
+      "shouldTranslate" : false
+    },
+    "Restarts virtual machine" : {
+      "shouldTranslate" : false
+    },
+    "Resume" : {
+      "shouldTranslate" : false
+    },
+    "Resumes virtual machine" : {
+      "shouldTranslate" : false
+    },
+    "Root certificate file not found: %@" : {
+      "shouldTranslate" : false
+    },
+    "Socket file already exists at %@" : {
+      "shouldTranslate" : false
+    },
+    "Some cert files not provided" : {
+      "shouldTranslate" : false
+    },
+    "Start" : {
+      "shouldTranslate" : false
+    },
+    "Start virtual machine" : {
+      "shouldTranslate" : false
+    },
+    "Stop" : {
+      "shouldTranslate" : false
+    },
+    "Stop virtual machine" : {
+      "shouldTranslate" : false
+    },
+    "Suspend" : {
+      "shouldTranslate" : false
+    },
+    "Suspends virtual machine" : {
+      "shouldTranslate" : false
+    },
+    "The VM is already running" : {
+      "shouldTranslate" : false
+    },
+    "TLS certificate file not found: %@" : {
+      "shouldTranslate" : false
+    },
+    "TLS key file not found: %@" : {
+      "shouldTranslate" : false
+    },
+    "VM %@ already exists" : {
+      "shouldTranslate" : false
+    },
+    "VM %@ is running" : {
+      "shouldTranslate" : false
+    }
+  },
+  "version" : "1.2"
+}

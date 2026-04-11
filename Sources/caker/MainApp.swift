@@ -10,10 +10,10 @@ import Security
 import Sparkle
 
 @MainActor
-func alertError(_ messageText: String, _ informativeText: String) {
+func alertError(_ messageText: LocalizedStringKey, _ informativeText: String) {
 	let alert = NSAlert()
 
-	alert.messageText = messageText
+	alert.messageText = messageText.stringValue()
 	alert.informativeText = informativeText
 	alert.runModal()
 }
@@ -28,11 +28,7 @@ func alertError(_ error: Error) {
 		informativeText = error.localizedDescription
 	}
 
-	let alert = NSAlert(error: error)
-
-	alert.messageText = "An error occured"
-	alert.informativeText = informativeText
-	alert.runModal()
+	alertError("An error occured", informativeText)
 }
 
 struct Defaults {
@@ -123,11 +119,9 @@ struct MainApp: App {
 		Self.app = self
 	}
 	
-	var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) {
-		let title = "Install agent"
-		
+	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) {		
 		guard let document = appState.currentDocument else {
-			return (title, false, true)
+			return ("Install agent", false, true)
 		}
 		
 		return document.agentCondition
@@ -193,7 +187,7 @@ struct MainApp: App {
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
 		
-		Window("Create new virtual machine", id: "wizard") {
+		Window("Create a new virtual machine", id: "wizard") {
 			newDocWizard()
 		}
 		.windowResizability(.contentSize)
@@ -228,7 +222,7 @@ struct MainApp: App {
 				appState.currentDocument.stopFromUI(force: true)
 			}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
 			
-			Button("Request Stop") {
+			Button("Request stop") {
 				appState.currentDocument.stopFromUI(force: false)
 			}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
 			

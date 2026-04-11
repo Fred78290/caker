@@ -21,7 +21,7 @@ import SwiftUI
 public struct MultiplatformTab<ID: MultiplatformTabIdentifier> {
 
 	/// The title of the tab.
-	public var title: String = ""
+	public var title: LocalizedStringKey = ""
 
 	/// The icon of the tab
 	public var icon: Image = Image("")
@@ -41,7 +41,7 @@ public struct MultiplatformTab<ID: MultiplatformTabIdentifier> {
 	///   - icon: The icon for the tab.
 	///   - tag: An optional tag for the tab.
 	///   - contents: The SwiftUI content for the page body displayed when this tab is selected.
-	public init(title: String, icon: Image, tag: ID, disabled: Bool = false, contents: AnyView) {
+	public init(title: LocalizedStringKey, icon: Image, tag: ID, disabled: Bool = false, contents: AnyView) {
 		self.title = title
 		self.icon = icon
 		self.tag = tag

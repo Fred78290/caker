@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 public protocol HasExitCode {
 	var exitCode: Int32 { get }
@@ -21,8 +22,8 @@ public class ServiceError: Error, CustomStringConvertible, Equatable {
 		self.exitCode = errno
 	}
 
-	public init(_ what: String, _ code: Int32 = 1) {
-		self.description = what
+	public init(_ what: LocalizedStringKey, _ code: Int32 = 1) {
+		self.description = what.stringValue()
 		self.exitCode = code
 	}
 

@@ -1,0 +1,1882 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 http://docs.oasis-open.org/xliff/v1.2/os/xliff-core-1.2-strict.xsd">
+  <file original="../Resources/InfoPlist.xcstrings" source-language="en" target-language="fr" datatype="plaintext">
+    <header>
+      <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="26.4" build-num="17E192"/>
+    </header>
+    <body>
+      <trans-unit id="CFBundleDisplayName" translate="no" xml:space="preserve">
+        <source>Caker</source>
+        <note>Bundle display name</note>
+      </trans-unit>
+      <trans-unit id="CFBundleName" translate="no" xml:space="preserve">
+        <source>Caker</source>
+        <note>Bundle name</note>
+      </trans-unit>
+      <trans-unit id="Caker Virtual machine" xml:space="preserve">
+        <source>Caker Virtual machine</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Disk Image" xml:space="preserve">
+        <source>Disk Image</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="ISO Disk Image" xml:space="preserve">
+        <source>ISO Disk Image</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="NSHumanReadableCopyright" translate="no" xml:space="preserve">
+        <source>Fred78290</source>
+        <note>Copyright (human-readable)</note>
+      </trans-unit>
+      <trans-unit id="NSLocalNetworkUsageDescription" translate="no" xml:space="preserve">
+        <source>Caker need SSH access to running VM and create virtual network</source>
+        <note>Privacy - Local Network Usage Description</note>
+      </trans-unit>
+      <trans-unit id="Unix socket address" xml:space="preserve">
+        <source>Unix socket address</source>
+        <note/>
+      </trans-unit>
+    </body>
+  </file>
+  <file original="../Resources/Localizable.xcstrings" source-language="en" target-language="fr" datatype="plaintext">
+    <header>
+      <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="26.4" build-num="17E192"/>
+    </header>
+    <body>
+      <trans-unit id="Caked service is not running" translate="no" xml:space="preserve">
+        <source>Caked service is not running</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Control" translate="no" xml:space="preserve">
+        <source>Control</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to get group %@" translate="no" xml:space="preserve">
+        <source>Failed to get group %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to start networks %@" translate="no" xml:space="preserve">
+        <source>Failed to start networks %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Network %@ doesn't exists" translate="no" xml:space="preserve">
+        <source>Network %@ doesn't exists</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Network %@ is default nated, please use a different network" translate="no" xml:space="preserve">
+        <source>Network %@ is default nated, please use a different network</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Network %@ is handled natively, please use a different network" translate="no" xml:space="preserve">
+        <source>Network %@ is handled natively, please use a different network</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No listen address provided" translate="no" xml:space="preserve">
+        <source>No listen address provided</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Pause" translate="no" xml:space="preserve">
+        <source>Pause</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Request Stop" translate="no" xml:space="preserve">
+        <source>Request Stop</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Restart" translate="no" xml:space="preserve">
+        <source>Restart</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Restarts virtual machine" translate="no" xml:space="preserve">
+        <source>Restarts virtual machine</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Resume" translate="no" xml:space="preserve">
+        <source>Resume</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Resumes virtual machine" translate="no" xml:space="preserve">
+        <source>Resumes virtual machine</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Root certificate file not found: %@" translate="no" xml:space="preserve">
+        <source>Root certificate file not found: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Socket file already exists at %@" translate="no" xml:space="preserve">
+        <source>Socket file already exists at %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Some cert files not provided" translate="no" xml:space="preserve">
+        <source>Some cert files not provided</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Start" translate="no" xml:space="preserve">
+        <source>Start</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Start virtual machine" translate="no" xml:space="preserve">
+        <source>Start virtual machine</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Stop" translate="no" xml:space="preserve">
+        <source>Stop</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Stop virtual machine" translate="no" xml:space="preserve">
+        <source>Stop virtual machine</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Suspend" translate="no" xml:space="preserve">
+        <source>Suspend</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Suspends virtual machine" translate="no" xml:space="preserve">
+        <source>Suspends virtual machine</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="TLS certificate file not found: %@" translate="no" xml:space="preserve">
+        <source>TLS certificate file not found: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="TLS key file not found: %@" translate="no" xml:space="preserve">
+        <source>TLS key file not found: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="The VM is already running" translate="no" xml:space="preserve">
+        <source>The VM is already running</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VM %@ already exists" translate="no" xml:space="preserve">
+        <source>VM %@ already exists</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VM %@ is running" translate="no" xml:space="preserve">
+        <source>VM %@ is running</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="no CAKEAGENT_VMNAME header" translate="no" xml:space="preserve">
+        <source>no CAKEAGENT_VMNAME header</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="pidfile is required when using vmfd" translate="no" xml:space="preserve">
+        <source>pidfile is required when using vmfd</source>
+        <note/>
+      </trans-unit>
+    </body>
+  </file>
+  <file original="../Sources/caker/InfoPlist.xcstrings" source-language="en" target-language="fr" datatype="plaintext">
+    <header>
+      <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="26.4" build-num="17E192"/>
+    </header>
+    <body>
+      <trans-unit id="CFBundleDisplayName" xml:space="preserve">
+        <source>Caker</source>
+        <note>Bundle display name</note>
+      </trans-unit>
+      <trans-unit id="CFBundleName" xml:space="preserve">
+        <source>Caker</source>
+        <note>Bundle name</note>
+      </trans-unit>
+      <trans-unit id="Caker Virtual machine" xml:space="preserve">
+        <source>Caker Virtual machine</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Disk Image" xml:space="preserve">
+        <source>Disk Image</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="ISO Disk Image" xml:space="preserve">
+        <source>ISO Disk Image</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="NSHumanReadableCopyright" xml:space="preserve">
+        <source>Fred78290</source>
+        <note>Copyright (human-readable)</note>
+      </trans-unit>
+      <trans-unit id="NSLocalNetworkUsageDescription" xml:space="preserve">
+        <source>Caker need SSH access to running VM and create virtual network</source>
+        <note>Privacy - Local Network Usage Description</note>
+      </trans-unit>
+      <trans-unit id="Unix socket address" xml:space="preserve">
+        <source>Unix socket address</source>
+        <note/>
+      </trans-unit>
+    </body>
+  </file>
+  <file original="../Sources/caker/Localizable.xcstrings" source-language="en" target-language="fr" datatype="plaintext">
+    <header>
+      <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="26.4" build-num="17E192"/>
+    </header>
+    <body>
+      <trans-unit id="" xml:space="preserve">
+        <source/>
+        <note>vide</note>
+      </trans-unit>
+      <trans-unit id="%@" xml:space="preserve">
+        <source>%@</source>
+        <target state="translated">%@</target>
+        <note from="auto-generated">A label displaying the name of a network. The argument is the name of the network.</note>
+      </trans-unit>
+      <trans-unit id="%lld instances" xml:space="preserve">
+        <source>%lld instances</source>
+        <target state="translated">%lld instances</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%u" xml:space="preserve">
+        <source>%u</source>
+        <target state="translated">%u</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%u core" xml:space="preserve">
+        <source>%u core</source>
+        <target state="translated">%u cœur</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%u cores" xml:space="preserve">
+        <source>%u cores</source>
+        <target state="translated">%u cœurs</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="About Caker" xml:space="preserve">
+        <source>About Caker</source>
+        <target state="translated">A propos de Caker</target>
+        <note from="auto-generated">A menu item that opens the about panel.</note>
+      </trans-unit>
+      <trans-unit id="Account" xml:space="preserve">
+        <source>Account</source>
+        <target state="translated">Compte</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Add" xml:space="preserve">
+        <source>Add</source>
+        <target state="translated">Ajouter</target>
+        <note from="auto-generated">A button to add a new item.</note>
+      </trans-unit>
+      <trans-unit id="Admin rights" xml:space="preserve">
+        <source>Admin rights</source>
+        <note from="auto-generated">Title of an alert when the user doesn't have admin rights.</note>
+      </trans-unit>
+      <trans-unit id="Administator group" xml:space="preserve">
+        <source>Administator group</source>
+        <target state="translated">Groupe administrateur</target>
+        <note from="auto-generated">A label for the administrator group.</note>
+      </trans-unit>
+      <trans-unit id="Administator name" xml:space="preserve">
+        <source>Administator name</source>
+        <target state="translated">Nom des administrateurs</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Administator password" xml:space="preserve">
+        <source>Administator password</source>
+        <target state="translated">Mote de passe de l’administrateur</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Administrator settings" xml:space="preserve">
+        <source>Administrator settings</source>
+        <target state="translated">Préférences administateur</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Agent not installed. Please install the agent first." xml:space="preserve">
+        <source>Agent not installed. Please install the agent first.</source>
+        <target state="translated">L’agent dans la VM n’est pas installé. Installer l’agent en premier</target>
+        <note from="auto-generated">Text displayed in a label view when the agent is not installed.</note>
+      </trans-unit>
+      <trans-unit id="An error occured" xml:space="preserve">
+        <source>An error occured</source>
+        <note from="auto-generated">Title of an alert dialog when an error occurs.</note>
+      </trans-unit>
+      <trans-unit id="Application" xml:space="preserve">
+        <source>Application</source>
+        <target state="translated">Application</target>
+        <note from="auto-generated">A label for the application settings tab.</note>
+      </trans-unit>
+      <trans-unit id="Authorization failed: %d" xml:space="preserve">
+        <source>Authorization failed: %d</source>
+        <note from="auto-generated">A description of an error that might occur when executing a command with elevated privileges.</note>
+      </trans-unit>
+      <trans-unit id="AuthorizationCopyRights failed with status %d" xml:space="preserve">
+        <source>AuthorizationCopyRights failed with status %d</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="AuthorizationCreate failed with status %d" xml:space="preserve">
+        <source>AuthorizationCreate failed with status %d</source>
+        <note from="auto-generated">A description of an error that might occur when requesting admin authorization.</note>
+      </trans-unit>
+      <trans-unit id="Autostart" xml:space="preserve">
+        <source>Autostart</source>
+        <target state="translated">Démarrage automatique</target>
+        <note from="auto-generated">A toggle that enables or disables the autostart feature.</note>
+      </trans-unit>
+      <trans-unit id="Bootable iso url." xml:space="preserve">
+        <source>Bootable iso url.</source>
+        <target state="translated">URL d’un disque ISO d’installation</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Build failed" xml:space="preserve">
+        <source>Build failed</source>
+        <note from="auto-generated">Error message when the build process fails.</note>
+      </trans-unit>
+      <trans-unit id="CPU &amp; Memory" xml:space="preserve">
+        <source>CPU &amp; Memory</source>
+        <target state="translated">Processeur &amp; mémoire</target>
+        <note from="auto-generated">A section for the CPU and memory settings of a virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="CPU &amp; Memory &amp; Disk" xml:space="preserve">
+        <source>CPU &amp; Memory &amp; Disk</source>
+        <target state="translated">Processeur &amp; mémoire &amp; disque</target>
+        <note from="auto-generated">A section of the wizard for selecting the CPU count, memory size, and disk size.</note>
+      </trans-unit>
+      <trans-unit id="CPU &amp; Ram" xml:space="preserve">
+        <source>CPU &amp; Ram</source>
+        <target state="translated">CPU &amp; Ram</target>
+        <note from="auto-generated">Title of the CPU &amp; Ram step in the wizard.</note>
+      </trans-unit>
+      <trans-unit id="CPU Cores Usage (%lld cores total)" xml:space="preserve">
+        <source>CPU Cores Usage (%lld cores total)</source>
+        <target state="translated">Usage processeur (%lld total)</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="CPU count" xml:space="preserve">
+        <source>CPU count</source>
+        <target state="translated">Nombre de cœur</target>
+        <note from="auto-generated">A label for the number of CPU cores.</note>
+      </trans-unit>
+      <trans-unit id="CPU usage unavailable" xml:space="preserve">
+        <source>CPU usage unavailable</source>
+        <target state="translated">Usage du processeur indisponible</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Cache mode" xml:space="preserve">
+        <source>Cache mode</source>
+        <target state="translated">Mode cache</target>
+        <note from="auto-generated">A label displayed above a dropdown menu that lets the user select the cache mode of a disk attachment.</note>
+      </trans-unit>
+      <trans-unit id="Caked bundle path is missing" xml:space="preserve">
+        <source>Caked bundle path is missing</source>
+        <note from="auto-generated">Error message when the path to the Caked bundle is missing.</note>
+      </trans-unit>
+      <trans-unit id="Caked executable is missing" xml:space="preserve">
+        <source>Caked executable is missing</source>
+        <note from="auto-generated">Error message when the Caked executable is missing.</note>
+      </trans-unit>
+      <trans-unit id="Cancel" xml:space="preserve">
+        <source>Cancel</source>
+        <target state="translated">Annuler</target>
+        <note from="auto-generated">A button to cancel the current action.</note>
+      </trans-unit>
+      <trans-unit id="Cancelled" xml:space="preserve">
+        <source>Cancelled</source>
+        <note from="auto-generated">Title of an alert when the user cancels the creation of a virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Certificates" xml:space="preserve">
+        <source>Certificates</source>
+        <note from="auto-generated">Title of the alert when the certificates installation fails.</note>
+      </trans-unit>
+      <trans-unit id="Change font terminal" xml:space="preserve">
+        <source>Change font terminal</source>
+        <target state="translated">Police du terminal</target>
+        <note from="auto-generated">A button that opens a font panel to change the terminal font.</note>
+      </trans-unit>
+      <trans-unit id="Check for Updates…" xml:space="preserve">
+        <source>Check for Updates…</source>
+        <target state="translated">Vérifier les mises à jour</target>
+        <note from="auto-generated">A button that checks for updates when pressed.</note>
+      </trans-unit>
+      <trans-unit id="Choose OS" xml:space="preserve">
+        <source>Choose OS</source>
+        <target state="translated">Choix de l’OS</target>
+        <note from="auto-generated">Title of the OS selection step in the wizard.</note>
+      </trans-unit>
+      <trans-unit id="Choose a local image disk." xml:space="preserve">
+        <source>Choose a local image disk.</source>
+        <target state="translated">Choisir un image disk locale</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Choose an IPSW image." xml:space="preserve">
+        <source>Choose an IPSW image.</source>
+        <target state="translated">Choisir un fichier de restauration IPSW</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Choose an ISO image disk." xml:space="preserve">
+        <source>Choose an ISO image disk.</source>
+        <target state="translated">Choisir une image disque ISO</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Cloud Image" xml:space="preserve">
+        <source>Cloud Image</source>
+        <target state="translated">Image provenant du cloud</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Cloud images" xml:space="preserve">
+        <source>Cloud images</source>
+        <target state="translated">Images du cloud</target>
+        <note from="auto-generated">Title of the category for cloud images.</note>
+      </trans-unit>
+      <trans-unit id="Cloud init" xml:space="preserve">
+        <source>Cloud init</source>
+        <target state="translated">Fichier cloud-init</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Color" xml:space="preserve">
+        <source>Color</source>
+        <target state="translated">Couleur</target>
+        <note from="auto-generated">A label for a color picker.</note>
+      </trans-unit>
+      <trans-unit id="Configure virtual machine" xml:space="preserve">
+        <source>Configure virtual machine</source>
+        <target state="translated">Configurer la machine virtuelle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Connecting to VNC" xml:space="preserve">
+        <source>Connecting to VNC</source>
+        <target state="translated">En connection VNC</target>
+        <note from="auto-generated">Text displayed in a label view when connecting to a VNC.</note>
+      </trans-unit>
+      <trans-unit id="Control" xml:space="preserve">
+        <source>Control</source>
+        <target state="translated">Contrôle</target>
+        <note from="auto-generated">A menu that allows the user to control the virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Create" xml:space="preserve">
+        <source>Create</source>
+        <target state="translated">Créer</target>
+        <note from="auto-generated">A button that creates a new network.</note>
+      </trans-unit>
+      <trans-unit id="Create a new virtual machine" xml:space="preserve">
+        <source>Create a new virtual machine</source>
+        <target state="translated">Créer une nouvelle machine virtuelle</target>
+        <note from="auto-generated">A window title for the new document wizard.</note>
+      </trans-unit>
+      <trans-unit id="Create a new virtual machine." xml:space="preserve">
+        <source>Create a new virtual machine.</source>
+        <target state="translated">Créer une nouvelle machine virtuelle.</target>
+        <note from="auto-generated">A button that creates a new virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Create autoinstall config" xml:space="preserve">
+        <source>Create autoinstall config</source>
+        <target state="translated">Créer un fichier d’installation automatique</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Create template" xml:space="preserve">
+        <source>Create template</source>
+        <target state="translated">Créer un modèle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Create template from virtual machine" xml:space="preserve">
+        <source>Create template from virtual machine</source>
+        <target state="translated">Créer une machine virtuelle à partir d’un modéle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="DHCP Lease" xml:space="preserve">
+        <source>DHCP Lease</source>
+        <target state="translated">Durée DHCP</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Delete" xml:space="preserve">
+        <source>Delete</source>
+        <target state="translated">Supprimer</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Delete VM" xml:space="preserve">
+        <source>Delete VM</source>
+        <target state="translated">Supprimer la VM</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Delete failed" xml:space="preserve">
+        <source>Delete failed</source>
+        <note from="auto-generated">Error message when deleting a virtual machine fails.</note>
+      </trans-unit>
+      <trans-unit id="Delete virtual machine" xml:space="preserve">
+        <source>Delete virtual machine</source>
+        <target state="translated">Supprimer la machine virtuelle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Detail" xml:space="preserve">
+        <source>Detail</source>
+        <target state="translated">Détail</target>
+        <note from="auto-generated">The label of a button that shows the detail of a selected item</note>
+      </trans-unit>
+      <trans-unit id="Directory sharing" xml:space="preserve">
+        <source>Directory sharing</source>
+        <target state="translated">Partage de répertoires</target>
+        <note from="auto-generated">A section for sharing directories between the host and the guest.</note>
+      </trans-unit>
+      <trans-unit id="Disk" xml:space="preserve">
+        <source>Disk</source>
+        <target state="translated">Disque</target>
+        <note from="auto-generated">Title of a wizard item for configuring the disk settings of a virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Disk image path" xml:space="preserve">
+        <source>Disk image path</source>
+        <target state="translated">Chemin vers l’image disque</target>
+        <note from="auto-generated">A label for the path to the disk image.</note>
+      </trans-unit>
+      <trans-unit id="Disk path" xml:space="preserve">
+        <source>Disk path</source>
+        <target state="translated">Chemin du disque</target>
+        <note from="auto-generated">A label for the disk path.</note>
+      </trans-unit>
+      <trans-unit id="Disk size" xml:space="preserve">
+        <source>Disk size</source>
+        <target state="translated">Taille du disque</target>
+        <note from="auto-generated">A label displayed in a row with a stepper.</note>
+      </trans-unit>
+      <trans-unit id="Disks attachements" xml:space="preserve">
+        <source>Disks attachements</source>
+        <target state="translated">Attacher des disques externes</target>
+        <note from="auto-generated">A section for the disks attached to a virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Display size" xml:space="preserve">
+        <source>Display size</source>
+        <target state="translated">Taille de l’affichage</target>
+        <note from="auto-generated">A</note>
+      </trans-unit>
+      <trans-unit id="Duplicate" xml:space="preserve">
+        <source>Duplicate</source>
+        <target state="translated">Dupliquer</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Dynamic forward ports" xml:space="preserve">
+        <source>Dynamic forward ports</source>
+        <target state="translated">Transfert automatique des ports internet</target>
+        <note from="auto-generated">A toggle that enables dynamic port forwarding.</note>
+      </trans-unit>
+      <trans-unit id="Enable VM screenshoting" xml:space="preserve">
+        <source>Enable VM screenshoting</source>
+        <target state="translated">Autoriser la capture d’écran des VM</target>
+        <note from="auto-generated">A toggle to enable or disable VM screenshoting.</note>
+      </trans-unit>
+      <trans-unit id="Explore" xml:space="preserve">
+        <source>Explore</source>
+        <target state="translated">Explorer</target>
+        <note from="auto-generated">A heading for a sidebar.</note>
+      </trans-unit>
+      <trans-unit id="Failed to create template" xml:space="preserve">
+        <source>Failed to create template</source>
+        <note from="auto-generated">Error message displayed when creating a template fails.</note>
+      </trans-unit>
+      <trans-unit id="Failed to duplicate virtual machine" xml:space="preserve">
+        <source>Failed to duplicate virtual machine</source>
+        <note from="auto-generated">Error message when the VM URL is invalid.</note>
+      </trans-unit>
+      <trans-unit id="Failed to get VM screen size" xml:space="preserve">
+        <source>Failed to get VM screen size</source>
+        <note from="auto-generated">Error message displayed when getting the screen size of a virtual machine fails.</note>
+      </trans-unit>
+      <trans-unit id="Failed to install agent." xml:space="preserve">
+        <source>Failed to install agent.</source>
+        <note from="auto-generated">Error message when the installation of the agent fails.</note>
+      </trans-unit>
+      <trans-unit id="Failed to restart VM" xml:space="preserve">
+        <source>Failed to restart VM</source>
+        <note from="auto-generated">Error message when restarting a VM fails.</note>
+      </trans-unit>
+      <trans-unit id="Failed to save VM configuration, Unexpected error" xml:space="preserve">
+        <source>Failed to save VM configuration, Unexpected error</source>
+        <note from="auto-generated">Error message when saving VM configuration fails for an unexpected reason.</note>
+      </trans-unit>
+      <trans-unit id="Failed to save VM configuration: %@" xml:space="preserve">
+        <source>Failed to save VM configuration: %@</source>
+        <note from="auto-generated">A description of an error that might occur when saving a VM configuration.</note>
+      </trans-unit>
+      <trans-unit id="Failed to set VM screen size" xml:space="preserve">
+        <source>Failed to set VM screen size</source>
+        <note from="auto-generated">Error message displayed when setting the VM screen size fails.</note>
+      </trans-unit>
+      <trans-unit id="Failed to start VM" xml:space="preserve">
+        <source>Failed to start VM</source>
+        <note from="auto-generated">Error message when starting a VM fails.</note>
+      </trans-unit>
+      <trans-unit id="Failed to stop VM" xml:space="preserve">
+        <source>Failed to stop VM</source>
+        <note from="auto-generated">Error message when stopping a VM fails.</note>
+      </trans-unit>
+      <trans-unit id="Failed to suspend VM" xml:space="preserve">
+        <source>Failed to suspend VM</source>
+        <note from="auto-generated">Error message displayed when suspending a VM fails.</note>
+      </trans-unit>
+      <trans-unit id="Font" xml:space="preserve">
+        <source>Font</source>
+        <target state="translated">Police</target>
+        <note from="auto-generated">A button that opens a font panel to change the font of the terminal.</note>
+      </trans-unit>
+      <trans-unit id="Force stop" xml:space="preserve">
+        <source>Force stop</source>
+        <target state="translated">Forcer l’arrêt</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Force to stop virtual machine" xml:space="preserve">
+        <source>Force to stop virtual machine</source>
+        <target state="translated">Forcer l’arrêt de la machine virtuelle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Forwarded ports" xml:space="preserve">
+        <source>Forwarded ports</source>
+        <target state="translated">Ports internet transférés</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="General" xml:space="preserve">
+        <source>General</source>
+        <target state="translated">Général</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Guest group ID mount" xml:space="preserve">
+        <source>Guest group ID mount</source>
+        <target state="translated">ID du groupe d’utilisateur pour le montage</target>
+        <note from="auto-generated">A label for the guest group ID.</note>
+      </trans-unit>
+      <trans-unit id="Guest path" xml:space="preserve">
+        <source>Guest path</source>
+        <target state="translated">Chemin du montage dans la machine virtuelle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Guest port" xml:space="preserve">
+        <source>Guest port</source>
+        <target state="translated">Port dans la machine</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Guest user ID mount" xml:space="preserve">
+        <source>Guest user ID mount</source>
+        <target state="translated">ID de l’utilisateur pour le montage</target>
+        <note from="auto-generated">A label for the user ID to use when mounting a folder.</note>
+      </trans-unit>
+      <trans-unit id="Height" xml:space="preserve">
+        <source>Height</source>
+        <target state="translated">Hauteur</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Hello, Remote!" xml:space="preserve">
+        <source>Hello, Remote!</source>
+        <target state="translated">A remplir</target>
+        <note from="auto-generated">A description of a template.</note>
+      </trans-unit>
+      <trans-unit id="Hello, Template!" xml:space="preserve">
+        <source>Hello, Template!</source>
+        <target state="translated">A remplir</target>
+        <note from="auto-generated">A label displayed in the detail view of a template.</note>
+      </trans-unit>
+      <trans-unit id="Hello, VM!" xml:space="preserve">
+        <source>Hello, VM!</source>
+        <target state="translated">A remplir</target>
+        <note from="auto-generated">A description of a view that displays a virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Hello, World!" xml:space="preserve">
+        <source>Hello, World!</source>
+        <target state="translated">A remplir</target>
+        <note from="auto-generated">A label displayed in the default case of a switch statement.</note>
+      </trans-unit>
+      <trans-unit id="Hide dock icon on next launch" xml:space="preserve">
+        <source>Hide dock icon on next launch</source>
+        <target state="translated">Cacher l’icône du dock</target>
+        <note from="auto-generated">A checkbox to hide the dock icon on the next app launch.</note>
+      </trans-unit>
+      <trans-unit id="Home" xml:space="preserve">
+        <source>Home</source>
+        <target state="translated">Principale</target>
+        <note from="auto-generated">A window that displays the user's home screen.</note>
+      </trans-unit>
+      <trans-unit id="Host path" xml:space="preserve">
+        <source>Host path</source>
+        <target state="translated">Chemin sur le host</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Host port" xml:space="preserve">
+        <source>Host port</source>
+        <target state="translated">Port sur le host</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="IPSW Image" xml:space="preserve">
+        <source>IPSW Image</source>
+        <target state="translated">Fichier IPSW</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="ISO Image" xml:space="preserve">
+        <source>ISO Image</source>
+        <target state="translated">Fichier ISO</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Image source" xml:space="preserve">
+        <source>Image source</source>
+        <target state="translated">Source de l’image</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Install agent" xml:space="preserve">
+        <source>Install agent</source>
+        <target state="translated">Installer l'agent</target>
+        <note from="auto-generated">A button that installs the agent.</note>
+      </trans-unit>
+      <trans-unit id="Install service" xml:space="preserve">
+        <source>Install service</source>
+        <target state="translated">Installer le service</target>
+        <note from="auto-generated">A button that installs a system service for Caker.</note>
+      </trans-unit>
+      <trans-unit id="Installing agent..." xml:space="preserve">
+        <source>Installing agent...</source>
+        <target state="translated">Installation de l'agent</target>
+        <note from="auto-generated">Text displayed when the agent is being installed.</note>
+      </trans-unit>
+      <trans-unit id="Interface ID" xml:space="preserve">
+        <source>Interface ID</source>
+        <target state="translated">ID de l’interface</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Internal error" xml:space="preserve">
+        <source>Internal error</source>
+        <note from="auto-generated">Error message when the VM URL is not a file URL.</note>
+      </trans-unit>
+      <trans-unit id="Internal error creating virtual machine" xml:space="preserve">
+        <source>Internal error creating virtual machine</source>
+        <note from="auto-generated">Error message when an unexpected error occurs while creating a virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Internal error: Virtual machine is not launched from a local or remote location." xml:space="preserve">
+        <source>Internal error: Virtual machine is not launched from a local or remote location.</source>
+        <note from="auto-generated">Error message when the virtual machine is not launched from a local or remote location.</note>
+      </trans-unit>
+      <trans-unit id="Launch VM inside app" xml:space="preserve">
+        <source>Launch VM inside app</source>
+        <target state="translated">Lancer la VM en interne</target>
+        <note from="auto-generated">A toggle to enable or disable launching the Virtual Machine inside the app.</note>
+      </trans-unit>
+      <trans-unit id="Launch machine in detached mode" xml:space="preserve">
+        <source>Launch machine in detached mode</source>
+        <target state="translated">Lancer la VM en externe</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Launch machine inside app" xml:space="preserve">
+        <source>Launch machine inside app</source>
+        <target state="translated">Lancer la machine virtuelle dans l’application</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="List empty" xml:space="preserve">
+        <source>List empty</source>
+        <target state="translated">Aucun élèment</target>
+        <note from="auto-generated">A label that describes an empty list.</note>
+      </trans-unit>
+      <trans-unit id="Mac address" xml:space="preserve">
+        <source>Mac address</source>
+        <target state="translated">Adresse MAC</target>
+        <note from="auto-generated">A label for the MAC address of a network attachment.</note>
+      </trans-unit>
+      <trans-unit id="MacOS ipsw url." xml:space="preserve">
+        <source>MacOS ipsw url.</source>
+        <target state="translated">URL de l’IPSW</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Main group" xml:space="preserve">
+        <source>Main group</source>
+        <target state="translated">Groupe principal</target>
+        <note from="auto-generated">A label for the main group.</note>
+      </trans-unit>
+      <trans-unit id="Memory size" xml:space="preserve">
+        <source>Memory size</source>
+        <target state="translated">Taille de la mémoire</target>
+        <note from="auto-generated">A label displayed in a row with a stepper.</note>
+      </trans-unit>
+      <trans-unit id="Missing Authorization Services reference for privileged operation" xml:space="preserve">
+        <source>Missing Authorization Services reference for privileged operation</source>
+        <note from="auto-generated">Error message when the Authorization Services reference is missing for a privileged operation.</note>
+      </trans-unit>
+      <trans-unit id="Mode" xml:space="preserve">
+        <source>Mode</source>
+        <target state="translated">Mode</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="My templates" xml:space="preserve">
+        <source>My templates</source>
+        <target state="translated">Mes modèles</target>
+        <note from="auto-generated">Title of the section of the app that displays the user's templates.</note>
+      </trans-unit>
+      <trans-unit id="Name" xml:space="preserve">
+        <source>Name</source>
+        <target state="translated">Nom</target>
+        <note from="auto-generated">A label for the name of a template.</note>
+      </trans-unit>
+      <trans-unit id="Nested virtualization" xml:space="preserve">
+        <source>Nested virtualization</source>
+        <target state="translated">Virtualisation active dans la VM</target>
+        <note from="auto-generated">A checkbox that allows the user to enable nested virtualization.</note>
+      </trans-unit>
+      <trans-unit id="Netmask" xml:space="preserve">
+        <source>Netmask</source>
+        <target state="translated">Masque réseau</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Network" xml:space="preserve">
+        <source>Network</source>
+        <target state="translated">Réseau</target>
+        <note from="auto-generated">Title of a wizard item for configuring the network settings of the virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Network attachements" xml:space="preserve">
+        <source>Network attachements</source>
+        <target state="translated">Réseaux supplémentaire</target>
+        <note from="auto-generated">A section for configuring the network attachements of a virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Network end" xml:space="preserve">
+        <source>Network end</source>
+        <target state="translated">Adresse de fin de réseau</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Network mode" xml:space="preserve">
+        <source>Network mode</source>
+        <target state="translated">Mode du réseau</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Network name" xml:space="preserve">
+        <source>Network name</source>
+        <target state="translated">Nom du réseau</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Network start" xml:space="preserve">
+        <source>Network start</source>
+        <target state="translated">Adresse de début du réseau</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Networks" xml:space="preserve">
+        <source>Networks</source>
+        <target state="translated">Réseaux</target>
+        <note from="auto-generated">Title of the category for the list of networks.</note>
+      </trans-unit>
+      <trans-unit id="New disk attachement" xml:space="preserve">
+        <source>New disk attachement</source>
+        <target state="translated">Nouveau disque</target>
+        <note from="auto-generated">A section for creating a new disk attachment.</note>
+      </trans-unit>
+      <trans-unit id="New mount point" xml:space="preserve">
+        <source>New mount point</source>
+        <target state="translated">Nouveau point de montage</target>
+        <note from="auto-generated">A section for creating a new mount point.</note>
+      </trans-unit>
+      <trans-unit id="New network attachment" xml:space="preserve">
+        <source>New network attachment</source>
+        <target state="translated">Nouveau réseau</target>
+        <note from="auto-generated">A section for creating a new network attachment.</note>
+      </trans-unit>
+      <trans-unit id="New port forwarding" xml:space="preserve">
+        <source>New port forwarding</source>
+        <target state="translated">Nouveau port transféré</target>
+        <note from="auto-generated">A section for creating a new port forwarding.</note>
+      </trans-unit>
+      <trans-unit id="New socket endpoint" xml:space="preserve">
+        <source>New socket endpoint</source>
+        <target state="translated">Nouveau socket</target>
+        <note from="auto-generated">A section for creating a new socket endpoint.</note>
+      </trans-unit>
+      <trans-unit id="New virtual machine" xml:space="preserve">
+        <source>New virtual machine</source>
+        <target state="translated">Nouvelle machine virtuelle</target>
+        <note from="auto-generated">A button that opens a dialog to create a new virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Next" xml:space="preserve">
+        <source>Next</source>
+        <target state="translated">Suivant</target>
+        <note from="auto-generated">A button to advance to the next step.</note>
+      </trans-unit>
+      <trans-unit id="No VM found" xml:space="preserve">
+        <source>No VM found</source>
+        <note from="auto-generated">Error message when no VM is found.</note>
+      </trans-unit>
+      <trans-unit id="No virtual machines" xml:space="preserve">
+        <source>No virtual machines</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No virtual machines found." xml:space="preserve">
+        <source>No virtual machines found.</source>
+        <target state="translated">Aucune machine virtuelle.</target>
+        <note from="auto-generated">A message displayed when there are no virtual machines available.</note>
+      </trans-unit>
+      <trans-unit id="OCI Image" xml:space="preserve">
+        <source>OCI Image</source>
+        <target state="translated">Image OCI</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="OS Image" xml:space="preserve">
+        <source>OS Image</source>
+        <target state="translated">Image de l’OS</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Open" xml:space="preserve">
+        <source>Open</source>
+        <target state="translated">Ouvrir</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Open new virtual machine." xml:space="preserve">
+        <source>Open new virtual machine.</source>
+        <target state="translated">Ouvrir une nouvelle machine virtuelle</target>
+        <note from="auto-generated">A button that opens a new virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Open virtual machine" xml:space="preserve">
+        <source>Open virtual machine</source>
+        <target state="translated">Ouvrir la machine virtuelle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Optional network configuration" xml:space="preserve">
+        <source>Optional network configuration</source>
+        <target state="translated">Fichier de configuration réseau optionnelle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Optional user data" xml:space="preserve">
+        <source>Optional user data</source>
+        <target state="translated">Fichier de données utilisateurs optionnel</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Options" xml:space="preserve">
+        <source>Options</source>
+        <target state="translated">Options</target>
+        <note from="auto-generated">A menu with options.</note>
+      </trans-unit>
+      <trans-unit id="Password" xml:space="preserve">
+        <source>Password</source>
+        <target state="translated">Mot de passe</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Pause" xml:space="preserve">
+        <source>Pause</source>
+        <target state="translated">Pause</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Plus" xml:space="preserve">
+        <source>Plus</source>
+        <target state="translated">Plus</target>
+        <note from="auto-generated">A button that adds something.</note>
+      </trans-unit>
+      <trans-unit id="Ports" xml:space="preserve">
+        <source>Ports</source>
+        <target state="translated">Ports</target>
+        <note from="auto-generated">Title of a wizard item for configuring the ports of the virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Preconfigured image" xml:space="preserve">
+        <source>Preconfigured image</source>
+        <target state="translated">Image préconfigurée</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Previous" xml:space="preserve">
+        <source>Previous</source>
+        <target state="translated">Précédent</target>
+        <note from="auto-generated">A button to go back.</note>
+      </trans-unit>
+      <trans-unit id="Protocol" xml:space="preserve">
+        <source>Protocol</source>
+        <target state="translated">Protocole</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Quit" xml:space="preserve">
+        <source>Quit</source>
+        <target state="translated">Quitter</target>
+        <note from="auto-generated">A button that quits the application.</note>
+      </trans-unit>
+      <trans-unit id="Raw image url." xml:space="preserve">
+        <source>Raw image url.</source>
+        <target state="translated">URL d’une image brute</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Read only" xml:space="preserve">
+        <source>Read only</source>
+        <target state="translated">Lecture seule</target>
+        <note from="auto-generated">A toggle that allows or disables writing to the disk.</note>
+      </trans-unit>
+      <trans-unit id="Refit display" xml:space="preserve">
+        <source>Refit display</source>
+        <target state="translated">Adapter la taille de l’écran</target>
+        <note from="auto-generated">A checkbox that allows the user to enable the refitting of the display.</note>
+      </trans-unit>
+      <trans-unit id="Remove service" xml:space="preserve">
+        <source>Remove service</source>
+        <target state="translated">Supprimer le service</target>
+        <note from="auto-generated">A button that removes the Caked service.</note>
+      </trans-unit>
+      <trans-unit id="Request stop" xml:space="preserve">
+        <source>Request stop</source>
+        <target state="translated">Demander l’arrêt</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Request to stop" xml:space="preserve">
+        <source>Request to stop</source>
+        <target state="translated">Demander l’arrêt</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Request to stop virtual machine" xml:space="preserve">
+        <source>Request to stop virtual machine</source>
+        <target state="translated">Demander l’arrêt de la machine virtuelle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Requires restarting Caker to take affect." xml:space="preserve">
+        <source>Requires restarting Caker to take affect.</source>
+        <target state="translated">Demande le redémarrage de Caker pour prendre effet</target>
+        <note from="auto-generated">A toggle that hides the dock icon on the next app launch.</note>
+      </trans-unit>
+      <trans-unit id="Restart" xml:space="preserve">
+        <source>Restart</source>
+        <target state="translated">Redémarrer</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Restart virtual machine" xml:space="preserve">
+        <source>Restart virtual machine</source>
+        <target state="translated">Redémarrer la machine virtuelle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Resume" xml:space="preserve">
+        <source>Resume</source>
+        <target state="translated">Reprendre</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Resumes virtual machine" xml:space="preserve">
+        <source>Resumes virtual machine</source>
+        <target state="translated">Reprendre les machines virtuelles</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Run detached" xml:space="preserve">
+        <source>Run detached</source>
+        <target state="translated">Démarre en mode externe</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Run hosted" xml:space="preserve">
+        <source>Run hosted</source>
+        <target state="translated">Démarre en mode interne</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="SSH Public key" xml:space="preserve">
+        <source>SSH Public key</source>
+        <target state="translated">Clé publique SSH</target>
+        <note from="auto-generated">A button that opens a file picker to select an SSH public key.</note>
+      </trans-unit>
+      <trans-unit id="SSH with password" xml:space="preserve">
+        <source>SSH with password</source>
+        <target state="translated">Autorise le mot de passe avec SSH</target>
+        <note from="auto-generated">A toggle to enable SSH access without a password.</note>
+      </trans-unit>
+      <trans-unit id="Save" xml:space="preserve">
+        <source>Save</source>
+        <target state="translated">Sauver</target>
+        <note from="auto-generated">A button to save the current item.</note>
+      </trans-unit>
+      <trans-unit id="Save VM screenshots" xml:space="preserve">
+        <source>Save VM screenshots</source>
+        <target state="translated">Sauver les captures d’écran des VM</target>
+        <note from="auto-generated">A toggle to enable or disable saving VM screenshots.</note>
+      </trans-unit>
+      <trans-unit id="Select" xml:space="preserve">
+        <source>Select</source>
+        <target state="translated">Choisir</target>
+        <note from="auto-generated">A checkbox to select an item.</note>
+      </trans-unit>
+      <trans-unit id="Select a template" xml:space="preserve">
+        <source>Select a template</source>
+        <target state="translated">Choisissez un modèle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Select remote sources" xml:space="preserve">
+        <source>Select remote sources</source>
+        <target state="translated">Choisir le type de source</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Send clipboard data to VM on VNC view" xml:space="preserve">
+        <source>Send clipboard data to VM on VNC view</source>
+        <target state="translated">Envoyer le presse-papier de la VM vers la vue VNC</target>
+        <note from="auto-generated">A toggle to send clipboard data to the virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Service" xml:space="preserve">
+        <source>Service</source>
+        <target state="translated">Service</target>
+        <note from="auto-generated">A menu that allows the user to install, start, stop, or remove the service.</note>
+      </trans-unit>
+      <trans-unit id="Settings" xml:space="preserve">
+        <source>Settings</source>
+        <target state="translated">Préférences</target>
+        <note from="auto-generated">A menu item that opens the settings.</note>
+      </trans-unit>
+      <trans-unit id="Sharing" xml:space="preserve">
+        <source>Sharing</source>
+        <target state="translated">Partage</target>
+        <note from="auto-generated">A setting item for the sharing options of the virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Show Caker" xml:space="preserve">
+        <source>Show Caker</source>
+        <target state="translated">Afficher l’application</target>
+        <note from="auto-generated">A keyboard shortcut to show the main window.</note>
+      </trans-unit>
+      <trans-unit id="Show cursor" xml:space="preserve">
+        <source>Show cursor</source>
+        <target state="translated">Afficher le curseur</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Show dock icon" xml:space="preserve">
+        <source>Show dock icon</source>
+        <target state="translated">Afficher l’icône dans le dock</target>
+        <note from="auto-generated">A toggle to show the dock icon.</note>
+      </trans-unit>
+      <trans-unit id="Show menu bar icon" xml:space="preserve">
+        <source>Show menu bar icon</source>
+        <target state="translated">Afficher l’icône dans la barre de menus</target>
+        <note from="auto-generated">A toggle to show the menu bar icon.</note>
+      </trans-unit>
+      <trans-unit id="Show the main window." xml:space="preserve">
+        <source>Show the main window.</source>
+        <target state="translated">Afficher la fenêtre principale</target>
+        <note from="auto-generated">A keyboard shortcut to show the main window.</note>
+      </trans-unit>
+      <trans-unit id="Show/Hide host cursor in VM view" xml:space="preserve">
+        <source>Show/Hide host cursor in VM view</source>
+        <target state="translated">Afficher/Masquer le curseur dans la vue de la VM</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Shutdown VM on window close" xml:space="preserve">
+        <source>Shutdown VM on window close</source>
+        <target state="translated">Eteindre la VM à la fermeture de la fenêtre</target>
+        <note from="auto-generated">A toggle to enable or disable the shutdown of the virtual machine when the window is closed.</note>
+      </trans-unit>
+      <trans-unit id="Socket mode" xml:space="preserve">
+        <source>Socket mode</source>
+        <target state="translated">Mode des sockets</target>
+        <note from="auto-generated">A label displayed above a picker for selecting the socket mode.</note>
+      </trans-unit>
+      <trans-unit id="Sockets" xml:space="preserve">
+        <source>Sockets</source>
+        <target state="translated">Sockets</target>
+        <note from="auto-generated">Title of a wizard item for configuring sockets.</note>
+      </trans-unit>
+      <trans-unit id="Start" xml:space="preserve">
+        <source>Start</source>
+        <target state="translated">Démarrer</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Start caked daemon" xml:space="preserve">
+        <source>Start caked daemon</source>
+        <target state="translated">Démarrer le démon caked</target>
+        <note from="auto-generated">A button that starts the caked daemon.</note>
+      </trans-unit>
+      <trans-unit id="Start network" xml:space="preserve">
+        <source>Start network</source>
+        <target state="translated">Démarrer le réseau</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Start network failed" xml:space="preserve">
+        <source>Start network failed</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Start service" xml:space="preserve">
+        <source>Start service</source>
+        <target state="translated">Démarrer le service</target>
+        <note from="auto-generated">A button that starts the Caker service.</note>
+      </trans-unit>
+      <trans-unit id="Start virtual machine" xml:space="preserve">
+        <source>Start virtual machine</source>
+        <target state="translated">Démarrer la machine virtuelle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Stop" xml:space="preserve">
+        <source>Stop</source>
+        <target state="translated">Arrêter</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Stop caked daemon" xml:space="preserve">
+        <source>Stop caked daemon</source>
+        <target state="translated">Arrêter le démon caked</target>
+        <note from="auto-generated">A button that stops the Caked daemon.</note>
+      </trans-unit>
+      <trans-unit id="Stop network" xml:space="preserve">
+        <source>Stop network</source>
+        <target state="translated">Arrêter le réseau</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Stop network failed" xml:space="preserve">
+        <source>Stop network failed</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Stop service" xml:space="preserve">
+        <source>Stop service</source>
+        <target state="translated">Arrêter le service</target>
+        <note from="auto-generated">A button that stops the Caker service.</note>
+      </trans-unit>
+      <trans-unit id="Suspend" xml:space="preserve">
+        <source>Suspend</source>
+        <target state="translated">Suspendre</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Suspendable" xml:space="preserve">
+        <source>Suspendable</source>
+        <target state="translated">Suspensive</target>
+        <note from="auto-generated">A toggle that enables or disables suspending the virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Suspends virtual machine" xml:space="preserve">
+        <source>Suspends virtual machine</source>
+        <target state="translated">Suspendre la machine virtuelle</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Syncing" xml:space="preserve">
+        <source>Syncing</source>
+        <target state="translated">Synchroniser</target>
+        <note from="auto-generated">A toggle that enables or disables syncing of the disk.</note>
+      </trans-unit>
+      <trans-unit id="Terminate Caker and stop all running VMs." xml:space="preserve">
+        <source>Terminate Caker and stop all running VMs.</source>
+        <target state="translated">Quitter l’application et arrêter toutes les machines virtuelles</target>
+        <note from="auto-generated">A button that terminates the application.</note>
+      </trans-unit>
+      <trans-unit id="URL" xml:space="preserve">
+        <source>URL</source>
+        <target state="translated">URL</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unable to find virtual machine: %@" xml:space="preserve">
+        <source>Unable to find virtual machine: %@</source>
+        <note from="auto-generated">A message that is displayed in an alert when the virtual machine is not found.</note>
+      </trans-unit>
+      <trans-unit id="Unable to get URL for %@" xml:space="preserve">
+        <source>Unable to get URL for %@</source>
+        <note from="auto-generated">A description of an error that might occur when loading a virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Unable to load virtual machine" xml:space="preserve">
+        <source>Unable to load virtual machine</source>
+        <note from="auto-generated">Error message when the virtual machine cannot be loaded.</note>
+      </trans-unit>
+      <trans-unit id="Unable to load virtual machine&#10;%@" xml:space="preserve">
+        <source>Unable to load virtual machine
+%@</source>
+        <target state="translated">Impossible de charger la machine virtuelle %@</target>
+        <note from="auto-generated">A label view that displays a message when the virtual machine fails to load.</note>
+      </trans-unit>
+      <trans-unit id="Update agent" xml:space="preserve">
+        <source>Update agent</source>
+        <target state="translated">Mettre à jour l’agent</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Use network ifnames" xml:space="preserve">
+        <source>Use network ifnames</source>
+        <target state="translated">Utiliser les noms de réseau unifiés</target>
+        <note from="auto-generated">A checkbox that lets you specify whether to use network interface names.</note>
+      </trans-unit>
+      <trans-unit id="Used by" xml:space="preserve">
+        <source>Used by</source>
+        <target state="translated">Utilisée par</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="User data" xml:space="preserve">
+        <source>User data</source>
+        <target state="translated">Fichier de données utilisateur</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="User name" xml:space="preserve">
+        <source>User name</source>
+        <target state="translated">Nom de l’utilisateur</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VM is paused" xml:space="preserve">
+        <source>VM is paused</source>
+        <target state="translated">VM en pause</target>
+        <note from="auto-generated">Status of a virtual machine when it is paused.</note>
+      </trans-unit>
+      <trans-unit id="VM is pausing" xml:space="preserve">
+        <source>VM is pausing</source>
+        <target state="translated">Mise en pause de la VM</target>
+        <note from="auto-generated">Status of a virtual machine when it is pausing.</note>
+      </trans-unit>
+      <trans-unit id="VM is restoring" xml:space="preserve">
+        <source>VM is restoring</source>
+        <target state="translated">VM encours de restauration</target>
+        <note from="auto-generated">Status of a virtual machine when it is restoring.</note>
+      </trans-unit>
+      <trans-unit id="VM is resuming" xml:space="preserve">
+        <source>VM is resuming</source>
+        <target state="translated">VM encours de réveil</target>
+        <note from="auto-generated">Status of a virtual machine when it is resuming.</note>
+      </trans-unit>
+      <trans-unit id="VM is running" xml:space="preserve">
+        <source>VM is running</source>
+        <target state="translated">VM active</target>
+        <note from="auto-generated">Status of a virtual machine when it is running.</note>
+      </trans-unit>
+      <trans-unit id="VM is saving" xml:space="preserve">
+        <source>VM is saving</source>
+        <target state="translated">VM encours de sauvegarde</target>
+        <note from="auto-generated">Status of a virtual machine when it is saving.</note>
+      </trans-unit>
+      <trans-unit id="VM is starting" xml:space="preserve">
+        <source>VM is starting</source>
+        <target state="translated">VM encours de démarrage</target>
+        <note from="auto-generated">Status of a virtual machine when it is starting.</note>
+      </trans-unit>
+      <trans-unit id="VM is stopped" xml:space="preserve">
+        <source>VM is stopped</source>
+        <target state="translated">VM arrêtée</target>
+        <note from="auto-generated">Status of a virtual machine when it is stopped.</note>
+      </trans-unit>
+      <trans-unit id="VM is stopping" xml:space="preserve">
+        <source>VM is stopping</source>
+        <target state="translated">VM encours d’arrêt</target>
+        <note from="auto-generated">Status of a virtual machine when it is stopping.</note>
+      </trans-unit>
+      <trans-unit id="VM is undefined" xml:space="preserve">
+        <source>VM is undefined</source>
+        <target state="translated">VM indéfinie</target>
+        <note from="auto-generated">Status of a virtual machine when its status is not defined.</note>
+      </trans-unit>
+      <trans-unit id="VM on error" xml:space="preserve">
+        <source>VM on error</source>
+        <target state="translated">VM en erreur</target>
+        <note from="auto-generated">Status of a virtual machine when it is in an error state.</note>
+      </trans-unit>
+      <trans-unit id="VNC connected" xml:space="preserve">
+        <source>VNC connected</source>
+        <target state="translated">VNC connecté</target>
+        <note from="auto-generated">Text displayed in a label view when the VNC connection is established.</note>
+      </trans-unit>
+      <trans-unit id="VNC disconnecting" xml:space="preserve">
+        <source>VNC disconnecting</source>
+        <target state="translated">VNC encours déconnexion</target>
+        <note from="auto-generated">Text displayed in a label view when the VNC is disconnecting.</note>
+      </trans-unit>
+      <trans-unit id="VNC not connected" xml:space="preserve">
+        <source>VNC not connected</source>
+        <target state="translated">VNC déconnecté</target>
+        <note from="auto-generated">Text displayed in a VNC view when the VNC connection is not established.</note>
+      </trans-unit>
+      <trans-unit id="Virtual machine is remote" xml:space="preserve">
+        <source>Virtual machine is remote</source>
+        <note from="auto-generated">Error message when the virtual machine is remote.</note>
+      </trans-unit>
+      <trans-unit id="Virtual machine name" xml:space="preserve">
+        <source>Virtual machine name</source>
+        <target state="translated">Nom de la machine virtuelle</target>
+        <note from="auto-generated">A section for entering the name of the virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Virtual machine not loaded" xml:space="preserve">
+        <source>Virtual machine not loaded</source>
+        <target state="translated">La machine virtuelle n’est pas chargée</target>
+        <note from="auto-generated">Text displayed when the virtual machine</note>
+      </trans-unit>
+      <trans-unit id="Virtual machines" xml:space="preserve">
+        <source>Virtual machines</source>
+        <target state="translated">Machines virtuelles</target>
+        <note from="auto-generated">A menu that displays the list of virtual machines.</note>
+      </trans-unit>
+      <trans-unit id="Virtual sockets" xml:space="preserve">
+        <source>Virtual sockets</source>
+        <target state="translated">Sockets virtuels</target>
+        <note from="auto-generated">A label for the list of sockets that can be created in a virtual machine.</note>
+      </trans-unit>
+      <trans-unit id="Waiting for agent to be ready..." xml:space="preserve">
+        <source>Waiting for agent to be ready...</source>
+        <target state="translated">En attente que l’agent soit prêt</target>
+        <note from="auto-generated">Label displayed when the user is waiting for the agent to be ready.</note>
+      </trans-unit>
+      <trans-unit id="Width" xml:space="preserve">
+        <source>Width</source>
+        <target state="translated">Largeur</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="default" xml:space="preserve">
+        <source>default</source>
+        <target state="translated">défault</target>
+        <note from="auto-generated">A label displayed as a default option in a picker.</note>
+      </trans-unit>
+      <trans-unit id="gid" xml:space="preserve">
+        <source>gid</source>
+        <target state="translated">gid</target>
+        <note from="auto-generated">A label for the guest group ID.</note>
+      </trans-unit>
+      <trans-unit id="network configuration" xml:space="preserve">
+        <source>network configuration</source>
+        <target state="translated">Configuration réseau</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="uid" xml:space="preserve">
+        <source>uid</source>
+        <target state="translated">uid</target>
+        <note from="auto-generated">A label for the user ID of a mount.</note>
+      </trans-unit>
+    </body>
+  </file>
+  <file original="Localizable.xcstrings" source-language="en" target-language="fr" datatype="plaintext">
+    <header>
+      <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="26.4" build-num="17E192"/>
+    </header>
+    <body>
+      <trans-unit id="%@ is already running" translate="no" xml:space="preserve">
+        <source>%@ is already running</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%@ is not sudoable" translate="no" xml:space="preserve">
+        <source>%@ is not sudoable</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="%@ not found in path" translate="no" xml:space="preserve">
+        <source>%@ not found in path</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="About Caked" translate="no" xml:space="preserve">
+        <source>About Caked</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Agent installation failed on %@" translate="no" xml:space="preserve">
+        <source>Agent installation failed on %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Bad NAT66 prefix %@" translate="no" xml:space="preserve">
+        <source>Bad NAT66 prefix %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Bad network configuration %@" translate="no" xml:space="preserve">
+        <source>Bad network configuration %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Caked service is not running" translate="no" xml:space="preserve">
+        <source>Caked service is not running</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Can't create vmnet configuration: %@" translate="no" xml:space="preserve">
+        <source>Can't create vmnet configuration: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Can't create vmnet network: %@" translate="no" xml:space="preserve">
+        <source>Can't create vmnet network: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Can't get data" translate="no" xml:space="preserve">
+        <source>Can't get data</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Cannot create ShellCaked for file URL: %@" translate="no" xml:space="preserve">
+        <source>Cannot create ShellCaked for file URL: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Connecting to VNC" translate="no" xml:space="preserve">
+        <source>Connecting to VNC</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to connect to VMRunService" translate="no" xml:space="preserve">
+        <source>Failed to connect to VMRunService</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to kill network process %@" translate="no" xml:space="preserve">
+        <source>Failed to kill network process %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to kill process %@" translate="no" xml:space="preserve">
+        <source>Failed to kill process %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to kill process %@: %@" translate="no" xml:space="preserve">
+        <source>Failed to kill process %1$@: %2$@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to reconfigure network: %@" translate="no" xml:space="preserve">
+        <source>Failed to reconfigure network: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to restart network %@" translate="no" xml:space="preserve">
+        <source>Failed to restart network %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to serialize config" translate="no" xml:space="preserve">
+        <source>Failed to serialize config</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to set DHCP lease time" translate="no" xml:space="preserve">
+        <source>Failed to set DHCP lease time</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to set NAT66 prefix (%@)" translate="no" xml:space="preserve">
+        <source>Failed to set NAT66 prefix (%@)</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to set permissions 0644 on PID file at %@: errno=%d" translate="no" xml:space="preserve">
+        <source>Failed to set permissions 0644 on PID file at %1$@: errno=%2$d</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to start VM %@, %@" translate="no" xml:space="preserve">
+        <source>Failed to start VM %1$@, %2$@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to start interface %@" translate="no" xml:space="preserve">
+        <source>Failed to start interface %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Failed to stop caked service %d" translate="no" xml:space="preserve">
+        <source>Failed to stop caked service %d</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="File not found" translate="no" xml:space="preserve">
+        <source>File not found</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Gateway %@ is already in use" translate="no" xml:space="preserve">
+        <source>Gateway %@ is already in use</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="HTTP error: %lld for URL: %@" translate="no" xml:space="preserve">
+        <source>HTTP error: %1$lld for URL: %2$@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="IPSW is only available on arm64 architecture: %@" translate="no" xml:space="preserve">
+        <source>IPSW is only available on arm64 architecture: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Instance %@ is deleted and cannot be imported." translate="no" xml:space="preserve">
+        <source>Instance %@ is deleted and cannot be imported.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Instance %@ is not in a stopped state, current state: %@" translate="no" xml:space="preserve">
+        <source>Instance %1$@ is not in a stopped state, current state: %2$@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Internal error" translate="no" xml:space="preserve">
+        <source>Internal error</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Invalid NAT66 prefix %@" translate="no" xml:space="preserve">
+        <source>Invalid NAT66 prefix %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Invalid dhcp end %@" translate="no" xml:space="preserve">
+        <source>Invalid dhcp end %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Invalid dhcp lease %d" translate="no" xml:space="preserve">
+        <source>Invalid dhcp lease %d</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Invalid gateway %@" translate="no" xml:space="preserve">
+        <source>Invalid gateway %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Invalid memory size for instance %@." translate="no" xml:space="preserve">
+        <source>Invalid memory size for instance %@.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Invalid netmask %@" translate="no" xml:space="preserve">
+        <source>Invalid netmask %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="JSON decode failed for URL: %@ with error: %@" translate="no" xml:space="preserve">
+        <source>JSON decode failed for URL: %1$@ with error: %2$@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Network %@ doesn't exists" translate="no" xml:space="preserve">
+        <source>Network %@ doesn't exists</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Network %@ failed to start: %d, %@" translate="no" xml:space="preserve">
+        <source>Network %1$@ failed to start: %2$d, %3$@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Network %@ stopped: %d" translate="no" xml:space="preserve">
+        <source>Network %1$@ stopped: %2$d</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No VMX files found in the specified directory: %@" translate="no" xml:space="preserve">
+        <source>No VMX files found in the specified directory: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No Virtual Machines directory found at %@." translate="no" xml:space="preserve">
+        <source>No Virtual Machines directory found at %@.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No disk files found in the specified directory: %@" translate="no" xml:space="preserve">
+        <source>No disk files found in the specified directory: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No free network address available" translate="no" xml:space="preserve">
+        <source>No free network address available</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No instance found: %@" translate="no" xml:space="preserve">
+        <source>No instance found: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No registered instance found for source: %@" translate="no" xml:space="preserve">
+        <source>No registered instance found for source: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Not a file URL: %@" translate="no" xml:space="preserve">
+        <source>Not a file URL: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="PID file %@ did not appear within the expected time" translate="no" xml:space="preserve">
+        <source>PID file %@ did not appear within the expected time</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="PID file %@ did not stopped within the expected time" translate="no" xml:space="preserve">
+        <source>PID file %@ did not stopped within the expected time</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="PID file %@ doesn't exists" translate="no" xml:space="preserve">
+        <source>PID file %@ doesn't exists</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="PID file exists at %@ but process died" translate="no" xml:space="preserve">
+        <source>PID file exists at %@ but process died</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="SSH server not responding" translate="no" xml:space="preserve">
+        <source>SSH server not responding</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Socket device not found on port:%lld" translate="no" xml:space="preserve">
+        <source>Socket device not found on port:%lld</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Socket error: %d" translate="no" xml:space="preserve">
+        <source>Socket error: %d</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="The provided path is not a directory or a .vmx file." translate="no" xml:space="preserve">
+        <source>The provided path is not a directory or a .vmx file.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="The provided path is not a directory. Please provide a valid Virtual Machines directory." translate="no" xml:space="preserve">
+        <source>The provided path is not a directory. Please provide a valid Virtual Machines directory.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unable to configure network" translate="no" xml:space="preserve">
+        <source>Unable to configure network</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unable to convert PEM to data" translate="no" xml:space="preserve">
+        <source>Unable to convert PEM to data</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unable to create CGEvent for %u" translate="no" xml:space="preserve">
+        <source>Unable to create CGEvent for %u</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unable to create SCPreferences" translate="no" xml:space="preserve">
+        <source>Unable to create SCPreferences</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unable to init VNKeyMapper: no keyboard" translate="no" xml:space="preserve">
+        <source>Unable to init VNKeyMapper: no keyboard</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unable to init VNKeyMapper: no keyboard layout data" translate="no" xml:space="preserve">
+        <source>Unable to init VNKeyMapper: no keyboard layout data</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unable to load SCPreferences" translate="no" xml:space="preserve">
+        <source>Unable to load SCPreferences</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unknown command %@" translate="no" xml:space="preserve">
+        <source>Unknown command %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unsupported architecture" translate="no" xml:space="preserve">
+        <source>Unsupported architecture</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unsupported console URL %@" translate="no" xml:space="preserve">
+        <source>Unsupported console URL %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unsupported hardware model" translate="no" xml:space="preserve">
+        <source>Unsupported hardware model</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unsupported image type" translate="no" xml:space="preserve">
+        <source>Unsupported image type</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unsupported pixel format" translate="no" xml:space="preserve">
+        <source>Unsupported pixel format</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unsupported plateform" translate="no" xml:space="preserve">
+        <source>Unsupported plateform</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unsupported restore image" translate="no" xml:space="preserve">
+        <source>Unsupported restore image</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Unsupported scheme" translate="no" xml:space="preserve">
+        <source>Unsupported scheme</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VM &quot;%@&quot; exited with code %d" translate="no" xml:space="preserve">
+        <source>VM "%1$@" exited with code %2$d</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VM %@ does not have a VNC connection" translate="no" xml:space="preserve">
+        <source>VM %@ does not have a VNC connection</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VM %@ is not running" translate="no" xml:space="preserve">
+        <source>VM %@ is not running</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VM already exists" translate="no" xml:space="preserve">
+        <source>VM already exists</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VM is not correctly inited, missing files: (%@, %@ or %@)" translate="no" xml:space="preserve">
+        <source>VM is not correctly inited, missing files: (%1$@, %2$@ or %3$@)</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VM is running, please stop it before resizing the disk" translate="no" xml:space="preserve">
+        <source>VM is running, please stop it before resizing the disk</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VM not found" translate="no" xml:space="preserve">
+        <source>VM not found</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VM not found %@" translate="no" xml:space="preserve">
+        <source>VM not found %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VMWare network %@ not found in the system." translate="no" xml:space="preserve">
+        <source>VMWare network %@ not found in the system.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VMX file contains locked disk attachment %@. Please unlock the disk or stop virtual machine before importing." translate="no" xml:space="preserve">
+        <source>VMX file contains locked disk attachment %@. Please unlock the disk or stop virtual machine before importing.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VNC connected" translate="no" xml:space="preserve">
+        <source>VNC connected</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VNC disconnected unexpectedly" translate="no" xml:space="preserve">
+        <source>VNC disconnected unexpectedly</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VNC disconnecting" translate="no" xml:space="preserve">
+        <source>VNC disconnecting</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="VNC not connected" translate="no" xml:space="preserve">
+        <source>VNC not connected</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Wrong URL for template" translate="no" xml:space="preserve">
+        <source>Wrong URL for template</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Wrong URL: %@. Cannot extract name" translate="no" xml:space="preserve">
+        <source>Wrong URL: %@. Cannot extract name</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="agent not installed: missing plist at %@" translate="no" xml:space="preserve">
+        <source>agent not installed: missing plist at %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="caked not found" translate="no" xml:space="preserve">
+        <source>caked not found</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="caked not found in path" translate="no" xml:space="preserve">
+        <source>caked not found in path</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="connection address must be specified" translate="no" xml:space="preserve">
+        <source>connection address must be specified</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="dhcp end %@ is not in the range of the network %@" translate="no" xml:space="preserve">
+        <source>dhcp end %1$@ is not in the range of the network %2$@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="file already exists: %@" translate="no" xml:space="preserve">
+        <source>file already exists: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="image doesn't offer qcow2 image" translate="no" xml:space="preserve">
+        <source>image doesn't offer qcow2 image</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="image for %@ not found" translate="no" xml:space="preserve">
+        <source>image for %@ not found</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="interface is required for bridged mode" translate="no" xml:space="preserve">
+        <source>interface is required for bridged mode</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="macOS VMs are only supported on Apple Silicon Macs" translate="no" xml:space="preserve">
+        <source>macOS VMs are only supported on Apple Silicon Macs</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="malformed url: %@" translate="no" xml:space="preserve">
+        <source>malformed url: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="qemu-img binary not found. Please install qemu to import VMWare files." translate="no" xml:space="preserve">
+        <source>qemu-img binary not found. Please install qemu to import VMWare files.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="remote %@ not found" translate="no" xml:space="preserve">
+        <source>remote %@ not found</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="remote stream %@ not found" translate="no" xml:space="preserve">
+        <source>remote stream %@ not found</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="setsockopt(SO_RCVBUF) returned %d" translate="no" xml:space="preserve">
+        <source>setsockopt(SO_RCVBUF) returned %d</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="setsockopt(SO_SNDBUF) returned %d, %@" translate="no" xml:space="preserve">
+        <source>setsockopt(SO_SNDBUF) returned %1$d, %2$@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="socket_vmnet not found in path" translate="no" xml:space="preserve">
+        <source>socket_vmnet not found in path</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="sudo not found in path" translate="no" xml:space="preserve">
+        <source>sudo not found in path</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="the new file size %@ is lesser than the current disk size of %@" translate="no" xml:space="preserve">
+        <source>the new file size %1$@ is lesser than the current disk size of %2$@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="unable to create NSEvent" translate="no" xml:space="preserve">
+        <source>unable to create NSEvent</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="unable to create socket with exit code %@" translate="no" xml:space="preserve">
+        <source>unable to create socket with exit code %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="unable to get remote cakeagent" translate="no" xml:space="preserve">
+        <source>unable to get remote cakeagent</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="unsupported address scheme: %@" translate="no" xml:space="preserve">
+        <source>unsupported address scheme: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="unsupported image url: %@" translate="no" xml:space="preserve">
+        <source>unsupported image url: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="unsupported listening address scheme: %@" translate="no" xml:space="preserve">
+        <source>unsupported listening address scheme: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="unsupported url: %@" translate="no" xml:space="preserve">
+        <source>unsupported url: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="utimes(2) failed: %@" translate="no" xml:space="preserve">
+        <source>utimes(2) failed: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="vm %@ is not running" translate="no" xml:space="preserve">
+        <source>vm %@ is not running</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="zlib described a larger decompressed size (%llu) than the actual data (%llu)" translate="no" xml:space="preserve">
+        <source>zlib described a larger decompressed size (%1$llu) than the actual data (%2$llu)</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="zlib did not decompress the expected number of bytes (%llu)" translate="no" xml:space="preserve">
+        <source>zlib did not decompress the expected number of bytes (%llu)</source>
+        <note/>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

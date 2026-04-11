@@ -210,7 +210,7 @@ struct HostVirtualMachineView: View {
 							Button("Show cursor", systemImage: self.showsHostCursor ? "pointer.arrow.slash" : "pointer.arrow") {
 								self.showsHostCursor.toggle()
 							}
-							.help("Show/Hide host cursor in VM vi")
+							.help("Show/Hide host cursor in VM view")
 							.disabled(self.appState.isRunning == false)
 						}
 					}
@@ -627,7 +627,7 @@ struct HostVirtualMachineView: View {
 		}
 	}
 
-	func vmStatus() -> String {
+	func vmStatus() -> LocalizedStringKey {
 		switch self.document.status {
 		case .running:
 			return "VM is running"

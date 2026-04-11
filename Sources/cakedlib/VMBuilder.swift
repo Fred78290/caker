@@ -1,6 +1,7 @@
 import Foundation
 import GRPCLib
 import Virtualization
+import SwiftUI
 
 let cloudInitIso = "cloud-init.iso"
 
@@ -257,7 +258,7 @@ public struct VMBuilder {
 			let pulled = try await PullHandler.pull(location: location, image: ociImage, insecure: ["http", "oci"].contains(imageURL.scheme), runMode: runMode, progressHandler: progressHandler)
 
 			if pulled.success == false {
-				throw ServiceError(pulled.message)
+				throw ServiceError(LocalizedStringKey(stringLiteral: pulled.message))
 			}
 		} else if sourceImage == .iso {
 			if imageIsFile == false {
