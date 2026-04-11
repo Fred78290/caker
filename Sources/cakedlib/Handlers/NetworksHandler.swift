@@ -250,16 +250,10 @@ public struct NetworksHandler {
 	}
 
 	public static func startNetworkServices(networks: [BridgeAttachement], runMode: Utils.RunMode) throws {
-		let vmNetworking: Bool
+		let vmNetworking = Entitlement.hasVMNetworking()
 		let home: Home = try Home(runMode: runMode)
 		let networkConfig = try home.sharedNetworks()
 		let sharedNetworks = networkConfig.sharedNetworks
-
-		if let profile = try? EmbedProvisionProfile.load() {
-			vmNetworking = profile.entitlements.vmNetworking
-		} else {
-			vmNetworking = false
-		}
 
 		try networks.forEach { inf in
 			if inf.isNAT() == false {

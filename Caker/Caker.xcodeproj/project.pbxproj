@@ -170,6 +170,7 @@
 		9B5A37852ED4BDA8007B59B0 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37752ED4BDA8007B59B0 /* VNC.swift */; };
 		9B5A37862ED4BDA8007B59B0 /* VNCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */; };
 		9B5A37872ED4BDA8007B59B0 /* VNCInputHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37792ED4BDA8007B59B0 /* VNCInputHandler.swift */; };
+		9B5C3F3C2F89666C005651BF /* Entitlement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5C3F3B2F896662005651BF /* Entitlement.swift */; };
 		9B5C52D92F0FB27B002D628C /* GRPCTLSConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */; };
 		9B5C53CF2F124A82002D628C /* CPUUsageMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */; };
 		9B5D7BCE2EAA960B001FB96E /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5D7BCD2EAA9602001FB96E /* Color.swift */; };
@@ -819,6 +820,7 @@
 		9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeyMapper.swift; sourceTree = "<group>"; };
 		9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCProtocol.swift; sourceTree = "<group>"; };
 		9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCServer.swift; sourceTree = "<group>"; };
+		9B5C3F3B2F896662005651BF /* Entitlement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entitlement.swift; sourceTree = "<group>"; };
 		9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRPCTLSConfiguration.swift; sourceTree = "<group>"; };
 		9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUUsageMonitor.swift; sourceTree = "<group>"; };
 		9B5D7BCD2EAA9602001FB96E /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
@@ -2025,6 +2027,7 @@
 				9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */,
 				9BEBC75A2DF440720092B196 /* DHCPLeases.swift */,
 				9BEBC75B2DF440720092B196 /* EmbedProvisionProfile.swift */,
+				9B5C3F3B2F896662005651BF /* Entitlement.swift */,
 				9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */,
 				9BEBC75C2DF440720092B196 /* GuestPlateform.swift */,
 				9BEBC75D2DF440720092B196 /* Home.swift */,
@@ -2949,6 +2952,7 @@
 				9BEBC7A42DF440720092B196 /* ImageCache.swift in Sources */,
 				9BEBC7A52DF440720092B196 /* RemoteHandler.swift in Sources */,
 				9BEBC7A62DF440720092B196 /* StartHandler.swift in Sources */,
+				9B5C3F3C2F89666C005651BF /* Entitlement.swift in Sources */,
 				9B5F49C02F70032800AE1991 /* LabelView.swift in Sources */,
 				9BEBC7A72DF440720092B196 /* CommunicationHandlers.swift in Sources */,
 				9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */,
