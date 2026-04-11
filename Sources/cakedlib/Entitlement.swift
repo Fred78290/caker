@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+import Security
 
 /// A helper for calling the Security framework from Swift.
 
