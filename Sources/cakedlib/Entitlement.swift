@@ -19,7 +19,16 @@ public struct Entitlement {
 		guard err == errSecSuccess else {
 			throw NSError(domain: NSOSStatusErrorDomain, code: Int(err), userInfo: nil)
 		}
-		return result!
+		guard let result else {
+			throw NSError(
+				domain: NSOSStatusErrorDomain,
+				code: Int(errSecInternalError),
+				userInfo: [
+					NSLocalizedDescriptionKey: "Security call succeeded but did not return a result."
+				]
+			)
+		}
+		return result
 	}
 	
 	public init() throws {
