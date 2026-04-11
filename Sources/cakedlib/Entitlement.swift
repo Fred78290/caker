@@ -41,12 +41,12 @@ public struct Entitlement {
 		self.entitlements = entitlements as? [String: Any] ?? [:]
 	}
 	
-	public func entitlement<T>(_ name: String) throws -> T? {
+	public func entitlement<T>(_ name: String) -> T? {
 		return entitlements[name] as? T
 	}
 	
 	public func hasVMNetworking() -> Bool {
-		if let value: Bool = try? entitlement("com.apple.vm.networking") {
+		if let value: Bool = entitlement("com.apple.vm.networking") {
 			return value
 		} else {
 			return false
