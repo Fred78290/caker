@@ -74,5 +74,5 @@ struct SocketsDetailView: View {
 }
 
 #Preview {
-	SocketsDetailView(currentItem: .constant(.init(mode: .bind, port: 0, bind: "")))
+	SocketsDetailView(currentItem: .constant(.init(mode: .bind, port: 0, bind: String.empty)))
 }

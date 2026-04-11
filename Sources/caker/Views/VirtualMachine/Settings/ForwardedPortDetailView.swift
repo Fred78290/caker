@@ -65,7 +65,7 @@ struct ForwardedPortDetailView: View {
 			case .portForwarding:
 				return .init(host: hostPort.value, guest: guestPort.value, proto: selectedProtocol.proto)
 			case .unixDomainSocket:
-				return .init(host: hostPath ?? "", guest: guestPath ?? "", proto: selectedProtocol.proto)
+				return .init(host: hostPath ?? String.empty, guest: guestPath ?? String.empty, proto: selectedProtocol.proto)
 			}
 		}
 
@@ -83,13 +83,13 @@ struct ForwardedPortDetailView: View {
 				self.selectedProtocol = .init(unixDomain.proto)
 				self.hostPath = unixDomain.host
 				self.guestPath = unixDomain.guest
-				self.hostPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				self.hostPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				self.guestPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			} else {
 				self.mode = .portForwarding
 				self.selectedProtocol = .both
-				self.hostPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				self.hostPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				self.guestPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			}
 		}
 	}

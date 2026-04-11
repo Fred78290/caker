@@ -55,7 +55,7 @@ public struct ImportHandler {
 			} catch {
 				try? tempLocation?.delete()
 
-				return ImportedReply(source: source, name: name, imported: false, reason: "\(error)")
+				return ImportedReply(source: source, name: name, imported: false, reason: error.reason)
 			}
 		}
 	}

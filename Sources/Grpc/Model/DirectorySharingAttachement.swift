@@ -8,7 +8,7 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 	public var readOnly: Bool
 
 	public var _name: String? = nil
-	public var _source: String = ""
+	public var _source: String = String.empty
 	public var _destination: String? = nil
 	public var _uid: Int? = nil
 	public var _gid: Int? = nil

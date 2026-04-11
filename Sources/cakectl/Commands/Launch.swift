@@ -31,7 +31,7 @@ struct Launch: AsyncGrpcParsableCommand {
 		return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
 			let context: ProgressObserver.ProgressHandlerContext = .init()
 			let (stream, continuation) = AsyncStream.makeStream(of: Caked_LaunchStreamReply.OneOf_Current?.self)
-			var result: String = ""
+			var result: String = String.empty
 
 			group.addTask {
 				let stream = try client.launch(Caked_LaunchRequest(command: self)) { stream in

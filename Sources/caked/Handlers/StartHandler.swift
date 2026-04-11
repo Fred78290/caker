@@ -51,7 +51,7 @@ struct StartHandler: CakedCommand {
 			reply.vms = Caked_VirtualMachineReply.with {
 				$0.started = .with {
 					$0.started = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		}

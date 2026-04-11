@@ -75,7 +75,7 @@ struct NetworkAttachementDetailView: View {
 						}.buttonStyle(.borderless)
 					}
 
-					TextField("", text: $model.macAddress.text)
+					TextField(String.empty, text: $model.macAddress.text)
 						.rounded(.center)
 						.formatAndValidate($model.macAddress)
 						.allowsHitTesting(readOnly == false)

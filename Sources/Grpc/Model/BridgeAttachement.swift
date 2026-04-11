@@ -73,7 +73,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 
 	public init(parseFrom: String) throws {
 		let parts = parseFrom.split(separator: ",")
-		var network: String = ""
+		var network: String = String.empty
 		var mode: NetworkMode?
 		var macAddress: VZMACAddress?
 

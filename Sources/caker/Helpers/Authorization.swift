@@ -24,7 +24,7 @@ public struct Authorization {
 
 		var authorizationRef: AuthorizationRef? = nil
 		let iconPath = Bundle.main.path(forResource: "Prompt", ofType: "png")!.cString(using: .utf8)!
-		let prompt = "Allow to install privileged bootstrap files".cString(using: .utf8)!
+		let prompt = String(localized: "Allow to install privileged bootstrap files").cString(using: .utf8)!
 
 		var environmentItems: [AuthorizationItem] = [
 			authorizationEnvironmentPrompt.withUnsafeBufferPointer { authorizationEnvironmentPrompt in
@@ -63,14 +63,14 @@ public struct Authorization {
 		var err = AuthorizationCreate(nil, &environment, AuthorizationFlags(rawValue: 0), &authorizationRef)
 
 		guard err == errAuthorizationSuccess, let authorizationRef else {
-			throw ServiceError("AuthorizationCreate failed with status \(err)")
+			throw ServiceError(String(localized: "AuthorizationCreate failed with status \(err)"))
 		}
 
 		err = AuthorizationCopyRights(authorizationRef, &rights, &environment,  [ AuthorizationFlags(rawValue: 0), .extendRights, .interactionAllowed, .preAuthorize ], nil)
 
 		guard err == errAuthorizationSuccess else {
 			AuthorizationFree(authorizationRef, [.destroyRights])
-			throw ServiceError("AuthorizationCopyRights failed with status \(err)")
+			throw ServiceError(String(localized: "AuthorizationCopyRights failed with status \(err)"))
 		}
 
 		return authorizationRef
@@ -85,7 +85,7 @@ public struct Authorization {
 		var err = AuthorizationCreate(nil, nil, [], &authorizationRef)
 
 		guard err == errAuthorizationSuccess, let authorizationRef else {
-			throw ServiceError("AuthorizationCreate failed with status \(err)")
+			throw ServiceError(String(localized: "AuthorizationCreate failed with status \(err)"))
 		}
 
 		let flags: AuthorizationFlags = [.interactionAllowed, .extendRights, .preAuthorize]
@@ -108,7 +108,7 @@ public struct Authorization {
 
 		guard err == errAuthorizationSuccess else {
 			AuthorizationFree(authorizationRef, [.destroyRights])
-			throw ServiceError("AuthorizationCopyRights failed with status \(err)")
+			throw ServiceError(String(localized: "AuthorizationCopyRights failed with status \(err)"))
 		}
 
 		return authorizationRef
@@ -122,7 +122,7 @@ public struct Authorization {
 		print("execute: \(command) \(arguments.joined(separator: " "))")
 
 		guard let authorization else {
-			throw ServiceError("Missing Authorization Services reference for privileged operation")
+			throw ServiceError(String(localized: "Missing Authorization Services reference for privileged operation"))
 		}
 
 		let RTLD_DEFAULT = UnsafeMutableRawPointer(bitPattern: -2)
@@ -160,7 +160,7 @@ public struct Authorization {
 				let err = authorizationExecuteWithPrivileges(authorization, command, [], argsPointer, &pipe)
 
 				guard err == errAuthorizationSuccess else {
-					throw ServiceError("Authorization failed: \(err)")
+					throw ServiceError(String(localized: "Authorization failed: \(err)"))
 				}
 
 				return FileHandle(fileDescriptor: fileno(pipe), closeOnDealloc: true)
@@ -168,7 +168,7 @@ public struct Authorization {
 		}
 
 		guard let output = try fh.readToEnd() else {
-			return ""
+			return String.empty
 		}
 
 		return String(data: output, encoding: .utf8)!

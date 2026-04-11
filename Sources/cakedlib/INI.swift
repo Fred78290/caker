@@ -16,7 +16,7 @@ extension INIConfig {
 			return String(parts[0])
 		}
 
-		return ""
+		return String.empty
 	}
 
 	private static func parseSectionHeader(_ line: String) -> String {

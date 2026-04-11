@@ -29,7 +29,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			return location
 		} else if vmURL.scheme == Self.scheme {
 			guard let host = vmURL.host(percentEncoded: false) else {
-				throw ServiceError("Internal error")
+				throw ServiceError(String(localized: "Internal error"))
 			}
 
 			//for runMode in [Utils.RunMode.system, Utils.RunMode.user] {
@@ -38,10 +38,10 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				}
 			//}
 
-			throw ServiceError("VM not found")
+			throw ServiceError(String(localized: "VM not found"))
 		}
 
-		throw ServiceError("Unsupported scheme")
+		throw ServiceError(String(localized: "Unsupported scheme"))
 	}
 
 	public init(rootURL: URL, template: Bool = false) {
@@ -238,11 +238,11 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	@discardableResult
 	public func validate() throws -> VMLocation {
 		if !FileManager.default.fileExists(atPath: rootURL.path) {
-			throw ServiceError("VM not found \(rootURL.lastPathComponent.deletingPathExtension)")
+			throw ServiceError(String(localized: "VM not found \(rootURL.lastPathComponent.deletingPathExtension)"))
 		}
 
 		if self.inited == false {
-			throw ServiceError("VM is not correctly inited, missing files: (\(configURL.lastPathComponent), \(diskURL.lastPathComponent) or \(nvramURL.lastPathComponent))")
+			throw ServiceError(String(localized: "VM is not correctly inited, missing files: (\(configURL.lastPathComponent), \(diskURL.lastPathComponent) or \(nvramURL.lastPathComponent))"))
 		}
 
 		return self
@@ -266,7 +266,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			if wantedFileSize < curFileSize {
 				let curFileSizeHuman = ByteCountFormatter().string(fromByteCount: Int64(curFileSize))
 				let wantedFileSizeHuman = ByteCountFormatter().string(fromByteCount: Int64(wantedFileSize))
-				throw ServiceError("the new file size \(wantedFileSizeHuman) is lesser than the current disk size of \(curFileSizeHuman)")
+				throw ServiceError(String(localized: "the new file size \(wantedFileSizeHuman) is lesser than the current disk size of \(curFileSizeHuman)"))
 			} else if wantedFileSize > curFileSize {
 				try diskFileHandle.truncate(atOffset: wantedFileSize)
 			}
@@ -295,7 +295,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		if wantedFileSize < curFileSize {
 			let curFileSizeHuman = ByteCountFormatter().string(fromByteCount: Int64(curFileSize))
 			let wantedFileSizeHuman = ByteCountFormatter().string(fromByteCount: Int64(wantedFileSize))
-			throw ServiceError("the new file size \(wantedFileSizeHuman) is lesser than the current disk size of \(curFileSizeHuman)")
+			throw ServiceError(String(localized: "the new file size \(wantedFileSizeHuman) is lesser than the current disk size of \(curFileSizeHuman)"))
 		} else if wantedFileSize > curFileSize {
 			try diskFileHandle.truncate(atOffset: wantedFileSize)
 		}
@@ -355,7 +355,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		}
 
 		if self.status != .running {
-			throw ServiceError("vm \(name) is not running")
+			throw ServiceError(String(localized: "vm \(name) is not running"))
 		}
 
 		if force || config.agent == false {
@@ -373,7 +373,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 			if reply.success {
 				let ssh = try SSH(host: reply.ip)
-				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: "")
+				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: String.empty)
 				try ssh.execute("sudo reboot")
 			} else {
 				killVMRun()
@@ -383,7 +383,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 	public func suspendVirtualMachine(runMode: Utils.RunMode) throws {
 		if self.status != .running {
-			throw ServiceError("vm \(name) is not running")
+			throw ServiceError(String(localized: "vm \(name) is not running"))
 		}
 
 		let pid = pidFile.isPIDRunning()
@@ -416,7 +416,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		let home = try Home(runMode: runMode)
 
 		if self.status != .running {
-			throw ServiceError("vm \(name) is not running")
+			throw ServiceError(String(localized: "vm \(name) is not running"))
 		}
 
 		if force || config.agent == false {
@@ -430,7 +430,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 			if reply.success {
 				let ssh = try SSH(host: reply.ip)
-				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: "")
+				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: String.empty)
 				try ssh.execute("sudo shutdown now")
 			} else {
 				killVMRun()
@@ -466,7 +466,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	public func waitIPWithLease(wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		let config = try self.config()
 		let start: Date = Date.now
-		let macAddress = config.macAddress ?? ""
+		let macAddress = config.macAddress ?? String.empty
 		let clientID = config.dhcpClientID ?? macAddress
 		var leases: DHCPLeaseProvider
 		var count = 0
@@ -478,7 +478,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 		repeat {
 			if let startedProcess = startedProcess, startedProcess.isRunning == false {
-				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: "")
+				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: String.empty)
 			}
 
 			// Try also arp if dhcp is disabled
@@ -527,7 +527,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 		repeat {
 			if let startedProcess = startedProcess, startedProcess.isRunning == false {
-				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: "")
+				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: String.empty)
 			}
 
 			if let infos = try? conn.info().wait() {
@@ -543,12 +543,12 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			count += 1
 		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
 
-		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(self.name)", message: "")
+		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(self.name)", message: String.empty)
 	}
 
 	public func waitIP(config: CakeConfig, wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		if startedProcess == nil && self.status != .running {
-			throw ServiceError("VM \(name) is not running")
+			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
 
 		if config.firstLaunch && (config.source == .iso || config.source == .ipsw) {
@@ -800,7 +800,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		} else {
 			Logger(self).error("Agent installation failed on \(self.name), exit code: \(result.status)\n\(result.output)")
 
-			throw ServiceError("Agent installation failed on \(self.name)")
+			throw ServiceError(String(localized: "Agent installation failed on \(self.name)"))
 		}
 
 		return true

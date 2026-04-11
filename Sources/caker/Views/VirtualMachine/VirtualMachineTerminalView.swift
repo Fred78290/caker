@@ -146,7 +146,7 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 			if case .established(let established, let reason) = response {
 				if established == false {
 					if reason != "Connection refused" {
-						alertError(ServiceError(LocalizedStringKey(stringLiteral: reason)))
+						alertError(ServiceError(reason))
 					}
 
 					self.closeShell()

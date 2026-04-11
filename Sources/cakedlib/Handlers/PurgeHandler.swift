@@ -19,7 +19,7 @@ public struct PurgeHandler {
 					try RawImageCache(runMode: runMode),
 					try IPSWCache(runMode: runMode),
 					try IsoCache(runMode: runMode),
-					try SimpleStreamsImageCache(name: "", runMode: runMode),
+					try SimpleStreamsImageCache(name: String.empty, runMode: runMode),
 				]
 			} else if options.entries == .vms {
 				purgeableStorages = [StorageLocation(runMode: runMode)]
@@ -32,7 +32,7 @@ public struct PurgeHandler {
 					try RawImageCache(runMode: runMode),
 					try IPSWCache(runMode: runMode),
 					try IsoCache(runMode: runMode),
-					try SimpleStreamsImageCache(name: "", runMode: runMode),
+					try SimpleStreamsImageCache(name: String.empty, runMode: runMode),
 				]
 			}
 
@@ -49,7 +49,7 @@ public struct PurgeHandler {
 
 			return PurgeReply(purged: true, reason: "Purged")
 		} catch {
-			return PurgeReply(purged: false, reason: "\(error)")
+			return PurgeReply(purged: false, reason: error.reason)
 		}
 	}
 

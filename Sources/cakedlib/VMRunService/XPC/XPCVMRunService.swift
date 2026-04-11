@@ -35,7 +35,7 @@ extension DirectorySharingAttachment {
 extension MountVirtioFS {
 	init(_ from: CakeAgent.MountReply.MountVirtioFSReply) {
 		var mounted: Bool = false
-		var reason: String = ""
+		var reason: String = String.empty
 
 		if case .error(let error) = from.response {
 			reason = error
@@ -49,7 +49,7 @@ extension MountVirtioFS {
 
 extension MountInfos {
 	init(request: MountRequest, error: Error) {
-		self.init(success: false, reason: "\(error)", mounts: request.mounts.map { MountVirtioFS(name: $0.name, error: error) })
+		self.init(success: false, reason: error.reason, mounts: request.mounts.map { MountVirtioFS(name: $0.name, error: error) })
 	}
 
 	init(_ from: Caked_MountReply) {
@@ -58,9 +58,9 @@ extension MountInfos {
 }
 
 struct XPCMountVirtioFS: Codable {
-	var name: String = ""
-	var source: String = ""
-	var target: String = ""
+	var name: String = String.empty
+	var source: String = String.empty
+	var target: String = String.empty
 	var uid: Int32 = 0
 	var gid: Int32 = 0
 	var readonly: Bool = false
@@ -99,7 +99,7 @@ struct XPCMountVirtioFS: Codable {
 	init(attachment: DirectorySharingAttachment) {
 		self.name = attachment.name
 		self.source = attachment.source
-		self.target = attachment.destination ?? ""
+		self.target = attachment.destination ?? String.empty
 		self.uid = Int32(attachment.uid)
 		self.gid = Int32(attachment.gid)
 		self.readonly = attachment.readOnly
@@ -343,7 +343,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 	func installAgent(timeout: UInt) {
 		self.reply { serviceReply in
 			var installed: Bool = false
-			var reason : String = ""
+			var reason : String = String.empty
 
 			do {
 				installed = try self.group.any().makeFutureWithTask {
@@ -351,7 +351,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 				}.wait()
 			} catch {
 				self.logger.error("Failed to install agent: \(error)")
-				reason = "\(error)"
+				reason = error.reason
 			}
 
 
@@ -362,7 +362,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 	func startGrandCentralUpdate(frequency: Int32) {
 		self.reply { serviceReply in
 			var started: Bool = true
-			var reason : String = ""
+			var reason : String = String.empty
 
 			do {
 				try self.group.next().makeFutureWithTask {
@@ -370,7 +370,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 				}.wait()
 			} catch {
 				self.logger.error("Failed to start grand central update: \(error)")
-				reason = "\(error)"
+				reason = error.reason
 				started = false
 			}
 
@@ -538,12 +538,12 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 			}
 			
 			return MountInfos.with {
-				$0.reason = "Unexpected reply from VMRunService \(reply)"
+				$0.reason = String(localized: "Unexpected reply from VMRunService \(reply)")
 			}
 		}
 		
 		return MountInfos.with {
-			$0.reason = "Timeout"
+			$0.reason = String(localized: "Timeout")
 		}
 	}
 	
@@ -629,7 +629,7 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 		let proxyObject = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") })
 		
 		guard let service = proxyObject as? VMRunServiceProtocol else {
-			throw ServiceError("Failed to connect to VMRunService")
+			throw ServiceError(String(localized: "Failed to connect to VMRunService"))
 		}
 		
 		return handler(service, replier)

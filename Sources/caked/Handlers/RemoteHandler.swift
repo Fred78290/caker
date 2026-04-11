@@ -13,7 +13,7 @@ struct RemoteHandler: CakedCommand {
 				$0.remotes = Caked_RemoteReply.with {
 					$0.list = .with {
 						$0.success = false
-						$0.reason = "\(error)"
+						$0.reason = error.reason
 					}
 				}
 			}
@@ -22,7 +22,7 @@ struct RemoteHandler: CakedCommand {
 				$0.remotes = Caked_RemoteReply.with {
 					$0.created = .with {
 						$0.created = false
-						$0.reason = "\(error)"
+						$0.reason = error.reason
 					}
 				}
 			}
@@ -31,7 +31,7 @@ struct RemoteHandler: CakedCommand {
 				$0.remotes = Caked_RemoteReply.with {
 					$0.deleted = .with {
 						$0.deleted = false
-						$0.reason = "\(error)"
+						$0.reason = error.reason
 					}
 				}
 			}

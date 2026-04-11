@@ -33,7 +33,7 @@ struct PushHandler: CakedCommandAsync {
 			$0.oci = .with {
 				$0.push = .with {
 					$0.success = false
-					$0.message = "\(error)"
+					$0.message = error.reason
 				}
 			}
 		}

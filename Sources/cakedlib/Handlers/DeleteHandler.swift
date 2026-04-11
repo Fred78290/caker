@@ -34,7 +34,7 @@ public struct DeleteHandler {
 				return try doIt(location)
 			}
 		} catch {
-			return DeletedObject(source: "vm", name: name, deleted: false, reason: "\(error)")
+			return DeletedObject(source: "vm", name: name, deleted: false, reason: error.reason)
 		}
 
 		return nil
@@ -65,7 +65,7 @@ public struct DeleteHandler {
 
 						if let purgeable = purgeables.first(where: { cache.fqn($0).contains(u.absoluteString) }) {
 							try purgeable.delete()
-							return DeletedObject(source: cache.location, name: purgeable.name, deleted: true, reason: "")
+							return DeletedObject(source: cache.location, name: purgeable.name, deleted: true, reason: String.empty)
 						}
 						return DeletedObject(source: cache.location, name: u.lastPathComponent, deleted: false, reason: "Object not found")
 					} else if let scheme = u.scheme {
@@ -93,7 +93,7 @@ public struct DeleteHandler {
 		} catch {
 			return DeleteReply(objects: [
 				DeletedObject(source: "vm", name: location.name, deleted: false, reason: "VM not found")
-			], success: false, reason: "\(error)")
+			], success: false, reason: error.reason)
 		}
 	}
 
@@ -104,8 +104,8 @@ public struct DeleteHandler {
 			return delete(location: location, runMode: runMode)
 		} catch {
 			return DeleteReply(objects: [
-				DeletedObject(source: "vm", name: name, deleted: false, reason: "\(error)")
-			], success: false, reason: "\(error)")
+				DeletedObject(source: "vm", name: name, deleted: false, reason: error.reason)
+			], success: false, reason: error.reason)
 		}
 	}
 
@@ -117,7 +117,7 @@ public struct DeleteHandler {
 		} catch {
 			return DeleteReply(objects: [
 				DeletedObject(source: "vm", name: vmURL.absoluteString, deleted: false, reason: "VM not found")
-			], success: false, reason: "\(error)")
+			], success: false, reason: error.reason)
 		}
 	}
 
@@ -131,7 +131,7 @@ public struct DeleteHandler {
 
 			return DeleteReply(objects: try DeleteHandler.delete(names: names, runMode: runMode), success: true, reason: "Success")
 		} catch {
-			return DeleteReply(objects: [], success: false, reason: "\(error)")
+			return DeleteReply(objects: [], success: false, reason: error.reason)
 		}
 	}
 }

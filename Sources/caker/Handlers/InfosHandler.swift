@@ -24,7 +24,7 @@ extension InfosHandler {
 		}
 
 		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError("Internal error")
+			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		let reply = try client.info(.with {
@@ -33,7 +33,7 @@ extension InfosHandler {
 		}).response.wait().vms.status
 
 		if reply.success == false {
-			throw ServiceError(LocalizedStringKey(stringLiteral: reply.reason))
+			throw ServiceError(reply.reason)
 		}
 
 		return (VMInformations(reply.infos), CakedConfiguration(reply.config))

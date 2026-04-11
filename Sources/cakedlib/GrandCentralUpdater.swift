@@ -101,7 +101,7 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 						case .usage(let usage):
 							$0.usage = usage
 						case .error(let error):
-							$0.failure = "\(error)"
+							$0.failure = error.reason
 						case .status(let status):
 							self.logger.debug("Grand Central Updater status changed for VM: \(vmName) to \(status)")
 							$0.status = .init(status)

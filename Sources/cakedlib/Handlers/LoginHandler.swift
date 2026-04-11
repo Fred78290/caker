@@ -32,7 +32,7 @@ public struct LoginHandler {
 
 			return LoginReply(success: true, message: "Login succeeded")
 		} catch {
-			return LoginReply(success: false, message: "\(error)")
+			return LoginReply(success: false, message: error.reason)
 		}
 	}
 }

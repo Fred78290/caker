@@ -18,7 +18,7 @@ struct InstallAgentHandler: CakedCommand {
 			$0.vms = Caked_VirtualMachineReply.with {
 				$0.installedAgent = Caked_InstalledAgentReply.with {
 					$0.installed = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		}

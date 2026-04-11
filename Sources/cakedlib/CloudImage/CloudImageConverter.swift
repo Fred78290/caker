@@ -96,14 +96,14 @@ class CloudImageConverter {
 			progress: progressHandlerImpl)
 		{
 			if converter.convert() < 0 {
-				throw ServiceError(LocalizedStringKey(stringLiteral: String(data: outputData, encoding: .utf8)!))
+				throw ServiceError(String(data: outputData, encoding: .utf8)!)
 			}
 		}
 	}
 
 	static func downloadRemoteFile(fromURL: URL, toURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
 		if FileManager.default.fileExists(atPath: toURL.path) {
-			throw ServiceError("file already exists: \(toURL.path)")
+			throw ServiceError(String(localized: "file already exists: \(toURL.path)"))
 		}
 		var pathExtension = fromURL.pathExtension
 		

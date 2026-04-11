@@ -209,7 +209,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	var virtualMachine: VirtualMachine!
 	var location: VMLocation!
 	var url: URL!
-	var name: String = ""
+	var name: String = String.empty
 	var description: String {
 		self.name
 	}
@@ -352,7 +352,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 	private init(vmURL: URL, status: Status, vncURL: [String]?, config: any VirtualMachineConfiguration) throws {
 		guard let name = vmURL.host(percentEncoded: false) else {
-			throw ServiceError("Internal error")
+			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		self.name = name
@@ -366,7 +366,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	
 	static func anyVirtualMachineDocument() throws -> VirtualMachineDocument {
 		guard let location = try StorageLocation(runMode: .app).list().values.first else {
-			throw ServiceError("No virtual machines")
+			throw ServiceError(String(localized: "No virtual machines"))
 		}
 
 		return try VirtualMachineDocument(location: location)
@@ -720,7 +720,7 @@ extension VirtualMachineDocument {
 			}
 			
 			DispatchQueue.main.async {
-				alertError(ServiceError("Unable to find virtual machine: \(self.name)"))
+				alertError(ServiceError(String(localized: "Unable to find virtual machine: \(self.name)")))
 			}
 			
 			return nil
@@ -800,7 +800,7 @@ extension VirtualMachineDocument {
 					} else if let url {
 						try await self.startRemotely(location: url)
 					} else {
-						throw ServiceError("Internal error: Virtual machine is not launched from a local or remote location.")
+						throw ServiceError(String(localized: "Internal error: Virtual machine is not launched from a local or remote location."))
 					}
 				} catch {
 					await self.setStateAsStopped()
@@ -1203,11 +1203,11 @@ extension VirtualMachineDocument {
 			do {
 				if let virtualMachine = self.virtualMachine {
 					if try await virtualMachine.installAgent(updateAgent: updateAgent, timeout: 2, runMode: .app) == false {
-						throw ServiceError("Failed to install agent.")
+						throw ServiceError(String(localized: "Failed to install agent."))
 					}
 				} else {
 					if try AppState.shared.installAgent(self.url) == false {
-						throw ServiceError("Failed to install agent.")
+						throw ServiceError(String(localized: "Failed to install agent."))
 					}
 				}
 

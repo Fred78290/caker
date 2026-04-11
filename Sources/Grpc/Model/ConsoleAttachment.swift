@@ -55,7 +55,7 @@ public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument,
 					}
 				}
 			} else {
-				if u.path == "" {
+				if u.path == String.empty {
 					throw ValidationError("Invalid console URL")
 				}
 

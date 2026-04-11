@@ -80,7 +80,7 @@ public struct ConfigureHandler {
 				config.diskSize = diskSize * MoB
 
 				if location.status == .running {
-					throw ServiceError("VM is running, please stop it before resizing the disk")
+					throw ServiceError(String(localized: "VM is running, please stop it before resizing the disk"))
 				}
 
 				if config.os == .linux {
@@ -92,7 +92,7 @@ public struct ConfigureHandler {
 
 			return ConfiguredReply(name: name, configured: true, reason: "VM reconfigured")
 		} catch {
-			return ConfiguredReply(name: name, configured: false, reason: "\(error)")
+			return ConfiguredReply(name: name, configured: false, reason: error.reason)
 		}
 	}
 }

@@ -16,7 +16,7 @@ struct MountDetailView: View {
 	init(currentItem: Binding<DirectorySharingAttachment>, readOnly: Bool = true) {
 		_currentItem = currentItem
 		self.readOnly = readOnly
-		self.name = currentItem.wrappedValue._name ?? ""
+		self.name = currentItem.wrappedValue._name ?? String.empty
 	}
 
 	var body: some View {

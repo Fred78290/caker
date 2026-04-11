@@ -31,7 +31,7 @@ public struct SuspendHandler {
 					try SuspendHandler.suspendVM(name: $0, runMode: runMode)
 				}, success: true, reason: "Success")
 		} catch {
-			return SuspendReply(objects: [], success: false, reason: "\(error)")
+			return SuspendReply(objects: [], success: false, reason: error.reason)
 		}
 	}
 }

@@ -17,7 +17,7 @@ public struct RenameHandler {
 
 			return RenameReply(oldName: oldname, newName: newname, renamed: true, reason: "VM renamed")
 		} catch {
-			return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: "\(error)")
+			return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: error.reason)
 		}
 	}
 }

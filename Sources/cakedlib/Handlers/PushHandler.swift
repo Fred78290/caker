@@ -116,7 +116,7 @@ public struct PushHandler {
 		} catch {
 			progressHandler(.terminated(.failure(error), "Push failed"))
 
-			return PushReply(success: false, message: "\(error)")
+			return PushReply(success: false, message: error.reason)
 		}
 	}
 }

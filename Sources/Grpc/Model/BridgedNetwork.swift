@@ -21,12 +21,12 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 
 	public var name: String
 	public var mode: BridgedNetworkMode
-	public var description: String = ""
-	public var gateway: String = ""
-	public var dhcpEnd = ""
-	public var dhcpLease: String = ""
-	public var interfaceID: String = ""
-	public var endpoint: String = ""
+	public var description: String = String.empty
+	public var gateway: String = String.empty
+	public var dhcpEnd = String.empty
+	public var dhcpLease: String = String.empty
+	public var interfaceID: String = String.empty
+	public var endpoint: String = String.empty
 	public var usedBy: Int = 0
 
 	public var id: String {
@@ -35,7 +35,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 
 	public var dhcpStart: String {
 		guard let value = self.gateway.split(separator: "/").first else {
-			return ""
+			return String.empty
 		}
 
 		return String(value)
@@ -43,7 +43,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 
 	public var netmask: String {
 		guard let value = self.gateway.split(separator: "/").last else {
-			return ""
+			return String.empty
 		}
 
 		var cidr = Int(value) ?? 0
@@ -57,7 +57,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		mode: BridgedNetworkMode,
 		description: String,
 		gateway: String,
-		dhcpEnd: String = "",
+		dhcpEnd: String = String.empty,
 		dhcpLease: String,
 		interfaceID: String,
 		endpoint: String,

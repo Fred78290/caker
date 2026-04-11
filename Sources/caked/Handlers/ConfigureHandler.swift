@@ -12,7 +12,7 @@ struct ConfigureHandler: CakedCommand, Sendable {
 			$0.vms = Caked_VirtualMachineReply.with {
 				$0.configured = .with {
 					$0.configured = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		}

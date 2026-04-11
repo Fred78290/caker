@@ -5,7 +5,7 @@ public struct UmountOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(commandName: "umount", abstract: "Unmount a directory share from a VM")
 
 	@Argument(help: "VM name")
-	public var name: String = ""
+	public var name: String = String.empty
 
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Give host path to umount", discussion: "Remove directory shares. If omitted all mounts will be removed from the named vm"))
 	public var mounts: DirectorySharingAttachments = []

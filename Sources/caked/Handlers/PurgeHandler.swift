@@ -12,7 +12,7 @@ struct PurgeHandler: CakedCommand {
 			$0.vms = Caked_VirtualMachineReply.with {
 				$0.purged = .with {
 					$0.purged = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		}

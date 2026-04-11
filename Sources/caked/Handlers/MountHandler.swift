@@ -14,7 +14,7 @@ struct MountHandler: CakedCommand {
 		return Caked_Reply.with {
 			$0.mounts = Caked_MountReply.with {
 				$0.success = false
-				$0.reason = "\(error)"
+				$0.reason = error.reason
 			}
 		}
 	}
@@ -45,7 +45,7 @@ struct MountHandler: CakedCommand {
 			return Caked_Reply.with {
 				$0.mounts = Caked_MountReply.with {
 					$0.success = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		}

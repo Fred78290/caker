@@ -140,7 +140,7 @@ struct GrandCentralDispatch: AsyncGrpcParsableCommand {
 			stream.cancel(promise: nil)
 		}
 
-		return ""
+		return String.empty
 	}
 	
 }

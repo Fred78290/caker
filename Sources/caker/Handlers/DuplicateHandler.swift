@@ -13,7 +13,7 @@ extension DuplicateHandler {
 		}
 
 		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError("Internal error")
+			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		return try DuplicatedReply(client.duplicate(.with {

@@ -20,35 +20,35 @@ struct NetworksHandler: CakedCommand {
 				switch self.request.command {
 				case .infos:
 					$0.list = .with {
-						$0.reason = "\(error)"
+						$0.reason = error.reason
 					}
 				case .status:
 					$0.status = .with {
-						$0.reason = "\(error)"
+						$0.reason = error.reason
 					}
 				case .new:
 					$0.created = .with {
-						$0.reason = "\(error)"
+						$0.reason = error.reason
 					}
 				case .set:
 					$0.configured = .with {
-						$0.reason = "\(error)"
+						$0.reason = error.reason
 					}
 				case .start:
 					$0.started = .with {
-						$0.reason = "\(error)"
+						$0.reason = error.reason
 					}
 				case .shutdown:
 					$0.stopped = .with {
-						$0.reason = "\(error)"
+						$0.reason = error.reason
 					}
 				case .remove:
 					$0.delete = .with {
-						$0.reason = "\(error)"
+						$0.reason = error.reason
 					}
 				default:
 					$0.delete = .with {
-						$0.reason = "\(error)"
+						$0.reason = error.reason
 					}
 				}
 			}

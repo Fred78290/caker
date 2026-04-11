@@ -27,7 +27,7 @@ extension VZDiskSynchronizationMode: @retroactive CustomStringConvertible {
 			self = .none
 		case "full":
 			self = .full
-		case "":
+		case String.empty:
 			self = .full
 		default:
 			throw ValidationError("Unsupported disk synchronization mode: \"\(description)\"")
@@ -62,7 +62,7 @@ extension VZDiskImageSynchronizationMode: @retroactive CustomStringConvertible {
 			self = .fsync
 		case "full":
 			self = .full
-		case "":
+		case String.empty:
 			self = .full
 		default:
 			throw ValidationError("Unsupported disk image synchronization mode: \"\(description)\"")
@@ -100,7 +100,7 @@ extension VZDiskImageCachingMode: @retroactive CustomStringConvertible {
 			self = .cached
 		case "uncached":
 			self = .uncached
-		case "":
+		case String.empty:
 			self = .uncached
 		default:
 			throw ValidationError("Unsupported disk image caching mode: \"\(description)\"")
@@ -167,8 +167,8 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		static func parseOptions(_ parseFrom: String) -> (DiskOptions, Bool) {
 			let options = parseFrom.split(separator: ",")
 			var readOnly: Bool = false
-			var syncMode: String = ""
-			var cachingMode: String = ""
+			var syncMode: String = String.empty
+			var cachingMode: String = String.empty
 			var foundOptions: Bool = false
 
 			options.forEach { option in
@@ -189,7 +189,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 	}
 
 	public init() {
-		self.diskPath = ""
+		self.diskPath = String.empty
 		self.diskOptions = .init(readOnly: false, syncMode: "full", cachingMode: VZDiskImageCachingMode.automatic.description)
 	}
 

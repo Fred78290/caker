@@ -102,7 +102,7 @@ struct VMRun: AsyncParsableCommand {
 		var startGrandCentral = false
 
 		if location.isPIDRunning() {
-			throw ServiceError("The VM is already running")
+			throw ServiceError(String(localized: "The VM is already running"))
 		}
 
 		if let screenSize = self.screenSize {

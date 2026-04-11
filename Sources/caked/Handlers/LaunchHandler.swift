@@ -29,7 +29,7 @@ struct LaunchHandler: CakedCommandAsync {
 				$0.launched = .with {
 					$0.name = self.options.name
 					$0.launched = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		}
@@ -51,7 +51,7 @@ struct LaunchHandler: CakedCommandAsync {
 					}
 
 					if result.builded == false {
-						return LaunchReply(name: result.name, ip: "", launched: false, reason: result.reason)
+						return LaunchReply(name: result.name, ip: String.empty, launched: false, reason: result.reason)
 					}
 
 					do {
@@ -61,7 +61,7 @@ struct LaunchHandler: CakedCommandAsync {
 
 						return LaunchReply(name: reply.name, ip: reply.ip, launched: reply.started, reason: reply.reason)
 					} catch {
-						return LaunchReply(name: result.name, ip: "", launched: false, reason: "\(error)")
+						return LaunchReply(name: result.name, ip: String.empty, launched: false, reason: error.reason)
 					}
 				}
 				
@@ -99,14 +99,14 @@ struct LaunchHandler: CakedCommandAsync {
 								} else {
 									try await responseStream.send(.with {
 										$0.terminated = .with {
-											$0.failure = "Installation failed: \(error)"
+											$0.failure = String(localized: "Installation failed: \(error)")
 										}
 									})
 								}
 							} else {
 								try await responseStream.send(.with {
 									$0.terminated = .with {
-										$0.success = message ?? "Installation succeeded"
+										$0.success = message ?? String(localized: "Installation succeeded")
 									}
 								})
 							}
@@ -137,7 +137,7 @@ struct LaunchHandler: CakedCommandAsync {
 				$0.launched = .with {
 					$0.name = self.options.name
 					$0.launched = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			})
 		}

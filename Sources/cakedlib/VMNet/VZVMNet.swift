@@ -362,12 +362,12 @@ public class VZVMNet: @unchecked Sendable {
 		semaphore.wait()
 
 		if self.iface == nil {
-			throw ServiceError("Failed to start interface \(status.stringValue)")
+			throw ServiceError(String(localized: "Failed to start interface \(status.stringValue)"))
 		}
 
 		if status != vmnet_return_t.VMNET_SUCCESS {
 			self.iface = nil
-			throw ServiceError("Failed to start interface \(status.stringValue)")
+			throw ServiceError(String(localized: "Failed to start interface \(status.stringValue)"))
 		}
 
 		vmnet_interface_set_event_callback(iface!, .VMNET_INTERFACE_PACKETS_AVAILABLE, hostQueue) { eventId, event in

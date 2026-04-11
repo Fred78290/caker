@@ -87,7 +87,7 @@ struct VNC: CakeAgentParsableCommand {
 									  screenSizeAction: screenSizeAction)
 
 		} catch {
-			Logger.appendNewLine(self.common.format.render("\(error)"))
+			Logger.appendNewLine(self.common.format.render(error.reason))
 		}
 	}
 }

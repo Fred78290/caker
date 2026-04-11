@@ -75,7 +75,7 @@ struct LinuxPlateform: GuestPlateForm {
 			result.auxiliaryStorage = VZMacAuxiliaryStorage(url: nvramURL)
 
 			if hardwareModel.isSupported == false {
-				throw ServiceError("Unsupported hardware model")
+				throw ServiceError(String(localized: "Unsupported hardware model"))
 			}
 
 			result.hardwareModel = hardwareModel

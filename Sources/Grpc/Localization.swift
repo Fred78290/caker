@@ -20,7 +20,7 @@ extension String {
 			return stringKey
 		}
 
-		return NSLocalizedString(stringKey, bundle: bundle, comment: "")
+		return NSLocalizedString(stringKey, bundle: bundle, comment: String.empty)
 	}
 }
 

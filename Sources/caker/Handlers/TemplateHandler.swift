@@ -25,7 +25,7 @@ extension TemplateHandler {
 		}
 
 		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError("Internal error")
+			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		return try CreateTemplateReply(client.template(.with {

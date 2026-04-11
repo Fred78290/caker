@@ -10,10 +10,10 @@ import Security
 import Sparkle
 
 @MainActor
-func alertError(_ messageText: LocalizedStringKey, _ informativeText: String) {
+func alertError(_ messageText: String, _ informativeText: String) {
 	let alert = NSAlert()
 
-	alert.messageText = messageText.stringValue()
+	alert.messageText = messageText
 	alert.informativeText = informativeText
 	alert.runModal()
 }
@@ -28,7 +28,7 @@ func alertError(_ error: Error) {
 		informativeText = error.localizedDescription
 	}
 
-	alertError("An error occured", informativeText)
+	alertError(String(localized: "An error occured"), informativeText)
 }
 
 struct Defaults {
@@ -395,13 +395,13 @@ struct MainApp: App {
 	
 	static func runAgent(runMode: Utils.RunMode) throws {
 		guard var pluginsURL = Bundle.main.cakedBundleURL else {
-			throw ServiceError("Caked bundle path is missing")
+			throw ServiceError(String(localized: "Caked bundle path is missing"))
 		}
 
 		pluginsURL = pluginsURL.appendingPathComponent(Home.cakedCommandName)
 
 		guard try pluginsURL.exists() else {
-			throw ServiceError("Caked executable is missing")
+			throw ServiceError(String(localized: "Caked executable is missing"))
 		}
 
 		// Launch off the main thread to avoid QoS inversions and UI stalls
@@ -473,7 +473,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure certificates: \(error.localizedDescription)")
 
 			MainActor.assumeIsolated {
-				alertError("Certificates", "Failed to install certificates. Please check the logs for more information.")
+				alertError(String(localized: "Certificates"), String(localized: "Failed to install certificates. Please check the logs for more information."))
 			}
 
 			NSApp.terminate(self)
@@ -516,7 +516,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
 
 			MainActor.assumeIsolated {
-				alertError("Admin rights", "Failed to ensure privileged bootstrap files")
+				alertError(String(localized: "Admin rights"), String(localized: "Failed to ensure privileged bootstrap files"))
 			}
 
 			NSApp.terminate(self)

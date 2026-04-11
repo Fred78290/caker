@@ -23,12 +23,12 @@ class RemoteData: ObservableObject, Observable {
 		let remotes = AppState.shared.loadRemotes()
 
 		guard remotes.isEmpty == false else {
-			self.init(name: remote, url: "")
+			self.init(name: remote, url: String.empty)
 			return
 		}
 
 		guard let entry = remotes.first(where: { $0.name == remote }) else {
-			self.init(name: remote, url: "")
+			self.init(name: remote, url: String.empty)
 			return
 		}
 

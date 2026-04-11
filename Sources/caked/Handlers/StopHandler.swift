@@ -11,7 +11,7 @@ struct StopHandler: CakedCommand {
 		Caked_Reply.with {
 			$0.vms.stop = Caked_StopReply.with {
 				$0.success = false
-				$0.reason = "\(error)"
+				$0.reason = error.reason
 			}
 		}
 	}

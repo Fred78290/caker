@@ -11,9 +11,9 @@ import SwiftUI
 extension [SocketDevice] {
 	func editItem(_ editItem: SocketDevice.ID?) -> SocketDevice {
 		if let editItem = editItem {
-			return self.first(where: { $0.id == editItem }) ?? .init(mode: .bind, port: 0, bind: "")
+			return self.first(where: { $0.id == editItem }) ?? .init(mode: .bind, port: 0, bind: String.empty)
 		} else {
-			return .init(mode: .bind, port: 0, bind: "")
+			return .init(mode: .bind, port: 0, bind: String.empty)
 		}
 	}
 }

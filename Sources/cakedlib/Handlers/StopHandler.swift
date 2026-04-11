@@ -11,7 +11,7 @@ public struct StopHandler {
 		do {
 			return try stopVM(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), force: force, runMode: runMode)
 		} catch {
-			return StoppedObject(name: vmURL.absoluteString, stopped: false, reason: "\(error)")
+			return StoppedObject(name: vmURL.absoluteString, stopped: false, reason: error.reason)
 		}
 	}
 
@@ -19,7 +19,7 @@ public struct StopHandler {
 		do {
 			return try stopVM(location: StorageLocation(runMode: runMode).find(name), force: force, runMode: runMode)
 		} catch {
-			return StoppedObject(name: name, stopped: false, reason: "\(error)")
+			return StoppedObject(name: name, stopped: false, reason: error.reason)
 		}
 	}
 
@@ -28,12 +28,12 @@ public struct StopHandler {
 			if location.status == .running {
 				try location.stopVirtualMachine(force: force, runMode: runMode)
 				
-				return StoppedObject(name: location.name, stopped: true, reason: "")
+				return StoppedObject(name: location.name, stopped: true, reason: String.empty)
 			}
 			
 			return StoppedObject(name: location.name, stopped: false, reason: "VM is not running")
 		} catch {
-			return StoppedObject(name: location.name, stopped: false, reason: "\(error)")
+			return StoppedObject(name: location.name, stopped: false, reason: error.reason)
 		}
 	}
 
@@ -53,7 +53,7 @@ public struct StopHandler {
 
 			return StopReply(objects: stopped, success: true, reason: "Success")
 		} catch {
-			return StopReply(objects: [], success: false, reason: "\(error)")
+			return StopReply(objects: [], success: false, reason: error.reason)
 		}
 	}
 }

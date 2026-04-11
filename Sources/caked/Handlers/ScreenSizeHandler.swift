@@ -14,7 +14,7 @@ import NIO
 struct ScreenSizeHandler {
 	static func replyError(error: any Error) -> Caked_Reply {
 		return Caked_Reply.with {
-			$0.unexpected = "\(error)"
+			$0.unexpected = error.reason
 		}
 	}
 

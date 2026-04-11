@@ -22,8 +22,8 @@ public class ServiceError: Error, CustomStringConvertible, Equatable {
 		self.exitCode = errno
 	}
 
-	public init(_ what: LocalizedStringKey, _ code: Int32 = 1) {
-		self.description = what.stringValue()
+	public init(_ what: String, _ code: Int32 = 1) {
+		self.description = what
 		self.exitCode = code
 	}
 

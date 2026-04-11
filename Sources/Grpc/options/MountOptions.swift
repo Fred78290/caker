@@ -5,7 +5,7 @@ public struct MountOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(abstract: "Mount directory share into VM")
 
 	@Argument(help: "VM name")
-	public var name: String = ""
+	public var name: String = String.empty
 
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares", discussion: mount_help))
 	public var mounts: DirectorySharingAttachments = []

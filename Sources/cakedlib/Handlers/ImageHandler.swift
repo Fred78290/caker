@@ -7,7 +7,7 @@ import CakeAgentLib
 extension ImageInfo {
 	public init(product: SimpleStreamProduct) throws {
 		guard let imageVersion = product.latest() else {
-			throw ServiceError("image doesn't offer qcow2 image")
+			throw ServiceError(String(localized: "image doesn't offer qcow2 image"))
 		}
 
 		self.init(product: product, imageVersion: imageVersion.1)
@@ -79,11 +79,11 @@ public struct ImageHandler {
 		let remoteDb = try Home(runMode: runMode).remoteDatabase()
 
 		guard let remoteContainerServer = remoteDb.get(remote) else {
-			throw ServiceError("remote \(remote) not found")
+			throw ServiceError(String(localized: "remote \(remote) not found"))
 		}
 
 		guard let remoteContainerServerURL: URL = URL(string: remoteContainerServer) else {
-			throw ServiceError("malformed url: \(remoteContainerServer)")
+			throw ServiceError(String(localized: "malformed url: \(remoteContainerServer)"))
 		}
 
 		return try await SimpleStreamProtocol(baseURL: remoteContainerServerURL, runMode: runMode)
@@ -103,28 +103,28 @@ public struct ImageHandler {
 
 			return ListImagesInfoReply(infos: result, success: true, reason: "Success")
 		} catch {
-			return ListImagesInfoReply(infos: [], success: false, reason: "\(error)")
+			return ListImagesInfoReply(infos: [], success: false, reason: error.reason)
 		}
 	}
 
 	public static func info(name: String, runMode: Utils.RunMode) async -> ImageInfoReply {
 		do {
 			let split = name.components(separatedBy: ":")
-			let remote = split.count > 1 ? split[0] : ""
+			let remote = split.count > 1 ? split[0] : String.empty
 			let imageAlias = split.count > 1 ? split[1] : split[0]
 			let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
 			let product = try await simpleStream.GetImage(alias: imageAlias, runMode: runMode)
 
 			return ImageInfoReply(info: try ImageInfo(product: product), success: true, reason: "Success")
 		} catch {
-			return ImageInfoReply(info: .init(), success: false, reason: "\(error)")
+			return ImageInfoReply(info: .init(), success: false, reason: error.reason)
 		}
 	}
 
 	public static func pull(name: String, runMode: Utils.RunMode) async -> PulledImageInfoReply {
 		do {
 			let split = name.components(separatedBy: ":")
-			let remote = split.count > 1 ? split[0] : ""
+			let remote = split.count > 1 ? split[0] : String.empty
 			let imageAlias = split.count > 1 ? split[1] : split[0]
 			let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
 			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: imageAlias, runMode: runMode)
@@ -133,7 +133,7 @@ public struct ImageHandler {
 
 			return PulledImageInfoReply(info: image, success: true, reason: "Success")
 		} catch {
-			return PulledImageInfoReply(info: LinuxContainerImage(), success: false, reason: "\(error)")
+			return PulledImageInfoReply(info: LinuxContainerImage(), success: false, reason: error.reason)
 		}
 	}
 
@@ -161,7 +161,7 @@ public struct ImageHandler {
 				$0.list = result.caked
 			}
 		default:
-			throw ServiceError("Unknown command \(command)")
+			throw ServiceError(String(localized: "Unknown command \(command)"))
 		}
 
 		return Caked_Reply.with {

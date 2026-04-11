@@ -58,7 +58,7 @@ final class VNCConnection: @unchecked Sendable {
 	private let framebuffer: VNCFramebuffer
 	private let inputHandler: VNCInputHandler
 	private var isAuthenticated = false
-	private var clientAddress: String = ""
+	private var clientAddress: String = String.empty
 	private let connectionQueue = DispatchQueue(label: "vnc.connection")
 	private var authChallenge: Data!
 	private let vncPassword: String?
@@ -217,12 +217,12 @@ final class VNCConnection: @unchecked Sendable {
 		var pixelFormat = pixelFormat
 
 		guard pixelFormat.bitsPerPixel == 32 || pixelFormat.bitsPerPixel == 16 || pixelFormat.bitsPerPixel == 8 else {
-			throw ServiceError("Unsupported pixel format")
+			throw ServiceError(String(localized: "Unsupported pixel format"))
 		}
 
 		if pixelFormat.trueColorFlag == 0 {
 			guard pixelFormat.bitsPerPixel == 8 else {
-				throw ServiceError("Unsupported pixel format")
+				throw ServiceError(String(localized: "Unsupported pixel format"))
 			}
 
 			try await setClientColourMapBGR233()
@@ -505,7 +505,7 @@ extension VNCConnection {
 				self.disconnect()
 			} else {
 				// Send failure reason (mandatory in 3.7+)
-				let reasonData = "Authentication failed - invalid credentials".data(using: .utf8)!
+				let reasonData = String(localized: "Authentication failed - invalid credentials").data(using: .utf8)!
 				let reasonLength = UInt32(reasonData.count).bigEndian
 
 				try await self.sendDatas(reasonLength)

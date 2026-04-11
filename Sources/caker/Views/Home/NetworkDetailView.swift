@@ -78,14 +78,14 @@ struct NetworkDetailView: View {
 						}
 
 						LabeledContent("Network name") {
-							TextField("", text: $currentItem.name)
+							TextField(String.empty, text: $currentItem.name)
 								.rounded(.leading)
 								.allowsHitTesting(forEditing)
 								.frame(width: contentWidth)
 						}
 
 						LabeledContent("DHCP Lease") {
-							TextField("", text: $model.dhcpLease.text)
+							TextField(String.empty, text: $model.dhcpLease.text)
 								.rounded(.leading)
 								.allowsHitTesting(forEditing)
 								.frame(width: contentWidth)
@@ -98,7 +98,7 @@ struct NetworkDetailView: View {
 						}
 
 						LabeledContent("Network start") {
-							TextField("", text: $model.dhcpStart.text)
+							TextField(String.empty, text: $model.dhcpStart.text)
 								.rounded(.leading)
 								.allowsHitTesting(forEditing)
 								.frame(width: contentWidth)
@@ -112,7 +112,7 @@ struct NetworkDetailView: View {
 						}
 
 						LabeledContent("Network end") {
-							TextField("", text: $model.dhcpEnd.text)
+							TextField(String.empty, text: $model.dhcpEnd.text)
 								.rounded(.leading)
 								.allowsHitTesting(forEditing)
 								.frame(width: contentWidth)
@@ -126,7 +126,7 @@ struct NetworkDetailView: View {
 						}
 
 						LabeledContent("Netmask") {
-							TextField("", text: $model.netmask.text)
+							TextField(String.empty, text: $model.netmask.text)
 								.rounded(.leading)
 								.allowsHitTesting(forEditing)
 								.frame(width: contentWidth)
@@ -141,7 +141,7 @@ struct NetworkDetailView: View {
 						}
 
 						LabeledContent("Interface ID") {
-							TextField("", text: $currentItem.interfaceID)
+							TextField(String.empty, text: $currentItem.interfaceID)
 								.rounded(.leading)
 								.allowsHitTesting(forEditing)
 								.frame(width: contentWidth)
@@ -164,7 +164,7 @@ struct NetworkDetailView: View {
 							let result = AppState.shared.startNetwork(networkName: self.currentItem.name)
 
 							if result.started == false {
-								alertError("Start network failed", result.reason)
+								alertError(String(localized: "Start network failed"), result.reason)
 							} else {
 								self.currentItem.endpoint = result.reason
 								self.reloadNetwork = true
@@ -175,9 +175,9 @@ struct NetworkDetailView: View {
 							let result = AppState.shared.stopNetwork(networkName: self.currentItem.name)
 
 							if result.stopped == false {
-								alertError("Stop network failed", result.reason)
+								alertError(String(localized: "Stop network failed"), result.reason)
 							} else {
-								self.currentItem.endpoint = ""
+								self.currentItem.endpoint = String.empty
 								self.reloadNetwork = true
 							}
 						}
@@ -189,5 +189,5 @@ struct NetworkDetailView: View {
 }
 
 #Preview {
-	NetworkDetailView(.constant(BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: "", dhcpEnd: "", dhcpLease: "", interfaceID: "nat", endpoint: "", usedBy: 0)), reloadNetwork: .constant(false), forEditing: true)
+	NetworkDetailView(.constant(BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: String.empty, dhcpEnd: String.empty, dhcpLease: String.empty, interfaceID: "nat", endpoint: String.empty, usedBy: 0)), reloadNetwork: .constant(false), forEditing: true)
 }

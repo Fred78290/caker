@@ -103,7 +103,7 @@ public struct PrivateKeyModel {
 			throw CypherKeyGeneratorError("Couldn't get data from PEM key: no data available after stripping headers")
 		}
 
-		return Data(base64Encoded: lines.joined(separator: ""))
+		return Data(base64Encoded: lines.joined(separator: String.empty))
 	}
 
 	public init(from fromPrivateKey: URL) throws {
@@ -112,7 +112,7 @@ public struct PrivateKeyModel {
 		}
 
 		guard var privateKeyData = try Self.base64String(pemEncoded: privateKeyPEM) else {
-			throw ServiceError("Unable to convert PEM to data")
+			throw ServiceError(String(localized: "Unable to convert PEM to data"))
 		}
 
 		if let pkcs8Data = privateKeyData.pkcs8RSAKeyBytes {

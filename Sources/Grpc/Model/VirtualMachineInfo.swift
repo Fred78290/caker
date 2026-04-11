@@ -82,14 +82,14 @@ public struct VMInformations: Sendable, Codable {
 	}
 
 	public init() {
-		self.name = ""
+		self.name = String.empty
 		self.version = nil
 		self.uptime = 0
 		self.memory = nil
 		self.cpuCount = 0
 		self.diskInfos = []
 		self.ipaddresses = []
-		self.osname = ""
+		self.osname = String.empty
 		self.hostname = nil
 		self.release = nil
 		self.status = .stopped
@@ -835,9 +835,9 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 	}
 
 	public init(
-		type: String = "",
-		source: String = "",
-		name: String = "",
+		type: String = String.empty,
+		source: String = String.empty,
+		name: String = String.empty,
 		fqn: [String] = [],
 		vncURL: [String]? = nil,
 		screenSize: ViewSize?,
@@ -920,16 +920,16 @@ public struct ShortVirtualMachineInfo: Codable {
 		self.type = from.type
 		self.name = from.name
 		self.fqn = from.fqn.joined(separator: " ")
-		self.ip = from.ip ?? ""
-		self.instanceID = from.instanceID ?? ""
+		self.ip = from.ip ?? String.empty
+		self.instanceID = from.instanceID ?? String.empty
 		self.diskSize = ByteCountFormatter.string(fromByteCount: Int64(from.diskSize), countStyle: .file)
 		self.sizeOnDisk = ByteCountFormatter.string(fromByteCount: Int64(from.sizeOnDisk), countStyle: .file)
 		self.state = from.state
-		self.fingerprint = from.fingerprint != nil ? from.fingerprint!.substring(..<12) : ""
+		self.fingerprint = from.fingerprint != nil ? from.fingerprint!.substring(..<12) : String.empty
 		if let vncURL = from.vncURL {
-			self.vncURL = vncURL.first ?? ""
+			self.vncURL = vncURL.first ?? String.empty
 		} else {
-			self.vncURL = ""
+			self.vncURL = String.empty
 		}
 	}
 }

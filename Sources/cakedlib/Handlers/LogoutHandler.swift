@@ -15,7 +15,7 @@ public struct LogoutHandler {
 
 			return LogoutReply(success: true, message: "Logged out")
 		} catch {
-			return LogoutReply(success: false, message: "\(error)")
+			return LogoutReply(success: false, message: error.reason)
 		}
 	}
 }

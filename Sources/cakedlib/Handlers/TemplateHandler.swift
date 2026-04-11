@@ -44,7 +44,7 @@ public struct TemplateHandler {
 		do {
 			return try createTemplate(location: StorageLocation(runMode: runMode).find(sourceName), templateName: templateName, startMode: startMode, runMode: runMode)
 		} catch {
-			return CreateTemplateReply(name: templateName, created: false, reason: "\(error)")
+			return CreateTemplateReply(name: templateName, created: false, reason: error.reason)
 		}
 	}
 
@@ -52,7 +52,7 @@ public struct TemplateHandler {
 		do {
 			return try createTemplate(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), templateName: templateName, startMode: startMode, runMode: runMode)
 		} catch {
-			return CreateTemplateReply(name: templateName, created: false, reason: "\(error)")
+			return CreateTemplateReply(name: templateName, created: false, reason: error.reason)
 		}
 	}
 
@@ -104,13 +104,13 @@ public struct TemplateHandler {
 						try? FileManager.default.removeItem(at: templateLocation.rootURL)
 					}
 
-					return CreateTemplateReply(name: templateName, created: false, reason: "\(error)")
+					return CreateTemplateReply(name: templateName, created: false, reason: error.reason)
 				}
 			} else {
 				return CreateTemplateReply(name: templateName, created: false, reason: "source VM \(location.name) is running")
 			}
 		} catch {
-			return CreateTemplateReply(name: templateName, created: false, reason: "\(error)")
+			return CreateTemplateReply(name: templateName, created: false, reason: error.reason)
 		}
 	}
 
@@ -121,7 +121,7 @@ public struct TemplateHandler {
 			let doIt: (VMLocation) -> DeleteTemplateReply = { location in
 				if location.status != .running {
 					try? FileManager.default.removeItem(at: location.rootURL)
-					return DeleteTemplateReply(name: location.name, deleted: true, reason: "")
+					return DeleteTemplateReply(name: location.name, deleted: true, reason: String.empty)
 				} else {
 					return DeleteTemplateReply(name: location.name, deleted: false, reason: "Template \(templateName) is running")
 				}
@@ -141,7 +141,7 @@ public struct TemplateHandler {
 
 			return DeleteTemplateReply(name: templateName, deleted: false, reason: "Template \(templateName) not found")
 		} catch {
-			return DeleteTemplateReply(name: templateName, deleted: false, reason: "\(error)")
+			return DeleteTemplateReply(name: templateName, deleted: false, reason: error.reason)
 		}
 	}
 
@@ -166,7 +166,7 @@ public struct TemplateHandler {
 				}, success: true, reason: "Success")
 
 		} catch {
-			return ListTemplateReply(templates: [], success: false, reason: "\(error)")
+			return ListTemplateReply(templates: [], success: false, reason: error.reason)
 		}
 	}
 }

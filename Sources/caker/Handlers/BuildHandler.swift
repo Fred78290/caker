@@ -42,7 +42,7 @@ extension BuildHandler {
 						}
 					} else if case .failure(let v)? = status.result {
 						await MainActor.run {
-							progressHandler(.terminated(.failure(ServiceError(LocalizedStringKey(stringLiteral: v))), nil))
+							progressHandler(.terminated(.failure(ServiceError(v)), nil))
 						}
 					}
 				} else if case .builded(let builded) = current {
@@ -53,7 +53,7 @@ extension BuildHandler {
 			try await group.waitForAll()
 			
 			guard let result else {
-				throw ServiceError("Build failed")
+				throw ServiceError(String(localized: "Build failed"))
 			}
 
 			return result

@@ -96,7 +96,7 @@ class TextFieldStore<T, F: ParseableFormatStyle>: ObservableObject where F.Forma
 	}()
 
 	private lazy var groupingSeparator: String = {
-		locale.groupingSeparator ?? ""
+		locale.groupingSeparator ?? String.empty
 	}()
 
 	private lazy var characters: String = {
@@ -104,11 +104,11 @@ class TextFieldStore<T, F: ParseableFormatStyle>: ObservableObject where F.Forma
 
 		switch type {
 		case .int:
-			return number + (allowNegative ? minusCharacter : "")
+			return number + (allowNegative ? minusCharacter : String.empty)
 		case .double:
-			return number + (allowNegative ? minusCharacter : "") + decimalSeparator
+			return number + (allowNegative ? minusCharacter : String.empty) + decimalSeparator
 		case .none:
-			return ""
+			return String.empty
 		case .macAddress:
 			return "0123456789ABCDEFabcdef:"
 		}
@@ -125,7 +125,7 @@ class TextFieldStore<T, F: ParseableFormatStyle>: ObservableObject where F.Forma
 			return true
 		}
 
-		return text.replacingOccurrences(of: groupingSeparator, with: "").allSatisfy { chars.contains($0) }
+		return text.replacingOccurrences(of: groupingSeparator, with: String.empty).allSatisfy { chars.contains($0) }
 	}
 
 	func getValue() -> T? {
@@ -177,7 +177,7 @@ class TextFieldStore<T, F: ParseableFormatStyle>: ObservableObject where F.Forma
 					let zeroCount = oldText.trailingZerosCountAfterDecimal()
 
 					newText.append(decimalSeparator)
-					newText += (0..<zeroCount).map { _ in "0" }.joined(separator: "")
+					newText += (0..<zeroCount).map { _ in "0" }.joined(separator: String.empty)
 				}
 			}
 

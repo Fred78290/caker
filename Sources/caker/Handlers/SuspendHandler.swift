@@ -25,7 +25,7 @@ extension SuspendHandler {
 		}
 
 		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError("Internal error")
+			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		return SuspendReply(try client.suspend(.with {

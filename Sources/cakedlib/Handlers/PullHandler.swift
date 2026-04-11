@@ -104,7 +104,7 @@ public struct PullHandler {
 								#if arch(arm64)
 								config.ecid = VZMacMachineIdentifier().dataRepresentation
 								#else
-									throw ServiceError("macOS VMs are only supported on Apple Silicon Macs")
+									throw ServiceError(String(localized: "macOS VMs are only supported on Apple Silicon Macs"))
 								#endif
 							}
 
@@ -186,7 +186,7 @@ public struct PullHandler {
 
 			return PullReply(reply.imageType, success: true, message: "Success")
 		} catch {
-			return PullReply(.unknown, success: false, message: "\(error)")
+			return PullReply(.unknown, success: false, message: error.reason)
 		}
 	}
 }

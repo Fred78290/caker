@@ -292,7 +292,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 
 	private var _currentDirectoryPath = FileManager.default.currentDirectoryPath
 	open var currentDirectoryURL: URL? {
-		get { _currentDirectoryPath == "" ? nil : URL(fileURLWithPath: _currentDirectoryPath, isDirectory: true) }
+		get { _currentDirectoryPath == String.empty ? nil : URL(fileURLWithPath: _currentDirectoryPath, isDirectory: true) }
 		set {
 			// Setting currentDirectoryURL to nil resets to the current directory
 			if let url = newValue {

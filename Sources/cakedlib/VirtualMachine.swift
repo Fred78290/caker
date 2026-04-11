@@ -115,7 +115,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var semaphore = AsyncSemaphore(value: 0)
 	var vmrunService: VMRunServiceServerProtocol! = nil
 	var requestStopFromUIPending = false
-	var runningIP: String = ""
+	var runningIP: String = String.empty
 	let runMode: Utils.RunMode
 	let display: VMRunHandler.DisplayMode
 	var vncServer: VZVNCServer! = nil
@@ -398,7 +398,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	public init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, runMode: Utils.RunMode, queue: dispatch_queue_t? = nil) throws {
 		
 		if config.arch != Architecture.current() {
-			throw ServiceError("Unsupported architecture")
+			throw ServiceError(String(localized: "Unsupported architecture"))
 		}
 		
 		self.config = config
@@ -1165,12 +1165,12 @@ extension VirtualMachine {
 						continuation.resume(with: .success(success))
 					} else if case .failure(let error) = result {
 						if let err = error as? SSHError {
-							continuation.resume(with: .failure(ServiceError(LocalizedStringKey(stringLiteral: err.kind.description))))
+							continuation.resume(with: .failure(ServiceError(err.kind.description)))
 						} else if let err = error as? Socket.Error {
 							if err.errorCode == Socket.SOCKET_ERR_GETADDRINFO_FAILED {
-								continuation.resume(with: .failure(ServiceError("SSH server not responding")))
+								continuation.resume(with: .failure(ServiceError(String(localized: "SSH server not responding"))))
 							} else {
-								continuation.resume(with: .failure(ServiceError("Socket error: \(err.errorCode)")))
+								continuation.resume(with: .failure(ServiceError(String(localized: "Socket error: \(err.errorCode)"))))
 							}
 						} else {
 							continuation.resume(with: .failure(error))

@@ -48,7 +48,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
-		if self.shell.name == "" {
+		if self.shell.name == String.empty {
 			self.shell.name = "primary"
 
 			self.createVM = StorageLocation(runMode: self.common.runMode).exists(self.shell.name) == false
@@ -77,7 +77,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 			do {
 				_ = try await helper.shell(callOptions: callOptions)
 			} catch {
-				Logger.appendNewLine(self.common.format.render("\(error)"))
+				Logger.appendNewLine(self.common.format.render(error.reason))
 			}
 		} else {
 			Logger.appendNewLine(self.common.format.render(result.reason))

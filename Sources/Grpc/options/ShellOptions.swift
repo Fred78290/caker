@@ -5,7 +5,7 @@ public struct ShellOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(commandName: "shell", abstract: "Run a shell on a VM", aliases: ["sh"])
 
 	@Argument(help: "VM name")
-	public var name: String = ""
+	public var name: String = String.empty
 
 	@Flag(help: .hidden)
 	public var foreground: Bool = false

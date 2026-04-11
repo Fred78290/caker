@@ -63,15 +63,15 @@ extension Service {
 			if self.insecure == false {
 				if let caCert, let tlsCert, let tlsKey {
 					if FileManager.default.fileExists(atPath: caCert) == false {
-						throw ServiceError("Root certificate file not found: \(caCert)")
+						throw ServiceError(String(localized: "Root certificate file not found: \(caCert)"))
 					}
 					
 					if FileManager.default.fileExists(atPath: tlsCert) == false {
-						throw ServiceError("TLS certificate file not found: \(tlsCert)")
+						throw ServiceError(String(localized: "TLS certificate file not found: \(tlsCert)"))
 					}
 					
 					if FileManager.default.fileExists(atPath: tlsKey) == false {
-						throw ServiceError("TLS key file not found: \(tlsKey)")
+						throw ServiceError(String(localized: "TLS key file not found: \(tlsKey)"))
 					}
 				}
 			}
@@ -142,18 +142,18 @@ extension Service {
 				self.options.tlsKey = certs.serverKeyURL.path
 			} else if let caCert = self.options.caCert, let tlsCert = self.options.tlsCert, let tlsKey = self.options.tlsKey {
 				if FileManager.default.fileExists(atPath: caCert) == false {
-					throw ServiceError("Root certificate file not found: \(caCert)")
+					throw ServiceError(String(localized: "Root certificate file not found: \(caCert)"))
 				}
 				
 				if FileManager.default.fileExists(atPath: tlsCert) == false {
-					throw ServiceError("TLS certificate file not found: \(tlsCert)")
+					throw ServiceError(String(localized: "TLS certificate file not found: \(tlsCert)"))
 				}
 				
 				if FileManager.default.fileExists(atPath: tlsKey) == false {
-					throw ServiceError("TLS key file not found: \(tlsKey)")
+					throw ServiceError(String(localized: "TLS key file not found: \(tlsKey)"))
 				}
 			} else if (self.options.tlsKey != nil || self.options.tlsCert != nil) && (self.options.tlsKey == nil || self.options.tlsCert == nil) {
-				throw ServiceError("Some cert files not provided")
+				throw ServiceError(String(localized: "Some cert files not provided"))
 			}
 		}
 		
@@ -163,7 +163,7 @@ extension Service {
 
 			guard listenAddress.count > 0 else {
 				logger.error("No listen address provided")
-				throw ServiceError("No listen address provided")
+				throw ServiceError(String(localized: "No listen address provided"))
 			}
 			
 			let runMode: Utils.RunMode = self.options.runMode
@@ -286,7 +286,7 @@ extension Service {
 			let running = ServiceHandler.isAgentRunningWithPID
 			let status = ServiceStatus(installed: ServiceHandler.isAgentInstalled,
 									   run: running.running,
-									   pid: running.pid == nil ? "" : String(running.pid!),
+									   pid: running.pid == nil ? String.empty : String(running.pid!),
 									   mode: ServiceHandler.runningMode)
 			
 			print(self.format.renderSingle(status))
@@ -300,7 +300,7 @@ extension Service {
 			let mode = ServiceHandler.runningMode
 
 			guard mode != .app && ServiceHandler.isAgentRunning(runMode: mode).running else {
-				throw ServiceError("Caked service is not running")
+				throw ServiceError(String(localized: "Caked service is not running"))
 			}
 
 			if ServiceHandler.isAgentInstalled(runMode: mode) {

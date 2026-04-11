@@ -314,7 +314,7 @@ extension CGKeyCode {
 
 			for keyCode in (0..<128).map({ CGKeyCode($0) }) {
 				guard let cgevent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: true) else {
-					throw ServiceError("Unable to create CGEvent for \(keyCode)")
+					throw ServiceError(String(localized: "Unable to create CGEvent for \(keyCode)"))
 				}
 
 				if let nsevent = NSEvent(cgEvent: cgevent) {
@@ -358,7 +358,7 @@ extension CGKeyCode {
 						}
 					#endif
 				} else {
-					throw ServiceError("unable to create NSEvent")
+					throw ServiceError(String(localized: "unable to create NSEvent"))
 				}
 			}
 

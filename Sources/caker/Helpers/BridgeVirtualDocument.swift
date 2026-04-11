@@ -17,15 +17,15 @@ struct BridgeVirtualDocument: FileDocument {
 		let file = configuration.file
 
 		guard file.isDirectory else {
-			throw ServiceError("Internal error")
+			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		guard let fileName = file.filename else {
-			throw ServiceError("Internal error")
+			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		guard let vmURL = file.contentsURL?.absoluteURL else {
-			throw ServiceError("Unable to get URL for \(fileName)")
+			throw ServiceError(String(localized: "Unable to get URL for \(fileName)"))
 		}
 
 		if let existingDocument = AppState.shared.findVirtualMachineDocument(vmURL) {
@@ -36,7 +36,7 @@ struct BridgeVirtualDocument: FileDocument {
 
 		func loadVM() throws {
 			if self.attachedVirtualDocument.loadVirtualMachine() == nil {
-				throw ServiceError("Unable to load virtual machine")
+				throw ServiceError(String(localized: "Unable to load virtual machine"))
 			}
 
 			AppState.shared.replaceVirtualMachineDocument(self.attachedVirtualDocument.url, with: self.attachedVirtualDocument)
@@ -66,6 +66,6 @@ struct BridgeVirtualDocument: FileDocument {
 			}
 		}
 
-		throw ServiceError("Virtual machine is remote")
+		throw ServiceError(String(localized: "Virtual machine is remote"))
 	}
 }

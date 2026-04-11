@@ -22,7 +22,7 @@ public struct RemoteHandler {
 
 			return CreateRemoteReply(name: name, created: true, reason: "remote \(name) added")
 		} catch {
-			return CreateRemoteReply(name: name, created: false, reason: "\(error)")
+			return CreateRemoteReply(name: name, created: false, reason: error.reason)
 		}
 	}
 
@@ -39,7 +39,7 @@ public struct RemoteHandler {
 
 			return DeleteRemoteReply(name: name, deleted: true, reason: "remote \(name) deleted")
 		} catch {
-			return DeleteRemoteReply(name: name, deleted: false, reason: "\(error)")
+			return DeleteRemoteReply(name: name, deleted: false, reason: error.reason)
 		}
 	}
 
@@ -52,7 +52,7 @@ public struct RemoteHandler {
 					RemoteEntry(name: key, url: value)
 				}, success: true, reason: "Success")
 		} catch {
-			return ListRemoteReply(remotes: [], success: false, reason: "\(error)")
+			return ListRemoteReply(remotes: [], success: false, reason: error.reason)
 		}
 	}
 }

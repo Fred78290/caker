@@ -85,7 +85,7 @@ public struct DuplicateHandler {
 
 			return DuplicatedReply(from: location.name, to: to, duplicated: true, reason: "VM duplicated")
 		} catch {
-			return DuplicatedReply(from: location.name, to: to, duplicated: false, reason: "\(error)")
+			return DuplicatedReply(from: location.name, to: to, duplicated: false, reason: error.reason)
 		}
 	}
 }

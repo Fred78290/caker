@@ -86,7 +86,7 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 
 	public func log(_ message: String) -> ProgressObserver {
 		if self.progressHandler == nil {
-			print(message + ":", terminator: "")
+			print(message + ":", terminator: String.empty)
 		}
 
 		let context: ProgressHandlerContext = .init()

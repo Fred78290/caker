@@ -24,7 +24,7 @@ public struct MultiplatformTab<ID: MultiplatformTabIdentifier> {
 	public var title: LocalizedStringKey = ""
 
 	/// The icon of the tab
-	public var icon: Image = Image("")
+	public var icon: Image = Image(String.empty)
 
 	/// An optional, unique tag for the tab.
 	public var tag: ID

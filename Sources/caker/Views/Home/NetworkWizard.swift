@@ -17,7 +17,7 @@ struct NetworkWizard: View {
 	@State private var reason: String?
 
 	init() {
-		let network = BridgedNetwork(name: "private", mode: .host, description: "Hosted network", gateway: "192.168.111.1/24", dhcpEnd: "192.168.111.254/24", dhcpLease: Self.getDhcpLease(), interfaceID: UUID().uuidString, endpoint: "", usedBy: 0)
+		let network = BridgedNetwork(name: "private", mode: .host, description: "Hosted network", gateway: "192.168.111.1/24", dhcpEnd: "192.168.111.254/24", dhcpLease: Self.getDhcpLease(), interfaceID: UUID().uuidString, endpoint: String.empty, usedBy: 0)
 		let valid = Self.validate(network)
 
 		self.vzNetwork = valid.0
@@ -129,7 +129,7 @@ struct NetworkWizard: View {
 
 	static func getDhcpLease() -> String {
 		guard let dhcpLease = try? NetworksHandler.getDHCPLease() else {
-			return ""
+			return String.empty
 		}
 
 		return "\(dhcpLease)"

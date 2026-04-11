@@ -42,3 +42,5 @@ releases/
 release-notes-*.html
 /.cake/
 .vars
+
+Caker Localizations/

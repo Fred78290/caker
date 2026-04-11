@@ -11,7 +11,7 @@ import SwiftUI
 
 extension Caked_RunReply {
 	private func print(_ out: Data, err: Bool) {
-		let output = String(data: out, encoding: .utf8) ?? ""
+		let output = String(data: out, encoding: .utf8) ?? String.empty
 		let lines = output.split(separator: "\n")
 
 		for line in lines {
@@ -125,7 +125,7 @@ extension Caked_ExecuteResponse {
 			case .established:
 				reply.established = .with {
 					$0.success = true
-					$0.reason = "Established"
+					$0.reason = String(localized: "Established")
 				}
 			case .none:
 				break
@@ -264,7 +264,7 @@ extension CakeAgentClient {
 
 		return try Caked_MountReply.with { reply in
 			if case CakeAgent.MountReply.OneOf_Response.error(let v)? = response.response {
-				throw ServiceError(LocalizedStringKey(stringLiteral: v))
+				throw ServiceError(v)
 			} else {
 				reply.mounts = response.mounts.map { mount in
 					Caked_MountVirtioFSReply.with {
@@ -298,7 +298,7 @@ extension CakeAgentClient {
 
 		return try Caked_MountReply.with { reply in
 			if case CakeAgent.MountReply.OneOf_Response.error(let v)? = response.response {
-				throw ServiceError(LocalizedStringKey(stringLiteral: v))
+				throw ServiceError(v)
 			} else {
 				reply.mounts = response.mounts.map { mount in
 					Caked_MountVirtioFSReply.with {
@@ -594,7 +594,7 @@ public final class CakeAgentConnection: Sendable {
 					try? await responseStream.send(.with {
 						$0.established = .with {
 							$0.success = false
-							$0.reason = "Canceled"
+							$0.reason = String(localized: "Canceled")
 						}
 					})
 				}

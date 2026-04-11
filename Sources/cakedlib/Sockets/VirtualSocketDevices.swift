@@ -265,7 +265,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 			case .success(let connection):
 
 				guard let socket = self.sockets[port] else {
-					promise.fail(ServiceError("Socket device not found on port:\(port)"))
+					promise.fail(ServiceError(String(localized: "Socket device not found on port:\(port)")))
 					return
 				}
 

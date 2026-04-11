@@ -12,7 +12,7 @@ struct LogoutHandler: CakedCommand {
 			$0.oci = Caked_OCIReply.with {
 				$0.logout = Caked_LogoutReply.with {
 					$0.success = false
-					$0.message = "\(error)"
+					$0.message = error.reason
 				}
 			}
 		}

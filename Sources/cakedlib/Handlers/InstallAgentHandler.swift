@@ -14,7 +14,7 @@ public struct InstallAgentHandler {
 		do {
 			return installAgent(location: try VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), timeout: timeout, runMode: runMode)
 		} catch {
-			return InstalledAgentReply(name: vmURL.absoluteString, installed: false , reason: "\(error)")
+			return InstalledAgentReply(name: vmURL.absoluteString, installed: false , reason: error.reason)
 		}
 	}
 
@@ -22,7 +22,7 @@ public struct InstallAgentHandler {
 		do {
 			return installAgent(location: try StorageLocation(runMode: runMode).find(name), timeout: timeout, runMode: runMode)
 		} catch {
-			return InstalledAgentReply(name: name, installed: false , reason: "\(error)")
+			return InstalledAgentReply(name: name, installed: false , reason: error.reason)
 		}
 	}
 
@@ -36,7 +36,7 @@ public struct InstallAgentHandler {
 
 			return InstalledAgentReply(name: location.name, installed: result.installed , reason: result.reason)
 		} catch {
-			return InstalledAgentReply(name: location.name, installed: false , reason: "\(error)")
+			return InstalledAgentReply(name: location.name, installed: false , reason: error.reason)
 		}
 	}
 }

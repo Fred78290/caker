@@ -79,7 +79,7 @@ private struct MultipassRegisteredInstance: Codable, Sendable {
 		let location = URL(fileURLWithPath: self.image.path).deletingLastPathComponent()
 
 		guard let disks = try? FileManager.default.contentsOfDirectory(at: location, includingPropertiesForKeys: nil).filter({ $0.pathExtension.lowercased() == "img" || $0.pathExtension.lowercased() == "iso" }) else {
-			throw ServiceError("No disk files found in the specified directory: \(location.path)")
+			throw ServiceError(String(localized: "No disk files found in the specified directory: \(location.path)"))
 		}
 
 		return disks.compactMap { diskURL in
@@ -276,25 +276,25 @@ struct MultipassImporter: Importer {
 		let registeredInstances: MultipassRegisteredInstances = try MultipassRegisteredInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json"))
 
 		guard let registeredInstance = registeredInstances[source] else {
-			throw ServiceError("No registered instance found for source: \(source)")
+			throw ServiceError(String(localized: "No registered instance found for source: \(source)"))
 		}
 
 		let instances: MultipassInstances = try MultipassInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json"))
 
 		guard let instance = instances[source] else {
-			throw ServiceError("No instance found: \(source)")
+			throw ServiceError(String(localized: "No instance found: \(source)"))
 		}
 
 		if instance.deleted {
-			throw ServiceError("Instance \(source) is deleted and cannot be imported.")
+			throw ServiceError(String(localized: "Instance \(source) is deleted and cannot be imported."))
 		}
 
 		if instance.state != .off && instance.state != .stopped {
-			throw ServiceError("Instance \(source) is not in a stopped state, current state: \(instance.state)")
+			throw ServiceError(String(localized: "Instance \(source) is not in a stopped state, current state: \(instance.state)"))
 		}
 
 		guard let memorySize = UInt64(instance.memSize) else {
-			throw ServiceError("Invalid memory size for instance \(source).")
+			throw ServiceError(String(localized: "Invalid memory size for instance \(source)."))
 		}
 
 		let networkAttachments = instance.networkAttachments

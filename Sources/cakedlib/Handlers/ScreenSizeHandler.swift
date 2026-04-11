@@ -13,7 +13,7 @@ public struct ScreenSizeHandler {
 		do {
 			return try setScreenSize(location: StorageLocation(runMode: runMode).find(name), width: width, height: height, runMode: runMode)
 		} catch {
-			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
+			return ScreenSizeReply(width: 0, height: 0, success: false, reason: error.reason)
 		}
 	}
 
@@ -21,7 +21,7 @@ public struct ScreenSizeHandler {
 		do {
 			return try setScreenSize(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), width: width, height: height, runMode: runMode)
 		} catch {
-			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
+			return ScreenSizeReply(width: 0, height: 0, success: false, reason: error.reason)
 		}
 	}
 
@@ -35,9 +35,9 @@ public struct ScreenSizeHandler {
 
 			client.screenSize = (width: width, height: height)
 			
-			return ScreenSizeReply(width: width, height: height, success: true, reason: "")
+			return ScreenSizeReply(width: width, height: height, success: true, reason: String.empty)
 		} catch {
-			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
+			return ScreenSizeReply(width: 0, height: 0, success: false, reason: error.reason)
 		}
 	}
 
@@ -45,7 +45,7 @@ public struct ScreenSizeHandler {
 		do {
 			return try getScreenSize(location: StorageLocation(runMode: runMode).find(name), runMode: runMode)
 		} catch {
-			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
+			return ScreenSizeReply(width: 0, height: 0, success: false, reason: error.reason)
 		}
 	}
 
@@ -53,7 +53,7 @@ public struct ScreenSizeHandler {
 		do {
 			return try getScreenSize(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), runMode: runMode)
 		} catch {
-			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
+			return ScreenSizeReply(width: 0, height: 0, success: false, reason: error.reason)
 		}
 	}
 
@@ -65,9 +65,9 @@ public struct ScreenSizeHandler {
 
 			let size = try createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).screenSize
 			
-			return ScreenSizeReply(width: size.0, height: size.1, success: true, reason: "")
+			return ScreenSizeReply(width: size.0, height: size.1, success: true, reason: String.empty)
 		} catch {
-			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
+			return ScreenSizeReply(width: 0, height: 0, success: false, reason: error.reason)
 		}
 	}
 }

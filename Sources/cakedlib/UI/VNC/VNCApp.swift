@@ -102,7 +102,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 		 screenSizeAction: VNCApp.VNCSetScreenSizeAction? = nil) throws {
 
 		guard let vncPort = vncURL.port, let vncHost = vncURL.host(percentEncoded: false) else {
-			throw ServiceError("VM \(name) does not have a VNC connection")
+			throw ServiceError(String(localized: "VM \(name) does not have a VNC connection"))
 		}
 
 		// Create settings
@@ -218,7 +218,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 
 			if let continuation = self.continuation {
 				if newStatus == .disconnecting || newStatus == .disconnected {
-					continuation.finish(throwing: ServiceError("VNC disconnected unexpectedly"))
+					continuation.finish(throwing: ServiceError(String(localized: "VNC disconnected unexpectedly")))
 				}
 
 				continuation.yield(newStatus)
@@ -232,7 +232,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 		var credential: RoyalVNCKit.VNCCredential? = nil
 
 		func readInput(_ prompt: String) -> String? {
-			print(prompt, terminator: "")
+			print(prompt, terminator: String.empty)
 
 			return readLine(strippingNewline: true)
 		}

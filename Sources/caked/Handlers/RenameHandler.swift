@@ -14,7 +14,7 @@ struct RenameHandler: CakedCommand {
 					$0.oldName = self.request.oldname
 					$0.newName = self.request.newname
 					$0.renamed = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		}

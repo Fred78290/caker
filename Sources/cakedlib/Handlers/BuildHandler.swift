@@ -43,7 +43,7 @@ public struct BuildHandler {
 				})
 			return BuildedReply(name: options.name, builded: true, reason: "VM created")
 		} catch {
-			return BuildedReply(name: options.name, builded: false, reason: "\(error)")
+			return BuildedReply(name: options.name, builded: false, reason: error.reason)
 		}
 	}
 }

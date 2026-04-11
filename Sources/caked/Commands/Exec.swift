@@ -67,7 +67,7 @@ struct Exec: CakeAgentAsyncParsableCommand {
 					throw CakedLib.ExitCode(exitCode)
 				}
 			} catch {
-				Logger.appendNewLine(self.common.format.render("\(error)"))
+				Logger.appendNewLine(self.common.format.render(error.reason))
 			}
 		} else {
 			Logger.appendNewLine(self.common.format.render(result.reason))

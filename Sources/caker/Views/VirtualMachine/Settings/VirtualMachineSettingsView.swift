@@ -46,7 +46,7 @@ struct VirtualMachineSettingsView: View {
 
 		self._document = StateObject(wrappedValue: document)
 		self.config = document.virtualMachineConfig
-		self.userPassword = config.configuredPassword ?? ""
+		self.userPassword = config.configuredPassword ?? String.empty
 	}
 
 	init(document: StateObject<VirtualMachineDocument>) {
@@ -54,7 +54,7 @@ struct VirtualMachineSettingsView: View {
 
 		self._document = document
 		self.config = config
-		self.userPassword = config.configuredPassword ?? ""
+		self.userPassword = config.configuredPassword ?? String.empty
 	}
 
 	var body: some View {
@@ -207,7 +207,7 @@ struct VirtualMachineSettingsView: View {
 				Text("Memory size")
 				Spacer().border(.black)
 				HStack {
-					TextField("", value: $config.memorySizeInMoB, format: .number /*.memory(.useGB)*/)
+					TextField(String.empty, value: $config.memorySizeInMoB, format: .number /*.memory(.useGB)*/)
 						.rounded(.center)
 						.frame(width: 50)
 					Stepper(value: $config.memorySizeInMoB, in: totalMemoryRange, step: 1) {
@@ -236,14 +236,14 @@ struct VirtualMachineSettingsView: View {
 				HStack {
 					Text("Width")
 					Spacer().border(.black)
-					TextField("", value: $config.display.width, format: .number)
+					TextField(String.empty, value: $config.display.width, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
 				}
 				HStack {
 					Text("Height")
 					Spacer().border(.black)
-					TextField("", value: $config.display.height, format: .number)
+					TextField(String.empty, value: $config.display.height, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
 				}

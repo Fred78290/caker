@@ -38,7 +38,7 @@ extension CurrentStatusHandler {
 		}
 
 		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError("Internal error")
+			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		return TaskCancellable {
@@ -67,7 +67,7 @@ extension CurrentStatusHandler {
 					case .usage(let usage):
 						statusStream.yield(.usage(usage))
 					case .failure(let reason):
-						statusStream.yield(.error(ServiceError(LocalizedStringKey(stringLiteral: reason))))
+						statusStream.yield(.error(ServiceError(reason)))
 					default:
 						break
 					}

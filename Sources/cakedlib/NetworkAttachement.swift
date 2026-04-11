@@ -81,13 +81,13 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 	@available(macOS 26.0, *)
 	private func createVMNetwork() throws -> vmnet_network_ref {
 		guard let networkConfig else {
-			throw ServiceError("Unable to configure network")
+			throw ServiceError(String(localized: "Unable to configure network"))
 		}
 
 		let dhcpStart = "\(networkConfig.dhcpStart)/\(networkConfig.netmask.netmaskToCidr())".toIPV4()
 
 		guard let network = dhcpStart.address, let netmask = dhcpStart.netmask else {
-			throw ServiceError("Bad network configuration \(networkConfig.dhcpStart)")
+			throw ServiceError(String(localized: "Bad network configuration \(networkConfig.dhcpStart)"))
 		}
 
 		var addr = in_addr(s_addr: in_addr_t(network.storage))
@@ -95,26 +95,26 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		let status = UnsafeMutablePointer<vmnet_return_t>.allocate(capacity: 1)
 
 		guard let network_configuration = vmnet_network_configuration_create(mode == .shared ? .VMNET_SHARED_MODE : .VMNET_HOST_MODE, status) else {
-			throw ServiceError("Can't create vmnet configuration: \(status.pointee.description)")
+			throw ServiceError(String(localized: "Can't create vmnet configuration: \(status.pointee.description)"))
 		}
 
 		let result = vmnet_network_configuration_set_ipv4_subnet(network_configuration, &addr, &mask)
 
 		guard result == .VMNET_SUCCESS else {
-			throw ServiceError("Failed to reconfigure network: \(result.description)")
+			throw ServiceError(String(localized: "Failed to reconfigure network: \(result.description)"))
 		}
 
 		if let nat66Prefix = networkConfig.nat66Prefix {
 			let parts = nat66Prefix.split(separator: "/")
 
 			guard let prefixStr = parts.first else {
-				throw ServiceError("Invalid NAT66 prefix \(nat66Prefix)")
+				throw ServiceError(String(localized: "Invalid NAT66 prefix \(nat66Prefix)"))
 			}
 
 			let prefixLen = parts.count > 1 ? UInt8(parts[1]) ?? 64 : 64
 
 			guard let parsed = String(prefixStr).to_in6_addr() else {
-				throw ServiceError("Bad NAT66 prefix \(nat66Prefix)")
+				throw ServiceError(String(localized: "Bad NAT66 prefix \(nat66Prefix)"))
 			}
 
 			var ipv6Prefix = parsed
@@ -124,7 +124,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 			}
 
 			guard result == .VMNET_SUCCESS else {
-				throw ServiceError("Failed to set NAT66 prefix (\(result.description))")
+				throw ServiceError(String(localized: "Failed to set NAT66 prefix (\(result.description))"))
 			}
 		}
 
@@ -134,7 +134,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		}
 
 		guard let network = vmnet_network_create(network_configuration, status) else {
-			throw ServiceError("Can't create vmnet network: \(status.pointee.description)")
+			throw ServiceError(String(localized: "Can't create vmnet network: \(status.pointee.description)"))
 		}
 
 		return network
@@ -160,14 +160,14 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 
 		if ret != 0 {
 			perror("setsockopt(SO_RCVBUF) returned \(ret)")
-			throw ServiceError("setsockopt(SO_RCVBUF) returned \(ret)")
+			throw ServiceError(String(localized: "setsockopt(SO_RCVBUF) returned \(ret)"))
 		}
 
 		ret = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &sendBufferSize, option_len)
 
 		if ret != 0 {
 			perror("setsockopt(SO_SNDBUF) returned \(ret)")
-			throw ServiceError("setsockopt(SO_SNDBUF) returned \(ret), \(String(cString:strerror(errno)))")
+			throw ServiceError(String(localized: "setsockopt(SO_SNDBUF) returned \(ret), \(String(cString:strerror(errno)))"))
 		}
 	}
 
@@ -214,7 +214,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 			}
 
 			if socketpair(AF_UNIX, SOCK_DGRAM, 0, fds) != 0 {
-				throw ServiceError("unable to create socket with exit code \(String(errno: errno))")
+				throw ServiceError(String(localized: "unable to create socket with exit code \(String(errno: errno))"))
 			}
 
 			try setSocketBuffers(fd: fds[0], sizeBytes: Int(MoB))

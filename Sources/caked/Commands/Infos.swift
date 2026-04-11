@@ -40,7 +40,7 @@ struct Infos: CakeAgentParsableCommand {
 			
 			Logger.appendNewLine(self.common.format.render(result.infos))
 		} catch {
-			Logger.appendNewLine(self.common.format.render("\(error)"))
+			Logger.appendNewLine(self.common.format.render(error.reason))
 		}
 	}
 }

@@ -39,7 +39,7 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 			
 			if let err: GRPCStatus = error as? GRPCStatus {
 				if err.code == .unavailable || err.code == .cancelled {
-					description = "Connection refused"
+					description = String(localized: "Connection refused")
 				} else {
 					description = err.description
 				}

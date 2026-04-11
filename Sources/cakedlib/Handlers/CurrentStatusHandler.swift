@@ -354,7 +354,7 @@ public struct CurrentStatusHandler {
 									}
 								case .failure(let reason):
 									self.logger.debug("Failure for VM \(self.location.name), \(reason)")
-									self.statusStream.yield(.error(ServiceError(LocalizedStringKey(stringLiteral: reason))))
+									self.statusStream.yield(.error(ServiceError(reason)))
 								default:
 									break
 								}
@@ -444,7 +444,7 @@ public struct CurrentStatusHandler {
 								$0.statuses = [
 									.with {
 										$0.name = location.name
-										$0.failure = "\(error)"
+										$0.failure = error.reason
 									}
 								]
 							}

@@ -91,9 +91,9 @@ struct FileHelpers {
 
 		openPrompt.allowsOtherFileTypes = true
 		openPrompt.canCreateDirectories = true
-		openPrompt.prompt = "Save As..."
+		openPrompt.prompt = String(localized: "Save As...")
 		openPrompt.allowedContentTypes = ofType
-		openPrompt.nameFieldLabel = "Enter file name:"
+		openPrompt.nameFieldLabel = String(localized: "Enter file name:")
 		openPrompt.nameFieldStringValue = "file"
 
 		return openPrompt

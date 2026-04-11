@@ -64,6 +64,6 @@ struct VNC: GrpcParsableCommand {
 								  vmStatus: vmStatus,
 								  screenSizeAction: screenSizeAction)
 
-		return ""
+		return String.empty
 	}
 }

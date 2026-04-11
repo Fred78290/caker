@@ -20,7 +20,7 @@ struct PingHandler: CakedCommand, Sendable {
 		return Caked_Reply.with {
 			$0.ping = .with {
 				$0.success = false
-				$0.message = "\(error)"
+				$0.message = error.reason
 				$0.requestTimestamp = self.request.timestamp
 				$0.responseTimestamp = Int64(Date().timeIntervalSince1970 * 1_000_000_000)
 				$0.status = .error
