@@ -709,16 +709,10 @@ extension VirtualMachineConfiguration {
 
 	public func collectNetworks(runMode: Utils.RunMode) throws -> [NetworkAttachement] {
 		let networks = self.qualifiedNetworks
-		let vmNetworking: Bool
+		let vmNetworking = Entitlement.hasVMNetworking()
 		let home: Home = try Home(runMode: runMode)
 		let networkConfig = try home.sharedNetworks()
 		let sharedNetworks = networkConfig.sharedNetworks
-
-		if let profile = try? EmbedProvisionProfile.load() {
-			vmNetworking = profile.entitlements.vmNetworking
-		} else {
-			vmNetworking = false
-		}
 
 		return networks.compactMap { inf in
 			if inf.isNAT() {

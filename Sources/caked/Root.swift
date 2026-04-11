@@ -52,18 +52,12 @@ struct Root: ParsableCommand {
 	}()
 
 	private static func discussion() -> String {
-		let vmNetworking: Bool
-
 		#if XDEBUG
 		print("wait for attachement of the debugger (lldb attach \(getpid())) and press enter to continue...")
 		_ = readLine()
 		#endif
-
-		if let profile = try? EmbedProvisionProfile.load() {
-			vmNetworking = profile.entitlements.vmNetworking
-		} else {
-			vmNetworking = false
-		}
+		
+		let vmNetworking: Bool = Entitlement.hasVMNetworking()
 
 		return "Caked \(CI.version) - Hypervisor running VM on macOS with a focus on security, performance and integration, with vmnet networking: \(vmNetworking)"
 	}
