@@ -356,7 +356,7 @@ extension URL: Purgeable {
 		if ret != 0 {
 			let details = Errno(rawValue: CInt(errno))
 
-			throw ServiceError(String(localized: "utimes(2) failed: \(details)"))
+			throw ServiceError(String(localized: "utimes(2) failed: \(details.description)"))
 		}
 	}
 }
@@ -561,7 +561,7 @@ public struct Utilities {
 		do {
 			return try decoder.decode(T.self, from: data)
 		} catch {
-			throw ServiceError(String(localized: "JSON decode failed for URL: \(url.absoluteString) with error: \(error)"))
+			throw ServiceError(String(localized: "JSON decode failed for URL: \(url.absoluteString) with error: \(error.reason)"))
 		}
 	}
 }

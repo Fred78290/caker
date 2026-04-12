@@ -38,9 +38,9 @@ public struct ImportHandler {
 		let storageLocation = StorageLocation(runMode: runMode)
 
 		if importer.needSudo && geteuid() != 0 {
-			return ImportedReply(source: source, name: name, imported: false, reason: "Importing from \(importer.name) requires root privileges.")
+			return ImportedReply(source: source, name: name, imported: false, reason: String(localized: "Importing from \(importer.name) requires root privileges."))
 		} else if storageLocation.exists(name) {
-			return ImportedReply(source: source, name: name, imported: false, reason: "VM already exists")
+			return ImportedReply(source: source, name: name, imported: false, reason: String(localized: "VM already exists"))
 		} else {
 			var tempLocation: VMLocation! = nil
 
@@ -51,7 +51,7 @@ public struct ImportHandler {
 				try FileManager.default.setAttributesRecursively([.ownerAccountID: uid, .groupOwnerAccountID: gid], atPath: tempLocation.rootURL.path)
 				try storageLocation.relocate(name, from: tempLocation)
 
-				return ImportedReply(source: source, name: name, imported: true, reason: "VM imported successfully")
+				return ImportedReply(source: source, name: name, imported: true, reason: String(localized: "VM imported successfully"))
 			} catch {
 				try? tempLocation?.delete()
 

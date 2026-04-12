@@ -19,7 +19,7 @@ public struct PullHandler {
 		let ref = try Reference.parse(ref)
 
 		guard let host = ref.resolvedDomain else {
-			throw ContainerizationError(.invalidArgument, message: "No host specified in image reference")
+			throw ContainerizationError(.invalidArgument, message: String(localized: "No host specified in image reference"))
 		}
 
 		let keychain = KeychainHelper(id: Utilities.keychainID)
@@ -64,11 +64,11 @@ public struct PullHandler {
 				}
 			}
 
-			return PullReply(.init(rawValue: imageType.rawValue)!, success: true, message: "Success")
+			return PullReply(.init(rawValue: imageType.rawValue)!, success: true, message: String(localized: "Success"))
 		} else {
 			let imageType = try await image.manifest(for: .current).imageType()
 
-			return PullReply(.init(rawValue: imageType.rawValue)!, success: true, message: "Success")
+			return PullReply(.init(rawValue: imageType.rawValue)!, success: true, message: String(localized: "Success"))
 		}
 
 	}
@@ -76,7 +76,7 @@ public struct PullHandler {
 	public static func pull(name: String, image: String, insecure: Bool, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async -> PullReply {
 		do {
 			if StorageLocation(runMode: runMode).exists(name) {
-				return PullReply(.unknown, success: false, message: "VM already exists")
+				return PullReply(.unknown, success: false, message: String(localized: "VM already exists"))
 			}
 
 			let tempVMLocation: VMLocation = try VMLocation.tempDirectory(runMode: runMode)
@@ -184,7 +184,7 @@ public struct PullHandler {
 					try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 				})
 
-			return PullReply(reply.imageType, success: true, message: "Success")
+			return PullReply(reply.imageType, success: true, message: String(localized: "Success"))
 		} catch {
 			return PullReply(.unknown, success: false, message: error.reason)
 		}

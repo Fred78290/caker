@@ -28,7 +28,7 @@ public struct ScreenSizeHandler {
 	public static func setScreenSize(location: VMLocation, width: Int, height: Int, runMode: Utils.RunMode) -> ScreenSizeReply {
 		do {
 			guard location.status == .running else {
-				return ScreenSizeReply(width: 0, height: 0, success: false, reason: "VM is not running")
+				return ScreenSizeReply(width: 0, height: 0, success: false, reason: String(localized: "VM is not running"))
 			}
 
 			var client = try createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode)
@@ -60,7 +60,7 @@ public struct ScreenSizeHandler {
 	public static func getScreenSize(location: VMLocation, runMode: Utils.RunMode) -> ScreenSizeReply {
 		do {
 			guard location.status == .running else {
-				return ScreenSizeReply(width: 0, height: 0, success: false, reason: "VM is not running")
+				return ScreenSizeReply(width: 0, height: 0, success: false, reason: String(localized: "VM is not running"))
 			}
 
 			let size = try createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).screenSize

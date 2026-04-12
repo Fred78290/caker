@@ -9,13 +9,13 @@ import CakeAgentLib
 struct Push: GrpcParsableCommand {
 	static let configuration = PushOptions.configuration
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@OptionGroup(title: "Push options")
+	@OptionGroup(title: String(localized: "Push options"))
 	var push: PushOptions
 
-	@Flag(help: "Output format: text or json")
+	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {

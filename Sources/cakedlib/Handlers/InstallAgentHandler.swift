@@ -29,7 +29,7 @@ public struct InstallAgentHandler {
 	public static func installAgent(location: VMLocation, timeout: UInt, runMode: Utils.RunMode) -> InstalledAgentReply {
 		do {
 			guard location.status == .running else {
-				return InstalledAgentReply(name: location.name, installed: false, reason: "VM is not running")
+				return InstalledAgentReply(name: location.name, installed: false, reason: String(localized: "VM is not running"))
 			}
 
 			let result = try createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).installAgent(timeout: timeout)

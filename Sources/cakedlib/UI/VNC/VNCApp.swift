@@ -130,11 +130,11 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 	}
 
 	required init(from decoder: any Decoder) throws {
-		throw ValidationError("Unimplemented")
+		throw ValidationError(String(localized: "Unimplemented"))
 	}
 
 	func encode(to encoder: any Encoder) throws {
-		throw ValidationError("Unimplemented")
+		throw ValidationError(String(localized: "Unimplemented"))
 	}
 
 	func tryVNCConnect() {

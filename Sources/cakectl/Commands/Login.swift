@@ -6,19 +6,19 @@ import SwiftUI
 import CakeAgentLib
 
 struct Login: GrpcParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Login to a registry")
+	static let configuration = CommandConfiguration(abstract: String(localized: "Login to a registry"))
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@OptionGroup(title: "Login options")
+	@OptionGroup(title: String(localized: "Login options"))
 	var login: LoginOptions
 
-	@Flag(help: "Output format: text or json")
+	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
 
 	func run() async throws {
-		throw GrpcError(code: 0, reason: "nothing here")
+		throw GrpcError(code: 0, reason: String(localized: "nothing here"))
 	}
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {

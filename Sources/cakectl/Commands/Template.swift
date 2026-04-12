@@ -6,19 +6,19 @@ import CakeAgentLib
 
 struct Template: ParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(
-		abstract: "Manage simplestream remote",
+		abstract: String(localized: "Manage simplestream remote"),
 		subcommands: [CreateTemplate.self, DeleteTemplate.self, ListTemplate.self])
 
 	struct CreateTemplate: GrpcParsableCommand {
 		static let configuration = TemplateCreateOptions.configuration
 
-		@OptionGroup(title: "Client options")
+		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@OptionGroup(title: "Create template options")
+		@OptionGroup(title: String(localized: "Create template options"))
 		var template: TemplateCreateOptions
 
-		@Flag(help: "Output format")
+		@Flag(help: ArgumentHelp(String(localized: "Output format")))
 		var format: Format = .text
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
@@ -29,13 +29,13 @@ struct Template: ParsableCommand {
 	struct DeleteTemplate: GrpcParsableCommand {
 		static let configuration = TemplateDeletionOptions.configuration
 
-		@OptionGroup(title: "Client options")
+		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@OptionGroup(title: "Delete template options")
+		@OptionGroup(title: String(localized: "Delete template options"))
 		var template: TemplateDeletionOptions
 
-		@Flag(help: "Output format")
+		@Flag(help: ArgumentHelp(String(localized: "Output format")))
 		var format: Format = .text
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
@@ -46,10 +46,10 @@ struct Template: ParsableCommand {
 	struct ListTemplate: GrpcParsableCommand {
 		static let configuration = TemplateListOptions.configuration
 
-		@OptionGroup(title: "Client options")
+		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Flag(help: "Output format")
+		@Flag(help: ArgumentHelp(String(localized: "Output format")))
 		var format: Format = .text
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {

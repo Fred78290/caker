@@ -12,7 +12,7 @@ public struct ShellError: Swift.Error {
 	public let message: String
 
 	var description: String {
-		return "exitCode:\(terminationStatus), reason: \(error) infos: \(message)"
+		return String(localized: "exitCode:\(terminationStatus), reason: \(error) infos: \(message)")
 	}
 
 	var localizedDescription: String {

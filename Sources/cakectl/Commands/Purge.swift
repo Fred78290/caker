@@ -7,13 +7,13 @@ import CakeAgentLib
 struct Purge: GrpcParsableCommand {
 	static let configuration = PurgeOptions.configuration
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@OptionGroup(title: "Purge options")
+	@OptionGroup(title: String(localized: "Purge options"))
 	var purge: PurgeOptions
 
-	@Flag(help: "Output format: text or json")
+	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {

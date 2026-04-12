@@ -80,7 +80,7 @@ public struct ListHandler {
 				}
 			}
 
-			return VirtualMachineInfoReply(infos: vmInfos, success: true, reason: "Success")
+			return VirtualMachineInfoReply(infos: vmInfos, success: true, reason: String(localized: "Success"))
 		} catch {
 			return VirtualMachineInfoReply(infos: [], success: false, reason: error.reason)
 		}

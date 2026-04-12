@@ -7,13 +7,13 @@ import CakeAgentLib
 struct Configure: AsyncParsableCommand {
 	static let configuration = ConfigureOptions.configuration
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@OptionGroup(title: "Configure VM options")
+	@OptionGroup(title: String(localized: "Configure VM options"))
 	var configure: ConfigureOptions
 
-	@Flag(help: "Output format: text or json")
+	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {

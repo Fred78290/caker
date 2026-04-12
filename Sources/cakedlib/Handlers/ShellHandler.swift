@@ -175,11 +175,11 @@ public struct ShellHandler {
 
 		init(vmURL: URL, runMode: Utils.RunMode) throws {
 			if vmURL.isFileURL {
-				throw ServiceError(String(localized: "Cannot create ShellCaked for file URL: \(vmURL)"))
+				throw ServiceError(String(localized: "Cannot create ShellCaked for file URL: \(vmURL.absoluteString)"))
 			}
 
 			guard let name = vmURL.host(percentEncoded: false) else {
-				throw ServiceError(String(localized: "Wrong URL: \(vmURL). Cannot extract name"))
+				throw ServiceError(String(localized: "Wrong URL: \(vmURL.absoluteString). Cannot extract name"))
 			}
 
 			self.name = name

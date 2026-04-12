@@ -17,7 +17,7 @@ import RoyalVNCKit
 import SwiftUI
 
 struct VNC: CakeAgentParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "vnc", abstract: "Start a VNC client for a running VM")
+	static var configuration = CommandConfiguration(commandName: "vnc", abstract: String(localized: "Start a VNC client for a running VM"))
 	static let logger = Logger("VNCClient")
 
 	var createVM: Bool = false
@@ -30,16 +30,16 @@ struct VNC: CakeAgentParsableCommand {
 		self.common.runMode
 	}
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "override client agent options", visibility: .hidden)
+	@OptionGroup(title: String(localized: "override client agent options"), visibility: .hidden)
 	var options: CakeAgentClientOptions
 
-	@Argument(help: "VM name")
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	var name: String
 
-	@Flag(name: .customLong("vnc-debug"), help: ArgumentHelp("Trace vnc traffic", visibility: .hidden))
+	@Flag(name: .customLong("vnc-debug"), help: ArgumentHelp(String(localized: "Trace vnc traffic"), visibility: .hidden))
 	var vncDebug: Bool = false
 
 	mutating func validate() throws {
@@ -50,7 +50,7 @@ struct VNC: CakeAgentParsableCommand {
 		let location = try StorageLocation(runMode: runMode).find(name)
 
 		if location.status != .running {
-			throw ValidationError("VM \(self.name) is not running")
+			throw ValidationError(String(localized: "VM \(self.name) is not running"))
 		}
 	}
 

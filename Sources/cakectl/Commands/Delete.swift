@@ -8,13 +8,13 @@ import CakeAgentLib
 struct Delete: GrpcParsableCommand {
 	static let configuration: CommandConfiguration = DeleteOptions.configuration
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@OptionGroup(title: "Delete options")
+	@OptionGroup(title: String(localized: "Delete options"))
 	var delete: DeleteOptions
 
-	@Flag(help: "Output format")
+	@Flag(help: ArgumentHelp(String(localized: "Output format")))
 	var format: Format = .text
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {

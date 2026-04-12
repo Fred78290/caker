@@ -5,12 +5,12 @@ import CakeAgentLib
 import Virtualization
 
 struct Configure: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Reconfigure VM")
+	static let configuration = CommandConfiguration(abstract: String(localized: "Reconfigure VM"))
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Configure options")
+	@OptionGroup(title: String(localized: "Configure options"))
 	var options: ConfigureOptions
 
 	func validate() throws {

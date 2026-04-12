@@ -12,7 +12,7 @@ public struct BuildHandler {
 			let storageLocation = StorageLocation(runMode: runMode)
 
 			if storageLocation.exists(options.name) {
-				return BuildedReply(name: options.name, builded: false, reason: "VM already exists")
+				return BuildedReply(name: options.name, builded: false, reason: String(localized: "VM already exists"))
 			}
 
 			let tempVMLocation: VMLocation = try VMLocation.tempDirectory(runMode: runMode)
@@ -41,7 +41,7 @@ public struct BuildHandler {
 				onCancel: {
 					try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 				})
-			return BuildedReply(name: options.name, builded: true, reason: "VM created")
+			return BuildedReply(name: options.name, builded: true, reason: String(localized: "VM created"))
 		} catch {
 			return BuildedReply(name: options.name, builded: false, reason: error.reason)
 		}

@@ -169,7 +169,7 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 		}
 
 		if source.hasPrefix("http:") || source.hasPrefix("https:") {
-			throw ValidationError("Remote directories are not supported")
+			throw ValidationError(String(localized: "Remote directories are not supported"))
 		}
 
 		return (readOnly, name, source, destination, uid, gid)

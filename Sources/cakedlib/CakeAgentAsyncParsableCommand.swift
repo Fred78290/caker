@@ -44,7 +44,7 @@ extension CakeAgentEnvironment {
 		let listeningAddress: URL
 		
 		if name.contains("/") {
-			throw ValidationError("\(name) should be a local name")
+			throw ValidationError(String(localized: "\(name) should be a local name"))
 		}
 		
 		if self.createVM {

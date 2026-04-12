@@ -382,7 +382,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 		self.reply { serviceReply in
 			self.vm.stopGrandCentralUpdate()
 
-			serviceReply.grandCentralUpdateReply(success: true, reason: "Success")
+			serviceReply.grandCentralUpdateReply(success: true, reason: String(localized: "Success"))
 		}
 	}
 }
@@ -538,7 +538,7 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 			}
 			
 			return MountInfos.with {
-				$0.reason = String(localized: "Unexpected reply from VMRunService \(reply)")
+				$0.reason = String(localized: "Unexpected reply from VMRunService")
 			}
 		}
 		

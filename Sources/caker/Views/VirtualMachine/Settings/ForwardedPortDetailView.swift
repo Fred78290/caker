@@ -18,9 +18,9 @@ struct ForwardedPortDetailView: View {
 		var description: String {
 			switch self {
 			case .portForwarding:
-				return "Port forwarding"
+				return String(localized: "Port forwarding")
 			case .unixDomainSocket:
-				return "Unix domain socket"
+				return String(localized: "Unix domain socket")
 			}
 		}
 	}

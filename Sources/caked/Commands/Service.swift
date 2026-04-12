@@ -21,34 +21,34 @@ struct Certs {
 
 struct Service: ParsableCommand {
 	static let configuration = CommandConfiguration(
-		abstract: "caked as launchctl agent",
+		abstract: String(localized: "caked as launchctl agent"),
 		subcommands: [Install.self, Listen.self, Show.self, Status.self, Stop.self])
 }
 
 extension Service {
 	struct ServiceOptions: ParsableArguments {
-		@Option(name: [.customLong("log-level")], help: "Log level")
+		@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
 		var logLevel: Logger.LogLevel = .info
 		
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Install caked as system agent, need sudo")
+		@Flag(name: [.customLong("system"), .customShort("s")], help: ArgumentHelp(String(localized: "Install caked as system agent, need sudo")))
 		var asSystem: Bool = false
 		
-		@Option(name: [.customLong("address"), .customShort("l")], help: "Listen on address")
+		@Option(name: [.customLong("address"), .customShort("l")], help: ArgumentHelp(String(localized: "Listen on address")))
 		var address: [String] = []
 		
-		@Flag(name: [.customLong("insecure"), .customShort("i")], help: "don't use TLS")
+		@Flag(name: [.customLong("insecure"), .customShort("i")], help: ArgumentHelp(String(localized: "don't use TLS")))
 		var insecure: Bool = false
 		
-		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
+		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: ArgumentHelp(String(localized: "CA TLS certificate")))
 		var caCert: String?
 		
-		@Option(name: [.customLong("tls-cert"), .customShort("t")], help: "Client TLS certificate")
+		@Option(name: [.customLong("tls-cert"), .customShort("t")], help: ArgumentHelp(String(localized: "Client TLS certificate")))
 		var tlsCert: String?
 		
-		@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
+		@Option(name: [.customLong("tls-key"), .customShort("k")], help: ArgumentHelp(String(localized: "Client private key")))
 		var tlsKey: String?
 		
-		@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow mode to connect to a VMRun service endpoint"))
+		@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allow mode to connect to a VMRun service endpoint")))
 		var mode: VMRunServiceMode = .grpc
 		
 		var runMode: Utils.RunMode {
@@ -97,9 +97,9 @@ extension Service {
 	}
 	
 	struct Install: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Install caked daemon as launchctl agent")
+		static let configuration = CommandConfiguration(abstract: String(localized: "Install caked daemon as launchctl agent"))
 		
-		@OptionGroup(title: "Agent common options")
+		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 		
 		func run() throws {
@@ -123,12 +123,12 @@ extension Service {
 	}
 	
 	struct Listen: AsyncParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "caked daemon listening")
+		static let configuration: CommandConfiguration = CommandConfiguration(abstract: String(localized: "caked daemon listening"))
 		
 		@Flag(help: .hidden)
 		var secure: Bool = false
 		
-		@OptionGroup(title: "Agent common options")
+		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 		
 		mutating func validate() throws {
@@ -226,9 +226,9 @@ extension Service {
 	}
 	
 	struct Show: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Help to run caked daemon")
+		static let configuration = CommandConfiguration(abstract: String(localized: "Help to run caked daemon"))
 		
-		@OptionGroup(title: "Agent common options")
+		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 		
 		mutating func run() throws {
@@ -270,9 +270,9 @@ extension Service {
 	}
 	
 	struct Status: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Tell the status of caked daemon")
+		static let configuration = CommandConfiguration(abstract: String(localized: "Tell the status of caked daemon"))
 		
-		@Flag(help: "Output format: text or json")
+		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 		var format: Format = .text
 		
 		struct ServiceStatus: Codable {
@@ -294,7 +294,7 @@ extension Service {
 	}
 	
 	struct Stop: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Tell to stop caked daemon")
+		static let configuration = CommandConfiguration(abstract: String(localized: "Tell to stop caked daemon"))
 		
 		mutating func run() throws {
 			let mode = ServiceHandler.runningMode

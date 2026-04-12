@@ -37,7 +37,7 @@ public struct RestartHandler {
 				return RestartedObject(name: location.name, restarted: true, reason: String.empty)
 			}
 			
-			return RestartedObject(name: location.name, restarted: false, reason: "VM is not running")
+			return RestartedObject(name: location.name, restarted: false, reason: String(localized: "VM is not running"))
 		} catch {
 			return RestartedObject(name: location.name, restarted: false, reason: error.reason)
 		}
@@ -48,6 +48,6 @@ public struct RestartHandler {
 			RestartHandler.restart(name: $0, startMode: startMode, gcd: gcd, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 		}
 		
-		return RestartReply(objects: restarted, success: true, reason: "Success")
+		return RestartReply(objects: restarted, success: true, reason: String(localized: "Success"))
 	}
 }

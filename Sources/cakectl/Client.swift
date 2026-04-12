@@ -116,28 +116,28 @@ struct Client: ParsableCommand {
 			}
 		}
 
-		@Option(help: "Connection timeout in seconds")
+		@Option(help: ArgumentHelp(String(localized: "Connection timeout in seconds")))
 		public var timeout: Int64 = 10
 
-		@Flag(name: [.customLong("disable-tls")], help: "Don't use TLS")
+		@Flag(name: [.customLong("disable-tls")], help: ArgumentHelp(String(localized: "Don't use TLS")))
 		public var insecure: Bool = false
 
-		@Flag(name: [.customLong("system")], help: "Caked run as system agent")
+		@Flag(name: [.customLong("system")], help: ArgumentHelp(String(localized: "Caked run as system agent")))
 		public var asSystem: Bool = false
 
-		@Option(name: [.customLong("connect")], help: ArgumentHelp("Connect to address", valueName: "address"))
+		@Option(name: [.customLong("connect")], help: ArgumentHelp(String(localized: "Connect to address"), valueName: "address"))
 		public var address: String = try! Utils.getDefaultServerAddress(runMode: .user)
 
-		@Option(name: [.customLong("ca-cert")], help: ArgumentHelp("CA TLS certificate", valueName: "path"))
+		@Option(name: [.customLong("ca-cert")], help: ArgumentHelp(String(localized: "CA TLS certificate"), valueName: "path"))
 		public var caCert: String? = nil
 
-		@Option(name: [.customLong("tls-cert")], help: ArgumentHelp("Client TLS certificate", valueName: "path"))
+		@Option(name: [.customLong("tls-cert")], help: ArgumentHelp(String(localized: "Client TLS certificate"), valueName: "path"))
 		public var tlsCert: String? = nil
 
-		@Option(name: [.customLong("tls-key")], help: ArgumentHelp("Client private key", valueName: "path"))
+		@Option(name: [.customLong("tls-key")], help: ArgumentHelp(String(localized: "Client private key"), valueName: "path"))
 		public var tlsKey: String? = nil
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
+		@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
 		public var logLevel: CakeAgentLib.Logger.LogLevel = .info
 
 		mutating func validate() throws {
@@ -161,7 +161,7 @@ struct Client: ParsableCommand {
 		}
 	}
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
 	nonisolated(unsafe)

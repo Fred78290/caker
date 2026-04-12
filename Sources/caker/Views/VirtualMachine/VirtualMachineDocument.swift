@@ -36,13 +36,13 @@ extension VNCConnection.Status: @retroactive CustomStringConvertible {
 	public var description: String {
 		switch self {
 		case .connected:
-			return "connected"
+			return String(localized: "connected")
 		case .connecting:
-			return "connecting"
+			return String(localized: "connecting")
 		case .disconnected:
-			return "disconnected"
+			return String(localized: "disconnected")
 		case .disconnecting:
-			return "disconnecting"
+			return String(localized: "disconnecting")
 		}
 	}
 }

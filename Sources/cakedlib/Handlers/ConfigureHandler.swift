@@ -90,7 +90,7 @@ public struct ConfigureHandler {
 				}
 			}
 
-			return ConfiguredReply(name: name, configured: true, reason: "VM reconfigured")
+			return ConfiguredReply(name: name, configured: true, reason: String(localized: "VM reconfigured"))
 		} catch {
 			return ConfiguredReply(name: name, configured: false, reason: error.reason)
 		}

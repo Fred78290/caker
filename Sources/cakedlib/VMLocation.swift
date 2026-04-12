@@ -473,12 +473,12 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		let useNat = config.networks.first { $0.network == "nat" } != nil
 
 		guard macAddress.isEmpty == false && clientID.isEmpty == false else {
-			throw ShellError(terminationStatus: -1, error: "Unable to get MAC address for VM \(self.name)", message: "Any mac address or client ID is not configured")
+			throw ShellError(terminationStatus: -1, error: String(localized: "Unable to get MAC address for VM \(self.name)"), message: String(localized: "Any mac address or client ID is not configured"))
 		}
 
 		repeat {
 			if let startedProcess = startedProcess, startedProcess.isRunning == false {
-				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: String.empty)
+				throw ShellError(terminationStatus: -1, error: String(localized: "Caked vmrun process is not running"), message: String.empty)
 			}
 
 			// Try also arp if dhcp is disabled
@@ -499,7 +499,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			count += 1
 		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
 
-		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(self.name)", message: "Timeout")
+		throw ShellError(terminationStatus: -1, error: String(localized: "Unable to get IP for VM \(self.name)"), message: String(localized: "Timeout"))
 	}
 
 	func vmInfos(wait: Int = 5, runMode: Utils.RunMode, _ completion: @escaping (Result<Caked_InfoReply, Error>) -> Void) {
@@ -527,7 +527,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 		repeat {
 			if let startedProcess = startedProcess, startedProcess.isRunning == false {
-				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: String.empty)
+				throw ShellError(terminationStatus: -1, error: String(localized: "Caked vmrun process is not running"), message: String.empty)
 			}
 
 			if let infos = try? conn.info().wait() {
@@ -543,7 +543,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			count += 1
 		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
 
-		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(self.name)", message: String.empty)
+		throw ShellError(terminationStatus: -1, error: String(localized: "Unable to get IP for VM \(self.name)"), message: String.empty)
 	}
 
 	public func waitIP(config: CakeConfig, wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {

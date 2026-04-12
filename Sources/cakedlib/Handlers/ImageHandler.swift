@@ -101,7 +101,7 @@ public struct ImageHandler {
 				}
 			}
 
-			return ListImagesInfoReply(infos: result, success: true, reason: "Success")
+			return ListImagesInfoReply(infos: result, success: true, reason: String(localized: "Success"))
 		} catch {
 			return ListImagesInfoReply(infos: [], success: false, reason: error.reason)
 		}
@@ -115,7 +115,7 @@ public struct ImageHandler {
 			let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
 			let product = try await simpleStream.GetImage(alias: imageAlias, runMode: runMode)
 
-			return ImageInfoReply(info: try ImageInfo(product: product), success: true, reason: "Success")
+			return ImageInfoReply(info: try ImageInfo(product: product), success: true, reason: String(localized: "Success"))
 		} catch {
 			return ImageInfoReply(info: .init(), success: false, reason: error.reason)
 		}
@@ -131,7 +131,7 @@ public struct ImageHandler {
 
 			try await image.pullSimpleStreamImageAndConvert(runMode: runMode, progressHandler: ProgressObserver.progressHandler)
 
-			return PulledImageInfoReply(info: image, success: true, reason: "Success")
+			return PulledImageInfoReply(info: image, success: true, reason: String(localized: "Success"))
 		} catch {
 			return PulledImageInfoReply(info: LinuxContainerImage(), success: false, reason: error.reason)
 		}
@@ -161,7 +161,7 @@ public struct ImageHandler {
 				$0.list = result.caked
 			}
 		default:
-			throw ServiceError(String(localized: "Unknown command \(command)"))
+			throw ServiceError(String(localized: "Unknown command \(command.rawValue)"))
 		}
 
 		return Caked_Reply.with {

@@ -64,13 +64,13 @@ public enum VMNetMode: String, CaseIterable, ExpressibleByArgument, Codable {
 	public var description: String {
 		switch self {
 		case .host:
-			return "Hosted network"
+			return String(localized: "Hosted network")
 		case .shared:
-			return "Shared network"
+			return String(localized: "Shared network")
 		case .bridged:
-			return "Bridged network"
+			return String(localized: "Bridged network")
 		case .nat:
-			return "NAT shared network"
+			return String(localized: "NAT shared network")
 		}
 	}
 
@@ -380,7 +380,7 @@ public struct NetworksHandler {
 		try pidFile.waitPID {
 			if process.isRunning == false {
 				if process.terminationReason == .uncaughtSignal {
-					throw ServiceError(String(localized: "Network \(networkConfig.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason)"))
+					throw ServiceError(String(localized: "Network \(networkConfig.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason.rawValue)"))
 				} else {
 					throw ServiceError(String(localized: "Network \(networkConfig.networkName) stopped: \(process.terminationStatus)"))
 				}
@@ -554,7 +554,7 @@ public struct NetworksHandler {
 		try socketURL.pidFile.waitPID {
 			if process.isRunning == false {
 				if process.terminationReason == .uncaughtSignal {
-					throw ServiceError(String(localized: "Network \(networkConfig.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason)"))
+					throw ServiceError(String(localized: "Network \(networkConfig.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason.rawValue)"))
 				} else {
 					throw ServiceError(String(localized: "Network \(networkConfig.networkName) stopped: \(process.terminationStatus)"))
 				}
@@ -572,7 +572,7 @@ public struct NetworksHandler {
 			}
 
 			if existing == network {
-				return ConfiguredNetworkReply(name: networkName, configured: false, reason: "Network \(networkName) unchanged")
+				return ConfiguredNetworkReply(name: networkName, configured: false, reason: String(localized: "Network \(networkName) unchanged"))
 			}
 
 			networkConfig.userNetworks[networkName] = network
@@ -593,15 +593,15 @@ public struct NetworksHandler {
 			var networkConfig = try home.sharedNetworks()
 
 			guard network.networkName != String.empty else {
-				return ConfiguredNetworkReply(name: String.empty, configured: false, reason: "Network name is required")
+				return ConfiguredNetworkReply(name: String.empty, configured: false, reason: String(localized: "Network name is required"))
 			}
 
 			guard Self.isPhysicalInterface(name: String(network.networkName)) == false else {
-				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "Network \(network.networkName) is a physical interface")
+				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: String(localized: "Network \(network.networkName) is a physical interface"))
 			}
 
 			guard let exisiting = networkConfig.sharedNetworks[network.networkName] else {
-				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "Network \(network.networkName) doesn't exists")
+				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: String(localized: "Network \(network.networkName) doesn't exists"))
 			}
 
 			let changed = VZSharedNetwork(
@@ -625,7 +625,7 @@ public struct NetworksHandler {
 					return ConfiguredNetworkReply(name: network.networkName, configured: true, reason: error.reason)
 				}
 			} else {
-				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "Network \(network.networkName) unchanged")
+				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: String(localized: "Network \(network.networkName) unchanged"))
 			}
 		} catch {
 			return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: error.reason)
@@ -636,7 +636,7 @@ public struct NetworksHandler {
 		do {
 			_ = try startNetwork(networkName: networkName, runMode: runMode)
 
-			return StartedNetworkReply(name: networkName, started: true, reason: "Network \(networkName) started")
+			return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) started"))
 		} catch {
 			return StartedNetworkReply(name: networkName, started: false, reason: error.reason)
 		}
@@ -747,7 +747,7 @@ public struct NetworksHandler {
 		try socketURL.pidFile.waitPID {
 			if process.isRunning == false {
 				if process.terminationReason == .uncaughtSignal {
-					throw ServiceError(String(localized: "Network \(networkName) failed to start: \(process.terminationStatus), \(process.terminationReason)"))
+					throw ServiceError(String(localized: "Network \(networkName) failed to start: \(process.terminationStatus), \(process.terminationReason.rawValue)"))
 				} else {
 					throw ServiceError(String(localized: "Network \(networkName) stopped: \(process.terminationStatus)"))
 				}
@@ -789,14 +789,14 @@ public struct NetworksHandler {
 			var networkConfig = try home.sharedNetworks()
 
 			if networkConfig.sharedNetworks[networkName] != nil {
-				return CreatedNetworkReply(name: networkName, created: false, reason: "Network \(networkName) already exists")
+				return CreatedNetworkReply(name: networkName, created: false, reason: String(localized: "Network \(networkName) already exists"))
 			}
 
 			networkConfig.userNetworks[networkName] = network
 
 			try home.setSharedNetworks(networkConfig)
 
-			return CreatedNetworkReply(name: networkName, created: true, reason: "Network \(networkName) created")
+			return CreatedNetworkReply(name: networkName, created: true, reason: String(localized: "Network \(networkName) created"))
 		} catch {
 			return CreatedNetworkReply(name: networkName, created: false, reason: error.reason)
 		}
@@ -808,20 +808,20 @@ public struct NetworksHandler {
 			var networkConfig = try home.sharedNetworks()
 
 			guard networkConfig.sharedNetworks[networkName] != nil else {
-				return DeleteNetworkReply(name: networkName, deleted: false, reason: "Network \(networkName) doesn't exists")
+				return DeleteNetworkReply(name: networkName, deleted: false, reason: String(localized: "Network \(networkName) doesn't exists"))
 			}
 
 			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
 
 			if socketURL.pidFile.isCakedRunning() {
-				return DeleteNetworkReply(name: networkName, deleted: false, reason: "Network \(networkName) is running")
+				return DeleteNetworkReply(name: networkName, deleted: false, reason: String(localized: "Network \(networkName) is running"))
 			}
 
 			networkConfig.userNetworks.removeValue(forKey: networkName)
 
 			try home.setSharedNetworks(networkConfig)
 
-			return DeleteNetworkReply(name: networkName, deleted: true, reason: "Network \(networkName) deleted")
+			return DeleteNetworkReply(name: networkName, deleted: true, reason: String(localized: "Network \(networkName) deleted"))
 		} catch {
 			return DeleteNetworkReply(name: networkName, deleted: false, reason: error.reason)
 		}
@@ -1033,7 +1033,7 @@ public struct NetworksHandler {
 				$0 < $1
 			}
 
-			return ListNetworksReply(networks: networks, success: true, reason: "Success")
+			return ListNetworksReply(networks: networks, success: true, reason: String(localized: "Success"))
 		} catch {
 			return ListNetworksReply(networks: [], success: false, reason: error.reason)
 		}
@@ -1090,7 +1090,7 @@ public struct NetworksHandler {
 
 			result = BridgedNetwork(name: networkName, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint, usedBy: referencedNetworks.usage(name: networkName))
 
-			return NetworkInfoReply(info: result, success: true, reason: "Success")
+			return NetworkInfoReply(info: result, success: true, reason: String(localized: "Success"))
 		} catch {
 			return NetworkInfoReply(info: BridgedNetwork(name: String.empty, mode: .nat, description: String.empty, gateway: String.empty, dhcpLease: String.empty, interfaceID: String.empty, endpoint: String.empty, usedBy: 0), success: false, reason: error.reason)
 		}

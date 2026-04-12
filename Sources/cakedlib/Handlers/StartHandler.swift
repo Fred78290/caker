@@ -94,7 +94,7 @@ public struct StartHandler {
 					if process.terminationStatus == 0 {
 						promise.succeed(vmName)
 					} else {
-						promise.fail(ShellError(terminationStatus: process.terminationStatus, error: "Failed", message: vmName))
+						promise.fail(ShellError(terminationStatus: process.terminationStatus, error: String(localized: "Failed"), message: vmName))
 					}
 				}
 			}
@@ -240,7 +240,7 @@ public struct StartHandler {
 	public static func startVM(location: VMLocation, screenSize: ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, gcd: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) -> StartedReply {
 		do {
 			if FileManager.default.fileExists(atPath: location.diskURL.path) == false {
-				return StartedReply(name: location.name, ip: String.empty, started: false, reason: "VM not found")
+				return StartedReply(name: location.name, ip: String.empty, started: false, reason: String(localized: "VM not found"))
 			}
 
 			var ip: String
@@ -251,7 +251,7 @@ public struct StartHandler {
 				ip = try internalStartVM(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: gcd, runMode: runMode, promise: promise)
 			}
 
-			return StartedReply(name: location.name, ip: ip, started: true, reason: "VM started")
+			return StartedReply(name: location.name, ip: ip, started: true, reason: String(localized: "VM started"))
 		} catch {
 			return StartedReply(name: location.name, ip: String.empty, started: false, reason: error.reason)
 		}

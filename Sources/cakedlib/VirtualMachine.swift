@@ -21,85 +21,85 @@ extension SSHError.Kind {
 	var description: String {
 		switch self {
 		case .authenticationFailed:
-			return "Authentication failed"
+			return String(localized: "Authentication failed")
 		case .channelFailure:
-			return "Channel failure"
+			return String(localized: "Channel failure")
 		case .channelClosed:
-			return "Channel closed"
+			return String(localized: "Channel closed")
 		case .channelRequestDenied:
-			return "Channel request denied"
+			return String(localized: "Channel request denied")
 		case .genericError:
-			return "Unknow error"
+			return String(localized: "Unknow error")
 		case .bannerRecv:
-			return "Banner recv"
+			return String(localized: "Banner recv")
 		case .bannerSend:
-			return "Banner send"
+			return String(localized: "Banner send")
 		case .invalidMac:
-			return "Invalic mac address"
+			return String(localized: "Invalic mac address")
 		case .kexFailure:
-			return "kext failure"
+			return String(localized: "kext failure")
 		case .alloc:
-			return "allocation failure"
+			return String(localized: "allocation failure")
 		case .socketSend:
-			return "error socket"
+			return String(localized: "error socket")
 		case .keyExchangeFailure:
-			return "key exchange failure"
+			return String(localized: "key exchange failure")
 		case .errorTimeout:
-			return "connection timeout"
+			return String(localized: "connection timeout")
 		case .hostkeyInit, .hostkeySign, .decrypt:
-			return "SSH key problem"
+			return String(localized: "SSH key problem")
 		case .socketDisconnect:
-			return "socket disconnect"
+			return String(localized: "socket disconnect")
 		case .proto:
-			return "wrong protocol"
+			return String(localized: "wrong protocol")
 		case .passwordExpired:
-			return "password expired"
+			return String(localized: "password expired")
 		case .file:
-			return "file error"
+			return String(localized: "file error")
 		case .methodNone:
-			return "wrong method"
+			return String(localized: "wrong method")
 		case .publicKeyUnverified:
-			return "public key can't be verified"
+			return String(localized: "public key can't be verified")
 		case .channelOutOfOrder, .channelUnknown, .channelWindowExceeded, .channelPacketExceeded, .channelEofSent, .channelWindowFull:
-			return "channel error"
+			return String(localized: "channel error")
 		case .scpProtocol, .sftpProtocol:
-			return "exchange protocol error"
+			return String(localized: "exchange protocol error")
 		case .zlib:
-			return "zlib error"
+			return String(localized: "zlib error")
 		case .socketTimeout:
-			return "some socket timeout"
+			return String(localized: "some socket timeout")
 		case .requestDenied:
-			return "request denied"
+			return String(localized: "request denied")
 		case .methodNotSupported:
-			return "method not supported"
+			return String(localized: "method not supported")
 		case .inval:
-			return "invalid argument"
+			return String(localized: "invalid argument")
 		case .invalidPollType:
-			return "invalid poll type"
+			return String(localized: "invalid poll type")
 		case .publicKeyProtocol:
-			return "wrong public key protocol"
+			return String(localized: "wrong public key protocol")
 		case .eagain:
-			return "some socket error"
+			return String(localized: "some socket error")
 		case .bufferTooSmall:
-			return "buffer too small"
+			return String(localized: "buffer too small")
 		case .badUse:
-			return "bad use"
+			return String(localized: "bad use")
 		case .compress:
-			return "compress error"
+			return String(localized: "compress error")
 		case .outOfBoundary:
-			return "out of boundary"
+			return String(localized: "out of boundary")
 		case .agentProtocol:
-			return "agent protocol error"
+			return String(localized: "agent protocol error")
 		case .socketRecv:
-			return "socket recv error"
+			return String(localized: "socket recv error")
 		case .encrypt:
-			return "encrypt error"
+			return String(localized: "encrypt error")
 		case .badSocket:
-			return "bad socket"
+			return String(localized: "bad socket")
 		case .knownHosts:
-			return "wrong known hosts"
+			return String(localized: "wrong known hosts")
 		case .keyfileAuthFailed:
-			return "key authentication failed"
+			return String(localized: "key authentication failed")
 		}
 	}
 }

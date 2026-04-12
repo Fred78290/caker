@@ -5,18 +5,18 @@ import GRPCLib
 import CakeAgentLib
 
 struct Start: GrpcParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Start an existing VM")
+	static let configuration = CommandConfiguration(abstract: String(localized: "Start an existing VM"))
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@Argument(help: "VM name")
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	var name: String
 
-	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
+	@Option(help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	var waitIPTimeout = 180
 
-	@Flag(help: "Output format: text or json")
+	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {

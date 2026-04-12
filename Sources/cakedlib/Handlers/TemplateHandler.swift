@@ -66,7 +66,7 @@ public struct TemplateHandler {
 			var source = location
 
 			if storage.exists(templateName) {
-				return CreateTemplateReply(name: templateName, created: false, reason: "template \(templateName) already exists")
+				return CreateTemplateReply(name: templateName, created: false, reason: String(localized: "template \(templateName) already exists"))
 			}
 
 			if location.status != .running {
@@ -96,7 +96,7 @@ public struct TemplateHandler {
 					try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
 					try source.templateTo(templateLocation)
 
-					return CreateTemplateReply(name: templateName, created: true, reason: "template created")
+					return CreateTemplateReply(name: templateName, created: true, reason: String(localized: "template created"))
 				} catch {
 					Logger(self).error(error)
 
@@ -107,7 +107,7 @@ public struct TemplateHandler {
 					return CreateTemplateReply(name: templateName, created: false, reason: error.reason)
 				}
 			} else {
-				return CreateTemplateReply(name: templateName, created: false, reason: "source VM \(location.name) is running")
+				return CreateTemplateReply(name: templateName, created: false, reason: String(localized: "source VM \(location.name) is running"))
 			}
 		} catch {
 			return CreateTemplateReply(name: templateName, created: false, reason: error.reason)
@@ -123,7 +123,7 @@ public struct TemplateHandler {
 					try? FileManager.default.removeItem(at: location.rootURL)
 					return DeleteTemplateReply(name: location.name, deleted: true, reason: String.empty)
 				} else {
-					return DeleteTemplateReply(name: location.name, deleted: false, reason: "Template \(templateName) is running")
+					return DeleteTemplateReply(name: location.name, deleted: false, reason: String(localized: "Template \(templateName) is running"))
 				}
 			}
 
@@ -139,7 +139,7 @@ public struct TemplateHandler {
 				return doIt(location)
 			}
 
-			return DeleteTemplateReply(name: templateName, deleted: false, reason: "Template \(templateName) not found")
+			return DeleteTemplateReply(name: templateName, deleted: false, reason: String(localized: "Template \(templateName) not found"))
 		} catch {
 			return DeleteTemplateReply(name: templateName, deleted: false, reason: error.reason)
 		}
@@ -163,7 +163,7 @@ public struct TemplateHandler {
 						diskSize: try value.diskSize(),
 						totalSize: try value.allocatedSize()
 					)
-				}, success: true, reason: "Success")
+				}, success: true, reason: String(localized: "Success"))
 
 		} catch {
 			return ListTemplateReply(templates: [], success: false, reason: error.reason)

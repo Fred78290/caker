@@ -6,10 +6,10 @@ import CakeAgentLib
 struct WaitIP: ParsableCommand {
 	static let configuration = WaitIPOptions.configuration
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Wait ip options")
+	@OptionGroup(title: String(localized: "Wait ip options"))
 	var waitip: WaitIPOptions
 
 	func validate() throws {

@@ -18,7 +18,7 @@ public struct PushHandler {
 			let chunkSize = chunkSizeInMB == 0 ? RawDisk.bufferSizeBytes : chunkSizeInMB * Int(MoB)
 
 			if storage.exists(localName) == false {
-				return PushReply(success: false, message: "VM not found")
+				return PushReply(success: false, message: String(localized: "VM not found"))
 			}
 
 			let context = ProgressObserver.ProgressHandlerContext()
@@ -28,7 +28,7 @@ public struct PushHandler {
 			let config = try location.config()
 
 			if location.isPIDRunning() {
-				return PushReply(success: false, message: "VM is running")
+				return PushReply(success: false, message: String(localized: "VM is running"))
 			}
 
 			let references = try remoteNames.map {
@@ -112,7 +112,7 @@ public struct PushHandler {
 
 			progressHandler(.terminated(.success(location.rootURL), "Push complete"))
 
-			return PushReply(success: true, message: "Success")
+			return PushReply(success: true, message: String(localized: "Success"))
 		} catch {
 			progressHandler(.terminated(.failure(error), "Push failed"))
 

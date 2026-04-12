@@ -15,10 +15,10 @@ import TextTable
 struct Duplicate: ParsableCommand {
 	static let configuration = DuplicateOptions.configuration
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Duplicate options")
+	@OptionGroup(title: String(localized: "Duplicate options"))
 	var duplicate: DuplicateOptions
 
 	func validate() throws {

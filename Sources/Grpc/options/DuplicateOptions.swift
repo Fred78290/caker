@@ -2,18 +2,18 @@ import ArgumentParser
 import Foundation
 
 public struct DuplicateOptions: ParsableArguments {
-	public static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Duplicate a VM to a new name")
+	public static let configuration: CommandConfiguration = CommandConfiguration(abstract: String(localized: "Duplicate a VM to a new name"))
 
-	@Argument(help: "Source VM name")
+	@Argument(help: ArgumentHelp(String(localized: "Source VM name")))
 	public var from: String
 
-	@Argument(help: "Duplicated VM name")
+	@Argument(help: ArgumentHelp(String(localized: "Duplicated VM name")))
 	public var to: String
 
-	@Option(name: .shortAndLong, help: "Reset mac address")
+	@Option(name: .shortAndLong, help: ArgumentHelp(String(localized: "Reset mac address")))
 	public var resetMacAddress: Bool = false
 
-	@Flag(help: ArgumentHelp("Duplicate vm in foreground", discussion: "This option allow display window of running vm to debug it", visibility: .hidden))
+	@Flag(help: ArgumentHelp(String(localized: "Duplicate vm in foreground"), discussion: String(localized: "This option allow display window of running vm to debug it"), visibility: .hidden))
 	public var foreground: Bool = false
 
 	public init() {

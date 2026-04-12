@@ -31,7 +31,7 @@ public struct StopHandler {
 				return StoppedObject(name: location.name, stopped: true, reason: String.empty)
 			}
 			
-			return StoppedObject(name: location.name, stopped: false, reason: "VM is not running")
+			return StoppedObject(name: location.name, stopped: false, reason: String(localized: "VM is not running"))
 		} catch {
 			return StoppedObject(name: location.name, stopped: false, reason: error.reason)
 		}
@@ -51,7 +51,7 @@ public struct StopHandler {
 				}
 			}
 
-			return StopReply(objects: stopped, success: true, reason: "Success")
+			return StopReply(objects: stopped, success: true, reason: String(localized: "Success"))
 		} catch {
 			return StopReply(objects: [], success: false, reason: error.reason)
 		}

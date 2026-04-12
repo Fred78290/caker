@@ -143,7 +143,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		} else if listeningAddress.scheme == "tcp" {
 			target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
 		} else {
-			throw ServiceError(String(localized: "unsupported address scheme: \(listeningAddress)"))
+			throw ServiceError(String(localized: "unsupported address scheme: \(listeningAddress.absoluteString)"))
 		}
 		
 		var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: Utilities.group.next())

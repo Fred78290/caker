@@ -6,10 +6,10 @@ import GRPCLib
 struct Exec: AsyncGrpcParsableCommand {
 	static let configuration = ExecOptions.configuration
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@OptionGroup(title: "Exec options")
+	@OptionGroup(title: String(localized: "Exec options"))
 	var execute: ExecOptions
 
 	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? {

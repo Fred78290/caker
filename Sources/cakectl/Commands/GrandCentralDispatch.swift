@@ -79,12 +79,12 @@ struct ShortCurrentUsage: Codable {
 }
 
 struct GrandCentralDispatch: AsyncGrpcParsableCommand {
-	public static let configuration: CommandConfiguration = CommandConfiguration(commandName: "gcd", abstract: "Start the Grand Central Dispatch")
+	public static let configuration: CommandConfiguration = CommandConfiguration(commandName: "gcd", abstract: String(localized: "Start the Grand Central Dispatch"))
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@Flag(help: "Output format")
+	@Flag(help: ArgumentHelp(String(localized: "Output format")))
 	var format: Format = .text
 
 	private struct Screenshot: Codable {

@@ -6,15 +6,15 @@ import GRPCLib
 import TextTable
 
 struct Infos: GrpcParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")
+	static let configuration = CommandConfiguration(commandName: "infos", abstract: String(localized: "Get info for VM"))
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@Flag(help: "Output format: text or json")
+	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
 
-	@Argument(help: "VM name")
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	var name: String
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {

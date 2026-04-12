@@ -10,13 +10,13 @@ struct Sh: CakeAgentAsyncParsableCommand {
 	
 	static let configuration = ShellOptions.configuration
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "override client agent options", visibility: .hidden)
+	@OptionGroup(title: String(localized: "override client agent options"), visibility: .hidden)
 	var options: CakeAgentClientOptions
 
-	@OptionGroup(title: "Shell options")
+	@OptionGroup(title: String(localized: "Shell options"))
 	var shell: ShellOptions
 
 	var createVM: Bool = false

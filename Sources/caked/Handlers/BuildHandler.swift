@@ -80,7 +80,7 @@ struct BuildHandler: CakedCommandAsync {
 								} else {
 									try await responseStream.send(.with {
 										$0.terminated = .with {
-											$0.failure = String(localized: "Installation failed: \(error)")
+											$0.failure = String(localized: "Installation failed: \(error.reason)")
 										}
 									})
 								}

@@ -78,7 +78,7 @@ struct Defaults {
 }
 
 struct MainAppParseArgument: ParsableCommand {
-	@Option(name: [.customLong("log-level")], help: "Log level")
+	@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
 	var logLevel: CakeAgentLib.Logger.LogLevel = .info
 
 	func validate() throws {

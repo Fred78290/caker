@@ -7,15 +7,15 @@ import GRPCLib
 import NIO
 
 struct Infos: CakeAgentParsableCommand {
-	static let configuration: CommandConfiguration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")
+	static let configuration: CommandConfiguration = CommandConfiguration(commandName: "infos", abstract: String(localized: "Get info for VM"))
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Argument(help: "VM name")
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	var name: String
 
-	@OptionGroup(title: "override client agent options", visibility: .hidden)
+	@OptionGroup(title: String(localized: "override client agent options"), visibility: .hidden)
 	var options: CakeAgentClientOptions
 
 	var createVM: Bool = false

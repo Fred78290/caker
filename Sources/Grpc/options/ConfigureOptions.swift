@@ -4,27 +4,27 @@ import NIOPortForwarding
 import CakeAgentLib
 
 public struct ConfigureOptions: ParsableArguments, Sendable {
-	public static let configuration = CommandConfiguration(abstract: "Reconfigure VM")
+	public static let configuration = CommandConfiguration(abstract: String(localized: "Reconfigure VM"))
 
-	@Argument(help: "VM name")
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	public var name: String
 
-	@Option(name: [.long, .customShort("u")], help: "Reconfigure the login user")
+	@Option(name: [.long, .customShort("u")], help: ArgumentHelp(String(localized: "Reconfigure the login user")))
 	public var user: String? = nil
 
-	@Option(name: [.long, .customShort("w")], help: "Reconfigure the login password")
+	@Option(name: [.long, .customShort("w")], help: ArgumentHelp(String(localized: "Reconfigure the login password")))
 	public var password: String? = nil
 
-	@Option(name: [.customLong("cpus"), .customShort("c")], help: ArgumentHelp("Number of VM CPUs", valueName: "num"))
+	@Option(name: [.customLong("cpus"), .customShort("c")], help: ArgumentHelp(String(localized: "Number of VM CPUs"), valueName: "num"))
 	public var cpu: UInt16? = nil
 
-	@Option(name: [.long, .customShort("m")], help: ArgumentHelp("VM memory size in megabytes", valueName: "MB"))
+	@Option(name: [.long, .customShort("m")], help: ArgumentHelp(String(localized: "VM memory size in megabytes"), valueName: "MB"))
 	public var memory: UInt64? = nil
 
-	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp("Disk size in GB", valueName: "GB"))
+	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp(String(localized: "Disk size in GB"), valueName: "GB"))
 	public var diskSize: UInt64? = nil
 
-	@Option(name: [.customLong("disk")], help: ArgumentHelp("Other attached disk", valueName: "path"))
+	@Option(name: [.customLong("disk")], help: ArgumentHelp(String(localized: "Other attached disk"), valueName: "path"))
 	public var disks: [String] = ["unset"]
 
 	@Option(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot"))
@@ -33,36 +33,36 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	@Option(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible"))
 	public var nested: Bool?
 
-	@Option(help: ArgumentHelp("Disables audio and entropy devices and switches to only Mac-specific input devices.", discussion: "Useful for running a VM that can be suspended via suspend command."))
+	@Option(help: ArgumentHelp(String(localized: "Disables audio and entropy devices and switches to only Mac-specific input devices."), discussion: String(localized: "Useful for running a VM that can be suspended via suspend command.")))
 	public var suspendable: Bool?
 
 	@Option(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
 	public var displayRefit: Bool? = nil
 
-	@Option(help: ArgumentHelp("Allow to use dynamic port forwarding, default is false", discussion: "This option is supported on linux platforms only"))
+	@Option(help: ArgumentHelp(String(localized: "Allow to use dynamic port forwarding, default is false"), discussion: String(localized: "This option is supported on linux platforms only")))
 	public var dynamicPortForwarding: Bool? = nil
 
-	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", discussion: "value is like host:guest/(tcp|udp|both)", valueName: "value"))
+	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp(String(localized: "Optional forwarded port for VM, syntax like docker"), discussion: String(localized: "value is like host:guest/(tcp|udp|both)"), valueName: "value"))
 	internal var published: [String] = ["unset"]
 
-	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares", discussion: mount_help, valueName: "[name:]path[:options]"))
+	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp(String(localized: "Additional directory shares"), discussion: mount_help, valueName: "[name:]path[:options]"))
 	internal var mount: [String] = ["unset"]
 
-	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp("Add a network interface to the instance", discussion: network_help, valueName: "<spec>"))
+	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp(String(localized: "Add a network interface to the instance"), discussion: network_help, valueName: "<spec>"))
 	internal var network: [String] = ["unset"]
 
 	@Flag(help: ArgumentHelp("Generate a new random MAC address for the VM."))
 	public var randomMAC: Bool = false
 
-	@Option(name: [.customLong("display")], help: "Set the VM screen size.")
+	@Option(name: [.customLong("display")], help: ArgumentHelp(String(localized: "Set the VM screen size.")))
 	public var screenSize: ViewSize? = nil
 
 	@Option(
 		name: [.customLong("socket")],
-		help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock", discussion: socket_help))
+		help: ArgumentHelp(String(localized: "Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock"), discussion: socket_help))
 	internal var socket: [String] = ["unset"]
 
-	@Option(name: [.customLong("console")], help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")", discussion: console_help, valueName: "url"))
+	@Option(name: [.customLong("console")], help: ArgumentHelp(String(localized: "URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")"), discussion: console_help, valueName: "url"))
 	public var console: String?
 
 	public init(
@@ -286,14 +286,14 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		if let forwardedPorts = self.forwardedPort {
 			try forwardedPorts.forEach { port in
 				if case .none = port.oneOf {
-					throw ValidationError("Port is not set")
+					throw ValidationError(String(localized: "Port is not set"))
 				}
 				if case .unixDomain(let value) = port.oneOf {
 					if value.host.utf8.count > 103 {
-						throw ValidationError("Unix domain socket name is too long")
+						throw ValidationError(String(localized: "Unix domain socket name is too long"))
 					}
 					if value.guest.utf8.count > 103 {
-						throw ValidationError("Unix domain socket name is too long")
+						throw ValidationError(String(localized: "Unix domain socket name is too long"))
 					}
 				}
 			}

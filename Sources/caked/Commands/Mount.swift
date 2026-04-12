@@ -9,13 +9,13 @@ import NIO
 struct Mount: ParsableCommand {
 	static let configuration = MountOptions.configuration
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Mount options")
+	@OptionGroup(title: String(localized: "Mount options"))
 	var mount: MountOptions
 
-	@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow mode to connect to a running service", visibility: .hidden))
+	@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allow mode to connect to a running service"), visibility: .hidden))
 	var mode: VMRunServiceMode = .grpc
 
 	func validate() throws {
@@ -29,7 +29,7 @@ struct Mount: ParsableCommand {
 			let description = attachment.description
 
 			if directorySharingAttachments.contains(where: { $0.description == description }) {
-				throw ValidationError("Mount \(description) already exists")
+				throw ValidationError(String(localized: "Mount \(description) already exists"))
 			}
 		}
 	}

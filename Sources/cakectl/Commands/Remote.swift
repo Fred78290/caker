@@ -6,22 +6,22 @@ import CakeAgentLib
 
 struct Remote: ParsableCommand {
 	static let configuration = CommandConfiguration(
-		abstract: "Manage simplestream remote",
+		abstract: String(localized: "Manage simplestream remote"),
 		subcommands: [AddRemote.self, DeleteRemote.self, ListRemote.self])
 
 	struct AddRemote: GrpcParsableCommand {
 		static let configuration = RemoteAddOptions.configuration
 
-		@OptionGroup(title: "Client options")
+		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Argument(help: "Remote name")
+		@Argument(help: ArgumentHelp(String(localized: "Remote name")))
 		var remote: String
 
-		@Argument(help: "url")
+		@Argument(help: ArgumentHelp(String(localized: "url")))
 		var url: String
 
-		@Flag(help: "Output format: text or json")
+		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 		var format: Format = .text
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
@@ -32,13 +32,13 @@ struct Remote: ParsableCommand {
 	struct DeleteRemote: GrpcParsableCommand {
 		static let configuration = RemoteDeleteOptions.configuration
 
-		@OptionGroup(title: "Client options")
+		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Argument(help: "Remote name")
+		@Argument(help: ArgumentHelp(String(localized: "Remote name")))
 		var remote: String
 
-		@Flag(help: "Output format: text or json")
+		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 		var format: Format = .text
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
@@ -49,10 +49,10 @@ struct Remote: ParsableCommand {
 	struct ListRemote: GrpcParsableCommand {
 		static let configuration = RemoteListOptions.configuration
 
-		@OptionGroup(title: "Client options")
+		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Flag(help: "Output format: text or json")
+		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 		var format: Format = .text
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {

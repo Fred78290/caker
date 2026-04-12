@@ -9,10 +9,10 @@ import NIOSSL
 struct Sh: AsyncGrpcParsableCommand {
 	static let configuration = ShellOptions.configuration
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@OptionGroup(title: "Shell options")
+	@OptionGroup(title: String(localized: "Shell options"))
 	var shell: ShellOptions
 
 	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? {

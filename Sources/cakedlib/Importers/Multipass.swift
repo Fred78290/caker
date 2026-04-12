@@ -2,6 +2,7 @@ import Foundation
 import GRPCLib
 import Virtualization
 import CakeAgentLib
+import ArgumentParser
 
 private typealias MultipassRegisteredInstances = [String: MultipassRegisteredInstance]  // /var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json
 private typealias MultipassInstances = [String: MultipassInstance]  // /var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json
@@ -148,6 +149,29 @@ struct MultipassInstance: Codable, Sendable {
 		case suspending
 		case suspended
 		case unknown
+		
+		var description: String {
+			switch self {
+			case .off:
+				String(localized: "off")
+			case .stopped:
+				String(localized: "stopped")
+			case .starting:
+				String(localized: "starting")
+			case .restarting:
+				String(localized: "restarting")
+			case .running:
+				String(localized: "running")
+			case .delayed_shutdown:
+				String(localized: "delayed_shutdown")
+			case .suspending:
+				String(localized: "suspending")
+			case .suspended:
+				String(localized: "suspended")
+			case .unknown:
+				String(localized: "unknown")
+			}
+		}
 	}
 
 	enum CodingKeys: String, CodingKey {
@@ -290,7 +314,7 @@ struct MultipassImporter: Importer {
 		}
 
 		if instance.state != .off && instance.state != .stopped {
-			throw ServiceError(String(localized: "Instance \(source) is not in a stopped state, current state: \(instance.state)"))
+			throw ServiceError(String(localized: "Instance \(source) is not in a stopped state, current state: \(instance.state.description)"))
 		}
 
 		guard let memorySize = UInt64(instance.memSize) else {

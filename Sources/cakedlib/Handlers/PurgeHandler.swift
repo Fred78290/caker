@@ -47,7 +47,7 @@ public struct PurgeHandler {
 				try Self.purgeSpaceBudget(purgeableStorages: purgeableStorages, spaceBudgetBytes: spaceBudget * GoB)
 			}
 
-			return PurgeReply(purged: true, reason: "Purged")
+			return PurgeReply(purged: true, reason: String(localized: "Purged"))
 		} catch {
 			return PurgeReply(purged: false, reason: error.reason)
 		}

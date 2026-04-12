@@ -78,7 +78,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 		var macAddress: VZMACAddress?
 
 		guard parts.count <= 3 else {
-			throw ValidationError("Invalid network attachment: \(parseFrom)")
+			throw ValidationError(String(localized: "Invalid network attachment: \(parseFrom)"))
 		}
 
 		try parts.forEach { part in
@@ -91,7 +91,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 			} else if network.isEmpty {
 				network = String(part)
 			} else {
-				throw ValidationError("Invalid network attachment: \(parseFrom)")
+				throw ValidationError(String(localized: "Invalid network attachment: \(parseFrom)"))
 			}
 		}
 

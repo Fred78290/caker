@@ -18,10 +18,10 @@ public struct SuspendHandler {
 	public static func suspendVM(location: VMLocation, runMode: Utils.RunMode) throws -> SuspendedObject {
 		if location.status == .running {
 			try location.suspendVirtualMachine(runMode: runMode)
-			return SuspendedObject(name: location.name, suspended: true, reason: "VM Suspended")
+			return SuspendedObject(name: location.name, suspended: true, reason: String(localized: "VM Suspended"))
 		}
 
-		return SuspendedObject(name: location.name, suspended: false, reason: "VM is not running")
+		return SuspendedObject(name: location.name, suspended: false, reason: String(localized: "VM is not running"))
 	}
 
 	public static func suspendVMs(names: [String], runMode: Utils.RunMode) -> SuspendReply {
@@ -29,7 +29,7 @@ public struct SuspendHandler {
 			return SuspendReply(
 				objects: try names.compactMap {
 					try SuspendHandler.suspendVM(name: $0, runMode: runMode)
-				}, success: true, reason: "Success")
+				}, success: true, reason: String(localized: "Success"))
 		} catch {
 			return SuspendReply(objects: [], success: false, reason: error.reason)
 		}

@@ -3,12 +3,12 @@ import Foundation
 import NIOPortForwarding
 
 public struct DeleteOptions: ParsableArguments {
-	public static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Delete a VM")
+	public static let configuration: CommandConfiguration = CommandConfiguration(abstract: String(localized: "Delete a VM"))
 
-	@Argument(help: "VM names")
+	@Argument(help: ArgumentHelp(String(localized: "VM names")))
 	public var names: [String] = []
 
-	@Flag(name: [.short, .long], help: "Delete all VM")
+	@Flag(name: [.short, .long], help: ArgumentHelp(String(localized: "Delete all VM")))
 	public var all: Bool = false
 
 	public init() {
@@ -17,10 +17,10 @@ public struct DeleteOptions: ParsableArguments {
 	public func validate() throws {
 		if all {
 			if !names.isEmpty {
-				throw ValidationError("You cannot specify both --all and VM names.")
+				throw ValidationError(String(localized: "You cannot specify both --all and VM names."))
 			}
 		} else if names.isEmpty {
-			throw ValidationError("You must specify at least one VM name.")
+			throw ValidationError(String(localized: "You must specify at least one VM name."))
 		}
 	}
 }

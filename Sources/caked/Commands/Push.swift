@@ -12,17 +12,17 @@ import CakeAgentLib
 struct Push: AsyncParsableCommand {
 	static let configuration = PushOptions.configuration
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Push VM options")
+	@OptionGroup(title: String(localized: "Push VM options"))
 	var options: PushOptions
 
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
 		guard StorageLocation(runMode: self.common.runMode).exists(self.options.localName) else {
-			throw ValidationError("\(self.options.localName) does not exists")
+			throw ValidationError(String(localized: "\(self.options.localName) does not exists"))
 		}
 
 	}

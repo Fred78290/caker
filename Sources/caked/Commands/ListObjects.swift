@@ -6,15 +6,15 @@ import GRPCLib
 import CakeAgentLib
 
 struct ListObjects: AsyncParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "list", abstract: "List all VMs", aliases: ["ls"])
+	static let configuration = CommandConfiguration(commandName: "list", abstract: String(localized: "List all VMs"), aliases: ["ls"])
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Flag(help: "List all VMs and cached objects")
+	@Flag(help: ArgumentHelp(String(localized: "List all VMs and cached objects")))
 	var all: Bool = false
 
-	@Flag(help: "Include VM configuration in the output")
+	@Flag(help: ArgumentHelp(String(localized: "Include VM configuration in the output")))
 	var includeConfig: Bool = false
 
 	func validate() throws {

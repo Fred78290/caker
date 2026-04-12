@@ -8,7 +8,7 @@ public struct LaunchHandler {
 		let storageLocation: StorageLocation = StorageLocation(runMode: runMode)
 
 		guard storageLocation.exists(options.name) == false else {
-			return LaunchReply(name: options.name, ip: String.empty, launched: false, reason: "VM already exists")
+			return LaunchReply(name: options.name, ip: String.empty, launched: false, reason: String(localized: "VM already exists"))
 		}
 
 		let build = await BuildHandler.build(options: options, runMode: runMode, progressHandler: progressHandler)

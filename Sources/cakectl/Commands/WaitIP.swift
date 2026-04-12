@@ -7,13 +7,13 @@ import CakeAgentLib
 struct WaitIP: GrpcParsableCommand {
 	static let configuration = WaitIPOptions.configuration
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@OptionGroup(title: "Wait ip options")
+	@OptionGroup(title: String(localized: "Wait ip options"))
 	var waitip: WaitIPOptions
 
-	@Flag(help: "Output format: text or json")
+	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {

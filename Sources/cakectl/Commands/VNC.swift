@@ -12,18 +12,18 @@ import CakedLib
 import CakeAgentLib
 
 struct VNC: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "vnc", abstract: "Start a VNC client for a running VM")
+	static var configuration = CommandConfiguration(commandName: "vnc", abstract: String(localized: "Start a VNC client for a running VM"))
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@Flag(help: "Output format: text or json")
+	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
 
-	@Argument(help: "VM name")
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	var name: String
 
-	@Flag(name: .customLong("vnc-debug"), help: ArgumentHelp("Trace vnc traffic", visibility: .hidden))
+	@Flag(name: .customLong("vnc-debug"), help: ArgumentHelp(String(localized: "Trace vnc traffic"), visibility: .hidden))
 	var vncDebug: Bool = false
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
