@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "(unknown status %@)" : {
+      "shouldTranslate" : false
+    },
     "%@ is already running" : {
       "shouldTranslate" : false
     },
@@ -8,6 +11,9 @@
       "shouldTranslate" : false
     },
     "%@ not found in path" : {
+      "shouldTranslate" : false
+    },
+    "%@ should be a local name" : {
       "shouldTranslate" : false
     },
     "About Caked" : {
@@ -19,10 +25,46 @@
     "agent not installed: missing plist at %@" : {
       "shouldTranslate" : false
     },
+    "agent protocol error" : {
+      "shouldTranslate" : false
+    },
+    "allocation failure" : {
+      "shouldTranslate" : false
+    },
+    "Any mac address or client ID is not configured" : {
+      "shouldTranslate" : false
+    },
+    "Authentication failed" : {
+      "shouldTranslate" : false
+    },
+    "Authentication failed - invalid credentials" : {
+      "shouldTranslate" : false
+    },
     "Bad NAT66 prefix %@" : {
       "shouldTranslate" : false
     },
     "Bad network configuration %@" : {
+      "shouldTranslate" : false
+    },
+    "bad socket" : {
+      "shouldTranslate" : false
+    },
+    "bad use" : {
+      "shouldTranslate" : false
+    },
+    "Banner recv" : {
+      "shouldTranslate" : false
+    },
+    "Banner send" : {
+      "shouldTranslate" : false
+    },
+    "Bridged network" : {
+      "shouldTranslate" : false
+    },
+    "Buffer exhausted" : {
+      "shouldTranslate" : false
+    },
+    "buffer too small" : {
       "shouldTranslate" : false
     },
     "caked not found" : {
@@ -34,6 +76,9 @@
     "Caked service is not running" : {
       "shouldTranslate" : false
     },
+    "Caked vmrun process is not running" : {
+      "shouldTranslate" : false
+    },
     "Can't create vmnet configuration: %@" : {
       "shouldTranslate" : false
     },
@@ -43,13 +88,40 @@
     "Can't get data" : {
       "shouldTranslate" : false
     },
+    "Canceled" : {
+      "shouldTranslate" : false
+    },
     "Cannot create ShellCaked for file URL: %@" : {
+      "shouldTranslate" : false
+    },
+    "Channel closed" : {
+      "shouldTranslate" : false
+    },
+    "channel error" : {
+      "shouldTranslate" : false
+    },
+    "Channel failure" : {
+      "shouldTranslate" : false
+    },
+    "Channel request denied" : {
+      "shouldTranslate" : false
+    },
+    "compress error" : {
       "shouldTranslate" : false
     },
     "Connecting to VNC" : {
       "shouldTranslate" : false
     },
     "connection address must be specified" : {
+      "shouldTranslate" : false
+    },
+    "connection timeout" : {
+      "shouldTranslate" : false
+    },
+    "CPU: %u cores\n" : {
+      "shouldTranslate" : false
+    },
+    "delayed_shutdown" : {
       "shouldTranslate" : false
     },
     "dhcp end %@ is not in the range of the network %@" : {
@@ -61,6 +133,35 @@
           }
         }
       },
+      "shouldTranslate" : false
+    },
+    "encrypt error" : {
+      "shouldTranslate" : false
+    },
+    "error socket" : {
+      "shouldTranslate" : false
+    },
+    "Established" : {
+      "shouldTranslate" : false
+    },
+    "exchange protocol error" : {
+      "shouldTranslate" : false
+    },
+    "exitCode:%d, reason: %@ infos: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "exitCode:%1$d, reason: %2$@ infos: %3$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Failed" : {
+      "shouldTranslate" : false
+    },
+    "Failed to access output buffer" : {
       "shouldTranslate" : false
     },
     "Failed to connect to VMRunService" : {
@@ -126,13 +227,22 @@
     "Failed to stop caked service %d" : {
       "shouldTranslate" : false
     },
+    "Failure" : {
+      "shouldTranslate" : false
+    },
     "file already exists: %@" : {
+      "shouldTranslate" : false
+    },
+    "file error" : {
       "shouldTranslate" : false
     },
     "File not found" : {
       "shouldTranslate" : false
     },
     "Gateway %@ is already in use" : {
+      "shouldTranslate" : false
+    },
+    "Hosted network" : {
       "shouldTranslate" : false
     },
     "HTTP error: %lld for URL: %@" : {
@@ -150,6 +260,9 @@
       "shouldTranslate" : false
     },
     "image for %@ not found" : {
+      "shouldTranslate" : false
+    },
+    "Importing from %@ requires root privileges." : {
       "shouldTranslate" : false
     },
     "Instance %@ is deleted and cannot be imported." : {
@@ -172,6 +285,18 @@
     "Internal error" : {
       "shouldTranslate" : false
     },
+    "Invalic mac address" : {
+      "shouldTranslate" : false
+    },
+    "Invalid access" : {
+      "shouldTranslate" : false
+    },
+    "invalid argument" : {
+      "shouldTranslate" : false
+    },
+    "Invalid argument" : {
+      "shouldTranslate" : false
+    },
     "Invalid dhcp end %@" : {
       "shouldTranslate" : false
     },
@@ -190,6 +315,12 @@
     "Invalid netmask %@" : {
       "shouldTranslate" : false
     },
+    "invalid poll type" : {
+      "shouldTranslate" : false
+    },
+    "IP: %@\n" : {
+      "shouldTranslate" : false
+    },
     "IPSW is only available on arm64 architecture: %@" : {
       "shouldTranslate" : false
     },
@@ -204,24 +335,69 @@
       },
       "shouldTranslate" : false
     },
+    "kext failure" : {
+      "shouldTranslate" : false
+    },
+    "key authentication failed" : {
+      "shouldTranslate" : false
+    },
+    "key exchange failure" : {
+      "shouldTranslate" : false
+    },
+    "Logged out" : {
+      "shouldTranslate" : false
+    },
+    "Login succeeded" : {
+      "shouldTranslate" : false
+    },
     "macOS VMs are only supported on Apple Silicon Macs" : {
       "shouldTranslate" : false
     },
     "malformed url: %@" : {
       "shouldTranslate" : false
     },
+    "Memory failure" : {
+      "shouldTranslate" : false
+    },
+    "Memory: %@\n" : {
+      "shouldTranslate" : false
+    },
+    "method not supported" : {
+      "shouldTranslate" : false
+    },
+    "NAT shared network" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ already exists" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ created" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ deleted" : {
+      "shouldTranslate" : false
+    },
     "Network %@ doesn't exists" : {
       "shouldTranslate" : false
     },
-    "Network %@ failed to start: %d, %@" : {
+    "Network %@ failed to start: %d, %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Network %1$@ failed to start: %2$d, %3$@"
+            "value" : "Network %1$@ failed to start: %2$d, %3$lld"
           }
         }
       },
+      "shouldTranslate" : false
+    },
+    "Network %@ is a physical interface" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ is running" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ started" : {
       "shouldTranslate" : false
     },
     "Network %@ stopped: %d" : {
@@ -235,16 +411,34 @@
       },
       "shouldTranslate" : false
     },
+    "Network %@ unchanged" : {
+      "shouldTranslate" : false
+    },
+    "Network name is required" : {
+      "shouldTranslate" : false
+    },
     "No disk files found in the specified directory: %@" : {
       "shouldTranslate" : false
     },
     "No free network address available" : {
       "shouldTranslate" : false
     },
+    "No host specified in image reference" : {
+      "shouldTranslate" : false
+    },
     "No instance found: %@" : {
       "shouldTranslate" : false
     },
+    "No new mounts" : {
+      "shouldTranslate" : false
+    },
     "No registered instance found for source: %@" : {
+      "shouldTranslate" : false
+    },
+    "No shared devices" : {
+      "shouldTranslate" : false
+    },
+    "No umounts" : {
       "shouldTranslate" : false
     },
     "No Virtual Machines directory found at %@." : {
@@ -254,6 +448,27 @@
       "shouldTranslate" : false
     },
     "Not a file URL: %@" : {
+      "shouldTranslate" : false
+    },
+    "Not authorized" : {
+      "shouldTranslate" : false
+    },
+    "Object not found" : {
+      "shouldTranslate" : false
+    },
+    "off" : {
+      "shouldTranslate" : false
+    },
+    "out of boundary" : {
+      "shouldTranslate" : false
+    },
+    "Out of bounds" : {
+      "shouldTranslate" : false
+    },
+    "Packet too big" : {
+      "shouldTranslate" : false
+    },
+    "password expired" : {
       "shouldTranslate" : false
     },
     "PID file %@ did not appear within the expected time" : {
@@ -268,13 +483,46 @@
     "PID file exists at %@ but process died" : {
       "shouldTranslate" : false
     },
+    "public key can't be verified" : {
+      "shouldTranslate" : false
+    },
+    "Purged" : {
+      "shouldTranslate" : false
+    },
     "qemu-img binary not found. Please install qemu to import VMWare files." : {
+      "shouldTranslate" : false
+    },
+    "remote %@ added" : {
+      "shouldTranslate" : false
+    },
+    "remote %@ already exists" : {
+      "shouldTranslate" : false
+    },
+    "remote %@ deleted" : {
+      "shouldTranslate" : false
+    },
+    "remote %@ doesn't exists" : {
       "shouldTranslate" : false
     },
     "remote %@ not found" : {
       "shouldTranslate" : false
     },
     "remote stream %@ not found" : {
+      "shouldTranslate" : false
+    },
+    "remote unsupported url %@" : {
+      "shouldTranslate" : false
+    },
+    "request denied" : {
+      "shouldTranslate" : false
+    },
+    "restarting" : {
+      "shouldTranslate" : false
+    },
+    "running" : {
+      "shouldTranslate" : false
+    },
+    "Service is busy" : {
       "shouldTranslate" : false
     },
     "setsockopt(SO_RCVBUF) returned %d" : {
@@ -291,19 +539,82 @@
       },
       "shouldTranslate" : false
     },
+    "Setup incomplete" : {
+      "shouldTranslate" : false
+    },
+    "Shared network" : {
+      "shouldTranslate" : false
+    },
     "Socket device not found on port:%lld" : {
+      "shouldTranslate" : false
+    },
+    "socket disconnect" : {
       "shouldTranslate" : false
     },
     "Socket error: %d" : {
       "shouldTranslate" : false
     },
+    "socket recv error" : {
+      "shouldTranslate" : false
+    },
     "socket_vmnet not found in path" : {
+      "shouldTranslate" : false
+    },
+    "some socket error" : {
+      "shouldTranslate" : false
+    },
+    "some socket timeout" : {
+      "shouldTranslate" : false
+    },
+    "source VM %@ is running" : {
+      "shouldTranslate" : false
+    },
+    "Source vm is running or paused" : {
+      "shouldTranslate" : false
+    },
+    "Source vm not found" : {
+      "shouldTranslate" : false
+    },
+    "SSH key problem" : {
       "shouldTranslate" : false
     },
     "SSH server not responding" : {
       "shouldTranslate" : false
     },
+    "starting" : {
+      "shouldTranslate" : false
+    },
+    "stopped" : {
+      "shouldTranslate" : false
+    },
+    "success" : {
+      "shouldTranslate" : false
+    },
+    "Success" : {
+      "shouldTranslate" : false
+    },
     "sudo not found in path" : {
+      "shouldTranslate" : false
+    },
+    "suspended" : {
+      "shouldTranslate" : false
+    },
+    "suspending" : {
+      "shouldTranslate" : false
+    },
+    "Target vm already exists" : {
+      "shouldTranslate" : false
+    },
+    "template %@ already exists" : {
+      "shouldTranslate" : false
+    },
+    "Template %@ is running" : {
+      "shouldTranslate" : false
+    },
+    "Template %@ not found" : {
+      "shouldTranslate" : false
+    },
+    "template created" : {
       "shouldTranslate" : false
     },
     "the new file size %@ is lesser than the current disk size of %@" : {
@@ -321,6 +632,12 @@
       "shouldTranslate" : false
     },
     "The provided path is not a directory. Please provide a valid Virtual Machines directory." : {
+      "shouldTranslate" : false
+    },
+    "Timeout" : {
+      "shouldTranslate" : false
+    },
+    "To many packets" : {
       "shouldTranslate" : false
     },
     "Unable to configure network" : {
@@ -341,6 +658,12 @@
     "unable to create socket with exit code %@" : {
       "shouldTranslate" : false
     },
+    "Unable to get IP for VM %@" : {
+      "shouldTranslate" : false
+    },
+    "Unable to get MAC address for VM %@" : {
+      "shouldTranslate" : false
+    },
     "unable to get remote cakeagent" : {
       "shouldTranslate" : false
     },
@@ -353,7 +676,19 @@
     "Unable to load SCPreferences" : {
       "shouldTranslate" : false
     },
-    "Unknown command %@" : {
+    "Unexpected reply from VMRunService" : {
+      "shouldTranslate" : false
+    },
+    "Unimplemented" : {
+      "shouldTranslate" : false
+    },
+    "Unknow error" : {
+      "shouldTranslate" : false
+    },
+    "unknown" : {
+      "shouldTranslate" : false
+    },
+    "Unknown command %lld" : {
       "shouldTranslate" : false
     },
     "unsupported address scheme: %@" : {
@@ -389,7 +724,16 @@
     "Unsupported scheme" : {
       "shouldTranslate" : false
     },
+    "Unsupported URL" : {
+      "shouldTranslate" : false
+    },
+    "Unsupported URL scheme" : {
+      "shouldTranslate" : false
+    },
     "unsupported url: %@" : {
+      "shouldTranslate" : false
+    },
+    "User: %@\n" : {
       "shouldTranslate" : false
     },
     "utimes(2) failed: %@" : {
@@ -418,6 +762,18 @@
     "VM already exists" : {
       "shouldTranslate" : false
     },
+    "VM created" : {
+      "shouldTranslate" : false
+    },
+    "VM deleted" : {
+      "shouldTranslate" : false
+    },
+    "VM duplicated" : {
+      "shouldTranslate" : false
+    },
+    "VM imported successfully" : {
+      "shouldTranslate" : false
+    },
     "VM is not correctly inited, missing files: (%@, %@ or %@)" : {
       "localizations" : {
         "en" : {
@@ -429,6 +785,15 @@
       },
       "shouldTranslate" : false
     },
+    "VM is not running" : {
+      "shouldTranslate" : false
+    },
+    "VM is not running." : {
+      "shouldTranslate" : false
+    },
+    "VM is running" : {
+      "shouldTranslate" : false
+    },
     "VM is running, please stop it before resizing the disk" : {
       "shouldTranslate" : false
     },
@@ -436,6 +801,18 @@
       "shouldTranslate" : false
     },
     "VM not found %@" : {
+      "shouldTranslate" : false
+    },
+    "VM reconfigured" : {
+      "shouldTranslate" : false
+    },
+    "VM renamed" : {
+      "shouldTranslate" : false
+    },
+    "VM started" : {
+      "shouldTranslate" : false
+    },
+    "VM Suspended" : {
       "shouldTranslate" : false
     },
     "VMWare network %@ not found in the system." : {
@@ -456,6 +833,18 @@
     "VNC not connected" : {
       "shouldTranslate" : false
     },
+    "wrong known hosts" : {
+      "shouldTranslate" : false
+    },
+    "wrong method" : {
+      "shouldTranslate" : false
+    },
+    "wrong protocol" : {
+      "shouldTranslate" : false
+    },
+    "wrong public key protocol" : {
+      "shouldTranslate" : false
+    },
     "Wrong URL for template" : {
       "shouldTranslate" : false
     },
@@ -474,6 +863,9 @@
       "shouldTranslate" : false
     },
     "zlib did not decompress the expected number of bytes (%llu)" : {
+      "shouldTranslate" : false
+    },
+    "zlib error" : {
       "shouldTranslate" : false
     }
   },

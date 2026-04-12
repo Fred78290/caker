@@ -179,11 +179,14 @@
 		9B5F49C52F70282400AE1991 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9B5F49C92F7028F500AE1991 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F49C82F7028F200AE1991 /* VNC.swift */; };
 		9B5F4B532F728AF600AE1991 /* Authorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F4B522F728AF200AE1991 /* Authorization.swift */; };
+		9B5FA0FF2F8B94F50077EF64 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */; };
+		9B5FA1032F8BABF50077EF64 /* en.xcloc in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA1002F8BABF50077EF64 /* en.xcloc */; };
+		9B5FA1042F8BABF50077EF64 /* fr.xcloc in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA1012F8BABF50077EF64 /* fr.xcloc */; };
+		9B5FA1052F8BE41F0077EF64 /* fr.xcloc in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA1012F8BABF50077EF64 /* fr.xcloc */; };
 		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
 		9B7053F32F4F06DF006C68AA /* GrandCentralDispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */; };
-		9B7117BE2F839F8F0013A8D9 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B7117BD2F839F8F0013A8D9 /* Localizable.xcstrings */; };
 		9B75308E2E65E557000736B3 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B75308D2E65E557000736B3 /* RoyalVNCKitStatic */; };
 		9B75A6D32E2A2C48000AA773 /* Pty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B75A6D22E2A2C45000AA773 /* Pty.swift */; };
 		9B7997252E45EDEC00147500 /* VNCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7997242E45EDEC00147500 /* VNCView.swift */; };
@@ -827,10 +830,12 @@
 		9B5F49C12F7006AF00AE1991 /* VNCConnectionLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCConnectionLogger.swift; sourceTree = "<group>"; };
 		9B5F49C82F7028F200AE1991 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9B5F4B522F728AF200AE1991 /* Authorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authorization.swift; sourceTree = "<group>"; };
+		9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		9B5FA1002F8BABF50077EF64 /* en.xcloc */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = en.xcloc; sourceTree = "<group>"; };
+		9B5FA1012F8BABF50077EF64 /* fr.xcloc */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = fr.xcloc; sourceTree = "<group>"; };
 		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
 		9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
-		9B7117BD2F839F8F0013A8D9 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		9B75A6D22E2A2C45000AA773 /* Pty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pty.swift; sourceTree = "<group>"; };
 		9B7997242E45EDEC00147500 /* VNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCView.swift; sourceTree = "<group>"; };
 		9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForwardedPortNewItemView.swift; sourceTree = "<group>"; };
@@ -1456,7 +1461,6 @@
 				9B9C4E612E23BD8900C13D23 /* Model */,
 				9BAF74B52EBBD7CC0036CE1B /* MultiplatformTabBar */,
 				9B2BFAB72DFED25E000045C3 /* Views */,
-				9B7117BD2F839F8F0013A8D9 /* Localizable.xcstrings */,
 			);
 			path = caker;
 			sourceTree = "<group>";
@@ -1514,6 +1518,7 @@
 			isa = PBXGroup;
 			children = (
 				9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */,
+				9B5FA1022F8BABF50077EF64 /* Localizations */,
 				9B464A562D5A3DA000164BF5 /* Caker */,
 				9B96B0102F4B68380069C970 /* CakerTests */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
@@ -1657,6 +1662,16 @@
 			);
 			path = VNCLib;
 			sourceTree = "<group>";
+		};
+		9B5FA1022F8BABF50077EF64 /* Localizations */ = {
+			isa = PBXGroup;
+			children = (
+				9B5FA1002F8BABF50077EF64 /* en.xcloc */,
+				9B5FA1012F8BABF50077EF64 /* fr.xcloc */,
+			);
+			name = Localizations;
+			path = ../Localizations;
+			sourceTree = SOURCE_ROOT;
 		};
 		9B7D682B2F17E1A700FE1B0B /* SharedPtrBridge */ = {
 			isa = PBXGroup;
@@ -2114,6 +2129,7 @@
 		9BFE87462F7E6480005CC9B2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */,
 				9BFE87362F7E6480005CC9B2 /* AppIcon.icns */,
 				9BFE87372F7E6480005CC9B2 /* caked.plist */,
 				9BFE87382F7E6480005CC9B2 /* Caked.xcf */,
@@ -2562,7 +2578,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9B7117BE2F839F8F0013A8D9 /* Localizable.xcstrings in Resources */,
+				9B5FA0FF2F8B94F50077EF64 /* Localizable.xcstrings in Resources */,
+				9B5FA1032F8BABF50077EF64 /* en.xcloc in Resources */,
+				9B5FA1042F8BABF50077EF64 /* fr.xcloc in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2579,6 +2597,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9BFE87702F7E65F0005CC9B2 /* VM.png in Resources */,
+				9B5FA1052F8BE41F0077EF64 /* fr.xcloc in Resources */,
 				9BFE87DC2F7E6B67005CC9B2 /* VM.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3149,6 +3168,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -3214,6 +3234,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
