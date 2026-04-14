@@ -19,9 +19,9 @@ public struct AboutApplication: View {
 		
 		let center: [NSAttributedString.Key: Any] = [.paragraphStyle: style]
 		
-		infos.append(NSAttributedString(string: String(localized: "CPU: \(config.cpuCount) cores\n"), attributes: center))
-		infos.append(NSAttributedString(string: String(localized: "Memory: \(ByteCountFormatter.string(fromByteCount: Int64(config.memorySize), countStyle: .memory))\n"), attributes: center))
-		infos.append(NSAttributedString(string: String(localized: "User: \(config.configuredUser)\n"), attributes: center))
+		infos.append(NSAttributedString(string: String(localized: "CPU: \(config.cpuCount) cores") + "\n", attributes: center))
+		infos.append(NSAttributedString(string: String(localized: "Memory: \(ByteCountFormatter.string(fromByteCount: Int64(config.memorySize), countStyle: .memory))") + "\n", attributes: center))
+		infos.append(NSAttributedString(string: String(localized: "User: \(config.configuredUser)") + "\n", attributes: center))
 		
 		if let runningIP = config.runningIP {
 			infos.append(NSAttributedString(string: String(localized: "IP: \(runningIP)\n"), attributes: center))
