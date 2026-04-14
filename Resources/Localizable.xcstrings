@@ -2,7 +2,26 @@
   "sourceLanguage" : "en",
   "strings" : {
     "" : {
-      "comment" : "vide"
+      "comment" : "vide",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ""
+          }
+        }
+      }
+    },
+    "(unknown status %d)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(statut inconnu %d)"
+          }
+        }
+      }
     },
     "%@" : {
       "comment" : "A label displaying the name of a network. The argument is the name of the network.",
@@ -63,7 +82,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A propos de Caker"
+            "value" : "À propos de Caker"
           }
         }
       }
@@ -129,7 +148,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mote de passe de l’administrateur"
+            "value" : "Mot de passe de l'administrateur"
           }
         }
       }
@@ -139,7 +158,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Préférences administateur"
+            "value" : "Paramètres de l'administrateur"
           }
         }
       }
@@ -211,7 +230,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Etes vous sûr de vouloir supprimer le réseau: %@? Cette action n’est pas réversible"
+            "value" : "Êtes-vous sûr de vouloir supprimer le réseau %@? Cette action ne peut pas être annulée."
           }
         }
       }
@@ -223,7 +242,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Etes vous sûr de vouloir supprimer la source: %@? Cette action n’est pas réversible"
+            "value" : "Êtes-vous sûr de vouloir supprimer la source distante : %@ ? Cette action ne peut pas être annulée."
           }
         }
       }
@@ -235,7 +254,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Etes vous sûr de vouloir supprimer le modèle: %@? Cette action n’est pas réversible"
+            "value" : "Êtes-vous sûr de vouloir supprimer le modèle %@ ? Cette action ne peut pas être annulée."
           }
         }
       }
@@ -247,7 +266,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "L’autorisation a échouée: %d"
+            "value" : "L’autorisation a échouée : %d"
           }
         }
       }
@@ -257,7 +276,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LA fonction AuthorizationCopyRights a échoué avec le statut: %d"
+            "value" : "La fonction AuthorizationCopyRights a échoué avec le statut: %d"
           }
         }
       }
@@ -363,7 +382,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annulée"
+            "value" : "Annulé"
           }
         }
       }
@@ -399,7 +418,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vérifier les mises à jour"
+            "value" : "Vérifier les mises à jour…"
           }
         }
       }
@@ -409,7 +428,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choisir un image disk locale"
+            "value" : "Choisir un disque image local."
           }
         }
       }
@@ -429,7 +448,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choisir une image disque ISO"
+            "value" : "Choisir un disque image ISO."
           }
         }
       }
@@ -473,7 +492,24 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fichier cloud-init"
+            "value" : "Configuration cloud-init"
+          }
+        }
+      }
+    },
+    "cloudimage_help" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\nThe image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image, ipsw or iso\nImage format is determined by url scheme or extension\nThe url image form are:\n  - local images (raw format): /Users/myhome/disk.img or file:///Users/myhome/disk.img\n  - local qcow2 images: /Users/myhome/disk.qcow2 or qcow2:///Users/myhome/disk.img\n  - unsecure remote cloud images (qcow2 format): http://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img\n  - secure remote cloud images (qcow2 format): https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img\n  - lxc images: images:ubuntu/noble/cloud, see remote command for detail\n  - secure oci images (tart format): ocis://ghcr.io/cirruslabs/ubuntu:latest (https)\n  - unsecure oci images (tart format): oci://unsecure.com/ubuntu:latest (http)\n  - local macos restore: /Users/myhome/restore.ipsw or ipsw:///Users/myhome/restore\n  - remote macos restore: ipsw://ipsw.me/install/Mac17,4/25D2128\n  - local iso: /Users/myhome/disk.iso or iso:///Users/myhome/disk\n  - unsecure remote iso: http://cdimage.ubuntu.com/releases/26.04/snapshot-4/ubuntu-26.04-snapshot4-desktop-arm64.iso or iso://cdimage.nowhere.com/releases/latest\n  - secure remote iso: https://cdimage.ubuntu.com/releases/26.04/snapshot-4/ubuntu-26.04-snapshot4-desktop-arm64.iso or isos://cdimage.nowhere.com/releases/latest\n"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\nL'image peut être une image au format RAW, une image cloud au format qcow2, une image LXC Simplestreams, une image OCI, un fichier IPSW ou ISO.\nLe format de l'image est déterminé par le schéma d'URL ou son extension.\nVoici les formats d'URL des images :\n    - Images locales (format RAW) : /Users/myhome/disk.img ou file:///Users/myhome/disk.img\n    - Images qcow2 locales : /Users/myhome/disk.qcow2 ou qcow2:///Users/myhome/disk.img\n    - Images cloud distantes non sécurisées (format qcow2) : http://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img\n    - Images cloud distantes sécurisées (format qcow2) : https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img\n    - Images LXC/Incus : images:ubuntu/noble/cloud, voir la commande à distance pour plus de détails\n    - Images OCI sécurisées (format tart) : ocis://ghcr.io/cirruslabs/ubuntu:latest (https)\n    - Images OCI non sécurisées (format tart) : oci://unsecure.com/ubuntu:latest (http)\n    - Restauration macOS locale : /Users/myhome/restore.ipsw ou ipsw:///Users/myhome/restore\n    - Restauration macOS distante : ipsw://ipsw.me/install/Mac17,4/25D2128\n    - ISO locale : /Users/myhome/disk.iso ou iso:///Users/myhome/disk\n    - ISO distant non sécurisée : http://cdimage.ubuntu.com/releases/26.04/snapshot-4/ubuntu-26.04-snapshot4-desktop-arm64.iso ou iso://cdimage.nowhere.com/releases/latest\n    - ISO distant sécurisé : https://cdimage.ubuntu.com/releases/26.04/snapshot-4/ubuntu-26.04-snapshot4-desktop-arm64.iso ou isos://cdimage.nowhere.com/releases/latest\n"
           }
         }
       }
@@ -531,7 +567,24 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En connection VNC"
+            "value" : "Connexion à VNC en cours"
+          }
+        }
+      }
+    },
+    "console_help" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\n  - --console=unix — use a Unix socket for the serial console located at ~/.caked/vms/<vm-name>/console.sock\n  - --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path\n  - --console=file — use a simple file for the serial console located at ~/.caked/vms/<vm-name>/console.log\n  - --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing\n    ** INFO: The console doesn't work on MacOS sonoma and earlier  **\n"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\n  - --console=unix : utilise un socket Unix pour la console série situé dans ~/.caked/vms/<nom-de-la-machine-machine>/console.sock\n  - --console=unix:/tmp/serial.sock : utilise un socket Unix pour la console série situé au chemin spécifié\n  - --console=file : utilise un fichier simple pour la console série situé dans ~/.caked/vms/<nom-de-la-machine-machine>/console.log\n  - --console=fd://0,1 : utilise des descripteurs de fichiers pour la console série. Le premier descripteur est destiné à la lecture, le second à l'écriture.\n    ** INFO : La console n'est pas compatible avec macOS Sonoma et les versions antérieures. **\n"
           }
         }
       }
@@ -555,7 +608,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Processeur & mémoire"
+            "value" : "CPU & Mémoire"
           }
         }
       }
@@ -567,7 +620,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Processeur & mémoire & disque"
+            "value" : "CPU & Mémoire & Disque"
           }
         }
       }
@@ -579,7 +632,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CPU & Ram"
+            "value" : "CPU & RAM"
           }
         }
       }
@@ -601,7 +654,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nombre de cœur"
+            "value" : "Nombre de cœurs"
           }
         }
       }
@@ -611,7 +664,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usage du processeur indisponible"
+            "value" : "Usage du CPU indisponible"
           }
         }
       }
@@ -677,7 +730,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Créer une machine virtuelle à partir d’un modéle"
+            "value" : "Créer un modèle à partir de la machine virtuelle"
           }
         }
       }
@@ -689,7 +742,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La création de la machine virtuelle a échouée"
+            "value" : "La création de la machine virtuelle a échoué"
           }
         }
       }
@@ -701,7 +754,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "défault"
+            "value" : "défaut"
           }
         }
       }
@@ -723,7 +776,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La suppression a échouée"
+            "value" : "Échec de la suppression"
           }
         }
       }
@@ -747,7 +800,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Supprimer la source"
+            "value" : "Supprimer la source distante"
           }
         }
       }
@@ -809,7 +862,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "l’adresse de fin DHCP %1$@n’est pas incluse dans le réseau %2$@"
+            "value" : "l'adresse de fin DHCP %1$@ n'est pas dans la plage du réseau %2$@"
           }
         }
       }
@@ -819,7 +872,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Durée DHCP"
+            "value" : "Bail DHCP"
           }
         }
       }
@@ -879,7 +932,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chemin vers l’image disque"
+            "value" : "Chemin de l'image disque"
           }
         }
       }
@@ -915,7 +968,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Attacher des disques externes"
+            "value" : "Disques additionnels"
           }
         }
       }
@@ -927,7 +980,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Taille de l’affichage"
+            "value" : "Taille d'affichage"
           }
         }
       }
@@ -961,7 +1014,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Transfert automatique des ports internet"
+            "value" : "Transfert automatique des ports"
           }
         }
       }
@@ -985,7 +1038,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Entrez le nom du fichier:"
+            "value" : "Entrez le nom du fichier :"
           }
         }
       }
@@ -1057,7 +1110,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "L’installation de l’agent aéchoué"
+            "value" : "Impossible d'installer l'agent."
           }
         }
       }
@@ -1261,7 +1314,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Port dans la machine"
+            "value" : "Port dans la VM"
           }
         }
       }
@@ -1273,7 +1326,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ID de l’utilisateur pour le montage"
+            "value" : "ID de l'utilisateur dans la VM pour le montage"
           }
         }
       }
@@ -1295,7 +1348,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A remplir"
+            "value" : "Bonjour, télécommande !"
           }
         }
       }
@@ -1307,7 +1360,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A remplir"
+            "value" : "Bonjour, Modèle !"
           }
         }
       }
@@ -1319,7 +1372,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A remplir"
+            "value" : "Bonjour, VM !"
           }
         }
       }
@@ -1331,7 +1384,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A remplir"
+            "value" : "Bonjour, Monde !"
           }
         }
       }
@@ -1343,7 +1396,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cacher l’icône du dock"
+            "value" : "Masquer l'icône du dock au prochain lancement"
           }
         }
       }
@@ -1365,7 +1418,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chemin sur le host"
+            "value" : "Chemin dans l'hôte"
           }
         }
       }
@@ -1375,7 +1428,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Port sur le host"
+            "value" : "Port dans l'hôte"
           }
         }
       }
@@ -1385,7 +1438,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Source de l’image"
+            "value" : "Source de l'image"
           }
         }
       }
@@ -1421,7 +1474,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Installation de l'agent"
+            "value" : "Installation de l'agent..."
           }
         }
       }
@@ -1431,7 +1484,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ID de l’interface"
+            "value" : "ID de l'interface"
           }
         }
       }
@@ -1455,7 +1508,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erreur interne durant la création de la machine virtuelle"
+            "value" : "Erreur interne lors de la création de la machine virtuelle"
           }
         }
       }
@@ -1489,7 +1542,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adresse invalide: %@"
+            "value" : "Adresse %@ invalide"
           }
         }
       }
@@ -1519,7 +1572,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lancer la VM en externe"
+            "value" : "Lancer la machine en mode détaché"
           }
         }
       }
@@ -1541,7 +1594,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lancer la VM en interne"
+            "value" : "Lancer la machine virtuelle dans l'application"
           }
         }
       }
@@ -1565,7 +1618,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "niveau de log"
+            "value" : "Niveau de journal"
           }
         }
       }
@@ -1577,7 +1630,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adresse MAC"
+            "value" : "Adresse Mac"
           }
         }
       }
@@ -1587,7 +1640,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URL de l’IPSW"
+            "value" : "URL de l'IPSW macOS."
           }
         }
       }
@@ -1638,6 +1691,23 @@
         }
       }
     },
+    "mount_help" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\nAdditional directory shares with an optional read-only and mount tag options (e.g. --mount=\\\"~/src/build:/opt/build\\\" or --mount=\\\"~/src/sources:/opt/sources,ro,name=Sources\\\")\"\nThe options are:\n  - ro: read-only\n  - name=name of the share\n  - uid=user id\n  - gid=group id\n"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\nPartages de répertoires supplémentaires avec options de lecture seule et de point de montage (par exemple : `--mount=\"~/src/build:/opt/build\" ou `--mount=\"~/src/sources:/opt/sources,ro,name=Sources\"`).\nOptions :\n- ro : lecture seule\n- name : nom du partage\n- uid : identifiant utilisateur\n- gid : identifiant de groupe\n"
+          }
+        }
+      }
+    },
     "My templates" : {
       "comment" : "Title of the section of the app that displays the user's templates.",
       "isCommentAutoGenerated" : true,
@@ -1681,7 +1751,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nom de la machine virtuelle"
+            "value" : "Nom de la nouvelle machine virtuelle"
           }
         }
       }
@@ -1693,7 +1763,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Virtualisation active dans la VM"
+            "value" : "Virtualisation imbriquée"
           }
         }
       }
@@ -1703,7 +1773,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Masque réseau"
+            "value" : "Masque du réseau"
           }
         }
       }
@@ -1715,7 +1785,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Réseau"
+            "value" : "Réseaux"
           }
         }
       }
@@ -1727,7 +1797,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le réseau %@existe déjà"
+            "value" : "Le réseau %@ existe déjà"
           }
         }
       }
@@ -1739,7 +1809,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Réseaux supplémentaire"
+            "value" : "Réseaux supplémentaires"
           }
         }
       }
@@ -1749,7 +1819,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configuration réseau"
+            "value" : "configuration réseau"
           }
         }
       }
@@ -1769,7 +1839,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mode du réseau"
+            "value" : "Mode réseau"
           }
         }
       }
@@ -1790,6 +1860,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adresse de début du réseau"
+          }
+        }
+      }
+    },
+    "network_help" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\nAdd a network interface to the instance, where\n<spec> is in the \\\"key=value,key=value\\\" format,\nwith the following keys available:\nname: the network to connect to (required), use\nthe networks command for a list of possible values.\n  - mode: auto|manual (default: auto)\n  - mac: hardware address (default: random).\nYou can also use a shortcut of \\\"<name>\\\" to mean \\\"name=<name>\\\".\n"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\nAjoutez une interface réseau à l'instance, où\n<spec> est au format « clé=valeur, clé=valeur »,\navec les clés suivantes :\nname : le réseau auquel se connecter (obligatoire). Utilisez\nla commande « networks » pour obtenir la liste des valeurs possibles.\n- mode : auto|manual (par défaut : auto)\n- mac : adresse MAC (par défaut : aléatoire).\nVous pouvez également utiliser le raccourci « <name> » pour indiquer « name=<name> ».\n"
+          }
+        }
+      }
+    },
+    "network_list_abstract" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List host network devices (physical interfaces, virtual switches, bridges) available\nto integrate with using the `--bridged` switch to the `launch` command"
           }
         }
       }
@@ -1861,7 +1959,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nouveau socket"
+            "value" : "Ajouter un socket à transférer"
           }
         }
       }
@@ -1907,7 +2005,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aucune machine virtuelle."
+            "value" : "Aucune machine virtuelle trouvée."
           }
         }
       }
@@ -1919,7 +2017,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pas de VM trouvée"
+            "value" : "Aucune VM trouvée"
           }
         }
       }
@@ -1951,7 +2049,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ouvrir une nouvelle machine virtuelle"
+            "value" : "Ouvrir une nouvelle machine virtuelle."
           }
         }
       }
@@ -2003,7 +2101,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Image de l’OS"
+            "value" : "Image de l'OS"
           }
         }
       }
@@ -2042,7 +2140,15 @@
     },
     "Port forwarding" : {
       "comment" : "Title of a port forwarding tunnel.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redirection de port"
+          }
+        }
+      }
     },
     "Ports" : {
       "comment" : "Title of a wizard item for configuring the ports of the virtual machine.",
@@ -2088,6 +2194,23 @@
         }
       }
     },
+    "push_options_help" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By default monolithic method is used for uploading blobs to the registry but some registries support a more efficient chunked method.\nFor example, AWS Elastic Container Registry supports only chunks larger than 5MB but GitHub Container Registry supports only chunks smaller than 4MB. Google Container Registry on the other hand doesn't support chunked uploads at all.\nPlease refer to the documentation of your particular registry in order to see if this option is suitable for you and what's the recommended chunk size."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Par défaut, la méthode monolithique est utilisée pour le chargement des blobs dans le registre, mais certains registres prennent en charge une méthode par blocs plus efficace.\nPar exemple, AWS Elastic Container Registry n'accepte que les blocs supérieurs à 5 Mo, tandis que GitHub Container Registry n'accepte que les blocs inférieurs à 4 Mo. Google Container Registry, quant à lui, ne prend pas en charge le chargement par blocs.\nVeuillez consulter la documentation de votre registre pour déterminer si cette option vous convient et connaître la taille de bloc recommandée."
+          }
+        }
+      }
+    },
     "Quit" : {
       "comment" : "A button that quits the application.",
       "isCommentAutoGenerated" : true,
@@ -2105,7 +2228,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "URL d’une image brute"
+            "value" : "URL de l'image brute."
           }
         }
       }
@@ -2183,7 +2306,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Demande le redémarrage de Caker pour prendre effet"
+            "value" : "Nécessite un redémarrage de Caker pour prendre effet."
           }
         }
       }
@@ -2218,12 +2341,12 @@
         }
       }
     },
-    "Resumes virtual machine" : {
+    "Resume virtual machine" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reprendre les machines virtuelles"
+            "value" : "Reprise de la machine virtuelle"
           }
         }
       }
@@ -2255,7 +2378,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sauver"
+            "value" : "Enregistrer"
           }
         }
       }
@@ -2267,7 +2390,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enregistrer sous…"
+            "value" : "Enregistrer sous..."
           }
         }
       }
@@ -2279,7 +2402,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sauver les captures d’écran des VM"
+            "value" : "Enregistrer les captures d'écran de la VM"
           }
         }
       }
@@ -2301,7 +2424,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choisissez un modèle"
+            "value" : "Choisir un modèle"
           }
         }
       }
@@ -2323,7 +2446,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choisir le type de source"
+            "value" : "Choisir une source distante"
           }
         }
       }
@@ -2335,7 +2458,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Envoyer le presse-papier de la VM vers la vue VNC"
+            "value" : "Envoyer les données du presse-papiers à la VM en vue VNC"
           }
         }
       }
@@ -2359,7 +2482,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Préférences"
+            "value" : "Réglages"
           }
         }
       }
@@ -2383,7 +2506,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afficher l’application"
+            "value" : "Afficher Caker"
           }
         }
       }
@@ -2417,7 +2540,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afficher l’icône dans la barre de menus"
+            "value" : "Afficher l'icône dans la barre de menus"
           }
         }
       }
@@ -2429,7 +2552,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afficher la fenêtre principale"
+            "value" : "Afficher la fenêtre principale."
           }
         }
       }
@@ -2439,7 +2562,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afficher/Masquer le curseur dans la vue de la VM"
+            "value" : "Afficher/Masquer le curseur de l'hôte dans la vue VM"
           }
         }
       }
@@ -2451,7 +2574,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eteindre la VM à la fermeture de la fenêtre"
+            "value" : "Arrêter la VM à la fermeture de la fenêtre"
           }
         }
       }
@@ -2464,6 +2587,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mode des sockets"
+          }
+        }
+      }
+    },
+    "socket_help" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\nThe socket option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.\nThe mode is as follows:\n  - bind: creates a socket file on the host and listens for connections eg. bind://vsock:1234/tmp/unix_socket. The VM must listen the vsock port number.\n\n  - connect: uses an existing socket file on the host,\n    eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.\n\n  - tcp: listen TCP on address. The VM must listen on the same port number,\n    eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.\n\n  - udp: listen UDP on address. The VM must listen on the same port number,\n    eg. udp://127.0.0.1:1234, udp://[::1]:1234\n\n  - fd: use file descriptor. The VM must connect on the same port number,\n    eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.\n    not supported with cakectl and with command build\n"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\nL'option socket permet de créer un socket virtio entre la machine virtuelle et l'hôte. Le numéro de port utilisé pour la connexion doit être supérieur à 1023.\nLes modes sont les suivants :\n  - bind : crée un fichier socket sur l'hôte et écoute les connexions, par exemple : bind://vsock:1234/tmp/unix_socket. La machine virtuelle doit écouter sur le port vsock.\n\n  - connect : utilise un fichier socket existant sur l'hôte,\n    par exemple : connect://vsock:1234/tmp/unix_socket. La machine virtuelle doit se connecter sur le port vsock.\n\n  - tcp : écoute TCP sur l'adresse. La machine virtuelle doit écouter sur le même port,\n    par exemple : tcp://127.0.0.1:1234, tcp://[::1]:1234.\n\n  - udp : écoute UDP sur l'adresse. La machine virtuelle doit écouter sur le même port,\n    par exemple : udp://127.0.0.1:1234, udp://[::1]:1234\n\n  - fd : utiliser un descripteur de fichier. La machine virtuelle doit se connecter sur le même numéro de port,\n    ex. : fd://24:1234, fd://24,25:1234. 24 = descripteur de fichier pour la lecture ou la lecture/écriture s'il est seul ; 25 = descripteur de fichier pour l'écriture.\n    Non pris en charge avec cakectl et la commande build.\n"
           }
         }
       }
@@ -2499,7 +2639,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Autorise le mot de passe avec SSH"
+            "value" : "SSH avec mot de passe"
           }
         }
       }
@@ -2541,7 +2681,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le démarrage du réseau a échoué"
+            "value" : "Échec de démarrage du réseau"
           }
         }
       }
@@ -2605,7 +2745,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "L’arrêt du réseau a échoué"
+            "value" : "L'arrêt du réseau a échoué"
           }
         }
       }
@@ -2661,7 +2801,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Synchroniser"
+            "value" : "Synchronisation en cours"
           }
         }
       }
@@ -2697,7 +2837,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impossible de trouver la machine virtuelle: %@"
+            "value" : "Impossible de trouver la machine virtuelle : %@"
           }
         }
       }
@@ -2709,7 +2849,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impossible d’obtenir l’URL: %@"
+            "value" : "Impossible d'obtenir l'URL pour %@"
           }
         }
       }
@@ -2745,7 +2885,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Socket unix"
+            "value" : "Socket de domaine Unix"
           }
         }
       }
@@ -2798,7 +2938,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utilisée par"
+            "value" : "Utilisé par"
           }
         }
       }
@@ -2818,7 +2958,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nom de l’utilisateur"
+            "value" : "Nom de l'utilisateur"
           }
         }
       }
@@ -2854,7 +2994,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La machine virtuelle n’est pas chargée"
+            "value" : "La machine virtuelle n'est pas chargée"
           }
         }
       }
@@ -2914,7 +3054,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VM encours de restauration"
+            "value" : "VM en cours de restauration"
           }
         }
       }
@@ -2926,7 +3066,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VM encours de réveil"
+            "value" : "VM en cours de reprise"
           }
         }
       }
@@ -2938,7 +3078,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VM active"
+            "value" : "VM en cours d'exécution"
           }
         }
       }
@@ -2950,7 +3090,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VM encours de sauvegarde"
+            "value" : "VM en cours de sauvegarde"
           }
         }
       }
@@ -2962,7 +3102,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VM encours de démarrage"
+            "value" : "VM en cours de démarrage"
           }
         }
       }
@@ -2986,7 +3126,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VM encours d’arrêt"
+            "value" : "VM en cours d’arrêt"
           }
         }
       }
@@ -3010,7 +3150,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VM en erreur"
+            "value" : "VM sur erreur"
           }
         }
       }
@@ -3034,7 +3174,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VNC encours déconnexion"
+            "value" : "VNC en cours de déconnexion"
           }
         }
       }
