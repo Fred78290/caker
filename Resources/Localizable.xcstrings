@@ -398,8 +398,8 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : ""
+            "state" : "translated",
+            "value" : "Permettre de créer un socket virtio entre l'invité et l'hôte, format comme URL : <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, par exemple. bind://dummy:1234/tmp/vsock.sock"
           }
         }
       }
@@ -1379,7 +1379,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "  \n- --console=unix : utilise un socket Unix pour la console série situé dans ~/.caked/vms/<nom-de-la-machine-machine>/console.sock\n  - --console=unix:/tmp/serial.sock : utilise un socket Unix pour la console série situé au chemin spécifié\n  - --console=file : utilise un fichier simple pour la console série situé dans ~/.caked/vms/<nom-de-la-machine-machine>/console.log\n  - --console=fd://0,1 : utilise des descripteurs de fichiers pour la console série. Le premier descripteur est destiné à la lecture, le second à l'écriture.\n    ** INFO : La console n'est pas compatible avec macOS Sonoma et les versions antérieures. **\n"
+            "value" : "  \n  - --console=unix : utilise un socket Unix pour la console série situé dans ~/.caked/vms/<nom-de-la-machine-machine>/console.sock\n  - --console=unix:/tmp/serial.sock : utilise un socket Unix pour la console série situé au chemin spécifié\n  - --console=file : utilise un fichier simple pour la console série situé dans ~/.caked/vms/<nom-de-la-machine-machine>/console.log\n  - --console=fd://0,1 : utilise des descripteurs de fichiers pour la console série. Le premier descripteur est destiné à la lecture, le second à l'écriture.\n    ** INFO : La console n'est pas compatible avec macOS Sonoma et les versions antérieures. **\n"
           }
         }
       }
@@ -3084,6 +3084,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Erreur HTTP : %lld pour l'URL : %@"
+          }
+        }
+      }
+    },
+    "Hypervisor running VM on macOS with a focus on security, performance and integration, with vmnet networking: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hyperviseur exécutant une machine virtuelle sur macOS, axé sur la sécurité, les performances et l'intégration, avec réseau vmnet : %@"
           }
         }
       }
@@ -5261,6 +5272,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "\nAjoutez une interface réseau à l'instance, où\n<spec> est au format \"clé=valeur, clé=valeur\",\navec les clés suivantes :\nnom : le réseau auquel se connecter (obligatoire). Utilisez\nla commande « networks » pour obtenir la liste des valeurs possibles.\n  - mode : auto|manual (par défaut : auto)\n  - mac : adresse MAC (par défaut : aléatoire).\nVous pouvez également utiliser le raccourci \"<nom>\" pour indiquer \"nom=<nom>\".\n"
+          }
+        }
+      }
+    },
+    "network_list_abstract" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List host network devices (physical interfaces, virtual switches, bridges) available\nto integrate with using the `--bridged` switch to the `launch` command"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liste des périphériques réseau hôtes (interfaces physiques, commutateurs virtuels, ponts)\ndisponibles pour l'intégration à l'aide de l'option `--bridged` de la commande `launch`"
           }
         }
       }
@@ -8381,6 +8409,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "L'arrêt du réseau a échoué"
+          }
+        }
+      }
+    },
+    "Stop options" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Options de stop"
           }
         }
       }
