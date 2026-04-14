@@ -82,7 +82,7 @@ struct MainApp: App, VirtualMachineDelegate {
 						} else if self.appState.status == .paused {
 							Button("Resume", systemImage: "playpause") {
 								self.startFromUI()
-							}.help("Resumes virtual machine")
+							}.help("Resume virtual machine")
 						} else {
 							Button("Start", systemImage: "power") {
 								self.startFromUI()

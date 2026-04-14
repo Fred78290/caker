@@ -45,10 +45,10 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp(String(localized: "Optional forwarded port for VM, syntax like docker"), discussion: String(localized: "value is like host:guest/(tcp|udp|both)"), valueName: "value"))
 	internal var published: [String] = ["unset"]
 
-	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp(String(localized: "Additional directory shares"), discussion: mount_help, valueName: "[name:]path[:options]"))
+	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp(String(localized: "Additional directory shares"), discussion: String(localized: "mount_help"), valueName: "[name:]path[:options]"))
 	internal var mount: [String] = ["unset"]
 
-	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp(String(localized: "Add a network interface to the instance"), discussion: network_help, valueName: "<spec>"))
+	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp(String(localized: "Add a network interface to the instance"), discussion: String(localized: "network_help"), valueName: "<spec>"))
 	internal var network: [String] = ["unset"]
 
 	@Flag(help: ArgumentHelp("Generate a new random MAC address for the VM."))
@@ -59,10 +59,10 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 
 	@Option(
 		name: [.customLong("socket")],
-		help: ArgumentHelp(String(localized: "Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock"), discussion: socket_help))
+		help: ArgumentHelp(String(localized: "Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock"), discussion: String(localized: "socket_help")))
 	internal var socket: [String] = ["unset"]
 
-	@Option(name: [.customLong("console")], help: ArgumentHelp(String(localized: "URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")"), discussion: console_help, valueName: "url"))
+	@Option(name: [.customLong("console")], help: ArgumentHelp(String(localized: "URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")"), discussion: String(localized: "console_help"), valueName: "url"))
 	public var console: String?
 
 	public init(

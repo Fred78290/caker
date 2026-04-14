@@ -119,7 +119,6 @@ struct Root: ParsableCommand {
 		LoggingSystem.bootstrap { label in
 			StreamLogHandler.standardError(label: label)
 		}
-
 		// Set line-buffered output for stdout
 		setlinebuf(stdout)
 

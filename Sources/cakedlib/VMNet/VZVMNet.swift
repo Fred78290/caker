@@ -34,7 +34,7 @@ extension vmnet_return_t {
 		case .VMNET_NOT_AUTHORIZED:
 			return String(localized: "Not authorized")
 		default:
-			return String(localized: "(unknown status \(self))")
+			return String(localized: "(unknown status \(self.rawValue))")
 		}
 	}
 

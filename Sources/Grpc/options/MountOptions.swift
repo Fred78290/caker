@@ -7,7 +7,7 @@ public struct MountOptions: ParsableArguments {
 	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	public var name: String = String.empty
 
-	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp(String(localized: "Additional directory shares"), discussion: mount_help))
+	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp(String(localized: "Additional directory shares"), discussion: String(localized: "mount_help")))
 	public var mounts: DirectorySharingAttachments = []
 
 	public init() {

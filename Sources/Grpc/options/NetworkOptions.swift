@@ -18,13 +18,7 @@ public struct NetworkStopOptions {
 }
 
 public struct NetworkListOptions {
-	public static let configuration = CommandConfiguration(
-		abstract:
-			"""
-			List host network devices (physical interfaces, virtual switches, bridges) available
-			to integrate with using the `--bridged` switch to the `launch` command
-			""",
-		aliases: ["ls"])
+	public static let configuration = CommandConfiguration(abstract: String(localized: "network_list_abstract"), aliases: ["ls"])
 }
 
 public struct NetworkCreateOptions: ParsableArguments, Sendable {

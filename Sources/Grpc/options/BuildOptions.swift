@@ -50,7 +50,7 @@ public struct BuildOptions: ParsableArguments {
 	@Flag(help: ArgumentHelp(String(localized: "Disables audio and entropy devices and switches to only Mac-specific input devices."), discussion: String(localized: "Useful for running a VM that can be suspended via suspend command.")))
 	public var suspendable: Bool = false
 
-	@Argument(help: ArgumentHelp(String(localized: "create a linux VM using a cloud image"), discussion: cloudimage_help, valueName: "url"))
+	@Argument(help: ArgumentHelp(String(localized: "create a linux VM using a cloud image"), discussion: String(localized: "cloudimage_help"), valueName: "url"))
 	public var image: String = defaultUbuntuImage
 
 	@Option(help: ArgumentHelp(String(localized: "Image source"), discussion: String(localized: "This option specify image source when image url is http but not raw"), visibility: .hidden))
@@ -78,10 +78,10 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp(String(localized: "Optional forwarded port for VM, syntax like docker"), discussion: String(localized: "value is like host:guest/(tcp|udp|both)"), valueName: "value"))
 	public var forwardedPorts: [TunnelAttachement] = []
 
-	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp(String(localized: "Additional directory shares"), discussion: mount_help))
+	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp(String(localized: "Additional directory shares"), discussion: String(localized: "mount_help")))
 	public var mounts: DirectorySharingAttachments = []
 
-	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp(String(localized: "Add a network interface to the instance"), discussion: network_help, valueName: "spec"))
+	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp(String(localized: "Add a network interface to the instance"), discussion: String(localized: "network_help"), valueName: "spec"))
 	public var networks: [BridgeAttachement] = []
 
 	@Option(name: [.customLong("net.ifnames")], help: ArgumentHelp(String(localized: "Use ifnames for network interfaces instead of eth0, eth1, etc. This is the default on most modern Linux distributions.")))
@@ -92,10 +92,10 @@ public struct BuildOptions: ParsableArguments {
 
 	@Option(
 		name: [.customLong("socket")],
-		help: ArgumentHelp(String(localized: "Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock"), discussion: socket_help))
+		help: ArgumentHelp(String(localized: "Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock"), discussion: String(localized: "socket_help")))
 	public var sockets: [SocketDevice] = []
 
-	@Option(name: [.customLong("console")], help: ArgumentHelp(String(localized: "URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")"), discussion: console_help, valueName: "url"))
+	@Option(name: [.customLong("console")], help: ArgumentHelp(String(localized: "URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")"), discussion: String(localized: "console_help"), valueName: "url"))
 	public var consoleURL: ConsoleAttachment?
 
 	public init() {

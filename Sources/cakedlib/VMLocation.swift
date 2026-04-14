@@ -626,7 +626,8 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		let sshPublicKeys = try getPublicSSHKeys(config: config, runMode: runMode).joined(separator: "\n")
 		let ssh = try createSSH(host: runningIP, timeout: timeout)
 		let tempFileURL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("install-agent.sh")
-		let install_agent = """
+		let install_agent =
+			"""
 			#!/bin/sh
 			set -xe
 

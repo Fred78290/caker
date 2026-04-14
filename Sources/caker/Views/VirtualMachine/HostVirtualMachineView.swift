@@ -178,7 +178,7 @@ struct HostVirtualMachineView: View {
 						} else if document.status == .paused {
 							Button("Resume", systemImage: "playpause") {
 								document.startFromUI()
-							}.help("Resumes virtual machine")
+							}.help("Resume virtual machine")
 						} else {
 							Button("Start", systemImage: "play.fill") {
 								document.startFromUI()
