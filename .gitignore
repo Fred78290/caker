@@ -34,7 +34,7 @@ __pycache__/
 .ci/dmg/
 build/
 *.dmg
-
+tmp/
 # Sparkle - Production configuration
 .sparkle/
 releases/
