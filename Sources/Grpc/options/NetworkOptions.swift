@@ -59,7 +59,7 @@ public struct NetworkConfigureOptions: ParsableArguments, Sendable {
 	@Argument(help: ArgumentHelp(String(localized: "Network name"), discussion: String(localized: "The name for network")))
 	public var name: String
 
-	@Option(name: [.customLong("gateway")], help: ArgumentHelp(String(localized: "IP gateway"), discussion: String(localized: "First ip used for the configured shared network, e.g., \"192.168.105.1\""), valueName: "ip"))
+	@Option(name: [.customLong("gateway")], help: ArgumentHelp(String(localized: "IP gateway"), discussion: String(localized: "first ip used for the configured shared network, e.g., \"192.168.105.1\""), valueName: "ip"))
 	public var gateway: String? = nil
 
 	@Option(name: [.customLong("dhcp-end")], help: ArgumentHelp(String(localized: "Last ip of the DHCP range, e.g., \"192.168.105.254\""), discussion: String(localized: "requires --gateway to be specified"), valueName: "ip"))

@@ -88,7 +88,7 @@ public struct DeleteHandler {
 
 			return DeleteReply(objects: [
 				DeletedObject(source: "vm", name: location.name, deleted: true, reason: String(localized: "VM not found"))
-			], success: true, reason: String(localized: "success"))
+			], success: true, reason: String(localized: "Success"))
 
 		} catch {
 			return DeleteReply(objects: [

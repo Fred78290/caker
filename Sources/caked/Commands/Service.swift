@@ -36,7 +36,7 @@ extension Service {
 		@Option(name: [.customLong("address"), .customShort("l")], help: ArgumentHelp(String(localized: "Listen on address")))
 		var address: [String] = []
 		
-		@Flag(name: [.customLong("insecure"), .customShort("i")], help: ArgumentHelp(String(localized: "don't use TLS")))
+		@Flag(name: [.customLong("insecure"), .customShort("i")], help: ArgumentHelp(String(localized: "Don't use TLS")))
 		var insecure: Bool = false
 		
 		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: ArgumentHelp(String(localized: "CA TLS certificate")))

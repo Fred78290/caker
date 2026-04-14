@@ -40,10 +40,10 @@ struct Networks: ParsableCommand {
 		@Option(help: ArgumentHelp(String(localized: "DHCP lease time in seconds")))
 		public var dhcpLease: Int32? = nil
 
-		@Option(name: [.customLong("netmask")], help: ArgumentHelp(String(localized: "subnet mask") + "\n", discussion: String(localized: "requires --gateway to be specified")))
+		@Option(name: [.customLong("netmask")], help: ArgumentHelp(String(localized: "Subnet mask") + "\n", discussion: String(localized: "requires --gateway to be specified")))
 		public var subnetMask = "255.255.255.0"
 
-		@Option(name: [.customLong("interface-id")], help: ArgumentHelp(String(localized: "vmnet interface ID") + "\n", discussion: String(localized: "randomly generated if not specified")))
+		@Option(name: [.customLong("interface-id")], help: ArgumentHelp(String(localized: "VMNET interface ID") + "\n", discussion: String(localized: "randomly generated if not specified")))
 		public var interfaceID = UUID().uuidString
 
 		@Option(name: [.customLong("nat66-prefix")], help: ArgumentHelp(String(localized: "The IPv6 prefix to use with shared mode")))

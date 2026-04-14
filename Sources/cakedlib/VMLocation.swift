@@ -355,7 +355,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		}
 
 		if self.status != .running {
-			throw ServiceError(String(localized: "vm \(name) is not running"))
+			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
 
 		if force || config.agent == false {
@@ -383,7 +383,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 	public func suspendVirtualMachine(runMode: Utils.RunMode) throws {
 		if self.status != .running {
-			throw ServiceError(String(localized: "vm \(name) is not running"))
+			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
 
 		let pid = pidFile.isPIDRunning()
@@ -416,7 +416,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		let home = try Home(runMode: runMode)
 
 		if self.status != .running {
-			throw ServiceError(String(localized: "vm \(name) is not running"))
+			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
 
 		if force || config.agent == false {

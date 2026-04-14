@@ -11,7 +11,7 @@ struct Logout: ParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Argument(help: ArgumentHelp(String(localized: "host")))
+	@Argument(help: ArgumentHelp(String(localized: "Host")))
 	var host: String
 
 	func validate() throws {

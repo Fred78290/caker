@@ -73,7 +73,7 @@ extension SSHError.Kind {
 		case .methodNotSupported:
 			return String(localized: "method not supported")
 		case .inval:
-			return String(localized: "invalid argument")
+			return String(localized: "invalid value")
 		case .invalidPollType:
 			return String(localized: "invalid poll type")
 		case .publicKeyProtocol:

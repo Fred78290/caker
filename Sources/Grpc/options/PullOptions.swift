@@ -9,7 +9,7 @@ public struct PullOptions: ParsableArguments {
 		aliases: ["clone"]
 	)
 
-	@Argument(help: ArgumentHelp(String(localized: "image name")))
+	@Argument(help: ArgumentHelp(String(localized: "Image name")))
 	public var image: String
 
 	@Argument(help: ArgumentHelp(String(localized: "VM name")))
