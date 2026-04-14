@@ -1825,7 +1825,7 @@
       <trans-unit id="Network %@ stopped: %d" translate="yes" xml:space="preserve">
         <source>Network %1$@ stopped: %2$d</source>
         
-      <target state="translated">Réseau %1$@ arrêté : %2$d</target><note/></trans-unit>
+      <target state="translated">Réseau %1$@ arrêté : %2$d</target><note/></trans-unit>
       <trans-unit id="Network %@ unchanged" translate="yes" xml:space="preserve">
         <source>Network %@ unchanged</source>
         
@@ -2275,12 +2275,12 @@
       </trans-unit>
       <trans-unit id="exitCode:%d, reason: %@ infos: %@" translate="yes" xml:space="preserve">
         <source>exitCode:%1$d, reason: %2$@ infos: %3$@</source>
-        <target state="translated">exitCode:%1$d, raison : %2$@ infos : %3$@</target>
+        <target state="translated">exitCode:%1$d, raison : %2$@ infos : %3$@</target>
         <note/>
       </trans-unit>
       <trans-unit id="file already exists: %@" translate="yes" xml:space="preserve">
         <source>file already exists: %@</source>
-        <target state="translated">le fichier existe déjà : %@</target>
+        <target state="translated">le fichier existe déjà : %@</target>
         <note/>
       </trans-unit>
       <trans-unit id="file error" translate="yes" xml:space="preserve">
@@ -2499,7 +2499,7 @@
       <trans-unit id="utimes(2) failed: %@" translate="yes" xml:space="preserve">
         <source>utimes(2) failed: %@</source>
         
-      <target state="translated">utimes(2) a échoué : %@</target><note/></trans-unit>
+      <target state="translated">utimes(2) a échoué : %@</target><note/></trans-unit>
       <trans-unit id="vm %@ is not running" translate="yes" xml:space="preserve">
         <source>vm %@ is not running</source>
         
@@ -3521,7 +3521,7 @@
       <trans-unit id="gateway used for --vmnet=(host|shared), e.g., &quot;192.168.105.1&quot; (default: decided by macOS)" translate="yes" xml:space="preserve">
         <source>gateway used for --vmnet=(host|shared), e.g., "192.168.105.1" (default: decided by macOS)</source>
         
-      <target state="translated">passerelle utilisée pour --vmnet=(host|shared), par exemple "192.168.105.1" (par défaut : décidé par macOS)</target><note/></trans-unit>
+      <target state="translated">passerelle utilisée pour --vmnet=(host|shared), par exemple "192.168.105.1" (par défaut : décidé par macOS)</target><note/></trans-unit>
       <trans-unit id="host" translate="yes" xml:space="preserve">
         <source>host</source>
         
@@ -3649,7 +3649,7 @@
       <trans-unit id="Allow to create virtio socket between guest and host, format like url: &lt;bind|connect|tcp|udp&gt;://&lt;address&gt;:&lt;port number&gt;/&lt;file for unix socket&gt;, eg. bind://dummy:1234/tmp/vsock.sock" translate="yes" xml:space="preserve">
         <source>Allow to create virtio socket between guest and host, format like url: &lt;bind|connect|tcp|udp&gt;://&lt;address&gt;:&lt;port number&gt;/&lt;file for unix socket&gt;, eg. bind://dummy:1234/tmp/vsock.sock</source>
         
-      <target state="translated">Permettre de créer un socket virtio entre l'invité et l'hôte, format comme URL : &lt;bind|connect|tcp|udp&gt;://&lt;address&gt;:&lt;port number&gt;/&lt;file for unix socket&gt;, par exemple. bind://dummy:1234/tmp/vsock.sock</target><note/></trans-unit>
+      <target state="translated">Permettre de créer un socket virtio entre l'invité et l'hôte, format comme URL : &lt;bind|connect|tcp|udp&gt;://&lt;address&gt;:&lt;port number&gt;/&lt;file for unix socket&gt;, par exemple. bind://dummy:1234/tmp/vsock.sock</target><note/></trans-unit>
       <trans-unit id="Allow to use dynamic port forwarding, default is false" translate="yes" xml:space="preserve">
         <source>Allow to use dynamic port forwarding, default is false</source>
         
@@ -3745,7 +3745,7 @@
       <trans-unit id="Entries to remove: &quot;caches&quot; targets caches and &quot;vms&quot; targets local VMs or boths." translate="yes" xml:space="preserve">
         <source>Entries to remove: "caches" targets caches and "vms" targets local VMs or boths.</source>
         
-      <target state="translated">Entrées à supprimer : « caches » cible les caches et « VMS» cible les VM locales ou les deux.</target><note/></trans-unit>
+      <target state="translated">Entrées à supprimer : « caches » cible les caches et « VMS» cible les VM locales ou les deux.</target><note/></trans-unit>
       <trans-unit id="Execute a command on a VM" translate="yes" xml:space="preserve">
         <source>Execute a command on a VM</source>
         
