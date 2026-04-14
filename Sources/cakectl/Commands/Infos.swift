@@ -11,9 +11,6 @@ struct Infos: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-	var format: Format = .text
-
 	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	var name: String
 
@@ -21,9 +18,9 @@ struct Infos: GrpcParsableCommand {
 		let result = try client.info(Caked_InfoRequest(command: self), callOptions: callOptions).response.wait().vms.status
 
 		if result.success {
-			return self.format.render(result.infos)
+			return self.options.format.render(result.infos)
 		} else {
-			return self.format.render(result.reason)
+			return self.options.format.render(result.reason)
 		}
 	}
 }

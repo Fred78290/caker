@@ -9,14 +9,14 @@ public struct PullOptions: ParsableArguments {
 		aliases: ["clone"]
 	)
 
+	@Flag(help: ArgumentHelp(String(localized: "Connect to the OCI registry via insecure HTTP protocol")))
+	public var insecure: Bool = false
+
 	@Argument(help: ArgumentHelp(String(localized: "Image name")))
 	public var image: String
 
 	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	public var name: String
-
-	@Flag(help: ArgumentHelp(String(localized: "Connect to the OCI registry via insecure HTTP protocol")))
-	public var insecure: Bool = false
 
 	public init() {
 	}

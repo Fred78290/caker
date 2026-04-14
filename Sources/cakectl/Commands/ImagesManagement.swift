@@ -15,9 +15,6 @@ struct ImagesManagement: ParsableCommand {
 		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		@Argument(help: ArgumentHelp(String(localized: "Remote name")))
 		var name: String
 
@@ -25,9 +22,9 @@ struct ImagesManagement: ParsableCommand {
 			let result = try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().images.list
 
 			if result.success {
-				return self.format.render(result.infos)
+				return self.options.format.render(result.infos)
 			} else {
-				return self.format.render(result.reason)
+				return self.options.format.render(result.reason)
 			}
 		}
 	}
@@ -38,9 +35,6 @@ struct ImagesManagement: ParsableCommand {
 		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		@Argument(help: ArgumentHelp(String(localized: "Image name")))
 		var name: String
 
@@ -48,9 +42,9 @@ struct ImagesManagement: ParsableCommand {
 			let result = try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().images.infos
 
 			if result.success {
-				return self.format.render(result.info)
+				return self.options.format.render(result.info)
 			} else {
-				return self.format.render(result.reason)
+				return self.options.format.render(result.reason)
 			}
 		}
 	}
@@ -61,9 +55,6 @@ struct ImagesManagement: ParsableCommand {
 		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		@Argument(help: ArgumentHelp(String(localized: "Image name")))
 		var name: String
 
@@ -71,9 +62,9 @@ struct ImagesManagement: ParsableCommand {
 			let result = try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().images.pull
 
 			if result.success {
-				return self.format.render(result.info)
+				return self.options.format.render(result.info)
 			} else {
-				return self.format.render(result.reason)
+				return self.options.format.render(result.reason)
 			}
 		}
 	}

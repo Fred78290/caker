@@ -9,7 +9,7 @@ struct Stop: ParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: String(localized: "Global options"))
+	@OptionGroup(title: String(localized: "Stop options"))
 	var stop: StopOptions
 
 	func validate() throws {

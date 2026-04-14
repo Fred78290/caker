@@ -13,10 +13,7 @@ struct WaitIP: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Wait ip options"))
 	var waitip: WaitIPOptions
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-	var format: Format = .text
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return self.format.render(try client.waitIP(Caked_WaitIPRequest(command: self), callOptions: callOptions).response.wait().vms.waitip)
+		return self.options.format.render(try client.waitIP(Caked_WaitIPRequest(command: self), callOptions: callOptions).response.wait().vms.waitip)
 	}
 }

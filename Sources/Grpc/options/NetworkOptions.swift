@@ -21,11 +21,9 @@ public struct NetworkListOptions {
 	public static let configuration = CommandConfiguration(abstract: String(localized: "network_list_abstract"), aliases: ["ls"])
 }
 
+
 public struct NetworkCreateOptions: ParsableArguments, Sendable {
 	public static let configuration = CommandConfiguration(abstract: String(localized: "Create named shared or host network"))
-
-	@Argument(help: ArgumentHelp(String(localized: "Network name"), discussion: String(localized: "The name for network")))
-	public var name: String
 
 	@Option(name: [.customLong("mode")], help: ArgumentHelp(String(localized: "vmnet mode")))
 	public var mode = CreatedNetworkMode.shared
@@ -48,6 +46,9 @@ public struct NetworkCreateOptions: ParsableArguments, Sendable {
 	@Option(name: [.customLong("nat66-prefix")], help: ArgumentHelp(String(localized: "The IPv6 prefix to use with shared mode"), valueName: "prefix"))
 	public var nat66Prefix: String? = nil
 
+	@Argument(help: ArgumentHelp(String(localized: "Network name"), discussion: String(localized: "The name for network")))
+	public var name: String
+
 	public init() {
 	}
 
@@ -55,9 +56,6 @@ public struct NetworkCreateOptions: ParsableArguments, Sendable {
 
 public struct NetworkConfigureOptions: ParsableArguments, Sendable {
 	public static let configuration = CommandConfiguration(abstract: String(localized: "Configure named shared network"))
-
-	@Argument(help: ArgumentHelp(String(localized: "Network name"), discussion: String(localized: "The name for network")))
-	public var name: String
 
 	@Option(name: [.customLong("gateway")], help: ArgumentHelp(String(localized: "IP gateway"), discussion: String(localized: "first ip used for the configured shared network, e.g., \"192.168.105.1\""), valueName: "ip"))
 	public var gateway: String? = nil
@@ -76,6 +74,9 @@ public struct NetworkConfigureOptions: ParsableArguments, Sendable {
 
 	@Option(name: [.customLong("nat66-prefix")], help: ArgumentHelp(String(localized: "The IPv6 prefix to use with shared mode"), valueName: "prefix"))
 	public var nat66Prefix: String? = nil
+
+	@Argument(help: ArgumentHelp(String(localized: "Network name"), discussion: String(localized: "The name for network")))
+	public var name: String
 
 	public init() {
 	}

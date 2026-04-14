@@ -6,9 +6,6 @@ import CakeAgentLib
 public struct ConfigureOptions: ParsableArguments, Sendable {
 	public static let configuration = CommandConfiguration(abstract: String(localized: "Reconfigure VM"))
 
-	@Argument(help: ArgumentHelp(String(localized: "VM name")))
-	public var name: String
-
 	@Option(name: [.long, .customShort("u")], help: ArgumentHelp(String(localized: "Reconfigure the login user")))
 	public var user: String? = nil
 
@@ -64,6 +61,9 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 
 	@Option(name: [.customLong("console")], help: ArgumentHelp(String(localized: "URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")"), discussion: String(localized: "console_help"), valueName: "url"))
 	public var console: String?
+
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
+	public var name: String
 
 	public init(
 		name: String,

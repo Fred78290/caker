@@ -8,9 +8,6 @@ public struct BuildOptions: ParsableArguments {
 
 	public static let launch = CommandConfiguration(commandName: "launch", abstract: String(localized: "Create a linux VM and initialize it with cloud-init then start it"))
 
-	@Argument(help: ArgumentHelp(String(localized: "VM name")))
-	public var name: String
-
 	@Option(name: [.customLong("cpus"), .customShort("c")], help: ArgumentHelp(String(localized: "Number of VM CPUs"), valueName: "num"))
 	public var cpu: UInt16 = 1
 
@@ -49,9 +46,6 @@ public struct BuildOptions: ParsableArguments {
 
 	@Flag(help: ArgumentHelp(String(localized: "Disables audio and entropy devices and switches to only Mac-specific input devices."), discussion: String(localized: "Useful for running a VM that can be suspended via suspend command.")))
 	public var suspendable: Bool = false
-
-	@Argument(help: ArgumentHelp(String(localized: "create a linux VM using a cloud image"), discussion: String(localized: "cloudimage_help"), valueName: "url"))
-	public var image: String = defaultUbuntuImage
 
 	@Option(help: ArgumentHelp(String(localized: "Image source"), discussion: String(localized: "This option specify image source when image url is http but not raw"), visibility: .hidden))
 	public var imageSource: ImageSource? = nil
@@ -97,6 +91,12 @@ public struct BuildOptions: ParsableArguments {
 
 	@Option(name: [.customLong("console")], help: ArgumentHelp(String(localized: "URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")"), discussion: String(localized: "console_help"), valueName: "url"))
 	public var consoleURL: ConsoleAttachment?
+
+	@Argument(help: ArgumentHelp(String(localized: "create a linux VM using a cloud image"), discussion: String(localized: "cloudimage_help"), valueName: "url"))
+	public var image: String = defaultUbuntuImage
+
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
+	public var name: String
 
 	public init() {
 	}

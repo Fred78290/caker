@@ -13,16 +13,13 @@ struct Suspend: GrpcParsableCommand {
 	@Argument(help: ArgumentHelp(String(localized: "VM names to suspend")))
 	var names: [String] = []
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-	var format: Format = .text
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let result = try client.suspend(Caked_SuspendRequest(command: self), callOptions: callOptions).response.wait().vms.suspend
 
 		if result.success {
-			return self.format.render(result.objects)
+			return self.options.format.render(result.objects)
 		} else {
-			return self.format.render(result.reason)
+			return self.options.format.render(result.reason)
 		}
 	}
 }

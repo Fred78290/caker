@@ -14,10 +14,7 @@ struct Duplicate: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Duplicate options"))
 	var duplicate: DuplicateOptions
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format")))
-	var format: Format = .text
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return self.format.render(try client.duplicate(Caked_DuplicateRequest(command: self), callOptions: callOptions).response.wait().vms.duplicated)
+		return self.options.format.render(try client.duplicate(Caked_DuplicateRequest(command: self), callOptions: callOptions).response.wait().vms.duplicated)
 	}
 }

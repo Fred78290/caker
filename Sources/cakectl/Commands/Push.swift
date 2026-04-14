@@ -15,10 +15,7 @@ struct Push: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Push options"))
 	var push: PushOptions
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-	var format: Format = .text
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return self.format.render(try client.push(Caked_PushRequest(command: self), callOptions: callOptions).response.wait().oci.push)
+		return self.options.format.render(try client.push(Caked_PushRequest(command: self), callOptions: callOptions).response.wait().oci.push)
 	}
 }

@@ -16,9 +16,6 @@ struct Launch: AsyncGrpcParsableCommand {
 	@Option(help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	var waitIPTimeout = 180
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-	var format: Format = .text
-
 	mutating func validate() throws {
 		try buildOptions.validate(remote: true)
 
@@ -55,7 +52,7 @@ struct Launch: AsyncGrpcParsableCommand {
 						ProgressObserver.progressHandler(.terminated(.failure(GrpcError(code: 1, reason: v)), nil))
 					}
 				} else if case .launched(let launched) = current {
-					result = self.format.render(LaunchReply(launched))
+					result = self.options.format.render(LaunchReply(launched))
 				}
 			}
 

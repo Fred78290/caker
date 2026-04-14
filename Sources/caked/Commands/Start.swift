@@ -12,11 +12,11 @@ struct Start: ParsableCommand {
 	@Flag(help: ArgumentHelp(String(localized: "Launch vm in foreground"), discussion: String(localized: "This option allow display window of running vm to debug it"), visibility: .hidden))
 	var foreground: Bool = false
 
-	@Argument(help: ArgumentHelp(String(localized: "VM name")))
-	var name: String
-
 	@Option(help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	var waitIPTimeout = 180
+
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
+	var name: String
 
 	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)

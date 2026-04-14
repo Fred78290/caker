@@ -14,16 +14,13 @@ struct Mount: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Mount options"))
 	var mount: MountOptions
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-	var format: Format = .text
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let result = try client.mount(Caked_MountRequest(command: self), callOptions: callOptions).response.wait().mounts
 
 		if result.success {
-			return self.format.render(result.mounts)
+			return self.options.format.render(result.mounts)
 		} else {
-			return self.format.render(result.reason)
+			return self.options.format.render(result.reason)
 		}
 	}
 }

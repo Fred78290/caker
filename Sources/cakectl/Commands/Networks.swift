@@ -23,9 +23,6 @@ struct Networks: ParsableCommand {
 		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		@Argument(help: ArgumentHelp(String(localized: "Network name"), discussion: String(localized: "network to retrieve, e.g. \"shared\"")))
 		var name: String = "shared"
 
@@ -33,7 +30,7 @@ struct Networks: ParsableCommand {
 			let status = try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.status
 
 			if status.success {
-				return self.format.render(status.info)
+				return self.options.format.render(status.info)
 			} else {
 				throw GrpcError(code: 1, reason: status.reason)
 			}
@@ -49,11 +46,8 @@ struct Networks: ParsableCommand {
 		@OptionGroup(title: String(localized: "Create network options"))
 		var networkOptions: NetworkCreateOptions
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.created)
+			return self.options.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.created)
 		}
 	}
 
@@ -66,11 +60,8 @@ struct Networks: ParsableCommand {
 		@OptionGroup(title: String(localized: "Configure network options"))
 		var networkOptions: NetworkConfigureOptions
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.configured)
+			return self.options.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.configured)
 		}
 	}
 
@@ -83,11 +74,8 @@ struct Networks: ParsableCommand {
 		@Argument(help: ArgumentHelp(String(localized: "Network name"), discussion: String(localized: "network to delete, e.g. \"shared\"")))
 		var name: String = "shared"
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.delete)
+			return self.options.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.delete)
 		}
 	}
 
@@ -100,11 +88,8 @@ struct Networks: ParsableCommand {
 		@Argument(help: ArgumentHelp(String(localized: "network name"), discussion: String(localized: "network to start, e.g., \"en0\" or \"shared\"")))
 		var name: String = "shared"
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.started)
+			return self.options.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.started)
 		}
 	}
 
@@ -114,14 +99,11 @@ struct Networks: ParsableCommand {
 		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		@Argument(help: ArgumentHelp(String(localized: "network name"), discussion: String(localized: "network to stop, e.g., \"en0\" or \"shared\"")))
 		var name: String = "shared"
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.stopped)
+			return self.options.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.stopped)
 		}
 	}
 
@@ -131,16 +113,13 @@ struct Networks: ParsableCommand {
 		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			let result = try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.list
 
 			if result.success {
-				return self.format.render(result.networks)
+				return self.options.format.render(result.networks)
 			} else {
-				return self.format.render(result.reason)
+				return self.options.format.render(result.reason)
 			}
 		}
 	}

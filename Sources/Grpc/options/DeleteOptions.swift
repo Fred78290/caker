@@ -5,11 +5,11 @@ import NIOPortForwarding
 public struct DeleteOptions: ParsableArguments {
 	public static let configuration: CommandConfiguration = CommandConfiguration(abstract: String(localized: "Delete a VM"))
 
-	@Argument(help: ArgumentHelp(String(localized: "VM names")))
-	public var names: [String] = []
-
 	@Flag(name: [.short, .long], help: ArgumentHelp(String(localized: "Delete all VM")))
 	public var all: Bool = false
+
+	@Argument(help: ArgumentHelp(String(localized: "VM names")))
+	public var names: [String] = []
 
 	public init() {
 	}

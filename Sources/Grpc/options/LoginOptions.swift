@@ -3,9 +3,6 @@ import Foundation
 import NIOPortForwarding
 
 public struct LoginOptions: ParsableArguments {
-	@Argument(help: ArgumentHelp(String(localized: "Host")))
-	public var host: String
-
 	@Option(help: ArgumentHelp(String(localized: "Username")))
 	public var username: String? = nil
 
@@ -20,6 +17,9 @@ public struct LoginOptions: ParsableArguments {
 
 	@Flag(help: ArgumentHelp(String(localized: "Skip validation of the registry's credentials before logging-in")))
 	public var noValidate: Bool = false
+
+	@Argument(help: ArgumentHelp(String(localized: "Host")))
+	public var host: String
 
 	public init() {
 	}

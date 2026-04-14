@@ -13,16 +13,13 @@ struct Stop: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var stop: StopOptions
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-	var format: Format = .text
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let result = try client.stop(Caked_StopRequest(command: self), callOptions: callOptions).response.wait().vms.stop
 
 		if result.success {
-			return self.format.render(result.objects)
+			return self.options.format.render(result.objects)
 		} else {
-			return self.format.render(result.reason)
+			return self.options.format.render(result.reason)
 		}
 	}
 }

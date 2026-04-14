@@ -13,10 +13,7 @@ struct Rename: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Rename options"))
 	var rename: RenameOptions
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format")))
-	var format: Format = .text
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return self.format.render(try client.rename(Caked_RenameRequest(command: self), callOptions: callOptions).response.wait().vms.renamed)
+		return self.options.format.render(try client.rename(Caked_RenameRequest(command: self), callOptions: callOptions).response.wait().vms.renamed)
 	}
 }

@@ -36,11 +36,11 @@ struct VNC: CakeAgentParsableCommand {
 	@OptionGroup(title: String(localized: "override client agent options"), visibility: .hidden)
 	var options: CakeAgentClientOptions
 
-	@Argument(help: ArgumentHelp(String(localized: "VM name")))
-	var name: String
-
 	@Flag(name: .customLong("vnc-debug"), help: ArgumentHelp(String(localized: "Trace vnc traffic"), visibility: .hidden))
 	var vncDebug: Bool = false
+
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
+	var name: String
 
 	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)

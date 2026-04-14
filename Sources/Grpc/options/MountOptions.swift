@@ -4,11 +4,11 @@ import Foundation
 public struct MountOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(abstract: String(localized: "Mount directory share into VM"))
 
-	@Argument(help: ArgumentHelp(String(localized: "VM name")))
-	public var name: String = String.empty
-
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp(String(localized: "Additional directory shares"), discussion: String(localized: "mount_help")))
 	public var mounts: DirectorySharingAttachments = []
+
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
+	public var name: String = String.empty
 
 	public init() {
 	}

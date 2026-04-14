@@ -17,14 +17,11 @@ struct VNC: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-	var format: Format = .text
+	@Flag(name: .customLong("vnc-debug"), help: ArgumentHelp(String(localized: "Trace vnc traffic"), visibility: .hidden))
+	var vncDebug: Bool = false
 
 	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	var name: String
-
-	@Flag(name: .customLong("vnc-debug"), help: ArgumentHelp(String(localized: "Trace vnc traffic"), visibility: .hidden))
-	var vncDebug: Bool = false
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let result = try client.info(name: self.name, includeConfig: true).vms.status

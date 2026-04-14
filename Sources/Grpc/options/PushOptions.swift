@@ -4,12 +4,6 @@ import Foundation
 public struct PushOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(abstract: String(localized: "Push a VM to a registry"))
 
-	@Argument(help: ArgumentHelp(String(localized: "Local or remote VM name")))
-	public var localName: String
-
-	@Argument(help: ArgumentHelp(String(localized: "Remote VM name(s)")))
-	public var remoteNames: [String]
-
 	@Flag(help: ArgumentHelp(String(localized: "Connect to the OCI registry via insecure HTTP protocol")))
 	public var insecure: Bool = false
 
@@ -21,6 +15,12 @@ public struct PushOptions: ParsableArguments {
 
 	@Option(help: ArgumentHelp(String(localized: "Chunk size in MB if registry supports chunked uploads"), discussion: String(localized: "push_options_help")))
 	public var chunkSize: Int = 0
+
+	@Argument(help: ArgumentHelp(String(localized: "Local or remote VM name")))
+	public var localName: String
+
+	@Argument(help: ArgumentHelp(String(localized: "Remote VM name(s)")))
+	public var remoteNames: [String]
 
 	public init() {
 	}

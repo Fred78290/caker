@@ -21,11 +21,8 @@ struct Remote: ParsableCommand {
 		@Argument(help: ArgumentHelp(String(localized: "url")))
 		var url: String
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.created)
+			return self.options.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.created)
 		}
 	}
 
@@ -38,11 +35,8 @@ struct Remote: ParsableCommand {
 		@Argument(help: ArgumentHelp(String(localized: "Remote name")))
 		var remote: String
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.deleted)
+			return self.options.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.deleted)
 		}
 	}
 
@@ -52,16 +46,13 @@ struct Remote: ParsableCommand {
 		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-		var format: Format = .text
-
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			let result = try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.list
 
 			if result.success {
-				return self.format.render(result.remotes)
+				return self.options.format.render(result.remotes)
 			} else {
-				return self.format.render(result.reason)
+				return self.options.format.render(result.reason)
 			}
 		}
 	}

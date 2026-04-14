@@ -14,9 +14,6 @@ struct VMRun: AsyncParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Argument(help: ArgumentHelp(String(localized: "Path to the VM disk.img or his name")))
-	var path: String
-
 	@Flag(name: [.customLong("service"), .customShort("l")], help: ArgumentHelp(String(localized: "VM running from service"), discussion: String(localized: "This option tell that vm run from service"), visibility: .private))
 	var launchedFromService: Bool = false
 
@@ -40,6 +37,9 @@ struct VMRun: AsyncParsableCommand {
 
 	@Flag(name: [.customLong("gcd")], help: ArgumentHelp(String(localized: "Start grand central dispatch"), visibility: .private))
 	var startGCD: Bool = false
+
+	@Argument(help: ArgumentHelp(String(localized: "Path to the VM disk.img or his name")))
+	var path: String
 
 	var locations: (StorageLocation, VMLocation) {
 		if StorageLocation(runMode: self.common.runMode).exists(path) {

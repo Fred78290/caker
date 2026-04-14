@@ -26,16 +26,13 @@ struct Restart: GrpcParsableCommand {
 	@Option(help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	var waitIPTimeout = 180
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-	var format: Format = .text
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let result = try client.restart(Caked_RestartRequest(command: self), callOptions: callOptions).response.wait().vms.restarted
 
 		if result.success {
-			return self.format.render(result.objects)
+			return self.options.format.render(result.objects)
 		} else {
-			return self.format.render(result.reason)
+			return self.options.format.render(result.reason)
 		}
 	}
 }

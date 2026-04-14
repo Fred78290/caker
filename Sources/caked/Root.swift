@@ -58,7 +58,7 @@ struct Root: ParsableCommand {
 		
 		let vmNetworking: Bool = Entitlement.hasVMNetworking()
 
-		return "Caked \(CI.version) - Hypervisor running VM on macOS with a focus on security, performance and integration, with vmnet networking: \(vmNetworking)"
+		return "Caked \(CI.version) - " + String(localized: "Hypervisor running VM on macOS with a focus on security, performance and integration, with vmnet networking: \(vmNetworking ? "true" : "false")")
 	}
 
 	nonisolated(unsafe)

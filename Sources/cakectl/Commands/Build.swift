@@ -13,9 +13,6 @@ struct Build: AsyncGrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Build VM options"))
 	var buildOptions: BuildOptions
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-	var format: Format = .text
-
 	mutating func validate() throws {
 		try buildOptions.validate(remote: true)
 
@@ -52,7 +49,7 @@ struct Build: AsyncGrpcParsableCommand {
 						ProgressObserver.progressHandler(.terminated(.failure(GrpcError(code: 1, reason: v)), nil))
 					}
 				} else if case .builded(let builded) = current {
-					result = self.format.render(BuildedReply(builded))
+					result = self.options.format.render(BuildedReply(builded))
 				}
 			}
 

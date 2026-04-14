@@ -14,14 +14,11 @@ struct Login: GrpcParsableCommand {
 	@OptionGroup(title: String(localized: "Login options"))
 	var login: LoginOptions
 
-	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
-	var format: Format = .text
-
 	func run() async throws {
 		throw GrpcError(code: 0, reason: String(localized: "nothing here"))
 	}
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return self.format.render(try client.login(Caked_LoginRequest(command: self), callOptions: callOptions).response.wait().oci.login)
+		return self.options.format.render(try client.login(Caked_LoginRequest(command: self), callOptions: callOptions).response.wait().oci.login)
 	}
 }

@@ -12,11 +12,11 @@ struct Infos: CakeAgentParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Argument(help: ArgumentHelp(String(localized: "VM name")))
-	var name: String
-
 	@OptionGroup(title: String(localized: "override client agent options"), visibility: .hidden)
 	var options: CakeAgentClientOptions
+
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
+	var name: String
 
 	var createVM: Bool = false
 

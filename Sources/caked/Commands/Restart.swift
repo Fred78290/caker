@@ -16,14 +16,14 @@ struct Restart: ParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Argument(help: ArgumentHelp(String(localized: "VM names to restart")))
-	var names: [String] = []
-
 	@Flag(help: ArgumentHelp(String(localized: "Force restart")))
 	public var force: Bool = false
 
 	@Option(help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	var waitIPTimeout = 180
+
+	@Argument(help: ArgumentHelp(String(localized: "VM names to restart")))
+	var names: [String] = []
 
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)

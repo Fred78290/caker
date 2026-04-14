@@ -140,6 +140,9 @@ struct Client: ParsableCommand {
 		@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
 		public var logLevel: CakeAgentLib.Logger.LogLevel = .info
 
+		@Flag(help: ArgumentHelp(String(localized: "Output format")))
+		public var format: Format = .text
+
 		mutating func validate() throws {
 			Logger.setLevel(self.logLevel)
 

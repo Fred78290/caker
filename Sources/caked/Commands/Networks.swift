@@ -13,9 +13,6 @@ struct Networks: ParsableCommand {
 		@Flag(help: .private)
 		public var debug: Bool = false
 
-		@Argument(help: ArgumentHelp(String(localized: "socket path")))
-		public var socketPath: String? = nil
-
 		@Option(name: [.customLong("fd")], help: ArgumentHelp(String(localized: "Use file descriptor for VMNet")))
 		public var vmfd: Int? = nil
 
@@ -51,6 +48,9 @@ struct Networks: ParsableCommand {
 
 		@Option(name: [.customLong("pidfile")], help: ArgumentHelp(String(localized: "save pid to PIDFILE")))
 		public var pidFile: String? = nil
+
+		@Argument(help: ArgumentHelp(String(localized: "socket path")))
+		public var socketPath: String? = nil
 
 		public init() {
 
@@ -606,11 +606,11 @@ struct Networks: ParsableCommand {
 		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
-		@Argument(help: ArgumentHelp(String(localized: "network name"), discussion: String(localized: "network to stop, e.g., \"en0\" or \"shared\"")))
-		var networkName: String? = nil
-
 		@Option(name: [.customLong("pidfile")], help: .hidden)
 		var pidFile: String? = nil
+
+		@Argument(help: ArgumentHelp(String(localized: "network name"), discussion: String(localized: "network to stop, e.g., \"en0\" or \"shared\"")))
+		var networkName: String? = nil
 
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
