@@ -1212,11 +1212,9 @@
         <target state="translated">Impossible de charger la machine virtuelle</target>
         <note from="auto-generated">Error message when the virtual machine cannot be loaded.</note>
       </trans-unit>
-      <trans-unit id="Unable to load virtual machine&#10;%@" xml:space="preserve">
-        <source>Unable to load virtual machine
-%@</source>
-        <target state="translated">Impossible de charger la machine virtuelle
-%@</target>
+      <trans-unit id="Unable to load virtual machine %@" xml:space="preserve">
+        <source>Unable to load virtual machine %@</source>
+        <target state="translated">Impossible de charger la machine virtuelle %@</target>
         <note from="auto-generated">A label view that displays a message when the virtual machine fails to load.</note>
       </trans-unit>
       <trans-unit id="Unix domain socket" xml:space="preserve">
@@ -1530,7 +1528,7 @@
         <target state="translated">Tampon épuisé</target>
         <note/>
       </trans-unit>
-      <trans-unit id="CPU: %u cores&#10;" translate="yes" xml:space="preserve">
+      <trans-unit id="CPU: %u cores" translate="yes" xml:space="preserve">
         <source>CPU: %u cores</source>
         <target state="translated">Processeur : %u cœurs</target>
         <note/>
@@ -1542,7 +1540,7 @@
       </trans-unit>
       <trans-unit id="Caked vmrun process is not running" translate="yes" xml:space="preserve">
         <source>Caked vmrun process is not running</source>
-        <target state="translated">La commande vmrun n'est pas en cours d'exécution</target>
+        <target state="translated">Le processus vmrun n'est pas en cours d'exécution</target>
         <note/>
       </trans-unit>
       <trans-unit id="Can't create vmnet configuration: %@" translate="yes" xml:space="preserve">
@@ -1695,16 +1693,14 @@
         <target state="translated">Réseau hébergé</target>
         <note/>
       </trans-unit>
-      <trans-unit id="IP: %@&#10;" translate="yes" xml:space="preserve">
-        <source>IP: %@
-</source>
-        <target state="translated">IP : %@
-</target>
+      <trans-unit id="IP: %@" translate="yes" xml:space="preserve">
+        <source>IP: %@</source>
+        <target state="translated">IP : %@</target>
         <note/>
       </trans-unit>
       <trans-unit id="IPSW is only available on arm64 architecture: %@" translate="yes" xml:space="preserve">
         <source>IPSW is only available on arm64 architecture: %@</source>
-        <target state="translated">IPSW n'est disponible que sur l'architecture arm64 : %@</target>
+        <target state="translated">IPSW n'est disponible que sur l'architecture arm64 : %@</target>
         <note/>
       </trans-unit>
       <trans-unit id="Importing from %@ requires root privileges." translate="yes" xml:space="preserve">
@@ -1786,12 +1782,10 @@
         <source>Memory failure</source>
         
       <target state="translated">Échec de la mémoire</target><note/></trans-unit>
-      <trans-unit id="Memory: %@&#10;" translate="yes" xml:space="preserve">
-        <source>Memory: %@
-</source>
+      <trans-unit id="Memory: %@" translate="yes" xml:space="preserve">
+        <source>Memory: %@</source>
         
-      <target state="translated">Mémoire : %@
-</target><note/></trans-unit>
+      <target state="translated">Mémoire : %@</target><note/></trans-unit>
       <trans-unit id="NAT shared network" translate="yes" xml:space="preserve">
         <source>NAT shared network</source>
         
@@ -2080,12 +2074,10 @@
         <source>Unsupported scheme</source>
         
       <target state="translated">Schéma non supporté</target><note/></trans-unit>
-      <trans-unit id="User: %@&#10;" translate="yes" xml:space="preserve">
-        <source>User: %@
-</source>
+      <trans-unit id="User: %@" translate="yes" xml:space="preserve">
+        <source>User: %@</source>
         
-      <target state="translated">Utilisateur : %@
-</target><note/></trans-unit>
+      <target state="translated">Utilisateur : %@</target><note/></trans-unit>
       <trans-unit id="VM &quot;%@&quot; exited with code %d" translate="yes" xml:space="preserve">
         <source>VM "%1$@" exited with code %2$d</source>
         
@@ -2950,12 +2942,10 @@
         <source>Help to run caked daemon</source>
         
       <target state="translated">Aide à exécuter le démon caked</target><note/></trans-unit>
-      <trans-unit id="IP gateway&#10;" translate="yes" xml:space="preserve">
-        <source>IP gateway
-</source>
+      <trans-unit id="IP gateway" translate="yes" xml:space="preserve">
+        <source>IP gateway</source>
         
-      <target state="translated">Passerelle IP
-</target><note/></trans-unit>
+      <target state="translated">Passerelle IP</target><note/></trans-unit>
       <trans-unit id="Image name" translate="yes" xml:space="preserve">
         <source>Image name</source>
         
@@ -3028,12 +3018,10 @@
         <source>Logout from a registry</source>
         
       <target state="translated">Se déconnecter d'un registre</target><note/></trans-unit>
-      <trans-unit id="Mac Address of network interface&#10;" translate="yes" xml:space="preserve">
-        <source>Mac Address of network interface
-</source>
+      <trans-unit id="Mac Address of network interface" translate="yes" xml:space="preserve">
+        <source>Mac Address of network interface</source>
         
-      <target state="translated">Adresse Mac de l'interface réseau
-</target><note/></trans-unit>
+      <target state="translated">Adresse Mac de l'interface réseau</target><note/></trans-unit>
       <trans-unit id="Mac address configured for VM network interface, autogenerated if not specified" translate="yes" xml:space="preserve">
         <source>Mac address configured for VM network interface, autogenerated if not specified</source>
         
@@ -3538,12 +3526,10 @@
         <source>host</source>
         
       <target state="translated">hôte</target><note/></trans-unit>
-      <trans-unit id="interface&#10;" translate="yes" xml:space="preserve">
-        <source>interface
-</source>
+      <trans-unit id="interface" translate="yes" xml:space="preserve">
+        <source>interface</source>
         
-      <target state="translated">interface
-</target><note/></trans-unit>
+      <target state="translated">interface</target><note/></trans-unit>
       <trans-unit id="interface is required for bridged mode" translate="yes" xml:space="preserve">
         <source>interface is required for bridged mode</source>
         
@@ -3600,12 +3586,10 @@
         <source>socket path</source>
         
       <target state="translated">chemin du socket</target><note/></trans-unit>
-      <trans-unit id="subnet mask&#10;" translate="yes" xml:space="preserve">
-        <source>subnet mask
-</source>
+      <trans-unit id="subnet mask" translate="yes" xml:space="preserve">
+        <source>subnet mask</source>
         
-      <target state="translated">masque de sous-réseau
-</target><note/></trans-unit>
+      <target state="translated">masque de sous-réseau</target><note/></trans-unit>
       <trans-unit id="url" translate="yes" xml:space="preserve">
         <source>url</source>
         
@@ -3614,12 +3598,10 @@
         <source>valid netmask is required for host/shared mode when gateway is specified</source>
         
       <target state="translated">un masque réseau valide est requis pour le mode hôte/partagé lorsque la passerelle est spécifiée</target><note/></trans-unit>
-      <trans-unit id="vmnet interface ID&#10;" translate="yes" xml:space="preserve">
-        <source>vmnet interface ID
-</source>
+      <trans-unit id="vmnet interface ID" translate="yes" xml:space="preserve">
+        <source>vmnet interface ID</source>
         
-      <target state="translated">ID de l'interface vmnet
-</target><note/></trans-unit>
+      <target state="translated">ID de l'interface vmnet</target><note/></trans-unit>
       <trans-unit id="vmnet mode" translate="yes" xml:space="preserve">
         <source>vmnet mode</source>
         
@@ -3680,16 +3662,6 @@
         <source>Attaching block devices prior MacOS 14</source>
         
       <target state="translated">Attacher des block devices avant macOS 14</target><note/></trans-unit>
-      <trans-unit id="By default monolithic method is used for uploading blobs to the registry but some registries support a more efficient chunked method.&#10;For example, AWS Elastic Container Registry supports only chunks larger than 5MB but GitHub Container Registry supports only chunks smaller than 4MB. Google Container Registry on the other hand doesn't support chunked uploads at all.&#10;Please refer to the documentation of your particular registry in order to see if this option is suitable for you and what's the recommended chunk size." translate="yes" xml:space="preserve" approved="yes">
-        <source>By default monolithic method is used for uploading blobs to the registry but some registries support a more efficient chunked method.
-For example, AWS Elastic Container Registry supports only chunks larger than 5MB but GitHub Container Registry supports only chunks smaller than 4MB. Google Container Registry on the other hand doesn't support chunked uploads at all.
-Please refer to the documentation of your particular registry in order to see if this option is suitable for you and what's the recommended chunk size.</source>
-        
-      <target state="final">Par défaut, la méthode monolithique est utilisée pour le chargement des blobs dans le registre, mais certains registres prennent en charge une méthode par blocs plus efficace.
-
-Par exemple, AWS Elastic Container Registry n'accepte que les blocs supérieurs à 5 Mo, tandis que GitHub Container Registry n'accepte que les blocs inférieurs à 4 Mo. Google Container Registry, quant à lui, ne prend pas en charge le chargement par blocs.
-
-Veuillez consulter la documentation de votre registre pour déterminer si cette option vous convient et connaître la taille de bloc recommandée.</target><note/></trans-unit>
       <trans-unit id="Chunk size in MB if registry supports chunked uploads" translate="yes" xml:space="preserve">
         <source>Chunk size in MB if registry supports chunked uploads</source>
         
