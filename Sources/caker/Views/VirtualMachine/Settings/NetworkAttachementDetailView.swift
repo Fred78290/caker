@@ -48,7 +48,7 @@ struct NetworkAttachementDetailView: View {
 					}
 					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
-				}.frame(width: 100)
+				}.frame(width: 200)
 			}
 
 			LabeledContent("Mode") {
@@ -62,7 +62,7 @@ struct NetworkAttachementDetailView: View {
 					}
 					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
-				}.frame(width: 100)
+				}.frame(width: 200)
 			}
 
 			LabeledContent("Mac address") {

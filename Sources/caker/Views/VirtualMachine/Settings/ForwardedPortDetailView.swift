@@ -139,7 +139,7 @@ struct ForwardedPortDetailView: View {
 					.onChange(of: model.mode) { _, newValue in
 						self.currentItem.oneOf = model.tunnelAttachement.oneOf
 					}
-				}.frame(width: 150)
+				}.frame(width: 200)
 			}
 
 			LabeledContent("Protocol") {
@@ -155,7 +155,7 @@ struct ForwardedPortDetailView: View {
 					.onChange(of: model.selectedProtocol) { _, newValue in
 						self.currentItem.oneOf = model.tunnelAttachement.oneOf
 					}
-				}.frame(width: 150)
+				}.frame(width: 200)
 			}
 
 			if model.mode == .portForwarding {

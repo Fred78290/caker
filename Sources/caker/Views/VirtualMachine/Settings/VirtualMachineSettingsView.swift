@@ -92,7 +92,7 @@ struct VirtualMachineSettingsView: View {
 					dismiss()
 				} label: {
 					Text("Cancel")
-						.frame(width: 60)
+						.frame(width: 80)
 				}
 				.buttonStyle(.borderedProminent)
 
@@ -104,7 +104,7 @@ struct VirtualMachineSettingsView: View {
 					dismiss()
 				} label: {
 					Text("Save")
-						.frame(width: 60)
+						.frame(width: 80)
 				}
 				.buttonStyle(.bordered)
 				.disabled(self.configChanged == false)
@@ -115,7 +115,7 @@ struct VirtualMachineSettingsView: View {
 			.padding(.bottom)
 
 		}
-		.frame(height: 600)
+		.frame(height: 605)
 		.onChange(of: config) { _, newValue in
 			self.configChanged = true
 		}

@@ -166,8 +166,8 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "%u Cœur"
+            "state" : "translated",
+            "value" : "%u cœur"
           }
         }
       }
@@ -176,8 +176,8 @@
       "localizations" : {
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "%u Cœurs"
+            "state" : "translated",
+            "value" : "%u cœurs"
           }
         }
       }
@@ -8636,10 +8636,16 @@
     },
     "Syncing" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync mode"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Synchronisation en cours"
+            "value" : "Mode de synchronisation"
           }
         }
       }

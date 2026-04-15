@@ -38,12 +38,12 @@ struct EditableListNewItem<Element, Content: View>: View where Element: Hashable
 				Button {
 					dismiss()
 				} label: {
-					Text("Cancel").frame(width: 60)
+					Text("Cancel").frame(width: 80)
 				}
 				Button {
 					save()
 				} label: {
-					Text(self.editItem == nil ? "Add" : "Save").frame(width: 60)
+					Text(self.editItem == nil ? "Add" : "Save").frame(width: 80)
 				}.disabled(self.configChanged == false)
 			}
 		}.onChange(of: currentItem) { _, newValue in

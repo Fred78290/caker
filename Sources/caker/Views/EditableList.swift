@@ -65,11 +65,11 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 		}.sheet(isPresented: $displayAddItemView, onDismiss: { displayAddItemView = false }) {
 			Group {
 				self.editItemClosure(nil)
-			}.frame(width: 500).padding()
+			}.frame(width: 550).padding()
 		}.sheet(isPresented: $displayEditItemView, onDismiss: { displayEditItemView = false }) {
 			Group {
 				self.editItemClosure(selection)
-			}.frame(width: 500).padding()
+			}.frame(width: 550).padding()
 		}
 	}
 }
