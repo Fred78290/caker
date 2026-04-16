@@ -581,6 +581,28 @@
         }
       }
     },
+    "auto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "automatique"
+          }
+        }
+      }
+    },
+    "automatic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "automatique"
+          }
+        }
+      }
+    },
     "Autostart" : {
       "localizations" : {
         "fr" : {
@@ -667,6 +689,17 @@
         }
       }
     },
+    "both" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "les deux"
+          }
+        }
+      }
+    },
     "both --username and --password-stdin or --password are required" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -748,7 +781,18 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mode de cache"
+            "value" : "Mode du cache"
+          }
+        }
+      }
+    },
+    "cached" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "avec cache"
           }
         }
       }
@@ -1040,16 +1084,16 @@
         }
       }
     },
-	"Choose folder to mount inside VM" : {
-		"localizations" : {
-		  "fr" : {
-			"stringUnit" : {
-			  "state" : "translated",
-			  "value" : "Choisir un dossier pour partage avec la VM."
-			}
-		  }
-		}
-	},
+    "Choose folder to mount inside VM" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir un dossier pour partage avec la VM."
+          }
+        }
+      }
+    },
     "Choose OS" : {
       "localizations" : {
         "fr" : {
@@ -4504,6 +4548,17 @@
         }
       }
     },
+    "manual" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "manuel"
+          }
+        }
+      }
+    },
     "Max time to wait for IP" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7446,32 +7501,42 @@
         }
       }
     },
-	"Select data file" : {
-	  "localizations" : {
-		"fr" : {
-		  "stringUnit" : {
-			"state" : "translated",
-			"value" : "Choisir un fichier de données"
-		  }
-		}
-	  }
-	},
-	"Select a disk image" : {
-	  "localizations" : {
-		"fr" : {
-		  "stringUnit" : {
-			"state" : "translated",
-			"value" : "Choisir une image disque"
-		  }
-		}
-	  }
-	},
+    "Select" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir"
+          }
+        }
+      }
+    },
+    "Select a disk image" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir une image disque"
+          }
+        }
+      }
+    },
     "Select a template" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choisir un modèle"
+          }
+        }
+      }
+    },
+    "Select data file" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir un fichier de données"
           }
         }
       }
@@ -7496,16 +7561,16 @@
         }
       }
     },
-	"Select socket file" : {
-	  "localizations" : {
-		"fr" : {
-		  "stringUnit" : {
-			"state" : "translated",
-			"value" : "Choisir un fichier socket"
-		  }
-		}
-	  }
-	},
+    "Select socket file" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir un fichier socket"
+          }
+        }
+      }
+    },
     "Send clipboard data to VM on VNC view" : {
       "localizations" : {
         "fr" : {
@@ -8679,13 +8744,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sync mode"
+            "value" : "Disk with synchronisation"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mode de synchronisation"
+            "state" : "needs_review",
+            "value" : "Disque synchronisé"
           }
         }
       }
@@ -9736,6 +9801,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible de charger la machine virtuelle %@"
+          }
+        }
+      }
+    },
+    "uncached" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sans cache"
           }
         }
       }
