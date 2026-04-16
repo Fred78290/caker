@@ -29,7 +29,7 @@ let package = Package(
 		.package(url: "https://github.com/amodm/iso9660-swift", branch: "main"),
 		.package(url: "https://github.com/antlr/antlr4", exact: "4.13.2"),
 		.package(url: "https://github.com/apple/swift-algorithms", exact: "1.2.1"),
-		.package(url: "https://github.com/apple/swift-argument-parser", exact: "1.7.0"),
+		.package(url: "https://github.com/Fred78290/swift-argument-parser", revision: "31f0befeaee44fb48e4015e3437a43e12839941b"),
 		.package(url: "https://github.com/apple/swift-async-algorithms", branch: "main"),
 		.package(url: "https://github.com/apple/swift-atomics.git", exact: "1.3.0"),
 		.package(url: "https://github.com/apple/swift-certificates.git", exact: "1.17.0"),
