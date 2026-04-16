@@ -65,7 +65,7 @@ struct NetworkDetailView: View {
 							HStack {
 								Picker("Mode", selection: $currentItem.mode) {
 									ForEach(modes, id: \.self) { mode in
-										Text(mode.rawValue).tag(mode)
+										Text(LocalizedStringKey(stringLiteral: mode.rawValue)).tag(mode)
 									}
 								}
 								.menuStyle(.button)

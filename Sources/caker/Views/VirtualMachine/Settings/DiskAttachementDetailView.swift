@@ -59,7 +59,7 @@ struct DiskAttachementDetailView: View {
 			LabeledContent("Cache mode") {
 				Picker("Cache mode", selection: $currentItem.diskOptions.cachingMode) {
 					ForEach(["automatic", "cached", "uncached"], id: \.self) { name in
-						Text(String(localized: name)).tag(name).frame(width: 100)
+						Text(LocalizedStringKey(stringLiteral: name)).tag(name).frame(width: 100)
 					}
 				}
 				.allowsHitTesting(readOnly == false)

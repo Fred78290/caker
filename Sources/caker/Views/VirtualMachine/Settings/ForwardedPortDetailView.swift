@@ -147,7 +147,7 @@ struct ForwardedPortDetailView: View {
 					Spacer()
 					Picker("Protocol", selection: $model.selectedProtocol) {
 						ForEach(Proto.allCases, id: \.self) { proto in
-							Text(proto.rawValue).tag(proto)
+							Text(LocalizedStringKey(stringLiteral: proto.rawValue)).tag(proto)
 						}
 					}
 					.allowsHitTesting(readOnly == false)

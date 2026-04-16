@@ -57,7 +57,7 @@ struct NetworkAttachementDetailView: View {
 					Picker("Mode", selection: $currentItem.mode) {
 						Text("default").tag(nil as NetworkMode?)
 						ForEach([NetworkMode.auto, NetworkMode.manual], id: \.self) { mode in
-							Text(mode.description).tag(mode as NetworkMode?)
+							Text(LocalizedStringKey(stringLiteral: mode.description)).tag(mode as NetworkMode?)
 						}
 					}
 					.allowsHitTesting(readOnly == false)
