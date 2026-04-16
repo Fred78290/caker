@@ -1040,6 +1040,16 @@
         }
       }
     },
+	"Choose folder to mount inside VM" : {
+		"localizations" : {
+		  "fr" : {
+			"stringUnit" : {
+			  "state" : "translated",
+			  "value" : "Choisir un dossier pour partage avec la VM."
+			}
+		  }
+		}
+	},
     "Choose OS" : {
       "localizations" : {
         "fr" : {
@@ -7436,6 +7446,26 @@
         }
       }
     },
+	"Select data file" : {
+	  "localizations" : {
+		"fr" : {
+		  "stringUnit" : {
+			"state" : "translated",
+			"value" : "Choisir un fichier de données"
+		  }
+		}
+	  }
+	},
+	"Select a disk image" : {
+	  "localizations" : {
+		"fr" : {
+		  "stringUnit" : {
+			"state" : "translated",
+			"value" : "Choisir une image disque"
+		  }
+		}
+	  }
+	},
     "Select a template" : {
       "localizations" : {
         "fr" : {
@@ -7466,6 +7496,16 @@
         }
       }
     },
+	"Select socket file" : {
+	  "localizations" : {
+		"fr" : {
+		  "stringUnit" : {
+			"state" : "translated",
+			"value" : "Choisir un fichier socket"
+		  }
+		}
+	  }
+	},
     "Send clipboard data to VM on VNC view" : {
       "localizations" : {
         "fr" : {

@@ -59,7 +59,7 @@ struct DiskAttachementDetailView: View {
 			LabeledContent("Cache mode") {
 				Picker("Cache mode", selection: $currentItem.diskOptions.cachingMode) {
 					ForEach(["automatic", "cached", "uncached"], id: \.self) { name in
-						Text(name).tag(name).frame(width: 100)
+						Text(String(localized: name)).tag(name).frame(width: 100)
 					}
 				}
 				.allowsHitTesting(readOnly == false)
@@ -70,7 +70,7 @@ struct DiskAttachementDetailView: View {
 	}
 
 	func chooseDiskImage() {
-		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [.diskImage, .iso9660], withTitle: "Select disk image", allowsOtherFileTypes: true) {
+		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [.diskImage, .iso9660], withTitle: String(localized: "Select a disk image"), allowsOtherFileTypes: true) {
 			currentItem.diskPath = diskImg.absoluteURL.path
 
 			if currentItem.diskPath.lowercased().hasSuffix(".iso") {

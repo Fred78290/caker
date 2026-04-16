@@ -67,7 +67,7 @@ struct SocketsDetailView: View {
 	}
 
 	func chooseSocketFile() {
-		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: "Select socket file", allowsOtherFileTypes: true) {
+		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: String(localized: "Select socket file"), allowsOtherFileTypes: true) {
 			self.currentItem.bind = hostPath.absoluteURL.path
 		}
 	}

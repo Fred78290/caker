@@ -990,7 +990,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	func chooseYAML() -> String? {
-		if let choosenFile = FileHelpers.selectSingleInputFile(ofType: [.yaml], withTitle: "Select data file", allowsOtherFileTypes: true) {
+		if let choosenFile = FileHelpers.selectSingleInputFile(ofType: [.yaml], withTitle: String(localized: "Select data file"), allowsOtherFileTypes: true) {
 			return choosenFile.absoluteURL.path
 		}
 

@@ -307,7 +307,7 @@ struct MainApp: App {
 	private func open() {
 		let home = StorageLocation(runMode: .app).rootURL
 		
-		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: "Open virtual machine", directoryURL: home) {
+		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: String(localized: "Open virtual machine"), directoryURL: home) {
 			Task {
 				try? await openDocument(at: documentURL)
 			}

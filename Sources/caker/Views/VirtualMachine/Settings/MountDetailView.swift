@@ -80,7 +80,7 @@ struct MountDetailView: View {
 	}
 
 	func chooseFolder() {
-		if let folder = FileHelpers.selectFolder(withTitle: "Choose folder to mount inside VM") {
+		if let folder = FileHelpers.selectFolder(withTitle: String(localized: "Choose folder to mount inside VM")) {
 			currentItem.source = folder.absoluteURL.path
 		}
 	}
