@@ -16,6 +16,8 @@ SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 
 sudo rm -rf "${PROJECT_ROOT}/.build" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 
+/usr/bin/swift package resolve
+/usr/bin/swift package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
 /usr/bin/swift build
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"

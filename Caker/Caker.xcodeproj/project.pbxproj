@@ -3694,10 +3694,10 @@
 		};
 		9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/78290/swift-argument-parser.git";
+			repositoryURL = "https://github.com/Fred78290/swift-argument-parser.git";
 			requirement = {
 				kind = revision;
-				revision = 31f0befeaee44fb48e4015e3437a43e12839941b;
+				revision = d554955e8c280aa4c4a05a039a968f0205656e77;
 			};
 		};
 		9B30BA7B2E0C202A00256A9D /* XCRemoteSwiftPackageReference "SwiftletUtilities" */ = {

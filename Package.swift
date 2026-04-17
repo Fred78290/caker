@@ -24,7 +24,7 @@ let package = Package(
 		.package(url: "https://github.com/Fred78290/Multipart.git", revision: "9901ef8f452ed13e176c49e4b079f2daada76bde"),
 		.package(url: "https://github.com/Fred78290/Shout.git", revision: "9bd074b3d0943e391021cf7a86360fd5f82268cc"),
 		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", revision: "a7d76da446dbaf1652061990874517b0e7af8fe4"),
-		.package(url: "https://github.com/Fred78290/swift-argument-parser", revision: "dd2a1c7729101f52de4b6358ac58ae7c412720d9"),
+		.package(url: "https://github.com/Fred78290/swift-argument-parser", revision: "d554955e8c280aa4c4a05a039a968f0205656e77"),
 
 		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "3c45fdcfcf4395c72d2a4ee23c0bce79017b5391"),
 		.package(url: "https://github.com/amodm/iso9660-swift", branch: "main"),
