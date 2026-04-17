@@ -13,7 +13,7 @@ extension String {
 			return "\(key)"
 		}
 
-		let language = locale.language.languageCode?.identifier
+		let language = locale.language.languageCode?.identifier ?? "en"
 		let path = Bundle.main.path(forResource: language, ofType: "lproj")!
 
 		guard let bundle = Bundle(path: path) else {
