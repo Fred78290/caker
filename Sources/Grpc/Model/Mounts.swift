@@ -9,10 +9,10 @@ import Foundation
 import TextTable
 
 public struct MountVirtioFS: Codable {
-	public var name: String = ""
-	public var path: String = ""
+	public var name: String = String.empty
+	public var path: String = String.empty
 	public var mounted: Bool = false
-	public var reason: String = ""
+	public var reason: String = String.empty
 
 	public init() {
 
@@ -21,7 +21,7 @@ public struct MountVirtioFS: Codable {
 	public init(name: String, error: Error) {
 		self.name = name
 		self.mounted = false
-		self.reason = "\(error)"
+		self.reason = error.reason
 	}
 
 	public init(mounted: Bool, name: String, reason: String) {
@@ -63,7 +63,7 @@ public struct MountInfos: Codable {
 	internal init() {
 		self.mounts = []
 		self.success = false
-		self.reason = ""
+		self.reason = String.empty
 	}
 
 	public init(success: Bool, reason: String, mounts: [MountVirtioFS]) {

@@ -9,37 +9,37 @@ import System
 import Virtualization
 
 struct VMRun: AsyncParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false, aliases: ["run"])
+	static let configuration = CommandConfiguration(commandName: "vmrun", abstract: String(localized: "Run VM"), shouldDisplay: false, aliases: ["run"])
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Argument(help: "Path to the VM disk.img or his name")
-	var path: String
-
-	@Flag(name: [.customLong("service"), .customShort("l")], help: ArgumentHelp("VM running from service", discussion: "This option tell that vm run from service", visibility: .private))
+	@Flag(name: [.customLong("service"), .customShort("l")], help: ArgumentHelp(String(localized: "VM running from service"), discussion: String(localized: "This option tell that vm run from service"), visibility: .private))
 	var launchedFromService: Bool = false
 
-	@Flag(name: [.customLong("lima"), .customShort("m")], help: ArgumentHelp("Use socket-vmnet for network", visibility: .private))
+	@Flag(name: [.customLong("lima"), .customShort("m")], help: ArgumentHelp(String(localized: "Use socket-vmnet for network"), visibility: .private))
 	var useLimaVMNet: Bool = false
 
-	@Flag(help: ArgumentHelp("VM Display mode", discussion: "This option allow display window of running vm or vnc server", visibility: .hidden))
+	@Flag(help: ArgumentHelp(String(localized: "VM Display mode"), discussion: String(localized: "This option allow display window of running vm or vnc server"), visibility: .hidden))
 	var display: VMRunHandler.DisplayMode = .none
 
-	@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow run vm in service mode", visibility: .hidden))
+	@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allow run vm in service mode"), visibility: .hidden))
 	var mode: VMRunServiceMode = .grpc
 
-	@Option(help: ArgumentHelp("VNC server password", discussion: "This option allow run vnc server with password", visibility: .hidden))
+	@Option(help: ArgumentHelp(String(localized: "VNC server password"), discussion: String(localized: "This option allow run vnc server with password"), visibility: .hidden))
 	var vncPassword: String? = nil
 
-	@Option(help: ArgumentHelp("VNC Server port", discussion: "This option allow run vnc server with custom port", visibility: .hidden))
+	@Option(help: ArgumentHelp(String(localized: "VNC Server port"), discussion: String(localized: "This option allow run vnc server with custom port"), visibility: .hidden))
 	var vncPort: Int = 0
 
-	@Option(help: ArgumentHelp("Screen size", discussion: "This option allow run vnc server with custom port", visibility: .hidden))
+	@Option(help: ArgumentHelp(String(localized: "Screen size"), discussion: String(localized: "This option allow run vnc server with custom port"), visibility: .hidden))
 	var screenSize: ViewSize?
 
-	@Flag(name: [.customLong("gcd")], help: ArgumentHelp("Start grand central dispatch", visibility: .private))
+	@Flag(name: [.customLong("gcd")], help: ArgumentHelp(String(localized: "Start grand central dispatch"), visibility: .private))
 	var startGCD: Bool = false
+
+	@Argument(help: ArgumentHelp(String(localized: "Path to the VM disk.img or his name")))
+	var path: String
 
 	var locations: (StorageLocation, VMLocation) {
 		if StorageLocation(runMode: self.common.runMode).exists(path) {
@@ -67,11 +67,11 @@ struct VMRun: AsyncParsableCommand {
 		VMRunHandler.serviceMode = self.mode
 
 		if location.inited == false {
-			throw ValidationError("VM at \(path) does not exist")
+			throw ValidationError(String(localized: "VM at \(path) does not exist"))
 		}
 
 		if location.status == .running {
-			throw ValidationError("VM at \(path) is already running")
+			throw ValidationError(String(localized: "VM at \(path) is already running"))
 		}
 
 		phUseLimaVMNet = self.useLimaVMNet
@@ -102,7 +102,7 @@ struct VMRun: AsyncParsableCommand {
 		var startGrandCentral = false
 
 		if location.isPIDRunning() {
-			throw ServiceError("The VM is already running")
+			throw ServiceError(String(localized: "The VM is already running"))
 		}
 
 		if let screenSize = self.screenSize {

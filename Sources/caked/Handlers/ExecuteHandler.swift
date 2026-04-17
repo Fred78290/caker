@@ -27,7 +27,7 @@ struct ExecuteHandler: CakedCommandAsync {
 		guard let vmname = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
 			Logger("ExecuteHandler").error("no CAKEAGENT_VMNAME header")
 
-			throw ServiceError("no CAKEAGENT_VMNAME header")
+			throw ServiceError(String(localized: "no CAKEAGENT_VMNAME header"))
 		}
 
 		self.client = try provider.createCakeAgentConnection(vmName: vmname)

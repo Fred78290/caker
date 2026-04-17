@@ -22,15 +22,15 @@ public struct ShortInfoReply: Sendable, Codable {
 		self.ipaddresses = ipaddresses.joined(separator: ", ")
 		self.cpuCount = "\(cpuCount)"
 		self.memory = ByteCountFormatter.string(fromByteCount: Int64(memory), countStyle: .memory)
-		self.vncURL = vncURL == nil ? "" : vncURL!
+		self.vncURL = vncURL == nil ? String.empty : vncURL!
 	}
 
 	public init(ipaddress: String) {
-		self.name = ""
+		self.name = String.empty
 		self.ipaddresses = ipaddress
-		self.cpuCount = ""
-		self.memory = ""
-		self.vncURL = ""
+		self.cpuCount = String.empty
+		self.memory = String.empty
+		self.vncURL = String.empty
 	}
 }
 

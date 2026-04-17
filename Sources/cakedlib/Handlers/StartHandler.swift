@@ -42,7 +42,7 @@ public struct StartHandler {
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: location.rootURL).absoluteURL.path
 
 			guard let caked = URL.binary(Home.cakedCommandName) else {
-				throw ServiceError("caked not found")
+				throw ServiceError(String(localized: "caked not found"))
 			}
 
 			var arguments: [String] = ["exec", "'\(caked.path())'", "vmrun", "'\(location.diskURL.absoluteURL.path)'", "--log-level=\(Logger.LoggingLevel().rawValue)"]
@@ -94,7 +94,7 @@ public struct StartHandler {
 					if process.terminationStatus == 0 {
 						promise.succeed(vmName)
 					} else {
-						promise.fail(ShellError(terminationStatus: process.terminationStatus, error: "Failed", message: vmName))
+						promise.fail(ShellError(terminationStatus: process.terminationStatus, error: String(localized: "Failed"), message: vmName))
 					}
 				}
 			}
@@ -111,7 +111,7 @@ public struct StartHandler {
 						promise.fail(error)
 					}
 
-					throw ServiceError("VM \"\(location.name)\" exited with code \(process.terminationStatus)")
+					throw ServiceError(String(localized: "VM \"\(location.name)\" exited with code \(process.terminationStatus)"))
 				} else {
 					process.terminationHandler = { (p: ProcessWithSharedFileHandle) in
 						if let promise: EventLoopPromise<String> = promise {
@@ -210,7 +210,7 @@ public struct StartHandler {
 		process.terminationHandler = terminationHandler
 
 		#if DEBUG
-			Logger(self).debug(process.arguments?.joined(separator: " ") ?? "")
+			Logger(self).debug(process.arguments?.joined(separator: " ") ?? String.empty)
 		#endif
 
 		try process.run()
@@ -230,7 +230,7 @@ public struct StartHandler {
 			case .success(let name):
 				Logger(self).info("VM \(name) terminated")
 			case .failure(let err):
-				Logger(self).error(ServiceError("Failed to start VM \(location.name), \(err.localizedDescription)"))
+				Logger(self).error(ServiceError(String(localized: "Failed to start VM \(location.name), \(err.localizedDescription)")))
 			}
 		}
 
@@ -240,7 +240,7 @@ public struct StartHandler {
 	public static func startVM(location: VMLocation, screenSize: ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, gcd: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) -> StartedReply {
 		do {
 			if FileManager.default.fileExists(atPath: location.diskURL.path) == false {
-				return StartedReply(name: location.name, ip: "", started: false, reason: "VM not found")
+				return StartedReply(name: location.name, ip: String.empty, started: false, reason: String(localized: "VM not found"))
 			}
 
 			var ip: String
@@ -251,9 +251,9 @@ public struct StartHandler {
 				ip = try internalStartVM(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: gcd, runMode: runMode, promise: promise)
 			}
 
-			return StartedReply(name: location.name, ip: ip, started: true, reason: "VM started")
+			return StartedReply(name: location.name, ip: ip, started: true, reason: String(localized: "VM started"))
 		} catch {
-			return StartedReply(name: location.name, ip: "", started: false, reason: "\(error)")
+			return StartedReply(name: location.name, ip: String.empty, started: false, reason: error.reason)
 		}
 	}
 

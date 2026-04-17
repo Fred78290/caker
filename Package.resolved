@@ -1,5 +1,5 @@
 {
-  "originHash" : "9518a25b0efcc3385e4ff3bc7af96145cdca0662d198e313a2e5861726fdcbe1",
+  "originHash" : "bb932326fcb58c330858cd5f6b9dffc5c196f6e11bbe42f9fd7cf3dfef3a6d8b",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -177,10 +177,9 @@
     {
       "identity" : "swift-argument-parser",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "location" : "https://github.com/Fred78290/swift-argument-parser",
       "state" : {
-        "revision" : "c5d11a805e765f52ba34ec7284bd4fcd6ba68615",
-        "version" : "1.7.0"
+        "revision" : "d554955e8c280aa4c4a05a039a968f0205656e77"
       }
     },
     {
@@ -305,7 +304,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Fred78290/swift-nio-portforwarding.git",
       "state" : {
-        "revision" : "d97e677fd4247e7d140aa0e8a80dd52dceab4d4d"
+        "revision" : "a7d76da446dbaf1652061990874517b0e7af8fe4"
       }
     },
     {

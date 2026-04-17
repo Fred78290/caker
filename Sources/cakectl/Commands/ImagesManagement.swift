@@ -6,74 +6,65 @@ import CakeAgentLib
 
 struct ImagesManagement: ParsableCommand {
 	static let configuration = CommandConfiguration(
-		commandName: "image", abstract: "Manage simplestream images",
+		commandName: "image", abstract: String(localized: "Manage simplestream images"),
 		subcommands: [ListImage.self, InfoImage.self, PullImage.self])
 
 	struct ListImage: GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images", aliases: ["ls"])
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: String(localized: "List images"), aliases: ["ls"])
 
-		@OptionGroup(title: "Client options")
+		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Flag(help: "Output format: text or json")
-		var format: Format = .text
-
-		@Argument(help: "Remote name")
+		@Argument(help: ArgumentHelp(String(localized: "Remote name")))
 		var name: String
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			let result = try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().images.list
 
 			if result.success {
-				return self.format.render(result.infos)
+				return self.options.format.render(result.infos)
 			} else {
-				return self.format.render(result.reason)
+				return self.options.format.render(result.reason)
 			}
 		}
 	}
 
 	struct InfoImage: GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: String(localized: "Show useful information about images"))
 
-		@OptionGroup(title: "Client options")
+		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Flag(help: "Output format: text or json")
-		var format: Format = .text
-
-		@Argument(help: "Image name")
+		@Argument(help: ArgumentHelp(String(localized: "Image name")))
 		var name: String
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			let result = try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().images.infos
 
 			if result.success {
-				return self.format.render(result.info)
+				return self.options.format.render(result.info)
 			} else {
-				return self.format.render(result.reason)
+				return self.options.format.render(result.reason)
 			}
 		}
 	}
 
 	struct PullImage: GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: String(localized: "Show useful information about images"))
 
-		@OptionGroup(title: "Client options")
+		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
 
-		@Flag(help: "Output format: text or json")
-		var format: Format = .text
-
-		@Argument(help: "Image name")
+		@Argument(help: ArgumentHelp(String(localized: "Image name")))
 		var name: String
 
 		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			let result = try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().images.pull
 
 			if result.success {
-				return self.format.render(result.info)
+				return self.options.format.render(result.info)
 			} else {
-				return self.format.render(result.reason)
+				return self.options.format.render(result.reason)
 			}
 		}
 	}

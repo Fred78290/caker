@@ -15,10 +15,10 @@ import TextTable
 struct Duplicate: ParsableCommand {
 	static let configuration = DuplicateOptions.configuration
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Duplicate options")
+	@OptionGroup(title: String(localized: "Duplicate options"))
 	var duplicate: DuplicateOptions
 
 	func validate() throws {
@@ -29,11 +29,11 @@ struct Duplicate: ParsableCommand {
 
 		// Check if the VM exists
 		if fromLocation.status == .running {
-			throw ServiceError("VM \(self.duplicate.from) is running")
+			throw ServiceError(String(localized: "VM \(self.duplicate.from) is running"))
 		}
 
 		if storageLocation.exists(self.duplicate.to) {
-			throw ServiceError("VM \(self.duplicate.to) already exists")
+			throw ServiceError(String(localized: "VM \(self.duplicate.to) already exists"))
 		}
 	}
 

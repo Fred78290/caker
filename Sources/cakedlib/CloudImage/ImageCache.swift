@@ -53,7 +53,7 @@ public class CommonCacheImageCache: PurgeableStorage {
 
 	public init(scheme: String, location: String, ext: String = "img", root: URL? = nil, runMode: Utils.RunMode) throws {
 		self.scheme = scheme
-		self.name = ""
+		self.name = String.empty
 		self.location = location
 		self.ext = ext
 		self.runMode = runMode
@@ -106,7 +106,7 @@ public class TemplateImageCache: CommonCacheImageCache {
 	static let scheme = "template"
 
 	public convenience init(runMode: Utils.RunMode) throws {
-		try self.init(name: "", runMode: runMode)
+		try self.init(name: String.empty, runMode: runMode)
 	}
 
 	public init(name: String, runMode: Utils.RunMode) throws {
@@ -122,7 +122,7 @@ public class CloudImageCache: CommonCacheImageCache {
 	static let scheme = "qcow2"
 
 	public convenience init(runMode: Utils.RunMode) throws {
-		try self.init(name: "", runMode: runMode)
+		try self.init(name: String.empty, runMode: runMode)
 	}
 
 	public init(name: String, runMode: Utils.RunMode) throws {
@@ -142,7 +142,7 @@ public class IPSWCache: CommonCacheImageCache {
 	static let scheme = "ipsw"
 
 	public convenience init(runMode: Utils.RunMode) throws {
-		try self.init(name: "", runMode: runMode)
+		try self.init(name: String.empty, runMode: runMode)
 	}
 
 	public init(name: String, runMode: Utils.RunMode) throws {
@@ -154,7 +154,7 @@ public class IsoCache: CommonCacheImageCache {
 	static let scheme = "iso"
 
 	public convenience init(runMode: Utils.RunMode) throws {
-		try self.init(name: "", runMode: runMode)
+		try self.init(name: String.empty, runMode: runMode)
 	}
 
 	public init(name: String, runMode: Utils.RunMode) throws {
@@ -271,7 +271,7 @@ public class SimpleStreamsImageCache: CommonCacheImageCache {
 	private var cache: SimpleStreamCache?
 
 	public convenience init(runMode: Utils.RunMode) throws {
-		try self.init(name: "", runMode: runMode)
+		try self.init(name: String.empty, runMode: runMode)
 	}
 
 	public init(name: String, runMode: Utils.RunMode) throws {

@@ -13,9 +13,9 @@ public struct DeleteHandler {
 		func doIt(_ location: VMLocation) throws -> DeletedObject {
 			if location.status != .running {
 				try FileManager.default.removeItem(at: location.rootURL)
-				return DeletedObject(source: "vm", name: location.name, deleted: true, reason: "VM deleted")
+				return DeletedObject(source: "vm", name: location.name, deleted: true, reason: String(localized: "VM deleted"))
 			} else {
-				return DeletedObject(source: "vm", name: location.name, deleted: false, reason: "VM is running")
+				return DeletedObject(source: "vm", name: location.name, deleted: false, reason: String(localized: "VM is running"))
 			}
 		}
 
@@ -34,7 +34,7 @@ public struct DeleteHandler {
 				return try doIt(location)
 			}
 		} catch {
-			return DeletedObject(source: "vm", name: name, deleted: false, reason: "\(error)")
+			return DeletedObject(source: "vm", name: name, deleted: false, reason: error.reason)
 		}
 
 		return nil
@@ -65,17 +65,17 @@ public struct DeleteHandler {
 
 						if let purgeable = purgeables.first(where: { cache.fqn($0).contains(u.absoluteString) }) {
 							try purgeable.delete()
-							return DeletedObject(source: cache.location, name: purgeable.name, deleted: true, reason: "")
+							return DeletedObject(source: cache.location, name: purgeable.name, deleted: true, reason: String.empty)
 						}
-						return DeletedObject(source: cache.location, name: u.lastPathComponent, deleted: false, reason: "Object not found")
+						return DeletedObject(source: cache.location, name: u.lastPathComponent, deleted: false, reason: String(localized: "Object not found"))
 					} else if let scheme = u.scheme {
-						return DeletedObject(source: scheme, name: name, deleted: false, reason: "Unsupported URL scheme")
+						return DeletedObject(source: scheme, name: name, deleted: false, reason: String(localized: "Unsupported URL scheme"))
 					} else {
-						return DeletedObject(source: "vm", name: name, deleted: false, reason: "VM not found")
+						return DeletedObject(source: "vm", name: name, deleted: false, reason: String(localized: "VM not found"))
 					}
 				}
 
-				return DeletedObject(source: "unknown", name: name, deleted: false, reason: "Unsupported URL")
+				return DeletedObject(source: "unknown", name: name, deleted: false, reason: String(localized: "Unsupported URL"))
 			}
 
 			return result
@@ -87,13 +87,13 @@ public struct DeleteHandler {
 			try location.delete()
 
 			return DeleteReply(objects: [
-				DeletedObject(source: "vm", name: location.name, deleted: true, reason: "VM not found")
-			], success: true, reason: "success")
+				DeletedObject(source: "vm", name: location.name, deleted: true, reason: String(localized: "VM not found"))
+			], success: true, reason: String(localized: "Success"))
 
 		} catch {
 			return DeleteReply(objects: [
-				DeletedObject(source: "vm", name: location.name, deleted: false, reason: "VM not found")
-			], success: false, reason: "\(error)")
+				DeletedObject(source: "vm", name: location.name, deleted: false, reason: String(localized: "VM not found"))
+			], success: false, reason: error.reason)
 		}
 	}
 
@@ -104,8 +104,8 @@ public struct DeleteHandler {
 			return delete(location: location, runMode: runMode)
 		} catch {
 			return DeleteReply(objects: [
-				DeletedObject(source: "vm", name: name, deleted: false, reason: "\(error)")
-			], success: false, reason: "\(error)")
+				DeletedObject(source: "vm", name: name, deleted: false, reason: error.reason)
+			], success: false, reason: error.reason)
 		}
 	}
 
@@ -116,8 +116,8 @@ public struct DeleteHandler {
 			return delete(location: location, runMode: runMode)
 		} catch {
 			return DeleteReply(objects: [
-				DeletedObject(source: "vm", name: vmURL.absoluteString, deleted: false, reason: "VM not found")
-			], success: false, reason: "\(error)")
+				DeletedObject(source: "vm", name: vmURL.absoluteString, deleted: false, reason: String(localized: "VM not found"))
+			], success: false, reason: error.reason)
 		}
 	}
 
@@ -129,9 +129,9 @@ public struct DeleteHandler {
 				names = try StorageLocation(runMode: runMode).list().map { $0.key }
 			}
 
-			return DeleteReply(objects: try DeleteHandler.delete(names: names, runMode: runMode), success: true, reason: "Success")
+			return DeleteReply(objects: try DeleteHandler.delete(names: names, runMode: runMode), success: true, reason: String(localized: "Success"))
 		} catch {
-			return DeleteReply(objects: [], success: false, reason: "\(error)")
+			return DeleteReply(objects: [], success: false, reason: error.reason)
 		}
 	}
 }

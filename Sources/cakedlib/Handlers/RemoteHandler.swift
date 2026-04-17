@@ -7,22 +7,22 @@ public struct RemoteHandler {
 	public static func addRemote(name: String, url: URL, runMode: Utils.RunMode) -> CreateRemoteReply {
 
 		guard url.scheme == "https" || url.scheme == "http" else {
-			return CreateRemoteReply(name: name, created: false, reason: "remote unsupported url \(url)")
+			return CreateRemoteReply(name: name, created: false, reason: String(localized: "remote unsupported url \(url.absoluteString)"))
 		}
 
 		do {
 			let remoteDb = try Home(runMode: runMode).remoteDatabase()
 
 			guard remoteDb.get(name) == nil else {
-				return CreateRemoteReply(name: name, created: false, reason: "remote \(name) already exists")
+				return CreateRemoteReply(name: name, created: false, reason: String(localized: "remote \(name) already exists"))
 			}
 
 			remoteDb.add(name, url.absoluteString)
 			try remoteDb.save()
 
-			return CreateRemoteReply(name: name, created: true, reason: "remote \(name) added")
+			return CreateRemoteReply(name: name, created: true, reason: String(localized: "remote \(name) added"))
 		} catch {
-			return CreateRemoteReply(name: name, created: false, reason: "\(error)")
+			return CreateRemoteReply(name: name, created: false, reason: error.reason)
 		}
 	}
 
@@ -31,15 +31,15 @@ public struct RemoteHandler {
 			let remoteDb = try Home(runMode: runMode).remoteDatabase()
 
 			guard remoteDb.get(name) != nil else {
-				return DeleteRemoteReply(name: name, deleted: false, reason: "remote \(name) doesn't exists")
+				return DeleteRemoteReply(name: name, deleted: false, reason: String(localized: "remote \(name) doesn't exists"))
 			}
 
 			remoteDb.remove(name)
 			try remoteDb.save()
 
-			return DeleteRemoteReply(name: name, deleted: true, reason: "remote \(name) deleted")
+			return DeleteRemoteReply(name: name, deleted: true, reason: String(localized: "remote \(name) deleted"))
 		} catch {
-			return DeleteRemoteReply(name: name, deleted: false, reason: "\(error)")
+			return DeleteRemoteReply(name: name, deleted: false, reason: error.reason)
 		}
 	}
 
@@ -50,9 +50,9 @@ public struct RemoteHandler {
 			return ListRemoteReply(
 				remotes: try remoteDb.map { (key: String, value: String) in
 					RemoteEntry(name: key, url: value)
-				}, success: true, reason: "Success")
+				}, success: true, reason: String(localized: "Success"))
 		} catch {
-			return ListRemoteReply(remotes: [], success: false, reason: "\(error)")
+			return ListRemoteReply(remotes: [], success: false, reason: error.reason)
 		}
 	}
 }

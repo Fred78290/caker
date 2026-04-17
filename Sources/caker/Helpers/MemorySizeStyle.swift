@@ -96,7 +96,7 @@ struct OptionalMemorySizeStategy: ParseStrategy {
 
 		func convert(_ value: UInt64?) -> String {
 			guard let value = value else {
-				return ""
+				return String.empty
 			}
 
 			switch self {

@@ -7,16 +7,16 @@ import CakeAgentLib
 struct Launch: AsyncParsableCommand {
 	static let configuration = BuildOptions.launch
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Build VM options")
+	@OptionGroup(title: String(localized: "Build VM options"))
 	var options: BuildOptions
 
-	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
+	@Option(help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	var waitIPTimeout = 180
 
-	@Flag(help: ArgumentHelp("Launch vm in foreground", discussion: "This option allow display window of running vm to debug it", visibility: .hidden))
+	@Flag(help: ArgumentHelp(String(localized: "Launch vm in foreground"), discussion: String(localized: "This option allow display window of running vm to debug it"), visibility: .hidden))
 	var foreground: Bool = false
 
 	mutating func validate() throws {
@@ -25,11 +25,11 @@ struct Launch: AsyncParsableCommand {
 		try self.options.validate(remote: false)
 
 		if StorageLocation(runMode: self.common.runMode).exists(self.options.name) {
-			throw ValidationError("\(self.options.name) already exists")
+			throw ValidationError(String(localized: "\(self.options.name) already exists"))
 		}
 		if let imageSource = self.options.imageSource, foreground == false {
 			if imageSource == .iso || imageSource == .ipsw {
-				throw ValidationError("Imagesource \(imageSource.description) need display to launch it")
+				throw ValidationError(String(localized: "Imagesource \(imageSource.description) need display to launch it"))
 			}
 		}
 	}

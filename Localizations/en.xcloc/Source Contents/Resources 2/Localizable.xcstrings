@@ -1,0 +1,619 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%@ already exists" : {
+      "shouldTranslate" : false
+    },
+    "%@ does not exists" : {
+      "shouldTranslate" : false
+    },
+    "Act as system agent, need sudo" : {
+      "shouldTranslate" : false
+    },
+    "Agent common options" : {
+      "shouldTranslate" : false
+    },
+    "Build VM options" : {
+      "shouldTranslate" : false
+    },
+    "CA TLS certificate" : {
+      "shouldTranslate" : false
+    },
+    "caked as launchctl agent" : {
+      "shouldTranslate" : false
+    },
+    "caked daemon listening" : {
+      "shouldTranslate" : false
+    },
+    "Caked service is not running" : {
+      "shouldTranslate" : false
+    },
+    "Client private key" : {
+      "shouldTranslate" : false
+    },
+    "Client TLS certificate" : {
+      "shouldTranslate" : false
+    },
+    "Clone OCI image options" : {
+      "shouldTranslate" : false
+    },
+    "Configure networks options" : {
+      "shouldTranslate" : false
+    },
+    "Configure options" : {
+      "shouldTranslate" : false
+    },
+    "Configure VMNet options" : {
+      "shouldTranslate" : false
+    },
+    "Control" : {
+      "shouldTranslate" : false
+    },
+    "Create networks options" : {
+      "shouldTranslate" : false
+    },
+    "Create template options" : {
+      "shouldTranslate" : false
+    },
+    "default nat network address" : {
+      "shouldTranslate" : false
+    },
+    "Delete a VM" : {
+      "shouldTranslate" : false
+    },
+    "Delete options" : {
+      "shouldTranslate" : false
+    },
+    "Delete template options" : {
+      "shouldTranslate" : false
+    },
+    "DHCP lease time in seconds" : {
+      "shouldTranslate" : false
+    },
+    "dhcp-end is not a valid IP address" : {
+      "shouldTranslate" : false
+    },
+    "dhcp-end is not allowed for bridged mode" : {
+      "shouldTranslate" : false
+    },
+    "dhcp-end is not in the same network as gateway" : {
+      "shouldTranslate" : false
+    },
+    "dhcp-end is required for host/shared mode when gateway is specified" : {
+      "shouldTranslate" : false
+    },
+    "don't use TLS" : {
+      "shouldTranslate" : false
+    },
+    "Duplicate options" : {
+      "shouldTranslate" : false
+    },
+    "end of the DHCP range" : {
+      "shouldTranslate" : false
+    },
+    "Exec options" : {
+      "shouldTranslate" : false
+    },
+    "Failed to get group %@" : {
+      "shouldTranslate" : false
+    },
+    "Failed to start networks %@" : {
+      "shouldTranslate" : false
+    },
+    "fd and socket-path are mutually exclusive %lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "fd and socket-path are mutually exclusive %1$lld %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "File descriptor is not open" : {
+      "shouldTranslate" : false
+    },
+    "Force regeneration of certificates" : {
+      "shouldTranslate" : false
+    },
+    "Force restart" : {
+      "shouldTranslate" : false
+    },
+    "gateway is not a valid IP address" : {
+      "shouldTranslate" : false
+    },
+    "gateway is not allowed for bridged mode" : {
+      "shouldTranslate" : false
+    },
+    "gateway used for --vmnet=(host|shared), e.g., \"192.168.105.1\" (default: decided by macOS)" : {
+      "shouldTranslate" : false
+    },
+    "Generate certificates" : {
+      "shouldTranslate" : false
+    },
+    "Generate certificates for cakeagent" : {
+      "shouldTranslate" : false
+    },
+    "Generate tls certificates for grpc" : {
+      "shouldTranslate" : false
+    },
+    "Get info for VM" : {
+      "shouldTranslate" : false
+    },
+    "Global options" : {
+      "shouldTranslate" : false
+    },
+    "Help to run caked daemon" : {
+      "shouldTranslate" : false
+    },
+    "host" : {
+      "shouldTranslate" : false
+    },
+    "Image name" : {
+      "shouldTranslate" : false
+    },
+    "Imagesource %@ need display to launch it" : {
+      "shouldTranslate" : false
+    },
+    "Import an external VM from a file or URL." : {
+      "shouldTranslate" : false
+    },
+    "Include VM configuration in the output" : {
+      "shouldTranslate" : false
+    },
+    "Install caked as system agent, need sudo" : {
+      "shouldTranslate" : false
+    },
+    "Install caked daemon as launchctl agent" : {
+      "shouldTranslate" : false
+    },
+    "Installation failed: %@" : {
+      "shouldTranslate" : false
+    },
+    "Installation succeeded" : {
+      "shouldTranslate" : false
+    },
+    "interface\n" : {
+      "shouldTranslate" : false
+    },
+    "interface is required for bridged mode" : {
+      "shouldTranslate" : false
+    },
+    "interface used for --vmnet=bridged, e.g., \"en0\"" : {
+      "shouldTranslate" : false
+    },
+    "IP gateway\n" : {
+      "shouldTranslate" : false
+    },
+    "Kind of virtual machine to convert from." : {
+      "shouldTranslate" : false
+    },
+    "Launch vm in foreground" : {
+      "shouldTranslate" : false
+    },
+    "List all VMs" : {
+      "shouldTranslate" : false
+    },
+    "List all VMs and cached objects" : {
+      "shouldTranslate" : false
+    },
+    "List images" : {
+      "shouldTranslate" : false
+    },
+    "Listen on address" : {
+      "shouldTranslate" : false
+    },
+    "Log level" : {
+      "shouldTranslate" : false
+    },
+    "Login options" : {
+      "shouldTranslate" : false
+    },
+    "Login to a registry" : {
+      "shouldTranslate" : false
+    },
+    "Logout from a registry" : {
+      "shouldTranslate" : false
+    },
+    "Mac address configured for VM network interface, autogenerated if not specified" : {
+      "shouldTranslate" : false
+    },
+    "Mac Address of network interface\n" : {
+      "shouldTranslate" : false
+    },
+    "Manage host network devices" : {
+      "shouldTranslate" : false
+    },
+    "Manage simplestream images" : {
+      "shouldTranslate" : false
+    },
+    "Manage simplestream remote" : {
+      "shouldTranslate" : false
+    },
+    "Manage VM templates" : {
+      "shouldTranslate" : false
+    },
+    "Max time to wait for IP" : {
+      "shouldTranslate" : false
+    },
+    "Mount %@ already exists" : {
+      "shouldTranslate" : false
+    },
+    "Mount %@ does not exist" : {
+      "shouldTranslate" : false
+    },
+    "Mount options" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ already exist" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ does not exist" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ doesn't exists" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ is a physical interface" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ is already running with PID=%d" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Network %1$@ is already running with PID=%2$d"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Network %@ is already running with undetermined PID" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ is default nated, please use a different network" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ is handled natively, please use a different network" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ is not running" : {
+      "shouldTranslate" : false
+    },
+    "Network %@ started" : {
+      "shouldTranslate" : false
+    },
+    "Network already running" : {
+      "shouldTranslate" : false
+    },
+    "network name" : {
+      "shouldTranslate" : false
+    },
+    "Network name" : {
+      "shouldTranslate" : false
+    },
+    "network to delete, e.g. \"shared\"" : {
+      "shouldTranslate" : false
+    },
+    "network to stop, e.g., \"en0\" or \"shared\"" : {
+      "shouldTranslate" : false
+    },
+    "no CAKEAGENT_VMNAME header" : {
+      "shouldTranslate" : false
+    },
+    "No listen address provided" : {
+      "shouldTranslate" : false
+    },
+    "No network name provided" : {
+      "shouldTranslate" : false
+    },
+    "Optional SSH private key passphrase to use for the VM" : {
+      "shouldTranslate" : false
+    },
+    "Optional SSH private key to use for the VM" : {
+      "shouldTranslate" : false
+    },
+    "Output format: text or json" : {
+      "shouldTranslate" : false
+    },
+    "override client agent options" : {
+      "shouldTranslate" : false
+    },
+    "Path to the VM disk.img or his name" : {
+      "shouldTranslate" : false
+    },
+    "Pause" : {
+      "shouldTranslate" : false
+    },
+    "PID file %@ does not exist" : {
+      "shouldTranslate" : false
+    },
+    "pidfile is required when using fd" : {
+      "shouldTranslate" : false
+    },
+    "pidfile is required when using vmfd" : {
+      "shouldTranslate" : false
+    },
+    "Pull image" : {
+      "shouldTranslate" : false
+    },
+    "Purge options" : {
+      "shouldTranslate" : false
+    },
+    "Push VM options" : {
+      "shouldTranslate" : false
+    },
+    "randomly generated if not specified" : {
+      "shouldTranslate" : false
+    },
+    "Reconfigure VM" : {
+      "shouldTranslate" : false
+    },
+    "Remote name" : {
+      "shouldTranslate" : false
+    },
+    "Rename options" : {
+      "shouldTranslate" : false
+    },
+    "Request Stop" : {
+      "shouldTranslate" : false
+    },
+    "requires --gateway to be specified" : {
+      "shouldTranslate" : false
+    },
+    "Restart" : {
+      "shouldTranslate" : false
+    },
+    "Restart named network." : {
+      "shouldTranslate" : false
+    },
+    "Restart VM(s)" : {
+      "shouldTranslate" : false
+    },
+    "Restarts virtual machine" : {
+      "shouldTranslate" : false
+    },
+    "Resume" : {
+      "shouldTranslate" : false
+    },
+    "Resumes virtual machine" : {
+      "shouldTranslate" : false
+    },
+    "Return certificates path" : {
+      "shouldTranslate" : false
+    },
+    "Root certificate file not found: %@" : {
+      "shouldTranslate" : false
+    },
+    "Run internal VMNet network device" : {
+      "shouldTranslate" : false
+    },
+    "Run VM" : {
+      "shouldTranslate" : false
+    },
+    "save pid to PIDFILE" : {
+      "shouldTranslate" : false
+    },
+    "Screen size" : {
+      "shouldTranslate" : false
+    },
+    "Service endpoint" : {
+      "shouldTranslate" : false
+    },
+    "Set DHCP lease duration." : {
+      "shouldTranslate" : false
+    },
+    "Shared file descriptors are not supported, use launch instead" : {
+      "shouldTranslate" : false
+    },
+    "Shell options" : {
+      "shouldTranslate" : false
+    },
+    "Show useful information about images" : {
+      "shouldTranslate" : false
+    },
+    "Socket file already exists at %@" : {
+      "shouldTranslate" : false
+    },
+    "socket group name" : {
+      "shouldTranslate" : false
+    },
+    "socket path" : {
+      "shouldTranslate" : false
+    },
+    "Some cert files not provided" : {
+      "shouldTranslate" : false
+    },
+    "Start" : {
+      "shouldTranslate" : false
+    },
+    "Start a VNC client for a running VM" : {
+      "shouldTranslate" : false
+    },
+    "Start an existing VM" : {
+      "shouldTranslate" : false
+    },
+    "Start grand central dispatch" : {
+      "shouldTranslate" : false
+    },
+    "Start virtual machine" : {
+      "shouldTranslate" : false
+    },
+    "Stop" : {
+      "shouldTranslate" : false
+    },
+    "Stop virtual machine" : {
+      "shouldTranslate" : false
+    },
+    "subnet mask\n" : {
+      "shouldTranslate" : false
+    },
+    "Success" : {
+      "shouldTranslate" : false
+    },
+    "Suspend" : {
+      "shouldTranslate" : false
+    },
+    "Suspend VM(s)" : {
+      "shouldTranslate" : false
+    },
+    "Suspends virtual machine" : {
+      "shouldTranslate" : false
+    },
+    "Tell if the user admin allow password for ssh" : {
+      "shouldTranslate" : false
+    },
+    "Tell the status of caked daemon" : {
+      "shouldTranslate" : false
+    },
+    "Tell to stop caked daemon" : {
+      "shouldTranslate" : false
+    },
+    "The IPv6 prefix to use with shared mode" : {
+      "shouldTranslate" : false
+    },
+    "The name for network" : {
+      "shouldTranslate" : false
+    },
+    "The name of the virtual machine to create." : {
+      "shouldTranslate" : false
+    },
+    "The name virtual machine to convert from or absolute path to the directory containing the VMs." : {
+      "shouldTranslate" : false
+    },
+    "The user password for login" : {
+      "shouldTranslate" : false
+    },
+    "The user to use for the VM" : {
+      "shouldTranslate" : false
+    },
+    "The VM is already running" : {
+      "shouldTranslate" : false
+    },
+    "This command is used retrieve the default nat network address" : {
+      "shouldTranslate" : false
+    },
+    "This command is used to restart the VMNet network device." : {
+      "shouldTranslate" : false
+    },
+    "This command is used to set the dhcp lease" : {
+      "shouldTranslate" : false
+    },
+    "This command must be run as root not as user %u" : {
+      "shouldTranslate" : false
+    },
+    "This option allow display window of running vm or vnc server" : {
+      "shouldTranslate" : false
+    },
+    "This option allow display window of running vm to debug it" : {
+      "shouldTranslate" : false
+    },
+    "This option allow mode to connect to a running service" : {
+      "shouldTranslate" : false
+    },
+    "This option allow mode to connect to a VMRun service endpoint" : {
+      "shouldTranslate" : false
+    },
+    "This option allow run vm in service mode" : {
+      "shouldTranslate" : false
+    },
+    "This option allow run vnc server with custom port" : {
+      "shouldTranslate" : false
+    },
+    "This option allow run vnc server with password" : {
+      "shouldTranslate" : false
+    },
+    "This option tell that vm run from service" : {
+      "shouldTranslate" : false
+    },
+    "TLS certificate file not found: %@" : {
+      "shouldTranslate" : false
+    },
+    "TLS key file not found: %@" : {
+      "shouldTranslate" : false
+    },
+    "Trace vnc traffic" : {
+      "shouldTranslate" : false
+    },
+    "Umount options" : {
+      "shouldTranslate" : false
+    },
+    "Unable to configure physical network %@" : {
+      "shouldTranslate" : false
+    },
+    "Unable to delete physical network %@" : {
+      "shouldTranslate" : false
+    },
+    "Unable to delete running network %@" : {
+      "shouldTranslate" : false
+    },
+    "url" : {
+      "shouldTranslate" : false
+    },
+    "Use file descriptor for VMNet" : {
+      "shouldTranslate" : false
+    },
+    "Use socket-vmnet for network" : {
+      "shouldTranslate" : false
+    },
+    "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service" : {
+      "shouldTranslate" : false
+    },
+    "valid netmask is required for host/shared mode when gateway is specified" : {
+      "shouldTranslate" : false
+    },
+    "VM %@ already exists" : {
+      "shouldTranslate" : false
+    },
+    "VM %@ is not running" : {
+      "shouldTranslate" : false
+    },
+    "VM %@ is running" : {
+      "shouldTranslate" : false
+    },
+    "VM at %@ does not exist" : {
+      "shouldTranslate" : false
+    },
+    "VM at %@ is already running" : {
+      "shouldTranslate" : false
+    },
+    "VM Display mode" : {
+      "shouldTranslate" : false
+    },
+    "VM name" : {
+      "shouldTranslate" : false
+    },
+    "VM names to restart" : {
+      "shouldTranslate" : false
+    },
+    "VM names to suspend" : {
+      "shouldTranslate" : false
+    },
+    "VM running from service" : {
+      "shouldTranslate" : false
+    },
+    "vmnet interface ID\n" : {
+      "shouldTranslate" : false
+    },
+    "vmnet mode" : {
+      "shouldTranslate" : false
+    },
+    "VNC server password" : {
+      "shouldTranslate" : false
+    },
+    "VNC Server port" : {
+      "shouldTranslate" : false
+    },
+    "Wait ip options" : {
+      "shouldTranslate" : false
+    },
+    "You can only specify one of --network or --pidfile" : {
+      "shouldTranslate" : false
+    },
+    "You must specify one of --network or --pidfile" : {
+      "shouldTranslate" : false
+    }
+  },
+  "version" : "1.2"
+}

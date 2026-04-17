@@ -7,16 +7,13 @@ import CakeAgentLib
 struct Rename: GrpcParsableCommand {
 	static let configuration = RenameOptions.configuration
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@OptionGroup(title: "Rename options")
+	@OptionGroup(title: String(localized: "Rename options"))
 	var rename: RenameOptions
 
-	@Flag(help: "Output format")
-	var format: Format = .text
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return self.format.render(try client.rename(Caked_RenameRequest(command: self), callOptions: callOptions).response.wait().vms.renamed)
+		return self.options.format.render(try client.rename(Caked_RenameRequest(command: self), callOptions: callOptions).response.wait().vms.renamed)
 	}
 }

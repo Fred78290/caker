@@ -13,7 +13,7 @@ public enum VirtualizedOS: String, Codable {
 	case linux
 }
 
-public enum Architecture: String, Codable, CustomStringConvertible {
+public enum Architecture: String, Codable, CustomStringConvertible, Identifiable {
 	public var description: String {
 		switch self {
 		case .arm64:
@@ -44,6 +44,9 @@ public enum Architecture: String, Codable, CustomStringConvertible {
 			return "x86_64"
 		}
 	}
+
+	// Identifiable conformance
+	public var id: String { self.rawValue }
 
 	public init(rawValue: String) {
 		switch rawValue {
@@ -453,4 +456,3 @@ extension VirtualMachineConfiguration {
 		}
 	}
 }
-

@@ -431,11 +431,11 @@ class AppState: ObservableObject, Observable {
 	
 	func createTemplate(templateName: String) throws -> CreateTemplateReply {
 		guard let currentDocument = self.currentDocument else {
-			throw ServiceError("No VM found")
+			throw ServiceError(String(localized: "No VM found"))
 		}
 		
 		guard currentDocument.status.isStopped else {
-			throw ServiceError("VM is running")
+			throw ServiceError(String(localized: "VM is running"))
 		}
 		
 		return try TemplateHandler.createTemplate(client: self.serviceClient, vmURL: currentDocument.url, templateName: templateName, runMode: self.runMode)
@@ -547,11 +547,11 @@ class AppState: ObservableObject, Observable {
 		let alert = NSAlert()
 		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
 		
-		alert.messageText = "Create template"
-		alert.informativeText = "Name of the new template"
+		alert.messageText = String(localized: "Create template")
+		alert.informativeText = String(localized: "Name of the new template")
 		alert.alertStyle = .informational
-		alert.addButton(withTitle: "Create")
-		alert.addButton(withTitle: "Cancel")
+		alert.addButton(withTitle: String(localized: "Create"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
 		
 		alert.accessoryView = txt
 		
@@ -563,7 +563,7 @@ class AppState: ObservableObject, Observable {
 					self.reloadTemplates()
 				} else {
 					DispatchQueue.main.async {
-						alertError("Failed to create template", templateResult.reason ?? "Internal error")
+						alertError(String(localized: "Failed to create template"), templateResult.reason ?? String(localized: "Internal error"))
 					}
 				}
 			} catch {
@@ -579,7 +579,7 @@ class AppState: ObservableObject, Observable {
 		let result = try StartHandler.startVM(client: self.serviceClient, vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 30, startMode: startMode,runMode: self.runMode)
 		
 		if result.started == false {
-			throw ServiceError("Failed to start VM")
+			throw ServiceError(String(localized: "Failed to start VM"))
 		}
 		
 		return result
@@ -590,7 +590,7 @@ class AppState: ObservableObject, Observable {
 		let result = try RestartHandler.restart(client: self.serviceClient, vmURL: vmURL, force: force, waitIPTimeout: 30, runMode: self.runMode)
 		
 		if result.success == false {
-			throw ServiceError("Failed to restart VM")
+			throw ServiceError(String(localized: "Failed to restart VM"))
 		}
 		
 		return result
@@ -601,7 +601,7 @@ class AppState: ObservableObject, Observable {
 		let result = try StopHandler.stopVM(client: self.serviceClient, vmURL: vmURL, force: force, runMode: self.runMode)
 		
 		if result.success == false {
-			throw ServiceError("Failed to stop VM")
+			throw ServiceError(String(localized: "Failed to stop VM"))
 		}
 		
 		return result
@@ -612,7 +612,7 @@ class AppState: ObservableObject, Observable {
 		let result = try SuspendHandler.suspendVM(client: self.serviceClient, vmURL: vmURL, runMode: self.runMode)
 		
 		if result.success == false {
-			throw ServiceError("Failed to suspend VM")
+			throw ServiceError(String(localized: "Failed to suspend VM"))
 		}
 		
 		return result
@@ -623,7 +623,7 @@ class AppState: ObservableObject, Observable {
 			let result = try ScreenSizeHandler.setScreenSize(client: self.serviceClient, vmURL: vmURL, width: Int(screenSize.width), height: Int(screenSize.height), runMode: self.runMode)
 			
 			if result.success == false {
-				await alertError(result.reason, "Failed to set VM screen size")
+				await alertError(String(localized: "Failed to set VM screen size"), result.reason)
 			}
 		} catch {
 			await alertError(error)
@@ -636,7 +636,7 @@ class AppState: ObservableObject, Observable {
 			
 			if result.success == false {
 				DispatchQueue.main.async {
-					alertError(result.reason, "Failed to get VM screen size")
+					alertError(String(localized: "Failed to get VM screen size"), result.reason)
 				}
 			} else {
 				return .init(width: CGFloat(result.width), height: CGFloat(result.height))
@@ -666,11 +666,11 @@ class AppState: ObservableObject, Observable {
 		let alert = NSAlert()
 		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
 		
-		alert.messageText = "Duplicate virtual machine"
-		alert.informativeText = "Name of the new vm"
+		alert.messageText = String(localized: "Duplicate virtual machine")
+		alert.informativeText = String(localized: "Name of the new vm")
 		alert.alertStyle = .informational
-		alert.addButton(withTitle: "Duplicate")
-		alert.addButton(withTitle: "Cancel")
+		alert.addButton(withTitle: String(localized: "Duplicate"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
 		
 		alert.accessoryView = txt
 		
@@ -685,12 +685,12 @@ class AppState: ObservableObject, Observable {
 						self.addVirtualMachineDocument(vmURL)
 					} else {
 						DispatchQueue.main.async {
-							alertError("Failed to duplicate virtual machine", "Internal error: invalid VM location URL")
+							alertError(String(localized: "Failed to duplicate virtual machine"), String(localized: "Internal error: invalid VM location URL"))
 						}
 					}
 				} else {
 					DispatchQueue.main.async {
-						alertError("Failed to duplicate virtual machine", result.reason)
+						alertError(String(localized: "Failed to duplicate virtual machine"), result.reason)
 					}
 				}
 			} catch {
@@ -707,7 +707,7 @@ class AppState: ObservableObject, Observable {
 				let reply = ConfigureHandler.configure(name: vm.name, options: vm.virtualMachineConfig.configureOptions(), runMode: self.runMode)
 				
 				if reply.configured == false {
-					throw ServiceError("Failed to save VM configuration: \(reply.reason)")
+					throw ServiceError(String(localized: "Failed to save VM configuration: \(reply.reason)"))
 				}
 				
 			} else if let virtualMachine = vm.virtualMachine {
@@ -715,7 +715,7 @@ class AppState: ObservableObject, Observable {
 			} else if let location = vm.location {
 				try vm.virtualMachineConfig.saveLocally(location)
 			} else {
-				throw ServiceError("Failed to save VM configuration, Unexpected error")
+				throw ServiceError(String(localized: "Failed to save VM configuration, Unexpected error"))
 			}
 			
 			vm.virtualMachineConfig.clearChangedFields()
@@ -729,11 +729,11 @@ class AppState: ObservableObject, Observable {
 	func deleteVirtualMachine(document vm: VirtualMachineDocument) {
 		let alert = NSAlert()
 		
-		alert.messageText = "Delete virtual machine"
-		alert.informativeText = "Are you sure you want to delete \(vm.name)? This action cannot be undone."
+		alert.messageText = String(localized: "Delete virtual machine")
+		alert.informativeText = String(localized: "Are you sure you want to delete \(vm.name)? This action cannot be undone.")
 		alert.alertStyle = .critical
-		alert.addButton(withTitle: "Delete")
-		alert.addButton(withTitle: "Cancel")
+		alert.addButton(withTitle: String(localized: "Delete"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
 		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
@@ -745,7 +745,7 @@ class AppState: ObservableObject, Observable {
 					self.removeVirtualMachineDocument(vm.url)
 				} else {
 					DispatchQueue.main.async {
-						alertError(ServiceError(result.reason))
+						alertError(String(localized: "Delete failed"), result.reason)
 					}
 				}
 			} catch {
@@ -759,11 +759,11 @@ class AppState: ObservableObject, Observable {
 	func deleteNetwork(name: String) {
 		let alert = NSAlert()
 		
-		alert.messageText = "Delete network"
-		alert.informativeText = "Are you sure you want to delete network \(name)? This action cannot be undone."
+		alert.messageText = String(localized: "Delete network")
+		alert.informativeText = String(localized: "Are you sure you want to delete network \(name)? This action cannot be undone.")
 		alert.alertStyle = .critical
-		alert.addButton(withTitle: "Delete")
-		alert.addButton(withTitle: "Cancel")
+		alert.addButton(withTitle: String(localized: "Delete"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
 		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			let result = NetworksHandler.delete(networkName: name, runMode: self.runMode)
@@ -772,7 +772,7 @@ class AppState: ObservableObject, Observable {
 				self.reloadNetworks()
 			} else {
 				DispatchQueue.main.async {
-					alertError(ServiceError(result.reason))
+					alertError(String(localized: "Delete failed"), result.reason)
 				}
 			}
 		}
@@ -781,11 +781,11 @@ class AppState: ObservableObject, Observable {
 	func deleteTemplate(name: String) {
 		let alert = NSAlert()
 		
-		alert.messageText = "Delete template"
-		alert.informativeText = "Are you sure you want to delete template \(name)? This action cannot be undone."
+		alert.messageText = String(localized: "Delete template")
+		alert.informativeText = String(localized: "Are you sure you want to delete template \(name)? This action cannot be undone.")
 		alert.alertStyle = .critical
-		alert.addButton(withTitle: "Delete")
-		alert.addButton(withTitle: "Cancel")
+		alert.addButton(withTitle: String(localized: "Delete"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
 		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			let result = TemplateHandler.deleteTemplate(templateName: name, runMode: self.runMode)
@@ -794,7 +794,7 @@ class AppState: ObservableObject, Observable {
 				self.reloadTemplates()
 			} else {
 				DispatchQueue.main.async {
-					alertError(ServiceError(result.reason))
+					alertError(String(localized: "Delete failed"), result.reason)
 				}
 			}
 		}
@@ -803,11 +803,11 @@ class AppState: ObservableObject, Observable {
 	func deleteRemote(name: String) {
 		let alert = NSAlert()
 		
-		alert.messageText = "Delete remote"
-		alert.informativeText = "Are you sure you want to delete remote \(name)? This action cannot be undone."
+		alert.messageText = String(localized: "Delete remote")
+		alert.informativeText = String(localized: "Are you sure you want to delete remote \(name)? This action cannot be undone.")
 		alert.alertStyle = .critical
-		alert.addButton(withTitle: "Delete")
-		alert.addButton(withTitle: "Cancel")
+		alert.addButton(withTitle: String(localized: "Delete"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
 		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			let result = RemoteHandler.deleteRemote(name: name, runMode: self.runMode)
@@ -816,7 +816,7 @@ class AppState: ObservableObject, Observable {
 				self.reloadTemplates()
 			} else {
 				DispatchQueue.main.async {
-					alertError(ServiceError(result.reason))
+					alertError(String(localized: "Delete failed"), result.reason)
 				}
 			}
 		}

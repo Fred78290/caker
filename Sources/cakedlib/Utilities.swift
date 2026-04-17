@@ -85,7 +85,7 @@ public func processExist(_ runningPID: pid_t) throws -> (running: Bool, processN
 		}
 	}
 
-	return (false, "", runningPID)
+	return (false, String.empty, runningPID)
 }
 
 extension URL: Purgeable {
@@ -110,7 +110,7 @@ extension URL: Purgeable {
 		}
 
 		if result != 0 {
-			throw ServiceError("Failed to set permissions 0644 on PID file at \(self.path): errno=\(errno)")
+			throw ServiceError(String(localized: "Failed to set permissions 0644 on PID file at \(self.path): errno=\(errno)"))
 		}
 	}
 
@@ -155,7 +155,7 @@ extension URL: Purgeable {
 			}
 		}
 
-		return (false, "", nil)
+		return (false, String.empty, nil)
 	}
 
 	public func isPIDRunning(_ expectedProcessName: String) -> Bool {
@@ -192,7 +192,7 @@ extension URL: Purgeable {
 				retries += 1
 			}
 
-			throw ServiceError("PID file \(self.path) did not stopped within the expected time")
+			throw ServiceError(String(localized: "PID file \(self.path) did not stopped within the expected time"))
 		}
 	}
 
@@ -212,7 +212,7 @@ extension URL: Purgeable {
 					return
 				}
 
-				throw ServiceError("PID file exists at \(self.path) but process died")
+				throw ServiceError(String(localized: "PID file exists at \(self.path) but process died"))
 			}
 
 			Thread.sleep(forTimeInterval: 1)
@@ -220,7 +220,7 @@ extension URL: Purgeable {
 			retries += 1
 		}
 
-		throw ServiceError("PID file \(self.path) did not appear within the expected time")
+		throw ServiceError(String(localized: "PID file \(self.path) did not appear within the expected time"))
 	}
 
 	public static func binary(_ name: String) -> URL? {
@@ -283,7 +283,7 @@ extension URL: Purgeable {
 			return FileManager.default.fileExists(atPath: self.absoluteURL.path)
 		}
 
-		throw ServiceError("Not a file URL: \(self.absoluteString)")
+		throw ServiceError(String(localized: "Not a file URL: \(self.absoluteString)"))
 	}
 
 	public func deleteIfFileExists() throws {
@@ -316,7 +316,7 @@ extension URL: Purgeable {
 
 			return UInt64(totalFileSize)
 		} else {
-			throw ServiceError("Not a file URL: \(self.absoluteString)")
+			throw ServiceError(String(localized: "Not a file URL: \(self.absoluteString)"))
 		}
 	}
 
@@ -338,7 +338,7 @@ extension URL: Purgeable {
 
 			return UInt64(totalFileAllocatedSize)
 		} else {
-			throw ServiceError("Not a file URL: \(self.absoluteString)")
+			throw ServiceError(String(localized: "Not a file URL: \(self.absoluteString)"))
 		}
 	}
 
@@ -356,7 +356,7 @@ extension URL: Purgeable {
 		if ret != 0 {
 			let details = Errno(rawValue: CInt(errno))
 
-			throw ServiceError("utimes(2) failed: \(details)")
+			throw ServiceError(String(localized: "utimes(2) failed: \(details.description)"))
 		}
 	}
 }
@@ -423,7 +423,7 @@ public struct Utilities {
 
 		if FileManager.default.fileExists(atPath: localAgent.path) == false {
 			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-\(os)-\(arch)") else {
-				throw ServiceError("unable to get remote cakeagent")
+				throw ServiceError(String(localized: "unable to get remote cakeagent"))
 			}
 
 			try await Curl(fromURL: remoteURL).get(store: localAgent)
@@ -458,7 +458,7 @@ public struct Utilities {
 		)
 	}
 
-	public static func waitPortReady(host: String = "", port: Int, timeout: TimeInterval = 60) -> Bool {
+	public static func waitPortReady(host: String = String.empty, port: Int, timeout: TimeInterval = 60) -> Bool {
 		let start = Date()
 
 		while Date().timeIntervalSince(start) < timeout {
@@ -549,7 +549,7 @@ public struct Utilities {
 			request.timeoutInterval = timeout
 			let (data, response) = try await URLSession.shared.data(for: request)
 			if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-				throw ServiceError("HTTP error: \(http.statusCode) for URL: \(url.absoluteString)")
+				throw ServiceError(String(localized: "HTTP error: \(http.statusCode) for URL: \(url.absoluteString)"))
 			}
 			return data
 		}
@@ -561,7 +561,7 @@ public struct Utilities {
 		do {
 			return try decoder.decode(T.self, from: data)
 		} catch {
-			throw ServiceError("JSON decode failed for URL: \(url.absoluteString) with error: \(error)")
+			throw ServiceError(String(localized: "JSON decode failed for URL: \(url.absoluteString) with error: \(error.reason)"))
 		}
 	}
 }

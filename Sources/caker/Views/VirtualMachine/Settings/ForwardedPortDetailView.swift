@@ -18,9 +18,9 @@ struct ForwardedPortDetailView: View {
 		var description: String {
 			switch self {
 			case .portForwarding:
-				return "Port forwarding"
+				return String(localized: "Port forwarding")
 			case .unixDomainSocket:
-				return "Unix domain socket"
+				return String(localized: "Unix domain socket")
 			}
 		}
 	}
@@ -65,7 +65,7 @@ struct ForwardedPortDetailView: View {
 			case .portForwarding:
 				return .init(host: hostPort.value, guest: guestPort.value, proto: selectedProtocol.proto)
 			case .unixDomainSocket:
-				return .init(host: hostPath ?? "", guest: guestPath ?? "", proto: selectedProtocol.proto)
+				return .init(host: hostPath ?? String.empty, guest: guestPath ?? String.empty, proto: selectedProtocol.proto)
 			}
 		}
 
@@ -83,13 +83,13 @@ struct ForwardedPortDetailView: View {
 				self.selectedProtocol = .init(unixDomain.proto)
 				self.hostPath = unixDomain.host
 				self.guestPath = unixDomain.guest
-				self.hostPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				self.hostPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				self.guestPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			} else {
 				self.mode = .portForwarding
 				self.selectedProtocol = .both
-				self.hostPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				self.hostPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				self.guestPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			}
 		}
 	}
@@ -139,7 +139,7 @@ struct ForwardedPortDetailView: View {
 					.onChange(of: model.mode) { _, newValue in
 						self.currentItem.oneOf = model.tunnelAttachement.oneOf
 					}
-				}.frame(width: 150)
+				}.frame(width: 200)
 			}
 
 			LabeledContent("Protocol") {
@@ -147,7 +147,7 @@ struct ForwardedPortDetailView: View {
 					Spacer()
 					Picker("Protocol", selection: $model.selectedProtocol) {
 						ForEach(Proto.allCases, id: \.self) { proto in
-							Text(proto.rawValue).tag(proto)
+							Text(LocalizedStringKey(stringLiteral: proto.rawValue)).tag(proto)
 						}
 					}
 					.allowsHitTesting(readOnly == false)
@@ -155,7 +155,7 @@ struct ForwardedPortDetailView: View {
 					.onChange(of: model.selectedProtocol) { _, newValue in
 						self.currentItem.oneOf = model.tunnelAttachement.oneOf
 					}
-				}.frame(width: 150)
+				}.frame(width: 200)
 			}
 
 			if model.mode == .portForwarding {
@@ -227,7 +227,7 @@ struct ForwardedPortDetailView: View {
 	}
 
 	func chooseSocketFile() {
-		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: "Select socket file", allowsOtherFileTypes: true) {
+		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: String(localized: "Select socket file"), allowsOtherFileTypes: true) {
 			self.model.hostPath = hostPath.absoluteURL.path
 		}
 	}

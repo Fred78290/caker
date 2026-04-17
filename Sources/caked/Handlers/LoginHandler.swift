@@ -12,7 +12,7 @@ struct LoginHandler: CakedCommand {
 			$0.oci = Caked_OCIReply.with {
 				$0.login = Caked_LoginReply.with {
 					$0.success = false
-					$0.message = "\(error)"
+					$0.message = error.reason
 				}
 			}
 		}
@@ -35,7 +35,7 @@ struct LoginHandler: CakedCommand {
 				$0.oci = Caked_OCIReply.with {
 					$0.login = Caked_LoginReply.with {
 						$0.success = false
-						$0.message = "\(error)"
+						$0.message = error.reason
 					}
 				}
 			}

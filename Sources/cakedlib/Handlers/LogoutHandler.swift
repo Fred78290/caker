@@ -13,9 +13,9 @@ public struct LogoutHandler {
 
 			try keychain.delete(domain: host)
 
-			return LogoutReply(success: true, message: "Logged out")
+			return LogoutReply(success: true, message: String(localized: "Logged out"))
 		} catch {
-			return LogoutReply(success: false, message: "\(error)")
+			return LogoutReply(success: false, message: error.reason)
 		}
 	}
 }

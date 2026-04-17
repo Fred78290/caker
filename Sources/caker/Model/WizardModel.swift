@@ -4,6 +4,7 @@
 //
 //  Created by Frederic BOLTZ on 29/10/2025.
 //
+import SwiftUI
 
 struct WizardModel {
 	enum SelectedItem: Int, Hashable, Comparable, Identifiable {
@@ -27,14 +28,22 @@ struct WizardModel {
 
 	struct ItemView: @MainActor ToolbarSettingItem, Hashable {
 		var id: SelectedItem
-		var title: String
+		var title: LocalizedStringKey
 		var systemImage: String
 
-		init(_ id: SelectedItem, title: String, systemImage: String) {
+		init(_ id: SelectedItem, title: LocalizedStringKey, systemImage: String) {
 			self.title = title
 			self.systemImage = systemImage
 			self.id = id
 		}
+
+        static func == (lhs: ItemView, rhs: ItemView) -> Bool {
+            lhs.id == rhs.id
+        }
+
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
 	}
 
 	static let items: [ItemView] = [
@@ -48,3 +57,4 @@ struct WizardModel {
 		ItemView(.sockets, title: "Sockets", systemImage: "powerplug"),
 	]
 }
+

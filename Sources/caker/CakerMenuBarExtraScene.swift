@@ -98,7 +98,7 @@ struct CakerMenuBarExtraScene: Scene {
 			Button("Quit") {
 				NSApp.terminate(self)
 			}.keyboardShortcut("Q")
-				.help("Terminate UTM and stop all running VMs.")
+				.help("Terminate Caker and stop all running VMs.")
 		} label: {
 			if let path = Bundle.main.path(forResource: "MenuBarIcon", ofType: "png") {
 				Image(nsImage: NSImage(contentsOfFile: path) ?? NSImage()).resizable()
@@ -111,7 +111,7 @@ struct CakerMenuBarExtraScene: Scene {
 	private func open() {
 		let home = StorageLocation(runMode: .app).rootURL
 
-		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: "Open virtual machine", directoryURL: home) {
+		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: String(localized: "Open virtual machine"), directoryURL: home) {
 			Task {
 				await MainApp.app.openVirtualMachine(documentURL)
 			}

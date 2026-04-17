@@ -12,6 +12,7 @@ import NIO
 import FileMonitor
 import FileMonitorShared
 import Combine
+import SwiftUI
 
 typealias AsyncThrowingStreamCakedCurrentStatusReply = (
 	stream: AsyncThrowingStream<Caked_CurrentStatus, Error>,
@@ -443,7 +444,7 @@ public struct CurrentStatusHandler {
 								$0.statuses = [
 									.with {
 										$0.name = location.name
-										$0.failure = "\(error)"
+										$0.failure = error.reason
 									}
 								]
 							}

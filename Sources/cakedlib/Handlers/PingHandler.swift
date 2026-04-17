@@ -28,7 +28,7 @@ public struct PingHandler {
 			} else {
 				return Caked_PingReply.with {
 					$0.success = false
-					$0.message = "VM is not running."
+					$0.message = String(localized: "VM is not running")
 					$0.requestTimestamp = Int64(timestamp * 1_000_000_000)
 					$0.responseTimestamp = Int64(Date().timeIntervalSince1970 * 1_000_000_000)
 					
@@ -45,7 +45,7 @@ public struct PingHandler {
 		} catch {
 			return Caked_PingReply.with {
 				$0.success = false
-				$0.message = "\(error)"
+				$0.message = error.reason
 				$0.requestTimestamp = Int64(timestamp * 1_000_000_000)
 				$0.responseTimestamp = Int64(Date().timeIntervalSince1970 * 1_000_000_000)
 				$0.status = .error

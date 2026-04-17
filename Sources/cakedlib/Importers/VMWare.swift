@@ -108,7 +108,7 @@ struct VMXMap: Sendable {
 	}
 
 	init(baseURL: URL, data: Data) throws {
-		try self.init(baseURL: baseURL, content: String(data: data, encoding: .utf8) ?? "")
+		try self.init(baseURL: baseURL, content: String(data: data, encoding: .utf8) ?? String.empty)
 	}
 
 	init(baseURL: URL, content: String) throws {
@@ -184,7 +184,7 @@ struct VMXMap: Sendable {
 
 			if let present = Bool(present.lowercased()), let enabled = Bool(enabled.lowercased()), present, enabled {
 				let guestName = values["\(baseKey).guestName".lowercased()] ?? "shared\(unitNumber)"
-				let hostPath = values["\(baseKey).hostPath".lowercased()] ?? ""
+				let hostPath = values["\(baseKey).hostPath".lowercased()] ?? String.empty
 				let writeAccess = Bool(values["\(baseKey).writeAccess".lowercased()]?.lowercased() ?? "false") ?? false
 
 				sharedFolders.append(DirectorySharingAttachment(source: hostPath, readOnly: !writeAccess, name: guestName))
@@ -295,8 +295,8 @@ struct VMWareImporter: Importer {
 		var dhcp: Bool = false
 		var uuid: String? = nil
 		var name: String
-		var netmask: String = ""
-		var subnet: String = ""
+		var netmask: String = String.empty
+		var subnet: String = String.empty
 		var virtual: Bool = false
 		var nat: Bool = false
 		var natIp6Prefix: String? = nil
@@ -305,7 +305,7 @@ struct VMWareImporter: Importer {
 	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, runMode: Utils.RunMode) throws {
 		// Logic to import from a VMWare source
 		if URL.binary("qemu-img") == nil {
-			throw ServiceError("qemu-img binary not found. Please install qemu to import VMWare files.")
+			throw ServiceError(String(localized: "qemu-img binary not found. Please install qemu to import VMWare files."))
 		}
 
 		let vmxMap = try locateVM(source: source)
@@ -313,7 +313,7 @@ struct VMWareImporter: Importer {
 		let diskAttachments = vmxMap.diskAttachments
 
 		if let locked = diskAttachments.first(where: { $0.locked }) {
-			throw ServiceError("VMX file contains locked disk attachment \(locked.disk). Please unlock the disk or stop virtual machine before importing.")
+			throw ServiceError(String(localized: "VMX file contains locked disk attachment \(locked.disk). Please unlock the disk or stop virtual machine before importing."))
 		}
 
 		try createMissingNetworks(ethernetAttachements: ethernetAttachements, runMode: runMode)
@@ -553,7 +553,7 @@ struct VMWareImporter: Importer {
 							))
 					}
 				} else {
-					throw ServiceError("VMWare network \(ethernet.name) not found in the system.")
+					throw ServiceError(String(localized: "VMWare network \(ethernet.name) not found in the system."))
 				}
 			}
 
@@ -572,7 +572,7 @@ struct VMWareImporter: Importer {
 		if FileManager.default.fileExists(atPath: source, isDirectory: &isDirectory) {
 			guard isDirectory.boolValue else {
 				guard url.pathExtension.lowercased() == "vmx" else {
-					throw ServiceError("The provided path is not a directory or a .vmx file.")
+					throw ServiceError(String(localized: "The provided path is not a directory or a .vmx file."))
 				}
 
 				return try VMXMap(fromURL: url)
@@ -584,11 +584,11 @@ struct VMWareImporter: Importer {
 		url = URL(fileURLWithPath: "~/Virtual Machines.localized/\(source).vmwarevm".expandingTildeInPath, isDirectory: true)
 
 		guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) else {
-			throw ServiceError("No Virtual Machines directory found at \(url.path).")
+			throw ServiceError(String(localized: "No Virtual Machines directory found at \(url.path)."))
 		}
 
 		guard isDirectory.boolValue else {
-			throw ServiceError("The provided path is not a directory. Please provide a valid Virtual Machines directory.")
+			throw ServiceError(String(localized: "The provided path is not a directory. Please provide a valid Virtual Machines directory."))
 		}
 
 		return try findVMX(fromURL: url)
@@ -596,7 +596,7 @@ struct VMWareImporter: Importer {
 
 	func findVMX(fromURL url: URL) throws -> VMXMap {
 		guard let vmxFile = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil).first(where: { $0.pathExtension.lowercased() == "vmx" }) else {
-			throw ServiceError("No VMX files found in the specified directory: \(url.path)")
+			throw ServiceError(String(localized: "No VMX files found in the specified directory: \(url.path)"))
 		}
 
 		return try VMXMap(fromURL: vmxFile)

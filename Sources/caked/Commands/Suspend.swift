@@ -4,12 +4,12 @@ import GRPCLib
 import CakeAgentLib
 
 struct Suspend: ParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "suspend", abstract: "Suspend VM(s)", aliases: ["pause"])
+	static let configuration = CommandConfiguration(commandName: "suspend", abstract: String(localized: "Suspend VM(s)"), aliases: ["pause"])
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Argument(help: "VM names to suspend")
+	@Argument(help: ArgumentHelp(String(localized: "VM names to suspend")))
 	var names: [String] = []
 
 	func validate() throws {

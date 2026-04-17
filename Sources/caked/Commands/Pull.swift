@@ -12,10 +12,10 @@ import CakeAgentLib
 struct Pull: AsyncParsableCommand {
 	static let configuration = PullOptions.configuration
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Clone OCI image options")
+	@OptionGroup(title: String(localized: "Clone OCI image options"))
 	var options: PullOptions
 
 	mutating func validate() throws {

@@ -241,8 +241,8 @@ extension KeyboardModifiers {
 				timestamp: .zero,
 				windowNumber: .zero,
 				context: nil,
-				characters: "",
-				charactersIgnoringModifiers: "",
+				characters: String.empty,
+				charactersIgnoringModifiers: String.empty,
 				isARepeat: false,
 				keyCode: keyCode)
 		}

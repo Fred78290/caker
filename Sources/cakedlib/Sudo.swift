@@ -35,7 +35,7 @@ public final class SudoCaked {
 		let (sudoable, sudoURL, executableURL) = try Self.checkIfSudoable(command: command)
 
 		guard sudoable else {
-			throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+			throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
 		}
 
 		let process = Process()
@@ -127,25 +127,25 @@ public final class SudoCaked {
 
 	public var standardOutput: String {
 		guard let stdout = self.stdout else {
-			return ""
+			return String.empty
 		}
 
 		if let output = String(data: stdout, encoding: .utf8) {
 			return output
 		} else {
-			return ""
+			return String.empty
 		}
 	}
 
 	public var standardError: String {
 		guard let stderr = self.stderr else {
-			return ""
+			return String.empty
 		}
 
 		if let error = String(data: stderr, encoding: .utf8) {
 			return error
 		} else {
-			return ""
+			return String.empty
 		}
 	}
 
@@ -175,11 +175,11 @@ public final class SudoCaked {
 
 	public static func checkIfSudoable(command: String) throws -> (Bool, URL, URL) {
 		guard let binary = URL.binary(command) else {
-			throw ServiceError("\(command) not found in path")
+			throw ServiceError(String(localized: "\(command) not found in path"))
 		}
 
 		guard let sudoURL = URL.binary(SUDO) else {
-			throw ServiceError("sudo not found in path")
+			throw ServiceError(String(localized: "sudo not found in path"))
 		}
 
 		return (try checkIfSudoable(sudoURL: sudoURL, binary: binary), sudoURL, binary)

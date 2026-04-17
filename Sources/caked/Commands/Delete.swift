@@ -13,12 +13,12 @@ import CakeAgentLib
 import TextTable
 
 struct Delete: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Delete a VM")
+	static let configuration = CommandConfiguration(abstract: String(localized: "Delete a VM"))
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Delete options")
+	@OptionGroup(title: String(localized: "Delete options"))
 	var delete: DeleteOptions
 
 	func validate() throws {

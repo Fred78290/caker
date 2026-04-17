@@ -14,7 +14,7 @@ struct WaitIPHandler: CakedCommand {
 			$0.vms = Caked_VirtualMachineReply.with {
 				$0.waitip = .with {
 					$0.success = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		}

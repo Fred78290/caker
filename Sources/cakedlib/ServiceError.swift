@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 public protocol HasExitCode {
 	var exitCode: Int32 { get }

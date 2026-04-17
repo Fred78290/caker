@@ -10,6 +10,7 @@ import GRPCLib
 import GRPC
 import NIO
 import Combine
+import SwiftUI
 
 extension VMLocation.Status {
 	init(_ from : Caked_VirtualMachineStatus) {
@@ -37,7 +38,7 @@ extension CurrentStatusHandler {
 		}
 
 		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError("Internal error")
+			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		return TaskCancellable {

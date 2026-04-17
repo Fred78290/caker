@@ -2,6 +2,7 @@ import Foundation
 import GRPCLib
 import Qcow2convert
 import CakeAgentLib
+import SwiftUI
 
 class CloudImageConverter {
 	private static func step(_ message: String, progressHandler: ProgressObserver.BuildProgressHandler?) {
@@ -102,7 +103,7 @@ class CloudImageConverter {
 
 	static func downloadRemoteFile(fromURL: URL, toURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
 		if FileManager.default.fileExists(atPath: toURL.path) {
-			throw ServiceError("file already exists: \(toURL.path)")
+			throw ServiceError(String(localized: "file already exists: \(toURL.path)"))
 		}
 		var pathExtension = fromURL.pathExtension
 		

@@ -49,21 +49,21 @@ public struct VZSharedNetwork: Codable, Equatable {
 
 	public func validate(runMode: Utils.RunMode) throws {
 		guard netmask.isValidNetmask() else {
-			throw ServiceError("Invalid netmask \(netmask)")
+			throw ServiceError(String(localized: "Invalid netmask \(netmask)"))
 		}
 
 		guard let gateway = IP.V4(dhcpStart) else {
-			throw ServiceError("Invalid gateway \(dhcpStart)")
+			throw ServiceError(String(localized: "Invalid gateway \(dhcpStart)"))
 		}
 
 		guard let end = IP.V4(dhcpEnd) else {
-			throw ServiceError("Invalid dhcp end \(dhcpEnd)")
+			throw ServiceError(String(localized: "Invalid dhcp end \(dhcpEnd)"))
 		}
 
 		let network = IP.Block<IP.V4>(base: gateway, bits: UInt8(netmask.netmaskToCidr())).network
 
 		guard network.contains(end) else {
-			throw ServiceError("dhcp end \(dhcpEnd) is not in the range of the network \(network.description)")
+			throw ServiceError(String(localized: "dhcp end \(dhcpEnd) is not in the range of the network \(network.description)"))
 		}
 
 		let networks = Self.networkInterfaces(includeSharedNetworks: true, runMode: runMode).map {
@@ -71,12 +71,12 @@ public struct VZSharedNetwork: Codable, Equatable {
 		}
 
 		guard networks.first(where: { $0.contains(gateway) }) == nil else {
-			throw ServiceError("Gateway \(dhcpStart) is already in use")
+			throw ServiceError(String(localized: "Gateway \(dhcpStart) is already in use"))
 		}
 
 		if let dhcpLease = dhcpLease {
 			if dhcpLease > 24 * 3600 || dhcpLease < 60 {
-				throw ServiceError("Invalid dhcp lease \(dhcpLease)")
+				throw ServiceError(String(localized: "Invalid dhcp lease \(dhcpLease)"))
 			}
 		}
 	}
@@ -86,7 +86,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 		let dhcpStart = network.gateway.toIPV4()
 		let dhcpEnd = network.dhcpEnd.toIPV4()
 
-		return VZSharedNetwork(mode: .nat, netmask: dhcpStart.netmask!.description, dhcpStart: dhcpStart.address!.description, dhcpEnd: dhcpEnd.address!.description, dhcpLease: Int32(network.dhcpLease) ?? 0, interfaceID: "")
+		return VZSharedNetwork(mode: .nat, netmask: dhcpStart.netmask!.description, dhcpStart: dhcpStart.address!.description, dhcpEnd: dhcpEnd.address!.description, dhcpLease: Int32(network.dhcpLease) ?? 0, interfaceID: String.empty)
 	}
 
 	public static func addresses() -> [String: String] {
@@ -187,7 +187,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 			}
 		}
 
-		throw ServiceError("No free network address available")
+		throw ServiceError(String(localized: "No free network address available"))
 	}
 
 	public static func createNetwork(mode: VMNetMode, baseAddress: String, cidr: Int, runMode: Utils.RunMode) throws -> VZSharedNetwork {

@@ -1,0 +1,70 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Caker Virtual machine" : {
+
+    },
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Caker"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Caker"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Disk Image" : {
+
+    },
+    "ISO Disk Image" : {
+
+    },
+    "NSHumanReadableCopyright" : {
+      "comment" : "Copyright (human-readable)",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fred78290"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "NSLocalNetworkUsageDescription" : {
+      "comment" : "Privacy - Local Network Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Caker need SSH access to running VM and create virtual network"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Unix socket address" : {
+
+    }
+  },
+  "version" : "1.2"
+}

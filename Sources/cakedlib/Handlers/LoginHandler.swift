@@ -30,9 +30,9 @@ public struct LoginHandler {
 			try await client.ping()
 			try keychain.save(domain: server, username: username, password: password)
 
-			return LoginReply(success: true, message: "Login succeeded")
+			return LoginReply(success: true, message: String(localized: "Login succeeded"))
 		} catch {
-			return LoginReply(success: false, message: "\(error)")
+			return LoginReply(success: false, message: error.reason)
 		}
 	}
 }

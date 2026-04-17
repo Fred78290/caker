@@ -135,7 +135,7 @@ final class ZlibInflateStream: ZlibStream {
 					let remainingBytes = uncompressedSize - doneBytes
 
 					if doneBytes > uncompressedSize {
-						throw ServiceError("zlib described a larger decompressed size (\(uncompressedSize)) than the actual data (\(doneBytes))")
+						throw ServiceError(String(localized: "zlib described a larger decompressed size (\(uncompressedSize)) than the actual data (\(doneBytes))"))
 					}
 
 					self.nextOut = decompressedDataBytes.advanced(by: .init(doneBytes))
@@ -154,7 +154,7 @@ final class ZlibInflateStream: ZlibStream {
 				}
 
 				guard self.totalOut == uncompressedSize else {
-					throw ServiceError("zlib did not decompress the expected number of bytes (\(uncompressedSize))")
+					throw ServiceError(String(localized: "zlib did not decompress the expected number of bytes (\(uncompressedSize))"))
 				}
 			}
 		}

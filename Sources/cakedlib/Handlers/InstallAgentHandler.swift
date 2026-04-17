@@ -14,7 +14,7 @@ public struct InstallAgentHandler {
 		do {
 			return installAgent(location: try VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), timeout: timeout, runMode: runMode)
 		} catch {
-			return InstalledAgentReply(name: vmURL.absoluteString, installed: false , reason: "\(error)")
+			return InstalledAgentReply(name: vmURL.absoluteString, installed: false , reason: error.reason)
 		}
 	}
 
@@ -22,21 +22,21 @@ public struct InstallAgentHandler {
 		do {
 			return installAgent(location: try StorageLocation(runMode: runMode).find(name), timeout: timeout, runMode: runMode)
 		} catch {
-			return InstalledAgentReply(name: name, installed: false , reason: "\(error)")
+			return InstalledAgentReply(name: name, installed: false , reason: error.reason)
 		}
 	}
 
 	public static func installAgent(location: VMLocation, timeout: UInt, runMode: Utils.RunMode) -> InstalledAgentReply {
 		do {
 			guard location.status == .running else {
-				return InstalledAgentReply(name: location.name, installed: false, reason: "VM is not running")
+				return InstalledAgentReply(name: location.name, installed: false, reason: String(localized: "VM is not running"))
 			}
 
 			let result = try createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).installAgent(timeout: timeout)
 
 			return InstalledAgentReply(name: location.name, installed: result.installed , reason: result.reason)
 		} catch {
-			return InstalledAgentReply(name: location.name, installed: false , reason: "\(error)")
+			return InstalledAgentReply(name: location.name, installed: false , reason: error.reason)
 		}
 	}
 }

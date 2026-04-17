@@ -59,14 +59,14 @@ extension VMRunServiceClient {
 			} else {
 				return MountInfos.with {
 					$0.success = false
-					$0.reason = "VM is not running"
+					$0.reason = String(localized: "VM is not running")
 				}
 			}
 		}
 
 		return MountInfos.with {
 			$0.success = false
-			$0.reason = "No new mounts"
+			$0.reason = String(localized: "No new mounts")
 		}
 	}
 
@@ -89,14 +89,14 @@ extension VMRunServiceClient {
 			} else {
 				return MountInfos.with {
 					$0.success = false
-					$0.reason = "VM is not running"
+					$0.reason = String(localized: "VM is not running")
 				}
 			}
 		}
 
 		return MountInfos.with {
 			$0.success = false
-			$0.reason = "No umounts"
+			$0.reason = String(localized: "No umounts")
 		}
 	}
 }
@@ -166,18 +166,18 @@ class VMRunService: NSObject {
 					return Caked_MountReply.with {
 						$0.success = false
 						$0.mounts = []
-						$0.reason = "No shared devices"
+						$0.reason = String(localized: "No shared devices")
 					}
 				}
 
 				return Caked_MountReply.with {
 					$0.success = true
-					$0.reason = ""
+					$0.reason = String.empty
 					$0.mounts = request.mounts.map { mount in
 						.with {
 							$0.mounted = true
 							$0.name = mount.name
-							$0.reason = ""
+							$0.reason = String.empty
 						}
 					}
 				}
@@ -225,7 +225,7 @@ class VMRunService: NSObject {
 					}
 				} else {
 					$0.success = true
-					$0.reason = "Success"
+					$0.reason = String(localized: "Success")
 					$0.mounts = request.mounts.map { mount in
 						.with {
 							$0.name = mount.name
@@ -237,7 +237,7 @@ class VMRunService: NSObject {
 		} catch {
 			return Caked_MountReply.with {
 				$0.success = false
-				$0.reason = "\(error)"
+				$0.reason = error.reason
 				$0.mounts = request.mounts.map { mount in
 					.with {
 						$0.name = mount.name

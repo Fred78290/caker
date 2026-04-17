@@ -39,13 +39,13 @@ extension CertificatesLocation {
 
 struct Certificates: ParsableCommand {
 	static let configuration = CommandConfiguration(
-		abstract: "Generate tls certificates for grpc",
+		abstract: String(localized: "Generate tls certificates for grpc"),
 		subcommands: [Generate.self, Get.self, Agent.self])
 
 	struct Get: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Return certificates path")
+		static let configuration = CommandConfiguration(abstract: String(localized: "Return certificates path"))
 
-		@OptionGroup(title: "Global options")
+		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
 		func validate() throws {
@@ -58,12 +58,12 @@ struct Certificates: ParsableCommand {
 	}
 
 	struct Generate: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Generate certificates")
+		static let configuration = CommandConfiguration(abstract: String(localized: "Generate certificates"))
 
-		@OptionGroup(title: "Global options")
+		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
-		@Flag(name: .shortAndLong, help: "Force regeneration of certificates")
+		@Flag(name: .shortAndLong, help: ArgumentHelp(String(localized: "Force regeneration of certificates")))
 		var force: Bool = false
 
 		func validate() throws {
@@ -76,12 +76,12 @@ struct Certificates: ParsableCommand {
 	}
 
 	struct Agent: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Generate certificates for cakeagent")
+		static let configuration = CommandConfiguration(abstract: String(localized: "Generate certificates for cakeagent"))
 
-		@OptionGroup(title: "Global options")
+		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
-		@Flag(name: .shortAndLong, help: "Force regeneration of certificates")
+		@Flag(name: .shortAndLong, help: ArgumentHelp(String(localized: "Force regeneration of certificates")))
 		var force: Bool = false
 
 		func validate() throws {

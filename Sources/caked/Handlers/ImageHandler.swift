@@ -14,7 +14,7 @@ struct ImageHandler: CakedCommandAsync {
 			reply = Caked_ImageReply.with {
 				$0.infos = .with {
 					$0.success = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 
@@ -22,14 +22,14 @@ struct ImageHandler: CakedCommandAsync {
 			reply = Caked_ImageReply.with {
 				$0.pull = .with {
 					$0.success = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		case .list:
 			reply = Caked_ImageReply.with {
 				$0.list = .with {
 					$0.success = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		default:

@@ -17,7 +17,7 @@ struct TemplateHandler: CakedCommand {
 			reply = Caked_TemplateReply.with {
 				$0.create = .with {
 					$0.created = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 
@@ -25,7 +25,7 @@ struct TemplateHandler: CakedCommand {
 			reply = Caked_TemplateReply.with {
 				$0.delete = .with {
 					$0.deleted = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 
@@ -33,7 +33,7 @@ struct TemplateHandler: CakedCommand {
 			reply = .with {
 				$0.list = .with {
 					$0.success = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 

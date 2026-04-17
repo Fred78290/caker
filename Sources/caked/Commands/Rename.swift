@@ -6,10 +6,10 @@ import CakeAgentLib
 struct Rename: ParsableCommand {
 	static let configuration = RenameOptions.configuration
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Rename options")
+	@OptionGroup(title: String(localized: "Rename options"))
 	var rename: RenameOptions
 
 	func validate() throws {

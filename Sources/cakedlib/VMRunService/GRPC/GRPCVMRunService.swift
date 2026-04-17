@@ -57,7 +57,7 @@ extension Vmrun_MountVirtioFSReply {
 				$0.reason = value
 				$0.mounted = false
 			} else {
-				$0.reason = ""
+				$0.reason = String.empty
 				$0.mounted = true
 			}
 		}
@@ -76,7 +76,7 @@ extension Vmrun_MountReply {
 
 		return MountInfos.with {
 			$0.success = true
-			$0.reason = "Success"
+			$0.reason = String(localized: "Success")
 			$0.mounts = self.mounts.map { $0.toMountVirtioFS() }
 		}
 	}
@@ -143,7 +143,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		} else if listeningAddress.scheme == "tcp" {
 			target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
 		} else {
-			throw ServiceError("unsupported address scheme: \(listeningAddress)")
+			throw ServiceError(String(localized: "unsupported address scheme: \(listeningAddress.absoluteString)"))
 		}
 		
 		var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: Utilities.group.next())
@@ -284,7 +284,7 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 		} else if listeningAddress.scheme == "tcp" {
 			target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
 		} else {
-			throw ServiceError("unsupported listening address scheme: \(String(describing: listeningAddress.scheme))")
+			throw ServiceError(String(localized: "unsupported listening address scheme: \(String(describing: listeningAddress.scheme))"))
 		}
 
 		var serverConfiguration = Server.Configuration.default(target: target, eventLoopGroup: self.group, serviceProviders: [self])
@@ -341,7 +341,7 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 		} catch {
 			return .with {
 				$0.installed = false
-				$0.reason = "\(error)"
+				$0.reason = error.reason
 			}
 		}
 	}
@@ -375,7 +375,7 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 		} catch {
 			return .with {
 				$0.success = false
-				$0.reason = "\(error)"
+				$0.reason = error.reason
 			}
 		}
 

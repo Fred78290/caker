@@ -17,7 +17,7 @@ struct DeleteHandler: CakedCommand {
 			$0.vms = Caked_VirtualMachineReply.with {
 				$0.delete = .with {
 					$0.success = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		}

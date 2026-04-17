@@ -10,14 +10,14 @@ public struct RenameHandler {
 			let location = try storage.find(oldname)
 
 			if location.status == .running {
-				return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: "VM is running")
+				return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: String(localized: "VM is running"))
 			}
 
 			try storage.relocate(newname, from: location)
 
-			return RenameReply(oldName: oldname, newName: newname, renamed: true, reason: "VM renamed")
+			return RenameReply(oldName: oldname, newName: newname, renamed: true, reason: String(localized: "VM renamed"))
 		} catch {
-			return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: "\(error)")
+			return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: error.reason)
 		}
 	}
 }

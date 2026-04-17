@@ -223,4 +223,3 @@ struct VirtualMachineView: View {
 #Preview {
 	VirtualMachineView(AppState.shared.virtualMachines.first!.value, selected: false)
 }
-

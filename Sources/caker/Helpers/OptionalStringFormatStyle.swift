@@ -22,7 +22,7 @@ struct OptionalStringFormatStyle: ParseableFormatStyle {
 
 	func format(_ value: String?) -> String {
 		guard let value else {
-			return ""
+			return String.empty
 		}
 
 		return value

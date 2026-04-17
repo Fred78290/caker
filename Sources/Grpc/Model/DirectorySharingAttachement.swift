@@ -8,7 +8,7 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 	public var readOnly: Bool
 
 	public var _name: String? = nil
-	public var _source: String = ""
+	public var _source: String = String.empty
 	public var _destination: String? = nil
 	public var _uid: Int? = nil
 	public var _gid: Int? = nil
@@ -169,7 +169,7 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 		}
 
 		if source.hasPrefix("http:") || source.hasPrefix("https:") {
-			throw ValidationError("Remote directories are not supported")
+			throw ValidationError(String(localized: "Remote directories are not supported"))
 		}
 
 		return (readOnly, name, source, destination, uid, gid)

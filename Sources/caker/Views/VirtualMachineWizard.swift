@@ -213,31 +213,31 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	init() {
 		self.currentStep = .name
 		self.configValid = false
-		self.password = ""
+		self.password = String.empty
 		self.showPassword = false
 		self.imageSource = .qcow2
 		self.remoteImage = "ubuntu"
 		self.remoteImages = []
-		self.selectedRemoteImage = ""
+		self.selectedRemoteImage = String.empty
 		self.cloudImageRelease = .ubuntu2404LTS
 		self.createVM = false
 		self.fractionCompleted = 0
-		self.createVMMessage = ""
+		self.createVMMessage = String.empty
 	}
 
 	func reset() {
 		self.currentStep = .name
 		self.configValid = false
-		self.password = ""
+		self.password = String.empty
 		self.showPassword = false
 		self.imageSource = .qcow2
 		self.remoteImage = "ubuntu"
 		self.remoteImages = []
-		self.selectedRemoteImage = ""
+		self.selectedRemoteImage = String.empty
 		self.cloudImageRelease = .ubuntu2404LTS
 		self.createVM = false
 		self.fractionCompleted = 0
-		self.createVMMessage = ""
+		self.createVMMessage = String.empty
 	}
 }
 
@@ -305,7 +305,7 @@ struct VirtualMachineWizard: View {
 		}
 		.onReceive(VirtualMachineDocument.FailCreateVirtualMachine) { notification in
 			self.model.createVM = false
-			self.model.createVMMessage = ""
+			self.model.createVMMessage = String.empty
 
 			if let error = notification.object as? Error {
 				alertError(error)
@@ -472,7 +472,7 @@ struct VirtualMachineWizard: View {
 				Text("Memory size")
 				Spacer().border(.black)
 				HStack {
-					TextField("", value: $config.memorySizeInMoB, format: .number)
+					TextField(String.empty, value: $config.memorySizeInMoB, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
 						.disabled(self.model.createVM)
@@ -488,7 +488,7 @@ struct VirtualMachineWizard: View {
 				Text("Disk size")
 				Spacer().border(.black)
 				HStack {
-					TextField("", value: $config.diskSizeInGoB, format: .number)
+					TextField(String.empty, value: $config.diskSizeInGoB, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
 						.disabled(self.model.createVM)
@@ -521,7 +521,7 @@ struct VirtualMachineWizard: View {
 				HStack {
 					Text("Width")
 					Spacer().border(.black)
-					TextField("", value: $config.display.width, format: .number)
+					TextField(String.empty, value: $config.display.width, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
 						.disabled(self.model.createVM)
@@ -529,7 +529,7 @@ struct VirtualMachineWizard: View {
 				HStack {
 					Text("Height")
 					Spacer().border(.black)
-					TextField("", value: $config.display.height, format: .number)
+					TextField(String.empty, value: $config.display.height, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
 						.disabled(self.model.createVM)
@@ -785,7 +785,7 @@ struct VirtualMachineWizard: View {
 								Text(source.description).tag(source)
 							}
 						}.onChange(of: self.model.imageSource) { _, newValue in
-							self.config.imageName = ""
+							self.config.imageName = String.empty
 							self.config.source = newValue
 
 							if newValue == .ipsw {
@@ -894,7 +894,7 @@ struct VirtualMachineWizard: View {
 		}
 
 		if valid {
-			if (config.configuredPassword ?? "").isEmpty && config.clearPassword {
+			if (config.configuredPassword ?? String.empty).isEmpty && config.clearPassword {
 				valid = false
 			} else if let vmname = config.vmname, self.config.imageName.isEmpty == false, vmname.isEmpty == false {
 				valid = AppState.shared.findVirtualMachineDocument(vmname) == nil
@@ -922,11 +922,11 @@ struct VirtualMachineWizard: View {
 
 				case .terminated(let result, let message):
 					if case .failure(let error) = result {
-						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: error, userInfo: ["message": message ?? ""])
+						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: error, userInfo: ["message": message ?? String.empty])
 					} else if case .success(let vmURL) = result {
-						NotificationCenter.default.post(name: VirtualMachineDocument.CreatedVirtualMachine, object: vmURL, userInfo: ["message": message ?? ""])
+						NotificationCenter.default.post(name: VirtualMachineDocument.CreatedVirtualMachine, object: vmURL, userInfo: ["message": message ?? String.empty])
 					} else {
-						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: ServiceError("Internal error creating virtual machine"), userInfo: ["message": message ?? ""])
+						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: ServiceError(String(localized: "Internal error creating virtual machine")), userInfo: ["message": message ?? String.empty])
 					}
 
 					done()
@@ -956,11 +956,11 @@ struct VirtualMachineWizard: View {
 					}
 					
 					if build.builded == false {
-						progressHandler(.terminated(.failure(ServiceError(build.reason)), "Create virtual machine failed"))
+						progressHandler(.terminated(.failure(ServiceError(build.reason)), String(localized: "Create virtual machine failed")))
 					}
 				},
 				onCancel: {
-					progressHandler(.terminated(.failure(ServiceError("Cancelled")), "Create virtual machine cancelled"))
+					progressHandler(.terminated(.failure(ServiceError(String(localized: "Cancelled"))), String(localized: "Create virtual machine failed")))					
 				})
 		} catch {
 			await MainActor.run {
@@ -970,7 +970,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {
-		if let diskImg = FileHelpers.selectSingleInputFile(ofType: ofTypes, withTitle: "Select image", allowsOtherFileTypes: true) {
+		if let diskImg = FileHelpers.selectSingleInputFile(ofType: ofTypes, withTitle: String(localized: "Select image"), allowsOtherFileTypes: true) {
 			return diskImg.absoluteURL.path
 		}
 
@@ -990,7 +990,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	func chooseYAML() -> String? {
-		if let choosenFile = FileHelpers.selectSingleInputFile(ofType: [.yaml], withTitle: "Select data file", allowsOtherFileTypes: true) {
+		if let choosenFile = FileHelpers.selectSingleInputFile(ofType: [.yaml], withTitle: String(localized: "Select data file"), allowsOtherFileTypes: true) {
 			return choosenFile.absoluteURL.path
 		}
 
@@ -1043,3 +1043,4 @@ struct VirtualMachineWizard: View {
 #Preview {
 	VirtualMachineWizard()
 }
+

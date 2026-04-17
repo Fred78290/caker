@@ -9,13 +9,13 @@ import NIO
 struct Umount: ParsableCommand {
 	static let configuration = UmountOptions.configuration
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Umount options")
+	@OptionGroup(title: String(localized: "Umount options"))
 	var umount: UmountOptions
 
-	@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow mode to connect to a running service", visibility: .hidden))
+	@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allow mode to connect to a running service"), visibility: .hidden))
 	var mode: VMRunServiceMode = .grpc
 
 	public func validate() throws {
@@ -29,7 +29,7 @@ struct Umount: ParsableCommand {
 			let description = attachment.description
 
 			if directorySharingAttachments.contains(where: { $0.description == description }) == false {
-				throw ValidationError("Mount \(description) does not exist")
+				throw ValidationError(String(localized: "Mount \(description) does not exist"))
 			}
 		}
 	}

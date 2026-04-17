@@ -12,29 +12,29 @@ extension vmnet_return_t {
 		switch self
 		{
 		case .VMNET_SUCCESS:
-			return "Success"
+			return String(localized: "Success")
 		case .VMNET_FAILURE:
-			return "Failure"
+			return String(localized: "Failure")
 		case .VMNET_MEM_FAILURE:
-			return "Memory failure"
+			return String(localized: "Memory failure")
 		case .VMNET_INVALID_ARGUMENT:
-			return "Invalid argument"
+			return String(localized: "Invalid argument")
 		case .VMNET_SETUP_INCOMPLETE:
-			return "Setup incomplete"
+			return String(localized: "Setup incomplete")
 		case .VMNET_INVALID_ACCESS:
-			return "Invalid access"
+			return String(localized: "Invalid access")
 		case .VMNET_PACKET_TOO_BIG:
-			return "Packet too big"
+			return String(localized: "Packet too big")
 		case .VMNET_BUFFER_EXHAUSTED:
-			return "Buffer exhausted"
+			return String(localized: "Buffer exhausted")
 		case .VMNET_TOO_MANY_PACKETS:
-			return "To many packets"
+			return String(localized: "To many packets")
 		case .VMNET_SHARING_SERVICE_BUSY:
-			return "Service is busy"
+			return String(localized: "Service is busy")
 		case .VMNET_NOT_AUTHORIZED:
-			return "Not authorized"
+			return String(localized: "Not authorized")
 		default:
-			return "(unknown status \(self))"
+			return String(localized: "(unknown status \(self.rawValue))")
 		}
 	}
 
@@ -362,12 +362,12 @@ public class VZVMNet: @unchecked Sendable {
 		semaphore.wait()
 
 		if self.iface == nil {
-			throw ServiceError("Failed to start interface \(status.stringValue)")
+			throw ServiceError(String(localized: "Failed to start interface \(status.stringValue)"))
 		}
 
 		if status != vmnet_return_t.VMNET_SUCCESS {
 			self.iface = nil
-			throw ServiceError("Failed to start interface \(status.stringValue)")
+			throw ServiceError(String(localized: "Failed to start interface \(status.stringValue)"))
 		}
 
 		vmnet_interface_set_event_callback(iface!, .VMNET_INTERFACE_PACKETS_AVAILABLE, hostQueue) { eventId, event in

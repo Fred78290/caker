@@ -43,7 +43,7 @@ extension NetworksHandler {
 				$0.name = networkName
 			}).response.wait().networks.started)
 		} catch {
-			return StartedNetworkReply(name: networkName, started: false, reason: "\(error)")
+			return StartedNetworkReply(name: networkName, started: false, reason: error.reason)
 		}
 	}
 	
@@ -58,7 +58,7 @@ extension NetworksHandler {
 				$0.name = networkName
 			}).response.wait().networks.stopped)
 		} catch {
-			return StoppedNetworkReply(name: networkName, stopped: false, reason: "\(error)")
+			return StoppedNetworkReply(name: networkName, stopped: false, reason: error.reason)
 		}
 	}
 }

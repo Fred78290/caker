@@ -23,7 +23,7 @@ struct RawDisk: FileSystemProtocol {
 		}
 
 		guard let fileHandle = FileHandle(forWritingTo: devicePath) else {
-			throw ServiceError("File not found")
+			throw ServiceError(String(localized: "File not found"))
 		}
 
 		self.handle = fileHandle

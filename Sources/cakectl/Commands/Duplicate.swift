@@ -8,16 +8,13 @@ import CakeAgentLib
 struct Duplicate: GrpcParsableCommand {
 	static let configuration = DuplicateOptions.configuration
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@OptionGroup(title: "Duplicate options")
+	@OptionGroup(title: String(localized: "Duplicate options"))
 	var duplicate: DuplicateOptions
 
-	@Flag(help: "Output format")
-	var format: Format = .text
-
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return self.format.render(try client.duplicate(Caked_DuplicateRequest(command: self), callOptions: callOptions).response.wait().vms.duplicated)
+		return self.options.format.render(try client.duplicate(Caked_DuplicateRequest(command: self), callOptions: callOptions).response.wait().vms.duplicated)
 	}
 }

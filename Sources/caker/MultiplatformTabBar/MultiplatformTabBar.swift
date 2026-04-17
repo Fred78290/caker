@@ -248,7 +248,7 @@ public struct MultiplatformTabBar<ID: MultiplatformTabIdentifier>: View {
 	///   - tag: An optional tag for the tab.
 	///   - content: The body of the page that will be displayed when the tab is selected in SwiftUI.
 	/// - Returns: The parent `MultiplatformTabBar`.
-	@discardableResult public func tab<Content: View>(title: String, icon: Image, tag: ID, disabled: Bool = false, @ViewBuilder content: () -> Content) -> MultiplatformTabBar {
+	@discardableResult public func tab<Content: View>(title: LocalizedStringKey, icon: Image, tag: ID, disabled: Bool = false, @ViewBuilder content: () -> Content) -> MultiplatformTabBar {
 
 		// Add tab to collection
 		return self.tab(MultiplatformTab(title: title, icon: icon, tag: tag, disabled: disabled, contents: AnyView(content())))
@@ -261,7 +261,7 @@ public struct MultiplatformTabBar<ID: MultiplatformTabIdentifier>: View {
 	///   - tag: An optional tag for the tab.
 	///   - content: The body of the page that will be displayed when the tab is selected in SwiftUI.
 	/// - Returns: The parent `MultiplatformTabBar`.
-	@discardableResult public func tab<Content: View>(title: String, systemName: String, tag: ID, disabled: Bool = false, @ViewBuilder content: () -> Content) -> MultiplatformTabBar {
+	@discardableResult public func tab<Content: View>(title: LocalizedStringKey, systemName: String, tag: ID, disabled: Bool = false, @ViewBuilder content: () -> Content) -> MultiplatformTabBar {
 
 		// Add tab to collection
 		return self.tab(MultiplatformTab(title: title, icon: Image(systemName: systemName), tag: tag, disabled: disabled, contents: AnyView(content())))

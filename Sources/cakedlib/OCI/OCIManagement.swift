@@ -179,7 +179,7 @@ extension Containerization.Image {
 		case .tart:
 			filesystem = try RawDisk(FilePath(cleanedPath))
 		case .unknown:
-			throw ServiceError("Unsupported image type")
+			throw ServiceError(String(localized: "Unsupported image type"))
 		}
 
 		defer {
@@ -342,7 +342,7 @@ extension InitImage {
 
 		for reference in references {
 			guard let indexDescriptor = await indexDescriptorStore.get() else {
-				throw ServiceError("image for \(reference) not found")
+				throw ServiceError(String(localized: "image for \(reference) not found"))
 			}
 
 			let description = Image.Description(reference: reference, descriptor: indexDescriptor)

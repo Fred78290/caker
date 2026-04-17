@@ -102,7 +102,7 @@ public class VNCInputHandler {
 	private var postEvent: Bool = false
 	private var keyCode: UInt16 = 0
 	private var modifiers: NSEvent.ModifierFlags = []
-	private var characters: String = ""
+	private var characters: String = String.empty
 	private var trackingNumber: Int = 0
 	private let eventSource = CGEventSource(stateID: .combinedSessionState)
 
@@ -418,7 +418,7 @@ public class VNCInputHandler {
 			guard
 				let event = NSEvent.keyEvent(
 					with: keyboardEvent.type == .flagsChanged ? .flagsChanged : (isDown ? .keyDown : .keyUp), location: lastMousePosition, modifierFlags: self.modifiers, timestamp: ProcessInfo.processInfo.systemUptime,
-					windowNumber: self.targetView.window?.windowNumber ?? 0, context: nil, characters: characters ?? "", charactersIgnoringModifiers: charactersIgnoringModifiers ?? "", isARepeat: false, keyCode: keyCode)
+					windowNumber: self.targetView.window?.windowNumber ?? 0, context: nil, characters: characters ?? String.empty, charactersIgnoringModifiers: charactersIgnoringModifiers ?? String.empty, isARepeat: false, keyCode: keyCode)
 			else {
 				return
 			}

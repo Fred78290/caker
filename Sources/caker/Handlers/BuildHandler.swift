@@ -1,6 +1,7 @@
 import Foundation
 import CakedLib
 import GRPCLib
+import SwiftUI
 
 extension BuildHandler {
 	public static func build(client: CakedServiceClient?, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
@@ -52,7 +53,7 @@ extension BuildHandler {
 			try await group.waitForAll()
 			
 			guard let result else {
-				throw ServiceError("Build failed")
+				throw ServiceError(String(localized: "Build failed"))
 			}
 
 			return result

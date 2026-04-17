@@ -7,7 +7,7 @@ import CakeAgentLib
 struct Template: ParsableCommand {
 	static let configuration = CommandConfiguration(
 		commandName: "template",
-		abstract: "Manage VM templates",
+		abstract: String(localized: "Manage VM templates"),
 		subcommands: [
 			ListTemplate.self,
 			CreateTemplate.self,
@@ -19,7 +19,7 @@ struct Template: ParsableCommand {
 	struct ListTemplate: ParsableCommand {
 		static let configuration = TemplateListOptions.configuration
 
-		@OptionGroup(title: "Global options")
+		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
 		func validate() throws {
@@ -40,10 +40,10 @@ struct Template: ParsableCommand {
 	struct CreateTemplate: ParsableCommand {
 		static let configuration = TemplateCreateOptions.configuration
 
-		@OptionGroup(title: "Global options")
+		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
-		@OptionGroup(title: "Create template options")
+		@OptionGroup(title: String(localized: "Create template options"))
 		var template: TemplateCreateOptions
 
 		func validate() throws {
@@ -61,10 +61,10 @@ struct Template: ParsableCommand {
 	struct DeleteTemplate: ParsableCommand {
 		static let configuration = TemplateDeletionOptions.configuration
 
-		@OptionGroup(title: "Global options")
+		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
-		@OptionGroup(title: "Delete template options")
+		@OptionGroup(title: String(localized: "Delete template options"))
 		var template: TemplateDeletionOptions
 
 		func validate() throws {

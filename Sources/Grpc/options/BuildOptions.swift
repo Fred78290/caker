@@ -4,99 +4,99 @@ import NIOPortForwarding
 import CakeAgentLib
 
 public struct BuildOptions: ParsableArguments {
-	public static let build = CommandConfiguration(commandName: "build", abstract: "Create a linux VM and initialize it with cloud-init", aliases: ["create"])
+	public static let build = CommandConfiguration(commandName: "build", abstract: String(localized: "Create a linux VM and initialize it with cloud-init"), aliases: ["create"])
 
-	public static let launch = CommandConfiguration(commandName: "launch", abstract: "Create a linux VM and initialize it with cloud-init then start it")
+	public static let launch = CommandConfiguration(commandName: "launch", abstract: String(localized: "Create a linux VM and initialize it with cloud-init then start it"))
 
-	@Argument(help: "VM name")
-	public var name: String
-
-	@Option(name: [.customLong("cpus"), .customShort("c")], help: ArgumentHelp("Number of VM CPUs", valueName: "num"))
+	@Option(name: [.customLong("cpus"), .customShort("c")], help: ArgumentHelp(String(localized: "Number of VM CPUs"), valueName: "num"))
 	public var cpu: UInt16 = 1
 
-	@Option(name: [.long, .customShort("m")], help: ArgumentHelp("VM memory size in megabytes", valueName: "MB"))
+	@Option(name: [.long, .customShort("m")], help: ArgumentHelp(String(localized: "VM memory size in megabytes"), valueName: "MB"))
 	public var memory: UInt64 = 512
 
-	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp("Disk size in GB", valueName: "GB"))
+	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp(String(localized: "Disk size in GB"), valueName: "GB"))
 	public var diskSize: UInt64 = 10
 
-	@Option(name: [.customLong("disk")], help: ArgumentHelp("Other attached disk", valueName: "path"))
+	@Option(name: [.customLong("disk")], help: ArgumentHelp(String(localized: "Other attached disk"), valueName: "path"))
 	public var attachedDisks: [DiskAttachement] = []
 
-	@Option(name: [.long, .customShort("u")], help: "The user to use for the VM")
+	@Option(name: [.long, .customShort("u")], help: ArgumentHelp(String(localized: "The user to use for the VM")))
 	public var user: String = "admin"
 
-	@Option(name: [.long, .customShort("w")], help: "The user password for login, none by default")
+	@Option(name: [.long, .customShort("w")], help: ArgumentHelp(String(localized: "The user password for login, none by default")))
 	public var password: String?
 
-	@Option(name: [.long, .customShort("g")], help: "The main existing group for the user")
+	@Option(name: [.long, .customShort("g")], help: ArgumentHelp(String(localized: "The main existing group for the user")))
 	public var mainGroup: String = "adm"
 
-	@Option(name: [.customLong("other-group"), .customShort("o")], help: "The other existing group for the user")
+	@Option(name: [.customLong("other-group"), .customShort("o")], help: ArgumentHelp(String(localized: "The other existing group for the user")))
 	public var otherGroup: [String] = ["sudo"]
 
-	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow password for ssh"))
+	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp(String(localized: "Tell if the user admin allow password for ssh")))
 	public var clearPassword: Bool = false
 
-	@Flag(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot"))
+	@Flag(name: [.long, .customShort("a")], help: ArgumentHelp(String(localized: "Tell if the VM must be start at boot")))
 	public var autostart: Bool = false
 
-	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible"))
+	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp(String(localized: "Enable nested virtualization if possible")))
 	public var nested: Bool = false
 
-	@Flag(help: ArgumentHelp("Support autoinstall mecanism from iso image"))
+	@Flag(help: ArgumentHelp(String(localized: "Support autoinstall mecanism from iso image")))
 	public var autoinstall: Bool = false
 
-	@Flag(help: ArgumentHelp("Disables audio and entropy devices and switches to only Mac-specific input devices.", discussion: "Useful for running a VM that can be suspended via suspend command."))
+	@Flag(help: ArgumentHelp(String(localized: "Disables audio and entropy devices and switches to only Mac-specific input devices."), discussion: String(localized: "Useful for running a VM that can be suspended via suspend command.")))
 	public var suspendable: Bool = false
 
-	@Argument(help: ArgumentHelp("create a linux VM using a cloud image", discussion: cloudimage_help, valueName: "url"))
-	public var image: String = defaultUbuntuImage
-
-	@Option(help: ArgumentHelp("Image source", discussion: "This option specify image source when image url is http but not raw", visibility: .hidden))
+	@Option(help: ArgumentHelp(String(localized: "Image source"), discussion: String(localized: "This option specify image source when image url is http but not raw"), visibility: .hidden))
 	public var imageSource: ImageSource? = nil
 
-	@Option(name: [.long, .customShort("i")], help: ArgumentHelp("Optional ssh-authorized-key file path for linux VM", valueName: "path"))
+	@Option(name: [.long, .customShort("i")], help: ArgumentHelp(String(localized: "Optional ssh-authorized-key file path for linux VM"), valueName: "path"))
 	public var sshAuthorizedKey: String?
 
-	//@Option(help: ArgumentHelp("Optional cloud-init vendor-data file path for linux VM", valueName: "path"))
+	//@Option(help: ArgumentHelp(String(localized: "Optional cloud-init vendor-data file path for linux VM"), valueName: "path"))
 	@Option(help: .private)
 	public var vendorData: String?
 
-	@Option(name: [.customLong("cloud-init")], help: ArgumentHelp("Optional cloud-init user-data file path for linux VM", discussion: "Path or URL to a user-data cloud-init configuration, or '-' for stdin", valueName: "path"))
+	@Option(name: [.customLong("cloud-init")], help: ArgumentHelp(String(localized: "Optional cloud-init user-data file path for linux VM"), discussion: String(localized: "Path or URL to a user-data cloud-init configuration, or '-' for stdin"), valueName: "path"))
 	public var userData: String?
 
-	@Option(help: ArgumentHelp("Optional cloud-init network-config file path for linux VM", valueName: "path"))
+	@Option(help: ArgumentHelp(String(localized: "Optional cloud-init network-config file path for linux VM"), valueName: "path"))
 	public var networkConfig: String?
 
-	@Flag(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
+	@Flag(help: ArgumentHelp(String(localized: "Whether to automatically reconfigure the VM's display to fit the window")))
 	public var displayRefit: Bool = false
 
-	@Flag(help: ArgumentHelp("Allow to use dynamic port forwarding, default is false", discussion: "This option is supported on linux platforms only"))
+	@Flag(help: ArgumentHelp(String(localized: "Allow to use dynamic port forwarding, default is false"), discussion: String(localized: "This option is supported on linux platforms only")))
 	public var dynamicPortForwarding: Bool = false
 
-	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", discussion: "value is like host:guest/(tcp|udp|both)", valueName: "value"))
+	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp(String(localized: "Optional forwarded port for VM, syntax like docker"), discussion: String(localized: "value is like host:guest/(tcp|udp|both)"), valueName: "value"))
 	public var forwardedPorts: [TunnelAttachement] = []
 
-	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares", discussion: mount_help))
+	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp(String(localized: "Additional directory shares"), discussion: String(localized: "mount_help")))
 	public var mounts: DirectorySharingAttachments = []
 
-	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp("Add a network interface to the instance", discussion: network_help, valueName: "spec"))
+	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp(String(localized: "Add a network interface to the instance"), discussion: String(localized: "network_help"), valueName: "spec"))
 	public var networks: [BridgeAttachement] = []
 
-	@Option(name: [.customLong("net.ifnames")], help: "Use ifnames for network interfaces instead of eth0, eth1, etc. This is the default on most modern Linux distributions.")
+	@Option(name: [.customLong("net.ifnames")], help: ArgumentHelp(String(localized: "Use ifnames for network interfaces instead of eth0, eth1, etc. This is the default on most modern Linux distributions.")))
 	public var netIfnames: Bool = true
 
-	@Option(name: [.customLong("display")], help: "Set the VM screen size.")
+	@Option(name: [.customLong("display")], help: ArgumentHelp(String(localized: "Set the VM screen size.")))
 	public var screenSize: ViewSize = ViewSize.standard
 
 	@Option(
 		name: [.customLong("socket")],
-		help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock", discussion: socket_help))
+		help: ArgumentHelp(String(localized: "Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock"), discussion: String(localized: "socket_help")))
 	public var sockets: [SocketDevice] = []
 
-	@Option(name: [.customLong("console")], help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")", discussion: console_help, valueName: "url"))
+	@Option(name: [.customLong("console")], help: ArgumentHelp(String(localized: "URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")"), discussion: String(localized: "console_help"), valueName: "url"))
 	public var consoleURL: ConsoleAttachment?
+
+	@Argument(help: ArgumentHelp(String(localized: "create a linux VM using a cloud image"), discussion: String(localized: "cloudimage_help"), valueName: "url"))
+	public var image: String = defaultUbuntuImage
+
+	@Argument(help: ArgumentHelp(String(localized: "VM name")))
+	public var name: String
 
 	public init() {
 	}
@@ -332,7 +332,7 @@ public struct BuildOptions: ParsableArguments {
 
 	mutating public func validate(remote: Bool) throws {
 		if name.contains("/") {
-			throw ValidationError("\(name) should be a local name")
+			throw ValidationError(String(localized: "\(name) should be a local name"))
 		}
 		
 		if nested && Utils.isNestedVirtualizationSupported() == false {
@@ -341,15 +341,15 @@ public struct BuildOptions: ParsableArguments {
 		
 		try self.forwardedPorts.forEach { port in
 			if case .none = port.oneOf {
-				throw ValidationError("Port is not set")
+				throw ValidationError(String(localized: "Port is not set"))
 			}
 			
 			if case .unixDomain(let value) = port.oneOf {
 				if value.host.utf8.count > 103 {
-					throw ValidationError("Unix domain socket name is too long")
+					throw ValidationError(String(localized: "Unix domain socket name is too long"))
 				}
 				if value.guest.utf8.count > 103 {
-					throw ValidationError("Unix domain socket name is too long")
+					throw ValidationError(String(localized: "Unix domain socket name is too long"))
 				}
 			}
 		}
@@ -361,7 +361,7 @@ public struct BuildOptions: ParsableArguments {
 		var scheme: String
 
 		guard let imageURL = URL(string: image) else {
-			throw ValidationError("Malformed URL")
+			throw ValidationError(String(localized: "Malformed URL"))
 		}
 
 		if let s = imageURL.scheme {
@@ -379,7 +379,7 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		guard scheme.isEmpty == false else {
-			throw ValidationError("Undefined image source")
+			throw ValidationError(String(localized: "Undefined image source"))
 		}
 
 		if remote == false {
@@ -412,12 +412,12 @@ public struct BuildOptions: ParsableArguments {
 			}
 		} else {
 			guard imageURL.scheme != nil && imageURL.isFileURL == false && imageURL.scheme != "qcow2" else {
-				throw ValidationError("Local url is not supported")
+				throw ValidationError(String(localized: "Local url is not supported"))
 			}
 
 			if let imageSource = ImageSource.schemes[scheme] {
 				if imageURL.host == nil {
-					throw ValidationError("Local file is not supported")
+					throw ValidationError(String(localized: "Local file is not supported"))
 				}
 
 				self.imageSource = imageSource

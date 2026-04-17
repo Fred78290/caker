@@ -14,8 +14,19 @@ RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
 SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 
+ARGUMENT_PARSER_ORIGINAL="https://github.com/apple/swift-argument-parser"
+ARGUMENT_PARSER_MIRROR="https://github.com/Fred78290/swift-argument-parser"
+
 sudo rm -rf "${PROJECT_ROOT}/.build" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 
+cleanup_swift_mirror() {
+  /usr/bin/swift package config unset-mirror --original "${ARGUMENT_PARSER_ORIGINAL}" >/dev/null 2>&1 || true
+}
+
+trap cleanup_swift_mirror EXIT
+
+/usr/bin/swift package config set-mirror --original "${ARGUMENT_PARSER_ORIGINAL}" --mirror "${ARGUMENT_PARSER_MIRROR}"
+/usr/bin/swift package resolve
 /usr/bin/swift build
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"

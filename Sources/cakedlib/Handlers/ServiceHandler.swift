@@ -77,7 +77,7 @@ public struct ServiceHandler {
 			} else if listeningAddress.scheme == "tcp" {
 				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
 			} else {
-				throw ServiceError("unsupported listening address scheme: \(String(describing: listeningAddress.scheme))")
+				throw ServiceError(String(localized: "unsupported listening address scheme: \(String(describing: listeningAddress.scheme))"))
 			}
 
 			var serverConfiguration = Server.Configuration.default(
@@ -92,7 +92,7 @@ public struct ServiceHandler {
 			return Server.start(configuration: serverConfiguration)
 		}
 
-		throw ServiceError("connection address must be specified")
+		throw ServiceError(String(localized: "connection address must be specified"))
 	}
 
 	public static func installAgent(mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
@@ -181,7 +181,7 @@ public struct ServiceHandler {
 		let plistURL = self.agentLaunchURL(runMode: runMode)
 
 		guard (try? plistURL.exists()) == true else {
-			throw ServiceError("agent not installed: missing plist at \(plistURL.path)")
+			throw ServiceError(String(localized: "agent not installed: missing plist at \(plistURL.path)"))
 		}
 
 		// Determine launchctl domain and commands
@@ -256,11 +256,11 @@ public struct ServiceHandler {
 		let home = try Home(runMode: runMode, createItIfNotExists: false)
 
 		guard home.agentPID.isPIDRunning().running else {
-			throw ServiceError("Caked service is not running")
+			throw ServiceError(String(localized: "Caked service is not running"))
 		}
 
 		if home.agentPID.killPID(SIGINT) != 0 {
-			throw ServiceError("Failed to stop caked service \(errno)")
+			throw ServiceError(String(localized: "Failed to stop caked service \(errno)"))
 		}
 	}
 
@@ -320,7 +320,7 @@ public struct ServiceHandler {
 	
 	public static func createCakedServiceClient(connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
 		guard isAgentRunning(runMode: runMode).running else {
-			throw ServiceError("Caked service is not running")
+			throw ServiceError(String(localized: "Caked service is not running"))
 		}
 
 		let listenAddress = try Utils.getDefaultServerAddress(runMode: runMode)

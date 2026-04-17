@@ -8,11 +8,11 @@
 import SwiftUI
 
 public struct LabelView: View {
-	private let text: String
+	private let text: LocalizedStringKey
 	private let size: CGSize?
 	private let progress: Bool
 
-	public init(_ text: String, size: CGSize? = nil, progress: Bool = false) {
+	public init(_ text: LocalizedStringKey, size: CGSize? = nil, progress: Bool = false) {
 		self.text = text
 		self.size = size
 		self.progress = progress

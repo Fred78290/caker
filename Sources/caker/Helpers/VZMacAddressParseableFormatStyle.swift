@@ -41,7 +41,7 @@ struct OptionalVZMacAddressParseableFormatStyle: ParseableFormatStyle {
 
 	func format(_ value: VZMACAddress?) -> String {
 		guard let value = value else {
-			return ""
+			return String.empty
 		}
 
 		return value.string.uppercased()
@@ -63,11 +63,11 @@ struct OptionalMacAddressParseableFormatStyle: ParseableFormatStyle {
 
 	func format(_ value: String?) -> String {
 		guard let value = value else {
-			return ""
+			return String.empty
 		}
 
 		guard let value = VZMACAddress(string: value) else {
-			return ""
+			return String.empty
 		}
 
 		return value.string.uppercased()

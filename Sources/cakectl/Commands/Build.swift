@@ -7,20 +7,17 @@ import CakeAgentLib
 struct Build: AsyncGrpcParsableCommand {
 	static let configuration = BuildOptions.build
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@OptionGroup(title: "Build VM options")
+	@OptionGroup(title: String(localized: "Build VM options"))
 	var buildOptions: BuildOptions
-
-	@Flag(help: "Output format: text or json")
-	var format: Format = .text
 
 	mutating func validate() throws {
 		try buildOptions.validate(remote: true)
 
 		if buildOptions.sockets.first(where: { $0.sharedFileDescriptors != nil }) != nil {
-			throw ValidationError("Shared file descriptors are not supported, use caked launch instead")
+			throw ValidationError(String(localized: "Shared file descriptors are not supported, use caked launch instead"))
 		}
 	}
 
@@ -28,7 +25,7 @@ struct Build: AsyncGrpcParsableCommand {
 		return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
 			let context: ProgressObserver.ProgressHandlerContext = .init()
 			let (stream, continuation) = AsyncStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
-			var result: String = ""
+			var result: String = String.empty
 
 			group.addTask {
 				let stream = try client.build(Caked_BuildRequest(buildOptions: self.buildOptions)) { stream in
@@ -52,7 +49,7 @@ struct Build: AsyncGrpcParsableCommand {
 						ProgressObserver.progressHandler(.terminated(.failure(GrpcError(code: 1, reason: v)), nil))
 					}
 				} else if case .builded(let builded) = current {
-					result = self.format.render(BuildedReply(builded))
+					result = self.options.format.render(BuildedReply(builded))
 				}
 			}
 

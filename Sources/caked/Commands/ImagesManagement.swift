@@ -6,16 +6,16 @@ import CakeAgentLib
 
 struct ImagesManagement: ParsableCommand {
 	static let configuration = CommandConfiguration(
-		commandName: "image", abstract: "Manage simplestream images",
+		commandName: "image", abstract: String(localized: "Manage simplestream images"),
 		subcommands: [ListImage.self, InfoImage.self, PullImage.self])
 
 	struct ListImage: AsyncParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images", aliases: ["ls"])
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: String(localized: "List images"), aliases: ["ls"])
 
-		@OptionGroup(title: "Global options")
+		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
-		@Argument(help: "Remote name")
+		@Argument(help: ArgumentHelp(String(localized: "Remote name")))
 		var name: String
 
 		mutating func validate() throws {
@@ -34,12 +34,12 @@ struct ImagesManagement: ParsableCommand {
 	}
 
 	struct InfoImage: AsyncParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: String(localized: "Show useful information about images"))
 
-		@OptionGroup(title: "Global options")
+		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
-		@Argument(help: "Image name")
+		@Argument(help: ArgumentHelp(String(localized: "Image name")))
 		var name: String
 
 		func validate() throws {
@@ -58,12 +58,12 @@ struct ImagesManagement: ParsableCommand {
 	}
 
 	struct PullImage: AsyncParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "pull", abstract: "Pull image")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "pull", abstract: String(localized: "Pull image"))
 
-		@OptionGroup(title: "Global options")
+		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
-		@Argument(help: "Image name")
+		@Argument(help: ArgumentHelp(String(localized: "Image name")))
 		var name: String
 
 		mutating func validate() throws {

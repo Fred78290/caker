@@ -49,7 +49,7 @@ public class TaskQueue {
 	private func initScope() {
 		self.scope = Task {
 			for await pendingTask in self.pendingTasks {
-				//                print("PendingTask \(pendingTask.label ?? "") received", label ?? "")
+				//                print("PendingTask \(pendingTask.label ?? String.empty) received", label ?? String.empty)
 				//                print("\(label ?? "TaskQueue"): scope isCancelled \(Task.isCancelled)")
 				if Task.isCancelled { break }
 				if self.isScopeCancelled { break }
@@ -57,33 +57,33 @@ public class TaskQueue {
 
 				if let task = pendingTask as? AsyncTask {
 					do {
-						//                        print("AsyncTask \(pendingTask.tag ?? "") start",source: tag)
+						//                        print("AsyncTask \(pendingTask.tag ?? String.empty) start",source: tag)
 						let result = try await task.block()
-						//                        print("AsyncTask \(pendingTask.tag ?? "") resume",source: tag)
+						//                        print("AsyncTask \(pendingTask.tag ?? String.empty) resume",source: tag)
 						task.continuation?.resume(returning: result)
 					} catch {
-						//                        log.error("AsyncTask \(pendingTask.tag ?? "") error \(error)",source: tag)
+						//                        log.error("AsyncTask \(pendingTask.tag ?? String.empty) error \(error)",source: tag)
 						task.continuation?.resume(throwing: error)
 					}
 				} else if let task = pendingTask as? StreamTask {
 					do {
-						//                        print("StreamTask \(pendingTask.tag ?? "") start",source: tag)
+						//                        print("StreamTask \(pendingTask.tag ?? String.empty) start",source: tag)
 						for try await value in AsyncThrowingStream(Any.self, task.block) {
 							//check task cancelled
 							//                            print("StreamTask cancelled=\(Task.isCancelled)")
 							if isScopeCancelled { throw CancellationError() }
-							//                            print("StreamTask \(pendingTask.tag ?? "") yield",source: tag)
+							//                            print("StreamTask \(pendingTask.tag ?? String.empty) yield",source: tag)
 							task.continuation.yield(value)
 						}
-						//                        print("StreamTask \(pendingTask.tag ?? "") finish",source: tag)
+						//                        print("StreamTask \(pendingTask.tag ?? String.empty) finish",source: tag)
 						task.continuation.finish()
 					} catch {
 						//                        print("StreamTask error \(error)")
-						//                        log.error("StreamTask \(pendingTask.tag ?? "") error \(error)",source: tag)
+						//                        log.error("StreamTask \(pendingTask.tag ?? String.empty) error \(error)",source: tag)
 						task.continuation.finish(throwing: error)
 					}
 				} else {
-					//                    print("PendingTask discard \(pendingTask)", label ?? "")
+					//                    print("PendingTask discard \(pendingTask)", label ?? String.empty)
 				}
 
 				if Task.isCancelled { break }

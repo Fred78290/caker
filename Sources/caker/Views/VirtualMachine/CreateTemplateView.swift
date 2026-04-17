@@ -10,7 +10,7 @@ import GRPCLib
 import SwiftUI
 
 struct CreateTemplateView: View {
-	@State private var templateName: String = ""
+	@State private var templateName: String = String.empty
 	@State private var templateResult: CreateTemplateReply?
 
 	var body: some View {
@@ -42,8 +42,8 @@ struct CreateTemplateView: View {
 		if let templateResult = templateResult, templateResult.created == false {
 			let alert = NSAlert()
 
-			alert.messageText = "Failed to create template"
-			alert.informativeText = templateResult.reason ?? "Internal error"
+			alert.messageText = String(localized: "Failed to create template")
+			alert.informativeText = templateResult.reason ?? String(localized: "Internal error")
 			alert.runModal()
 		} else {
 			AppState.shared.reloadRemotes()

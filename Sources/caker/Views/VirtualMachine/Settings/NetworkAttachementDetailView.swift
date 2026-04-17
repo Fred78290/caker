@@ -48,7 +48,7 @@ struct NetworkAttachementDetailView: View {
 					}
 					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
-				}.frame(width: 100)
+				}.frame(width: 200)
 			}
 
 			LabeledContent("Mode") {
@@ -57,12 +57,12 @@ struct NetworkAttachementDetailView: View {
 					Picker("Mode", selection: $currentItem.mode) {
 						Text("default").tag(nil as NetworkMode?)
 						ForEach([NetworkMode.auto, NetworkMode.manual], id: \.self) { mode in
-							Text(mode.description).tag(mode as NetworkMode?)
+							Text(LocalizedStringKey(stringLiteral: mode.description)).tag(mode as NetworkMode?)
 						}
 					}
 					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
-				}.frame(width: 100)
+				}.frame(width: 200)
 			}
 
 			LabeledContent("Mac address") {
@@ -75,7 +75,7 @@ struct NetworkAttachementDetailView: View {
 						}.buttonStyle(.borderless)
 					}
 
-					TextField("", text: $model.macAddress.text)
+					TextField(String.empty, text: $model.macAddress.text)
 						.rounded(.center)
 						.formatAndValidate($model.macAddress)
 						.allowsHitTesting(readOnly == false)

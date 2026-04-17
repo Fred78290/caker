@@ -6,10 +6,10 @@ import CakeAgentLib
 struct Purge: ParsableCommand {
 	static let configuration = PurgeOptions.configuration
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Purge options")
+	@OptionGroup(title: String(localized: "Purge options"))
 	var purge: PurgeOptions
 
 	func validate() throws {

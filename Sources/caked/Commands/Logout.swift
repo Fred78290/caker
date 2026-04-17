@@ -6,12 +6,12 @@ import GRPCLib
 import CakeAgentLib
 
 struct Logout: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Logout from a registry")
+	static let configuration = CommandConfiguration(abstract: String(localized: "Logout from a registry"))
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Argument(help: "host")
+	@Argument(help: ArgumentHelp(String(localized: "Host")))
 	var host: String
 
 	func validate() throws {

@@ -6,10 +6,10 @@ import CakeAgentLib
 struct Build: AsyncParsableCommand {
 	static let configuration = BuildOptions.build
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Build VM options")
+	@OptionGroup(title: String(localized: "Build VM options"))
 	var options: BuildOptions
 
 	mutating func validate() throws {
@@ -18,11 +18,11 @@ struct Build: AsyncParsableCommand {
 		try self.options.validate(remote: false)
 
 		if StorageLocation(runMode: self.common.runMode).exists(self.options.name) {
-			throw ValidationError("\(self.options.name) already exists")
+			throw ValidationError(String(localized: "\(self.options.name) already exists"))
 		}
 
 		if self.options.sockets.first(where: { $0.sharedFileDescriptors != nil }) != nil {
-			throw ValidationError("Shared file descriptors are not supported, use launch instead")
+			throw ValidationError(String(localized: "Shared file descriptors are not supported, use launch instead"))
 		}
 	}
 

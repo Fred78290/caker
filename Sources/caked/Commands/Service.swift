@@ -21,34 +21,34 @@ struct Certs {
 
 struct Service: ParsableCommand {
 	static let configuration = CommandConfiguration(
-		abstract: "caked as launchctl agent",
+		abstract: String(localized: "caked as launchctl agent"),
 		subcommands: [Install.self, Listen.self, Show.self, Status.self, Stop.self])
 }
 
 extension Service {
 	struct ServiceOptions: ParsableArguments {
-		@Option(name: [.customLong("log-level")], help: "Log level")
+		@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
 		var logLevel: Logger.LogLevel = .info
 		
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Install caked as system agent, need sudo")
+		@Flag(name: [.customLong("system"), .customShort("s")], help: ArgumentHelp(String(localized: "Install caked as system agent, need sudo")))
 		var asSystem: Bool = false
 		
-		@Option(name: [.customLong("address"), .customShort("l")], help: "Listen on address")
+		@Option(name: [.customLong("address"), .customShort("l")], help: ArgumentHelp(String(localized: "Listen on address")))
 		var address: [String] = []
 		
-		@Flag(name: [.customLong("insecure"), .customShort("i")], help: "don't use TLS")
+		@Flag(name: [.customLong("insecure"), .customShort("i")], help: ArgumentHelp(String(localized: "Don't use TLS")))
 		var insecure: Bool = false
 		
-		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
+		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: ArgumentHelp(String(localized: "CA TLS certificate")))
 		var caCert: String?
 		
-		@Option(name: [.customLong("tls-cert"), .customShort("t")], help: "Client TLS certificate")
+		@Option(name: [.customLong("tls-cert"), .customShort("t")], help: ArgumentHelp(String(localized: "Client TLS certificate")))
 		var tlsCert: String?
 		
-		@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
+		@Option(name: [.customLong("tls-key"), .customShort("k")], help: ArgumentHelp(String(localized: "Client private key")))
 		var tlsKey: String?
 		
-		@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow mode to connect to a VMRun service endpoint"))
+		@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allow mode to connect to a VMRun service endpoint")))
 		var mode: VMRunServiceMode = .grpc
 		
 		var runMode: Utils.RunMode {
@@ -63,15 +63,15 @@ extension Service {
 			if self.insecure == false {
 				if let caCert, let tlsCert, let tlsKey {
 					if FileManager.default.fileExists(atPath: caCert) == false {
-						throw ServiceError("Root certificate file not found: \(caCert)")
+						throw ServiceError(String(localized: "Root certificate file not found: \(caCert)"))
 					}
 					
 					if FileManager.default.fileExists(atPath: tlsCert) == false {
-						throw ServiceError("TLS certificate file not found: \(tlsCert)")
+						throw ServiceError(String(localized: "TLS certificate file not found: \(tlsCert)"))
 					}
 					
 					if FileManager.default.fileExists(atPath: tlsKey) == false {
-						throw ServiceError("TLS key file not found: \(tlsKey)")
+						throw ServiceError(String(localized: "TLS key file not found: \(tlsKey)"))
 					}
 				}
 			}
@@ -97,9 +97,9 @@ extension Service {
 	}
 	
 	struct Install: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Install caked daemon as launchctl agent")
+		static let configuration = CommandConfiguration(abstract: String(localized: "Install caked daemon as launchctl agent"))
 		
-		@OptionGroup(title: "Agent common options")
+		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 		
 		func run() throws {
@@ -123,12 +123,12 @@ extension Service {
 	}
 	
 	struct Listen: AsyncParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "caked daemon listening")
+		static let configuration: CommandConfiguration = CommandConfiguration(abstract: String(localized: "caked daemon listening"))
 		
 		@Flag(help: .hidden)
 		var secure: Bool = false
 		
-		@OptionGroup(title: "Agent common options")
+		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 		
 		mutating func validate() throws {
@@ -142,18 +142,18 @@ extension Service {
 				self.options.tlsKey = certs.serverKeyURL.path
 			} else if let caCert = self.options.caCert, let tlsCert = self.options.tlsCert, let tlsKey = self.options.tlsKey {
 				if FileManager.default.fileExists(atPath: caCert) == false {
-					throw ServiceError("Root certificate file not found: \(caCert)")
+					throw ServiceError(String(localized: "Root certificate file not found: \(caCert)"))
 				}
 				
 				if FileManager.default.fileExists(atPath: tlsCert) == false {
-					throw ServiceError("TLS certificate file not found: \(tlsCert)")
+					throw ServiceError(String(localized: "TLS certificate file not found: \(tlsCert)"))
 				}
 				
 				if FileManager.default.fileExists(atPath: tlsKey) == false {
-					throw ServiceError("TLS key file not found: \(tlsKey)")
+					throw ServiceError(String(localized: "TLS key file not found: \(tlsKey)"))
 				}
 			} else if (self.options.tlsKey != nil || self.options.tlsCert != nil) && (self.options.tlsKey == nil || self.options.tlsCert == nil) {
-				throw ServiceError("Some cert files not provided")
+				throw ServiceError(String(localized: "Some cert files not provided"))
 			}
 		}
 		
@@ -163,7 +163,7 @@ extension Service {
 
 			guard listenAddress.count > 0 else {
 				logger.error("No listen address provided")
-				throw ServiceError("No listen address provided")
+				throw ServiceError(String(localized: "No listen address provided"))
 			}
 			
 			let runMode: Utils.RunMode = self.options.runMode
@@ -226,9 +226,9 @@ extension Service {
 	}
 	
 	struct Show: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Help to run caked daemon")
+		static let configuration = CommandConfiguration(abstract: String(localized: "Help to run caked daemon"))
 		
-		@OptionGroup(title: "Agent common options")
+		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 		
 		mutating func run() throws {
@@ -270,9 +270,9 @@ extension Service {
 	}
 	
 	struct Status: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Tell the status of caked daemon")
+		static let configuration = CommandConfiguration(abstract: String(localized: "Tell the status of caked daemon"))
 		
-		@Flag(help: "Output format: text or json")
+		@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 		var format: Format = .text
 		
 		struct ServiceStatus: Codable {
@@ -286,7 +286,7 @@ extension Service {
 			let running = ServiceHandler.isAgentRunningWithPID
 			let status = ServiceStatus(installed: ServiceHandler.isAgentInstalled,
 									   run: running.running,
-									   pid: running.pid == nil ? "" : String(running.pid!),
+									   pid: running.pid == nil ? String.empty : String(running.pid!),
 									   mode: ServiceHandler.runningMode)
 			
 			print(self.format.renderSingle(status))
@@ -294,13 +294,13 @@ extension Service {
 	}
 	
 	struct Stop: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Tell to stop caked daemon")
+		static let configuration = CommandConfiguration(abstract: String(localized: "Tell to stop caked daemon"))
 		
 		mutating func run() throws {
 			let mode = ServiceHandler.runningMode
 
 			guard mode != .app && ServiceHandler.isAgentRunning(runMode: mode).running else {
-				throw ServiceError("Caked service is not running")
+				throw ServiceError(String(localized: "Caked service is not running"))
 			}
 
 			if ServiceHandler.isAgentInstalled(runMode: mode) {

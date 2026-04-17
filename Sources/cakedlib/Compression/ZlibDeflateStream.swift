@@ -79,7 +79,7 @@ final class ZlibDeflateStream: ZlibStream {
 		let neededCapacity = Int(expectedCompressedSize)
 
 		if offset + length > data.count {
-			throw ZlibError.dataError(message: "Out of bounds")
+			throw ZlibError.dataError(message: String(localized: "Out of bounds"))
 		}
 
 		if self.encodedBuffer == nil {
@@ -98,7 +98,7 @@ final class ZlibDeflateStream: ZlibStream {
 
 		return try data.withUnsafeMutableBytes { inputPtr in
 			guard let outBase = self.encodedBuffer.baseAddress else {
-				throw ZlibError.dataError(message: "Failed to access output buffer")
+				throw ZlibError.dataError(message: String(localized: "Failed to access output buffer"))
 			}
 
 			let previousOut = self.totalOut

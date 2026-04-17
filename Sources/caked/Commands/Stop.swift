@@ -6,10 +6,10 @@ import CakeAgentLib
 struct Stop: ParsableCommand {
 	static let configuration = StopOptions.configuration
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Stop options"))
 	var stop: StopOptions
 
 	func validate() throws {

@@ -7,23 +7,20 @@ import CakeAgentLib
 struct Launch: AsyncGrpcParsableCommand {
 	static let configuration = BuildOptions.launch
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@OptionGroup(title: "Launch VM options")
+	@OptionGroup(title: String(localized: "Launch VM options"))
 	var buildOptions: BuildOptions
 
-	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
+	@Option(help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	var waitIPTimeout = 180
-
-	@Flag(help: "Output format: text or json")
-	var format: Format = .text
 
 	mutating func validate() throws {
 		try buildOptions.validate(remote: true)
 
 		if buildOptions.sockets.first(where: { $0.sharedFileDescriptors != nil }) != nil {
-			throw ValidationError("Shared file descriptors are not supported, use caked launch instead")
+			throw ValidationError(String(localized: "Shared file descriptors are not supported, use caked launch instead"))
 		}
 	}
 
@@ -31,7 +28,7 @@ struct Launch: AsyncGrpcParsableCommand {
 		return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
 			let context: ProgressObserver.ProgressHandlerContext = .init()
 			let (stream, continuation) = AsyncStream.makeStream(of: Caked_LaunchStreamReply.OneOf_Current?.self)
-			var result: String = ""
+			var result: String = String.empty
 
 			group.addTask {
 				let stream = try client.launch(Caked_LaunchRequest(command: self)) { stream in
@@ -55,7 +52,7 @@ struct Launch: AsyncGrpcParsableCommand {
 						ProgressObserver.progressHandler(.terminated(.failure(GrpcError(code: 1, reason: v)), nil))
 					}
 				} else if case .launched(let launched) = current {
-					result = self.format.render(LaunchReply(launched))
+					result = self.options.format.render(LaunchReply(launched))
 				}
 			}
 

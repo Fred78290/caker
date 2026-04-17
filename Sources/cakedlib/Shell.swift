@@ -3,7 +3,7 @@ import GRPCLib
 import Subprocess
 import System
 
-nonisolated(unsafe) private var tartLocation: String = ""
+nonisolated(unsafe) private var tartLocation: String = String.empty
 
 public struct ShellError: Swift.Error {
 	/// The termination status of the command that was run
@@ -12,7 +12,7 @@ public struct ShellError: Swift.Error {
 	public let message: String
 
 	var description: String {
-		return "exitCode:\(terminationStatus), reason: \(error) infos: \(message)"
+		return String(localized: "exitCode:\(terminationStatus), reason: \(error) infos: \(message)")
 	}
 
 	var localizedDescription: String {
@@ -87,7 +87,7 @@ public struct Shell {
 				return out.trimmingCharacters(in: .whitespacesAndNewlines)
 			}
 
-			return ""
+			return String.empty
 		}
 	}
 
@@ -103,7 +103,7 @@ public struct Shell {
 				return out.trimmingCharacters(in: .whitespacesAndNewlines)
 			}
 
-			return ""
+			return String.empty
 		}
 	}
 
@@ -445,7 +445,7 @@ extension ProcessWithSharedFileHandle {
 extension Data {
 	func toString() -> String {
 		guard let output = String(data: self, encoding: .utf8) else {
-			return ""
+			return String.empty
 		}
 
 		guard !output.hasSuffix("\n") else {

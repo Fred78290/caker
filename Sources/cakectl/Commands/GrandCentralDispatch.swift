@@ -79,13 +79,10 @@ struct ShortCurrentUsage: Codable {
 }
 
 struct GrandCentralDispatch: AsyncGrpcParsableCommand {
-	public static let configuration: CommandConfiguration = CommandConfiguration(commandName: "gcd", abstract: "Start the Grand Central Dispatch")
+	public static let configuration: CommandConfiguration = CommandConfiguration(commandName: "gcd", abstract: String(localized: "Start the Grand Central Dispatch"))
 
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
-
-	@Flag(help: "Output format")
-	var format: Format = .text
 
 	private struct Screenshot: Codable {
 		let name: String
@@ -119,17 +116,17 @@ struct GrandCentralDispatch: AsyncGrpcParsableCommand {
 				statuses.forEach { status in
 					switch status.message {
 					case .failure(let message):
-						print(self.format.renderSingle(Description(name: status.name, description: message)))
+						print(self.options.format.renderSingle(Description(name: status.name, description: message)))
 					case .status(let value):
-						print(self.format.renderSingle(Status(name: status.name, status: value.description)))
+						print(self.options.format.renderSingle(Status(name: status.name, status: value.description)))
 					case .screenshot(let png):
-						print(self.format.renderSingle(Screenshot(name: status.name, data: png)))
+						print(self.options.format.renderSingle(Screenshot(name: status.name, data: png)))
 					case .usage(let usage):
-						switch self.format {
+						switch self.options.format {
 						case .text:
-							print(self.format.renderSingle(ShortCurrentUsage(status.name, from: usage)))
+							print(self.options.format.renderSingle(ShortCurrentUsage(status.name, from: usage)))
 						case .json:
-							print(self.format.renderSingle(CurrentUsage(status.name, from: usage)))
+							print(self.options.format.renderSingle(CurrentUsage(status.name, from: usage)))
 						}
 					default:
 						break
@@ -140,7 +137,7 @@ struct GrandCentralDispatch: AsyncGrpcParsableCommand {
 			stream.cancel(promise: nil)
 		}
 
-		return ""
+		return String.empty
 	}
 	
 }

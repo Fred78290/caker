@@ -106,27 +106,27 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 
 	public init(parseFrom: String) throws {
 		guard let url = URL(string: parseFrom) else {
-			throw ValidationError("unsupported socket declaration: \"\(parseFrom)\"")
+			throw ValidationError(String(localized: "unsupported socket declaration: \"\(parseFrom)\""))
 		}
 
 		guard let scheme = url.scheme else {
-			throw ValidationError("unsupported socket declaration: \"\(parseFrom)\"")
+			throw ValidationError(String(localized: "unsupported socket declaration: \"\(parseFrom)\""))
 		}
 
 		guard let mode = SocketMode(rawValue: scheme) else {
-			throw ValidationError("unsupported socket mode: \"\(parseFrom)\"")
+			throw ValidationError(String(localized: "unsupported socket mode: \"\(parseFrom)\""))
 		}
 
 		guard let port = url.port else {
-			throw ValidationError("port number must be defined")
+			throw ValidationError(String(localized: "port number must be defined"))
 		}
 
 		guard let host: String = url.host, !host.isEmpty else {
-			throw ValidationError("host must be defined")
+			throw ValidationError(String(localized: "host must be defined"))
 		}
 
 		if port < 1024 {
-			throw ValidationError("port number must be greater than 1023")
+			throw ValidationError(String(localized: "port number must be greater than 1023"))
 		}
 
 		self.mode = mode
@@ -136,17 +136,17 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 			let fds = host.split(separator: ",")
 
 			if fds.count == 0 {
-				throw ValidationError("Invalid file descriptor")
+				throw ValidationError(String(localized: "Invalid file descriptor"))
 			}
 
 			for fd in fds {
 				guard Int32(fd) != nil else {
-					throw ValidationError("Invalid file descriptor fd=\(fd)")
+					throw ValidationError(String(localized: "Invalid file descriptor fd=\(fd)"))
 				}
 
 				// Must be checked at vmrun
 				//if fcntl(fd, F_GETFD) == -1 {
-				//	throw ValidationError("File descriptor is not valid. error: \(String(cString:strerror(errno)))")
+				//	throw ValidationError(String(localized: "File descriptor is not valid. error: \(String(cString:strerror(errno)))"))
 				//}
 			}
 
@@ -155,11 +155,11 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 			self.bind = host
 		} else {
 			if url.path.isEmpty {
-				throw ValidationError("socket path must be defined")
+				throw ValidationError(String(localized: "socket path must be defined"))
 			}
 
 			if url.path.utf8.count > 103 {
-				throw ValidationError("The socket path is too long")
+				throw ValidationError(String(localized: "The socket path is too long"))
 			}
 
 			self.bind = url.path
@@ -171,16 +171,16 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 			let fds = self.bind.split(separator: ",")
 
 			if fds.count == 0 {
-				throw ValidationError("Invalid file descriptor")
+				throw ValidationError(String(localized: "Invalid file descriptor"))
 			}
 
 			for fd in fds {
 				guard let fd = Int32(fd) else {
-					throw ValidationError("Invalid file descriptor fd=\(fd)")
+					throw ValidationError(String(localized: "Invalid file descriptor fd=\(fd)"))
 				}
 
 				if fcntl(fd, F_GETFD) == -1 {
-					throw ValidationError("File descriptor is not valid. error: \(String(cString:strerror(errno)))")
+					throw ValidationError(String(localized: "File descriptor is not valid. error: \(String(cString:strerror(errno)))"))
 				}
 			}
 		}

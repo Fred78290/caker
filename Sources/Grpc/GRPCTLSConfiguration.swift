@@ -58,7 +58,7 @@ extension Caked {
 			return CakedServiceClient(channel: ClientConnection(configuration: clientConfiguration), interceptors: interceptors)
 		}
 
-		throw GrpcError(code: -1, reason: "connection address must be specified")
+		throw GrpcError(code: -1, reason: String(localized: "connection address must be specified"))
 	}
 }
 

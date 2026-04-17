@@ -1,0 +1,519 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "--username is required" : {
+      "shouldTranslate" : false
+    },
+    "...%0.3d%% complete" : {
+      "shouldTranslate" : false
+    },
+    "%@ already in use, try umounting it" : {
+      "shouldTranslate" : false
+    },
+    "%@ permission denied, consider changing the disk's owner using \"sudo chown $USER %@\" or run as a superuser" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ permission denied, consider changing the disk's owner using \"sudo chown $USER %2$@\" or run as a superuser"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "%@ should be a local name" : {
+      "shouldTranslate" : false
+    },
+    "Add a network interface to the instance" : {
+      "shouldTranslate" : false
+    },
+    "Add new remote servers" : {
+      "shouldTranslate" : false
+    },
+    "Additional directory shares" : {
+      "shouldTranslate" : false
+    },
+    "agentReady" : {
+      "shouldTranslate" : false
+    },
+    "Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock" : {
+      "shouldTranslate" : false
+    },
+    "Allow to use dynamic port forwarding, default is false" : {
+      "shouldTranslate" : false
+    },
+    "at least one pruning criteria must be specified" : {
+      "shouldTranslate" : false
+    },
+    "Attaching block devices prior MacOS 14" : {
+      "shouldTranslate" : false
+    },
+    "Attaching Network Block Devices are not supported prior MacOS 14" : {
+      "shouldTranslate" : false
+    },
+    "both --username and --password-stdin or --password are required" : {
+      "shouldTranslate" : false
+    },
+    "By default monolithic method is used for uploading blobs to the registry but some registries support a more efficient chunked method.\nFor example, AWS Elastic Container Registry supports only chunks larger than 5MB but GitHub Container Registry supports only chunks smaller than 4MB. Google Container Registry on the other hand doesn't support chunked uploads at all.\nPlease refer to the documentation of your particular registry in order to see if this option is suitable for you and what's the recommended chunk size." : {
+      "shouldTranslate" : false
+    },
+    "Chunk size in MB if registry supports chunked uploads" : {
+      "shouldTranslate" : false
+    },
+    "Clone a VM from a registry" : {
+      "shouldTranslate" : false
+    },
+    "Command to execute" : {
+      "shouldTranslate" : false
+    },
+    "Configure named shared network" : {
+      "shouldTranslate" : false
+    },
+    "Connect to the OCI registry via insecure HTTP protocol" : {
+      "shouldTranslate" : false
+    },
+    "connection address must be specified" : {
+      "shouldTranslate" : false
+    },
+    "Create a linux VM and initialize it with cloud-init" : {
+      "shouldTranslate" : false
+    },
+    "Create a linux VM and initialize it with cloud-init then start it" : {
+      "shouldTranslate" : false
+    },
+    "create a linux VM using a cloud image" : {
+      "shouldTranslate" : false
+    },
+    "Create named shared or host network" : {
+      "shouldTranslate" : false
+    },
+    "Create template vm in foreground" : {
+      "shouldTranslate" : false
+    },
+    "Delete a VM" : {
+      "shouldTranslate" : false
+    },
+    "Delete all VM" : {
+      "shouldTranslate" : false
+    },
+    "Delete named shared network" : {
+      "shouldTranslate" : false
+    },
+    "deleted" : {
+      "shouldTranslate" : false
+    },
+    "DHCP lease timeout" : {
+      "shouldTranslate" : false
+    },
+    "Disables audio and entropy devices and switches to only Mac-specific input devices." : {
+      "shouldTranslate" : false
+    },
+    "disk %@ does not exist" : {
+      "shouldTranslate" : false
+    },
+    "disk %@ seems to be already in use, unmount it first in Finder" : {
+      "shouldTranslate" : false
+    },
+    "Disk path is empty" : {
+      "shouldTranslate" : false
+    },
+    "Disk size in GB" : {
+      "shouldTranslate" : false
+    },
+    "Duplicate a VM to a new name" : {
+      "shouldTranslate" : false
+    },
+    "Duplicate vm in foreground" : {
+      "shouldTranslate" : false
+    },
+    "Duplicated VM name" : {
+      "shouldTranslate" : false
+    },
+    "Enable nested virtualization if possible" : {
+      "shouldTranslate" : false
+    },
+    "Entries to remove: \"caches\" targets caches and \"vms\" targets local VMs or boths." : {
+      "shouldTranslate" : false
+    },
+    "error" : {
+      "shouldTranslate" : false
+    },
+    "Execute a command on a VM" : {
+      "shouldTranslate" : false
+    },
+    "File descriptor is not valid. error: %@" : {
+      "shouldTranslate" : false
+    },
+    "first ip used for the configured shared network, e.g., \"192.168.105.1\"" : {
+      "shouldTranslate" : false
+    },
+    "First ip used for the configured shared network, e.g., \"192.168.105.1\"" : {
+      "shouldTranslate" : false
+    },
+    "For example, --older-than=7 will remove entries that weren't accessed by caked in the last 7 days." : {
+      "shouldTranslate" : false
+    },
+    "For example, --space-budget=50 will effectively shrink all entries to a total size of 50 gigabytes." : {
+      "shouldTranslate" : false
+    },
+    "Force stop" : {
+      "shouldTranslate" : false
+    },
+    "Give host path to umount" : {
+      "shouldTranslate" : false
+    },
+    "Host" : {
+      "shouldTranslate" : false
+    },
+    "host must be defined" : {
+      "shouldTranslate" : false
+    },
+    "image name" : {
+      "shouldTranslate" : false
+    },
+    "Image source" : {
+      "shouldTranslate" : false
+    },
+    "Invalid console URL" : {
+      "shouldTranslate" : false
+    },
+    "Invalid console URL: file descriptor %@ is not a number" : {
+      "shouldTranslate" : false
+    },
+    "Invalid console URL: file descriptor %d is not valid. error: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Invalid console URL: file descriptor %1$d is not valid. error: %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Invalid console URL: file descriptor is not specified" : {
+      "shouldTranslate" : false
+    },
+    "Invalid file descriptor" : {
+      "shouldTranslate" : false
+    },
+    "Invalid file descriptor fd=%@" : {
+      "shouldTranslate" : false
+    },
+    "Invalid network attachment: %@" : {
+      "shouldTranslate" : false
+    },
+    "Invalid serial console URL" : {
+      "shouldTranslate" : false
+    },
+    "Invalid serial console URL scheme: must be unix, fd or file" : {
+      "shouldTranslate" : false
+    },
+    "IP gateway" : {
+      "shouldTranslate" : false
+    },
+    "Last ip of the DHCP range, e.g., \"192.168.105.254\"" : {
+      "shouldTranslate" : false
+    },
+    "List the available remotes" : {
+      "shouldTranslate" : false
+    },
+    "Local file is not supported" : {
+      "shouldTranslate" : false
+    },
+    "Local or remote VM name" : {
+      "shouldTranslate" : false
+    },
+    "Local url is not supported" : {
+      "shouldTranslate" : false
+    },
+    "Malformed URL" : {
+      "shouldTranslate" : false
+    },
+    "Max time to wait for IP" : {
+      "shouldTranslate" : false
+    },
+    "Mount directory share into VM" : {
+      "shouldTranslate" : false
+    },
+    "Network concurrency to use when pushing a local VM to the OCI-compatible registry" : {
+      "shouldTranslate" : false
+    },
+    "Network infos" : {
+      "shouldTranslate" : false
+    },
+    "Network name" : {
+      "shouldTranslate" : false
+    },
+    "new" : {
+      "shouldTranslate" : false
+    },
+    "New VM name" : {
+      "shouldTranslate" : false
+    },
+    "No command specified" : {
+      "shouldTranslate" : false
+    },
+    "Number of VM CPUs" : {
+      "shouldTranslate" : false
+    },
+    "Optional cloud-init network-config file path for linux VM" : {
+      "shouldTranslate" : false
+    },
+    "Optional cloud-init user-data file path for linux VM" : {
+      "shouldTranslate" : false
+    },
+    "Optional forwarded port for VM, syntax like docker" : {
+      "shouldTranslate" : false
+    },
+    "Optional ssh-authorized-key file path for linux VM" : {
+      "shouldTranslate" : false
+    },
+    "Other attached disk" : {
+      "shouldTranslate" : false
+    },
+    "Password" : {
+      "shouldTranslate" : false
+    },
+    "Password from stdin" : {
+      "shouldTranslate" : false
+    },
+    "Path or URL to a user-data cloud-init configuration, or '-' for stdin" : {
+      "shouldTranslate" : false
+    },
+    "paused" : {
+      "shouldTranslate" : false
+    },
+    "Port is not set" : {
+      "shouldTranslate" : false
+    },
+    "port number must be defined" : {
+      "shouldTranslate" : false
+    },
+    "port number must be greater than 1023" : {
+      "shouldTranslate" : false
+    },
+    "Pulls a virtual machine from a remote OCI-compatible registry. Supports authorization via Keychain (see \"login --help\")," : {
+      "shouldTranslate" : false
+    },
+    "Purge caches or local VMs" : {
+      "shouldTranslate" : false
+    },
+    "Push a VM to a registry" : {
+      "shouldTranslate" : false
+    },
+    "Push vm in foreground" : {
+      "shouldTranslate" : false
+    },
+    "randomly generated if not specified" : {
+      "shouldTranslate" : false
+    },
+    "Reconfigure the login password" : {
+      "shouldTranslate" : false
+    },
+    "Reconfigure the login user" : {
+      "shouldTranslate" : false
+    },
+    "Reconfigure VM" : {
+      "shouldTranslate" : false
+    },
+    "Remote directories are not supported" : {
+      "shouldTranslate" : false
+    },
+    "Remote VM name(s)" : {
+      "shouldTranslate" : false
+    },
+    "Remove directory shares. If omitted all mounts will be removed from the named vm" : {
+      "shouldTranslate" : false
+    },
+    "Remove entries that were last accessed more than n days ago" : {
+      "shouldTranslate" : false
+    },
+    "Remove remotes" : {
+      "shouldTranslate" : false
+    },
+    "Remove the least recently used entries that do not fit the specified space size budget n, expressed in gigabytes" : {
+      "shouldTranslate" : false
+    },
+    "Rename a local VM" : {
+      "shouldTranslate" : false
+    },
+    "requires --gateway to be specified" : {
+      "shouldTranslate" : false
+    },
+    "Reset mac address" : {
+      "shouldTranslate" : false
+    },
+    "Run a shell on a VM" : {
+      "shouldTranslate" : false
+    },
+    "running" : {
+      "shouldTranslate" : false
+    },
+    "Set the VM screen size." : {
+      "shouldTranslate" : false
+    },
+    "Skip validation of the registry's credentials before logging-in" : {
+      "shouldTranslate" : false
+    },
+    "socket path must be defined" : {
+      "shouldTranslate" : false
+    },
+    "Source VM name" : {
+      "shouldTranslate" : false
+    },
+    "specify one of --password-stdin or --password not both" : {
+      "shouldTranslate" : false
+    },
+    "Start named network" : {
+      "shouldTranslate" : false
+    },
+    "Stop all VM" : {
+      "shouldTranslate" : false
+    },
+    "Stop named network" : {
+      "shouldTranslate" : false
+    },
+    "Stop VM(s)" : {
+      "shouldTranslate" : false
+    },
+    "stopped" : {
+      "shouldTranslate" : false
+    },
+    "Subnet mask" : {
+      "shouldTranslate" : false
+    },
+    "Support autoinstall mecanism from iso image" : {
+      "shouldTranslate" : false
+    },
+    "Tell if the user admin allow password for ssh" : {
+      "shouldTranslate" : false
+    },
+    "Tell if the VM must be start at boot" : {
+      "shouldTranslate" : false
+    },
+    "Template name" : {
+      "shouldTranslate" : false
+    },
+    "The IPv6 prefix to use with shared mode" : {
+      "shouldTranslate" : false
+    },
+    "The main existing group for the user" : {
+      "shouldTranslate" : false
+    },
+    "The name for network" : {
+      "shouldTranslate" : false
+    },
+    "The other existing group for the user" : {
+      "shouldTranslate" : false
+    },
+    "The socket path is too long" : {
+      "shouldTranslate" : false
+    },
+    "The unix socket is too long" : {
+      "shouldTranslate" : false
+    },
+    "The user password for login, none by default" : {
+      "shouldTranslate" : false
+    },
+    "The user to use for the VM" : {
+      "shouldTranslate" : false
+    },
+    "This command is used retrieve the network device information" : {
+      "shouldTranslate" : false
+    },
+    "This option allow display window of running vm to debug it" : {
+      "shouldTranslate" : false
+    },
+    "This option is supported on linux platforms only" : {
+      "shouldTranslate" : false
+    },
+    "This option specify image source when image url is http but not raw" : {
+      "shouldTranslate" : false
+    },
+    "Undefined image source" : {
+      "shouldTranslate" : false
+    },
+    "Unexpected error: %@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unexpected error: %1$@, %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "Unix domain socket name is too long" : {
+      "shouldTranslate" : false
+    },
+    "Unmount a directory share from a VM" : {
+      "shouldTranslate" : false
+    },
+    "unrecognized: %lld" : {
+      "shouldTranslate" : false
+    },
+    "Unsupported disk image caching mode: \"%@\"" : {
+      "shouldTranslate" : false
+    },
+    "Unsupported disk image synchronization mode: \"%@\"" : {
+      "shouldTranslate" : false
+    },
+    "Unsupported disk synchronization mode: \"%@\"" : {
+      "shouldTranslate" : false
+    },
+    "unsupported socket declaration: \"%@\"" : {
+      "shouldTranslate" : false
+    },
+    "unsupported socket mode: \"%@\"" : {
+      "shouldTranslate" : false
+    },
+    "URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")" : {
+      "shouldTranslate" : false
+    },
+    "Use ifnames for network interfaces instead of eth0, eth1, etc. This is the default on most modern Linux distributions." : {
+      "shouldTranslate" : false
+    },
+    "Useful for running a VM that can be suspended via suspend command." : {
+      "shouldTranslate" : false
+    },
+    "Username" : {
+      "shouldTranslate" : false
+    },
+    "value is like host:guest/(tcp|udp|both)" : {
+      "shouldTranslate" : false
+    },
+    "VM memory size in megabytes" : {
+      "shouldTranslate" : false
+    },
+    "VM name" : {
+      "shouldTranslate" : false
+    },
+    "VM names" : {
+      "shouldTranslate" : false
+    },
+    "VM names to stop" : {
+      "shouldTranslate" : false
+    },
+    "VMNET interface ID" : {
+      "shouldTranslate" : false
+    },
+    "vmnet mode" : {
+      "shouldTranslate" : false
+    },
+    "Wait for ip of a running VM" : {
+      "shouldTranslate" : false
+    },
+    "Whether to automatically reconfigure the VM's display to fit the window" : {
+      "shouldTranslate" : false
+    },
+    "You cannot specify both --all and VM names." : {
+      "shouldTranslate" : false
+    },
+    "You must specify at least one VM name." : {
+      "shouldTranslate" : false
+    }
+  },
+  "version" : "1.2"
+}

@@ -34,7 +34,7 @@ __pycache__/
 .ci/dmg/
 build/
 *.dmg
-
+tmp/
 # Sparkle - Production configuration
 .sparkle/
 releases/
@@ -42,3 +42,7 @@ releases/
 release-notes-*.html
 /.cake/
 .vars
+
+Caker Localizations/
+
+traductions/

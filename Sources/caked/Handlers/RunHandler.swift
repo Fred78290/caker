@@ -13,7 +13,7 @@ struct RunHandler: CakedCommandAsync {
 		return Caked_Reply.with {
 			$0.run = .with {
 				$0.exitCode = 1
-				$0.stderr = Data("\(error)".utf8)
+				$0.stderr = Data(error.reason.utf8)
 			}
 		}
 	}

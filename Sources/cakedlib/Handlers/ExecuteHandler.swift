@@ -11,12 +11,13 @@ import GRPC
 import GRPCLib
 import NIO
 import CakeAgentLib
+import SwiftUI
 
 public struct ExecuteHandler {
 	public static func execute(on: EventLoop, runMode: Utils.RunMode, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, client: CakeAgentConnection) async throws {
 		var vmname = vmname
 
-		if vmname == "" {
+		if vmname == String.empty {
 			vmname = "primary"
 
 			if StorageLocation(runMode: runMode).exists(vmname) == false {

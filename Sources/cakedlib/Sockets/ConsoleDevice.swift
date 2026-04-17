@@ -103,7 +103,7 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 				fileHandleForWriting = FileHandle(fileDescriptor: dup(Int32(fd[0])!), closeOnDealloc: false)
 			}
 		} else {
-			throw ServiceError("Unsupported console URL \(consoleURL.absoluteString)")
+			throw ServiceError(String(localized: "Unsupported console URL \(consoleURL.absoluteString)"))
 		}
 
 		// Create console device attachement

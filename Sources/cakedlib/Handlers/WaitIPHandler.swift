@@ -11,9 +11,9 @@ public struct WaitIPHandler {
 		do {
 			let location = try StorageLocation(runMode: runMode).find(name)
 
-			return WaitIPReply.init(name: name, ip: try location.waitIP(wait: wait, runMode: runMode, startedProcess: startedProcess), success: true, reason: "")
+			return WaitIPReply.init(name: name, ip: try location.waitIP(wait: wait, runMode: runMode, startedProcess: startedProcess), success: true, reason: String.empty)
 		} catch {
-			return WaitIPReply.init(name: name, ip: "", success: false, reason: "\(error)")
+			return WaitIPReply.init(name: name, ip: String.empty, success: false, reason: error.reason)
 		}
 	}
 }

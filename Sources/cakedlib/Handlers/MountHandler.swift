@@ -12,7 +12,7 @@ public struct MountHandler {
 			return try createVMRunServiceClient(mode, location: location, runMode: runMode).mount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
 
 		} catch {
-			return MountInfos(success: false, reason: "\(error)", mounts: [])
+			return MountInfos(success: false, reason: error.reason, mounts: [])
 		}
 	}
 
@@ -20,7 +20,7 @@ public struct MountHandler {
 		do {
 			return try createVMRunServiceClient(mode, location: location, runMode: runMode).umount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
 		} catch {
-			return MountInfos(success: false, reason: "\(error)", mounts: [])
+			return MountInfos(success: false, reason: error.reason, mounts: [])
 		}
 	}
 }

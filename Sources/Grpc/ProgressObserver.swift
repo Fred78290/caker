@@ -38,13 +38,13 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 			if completed % 10 == 0 {
 				if completed - context.lastCompleted10 >= 10 || completed == 0 || completed == 100 {
 					if context.lastCompleted10 == 0 && completed == 100 {
-						fputs(String(format: "...%0.3d%% complete\n", completed), stderr)
+						fputs(String(format: String(localized: "...%0.3d%% complete") + "\n", completed), stderr)
 						fflush(stderr)
 					} else if completed < 100 {
 						fputs(String(format: "%0.2d%%", completed), stderr)
 						fflush(stderr)
 					} else {
-						fputs(String(format: "%0.3d%% complete\n", completed), stderr)
+						fputs(String(format: String(localized: "...%0.3d%% complete") + "\n", completed), stderr)
 						fflush(stderr)
 					}
 
@@ -86,7 +86,7 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 
 	public func log(_ message: String) -> ProgressObserver {
 		if self.progressHandler == nil {
-			print(message + ":", terminator: "")
+			print(message + ":", terminator: String.empty)
 		}
 
 		let context: ProgressHandlerContext = .init()

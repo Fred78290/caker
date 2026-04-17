@@ -12,30 +12,27 @@ import GRPCLib
 import CakeAgentLib
 
 struct Restart: GrpcParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Restart VM(s)")
+	static let configuration = CommandConfiguration(abstract: String(localized: "Restart VM(s)"))
 	
-	@OptionGroup(title: "Client options")
+	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@Argument(help: "VM names to restart")
+	@Argument(help: ArgumentHelp(String(localized: "VM names to restart")))
 	var names: [String] = []
 	
-	@Flag(help: "Force restart")
+	@Flag(help: ArgumentHelp(String(localized: "Force restart")))
 	public var force: Bool = false
 	
-	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
+	@Option(help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	var waitIPTimeout = 180
-
-	@Flag(help: "Output format: text or json")
-	var format: Format = .text
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let result = try client.restart(Caked_RestartRequest(command: self), callOptions: callOptions).response.wait().vms.restarted
 
 		if result.success {
-			return self.format.render(result.objects)
+			return self.options.format.render(result.objects)
 		} else {
-			return self.format.render(result.reason)
+			return self.options.format.render(result.reason)
 		}
 	}
 }

@@ -11,7 +11,7 @@ struct DuplicateHandler: CakedCommand {
 			$0.vms = Caked_VirtualMachineReply.with {
 				$0.duplicated = .with {
 					$0.duplicated = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		}

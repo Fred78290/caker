@@ -452,21 +452,21 @@ extension Caked_VirtualMachineStatus: CustomStringConvertible {
 	public var description: String {
 		switch self {
 		case .stopped:
-			"stopped"
+			String(localized: "stopped")
 		case .running:
-			"running"
+			String(localized: "running")
 		case .paused:
-			"paused"
+			String(localized: "paused")
 		case .deleted:
-			"deleted"
+			String(localized: "deleted")
 		case .error:
-			"error"
+			String(localized: "error")
 		case .agentReady:
-			"agentReady"
+			String(localized: "agentReady")
 		case .UNRECOGNIZED(let value):
-			"unrecognized: \(value)"
+			String(localized: "unrecognized: \(value)")
 		case .new:
-			"new"
+			String(localized: "new")
 		}
 	}
 	

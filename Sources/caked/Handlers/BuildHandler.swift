@@ -24,7 +24,7 @@ struct BuildHandler: CakedCommandAsync {
 				$0.build = .with {
 					$0.builded = .with {
 						$0.builded = false
-						$0.reason = "\(error)"
+						$0.reason = error.reason
 					}
 				}
 			}
@@ -80,14 +80,14 @@ struct BuildHandler: CakedCommandAsync {
 								} else {
 									try await responseStream.send(.with {
 										$0.terminated = .with {
-											$0.failure = "Installation failed: \(error)"
+											$0.failure = String(localized: "Installation failed: \(error.reason)")
 										}
 									})
 								}
 							} else {
 								try await responseStream.send(.with {
 									$0.terminated = .with {
-										$0.success = message ?? "Installation succeeded"
+										$0.success = message ?? String(localized: "Installation succeeded")
 									}
 								})
 							}

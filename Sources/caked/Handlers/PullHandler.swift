@@ -25,7 +25,7 @@ struct PullHandler: CakedCommandAsync {
 			$0.oci = .with {
 				$0.pull = .with {
 					$0.success = false
-					$0.message = "\(error)"
+					$0.message = error.reason
 				}
 			}
 		}

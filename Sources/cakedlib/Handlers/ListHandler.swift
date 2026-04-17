@@ -49,7 +49,7 @@ public struct ListHandler {
 					try RawImageCache(runMode: runMode),
 					try IPSWCache(runMode: runMode),
 					try IsoCache(runMode: runMode),
-					try SimpleStreamsImageCache(name: "", runMode: runMode),
+					try SimpleStreamsImageCache(name: String.empty, runMode: runMode),
 				]
 
 				_ = try purgeableStorages.map { imageCache in
@@ -68,7 +68,7 @@ public struct ListHandler {
 								fqn: imageCache.fqn(purgeable),
 								vncURL: nil,
 								screenSize: nil,
-								instanceID: "",
+								instanceID: String.empty,
 								diskSize: try purgeable.sizeBytes(),
 								sizeOnDisk: try purgeable.allocatedSizeBytes(),
 								state: "cached",
@@ -80,9 +80,9 @@ public struct ListHandler {
 				}
 			}
 
-			return VirtualMachineInfoReply(infos: vmInfos, success: true, reason: "Success")
+			return VirtualMachineInfoReply(infos: vmInfos, success: true, reason: String(localized: "Success"))
 		} catch {
-			return VirtualMachineInfoReply(infos: [], success: false, reason: "\(error)")
+			return VirtualMachineInfoReply(infos: [], success: false, reason: error.reason)
 		}
 	}
 }

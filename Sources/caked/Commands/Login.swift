@@ -6,12 +6,12 @@ import GRPCLib
 import CakeAgentLib
 
 struct Login: AsyncParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Login to a registry")
+	static let configuration = CommandConfiguration(abstract: String(localized: "Login to a registry"))
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Login options")
+	@OptionGroup(title: String(localized: "Login options"))
 	var login: LoginOptions
 
 	mutating func run() async throws {

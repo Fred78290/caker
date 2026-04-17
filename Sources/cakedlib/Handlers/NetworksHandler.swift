@@ -64,13 +64,13 @@ public enum VMNetMode: String, CaseIterable, ExpressibleByArgument, Codable {
 	public var description: String {
 		switch self {
 		case .host:
-			return "Hosted network"
+			return String(localized: "Hosted network")
 		case .shared:
-			return "Shared network"
+			return String(localized: "Shared network")
 		case .bridged:
-			return "Bridged network"
+			return String(localized: "Bridged network")
 		case .nat:
-			return "NAT shared network"
+			return String(localized: "NAT shared network")
 		}
 	}
 
@@ -149,15 +149,15 @@ public struct NetworksHandler {
 
 	public static func getDHCPLease() throws -> Int32 {
 		guard let ref = SCPreferencesCreate(nil, Home.cakedCommandName as CFString, InternetSharingPrefs) else {
-			throw ServiceError("Unable to create SCPreferences")
+			throw ServiceError(String(localized: "Unable to create SCPreferences"))
 		}
 
 		guard let props = SCPreferencesGetValue(ref, BootpD) as? NSDictionary else {
-			throw ServiceError("Unable to load SCPreferences")
+			throw ServiceError(String(localized: "Unable to load SCPreferences"))
 		}
 
 		guard let lease = props["DHCPLeaseTimeSecs"] as? Int32 else {
-			throw ServiceError("Unable to load SCPreferences")
+			throw ServiceError(String(localized: "Unable to load SCPreferences"))
 		}
 
 		return lease
@@ -166,7 +166,7 @@ public struct NetworksHandler {
 	public static func setDHCPLease(leaseTime: Int32, runMode: Utils.RunMode) throws -> String {
 		if geteuid() == 0 {
 			guard let ref = SCPreferencesCreate(nil, Home.cakedCommandName as CFString, InternetSharingPrefs) else {
-				throw ServiceError("Unable to create SCPreferences")
+				throw ServiceError(String(localized: "Unable to create SCPreferences"))
 			}
 
 			#if DEBUG
@@ -182,7 +182,7 @@ public struct NetworksHandler {
 			SCPreferencesCommitChanges(ref)
 			SCPreferencesApplyChanges(ref)
 		} else if try SudoCaked(arguments: ["networks", "set-dhcp-lease", "\(leaseTime)"], runMode: runMode).runAndWait() != 0 {
-			throw ServiceError("Failed to set DHCP lease time")
+			throw ServiceError(String(localized: "Failed to set DHCP lease time"))
 		}
 
 		return "DHCP lease time set to \(leaseTime) seconds"
@@ -222,12 +222,12 @@ public struct NetworksHandler {
 			Logger(self).info("Restart network \(networkName)")
 
 			if pidURL.killPID(SIGUSR2) < 0 {
-				throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))")
+				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))"))
 			} else {
 				Logger(self).info("Network \(networkName) restarted")
 			}
 		} else if try SudoCaked(arguments: ["networks", "restart", networkName], runMode: runMode).runAndWait() != 0 {
-			throw ServiceError("Failed to restart network \(networkName)")
+			throw ServiceError(String(localized: "Failed to restart network \(networkName)"))
 		}
 
 		return "Network \(networkName) restarted"
@@ -279,7 +279,7 @@ public struct NetworksHandler {
 		Logger(self).info("Start VMNet mode: \(networkConfig.mode.rawValue) Using vmfd: \(fileDescriptor)")
 
 		guard let executableURL = URL.binary(phUseLimaVMNet ? "sock-vmnet" : Home.cakedCommandName) else {
-			throw ServiceError("caked not found in path")
+			throw ServiceError(String(localized: "caked not found in path"))
 		}
 
 		var arguments: [String] = []
@@ -305,8 +305,8 @@ public struct NetworksHandler {
 		}
 
 		if networkConfig.mode == .bridged {
-			guard networkConfig.networkName != "" else {
-				throw ServiceError("interface is required for bridged mode")
+			guard networkConfig.networkName != String.empty else {
+				throw ServiceError(String(localized: "interface is required for bridged mode"))
 			}
 			arguments.append("--interface=\(networkConfig.networkName)")
 		} else {
@@ -336,11 +336,11 @@ public struct NetworksHandler {
 			process.sharedFileHandles = [FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)]
 		} else {
 			guard let sudoURL = URL.binary(SUDO) else {
-				throw ServiceError("sudo not found in path")
+				throw ServiceError(String(localized: "sudo not found in path"))
 			}
 
 			guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+				throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
 			}
 
 			fd = STDIN_FILENO
@@ -380,9 +380,9 @@ public struct NetworksHandler {
 		try pidFile.waitPID {
 			if process.isRunning == false {
 				if process.terminationReason == .uncaughtSignal {
-					throw ServiceError("Network \(networkConfig.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason)")
+					throw ServiceError(String(localized: "Network \(networkConfig.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason.rawValue)"))
 				} else {
-					throw ServiceError("Network \(networkConfig.networkName) stopped: \(process.terminationStatus)")
+					throw ServiceError(String(localized: "Network \(networkConfig.networkName) stopped: \(process.terminationStatus)"))
 				}
 			}
 		}
@@ -407,7 +407,7 @@ public struct NetworksHandler {
 		if useLimaVMNet {
 
 			guard let socket_vmnet = URL.binary("socket_vmnet") else {
-				throw ServiceError("socket_vmnet not found in path")
+				throw ServiceError(String(localized: "socket_vmnet not found in path"))
 			}
 
 			executableURL = socket_vmnet
@@ -420,8 +420,8 @@ public struct NetworksHandler {
 			arguments.append("--vmnet-mode=\(mode.rawValue)")
 
 			if mode == .bridged {
-				guard networkConfig.networkName != "" else {
-					throw ServiceError("interface is required for bridged mode")
+				guard networkConfig.networkName != String.empty else {
+					throw ServiceError(String(localized: "interface is required for bridged mode"))
 				}
 				arguments.append("--vmnet-interface=\(networkConfig.networkName)")
 			} else {
@@ -462,8 +462,8 @@ public struct NetworksHandler {
 			}
 
 			if mode == .bridged {
-				guard networkConfig.networkName != "" else {
-					throw ServiceError("interface is required for bridged mode")
+				guard networkConfig.networkName != String.empty else {
+					throw ServiceError(String(localized: "interface is required for bridged mode"))
 				}
 				arguments.append("--interface=\(networkConfig.networkName)")
 			} else {
@@ -487,11 +487,11 @@ public struct NetworksHandler {
 			arguments.append("--pidfile=\(socketURL.pidFile.path)")
 			arguments.append(socketURL.socket.path)
 		} else {
-			throw ServiceError("caked not found in path")
+			throw ServiceError(String(localized: "caked not found in path"))
 		}
 
 		if socketURL.pidFile.isCakedRunning() {
-			throw ServiceError("\(executableURL.path) is already running")
+			throw ServiceError(String(localized: "\(executableURL.path) is already running"))
 		}
 
 		try? socketURL.socket.delete()
@@ -504,11 +504,11 @@ public struct NetworksHandler {
 			runningArguments = []
 		} else {
 			guard let sudoURL = URL.binary(SUDO) else {
-				throw ServiceError("sudo not found in path")
+				throw ServiceError(String(localized: "sudo not found in path"))
 			}
 
 			guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+				throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
 			}
 
 			process.executableURL = sudoURL
@@ -554,9 +554,9 @@ public struct NetworksHandler {
 		try socketURL.pidFile.waitPID {
 			if process.isRunning == false {
 				if process.terminationReason == .uncaughtSignal {
-					throw ServiceError("Network \(networkConfig.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason)")
+					throw ServiceError(String(localized: "Network \(networkConfig.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason.rawValue)"))
 				} else {
-					throw ServiceError("Network \(networkConfig.networkName) stopped: \(process.terminationStatus)")
+					throw ServiceError(String(localized: "Network \(networkConfig.networkName) stopped: \(process.terminationStatus)"))
 				}
 			}
 		}
@@ -568,11 +568,11 @@ public struct NetworksHandler {
 			var networkConfig = try home.sharedNetworks()
 
 			guard let existing = networkConfig.sharedNetworks[networkName] else {
-				throw ServiceError("Network \(networkName) doesn't exists")
+				throw ServiceError(String(localized: "Network \(networkName) doesn't exists"))
 			}
 
 			if existing == network {
-				return ConfiguredNetworkReply(name: networkName, configured: false, reason: "Network \(networkName) unchanged")
+				return ConfiguredNetworkReply(name: networkName, configured: false, reason: String(localized: "Network \(networkName) unchanged"))
 			}
 
 			networkConfig.userNetworks[networkName] = network
@@ -580,10 +580,10 @@ public struct NetworksHandler {
 			do {
 				return ConfiguredNetworkReply(name: networkName, configured: true, reason: try self.restartNetworkService(networkName: networkName, runMode: runMode))
 			} catch {
-				return ConfiguredNetworkReply(name: networkName, configured: true, reason: "\(error)")
+				return ConfiguredNetworkReply(name: networkName, configured: true, reason: error.reason)
 			}
 		} catch {
-			return ConfiguredNetworkReply(name: networkName, configured: false, reason: "\(error)")
+			return ConfiguredNetworkReply(name: networkName, configured: false, reason: error.reason)
 		}
 	}
 
@@ -592,16 +592,16 @@ public struct NetworksHandler {
 			let home: Home = try Home(runMode: runMode)
 			var networkConfig = try home.sharedNetworks()
 
-			guard network.networkName != "" else {
-				return ConfiguredNetworkReply(name: "", configured: false, reason: "Network name is required")
+			guard network.networkName != String.empty else {
+				return ConfiguredNetworkReply(name: String.empty, configured: false, reason: String(localized: "Network name is required"))
 			}
 
 			guard Self.isPhysicalInterface(name: String(network.networkName)) == false else {
-				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "Network \(network.networkName) is a physical interface")
+				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: String(localized: "Network \(network.networkName) is a physical interface"))
 			}
 
 			guard let exisiting = networkConfig.sharedNetworks[network.networkName] else {
-				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "Network \(network.networkName) doesn't exists")
+				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: String(localized: "Network \(network.networkName) doesn't exists"))
 			}
 
 			let changed = VZSharedNetwork(
@@ -622,13 +622,13 @@ public struct NetworksHandler {
 				do {
 					return ConfiguredNetworkReply(name: network.networkName, configured: true, reason: try self.restartNetworkService(networkName: network.networkName, runMode: runMode))
 				} catch {
-					return ConfiguredNetworkReply(name: network.networkName, configured: true, reason: "\(error)")
+					return ConfiguredNetworkReply(name: network.networkName, configured: true, reason: error.reason)
 				}
 			} else {
-				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "Network \(network.networkName) unchanged")
+				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: String(localized: "Network \(network.networkName) unchanged"))
 			}
 		} catch {
-			return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "\(error)")
+			return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: error.reason)
 		}
 	}
 
@@ -636,9 +636,9 @@ public struct NetworksHandler {
 		do {
 			_ = try startNetwork(networkName: networkName, runMode: runMode)
 
-			return StartedNetworkReply(name: networkName, started: true, reason: "Network \(networkName) started")
+			return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) started"))
 		} catch {
-			return StartedNetworkReply(name: networkName, started: false, reason: "\(error)")
+			return StartedNetworkReply(name: networkName, started: false, reason: error.reason)
 		}
 	}
 
@@ -651,7 +651,7 @@ public struct NetworksHandler {
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		} else {
 			guard let sharedNetwork = sharedNetworks[networkName] else {
-				throw ServiceError("Network \(networkName) doesn't exists")
+				throw ServiceError(String(localized: "Network \(networkName) doesn't exists"))
 			}
 
 			try sharedNetwork.validate(runMode: runMode)
@@ -670,7 +670,7 @@ public struct NetworksHandler {
 		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.socket.path)")
 
 		guard let executableURL = URL.binary(Home.cakedCommandName) else {
-			throw ServiceError("caked not found in path")
+			throw ServiceError(String(localized: "caked not found in path"))
 		}
 
 		var arguments = ["networks", "start", networkName]
@@ -693,11 +693,11 @@ public struct NetworksHandler {
 			runningArguments = []
 		} else {
 			guard let sudoURL = URL.binary(SUDO) else {
-				throw ServiceError("sudo not found in path")
+				throw ServiceError(String(localized: "sudo not found in path"))
 			}
 
 			guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+				throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
 			}
 
 			process.executableURL = sudoURL
@@ -747,9 +747,9 @@ public struct NetworksHandler {
 		try socketURL.pidFile.waitPID {
 			if process.isRunning == false {
 				if process.terminationReason == .uncaughtSignal {
-					throw ServiceError("Network \(networkName) failed to start: \(process.terminationStatus), \(process.terminationReason)")
+					throw ServiceError(String(localized: "Network \(networkName) failed to start: \(process.terminationStatus), \(process.terminationReason.rawValue)"))
 				} else {
-					throw ServiceError("Network \(networkName) stopped: \(process.terminationStatus)")
+					throw ServiceError(String(localized: "Network \(networkName) stopped: \(process.terminationStatus)"))
 				}
 			}
 		}
@@ -770,7 +770,7 @@ public struct NetworksHandler {
 			networkConfig = .init(name: networkName)
 		} else {
 			guard let network = sharedNetworks[networkName] else {
-				throw ServiceError("Network \(networkName) doesn't exists")
+				throw ServiceError(String(localized: "Network \(networkName) doesn't exists"))
 			}
 
 			mode = networkName == "host" ? .host : .shared
@@ -789,16 +789,16 @@ public struct NetworksHandler {
 			var networkConfig = try home.sharedNetworks()
 
 			if networkConfig.sharedNetworks[networkName] != nil {
-				return CreatedNetworkReply(name: networkName, created: false, reason: "Network \(networkName) already exists")
+				return CreatedNetworkReply(name: networkName, created: false, reason: String(localized: "Network \(networkName) already exists"))
 			}
 
 			networkConfig.userNetworks[networkName] = network
 
 			try home.setSharedNetworks(networkConfig)
 
-			return CreatedNetworkReply(name: networkName, created: true, reason: "Network \(networkName) created")
+			return CreatedNetworkReply(name: networkName, created: true, reason: String(localized: "Network \(networkName) created"))
 		} catch {
-			return CreatedNetworkReply(name: networkName, created: false, reason: "\(error)")
+			return CreatedNetworkReply(name: networkName, created: false, reason: error.reason)
 		}
 	}
 
@@ -808,22 +808,22 @@ public struct NetworksHandler {
 			var networkConfig = try home.sharedNetworks()
 
 			guard networkConfig.sharedNetworks[networkName] != nil else {
-				return DeleteNetworkReply(name: networkName, deleted: false, reason: "Network \(networkName) doesn't exists")
+				return DeleteNetworkReply(name: networkName, deleted: false, reason: String(localized: "Network \(networkName) doesn't exists"))
 			}
 
 			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
 
 			if socketURL.pidFile.isCakedRunning() {
-				return DeleteNetworkReply(name: networkName, deleted: false, reason: "Network \(networkName) is running")
+				return DeleteNetworkReply(name: networkName, deleted: false, reason: String(localized: "Network \(networkName) is running"))
 			}
 
 			networkConfig.userNetworks.removeValue(forKey: networkName)
 
 			try home.setSharedNetworks(networkConfig)
 
-			return DeleteNetworkReply(name: networkName, deleted: true, reason: "Network \(networkName) deleted")
+			return DeleteNetworkReply(name: networkName, deleted: true, reason: String(localized: "Network \(networkName) deleted"))
 		} catch {
-			return DeleteNetworkReply(name: networkName, deleted: false, reason: "\(error)")
+			return DeleteNetworkReply(name: networkName, deleted: false, reason: error.reason)
 		}
 	}
 
@@ -841,7 +841,7 @@ public struct NetworksHandler {
 	public static func stop(pidURL: URL, runMode: Utils.RunMode) -> String {
 		do {
 			guard try pidURL.exists() else {
-				throw ServiceError("PID file \(pidURL.path) doesn't exists")
+				throw ServiceError(String(localized: "PID file \(pidURL.path) doesn't exists"))
 			}
 
 			guard pidURL.isCakedRunning() else {
@@ -854,21 +854,21 @@ public struct NetworksHandler {
 			if geteuid() == 0 {
 				// We are running as root, so we can just kill the process
 				if pidURL.killPID(SIGTERM) < 0 {
-					throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))")
+					throw ServiceError(String(localized: "Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))"))
 				} else {
 					#if DEBUG
 						Logger(self).debug("PID \(pidURL.path) stopped")
 					#endif
 				}
 			} else if try SudoCaked(arguments: ["networks", "stop", "--pidfile=\(pidURL.path)"], runMode: runMode).runAndWait() != 0 {
-				throw ServiceError("Failed to kill process \(pidURL.path)")
+				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path)"))
 			} else {
 				try pidURL.waitStopped()
 			}
 
 			return "PID \(pidURL.path) stopped"
 		} catch {
-			return "\(error)"
+			return error.reason
 		}
 	}
 
@@ -876,7 +876,7 @@ public struct NetworksHandler {
 		do {
 			return StoppedNetworkReply(name: networkName, stopped: true, reason: try stopNetwork(networkName: networkName, runMode: runMode))
 		} catch {
-			return StoppedNetworkReply(name: networkName, stopped: false, reason: "\(error)")
+			return StoppedNetworkReply(name: networkName, stopped: false, reason: error.reason)
 		}
 	}
 
@@ -893,12 +893,12 @@ public struct NetworksHandler {
 
 			// We are running as root, so we can just kill the process
 			if pidURL.killPID(SIGTERM) < 0 {
-				throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))")
+				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))"))
 			} else {
 				Logger(self).info("Network \(networkName) stopped")
 			}
 		} else if try SudoCaked(arguments: ["networks", "stop", networkName], runMode: runMode).runAndWait() != 0 {
-			throw ServiceError("Failed to kill network process \(networkName)")
+			throw ServiceError(String(localized: "Failed to kill network process \(networkName)"))
 		} else {
 			// Wait for the process to exit
 			try socketURL.pidFile.waitStopped()
@@ -929,9 +929,9 @@ public struct NetworksHandler {
 			return defaultNatNetwork
 		}
 
-		var dhcpStart = ""
-		var dhcpEnd = ""
-		var dhcpLease = ""
+		var dhcpStart = String.empty
+		var dhcpEnd = String.empty
+		var dhcpLease = String.empty
 
 		if let lease = try? getDHCPLease() {
 			dhcpLease = "\(lease)"
@@ -959,7 +959,7 @@ public struct NetworksHandler {
 			Logger("NetworksHandler").error("Unable to get nat infos: \(error)")
 		}
 
-		let defaultNatNetwork = BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: dhcpStart, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: "nat", endpoint: "", usedBy: referencedNetworks.usage(name: "nat"))
+		let defaultNatNetwork = BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: dhcpStart, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: "nat", endpoint: String.empty, usedBy: referencedNetworks.usage(name: "nat"))
 
 		self._defaultNatNetwork = defaultNatNetwork
 
@@ -1005,7 +1005,7 @@ public struct NetworksHandler {
 				if try socketURL.socket.exists() {
 					endpoint = socketURL.socket.path
 				} else {
-					endpoint = ""
+					endpoint = String.empty
 				}
 
 				return BridgedNetwork(name: name, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint, usedBy: referencedNetworks.usage(name: name))
@@ -1014,13 +1014,13 @@ public struct NetworksHandler {
 			try networks.append(
 				contentsOf: VZBridgedNetworkInterface.networkInterfaces.map { inf in
 					if let address = networkInterfaces[inf.identifier] {
-						return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, "", address.network.description, "\(address.range.upperBound.description)/\(address.network.bits)", "")
+						return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, String.empty, address.network.description, "\(address.range.upperBound.description)/\(address.network.bits)", String.empty)
 					} else {
-						return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, "", "", "", "")
+						return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, String.empty, String.empty, String.empty, String.empty)
 					}
 				})
 
-			let dhcpLease = networkConfig.defaultNatNetwork.dhcpLease != nil ? "\(networkConfig.defaultNatNetwork.dhcpLease!)" : ""
+			let dhcpLease = networkConfig.defaultNatNetwork.dhcpLease != nil ? "\(networkConfig.defaultNatNetwork.dhcpLease!)" : String.empty
 
 			networks = try networkConfig.sharedNetworks.reduce(into: networks) {
 				let cidr = $1.value.netmask.netmaskToCidr()
@@ -1033,9 +1033,9 @@ public struct NetworksHandler {
 				$0 < $1
 			}
 
-			return ListNetworksReply(networks: networks, success: true, reason: "Success")
+			return ListNetworksReply(networks: networks, success: true, reason: String(localized: "Success"))
 		} catch {
-			return ListNetworksReply(networks: [], success: false, reason: "\(error)")
+			return ListNetworksReply(networks: [], success: false, reason: error.reason)
 		}
 	}
 
@@ -1044,12 +1044,12 @@ public struct NetworksHandler {
 			let referencedNetworks = Self.referencedNetworks(runMode: runMode)
 			var result: BridgedNetwork
 			var mode: BridgedNetworkMode = .nat
-			var description: String = ""
-			var uuid: String = ""
-			var gateway: String = ""
-			var dhcpEnd: String = ""
-			var dhcpLease: String = ""
-			var endpoint: String = ""
+			var description: String = String.empty
+			var uuid: String = String.empty
+			var gateway: String = String.empty
+			var dhcpEnd: String = String.empty
+			var dhcpLease: String = String.empty
+			var endpoint: String = String.empty
 
 			if let inf = NetworksHandler.findPhysicalInterface(name: networkName) {
 				let interfaces = VZSharedNetwork.networkInterfaces(includeSharedNetworks: false, runMode: runMode)
@@ -1066,7 +1066,7 @@ public struct NetworksHandler {
 				let networkConfig = try Home(runMode: runMode).sharedNetworks()
 
 				guard let network = networkConfig.sharedNetworks[networkName] else {
-					throw ServiceError("Network \(networkName) doesn't exists")
+					throw ServiceError(String(localized: "Network \(networkName) doesn't exists"))
 				}
 
 				let cidr = network.netmask.netmaskToCidr()
@@ -1090,9 +1090,9 @@ public struct NetworksHandler {
 
 			result = BridgedNetwork(name: networkName, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint, usedBy: referencedNetworks.usage(name: networkName))
 
-			return NetworkInfoReply(info: result, success: true, reason: "Success")
+			return NetworkInfoReply(info: result, success: true, reason: String(localized: "Success"))
 		} catch {
-			return NetworkInfoReply(info: BridgedNetwork(name: "", mode: .nat, description: "", gateway: "", dhcpLease: "", interfaceID: "", endpoint: "", usedBy: 0), success: false, reason: "\(error)")
+			return NetworkInfoReply(info: BridgedNetwork(name: String.empty, mode: .nat, description: String.empty, gateway: String.empty, dhcpLease: String.empty, interfaceID: String.empty, endpoint: String.empty, usedBy: 0), success: false, reason: error.reason)
 		}
 	}
 }

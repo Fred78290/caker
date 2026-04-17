@@ -28,11 +28,7 @@ func alertError(_ error: Error) {
 		informativeText = error.localizedDescription
 	}
 
-	let alert = NSAlert(error: error)
-
-	alert.messageText = "An error occured"
-	alert.informativeText = informativeText
-	alert.runModal()
+	alertError(String(localized: "An error occured"), informativeText)
 }
 
 struct Defaults {
@@ -82,7 +78,7 @@ struct Defaults {
 }
 
 struct MainAppParseArgument: ParsableCommand {
-	@Option(name: [.customLong("log-level")], help: "Log level")
+	@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
 	var logLevel: CakeAgentLib.Logger.LogLevel = .info
 
 	func validate() throws {
@@ -123,11 +119,9 @@ struct MainApp: App {
 		Self.app = self
 	}
 	
-	var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) {
-		let title = "Install agent"
-		
+	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) {		
 		guard let document = appState.currentDocument else {
-			return (title, false, true)
+			return ("Install agent", false, true)
 		}
 		
 		return document.agentCondition
@@ -193,7 +187,7 @@ struct MainApp: App {
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
 		
-		Window("Create new virtual machine", id: "wizard") {
+		Window("Create a new virtual machine", id: "wizard") {
 			newDocWizard()
 		}
 		.windowResizability(.contentSize)
@@ -228,7 +222,7 @@ struct MainApp: App {
 				appState.currentDocument.stopFromUI(force: true)
 			}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
 			
-			Button("Request Stop") {
+			Button("Request stop") {
 				appState.currentDocument.stopFromUI(force: false)
 			}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
 			
@@ -313,7 +307,7 @@ struct MainApp: App {
 	private func open() {
 		let home = StorageLocation(runMode: .app).rootURL
 		
-		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: "Open virtual machine", directoryURL: home) {
+		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: String(localized: "Open virtual machine"), directoryURL: home) {
 			Task {
 				try? await openDocument(at: documentURL)
 			}
@@ -401,13 +395,13 @@ struct MainApp: App {
 	
 	static func runAgent(runMode: Utils.RunMode) throws {
 		guard var pluginsURL = Bundle.main.cakedBundleURL else {
-			throw ServiceError("Caked bundle path is missing")
+			throw ServiceError(String(localized: "Caked bundle path is missing"))
 		}
 
 		pluginsURL = pluginsURL.appendingPathComponent(Home.cakedCommandName)
 
 		guard try pluginsURL.exists() else {
-			throw ServiceError("Caked executable is missing")
+			throw ServiceError(String(localized: "Caked executable is missing"))
 		}
 
 		// Launch off the main thread to avoid QoS inversions and UI stalls
@@ -479,7 +473,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure certificates: \(error.localizedDescription)")
 
 			MainActor.assumeIsolated {
-				alertError("Certificates", "Failed to install certificates. Please check the logs for more information.")
+				alertError(String(localized: "Certificates"), String(localized: "Failed to install certificates. Please check the logs for more information."))
 			}
 
 			NSApp.terminate(self)
@@ -522,7 +516,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
 
 			MainActor.assumeIsolated {
-				alertError("Admin rights", "Failed to ensure privileged bootstrap files")
+				alertError(String(localized: "Admin rights"), String(localized: "Failed to ensure privileged bootstrap files"))
 			}
 
 			NSApp.terminate(self)

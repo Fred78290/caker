@@ -31,7 +31,7 @@ struct RestartHandler: CakedCommand {
 			$0.vms.restarted = .with {
 				$0.objects = []
 				$0.success = false
-				$0.reason = "\(error)"
+				$0.reason = error.reason
 			}
 		}
 	}

@@ -27,6 +27,13 @@ RELEASE=1
 
 sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app" "${PROJECT_ROOT}/.build" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 
+cleanup_swift_package_mirror() {
+	/usr/bin/swift package config unset-mirror --original https://github.com/apple/swift-argument-parser || true
+}
+trap cleanup_swift_package_mirror EXIT
+
+/usr/bin/swift package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
+/usr/bin/swift package resolve
 /usr/bin/swift build -c release --arch x86_64
 /usr/bin/swift build -c release --arch arm64
 

@@ -603,11 +603,11 @@ public class CarbonKeyMapper: Keymapper {
 					}
 				}
 			} else {
-				throw ServiceError("Unable to init VNKeyMapper: no keyboard layout data")
+				throw ServiceError(String(localized: "Unable to init VNKeyMapper: no keyboard layout data"))
 			}
 
 		} else {
-			throw ServiceError("Unable to init VNKeyMapper: no keyboard")
+			throw ServiceError(String(localized: "Unable to init VNKeyMapper: no keyboard"))
 		}
 		#if DEBUG
 			print("charKeyMap")

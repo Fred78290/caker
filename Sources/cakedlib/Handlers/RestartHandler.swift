@@ -18,7 +18,7 @@ public struct RestartHandler {
 		do {
 			return try restart(location: StorageLocation(runMode: runMode).find(name), startMode: startMode, gcd: gcd, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 		} catch {
-			return RestartedObject(name: name, restarted: false, reason: "\(error)")
+			return RestartedObject(name: name, restarted: false, reason: error.reason)
 		}
 	}
 
@@ -26,7 +26,7 @@ public struct RestartHandler {
 		do {
 			return try restart(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), startMode: startMode, gcd: gcd, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 		} catch {
-			return RestartedObject(name: vmURL.absoluteString, restarted: false, reason: "\(error)")
+			return RestartedObject(name: vmURL.absoluteString, restarted: false, reason: error.reason)
 		}
 	}
 
@@ -34,12 +34,12 @@ public struct RestartHandler {
 		do {
 			if location.status == .running {
 				try location.restartVirtualMachine(startMode: startMode, gcd: gcd, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
-				return RestartedObject(name: location.name, restarted: true, reason: "")
+				return RestartedObject(name: location.name, restarted: true, reason: String.empty)
 			}
 			
-			return RestartedObject(name: location.name, restarted: false, reason: "VM is not running")
+			return RestartedObject(name: location.name, restarted: false, reason: String(localized: "VM is not running"))
 		} catch {
-			return RestartedObject(name: location.name, restarted: false, reason: "\(error)")
+			return RestartedObject(name: location.name, restarted: false, reason: error.reason)
 		}
 	}
 	
@@ -48,6 +48,6 @@ public struct RestartHandler {
 			RestartHandler.restart(name: $0, startMode: startMode, gcd: gcd, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 		}
 		
-		return RestartReply(objects: restarted, success: true, reason: "Success")
+		return RestartReply(objects: restarted, success: true, reason: String(localized: "Success"))
 	}
 }

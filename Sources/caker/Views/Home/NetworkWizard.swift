@@ -17,7 +17,7 @@ struct NetworkWizard: View {
 	@State private var reason: String?
 
 	init() {
-		let network = BridgedNetwork(name: "private", mode: .host, description: "Hosted network", gateway: "192.168.111.1/24", dhcpEnd: "192.168.111.254/24", dhcpLease: Self.getDhcpLease(), interfaceID: UUID().uuidString, endpoint: "", usedBy: 0)
+		let network = BridgedNetwork(name: "private", mode: .host, description: "Hosted network", gateway: "192.168.111.1/24", dhcpEnd: "192.168.111.254/24", dhcpLease: Self.getDhcpLease(), interfaceID: UUID().uuidString, endpoint: String.empty, usedBy: 0)
 		let valid = Self.validate(network)
 
 		self.vzNetwork = valid.0
@@ -66,7 +66,7 @@ struct NetworkWizard: View {
 	static func validate(_ network: BridgedNetwork) -> (VZSharedNetwork?, String?) {
 		do {
 			guard AppState.shared.networks.first(where: { $0.name == network.name }) == nil else {
-				throw ValidationError("Network \(network.name) already exist")
+				throw ValidationError(String(localized: "Network \(String(describing: network.name)) already exists"))
 			}
 
 			let inet = network.gateway.toNetwork()
@@ -74,23 +74,23 @@ struct NetworkWizard: View {
 			let dhcpEnd = network.dhcpEnd.toIPV4()
 
 			guard let inet = inet else {
-				throw ValidationError("Invalid address \(network.gateway)")
+				throw ValidationError(String(localized: "Invalid address \(network.gateway)"))
 			}
 
 			guard let dhcpStart = gateway.address, let netmask = gateway.netmask else {
-				throw ValidationError("Invalid address \(network.gateway)")
+				throw ValidationError(String(localized: "Invalid address \(network.gateway)"))
 			}
 
 			guard let dhcpEnd = dhcpEnd.address else {
-				throw ValidationError("Invalid address \(network.dhcpEnd)")
+				throw ValidationError(String(localized: "Invalid address \(network.dhcpEnd)"))
 			}
 
 			guard AppState.shared.networks.first(where: { $0.gateway == network.gateway }) == nil else {
-				throw ValidationError("Gateway \(dhcpStart) is already in use")
+				throw ValidationError(String(localized: "Gateway \(String(dhcpStart)) is already in use"))
 			}
 
 			guard inet.contains(dhcpEnd) else {
-				throw ValidationError("dhcp end \(dhcpEnd) is not in the range of the network \(network.description)")
+				throw ValidationError(String(localized: "dhcp end \(String(dhcpEnd)) is not in the range of the network \(network.description)"))
 			}
 
 			let network = VZSharedNetwork(
@@ -129,7 +129,7 @@ struct NetworkWizard: View {
 
 	static func getDhcpLease() -> String {
 		guard let dhcpLease = try? NetworksHandler.getDHCPLease() else {
-			return ""
+			return String.empty
 		}
 
 		return "\(dhcpLease)"

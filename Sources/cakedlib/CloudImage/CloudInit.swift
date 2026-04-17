@@ -95,7 +95,7 @@ extension Dictionary {
 
 	func write(to: URL) throws {
 		guard let jsonData = self.jsonData else {
-			throw ServiceError("Can't get data")
+			throw ServiceError(String(localized: "Can't get data"))
 		}
 
 		try jsonData.write(to: to)

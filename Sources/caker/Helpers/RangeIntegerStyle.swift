@@ -40,7 +40,7 @@ struct OptionalRangeIntegerStyle: ParseableFormatStyle {
 
 	func format(_ value: Int?) -> String {
 		guard let value = value else {
-			return ""
+			return String.empty
 		}
 
 		let constrainedValue = min(max(value, range.lowerBound), range.upperBound)

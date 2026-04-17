@@ -1,6 +1,7 @@
 import Foundation
 import GRPCLib
 import Virtualization
+import SwiftUI
 
 let cloudInitIso = "cloud-init.iso"
 
@@ -31,7 +32,7 @@ public struct VMBuilder {
 				}
 
 				guard let requirements = image.mostFeaturefulSupportedConfiguration else {
-					throw ServiceError("Unsupported restore image")
+					throw ServiceError(String(localized: "Unsupported restore image"))
 				}
 
 				_ = try VZMacAuxiliaryStorage(creatingStorageAt: location.nvramURL, hardwareModel: requirements.hardwareModel)
@@ -75,7 +76,7 @@ public struct VMBuilder {
 					#if arch(arm64)
 						config.ecid = VZMacMachineIdentifier().dataRepresentation
 					#else
-						throw ServiceError("macOS VMs are only supported on Apple Silicon Macs")
+						throw ServiceError(String(localized: "macOS VMs are only supported on Apple Silicon Macs"))
 					#endif
 				}
 			} else {
@@ -158,7 +159,7 @@ public struct VMBuilder {
 
 	public static func cloneImage(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
 		if FileManager.default.fileExists(atPath: location.diskURL.path) {
-			throw ServiceError("VM already exists")
+			throw ServiceError(String(localized: "VM already exists"))
 		}
 		var options = options
 		var sourceImage = options.imageSource
@@ -178,7 +179,7 @@ public struct VMBuilder {
 		}
 
 		guard var imageURL = URL(string: options.image) else {
-			throw ServiceError("unsupported url: \(options.image)")
+			throw ServiceError(String(localized: "unsupported url: \(options.image)"))
 		}
 
 		if sourceImage == nil {
@@ -216,7 +217,7 @@ public struct VMBuilder {
 				imageURL = URL(string: options.image)!
 				sourceImage = .stream
 			} else {
-				throw ServiceError("unsupported url: \(options.image)")
+				throw ServiceError(String(localized: "unsupported url: \(options.image)"))
 			}
 
 			options.imageSource = sourceImage
@@ -240,7 +241,7 @@ public struct VMBuilder {
 			try? FileManager.default.removeItem(at: temporaryDiskURL)
 		} else if sourceImage == .template {
 			guard let templateName = imageURL.host else {
-				throw ServiceError("Wrong URL for template")
+				throw ServiceError(String(localized: "Wrong URL for template"))
 			}
 
 			let templateLocation = try StorageLocation(runMode: runMode, template: true).find(templateName)
@@ -270,17 +271,17 @@ public struct VMBuilder {
 				options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
 			}
 			#else
-				throw ServiceError("IPSW is only available on arm64 architecture: \(options.image)")
+				throw ServiceError(String(localized: "IPSW is only available on arm64 architecture: \(options.image)"))
 			#endif
 		} else if sourceImage == .stream {
 			let scheme = imageURL.scheme!
 
 			guard let remoteContainerServer = remoteDb.get(scheme) else {
-				throw ServiceError("remote stream \(scheme) not found")
+				throw ServiceError(String(localized: "remote stream \(scheme) not found"))
 			}
 
 			guard let remoteContainerServerURL: URL = URL(string: remoteContainerServer) else {
-				throw ServiceError("malformed url: \(remoteContainerServer)")
+				throw ServiceError(String(localized: "malformed url: \(remoteContainerServer)"))
 			}
 
 			let aliasImage = aliasImage(options.image)
@@ -289,7 +290,7 @@ public struct VMBuilder {
 
 			try await image.retrieveSimpleStreamImageAndConvert(to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
 		} else {
-			throw ServiceError("unsupported image url: \(options.image)")
+			throw ServiceError(String(localized: "unsupported image url: \(options.image)"))
 		}
 
 		return options

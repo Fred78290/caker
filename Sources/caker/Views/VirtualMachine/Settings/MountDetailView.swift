@@ -16,7 +16,7 @@ struct MountDetailView: View {
 	init(currentItem: Binding<DirectorySharingAttachment>, readOnly: Bool = true) {
 		_currentItem = currentItem
 		self.readOnly = readOnly
-		self.name = currentItem.wrappedValue._name ?? ""
+		self.name = currentItem.wrappedValue._name ?? String.empty
 	}
 
 	var body: some View {
@@ -80,7 +80,7 @@ struct MountDetailView: View {
 	}
 
 	func chooseFolder() {
-		if let folder = FileHelpers.selectFolder(withTitle: "Choose folder to mount inside VM") {
+		if let folder = FileHelpers.selectFolder(withTitle: String(localized: "Choose folder to mount inside VM")) {
 			currentItem.source = folder.absoluteURL.path
 		}
 	}

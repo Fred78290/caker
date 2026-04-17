@@ -27,10 +27,10 @@ extension VZDiskSynchronizationMode: @retroactive CustomStringConvertible {
 			self = .none
 		case "full":
 			self = .full
-		case "":
+		case String.empty:
 			self = .full
 		default:
-			throw ValidationError("Unsupported disk synchronization mode: \"\(description)\"")
+			throw ValidationError(String(localized: "Unsupported disk synchronization mode: \"\(description)\""))
 		}
 	}
 }
@@ -62,10 +62,10 @@ extension VZDiskImageSynchronizationMode: @retroactive CustomStringConvertible {
 			self = .fsync
 		case "full":
 			self = .full
-		case "":
+		case String.empty:
 			self = .full
 		default:
-			throw ValidationError("Unsupported disk image synchronization mode: \"\(description)\"")
+			throw ValidationError(String(localized: "Unsupported disk image synchronization mode: \"\(description)\""))
 		}
 	}
 }
@@ -100,10 +100,10 @@ extension VZDiskImageCachingMode: @retroactive CustomStringConvertible {
 			self = .cached
 		case "uncached":
 			self = .uncached
-		case "":
+		case String.empty:
 			self = .uncached
 		default:
-			throw ValidationError("Unsupported disk image caching mode: \"\(description)\"")
+			throw ValidationError(String(localized: "Unsupported disk image caching mode: \"\(description)\""))
 		}
 	}
 }
@@ -167,8 +167,8 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		static func parseOptions(_ parseFrom: String) -> (DiskOptions, Bool) {
 			let options = parseFrom.split(separator: ",")
 			var readOnly: Bool = false
-			var syncMode: String = ""
-			var cachingMode: String = ""
+			var syncMode: String = String.empty
+			var cachingMode: String = String.empty
 			var foundOptions: Bool = false
 
 			options.forEach { option in
@@ -189,7 +189,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 	}
 
 	public init() {
-		self.diskPath = ""
+		self.diskPath = String.empty
 		self.diskOptions = .init(readOnly: false, syncMode: "full", cachingMode: VZDiskImageCachingMode.automatic.description)
 	}
 
@@ -230,12 +230,12 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		let diskPath = diskURL.path
 
 		if FileManager.default.fileExists(atPath: diskPath) == false {
-			throw ValidationError("disk \(diskPath) does not exist")
+			throw ValidationError(String(localized: "disk \(diskPath) does not exist"))
 		}
 
 		if Self.isBlockingDevice(diskPath) {
 			guard #available(macOS 14, *) else {
-				throw ValidationError("Attaching block devices prior MacOS 14")
+				throw ValidationError(String(localized: "Attaching block devices prior MacOS 14"))
 			}
 
 			let fd = open(diskPath, self.diskOptions.readOnly ? O_RDONLY : O_RDWR)
@@ -245,11 +245,11 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 
 				switch details.rawValue {
 				case EBUSY:
-					throw ValidationError("\(diskPath) already in use, try umounting it")
+					throw ValidationError(String(localized: "\(diskPath) already in use, try umounting it"))
 				case EACCES:
-					throw ValidationError("\(diskPath) permission denied, consider changing the disk's owner using \"sudo chown $USER \(diskPath)\" or run as a superuser")
+					throw ValidationError(String(localized: "\(diskPath) permission denied, consider changing the disk's owner using \"sudo chown $USER \(diskPath)\" or run as a superuser"))
 				default:
-					throw ValidationError("\(details), \(diskPath)")
+					throw ValidationError(String(localized: "Unexpected error: \(details.description), \(diskPath)"))
 				}
 			}
 
@@ -262,7 +262,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		}
 
 		if try self.diskOptions.readOnly == false && !FileLock(lockURL: diskURL).trylock() {
-			throw ValidationError("disk \(diskURL.path) seems to be already in use, unmount it first in Finder")
+			throw ValidationError(String(localized: "disk \(diskURL.path) seems to be already in use, unmount it first in Finder"))
 		}
 
 		let diskImageAttachment = try VZDiskImageStorageDeviceAttachment(
@@ -289,24 +289,24 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 
 		if ["nbd", "nbds", "nbd+unix", "nbds+unix"].contains(diskURL?.scheme) {
 			guard #available(macOS 14, *) else {
-				throw ValidationError("Attaching Network Block Devices are not supported prior MacOS 14")
+				throw ValidationError(String(localized: "Attaching Network Block Devices are not supported prior MacOS 14"))
 			}
 		} else {
 			let diskPath = diskPath.expandingTildeInPath
 
 			if diskPath.isEmpty {
-				throw ValidationError("Disk path is empty")
+				throw ValidationError(String(localized: "Disk path is empty"))
 			}
 
 			// Check if the disk path is a valid local file path
 			if diskPath.contains("/") {
 				if FileManager.default.fileExists(atPath: diskPath) == false {
-					throw ValidationError("disk \(diskPath) does not exist")
+					throw ValidationError(String(localized: "disk \(diskPath) does not exist"))
 				}
 
 				if Self.isBlockingDevice(diskPath) {
 					guard #available(macOS 14, *) else {
-						throw ValidationError("Attaching block devices prior MacOS 14")
+						throw ValidationError(String(localized: "Attaching block devices prior MacOS 14"))
 					}
 				}
 			}

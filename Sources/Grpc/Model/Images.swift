@@ -14,7 +14,7 @@ public typealias ImageInfos = [ImageInfo]
 extension Aliases {
 	var description: String {
 		if self.isEmpty {
-			return ""
+			return String.empty
 		} else if self.count == 1 {
 			return self[0]
 		} else {
@@ -44,7 +44,7 @@ public class LinuxContainerImage: Codable {
 		self.description = from.description_p
 	}
 
-	public init(remoteName: String = "", fingerprint: String = "", alias: [String]? = nil, description: String = "", path: URL = URL(fileURLWithPath: "/dev/null"), size: UInt64 = 0) {
+	public init(remoteName: String = String.empty, fingerprint: String = String.empty, alias: [String]? = nil, description: String = String.empty, path: URL = URL(fileURLWithPath: "/dev/null"), size: UInt64 = 0) {
 		self.alias = alias
 		self.path = path
 		self.size = size
@@ -55,7 +55,7 @@ public class LinuxContainerImage: Codable {
 
 	public var caked: Caked_PulledImageInfo {
 		Caked_PulledImageInfo.with { image in
-			image.alias = self.alias?.joined(separator: ",") ?? ""
+			image.alias = self.alias?.joined(separator: ",") ?? String.empty
 			image.path = self.path.absoluteURL.path
 			image.size = self.size
 			image.fingerprint = self.fingerprint
@@ -100,12 +100,12 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 
 	public init(
 		aliases: Aliases = [],
-		architecture: String = "",
+		architecture: String = String.empty,
 		pub: Bool = false,
-		fileName: String = "",
-		fingerprint: String = "",
+		fileName: String = String.empty,
+		fingerprint: String = String.empty,
 		size: UInt64 = 0,
-		type: String = "",
+		type: String = String.empty,
 		created: String? = nil,
 		expires: String? = nil,
 		uploaded: String? = nil,
@@ -157,9 +157,9 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 		text += "Type: \(type)\n"
 		text += "Public: \(pub ? "yes" : "no")\n"
 		text += "Timestamps:\n"
-		text += "    Created: \(created ?? "")\n"
-		text += "    Uploaded: \(uploaded ?? "")\n"
-		text += "    Expires: \(expires ?? "")\n"
+		text += "    Created: \(created ?? String.empty)\n"
+		text += "    Uploaded: \(uploaded ?? String.empty)\n"
+		text += "    Expires: \(expires ?? String.empty)\n"
 		text += "    Last used: never\n"
 		text += "Properties:\n"
 		for (key, value) in properties {
@@ -220,7 +220,7 @@ public struct ShortImageInfo: Codable, Hashable, Identifiable {
 		self.alias = from.aliases.description
 		self.fingerprint = from.fingerprint.substring(..<12)
 		self.pub = from.pub ? "yes" : "no"
-		self.description = from.properties["description"] ?? ""
+		self.description = from.properties["description"] ?? String.empty
 		self.architecture = from.architecture
 		self.type = from.type
 		self.size = ByteCountFormatter.string(fromByteCount: Int64(from.size), countStyle: .file)
@@ -231,11 +231,11 @@ public struct ShortImageInfo: Codable, Hashable, Identifiable {
 		self.alias = imageInfo.aliases.description
 		self.fingerprint = imageInfo.fingerprint.substring(..<12)
 		self.pub = imageInfo.pub ? "yes" : "no"
-		self.description = imageInfo.properties["description"] ?? ""
+		self.description = imageInfo.properties["description"] ?? String.empty
 		self.architecture = imageInfo.architecture
 		self.type = imageInfo.type
 		self.size = ByteCountFormatter.string(fromByteCount: Int64(imageInfo.size), countStyle: .file)
-		self.uploaded = imageInfo.uploaded ?? ""
+		self.uploaded = imageInfo.uploaded ?? String.empty
 	}
 }
 
@@ -253,7 +253,7 @@ public struct ShortLinuxContainerImage: Codable {
 	}
 
 	public init(_ image: LinuxContainerImage) {
-		self.alias = image.alias?.description ?? ""
+		self.alias = image.alias?.description ?? String.empty
 		self.fingerprint = image.fingerprint.substring(..<12)
 		self.description = image.description
 		self.size = ByteCountFormatter.string(fromByteCount: Int64(image.size), countStyle: .file)

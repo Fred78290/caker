@@ -487,7 +487,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.os = .linux
 		self.cpuCount = 1
 		self.memorySize = 512 * MoB
-		self.macAddress = ""
+		self.macAddress = String.empty
 		self.autostart = false
 		self.suspendable = false
 		self.ifname = false

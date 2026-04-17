@@ -562,7 +562,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 
 	public func fileWrapper() throws -> FileWrapper {
 		guard let dataConfig = config.serializedRepresentation, let cakeData = cake.serializedRepresentation else {
-			throw ServiceError("Failed to serialize config")
+			throw ServiceError(String(localized: "Failed to serialize config"))
 		}
 
 		let config = FileWrapper(regularFileWithContents: dataConfig)
@@ -598,7 +598,7 @@ extension CakeConfig {
 			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization)
 		#if !arch(arm64)
 			default:
-				throw ServiceError("Unsupported plateform")
+				throw ServiceError(String(localized: "Unsupported plateform"))
 		#endif
 		}
 	}
@@ -666,7 +666,7 @@ extension VirtualMachineConfiguration {
 
 	public var linuxMounts: String {
 		guard self.os == .linux else {
-			return ""
+			return String.empty
 		}
 
 		return self.mounts.compactMap { mount in

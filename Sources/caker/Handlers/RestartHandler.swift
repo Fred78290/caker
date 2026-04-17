@@ -23,7 +23,7 @@ extension RestartHandler {
 		}
 
 		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError("Internal error")
+			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		return try RestartReply(client.restart(.with {

@@ -18,7 +18,7 @@ struct RegexParseableFormatStyle: ParseableFormatStyle {
 		func parse(_ value: String) throws -> String {
 
 			guard value.range(of: self.regex, options: .regularExpression) != nil else {
-				return ""
+				return String.empty
 			}
 
 			return value

@@ -1,0 +1,204 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Build VM options" : {
+      "shouldTranslate" : false
+    },
+    "CA TLS certificate" : {
+      "shouldTranslate" : false
+    },
+    "Caked run as system agent" : {
+      "shouldTranslate" : false
+    },
+    "Client options" : {
+      "shouldTranslate" : false
+    },
+    "Client private key" : {
+      "shouldTranslate" : false
+    },
+    "Client TLS certificate" : {
+      "shouldTranslate" : false
+    },
+    "Configure network options" : {
+      "shouldTranslate" : false
+    },
+    "Configure VM options" : {
+      "shouldTranslate" : false
+    },
+    "Connect to address" : {
+      "shouldTranslate" : false
+    },
+    "Connection refused" : {
+      "shouldTranslate" : false
+    },
+    "Connection timeout in seconds" : {
+      "shouldTranslate" : false
+    },
+    "Create network options" : {
+      "shouldTranslate" : false
+    },
+    "Create template options" : {
+      "shouldTranslate" : false
+    },
+    "Delete options" : {
+      "shouldTranslate" : false
+    },
+    "Delete template options" : {
+      "shouldTranslate" : false
+    },
+    "Don't use TLS" : {
+      "shouldTranslate" : false
+    },
+    "Duplicate options" : {
+      "shouldTranslate" : false
+    },
+    "Exec options" : {
+      "shouldTranslate" : false
+    },
+    "Force restart" : {
+      "shouldTranslate" : false
+    },
+    "Get info for VM" : {
+      "shouldTranslate" : false
+    },
+    "Global options" : {
+      "shouldTranslate" : false
+    },
+    "Host" : {
+      "shouldTranslate" : false
+    },
+    "Image name" : {
+      "shouldTranslate" : false
+    },
+    "Include VM configuration in the output" : {
+      "shouldTranslate" : false
+    },
+    "Launch VM options" : {
+      "shouldTranslate" : false
+    },
+    "List all VMs and cached objects" : {
+      "shouldTranslate" : false
+    },
+    "List created VMs" : {
+      "shouldTranslate" : false
+    },
+    "List images" : {
+      "shouldTranslate" : false
+    },
+    "Log level" : {
+      "shouldTranslate" : false
+    },
+    "Login options" : {
+      "shouldTranslate" : false
+    },
+    "Login to a registry" : {
+      "shouldTranslate" : false
+    },
+    "Logout from a registry" : {
+      "shouldTranslate" : false
+    },
+    "Manage host network devices" : {
+      "shouldTranslate" : false
+    },
+    "Manage simplestream images" : {
+      "shouldTranslate" : false
+    },
+    "Manage simplestream remote" : {
+      "shouldTranslate" : false
+    },
+    "Max time to wait for IP" : {
+      "shouldTranslate" : false
+    },
+    "Mount options" : {
+      "shouldTranslate" : false
+    },
+    "network name" : {
+      "shouldTranslate" : false
+    },
+    "Network name" : {
+      "shouldTranslate" : false
+    },
+    "network to delete, e.g. \"shared\"" : {
+      "shouldTranslate" : false
+    },
+    "network to retrieve, e.g. \"shared\"" : {
+      "shouldTranslate" : false
+    },
+    "network to start, e.g., \"en0\" or \"shared\"" : {
+      "shouldTranslate" : false
+    },
+    "network to stop, e.g., \"en0\" or \"shared\"" : {
+      "shouldTranslate" : false
+    },
+    "nothing here" : {
+      "shouldTranslate" : false
+    },
+    "Output format" : {
+      "shouldTranslate" : false
+    },
+    "Output format: text or json" : {
+      "shouldTranslate" : false
+    },
+    "Pull options" : {
+      "shouldTranslate" : false
+    },
+    "Purge options" : {
+      "shouldTranslate" : false
+    },
+    "Push options" : {
+      "shouldTranslate" : false
+    },
+    "Remote name" : {
+      "shouldTranslate" : false
+    },
+    "Rename options" : {
+      "shouldTranslate" : false
+    },
+    "Restart VM(s)" : {
+      "shouldTranslate" : false
+    },
+    "Shared file descriptors are not supported, use caked launch instead" : {
+      "shouldTranslate" : false
+    },
+    "Shell options" : {
+      "shouldTranslate" : false
+    },
+    "Show useful information about images" : {
+      "shouldTranslate" : false
+    },
+    "Start a VNC client for a running VM" : {
+      "shouldTranslate" : false
+    },
+    "Start an existing VM" : {
+      "shouldTranslate" : false
+    },
+    "Start the Grand Central Dispatch" : {
+      "shouldTranslate" : false
+    },
+    "Suspend VM(s)" : {
+      "shouldTranslate" : false
+    },
+    "Trace vnc traffic" : {
+      "shouldTranslate" : false
+    },
+    "Umount options" : {
+      "shouldTranslate" : false
+    },
+    "url" : {
+      "shouldTranslate" : false
+    },
+    "VM name" : {
+      "shouldTranslate" : false
+    },
+    "VM names to restart" : {
+      "shouldTranslate" : false
+    },
+    "VM names to suspend" : {
+      "shouldTranslate" : false
+    },
+    "Wait ip options" : {
+      "shouldTranslate" : false
+    }
+  },
+  "version" : "1.2"
+}

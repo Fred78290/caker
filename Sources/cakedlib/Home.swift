@@ -39,7 +39,7 @@ public class RemoteDatabase {
 	}
 
 	public func get(_ key: String) -> String? {
-		if key == "" {
+		if key == String.empty {
 			return self.remote["images"]
 		}
 

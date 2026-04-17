@@ -15,7 +15,7 @@ struct InfosHandler: CakedCommand {
 			$0.vms = Caked_VirtualMachineReply.with {
 				$0.status = .with {
 					$0.success = false
-					$0.reason = "\(error)"
+					$0.reason = error.reason
 				}
 			}
 		}
@@ -27,7 +27,7 @@ struct InfosHandler: CakedCommand {
 														 runMode: runMode,
 														 client: try provider.createCakeAgentHelper(vmName: self.request.name),
 														 callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
-			let reply = VirtualMachineStatusReply(infos: result.infos, success: true, reason: "Success")
+			let reply = VirtualMachineStatusReply(infos: result.infos, success: true, reason: String(localized: "Success"))
 
 			return Caked_Reply.with {
 				$0.vms = Caked_VirtualMachineReply.with {

@@ -9,13 +9,13 @@ import NIO
 struct Exec: CakeAgentAsyncParsableCommand {	
 	static let configuration = ExecOptions.configuration
 
-	@OptionGroup(title: "Global options")
+	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@OptionGroup(title: "Exec options")
+	@OptionGroup(title: String(localized: "Exec options"))
 	var execute: ExecOptions
 
-	@OptionGroup(title: "override client agent options", visibility: .hidden)
+	@OptionGroup(title: String(localized: "override client agent options"), visibility: .hidden)
 	var options: CakeAgentClientOptions
 
 	var createVM: Bool = false
@@ -67,7 +67,7 @@ struct Exec: CakeAgentAsyncParsableCommand {
 					throw CakedLib.ExitCode(exitCode)
 				}
 			} catch {
-				Logger.appendNewLine(self.common.format.render("\(error)"))
+				Logger.appendNewLine(self.common.format.render(error.reason))
 			}
 		} else {
 			Logger.appendNewLine(self.common.format.render(result.reason))

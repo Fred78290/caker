@@ -3,12 +3,13 @@ import Foundation
 import GRPC
 import GRPCLib
 import NIO
+import SwiftUI
 
 public struct RunHandler {
 	public static func run(name: String, command: String, arguments: [String], input: Data?, client: CakeAgentConnection, callOptions: CallOptions?, runMode: Utils.RunMode) async throws -> Caked_RunReply {
 		var vmname = name
 
-		if vmname == "" {
+		if vmname == String.empty {
 			vmname = "primary"
 
 			if StorageLocation(runMode: runMode).exists(vmname) == false {
