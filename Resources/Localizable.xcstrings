@@ -11137,7 +11137,7 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "  See '%1$@ %2$@' for more information."
           }
         },
@@ -11173,7 +11173,7 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "(values: %1$@; default as flag: %2$@)"
           }
         },
@@ -11189,7 +11189,7 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "(values: %1$@; default: %2$@)"
           }
         },
@@ -11205,7 +11205,7 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@ [<options>] %2$@"
           }
         },
@@ -11241,7 +11241,7 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$lld unexpected arguments: '%2$@'"
           }
         },
@@ -11303,6 +11303,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ne peut pas générer de scripts d'achèvement pour ' %@’."
+          }
+        }
+      }
+    },
+    "Command '%@' is not a parent of the current command." : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La commande ' %@’ n'est pas un parent de la commande actuelle."
           }
         }
       }
@@ -11405,7 +11415,7 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Missing value for '%1$@ <%2$@>'"
           }
         },
@@ -11451,7 +11461,7 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "or: %1$@ in '%2$@'"
           }
         },
@@ -11547,7 +11557,7 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "The option '%1$@' does not take any value, but '%2$@' was specified."
           }
         },
@@ -11585,7 +11595,7 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Unknown option '%1$@'. Did you mean '%2$@'?"
           }
         },
@@ -11614,7 +11624,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Usage: %@"
+            "value" : "Utilisation: %@"
           }
         }
       }
@@ -11626,7 +11636,17 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "USAGE: %@\n\n"
+            "value" : "UTILISATION: %@\n\n"
+          }
+        }
+      }
+    },
+    "Value to be set with %@ had already been set with %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La valeur à définir %1$@ avait déjà été définie avec %2$@"
           }
         }
       }

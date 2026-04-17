@@ -1,5 +1,5 @@
 {
-  "originHash" : "146cc34e6d966bce493cb2572f38a1536922e6adcbad80f715d0d0c627243c71",
+  "originHash" : "0cd40a49e5d971bd03c1730ac04d8677d14f3cb6454894485adf7c969b5f56f6",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -179,7 +179,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Fred78290/swift-argument-parser",
       "state" : {
-        "revision" : "31f0befeaee44fb48e4015e3437a43e12839941b"
+        "revision" : "2951a18bda5b35922ab02ee2f32ffd1a87c072ca"
       }
     },
     {
