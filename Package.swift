@@ -24,12 +24,12 @@ let package = Package(
 		.package(url: "https://github.com/Fred78290/Multipart.git", revision: "9901ef8f452ed13e176c49e4b079f2daada76bde"),
 		.package(url: "https://github.com/Fred78290/Shout.git", revision: "9bd074b3d0943e391021cf7a86360fd5f82268cc"),
 		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", revision: "a7d76da446dbaf1652061990874517b0e7af8fe4"),
+		.package(url: "https://github.com/Fred78290/swift-argument-parser", revision: "2951a18bda5b35922ab02ee2f32ffd1a87c072ca"),
 
 		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "3c45fdcfcf4395c72d2a4ee23c0bce79017b5391"),
 		.package(url: "https://github.com/amodm/iso9660-swift", branch: "main"),
 		.package(url: "https://github.com/antlr/antlr4", exact: "4.13.2"),
 		.package(url: "https://github.com/apple/swift-algorithms", exact: "1.2.1"),
-		.package(url: "https://github.com/Fred78290/swift-argument-parser", revision: "31f0befeaee44fb48e4015e3437a43e12839941b"),
 		.package(url: "https://github.com/apple/swift-async-algorithms", branch: "main"),
 		.package(url: "https://github.com/apple/swift-atomics.git", exact: "1.3.0"),
 		.package(url: "https://github.com/apple/swift-certificates.git", exact: "1.17.0"),
