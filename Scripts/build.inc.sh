@@ -14,11 +14,11 @@ mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 	"${CAKED_APP}/Resources" \
 	"${CAKED_APP}/MacOS"
 
-/Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile \
-        --output-directory ${CAKER_APP}/Resources ${PROJECT_ROOT}/Resources/Localizable.xcstrings
+xcrun xcstringstool compile \
+        --output-directory "${CAKER_APP}/Resources" "${PROJECT_ROOT}/Resources/Localizable.xcstrings"
 
-/Applications/Xcode.app/Contents/Developer/usr/bin/xcstringstool compile \
-        --output-directory ${CAKED_APP}/Resources ${PROJECT_ROOT}/Resources/Localizable.xcstrings
+xcrun xcstringstool compile \
+        --output-directory "${CAKED_APP}/Resources" "${PROJECT_ROOT}/Resources/Localizable.xcstrings"
 
 actool "${RESOURCESDIR}/Assets.xcassets" \
 	--compile "${ASSETS}" \
