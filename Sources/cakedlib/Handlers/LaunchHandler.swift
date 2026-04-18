@@ -18,7 +18,7 @@ public struct LaunchHandler {
 		}
 
 		do {
-			let reply = try StartHandler.startVM(on: Utilities.group.next(), location: storageLocation.find(options.name), screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: startMode, gcd: gcd, recoveryMode: recoveryMode, runMode: runMode)
+			let reply = try StartHandler.startVM(on: Utilities.group.next(), location: storageLocation.find(options.name), screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: gcd, recoveryMode: recoveryMode, runMode: runMode)
 
 			return LaunchReply(name: reply.name, ip: reply.ip, launched: reply.started, reason: reply.reason)
 		} catch {
