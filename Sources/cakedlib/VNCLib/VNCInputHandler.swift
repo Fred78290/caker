@@ -150,129 +150,40 @@ public class VNCInputHandler {
 		lastMousePosition = nsPoint
 	}
 
-	private func prevDispatchEvent(_ event: NSEvent?, view: NSView, currentButton: CurrentButton, buttonState: ButtonState, moved: Bool) {
-		if let event = event {
-			if ensureFirstResponder() {
-				view.window?.sendEvent(event)
-			} else if event.type == .scrollWheel {
-				view.scrollWheel(with: event)
-			} else if moved {
-				if buttonState == .down {
-					if isDragging == false {
-						switch currentButton {
-						case .leftButton, .rightButton, .middleButton:
-							isDragging = true
-							view.mouseEntered(with: event)
-						case .none:
-							view.mouseMoved(with: event)
-							break
-						}
-					} else {
-						switch currentButton {
-						case .leftButton:
-							view.mouseDragged(with: event)
-						case .rightButton:
-							view.rightMouseDragged(with: event)
-						case .middleButton:
-							view.otherMouseDragged(with: event)
-						case .none:
-							view.mouseExited(with: event)
-							break
-						}
-					}
-				} else if buttonState == .up {
-					if isDragging {
-						isDragging = false
-
-						switch currentButton {
-						case .leftButton, .rightButton, .middleButton:
-							view.mouseExited(with: event)
-						case .none:
-							view.mouseMoved(with: event)
-							break
-						}
-					} else {
-						view.mouseMoved(with: event)
-					}
-				}
-
-			} else if buttonState == .down {
-				switch currentButton {
-				case .leftButton:
-					view.mouseDown(with: event)
-				case .rightButton:
-					view.rightMouseDown(with: event)
-				case .middleButton:
-					view.otherMouseDown(with: event)
-				case .none:
-					break
-				}
-			} else if buttonState == .up {
-				if isDragging {
-					switch currentButton {
-					case .leftButton:
-						view.mouseUp(with: event)
-					case .rightButton:
-						view.rightMouseUp(with: event)
-					case .middleButton:
-						view.otherMouseUp(with: event)
-					case .none:
-						break
-					}
-				} else {
-					switch currentButton {
-					case .leftButton:
-						view.mouseUp(with: event)
-					case .rightButton:
-						view.rightMouseUp(with: event)
-					case .middleButton:
-						view.otherMouseUp(with: event)
-					case .none:
-						break
-					}
-				}
-			}
-		}
-	}
-
 	private func dispatchEvent(_ event: NSEvent?, view: NSView) {
 		if let event = event {
-			if ensureFirstResponder() {
-				view.window?.sendEvent(event)
-			} else {
-				switch event.type {
-				case .scrollWheel:
-					view.scrollWheel(with: event)
-				case .mouseEntered:
-					isDragging = true
-					view.mouseEntered(with: event)
-				case .mouseExited:
-					isDragging = false
-					view.mouseExited(with: event)
+			switch event.type {
+			case .scrollWheel:
+				view.scrollWheel(with: event)
+			case .mouseEntered:
+				isDragging = true
+				view.mouseEntered(with: event)
+			case .mouseExited:
+				isDragging = false
+				view.mouseExited(with: event)
 
-				case .leftMouseDragged:
-					view.mouseDragged(with: event)
-				case .rightMouseDragged:
-					view.rightMouseDragged(with: event)
-				case .otherMouseDragged:
-					view.otherMouseDragged(with: event)
+			case .leftMouseDragged:
+				view.mouseDragged(with: event)
+			case .rightMouseDragged:
+				view.rightMouseDragged(with: event)
+			case .otherMouseDragged:
+				view.otherMouseDragged(with: event)
 
-				case .leftMouseDown:
-					view.mouseDown(with: event)
-				case .rightMouseDown:
-					view.rightMouseDown(with: event)
-				case .otherMouseDown:
-					view.otherMouseDown(with: event)
+			case .leftMouseDown:
+				view.mouseDown(with: event)
+			case .rightMouseDown:
+				view.rightMouseDown(with: event)
+			case .otherMouseDown:
+				view.otherMouseDown(with: event)
 
-				case .leftMouseUp:
-					view.mouseUp(with: event)
-				case .rightMouseUp:
-					view.rightMouseUp(with: event)
-				case .otherMouseUp:
-					view.otherMouseUp(with: event)
-				default:
-					break
-				}
+			case .leftMouseUp:
+				view.mouseUp(with: event)
+			case .rightMouseUp:
+				view.rightMouseUp(with: event)
+			case .otherMouseUp:
+				view.otherMouseUp(with: event)
+			default:
+				break
 			}
 		}
 	}
