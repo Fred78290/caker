@@ -266,6 +266,24 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 
 #if DEBUGEVENT
 extension VNCVirtualMachineView {
+	public override func mouseDown(with event: NSEvent) {
+		Logger(self).debug("mouseDown: \(event.dumpEvent)")
+		
+		super.mouseDown(with: event)
+	}
+
+	public override func mouseDragged(with event: NSEvent) {
+		Logger(self).debug("mouseDragged: \(event.dumpEvent)")
+		
+		super.mouseDragged(with: event)
+	}
+	
+	public override func mouseUp(with event: NSEvent) {
+		Logger(self).debug("mouseUp: \(event.dumpEvent)")
+		
+		super.mouseUp(with: event)
+	}
+
 	public override func keyDown(with event: NSEvent) {
 		Logger(self).debug("keyDown: \(event.dumpEvent)")
 

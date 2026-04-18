@@ -56,18 +56,10 @@ extension NSEvent {
 			parts.append("subtype: \(self.subtype)")
 			parts.append("clickCount: \(self.clickCount)")
 			parts.append("buttonNumber: \(self.buttonNumber)")
-			parts.append("phase: \(self.phase.rawValue)")
-			parts.append("momentumPhase: \(self.momentumPhase)")
-			parts.append("isDirectionInvertedFromDevice: \(self.isDirectionInvertedFromDevice)")
-
 			break
 
 		case .mouseEntered, .mouseExited:
 			parts.append("buttonNumber: \(self.buttonNumber)")
-			parts.append("phase: \(self.phase.rawValue)")
-			parts.append("momentumPhase: \(self.momentumPhase)")
-			parts.append("isDirectionInvertedFromDevice: \(self.isDirectionInvertedFromDevice)")
-
 			break
 
 		case .keyDown, .keyUp:
@@ -117,10 +109,6 @@ extension NSEvent {
 		case .changeMode:
 			break
 		case .mouseCancelled:
-			parts.append("phase: \(self.phase.rawValue)")
-			parts.append("momentumPhase: \(self.momentumPhase)")
-			parts.append("isDirectionInvertedFromDevice: \(self.isDirectionInvertedFromDevice)")
-
 			parts.append("buttonNumber: \(self.buttonNumber)")
 			break
 		default:
