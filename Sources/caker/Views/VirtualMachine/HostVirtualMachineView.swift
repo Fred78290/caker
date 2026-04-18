@@ -553,22 +553,27 @@ struct HostVirtualMachineView: View {
 	}
 
 	@ViewBuilder
+	func vncView(_ size: CGSize) -> some View {
+		switch self.document.vncStatus {
+		case .connecting:
+			LabelView("Connecting to VNC", size: size, progress: true)
+		case .disconnected:
+			LabelView("VNC not connected", size: size)
+		case .connected:
+			LabelView("VNC connected", size: size)
+		case .disconnecting:
+			LabelView("VNC disconnecting", size: size)
+		case .ready:
+			VNCView(document: self.document).frame(size: size).background(.black)
+		}
+	}
+
+	@ViewBuilder
 	func externalView(_ size: CGSize) -> some View {
 		if self.document.vncURL == nil || self.externalModeView == .terminal {
 			self.terminalView(size)
 		} else {
-			switch self.document.vncStatus {
-			case .connecting:
-				LabelView("Connecting to VNC", size: size, progress: true)
-			case .disconnected:
-				LabelView("VNC not connected", size: size)
-			case .connected:
-				LabelView("VNC connected", size: size)
-			case .disconnecting:
-				LabelView("VNC disconnecting", size: size)
-			case .ready:
-				VNCView(document: self.document).frame(size: size).background(.black)
-			}
+			self.vncView(size)
 		}
 	}
 
@@ -585,7 +590,12 @@ struct HostVirtualMachineView: View {
 	@ViewBuilder
 	func vmView(_ size: CGSize) -> some View {
 		if self.document.status != .running {
-			LabelView(self.vmStatus(), progress: self.document.status == .starting)
+			if self.document.status == .starting && self.document.isLaunchVMExternally && self.document.vncURL != nil {
+				vncView(size)
+					.frame(size: size)
+			} else {
+				LabelView(self.vmStatus(), progress: self.document.status == .starting)
+			}
 		} else if self.document.externalRunning {
 			if self.document.vncURL != nil {
 				externalView(size)

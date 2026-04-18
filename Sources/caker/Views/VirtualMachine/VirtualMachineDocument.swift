@@ -1010,6 +1010,12 @@ extension VirtualMachineDocument {
 		}
 	}
 
+	@MainActor
+	private func tryVNCConnect(vncURL: URL) {
+		self.vncURL = [vncURL]
+		tryVNCConnect()
+	}
+
 	func tryVNCConnect() {
 		if connection != nil {
 			return
