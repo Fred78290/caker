@@ -1,4 +1,8 @@
 SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
+SPARKLE_PUBLIC_KEY=${SPARKLE_PUBLIC_KEY:-}
+DEVELOPER_ID=${DEVELOPER_ID:-}
+CODESIGN_REQUIREMENT=${CODESIGN_REQUIREMENT:-}
+RELEASE=${RELEASE:-0}
 export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 
 CAKER_APP="${PKGDIR}/Contents"
@@ -84,7 +88,7 @@ plutil -replace CFBundleVersion -string "${VERSION}" "${CAKER_APP}/Info.plist"
 plutil -replace CFBundleShortVersionString -string "${VERSION}" "${CAKED_APP}/Info.plist"
 plutil -replace CFBundleVersion -string "${VERSION}" "${CAKED_APP}/Info.plist"
 
-if [ -n "${RELEASE}" ] && [ -n "${DEVELOPER_ID}" ]; then
+if [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 	echo "Build and sign release binaries for version ${VERSION}, developer ID ${DEVELOPER_ID}"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
