@@ -8,7 +8,13 @@ import CakeAgentLib
 
 extension Error {
 	var isLoggable: Bool {
-		if self.localizedDescription.contains("Connection reset by peer") {
+		let err = self as NSError
+
+		if err.domain == "NSPOSIXErrorDomain" && err.code == 54 {
+			return false
+		}
+
+		if [err.description, self.localizedDescription].first(where: { $0.contains("Connection reset by peer") }) != nil {
 			return false
 		}
 
