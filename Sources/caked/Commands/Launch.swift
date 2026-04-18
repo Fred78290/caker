@@ -19,6 +19,9 @@ struct Launch: AsyncParsableCommand {
 	@Flag(help: ArgumentHelp(String(localized: "Launch vm in foreground"), discussion: String(localized: "This option allow display window of running vm to debug it"), visibility: .hidden))
 	var foreground: Bool = false
 
+	@Flag(name: [.customLong("recovery")], help: ArgumentHelp(String(localized: "Launch vm in recovery mode"), discussion: String(localized: "This option allows starting the MacOS VM in recovery mode")))
+	var recoveryMode: Bool = false
+
 	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
@@ -35,6 +38,6 @@ struct Launch: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(self.common.format.render(await CakedLib.LaunchHandler.buildAndLaunchVM(runMode: self.common.runMode, options: options, waitIPTimeout: self.waitIPTimeout, startMode: self.foreground ? .foreground : .background, gcd: false, progressHandler: ProgressObserver.progressHandler)))
+		Logger.appendNewLine(self.common.format.render(await CakedLib.LaunchHandler.buildAndLaunchVM(runMode: self.common.runMode, options: options, waitIPTimeout: self.waitIPTimeout, startMode: self.foreground ? .foreground : .background, gcd: false, recoveryMode: self.recoveryMode, progressHandler: ProgressObserver.progressHandler)))
 	}
 }

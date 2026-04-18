@@ -170,7 +170,6 @@ struct ForwardedPortDetailView: View {
 								RangeIntegerStyle.hostPortRange.outside($0)
 							}
 							.onChange(of: model.hostPort.value) { _, newValue in
-								print("onchange: newValue=\(newValue)")
 								self.currentItem.oneOf = model.tunnelAttachement.oneOf
 							}
 					}

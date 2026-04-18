@@ -10,6 +10,7 @@ struct LaunchHandler: CakedCommandAsync {
 	var options: BuildOptions
 	let startMode: CakedLib.StartHandler.StartMode
 	let gcd: Bool
+	let recoveryMode: Bool
 	var waitIPTimeout = 180
 	let responseStream: Caked_ResponseLaunchStreamReply
 	let handler: () async throws -> Void
@@ -17,6 +18,7 @@ struct LaunchHandler: CakedCommandAsync {
 	init(request: Caked_LaunchRequest, gcd: Bool, responseStream: Caked_ResponseLaunchStreamReply, context: GRPCAsyncServerCallContext, handler: @escaping () async throws -> Void) throws {
 		self.options = try request.options.buildOptions()
 		self.gcd = gcd
+		self.recoveryMode = request.recoveryMode
 		self.startMode = .service
 		self.waitIPTimeout = request.hasWaitIptimeout ? Int(request.waitIptimeout) : 180
 		self.responseStream = responseStream
@@ -57,7 +59,7 @@ struct LaunchHandler: CakedCommandAsync {
 					do {
 						try await self.handler()
 
-						let reply = try CakedLib.StartHandler.startVM(on: Utilities.group.next(), location: storageLocation.find(options.name), screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: startMode, gcd: self.gcd, runMode: runMode)
+						let reply = try CakedLib.StartHandler.startVM(on: Utilities.group.next(), location: storageLocation.find(options.name), screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: startMode, gcd: self.gcd, recoveryMode: self.recoveryMode, runMode: runMode)
 
 						return LaunchReply(name: reply.name, ip: reply.ip, launched: reply.started, reason: reply.reason)
 					} catch {

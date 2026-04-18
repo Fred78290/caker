@@ -347,6 +347,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 												 waitIPTimeout: waitIPTimeout,
 												 startMode: startMode,
 												 gcd: gcd,
+												 recoveryMode: false,
 												 runMode: runMode,
 												 promise: nil)
 					}
@@ -451,10 +452,11 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 									display: VMRunHandler.DisplayMode,
 									vncPassword: String,
 									vncPort: Int,
+									recoveryMode: Bool,
 									internalCall: Bool,
 									runMode: Utils.RunMode,
 									completionHandler: VirtualMachine.StartCompletionHandler? = nil) throws -> (address: EventLoopFuture<String?>, vm: VirtualMachine) {
-		let vm = try VirtualMachine(location: self, config: config, display: display, screenSize: screenSize, runMode: runMode)
+		let vm = try VirtualMachine(location: self, config: config, display: display, screenSize: screenSize, recoveryMode: recoveryMode, runMode: runMode)
 
 		let runningIP = try vm.runInBackground(mode, on: on, internalCall: internalCall, completionHandler: completionHandler)
 

@@ -73,6 +73,7 @@ extension Caked_LaunchRequest {
 		self.init()
 		self.options = try Caked_CommonBuildRequest(buildOptions: command.buildOptions)
 		self.waitIptimeout = Int32(command.waitIPTimeout)
+		self.recoveryMode = command.recoveryMode
 	}
 }
 
@@ -81,6 +82,7 @@ extension Caked_StartRequest {
 		self.init()
 		self.name = command.name
 		self.waitIptimeout = Int32(command.waitIPTimeout)
+		self.recoveryMode = command.recoveryMode
 	}
 }
 

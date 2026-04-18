@@ -251,7 +251,14 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
 	@Published var ipaddresses: [String] = []
 	@Published var screenshot: Data!
-	
+	@Published var recoveryMode: Bool = false {
+		didSet {
+			if let virtualMachine = self.virtualMachine {
+				virtualMachine.recoveryMode = self.recoveryMode
+			}
+		}
+	}
+
 	var lastScreenshot: NSImage? {
 		guard let screenshot else {
 			return nil
@@ -642,7 +649,7 @@ extension VirtualMachineDocument {
 extension VirtualMachineDocument {
 	private func createVirtualMachine() throws {
 		let config = try! location.config()
-		let virtualMachine = try VirtualMachine(location: location, config: config, display: .ui, screenSize: config.display.cgSize, runMode: .app)
+		let virtualMachine = try VirtualMachine(location: location, config: config, display: .ui, screenSize: config.display.cgSize, recoveryMode: self.recoveryMode, runMode: .app)
 		
 		self.virtualMachine = virtualMachine
 		self.vncURL = nil
@@ -737,7 +744,7 @@ extension VirtualMachineDocument {
 		let vncPort = try Utilities.findFreePort()
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
 
-		let result = try AppState.shared.startVirtualMachine(vmURL: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service)
+		let result = try AppState.shared.startVirtualMachine(vmURL: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, recoveryMode: self.recoveryMode)
 		let vncInfos = try AppState.shared.vncInfos(vmURL: location)
 #if DEBUG
 		self.logger.debug("VM started on \(result.ip)")
@@ -776,7 +783,7 @@ extension VirtualMachineDocument {
 		await self.tryVNCConnect(vncURL: vncURL)
 
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
-		let runningIP = try StartHandler.internalStartVM(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, gcd: false, runMode: .user, promise: promise)
+		let runningIP = try StartHandler.internalStartVM(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, gcd: false, recoveryMode: self.recoveryMode, runMode: .user, promise: promise)
 
 		#if DEBUG
 			self.logger.debug("VM started on \(runningIP)")

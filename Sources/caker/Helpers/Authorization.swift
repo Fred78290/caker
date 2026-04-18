@@ -119,8 +119,6 @@ public struct Authorization {
 			return try Shell.command(command, arguments: arguments)
 		}
 
-		print("execute: \(command) \(arguments.joined(separator: " "))")
-
 		guard let authorization else {
 			throw ServiceError(String(localized: "Missing Authorization Services reference for privileged operation"))
 		}

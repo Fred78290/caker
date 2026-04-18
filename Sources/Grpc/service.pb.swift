@@ -1345,6 +1345,15 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `vncPort`. Subsequent reads from it will return its default value.
       public mutating func clearVncPort() {self._vncPort = nil}
 
+      public var recoveryMode: Bool {
+        get {_recoveryMode ?? false}
+        set {_recoveryMode = newValue}
+      }
+      /// Returns true if `recoveryMode` has been explicitly set.
+      public var hasRecoveryMode: Bool {self._recoveryMode != nil}
+      /// Clears the value of `recoveryMode`. Subsequent reads from it will return its default value.
+      public mutating func clearRecoveryMode() {self._recoveryMode = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -1353,6 +1362,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _screenSize: Caked_Caked.ScreenSize? = nil
       fileprivate var _vncPassword: String? = nil
       fileprivate var _vncPort: Int32? = nil
+      fileprivate var _recoveryMode: Bool? = nil
     }
 
     public struct RestartRequest: Sendable {
@@ -1493,6 +1503,15 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `vncPort`. Subsequent reads from it will return its default value.
       public mutating func clearVncPort() {self._vncPort = nil}
 
+      public var recoveryMode: Bool {
+        get {_recoveryMode ?? false}
+        set {_recoveryMode = newValue}
+      }
+      /// Returns true if `recoveryMode` has been explicitly set.
+      public var hasRecoveryMode: Bool {self._recoveryMode != nil}
+      /// Clears the value of `recoveryMode`. Subsequent reads from it will return its default value.
+      public mutating func clearRecoveryMode() {self._recoveryMode = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -1502,6 +1521,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _screenSize: Caked_Caked.ScreenSize? = nil
       fileprivate var _vncPassword: String? = nil
       fileprivate var _vncPort: Int32? = nil
+      fileprivate var _recoveryMode: Bool? = nil
     }
 
     public struct ConfigureRequest: @unchecked Sendable {
@@ -6945,7 +6965,7 @@ extension Caked_Caked.VMRequest.BuildRequest: SwiftProtobuf.Message, SwiftProtob
 
 extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".StartRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}waitIPTimeout\0\u{1}screenSize\0\u{1}vncPassword\0\u{1}vncPort\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}waitIPTimeout\0\u{1}screenSize\0\u{1}vncPassword\0\u{1}vncPort\0\u{1}recoveryMode\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6958,6 +6978,7 @@ extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message, SwiftProtob
       case 3: try { try decoder.decodeSingularMessageField(value: &self._screenSize) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self._vncPassword) }()
       case 5: try { try decoder.decodeSingularInt32Field(value: &self._vncPort) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self._recoveryMode) }()
       default: break
       }
     }
@@ -6983,6 +7004,9 @@ extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message, SwiftProtob
     try { if let v = self._vncPort {
       try visitor.visitSingularInt32Field(value: v, fieldNumber: 5)
     } }()
+    try { if let v = self._recoveryMode {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 6)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -6992,6 +7016,7 @@ extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message, SwiftProtob
     if lhs._screenSize != rhs._screenSize {return false}
     if lhs._vncPassword != rhs._vncPassword {return false}
     if lhs._vncPort != rhs._vncPort {return false}
+    if lhs._recoveryMode != rhs._recoveryMode {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -7142,7 +7167,7 @@ extension Caked_Caked.VMRequest.DuplicateRequest: SwiftProtobuf.Message, SwiftPr
 
 extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".LaunchRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}options\0\u{1}waitIPTimeout\0\u{1}screenSize\0\u{1}vncPassword\0\u{1}vncPort\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}options\0\u{1}waitIPTimeout\0\u{1}screenSize\0\u{1}vncPassword\0\u{1}vncPort\0\u{1}recoveryMode\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -7155,6 +7180,7 @@ extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProto
       case 3: try { try decoder.decodeSingularMessageField(value: &self._screenSize) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self._vncPassword) }()
       case 5: try { try decoder.decodeSingularInt32Field(value: &self._vncPort) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self._recoveryMode) }()
       default: break
       }
     }
@@ -7180,6 +7206,9 @@ extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProto
     try { if let v = self._vncPort {
       try visitor.visitSingularInt32Field(value: v, fieldNumber: 5)
     } }()
+    try { if let v = self._recoveryMode {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 6)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -7189,6 +7218,7 @@ extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProto
     if lhs._screenSize != rhs._screenSize {return false}
     if lhs._vncPassword != rhs._vncPassword {return false}
     if lhs._vncPort != rhs._vncPort {return false}
+    if lhs._recoveryMode != rhs._recoveryMode {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

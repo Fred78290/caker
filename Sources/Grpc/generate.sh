@@ -72,6 +72,9 @@ function invoke_protoc {
 }
 
 #- EXAMPLES -------------------------------------------------------------------
+cleanup_swift_package_mirror() {
+	/usr/bin/swift package config unset-mirror --original https://github.com/apple/swift-argument-parser || true
+}
 
 function generate_service {
   local proto="${here}/service.proto"
@@ -80,10 +83,14 @@ function generate_service {
   generate_message "${proto}" "$(dirname "${proto}")" "${output}" "Visibility=Public"
   generate_grpc "${proto}" "$(dirname "${proto}")" "${output}" "Visibility=Public"
 
+  /usr/bin/swift package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
+  /usr/bin/swift package resolve
   /usr/bin/swift build --target GRPCLib
 }
 
 #------------------------------------------------------------------------------
+trap cleanup_swift_package_mirror EXIT
+
 generate_service
 
 rm -rf ${build_dir}

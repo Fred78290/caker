@@ -17,6 +17,7 @@ struct StartHandler: CakedCommand {
 	let config: CakeConfig
 	let waitIPTimeout: Int
 	let gcd: Bool
+	let recoveryMode: Bool
 
 	init(request: Caked_StartRequest, startMode: CakedLib.StartHandler.StartMode, gcd: Bool, runMode: Utils.RunMode) throws {
 		let location: VMLocation = try StorageLocation(runMode: runMode).find(request.name)
@@ -26,6 +27,7 @@ struct StartHandler: CakedCommand {
 		self.waitIPTimeout = request.hasWaitIptimeout ? Int(request.waitIptimeout) : 120
 		self.startMode = startMode
 		self.gcd = gcd
+		self.recoveryMode = request.recoveryMode
 
 		if request.hasScreenSize {
 			self.screenSize = ViewSize(width: Int(request.screenSize.width), height: Int(request.screenSize.height))
@@ -68,6 +70,7 @@ struct StartHandler: CakedCommand {
 														   waitIPTimeout: waitIPTimeout,
 														   startMode: self.startMode,
 														   gcd: self.gcd,
+														   recoveryMode: self.recoveryMode,
 														   runMode: runMode
 				).caked
 			}

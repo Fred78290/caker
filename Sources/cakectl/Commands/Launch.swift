@@ -16,6 +16,9 @@ struct Launch: AsyncGrpcParsableCommand {
 	@Option(help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	var waitIPTimeout = 180
 
+	@Flag(name: [.customLong("recovery")], help: ArgumentHelp(String(localized: "Launch vm in recovery mode"), discussion: String(localized: "This option allows starting the MacOS VM in recovery mode")))
+	var recoveryMode: Bool = false
+
 	mutating func validate() throws {
 		try buildOptions.validate(remote: true)
 

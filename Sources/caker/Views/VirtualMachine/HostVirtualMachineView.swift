@@ -216,6 +216,14 @@ struct HostVirtualMachineView: View {
 					}
 
 					ToolbarItemGroup(placement: .primaryAction) {
+						if self.document.virtualMachineConfig.os == .darwin {
+							Button("Recovery mode", systemImage: document.recoveryMode ? "cross.case.fill" : "cross.case") {
+								document.recoveryMode.toggle()
+							}
+							.disabled(self.document.status != .stopped)
+							.help("Allows starting the MacOS VM in recovery mode")
+						}
+
 						if self.document.url.isFileURL {
 							if self.document.status == .stopped && self.document.externalRunning == false {
 								if self.launchExternally {
