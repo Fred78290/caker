@@ -4256,9 +4256,6 @@
         }
       }
     },
-    "Key" : {
-      "extractionState" : "manual"
-    },
     "key authentication failed" : {
       "extractionState" : "manual",
       "localizations" : {
