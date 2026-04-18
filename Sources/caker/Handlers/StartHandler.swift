@@ -11,14 +11,14 @@ import GRPC
 import NIO
 
 extension StartHandler {
-	public static func startVM(client: CakedServiceClient?, vmURL: URL, screenSize: GRPCLib.ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> StartedReply {
+	public static func startVM(client: CakedServiceClient?, vmURL: URL, screenSize: GRPCLib.ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, recoveryMode: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> StartedReply {
 
 		guard let client else {
-			return try startVM(vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: false, runMode: runMode, promise: promise)
+			return try startVM(vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: false, recoveryMode: recoveryMode, runMode: runMode, promise: promise)
 		}
 
 		if vmURL.isFileURL {
-			return try startVM(vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: false, runMode: runMode, promise: promise)
+			return try startVM(vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: false, recoveryMode: recoveryMode, runMode: runMode, promise: promise)
 		}
 
 		guard let host = vmURL.host(percentEncoded: false) else {
@@ -27,6 +27,7 @@ extension StartHandler {
 
 		return try StartedReply(client.start(.with {
 			$0.name = host
+			$0.recoveryMode = recoveryMode
 			if let screenSize {
 				$0.screenSize = .with {
 					$0.width = Int32(screenSize.width)

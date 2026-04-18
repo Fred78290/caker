@@ -35,7 +35,7 @@ public struct ExecuteHandler {
 		if location.status != .running {
 			Logger(self).info("Starting \(vmname)")
 
-			let started = CakedLib.StartHandler.startVM(on: Utilities.group.next(), location: location, screenSize: nil, vncPassword: nil, vncPort: 0, waitIPTimeout: 180, startMode: .background, gcd: false, runMode: runMode)
+			let started = CakedLib.StartHandler.startVM(on: Utilities.group.next(), location: location, screenSize: nil, vncPassword: nil, vncPort: 0, waitIPTimeout: 180, startMode: .background, gcd: false, recoveryMode: false, runMode: runMode)
 
 			if started.started == false {
 				throw ServiceError(started.reason)

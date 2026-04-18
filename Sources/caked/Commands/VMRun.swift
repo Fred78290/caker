@@ -38,6 +38,9 @@ struct VMRun: AsyncParsableCommand {
 	@Flag(name: [.customLong("gcd")], help: ArgumentHelp(String(localized: "Start grand central dispatch"), visibility: .private))
 	var startGCD: Bool = false
 
+	@Flag(name: [.customLong("recovery")], help: ArgumentHelp(String(localized: "Launch vm in recovery mode"), discussion: String(localized: "This option allows starting the MacOS VM in recovery mode")))
+	var recoveryMode: Bool = false
+
 	@Argument(help: ArgumentHelp(String(localized: "Path to the VM disk.img or his name")))
 	var path: String
 
@@ -132,6 +135,7 @@ struct VMRun: AsyncParsableCommand {
 			screenSize: displaySize,
 			vncPassword: vncPassword,
 			vncPort: vncPort,
+			recoveryMode: self.recoveryMode,
 			runMode: runMode)
 
 		try handler.run { address, vm in

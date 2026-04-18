@@ -40,7 +40,7 @@ final class CPUUsageMonitor {
 
 		self.isMonitoring = false
 
-		self.logger.debug("Cancel monitoring current CPU usage, VM: \(self.document.name), \(_file):\(_line)")
+		self.logger.debug("Cancel monitoring current CPU usage, VM: \(self.document.name)")
 
 		if let stream {
 			stream.continuation.finish(throwing: GRPCStatus(code: .cancelled, message: "Cancelled"))

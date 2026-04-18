@@ -17,6 +17,15 @@ public protocol VirtualMachineDelegate {
 	func didScreenshot(_ vm: VirtualMachine, screenshot: NSImage)
 }
 
+#if arch(arm64)
+extension VZMacOSVirtualMachineStartOptions {
+	convenience init(recoveryMode: Bool) {
+		self.init()
+		self.startUpFromMacOSRecovery = recoveryMode
+	}
+}
+#endif
+
 extension SSHError.Kind {
 	var description: String {
 		switch self {
@@ -118,12 +127,13 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var runningIP: String = String.empty
 	let runMode: Utils.RunMode
 	let display: VMRunHandler.DisplayMode
+	var recoveryMode: Bool
 	var vncServer: VZVNCServer! = nil
 	var vzMachineView: VMView.NSViewType! = nil
 	var timer: Timer? = nil
 	let logger = Logger("VirtualMachineEnvironment")
 
-	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, runMode: Utils.RunMode) throws {
+	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, recoveryMode: Bool, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable
 		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
@@ -212,6 +222,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		self.sigcaught = sigcaught
 		self.screenSize = screenSize
 		self.display = display
+		self.recoveryMode = recoveryMode
 
 		if location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
 			communicationDevices.delegate = self
@@ -351,7 +362,16 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	public var suspendable: Bool {
 		return self.config.suspendable
 	}
-	
+
+	public var recoveryMode: Bool {
+		get {
+			self.env.recoveryMode
+		}
+		set {
+			self.env.recoveryMode = newValue
+		}
+	}
+
 	public var status: VMLocation.Status {
 		switch self.virtualMachine.state {
 		case .running, .starting, .resuming:
@@ -380,7 +400,20 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 			self.env.vzMachineView = newValue
 		}
 	}
-	
+
+	private var startOptions: VZVirtualMachineStartOptions {
+		switch self.config.os {
+		case .darwin:
+			#if arch(arm64)
+			return VZMacOSVirtualMachineStartOptions(recoveryMode: self.recoveryMode)
+			#else
+			return VZVirtualMachineStartOptions()
+			#endif
+		case .linux:
+			return VZVirtualMachineStartOptions()
+		}
+	}
+
 	private static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
 		let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(
 			url: cdromURL,
@@ -395,7 +428,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		return cdrom
 	}
 	
-	public init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, runMode: Utils.RunMode, queue: dispatch_queue_t? = nil) throws {
+	public init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, recoveryMode: Bool, runMode: Utils.RunMode, queue: dispatch_queue_t? = nil) throws {
 		
 		if config.arch != Architecture.current() {
 			throw ServiceError(String(localized: "Unsupported architecture"))
@@ -403,7 +436,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		
 		self.config = config
 		self.location = location
-		self.env = try VirtualMachineEnvironment(location: location, config: config, display: display, screenSize: screenSize, runMode: runMode)
+		self.env = try VirtualMachineEnvironment(location: location, config: config, display: display, screenSize: screenSize, recoveryMode: recoveryMode, runMode: runMode)
 		
 		if let queue = queue {
 			self.vmQueue = queue
@@ -461,7 +494,9 @@ extension VirtualMachine {
 	public func startVM(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.sync {
 			if self.virtualMachine.canStart {
-				self.virtualMachine.start { result in
+				self.virtualMachine.start(options: self.startOptions) { error in
+					let result: Result<Void, Error> = error.map(Result.failure) ?? .success(())
+
 					self.startCompletionHandler(result: result, completionHandler: completionHandler)
 				}
 			}
@@ -966,7 +1001,9 @@ extension VirtualMachine {
 extension VirtualMachine {
 	public func startFromUI() {
 		self.vmQueue.async {
-			self.virtualMachine.start { result in
+			self.virtualMachine.start(options: self.startOptions) { error in
+				let result: Result<Void, Error> = error.map(Result.failure) ?? .success(())
+
 				self.startCompletionHandler(result: result) { result in
 					if case .success = result {
 						guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.env.runMode)) != nil else {

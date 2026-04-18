@@ -567,7 +567,6 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		
 		Task {
 			for vmURL in urls {
-				print("Opening URL: \(vmURL)")
 				if let document = appState.tryVirtualMachineDocument(vmURL) {
 					if let vmURL = document.loadVirtualMachine() {
 						if vmURL.isFileURL {

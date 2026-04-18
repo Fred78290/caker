@@ -580,6 +580,16 @@
         }
       }
     },
+    "Allows starting the MacOS VM in recovery mode" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permet de démarrer la machine virtuelle MacOS en mode de récupération"
+          }
+        }
+      }
+    },
     "An error occured" : {
       "localizations" : {
         "fr" : {
@@ -4351,6 +4361,17 @@
         }
       }
     },
+    "Launch vm in recovery mode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lancer la VM en mode de récupération"
+          }
+        }
+      }
+    },
     "Launch VM inside app" : {
       "localizations" : {
         "fr" : {
@@ -7184,6 +7205,16 @@
         }
       }
     },
+    "Recovery mode" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode de récupération"
+          }
+        }
+      }
+    },
     "Refit display" : {
       "localizations" : {
         "fr" : {
@@ -9845,6 +9876,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cette option permet d'exécuter le serveur VNC avec le mot de passe"
+          }
+        }
+      }
+    },
+    "This option allows starting the MacOS VM in recovery mode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette option permet de démarrer la machine virtuelle MacOS en mode de récupération"
           }
         }
       }

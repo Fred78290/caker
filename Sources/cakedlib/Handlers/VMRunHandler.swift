@@ -37,6 +37,7 @@ public struct VMRunHandler {
 	public let vncPassword: String
 	public let vncPort: Int
 	public let screenSize: CGSize
+	public let recoveryMode: Bool
 
 	public init(mode: VMRunServiceMode,
 				storageLocation: StorageLocation,
@@ -47,6 +48,7 @@ public struct VMRunHandler {
 				screenSize: CGSize,
 				vncPassword: String,
 				vncPort: Int,
+				recoveryMode: Bool,
 				runMode: Utils.RunMode) {
 		self.storageLocation = storageLocation
 		self.location = location
@@ -58,6 +60,7 @@ public struct VMRunHandler {
 		self.vncPort = vncPort
 		self.vncPassword = vncPassword
 		self.screenSize = screenSize
+		self.recoveryMode = recoveryMode
 	}
 
 	public func run(_ completionHandler: @escaping (EventLoopFuture<String?>, VirtualMachine) -> Void) throws {
@@ -83,7 +86,7 @@ public struct VMRunHandler {
 			}
 		}
 
-		let result = try location.startVirtualMachine(mode: mode,on: Utilities.group.next(), config: config, screenSize: screenSize, display: display, vncPassword: vncPassword, vncPort: vncPort, internalCall: false, runMode: runMode)
+		let result = try location.startVirtualMachine(mode: mode,on: Utilities.group.next(), config: config, screenSize: screenSize, display: display, vncPassword: vncPassword, vncPort: vncPort, recoveryMode: self.recoveryMode, internalCall: false, runMode: runMode)
 
 		completionHandler(result.address, result.vm)
 	}

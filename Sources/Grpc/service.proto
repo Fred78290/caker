@@ -1,8 +1,6 @@
 // limitations under the License.
 syntax = "proto3";
 
-import "google/protobuf/empty.proto";
-
 option java_multiple_files = true;
 option java_package = "com.aldunelabs.caker";
 option java_outer_classname = "caked";
@@ -377,6 +375,7 @@ message Caked {
       optional ScreenSize screenSize    = 3;
       optional string     vncPassword   = 4;
       optional int32      vncPort       = 5;
+      optional bool       recoveryMode  = 6;
     }
 
     message RestartRequest {
@@ -406,6 +405,7 @@ message Caked {
       optional ScreenSize screenSize    = 3;
       optional string     vncPassword   = 4;
       optional int32      vncPort       = 5;
+      optional bool       recoveryMode  = 6;
     }
 
     message ConfigureRequest {
