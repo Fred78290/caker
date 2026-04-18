@@ -773,6 +773,8 @@ extension VirtualMachineDocument {
 			}
 		}
 
+		await self.tryVNCConnect(vncURL: vncURL)
+
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
 		let runningIP = try StartHandler.internalStartVM(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, gcd: false, runMode: .user, promise: promise)
 
