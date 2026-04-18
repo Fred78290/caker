@@ -252,7 +252,7 @@ public struct StartHandler {
 			var ip: String
 
 			if location.status == .running {
-				ip = try location.waitIP(wait: 180, runMode: runMode)
+				ip = try location.waitIP(wait: waitIPTimeout, runMode: runMode)
 			} else {
 				ip = try internalStartVM(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: gcd, recoveryMode: recoveryMode, runMode: runMode, promise: promise)
 			}
