@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+set -o pipefail
 
 # Log file for installation
 # Get the UID of the user who owns $HOME
@@ -44,5 +46,7 @@ EOF
     
     echo "=== Caker Post-Installation Completed at $(date) ==="
 } 2>&1 | tee "${LOG_FILE}"
+PIPELINE_STATUS=${PIPESTATUS[0]}
 
 chown "${HOME_USER}:staff" "${LOG_FILE}"
+exit "${PIPELINE_STATUS}"
