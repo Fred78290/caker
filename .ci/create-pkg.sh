@@ -10,6 +10,8 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PKGDIR=$(dirname "${PKGDIR:-${PROJECT_ROOT}/dist/Caker.app}")
 PKG_PATH="${PKG_PATH:-${PROJECT_ROOT}/build/Caker.pkg}"
 BUILD_DIR="${PROJECT_ROOT}/.ci/pkg/components"
+COMPONENT_PLIST="$(mktemp "/tmp/standalone.XXXXXX.plist")"
+trap 'rm -f "${COMPONENT_PLIST}"' EXIT
 
 mkdir -p "$(dirname "${PKG_PATH}")"
 mkdir -p "${BUILD_DIR}"
@@ -26,11 +28,11 @@ fi
 
 echo "Creating package for version ${VERSION}, team ID ${TEAM_ID}"
 
-pkgbuild --analyze --root "${PKGDIR}" "/tmp/standalone.plist"
-plutil -replace BundleIsRelocatable -bool NO "/tmp/standalone.plist"
+pkgbuild --analyze --root "${PKGDIR}" "${COMPONENT_PLIST}"
+plutil -replace BundleIsRelocatable -bool NO "${COMPONENT_PLIST}"
 
 pkgbuild ${KEYCHAIN_OPTIONS} --root "${PKGDIR}" \
-		--component-plist "/tmp/standalone.plist" \
+		--component-plist "${COMPONENT_PLIST}" \
 		--identifier com.aldunelabs.caker \
 		--version ${VERSION} \
 		--scripts "${PROJECT_ROOT}/.ci/pkg/scripts" \
