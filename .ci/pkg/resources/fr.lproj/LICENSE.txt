@@ -1,0 +1,62 @@
+                    LICENCE PUBLIQUE GÉNÉRALE AFFERO GNU
+                       Version 3, 19 novembre 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Chacun est autorisé à copier et distribuer des copies conformes
+ de ce document de licence, mais toute modification en est proscrite.
+
+                            Préambule
+
+  La Licence Publique Générale Affero GNU est une licence libre, 
+copyleft, pour les logiciels et autres types d'œuvres, spécifiquement 
+conçue pour assurer la coopération avec la communauté dans le cas de 
+logiciels pour serveur réseau.
+
+  Les licences de la plupart des logiciels et autres œuvres pratiques 
+sont conçues pour ôter votre liberté de les partager et de les modifier. 
+À l'inverse, nos Licences Publiques Générales sont destinées à garantir 
+votre liberté de partager et modifier toutes les versions d'un 
+programme -- pour s'assurer qu'il reste un logiciel libre pour tous 
+ses utilisateurs.
+
+  Quand nous parlons de logiciel libre, nous faisons référence à la 
+liberté, non au prix. Nos Licences Publiques Générales sont conçues 
+pour s'assurer que vous avez la liberté de distribuer des copies de 
+logiciel libre (et de facturer ce service si vous le souhaitez), que 
+vous recevez le code source ou pouvez l'obtenir si vous le souhaitez, 
+que vous pouvez modifier le logiciel ou en utiliser des parties dans 
+de nouveaux programmes libres, et que vous savez que vous pouvez faire 
+ces choses.
+
+REMARQUE IMPORTANTE :
+
+Ce fichier contient un extrait de la traduction française de la 
+Licence Publique Générale Affero GNU version 3. 
+
+Pour le texte complet et officiel en français, veuillez consulter :
+https://www.gnu.org/licenses/agpl-3.0.fr.html
+
+La version anglaise originale fait foi juridiquement et est disponible à :
+https://www.gnu.org/licenses/agpl-3.0.html
+
+Cette traduction est fournie dans un but informatif uniquement.
+En cas de conflit entre cette traduction et la version anglaise 
+originale, la version anglaise prévaut.
+
+====================================================================
+
+PROJET CAKER
+
+Copyright (C) 2026 Projet Caker
+Ce programme est un logiciel libre distribué sous la Licence Publique 
+Générale Affero GNU version 3.
+
+Vous pouvez redistribuer et/ou modifier ce programme selon les termes 
+de la Licence Publique Générale Affero GNU telle que publiée par la 
+Free Software Foundation, soit la version 3 de cette licence, soit 
+(à votre choix) toute version ultérieure.
+
+Ce programme est distribué dans l'espoir qu'il sera utile, mais SANS 
+AUCUNE GARANTIE ; sans même la garantie implicite de COMMERCIALISATION 
+ou d'ADAPTATION À UN USAGE PARTICULIER. Consultez la Licence Publique 
+Générale Affero GNU pour plus de détails.
