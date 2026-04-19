@@ -4564,10 +4564,16 @@
     },
     "Log level" : {
       "localizations" : {
-        "fr" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Niveau de journal"
+            "value" : "Log level (critical, error, warning, notice, debug, trace)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Niveau de journal (critical, error, warning, notice, debug, trace)"
           }
         }
       }
