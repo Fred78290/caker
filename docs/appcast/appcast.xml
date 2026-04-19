@@ -6,16 +6,79 @@
     <language>en</language>
     <link>https://github.com/Fred78290/caker</link>
     <item>
-      <title>Caker 0.0.0</title>
-      <description><![CDATA[<h2>Caker 0.0.0</h2>
+      <title>Caker 0.0.1</title>
+      <description><![CDATA[<h2>Caker 0.0.1</h2>
 <p>New version of Caker with improvements and bug fixes.</p>
 
-<h3>## 2026-04-10 (Git log summary - HEAD)</h3>
+<h3>## 2026-04-19 (Git log summary - HEAD)</h3>
 <ul>
-    <li>First release</li>
+    <li>Localize installer package resources for English and French</li>
+<li>Update log level localization to list available levels</li>
+<li>Rollback commit</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Fix post-installation package scripts and service installation</li>
+<li>Adds recoveryMode param to VM start calls in tests</li>
+<li>Use waitIPTimeout parameter in startVirtualMachine</li>
+<li>Update Resources/Localizable.xcstrings</li>
+<li>Update Sources/cakedlib/Handlers/StartHandler.swift</li>
+<li>Update Sources/cakedlib/Handlers/LaunchHandler.swift</li>
+<li>Simplifies event dispatch logic and improves debug logging</li>
+<li>Add support for MacOS VM recovery mode</li>
+<li>Initiates VNC connection before VM start</li>
+<li>Refactors VNC view handling for external VM startup</li>
+<li>Removes unused VM networking entitlement</li>
+<li>Updates debug configs to use .bundle plugin paths</li>
+<li>Improves error logging for connection reset cases</li>
+<li>Improves release build setup and environment loading</li>
+<li>Provide default language code if nil</li>
+<li>Update Scripts/build-signed-release.sh</li>
+<li>Update Scripts/build.inc.sh</li>
+<li>Update Scripts/build-signed-debug.sh</li>
+<li>Updates argument parser dependency and localizations</li>
+<li>Updates argument parser dependency and French localizations</li>
+<li>Updates argument parser dependency revision</li>
+<li>Update dependencies to latest revisions</li>
+<li>Update Swift package source and remove entitlements</li>
+<li>Updates argument parser dependency and localizations</li>
+<li>Ensures dynamic UI strings are correctly localized in settings views</li>
+<li>Adds French translations for new UI strings and refines existing ones</li>
+<li>Localizes UI strings for file selection and settings</li>
+<li>Updates localizations and adjusts UI layout dimensions for better text fit</li>
+<li>Adds and updates French and English localizations</li>
+<li>Removes non-breaking spaces from French translations</li>
+<li>Unifies output format flag handling and argument positioning</li>
+<li>Ignores the traductions directory</li>
+<li>Updates and expands localizable strings</li>
+<li>Standardizes casing and punctuation in localized strings</li>
+<li>Populates Localizable.xcstrings with French translations</li>
+<li>Updates French localization strings</li>
+<li>Moves newline characters out of localization strings</li>
+<li>Updates French translation state in InfoPlist.xcstrings</li>
+<li>Ignore tmp directory in version control</li>
+<li>Replaces inline help strings with localized keys</li>
+<li>Removes unused localization resource file</li>
+<li>Adds InfoPlist.xcstrings for localized Info.plist strings</li>
+<li>Updates localization resource compilation paths</li>
+<li>Updates French localization strings</li>
+<li>Refines French localization and adds CLI help strings</li>
+<li>Migrates and organizes localization resources</li>
+<li>Localizes command-line interface and error messages</li>
+<li>Removes localization export artifacts</li>
+<li>Updates French localization and relocates Localizable.xcstrings</li>
+<li>Adds Identifiable conformance to Architecture</li>
+<li>Unifies empty string handling and error messages</li>
+<li>Implements localization support for English and French</li>
+<li>Remove error handling from entitlement method</li>
+<li>Resets the localization string catalog</li>
+<li>Add Security import to Entitlement.swift</li>
+<li>Potential fix for pull request finding</li>
+<li>Uses Security framework for entitlement verification</li>
+<li>🌐 Update Sparkle appcast - 1 releases (2026-04-10 16:00:12)</li>
 </ul>]]></description>
-      <pubDate>ven., 10 avr. 2026 14:00:10 +0000</pubDate>
-      <enclosure url="https://github.com/Fred78290/caker/releases/download/v0.0.0/Caker.dmg" sparkle:version="0.0.0" sparkle:shortVersionString="0.0.0" type="application/octet-stream" sparkle:edSignature="u9QEuMEkENMOCxb2/n4FUqBhDJ6SOI1hr1IkIvlbMvQ62VR7Cvmu3Vf88OGrdOUMNUKcCqxkou+GJMetCBFWAA==" length="179458086"/>
+      <pubDate>dim., 19 avr. 2026 13:00:50 +0000</pubDate>
+      <enclosure url="https://github.com/Fred78290/caker/releases/download/v0.0.1/Caker.dmg" sparkle:version="0.0.1" sparkle:shortVersionString="0.0.1" type="application/octet-stream" sparkle:edSignature="P9eUf3wNk5O+DTZs+qy9+Tv0Dc6ynX0eA7+GyIryQcJTu156LlAZLUgPezSop83rnw2Kgr4o34X4l4A6kbfaCw==" length="180051512"/>
     </item>
   </channel>
 </rss>
