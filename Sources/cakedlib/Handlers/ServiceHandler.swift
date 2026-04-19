@@ -169,9 +169,7 @@ public struct ServiceHandler {
 		if runMode == .system {
 			return URL(fileURLWithPath: "/Library/LaunchDaemons/\(Utils.cakerSignature).plist")
 		} else {
-			let home = ProcessInfo.processInfo.environment["HOME"] ?? NSHomeDirectory()
-
-			return URL(fileURLWithPath: "\(home)/Library/LaunchAgents/\(Utils.cakerSignature).plist")
+			return URL(fileURLWithPath: "\(NSHomeDirectory())/Library/LaunchAgents/\(Utils.cakerSignature).plist")
 		}
 	}
 
