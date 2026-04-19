@@ -9,9 +9,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PKGDIR=$(dirname "${PKGDIR:-${PROJECT_ROOT}/dist/Caker.app}")
 PKG_PATH="${PKG_PATH:-${PROJECT_ROOT}/build/Caker.pkg}"
+BUILD_DIR="${PROJECT_ROOT}/.ci/pkg/components"
+COMPONENT_PLIST="$(mktemp "/tmp/standalone.XXXXXX.plist")"
+trap 'rm -f "${COMPONENT_PLIST}"' EXIT
 
 mkdir -p "$(dirname "${PKG_PATH}")"
-mkdir -p "${PROJECT_ROOT}/.ci/pkg/components"
+mkdir -p "${BUILD_DIR}"
 
 if [ -f "${PROJECT_ROOT}/.env" ]; then
 	source "${PROJECT_ROOT}/.env"
@@ -25,28 +28,22 @@ fi
 
 echo "Creating package for version ${VERSION}, team ID ${TEAM_ID}"
 
+pkgbuild --analyze --root "${PKGDIR}" "${COMPONENT_PLIST}"
+plutil -replace BundleIsRelocatable -bool NO "${COMPONENT_PLIST}"
+
 pkgbuild ${KEYCHAIN_OPTIONS} --root "${PKGDIR}" \
+		--component-plist "${COMPONENT_PLIST}" \
 		--identifier com.aldunelabs.caker \
 		--version ${VERSION} \
 		--scripts "${PROJECT_ROOT}/.ci/pkg/scripts" \
 		--install-location "/Applications" \
-		"${PROJECT_ROOT}/.ci/pkg/components/Caker.pkg"
-
-
-#pkgbuild ${KEYCHAIN_OPTIONS} --root "${PKGDIR}" \
-#		--identifier com.aldunelabs.caker \
-#		--version ${VERSION} \
-#		--scripts "${PROJECT_ROOT}/.ci/pkg/scripts" \
-#		--install-location "/Applications" \
-#		--timestamp \
-#		--sign "Developer ID Installer: ${DEVELOPER_ID}" \
-#		"${PROJECT_ROOT}/.ci/pkg/components/Caker.pkg"
+		"${BUILD_DIR}/Caker.pkg"
 
 productbuild ${KEYCHAIN_OPTIONS} \
 	--identifier com.aldunelabs.caker \
 	--distribution "${PROJECT_ROOT}/.ci/pkg/distribution.xml" \
 	--resources "${PROJECT_ROOT}/.ci/pkg/resources" \
-	--package-path "${PROJECT_ROOT}/.ci/pkg/components" \
+	--package-path "${BUILD_DIR}" \
 	--sign "Developer ID Installer: ${DEVELOPER_ID}" \
 	"${PKG_PATH}"
 

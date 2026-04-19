@@ -158,7 +158,11 @@ public struct ServiceHandler {
 			standardOutPath: outputLog,
 			processType: "Background")
 
-		try agent.write(to: Self.agentLaunchURL(runMode: runMode))
+		let agentURL = self.agentLaunchURL(runMode: runMode)
+		
+		Logger("ServiceHandler").info("Install agent to: \(agentURL.absoluteString)")
+
+		try agent.write(to: agentURL)
 	}
 
 	public static func agentLaunchURL(runMode: Utils.RunMode) -> URL {
