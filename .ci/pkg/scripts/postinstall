@@ -2,11 +2,19 @@
 
 set -o pipefail
 
-# Log file for installation
-# Get the UID of the user who owns $HOME
-HOME_UID=$(stat -f %u "${HOME}" 2>/dev/null || echo "$(id -u)")
-HOME_USER=$(id -un "${HOME_UID}" 2>/dev/null || echo "$(whoami)")
+# Resolve the actual logged-in user for per-user setup in pkg postinstall context.
+HOME_USER=$(stat -f %Su /dev/console 2>/dev/null)
+if [ -z "${HOME_USER}" ] || [ "${HOME_USER}" = "root" ] || [ "${HOME_USER}" = "loginwindow" ]; then
+	HOME_USER=$(whoami)
+fi
 
+HOME=$(dscl . -read "/Users/${HOME_USER}" NFSHomeDirectory 2>/dev/null | awk '{print $2}')
+if [ -z "${HOME}" ]; then
+	HOME="${HOME:-/var/root}"
+fi
+
+# Log file for installation
+HOME_UID=$(stat -f %u "${HOME}" 2>/dev/null || id -u "${HOME_USER}" 2>/dev/null || echo "$(id -u)")
 LOG_FILE="${HOME}/Library/Logs/Caker/caker-postinstall.log"
 
 mkdir -p "${HOME}/Library/Logs/Caker"
