@@ -1,21 +1,48 @@
 #!/bin/sh
 
-set -e
+# Log file for installation
+# Get the UID of the user who owns $HOME
+HOME_UID=$(stat -f %u "${HOME}" 2>/dev/null || echo "$(id -u)")
+HOME_USER=$(id -un "${HOME_UID}" 2>/dev/null || echo "$(whoami)")
 
-echo "/Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS" > /etc/paths.d/com.aldunelabs.caker
+LOG_FILE="${HOME}/Library/Logs/Caker/caker-postinstall.log"
 
-# Create sudoers file for Caker
-cat <<EOF > /etc/sudoers.d/caked
+mkdir -p "${HOME}/Library/Logs/Caker"
+
+# Group all commands and tee both stdout and stderr to log file
+{
+	set -e
+
+	export CAKE_HOME="${HOME}/.cake"
+
+    echo "=== Caker Post-Installation Started at $(date) ==="
+    echo "Home directory: ${HOME}"
+    echo "Home UID: ${HOME_UID}"
+    echo "Home user: ${HOME_USER}"
+
+    echo "Setting up PATH..."
+    echo "/Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS" > /etc/paths.d/com.aldunelabs.caker
+
+    echo "Creating sudoers file..."
+    # Create sudoers file for Caker
+    cat <<EOF > /etc/sudoers.d/caked
 # Caker sudoers file
 %everyone ALL=(root:wheel) NOPASSWD: /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked
 EOF
 
-chgroup staff /etc/sudoers.d/caked
+    echo "Setting permissions..."
+    chgrp staff /etc/sudoers.d/caked
+    chmod 0440 /etc/sudoers.d/caked
 
-chmod 0440 /etc/sudoers.d/caked
+    echo "Generating certificates..."
+    # Install the Caker service with proper UID
+    sudo -u "${HOME_USER}" /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked certificates generate
 
-# Install the Caker service
-/Applications/Caker.app/Contents/PlugIns/caked certificates generate
+    echo "Installing Caker service..."
+    # Install the Caker service with proper UID
+    sudo -u "${HOME_USER}" /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked service install
+    
+    echo "=== Caker Post-Installation Completed at $(date) ==="
+} 2>&1 | tee "${LOG_FILE}"
 
-# Install the Caker service
-/Applications/Caker.app/Contents/PlugIns/caked service install
+chown "${HOME_USER}:staff" "${LOG_FILE}"

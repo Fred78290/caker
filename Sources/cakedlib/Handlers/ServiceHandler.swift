@@ -158,14 +158,20 @@ public struct ServiceHandler {
 			standardOutPath: outputLog,
 			processType: "Background")
 
-		try agent.write(to: Self.agentLaunchURL(runMode: runMode))
+		let agentURL = self.agentLaunchURL(runMode: runMode)
+		
+		Logger("ServiceHandler").info("Install agent to: \(agentURL.absoluteString)")
+
+		try agent.write(to: agentURL)
 	}
 
 	public static func agentLaunchURL(runMode: Utils.RunMode) -> URL {
 		if runMode == .system {
 			return URL(fileURLWithPath: "/Library/LaunchDaemons/\(Utils.cakerSignature).plist")
 		} else {
-			return URL(fileURLWithPath: "\(NSHomeDirectory())/Library/LaunchAgents/\(Utils.cakerSignature).plist")
+			let home = ProcessInfo.processInfo.environment["HOME"] ?? NSHomeDirectory()
+
+			return URL(fileURLWithPath: "\(home)/Library/LaunchAgents/\(Utils.cakerSignature).plist")
 		}
 	}
 
