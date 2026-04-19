@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <title>Caker - Outil de Gestion de Machines Virtuelles</title>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; margin: 20px; line-height: 1.6; }
+    h1 { color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 10px; }
+    h2 { color: #0066cc; margin-top: 25px; }
+    .highlight { background-color: #f0f8ff; padding: 15px; border-left: 4px solid #0066cc; margin: 15px 0; }
+    .component { background-color: #f9f9f9; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px; font-family: Monaco, 'Courier New', monospace; }
+    a { color: #0066cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .command { background-color: #f4f4f4; padding: 8px 12px; border-radius: 4px; font-family: Monaco, 'Courier New', monospace; display: inline-block; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>🍰 Caker - Outil de Gestion de Machines Virtuelles</h1>
+
+  <div class="highlight">
+    <strong>Ce programme d'installation configurera Caker globalement sur votre système macOS.</strong><br>
+    Caker est un outil moderne basé sur Swift pour construire et gérer des machines virtuelles avec le framework de Virtualisation d'Apple.
+  </div>
+
+  <h2>🚀 Composants Installés</h2>
+
+  <div class="component">
+    <h3>Caker.app - Application Bureau macOS</h3>
+    <p>Interface utilisateur moderne pour la gestion quotidienne des VM :</p>
+    <ul>
+      <li>Installation et gestion du service caked</li>
+      <li>Création et configuration de machines virtuelles</li>
+      <li>Interface VNC intégrée</li>
+      <li>Surveillance en temps réel</li>
+      <li>Diagnostics et journaux accessibles</li>
+    </ul>
+  </div>
+
+  <div class="component">
+    <h3>caked - Démon Principal</h3>
+    <p>Le service démon qui gère le cycle de vie des machines virtuelles :</p>
+    <ul>
+      <li>Démarrage, arrêt et surveillance des VM</li>
+      <li>Gestion des ressources (CPU, mémoire, stockage)</li>
+      <li>Enregistrement du service système</li>
+      <li>Surveillance de la santé et récupération automatique</li>
+    </ul>
+  </div>
+
+  <div class="component">
+    <h3>cakectl - Interface en Ligne de Commande</h3>
+    <p>Outil de contrôle pour interagir avec caked :</p>
+    <ul>
+      <li>Construction et déploiement d'applications</li>
+      <li>Gestion des configurations VM</li>
+      <li>Visualisation des journaux et du statut</li>
+      <li>Contrôle des processus démon</li>
+    </ul>
+  </div>
+
+  <h2>✨ Fonctionnalités Clés</h2>
+  <ul>
+    <li><strong>Redirection de Ports</strong> : Sockets TCP ou Unix entre VM et hôte</li>
+    <li><strong>Gestion Réseau</strong> : Modes bridge, hébergé ou NAT</li>
+    <li><strong>Cloud-Init</strong> : Support pour l'initialisation des VM</li>
+    <li><strong>Agent Intégré</strong> : Installation automatique d'agent dans les VM</li>
+    <li><strong>Configuration Dynamique</strong> : Mises à jour en temps réel</li>
+  </ul>
+
+  <h2>🛠 Premiers Pas</h2>
+
+  <p>Après installation, vous pouvez commencer à utiliser Caker :</p>
+
+  <p><strong>Application Bureau :</strong></p>
+  <p>Lancez <strong>Caker.app</strong> depuis le dossier Applications ou Spotlight.</p>
+
+  <p><strong>Installer le service :</strong></p>
+  <div class="command">caked service install</div>
+
+  <p><strong>Interface CLI :</strong></p>
+  <div class="command">cakectl --help</div>
+
+  <h2>📖 Documentation</h2>
+  <ul>
+    <li><a href="https://caker.aldunelabs.com/" target="_blank">Documentation Complète GitHub Pages</a></li>
+    <li><a href="https://caker.aldunelabs.com/getting-started.html" target="_blank">Guide de Démarrage</a></li>
+    <li><a href="https://caker.aldunelabs.com/development.html" target="_blank">Guide de Développement</a></li>
+    <li><a href="https://github.com/Fred78290/caker" target="_blank">Code Source GitHub</a></li>
+  </ul>
+
+  <h2>🆘 Support</h2>
+  <ul>
+    <li><a href="https://caker.aldunelabs.com/faq.html" target="_blank">FAQ</a></li>
+    <li><a href="https://caker.aldunelabs.com/troubleshooting.html" target="_blank">Dépannage</a></li>
+    <li><a href="https://github.com/Fred78290/caker/issues" target="_blank">Signaler un Problème</a></li>
+    <li><a href="https://github.com/Fred78290/caker/security" target="_blank">Signaler une Vulnérabilité</a></li>
+  </ul>
+
+  <div class="highlight">
+    <strong>Note :</strong> Caker nécessite macOS avec le framework de Virtualisation d'Apple. 
+    Certaines fonctionnalités peuvent nécessiter des privilèges administrateur.
+  </div>
+
+  <footer style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; color: #666; font-size: 0.9em;">
+    <p>© 2026 Projet Caker - Distribué sous licence AGPL v3</p>
+  </footer>
+</body>
+</html>
