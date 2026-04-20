@@ -20,19 +20,19 @@ struct VMRun: AsyncParsableCommand {
 	@Flag(name: [.customLong("lima"), .customShort("m")], help: ArgumentHelp(String(localized: "Use socket-vmnet for network"), visibility: .private))
 	var useLimaVMNet: Bool = false
 
-	@Flag(help: ArgumentHelp(String(localized: "VM Display mode"), discussion: String(localized: "This option allow display window of running vm or vnc server"), visibility: .hidden))
+	@Flag(help: ArgumentHelp(String(localized: "VM Display mode"), discussion: String(localized: "This option allows display window of running vm or vnc server"), visibility: .hidden))
 	var display: VMRunHandler.DisplayMode = .none
 
-	@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allow run vm in service mode"), visibility: .hidden))
+	@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allows run vm in service mode"), visibility: .hidden))
 	var mode: VMRunServiceMode = .grpc
 
-	@Option(help: ArgumentHelp(String(localized: "VNC server password"), discussion: String(localized: "This option allow run vnc server with password"), visibility: .hidden))
+	@Option(help: ArgumentHelp(String(localized: "VNC server password"), discussion: String(localized: "This option allows run vnc server with password"), visibility: .hidden))
 	var vncPassword: String? = nil
 
-	@Option(help: ArgumentHelp(String(localized: "VNC Server port"), discussion: String(localized: "This option allow run vnc server with custom port"), visibility: .hidden))
+	@Option(help: ArgumentHelp(String(localized: "VNC Server port"), discussion: String(localized: "This option allows run vnc server with custom port"), visibility: .hidden))
 	var vncPort: Int = 0
 
-	@Option(help: ArgumentHelp(String(localized: "Screen size"), discussion: String(localized: "This option allow run vnc server with custom port"), visibility: .hidden))
+	@Option(help: ArgumentHelp(String(localized: "Screen size"), discussion: String(localized: "This option allows run vnc server with custom port"), visibility: .hidden))
 	var screenSize: ViewSize?
 
 	@Flag(name: [.customLong("gcd")], help: ArgumentHelp(String(localized: "Start grand central dispatch"), visibility: .private))

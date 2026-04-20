@@ -10,7 +10,7 @@ public struct PushOptions: ParsableArguments {
 	@Option(help: ArgumentHelp(String(localized: "Network concurrency to use when pushing a local VM to the OCI-compatible registry")))
 	public var concurrency: UInt = 4
 
-	@Flag(help: ArgumentHelp(String(localized: "Push vm in foreground"), discussion: String(localized: "This option allow display window of running vm to debug it"), visibility: .hidden))
+	@Flag(help: ArgumentHelp(String(localized: "Push vm in foreground"), discussion: String(localized: "This option allows display window of running vm to debug it"), visibility: .hidden))
 	public var foreground: Bool = false
 
 	@Option(help: ArgumentHelp(String(localized: "Chunk size in MB if registry supports chunked uploads"), discussion: String(localized: "push_options_help")))
