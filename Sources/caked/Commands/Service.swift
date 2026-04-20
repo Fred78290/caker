@@ -99,7 +99,7 @@ extension Service {
 		
 		func getListenAddress() throws -> [String] {
 			if self.tcp {
-				return ["tcp://0.0.0.0:0:5000"]
+				return ["tcp://0.0.0.0:0"]
 			}
 
 			if self.address.isEmpty {
