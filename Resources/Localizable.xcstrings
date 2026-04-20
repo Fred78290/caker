@@ -9889,6 +9889,12 @@
     "This option allows starting the MacOS VM in recovery mode" : {
       "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This option allows starting the MacOS VM in recovery mode"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",

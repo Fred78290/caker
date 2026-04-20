@@ -10,8 +10,24 @@ import GRPCLib
 import NIO
 import NIOSSL
 import CakeAgentLib
+import Cocoa
 
 public struct ServiceHandler {
+    // Keep a strong reference to the Bonjour service so it remains published
+    private static var bonjourService: NetService?
+
+    private static func publishBonjourService(name: String, type: String, domain: String = "local.", port: Int32, txt: [String: String] = [:]) {
+        let service = NetService(domain: domain, type: type, name: name, port: port)
+        if !txt.isEmpty {
+            let dict = txt.reduce(into: [String: Data]()) { acc, pair in
+                acc[pair.key] = pair.value.data(using: .utf8)
+            }
+            service.setTXTRecord(NetService.data(fromTXTRecord: dict))
+        }
+        service.publish(options: [.listenForConnections])
+        self.bonjourService = service
+    }
+
 	struct LaunchAgent: Codable {
 		let label: String
 		let programArguments: [String]
@@ -76,6 +92,7 @@ public struct ServiceHandler {
 				target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
 			} else if listeningAddress.scheme == "tcp" {
 				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
+                // TCP target selected; we'll publish via Bonjour after server starts.
 			} else {
 				throw ServiceError(String(localized: "unsupported listening address scheme: \(String(describing: listeningAddress.scheme))"))
 			}
@@ -89,7 +106,36 @@ public struct ServiceHandler {
 				serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(caCert: caCert, tlsKey: tlsKey, tlsCert: tlsCert)
 			}
 
-			return Server.start(configuration: serverConfiguration)
+            let serverFuture = Server.start(configuration: serverConfiguration)
+
+            // If using TCP, publish a Bonjour service once the server has started and bound to a port
+            if listeningAddress.scheme == "tcp" {
+				return serverFuture.flatMap { server in
+					// Try to read the bound port from the server's channel
+					let boundPort: Int32
+
+					if let address = server.channel.localAddress, case .v4(let addr) = address {
+						boundPort = Int32(addr.address.sin_port)
+					} else if let address = server.channel.localAddress, case .v6(let addr6) = address {
+						boundPort = Int32(addr6.address.sin6_port)
+					} else {
+						boundPort = Int32(listeningAddress.port ?? 5000)
+					}
+
+					// Service type must be of the form _name._tcp.
+					let serviceType = "_caked._tcp."
+					let serviceName = Utils.cakerSignature
+					let txt: [String: String] = [
+						"host": listeningAddress.host ?? "localhost"
+					]
+
+					Self.publishBonjourService(name: serviceName, type: serviceType, port: boundPort, txt: txt)
+
+					return server.channel.eventLoop.makeSucceededFuture(server)
+                }
+            }
+
+            return serverFuture
 		}
 
 		throw ServiceError(String(localized: "connection address must be specified"))
@@ -322,13 +368,23 @@ public struct ServiceHandler {
 		return nil
 	}
 	
-	public static func createCakedServiceClient(connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
-		guard isAgentRunning(runMode: runMode).running else {
+	public static func createCakedServiceClient(listenAddress: String? = nil, password: String? = nil, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
+		guard listenAddress == nil && isAgentRunning(runMode: runMode).running else {
 			throw ServiceError(String(localized: "Caked service is not running"))
 		}
 
-		let listenAddress = try Utils.getDefaultServerAddress(runMode: runMode)
 		let certs = try ClientCertificatesLocation.getCertificats(runMode: runMode)
+		let listeningAddress: URL
+
+		if let listenAddress {
+			guard let u = URL(string: listenAddress) else {
+				throw ServiceError(String(localized: "Wrong listen address"))
+			}
+
+			listeningAddress = u
+		} else {
+			listeningAddress = try URL(string: Utils.getDefaultServerAddress(runMode: runMode))!
+		}
 
 		var caCert: String? = nil
 		var tlsCert: String? = nil
@@ -341,11 +397,13 @@ public struct ServiceHandler {
 		}
 
 		return try Caked.createClient(on: Utilities.group.next(),
-									  listeningAddress: URL(string: listenAddress),
+									  listeningAddress: listeningAddress,
 									  connectionTimeout: connectionTimeout,
 									  retries: retries,
 									  caCert: caCert,
 									  tlsCert: tlsCert,
-									  tlsKey: tlsKey)
+									  tlsKey: tlsKey,
+									  password: password)
 	}
 }
+
