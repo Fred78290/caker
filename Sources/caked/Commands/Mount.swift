@@ -15,7 +15,7 @@ struct Mount: ParsableCommand {
 	@OptionGroup(title: String(localized: "Mount options"))
 	var mount: MountOptions
 
-	@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allow mode to connect to a running service"), visibility: .hidden))
+	@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allows mode to connect to a running service"), visibility: .hidden))
 	var mode: VMRunServiceMode = .grpc
 
 	func validate() throws {
