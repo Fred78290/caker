@@ -166,12 +166,12 @@ public struct StartHandler {
 		Thread.sleep(forTimeInterval: 1)
 
 		// Start vms
-		vms.forEach { (config, location) in
-			Task {
+		let future = vms.map { (config, location) in
+			on.makeFutureWithTask {
 				Logger(self).info("VM \(location.name) starting")
-				
+
 				let reply = StartHandler.startVM(on: on, location: location, screenSize: config.display, vncPassword: config.vncPassword, vncPort: 0, waitIPTimeout: 120, startMode: .service, gcd: false, recoveryMode: false, runMode: runMode)
-				
+
 				if reply.started {
 					Logger(self).info("VM \(location.name) started with IP \(reply.ip)")
 				} else {
@@ -179,6 +179,13 @@ public struct StartHandler {
 				}
 			}
 		}
+
+		// Wait for all completed
+		EventLoopFuture.andAllComplete(future, on: on).whenComplete { _ in
+			Logger(self).info("Autostart completed")
+		}
+
+		try? EventLoopFuture.andAllComplete(future, on: on).wait()
 	}
 
 	private static func runProccess(arguments: [String], sharedFileDescriptors: [Int32]?, startMode: StartMode, runMode: Utils.RunMode, terminationHandler: (@Sendable (ProcessWithSharedFileHandle) -> Void)?) throws -> ProcessWithSharedFileHandle {
