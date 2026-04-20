@@ -182,16 +182,16 @@ extension Service {
 			
 			let runMode: Utils.RunMode = self.options.runMode
 			let home = try Home(runMode: runMode)
-			
+			let eventLoopGroup = Utilities.group
+
 			try home.agentPID.writePID()
 			
 			defer {
 				try? home.agentPID.delete()
 			}
 			
-			try CakedLib.StartHandler.autostart(on: Utilities.group.next(), runMode: runMode)
+			try CakedLib.StartHandler.autostart(on: eventLoopGroup.next(), runMode: runMode)
 			
-			let eventLoopGroup = Utilities.group
 			let provider = try CakedProvider(group: eventLoopGroup, password: self.options.password, runMode: runMode)
 			let servers: [Server] = try listenAddress.map { address in
 				logger.info("Start listening on \(address)")
