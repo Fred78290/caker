@@ -32,7 +32,7 @@ struct VMRun: AsyncParsableCommand {
 	@Option(help: ArgumentHelp(String(localized: "VNC Server port"), discussion: String(localized: "This option allows run vnc server with custom port"), visibility: .hidden))
 	var vncPort: Int = 0
 
-	@Option(help: ArgumentHelp(String(localized: "Screen size"), discussion: String(localized: "This option allows run vnc server with custom port"), visibility: .hidden))
+	@Option(help: ArgumentHelp(String(localized: "Screen size"), discussion: String(localized: "This option allows setting custom screen size for the VM display"), visibility: .hidden))
 	var screenSize: ViewSize?
 
 	@Flag(name: [.customLong("gcd")], help: ArgumentHelp(String(localized: "Start grand central dispatch"), visibility: .private))
