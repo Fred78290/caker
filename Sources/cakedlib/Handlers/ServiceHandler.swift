@@ -83,7 +83,6 @@ public struct ServiceHandler {
 		tlsCert: String?,
 		tlsKey: String?
 	) throws -> EventLoopFuture<Server> {
-
 		if let listeningAddress = listeningAddress {
 			let target: ConnectionTarget
 
@@ -129,9 +128,11 @@ public struct ServiceHandler {
 						"host": listeningAddress.host ?? "localhost"
 					]
 
+					Logger("ServiceHandler").info("Publishing Bonjour service '\(serviceName)' on port \(boundPort) with type '\(serviceType)'")
+
 					Self.publishBonjourService(name: serviceName, type: serviceType, port: boundPort, txt: txt)
 
-					return server.channel.eventLoop.makeSucceededFuture(server)
+					return serverFuture
                 }
             }
 
