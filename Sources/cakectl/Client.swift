@@ -41,7 +41,8 @@ extension GrpcCommand {
 			caCert: self.options.caCert,
 			tlsCert: self.options.tlsCert,
 			tlsKey: self.options.tlsKey,
-			interceptors: interceptors)
+			password: self.options.password,
+			interceptors: self.interceptors)
 
 		return (group, connection)
 	}
@@ -127,6 +128,9 @@ struct Client: ParsableCommand {
 
 		@Option(name: [.customLong("connect")], help: ArgumentHelp(String(localized: "Connect to address"), valueName: "address"))
 		public var address: String = try! Utils.getDefaultServerAddress(runMode: .user)
+
+		@Option(help: ArgumentHelp(String(localized: "access password"), discussion: String(localized: "This option allows to protect the service endpoint with a password")))
+		public var password: String? = nil
 
 		@Option(name: [.customLong("ca-cert")], help: ArgumentHelp(String(localized: "CA TLS certificate"), valueName: "path"))
 		public var caCert: String? = nil

@@ -259,12 +259,18 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let group: EventLoopGroup
 	let certLocation: CertificatesLocation
 	let gcd: GrandCentralDispatch
+	
+	var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? = nil
 
-	init(group: EventLoopGroup, runMode: Utils.RunMode) throws {
+	init(group: EventLoopGroup, password: String?, runMode: Utils.RunMode) throws {
 		self.runMode = runMode
 		self.group = group
 		self.certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		self.gcd = .init(group: group, runMode: runMode)
+		
+		if let password {
+			self.interceptors = CakedPasswordAuthServerInterceptor(expectedPassword: password)
+		}
 	}
 	
 	func createCakeAgentConnection(vmName: String, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
@@ -279,11 +285,8 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 	func execute(command: CakedCommand) throws -> Caked_Reply {
 		var command = command
-		let eventLoop = self.group.next()
 		
-		Logger(self).debug("execute: \(command)")
-		
-		return command.run(on: eventLoop, runMode: self.runMode)
+		return command.run(on: self.group.next(), runMode: self.runMode)
 	}
 	
 	func execute(command: CreateCakedCommand) throws -> Caked_Reply {

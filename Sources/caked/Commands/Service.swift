@@ -36,6 +36,9 @@ extension Service {
 		@Option(name: [.customLong("address"), .customShort("l")], help: ArgumentHelp(String(localized: "Listen on address")))
 		var address: [String] = []
 		
+		@Option(help: ArgumentHelp(String(localized: "access password"), discussion: String(localized: "This option allows to protect the service endpoint with a password")))
+		var password: String? = nil
+
 		@Flag(name: [.customLong("insecure"), .customShort("i")], help: ArgumentHelp(String(localized: "Don't use TLS")))
 		var insecure: Bool = false
 		
@@ -51,6 +54,9 @@ extension Service {
 		@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allows mode to connect to a VMRun service endpoint")))
 		var mode: VMRunServiceMode = .grpc
 		
+		@Flag(help: ArgumentHelp(String(localized: "Use inet socket"), visibility: .hidden))
+		var tcp: Bool = false
+
 		var runMode: Utils.RunMode {
 			self.asSystem ? .system : .user
 		}
@@ -60,18 +66,22 @@ extension Service {
 			
 			VMRunHandler.serviceMode = mode
 			
+			if self.tcp && self.address.isEmpty == false {
+				throw ValidationError(String(localized: "Both tcp and address are set, only one is allowed"))
+			}
+
 			if self.insecure == false {
 				if let caCert, let tlsCert, let tlsKey {
 					if FileManager.default.fileExists(atPath: caCert) == false {
-						throw ServiceError(String(localized: "Root certificate file not found: \(caCert)"))
+						throw ValidationError(String(localized: "Root certificate file not found: \(caCert)"))
 					}
 					
 					if FileManager.default.fileExists(atPath: tlsCert) == false {
-						throw ServiceError(String(localized: "TLS certificate file not found: \(tlsCert)"))
+						throw ValidationError(String(localized: "TLS certificate file not found: \(tlsCert)"))
 					}
 					
 					if FileManager.default.fileExists(atPath: tlsKey) == false {
-						throw ServiceError(String(localized: "TLS key file not found: \(tlsKey)"))
+						throw ValidationError(String(localized: "TLS key file not found: \(tlsKey)"))
 					}
 				}
 			}
@@ -88,6 +98,10 @@ extension Service {
 		}
 		
 		func getListenAddress() throws -> [String] {
+			if self.tcp {
+				return ["tcp://0.0.0.0:0:5000"]
+			}
+
 			if self.address.isEmpty {
 				return [try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user)]
 			}
@@ -178,13 +192,15 @@ extension Service {
 			try CakedLib.StartHandler.autostart(on: Utilities.group.next(), runMode: runMode)
 			
 			let eventLoopGroup = Utilities.group
+			let provider = try CakedProvider(group: eventLoopGroup, password: self.options.password, runMode: runMode)
 			let servers: [Server] = try listenAddress.map { address in
 				logger.info("Start listening on \(address)")
+
 				return try ServiceHandler.createServer(
 					eventLoopGroup: eventLoopGroup,
 					runMode: runMode,
 					listeningAddress: URL(string: address),
-					serviceProviders: [try CakedProvider(group: eventLoopGroup, runMode: runMode)],
+					serviceProviders: [provider],
 					caCert: self.options.caCert,
 					tlsCert: self.options.tlsCert,
 					tlsKey: self.options.tlsKey
