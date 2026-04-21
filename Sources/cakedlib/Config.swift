@@ -782,7 +782,7 @@ extension VirtualMachineConfiguration {
 
 	public func socketDeviceAttachments(agentURL: URL) throws -> [SocketDevice] {
 		let vsock = agentURL.absoluteURL.path
-		var sockets: [SocketDevice] = [SocketDevice(mode: SocketMode.bind, port: 5000, bind: vsock)]
+		var sockets: [SocketDevice] = [SocketDevice(mode: SocketMode.bind, port: VMLocation.defaultAgentListenPort, bind: vsock)]
 
 		if FileManager.default.fileExists(atPath: vsock) {
 			try FileManager.default.removeItem(atPath: vsock)

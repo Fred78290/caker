@@ -6,6 +6,7 @@ import Virtualization
 import CakeAgentLib
 
 public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
+	public static let defaultAgentListenPort = 5000
 	public static let scheme = "caked-vm"
 
 	public enum Status: String, Sendable {
@@ -763,7 +764,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
 				chmod 644 /etc/sysconfig/cakeagent
 				/usr/local/bin/cakeagent service install \\
-					--listen="vsock://any:5000" \\
+					--listen="vsock://any:\(VMLocation.defaultAgentListenPort)" \\
 					--ca-cert="${CA}" \\
 					--tls-cert="${SERVER}" \\
 					--tls-key="${KEY}" \(config.linuxMounts)

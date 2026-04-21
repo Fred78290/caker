@@ -20,6 +20,8 @@ public class GrpcError: Error {
 }
 
 extension Caked {
+	public static let defaultServicePort = 5101
+
 	public static func createClient(
 		on: EventLoopGroup,
 		listeningAddress: URL?,
@@ -39,7 +41,7 @@ extension Caked {
 				target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
 				inet = false
 			} else if listeningAddress.scheme == "tcp" {
-				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
+				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? Caked.defaultServicePort)
 				inet = true
 			} else {
 				throw GrpcError(
