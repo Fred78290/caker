@@ -15,6 +15,26 @@ import Cocoa
 public struct ServiceHandler {
     // Keep a strong reference to the Bonjour service so it remains published
     private static var bonjourService: Set<NetService> = []
+	private static var bonjourDeletegate: ServiceHandlerBonjourDelegate?
+
+	class ServiceHandlerBonjourDelegate: NSObject, NetServiceDelegate {
+		func netServiceWillPublish(_ sender: NetService) {
+			Logger("ServiceHandler").debug("Attempting to publish Bonjour service '\(sender.name)' on port \(sender.port) with type '\(sender.type)'")
+		}
+
+		func netServiceDidPublish(_ sender: NetService) {
+			Logger("ServiceHandler").debug("Successfully published Bonjour service '\(sender.name)' on port \(sender.port) with type '\(sender.type)'")
+		}
+
+		func netService(_ sender: NetService, didNotPublish errorDict: [String : NSNumber]) {
+			Logger("ServiceHandler").error("Failed to publish Bonjour service '\(sender.name)' with type '\(sender.type)'. Error: \(errorDict)")
+		}
+
+		func netServiceDidStop(_ sender: NetService) {
+			Logger("ServiceHandler").info("Stopped Bonjour service '\(sender.name)' with type '\(sender.type)'")
+		}
+
+	}
 
 	private static func publishBonjourService(name: String, type: String, domain: String = "local.", port: Int32, txt: [String: String] = [:]) {
 		let service = NetService(domain: domain, type: type, name: name, port: port)
@@ -26,7 +46,12 @@ public struct ServiceHandler {
 			service.setTXTRecord(NetService.data(fromTXTRecord: dict))
 		}
 
-		service.publish(options: [.listenForConnections])
+		if bonjourDeletegate == nil {
+			bonjourDeletegate = ServiceHandlerBonjourDelegate()
+		}
+
+		service.delegate = bonjourDeletegate!
+		service.publish()
 
 		self.bonjourService.insert(service)
 	}
@@ -128,6 +153,7 @@ public struct ServiceHandler {
 					// Service type must be of the form _name._tcp.
 					let serviceType = "_caked._tcp."
 					let serviceName = Utils.cakerSignature
+
 					let txt: [String: String] = [
 						"host": listeningAddress.host ?? "localhost"
 					]
