@@ -85,12 +85,21 @@ public struct ServiceHandler {
 	) throws -> EventLoopFuture<Server> {
 		if let listeningAddress = listeningAddress {
 			let target: ConnectionTarget
-
+			var listeningPort = 0
+			
 			if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {
 				try listeningAddress.deleteIfFileExists()
 				target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
 			} else if listeningAddress.scheme == "tcp" {
-				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
+				let listeningHost = listeningAddress.host ?? "127.0.0.1"
+
+				listeningPort = listeningAddress.port ?? Caked.defaultServicePort
+
+				if listeningPort == 0 {
+					listeningPort = try Utilities.findFreePort(listeningHost)
+				}
+
+				target = ConnectionTarget.hostAndPort(listeningHost, listeningPort)
                 // TCP target selected; we'll publish via Bonjour after server starts.
 			} else {
 				throw ServiceError(String(localized: "unsupported listening address scheme: \(String(describing: listeningAddress.scheme))"))
@@ -111,15 +120,7 @@ public struct ServiceHandler {
             if listeningAddress.scheme == "tcp" {
 				return serverFuture.flatMap { server in
 					// Try to read the bound port from the server's channel
-					let boundPort: Int32
-
-					if let address = server.channel.localAddress, case .v4(let addr) = address {
-						boundPort = Int32(addr.address.sin_port)
-					} else if let address = server.channel.localAddress, case .v6(let addr6) = address {
-						boundPort = Int32(addr6.address.sin6_port)
-					} else {
-						boundPort = Int32(listeningAddress.port ?? 5000)
-					}
+					let boundPort: Int32 = Int32(listeningPort)
 
 					// Service type must be of the form _name._tcp.
 					let serviceType = "_caked._tcp."
