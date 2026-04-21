@@ -475,7 +475,7 @@ public struct Utilities {
 		return false
 	}
 
-	public static func findFreePort() throws -> Int {
+	public static func findFreePort(_ address: String = "127.0.0.1") throws -> Int {
 		let socketFD = socket(AF_INET, SOCK_STREAM, 0)
 
 		if socketFD == -1 {
@@ -489,7 +489,7 @@ public struct Utilities {
 		var addr = sockaddr_in()
 
 		addr.sin_family = sa_family_t(AF_INET)
-		addr.sin_addr = in_addr(s_addr: inet_addr("127.0.0.1"))
+		addr.sin_addr = in_addr(s_addr: inet_addr(address))
 		addr.sin_port = in_port_t(0).bigEndian
 
 		let bindResult = withUnsafePointer(to: &addr) {
