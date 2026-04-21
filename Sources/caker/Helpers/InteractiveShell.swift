@@ -135,7 +135,7 @@ class InteractiveShell {
 					let shellStream = try ShellHandler.shell(vmURL: self.vmURL,
 															 terminalSize: ShellHandler.TerminalSize(rows: Int32(rows), cols: Int32(cols)),
 															 connectionTimeout: 5,
-															 runMode: AppState.shared.runMode)
+															 runMode: AppState.shared.connectionMode.runMode)
 					self.shellStream = shellStream
 
 					for try await message in shellStream {
