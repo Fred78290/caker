@@ -358,6 +358,17 @@
         }
       }
     },
+    "access password" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mote de passe"
+          }
+        }
+      }
+    },
     "Account" : {
       "localizations" : {
         "fr" : {
@@ -885,6 +896,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "--username et --password-stdin ou --password sont requis"
+          }
+        }
+      }
+    },
+    "Both tcp and address are set, only one is allowed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’option TCP et l'adresse sont tous deux configurés, mais un seul est autorisé."
           }
         }
       }
@@ -9903,6 +9925,17 @@
         }
       }
     },
+    "This option allows to protect the service endpoint with a password" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette option permet de protéger l’accès au service par un mot de passe"
+          }
+        }
+      }
+    },
     "This option is supported on linux platforms only" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10803,6 +10836,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Utiliser ifnames pour les interfaces réseau au lieu de eth0, eth1, etc. C'est la valeur par défaut pour la plupart des distributions Linux modernes."
+          }
+        }
+      }
+    },
+    "Use inet socket" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser un socket tcp"
           }
         }
       }
