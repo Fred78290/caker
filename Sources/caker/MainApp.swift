@@ -186,7 +186,13 @@ struct MainApp: App {
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
-		
+
+		Window("Remote", id: "Remote") {
+			CakedServerView(appState: $appState)
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+
 		Window("Create a new virtual machine", id: "wizard") {
 			newDocWizard()
 		}
