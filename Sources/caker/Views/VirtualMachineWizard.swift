@@ -626,7 +626,7 @@ struct VirtualMachineWizard: View {
 			Section {
 				switch self.model.imageSource {
 				case .raw:
-					if AppState.shared.runMode == .app {
+					if AppState.shared.connectionMode == .app {
 						LabeledContent("Choose a local image disk.") {
 							HStack {
 								TextField("OS Image", text: $config.imageName)
@@ -655,7 +655,7 @@ struct VirtualMachineWizard: View {
 					VStack {
 						let platform = SupportedPlatform(rawValue: self.config.imageName)
 
-						if AppState.shared.runMode == .app {
+						if AppState.shared.connectionMode == .app {
 							LabeledContent("Choose an ISO image disk.") {
 								HStack {
 									TextField("ISO Image", text: $config.imageName)
@@ -691,7 +691,7 @@ struct VirtualMachineWizard: View {
 					}
 
 				case .ipsw:
-					if AppState.shared.runMode == .app {
+					if AppState.shared.connectionMode == .app {
 						LabeledContent("Choose an IPSW image.") {
 							HStack {
 								TextField("IPSW Image", text: $config.imageName)
@@ -881,7 +881,7 @@ struct VirtualMachineWizard: View {
 
 		if model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw {
 			if let url = URL(string: config.imageName) {
-				if AppState.shared.runMode == .app {
+				if AppState.shared.connectionMode == .app {
 					valid = (url.isFileURL && FileManager.default.fileExists(atPath: url.path))
 						|| ["http", "https"].contains(url.scheme)
 						|| (url.scheme == nil && FileManager.default.fileExists(atPath: url.path))
@@ -946,7 +946,7 @@ struct VirtualMachineWizard: View {
 					var ipswQueue: DispatchQueue!
 					
 #if arch(arm64)
-					if AppState.shared.runMode == .app && self.model.imageSource == .ipsw {
+					if AppState.shared.connectionMode == .app && self.model.imageSource == .ipsw {
 						ipswQueue = DispatchQueue(label: "IPSWQueue")
 					}
 #endif

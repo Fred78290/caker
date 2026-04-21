@@ -219,7 +219,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			return true
 		}
 
-		guard AppState.shared.runMode == .app else {
+		guard AppState.shared.connectionMode == .app else {
 			return true
 		}
 		
@@ -381,9 +381,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 	static func createVirtualMachineDocument(vmURL: URL) throws -> VirtualMachineDocument {
 		if vmURL.isFileURL {
-			return try VirtualMachineDocument(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: AppState.shared.runMode))
-		} else if AppState.shared.runMode == .app {
-			return try VirtualMachineDocument(location: StorageLocation(runMode: AppState.shared.runMode).find(vmURL.host(percentEncoded: false)!))
+			return try VirtualMachineDocument(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: AppState.shared.connectionMode.runMode))
+		} else if AppState.shared.connectionMode == .app {
+			return try VirtualMachineDocument(location: StorageLocation(runMode: AppState.shared.connectionMode.runMode).find(vmURL.host(percentEncoded: false)!))
 		} else {
 			let infos = try AppState.shared.virtualMachineInfos(vmURL: vmURL)
 			
@@ -719,7 +719,7 @@ extension VirtualMachineDocument {
 			}
 
 			if self.url.isFileURL {
-				if let location = try? VMLocation.newVMLocation(vmURL: self.url, runMode: AppState.shared.runMode) {
+				if let location = try? VMLocation.newVMLocation(vmURL: self.url, runMode: AppState.shared.connectionMode.runMode) {
 					return self.loadVirtualMachine(location)
 				}
 			} else {
