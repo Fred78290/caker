@@ -14,19 +14,22 @@ import Cocoa
 
 public struct ServiceHandler {
     // Keep a strong reference to the Bonjour service so it remains published
-    private static var bonjourService: NetService?
+    private static var bonjourService: Set<NetService> = []
 
-    private static func publishBonjourService(name: String, type: String, domain: String = "local.", port: Int32, txt: [String: String] = [:]) {
-        let service = NetService(domain: domain, type: type, name: name, port: port)
-        if !txt.isEmpty {
-            let dict = txt.reduce(into: [String: Data]()) { acc, pair in
-                acc[pair.key] = pair.value.data(using: .utf8)
-            }
-            service.setTXTRecord(NetService.data(fromTXTRecord: dict))
-        }
-        service.publish(options: [.listenForConnections])
-        self.bonjourService = service
-    }
+	private static func publishBonjourService(name: String, type: String, domain: String = "local.", port: Int32, txt: [String: String] = [:]) {
+		let service = NetService(domain: domain, type: type, name: name, port: port)
+
+		if txt.isEmpty == false {
+			let dict = txt.reduce(into: [String: Data]()) { acc, pair in
+				acc[pair.key] = pair.value.data(using: .utf8)
+			}
+			service.setTXTRecord(NetService.data(fromTXTRecord: dict))
+		}
+
+		service.publish(options: [.listenForConnections])
+
+		self.bonjourService.insert(service)
+	}
 
 	struct LaunchAgent: Codable {
 		let label: String

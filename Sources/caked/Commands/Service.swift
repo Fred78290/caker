@@ -99,7 +99,10 @@ extension Service {
 		
 		func getListenAddress() throws -> [String] {
 			if self.tcp {
-				return ["tcp://0.0.0.0:\(Caked.defaultServicePort)"]
+				return [
+					try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user),
+					"tcp://0.0.0.0:\(Caked.defaultServicePort)"
+				]
 			}
 
 			if self.address.isEmpty {
