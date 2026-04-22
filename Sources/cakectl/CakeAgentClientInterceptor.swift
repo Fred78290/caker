@@ -90,7 +90,7 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 	func interceptors<Request, Response>() -> [ClientInterceptor<Request, Response>] {
 		[CakeServiceClientInterceptor<Request, Response>(state: self.state, inputHandle: self.inputHandle)]
 	}
-
+	
 	func makeBuildInterceptors() -> [ClientInterceptor<Caked_BuildRequest, Caked_BuildStreamReply>] {
 		self.interceptors()
 	}
@@ -102,7 +102,7 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 	func makeDuplicateInterceptors() -> [ClientInterceptor<Caked_DuplicateRequest, Caked_Reply>] {
 		self.interceptors()
 	}
-
+	
 	func makeLaunchInterceptors() -> [ClientInterceptor<Caked_LaunchRequest, Caked_LaunchStreamReply>] {
 		self.interceptors()
 	}
@@ -224,6 +224,14 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 	}
 	
 	func makeGrandCentralUpdateInterceptors() -> [ClientInterceptor<Caked_CurrentStatus, Caked_Empty>] {
+		self.interceptors()
+	}
+	
+	func makeVncTunnelInterceptors() -> [ClientInterceptor<Caked_VncStream, Caked_VncStream>] {
+		self.interceptors()
+	}
+	
+	func makeCheckReliabilityInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Reply>] {
 		self.interceptors()
 	}
 }

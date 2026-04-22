@@ -54,6 +54,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>
 
+  func vncTunnel(
+    callOptions: CallOptions?,
+    handler: @escaping (Caked_Caked.VncStream) -> Void
+  ) -> BidirectionalStreamingCall<Caked_Caked.VncStream, Caked_Caked.VncStream>
+
   func launch(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions?,
@@ -190,6 +195,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
   func grandCentralUpdate(
     callOptions: CallOptions?
   ) -> ClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus, Caked_Empty>
+
+  func checkReliability(
+    _ request: Caked_Empty,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Empty, Caked_Caked.Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -326,6 +336,27 @@ extension Caked_ServiceClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeVncInfosInterceptors() ?? []
+    )
+  }
+
+  /// VncTunnel establishes a bidirectional streaming tunnel for VNC traffic to a virtual machine's display. Clients can send VNC input events and receive VNC screen updates through this stream.
+  ///
+  /// Callers should use the `send` method on the returned object to send messages
+  /// to the server. The caller should send an `.end` after the final message has been sent.
+  ///
+  /// - Parameters:
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ClientStreamingCall` with futures for the metadata and status.
+  public func vncTunnel(
+    callOptions: CallOptions? = nil,
+    handler: @escaping (Caked_Caked.VncStream) -> Void
+  ) -> BidirectionalStreamingCall<Caked_Caked.VncStream, Caked_Caked.VncStream> {
+    return self.makeBidirectionalStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.vncTunnel.path,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVncTunnelInterceptors() ?? [],
+      handler: handler
     )
   }
 
@@ -823,6 +854,25 @@ extension Caked_ServiceClientProtocol {
       interceptors: self.interceptors?.makeGrandCentralUpdateInterceptors() ?? []
     )
   }
+
+  /// CheckReliability verifies the reliability of server node.
+  /// This method allows you to test the connectivity and responsiveness of a remote node to ensure it can reliably handle requests.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to CheckReliability.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func checkReliability(
+    _ request: Caked_Empty,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Empty, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.checkReliability.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCheckReliabilityInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -921,6 +971,10 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Caked_Caked.VMRequest.InfoRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>
+
+  func makeVncTunnelCall(
+    callOptions: CallOptions?
+  ) -> GRPCAsyncBidirectionalStreamingCall<Caked_Caked.VncStream, Caked_Caked.VncStream>
 
   func makeLaunchCall(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
@@ -1055,6 +1109,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
   func makeGrandCentralUpdateCall(
     callOptions: CallOptions?
   ) -> GRPCAsyncClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus, Caked_Empty>
+
+  func makeCheckReliabilityCall(
+    _ request: Caked_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Empty, Caked_Caked.Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1146,6 +1205,16 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeVncInfosInterceptors() ?? []
+    )
+  }
+
+  public func makeVncTunnelCall(
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncBidirectionalStreamingCall<Caked_Caked.VncStream, Caked_Caked.VncStream> {
+    return self.makeAsyncBidirectionalStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.vncTunnel.path,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVncTunnelInterceptors() ?? []
     )
   }
 
@@ -1480,6 +1549,18 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeGrandCentralUpdateInterceptors() ?? []
     )
   }
+
+  public func makeCheckReliabilityCall(
+    _ request: Caked_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Empty, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.checkReliability.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCheckReliabilityInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1577,6 +1658,30 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeVncInfosInterceptors() ?? []
+    )
+  }
+
+  public func vncTunnel<RequestStream>(
+    _ requests: RequestStream,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncResponseStream<Caked_Caked.VncStream> where RequestStream: Sequence, RequestStream.Element == Caked_Caked.VncStream {
+    return self.performAsyncBidirectionalStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.vncTunnel.path,
+      requests: requests,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVncTunnelInterceptors() ?? []
+    )
+  }
+
+  public func vncTunnel<RequestStream>(
+    _ requests: RequestStream,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncResponseStream<Caked_Caked.VncStream> where RequestStream: AsyncSequence & Sendable, RequestStream.Element == Caked_Caked.VncStream {
+    return self.performAsyncBidirectionalStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.vncTunnel.path,
+      requests: requests,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVncTunnelInterceptors() ?? []
     )
   }
 
@@ -1915,6 +2020,18 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeGrandCentralUpdateInterceptors() ?? []
     )
   }
+
+  public func checkReliability(
+    _ request: Caked_Empty,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.checkReliability.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCheckReliabilityInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1956,6 +2073,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'vncInfos'.
   func makeVncInfosInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'vncTunnel'.
+  func makeVncTunnelInterceptors() -> [ClientInterceptor<Caked_Caked.VncStream, Caked_Caked.VncStream>]
 
   /// - Returns: Interceptors to use when invoking 'launch'.
   func makeLaunchInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>]
@@ -2037,6 +2157,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'grandCentralUpdate'.
   func makeGrandCentralUpdateInterceptors() -> [ClientInterceptor<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus, Caked_Empty>]
+
+  /// - Returns: Interceptors to use when invoking 'checkReliability'.
+  func makeCheckReliabilityInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -2051,6 +2174,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.execute,
       Caked_ServiceClientMetadata.Methods.info,
       Caked_ServiceClientMetadata.Methods.vncInfos,
+      Caked_ServiceClientMetadata.Methods.vncTunnel,
       Caked_ServiceClientMetadata.Methods.launch,
       Caked_ServiceClientMetadata.Methods.list,
       Caked_ServiceClientMetadata.Methods.rename,
@@ -2078,6 +2202,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.installAgent,
       Caked_ServiceClientMetadata.Methods.grandCentralDispatcher,
       Caked_ServiceClientMetadata.Methods.grandCentralUpdate,
+      Caked_ServiceClientMetadata.Methods.checkReliability,
     ]
   )
 
@@ -2122,6 +2247,12 @@ public enum Caked_ServiceClientMetadata {
       name: "VncInfos",
       path: "/caked.Service/VncInfos",
       type: GRPCCallType.unary
+    )
+
+    public static let vncTunnel = GRPCMethodDescriptor(
+      name: "VncTunnel",
+      path: "/caked.Service/VncTunnel",
+      type: GRPCCallType.bidirectionalStreaming
     )
 
     public static let launch = GRPCMethodDescriptor(
@@ -2285,6 +2416,12 @@ public enum Caked_ServiceClientMetadata {
       path: "/caked.Service/GrandCentralUpdate",
       type: GRPCCallType.clientStreaming
     )
+
+    public static let checkReliability = GRPCMethodDescriptor(
+      name: "CheckReliability",
+      path: "/caked.Service/CheckReliability",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -2314,6 +2451,9 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   /// VncInfos retrieves the VNC infos for connecting to a virtual machine's display.
   func vncInfos(request: Caked_Caked.VMRequest.InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  /// VncTunnel establishes a bidirectional streaming tunnel for VNC traffic to a virtual machine's display. Clients can send VNC input events and receive VNC screen updates through this stream.
+  func vncTunnel(context: StreamingResponseCallContext<Caked_Caked.VncStream>) -> EventLoopFuture<(StreamEvent<Caked_Caked.VncStream>) -> Void>
 
   /// Launch creates and starts a new virtual machine.
   func launch(request: Caked_Caked.VMRequest.LaunchRequest, context: StreamingResponseCallContext<Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>) -> EventLoopFuture<GRPCStatus>
@@ -2395,6 +2535,10 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   /// GrandCentralUpdate receives status updates from vmrun and distributes them to clients.
   func grandCentralUpdate(context: UnaryResponseCallContext<Caked_Empty>) -> EventLoopFuture<(StreamEvent<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus>) -> Void>
+
+  /// CheckReliability verifies the reliability of server node.
+  /// This method allows you to test the connectivity and responsiveness of a remote node to ensure it can reliably handle requests.
+  func checkReliability(request: Caked_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 }
 
 extension Caked_ServiceProvider {
@@ -2470,6 +2614,15 @@ extension Caked_ServiceProvider {
         responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeVncInfosInterceptors() ?? [],
         userFunction: self.vncInfos(request:context:)
+      )
+
+    case "VncTunnel":
+      return BidirectionalStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VncStream>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.VncStream>(),
+        interceptors: self.interceptors?.makeVncTunnelInterceptors() ?? [],
+        observerFactory: self.vncTunnel(context:)
       )
 
     case "Launch":
@@ -2715,6 +2868,15 @@ extension Caked_ServiceProvider {
         observerFactory: self.grandCentralUpdate(context:)
       )
 
+    case "CheckReliability":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Empty>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeCheckReliabilityInterceptors() ?? [],
+        userFunction: self.checkReliability(request:context:)
+      )
+
     default:
       return nil
     }
@@ -2772,6 +2934,13 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     request: Caked_Caked.VMRequest.InfoRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
+
+  /// VncTunnel establishes a bidirectional streaming tunnel for VNC traffic to a virtual machine's display. Clients can send VNC input events and receive VNC screen updates through this stream.
+  func vncTunnel(
+    requestStream: GRPCAsyncRequestStream<Caked_Caked.VncStream>,
+    responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.VncStream>,
+    context: GRPCAsyncServerCallContext
+  ) async throws
 
   /// Launch creates and starts a new virtual machine.
   func launch(
@@ -2937,6 +3106,13 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     requestStream: GRPCAsyncRequestStream<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus>,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Empty
+
+  /// CheckReliability verifies the reliability of server node.
+  /// This method allows you to test the connectivity and responsiveness of a remote node to ensure it can reliably handle requests.
+  func checkReliability(
+    request: Caked_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -3019,6 +3195,15 @@ extension Caked_ServiceAsyncProvider {
         responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeVncInfosInterceptors() ?? [],
         wrapping: { try await self.vncInfos(request: $0, context: $1) }
+      )
+
+    case "VncTunnel":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VncStream>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.VncStream>(),
+        interceptors: self.interceptors?.makeVncTunnelInterceptors() ?? [],
+        wrapping: { try await self.vncTunnel(requestStream: $0, responseStream: $1, context: $2) }
       )
 
     case "Launch":
@@ -3264,6 +3449,15 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.grandCentralUpdate(requestStream: $0, context: $1) }
       )
 
+    case "CheckReliability":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Empty>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeCheckReliabilityInterceptors() ?? [],
+        wrapping: { try await self.checkReliability(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -3299,6 +3493,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'vncInfos'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeVncInfosInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'vncTunnel'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeVncTunnelInterceptors() -> [ServerInterceptor<Caked_Caked.VncStream, Caked_Caked.VncStream>]
 
   /// - Returns: Interceptors to use when handling 'launch'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -3407,6 +3605,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'grandCentralUpdate'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGrandCentralUpdateInterceptors() -> [ServerInterceptor<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus, Caked_Empty>]
+
+  /// - Returns: Interceptors to use when handling 'checkReliability'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeCheckReliabilityInterceptors() -> [ServerInterceptor<Caked_Empty, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -3421,6 +3623,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.execute,
       Caked_ServiceServerMetadata.Methods.info,
       Caked_ServiceServerMetadata.Methods.vncInfos,
+      Caked_ServiceServerMetadata.Methods.vncTunnel,
       Caked_ServiceServerMetadata.Methods.launch,
       Caked_ServiceServerMetadata.Methods.list,
       Caked_ServiceServerMetadata.Methods.rename,
@@ -3448,6 +3651,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.installAgent,
       Caked_ServiceServerMetadata.Methods.grandCentralDispatcher,
       Caked_ServiceServerMetadata.Methods.grandCentralUpdate,
+      Caked_ServiceServerMetadata.Methods.checkReliability,
     ]
   )
 
@@ -3492,6 +3696,12 @@ public enum Caked_ServiceServerMetadata {
       name: "VncInfos",
       path: "/caked.Service/VncInfos",
       type: GRPCCallType.unary
+    )
+
+    public static let vncTunnel = GRPCMethodDescriptor(
+      name: "VncTunnel",
+      path: "/caked.Service/VncTunnel",
+      type: GRPCCallType.bidirectionalStreaming
     )
 
     public static let launch = GRPCMethodDescriptor(
@@ -3654,6 +3864,12 @@ public enum Caked_ServiceServerMetadata {
       name: "GrandCentralUpdate",
       path: "/caked.Service/GrandCentralUpdate",
       type: GRPCCallType.clientStreaming
+    )
+
+    public static let checkReliability = GRPCMethodDescriptor(
+      name: "CheckReliability",
+      path: "/caked.Service/CheckReliability",
+      type: GRPCCallType.unary
     )
   }
 }

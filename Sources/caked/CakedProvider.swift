@@ -261,7 +261,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let gcd: GrandCentralDispatch
 	
 	var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? = nil
-
+	
 	init(group: EventLoopGroup, password: String?, runMode: Utils.RunMode) throws {
 		self.runMode = runMode
 		self.group = group
@@ -278,11 +278,11 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		
 		return CakeAgentConnection(eventLoop: self.group, listeningAddress: listeningAddress, certLocation: self.certLocation, retries: retries)
 	}
-
+	
 	func createCakeAgentHelper(vmName: String, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1)) throws -> CakeAgentHelper {
 		return try CakeAgentHelper.createCakeAgentHelper(name: vmName, connectionTimeout: connectionTimeout, retries: retries, runMode: self.runMode)
 	}
-
+	
 	func execute(command: CakedCommand) throws -> Caked_Reply {
 		var command = command
 		
@@ -310,7 +310,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 			})
 		})
 	}
-
+	
 	func start(request: Caked_StartRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
@@ -321,20 +321,20 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	
 	func duplicate(request: Caked_DuplicateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-
+		
 		if reply.vms.duplicated.duplicated {
 			try await self.gcd.updateStatus(.with {
 				$0.name = request.to
 				$0.status = .new
 			})
 		}
-
+		
 		return reply
 	}
 	
 	func delete(request: Caked_DeleteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-
+		
 		if reply.vms.delete.success {
 			for name in request.names.list {
 				try await self.gcd.updateStatus(.with {
@@ -343,7 +343,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 				})
 			}
 		}
-
+		
 		return reply
 	}
 	
@@ -454,8 +454,21 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func grandCentralDispatcher(request: Caked_Empty, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, context: GRPCAsyncServerCallContext) async throws {
 		try await gcd.processDispatch(responseStream: responseStream)
 	}
-
+	
 	func grandCentralUpdate(requestStream: GRPCAsyncRequestStream<Caked_CurrentStatus>, context: GRPCAsyncServerCallContext) async throws -> Caked_Empty {
 		try await gcd.processUpdate(requestStream: requestStream)
 	}
+	
+	func vncTunnel(requestStream: GRPCAsyncRequestStream<Caked_VncStream>, responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>, context: GRPCAsyncServerCallContext) async throws {
+	}
+	
+	func checkReliability(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return .with {
+			$0.ping = .with {
+				$0.message = "pong"
+				$0.success = true
+			}
+		}
+	}
+	
 }
