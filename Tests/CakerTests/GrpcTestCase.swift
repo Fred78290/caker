@@ -31,7 +31,8 @@ class GrpcTestCase {
 			eventLoopGroup: on,
 			runMode: .user,
 			listeningAddress: listeningAddress,
-			serviceProviders: [try CakedProvider(group: on, runMode: .user)],
+			serviceProviders: [try CakedProvider(group: on, password: nil, runMode: .user)],
+			password: nil,
 			caCert: tls ? certs.caCertURL.absoluteURL.path : nil,
 			tlsCert: tls ? certs.serverCertURL.absoluteURL.path : nil,
 			tlsKey: tls ? certs.serverKeyURL.absoluteURL.path : nil

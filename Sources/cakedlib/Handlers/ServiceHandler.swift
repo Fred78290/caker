@@ -107,6 +107,7 @@ public struct ServiceHandler {
 		runMode: Utils.RunMode,
 		listeningAddress: URL?,
 		serviceProviders: [CallHandlerProvider],
+		password: String?,
 		caCert: String?,
 		tlsCert: String?,
 		tlsKey: String?
@@ -152,15 +153,16 @@ public struct ServiceHandler {
 
 					// Service type must be of the form _name._tcp.
 					let serviceType = "_caked._tcp."
-					let serviceName = Utils.cakerSignature
 
 					let txt: [String: String] = [
-						"host": listeningAddress.host ?? "localhost"
+						"host": listeningAddress.host ?? "localhost",
+						"tls": serverConfiguration.tlsConfiguration != nil ? "true" : "false",
+						"secure": (password ?? "").isEmpty ? "false" : "true",
 					]
 
-					Logger("ServiceHandler").info("Publishing Bonjour service '\(serviceName)' on port \(boundPort) with type '\(serviceType)'")
+					Logger("ServiceHandler").info("Publishing Bonjour service on port \(boundPort) with type '\(serviceType)'")
 
-					Self.publishBonjourService(name: serviceName, type: serviceType, port: boundPort, txt: txt)
+					Self.publishBonjourService(name: "", type: serviceType, port: boundPort, txt: txt)
 
 					return serverFuture
                 }
@@ -391,7 +393,7 @@ public struct ServiceHandler {
 	
 	public static var serviceClient: CakedServiceClient? {
 		for runMode in [Utils.RunMode.system, .user] {
-			if let client = try? self.createCakedServiceClient(runMode: runMode) {
+			if let client = try? self.createCakedServiceClient(tls: true, runMode: runMode) {
 				return client
 			}
 		}
@@ -399,12 +401,11 @@ public struct ServiceHandler {
 		return nil
 	}
 	
-	public static func createCakedServiceClient(listenAddress: String? = nil, password: String? = nil, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
+	public static func createCakedServiceClient(listenAddress: String? = nil, password: String? = nil, tls: Bool, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
 		guard listenAddress == nil && isAgentRunning(runMode: runMode).running else {
 			throw ServiceError(String(localized: "Caked service is not running"))
 		}
 
-		let certs = try ClientCertificatesLocation.getCertificats(runMode: runMode)
 		let listeningAddress: URL
 
 		if let listenAddress {
@@ -421,10 +422,14 @@ public struct ServiceHandler {
 		var tlsCert: String? = nil
 		var tlsKey: String? = nil
 
-		if certs.exists() {
-			caCert = certs.caCertURL.path
-			tlsCert = certs.clientCertURL.path
-			tlsKey = certs.clientKeyURL.path
+		if tls {
+			let certs = try ClientCertificatesLocation.getCertificats(runMode: runMode)
+
+			if certs.exists() {
+				caCert = certs.caCertURL.path
+				tlsCert = certs.clientCertURL.path
+				tlsKey = certs.clientKeyURL.path
+			}
 		}
 
 		return try Caked.createClient(on: Utilities.group.next(),

@@ -146,11 +146,11 @@ public struct ShellHandler {
 		case eof(Bool)
 	}
 
-	public static func shell(vmURL: URL, listenAddress: String? = nil, password: String? = nil, terminalSize: TerminalSize, connectionTimeout: Int64 = 1, runMode: Utils.RunMode) throws -> any ShellHandlerProtocol {
+	public static func shell(vmURL: URL, listenAddress: String? = nil, password: String? = nil, tls: Bool, terminalSize: TerminalSize, connectionTimeout: Int64 = 1, runMode: Utils.RunMode) throws -> any ShellHandlerProtocol {
 		if vmURL.isFileURL {
 			return try ShellCakeAgent(vmURL: vmURL, runMode: runMode).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout)
 		} else {
-			return try ShellCaked(vmURL: vmURL, listenAddress: listenAddress, password: password, connectionTimeout: connectionTimeout, runMode: runMode).shell(terminalSize: terminalSize)
+			return try ShellCaked(vmURL: vmURL, listenAddress: listenAddress, password: password, tls: tls, connectionTimeout: connectionTimeout, runMode: runMode).shell(terminalSize: terminalSize)
 		}
 	}
 
@@ -167,13 +167,13 @@ public struct ShellHandler {
 			self.stream.stream.makeAsyncIterator()
 		}
 		
-		init(name: String, listenAddress: String?, password: String?, connectionTimeout: Int64, runMode: Utils.RunMode) throws {
+		init(name: String, listenAddress: String?, password: String?, tls: Bool, connectionTimeout: Int64, runMode: Utils.RunMode) throws {
 			self.name = name
 			self.runMode = runMode
-			self.serviceClient = try ServiceHandler.createCakedServiceClient(listenAddress: listenAddress, password: password, connectionTimeout: connectionTimeout, runMode: runMode)
+			self.serviceClient = try ServiceHandler.createCakedServiceClient(listenAddress: listenAddress, password: password, tls: tls, connectionTimeout: connectionTimeout, runMode: runMode)
 		}
 
-		init(vmURL: URL, listenAddress: String?, password: String?, connectionTimeout: Int64, runMode: Utils.RunMode) throws {
+		init(vmURL: URL, listenAddress: String?, password: String?, tls: Bool, connectionTimeout: Int64, runMode: Utils.RunMode) throws {
 			if vmURL.isFileURL {
 				throw ServiceError(String(localized: "Cannot create ShellCaked for file URL: \(vmURL.absoluteString)"))
 			}
@@ -184,7 +184,7 @@ public struct ShellHandler {
 
 			self.name = name
 			self.runMode = runMode
-			self.serviceClient = try ServiceHandler.createCakedServiceClient(listenAddress: listenAddress, password: password, connectionTimeout: connectionTimeout, runMode: runMode)
+			self.serviceClient = try ServiceHandler.createCakedServiceClient(listenAddress: listenAddress, password: password, tls: tls, connectionTimeout: connectionTimeout, runMode: runMode)
 		}
 
 		public func shell(terminalSize: TerminalSize) throws -> Self {
