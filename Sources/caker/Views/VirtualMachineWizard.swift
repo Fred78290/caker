@@ -249,6 +249,7 @@ struct VirtualMachineWizard: View {
 	@StateObject private var model = VirtualMachineWizardStateObject()
 
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
+	private let listHeight: CGFloat = 460
 
 	var sheet: Bool = false
 
@@ -839,7 +840,7 @@ struct VirtualMachineWizard: View {
 	func forwardPortsView() -> some View {
 		Form {
 			Section("Forwarded ports") {
-				ForwardedPortView(forwardPorts: $config.forwardedPorts, disabled: $model.createVM).frame(height: 400)
+				ForwardedPortView(forwardPorts: $config.forwardedPorts, disabled: $model.createVM).frame(height: listHeight)
 			}
 		}.formStyle(.grouped)
 	}
@@ -847,7 +848,7 @@ struct VirtualMachineWizard: View {
 	func networksView() -> some View {
 		Form {
 			Section("Network attachements") {
-				NetworkAttachementView(networks: $config.networks, disabled: $model.createVM).frame(height: 400)
+				NetworkAttachementView(networks: $config.networks, disabled: $model.createVM).frame(height: listHeight)
 			}
 		}.formStyle(.grouped)
 	}
@@ -855,7 +856,7 @@ struct VirtualMachineWizard: View {
 	func mountsView() -> some View {
 		Form {
 			Section("Directory sharing") {
-				MountView(mounts: $config.mounts, disabled: $model.createVM).frame(height: 400)
+				MountView(mounts: $config.mounts, disabled: $model.createVM).frame(height: listHeight)
 			}
 		}.formStyle(.grouped)
 	}
@@ -863,7 +864,7 @@ struct VirtualMachineWizard: View {
 	func diskAttachementView() -> some View {
 		Form {
 			Section("Disks attachements") {
-				DiskAttachementView(attachedDisks: $config.attachedDisks, disabled: $model.createVM).frame(height: 400)
+				DiskAttachementView(attachedDisks: $config.attachedDisks, disabled: $model.createVM).frame(height: listHeight)
 			}
 		}.formStyle(.grouped)
 	}
@@ -871,7 +872,7 @@ struct VirtualMachineWizard: View {
 	func socketsView() -> some View {
 		Form {
 			Section("Virtual sockets") {
-				SocketsView(sockets: $config.sockets, disabled: $model.createVM).frame(height: 400)
+				SocketsView(sockets: $config.sockets, disabled: $model.createVM).frame(height: listHeight)
 			}
 		}.formStyle(.grouped)
 	}

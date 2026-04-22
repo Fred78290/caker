@@ -324,7 +324,7 @@ struct MainApp: App {
 		VirtualMachineWizard()
 			.colorSchemeForColor()
 			.restorationState(.disabled)
-			.frame(minWidth: 700, maxWidth: 700, minHeight: 670, maxHeight: 670)
+			.frame(size: CGSize(width: 700, height: 610))
 	}
 	
 	@MainActor func openVirtualMachine(_ vmURL: URL) async {
