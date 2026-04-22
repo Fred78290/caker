@@ -402,10 +402,6 @@ public struct ServiceHandler {
 	}
 	
 	public static func createCakedServiceClient(listenAddress: String? = nil, password: String? = nil, tls: Bool, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
-		guard listenAddress == nil && isAgentRunning(runMode: runMode).running else {
-			throw ServiceError(String(localized: "Caked service is not running"))
-		}
-
 		let listeningAddress: URL
 
 		if let listenAddress {
@@ -413,8 +409,16 @@ public struct ServiceHandler {
 				throw ServiceError(String(localized: "Wrong listen address"))
 			}
 
+			if u.isFileURL == false && u.scheme != "unix" && u.scheme != "tcp" {
+				throw ServiceError(String(localized: "unsupported listening address scheme: \(listenAddress)"))
+			}
+
 			listeningAddress = u
 		} else {
+			guard isAgentRunning(runMode: runMode).running else {
+				throw ServiceError(String(localized: "Caked service is not running"))
+			}
+
 			listeningAddress = try URL(string: Utils.getDefaultServerAddress(runMode: runMode))!
 		}
 

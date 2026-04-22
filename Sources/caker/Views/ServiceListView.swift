@@ -1,4 +1,3 @@
-//
 //  ServiceListView.swift
 //  Caker
 //
@@ -9,6 +8,7 @@ import Foundation
 import SwiftUI
 import CakedLib
 import CakeAgentLib
+import GRPCLib
 
 class ServiceListViewModel: ObservableObject {
 	@Published var services: [NetService] = []
@@ -46,11 +46,20 @@ class ServiceListViewModel: ObservableObject {
 
 struct ServiceListView: View {
 	@StateObject private var viewModel = ServiceListViewModel()
+
 	@State private var selectedService: NetService? = nil
     @State private var isPresentingPasswordPrompt: Bool = false
     @State private var enteredPassword: String = ""
 	@State private var displayAlert: Bool = false
 	@State private var errorMessage: String? = nil
+    @State private var isPresentingManualSheet: Bool = false
+
+	@State private var manualAddress: String = ""
+	@State private var manualPort: Int = Caked.defaultServicePort
+    @State private var manualPassword: String = ""
+    @State private var manualUseTLS: Bool = true
+    @State private var manualError: String? = nil
+
 	private var serviceType: String = "_caked._tcp."
 	private var domain: String = "local."
 
@@ -96,18 +105,24 @@ struct ServiceListView: View {
 			self.errorMessage = nil
 			self.displayAlert = false
 
-			if checkIfServiceIsReachable(listenAddress: listenAddress, password: nil, tlsIsRequired: tlsIsRequired) {
+			let ok = checkIfServiceIsReachable(listenAddress: listenAddress, password: nil, tlsIsRequired: tlsIsRequired)
+
+			if ok.reachable {
 				AppState.shared.connectToRemote(listenAddress: listenAddress, password: nil, tls: tlsIsRequired)
 			} else {
-				if let errorMessage {
-					self.errorMessage = String(localized: "Failed to connect to the service \(service).\nPlease check the address and try again.\n\n\(errorMessage)")
-				} else {
-					self.errorMessage = String(localized: "The service \(service) is unreachable.")
-				}
-
-				self.displayAlert = true
+				self.failedToConnect(service.description, errorMessage: ok.errorMessage)
 			}
 		}
+	}
+
+	private func failedToConnect(_ service: String, errorMessage: String?) {
+		if let errorMessage = errorMessage {
+			self.errorMessage = String(localized: "Failed to connect to the service \(service).\nPlease check the address and try again.\n\n\(errorMessage)")
+		} else {
+			self.errorMessage = String(localized: "The service \(service) is unreachable.")
+		}
+
+		self.displayAlert = true
 	}
 
 	private func connectWithPassword(service: NetService, password: String? = nil) {
@@ -117,33 +132,23 @@ struct ServiceListView: View {
 		self.errorMessage = nil
 		self.displayAlert = false
 
-		if checkIfServiceIsReachable(listenAddress: listenAddress, password: password, tlsIsRequired: tlsIsRequired) {
+		let ok = checkIfServiceIsReachable(listenAddress: listenAddress, password: password, tlsIsRequired: tlsIsRequired)
+
+		if ok.reachable {
 			AppState.shared.connectToRemote(listenAddress: listenAddress, password: password, tls: tlsIsRequired)
 		} else {
-			if let errorMessage {
-				self.errorMessage = String(localized: "Failed to connect to the service \(service).\nPlease check the address and try again.\n\n\(errorMessage)")
-			} else {
-				self.errorMessage = String(localized: "The service \(service) is unreachable.")
-			}
-
-			self.displayAlert = true
+			self.failedToConnect(service.description, errorMessage: ok.errorMessage)
 		}
 	}
 
-	private func checkIfServiceIsReachable(listenAddress: String, password: String? = nil, tlsIsRequired: Bool) -> Bool {
-		guard let client = try? ServiceHandler.createCakedServiceClient(listenAddress: listenAddress, password: password, tls: tlsIsRequired, runMode: .user) else {
-			return false
-		}
-
+	private func checkIfServiceIsReachable(listenAddress: String, password: String? = nil, tlsIsRequired: Bool) -> (reachable: Bool, errorMessage: String?) {
 		do {
-			_ = try client.checkReliability(.init()).response.wait()
-
-			return true
+			_ = try ServiceHandler.createCakedServiceClient(listenAddress: listenAddress, password: password, tls: tlsIsRequired, runMode: .user).checkReliability(.init()).response.wait()
+			return (true, nil)
 		} catch {
-			self.errorMessage = error.reason
+			Logger(self).error("Failed to connect to service at \(listenAddress): \(error)")
+			return (false, error.reason)
 		}
-
-		return false
 	}
 
 	private func handlePasswordSubmit() {
@@ -162,6 +167,31 @@ struct ServiceListView: View {
 		
 		self.connectWithPassword(service: service, password: password)
     }
+
+	private func manualConnect() {
+		let address = manualAddress.trimmingCharacters(in: .whitespacesAndNewlines)
+
+		guard address.isEmpty == false else {
+			manualError = String(localized: "Please enter an address.")
+			return
+		}
+
+		guard (1...65535).contains(manualPort) else {
+			manualError = String(localized: "Please enter a valid port (1-65535).")
+			return
+		}
+
+		isPresentingManualSheet = false
+
+		let listenAddress = "tcp://\(address):\(manualPort)"
+		let result = checkIfServiceIsReachable(listenAddress: listenAddress, password: manualPassword.isEmpty ? nil : manualPassword, tlsIsRequired: manualUseTLS)
+
+		if result.reachable {
+			AppState.shared.connectToRemote(listenAddress: listenAddress, password: manualPassword.isEmpty ? nil : manualPassword, tls: manualUseTLS)
+		} else {
+			manualError = result.errorMessage
+		}
+	}
 
 	var body: some View {
 		VStack {
@@ -215,6 +245,12 @@ struct ServiceListView: View {
 			.padding()
 
 			Spacer()
+			HStack {
+				Spacer()
+				Button("Connect to a server") {
+                    isPresentingManualSheet = true
+				}
+			}.padding()
 		}
 		.onAppear {
 			viewModel.startScanning()
@@ -266,8 +302,58 @@ struct ServiceListView: View {
                     .disabled(enteredPassword.isEmpty)
                 }
             }
-            .padding(24)
-            .frame(minWidth: 360)
+            .padding()
+            .frame(width: 250)
+        }
+        .sheet(isPresented: $isPresentingManualSheet) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Connect to Server")
+                    .font(.headline)
+
+                VStack(alignment: .leading, spacing: 8) {
+					LabeledContent("Address (host or ip)") {
+						TextField("", text: $manualAddress)
+							.textFieldStyle(.roundedBorder)
+							.disableAutocorrection(true)
+							.textCase(.lowercase)
+					}
+
+					LabeledContent("Port") {
+						Spacer()
+						TextField("", value: $manualPort, format: .number)
+							.textFieldStyle(.roundedBorder)
+							.frame(width: 50)
+					}
+
+					LabeledContent("Password (optional)") {
+						SecureField("", text: $manualPassword)
+							.textFieldStyle(.roundedBorder)
+					}
+
+                    Toggle("Use TLS", isOn: $manualUseTLS)
+                }
+
+                if let manualError {
+                    Text(manualError)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
+
+                HStack {
+                    Spacer()
+                    Button("Cancel") {
+                        isPresentingManualSheet = false
+                        manualError = nil
+                    }
+                    Button("Connect") {
+						self.manualConnect()
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(manualAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || manualPort == 0)
+                }
+            }
+            .padding()
+            .frame(width: 450)
         }
 	}
 }
