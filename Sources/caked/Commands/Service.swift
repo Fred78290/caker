@@ -204,6 +204,7 @@ extension Service {
 					runMode: runMode,
 					listeningAddress: URL(string: address),
 					serviceProviders: [provider],
+					password: self.options.password,
 					caCert: self.options.caCert,
 					tlsCert: self.options.tlsCert,
 					tlsKey: self.options.tlsKey
