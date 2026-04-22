@@ -168,7 +168,10 @@ class AppState: ObservableObject, Observable {
 	
 	private var cakedServiceClient: CakedServiceClient? = nil
 	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
-	
+	private var listenAddress: String? = nil
+	private var password: String? = nil
+	private var tls: Bool = true
+
 	deinit {
 		agentStatusTimer?.cancel()
 		gcd?.cancel(promise: nil)
@@ -248,18 +251,20 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 	
-	private static func loadService(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ServiceReply {
-		Logger("AppState").debug("Loading data for mode: runMode=\(runMode)")
+	private static func loadService(client: CakedServiceClient?, connectionMode: AppState.ConnectionMode, listenAddress: String?, password: String?, tls: Bool) throws -> ServiceReply {
+		let runMode = connectionMode.runMode
+
+		Logger("AppState").debug("Loading data for mode: connectionMode=\(connectionMode)")
 		
 		return try ServiceReply(
 			remotes: Self.loadRemotes(client: client, runMode: runMode),
 			templates: Self.loadTemplates(client: client, runMode: runMode),
 			networks: Self.loadNetworks(client: client, runMode: runMode),
-			virtualMachines: Self.loadVirtualMachines(client: client, runMode: runMode)
+			virtualMachines: Self.loadVirtualMachines(client: client, connectionMode: connectionMode, listenAddress: listenAddress, password: password, tls: tls)
 		)
 	}
 
-	private func switchMode(_ installed: Bool, connectionMode: ConnectionMode) {
+	private func switchMode(_ installed: Bool, connectionMode: ConnectionMode, listenAddress: String?, password: String?, tls: Bool) {
 		func startGrandCentral() {
 			let gcdFuture = Utilities.group.next().makeFutureWithTask {
 				await self.gdc(client: self.cakedServiceClient!)
@@ -280,12 +285,14 @@ class AppState: ObservableObject, Observable {
 		if connectionMode == .app {
 			self.gcd?.cancel(promise: nil)
 			self.cakedServiceClient = nil
+		} else if connectionMode == .remote {
+			self.cakedServiceClient = try? ServiceHandler.createCakedServiceClient(listenAddress: listenAddress, password: password, tls: tls, runMode: .user)
 		} else {
 			self.cakedServiceClient = ServiceHandler.serviceClient
 		}
 				
 		Utilities.group.next().makeFutureWithTask {
-			try Self.loadService(client: self.cakedServiceClient, runMode: connectionMode.runMode)
+			try Self.loadService(client: self.cakedServiceClient, connectionMode: connectionMode, listenAddress: listenAddress, password: password, tls: tls)
 		}.whenComplete { result in
 			self.logger.debug("Data loaded for new mode: installed=\(installed), runMode=\(connectionMode)")
 
@@ -293,7 +300,10 @@ class AppState: ObservableObject, Observable {
 				self.cakedServiceInstalled = installed
 				self.cakedServiceRunning = connectionMode != .app
 				self.connectionMode = connectionMode
-
+				self.listenAddress = listenAddress
+				self.password = password
+				self.tls = tls
+	
 				switch result {
 				case let .failure(error):
 					alertError(error)
@@ -318,6 +328,8 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func agentStatusWatch(_ task: RepeatedTask) {
+		guard self.connectionMode != .remote else { return }
+
 		let connectionMode = ConnectionMode(ServiceHandler.runningMode)
 		let installed = ServiceHandler.isAgentInstalled
 		
@@ -327,7 +339,7 @@ class AppState: ObservableObject, Observable {
 			self.agentStatusTimer = nil
 			task.cancel()
 
-			self.switchMode(installed, connectionMode: connectionMode)
+			self.switchMode(installed, connectionMode: connectionMode, listenAddress: nil, password: nil, tls: true)
 		}
 	}
 
@@ -361,17 +373,21 @@ class AppState: ObservableObject, Observable {
 				self.agentStatusWatch(task)
 			}
 
-			if let serviceReply = try? Self.loadService(client: nil, runMode: .app) {
+			if let serviceReply = try? Self.loadService(client: nil, connectionMode: .app, listenAddress: nil, password: nil, tls: true) {
 				self.virtualMachines = serviceReply.virtualMachines
 				self.networks = serviceReply.networks
 				self.remotes = serviceReply.remotes
 				self.templates = serviceReply.templates
 			}
 		} else {
-			self.switchMode(cakedServiceInstalled, connectionMode: connectionMode)
+			self.switchMode(cakedServiceInstalled, connectionMode: connectionMode, listenAddress: nil, password: nil, tls: true)
 		}
 	}
-	
+
+	func connectToRemote(listenAddress: String, password: String? = nil, tls: Bool) {
+		self.switchMode(self.cakedServiceInstalled, connectionMode: .remote, listenAddress: listenAddress, password: password, tls: tls)
+	}
+
 	static func loadNetworks(client: CakedServiceClient?, runMode: Utils.RunMode) -> [BridgedNetwork] {
 		guard let result = try? NetworksHandler.networks(client: client, runMode: runMode) else {
 			return []
@@ -392,8 +408,8 @@ class AppState: ObservableObject, Observable {
 		try await ImageHandler.listImage(client: client, remote: remote, runMode: runMode).infos
 	}
 	
-	static func loadVirtualMachines(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ([URL: VirtualMachineDocument]) {
-		return try VirtualMachineDocument.loadVirtualMachineDocuments(client: client, runMode: runMode)
+	static func loadVirtualMachines(client: CakedServiceClient?, connectionMode: AppState.ConnectionMode, listenAddress: String?, password: String?, tls: Bool) throws -> ([URL: VirtualMachineDocument]) {
+		return try VirtualMachineDocument.loadVirtualMachineDocuments(client: client, connectionMode: connectionMode, listenAddress: listenAddress, password: password, tls: tls)
 	}
 	
 	func loadNetworks() -> [BridgedNetwork] {
@@ -520,7 +536,7 @@ class AppState: ObservableObject, Observable {
 		}
 		
 		guard let vm = self.findVirtualMachineDocument(vmURL) else {
-			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: vmURL) else {
+			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: vmURL, connectionMode: self.connectionMode, listenAddress: self.listenAddress, password: self.password, tls: self.tls) else {
 				return nil
 			}
 			
@@ -535,7 +551,7 @@ class AppState: ObservableObject, Observable {
 	@discardableResult
 	func addVirtualMachineDocument(_ url: URL) -> VirtualMachineDocument? {
 		guard let vm = self.findVirtualMachineDocument(url) else {
-			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: url) else {
+			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: url, connectionMode: self.connectionMode, listenAddress: self.listenAddress, password: self.password, tls: self.tls) else {
 				return nil
 			}
 			
