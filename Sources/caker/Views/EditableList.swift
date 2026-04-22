@@ -145,7 +145,7 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 								}
 						}
 						.frame(height: geom.size.height)
-						.listStyle(.bordered(alternatesRowBackgrounds: true))
+						.alternatingRowBackgrounds()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(Color(CGColor.init(gray: 0.8, alpha: 0.4)), lineWidth: 1))
 					}

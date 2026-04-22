@@ -14,6 +14,10 @@ import SwiftUI
 class InteractiveShell {
 	let name: String
 	let vmURL: URL
+	let listenAddress: String?
+	let password: String?
+	let tls: Bool
+
 	var terminalView: VirtualMachineTerminalView! = nil
 
 	private var shellStream: (any ShellHandler.ShellHandlerProtocol)! = nil
@@ -25,9 +29,12 @@ class InteractiveShell {
 		self.closeShell()
 	}
 
-	init(_ vmURL: URL) {
+	init(_ vmURL: URL, listenAddress: String?, password: String?, tls: Bool) {
 		self.vmURL = vmURL
 		self.name = vmURL.lastPathComponent.deletingPathExtension
+		self.listenAddress = listenAddress
+		self.password = password
+		self.tls = tls
 	}
 
 	func buildTerminalView(frame: CGRect) -> VirtualMachineTerminalView {
@@ -133,6 +140,7 @@ class InteractiveShell {
 			while Task.isCancelled == false && self.cancelled == false {
 				do {
 					let shellStream = try ShellHandler.shell(vmURL: self.vmURL,
+															 listenAddress: self.listenAddress, password: self.password, tls: self.tls,
 															 terminalSize: ShellHandler.TerminalSize(rows: Int32(rows), cols: Int32(cols)),
 															 connectionTimeout: 5,
 															 runMode: AppState.shared.connectionMode.runMode)

@@ -201,6 +201,10 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private let logger = Logger("VirtualMachineDocument")
 	private var agentMonitoring: Task<Void, Never>?
 	private var inView: Bool = false
+	private var connectionMode = AppState.ConnectionMode.app
+	private var listenAddress: String? = nil
+	private var password: String? = nil
+	private var tls: Bool = true
 
 	let id = UUID().uuidString
 	
@@ -219,7 +223,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			return true
 		}
 
-		guard AppState.shared.connectionMode == .app else {
+		guard self.connectionMode == .app else {
 			return true
 		}
 		
@@ -328,7 +332,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private init(location: VMLocation) throws {
 		let config = try VirtualMachineConfig(name: location.name, config: location.config())
 		let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
-		
+
 		self.name = location.name
 		self.url = location.rootURL
 		self.location = location
@@ -336,9 +340,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.screenshot = nil
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
-		self.monitor = monitor
+		self.monitor = nil
 		self.documentSize = ViewSize(config.display.cgSize)
-		
+
 		switch location.status {
 		case .running:
 			self.status = .running
@@ -351,13 +355,13 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		try monitor.start()
 	}
 
-	private convenience init(vmURL: URL, infos: VMInformations, config: any VirtualMachineConfiguration) throws {
+	private convenience init(vmURL: URL, infos: VMInformations, config: any VirtualMachineConfiguration, connectionMode: AppState.ConnectionMode, listenAddress: String?, password: String?, tls: Bool) throws {
 		let status = Status(infos.status)
 		
-		try self.init(vmURL: vmURL, status: status, vncURL: infos.vncURL, config: config)
+		try self.init(vmURL: vmURL, status: status, vncURL: infos.vncURL, config: config, connectionMode: connectionMode, listenAddress: listenAddress, password: password, tls: tls)
 	}
 
-	private init(vmURL: URL, status: Status, vncURL: [String]?, config: any VirtualMachineConfiguration) throws {
+	private init(vmURL: URL, status: Status, vncURL: [String]?, config: any VirtualMachineConfiguration, connectionMode: AppState.ConnectionMode, listenAddress: String?, password: String?, tls: Bool) throws {
 		guard let name = vmURL.host(percentEncoded: false) else {
 			throw ServiceError(String(localized: "Internal error"))
 		}
@@ -368,6 +372,12 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.status = status
 		self.vncURL = vncURL?.compactMap { URL(string: $0) }
+
+		self.connectionMode = connectionMode
+		self.listenAddress = listenAddress
+		self.password = password
+		self.tls = tls
+
 		self.setDocumentSize(.init(self.virtualMachineConfig.display.cgSize))
 	}
 	
@@ -379,32 +389,38 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		return try VirtualMachineDocument(location: location)
 	}
 
-	static func createVirtualMachineDocument(vmURL: URL) throws -> VirtualMachineDocument {
+	static func createVirtualMachineDocument(vmURL: URL, connectionMode: AppState.ConnectionMode, listenAddress: String?, password: String?, tls: Bool) throws -> VirtualMachineDocument {
 		if vmURL.isFileURL {
-			return try VirtualMachineDocument(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: AppState.shared.connectionMode.runMode))
+			return try VirtualMachineDocument(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: .app))
 		} else if AppState.shared.connectionMode == .app {
-			return try VirtualMachineDocument(location: StorageLocation(runMode: AppState.shared.connectionMode.runMode).find(vmURL.host(percentEncoded: false)!))
+			return try VirtualMachineDocument(location: StorageLocation(runMode: .app).find(vmURL.host(percentEncoded: false)!))
 		} else {
 			let infos = try AppState.shared.virtualMachineInfos(vmURL: vmURL)
 			
-			return try VirtualMachineDocument(vmURL: vmURL, infos: infos.infos, config: infos.config)
+			return try VirtualMachineDocument(vmURL: vmURL,
+											  infos: infos.infos,
+											  config: infos.config,
+											  connectionMode: connectionMode,
+											  listenAddress: listenAddress,
+											  password: password,
+											  tls: tls)
 		}
 	}
 	
-	static func loadVirtualMachineDocuments(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> [URL: VirtualMachineDocument] {
+	static func loadVirtualMachineDocuments(client: CakedServiceClient?, connectionMode: AppState.ConnectionMode, listenAddress: String?, password: String?, tls: Bool) throws -> [URL: VirtualMachineDocument] {
 		var vms: [URL: VirtualMachineDocument] = [:]
 
-		let result = try ListHandler.list(client: client, vmonly: true, includeConfig: client != nil, runMode: runMode)
+		let result = try ListHandler.list(client: client, vmonly: true, includeConfig: client != nil, runMode: connectionMode.runMode)
 
 		if result.success {
 			if client != nil {
 				vms = result.infos.reduce(into: vms) { (partialResult, info) in
-					if let vmURL = URL(string: info.fqn.first!), let config = info.config, let vm = try? VirtualMachineDocument(vmURL: vmURL, status: .init(CakeAgentLib.Status(info.state)), vncURL: info.vncURL, config: config) {
+					if let vmURL = URL(string: info.fqn.first!), let config = info.config, let vm = try? VirtualMachineDocument(vmURL: vmURL, status: .init(CakeAgentLib.Status(info.state)), vncURL: info.vncURL, config: config, connectionMode: connectionMode, listenAddress: listenAddress, password: password, tls: tls) {
 						partialResult[vmURL] = vm
 					}
 				}
 			} else {
-				let storage = StorageLocation(runMode: runMode)
+				let storage = StorageLocation(runMode: connectionMode.runMode)
 
 				vms = result.infos.reduce(into: vms) { (partialResult, info) in
 					if let vmURL = URL(string: info.fqn.first!), let name = vmURL.host(percentEncoded: false), let location = try? storage.find(name), let vm = try? VirtualMachineDocument(location: location) {
@@ -446,7 +462,7 @@ extension VirtualMachineDocument {
 	}
 
 	func enterView() {
-		self.interactiveShell = InteractiveShell(self.url)
+		self.interactiveShell = InteractiveShell(self.url, listenAddress: self.listenAddress, password: self.password, tls: self.tls)
 		self.inView = true
 		DispatchQueue.main.async {
 			self.tryVNCConnect()
@@ -556,7 +572,7 @@ extension VirtualMachineDocument {
 			self.agentReady = true
 
 			if self.interactiveShell == nil && self.inView {
-				self.interactiveShell = InteractiveShell(self.url)
+				self.interactiveShell = InteractiveShell(self.url, listenAddress: self.listenAddress, password: self.password, tls: self.tls)
 			}
 
 			if let infos = try? AppState.shared.virtualMachineInfos(vmURL: self.url) {
@@ -1260,7 +1276,7 @@ extension VirtualMachineDocument {
 		}
 
 		if self.interactiveShell == nil && self.inView {
-			self.interactiveShell = InteractiveShell(self.url)
+			self.interactiveShell = InteractiveShell(self.url, listenAddress: self.listenAddress, password: self.password, tls: self.tls)
 		}
 	}
 

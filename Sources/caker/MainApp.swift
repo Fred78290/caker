@@ -187,8 +187,11 @@ struct MainApp: App {
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
 
-		Window("Remote", id: "Remote") {
+		Window("Server browser", id: "Remote") {
 			CakedServerView(appState: $appState)
+				.colorSchemeForColor()
+				.containerBackground(.windowBackground, for: .window)
+				.frame(size: CGSize(width: 600, height: 400))
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
