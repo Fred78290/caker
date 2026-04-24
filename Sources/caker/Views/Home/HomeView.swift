@@ -70,7 +70,7 @@ struct HomeView: View {
 	var connectButton: some View {
 		if self.appState.connectionMode == .remote {
 			Button("Disconnect", systemImage: "rectangle.connected.to.line.below") {
-				self.appState.connectionMode = .app
+				self.appState.connectToLocal()
 			}
 			.foregroundStyle(.green)
 			.font(.system(size: 10, weight: .regular, design: .default))
