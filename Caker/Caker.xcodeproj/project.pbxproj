@@ -536,6 +536,7 @@
 		9BEBC86B2DF44B9D0092B196 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9BEBC86E2DF44B9D0092B196 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9BEBC8712DF44B9D0092B196 /* Virtualization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C492D5A427100164BF5 /* Virtualization.framework */; };
+		9BEBD1172F9B75270005EC80 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */; };
 		9BF43A692F8A858800618B8C /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF43A682F8A858300618B8C /* Localization.swift */; };
 		9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */; };
 		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
@@ -1102,6 +1103,7 @@
 		9BEBC7662DF440720092B196 /* VirtualMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachine.swift; sourceTree = "<group>"; };
 		9BEBC7672DF440720092B196 /* VMBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMBuilder.swift; sourceTree = "<group>"; };
 		9BEBC7682DF440720092B196 /* VMLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLocation.swift; sourceTree = "<group>"; };
+		9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
 		9BF43A682F8A858300618B8C /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
@@ -1480,6 +1482,7 @@
 		9B30BA492E0BDB5600256A9D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */,
 				9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */,
 				9B5F4B522F728AF200AE1991 /* Authorization.swift */,
 				9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */,
@@ -2648,6 +2651,7 @@
 				9BDA14BF2EEAC18900357544 /* VirtualMachineInformations.swift in Sources */,
 				9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */,
 				9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */,
+				9BEBD1172F9B75270005EC80 /* ConnectionManager.swift in Sources */,
 				9BBF7A3B2F3DE0B800F37D2C /* StartHandler.swift in Sources */,
 				9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */,
 				9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */,
@@ -3564,7 +3568,7 @@
 		9BFE869F2F7E592B005CC9B2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
