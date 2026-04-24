@@ -49,9 +49,33 @@ EOF
     sudo -u "${HOME_USER}" /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked certificates generate
 
     echo "Installing Caker service..."
-    # Install the Caker service with proper UID
-    sudo -u "${HOME_USER}" /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked service install
+    # Prompt for password if not provided
+    if [ -z "${PASSWORD}" ]; then
+        echo "Prompting user for password..."
+        
+        # Detect system language (check primary language preference)
+        LANG_CODE=$(sudo -u "${HOME_USER}" defaults read NSGlobalDomain AppleLanguages 2>/dev/null | /usr/bin/grep -v -E '[\(\)]' | head -1 || echo "en")
+        
+        # Set appropriate message based on language
+        if [[ "${LANG_CODE}" == *"fr"* ]]; then
+            DIALOG_MESSAGE="Veuillez entrer un mot de passe pour le service Caker:"
+        else
+            DIALOG_MESSAGE="Please enter a password for the Caker service:"
+        fi
+        
+        PASSWORD=$(sudo -u "${HOME_USER}" osascript -e "display dialog \"${DIALOG_MESSAGE}\" default answer \"\" with hidden answer" -e 'text returned of result' 2>/dev/null)
+        if [ $? -ne 0 ] || [ -z "${PASSWORD}" ]; then
+            echo "Password prompt cancelled or empty, installing without password..."
+        fi
+    fi
     
+    # Install the Caker service with proper UID
+    if [ -n "${PASSWORD}" ]; then
+        sudo -S -u "${HOME_USER}" /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked service install --tcp --password="${PASSWORD}"
+    else
+        sudo -u "${HOME_USER}" /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked service install
+    fi
+
     echo "=== Caker Post-Installation Completed at $(date) ==="
 } 2>&1 | tee "${LOG_FILE}"
 PIPELINE_STATUS=${PIPESTATUS[0]}
