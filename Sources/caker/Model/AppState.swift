@@ -138,12 +138,13 @@ class AppState: ObservableObject, Observable {
 	
 	private var connectionManager: ConnectionManager
 	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
+	private var openedVirtualMachines: [VirtualMachineDocument] = []
 
 	deinit {
 		agentStatusTimer?.cancel()
 		gcd?.cancel(promise: nil)
 	}
-
+	
 	private func receiveScreenshot(_ vmURL: URL, value: Data) async {
 		if let document = self.findVirtualMachineDocument(vmURL) {
 			await document.setScreenshot(value)
@@ -220,7 +221,7 @@ class AppState: ObservableObject, Observable {
 			virtualMachines: connectionManager.loadVirtualMachines()
 		)
 	}
-
+	
 	private func switchMode(_ installed: Bool, connectionManager: ConnectionManager) {
 		func startGrandCentral() {
 			let gcdFuture = Utilities.group.next().makeFutureWithTask {
@@ -238,24 +239,24 @@ class AppState: ObservableObject, Observable {
 		}
 		
 		self.logger.debug("Switching mode: installed=\(installed), connectionMode=\(connectionMode)")
-
+		
 		if connectionManager.connectionMode == .app {
 			self.gcd?.cancel(promise: nil)
 		}
-
+		
 		Utilities.group.next().makeFutureWithTask {
 			try Self.loadService(connectionManager: connectionManager)
 		}.whenComplete { result in
 			let connectionMode = connectionManager.connectionMode
-
+			
 			self.logger.debug("Data loaded for new mode: installed=\(installed), runMode=\(connectionMode)")
-
+			
 			DispatchQueue.main.async {
 				self.cakedServiceInstalled = installed
 				self.cakedServiceRunning = connectionMode != .app
 				self.connectionMode = connectionMode
 				self.connectionManager = connectionManager
-
+				
 				switch result {
 				case let .failure(error):
 					alertError(error)
@@ -269,7 +270,7 @@ class AppState: ObservableObject, Observable {
 						startGrandCentral()
 					}
 				}
-
+				
 				// Restart timer
 				self.logger.debug("Restart timer for new mode: installed=\(installed), runMode=\(connectionMode)")
 				self.agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { task in
@@ -281,7 +282,7 @@ class AppState: ObservableObject, Observable {
 	
 	func agentStatusWatch(_ task: RepeatedTask) {
 		guard self.connectionMode != .remote else { return }
-
+		
 		let connectionMode = ConnectionManager.ConnectionMode(ServiceHandler.runningMode)
 		let installed = ServiceHandler.isAgentInstalled
 		
@@ -290,11 +291,11 @@ class AppState: ObservableObject, Observable {
 			self.logger.debug("Suspend timer for new mode: installed=\(installed), connectionMode=\(connectionMode)")
 			self.agentStatusTimer = nil
 			task.cancel()
-
+			
 			self.switchMode(installed, connectionManager: ConnectionManager(connectionMode: connectionMode))
 		}
 	}
-
+	
 	private init() {
 		let connectionManager = ConnectionManager(connectionMode: ConnectionManager.ConnectionMode(ServiceHandler.runningMode))
 		let cakedServiceInstalled = ServiceHandler.isAgentInstalled
@@ -314,12 +315,12 @@ class AppState: ObservableObject, Observable {
 		self.cakedServiceRunning = cakedServiceRunning
 		self.connectionManager = connectionManager
 		self.agentStatusTimer = nil
-
+		
 		if connectionManager.connectionMode == .app {
 			self.agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { task in
 				self.agentStatusWatch(task)
 			}
-
+			
 			if let serviceReply = try? Self.loadService(connectionManager: connectionManager) {
 				self.virtualMachines = serviceReply.virtualMachines
 				self.networks = serviceReply.networks
@@ -330,11 +331,11 @@ class AppState: ObservableObject, Observable {
 			self.switchMode(cakedServiceInstalled, connectionManager: connectionManager)
 		}
 	}
-
+	
 	func connectToRemote(listenAddress: String, password: String? = nil, tls: Bool) {
 		self.switchMode(self.cakedServiceInstalled, connectionManager: ConnectionManager(connectionMode: .remote, listenAddress: listenAddress, password: password, tls: tls))
 	}
-
+	
 	func connectToLocal() {
 		self.switchMode(self.cakedServiceInstalled, connectionManager: ConnectionManager(connectionMode: .app))
 	}
@@ -407,11 +408,11 @@ class AppState: ObservableObject, Observable {
 	func templateExists(name: String) -> Bool {
 		self.connectionManager.templateExists(name: name)
 	}
-
+	
 	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
 		try await self.connectionManager.buildVirtualMachine(options: options, queue: queue, progressHandler: progressHandler)
 	}
-
+	
 	func findVirtualMachineDocument(_ url: URL?) -> VirtualMachineDocument? {
 		guard let url else {
 			return nil
@@ -489,6 +490,10 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func haveVirtualMachinesRunning() -> Bool {
+		guard self.openedVirtualMachines.first( where: { $0.status == .running && $0.url.isFileURL && $0.externalRunning == false }) == nil else {
+			return true
+		}
+		
 		return virtualMachines.values.first { vm in
 			guard vm.status == .running && vm.url.isFileURL else {
 				return false
@@ -534,7 +539,7 @@ class AppState: ObservableObject, Observable {
 			}
 		}
 	}
-
+	
 	func duplicateVirtualMachine(document vm: VirtualMachineDocument) {
 		let alert = NSAlert()
 		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
@@ -550,7 +555,7 @@ class AppState: ObservableObject, Observable {
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
 				let result = try vm.duplicateVirtualMachine(to: txt.stringValue)
-
+				
 				if result.duplicated {
 					if self.connectionMode == .app {
 						let location = try StorageLocation(runMode: self.connectionMode.runMode).find(txt.stringValue)
@@ -591,7 +596,7 @@ class AppState: ObservableObject, Observable {
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
 				NotificationCenter.default.post(name: VirtualMachineDocument.DeleteVirtualMachine, object: vm, userInfo: ["document": vm.url!])
-
+				
 				let result = try vm.deleteVirtualMachine()
 				
 				if result.success {
@@ -687,4 +692,15 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 	
+	func openVirtualMachineDocument(_ document: VirtualMachineDocument) {
+		if self.openedVirtualMachines.contains(document) == false {
+			self.openedVirtualMachines.append(document)
+		}
+	}
+
+	func closeVirtualMachineDocument(_ document: VirtualMachineDocument) {
+		self.openedVirtualMachines.removeAll {
+			$0.id == document.id
+		}
+	}
 }

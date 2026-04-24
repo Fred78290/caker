@@ -449,12 +449,16 @@ extension VirtualMachineDocument {
 			self.connection = nil
 			connection.disconnect()
 		}
+
+		AppState.shared.closeVirtualMachineDocument(self)
 	}
 
 	func enterView() {
 		self.interactiveShell = InteractiveShell(self.url, connectionManager: connectionManager)
 		self.inView = true
+
 		DispatchQueue.main.async {
+			AppState.shared.openVirtualMachineDocument(self)
 			self.tryVNCConnect()
 		}
 	}
@@ -486,6 +490,8 @@ extension VirtualMachineDocument {
 			self.connection = nil
 			connection.disconnect()
 		}
+
+		AppState.shared.closeVirtualMachineDocument(self)
 	}
 	
 	@MainActor
@@ -537,6 +543,7 @@ extension VirtualMachineDocument {
 
 		// Start agent monitoring when VM is running
 		self.startAgentMonitoring()
+		AppState.shared.openVirtualMachineDocument(self)
 	}
 	
 	func setOtherState(suspendable: Bool, status: Status, vncURL: [URL]? = nil, _line: UInt = #line, _file: String = #file) {
@@ -597,6 +604,8 @@ extension VirtualMachineDocument {
 		self.canRequestStop = newStatus == .running
 
 		if status == .running {
+			AppState.shared.openVirtualMachineDocument(self)
+
 			if let vncInfos = try? self.connectionManager.vncInfos(vmURL: self.url) {
 				self.vncURL = vncInfos.urls.compactMap {
 					URL(string: $0)
