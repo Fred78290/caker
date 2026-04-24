@@ -187,8 +187,6 @@ extension Service {
 			let home = try Home(runMode: runMode)
 			let eventLoopGroup = Utilities.group
 
-			try home.agentPID.writePID()
-			
 			defer {
 				try? home.agentPID.delete()
 			}
@@ -226,6 +224,8 @@ extension Service {
 			
 			sigintSrc.activate()
 			
+			try home.agentPID.writePID()
+
 			// Wait on the server's `onClose` future to stop the program from exiting.
 			if servers.count > 1 {
 				try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
