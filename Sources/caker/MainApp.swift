@@ -273,6 +273,10 @@ struct MainApp: App {
 		}
 		
 		CommandMenu("Service") {
+			Button("Connect to remote") {
+				self.openWindow(id: "Remote")
+			}
+			Divider()
 			if self.appState.cakedServiceInstalled {
 				Button("Remove service") {
 					Self.removeCakedService()
