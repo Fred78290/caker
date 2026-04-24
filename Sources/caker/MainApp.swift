@@ -220,7 +220,9 @@ struct MainApp: App {
 			}.keyboardShortcut(KeyboardShortcut("N"))
 			Button("Open virtual machine") {
 				open()
-			}.keyboardShortcut(KeyboardShortcut("o"))
+			}
+			.keyboardShortcut(KeyboardShortcut("o"))
+			.disabled(self.appState.connectionMode == .remote)
 		}
 		CommandMenu("Control") {
 			Button("Start") {
@@ -341,15 +343,91 @@ struct MainApp: App {
 			}
 		}
 	}
-	
+
+    // Keychain helpers for storing/retrieving the admin password
+    private static let keychainService = "com.aldunelabs.caker"
+    private static let keychainAccount = "admin-password"
+
+    private static func loadPasswordFromKeychain() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: keychainAccount,
+            kSecReturnData as String: kCFBooleanTrue as Any,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        guard status == errSecSuccess, let data = item as? Data, let password = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        return password
+    }
+
+    private static func savePasswordToKeychain(_ password: String) {
+        let passwordData = password.data(using: .utf8) ?? Data()
+        // First try update if exists
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: keychainAccount
+        ]
+        let attributes: [String: Any] = [
+            kSecValueData as String: passwordData
+        ]
+        let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+        if status == errSecItemNotFound {
+            var addQuery = query
+            addQuery[kSecValueData as String] = passwordData
+            _ = SecItemAdd(addQuery as CFDictionary, nil)
+        }
+    }
+
 	static func installCakedService() {
-		do {
-			try ServiceHandler.installAgent(runMode: .user)
-		} catch {
-			DispatchQueue.main.async {
-				alertError(error)
-			}
-		}
+        // Try Keychain first
+        if let savedPassword = loadPasswordFromKeychain(), savedPassword.isEmpty == false {
+            do {
+                try ServiceHandler.installAgent(password: savedPassword, runMode: .user)
+                return
+            } catch {
+                // If saved password fails, fall back to prompting
+            }
+        }
+
+        // Prompt for password using a secure text field
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Administrator Password Required")
+        alert.informativeText = String(localized: "To install the service, please enter your administrator password.")
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: String(localized: "Install"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+
+        let secureField = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+        secureField.placeholderString = String(localized: "Password")
+        alert.accessoryView = secureField
+
+        let response = alert.runModal()
+        guard response == .alertFirstButtonReturn else {
+            return
+        }
+
+        let password = secureField.stringValue
+        guard password.isEmpty == false else {
+            DispatchQueue.main.async {
+                alertError(String(localized: "Password"), String(localized: "Password cannot be empty."))
+            }
+            return
+        }
+
+        savePasswordToKeychain(password)
+
+        do {
+            try ServiceHandler.installAgent(password: password, runMode: .user)
+        } catch {
+            DispatchQueue.main.async {
+                alertError(error)
+            }
+        }
 	}
 	
 	static func removeCakedService() {
