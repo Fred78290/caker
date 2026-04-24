@@ -17,4 +17,4 @@ set -e
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 
-exec "${PKGDIR}/Contents/PlugIns/caked" "$@"
+exec "${PKGDIR}/Contents/PlugIns/caked.bundle/Contents/MacOS/caked" "$@"

@@ -21,4 +21,4 @@ set -e
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 
-exec "${PKGDIR}/Contents/PlugIns/cakectl" "$@"
+exec "${PKGDIR}/Contents/PlugIns/caked.bundle/Contents/MacOS/cakectl" "$@"
