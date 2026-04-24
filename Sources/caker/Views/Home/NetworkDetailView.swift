@@ -156,7 +156,7 @@ struct NetworkDetailView: View {
 
 				}.padding()
 
-				if forEditing == false && self.allowNetworkManagement {
+				if forEditing == false && self.allowNetworkManagement && AppState.shared.hasVMNetworking == false {
 					Divider()
 
 					if currentItem.endpoint.isEmpty {
