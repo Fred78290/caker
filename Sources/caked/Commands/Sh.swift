@@ -49,7 +49,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 		Logger.setLevel(self.common.logLevel)
 
 		if self.shell.name == String.empty {
-			self.shell.name = "primary"
+			self.shell.name = GetOptions.primaryName
 
 			self.createVM = StorageLocation(runMode: self.common.runMode).exists(self.shell.name) == false
 		}
