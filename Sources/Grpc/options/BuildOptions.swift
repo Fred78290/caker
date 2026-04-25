@@ -92,11 +92,11 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.customLong("console")], help: ArgumentHelp(String(localized: "URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")"), discussion: String(localized: "console_help"), valueName: "url"))
 	public var consoleURL: ConsoleAttachment?
 
-	@Argument(help: ArgumentHelp(String(localized: "create a linux VM using a cloud image"), discussion: String(localized: "cloudimage_help"), valueName: "url"))
-	public var image: String = defaultUbuntuImage
-
 	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	public var name: String
+
+	@Argument(help: ArgumentHelp(String(localized: "create a linux VM using a cloud image"), discussion: String(localized: "cloudimage_help"), valueName: "url"))
+	public var image: String = defaultUbuntuImage
 
 	public init() {
 	}
