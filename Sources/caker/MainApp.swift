@@ -348,48 +348,9 @@ struct MainApp: App {
 		}
 	}
 
-    // Keychain helpers for storing/retrieving the admin password
-    private static let keychainService = "com.aldunelabs.caker"
-    private static let keychainAccount = "admin-password"
-
-    private static func loadPasswordFromKeychain() -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: keychainService,
-            kSecAttrAccount as String: keychainAccount,
-            kSecReturnData as String: kCFBooleanTrue as Any,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
-        guard status == errSecSuccess, let data = item as? Data, let password = String(data: data, encoding: .utf8) else {
-            return nil
-        }
-        return password
-    }
-
-    private static func savePasswordToKeychain(_ password: String) {
-        let passwordData = password.data(using: .utf8) ?? Data()
-        // First try update if exists
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: keychainService,
-            kSecAttrAccount as String: keychainAccount
-        ]
-        let attributes: [String: Any] = [
-            kSecValueData as String: passwordData
-        ]
-        let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
-        if status == errSecItemNotFound {
-            var addQuery = query
-            addQuery[kSecValueData as String] = passwordData
-            _ = SecItemAdd(addQuery as CFDictionary, nil)
-        }
-    }
-
 	static func installCakedService() {
         // Try Keychain first
-        if let savedPassword = loadPasswordFromKeychain(), savedPassword.isEmpty == false {
+		if let savedPassword = try? CakedKeyConfig.passphrase.get(), savedPassword.isEmpty == false {
             do {
                 try ServiceHandler.installAgent(password: savedPassword, runMode: .user)
                 return
@@ -423,10 +384,8 @@ struct MainApp: App {
             return
         }
 
-        savePasswordToKeychain(password)
-
         do {
-            try ServiceHandler.installAgent(password: password, runMode: .user)
+			try ServiceHandler.installAgent(password: password, runMode: .user)
         } catch {
             DispatchQueue.main.async {
                 alertError(error)
