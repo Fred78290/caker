@@ -20,6 +20,10 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 			return "aarch64"
 		case .amd64:
 			return "x86_64"
+		case .amd64v2:
+			return "x86_64"
+		case .amd64v3:
+			return "x86_64"
 		case .aarch64:
 			return "aarch64"
 		case .armv7l:
@@ -54,6 +58,10 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 			self = .arm64
 		case "amd64":
 			self = .amd64
+		case "amd64v2":
+			self = .amd64v2
+		case "amd64v3":
+			self = .amd64v3
 		case "aarch64":
 			self = .aarch64
 		case "armv7l":
@@ -87,6 +95,8 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 
 	case arm64
 	case amd64
+	case amd64v2
+	case amd64v3
 	case aarch64
 	case armv7l
 	case armhf
