@@ -181,12 +181,12 @@ struct ServiceListView: View {
 			return
 		}
 
-		isPresentingManualSheet = false
-
 		let listenAddress = "tcp://\(address):\(manualPort)"
 		let result = checkIfServiceIsReachable(listenAddress: listenAddress, password: manualPassword.isEmpty ? nil : manualPassword, tlsIsRequired: manualUseTLS)
 
 		if result.reachable {
+			isPresentingManualSheet = false
+
 			AppState.shared.connectToRemote(listenAddress: listenAddress, password: manualPassword.isEmpty ? nil : manualPassword, tls: manualUseTLS)
 		} else {
 			manualError = result.errorMessage
