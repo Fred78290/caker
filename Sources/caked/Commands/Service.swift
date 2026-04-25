@@ -51,7 +51,7 @@ extension Service {
 		@Option(name: [.customLong("tls-key"), .customShort("k")], help: ArgumentHelp(String(localized: "Client private key")))
 		var tlsKey: String?
 		
-		@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allow mode to connect to a VMRun service endpoint")))
+		@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allows mode to connect to a VMRun service endpoint")))
 		var mode: VMRunServiceMode = .grpc
 		
 		@Flag(help: ArgumentHelp(String(localized: "Use inet socket"), visibility: .hidden))

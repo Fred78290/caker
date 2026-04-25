@@ -15,7 +15,7 @@ struct Umount: ParsableCommand {
 	@OptionGroup(title: String(localized: "Umount options"))
 	var umount: UmountOptions
 
-	@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allow mode to connect to a running service"), visibility: .hidden))
+	@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allows mode to connect to a running service"), visibility: .hidden))
 	var mode: VMRunServiceMode = .grpc
 
 	public func validate() throws {

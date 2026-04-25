@@ -10108,120 +10108,120 @@
         }
       }
     },
-    "This option allow display window of running vm or vnc server" : {
+    "This option allows display window of running vm or vnc server" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This option allow display window of running vm or vnc server"
+            "value" : "This option allows display window of running vm or vnc server"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Cette option permet d'afficher la fenêtre du serveur VM ou VNC en cours d'exécution"
           }
         }
       }
     },
-    "This option allow display window of running vm to debug it" : {
+    "This option allows display window of running vm to debug it" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This option allow display window of running vm to debug it"
+            "value" : "This option allows display window of running vm to debug it"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Cette option permet d'afficher la fenêtre de la VM en cours d'exécution pour le déboguer"
           }
         }
       }
     },
-    "This option allow mode to connect to a running service" : {
+    "This option allows mode to connect to a running service" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This option allow mode to connect to a running service"
+            "value" : "This option allows mode to connect to a running service"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Cette option permet au mode de se connecter à un service en cours d'exécution"
           }
         }
       }
     },
-    "This option allow mode to connect to a VMRun service endpoint" : {
+    "This option allows mode to connect to a VMRun service endpoint" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This option allow mode to connect to a VMRun service endpoint"
+            "value" : "This option allows mode to connect to a VMRun service endpoint"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Cette option permet au mode de se connecter à un point de terminaison de service VMRun"
           }
         }
       }
     },
-    "This option allow run vm in service mode" : {
+    "This option allows run vm in service mode" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This option allow run vm in service mode"
+            "value" : "This option allows run vm in service mode"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Cette option permet d'exécuter la VM en mode service"
           }
         }
       }
     },
-    "This option allow run vnc server with custom port" : {
+    "This option allows run vnc server with custom port" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This option allow run vnc server with custom port"
+            "value" : "This option allows run vnc server with custom port"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Cette option permet d'exécuter le serveur VNC avec un port personnalisé"
           }
         }
       }
     },
-    "This option allow run vnc server with password" : {
+    "This option allows run vnc server with password" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This option allow run vnc server with password"
+            "value" : "This option allows run vnc server with password"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Cette option permet d'exécuter le serveur VNC avec le mot de passe"
           }
         }
