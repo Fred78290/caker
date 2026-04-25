@@ -27,6 +27,12 @@ struct Launch: AsyncParsableCommand {
 
 		try self.options.validate(remote: false)
 
+		if self.options.bridgedNetwork {
+			guard try CakedKeyConfig.bridgedNetwork.get() != nil else {
+				throw ValidationError(String(localized: "Any bridged network is not configured"))
+			}
+		}
+
 		if StorageLocation(runMode: self.common.runMode).exists(self.options.name) {
 			throw ValidationError(String(localized: "\(self.options.name) already exists"))
 		}

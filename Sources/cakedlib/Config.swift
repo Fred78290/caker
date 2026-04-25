@@ -714,7 +714,7 @@ extension VirtualMachineConfiguration {
 		let networkConfig = try home.sharedNetworks()
 		let sharedNetworks = networkConfig.sharedNetworks
 
-		return networks.compactMap { inf in
+		return try networks.compactMap { inf in
 			if inf.isNAT() {
 				if let macAddress = self.getMacAddress() {
 					return NATNetworkInterface(macAddress: macAddress)
@@ -733,11 +733,26 @@ extension VirtualMachineConfiguration {
 				if let networkConfig = sharedNetworks[inf.network] {
 					return SharedNetworkInterface(macAddress: macAddress, networkName: inf.network, networkConfig: networkConfig)
 				} else {
-					let foundInterface = VZBridgedNetworkInterface.networkInterfaces.first {
-						$0.identifier == inf.network || $0.localizedDisplayName == inf.network
-					}
 
-					if let interface = foundInterface {
+					func foundInterface() throws -> VZBridgedNetworkInterface? {
+						let network: String
+
+						if inf.isBridged() {
+							guard let name = try CakedKeyConfig.bridgedNetwork.get() else {
+								throw ServiceError(String(localized: "Any bridged network is not configured"))
+							}
+							network = name
+						} else {
+							network = inf.network
+						}
+
+						return VZBridgedNetworkInterface.networkInterfaces.first {
+							$0.identifier == network || $0.localizedDisplayName == network
+						}
+					}
+					
+
+					if let interface = try foundInterface() {
 						if vmNetworking {
 							return BridgedNetworkInterface(interface: interface, macAddress: macAddress)
 						} else {

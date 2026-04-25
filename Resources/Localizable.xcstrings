@@ -349,6 +349,17 @@
         }
       }
     },
+    "A key, or a key-value pair. The key specifies a path to the setting to configure.\nThe value is its intended value. If only the key is given, the value will be prompted for." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une clé, ou une paire clé-valeur. La clé spécifie un chemin d'accès au paramètre à configurer.\nLa valeur est sa valeur prévue. Si seule la clé est donnée, la valeur sera demandée."
+          }
+        }
+      }
+    },
     "About Caked" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -451,6 +462,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adresse (nom ou ip)"
+          }
+        }
+      }
+    },
+    "Adds one `--network bridged` network." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoute un réseau `--network bridged`."
           }
         }
       }
@@ -641,6 +663,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Une erreur est survenue"
+          }
+        }
+      }
+    },
+    "Any bridged network is not configured" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun réseau ponté est configuré"
           }
         }
       }
@@ -3359,6 +3392,17 @@
         }
       }
     },
+    "Get the configuration setting corresponding to the given key, or all settings if no key is specified." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtenez le paramètre de configuration correspondant à la clé donnée, ou tous les paramètres si aucune clé n'est spécifiée."
+          }
+        }
+      }
+    },
     "gid" : {
       "localizations" : {
         "fr" : {
@@ -4198,6 +4242,17 @@
         }
       }
     },
+    "Invalid key" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clé invalide"
+          }
+        }
+      }
+    },
     "Invalid memory size for instance %@." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4640,6 +4695,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lister toutes les VM et objets mis en cache"
+          }
+        }
+      }
+    },
+    "List available settings keys. This outputs the whole list of currently available settings keys, or just <arg>, if provided and a valid key." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Répertorier les clés de paramètres disponibles. Cela donne toute la liste des clés de paramètres actuellement disponibles, ou simplement <arg>, si fournie et une clé valide."
           }
         }
       }
@@ -5382,6 +5448,17 @@
         }
       }
     },
+    "Need exactly one key-value pair (in <key>=<value> form)." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Besoin d'une paire clé-valeur exactement (sous la forme <key>=<value>)."
+          }
+        }
+      }
+    },
     "Nested virtualization" : {
       "localizations" : {
         "fr" : {
@@ -5913,13 +5990,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\nAdd a network interface to the instance, where\n<spec> is in the \\\"key=value,key=value\\\" format,\nwith the following keys available:\nname: the network to connect to (required), use\nthe networks command for a list of possible values.\n  - mode: auto|manual (default: auto)\n  - mac: hardware address (default: random).\nYou can also use a shortcut of \\\"<name>\\\" to mean \\\"name=<name>\\\".\n"
+            "value" : "\nAdd a network interface to the instance, where <spec> is in the \\\"key=value,key=value\\\" format, with the following keys available:\n  - name: bridged|nat|<interface name> the network to connect to (required), use the networks command for a list of possible interface names.\n  - mode: auto|manual (default: auto)\n  - mac: hardware address (default: random).\nYou can also use a shortcut of \\\"<name>\\\" to mean \\\"name=<name>\\\".\n"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "\nAjoutez une interface réseau à l'instance, où\n<spec> est au format \"clé=valeur, clé=valeur\",\navec les clés suivantes :\nnom : le réseau auquel se connecter (obligatoire). Utilisez\nla commande « networks » pour obtenir la liste des valeurs possibles.\n  - mode : auto|manual (par défaut : auto)\n  - mac : adresse MAC (par défaut : aléatoire).\nVous pouvez également utiliser le raccourci \"<nom>\" pour indiquer \"nom=<nom>\".\n"
+            "state" : "needs_review",
+            "value" : "\nAjoutez une interface réseau à l'instance, où <spec> est au format \"clé=valeur, clé=valeur\", avec les clés suivantes :\n  - nom : bridged|nat|<nom de l’interface> le réseau auquel se connecter (obligatoire). Utilisez la commande « networks » pour obtenir la liste des réseaux possibles.\n  - mode : auto|manual (par défaut : auto)\n  - mac : adresse MAC (par défaut : aléatoire).\nVous pouvez également utiliser le raccourci \"<nom>\" pour indiquer \"nom=<nom>\".\n"
           }
         }
       }
@@ -6732,6 +6809,17 @@
         }
       }
     },
+    "Output in raw format. For now, this affects only the representation of empty values (i.e. \"\" instead of \"<empty>\")." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sortie au format brut. Pour l'instant, cela n'affecte que la représentation des valeurs vides (c'est-à-dire \"\" au lieu de \"<empty>\")."
+          }
+        }
+      }
+    },
     "override client agent options" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7043,6 +7131,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Entrez une adresse"
+          }
+        }
+      }
+    },
+    "Please try again with one setting key or just the `--keys` option for now." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veuillez réessayer avec une clé de paramètre ou juste l'option `--keys` pour l'instant."
           }
         }
       }
@@ -8430,6 +8529,17 @@
         }
       }
     },
+    "Set, to the given value, the configuration setting corresponding to the given key" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Définir, sur la valeur donnée, le paramètre de configuration correspondant à la clé de paramètres donnée"
+          }
+        }
+      }
+    },
     "setsockopt(SO_RCVBUF) returned %d" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8460,6 +8570,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La fonction setsockopt(SO_SNDBUF) retourne %d, %@"
+          }
+        }
+      }
+    },
+    "Setting key, i.e. path to the intended setting." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réglage de paramètre, c'est-à-dire chemin d'accès au paramètre prévu."
           }
         }
       }
@@ -10247,10 +10368,16 @@
     "This option allows to protect the service endpoint with a password" : {
       "extractionState" : "manual",
       "localizations" : {
-        "fr" : {
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cette option permet de protéger l’accès au service par un mot de passe"
+            "value" : "This option allows to protect the service endpoint with a password. Preferred to use caked set local.passphrase"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Cette option permet de protéger l’accès au service par un mot de passe. Il est préférable d’utiliser la command caked set local.passphrase"
           }
         }
       }
@@ -10852,6 +10979,17 @@
         }
       }
     },
+    "Unknown Keychain error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur de trousseau d’accès inconnue"
+          }
+        }
+      }
+    },
     "Unknown option '%@'" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10889,6 +11027,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Démonter un partage de répertoire d'une VM"
+          }
+        }
+      }
+    },
+    "Unrecognized settings key: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clé de paramètres non reconnue : %@"
           }
         }
       }
@@ -11348,6 +11497,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "un masque réseau valide est requis pour le mode hôte/partagé lorsque la passerelle est spécifiée"
+          }
+        }
+      }
+    },
+    "Value for" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valeur pour"
           }
         }
       }
