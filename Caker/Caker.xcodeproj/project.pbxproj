@@ -537,6 +537,9 @@
 		9BEBC86E2DF44B9D0092B196 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9BEBC8712DF44B9D0092B196 /* Virtualization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C492D5A427100164BF5 /* Virtualization.framework */; };
 		9BEBD1172F9B75270005EC80 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */; };
+		9BEBD1802F9CC1D20005EC80 /* SetOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */; };
+		9BEBD1822F9CC3A50005EC80 /* GetOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */; };
+		9BEBD1842F9CF7000005EC80 /* CakedKeyConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */; };
 		9BF43A692F8A858800618B8C /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF43A682F8A858300618B8C /* Localization.swift */; };
 		9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */; };
 		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
@@ -1104,6 +1107,9 @@
 		9BEBC7672DF440720092B196 /* VMBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMBuilder.swift; sourceTree = "<group>"; };
 		9BEBC7682DF440720092B196 /* VMLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLocation.swift; sourceTree = "<group>"; };
 		9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
+		9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetOptions.swift; sourceTree = "<group>"; };
+		9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetOptions.swift; sourceTree = "<group>"; };
+		9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfig.swift; sourceTree = "<group>"; };
 		9BF43A682F8A858300618B8C /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
@@ -1613,6 +1619,7 @@
 				9B464AD62D5A3E0300164BF5 /* generate.sh */,
 				9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */,
 				9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */,
+				9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */,
 				9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */,
 				9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */,
 				9B464AD02D5A3E0300164BF5 /* common.swift */,
@@ -2080,6 +2087,7 @@
 				9BEBC7682DF440720092B196 /* VMLocation.swift */,
 				9B9DCDEE2F70006D00E07852 /* CI */,
 				9BEBC7152DF440720092B196 /* CloudImage */,
+				9BEBD17E2F9CC16B0005EC80 /* Commands */,
 				9BA1808A2EFBF87B000D1424 /* Compression */,
 				9BEBC72D2DF440720092B196 /* Handlers */,
 				9B20D6012E019FA400BEFB41 /* Importers */,
@@ -2092,6 +2100,15 @@
 				9B5A377E2ED4BDA8007B59B0 /* VNCLib */,
 			);
 			path = cakedlib;
+			sourceTree = "<group>";
+		};
+		9BEBD17E2F9CC16B0005EC80 /* Commands */ = {
+			isa = PBXGroup;
+			children = (
+				9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */,
+				9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */,
+			);
+			path = Commands;
 			sourceTree = "<group>";
 		};
 		9BFE81A62EC8F8C500767615 /* OCI */ = {
@@ -2823,6 +2840,7 @@
 				9BA7B0242F5601DF004AFAE8 /* ImageSource.swift in Sources */,
 				9BF8AE6A2F43915700DE5EAB /* CakedChannelStreamer.swift in Sources */,
 				9BF43A692F8A858800618B8C /* Localization.swift in Sources */,
+				9BEBD1842F9CF7000005EC80 /* CakedKeyConfig.swift in Sources */,
 				9BB3BE2B2DB3F17500799A6A /* RenameOptions.swift in Sources */,
 				9BB3BE2C2DB3F17500799A6A /* StopOptions.swift in Sources */,
 				9BA7B0222F56010F004AFAE8 /* VirtualMachineConfiguration.swift in Sources */,
@@ -2935,6 +2953,7 @@
 				9BEBC7722DF440720092B196 /* EmbedProvisionProfile.swift in Sources */,
 				9BEBC7732DF440720092B196 /* IP.swift in Sources */,
 				9BEBC7742DF440720092B196 /* CertificatesLocation.swift in Sources */,
+				9BEBD1822F9CC3A50005EC80 /* GetOptions.swift in Sources */,
 				9BEBC7762DF440720092B196 /* ServiceError.swift in Sources */,
 				9BBF7B332F3DEC1E00F37D2C /* RestartHandler.swift in Sources */,
 				9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */,
@@ -3038,6 +3057,7 @@
 				9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */,
 				9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */,
 				9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */,
+				9BEBD1802F9CC1D20005EC80 /* SetOptions.swift in Sources */,
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
 				9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */,
