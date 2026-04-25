@@ -374,6 +374,7 @@ message Caked {
       optional string           otherGroups           = 27;
       Configuration.ImageSource imageSource           = 28;
       bool                      autoinstall           = 29;
+      optional bool             bridgedNetwork        = 30;
     }
 
     message BuildRequest {

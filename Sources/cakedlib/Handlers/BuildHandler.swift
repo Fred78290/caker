@@ -15,6 +15,12 @@ public struct BuildHandler {
 				return BuildedReply(name: options.name, builded: false, reason: String(localized: "VM already exists"))
 			}
 
+			if options.bridgedNetwork {
+				guard try CakedKeyConfig.bridgedNetwork.get() != nil else {
+					return BuildedReply(name: options.name, builded: false, reason: String(localized: "Any bridged network is not configured"))
+				}
+			}
+
 			let tempVMLocation: VMLocation = try VMLocation.tempDirectory(runMode: runMode)
 
 			// Lock the temporary VM directory to prevent it's garbage collection
