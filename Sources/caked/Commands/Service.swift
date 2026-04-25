@@ -217,6 +217,9 @@ extension Service {
 			
 			sigintSrc.setEventHandler {
 				logger.info("Stop service on SIGINT")
+
+				provider.gcd.stopGrandCentralDispatch()
+
 				servers.forEach {
 					try? $0.close().wait()
 				}
