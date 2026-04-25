@@ -10,7 +10,7 @@ public struct RunHandler {
 		var vmname = name
 
 		if vmname == String.empty {
-			vmname = "primary"
+			vmname = GetOptions.primaryName
 
 			if StorageLocation(runMode: runMode).exists(vmname) == false {
 				Logger(self).info("Creating primary VM")
