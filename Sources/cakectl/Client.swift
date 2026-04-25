@@ -203,6 +203,8 @@ struct Client: ParsableCommand {
 				Pull.self,
 				Push.self,
 				VNC.self,
+				SetOptions.self,
+				GetOptions.self
 			])
 
 #if DEBUG
