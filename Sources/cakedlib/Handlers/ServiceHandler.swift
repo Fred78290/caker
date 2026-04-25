@@ -222,9 +222,7 @@ public struct ServiceHandler {
 			}
 		}
 
-		if let password {
-			arguments.append("--password=\(password)")
-		}
+		try CakedKeyConfig.passphrase.set(password)
 
 		let agent = LaunchAgent(
 			label: Utils.cakerSignature,

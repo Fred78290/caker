@@ -147,7 +147,15 @@ extension Service {
 		
 		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
-		
+
+		var password: String? {
+			guard let password = options.password else {
+				return try? CakedKeyConfig.passphrase.get()
+			}
+
+			return password
+		}
+
 		mutating func validate() throws {
 			let runMode: Utils.RunMode = self.options.runMode
 			
@@ -193,7 +201,7 @@ extension Service {
 			
 			try CakedLib.StartHandler.autostart(on: eventLoopGroup.next(), runMode: runMode)
 			
-			let provider = try CakedProvider(group: eventLoopGroup, password: self.options.password, runMode: runMode)
+			let provider = try CakedProvider(group: eventLoopGroup, password: self.password, runMode: runMode)
 			let servers: [Server] = try listenAddress.map { address in
 				logger.info("Start listening on \(address)")
 
