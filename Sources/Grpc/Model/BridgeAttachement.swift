@@ -119,6 +119,10 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 	public func isBridged() -> Bool {
 		return self.network == "bridged"
 	}
+	
+	public static func bridgedNetwork() -> BridgeAttachement {
+		.init(network: "bridged", mode: .auto, macAddress: VZMACAddress.randomLocallyAdministered().string)
+	}
 }
 
 extension BridgeAttachement: Validatable {

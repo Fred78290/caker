@@ -76,15 +76,13 @@ extension CakedServiceClient {
 	/// - Returns: The local port number where the VNC server is listening
 	@discardableResult
 	public func createVNCTunnel(
+		eventLoopGroup: EventLoopGroup,
 		vmName: String,
 		localPort: Int = 0,
-		eventLoopGroup: EventLoopGroup
+		handler: @MainActor @escaping (Channel, Int) -> Void
 	) async throws -> Int {
 		let logger = Logger(label: "VNCTunnel")
-		
-		// Create async client for VNC tunnel
-		let asyncClient = Caked_ServiceAsyncClient(channel: self.channel, defaultCallOptions: self.defaultCallOptions, interceptors: nil)
-		
+
 		// Create the server bootstrap for local VNC clients
 		let bootstrap = ServerBootstrap(group: eventLoopGroup)
 			.serverChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
@@ -93,9 +91,8 @@ extension CakedServiceClient {
 			.childChannelInitializer { channel in
 				// For each new VNC client connection, create a tunnel
 				channel.pipeline.addHandler(VNCTunnelHandler(
-					client: asyncClient,
-					vmName: vmName,
-					logger: logger
+					client: self,
+					vmName: vmName
 				))
 			}
 		
@@ -105,6 +102,8 @@ extension CakedServiceClient {
 		
 		logger.info("VNC tunnel server listening on port \(actualPort) for VM '\(vmName)'")
 		
+		await handler(serverChannel, actualPort)
+
 		// Keep the server running - it will close when the task is cancelled
 		try await withTaskCancellationHandler {
 			try await serverChannel.closeFuture.get()
@@ -121,24 +120,29 @@ private final class VNCTunnelHandler: ChannelInboundHandler {
 	typealias InboundIn = ByteBuffer
 	typealias OutboundOut = ByteBuffer
 	
-	private let client: Caked_ServiceAsyncClient
+	private let client: CakedServiceClient
 	private let vmName: String
-	private let logger: Logger
-	private var grpcStream: GRPCAsyncBidirectionalStreamingCall<Caked_VncStream, Caked_VncStream>?
-	private var forwardingTask: Task<Void, Never>?
+	private let logger = Logger(label: "VNCTunnelHandler")
+	private var grpcStream: BidirectionalStreamingCall<Caked_Caked.VncStream, Caked_Caked.VncStream>! = nil
 	
-	init(client: Caked_ServiceAsyncClient, vmName: String, logger: Logger) {
+	init(client: CakedServiceClient, vmName: String) {
 		self.client = client
 		self.vmName = vmName
-		self.logger = logger
 	}
 	
-	func channelActive(context: ChannelHandlerContext) {
+	func channelRegistered(context: ChannelHandlerContext) {
 		logger.debug("VNC client connected for VM '\(vmName)'")
 		
-		// Start the gRPC tunnel
-		Task { [weak self] in
-			await self?.startGRPCTunnel(context: context)
+		// Create gRPC call options with VM name header
+		let callOptions = CallOptions(
+			customMetadata: .init([("CAKEAGENT_VMNAME", vmName)]),
+			timeLimit: .none
+		)
+		
+		self.grpcStream = self.client.vncTunnel(callOptions: callOptions) { response in
+			if response.stream.isEmpty == false {
+				context.channel.writeAndFlush(ByteBuffer(data: response.stream), promise: nil)
+			}
 		}
 	}
 	
@@ -150,67 +154,24 @@ private final class VNCTunnelHandler: ChannelInboundHandler {
 			logger.warning("Received data but gRPC stream not ready")
 			return
 		}
-		
-		Task {
-			do {
-				let vncMessage = Caked_VncStream.with { message in
-					message.stream = Data(buffer.readableBytesView)
-				}
-				try await stream.requestStream.send(vncMessage)
-			} catch {
-				self.logger.error("Error forwarding VNC data: \(error)")
-				context.close(promise: nil)
-			}
+		do {
+			try stream.sendMessage(Caked_VncStream.with { message in
+				message.stream = Data(buffer.readableBytesView)
+			}).wait()
+		} catch {
+			self.logger.error("Error forwarding VNC data: \(error)")
+			context.close(promise: nil)
 		}
 	}
 	
 	func channelInactive(context: ChannelHandlerContext) {
 		logger.debug("VNC client disconnected for VM '\(vmName)'")
-		forwardingTask?.cancel()
-		grpcStream?.cancel()
+
+		try? grpcStream.sendEnd().wait()
 	}
 	
 	func errorCaught(context: ChannelHandlerContext, error: Error) {
 		logger.error("VNC tunnel error: \(error)")
 		context.close(promise: nil)
-	}
-	
-	private func startGRPCTunnel(context: ChannelHandlerContext) async {
-		// Create gRPC call options with VM name header
-		let callOptions = CallOptions(
-			customMetadata: .init([("CAKEAGENT_VMNAME", vmName)]),
-			timeLimit: .none
-		)
-		
-		// Start the gRPC bidirectional stream
-		grpcStream = client.makeVncTunnelCall(callOptions: callOptions)
-		
-		guard let stream = grpcStream else {
-			logger.error("Failed to create gRPC stream")
-			context.close(promise: nil)
-			return
-		}
-		
-		// Start forwarding data from gRPC stream to VNC client
-		forwardingTask = Task { [weak self] in
-			do {
-				for try await response in stream.responseStream {
-					guard let self = self else { return }
-					
-					try Task.checkCancellation()
-					
-					if !response.stream.isEmpty {
-						var buffer = context.channel.allocator.buffer(capacity: response.stream.count)
-						buffer.writeBytes(response.stream)
-						context.writeAndFlush(self.wrapOutboundOut(buffer), promise: nil)
-					}
-				}
-			} catch {
-				if !(error is CancellationError) {
-					self?.logger.error("Error receiving VNC data from gRPC: \(error)")
-				}
-				context.close(promise: nil)
-			}
-		}
 	}
 }
