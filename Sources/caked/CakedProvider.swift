@@ -467,12 +467,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func vncTunnel(requestStream: GRPCAsyncRequestStream<Caked_VncStream>, responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>, context: GRPCAsyncServerCallContext) async throws {
-		guard let vmName = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
-			Logger("CakedProvider").error("no CAKEAGENT_VMNAME header in VNC tunnel request")
-			throw ServiceError(String(localized: "no CAKEAGENT_VMNAME header"))
-		}
-		
-		self.vnc.tunnel(requestStream: requestStream, responseStream: responseStream, vmName: vmName)
+		try await self.vnc.tunnel(requestStream: requestStream, responseStream: responseStream, context: context)
 	}
 	
 	func checkReliability(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {

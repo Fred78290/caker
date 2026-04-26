@@ -18,17 +18,19 @@ typealias AsyncThrowingStreamCakedVNCStream = (
 )
 
 final class VNCTunnel {
-	typealias ListenerID = UUID
+	typealias TunnelID = UUID
 
-	class Tunneling: Identifiable {
-		var id: ListenerID = UUID()
+	private class Tunneling: Identifiable {
+		var id: TunnelID = UUID()
 
-		let requestStream: GRPCAsyncRequestStream<Caked_VncStream>
-		let responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>
-		let group: EventLoopGroup
-		let vmName: String
-		let runMode: Utils.RunMode
-		private var tunnelTask: Task<Void, Never>? = nil
+		private let requestStream: GRPCAsyncRequestStream<Caked_VncStream>
+		private let responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>
+		private let group: EventLoopGroup
+		private let vmName: String
+		private let runMode: Utils.RunMode
+		private let logger = Logger("Tunneling")
+		private var channel: Channel! = nil
+		private var taskGroup: TaskGroup<Void>? = nil
 
 		init(requestStream: GRPCAsyncRequestStream<Caked_VncStream>, responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>, group: EventLoopGroup, vmName: String, runMode: Utils.RunMode) {
 			self.requestStream = requestStream
@@ -39,59 +41,60 @@ final class VNCTunnel {
 		}
 
 		func stopTunnel() {
-			let logger = Logger("VNCTunneling")
-			logger.debug("Stopping VNC tunnel, id: \(id)")
+			self.logger.debug("Stopping VNC tunnel, for VM \(vmName) id: \(id)")
 			
 			// Annuler la tâche du tunnel
-			tunnelTask?.cancel()
-			tunnelTask = nil
+			self.taskGroup?.cancelAll()
+			self.taskGroup = nil
 		}
 
-		func startTunnel() {
-			tunnelTask = Task {
-				await handleVNCTunnel()
+		func startTunnel() async throws {
+			logger.debug("Starting VNC tunnel for VM: \(vmName), id: \(id)")
+
+			// Récupérer les informations VNC pour cette machine virtuelle
+			let vncInfos = try CakedLib.VNCInfosHandler.vncInfos(name: vmName, runMode: runMode)
+
+			guard vncInfos.urls.isEmpty == false else {
+				logger.error("No VNC URL found for VM: \(vmName), id: \(id)")
+				throw ServiceError(String(localized: "No VNC URL found for VM: \(vmName)"))
 			}
+			
+			// Extraire l'host et le port de la première URL VNC
+			guard let vncURL = URL(string: vncInfos.urls[0]) else {
+				logger.error("Invalid VNC URL: \(vncInfos.urls[0]) for VM: \(vmName), id: \(id)")
+				throw ServiceError(String(localized: "Invalid VNC URL: \(vncInfos.urls[0])"))
+			}
+
+			let vncPort = vncURL.port ?? 5900
+
+			await handleVNCTunnel(vncPort: vncPort)
 		}
 		
-		func handleVNCTunnel() async {
+		func handleVNCTunnel(_ vncHost: String = "127.0.0.1", vncPort: Int) async {
 			do {
-				let logger = Logger("VNCTunneling")
-				logger.debug("Starting VNC tunnel for VM: \(vmName), id: \(id)")
+				logger.debug("Connecting to VNC server for VM \(vmName), id: \(id) at \(vncHost):\(vncPort)")
 				
-				// Récupérer les informations VNC pour cette machine virtuelle
-				let vncInfos = try VNCInfosHandler.vncInfos(name: vmName, runMode: runMode)
-				
-				guard !vncInfos.urls.isEmpty else {
-					logger.error("No VNC URL found for VM: \(vmName)")
-					return
-				}
-				
-				// Extraire l'host et le port de la première URL VNC
-				guard let vncURL = URL(string: vncInfos.urls[0]) else {
-					logger.error("Invalid VNC URL: \(vncInfos.urls[0])")
-					return
-				}
-				
-				let vncHost = vncURL.host ?? "127.0.0.1"
-				let vncPort = vncURL.port ?? 5900
-				
-				logger.debug("Connecting to VNC server for VM \(vmName) at \(vncHost):\(vncPort)")
-				
-				let bootstrap = ClientBootstrap(group: group)
+				let client = ClientBootstrap(group: group)
 					.channelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
 					.channelInitializer { channel in
 						return channel.eventLoop.makeSucceededVoidFuture()
 					}
-				
-				let vncAddress = try SocketAddress.makeAddressResolvingHost(vncHost, port: vncPort)
-				let channel = try await bootstrap.connect(to: vncAddress)
-				
-				logger.debug("Connected to VNC server for VM \(vmName) at \(vncHost):\(vncPort)")
-				
-				let asyncChannel = try NIOAsyncChannel<ByteBuffer, ByteBuffer>(wrappingChannelSynchronously: channel)
+					
+				let asyncChannel = try await client.connect(host: vncHost, port: vncPort) { channel in
+						self.channel = channel
+
+						return channel.eventLoop.makeCompletedFuture {
+							try NIOAsyncChannel<ByteBuffer, ByteBuffer>(wrappingChannelSynchronously: channel)
+						}
+					}
+
+				logger.debug("Connected to VNC server for VM \(vmName), id: \(id) at \(vncHost):\(vncPort)")
 				
 				try await asyncChannel.executeThenClose { input, output in
 					await withTaskGroup { group in
+
+						self.taskGroup = group
+
 						// Tâche pour lire du requestStream et écrire au serveur VNC
 						group.addTask {
 							do {
@@ -101,15 +104,15 @@ final class VNCTunnel {
 									// Vérifier l'annulation
 									try Task.checkCancellation()
 									
-									let buffer = channel.allocator.buffer(data: vncMessage.stream)
+									let buffer = self.channel.allocator.buffer(data: vncMessage.stream)
 									try await output.write(buffer)
 								}
 								
-								logger.debug("Request stream ended, closing VNC write channel")
+								self.logger.debug("Request stream ended, closing VNC write channel for VM \(self.vmName), id: \(self.id)")
 							} catch is CancellationError {
-								logger.debug("VNC request stream task cancelled")
+								self.logger.debug("VNC request stream task cancelled for VM \(self.vmName), id: \(self.id)")
 							} catch {
-								logger.error("Error handling request stream: \(error)")
+								self.logger.error("Error handling request stream for VM \(self.vmName), id: \(self.id): \(error)")
 							}
 						}
 						
@@ -127,63 +130,72 @@ final class VNCTunnel {
 									try await self.responseStream.send(vncStream)
 								}
 								
-								logger.debug("VNC server connection ended")
+								self.logger.debug("VNC server connection ended for VM \(self.vmName), id: \(self.id)")
 							} catch is CancellationError {
-								logger.debug("VNC response stream task cancelled")
+								self.logger.debug("VNC response stream task cancelled for VM \(self.vmName), id: \(self.id)")
 							} catch {
-								logger.error("Error handling VNC server response: \(error)")
+								self.logger.error("Error handling VNC server response for VM \(self.vmName), id: \(self.id): \(error)")
 							}
 						}
+
+						await group.waitForAll()
+
+						try? await self.channel.close().get()
 					}
 				}
-				
-				logger.debug("VNC tunnel ended for VM \(vmName), id: \(id)")
-				
+
+				self.logger.debug("VNC tunnel ended for VM \(vmName), id: \(id)")
 			} catch is CancellationError {
-				let logger = Logger("VNCTunneling")
-				logger.debug("VNC tunnel cancelled for VM \(vmName), id: \(id)")
+				self.logger.debug("VNC tunnel cancelled for VM \(vmName), id: \(id)")
 			} catch {
-				let logger = Logger("VNCTunneling")
-				logger.error("Failed to start VNC tunnel for VM \(vmName), id: \(id), error: \(error)")
+				self.logger.error("Failed to start VNC tunnel for VM \(vmName), id: \(id), error: \(error)")
 			}
 		}
 	}
 
-	let runMode: Utils.RunMode
-	let group: EventLoopGroup
-	let listeners: Mutex<[ListenerID: Tunneling]>
-	let logger = Logger("VNCTunnel")
+	private let runMode: Utils.RunMode
+	private let group: EventLoopGroup
+	private let tunnels: Mutex<[TunnelID: Tunneling]>
+	private let logger = Logger("VNCTunnel")
 
 	public init(group: EventLoopGroup, runMode: Utils.RunMode) {
 		self.group = group
 		self.runMode = runMode
-		self.listeners = .init([:])
+		self.tunnels = .init([:])
 	}
 
 	public func stopVNCTunnel() {
-		self.listeners.withLock { listeners in
+		self.tunnels.withLock { listeners in
 			listeners.values.forEach {
 				$0.stopTunnel()
 			}
 		}
 	}
 
-	public func tunnel(requestStream: GRPCAsyncRequestStream<Caked_VncStream>, responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>, vmName: String) {
+	public func tunnel(requestStream: GRPCAsyncRequestStream<Caked_VncStream>, responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>, context: GRPCAsyncServerCallContext) async throws {
+		guard let vmName = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
+			self.logger.error("no CAKEAGENT_VMNAME header")
+
+			throw ServiceError(String(localized: "no CAKEAGENT_VMNAME header"))
+		}
+
 		let tunnel = Tunneling(requestStream: requestStream, responseStream: responseStream, group: group, vmName: vmName, runMode: runMode)
 
-		self.listeners.withLock {
+		self.tunnels.withLock {
 			$0[tunnel.id] = tunnel
 			self.logger.debug("Start VNC tunnel for VM \(vmName), id: \(tunnel.id)")
 			self.logger.debug("Number of active VNC tunnels: \($0.count)")
 		}
 
 		defer {
-			self.listeners.withLock {
+			tunnel.stopTunnel()
+
+			self.tunnels.withLock {
 				$0.removeValue(forKey: tunnel.id)
 				self.logger.debug("Stop VNC tunnel for VM \(vmName), id: \(tunnel.id)")
 			}
 		}
 
-		tunnel.startTunnel()
+		try await tunnel.startTunnel()
 	}
 }

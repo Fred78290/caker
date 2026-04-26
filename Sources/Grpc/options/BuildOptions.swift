@@ -439,6 +439,6 @@ extension BuildOptions {
 		
 		return self.networks.filter {
 			$0.network != "bridged"
-		} + [BridgeAttachement(network: "bridged")]
+		} + [BridgeAttachement.bridgedNetwork()]
 	}
 }

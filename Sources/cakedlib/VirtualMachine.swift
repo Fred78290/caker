@@ -257,7 +257,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 																		 name: self.location.name,
 																		 remoteAddress: self.runningIP,
 																		 forwardedPorts: self.config.forwardedPorts,
-																		 dynamicPortForwarding: self.config.dynamicPortForwarding)
+																		 dynamicPortForwarding: config.dynamicPortForwarding)
 		} catch is ValidationError {
 			// Silent
 		} catch {
