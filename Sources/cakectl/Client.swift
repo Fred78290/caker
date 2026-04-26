@@ -31,6 +31,14 @@ extension GrpcCommand {
 		CallOptions(timeLimit: .none)
 	}
 	
+	var password: String? {
+		guard let password = options.password else {
+			return try? CakedKeyConfig.passphrase.get()
+		}
+
+		return password
+	}
+
 	func prepareClient() throws -> (EventLoopGroup, CakedServiceClient) {
 		let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 		let connection = try Caked.createClient(
@@ -41,7 +49,7 @@ extension GrpcCommand {
 			caCert: self.options.caCert,
 			tlsCert: self.options.tlsCert,
 			tlsKey: self.options.tlsKey,
-			password: self.options.password,
+			password: self.password,
 			interceptors: self.interceptors)
 
 		return (group, connection)
