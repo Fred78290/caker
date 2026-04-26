@@ -46,3 +46,5 @@ release-notes-*.html
 Caker Localizations/
 
 traductions/
+
+*.profraw
