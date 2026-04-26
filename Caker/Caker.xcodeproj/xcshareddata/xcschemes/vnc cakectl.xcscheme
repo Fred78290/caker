@@ -15,6 +15,20 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "9BFE869C2F7E592B005CC9B2"
+               BuildableName = "caked.bundle"
+               BlueprintName = "bundle"
+               ReferencedContainer = "container:Caker.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "9B464B4E2D5A3E5C00164BF5"
                BuildableName = "cakectl"
                BlueprintName = "cakectl"

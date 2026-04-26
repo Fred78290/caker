@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
-               BuildableName = "caked"
-               BlueprintName = "caked"
+               BlueprintIdentifier = "9BFE869C2F7E592B005CC9B2"
+               BuildableName = "caked.bundle"
+               BlueprintName = "bundle"
                ReferencedContainer = "container:Caker.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -84,16 +84,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
-            BuildableName = "caked"
-            BlueprintName = "caked"
+            BlueprintIdentifier = "9BFE869C2F7E592B005CC9B2"
+            BuildableName = "caked.bundle"
+            BlueprintName = "bundle"
             ReferencedContainer = "container:Caker.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

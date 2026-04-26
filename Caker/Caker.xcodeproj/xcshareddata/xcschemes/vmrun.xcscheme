@@ -15,6 +15,20 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "9BFE869C2F7E592B005CC9B2"
+               BuildableName = "caked.bundle"
+               BlueprintName = "bundle"
+               ReferencedContainer = "container:Caker.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
                BuildableName = "caked"
                BlueprintName = "caked"
@@ -58,11 +72,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "ubuntu-desktop-25.10"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "linux"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "noble-cloud-image-B4608653-4F63-429E-99CA-C6621231F89C"
