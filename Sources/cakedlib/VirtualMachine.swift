@@ -124,7 +124,6 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var semaphore = AsyncSemaphore(value: 0)
 	var vmrunService: VMRunServiceServerProtocol! = nil
 	var requestStopFromUIPending = false
-	var runningIP: String = String.empty
 	let runMode: Utils.RunMode
 	let display: VMRunHandler.DisplayMode
 	var recoveryMode: Bool
@@ -132,6 +131,14 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var vzMachineView: VMView.NSViewType! = nil
 	var timer: Timer? = nil
 	let logger = Logger("VirtualMachineEnvironment")
+
+	var runningIP: String = String.empty {
+		didSet {
+			if self.runningIP.isEmpty == false {
+				startPortForwarding()
+			}
+		}
+	}
 
 	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, recoveryMode: Bool, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable
@@ -236,21 +243,25 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func connectionInitiatedByHost(socket: SocketDevice) {
-		if socket.bind == self.location.agentURL.path {
-			do {
-				let group = Utilities.group.next()
-				
-				try CakeAgentPortForwardingServer.createPortForwardingServer(group: group,
-																			 cakeAgentClient: try CakeAgentConnection.createCakeAgentClient(on: group.next(), listeningAddress: self.location.agentURL, timeout: 5, runMode: runMode),
-																			 name: self.location.name,
-																			 remoteAddress: self.runningIP,
-																			 forwardedPorts: self.config.forwardedPorts,
-																			 dynamicPortForwarding: config.dynamicPortForwarding)
-			} catch is ValidationError {
-				// Silent
-			} catch {
-				self.logger.error(error)
-			}
+		if socket.bind == self.location.agentURL.path && self.runningIP.isEmpty == false {
+			startPortForwarding()
+		}
+	}
+
+	func startPortForwarding() {
+		do {
+			let group = Utilities.group.next()
+			
+			try CakeAgentPortForwardingServer.createPortForwardingServer(group: group,
+																		 cakeAgentClient: try CakeAgentConnection.createCakeAgentClient(on: group.next(), listeningAddress: self.location.agentURL, timeout: 5, runMode: runMode),
+																		 name: self.location.name,
+																		 remoteAddress: self.runningIP,
+																		 forwardedPorts: self.config.forwardedPorts,
+																		 dynamicPortForwarding: config.dynamicPortForwarding)
+		} catch is ValidationError {
+			// Silent
+		} catch {
+			self.logger.error(error)
 		}
 	}
 
