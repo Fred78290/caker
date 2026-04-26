@@ -143,7 +143,7 @@ write_files:
           echo "openstack-dev-k3s-worker-\${SUFFIX}" > /etc/hostname
       fi
 
-      if [ "${DOCKER}" == "YES" ]; then
+      if [ "${DOCKER}" = "YES" ]; then
         if test -n "\$(command -v curl)"
         then
             curl -fsSL https://get.docker.com | sh -
