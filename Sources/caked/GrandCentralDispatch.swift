@@ -26,9 +26,9 @@ typealias AsyncThrowingStreamCakedReplyContinuation = AsyncThrowingStream<Caked_
 typealias AsyncThrowingStreamCakedReplyContinuations = [AsyncThrowingStreamCakedReplyContinuation]
 typealias AsyncThrowingStreamCakedStatusReplyContinuation = AsyncThrowingStream<Caked_CurrentStatusReply, Error>.Continuation
 
-typealias ListenerID = UUID
-
 final class GrandCentralDispatch {
+	typealias ListenerID = UUID
+
 	let runMode: Utils.RunMode
 	let group: EventLoopGroup
 	let listeners: Mutex<[ListenerID: AsyncThrowingStreamCakedReplyContinuation]>
