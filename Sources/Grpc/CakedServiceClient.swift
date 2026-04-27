@@ -11,6 +11,13 @@ import NIOPosix
 import Logging
 
 extension CakedServiceClient {
+	public func vncInfos(name: String, includeConfig: Bool = false, timeout: Int64 = 10) throws -> Caked_Reply {
+		return try self.vncInfos(.with {
+			$0.name = name
+			$0.includeConfig = includeConfig
+		}, callOptions: CallOptions(timeLimit: .timeout(.seconds(timeout)))).response.wait()
+	}
+
 	public func info(name: String, includeConfig: Bool = false, timeout: Int64 = 10) throws -> Caked_Reply {
 		return try self.info(.with {
 			$0.name = name
@@ -79,8 +86,8 @@ extension CakedServiceClient {
 		eventLoopGroup: EventLoopGroup,
 		vmName: String,
 		localPort: Int = 0,
-		handler: @MainActor @escaping (Channel, Int) -> Void
-	) async throws -> Int {
+		handler: @escaping (Channel, Int) -> Void
+	) throws -> Int {
 		let logger = Logger(label: "VNCTunnel")
 
 		// Create the server bootstrap for local VNC clients
@@ -97,19 +104,12 @@ extension CakedServiceClient {
 			}
 		
 		// Bind to local port
-		let serverChannel = try await bootstrap.bind(host: "127.0.0.1", port: localPort).get()
+		let serverChannel = try bootstrap.bind(host: "127.0.0.1", port: localPort).wait()
 		let actualPort = serverChannel.localAddress?.port ?? localPort
 		
 		logger.info("VNC tunnel server listening on port \(actualPort) for VM '\(vmName)'")
 		
-		await handler(serverChannel, actualPort)
-
-		// Keep the server running - it will close when the task is cancelled
-		try await withTaskCancellationHandler {
-			try await serverChannel.closeFuture.get()
-		} onCancel: {
-			serverChannel.close(promise: nil)
-		}
+		handler(serverChannel, actualPort)
 		
 		return actualPort
 	}
@@ -131,8 +131,10 @@ private final class VNCTunnelHandler: ChannelInboundHandler {
 	}
 	
 	func channelRegistered(context: ChannelHandlerContext) {
+		let channel = context.channel
+
 		logger.debug("VNC client connected for VM '\(vmName)'")
-		
+
 		// Create gRPC call options with VM name header
 		let callOptions = CallOptions(
 			customMetadata: .init([("CAKEAGENT_VMNAME", vmName)]),
@@ -141,7 +143,7 @@ private final class VNCTunnelHandler: ChannelInboundHandler {
 		
 		self.grpcStream = self.client.vncTunnel(callOptions: callOptions) { response in
 			if response.stream.isEmpty == false {
-				context.channel.writeAndFlush(ByteBuffer(data: response.stream), promise: nil)
+				channel.writeAndFlush(ByteBuffer(data: response.stream), promise: nil)
 			}
 		}
 	}
@@ -154,20 +156,24 @@ private final class VNCTunnelHandler: ChannelInboundHandler {
 			logger.warning("Received data but gRPC stream not ready")
 			return
 		}
-		do {
-			try stream.sendMessage(Caked_VncStream.with { message in
-				message.stream = Data(buffer.readableBytesView)
-			}).wait()
-		} catch {
-			self.logger.error("Error forwarding VNC data: \(error)")
-			context.close(promise: nil)
+
+		stream.sendMessage(Caked_VncStream.with { message in
+			message.stream = Data(buffer.readableBytesView)
+		}).whenComplete {
+			switch $0 {
+			case .success:
+				break // Successfully sent to gRPC stream
+			case .failure(let error):
+				self.logger.error("Failed to send VNC data to gRPC stream: \(error)")
+				self.errorCaught(context: context, error: error)
+			}
 		}
 	}
 	
 	func channelInactive(context: ChannelHandlerContext) {
 		logger.debug("VNC client disconnected for VM '\(vmName)'")
 
-		try? grpcStream.sendEnd().wait()
+		grpcStream.sendEnd(promise: nil)
 	}
 	
 	func errorCaught(context: ChannelHandlerContext, error: Error) {
