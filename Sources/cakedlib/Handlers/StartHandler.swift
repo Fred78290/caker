@@ -133,7 +133,7 @@ public struct StartHandler {
 		}
 	}
 
-	public static func autostart(on: EventLoop, runMode: Utils.RunMode) throws {
+	public static func autostart(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Void> {
 		let storageLocation = StorageLocation(runMode: runMode)
 
 		// Collect autostart vm
@@ -180,12 +180,7 @@ public struct StartHandler {
 			}
 		}
 
-		// Wait for all completed
-		EventLoopFuture.andAllComplete(future, on: on).whenComplete { _ in
-			Logger(self).info("Autostart completed")
-		}
-
-		try? EventLoopFuture.andAllComplete(future, on: on).wait()
+		return EventLoopFuture.andAllComplete(future, on: on)
 	}
 
 	private static func runProccess(arguments: [String], sharedFileDescriptors: [Int32]?, startMode: StartMode, runMode: Utils.RunMode, terminationHandler: (@Sendable (ProcessWithSharedFileHandle) -> Void)?) throws -> ProcessWithSharedFileHandle {

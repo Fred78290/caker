@@ -199,7 +199,14 @@ extension Service {
 				try? home.agentPID.delete()
 			}
 			
-			try CakedLib.StartHandler.autostart(on: eventLoopGroup.next(), runMode: runMode)
+			try CakedLib.StartHandler.autostart(on: eventLoopGroup.next(), runMode: runMode).whenComplete { result in
+				switch result {
+				case .failure(let error):
+					logger.error("Failed to autostart: \(error.localizedDescription)")
+				case .success:
+					logger.info("Autostart completed")
+				}
+			}
 			
 			let provider = try CakedProvider(group: eventLoopGroup, password: self.password, runMode: runMode)
 			let servers: [Server] = try listenAddress.map { address in
