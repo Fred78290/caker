@@ -48,7 +48,7 @@
       viewDebuggingEnabled = "No">
       <PathRunnable
          runnableDebuggingMode = "0"
-         FilePath = "/Volumes/Manix/Users/fboltz/Library/Developer/Xcode/DerivedData/Build/Products/Debug/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked">
+         FilePath = "~/Library/Developer/Xcode/DerivedData/Build/Products/Debug/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked">
       </PathRunnable>
       <CommandLineArguments>
          <CommandLineArgument
@@ -100,7 +100,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "ipsw:///Volumes/Manix/Users/fboltz/Downloads/UniversalMac_15.5_24F74_Restore.ipsw"
+            argument = "ipsw://~/Downloads/UniversalMac_15.5_24F74_Restore.ipsw"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -159,7 +159,7 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "PATH"
-            value = "/Volumes/Manix/Users/fboltz/.vscode/extensions/ms-python.python-2025.8.0-darwin-arm64/python_files/deactivate/bash:/Volumes/Manix/Users/fboltz/Projects/GitHub/caker/.venv/bin:/Volumes/Manix/Users/fboltz/.vscode/extensions/ms-python.python-2025.8.0-darwin-arm64/python_files/deactivate/bash:/Volumes/Manix/Users/fboltz/Projects/GitHub/caker/.venv/bin:/Volumes/Manix/Users/fboltz/go/bin:/opt/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/X11/bin:/Library/Apple/usr/bin:/Applications/Docker.app/Contents/Resources/bin:/Applications/VMware Fusion.app/Contents/Public:/usr/local/share/dotnet:~/.dotnet/tools:/Users/fboltz/go/bin:/opt/bin:/Volumes/Manix/Users/fboltz/.vscode/extensions/ms-python.python-2025.8.0-darwin-arm64/python_files/deactivate/bash:/Volumes/Manix/Users/fboltz/Projects/GitHub/caker/.venv/bin:/Volumes/Manix/Users/fboltz/go/bin:/Applications/Docker.app/Contents/Resources/bin"
+            value = "~/.vscode/extensions/ms-python.python-2025.8.0-darwin-arm64/python_files/deactivate/bash:~/Projects/GitHub/caker/.venv/bin:~/.vscode/extensions/ms-python.python-2025.8.0-darwin-arm64/python_files/deactivate/bash:~/Projects/GitHub/caker/.venv/bin:~/go/bin:/opt/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/X11/bin:/Library/Apple/usr/bin:/Applications/Docker.app/Contents/Resources/bin:/Applications/VMware Fusion.app/Contents/Public:/usr/local/share/dotnet:~/.dotnet/tools:~/go/bin:/opt/bin:~/.vscode/extensions/ms-python.python-2025.8.0-darwin-arm64/python_files/deactivate/bash:~/Projects/GitHub/caker/.venv/bin:~/go/bin:/Applications/Docker.app/Contents/Resources/bin"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>
