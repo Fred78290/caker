@@ -65,7 +65,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--password=debug"
+            argument = "--pass-phrase=debug"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
