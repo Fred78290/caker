@@ -337,7 +337,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.screenshot = nil
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
-		self.monitor = nil
+		self.monitor = monitor
 		self.documentSize = ViewSize(config.display.cgSize)
 
 		switch location.status {

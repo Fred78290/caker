@@ -169,7 +169,7 @@ struct ConnectionManager {
 	}
 
 	func duplicateVirtualMachine(vmURL: URL, to: String, resetMacAddress: Bool) throws -> DuplicatedReply {
-		return try DuplicateHandler.duplicate(client: self.serviceClient, vmURL: vmURL, to: to, resetMacAddress: true, runMode: self.connectionMode.runMode)
+		return try DuplicateHandler.duplicate(client: self.serviceClient, vmURL: vmURL, to: to, resetMacAddress: resetMacAddress, runMode: self.connectionMode.runMode)
 	}
 
 	func setVncScreenSize(vmURL: URL, screenSize: ViewSize) async {

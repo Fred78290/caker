@@ -44,7 +44,7 @@ public struct GetOptions: ParsableCommand {
 
 		try arguments.forEach {
 			if CakedKeyConfig(rawValue: $0) == nil {
-				throw ValidationError(String(localized: "Unrecognized settings key: \(0)"))
+				throw ValidationError(String(localized: "Unrecognized settings key: \($0)"))
 			}
 		}
 	}
