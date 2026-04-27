@@ -143,7 +143,9 @@ private final class VNCTunnelHandler: ChannelInboundHandler {
 		
 		self.grpcStream = self.client.vncTunnel(callOptions: callOptions) { response in
 			if response.stream.isEmpty == false {
-				channel.writeAndFlush(ByteBuffer(data: response.stream), promise: nil)
+				channel.eventLoop.execute {
+					channel.writeAndFlush(ByteBuffer(data: response.stream), promise: nil)
+				}
 			}
 		}
 	}
