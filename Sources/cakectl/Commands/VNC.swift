@@ -69,10 +69,18 @@ struct VNC: GrpcParsableCommand {
 		}
 
 		try client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name) { (channel, port) in
+			var components = URLComponents()
+
+			components.scheme = "vnc"
+			components.host = "127.0.0.1"
+			components.port = port
+
 			if let password = vncURL.password {
-				self.doVNC(URL(string: "vnc://:\(password)@127.0.0.1:\(port)")!, client: client, config: CakedConfiguration(result.config), screenSize: screenSize, channel: channel)
-			} else {
-				self.doVNC(URL(string: "vnc://127.0.0.1:\(port)")!, client: client, config: CakedConfiguration(result.config), screenSize: screenSize, channel: channel)
+				components.password = password
+			}
+
+			if let vncURL = components.url {
+				self.doVNC(vncURL, client: client, config: CakedConfiguration(result.config), screenSize: screenSize, channel: channel)
 			}
 		}
 
