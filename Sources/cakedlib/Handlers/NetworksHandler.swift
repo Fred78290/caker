@@ -254,22 +254,33 @@ public struct NetworksHandler {
 		let home: Home = try Home(runMode: runMode)
 		let networkConfig = try home.sharedNetworks()
 		let sharedNetworks = networkConfig.sharedNetworks
+		let bridgedNetwork = try CakedKeyConfig.bridgedNetwork.get()
+		
+		if bridgedNetwork == nil && networks.filter({ $0.isBridged() }).isEmpty == false {
+			Logger(self).error("Bridged network is not configured, skipping bridged networks")
+		}
 
 		try networks.forEach { inf in
 			if inf.isNAT() == false {
-				let physicalInterface = NetworksHandler.isPhysicalInterface(name: inf.network)
-				let networkConfig = sharedNetworks[inf.network]
-
-				if networkConfig == nil && physicalInterface == false {
-					Logger(self).error("Network interface \(inf.network) not found")
-				} else if networkConfig != nil {
-					if #available(macOS 26.0, *) {
-						Logger(self).debug("Network interface \(inf.network) handled by vmnet")
+				if let networkName = inf.isBridged() ? bridgedNetwork : inf.network {
+					let physicalInterface = NetworksHandler.isPhysicalInterface(name: networkName)
+					let networkConfig = sharedNetworks[networkName]
+					
+					if physicalInterface {
+						if vmNetworking == false {
+							try NetworksHandler.startNetworkService(networkName: networkName, runMode: runMode)
+						} else {
+							Logger(self).debug("Network interface \(networkName) handled by vmnet")
+						}
+					} else if networkConfig != nil {
+						if #available(macOS 26.0, *) {
+							Logger(self).debug("Network interface \(networkName) handled by vmnet")
+						} else {
+							try NetworksHandler.startNetworkService(networkName: networkName, runMode: runMode)
+						}
 					} else {
-						try NetworksHandler.startNetworkService(networkName: inf.network, runMode: runMode)
+						Logger(self).error("Network interface \(networkName) not found")
 					}
-				} else if (physicalInterface && vmNetworking) == false {
-					try NetworksHandler.startNetworkService(networkName: inf.network, runMode: runMode)
 				}
 			}
 		}
