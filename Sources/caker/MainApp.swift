@@ -361,8 +361,8 @@ struct MainApp: App {
 
         // Prompt for password using a secure text field
         let alert = NSAlert()
-        alert.messageText = String(localized: "Administrator Password Required")
-        alert.informativeText = String(localized: "To install the service, please enter your administrator password.")
+        alert.messageText = String(localized: "Pass-Phrase Required")
+        alert.informativeText = String(localized: "To install the service, please enter your pass-phrase.")
         alert.alertStyle = .warning
         alert.addButton(withTitle: String(localized: "Install"))
         alert.addButton(withTitle: String(localized: "Cancel"))
