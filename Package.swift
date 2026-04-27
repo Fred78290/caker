@@ -25,8 +25,8 @@ let package = Package(
 		.package(url: "https://github.com/Fred78290/Shout.git", revision: "9bd074b3d0943e391021cf7a86360fd5f82268cc"),
 		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", revision: "a7d76da446dbaf1652061990874517b0e7af8fe4"),
 		.package(url: "https://github.com/Fred78290/swift-argument-parser", revision: "d554955e8c280aa4c4a05a039a968f0205656e77"),
+		.package(url :"https://github.com/Fred78290/SwiftTerm.git", revision: "6c0bec1dc8db9e07a7738b06f380998a670e1fbc"),
 
-		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "3c45fdcfcf4395c72d2a4ee23c0bce79017b5391"),
 		.package(url: "https://github.com/amodm/iso9660-swift", branch: "main"),
 		.package(url: "https://github.com/antlr/antlr4", exact: "4.13.2"),
 		.package(url: "https://github.com/apple/swift-algorithms", exact: "1.2.1"),

@@ -4018,10 +4018,10 @@
 		};
 		9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
+			repositoryURL = "https://github.com/Fred78290/SwiftTerm";
 			requirement = {
 				kind = revision;
-				revision = 3c45fdcfcf4395c72d2a4ee23c0bce79017b5391;
+				revision = 6c0bec1dc8db9e07a7738b06f380998a670e1fbc;
 			};
 		};
 		9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */ = {
@@ -4036,8 +4036,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/swiftlang/swift-subprocess.git";
 			requirement = {
-				kind = revision;
-				revision = 7928f39b374b3403224c3a243da6326bdf7c918a;
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.4.0;
 			};
 		};
 		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {
