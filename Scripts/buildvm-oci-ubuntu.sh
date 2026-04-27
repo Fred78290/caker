@@ -13,7 +13,7 @@ ASSETS="${BUILDDIR}/assets"
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 OCI_IMAGE=ocis://ghcr.io/cirruslabs/ubuntu:latest
 DISK_SIZE=20
-CMD="${PKGDIR}/Contents/PlugIns/caked"
+CMD="${PKGDIR}/Contents/PlugIns/caked.bundle/Contents/MacOS/caked"
 BUILD_OPTIONS="--display-refit --cpu=4 --memory=4096 --disk-size=${DISK_SIZE} --nested --mount=~ --network=nat"
 
 "${CMD}" delete ubuntu

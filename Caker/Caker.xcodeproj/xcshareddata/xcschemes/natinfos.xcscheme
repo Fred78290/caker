@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9BFE869C2F7E592B005CC9B2"
-               BuildableName = "caked.bundle"
-               BlueprintName = "bundle"
+               BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
+               BuildableName = "caked"
+               BlueprintName = "caked"
                ReferencedContainer = "container:Caker.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -29,9 +29,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
-               BuildableName = "caked"
-               BlueprintName = "caked"
+               BlueprintIdentifier = "9B464A532D5A3DA000164BF5"
+               BuildableName = "Caker.app"
+               BlueprintName = "Caker"
                ReferencedContainer = "container:Caker.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -56,8 +56,11 @@
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES"
       viewDebuggingEnabled = "No">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <PathRunnable
+         runnableDebuggingMode = "0"
+         FilePath = "/Volumes/Manix/Users/fboltz/Library/Developer/Xcode/DerivedData/Build/Products/Debug/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked">
+      </PathRunnable>
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
@@ -65,7 +68,7 @@
             BlueprintName = "caked"
             ReferencedContainer = "container:Caker.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
       <CommandLineArguments>
          <CommandLineArgument
             argument = "networks"

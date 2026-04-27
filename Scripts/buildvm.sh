@@ -69,8 +69,8 @@ LXD_IMAGE=ubuntu:noble
 #LXD_IMAGE=images:fedora/41/cloud
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
-DOCKER=NO
-CMD="${PKGDIR}/Contents/PlugIns/caked"
+DOCKER=YES
+CMD="${PKGDIR}/Contents/PlugIns/caked.bundle/Contents/MacOS/caked"
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
 
@@ -197,7 +197,7 @@ MOUNT_OPTIONS="--mount=~/Projects --mount=~/Downloads"
 if [ "${DOCKER}" == "YES" ]; then
   FORWARDS_OPTIONS="--dynamic-port-forwarding --publish 2222:22/tcp --publish tcp:~/.docker/run/docker.sock:/var/run/docker.sock"
 else
-  FORWARDS_OPTIONS=""
+  FORWARDS_OPTIONS="--dynamic-port-forwarding --publish 2222:22/tcp"
 fi
 
 "${CMD}" delete ${VMNAME} 

@@ -70,7 +70,7 @@ LXD_IMAGE=ubuntu:noble
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
 DOCKER=NO
-CMD="${PKGDIR}/Contents/PlugIns/cakectl"
+CMD="${PKGDIR}/Contents/PlugIns/caked.bundle/Contents/MacOS/cakectl"
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
 

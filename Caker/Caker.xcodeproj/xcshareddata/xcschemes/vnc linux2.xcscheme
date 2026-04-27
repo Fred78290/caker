@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9BFE869C2F7E592B005CC9B2"
-               BuildableName = "caked.bundle"
-               BlueprintName = "bundle"
+               BlueprintIdentifier = "9B464A532D5A3DA000164BF5"
+               BuildableName = "Caker.app"
+               BlueprintName = "Caker"
                ReferencedContainer = "container:Caker.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -41,16 +41,10 @@
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES"
       queueDebuggingEnableBacktraceRecording = "Yes">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9B464B4E2D5A3E5C00164BF5"
-            BuildableName = "cakectl"
-            BlueprintName = "cakectl"
-            ReferencedContainer = "container:Caker.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
+      <PathRunnable
+         runnableDebuggingMode = "0"
+         FilePath = "/Volumes/Manix/Users/fboltz/Library/Developer/Xcode/DerivedData/Build/Products/Debug/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/cakectl">
+      </PathRunnable>
       <CommandLineArguments>
          <CommandLineArgument
             argument = "vnc"
@@ -68,15 +62,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9BFE869C2F7E592B005CC9B2"
-            BuildableName = "caked.bundle"
-            BlueprintName = "bundle"
-            ReferencedContainer = "container:Caker.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
