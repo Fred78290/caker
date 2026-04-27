@@ -78,7 +78,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	typealias ShellHandlerResponse = (Cakeagent_CakeAgent.ExecuteResponse) -> Void
 	
 	static func == (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
-		lhs.virtualMachine == rhs.virtualMachine
+		lhs.url == rhs.url && rhs.connectionManager == lhs.connectionManager
 	}
 	
 	enum AgentStatus: Int, Sendable {

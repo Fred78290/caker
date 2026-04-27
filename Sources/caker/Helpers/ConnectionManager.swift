@@ -8,7 +8,7 @@ import Foundation
 import CakedLib
 import GRPCLib
 
-struct ConnectionManager {
+struct ConnectionManager: Equatable, Hashable {
 	enum ConnectionMode: Sendable, Codable {
 		case system
 		case user
