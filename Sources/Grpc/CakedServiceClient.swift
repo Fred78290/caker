@@ -6,8 +6,7 @@
 //
 import Foundation
 import GRPC
-import NIOCore
-import NIOPosix
+import NIO
 import Logging
 
 extension CakedServiceClient {
