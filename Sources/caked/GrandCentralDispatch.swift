@@ -118,7 +118,13 @@ final class GrandCentralDispatch {
 		guard let stream else {
 			return
 		}
-		
+	
+		self.listeners.withLock { listeners in
+			listeners.values.forEach {
+				$0.finish()
+			}
+		}
+
 		stream.continuation.finish()
 	}
 	
@@ -220,7 +226,7 @@ final class GrandCentralDispatch {
 
 		let (stream, continuation) = AsyncThrowingStream.makeStream(of: Caked_Reply.self)
 		let id = self.addListener(continuation)
-		
+
 		defer {
 			continuation.finish()
 			self.self.removeListener(id)

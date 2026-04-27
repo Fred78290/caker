@@ -190,8 +190,8 @@ EOF
 fi
 
 COMMON_OPTIONS="--autostart --user admin --password admin --main-group=${MAINGROUP} --clear-password --display-refit --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=${HOME}/.ssh/id_rsa.pub --cloud-init=/tmp/user-data.yaml"
-NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --network=en0 --network=shared --network=host --console=file"
-NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --network=en0 --console=file"
+NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --bridged --network=shared --network=host --console=file"
+NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --bridged --console=file"
 MOUNT_OPTIONS="--mount=~/Projects --mount=~/Downloads"
 
 if [ "${DOCKER}" == "YES" ]; then

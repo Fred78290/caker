@@ -98,6 +98,18 @@ public struct Caked_Caked: Sendable {
 
   }
 
+  public struct VncStream: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    public var stream: Data = Data()
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    public init() {}
+  }
+
   public struct CpuCoreInfo: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1273,6 +1285,15 @@ public struct Caked_Caked: Sendable {
         get {_storage._autoinstall}
         set {_uniqueStorage()._autoinstall = newValue}
       }
+
+      public var bridgedNetwork: Bool {
+        get {_storage._bridgedNetwork ?? false}
+        set {_uniqueStorage()._bridgedNetwork = newValue}
+      }
+      /// Returns true if `bridgedNetwork` has been explicitly set.
+      public var hasBridgedNetwork: Bool {_storage._bridgedNetwork != nil}
+      /// Clears the value of `bridgedNetwork`. Subsequent reads from it will return its default value.
+      public mutating func clearBridgedNetwork() {_uniqueStorage()._bridgedNetwork = nil}
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -5417,6 +5438,36 @@ extension Caked_Caked.VirtualMachineStatus: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0stopped\0\u{1}running\0\u{1}paused\0\u{1}deleted\0\u{1}error\0\u{1}agentReady\0\u{1}new\0")
 }
 
+extension Caked_Caked.VncStream: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".VncStream"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}stream\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.stream) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.stream.isEmpty {
+      try visitor.visitSingularBytesField(value: self.stream, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.VncStream, rhs: Caked_Caked.VncStream) -> Bool {
+    if lhs.stream != rhs.stream {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Caked_Caked.CpuCoreInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".CpuCoreInfo"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}core_id\0\u{3}usage_percent\0\u{1}user\0\u{1}system\0\u{1}idle\0\u{1}iowait\0\u{1}irq\0\u{1}softirq\0\u{1}steal\0\u{1}guest\0\u{1}guestNice\0")
@@ -6665,7 +6716,7 @@ extension Caked_Caked.VMRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
 
 extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".CommonBuildRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0\u{1}otherGroups\0\u{1}imageSource\0\u{1}autoinstall\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0\u{1}otherGroups\0\u{1}imageSource\0\u{1}autoinstall\0\u{1}bridgedNetwork\0")
 
   fileprivate class _StorageClass {
     var _name: String = String()
@@ -6697,6 +6748,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
     var _otherGroups: String? = nil
     var _imageSource: Caked_Caked.Configuration.ImageSource = .unknown
     var _autoinstall: Bool = false
+    var _bridgedNetwork: Bool? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -6736,6 +6788,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
       _otherGroups = source._otherGroups
       _imageSource = source._imageSource
       _autoinstall = source._autoinstall
+      _bridgedNetwork = source._bridgedNetwork
     }
   }
 
@@ -6783,6 +6836,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         case 27: try { try decoder.decodeSingularStringField(value: &_storage._otherGroups) }()
         case 28: try { try decoder.decodeSingularEnumField(value: &_storage._imageSource) }()
         case 29: try { try decoder.decodeSingularBoolField(value: &_storage._autoinstall) }()
+        case 30: try { try decoder.decodeSingularBoolField(value: &_storage._bridgedNetwork) }()
         default: break
         }
       }
@@ -6882,6 +6936,9 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
       if _storage._autoinstall != false {
         try visitor.visitSingularBoolField(value: _storage._autoinstall, fieldNumber: 29)
       }
+      try { if let v = _storage._bridgedNetwork {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 30)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -6920,6 +6977,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         if _storage._otherGroups != rhs_storage._otherGroups {return false}
         if _storage._imageSource != rhs_storage._imageSource {return false}
         if _storage._autoinstall != rhs_storage._autoinstall {return false}
+        if _storage._bridgedNetwork != rhs_storage._bridgedNetwork {return false}
         return true
       }
       if !storagesAreEqual {return false}

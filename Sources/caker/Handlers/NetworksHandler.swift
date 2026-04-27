@@ -7,7 +7,7 @@ extension NetworksHandler {
 		guard let client = client else {
 			return self.create(networkName: networkName, network: network, runMode: runMode)
 		}
-
+		
 		return try CreatedNetworkReply(client.networks(.with {
 			$0.command = .new
 			$0.create = Caked_NetworkRequest.CreateNetworkRequest.with {
@@ -23,7 +23,7 @@ extension NetworksHandler {
 			}
 		}).response.wait().networks.created)
 	}
-
+	
 	public static func networks(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ListNetworksReply {
 		guard let client = client else {
 			return self.networks(runMode: runMode)
@@ -51,7 +51,7 @@ extension NetworksHandler {
 		guard let client = client else {
 			return self.stop(networkName: networkName, runMode: runMode)
 		}
-
+		
 		do {
 			return try StoppedNetworkReply(client.networks(.with {
 				$0.command = .start
@@ -59,6 +59,21 @@ extension NetworksHandler {
 			}).response.wait().networks.stopped)
 		} catch {
 			return StoppedNetworkReply(name: networkName, stopped: false, reason: error.reason)
+		}
+	}
+	
+	public static func delete(client: CakedServiceClient?, networkName: String, runMode: Utils.RunMode) -> DeleteNetworkReply {
+		guard let client = client else {
+			return self.delete(networkName: networkName, runMode: runMode)
+		}
+
+		do {
+			return try DeleteNetworkReply(client.networks(.with {
+				$0.command = .remove
+				$0.name = networkName
+			}).response.wait().networks.delete)
+		} catch {
+			return DeleteNetworkReply(name: networkName, deleted: false, reason: error.reason)
 		}
 	}
 }

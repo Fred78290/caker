@@ -98,7 +98,9 @@ struct Root: ParsableCommand {
 				Logout.self,
 				Push.self,
 				Pull.self,
-				VNC.self
+				VNC.self,
+				SetOptions.self,
+				GetOptions.self
 			])
 
 	static func parse() throws -> ParsableCommand? {

@@ -36,6 +36,9 @@ extension Service {
 		@Option(name: [.customLong("address"), .customShort("l")], help: ArgumentHelp(String(localized: "Listen on address")))
 		var address: [String] = []
 		
+		@Option(name: [.customLong("pass-phrase")], help: ArgumentHelp(String(localized: "access password"), discussion: String(localized: "This option allows to protect the service endpoint with a password")))
+		var password: String? = nil
+
 		@Flag(name: [.customLong("insecure"), .customShort("i")], help: ArgumentHelp(String(localized: "Don't use TLS")))
 		var insecure: Bool = false
 		
@@ -51,6 +54,9 @@ extension Service {
 		@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allows mode to connect to a VMRun service endpoint")))
 		var mode: VMRunServiceMode = .grpc
 		
+		@Flag(help: ArgumentHelp(String(localized: "Use inet socket"), visibility: .hidden))
+		var tcp: Bool = false
+
 		var runMode: Utils.RunMode {
 			self.asSystem ? .system : .user
 		}
@@ -60,18 +66,22 @@ extension Service {
 			
 			VMRunHandler.serviceMode = mode
 			
+			if self.tcp && self.address.isEmpty == false {
+				throw ValidationError(String(localized: "Both tcp and address are set, only one is allowed"))
+			}
+
 			if self.insecure == false {
 				if let caCert, let tlsCert, let tlsKey {
 					if FileManager.default.fileExists(atPath: caCert) == false {
-						throw ServiceError(String(localized: "Root certificate file not found: \(caCert)"))
+						throw ValidationError(String(localized: "Root certificate file not found: \(caCert)"))
 					}
 					
 					if FileManager.default.fileExists(atPath: tlsCert) == false {
-						throw ServiceError(String(localized: "TLS certificate file not found: \(tlsCert)"))
+						throw ValidationError(String(localized: "TLS certificate file not found: \(tlsCert)"))
 					}
 					
 					if FileManager.default.fileExists(atPath: tlsKey) == false {
-						throw ServiceError(String(localized: "TLS key file not found: \(tlsKey)"))
+						throw ValidationError(String(localized: "TLS key file not found: \(tlsKey)"))
 					}
 				}
 			}
@@ -88,6 +98,13 @@ extension Service {
 		}
 		
 		func getListenAddress() throws -> [String] {
+			if self.tcp {
+				return [
+					try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user),
+					"tcp://0.0.0.0:\(Caked.defaultServicePort)"
+				]
+			}
+
 			if self.address.isEmpty {
 				return [try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user)]
 			}
@@ -118,7 +135,7 @@ extension Service {
 				tlsCert = certs.cert
 			}
 			
-			try ServiceHandler.installAgent(listenAddress: listenAddress, insecure: self.options.insecure, caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey, runMode: runMode)
+			try ServiceHandler.installAgent(listenAddress: listenAddress, insecure: self.options.insecure, password: self.options.password, caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey, runMode: runMode)
 		}
 	}
 	
@@ -130,7 +147,15 @@ extension Service {
 		
 		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
-		
+
+		var password: String? {
+			guard let password = options.password else {
+				return try? CakedKeyConfig.passphrase.get()
+			}
+
+			return password
+		}
+
 		mutating func validate() throws {
 			let runMode: Utils.RunMode = self.options.runMode
 			
@@ -168,23 +193,24 @@ extension Service {
 			
 			let runMode: Utils.RunMode = self.options.runMode
 			let home = try Home(runMode: runMode)
-			
-			try home.agentPID.writePID()
-			
+			let eventLoopGroup = Utilities.group
+
 			defer {
 				try? home.agentPID.delete()
 			}
 			
-			try CakedLib.StartHandler.autostart(on: Utilities.group.next(), runMode: runMode)
+			try CakedLib.StartHandler.autostart(on: eventLoopGroup.next(), runMode: runMode)
 			
-			let eventLoopGroup = Utilities.group
+			let provider = try CakedProvider(group: eventLoopGroup, password: self.password, runMode: runMode)
 			let servers: [Server] = try listenAddress.map { address in
 				logger.info("Start listening on \(address)")
+
 				return try ServiceHandler.createServer(
 					eventLoopGroup: eventLoopGroup,
 					runMode: runMode,
 					listeningAddress: URL(string: address),
-					serviceProviders: [try CakedProvider(group: eventLoopGroup, runMode: runMode)],
+					serviceProviders: [provider],
+					password: self.password,
 					caCert: self.options.caCert,
 					tlsCert: self.options.tlsCert,
 					tlsKey: self.options.tlsKey
@@ -199,6 +225,9 @@ extension Service {
 			
 			sigintSrc.setEventHandler {
 				logger.info("Stop service on SIGINT")
+
+				provider.gcd.stopGrandCentralDispatch()
+
 				servers.forEach {
 					try? $0.close().wait()
 				}
@@ -206,6 +235,8 @@ extension Service {
 			
 			sigintSrc.activate()
 			
+			try home.agentPID.writePID()
+
 			// Wait on the server's `onClose` future to stop the program from exiting.
 			if servers.count > 1 {
 				try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in

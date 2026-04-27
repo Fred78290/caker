@@ -31,6 +31,14 @@ extension GrpcCommand {
 		CallOptions(timeLimit: .none)
 	}
 	
+	var password: String? {
+		guard let password = options.password else {
+			return try? CakedKeyConfig.passphrase.get()
+		}
+
+		return password
+	}
+
 	func prepareClient() throws -> (EventLoopGroup, CakedServiceClient) {
 		let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 		let connection = try Caked.createClient(
@@ -41,7 +49,8 @@ extension GrpcCommand {
 			caCert: self.options.caCert,
 			tlsCert: self.options.tlsCert,
 			tlsKey: self.options.tlsKey,
-			interceptors: interceptors)
+			password: self.password,
+			interceptors: self.interceptors)
 
 		return (group, connection)
 	}
@@ -128,6 +137,9 @@ struct Client: ParsableCommand {
 		@Option(name: [.customLong("connect")], help: ArgumentHelp(String(localized: "Connect to address"), valueName: "address"))
 		public var address: String = try! Utils.getDefaultServerAddress(runMode: .user)
 
+		@Option(name: [.customLong("pass-phrase")], help: ArgumentHelp(String(localized: "access password"), discussion: String(localized: "This option allows to protect the service endpoint with a password")))
+		public var password: String? = nil
+
 		@Option(name: [.customLong("ca-cert")], help: ArgumentHelp(String(localized: "CA TLS certificate"), valueName: "path"))
 		public var caCert: String? = nil
 
@@ -199,6 +211,8 @@ struct Client: ParsableCommand {
 				Pull.self,
 				Push.self,
 				VNC.self,
+				SetOptions.self,
+				GetOptions.self
 			])
 
 #if DEBUG

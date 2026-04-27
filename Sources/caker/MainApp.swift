@@ -186,7 +186,16 @@ struct MainApp: App {
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
-		
+
+		Window("Server browser", id: "Remote") {
+			CakedServerView(appState: $appState)
+				.colorSchemeForColor()
+				.containerBackground(.windowBackground, for: .window)
+				.frame(size: CGSize(width: 600, height: 400))
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+
 		Window("Create a new virtual machine", id: "wizard") {
 			newDocWizard()
 		}
@@ -211,7 +220,9 @@ struct MainApp: App {
 			}.keyboardShortcut(KeyboardShortcut("N"))
 			Button("Open virtual machine") {
 				open()
-			}.keyboardShortcut(KeyboardShortcut("o"))
+			}
+			.keyboardShortcut(KeyboardShortcut("o"))
+			.disabled(self.appState.connectionMode == .remote)
 		}
 		CommandMenu("Control") {
 			Button("Start") {
@@ -262,6 +273,10 @@ struct MainApp: App {
 		}
 		
 		CommandMenu("Service") {
+			Button("Connect to remote") {
+				self.openWindow(id: "Remote")
+			}
+			Divider()
 			if self.appState.cakedServiceInstalled {
 				Button("Remove service") {
 					Self.removeCakedService()
@@ -318,7 +333,7 @@ struct MainApp: App {
 		VirtualMachineWizard()
 			.colorSchemeForColor()
 			.restorationState(.disabled)
-			.frame(minWidth: 700, maxWidth: 700, minHeight: 670, maxHeight: 670)
+			.frame(size: CGSize(width: 700, height: 610))
 	}
 	
 	@MainActor func openVirtualMachine(_ vmURL: URL) async {
@@ -332,15 +347,50 @@ struct MainApp: App {
 			}
 		}
 	}
-	
+
 	static func installCakedService() {
-		do {
-			try ServiceHandler.installAgent(runMode: .user)
-		} catch {
-			DispatchQueue.main.async {
-				alertError(error)
-			}
-		}
+        // Try Keychain first
+		if let savedPassword = try? CakedKeyConfig.passphrase.get(), savedPassword.isEmpty == false {
+            do {
+                try ServiceHandler.installAgent(password: savedPassword, runMode: .user)
+                return
+            } catch {
+                // If saved password fails, fall back to prompting
+            }
+        }
+
+        // Prompt for password using a secure text field
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Pass-Phrase Required")
+        alert.informativeText = String(localized: "To install the service, please enter your pass-phrase.")
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: String(localized: "Install"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+
+        let secureField = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+        secureField.placeholderString = String(localized: "Password")
+        alert.accessoryView = secureField
+
+        let response = alert.runModal()
+        guard response == .alertFirstButtonReturn else {
+            return
+        }
+
+        let password = secureField.stringValue
+        guard password.isEmpty == false else {
+            DispatchQueue.main.async {
+                alertError(String(localized: "Password"), String(localized: "Password cannot be empty."))
+            }
+            return
+        }
+
+        do {
+			try ServiceHandler.installAgent(password: password, runMode: .user)
+        } catch {
+            DispatchQueue.main.async {
+                alertError(error)
+            }
+        }
 	}
 	
 	static func removeCakedService() {

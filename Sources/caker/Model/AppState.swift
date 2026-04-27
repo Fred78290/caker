@@ -123,7 +123,7 @@ class AppState: ObservableObject, Observable {
 	
 	@Published var cakedServiceInstalled: Bool = false
 	@Published var cakedServiceRunning: Bool = false
-	@Published var runMode: Utils.RunMode = .app
+	@Published var connectionMode: ConnectionManager.ConnectionMode = .app
 	@Published var currentDocument: VirtualMachineDocument!
 	@Published var isAgentInstalling: Bool = false
 	@Published var isStopped: Bool = true
@@ -134,21 +134,15 @@ class AppState: ObservableObject, Observable {
 	@Published var templates: [TemplateEntry] = []
 	@Published var networks: [BridgedNetwork] = []
 	@Published var virtualMachines: [URL: VirtualMachineDocument] = [:]
+	@Published var hasVMNetworking = Entitlement.hasVMNetworking()
 	
-	private var cakedServiceClient: CakedServiceClient? = nil
+	private var connectionManager: ConnectionManager
 	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
-	
+	private var openedVirtualMachines: [VirtualMachineDocument] = []
+
 	deinit {
 		agentStatusTimer?.cancel()
 		gcd?.cancel(promise: nil)
-	}
-	
-	var serviceClient: CakedServiceClient? {
-		if self.runMode == .app {
-			return nil
-		}
-		
-		return self.cakedServiceClient
 	}
 	
 	private func receiveScreenshot(_ vmURL: URL, value: Data) async {
@@ -217,21 +211,21 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 	
-	private static func loadService(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ServiceReply {
-		Logger("AppState").debug("Loading data for mode: runMode=\(runMode)")
+	private static func loadService(connectionManager: ConnectionManager) throws -> ServiceReply {
+		Logger("AppState").debug("Loading data for mode: connectionMode=\(connectionManager.connectionMode.runMode)")
 		
 		return try ServiceReply(
-			remotes: Self.loadRemotes(client: client, runMode: runMode),
-			templates: Self.loadTemplates(client: client, runMode: runMode),
-			networks: Self.loadNetworks(client: client, runMode: runMode),
-			virtualMachines: Self.loadVirtualMachines(client: client, runMode: runMode)
+			remotes: connectionManager.loadRemotes(),
+			templates: connectionManager.loadTemplates(),
+			networks: connectionManager.loadNetworks(),
+			virtualMachines: connectionManager.loadVirtualMachines()
 		)
 	}
-
-	private func switchMode(_ installed: Bool, runMode: Utils.RunMode) {
+	
+	private func switchMode(_ installed: Bool, connectionManager: ConnectionManager) {
 		func startGrandCentral() {
 			let gcdFuture = Utilities.group.next().makeFutureWithTask {
-				await self.gdc(client: self.cakedServiceClient!)
+				await self.gdc(client: connectionManager.serviceClient!)
 			}
 			
 			gcdFuture.whenFailure { error in
@@ -244,25 +238,25 @@ class AppState: ObservableObject, Observable {
 			}
 		}
 		
-		self.logger.debug("Switching mode: installed=\(installed), runMode=\(runMode)")
-
-		if runMode == .app {
+		self.logger.debug("Switching mode: installed=\(installed), connectionMode=\(connectionMode)")
+		
+		if connectionManager.connectionMode == .app {
 			self.gcd?.cancel(promise: nil)
-			self.cakedServiceClient = nil
-		} else {
-			self.cakedServiceClient = ServiceHandler.serviceClient
 		}
-				
+		
 		Utilities.group.next().makeFutureWithTask {
-			try Self.loadService(client: self.cakedServiceClient, runMode: runMode)
+			try Self.loadService(connectionManager: connectionManager)
 		}.whenComplete { result in
-			self.logger.debug("Data loaded for new mode: installed=\(installed), runMode=\(runMode)")
-
+			let connectionMode = connectionManager.connectionMode
+			
+			self.logger.debug("Data loaded for new mode: installed=\(installed), runMode=\(connectionMode)")
+			
 			DispatchQueue.main.async {
 				self.cakedServiceInstalled = installed
-				self.cakedServiceRunning = runMode != .app
-				self.runMode = runMode
-
+				self.cakedServiceRunning = connectionMode != .app
+				self.connectionMode = connectionMode
+				self.connectionManager = connectionManager
+				
 				switch result {
 				case let .failure(error):
 					alertError(error)
@@ -272,13 +266,13 @@ class AppState: ObservableObject, Observable {
 					self.remotes = serviceReply.remotes
 					self.templates = serviceReply.templates
 					
-					if runMode != .app && self.gcd == nil {
+					if connectionMode != .app && self.gcd == nil {
 						startGrandCentral()
 					}
 				}
-
+				
 				// Restart timer
-				self.logger.debug("Restart timer for new mode: installed=\(installed), runMode=\(runMode)")
+				self.logger.debug("Restart timer for new mode: installed=\(installed), runMode=\(connectionMode)")
 				self.agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { task in
 					self.agentStatusWatch(task)
 				}
@@ -287,24 +281,25 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func agentStatusWatch(_ task: RepeatedTask) {
-		let runMode = ServiceHandler.runningMode
+		guard self.connectionMode != .remote else { return }
+		
+		let connectionMode = ConnectionManager.ConnectionMode(ServiceHandler.runningMode)
 		let installed = ServiceHandler.isAgentInstalled
 		
-		if self.cakedServiceInstalled != installed || self.runMode != runMode {
+		if self.cakedServiceInstalled != installed || self.connectionMode != connectionMode {
 			// Suspend timer
-			self.logger.debug("Suspend timer for new mode: installed=\(installed), runMode=\(runMode)")
+			self.logger.debug("Suspend timer for new mode: installed=\(installed), connectionMode=\(connectionMode)")
 			self.agentStatusTimer = nil
 			task.cancel()
-
-			self.switchMode(installed, runMode: runMode)
+			
+			self.switchMode(installed, connectionManager: ConnectionManager(connectionMode: connectionMode))
 		}
 	}
-
+	
 	private init() {
-		var cakedServiceClient: CakedServiceClient? = nil
-		let runMode = ServiceHandler.runningMode
+		let connectionManager = ConnectionManager(connectionMode: ConnectionManager.ConnectionMode(ServiceHandler.runningMode))
 		let cakedServiceInstalled = ServiceHandler.isAgentInstalled
-		let cakedServiceRunning = runMode != .app
+		let cakedServiceRunning = connectionManager.connectionMode != .app
 		
 		let env = ProcessInfo.processInfo.environment
 		let isRunningInPreviews = env["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
@@ -313,60 +308,40 @@ class AppState: ObservableObject, Observable {
 		if !isRunningInPreviews && !isRunningInTests {
 			MainUIAppDelegate.ensurePrivilegedBootstrapFiles()
 		}
-
-		if cakedServiceRunning {
-			cakedServiceClient = ServiceHandler.serviceClient
-		}
 		
 		// Start polling agent running status every second
-		self.runMode = runMode
+		self.connectionMode = connectionManager.connectionMode
 		self.cakedServiceInstalled = cakedServiceInstalled
 		self.cakedServiceRunning = cakedServiceRunning
-		self.cakedServiceClient = cakedServiceClient
+		self.connectionManager = connectionManager
 		self.agentStatusTimer = nil
-
-		if runMode == .app {
+		
+		if connectionManager.connectionMode == .app {
 			self.agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { task in
 				self.agentStatusWatch(task)
 			}
-
-			if let serviceReply = try? Self.loadService(client: nil, runMode: .app) {
+			
+			if let serviceReply = try? Self.loadService(connectionManager: connectionManager) {
 				self.virtualMachines = serviceReply.virtualMachines
 				self.networks = serviceReply.networks
 				self.remotes = serviceReply.remotes
 				self.templates = serviceReply.templates
 			}
 		} else {
-			self.switchMode(cakedServiceInstalled, runMode: runMode)
+			self.switchMode(cakedServiceInstalled, connectionManager: connectionManager)
 		}
 	}
 	
-	static func loadNetworks(client: CakedServiceClient?, runMode: Utils.RunMode) -> [BridgedNetwork] {
-		guard let result = try? NetworksHandler.networks(client: client, runMode: runMode) else {
-			return []
-		}
-		
-		return result.networks.sorted(using: BridgedNetworkComparator())
+	func connectToRemote(listenAddress: String, password: String? = nil, tls: Bool) {
+		self.switchMode(self.cakedServiceInstalled, connectionManager: ConnectionManager(connectionMode: .remote, listenAddress: listenAddress, password: password, tls: tls))
 	}
 	
-	static func loadRemotes(client: CakedServiceClient?, runMode: Utils.RunMode)throws  -> [RemoteEntry] {
-		return try RemoteHandler.listRemote(client: client, runMode: runMode).remotes.sorted(using: RemoteHandlerComparator())
-	}
-	
-	static func loadTemplates(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> [TemplateEntry] {
-		try TemplateHandler.listTemplate(client: client, runMode: runMode).templates.sorted(using: TemplateEntryComparator())
-	}
-	
-	static func loadImages(client: CakedServiceClient?, remote: String, runMode: Utils.RunMode) async throws -> [ImageInfo] {
-		try await ImageHandler.listImage(client: client, remote: remote, runMode: runMode).infos
-	}
-	
-	static func loadVirtualMachines(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ([URL: VirtualMachineDocument]) {
-		return try VirtualMachineDocument.loadVirtualMachineDocuments(client: client, runMode: runMode)
+	func connectToLocal() {
+		self.switchMode(self.cakedServiceInstalled, connectionManager: ConnectionManager(connectionMode: .app))
 	}
 	
 	func loadNetworks() -> [BridgedNetwork] {
-		Self.loadNetworks(client: self.serviceClient, runMode: self.runMode)
+		self.connectionManager.loadNetworks()
 	}
 	
 	func reloadNetworks() {
@@ -374,7 +349,7 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func loadRemotes() -> [RemoteEntry] {
-		if let result = try? Self.loadRemotes(client: self.serviceClient, runMode: self.runMode) {
+		if let result = try? self.connectionManager.loadRemotes() {
 			return result
 		}
 		
@@ -386,7 +361,7 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func loadTemplates() -> [TemplateEntry] {
-		if let result = try? Self.loadTemplates(client: self.serviceClient, runMode: self.runMode) {
+		if let result = try? self.connectionManager.loadTemplates() {
 			return result
 		}
 		
@@ -398,7 +373,7 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func loadImages(remote: String) async -> [ImageInfo] {
-		if let result = try? await Self.loadImages(client: self.serviceClient, remote: remote, runMode: self.runMode) {
+		if let result = try? await self.connectionManager.loadImages(remote: remote) {
 			return result
 		}
 		
@@ -406,27 +381,16 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func createNetwork(network: BridgedNetwork) throws {
-		let vzNetwork = VZSharedNetwork(
-			mode: network.mode == .shared ? .shared : .host,
-			netmask: network.netmask,
-			dhcpStart: network.dhcpStart,
-			dhcpEnd: network.dhcpEnd,
-			dhcpLease: Int32(network.dhcpLease),
-			interfaceID: network.interfaceID,
-			nat66Prefix: nil
-		)
-		
-		_ = try NetworksHandler.create(client: self.serviceClient, networkName: network.name, network: vzNetwork, runMode: self.runMode)
-		
+		try self.connectionManager.createNetwork(network: network)
 		self.reloadNetworks()
 	}
 	
 	func startNetwork(networkName: String) -> StartedNetworkReply {
-		NetworksHandler.start(client: self.serviceClient, networkName: networkName, runMode: self.runMode)
+		self.connectionManager.startNetwork(networkName: networkName)
 	}
 	
 	func stopNetwork(networkName: String) -> StoppedNetworkReply {
-		NetworksHandler.stop(client: self.serviceClient, networkName: networkName, runMode: self.runMode)
+		self.connectionManager.stopNetwork(networkName: networkName)
 	}
 	
 	func createTemplate(templateName: String) throws -> CreateTemplateReply {
@@ -438,11 +402,15 @@ class AppState: ObservableObject, Observable {
 			throw ServiceError(String(localized: "VM is running"))
 		}
 		
-		return try TemplateHandler.createTemplate(client: self.serviceClient, vmURL: currentDocument.url, templateName: templateName, runMode: self.runMode)
+		return try self.connectionManager.createTemplate(vmURL: currentDocument.url, templateName: templateName)
 	}
 	
 	func templateExists(name: String) -> Bool {
-		TemplateHandler.exists(client: self.serviceClient, name: name, runMode: self.runMode)
+		self.connectionManager.templateExists(name: name)
+	}
+	
+	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
+		try await self.connectionManager.buildVirtualMachine(options: options, queue: queue, progressHandler: progressHandler)
 	}
 	
 	func findVirtualMachineDocument(_ url: URL?) -> VirtualMachineDocument? {
@@ -469,11 +437,11 @@ class AppState: ObservableObject, Observable {
 		}
 		
 		guard vmURL.isFileURL else {
-			guard self.runMode == .app else {
+			guard self.connectionMode == .app else {
 				return vmURL
 			}
 			
-			if let location = try? StorageLocation(runMode: AppState.shared.runMode).find(vmURL.host(percentEncoded: false)!) {
+			if let location = try? StorageLocation(runMode: self.connectionMode.runMode).find(vmURL.host(percentEncoded: false)!) {
 				return location.rootURL
 			}
 			
@@ -489,7 +457,7 @@ class AppState: ObservableObject, Observable {
 		}
 		
 		guard let vm = self.findVirtualMachineDocument(vmURL) else {
-			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: vmURL) else {
+			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: vmURL, connectionManager: self.connectionManager) else {
 				return nil
 			}
 			
@@ -504,7 +472,7 @@ class AppState: ObservableObject, Observable {
 	@discardableResult
 	func addVirtualMachineDocument(_ url: URL) -> VirtualMachineDocument? {
 		guard let vm = self.findVirtualMachineDocument(url) else {
-			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: url) else {
+			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: url, connectionManager: self.connectionManager) else {
 				return nil
 			}
 			
@@ -522,6 +490,10 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func haveVirtualMachinesRunning() -> Bool {
+		guard self.openedVirtualMachines.first( where: { $0.status == .running && $0.url.isFileURL && $0.externalRunning == false }) == nil else {
+			return true
+		}
+		
 		return virtualMachines.values.first { vm in
 			guard vm.status == .running && vm.url.isFileURL else {
 				return false
@@ -535,12 +507,6 @@ class AppState: ObservableObject, Observable {
 		DispatchQueue.main.async {
 			self.virtualMachines[url] = document
 		}
-	}
-	
-	func installAgent(_ url: URL) throws -> Bool {
-		let reply = try InstallAgentHandler.installAgent(client: self.serviceClient, vmURL: url, timeout: 2, runMode: self.runMode)
-		
-		return reply.installed
 	}
 	
 	func createTemplate(document vm: VirtualMachineDocument) {
@@ -557,7 +523,7 @@ class AppState: ObservableObject, Observable {
 		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
-				let templateResult = try TemplateHandler.createTemplate(client: self.serviceClient, vmURL: vm.url, templateName: txt.stringValue, runMode: self.runMode)
+				let templateResult = try self.connectionManager.createTemplate(vmURL: vm.url, templateName: txt.stringValue)
 				
 				if templateResult.created == false {
 					self.reloadTemplates()
@@ -574,94 +540,6 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 	
-	@discardableResult
-	func startVirtualMachine(vmURL: URL, screenSize: GRPCLib.ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartHandler.StartMode, recoveryMode: Bool) throws -> StartedReply {
-		let result = try StartHandler.startVM(client: self.serviceClient, vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, recoveryMode: recoveryMode, runMode: self.runMode)
-		
-		if result.started == false {
-			throw ServiceError(String(localized: "Failed to start VM"))
-		}
-		
-		return result
-	}
-	
-	@discardableResult
-	func restartVirtualMachine(vmURL: URL, force: Bool = false, waitIPTimeout: Int = 30) throws -> RestartReply {
-		let result = try RestartHandler.restart(client: self.serviceClient, vmURL: vmURL, force: force, waitIPTimeout: 30, runMode: self.runMode)
-		
-		if result.success == false {
-			throw ServiceError(String(localized: "Failed to restart VM"))
-		}
-		
-		return result
-	}
-	
-	@discardableResult
-	func stopVirtualMachine(vmURL: URL, force: Bool = false) throws -> StopReply {
-		let result = try StopHandler.stopVM(client: self.serviceClient, vmURL: vmURL, force: force, runMode: self.runMode)
-		
-		if result.success == false {
-			throw ServiceError(String(localized: "Failed to stop VM"))
-		}
-		
-		return result
-	}
-	
-	@discardableResult
-	func suspendVirtualMachine(vmURL: URL) throws -> SuspendReply {
-		let result = try SuspendHandler.suspendVM(client: self.serviceClient, vmURL: vmURL, runMode: self.runMode)
-		
-		if result.success == false {
-			throw ServiceError(String(localized: "Failed to suspend VM"))
-		}
-		
-		return result
-	}
-	
-	func setVncScreenSize(vmURL: URL, screenSize: ViewSize) async {
-		do {
-			let result = try ScreenSizeHandler.setScreenSize(client: self.serviceClient, vmURL: vmURL, width: Int(screenSize.width), height: Int(screenSize.height), runMode: self.runMode)
-			
-			if result.success == false {
-				await alertError(String(localized: "Failed to set VM screen size"), result.reason)
-			}
-		} catch {
-			await alertError(error)
-		}
-	}
-	
-	func getVncScreenSize(vmURL: URL, _ defaultSize: ViewSize = .zero) -> ViewSize {
-		do {
-			let result = try ScreenSizeHandler.getScreenSize(client: self.serviceClient, vmURL: vmURL, runMode: self.runMode)
-			
-			if result.success == false {
-				DispatchQueue.main.async {
-					alertError(String(localized: "Failed to get VM screen size"), result.reason)
-				}
-			} else {
-				return .init(width: CGFloat(result.width), height: CGFloat(result.height))
-			}
-		} catch {
-			DispatchQueue.main.async {
-				alertError(error)
-			}
-		}
-		
-		return defaultSize
-	}
-	
-	func vncInfos(vmURL: URL) throws -> VNCInfos {
-		try VNCInfosHandler.vncInfos(client: self.serviceClient, vmURL: vmURL, runMode: self.runMode)
-	}
-	
-	func virtualMachineInfos(vmURL: URL) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
-		try InfosHandler.infos(client: self.serviceClient, vmURL: vmURL, runMode: self.runMode)
-	}
-	
-	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
-		try await BuildHandler.build(client: self.serviceClient, options: options, runMode: self.runMode, queue: queue, progressHandler: progressHandler)
-	}
-	
 	func duplicateVirtualMachine(document vm: VirtualMachineDocument) {
 		let alert = NSAlert()
 		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
@@ -676,10 +554,11 @@ class AppState: ObservableObject, Observable {
 		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
-				let result = try DuplicateHandler.duplicate(client: self.serviceClient, vmURL: vm.url, to: txt.stringValue, resetMacAddress: true, runMode: self.runMode)
+				let result = try vm.duplicateVirtualMachine(to: txt.stringValue)
+				
 				if result.duplicated {
-					if self.serviceClient == nil {
-						let location = try StorageLocation(runMode: self.runMode).find(txt.stringValue)
+					if self.connectionMode == .app {
+						let location = try StorageLocation(runMode: self.connectionMode.runMode).find(txt.stringValue)
 						self.addVirtualMachineDocument(location.rootURL)
 					} else if let vmURL = URL(string:"\(VMLocation.scheme)://\(txt.stringValue)") {
 						self.addVirtualMachineDocument(vmURL)
@@ -702,28 +581,7 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func saveConfiguration(document vm: VirtualMachineDocument) {
-		do {
-			if self.serviceClient != nil && vm.url.isFileURL == false {
-				let reply = ConfigureHandler.configure(name: vm.name, options: vm.virtualMachineConfig.configureOptions(), runMode: self.runMode)
-				
-				if reply.configured == false {
-					throw ServiceError(String(localized: "Failed to save VM configuration: \(reply.reason)"))
-				}
-				
-			} else if let virtualMachine = vm.virtualMachine {
-				try vm.virtualMachineConfig.saveLocally(virtualMachine.config)
-			} else if let location = vm.location {
-				try vm.virtualMachineConfig.saveLocally(location)
-			} else {
-				throw ServiceError(String(localized: "Failed to save VM configuration, Unexpected error"))
-			}
-			
-			vm.virtualMachineConfig.clearChangedFields()
-		} catch {
-			DispatchQueue.main.async {
-				alertError(error)
-			}
-		}
+		vm.saveConfiguration()
 	}
 	
 	func deleteVirtualMachine(document vm: VirtualMachineDocument) {
@@ -739,7 +597,7 @@ class AppState: ObservableObject, Observable {
 			do {
 				NotificationCenter.default.post(name: VirtualMachineDocument.DeleteVirtualMachine, object: vm, userInfo: ["document": vm.url!])
 				
-				let result = try DeleteHandler.delete(client: self.serviceClient, vmURL: vm.url, runMode: self.runMode)
+				let result = try vm.deleteVirtualMachine()
 				
 				if result.success {
 					self.removeVirtualMachineDocument(vm.url)
@@ -766,7 +624,7 @@ class AppState: ObservableObject, Observable {
 		alert.addButton(withTitle: String(localized: "Cancel"))
 		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			let result = NetworksHandler.delete(networkName: name, runMode: self.runMode)
+			let result = self.connectionManager.deleteNetwork(networkName: name)
 			
 			if result.deleted {
 				self.reloadNetworks()
@@ -788,13 +646,19 @@ class AppState: ObservableObject, Observable {
 		alert.addButton(withTitle: String(localized: "Cancel"))
 		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			let result = TemplateHandler.deleteTemplate(templateName: name, runMode: self.runMode)
-			
-			if result.deleted {
-				self.reloadTemplates()
-			} else {
+			do {
+				let result = try self.connectionManager.deleteTemplate(templateName: name)
+				
+				if result.deleted {
+					self.reloadTemplates()
+				} else {
+					DispatchQueue.main.async {
+						alertError(String(localized: "Delete failed"), result.reason)
+					}
+				}
+			} catch {
 				DispatchQueue.main.async {
-					alertError(String(localized: "Delete failed"), result.reason)
+					alertError(error)
 				}
 			}
 		}
@@ -810,16 +674,33 @@ class AppState: ObservableObject, Observable {
 		alert.addButton(withTitle: String(localized: "Cancel"))
 		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			let result = RemoteHandler.deleteRemote(name: name, runMode: self.runMode)
-			
-			if result.deleted {
-				self.reloadTemplates()
-			} else {
+			do {
+				let result = try self.connectionManager.deleteRemote(name: name)
+				
+				if result.deleted {
+					self.reloadTemplates()
+				} else {
+					DispatchQueue.main.async {
+						alertError(String(localized: "Delete failed"), result.reason)
+					}
+				}
+			} catch {
 				DispatchQueue.main.async {
-					alertError(String(localized: "Delete failed"), result.reason)
+					alertError(error)
 				}
 			}
 		}
 	}
 	
+	func openVirtualMachineDocument(_ document: VirtualMachineDocument) {
+		if self.openedVirtualMachines.contains(document) == false {
+			self.openedVirtualMachines.append(document)
+		}
+	}
+
+	func closeVirtualMachineDocument(_ document: VirtualMachineDocument) {
+		self.openedVirtualMachines.removeAll {
+			$0.id == document.id
+		}
+	}
 }

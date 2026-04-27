@@ -20,6 +20,8 @@ public class GrpcError: Error {
 }
 
 extension Caked {
+	public static let defaultServicePort = 5101
+
 	public static func createClient(
 		on: EventLoopGroup,
 		listeningAddress: URL?,
@@ -28,15 +30,19 @@ extension Caked {
 		caCert: String?,
 		tlsCert: String?,
 		tlsKey: String?,
+		password: String? = nil,
 		interceptors: Caked_ServiceClientInterceptorFactoryProtocol? = nil
 	) throws -> CakedServiceClient {
 		if let listeningAddress = listeningAddress {
 			let target: ConnectionTarget
+			let inet: Bool
 
 			if listeningAddress.scheme == "unix" || listeningAddress.isFileURL {
 				target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
+				inet = false
 			} else if listeningAddress.scheme == "tcp" {
-				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
+				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? Caked.defaultServicePort)
+				inet = true
 			} else {
 				throw GrpcError(
 					code: -1,
@@ -47,15 +53,25 @@ extension Caked {
 			var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: on)
 
 			if let tlsCert = tlsCert, let tlsKey = tlsKey {
-				clientConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeClientConfiguration(
-					caCert: caCert,
-					tlsKey: tlsKey,
-					tlsCert: tlsCert)
+				if inet == false || password == nil {
+					clientConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeClientConfiguration(
+						caCert: caCert,
+						tlsKey: tlsKey,
+						tlsCert: tlsCert)
+				} else {
+					clientConfiguration.tlsConfiguration = GRPCTLSConfiguration.makeClientConfigurationBackedByNIOSSL(certificateVerification: .none)
+				}
 			}
 
 			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: TimeInterval(connectionTimeout), minimumConnectionTimeout: TimeInterval(connectionTimeout), retries: retries)
 
-			return CakedServiceClient(channel: ClientConnection(configuration: clientConfiguration), interceptors: interceptors)
+			var client = CakedServiceClient(channel: ClientConnection(configuration: clientConfiguration), interceptors: interceptors)
+
+			if let password = password, inet {
+				client.interceptors = CakedPasswordAuthClientInterceptorFactory(password: password, client: client)
+			}
+
+			return client
 		}
 
 		throw GrpcError(code: -1, reason: String(localized: "connection address must be specified"))

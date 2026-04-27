@@ -130,6 +130,7 @@ public typealias Caked_GetScreenSizeRequest = Caked.GetScreenSizeRequest
 public typealias Caked_SetScreenSizeRequest = Caked.SetScreenSizeRequest
 public typealias Caked_InstallAgentRequest = Caked.InstallAgentRequest
 public typealias Caked_ImageSource = Caked.Configuration.ImageSource
+public typealias Caked_VncStream = Caked_Caked.VncStream
 
 extension VirtualizedOS {
 	public init?(_ from: Caked.Configuration.VirtualizedOS) {

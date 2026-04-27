@@ -32,7 +32,7 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 		self.vm = vm
 		self.runMode = runMode
 		self.name = vm.location.name
-		self.client = try ServiceHandler.createCakedServiceClient(runMode: runMode)
+		self.client = try ServiceHandler.createCakedServiceClient(tls: true, runMode: runMode)
 	}
 	
 	public func start(frequency: Int32, onclose: @escaping () -> Void) async throws {

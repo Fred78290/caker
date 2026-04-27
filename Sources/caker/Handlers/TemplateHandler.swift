@@ -37,6 +37,17 @@ extension TemplateHandler {
 		}).response.wait().templates.create)
 	}
 
+	public static func deleteTemplate(client: CakedServiceClient?, templateName: String, runMode: Utils.RunMode) throws -> DeleteTemplateReply {
+		guard let client else {
+			return self.deleteTemplate(templateName: templateName, runMode: runMode)
+		}
+
+		return try DeleteTemplateReply(client.template(.with {
+			$0.command = .delete
+			$0.deleteRequest = templateName
+		}).response.wait().templates.delete )
+	}
+
 	public static func listTemplate(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ListTemplateReply {
 		guard let client = client else {
 			return self.listTemplate(runMode: runMode)

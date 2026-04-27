@@ -249,6 +249,7 @@ struct VirtualMachineWizard: View {
 	@StateObject private var model = VirtualMachineWizardStateObject()
 
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
+	private let listHeight: CGFloat = 460
 
 	var sheet: Bool = false
 
@@ -626,7 +627,7 @@ struct VirtualMachineWizard: View {
 			Section {
 				switch self.model.imageSource {
 				case .raw:
-					if AppState.shared.runMode == .app {
+					if AppState.shared.connectionMode == .app {
 						LabeledContent("Choose a local image disk.") {
 							HStack {
 								TextField("OS Image", text: $config.imageName)
@@ -655,7 +656,7 @@ struct VirtualMachineWizard: View {
 					VStack {
 						let platform = SupportedPlatform(rawValue: self.config.imageName)
 
-						if AppState.shared.runMode == .app {
+						if AppState.shared.connectionMode == .app {
 							LabeledContent("Choose an ISO image disk.") {
 								HStack {
 									TextField("ISO Image", text: $config.imageName)
@@ -691,7 +692,7 @@ struct VirtualMachineWizard: View {
 					}
 
 				case .ipsw:
-					if AppState.shared.runMode == .app {
+					if AppState.shared.connectionMode == .app {
 						LabeledContent("Choose an IPSW image.") {
 							HStack {
 								TextField("IPSW Image", text: $config.imageName)
@@ -839,7 +840,7 @@ struct VirtualMachineWizard: View {
 	func forwardPortsView() -> some View {
 		Form {
 			Section("Forwarded ports") {
-				ForwardedPortView(forwardPorts: $config.forwardedPorts, disabled: $model.createVM).frame(height: 400)
+				ForwardedPortView(forwardPorts: $config.forwardedPorts, disabled: $model.createVM).frame(height: listHeight)
 			}
 		}.formStyle(.grouped)
 	}
@@ -847,7 +848,7 @@ struct VirtualMachineWizard: View {
 	func networksView() -> some View {
 		Form {
 			Section("Network attachements") {
-				NetworkAttachementView(networks: $config.networks, disabled: $model.createVM).frame(height: 400)
+				NetworkAttachementView(networks: $config.networks, disabled: $model.createVM).frame(height: listHeight)
 			}
 		}.formStyle(.grouped)
 	}
@@ -855,7 +856,7 @@ struct VirtualMachineWizard: View {
 	func mountsView() -> some View {
 		Form {
 			Section("Directory sharing") {
-				MountView(mounts: $config.mounts, disabled: $model.createVM).frame(height: 400)
+				MountView(mounts: $config.mounts, disabled: $model.createVM).frame(height: listHeight)
 			}
 		}.formStyle(.grouped)
 	}
@@ -863,7 +864,7 @@ struct VirtualMachineWizard: View {
 	func diskAttachementView() -> some View {
 		Form {
 			Section("Disks attachements") {
-				DiskAttachementView(attachedDisks: $config.attachedDisks, disabled: $model.createVM).frame(height: 400)
+				DiskAttachementView(attachedDisks: $config.attachedDisks, disabled: $model.createVM).frame(height: listHeight)
 			}
 		}.formStyle(.grouped)
 	}
@@ -871,7 +872,7 @@ struct VirtualMachineWizard: View {
 	func socketsView() -> some View {
 		Form {
 			Section("Virtual sockets") {
-				SocketsView(sockets: $config.sockets, disabled: $model.createVM).frame(height: 400)
+				SocketsView(sockets: $config.sockets, disabled: $model.createVM).frame(height: listHeight)
 			}
 		}.formStyle(.grouped)
 	}
@@ -881,7 +882,7 @@ struct VirtualMachineWizard: View {
 
 		if model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw {
 			if let url = URL(string: config.imageName) {
-				if AppState.shared.runMode == .app {
+				if AppState.shared.connectionMode == .app {
 					valid = (url.isFileURL && FileManager.default.fileExists(atPath: url.path))
 						|| ["http", "https"].contains(url.scheme)
 						|| (url.scheme == nil && FileManager.default.fileExists(atPath: url.path))
@@ -946,7 +947,7 @@ struct VirtualMachineWizard: View {
 					var ipswQueue: DispatchQueue!
 					
 #if arch(arm64)
-					if AppState.shared.runMode == .app && self.model.imageSource == .ipsw {
+					if AppState.shared.connectionMode == .app && self.model.imageSource == .ipsw {
 						ipswQueue = DispatchQueue(label: "IPSWQueue")
 					}
 #endif

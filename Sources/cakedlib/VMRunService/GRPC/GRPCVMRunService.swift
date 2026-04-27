@@ -129,6 +129,7 @@ extension Vmrun_MountReply {
 }
 
 class GRPCVMRunServiceClient: VMRunServiceClient {
+
 	let client: Vmrun_ServiceNIOClient
 	let location: VMLocation
 	
@@ -141,7 +142,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		if listeningAddress.scheme == "unix" || listeningAddress.isFileURL {
 			target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
 		} else if listeningAddress.scheme == "tcp" {
-			target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
+			target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? GRPCVMRunService.defaultVMRunServicePort)
 		} else {
 			throw ServiceError(String(localized: "unsupported address scheme: \(listeningAddress.absoluteString)"))
 		}
@@ -272,6 +273,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 }
 
 class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncProvider, VMRunServiceServerProtocol {
+	static let defaultVMRunServicePort = 5000
 	var server: Server? = nil
 
 	func createServer() throws -> EventLoopFuture<Server> {
@@ -282,7 +284,7 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 			try listeningAddress.deleteIfFileExists()
 			target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
 		} else if listeningAddress.scheme == "tcp" {
-			target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
+			target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? GRPCVMRunService.defaultVMRunServicePort)
 		} else {
 			throw ServiceError(String(localized: "unsupported listening address scheme: \(String(describing: listeningAddress.scheme))"))
 		}

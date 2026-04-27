@@ -27,8 +27,10 @@ public struct DeleteHandler {
 				
 				if u.scheme == VMLocation.scheme {
 					location = try StorageLocation(runMode: runMode).find(u.host(percentEncoded: false)!)
-				} else {
+				} else if u.isFileURL {
 					location = try VMLocation.newVMLocation(vmURL: u, runMode: runMode)
+				} else {
+					return DeletedObject(source: "vm", name: name, deleted: false, reason: String(localized: "VM not found"))
 				}
 
 				return try doIt(location)

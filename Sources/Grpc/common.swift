@@ -281,9 +281,17 @@ extension String {
 		
 		return String(self[startIndex..<endIndex])
 	}
-	
+
+	public func base64DecodedString() -> String {
+		guard let data = Data(base64Encoded: self) else {
+			return String.empty
+		}
+
+		return String(data: data, encoding: .utf8) ?? String.empty
+	}
+
 	public func base64EncodedString() -> String {
-		self.data(using: .ascii)?.base64EncodedString() ?? String.empty
+		self.data(using: .utf8)?.base64EncodedString() ?? String.empty
 	}
 	
 	public func encrypt(key: String) throws -> String {
@@ -560,3 +568,4 @@ extension Error {
 		"\(self)"
 	}
 }
+

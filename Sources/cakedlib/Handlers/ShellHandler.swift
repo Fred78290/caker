@@ -16,7 +16,6 @@ public typealias AsyncThrowingStreamShellResponse = (stream: AsyncThrowingStream
 
 public struct ShellHandler {
 	public protocol ShellHandlerProtocol: AsyncSequence where AsyncIterator == AsyncThrowingStream<ShellHandler.ExecuteResponse, Error>.Iterator {
-
 		func sendTerminalSize(rows: Int, cols: Int)
 		func sendDatas(data: ArraySlice<UInt8>)
 		func sendEof()
@@ -147,11 +146,11 @@ public struct ShellHandler {
 		case eof(Bool)
 	}
 
-	public static func shell(vmURL: URL, terminalSize: TerminalSize, connectionTimeout: Int64 = 1, runMode: Utils.RunMode) throws -> any ShellHandlerProtocol {
+	public static func shell(vmURL: URL, listenAddress: String? = nil, password: String? = nil, tls: Bool, terminalSize: TerminalSize, connectionTimeout: Int64 = 1, runMode: Utils.RunMode) throws -> any ShellHandlerProtocol {
 		if vmURL.isFileURL {
 			return try ShellCakeAgent(vmURL: vmURL, runMode: runMode).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout)
 		} else {
-			return try ShellCaked(vmURL: vmURL, runMode: runMode).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout, runMode: runMode)
+			return try ShellCaked(vmURL: vmURL, listenAddress: listenAddress, password: password, tls: tls, connectionTimeout: connectionTimeout, runMode: runMode).shell(terminalSize: terminalSize)
 		}
 	}
 
@@ -159,7 +158,7 @@ public struct ShellHandler {
 		private let name: String
 		private let runMode: Utils.RunMode
 		private let logger = Logger("ShellHandler")
-		private var serviceClient: CakedServiceClient! = nil
+		private let serviceClient: CakedServiceClient
 		private var cakedShellStream: CakedExecuteStream! = nil
 		private var stream: AsyncThrowingStreamShellResponse! = nil
 		private var taskQueue: TaskQueue! = nil
@@ -168,12 +167,13 @@ public struct ShellHandler {
 			self.stream.stream.makeAsyncIterator()
 		}
 		
-		init(name: String, runMode: Utils.RunMode) throws {
+		init(name: String, listenAddress: String?, password: String?, tls: Bool, connectionTimeout: Int64, runMode: Utils.RunMode) throws {
 			self.name = name
 			self.runMode = runMode
+			self.serviceClient = try ServiceHandler.createCakedServiceClient(listenAddress: listenAddress, password: password, tls: tls, connectionTimeout: connectionTimeout, runMode: runMode)
 		}
 
-		init(vmURL: URL, runMode: Utils.RunMode) throws {
+		init(vmURL: URL, listenAddress: String?, password: String?, tls: Bool, connectionTimeout: Int64, runMode: Utils.RunMode) throws {
 			if vmURL.isFileURL {
 				throw ServiceError(String(localized: "Cannot create ShellCaked for file URL: \(vmURL.absoluteString)"))
 			}
@@ -184,19 +184,17 @@ public struct ShellHandler {
 
 			self.name = name
 			self.runMode = runMode
+			self.serviceClient = try ServiceHandler.createCakedServiceClient(listenAddress: listenAddress, password: password, tls: tls, connectionTimeout: connectionTimeout, runMode: runMode)
 		}
 
-		public func shell(terminalSize: TerminalSize, connectionTimeout: Int64, runMode: Utils.RunMode) throws -> Self {
+		public func shell(terminalSize: TerminalSize) throws -> Self {
 			guard taskQueue == nil else {
 				return self
 			}
 
-			let serviceClient = try ServiceHandler.createCakedServiceClient(connectionTimeout: connectionTimeout, runMode: runMode)
-			
 			self.logger.debug("Starting shell, VM: \(self.name)")
 			
-			self.stream = self.startShell(rows: terminalSize.rows, cols: terminalSize.cols, serviceClient: serviceClient)
-			self.serviceClient = serviceClient
+			self.stream = self.startShell(rows: terminalSize.rows, cols: terminalSize.cols)
 
 			return self
 		}
@@ -233,19 +231,13 @@ public struct ShellHandler {
 					self.taskQueue = nil
 					taskQueue.close()
 				}
-				
-				if let serviceClient {
-					self.serviceClient = nil
 
-					if let promise {
-						serviceClient.channel.close(promise: promise)
-					} else {
-						serviceClient.channel.close().whenComplete { _ in
-							self.logger.debug("Service client closed")
-						}
+				if let promise {
+					serviceClient.channel.close(promise: promise)
+				} else {
+					serviceClient.channel.close().whenComplete { _ in
+						self.logger.debug("Service client closed")
 					}
-				} else if let promise {
-					promise.succeed()
 				}
 			}
 			
@@ -274,16 +266,16 @@ public struct ShellHandler {
 			self.stream?.continuation.finish()
 		}
 
-		private func startShell(rows: Int32, cols: Int32, serviceClient: CakedServiceClient) -> AsyncThrowingStreamShellResponse {
+		private func startShell(rows: Int32, cols: Int32) -> AsyncThrowingStreamShellResponse {
 			self.taskQueue = .init(label: "CakeAgent.InteractiveShell.\(self.name)")
 			
 			return taskQueue.dispatchStream { (continuation: AsyncThrowingStream<ExecuteResponse, Error>.Continuation) in
 				do {
-					_ = try serviceClient.info(name: self.name)
+					_ = try self.serviceClient.info(name: self.name)
 					
 					self.logger.debug("Start shell, VM: \(self.name)")
 					
-					self.cakedShellStream = try serviceClient.shell(name: self.name, rows: rows, cols: cols) { response in
+					self.cakedShellStream = try self.serviceClient.shell(name: self.name, rows: rows, cols: cols) { response in
 						continuation.yield(ExecuteResponse(response))
 					}
 					

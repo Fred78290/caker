@@ -10,8 +10,52 @@ import GRPCLib
 import NIO
 import NIOSSL
 import CakeAgentLib
+import Cocoa
 
 public struct ServiceHandler {
+    // Keep a strong reference to the Bonjour service so it remains published
+    private static var bonjourService: Set<NetService> = []
+	private static var bonjourDeletegate: ServiceHandlerBonjourDelegate?
+
+	class ServiceHandlerBonjourDelegate: NSObject, NetServiceDelegate {
+		func netServiceWillPublish(_ sender: NetService) {
+			Logger("ServiceHandler").debug("Attempting to publish Bonjour service '\(sender.name)' on port \(sender.port) with type '\(sender.type)'")
+		}
+
+		func netServiceDidPublish(_ sender: NetService) {
+			Logger("ServiceHandler").debug("Successfully published Bonjour service '\(sender.name)' on port \(sender.port) with type '\(sender.type)'")
+		}
+
+		func netService(_ sender: NetService, didNotPublish errorDict: [String : NSNumber]) {
+			Logger("ServiceHandler").error("Failed to publish Bonjour service '\(sender.name)' with type '\(sender.type)'. Error: \(errorDict)")
+		}
+
+		func netServiceDidStop(_ sender: NetService) {
+			Logger("ServiceHandler").info("Stopped Bonjour service '\(sender.name)' with type '\(sender.type)'")
+		}
+
+	}
+
+	private static func publishBonjourService(name: String, type: String, domain: String = "local.", port: Int32, txt: [String: String] = [:]) {
+		let service = NetService(domain: domain, type: type, name: name, port: port)
+
+		if txt.isEmpty == false {
+			let dict = txt.reduce(into: [String: Data]()) { acc, pair in
+				acc[pair.key] = pair.value.data(using: .utf8)
+			}
+			service.setTXTRecord(NetService.data(fromTXTRecord: dict))
+		}
+
+		if bonjourDeletegate == nil {
+			bonjourDeletegate = ServiceHandlerBonjourDelegate()
+		}
+
+		service.delegate = bonjourDeletegate!
+		service.publish()
+
+		self.bonjourService.insert(service)
+	}
+
 	struct LaunchAgent: Codable {
 		let label: String
 		let programArguments: [String]
@@ -63,19 +107,29 @@ public struct ServiceHandler {
 		runMode: Utils.RunMode,
 		listeningAddress: URL?,
 		serviceProviders: [CallHandlerProvider],
+		password: String?,
 		caCert: String?,
 		tlsCert: String?,
 		tlsKey: String?
 	) throws -> EventLoopFuture<Server> {
-
 		if let listeningAddress = listeningAddress {
 			let target: ConnectionTarget
-
+			var listeningPort = 0
+			
 			if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {
 				try listeningAddress.deleteIfFileExists()
 				target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
 			} else if listeningAddress.scheme == "tcp" {
-				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
+				let listeningHost = listeningAddress.host ?? "127.0.0.1"
+
+				listeningPort = listeningAddress.port ?? Caked.defaultServicePort
+
+				if listeningPort == 0 {
+					listeningPort = try Utilities.findFreePort(listeningHost)
+				}
+
+				target = ConnectionTarget.hostAndPort(listeningHost, listeningPort)
+                // TCP target selected; we'll publish via Bonjour after server starts.
 			} else {
 				throw ServiceError(String(localized: "unsupported listening address scheme: \(String(describing: listeningAddress.scheme))"))
 			}
@@ -89,19 +143,48 @@ public struct ServiceHandler {
 				serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(caCert: caCert, tlsKey: tlsKey, tlsCert: tlsCert)
 			}
 
-			return Server.start(configuration: serverConfiguration)
+            let serverFuture = Server.start(configuration: serverConfiguration)
+
+            // If using TCP, publish a Bonjour service once the server has started and bound to a port
+            if listeningAddress.scheme == "tcp" {
+				return serverFuture.flatMap { server in
+					// Try to read the bound port from the server's channel
+					let boundPort: Int32 = Int32(listeningPort)
+
+					// Service type must be of the form _name._tcp.
+					let serviceType = "_caked._tcp."
+
+					let txt: [String: String] = [
+						"host": listeningAddress.host ?? "localhost",
+						"tls": serverConfiguration.tlsConfiguration != nil ? "true" : "false",
+						"secure": (password ?? "").isEmpty ? "false" : "true",
+					]
+
+					Logger("ServiceHandler").info("Publishing Bonjour service on port \(boundPort) with type '\(serviceType)'")
+
+					Self.publishBonjourService(name: "", type: serviceType, port: boundPort, txt: txt)
+
+					return serverFuture
+                }
+            }
+
+            return serverFuture
 		}
 
 		throw ServiceError(String(localized: "connection address must be specified"))
 	}
 
-	public static func installAgent(mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
+	public static func installAgent(password: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
 		let certs = try CertificatesLocation.createCertificats(runMode: runMode)
 
-		return try self.installAgent(listenAddress: [try Utils.getDefaultServerAddress(runMode: runMode)], insecure: false, caCert: certs.caCertURL.path, tlsCert: certs.serverCertURL.path, tlsKey: certs.serverKeyURL.path, runMode: runMode)
+		if password == nil {
+			return try self.installAgent(listenAddress: [try Utils.getDefaultServerAddress(runMode: runMode)], insecure: false, password: password, caCert: certs.caCertURL.path, tlsCert: certs.serverCertURL.path, tlsKey: certs.serverKeyURL.path, runMode: runMode)
+		} else {
+			return try self.installAgent(listenAddress: [try Utils.getDefaultServerAddress(runMode: runMode), "tcp://0.0.0.0:\(Caked.defaultServicePort)"], insecure: false, password: password, caCert: certs.caCertURL.path, tlsCert: certs.serverCertURL.path, tlsKey: certs.serverKeyURL.path, runMode: runMode)
+		}
 	}
 
-	public static func installAgent(listenAddress: [String], insecure: Bool, caCert: String?, tlsCert: String?, tlsKey: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
+	public static func installAgent(listenAddress: [String], insecure: Bool, password: String?, caCert: String?, tlsCert: String?, tlsKey: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
 		let home = try Home(runMode: runMode)
 		let outputLog: String = Utils.getOutputLog(runMode: runMode)
 		var arguments: [String] = [
@@ -138,6 +221,8 @@ public struct ServiceHandler {
 				arguments.append("--tls-cert=\(cert)")
 			}
 		}
+
+		try CakedKeyConfig.passphrase.set(password)
 
 		let agent = LaunchAgent(
 			label: Utils.cakerSignature,
@@ -314,7 +399,7 @@ public struct ServiceHandler {
 	
 	public static var serviceClient: CakedServiceClient? {
 		for runMode in [Utils.RunMode.system, .user] {
-			if let client = try? self.createCakedServiceClient(runMode: runMode) {
+			if let client = try? self.createCakedServiceClient(tls: true, runMode: runMode) {
 				return client
 			}
 		}
@@ -322,30 +407,49 @@ public struct ServiceHandler {
 		return nil
 	}
 	
-	public static func createCakedServiceClient(connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
-		guard isAgentRunning(runMode: runMode).running else {
-			throw ServiceError(String(localized: "Caked service is not running"))
-		}
+	public static func createCakedServiceClient(listenAddress: String? = nil, password: String? = nil, tls: Bool, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
+		let listeningAddress: URL
 
-		let listenAddress = try Utils.getDefaultServerAddress(runMode: runMode)
-		let certs = try ClientCertificatesLocation.getCertificats(runMode: runMode)
+		if let listenAddress {
+			guard let u = URL(string: listenAddress) else {
+				throw ServiceError(String(localized: "Wrong listen address"))
+			}
+
+			if u.isFileURL == false && u.scheme != "unix" && u.scheme != "tcp" {
+				throw ServiceError(String(localized: "unsupported listening address scheme: \(listenAddress)"))
+			}
+
+			listeningAddress = u
+		} else {
+			guard isAgentRunning(runMode: runMode).running else {
+				throw ServiceError(String(localized: "Caked service is not running"))
+			}
+
+			listeningAddress = try URL(string: Utils.getDefaultServerAddress(runMode: runMode))!
+		}
 
 		var caCert: String? = nil
 		var tlsCert: String? = nil
 		var tlsKey: String? = nil
 
-		if certs.exists() {
-			caCert = certs.caCertURL.path
-			tlsCert = certs.clientCertURL.path
-			tlsKey = certs.clientKeyURL.path
+		if tls {
+			let certs = try ClientCertificatesLocation.getCertificats(runMode: runMode)
+
+			if certs.exists() {
+				caCert = certs.caCertURL.path
+				tlsCert = certs.clientCertURL.path
+				tlsKey = certs.clientKeyURL.path
+			}
 		}
 
 		return try Caked.createClient(on: Utilities.group.next(),
-									  listeningAddress: URL(string: listenAddress),
+									  listeningAddress: listeningAddress,
 									  connectionTimeout: connectionTimeout,
 									  retries: retries,
 									  caCert: caCert,
 									  tlsCert: tlsCert,
-									  tlsKey: tlsKey)
+									  tlsKey: tlsKey,
+									  password: password)
 	}
 }
+

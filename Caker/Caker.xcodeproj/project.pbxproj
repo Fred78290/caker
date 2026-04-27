@@ -33,6 +33,9 @@
 		9B08B4AC2F743641009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AD2F7436F1009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0D1A452E2BAA2700D70267 /* FileMonitor */; };
+		9B1389CF2F97A718000329B1 /* BonjourServiceLister.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */; };
+		9B1389D12F97A98A000329B1 /* ServiceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389D02F97A98A000329B1 /* ServiceListView.swift */; };
+		9B1389D32F97A9D0000329B1 /* CakedServerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389D22F97A9D0000329B1 /* CakedServerView.swift */; };
 		9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3402F0AD8540099F00F /* CakeAgentLib */; };
 		9B13C3432F0AD87C0099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3422F0AD87C0099F00F /* CakeAgentLib */; };
 		9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */; };
@@ -204,6 +207,8 @@
 		9B7D682D2F17E1A700FE1B0B /* SharedPtrBridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B7D68292F17E1A700FE1B0B /* SharedPtrBridge.h */; };
 		9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */; };
 		9B7D69252F1B92EC00FE1B0B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D69242F1B92E800FE1B0B /* Extensions.swift */; };
+		9B82D3182F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */; };
+		9B82D31C2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */; };
 		9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
 		9B9117782EC9D4510017791D /* RawDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9117772EC9D44C0017791D /* RawDisk.swift */; };
@@ -531,6 +536,10 @@
 		9BEBC86B2DF44B9D0092B196 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9BEBC86E2DF44B9D0092B196 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9BEBC8712DF44B9D0092B196 /* Virtualization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C492D5A427100164BF5 /* Virtualization.framework */; };
+		9BEBD1172F9B75270005EC80 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */; };
+		9BEBD1802F9CC1D20005EC80 /* SetOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */; };
+		9BEBD1822F9CC3A50005EC80 /* GetOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */; };
+		9BEBD1842F9CF7000005EC80 /* CakedKeyConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */; };
 		9BF43A692F8A858800618B8C /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF43A682F8A858300618B8C /* Localization.swift */; };
 		9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */; };
 		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
@@ -724,6 +733,9 @@
 		9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPSWInstaller.swift; sourceTree = "<group>"; };
 		9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassEffectHelper.swift; sourceTree = "<group>"; };
 		9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCompatibilitySpan.tbd; path = usr/lib/swift/libswiftCompatibilitySpan.tbd; sourceTree = SDKROOT; };
+		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
+		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
+		9B1389D22F97A9D0000329B1 /* CakedServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServerView.swift; sourceTree = "<group>"; };
 		9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BC2E6B067200B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BE2E6B07EC00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
@@ -852,6 +864,8 @@
 		9B7D682A2F17E1A700FE1B0B /* SharedPtrBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SharedPtrBridge.mm; sourceTree = "<group>"; };
 		9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHelper.swift; sourceTree = "<group>"; };
 		9B7D69242F1B92E800FE1B0B /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthServerInterceptor.swift; sourceTree = "<group>"; };
+		9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthClientInterceptorFactory.swift; sourceTree = "<group>"; };
 		9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldStore.swift; sourceTree = "<group>"; };
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9B9117772EC9D44C0017791D /* RawDisk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawDisk.swift; sourceTree = "<group>"; };
@@ -1092,6 +1106,10 @@
 		9BEBC7662DF440720092B196 /* VirtualMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachine.swift; sourceTree = "<group>"; };
 		9BEBC7672DF440720092B196 /* VMBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMBuilder.swift; sourceTree = "<group>"; };
 		9BEBC7682DF440720092B196 /* VMLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLocation.swift; sourceTree = "<group>"; };
+		9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
+		9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetOptions.swift; sourceTree = "<group>"; };
+		9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetOptions.swift; sourceTree = "<group>"; };
+		9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfig.swift; sourceTree = "<group>"; };
 		9BF43A682F8A858300618B8C /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
@@ -1429,16 +1447,18 @@
 		9B2BFAB72DFED25E000045C3 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				9BC1F6842F66B25A00A83B33 /* ColorWell.swift */,
 				9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */,
 				9B3600882E1FC48D00889BFD /* AsyncButton.swift */,
+				9B1389D22F97A9D0000329B1 /* CakedServerView.swift */,
 				9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */,
+				9BC1F6842F66B25A00A83B33 /* ColorWell.swift */,
 				9B3600862E1FB1AC00889BFD /* DynamicList.swift */,
 				9B2BFAB42DFED25E000045C3 /* EditableList.swift */,
 				9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */,
 				9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */,
 				9B911A602ECF854E0017791D /* GlossyCircle.swift */,
 				9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */,
+				9B1389D02F97A98A000329B1 /* ServiceListView.swift */,
 				9B3601A22E2116E600889BFD /* SettingsView.swift */,
 				9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */,
 				9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */,
@@ -1468,6 +1488,8 @@
 		9B30BA492E0BDB5600256A9D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */,
+				9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */,
 				9B5F4B522F728AF200AE1991 /* Authorization.swift */,
 				9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */,
 				9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */,
@@ -1597,6 +1619,8 @@
 				9B464AD62D5A3E0300164BF5 /* generate.sh */,
 				9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */,
 				9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */,
+				9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */,
+				9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */,
 				9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */,
 				9B464AD02D5A3E0300164BF5 /* common.swift */,
 				9B464AD42D5A3E0300164BF5 /* FileLock.swift */,
@@ -1889,6 +1913,7 @@
 		9BEBC6CD2DF4400A0092B196 /* caked */ = {
 			isa = PBXGroup;
 			children = (
+				9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */,
 				9BEBC6CA2DF4400A0092B196 /* CakedProvider.swift */,
 				9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */,
 				9BEBC6CB2DF4400A0092B196 /* MainApp.swift */,
@@ -2062,6 +2087,7 @@
 				9BEBC7682DF440720092B196 /* VMLocation.swift */,
 				9B9DCDEE2F70006D00E07852 /* CI */,
 				9BEBC7152DF440720092B196 /* CloudImage */,
+				9BEBD17E2F9CC16B0005EC80 /* Commands */,
 				9BA1808A2EFBF87B000D1424 /* Compression */,
 				9BEBC72D2DF440720092B196 /* Handlers */,
 				9B20D6012E019FA400BEFB41 /* Importers */,
@@ -2074,6 +2100,15 @@
 				9B5A377E2ED4BDA8007B59B0 /* VNCLib */,
 			);
 			path = cakedlib;
+			sourceTree = "<group>";
+		};
+		9BEBD17E2F9CC16B0005EC80 /* Commands */ = {
+			isa = PBXGroup;
+			children = (
+				9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */,
+				9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */,
+			);
+			path = Commands;
 			sourceTree = "<group>";
 		};
 		9BFE81A62EC8F8C500767615 /* OCI */ = {
@@ -2633,9 +2668,11 @@
 				9BDA14BF2EEAC18900357544 /* VirtualMachineInformations.swift in Sources */,
 				9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */,
 				9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */,
+				9BEBD1172F9B75270005EC80 /* ConnectionManager.swift in Sources */,
 				9BBF7A3B2F3DE0B800F37D2C /* StartHandler.swift in Sources */,
 				9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */,
 				9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */,
+				9B1389CF2F97A718000329B1 /* BonjourServiceLister.swift in Sources */,
 				9B57E9D02E745FB600C5601D /* ViewSize.swift in Sources */,
 				9B2BFABB2DFED25E000045C3 /* MainApp.swift in Sources */,
 				9B2BFABC2DFED25E000045C3 /* EditableList.swift in Sources */,
@@ -2674,6 +2711,7 @@
 				9B3601A12E21169500889BFD /* Settings.swift in Sources */,
 				9BBF7A392F3DE0AF00F37D2C /* StopHandler.swift in Sources */,
 				9B7D65B02F163AB900FE1B0B /* InteractiveShell.swift in Sources */,
+				9B1389D32F97A9D0000329B1 /* CakedServerView.swift in Sources */,
 				9B3601912E20FBCF00889BFD /* CakerMenuBarExtraScene.swift in Sources */,
 				9BEAA1502F37B073005ACC9D /* BuildHandler.swift in Sources */,
 				9B911A612ECF85550017791D /* GlossyCircle.swift in Sources */,
@@ -2690,6 +2728,7 @@
 				9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */,
 				9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */,
 				9B9C4E5D2E23BC8B00C13D23 /* VirtualMachinesView.swift in Sources */,
+				9B1389D12F97A98A000329B1 /* ServiceListView.swift in Sources */,
 				9B7C7AD32E09B6FF009D0A26 /* ForwardedPortNewItemView.swift in Sources */,
 				9B5C53CF2F124A82002D628C /* CPUUsageMonitor.swift in Sources */,
 				9B7C7ADB2E09B81A009D0A26 /* SocketsNewItemView.swift in Sources */,
@@ -2787,6 +2826,7 @@
 				9BB3BE1F2DB3F17500799A6A /* DuplicateOptions.swift in Sources */,
 				9BB3BE202DB3F17500799A6A /* LoginOptions.swift in Sources */,
 				9BB3BE212DB3F17500799A6A /* BuildOptions.swift in Sources */,
+				9B82D31C2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift in Sources */,
 				9BB3BE222DB3F17500799A6A /* TemplateOptions.swift in Sources */,
 				9BB3BE232DB3F17500799A6A /* DeleteOptions.swift in Sources */,
 				9BB3BE242DB3F17500799A6A /* NetworkOptions.swift in Sources */,
@@ -2800,6 +2840,7 @@
 				9BA7B0242F5601DF004AFAE8 /* ImageSource.swift in Sources */,
 				9BF8AE6A2F43915700DE5EAB /* CakedChannelStreamer.swift in Sources */,
 				9BF43A692F8A858800618B8C /* Localization.swift in Sources */,
+				9BEBD1842F9CF7000005EC80 /* CakedKeyConfig.swift in Sources */,
 				9BB3BE2B2DB3F17500799A6A /* RenameOptions.swift in Sources */,
 				9BB3BE2C2DB3F17500799A6A /* StopOptions.swift in Sources */,
 				9BA7B0222F56010F004AFAE8 /* VirtualMachineConfiguration.swift in Sources */,
@@ -2875,6 +2916,7 @@
 				9BEBC6F32DF4400A0092B196 /* WaitIPHandler.swift in Sources */,
 				9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */,
 				9BA941192F3C896F00B51543 /* PingHandler.swift in Sources */,
+				9B82D3182F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift in Sources */,
 				9BEBC6F42DF4400A0092B196 /* Root.swift in Sources */,
 				9BEBC6F52DF4400A0092B196 /* MainApp.swift in Sources */,
 				9BEBC6F62DF4400A0092B196 /* Delete.swift in Sources */,
@@ -2911,6 +2953,7 @@
 				9BEBC7722DF440720092B196 /* EmbedProvisionProfile.swift in Sources */,
 				9BEBC7732DF440720092B196 /* IP.swift in Sources */,
 				9BEBC7742DF440720092B196 /* CertificatesLocation.swift in Sources */,
+				9BEBD1822F9CC3A50005EC80 /* GetOptions.swift in Sources */,
 				9BEBC7762DF440720092B196 /* ServiceError.swift in Sources */,
 				9BBF7B332F3DEC1E00F37D2C /* RestartHandler.swift in Sources */,
 				9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */,
@@ -3014,6 +3057,7 @@
 				9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */,
 				9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */,
 				9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */,
+				9BEBD1802F9CC1D20005EC80 /* SetOptions.swift in Sources */,
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
 				9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */,
@@ -3544,7 +3588,7 @@
 		9BFE869F2F7E592B005CC9B2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;

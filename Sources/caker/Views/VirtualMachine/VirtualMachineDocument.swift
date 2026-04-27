@@ -201,6 +201,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private let logger = Logger("VirtualMachineDocument")
 	private var agentMonitoring: Task<Void, Never>?
 	private var inView: Bool = false
+	private var connectionManager: ConnectionManager = .init()
 
 	let id = UUID().uuidString
 	
@@ -219,7 +220,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			return true
 		}
 
-		guard AppState.shared.runMode == .app else {
+		guard self.connectionManager.connectionMode == .app else {
 			return true
 		}
 		
@@ -328,7 +329,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private init(location: VMLocation) throws {
 		let config = try VirtualMachineConfig(name: location.name, config: location.config())
 		let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
-		
+
 		self.name = location.name
 		self.url = location.rootURL
 		self.location = location
@@ -338,7 +339,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 		self.monitor = monitor
 		self.documentSize = ViewSize(config.display.cgSize)
-		
+
 		switch location.status {
 		case .running:
 			self.status = .running
@@ -351,13 +352,13 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		try monitor.start()
 	}
 
-	private convenience init(vmURL: URL, infos: VMInformations, config: any VirtualMachineConfiguration) throws {
+	private convenience init(vmURL: URL, infos: VMInformations, config: any VirtualMachineConfiguration, connectionManager: ConnectionManager) throws {
 		let status = Status(infos.status)
 		
-		try self.init(vmURL: vmURL, status: status, vncURL: infos.vncURL, config: config)
+		try self.init(vmURL: vmURL, status: status, vncURL: infos.vncURL, config: config, connectionManager: connectionManager)
 	}
 
-	private init(vmURL: URL, status: Status, vncURL: [String]?, config: any VirtualMachineConfiguration) throws {
+	private init(vmURL: URL, status: Status, vncURL: [String]?, config: any VirtualMachineConfiguration, connectionManager: ConnectionManager) throws {
 		guard let name = vmURL.host(percentEncoded: false) else {
 			throw ServiceError(String(localized: "Internal error"))
 		}
@@ -368,6 +369,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.status = status
 		self.vncURL = vncURL?.compactMap { URL(string: $0) }
+		self.connectionManager = connectionManager
 		self.setDocumentSize(.init(self.virtualMachineConfig.display.cgSize))
 	}
 	
@@ -379,32 +381,36 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		return try VirtualMachineDocument(location: location)
 	}
 
-	static func createVirtualMachineDocument(vmURL: URL) throws -> VirtualMachineDocument {
+	static func createVirtualMachineDocument(vmURL: URL, connectionManager: ConnectionManager) throws -> VirtualMachineDocument {
 		if vmURL.isFileURL {
-			return try VirtualMachineDocument(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: AppState.shared.runMode))
-		} else if AppState.shared.runMode == .app {
-			return try VirtualMachineDocument(location: StorageLocation(runMode: AppState.shared.runMode).find(vmURL.host(percentEncoded: false)!))
+			return try VirtualMachineDocument(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: .app))
+		} else if AppState.shared.connectionMode == .app {
+			return try VirtualMachineDocument(location: StorageLocation(runMode: .app).find(vmURL.host(percentEncoded: false)!))
 		} else {
-			let infos = try AppState.shared.virtualMachineInfos(vmURL: vmURL)
+			let infos = try connectionManager.virtualMachineInfos(vmURL: vmURL)
 			
-			return try VirtualMachineDocument(vmURL: vmURL, infos: infos.infos, config: infos.config)
+			return try VirtualMachineDocument(vmURL: vmURL,
+											  infos: infos.infos,
+											  config: infos.config,
+											  connectionManager: connectionManager)
 		}
 	}
 	
-	static func loadVirtualMachineDocuments(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> [URL: VirtualMachineDocument] {
+	static func loadVirtualMachineDocuments(connectionManager: ConnectionManager) throws -> [URL: VirtualMachineDocument] {
+		let client = connectionManager.serviceClient
 		var vms: [URL: VirtualMachineDocument] = [:]
 
-		let result = try ListHandler.list(client: client, vmonly: true, includeConfig: client != nil, runMode: runMode)
+		let result = try ListHandler.list(client: client, vmonly: true, includeConfig: connectionManager.connectionMode != .app, runMode: connectionManager.connectionMode.runMode)
 
 		if result.success {
 			if client != nil {
 				vms = result.infos.reduce(into: vms) { (partialResult, info) in
-					if let vmURL = URL(string: info.fqn.first!), let config = info.config, let vm = try? VirtualMachineDocument(vmURL: vmURL, status: .init(CakeAgentLib.Status(info.state)), vncURL: info.vncURL, config: config) {
+					if let vmURL = URL(string: info.fqn.first!), let config = info.config, let vm = try? VirtualMachineDocument(vmURL: vmURL, status: .init(CakeAgentLib.Status(info.state)), vncURL: info.vncURL, config: config, connectionManager: connectionManager) {
 						partialResult[vmURL] = vm
 					}
 				}
 			} else {
-				let storage = StorageLocation(runMode: runMode)
+				let storage = StorageLocation(runMode: connectionManager.connectionMode.runMode)
 
 				vms = result.infos.reduce(into: vms) { (partialResult, info) in
 					if let vmURL = URL(string: info.fqn.first!), let name = vmURL.host(percentEncoded: false), let location = try? storage.find(name), let vm = try? VirtualMachineDocument(location: location) {
@@ -443,12 +449,16 @@ extension VirtualMachineDocument {
 			self.connection = nil
 			connection.disconnect()
 		}
+
+		AppState.shared.closeVirtualMachineDocument(self)
 	}
 
 	func enterView() {
-		self.interactiveShell = InteractiveShell(self.url)
+		self.interactiveShell = InteractiveShell(self.url, connectionManager: connectionManager)
 		self.inView = true
+
 		DispatchQueue.main.async {
+			AppState.shared.openVirtualMachineDocument(self)
 			self.tryVNCConnect()
 		}
 	}
@@ -480,6 +490,8 @@ extension VirtualMachineDocument {
 			self.connection = nil
 			connection.disconnect()
 		}
+
+		AppState.shared.closeVirtualMachineDocument(self)
 	}
 	
 	@MainActor
@@ -531,6 +543,7 @@ extension VirtualMachineDocument {
 
 		// Start agent monitoring when VM is running
 		self.startAgentMonitoring()
+		AppState.shared.openVirtualMachineDocument(self)
 	}
 	
 	func setOtherState(suspendable: Bool, status: Status, vncURL: [URL]? = nil, _line: UInt = #line, _file: String = #file) {
@@ -556,10 +569,10 @@ extension VirtualMachineDocument {
 			self.agentReady = true
 
 			if self.interactiveShell == nil && self.inView {
-				self.interactiveShell = InteractiveShell(self.url)
+				self.interactiveShell = InteractiveShell(self.url, connectionManager: self.connectionManager)
 			}
 
-			if let infos = try? AppState.shared.virtualMachineInfos(vmURL: self.url) {
+			if let infos = try? self.connectionManager.virtualMachineInfos(vmURL: self.url) {
 				self.ipaddresses = infos.infos.ipaddresses
 				self.virtualMachineConfig = .init(name: self.name, config: infos.config)
 
@@ -591,7 +604,9 @@ extension VirtualMachineDocument {
 		self.canRequestStop = newStatus == .running
 
 		if status == .running {
-			if let vncInfos = try? AppState.shared.vncInfos(vmURL: self.url) {
+			AppState.shared.openVirtualMachineDocument(self)
+
+			if let vncInfos = try? self.connectionManager.vncInfos(vmURL: self.url) {
 				self.vncURL = vncInfos.urls.compactMap {
 					URL(string: $0)
 				}
@@ -719,7 +734,7 @@ extension VirtualMachineDocument {
 			}
 
 			if self.url.isFileURL {
-				if let location = try? VMLocation.newVMLocation(vmURL: self.url, runMode: AppState.shared.runMode) {
+				if let location = try? VMLocation.newVMLocation(vmURL: self.url, runMode: AppState.shared.connectionMode.runMode) {
 					return self.loadVirtualMachine(location)
 				}
 			} else {
@@ -743,17 +758,17 @@ extension VirtualMachineDocument {
 		let vncPassword = self.virtualMachineConfig.vncPassword
 		let vncPort = try Utilities.findFreePort()
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
-
-		let result = try AppState.shared.startVirtualMachine(vmURL: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, recoveryMode: self.recoveryMode)
-		let vncInfos = try AppState.shared.vncInfos(vmURL: location)
+		
+		let result = try self.connectionManager.startVirtualMachine(vmURL: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, recoveryMode: self.recoveryMode)
+		let vncInfos = try self.connectionManager.vncInfos(vmURL: location)
 #if DEBUG
 		self.logger.debug("VM started on \(result.ip)")
 		self.logger.debug("Found VNC URL: \(vncInfos.urls)")
 #endif
-
+		
 		await self.setStateAsRunning(suspendable: suspendable, vncURL: vncInfos.urls.compactMap { URL(string: $0) })
 	}
-
+	
 	func startLocally(location: VMLocation) async throws {
 		let config = try location.config()
 		let vncPassword = config.vncPassword ?? UUID().uuidString
@@ -761,47 +776,47 @@ extension VirtualMachineDocument {
 		let vncURL = URL(string: "vnc://:\(vncPassword)@localhost:\(vncPort)")!
 		let promise = Utilities.group.next().makePromise(of: String.self)
 		let suspendable = config.suspendable
-
+		
 		promise.futureResult.whenSuccess { _ in
-			#if DEBUG
-				self.logger.debug("VM \(self.name) terminated")
-			#endif
-
+#if DEBUG
+			self.logger.debug("VM \(self.name) terminated")
+#endif
+			
 			DispatchQueue.main.async {
 				self.setStateAsStopped()
 			}
 		}
-
+		
 		promise.futureResult.whenFailure { result in
 			self.logger.error("VM \(self.name) failed to start: \(result)")
-
+			
 			DispatchQueue.main.async {
 				self.setStateAsStopped()
 			}
 		}
-
+		
 		await self.tryVNCConnect(vncURL: vncURL)
-
+		
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
 		let runningIP = try StartHandler.internalStartVM(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, gcd: false, recoveryMode: self.recoveryMode, runMode: .user, promise: promise)
-
-		#if DEBUG
-			self.logger.debug("VM started on \(runningIP)")
-			self.logger.debug("Found VNC URL: \(vncURL)")
-		#endif
-
+		
+#if DEBUG
+		self.logger.debug("VM started on \(runningIP)")
+		self.logger.debug("Found VNC URL: \(vncURL)")
+#endif
+		
 		await self.setStateAsRunning(suspendable: suspendable, vncURL: [vncURL])
 	}
-
+	
 	func startFromUI() {
 		guard self.status == .stopped else {
 			return
 		}
-
+		
 		if self.isLaunchVMExternally {
 			self.setOtherState(suspendable: self.virtualMachineConfig.suspendable, status: .starting, vncURL: vncURL)
 			self.externalRunning = true
-
+			
 			Task {
 				do {
 					if let location {
@@ -818,7 +833,7 @@ extension VirtualMachineDocument {
 			}
 		} else {
 			self.externalRunning = false
-
+			
 			if self.virtualMachine == nil {
 				do {
 					try createVirtualMachine()
@@ -829,24 +844,24 @@ extension VirtualMachineDocument {
 					return
 				}
 			}
-
+			
 			if let virtualMachine = self.virtualMachine {
 				self.setOtherState(suspendable: virtualMachineConfig.suspendable, status: .starting)
-
+				
 				virtualMachine.startFromUI()
 			}
 		}
 	}
-
+	
 	func restartFromUI() {
 		guard self.status == .running else {
 			return
 		}
-
+		
 		if self.externalRunning {
 			Task {
 				do {
-					try AppState.shared.restartVirtualMachine(vmURL: self.url)
+					try self.connectionManager.restartVirtualMachine(vmURL: self.url)
 				} catch {
 					await alertError(error)
 				}
@@ -855,16 +870,16 @@ extension VirtualMachineDocument {
 			virtualMachine.restartFromUI()
 		}
 	}
-
+	
 	func stopFromUI(force: Bool) {
 		guard self.status == .running else {
 			return
 		}
-
+		
 		if self.externalRunning {
 			Task {
 				do {
-					try AppState.shared.stopVirtualMachine(vmURL: self.url)
+					try self.connectionManager.stopVirtualMachine(vmURL: self.url)
 					await self.setStateAsStopped()
 				} catch {
 					await alertError(error)
@@ -878,23 +893,68 @@ extension VirtualMachineDocument {
 			}
 		}
 	}
-
+	
 	func suspendFromUI() {
 		guard self.status == .running else {
 			return
 		}
-
+		
 		if self.externalRunning {
 			Task {
 				do {
-					try AppState.shared.suspendVirtualMachine(vmURL: self.url)
-					await self.setStateAsStopped(.paused)
+					let result = try self.connectionManager.suspendVirtualMachine(vmURL: self.url)
+					
+					if result.success {
+						await self.setStateAsStopped(.paused)
+					} else {
+						let reason = result.reason
+						
+						DispatchQueue.main.async {
+							alertError(String(localized: "Failed to suspend VM"), reason)
+						}
+					}
+					
 				} catch {
 					await alertError(error)
 				}
 			}
 		} else if let virtualMachine = self.virtualMachine {
 			virtualMachine.suspendFromUI()
+		}
+	}
+	
+	func deleteVirtualMachine() throws -> DeleteReply {
+		try self.connectionManager.deleteVirtualMachine(vmURL: self.url)
+	}
+	
+	func duplicateVirtualMachine(to: String) throws -> DuplicatedReply {
+		try self.connectionManager.duplicateVirtualMachine(vmURL: self.url, to: to, resetMacAddress: true)
+	}
+	
+	func saveConfiguration() {
+		let connectionMode = self.connectionManager.connectionMode
+
+		do {
+			if connectionMode != .app {
+				let reply = ConfigureHandler.configure(name: self.name, options: self.virtualMachineConfig.configureOptions(), runMode: connectionMode.runMode)
+				
+				if reply.configured == false {
+					throw ServiceError(String(localized: "Failed to save VM configuration: \(reply.reason)"))
+				}
+				
+			} else if let virtualMachine = self.virtualMachine {
+				try self.virtualMachineConfig.saveLocally(virtualMachine.config)
+			} else if let location = self.location {
+				try self.virtualMachineConfig.saveLocally(location)
+			} else {
+				throw ServiceError(String(localized: "Failed to save VM configuration, Unexpected error"))
+			}
+			
+			self.virtualMachineConfig.clearChangedFields()
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
 		}
 	}
 }
@@ -983,14 +1043,14 @@ extension VirtualMachineDocument {
 			#endif
 
 			Task {
-				await AppState.shared.setVncScreenSize(vmURL: self.url, screenSize: screenSize)
+				await self.connectionManager.setVncScreenSize(vmURL: self.url, screenSize: screenSize)
 			}
 		}
 	}
 
 	func getVncScreenSize() -> ViewSize {
 		let screenSize = ViewSize(width: CGFloat(self.virtualMachineConfig.display.width), height: CGFloat(self.virtualMachineConfig.display.height))
-		return AppState.shared.getVncScreenSize(vmURL: self.url, screenSize)
+		return self.connectionManager.getVncScreenSize(vmURL: self.url, screenSize)
 	}
 
 	func retrieveVNCURL() {
@@ -999,7 +1059,7 @@ extension VirtualMachineDocument {
 		}
 
 		MainActor.assumeIsolated {
-			if let vncInfos = try? AppState.shared.vncInfos(vmURL: self.url) {
+			if let vncInfos = try? self.connectionManager.vncInfos(vmURL: self.url) {
 				self.logger.info("Found VNC URL: \(vncInfos.urls)")
 
 				self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: vncInfos.urls.compactMap {
@@ -1221,7 +1281,7 @@ extension VirtualMachineDocument {
 						throw ServiceError(String(localized: "Failed to install agent."))
 					}
 				} else {
-					if try AppState.shared.installAgent(self.url) == false {
+					if try self.connectionManager.installAgent(self.url) == false {
 						throw ServiceError(String(localized: "Failed to install agent."))
 					}
 				}
@@ -1260,7 +1320,7 @@ extension VirtualMachineDocument {
 		}
 
 		if self.interactiveShell == nil && self.inView {
-			self.interactiveShell = InteractiveShell(self.url)
+			self.interactiveShell = InteractiveShell(self.url, connectionManager: self.connectionManager)
 		}
 	}
 

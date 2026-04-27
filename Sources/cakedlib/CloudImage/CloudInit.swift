@@ -967,7 +967,7 @@ class CloudInit {
 				chmod 644 /etc/sysconfig/cakeagent
 				chmod +x /usr/local/bin/cakeagent
 				/usr/local/bin/cakeagent service install \\
-					--listen=vsock://any:5000 \\
+					--listen=vsock://any:\(VMLocation.defaultAgentListenPort) \\
 					--ca-cert=/etc/cakeagent/ssl/ca.pem \\
 					--tls-cert=/etc/cakeagent/ssl/server.pem \\
 					--tls-key=/etc/cakeagent/ssl/server.key \(config.linuxMounts)

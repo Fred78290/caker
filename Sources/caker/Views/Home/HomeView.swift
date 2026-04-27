@@ -57,31 +57,43 @@ struct HomeView: View {
 					}
 				} else {
 					ToolbarItem(placement: .automatic) {
-						Image(systemName: "circle")
-							.resizable()
-							.renderingMode(.template)
-							.foregroundStyle(self.appState.runMode == .app ? .red : .green)
-							.aspectRatio(contentMode: .fit)
-							.opacity(0.8)
-							.frame(width: 24, height: 24)
-							.padding(4)
-							.overlay {
-								Image(systemName: "app.connected.to.app.below.fill")
-									.resizable()
-									.renderingMode(.template)
-									.foregroundStyle(self.appState.runMode == .app ? .red : .green)
-									.aspectRatio(contentMode: .fit)
-									.opacity(0.8)
-									.frame(width: 14, height: 14)
-									.padding(4)
-
-							}
+						connectButton
 					}.backgroundVisibility(false)
 				}
 			}
 			.sheet(isPresented: $presented) {
 				self.sheet
 			}
+	}
+
+	@ViewBuilder
+	var connectButton: some View {
+		if self.appState.connectionMode == .remote {
+			Button("Disconnect", systemImage: "rectangle.connected.to.line.below") {
+				self.appState.connectToLocal()
+			}
+			.foregroundStyle(.green)
+			.font(.system(size: 10, weight: .regular, design: .default))
+		} else {
+			Image(systemName: "circle")
+				.resizable()
+				.renderingMode(.template)
+				.foregroundStyle(self.appState.connectionMode == .app ? .red : .green)
+				.aspectRatio(contentMode: .fit)
+				.opacity(0.8)
+				.frame(width: 24, height: 24)
+				.padding(4)
+				.overlay {
+					Image(systemName: "app.connected.to.app.below.fill")
+						.resizable()
+						.renderingMode(.template)
+						.foregroundStyle(self.appState.connectionMode == .app ? .red : .green)
+						.aspectRatio(contentMode: .fit)
+						.opacity(0.8)
+						.frame(width: 14, height: 14)
+						.padding(4)
+				}
+		}
 	}
 
 	@ViewBuilder

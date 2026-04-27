@@ -30,39 +30,39 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 	public var network: String
 	public var mode: NetworkMode?
 	public var macAddress: String?
-
+	
 	public static func == (lhs: Self, rhs: Self) -> Bool {
 		return lhs.description == rhs.description
 	}
-
+	
 	public var defaultValueDescription: String {
-		"name=<network|nat|shared|host>,[mode=<auto|manual>,[mac=<mac>]]"
+		"name=<network|bridged|nat|shared|host>,[mode=<auto|manual>,[mac=<mac>]]"
 	}
-
+	
 	public var description: String {
 		var value: [String] = ["name=\(network)"]
-
+		
 		if let mode = mode {
 			value.append("mode=\(mode)")
 		}
-
+		
 		if let macAddress = macAddress {
 			value.append("mac=\(macAddress)")
 		}
-
+		
 		return value.joined(separator: ",")
 	}
-
+	
 	public var id: String {
 		self.description
 	}
-
+	
 	public init(network: String, mode: NetworkMode? = nil, macAddress: String? = nil) {
 		self.network = network
 		self.mode = mode
 		self.macAddress = macAddress
 	}
-
+	
 	public init?(argument: String) {
 		do {
 			try self.init(parseFrom: argument)
@@ -70,17 +70,17 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 			return nil
 		}
 	}
-
+	
 	public init(parseFrom: String) throws {
 		let parts = parseFrom.split(separator: ",")
 		var network: String = String.empty
 		var mode: NetworkMode?
 		var macAddress: VZMACAddress?
-
+		
 		guard parts.count <= 3 else {
 			throw ValidationError(String(localized: "Invalid network attachment: \(parseFrom)"))
 		}
-
+		
 		try parts.forEach { part in
 			if part.starts(with: "name=") {
 				network = String(part.dropFirst("name=".count))
@@ -94,26 +94,34 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 				throw ValidationError(String(localized: "Invalid network attachment: \(parseFrom)"))
 			}
 		}
-
+		
 		if macAddress == nil && network != "nat" && network != "NAT shared network" {
 			macAddress = VZMACAddress.randomLocallyAdministered()
 		}
-
+		
 		self.network = network
 		self.macAddress = macAddress?.string
 		self.mode = mode
 	}
-
+	
 	public func clone() -> BridgeAttachement {
 		if macAddress != nil {
 			return .init(network: network, mode: mode, macAddress: VZMACAddress.randomLocallyAdministered().string)
 		}
-
+		
 		return .init(network: network, mode: mode, macAddress: nil)
 	}
-
+	
 	public func isNAT() -> Bool {
 		return self.network == "nat" || self.network == "NAT shared network"
+	}
+	
+	public func isBridged() -> Bool {
+		return self.network == "bridged"
+	}
+	
+	public static func bridgedNetwork() -> BridgeAttachement {
+		.init(network: "bridged", mode: .auto, macAddress: VZMACAddress.randomLocallyAdministered().string)
 	}
 }
 

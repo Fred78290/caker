@@ -119,7 +119,7 @@ public struct VMBuilder {
 				try? location.resizeDisk(options.diskSize)
 			}
 
-			config.networks = options.networks
+			config.networks = options.allNetworks
 			config.mounts = options.mounts
 			config.sockets = options.sockets
 			config.console = options.consoleURL?.description

@@ -78,6 +78,9 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp(String(localized: "Add a network interface to the instance"), discussion: String(localized: "network_help"), valueName: "spec"))
 	public var networks: [BridgeAttachement] = []
 
+	@Flag(name: [.customLong("bridged")], help: ArgumentHelp(String(localized: "Adds one `--network bridged` network.")))
+	public var bridgedNetwork: Bool = false
+
 	@Option(name: [.customLong("net.ifnames")], help: ArgumentHelp(String(localized: "Use ifnames for network interfaces instead of eth0, eth1, etc. This is the default on most modern Linux distributions.")))
 	public var netIfnames: Bool = true
 
@@ -289,6 +292,8 @@ public struct BuildOptions: ParsableArguments {
 			self.networks = []
 		}
 
+		self.bridgedNetwork = request.bridgedNetwork
+
 		if request.hasIfnames {
 			self.netIfnames = request.ifnames
 		} else {
@@ -334,11 +339,11 @@ public struct BuildOptions: ParsableArguments {
 		if name.contains("/") {
 			throw ValidationError(String(localized: "\(name) should be a local name"))
 		}
-		
+
 		if nested && Utils.isNestedVirtualizationSupported() == false {
 			self.nested = false
 		}
-		
+
 		try self.forwardedPorts.forEach { port in
 			if case .none = port.oneOf {
 				throw ValidationError(String(localized: "Port is not set"))
@@ -425,5 +430,15 @@ public struct BuildOptions: ParsableArguments {
 				self.imageSource = .stream
 			}
 		}
+	}
+}
+
+extension BuildOptions {
+	public var allNetworks: [BridgeAttachement] {
+		guard self.bridgedNetwork else { return self.networks }
+		
+		return self.networks.filter {
+			$0.network != "bridged"
+		} + [BridgeAttachement.bridgedNetwork()]
 	}
 }
