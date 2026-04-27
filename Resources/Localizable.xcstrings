@@ -11628,6 +11628,17 @@
         }
       }
     },
+    "VM %@ does not have VNC enabled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM %@ n'a pas VNC activé"
+          }
+        }
+      }
+    },
     "VM %@ is not running" : {
       "extractionState" : "manual",
       "localizations" : {

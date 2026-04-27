@@ -259,20 +259,27 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let group: EventLoopGroup
 	let certLocation: CertificatesLocation
 	let gcd: GrandCentralDispatch
-	
+	let vnc: VNCTunnel
+
 	var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? = nil
-	
+
 	init(group: EventLoopGroup, password: String?, runMode: Utils.RunMode) throws {
 		self.runMode = runMode
 		self.group = group
 		self.certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		self.gcd = .init(group: group, runMode: runMode)
-		
+		self.vnc = .init(group: group, runMode: runMode)
+
 		if let password {
 			self.interceptors = CakedPasswordAuthServerInterceptor(expectedPassword: password)
 		}
 	}
-	
+
+	func stop() {
+		self.gcd.stopGrandCentralDispatch()
+		self.vnc.stopVNCTunnel()
+	}
+
 	func createCakeAgentConnection(vmName: String, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
 		let listeningAddress = try StorageLocation(runMode: self.runMode).find(vmName).agentURL
 		
@@ -460,6 +467,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func vncTunnel(requestStream: GRPCAsyncRequestStream<Caked_VncStream>, responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>, context: GRPCAsyncServerCallContext) async throws {
+		try await self.vnc.tunnel(requestStream: requestStream, responseStream: responseStream, context: context)
 	}
 	
 	func checkReliability(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {

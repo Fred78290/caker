@@ -1086,11 +1086,15 @@ extension VirtualMachineDocument {
 	}
 
 	func tryVNCConnect() {
+		guard let vncURL = self.vncURL, vncURL.isEmpty == false else {
+			return
+		}
+
 		if connection != nil {
 			return
 		}
 
-		if let vncURL = VNCServer.findHostMatching(urls: self.vncURL) {
+		func establishConnection(_ vncURL: URL) {
 			// Create settings
 			let vncPort = vncURL.port ?? 5900
 			let vncHost = vncURL.host()!
@@ -1128,8 +1132,30 @@ extension VirtualMachineDocument {
 				}
 			}
 		}
-	}
 
+		if self.connectionManager.connectionMode == .remote {
+			let vncURL = vncURL.first!
+			
+			if let client = self.connectionManager.serviceClient {
+				_ = try? client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name) { (channel, port) in
+					var components = URLComponents()
+					components.scheme = "vnc"
+					components.host = "127.0.0.1"
+					components.port = port
+
+					if let password = vncURL.password {
+						components.password = password
+					}
+
+					if let tunneledVNCURL = components.url {
+						establishConnection(tunneledVNCURL)
+					}
+				}
+			}
+		} else if let vncURL = VNCServer.findHostMatching(urls: self.vncURL) {
+			establishConnection(vncURL)
+		}
+	}
 }
 
 // MARK: - VNCConnectionDelegate
