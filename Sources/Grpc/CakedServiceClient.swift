@@ -173,7 +173,12 @@ private final class VNCTunnelHandler: ChannelInboundHandler {
 	func channelInactive(context: ChannelHandlerContext) {
 		logger.debug("VNC client disconnected for VM '\(vmName)'")
 
-		grpcStream.sendEnd(promise: nil)
+		guard let stream = grpcStream else {
+			return
+		}
+
+		stream.sendEnd(promise: nil)
+		self.grpcStream = nil
 	}
 	
 	func errorCaught(context: ChannelHandlerContext, error: Error) {
