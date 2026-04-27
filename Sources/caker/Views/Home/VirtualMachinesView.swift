@@ -50,12 +50,20 @@ struct VirtualMachinesView: View {
 							.onTapGesture(count: 2) {
 								self.navigationModel.selectedVirtualMachine = vm.document
 
+								if self.appearsActive {
+									AppState.shared.currentDocument = vm.document
+								}
+
 								Task {
 									await MainApp.app.openVirtualMachine(vm.document.url)
 								}
 							}
 							.onTapGesture {
 								self.navigationModel.selectedVirtualMachine = vm.document
+
+								if self.appearsActive {
+									AppState.shared.currentDocument = vm.document
+								}
 							}
 					}
 				}

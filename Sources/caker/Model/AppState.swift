@@ -93,6 +93,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 }
 
 class AppState: ObservableObject, Observable {
+	static let AppStateChanged = Notification.Name("AppStateChanged")
+
 	private struct ServiceReply {
 		let remotes: [RemoteEntry]
 		let templates: [TemplateEntry]
@@ -107,7 +109,11 @@ class AppState: ObservableObject, Observable {
 	static func loadSharedAppState() async {
 		Self._shared = AppState()
 	}
-	
+
+	static var sharedLoaded: Bool {
+		return Self._shared != nil
+	}
+
 	static var shared: AppState {
 		guard let shared = _shared else {
 			_shared = AppState()
@@ -124,7 +130,23 @@ class AppState: ObservableObject, Observable {
 	@Published var cakedServiceInstalled: Bool = false
 	@Published var cakedServiceRunning: Bool = false
 	@Published var connectionMode: ConnectionManager.ConnectionMode = .app
-	@Published var currentDocument: VirtualMachineDocument!
+	@Published var currentDocument: VirtualMachineDocument! {
+		didSet {
+			if let currentDocument {
+				self.isAgentInstalling = currentDocument.agent == .installing && currentDocument.status == .running
+				self.isStopped = currentDocument.status == .stopped || currentDocument.status == .stopping
+				self.isRunning = currentDocument.status == .running || currentDocument.status == .starting
+				self.isPaused = currentDocument.status == .paused || currentDocument.status == .pausing
+				self.isSuspendable = currentDocument.status == .running && currentDocument.suspendable
+			} else {
+				self.isAgentInstalling = false
+				self.isStopped = true
+				self.isRunning = false
+				self.isPaused = false
+				self.isSuspendable = false
+			}
+		}
+	}
 	@Published var isAgentInstalling: Bool = false
 	@Published var isStopped: Bool = true
 	@Published var isSuspendable: Bool = false
@@ -242,6 +264,7 @@ class AppState: ObservableObject, Observable {
 		
 		if connectionManager.connectionMode == .app {
 			self.gcd?.cancel(promise: nil)
+			self.gcd = nil
 		}
 		
 		Utilities.group.next().makeFutureWithTask {
@@ -269,8 +292,10 @@ class AppState: ObservableObject, Observable {
 					if connectionMode != .app && self.gcd == nil {
 						startGrandCentral()
 					}
+
+					NotificationCenter.default.post(name: Self.AppStateChanged, object: connectionManager)
 				}
-				
+
 				// Restart timer
 				self.logger.debug("Restart timer for new mode: installed=\(installed), runMode=\(connectionMode)")
 				self.agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { task in

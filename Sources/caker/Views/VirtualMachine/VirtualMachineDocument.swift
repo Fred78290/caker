@@ -233,7 +233,6 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	
 	@Published var virtualMachineConfig: VirtualMachineConfig = .init()
 	@Published var externalRunning: Bool = false
-	@Published var status: Status = .none
 	@Published var canStart: Bool = false
 	@Published var canStop: Bool = false
 	@Published var canPause: Bool = false
@@ -252,6 +251,22 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
 	@Published var ipaddresses: [String] = []
 	@Published var screenshot: Data!
+	@Published var status: Status = .none {
+		didSet {
+			guard AppState.sharedLoaded else {
+				return
+			}
+
+			if AppState.shared.currentDocument == self {
+				AppState.shared.isAgentInstalling = self.agent == .installing && status == .running
+				AppState.shared.isStopped = status == .stopped || status == .stopping
+				AppState.shared.isRunning = status == .running || status == .starting
+				AppState.shared.isPaused = status == .paused || status == .pausing
+				AppState.shared.isSuspendable = status == .running && self.suspendable
+			}
+		}
+	}
+
 	@Published var recoveryMode: Bool = false {
 		didSet {
 			if let virtualMachine = self.virtualMachine {

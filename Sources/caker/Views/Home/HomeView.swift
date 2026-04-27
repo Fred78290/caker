@@ -9,6 +9,8 @@ import GRPCLib
 import SwiftUI
 
 struct HomeView: View {
+	@Environment(\.appearsActive) private var appearsActive
+
 	@Binding var appState: AppState
 	@State private var navigationModel = NavigationModel()
 	@State private var presented: Bool = false
@@ -63,6 +65,14 @@ struct HomeView: View {
 			}
 			.sheet(isPresented: $presented) {
 				self.sheet
+			}
+			.onReceive(AppState.AppStateChanged) { notification in
+				self.navigationModel.selectedTemplate = nil
+				self.navigationModel.selectedVirtualMachine = nil
+
+				if self.appearsActive {
+					AppState.shared.currentDocument = nil
+				}
 			}
 	}
 

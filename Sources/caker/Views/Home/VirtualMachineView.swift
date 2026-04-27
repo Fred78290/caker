@@ -31,16 +31,16 @@ struct VirtualMachineView: View {
 	@Environment(\.materialActiveAppearance) var materialActiveAppearance
 
 	private var selected: Bool
-	private var vm: VirtualMachineDocument
 	private let radius: CGFloat = 12
 	private let selectedSystemFill = Color(NSColor.secondarySystemFill)
 	private let secondarySystemFill = Color(NSColor.tertiarySystemFill)
+	@StateObject private var vm: VirtualMachineDocument
 	@State var screenshot: NSImage?
 
 	init(_ vm: VirtualMachineDocument, selected: Bool) {
 		let lastScreenshot = vm.lastScreenshot
 
-		self.vm = vm
+		self._vm = StateObject(wrappedValue: vm)
 		self.selected = selected
 		_screenshot = State(initialValue: lastScreenshot)
 	}
