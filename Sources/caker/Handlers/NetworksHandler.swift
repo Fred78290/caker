@@ -69,7 +69,7 @@ extension NetworksHandler {
 
 		do {
 			return try DeleteNetworkReply(client.networks(.with {
-				$0.command = .delete
+				$0.command = .remove
 				$0.name = networkName
 			}).response.wait().networks.delete)
 		} catch {
