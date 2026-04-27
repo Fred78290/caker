@@ -19,10 +19,6 @@ if [ -z "${VMNAME}" ]; then
     VMNAME=linux
 fi
 
-/usr/bin/swift build
-
-source "${PROJECT_ROOT}/Scripts/build.inc.sh"
-
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
 DISK_SIZE=20
 MAINGROUP=adm
@@ -70,7 +66,6 @@ LXD_IMAGE=ubuntu:noble
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
 DOCKER=YES
-CMD="${PKGDIR}/Contents/PlugIns/caked.bundle/Contents/MacOS/caked"
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
 
@@ -200,15 +195,12 @@ else
   FORWARDS_OPTIONS="--dynamic-port-forwarding --publish 2222:22/tcp"
 fi
 
-"${CMD}" delete ${VMNAME} 
+caked delete ${VMNAME} 
 
 if [ -z "${CLOUD_IMAGE}" ]; then
     BUILD_OPTIONS="${COMMON_OPTIONS} ${NETWORKS_OPTIONS} ${FORWARDS_OPTIONS} ${MOUNT_OPTIONS} "
-    "${CMD}" build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE} 
+    caked build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE} 
 else
     BUILD_OPTIONS="${COMMON_OPTIONS} ${NETWORKS_OPTIONS} ${MOUNT_OPTIONS}"
-    "${CMD}" build ${VMNAME} ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
+    caked build ${VMNAME} ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
 fi
-
-#"${CMD}" launch ${VMNAME}  ${BUILD_OPTIONS} ${OCI_IMAGE}
-#"${CMD}" waitip ${VMNAME}  --wait 60
