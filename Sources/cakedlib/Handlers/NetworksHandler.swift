@@ -256,7 +256,7 @@ public struct NetworksHandler {
 		let sharedNetworks = networkConfig.sharedNetworks
 		let bridgedNetwork = try CakedKeyConfig.bridgedNetwork.get()
 		
-		if bridgedNetwork == nil && networks.filter({ $0.isBridged() }).isEmpty == false {
+		if bridgedNetwork == nil && networks.contains(where: { $0.isBridged() }) {
 			Logger(self).error("Bridged network is not configured, skipping bridged networks")
 		}
 
