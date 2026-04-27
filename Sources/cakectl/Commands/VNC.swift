@@ -12,7 +12,7 @@ import CakedLib
 import CakeAgentLib
 import NIO
 
-struct VNC: AsyncGrpcParsableCommand {
+struct VNC: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "vnc", abstract: String(localized: "Start a VNC client for a running VM"))
 
 	@OptionGroup(title: String(localized: "Client options"))
@@ -24,8 +24,7 @@ struct VNC: AsyncGrpcParsableCommand {
 	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	var name: String
 
-	@MainActor
-	private func doVNC(client: CakedServiceClient, config: CakedConfiguration, screenSize: ViewSize, channel: Channel, port: Int) {
+	private func doVNC(_ vncURL: URL, client: CakedServiceClient, config: CakedConfiguration, screenSize: ViewSize, channel: Channel) {
 		func vmStatus() -> Status {
 			if let result = try? client.info(name: self.name, includeConfig: true).vms.status {
 				if result.infos.status == .running || result.infos.status == .agentReady {
@@ -48,7 +47,7 @@ struct VNC: AsyncGrpcParsableCommand {
 		do {
 			try VNCApp.startVncClient(name: self.name,
 									  config: config,
-									  vncURL: URL(string: "vnc://127.0.0.1:\(port)")!,
+									  vncURL: vncURL,
 									  screenSize: screenSize,
 									  isDebugLoggingEnabled: vncDebug,
 									  vmStatus: vmStatus,
@@ -61,12 +60,20 @@ struct VNC: AsyncGrpcParsableCommand {
 		channel.close(promise: nil)
 	}
 
-	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
+	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let result = try client.info(name: self.name, includeConfig: true).vms.status
 		let screenSize = result.infos.hasScreenSize ? ViewSize(result.infos.screenSize) : ViewSize(result.config.display)
 
-		try await client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name) { (channel, port) in
-			self.doVNC(client: client, config: CakedConfiguration(result.config), screenSize: screenSize, channel: channel, port: port)
+		guard let vncURL = result.infos.vncURL.first, let vncURL = URL(string: vncURL) else {
+			throw ValidationError(String(localized: "VM \(self.name) does not have VNC enabled"))
+		}
+
+		try client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name) { (channel, port) in
+			if let password = vncURL.password {
+				self.doVNC(URL(string: "vnc://:\(password)@127.0.0.1:\(port)")!, client: client, config: CakedConfiguration(result.config), screenSize: screenSize, channel: channel)
+			} else {
+				self.doVNC(URL(string: "vnc://127.0.0.1:\(port)")!, client: client, config: CakedConfiguration(result.config), screenSize: screenSize, channel: channel)
+			}
 		}
 
 		return String.empty
