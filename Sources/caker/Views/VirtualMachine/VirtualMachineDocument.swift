@@ -1138,10 +1138,17 @@ extension VirtualMachineDocument {
 			
 			if let client = self.connectionManager.serviceClient {
 				_ = try? client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name) { (channel, port) in
+					var components = URLComponents()
+					components.scheme = "vnc"
+					components.host = "127.0.0.1"
+					components.port = port
+
 					if let password = vncURL.password {
-						establishConnection(URL(string: "vnc://:\(password)@127.0.0.1:\(port)")!)
-					} else {
-						establishConnection(URL(string: "vnc://127.0.0.1:\(port)")!)
+						components.password = password
+					}
+
+					if let tunneledVNCURL = components.url {
+						establishConnection(tunneledVNCURL)
 					}
 				}
 			}
