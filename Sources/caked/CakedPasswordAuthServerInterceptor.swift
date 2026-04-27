@@ -41,7 +41,7 @@ struct CakedPasswordAuthServerInterceptor: Caked_ServiceServerInterceptorFactory
 				if self.expectedPassword == nil || context.remoteAddress?.protocol == .unix {
 					context.receive(part)
 				} else {
-					// Expect an Authorization header in the form: Bearer <password> or just the raw password
+					// Expect an Authorization header in the form: Bearer <password>
 					let authValues = headers["authorization"]
 					let isAuthorized: Bool = {
 						guard let value = authValues.first else {
