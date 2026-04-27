@@ -66,12 +66,11 @@ final class VNCTunnel {
 			}
 
 			let vncPort = vncURL.port ?? 5900
-			let vncPassword = vncURL.password
 
-			await handleVNCTunnel(vncPort: vncPort, vncPassword: vncPassword)
+			await handleVNCTunnel(vncPort: vncPort)
 		}
 		
-		func handleVNCTunnel(_ vncHost: String = "127.0.0.1", vncPort: Int, vncPassword: String?) async {
+		func handleVNCTunnel(_ vncHost: String = "127.0.0.1", vncPort: Int) async {
 			do {
 				logger.debug("Connecting to VNC server for VM \(vmName), id: \(id) at \(vncHost):\(vncPort)")
 				
