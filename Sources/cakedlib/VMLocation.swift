@@ -46,11 +46,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				throw ServiceError(String(localized: "Internal error"))
 			}
 
-			guard let vmName = components.path.isEmpty ? components.host : components.path else {
-				throw ServiceError(String(localized: "Internal error"))
-			}
-
-			if let location = try? StorageLocation(runMode: runMode).find(vmName) {
+			if let location = try? StorageLocation(runMode: runMode).find(vmURL.vmName) {
 				return location
 			}
 
