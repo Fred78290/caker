@@ -138,10 +138,10 @@ class ConnectionManager: Equatable {
 		var components = URLComponents()
 
 		if self.connectionMode == .remote {
-			components.scheme = ["tcps", "https"].contains(self.serviceURL.scheme) ? "\(VMLocation.scheme)s" : VMLocation.scheme
-			components.host = self.serviceURL.host!
-			components.port = self.serviceURL.port
-			components.password = self.serviceURL.password(percentEncoded: false)
+			components.scheme = ["tcps", "https"].contains(self.serviceURL!.scheme) ? "\(VMLocation.scheme)s" : VMLocation.scheme
+			components.host = self.serviceURL!.host!
+			components.port = self.serviceURL!.port
+			components.password = self.serviceURL!.password(percentEncoded: false)
 			components.path = "/\(name)"
 		} else {
 			components.scheme = VMLocation.scheme
