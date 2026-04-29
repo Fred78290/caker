@@ -417,7 +417,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			if client != nil {
 				vms = try result.infos.reduce(into: vms) { (partialResult, info) in
 					guard let vmURL = URL(string: info.fqn.first!), let config = info.config else {
-						throw ServiceError("Internal error")
+						throw ServiceError(String(localized: "Internal error"))
 					}
 
 					if let vm = try? VirtualMachineDocument(vmURL: connectionManager.vmURL(vmURL.vmName), status: .init(CakeAgentLib.Status(info.state)), vncURL: info.vncURL, config: config, connectionManager: connectionManager) {
@@ -534,7 +534,6 @@ extension VirtualMachineDocument {
 
 		self.interactiveShell = nil
 		self.vncStatus = .disconnected
-		self.status = status
 		self.externalRunning = false
 		self.agentCondition = ("Install agent", false, true)
 		self.agentReady = false
