@@ -402,7 +402,7 @@ class AppState: ObservableObject, Observable {
 			}
 		} else if self.connectionMode == .app && VMLocation.supportedSchemes.contains(vmURL.scheme) {
 			// We run standalone convert to file url
-			if let location = try? StorageLocation(runMode: self.connectionMode.runMode).find(vmURL.host(percentEncoded: false)!) {
+			if let location = try? StorageLocation(runMode: self.connectionMode.runMode).find(vmURL.vmName) {
 				return location.rootURL
 			}
 		}
