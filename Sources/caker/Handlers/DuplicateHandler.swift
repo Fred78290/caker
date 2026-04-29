@@ -4,20 +4,12 @@ import GRPCLib
 
 extension DuplicateHandler {
 	public static func duplicate(client: CakedServiceClient?, vmURL: URL, to: String, resetMacAddress: Bool, runMode: Utils.RunMode) throws -> DuplicatedReply {
-		guard let client else {
+		guard let client, vmURL.isFileURL == false else {
 			return self.duplicate(vmURL: vmURL, to: to, resetMacAddress: resetMacAddress, runMode: runMode)
-		}
-
-		if vmURL.isFileURL {
-			return self.duplicate(vmURL: vmURL, to: to, resetMacAddress: resetMacAddress, runMode: runMode)
-		}
-
-		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		return try DuplicatedReply(client.duplicate(.with {
-			$0.from = host
+			$0.from = vmURL.vmName
 			$0.to = to
 			$0.resetMacAddress = resetMacAddress
 		}).response.wait().vms.duplicated)

@@ -18,6 +18,16 @@ func viewLog(_ text: String) -> some View {
 	return EmptyView()
 }
 
+extension Scene {
+	func log(_ label: String = "View", text: String) -> some Scene {
+		#if DEBUG
+			Logger(label).debug(text)
+		#endif
+
+		return self
+	}
+}
+
 extension View {
 	func log(_ label: String = "View", text: String) -> some View {
 		#if DEBUG
@@ -136,6 +146,10 @@ struct HostVirtualMachineView: View {
 					handleAppear()
 				}.onDisappear {
 					handleDisappear()
+				}.onReceive(ConnectionManager.GrandCentralDidTerminateNotification) { notification in
+					handleGrandCentralDidTerminateNotification(notification)
+				}.onReceive(ConnectionManager.GrandCentralDidStartNotification) { notification in
+					handleGrandCentralDidStartNotification(notification)
 				}.onReceive(NSWindow.willStartLiveResizeNotification) { notification in
 					handleStartLiveResizeNotification(notification)
 				}.onReceive(NSWindow.didEndLiveResizeNotification) { notification in
@@ -372,6 +386,22 @@ struct HostVirtualMachineView: View {
 		if self.appState.currentDocument == self.document {
 			self.appState.currentDocument = nil
 		}
+	}
+
+	func handleGrandCentralDidStartNotification(_ notification: Notification) {
+		guard let connectionManager = notification.object as? ConnectionManager, connectionManager == self.document.connectionManager else {
+			return
+		}
+
+		self.document.grandCentralDidStart()
+	}
+
+	func handleGrandCentralDidTerminateNotification(_ notification: Notification) {
+		guard let connectionManager = notification.object as? ConnectionManager, connectionManager == self.document.connectionManager else {
+			return
+		}
+
+		self.document.grandCentralDidStop()
 	}
 
 	func handleStartLiveResizeNotification(_ notification: Notification) {

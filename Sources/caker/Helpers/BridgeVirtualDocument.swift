@@ -28,10 +28,10 @@ struct BridgeVirtualDocument: FileDocument {
 			throw ServiceError(String(localized: "Unable to get URL for \(fileName)"))
 		}
 
-		if let existingDocument = AppState.shared.findVirtualMachineDocument(vmURL) {
+		if let existingDocument = AppState.shared.findVirtualMachineDocument(AppState.shared.fullQualifiedVMUrl(vmURL)) {
 			self.attachedVirtualDocument = existingDocument
 		} else {
-			self.attachedVirtualDocument = try VirtualMachineDocument.createVirtualMachineDocument(vmURL: vmURL, connectionManager: ConnectionManager(connectionMode: .app))
+			self.attachedVirtualDocument = try VirtualMachineDocument.openVirtualMachineDocument(vmURL, connectionManager: ConnectionManager.appConnectionManager)
 		}
 
 		func loadVM() throws {
@@ -57,7 +57,7 @@ struct BridgeVirtualDocument: FileDocument {
 
 			if let config = self.attachedVirtualDocument.virtualMachine?.config {
 				cakeConfig = config
-			} else if self.attachedVirtualDocument.url.isFileURL {
+			} else {
 				cakeConfig = CakeConfig(config: self.attachedVirtualDocument.virtualMachineConfig)
 			}
 

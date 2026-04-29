@@ -29,23 +29,15 @@ extension VMLocation.Status {
 
 extension CurrentStatusHandler {
 	public static func currentStatus(client: CakedServiceClient?, vmURL: URL, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws -> Cancellable {
-		guard let client else {
+		guard let client, vmURL.isFileURL == false else {
 			return try await Self.currentStatus(vmURL: vmURL, frequency: frequency, statusStream: statusStream, runMode: runMode)
-		}
-
-		if vmURL.isFileURL {
-			return try await Self.currentStatus(vmURL: vmURL, frequency: frequency, statusStream: statusStream, runMode: runMode)
-		}
-
-		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		return TaskCancellable {
 			let (stream, continuation) = AsyncThrowingStream<Caked_Reply, Error>.makeStream()
 			
 			let flux = client.currentStatus(.with {
-				$0.name = host
+				$0.name = vmURL.vmName
 				$0.frequency = frequency
 			}, callOptions: CallOptions(timeLimit: .none)) {
 				status in

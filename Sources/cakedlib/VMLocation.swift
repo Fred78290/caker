@@ -5,9 +5,22 @@ import Shout
 import Virtualization
 import CakeAgentLib
 
+extension URL {
+	public var vmName: String {
+		let name = self.name
+		
+		guard name.isEmpty else {
+			return name
+		}
+
+		return self.host(percentEncoded: false)!
+	}
+}
+
 public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	public static let defaultAgentListenPort = 5000
 	public static let scheme = "caked-vm"
+	public static let supportedSchemes: Set<String?> = ["caked-vm", "caked-vms"]
 
 	public enum Status: String, Sendable {
 		case running
@@ -28,16 +41,14 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			try location.validate().rootURL.updateAccessDate()
 
 			return location
-		} else if vmURL.scheme == Self.scheme {
-			guard let host = vmURL.host(percentEncoded: false) else {
+		} else if supportedSchemes.contains(vmURL.scheme) {
+			guard let components = URLComponents(url: vmURL, resolvingAgainstBaseURL: false) else {
 				throw ServiceError(String(localized: "Internal error"))
 			}
 
-			//for runMode in [Utils.RunMode.system, Utils.RunMode.user] {
-				if let location = try? StorageLocation(runMode: runMode).find(host) {
-					return location
-				}
-			//}
+			if let location = try? StorageLocation(runMode: runMode).find(vmURL.vmName) {
+				return location
+			}
 
 			throw ServiceError(String(localized: "VM not found"))
 		}

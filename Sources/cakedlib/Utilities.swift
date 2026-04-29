@@ -267,7 +267,7 @@ extension URL: Purgeable {
 	}
 
 	public var name: String {
-		self.lastPathComponent.stringBeforeLast(before: ".")
+		self.lastPathComponent.deletingPathExtension
 	}
 
 	public var fileExists: Bool {

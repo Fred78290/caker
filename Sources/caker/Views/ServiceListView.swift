@@ -10,6 +10,33 @@ import CakedLib
 import CakeAgentLib
 import GRPCLib
 
+extension NetService {
+	var tlsIsRequired: Bool {
+		guard let txtRecordData = self.txtRecordData() else {
+			return false
+		}
+		
+		let txtRecord = NetService.dictionary(fromTXTRecord: txtRecordData)
+
+		guard let value = txtRecord["tls"], let stringValue = String(data: value, encoding: .utf8) else {
+			return false
+		}
+
+		return stringValue.lowercased() == "true"
+	}
+
+	func serviceURL(_ password: String? = nil) -> URL {
+		var serviceURL = URLComponents()
+
+		serviceURL.host = self.hostName
+		serviceURL.port = self.port
+		serviceURL.scheme = self.tlsIsRequired ? "tcps" : "tcp"
+		serviceURL.password = password
+
+		return serviceURL.url!
+	}
+}
+
 class ServiceListViewModel: ObservableObject {
 	@Published var services: [NetService] = []
 	@Published var isScanning: Bool = false
@@ -77,38 +104,22 @@ struct ServiceListView: View {
 		return stringValue.lowercased() == "true"
 	}
 
-	private func checkIfTlsIsRequired(service: NetService) -> Bool {
-		guard let txtRecordData = service.txtRecordData() else {
-			return false
-		}
-		
-		let txtRecord = NetService.dictionary(fromTXTRecord: txtRecordData)
-
-		guard let value = txtRecord["tls"], let stringValue = String(data: value, encoding: .utf8) else {
-			return false
-		}
-
-		return stringValue.lowercased() == "true"
-	}
-
 	private func connect(service: NetService) {
-		let listenAddress = "tcp://\(service.hostName!):\(service.port)"
-
 		self.selectedService = service
         self.enteredPassword = ""
 
 		if checkIfPasswordIsRequired(service: service) {
 			self.isPresentingPasswordPrompt = true
 		} else {
-			let tlsIsRequired = checkIfTlsIsRequired(service: service)
+			let serviceURL = service.serviceURL()
 
 			self.errorMessage = nil
 			self.displayAlert = false
 
-			let ok = checkIfServiceIsReachable(listenAddress: listenAddress, password: nil, tlsIsRequired: tlsIsRequired)
+			let ok = checkIfServiceIsReachable(serviceURL)
 
 			if ok.reachable {
-				AppState.shared.connectToRemote(listenAddress: listenAddress, password: nil, tls: tlsIsRequired)
+				AppState.shared.connectToRemote(serviceURL)
 			} else {
 				self.failedToConnect(service.description, errorMessage: ok.errorMessage)
 			}
@@ -126,27 +137,26 @@ struct ServiceListView: View {
 	}
 
 	private func connectWithPassword(service: NetService, password: String? = nil) {
-		let listenAddress = "tcp://\(service.hostName!):\(service.port)"
-		let tlsIsRequired = checkIfTlsIsRequired(service: service)
+		let serviceURL = service.serviceURL(password)
 
 		self.errorMessage = nil
 		self.displayAlert = false
 
-		let ok = checkIfServiceIsReachable(listenAddress: listenAddress, password: password, tlsIsRequired: tlsIsRequired)
+		let ok = checkIfServiceIsReachable(serviceURL)
 
 		if ok.reachable {
-			AppState.shared.connectToRemote(listenAddress: listenAddress, password: password, tls: tlsIsRequired)
+			AppState.shared.connectToRemote(serviceURL)
 		} else {
 			self.failedToConnect(service.description, errorMessage: ok.errorMessage)
 		}
 	}
 
-	private func checkIfServiceIsReachable(listenAddress: String, password: String? = nil, tlsIsRequired: Bool) -> (reachable: Bool, errorMessage: String?) {
+	private func checkIfServiceIsReachable(_ serviceURL: URL) -> (reachable: Bool, errorMessage: String?) {
 		do {
-			_ = try ServiceHandler.createCakedServiceClient(listenAddress: listenAddress, password: password, tls: tlsIsRequired, runMode: .user).checkReliability(.init()).response.wait()
+			_ = try ServiceHandler.createCakedServiceClient(serviceURL: serviceURL, runMode: .user).checkReliability(.init()).response.wait()
 			return (true, nil)
 		} catch {
-			Logger(self).error("Failed to connect to service at \(listenAddress): \(error)")
+			Logger(self).error("Failed to connect to service at \(serviceURL.hiddenPasswordURL): \(error)")
 			return (false, error.reason)
 		}
 	}
@@ -181,13 +191,24 @@ struct ServiceListView: View {
 			return
 		}
 
-		let listenAddress = "tcp://\(address):\(manualPort)"
-		let result = checkIfServiceIsReachable(listenAddress: listenAddress, password: manualPassword.isEmpty ? nil : manualPassword, tlsIsRequired: manualUseTLS)
+		var serviceURL = URLComponents()
+
+		serviceURL.host = address
+		serviceURL.port = manualPort
+		serviceURL.scheme = manualUseTLS ? "tcps" : "tcp"
+		serviceURL.password = manualPassword.isEmpty ? nil : manualPassword
+
+		guard let url = serviceURL.url else {
+			manualError = String(localized: "Please enter a valid hostname or IP address.")
+			return
+		}
+
+		let result = checkIfServiceIsReachable(url)
 
 		if result.reachable {
 			isPresentingManualSheet = false
 
-			AppState.shared.connectToRemote(listenAddress: listenAddress, password: manualPassword.isEmpty ? nil : manualPassword, tls: manualUseTLS)
+			AppState.shared.connectToRemote(url)
 		} else {
 			manualError = result.errorMessage
 		}
@@ -213,13 +234,18 @@ struct ServiceListView: View {
 						} else {
 							List(selection: $selectedService) {
 								ForEach(viewModel.services, id: \.name) { service in
-									ServiceRowView(service: service)
-										.tag(service)
-										.contextMenu {
-											Button("Connect") {
-												self.connect(service: service)
-											}
+									ServiceRowView(service: service, selected: service == selectedService, onConnect: { service in
+										self.connect(service: service)
+									})
+									.tag(service)
+									.contextMenu {
+										Button("Connect") {
+											self.connect(service: service)
 										}
+									}
+									.onTapGesture(count: 2) {
+										self.connect(service: service)
+									}
 								}
 							}
 							.frame(minHeight: geom.size.height)
@@ -360,63 +386,92 @@ struct ServiceListView: View {
 
 struct ServiceRowView: View {
 	let service: NetService
+	let selected: Bool
+	let onConnect: (NetService) -> Void
 
-	var body: some View {
-		VStack(alignment: .leading, spacing: 4) {
-			HStack {
-				Image(systemName: "network")
-					.foregroundColor(.blue)
+	var serviceInfos: some View {
+		HStack {
+			Image(systemName: "network")
+				.foregroundColor(.blue)
 
-				Text(service.name)
-					.font(.headline)
+			Text(service.name)
+				.font(.headline)
 
-				Spacer()
+			Spacer()
 
-				if let hostName = service.hostName {
-					Text(hostName)
-						.font(.caption)
-						.foregroundColor(.secondary)
-						.padding(.horizontal, 6)
-						.padding(.vertical, 2)
-						.background(Color.secondary.opacity(0.1))
-						.cornerRadius(4)
-				}
+			if let hostName = service.hostName {
+				Text(hostName)
+					.font(.caption)
+					.foregroundColor(.secondary)
+					.padding(.horizontal, 6)
+					.padding(.vertical, 2)
+					.background(Color.secondary.opacity(0.1))
+					.cornerRadius(4)
 			}
+		}
+	}
 
-			// TXT records if available
-			HStack(alignment: .center, spacing: 2) {
-				if let txtRecordData = service.txtRecordData() {
-					let txtRecord = NetService.dictionary(fromTXTRecord: txtRecordData)
+	var serviceDetails: some View {
+		HStack(alignment: .center, spacing: 2) {
+			if let txtRecordData = service.txtRecordData() {
+				let txtRecord = NetService.dictionary(fromTXTRecord: txtRecordData)
 
-					if txtRecord.isEmpty == false {
-						ForEach(txtRecord.filter({["tls", "secure"].contains($0.key.lowercased())}) .sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
-							HStack {
-								Text("\(key):")
-									.fontWeight(.semibold)
+				if txtRecord.isEmpty == false {
+					ForEach(txtRecord.filter({["tls", "secure"].contains($0.key.lowercased())}) .sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
+						HStack {
+							let key = String(localized: .init(stringLiteral: key)) + ":"
+
+							Text(key)
+								.fontWeight(.semibold)
+								.font(.caption)
+
+							if let stringValue = String(data: value, encoding: .utf8) {
+								Text(stringValue)
 									.font(.caption)
-
-								if let stringValue = String(data: value, encoding: .utf8) {
-									Text(stringValue)
-										.font(.caption)
-										.foregroundColor(.secondary)
-										.padding(.horizontal, 6)
-										.padding(.vertical, 2)
-										.background(Color.secondary.opacity(0.1))
-										.cornerRadius(4)
-								}
+									.foregroundColor(.secondary)
+									.padding(.horizontal, 6)
+									.padding(.vertical, 2)
+									.background(Color.secondary.opacity(0.1))
+									.cornerRadius(4)
 							}
 						}
 					}
 				}
-				Spacer()
-				if service.port > 0 {
-					Text("Port: \(service.port)")
-						.font(.caption)
-						.foregroundColor(.secondary)
-				}
+			}
+			Spacer()
+			if service.port > 0 {
+				Text("Port: \(service.port)")
+					.font(.caption)
+					.foregroundColor(.secondary)
 			}
 		}
-		.padding(.vertical, 4)
+	}
+
+	var body: some View {
+		if selected {
+			HStack(alignment: .center) {
+				VStack(alignment: .leading, spacing: 4) {
+					self.serviceInfos
+					self.serviceDetails
+				}
+				.padding(.vertical, 4)
+				if #available(macOS 26.0, *) {
+					Button("Connect") {
+						self.onConnect(self.service)
+					}.buttonStyle(.glass)
+				} else {
+					Button("Connect") {
+						self.onConnect(self.service)
+					}.buttonStyle(.bordered)
+				}
+			}
+		} else {
+			VStack(alignment: .leading, spacing: 4) {
+				self.serviceInfos
+				self.serviceDetails
+			}
+			.padding(.vertical, 4)
+		}
 	}
 }
 

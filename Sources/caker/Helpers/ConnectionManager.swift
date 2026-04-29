@@ -5,10 +5,23 @@
 //  Created by Frederic BOLTZ on 24/04/2026.
 //
 import Foundation
+import CakeAgentLib
 import CakedLib
+import GRPC
 import GRPCLib
 
-struct ConnectionManager: Equatable, Hashable {
+class ConnectionManager: Equatable {
+	typealias AsyncThrowingStreamCurrentStatus = (stream: AsyncThrowingStream<[Caked_CurrentStatus], Error>, continuation: AsyncThrowingStream<[Caked_CurrentStatus], Error>.Continuation)
+
+	static func == (lhs: ConnectionManager, rhs: ConnectionManager) -> Bool {
+		return lhs.connectionMode == rhs.connectionMode
+		&& lhs.serviceURL == rhs.serviceURL
+	}
+	
+	static let appConnectionManager = ConnectionManager(connectionMode: .app)
+	static let userConnectionManager = ConnectionManager(connectionMode: .user)
+	static let systemConnectionManager = ConnectionManager(connectionMode: .system)
+
 	enum ConnectionMode: Sendable, Codable {
 		case system
 		case user
@@ -41,29 +54,103 @@ struct ConnectionManager: Equatable, Hashable {
 	}
 	
 	let connectionMode: ConnectionMode
-	let listenAddress: String?
-	let password: String?
-	let tls: Bool
-	
-	init(connectionMode: ConnectionMode = .app, listenAddress: String? = nil, password: String? = nil, tls: Bool = true) {
-		self.connectionMode = connectionMode
-		self.listenAddress = listenAddress
-		self.password = password
-		self.tls = tls
+	let serviceURL: URL?
+
+	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
+	private var currentStatus: AsyncThrowingStreamCurrentStatus? = nil
+	private let logger = Logger("ConnectionManager")
+
+	deinit {
+		if let serviceURL = self.serviceURL {
+			self.logger.debug("Release remote ConnectionManager: \(serviceURL.hiddenPasswordURL)")
+		} else {
+			self.logger.debug("Release local ConnectionManager: \(self.connectionMode)")
+		}
+		self.stopGrandCentral()
 	}
-	
+
+	static func connectionManager(_ runMode: Utils.RunMode) -> ConnectionManager {
+		switch runMode {
+		case .system:
+			return systemConnectionManager
+		case .user:
+			return userConnectionManager
+		case .app:
+			return appConnectionManager
+		}
+	}
+
+	static func connectionManager(_ vmURL: URL, connectionMode: ConnectionMode) -> ConnectionManager {
+		if vmURL.isFileURL || vmURL.scheme == nil {
+			return self.appConnectionManager
+		}
+
+		guard vmURL.path.isEmpty else {
+			return ConnectionManager(vmURL)
+		}
+		
+		if connectionMode == .system {
+			return systemConnectionManager
+		} else if connectionMode == .user {
+			return userConnectionManager
+		} else {
+			return appConnectionManager
+		}
+	}
+
+	init(serviceURL: URL) {
+		self.connectionMode = .remote
+		self.serviceURL = serviceURL
+	}
+
+	private init(connectionMode: ConnectionMode) {
+		self.connectionMode = connectionMode
+		self.serviceURL = nil
+	}
+
+	private init(_ vmURL: URL) {
+		var components = URLComponents(url: vmURL, resolvingAgainstBaseURL: false)!
+
+		if components.path.isEmpty {
+			self.serviceURL = nil
+			self.connectionMode = .user
+		} else {
+			components.scheme = vmURL.scheme == VMLocation.scheme ? "tcp" : "tcps"
+			components.path = ""
+			self.serviceURL = components.url!
+			self.connectionMode = .remote
+		}
+	}
+
 	var serviceClient: CakedServiceClient? {
 		if self.connectionMode == .app {
 			return nil
 		}
 		
 		if self.connectionMode != .remote {
-			return ServiceHandler.serviceClient
+			return try? ServiceHandler.createCakedServiceClient(tls: true, runMode: self.connectionMode.runMode)
 		}
 		
-		return try? ServiceHandler.createCakedServiceClient(listenAddress: listenAddress, password: password, tls: tls, runMode: connectionMode.runMode)
+		return try? ServiceHandler.createCakedServiceClient(serviceURL: self.serviceURL!, runMode: connectionMode.runMode)
 	}
-	
+
+	func vmURL(_ name: String) -> URL {
+		var components = URLComponents()
+
+		if self.connectionMode == .remote {
+			components.scheme = ["tcps", "https"].contains(self.serviceURL!.scheme) ? "\(VMLocation.scheme)s" : VMLocation.scheme
+			components.host = self.serviceURL!.host!
+			components.port = self.serviceURL!.port
+			components.password = self.serviceURL!.password(percentEncoded: false)
+			components.path = "/\(name)"
+		} else {
+			components.scheme = VMLocation.scheme
+			components.host = name
+		}
+
+		return components.url!
+	}
+
 	func loadNetworks() -> [BridgedNetwork] {
 		guard let result = try? NetworksHandler.networks(client: self.serviceClient, runMode: self.connectionMode.runMode) else {
 			return []
@@ -226,3 +313,126 @@ struct ConnectionManager: Equatable, Hashable {
 		try RemoteHandler.deleteRemote(client: self.serviceClient, name: name, runMode: self.connectionMode.runMode)
 	}
 }
+
+extension ConnectionManager {
+	public static let GrandCentralDidTerminateNotification = NSNotification.Name(rawValue: "GrandCentralDidTerminateNotification")
+	public static let GrandCentralDidStartNotification = NSNotification.Name(rawValue: "GrandCentralDidStartNotification")
+
+	func stopGrandCentral() {
+		if let gcd = self.gcd {
+			self.currentStatus?.continuation.finish(throwing: CancellationError())
+			self.currentStatus = nil
+
+			gcd.cancel(promise: nil)
+			self.gcd = nil
+			
+			NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
+		}
+	}
+
+	func startGrandCentral() {
+		guard let serviceClient = self.serviceClient else {
+			return
+		}
+
+		let gcdFuture = Utilities.group.next().makeFutureWithTask {
+			await self.gdc(client: serviceClient)
+		}
+		
+		gcdFuture.whenFailure { error in
+			self.logger.error("GCD failed: \(error)")
+		}
+		
+		gcdFuture.whenComplete { _ in
+			self.logger.debug("GCD stopped")
+			self.gcd = nil
+		}
+
+		NotificationCenter.default.post(name: Self.GrandCentralDidStartNotification, object: self)
+	}
+
+	private func receiveScreenshot(_ vmURL: URL, value: Data) async {
+		let vmURL = self.vmURL(vmURL.vmName)
+
+		if let document = AppState.shared.findVirtualMachineDocument(vmURL) {
+			await document.setScreenshot(value)
+		} else if AppState.shared.connectionManager == self {
+			self.logger.debug("VM : \(vmURL.absoluteString) not found for screenshot")
+		}
+	}
+	
+	private func receiveUsage(_ vmURL: URL, value: Caked_CurrentUsageReply) async {
+		let vmURL = self.vmURL(vmURL.vmName)
+
+		if let document = AppState.shared.findVirtualMachineDocument(vmURL) {
+			await document.setUsage(value)
+		} else if AppState.shared.connectionManager == self {
+			self.logger.debug("VM : \(vmURL.absoluteString) not found for usage")
+		}
+	}
+	
+	private func receiveStatus(_ vmURL: URL, value: Caked_VirtualMachineStatus) async {
+		self.logger.debug("Handle new status \(value) for vm: \(vmURL.absoluteString)")
+
+		let vmURL = self.vmURL(vmURL.vmName)
+
+		if let document = AppState.shared.findVirtualMachineDocument(vmURL) {
+			await MainActor.run {
+				document.setState(value)
+				
+				if value == .deleted {
+					AppState.shared.removeVirtualMachineDocument(vmURL)
+				}
+			}
+		} else if value == .new {
+			AppState.shared.addVirtualMachineDocument(vmURL)
+		} else if AppState.shared.connectionManager == self {
+			self.logger.debug("VM : \(vmURL.absoluteString) not found for status")
+		}
+	}
+
+	private func gdc(client: CakedServiceClient) async {
+		let asyncStream: AsyncThrowingStreamCurrentStatus = AsyncThrowingStream.makeStream(of: [Caked_CurrentStatus].self)
+		
+		let stream = client.grandCentralDispatcher(.init(), callOptions: .init(timeLimit: .none)) { reply in
+			_ = asyncStream.continuation.yield(reply.status.statuses)
+			// Consider calling asyncStream.continuation.finish() when the stream should end
+		}
+
+		self.currentStatus = asyncStream
+		self.gcd = stream
+
+		defer {
+			self.logger.debug(">>> GCD stopped")
+			stream.cancel(promise: nil)
+			self.gcd = nil
+		}
+
+		do {
+			_ = try await stream.subchannel.get()
+			
+			for try await statuses in asyncStream.stream {
+				for status in statuses {
+					let vmURL = URL(string: "\(VMLocation.scheme)://\(status.name)")!
+					
+					switch status.message {
+					case .status(let value):
+						await self.receiveStatus(vmURL, value: value)
+					case .screenshot(let value):
+						await self.receiveScreenshot(vmURL, value: value)
+					case .usage(let value):
+						await self.receiveUsage(vmURL, value: value)
+					default:
+						break
+					}
+				}
+			}
+		} catch is CancellationError {
+			// Silent
+		} catch {
+			self.logger.error("Error in gdc: \(error)")
+		}
+	}
+
+}
+

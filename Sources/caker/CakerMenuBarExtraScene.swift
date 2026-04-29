@@ -10,7 +10,7 @@ import GRPCLib
 import SwiftUI
 
 struct CakerMenuBarExtraScene: Scene {
-	@ObservedObject var appState: AppState
+	@StateObject var appState: AppState
 	@AppStorage("ShowMenuIcon") private var isMenuIconShown: Bool = false
 	@AppStorage("HideDockIcon") private var isDockIconHidden: Bool = false
 	@Environment(\.openWindow) private var openWindow
@@ -47,7 +47,11 @@ struct CakerMenuBarExtraScene: Scene {
 			}
 
 			Menu("Service") {
-				
+				Button("Browser of services") {
+					openWindow(id: "remote")
+				}.keyboardShortcut("B")
+					.help("Show the service browser.")
+				Divider()
 				if self.appState.cakedServiceInstalled {
 					Button("Remove service") {
 						MainApp.removeCakedService()
@@ -88,8 +92,7 @@ struct CakerMenuBarExtraScene: Scene {
 			} else {
 				Menu("Virtual machines") {
 					ForEach(appState.virtualMachines.vms) { vm in
-						VMMenuItem(vm: vm.document, appState: appState)
-							.environmentObject(appState)
+						VMMenuItem(vm: vm.document)
 					}
 				}
 			}
@@ -121,8 +124,13 @@ struct CakerMenuBarExtraScene: Scene {
 
 private struct VMMenuItem: View {
 	@Environment(\.openWindow) var openWindow
-	@ObservedObject var vm: VirtualMachineDocument
-	@ObservedObject var appState: AppState
+	var vm: VirtualMachineDocument
+	@State var status: VirtualMachineDocument.Status
+	
+	init(vm: VirtualMachineDocument) {
+		self.vm = vm
+		self.status = vm.status
+	}
 
 	var body: some View {
 		Menu(vm.name) {
@@ -165,9 +173,11 @@ private struct VMMenuItem: View {
 							vm.suspendFromUI()
 						}
 					}
-
 				}
 			}
+		}
+		.onChange(of: self.vm.status) {
+			self.status = self.vm.status
 		}
 	}
 
@@ -177,10 +187,10 @@ private struct VMMenuItem: View {
 	}
 
 	func createTemplate() {
-		appState.createTemplate(document: self.vm)
+		AppState.shared.createTemplate(document: self.vm)
 	}
 
 	func deleteVirtualMachine() {
-		appState.deleteVirtualMachine(document: self.vm)
+		AppState.shared.deleteVirtualMachine(document: self.vm)
 	}
 }

@@ -201,10 +201,10 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private let logger = Logger("VirtualMachineDocument")
 	private var agentMonitoring: Task<Void, Never>?
 	private var inView: Bool = false
-	private var connectionManager: ConnectionManager = .init()
 
 	let id = UUID().uuidString
 	
+	var connectionManager = ConnectionManager.appConnectionManager
 	var interactiveShell: InteractiveShell? = nil
 	var vncView: NSVNCView?
 	var virtualMachine: VirtualMachine!
@@ -258,11 +258,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			}
 
 			if AppState.shared.currentDocument == self {
-				AppState.shared.isAgentInstalling = self.agent == .installing && status == .running
-				AppState.shared.isStopped = status == .stopped || status == .stopping
-				AppState.shared.isRunning = status == .running || status == .starting
-				AppState.shared.isPaused = status == .paused || status == .pausing
-				AppState.shared.isSuspendable = status == .running && self.suspendable
+				AppState.shared.updateState()
 			}
 		}
 	}
@@ -329,6 +325,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 	
 	deinit {
+		self.logger.debug("Release document: \(self.url!)")
 		self.stopAgentMonitoring()
 		
 		if let monitor = self.monitor {
@@ -374,18 +371,16 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 
 	private init(vmURL: URL, status: Status, vncURL: [String]?, config: any VirtualMachineConfiguration, connectionManager: ConnectionManager) throws {
-		guard let name = vmURL.host(percentEncoded: false) else {
-			throw ServiceError(String(localized: "Internal error"))
-		}
+		let name = vmURL.vmName
 
 		self.name = name
 		self.url = vmURL
 		self.virtualMachineConfig = VirtualMachineConfig(name: name, config: config)
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
-		self.status = status
-		self.vncURL = vncURL?.compactMap { URL(string: $0) }
 		self.connectionManager = connectionManager
+
 		self.setDocumentSize(.init(self.virtualMachineConfig.display.cgSize))
+		self.updateCurrentStatus(status, suspendable: config.suspendable, vncURL: vncURL?.compactMap { URL(string: $0) })
 	}
 	
 	static func anyVirtualMachineDocument() throws -> VirtualMachineDocument {
@@ -396,12 +391,13 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		return try VirtualMachineDocument(location: location)
 	}
 
-	static func createVirtualMachineDocument(vmURL: URL, connectionManager: ConnectionManager) throws -> VirtualMachineDocument {
+	static func openVirtualMachineDocument(_ vmURL: URL, connectionManager: ConnectionManager) throws -> VirtualMachineDocument {
 		if vmURL.isFileURL {
 			return try VirtualMachineDocument(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: .app))
-		} else if AppState.shared.connectionMode == .app {
-			return try VirtualMachineDocument(location: StorageLocation(runMode: .app).find(vmURL.host(percentEncoded: false)!))
+		} else if connectionManager.connectionMode == .app {
+			return try VirtualMachineDocument(location: StorageLocation(runMode: .app).find(vmURL.vmName))
 		} else {
+			//let connectionManager = ConnectionManager.connectionManager(vmURL, connectionMode: connectionMode)
 			let infos = try connectionManager.virtualMachineInfos(vmURL: vmURL)
 			
 			return try VirtualMachineDocument(vmURL: vmURL,
@@ -419,17 +415,21 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 		if result.success {
 			if client != nil {
-				vms = result.infos.reduce(into: vms) { (partialResult, info) in
-					if let vmURL = URL(string: info.fqn.first!), let config = info.config, let vm = try? VirtualMachineDocument(vmURL: vmURL, status: .init(CakeAgentLib.Status(info.state)), vncURL: info.vncURL, config: config, connectionManager: connectionManager) {
-						partialResult[vmURL] = vm
+				vms = try result.infos.reduce(into: vms) { (partialResult, info) in
+					guard let vmURL = URL(string: info.fqn.first!), let config = info.config else {
+						throw ServiceError(String(localized: "Internal error"))
+					}
+
+					if let vm = try? VirtualMachineDocument(vmURL: connectionManager.vmURL(vmURL.vmName), status: .init(CakeAgentLib.Status(info.state)), vncURL: info.vncURL, config: config, connectionManager: connectionManager) {
+						partialResult[vm.url] = vm
 					}
 				}
 			} else {
 				let storage = StorageLocation(runMode: connectionManager.connectionMode.runMode)
 
 				vms = result.infos.reduce(into: vms) { (partialResult, info) in
-					if let vmURL = URL(string: info.fqn.first!), let name = vmURL.host(percentEncoded: false), let location = try? storage.find(name), let vm = try? VirtualMachineDocument(location: location) {
-						partialResult[location.rootURL] = vm
+					if let vmURL = URL(string: info.fqn.first!), let location = try? storage.find(vmURL.vmName), let vm = try? VirtualMachineDocument(location: location) {
+						partialResult[vm.url] = vm
 					}
 				}
 			}
@@ -509,6 +509,17 @@ extension VirtualMachineDocument {
 		AppState.shared.closeVirtualMachineDocument(self)
 	}
 	
+	func updateCurrentStatus(_ newStatus: Status, suspendable: Bool, vncURL: [URL]? = nil) {
+		self.status = newStatus
+		self.canStart = newStatus == .stopped || newStatus == .paused
+		self.canStop = newStatus == .running
+		self.canPause = newStatus == .running
+		self.canResume = newStatus == .paused
+		self.canRequestStop = newStatus == .running
+		self.vncURL = vncURL
+		self.suspendable = suspendable
+	}
+
 	@MainActor
 	func setStateAsStopped(_ status: Status = .stopped, _line: UInt = #line, _file: String = #file) {
 #if DEBUG
@@ -519,16 +530,10 @@ extension VirtualMachineDocument {
 		self.stopAgentMonitoring()
 		self.interactiveShell?.cancelShell()
 
+		self.updateCurrentStatus(status, suspendable: false, vncURL: nil)
+
 		self.interactiveShell = nil
-		self.canStart = true
-		self.canStop = false
-		self.canPause = false
-		self.canResume = false
-		self.canRequestStop = false
-		self.suspendable = false
-		self.vncURL = nil
 		self.vncStatus = .disconnected
-		self.status = status
 		self.externalRunning = false
 		self.agentCondition = ("Install agent", false, true)
 		self.agentReady = false
@@ -538,21 +543,15 @@ extension VirtualMachineDocument {
 			connection.disconnect()
 		}
 	}
-	
+
 	@MainActor
 	func setStateAsRunning(suspendable: Bool, vncURL: [URL]?, _line: UInt = #line, _file: String = #file) {
 #if DEBUG
 		self.logger.debug("setStateAsRunning, suspendable: \(suspendable) at \(_file):\(_line)")
 #endif
 
-		self.canStart = false
-		self.canStop = true
-		self.canPause = true
-		self.canResume = false
-		self.canRequestStop = true
-		self.suspendable = suspendable
-		self.vncURL = vncURL
-		self.status = .running
+		self.updateCurrentStatus(.running, suspendable: suspendable, vncURL: vncURL)
+
 		self.agentReady = false
 		self.agentCondition = ("Install agent", false, self.agent != .none)
 
@@ -566,14 +565,7 @@ extension VirtualMachineDocument {
 		self.logger.debug("setOtherState to \(status) at \(_file):\(_line)")
 #endif
 		
-		self.status = status
-		self.canStart = status == .stopped || status == .paused
-		self.canStop = status == .running
-		self.canPause = status == .running
-		self.canResume = status == .paused
-		self.canRequestStop = status == .running
-		self.vncURL = vncURL
-		self.suspendable = suspendable
+		self.updateCurrentStatus(status, suspendable: suspendable, vncURL: vncURL)
 	}
 
 	func setState(_ status: Caked_VirtualMachineStatus) {
@@ -611,14 +603,9 @@ extension VirtualMachineDocument {
 			self.interactiveShell?.cancelShell()
 		}
 
-		self.status = newStatus
-		self.canStart = newStatus == .stopped || newStatus == .paused
-		self.canStop = newStatus == .running
-		self.canPause = newStatus == .running
-		self.canResume = newStatus == .paused
-		self.canRequestStop = newStatus == .running
-
 		if status == .running {
+			self.updateCurrentStatus(newStatus, suspendable: self.suspendable, vncURL: self.vncURL)
+
 			AppState.shared.openVirtualMachineDocument(self)
 
 			if let vncInfos = try? self.connectionManager.vncInfos(vmURL: self.url) {
@@ -635,11 +622,11 @@ extension VirtualMachineDocument {
 				self.tryVNCConnect()
 			}
 		} else {
+			self.updateCurrentStatus(newStatus, suspendable: false, vncURL: nil)
+
 			self.interactiveShell?.cancelShell()
 
 			self.interactiveShell = nil
-			self.suspendable = false
-			self.vncURL = nil
 			self.vncStatus = .disconnected
 			self.agentCondition = ("Install agent", false, true)
 			self.agentReady = false
@@ -1280,7 +1267,6 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	func connection(_ connection: VNCConnection, didUpdateCursor cursor: VNCCursor) {
 		vncView?.connection(connection, didUpdateCursor: cursor)
 	}
-
 }
 
 // MARK: - Agent Monitoring
@@ -1484,5 +1470,16 @@ extension VirtualMachineDocument {
 extension VirtualMachineDocument: NSVNCViewDelegate {
 	func viewDidEndLiveResize(_ view: CakedLib.NSVNCView) {
 		self.setScreenSize(.init(view.bounds.size))
+	}
+}
+
+// MARK: - Grand central
+extension VirtualMachineDocument {
+	func grandCentralDidStart() {
+		
+	}
+	
+	func grandCentralDidStop() {
+		
 	}
 }

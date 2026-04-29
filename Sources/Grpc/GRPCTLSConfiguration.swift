@@ -21,6 +21,7 @@ public class GrpcError: Error {
 
 extension Caked {
 	public static let defaultServicePort = 5101
+	public static let supportedSchemes: Set<String?> = ["file", "unix", "tcp", "tcps", "https", "http"]
 
 	public static func createClient(
 		on: EventLoopGroup,
@@ -30,7 +31,6 @@ extension Caked {
 		caCert: String?,
 		tlsCert: String?,
 		tlsKey: String?,
-		password: String? = nil,
 		interceptors: Caked_ServiceClientInterceptorFactoryProtocol? = nil
 	) throws -> CakedServiceClient {
 		if let listeningAddress = listeningAddress {
@@ -40,17 +40,15 @@ extension Caked {
 			if listeningAddress.scheme == "unix" || listeningAddress.isFileURL {
 				target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
 				inet = false
-			} else if listeningAddress.scheme == "tcp" {
+			} else if supportedSchemes.contains(listeningAddress.scheme) {
 				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? Caked.defaultServicePort)
 				inet = true
 			} else {
-				throw GrpcError(
-					code: -1,
-					reason:
-						"unsupported address scheme: \(String(describing: listeningAddress.scheme))")
+				throw GrpcError(code: -1, reason: "unsupported address scheme: \(String(describing: listeningAddress.scheme))")
 			}
 
 			var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: on)
+			let password = listeningAddress.password(percentEncoded: false)
 
 			if let tlsCert = tlsCert, let tlsKey = tlsKey {
 				if inet == false || password == nil {

@@ -132,19 +132,7 @@ class AppState: ObservableObject, Observable {
 	@Published var connectionMode: ConnectionManager.ConnectionMode = .app
 	@Published var currentDocument: VirtualMachineDocument! {
 		didSet {
-			if let currentDocument {
-				self.isAgentInstalling = currentDocument.agent == .installing && currentDocument.status == .running
-				self.isStopped = currentDocument.status == .stopped || currentDocument.status == .stopping
-				self.isRunning = currentDocument.status == .running || currentDocument.status == .starting
-				self.isPaused = currentDocument.status == .paused || currentDocument.status == .pausing
-				self.isSuspendable = currentDocument.status == .running && currentDocument.suspendable
-			} else {
-				self.isAgentInstalling = false
-				self.isStopped = true
-				self.isRunning = false
-				self.isPaused = false
-				self.isSuspendable = false
-			}
+			self.updateState()
 		}
 	}
 	@Published var isAgentInstalling: Bool = false
@@ -157,82 +145,31 @@ class AppState: ObservableObject, Observable {
 	@Published var networks: [BridgedNetwork] = []
 	@Published var virtualMachines: [URL: VirtualMachineDocument] = [:]
 	@Published var hasVMNetworking = Entitlement.hasVMNetworking()
-	
-	private var connectionManager: ConnectionManager
-	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
-	private var openedVirtualMachines: [VirtualMachineDocument] = []
+	@Published var connectionManager: ConnectionManager
+
+	private var openedVirtualMachines: [URL: VirtualMachineDocument] = [:]
 
 	deinit {
 		agentStatusTimer?.cancel()
-		gcd?.cancel(promise: nil)
+		connectionManager.stopGrandCentral()
 	}
-	
-	private func receiveScreenshot(_ vmURL: URL, value: Data) async {
-		if let document = self.findVirtualMachineDocument(vmURL) {
-			await document.setScreenshot(value)
+
+	func updateState() {
+		if let currentDocument {
+			self.isAgentInstalling = currentDocument.agent == .installing && currentDocument.status == .running
+			self.isStopped = currentDocument.status == .stopped || currentDocument.status == .stopping
+			self.isRunning = currentDocument.status == .running || currentDocument.status == .starting
+			self.isPaused = currentDocument.status == .paused || currentDocument.status == .pausing
+			self.isSuspendable = currentDocument.status == .running && currentDocument.suspendable
 		} else {
-			self.logger.debug("VM : \(vmURL.absoluteString) not found for screenshot")
+			self.isAgentInstalling = false
+			self.isStopped = true
+			self.isRunning = false
+			self.isPaused = false
+			self.isSuspendable = false
 		}
 	}
-	
-	private func receiveUsage(_ vmURL: URL, value: Caked_CurrentUsageReply) async {
-		if let document = self.findVirtualMachineDocument(vmURL) {
-			await document.setUsage(value)
-		} else {
-			self.logger.debug("VM : \(vmURL.absoluteString) not found for usage")
-		}
-	}
-	
-	private func receiveStatus(_ vmURL: URL, value: Caked_VirtualMachineStatus) async {
-		self.logger.debug("Handle new status \(value) for vm: \(vmURL.absoluteString)")
-		
-		if let document = self.findVirtualMachineDocument(vmURL) {
-			await MainActor.run {
-				document.setState(value)
-				
-				if value == .deleted {
-					self.removeVirtualMachineDocument(vmURL)
-				}
-			}
-		} else if value == .new {
-			self.addVirtualMachineDocument(vmURL)
-		} else {
-			self.logger.debug("VM : \(vmURL.absoluteString) not found for status")
-		}
-	}
-	
-	private func gdc(client: CakedServiceClient) async {
-		let asyncStream = AsyncThrowingStream.makeStream(of: [Caked_CurrentStatus].self)
-		
-		let stream = client.grandCentralDispatcher(.init(), callOptions: .init(timeLimit: .none)) { reply in
-			_ = asyncStream.continuation.yield(reply.status.statuses)
-			// Consider calling asyncStream.continuation.finish() when the stream should end
-		}
-		
-		do {
-			_ = try await stream.subchannel.get()
-			
-			for try await statuses in asyncStream.stream {
-				for status in statuses {
-					let vmURL = URL(string: "\(VMLocation.scheme)://\(status.name)")!
-					
-					switch status.message {
-					case .status(let value):
-						await self.receiveStatus(vmURL, value: value)
-					case .screenshot(let value):
-						await self.receiveScreenshot(vmURL, value: value)
-					case .usage(let value):
-						await self.receiveUsage(vmURL, value: value)
-					default:
-						break
-					}
-				}
-			}
-		} catch {
-			stream.cancel(promise: nil)
-		}
-	}
-	
+
 	private static func loadService(connectionManager: ConnectionManager) throws -> ServiceReply {
 		Logger("AppState").debug("Loading data for mode: connectionMode=\(connectionManager.connectionMode.runMode)")
 		
@@ -245,26 +182,12 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	private func switchMode(_ installed: Bool, connectionManager: ConnectionManager) {
-		func startGrandCentral() {
-			let gcdFuture = Utilities.group.next().makeFutureWithTask {
-				await self.gdc(client: connectionManager.serviceClient!)
-			}
-			
-			gcdFuture.whenFailure { error in
-				self.logger.error("GCD failed: \(error)")
-			}
-			
-			gcdFuture.whenComplete { _ in
-				self.logger.debug("GCD stopped")
-				self.gcd = nil
-			}
-		}
-		
 		self.logger.debug("Switching mode: installed=\(installed), connectionMode=\(connectionMode)")
-		
-		if connectionManager.connectionMode == .app {
-			self.gcd?.cancel(promise: nil)
-			self.gcd = nil
+
+		if self.openedVirtualMachines.values.first(where: { document in
+			self.connectionManager == document.connectionManager
+		}) == nil {
+			self.connectionManager.stopGrandCentral()
 		}
 		
 		Utilities.group.next().makeFutureWithTask {
@@ -289,9 +212,7 @@ class AppState: ObservableObject, Observable {
 					self.remotes = serviceReply.remotes
 					self.templates = serviceReply.templates
 					
-					if connectionMode != .app && self.gcd == nil {
-						startGrandCentral()
-					}
+					connectionManager.startGrandCentral()
 
 					NotificationCenter.default.post(name: Self.AppStateChanged, object: connectionManager)
 				}
@@ -307,8 +228,9 @@ class AppState: ObservableObject, Observable {
 	
 	func agentStatusWatch(_ task: RepeatedTask) {
 		guard self.connectionMode != .remote else { return }
-		
-		let connectionMode = ConnectionManager.ConnectionMode(ServiceHandler.runningMode)
+
+		let runMode = ServiceHandler.runningMode
+		let connectionMode = ConnectionManager.ConnectionMode(runMode)
 		let installed = ServiceHandler.isAgentInstalled
 		
 		if self.cakedServiceInstalled != installed || self.connectionMode != connectionMode {
@@ -316,13 +238,16 @@ class AppState: ObservableObject, Observable {
 			self.logger.debug("Suspend timer for new mode: installed=\(installed), connectionMode=\(connectionMode)")
 			self.agentStatusTimer = nil
 			task.cancel()
-			
-			self.switchMode(installed, connectionManager: ConnectionManager(connectionMode: connectionMode))
+
+			DispatchQueue.main.async {
+				self.switchMode(installed, connectionManager: ConnectionManager.connectionManager(runMode))
+			}
 		}
 	}
 	
 	private init() {
-		let connectionManager = ConnectionManager(connectionMode: ConnectionManager.ConnectionMode(ServiceHandler.runningMode))
+		let runMode = ServiceHandler.runningMode
+		let connectionManager = ConnectionManager.connectionManager(runMode)
 		let cakedServiceInstalled = ServiceHandler.isAgentInstalled
 		let cakedServiceRunning = connectionManager.connectionMode != .app
 		
@@ -357,12 +282,12 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 	
-	func connectToRemote(listenAddress: String, password: String? = nil, tls: Bool) {
-		self.switchMode(self.cakedServiceInstalled, connectionManager: ConnectionManager(connectionMode: .remote, listenAddress: listenAddress, password: password, tls: tls))
+	func connectToRemote(_ serviceURL: URL) {
+		self.switchMode(self.cakedServiceInstalled, connectionManager: ConnectionManager(serviceURL: serviceURL))
 	}
 	
 	func connectToLocal() {
-		self.switchMode(self.cakedServiceInstalled, connectionManager: ConnectionManager(connectionMode: .app))
+		self.switchMode(self.cakedServiceInstalled, connectionManager: ConnectionManager.appConnectionManager)
 	}
 	
 	func loadNetworks() -> [BridgedNetwork] {
@@ -442,35 +367,44 @@ class AppState: ObservableObject, Observable {
 		guard let url else {
 			return nil
 		}
-		
-		return self.virtualMachines[url]
-	}
-	
-	func findVirtualMachineDocument(_ url: URL) -> VirtualMachineDocument? {
-		return self.virtualMachines[url]
-	}
-	
-	func findVirtualMachineDocument(_ name: String) -> VirtualMachineDocument? {
-		self.virtualMachines.values.first {
-			$0.name == name
+
+		guard let vm = self.openedVirtualMachines[url] else {
+			return self.virtualMachines[url]
 		}
+
+		return vm
+	}
+
+	func findVirtualMachineDocument(_ name: String) -> VirtualMachineDocument? {
+		findVirtualMachineDocument(self.connectionManager.vmURL(name))
 	}
 	
 	func fullQualifiedVMUrl(_ vmURL: URL?) -> URL? {
 		guard let vmURL = vmURL else {
 			return nil
 		}
-		
-		guard vmURL.isFileURL else {
-			guard self.connectionMode == .app else {
-				return vmURL
+
+		let storage = StorageLocation(runMode: self.connectionMode.runMode)
+
+		// Try to convert local file URL to "vm://name"
+		if vmURL.isFileURL {
+			if self.connectionMode == .user || self.connectionMode == .system {
+				// Look same place
+				if vmURL.absoluteString.hasPrefix(storage.rootURL.absoluteString) {
+					// Extract vm name
+					let vmName = vmURL.lastPathComponent.deletingPathExtension
+
+					// Find it
+					if let location = try? storage.find(vmName), location.rootURL == vmURL {
+						return URL(string: "\(VMLocation.scheme)://\(vmName)")!
+					}
+				}
 			}
-			
-			if let location = try? StorageLocation(runMode: self.connectionMode.runMode).find(vmURL.host(percentEncoded: false)!) {
+		} else if self.connectionMode == .app && VMLocation.supportedSchemes.contains(vmURL.scheme) {
+			// We run standalone convert to file url
+			if let location = try? StorageLocation(runMode: self.connectionMode.runMode).find(vmURL.vmName) {
 				return location.rootURL
 			}
-			
-			return nil
 		}
 		
 		return vmURL
@@ -482,7 +416,7 @@ class AppState: ObservableObject, Observable {
 		}
 		
 		guard let vm = self.findVirtualMachineDocument(vmURL) else {
-			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: vmURL, connectionManager: self.connectionManager) else {
+			guard let vm = try? VirtualMachineDocument.openVirtualMachineDocument(vmURL, connectionManager: self.connectionManager) else {
 				return nil
 			}
 			
@@ -495,27 +429,31 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	@discardableResult
-	func addVirtualMachineDocument(_ url: URL) -> VirtualMachineDocument? {
-		guard let vm = self.findVirtualMachineDocument(url) else {
-			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: url, connectionManager: self.connectionManager) else {
+	func addVirtualMachineDocument(_ vmURL: URL) -> VirtualMachineDocument? {
+		guard let vm = self.findVirtualMachineDocument(vmURL) else {
+			guard let vm = try? VirtualMachineDocument.openVirtualMachineDocument(vmURL, connectionManager: self.connectionManager) else {
 				return nil
 			}
 			
-			self.virtualMachines[url] = vm
+			self.virtualMachines[vmURL] = vm
 			return vm
 		}
 		
 		return vm
 	}
 	
-	func removeVirtualMachineDocument(_ url: URL) {
-		if self.virtualMachines[url] != nil {
-			self.virtualMachines.removeValue(forKey: url)
+	func removeVirtualMachineDocument(_ vmURL: URL) {
+		if self.virtualMachines[vmURL] != nil {
+			self.virtualMachines.removeValue(forKey: vmURL)
+		}
+
+		if self.openedVirtualMachines[vmURL] != nil {
+			self.openedVirtualMachines.removeValue(forKey: vmURL)
 		}
 	}
 	
 	func haveVirtualMachinesRunning() -> Bool {
-		guard self.openedVirtualMachines.first( where: { $0.status == .running && $0.url.isFileURL && $0.externalRunning == false }) == nil else {
+		guard self.openedVirtualMachines.values.first( where: { $0.status == .running && $0.url.isFileURL && $0.externalRunning == false }) == nil else {
 			return true
 		}
 		
@@ -718,14 +656,10 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func openVirtualMachineDocument(_ document: VirtualMachineDocument) {
-		if self.openedVirtualMachines.contains(document) == false {
-			self.openedVirtualMachines.append(document)
-		}
+		self.openedVirtualMachines[document.url] = document
 	}
 
 	func closeVirtualMachineDocument(_ document: VirtualMachineDocument) {
-		self.openedVirtualMachines.removeAll {
-			$0.id == document.id
-		}
+		self.openedVirtualMachines.removeValue(forKey: document.url)
 	}
 }
