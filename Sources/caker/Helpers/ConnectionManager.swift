@@ -400,10 +400,12 @@ extension ConnectionManager {
 		}
 
 		self.currentStatus = asyncStream
+		self.gcd = stream
 
 		defer {
 			self.logger.debug(">>> GCD stopped")
 			stream.cancel(promise: nil)
+			self.gcd = nil
 		}
 
 		do {
