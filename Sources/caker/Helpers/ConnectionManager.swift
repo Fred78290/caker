@@ -111,6 +111,7 @@ class ConnectionManager: Equatable {
 			self.serviceURL = nil
 			self.connectionMode = .user
 		} else {
+			components.scheme = vmURL.scheme == VMLocation.scheme ? "tcp" : "tcps"
 			components.path = ""
 			self.serviceURL = components.url!
 			self.connectionMode = .remote
