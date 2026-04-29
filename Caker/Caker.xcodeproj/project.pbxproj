@@ -1498,12 +1498,12 @@
 		9B30BA492E0BDB5600256A9D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */,
-				9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */,
 				9B5F4B522F728AF200AE1991 /* Authorization.swift */,
+				9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */,
 				9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */,
 				9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */,
 				9B5D7BCD2EAA9602001FB96E /* Color.swift */,
+				9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */,
 				9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */,
 				9B30BA482E0BDB5600256A9D /* FileHelpers.swift */,
 				9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */,
