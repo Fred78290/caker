@@ -49,7 +49,7 @@ struct CakerMenuBarExtraScene: Scene {
 			Menu("Service") {
 				Button("Browser of services") {
 					openWindow(id: "remote")
-				}.keyboardShortcut("H")
+				}.keyboardShortcut("B")
 					.help("Show the service browser.")
 				Divider()
 				if self.appState.cakedServiceInstalled {
