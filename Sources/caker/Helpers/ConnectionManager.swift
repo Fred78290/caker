@@ -54,14 +54,18 @@ class ConnectionManager: Equatable {
 	}
 	
 	let connectionMode: ConnectionMode
-	let serviceURL: URL!
+	let serviceURL: URL?
 
 	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
 	private var currentStatus: AsyncThrowingStreamCurrentStatus? = nil
 	private let logger = Logger("ConnectionManager")
 
 	deinit {
-		self.logger.debug("Release ConnectionManager: \(self.serviceURL!)")
+		if let serviceURL = self.serviceURL {
+			self.logger.debug("Release ConnectionManager: \(serviceURL)")
+		} else {
+			self.logger.debug("Release ConnectionManager: \(self.connectionMode)")
+		}
 		self.stopGrandCentral()
 	}
 
