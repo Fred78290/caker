@@ -534,7 +534,6 @@ extension VirtualMachineDocument {
 
 		self.interactiveShell = nil
 		self.vncStatus = .disconnected
-		self.status = status
 		self.externalRunning = false
 		self.agentCondition = ("Install agent", false, true)
 		self.agentReady = false
