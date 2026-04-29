@@ -49,7 +49,7 @@ extension GrpcCommand {
 		components.password = self.password
 
 		let connection = try Caked.createClient(
-			on: Utilities.group,
+			on: group,
 			listeningAddress: components.url!,
 			connectionTimeout: self.options.timeout,
 			retries: retries,
