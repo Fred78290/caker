@@ -212,7 +212,11 @@ struct ServiceListView: View {
 		serviceURL.scheme = manualUseTLS ? "tcps" : "tcp"
 		serviceURL.password = manualPassword.isEmpty ? nil : manualPassword
 
-		let url = serviceURL.url!
+		guard let url = serviceURL.url else {
+			manualError = String(localized: "Please enter a valid hostname or IP address.")
+			return
+		}
+
 		let result = checkIfServiceIsReachable(url)
 
 		if result.reachable {
