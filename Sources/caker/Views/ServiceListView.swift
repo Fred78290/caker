@@ -104,20 +104,6 @@ struct ServiceListView: View {
 		return stringValue.lowercased() == "true"
 	}
 
-	private func checkIfTlsIsRequired(service: NetService) -> Bool {
-		guard let txtRecordData = service.txtRecordData() else {
-			return false
-		}
-		
-		let txtRecord = NetService.dictionary(fromTXTRecord: txtRecordData)
-
-		guard let value = txtRecord["tls"], let stringValue = String(data: value, encoding: .utf8) else {
-			return false
-		}
-
-		return stringValue.lowercased() == "true"
-	}
-
 	private func connect(service: NetService) {
 		self.selectedService = service
         self.enteredPassword = ""
