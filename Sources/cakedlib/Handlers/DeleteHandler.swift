@@ -25,7 +25,7 @@ public struct DeleteHandler {
 			} else if let vmURL = URL(string: name) {
 				let location: VMLocation
 				
-				if vmURL.scheme == VMLocation.scheme || vmURL.isFileURL {
+				if vmURL.isFileURL || (vmURL.scheme.map { VMLocation.supportedSchemes.contains($0) } ?? false) {
 					location = try VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode)
 				} else {
 					return DeletedObject(source: "vm", name: name, deleted: false, reason: String(localized: "VM not found"))
