@@ -39,20 +39,26 @@ extension GrpcCommand {
 		return password
 	}
 
-	func prepareClient() throws -> (EventLoopGroup, CakedServiceClient) {
-		let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+	func prepareClient(group: EventLoopGroup) throws -> CakedServiceClient {
+		let address = self.options.address
+
+		guard var components = URLComponents(string: address) else {
+			throw ServiceError("unsupported url: \(address)")
+		}
+		
+		components.password = self.password
+
 		let connection = try Caked.createClient(
-			on: group,
-			listeningAddress: URL(string: self.options.address),
+			on: Utilities.group,
+			listeningAddress: components.url!,
 			connectionTimeout: self.options.timeout,
 			retries: retries,
 			caCert: self.options.caCert,
 			tlsCert: self.options.tlsCert,
 			tlsKey: self.options.tlsKey,
-			password: self.password,
 			interceptors: self.interceptors)
 
-		return (group, connection)
+		return connection
 	}
 }
 
@@ -62,7 +68,8 @@ protocol GrpcParsableCommand: ParsableCommand, GrpcCommand {
 
 extension GrpcParsableCommand {
 	public mutating func run() throws {
-		let (group, grpcClient) = try self.prepareClient()
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+		let grpcClient = try self.prepareClient(group: group)
 
 		defer {
 			try? grpcClient.channel.close().wait()
@@ -79,7 +86,8 @@ protocol AsyncGrpcParsableCommand: AsyncParsableCommand, GrpcCommand {
 
 extension AsyncGrpcParsableCommand {
 	public mutating func run() async throws {
-		let (group, grpcClient) = try self.prepareClient()
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+		let grpcClient = try self.prepareClient(group: group)
 
 		func finish() async {
 			try? await grpcClient.channel.close().get()

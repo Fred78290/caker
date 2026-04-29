@@ -10,26 +10,15 @@ import GRPCLib
 
 extension SuspendHandler {
 	public static func suspendVM(client: CakedServiceClient?, vmURL: URL, runMode: Utils.RunMode) throws -> SuspendReply {
-		guard let client = client else {
+		guard let client, vmURL.isFileURL == false else {
 			return try SuspendReply(
 				objects: [
 					suspendVM(vmURL: vmURL, runMode: runMode)
 				], success: true, reason: "Success")
-		}
-
-		if vmURL.isFileURL {
-			return try SuspendReply(
-				objects: [
-					suspendVM(vmURL: vmURL, runMode: runMode)
-				], success: true, reason: "Success")
-		}
-
-		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		return SuspendReply(try client.suspend(.with {
-			$0.names = [host]
+			$0.names = [vmURL.vmName]
 		}).response.wait().vms.suspend)
 	}
 }

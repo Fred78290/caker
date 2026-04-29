@@ -10,26 +10,16 @@ import GRPCLib
 
 extension StopHandler {
 	public static func stopVM(client: CakedServiceClient?, vmURL: URL, force: Bool, runMode: Utils.RunMode) throws -> StopReply {
-		guard let client else {
+		guard let client, vmURL.isFileURL == false else {
 			return StopReply(objects: [
 				self.stopVM(vmURL: vmURL, force: force, runMode: runMode)
 			], success: true, reason: "Success")
-		}
-
-		if vmURL.isFileURL {
-			return StopReply(objects: [
-				self.stopVM(vmURL: vmURL, force: force, runMode: runMode)
-			], success: true, reason: "Success")
-		}
-
-		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		return try StopReply(client.stop(.with {
 			$0.force = force
 			$0.names = .with {
-				$0.list = [host]
+				$0.list = [vmURL.vmName]
 			}
 		}).response.wait().vms.stop)
 	}

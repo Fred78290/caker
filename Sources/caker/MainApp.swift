@@ -134,7 +134,7 @@ struct MainApp: App {
 			let document = file.document.attachedVirtualDocument
 			let initialSize = document.virtualMachineConfig.display.cgSize
 			
-			if document.location != nil {
+			if document.location != nil || document.url.isFileURL == false {
 				HostVirtualMachineView(appState: $appState, document: document)
 					.colorSchemeForColor()
 					.windowMinimizeBehavior(.enabled)
@@ -187,7 +187,7 @@ struct MainApp: App {
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
 
-		Window("Server browser", id: "Remote") {
+		Window("Browser of services", id: "remote") {
 			CakedServerView(appState: $appState)
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
@@ -274,7 +274,7 @@ struct MainApp: App {
 		
 		CommandMenu("Service") {
 			Button("Connect to remote") {
-				self.openWindow(id: "Remote")
+				self.openWindow(id: "remote")
 			}
 			Divider()
 			if self.appState.cakedServiceInstalled {

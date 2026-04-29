@@ -10,20 +10,12 @@ import GRPCLib
 
 extension VNCInfosHandler {
 	public static func vncInfos(client: CakedServiceClient?, vmURL: URL, runMode: Utils.RunMode) throws -> VNCInfos {
-		guard let client else {
+		guard let client, vmURL.isFileURL == false else {
 			return try self.vncInfos(vmURL: vmURL, runMode: runMode)
-		}
-		
-		if vmURL.isFileURL {
-			return try self.vncInfos(vmURL: vmURL, runMode: runMode)
-		}
-
-		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		let vms = try client.vncInfos(.with {
-			$0.name = host
+			$0.name = vmURL.vmName
 		}).response.wait().vms
 		
 		if case .vncURL(let value)? = vms.response {

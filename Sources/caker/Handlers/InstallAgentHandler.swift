@@ -11,20 +11,12 @@ import GRPCLib
 
 extension InstallAgentHandler {
 	public static func installAgent(client: CakedServiceClient?, vmURL: URL, timeout: UInt, runMode: Utils.RunMode) throws -> InstalledAgentReply {
-		guard let client else {
+		guard let client, vmURL.isFileURL == false else {
 			return self.installAgent(vmURL: vmURL, timeout: timeout, runMode: runMode)
-		}
-
-		if vmURL.isFileURL {
-			return self.installAgent(vmURL: vmURL, timeout: timeout, runMode: runMode)
-		}
-
-		guard let host = vmURL.host(percentEncoded: false) else {
-			throw ServiceError(String(localized: "Internal error"))
 		}
 
 		let reply = try client.installAgent(.with {
-			$0.name = host
+			$0.name = vmURL.vmName
 		}).response.wait().vms.installedAgent
 
 		return InstalledAgentReply(reply)

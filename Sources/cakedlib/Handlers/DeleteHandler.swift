@@ -22,13 +22,11 @@ public struct DeleteHandler {
 		do {
 			if let location = try? StorageLocation(runMode: runMode).find(name) {
 				return try doIt(location)
-			} else if let u = URL(string: name) {
+			} else if let vmURL = URL(string: name) {
 				let location: VMLocation
 				
-				if u.scheme == VMLocation.scheme {
-					location = try StorageLocation(runMode: runMode).find(u.host(percentEncoded: false)!)
-				} else if u.isFileURL {
-					location = try VMLocation.newVMLocation(vmURL: u, runMode: runMode)
+				if vmURL.scheme == VMLocation.scheme || vmURL.isFileURL {
+					location = try VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode)
 				} else {
 					return DeletedObject(source: "vm", name: name, deleted: false, reason: String(localized: "VM not found"))
 				}
