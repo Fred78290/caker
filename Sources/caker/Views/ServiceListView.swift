@@ -156,7 +156,7 @@ struct ServiceListView: View {
 			_ = try ServiceHandler.createCakedServiceClient(serviceURL: serviceURL, runMode: .user).checkReliability(.init()).response.wait()
 			return (true, nil)
 		} catch {
-			Logger(self).error("Failed to connect to service at \(serviceURL): \(error)")
+			Logger(self).error("Failed to connect to service at \(serviceURL.hiddenPasswordURL): \(error)")
 			return (false, error.reason)
 		}
 	}

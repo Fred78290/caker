@@ -325,6 +325,22 @@ extension String {
 }
 
 extension URL {
+	public var hiddenPasswordURL : URL {
+		guard var components = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
+			return self
+		}
+
+		if let user = components.user, user.isEmpty == false {
+			components.user = "****"
+		}
+
+		if let password = components.password, password.isEmpty == false {
+			components.password = "****"
+		}
+
+		return components.url ?? self
+	}
+
 	public func socketPath(name: String) -> URL {
 		let socketPath = self.appendingPathComponent("\(name).sock", isDirectory: false).absoluteURL
 

@@ -62,9 +62,9 @@ class ConnectionManager: Equatable {
 
 	deinit {
 		if let serviceURL = self.serviceURL {
-			self.logger.debug("Release ConnectionManager: \(serviceURL)")
+			self.logger.debug("Release remote ConnectionManager: \(serviceURL.hiddenPasswordURL)")
 		} else {
-			self.logger.debug("Release ConnectionManager: \(self.connectionMode)")
+			self.logger.debug("Release local ConnectionManager: \(self.connectionMode)")
 		}
 		self.stopGrandCentral()
 	}
