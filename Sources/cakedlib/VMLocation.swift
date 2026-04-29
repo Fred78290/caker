@@ -42,10 +42,6 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 			return location
 		} else if supportedSchemes.contains(vmURL.scheme) {
-			guard let components = URLComponents(url: vmURL, resolvingAgainstBaseURL: false) else {
-				throw ServiceError(String(localized: "Internal error"))
-			}
-
 			if let location = try? StorageLocation(runMode: runMode).find(vmURL.vmName) {
 				return location
 			}
