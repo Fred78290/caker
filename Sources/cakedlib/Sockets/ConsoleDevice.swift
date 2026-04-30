@@ -72,7 +72,7 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 
 		FileManager.default.createFile(atPath: consoleURL.absoluteURL.path, contents: nil)
 
-		Logger(self).info("Console binded to file \(consoleURL.hiddenPasswordURL.absoluteString)")
+		Logger(self).info("Console bound to file \(consoleURL.hiddenPasswordURL.absoluteString)")
 
 		return (try FileHandle(forReadingFrom: consoleURL), try FileHandle(forWritingTo: consoleURL))
 	}
