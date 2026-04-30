@@ -283,7 +283,7 @@ extension URL: Purgeable {
 			return FileManager.default.fileExists(atPath: self.absoluteURL.path)
 		}
 
-		throw ServiceError(String(localized: "Not a file URL: \(self.absoluteString)"))
+		throw ServiceError(String(localized: "Not a file URL: \(self.hiddenPasswordURL.absoluteString)"))
 	}
 
 	public func deleteIfFileExists() throws {
@@ -316,7 +316,7 @@ extension URL: Purgeable {
 
 			return UInt64(totalFileSize)
 		} else {
-			throw ServiceError(String(localized: "Not a file URL: \(self.absoluteString)"))
+			throw ServiceError(String(localized: "Not a file URL: \(self.hiddenPasswordURL.absoluteString)"))
 		}
 	}
 
@@ -338,7 +338,7 @@ extension URL: Purgeable {
 
 			return UInt64(totalFileAllocatedSize)
 		} else {
-			throw ServiceError(String(localized: "Not a file URL: \(self.absoluteString)"))
+			throw ServiceError(String(localized: "Not a file URL: \(self.hiddenPasswordURL.absoluteString)"))
 		}
 	}
 
@@ -549,7 +549,7 @@ public struct Utilities {
 			request.timeoutInterval = timeout
 			let (data, response) = try await URLSession.shared.data(for: request)
 			if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-				throw ServiceError(String(localized: "HTTP error: \(http.statusCode) for URL: \(url.absoluteString)"))
+				throw ServiceError(String(localized: "HTTP error: \(http.statusCode) for URL: \(url.hiddenPasswordURL.absoluteString)"))
 			}
 			return data
 		}
@@ -561,7 +561,7 @@ public struct Utilities {
 		do {
 			return try decoder.decode(T.self, from: data)
 		} catch {
-			throw ServiceError(String(localized: "JSON decode failed for URL: \(url.absoluteString) with error: \(error.reason)"))
+			throw ServiceError(String(localized: "JSON decode failed for URL: \(url.hiddenPasswordURL.absoluteString) with error: \(error.reason)"))
 		}
 	}
 }

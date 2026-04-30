@@ -56,9 +56,9 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 			switch result {
 			case .success(let channel):
 				self.setChannel(channel)
-				Logger(self).info("Console listening on \(consoleURL.absoluteString)")
+				Logger(self).info("Console listening on \(consoleURL.hiddenPasswordURL.absoluteString)")
 			case .failure(let error):
-				Logger(self).info("Failed to bind console on \(consoleURL.absoluteString), \(error)")
+				Logger(self).info("Failed to bind console on \(consoleURL.hiddenPasswordURL.absoluteString), \(error)")
 			}
 		}
 
@@ -72,7 +72,7 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 
 		FileManager.default.createFile(atPath: consoleURL.absoluteURL.path, contents: nil)
 
-		Logger(self).info("Console binded to file \(consoleURL.absoluteString)")
+		Logger(self).info("Console bound to file \(consoleURL.hiddenPasswordURL.absoluteString)")
 
 		return (try FileHandle(forReadingFrom: consoleURL), try FileHandle(forWritingTo: consoleURL))
 	}
@@ -103,7 +103,7 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 				fileHandleForWriting = FileHandle(fileDescriptor: dup(Int32(fd[0])!), closeOnDealloc: false)
 			}
 		} else {
-			throw ServiceError(String(localized: "Unsupported console URL \(consoleURL.absoluteString)"))
+			throw ServiceError(String(localized: "Unsupported console URL \(consoleURL.hiddenPasswordURL.absoluteString)"))
 		}
 
 		// Create console device attachement
@@ -128,9 +128,9 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 			closeFuture.whenComplete { result in
 				switch result {
 				case .success:
-					Logger(self).info("Console closed \(consoleURL.absoluteString)")
+					Logger(self).info("Console closed \(consoleURL.hiddenPasswordURL.absoluteString)")
 				case .failure(let error):
-					Logger(self).info("Failed to close console \(consoleURL.absoluteString), \(error)")
+					Logger(self).info("Failed to close console \(consoleURL.hiddenPasswordURL.absoluteString), \(error)")
 				}
 			}
 
@@ -143,9 +143,9 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 			self.pipeChannel = nil
 
 			if port == 0 {
-				Logger(self).info("Console closed via \(fd) by the host on \(consoleURL.absoluteString)")
+				Logger(self).info("Console closed via \(fd) by the host on \(consoleURL.hiddenPasswordURL.absoluteString)")
 			} else {
-				Logger(self).info("Console closed via \(fd) by the guest on \(consoleURL.absoluteString)")
+				Logger(self).info("Console closed via \(fd) by the guest on \(consoleURL.hiddenPasswordURL.absoluteString)")
 			}
 		}
 	}

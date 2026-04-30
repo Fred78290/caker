@@ -169,7 +169,7 @@ public struct ShellHandler {
 
 		init(vmURL: URL, connectionTimeout: Int64, runMode: Utils.RunMode) throws {
 			if vmURL.isFileURL {
-				throw ServiceError(String(localized: "Cannot create ShellCaked for file URL: \(vmURL.absoluteString)"))
+				throw ServiceError(String(localized: "Cannot create ShellCaked for file URL: \(vmURL.hiddenPasswordURL.absoluteString)"))
 			}
 
 			self.name = vmURL.vmName

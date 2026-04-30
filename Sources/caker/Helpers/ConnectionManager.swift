@@ -352,29 +352,23 @@ extension ConnectionManager {
 	}
 
 	private func receiveScreenshot(_ vmURL: URL, value: Data) async {
-		let vmURL = self.vmURL(vmURL.vmName)
-
 		if let document = AppState.shared.findVirtualMachineDocument(vmURL) {
 			await document.setScreenshot(value)
 		} else if AppState.shared.connectionManager == self {
-			self.logger.debug("VM : \(vmURL.absoluteString) not found for screenshot")
+			self.logger.debug("VM : \(vmURL.hiddenPasswordURL) not found for screenshot")
 		}
 	}
 	
 	private func receiveUsage(_ vmURL: URL, value: Caked_CurrentUsageReply) async {
-		let vmURL = self.vmURL(vmURL.vmName)
-
 		if let document = AppState.shared.findVirtualMachineDocument(vmURL) {
 			await document.setUsage(value)
 		} else if AppState.shared.connectionManager == self {
-			self.logger.debug("VM : \(vmURL.absoluteString) not found for usage")
+			self.logger.debug("VM : \(vmURL.hiddenPasswordURL) not found for usage")
 		}
 	}
 	
 	private func receiveStatus(_ vmURL: URL, value: Caked_VirtualMachineStatus) async {
-		self.logger.debug("Handle new status \(value) for vm: \(vmURL.absoluteString)")
-
-		let vmURL = self.vmURL(vmURL.vmName)
+		self.logger.debug("Handle new status \(value) for vm: \(vmURL.hiddenPasswordURL)")
 
 		if let document = AppState.shared.findVirtualMachineDocument(vmURL) {
 			await MainActor.run {
@@ -387,7 +381,7 @@ extension ConnectionManager {
 		} else if value == .new {
 			AppState.shared.addVirtualMachineDocument(vmURL)
 		} else if AppState.shared.connectionManager == self {
-			self.logger.debug("VM : \(vmURL.absoluteString) not found for status")
+			self.logger.debug("VM : \(vmURL.hiddenPasswordURL) not found for status")
 		}
 	}
 
@@ -403,18 +397,23 @@ extension ConnectionManager {
 		self.gcd = stream
 
 		defer {
-			self.logger.debug(">>> GCD stopped")
+			if let serviceURL = self.serviceURL {
+				self.logger.debug("GCD stopped: \(serviceURL.hiddenPasswordURL)")
+			} else {
+				self.logger.debug("GCD stopped: \(self.connectionMode)")
+			}
+
 			stream.cancel(promise: nil)
 			self.gcd = nil
 		}
 
 		do {
 			_ = try await stream.subchannel.get()
-			
+
 			for try await statuses in asyncStream.stream {
 				for status in statuses {
-					let vmURL = URL(string: "\(VMLocation.scheme)://\(status.name)")!
-					
+					let vmURL = self.vmURL(status.name)
+
 					switch status.message {
 					case .status(let value):
 						await self.receiveStatus(vmURL, value: value)
