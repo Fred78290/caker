@@ -10,6 +10,15 @@ import CakedLib
 import CakeAgentLib
 import GRPCLib
 
+extension ConnectionManager {
+	func isConnected(to service: NetService) -> Bool {
+		guard connectionMode == .remote else { return false }
+		guard let hostName = service.hostName, let serviceURL = self.serviceURL else { return false }
+
+		return serviceURL.host == hostName && serviceURL.port == service.port
+	}
+}
+
 extension NetService {
 	var tlsIsRequired: Bool {
 		guard let txtRecordData = self.txtRecordData() else {
@@ -86,6 +95,7 @@ struct ServiceListView: View {
     @State private var manualPassword: String = ""
     @State private var manualUseTLS: Bool = true
     @State private var manualError: String? = nil
+	@State private var appState: AppState = .shared
 
 	private var serviceType: String = "_caked._tcp."
 	private var domain: String = "local."
@@ -234,18 +244,13 @@ struct ServiceListView: View {
 						} else {
 							List(selection: $selectedService) {
 								ForEach(viewModel.services, id: \.name) { service in
-									ServiceRowView(service: service, selected: service == selectedService, onConnect: { service in
+									ServiceRowView(service: service,
+												   selected: service == selectedService,
+												   connected: self.appState.connectionManager.isConnected(to: service),
+												   onConnect: { service in
 										self.connect(service: service)
 									})
 									.tag(service)
-									.contextMenu {
-										Button("Connect") {
-											self.connect(service: service)
-										}
-									}
-									.onTapGesture(count: 2) {
-										self.connect(service: service)
-									}
 								}
 							}
 							.frame(minHeight: geom.size.height)
@@ -387,6 +392,7 @@ struct ServiceListView: View {
 struct ServiceRowView: View {
 	let service: NetService
 	let selected: Bool
+	let connected: Bool
 	let onConnect: (NetService) -> Void
 
 	var serviceInfos: some View {
@@ -444,6 +450,19 @@ struct ServiceRowView: View {
 					.font(.caption)
 					.foregroundColor(.secondary)
 			}
+		}.contextMenu {
+			if connected {
+				Button("Disconnect") {
+					AppState.shared.connectToLocal()
+				}.log(text: "Connecting to service")
+			} else {
+				Button("Connect") {
+					self.onConnect(service)
+				}.log(text: "Connecting to other")
+			}
+		}
+		.onTapGesture(count: 2) {
+			self.onConnect(service)
 		}
 	}
 
@@ -455,14 +474,27 @@ struct ServiceRowView: View {
 					self.serviceDetails
 				}
 				.padding(.vertical, 4)
-				if #available(macOS 26.0, *) {
-					Button("Connect") {
-						self.onConnect(self.service)
-					}.buttonStyle(.glass)
+
+				if connected {
+					if #available(macOS 26.0, *) {
+						Button("Disconnect") {
+							AppState.shared.connectToLocal()
+						}.buttonStyle(.glass)
+					} else {
+						Button("Disconnect") {
+							AppState.shared.connectToLocal()
+						}.buttonStyle(.bordered)
+					}
 				} else {
-					Button("Connect") {
-						self.onConnect(self.service)
-					}.buttonStyle(.bordered)
+					if #available(macOS 26.0, *) {
+						Button("Connect") {
+							self.onConnect(self.service)
+						}.buttonStyle(.glass)
+					} else {
+						Button("Connect") {
+							self.onConnect(self.service)
+						}.buttonStyle(.bordered)
+					}
 				}
 			}
 		} else {
