@@ -245,7 +245,7 @@ public struct ServiceHandler {
 		
 		let agentURL = self.agentLaunchURL(runMode: runMode)
 		
-		Logger("ServiceHandler").info("Install agent to: \(agentURL.absoluteString)")
+		Logger("ServiceHandler").info("Install agent to: \(agentURL.hiddenPasswordURL.absoluteString)")
 		
 		try agent.write(to: agentURL)
 	}

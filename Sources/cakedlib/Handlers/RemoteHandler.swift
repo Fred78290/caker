@@ -7,7 +7,7 @@ public struct RemoteHandler {
 	public static func addRemote(name: String, url: URL, runMode: Utils.RunMode) -> CreateRemoteReply {
 
 		guard url.scheme == "https" || url.scheme == "http" else {
-			return CreateRemoteReply(name: name, created: false, reason: String(localized: "remote unsupported url \(url.absoluteString)"))
+			return CreateRemoteReply(name: name, created: false, reason: String(localized: "remote unsupported url \(url.hiddenPasswordURL.absoluteString)"))
 		}
 
 		do {
