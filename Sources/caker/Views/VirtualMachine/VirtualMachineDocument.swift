@@ -206,7 +206,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	
 	var connectionManager = ConnectionManager.appConnectionManager
 	var interactiveShell: InteractiveShell? = nil
-	var vncView: NSVNCView?
+	weak var vncView: NSVNCView? = nil
 	var virtualMachine: VirtualMachine!
 	var location: VMLocation!
 	var url: URL!

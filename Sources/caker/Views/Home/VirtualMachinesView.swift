@@ -14,13 +14,11 @@ struct VirtualMachinesView: View {
 
 	@Environment(\.appearsActive) private var appearsActive
 
-	@Binding var appState: AppState
 	@Binding var navigationModel: NavigationModel
 	@State var columns: [GridItem]
 
-	init(appState: Binding<AppState>, navigationModel: Binding<NavigationModel>, size: CGSize) {
+	init(navigationModel: Binding<NavigationModel>, size: CGSize) {
 		_navigationModel = navigationModel
-		_appState = appState
 		self.columns = Self.buildColumns(size)
 	}
 
@@ -28,41 +26,32 @@ struct VirtualMachinesView: View {
 	func virtualMachineView(_ document: VirtualMachineDocument) -> some View {
 		let selected: Bool = self.navigationModel.selectedVirtualMachine?.id == document.id
 
-		VirtualMachineView(document, selected: selected)
+		VirtualMachineView(.constant(document), selected: selected)
 			.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
-
-		//		if self.appearsActive {
-		//			VirtualMachineView(selected: selected, vm: document)
-		//				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
-		//				.animation(.easeInOut, value: self.columns.count)
-		//		} else {
-		//			VirtualMachineView(selected: selected, vm: document)
-		//				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
-		//		}
 	}
 
 	var body: some View {
 		GeometryReader { geometry in
 			ScrollView {
 				LazyVGrid(columns: self.columns, alignment: .leading, spacing: Self.cellSpacing) {
-					ForEach(appState.virtualMachines.vms) { vm in
-						self.virtualMachineView(vm.document)
+					ForEach(AppState.shared.virtualMachines.documents) { document in
+						self.virtualMachineView(document)
 							.onTapGesture(count: 2) {
-								self.navigationModel.selectedVirtualMachine = vm.document
+								self.navigationModel.selectedVirtualMachine = document
 
 								if self.appearsActive {
-									AppState.shared.currentDocument = vm.document
+									AppState.shared.currentDocument = document
 								}
 
 								Task {
-									await MainApp.app.openVirtualMachine(vm.document.url)
+									await MainApp.app.openVirtualMachine(document.url)
 								}
 							}
 							.onTapGesture {
-								self.navigationModel.selectedVirtualMachine = vm.document
+								self.navigationModel.selectedVirtualMachine = document
 
 								if self.appearsActive {
-									AppState.shared.currentDocument = vm.document
+									AppState.shared.currentDocument = document
 								}
 							}
 					}
@@ -85,5 +74,5 @@ struct VirtualMachinesView: View {
 }
 
 #Preview {
-	VirtualMachinesView(appState: .constant(AppState.shared), navigationModel: .constant(.init()), size: .init(width: 500, height: 600))
+	VirtualMachinesView(navigationModel: .constant(.init()), size: .init(width: 500, height: 600))
 }

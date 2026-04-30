@@ -84,7 +84,6 @@ struct HostVirtualMachineView: View {
 	@Environment(\.openWindow) private var openWindow
 	@Environment(\.dismiss) var dismiss
 
-	@Binding var appState: AppState
 	@StateObject var document: VirtualMachineDocument
 
 	@State var window: NSWindow? = nil
@@ -107,8 +106,7 @@ struct HostVirtualMachineView: View {
 	private let minSize: CGSize
 	private let id: String = UUID().uuidString
 
-	init(appState: Binding<AppState>, document: VirtualMachineDocument) {
-		self._appState = appState
+	init(document: VirtualMachineDocument) {
 		self._document = StateObject(wrappedValue: document)
 		self.minSize = CGSize(width: 800, height: 600)
 		self.launchExternally = document.isLaunchVMExternally
@@ -211,13 +209,13 @@ struct HostVirtualMachineView: View {
 							document.restartFromUI()
 						}
 						.help("Restart virtual machine")
-						.disabled(self.appState.isStopped || document.agent == .installing)
+						.disabled(document.status.isStopped || document.agent == .installing)
 
 						Button("Create template", systemImage: "archivebox") {
 							createTemplate = true
 						}
 						.help("Create template from virtual machine")
-						.disabled(self.appState.isRunning)
+						.disabled(self.document.status.isRunning)
 						
 						if self.document.externalRunning == false {
 							Spacer()
@@ -225,7 +223,7 @@ struct HostVirtualMachineView: View {
 								self.showsHostCursor.toggle()
 							}
 							.help("Show/Hide host cursor in VM view")
-							.disabled(self.appState.isRunning == false)
+							.disabled(self.document.status.isRunning == false)
 						}
 					}
 
@@ -260,15 +258,15 @@ struct HostVirtualMachineView: View {
 
 						Button(
 							action: {
-								self.appState.isAgentInstalling = true
+								AppState.shared.isAgentInstalling = true
 
 								self.document.installAgent(updateAgent: agentCondition.needUpdate) { _ in
-									self.appState.isAgentInstalling = false
+									AppState.shared.isAgentInstalling = false
 								}
 							},
 							label: {
 								ZStack {
-									if self.appState.isAgentInstalling {
+									if AppState.shared.isAgentInstalling {
 										Image(systemName: "person.badge.clock")
 									} else {
 										Image(systemName: agentCondition.needUpdate ? "person.2.badge.plus" : "person.badge.plus")
@@ -280,10 +278,10 @@ struct HostVirtualMachineView: View {
 						.disabled(agentCondition.disabled)
 
 						Button("Delete", systemImage: "trash") {
-							self.appState.deleteVirtualMachine(document: self.document)
+							AppState.shared.deleteVirtualMachine(document: self.document)
 						}
 						.help("Delete virtual machine")
-						.disabled(self.appState.isRunning || self.appState.isPaused)
+						.disabled(self.document.status.isRunning || self.document.status == .paused)
 					}
 
 					if document.status == .running && document.agentReady {
@@ -370,7 +368,7 @@ struct HostVirtualMachineView: View {
 
 	func handleAppear() {
 		NSWindow.allowsAutomaticWindowTabbing = false
-		self.appState.currentDocument = self.document
+		AppState.shared.currentDocument = self.document
 		document.enterView()
 
 		if let window = self.window {
@@ -383,8 +381,8 @@ struct HostVirtualMachineView: View {
 	func handleDisappear() {
 		self.monitoringTask.cancel()
 
-		if self.appState.currentDocument == self.document {
-			self.appState.currentDocument = nil
+		if AppState.shared.currentDocument == self.document {
+			AppState.shared.currentDocument = nil
 		}
 	}
 
@@ -500,8 +498,8 @@ struct HostVirtualMachineView: View {
 			return
 		}
 
-		if self.appState.currentDocument == self.document {
-			self.appState.currentDocument = nil
+		if AppState.shared.currentDocument == self.document {
+			AppState.shared.currentDocument = nil
 		}
 
 		if document.status == .running {
@@ -513,9 +511,9 @@ struct HostVirtualMachineView: View {
 
 	func handleAppStateChangedNotification(_ newValue: Bool) {
 		if newValue {
-			self.appState.currentDocument = self.document
-		} else if self.appState.currentDocument == self.document {
-			self.appState.currentDocument = nil
+			AppState.shared.currentDocument = self.document
+		} else if AppState.shared.currentDocument == self.document {
+			AppState.shared.currentDocument = nil
 		}
 	}
 
@@ -695,5 +693,5 @@ struct HostVirtualMachineView: View {
 }
 
 #Preview {
-	HostVirtualMachineView(appState: .constant(AppState.shared), document: try! VirtualMachineDocument.anyVirtualMachineDocument())
+	HostVirtualMachineView(document: try! VirtualMachineDocument.anyVirtualMachineDocument())
 }

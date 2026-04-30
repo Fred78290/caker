@@ -13,7 +13,7 @@ import CakeAgentLib
 
 class CakerVZVirtualMachineView: VNCVirtualMachineView {
 	private var liveViewResize: Bool = false
-	private let document: VirtualMachineDocument
+	private weak let document: VirtualMachineDocument!
 
 	init(document: VirtualMachineDocument) {
 		self.document = document

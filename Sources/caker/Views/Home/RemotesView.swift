@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct RemotesView: View {
-	@Binding var appState: AppState
 	@Binding var navigationModel: NavigationModel
 
 	var body: some View {
@@ -17,5 +16,5 @@ struct RemotesView: View {
 }
 
 #Preview {
-	RemotesView(appState: .constant(AppState.shared), navigationModel: .constant(.init()))
+	RemotesView(navigationModel: .constant(.init()))
 }

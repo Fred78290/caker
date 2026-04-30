@@ -10,12 +10,16 @@ import GRPCLib
 import SwiftUI
 
 struct CakerMenuBarExtraScene: Scene {
-	@StateObject var appState: AppState
+	private var appState: AppState
 	@AppStorage("ShowMenuIcon") private var isMenuIconShown: Bool = false
 	@AppStorage("HideDockIcon") private var isDockIconHidden: Bool = false
 	@Environment(\.openWindow) private var openWindow
 	@Environment(\.openSettings) private var openSettings
-	
+
+	init() {
+		self.appState = AppState.shared
+	}
+
 	var body: some Scene {
 		MenuBarExtra(isInserted: $isMenuIconShown) {
 			Button("About Caker") {
@@ -87,12 +91,14 @@ struct CakerMenuBarExtraScene: Scene {
 			
 			Divider()
 			
-			if appState.virtualMachines.isEmpty {
+			let documents = self.appState.virtualMachines.documents
+
+			if documents.isEmpty {
 				Text("No virtual machines found.")
 			} else {
 				Menu("Virtual machines") {
-					ForEach(appState.virtualMachines.vms) { vm in
-						VMMenuItem(vm: vm.document)
+					ForEach(documents) { document in
+						VMMenuItem(vm: document)
 					}
 				}
 			}

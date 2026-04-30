@@ -11,7 +11,8 @@ import SwiftUI
 struct HomeView: View {
 	@Environment(\.appearsActive) private var appearsActive
 
-	@Binding var appState: AppState
+	private let appState = AppState.shared
+
 	@State private var navigationModel = NavigationModel()
 	@State private var presented: Bool = false
 	@State private var mustShowDetailView: Bool = true
@@ -66,12 +67,14 @@ struct HomeView: View {
 			.sheet(isPresented: $presented) {
 				self.sheet
 			}
-			.onReceive(AppState.AppStateChanged) { notification in
+			.onChange(of: self.appState.connectionMode) {
+				self.navigationModel.resetSelections()
+			}.onReceive(AppState.AppStateChanged) { notification in
 				self.navigationModel.selectedTemplate = nil
 				self.navigationModel.selectedVirtualMachine = nil
 
 				if self.appearsActive {
-					AppState.shared.currentDocument = nil
+					self.appState.currentDocument = nil
 				}
 			}
 	}
@@ -252,13 +255,13 @@ struct HomeView: View {
 		GeometryReader { geometry in
 			switch navigationModel.selectedCategory {
 			case .images:
-				RemotesView(appState: $appState, navigationModel: $navigationModel)
+				RemotesView(navigationModel: $navigationModel)
 			case .templates:
-				TemplatesView(appState: $appState, navigationModel: $navigationModel)
+				TemplatesView(navigationModel: $navigationModel)
 			case .networks:
-				NetworksView(appState: $appState, navigationModel: $navigationModel)
+				NetworksView(navigationModel: $navigationModel)
 			case .virtualMachine:
-				VirtualMachinesView(appState: $appState, navigationModel: $navigationModel, size: geometry.size)
+				VirtualMachinesView(navigationModel: $navigationModel, size: geometry.size)
 			}
 		}.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
 	}
@@ -359,5 +362,5 @@ struct HomeView: View {
 }
 
 #Preview {
-	HomeView(appState: .constant(AppState.shared))
+	HomeView()
 }

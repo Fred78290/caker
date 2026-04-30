@@ -83,6 +83,8 @@ class InteractiveShell {
 
 	func closeShell(_line: UInt = #line, _file: String = #file,_ completionHandler: (@MainActor () -> Void)? = nil) {
 		defer {
+			self.terminalView = nil
+
 			// Even if there is no active shell stream, honor the completion handler contract.
 			if let completionHandler {
 				Task { @MainActor in

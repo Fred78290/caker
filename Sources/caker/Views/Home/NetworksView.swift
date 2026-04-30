@@ -31,14 +31,13 @@ extension BridgedNetwork {
 
 struct NetworksView: View {
 	@Environment(\.colorScheme) var colorScheme: ColorScheme
-	@Binding var appState: AppState
 	@Binding var navigationModel: NavigationModel
 	@State private var selection: BridgedNetwork.ID? = nil
 	@State private var disabled: Bool = false
 
 	var body: some View {
 		GeometryReader { geom in
-			if appState.networks.isEmpty {
+			if AppState.shared.networks.isEmpty {
 				if #available(macOS 14, *) {
 					VStack(alignment: .center) {
 						ContentUnavailableView("List empty", systemImage: "tray")
@@ -50,7 +49,7 @@ struct NetworksView: View {
 					}.frame(width: geom.size.width)
 				}
 			} else {
-				List(appState.networks, id: \.self, selection: $navigationModel.selectedNetwork) { network in
+				List(AppState.shared.networks, id: \.self, selection: $navigationModel.selectedNetwork) { network in
 					GeometryReader { geom in
 						HStack {
 							network.icon
@@ -80,5 +79,5 @@ struct NetworksView: View {
 }
 
 #Preview {
-	NetworksView(appState: .constant(AppState.shared), navigationModel: .constant(.init()))
+	NetworksView(navigationModel: .constant(.init()))
 }

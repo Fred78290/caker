@@ -93,12 +93,19 @@ class NavigationModel: ObservableObject, Observable {
 			}
 		}
 	}
-
+	
 	var categories: [Category] = [.virtualMachine, .networks]
 	//var categories: [Category] = [.virtualMachine, .networks, .templates, .images]
-
+	
 	init() {
 		self.selectedCategory = .virtualMachine
+	}
+
+	func resetSelections() {
+		self.selectedRemote = nil
+		self.selectedTemplate = nil
+		self.selectedNetwork = nil
+		self.selectedVirtualMachine = nil
 	}
 }
 

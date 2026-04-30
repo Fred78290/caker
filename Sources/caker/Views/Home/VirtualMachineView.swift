@@ -34,13 +34,13 @@ struct VirtualMachineView: View {
 	private let radius: CGFloat = 12
 	private let selectedSystemFill = Color(NSColor.secondarySystemFill)
 	private let secondarySystemFill = Color(NSColor.tertiarySystemFill)
-	@StateObject private var vm: VirtualMachineDocument
+	@Binding private var vm: VirtualMachineDocument
 	@State var screenshot: NSImage?
 
-	init(_ vm: VirtualMachineDocument, selected: Bool) {
-		let lastScreenshot = vm.lastScreenshot
+	init(_ vm: Binding<VirtualMachineDocument>, selected: Bool) {
+		let lastScreenshot = vm.wrappedValue.lastScreenshot
 
-		self._vm = StateObject(wrappedValue: vm)
+		self._vm = vm
 		self.selected = selected
 		_screenshot = State(initialValue: lastScreenshot)
 	}
@@ -221,5 +221,5 @@ struct VirtualMachineView: View {
 }
 
 #Preview {
-	VirtualMachineView(AppState.shared.virtualMachines.first!.value, selected: false)
+	VirtualMachineView(.constant(AppState.shared.virtualMachines.first!.value), selected: false)
 }
