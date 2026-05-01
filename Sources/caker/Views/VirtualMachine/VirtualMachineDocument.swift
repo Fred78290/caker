@@ -207,9 +207,11 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	/// update existing views in-place rather than destroying and re-creating them.
 	/// Updating in-place releases the old `@ObservedObject` reference immediately,
 	/// preventing the retain of stale documents in `VirtualMachinesView` and
-	/// `CakerMenuBarExtraScene`. Falls back to pointer identity for the rare cases
-	/// (e.g. previews) where `url` has not yet been set.
-	var id: String { url?.absoluteString ?? ObjectIdentifier(self).debugDescription }
+	/// `CakerMenuBarExtraScene`.
+	var id: String {
+		assert(url != nil, "VirtualMachineDocument.id accessed before url was set")
+		return url?.absoluteString ?? ObjectIdentifier(self).debugDescription
+	}
 
 	var connectionManager = ConnectionManager.appConnectionManager
 	var interactiveShell: InteractiveShell? = nil

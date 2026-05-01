@@ -187,8 +187,9 @@ class AppState: ObservableObject, Observable {
 	}
 
 	private func setVirtualMachines(_ newValues: [URL: VirtualMachineDocument]) {
-		// Remove VMs that are no longer present
-		for url in virtualMachines.keys where newValues[url] == nil {
+		// Collect URLs to remove first to avoid mutating while iterating
+		let urlsToRemove = virtualMachines.keys.filter { newValues[$0] == nil }
+		for url in urlsToRemove {
 			virtualMachines.removeValue(forKey: url)
 		}
 		// Add VMs that are new
