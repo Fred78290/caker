@@ -175,23 +175,19 @@ class AppState: ObservableObject, Observable {
 	}
 
 	private func setRemotes(_ newValues: [RemoteEntry]) {
-		self.remotes.removeAll()
-		self.remotes.append(contentsOf: newValues)
+		self.remotes = newValues
 	}
 
 	private func setTemplates(_ newValues: [TemplateEntry]) {
-		self.templates.removeAll()
-		self.templates.append(contentsOf: newValues)
+		self.templates = newValues
 	}
 
 	private func setNetworks(_ newValues: [BridgedNetwork]) {
-		self.networks.removeAll()
-		self.networks.append(contentsOf: newValues)
+		self.networks = newValues
 	}
 
 	private func setVirtualMachines(_ newValues: [URL: VirtualMachineDocument]) {
-		self.virtualMachines.removeAll()
-		self.virtualMachines.merge(newValues) { _, new in new }
+		self.virtualMachines = newValues
 	}
 
 	private func updateFromReply(serviceReply: ServiceReply) {
