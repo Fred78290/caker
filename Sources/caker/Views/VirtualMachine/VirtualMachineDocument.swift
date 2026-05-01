@@ -74,13 +74,17 @@ extension UTType {
 }
 
 // MARK: - VirtualMachineDocument
-final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equatable, Identifiable {
+final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equatable, Identifiable, Comparable {
 	typealias ShellHandlerResponse = (Cakeagent_CakeAgent.ExecuteResponse) -> Void
 	
 	static func == (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
 		lhs.url == rhs.url && rhs.connectionManager == lhs.connectionManager
 	}
 	
+	static func < (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
+		lhs.name < rhs.name
+	}
+
 	enum AgentStatus: Int, Sendable {
 		case none = 0
 		case installed = 1
@@ -209,8 +213,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	/// preventing the retain of stale documents in `VirtualMachinesView` and
 	/// `CakerMenuBarExtraScene`.
 	var id: String {
-		assert(url != nil, "VirtualMachineDocument.id accessed before url was set")
-		return url?.absoluteString ?? ObjectIdentifier(self).debugDescription
+		url.absoluteString
 	}
 
 	var connectionManager = ConnectionManager.appConnectionManager
@@ -218,7 +221,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	weak var vncView: NSVNCView? = nil
 	var virtualMachine: VirtualMachine!
 	var location: VMLocation!
-	var url: URL!
+	var url: URL
 	var name: String = String.empty
 	var description: String {
 		self.name
@@ -334,7 +337,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 	
 	deinit {
-		self.logger.debug("Release document: \(self.url!)")
+		self.logger.debug("Release document: \(self.url)")
 		self.stopAgentMonitoring()
 		
 		if let monitor = self.monitor {
@@ -342,14 +345,8 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		}
 	}
 	
-	private init() {
-		self.virtualMachine = nil
-		self.virtualMachineConfig = VirtualMachineConfig()
-	}
-	
 	private init(location: VMLocation) throws {
 		let config = try VirtualMachineConfig(name: location.name, config: location.config())
-		let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
 
 		self.name = location.name
 		self.url = location.rootURL
@@ -358,8 +355,8 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.screenshot = nil
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
-		self.monitor = monitor
 		self.documentSize = ViewSize(config.display.cgSize)
+		self.monitor = try FileMonitor(directory: location.rootURL, delegate: self)
 
 		switch location.status {
 		case .running:
@@ -370,7 +367,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			self.status = .paused
 		}
 		
-		try monitor.start()
+		try monitor?.start()
 	}
 
 	private convenience init(vmURL: URL, infos: VMInformations, config: any VirtualMachineConfiguration, connectionManager: ConnectionManager) throws {
@@ -453,7 +450,7 @@ extension VirtualMachineDocument {
 	@MainActor func setScreenshot(_ data: Data) {
 		self.screenshot = data
 
-		NotificationCenter.default.post(name: VirtualMachineDocument.NewScreenshot, object: data, userInfo: ["document": self.url!])
+		NotificationCenter.default.post(name: VirtualMachineDocument.NewScreenshot, object: data, userInfo: ["document": self.url])
 	}
 
 	func disconnect() {
@@ -832,10 +829,8 @@ extension VirtualMachineDocument {
 				do {
 					if let location {
 						try await self.startLocally(location: location)
-					} else if let url {
-						try await self.startRemotely(location: url)
 					} else {
-						throw ServiceError(String(localized: "Internal error: Virtual machine is not launched from a local or remote location."))
+						try await self.startRemotely(location: url)
 					}
 				} catch {
 					await self.setStateAsStopped()
@@ -1264,7 +1259,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			DispatchQueue.main.async {
 				self.setDocumentSize(.init(framebuffer.cgSize))
 
-				NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self.url!])
+				NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self.url])
 			}
 		}
 	}
