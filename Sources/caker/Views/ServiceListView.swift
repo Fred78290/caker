@@ -133,6 +133,9 @@ class ServiceListViewModel: ObservableObject {
 }
 
 struct ServiceListView: View {
+	@Environment(\.openWindow) var openWindow
+	@Environment(\.dismiss) var dismiss
+
 	@StateObject private var viewModel = ServiceListViewModel()
 
 	@State private var selectedService: NetService? = nil
@@ -147,6 +150,7 @@ struct ServiceListView: View {
     @State private var manualPassword: String = ""
     @State private var manualUseTLS: Bool = true
     @State private var manualError: String? = nil
+
 	@ObservedObject private var appState: AppState = .shared
 
 	private var serviceType: String = "_caked._tcp."
@@ -166,7 +170,13 @@ struct ServiceListView: View {
 		return stringValue.lowercased() == "true"
 	}
 
-	private func connect(service: NetService) {
+	private func connectToRemote(_ serviceURL: URL) {
+		AppState.shared.connectToRemote(serviceURL)
+		self.openWindow(id: "home")
+		self.dismiss()
+	}
+
+	private func connect(_ service: NetService) {
 		self.selectedService = service
         self.enteredPassword = ""
 
@@ -178,12 +188,12 @@ struct ServiceListView: View {
 			self.errorMessage = nil
 			self.displayAlert = false
 
-			let ok = checkIfServiceIsReachable(serviceURL)
-
-			if ok.reachable {
-				AppState.shared.connectToRemote(serviceURL)
-			} else {
-				self.failedToConnect(service.description, errorMessage: ok.errorMessage)
+			checkIfServiceIsReachable(serviceURL) { (reachable, reason) in
+				if reachable {
+					self.connectToRemote(serviceURL)
+				} else {
+					self.failedToConnect(service.description, errorMessage: reason)
+				}
 			}
 		}
 	}
@@ -198,46 +208,44 @@ struct ServiceListView: View {
 		self.displayAlert = true
 	}
 
-	private func connectWithPassword(service: NetService, password: String? = nil) {
-		let serviceURL = service.serviceURL(password)
+	private func checkIfServiceIsReachable(_ serviceURL: URL, handler: @MainActor @escaping (Bool, String?) -> Void) {
+		_ = Utilities.group.next().makeFutureWithTask {
+			do {
+				_ = try await ServiceHandler.createCakedServiceClient(serviceURL: serviceURL, runMode: .user).checkReliability(.init()).response.get()
 
-		self.errorMessage = nil
-		self.displayAlert = false
-
-		let ok = checkIfServiceIsReachable(serviceURL)
-
-		if ok.reachable {
-			AppState.shared.connectToRemote(serviceURL)
-		} else {
-			self.failedToConnect(service.description, errorMessage: ok.errorMessage)
+				await handler(true, nil)
+			} catch {
+				Logger(self).error("Failed to connect to service at \(serviceURL.hiddenPasswordURL): \(error)")
+				await handler(false, error.reason)
+			}
 		}
 	}
 
-	private func checkIfServiceIsReachable(_ serviceURL: URL) -> (reachable: Bool, errorMessage: String?) {
-		do {
-			_ = try ServiceHandler.createCakedServiceClient(serviceURL: serviceURL, runMode: .user).checkReliability(.init()).response.wait()
-			return (true, nil)
-		} catch {
-			Logger(self).error("Failed to connect to service at \(serviceURL.hiddenPasswordURL): \(error)")
-			return (false, error.reason)
-		}
-	}
-
-	private func handlePasswordSubmit() {
+	private func handlePasswordSubmit(_ done: @escaping () -> Void) {
         guard let service = selectedService else {
             isPresentingPasswordPrompt = false
             return
         }
-        let password = enteredPassword
-        // TODO: Use `service` and `password` to perform the actual connection.
-        // For now we just dismiss the sheet.
-        isPresentingPasswordPrompt = false
-        enteredPassword = ""
 
-		// Example placeholder: print or log the attempt
-		Logger(self).debug("Attempting to connect to \(service.name) with provided password (\(password.count) characters)")
+		let serviceURL = service.serviceURL(enteredPassword)
+
+		Logger(self).debug("Attempting to connect to \(serviceURL.hiddenPasswordURL)")
 		
-		self.connectWithPassword(service: service, password: password)
+		self.errorMessage = nil
+		self.displayAlert = false
+
+		checkIfServiceIsReachable(serviceURL) { (reachable, reason) in
+			isPresentingPasswordPrompt = false
+			enteredPassword = ""
+
+			if reachable {
+				self.connectToRemote(serviceURL)
+			} else {
+				self.failedToConnect(service.description, errorMessage: reason)
+			}
+
+			done()
+		}
     }
 
 	private func manualConnect() {
@@ -265,15 +273,101 @@ struct ServiceListView: View {
 			return
 		}
 
-		let result = checkIfServiceIsReachable(url)
+		checkIfServiceIsReachable(url) { (reachable, reason) in
+			if reachable {
+				isPresentingManualSheet = false
 
-		if result.reachable {
-			isPresentingManualSheet = false
-
-			AppState.shared.connectToRemote(url)
-		} else {
-			manualError = result.errorMessage
+				self.connectToRemote(url)
+			} else {
+				manualError = reason
+			}
 		}
+	}
+
+	func askPassword() -> some View {
+		VStack(spacing: 16) {
+			Text("Enter Password")
+				.font(.headline)
+			if let service = selectedService {
+				Text("for \(service.name)")
+					.font(.subheadline)
+					.foregroundStyle(.secondary)
+			}
+			SecureField("Password", text: $enteredPassword)
+				.textFieldStyle(.roundedBorder)
+				.onSubmit {
+					handlePasswordSubmit() {
+						
+					}
+				}
+			HStack {
+				Button("Cancel") {
+					isPresentingPasswordPrompt = false
+					enteredPassword = ""
+				}
+				AsyncButton("Connect") { done in
+					handlePasswordSubmit() {
+						done()
+					}
+				}
+				.keyboardShortcut(.defaultAction)
+				.disabled(enteredPassword.isEmpty)
+			}
+		}
+		.padding()
+		.frame(width: 250)
+	}
+
+	func askManualConnection() -> some View {
+		VStack(alignment: .leading, spacing: 12) {
+			Text("Connect to Server")
+				.font(.headline)
+
+			VStack(alignment: .leading, spacing: 8) {
+				LabeledContent("Address (host or ip)") {
+					TextField("", text: $manualAddress)
+						.textFieldStyle(.roundedBorder)
+						.disableAutocorrection(true)
+						.textCase(.lowercase)
+				}
+
+				LabeledContent("Port") {
+					Spacer()
+					TextField("", value: $manualPort, format: .number)
+						.textFieldStyle(.roundedBorder)
+						.frame(width: 50)
+				}
+
+				LabeledContent("Password (optional)") {
+					SecureField("", text: $manualPassword)
+						.textFieldStyle(.roundedBorder)
+				}
+
+				Toggle("Use TLS", isOn: $manualUseTLS)
+			}
+
+			if let manualError {
+				Text(manualError)
+					.font(.footnote)
+					.foregroundStyle(.red)
+			}
+
+			HStack {
+				Spacer()
+				Button("Cancel") {
+					isPresentingManualSheet = false
+					manualError = nil
+				}
+				AsyncButton("Connect") { done in
+					self.manualConnect()
+					done()
+				}
+				.keyboardShortcut(.defaultAction)
+				.disabled(manualAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || manualPort == 0)
+			}
+		}
+		.padding()
+		.frame(width: 450)
 	}
 
 	var body: some View {
@@ -296,13 +390,33 @@ struct ServiceListView: View {
 						} else {
 							List(selection: $selectedService) {
 								ForEach(viewModel.services, id: \.name) { service in
+									let connected = self.appState.connectionManager.isConnected(to: service)
+
 									ServiceRowView(service: service,
 												   selected: service == selectedService,
-												   connected: self.appState.connectionManager.isConnected(to: service),
+												   connected: connected,
 												   onConnect: { service in
-										self.connect(service: service)
+										self.connect(service)
 									})
 									.tag(service)
+									.contextMenu {
+										if connected {
+											Button("Disconnect") {
+												AppState.shared.connectToLocal()
+											}.log(text: "Disconnecting from service")
+										} else {
+											Button("Connect") {
+												self.connect(service)
+											}.log(text: "Connecting to service")
+										}
+									}
+									.onTapGesture(count: 2) {
+										if connected {
+											AppState.shared.connectToLocal()
+										} else {
+											self.connect(service)
+										}
+									}
 								}
 							}
 							.frame(minHeight: geom.size.height)
@@ -360,83 +474,10 @@ struct ServiceListView: View {
 			}
 		}
         .sheet(isPresented: $isPresentingPasswordPrompt) {
-            VStack(spacing: 16) {
-                Text("Enter Password")
-                    .font(.headline)
-                if let service = selectedService {
-                    Text("for \(service.name)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                SecureField("Password", text: $enteredPassword)
-                    .textFieldStyle(.roundedBorder)
-                    .onSubmit {
-                        handlePasswordSubmit()
-                    }
-                HStack {
-                    Button("Cancel") {
-                        isPresentingPasswordPrompt = false
-                        enteredPassword = ""
-                    }
-                    Button("Connect") {
-                        handlePasswordSubmit()
-                    }
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(enteredPassword.isEmpty)
-                }
-            }
-            .padding()
-            .frame(width: 250)
+			self.askPassword()
         }
         .sheet(isPresented: $isPresentingManualSheet) {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Connect to Server")
-                    .font(.headline)
-
-                VStack(alignment: .leading, spacing: 8) {
-					LabeledContent("Address (host or ip)") {
-						TextField("", text: $manualAddress)
-							.textFieldStyle(.roundedBorder)
-							.disableAutocorrection(true)
-							.textCase(.lowercase)
-					}
-
-					LabeledContent("Port") {
-						Spacer()
-						TextField("", value: $manualPort, format: .number)
-							.textFieldStyle(.roundedBorder)
-							.frame(width: 50)
-					}
-
-					LabeledContent("Password (optional)") {
-						SecureField("", text: $manualPassword)
-							.textFieldStyle(.roundedBorder)
-					}
-
-                    Toggle("Use TLS", isOn: $manualUseTLS)
-                }
-
-                if let manualError {
-                    Text(manualError)
-                        .font(.footnote)
-                        .foregroundStyle(.red)
-                }
-
-                HStack {
-                    Spacer()
-                    Button("Cancel") {
-                        isPresentingManualSheet = false
-                        manualError = nil
-                    }
-                    Button("Connect") {
-						self.manualConnect()
-                    }
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(manualAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || manualPort == 0)
-                }
-            }
-            .padding()
-            .frame(width: 450)
+			self.askManualConnection()
         }
 	}
 }
@@ -501,23 +542,6 @@ struct ServiceRowView: View {
 				Text("Port: \(service.port)")
 					.font(.caption)
 					.foregroundColor(.secondary)
-			}
-		}.contextMenu {
-			if connected {
-				Button("Disconnect") {
-					AppState.shared.connectToLocal()
-				}.log(text: "Disconnecting from service")
-			} else {
-				Button("Connect") {
-					self.onConnect(service)
-				}.log(text: "Connecting to service")
-			}
-		}
-		.onTapGesture(count: 2) {
-			if connected {
-				AppState.shared.connectToLocal()
-			} else {
-				self.onConnect(service)
 			}
 		}
 	}
