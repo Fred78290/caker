@@ -462,7 +462,11 @@ struct ServiceRowView: View {
 			}
 		}
 		.onTapGesture(count: 2) {
-			self.onConnect(service)
+			if connected {
+				AppState.shared.connectToLocal()
+			} else {
+				self.onConnect(service)
+			}
 		}
 	}
 
