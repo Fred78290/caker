@@ -188,7 +188,7 @@ private struct VMMenuItem: View {
 
 	func openVirtualMachine() async {
 		await MainApp.app.openVirtualMachine(self.vm.url)
-		NotificationCenter.default.post(name: VirtualMachineDocument.StartVirtualMachine, object: vm, userInfo: ["document": vm.url!])
+		NotificationCenter.default.post(name: VirtualMachineDocument.StartVirtualMachine, object: vm, userInfo: ["document": vm.url])
 	}
 
 	func createTemplate() {
