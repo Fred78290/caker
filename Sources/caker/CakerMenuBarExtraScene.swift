@@ -10,15 +10,13 @@ import GRPCLib
 import SwiftUI
 
 struct CakerMenuBarExtraScene: Scene {
-	private var appState: AppState
+	@ObservedObject private var appState: AppState = .shared
 	@AppStorage("ShowMenuIcon") private var isMenuIconShown: Bool = false
 	@AppStorage("HideDockIcon") private var isDockIconHidden: Bool = false
 	@Environment(\.openWindow) private var openWindow
 	@Environment(\.openSettings) private var openSettings
 
 	init() {
-		self.appState = AppState.shared
-	}
 
 	var body: some Scene {
 		MenuBarExtra(isInserted: $isMenuIconShown) {
@@ -31,7 +29,7 @@ struct CakerMenuBarExtraScene: Scene {
 				.help("Show the main window.")
 			
 			Divider()
-
+			
 			Menu("Options") {
 				Button("Settings") {
 					openSettings()
@@ -45,11 +43,11 @@ struct CakerMenuBarExtraScene: Scene {
 					open()
 				}.keyboardShortcut("O")
 					.help("Open new virtual machine.")
-
+				
 				Toggle("Hide dock icon on next launch", isOn: $isDockIconHidden)
 					.help("Requires restarting Caker to take affect.")
 			}
-
+			
 			Menu("Service") {
 				Button("Browser of services") {
 					openWindow(id: "remote")
@@ -65,7 +63,7 @@ struct CakerMenuBarExtraScene: Scene {
 						MainApp.installCakedService()
 					}
 				}
-
+				
 				if self.appState.cakedServiceInstalled {
 					if self.appState.cakedServiceRunning {
 						Button("Stop service") {
@@ -91,13 +89,11 @@ struct CakerMenuBarExtraScene: Scene {
 			
 			Divider()
 			
-			let documents = self.appState.virtualMachines.documents
-
-			if documents.isEmpty {
+			if self.appState.virtualMachines.isEmpty {
 				Text("No virtual machines found.")
 			} else {
 				Menu("Virtual machines") {
-					ForEach(documents) { document in
+					ForEach(self.appState.virtualMachines.documents) { document in
 						VMMenuItem(vm: document)
 					}
 				}
@@ -106,8 +102,9 @@ struct CakerMenuBarExtraScene: Scene {
 			Divider()
 			Button("Quit") {
 				NSApp.terminate(self)
-			}.keyboardShortcut("Q")
-				.help("Terminate Caker and stop all running VMs.")
+			}
+			.keyboardShortcut("Q")
+			.help("Terminate Caker and stop all running VMs.")
 		} label: {
 			if let path = Bundle.main.path(forResource: "MenuBarIcon", ofType: "png") {
 				Image(nsImage: NSImage(contentsOfFile: path) ?? NSImage()).resizable()
@@ -116,7 +113,7 @@ struct CakerMenuBarExtraScene: Scene {
 			}
 		}
 	}
-	
+
 	private func open() {
 		let home = StorageLocation(runMode: .app).rootURL
 
