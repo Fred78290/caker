@@ -9,13 +9,65 @@ import SwiftUI
 import CakedLib
 import CakeAgentLib
 import GRPCLib
+import Darwin
 
 extension ConnectionManager {
 	func isConnected(to service: NetService) -> Bool {
 		guard connectionMode == .remote else { return false }
-		guard let hostName = service.hostName, let serviceURL = self.serviceURL else { return false }
+		guard let serviceURL = self.serviceURL, serviceURL.port == service.port else { return false }
+		guard let connectedHost = normalizedHost(serviceURL.host) else { return false }
 
-		return serviceURL.host == hostName && serviceURL.port == service.port
+		if let serviceHost = normalizedHost(service.hostName), connectedHost == serviceHost {
+			return true
+		}
+
+		return resolvedAddressHosts(for: service).contains(connectedHost)
+	}
+
+	private func normalizedHost(_ host: String?) -> String? {
+		guard let host else { return nil }
+
+		let normalizedHost = host
+			.trimmingCharacters(in: .whitespacesAndNewlines)
+			.trimmingCharacters(in: CharacterSet(charactersIn: "."))
+			.lowercased()
+
+		return normalizedHost.isEmpty ? nil : normalizedHost
+	}
+
+	private func resolvedAddressHosts(for service: NetService) -> Set<String> {
+		guard let addresses = service.addresses else { return [] }
+
+		return Set(addresses.compactMap { addressData in
+			guard !addressData.isEmpty else { return nil }
+
+			var storage = sockaddr_storage()
+			let storageSize = min(addressData.count, MemoryLayout<sockaddr_storage>.size)
+
+			return addressData.withUnsafeBytes { rawBuffer in
+				guard let baseAddress = rawBuffer.baseAddress else { return nil }
+
+				memcpy(&storage, baseAddress, storageSize)
+
+				var hostBuffer = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+				let result = withUnsafePointer(to: &storage) {
+					$0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+						getnameinfo(
+							$0,
+							socklen_t(addressData.count),
+							&hostBuffer,
+							socklen_t(hostBuffer.count),
+							nil,
+							0,
+							NI_NUMERICHOST
+						)
+					}
+				}
+
+				guard result == 0 else { return nil }
+				return normalizedHost(String(cString: hostBuffer))
+			}
+		})
 	}
 }
 
