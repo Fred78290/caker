@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TemplatesView: View {
-	@Binding var navigationModel: NavigationModel
+	@StateObject var navigationModel: NavigationModel
 
 	var body: some View {
 		Text( /*@START_MENU_TOKEN@*/"Hello, World!" /*@END_MENU_TOKEN@*/)
@@ -16,5 +16,5 @@ struct TemplatesView: View {
 }
 
 #Preview {
-	TemplatesView(navigationModel: .constant(.init()))
+	TemplatesView(navigationModel: .init(selectedCategory: .virtualMachine))
 }

@@ -13,18 +13,13 @@ struct VirtualMachinesView: View {
 	static let cellSpacing: CGFloat = 10
 
 	@Environment(\.appearsActive) private var appearsActive
-
-	@Binding var navigationModel: NavigationModel
+	@ObservedObject var appState: AppState = .shared
+	@StateObject var navigationModel: NavigationModel
 	@State var columns: [GridItem]
-
-	init(navigationModel: Binding<NavigationModel>, size: CGSize) {
-		_navigationModel = navigationModel
-		self.columns = Self.buildColumns(size)
-	}
 
 	@ViewBuilder
 	func virtualMachineView(_ document: VirtualMachineDocument) -> some View {
-		let selected: Bool = self.navigationModel.selectedVirtualMachine?.id == document.id
+		let selected = self.navigationModel.selectedVirtualMachine?.id == document.id
 
 		VirtualMachineView(.constant(document), selected: selected)
 			.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
@@ -34,7 +29,7 @@ struct VirtualMachinesView: View {
 		GeometryReader { geometry in
 			ScrollView {
 				LazyVGrid(columns: self.columns, alignment: .leading, spacing: Self.cellSpacing) {
-					ForEach(AppState.shared.virtualMachines.documents) { document in
+					ForEach(self.appState.virtualMachines.documents) { document in
 						self.virtualMachineView(document)
 							.onTapGesture(count: 2) {
 								self.navigationModel.selectedVirtualMachine = document
@@ -71,8 +66,4 @@ struct VirtualMachinesView: View {
 		let numOfColums = max(Int(size.width) / Int(cellWidth - cellSpacing), 1)
 		return Array(repeating: GridItem(.fixed(cellWidth)), count: numOfColums)
 	}
-}
-
-#Preview {
-	VirtualMachinesView(navigationModel: .constant(.init()), size: .init(width: 500, height: 600))
 }

@@ -31,7 +31,7 @@ extension BridgedNetwork {
 
 struct NetworksView: View {
 	@Environment(\.colorScheme) var colorScheme: ColorScheme
-	@Binding var navigationModel: NavigationModel
+	@StateObject var navigationModel: NavigationModel
 	@State private var selection: BridgedNetwork.ID? = nil
 	@State private var disabled: Bool = false
 
@@ -79,5 +79,5 @@ struct NetworksView: View {
 }
 
 #Preview {
-	NetworksView(navigationModel: .constant(.init()))
+	NetworksView(navigationModel: .init(selectedCategory: .networks))
 }

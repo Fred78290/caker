@@ -260,13 +260,13 @@ struct HomeView: View {
 		GeometryReader { geometry in
 			switch self.selectedCategory {
 			case .images:
-				RemotesView(navigationModel: $navigationModel)
+				RemotesView(navigationModel: navigationModel)
 			case .templates:
-				TemplatesView(navigationModel: $navigationModel)
+				TemplatesView(navigationModel: navigationModel)
 			case .networks:
-				NetworksView(navigationModel: $navigationModel)
+				NetworksView(navigationModel: navigationModel)
 			case .virtualMachine:
-				VirtualMachinesView(navigationModel: $navigationModel, size: geometry.size)
+				VirtualMachinesView(navigationModel: navigationModel, columns: VirtualMachinesView.buildColumns(geometry.size))
 			}
 		}.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
 	}
