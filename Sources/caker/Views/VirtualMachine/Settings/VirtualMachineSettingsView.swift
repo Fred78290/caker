@@ -33,7 +33,7 @@ struct VirtualMachineSettingsView: View {
 		case storage
 	}
 
-	@StateObject var document: VirtualMachineDocument
+	@State var document: VirtualMachineDocument
 	@State var config: VirtualMachineConfig
 	@State var configChanged = false
 	@State var selectedTab: SettingsTab = .account
@@ -44,15 +44,15 @@ struct VirtualMachineSettingsView: View {
 		let document = try! VirtualMachineDocument.anyVirtualMachineDocument()
 		let config = document.virtualMachineConfig
 
-		self._document = StateObject(wrappedValue: document)
+		self.document = document
 		self.config = document.virtualMachineConfig
 		self.userPassword = config.configuredPassword ?? String.empty
 	}
 
-	init(document: StateObject<VirtualMachineDocument>) {
-		let config = document.wrappedValue.virtualMachineConfig
+	init(document: VirtualMachineDocument) {
+		let config = document.virtualMachineConfig
 
-		self._document = document
+		self.document = document
 		self.config = config
 		self.userPassword = config.configuredPassword ?? String.empty
 	}

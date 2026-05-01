@@ -9,18 +9,18 @@ import CakedLib
 import GRPCLib
 import SwiftUI
 
-final class CoreInfo: ObservableObject, Observable {
-	@Published var coreID: Int32 = 0
-	@Published var usagePercent: Double = 0
-	@Published var user: Double = 0
-	@Published var system: Double = 0
-	@Published var idle: Double = 0
-	@Published var iowait: Double = 0
-	@Published var irq: Double = 0
-	@Published var softirq: Double = 0
-	@Published var steal: Double = 0
-	@Published var guest: Double = 0
-	@Published var guestNice: Double = 0
+@Observable final class CoreInfo {
+	var coreID: Int32 = 0
+	var usagePercent: Double = 0
+	var user: Double = 0
+	var system: Double = 0
+	var idle: Double = 0
+	var iowait: Double = 0
+	var irq: Double = 0
+	var softirq: Double = 0
+	var steal: Double = 0
+	var guest: Double = 0
+	var guestNice: Double = 0
 
 	init(
 		coreID: Int32,
@@ -49,7 +49,7 @@ final class CoreInfo: ObservableObject, Observable {
 	}
 }
 
-final class MemoryInfo: ObservableObject, Observable {
+@Observable final class MemoryInfo {
 	public var total: UInt64 = 0
 	public var free: UInt64 = 0
 	public var used: UInt64 = 0
@@ -88,18 +88,18 @@ final class MemoryInfo: ObservableObject, Observable {
 	}
 }
 
-final class CpuInfos: ObservableObject, Observable {
-	@Published var totalUsagePercent: Double = 0
-	@Published var user: Double = 0
-	@Published var system: Double = 0
-	@Published var idle: Double = 0
-	@Published var iowait: Double = 0
-	@Published var irq: Double = 0
-	@Published var softirq: Double = 0
-	@Published var steal: Double = 0
-	@Published var guest: Double = 0
-	@Published var guestNice: Double = 0
-	@Published var cores: [CoreInfo] = []
+@Observable final class CpuInfos {
+	var totalUsagePercent: Double = 0
+	var user: Double = 0
+	var system: Double = 0
+	var idle: Double = 0
+	var iowait: Double = 0
+	var irq: Double = 0
+	var softirq: Double = 0
+	var steal: Double = 0
+	var guest: Double = 0
+	var guestNice: Double = 0
+	var cores: [CoreInfo] = []
 	
 	init() {
 		
@@ -225,26 +225,26 @@ final class CpuInfos: ObservableObject, Observable {
 	}
 }
 
-final class VirtualMachineInformations: ObservableObject, Observable {
-	@Published var timestamp: Date = .now
-	@Published var name: String? = nil
-	@Published var version: String? = nil
-	@Published var uptime: UInt64? = nil
-	@Published var memory: InfoReply.MemoryInfo? = nil
-	@Published var cpuCount: Int32? = nil
-	@Published var diskInfos: [DiskInfo]? = nil
-	@Published var ipaddresses: [String]? = nil
-	@Published var osname: String? = nil
-	@Published var hostname: String? = nil
-	@Published var release: String? = nil
-	@Published var mounts: [String]? = nil
-	@Published var status: Status = .unknown
-	@Published var attachedNetworks: [AttachedNetwork]? = nil
-	@Published var tunnelInfos: [TunnelInfo]? = nil
-	@Published var socketInfos: [SocketInfo]? = nil
-	@Published var vncURL: String? = nil
-	@Published var cpuInfos = CpuInfos()
-	@Published var agentVersion: String? = nil
+@Observable final class VirtualMachineInformations {
+	var timestamp: Date = .now
+	var name: String? = nil
+	var version: String? = nil
+	var uptime: UInt64? = nil
+	var memory: InfoReply.MemoryInfo? = nil
+	var cpuCount: Int32? = nil
+	var diskInfos: [DiskInfo]? = nil
+	var ipaddresses: [String]? = nil
+	var osname: String? = nil
+	var hostname: String? = nil
+	var release: String? = nil
+	var mounts: [String]? = nil
+	var status: Status = .unknown
+	var attachedNetworks: [AttachedNetwork]? = nil
+	var tunnelInfos: [TunnelInfo]? = nil
+	var socketInfos: [SocketInfo]? = nil
+	var vncURL: String? = nil
+	var cpuInfos = CpuInfos()
+	var agentVersion: String? = nil
 
 	init() {
 	}

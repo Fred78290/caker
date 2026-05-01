@@ -84,7 +84,7 @@ struct HostVirtualMachineView: View {
 	@Environment(\.openWindow) private var openWindow
 	@Environment(\.dismiss) var dismiss
 
-	@StateObject var document: VirtualMachineDocument
+	@State var document: VirtualMachineDocument
 
 	@State var window: NSWindow? = nil
 	@State var displaySettings: Bool = false
@@ -107,7 +107,7 @@ struct HostVirtualMachineView: View {
 	private let id: String = UUID().uuidString
 
 	init(document: VirtualMachineDocument) {
-		self._document = StateObject(wrappedValue: document)
+		self.document = document
 		self.minSize = CGSize(width: 800, height: 600)
 		self.launchExternally = document.isLaunchVMExternally
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
@@ -298,7 +298,7 @@ struct HostVirtualMachineView: View {
 						.disabled(document.status.isStopped == false)
 					}
 				}.sheet(isPresented: $displaySettings) {
-					VirtualMachineSettingsView(document: _document).frame(width: 700)
+					VirtualMachineSettingsView(document: document).frame(width: 700)
 				}.alert("Create template", isPresented: $createTemplate) {
 					CreateTemplateView()
 				}.onGeometryChange(for: CGRect.self) { proxy in

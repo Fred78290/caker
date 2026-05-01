@@ -12,7 +12,7 @@ import CakeAgentLib
 struct HomeView: View {
 	@Environment(\.appearsActive) private var appearsActive
 
-	@ObservedObject private var appState = AppState.shared
+	private var appState = AppState.shared
 
 	@State private var navigationModel = NavigationModel(selectedCategory: .virtualMachine)
 	@State private var presented: Bool = false

@@ -37,9 +37,9 @@ extension NetService {
 	}
 }
 
-class ServiceListViewModel: ObservableObject {
-	@Published var services: [NetService] = []
-	@Published var isScanning: Bool = false
+@Observable class ServiceListViewModel {
+	var services: [NetService] = []
+	var isScanning: Bool = false
 
 	private var serviceLister: BonjourServiceLister?
 
@@ -72,7 +72,7 @@ class ServiceListViewModel: ObservableObject {
 }
 
 struct ServiceListView: View {
-	@StateObject private var viewModel = ServiceListViewModel()
+	@State private var viewModel = ServiceListViewModel()
 
 	@State private var selectedService: NetService? = nil
     @State private var isPresentingPasswordPrompt: Bool = false

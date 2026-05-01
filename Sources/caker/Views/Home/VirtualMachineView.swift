@@ -34,7 +34,7 @@ struct VirtualMachineView: View {
 	private let radius: CGFloat = 12
 	private let selectedSystemFill = Color(NSColor.secondarySystemFill)
 	private let secondarySystemFill = Color(NSColor.tertiarySystemFill)
-	@ObservedObject private var vm: VirtualMachineDocument
+	private var vm: VirtualMachineDocument
 	@State var screenshot: NSImage?
 
 #if DEBUG

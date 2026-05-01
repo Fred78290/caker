@@ -97,7 +97,7 @@ struct MainApp: App {
 	
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
-	@ObservedObject var appState: AppState
+	var appState: AppState
 	@State var createTemplate = false
 	
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate

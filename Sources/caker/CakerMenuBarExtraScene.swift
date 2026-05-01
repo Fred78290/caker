@@ -10,7 +10,7 @@ import GRPCLib
 import SwiftUI
 
 struct CakerMenuBarExtraScene: Scene {
-	@ObservedObject private var appState: AppState = .shared
+	private var appState: AppState = .shared
 	@AppStorage("ShowMenuIcon") private var isMenuIconShown: Bool = false
 	@AppStorage("HideDockIcon") private var isDockIconHidden: Bool = false
 	@Environment(\.openWindow) private var openWindow

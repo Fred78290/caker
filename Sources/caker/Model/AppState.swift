@@ -112,7 +112,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 }
 
-class AppState: ObservableObject, Observable {
+@Observable class AppState {
 	static let AppStateChanged = Notification.Name("AppStateChanged")
 
 	private struct ServiceReply {
@@ -143,25 +143,25 @@ class AppState: ObservableObject, Observable {
 		return shared
 	}
 	
-	@AppStorage("VMLaunchMode") var launchVMExternally = false
-	@AppStorage("ClipboardRedirectionEnabled") var isClipboardRedirectionEnabled = false
-	@AppStorage("DebugVNCMessageEnabled") var debugVNCMessageEnabled: Bool = false
+	@ObservationIgnored @AppStorage("VMLaunchMode") var launchVMExternally = false
+	@ObservationIgnored @AppStorage("ClipboardRedirectionEnabled") var isClipboardRedirectionEnabled = false
+	@ObservationIgnored @AppStorage("DebugVNCMessageEnabled") var debugVNCMessageEnabled: Bool = false
 	
-	@Published private(set) var cakedServiceInstalled: Bool = false
-	@Published private(set) var cakedServiceRunning: Bool = false
-	@Published private(set) var connectionMode: ConnectionManager.ConnectionMode = .app
-	@Published private(set) var isStopped: Bool = true
-	@Published private(set) var isSuspendable: Bool = false
-	@Published private(set) var isRunning: Bool = false
-	@Published private(set) var isPaused: Bool = false
-	@Published private(set) var remotes: [RemoteEntry] = []
-	@Published private(set) var templates: [TemplateEntry] = []
-	@Published private(set) var networks: [BridgedNetwork] = []
-	@Published private(set) var virtualMachines: [URL: VirtualMachineDocument] = [:]
-	@Published private(set) var hasVMNetworking = Entitlement.hasVMNetworking()
-	@Published private(set) var connectionManager: ConnectionManager
-	@Published var isAgentInstalling: Bool = false
-	@Published var currentDocument: VirtualMachineDocument! {
+	private(set) var cakedServiceInstalled: Bool = false
+	private(set) var cakedServiceRunning: Bool = false
+	private(set) var connectionMode: ConnectionManager.ConnectionMode = .app
+	private(set) var isStopped: Bool = true
+	private(set) var isSuspendable: Bool = false
+	private(set) var isRunning: Bool = false
+	private(set) var isPaused: Bool = false
+	private(set) var remotes: [RemoteEntry] = []
+	private(set) var templates: [TemplateEntry] = []
+	private(set) var networks: [BridgedNetwork] = []
+	private(set) var virtualMachines: [URL: VirtualMachineDocument] = [:]
+	private(set) var hasVMNetworking = Entitlement.hasVMNetworking()
+	private(set) var connectionManager: ConnectionManager
+	var isAgentInstalling: Bool = false
+	var currentDocument: VirtualMachineDocument! {
 		didSet {
 			self.updateState()
 		}

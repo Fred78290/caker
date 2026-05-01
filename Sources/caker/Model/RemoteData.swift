@@ -9,10 +9,10 @@ import Foundation
 import GRPCLib
 import SwiftUI
 
-class RemoteData: ObservableObject, Observable {
-	@Published var name: String
-	@Published var url: String
-	@Published var images: [ImageInfo] = []
+@Observable class RemoteData {
+	var name: String
+	var url: String
+	var images: [ImageInfo] = []
 
 	init(name: String, url: String) {
 		self.name = name

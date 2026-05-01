@@ -48,17 +48,17 @@ struct ForwardedPortDetailView: View {
 		}
 	}
 
-	class TunnelAttachementModel: ObservableObject, Observable, Equatable {
+	@Observable class TunnelAttachementModel: Equatable {
 		static func == (lhs: ForwardedPortDetailView.TunnelAttachementModel, rhs: ForwardedPortDetailView.TunnelAttachementModel) -> Bool {
 			lhs.tunnelAttachement == rhs.tunnelAttachement
 		}
 
-		@Published var mode: ForwardMode
-		@Published var selectedProtocol: Proto
-		@Published var hostPath: String?
-		@Published var guestPath: String?
-		@Published var hostPort: TextFieldStore<Int, RangeIntegerStyle>
-		@Published var guestPort: TextFieldStore<Int, RangeIntegerStyle>
+		var mode: ForwardMode
+		var selectedProtocol: Proto
+		var hostPath: String?
+		var guestPath: String?
+		var hostPort: TextFieldStore<Int, RangeIntegerStyle>
+		var guestPort: TextFieldStore<Int, RangeIntegerStyle>
 
 		var tunnelAttachement: TunnelAttachement {
 			switch mode {
@@ -95,12 +95,12 @@ struct ForwardedPortDetailView: View {
 	}
 
 	@Binding private var currentItem: TunnelAttachement
-	@StateObject private var model: TunnelAttachementModel
+	@State private var model: TunnelAttachementModel
 	private var readOnly: Bool
 
 	init(currentItem: Binding<TunnelAttachement>, readOnly: Bool = true) {
 		_currentItem = currentItem
-		self._model = StateObject(wrappedValue: TunnelAttachementModel(item: currentItem))
+		self._model = State(initialValue: TunnelAttachementModel(item: currentItem))
 		self.readOnly = readOnly
 	}
 

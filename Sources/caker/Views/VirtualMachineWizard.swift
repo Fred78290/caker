@@ -196,19 +196,19 @@ struct ShortImageInfoComparator: SortComparator {
 	}
 }
 
-class VirtualMachineWizardStateObject: ObservableObject {
-	@Published var currentStep: WizardModel.SelectedItem
-	@Published var configValid: Bool
-	@Published var password: String
-	@Published var showPassword: Bool
-	@Published var imageSource: ImageSource
-	@Published var remoteImage: String
-	@Published var remoteImages: [ShortImageInfo]
-	@Published var selectedRemoteImage: String
-	@Published var cloudImageRelease: OSCloudImage
-	@Published var createVM: Bool
-	@Published var fractionCompleted: Double
-	@Published var createVMMessage: String
+@Observable class VirtualMachineWizardStateObject {
+	var currentStep: WizardModel.SelectedItem
+	var configValid: Bool
+	var password: String
+	var showPassword: Bool
+	var imageSource: ImageSource
+	var remoteImage: String
+	var remoteImages: [ShortImageInfo]
+	var selectedRemoteImage: String
+	var cloudImageRelease: OSCloudImage
+	var createVM: Bool
+	var fractionCompleted: Double
+	var createVMMessage: String
 
 	init() {
 		self.currentStep = .name
@@ -246,7 +246,7 @@ struct VirtualMachineWizard: View {
 
 	@State private var config: VirtualMachineConfig = .init()
 	@State private var currentTab: Int = 0
-	@StateObject private var model = VirtualMachineWizardStateObject()
+	@State private var model = VirtualMachineWizardStateObject()
 
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 	private let listHeight: CGFloat = 460

@@ -74,7 +74,7 @@ extension UTType {
 }
 
 // MARK: - VirtualMachineDocument
-final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equatable, Identifiable, Comparable {
+@Observable final class VirtualMachineDocument: @unchecked Sendable, Equatable, Identifiable, Comparable {
 	typealias ShellHandlerResponse = (Cakeagent_CakeAgent.ExecuteResponse) -> Void
 	
 	static func == (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
@@ -209,7 +209,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	/// Use the document URL as the stable identity so that `ForEach` can recognise
 	/// the same VM across dictionary replacements (e.g. after a mode switch) and
 	/// update existing views in-place rather than destroying and re-creating them.
-	/// Updating in-place releases the old `@ObservedObject` reference immediately,
+	/// Updating in-place releases the old reference immediately,
 	/// preventing the retain of stale documents in `VirtualMachinesView` and
 	/// `CakerMenuBarExtraScene`.
 	var id: String {
@@ -243,27 +243,27 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		return launchVMExternally
 	}
 	
-	@Published var virtualMachineConfig: VirtualMachineConfig = .init()
-	@Published var externalRunning: Bool = false
-	@Published var canStart: Bool = false
-	@Published var canStop: Bool = false
-	@Published var canPause: Bool = false
-	@Published var canResume: Bool = false
-	@Published var canRequestStop: Bool = false
-	@Published var suspendable: Bool = false
-	@Published var vncURL: [URL]? = nil
-	@Published var agent = AgentStatus.none
-	@Published var agentReady: Bool = false
-	@Published var connection: VNCConnection! = nil
-	@Published var vncStatus: VncStatus = .disconnected
-	@Published var documentSize: ViewSize = .zero
-	@Published var launchVMExternally: Bool? = nil
-	@Published var cpuInfos = CpuInfos()
-	@Published var memoryInfos = MemoryInfo()
-	@Published var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
-	@Published var ipaddresses: [String] = []
-	@Published var screenshot: Data!
-	@Published var status: Status = .none {
+	var virtualMachineConfig: VirtualMachineConfig = .init()
+	var externalRunning: Bool = false
+	var canStart: Bool = false
+	var canStop: Bool = false
+	var canPause: Bool = false
+	var canResume: Bool = false
+	var canRequestStop: Bool = false
+	var suspendable: Bool = false
+	var vncURL: [URL]? = nil
+	var agent = AgentStatus.none
+	var agentReady: Bool = false
+	var connection: VNCConnection! = nil
+	var vncStatus: VncStatus = .disconnected
+	var documentSize: ViewSize = .zero
+	var launchVMExternally: Bool? = nil
+	var cpuInfos = CpuInfos()
+	var memoryInfos = MemoryInfo()
+	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
+	var ipaddresses: [String] = []
+	var screenshot: Data!
+	var status: Status = .none {
 		didSet {
 			guard AppState.sharedLoaded else {
 				return
@@ -275,7 +275,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		}
 	}
 
-	@Published var recoveryMode: Bool = false {
+	var recoveryMode: Bool = false {
 		didSet {
 			if let virtualMachine = self.virtualMachine {
 				virtualMachine.recoveryMode = self.recoveryMode

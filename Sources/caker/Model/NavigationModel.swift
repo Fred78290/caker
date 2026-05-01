@@ -66,15 +66,15 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	}
 }
 
-class NavigationModel: ObservableObject, Observable {
-	@Published var columnVisibility: NavigationSplitViewVisibility = .all
-	@Published var selectedElement: SelectedElement? = nil
-	@Published var navigationSplitViewVisibility: NavigationSplitViewVisibility = .all
-	@Published var navigationSplitViewColumn: NavigationSplitViewColumn = .content
-	@Published var selectedRemote: RemoteEntry! = nil
-	@Published var selectedTemplate: TemplateEntry! = nil
-	@Published var selectedNetwork: BridgedNetwork! = nil
-	@Published var selectedVirtualMachine: VirtualMachineDocument! = nil
+@Observable class NavigationModel {
+	var columnVisibility: NavigationSplitViewVisibility = .all
+	var selectedElement: SelectedElement? = nil
+	var navigationSplitViewVisibility: NavigationSplitViewVisibility = .all
+	var navigationSplitViewColumn: NavigationSplitViewColumn = .content
+	var selectedRemote: RemoteEntry! = nil
+	var selectedTemplate: TemplateEntry! = nil
+	var selectedNetwork: BridgedNetwork! = nil
+	var selectedVirtualMachine: VirtualMachineDocument! = nil
 	
 	static var categories: [Category] = [.virtualMachine, .networks]
 	
