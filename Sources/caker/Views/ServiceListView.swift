@@ -506,11 +506,11 @@ struct ServiceRowView: View {
 			if connected {
 				Button("Disconnect") {
 					AppState.shared.connectToLocal()
-				}.log(text: "Connecting to service")
+				}.log(text: "Disconnecting from service")
 			} else {
 				Button("Connect") {
 					self.onConnect(service)
-				}.log(text: "Connecting to other")
+				}.log(text: "Connecting to service")
 			}
 		}
 		.onTapGesture(count: 2) {
