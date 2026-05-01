@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct RemotesView: View {
-	@StateObject var navigationModel: NavigationModel
+	@ObservedObject var navigationModel: NavigationModel
 
 	var body: some View {
 		Text( /*@START_MENU_TOKEN@*/"Hello, World!" /*@END_MENU_TOKEN@*/)

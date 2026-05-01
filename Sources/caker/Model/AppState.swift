@@ -681,7 +681,7 @@ class AppState: ObservableObject, Observable {
 				let result = try self.connectionManager.deleteRemote(name: name)
 				
 				if result.deleted {
-					self.reloadTemplates()
+					self.reloadRemotes()
 				} else {
 					DispatchQueue.main.async {
 						alertError(String(localized: "Delete failed"), result.reason)

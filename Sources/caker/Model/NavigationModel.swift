@@ -1,11 +1,11 @@
-import CakedLib
-import GRPCLib
 //
 //  NavigationModel.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 09/06/2025.
 //
+import CakedLib
+import GRPCLib
 import SwiftUI
 
 enum SelectedElement: Identifiable, Hashable, Equatable {

@@ -19,7 +19,7 @@ struct VirtualMachinesView: View {
 
 	@Environment(\.appearsActive) private var appearsActive
 	@ObservedObject var appState: AppState = .shared
-	@StateObject var navigationModel: NavigationModel
+	@ObservedObject var navigationModel: NavigationModel
 	@State var columns: [GridItem]
 
 	@ViewBuilder
