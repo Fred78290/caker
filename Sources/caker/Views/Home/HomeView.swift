@@ -75,7 +75,7 @@ struct HomeView: View {
 				self.navigationModel.selectedTemplate = nil
 				self.navigationModel.selectedVirtualMachine = nil
 				self.navigationModel.selectedNetwork = nil
-				self.navigationModel.selectedTemplate = nil
+				self.navigationModel.selectedRemote = nil
 
 				if self.appearsActive {
 					self.appState.currentDocument = nil
