@@ -73,6 +73,8 @@ struct HomeView: View {
 			}.onReceive(AppState.AppStateChanged) { notification in
 				self.navigationModel.selectedTemplate = nil
 				self.navigationModel.selectedVirtualMachine = nil
+				self.navigationModel.selectedNetwork = nil
+				self.navigationModel.selectedTemplate = nil
 
 				if self.appearsActive {
 					self.appState.currentDocument = nil
