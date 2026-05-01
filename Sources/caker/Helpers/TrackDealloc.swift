@@ -6,6 +6,7 @@
 //
 
 import CakeAgentLib
+import Foundation
 
 #if DEBUG
 class TrackDealloc {
@@ -14,11 +15,11 @@ class TrackDealloc {
 
 	init(from: String) {
 		self.from = from
-		Logger("TrackDealloc").debug("Initialized from \(from) with id \(id)")
+		Logger("TrackDealloc").trace("Initialized from \(from) with id \(id)")
 	}
 
 	deinit {
-		Logger("TrackDealloc").debug("Deallocated from \(from) with id \(id)")
+		Logger("TrackDealloc").trace("Deallocated from \(from) with id \(id)")
 	}
 }
 #endif
