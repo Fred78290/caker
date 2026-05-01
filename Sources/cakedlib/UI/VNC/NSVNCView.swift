@@ -31,6 +31,10 @@ public class NSVNCView: NSView {
 	private var cancelWaitVNCReconfiguration: DispatchWorkItem?
 	public weak var delegate: NSVNCViewDelegate?
 
+	private let isScalingEnabled: Bool
+	private let useDisplayLink: Bool
+	private let inputMode: RoyalVNCKit.VNCConnection.Settings.InputMode
+
 	public var isLiveViewResize: Bool {
 		return self.liveViewResize
 	}
@@ -41,10 +45,6 @@ public class NSVNCView: NSView {
 		}
 
 		return connection.framebuffer!.cgSize
-	}
-
-	private var settings: RoyalVNCKit.VNCConnection.Settings {
-		self.connection!.settings
 	}
 
 	private var currentCursor: NSCursor {
@@ -104,8 +104,13 @@ public class NSVNCView: NSView {
 	}
 
 	public init(frame frameRect: CGRect, connection: RoyalVNCKit.VNCConnection) {
+		let settings = connection.settings
+
 		self.connection = connection
 		self.currentCursor = VNCCursor.empty.nsCursor
+		self.inputMode = settings.inputMode
+		self.isScalingEnabled = settings.isScalingEnabled
+		self.useDisplayLink = settings.useDisplayLink
 
 		super.init(frame: frameRect)
 
@@ -168,7 +173,7 @@ public class NSVNCView: NSView {
 	}
 
 	func removeDisplayLink() {
-		guard settings.useDisplayLink, let displayLink = self.displayLink else {
+		guard self.useDisplayLink, let displayLink = self.displayLink else {
 			return
 		}
 
@@ -178,7 +183,7 @@ public class NSVNCView: NSView {
 	}
 
 	func addDisplayLink() {
-		guard settings.useDisplayLink else {
+		guard self.useDisplayLink else {
 			return
 		}
 
@@ -307,7 +312,7 @@ extension NSVNCView {
 
 	public func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
 		// NOTE: If we ever take the updatedRegion into consideration, we will likely need to flip the coordinates on macOS
-		guard !settings.useDisplayLink, displayLink == nil else {
+		guard !self.useDisplayLink, displayLink == nil else {
 			return
 		}
 
@@ -497,7 +502,7 @@ extension NSVNCView {
 
 	func handlePerformKeyEquivalent(with event: NSEvent) -> Bool {
 		// swiftlint:disable:next control_statement
-		guard settings.inputMode == .forwardKeyboardShortcutsEvenIfInUseLocally || settings.inputMode == .forwardAllKeyboardShortcutsAndHotKeys, let window, window.firstResponder == window || window.firstResponder == self else {
+		guard self.inputMode == .forwardKeyboardShortcutsEvenIfInUseLocally || self.inputMode == .forwardAllKeyboardShortcutsAndHotKeys, let window, window.firstResponder == window || window.firstResponder == self else {
 			return false
 		}
 
@@ -632,7 +637,7 @@ extension NSVNCView {
 			self.stopWaitVNCReconfiguration()
 
 			if let layer = layer {
-				if settings.isScalingEnabled {
+				if self.isScalingEnabled {
 					layer.contentsGravity = .resizeAspect
 				} else if frameSizeExceedsFramebufferSize(size) {
 					// Don't allow upscaling
@@ -646,7 +651,7 @@ extension NSVNCView {
 	}
 
 	fileprivate func registerHotKeys() {
-		if settings.inputMode == .forwardAllKeyboardShortcutsAndHotKeys {
+		if self.inputMode == .forwardAllKeyboardShortcutsAndHotKeys {
 			deregisterHotKeys()
 
 			// This requires Accessibilty permissions which can be requested using `VNCAccessibilityUtils`
