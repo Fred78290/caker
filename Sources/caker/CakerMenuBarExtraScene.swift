@@ -16,7 +16,9 @@ struct CakerMenuBarExtraScene: Scene {
 	@Environment(\.openWindow) private var openWindow
 	@Environment(\.openSettings) private var openSettings
 
-	init() {
+#if DEBUG
+	let tracker = TrackDealloc(from: "CakerMenuBarExtraScene")
+#endif
 
 	var body: some Scene {
 		MenuBarExtra(isInserted: $isMenuIconShown) {

@@ -7,13 +7,30 @@
 
 import GRPCLib
 import SwiftUI
+import CakeAgentLib
+
+#if DEBUG
+class TrackDealloc {
+	let id = UUID().uuidString
+	let from: String
+
+	init(from: String) {
+		self.from = from
+		Logger("TrackDealloc").debug("Initialized from \(from) with id \(id)")
+	}
+
+	deinit {
+		Logger("TrackDealloc").debug("Deallocated from \(from) with id \(id)")
+	}
+}
+#endif
 
 struct HomeView: View {
 	@Environment(\.appearsActive) private var appearsActive
 
-	private let appState = AppState.shared
+	@ObservedObject private var appState = AppState.shared
 
-	@State private var navigationModel = NavigationModel()
+	@State private var navigationModel = NavigationModel(selectedCategory: .virtualMachine)
 	@State private var presented: Bool = false
 	@State private var mustShowDetailView: Bool = true
 	@State private var window: NSWindow? = nil

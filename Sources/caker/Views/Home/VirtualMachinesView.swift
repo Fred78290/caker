@@ -5,12 +5,17 @@
 //  Created by Frederic BOLTZ on 13/07/2025.
 //
 
+import CakedLib
 import SwiftUI
 
 struct VirtualMachinesView: View {
 	static let cellWidth: CGFloat = 480
 	static let cellHeight: CGFloat = 364
 	static let cellSpacing: CGFloat = 10
+
+#if DEBUG
+	let tracker = TrackDealloc(from: "VirtualMachinesView")
+#endif
 
 	@Environment(\.appearsActive) private var appearsActive
 	@ObservedObject var appState: AppState = .shared

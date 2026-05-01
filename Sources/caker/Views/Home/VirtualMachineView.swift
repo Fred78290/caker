@@ -37,12 +37,19 @@ struct VirtualMachineView: View {
 	@Binding private var vm: VirtualMachineDocument
 	@State var screenshot: NSImage?
 
+#if DEBUG
+	let tracker: TrackDealloc
+#endif
+
 	init(_ vm: Binding<VirtualMachineDocument>, selected: Bool) {
 		let lastScreenshot = vm.wrappedValue.lastScreenshot
 
 		self._vm = vm
 		self.selected = selected
-		_screenshot = State(initialValue: lastScreenshot)
+		self._screenshot = State(initialValue: lastScreenshot)
+#if DEBUG
+		self.tracker = TrackDealloc(from: "VirtualMachineView \(vm.wrappedValue.url.absoluteString)")
+#endif
 	}
 
 	var body: some View {
