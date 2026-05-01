@@ -17,9 +17,10 @@ struct HomeView: View {
 	@State private var presented: Bool = false
 	@State private var mustShowDetailView: Bool = true
 	@State private var window: NSWindow? = nil
+	@State private var selectedCategory: Category = .virtualMachine
 
 	private var deleteButtonDisabled: Bool {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .templates:
 			return navigationModel.selectedTemplate == nil
 		case .virtualMachine:
@@ -142,12 +143,14 @@ struct HomeView: View {
 			}
 		}
 
+		navigationModel.newSelectedCategory(newValue)
+
 		clearSelectection(oldValue)
 		clearSelectection(newValue)
 	}
 
 	var haveDetailView: Bool {
-		guard navigationModel.selectedCategory != .virtualMachine else {
+		guard self.selectedCategory != .virtualMachine else {
 			return false
 		}
 
@@ -156,11 +159,11 @@ struct HomeView: View {
 
 
 	var showDetailView: Bool {
-		guard navigationModel.selectedCategory != .virtualMachine else {
+		guard self.selectedCategory != .virtualMachine else {
 			return false
 		}
 
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .virtualMachine:
 			return false
 		case .networks:
@@ -181,7 +184,7 @@ struct HomeView: View {
 	}
 
 	var minContentSize: CGFloat? {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .images:
 			return nil
 		case .templates:
@@ -194,7 +197,7 @@ struct HomeView: View {
 	}
 
 	var idealContentSize: CGFloat {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .images:
 			return 200
 		case .templates:
@@ -207,7 +210,7 @@ struct HomeView: View {
 	}
 
 	var idealDetailSize: CGFloat {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .images:
 			return 200
 		case .templates:
@@ -220,7 +223,7 @@ struct HomeView: View {
 	}
 
 	var maxContentSize: CGFloat {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .images:
 			return 200
 		case .templates:
@@ -234,11 +237,11 @@ struct HomeView: View {
 
 	@ViewBuilder
 	var sidebar: some View {
-		SideBarView(navigationModel: $navigationModel)
+		SideBarView(categories: NavigationModel.categories, selectedCategory: $selectedCategory)
 			.frame(minWidth: 200, maxWidth: 200)
 			.navigationSplitViewColumnWidth(200)
 			.navigationSplitViewStyle(.prominentDetail)
-			.onChange(of: navigationModel.selectedCategory) { oldValue, newValue in
+			.onChange(of: self.selectedCategory) { oldValue, newValue in
 				self.selectedCategoryDidChanged(oldValue, newValue)
 			}
 			.windowAccessor($window) {
@@ -253,7 +256,7 @@ struct HomeView: View {
 	@ViewBuilder
 	var content: some View {
 		GeometryReader { geometry in
-			switch navigationModel.selectedCategory {
+			switch self.selectedCategory {
 			case .images:
 				RemotesView(navigationModel: $navigationModel)
 			case .templates:
@@ -269,7 +272,7 @@ struct HomeView: View {
 	@ViewBuilder
 	var detail: some View {
 		GeometryReader { geometry in
-			switch navigationModel.selectedCategory {
+			switch self.selectedCategory {
 			case .virtualMachine:
 				Text("Hello, VM!")
 			case .networks:
@@ -314,7 +317,7 @@ struct HomeView: View {
 
 	@ViewBuilder
 	var sheet: some View {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .virtualMachine:
 			VirtualMachineWizard(sheet: true)
 				.colorSchemeForColor()
@@ -335,7 +338,7 @@ struct HomeView: View {
 	}
 
 	func actionDelete() {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .virtualMachine:
 			self.appState.deleteVirtualMachine(document: navigationModel.selectedVirtualMachine)
 		case .networks:
@@ -348,7 +351,7 @@ struct HomeView: View {
 	}
 
 	func actionPlus() {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .virtualMachine:
 			self.presented = true
 		case .networks:

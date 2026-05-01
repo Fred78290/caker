@@ -75,30 +75,28 @@ class NavigationModel: ObservableObject, Observable {
 	@Published var selectedTemplate: TemplateEntry! = nil
 	@Published var selectedNetwork: BridgedNetwork! = nil
 	@Published var selectedVirtualMachine: VirtualMachineDocument! = nil
-	@Published var selectedCategory: Category {
-		didSet {
-			switch selectedCategory {
-			case .virtualMachine:
-				self.navigationSplitViewColumn = .detail
-				self.navigationSplitViewVisibility = .doubleColumn
-			case .networks:
-				self.navigationSplitViewColumn = .sidebar
-				self.navigationSplitViewVisibility = .all
-			case .templates:
-				self.navigationSplitViewColumn = .sidebar
-				self.navigationSplitViewVisibility = .all
-			case .images:
-				self.navigationSplitViewColumn = .sidebar
-				self.navigationSplitViewVisibility = .all
-			}
-		}
+	
+	static var categories: [Category] = [.virtualMachine, .networks]
+	
+	init(selectedCategory: Category = .virtualMachine) {
+		self.newSelectedCategory(selectedCategory)
 	}
-	
-	var categories: [Category] = [.virtualMachine, .networks]
-	//var categories: [Category] = [.virtualMachine, .networks, .templates, .images]
-	
-	init() {
-		self.selectedCategory = .virtualMachine
+
+	func newSelectedCategory(_ category: Category) {
+		switch category {
+		case .virtualMachine:
+			self.navigationSplitViewColumn = .detail
+			self.navigationSplitViewVisibility = .doubleColumn
+		case .networks:
+			self.navigationSplitViewColumn = .sidebar
+			self.navigationSplitViewVisibility = .all
+		case .templates:
+			self.navigationSplitViewColumn = .sidebar
+			self.navigationSplitViewVisibility = .all
+		case .images:
+			self.navigationSplitViewColumn = .sidebar
+			self.navigationSplitViewVisibility = .all
+		}
 	}
 
 	func resetSelections() {
@@ -106,15 +104,5 @@ class NavigationModel: ObservableObject, Observable {
 		self.selectedTemplate = nil
 		self.selectedNetwork = nil
 		self.selectedVirtualMachine = nil
-	}
-}
-
-extension NavigationModel: Equatable {
-	static func == (lhs: NavigationModel, rhs: NavigationModel) -> Bool {
-		if ObjectIdentifier(lhs) == ObjectIdentifier(rhs) {
-			return true
-		}
-
-		return lhs.columnVisibility == rhs.columnVisibility && lhs.selectedCategory == rhs.selectedCategory
 	}
 }
