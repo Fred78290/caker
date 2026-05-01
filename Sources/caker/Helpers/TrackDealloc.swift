@@ -2,10 +2,9 @@
 //  TrackDealloc.swift
 //  Caker
 //
-//  Created by Frederic BOLTZ on 01/05/2026.
+//  Created by Frederic BOLTZ on 13/07/2025.
 //
 
-import Foundation
 import CakeAgentLib
 
 #if DEBUG
@@ -23,4 +22,3 @@ class TrackDealloc {
 	}
 }
 #endif
-
