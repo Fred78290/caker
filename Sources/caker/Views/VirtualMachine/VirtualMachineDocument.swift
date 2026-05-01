@@ -202,8 +202,15 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private var agentMonitoring: Task<Void, Never>?
 	private var inView: Bool = false
 
-	let id = UUID().uuidString
-	
+	/// Use the document URL as the stable identity so that `ForEach` can recognise
+	/// the same VM across dictionary replacements (e.g. after a mode switch) and
+	/// update existing views in-place rather than destroying and re-creating them.
+	/// Updating in-place releases the old `@ObservedObject` reference immediately,
+	/// preventing the retain of stale documents in `VirtualMachinesView` and
+	/// `CakerMenuBarExtraScene`. Falls back to pointer identity for the rare cases
+	/// (e.g. previews) where `url` has not yet been set.
+	var id: String { url?.absoluteString ?? ObjectIdentifier(self).debugDescription }
+
 	var connectionManager = ConnectionManager.appConnectionManager
 	var interactiveShell: InteractiveShell? = nil
 	weak var vncView: NSVNCView? = nil

@@ -187,7 +187,14 @@ class AppState: ObservableObject, Observable {
 	}
 
 	private func setVirtualMachines(_ newValues: [URL: VirtualMachineDocument]) {
-		self.virtualMachines = newValues
+		// Remove VMs that are no longer present
+		for url in virtualMachines.keys where newValues[url] == nil {
+			virtualMachines.removeValue(forKey: url)
+		}
+		// Add VMs that are new
+		for (url, doc) in newValues where virtualMachines[url] == nil {
+			virtualMachines[url] = doc
+		}
 	}
 
 	private func updateFromReply(serviceReply: ServiceReply) {
@@ -250,7 +257,9 @@ class AppState: ObservableObject, Observable {
 				case let .failure(error):
 					alertError(error)
 				case let .success(serviceReply):
-					self.setVirtualMachines(serviceReply.virtualMachines)
+					// Full replacement: connection manager has changed, existing
+					// document instances reference the old connection and must be replaced.
+					self.virtualMachines = serviceReply.virtualMachines
 					self.setNetworks(serviceReply.networks)
 					self.setRemotes(serviceReply.remotes)
 					self.setTemplates(serviceReply.templates)
