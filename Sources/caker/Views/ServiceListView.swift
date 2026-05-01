@@ -147,7 +147,7 @@ struct ServiceListView: View {
     @State private var manualPassword: String = ""
     @State private var manualUseTLS: Bool = true
     @State private var manualError: String? = nil
-	@State private var appState: AppState = .shared
+	@ObservedObject private var appState: AppState = .shared
 
 	private var serviceType: String = "_caked._tcp."
 	private var domain: String = "local."
