@@ -167,6 +167,8 @@ struct HomeView: View {
 		}
 
 		switch self.selectedCategory {
+		case .virtualMachine:
+			break  // already handled by the guard above
 		case .networks:
 			guard navigationModel.selectedNetwork != nil else {
 				return false
@@ -179,8 +181,6 @@ struct HomeView: View {
 			guard navigationModel.selectedTemplate != nil else {
 				return false
 			}
-		default:
-			break
 		}
 
 		return mustShowDetailView
