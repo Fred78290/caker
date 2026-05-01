@@ -9,22 +9,6 @@ import GRPCLib
 import SwiftUI
 import CakeAgentLib
 
-#if DEBUG
-class TrackDealloc {
-	let id = UUID().uuidString
-	let from: String
-
-	init(from: String) {
-		self.from = from
-		Logger("TrackDealloc").debug("Initialized from \(from) with id \(id)")
-	}
-
-	deinit {
-		Logger("TrackDealloc").debug("Deallocated from \(from) with id \(id)")
-	}
-}
-#endif
-
 struct HomeView: View {
 	@Environment(\.appearsActive) private var appearsActive
 
@@ -91,7 +75,6 @@ struct HomeView: View {
 				self.navigationModel.selectedTemplate = nil
 				self.navigationModel.selectedVirtualMachine = nil
 				self.navigationModel.selectedNetwork = nil
-				self.navigationModel.selectedTemplate = nil
 
 				if self.appearsActive {
 					self.appState.currentDocument = nil

@@ -26,7 +26,7 @@ struct VirtualMachinesView: View {
 	func virtualMachineView(_ document: VirtualMachineDocument) -> some View {
 		let selected = self.navigationModel.selectedVirtualMachine?.id == document.id
 
-		VirtualMachineView(.constant(document), selected: selected)
+		VirtualMachineView(document, selected: selected)
 			.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
 	}
 
