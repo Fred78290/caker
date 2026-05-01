@@ -34,21 +34,21 @@ struct VirtualMachineView: View {
 	private let radius: CGFloat = 12
 	private let selectedSystemFill = Color(NSColor.secondarySystemFill)
 	private let secondarySystemFill = Color(NSColor.tertiarySystemFill)
-	@Binding private var vm: VirtualMachineDocument
+	@ObservedObject private var vm: VirtualMachineDocument
 	@State var screenshot: NSImage?
 
 #if DEBUG
 	let tracker: TrackDealloc
 #endif
 
-	init(_ vm: Binding<VirtualMachineDocument>, selected: Bool) {
-		let lastScreenshot = vm.wrappedValue.lastScreenshot
+	init(_ vm: VirtualMachineDocument, selected: Bool) {
+		let lastScreenshot = vm.lastScreenshot
 
-		self._vm = vm
+		self.vm = vm
 		self.selected = selected
 		self._screenshot = State(initialValue: lastScreenshot)
 #if DEBUG
-		self.tracker = TrackDealloc(from: "VirtualMachineView \(vm.wrappedValue.url.absoluteString)")
+		self.tracker = TrackDealloc(from: "VirtualMachineView \(vm.url.absoluteString)")
 #endif
 	}
 
@@ -228,5 +228,5 @@ struct VirtualMachineView: View {
 }
 
 #Preview {
-	VirtualMachineView(.constant(AppState.shared.virtualMachines.first!.value), selected: false)
+	VirtualMachineView(AppState.shared.virtualMachines.first!.value, selected: false)
 }
