@@ -97,7 +97,7 @@ struct MainApp: App {
 	
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
-	@State var appState: AppState
+	@ObservedObject var appState: AppState
 	@State var createTemplate = false
 	
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
@@ -123,7 +123,7 @@ struct MainApp: App {
 		guard let document = AppState.shared.currentDocument else {
 			return ("Install agent", false, true)
 		}
-		
+
 		return document.agentCondition
 	}
 	
