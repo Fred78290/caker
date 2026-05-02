@@ -575,7 +575,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		let config = try location.config()
 		let oldDiskSize = config.diskSize
 
-		try self.saveLocally(location)
+		try self.saveLocally(config)
 
 		if oldDiskSize < self.diskSize && location.status == .stopped {
 			if config.os == .linux {
