@@ -99,11 +99,11 @@ public struct AboutCakerView: View {
 
 			// Fonctionnalités principales
 			VStack(alignment: .leading, spacing: 8) {
-				FeatureRow(icon: "network", text: "Dynamic TCP/Unix port forwarding")
-				FeatureRow(icon: "globe", text: "Bridge, hosted, or NAT mode networks")
-				FeatureRow(icon: "cloud", text: "Cloud-Init support for initialization")
-				FeatureRow(icon: "gear", text: "Automatic integrated agent")
-				FeatureRow(icon: "terminal", text: "Integrated VNC and terminal interfaces")
+				FeatureRow(icon: "network", text: String(localized: "Dynamic TCP/Unix port forwarding"))
+				FeatureRow(icon: "globe", text: String(localized: "Bridge, hosted, or NAT mode networks"))
+				FeatureRow(icon: "cloud", text: String(localized: "Cloud-Init support for initialization"))
+				FeatureRow(icon: "gear", text: String(localized: "Automatic integrated agent"))
+				FeatureRow(icon: "terminal", text: String(localized: "Integrated VNC and terminal interfaces"))
 			}
 			.padding(.horizontal)
 		}
