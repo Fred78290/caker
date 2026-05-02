@@ -45,7 +45,7 @@ public struct InfosHandler {
 			}
 		}
 
-		if location.status == .running {
+		if case .running = location.status {
 			if let agent = try? client.info(callOptions: callOptions) {
 				infos = .init(agent)
 			} else {

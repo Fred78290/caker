@@ -63,7 +63,7 @@ final class GrandCentralDispatch {
 			if empty {
 				if let vms = try? StorageLocation(runMode: runMode).list() {
 					vms.values.compactMap {
-						if $0.status == .running {
+						if case .running = $0.status {
 							return $0
 						}
 						
@@ -81,7 +81,7 @@ final class GrandCentralDispatch {
 	@discardableResult
 	func removeListener(_ id: ListenerID) -> AsyncThrowingStreamCakedReplyContinuation? {
 
-		self.listeners.withLock { dict in
+		self.listeners.withLock { (dict) -> AsyncThrowingStreamCakedReplyContinuation? in
 			self.logger.info("Removing listener: \(id)")
 
 			guard let value = dict.removeValue(forKey: id) else {
@@ -91,7 +91,7 @@ final class GrandCentralDispatch {
 			if dict.isEmpty {
 				if let vms = try? StorageLocation(runMode: runMode).list() {
 					vms.values.compactMap {
-						if $0.status == .running {
+						if case .running = $0.status {
 							return $0
 						}
 						
@@ -101,7 +101,7 @@ final class GrandCentralDispatch {
 					}
 				}
 			}
-			
+
 			return value
 		}
 	}
@@ -262,3 +262,4 @@ final class GrandCentralDispatch {
 		return Caked_Empty()
 	}
 }
+

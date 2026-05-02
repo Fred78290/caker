@@ -16,7 +16,7 @@ public struct SuspendHandler {
 	}
 
 	public static func suspendVM(location: VMLocation, runMode: Utils.RunMode) throws -> SuspendedObject {
-		if location.status == .running {
+		if case .running = location.status {
 			try location.suspendVirtualMachine(runMode: runMode)
 			return SuspendedObject(name: location.name, suspended: true, reason: String(localized: "VM Suspended"))
 		}

@@ -386,7 +386,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	public var status: VMLocation.Status {
 		switch self.virtualMachine.state {
 		case .running, .starting, .resuming:
-			return .running
+			return .running(.init(ProcessInfo.processInfo.processName))
 		case .paused, .pausing:
 			return .paused
 		default:
@@ -1080,7 +1080,7 @@ extension VirtualMachine {
 				return
 			}
 
-			if self.status == .running {
+			if case .running = self.status {
 				self.takeScreenshot()
 			}
 		}

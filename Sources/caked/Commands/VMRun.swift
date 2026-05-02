@@ -73,7 +73,7 @@ struct VMRun: AsyncParsableCommand {
 			throw ValidationError(String(localized: "VM at \(path) does not exist"))
 		}
 
-		if location.status == .running {
+		if case .running = location.status {
 			throw ValidationError(String(localized: "VM at \(path) is already running"))
 		}
 
@@ -104,7 +104,7 @@ struct VMRun: AsyncParsableCommand {
 		var display = self.display
 		var startGrandCentral = false
 
-		if location.isPIDRunning() {
+		if case .running = location.status {
 			throw ServiceError(String(localized: "The VM is already running"))
 		}
 

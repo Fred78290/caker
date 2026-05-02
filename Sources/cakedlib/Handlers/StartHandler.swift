@@ -139,7 +139,7 @@ public struct StartHandler {
 		// Collect autostart vm
 		let vms = try storageLocation.list().compactMap {  (name: String, location: VMLocation) in
 			if let config = try? location.config() {
-				if config.autostart && location.status != .running {
+				if location.status.isRunning == false && config.autostart {
 					return (config, location)
 				}
 			}
@@ -253,7 +253,7 @@ public struct StartHandler {
 
 			var ip: String
 
-			if location.status == .running {
+			if case .running = location.status {
 				ip = try location.waitIP(wait: waitIPTimeout, runMode: runMode)
 			} else {
 				ip = try internalStartVM(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: gcd, recoveryMode: recoveryMode, runMode: runMode, promise: promise)

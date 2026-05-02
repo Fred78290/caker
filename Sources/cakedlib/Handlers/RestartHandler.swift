@@ -32,7 +32,7 @@ public struct RestartHandler {
 
 	public static func restart(location: VMLocation, startMode: StartHandler.StartMode, gcd: Bool, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) -> RestartedObject {
 		do {
-			if location.status == .running {
+			if case .running = location.status {
 				try location.restartVirtualMachine(startMode: startMode, gcd: gcd, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 				return RestartedObject(name: location.name, restarted: true, reason: String.empty)
 			}

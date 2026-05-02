@@ -54,7 +54,7 @@ extension VMRunServiceClient {
 			config.mounts = directorySharingAttachments
 			try config.save()
 
-			if location.status == .running {
+			if case .running = location.status {
 				return try self.share(mounts: valided)
 			} else {
 				return MountInfos.with {
@@ -84,7 +84,7 @@ extension VMRunServiceClient {
 			config.mounts = directorySharingAttachments
 			try config.save()
 
-			if location.status == .running {
+			if case .running = location.status {
 				return try self.unshare(mounts: valided)
 			} else {
 				return MountInfos.with {

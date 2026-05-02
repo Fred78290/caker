@@ -28,7 +28,7 @@ public struct InstallAgentHandler {
 
 	public static func installAgent(location: VMLocation, timeout: UInt, runMode: Utils.RunMode) -> InstalledAgentReply {
 		do {
-			guard location.status == .running else {
+			guard case .running = location.status else {
 				return InstalledAgentReply(name: location.name, installed: false, reason: String(localized: "VM is not running"))
 			}
 

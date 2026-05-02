@@ -11,11 +11,11 @@ import NIO
 public struct DeleteHandler {
 	static func tryDeleteLocal(name: String, runMode: Utils.RunMode) -> DeletedObject? {
 		func doIt(_ location: VMLocation) throws -> DeletedObject {
-			if location.status != .running {
+			if case .running = location.status {
+				return DeletedObject(source: "vm", name: location.name, deleted: false, reason: String(localized: "VM is running"))
+			} else {
 				try FileManager.default.removeItem(at: location.rootURL)
 				return DeletedObject(source: "vm", name: location.name, deleted: true, reason: String(localized: "VM deleted"))
-			} else {
-				return DeletedObject(source: "vm", name: location.name, deleted: false, reason: String(localized: "VM is running"))
 			}
 		}
 

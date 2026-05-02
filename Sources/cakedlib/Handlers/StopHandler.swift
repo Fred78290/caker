@@ -25,7 +25,7 @@ public struct StopHandler {
 
 	public static func stopVM(location: VMLocation, force: Bool, runMode: Utils.RunMode) -> StoppedObject {
 		do {
-			if location.status == .running {
+			if case .running = location.status {
 				try location.stopVirtualMachine(force: force, runMode: runMode)
 				
 				return StoppedObject(name: location.name, stopped: true, reason: String.empty)

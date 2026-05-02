@@ -30,7 +30,7 @@ public extension VMLocation.Status {
 		case .stopped:
 			self = .stopped
 		case .running:
-			self = .running
+			self = .running(.caked)
 		case .paused:
 			self = .paused
 		default:
@@ -324,7 +324,7 @@ public struct CurrentStatusHandler {
 
 					try monitor.start()
 					
-					if self.location.status == .running {
+					if case .running = self.location.status {
 						group.addTask {
 							self.logger.debug("Start agent monitor for VM \(self.location.name)")
 							await self.agentMonitor.start()

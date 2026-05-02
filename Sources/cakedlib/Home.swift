@@ -70,6 +70,7 @@ public class RemoteDatabase {
 
 public struct Home {
 	public static let cakedCommandName = "caked"
+	public static let cakerCommandName = "Caker"
 
 	public let cakeHomeDirectory: URL
 	public let agentPID: URL
