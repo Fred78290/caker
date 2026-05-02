@@ -105,7 +105,7 @@ public struct AboutCakerView: View {
 				FeatureRow(icon: "gear", text: String(localized: "Automatic integrated agent"))
 				FeatureRow(icon: "terminal", text: String(localized: "Integrated VNC and terminal interfaces"))
 			}
-			.padding(.horizontal)
+			.padding()
 		}
 		.padding(.horizontal, 24)
 	}
