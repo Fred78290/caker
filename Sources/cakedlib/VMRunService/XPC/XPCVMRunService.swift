@@ -636,7 +636,7 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 	}
 
 	var vncInfos: VNCInfos {
-		if location.status == .running {
+		if case .running = location.status {
 			let vncURL = try? self.connection { (service, replier) in
 				service.vncUrl()
 				
@@ -687,7 +687,7 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 		config.display = ViewSize(width: width, height: height)
 		try config.save()
 		
-		if location.status == .running {
+		if case .running = location.status {
 			return try self.connection { (service, replier) in
 				service.resizeScreen(width: width, height: height)
 				

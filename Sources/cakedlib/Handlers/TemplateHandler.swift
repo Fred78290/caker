@@ -69,7 +69,9 @@ public struct TemplateHandler {
 				return CreateTemplateReply(name: templateName, created: false, reason: String(localized: "template \(templateName) already exists"))
 			}
 
-			if location.status != .running {
+			if case .running = location.status {
+				return CreateTemplateReply(name: templateName, created: false, reason: String(localized: "source VM \(location.name) is running"))
+			} else {
 				let lock: FileLock = try FileLock(lockURL: storage.rootURL)
 				let config = try source.config()
 				let templateLocation = storage.location(templateName)
@@ -106,8 +108,6 @@ public struct TemplateHandler {
 
 					return CreateTemplateReply(name: templateName, created: false, reason: error.reason)
 				}
-			} else {
-				return CreateTemplateReply(name: templateName, created: false, reason: String(localized: "source VM \(location.name) is running"))
 			}
 		} catch {
 			return CreateTemplateReply(name: templateName, created: false, reason: error.reason)
@@ -119,11 +119,11 @@ public struct TemplateHandler {
 			let storage = StorageLocation(runMode: runMode, template: true)
 			let lock = try FileLock(lockURL: storage.rootURL)
 			let doIt: (VMLocation) -> DeleteTemplateReply = { location in
-				if location.status != .running {
+				if case .running = location.status {
+					return DeleteTemplateReply(name: location.name, deleted: false, reason: String(localized: "Template \(templateName) is running"))
+				} else {
 					try? FileManager.default.removeItem(at: location.rootURL)
 					return DeleteTemplateReply(name: location.name, deleted: true, reason: String.empty)
-				} else {
-					return DeleteTemplateReply(name: location.name, deleted: false, reason: String(localized: "Template \(templateName) is running"))
 				}
 			}
 

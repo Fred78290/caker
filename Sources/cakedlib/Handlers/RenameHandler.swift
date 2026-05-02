@@ -9,7 +9,7 @@ public struct RenameHandler {
 			let storage = StorageLocation(runMode: runMode)
 			let location = try storage.find(oldname)
 
-			if location.status == .running {
+			if case .running = location.status {
 				return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: String(localized: "VM is running"))
 			}
 

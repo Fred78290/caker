@@ -49,7 +49,7 @@ struct VNC: CakeAgentParsableCommand {
 
 		let location = try StorageLocation(runMode: runMode).find(name)
 
-		if location.status != .running {
+		if case .running = location.status {
 			throw ValidationError(String(localized: "VM \(self.name) is not running"))
 		}
 	}
@@ -67,7 +67,7 @@ struct VNC: CakeAgentParsableCommand {
 			}
 
 			func vmStatus() -> Status {
-				if location.status == .running {
+				if case .running = location.status {
 					return .running
 				}
 				

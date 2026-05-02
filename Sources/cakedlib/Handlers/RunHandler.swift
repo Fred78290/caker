@@ -25,7 +25,7 @@ public struct RunHandler {
 
 		let location: VMLocation = try StorageLocation(runMode: runMode).find(vmname)
 
-		if location.status != .running {
+		if case .stopped = location.status {
 			Logger(self).info("Starting \(vmname)")
 
 			let start = CakedLib.StartHandler.startVM(on: Utilities.group.next(), location: location, screenSize: nil, vncPassword: nil, vncPort: 0, waitIPTimeout: 180, startMode: .background, gcd: false, recoveryMode: false, runMode: runMode)

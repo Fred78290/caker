@@ -18,7 +18,7 @@ extension VMLocation.Status {
 		case .stopped:
 			self = .stopped
 		case .running:
-			self = .running
+			self = .running(.caked)
 		case .paused:
 			self = .paused
 		default:

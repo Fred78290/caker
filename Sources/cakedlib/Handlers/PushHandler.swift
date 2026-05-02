@@ -27,7 +27,7 @@ public struct PushHandler {
 			var delete = false
 			let config = try location.config()
 
-			if location.isPIDRunning() {
+			if case .running = location.status {
 				return PushReply(success: false, message: String(localized: "VM is running"))
 			}
 

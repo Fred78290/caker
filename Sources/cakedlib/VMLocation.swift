@@ -22,10 +22,72 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	public static let scheme = "caked-vm"
 	public static let supportedSchemes: Set<String?> = ["caked-vm", "caked-vms"]
 
-	public enum Status: String, Sendable {
-		case running
+	public enum VMRunMode : Sendable{
+		case none
+		case caked
+		case caker
+
+		init(_ from: String) {
+			switch from {
+			case Home.cakedCommandName:
+				self = .caked
+			case Home.cakerCommandName:
+				self = .caker
+			default:
+				self = .none
+			}
+		}
+
+		var isAllowed: Bool {
+			switch self {
+			case .caked:
+				return true
+			case .caker:
+				return ProcessInfo.processInfo.processName == Home.cakerCommandName
+			case .none:
+				return false
+			}
+		}
+	}
+
+	public enum Status: Sendable, Equatable, CustomStringConvertible {
+		public var description: String {
+			switch self {
+			case .running:
+				return String(localized: "running")
+			case .paused:
+				return String(localized: "paused")
+			case .stopped:
+				return String(localized: "stopped")
+			}
+		}
+		
+		public var mode: String {
+			if case .running(let mode) = self {
+				switch mode {
+				case .caked:
+					return "caked"
+				case .caker:
+					return "caker"
+				default:
+					break
+				}
+			}
+
+			return ""
+		}
+
+		case running(VMRunMode)
 		case paused
 		case stopped
+
+		public var isRunning: Bool {
+			if case .running = self {
+				return true
+			} else {
+				return false
+			}
+		}
 	}
 
 	public var rootURL: URL
@@ -132,12 +194,17 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public var status: Status {
-		if isPIDRunning() {
-			return .running
-		} else if FileManager.default.fileExists(atPath: stateURL.path) {
-			return .paused
-		} else {
-			return .stopped
+		switch self.isPIDRunning() {
+		case .caked:
+			return .running(.caked)
+		case .caker:
+			return .running(.caker)
+		case .none:
+			if FileManager.default.fileExists(atPath: stateURL.path) {
+				return .paused
+			} else {
+				return .stopped
+			}
 		}
 	}
 
@@ -321,8 +388,14 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		pidFile.readPID()
 	}
 
-	public func isPIDRunning() -> Bool {
-		pidFile.isPIDRunning(Home.cakedCommandName)
+	public func isPIDRunning() -> VMRunMode {
+		let result = pidFile.isPIDRunning([Home.cakedCommandName, Home.cakerCommandName])
+
+		guard result.0 else {
+			return .none
+		}
+
+		return .init(result.1)
 	}
 
 	public func removePID() {
@@ -363,7 +436,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			}
 		}
 
-		if self.status != .running {
+		if case .running = self.status {
+			// VM is running
+		} else {
 			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
 
@@ -391,7 +466,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public func suspendVirtualMachine(runMode: Utils.RunMode) throws {
-		if self.status != .running {
+		if case .running = self.status {
+			// continue
+		} else {
 			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
 
@@ -424,7 +501,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		let config = try self.config()
 		let home = try Home(runMode: runMode)
 
-		if self.status != .running {
+		if case .running = self.status {
+			// VM is running
+		} else {
 			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
 
@@ -446,7 +525,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			}
 		}
 
-		while self.status == .running {
+		while case .running = self.status {
 			Thread.sleep(forTimeInterval: 1)
 		}
 
@@ -557,8 +636,12 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public func waitIP(config: CakeConfig, wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
-		if startedProcess == nil && self.status != .running {
-			throw ServiceError(String(localized: "VM \(name) is not running"))
+		if startedProcess == nil {
+            if case .running = self.status {
+                // ok
+            } else {
+                throw ServiceError(String(localized: "VM \(name) is not running"))
+            }
 		}
 
 		if config.firstLaunch && (config.source == .iso || config.source == .ipsw) {

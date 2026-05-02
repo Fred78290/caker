@@ -16,17 +16,17 @@ class AppState: ObservableObject, Observable {
 
 		self.status = status
 		self.isStopped = status == .stopped
-		self.isRunning = status == .running
+		self.isRunning = status.isRunning
 		self.isPaused = status == .paused
-		self.isSuspendable = status == .running && vm.suspendable
+		self.isSuspendable = status.isRunning && vm.suspendable
 	}
 
 	func update(vm: VirtualMachine) {
 		self.status = vm.status
 		self.isStopped = status == .stopped
-		self.isRunning = status == .running
+		self.isRunning = status.isRunning
 		self.isPaused = status == .paused
-		self.isSuspendable = status == .running && vm.suspendable
+		self.isSuspendable = status.isRunning && vm.suspendable
 	}
 }
 
@@ -75,7 +75,7 @@ struct MainApp: App, VirtualMachineDelegate {
 						}.help("Take a screenshot")
 						#endif
 
-						if self.appState.status == .running {
+						if self.appState.status.isRunning {
 							Button("Stop", systemImage: "stop") {
 								self.requestStopFromUI()
 							}.help("Stop virtual machine")

@@ -15,7 +15,7 @@ public struct PingHandler {
 		do {
 			let location = try StorageLocation(runMode: runMode).find(name)
 
-			if location.status == .running {
+			if case .running = location.status {
 				let result = try client.ping(message: message, timestamp: timestamp)
 
 				return Caked_PingReply.with {

@@ -12,8 +12,10 @@ public struct ListHandler {
 				let status = location.status
 				let config = try location.config()
 				var vncInfos = VNCInfos()
+				var runningIP: String? = nil
 
-				if status == .running {
+				if case .running = status {
+					runningIP = config.runningIP
 					if let infos = try? VNCInfosHandler.vncInfos(location: location, runMode: runMode) {
 						vncInfos = infos
 					}
@@ -29,8 +31,9 @@ public struct ListHandler {
 					instanceID: config.instanceID,
 					diskSize: try location.diskSize(),
 					sizeOnDisk: try location.allocatedSize(),
-					state: status.rawValue,
-					ip: status == .running ? config.runningIP : nil,
+					state: status.description,
+					mode: status.mode,
+					ip: runningIP,
 					fingerprint: nil,
 					config: includeConfig ? CakedConfiguration(config) : nil
 				)

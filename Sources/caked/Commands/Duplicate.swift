@@ -28,7 +28,7 @@ struct Duplicate: ParsableCommand {
 		let fromLocation = try storageLocation.find(self.duplicate.from)
 
 		// Check if the VM exists
-		if fromLocation.status == .running {
+		if case .running = fromLocation.status {
 			throw ServiceError(String(localized: "VM \(self.duplicate.from) is running"))
 		}
 

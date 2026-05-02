@@ -467,6 +467,7 @@ extension CakeAgentLib.Format {
 											diskSize: vm.diskSize,
 											sizeOnDisk: vm.sizeOnDisk,
 											state: vm.state,
+											mode: vm.mode,
 											ip: vm.ip,
 											fingerprint: vm.fingerprint
 										)))
