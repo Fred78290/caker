@@ -30,7 +30,7 @@ public struct AboutCakerView: View {
 			// Section des crédits et liens
 			creditsSection
 		}
-		.frame(width: 500, height: 660)
+		.frame(width: 520, height: 660)
 		.background(Color(NSColor.windowBackgroundColor))
 		//.cornerRadius(12)
 		.shadow(radius: 10)
@@ -151,6 +151,15 @@ public struct AboutCakerView: View {
 						.font(.caption)
 					}
 					.buttonStyle(.bordered)
+
+					Button(action: reportIssue) {
+						HStack(spacing: 4) {
+							Image(systemName: "ladybug")
+							Text("Report Issue")
+						}
+						.font(.caption)
+					}
+					.buttonStyle(.bordered)
 				}
 			}
 		}
@@ -179,6 +188,12 @@ public struct AboutCakerView: View {
 
 	private func openWebsite() {
 		if let url = URL(string: "https://caker.aldunelabs.com") {
+			NSWorkspace.shared.open(url)
+		}
+	}
+
+	private func reportIssue() {
+		if let url = URL(string: "https://github.com/Fred78290/caker/issues") {
 			NSWorkspace.shared.open(url)
 		}
 	}
