@@ -901,6 +901,16 @@
         }
       }
     },
+    "Automatic integrated agent" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agent intégré automatiquement"
+          }
+        }
+      }
+    },
     "Autostart" : {
       "localizations" : {
         "fr" : {
@@ -1020,6 +1030,16 @@
         }
       }
     },
+    "Bridge, hosted, or NAT mode networks" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réseaux en mode pont, hébergé ou NAT"
+          }
+        }
+      }
+    },
     "Bridged network" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1120,6 +1140,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "avec cache"
+          }
+        }
+      }
+    },
+    "cakectl" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cakectl"
+          }
+        }
+      }
+    },
+    "caked" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "caked"
           }
         }
       }
@@ -1252,6 +1292,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Machine virtuelle caker"
+          }
+        }
+      }
+    },
+    "Caker.app" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caker.app"
           }
         }
       }
@@ -1573,6 +1623,16 @@
         }
       }
     },
+    "Cloud-Init support for initialization" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support de cloud-unit pour l’initialisation"
+          }
+        }
+      }
+    },
     "cloudimage_help" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1607,6 +1667,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La commande ' %@’ n'est pas un parent de la commande actuelle."
+          }
+        }
+      }
+    },
+    "Command line interface" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interface de ligne de commande"
           }
         }
       }
@@ -2698,6 +2768,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Transfert automatique des ports"
+          }
+        }
+      }
+    },
+    "Dynamic TCP/Unix port forwarding" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transfert de port TCP/Unix dynamique"
           }
         }
       }
@@ -4006,6 +4086,16 @@
         }
       }
     },
+    "Integrated VNC and terminal interfaces" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interfaces VNC et terminal intégrées"
+          }
+        }
+      }
+    },
     "interface" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5096,6 +5186,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adresse Mac de l'interface réseau"
+          }
+        }
+      }
+    },
+    "macOS GUI application" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Application graphique macOS"
           }
         }
       }
@@ -12058,6 +12158,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "VM indéfinie"
+          }
+        }
+      }
+    },
+    "VM management daemon" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "démon de gestion de VM"
           }
         }
       }
