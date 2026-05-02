@@ -191,16 +191,32 @@ public struct AboutCakerView: View {
 
 	private func showLicenseInfo() {
 		let alert = NSAlert()
-		alert.messageText = "Caker License"
-		alert.informativeText = """
+		alert.messageText = NSLocalizedString(
+			"Caker License",
+			comment: "Title of the license information alert in the About window"
+		)
+		alert.informativeText = NSLocalizedString(
+			"""
 			Caker is free software distributed under the GNU Affero General Public License version 3 (AGPL v3).
 
 			Copyright © 2026 Caker Project
 
 			This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY. See the full license for more details.
-			"""
-		alert.addButton(withTitle: "OK")
-		alert.addButton(withTitle: "View full license")
+			""",
+			comment: "Body text of the license information alert in the About window"
+		)
+		alert.addButton(
+			withTitle: NSLocalizedString(
+				"OK",
+				comment: "Default confirmation button title for the license information alert"
+			)
+		)
+		alert.addButton(
+			withTitle: NSLocalizedString(
+				"View full license",
+				comment: "Button title for opening the full AGPL license from the About window alert"
+			)
+		)
 
 		let response = alert.runModal()
 
