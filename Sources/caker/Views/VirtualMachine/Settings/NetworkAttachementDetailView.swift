@@ -13,10 +13,10 @@ import Virtualization
 struct NetworkAttachementDetailView: View {
 	private let names: [String] = AppState.shared.loadNetworks().map { $0.name }
 
-	private class BridgeAttachementModel: ObservableObject, Observable {
-		@Published var network: String
-		@Published var mode: NetworkMode?
-		@Published var macAddress: TextFieldStore<String?, OptionalMacAddressParseableFormatStyle>
+	@Observable class BridgeAttachementModel {
+		var network: String
+		var mode: NetworkMode?
+		var macAddress: TextFieldStore<String?, OptionalMacAddressParseableFormatStyle>
 
 		init(item: BridgeAttachement) {
 			self.network = item.network
@@ -26,13 +26,13 @@ struct NetworkAttachementDetailView: View {
 	}
 
 	@Binding private var currentItem: BridgeAttachement
-	@StateObject private var model: BridgeAttachementModel
+	@State private var model: BridgeAttachementModel
 	private var readOnly: Bool
 
 	init(currentItem: Binding<BridgeAttachement>, readOnly: Bool = true) {
 		_currentItem = currentItem
 
-		self._model = StateObject(wrappedValue: BridgeAttachementModel(item: currentItem.wrappedValue))
+		self._model = State(initialValue: BridgeAttachementModel(item: currentItem.wrappedValue))
 		self.readOnly = readOnly
 	}
 

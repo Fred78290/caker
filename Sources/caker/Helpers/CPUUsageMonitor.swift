@@ -14,13 +14,14 @@ import SwiftUI
 typealias AsyncThrowingStreamCakeAgentCurrentUsageReply = (stream: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>, continuation: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>.Continuation)
 
 final class CPUUsageMonitor {
-	private let document: VirtualMachineDocument
+	private weak let document: VirtualMachineDocument?
 	private let name: String
 	private var isMonitoring: Bool = false
 	private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
 	private let logger = Logger("CPUUsageMonitor")
 	
 	deinit {
+		self.logger.debug("Deinit")
 		self.cancel()
 	}
 
@@ -40,7 +41,7 @@ final class CPUUsageMonitor {
 
 		self.isMonitoring = false
 
-		self.logger.debug("Cancel monitoring current CPU usage, VM: \(self.document.name)")
+		self.logger.debug("Cancel monitoring current CPU usage, VM: \(self.name)")
 
 		if let stream {
 			stream.continuation.finish(throwing: GRPCStatus(code: .cancelled, message: "Cancelled"))
@@ -56,7 +57,11 @@ final class CPUUsageMonitor {
 
 		logger.debug("Start monitoring current CPU usage, VM: \(self.name)")
 
-		await withTaskCancellationHandler(operation: {
+		await withTaskCancellationHandler(operation: { [weak self] in
+			guard let self else {
+				return
+			}
+
 			let taskQueue = TaskQueue(label: "CakeAgent.CPUUsageMonitor.\(name)")
 			var helper: CakeAgentHelper! = nil
 
@@ -84,8 +89,12 @@ final class CPUUsageMonitor {
 
 			while Task.isCancelled == false && self.isMonitoring {
 
+				guard let document = self.document else {
+					break
+				}
+
 				do {
-					helper = try self.document.createCakeAgentHelper(connectionTimeout: 5, retries: .unlimited)
+					helper = try document.createCakeAgentHelper(connectionTimeout: 5, retries: .unlimited)
 
 					self.stream = performAgentHealthCheck()
 
@@ -101,7 +110,7 @@ final class CPUUsageMonitor {
 						try? await helper?.close().get()
 
 						self.stream = nil
-						self.document.cpuInfos.cores = []
+						document.cpuInfos.cores = []
 
 						guard self.handleAgentHealthCheckFailure(error: error) else {
 							return
@@ -141,14 +150,18 @@ final class CPUUsageMonitor {
 	}
 
 	private func handleAgentHealthCurrentUsage(usage: CakeAgent.CurrentUsageReply) {
-		self.document.cpuInfos.update(usage.cpuInfos)
-		self.document.memoryInfos.update(usage.memory)
+		if let document = self.document {
+			document.cpuInfos.update(usage.cpuInfos)
+			document.memoryInfos.update(usage.memory)
+		}
 	}
 
 	@MainActor
 	private func handleAgentHealthCurrentUsage(usage: InfoReply) {
-		self.document.cpuInfos.update(usage.cpuInfo)
-		self.document.memoryInfos.update(usage.memory)
+		if let document = self.document {
+			document.cpuInfos.update(usage.cpuInfo)
+			document.memoryInfos.update(usage.memory)
+		}
 	}
 
 	private func handleAgentHealthCheckFailure(error: Error) -> Bool {
@@ -185,7 +198,7 @@ final class CPUUsageMonitor {
 			return handleGrpcStatus(grpcError)
 		} else {
 			// Agent is not responding - could indicate VM issues
-			self.logger.error("Agent monitoring: VM \(self.document.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
+			self.logger.error("Agent monitoring: VM \(self.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
 		}
 		
 		return false

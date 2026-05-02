@@ -9,13 +9,13 @@ import CakedLib
 import GRPCLib
 import SwiftUI
 
-class NetworkDetailViewModel: ObservableObject, Observable {
+@Observable class NetworkDetailViewModel {
 	static var dhcpLeaseRange = RangeIntegerStyle(range: 60...86400)
 
-	@Published var dhcpStart: TextFieldStore<String, RegexParseableFormatStyle>
-	@Published var dhcpEnd: TextFieldStore<String, RegexParseableFormatStyle>
-	@Published var netmask: TextFieldStore<String, RegexParseableFormatStyle>
-	@Published var dhcpLease: TextFieldStore<Int, RangeIntegerStyle>
+	var dhcpStart: TextFieldStore<String, RegexParseableFormatStyle>
+	var dhcpEnd: TextFieldStore<String, RegexParseableFormatStyle>
+	var netmask: TextFieldStore<String, RegexParseableFormatStyle>
+	var dhcpLease: TextFieldStore<Int, RangeIntegerStyle>
 
 	init(network: BridgedNetwork) {
 		self.dhcpLease = TextFieldStore(value: Int(network.dhcpLease) ?? 86400, text: network.dhcpLease, type: .int, maxLength: 5, allowNegative: false, formatter: Self.dhcpLeaseRange)

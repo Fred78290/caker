@@ -17,23 +17,23 @@ import SwiftUI
 struct ExternalVirtualMachineView: NSViewRepresentable {
 	typealias NSViewType = VirtualMachineTerminalView
 	
-	private var fontPickerDelegate: FontPickerDelegate!
+	private let fontPickerDelegate: FontPickerDelegate
 	private let fontManager = NSFontManager.shared
-	private let terminalView: NSViewType
+	private weak let terminalView: NSViewType!
 	
 	var terminalColor: SwiftUI.Color {
-		self.fontPickerDelegate.terminalView.fontColor.uiColor
+		self.terminalView.fontColor.uiColor
 	}
 	
 	var terminalFont: NSFont {
-		self.fontPickerDelegate.terminalView.font
+		self.terminalView.font
 	}
 	
 	class FontPickerDelegate: NSObject, NSWindowDelegate, NSFontChanging {
 		@Binding var presented: Bool
 		@State var fontColor: SwiftUI.Color
 		
-		var terminalView: NSViewType
+		weak var terminalView: NSViewType?
 		
 		var visible: Binding<Bool> {
 			get {
@@ -59,7 +59,7 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 			}
 			
 			newFont = fontManager.convert(newFont)
-			self.terminalView.font = newFont
+			self.terminalView?.font = newFont
 			self.presented = false
 			
 			Defaults.saveTerminalFont(newFont)
@@ -76,7 +76,7 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 	}
 	
 	func makeNSView(context: Context) -> NSViewType {
-		return terminalView
+		return self.terminalView
 	}
 	
 	func updateNSView(_ nsView: NSViewType, context: Context) {
@@ -87,11 +87,11 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 		let color = SwiftTerm.Color(color)
 		
 		Defaults.saveTerminalFontColor(color: color)
-		self.fontPickerDelegate.terminalView.fontColor = color
+		self.terminalView.fontColor = color
 	}
 	
 	func setTerminalFont(_ font: NSFont) {
-		self.fontPickerDelegate.terminalView.font = font
+		self.terminalView.font = font
 		
 		Defaults.saveTerminalFont(font)
 	}

@@ -34,15 +34,20 @@ struct VirtualMachineView: View {
 	private let radius: CGFloat = 12
 	private let selectedSystemFill = Color(NSColor.secondarySystemFill)
 	private let secondarySystemFill = Color(NSColor.tertiarySystemFill)
-	@StateObject private var vm: VirtualMachineDocument
-	@State var screenshot: NSImage?
+	private var vm: VirtualMachineDocumentState
+	@State private var screenshot: NSImage?
 
-	init(_ vm: VirtualMachineDocument, selected: Bool) {
-		let lastScreenshot = vm.lastScreenshot
+#if DEBUG
+	let tracker: TrackDealloc
+#endif
 
-		self._vm = StateObject(wrappedValue: vm)
+	init(_ vm: VirtualMachineDocumentState, selected: Bool) {
+		self.vm = vm
 		self.selected = selected
-		_screenshot = State(initialValue: lastScreenshot)
+		self.screenshot = vm.lastScreenshot
+#if DEBUG
+		self.tracker = TrackDealloc(from: "VirtualMachineView \(vm.url.absoluteString)")
+#endif
 	}
 
 	var body: some View {
@@ -73,13 +78,13 @@ struct VirtualMachineView: View {
 
 						HStack {
 							Spacer()
-							Label("\(vm.virtualMachineConfig.cpuCount)", systemImage: "cpu")
+							Label("\(vm.cpuCount)", systemImage: "cpu")
 								.font(.headline)
 								.foregroundStyle(Color.secondary)
-							Label("\(vm.virtualMachineConfig.humanReadableDiskSize)", systemImage: "internaldrive")
+							Label("\(vm.humanReadableDiskSize)", systemImage: "internaldrive")
 								.font(.headline)
 								.foregroundStyle(Color.secondary)
-							Label("\(vm.virtualMachineConfig.humanReadableMemorySize)", systemImage: "memorychip")
+							Label("\(vm.humanReadableMemorySize)", systemImage: "memorychip")
 								.font(.headline)
 								.foregroundStyle(Color.secondary)
 							Spacer()
@@ -140,11 +145,11 @@ struct VirtualMachineView: View {
 
 			Divider()
 			Button("Duplicate") {
-				AppState.shared.duplicateVirtualMachine(document: self.vm)
+				self.vm.duplicateVirtualMachine()
 			}.disabled(self.vm.status.isRunning)
 
 			Button("Delete VM") {
-				AppState.shared.deleteVirtualMachine(document: self.vm)
+				self.vm.deleteVirtualMachine()
 			}.disabled(vm.status.isRunning)
 		}
 
@@ -221,5 +226,5 @@ struct VirtualMachineView: View {
 }
 
 #Preview {
-	VirtualMachineView(AppState.shared.virtualMachines.first!.value, selected: false)
+	VirtualMachineView(.init(AppState.shared.documents.first!), selected: false)
 }

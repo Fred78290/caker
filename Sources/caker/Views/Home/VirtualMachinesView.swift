@@ -5,6 +5,7 @@
 //  Created by Frederic BOLTZ on 13/07/2025.
 //
 
+import CakedLib
 import SwiftUI
 
 struct VirtualMachinesView: View {
@@ -12,57 +13,47 @@ struct VirtualMachinesView: View {
 	static let cellHeight: CGFloat = 364
 	static let cellSpacing: CGFloat = 10
 
-	@Environment(\.appearsActive) private var appearsActive
+#if DEBUG
+	let tracker = TrackDealloc(from: "VirtualMachinesView")
+#endif
 
-	@Binding var appState: AppState
-	@Binding var navigationModel: NavigationModel
+	@Environment(\.appearsActive) private var appearsActive
+	var appState: AppState = .shared
+	@State var navigationModel: NavigationModel
 	@State var columns: [GridItem]
 
-	init(appState: Binding<AppState>, navigationModel: Binding<NavigationModel>, size: CGSize) {
-		_navigationModel = navigationModel
-		_appState = appState
-		self.columns = Self.buildColumns(size)
-	}
-
 	@ViewBuilder
-	func virtualMachineView(_ document: VirtualMachineDocument) -> some View {
-		let selected: Bool = self.navigationModel.selectedVirtualMachine?.id == document.id
+	func virtualMachineView(_ document: VirtualMachineDocumentState) -> some View {
+		let selected = self.navigationModel.selectedVirtualMachine?.id == document.id
 
 		VirtualMachineView(document, selected: selected)
 			.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
-
-		//		if self.appearsActive {
-		//			VirtualMachineView(selected: selected, vm: document)
-		//				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
-		//				.animation(.easeInOut, value: self.columns.count)
-		//		} else {
-		//			VirtualMachineView(selected: selected, vm: document)
-		//				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
-		//		}
 	}
 
 	var body: some View {
 		GeometryReader { geometry in
 			ScrollView {
 				LazyVGrid(columns: self.columns, alignment: .leading, spacing: Self.cellSpacing) {
-					ForEach(appState.virtualMachines.vms) { vm in
-						self.virtualMachineView(vm.document)
-							.onTapGesture(count: 2) {
-								self.navigationModel.selectedVirtualMachine = vm.document
+					let documents = Array(self.navigationModel.documents.values).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
 
-								if self.appearsActive {
-									AppState.shared.currentDocument = vm.document
+					ForEach(documents, id: \.url) { document in
+						self.virtualMachineView(document)
+							.onTapGesture(count: 2) {
+								self.navigationModel.selectedVirtualMachine = document
+
+								if self.appearsActive, let document = AppState.shared.findVirtualMachineDocument(document.url) {
+									AppState.shared.currentDocument = document
 								}
 
 								Task {
-									await MainApp.app.openVirtualMachine(vm.document.url)
+									await MainApp.app.openVirtualMachine(document.url)
 								}
 							}
 							.onTapGesture {
-								self.navigationModel.selectedVirtualMachine = vm.document
+								self.navigationModel.selectedVirtualMachine = document
 
-								if self.appearsActive {
-									AppState.shared.currentDocument = vm.document
+								if self.appearsActive, let document = AppState.shared.findVirtualMachineDocument(document.url) {
+									AppState.shared.currentDocument = document
 								}
 							}
 					}
@@ -82,8 +73,4 @@ struct VirtualMachinesView: View {
 		let numOfColums = max(Int(size.width) / Int(cellWidth - cellSpacing), 1)
 		return Array(repeating: GridItem(.fixed(cellWidth)), count: numOfColums)
 	}
-}
-
-#Preview {
-	VirtualMachinesView(appState: .constant(AppState.shared), navigationModel: .constant(.init()), size: .init(width: 500, height: 600))
 }

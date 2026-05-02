@@ -1,11 +1,11 @@
-import CakedLib
-import GRPCLib
 //
 //  NavigationModel.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 09/06/2025.
 //
+import CakedLib
+import GRPCLib
 import SwiftUI
 
 enum SelectedElement: Identifiable, Hashable, Equatable {
@@ -66,48 +66,68 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	}
 }
 
-class NavigationModel: ObservableObject, Observable {
-	@Published var columnVisibility: NavigationSplitViewVisibility = .all
-	@Published var selectedElement: SelectedElement? = nil
-	@Published var navigationSplitViewVisibility: NavigationSplitViewVisibility = .all
-	@Published var navigationSplitViewColumn: NavigationSplitViewColumn = .content
-	@Published var selectedRemote: RemoteEntry! = nil
-	@Published var selectedTemplate: TemplateEntry! = nil
-	@Published var selectedNetwork: BridgedNetwork! = nil
-	@Published var selectedVirtualMachine: VirtualMachineDocument! = nil
-	@Published var selectedCategory: Category {
-		didSet {
-			switch selectedCategory {
-			case .virtualMachine:
-				self.navigationSplitViewColumn = .detail
-				self.navigationSplitViewVisibility = .doubleColumn
-			case .networks:
-				self.navigationSplitViewColumn = .sidebar
-				self.navigationSplitViewVisibility = .all
-			case .templates:
-				self.navigationSplitViewColumn = .sidebar
-				self.navigationSplitViewVisibility = .all
-			case .images:
-				self.navigationSplitViewColumn = .sidebar
-				self.navigationSplitViewVisibility = .all
-			}
+@Observable class NavigationModel {
+	var columnVisibility: NavigationSplitViewVisibility = .all
+	var selectedElement: SelectedElement? = nil
+	var navigationSplitViewVisibility: NavigationSplitViewVisibility = .all
+	var navigationSplitViewColumn: NavigationSplitViewColumn = .content
+	var selectedRemote: RemoteEntry! = nil
+	var selectedTemplate: TemplateEntry! = nil
+	var selectedNetwork: BridgedNetwork! = nil
+	var selectedVirtualMachine: VirtualMachineDocumentState! = nil
+	var documents: VirtualMachineDocumentStates = [:]
+	
+	static var categories: [Category] = [.virtualMachine, .networks]
+	
+	init(selectedCategory: Category = .virtualMachine) {
+		self.newSelectedCategory(selectedCategory)
+	}
+	
+	func newSelectedCategory(_ category: Category) {
+		switch category {
+		case .virtualMachine:
+			self.navigationSplitViewColumn = .detail
+			self.navigationSplitViewVisibility = .doubleColumn
+		case .networks:
+			self.navigationSplitViewColumn = .sidebar
+			self.navigationSplitViewVisibility = .all
+		case .templates:
+			self.navigationSplitViewColumn = .sidebar
+			self.navigationSplitViewVisibility = .all
+		case .images:
+			self.navigationSplitViewColumn = .sidebar
+			self.navigationSplitViewVisibility = .all
+		}
+	}
+	
+	func resetSelections() {
+		self.selectedRemote = nil
+		self.selectedTemplate = nil
+		self.selectedNetwork = nil
+		self.selectedVirtualMachine = nil
+	}
+	
+	func sync(with appState: AppState) {
+		self.documents.removeAll()
+		
+		appState.documents.forEach {
+			self.documents[$0.url] = .init($0)
+		}
+	}
+	
+	func addStateVirtualMachineDocument(with document: VirtualMachineDocument) {
+		if self.documents[document.url] == nil {
+			self.documents[document.url] = .init(document)
 		}
 	}
 
-	var categories: [Category] = [.virtualMachine, .networks]
-	//var categories: [Category] = [.virtualMachine, .networks, .templates, .images]
-
-	init() {
-		self.selectedCategory = .virtualMachine
+	func removeStateVirtualMachineDocument(with document: VirtualMachineDocument) {
+		self.documents.removeValue(forKey: document.url)
 	}
-}
 
-extension NavigationModel: Equatable {
-	static func == (lhs: NavigationModel, rhs: NavigationModel) -> Bool {
-		if ObjectIdentifier(lhs) == ObjectIdentifier(rhs) {
-			return true
-		}
-
-		return lhs.columnVisibility == rhs.columnVisibility && lhs.selectedCategory == rhs.selectedCategory
+	func updateStateVirtualMachineDocument(with document: VirtualMachineDocument) {
+		guard let vm = self.documents[document.url] else { return }
+		
+		vm.sync(with: document)
 	}
 }

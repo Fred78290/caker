@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 import SwiftUI
 
@@ -53,9 +52,9 @@ extension View {
 	}
 }
 
-class TextFieldStore<T, F: ParseableFormatStyle>: ObservableObject where F.FormatOutput == String, F.FormatInput == T {
-	@Published var text: String
-	@Published var value: T
+@Observable class TextFieldStore<T, F: ParseableFormatStyle> where F.FormatOutput == String, F.FormatInput == T {
+	var text: String
+	var value: T
 
 	let minusCharacter = "-"
 	let type: ValidationType
@@ -63,7 +62,8 @@ class TextFieldStore<T, F: ParseableFormatStyle>: ObservableObject where F.Forma
 	let allowNegative: Bool
 	let formatter: F
 
-	private var backupText: String
+	// Internal bookkeeping — not tracked for view observation
+	@ObservationIgnored private var backupText: String
 	private let locale: Locale
 
 	init(value: T, text: String? = nil, type: ValidationType, maxLength: Int = 18, allowNegative: Bool = false, formatter: F, locale: Locale = .current) {
@@ -91,15 +91,15 @@ class TextFieldStore<T, F: ParseableFormatStyle>: ObservableObject where F.Forma
 		backupText = text
 	}
 
-	lazy var decimalSeparator: String = {
+	var decimalSeparator: String {
 		locale.decimalSeparator ?? "."
-	}()
+	}
 
-	private lazy var groupingSeparator: String = {
+	private var groupingSeparator: String {
 		locale.groupingSeparator ?? String.empty
-	}()
+	}
 
-	private lazy var characters: String = {
+	private var characters: String {
 		let number = "0123456789"
 
 		switch type {
@@ -112,7 +112,7 @@ class TextFieldStore<T, F: ParseableFormatStyle>: ObservableObject where F.Forma
 		case .macAddress:
 			return "0123456789ABCDEFabcdef:"
 		}
-	}()
+	}
 
 	var minusCount: Int {
 		text.components(separatedBy: minusCharacter).count - 1

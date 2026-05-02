@@ -10,12 +10,23 @@ import GRPCLib
 import SwiftUI
 
 struct CakerMenuBarExtraScene: Scene {
-	@StateObject var appState: AppState
+	private var appState: AppState = .shared
+	@State var model: NavigationModel
+
 	@AppStorage("ShowMenuIcon") private var isMenuIconShown: Bool = false
 	@AppStorage("HideDockIcon") private var isDockIconHidden: Bool = false
 	@Environment(\.openWindow) private var openWindow
 	@Environment(\.openSettings) private var openSettings
-	
+
+#if DEBUG
+	let tracker = TrackDealloc(from: "CakerMenuBarExtraScene")
+#endif
+
+	// Make initializer accessible from other files
+	init(model: NavigationModel) {
+		self.model = model
+	}
+
 	var body: some Scene {
 		MenuBarExtra(isInserted: $isMenuIconShown) {
 			Button("About Caker") {
@@ -27,7 +38,7 @@ struct CakerMenuBarExtraScene: Scene {
 				.help("Show the main window.")
 			
 			Divider()
-
+			
 			Menu("Options") {
 				Button("Settings") {
 					openSettings()
@@ -41,11 +52,11 @@ struct CakerMenuBarExtraScene: Scene {
 					open()
 				}.keyboardShortcut("O")
 					.help("Open new virtual machine.")
-
+				
 				Toggle("Hide dock icon on next launch", isOn: $isDockIconHidden)
 					.help("Requires restarting Caker to take affect.")
 			}
-
+			
 			Menu("Service") {
 				Button("Browser of services") {
 					openWindow(id: "remote")
@@ -61,7 +72,7 @@ struct CakerMenuBarExtraScene: Scene {
 						MainApp.installCakedService()
 					}
 				}
-
+				
 				if self.appState.cakedServiceInstalled {
 					if self.appState.cakedServiceRunning {
 						Button("Stop service") {
@@ -87,12 +98,13 @@ struct CakerMenuBarExtraScene: Scene {
 			
 			Divider()
 			
-			if appState.virtualMachines.isEmpty {
+			if self.model.documents.isEmpty {
 				Text("No virtual machines found.")
 			} else {
 				Menu("Virtual machines") {
-					ForEach(appState.virtualMachines.vms) { vm in
-						VMMenuItem(vm: vm.document)
+					let vms = Array(self.model.documents.values).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+					ForEach(vms, id: \.url) { vm in
+						VMMenuItem(vm: vm)
 					}
 				}
 			}
@@ -100,8 +112,9 @@ struct CakerMenuBarExtraScene: Scene {
 			Divider()
 			Button("Quit") {
 				NSApp.terminate(self)
-			}.keyboardShortcut("Q")
-				.help("Terminate Caker and stop all running VMs.")
+			}
+			.keyboardShortcut("Q")
+			.help("Terminate Caker and stop all running VMs.")
 		} label: {
 			if let path = Bundle.main.path(forResource: "MenuBarIcon", ofType: "png") {
 				Image(nsImage: NSImage(contentsOfFile: path) ?? NSImage()).resizable()
@@ -110,7 +123,7 @@ struct CakerMenuBarExtraScene: Scene {
 			}
 		}
 	}
-	
+
 	private func open() {
 		let home = StorageLocation(runMode: .app).rootURL
 
@@ -124,13 +137,7 @@ struct CakerMenuBarExtraScene: Scene {
 
 private struct VMMenuItem: View {
 	@Environment(\.openWindow) var openWindow
-	var vm: VirtualMachineDocument
-	@State var status: VirtualMachineDocument.Status
-	
-	init(vm: VirtualMachineDocument) {
-		self.vm = vm
-		self.status = vm.status
-	}
+	var vm: VirtualMachineDocumentState
 
 	var body: some View {
 		Menu(vm.name) {
@@ -143,7 +150,7 @@ private struct VMMenuItem: View {
 
 				Button("Create template") {
 					DispatchQueue.main.async {
-						createTemplate()
+						vm.createTemplate()
 					}
 				}
 
@@ -151,7 +158,7 @@ private struct VMMenuItem: View {
 
 				Button("Delete") {
 					DispatchQueue.main.async {
-						deleteVirtualMachine()
+						vm.deleteVirtualMachine()
 					}
 				}
 			} else {
@@ -176,21 +183,10 @@ private struct VMMenuItem: View {
 				}
 			}
 		}
-		.onChange(of: self.vm.status) {
-			self.status = self.vm.status
-		}
 	}
 
 	func openVirtualMachine() async {
 		await MainApp.app.openVirtualMachine(self.vm.url)
-		NotificationCenter.default.post(name: VirtualMachineDocument.StartVirtualMachine, object: vm, userInfo: ["document": vm.url!])
-	}
-
-	func createTemplate() {
-		AppState.shared.createTemplate(document: self.vm)
-	}
-
-	func deleteVirtualMachine() {
-		AppState.shared.deleteVirtualMachine(document: self.vm)
+		NotificationCenter.default.post(name: VirtualMachineDocument.StartVirtualMachine, object: vm, userInfo: ["document": vm.url])
 	}
 }

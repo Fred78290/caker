@@ -9,10 +9,30 @@ import NIO
 typealias VirtualMachineDocumentByURL = [URL: VirtualMachineDocument]
 
 extension VirtualMachineDocumentByURL {
+	var documents: [VirtualMachineDocument] {
+		self.map(\.value).sorted(using: VirtualMachineDocumentComparator())
+	}
+
 	var vms: [PairedVirtualMachineDocument] {
 		self.compactMap {
 			PairedVirtualMachineDocument(id: $0.key, name: $0.value.name, document: $0.value)
 		}.sorted(using: PairedVirtualMachineDocumentComparator())
+	}
+}
+
+struct VirtualMachineDocumentComparator: SortComparator {
+	var order: SortOrder = .forward
+	
+	func compare(_ lhs: VirtualMachineDocument, _ rhs: VirtualMachineDocument) -> ComparisonResult {
+		if lhs.name == rhs.name {
+			return .orderedSame
+		}
+
+		if order == .forward {
+			return lhs.name < rhs.name ? .orderedAscending : .orderedDescending
+		}
+
+		return lhs.name > rhs.name ? .orderedAscending : .orderedDescending
 	}
 }
 
@@ -92,7 +112,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 }
 
-class AppState: ObservableObject, Observable {
+@Observable class AppState {
 	static let AppStateChanged = Notification.Name("AppStateChanged")
 
 	private struct ServiceReply {
@@ -123,35 +143,68 @@ class AppState: ObservableObject, Observable {
 		return shared
 	}
 	
-	@AppStorage("VMLaunchMode") var launchVMExternally = false
-	@AppStorage("ClipboardRedirectionEnabled") var isClipboardRedirectionEnabled = false
-	@AppStorage("DebugVNCMessageEnabled") var debugVNCMessageEnabled: Bool = false
+	@ObservationIgnored @AppStorage("VMLaunchMode") var launchVMExternally = false
+	@ObservationIgnored @AppStorage("ClipboardRedirectionEnabled") var isClipboardRedirectionEnabled = false
+	@ObservationIgnored @AppStorage("DebugVNCMessageEnabled") var debugVNCMessageEnabled: Bool = false
 	
-	@Published var cakedServiceInstalled: Bool = false
-	@Published var cakedServiceRunning: Bool = false
-	@Published var connectionMode: ConnectionManager.ConnectionMode = .app
-	@Published var currentDocument: VirtualMachineDocument! {
+	private(set) var cakedServiceInstalled: Bool = false
+	private(set) var cakedServiceRunning: Bool = false
+	private(set) var connectionMode: ConnectionManager.ConnectionMode = .app
+	private(set) var isStopped: Bool = true
+	private(set) var isSuspendable: Bool = false
+	private(set) var isRunning: Bool = false
+	private(set) var isPaused: Bool = false
+	private(set) var remotes: [RemoteEntry] = []
+	private(set) var templates: [TemplateEntry] = []
+	private(set) var networks: [BridgedNetwork] = []
+	private(set) var virtualMachines: [URL: VirtualMachineDocument] = [:]
+	private(set) var hasVMNetworking = Entitlement.hasVMNetworking()
+	private(set) var connectionManager: ConnectionManager
+	var isAgentInstalling: Bool = false
+
+	var documents: [VirtualMachineDocument] {
+		var documents = Array(virtualMachines.values)
+		
+		documents.append(contentsOf: self.openedVirtualMachines.values)
+
+		return documents
+	}
+
+	var currentDocument: VirtualMachineDocument! {
 		didSet {
 			self.updateState()
 		}
 	}
-	@Published var isAgentInstalling: Bool = false
-	@Published var isStopped: Bool = true
-	@Published var isSuspendable: Bool = false
-	@Published var isRunning: Bool = false
-	@Published var isPaused: Bool = false
-	@Published var remotes: [RemoteEntry] = []
-	@Published var templates: [TemplateEntry] = []
-	@Published var networks: [BridgedNetwork] = []
-	@Published var virtualMachines: [URL: VirtualMachineDocument] = [:]
-	@Published var hasVMNetworking = Entitlement.hasVMNetworking()
-	@Published var connectionManager: ConnectionManager
 
 	private var openedVirtualMachines: [URL: VirtualMachineDocument] = [:]
 
 	deinit {
 		agentStatusTimer?.cancel()
 		connectionManager.stopGrandCentral()
+	}
+
+	private func setRemotes(_ newValues: [RemoteEntry]) {
+		self.remotes = newValues
+	}
+
+	private func setTemplates(_ newValues: [TemplateEntry]) {
+		self.templates = newValues
+	}
+
+	private func setNetworks(_ newValues: [BridgedNetwork]) {
+		self.networks = newValues
+	}
+
+	private func setVirtualMachines(_ newValues: [URL: VirtualMachineDocument]) {
+		self.virtualMachines = newValues
+		MainApp.app?.syncAppState()
+	}
+
+	private func updateFromReply(serviceReply: ServiceReply) {
+		self.setVirtualMachines(serviceReply.virtualMachines)
+		self.setNetworks(serviceReply.networks)
+		self.setRemotes(serviceReply.remotes)
+		self.setTemplates(serviceReply.templates)
 	}
 
 	func updateState() {
@@ -192,7 +245,7 @@ class AppState: ObservableObject, Observable {
 		
 		Utilities.group.next().makeFutureWithTask {
 			try Self.loadService(connectionManager: connectionManager)
-		}.whenComplete { result in
+		}.whenComplete { [unowned self] result in
 			let connectionMode = connectionManager.connectionMode
 			
 			self.logger.debug("Data loaded for new mode: installed=\(installed), runMode=\(connectionMode)")
@@ -207,10 +260,10 @@ class AppState: ObservableObject, Observable {
 				case let .failure(error):
 					alertError(error)
 				case let .success(serviceReply):
-					self.virtualMachines = serviceReply.virtualMachines
-					self.networks = serviceReply.networks
-					self.remotes = serviceReply.remotes
-					self.templates = serviceReply.templates
+					self.setVirtualMachines(serviceReply.virtualMachines)
+					self.setNetworks(serviceReply.networks)
+					self.setRemotes(serviceReply.remotes)
+					self.setTemplates(serviceReply.templates)
 					
 					connectionManager.startGrandCentral()
 
@@ -267,15 +320,12 @@ class AppState: ObservableObject, Observable {
 		self.agentStatusTimer = nil
 		
 		if connectionManager.connectionMode == .app {
-			self.agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { task in
+			self.agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { [unowned self] task in
 				self.agentStatusWatch(task)
 			}
 			
 			if let serviceReply = try? Self.loadService(connectionManager: connectionManager) {
-				self.virtualMachines = serviceReply.virtualMachines
-				self.networks = serviceReply.networks
-				self.remotes = serviceReply.remotes
-				self.templates = serviceReply.templates
+				self.updateFromReply(serviceReply: serviceReply)
 			}
 		} else {
 			self.switchMode(cakedServiceInstalled, connectionManager: connectionManager)
@@ -295,7 +345,7 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func reloadNetworks() {
-		self.networks = self.loadNetworks()
+		self.setNetworks(self.loadNetworks())
 	}
 	
 	func loadRemotes() -> [RemoteEntry] {
@@ -307,7 +357,7 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func reloadRemotes() {
-		self.remotes = self.loadRemotes()
+		self.setRemotes(self.loadRemotes())
 	}
 	
 	func loadTemplates() -> [TemplateEntry] {
@@ -319,7 +369,7 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func reloadTemplates() {
-		self.templates = self.loadTemplates()
+		self.setTemplates(self.loadTemplates())
 	}
 	
 	func loadImages(remote: String) async -> [ImageInfo] {
@@ -467,7 +517,7 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func replaceVirtualMachineDocument(_ url: URL, with document: VirtualMachineDocument) {
-		DispatchQueue.main.async {
+		DispatchQueue.main.async { [unowned self] in
 			self.virtualMachines[url] = document
 		}
 	}
@@ -558,7 +608,7 @@ class AppState: ObservableObject, Observable {
 		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
-				NotificationCenter.default.post(name: VirtualMachineDocument.DeleteVirtualMachine, object: vm, userInfo: ["document": vm.url!])
+				NotificationCenter.default.post(name: VirtualMachineDocument.DeleteVirtualMachine, object: vm, userInfo: ["document": vm.url])
 				
 				let result = try vm.deleteVirtualMachine()
 				
@@ -641,7 +691,7 @@ class AppState: ObservableObject, Observable {
 				let result = try self.connectionManager.deleteRemote(name: name)
 				
 				if result.deleted {
-					self.reloadTemplates()
+					self.reloadRemotes()
 				} else {
 					DispatchQueue.main.async {
 						alertError(String(localized: "Delete failed"), result.reason)
@@ -660,6 +710,11 @@ class AppState: ObservableObject, Observable {
 	}
 
 	func closeVirtualMachineDocument(_ document: VirtualMachineDocument) {
+		if self.currentDocument == document {
+			self.currentDocument = nil
+		}
+
 		self.openedVirtualMachines.removeValue(forKey: document.url)
 	}
 }
+

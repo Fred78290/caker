@@ -98,9 +98,9 @@ extension NetService {
 	}
 }
 
-class ServiceListViewModel: ObservableObject {
-	@Published var services: [NetService] = []
-	@Published var isScanning: Bool = false
+@Observable class ServiceListViewModel {
+	var services: [NetService] = []
+	var isScanning: Bool = false
 
 	private var serviceLister: BonjourServiceLister?
 
@@ -135,8 +135,7 @@ class ServiceListViewModel: ObservableObject {
 struct ServiceListView: View {
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.dismiss) var dismiss
-
-	@StateObject private var viewModel = ServiceListViewModel()
+	@State private var viewModel = ServiceListViewModel()
 
 	@State private var selectedService: NetService? = nil
     @State private var isPresentingPasswordPrompt: Bool = false
@@ -150,8 +149,6 @@ struct ServiceListView: View {
     @State private var manualPassword: String = ""
     @State private var manualUseTLS: Bool = true
     @State private var manualError: String? = nil
-
-	@ObservedObject private var appState: AppState = .shared
 
 	private var serviceType: String = "_caked._tcp."
 	private var domain: String = "local."
@@ -390,7 +387,7 @@ struct ServiceListView: View {
 						} else {
 							List(selection: $selectedService) {
 								ForEach(viewModel.services, id: \.name) { service in
-									let connected = self.appState.connectionManager.isConnected(to: service)
+									let connected = AppState.shared.connectionManager.isConnected(to: service)
 
 									ServiceRowView(service: service,
 												   selected: service == selectedService,
@@ -403,11 +400,11 @@ struct ServiceListView: View {
 										if connected {
 											Button("Disconnect") {
 												AppState.shared.connectToLocal()
-											}.log(text: "Disconnecting from service")
+											}
 										} else {
 											Button("Connect") {
 												self.connect(service)
-											}.log(text: "Connecting to service")
+											}
 										}
 									}
 									.onTapGesture(count: 2) {

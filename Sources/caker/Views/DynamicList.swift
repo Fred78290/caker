@@ -38,10 +38,10 @@ protocol ListModel {
 
 /// Used as a wrapper for a list item in the dynamic list.
 /// It makes sure items are updated once additional data has been fetched.
-final class ListItemViewModel<ItemType: ListItemModel>: Identifiable, ObservableObject {
+@Observable final class ListItemViewModel<ItemType: ListItemModel>: Identifiable {
 
 	/// The wrapped item
-	@Published var item: ItemType
+	var item: ItemType
 
 	/// The index of the item in the list, starting from 0.
 	var id: Int
@@ -64,7 +64,7 @@ final class ListItemViewModel<ItemType: ListItemModel>: Identifiable, Observable
 
 /// Acts as the view model for the dynamic list.
 /// Handles fetching (and storing) the next batch of items as needed.
-final class ListViewModel<ListModelType: ListModel>: ObservableObject {
+@Observable final class ListViewModel<ListModelType: ListModel> {
 	/// Initialize the list view model.
 	/// - Parameters:
 	///   - listModel:      The source that performs the actual data fetching.
@@ -80,7 +80,7 @@ final class ListViewModel<ListModelType: ListModel>: ObservableObject {
 
 	}
 
-	@Published fileprivate var list: [ListItemViewModel<ListModelType.Item>] = []
+	fileprivate var list: [ListItemViewModel<ListModelType.Item>] = []
 
 	private var listModel: ListModelType
 	private let itemBatchSize: Int
@@ -126,7 +126,7 @@ final class ListViewModel<ListModelType: ListModel>: ObservableObject {
 protocol DynamicListItemView: View {
 	associatedtype ItemType: ListItemModel
 
-	/// Should be declared as @ObservedObject var itemViewModel in concrete type
+	/// Should be declared as var itemViewModel in concrete type
 	var itemViewModel: ListItemViewModel<ItemType> { get }
 	init(itemViewModel: ListItemViewModel<ItemType>)
 }
@@ -137,7 +137,7 @@ protocol DynamicListItemView: View {
 /// `ListModelType` is the model list model used to fetch list data.
 struct DynamicList<ItemView: DynamicListItemView, ListModelType: ListModel>: View where ListModelType.Item == ItemView.ItemType {
 
-	@ObservedObject var listViewModel: ListViewModel<ListModelType>
+	var listViewModel: ListViewModel<ListModelType>
 
 	var body: some View {
 		return List(listViewModel.list) { itemViewModel in

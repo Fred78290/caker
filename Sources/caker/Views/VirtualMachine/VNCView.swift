@@ -14,7 +14,7 @@ import CakeAgentLib
 struct VNCView: NSViewRepresentable {
 	typealias NSViewType = NSVNCView
 
-	private let document: VirtualMachineDocument
+	private weak let document: VirtualMachineDocument!
 	private let logger = Logger("HostVirtualMachineView")
 
 	init(document: VirtualMachineDocument) {
@@ -30,7 +30,7 @@ struct VNCView: NSViewRepresentable {
 			fatalError("Connection is nil")
 		}
 
-		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: document.connection)
+		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: connection)
 
 		self.document.vncView = view
 

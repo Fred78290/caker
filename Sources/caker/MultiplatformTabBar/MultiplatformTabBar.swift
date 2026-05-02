@@ -66,7 +66,7 @@ public struct MultiplatformTabBar<ID: MultiplatformTabIdentifier>: View {
 	@Binding public var selection: ID
 
 	/// Holds the collection of tabs being presented.
-	@ObservedObject public var tabSet: MultiplatformTabCollection = MultiplatformTabCollection<ID>()
+	public var tabSet: MultiplatformTabCollection = MultiplatformTabCollection<ID>()
 
 	// MARK: - Initializers
 

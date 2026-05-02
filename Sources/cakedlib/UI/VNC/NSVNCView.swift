@@ -15,7 +15,7 @@ public protocol NSVNCViewDelegate: AnyObject {
 }
 
 public class NSVNCView: NSView {
-	private let connection: RoyalVNCKit.VNCConnection
+	private weak var connection: RoyalVNCKit.VNCConnection?
 	private var accumulatedScrollDeltaX: CGFloat = 0
 	private var accumulatedScrollDeltaY: CGFloat = 0
 	private var scrollStep: CGFloat = 12
@@ -31,16 +31,20 @@ public class NSVNCView: NSView {
 	private var cancelWaitVNCReconfiguration: DispatchWorkItem?
 	public weak var delegate: NSVNCViewDelegate?
 
+	private let isScalingEnabled: Bool
+	private let useDisplayLink: Bool
+	private let inputMode: RoyalVNCKit.VNCConnection.Settings.InputMode
+
 	public var isLiveViewResize: Bool {
 		return self.liveViewResize
 	}
 
 	private var framebufferSize: CGSize {
-		self.connection.framebuffer!.cgSize
-	}
+		guard let connection = self.connection else {
+			return .zero
+		}
 
-	private var settings: RoyalVNCKit.VNCConnection.Settings {
-		self.connection.settings
+		return connection.framebuffer!.cgSize
 	}
 
 	private var currentCursor: NSCursor {
@@ -100,8 +104,13 @@ public class NSVNCView: NSView {
 	}
 
 	public init(frame frameRect: CGRect, connection: RoyalVNCKit.VNCConnection) {
+		let settings = connection.settings
+
 		self.connection = connection
 		self.currentCursor = VNCCursor.empty.nsCursor
+		self.inputMode = settings.inputMode
+		self.isScalingEnabled = settings.isScalingEnabled
+		self.useDisplayLink = settings.useDisplayLink
 
 		super.init(frame: frameRect)
 
@@ -164,7 +173,7 @@ public class NSVNCView: NSView {
 	}
 
 	func removeDisplayLink() {
-		guard settings.useDisplayLink, let displayLink = self.displayLink else {
+		guard self.useDisplayLink, let displayLink = self.displayLink else {
 			return
 		}
 
@@ -174,7 +183,7 @@ public class NSVNCView: NSView {
 	}
 
 	func addDisplayLink() {
-		guard settings.useDisplayLink else {
+		guard self.useDisplayLink else {
 			return
 		}
 
@@ -303,7 +312,7 @@ extension NSVNCView {
 
 	public func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
 		// NOTE: If we ever take the updatedRegion into consideration, we will likely need to flip the coordinates on macOS
-		guard !settings.useDisplayLink, displayLink == nil else {
+		guard !self.useDisplayLink, displayLink == nil else {
 			return
 		}
 
@@ -359,7 +368,7 @@ extension NSVNCView {
 // MARK: - Mouse Input
 extension NSVNCView {
 	func handleMouseMoved(with event: NSEvent) {
-		if let position = scaledContentRelativePosition(of: event) {
+		if let position = scaledContentRelativePosition(of: event), let connection = self.connection {
 			connection.mouseMove(x: position.x, y: position.y)
 		}
 	}
@@ -368,55 +377,55 @@ extension NSVNCView {
 		window?.makeFirstResponder(self)
 		becomeFirstResponder()
 
-		if let position = scaledContentRelativePosition(of: event) {
+		if let position = scaledContentRelativePosition(of: event), let connection = self.connection {
 			connection.mouseButtonDown(.left, x: position.x, y: position.y)
 		}
 	}
 
 	func handleMouseDragged(with event: NSEvent) {
-		if let position = scaledContentRelativePosition(of: event) {
+		if let position = scaledContentRelativePosition(of: event), let connection = self.connection {
 			connection.mouseButtonDown(.left, x: position.x, y: position.y)
 		}
 	}
 
 	func handleMouseUp(with event: NSEvent) {
-		if let position = scaledContentRelativePosition(of: event) {
+		if let position = scaledContentRelativePosition(of: event), let connection = self.connection {
 			connection.mouseButtonUp(.left, x: position.x, y: position.y)
 		}
 	}
 
 	func handleRightMouseDown(with event: NSEvent) {
-		if let position = scaledContentRelativePosition(of: event) {
+		if let position = scaledContentRelativePosition(of: event), let connection = self.connection {
 			connection.mouseButtonDown(.right, x: position.x, y: position.y)
 		}
 	}
 
 	func handleRightMouseDragged(with event: NSEvent) {
-		if let position = scaledContentRelativePosition(of: event) {
+		if let position = scaledContentRelativePosition(of: event), let connection = self.connection {
 			connection.mouseButtonDown(.right, x: position.x, y: position.y)
 		}
 	}
 
 	func handleRightMouseUp(with event: NSEvent) {
-		if let position = scaledContentRelativePosition(of: event) {
+		if let position = scaledContentRelativePosition(of: event), let connection = self.connection {
 			connection.mouseButtonUp(.right, x: position.x, y: position.y)
 		}
 	}
 
 	func handleOtherMouseDown(with event: NSEvent) {
-		if isMiddleButton(event: event), let position = scaledContentRelativePosition(of: event) {
+		if isMiddleButton(event: event), let position = scaledContentRelativePosition(of: event), let connection = self.connection {
 			connection.mouseButtonDown(.middle, x: position.x, y: position.y)
 		}
 	}
 
 	func handleOtherMouseDragged(with event: NSEvent) {
-		if isMiddleButton(event: event), let position = scaledContentRelativePosition(of: event) {
+		if isMiddleButton(event: event), let position = scaledContentRelativePosition(of: event), let connection = self.connection {
 			connection.mouseButtonDown(.middle, x: position.x, y: position.y)
 		}
 	}
 
 	func handleOtherMouseUp(with event: NSEvent) {
-		if isMiddleButton(event: event), let position = scaledContentRelativePosition(of: event) {
+		if isMiddleButton(event: event), let position = scaledContentRelativePosition(of: event), let connection = self.connection {
 			connection.mouseButtonUp(.middle, x: position.x, y: position.y)
 		}
 	}
@@ -450,6 +459,10 @@ extension NSVNCView {
 	}
 
 	func handleKeyDown(with event: NSEvent?) {
+		guard let connection = self.connection else {
+			return
+		}
+
 		if let event {
 			let keyCodes = keyCodesFrom(event: event)
 
@@ -460,6 +473,10 @@ extension NSVNCView {
 	}
 
 	func handleKeyUp(with event: NSEvent?) {
+		guard let connection = self.connection else {
+			return
+		}
+
 		if let event {
 			let keyCodes = keyCodesFrom(event: event)
 
@@ -485,7 +502,7 @@ extension NSVNCView {
 
 	func handlePerformKeyEquivalent(with event: NSEvent) -> Bool {
 		// swiftlint:disable:next control_statement
-		guard settings.inputMode == .forwardKeyboardShortcutsEvenIfInUseLocally || settings.inputMode == .forwardAllKeyboardShortcutsAndHotKeys, let window, window.firstResponder == window || window.firstResponder == self else {
+		guard self.inputMode == .forwardKeyboardShortcutsEvenIfInUseLocally || self.inputMode == .forwardAllKeyboardShortcutsAndHotKeys, let window, window.firstResponder == window || window.firstResponder == self else {
 			return false
 		}
 
@@ -507,7 +524,7 @@ extension NSVNCView {
 
 		let keys = VNCKeyCode.keyCodesFrom(cgKeyCode: keyCode, characters: characters)
 
-		if keys.isEmpty {
+		if let connection = self.connection, keys.isEmpty {
 			connection.logger.logError("Ignoring unconvertable key press (Key Code: \(event.keyCode))")
 		}
 
@@ -529,6 +546,10 @@ extension NSVNCView {
 	}
 
 	fileprivate func handleImpreciseScrollingDelta(_ scrollDelta: CGPoint, mousePositionX: UInt16, mousePositionY: UInt16) {
+		guard let connection = self.connection else {
+			return
+		}
+
 		if scrollDelta.x < 0 {
 			connection.mouseWheel(.right, x: mousePositionX, y: mousePositionY, steps: 1)
 		} else if scrollDelta.x > 0 {
@@ -543,6 +564,10 @@ extension NSVNCView {
 	}
 
 	fileprivate func handlePreciseScrollingDelta(_ scrollDelta: CGPoint, mousePositionX: UInt16, mousePositionY: UInt16) {
+		guard let connection = self.connection else {
+			return
+		}
+
 		accumulatedScrollDeltaX += scrollDelta.x
 		accumulatedScrollDeltaY += scrollDelta.y
 
@@ -612,7 +637,7 @@ extension NSVNCView {
 			self.stopWaitVNCReconfiguration()
 
 			if let layer = layer {
-				if settings.isScalingEnabled {
+				if self.isScalingEnabled {
 					layer.contentsGravity = .resizeAspect
 				} else if frameSizeExceedsFramebufferSize(size) {
 					// Don't allow upscaling
@@ -626,7 +651,7 @@ extension NSVNCView {
 	}
 
 	fileprivate func registerHotKeys() {
-		if settings.inputMode == .forwardAllKeyboardShortcutsAndHotKeys {
+		if self.inputMode == .forwardAllKeyboardShortcutsAndHotKeys {
 			deregisterHotKeys()
 
 			// This requires Accessibilty permissions which can be requested using `VNCAccessibilityUtils`
@@ -645,7 +670,9 @@ extension NSVNCView {
 
 extension NSVNCView {
 	@objc func displayLinkDidUpdate() {
-		updateImage(self.connection.framebuffer?.cgImage, animated: didResizeFramebuffer)
+		if let connection = self.connection {
+			updateImage(connection.framebuffer?.cgImage, animated: didResizeFramebuffer)
+		}
 	}
 }
 

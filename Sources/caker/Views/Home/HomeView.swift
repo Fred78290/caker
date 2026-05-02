@@ -7,18 +7,25 @@
 
 import GRPCLib
 import SwiftUI
+import CakeAgentLib
 
 struct HomeView: View {
 	@Environment(\.appearsActive) private var appearsActive
 
-	@Binding var appState: AppState
-	@State private var navigationModel = NavigationModel()
+	private var appState = AppState.shared
+
+	@State var navigationModel: NavigationModel
 	@State private var presented: Bool = false
 	@State private var mustShowDetailView: Bool = true
 	@State private var window: NSWindow? = nil
+	@State private var selectedCategory: Category = .virtualMachine
+
+	init(navigationModel: NavigationModel) {
+		self.navigationModel = navigationModel
+	}
 
 	private var deleteButtonDisabled: Bool {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .templates:
 			return navigationModel.selectedTemplate == nil
 		case .virtualMachine:
@@ -66,12 +73,16 @@ struct HomeView: View {
 			.sheet(isPresented: $presented) {
 				self.sheet
 			}
-			.onReceive(AppState.AppStateChanged) { notification in
+			.onChange(of: self.appState.connectionMode) {
+				self.navigationModel.resetSelections()
+			}.onReceive(AppState.AppStateChanged) { notification in
 				self.navigationModel.selectedTemplate = nil
 				self.navigationModel.selectedVirtualMachine = nil
+				self.navigationModel.selectedNetwork = nil
+				self.navigationModel.selectedRemote = nil
 
 				if self.appearsActive {
-					AppState.shared.currentDocument = nil
+					self.appState.currentDocument = nil
 				}
 			}
 	}
@@ -139,12 +150,14 @@ struct HomeView: View {
 			}
 		}
 
+		navigationModel.newSelectedCategory(newValue)
+
 		clearSelectection(oldValue)
 		clearSelectection(newValue)
 	}
 
 	var haveDetailView: Bool {
-		guard navigationModel.selectedCategory != .virtualMachine else {
+		guard self.selectedCategory != .virtualMachine else {
 			return false
 		}
 
@@ -153,13 +166,13 @@ struct HomeView: View {
 
 
 	var showDetailView: Bool {
-		guard navigationModel.selectedCategory != .virtualMachine else {
+		guard self.selectedCategory != .virtualMachine else {
 			return false
 		}
 
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .virtualMachine:
-			return false
+			break  // already handled by the guard above
 		case .networks:
 			guard navigationModel.selectedNetwork != nil else {
 				return false
@@ -178,7 +191,7 @@ struct HomeView: View {
 	}
 
 	var minContentSize: CGFloat? {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .images:
 			return nil
 		case .templates:
@@ -191,7 +204,7 @@ struct HomeView: View {
 	}
 
 	var idealContentSize: CGFloat {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .images:
 			return 200
 		case .templates:
@@ -199,12 +212,12 @@ struct HomeView: View {
 		case .networks:
 			return 200
 		case .virtualMachine:
-			return (VirtualMachinesView.cellWidth + (VirtualMachinesView.cellSpacing * 2)) * max(1, min(2, CGFloat(self.appState.virtualMachines.count)))
+			return (VirtualMachinesView.cellWidth + (VirtualMachinesView.cellSpacing * 2)) * max(1, min(2, CGFloat(self.navigationModel.documents.count)))
 		}
 	}
 
 	var idealDetailSize: CGFloat {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .images:
 			return 200
 		case .templates:
@@ -217,7 +230,7 @@ struct HomeView: View {
 	}
 
 	var maxContentSize: CGFloat {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .images:
 			return 200
 		case .templates:
@@ -225,17 +238,17 @@ struct HomeView: View {
 		case .networks:
 			return 200
 		case .virtualMachine:
-			return (VirtualMachinesView.cellWidth + VirtualMachinesView.cellSpacing * 2) * max(1, min(3, CGFloat(self.appState.virtualMachines.count)))
+			return (VirtualMachinesView.cellWidth + VirtualMachinesView.cellSpacing * 2) * max(1, min(3, CGFloat(self.navigationModel.documents.count)))
 		}
 	}
 
 	@ViewBuilder
 	var sidebar: some View {
-		SideBarView(navigationModel: $navigationModel)
+		SideBarView(categories: NavigationModel.categories, selectedCategory: $selectedCategory)
 			.frame(minWidth: 200, maxWidth: 200)
 			.navigationSplitViewColumnWidth(200)
 			.navigationSplitViewStyle(.prominentDetail)
-			.onChange(of: navigationModel.selectedCategory) { oldValue, newValue in
+			.onChange(of: self.selectedCategory) { oldValue, newValue in
 				self.selectedCategoryDidChanged(oldValue, newValue)
 			}
 			.windowAccessor($window) {
@@ -250,15 +263,15 @@ struct HomeView: View {
 	@ViewBuilder
 	var content: some View {
 		GeometryReader { geometry in
-			switch navigationModel.selectedCategory {
+			switch self.selectedCategory {
 			case .images:
-				RemotesView(appState: $appState, navigationModel: $navigationModel)
+				RemotesView(navigationModel: navigationModel)
 			case .templates:
-				TemplatesView(appState: $appState, navigationModel: $navigationModel)
+				TemplatesView(navigationModel: navigationModel)
 			case .networks:
-				NetworksView(appState: $appState, navigationModel: $navigationModel)
+				NetworksView(navigationModel: navigationModel)
 			case .virtualMachine:
-				VirtualMachinesView(appState: $appState, navigationModel: $navigationModel, size: geometry.size)
+				VirtualMachinesView(navigationModel: navigationModel, columns: VirtualMachinesView.buildColumns(geometry.size))
 			}
 		}.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
 	}
@@ -266,7 +279,7 @@ struct HomeView: View {
 	@ViewBuilder
 	var detail: some View {
 		GeometryReader { geometry in
-			switch navigationModel.selectedCategory {
+			switch self.selectedCategory {
 			case .virtualMachine:
 				Text("Hello, VM!")
 			case .networks:
@@ -311,7 +324,7 @@ struct HomeView: View {
 
 	@ViewBuilder
 	var sheet: some View {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .virtualMachine:
 			VirtualMachineWizard(sheet: true)
 				.colorSchemeForColor()
@@ -332,9 +345,9 @@ struct HomeView: View {
 	}
 
 	func actionDelete() {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .virtualMachine:
-			self.appState.deleteVirtualMachine(document: navigationModel.selectedVirtualMachine)
+			navigationModel.selectedVirtualMachine?.deleteVirtualMachine()
 		case .networks:
 			self.appState.deleteNetwork(name: navigationModel.selectedNetwork.name)
 		case .images:
@@ -345,7 +358,7 @@ struct HomeView: View {
 	}
 
 	func actionPlus() {
-		switch navigationModel.selectedCategory {
+		switch self.selectedCategory {
 		case .virtualMachine:
 			self.presented = true
 		case .networks:
@@ -359,5 +372,5 @@ struct HomeView: View {
 }
 
 #Preview {
-	HomeView(appState: .constant(AppState.shared))
+    HomeView(navigationModel: NavigationModel())
 }

@@ -11,10 +11,10 @@ import SwiftUI
 public typealias MultiplatformTabIdentifier = Comparable & Hashable & Identifiable
 
 /// Holds the collection of `MultiplatformTabs` that will be displayed in a `MultiplatformTabBar`.
-public class MultiplatformTabCollection<ID: MultiplatformTabIdentifier>: ObservableObject {
+@Observable public class MultiplatformTabCollection<ID: MultiplatformTabIdentifier> {
 
 	/// The tab collection.
-	@Published public var tabs: [ID: MultiplatformTab<ID>] = [:]
+	public var tabs: [ID: MultiplatformTab<ID>] = [:]
 
 	public subscript(_ id: ID) -> MultiplatformTab<ID>! {
 		get { tabs[id] }

@@ -97,9 +97,10 @@ struct MainApp: App {
 	
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
-	@State var appState: AppState
+	var appState: AppState
 	@State var createTemplate = false
-	
+	@State var navigationModel = NavigationModel()
+
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 	
 	// Sparkle updater
@@ -116,26 +117,28 @@ struct MainApp: App {
 			userDriverDelegate: nil
 		)
 		
+		self.navigationModel.sync(with: self.appState)
+
 		Self.app = self
 	}
 	
 	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) {		
-		guard let document = appState.currentDocument else {
+		guard let document = AppState.shared.currentDocument else {
 			return ("Install agent", false, true)
 		}
-		
+
 		return document.agentCondition
 	}
 	
 	var body: some Scene {
-		CakerMenuBarExtraScene(appState: appState)
+		CakerMenuBarExtraScene(model: self.navigationModel)
 		
 		DocumentGroup(viewing: BridgeVirtualDocument.self) { file in
 			let document = file.document.attachedVirtualDocument
 			let initialSize = document.virtualMachineConfig.display.cgSize
 			
 			if document.location != nil || document.url.isFileURL == false {
-				HostVirtualMachineView(appState: $appState, document: document)
+				HostVirtualMachineView(document: document)
 					.colorSchemeForColor()
 					.windowMinimizeBehavior(.enabled)
 					.windowResizeBehavior(.enabled)
@@ -156,10 +159,10 @@ struct MainApp: App {
 		}
 		
 		WindowGroup(id: "VM", for: URL.self) { $vmURL in
-			if let vmURL, let document = self.appState.findVirtualMachineDocument(vmURL) {
+			if let vmURL, let document = AppState.shared.findVirtualMachineDocument(vmURL) {
 				let initialSize = document.virtualMachineConfig.display.cgSize
 				
-				HostVirtualMachineView(appState: $appState, document: document)
+				HostVirtualMachineView(document: document)
 					.colorSchemeForColor()
 					.windowMinimizeBehavior(.enabled)
 					.windowResizeBehavior(.enabled)
@@ -179,7 +182,7 @@ struct MainApp: App {
 		.restorationState(.disabled)
 		
 		Window("Home", id: "home") {
-			HomeView(appState: $appState)
+			HomeView(navigationModel: navigationModel)
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 				.frame(size: CGSize(width: 1200, height: 800))
@@ -188,7 +191,7 @@ struct MainApp: App {
 		.windowToolbarStyle(.unifiedCompact)
 
 		Window("Browser of services", id: "remote") {
-			CakedServerView(appState: $appState)
+			CakedServerView()
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 				.frame(size: CGSize(width: 600, height: 400))
@@ -227,26 +230,26 @@ struct MainApp: App {
 		CommandMenu("Control") {
 			Button("Start") {
 				appState.currentDocument.startFromUI()
-			}.disabled(appState.isRunning || appState.currentDocument == nil)
+			}.disabled(self.appState.isRunning || self.appState.currentDocument == nil)
 			
 			Button("Stop") {
 				appState.currentDocument.stopFromUI(force: true)
-			}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
+			}.disabled(self.appState.isStopped || self.appState.isAgentInstalling || self.appState.currentDocument == nil)
 			
 			Button("Request stop") {
 				appState.currentDocument.stopFromUI(force: false)
-			}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
+			}.disabled(self.appState.isStopped || self.appState.isAgentInstalling || self.appState.currentDocument == nil)
 			
 			if #available(macOS 14, *) {
 				Button("Suspend") {
-					appState.currentDocument.suspendFromUI()
-				}.disabled(!appState.isSuspendable || appState.isAgentInstalling || appState.currentDocument == nil)
+					self.appState.currentDocument.suspendFromUI()
+				}.disabled(!self.appState.isSuspendable || self.appState.isAgentInstalling || self.appState.currentDocument == nil)
 			}
 			
 			Button("Create template") {
 				createTemplate = true
 			}
-			.disabled(appState.isRunning || appState.currentDocument == nil)
+			.disabled(self.appState.isRunning || self.appState.currentDocument == nil)
 			.alert("Create template", isPresented: $createTemplate) {
 				CreateTemplateView()
 			}
@@ -256,10 +259,10 @@ struct MainApp: App {
 			let agentCondition = self.agentCondition
 			
 			Button(agentCondition.title) {
-				appState.isAgentInstalling = true
+				self.appState.isAgentInstalling = true
 				
-				appState.currentDocument.installAgent(updateAgent: agentCondition.needUpdate) { _ in
-					appState.isAgentInstalling = false
+				self.appState.currentDocument.installAgent(updateAgent: agentCondition.needUpdate) { _ in
+					self.appState.isAgentInstalling = false
 				}
 			}
 			.disabled(agentCondition.disabled)
@@ -335,9 +338,25 @@ struct MainApp: App {
 			.restorationState(.disabled)
 			.frame(size: CGSize(width: 700, height: 610))
 	}
-	
+
+	func syncAppState() {
+		self.navigationModel.sync(with: self.appState)
+	}
+
+	func addStateVirtualMachineDocument(with document: VirtualMachineDocument) {
+		self.navigationModel.addStateVirtualMachineDocument(with: document)
+	}
+
+	func removeStateVirtualMachineDocument(with document: VirtualMachineDocument) {
+		self.navigationModel.removeStateVirtualMachineDocument(with: document)
+	}
+
+	func updateStateVirtualMachineDocument(with document: VirtualMachineDocument) {
+		self.navigationModel.updateStateVirtualMachineDocument(with: document)
+	}
+
 	@MainActor func openVirtualMachine(_ vmURL: URL) async {
-		if let document = appState.tryVirtualMachineDocument(vmURL) {
+		if let document = self.appState.tryVirtualMachineDocument(vmURL) {
 			if let vmURL = document.loadVirtualMachine() {
 				if vmURL.isFileURL {
 					try? await EnvironmentValues().openDocument(at: vmURL)
@@ -613,11 +632,9 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func application(_ application: NSApplication, open urls: [URL]) {
-		let appState = AppState.shared
-		
 		Task {
 			for vmURL in urls {
-				if let document = appState.tryVirtualMachineDocument(vmURL) {
+				if let document = AppState.shared.tryVirtualMachineDocument(vmURL) {
 					if let vmURL = document.loadVirtualMachine() {
 						if vmURL.isFileURL {
 							try? await EnvironmentValues().openDocument(at: vmURL)

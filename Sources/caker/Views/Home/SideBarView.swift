@@ -9,7 +9,8 @@ import SwiftUI
 
 struct SideBarView: View {
 	@Environment(\.appearsActive) var appearsActive
-	@Binding var navigationModel: NavigationModel
+	let categories: [Category]
+	@Binding var selectedCategory: Category
 
 	var fillColor: Color {
 		self.appearsActive ? Color.primary.opacity(0.80) : Color.secondary
@@ -18,7 +19,7 @@ struct SideBarView: View {
 	var body: some View {
 		let foregroundColor = self.fillColor
 
-		List(navigationModel.categories, id: \.self, selection: $navigationModel.selectedCategory) { category in
+		List(self.categories, id: \.self, selection: $selectedCategory) { category in
 			NavigationLink(value: category) {
 				Label {
 					Text(category.title)
@@ -40,5 +41,5 @@ struct SideBarView: View {
 }
 
 #Preview {
-	SideBarView(navigationModel: .constant(.init()))
+	SideBarView(categories: [.virtualMachine, .networks], selectedCategory: .constant(.virtualMachine))
 }

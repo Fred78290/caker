@@ -9,9 +9,9 @@ import Foundation
 import SwiftUI
 import GRPCLib
 
-final class ViewSize: ObservableObject, Observable, Equatable, Codable {
-	@Published var width: CGFloat = 0
-	@Published var height: CGFloat = 0
+@Observable final class ViewSize: Equatable, Codable {
+	var width: CGFloat = 0
+	var height: CGFloat = 0
 
 	static let zero: ViewSize = .init(width: 0, height: 0)
 	static let standard: ViewSize = .init(width: 1280, height: 720)
