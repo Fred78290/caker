@@ -164,7 +164,7 @@ struct FontPickerModifier: ViewModifier {
 
 			self.target?.setTerminalFont(fontManager.convert(newFont))
 
-			NSFontPanel.shared.orderOut(nil)
+			//NSFontPanel.shared.orderOut(nil)
 		}
 
 		func displayFontPanel(_ font: NSFont) {
