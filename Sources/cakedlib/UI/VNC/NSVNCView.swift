@@ -15,7 +15,7 @@ public protocol NSVNCViewDelegate: AnyObject {
 }
 
 public class NSVNCView: NSView {
-	private weak let connection: RoyalVNCKit.VNCConnection?
+	private weak var connection: RoyalVNCKit.VNCConnection?
 	private var accumulatedScrollDeltaX: CGFloat = 0
 	private var accumulatedScrollDeltaY: CGFloat = 0
 	private var scrollStep: CGFloat = 12
