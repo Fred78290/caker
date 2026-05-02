@@ -32,7 +32,11 @@ public struct RestartHandler {
 
 	public static func restart(location: VMLocation, startMode: StartHandler.StartMode, gcd: Bool, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) -> RestartedObject {
 		do {
-			if case .running = location.status {
+			if case .running(let mode) = location.status {
+				guard mode.isAllowed else {
+					throw ServiceError(String(localized: "VM \(location.name) is running in Caker application and use it to do action"))
+				}
+
 				try location.restartVirtualMachine(startMode: startMode, gcd: gcd, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 				return RestartedObject(name: location.name, restarted: true, reason: String.empty)
 			}

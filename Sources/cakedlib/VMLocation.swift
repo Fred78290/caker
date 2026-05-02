@@ -37,6 +37,17 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				self = .none
 			}
 		}
+
+		var isAllowed: Bool {
+			switch self {
+			case .caked:
+				return true
+			case .caker:
+				return ProcessInfo.processInfo.processName == Home.cakerCommandName
+			case .none:
+				return false
+			}
+		}
 	}
 
 	public enum Status: Sendable, Equatable, CustomStringConvertible {
