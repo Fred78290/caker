@@ -150,8 +150,6 @@ struct ServiceListView: View {
     @State private var manualUseTLS: Bool = true
     @State private var manualError: String? = nil
 
-	@ObservedObject private var appState: AppState = .shared
-
 	private var serviceType: String = "_caked._tcp."
 	private var domain: String = "local."
 
@@ -389,7 +387,7 @@ struct ServiceListView: View {
 						} else {
 							List(selection: $selectedService) {
 								ForEach(viewModel.services, id: \.name) { service in
-									let connected = self.appState.connectionManager.isConnected(to: service)
+									let connected = AppState.shared.connectionManager.isConnected(to: service)
 
 									ServiceRowView(service: service,
 												   selected: service == selectedService,
