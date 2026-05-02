@@ -791,6 +791,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 	public let diskSize: UInt64
 	public let sizeOnDisk: UInt64
 	public let state: String
+	public let mode: String
 	public let ip: String?
 	public let fingerprint: String?
 	public let config: CakedConfiguration?
@@ -810,6 +811,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.diskSize = from.diskSize
 		self.sizeOnDisk = from.sizeOnDisk
 		self.state = from.state
+		self.mode = "caked"
 		self.ip = from.ip
 		self.fingerprint = from.fingerprint
 
@@ -845,6 +847,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		diskSize: UInt64 = 0,
 		sizeOnDisk: UInt64 = 0,
 		state: String = "unknown",
+		mode: String = "",
 		ip: String? = nil,
 		fingerprint: String? = nil,
 		config: CakedConfiguration? = nil
@@ -858,6 +861,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.diskSize = diskSize
 		self.sizeOnDisk = sizeOnDisk
 		self.state = state
+		self.mode = mode
 		self.ip = ip
 		self.fingerprint = fingerprint
 		self.config = config
@@ -914,6 +918,7 @@ public struct ShortVirtualMachineInfo: Codable {
 	public let diskSize: String
 	public let sizeOnDisk: String
 	public let state: String
+	public let mode: String
 	public let fingerprint: String
 
 	public init(_ from: VirtualMachineInfo) {
@@ -925,6 +930,7 @@ public struct ShortVirtualMachineInfo: Codable {
 		self.diskSize = ByteCountFormatter.string(fromByteCount: Int64(from.diskSize), countStyle: .file)
 		self.sizeOnDisk = ByteCountFormatter.string(fromByteCount: Int64(from.sizeOnDisk), countStyle: .file)
 		self.state = from.state
+		self.mode = from.mode
 		self.fingerprint = from.fingerprint != nil ? from.fingerprint!.substring(..<12) : String.empty
 		if let vncURL = from.vncURL {
 			self.vncURL = vncURL.first ?? String.empty

@@ -53,15 +53,8 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	public enum Status: Sendable, Equatable, CustomStringConvertible {
 		public var description: String {
 			switch self {
-			case .running(let mode):
-				switch mode {
-				case .caked:
-					return String(localized: "running (caked)")
-				case .caker:
-					return String(localized: "running (caker)")
-				case .none:
-					return String(localized: "running")
-				}
+			case .running:
+				return String(localized: "running")
 			case .paused:
 				return String(localized: "paused")
 			case .stopped:
@@ -69,6 +62,21 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			}
 		}
 		
+		public var mode: String {
+			if case .running(let mode) = self {
+				switch mode {
+				case .caked:
+					return "caked"
+				case .caker:
+					return "caker"
+				default:
+					break
+				}
+			}
+
+			return ""
+		}
+
 		case running(VMRunMode)
 		case paused
 		case stopped

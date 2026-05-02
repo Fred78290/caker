@@ -32,6 +32,7 @@ public struct ListHandler {
 					diskSize: try location.diskSize(),
 					sizeOnDisk: try location.allocatedSize(),
 					state: status.description,
+					mode: status.mode,
 					ip: runningIP,
 					fingerprint: nil,
 					config: includeConfig ? CakedConfiguration(config) : nil
