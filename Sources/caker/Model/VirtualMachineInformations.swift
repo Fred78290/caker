@@ -54,7 +54,8 @@ import SwiftUI
 	public var free: UInt64 = 0
 	public var used: UInt64 = 0
 	
-	init() {
+	init(from config: VirtualMachineConfiguration) {
+		self.total = config.memorySize
 	}
 	
 	init(from infos: InfoReply.MemoryInfo) {
@@ -89,6 +90,7 @@ import SwiftUI
 }
 
 @Observable final class CpuInfos {
+	var cpuCount: UInt16 = 0
 	var totalUsagePercent: Double = 0
 	var user: Double = 0
 	var system: Double = 0
@@ -102,11 +104,15 @@ import SwiftUI
 	var cores: [CoreInfo] = []
 	
 	init() {
-		
+	}
+
+	init(from config: VirtualMachineConfiguration) {
+		self.cpuCount = config.cpuCount
 	}
 
 	init(_ infos: CpuInformations?) {
 		if let infos {
+			self.cpuCount = UInt16(infos.cores.count)
 			self.totalUsagePercent = infos.totalUsagePercent
 			self.user = infos.user
 			self.system = infos.system
@@ -131,6 +137,7 @@ import SwiftUI
 	}
 
 	init(_ infos: CakeAgent.InfoReply.CpuInfo) {
+		self.cpuCount = UInt16(infos.cores.count)
 		self.totalUsagePercent = infos.totalUsagePercent
 		self.user = infos.user
 		self.system = infos.system
@@ -154,6 +161,7 @@ import SwiftUI
 	}
 
 	func update(_ infos: CakeAgent.InfoReply.CpuInfo) {
+		self.cpuCount = UInt16(infos.cores.count)
 		self.totalUsagePercent = infos.totalUsagePercent
 		self.user = infos.user
 		self.system = infos.system
@@ -177,6 +185,7 @@ import SwiftUI
 	}
 	
 	func update(_ infos: Caked_InfoReplyCpuInfo) {
+		self.cpuCount = UInt16(infos.cores.count)
 		self.totalUsagePercent = infos.totalUsagePercent
 		self.user = infos.user
 		self.system = infos.system
@@ -201,6 +210,7 @@ import SwiftUI
 
 	func update(_ infos: CpuInformations?) {
 		if let infos {
+			self.cpuCount = UInt16(infos.cores.count)
 			self.totalUsagePercent = infos.totalUsagePercent
 			self.user = infos.user
 			self.system = infos.system
@@ -243,10 +253,11 @@ import SwiftUI
 	var tunnelInfos: [TunnelInfo]? = nil
 	var socketInfos: [SocketInfo]? = nil
 	var vncURL: String? = nil
-	var cpuInfos = CpuInfos()
+	var cpuInfos: CpuInfos
 	var agentVersion: String? = nil
 
 	init() {
+		self.cpuInfos = CpuInfos()
 	}
 
 	init(_ infos: VMInformations) {

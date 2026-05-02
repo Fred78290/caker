@@ -258,8 +258,8 @@ extension UTType {
 	var vncStatus: VncStatus = .disconnected
 	var documentSize: ViewSize = .zero
 	var launchVMExternally: Bool? = nil
-	var cpuInfos = CpuInfos()
-	var memoryInfos = MemoryInfo()
+	var cpuInfos: CpuInfos
+	var memoryInfos: MemoryInfo
 	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
 	var ipaddresses: [String] = []
 	var screenshot: Data!
@@ -267,6 +267,20 @@ extension UTType {
 		didSet {
 			guard AppState.sharedLoaded else {
 				return
+			}
+
+			if let virtualMachine = self.virtualMachine?.virtualMachine {
+				self.canStart = virtualMachine.canStart
+				self.canStop = virtualMachine.canStop
+				self.canPause = virtualMachine.canPause
+				self.canResume = virtualMachine.canResume
+				self.canRequestStop = virtualMachine.canRequestStop
+			} else {
+				self.canStart = status == .stopped || status == .paused
+				self.canStop = status == .running
+				self.canPause = status == .running
+				self.canResume = status == .paused
+				self.canRequestStop = status == .running
 			}
 
 			MainApp.app?.updateStateVirtualMachineDocument(with: self)
@@ -317,6 +331,8 @@ extension UTType {
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 		self.documentSize = ViewSize(config.display.cgSize)
+		self.cpuInfos = CpuInfos(from: config)
+		self.memoryInfos = MemoryInfo(from: config)
 		self.monitor = try FileMonitor(directory: location.rootURL, delegate: self)
 
 		switch location.status {
@@ -348,6 +364,8 @@ extension UTType {
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.connectionManager = connectionManager
 		self.externalRunning = connectionManager.connectionMode != .app && status.isRunning
+		self.cpuInfos = CpuInfos(from: config)
+		self.memoryInfos = MemoryInfo(from: config)
 		self.setDocumentSize(.init(self.virtualMachineConfig.display.cgSize))
 		self.updateCurrentStatus(status, suspendable: config.suspendable, vncURL: vncURL?.compactMap { URL(string: $0) })
 	}
@@ -480,11 +498,6 @@ extension VirtualMachineDocument {
 	
 	func updateCurrentStatus(_ newStatus: Status, suspendable: Bool, vncURL: [URL]? = nil) {
 		self.status = newStatus
-		self.canStart = newStatus == .stopped || newStatus == .paused
-		self.canStop = newStatus == .running
-		self.canPause = newStatus == .running
-		self.canResume = newStatus == .paused
-		self.canRequestStop = newStatus == .running
 		self.vncURL = vncURL
 		self.suspendable = suspendable
 	}
@@ -925,6 +938,8 @@ extension VirtualMachineDocument {
 			}
 			
 			self.virtualMachineConfig.clearChangedFields()
+
+			MainApp.app?.updateStateVirtualMachineDocument(with: self)
 		} catch {
 			DispatchQueue.main.async {
 				alertError(error)
@@ -947,17 +962,10 @@ extension VirtualMachineDocument: VirtualMachineDelegate {
 			return
 		}
 
+		self.status = status
 		self.virtualMachineConfig.agent = vm.config.agent
 		self.virtualMachineConfig.firstLaunch = vm.config.firstLaunch
-
-		self.canStart = virtualMachine.canStart
-		self.canStop = virtualMachine.canStop
-		self.canPause = virtualMachine.canPause
-		self.canResume = virtualMachine.canResume
-		self.canRequestStop = virtualMachine.canRequestStop
-		self.suspendable = suspendable
 		self.agent = vm.config.agent ? vm.config.firstLaunch ? .installing : .installed : .none
-		self.status = status
 	}
 
 	func didScreenshot(_ vm: CakedLib.VirtualMachine, screenshot: NSImage) {
