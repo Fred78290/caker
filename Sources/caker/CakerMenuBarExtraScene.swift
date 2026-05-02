@@ -30,7 +30,7 @@ struct CakerMenuBarExtraScene: Scene {
 	var body: some Scene {
 		MenuBarExtra(isInserted: $isMenuIconShown) {
 			Button("About Caker") {
-				NSApp.orderFrontStandardAboutPanel(nil)
+				openWindow(id: "about")
 			}
 			Button("Show Caker") {
 				openWindow(id: "home")

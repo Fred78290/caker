@@ -547,6 +547,7 @@
 		9BF8AE6A2F43915700DE5EAB /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */; };
 		9BFA7B2B2FA4E17700E981F6 /* TrackDealloc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7B2A2FA4E17500E981F6 /* TrackDealloc.swift */; };
 		9BFA7D852FA5F1DB00E981F6 /* VirtualMachineDocumentState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7D842FA5F1D900E981F6 /* VirtualMachineDocumentState.swift */; };
+		9BFA7E4F2FA6256300E981F6 /* AboutCakerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */; };
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
 		9BFE86A62F7E59DC005CC9B2 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -1120,6 +1121,7 @@
 		9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
 		9BFA7B2A2FA4E17500E981F6 /* TrackDealloc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackDealloc.swift; sourceTree = "<group>"; };
 		9BFA7D842FA5F1D900E981F6 /* VirtualMachineDocumentState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDocumentState.swift; sourceTree = "<group>"; };
+		9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutCakerView.swift; sourceTree = "<group>"; };
 		9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCIManagement.swift; sourceTree = "<group>"; };
 		9BFE869D2F7E592B005CC9B2 /* caked.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = caked.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BFE871B2F7E6480005CC9B2 /* almalinux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = almalinux.png; sourceTree = "<group>"; };
@@ -1461,6 +1463,7 @@
 		9B2BFAB72DFED25E000045C3 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */,
 				9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */,
 				9B3600882E1FC48D00889BFD /* AsyncButton.swift */,
 				9B1389D22F97A9D0000329B1 /* CakedServerView.swift */,
@@ -2775,6 +2778,7 @@
 				9B2BFAC32DFED25E000045C3 /* VirtualMachineSettingsView.swift in Sources */,
 				9B3600872E1FB1AE00889BFD /* DynamicList.swift in Sources */,
 				9B215B6F2E0C347A00AFC89D /* DiskAttachementDetailView.swift in Sources */,
+				9BFA7E4F2FA6256300E981F6 /* AboutCakerView.swift in Sources */,
 				9B9620CB2EAB62EF0075CD18 /* ToolbarSettings.swift in Sources */,
 				9B2BFAC42DFED25E000045C3 /* HostingViewFinder.swift in Sources */,
 				9B4438902EBDE9AD008BB2BB /* RemoteWizard.swift in Sources */,

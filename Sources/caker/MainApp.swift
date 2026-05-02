@@ -214,6 +214,14 @@ struct MainApp: App {
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 		}.restorationState(.disabled)
+		
+		Window("About Caker", id: "about") {
+			AboutCakerView()
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+		.restorationState(.disabled)
+		.defaultPosition(.center)
 	}
 	
 	@CommandsBuilder private var menus: some Commands {
@@ -268,6 +276,12 @@ struct MainApp: App {
 			.disabled(agentCondition.disabled)
 			.alert("Create template", isPresented: $createTemplate) {
 				CreateTemplateView()
+			}
+		}
+		
+		CommandGroup(replacing: .appInfo) {
+			Button("About Caker") {
+				openWindow(id: "about")
 			}
 		}
 		
