@@ -168,9 +168,9 @@ public struct AboutCakerView: View {
 					.foregroundColor(.primary)
 
 				VStack(alignment: .leading, spacing: 4) {
-					ComponentRow(name: "caked", description: "VM management daemon")
-					ComponentRow(name: "cakectl", description: "Command line interface")
-					ComponentRow(name: "Caker.app", description: "macOS GUI application")
+					ComponentRow(name: String(localized: "caked"), description: String(localized: "VM management daemon"))
+					ComponentRow(name: String(localized: "cakectl"), description: String(localized: "Command line interface"))
+					ComponentRow(name: String(localized: "Caker.app"), description: String(localized: "macOS GUI application"))
 				}
 				.padding(.horizontal)
 			}
