@@ -13,7 +13,7 @@ import Virtualization
 struct NetworkAttachementDetailView: View {
 	private let names: [String] = AppState.shared.loadNetworks().map { $0.name }
 
-	@Observable private class BridgeAttachementModel {
+	@Observable class BridgeAttachementModel {
 		var network: String
 		var mode: NetworkMode?
 		var macAddress: TextFieldStore<String?, OptionalMacAddressParseableFormatStyle>

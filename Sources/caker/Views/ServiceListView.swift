@@ -400,11 +400,11 @@ struct ServiceListView: View {
 										if connected {
 											Button("Disconnect") {
 												AppState.shared.connectToLocal()
-											}.log(text: "Disconnecting from service")
+											}
 										} else {
 											Button("Connect") {
 												self.connect(service)
-											}.log(text: "Connecting to service")
+											}
 										}
 									}
 									.onTapGesture(count: 2) {

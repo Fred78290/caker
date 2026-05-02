@@ -74,14 +74,15 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	var selectedRemote: RemoteEntry! = nil
 	var selectedTemplate: TemplateEntry! = nil
 	var selectedNetwork: BridgedNetwork! = nil
-	var selectedVirtualMachine: VirtualMachineDocument! = nil
+	var selectedVirtualMachine: VirtualMachineDocumentState! = nil
+	var documents: VirtualMachineDocumentStates = [:]
 	
 	static var categories: [Category] = [.virtualMachine, .networks]
 	
 	init(selectedCategory: Category = .virtualMachine) {
 		self.newSelectedCategory(selectedCategory)
 	}
-
+	
 	func newSelectedCategory(_ category: Category) {
 		switch category {
 		case .virtualMachine:
@@ -98,11 +99,35 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 			self.navigationSplitViewVisibility = .all
 		}
 	}
-
+	
 	func resetSelections() {
 		self.selectedRemote = nil
 		self.selectedTemplate = nil
 		self.selectedNetwork = nil
 		self.selectedVirtualMachine = nil
+	}
+	
+	func sync(with appState: AppState) {
+		self.documents.removeAll()
+		
+		appState.documents.forEach {
+			self.documents[$0.url] = .init($0)
+		}
+	}
+	
+	func addStateVirtualMachineDocument(with document: VirtualMachineDocument) {
+		if self.documents[document.url] == nil {
+			self.documents[document.url] = .init(document)
+		}
+	}
+
+	func removeStateVirtualMachineDocument(with document: VirtualMachineDocument) {
+		self.documents.removeValue(forKey: document.url)
+	}
+
+	func updateStateVirtualMachineDocument(with document: VirtualMachineDocument) {
+		guard let vm = self.documents[document.url] else { return }
+		
+		vm.sync(with: document)
 	}
 }

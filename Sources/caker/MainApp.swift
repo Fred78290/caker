@@ -99,7 +99,8 @@ struct MainApp: App {
 	@Environment(\.openDocument) private var openDocument
 	var appState: AppState
 	@State var createTemplate = false
-	
+	@State var navigationModel = NavigationModel()
+
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 	
 	// Sparkle updater
@@ -116,6 +117,8 @@ struct MainApp: App {
 			userDriverDelegate: nil
 		)
 		
+		self.navigationModel.sync(with: self.appState)
+
 		Self.app = self
 	}
 	
@@ -128,7 +131,7 @@ struct MainApp: App {
 	}
 	
 	var body: some Scene {
-		CakerMenuBarExtraScene()
+		CakerMenuBarExtraScene(model: self.navigationModel)
 		
 		DocumentGroup(viewing: BridgeVirtualDocument.self) { file in
 			let document = file.document.attachedVirtualDocument
@@ -179,7 +182,7 @@ struct MainApp: App {
 		.restorationState(.disabled)
 		
 		Window("Home", id: "home") {
-			HomeView()
+			HomeView(navigationModel: navigationModel)
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 				.frame(size: CGSize(width: 1200, height: 800))
@@ -335,7 +338,23 @@ struct MainApp: App {
 			.restorationState(.disabled)
 			.frame(size: CGSize(width: 700, height: 610))
 	}
-	
+
+	func syncAppState() {
+		self.navigationModel.sync(with: self.appState)
+	}
+
+	func addStateVirtualMachineDocument(with document: VirtualMachineDocument) {
+		self.navigationModel.addStateVirtualMachineDocument(with: document)
+	}
+
+	func removeStateVirtualMachineDocument(with document: VirtualMachineDocument) {
+		self.navigationModel.removeStateVirtualMachineDocument(with: document)
+	}
+
+	func updateStateVirtualMachineDocument(with document: VirtualMachineDocument) {
+		self.navigationModel.updateStateVirtualMachineDocument(with: document)
+	}
+
 	@MainActor func openVirtualMachine(_ vmURL: URL) async {
 		if let document = self.appState.tryVirtualMachineDocument(vmURL) {
 			if let vmURL = document.loadVirtualMachine() {

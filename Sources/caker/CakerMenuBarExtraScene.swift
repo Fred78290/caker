@@ -11,6 +11,8 @@ import SwiftUI
 
 struct CakerMenuBarExtraScene: Scene {
 	private var appState: AppState = .shared
+	@State var model: NavigationModel
+
 	@AppStorage("ShowMenuIcon") private var isMenuIconShown: Bool = false
 	@AppStorage("HideDockIcon") private var isDockIconHidden: Bool = false
 	@Environment(\.openWindow) private var openWindow
@@ -19,6 +21,11 @@ struct CakerMenuBarExtraScene: Scene {
 #if DEBUG
 	let tracker = TrackDealloc(from: "CakerMenuBarExtraScene")
 #endif
+
+	// Make initializer accessible from other files
+	init(model: NavigationModel) {
+		self.model = model
+	}
 
 	var body: some Scene {
 		MenuBarExtra(isInserted: $isMenuIconShown) {
@@ -91,12 +98,13 @@ struct CakerMenuBarExtraScene: Scene {
 			
 			Divider()
 			
-			if self.appState.virtualMachines.isEmpty {
+			if self.model.documents.isEmpty {
 				Text("No virtual machines found.")
 			} else {
 				Menu("Virtual machines") {
-					ForEach(self.appState.virtualMachines.documents) { document in
-						VMMenuItem(vm: document)
+					let vms = Array(self.model.documents.values).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+					ForEach(vms, id: \.url) { vm in
+						VMMenuItem(vm: vm)
 					}
 				}
 			}
@@ -129,10 +137,10 @@ struct CakerMenuBarExtraScene: Scene {
 
 private struct VMMenuItem: View {
 	@Environment(\.openWindow) var openWindow
-	var vm: VirtualMachineDocument
+	var vm: VirtualMachineDocumentState
 	@State var status: VirtualMachineDocument.Status
 	
-	init(vm: VirtualMachineDocument) {
+	init(vm: VirtualMachineDocumentState) {
 		self.vm = vm
 		self.status = vm.status
 	}
@@ -148,7 +156,7 @@ private struct VMMenuItem: View {
 
 				Button("Create template") {
 					DispatchQueue.main.async {
-						createTemplate()
+						vm.createTemplate()
 					}
 				}
 
@@ -156,7 +164,7 @@ private struct VMMenuItem: View {
 
 				Button("Delete") {
 					DispatchQueue.main.async {
-						deleteVirtualMachine()
+						vm.deleteVirtualMachine()
 					}
 				}
 			} else {
@@ -189,13 +197,5 @@ private struct VMMenuItem: View {
 	func openVirtualMachine() async {
 		await MainApp.app.openVirtualMachine(self.vm.url)
 		NotificationCenter.default.post(name: VirtualMachineDocument.StartVirtualMachine, object: vm, userInfo: ["document": vm.url])
-	}
-
-	func createTemplate() {
-		AppState.shared.createTemplate(document: self.vm)
-	}
-
-	func deleteVirtualMachine() {
-		AppState.shared.deleteVirtualMachine(document: self.vm)
 	}
 }

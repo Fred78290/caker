@@ -14,11 +14,15 @@ struct HomeView: View {
 
 	private var appState = AppState.shared
 
-	@State private var navigationModel = NavigationModel(selectedCategory: .virtualMachine)
+	@State var navigationModel: NavigationModel
 	@State private var presented: Bool = false
 	@State private var mustShowDetailView: Bool = true
 	@State private var window: NSWindow? = nil
 	@State private var selectedCategory: Category = .virtualMachine
+
+	init(navigationModel: NavigationModel) {
+		self.navigationModel = navigationModel
+	}
 
 	private var deleteButtonDisabled: Bool {
 		switch self.selectedCategory {
@@ -208,7 +212,7 @@ struct HomeView: View {
 		case .networks:
 			return 200
 		case .virtualMachine:
-			return (VirtualMachinesView.cellWidth + (VirtualMachinesView.cellSpacing * 2)) * max(1, min(2, CGFloat(self.appState.virtualMachines.count)))
+			return (VirtualMachinesView.cellWidth + (VirtualMachinesView.cellSpacing * 2)) * max(1, min(2, CGFloat(self.navigationModel.documents.count)))
 		}
 	}
 
@@ -234,7 +238,7 @@ struct HomeView: View {
 		case .networks:
 			return 200
 		case .virtualMachine:
-			return (VirtualMachinesView.cellWidth + VirtualMachinesView.cellSpacing * 2) * max(1, min(3, CGFloat(self.appState.virtualMachines.count)))
+			return (VirtualMachinesView.cellWidth + VirtualMachinesView.cellSpacing * 2) * max(1, min(3, CGFloat(self.navigationModel.documents.count)))
 		}
 	}
 
@@ -343,7 +347,7 @@ struct HomeView: View {
 	func actionDelete() {
 		switch self.selectedCategory {
 		case .virtualMachine:
-			self.appState.deleteVirtualMachine(document: navigationModel.selectedVirtualMachine)
+			navigationModel.selectedVirtualMachine?.deleteVirtualMachine()
 		case .networks:
 			self.appState.deleteNetwork(name: navigationModel.selectedNetwork.name)
 		case .images:
@@ -368,5 +372,5 @@ struct HomeView: View {
 }
 
 #Preview {
-	HomeView()
+    HomeView(navigationModel: NavigationModel())
 }

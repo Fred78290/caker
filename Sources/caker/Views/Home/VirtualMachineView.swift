@@ -34,19 +34,19 @@ struct VirtualMachineView: View {
 	private let radius: CGFloat = 12
 	private let selectedSystemFill = Color(NSColor.secondarySystemFill)
 	private let secondarySystemFill = Color(NSColor.tertiarySystemFill)
-	private var vm: VirtualMachineDocument
-	@State var screenshot: NSImage?
+	@State private var vm: VirtualMachineDocumentState
+	@State private var screenshot: NSImage?
+	@State var status: VirtualMachineDocument.Status
 
 #if DEBUG
 	let tracker: TrackDealloc
 #endif
 
-	init(_ vm: VirtualMachineDocument, selected: Bool) {
-		let lastScreenshot = vm.lastScreenshot
-
+	init(_ vm: VirtualMachineDocumentState, selected: Bool) {
 		self.vm = vm
 		self.selected = selected
-		self._screenshot = State(initialValue: lastScreenshot)
+		self.screenshot = vm.lastScreenshot
+		self.status = vm.status
 #if DEBUG
 		self.tracker = TrackDealloc(from: "VirtualMachineView \(vm.url.absoluteString)")
 #endif
@@ -80,13 +80,13 @@ struct VirtualMachineView: View {
 
 						HStack {
 							Spacer()
-							Label("\(vm.virtualMachineConfig.cpuCount)", systemImage: "cpu")
+							Label("\(vm.cpuCount)", systemImage: "cpu")
 								.font(.headline)
 								.foregroundStyle(Color.secondary)
-							Label("\(vm.virtualMachineConfig.humanReadableDiskSize)", systemImage: "internaldrive")
+							Label("\(vm.humanReadableDiskSize)", systemImage: "internaldrive")
 								.font(.headline)
 								.foregroundStyle(Color.secondary)
-							Label("\(vm.virtualMachineConfig.humanReadableMemorySize)", systemImage: "memorychip")
+							Label("\(vm.humanReadableMemorySize)", systemImage: "memorychip")
 								.font(.headline)
 								.foregroundStyle(Color.secondary)
 							Spacer()
@@ -122,6 +122,9 @@ struct VirtualMachineView: View {
 				.clipShape(RoundedRectangle(cornerRadius: radius))
 				.frame(size: geometry.size)
 				.withGlassEffect(GlassEffect.regular(nil, nil), in: RoundedRectangle(cornerRadius: radius))
+				.onChange(of: self.vm.status) {
+					self.status = self.vm.status
+				}
 				.onReceive(VirtualMachineDocument.NewScreenshot) { notification in
 					if let screenshot: Data = self.vm.issuedNotificationFromDocument(notification) {
 						self.screenshot = NSImage(data: screenshot)
@@ -147,11 +150,11 @@ struct VirtualMachineView: View {
 
 			Divider()
 			Button("Duplicate") {
-				AppState.shared.duplicateVirtualMachine(document: self.vm)
+				self.vm.duplicateVirtualMachine()
 			}.disabled(self.vm.status.isRunning)
 
 			Button("Delete VM") {
-				AppState.shared.deleteVirtualMachine(document: self.vm)
+				self.vm.deleteVirtualMachine()
 			}.disabled(vm.status.isRunning)
 		}
 
@@ -228,5 +231,5 @@ struct VirtualMachineView: View {
 }
 
 #Preview {
-	VirtualMachineView(AppState.shared.virtualMachines.first!.value, selected: false)
+	VirtualMachineView(.init(AppState.shared.documents.first!), selected: false)
 }

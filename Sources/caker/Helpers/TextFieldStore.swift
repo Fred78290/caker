@@ -91,15 +91,15 @@ extension View {
 		backupText = text
 	}
 
-	lazy var decimalSeparator: String = {
+	var decimalSeparator: String {
 		locale.decimalSeparator ?? "."
-	}()
+	}
 
-	private lazy var groupingSeparator: String = {
+	private var groupingSeparator: String {
 		locale.groupingSeparator ?? String.empty
-	}()
+	}
 
-	private lazy var characters: String = {
+	private var characters: String {
 		let number = "0123456789"
 
 		switch type {
@@ -112,7 +112,7 @@ extension View {
 		case .macAddress:
 			return "0123456789ABCDEFabcdef:"
 		}
-	}()
+	}
 
 	var minusCount: Int {
 		text.components(separatedBy: minusCharacter).count - 1

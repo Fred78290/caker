@@ -269,9 +269,13 @@ extension UTType {
 				return
 			}
 
+			MainApp.app.updateStateVirtualMachineDocument(with: self)
+
 			if AppState.shared.currentDocument == self {
 				AppState.shared.updateState()
 			}
+
+			NotificationCenter.default.post(name: VirtualMachineDocument.StatusChangedVirtualMachine, object: self, userInfo: ["document": self.url])
 		}
 	}
 
@@ -291,55 +295,12 @@ extension UTType {
 		return NSImage(data: screenshot)
 	}
 	
-	var osImage: some View {
-		var name = "linux"
-		
-		if self.virtualMachineConfig.os == .darwin {
-			name = "mac"
-		} else if let osName = self.virtualMachineConfig.osName {
-			let osNames = [
-				"almalinux",
-				"alpine",
-				"arch-linux",
-				"backtrack",
-				"centos",
-				"debian",
-				"elementary-os",
-				"fedora",
-				"gentoo",
-				"knoppix",
-				"kubuntu",
-				"linux",
-				"lubuntu",
-				"mac",
-				"mandriva",
-				"mint",
-				"openwrt",
-				"pop-os",
-				"red-hat",
-				"slackware",
-				"suse",
-				"syllable",
-				"ubuntu",
-				"webos",
-				"xubuntu",
-			]
-			
-			for value in osNames {
-				if osName.lowercased().contains(value) {
-					name = value
-					break
-				}
-			}
-		}
-		
-		return Image(name).resizable().aspectRatio(contentMode: .fit)
-	}
-	
 	deinit {
 		self.logger.debug("Release document: \(self.url)")
 		self.stopAgentMonitoring()
 		
+		MainApp.app.removeStateVirtualMachineDocument(with: self)
+
 		if let monitor = self.monitor {
 			monitor.stop()
 		}
@@ -367,6 +328,8 @@ extension UTType {
 			self.status = .paused
 		}
 		
+		MainApp.app.addStateVirtualMachineDocument(with: self)
+
 		try monitor?.start()
 	}
 
@@ -384,7 +347,7 @@ extension UTType {
 		self.virtualMachineConfig = VirtualMachineConfig(name: name, config: config)
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.connectionManager = connectionManager
-
+		self.externalRunning = connectionManager.connectionMode != .app && status.isRunning
 		self.setDocumentSize(.init(self.virtualMachineConfig.display.cgSize))
 		self.updateCurrentStatus(status, suspendable: config.suspendable, vncURL: vncURL?.compactMap { URL(string: $0) })
 	}
@@ -527,9 +490,9 @@ extension VirtualMachineDocument {
 	}
 
 	@MainActor
-	func setStateAsStopped(_ status: Status = .stopped, _line: UInt = #line, _file: String = #file) {
+	func setStateAsStopped(_ status: Status = .stopped) {
 #if DEBUG
-		self.logger.debug("setStateAsStopped to \(status) at \(_file):\(_line)")
+		self.logger.debug("setStateAsStopped to \(status)")
 #endif
 		
 		// Stop agent monitoring when VM is stopped
@@ -538,6 +501,7 @@ extension VirtualMachineDocument {
 
 		self.updateCurrentStatus(status, suspendable: false, vncURL: nil)
 
+		self.vncURL = nil
 		self.interactiveShell = nil
 		self.vncStatus = .disconnected
 		self.externalRunning = false
@@ -548,12 +512,16 @@ extension VirtualMachineDocument {
 			self.connection = nil
 			connection.disconnect()
 		}
+		
+		if self.inView == false {
+			AppState.shared.closeVirtualMachineDocument(self)
+		}
 	}
 
 	@MainActor
-	func setStateAsRunning(suspendable: Bool, vncURL: [URL]?, _line: UInt = #line, _file: String = #file) {
+	func setStateAsRunning(suspendable: Bool, vncURL: [URL]?) {
 #if DEBUG
-		self.logger.debug("setStateAsRunning, suspendable: \(suspendable) at \(_file):\(_line)")
+		self.logger.debug("setStateAsRunning, suspendable: \(suspendable)")
 #endif
 
 		self.updateCurrentStatus(.running, suspendable: suspendable, vncURL: vncURL)
@@ -1434,6 +1402,7 @@ extension VirtualMachineDocument {
 // MARK: - Notification messagge
 extension VirtualMachineDocument {
 	static let NewVirtualMachine = NSNotification.Name("NewVirtualMachine")
+	static let StatusChangedVirtualMachine = NSNotification.Name("StatusChangedVirtualMachine")
 	static let OpenVirtualMachine = NSNotification.Name("OpenVirtualMachine")
 	static let StartVirtualMachine = NSNotification.Name("StartVirtualMachine")
 	static let DeleteVirtualMachine = NSNotification.Name("DeleteVirtualMachine")
@@ -1443,14 +1412,6 @@ extension VirtualMachineDocument {
 	static let ProgressMessageCreateVirtualMachine = NSNotification.Name("ProgressMessageCreateVirtualMachine")
 	static let NewScreenshot = NSNotification.Name("NewScreenshot")
 	static let VNCFramebufferSizeChanged = NSNotification.Name("VNCFramebufferSizeChanged")
-
-	func issuedNotificationFromDocument<T>(_ notification: Notification) -> T? {
-		guard let document = notification.userInfo?["document"] as? URL, document == self.url else {
-			return nil
-		}
-
-		return notification.object as? T
-	}
 }
 
 // MARK: - Usage update

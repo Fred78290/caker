@@ -161,6 +161,15 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	private(set) var hasVMNetworking = Entitlement.hasVMNetworking()
 	private(set) var connectionManager: ConnectionManager
 	var isAgentInstalling: Bool = false
+
+	var documents: [VirtualMachineDocument] {
+		var documents = Array(virtualMachines.values)
+		
+		documents.append(contentsOf: self.openedVirtualMachines.values)
+
+		return documents
+	}
+
 	var currentDocument: VirtualMachineDocument! {
 		didSet {
 			self.updateState()
@@ -187,15 +196,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 
 	private func setVirtualMachines(_ newValues: [URL: VirtualMachineDocument]) {
-		// Collect URLs to remove first to avoid mutating while iterating
-		let urlsToRemove = virtualMachines.keys.filter { newValues[$0] == nil }
-		for url in urlsToRemove {
-			virtualMachines.removeValue(forKey: url)
-		}
-		// Add VMs that are new
-		for (url, doc) in newValues where virtualMachines[url] == nil {
-			virtualMachines[url] = doc
-		}
+		self.virtualMachines = newValues
+		MainApp.app?.syncAppState()
 	}
 
 	private func updateFromReply(serviceReply: ServiceReply) {
@@ -258,9 +260,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 				case let .failure(error):
 					alertError(error)
 				case let .success(serviceReply):
-					// Full replacement: connection manager has changed, existing
-					// document instances reference the old connection and must be replaced.
-					self.virtualMachines = serviceReply.virtualMachines
+					self.setVirtualMachines(serviceReply.virtualMachines)
 					self.setNetworks(serviceReply.networks)
 					self.setRemotes(serviceReply.remotes)
 					self.setTemplates(serviceReply.templates)
@@ -608,7 +608,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
-				NotificationCenter.default.post(name: VirtualMachineDocument.DeleteVirtualMachine, object: vm, userInfo: ["document": vm.url!])
+				NotificationCenter.default.post(name: VirtualMachineDocument.DeleteVirtualMachine, object: vm, userInfo: ["document": vm.url])
 				
 				let result = try vm.deleteVirtualMachine()
 				

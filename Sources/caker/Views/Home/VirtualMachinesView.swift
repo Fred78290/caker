@@ -19,11 +19,11 @@ struct VirtualMachinesView: View {
 
 	@Environment(\.appearsActive) private var appearsActive
 	var appState: AppState = .shared
-	var navigationModel: NavigationModel
+	@State var navigationModel: NavigationModel
 	@State var columns: [GridItem]
 
 	@ViewBuilder
-	func virtualMachineView(_ document: VirtualMachineDocument) -> some View {
+	func virtualMachineView(_ document: VirtualMachineDocumentState) -> some View {
 		let selected = self.navigationModel.selectedVirtualMachine?.id == document.id
 
 		VirtualMachineView(document, selected: selected)
@@ -34,12 +34,14 @@ struct VirtualMachinesView: View {
 		GeometryReader { geometry in
 			ScrollView {
 				LazyVGrid(columns: self.columns, alignment: .leading, spacing: Self.cellSpacing) {
-					ForEach(self.appState.virtualMachines.documents) { document in
+					let documents = Array(self.navigationModel.documents.values).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+
+					ForEach(documents, id: \.url) { document in
 						self.virtualMachineView(document)
 							.onTapGesture(count: 2) {
 								self.navigationModel.selectedVirtualMachine = document
 
-								if self.appearsActive {
+								if self.appearsActive, let document = AppState.shared.findVirtualMachineDocument(document.url) {
 									AppState.shared.currentDocument = document
 								}
 
@@ -50,7 +52,7 @@ struct VirtualMachinesView: View {
 							.onTapGesture {
 								self.navigationModel.selectedVirtualMachine = document
 
-								if self.appearsActive {
+								if self.appearsActive, let document = AppState.shared.findVirtualMachineDocument(document.url) {
 									AppState.shared.currentDocument = document
 								}
 							}

@@ -546,6 +546,7 @@
 		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
 		9BF8AE6A2F43915700DE5EAB /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */; };
 		9BFA7B2B2FA4E17700E981F6 /* TrackDealloc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7B2A2FA4E17500E981F6 /* TrackDealloc.swift */; };
+		9BFA7D852FA5F1DB00E981F6 /* VirtualMachineDocumentState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7D842FA5F1D900E981F6 /* VirtualMachineDocumentState.swift */; };
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
 		9BFE86A62F7E59DC005CC9B2 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -1118,6 +1119,7 @@
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
 		9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
 		9BFA7B2A2FA4E17500E981F6 /* TrackDealloc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackDealloc.swift; sourceTree = "<group>"; };
+		9BFA7D842FA5F1D900E981F6 /* VirtualMachineDocumentState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDocumentState.swift; sourceTree = "<group>"; };
 		9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCIManagement.swift; sourceTree = "<group>"; };
 		9BFE869D2F7E592B005CC9B2 /* caked.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = caked.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BFE871B2F7E6480005CC9B2 /* almalinux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = almalinux.png; sourceTree = "<group>"; };
@@ -1519,6 +1521,7 @@
 				9B3601A02E21169200889BFD /* Settings.swift */,
 				9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */,
 				9BFA7B2A2FA4E17500E981F6 /* TrackDealloc.swift */,
+				9BFA7D842FA5F1D900E981F6 /* VirtualMachineDocumentState.swift */,
 				9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */,
 			);
 			path = Helpers;
@@ -2737,6 +2740,7 @@
 				9BC1F6832F66B20E00A83B33 /* VirtualMachineTerminalView.swift in Sources */,
 				9B9C4E5A2E23BC8B00C13D23 /* NetworksView.swift in Sources */,
 				9B9C4E932E23C92900C13D23 /* TemplatesView.swift in Sources */,
+				9BFA7D852FA5F1DB00E981F6 /* VirtualMachineDocumentState.swift in Sources */,
 				9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */,
 				9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */,
 				9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */,

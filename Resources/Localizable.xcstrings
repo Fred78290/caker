@@ -4003,16 +4003,6 @@
         }
       }
     },
-    "Internal error: Virtual machine is not launched from a local or remote location." : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur interne : La machine virtuelle n'est pas lancée à partir d'un emplacement local ou distant."
-          }
-        }
-      }
-    },
     "Internal error. Invalid state while parsing command-line arguments." : {
       "extractionState" : "manual",
       "localizations" : {
