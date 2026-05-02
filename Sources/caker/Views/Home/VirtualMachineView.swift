@@ -34,9 +34,8 @@ struct VirtualMachineView: View {
 	private let radius: CGFloat = 12
 	private let selectedSystemFill = Color(NSColor.secondarySystemFill)
 	private let secondarySystemFill = Color(NSColor.tertiarySystemFill)
-	@State private var vm: VirtualMachineDocumentState
+	private var vm: VirtualMachineDocumentState
 	@State private var screenshot: NSImage?
-	@State var status: VirtualMachineDocument.Status
 
 #if DEBUG
 	let tracker: TrackDealloc
@@ -46,7 +45,6 @@ struct VirtualMachineView: View {
 		self.vm = vm
 		self.selected = selected
 		self.screenshot = vm.lastScreenshot
-		self.status = vm.status
 #if DEBUG
 		self.tracker = TrackDealloc(from: "VirtualMachineView \(vm.url.absoluteString)")
 #endif
@@ -122,9 +120,6 @@ struct VirtualMachineView: View {
 				.clipShape(RoundedRectangle(cornerRadius: radius))
 				.frame(size: geometry.size)
 				.withGlassEffect(GlassEffect.regular(nil, nil), in: RoundedRectangle(cornerRadius: radius))
-				.onChange(of: self.vm.status) {
-					self.status = self.vm.status
-				}
 				.onReceive(VirtualMachineDocument.NewScreenshot) { notification in
 					if let screenshot: Data = self.vm.issuedNotificationFromDocument(notification) {
 						self.screenshot = NSImage(data: screenshot)

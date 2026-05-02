@@ -269,7 +269,7 @@ extension UTType {
 				return
 			}
 
-			MainApp.app.updateStateVirtualMachineDocument(with: self)
+			MainApp.app?.updateStateVirtualMachineDocument(with: self)
 
 			if AppState.shared.currentDocument == self {
 				AppState.shared.updateState()
@@ -299,7 +299,7 @@ extension UTType {
 		self.logger.debug("Release document: \(self.url)")
 		self.stopAgentMonitoring()
 		
-		MainApp.app.removeStateVirtualMachineDocument(with: self)
+		MainApp.app?.removeStateVirtualMachineDocument(with: self)
 
 		if let monitor = self.monitor {
 			monitor.stop()
@@ -328,7 +328,7 @@ extension UTType {
 			self.status = .paused
 		}
 		
-		MainApp.app.addStateVirtualMachineDocument(with: self)
+		MainApp.app?.addStateVirtualMachineDocument(with: self)
 
 		try monitor?.start()
 	}

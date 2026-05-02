@@ -138,12 +138,6 @@ struct CakerMenuBarExtraScene: Scene {
 private struct VMMenuItem: View {
 	@Environment(\.openWindow) var openWindow
 	var vm: VirtualMachineDocumentState
-	@State var status: VirtualMachineDocument.Status
-	
-	init(vm: VirtualMachineDocumentState) {
-		self.vm = vm
-		self.status = vm.status
-	}
 
 	var body: some View {
 		Menu(vm.name) {
@@ -188,9 +182,6 @@ private struct VMMenuItem: View {
 					}
 				}
 			}
-		}
-		.onChange(of: self.vm.status) {
-			self.status = self.vm.status
 		}
 	}
 
