@@ -260,7 +260,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let certLocation: CertificatesLocation
 	let gcd: GrandCentralDispatch
 	let vnc: VNCTunnel
-
+	var shutdown = false
 	var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? = nil
 
 	init(group: EventLoopGroup, password: String?, runMode: Utils.RunMode) throws {
@@ -276,6 +276,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func stop() {
+		self.shutdown = true
 		self.gcd.stopGrandCentralDispatch()
 		self.vnc.stopVNCTunnel()
 	}
@@ -291,6 +292,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func execute(command: CakedCommand) throws -> Caked_Reply {
+		guard self.shutdown == false else {
+			throw ServiceError(String(localized: "Service is shutting down"))
+		}
+
 		var command = command
 		
 		return command.run(on: self.group.next(), runMode: self.runMode)
@@ -459,18 +464,34 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func grandCentralDispatcher(request: Caked_Empty, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, context: GRPCAsyncServerCallContext) async throws {
+		guard self.shutdown == false else {
+			throw ServiceError(String(localized: "Service is shutting down"))
+		}
+
 		try await gcd.processDispatch(responseStream: responseStream)
 	}
 	
 	func grandCentralUpdate(requestStream: GRPCAsyncRequestStream<Caked_CurrentStatus>, context: GRPCAsyncServerCallContext) async throws -> Caked_Empty {
-		try await gcd.processUpdate(requestStream: requestStream)
+		guard self.shutdown == false else {
+			throw ServiceError(String(localized: "Service is shutting down"))
+		}
+
+		return try await gcd.processUpdate(requestStream: requestStream)
 	}
 	
 	func vncTunnel(requestStream: GRPCAsyncRequestStream<Caked_VncStream>, responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>, context: GRPCAsyncServerCallContext) async throws {
+		guard self.shutdown == false else {
+			throw ServiceError(String(localized: "Service is shutting down"))
+		}
+
 		try await self.vnc.tunnel(requestStream: requestStream, responseStream: responseStream, context: context)
 	}
 	
 	func checkReliability(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		guard self.shutdown == false else {
+			throw ServiceError(String(localized: "Service is shutting down"))
+		}
+
 		return .with {
 			$0.ping = .with {
 				$0.message = "pong"

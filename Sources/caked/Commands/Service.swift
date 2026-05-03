@@ -12,6 +12,7 @@ import Security
 import SwiftASN1
 import Synchronization
 import X509
+import Semaphore
 
 struct Certs {
 	let ca: String?
@@ -229,14 +230,21 @@ extension Service {
 			signal(SIGINT, SIG_IGN)
 
 			let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
-			
+			let stream = AsyncStream.makeStream(of: Void.self)
+
 			sigintSrc.setEventHandler {
 				logger.info("Stop service on SIGINT")
 
-				provider.stop()
+				Task {
+					provider.stop()
+					
+					try? await EventLoopFuture.andAllComplete(servers.map {
+						$0.initiateGracefulShutdown()
+					}, on: eventLoopGroup.next()).get()
 
-				servers.forEach {
-					try? $0.close().wait()
+					stream.continuation.finish()
+
+					logger.info("Server nicely closed")
 				}
 			}
 			
@@ -245,21 +253,21 @@ extension Service {
 			try home.agentPID.writePID()
 
 			// Wait on the server's `onClose` future to stop the program from exiting.
-			if servers.count > 1 {
-				try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
-					servers.forEach { server in
-						group.addTask {
-							try await server.onClose.get()
-						}
-					}
-					
-					try await group.waitForAll()
-				}
-			} else {
-				try await servers.first!.onClose.get()
-			}
+			let futures = EventLoopFuture.andAllComplete(servers.map {
+				$0.onClose
+			}, on: eventLoopGroup.next())
 			
-			logger.info("Service stopped")
+			futures.whenComplete { _ in
+				logger.info("All servers closed")
+			}
+
+			try await futures.get()
+			
+			for await _ in stream.stream {
+				break
+			}
+
+			logger.info("Leave service")
 		}
 	}
 	
