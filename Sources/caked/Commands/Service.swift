@@ -12,8 +12,6 @@ import Security
 import SwiftASN1
 import Synchronization
 import X509
-import Semaphore
-
 struct Certs {
 	let ca: String?
 	let key: String?
@@ -230,42 +228,38 @@ extension Service {
 			signal(SIGINT, SIG_IGN)
 
 			let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
-			let stream = AsyncStream.makeStream(of: Void.self)
 
 			sigintSrc.setEventHandler {
 				logger.info("Stop service on SIGINT")
 
 				Task {
 					provider.stop()
-					
+
 					try? await EventLoopFuture.andAllComplete(servers.map {
 						$0.initiateGracefulShutdown()
 					}, on: eventLoopGroup.next()).get()
 
-					stream.continuation.finish()
-
-					logger.info("Server nicely closed")
+					logger.info("Server graceful shutdown initiated")
 				}
 			}
-			
+
 			sigintSrc.activate()
-			
+
 			try home.agentPID.writePID()
 
-			// Wait on the server's `onClose` future to stop the program from exiting.
+			// Wait for all servers to close before exiting.
+			// In the SIGINT path, servers close after initiateGracefulShutdown() drains
+			// in-flight requests. In both cases futures.get() returns only when all
+			// servers are fully shut down, so provider.stop() is always called first.
 			let futures = EventLoopFuture.andAllComplete(servers.map {
 				$0.onClose
 			}, on: eventLoopGroup.next())
-			
+
 			futures.whenComplete { _ in
 				logger.info("All servers closed")
 			}
 
 			try await futures.get()
-			
-			for await _ in stream.stream {
-				break
-			}
 
 			logger.info("Leave service")
 		}

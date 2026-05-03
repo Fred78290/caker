@@ -7,6 +7,7 @@ import GRPCLib
 import NIOCore
 import NIOPortForwarding
 import NIOPosix
+import Synchronization
 
 public protocol CakedCommand {
 	mutating func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply
@@ -260,7 +261,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let certLocation: CertificatesLocation
 	let gcd: GrandCentralDispatch
 	let vnc: VNCTunnel
-	var shutdown = false
+	let shutdown = Mutex<Bool>(false)
 	var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? = nil
 
 	init(group: EventLoopGroup, password: String?, runMode: Utils.RunMode) throws {
@@ -276,7 +277,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func stop() {
-		self.shutdown = true
+		self.shutdown.withLock { $0 = true }
 		self.gcd.stopGrandCentralDispatch()
 		self.vnc.stopVNCTunnel()
 	}
@@ -292,7 +293,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func execute(command: CakedCommand) throws -> Caked_Reply {
-		guard self.shutdown == false else {
+		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
 
@@ -464,7 +465,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func grandCentralDispatcher(request: Caked_Empty, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, context: GRPCAsyncServerCallContext) async throws {
-		guard self.shutdown == false else {
+		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
 
@@ -472,7 +473,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func grandCentralUpdate(requestStream: GRPCAsyncRequestStream<Caked_CurrentStatus>, context: GRPCAsyncServerCallContext) async throws -> Caked_Empty {
-		guard self.shutdown == false else {
+		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
 
@@ -480,7 +481,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func vncTunnel(requestStream: GRPCAsyncRequestStream<Caked_VncStream>, responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>, context: GRPCAsyncServerCallContext) async throws {
-		guard self.shutdown == false else {
+		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
 
@@ -488,7 +489,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func checkReliability(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		guard self.shutdown == false else {
+		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
 

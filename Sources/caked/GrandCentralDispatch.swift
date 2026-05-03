@@ -33,7 +33,7 @@ final class GrandCentralDispatch {
 	let group: EventLoopGroup
 	let listeners: Mutex<[ListenerID: AsyncThrowingStreamCakedReplyContinuation]>
 	let logger = Logger("GrandCentralDispatch")
-	var shutdown = false
+	let shutdown = Mutex<Bool>(false)
 	var taskQueue: TaskQueue = TaskQueue(label: "GrandCentralDispatch")
 	var stream: AsyncThrowingStreamCakedStatus?
 	var haveListeners: Bool {
@@ -81,22 +81,26 @@ final class GrandCentralDispatch {
 
 	@discardableResult
 	func removeListener(_ id: ListenerID) -> AsyncThrowingStreamCakedReplyContinuation? {
+		var stopFuture: EventLoopFuture<Void>? = nil
 
-		self.listeners.withLock { (dict) -> AsyncThrowingStreamCakedReplyContinuation? in
+		let value = self.listeners.withLock { (dict) -> AsyncThrowingStreamCakedReplyContinuation? in
 			self.logger.info("Removing listener: \(id)")
 
 			guard let value = dict.removeValue(forKey: id) else {
 				return nil
 			}
 
-			if self.shutdown == false && dict.isEmpty {
+			if self.shutdown.withLock({ !$0 }) && dict.isEmpty {
 				self.logger.info("No more listeners, stop all Grand Central Updates")
-				
-				try? self.stopGrandCentralUpdate()?.wait()
+				stopFuture = self.stopGrandCentralUpdate()
 			}
 
 			return value
 		}
+
+		try? stopFuture?.wait()
+
+		return value
 	}
 
 	func updateStatus(_ status: Caked_CurrentStatus) async throws {
@@ -112,11 +116,7 @@ final class GrandCentralDispatch {
 			return
 		}
 
-		defer {
-			self.shutdown = false
-		}
-
-		self.shutdown = true
+		self.shutdown.withLock { $0 = true }
 
 		self.listeners.withLock { listeners in
 			listeners.values.forEach {
@@ -241,7 +241,7 @@ final class GrandCentralDispatch {
 	}
 
 	func processDispatch(responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>) async throws {
-		guard self.shutdown == false else {
+		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
 
@@ -279,7 +279,7 @@ final class GrandCentralDispatch {
 	}
 
 	func processUpdate(requestStream: GRPCAsyncRequestStream<Caked_CurrentStatus>) async throws -> Caked_Empty {
-		guard self.shutdown == false else {
+		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
 

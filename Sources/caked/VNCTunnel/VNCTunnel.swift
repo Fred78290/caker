@@ -159,7 +159,7 @@ final class VNCTunnel {
 	private let group: EventLoopGroup
 	private let tunnels: Mutex<[TunnelID: Tunneling]>
 	private let logger = Logger("VNCTunnel")
-	private var shutdown: Bool = false
+	private let shutdown = Mutex<Bool>(false)
 
 	public init(group: EventLoopGroup, runMode: Utils.RunMode) {
 		self.group = group
@@ -168,7 +168,7 @@ final class VNCTunnel {
 	}
 
 	public func stopVNCTunnel() {
-		self.shutdown = true
+		self.shutdown.withLock { $0 = true }
 
 		self.tunnels.withLock { listeners in
 			listeners.values.forEach {
@@ -178,7 +178,7 @@ final class VNCTunnel {
 	}
 
 	public func tunnel(requestStream: GRPCAsyncRequestStream<Caked_VncStream>, responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>, context: GRPCAsyncServerCallContext) async throws {
-		guard self.shutdown == false else {
+		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
 
