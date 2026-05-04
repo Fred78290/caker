@@ -12,7 +12,6 @@ import Security
 import SwiftASN1
 import Synchronization
 import X509
-
 struct Certs {
 	let ca: String?
 	let key: String?
@@ -229,37 +228,40 @@ extension Service {
 			signal(SIGINT, SIG_IGN)
 
 			let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
-			
+
 			sigintSrc.setEventHandler {
 				logger.info("Stop service on SIGINT")
 
-				provider.stop()
+				Task {
+					provider.stop()
 
-				servers.forEach {
-					try? $0.close().wait()
+					try? await EventLoopFuture.andAllComplete(servers.map {
+						$0.initiateGracefulShutdown()
+					}, on: eventLoopGroup.next()).get()
+
+					logger.info("Server graceful shutdown initiated")
 				}
 			}
-			
+
 			sigintSrc.activate()
-			
+
 			try home.agentPID.writePID()
 
-			// Wait on the server's `onClose` future to stop the program from exiting.
-			if servers.count > 1 {
-				try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
-					servers.forEach { server in
-						group.addTask {
-							try await server.onClose.get()
-						}
-					}
-					
-					try await group.waitForAll()
-				}
-			} else {
-				try await servers.first!.onClose.get()
+			// Wait for all servers to close before exiting.
+			// In the SIGINT path, servers close after initiateGracefulShutdown() drains
+			// in-flight requests. In both cases futures.get() returns only when all
+			// servers are fully shut down, so provider.stop() is always called first.
+			let futures = EventLoopFuture.andAllComplete(servers.map {
+				$0.onClose
+			}, on: eventLoopGroup.next())
+
+			futures.whenComplete { _ in
+				logger.info("All servers closed")
 			}
-			
-			logger.info("Service stopped")
+
+			try await futures.get()
+
+			logger.info("Leave service")
 		}
 	}
 	

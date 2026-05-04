@@ -408,7 +408,19 @@ extension ConnectionManager {
 		}
 
 		do {
-			_ = try await stream.subchannel.get()
+			let channel = try await stream.subchannel.get()
+			let logger = self.logger
+
+			channel.closeFuture.whenComplete { result in
+				switch result {
+				case .success:
+					asyncStream.continuation.finish()
+					logger.debug("GCD closed normally")
+				case .failure(let error):
+					asyncStream.continuation.finish(throwing: error)
+					logger.error("GCD closed with error: \(error)")
+				}
+			}
 
 			for try await statuses in asyncStream.stream {
 				for status in statuses {
@@ -426,6 +438,8 @@ extension ConnectionManager {
 					}
 				}
 			}
+
+			self.logger.debug("End gcd")
 		} catch is CancellationError {
 			// Silent
 		} catch {
