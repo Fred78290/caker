@@ -140,7 +140,11 @@ public struct ServiceHandler {
 				serviceProviders: serviceProviders)
 			
 			if let tlsCert = tlsCert, let tlsKey = tlsKey {
-				serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(caCert: caCert, tlsKey: tlsKey, tlsCert: tlsCert)
+				if password == nil {
+					serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(caCert: caCert, tlsKey: tlsKey, tlsCert: tlsCert, certificateVerification: .noHostnameVerification)
+				} else {
+					serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(caCert: nil, tlsKey: tlsKey, tlsCert: tlsCert, certificateVerification: .none)
+				}
 			}
 			
 			let serverFuture = Server.start(configuration: serverConfiguration)
