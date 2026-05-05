@@ -10,7 +10,7 @@ import CakedLib
 import GRPC
 import GRPCLib
 
-final class ConnectionManager: @unchecked Sendable, Equatable {
+final class ConnectionManager: Equatable {
 	typealias AsyncThrowingStreamCurrentStatus = (stream: AsyncThrowingStream<[Caked_CurrentStatus], Error>, continuation: AsyncThrowingStream<[Caked_CurrentStatus], Error>.Continuation)
 
 	static func == (lhs: ConnectionManager, rhs: ConnectionManager) -> Bool {
