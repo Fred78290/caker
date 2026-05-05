@@ -10,7 +10,7 @@ import CakedLib
 import GRPC
 import GRPCLib
 
-class ConnectionManager: Equatable {
+final class ConnectionManager: Equatable {
 	typealias AsyncThrowingStreamCurrentStatus = (stream: AsyncThrowingStream<[Caked_CurrentStatus], Error>, continuation: AsyncThrowingStream<[Caked_CurrentStatus], Error>.Continuation)
 
 	static func == (lhs: ConnectionManager, rhs: ConnectionManager) -> Bool {
@@ -58,6 +58,7 @@ class ConnectionManager: Equatable {
 
 	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
 	private var currentStatus: AsyncThrowingStreamCurrentStatus? = nil
+	private var shutdown = false
 	private let logger = Logger("ConnectionManager")
 
 	deinit {
@@ -320,6 +321,7 @@ extension ConnectionManager {
 
 	func stopGrandCentral() {
 		if let gcd = self.gcd {
+			self.shutdown = true
 			self.currentStatus?.continuation.finish(throwing: CancellationError())
 			self.currentStatus = nil
 
@@ -405,10 +407,32 @@ extension ConnectionManager {
 
 			stream.cancel(promise: nil)
 			self.gcd = nil
+
+			Task { @MainActor in
+				if self.shutdown == false {
+					alertError(String(localized: "Remote service"), String(localized: "Remote service did shut down. Will close all concerned virtual machines window.")) { _ in
+						NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
+					}
+				} else {
+					NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
+				}
+			}
 		}
 
 		do {
-			_ = try await stream.subchannel.get()
+			let channel = try await stream.subchannel.get()
+			let logger = self.logger
+
+			channel.closeFuture.whenComplete { result in
+				switch result {
+				case .success:
+					asyncStream.continuation.finish()
+					logger.debug("GCD closed normally")
+				case .failure(let error):
+					asyncStream.continuation.finish(throwing: error)
+					logger.error("GCD closed with error: \(error)")
+				}
+			}
 
 			for try await statuses in asyncStream.stream {
 				for status in statuses {
@@ -426,6 +450,8 @@ extension ConnectionManager {
 					}
 				}
 			}
+
+			self.logger.debug("End gcd")
 		} catch is CancellationError {
 			// Silent
 		} catch {

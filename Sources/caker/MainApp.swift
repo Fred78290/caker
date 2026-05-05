@@ -10,16 +10,20 @@ import Security
 import Sparkle
 
 @MainActor
-func alertError(_ messageText: String, _ informativeText: String) {
+func alertError(_ messageText: String, _ informativeText: String, completion: ((NSApplication.ModalResponse) -> Void)? = nil) {
 	let alert = NSAlert()
 
 	alert.messageText = messageText
 	alert.informativeText = informativeText
-	alert.runModal()
+	let result = alert.runModal()
+	
+	if let completion {
+		completion(result)
+	}
 }
 
 @MainActor
-func alertError(_ error: Error) {
+func alertError(_ error: Error, completion: ((NSApplication.ModalResponse) -> Void)? = nil) {
 	let informativeText: String
 
 	if let error = error as? ServiceError {
@@ -28,7 +32,7 @@ func alertError(_ error: Error) {
 		informativeText = error.localizedDescription
 	}
 
-	alertError(String(localized: "An error occured"), informativeText)
+	alertError(String(localized: "An error occurred"), informativeText, completion: completion)
 }
 
 struct Defaults {

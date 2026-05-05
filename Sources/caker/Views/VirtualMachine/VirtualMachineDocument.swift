@@ -1453,6 +1453,16 @@ extension VirtualMachineDocument {
 	}
 	
 	func grandCentralDidStop() {
-		
+		if self.connectionManager.connectionMode == .remote {
+			if let connection = self.connection {
+				self.connection = nil
+				connection.disconnect()
+			}
+
+			if let interactiveShell {
+				self.interactiveShell = nil
+				interactiveShell.cancelShell()
+			}
+		}
 	}
 }

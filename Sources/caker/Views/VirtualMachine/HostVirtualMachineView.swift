@@ -399,7 +399,10 @@ struct HostVirtualMachineView: View {
 			return
 		}
 
-		self.document.grandCentralDidStop()
+		Task { @MainActor in
+			self.document.grandCentralDidStop()
+			self.dismiss()
+		}
 	}
 
 	func handleStartLiveResizeNotification(_ notification: Notification) {
