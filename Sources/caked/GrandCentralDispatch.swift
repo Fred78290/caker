@@ -98,7 +98,13 @@ final class GrandCentralDispatch {
 			return value
 		}
 
-		try? stopFuture?.wait()
+		if let stopFuture {
+			stopFuture.whenComplete { result in
+				if case .failure(let error) = result {
+					self.logger.error("Failed to stop Grand Central update after removing listener: \(error)")
+				}
+			}
+		}
 
 		return value
 	}
