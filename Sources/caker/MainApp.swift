@@ -32,7 +32,7 @@ func alertError(_ error: Error, completion: ((NSApplication.ModalResponse) -> Vo
 		informativeText = error.localizedDescription
 	}
 
-	alertError(String(localized: "An error occured"), informativeText, completion: completion)
+	alertError(String(localized: "An error occurred"), informativeText, completion: completion)
 }
 
 struct Defaults {
