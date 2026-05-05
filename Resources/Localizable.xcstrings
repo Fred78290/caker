@@ -668,7 +668,7 @@
         }
       }
     },
-    "An error occured" : {
+    "An error occurred" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -8765,6 +8765,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Le service est occupé"
+          }
+        }
+      }
+    },
+    "Service is shutting down" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le service s'arrête"
           }
         }
       }
