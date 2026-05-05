@@ -130,9 +130,9 @@ final class GrandCentralDispatch {
 			}
 		}
 
-		try? self.stopGrandCentralUpdate()?.wait()
-		
-		stream.continuation.finish()
+		self.stopGrandCentralUpdate()?.whenComplete { _ in
+			stream.continuation.finish()
+		}
 	}
 
 	func stopGrandCentralUpdate(location: VMLocation) -> EventLoopFuture<(success: Bool, reason: String)> {
