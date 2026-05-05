@@ -400,6 +400,7 @@ struct HostVirtualMachineView: View {
 		}
 
 		self.document.grandCentralDidStop()
+		self.dismiss()
 	}
 
 	func handleStartLiveResizeNotification(_ notification: Notification) {
