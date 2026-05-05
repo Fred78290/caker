@@ -548,6 +548,17 @@
 		9BFA7B2B2FA4E17700E981F6 /* TrackDealloc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7B2A2FA4E17500E981F6 /* TrackDealloc.swift */; };
 		9BFA7D852FA5F1DB00E981F6 /* VirtualMachineDocumentState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7D842FA5F1D900E981F6 /* VirtualMachineDocumentState.swift */; };
 		9BFA7E4F2FA6256300E981F6 /* AboutCakerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */; };
+		9BFA85C72FA9E93700E981F6 /* LXDNetworksController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA85BE2FA9E93700E981F6 /* LXDNetworksController.swift */; };
+		9BFA85C82FA9E93700E981F6 /* Routes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA85C52FA9E93700E981F6 /* Routes.swift */; };
+		9BFA85C92FA9E93700E981F6 /* LXDImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA85BC2FA9E93700E981F6 /* LXDImagesController.swift */; };
+		9BFA85CA2FA9E93700E981F6 /* LXDInstancesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA85BD2FA9E93700E981F6 /* LXDInstancesController.swift */; };
+		9BFA85CB2FA9E93700E981F6 /* LXDOperationsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA85BF2FA9E93700E981F6 /* LXDOperationsController.swift */; };
+		9BFA85CC2FA9E93700E981F6 /* LXDModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA85C22FA9E93700E981F6 /* LXDModels.swift */; };
+		9BFA85CD2FA9E93700E981F6 /* LXDOperationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA85C32FA9E93700E981F6 /* LXDOperationStore.swift */; };
+		9BFA85CE2FA9E93700E981F6 /* LXDRESTServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA85C42FA9E93700E981F6 /* LXDRESTServer.swift */; };
+		9BFA85CF2FA9E93700E981F6 /* LXDRootController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA85C02FA9E93700E981F6 /* LXDRootController.swift */; };
+		9BFA85D22FA9E9CD00E981F6 /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = 9BFA85D12FA9E9CD00E981F6 /* Vapor */; };
+		9BFA85D52FA9EB7400E981F6 /* AsyncKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9BFA85D42FA9EB7400E981F6 /* AsyncKit */; };
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
 		9BFE86A62F7E59DC005CC9B2 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -1122,6 +1133,15 @@
 		9BFA7B2A2FA4E17500E981F6 /* TrackDealloc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackDealloc.swift; sourceTree = "<group>"; };
 		9BFA7D842FA5F1D900E981F6 /* VirtualMachineDocumentState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDocumentState.swift; sourceTree = "<group>"; };
 		9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutCakerView.swift; sourceTree = "<group>"; };
+		9BFA85BC2FA9E93700E981F6 /* LXDImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDImagesController.swift; sourceTree = "<group>"; };
+		9BFA85BD2FA9E93700E981F6 /* LXDInstancesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDInstancesController.swift; sourceTree = "<group>"; };
+		9BFA85BE2FA9E93700E981F6 /* LXDNetworksController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDNetworksController.swift; sourceTree = "<group>"; };
+		9BFA85BF2FA9E93700E981F6 /* LXDOperationsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDOperationsController.swift; sourceTree = "<group>"; };
+		9BFA85C02FA9E93700E981F6 /* LXDRootController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDRootController.swift; sourceTree = "<group>"; };
+		9BFA85C22FA9E93700E981F6 /* LXDModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDModels.swift; sourceTree = "<group>"; };
+		9BFA85C32FA9E93700E981F6 /* LXDOperationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDOperationStore.swift; sourceTree = "<group>"; };
+		9BFA85C42FA9E93700E981F6 /* LXDRESTServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDRESTServer.swift; sourceTree = "<group>"; };
+		9BFA85C52FA9E93700E981F6 /* Routes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routes.swift; sourceTree = "<group>"; };
 		9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCIManagement.swift; sourceTree = "<group>"; };
 		9BFE869D2F7E592B005CC9B2 /* caked.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = caked.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BFE871B2F7E6480005CC9B2 /* almalinux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = almalinux.png; sourceTree = "<group>"; };
@@ -1292,6 +1312,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9BFA85D52FA9EB7400E981F6 /* AsyncKit in Frameworks */,
 				9BEBC82A2DF44B9C0092B196 /* SwiftDate in Frameworks */,
 				9BEBC8502DF44B9C0092B196 /* NIOFoundationCompat in Frameworks */,
 				9BEBC8402DF44B9C0092B196 /* Yams in Frameworks */,
@@ -1325,6 +1346,7 @@
 				9BEBC86B2DF44B9D0092B196 /* libCakedLib.a in Frameworks */,
 				9BEBC84C2DF44B9C0092B196 /* NIOCore in Frameworks */,
 				9BEBC83C2DF44B9C0092B196 /* XAttr in Frameworks */,
+				9BFA85D22FA9E9CD00E981F6 /* Vapor in Frameworks */,
 				9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */,
 				9BEBC85E2DF44B9D0092B196 /* Logging in Frameworks */,
 				9B3566812F27E12D00C5E12F /* ZLib in Frameworks */,
@@ -1939,6 +1961,7 @@
 				9BEBC6CC2DF4400A0092B196 /* Root.swift */,
 				9BEBC6B12DF4400A0092B196 /* Commands */,
 				9BEBC6C92DF4400A0092B196 /* Handlers */,
+				9BFA85C62FA9E93700E981F6 /* REST */,
 				9B144C0E2F9D28D900F14DEF /* VNCTunnel */,
 			);
 			path = caked;
@@ -2129,6 +2152,30 @@
 				9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */,
 			);
 			path = Commands;
+			sourceTree = "<group>";
+		};
+		9BFA85C12FA9E93700E981F6 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				9BFA85BC2FA9E93700E981F6 /* LXDImagesController.swift */,
+				9BFA85BD2FA9E93700E981F6 /* LXDInstancesController.swift */,
+				9BFA85BE2FA9E93700E981F6 /* LXDNetworksController.swift */,
+				9BFA85BF2FA9E93700E981F6 /* LXDOperationsController.swift */,
+				9BFA85C02FA9E93700E981F6 /* LXDRootController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		9BFA85C62FA9E93700E981F6 /* REST */ = {
+			isa = PBXGroup;
+			children = (
+				9BFA85C12FA9E93700E981F6 /* Controllers */,
+				9BFA85C22FA9E93700E981F6 /* LXDModels.swift */,
+				9BFA85C32FA9E93700E981F6 /* LXDOperationStore.swift */,
+				9BFA85C42FA9E93700E981F6 /* LXDRESTServer.swift */,
+				9BFA85C52FA9E93700E981F6 /* Routes.swift */,
+			);
+			path = REST;
 			sourceTree = "<group>";
 		};
 		9BFE81A62EC8F8C500767615 /* OCI */ = {
@@ -2429,6 +2476,8 @@
 				9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */,
 				9B3566802F27E12D00C5E12F /* ZLib */,
 				9BC1F9972F6D469A00A83B33 /* Subprocess */,
+				9BFA85D12FA9E9CD00E981F6 /* Vapor */,
+				9BFA85D42FA9EB7400E981F6 /* AsyncKit */,
 			);
 			productName = caked;
 			productReference = 9BEBC68E2DF43FEE0092B196 /* caked */;
@@ -2610,6 +2659,8 @@
 				9B35667D2F27DDE700C5E12F /* XCRemoteSwiftPackageReference "zlib" */,
 				9BC1F9962F6D469A00A83B33 /* XCRemoteSwiftPackageReference "swift-subprocess" */,
 				9B3E2C672F7BDA1D003BF05E /* XCRemoteSwiftPackageReference "Sparkle" */,
+				9BFA85D02FA9E9CC00E981F6 /* XCRemoteSwiftPackageReference "vapor" */,
+				9BFA85D32FA9EB7300E981F6 /* XCRemoteSwiftPackageReference "async-kit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -2951,6 +3002,15 @@
 				9BEBC6FA2DF4400A0092B196 /* Template.swift in Sources */,
 				9BEBC6FB2DF4400A0092B196 /* TemplateHandler.swift in Sources */,
 				9BEBC6FC2DF4400A0092B196 /* Unmount.swift in Sources */,
+				9BFA85C72FA9E93700E981F6 /* LXDNetworksController.swift in Sources */,
+				9BFA85C82FA9E93700E981F6 /* Routes.swift in Sources */,
+				9BFA85C92FA9E93700E981F6 /* LXDImagesController.swift in Sources */,
+				9BFA85CA2FA9E93700E981F6 /* LXDInstancesController.swift in Sources */,
+				9BFA85CB2FA9E93700E981F6 /* LXDOperationsController.swift in Sources */,
+				9BFA85CC2FA9E93700E981F6 /* LXDModels.swift in Sources */,
+				9BFA85CD2FA9E93700E981F6 /* LXDOperationStore.swift in Sources */,
+				9BFA85CE2FA9E93700E981F6 /* LXDRESTServer.swift in Sources */,
+				9BFA85CF2FA9E93700E981F6 /* LXDRootController.swift in Sources */,
 				9BEBC6FD2DF4400A0092B196 /* StopHandler.swift in Sources */,
 				9BEBC6FE2DF4400A0092B196 /* Certificates.swift in Sources */,
 				9BEBC6FF2DF4400A0092B196 /* LoginHandler.swift in Sources */,
@@ -3612,7 +3672,7 @@
 		9BFE869F2F7E592B005CC9B2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
@@ -3937,7 +3997,7 @@
 			repositoryURL = "https://github.com/apple/swift-nio-ssl.git";
 			requirement = {
 				kind = exactVersion;
-				version = 2.36.0;
+				version = 2.37.0;
 			};
 		};
 		9B464BC22D5A411900164BF5 /* XCRemoteSwiftPackageReference "grpc-swift" */ = {
@@ -3953,7 +4013,7 @@
 			repositoryURL = "https://github.com/apple/swift-nio";
 			requirement = {
 				kind = exactVersion;
-				version = 2.92.1;
+				version = 2.99.0;
 			};
 		};
 		9B464BD42D5A414600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-http2" */ = {
@@ -3961,7 +4021,7 @@
 			repositoryURL = "https://github.com/apple/swift-nio-http2";
 			requirement = {
 				kind = exactVersion;
-				version = 1.36.0;
+				version = 1.43.0;
 			};
 		};
 		9B464BDA2D5A416F00164BF5 /* XCRemoteSwiftPackageReference "swift-nio-extras" */ = {
@@ -3969,7 +4029,7 @@
 			repositoryURL = "https://github.com/apple/swift-nio-extras";
 			requirement = {
 				kind = exactVersion;
-				version = 1.31.2;
+				version = 1.34.0;
 			};
 		};
 		9B464BF02D5A41A200164BF5 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
@@ -3985,7 +4045,7 @@
 			repositoryURL = "https://github.com/apple/swift-log";
 			requirement = {
 				kind = exactVersion;
-				version = 1.8.0;
+				version = 1.10.1;
 			};
 		};
 		9B464BF82D5A41CF00164BF5 /* XCRemoteSwiftPackageReference "Shout" */ = {
@@ -4066,6 +4126,22 @@
 			requirement = {
 				kind = revision;
 				revision = 664c9bfb0c215c586ba53a8d30a9d28004c1f4de;
+			};
+		};
+		9BFA85D02FA9E9CC00E981F6 /* XCRemoteSwiftPackageReference "vapor" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/vapor.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.121.4;
+			};
+		};
+		9BFA85D32FA9EB7300E981F6 /* XCRemoteSwiftPackageReference "async-kit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/async-kit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.22.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -4735,6 +4811,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */;
 			productName = CakeAgentLib;
+		};
+		9BFA85D12FA9E9CD00E981F6 /* Vapor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BFA85D02FA9E9CC00E981F6 /* XCRemoteSwiftPackageReference "vapor" */;
+			productName = Vapor;
+		};
+		9BFA85D42FA9EB7400E981F6 /* AsyncKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BFA85D32FA9EB7300E981F6 /* XCRemoteSwiftPackageReference "async-kit" */;
+			productName = AsyncKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

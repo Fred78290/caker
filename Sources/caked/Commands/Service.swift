@@ -57,6 +57,12 @@ extension Service {
 		@Flag(help: ArgumentHelp(String(localized: "Use inet socket"), visibility: .hidden))
 		var tcp: Bool = false
 
+		@Flag(help: ArgumentHelp(String(localized: "Allows LXD to connect to this host"), visibility: .hidden))
+		var rest: Bool = false
+
+		@Option(name: [.customLong("rest-port")], help: ArgumentHelp(String(localized: "Override LXD REST API listen port"), discussion: "By default LXD will listen on 8443 for https and 8080 for http"))
+		var restPort: Int = 0
+
 		var runMode: Utils.RunMode {
 			self.asSystem ? .system : .user
 		}
@@ -224,6 +230,37 @@ extension Service {
 				).wait()
 			}
 
+			// Start LXD REST API server if enabled
+			var restServer: LXDRESTServer! = nil
+
+			if self.options.rest {
+				var port = self.options.restPort
+				var components = URLComponents()
+
+				if port == 0 {
+					if self.options.tlsCert != nil && self.options.tlsKey != nil {
+						port = 8443
+					} else {
+						port = 8080
+					}
+				}
+
+				components.scheme = (self.options.tlsCert != nil && self.options.tlsKey != nil) ? "https" : "http"
+				components.host = "0.0.0.0"
+				components.port = port
+				components.password = self.password
+
+				if let listen = components.url {
+					do {
+						restServer = try await LXDRESTServer(group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode)
+						try restServer.start()
+						logger.info("LXD REST API listening on \(listen)")
+					} catch {
+						logger.error("Failed to start LXD REST server: \(error.localizedDescription)")
+					}
+				}
+			}
+
 			Root.sigintSrc.cancel()
 
 			signal(SIGINT, SIG_IGN)
@@ -242,6 +279,7 @@ extension Service {
 				stream = AsyncStream.makeStream(of: Void.self)
 
 				Task {
+					restServer?.shutdown()
 					provider.stop()
 
 					try? await EventLoopFuture.andAllComplete(
@@ -369,3 +407,4 @@ extension Service {
 		}
 	}
 }
+

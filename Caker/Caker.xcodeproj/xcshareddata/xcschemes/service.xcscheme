@@ -82,7 +82,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--pass-phrase=debug"
+            argument = "--rest"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
