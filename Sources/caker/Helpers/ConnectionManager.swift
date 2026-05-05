@@ -408,8 +408,7 @@ extension ConnectionManager {
 			stream.cancel(promise: nil)
 			self.gcd = nil
 
-			DispatchQueue.main.async {
-
+			Task { @MainActor in
 				if self.shutdown == false {
 					alertError(String(localized: "Remote service"), String(localized: "Remote service did shut down. Will close all concerned virtual machines window.")) { _ in
 						NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
