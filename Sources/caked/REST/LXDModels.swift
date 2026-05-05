@@ -264,12 +264,12 @@ extension LXDInstance {
 		}
 
 		var config: [String: String] = [:]
-		if let ip = info.ip {
-			config["volatile.eth0.hwaddr"] = ip
+		if let macAddress = info.config?.macAddress {
+			config["volatile.eth0.hwaddr"] = macAddress
 		}
 
 		return LXDInstance(
-			architecture: "aarch64",
+			architecture: info.config?.arch.description ?? Architecture.current().description,
 			config: config,
 			createdAt: ISO8601DateFormatter().string(from: Date()),
 			description: "",

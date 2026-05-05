@@ -49,7 +49,6 @@ let package = Package(
 		.package(url: "https://github.com/groue/Semaphore", exact: "0.0.8"),
 		.package(url: "https://github.com/grpc/grpc-swift.git", exact: "1.27.2"),
 		.package(url: "https://github.com/vapor/vapor.git", from: "4.121.4"),
-		.package(url: "https://github.com/vapor/async-kit.git", exact: "1.22.0"),
 		.package(url: "https://github.com/jozefizso/swift-xattr", exact: "3.0.0"),
 		.package(url: "https://github.com/jpsim/Yams", exact: "5.1.3"),
 		.package(url: "https://github.com/malcommac/SwiftDate", exact: "7.0.0"),

@@ -55,41 +55,39 @@ extension Environment {
 	}
 }
 
-/// Simple Basic-Auth middleware that validates only the password part against a single shared secret.
+/// Password middleware that validates the Bearer token against a single shared secret.
+/// If the client presents a valid TLS client certificate, the password check is bypassed.
 private struct PasswordAuthMiddleware: Middleware {
 	let password: String
 
 	func respond(to request: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
+		// Allow mTLS-authenticated clients to skip password check
+		if let peerCertificateChain = request.peerCertificateChain, peerCertificateChain.isEmpty == false {
+			return next.respond(to: request)
+		}
+
 		guard let authHeader = request.headers.first(name: .authorization) else {
-			return unauthorized(on: request, next: next)
+			return unauthorized(on: request)
 		}
 
 		// Expecting: "Bearer base64(pass-phrase)"
 		let parts = authHeader.split(separator: " ")
 		guard parts.count == 2, parts[0].lowercased() == "bearer" else {
-			return unauthorized(on: request, next: next)
+			return unauthorized(on: request)
 		}
 
 		let token = String(parts[1]).base64DecodedString()
 
-		guard token.isEmpty == false else {
-			return unauthorized(on: request, next: next)
-		}
-
-		guard token == password else {
-			return unauthorized(on: request, next: next)
+		guard token.isEmpty == false, token == password else {
+			return unauthorized(on: request)
 		}
 
 		return next.respond(to: request)
 	}
 
-	private func unauthorized(on request: Request, next: Responder) -> EventLoopFuture<Response> {
-		if let peerCertificateChain = request.peerCertificateChain, peerCertificateChain.isEmpty == false {
-			return next.respond(to: request)
-		}
-
+	private func unauthorized(on request: Request) -> EventLoopFuture<Response> {
 		let response = Response(status: .unauthorized)
-		response.headers.replaceOrAdd(name: .wwwAuthenticate, value: "Basic realm=\"Caker\"")
+		response.headers.replaceOrAdd(name: .wwwAuthenticate, value: "Bearer realm=\"Caker\"")
 		return request.eventLoop.makeSucceededFuture(response)
 	}
 }
@@ -116,85 +114,32 @@ final class LXDRESTServer: Sendable {
 		ContentConfiguration.global.use(decoder: decoder, for: .json)
 
 		// HTTP server configuration
-		// Add Basic-Auth protection if a password is provided
+		// Add Bearer-token protection if a password is provided
 		if let password = listen.password(percentEncoded: false), password.isEmpty == false {
 			app.middleware.use(PasswordAuthMiddleware(password: password))
 		}
 
+		guard let hostname = listen.host(percentEncoded: false), let port = listen.port else {
+			throw ServiceError("Invalid listen URL: host or port missing")
+		}
+
 		var serverConfiguration = app.http.server.configuration
 
-		serverConfiguration.hostname = listen.host(percentEncoded: false)!
-		serverConfiguration.port = listen.port!
+		serverConfiguration.hostname = hostname
+		serverConfiguration.port = port
 
 		if let tlsCert = tlsCert, let tlsKey = tlsKey {
-			// Require client certificates only when caCert is provided; otherwise, server-only TLS
+			// When a CA cert is provided, enable mTLS (client certificate required).
+			// NIOSSL handles chain verification internally using the configured trust roots.
+			// When no CA cert is provided, server-only TLS is used (no client cert required).
 			let tlsConfiguration = try TLSConfiguration.makeServerConfiguration(
 				caCert: caCert,
 				tlsKey: tlsKey,
 				tlsCert: tlsCert,
-				certificateVerification: .noHostnameVerification
+				certificateVerification: caCert != nil ? .noHostnameVerification : .none
 			)
 
 			serverConfiguration.tlsConfiguration = tlsConfiguration
-			serverConfiguration.customCertificateVerifyCallbackWithMetadata = { peerCerts, promise in
-				// Determine if mTLS is configured by inspecting trust roots
-				// If trustRoots are `.certificates` (non-empty), we assume a CA was configured and client certs are required.
-				let requiresClientCert: Bool
-	
-				if case .certificates(let caCerts) = tlsConfiguration.trustRoots {
-					requiresClientCert = caCerts.isEmpty == false && tlsConfiguration.certificateVerification != .none
-				} else {
-					requiresClientCert = false
-				}
-
-				// Helper to allow/deny
-				func allow() { promise.succeed(.certificateVerified(VerificationMetadata(ValidatedCertificateChain(peerCerts)))) }
-				func deny() { promise.succeed(.failed) }
-
-				// If no client certificate presented
-				guard peerCerts.isEmpty == false else {
-					if requiresClientCert {
-						// mTLS required but no client certificate
-						deny()
-					} else {
-						// Server-only TLS, allow
-						allow()
-					}
-					return
-				}
-
-				// If we get here, a client certificate (or chain) was presented. If mTLS is not required, accept.
-				guard requiresClientCert else {
-					allow()
-					return
-				}
-
-				// Basic validation using the configured certificate chain as acceptable anchors when explicitly provided.
-				// Extract leaf of presented chain and compare with any pinned client certificate if the server is configured with explicit certificates in certificateChain.
-				let presentedLeaf = peerCerts.first
-
-				// Gather any explicit certificates configured on the server side (certificateChain).
-				//let serverChainCerts: [NIOSSLCertificate] = tlsConfiguration.certificateChain.compactMap { entry in
-				//	if case .certificate(let cert) = entry { return cert } else { return nil }
-				//}
-				if case .certificates(let caCerts) = tlsConfiguration.trustRoots, caCerts.isEmpty == false, let leaf = presentedLeaf {
-					// If you intend to require a specific client cert, compare DER representations.
-					// (This is optional; remove if you only want CA-based verification.)
-					let presentedDER = (try? leaf.toDERBytes()) ?? []
-
-					if caCerts.contains( where: {((try? $0.toDERBytes()) ?? []) == presentedDER }) {
-						allow()
-						return
-					}
-
-					// If it doesn't match any pinned cert, fall through to CA-based decision (deny below).
-				}
-
-				// Without an explicit client cert pin, require at least one cert presented and a configured CA.
-				// Since we disabled hostname verification above, we keep the policy strict here: deny when we cannot assert trust.
-				// Note: Full path validation is normally handled by NIOSSL when not using a custom callback. Here, we keep a conservative stance.
-				deny()
-			}
 		}
 
 		app.http.server.configuration = serverConfiguration

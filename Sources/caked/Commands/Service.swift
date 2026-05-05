@@ -231,7 +231,7 @@ extension Service {
 			}
 
 			// Start LXD REST API server if enabled
-			var restServer: LXDRESTServer! = nil
+			var restServer: LXDRESTServer? = nil
 
 			if self.options.rest {
 				var port = self.options.restPort

@@ -53,7 +53,7 @@ struct LXDImagesController: RouteCollection {
 		let fp = info.fingerprint ?? info.instanceID ?? info.name
 		let image = LXDImage(
 			aliases: [LXDImageAlias(description: info.name, name: info.name)],
-			architecture: "aarch64",
+			architecture: info.config?.arch.description ?? Architecture.current().description,
 			autoUpdate: false,
 			cached: true,
 			createdAt: ISO8601DateFormatter().string(from: Date()),
