@@ -14,7 +14,7 @@ import NIOSSL
 import Vapor
 
 extension TLSConfiguration {
-	static public func makeServerConfiguration(caCert: String?, tlsKey: String, tlsCert: String, certificateVerification: CertificateVerification = .none, requireALPN: Bool = false) throws -> TLSConfiguration {
+	static public func makeServerConfiguration(caCert: String? = nil, tlsKey: String, tlsCert: String, certificateVerification: CertificateVerification = .none, requireALPN: Bool = false) throws -> TLSConfiguration {
 		let tlsCerts = try NIOSSLCertificate.fromPEMFile(tlsCert)
 		let tlsKey = try NIOSSLPrivateKey(file: tlsKey, format: .pem)
 		let trustRoots: NIOSSLTrustRoots
@@ -53,6 +53,25 @@ extension Environment {
 
 		return env
 	}
+}
+
+/// Middleware that requires a valid TLS client certificate when enabled.
+/// If no client certificate is presented, the request is rejected with 401.
+private struct CertificateAuthMiddleware: Middleware {
+	let caCert: [NIOSSLCertificate]
+
+	init(caCert: String) throws {
+		self.caCert = try NIOSSLCertificate.fromPEMFile(caCert)
+	}
+
+	func respond(to request: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
+        if let chain = request.peerCertificateChain, chain.isEmpty == false {
+            return next.respond(to: request)
+        }
+        let response = Response(status: .unauthorized)
+        response.headers.replaceOrAdd(name: .wwwAuthenticate, value: "TLS-Certificate realm=\"Caker\"")
+        return request.eventLoop.makeSucceededFuture(response)
+    }
 }
 
 /// Password middleware that validates the Bearer token against a single shared secret.
@@ -113,11 +132,10 @@ final class LXDRESTServer: Sendable {
 		ContentConfiguration.global.use(encoder: encoder, for: .json)
 		ContentConfiguration.global.use(decoder: decoder, for: .json)
 
-		// HTTP server configuration
-		// Add Bearer-token protection if a password is provided
-		if let password = listen.password(percentEncoded: false), password.isEmpty == false {
-			app.middleware.use(PasswordAuthMiddleware(password: password))
-		}
+        // Add Bearer-token protection if a password is provided
+        if let password = listen.password(percentEncoded: false), password.isEmpty == false {
+            app.middleware.use(PasswordAuthMiddleware(password: password))
+        }
 
 		guard let hostname = listen.host(percentEncoded: false), let port = listen.port else {
 			throw ServiceError("Invalid listen URL: host or port missing")
@@ -129,14 +147,13 @@ final class LXDRESTServer: Sendable {
 		serverConfiguration.port = port
 
 		if let tlsCert = tlsCert, let tlsKey = tlsKey {
-			// When a CA cert is provided, enable mTLS (client certificate required).
-			// NIOSSL handles chain verification internally using the configured trust roots.
-			// When no CA cert is provided, server-only TLS is used (no client cert required).
+			if let caCert = caCert {
+				try app.middleware.use(CertificateAuthMiddleware(caCert: caCert))
+			}
+
 			let tlsConfiguration = try TLSConfiguration.makeServerConfiguration(
-				caCert: caCert,
 				tlsKey: tlsKey,
-				tlsCert: tlsCert,
-				certificateVerification: caCert != nil ? .noHostnameVerification : .none
+				tlsCert: tlsCert
 			)
 
 			serverConfiguration.tlsConfiguration = tlsConfiguration
