@@ -253,7 +253,7 @@ extension Service {
 				if let listen = components.url {
 					do {
 						restServer = try await LXDRESTServer(group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode)
-						try restServer.start()
+						try restServer?.start()
 						logger.info("LXD REST API listening on \(listen)")
 					} catch {
 						logger.error("Failed to start LXD REST server: \(error.localizedDescription)")
