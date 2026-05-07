@@ -279,7 +279,7 @@ extension Service {
 				stream = AsyncStream.makeStream(of: Void.self)
 
 				Task {
-					restServer?.shutdown()
+					await restServer?.shutdown()
 					provider.stop()
 
 					try? await EventLoopFuture.andAllComplete(

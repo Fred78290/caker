@@ -14,26 +14,27 @@ import NIOSSL
 import Vapor
 
 extension TLSConfiguration {
-	static public func makeServerConfiguration(caCert: String? = nil, tlsKey: String, tlsCert: String, certificateVerification: CertificateVerification = .none, requireALPN: Bool = false) throws -> TLSConfiguration {
+	static public func makeServerConfiguration(caCert: String? = nil, tlsKey: String, tlsCert: String) throws -> TLSConfiguration {
 		let tlsCerts = try NIOSSLCertificate.fromPEMFile(tlsCert)
 		let tlsKey = try NIOSSLPrivateKey(file: tlsKey, format: .pem)
-		let trustRoots: NIOSSLTrustRoots
+		var tlsConfiguration: TLSConfiguration
 
-		if let caCert: String = caCert {
+		if let caCert = caCert {
 			// When a CA is provided, use it for trust and require full client cert verification (mTLS)
-			trustRoots = .certificates(try NIOSSLCertificate.fromPEMFile(caCert))
+			tlsConfiguration = TLSConfiguration.makeServerConfiguration(
+				certificateChain: [.certificate(tlsCerts.first!)],
+				privateKey: .privateKey(tlsKey)
+			)
+
+			tlsConfiguration.certificateVerification = CertificateVerification.optionalVerification
+			tlsConfiguration.trustRoots = .certificates(try NIOSSLCertificate.fromPEMFile(caCert))
 		} else {
 			// No CA provided: do not verify client certificates (server-only TLS)
-			trustRoots = NIOSSLTrustRoots.default
+			tlsConfiguration = TLSConfiguration.makeServerConfiguration(
+				certificateChain: [.certificate(tlsCerts.first!)],
+				privateKey: .privateKey(tlsKey)
+			)
 		}
-
-		var tlsConfiguration = TLSConfiguration.makeServerConfigurationWithMTLS(
-			certificateChain: [.certificate(tlsCerts.first!)],
-			privateKey: .privateKey(tlsKey),
-			trustRoots: trustRoots
-		)
-
-		tlsConfiguration.certificateVerification = certificateVerification
 
 		return tlsConfiguration
 	}
@@ -55,30 +56,11 @@ extension Environment {
 	}
 }
 
-/// Middleware that requires a valid TLS client certificate when enabled.
-/// If no client certificate is presented, the request is rejected with 401.
-private struct CertificateAuthMiddleware: Middleware {
-	let caCert: [NIOSSLCertificate]
-
-	init(caCert: String) throws {
-		self.caCert = try NIOSSLCertificate.fromPEMFile(caCert)
-	}
-
-	func respond(to request: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
-        if let chain = request.peerCertificateChain, chain.isEmpty == false {
-            return next.respond(to: request)
-        }
-        let response = Response(status: .unauthorized)
-        response.headers.replaceOrAdd(name: .wwwAuthenticate, value: "TLS-Certificate realm=\"Caker\"")
-        return request.eventLoop.makeSucceededFuture(response)
-    }
-}
-
 /// Password middleware that validates the Bearer token against a single shared secret.
 /// If the client presents a valid TLS client certificate, the password check is bypassed.
 private struct PasswordAuthMiddleware: Middleware {
 	let password: String
-
+	
 	func respond(to request: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
 		// Allow mTLS-authenticated clients to skip password check
 		if let peerCertificateChain = request.peerCertificateChain, peerCertificateChain.isEmpty == false {
@@ -147,16 +129,13 @@ final class LXDRESTServer: Sendable {
 		serverConfiguration.port = port
 
 		if let tlsCert = tlsCert, let tlsKey = tlsKey {
-			if let caCert = caCert {
-				try app.middleware.use(CertificateAuthMiddleware(caCert: caCert))
+			serverConfiguration.tlsConfiguration = try TLSConfiguration.makeServerConfiguration(caCert: caCert, tlsKey: tlsKey, tlsCert: tlsCert)
+			
+			if caCert != nil {
+				serverConfiguration.customCertificateVerifyCallbackWithMetadata = { peerCerts, successPromise in
+					successPromise.succeed(.certificateVerified(VerificationMetadata(ValidatedCertificateChain(peerCerts))))
+				}
 			}
-
-			let tlsConfiguration = try TLSConfiguration.makeServerConfiguration(
-				tlsKey: tlsKey,
-				tlsCert: tlsCert
-			)
-
-			serverConfiguration.tlsConfiguration = tlsConfiguration
 		}
 
 		app.http.server.configuration = serverConfiguration
@@ -176,8 +155,8 @@ final class LXDRESTServer: Sendable {
 	}
 
 	/// Shuts down the HTTP server and releases resources.
-	func shutdown() {
-		app.shutdown()
+	func shutdown() async {
+		try? await app.asyncShutdown()
 	}
 }
 
