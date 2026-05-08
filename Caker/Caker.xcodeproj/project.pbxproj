@@ -197,6 +197,13 @@
 		9B602F9E2FAA56FA00055543 /* Routes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F952FAA56FA00055543 /* Routes.swift */; };
 		9B602F9F2FAA56FA00055543 /* LXDImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F8C2FAA56FA00055543 /* LXDImagesController.swift */; };
 		9B602FA22FAA5C3800055543 /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B602FA12FAA5C3800055543 /* Vapor */; };
+		9B6031352FAD103F00055543 /* LXDAuthGroupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6031332FAD103F00055543 /* LXDAuthGroupStore.swift */; };
+		9B6031362FAD103F00055543 /* LXDIdentityStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6031342FAD103F00055543 /* LXDIdentityStore.swift */; };
+		9B6031392FAD105700055543 /* LXDIdentitiesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6031382FAD105700055543 /* LXDIdentitiesController.swift */; };
+		9B60313A2FAD105700055543 /* LXDAuthGroupsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6031372FAD105700055543 /* LXDAuthGroupsController.swift */; };
+		9B60313D2FAD2BF700055543 /* LXDCertificateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B60313B2FAD2BF700055543 /* LXDCertificateStore.swift */; };
+		9B60313E2FAD2BF700055543 /* LXDStorePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B60313C2FAD2BF700055543 /* LXDStorePersistence.swift */; };
+		9B6031402FAD2C0A00055543 /* LXDCertificatesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B60313F2FAD2C0A00055543 /* LXDCertificatesController.swift */; };
 		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
@@ -870,6 +877,13 @@
 		9B602F932FAA56FA00055543 /* LXDOperationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDOperationStore.swift; sourceTree = "<group>"; };
 		9B602F942FAA56FA00055543 /* LXDRESTServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDRESTServer.swift; sourceTree = "<group>"; };
 		9B602F952FAA56FA00055543 /* Routes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routes.swift; sourceTree = "<group>"; };
+		9B6031332FAD103F00055543 /* LXDAuthGroupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDAuthGroupStore.swift; sourceTree = "<group>"; };
+		9B6031342FAD103F00055543 /* LXDIdentityStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDIdentityStore.swift; sourceTree = "<group>"; };
+		9B6031372FAD105700055543 /* LXDAuthGroupsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDAuthGroupsController.swift; sourceTree = "<group>"; };
+		9B6031382FAD105700055543 /* LXDIdentitiesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDIdentitiesController.swift; sourceTree = "<group>"; };
+		9B60313B2FAD2BF700055543 /* LXDCertificateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDCertificateStore.swift; sourceTree = "<group>"; };
+		9B60313C2FAD2BF700055543 /* LXDStorePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDStorePersistence.swift; sourceTree = "<group>"; };
+		9B60313F2FAD2C0A00055543 /* LXDCertificatesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDCertificatesController.swift; sourceTree = "<group>"; };
 		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
 		9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
@@ -1738,6 +1752,9 @@
 		9B602F912FAA56FA00055543 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				9B6031372FAD105700055543 /* LXDAuthGroupsController.swift */,
+				9B60313F2FAD2C0A00055543 /* LXDCertificatesController.swift */,
+				9B6031382FAD105700055543 /* LXDIdentitiesController.swift */,
 				9B602F8C2FAA56FA00055543 /* LXDImagesController.swift */,
 				9B602F8D2FAA56FA00055543 /* LXDInstancesController.swift */,
 				9B602F8E2FAA56FA00055543 /* LXDNetworksController.swift */,
@@ -1750,11 +1767,15 @@
 		9B602F962FAA56FA00055543 /* REST */ = {
 			isa = PBXGroup;
 			children = (
-				9B602F912FAA56FA00055543 /* Controllers */,
+				9B6031332FAD103F00055543 /* LXDAuthGroupStore.swift */,
+				9B60313B2FAD2BF700055543 /* LXDCertificateStore.swift */,
+				9B6031342FAD103F00055543 /* LXDIdentityStore.swift */,
 				9B602F922FAA56FA00055543 /* LXDModels.swift */,
 				9B602F932FAA56FA00055543 /* LXDOperationStore.swift */,
 				9B602F942FAA56FA00055543 /* LXDRESTServer.swift */,
+				9B60313C2FAD2BF700055543 /* LXDStorePersistence.swift */,
 				9B602F952FAA56FA00055543 /* Routes.swift */,
+				9B602F912FAA56FA00055543 /* Controllers */,
 			);
 			path = REST;
 			sourceTree = "<group>";
@@ -2938,11 +2959,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B6031352FAD103F00055543 /* LXDAuthGroupStore.swift in Sources */,
+				9B6031362FAD103F00055543 /* LXDIdentityStore.swift in Sources */,
 				9BB149202EC760F70094D950 /* Pull.swift in Sources */,
 				9BB149222EC760FE0094D950 /* Push.swift in Sources */,
 				9B9711C02DFF3284005B161B /* Import.swift in Sources */,
 				9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */,
+				9B6031392FAD105700055543 /* LXDIdentitiesController.swift in Sources */,
+				9B60313A2FAD105700055543 /* LXDAuthGroupsController.swift in Sources */,
 				9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */,
 				9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC6D22DF4400A0092B196 /* RemoteHandler.swift in Sources */,
@@ -2998,6 +3023,8 @@
 				9B82D3182F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift in Sources */,
 				9BEBC6F42DF4400A0092B196 /* Root.swift in Sources */,
 				9BEBC6F52DF4400A0092B196 /* MainApp.swift in Sources */,
+				9B60313D2FAD2BF700055543 /* LXDCertificateStore.swift in Sources */,
+				9B60313E2FAD2BF700055543 /* LXDStorePersistence.swift in Sources */,
 				9BEBC6F62DF4400A0092B196 /* Delete.swift in Sources */,
 				9BBF79BD2F3DD73700F37D2C /* CurrentStatusHandler.swift in Sources */,
 				9BEBC6F72DF4400A0092B196 /* CakedProvider.swift in Sources */,
@@ -3009,6 +3036,7 @@
 				9BEBC6FC2DF4400A0092B196 /* Unmount.swift in Sources */,
 				9BEBC6FD2DF4400A0092B196 /* StopHandler.swift in Sources */,
 				9BEBC6FE2DF4400A0092B196 /* Certificates.swift in Sources */,
+				9B6031402FAD2C0A00055543 /* LXDCertificatesController.swift in Sources */,
 				9BEBC6FF2DF4400A0092B196 /* LoginHandler.swift in Sources */,
 				9BB149182EC74B830094D950 /* PullHandler.swift in Sources */,
 				9BEBC7002DF4400A0092B196 /* Rename.swift in Sources */,

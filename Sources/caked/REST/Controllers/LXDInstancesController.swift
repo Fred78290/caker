@@ -39,14 +39,49 @@ struct LXDInstancesController: RouteCollection {
 		return try await response.encodeResponse(for: req)
 	}
 
-	// POST /1.0/instances → not supported, instances are created via cakectl build
+	// POST /1.0/instances → create and build a new Linux VM asynchronously
 	@Sendable
 	func createInstance(req: Request) async throws -> Response {
-		let errResp = LXDResponse<LXDEmptyMetadata>.error(
-			message: "Instance creation via REST API is not supported. Use cakectl build instead.",
-			code: 501
+		let body = try req.content.decode(LXDCreateInstanceRequest.self)
+
+		var userDataPath: String? = nil
+		var networkConfigPath: String? = nil
+
+		if let raw = body.userData, raw.isEmpty == false {
+			userDataPath = try Utils.saveToTempFile(Data(raw.utf8))
+		}
+		if let raw = body.networkConfig, raw.isEmpty == false {
+			networkConfigPath = try Utils.saveToTempFile(Data(raw.utf8))
+		}
+
+		let buildOptions = BuildOptions(
+			name: body.name,
+			cpu: body.cpuCount,
+			memory: body.memoryMB,
+			diskSize: body.diskGB,
+			image: body.imageURL,
+			userData: userDataPath,
+			networkConfig: networkConfigPath
 		)
-		return try await errResp.encodeResponse(status: .notImplemented, for: req)
+
+		let operation = await LXDOperationStore.shared.create(
+			description: "Creating instance \(body.name)",
+			resources: ["instances": ["/1.0/instances/\(body.name)"]]
+		)
+
+		let opID = operation.id
+		let rm = runMode
+
+		Task.detached {
+			let result = await CakedLib.BuildHandler.build(options: buildOptions, runMode: rm) { _ in }
+			// Clean up temp files regardless of outcome
+			[userDataPath, networkConfigPath].compactMap { $0 }.forEach {
+				try? FileManager.default.removeItem(atPath: $0)
+			}
+			await LXDOperationStore.shared.complete(id: opID, success: result.builded, error: result.reason)
+		}
+
+		return try await LXDAsyncResponse.make(operation: operation).encodeResponse(status: .accepted, for: req)
 	}
 
 	// GET /1.0/instances/:name

@@ -90,6 +90,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--web-ui=~/Projects/GitHub/caker/webui/dist"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--log-level"
             isEnabled = "YES">
          </CommandLineArgument>

@@ -63,6 +63,9 @@ extension Service {
 		@Option(name: [.customLong("rest-port")], help: ArgumentHelp(String(localized: "Override LXD REST API listen port"), discussion: "By default LXD will listen on 8443 for https and 8080 for http"))
 		var restPort: Int = 0
 
+		@Option(name: [.customLong("web-ui")], help: ArgumentHelp(String(localized: "Path to web UI static files directory"), discussion: "When provided, caked serves the web UI under /ui"))
+		var webUIDirectory: String? = nil
+
 		var runMode: Utils.RunMode {
 			self.asSystem ? .system : .user
 		}
@@ -252,7 +255,7 @@ extension Service {
 
 				if let listen = components.url {
 					do {
-						restServer = try await LXDRESTServer(group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode)
+						restServer = try await LXDRESTServer(group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.options.webUIDirectory)
 						try restServer?.start()
 						logger.info("LXD REST API listening on \(listen)")
 					} catch {

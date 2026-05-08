@@ -363,6 +363,87 @@ struct LXDNetworkCounters: Content {
 	}
 }
 
+// MARK: - Create Instance Request
+
+/// Source descriptor for a new LXD instance.
+struct LXDInstanceSource: Content {
+	/// "image" (LXD alias / fingerprint), "url" (direct cloud-image URL), or "none".
+	var type: String
+	/// LXD image alias, e.g. "ubuntu:noble" (used when type == "image").
+	var alias: String?
+	/// Direct cloud-image download URL (used when type == "url").
+	var url: String?
+	/// Image fingerprint (used when type == "image").
+	var fingerprint: String?
+}
+
+/// Body for POST /1.0/instances (subset of the LXD API).
+struct LXDCreateInstanceRequest: Content {
+	var name: String
+	var source: LXDInstanceSource
+	/// Supported keys: limits.cpu, limits.memory (e.g. "2048MB"), limits.disk (e.g. "20GB").
+	var config: [String: String]?
+	var description: String?
+	/// Must be "virtual-machine" (the only type Caker supports).
+	var type: String?
+	var profiles: [String]?
+	/// Inline cloud-init user-data content (passed verbatim to cloud-init).
+	var userData: String?
+	/// Inline cloud-init network-config content (passed verbatim to cloud-init).
+	var networkConfig: String?
+
+	enum CodingKeys: String, CodingKey {
+		case name, source, config, description, type, profiles
+		case userData = "user_data"
+		case networkConfig = "network_config"
+	}
+
+	// MARK: Derived helpers
+
+	/// Number of vCPUs, defaults to 1.
+	var cpuCount: UInt16 {
+		guard let raw = config?["limits.cpu"], let n = UInt16(raw) else { return 1 }
+		return max(1, n)
+	}
+
+	/// Memory in MiB, defaults to 512. Parses "NGB", "NMB", or plain integer.
+	var memoryMB: UInt64 {
+		guard let raw = config?["limits.memory"] else { return 512 }
+		if raw.hasSuffix("GiB") || raw.hasSuffix("GB") {
+			let digits = raw.drop(while: { !$0.isNumber }).prefix(while: { $0.isNumber })
+			return (UInt64(digits) ?? 1) * 1024
+		} else if raw.hasSuffix("MiB") || raw.hasSuffix("MB") {
+			let digits = raw.prefix(while: { $0.isNumber || $0 == "-" })
+			return UInt64(digits) ?? 512
+		}
+		return UInt64(raw) ?? 512
+	}
+
+	/// Disk size in GiB, defaults to 10.
+	var diskGB: UInt64 {
+		guard let raw = config?["limits.disk"] else { return 10 }
+		if raw.hasSuffix("GiB") || raw.hasSuffix("GB") {
+			let digits = raw.prefix(while: { $0.isNumber })
+			return UInt64(digits) ?? 10
+		}
+		return UInt64(raw) ?? 10
+	}
+
+	/// Resolves the cloud-image URL or LXD image alias to pass to BuildOptions.
+	var imageURL: String {
+		switch source.type {
+		case "url":
+			return source.url?.isEmpty == false ? source.url! : defaultUbuntuImage
+		case "image":
+			if let alias = source.alias, alias.isEmpty == false { return alias }
+			if let fp = source.fingerprint, fp.isEmpty == false { return fp }
+			return defaultUbuntuImage
+		default:
+			return defaultUbuntuImage
+		}
+	}
+}
+
 // MARK: - State Change Request
 
 struct LXDStateChangeRequest: Content {
@@ -415,6 +496,184 @@ struct LXDNetwork: Content {
 	}
 }
 
+// MARK: - Identity List Metadata
+
+/// Encodes/decodes as a plain JSON array of LXDIdentity.
+struct LXDIdentityListMetadata: Content {
+	var items: [LXDIdentity]
+
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.singleValueContainer()
+		try container.encode(items)
+	}
+
+	init(from decoder: Decoder) throws {
+		items = try decoder.singleValueContainer().decode([LXDIdentity].self)
+	}
+
+	init(_ items: [LXDIdentity]) {
+		self.items = items
+	}
+}
+
+extension LXDResponse where T == LXDIdentityListMetadata {
+	static func syncIdentities(_ items: [LXDIdentity]) -> LXDResponse<LXDIdentityListMetadata> {
+		LXDResponse(type: "sync", status: "Success", statusCode: 200, operation: "", errorCode: 0, error: "", metadata: LXDIdentityListMetadata(items))
+	}
+}
+
+// MARK: - Identity Models
+
+struct LXDIdentity: Content {
+	var authenticationMethod: String
+	var type: String
+	var id: String
+	var name: String
+	var groups: [String]
+	var tlsCertificate: String
+
+	enum CodingKeys: String, CodingKey {
+		case type, id, name, groups
+		case authenticationMethod = "authentication_method"
+		case tlsCertificate = "tls_certificate"
+	}
+}
+
+struct LXDIdentityPut: Content {
+	var groups: [String]?
+	var tlsCertificate: String?
+
+	enum CodingKeys: String, CodingKey {
+		case groups
+		case tlsCertificate = "tls_certificate"
+	}
+}
+
+/// Body for POST /1.0/auth/identities/tls
+struct LXDIdentitiesTLSPost: Content {
+	var name: String
+	var trustToken: String?
+	var token: Bool?
+	var certificate: String?
+	var groups: [String]?
+
+	enum CodingKeys: String, CodingKey {
+		case name, token, certificate, groups
+		case trustToken = "trust_token"
+	}
+}
+
+/// Body for POST /1.0/auth/identities/bearer
+struct LXDIdentitiesBearerPost: Content {
+	var type: String
+	var name: String
+	var groups: [String]?
+}
+
+struct LXDIdentityBearerToken: Content {
+	var token: String
+}
+
+struct LXDIdentityBearerTokenPost: Content {
+	var expiry: String?
+}
+
+/// Returned by GET /1.0/auth/identities/current
+struct LXDIdentityInfo: Content {
+	var authenticationMethod: String
+	var type: String
+	var id: String
+	var name: String
+	var groups: [String]
+	var tlsCertificate: String
+	var effectiveGroups: [String]
+	var effectivePermissions: [LXDAuthGroupPermission]
+	var fineGrained: Bool
+	var expiresAt: String?
+
+	enum CodingKeys: String, CodingKey {
+		case type, id, name, groups
+		case authenticationMethod = "authentication_method"
+		case tlsCertificate = "tls_certificate"
+		case effectiveGroups = "effective_groups"
+		case effectivePermissions = "effective_permissions"
+		case fineGrained = "fine_grained"
+		case expiresAt = "expires_at"
+	}
+}
+
+// MARK: - Auth Group Models
+
+struct LXDAuthGroupPermission: Content {
+	var entityType: String
+	var url: String
+	var entitlement: String
+
+	enum CodingKeys: String, CodingKey {
+		case entityType = "entity_type"
+		case url
+		case entitlement
+	}
+}
+
+struct LXDAuthGroupIdentities: Content {
+	var oidc: [String]
+	var tls: [String]
+}
+
+struct LXDAuthGroup: Content {
+	var name: String
+	var description: String
+	var permissions: [LXDAuthGroupPermission]
+	var identities: LXDAuthGroupIdentities
+	var identityProviderGroups: [String]
+
+	enum CodingKeys: String, CodingKey {
+		case name, description, permissions, identities
+		case identityProviderGroups = "identity_provider_groups"
+	}
+}
+
+/// Body for POST /1.0/auth/groups (create) and PUT/PATCH (update).
+struct LXDAuthGroupWriteRequest: Content {
+	var name: String?
+	var description: String?
+	var permissions: [LXDAuthGroupPermission]?
+	var identities: LXDAuthGroupIdentities?
+	var identityProviderGroups: [String]?
+
+	enum CodingKeys: String, CodingKey {
+		case name, description, permissions, identities
+		case identityProviderGroups = "identity_provider_groups"
+	}
+}
+
+// MARK: - Image List Metadata
+
+/// Encodes/decodes as a plain JSON array of LXDImage.
+struct LXDImageListMetadata: Content {
+	var items: [LXDImage]
+
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.singleValueContainer()
+		try container.encode(items)
+	}
+
+	init(from decoder: Decoder) throws {
+		items = try decoder.singleValueContainer().decode([LXDImage].self)
+	}
+
+	init(_ items: [LXDImage]) {
+		self.items = items
+	}
+}
+
+extension LXDResponse where T == LXDImageListMetadata {
+	static func syncImages(_ items: [LXDImage]) -> LXDResponse<LXDImageListMetadata> {
+		LXDResponse(type: "sync", status: "Success", statusCode: 200, operation: "", errorCode: 0, error: "", metadata: LXDImageListMetadata(items))
+	}
+}
+
 // MARK: - Image Models
 
 struct LXDImage: Content {
@@ -446,4 +705,65 @@ struct LXDImage: Content {
 struct LXDImageAlias: Content {
 	var description: String
 	var name: String
+}
+
+// MARK: - Certificate List Metadata
+
+/// Encodes/decodes as a plain JSON array of LXDCertificate.
+struct LXDCertificateListMetadata: Content {
+	var items: [LXDCertificate]
+
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.singleValueContainer()
+		try container.encode(items)
+	}
+
+	init(from decoder: Decoder) throws {
+		items = try decoder.singleValueContainer().decode([LXDCertificate].self)
+	}
+
+	init(_ items: [LXDCertificate]) {
+		self.items = items
+	}
+}
+
+extension LXDResponse where T == LXDCertificateListMetadata {
+	static func syncCertificates(_ items: [LXDCertificate]) -> LXDResponse<LXDCertificateListMetadata> {
+		LXDResponse(type: "sync", status: "Success", statusCode: 200, operation: "", errorCode: 0, error: "", metadata: LXDCertificateListMetadata(items))
+	}
+}
+
+// MARK: - Certificate Models
+
+struct LXDCertificate: Content {
+	var name: String
+	var type: String
+	var restricted: Bool
+	var projects: [String]
+	var certificate: String
+	var fingerprint: String
+}
+
+struct LXDCertificatesPost: Content {
+	var name: String
+	var type: String
+	var restricted: Bool
+	var projects: [String]?
+	var certificate: String?
+	var password: String?
+	var trustToken: String?
+	var token: Bool?
+
+	enum CodingKeys: String, CodingKey {
+		case name, type, restricted, projects, certificate, password, token
+		case trustToken = "trust_token"
+	}
+}
+
+struct LXDCertificatePut: Content {
+	var name: String?
+	var type: String?
+	var restricted: Bool?
+	var projects: [String]?
+	var certificate: String?
 }

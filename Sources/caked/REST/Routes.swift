@@ -15,4 +15,7 @@ func registerLXDRoutes(_ app: Application, runMode: Utils.RunMode) throws {
 	try app.register(collection: LXDNetworksController(runMode: runMode))
 	try app.register(collection: LXDOperationsController())
 	try app.register(collection: LXDImagesController(runMode: runMode))
+	try app.register(collection: LXDAuthGroupsController())
+	try app.register(collection: LXDIdentitiesController())
+	try app.register(collection: LXDCertificatesController())
 }
