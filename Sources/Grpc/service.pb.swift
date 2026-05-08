@@ -2634,81 +2634,128 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public struct VirtualMachineInfo: Sendable {
+        public struct VirtualMachineInfo: @unchecked Sendable {
           // SwiftProtobuf.Message conformance is added in an extension below. See the
           // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
           // methods supported on all messages.
 
-          public var type: String = String()
+          public var type: String {
+            get {_storage._type}
+            set {_uniqueStorage()._type = newValue}
+          }
 
-          public var source: String = String()
+          public var source: String {
+            get {_storage._source}
+            set {_uniqueStorage()._source = newValue}
+          }
 
-          public var name: String = String()
+          public var name: String {
+            get {_storage._name}
+            set {_uniqueStorage()._name = newValue}
+          }
 
-          public var fqn: [String] = []
+          public var fqn: [String] {
+            get {_storage._fqn}
+            set {_uniqueStorage()._fqn = newValue}
+          }
 
           public var instanceID: String {
-            get {_instanceID ?? String()}
-            set {_instanceID = newValue}
+            get {_storage._instanceID ?? String()}
+            set {_uniqueStorage()._instanceID = newValue}
           }
           /// Returns true if `instanceID` has been explicitly set.
-          public var hasInstanceID: Bool {self._instanceID != nil}
+          public var hasInstanceID: Bool {_storage._instanceID != nil}
           /// Clears the value of `instanceID`. Subsequent reads from it will return its default value.
-          public mutating func clearInstanceID() {self._instanceID = nil}
+          public mutating func clearInstanceID() {_uniqueStorage()._instanceID = nil}
 
-          public var diskSize: UInt64 = 0
+          public var diskSize: UInt64 {
+            get {_storage._diskSize}
+            set {_uniqueStorage()._diskSize = newValue}
+          }
 
-          public var sizeOnDisk: UInt64 = 0
+          public var sizeOnDisk: UInt64 {
+            get {_storage._sizeOnDisk}
+            set {_uniqueStorage()._sizeOnDisk = newValue}
+          }
 
-          public var state: String = String()
+          public var state: String {
+            get {_storage._state}
+            set {_uniqueStorage()._state = newValue}
+          }
 
-          public var vncURL: [String] = []
+          public var vncURL: [String] {
+            get {_storage._vncURL}
+            set {_uniqueStorage()._vncURL = newValue}
+          }
 
           public var ip: String {
-            get {_ip ?? String()}
-            set {_ip = newValue}
+            get {_storage._ip ?? String()}
+            set {_uniqueStorage()._ip = newValue}
           }
           /// Returns true if `ip` has been explicitly set.
-          public var hasIp: Bool {self._ip != nil}
+          public var hasIp: Bool {_storage._ip != nil}
           /// Clears the value of `ip`. Subsequent reads from it will return its default value.
-          public mutating func clearIp() {self._ip = nil}
+          public mutating func clearIp() {_uniqueStorage()._ip = nil}
 
           public var fingerprint: String {
-            get {_fingerprint ?? String()}
-            set {_fingerprint = newValue}
+            get {_storage._fingerprint ?? String()}
+            set {_uniqueStorage()._fingerprint = newValue}
           }
           /// Returns true if `fingerprint` has been explicitly set.
-          public var hasFingerprint: Bool {self._fingerprint != nil}
+          public var hasFingerprint: Bool {_storage._fingerprint != nil}
           /// Clears the value of `fingerprint`. Subsequent reads from it will return its default value.
-          public mutating func clearFingerprint() {self._fingerprint = nil}
+          public mutating func clearFingerprint() {_uniqueStorage()._fingerprint = nil}
 
           public var configuration: Caked_Caked.Configuration {
-            get {_configuration ?? Caked_Caked.Configuration()}
-            set {_configuration = newValue}
+            get {_storage._configuration ?? Caked_Caked.Configuration()}
+            set {_uniqueStorage()._configuration = newValue}
           }
           /// Returns true if `configuration` has been explicitly set.
-          public var hasConfiguration: Bool {self._configuration != nil}
+          public var hasConfiguration: Bool {_storage._configuration != nil}
           /// Clears the value of `configuration`. Subsequent reads from it will return its default value.
-          public mutating func clearConfiguration() {self._configuration = nil}
+          public mutating func clearConfiguration() {_uniqueStorage()._configuration = nil}
 
           public var screenSize: Caked_Caked.ScreenSize {
-            get {_screenSize ?? Caked_Caked.ScreenSize()}
-            set {_screenSize = newValue}
+            get {_storage._screenSize ?? Caked_Caked.ScreenSize()}
+            set {_uniqueStorage()._screenSize = newValue}
           }
           /// Returns true if `screenSize` has been explicitly set.
-          public var hasScreenSize: Bool {self._screenSize != nil}
+          public var hasScreenSize: Bool {_storage._screenSize != nil}
           /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
-          public mutating func clearScreenSize() {self._screenSize = nil}
+          public mutating func clearScreenSize() {_uniqueStorage()._screenSize = nil}
+
+          public var created: Double {
+            get {_storage._created ?? 0}
+            set {_uniqueStorage()._created = newValue}
+          }
+          /// Returns true if `created` has been explicitly set.
+          public var hasCreated: Bool {_storage._created != nil}
+          /// Clears the value of `created`. Subsequent reads from it will return its default value.
+          public mutating func clearCreated() {_uniqueStorage()._created = nil}
+
+          public var updated: Double {
+            get {_storage._updated ?? 0}
+            set {_uniqueStorage()._updated = newValue}
+          }
+          /// Returns true if `updated` has been explicitly set.
+          public var hasUpdated: Bool {_storage._updated != nil}
+          /// Clears the value of `updated`. Subsequent reads from it will return its default value.
+          public mutating func clearUpdated() {_uniqueStorage()._updated = nil}
+
+          public var lastUsed: Double {
+            get {_storage._lastUsed ?? 0}
+            set {_uniqueStorage()._lastUsed = newValue}
+          }
+          /// Returns true if `lastUsed` has been explicitly set.
+          public var hasLastUsed: Bool {_storage._lastUsed != nil}
+          /// Clears the value of `lastUsed`. Subsequent reads from it will return its default value.
+          public mutating func clearLastUsed() {_uniqueStorage()._lastUsed = nil}
 
           public var unknownFields = SwiftProtobuf.UnknownStorage()
 
           public init() {}
 
-          fileprivate var _instanceID: String? = nil
-          fileprivate var _ip: String? = nil
-          fileprivate var _fingerprint: String? = nil
-          fileprivate var _configuration: Caked_Caked.Configuration? = nil
-          fileprivate var _screenSize: Caked_Caked.ScreenSize? = nil
+          fileprivate var _storage = _StorageClass.defaultInstance
         }
 
         public init() {}
@@ -9177,93 +9224,174 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply: SwiftPr
 
 extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.protoMessageName + ".VirtualMachineInfo"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}type\0\u{1}source\0\u{1}name\0\u{1}fqn\0\u{1}instanceID\0\u{1}diskSize\0\u{1}sizeOnDisk\0\u{1}state\0\u{1}vncURL\0\u{1}ip\0\u{1}fingerprint\0\u{1}configuration\0\u{1}screenSize\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}type\0\u{1}source\0\u{1}name\0\u{1}fqn\0\u{1}instanceID\0\u{1}diskSize\0\u{1}sizeOnDisk\0\u{1}state\0\u{1}vncURL\0\u{1}ip\0\u{1}fingerprint\0\u{1}configuration\0\u{1}screenSize\0\u{1}created\0\u{1}updated\0\u{1}lastUsed\0")
+
+  fileprivate class _StorageClass {
+    var _type: String = String()
+    var _source: String = String()
+    var _name: String = String()
+    var _fqn: [String] = []
+    var _instanceID: String? = nil
+    var _diskSize: UInt64 = 0
+    var _sizeOnDisk: UInt64 = 0
+    var _state: String = String()
+    var _vncURL: [String] = []
+    var _ip: String? = nil
+    var _fingerprint: String? = nil
+    var _configuration: Caked_Caked.Configuration? = nil
+    var _screenSize: Caked_Caked.ScreenSize? = nil
+    var _created: Double? = nil
+    var _updated: Double? = nil
+    var _lastUsed: Double? = nil
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _type = source._type
+      _source = source._source
+      _name = source._name
+      _fqn = source._fqn
+      _instanceID = source._instanceID
+      _diskSize = source._diskSize
+      _sizeOnDisk = source._sizeOnDisk
+      _state = source._state
+      _vncURL = source._vncURL
+      _ip = source._ip
+      _fingerprint = source._fingerprint
+      _configuration = source._configuration
+      _screenSize = source._screenSize
+      _created = source._created
+      _updated = source._updated
+      _lastUsed = source._lastUsed
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.type) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.source) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self.name) }()
-      case 4: try { try decoder.decodeRepeatedStringField(value: &self.fqn) }()
-      case 5: try { try decoder.decodeSingularStringField(value: &self._instanceID) }()
-      case 6: try { try decoder.decodeSingularUInt64Field(value: &self.diskSize) }()
-      case 7: try { try decoder.decodeSingularUInt64Field(value: &self.sizeOnDisk) }()
-      case 8: try { try decoder.decodeSingularStringField(value: &self.state) }()
-      case 9: try { try decoder.decodeRepeatedStringField(value: &self.vncURL) }()
-      case 10: try { try decoder.decodeSingularStringField(value: &self._ip) }()
-      case 11: try { try decoder.decodeSingularStringField(value: &self._fingerprint) }()
-      case 12: try { try decoder.decodeSingularMessageField(value: &self._configuration) }()
-      case 13: try { try decoder.decodeSingularMessageField(value: &self._screenSize) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._type) }()
+        case 2: try { try decoder.decodeSingularStringField(value: &_storage._source) }()
+        case 3: try { try decoder.decodeSingularStringField(value: &_storage._name) }()
+        case 4: try { try decoder.decodeRepeatedStringField(value: &_storage._fqn) }()
+        case 5: try { try decoder.decodeSingularStringField(value: &_storage._instanceID) }()
+        case 6: try { try decoder.decodeSingularUInt64Field(value: &_storage._diskSize) }()
+        case 7: try { try decoder.decodeSingularUInt64Field(value: &_storage._sizeOnDisk) }()
+        case 8: try { try decoder.decodeSingularStringField(value: &_storage._state) }()
+        case 9: try { try decoder.decodeRepeatedStringField(value: &_storage._vncURL) }()
+        case 10: try { try decoder.decodeSingularStringField(value: &_storage._ip) }()
+        case 11: try { try decoder.decodeSingularStringField(value: &_storage._fingerprint) }()
+        case 12: try { try decoder.decodeSingularMessageField(value: &_storage._configuration) }()
+        case 13: try { try decoder.decodeSingularMessageField(value: &_storage._screenSize) }()
+        case 14: try { try decoder.decodeSingularDoubleField(value: &_storage._created) }()
+        case 15: try { try decoder.decodeSingularDoubleField(value: &_storage._updated) }()
+        case 16: try { try decoder.decodeSingularDoubleField(value: &_storage._lastUsed) }()
+        default: break
+        }
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.type.isEmpty {
-      try visitor.visitSingularStringField(value: self.type, fieldNumber: 1)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if !_storage._type.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._type, fieldNumber: 1)
+      }
+      if !_storage._source.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._source, fieldNumber: 2)
+      }
+      if !_storage._name.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._name, fieldNumber: 3)
+      }
+      if !_storage._fqn.isEmpty {
+        try visitor.visitRepeatedStringField(value: _storage._fqn, fieldNumber: 4)
+      }
+      try { if let v = _storage._instanceID {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 5)
+      } }()
+      if _storage._diskSize != 0 {
+        try visitor.visitSingularUInt64Field(value: _storage._diskSize, fieldNumber: 6)
+      }
+      if _storage._sizeOnDisk != 0 {
+        try visitor.visitSingularUInt64Field(value: _storage._sizeOnDisk, fieldNumber: 7)
+      }
+      if !_storage._state.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._state, fieldNumber: 8)
+      }
+      if !_storage._vncURL.isEmpty {
+        try visitor.visitRepeatedStringField(value: _storage._vncURL, fieldNumber: 9)
+      }
+      try { if let v = _storage._ip {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 10)
+      } }()
+      try { if let v = _storage._fingerprint {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 11)
+      } }()
+      try { if let v = _storage._configuration {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
+      } }()
+      try { if let v = _storage._screenSize {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
+      } }()
+      try { if let v = _storage._created {
+        try visitor.visitSingularDoubleField(value: v, fieldNumber: 14)
+      } }()
+      try { if let v = _storage._updated {
+        try visitor.visitSingularDoubleField(value: v, fieldNumber: 15)
+      } }()
+      try { if let v = _storage._lastUsed {
+        try visitor.visitSingularDoubleField(value: v, fieldNumber: 16)
+      } }()
     }
-    if !self.source.isEmpty {
-      try visitor.visitSingularStringField(value: self.source, fieldNumber: 2)
-    }
-    if !self.name.isEmpty {
-      try visitor.visitSingularStringField(value: self.name, fieldNumber: 3)
-    }
-    if !self.fqn.isEmpty {
-      try visitor.visitRepeatedStringField(value: self.fqn, fieldNumber: 4)
-    }
-    try { if let v = self._instanceID {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
-    } }()
-    if self.diskSize != 0 {
-      try visitor.visitSingularUInt64Field(value: self.diskSize, fieldNumber: 6)
-    }
-    if self.sizeOnDisk != 0 {
-      try visitor.visitSingularUInt64Field(value: self.sizeOnDisk, fieldNumber: 7)
-    }
-    if !self.state.isEmpty {
-      try visitor.visitSingularStringField(value: self.state, fieldNumber: 8)
-    }
-    if !self.vncURL.isEmpty {
-      try visitor.visitRepeatedStringField(value: self.vncURL, fieldNumber: 9)
-    }
-    try { if let v = self._ip {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 10)
-    } }()
-    try { if let v = self._fingerprint {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 11)
-    } }()
-    try { if let v = self._configuration {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
-    } }()
-    try { if let v = self._screenSize {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo, rhs: Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo) -> Bool {
-    if lhs.type != rhs.type {return false}
-    if lhs.source != rhs.source {return false}
-    if lhs.name != rhs.name {return false}
-    if lhs.fqn != rhs.fqn {return false}
-    if lhs._instanceID != rhs._instanceID {return false}
-    if lhs.diskSize != rhs.diskSize {return false}
-    if lhs.sizeOnDisk != rhs.sizeOnDisk {return false}
-    if lhs.state != rhs.state {return false}
-    if lhs.vncURL != rhs.vncURL {return false}
-    if lhs._ip != rhs._ip {return false}
-    if lhs._fingerprint != rhs._fingerprint {return false}
-    if lhs._configuration != rhs._configuration {return false}
-    if lhs._screenSize != rhs._screenSize {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._type != rhs_storage._type {return false}
+        if _storage._source != rhs_storage._source {return false}
+        if _storage._name != rhs_storage._name {return false}
+        if _storage._fqn != rhs_storage._fqn {return false}
+        if _storage._instanceID != rhs_storage._instanceID {return false}
+        if _storage._diskSize != rhs_storage._diskSize {return false}
+        if _storage._sizeOnDisk != rhs_storage._sizeOnDisk {return false}
+        if _storage._state != rhs_storage._state {return false}
+        if _storage._vncURL != rhs_storage._vncURL {return false}
+        if _storage._ip != rhs_storage._ip {return false}
+        if _storage._fingerprint != rhs_storage._fingerprint {return false}
+        if _storage._configuration != rhs_storage._configuration {return false}
+        if _storage._screenSize != rhs_storage._screenSize {return false}
+        if _storage._created != rhs_storage._created {return false}
+        if _storage._updated != rhs_storage._updated {return false}
+        if _storage._lastUsed != rhs_storage._lastUsed {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

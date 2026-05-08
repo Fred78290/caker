@@ -797,6 +797,9 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 	public let config: CakedConfiguration?
 	public let vncURL: [String]?
 	public let screenSize: ViewSize?
+	public let created: Date?
+	public let updated: Date?
+	public let lastUsed: Date?
 
 	public var id: String {
 		self.instanceID ?? self.name
@@ -814,6 +817,24 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.mode = "caked"
 		self.ip = from.ip
 		self.fingerprint = from.fingerprint
+
+		if from.hasCreated {
+			self.created = Date(timeIntervalSince1970: from.created)
+		} else {
+			self.created = nil
+		}
+		
+		if from.hasUpdated {
+			self.updated = Date(timeIntervalSince1970: from.updated)
+		} else {
+			self.updated = nil
+		}
+
+		if from.hasLastUsed {
+			self.lastUsed = Date(timeIntervalSince1970: from.lastUsed)
+		} else {
+			self.lastUsed = nil
+		}
 
 		if from.vncURL.isEmpty == false {
 			self.vncURL = from.vncURL
@@ -850,7 +871,10 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		mode: String = "",
 		ip: String? = nil,
 		fingerprint: String? = nil,
-		config: CakedConfiguration? = nil
+		config: CakedConfiguration? = nil,
+		created: Date?,
+		updated: Date?,
+		lastUsed: Date?
 	) {
 		self.type = type
 		self.source = source
@@ -866,6 +890,9 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.fingerprint = fingerprint
 		self.config = config
 		self.screenSize = screenSize
+		self.created = created
+		self.updated = updated
+		self.lastUsed = lastUsed
 	}
 
 	public var caked: Caked_VirtualMachineInfo {
@@ -877,32 +904,44 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 			info.diskSize = self.diskSize
 			info.sizeOnDisk = self.sizeOnDisk
 			info.state = self.state
-
+			
 			if let vncURL {
 				info.vncURL = vncURL
 			}
-
+			
 			if let screenSize {
 				info.screenSize = .with {
 					$0.width = Int32(screenSize.width)
 					$0.height = Int32(screenSize.height)
 				}
 			}
-
+			
 			if let instanceID: String = self.instanceID {
 				info.instanceID = instanceID
 			}
-
+			
 			if let ip = self.ip {
 				info.ip = ip
 			}
-
+			
 			if let fingerprint = self.fingerprint {
 				info.fingerprint = fingerprint
 			}
 			
 			if let config {
 				info.configuration = config.caked
+			}
+			
+			if let created {
+				info.created = created.timeIntervalSince1970
+			}
+			
+			if let updated {
+				info.updated = updated.timeIntervalSince1970
+			}
+			
+			if let lastUsed {
+				info.lastUsed = lastUsed.timeIntervalSince1970
 			}
 		}
 	}

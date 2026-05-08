@@ -469,7 +469,10 @@ extension CakeAgentLib.Format {
 											state: vm.state,
 											mode: vm.mode,
 											ip: vm.ip,
-											fingerprint: vm.fingerprint
+											fingerprint: vm.fingerprint,
+											created: vm.created,
+											updated: vm.updated,
+											lastUsed: vm.lastUsed
 										)))
 							}
 						}

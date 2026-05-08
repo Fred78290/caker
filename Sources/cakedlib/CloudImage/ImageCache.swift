@@ -8,6 +8,8 @@ public protocol Purgeable {
 	var name: String { get }
 	var fingerprint: String? { get }
 	func delete() throws
+	func creationDate() throws -> Date
+	func updatedDate() throws -> Date
 	func accessDate() throws -> Date
 	func sizeBytes() throws -> UInt64
 	func allocatedSizeBytes() throws -> UInt64
@@ -371,6 +373,14 @@ public class SimpleStreamsImageCache: CommonCacheImageCache {
 			try FileManager.default.removeItem(at: self._url.deletingLastPathComponent())
 		}
 
+		func creationDate() throws -> Date {
+			try self._url.creationDate()
+		}
+
+		func updatedDate() throws -> Date {
+			try self._url.updatedDate()
+		}
+
 		func accessDate() throws -> Date {
 			try self._url.accessDate()
 		}
@@ -460,6 +470,14 @@ public class OCIImageCache: CommonCacheImageCache {
 			try self._url.deletingLastPathComponent().delete()
 		}
 
+		func creationDate() throws -> Date {
+			try self._url.creationDate()
+		}
+		
+		func updatedDate() throws -> Date {
+			try self._url.updatedDate()
+		}
+		
 		func accessDate() throws -> Date {
 			try self._url.accessDate()
 		}

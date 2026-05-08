@@ -46,7 +46,8 @@ struct LXDImagesController: RouteCollection {
 	/// Convert a `VirtualMachineInfo` (coming from an image cache) to `LXDImage`.
 	private func toLXDImage(_ info: VirtualMachineInfo) -> LXDImage {
 		let fp = info.fingerprint ?? info.instanceID ?? info.name
-		let now = ISO8601DateFormatter().string(from: Date())
+		let created = ISO8601DateFormatter().string(from: info.created ?? Date())
+		let lastUsedAt = ISO8601DateFormatter().string(from: info.lastUsed ?? Date())
 		let aliases = info.fqn.map { LXDImageAlias(description: info.name, name: $0) }
 
 		return LXDImage(
@@ -54,15 +55,15 @@ struct LXDImagesController: RouteCollection {
 			architecture: Architecture.current().description,
 			autoUpdate: false,
 			cached: true,
-			createdAt: now,
+			createdAt: created,
 			expiresAt: "1970-01-01T00:00:00Z",
 			filename: info.name,
 			fingerprint: fp,
-			lastUsedAt: now,
+			lastUsedAt: lastUsedAt,
 			public: false,
 			size: Int(info.diskSize),
 			type: lxdImageType(for: info.type),
-			uploadedAt: now
+			uploadedAt:  created
 		)
 	}
 

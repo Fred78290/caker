@@ -220,6 +220,14 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		rootURL.appendingPathComponent("run.pid")
 	}
 
+	public func creationDate() throws -> Date {
+		try self.rootURL.creationDate()
+	}
+	
+	public func updatedDate() throws -> Date {
+		try self.rootURL.updatedDate()
+	}
+	
 	public func accessDate() throws -> Date {
 		try self.rootURL.accessDate()
 	}

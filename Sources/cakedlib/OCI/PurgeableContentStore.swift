@@ -22,12 +22,14 @@ public class PurgeableContentStore: PurgeableStorage {
 		public var fingerprint: String?
 
 		public init(on: EventLoop, imageStore: ImageStore, image: Image, totalSize: UInt64) {
+			let fingerprint = image.digest.stringAfter(after: ":")
+
 			self.on = on
 			self.source = "oci"
 			self.name = image.reference
-			self.url = imageStore.path.appendingPathComponent("blobs/sha256").appendingPathComponent(image.digest)
+			self.url = imageStore.path.appendingPathComponent("storage/blobs/sha256").appendingPathComponent(fingerprint)
 			self.imageStore = imageStore
-			self.fingerprint = image.digest.stringAfter(after: ":")
+			self.fingerprint = fingerprint
 			self.totalSize = totalSize
 		}
 
@@ -39,6 +41,14 @@ public class PurgeableContentStore: PurgeableStorage {
 			try future.wait()
 		}
 
+		func creationDate() throws -> Date {
+			try self.url.creationDate()
+		}
+		
+		func updatedDate() throws -> Date {
+			try self.url.updatedDate()
+		}
+		
 		func accessDate() throws -> Date {
 			try self.url.accessDate()
 		}
@@ -80,3 +90,4 @@ public class PurgeableContentStore: PurgeableStorage {
 		}
 	}
 }
+

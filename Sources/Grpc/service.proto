@@ -605,6 +605,10 @@ message Caked {
           optional string        fingerprint   = 11;
           optional Configuration configuration = 12;
           optional ScreenSize    screenSize    = 13;
+          optional double        created       = 14;
+          optional double        updated       = 15;
+          optional double        lastUsed      = 16;
+
         }
 
         repeated VirtualMachineInfo infos   = 1;
