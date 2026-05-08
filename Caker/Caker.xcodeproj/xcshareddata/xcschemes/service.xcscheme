@@ -87,10 +87,14 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--secure"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--web-ui=~/Projects/GitHub/caker/webui/dist"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--no-pass-phrase"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

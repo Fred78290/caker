@@ -39,6 +39,9 @@ extension Service {
 		@Option(name: [.customLong("pass-phrase")], help: ArgumentHelp(String(localized: "access password"), discussion: String(localized: "This option allows to protect the service endpoint with a password")))
 		var password: String? = nil
 
+		@Flag(name: [.customLong("no-pass-phrase")], help: ArgumentHelp(String(localized: "Allow empty password"), discussion: String(localized: "Use this to explicitly set an empty password for the service endpoint")))
+		var noPassword: Bool = false
+
 		@Flag(name: [.customLong("insecure"), .customShort("i")], help: ArgumentHelp(String(localized: "Don't use TLS")))
 		var insecure: Bool = false
 
@@ -144,7 +147,7 @@ extension Service {
 				tlsCert = certs.cert
 			}
 
-			try ServiceHandler.installAgent(listenAddress: listenAddress, insecure: self.options.insecure, password: self.options.password, caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey, runMode: runMode)
+			try ServiceHandler.installAgent(listenAddress: listenAddress, insecure: self.options.insecure, password: (self.options.noPassword ? "" : self.options.password), caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey, runMode: runMode)
 		}
 	}
 
@@ -158,11 +161,9 @@ extension Service {
 		var options: ServiceOptions
 
 		var password: String? {
-			guard let password = options.password else {
-				return try? CakedKeyConfig.passphrase.get()
-			}
-
-			return password
+			if options.noPassword { return nil }
+			if let password = options.password { return password }
+			return try? CakedKeyConfig.passphrase.get()
 		}
 
 		mutating func validate() throws {
@@ -257,7 +258,7 @@ extension Service {
 					do {
 						restServer = try await LXDRESTServer(group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.options.webUIDirectory)
 						try restServer?.start()
-						logger.info("LXD REST API listening on \(listen)")
+						logger.info("LXD REST API listening on \(listen.hiddenPasswordURL)")
 					} catch {
 						logger.error("Failed to start LXD REST server: \(error.localizedDescription)")
 					}
@@ -361,6 +362,12 @@ extension Service {
 				if let cert = certs.cert {
 					arguments.append("--tls-cert=\(cert)")
 				}
+			}
+
+			if self.options.noPassword {
+				arguments.append("--no-pass-phrase")
+			} else if let provided = self.options.password {
+				arguments.append("--pass-phrase=\(provided)")
 			}
 
 			Logger.appendNewLine(arguments.joined(separator: " "))
