@@ -86,7 +86,7 @@ extension LXDResponse where T == LXDStringListMetadata {
 
 extension LXDResponse where T == [LXDNetwork] {
 	static func syncList(_ items: [BridgedNetwork]) -> LXDResponse<[LXDNetwork]> {
-		LXDResponse(type: "sync", status: "Success", statusCode: 200, operation: "", errorCode: 0, error: "", metadata: items.map {LXDNetwork.from(name: $0.name, network: $0) })
+		LXDResponse(type: "sync", status: "Success", statusCode: 200, operation: "", errorCode: 0, error: "", metadata: items.map {LXDNetwork.from(name: $0.name, network: $0, referencedNetworks: LXDNetwork.referencedNetworks) })
 	}
 }
 
@@ -482,7 +482,33 @@ struct LXDNetwork: Content {
 		case usedBy = "used_by"
 	}
 
-	static func from(name: String, network: BridgedNetwork) -> LXDNetwork {
+	typealias ReferencedNetworks = [String: [String]]
+
+	static var referencedNetworks: ReferencedNetworks {
+		var usedNetworks: ReferencedNetworks = ReferencedNetworks()
+
+		guard let list = try? StorageLocation(runMode: LXDRESTServer.runMode).list() else {
+			return usedNetworks
+		}
+
+		list.values.forEach { location in
+			if let config = try? location.config() {
+				config.qualifiedNetworks.forEach { network in
+					let name = network.network
+					if var vms = usedNetworks[name] {
+						vms.append(location.name)
+						usedNetworks[name] = vms
+					} else {
+						usedNetworks[name] = [location.name]
+					}
+				}
+			}
+		}
+
+		return usedNetworks
+	}
+
+	static func from(name: String, network: BridgedNetwork, referencedNetworks: ReferencedNetworks) -> LXDNetwork {
 		var config: [String: String] = [:]
 		if network.gateway.isEmpty == false {
 			config["ipv4.address"] = network.gateway
@@ -503,7 +529,7 @@ struct LXDNetwork: Content {
 			name: name,
 			status: network.endpoint.isEmpty ? "Unavailable" : "Created",
 			type: network.mode.rawValue,
-			usedBy: []
+			usedBy: referencedNetworks[name] ?? []
 		)
 	}
 }

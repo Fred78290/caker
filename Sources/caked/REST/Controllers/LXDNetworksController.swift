@@ -56,7 +56,7 @@ struct LXDNetworksController: RouteCollection {
 				.encodeResponse(status: .notFound, for: req)
 		}
 
-		let lxdNetwork = LXDNetwork.from(name: name, network: network)
+		let lxdNetwork = LXDNetwork.from(name: name, network: network, referencedNetworks: LXDNetwork.referencedNetworks)
 		return try await LXDResponse<LXDNetwork>.sync(lxdNetwork).encodeResponse(for: req)
 	}
 }
