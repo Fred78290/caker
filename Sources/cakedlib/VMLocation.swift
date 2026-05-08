@@ -54,11 +54,11 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		public var description: String {
 			switch self {
 			case .running:
-				return String(localized: "running")
+				return "running"
 			case .paused:
-				return String(localized: "paused")
+				return "paused"
 			case .stopped:
-				return String(localized: "stopped")
+				return "stopped"
 			}
 		}
 		
