@@ -34,6 +34,16 @@ struct LXDInstancesController: RouteCollection {
 	@Sendable
 	func listInstances(req: Request) async throws -> Response {
 		let reply = CakedLib.ListHandler.list(vmonly: true, includeConfig: false, runMode: runMode)
+		
+		guard reply.success else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: reply.reason)
+				.encodeResponse(status: .badRequest, for: req)
+		}
+
+		if req.query["recursion"] == "1" {
+			return try await LXDResponse<[LXDInstance]>.syncList(reply.infos).encodeResponse(for: req)
+		}
+
 		let urls = reply.infos.map { "/1.0/instances/\($0.name)" }
 		let response = LXDResponse<LXDStringListMetadata>.syncList(urls)
 		return try await response.encodeResponse(for: req)

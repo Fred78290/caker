@@ -84,6 +84,18 @@ extension LXDResponse where T == LXDStringListMetadata {
 	}
 }
 
+extension LXDResponse where T == [LXDNetwork] {
+	static func syncList(_ items: [BridgedNetwork]) -> LXDResponse<[LXDNetwork]> {
+		LXDResponse(type: "sync", status: "Success", statusCode: 200, operation: "", errorCode: 0, error: "", metadata: items.map {LXDNetwork.from(name: $0.name, network: $0) })
+	}
+}
+
+extension LXDResponse where T == [LXDInstance] {
+	static func syncList(_ items: [VirtualMachineInfo]) -> LXDResponse<[LXDInstance]> {
+		LXDResponse(type: "sync", status: "Success", statusCode: 200, operation: "", errorCode: 0, error: "", metadata: items.map {LXDInstance.from($0) })
+	}
+}
+
 // MARK: - Async Operation
 
 struct LXDOperationMetadata: Content {

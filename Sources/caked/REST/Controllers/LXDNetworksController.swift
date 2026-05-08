@@ -26,7 +26,18 @@ struct LXDNetworksController: RouteCollection {
 	@Sendable
 	func listNetworks(req: Request) async throws -> Response {
 		let reply = CakedLib.NetworksHandler.networks(runMode: runMode)
+
+		guard reply.success else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: reply.reason)
+				.encodeResponse(status: .badRequest, for: req)
+		}
+
+		if req.query["recursion"] == "1" {
+			return try await LXDResponse<[LXDNetwork]>.syncList(reply.networks).encodeResponse(for: req)
+		}
+
 		let urls = reply.networks.map { "/1.0/networks/\($0.name)" }
+
 		return try await LXDResponse<LXDStringListMetadata>.syncList(urls).encodeResponse(for: req)
 	}
 
