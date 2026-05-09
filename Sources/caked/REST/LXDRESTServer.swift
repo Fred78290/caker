@@ -109,6 +109,12 @@ private struct CertificateAuthMiddleware: Middleware {
 	}
 
 	func respond(to request: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
+		// Web UI static assets do not require a client certificate.
+		let path = request.url.path
+		if path == "/" || path.hasPrefix("/ui") {
+			return next.respond(to: request)
+		}
+
 		if let chain = request.peerCertificateChain, chain.isEmpty == false,
 		   self.peerChainIsTrusted(chain)
 		{
@@ -128,6 +134,12 @@ private struct PasswordAuthMiddleware: Middleware {
 	let password: String
 
 	func respond(to request: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
+		// Web UI static assets are public — the React app handles authentication itself.
+		let path = request.url.path
+		if path == "/" || path.hasPrefix("/ui") {
+			return next.respond(to: request)
+		}
+
 		// Allow mTLS-authenticated clients to skip password check
 		if let peerCertificateChain = request.peerCertificateChain, peerCertificateChain.isEmpty == false {
 			return next.respond(to: request)

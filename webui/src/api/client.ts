@@ -7,4 +7,21 @@ const client = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+// Apply any credential stored from a previous login in this session.
+const stored = sessionStorage.getItem('cakerCredential')
+if (stored) {
+  client.defaults.headers.common['Authorization'] = `Basic ${stored}`
+}
+
+// Notify AuthContext of 401 responses so it can reset the auth state.
+client.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err?.response?.status === 401) {
+      window.dispatchEvent(new CustomEvent('caker:unauthorized'))
+    }
+    return Promise.reject(err)
+  }
+)
+
 export default client

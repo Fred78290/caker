@@ -44,6 +44,8 @@
 		9B1500BF2E6B07EC00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BE2E6B07EC00B23147 /* Suspend.swift */; };
 		9B1500C12E6B092A00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500C02E6B092A00B23147 /* Suspend.swift */; };
 		9B15FE6B2E69CC5600B23147 /* VMSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */; };
+		9B1835182FAE4FB200D150FD /* Certificate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835172FAE4FB200D150FD /* Certificate.swift */; };
+		9B18351C2FAE58B500D150FD /* CertificateHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18351B2FAE58B500D150FD /* CertificateHandler.swift */; };
 		9B1970002F59867100B424DB /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B196FFF2F59866E00B424DB /* Root.swift */; };
 		9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */; };
 		9B2032F42F48CEA90047E197 /* CurrentStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */; };
@@ -763,6 +765,8 @@
 		9B1500BE2E6B07EC00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
 		9B1500C02E6B092A00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
 		9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMSettingsView.swift; sourceTree = "<group>"; };
+		9B1835172FAE4FB200D150FD /* Certificate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Certificate.swift; sourceTree = "<group>"; };
+		9B18351B2FAE58B500D150FD /* CertificateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateHandler.swift; sourceTree = "<group>"; };
 		9B196FFF2F59866E00B424DB /* Root.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Root.swift; sourceTree = "<group>"; };
 		9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentStatusHandler.swift; sourceTree = "<group>"; };
@@ -1622,6 +1626,7 @@
 		9B464A862D5A3E0300164BF5 /* Commands */ = {
 			isa = PBXGroup;
 			children = (
+				9B1835172FAE4FB200D150FD /* Certificate.swift */,
 				9B464A682D5A3E0300164BF5 /* Build.swift */,
 				9B464A6B2D5A3E0300164BF5 /* Configure.swift */,
 				9B464A6D2D5A3E0300164BF5 /* Delete.swift */,
@@ -1960,6 +1965,7 @@
 		9BEBC6C92DF4400A0092B196 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				9B18351B2FAE58B500D150FD /* CertificateHandler.swift */,
 				9BEBC6B22DF4400A0092B196 /* BuildHandler.swift */,
 				9BEBC6B42DF4400A0092B196 /* ConfigureHandler.swift */,
 				9BBF79BC2F3DD73500F37D2C /* CurrentStatusHandler.swift */,
@@ -2881,6 +2887,7 @@
 				9B464B6E2D5A3E8900164BF5 /* Start.swift in Sources */,
 				9B464B6F2D5A3E8900164BF5 /* Sh.swift in Sources */,
 				9B464B702D5A3E8900164BF5 /* Pull.swift in Sources */,
+				9B1835182FAE4FB200D150FD /* Certificate.swift in Sources */,
 				9BBF7B392F3E084A00F37D2C /* Restart.swift in Sources */,
 				9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */,
 				9B1500C12E6B092A00B23147 /* Suspend.swift in Sources */,
@@ -2963,6 +2970,7 @@
 				9B6031362FAD103F00055543 /* LXDIdentityStore.swift in Sources */,
 				9BB149202EC760F70094D950 /* Pull.swift in Sources */,
 				9BB149222EC760FE0094D950 /* Push.swift in Sources */,
+				9B18351C2FAE58B500D150FD /* CertificateHandler.swift in Sources */,
 				9B9711C02DFF3284005B161B /* Import.swift in Sources */,
 				9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */,

@@ -132,6 +132,8 @@ public typealias Caked_InstallAgentRequest = Caked.InstallAgentRequest
 public typealias Caked_ImageSource = Caked.Configuration.ImageSource
 public typealias Caked_VncStream = Caked_Caked.VncStream
 
+public typealias Caked_CertificateRequest = Caked_Caked.CertificateRequest
+
 extension VirtualizedOS {
 	public init?(_ from: Caked.Configuration.VirtualizedOS) {
 		switch from {

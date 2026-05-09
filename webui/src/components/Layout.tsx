@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface NavItemProps {
   to: string
@@ -34,6 +35,9 @@ function NavSection({ label }: { label: string }) {
 }
 
 export function Layout() {
+  const { logout, authMethods } = useAuth()
+  const hasPasswordAuth = authMethods.includes('basic') || authMethods.includes('bearer')
+
   return (
     <div className="d-flex" style={{ minHeight: '100vh' }}>
       {/* ── Sidebar ─────────────────────────────────────────── */}
@@ -64,6 +68,18 @@ export function Layout() {
         <NavItem to="/auth/groups" icon="people-fill" label="Groups" />
         <NavItem to="/auth/identities" icon="person-badge" label="Identities" />
         <NavItem to="/certificates" icon="shield-lock" label="Certificates" />
+
+        {/* Sign out — only when password auth is active (not mTLS-only) */}
+        {hasPasswordAuth && (
+          <button
+            onClick={logout}
+            className="nav-link mb-1 rounded px-3 py-2 d-flex align-items-center gap-2 text-white-50 link-light mt-auto border-0 bg-transparent w-100 text-start"
+            style={{ fontSize: '0.9rem' }}
+          >
+            <i className="bi bi-box-arrow-left" style={{ fontSize: '1rem' }} />
+            Sign out
+          </button>
+        )}
       </nav>
 
       {/* ── Main content ────────────────────────────────────── */}

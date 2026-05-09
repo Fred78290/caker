@@ -5436,6 +5436,119 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
+  public struct CertificateRequest: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    public var command: Caked_Caked.CertificateRequest.CertificateCommand = .none
+
+    public var request: Caked_Caked.CertificateRequest.OneOf_Request? = nil
+
+    public var addRequest: Caked_Caked.CertificateRequest.CertificateAddRequest {
+      get {
+        if case .addRequest(let v)? = request {return v}
+        return Caked_Caked.CertificateRequest.CertificateAddRequest()
+      }
+      set {request = .addRequest(newValue)}
+    }
+
+    public var deleteRequest: Caked_Caked.CertificateRequest.CertificateDelete {
+      get {
+        if case .deleteRequest(let v)? = request {return v}
+        return Caked_Caked.CertificateRequest.CertificateDelete()
+      }
+      set {request = .deleteRequest(newValue)}
+    }
+
+    public var listRequest: Bool {
+      get {
+        if case .listRequest(let v)? = request {return v}
+        return false
+      }
+      set {request = .listRequest(newValue)}
+    }
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    public enum OneOf_Request: Equatable, Sendable {
+      case addRequest(Caked_Caked.CertificateRequest.CertificateAddRequest)
+      case deleteRequest(Caked_Caked.CertificateRequest.CertificateDelete)
+      case listRequest(Bool)
+
+    }
+
+    public enum CertificateCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
+      public typealias RawValue = Int
+      case none // = 0
+      case add // = 1
+      case delete // = 2
+      case list // = 3
+      case UNRECOGNIZED(Int)
+
+      public init() {
+        self = .none
+      }
+
+      public init?(rawValue: Int) {
+        switch rawValue {
+        case 0: self = .none
+        case 1: self = .add
+        case 2: self = .delete
+        case 3: self = .list
+        default: self = .UNRECOGNIZED(rawValue)
+        }
+      }
+
+      public var rawValue: Int {
+        switch self {
+        case .none: return 0
+        case .add: return 1
+        case .delete: return 2
+        case .list: return 3
+        case .UNRECOGNIZED(let i): return i
+        }
+      }
+
+      // The compiler won't synthesize support with the UNRECOGNIZED case.
+      public static let allCases: [Caked_Caked.CertificateRequest.CertificateCommand] = [
+        .none,
+        .add,
+        .delete,
+        .list,
+      ]
+
+    }
+
+    public struct CertificateAddRequest: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var name: String = String()
+
+      public var cert: Data = Data()
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public struct CertificateDelete: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var name: String = String()
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public init() {}
+  }
+
   public init() {}
 }
 
@@ -13645,6 +13758,159 @@ extension Caked_Caked.MountRequest.MountVirtioFS: SwiftProtobuf.Message, SwiftPr
     if lhs._uid != rhs._uid {return false}
     if lhs._gid != rhs._gid {return false}
     if lhs.readonly != rhs.readonly {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.CertificateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".CertificateRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}addRequest\0\u{1}deleteRequest\0\u{1}listRequest\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.command) }()
+      case 2: try {
+        var v: Caked_Caked.CertificateRequest.CertificateAddRequest?
+        var hadOneofValue = false
+        if let current = self.request {
+          hadOneofValue = true
+          if case .addRequest(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.request = .addRequest(v)
+        }
+      }()
+      case 3: try {
+        var v: Caked_Caked.CertificateRequest.CertificateDelete?
+        var hadOneofValue = false
+        if let current = self.request {
+          hadOneofValue = true
+          if case .deleteRequest(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.request = .deleteRequest(v)
+        }
+      }()
+      case 4: try {
+        var v: Bool?
+        try decoder.decodeSingularBoolField(value: &v)
+        if let v = v {
+          if self.request != nil {try decoder.handleConflictingOneOf()}
+          self.request = .listRequest(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.command != .none {
+      try visitor.visitSingularEnumField(value: self.command, fieldNumber: 1)
+    }
+    switch self.request {
+    case .addRequest?: try {
+      guard case .addRequest(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .deleteRequest?: try {
+      guard case .deleteRequest(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .listRequest?: try {
+      guard case .listRequest(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 4)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.CertificateRequest, rhs: Caked_Caked.CertificateRequest) -> Bool {
+    if lhs.command != rhs.command {return false}
+    if lhs.request != rhs.request {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.CertificateRequest.CertificateCommand: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}add\0\u{1}delete\0\u{1}list\0")
+}
+
+extension Caked_Caked.CertificateRequest.CertificateAddRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.CertificateRequest.protoMessageName + ".CertificateAddRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cert\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self.cert) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if !self.cert.isEmpty {
+      try visitor.visitSingularBytesField(value: self.cert, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.CertificateRequest.CertificateAddRequest, rhs: Caked_Caked.CertificateRequest.CertificateAddRequest) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.cert != rhs.cert {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.CertificateRequest.CertificateDelete: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.CertificateRequest.protoMessageName + ".CertificateDelete"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.CertificateRequest.CertificateDelete, rhs: Caked_Caked.CertificateRequest.CertificateDelete) -> Bool {
+    if lhs.name != rhs.name {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

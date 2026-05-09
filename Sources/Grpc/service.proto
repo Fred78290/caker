@@ -86,6 +86,8 @@ service Service {
   // CheckReliability verifies the reliability of server node.
   // This method allows you to test the connectivity and responsiveness of a remote node to ensure it can reliably handle requests.
   rpc CheckReliability(Empty) returns (Caked.Reply);
+
+  rpc Certificate(Caked.CertificateRequest) returns (Caked.Reply);
 }
 
 message Empty {}
@@ -1258,5 +1260,30 @@ message Caked {
     MountCommand           command = 1;
     string                 name    = 2;
     repeated MountVirtioFS mounts  = 3;
+  }
+
+  message CertificateRequest {
+    enum CertificateCommand {
+      none   = 0;
+      add    = 1;
+      delete = 2;
+      list   = 3;
+    }
+
+    message CertificateAddRequest {
+      string name = 1;
+      bytes  cert = 2;
+    }
+
+    message CertificateDelete {
+      string name = 1;
+    }
+
+    CertificateCommand command = 1;
+    oneof request {
+      CertificateAddRequest addRequest    = 2;
+      CertificateDelete     deleteRequest = 3;
+      bool                  listRequest   = 4;
+    }
   }
 }
