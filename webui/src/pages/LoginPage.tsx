@@ -177,7 +177,7 @@ function CertificateWizard() {
             your password first), or run:
           </p>
           <pre className="text-bg-dark rounded p-2 small" style={{ overflowX: 'auto', fontSize: '0.72rem' }}>
-            {`cakectl certificate add --name "${result!.p12Filename.replace('.p12', '')}" <(pbpaste)`}
+            {`pbpaste|cakectl certificate add --name "${result!.p12Filename.replace('.p12', '')}"`}
           </pre>
           <textarea
             readOnly

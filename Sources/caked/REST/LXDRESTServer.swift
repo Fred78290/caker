@@ -69,7 +69,11 @@ private struct CertificateAuthMiddleware: Middleware {
 
 	/// Returns true if every certificate in `chain` validates against at least one of the provided `trustRoots`
 	/// using the system's X.509 basic evaluation policy.
-	func peerChainIsTrusted(_ chain: X509.ValidatedCertificateChain) -> Bool {
+	func peerChainIsTrusted(_ chain: X509.ValidatedCertificateChain) async -> Bool {
+		guard await LXDCertificateStore.shared.peerChainIsTrusted(chain) == false else {
+			return true
+		}
+
 		guard let chain = try? chain.compactMap( {
 			try NIOSSLCertificate(bytes: $0.serializeAsPEM().derBytes, format: .der)
 		}) else {
@@ -79,17 +83,18 @@ private struct CertificateAuthMiddleware: Middleware {
 		return Self.peerChainIsTrusted(chain, trustRoots: self.trustRoots)
 	}
 
-	func peerChainIsTrusted(_ chain: [NIOSSLCertificate]) -> Bool {
+	private func peerChainIsTrusted(_ chain: [NIOSSLCertificate]) -> Bool {
 		return Self.peerChainIsTrusted(chain, trustRoots: self.trustRoots)
 	}
 
 	/// Returns true if every certificate in `chain` validates against at least one of the provided `trustRoots`
 	/// using the system's X.509 basic evaluation policy.
-	static func peerChainIsTrusted(_ chain: [NIOSSLCertificate], trustRoots: [NIOSSLCertificate]) -> Bool {
+	private static func peerChainIsTrusted(_ chain: [NIOSSLCertificate], trustRoots: [NIOSSLCertificate]) -> Bool {
 		let secChain: [SecCertificate] = chain.compactMap { cert in
 			guard let der = try? cert.toDERBytes() else { return nil }
 			return SecCertificateCreateWithData(nil, Data(der) as CFData)
 		}
+
 		let secRoots: [SecCertificate] = trustRoots.compactMap { cert in
 			guard let der = try? cert.toDERBytes() else { return nil }
 			return SecCertificateCreateWithData(nil, Data(der) as CFData)
@@ -115,10 +120,24 @@ private struct CertificateAuthMiddleware: Middleware {
 			return next.respond(to: request)
 		}
 
-		if let chain = request.peerCertificateChain, chain.isEmpty == false,
-		   self.peerChainIsTrusted(chain)
-		{
-			return next.respond(to: request)
+		if let chain = request.peerCertificateChain, chain.isEmpty == false {
+			// Bridge to async for actor-isolated trust check, then hop back to the event loop
+			let promise = request.eventLoop.makePromise(of: Response.self)
+
+			Task {
+				let trusted = await self.peerChainIsTrusted(chain)
+
+				if trusted {
+					let response = try await next.respond(to: request).get()
+					promise.succeed(response)
+				} else {
+					let response = Response(status: .unauthorized)
+					response.headers.replaceOrAdd(name: .wwwAuthenticate, value: "TLS-Certificate realm=\"Caker\"")
+					promise.succeed(response)
+				}
+			}
+
+			return promise.futureResult
 		}
 
 		let response = Response(status: .unauthorized)
@@ -328,3 +347,4 @@ final class LXDRESTServer: Sendable {
 		try? await app.asyncShutdown()
 	}
 }
+

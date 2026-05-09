@@ -174,6 +174,3 @@ struct LXDAuthGroupsController: RouteCollection {
 	}
 }
 
-// MARK: - Array<LXDAuthGroup>: Content
-
-extension Array: @retroactive Content where Element == LXDAuthGroup {}

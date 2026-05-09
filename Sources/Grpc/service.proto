@@ -1113,19 +1113,48 @@ message Caked {
       optional string reason     = 4;
     }
 
+    message CertificateReply {
+      message Certificat {
+        string          name        = 1;
+        string          type        = 2;
+        bool            restricted  = 3;
+        repeated string projects    = 4;
+        string          certificate = 5;
+        string          fingerprint = 6;
+      }
+
+      message ListCertificatesReply {
+        repeated Certificat certificates = 1;
+      }
+
+      message PEMDocument {
+        repeated string pem = 1;
+      }
+
+      optional string reason  = 1;
+      bool            success = 2;
+
+      oneof response {
+        Certificat            added = 3;
+        ListCertificatesReply list  = 4;
+        PEMDocument           get   = 5;
+      }
+    }
+
     oneof response {
-      VirtualMachineReply vms        = 1;
-      ImageReply          images     = 2;
-      NetworksReply       networks   = 3;
-      RemoteReply         remotes    = 4;
-      TemplateReply       templates  = 5;
-      RunReply            run        = 6;
-      MountReply          mounts     = 7;
-      OCIReply            oci        = 8;
-      PingReply           ping       = 9;
-      CurrentStatusReply  status     = 10;
-      ScreenSizeReply     screenSize = 11;
-      string              unexpected = 12;
+      VirtualMachineReply vms          = 1;
+      ImageReply          images       = 2;
+      NetworksReply       networks     = 3;
+      RemoteReply         remotes      = 4;
+      TemplateReply       templates    = 5;
+      RunReply            run          = 6;
+      MountReply          mounts       = 7;
+      OCIReply            oci          = 8;
+      PingReply           ping         = 9;
+      CurrentStatusReply  status       = 10;
+      ScreenSizeReply     screenSize   = 11;
+      CertificateReply    certificates = 12;
+      string              unexpected   = 13;
     }
   }
 
@@ -1268,22 +1297,27 @@ message Caked {
       add    = 1;
       delete = 2;
       list   = 3;
+      get    = 4;
     }
 
     message CertificateAddRequest {
-      string name = 1;
-      bytes  cert = 2;
+      string name      = 1;
+      bytes  certAsPem = 2;
     }
 
-    message CertificateDelete {
+    message CertificateDeleteRequest {
+      string name = 1;
+    }
+
+    message CertificateGetRequest {
       string name = 1;
     }
 
     CertificateCommand command = 1;
     oneof request {
-      CertificateAddRequest addRequest    = 2;
-      CertificateDelete     deleteRequest = 3;
-      bool                  listRequest   = 4;
+      CertificateAddRequest    addRequest    = 2;
+      CertificateDeleteRequest deleteRequest = 3;
+      CertificateGetRequest    getRequest    = 4;
     }
   }
 }

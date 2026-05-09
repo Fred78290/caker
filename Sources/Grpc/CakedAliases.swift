@@ -130,9 +130,15 @@ public typealias Caked_GetScreenSizeRequest = Caked.GetScreenSizeRequest
 public typealias Caked_SetScreenSizeRequest = Caked.SetScreenSizeRequest
 public typealias Caked_InstallAgentRequest = Caked.InstallAgentRequest
 public typealias Caked_ImageSource = Caked.Configuration.ImageSource
-public typealias Caked_VncStream = Caked_Caked.VncStream
+public typealias Caked_VncStream = Caked.VncStream
 
-public typealias Caked_CertificateRequest = Caked_Caked.CertificateRequest
+public typealias Caked_CertificateRequest = Caked.CertificateRequest
+public typealias Caked_CertificateRequestCommand = Caked_CertificateRequest.CertificateCommand
+public typealias Caked_CertificateAddRequest = Caked_Caked.CertificateRequest.CertificateAddRequest
+public typealias Caked_CertificateDeleteRequest = Caked_Caked.CertificateRequest.CertificateDeleteRequest
+
+public typealias Caked_Certificate = Caked.Reply.CertificateReply.Certificat
+public typealias Caked_ListCertificatesReply = Caked_Caked.Reply.CertificateReply.ListCertificatesReply
 
 extension VirtualizedOS {
 	public init?(_ from: Caked.Configuration.VirtualizedOS) {

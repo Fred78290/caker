@@ -54,3 +54,5 @@ Package.resolved
 webui/node_modules/
 
 webui/package-lock.json
+
+webui/webui.zip

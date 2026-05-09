@@ -218,4 +218,8 @@ struct CakedPasswordAuthServerInterceptor: Caked_ServiceServerInterceptorFactory
 	func makeCheckReliabilityInterceptors() -> [ServerInterceptor<Caked_Empty, Caked_Reply>] {
 		return self.interceptors()
 	}
+	
+	func makeCertificateInterceptors() -> [GRPC.ServerInterceptor<GRPCLib.Caked_Caked.CertificateRequest, GRPCLib.Caked_Caked.Reply>] {
+		return self.interceptors()
+	}
 }

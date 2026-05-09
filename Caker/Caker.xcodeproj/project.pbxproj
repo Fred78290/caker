@@ -96,6 +96,7 @@
 		9B30BA502E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */; };
 		9B30BA522E0BF3D800256A9D /* OptionalStringFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */; };
 		9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30BA7C2E0C202A00256A9D /* SwiftletUtilities */; };
+		9B3541542FAF458D00F8F6B6 /* webui.zip in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B3541522FAF455C00F8F6B6 /* webui.zip */; };
 		9B3566812F27E12D00C5E12F /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3566802F27E12D00C5E12F /* ZLib */; };
 		9B3600872E1FB1AE00889BFD /* DynamicList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600862E1FB1AC00889BFD /* DynamicList.swift */; };
 		9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600882E1FC48D00889BFD /* AsyncButton.swift */; };
@@ -188,7 +189,6 @@
 		9B5FA0FF2F8B94F50077EF64 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */; };
 		9B5FA1032F8BABF50077EF64 /* en.xcloc in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA1002F8BABF50077EF64 /* en.xcloc */; };
 		9B5FA35F2F8D5AE80077EF64 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */; };
-		9B5FA3C42F8E272E0077EF64 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */; };
 		9B602F972FAA56FA00055543 /* LXDInstancesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F8D2FAA56FA00055543 /* LXDInstancesController.swift */; };
 		9B602F982FAA56FA00055543 /* LXDRootController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F902FAA56FA00055543 /* LXDRootController.swift */; };
 		9B602F992FAA56FA00055543 /* LXDModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F922FAA56FA00055543 /* LXDModels.swift */; };
@@ -572,8 +572,6 @@
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BFE87182F7E6202005CC9B2 /* caked.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9BFE876F2F7E64F1005CC9B2 /* embedded.provisionprofile in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */; };
-		9BFE87702F7E65F0005CC9B2 /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
-		9BFE87DC2F7E6B67005CC9B2 /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -687,6 +685,16 @@
 				9B21E0102F4C676800870AD7 /* Qcow2convert.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9B3541512FAF43E100F8F6B6 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				9B3541542FAF458D00F8F6B6 /* webui.zip in CopyFiles */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		9B464B4D2D5A3E5C00164BF5 /* CopyFiles */ = {
@@ -805,6 +813,39 @@
 		9B345C112DB4EB700047D00B /* NetworkTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTest.swift; sourceTree = "<group>"; };
 		9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessWithSharedFileHandleTest.swift; sourceTree = "<group>"; };
 		9B345C132DB4EB700047D00B /* RemoteTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTest.swift; sourceTree = "<group>"; };
+		9B352EDB2FAF43C100F8F6B6 /* auth.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = auth.ts; sourceTree = "<group>"; };
+		9B352EDC2FAF43C100F8F6B6 /* client.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = client.ts; sourceTree = "<group>"; };
+		9B352EDD2FAF43C100F8F6B6 /* images.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = images.ts; sourceTree = "<group>"; };
+		9B352EDE2FAF43C100F8F6B6 /* instances.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = instances.ts; sourceTree = "<group>"; };
+		9B352EDF2FAF43C100F8F6B6 /* networks.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = networks.ts; sourceTree = "<group>"; };
+		9B352EE02FAF43C100F8F6B6 /* operations.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = operations.ts; sourceTree = "<group>"; };
+		9B352EE12FAF43C100F8F6B6 /* server.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = server.ts; sourceTree = "<group>"; };
+		9B352EE32FAF43C100F8F6B6 /* ConfirmDialog.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = ConfirmDialog.tsx; sourceTree = "<group>"; };
+		9B352EE42FAF43C100F8F6B6 /* Layout.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = Layout.tsx; sourceTree = "<group>"; };
+		9B352EE52FAF43C100F8F6B6 /* PageHeader.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = PageHeader.tsx; sourceTree = "<group>"; };
+		9B352EE62FAF43C100F8F6B6 /* Spinner.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = Spinner.tsx; sourceTree = "<group>"; };
+		9B352EE72FAF43C100F8F6B6 /* StatusBadge.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = StatusBadge.tsx; sourceTree = "<group>"; };
+		9B352EE92FAF43C100F8F6B6 /* AuthContext.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = AuthContext.tsx; sourceTree = "<group>"; };
+		9B352EEB2FAF43C100F8F6B6 /* CertificatesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = CertificatesPage.tsx; sourceTree = "<group>"; };
+		9B352EEC2FAF43C100F8F6B6 /* CreateInstanceModal.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = CreateInstanceModal.tsx; sourceTree = "<group>"; };
+		9B352EED2FAF43C100F8F6B6 /* DashboardPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = DashboardPage.tsx; sourceTree = "<group>"; };
+		9B352EEE2FAF43C100F8F6B6 /* GroupsPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = GroupsPage.tsx; sourceTree = "<group>"; };
+		9B352EEF2FAF43C100F8F6B6 /* IdentitiesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = IdentitiesPage.tsx; sourceTree = "<group>"; };
+		9B352EF02FAF43C100F8F6B6 /* ImagesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = ImagesPage.tsx; sourceTree = "<group>"; };
+		9B352EF12FAF43C100F8F6B6 /* InstancesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstancesPage.tsx; sourceTree = "<group>"; };
+		9B352EF22FAF43C100F8F6B6 /* LoginPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = LoginPage.tsx; sourceTree = "<group>"; };
+		9B352EF32FAF43C100F8F6B6 /* NetworksPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = NetworksPage.tsx; sourceTree = "<group>"; };
+		9B352EF42FAF43C100F8F6B6 /* OperationsPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = OperationsPage.tsx; sourceTree = "<group>"; };
+		9B352EF62FAF43C100F8F6B6 /* lxd.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = lxd.ts; sourceTree = "<group>"; };
+		9B352EF82FAF43C100F8F6B6 /* certgen.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = certgen.ts; sourceTree = "<group>"; };
+		9B352EFA2FAF43C100F8F6B6 /* App.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = App.tsx; sourceTree = "<group>"; };
+		9B352EFB2FAF43C100F8F6B6 /* main.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = main.tsx; sourceTree = "<group>"; };
+		9B352EFD2FAF43C100F8F6B6 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		9B352EFE2FAF43C100F8F6B6 /* package.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = package.json; sourceTree = "<group>"; };
+		9B352F002FAF43C100F8F6B6 /* tsconfig.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tsconfig.json; sourceTree = "<group>"; };
+		9B352F012FAF43C100F8F6B6 /* tsconfig.tsbuildinfo */ = {isa = PBXFileReference; lastKnownFileType = text; path = tsconfig.tsbuildinfo; sourceTree = "<group>"; };
+		9B352F022FAF43C100F8F6B6 /* vite.config.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = vite.config.ts; sourceTree = "<group>"; };
+		9B3541522FAF455C00F8F6B6 /* webui.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = webui.zip; sourceTree = "<group>"; };
 		9B3600862E1FB1AC00889BFD /* DynamicList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicList.swift; sourceTree = "<group>"; };
 		9B3600882E1FC48D00889BFD /* AsyncButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncButton.swift; sourceTree = "<group>"; };
 		9B3601902E20FBCF00889BFD /* CakerMenuBarExtraScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakerMenuBarExtraScene.swift; sourceTree = "<group>"; };
@@ -1593,18 +1634,116 @@
 			path = ../Tests;
 			sourceTree = SOURCE_ROOT;
 		};
+		9B352EE22FAF43C100F8F6B6 /* api */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EDB2FAF43C100F8F6B6 /* auth.ts */,
+				9B352EDC2FAF43C100F8F6B6 /* client.ts */,
+				9B352EDD2FAF43C100F8F6B6 /* images.ts */,
+				9B352EDE2FAF43C100F8F6B6 /* instances.ts */,
+				9B352EDF2FAF43C100F8F6B6 /* networks.ts */,
+				9B352EE02FAF43C100F8F6B6 /* operations.ts */,
+				9B352EE12FAF43C100F8F6B6 /* server.ts */,
+			);
+			path = api;
+			sourceTree = "<group>";
+		};
+		9B352EE82FAF43C100F8F6B6 /* components */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EE32FAF43C100F8F6B6 /* ConfirmDialog.tsx */,
+				9B352EE42FAF43C100F8F6B6 /* Layout.tsx */,
+				9B352EE52FAF43C100F8F6B6 /* PageHeader.tsx */,
+				9B352EE62FAF43C100F8F6B6 /* Spinner.tsx */,
+				9B352EE72FAF43C100F8F6B6 /* StatusBadge.tsx */,
+			);
+			path = components;
+			sourceTree = "<group>";
+		};
+		9B352EEA2FAF43C100F8F6B6 /* context */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EE92FAF43C100F8F6B6 /* AuthContext.tsx */,
+			);
+			path = context;
+			sourceTree = "<group>";
+		};
+		9B352EF52FAF43C100F8F6B6 /* pages */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EEB2FAF43C100F8F6B6 /* CertificatesPage.tsx */,
+				9B352EEC2FAF43C100F8F6B6 /* CreateInstanceModal.tsx */,
+				9B352EED2FAF43C100F8F6B6 /* DashboardPage.tsx */,
+				9B352EEE2FAF43C100F8F6B6 /* GroupsPage.tsx */,
+				9B352EEF2FAF43C100F8F6B6 /* IdentitiesPage.tsx */,
+				9B352EF02FAF43C100F8F6B6 /* ImagesPage.tsx */,
+				9B352EF12FAF43C100F8F6B6 /* InstancesPage.tsx */,
+				9B352EF22FAF43C100F8F6B6 /* LoginPage.tsx */,
+				9B352EF32FAF43C100F8F6B6 /* NetworksPage.tsx */,
+				9B352EF42FAF43C100F8F6B6 /* OperationsPage.tsx */,
+			);
+			path = pages;
+			sourceTree = "<group>";
+		};
+		9B352EF72FAF43C100F8F6B6 /* types */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EF62FAF43C100F8F6B6 /* lxd.ts */,
+			);
+			path = types;
+			sourceTree = "<group>";
+		};
+		9B352EF92FAF43C100F8F6B6 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EF82FAF43C100F8F6B6 /* certgen.ts */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
+		9B352EFC2FAF43C100F8F6B6 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EE22FAF43C100F8F6B6 /* api */,
+				9B352EE82FAF43C100F8F6B6 /* components */,
+				9B352EEA2FAF43C100F8F6B6 /* context */,
+				9B352EF52FAF43C100F8F6B6 /* pages */,
+				9B352EF72FAF43C100F8F6B6 /* types */,
+				9B352EF92FAF43C100F8F6B6 /* utils */,
+				9B352EFA2FAF43C100F8F6B6 /* App.tsx */,
+				9B352EFB2FAF43C100F8F6B6 /* main.tsx */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		9B352F032FAF43C100F8F6B6 /* webui */ = {
+			isa = PBXGroup;
+			children = (
+				9B3541522FAF455C00F8F6B6 /* webui.zip */,
+				9B352EFC2FAF43C100F8F6B6 /* src */,
+				9B352EFD2FAF43C100F8F6B6 /* index.html */,
+				9B352EFE2FAF43C100F8F6B6 /* package.json */,
+				9B352F002FAF43C100F8F6B6 /* tsconfig.json */,
+				9B352F012FAF43C100F8F6B6 /* tsconfig.tsbuildinfo */,
+				9B352F022FAF43C100F8F6B6 /* vite.config.ts */,
+			);
+			name = webui;
+			path = ../webui;
+			sourceTree = SOURCE_ROOT;
+		};
 		9B464A4B2D5A3DA000164BF5 = {
 			isa = PBXGroup;
 			children = (
 				9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */,
-				9B5FA1022F8BABF50077EF64 /* Localizations */,
 				9B464A562D5A3DA000164BF5 /* Caker */,
 				9B96B0102F4B68380069C970 /* CakerTests */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
+				9B5FA1022F8BABF50077EF64 /* Localizations */,
 				9B464A552D5A3DA000164BF5 /* Products */,
 				9BFE87462F7E6480005CC9B2 /* Resources */,
 				9B464ADD2D5A3E0300164BF5 /* Sources */,
 				9B345C152DB4EB700047D00B /* Tests */,
+				9B352F032FAF43C100F8F6B6 /* webui */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1626,8 +1765,8 @@
 		9B464A862D5A3E0300164BF5 /* Commands */ = {
 			isa = PBXGroup;
 			children = (
-				9B1835172FAE4FB200D150FD /* Certificate.swift */,
 				9B464A682D5A3E0300164BF5 /* Build.swift */,
+				9B1835172FAE4FB200D150FD /* Certificate.swift */,
 				9B464A6B2D5A3E0300164BF5 /* Configure.swift */,
 				9B464A6D2D5A3E0300164BF5 /* Delete.swift */,
 				9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */,
@@ -1965,8 +2104,8 @@
 		9BEBC6C92DF4400A0092B196 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
-				9B18351B2FAE58B500D150FD /* CertificateHandler.swift */,
 				9BEBC6B22DF4400A0092B196 /* BuildHandler.swift */,
+				9B18351B2FAE58B500D150FD /* CertificateHandler.swift */,
 				9BEBC6B42DF4400A0092B196 /* ConfigureHandler.swift */,
 				9BBF79BC2F3DD73500F37D2C /* CurrentStatusHandler.swift */,
 				9BEBC6B52DF4400A0092B196 /* DeleteHandler.swift */,
@@ -2578,9 +2717,9 @@
 			buildPhases = (
 				9BFE86992F7E592B005CC9B2 /* Sources */,
 				9BFE869A2F7E592B005CC9B2 /* Frameworks */,
-				9BFE869B2F7E592B005CC9B2 /* Resources */,
 				9BFE86A52F7E59C8005CC9B2 /* CopyFiles */,
 				9BFE876E2F7E64D9005CC9B2 /* CopyFiles */,
+				9B3541512FAF43E100F8F6B6 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -2718,16 +2857,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				9B96B0182F4B68480069C970 /* TestPlan.xctestplan in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9BFE869B2F7E592B005CC9B2 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				9BFE87702F7E65F0005CC9B2 /* VM.png in Resources */,
-				9B5FA3C42F8E272E0077EF64 /* Localizable.xcstrings in Resources */,
-				9BFE87DC2F7E6B67005CC9B2 /* VM.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

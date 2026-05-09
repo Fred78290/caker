@@ -255,6 +255,12 @@ extension Caked_InstallAgentRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_CertificateRequest: CreateCakedCommand {
+	func createCommand(provider: CakedProvider) throws -> any CakedCommand {
+		return CertificateHandler(request: self)
+	}
+}
+
 class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let runMode: Utils.RunMode
 	let group: EventLoopGroup
@@ -502,6 +508,6 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func certificate(request: Caked_CertificateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		.init()
+		return try self.execute(command: request)
 	}
 }

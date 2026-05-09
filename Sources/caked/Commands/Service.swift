@@ -166,6 +166,14 @@ extension Service {
 			return try? CakedKeyConfig.passphrase.get()
 		}
 
+		var webUIDirectory: String? {
+			if self.options.webUIDirectory != nil {
+				return self.options.webUIDirectory
+			}
+			
+			return Bundle.main.path(forResource: "webui", ofType: "zip")
+		}
+
 		mutating func validate() throws {
 			let runMode: Utils.RunMode = self.options.runMode
 
@@ -256,7 +264,7 @@ extension Service {
 
 				if let listen = components.url {
 					do {
-						restServer = try await LXDRESTServer(group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.options.webUIDirectory)
+						restServer = try await LXDRESTServer(group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.webUIDirectory)
 						try restServer?.start()
 						logger.info("LXD REST API listening on \(listen.hiddenPasswordURL)")
 					} catch {

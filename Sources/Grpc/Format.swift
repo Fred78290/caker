@@ -599,6 +599,26 @@ extension CakeAgentLib.Format {
 		}
 	}
 
+	public func render(_ data: Caked_Certificate) -> String {
+		if self == .json {
+			return self.renderSingle(CertificateRepresentation(data))
+		}
+
+		return self.renderSingle(ShortCertificateRepresentation(data))
+	}
+
+	public func render(_ data: [CertificateRepresentation]) -> String {
+		return self.renderList(data)
+	}
+
+	public func render(_ data: [Caked_Certificate]) -> String {
+		if self == .json {
+			return self.renderList(data.map { CertificateRepresentation($0) })
+		}
+
+		return self.renderList(data.map { ShortCertificateRepresentation($0) })
+	}
+
 	public func render(_ data: Caked_ListTemplatesReply) -> String {
 		if self == .json {
 			return self.renderList(data.templates.map { TemplateEntry($0) })
