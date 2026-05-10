@@ -103,4 +103,47 @@ actor LXDOperationStore {
 		if removed { save() }
 		return removed
 	}
+
+	/// Registers a "websocket" exec operation in the store so that it is visible via
+	/// `GET /1.0/operations/:id`.  The fds secrets are NOT persisted here (they live in
+	/// `LXDExecSessionStore`) because they are ephemeral and only relevant while the
+	/// WebSocket connections are alive.
+	func registerExec(id: String, instanceName: String) {
+		let now = ISO8601DateFormatter().string(from: Date())
+		let operation = LXDOperationMetadata(
+			id: id,
+			type: "websocket",
+			description: "Executing in instance \(instanceName)",
+			createdAt: now,
+			updatedAt: now,
+			status: "Running",
+			statusCode: 103,
+			resources: ["instances": ["/1.0/instances/\(instanceName)"]],
+			metadata: nil,
+			mayCancel: false,
+			error: ""
+		)
+		operations[id] = operation
+		save()
+	}
+
+	/// Registers a "websocket" console operation (POST /1.0/instances/{name}/console).
+	func registerConsole(id: String, instanceName: String) {
+		let now = ISO8601DateFormatter().string(from: Date())
+		let operation = LXDOperationMetadata(
+			id: id,
+			type: "websocket",
+			description: "Connecting to console of instance \(instanceName)",
+			createdAt: now,
+			updatedAt: now,
+			status: "Running",
+			statusCode: 103,
+			resources: ["instances": ["/1.0/instances/\(instanceName)"]],
+			metadata: nil,
+			mayCancel: false,
+			error: ""
+		)
+		operations[id] = operation
+		save()
+	}
 }

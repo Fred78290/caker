@@ -20,6 +20,7 @@ struct LXDOperationsController: RouteCollection {
 		named.delete(use: deleteOperation)
 
 		named.grouped("wait").get(use: waitOperation)
+		named.webSocket("websocket", onUpgrade: websocketForOperation)
 	}
 
 	// GET /1.0/operations
@@ -97,5 +98,26 @@ struct LXDOperationsController: RouteCollection {
 
 		return try await LXDResponse<LXDEmptyMetadata>.error(message: "Operation '\(id)' not found", code: 404)
 			.encodeResponse(status: .notFound, for: req)
+	}
+
+	// GET /1.0/operations/:id/websocket?secret=<uuid>
+	// Upgrades the HTTP connection to a WebSocket for an LXD exec fd.
+	@Sendable
+	func websocketForOperation(req: Request, ws: WebSocket) async {
+		guard let id = req.parameters.get("id"),
+			  let secret = req.query[String.self, at: "secret"] else {
+			try? await ws.close(code: .unacceptableData)
+			return
+		}
+
+		guard let fd = await LXDExecSessionStore.shared.findFD(operationId: id, secret: secret) else {
+			try? await ws.close(code: .unacceptableData)
+			return
+		}
+
+		await LXDExecSessionStore.shared.connect(operationId: id, fd: fd, ws: ws)
+
+		// Hold the WebSocket open until the server-side runner closes it.
+		try? await ws.onClose.get()
 	}
 }

@@ -46,6 +46,9 @@
 		9B15FE6B2E69CC5600B23147 /* VMSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */; };
 		9B1835182FAE4FB200D150FD /* Certificate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835172FAE4FB200D150FD /* Certificate.swift */; };
 		9B18351C2FAE58B500D150FD /* CertificateHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18351B2FAE58B500D150FD /* CertificateHandler.swift */; };
+		9B1835EC2FB070D300D150FD /* LXDConsoleVGARunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835E92FB070D300D150FD /* LXDConsoleVGARunner.swift */; };
+		9B1835ED2FB070D300D150FD /* LXDExecRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835EA2FB070D300D150FD /* LXDExecRunner.swift */; };
+		9B1835EE2FB070D300D150FD /* LXDExecSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835EB2FB070D300D150FD /* LXDExecSessionStore.swift */; };
 		9B1970002F59867100B424DB /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B196FFF2F59866E00B424DB /* Root.swift */; };
 		9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */; };
 		9B2032F42F48CEA90047E197 /* CurrentStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */; };
@@ -775,6 +778,9 @@
 		9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMSettingsView.swift; sourceTree = "<group>"; };
 		9B1835172FAE4FB200D150FD /* Certificate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Certificate.swift; sourceTree = "<group>"; };
 		9B18351B2FAE58B500D150FD /* CertificateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateHandler.swift; sourceTree = "<group>"; };
+		9B1835E92FB070D300D150FD /* LXDConsoleVGARunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDConsoleVGARunner.swift; sourceTree = "<group>"; };
+		9B1835EA2FB070D300D150FD /* LXDExecRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDExecRunner.swift; sourceTree = "<group>"; };
+		9B1835EB2FB070D300D150FD /* LXDExecSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDExecSessionStore.swift; sourceTree = "<group>"; };
 		9B196FFF2F59866E00B424DB /* Root.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Root.swift; sourceTree = "<group>"; };
 		9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentStatusHandler.swift; sourceTree = "<group>"; };
@@ -1913,6 +1919,9 @@
 			children = (
 				9B6031332FAD103F00055543 /* LXDAuthGroupStore.swift */,
 				9B60313B2FAD2BF700055543 /* LXDCertificateStore.swift */,
+				9B1835E92FB070D300D150FD /* LXDConsoleVGARunner.swift */,
+				9B1835EA2FB070D300D150FD /* LXDExecRunner.swift */,
+				9B1835EB2FB070D300D150FD /* LXDExecSessionStore.swift */,
 				9B6031342FAD103F00055543 /* LXDIdentityStore.swift */,
 				9B602F922FAA56FA00055543 /* LXDModels.swift */,
 				9B602F932FAA56FA00055543 /* LXDOperationStore.swift */,
@@ -3117,6 +3126,9 @@
 				9BEBC6D82DF4400A0092B196 /* Build.swift in Sources */,
 				9BEBC6DA2DF4400A0092B196 /* PurgeHandler.swift in Sources */,
 				9BBF7B372F3E058D00F37D2C /* Restart.swift in Sources */,
+				9B1835EC2FB070D300D150FD /* LXDConsoleVGARunner.swift in Sources */,
+				9B1835ED2FB070D300D150FD /* LXDExecRunner.swift in Sources */,
+				9B1835EE2FB070D300D150FD /* LXDExecSessionStore.swift in Sources */,
 				9BEBC6DB2DF4400A0092B196 /* Purge.swift in Sources */,
 				9BEBC6DC2DF4400A0092B196 /* DeleteHandler.swift in Sources */,
 				9BEBC6DD2DF4400A0092B196 /* MountHandler.swift in Sources */,

@@ -28,6 +28,9 @@ struct LXDInstancesController: RouteCollection {
 		let state = named.grouped("state")
 		state.get(use: getState)
 		state.put(use: changeState)
+
+		named.grouped("exec").post(use: execInstance)
+		named.grouped("console").post(use: consoleInstance)
 	}
 
 	// GET /1.0/instances → list of instance URLs
@@ -251,6 +254,128 @@ struct LXDInstancesController: RouteCollection {
 		}
 
 		return try await LXDAsyncResponse.make(operation: operation).encodeResponse(status: .accepted, for: req)
+	}
+
+	// POST /1.0/instances/:name/exec
+	@Sendable
+	func execInstance(req: Request) async throws -> Response {
+		guard let name = req.parameters.get("name") else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing instance name", code: 400)
+				.encodeResponse(status: .badRequest, for: req)
+		}
+
+		let execReq = try req.content.decode(LXDExecRequest.self)
+
+		guard execReq.command.isEmpty == false else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Command must not be empty", code: 400)
+				.encodeResponse(status: .badRequest, for: req)
+		}
+
+		// Verify instance exists
+		let reply = CakedLib.ListHandler.list(vmonly: true, includeConfig: false, runMode: runMode)
+		guard reply.infos.first(where: { $0.name == name }) != nil else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' not found", code: 404)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
+		let interactive = execReq.interactive ?? false
+
+		// Generate per-fd WebSocket secrets
+		var secrets: [String: String] = [
+			"0": UUID().uuidString.lowercased(),
+			"control": UUID().uuidString.lowercased()
+		]
+		if !interactive {
+			secrets["1"] = UUID().uuidString.lowercased()
+			secrets["2"] = UUID().uuidString.lowercased()
+		}
+
+		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, fds: secrets)
+
+		// Register in operation store (for GET /1.0/operations/:id)
+		await LXDOperationStore.shared.registerExec(id: operationId, instanceName: name)
+
+		// Build exec context and register in session store (for WebSocket connections)
+		let context = LXDExecContext(
+			instanceName: name,
+			command: execReq.command,
+			environment: execReq.environment ?? [:],
+			interactive: interactive,
+			height: execReq.height ?? 24,
+			width: execReq.width ?? 80,
+			runMode: runMode,
+			secrets: secrets
+		)
+		await LXDExecSessionStore.shared.register(operationId: operationId, context: context)
+
+		// Start background exec task (waits for WebSocket connections, then runs)
+		let opId = operationId
+		Task.detached {
+			await LXDExecRunner.run(operationId: opId, context: context)
+		}
+
+		return try await response.encodeResponse(status: .accepted, for: req)
+	}
+
+	// POST /1.0/instances/:name/console
+	@Sendable
+	func consoleInstance(req: Request) async throws -> Response {
+		guard let name = req.parameters.get("name") else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing instance name", code: 400)
+				.encodeResponse(status: .badRequest, for: req)
+		}
+
+		let consoleReq = (try? req.content.decode(LXDConsoleRequest.self)) ?? LXDConsoleRequest()
+
+		let consoleType = consoleReq.type ?? "console"
+		guard consoleType == "console" || consoleType == "vga" else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Unsupported console type '\(consoleType)'", code: 400)
+				.encodeResponse(status: .badRequest, for: req)
+		}
+
+		// Verify instance exists.
+		let reply = CakedLib.ListHandler.list(vmonly: true, includeConfig: false, runMode: runMode)
+		guard reply.infos.first(where: { $0.name == name }) != nil else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' not found", code: 404)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
+		// Both console types use two fds: "0" (pty / VNC data) and "control".
+		let secrets: [String: String] = [
+			"0": UUID().uuidString.lowercased(),
+			"control": UUID().uuidString.lowercased()
+		]
+
+		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, fds: secrets)
+
+		await LXDOperationStore.shared.registerConsole(id: operationId, instanceName: name)
+
+		let context = LXDExecContext(
+			instanceName: name,
+			command: [],
+			environment: [:],
+			interactive: true,
+			height: consoleReq.height ?? 24,
+			width: consoleReq.width ?? 80,
+			runMode: runMode,
+			secrets: secrets
+		)
+		await LXDExecSessionStore.shared.register(operationId: operationId, context: context)
+
+		let opId = operationId
+		if consoleType == "vga" {
+			// VGA console: bridge the VNC WebSocket to the VM's raw VNC TCP socket.
+			Task.detached {
+				await LXDConsoleVGARunner.run(operationId: opId, context: context)
+			}
+		} else {
+			// Text (PTY) console: reuse exec infrastructure via ShellHandler.
+			Task.detached {
+				await LXDExecRunner.run(operationId: opId, context: context)
+			}
+		}
+
+		return try await response.encodeResponse(status: .accepted, for: req)
 	}
 
 	// MARK: - Helpers

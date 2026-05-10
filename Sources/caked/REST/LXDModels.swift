@@ -805,3 +805,120 @@ struct LXDCertificatePut: Content {
 	var projects: [String]?
 	var certificate: String?
 }
+
+// MARK: - Console Request
+
+/// Body for POST /1.0/instances/{name}/console.
+struct LXDConsoleRequest: Content {
+	/// Terminal rows.
+	var height: Int?
+	/// Terminal columns.
+	var width: Int?
+	/// Console type: "console" (text TTY) or "vga" (graphical). Only "console" is supported.
+	var type: String?
+}
+
+// MARK: - Exec Request / Response
+
+/// Body for POST /1.0/instances/{name}/exec.
+struct LXDExecRequest: Content {
+	var command: [String]
+	var environment: [String: String]?
+	var user: Int?
+	var group: Int?
+	var cwd: String?
+	/// Terminal rows (used when interactive = true).
+	var height: Int?
+	/// Terminal columns (used when interactive = true).
+	var width: Int?
+	/// If true a single bidirectional PTY fd is used; otherwise separate stdin/stdout/stderr fds.
+	var interactive: Bool?
+	/// If true the server waits for all WebSocket fds to connect before running.
+	var waitForWebsocket: Bool?
+	var recordOutput: Bool?
+	var discard: Bool?
+
+	enum CodingKeys: String, CodingKey {
+		case command, environment, user, group, cwd, height, width, interactive, discard
+		case waitForWebsocket = "wait-for-websocket"
+		case recordOutput = "record-output"
+	}
+}
+
+/// Inner metadata of a websocket-type exec operation — carries the per-fd WebSocket secrets.
+struct LXDExecFDsMetadata: Content {
+	var fds: [String: String]
+}
+
+/// Operation metadata envelope used specifically for exec (type = "websocket").
+struct LXDExecOperationMeta: Content {
+	var id: String
+	var type: String
+	var description: String
+	var createdAt: String
+	var updatedAt: String
+	var status: String
+	var statusCode: Int
+	var resources: [String: [String]]
+	var metadata: LXDExecFDsMetadata
+	var mayCancel: Bool
+	var error: String
+
+	enum CodingKeys: String, CodingKey {
+		case id, type, description, resources, metadata, error, status
+		case createdAt = "created_at"
+		case updatedAt = "updated_at"
+		case statusCode = "status_code"
+		case mayCancel = "may_cancel"
+	}
+}
+
+/// Top-level async response returned by POST /1.0/instances/{name}/exec.
+struct LXDExecAsyncResponse: Content {
+	var type: String
+	var status: String
+	var statusCode: Int
+	var operation: String
+	var errorCode: Int
+	var error: String
+	var metadata: LXDExecOperationMeta
+
+	enum CodingKeys: String, CodingKey {
+		case type, status, operation, error, metadata
+		case statusCode = "status_code"
+		case errorCode = "error_code"
+	}
+
+	/// Creates a ready-to-return async response with freshly-generated WebSocket secrets.
+	/// - Parameters:
+	///   - instanceName: VM name (used in description and resource URLs).
+	///   - fds: Mapping of fd name ("0", "1", "2", "control") → WebSocket secret UUID string.
+	/// - Returns: An `LXDExecAsyncResponse` and the operation id that was assigned.
+	static func make(instanceName: String, fds: [String: String]) -> (response: LXDExecAsyncResponse, operationId: String) {
+		let id = UUID().uuidString.lowercased()
+		let now = ISO8601DateFormatter().string(from: Date())
+		let meta = LXDExecOperationMeta(
+			id: id,
+			type: "websocket",
+			description: "Executing in instance \(instanceName)",
+			createdAt: now,
+			updatedAt: now,
+			status: "Running",
+			statusCode: 103,
+			resources: ["instances": ["/1.0/instances/\(instanceName)"]],
+			metadata: LXDExecFDsMetadata(fds: fds),
+			mayCancel: false,
+			error: ""
+		)
+		let resp = LXDExecAsyncResponse(
+			type: "async",
+			status: "Operation created",
+			statusCode: 100,
+			operation: "/1.0/operations/\(id)",
+			errorCode: 0,
+			error: "",
+			metadata: meta
+		)
+		return (resp, id)
+	}
+}
