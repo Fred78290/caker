@@ -38,12 +38,6 @@ actor LXDOperationStore {
 		self.storeURL = url
 	}
 
-	private func save() {
-		guard let url = storeURL,
-			  let data = try? JSONEncoder().encode(operations) else { return }
-		try? data.write(to: url, options: .atomic)
-	}
-
 	func create(description: String, resources: [String: [String]] = [:]) -> LXDOperationMetadata {
 		let id = UUID().uuidString.lowercased()
 		let now = ISO8601DateFormatter().string(from: Date())
@@ -63,7 +57,7 @@ actor LXDOperationStore {
 		)
 
 		operations[id] = operation
-		save()
+
 		return operation
 	}
 
@@ -83,7 +77,6 @@ actor LXDOperationStore {
 		}
 
 		operations[id] = op
-		save()
 	}
 
 	func get(id: String) -> LXDOperationMetadata? {
@@ -99,9 +92,7 @@ actor LXDOperationStore {
 	}
 
 	func delete(id: String) -> Bool {
-		let removed = operations.removeValue(forKey: id) != nil
-		if removed { save() }
-		return removed
+		return operations.removeValue(forKey: id) != nil
 	}
 
 	/// Registers a "websocket" exec operation in the store so that it is visible via
@@ -124,7 +115,6 @@ actor LXDOperationStore {
 			error: ""
 		)
 		operations[id] = operation
-		save()
 	}
 
 	/// Registers a "websocket" console operation (POST /1.0/instances/{name}/console).
@@ -144,6 +134,5 @@ actor LXDOperationStore {
 			error: ""
 		)
 		operations[id] = operation
-		save()
 	}
 }
