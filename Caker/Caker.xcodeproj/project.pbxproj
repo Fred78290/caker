@@ -99,7 +99,6 @@
 		9B30BA502E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */; };
 		9B30BA522E0BF3D800256A9D /* OptionalStringFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */; };
 		9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30BA7C2E0C202A00256A9D /* SwiftletUtilities */; };
-		9B3541542FAF458D00F8F6B6 /* webui.zip in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B3541522FAF455C00F8F6B6 /* webui.zip */; };
 		9B3566812F27E12D00C5E12F /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3566802F27E12D00C5E12F /* ZLib */; };
 		9B3600872E1FB1AE00889BFD /* DynamicList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600862E1FB1AC00889BFD /* DynamicList.swift */; };
 		9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600882E1FC48D00889BFD /* AsyncButton.swift */; };
@@ -690,16 +689,6 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		9B3541512FAF43E100F8F6B6 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 7;
-			files = (
-				9B3541542FAF458D00F8F6B6 /* webui.zip in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		9B464B4D2D5A3E5C00164BF5 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -851,7 +840,6 @@
 		9B352F002FAF43C100F8F6B6 /* tsconfig.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tsconfig.json; sourceTree = "<group>"; };
 		9B352F012FAF43C100F8F6B6 /* tsconfig.tsbuildinfo */ = {isa = PBXFileReference; lastKnownFileType = text; path = tsconfig.tsbuildinfo; sourceTree = "<group>"; };
 		9B352F022FAF43C100F8F6B6 /* vite.config.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = vite.config.ts; sourceTree = "<group>"; };
-		9B3541522FAF455C00F8F6B6 /* webui.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = webui.zip; sourceTree = "<group>"; };
 		9B3600862E1FB1AC00889BFD /* DynamicList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicList.swift; sourceTree = "<group>"; };
 		9B3600882E1FC48D00889BFD /* AsyncButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncButton.swift; sourceTree = "<group>"; };
 		9B3601902E20FBCF00889BFD /* CakerMenuBarExtraScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakerMenuBarExtraScene.swift; sourceTree = "<group>"; };
@@ -1725,7 +1713,6 @@
 		9B352F032FAF43C100F8F6B6 /* webui */ = {
 			isa = PBXGroup;
 			children = (
-				9B3541522FAF455C00F8F6B6 /* webui.zip */,
 				9B352EFC2FAF43C100F8F6B6 /* src */,
 				9B352EFD2FAF43C100F8F6B6 /* index.html */,
 				9B352EFE2FAF43C100F8F6B6 /* package.json */,
@@ -2728,7 +2715,7 @@
 				9BFE869A2F7E592B005CC9B2 /* Frameworks */,
 				9BFE86A52F7E59C8005CC9B2 /* CopyFiles */,
 				9BFE876E2F7E64D9005CC9B2 /* CopyFiles */,
-				9B3541512FAF43E100F8F6B6 /* CopyFiles */,
+				9B1836552FB0E28F00D150FD /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -2889,6 +2876,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# Type a script or drag a script file from your workspace to insert its path\nOSVERSION=$(uname -r|cut -d'.' -f 1)\n\nif [ \"${OSVERSION}\" -lt 25 ]; then\n  mkdir ${CONFIGURATION_BUILD_DIR}/Frameworks\n  cp /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib ${CONFIGURATION_BUILD_DIR}/Frameworks\nfi\n";
+		};
+		9B1836552FB0E28F00D150FD /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${SOURCE_ROOT}/../webui",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${METAL_LIBRARY_OUTPUT_DIR}/webui.zip",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nsource ${HOME}/.profile\n\nset -ex\n\npushd ${SOURCE_ROOT}/../webui\n\nls -l\n\nnpm ci --no-audit --no-fund\nnpm run build\n\npushd dist\nzip -r ../webui.zip .\npopd\n\ncp webui.zip ${METAL_LIBRARY_OUTPUT_DIR}\n\npopd\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
