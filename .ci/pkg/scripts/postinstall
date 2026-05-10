@@ -74,7 +74,7 @@ EOF
         sudo -S -u "${HOME_USER}" /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked set local.passphrase="${PASSWORD}" 2>/dev/null || echo "Failed to set passphrase, proceeding without it..."
     fi
 
-    sudo -u "${HOME_USER}" /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked service install --tcp
+    sudo -u "${HOME_USER}" /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked service install --tcp --rest
 
     echo "=== Caker Post-Installation Completed at $(date) ==="
 } 2>&1 | tee "${LOG_FILE}"

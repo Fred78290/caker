@@ -185,13 +185,13 @@ public struct ServiceHandler {
 		let certs = try CertificatesLocation.createCertificats(runMode: runMode)
 		
 		if password == nil {
-			return try self.installAgent(listenAddress: [try Utils.getDefaultServerAddress(runMode: runMode)], insecure: false, password: password, caCert: certs.caCertURL.path, tlsCert: certs.serverCertURL.path, tlsKey: certs.serverKeyURL.path, runMode: runMode)
+			return try self.installAgent(listenAddress: [try Utils.getDefaultServerAddress(runMode: runMode)], insecure: false, rest: false, password: password, caCert: certs.caCertURL.path, tlsCert: certs.serverCertURL.path, tlsKey: certs.serverKeyURL.path, runMode: runMode)
 		} else {
-			return try self.installAgent(listenAddress: [try Utils.getDefaultServerAddress(runMode: runMode), "tcp://0.0.0.0:\(Caked.defaultServicePort)"], insecure: false, password: password, caCert: certs.caCertURL.path, tlsCert: certs.serverCertURL.path, tlsKey: certs.serverKeyURL.path, runMode: runMode)
+			return try self.installAgent(listenAddress: [try Utils.getDefaultServerAddress(runMode: runMode), "tcp://0.0.0.0:\(Caked.defaultServicePort)"], insecure: false, rest: true, password: password, caCert: certs.caCertURL.path, tlsCert: certs.serverCertURL.path, tlsKey: certs.serverKeyURL.path, runMode: runMode)
 		}
 	}
 	
-	public static func installAgent(listenAddress: [String], insecure: Bool, password: String?, caCert: String?, tlsCert: String?, tlsKey: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
+	public static func installAgent(listenAddress: [String], insecure: Bool, rest: Bool, password: String?, caCert: String?, tlsCert: String?, tlsKey: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
 		let home = try Home(runMode: runMode)
 		let outputLog: String = Utils.getOutputLog(runMode: runMode)
 		var arguments: [String] = [
@@ -210,7 +210,11 @@ public struct ServiceHandler {
 		} else {
 			arguments.append("--xpc")
 		}
-		
+
+		if rest {
+			arguments.append("--rest")
+		}
+
 		if runMode == .system {
 			arguments.append("--system")
 		}

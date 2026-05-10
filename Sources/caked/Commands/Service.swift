@@ -147,7 +147,7 @@ extension Service {
 				tlsCert = certs.cert
 			}
 
-			try ServiceHandler.installAgent(listenAddress: listenAddress, insecure: self.options.insecure, password: (self.options.noPassword ? "" : self.options.password), caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey, runMode: runMode)
+			try ServiceHandler.installAgent(listenAddress: listenAddress, insecure: self.options.insecure, rest: self.options.rest, password: (self.options.noPassword ? "" : self.options.password), caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey, runMode: runMode)
 		}
 	}
 
