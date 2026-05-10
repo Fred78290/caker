@@ -54,17 +54,17 @@ struct LXDOperationsController: RouteCollection {
 				.encodeResponse(status: .badRequest, for: req)
 		}
 
-		let deleted = await LXDOperationStore.shared.delete(id: id)
-
-		if deleted {
-			return try await LXDResponse<LXDEmptyMetadata>(
-				type: "sync", status: "Success", statusCode: 200,
-				operation: "", errorCode: 0, error: "", metadata: nil
-			).encodeResponse(for: req)
-		} else {
+		guard let deleted = await LXDOperationStore.shared.delete(id: id) else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Operation '\(id)' not found", code: 404)
 				.encodeResponse(status: .notFound, for: req)
 		}
+
+		await deleted.cancel()
+
+		return try await LXDResponse<LXDEmptyMetadata>(
+			type: "sync", status: "Success", statusCode: 200,
+			operation: "", errorCode: 0, error: "", metadata: nil
+		).encodeResponse(for: req)
 	}
 
 	// GET /1.0/operations/:id/wait

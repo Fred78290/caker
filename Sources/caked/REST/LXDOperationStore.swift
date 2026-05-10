@@ -93,8 +93,8 @@ actor LXDOperationStore {
 		operations.keys.map { "/1.0/operations/\($0)" }
 	}
 	
-	func delete(id: String) -> Bool {
-		return operations.removeValue(forKey: id) != nil
+	func delete(id: String) -> LXDOperationMetadata? {
+		return operations.removeValue(forKey: id)
 	}
 	
 	/// Registers a "websocket" exec operation in the store so that it is visible via
