@@ -22,6 +22,7 @@ export default defineConfig({
         target: apiTarget,
         changeOrigin: true,
         secure: false,
+        ws: true,
       },
     },
   },
@@ -29,5 +30,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // noVNC uses top-level await — require a modern target.
+    target: 'esnext',
   },
 })

@@ -351,10 +351,22 @@ struct LXDInstancesController: RouteCollection {
 		}
 
 		// Both console types use two fds: "0" (pty / VNC data) and "control".
-		let secrets: [String: String] = [
+		var secrets: [String: String] = [
 			"0": UUID().uuidString.lowercased(),
 			"control": UUID().uuidString.lowercased()
 		]
+
+		// For VGA consoles, also expose the VNC password so the browser-side noVNC
+		// client can authenticate against the VM's VNC server.  The "vnc-password"
+		// key is not a WebSocket fd secret; it is metadata that is safe to return
+		// because the endpoint is already authenticated.
+		if consoleType == "vga" {
+			if let vncInfos = try? CakedLib.VNCInfosHandler.vncInfos(name: name, runMode: runMode),
+			   let vncURLStr = vncInfos.urls.first,
+			   let components = URLComponents(string: vncURLStr) {
+				secrets["vnc-password"] = components.password ?? ""
+			}
+		}
 
 		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, fds: secrets)
 		let context = LXDExecContext(

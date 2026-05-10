@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
     changeInstanceState,
     deleteInstance,
@@ -109,7 +110,11 @@ export function InstancesPage() {
               )}
               {instances.map((inst) => (
                 <tr key={inst.name}>
-                  <td className="fw-medium">{inst.name}</td>
+                  <td className="fw-medium">
+                    <Link to={`/instances/${inst.name}`} className="text-decoration-none">
+                      {inst.name}
+                    </Link>
+                  </td>
                   <td>
                     <span className="badge bg-light text-dark border">
                       <i

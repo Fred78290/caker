@@ -1,5 +1,6 @@
 import type {
     LXDCreateInstanceRequest,
+    LXDExecAsyncResponse,
     LXDInstance,
     LXDInstanceState,
     LXDOperation,
@@ -31,4 +32,29 @@ export const changeInstanceState = (
     action,
     force,
     timeout: 30,
+  })
+
+export const execInstance = (
+  name: string,
+  command: string[],
+  opts: { width?: number; height?: number } = {},
+) =>
+  client.post<LXDExecAsyncResponse>(`/1.0/instances/${name}/exec`, {
+    command,
+    environment: { TERM: 'xterm-256color', LANG: 'en_US.UTF-8' },
+    interactive: true,
+    'wait-for-websocket': true,
+    width: opts.width ?? 80,
+    height: opts.height ?? 24,
+  })
+
+export const consoleInstance = (
+  name: string,
+  type: 'console' | 'vga',
+  opts: { width?: number; height?: number } = {},
+) =>
+  client.post<LXDExecAsyncResponse>(`/1.0/instances/${name}/console`, {
+    type,
+    width: opts.width ?? 80,
+    height: opts.height ?? 24,
   })

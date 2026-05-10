@@ -1,0 +1,121 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore – @novnc/novnc ships JS without bundled TS types; types are provided inline.
+import RFB from '@novnc/novnc';
+import { useEffect, useRef, useState } from 'react';
+import { operationWsUrl } from '../utils/websocket';
+
+interface Props {
+  operationId: string
+  /** fd name → WebSocket secret map returned by console API.
+   *  "0"           → WebSocket secret for VNC data channel.
+   *  "vnc-password" → VNC authentication password (may be empty/absent). */
+  fds: Record<string, string>
+}
+
+/**
+ * VGA console using noVNC (RFB protocol over WebSocket).
+ *
+ * The backend proxies raw VNC/RFB bytes over the WebSocket for fd "0".
+ * noVNC handles the full RFB handshake, including optional password auth.
+ */
+export function VGAConsole({ operationId, fds }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [status, setStatus] = useState<'connecting' | 'connected' | 'error'>('connecting')
+  const [errorMsg, setErrorMsg] = useState('')
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    const url = operationWsUrl(operationId, fds['0'])
+    const vncPassword: string = fds['vnc-password'] ?? ''
+
+    setStatus('connecting')
+    setErrorMsg('')
+
+    let rfb: InstanceType<typeof RFB>
+    try {
+      rfb = new RFB(el, url, {
+        ...(vncPassword ? { credentials: { password: vncPassword } } : {}),
+        wsProtocols: [],
+      }) as InstanceType<typeof RFB>
+
+      // Scale the VNC framebuffer to fill the container.
+      rfb.scaleViewport = true
+      rfb.resizeSession = false
+      rfb.focusOnClick = true
+
+      rfb.addEventListener('connect', () => setStatus('connected'))
+      rfb.addEventListener('disconnect', (e: CustomEvent) => {
+        const clean: boolean = (e as CustomEvent<{ clean: boolean }>).detail?.clean ?? false
+        if (!clean) {
+          setStatus('error')
+          setErrorMsg('VNC connection lost')
+        }
+      })
+      rfb.addEventListener('credentialsrequired', () => {
+        // If the server requires credentials but we have none, show error.
+        if (!vncPassword) {
+          setStatus('error')
+          setErrorMsg('VNC server requires a password but none was provided')
+          rfb.disconnect()
+        }
+      })
+    } catch (err) {
+      setStatus('error')
+      setErrorMsg(String(err))
+      return
+    }
+
+    return () => {
+      rfb.disconnect()
+    }
+  }, [operationId, fds])
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000' }}>
+      {status === 'connecting' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.7)',
+            color: '#fff',
+            zIndex: 10,
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          <div className="spinner-border text-primary" />
+          <span>Connecting to VGA console…</span>
+        </div>
+      )}
+      {status === 'error' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.8)',
+            color: '#f38ba8',
+            zIndex: 10,
+            flexDirection: 'column',
+            gap: 8,
+            padding: 24,
+            textAlign: 'center',
+          }}
+        >
+          <i className="bi bi-exclamation-triangle fs-2" />
+          <span>{errorMsg || 'VGA console error'}</span>
+        </div>
+      )}
+      {/* noVNC mounts its canvas here */}
+      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+    </div>
+  )
+}

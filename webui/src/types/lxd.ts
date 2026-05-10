@@ -146,6 +146,40 @@ export interface LXDNetwork {
 }
 
 // ---------------------------------------------------------------------------
+// Exec / Console
+// ---------------------------------------------------------------------------
+
+export interface LXDExecFdsMetadata {
+  /** fd name → WebSocket secret UUID (e.g. "0", "control").
+   *  For VGA console also includes "vnc-password" → VNC password string. */
+  fds: Record<string, string>
+}
+
+export interface LXDExecOperationMeta {
+  id: string
+  type: string
+  description: string
+  created_at: string
+  updated_at: string
+  status: string
+  status_code: number
+  resources: Record<string, string[]>
+  metadata: LXDExecFdsMetadata
+  may_cancel: boolean
+  error: string
+}
+
+export interface LXDExecAsyncResponse {
+  type: string
+  status: string
+  status_code: number
+  operation: string
+  error_code: number
+  error: string
+  metadata: LXDExecOperationMeta
+}
+
+// ---------------------------------------------------------------------------
 // Operations
 // ---------------------------------------------------------------------------
 
