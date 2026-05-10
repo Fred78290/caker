@@ -344,6 +344,7 @@ final class LXDRESTServer: Sendable {
 
 	/// Shuts down the HTTP server and releases resources.
 	func shutdown() async {
+		try? await LXDOperationStore.shared.shutdown()
 		try? await app.asyncShutdown()
 	}
 }

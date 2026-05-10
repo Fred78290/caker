@@ -6,6 +6,7 @@
 //
 
 import CakedLib
+import Combine
 import Foundation
 import NIO
 import NIOCore
@@ -18,119 +19,162 @@ import Vapor
 ///  2. Resolve the VNC TCP endpoint via `VNCInfosHandler.vncInfos(name:runMode:)`.
 ///  3. Open a TCP connection to the VNC server using NIO `ClientBootstrap`.
 ///  4. Relay bytes bidirectionally: WS binary frames → VNC TCP, VNC TCP reads → WS binary frames.
-enum LXDConsoleVGARunner {
+final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
+	typealias AsyncStreamDatas = (stream: AsyncStream<Data>, continuation: AsyncStream<Data>.Continuation)
 
-	static func run(operationId: String, context: LXDExecContext) async {
-		let logger = Logger(label: "LXDConsoleVGARunner")
+	let operationId: String
+	let context: LXDExecContext
+	let location: VMLocation
+	let logger = Logger(label: "LXDConsoleVGARunner")
+	var phase: CancellablePhase = .none
 
-		// ── 1. Wait for WebSocket connections (max 30 s) ──────────────────────────
-		let waitTask = Task<[String: WebSocket]?, Never> {
-			await LXDExecSessionStore.shared.waitForConnections(operationId: operationId)
-		}
-		let timeoutTask = Task {
-			try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 s
+	enum CancellablePhase {
+		case none
+		case waitConnection(Task<[String: WebSocket]?, Never>, Task<Void, Never>)
+		case vncBridged(AsyncStreamDatas, Channel)
+	}
+
+	func cancel() async {
+		switch self.phase {
+			case .waitConnection(let waitTask, let timeoutTask):
 			waitTask.cancel()
-			await LXDExecSessionStore.shared.remove(operationId: operationId)
-		}
-
-		guard let websockets = await waitTask.value else {
 			timeoutTask.cancel()
-			await LXDOperationStore.shared.complete(
-				id: operationId, success: false, error: "Timed out waiting for WebSocket connections"
-			)
-			return
-		}
-		timeoutTask.cancel()
-
-		guard let vncWS = websockets["0"] else {
-			await LXDOperationStore.shared.complete(
-				id: operationId, success: false, error: "Missing VNC data WebSocket (fd 0)"
-			)
-			await LXDExecSessionStore.shared.remove(operationId: operationId)
-			return
+		case .vncBridged(let stream, _):
+			stream.continuation.finish()
+		default:
+			break
 		}
 
-		// ── 2. Resolve VNC endpoint ────────────────────────────────────────────────
-		do {
-			let vncInfos = try CakedLib.VNCInfosHandler.vncInfos(
-				name: context.instanceName, runMode: context.runMode
-			)
-
-			guard let vncURLStr = vncInfos.urls.first,
-				  let vncURL = URL(string: vncURLStr),
-				  let vncPort = vncURL.port else {
-				throw ServiceError("No VNC URL available for instance '\(context.instanceName)'")
-			}
-			let vncHost = vncURL.host(percentEncoded: false) ?? "127.0.0.1"
-
-			logger.debug("VGA console for '\(context.instanceName)': bridging to \(vncHost):\(vncPort)")
-
-			// ── 3 & 4. Bridge WebSocket ↔ VNC TCP ─────────────────────────────────
-			try await bridge(ws: vncWS, vncHost: vncHost, vncPort: vncPort)
-
-			await LXDOperationStore.shared.complete(id: operationId, success: true)
-		} catch {
-			logger.error("VGA console failed for '\(context.instanceName)': \(error)")
-			await LXDOperationStore.shared.complete(
-				id: operationId, success: false, error: error.localizedDescription
-			)
-		}
-
-		// Close both WebSockets gracefully.
-		try? await vncWS.close(code: .normalClosure)
-		if let controlWS = websockets["control"] {
-			try? await controlWS.close(code: .normalClosure)
-		}
+		await LXDOperationStore.shared.complete(id: operationId, success: false, error: "Cancelled")
 		await LXDExecSessionStore.shared.remove(operationId: operationId)
+	}
+
+	init(_ location: VMLocation, operationId: String, context: LXDExecContext) {
+		self.operationId = operationId
+		self.context = context
+		self.location = location
+	}
+
+	func run() async {
+		await withTaskCancellationHandler(
+			operation: {
+				defer {
+					self.phase = .none
+				}
+
+				// ── 1. Wait for WebSocket connections (max 30 s) ──────────────────────────
+				let waitTask = Task<[String: WebSocket]?, Never> {
+					await LXDExecSessionStore.shared.waitForConnections(operationId: operationId)
+				}
+
+				let timeoutTask = Task {
+					try? await Task.sleep(nanoseconds: 30_000_000_000)  // 30 s
+					waitTask.cancel()
+					await LXDExecSessionStore.shared.remove(operationId: operationId)
+				}
+
+				self.phase = .waitConnection(waitTask, timeoutTask)
+
+				guard let websockets = await waitTask.value else {
+					timeoutTask.cancel()
+					await LXDOperationStore.shared.complete(id: operationId, success: false, error: "Timed out waiting for WebSocket connections")
+					return
+				}
+
+				timeoutTask.cancel()
+
+				guard let vncWS = websockets["0"] else {
+					await LXDOperationStore.shared.complete(id: operationId, success: false, error: "Missing VNC data WebSocket (fd 0)")
+					await LXDExecSessionStore.shared.remove(operationId: operationId)
+					return
+				}
+
+				// ── 2. Resolve VNC endpoint ────────────────────────────────────────────────
+				do {
+					let vncHost = "127.0.0.1"
+					let vncInfos = try CakedLib.VNCInfosHandler.vncInfos(location: self.location, runMode: context.runMode)
+
+					guard let vncURLStr = vncInfos.urls.first, let vncURL = URL(string: vncURLStr), let vncPort = vncURL.port else {
+						throw ServiceError("No VNC URL available for instance '\(context.instanceName)'")
+					}
+
+					self.logger.debug("VGA console for '\(context.instanceName)': bridging to \(vncHost):\(vncPort)")
+
+					// ── 3 & 4. Bridge WebSocket ↔ VNC TCP ─────────────────────────────────
+					try await bridge(ws: vncWS, vncHost: vncHost, vncPort: vncPort)
+
+					await LXDOperationStore.shared.complete(id: operationId, success: true)
+				} catch {
+					self.logger.error("VGA console failed for '\(context.instanceName)': \(error)")
+
+					await LXDOperationStore.shared.complete(id: operationId, success: false, error: error.localizedDescription)
+				}
+
+				// Close both WebSockets gracefully.
+				try? await vncWS.close(code: .normalClosure)
+
+				if let controlWS = websockets["control"] {
+					try? await controlWS.close(code: .normalClosure)
+				}
+
+				await LXDExecSessionStore.shared.remove(operationId: operationId)
+			},
+			onCancel: {
+				try? Utilities.group.next().makeFutureWithTask {
+					await self.cancel()
+				}.wait()
+			})
 	}
 
 	// MARK: - TCP ↔ WebSocket bridge
 
 	/// Relays bytes between the WebSocket and the VNC TCP socket until either side closes.
-	private static func bridge(ws: WebSocket, vncHost: String, vncPort: Int) async throws {
+	private func bridge(ws: WebSocket, vncHost: String, vncPort: Int) async throws {
 		// Buffer incoming WebSocket binary frames via AsyncStream so they can be fed to the
 		// NIO async write path without mixing callback and async/await concurrency models.
-		let (wsToVNCStream, wsToVNCCont) = AsyncStream.makeStream(of: Data.self)
+		let stream = AsyncStream.makeStream(of: Data.self)
 
 		ws.onBinary { _, buf in
 			var buf = buf
+
 			if let bytes = buf.readBytes(length: buf.readableBytes), !bytes.isEmpty {
-				wsToVNCCont.yield(Data(bytes))
+				stream.continuation.yield(Data(bytes))
 			}
 		}
+
 		ws.onClose.whenComplete { _ in
-			wsToVNCCont.finish()
+			stream.continuation.finish()
 		}
 
 		// Connect to the VNC TCP socket.
 		let bootstrap = ClientBootstrap(group: Utilities.group)
 			.channelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
-			.channelInitializer { channel in channel.eventLoop.makeSucceededVoidFuture() }
+			.channelInitializer {
+				channel in channel.eventLoop.makeSucceededVoidFuture()
+			}
 
 		let asyncChannel = try await bootstrap.connect(host: vncHost, port: vncPort) { channel in
-			channel.eventLoop.makeCompletedFuture {
+			self.phase = .vncBridged(stream, channel)
+
+			return channel.eventLoop.makeCompletedFuture {
 				try NIOAsyncChannel<ByteBuffer, ByteBuffer>(wrappingChannelSynchronously: channel)
 			}
 		}
 
-		let allocator = ByteBufferAllocator()
-
 		try await asyncChannel.executeThenClose { input, output in
 			await withTaskGroup(of: Void.self) { group in
-
 				// WebSocket → VNC TCP
 				group.addTask {
-					for await data in wsToVNCStream {
+					for await data in stream.stream {
 						do {
-							var buffer = allocator.buffer(capacity: data.count)
-							buffer.writeBytes(data)
-							try await output.write(buffer)
+							try await output.write(ByteBuffer(data: data))
 						} catch {
 							break
 						}
 					}
+
 					// WebSocket side closed; signal the other direction.
-					wsToVNCCont.finish()
+					asyncChannel.channel.close(promise: nil)
 				}
 
 				// VNC TCP → WebSocket
@@ -139,9 +183,12 @@ enum LXDConsoleVGARunner {
 						for try await buffer in input {
 							try? await ws.send([UInt8](buffer.readableBytesView))
 						}
-					} catch {}
+					} catch {
+						
+					}
+
 					// VNC server closed; signal the WebSocket→VNC direction to stop.
-					wsToVNCCont.finish()
+					stream.continuation.finish()
 				}
 
 				await group.waitForAll()

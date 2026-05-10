@@ -9,9 +9,18 @@ import CakedLib
 import Foundation
 import GRPCLib
 import Vapor
+import Combine
+import Semaphore
+
+protocol LXDRunnable {
+	func run() async
+}
+
+protocol LXDCancellable {
+	func cancel() async
+}
 
 // MARK: - LXD API Response Envelope
-
 struct LXDResponse<T: Content>: Content {
 	var type: String
 	var status: String
@@ -97,8 +106,9 @@ extension LXDResponse where T == [LXDInstance] {
 }
 
 // MARK: - Async Operation
+typealias CancellableCallback = @Sendable () -> Void
 
-struct LXDOperationMetadata: Content {
+struct LXDOperationMetadata: Content, LXDCancellable {
 	var id: String
 	var type: String
 	var description: String
@@ -110,7 +120,12 @@ struct LXDOperationMetadata: Content {
 	var metadata: [String: String]?
 	var mayCancel: Bool
 	var error: String
-
+	var cancellable: CancellableCallback? {
+		didSet {
+			self.mayCancel = cancellable != nil
+		}
+	}
+	
 	enum CodingKeys: String, CodingKey {
 		case id
 		case type
@@ -123,6 +138,12 @@ struct LXDOperationMetadata: Content {
 		case metadata
 		case mayCancel = "may_cancel"
 		case error
+	}
+	
+	func cancel() async {
+		if let cancellable, self.mayCancel {
+			cancellable()
+		}
 	}
 }
 

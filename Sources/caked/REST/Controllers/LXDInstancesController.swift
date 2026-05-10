@@ -272,8 +272,7 @@ struct LXDInstancesController: RouteCollection {
 		}
 
 		// Verify instance exists
-		let reply = CakedLib.ListHandler.list(vmonly: true, includeConfig: false, runMode: runMode)
-		guard reply.infos.first(where: { $0.name == name }) != nil else {
+		guard let location = try? StorageLocation(runMode: runMode).find(name) else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' not found", code: 404)
 				.encodeResponse(status: .notFound, for: req)
 		}
@@ -292,9 +291,6 @@ struct LXDInstancesController: RouteCollection {
 
 		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, fds: secrets)
 
-		// Register in operation store (for GET /1.0/operations/:id)
-		await LXDOperationStore.shared.registerExec(id: operationId, instanceName: name)
-
 		// Build exec context and register in session store (for WebSocket connections)
 		let context = LXDExecContext(
 			instanceName: name,
@@ -307,14 +303,29 @@ struct LXDInstancesController: RouteCollection {
 			secrets: secrets
 		)
 		await LXDExecSessionStore.shared.register(operationId: operationId, context: context)
+		let runner = LXDExecRunner(location, operationId: operationId, context: context)
 
 		// Start background exec task (waits for WebSocket connections, then runs)
-		let opId = operationId
-		Task.detached {
-			await LXDExecRunner.run(operationId: opId, context: context)
+		let task = Task.detached {
+			await runner.run()
+		}
+
+		// Register in operation store (for GET /1.0/operations/:id)
+		await LXDOperationStore.shared.registerExec(id: operationId, instanceName: name) {
+			task.cancel()
 		}
 
 		return try await response.encodeResponse(status: .accepted, for: req)
+	}
+
+	private func createConsoleRunner(_ location: VMLocation, consoleType: String, operationId: String, context: LXDExecContext) -> LXDRunnable {
+		if consoleType == "vga" {
+			// VGA console: bridge the VNC WebSocket to the VM's raw VNC TCP socket.
+			LXDConsoleVGARunner(location, operationId: operationId, context: context)
+		} else {
+			// Text (PTY) console: reuse exec infrastructure via ShellHandler.
+			LXDExecRunner(location, operationId: operationId, context: context)
+		}
 	}
 
 	// POST /1.0/instances/:name/console
@@ -334,8 +345,7 @@ struct LXDInstancesController: RouteCollection {
 		}
 
 		// Verify instance exists.
-		let reply = CakedLib.ListHandler.list(vmonly: true, includeConfig: false, runMode: runMode)
-		guard reply.infos.first(where: { $0.name == name }) != nil else {
+		guard let location = try? StorageLocation(runMode: runMode).find(name) else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' not found", code: 404)
 				.encodeResponse(status: .notFound, for: req)
 		}
@@ -347,9 +357,6 @@ struct LXDInstancesController: RouteCollection {
 		]
 
 		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, fds: secrets)
-
-		await LXDOperationStore.shared.registerConsole(id: operationId, instanceName: name)
-
 		let context = LXDExecContext(
 			instanceName: name,
 			command: [],
@@ -360,19 +367,15 @@ struct LXDInstancesController: RouteCollection {
 			runMode: runMode,
 			secrets: secrets
 		)
+		let runner = self.createConsoleRunner(location, consoleType: consoleType, operationId: operationId, context: context)
 		await LXDExecSessionStore.shared.register(operationId: operationId, context: context)
 
-		let opId = operationId
-		if consoleType == "vga" {
-			// VGA console: bridge the VNC WebSocket to the VM's raw VNC TCP socket.
-			Task.detached {
-				await LXDConsoleVGARunner.run(operationId: opId, context: context)
-			}
-		} else {
-			// Text (PTY) console: reuse exec infrastructure via ShellHandler.
-			Task.detached {
-				await LXDExecRunner.run(operationId: opId, context: context)
-			}
+		let task = Task.detached {
+			await runner.run()
+		}
+
+		await LXDOperationStore.shared.registerConsole(id: operationId, instanceName: name) {
+			task.cancel()
 		}
 
 		return try await response.encodeResponse(status: .accepted, for: req)
