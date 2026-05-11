@@ -11908,7 +11908,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utile pour exécuter une VM qui peut être suspendue via la commande suspendue."
+            "value" : "Utile pour exécuter une VM qui peut être suspendue via la commande suspendre."
           }
         }
       }
