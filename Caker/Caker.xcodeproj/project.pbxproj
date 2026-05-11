@@ -29,6 +29,8 @@
 		9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202722EA8D08800053712 /* RoundedTextField.swift */; };
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
 		9B068D5A2EB89E2C00C68D7E /* GlassEffectHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */; };
+		9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
+		9B06995E2FB1A1B800FEAE13 /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
 		9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AC2F743641009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AD2F7436F1009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
@@ -2716,6 +2718,8 @@
 				9BFE86A52F7E59C8005CC9B2 /* CopyFiles */,
 				9BFE876E2F7E64D9005CC9B2 /* CopyFiles */,
 				9B1836552FB0E28F00D150FD /* ShellScript */,
+				9B06995A2FB1A15E00FEAE13 /* Resources */,
+				9B06995F2FB1A1E400FEAE13 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -2838,6 +2842,15 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		9B06995A2FB1A15E00FEAE13 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */,
+				9B06995E2FB1A1B800FEAE13 /* VM.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9B464A522D5A3DA000164BF5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2859,6 +2872,26 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		9B06995F2FB1A1E400FEAE13 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${SOURCE_ROOT}/../Resources/Localizable.xcstrings",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${METAL_LIBRARY_OUTPUT_DIR}/en.lproj",
+				"${METAL_LIBRARY_OUTPUT_DIR}/fr.lproj",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nxcrun xcstringstool compile --output-directory \"${METAL_LIBRARY_OUTPUT_DIR}\" \"${SOURCE_ROOT}/../Resources/Localizable.xcstrings\"\n";
+		};
 		9B08B4AF2F743D68009EC5C6 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
