@@ -243,7 +243,7 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 		self.phase = .runIteractive(websockets, shell)
 
 		@discardableResult
-		func closeWebSockets(_ exitCode: Int32) async -> Int32 {
+		func closeWebSockets(_ exitCode: Int32 = 0) async -> Int32 {
 			shell.finish()
 			shell.closeShell(promise: nil)
 
@@ -281,9 +281,6 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 			self.shellStream.sendTerminalSize(rows: h, cols: w)
 		}
 
-		// Shell output → PTY WebSocket
-		var exitCode: Int32 = 0
-
 		do {
 			for try await response in self.shellStream {
 				switch response {
@@ -302,11 +299,11 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 				}
 			}
 		} catch {
-			await closeWebSockets(exitCode)
+			await closeWebSockets()
 			throw error
 		}
 
-		return await closeWebSockets(exitCode)
+		return await closeWebSockets()
 	}
 
 	// MARK: - Helpers
