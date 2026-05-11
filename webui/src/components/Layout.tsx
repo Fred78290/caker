@@ -83,7 +83,7 @@ export function Layout() {
       </nav>
 
       {/* ── Main content ────────────────────────────────────── */}
-      <main className="flex-grow-1 bg-light overflow-auto">
+      <main className="flex-grow-1 bg-light overflow-auto" style={{ position: 'relative' }}>
         <div className="p-4">
           <Outlet />
         </div>

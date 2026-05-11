@@ -297,7 +297,7 @@ export function InstanceDetailPage() {
     `nav-link ${activeTab === t ? 'active' : ''}`
 
   return (
-    <div className="d-flex flex-column" style={{ height: '100%' }}>
+    <div className="d-flex flex-column" style={{ position: 'absolute', inset: 0 }}>
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="px-4 pt-3 pb-0 border-bottom bg-white flex-shrink-0">
         <div className="d-flex align-items-center gap-3 mb-3">
@@ -379,7 +379,9 @@ export function InstanceDetailPage() {
               </button>
             </div>
           ) : termSession ? (
-            <TerminalConsole operationId={termSession.operationId} fds={termSession.fds} />
+            <div style={{ flex: 1, minHeight: 0, padding: 12 }}>
+              <TerminalConsole operationId={termSession.operationId} fds={termSession.fds} />
+            </div>
           ) : null}
         </div>
 
@@ -406,7 +408,9 @@ export function InstanceDetailPage() {
               </button>
             </div>
           ) : vgaSession ? (
-            <VGAConsole operationId={vgaSession.operationId} fds={vgaSession.fds} />
+            <div style={{ flex: 1, minHeight: 0, padding: 12 }}>
+              <VGAConsole operationId={vgaSession.operationId} fds={vgaSession.fds} />
+            </div>
           ) : null}
         </div>
       </div>
