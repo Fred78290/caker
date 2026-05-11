@@ -134,7 +134,7 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 		// NIO async write path without mixing callback and async/await concurrency models.
 		let stream = AsyncStream.makeStream(of: Data.self)
 
-		ws.onBinary { _, buf in
+		ws.onBinary { (_, buf) async -> Void in
 			var buf = buf
 
 			if let bytes = buf.readBytes(length: buf.readableBytes), !bytes.isEmpty {
