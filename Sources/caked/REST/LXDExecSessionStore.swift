@@ -90,8 +90,7 @@ actor LXDExecSessionStore {
 	/// Returns the full fd → WebSocket map on success, or `nil` on cancellation / removal.
 	func waitForConnections(operationId: String) async -> [String: WebSocket]? {
 		// Fast-path: already all connected.
-		if let session = sessions[operationId],
-		   session.context.requiredFDs.isSubset(of: Set(session.connectedFDs.keys)) {
+		if let session = sessions[operationId], session.context.requiredFDs.isSubset(of: Set(session.connectedFDs.keys)) {
 			return session.connectedFDs
 		}
 
@@ -102,6 +101,7 @@ actor LXDExecSessionStore {
 				continuation.resume(returning: nil)
 				return
 			}
+
 			if session.context.requiredFDs.isSubset(of: Set(session.connectedFDs.keys)) {
 				continuation.resume(returning: session.connectedFDs)
 			} else {
