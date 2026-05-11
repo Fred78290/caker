@@ -147,7 +147,8 @@ extension Service {
 				tlsCert = certs.cert
 			}
 
-			try ServiceHandler.installAgent(listenAddress: listenAddress, insecure: self.options.insecure, rest: self.options.rest, password: (self.options.noPassword ? "" : self.options.password), caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey, runMode: runMode)
+			try ServiceHandler.installAgent(
+				listenAddress: listenAddress, insecure: self.options.insecure, rest: self.options.rest, password: (self.options.noPassword ? "" : self.options.password), caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey, runMode: runMode)
 		}
 	}
 
@@ -170,7 +171,7 @@ extension Service {
 			if self.options.webUIDirectory != nil {
 				return self.options.webUIDirectory
 			}
-			
+
 			return Bundle.main.path(forResource: "webui", ofType: "zip")
 		}
 
@@ -277,55 +278,47 @@ extension Service {
 
 			signal(SIGINT, SIG_IGN)
 
-			typealias AsyncStreamVoid = (
-				stream: AsyncStream<Void>,
-				continuation: AsyncStream<Void>.Continuation
-			)
+			try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+				let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
 
-			let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
-			var stream: AsyncStreamVoid? = nil
+				sigintSrc.setEventHandler {
+					logger.info("Stop service on SIGINT")
 
-			sigintSrc.setEventHandler {
-				logger.info("Stop service on SIGINT")
+					Task {
+						await restServer?.shutdown()
+						provider.stop()
 
-				stream = AsyncStream.makeStream(of: Void.self)
+						try? await EventLoopFuture.andAllComplete(
+							servers.map {
+								$0.initiateGracefulShutdown()
+							}, on: eventLoopGroup.next()
+						).get()
 
-				Task {
-					await restServer?.shutdown()
-					provider.stop()
-
-					try? await EventLoopFuture.andAllComplete(
-						servers.map {
-							$0.initiateGracefulShutdown()
-						}, on: eventLoopGroup.next()
-					).get()
-
-					stream?.continuation.finish()
-
-					logger.info("Server nicely closed")
+						continuation.resume()
+						logger.info("Server nicely closed")
+					}
 				}
-			}
 
-			sigintSrc.activate()
+				sigintSrc.activate()
 
-			try home.agentPID.writePID()
-
-			// Wait on the server's `onClose` future to stop the program from exiting.
-			let futures = EventLoopFuture.andAllComplete(
-				servers.map {
-					$0.onClose
-				}, on: eventLoopGroup.next())
-
-			futures.whenComplete { _ in
-				logger.info("All servers closed")
-			}
-
-			try await futures.get()
-
-			if let stream = stream {
-				for await _ in stream.stream {
-					break
+				do {
+					try home.agentPID.writePID()
+				} catch {
+					continuation.resume(throwing: error)
+					return
 				}
+
+				// Wait on the server's `onClose` future to stop the program from exiting.
+				let futures = EventLoopFuture.andAllComplete(
+					servers.map {
+						$0.onClose
+					}, on: eventLoopGroup.next())
+
+				futures.whenComplete { _ in
+					logger.info("All servers closed")
+				}
+				
+				try? futures.wait()
 			}
 
 			logger.info("Leave service")
@@ -425,4 +418,3 @@ extension Service {
 		}
 	}
 }
-
