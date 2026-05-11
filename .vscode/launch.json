@@ -827,12 +827,28 @@
 				"/@fs/*": "/*",
 				"/ui/*": "${workspaceFolder:caker}/webui/src/*"
 			}
+		},
+		{
+			"type": "firefox",
+			"request": "launch",
+			"name": "webui: debug Firefox",
+			"url": "http://localhost:5173/ui/",
+			"webRoot": "${workspaceFolder:caker}/webui/src",
+			"sourceMapPathOverrides": {
+				"/@fs/*": "/*",
+				"/ui/*": "${workspaceFolder:caker}/webui/src/*"
+			}
 		}
 	],
 	"compounds": [
 		{
 			"name": "webui: dev + Chrome",
 			"configurations": ["webui: dev server", "webui: debug Chrome"],
+			"stopAll": true
+		},
+		{
+			"name": "webui: dev + Firefox",
+			"configurations": ["webui: dev server", "webui: debug Firefox"],
 			"stopAll": true
 		}
 	]
