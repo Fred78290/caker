@@ -2894,7 +2894,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nsource ${HOME}/.profile\n\nset -ex\n\npushd ${SOURCE_ROOT}/../webui\n\nls -l\n\nnpm ci --no-audit --no-fund\nnpm run build\n\npushd dist\nzip -r ../webui.zip .\npopd\n\ncp webui.zip ${METAL_LIBRARY_OUTPUT_DIR}\n\npopd\n\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nsource ${HOME}/.profile\n\nset -ex\n\npushd ${SOURCE_ROOT}/../webui\n\nls -l\nnpm install\nnpm ci --no-audit --no-fund\nnpm run build\n\npushd dist\nzip -r ../webui.zip .\npopd\n\ncp webui.zip ${METAL_LIBRARY_OUTPUT_DIR}\n\npopd\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
