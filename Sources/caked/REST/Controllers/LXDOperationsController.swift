@@ -88,7 +88,7 @@ struct LXDOperationsController: RouteCollection {
 					.encodeResponse(status: .notFound, for: req)
 			}
 
-			try await Task.sleep(nanoseconds: 500_000_000) // 0.5s poll
+			try await Task.sleep(nanoseconds: 500_000_000)  // 0.5s poll
 		}
 
 		// Return current state on timeout
@@ -104,8 +104,7 @@ struct LXDOperationsController: RouteCollection {
 	// Upgrades the HTTP connection to a WebSocket for an LXD exec fd.
 	@Sendable
 	func websocketForOperation(req: Request, ws: WebSocket) async {
-		guard let id = req.parameters.get("id"),
-			  let secret = req.query[String.self, at: "secret"] else {
+		guard let id = req.parameters.get("id"), let secret = req.query[String.self, at: "secret"] else {
 			try? await ws.close(code: .unacceptableData)
 			return
 		}
