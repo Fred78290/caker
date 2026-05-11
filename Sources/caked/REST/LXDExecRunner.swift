@@ -145,26 +145,45 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 		guard let stdinWS = websockets["0"], let stdoutWS = websockets["1"], let stderrWS = websockets["2"] else {
 			throw ServiceError("Missing stdin/stdout/stderr WebSocket")
 		}
-		
+		#if DEBUG
+			stdinWS.onClose.whenComplete { _ in
+				self.logger.info("Stdin WebSocket closed")
+			}
+
+			stdoutWS.onClose.whenComplete { _ in
+				self.logger.info("Stdout WebSocket closed")
+			}
+
+			stderrWS.onClose.whenComplete { _ in
+				self.logger.info("Stderr WebSocket closed")
+			}
+		#endif
+
 		// Buffer stdin data from WebSocket until it closes.
 		let stream = AsyncThrowingStream.makeStream(of: Data.self)
 
 		self.phase = .waitInput(websockets, stream)
 
-		stdinWS.onBinary { _, buf in
+		stdinWS.onBinary { (_, buf) async -> Void in
 			var buf = buf
 
 			if let bytes = buf.readBytes(length: buf.readableBytes), !bytes.isEmpty {
 				stream.continuation.yield(Data(bytes))
 			}
 		}
-		
+
+		stdinWS.onText { (_, text) async -> Void in
+			if let data = text.data(using: .utf8), !data.isEmpty {
+				stream.continuation.yield(data)
+			}
+		}
+
 		stdinWS.onClose.whenComplete { _ in
 			stream.continuation.finish()
 		}
 
 		var stdinData = Data()
-		
+
 		for try await chunk in stream.stream {
 			stdinData.append(contentsOf: chunk)
 		}
@@ -203,6 +222,16 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 			throw ServiceError("Missing pty/control WebSocket")
 		}
 
+		#if DEBUG
+			ptyWS.onClose.whenComplete { _ in
+				self.logger.info("ptyWS WebSocket closed")
+			}
+
+			controlWS.onClose.whenComplete { _ in
+				self.logger.info("controlWS WebSocket closed")
+			}
+		#endif
+
 		let shell = try ShellHandler.shell(
 			vmURL: location.url,
 			terminalSize: ShellHandler.TerminalSize(rows: Int32(context.height), cols: Int32(context.width)),
@@ -214,15 +243,22 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 		self.phase = .runIteractive(websockets, shell)
 
 		// PTY WebSocket → shell stdin
-		ptyWS.onBinary { _, buf in
+		ptyWS.onBinary { (_, buf) async -> Void in
 			var buf = buf
 			if let bytes = buf.readBytes(length: buf.readableBytes), bytes.isEmpty == false {
 				self.shellStream.sendDatas(data: bytes[...])
 			}
 		}
 
+		ptyWS.onText { (_, text) async -> Void in
+			if let data = text.data(using: .utf8), !data.isEmpty {
+				let bytes = [UInt8](data)
+				self.shellStream.sendDatas(data: bytes[...])
+			}
+		}
+
 		// Control WebSocket → terminal resize
-		controlWS.onText { _, text in
+		controlWS.onText { (_, text) async -> Void in
 			guard
 				let data = text.data(using: .utf8),
 				let msg = try? JSONDecoder().decode(LXDControlMessage.self, from: data),
