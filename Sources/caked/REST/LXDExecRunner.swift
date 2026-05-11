@@ -242,6 +242,16 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 		self.shellStream = shell
 		self.phase = .runIteractive(websockets, shell)
 
+		@discardableResult
+		func closeWebSockets(_ exitCode: Int32) async -> Int32 {
+			shell.finish()
+			shell.closeShell(promise: nil)
+
+			try? await ptyWS.close(code: .normalClosure)
+			
+			return exitCode
+		}
+
 		// PTY WebSocket → shell stdin
 		ptyWS.onBinary { (_, buf) async -> Void in
 			var buf = buf
@@ -283,30 +293,20 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 					// On a PTY stderr is merged into the same fd.
 					try? await ptyWS.send([UInt8](data))
 				case .exitCode(let code):
-					exitCode = code
-					shell.finish()
-					shell.closeShell(promise: nil)
-					try? await ptyWS.close(code: .normalClosure)
-					return exitCode
+					return await closeWebSockets(code)
 				case .failure(let reason):
 					self.logger.error("Shell failure: \(reason)")
-					shell.finish()
-					shell.closeShell(promise: nil)
-					try? await ptyWS.close(code: .normalClosure)
-					return 1
+					return await closeWebSockets(1)
 				case .established:
 					break
 				}
 			}
 		} catch {
-			shell.finish()
-			shell.closeShell(promise: nil)
-			try? await ptyWS.close(code: .normalClosure)
+			await closeWebSockets(exitCode)
 			throw error
 		}
 
-		try? await ptyWS.close(code: .normalClosure)
-		return exitCode
+		return await closeWebSockets(exitCode)
 	}
 
 	// MARK: - Helpers
