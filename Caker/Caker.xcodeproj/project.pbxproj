@@ -81,6 +81,22 @@
 		9B21E0102F4C676800870AD7 /* Qcow2convert.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9B21E0132F4C677700870AD7 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21E0122F4C677700870AD7 /* CakeAgentLib */; };
 		9B2221CE2F5831F20037344D /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2221CD2F5831F00037344D /* InstallAgentHandler.swift */; };
+		9B27840F2FB37A83001F2B6A /* BridgeAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */; };
+		9B2784102FB37A83001F2B6A /* BridgedNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */; };
+		9B2784112FB37A83001F2B6A /* CertificateRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */; };
+		9B2784122FB37A83001F2B6A /* ConsoleAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784012FB37A83001F2B6A /* ConsoleAttachment.swift */; };
+		9B2784132FB37A83001F2B6A /* DirectorySharingAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784022FB37A83001F2B6A /* DirectorySharingAttachement.swift */; };
+		9B2784142FB37A83001F2B6A /* DiskAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784032FB37A83001F2B6A /* DiskAttachement.swift */; };
+		9B2784152FB37A83001F2B6A /* Images.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784042FB37A83001F2B6A /* Images.swift */; };
+		9B2784162FB37A83001F2B6A /* Mounts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784052FB37A83001F2B6A /* Mounts.swift */; };
+		9B2784172FB37A83001F2B6A /* Registry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784062FB37A83001F2B6A /* Registry.swift */; };
+		9B2784182FB37A83001F2B6A /* RemoteEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784072FB37A83001F2B6A /* RemoteEntry.swift */; };
+		9B2784192FB37A83001F2B6A /* SocketDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784082FB37A83001F2B6A /* SocketDevice.swift */; };
+		9B27841A2FB37A83001F2B6A /* Templates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784092FB37A83001F2B6A /* Templates.swift */; };
+		9B27841B2FB37A83001F2B6A /* TunnelAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B27840A2FB37A83001F2B6A /* TunnelAttachement.swift */; };
+		9B27841C2FB37A83001F2B6A /* Validatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B27840B2FB37A83001F2B6A /* Validatable.swift */; };
+		9B27841D2FB37A83001F2B6A /* ViewSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B27840C2FB37A83001F2B6A /* ViewSize.swift */; };
+		9B27841E2FB37A83001F2B6A /* VirtualMachineInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B27840D2FB37A83001F2B6A /* VirtualMachineInfo.swift */; };
 		9B28BFA22DDB259E00B5A0AF /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B28BFA12DDB259E00B5A0AF /* ArgumentParser */; };
 		9B28BFA42DDB25BD00B5A0AF /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B28BFA32DDB25BD00B5A0AF /* ArgumentParser */; };
 		9B2BFABB2DFED25E000045C3 /* MainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2BFAB82DFED25E000045C3 /* MainApp.swift */; };
@@ -786,6 +802,22 @@
 		9B215B742E0C391500AFC89D /* NetworkAttachementDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkAttachementDetailView.swift; sourceTree = "<group>"; };
 		9B215B762E0C39AE00AFC89D /* SocketsDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketsDetailView.swift; sourceTree = "<group>"; };
 		9B2221CD2F5831F00037344D /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
+		9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeAttachement.swift; sourceTree = "<group>"; };
+		9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgedNetwork.swift; sourceTree = "<group>"; };
+		9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateRepresentation.swift; sourceTree = "<group>"; };
+		9B2784012FB37A83001F2B6A /* ConsoleAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleAttachment.swift; sourceTree = "<group>"; };
+		9B2784022FB37A83001F2B6A /* DirectorySharingAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectorySharingAttachement.swift; sourceTree = "<group>"; };
+		9B2784032FB37A83001F2B6A /* DiskAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAttachement.swift; sourceTree = "<group>"; };
+		9B2784042FB37A83001F2B6A /* Images.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Images.swift; sourceTree = "<group>"; };
+		9B2784052FB37A83001F2B6A /* Mounts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounts.swift; sourceTree = "<group>"; };
+		9B2784062FB37A83001F2B6A /* Registry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Registry.swift; sourceTree = "<group>"; };
+		9B2784072FB37A83001F2B6A /* RemoteEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteEntry.swift; sourceTree = "<group>"; };
+		9B2784082FB37A83001F2B6A /* SocketDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketDevice.swift; sourceTree = "<group>"; };
+		9B2784092FB37A83001F2B6A /* Templates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Templates.swift; sourceTree = "<group>"; };
+		9B27840A2FB37A83001F2B6A /* TunnelAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelAttachement.swift; sourceTree = "<group>"; };
+		9B27840B2FB37A83001F2B6A /* Validatable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Validatable.swift; sourceTree = "<group>"; };
+		9B27840C2FB37A83001F2B6A /* ViewSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSize.swift; sourceTree = "<group>"; };
+		9B27840D2FB37A83001F2B6A /* VirtualMachineInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineInfo.swift; sourceTree = "<group>"; };
 		9B2BFAA92DFED25E000045C3 /* DiskAttachementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAttachementView.swift; sourceTree = "<group>"; };
 		9B2BFAAA2DFED25E000045C3 /* ForwardedPortView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForwardedPortView.swift; sourceTree = "<group>"; };
 		9B2BFAAB2DFED25E000045C3 /* MountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountView.swift; sourceTree = "<group>"; };
@@ -1253,11 +1285,6 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9B21ABD12DF4A2C5000B3B40 /* Model */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Model;
-			sourceTree = "<group>";
-		};
 		9B464A562D5A3DA000164BF5 /* Caker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -1493,6 +1520,29 @@
 				9B20D6002E019FA400BEFB41 /* VMWare.swift */,
 			);
 			path = Importers;
+			sourceTree = "<group>";
+		};
+		9B27840E2FB37A83001F2B6A /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */,
+				9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */,
+				9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */,
+				9B2784012FB37A83001F2B6A /* ConsoleAttachment.swift */,
+				9B2784022FB37A83001F2B6A /* DirectorySharingAttachement.swift */,
+				9B2784032FB37A83001F2B6A /* DiskAttachement.swift */,
+				9B2784042FB37A83001F2B6A /* Images.swift */,
+				9B2784052FB37A83001F2B6A /* Mounts.swift */,
+				9B2784062FB37A83001F2B6A /* Registry.swift */,
+				9B2784072FB37A83001F2B6A /* RemoteEntry.swift */,
+				9B2784082FB37A83001F2B6A /* SocketDevice.swift */,
+				9B2784092FB37A83001F2B6A /* Templates.swift */,
+				9B27840A2FB37A83001F2B6A /* TunnelAttachement.swift */,
+				9B27840B2FB37A83001F2B6A /* Validatable.swift */,
+				9B27840C2FB37A83001F2B6A /* ViewSize.swift */,
+				9B27840D2FB37A83001F2B6A /* VirtualMachineInfo.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 		9B2BFAAF2DFED25E000045C3 /* Settings */ = {
@@ -1825,7 +1875,7 @@
 				9B464AD82D5A3E0300164BF5 /* service.grpc.swift */,
 				9B464AD92D5A3E0300164BF5 /* service.pb.swift */,
 				9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */,
-				9B21ABD12DF4A2C5000B3B40 /* Model */,
+				9B27840E2FB37A83001F2B6A /* Model */,
 				9BB3BE1C2DB3F17500799A6A /* options */,
 			);
 			path = grpc;
@@ -2531,9 +2581,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				9B21ABD12DF4A2C5000B3B40 /* Model */,
-			);
 			name = GRPCLib;
 			packageProductDependencies = (
 				9B464C702D5A464B00164BF5 /* GRPC */,
@@ -3111,6 +3158,22 @@
 				9BB3BE282DB3F17500799A6A /* PushOptions.swift in Sources */,
 				9BB3BE292DB3F17500799A6A /* ConfigureOptions.swift in Sources */,
 				9B5C52D92F0FB27B002D628C /* GRPCTLSConfiguration.swift in Sources */,
+				9B27840F2FB37A83001F2B6A /* BridgeAttachement.swift in Sources */,
+				9B2784102FB37A83001F2B6A /* BridgedNetwork.swift in Sources */,
+				9B2784112FB37A83001F2B6A /* CertificateRepresentation.swift in Sources */,
+				9B2784122FB37A83001F2B6A /* ConsoleAttachment.swift in Sources */,
+				9B2784132FB37A83001F2B6A /* DirectorySharingAttachement.swift in Sources */,
+				9B2784142FB37A83001F2B6A /* DiskAttachement.swift in Sources */,
+				9B2784152FB37A83001F2B6A /* Images.swift in Sources */,
+				9B2784162FB37A83001F2B6A /* Mounts.swift in Sources */,
+				9B2784172FB37A83001F2B6A /* Registry.swift in Sources */,
+				9B2784182FB37A83001F2B6A /* RemoteEntry.swift in Sources */,
+				9B2784192FB37A83001F2B6A /* SocketDevice.swift in Sources */,
+				9B27841A2FB37A83001F2B6A /* Templates.swift in Sources */,
+				9B27841B2FB37A83001F2B6A /* TunnelAttachement.swift in Sources */,
+				9B27841C2FB37A83001F2B6A /* Validatable.swift in Sources */,
+				9B27841D2FB37A83001F2B6A /* ViewSize.swift in Sources */,
+				9B27841E2FB37A83001F2B6A /* VirtualMachineInfo.swift in Sources */,
 				9BB3BE2A2DB3F17500799A6A /* WaitIPOptions.swift in Sources */,
 				9BA7B0242F5601DF004AFAE8 /* ImageSource.swift in Sources */,
 				9BF8AE6A2F43915700DE5EAB /* CakedChannelStreamer.swift in Sources */,
