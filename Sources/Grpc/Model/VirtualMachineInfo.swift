@@ -146,7 +146,7 @@ public struct VMInformations: Sendable, Codable {
 		self.agentVersion = from.agentVersion
 
 		self.attachedNetworks = from.networks.map {
-			AttachedNetwork(network: $0.network, mode: $0.mode, macAddress: $0.macAddress, ipAddresses: $0.ipAddresses)
+			AttachedNetwork($0)
 		}
 
 		self.tunnelInfos = from.tunnels.compactMap {
