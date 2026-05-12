@@ -35,6 +35,7 @@ public struct InfosHandler {
 				$0.status = status
 				$0.cpuCount = Int32(config.cpuCount)
 				$0.diskInfos = diskInfos
+				$0.attachedNetworks = config.networks.map { AttachedNetwork(network: $0.network, mode: $0.mode?.description ?? nil, macAddress: $0.macAddress ?? nil, ipAddresses: nil) }
 				$0.memory = .with {
 					$0.total = config.memorySize
 				}
@@ -47,7 +48,7 @@ public struct InfosHandler {
 
 		if case .running = location.status {
 			if let agent = try? client.info(callOptions: callOptions) {
-				infos = .init(agent)
+				infos = .init(agent, networks: config.networks)
 			} else {
 				infos = try offline(.running)
 			}
@@ -65,7 +66,6 @@ public struct InfosHandler {
 
 		infos.name = location.name
 		infos.mounts = config.mounts.map { $0.description }
-		infos.attachedNetworks = config.networks.map { AttachedNetwork(network: $0.network, mode: $0.mode?.description ?? nil, macAddress: $0.macAddress ?? nil) }
 		infos.tunnelInfos = config.forwardedPorts.compactMap { $0.tunnelInfo }
 		infos.socketInfos = config.sockets.compactMap { $0.socketInfo }
 

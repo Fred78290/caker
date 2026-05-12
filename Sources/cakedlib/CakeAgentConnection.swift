@@ -83,17 +83,28 @@ extension Cakeagent_CakeAgent.InfoReply.DiskInfo {
 	}
 }
 
+extension Cakeagent_CakeAgent.InfoReply.NetworkInfo {
+	var caked: Caked_InfoReply.AttachedNetwork {
+		.with {
+			$0.network = self.interface
+			$0.macAddress = self.macAddress
+			$0.ipAddresses = self.addresses
+		}
+	}
+}
+
 extension Cakeagent_CakeAgent.InfoReply {
 	var caked: Caked_InfoReply {
 		.with {
 			$0.version = self.version
 			$0.uptime = self.uptime
 			$0.cpuCount = self.cpuCount
-			$0.ipaddresses = self.ipaddresses
+			$0.ipaddresses = self.networkInfos.flatMap { $0.addresses }
 			$0.osname = self.osname
 			$0.release = self.release
 			$0.diskInfos = self.diskInfos.map(\.caked)
-
+			$0.networks = self.networkInfos.map(\.caked)
+			
 			if self.hasCpu {
 				let cpu = self.cpu
 
