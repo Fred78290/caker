@@ -3151,6 +3151,8 @@ public struct Caked_Caked: Sendable {
             /// Clears the value of `macAddress`. Subsequent reads from it will return its default value.
             public mutating func clearMacAddress() {self._macAddress = nil}
 
+            public var ipAddresses: [String] = []
+
             public var unknownFields = SwiftProtobuf.UnknownStorage()
 
             public init() {}
@@ -10297,7 +10299,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.DiskInfo: 
 
 extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.AttachedNetwork: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.protoMessageName + ".AttachedNetwork"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}network\0\u{1}mode\0\u{1}macAddress\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}network\0\u{1}mode\0\u{1}macAddress\0\u{1}ipAddresses\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -10308,6 +10310,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.AttachedNe
       case 1: try { try decoder.decodeSingularStringField(value: &self.network) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self._mode) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self._macAddress) }()
+      case 4: try { try decoder.decodeRepeatedStringField(value: &self.ipAddresses) }()
       default: break
       }
     }
@@ -10327,6 +10330,9 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.AttachedNe
     try { if let v = self._macAddress {
       try visitor.visitSingularStringField(value: v, fieldNumber: 3)
     } }()
+    if !self.ipAddresses.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.ipAddresses, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -10334,6 +10340,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.AttachedNe
     if lhs.network != rhs.network {return false}
     if lhs._mode != rhs._mode {return false}
     if lhs._macAddress != rhs._macAddress {return false}
+    if lhs.ipAddresses != rhs.ipAddresses {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

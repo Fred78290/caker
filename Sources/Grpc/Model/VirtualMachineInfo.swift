@@ -101,7 +101,11 @@ public struct VMInformations: Sendable, Codable {
 		self.agentVersion = nil
 	}
 
-	public init(_ from: InfoReply) {
+	public init(_ from: InfoReply, networks: [BridgeAttachement]) {
+		let networksByName: [String: BridgeAttachement] = networks.reduce(into: [:]) { result, network in
+			result[network.network] = network
+		}
+
 		self.name = from.name
 		self.version = from.version
 		self.uptime = from.uptime
@@ -119,6 +123,13 @@ public struct VMInformations: Sendable, Codable {
 		self.socketInfos = nil
 		self.cpuInfos = from.cpuInfo
 		self.agentVersion = from.agentVersion
+		self.attachedNetworks = from.attachedNetworks?.map { inf in
+			if let network = networksByName[inf.network] {
+				return AttachedNetwork(network: inf.network, mode: network.mode?.description ?? nil, macAddress: inf.macAddress, ipAddresses: inf.ipAddresses)
+			}
+				
+			return inf
+		}
 	}
 
 	public init(_ from: Caked_InfoReply) {
@@ -135,7 +146,7 @@ public struct VMInformations: Sendable, Codable {
 		self.agentVersion = from.agentVersion
 
 		self.attachedNetworks = from.networks.map {
-			AttachedNetwork(network: $0.network, mode: $0.mode, macAddress: $0.macAddress)
+			AttachedNetwork($0)
 		}
 
 		self.tunnelInfos = from.tunnels.compactMap {
@@ -1097,3 +1108,4 @@ public struct InstalledAgentReply {
 		}
 	}
 }
+

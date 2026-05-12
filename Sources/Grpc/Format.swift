@@ -46,6 +46,8 @@ extension CakeAgentLib.AttachedNetwork {
 		if from.hasMacAddress {
 			self.macAddress = from.macAddress
 		}
+		
+		self.ipAddresses = from.ipAddresses
 	}
 }
 
@@ -60,6 +62,8 @@ extension Caked_InfoReply.AttachedNetwork {
 		if let macAddress = from.macAddress {
 			self.macAddress = macAddress
 		}
+
+		self.ipAddresses = from.ipAddresses ?? []
 	}
 }
 

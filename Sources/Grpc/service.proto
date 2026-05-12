@@ -678,9 +678,10 @@ message Caked {
           }
 
           message AttachedNetwork {
-            string          network    = 1;
-            optional string mode       = 2;
-            optional string macAddress = 3;
+            string          network     = 1;
+            optional string mode        = 2;
+            optional string macAddress  = 3;
+            repeated string ipAddresses = 4;
           }
 
           message TunnelInfo {

@@ -4345,7 +4345,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
 			requirement = {
 				kind = revision;
-				revision = 664c9bfb0c215c586ba53a8d30a9d28004c1f4de;
+				revision = 392d851ce59aa7f14aeafe7fbfbef87b02219e28;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
