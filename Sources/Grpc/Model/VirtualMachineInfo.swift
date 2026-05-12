@@ -102,7 +102,9 @@ public struct VMInformations: Sendable, Codable {
 	}
 
 	public init(_ from: InfoReply, networks: [BridgeAttachement]) {
-		let networksByName: [String: BridgeAttachement] = Dictionary(uniqueKeysWithValues: networks.map { ($0.network, $0) })
+		let networksByName: [String: BridgeAttachement] = networks.reduce(into: [:]) { result, network in
+			result[network.network] = network
+		}
 
 		self.name = from.name
 		self.version = from.version
