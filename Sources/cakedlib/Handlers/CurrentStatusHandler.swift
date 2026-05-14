@@ -103,6 +103,9 @@ public struct CurrentStatusHandler {
 							$0.total = mem.total
 							$0.free = mem.free
 							$0.used = mem.used
+							$0.swapTotal = mem.swapTotal
+							$0.swapFree = mem.swapFree
+							$0.swapUsed = mem.swapUsed
 						}
 					}
 				}

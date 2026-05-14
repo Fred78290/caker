@@ -57,6 +57,7 @@ public struct VMInformations: Sendable, Codable {
 	public var version: String?
 	public var uptime: UInt64?
 	public var memory: InfoReply.MemoryInfo?
+	public var numOfProcesses: Int32
 	public var cpuCount: Int32
 	public var diskInfos: [DiskInfo]
 	public var ipaddresses: [String]
@@ -99,6 +100,7 @@ public struct VMInformations: Sendable, Codable {
 		self.socketInfos = nil
 		self.cpuInfos = nil
 		self.agentVersion = nil
+		self.numOfProcesses = 0
 	}
 
 	public init(_ from: InfoReply, networks: [BridgeAttachement]) {
@@ -123,6 +125,7 @@ public struct VMInformations: Sendable, Codable {
 		self.socketInfos = nil
 		self.cpuInfos = from.cpuInfo
 		self.agentVersion = from.agentVersion
+		self.numOfProcesses = from.numOfProcesses
 		self.attachedNetworks = from.attachedNetworks?.map { inf in
 			if let network = networksByName[inf.network] {
 				return AttachedNetwork(network: inf.network, mode: network.mode?.description ?? nil, macAddress: inf.macAddress, ipAddresses: inf.ipAddresses)
@@ -144,6 +147,7 @@ public struct VMInformations: Sendable, Codable {
 		self.mounts = from.mounts
 		self.status = from.status.agentStatus
 		self.agentVersion = from.agentVersion
+		self.numOfProcesses = from.numOfProcesses
 
 		self.attachedNetworks = from.networks.map {
 			AttachedNetwork($0)
@@ -172,6 +176,9 @@ public struct VMInformations: Sendable, Codable {
 			$0.total = from.memory.total
 			$0.free = from.memory.free
 			$0.used = from.memory.used
+			$0.swapTotal = from.memory.swapTotal
+			$0.swapFree = from.memory.swapFree
+			$0.swapUsed = from.memory.swapUsed
 		}
 
 		if from.hasCpu {
@@ -213,13 +220,25 @@ public struct VMInformations: Sendable, Codable {
 					if let total = memory.total {
 						$0.total = total
 					}
-
+					
 					if let free = memory.free {
 						$0.free = free
 					}
-
+					
 					if let used = memory.used {
 						$0.used = used
+					}
+
+					if let swapTotal = memory.swapTotal {
+						$0.swapTotal = swapTotal
+					}
+					
+					if let swapFree = memory.swapFree {
+						$0.swapFree = swapFree
+					}
+					
+					if let swapUsed = memory.swapUsed {
+						$0.swapUsed = swapUsed
 					}
 				}
 			}

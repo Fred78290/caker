@@ -136,9 +136,12 @@ message Caked {
   }
 
   message MemoryInfo {
-    uint64          total = 1;
-    optional uint64 free  = 2;
-    optional uint64 used  = 3;
+    uint64 total     = 1;
+    uint64 free      = 2;
+    uint64 used      = 3;
+    uint64 swapTotal = 4;
+    uint64 swapFree  = 5;
+    uint64 swapUsed  = 6;
   }
 
 // Configuration represents the complete configuration for a Cake virtual machine
@@ -721,25 +724,26 @@ message Caked {
             int32  port = 3;
           }
 
-          optional string          version      = 1;
-          optional uint64          uptime       = 2;
-          MemoryInfo               memory       = 3;
-          int32                    cpuCount     = 4;
-          repeated DiskInfo        diskInfos    = 5;
-          repeated string          ipaddresses  = 6;
-          string                   osname       = 7;
-          optional string          hostname     = 8;
-          optional string          release      = 9;
-          VirtualMachineStatus     status       = 10;
-          repeated string          mounts       = 11;
-          string                   name         = 12;
-          repeated AttachedNetwork networks     = 13;
-          repeated TunnelInfo      tunnels      = 14;
-          repeated SocketInfo      sockets      = 15;
-          CpuInfo                  cpu          = 16;
-          repeated string          vncURL       = 17;
-          string                   agentVersion = 18;
-          optional ScreenSize      screenSize   = 19;
+          optional string          version        = 1;
+          optional uint64          uptime         = 2;
+          MemoryInfo               memory         = 3;
+          int32                    cpuCount       = 4;
+          repeated DiskInfo        diskInfos      = 5;
+          repeated string          ipaddresses    = 6;
+          string                   osname         = 7;
+          optional string          hostname       = 8;
+          optional string          release        = 9;
+          VirtualMachineStatus     status         = 10;
+          repeated string          mounts         = 11;
+          string                   name           = 12;
+          repeated AttachedNetwork networks       = 13;
+          repeated TunnelInfo      tunnels        = 14;
+          repeated SocketInfo      sockets        = 15;
+          CpuInfo                  cpu            = 16;
+          repeated string          vncURL         = 17;
+          string                   agentVersion   = 18;
+          optional ScreenSize      screenSize     = 19;
+          optional int32           numOfProcesses = 20;
         }
 
         optional InfoReply     infos   = 1;

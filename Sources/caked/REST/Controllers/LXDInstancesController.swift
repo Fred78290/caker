@@ -5,11 +5,13 @@
 //  Created by Frederic BOLTZ on 05/05/2026.
 //
 
-
+import CakeAgentLib
 import CakedLib
 import Foundation
+import GRPC
 import GRPCLib
 import Vapor
+import NIO
 
 /// Handles /1.0/instances routes
 struct LXDInstancesController: RouteCollection {
@@ -31,6 +33,38 @@ struct LXDInstancesController: RouteCollection {
 
 		named.grouped("exec").post(use: execInstance)
 		named.grouped("console").post(use: consoleInstance)
+	}
+
+	func createCakeAgentHelper(vmName: String, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1)) throws -> CakeAgentHelper {
+		return try CakeAgentHelper.createCakeAgentHelper(name: vmName, connectionTimeout: connectionTimeout, retries: retries, runMode: self.runMode)
+	}
+
+	func vmInfos(_ location: VMLocation) throws -> VMInformations {
+		let result = try CakedLib.InfosHandler.infos(name: location.name, runMode: runMode, client: try self.createCakeAgentHelper(vmName: location.name), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
+
+		return result.infos
+	}
+
+	// Helper: Convert IPv4 CIDR prefix length (e.g. 24) to dotted decimal netmask
+	private func dottedNetmask(fromPrefix prefix: Int) -> String {
+		guard (0...32).contains(prefix) else { return "" }
+		let mask: UInt32 = prefix == 0 ? 0 : ~UInt32(0) << (32 - UInt32(prefix))
+		let b1 = (mask >> 24) & 0xFF
+		let b2 = (mask >> 16) & 0xFF
+		let b3 = (mask >> 8) & 0xFF
+		let b4 = mask & 0xFF
+		return "\(b1).\(b2).\(b3).\(b4)"
+	}
+
+	// Helper: Split address and optional CIDR suffix, returns (addr, cidrPrefix)
+	private func splitAddressAndCIDR(_ address: String) -> (addr: String, cidr: Int?) {
+		if let slashIndex = address.lastIndex(of: "/") {
+			let addrPart = String(address[..<slashIndex])
+			let cidrPart = String(address[address.index(after: slashIndex)...])
+			if let prefix = Int(cidrPart) { return (addrPart, prefix) }
+			return (addrPart, nil)
+		}
+		return (address, nil)
 	}
 
 	// GET /1.0/instances → list of instance URLs
@@ -154,37 +188,80 @@ struct LXDInstancesController: RouteCollection {
 				.encodeResponse(status: .badRequest, for: req)
 		}
 
-		let reply = CakedLib.ListHandler.list(vmonly: true, includeConfig: false, runMode: runMode)
-
-		guard let info = reply.infos.first(where: { $0.name == name }) else {
+		guard let location = try? StorageLocation(runMode: self.runMode).find(name) else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' not found", code: 404)
 				.encodeResponse(status: .notFound, for: req)
 		}
 
-		let (lxdStatus, lxdStatusCode) = lxdStatusFrom(state: info.state)
+		guard let info = try? self.vmInfos(location) else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' not reachable", code: 405)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
+		let (lxdStatus, lxdStatusCode) = lxdStatusFrom(state: info.status)
 
 		var networkState: [String: LXDNetworkState]? = nil
-		if let ip = info.ip, ip.isEmpty == false {
-			let addr = LXDNetworkAddress(address: ip, family: "inet", netmask: "255.255.255.0", scope: "global")
-			networkState = [
-				"eth0": LXDNetworkState(
-					addresses: [addr],
-					counters: LXDNetworkCounters(bytesReceived: 0, bytesSent: 0, packetsReceived: 0, packetsSent: 0),
-					hwaddr: "",
-					mtu: 1500,
+
+		if let attachedNetworks = info.attachedNetworks {
+			networkState = attachedNetworks.reduce(into: [String: LXDNetworkState]()) { result, network in
+				let addr: [LXDNetworkAddress] = network.ipAddresses?.map { raw in
+					let parts = splitAddressAndCIDR(raw)
+					let address = parts.addr
+					let isIPv6 = address.contains(":")
+					let family = isIPv6 ? "inet6" : "inet"
+					let netmask: String
+
+					if isIPv6 {
+						// We don't provide dotted netmask for IPv6; CIDR may be present but leave netmask empty
+						netmask = ""
+					} else if let cidr = parts.cidr {
+						netmask = dottedNetmask(fromPrefix: cidr)
+					} else {
+						// Fallback placeholder when no CIDR available
+						netmask = "255.255.255.0"
+					}
+
+					return LXDNetworkAddress(address: address, family: family, netmask: netmask, scope: "global")
+				} ?? []
+
+				result[network.network] = LXDNetworkState(
+					addresses: addr,
+					counters: LXDNetworkCounters(bytesReceived: Int(network.bytesReceived), bytesSent: Int(network.bytesSent), packetsReceived: Int(network.packetsReceived), packetsSent: Int(network.packetsSent)),
+					hwaddr: network.macAddress ?? "",
+					mtu: Int(network.mtu ?? 1500),
 					state: "up",
 					type: "broadcast"
-				)
-			]
+					)
+			}
+		}
+
+		let disks = info.diskInfos.reduce(into: [String: LXDDiskState]()) { result, disk in
+			result[disk.device] = LXDDiskState(usage: Int(disk.used), total: Int(disk.total))
+		}
+
+		let memInfos = Caked.MemoryInfo.with {
+			if let mem = info.memory {
+				$0.total = mem.total ?? 0
+				$0.used = mem.used ?? 0
+				$0.swapTotal = mem.swapTotal ?? 0
+				$0.swapUsed = mem.swapUsed ?? 0
+				$0.swapFree = mem.swapFree ?? 0
+			}
 		}
 
 		let state = LXDInstanceState(
-			cpu: LXDCPUState(usage: 0),
-			disk: ["root": LXDDiskState(usage: Int(info.sizeOnDisk), total: Int(info.diskSize))],
-			memory: LXDMemoryState(swapUsage: 0, swapUsagePeak: 0, total: 0, usage: 0, usagePeak: 0),
+			cpu: LXDCPUState(usage: Int(info.cpuInfos?.totalUsagePercent ?? 0)),
+			disk: disks,
+			memory: LXDMemoryState(
+				swapUsage: Int(memInfos.swapUsed),
+				swapUsagePeak: Int(memInfos.swapUsed),
+				total: Int(memInfos.total),
+				usage: Int(memInfos.used),
+				usagePeak: Int(memInfos.used)
+			),
 			network: networkState,
-			pid: 0,
-			processes: 0,
+			pid: Int(location.readPID() ?? 0),
+			processes: Int(info.numOfProcesses),
 			status: lxdStatus,
 			statusCode: lxdStatusCode
 		)
@@ -351,21 +428,27 @@ struct LXDInstancesController: RouteCollection {
 		}
 
 		// Both console types use two fds: "0" (pty / VNC data) and "control".
-		var secrets: [String: String] = [
-			"0": UUID().uuidString.lowercased(),
-			"control": UUID().uuidString.lowercased()
-		]
+		var secrets: [String: String]
 
 		// For VGA consoles, also expose the VNC password so the browser-side noVNC
 		// client can authenticate against the VM's VNC server.  The "vnc-password"
 		// key is not a WebSocket fd secret; it is metadata that is safe to return
 		// because the endpoint is already authenticated.
 		if consoleType == "vga" {
+			secrets = [
+				"0": UUID().uuidString.lowercased()
+			]
+
 			if let vncInfos = try? CakedLib.VNCInfosHandler.vncInfos(name: name, runMode: runMode),
 			   let vncURLStr = vncInfos.urls.first,
 			   let components = URLComponents(string: vncURLStr) {
 				secrets["vnc-password"] = components.password ?? ""
 			}
+		} else {
+			secrets = [
+				"0": UUID().uuidString.lowercased(),
+				"control": UUID().uuidString.lowercased()
+			]
 		}
 
 		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, fds: secrets)
@@ -395,6 +478,14 @@ struct LXDInstancesController: RouteCollection {
 
 	// MARK: - Helpers
 
+	private func lxdStatusFrom(state: Status) -> (String, Int) {
+		switch state {
+		case .running: return ("Running", 103)
+		case .stopped: return ("Stopped", 102)
+		default: return ("Frozen", 110)
+		}
+	}
+
 	private func lxdStatusFrom(state: String) -> (String, Int) {
 		switch state.lowercased() {
 		case "running": return ("Running", 103)
@@ -403,3 +494,4 @@ struct LXDInstancesController: RouteCollection {
 		}
 	}
 }
+

@@ -53,7 +53,10 @@ import SwiftUI
 	public var total: UInt64 = 0
 	public var free: UInt64 = 0
 	public var used: UInt64 = 0
-	
+	public var swapTotal: UInt64 = 0
+	public var swapFree: UInt64 = 0
+	public var swapUsed: UInt64 = 0
+
 	init(from config: VirtualMachineConfiguration) {
 		self.total = config.memorySize
 	}
@@ -62,30 +65,45 @@ import SwiftUI
 		self.total = infos.total ?? 0
 		self.free = infos.free ?? 0
 		self.used = infos.used ?? 0
+		self.swapTotal = infos.swapTotal ?? 0
+		self.swapFree = infos.swapFree ?? 0
+		self.swapUsed = infos.swapUsed ?? 0
 	}
 	
 	init(from infos: CakeAgent.InfoReply.MemoryInfo) {
 		self.total = infos.total
 		self.free = infos.free
 		self.used = infos.used
+		self.swapTotal = infos.swapTotal
+		self.swapFree = infos.swapFree
+		self.swapUsed = infos.swapUsed
 	}
 	
 	func update(_ infos: CakeAgent.InfoReply.MemoryInfo?) {
 		self.total = infos?.total ?? self.total
 		self.free = infos?.free ?? self.free
 		self.used = infos?.used ?? self.used
+		self.swapTotal = infos?.swapTotal ?? self.swapTotal
+		self.swapFree = infos?.swapFree ?? self.swapFree
+		self.swapUsed = infos?.swapUsed ?? self.swapUsed
 	}
 	
 	func update(_ infos: Caked_Caked.MemoryInfo) {
 		self.total = infos.total
 		self.free = infos.free
 		self.used = infos.used
+		self.swapTotal = infos.swapTotal
+		self.swapFree = infos.swapFree
+		self.swapUsed = infos.swapUsed
 	}
 	
 	func update(_ infos: InfoReply.MemoryInfo?) {
 		self.total = infos?.total ?? self.total
 		self.free = infos?.free ?? self.free
 		self.used = infos?.used ?? self.used
+		self.swapTotal = infos?.swapTotal ?? self.swapTotal
+		self.swapFree = infos?.swapFree ?? self.swapFree
+		self.swapUsed = infos?.swapUsed ?? self.swapUsed
 	}
 }
 
@@ -307,6 +325,9 @@ import SwiftUI
 			$0.total = infos.memory.total
 			$0.free = infos.memory.free
 			$0.used = infos.memory.used
+			$0.swapTotal = infos.memory.swapTotal
+			$0.swapFree = infos.memory.swapFree
+			$0.swapUsed = infos.memory.swapUsed
 		}
 	}
 	

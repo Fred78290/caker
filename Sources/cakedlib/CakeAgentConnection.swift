@@ -117,6 +117,9 @@ extension Cakeagent_CakeAgent.InfoReply {
 					memory.total = mem.total
 					memory.free = mem.free
 					memory.used = mem.used
+					memory.swapTotal = mem.swapTotal
+					memory.swapFree = mem.swapFree
+					memory.swapUsed = mem.swapUsed
 				}
 			}
 		}
