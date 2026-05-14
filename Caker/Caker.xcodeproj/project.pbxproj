@@ -2789,7 +2789,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2640;
+				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					9B464A532D5A3DA000164BF5 = {
 						CreatedOnToolsVersion = 16.2;
@@ -4408,7 +4408,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
 			requirement = {
 				kind = revision;
-				revision = 392d851ce59aa7f14aeafe7fbfbef87b02219e28;
+				revision = 0cc3f8a471909c06d240650a239772c1eb137e5b;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
