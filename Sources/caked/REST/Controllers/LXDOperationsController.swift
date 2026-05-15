@@ -23,9 +23,15 @@ struct LXDOperationsController: RouteCollection {
 		named.webSocket("websocket", onUpgrade: websocketForOperation)
 	}
 
-	// GET /1.0/operations
+	// GET /1.0/operations[?recursion=1]
 	@Sendable
 	func listOperations(req: Request) async throws -> Response {
+		let recursion = (req.query[Int.self, at: "recursion"] ?? 0) != 0
+
+		if recursion {
+			return try await LXDResponse<[LXDOperationMetadata]>.syncList(LXDOperationStore.shared.list()).encodeResponse(for: req)
+		}
+
 		let urls = await LXDOperationStore.shared.listURLs()
 		return try await LXDResponse<LXDStringListMetadata>.syncList(urls).encodeResponse(for: req)
 	}

@@ -27,9 +27,9 @@ struct LXDAuthGroupsController: RouteCollection {
 	// GET /1.0/auth/groups[?recursion=1]
 	@Sendable
 	func listGroups(req: Request) async throws -> Response {
-		let recursion = req.query[Int.self, at: "recursion"] ?? 0
+		let recursion = (req.query[Int.self, at: "recursion"] ?? 0) != 0
 
-		if recursion >= 1 {
+		if recursion {
 			let all = await LXDAuthGroupStore.shared.list()
 			return try await LXDResponse<[LXDAuthGroup]>.sync(all).encodeResponse(for: req)
 		}

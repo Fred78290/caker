@@ -72,10 +72,10 @@ struct LXDImagesController: RouteCollection {
 	// GET /1.0/images[?recursion=1]
 	@Sendable
 	func listImages(req: Request) async throws -> Response {
-		let recursion = req.query[Int.self, at: "recursion"] ?? 0
+		let recursion = (req.query[Int.self, at: "recursion"] ?? 0) != 0
 		let infos = allCachedImages()
 
-		if recursion >= 1 {
+		if recursion {
 			let images = infos.map { toLXDImage($0) }
 			return try await LXDResponse<LXDImageListMetadata>.syncImages(images).encodeResponse(for: req)
 		}

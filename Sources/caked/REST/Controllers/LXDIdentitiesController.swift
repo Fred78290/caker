@@ -45,9 +45,9 @@ struct LXDIdentitiesController: RouteCollection {
 	// GET /1.0/auth/identities[?recursion=1]
 	@Sendable
 	func listAllIdentities(req: Request) async throws -> Response {
-		let recursion = req.query[Int.self, at: "recursion"] ?? 0
+		let recursion = (req.query[Int.self, at: "recursion"] ?? 0) != 0
 
-		if recursion >= 1 {
+		if recursion {
 			let all = await LXDIdentityStore.shared.list()
 			return try await LXDResponse<LXDIdentityListMetadata>.syncIdentities(all).encodeResponse(for: req)
 		}
@@ -211,9 +211,9 @@ struct LXDIdentitiesController: RouteCollection {
 	// GET /1.0/auth/identities/bearer[?recursion=1]
 	@Sendable
 	func listBearerIdentities(req: Request) async throws -> Response {
-		let recursion = req.query[Int.self, at: "recursion"] ?? 0
+		let recursion = (req.query[Int.self, at: "recursion"] ?? 0) != 0
 
-		if recursion >= 1 {
+		if recursion {
 			let all = await LXDIdentityStore.shared.listByAuthMethod("bearer")
 			return try await LXDResponse<LXDIdentityListMetadata>.syncIdentities(all).encodeResponse(for: req)
 		}

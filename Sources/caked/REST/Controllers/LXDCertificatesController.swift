@@ -26,9 +26,9 @@ struct LXDCertificatesController: RouteCollection {
 	// GET /1.0/certificates[?recursion=1]
 	@Sendable
 	func listCertificates(req: Request) async throws -> Response {
-		let recursion = req.query[Int.self, at: "recursion"] ?? 0
+		let recursion = (req.query[Int.self, at: "recursion"] ?? 0) != 0
 
-		if recursion >= 1 {
+		if recursion {
 			let all = await LXDCertificateStore.shared.list()
 			return try await LXDResponse<LXDCertificateListMetadata>.syncCertificates(all).encodeResponse(for: req)
 		}

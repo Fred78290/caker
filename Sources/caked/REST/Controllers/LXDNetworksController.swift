@@ -22,9 +22,10 @@ struct LXDNetworksController: RouteCollection {
 		named.get(use: getNetwork)
 	}
 
-	// GET /1.0/networks
+	// GET /1.0/networks[?recursion=1]
 	@Sendable
 	func listNetworks(req: Request) async throws -> Response {
+		let recursion = (req.query[Int.self, at: "recursion"] ?? 0) != 0
 		let reply = CakedLib.NetworksHandler.networks(runMode: runMode)
 
 		guard reply.success else {
@@ -32,7 +33,7 @@ struct LXDNetworksController: RouteCollection {
 				.encodeResponse(status: .badRequest, for: req)
 		}
 
-		if req.query["recursion"] == "1" {
+		if recursion {
 			return try await LXDResponse<[LXDNetwork]>.syncList(reply.networks).encodeResponse(for: req)
 		}
 

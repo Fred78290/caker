@@ -105,6 +105,12 @@ extension LXDResponse where T == [LXDInstance] {
 	}
 }
 
+extension LXDResponse where T == [LXDOperationMetadata] {
+	static func syncList(_ items: [LXDOperationMetadata]) -> LXDResponse<[LXDOperationMetadata]> {
+		LXDResponse(type: "sync", status: "Success", statusCode: 200, operation: "", errorCode: 0, error: "", metadata: items)
+	}
+}
+
 // MARK: - Async Operation
 typealias CancellableCallback = @Sendable () -> Void
 
