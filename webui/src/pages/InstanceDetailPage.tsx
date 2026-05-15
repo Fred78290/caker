@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { consoleInstance, execInstance, getInstance, getInstanceState } from '../api/instances';
+import { changeInstanceState, consoleInstance, execInstance, getInstance, getInstanceState } from '../api/instances';
 import { PageSpinner } from '../components/Spinner';
 import { StatusBadge } from '../components/StatusBadge';
 import { TerminalConsole } from '../components/TerminalConsole';
 import { VGAConsole } from '../components/VGAConsole';
 import type { LXDInstance, LXDInstanceState } from '../types/lxd';
+import { eventBus } from '../utils/eventBus';
 
 type ActiveTab = 'overview' | 'terminal' | 'vga'
 
@@ -215,22 +216,100 @@ export function InstanceDetailPage() {
   const [sessionError, setSessionError] = useState<string | null>(null)
   const [sessionLoading, setSessionLoading] = useState(false)
 
+  // Busy state for start/stop
+  const [actionBusy, setActionBusy] = useState<string | null>(null)
+
   // Track which sessions have been requested to avoid duplicate calls.
   const termRequested = useRef(false)
   const vgaRequested = useRef(false)
 
   // ── Load instance info ─────────────────────────────────────────────────────
+  // Rafraîchissement initial et sur changement de nom
   useEffect(() => {
     if (!name) return
+    let cancelled = false
     Promise.all([
-      getInstance(name).then((r) => setInstance(r.data.metadata)),
+      getInstance(name).then((r) => { if (!cancelled) setInstance(r.data.metadata) }),
       getInstanceState(name)
-        .then((r) => setState(r.data.metadata))
-        .catch(() => setState(null)),
+        .then((r) => { if (!cancelled) setState(r.data.metadata) })
+        .catch(() => { if (!cancelled) setState(null) }),
     ]).catch((e) => setLoadError(String(e)))
+    return () => { cancelled = true }
+  }, [name])
+
+  // Rafraîchissement automatique (polling) hors action utilisateur
+  useEffect(() => {
+    if (!name) return
+    let cancelled = false
+    let lastStatus: string | undefined = undefined
+    const poll = async () => {
+      while (!cancelled) {
+        try {
+          const res = await getInstance(name)
+          const status = res.data.metadata.status
+          if (lastStatus !== undefined && status !== lastStatus) {
+            eventBus.emit('instance-status', { name, status })
+          }
+          lastStatus = status
+          setInstance(res.data.metadata)
+        } catch {}
+        await new Promise((r) => setTimeout(r, 3000))
+      }
+    }
+    poll()
+    return () => { cancelled = true }
   }, [name])
 
   const isRunning = instance?.status === 'Running'
+
+  // Rafraîchit l'état si eventBus signale un changement (hors action utilisateur)
+  useEffect(() => {
+    if (!name) return
+    const off = eventBus.on('instance-status', (payload) => {
+      if (payload.name === name) {
+        getInstance(name).then((r) => setInstance(r.data.metadata))
+        getInstanceState(name).then((r) => setState(r.data.metadata)).catch(() => {})
+      }
+    })
+    return () => { off() }
+  }, [name])
+
+  // Start/Stop actions
+  // Poll le statut jusqu'à changement ou timeout (maxWait ms)
+  const pollStatusChange = async (expected: string, maxWait = 8000, interval = 700) => {
+    const start = Date.now()
+    while (Date.now() - start < maxWait) {
+      const res = await getInstance(name!)
+      const newStatus = res.data.metadata.status
+      if (newStatus === expected) {
+        setInstance(res.data.metadata)
+        try {
+          const stateRes = await getInstanceState(name!)
+          setState(stateRes.data.metadata)
+        } catch {}
+        return true
+      }
+      await new Promise((r) => setTimeout(r, interval))
+    }
+    return false
+  }
+
+  const doStateChange = async (action: 'start' | 'stop') => {
+    if (!instance) return
+    setActionBusy(action)
+    setLoadError(null)
+    try {
+      await changeInstanceState(instance.name, action)
+      // Attendre le changement effectif de statut
+      const expected = action === 'start' ? 'Running' : 'Stopped'
+      const ok = await pollStatusChange(expected)
+      if (!ok) setLoadError("Timeout: l'état n'a pas changé.")
+    } catch (e) {
+      setLoadError(String(e))
+    } finally {
+      setActionBusy(null)
+    }
+  }
 
   // ── Open terminal session ──────────────────────────────────────────────────
   const openTerminal = useCallback(async () => {
@@ -314,6 +393,40 @@ export function InstanceDetailPage() {
           <div className="ms-2">
             <StatusBadge status={instance!.status} />
           </div>
+
+          {/* Start/Stop actions */}
+          {instance && (
+            <div className="ms-3 d-flex gap-2 align-items-center">
+              {instance.status !== 'Running' && (
+                <button
+                  className="btn btn-outline-success btn-sm"
+                  disabled={actionBusy !== null}
+                  title="Start VM"
+                  onClick={() => doStateChange('start')}
+                >
+                  {actionBusy === 'start' ? (
+                    <span className="spinner-border spinner-border-sm" />
+                  ) : (
+                    <><i className="bi bi-play-fill me-1" />Start</>
+                  )}
+                </button>
+              )}
+              {instance.status === 'Running' && (
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  disabled={actionBusy !== null}
+                  title="Stop VM"
+                  onClick={() => doStateChange('stop')}
+                >
+                  {actionBusy === 'stop' ? (
+                    <span className="spinner-border spinner-border-sm" />
+                  ) : (
+                    <><i className="bi bi-stop-fill me-1" />Stop</>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ── Tabs ─────────────────────────────────────────────────────────── */}
