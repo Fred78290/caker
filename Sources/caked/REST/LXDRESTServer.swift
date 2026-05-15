@@ -254,10 +254,11 @@ final class LXDRESTServer: Sendable {
 
 	/// Creates and configures the Vapor application but does not start it.
 	init(group: MultiThreadedEventLoopGroup, listen: URL, caCert: String?, tlsCert: String?, tlsKey: String?, runMode: Utils.RunMode, webUIDirectory: String? = nil) async throws {
-		let logger = Logger(label: "LXDRESTServer")
+		var logger = Logger(label: "LXDRESTServer")
 		let app = try await Application.make(Environment.current(), .shared(group), logger: logger)
 
 		Self.runMode = runMode
+		logger.logLevel = CakeAgentLib.Logger.LoggingLevel()
 
 		// Configure JSON encoder/decoder for LXD snake_case + ISO8601 dates
 		let encoder = JSONEncoder()
