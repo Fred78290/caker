@@ -27,12 +27,6 @@ struct Service: ParsableCommand {
 
 extension Service {
 	struct ServiceOptions: ParsableArguments {
-		@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
-		var logLevel: Logger.LogLevel = .info
-
-		@Flag(name: [.customLong("system"), .customShort("s")], help: ArgumentHelp(String(localized: "Install caked as system agent, need sudo")))
-		var asSystem: Bool = false
-
 		@Option(name: [.customLong("address"), .customShort("l")], help: ArgumentHelp(String(localized: "Listen on address")))
 		var address: [String] = []
 
@@ -69,13 +63,7 @@ extension Service {
 		@Option(name: [.customLong("web-ui")], help: ArgumentHelp(String(localized: "Path to web UI static files directory"), discussion: "When provided, caked serves the web UI under /ui"))
 		var webUIDirectory: String? = nil
 
-		var runMode: Utils.RunMode {
-			self.asSystem ? .system : .user
-		}
-
 		func validate() throws {
-			Logger.setLevel(self.logLevel)
-
 			VMRunHandler.serviceMode = mode
 
 			if self.tcp && self.address.isEmpty == false {
@@ -99,9 +87,9 @@ extension Service {
 			}
 		}
 
-		func getCertificats() throws -> Certs {
+		func getCertificats(runMode: Utils.RunMode) throws -> Certs {
 			if self.tlsCert == nil && self.tlsKey == nil {
-				let certs = try CertificatesLocation.createCertificats(runMode: self.asSystem ? .system : .user)
+				let certs = try CertificatesLocation.createCertificats(runMode: runMode)
 
 				return Certs(ca: certs.caCertURL.path, key: certs.serverKeyURL.path, cert: certs.serverCertURL.path)
 			}
@@ -109,16 +97,16 @@ extension Service {
 			return Certs(ca: self.caCert, key: self.tlsKey, cert: self.tlsCert)
 		}
 
-		func getListenAddress() throws -> [String] {
+		func getListenAddress(runMode: Utils.RunMode) throws -> [String] {
 			if self.tcp {
 				return [
-					try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user),
+					try Utils.getDefaultServerAddress(runMode: runMode),
 					"tcp://0.0.0.0:\(Caked.defaultServicePort)",
 				]
 			}
 
 			if self.address.isEmpty {
-				return [try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user)]
+				return [try Utils.getDefaultServerAddress(runMode: runMode)]
 			}
 
 			return address
@@ -128,19 +116,22 @@ extension Service {
 	struct Install: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: String(localized: "Install caked daemon as launchctl agent"))
 
+		@OptionGroup(title: String(localized: "Global options"))
+		var common: CommonOptions
+
 		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 
 		func run() throws {
-			let runMode: Utils.RunMode = self.options.runMode
-			let listenAddress = try self.options.getListenAddress()
+			let runMode: Utils.RunMode = self.common.runMode
+			let listenAddress = try self.options.getListenAddress(runMode: runMode)
 
 			var caCert: String? = nil
 			var tlsCert: String? = nil
 			var tlsKey: String? = nil
 
 			if self.options.insecure == false {
-				let certs = try self.options.getCertificats()
+				let certs = try self.options.getCertificats(runMode: runMode)
 
 				caCert = certs.ca
 				tlsKey = certs.key
@@ -155,11 +146,14 @@ extension Service {
 	struct Listen: AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(abstract: String(localized: "caked daemon listening"))
 
-		@Flag(help: .hidden)
-		var secure: Bool = false
+		@OptionGroup(title: String(localized: "Global options"))
+		var common: CommonOptions
 
 		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
+
+		@Flag(help: .hidden)
+		var secure: Bool = false
 
 		var password: String? {
 			if options.noPassword { return nil }
@@ -176,7 +170,7 @@ extension Service {
 		}
 
 		mutating func validate() throws {
-			let runMode: Utils.RunMode = self.options.runMode
+			let runMode: Utils.RunMode = self.common.runMode
 
 			if self.secure {
 				let certs = try CertificatesLocation.createCertificats(runMode: runMode)
@@ -202,7 +196,7 @@ extension Service {
 		}
 
 		func run() async throws {
-			let listenAddress = try self.options.getListenAddress()
+			let listenAddress = try self.options.getListenAddress(runMode: self.common.runMode)
 			let logger = Logger(self)
 
 			guard listenAddress.count > 0 else {
@@ -210,7 +204,7 @@ extension Service {
 				throw ServiceError(String(localized: "No listen address provided"))
 			}
 
-			let runMode: Utils.RunMode = self.options.runMode
+			let runMode: Utils.RunMode = self.common.runMode
 			let home = try Home(runMode: runMode)
 			let eventLoopGroup = Utilities.group
 
@@ -328,29 +322,33 @@ extension Service {
 	struct Show: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: String(localized: "Help to run caked daemon"))
 
+		@OptionGroup(title: String(localized: "Global options"))
+		var common: CommonOptions
+
 		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 
 		mutating func run() throws {
-			let listenAddress = try self.options.getListenAddress()
+			let runMode = self.common.runMode
+			let listenAddress = try self.options.getListenAddress(runMode: runMode)
 
 			var arguments: [String] = [
 				try ServiceHandler.findMe(),
 				"service",
 				"listen",
-				"--log-level=\(self.options.logLevel.rawValue)",
+				"--log-level=\(self.common.logLevel.rawValue)",
 			]
 
 			listenAddress.forEach {
 				arguments.append("--address=\($0)")
 			}
 
-			if self.options.asSystem {
+			if runMode == .system {
 				arguments.append("--system")
 			}
 
 			if self.options.insecure == false {
-				let certs = try self.options.getCertificats()
+				let certs = try self.options.getCertificats(runMode: runMode)
 
 				if let ca = certs.ca {
 					arguments.append("--ca-cert=\(ca)")
