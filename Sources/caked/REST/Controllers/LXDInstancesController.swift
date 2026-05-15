@@ -10,11 +10,12 @@ import CakedLib
 import Foundation
 import GRPC
 import GRPCLib
-import Vapor
 import NIO
+import Vapor
 
 /// Handles /1.0/instances routes
 struct LXDInstancesController: RouteCollection {
+	let logger = Logger("LXDInstancesController")
 	let runMode: Utils.RunMode
 
 	func boot(routes: any RoutesBuilder) throws {
@@ -99,6 +100,7 @@ struct LXDInstancesController: RouteCollection {
 		if let raw = body.userData, raw.isEmpty == false {
 			userDataPath = try Utils.saveToTempFile(Data(raw.utf8))
 		}
+
 		if let raw = body.networkConfig, raw.isEmpty == false {
 			networkConfigPath = try Utils.saveToTempFile(Data(raw.utf8))
 		}
@@ -149,6 +151,7 @@ struct LXDInstancesController: RouteCollection {
 		}
 
 		let instance = LXDInstance.from(info)
+
 		return try await LXDResponse<LXDInstance>.sync(instance).encodeResponse(for: req)
 	}
 
@@ -173,6 +176,7 @@ struct LXDInstancesController: RouteCollection {
 				let deleted = try CakedLib.DeleteHandler.delete(names: [name], runMode: rm)
 				let success = deleted.first?.deleted ?? false
 				let reason = deleted.first?.reason ?? "Unknown error"
+
 				await LXDOperationStore.shared.complete(id: opID, success: success, error: success ? "" : reason)
 			} catch {
 				await LXDOperationStore.shared.complete(id: opID, success: false, error: error.localizedDescription)
@@ -206,25 +210,26 @@ struct LXDInstancesController: RouteCollection {
 
 		if let attachedNetworks = info.attachedNetworks {
 			networkState = attachedNetworks.reduce(into: [String: LXDNetworkState]()) { result, network in
-				let addr: [LXDNetworkAddress] = network.ipAddresses?.map { raw in
-					let parts = splitAddressAndCIDR(raw)
-					let address = parts.addr
-					let isIPv6 = address.contains(":")
-					let family = isIPv6 ? "inet6" : "inet"
-					let netmask: String
+				let addr: [LXDNetworkAddress] =
+					network.ipAddresses?.map { raw in
+						let parts = splitAddressAndCIDR(raw)
+						let address = parts.addr
+						let isIPv6 = address.contains(":")
+						let family = isIPv6 ? "inet6" : "inet"
+						let netmask: String
 
-					if isIPv6 {
-						// We don't provide dotted netmask for IPv6; CIDR may be present but leave netmask empty
-						netmask = ""
-					} else if let cidr = parts.cidr {
-						netmask = dottedNetmask(fromPrefix: cidr)
-					} else {
-						// Fallback placeholder when no CIDR available
-						netmask = "255.255.255.0"
-					}
+						if isIPv6 {
+							// We don't provide dotted netmask for IPv6; CIDR may be present but leave netmask empty
+							netmask = ""
+						} else if let cidr = parts.cidr {
+							netmask = dottedNetmask(fromPrefix: cidr)
+						} else {
+							// Fallback placeholder when no CIDR available
+							netmask = "255.255.255.0"
+						}
 
-					return LXDNetworkAddress(address: address, family: family, netmask: netmask, scope: "global")
-				} ?? []
+						return LXDNetworkAddress(address: address, family: family, netmask: netmask, scope: "global")
+					} ?? []
 
 				result[network.network] = LXDNetworkState(
 					addresses: addr,
@@ -233,7 +238,7 @@ struct LXDInstancesController: RouteCollection {
 					mtu: Int(network.mtu ?? 1500),
 					state: "up",
 					type: "broadcast"
-					)
+				)
 			}
 		}
 
@@ -295,17 +300,18 @@ struct LXDInstancesController: RouteCollection {
 		Task.detached {
 			switch action {
 			case "start", "unfreeze":
-				let result = (try? CakedLib.StartHandler.startVM(
-					name: name,
-					screenSize: nil,
-					vncPassword: nil,
-					vncPort: nil,
-					waitIPTimeout: timeout,
-					startMode: CakedLib.StartHandler.StartMode.service,
-					gcd: false,
-					recoveryMode: false,
-					runMode: rm
-				)) ?? GRPCLib.StartedReply(name: name, ip: "", started: false, reason: "Failed to start")
+				let result =
+					(try? CakedLib.StartHandler.startVM(
+						name: name,
+						screenSize: nil,
+						vncPassword: nil,
+						vncPort: nil,
+						waitIPTimeout: timeout,
+						startMode: CakedLib.StartHandler.StartMode.service,
+						gcd: false,
+						recoveryMode: false,
+						runMode: rm
+					)) ?? GRPCLib.StartedReply(name: name, ip: "", started: false, reason: "Failed to start")
 				await LXDOperationStore.shared.complete(id: opID, success: result.started, error: result.reason)
 
 			case "stop":
@@ -317,6 +323,7 @@ struct LXDInstancesController: RouteCollection {
 					name: name, startMode: .service, gcd: false, force: force,
 					waitIPTimeout: timeout, runMode: rm
 				)
+
 				await LXDOperationStore.shared.complete(id: opID, success: result.restarted, error: result.reason)
 
 			case "freeze":
@@ -361,7 +368,7 @@ struct LXDInstancesController: RouteCollection {
 		// Generate per-fd WebSocket secrets
 		var metadatas: [String: String] = [
 			"0": UUID().uuidString.lowercased(),
-			"control": UUID().uuidString.lowercased()
+			"control": UUID().uuidString.lowercased(),
 		]
 
 		if mode == .nonInteractive {
@@ -382,6 +389,7 @@ struct LXDInstancesController: RouteCollection {
 			runMode: runMode,
 			fds: metadatas
 		)
+
 		await LXDExecSessionStore.shared.register(operationId: operationId, context: context)
 		let runner = LXDExecRunner(location, operationId: operationId, context: context)
 
@@ -417,8 +425,8 @@ struct LXDInstancesController: RouteCollection {
 		}
 
 		let consoleReq = (try? req.content.decode(LXDConsoleRequest.self)) ?? LXDConsoleRequest()
-
 		let consoleType = consoleReq.type ?? "console"
+
 		guard consoleType == "console" || consoleType == "vga" else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Unsupported console type '\(consoleType)'", code: 400)
 				.encodeResponse(status: .badRequest, for: req)
@@ -431,15 +439,11 @@ struct LXDInstancesController: RouteCollection {
 		}
 
 		// Both console types use two fds: "0" (pty / VNC data) and "control".
-		let ptyUID = UUID().uuidString.lowercased()
+		var mode: LXDExecContext.ExecMode = .interactive
 		var metadatas: [String: String] = [
-			"0" : ptyUID
+			"0": UUID().uuidString.lowercased(),
+			"control": UUID().uuidString.lowercased()
 		]
-		var fds: [String: String] = [
-			"0": ptyUID,
-		]
-
-		let mode: LXDExecContext.ExecMode
 
 		// For VGA consoles, also expose the VNC password so the browser-side noVNC
 		// client can authenticate against the VM's VNC server.  The "vnc-password"
@@ -447,17 +451,16 @@ struct LXDInstancesController: RouteCollection {
 		// because the endpoint is already authenticated.
 		if consoleType == "vga" {
 			mode = .vga
-			if let vncInfos = try? CakedLib.VNCInfosHandler.vncInfos(name: name, runMode: runMode),
-			   let vncURLStr = vncInfos.urls.first,
-			   let components = URLComponents(string: vncURLStr), let vncPassword = components.password, vncPassword.isEmpty == false {
-				metadatas["vnc-password"] = vncPassword
-			}
-		} else {
-			let controlFd = UUID().uuidString.lowercased()
 
-			mode = .interactive
-			metadatas["control"] = controlFd
-			fds["control"] = controlFd
+			guard let vncInfos = try? CakedLib.VNCInfosHandler.vncInfos(name: name, runMode: runMode) else {
+				return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' doesn't have a VGA console", code: 405)
+					.encodeResponse(status: .notFound, for: req)
+			}
+
+			if let vncURLStr = vncInfos.urls.first, let components = URLComponents(string: vncURLStr), let vncPassword = components.password, vncPassword.isEmpty == false {
+				metadatas["vnc-password"] = vncPassword
+				print("vnc-password:\(vncPassword)")
+			}
 		}
 
 		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, metadatas: metadatas)
@@ -469,9 +472,10 @@ struct LXDInstancesController: RouteCollection {
 			height: consoleReq.height ?? 24,
 			width: consoleReq.width ?? 80,
 			runMode: runMode,
-			fds: fds
+			fds: metadatas
 		)
 		let runner = self.createConsoleRunner(location, consoleType: consoleType, operationId: operationId, context: context)
+
 		await LXDExecSessionStore.shared.register(operationId: operationId, context: context)
 
 		let task = Task.detached {
@@ -503,4 +507,3 @@ struct LXDInstancesController: RouteCollection {
 		}
 	}
 }
-

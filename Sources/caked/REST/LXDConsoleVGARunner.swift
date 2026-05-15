@@ -4,7 +4,7 @@
 //
 //  Created by Frederic BOLTZ on 09/05/2026.
 //
-
+import CakeAgentLib
 import CakedLib
 import Combine
 import Foundation
@@ -25,7 +25,7 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 	let operationId: String
 	let context: LXDExecContext
 	let location: VMLocation
-	let logger = Logger(label: "LXDConsoleVGARunner")
+	let logger = Logger("LXDConsoleVGARunner")
 	var phase: CancellablePhase = .none
 
 	enum CancellablePhase {
@@ -139,6 +139,7 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 		}
 
 		ws.onClose.whenComplete { _ in
+			self.logger.debug("WebSocket closed")
 			stream.continuation.finish()
 		}
 
@@ -158,6 +159,8 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 		}
 
 		try await asyncChannel.executeThenClose { input, output in
+			self.logger.debug("Start VNC TCP relay")
+
 			await withTaskGroup(of: Void.self) { group in
 				// WebSocket → VNC TCP
 				group.addTask {
@@ -165,10 +168,12 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 						do {
 							try await output.write(ByteBuffer(data: data))
 						} catch {
+							self.logger.error("Error closing WebSocket → VNC TCP relay for '\(self.context.instanceName)', \(error)")
 							break
 						}
 					}
 
+					self.logger.debug("Leave WebSocket → VNC TCP relay")
 					// WebSocket side closed; signal the other direction.
 					asyncChannel.channel.close(promise: nil)
 				}
@@ -180,15 +185,20 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 							try? await ws.send([UInt8](buffer.readableBytesView))
 						}
 					} catch {
-						
+						self.logger.error("Error closing VNC TCP relay -> WebSocket for '\(self.context.instanceName)', \(error)")
 					}
 
+					self.logger.debug("Leave VNC TCP relay -> WebSocket")
 					// VNC server closed; signal the WebSocket→VNC direction to stop.
 					stream.continuation.finish()
 				}
 
+				self.logger.debug("Enter VNC TCP relay")
+
 				await group.waitForAll()
 			}
 		}
+		
+		self.logger.debug("Relay closed")
 	}
 }
