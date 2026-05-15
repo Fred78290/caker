@@ -354,30 +354,31 @@ struct LXDInstancesController: RouteCollection {
 				.encodeResponse(status: .notFound, for: req)
 		}
 
-		let interactive = execReq.interactive ?? false
+		let mode: LXDExecContext.ExecMode = (execReq.interactive ?? false) ? .interactive : .nonInteractive
 
 		// Generate per-fd WebSocket secrets
-		var secrets: [String: String] = [
+		var metadatas: [String: String] = [
 			"0": UUID().uuidString.lowercased(),
 			"control": UUID().uuidString.lowercased()
 		]
-		if !interactive {
-			secrets["1"] = UUID().uuidString.lowercased()
-			secrets["2"] = UUID().uuidString.lowercased()
+
+		if mode == .nonInteractive {
+			metadatas["1"] = UUID().uuidString.lowercased()
+			metadatas["2"] = UUID().uuidString.lowercased()
 		}
 
-		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, fds: secrets)
+		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, metadatas: metadatas)
 
 		// Build exec context and register in session store (for WebSocket connections)
 		let context = LXDExecContext(
 			instanceName: name,
 			command: execReq.command,
 			environment: execReq.environment ?? [:],
-			interactive: interactive,
+			mode: mode,
 			height: execReq.height ?? 24,
 			width: execReq.width ?? 80,
 			runMode: runMode,
-			secrets: secrets
+			fds: metadatas
 		)
 		await LXDExecSessionStore.shared.register(operationId: operationId, context: context)
 		let runner = LXDExecRunner(location, operationId: operationId, context: context)
@@ -428,39 +429,45 @@ struct LXDInstancesController: RouteCollection {
 		}
 
 		// Both console types use two fds: "0" (pty / VNC data) and "control".
-		var secrets: [String: String]
+		let ptyUID = UUID().uuidString.lowercased()
+		var metadatas: [String: String] = [
+			"0" : ptyUID
+		]
+		var fds: [String: String] = [
+			"0": ptyUID,
+		]
+
+		let mode: LXDExecContext.ExecMode
 
 		// For VGA consoles, also expose the VNC password so the browser-side noVNC
 		// client can authenticate against the VM's VNC server.  The "vnc-password"
 		// key is not a WebSocket fd secret; it is metadata that is safe to return
 		// because the endpoint is already authenticated.
 		if consoleType == "vga" {
-			secrets = [
-				"0": UUID().uuidString.lowercased()
-			]
-
+			mode = .vga
 			if let vncInfos = try? CakedLib.VNCInfosHandler.vncInfos(name: name, runMode: runMode),
 			   let vncURLStr = vncInfos.urls.first,
-			   let components = URLComponents(string: vncURLStr) {
-				secrets["vnc-password"] = components.password ?? ""
+			   let components = URLComponents(string: vncURLStr), let vncPassword = components.password, vncPassword.isEmpty == false {
+				metadatas["vnc-password"] = vncPassword
 			}
 		} else {
-			secrets = [
-				"0": UUID().uuidString.lowercased(),
-				"control": UUID().uuidString.lowercased()
-			]
+			let controlFd = UUID().uuidString.lowercased()
+
+			mode = .interactive
+			metadatas["control"] = controlFd
+			fds["control"] = controlFd
 		}
 
-		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, fds: secrets)
+		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, metadatas: metadatas)
 		let context = LXDExecContext(
 			instanceName: name,
 			command: [],
 			environment: [:],
-			interactive: true,
+			mode: mode,
 			height: consoleReq.height ?? 24,
 			width: consoleReq.width ?? 80,
 			runMode: runMode,
-			secrets: secrets
+			fds: fds
 		)
 		let runner = self.createConsoleRunner(location, consoleType: consoleType, operationId: operationId, context: context)
 		await LXDExecSessionStore.shared.register(operationId: operationId, context: context)

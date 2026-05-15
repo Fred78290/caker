@@ -12,21 +12,34 @@ import Vapor
 
 /// Immutable description of a pending exec session (what to run and how).
 struct LXDExecContext: Sendable {
+	enum ExecMode {
+		case interactive
+		case nonInteractive
+		case vga
+	}
+
 	let instanceName: String
 	let command: [String]
 	let environment: [String: String]
-	let interactive: Bool
+	let mode: ExecMode
 	let height: Int
 	let width: Int
 	let runMode: Utils.RunMode
 	/// fd name ("0", "1", "2", "control") → WebSocket secret.
-	let secrets: [String: String]
+	let fds: [String: String]
 
 	/// The fd names that must all connect before the exec can start.
 	var requiredFDs: Set<String> {
 		// Interactive: single pty fd (0) + control channel.
 		// Non-interactive: separate stdin (0), stdout (1), stderr (2) + control.
-		interactive ? ["0", "control"] : ["0", "1", "2", "control"]
+		switch self.mode {
+			case .interactive:
+				return ["0", "control"]
+			case .nonInteractive:
+				return ["0", "1", "2", "control"]
+			case .vga:
+				return ["0"]
+		}
 	}
 }
 
@@ -68,8 +81,8 @@ actor LXDExecSessionStore {
 
 	/// Returns the fd name (e.g. "0", "1", "control") whose secret matches `secret`,
 	/// or `nil` if no matching session/fd is found.
-	func findFD(operationId: String, secret: String) -> String? {
-		sessions[operationId]?.context.secrets.first(where: { $0.value == secret })?.key
+	func findFD(operationId: String, fd: String) -> String? {
+		sessions[operationId]?.context.fds.first(where: { $0.value == fd })?.key
 	}
 
 	/// Registers a WebSocket for `fd`.  If all required fds are now connected,
@@ -80,7 +93,9 @@ actor LXDExecSessionStore {
 		sessions[operationId] = session
 
 		if session.context.requiredFDs.isSubset(of: Set(session.connectedFDs.keys)) {
-			waiters.removeValue(forKey: operationId)?.resume(returning: session.connectedFDs)
+			if let op = waiters.removeValue(forKey: operationId) {
+				op.resume(returning: session.connectedFDs)
+			}
 		}
 	}
 
@@ -95,7 +110,7 @@ actor LXDExecSessionStore {
 		}
 
 		// Slow-path: suspend until connect() resumes us.
-		return await withCheckedContinuation { continuation in
+		let result: [String: WebSocket]? = await withCheckedContinuation { continuation in
 			// Re-check inside the actor's synchronous context to avoid a race.
 			guard let session = sessions[operationId] else {
 				continuation.resume(returning: nil)
@@ -108,5 +123,7 @@ actor LXDExecSessionStore {
 				waiters[operationId] = continuation
 			}
 		}
+
+		return result
 	}
 }

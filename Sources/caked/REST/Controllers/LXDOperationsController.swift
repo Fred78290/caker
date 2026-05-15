@@ -109,7 +109,7 @@ struct LXDOperationsController: RouteCollection {
 			return
 		}
 
-		guard let fd = await LXDExecSessionStore.shared.findFD(operationId: id, secret: secret) else {
+		guard let fd = await LXDExecSessionStore.shared.findFD(operationId: id, fd: secret) else {
 			try? await ws.close(code: .unacceptableData)
 			return
 		}

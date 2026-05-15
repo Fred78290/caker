@@ -113,7 +113,7 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 				do {
 					let exitCode: Int32
 
-					if context.interactive {
+					if context.mode == .interactive {
 						exitCode = try await runInteractiveExec(websockets: websockets)
 					} else {
 						exitCode = try await runNonInteractive(websockets: websockets)

@@ -631,7 +631,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				let infos = infos
 
 				if case .success(let infos) = infos {
-					if infos.ipaddresses.count > 0, let runningIP = infos.ipaddresses.first {
+					if let runningIP = infos.ipaddresses.first {
 						return runningIP
 					}
 				}

@@ -835,7 +835,7 @@ struct LXDConsoleRequest: Content {
 	var height: Int?
 	/// Terminal columns.
 	var width: Int?
-	/// Console type: "console" (text TTY) or "vga" (graphical). Only "console" is supported.
+	/// Console type: "console" (text TTY) or "vga" (graphical).
 	var type: String?
 }
 
@@ -915,7 +915,7 @@ struct LXDExecAsyncResponse: Content {
 	///   - instanceName: VM name (used in description and resource URLs).
 	///   - fds: Mapping of fd name ("0", "1", "2", "control") → WebSocket secret UUID string.
 	/// - Returns: An `LXDExecAsyncResponse` and the operation id that was assigned.
-	static func make(instanceName: String, fds: [String: String]) -> (response: LXDExecAsyncResponse, operationId: String) {
+	static func make(instanceName: String, metadatas: [String: String]) -> (response: LXDExecAsyncResponse, operationId: String) {
 		let id = UUID().uuidString.lowercased()
 		let now = ISO8601DateFormatter().string(from: Date())
 		let meta = LXDExecOperationMeta(
@@ -927,7 +927,7 @@ struct LXDExecAsyncResponse: Content {
 			status: "Running",
 			statusCode: 103,
 			resources: ["instances": ["/1.0/instances/\(instanceName)"]],
-			metadata: LXDExecFDsMetadata(fds: fds),
+			metadata: LXDExecFDsMetadata(fds: metadatas),
 			mayCancel: false,
 			error: ""
 		)

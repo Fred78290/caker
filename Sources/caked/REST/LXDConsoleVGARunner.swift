@@ -15,7 +15,7 @@ import Vapor
 /// Bridges a LXD VGA console WebSocket (fd "0") to the VM's raw VNC TCP socket.
 ///
 /// Flow:
-///  1. Wait for WebSocket connections on fd "0" (VNC data) and "control".
+///  1. Wait for WebSocket connections on fd "0" (VNC data) .
 ///  2. Resolve the VNC TCP endpoint via `VNCInfosHandler.vncInfos(name:runMode:)`.
 ///  3. Open a TCP connection to the VNC server using NIO `ClientBootstrap`.
 ///  4. Relay bytes bidirectionally: WS binary frames → VNC TCP, VNC TCP reads → WS binary frames.
@@ -112,10 +112,6 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 
 				// Close both WebSockets gracefully.
 				try? await vncWS.close(code: .normalClosure)
-
-				if let controlWS = websockets["control"] {
-					try? await controlWS.close(code: .normalClosure)
-				}
 
 				await LXDExecSessionStore.shared.remove(operationId: operationId)
 			},

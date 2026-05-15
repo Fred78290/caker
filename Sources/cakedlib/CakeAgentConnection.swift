@@ -99,12 +99,16 @@ extension Cakeagent_CakeAgent.InfoReply {
 			$0.version = self.version
 			$0.uptime = self.uptime
 			$0.cpuCount = self.cpuCount
-			$0.ipaddresses = self.networkInfos.flatMap { $0.addresses }
 			$0.osname = self.osname
 			$0.release = self.release
 			$0.diskInfos = self.diskInfos.map(\.caked)
 			$0.networks = self.networkInfos.map(\.caked)
-			
+			$0.ipaddresses = self.networkInfos.flatMap {
+				$0.addresses.map {
+					$0.stringBefore(before: "/")
+				}
+			}
+
 			if self.hasCpu {
 				let cpu = self.cpu
 
