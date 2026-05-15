@@ -649,10 +649,13 @@ extension VNCConnection {
 					if setEncoding.preferredEncoding == .rfbEncodingNone {
 						setEncoding.preferredEncoding = encoding
 					}
-				case .rfbEncodingRaw, .rfbEncodingRRE, .rfbEncodingCoRRE, .rfbEncodingHextile, .rfbEncodingUltra, .rfbEncodingZRLE, .rfbEncodingZYWRLE, .rfbEncodingTight, .rfbEncodingTightPng, .rfbEncodingZlibHex:
+				// Only select framebuffer encodings that are actually implemented by sendUpdateBuffer.
+				case .rfbEncodingRaw:
 					if setEncoding.preferredEncoding == .rfbEncodingNone {
 						setEncoding.preferredEncoding = encoding
 					}
+				case .rfbEncodingRRE, .rfbEncodingCoRRE, .rfbEncodingHextile, .rfbEncodingUltra, .rfbEncodingZRLE, .rfbEncodingZYWRLE, .rfbEncodingTight, .rfbEncodingTightPng, .rfbEncodingZlibHex:
+					break
 				case .rfbEncodingXCursor:
 					setEncoding.enableCursorShapeUpdates = true
 					setEncoding.cursorWasChanged = true
@@ -709,8 +712,6 @@ extension VNCConnection {
 			}
 		}
 
-		self.encodings = setEncoding
-
 		#if DEBUG
 			if setEncoding.enableContinousUpdate || setEncoding.appleVNCEncoding {
 				self.logger.debug("enable continous frame update")
@@ -724,6 +725,8 @@ extension VNCConnection {
 		if setEncoding.preferredEncoding == .rfbEncodingNone {
 			setEncoding.preferredEncoding = .rfbEncodingRaw
 		}
+
+		self.encodings = setEncoding
 
 		if setEncoding.enableContinousUpdate {
 			try await self.sendDatas(Data(repeating: 150, count: 1))
@@ -952,8 +955,6 @@ extension VNCConnection {
 		self.logger.debug("Send tiles: \(transformedTiles.count)")
 #endif
 
-		rectangle.rectangle.encoding = preferredEncoding.rawValue.bigEndian
-
 		for tile in transformedTiles {
 			rectangle.rectangle.x = UInt16(tile.bounds.origin.x).bigEndian
 			rectangle.rectangle.y = UInt16(tile.bounds.origin.y).bigEndian
@@ -966,6 +967,7 @@ extension VNCConnection {
 			#endif
 
 			if preferredEncoding == .rfbEncodingZlib {
+				rectangle.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingZlib.rawValue.bigEndian
 				let compressed = try self.sharedZStream.compressedData(data: tile.pixels, offset: 0, length: tile.pixels.count, flush: .syncFlush)
 
 				rectangle.compressedSize = UInt32(compressed.count).bigEndian
@@ -973,6 +975,7 @@ extension VNCConnection {
 				try await self.sendDatas(rectangle)
 				try await self.sendDatas(compressed)
 			} else {
+				rectangle.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingRaw.rawValue.bigEndian
 				try await self.sendDatas(rectangle.rectangle)
 				try await self.sendDatas(tile.pixels)
 			}
