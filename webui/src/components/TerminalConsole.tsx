@@ -8,6 +8,7 @@ interface Props {
   operationId: string
   /** fd name → WebSocket secret map returned by exec/console. */
   fds: Record<string, string>
+  isActive: boolean
 }
 
 /**
@@ -16,8 +17,9 @@ interface Props {
  * fd "0"       : raw PTY data (binary, bidirectional)
  * fd "control" : JSON control channel (resize/signal)
  */
-export function TerminalConsole({ operationId, fds }: Props) {
+export function TerminalConsole({ operationId, fds, isActive }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const fitVisibleRef = useRef<() => void>(() => {})
 
   useEffect(() => {
     const el = containerRef.current
@@ -55,8 +57,20 @@ export function TerminalConsole({ operationId, fds }: Props) {
     const fitAddon = new FitAddon()
     term.loadAddon(fitAddon)
     term.open(el)
-    // Initial fit is deferred to avoid measuring while hidden.
-    requestAnimationFrame(() => fitAddon.fit())
+
+    const fitIfVisible = () => {
+      // Hidden containers (display:none) report invalid dimensions, which can corrupt terminal wrapping.
+      if (el.offsetParent === null || el.clientWidth <= 0 || el.clientHeight <= 0) {
+        return
+      }
+
+      fitAddon.fit()
+
+      if (term.cols > 0 && term.rows > 0) {
+        sendResize(term.cols, term.rows)
+      }
+    }
+    fitVisibleRef.current = fitIfVisible
 
     // ── WebSockets ───────────────────────────────────────────────────────────
     const dataWs = new WebSocket(operationWsUrl(operationId, fds['0']))
@@ -84,8 +98,7 @@ export function TerminalConsole({ operationId, fds }: Props) {
     }
 
     dataWs.onopen = () => {
-      fitAddon.fit()
-      sendResize(term.cols, term.rows)
+      requestAnimationFrame(() => fitIfVisible())
     }
 
     dataWs.onclose = () => {
@@ -101,8 +114,7 @@ export function TerminalConsole({ operationId, fds }: Props) {
 
     // Resize → fit + control channel
     const resizeObs = new ResizeObserver(() => {
-      fitAddon.fit()
-      sendResize(term.cols, term.rows)
+      fitIfVisible()
     })
     resizeObs.observe(el)
 
@@ -117,8 +129,17 @@ export function TerminalConsole({ operationId, fds }: Props) {
       dataWs.close()
       controlWs?.close()
       term.dispose()
+      fitVisibleRef.current = () => {}
     }
   }, [operationId, fds])
+
+  useEffect(() => {
+    if (!isActive) return
+
+    requestAnimationFrame(() => {
+      fitVisibleRef.current()
+    })
+  }, [isActive])
 
   return (
     <div

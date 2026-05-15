@@ -380,7 +380,11 @@ export function InstanceDetailPage() {
             </div>
           ) : termSession ? (
             <div style={{ flex: 1, minHeight: 0, padding: 12 }}>
-              <TerminalConsole operationId={termSession.operationId} fds={termSession.fds} />
+              <TerminalConsole
+                operationId={termSession.operationId}
+                fds={termSession.fds}
+                isActive={activeTab === 'terminal'}
+              />
             </div>
           ) : null}
         </div>
