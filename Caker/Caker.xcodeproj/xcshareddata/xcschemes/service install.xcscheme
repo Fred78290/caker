@@ -70,15 +70,35 @@
       </MacroExpansion>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "vnc"
+            argument = "service"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "linux"
+            argument = "install"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--tcp"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--rest"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--secure"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--web-ui=~/Projects/GitHub/caker/webui/dist"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--log-level=debug"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--no-pass-phrase"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
