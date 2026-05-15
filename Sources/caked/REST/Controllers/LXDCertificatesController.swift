@@ -53,20 +53,36 @@ struct LXDCertificatesController: RouteCollection {
 				.encodeResponse(status: .created, for: req)
 		}
 
-		let fingerprint = body.certificate.flatMap { computeFingerprint($0) } ?? UUID().uuidString.replacingOccurrences(of: "-", with: "")
+		if let pem = body.certificate, pem.isEmpty == false {
+			// Use the store's SHA-256 based helper so fingerprints are consistent with mTLS trust checks.
+			let created = await LXDCertificateStore.shared.createFromPem(
+				name: body.name,
+				type: body.type,
+				restricted: body.restricted,
+				projects: body.projects ?? [],
+				pem: pem
+			)
 
-		let created = await LXDCertificateStore.shared.create(
-			name: body.name,
-			type: body.type,
-			restricted: body.restricted,
-			projects: body.projects ?? [],
-			certificate: body.certificate ?? "",
-			fingerprint: fingerprint
-		)
+			guard created != nil else {
+				return try await LXDResponse<LXDEmptyMetadata>.error(message: "Certificate already exists", code: 409)
+					.encodeResponse(status: .conflict, for: req)
+			}
+		} else {
+			// No certificate provided (e.g. trust-token workflow stub).
+			let fingerprint = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+			let created = await LXDCertificateStore.shared.create(
+				name: body.name,
+				type: body.type,
+				restricted: body.restricted,
+				projects: body.projects ?? [],
+				certificate: "",
+				fingerprint: fingerprint
+			)
 
-		guard created != nil else {
-			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Certificate already exists", code: 409)
-				.encodeResponse(status: .conflict, for: req)
+			guard created != nil else {
+				return try await LXDResponse<LXDEmptyMetadata>.error(message: "Certificate already exists", code: 409)
+					.encodeResponse(status: .conflict, for: req)
+			}
 		}
 
 		return try await LXDResponse<LXDEmptyMetadata>.sync(LXDEmptyMetadata(), status: "Created", statusCode: 201)
@@ -159,16 +175,4 @@ struct LXDCertificatesController: RouteCollection {
 		return try await LXDResponse<LXDEmptyMetadata>.sync(LXDEmptyMetadata()).encodeResponse(for: req)
 	}
 
-	/// Returns a synthetic fingerprint for a PEM-encoded certificate (hex of SHA-256).
-	/// Falls back to a UUID-derived string if the certificate is empty or unparseable.
-	private func computeFingerprint(_ pem: String) -> String? {
-		guard pem.isEmpty == false else { return nil }
-		// Use a hash of the raw PEM bytes as a fingerprint approximation
-		var hash: UInt64 = 14695981039346656037
-		for byte in pem.utf8 {
-			hash ^= UInt64(byte)
-			hash = hash &* 1099511628211
-		}
-		return String(format: "%016llx%016llx", hash, hash ^ 0xdeadbeefcafe1234)
-	}
 }

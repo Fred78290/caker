@@ -31,7 +31,7 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 	let location: VMLocation
 	let logger = Logger("LXDExecRunner")
 	var phase: CancellablePhase = .none
-	var shellStream: (any ShellHandler.ShellHandlerProtocol)! = nil
+	var shellStream: (any ShellHandler.ShellHandlerProtocol)? = nil
 
 	enum CancellablePhase {
 		case none
@@ -256,14 +256,14 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 		ptyWS.onBinary { (_, buf) async -> Void in
 			var buf = buf
 			if let bytes = buf.readBytes(length: buf.readableBytes), bytes.isEmpty == false {
-				self.shellStream.sendDatas(data: bytes[...])
+				self.shellStream?.sendDatas(data: bytes[...])
 			}
 		}
 
 		ptyWS.onText { (_, text) async -> Void in
 			if let data = text.data(using: .utf8), !data.isEmpty {
 				let bytes = [UInt8](data)
-				self.shellStream.sendDatas(data: bytes[...])
+				self.shellStream?.sendDatas(data: bytes[...])
 			}
 		}
 
@@ -278,11 +278,14 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 				let h = Int(heightStr),
 				let w = Int(widthStr)
 			else { return }
-			self.shellStream.sendTerminalSize(rows: h, cols: w)
+			self.shellStream?.sendTerminalSize(rows: h, cols: w)
 		}
 
 		do {
-			for try await response in self.shellStream {
+			guard let stream = self.shellStream else {
+				return await closeWebSockets(1)
+			}
+			for try await response in stream {
 				switch response {
 				case .stdout(let data):
 					try? await ptyWS.send([UInt8](data))

@@ -459,7 +459,6 @@ struct LXDInstancesController: RouteCollection {
 
 			if let vncURLStr = vncInfos.urls.first, let components = URLComponents(string: vncURLStr), let vncPassword = components.password, vncPassword.isEmpty == false {
 				metadatas["vnc-password"] = vncPassword
-				print("vnc-password:\(vncPassword)")
 			}
 		}
 
