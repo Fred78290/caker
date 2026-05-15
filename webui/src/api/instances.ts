@@ -54,7 +54,7 @@ export const consoleInstance = (
   opts: { width?: number; height?: number } = {},
 ) =>
   client.post<LXDExecAsyncResponse>(`/1.0/instances/${name}/console`, {
-    type,
+    type: type,
     width: opts.width ?? 80,
     height: opts.height ?? 24,
   })
