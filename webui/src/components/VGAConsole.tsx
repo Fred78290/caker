@@ -29,6 +29,7 @@ export function VGAConsole({ operationId, fds }: Props) {
 
     const url = operationWsUrl(operationId, fds['0'])
     const vncPassword: string = fds['vnc-password'] ?? ''
+    let isIntentionalDisconnect = false
 
     setStatus('connecting')
     setErrorMsg('')
@@ -47,6 +48,8 @@ export function VGAConsole({ operationId, fds }: Props) {
 
       rfb.addEventListener('connect', () => setStatus('connected'))
       rfb.addEventListener('disconnect', (e: CustomEvent) => {
+        if (isIntentionalDisconnect) return
+
         const clean: boolean = (e as CustomEvent<{ clean: boolean }>).detail?.clean ?? false
         if (!clean) {
           setStatus('error')
@@ -58,6 +61,7 @@ export function VGAConsole({ operationId, fds }: Props) {
         if (!vncPassword) {
           setStatus('error')
           setErrorMsg('VNC server requires a password but none was provided')
+          isIntentionalDisconnect = true
           rfb.disconnect()
         }
       })
@@ -68,6 +72,7 @@ export function VGAConsole({ operationId, fds }: Props) {
     }
 
     return () => {
+      isIntentionalDisconnect = true
       rfb.disconnect()
     }
   }, [operationId, fds])

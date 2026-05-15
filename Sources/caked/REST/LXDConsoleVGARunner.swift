@@ -36,7 +36,7 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 
 	func cancel() async {
 		switch self.phase {
-			case .waitConnection(let waitTask, let timeoutTask):
+		case .waitConnection(let waitTask, let timeoutTask):
 			waitTask.cancel()
 			timeoutTask.cancel()
 		case .vncBridged(let stream, _):
@@ -104,11 +104,15 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 					try await bridge(ws: vncWS, vncHost: vncHost, vncPort: vncPort)
 
 					await LXDOperationStore.shared.complete(id: operationId, success: true)
+					
+					self.logger.debug("VGGA console successfully bridged")
 				} catch {
 					self.logger.error("VGA console failed for '\(context.instanceName)': \(error)")
 
 					await LXDOperationStore.shared.complete(id: operationId, success: false, error: error.localizedDescription)
 				}
+
+				self.logger.debug("Closing VGA console")
 
 				// Close both WebSockets gracefully.
 				try? await vncWS.close(code: .normalClosure)
@@ -130,19 +134,6 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 		// NIO async write path without mixing callback and async/await concurrency models.
 		let stream = AsyncStream.makeStream(of: Data.self)
 
-		ws.onBinary { (_, buf) async -> Void in
-			var buf = buf
-
-			if let bytes = buf.readBytes(length: buf.readableBytes), !bytes.isEmpty {
-				stream.continuation.yield(Data(bytes))
-			}
-		}
-
-		ws.onClose.whenComplete { _ in
-			self.logger.debug("WebSocket closed")
-			stream.continuation.finish()
-		}
-
 		// Connect to the VNC TCP socket.
 		let bootstrap = ClientBootstrap(group: Utilities.group)
 			.channelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
@@ -161,44 +152,67 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 		try await asyncChannel.executeThenClose { input, output in
 			self.logger.debug("Start VNC TCP relay")
 
+			ws.onBinary { (_, buf) async -> Void in
+				var buf = buf
+
+				if let bytes = buf.readBytes(length: buf.readableBytes), bytes.isEmpty == false {
+					stream.continuation.yield(Data(bytes))
+				}
+			}
+
+			ws.onClose.whenComplete { result in
+				switch result {
+				case .failure(let error):
+					self.logger.error("WebSocket closed with error: \(error)")
+				case .success:
+					self.logger.debug("WebSocket closed")
+				}
+
+				stream.continuation.finish()
+			}
+
 			await withTaskGroup(of: Void.self) { group in
 				// WebSocket → VNC TCP
 				group.addTask {
-					for await data in stream.stream {
-						do {
+					self.logger.debug("Enter WebSocket → VNC TCP relay")
+
+					do {
+						for await data in stream.stream {
 							try await output.write(ByteBuffer(data: data))
-						} catch {
-							self.logger.error("Error closing WebSocket → VNC TCP relay for '\(self.context.instanceName)', \(error)")
-							break
 						}
+					} catch {
+						self.logger.error("Error closing WebSocket → VNC TCP relay for '\(self.context.instanceName)', \(error)")
 					}
 
 					self.logger.debug("Leave WebSocket → VNC TCP relay")
+
 					// WebSocket side closed; signal the other direction.
 					asyncChannel.channel.close(promise: nil)
 				}
 
 				// VNC TCP → WebSocket
 				group.addTask {
+					self.logger.debug("Enter VNC TCP relay -> WebSocket")
 					do {
 						for try await buffer in input {
-							try? await ws.send([UInt8](buffer.readableBytesView))
+							try await ws.send([UInt8](buffer.readableBytesView))
 						}
 					} catch {
 						self.logger.error("Error closing VNC TCP relay -> WebSocket for '\(self.context.instanceName)', \(error)")
 					}
 
 					self.logger.debug("Leave VNC TCP relay -> WebSocket")
+
 					// VNC server closed; signal the WebSocket→VNC direction to stop.
 					stream.continuation.finish()
 				}
 
-				self.logger.debug("Enter VNC TCP relay")
+				self.logger.debug("Wait for VNC TCP relay")
 
 				await group.waitForAll()
 			}
 		}
-		
+
 		self.logger.debug("Relay closed")
 	}
 }
