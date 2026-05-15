@@ -4,7 +4,7 @@
 //
 //  Created by Frederic BOLTZ on 09/05/2026.
 //
-
+import CakeAgentLib
 import CakedLib
 import Combine
 import Foundation
@@ -29,7 +29,7 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 	let operationId: String
 	let context: LXDExecContext
 	let location: VMLocation
-	let logger = Logger(label: "LXDExecRunner")
+	let logger = Logger("LXDExecRunner")
 	var phase: CancellablePhase = .none
 	var shellStream: (any ShellHandler.ShellHandlerProtocol)! = nil
 
