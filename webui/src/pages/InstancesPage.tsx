@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
     changeInstanceState,
     deleteInstance,
@@ -13,6 +13,7 @@ import type { LXDInstance } from '../types/lxd';
 import { CreateInstanceModal } from './CreateInstanceModal';
 
 export function InstancesPage() {
+  const navigate = useNavigate()
   const [instances, setInstances] = useState<LXDInstance[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -109,11 +110,13 @@ export function InstancesPage() {
                 </tr>
               )}
               {instances.map((inst) => (
-                <tr key={inst.name}>
+                <tr
+                  key={inst.name}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate(`/instances/${inst.name}`)}
+                >
                   <td className="fw-medium">
-                    <Link to={`/instances/${inst.name}`} className="text-decoration-none">
-                      {inst.name}
-                    </Link>
+                    {inst.name}
                   </td>
                   <td>
                     <span className="badge bg-light text-dark border">
@@ -143,7 +146,10 @@ export function InstancesPage() {
                           className="btn btn-outline-success"
                           title="Start"
                           disabled={actionBusy !== null}
-                          onClick={() => doStateChange(inst.name, 'start')}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            doStateChange(inst.name, 'start')
+                          }}
                         >
                           {busy(inst.name, 'start') ? (
                             <Spinner size="sm" />
@@ -158,7 +164,10 @@ export function InstancesPage() {
                             className="btn btn-outline-warning"
                             title="Restart"
                             disabled={actionBusy !== null}
-                            onClick={() => doStateChange(inst.name, 'restart')}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              doStateChange(inst.name, 'restart')
+                            }}
                           >
                             {busy(inst.name, 'restart') ? (
                               <Spinner size="sm" />
@@ -170,7 +179,10 @@ export function InstancesPage() {
                             className="btn btn-outline-secondary"
                             title="Stop"
                             disabled={actionBusy !== null}
-                            onClick={() => doStateChange(inst.name, 'stop')}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              doStateChange(inst.name, 'stop')
+                            }}
                           >
                             {busy(inst.name, 'stop') ? (
                               <Spinner size="sm" />
@@ -184,7 +196,8 @@ export function InstancesPage() {
                         className="btn btn-outline-danger"
                         title="Delete"
                         disabled={actionBusy !== null}
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation()
                           setSelected(inst)
                           openModal('confirmDeleteInstance')
                         }}
