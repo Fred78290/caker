@@ -21,25 +21,6 @@ actor LXDOperationStore {
 	
 	// MARK: - Persistence
 	
-	/// Loads existing state from disk and stores the persistence URL for future saves.
-	/// Operations that were "Running" when the server stopped are marked as "Failure".
-	func configure(runMode: Utils.RunMode) throws {
-		let url = try LXDStorePersistence.storeURL(name: "lxd-operations", runMode: runMode)
-		if let data = try? Data(contentsOf: url),
-		   var loaded = try? JSONDecoder().decode([String: LXDOperationMetadata].self, from: data) {
-			let now = ISO8601DateFormatter().string(from: Date())
-			for (id, var op) in loaded where op.status == "Running" {
-				op.status = "Failure"
-				op.statusCode = 400
-				op.error = "Server restarted"
-				op.updatedAt = now
-				loaded[id] = op
-			}
-			self.operations = loaded
-		}
-		self.storeURL = url
-	}
-	
 	func create(description: String, resources: [String: [String]] = [:]) -> LXDOperationMetadata {
 		let id = UUID().uuidString.lowercased()
 		let now = ISO8601DateFormatter().string(from: Date())

@@ -309,7 +309,6 @@ final class LXDRESTServer: Sendable {
 		try await LXDAuthGroupStore.shared.configure(runMode: runMode)
 		try await LXDIdentityStore.shared.configure(runMode: runMode)
 		try await LXDCertificateStore.shared.configure(runMode: runMode)
-		try await LXDOperationStore.shared.configure(runMode: runMode)
 
 		// Register LXD routes
 		try registerLXDRoutes(app, runMode: runMode)
