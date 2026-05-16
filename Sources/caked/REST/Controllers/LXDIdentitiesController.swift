@@ -7,9 +7,13 @@
 
 import Foundation
 import Vapor
+import GRPCLib
 
 /// Handles /1.0/auth/identities routes
 struct LXDIdentitiesController: RouteCollection {
+	let group: EventLoopGroup
+	let runMode: Utils.RunMode
+
 	func boot(routes: any RoutesBuilder) throws {
 		let identities = routes.grouped("1.0", "auth", "identities")
 

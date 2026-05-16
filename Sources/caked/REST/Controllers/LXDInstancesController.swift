@@ -16,6 +16,7 @@ import Vapor
 /// Handles /1.0/instances routes
 struct LXDInstancesController: RouteCollection {
 	let logger = Logger("LXDInstancesController")
+	let group: EventLoopGroup
 	let runMode: Utils.RunMode
 
 	func boot(routes: any RoutesBuilder) throws {

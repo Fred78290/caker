@@ -7,9 +7,13 @@
 
 import Foundation
 import Vapor
+import GRPCLib
 
 /// Handles /1.0/certificates routes
 struct LXDCertificatesController: RouteCollection {
+	let group: EventLoopGroup
+	let runMode: Utils.RunMode
+
 	func boot(routes: any RoutesBuilder) throws {
 		let certs = routes.grouped("1.0", "certificates")
 

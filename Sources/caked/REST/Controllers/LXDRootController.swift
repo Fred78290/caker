@@ -12,6 +12,7 @@ import Vapor
 
 /// Handles GET /1.0
 struct LXDRootController: RouteCollection {
+	let group: EventLoopGroup
 	let runMode: Utils.RunMode
 
 	func boot(routes: any RoutesBuilder) throws {

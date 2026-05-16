@@ -14,6 +14,7 @@ import Vapor
 /// Image data is pulled from all caches (TemplateImageCache, CloudImageCache,
 /// IPSWCache, IsoCache, SimpleStreamsImageCache, OCIImageCache, …) via ListHandler.
 struct LXDImagesController: RouteCollection {
+	let group: EventLoopGroup
 	let runMode: Utils.RunMode
 
 	func boot(routes: any RoutesBuilder) throws {

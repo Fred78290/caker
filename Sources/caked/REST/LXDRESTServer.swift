@@ -253,7 +253,7 @@ final class LXDRESTServer: Sendable {
 	static var runMode: Utils.RunMode = .user
 
 	/// Creates and configures the Vapor application but does not start it.
-	init(group: MultiThreadedEventLoopGroup, listen: URL, caCert: String?, tlsCert: String?, tlsKey: String?, runMode: Utils.RunMode, webUIDirectory: String? = nil) async throws {
+	init(group: EventLoopGroup, listen: URL, caCert: String?, tlsCert: String?, tlsKey: String?, runMode: Utils.RunMode, webUIDirectory: String? = nil) async throws {
 		var logger = Logger(label: "LXDRESTServer")
 		let app = try await Application.make(Environment.current(), .shared(group), logger: logger)
 
@@ -311,7 +311,7 @@ final class LXDRESTServer: Sendable {
 		try await LXDCertificateStore.shared.configure(runMode: runMode)
 
 		// Register LXD routes
-		try registerLXDRoutes(app, runMode: runMode)
+		try registerLXDRoutes(app, group: group, runMode: runMode)
 
 		// Serve web UI static files under /ui if a directory (or zip archive) was provided
 		if let rawWebUIDir = webUIDirectory {

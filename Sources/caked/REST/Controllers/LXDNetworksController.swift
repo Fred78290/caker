@@ -12,6 +12,7 @@ import Vapor
 
 /// Handles /1.0/networks routes
 struct LXDNetworksController: RouteCollection {
+	let group: EventLoopGroup
 	let runMode: Utils.RunMode
 
 	func boot(routes: any RoutesBuilder) throws {

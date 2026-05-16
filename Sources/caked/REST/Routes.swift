@@ -9,13 +9,13 @@ import CakedLib
 import GRPCLib
 import Vapor
 
-func registerLXDRoutes(_ app: Application, runMode: Utils.RunMode) throws {
-	try app.register(collection: LXDRootController(runMode: runMode))
-	try app.register(collection: LXDInstancesController(runMode: runMode))
-	try app.register(collection: LXDNetworksController(runMode: runMode))
-	try app.register(collection: LXDOperationsController())
-	try app.register(collection: LXDImagesController(runMode: runMode))
-	try app.register(collection: LXDAuthGroupsController())
-	try app.register(collection: LXDIdentitiesController())
-	try app.register(collection: LXDCertificatesController())
+func registerLXDRoutes(_ app: Application, group: EventLoopGroup, runMode: Utils.RunMode) throws {
+	try app.register(collection: LXDRootController(group: group, runMode: runMode))
+	try app.register(collection: LXDInstancesController(group: group, runMode: runMode))
+	try app.register(collection: LXDNetworksController(group: group, runMode: runMode))
+	try app.register(collection: LXDOperationsController(group: group, runMode: runMode))
+	try app.register(collection: LXDImagesController(group: group, runMode: runMode))
+	try app.register(collection: LXDAuthGroupsController(group: group, runMode: runMode))
+	try app.register(collection: LXDIdentitiesController(group: group, runMode: runMode))
+	try app.register(collection: LXDCertificatesController(group: group, runMode: runMode))
 }

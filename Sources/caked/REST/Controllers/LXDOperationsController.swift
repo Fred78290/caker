@@ -8,9 +8,13 @@
 import CakedLib
 import Foundation
 import Vapor
+import GRPCLib
 
 /// Handles /1.0/operations routes
 struct LXDOperationsController: RouteCollection {
+	let group: EventLoopGroup
+	let runMode: Utils.RunMode
+
 	func boot(routes: any RoutesBuilder) throws {
 		let operations = routes.grouped("1.0", "operations")
 		operations.get(use: listOperations)
