@@ -65,6 +65,14 @@ actor LXDIdentityStore {
 		return identities.values.first { $0.authenticationMethod == authMethod && $0.name == nameOrID }
 	}
 
+	func get(nameOrID: String) -> LXDIdentity? {
+		["bearer", "devlxd"].compactMap { authMethod in
+			let k = key(authMethod: authMethod, identifier: nameOrID)
+
+			return identities[k]
+		}.first
+	}
+
 	func list() -> [LXDIdentity] {
 		Array(identities.values).sorted { $0.id < $1.id }
 	}
@@ -115,5 +123,11 @@ actor LXDIdentityStore {
 		identities.removeValue(forKey: key(authMethod: authMethod, identifier: identity.id))
 		save()
 		return true
+	}
+
+	/// Returns true when the provided bearer token matches a known bearer identity id or name.
+	func hasBearerToken(_ token: String) -> Bool {
+		guard token.isEmpty == false else { return false }
+		return get(authMethod: "bearer", nameOrID: token) != nil
 	}
 }

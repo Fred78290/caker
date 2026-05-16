@@ -346,12 +346,13 @@ struct LXDIdentitiesController: RouteCollection {
 				.encodeResponse(status: .badRequest, for: req)
 		}
 
-		guard await LXDIdentityStore.shared.get(authMethod: "bearer", nameOrID: nameOrID) != nil else {
+		guard let identity = await LXDIdentityStore.shared.get(authMethod: "bearer", nameOrID: nameOrID) else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Identity '\(nameOrID)' not found", code: 404)
 				.encodeResponse(status: .notFound, for: req)
 		}
 
-		let tokenValue = UUID().uuidString
+		// Use the persisted bearer identity id as token so PasswordAuthMiddleware can validate it from LXDIdentityStore.
+		let tokenValue = identity.id
 		let bearerToken = LXDIdentityBearerToken(token: tokenValue)
 
 		return try await LXDResponse<LXDIdentityBearerToken>.sync(bearerToken).encodeResponse(for: req)
