@@ -319,7 +319,7 @@ struct LXDInstancesController: RouteCollection {
 
 		let logs: [String] = ["console.log", "output.log"].compactMap { logName in
 			if let logURL = location.logURL(named: logName), FileManager.default.fileExists(atPath: logURL.path) {
-				return "/1.0/instances/logs/\(name)/\(logName)"
+				return "/1.0/instances/\(name)/logs/\(logName)"
 			}
 
 			return nil

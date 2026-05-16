@@ -179,9 +179,8 @@ private struct PasswordAuthMiddleware: Middleware {
 		switch scheme {
 		case "bearer":
 			// Accept a raw bearer token and keep compatibility with legacy base64-encoded bearer values.
-			let rawToken = credentials
+			let bearerToken = credentials
 			let decodedToken = credentials.base64DecodedString()
-			let bearerToken = rawToken.isEmpty == false ? rawToken : decodedToken
 			guard bearerToken.isEmpty == false else {
 				return unauthorized(on: request)
 			}
