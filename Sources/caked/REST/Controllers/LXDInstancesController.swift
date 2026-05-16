@@ -28,6 +28,9 @@ struct LXDInstancesController: RouteCollection {
 		let named = instances.grouped(":name")
 		named.get(use: getInstance)
 		named.delete(use: deleteInstance)
+		let logs = named.grouped("logs")
+		logs.get(use: getLogs)
+		logs.grouped(":filename").get(use: getLogFile)
 		
 		let state = named.grouped("state")
 		state.get(use: getState)
@@ -97,25 +100,45 @@ struct LXDInstancesController: RouteCollection {
 		
 		var userDataPath: String? = nil
 		var networkConfigPath: String? = nil
+		var sshAuthorizedKeyPath: String? = nil
 		
 		if let raw = body.userData, raw.isEmpty == false {
 			userDataPath = try Utils.saveToTempFile(Data(raw.utf8))
 		}
 		
-		if let raw = body.networkConfig, raw.isEmpty == false {
+		if let raw = body.effectiveNetworkConfig, raw.isEmpty == false {
 			networkConfigPath = try Utils.saveToTempFile(Data(raw.utf8))
 		}
+
+		if let raw = body.effectiveSSHAuthorizedKey, raw.isEmpty == false {
+			sshAuthorizedKeyPath = try Utils.saveToTempFile(Data(raw.utf8))
+		}
+
+		if userDataPath == nil, let raw = body.effectiveUserData, raw.isEmpty == false {
+			userDataPath = try Utils.saveToTempFile(Data(raw.utf8))
+		}
 		
-		let buildOptions = BuildOptions(
-			name: body.name,
-			cpu: body.cpuCount,
-			memory: body.memoryMB,
-			diskSize: body.diskGB,
-			image: body.imageURL,
-			userData: userDataPath,
-			networkConfig: networkConfigPath
-		)
-		
+		let buildOptions = BuildOptions(name: body.name,
+										cpu: body.cpuCount,
+										memory: body.memoryMB,
+										diskSize: body.diskGB,
+										user: body.user,
+										password: body.password,
+										mainGroup: body.mainGroup,
+										otherGroups: body.otherGroups,
+										clearPassword: body.clearPassword,
+										autostart: body.effectiveAutostart,
+										nested: body.nested,
+										netIfnames: body.netIfnames,
+										image: body.imageURL,
+										sshAuthorizedKey: sshAuthorizedKeyPath,
+										userData: userDataPath,
+										networkConfig: networkConfigPath,
+										forwardedPorts: body.forwardedPortAttachments,
+										networks: body.networkAttachments,
+										bridgedNetwork: body.bridgedNetwork,
+										dynamicPortForwarding: body.dynamicPortForwarding)
+
 		let operation = await LXDOperationStore.shared.create(
 			description: "Creating instance \(body.name)",
 			resources: ["instances": ["/1.0/instances/\(body.name)"]]
@@ -132,7 +155,7 @@ struct LXDInstancesController: RouteCollection {
 			}
 
 			// Clean up temp files regardless of outcome
-			[userDataPath, networkConfigPath].compactMap { $0 }.forEach {
+			[userDataPath, networkConfigPath, sshAuthorizedKeyPath].compactMap { $0 }.forEach {
 				try? FileManager.default.removeItem(atPath: $0)
 			}
 
@@ -248,7 +271,6 @@ struct LXDInstancesController: RouteCollection {
 				)
 			}
 		}
-		
 		let disks = info.diskInfos.reduce(into: [String: LXDDiskState]()) { result, disk in
 			result[disk.device] = LXDDiskState(usage: Int(disk.used), total: Int(disk.total))
 		}
@@ -283,6 +305,60 @@ struct LXDInstancesController: RouteCollection {
 		return try await LXDResponse<LXDInstanceState>.sync(state).encodeResponse(for: req)
 	}
 	
+	@Sendable
+	func getLogs(req: Request) async throws -> Response {
+		guard let name = req.parameters.get("name") else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing instance name", code: 400)
+				.encodeResponse(status: .badRequest, for: req)
+		}
+
+		guard let location = try? StorageLocation(runMode: runMode).find(name) else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' not found", code: 404)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
+		let logs: [String] = ["console.log", "output.log"].compactMap { logName in
+			if let logURL = location.logURL(named: logName), FileManager.default.fileExists(atPath: logURL.path) {
+				return "/1.0/instances/logs/\(name)/\(logName)"
+			}
+
+			return nil
+		}
+
+		guard logs.isEmpty == false else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' does not expose logs", code: 404)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
+		return try await LXDResponse<LXDStringListMetadata>.syncList(logs).encodeResponse(for: req)
+	}
+
+	// GET /1.0/instances/:name/logs/:filename
+	@Sendable
+	func getLogFile(req: Request) async throws -> Response {
+		guard let name = req.parameters.get("name") else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing instance name", code: 400)
+				.encodeResponse(status: .badRequest, for: req)
+		}
+
+		guard let filename = req.parameters.get("filename"), filename.isEmpty == false else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing log filename", code: 400)
+				.encodeResponse(status: .badRequest, for: req)
+		}
+
+		guard let location = try? StorageLocation(runMode: runMode).find(name) else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' not found", code: 404)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
+		guard let logURL = location.logURL(named: filename), FileManager.default.fileExists(atPath: logURL.path) else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Log file '\(filename)' not found for instance '\(name)'", code: 404)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
+		return try await req.fileio.asyncStreamFile(at: logURL.path)
+	}
+
 	// PUT /1.0/instances/:name/state
 	@Sendable
 	func changeState(req: Request) async throws -> Response {

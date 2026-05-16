@@ -58,3 +58,13 @@ export const consoleInstance = (
     width: opts.width ?? 80,
     height: opts.height ?? 24,
   })
+
+export const getInstanceLogs = (name: string) =>
+  client.get<LXDResponse<string[]>>(`/1.0/instances/${name}/logs`)
+
+export const getInstanceLogFile = (name: string, filename: string) => {
+  const safeFilename = filename.split('/').pop() || filename
+  return client.get<string>(`/1.0/instances/${name}/logs/${safeFilename}`, {
+    responseType: 'text',
+  })
+}

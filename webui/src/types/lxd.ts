@@ -100,9 +100,22 @@ export interface LXDCreateInstanceRequest {
   type?: 'virtual-machine' | 'container'
   description?: string
   config?: Record<string, string>
+  devices?: Record<string, Record<string, string>>
   profiles?: string[]
   user_data?: string
   network_config?: string
+  net_ifnames?: boolean
+  autostart?: boolean
+  bridged_network?: boolean
+  nested?: boolean
+  dynamic_port_forwarding?: boolean
+  user?: string
+  password?: string
+  clearPassword?: boolean
+  mainGroup?: string
+  other_groups?: string[]
+  ssh_authorized_key?: string
+  forwarded_ports?: string[]
 }
 
 // ---------------------------------------------------------------------------

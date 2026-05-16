@@ -6,8 +6,10 @@
 //
 
 import CakedLib
+import CakeAgentLib
 import Foundation
 import GRPCLib
+import NIOPortForwarding
 import Vapor
 
 protocol LXDRunnable {
@@ -419,7 +421,23 @@ struct LXDCreateInstanceRequest: Content {
 	var name: String
 	var source: LXDInstanceSource
 	/// Supported keys: limits.cpu, limits.memory (e.g. "2048MB"), limits.disk (e.g. "20GB").
+	/// Also supports LXD-compatible keys: boot.autostart, cloud-init.network-config,
+	/// cloud-init.user-data and cloud-init.ssh-keys.KEYNAME.
 	var config: [String: String]?
+	var user: String = "admin"
+	var password: String = "admin"
+	var clearPassword: Bool = false
+	var mainGroup: String = "admin"
+	var otherGroups: [String] = ["sudo"]
+	var sshAuthorizedKey: String?
+	var forwardedPorts: [String]?
+	var netIfnames: Bool = false
+	var autostart: Bool = false
+	var bridgedNetwork: Bool = false
+	var nested: Bool = false
+	var dynamicPortForwarding: Bool = false
+	/// Optional LXD-style devices map (e.g. {"eth0": {"type": "nic", "network": "br0"}}).
+	var devices: [String: [String: String]]?
 	var description: String?
 	/// Must be "virtual-machine" (the only type Caker supports).
 	var type: String?
@@ -430,9 +448,16 @@ struct LXDCreateInstanceRequest: Content {
 	var networkConfig: String?
 
 	enum CodingKeys: String, CodingKey {
-		case name, source, config, description, type, profiles
+		case name, source, config, user, password, clearPassword, mainGroup, devices, description, type, profiles
 		case userData = "user_data"
+		case otherGroups = "other_groups"
+		case sshAuthorizedKey = "ssh_authorized_key"
+		case forwardedPorts = "forwarded_ports"
+		case netIfnames = "net_ifnames"
+		case bridgedNetwork = "bridged_network"
+		case dynamicPortForwarding = "dynamic_port_forwarding"
 		case networkConfig = "network_config"
+		case autostart, nested
 	}
 
 	// MARK: Derived helpers
@@ -478,6 +503,103 @@ struct LXDCreateInstanceRequest: Content {
 		default:
 			return defaultUbuntuImage
 		}
+	}
+
+	/// Effective cloud-init network-config content.
+	/// If `network_config` is provided it has priority.
+	/// LXD-compatible `config["cloud-init.network-config"]` is also supported.
+	/// If neither is present, returns nil and BuildHandler will handle defaults.
+	var effectiveNetworkConfig: String? {
+		if let networkConfig, networkConfig.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+			return networkConfig
+		}
+
+		if let networkConfig = config?["cloud-init.network-config"], networkConfig.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+			return networkConfig
+		}
+
+		return nil
+	}
+
+	/// Effective cloud-init user-data content.
+	/// `user_data` has priority, then `config["cloud-init.user-data"]`.
+	var effectiveUserData: String? {
+		if let userData, userData.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+			return userData
+		}
+
+		if let userData = config?["cloud-init.user-data"], userData.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+			return userData
+		}
+
+		return nil
+	}
+
+	/// Effective SSH authorized key.
+	/// `ssh_authorized_key` has priority, then first non-empty `cloud-init.ssh-keys.KEYNAME`.
+	var effectiveSSHAuthorizedKey: String? {
+		if let sshAuthorizedKey, sshAuthorizedKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+			return sshAuthorizedKey
+		}
+
+		let prefix = "cloud-init.ssh-keys."
+		guard let config else {
+			return nil
+		}
+
+		for (key, value) in config.sorted(by: { $0.key < $1.key }) where key.hasPrefix(prefix) {
+			if value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+				return value
+			}
+		}
+
+		return nil
+	}
+
+	/// Effective autostart flag.
+	/// `autostart` has priority, then `config["boot.autostart"]`.
+	var effectiveAutostart: Bool {
+		if autostart {
+			return true
+		}
+
+		guard let raw = config?["boot.autostart"]?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() else {
+			return false
+		}
+
+		return ["1", "true", "yes", "on"].contains(raw)
+	}
+
+	/// Network attachments derived from LXD `devices` entries.
+	/// Only entries with `type = nic` and a non-empty `network` are mapped.
+	var networkAttachments: [BridgeAttachement] {
+		guard let devices else {
+			return []
+		}
+
+		return devices
+			.sorted(by: { $0.key < $1.key })
+			.compactMap { _, values in
+				let type = values["type"]?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+				guard type == "nic" else { return nil }
+
+				let network = values["network"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+				guard network.isEmpty == false else { return nil }
+
+				let mode = values["mode"].flatMap { NetworkMode(argument: $0) }
+				let macAddress = values["mac"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+				return BridgeAttachement(network: network, mode: mode, macAddress: macAddress?.isEmpty == false ? macAddress : nil)
+			}
+	}
+
+	/// Forwarded ports parsed from string specs (e.g. "2022:22/tcp").
+	var forwardedPortAttachments: [TunnelAttachement] {
+		guard let forwardedPorts else {
+			return []
+		}
+
+		return forwardedPorts.compactMap { TunnelAttachement(argument: $0) }
 	}
 }
 

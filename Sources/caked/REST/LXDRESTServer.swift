@@ -178,10 +178,33 @@ private struct PasswordAuthMiddleware: Middleware {
 
 		switch scheme {
 		case "bearer":
-			// Expecting: "Bearer base64(pass-phrase)"
-			let token = credentials.base64DecodedString()
-			guard token.isEmpty == false, token == password else {
+			// Accept a raw bearer token and keep compatibility with legacy base64-encoded bearer values.
+			let rawToken = credentials
+			let decodedToken = credentials.base64DecodedString()
+			let bearerToken = rawToken.isEmpty == false ? rawToken : decodedToken
+			guard bearerToken.isEmpty == false else {
 				return unauthorized(on: request)
+			}
+
+			if bearerToken == password || decodedToken == password {
+				return next.respond(to: request)
+			}
+
+			return request.eventLoop.makeFutureWithTask {
+				let identity = await LXDIdentityStore.shared.get(nameOrID: bearerToken)
+				let response: Response
+
+				if let identity {
+					request.parameters.set("token", to: "\(identity.authenticationMethod)/\(identity.id)")
+					response = try await next.respond(to: request).get()
+				} else {
+					response = Response(status: .unauthorized)
+
+					response.headers.replaceOrAdd(name: .wwwAuthenticate, value: "Basic realm=\"Caker\"")
+					response.headers.add(name: .wwwAuthenticate, value: "Bearer realm=\"Caker\"")
+				}
+
+				return response
 			}
 		case "basic":
 			// Expecting: "Basic base64(username:password)"

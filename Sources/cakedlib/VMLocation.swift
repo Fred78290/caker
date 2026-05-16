@@ -155,6 +155,22 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		buildURL("screenshot.png").absoluteURL
 	}
 
+	public func logURL(named fileName: String) -> URL? {
+		guard fileName.isEmpty == false else {
+			return nil
+		}
+
+		guard fileName == URL(fileURLWithPath: fileName).lastPathComponent else {
+			return nil
+		}
+
+		return rootURL.appendingPathComponent(fileName, isDirectory: false).absoluteURL
+	}
+
+	public var outputLogURL: URL {
+		rootURL.appendingPathComponent("output.log", isDirectory: false).absoluteURL
+	}
+
 	public var agentURL: URL {
 		return rootURL.resolvingSymlinksInPath().socketPath(name: "agent")
 	}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { changeInstanceState, consoleInstance, execInstance, getInstance, getInstanceState } from '../api/instances';
+import { changeInstanceState, consoleInstance, execInstance, getInstance, getInstanceLogFile, getInstanceLogs, getInstanceState } from '../api/instances';
 import { PageSpinner } from '../components/Spinner';
 import { StatusBadge } from '../components/StatusBadge';
 import { TerminalConsole } from '../components/TerminalConsole';
@@ -8,7 +8,7 @@ import { VGAConsole } from '../components/VGAConsole';
 import type { LXDInstance, LXDInstanceState } from '../types/lxd';
 import { eventBus } from '../utils/eventBus';
 
-type ActiveTab = 'overview' | 'terminal' | 'vga'
+type ActiveTab = 'overview' | 'terminal' | 'vga' | 'logs'
 
 interface ConsoleSession {
   operationId: string
@@ -199,6 +199,85 @@ function ConsoleLoading() {
   )
 }
 
+// ─── Logs panel ───────────────────────────────────────────────────────────────
+
+interface LogsPanelProps {
+  logs: string[]
+  selectedLog: string | null
+  onLogSelect: (log: string) => void
+  logContent: string | null
+  loading: boolean
+  error: string | null
+}
+
+function LogsPanel({ logs, selectedLog, onLogSelect, logContent, loading, error }: LogsPanelProps) {
+  const getLogDisplayName = (logPath: string) => logPath.split('/').pop() || logPath
+
+  return (
+    <div style={{ display: 'flex', height: '100%', gap: 0 }}>
+      {/* Logs list */}
+      <div style={{ width: '18%', borderRight: '1px solid #dee2e6', overflowY: 'auto', padding: '12px' }}>
+        {logs.length === 0 ? (
+          <p className="text-muted small mb-0">No logs available</p>
+        ) : (
+          <div className="list-group list-group-sm">
+            {logs.map((log) => (
+              <button
+                key={log}
+                onClick={() => onLogSelect(log)}
+                className={`list-group-item list-group-item-action ${selectedLog === log ? 'active' : ''}`}
+                style={{ fontSize: '0.875rem' }}
+                title={log}
+              >
+                <i className="bi bi-file-text me-2" />
+                {getLogDisplayName(log)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Log content */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        {!selectedLog ? (
+          <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+            <i className="bi bi-file-text fs-1 mb-2" />
+            <p className="mb-0">Select a log file to view</p>
+          </div>
+        ) : loading ? (
+          <div className="d-flex flex-column align-items-center justify-content-center h-100 gap-3">
+            <div className="spinner-border text-primary" />
+            <span className="text-muted">Loading log…</span>
+          </div>
+        ) : error ? (
+          <div className="p-3">
+            <div className="alert alert-danger d-flex align-items-center gap-2 mb-0">
+              <i className="bi bi-exclamation-triangle-fill" />
+              {error}
+            </div>
+          </div>
+        ) : logContent ? (
+          <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
+            <pre
+              style={{
+                margin: 0,
+                fontSize: '0.75rem',
+                backgroundColor: '#f8f9fa',
+                padding: '12px',
+                borderRadius: '4px',
+                whiteSpace: 'pre-wrap',
+                wordWrap: 'break-word',
+              }}
+            >
+              {logContent}
+            </pre>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export function InstanceDetailPage() {
@@ -216,12 +295,22 @@ export function InstanceDetailPage() {
   const [sessionError, setSessionError] = useState<string | null>(null)
   const [sessionLoading, setSessionLoading] = useState(false)
 
+  // Logs state
+  const [logs, setLogs] = useState<string[]>([])
+  const [selectedLog, setSelectedLog] = useState<string | null>(null)
+  const [logContent, setLogContent] = useState<string | null>(null)
+  const [logsLoading, setLogsLoading] = useState(false)
+  const [logsError, setLogsError] = useState<string | null>(null)
+  const [logContentLoading, setLogContentLoading] = useState(false)
+  const [logContentError, setLogContentError] = useState<string | null>(null)
+
   // Busy state for start/stop
   const [actionBusy, setActionBusy] = useState<string | null>(null)
 
   // Track which sessions have been requested to avoid duplicate calls.
   const termRequested = useRef(false)
   const vgaRequested = useRef(false)
+  const logsRequested = useRef(false)
 
   // ── Load instance info ─────────────────────────────────────────────────────
   // Rafraîchissement initial et sur changement de nom
@@ -351,11 +440,49 @@ export function InstanceDetailPage() {
     }
   }, [name, vgaSession])
 
+  // ── Load logs ──────────────────────────────────────────────────────────────
+  const loadLogs = useCallback(async () => {
+    if (!name || logsRequested.current) return
+    logsRequested.current = true
+    setLogsError(null)
+    setLogsLoading(true)
+    try {
+      const res = await getInstanceLogs(name)
+      setLogs(res.data.metadata)
+      if (res.data.metadata.length > 0) {
+        setSelectedLog(res.data.metadata[0])
+      }
+    } catch (e: unknown) {
+      logsRequested.current = false
+      setLogsError(String(e))
+    } finally {
+      setLogsLoading(false)
+    }
+  }, [name])
+
+  // ── Load log file content ──────────────────────────────────────────────────
+  const loadLogContent = useCallback(async (logFile: string) => {
+    if (!name) return
+    setSelectedLog(logFile)
+    setLogContent(null)
+    setLogContentError(null)
+    setLogContentLoading(true)
+    try {
+      const res = await getInstanceLogFile(name, logFile)
+      setLogContent(res.data)
+    } catch (e: unknown) {
+      setLogContentError(String(e))
+    } finally {
+      setLogContentLoading(false)
+    }
+  }, [name])
+
   // ── Tab switch side-effects ────────────────────────────────────────────────
   useEffect(() => {
     if (activeTab === 'terminal' && isRunning && !termSession) openTerminal()
     if (activeTab === 'vga' && isRunning && !vgaSession) openVGA()
-  }, [activeTab, isRunning, termSession, vgaSession, openTerminal, openVGA])
+    if (activeTab === 'logs' && logs.length === 0 && !logsLoading) loadLogs()
+  }, [activeTab, isRunning, termSession, vgaSession, logs.length, logsLoading, openTerminal, openVGA, loadLogs])
 
   // ─────────────────────────────────────────────────────────────────────────
   if (!instance && !loadError) return <PageSpinner />
@@ -457,6 +584,12 @@ export function InstanceDetailPage() {
               VGA Console
             </button>
           </li>
+          <li className="nav-item">
+            <button className={tabClass('logs')} onClick={() => setActiveTab('logs')}>
+              <i className="bi bi-file-text me-1" />
+              Logs
+            </button>
+          </li>
         </ul>
       </div>
 
@@ -529,6 +662,40 @@ export function InstanceDetailPage() {
               <VGAConsole operationId={vgaSession.operationId} fds={vgaSession.fds} />
             </div>
           ) : null}
+        </div>
+
+        {/* Logs */}
+        <div
+          style={{ display: activeTab === 'logs' ? 'flex' : 'none', height: '100%', flexDirection: 'column' }}
+        >
+          {logsLoading && logs.length === 0 ? (
+            <ConsoleLoading />
+          ) : logsError && logs.length === 0 ? (
+            <div className="p-4">
+              <div className="alert alert-danger d-flex align-items-center gap-2">
+                <i className="bi bi-exclamation-triangle-fill" />
+                {logsError}
+              </div>
+              <button
+                className="btn btn-sm btn-outline-primary"
+                onClick={() => { logsRequested.current = false; loadLogs() }}
+              >
+                <i className="bi bi-arrow-clockwise me-1" />
+                Retry
+              </button>
+            </div>
+          ) : (
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <LogsPanel
+                logs={logs}
+                selectedLog={selectedLog}
+                onLogSelect={loadLogContent}
+                logContent={logContent}
+                loading={logContentLoading}
+                error={logContentError}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
