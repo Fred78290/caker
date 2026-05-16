@@ -105,7 +105,7 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 
 					await LXDOperationStore.shared.complete(id: operationId, success: true)
 					
-					self.logger.debug("VGGA console successfully bridged")
+					self.logger.debug("VGA console successfully bridged")
 				} catch {
 					self.logger.error("VGA console failed for '\(context.instanceName)': \(error)")
 
