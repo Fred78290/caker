@@ -43,8 +43,16 @@ actor LXDOperationStore {
 		
 		return operation
 	}
-	
-	func complete(id: String, success: Bool, error: String = "") {
+
+	func update(id: String, description: String) {
+		guard var op = operations[id] else { return }
+
+		op.description = description
+
+		operations[id] = op
+	}
+
+	func complete(id: String, success: Bool, description: String? = nil, error: String = "") {
 		guard var op = operations[id] else { return }
 		
 		let now = ISO8601DateFormatter().string(from: Date())
@@ -58,7 +66,11 @@ actor LXDOperationStore {
 			op.statusCode = 400
 			op.error = error
 		}
-		
+
+		if let description {
+			op.description = description
+		}
+
 		operations[id] = op
 	}
 	
