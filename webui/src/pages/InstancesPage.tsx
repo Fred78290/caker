@@ -157,10 +157,11 @@ export function InstancesPage() {
                       {inst.description || '—'}
                     </small>
                   </td>
-                  <td className="text-end">
+                  <td className="text-end" onClick={(e) => e.stopPropagation()}>
                     <div className="btn-group btn-group-sm">
                       {inst.status !== 'Running' && (
                         <button
+                          type="button"
                           className="btn btn-outline-success"
                           title="Start"
                           disabled={actionBusy !== null}
@@ -179,6 +180,7 @@ export function InstancesPage() {
                       {inst.status === 'Running' && (
                         <>
                           <button
+                            type="button"
                             className="btn btn-outline-warning"
                             title="Restart"
                             disabled={actionBusy !== null}
@@ -194,6 +196,7 @@ export function InstancesPage() {
                             )}
                           </button>
                           <button
+                            type="button"
                             className="btn btn-outline-secondary"
                             title="Stop"
                             disabled={actionBusy !== null}
@@ -211,6 +214,7 @@ export function InstancesPage() {
                         </>
                       )}
                       <button
+                        type="button"
                         className="btn btn-outline-danger"
                         title="Delete"
                         disabled={actionBusy !== null}

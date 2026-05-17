@@ -340,7 +340,20 @@ export function InstanceDetailPage() {
             eventBus.emit('instance-status', { name, status })
           }
           lastStatus = status
-          setInstance(res.data.metadata)
+          if (!cancelled) {
+            setInstance(res.data.metadata)
+          }
+
+          try {
+            const stateRes = await getInstanceState(name)
+            if (!cancelled) {
+              setState(stateRes.data.metadata)
+            }
+          } catch {
+            if (!cancelled) {
+              setState(null)
+            }
+          }
         } catch {}
         await new Promise((r) => setTimeout(r, 3000))
       }

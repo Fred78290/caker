@@ -1,5 +1,5 @@
 import { Modal } from 'bootstrap';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createInstance } from '../api/instances';
 import { listNetworks } from '../api/networks';
 import { getOperation } from '../api/operations';
@@ -72,6 +72,7 @@ const cleanupModalArtifacts = () => {
 }
 
 export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props) {
+  const closeNotifiedRef = useRef(false)
   const sourceAlias = initialAlias?.trim() || ''
   const hasSourceContext = sourceAlias.length > 0
 
@@ -145,6 +146,12 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
     setOperationDescription(null)
     setOperationStatus(null)
     setOperationLog([])
+  }
+
+  const handleClose = () => {
+    if (closeNotifiedRef.current) return
+    closeNotifiedRef.current = true
+    onClose?.()
   }
 
   const hasDuplicateDevice = (items: NetworkInterfaceItem[]) => {
@@ -282,14 +289,20 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
     const el = document.getElementById('createInstanceModal')
     if (!el) return
 
+    const handleShown = () => {
+      closeNotifiedRef.current = false
+    }
+
     const handleHidden = () => {
       resetForm()
       cleanupModalArtifacts()
-      if (onClose) onClose()
+      handleClose()
     }
 
+    el.addEventListener('shown.bs.modal', handleShown)
     el.addEventListener('hidden.bs.modal', handleHidden)
     return () => {
+      el.removeEventListener('shown.bs.modal', handleShown)
       el.removeEventListener('hidden.bs.modal', handleHidden)
     }
   }, [onClose])
@@ -493,6 +506,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
               data-bs-dismiss="modal"
               aria-label="Close"
               disabled={busy}
+              onClick={handleClose}
             />
           </div>
           <div className="modal-body">
@@ -878,6 +892,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
               className="btn btn-secondary"
               data-bs-dismiss="modal"
               disabled={busy}
+              onClick={handleClose}
             >
               Cancel
             </button>
