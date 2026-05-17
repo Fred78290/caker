@@ -7,5 +7,10 @@ export const listOperations = () =>
 export const getOperation = (id: string) =>
   client.get<LXDResponse<LXDOperation>>(`/1.0/operations/${id}`)
 
+export const waitOperation = (id: string, timeout = 30) =>
+  client.get<LXDResponse<LXDOperation>>(`/1.0/operations/${id}/wait`, {
+    params: { timeout },
+  })
+
 export const cancelOperation = (id: string) =>
   client.delete<LXDResponse<unknown>>(`/1.0/operations/${id}`)

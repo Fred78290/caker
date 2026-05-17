@@ -11,15 +11,23 @@ export function OperationsPage() {
   const [error, setError] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState<string | null>(null)
 
-  const refresh = useCallback(() => {
-    setLoading(true)
+  const refresh = useCallback((showLoader = true) => {
+    if (showLoader) setLoading(true)
     listOperations()
       .then((r) => setOperations(r.data.metadata ?? []))
       .catch((e) => setError(String(e)))
-      .finally(() => setLoading(false))
+      .finally(() => {
+        if (showLoader) setLoading(false)
+      })
   }, [])
 
-  useEffect(() => { refresh() }, [refresh])
+  useEffect(() => {
+    refresh()
+
+    // Keep operations status up to date while the page is open.
+    const timer = setInterval(() => refresh(false), 30000)
+    return () => clearInterval(timer)
+  }, [refresh])
 
   const doCancel = async (id: string) => {
     setCancelling(id)
@@ -41,7 +49,7 @@ export function OperationsPage() {
         title="Operations"
         subtitle={`${operations.length} operation${operations.length !== 1 ? 's' : ''}`}
         actions={
-          <button className="btn btn-outline-secondary btn-sm" onClick={refresh}>
+          <button className="btn btn-outline-secondary btn-sm" onClick={() => refresh()}>
             <i className="bi bi-arrow-clockwise me-1" />
             Refresh
           </button>

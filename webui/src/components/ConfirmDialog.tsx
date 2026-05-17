@@ -1,3 +1,4 @@
+import { Modal } from 'bootstrap';
 import { useRef } from 'react';
 
 interface Props {
@@ -17,21 +18,23 @@ export function ConfirmDialog({
   confirmClass = 'btn-danger',
   onConfirm,
 }: Props) {
-  const closeRef = useRef<HTMLButtonElement>(null)
+  const modalRef = useRef<HTMLDivElement>(null)
 
   const handleConfirm = () => {
-    closeRef.current?.click()
+    if (modalRef.current) {
+      const modal = Modal.getOrCreateInstance(modalRef.current)
+      modal.hide()
+    }
     onConfirm()
   }
 
   return (
-    <div className="modal fade" id={id} tabIndex={-1} aria-hidden="true">
+    <div ref={modalRef} className="modal fade" id={id} tabIndex={-1} aria-hidden="true">
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
             <h5 className="modal-title">{title}</h5>
             <button
-              ref={closeRef}
               type="button"
               className="btn-close"
               data-bs-dismiss="modal"
@@ -65,8 +68,7 @@ export function ConfirmDialog({
 export function openModal(id: string) {
   const el = document.getElementById(id)
   if (el) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const modal = (window as any).bootstrap?.Modal?.getOrCreateInstance(el)
-    modal?.show()
+    const modal = Modal.getOrCreateInstance(el)
+    modal.show()
   }
 }

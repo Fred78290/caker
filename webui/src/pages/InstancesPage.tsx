@@ -5,6 +5,7 @@ import {
     deleteInstance,
     listInstances,
 } from '../api/instances';
+import { waitOperation } from '../api/operations';
 import { ConfirmDialog, openModal } from '../components/ConfirmDialog';
 import { PageHeader } from '../components/PageHeader';
 import { PageSpinner, Spinner } from '../components/Spinner';
@@ -20,15 +21,23 @@ export function InstancesPage() {
   const [actionBusy, setActionBusy] = useState<string | null>(null)
   const [selected, setSelected] = useState<LXDInstance | null>(null)
 
-  const refresh = useCallback(() => {
-    setLoading(true)
+  const refresh = useCallback((showLoader = true) => {
+    if (showLoader) setLoading(true)
     listInstances()
       .then((r) => setInstances(r.data.metadata ?? []))
       .catch((e) => setError(String(e)))
-      .finally(() => setLoading(false))
+      .finally(() => {
+        if (showLoader) setLoading(false)
+      })
   }, [])
 
-  useEffect(() => { refresh() }, [refresh])
+  useEffect(() => {
+    refresh()
+
+    // Keep VM status up to date while the page is open.
+    const timer = setInterval(() => refresh(false), 10000)
+    return () => clearInterval(timer)
+  }, [refresh])
 
   const doStateChange = async (
     name: string,
@@ -37,7 +46,7 @@ export function InstancesPage() {
     setActionBusy(name + ':' + action)
     try {
       await changeInstanceState(name, action)
-      setTimeout(refresh, 1500)
+      setTimeout(() => refresh(false), 1500)
     } catch (e) {
       setError(String(e))
     } finally {
@@ -49,8 +58,17 @@ export function InstancesPage() {
     if (!selected) return
     setActionBusy(selected.name + ':delete')
     try {
-      await deleteInstance(selected.name)
-      refresh()
+      const response = await deleteInstance(selected.name)
+      const operationId = response.data.operation.split('/').filter(Boolean).pop()
+
+      if (operationId) {
+        const completed = await waitOperation(operationId, 60)
+        if (completed.data.metadata.status !== 'Success') {
+          throw new Error(completed.data.metadata.error || 'Delete operation failed')
+        }
+      }
+
+      refresh(false)
     } catch (e) {
       setError(String(e))
     } finally {
@@ -221,7 +239,7 @@ export function InstancesPage() {
       />
 
       <CreateInstanceModal
-        onCreated={() => setTimeout(refresh, 2000)}
+        onCreated={() => setTimeout(() => refresh(false), 2000)}
       />
     </>
   )

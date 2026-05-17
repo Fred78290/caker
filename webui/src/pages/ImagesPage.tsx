@@ -39,8 +39,10 @@ export function ImagesPage() {
   const [deletingFingerprint, setDeletingFingerprint] = useState<string | null>(null)
   const [createInstanceAlias, setCreateInstanceAlias] = useState<string>('')
 
+  const [tableLoading, setTableLoading] = useState(false);
+
   const refresh = useCallback(() => {
-    setLoading(true)
+    setTableLoading(true)
     if (mode === 'remote') {
       if (!selectedRemote) {
         setImages([])
@@ -51,14 +53,20 @@ export function ImagesPage() {
       listRemoteImages(selectedRemote)
         .then((r) => setImages(r.data.metadata ?? []))
         .catch((e) => setError(String(e)))
-        .finally(() => setLoading(false))
+        .finally(() => {
+          setTableLoading(false)
+          setLoading(false)
+        })
       return
     }
 
     listImages()
       .then((r) => setImages(r.data.metadata ?? []))
       .catch((e) => setError(String(e)))
-      .finally(() => setLoading(false))
+      .finally(() => {
+        setTableLoading(false)
+        setLoading(false)
+      })
   }, [mode, selectedRemote])
 
   const loadRemotes = useCallback(() => {
@@ -265,118 +273,126 @@ export function ImagesPage() {
           </div>
         )}
         <div className="table-responsive">
-          <table className="table table-hover mb-0 align-middle">
-            <thead className="table-light">
-              <tr>
-                <th>Aliases</th>
-                <th>Fingerprint</th>
-                <th>Type</th>
-                {mode === 'cache' && <th>Remote</th>}
-                <th>Size</th>
-                <th>Architecture</th>
-                <th>Cached</th>
-                <th>Uploaded</th>
-                {mode === 'cache' && <th className="text-end">Action</th>}
-                {mode === 'remote' && <th className="text-end">Action</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {displayedImages.length === 0 && (
+          {tableLoading ? (
+            <div className="text-center py-4">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : (
+            <table className="table table-hover mb-0 align-middle">
+              <thead className="table-light">
                 <tr>
-                  <td colSpan={mode === 'remote' ? 8 : 9} className="text-center text-muted py-4">
-                    {mode === 'remote' ? 'No images found on selected remote' : 'No cached images found'}
-                  </td>
+                  <th>Aliases</th>
+                  <th>Fingerprint</th>
+                  <th>Type</th>
+                  {mode === 'cache' && <th>Remote</th>}
+                  <th>Size</th>
+                  <th>Architecture</th>
+                  <th>Cached</th>
+                  <th>Uploaded</th>
+                  {mode === 'cache' && <th className="text-end">Action</th>}
+                  {mode === 'remote' && <th className="text-end">Action</th>}
                 </tr>
-              )}
-              {displayedImages.map((img) => (
-                <tr key={img.fingerprint}>
-                  <td>
-                    {img.aliases.map((a) => (
-                      <span key={a.name} className="badge bg-primary me-1">
-                        {a.name}
-                      </span>
-                    ))}
-                  </td>
-                  <td>
-                    <code className="small">{img.fingerprint.slice(0, 12)}</code>
-                  </td>
-                  <td>
-                    <span className="badge bg-light text-dark border">
-                      {img.type}
-                    </span>
-                  </td>
-                  {mode === 'cache' && (
+              </thead>
+              <tbody>
+                {displayedImages.length === 0 && (
+                  <tr>
+                    <td colSpan={mode === 'remote' ? 8 : 9} className="text-center text-muted py-4">
+                      {mode === 'remote' ? 'No images found on selected remote' : 'No cached images found'}
+                    </td>
+                  </tr>
+                )}
+                {displayedImages.map((img) => (
+                  <tr key={img.fingerprint}>
                     <td>
-                      <small className="text-muted">{detectImageRemote(img)}</small>
+                      {img.aliases.map((a) => (
+                        <span key={a.name} className="badge bg-primary me-1">
+                          {a.name}
+                        </span>
+                      ))}
                     </td>
-                  )}
-                  <td>{formatSize(img.size)}</td>
-                  <td>
-                    <small className="text-muted">{img.architecture}</small>
-                  </td>
-                  <td>
-                    {img.cached ? (
-                      <i className="bi bi-check-circle text-success" />
-                    ) : (
-                      <i className="bi bi-dash text-muted" />
+                    <td>
+                      <code className="small">{img.fingerprint.slice(0, 12)}</code>
+                    </td>
+                    <td>
+                      <span className="badge bg-light text-dark border">
+                        {img.type}
+                      </span>
+                    </td>
+                    {mode === 'cache' && (
+                      <td>
+                        <small className="text-muted">{detectImageRemote(img)}</small>
+                      </td>
                     )}
-                  </td>
-                  <td>
-                    <small className="text-muted">
-                      {img.uploaded_at
-                        ? new Date(img.uploaded_at).toLocaleDateString()
-                        : '—'}
-                    </small>
-                  </td>
-                  {mode === 'cache' && (
-                    <td className="text-end">
-                      <button
-                        className="btn btn-outline-danger btn-sm"
-                        disabled={deletingFingerprint !== null}
-                        onClick={() => deleteCachedImage(img)}
-                      >
-                        {deletingFingerprint === img.fingerprint ? (
-                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-                        ) : (
-                          <>
-                            <i className="bi bi-trash me-1" />
-                          </>
-                        )}
-                      </button>
+                    <td>{formatSize(img.size)}</td>
+                    <td>
+                      <small className="text-muted">{img.architecture}</small>
                     </td>
-                  )}
-                  {mode === 'remote' && (
-                    <td className="text-end">
-                      <div className="btn-group btn-group-sm">
+                    <td>
+                      {img.cached ? (
+                        <i className="bi bi-check-circle text-success" />
+                      ) : (
+                        <i className="bi bi-dash text-muted" />
+                      )}
+                    </td>
+                    <td>
+                      <small className="text-muted">
+                        {img.uploaded_at
+                          ? new Date(img.uploaded_at).toLocaleDateString()
+                          : '—'}
+                      </small>
+                    </td>
+                    {mode === 'cache' && (
+                      <td className="text-end">
                         <button
-                          className="btn btn-outline-primary"
-                          disabled={pullingFingerprint !== null}
-                          onClick={() => pullSelectedImage(img)}
+                          className="btn btn-outline-danger btn-sm"
+                          disabled={deletingFingerprint !== null}
+                          onClick={() => deleteCachedImage(img)}
                         >
-                          {pullingFingerprint === img.fingerprint ? (
+                          {deletingFingerprint === img.fingerprint ? (
                             <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
                           ) : (
                             <>
-                              <i className="bi bi-download me-1" />Pull
+                              <i className="bi bi-trash me-1" />
                             </>
                           )}
                         </button>
-                        <button
-                          className="btn btn-outline-success"
-                          data-bs-toggle="modal"
-                          data-bs-target="#createInstanceModal"
-                          disabled={pullingFingerprint !== null}
-                          onClick={() => createInstanceFromImage(img)}
-                        >
-                          <i className="bi bi-plus-square me-1" />Create
-                        </button>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      </td>
+                    )}
+                    {mode === 'remote' && (
+                      <td className="text-end">
+                        <div className="btn-group btn-group-sm">
+                          <button
+                            className="btn btn-outline-primary"
+                            disabled={pullingFingerprint !== null}
+                            onClick={() => pullSelectedImage(img)}
+                          >
+                            {pullingFingerprint === img.fingerprint ? (
+                              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                            ) : (
+                              <>
+                                <i className="bi bi-download me-1" />Pull
+                              </>
+                            )}
+                          </button>
+                          <button
+                            className="btn btn-outline-success"
+                            data-bs-toggle="modal"
+                            data-bs-target="#createInstanceModal"
+                            disabled={pullingFingerprint !== null}
+                            onClick={() => createInstanceFromImage(img)}
+                          >
+                            <i className="bi bi-plus-square me-1" />Create
+                          </button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
