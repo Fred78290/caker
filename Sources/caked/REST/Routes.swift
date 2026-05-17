@@ -13,6 +13,7 @@ func registerLXDRoutes(_ app: Application, group: EventLoopGroup, runMode: Utils
 	try app.register(collection: LXDRootController(group: group, runMode: runMode))
 	try app.register(collection: LXDInstancesController(group: group, runMode: runMode))
 	try app.register(collection: LXDNetworksController(group: group, runMode: runMode))
+	try app.register(collection: LXDRemotesController(group: group, runMode: runMode))
 	try app.register(collection: LXDOperationsController(group: group, runMode: runMode))
 	try app.register(collection: LXDImagesController(group: group, runMode: runMode))
 	try app.register(collection: LXDAuthGroupsController(group: group, runMode: runMode))

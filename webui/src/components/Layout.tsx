@@ -59,6 +59,7 @@ export function Layout() {
         <NavSection label="Compute" />
         <NavItem to="/instances" icon="hdd-stack" label="Instances" />
         <NavItem to="/images" icon="layers" label="Images" />
+        <NavItem to="/remotes" icon="cloud-arrow-down" label="Remotes" />
         <NavItem to="/networks" icon="diagram-3" label="Networks" />
 
         <NavSection label="Monitor" />

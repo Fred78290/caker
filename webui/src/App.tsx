@@ -11,6 +11,7 @@ import { InstancesPage } from './pages/InstancesPage';
 import { LoginPage } from './pages/LoginPage';
 import { NetworksPage } from './pages/NetworksPage';
 import { OperationsPage } from './pages/OperationsPage';
+import { RemotesPage } from './pages/RemotesPage';
 
 function AppRoutes() {
   const { isAuthenticated, isAuthLoading } = useAuth()
@@ -35,6 +36,7 @@ function AppRoutes() {
         <Route path="instances" element={<InstancesPage />} />
         <Route path="instances/:name" element={<InstanceDetailPage />} />
         <Route path="images" element={<ImagesPage />} />
+        <Route path="remotes" element={<RemotesPage />} />
         <Route path="networks" element={<NetworksPage />} />
         <Route path="operations" element={<OperationsPage />} />
         <Route path="auth/groups" element={<GroupsPage />} />

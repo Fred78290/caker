@@ -6,6 +6,7 @@ import type { LXDNetwork } from '../types/lxd';
 
 interface Props {
   onCreated: () => void
+  initialAlias?: string
 }
 
 interface NetworkInterfaceItem {
@@ -17,6 +18,7 @@ const DEVICE_NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_.-]*$/
 const FORWARDED_PORT_PATTERN = /^(\d{1,5}):(\d{1,5})\/(tcp|udp|both)$/i
 const VM_NAME_ADJECTIVES = ['swift', 'brave', 'calm', 'silent', 'lucky', 'rapid', 'crisp', 'frosty']
 const VM_NAME_NOUNS = ['otter', 'falcon', 'cedar', 'pine', 'ember', 'comet', 'delta', 'harbor']
+const DEFAULT_IMAGE_ALIAS = 'ubuntu/26.04'
 
 const generateRandomVmName = () => {
   const adjective = VM_NAME_ADJECTIVES[Math.floor(Math.random() * VM_NAME_ADJECTIVES.length)]
@@ -25,10 +27,31 @@ const generateRandomVmName = () => {
   return `${adjective}-${noun}-${suffix}`
 }
 
-export function CreateInstanceModal({ onCreated }: Props) {
+const suggestVmNameFromAlias = (value: string) => {
+  const alias = value.trim()
+  if (!alias) return generateRandomVmName()
+
+  const withoutRemote = alias.includes(':') ? alias.split(':').slice(1).join(':') : alias
+  const firstSegment = withoutRemote.split('/').filter(Boolean).slice(-1)[0] ?? withoutRemote
+  const normalized = firstSegment
+    .toLowerCase()
+    .replace(/[^a-z0-9.-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+  const base = normalized || 'vm'
+  const suffix = Math.floor(100 + Math.random() * 900)
+  return `${base}-${suffix}`
+}
+
+export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
+  const sourceAlias = initialAlias?.trim() || ''
+  const hasSourceContext = sourceAlias.length > 0
+
   const [activeTab, setActiveTab] = useState<'general' | 'system' | 'access' | 'network'>('general')
   const [name, setName] = useState(generateRandomVmName())
-  const [alias, setAlias] = useState('ubuntu/26.04')
+  const [nameEdited, setNameEdited] = useState(false)
+  const [alias, setAlias] = useState(initialAlias?.trim() || DEFAULT_IMAGE_ALIAS)
   const [type, setType] = useState<'virtual-machine' | 'container'>('virtual-machine')
   const [description, setDescription] = useState('')
   const [cpu, setCpu] = useState('2')
@@ -178,6 +201,30 @@ export function CreateInstanceModal({ onCreated }: Props) {
       })
   }, [])
 
+  useEffect(() => {
+    if (initialAlias?.trim()) {
+      setAlias(initialAlias.trim())
+      if (!nameEdited) {
+        setName(suggestVmNameFromAlias(initialAlias))
+      }
+      setActiveTab('general')
+    }
+  }, [initialAlias, nameEdited])
+
+  useEffect(() => {
+    const el = document.getElementById('createInstanceModal')
+    if (!el) return
+
+    const handleHidden = () => {
+      setNameEdited(false)
+    }
+
+    el.addEventListener('hidden.bs.modal', handleHidden)
+    return () => {
+      el.removeEventListener('hidden.bs.modal', handleHidden)
+    }
+  }, [])
+
   const handleSubmit = async () => {
     if (!name.trim()) return
 
@@ -253,7 +300,8 @@ export function CreateInstanceModal({ onCreated }: Props) {
       })
       // Reset form
       setName(generateRandomVmName())
-      setAlias('ubuntu/22.04')
+      setNameEdited(false)
+      setAlias(initialAlias?.trim() || DEFAULT_IMAGE_ALIAS)
       setDescription('')
       setCpu('2')
       setMemoryMB('2048')
@@ -290,6 +338,7 @@ export function CreateInstanceModal({ onCreated }: Props) {
 
   const assignRandomName = () => {
     setName(generateRandomVmName())
+    setNameEdited(true)
   }
 
   return (
@@ -302,7 +351,15 @@ export function CreateInstanceModal({ onCreated }: Props) {
       <div className="modal-dialog modal-lg">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">New Instance</h5>
+            <div>
+              <h5 className="modal-title mb-1">New Instance</h5>
+              {hasSourceContext && (
+                <div className="small text-muted d-flex align-items-center gap-2">
+                  <span className="badge bg-info-subtle text-info-emphasis border">Source: remote image</span>
+                  <span>{sourceAlias}</span>
+                </div>
+              )}
+            </div>
             <button
               type="button"
               className="btn-close"
@@ -359,7 +416,10 @@ export function CreateInstanceModal({ onCreated }: Props) {
                     <input
                       className="form-control"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => {
+                        setName(e.target.value)
+                        setNameEdited(true)
+                      }}
                       placeholder="my-vm"
                     />
                     <button

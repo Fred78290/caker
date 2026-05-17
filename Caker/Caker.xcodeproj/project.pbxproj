@@ -187,6 +187,7 @@
 		9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
+		9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */; };
 		9B4EA8292F7692170044C18E /* libswiftCompatibilitySpan.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9B57E9D02E745FB600C5601D /* ViewSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B57E9CF2E745FB600C5601D /* ViewSize.swift */; };
 		9B5A37812ED4BDA8007B59B0 /* VNCKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */; };
@@ -920,6 +921,9 @@
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDRemotesController.swift; sourceTree = "<group>"; };
+		9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstanceDetailPage.tsx; sourceTree = "<group>"; };
+		9B4C09B82FB8D72100101F0E /* RemotesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = RemotesPage.tsx; sourceTree = "<group>"; };
 		9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswiftCompatibilitySpan.dylib; path = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib"; sourceTree = "<absolute>"; };
 		9B57E9CF2E745FB600C5601D /* ViewSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSize.swift; sourceTree = "<group>"; };
 		9B5A37752ED4BDA8007B59B0 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
@@ -1723,10 +1727,12 @@
 				9B352EEE2FAF43C100F8F6B6 /* GroupsPage.tsx */,
 				9B352EEF2FAF43C100F8F6B6 /* IdentitiesPage.tsx */,
 				9B352EF02FAF43C100F8F6B6 /* ImagesPage.tsx */,
+				9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */,
 				9B352EF12FAF43C100F8F6B6 /* InstancesPage.tsx */,
 				9B352EF22FAF43C100F8F6B6 /* LoginPage.tsx */,
 				9B352EF32FAF43C100F8F6B6 /* NetworksPage.tsx */,
 				9B352EF42FAF43C100F8F6B6 /* OperationsPage.tsx */,
+				9B4C09B82FB8D72100101F0E /* RemotesPage.tsx */,
 			);
 			path = pages;
 			sourceTree = "<group>";
@@ -1948,6 +1954,7 @@
 				9B602F8D2FAA56FA00055543 /* LXDInstancesController.swift */,
 				9B602F8E2FAA56FA00055543 /* LXDNetworksController.swift */,
 				9B602F8F2FAA56FA00055543 /* LXDOperationsController.swift */,
+				9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */,
 				9B602F902FAA56FA00055543 /* LXDRootController.swift */,
 			);
 			path = Controllers;
@@ -3246,6 +3253,7 @@
 				9BEBC6E62DF4400A0092B196 /* Start.swift in Sources */,
 				9BEBC6E72DF4400A0092B196 /* Networks.swift in Sources */,
 				9BBE597A2F49B561005B3359 /* GrandCentralDispatch.swift in Sources */,
+				9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */,
 				9B602F972FAA56FA00055543 /* LXDInstancesController.swift in Sources */,
 				9B602F982FAA56FA00055543 /* LXDRootController.swift in Sources */,
 				9B602F992FAA56FA00055543 /* LXDModels.swift in Sources */,
