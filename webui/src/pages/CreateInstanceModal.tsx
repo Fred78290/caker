@@ -314,20 +314,21 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
 
       await createInstance({
         name: name.trim(),
-        type,
-        description,
+        type: type,
+        description: description,
         source: { type: 'image', alias },
-        config,
-        ...(Object.keys(devices).length > 0 ? { devices } : {}),
+        config: config,
+        ...(Object.keys(devices).length > 0 ? { devices } : {user: "admin"}),
         ...(user.trim() ? { user: user.trim() } : {}),
-        ...(password.trim() ? { password: password.trim() } : {}),
-        clearPassword,
-        ...(mainGroup.trim() ? { mainGroup: mainGroup.trim() } : {}),
-        ...(normalizedOtherGroups.length > 0 ? { other_groups: normalizedOtherGroups } : {}),
+        ...(password.trim() ? { password: password.trim() } : { password: "admin" }),
+        clearPassword: clearPassword,
+        ...(mainGroup.trim() ? { mainGroup: mainGroup.trim() } : { mainGroup: "admin" }),
+        ...(normalizedOtherGroups.length > 0 ? { other_groups: normalizedOtherGroups } : { other_groups: ["sudo"] }),
         ...(normalizedForwardedPorts.length > 0 ? { forwarded_ports: normalizedForwardedPorts } : {}),
         net_ifnames: netIfnames,
+        autostart: autostart,
         bridged_network: bridgedNetwork,
-        nested,
+        nested: nested,
         dynamic_port_forwarding: dynamicPortForwarding,
       })
       resetForm()
@@ -581,7 +582,7 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
                       className="form-control"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Optional"
+                      placeholder="admin (if empty)"
                     />
                     <div className="form-check mt-2">
                       <input
