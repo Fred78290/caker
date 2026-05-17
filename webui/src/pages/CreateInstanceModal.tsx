@@ -48,10 +48,12 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
   const sourceAlias = initialAlias?.trim() || ''
   const hasSourceContext = sourceAlias.length > 0
 
+  const getInitialAlias = () => initialAlias?.trim() || DEFAULT_IMAGE_ALIAS
+
   const [activeTab, setActiveTab] = useState<'general' | 'system' | 'access' | 'network'>('general')
   const [name, setName] = useState(generateRandomVmName())
   const [nameEdited, setNameEdited] = useState(false)
-  const [alias, setAlias] = useState(initialAlias?.trim() || DEFAULT_IMAGE_ALIAS)
+  const [alias, setAlias] = useState(getInitialAlias())
   const [type, setType] = useState<'virtual-machine' | 'container'>('virtual-machine')
   const [description, setDescription] = useState('')
   const [cpu, setCpu] = useState('2')
@@ -79,6 +81,36 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
   const [forwardedPortsError, setForwardedPortsError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const resetForm = (nextAlias: string = getInitialAlias()) => {
+    setActiveTab('general')
+    setName(generateRandomVmName())
+    setNameEdited(false)
+    setAlias(nextAlias)
+    setType('virtual-machine')
+    setDescription('')
+    setCpu('2')
+    setMemoryMB('2048')
+    setDiskGB('20')
+    setUser('admin')
+    setPassword('')
+    setClearPassword(false)
+    setMainGroup('adm')
+    setOtherGroups('sudo')
+    setSshAuthorizedKey('')
+    setForwardedPorts('')
+    setForwardedPortsError(null)
+    setNetIfnames(true)
+    setAutostart(false)
+    setBridgedNetwork(false)
+    setNested(false)
+    setDynamicPortForwarding(false)
+    setNetworks('')
+    setNetworkInterfaces([])
+    setNetworkInterfacesError(null)
+    setError(null)
+    setBusy(false)
+  }
 
   const hasDuplicateDevice = (items: NetworkInterfaceItem[]) => {
     const names = items.map((item) => item.device.trim().toLowerCase()).filter(Boolean)
@@ -216,7 +248,7 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
     if (!el) return
 
     const handleHidden = () => {
-      setNameEdited(false)
+      resetForm()
     }
 
     el.addEventListener('hidden.bs.modal', handleHidden)
@@ -298,31 +330,7 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
         nested,
         dynamic_port_forwarding: dynamicPortForwarding,
       })
-      // Reset form
-      setName(generateRandomVmName())
-      setNameEdited(false)
-      setAlias(initialAlias?.trim() || DEFAULT_IMAGE_ALIAS)
-      setDescription('')
-      setCpu('2')
-      setMemoryMB('2048')
-      setDiskGB('20')
-      setUser('admin')
-      setPassword('')
-      setClearPassword(false)
-      setMainGroup('adm')
-      setOtherGroups('sudo')
-      setSshAuthorizedKey('')
-      setForwardedPorts('')
-      setForwardedPortsError(null)
-      setNetIfnames(true)
-      setAutostart(false)
-      setBridgedNetwork(false)
-      setNested(false)
-      setDynamicPortForwarding(false)
-      setActiveTab('general')
-      setNetworks('')
-      setNetworkInterfaces([])
-      setNetworkInterfacesError(null)
+      resetForm()
       // Close modal
       const el = document.getElementById('createInstanceModal')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
