@@ -27,6 +27,8 @@ struct LXDImagesController: RouteCollection {
 		images.get(use: listImages)
 		images.get("remote", ":name", use: listRemoteImages)
 		images.post("pull", use: pullImage)
+		images.delete(":fingerprint", use: deleteImage)
+		images.delete("aliases", ":name", use: deleteImageAlias)
 
 		let named = images.grouped(":fingerprint")
 		named.get(use: getImage)
@@ -175,6 +177,73 @@ struct LXDImagesController: RouteCollection {
 		}
 
 		return try await LXDResponse<LXDImage>.sync(toLXDImage(info)).encodeResponse(for: req)
+	}
+
+	private func resolveDeleteTarget(identifier: String) -> String? {
+		let infos = allCachedImages()
+
+		guard let info = infos.first(where: {
+			let fp = $0.fingerprint ?? $0.instanceID ?? $0.name
+			return fp == identifier
+				|| $0.name == identifier
+				|| $0.fqn.contains(identifier)
+				|| $0.fqn.contains(where: { $0.contains(identifier) })
+		}) else {
+			return nil
+		}
+
+		if let exactMatch = info.fqn.first(where: { $0 == identifier }) {
+			return exactMatch
+		}
+
+		if let aliasMatch = info.fqn.first(where: { $0.hasSuffix("://\(identifier)") || $0.hasSuffix("/\(identifier)") }) {
+			return aliasMatch
+		}
+
+		return info.fqn.first ?? (info.fingerprint ?? info.instanceID ?? info.name)
+	}
+
+	private func deleteImageResponse(req: Request, identifier: String) async throws -> Response {
+		guard let target = resolveDeleteTarget(identifier: identifier) else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Image '\(identifier)' not found", code: 404)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
+		do {
+			let deleted = try CakedLib.DeleteHandler.delete(names: [target], runMode: runMode)
+			guard deleted.first?.deleted == true else {
+				let reason = deleted.first?.reason ?? "Object not found"
+				return try await LXDResponse<LXDEmptyMetadata>.error(message: reason, code: 404)
+					.encodeResponse(status: .notFound, for: req)
+			}
+
+			return try await LXDResponse<LXDEmptyMetadata>.sync(LXDEmptyMetadata()).encodeResponse(for: req)
+		} catch {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: error.localizedDescription, code: 500)
+				.encodeResponse(status: .internalServerError, for: req)
+		}
+	}
+
+	// DELETE /1.0/images/:fingerprint
+	@Sendable
+	func deleteImage(req: Request) async throws -> Response {
+		guard let fingerprint = req.parameters.get("fingerprint"), fingerprint.isEmpty == false else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing image fingerprint", code: 400)
+				.encodeResponse(status: .badRequest, for: req)
+		}
+
+		return try await deleteImageResponse(req: req, identifier: fingerprint)
+	}
+
+	// DELETE /1.0/images/aliases/:name
+	@Sendable
+	func deleteImageAlias(req: Request) async throws -> Response {
+		guard let name = req.parameters.get("name"), name.isEmpty == false else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing image alias", code: 400)
+				.encodeResponse(status: .badRequest, for: req)
+		}
+
+		return try await deleteImageResponse(req: req, identifier: name)
 	}
 
 	// POST /1.0/images/pull

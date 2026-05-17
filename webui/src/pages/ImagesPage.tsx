@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { listImages, listRemoteImages, pullImage } from '../api/images';
+import { deleteImage, listImages, listRemoteImages, pullImage } from '../api/images';
 import { listRemotes } from '../api/remotes';
 import { PageHeader } from '../components/PageHeader';
 import { PageSpinner } from '../components/Spinner';
@@ -36,6 +36,7 @@ export function ImagesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pullingFingerprint, setPullingFingerprint] = useState<string | null>(null)
+  const [deletingFingerprint, setDeletingFingerprint] = useState<string | null>(null)
   const [createInstanceAlias, setCreateInstanceAlias] = useState<string>('')
 
   const refresh = useCallback(() => {
@@ -144,6 +145,23 @@ export function ImagesPage() {
     setError(null)
   }
 
+  const deleteCachedImage = async (img: LXDImage) => {
+    if (!window.confirm(`Delete cached image "${img.aliases[0]?.name ?? img.fingerprint}"?`)) {
+      return
+    }
+
+    setDeletingFingerprint(img.fingerprint)
+    setError(null)
+    try {
+      await deleteImage(img.fingerprint)
+      await refresh()
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setDeletingFingerprint(null)
+    }
+  }
+
   if (loading) return <PageSpinner />
 
   const subtitle = mode === 'remote'
@@ -247,13 +265,14 @@ export function ImagesPage() {
                 <th>Architecture</th>
                 <th>Cached</th>
                 <th>Uploaded</th>
+                {mode === 'cache' && <th className="text-end">Action</th>}
                 {mode === 'remote' && <th className="text-end">Action</th>}
               </tr>
             </thead>
             <tbody>
               {displayedImages.length === 0 && (
                 <tr>
-                  <td colSpan={mode === 'remote' ? 8 : 8} className="text-center text-muted py-4">
+                  <td colSpan={mode === 'remote' ? 8 : 9} className="text-center text-muted py-4">
                     {mode === 'remote' ? 'No images found on selected remote' : 'No cached images found'}
                   </td>
                 </tr>
@@ -298,6 +317,23 @@ export function ImagesPage() {
                         : '—'}
                     </small>
                   </td>
+                  {mode === 'cache' && (
+                    <td className="text-end">
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        disabled={deletingFingerprint !== null}
+                        onClick={() => deleteCachedImage(img)}
+                      >
+                        {deletingFingerprint === img.fingerprint ? (
+                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                        ) : (
+                          <>
+                            <i className="bi bi-trash me-1" />Delete
+                          </>
+                        )}
+                      </button>
+                    </td>
+                  )}
                   {mode === 'remote' && (
                     <td className="text-end">
                       <div className="btn-group btn-group-sm">

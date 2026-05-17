@@ -10,5 +10,11 @@ export const listRemoteImages = (remote: string) =>
 export const pullImage = (payload: { remote: string; alias: string }) =>
   client.post<LXDResponse<Record<string, never>>>('/1.0/images/pull', payload)
 
+export const deleteImage = (fingerprint: string) =>
+  client.delete<LXDResponse<Record<string, never>>>(`/1.0/images/${encodeURIComponent(fingerprint)}`)
+
+export const deleteImageAlias = (name: string) =>
+  client.delete<LXDResponse<Record<string, never>>>(`/1.0/images/aliases/${encodeURIComponent(name)}`)
+
 export const getImage = (fingerprint: string) =>
   client.get<LXDResponse<LXDImage>>(`/1.0/images/${fingerprint}`)
