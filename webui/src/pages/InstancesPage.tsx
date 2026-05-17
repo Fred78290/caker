@@ -240,6 +240,7 @@ export function InstancesPage() {
 
       <CreateInstanceModal
         onCreated={() => setTimeout(() => refresh(false), 2000)}
+        onClose={() => setTimeout(() => refresh(false), 500)}
       />
     </>
   )

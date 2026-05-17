@@ -1,12 +1,15 @@
+import { Modal } from 'bootstrap';
 import { useEffect, useState } from 'react';
 import { createInstance } from '../api/instances';
 import { listNetworks } from '../api/networks';
+import { getOperation } from '../api/operations';
 import { Spinner } from '../components/Spinner';
 import type { LXDNetwork } from '../types/lxd';
 
 interface Props {
   onCreated: () => void
   initialAlias?: string
+  onClose?: () => void
 }
 
 interface NetworkInterfaceItem {
@@ -14,11 +17,16 @@ interface NetworkInterfaceItem {
   device: string
 }
 
+interface OperationLogItem {
+  at: string
+  description: string
+}
+
 const DEVICE_NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_.-]*$/
 const FORWARDED_PORT_PATTERN = /^(\d{1,5}):(\d{1,5})\/(tcp|udp|both)$/i
 const VM_NAME_ADJECTIVES = ['swift', 'brave', 'calm', 'silent', 'lucky', 'rapid', 'crisp', 'frosty']
 const VM_NAME_NOUNS = ['otter', 'falcon', 'cedar', 'pine', 'ember', 'comet', 'delta', 'harbor']
-const DEFAULT_IMAGE_ALIAS = 'ubuntu/26.04'
+const DEFAULT_IMAGE_ALIAS = 'ubuntu:26.04'
 
 const generateRandomVmName = () => {
   const adjective = VM_NAME_ADJECTIVES[Math.floor(Math.random() * VM_NAME_ADJECTIVES.length)]
@@ -44,7 +52,26 @@ const suggestVmNameFromAlias = (value: string) => {
   return `${base}-${suffix}`
 }
 
-export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
+const parseProgressPercent = (value: string | null) => {
+  if (!value) return null
+  const match = value.match(/(\d{1,3})\s*%/)
+  if (!match) return null
+
+  const progress = Number.parseInt(match[1], 10)
+  if (!Number.isFinite(progress) || progress < 0 || progress > 100) return null
+  return progress
+}
+
+const cleanupModalArtifacts = () => {
+  document.querySelectorAll('.modal-backdrop').forEach((element) => {
+    element.remove()
+  })
+  document.body.classList.remove('modal-open')
+  document.body.style.removeProperty('overflow')
+  document.body.style.removeProperty('padding-right')
+}
+
+export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props) {
   const sourceAlias = initialAlias?.trim() || ''
   const hasSourceContext = sourceAlias.length > 0
 
@@ -80,6 +107,10 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
   const [networkInterfacesError, setNetworkInterfacesError] = useState<string | null>(null)
   const [forwardedPortsError, setForwardedPortsError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [activeOperationId, setActiveOperationId] = useState<string | null>(null)
+  const [operationDescription, setOperationDescription] = useState<string | null>(null)
+  const [operationStatus, setOperationStatus] = useState<string | null>(null)
+  const [operationLog, setOperationLog] = useState<OperationLogItem[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const resetForm = (nextAlias: string = getInitialAlias()) => {
@@ -110,6 +141,10 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
     setNetworkInterfacesError(null)
     setError(null)
     setBusy(false)
+    setActiveOperationId(null)
+    setOperationDescription(null)
+    setOperationStatus(null)
+    setOperationLog([])
   }
 
   const hasDuplicateDevice = (items: NetworkInterfaceItem[]) => {
@@ -249,13 +284,84 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
 
     const handleHidden = () => {
       resetForm()
+      cleanupModalArtifacts()
+      if (onClose) onClose()
     }
 
     el.addEventListener('hidden.bs.modal', handleHidden)
     return () => {
       el.removeEventListener('hidden.bs.modal', handleHidden)
     }
-  }, [])
+  }, [onClose])
+
+  useEffect(() => {
+    if (!activeOperationId) return
+
+    let cancelled = false
+
+    const pollOperation = async () => {
+      try {
+        const response = await getOperation(activeOperationId)
+        if (cancelled) return
+
+        const operation = response.data.metadata
+        const nextDescription = operation.description || null
+        setOperationDescription(nextDescription)
+        setOperationStatus(operation.status || null)
+
+        if (nextDescription) {
+          setOperationLog((prev) => {
+            if (prev.length > 0 && prev[prev.length - 1].description === nextDescription) {
+              return prev
+            }
+
+            const next = [
+              ...prev,
+              {
+                at: new Date().toLocaleTimeString(),
+                description: nextDescription,
+              },
+            ]
+
+            return next.slice(-8)
+          })
+        }
+
+        if (operation.status === 'Success') {
+          setBusy(false)
+          setActiveOperationId(null)
+          const modalEl = document.getElementById('createInstanceModal')
+          if (modalEl) {
+            const modal = Modal.getInstance(modalEl) ?? Modal.getOrCreateInstance(modalEl)
+            modal.hide()
+            window.setTimeout(cleanupModalArtifacts, 0)
+          }
+          onCreated()
+          return
+        }
+
+        if (operation.status === 'Failure') {
+          setBusy(false)
+          setActiveOperationId(null)
+          setError(operation.error || 'Build failed')
+          return
+        }
+
+        window.setTimeout(pollOperation, 1000)
+      } catch (e) {
+        if (cancelled) return
+        setBusy(false)
+        setActiveOperationId(null)
+        setError(String(e))
+      }
+    }
+
+    pollOperation()
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeOperationId, onCreated])
 
   const handleSubmit = async () => {
     if (!name.trim()) return
@@ -312,7 +418,7 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
         config[`cloud-init.ssh-keys.${keyName}`] = sshAuthorizedKey.trim()
       }
 
-      await createInstance({
+      const response = await createInstance({
         name: name.trim(),
         type: type,
         description: description,
@@ -331,17 +437,27 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
         nested: nested,
         dynamic_port_forwarding: dynamicPortForwarding,
       })
-      resetForm()
-      // Close modal
-      const el = document.getElementById('createInstanceModal')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const m = (window as any).bootstrap?.Modal?.getInstance(el)
-      m?.hide()
-      onCreated()
+
+      const operation = response.data.metadata
+      const operationId = operation.id || response.data.operation.split('/').filter(Boolean).pop() || null
+
+      if (!operationId) {
+        throw new Error('Unable to track build operation')
+      }
+
+      const initialDescription = operation.description || 'Starting build…'
+      setOperationDescription(initialDescription)
+      setOperationStatus(operation.status || 'Running')
+      setOperationLog([
+        {
+          at: new Date().toLocaleTimeString(),
+          description: initialDescription,
+        },
+      ])
+      setActiveOperationId(operationId)
     } catch (e) {
-      setError(String(e))
-    } finally {
       setBusy(false)
+      setError(String(e))
     }
   }
 
@@ -349,6 +465,8 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
     setName(generateRandomVmName())
     setNameEdited(true)
   }
+
+  const operationProgress = parseProgressPercent(operationDescription)
 
   return (
     <div
@@ -374,10 +492,51 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
               className="btn-close"
               data-bs-dismiss="modal"
               aria-label="Close"
+              disabled={busy}
             />
           </div>
           <div className="modal-body">
             {error && <div className="alert alert-danger">{error}</div>}
+            {busy && activeOperationId && (
+              <div className="alert alert-info d-flex align-items-start gap-2">
+                <Spinner size="sm" />
+                <div>
+                  <div className="fw-medium">Build in progress</div>
+                  <div className="small">{operationDescription || 'Waiting for status update…'}</div>
+                  {operationStatus && (
+                    <div className="small text-muted">Status: {operationStatus}</div>
+                  )}
+                  {operationProgress !== null && (
+                    <>
+                      <div className="progress mt-2" role="progressbar" aria-label="Build progress" aria-valuenow={operationProgress} aria-valuemin={0} aria-valuemax={100}>
+                        <div
+                          className="progress-bar progress-bar-striped progress-bar-animated"
+                          style={{ width: `${operationProgress}%` }}
+                        >
+                          {operationProgress}%
+                        </div>
+                      </div>
+                      <div className="small text-muted mt-1">Estimated progress extracted from operation message</div>
+                    </>
+                  )}
+                  {operationLog.length > 1 && (
+                    <details className="mt-2">
+                      <summary className="small fw-medium" style={{ cursor: 'pointer' }}>
+                        Operation updates ({operationLog.length})
+                      </summary>
+                      <ul className="small mb-0 ps-3 mt-1">
+                        {operationLog.map((entry, index) => (
+                          <li key={`${entry.at}-${index}`}>
+                            <span className="text-muted me-1">[{entry.at}]</span>
+                            <span>{entry.description}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </div>
+              </div>
+            )}
             <ul className="nav nav-tabs mb-3" role="tablist">
               <li className="nav-item" role="presentation">
                 <button
@@ -459,7 +618,7 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
                     className="form-control"
                     value={alias}
                     onChange={(e) => setAlias(e.target.value)}
-                    placeholder="ubuntu/22.04"
+                    placeholder="ubuntu:22.04"
                   />
                 </div>
                 <div className="mb-0">
@@ -718,6 +877,7 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
               type="button"
               className="btn btn-secondary"
               data-bs-dismiss="modal"
+              disabled={busy}
             >
               Cancel
             </button>
@@ -727,7 +887,7 @@ export function CreateInstanceModal({ onCreated, initialAlias }: Props) {
               disabled={busy || !name.trim() || Boolean(forwardedPortsError)}
               onClick={handleSubmit}
             >
-              {busy ? <Spinner size="sm" /> : 'Create'}
+              {busy ? <><Spinner size="sm" /> <span className="ms-1">Building...</span></> : 'Create'}
             </button>
           </div>
         </div>

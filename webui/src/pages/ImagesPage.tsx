@@ -227,21 +227,22 @@ export function ImagesPage() {
             </button>
           </div>
 
-          <div className="d-flex align-items-center gap-2">
-            <label className="form-label mb-0 small text-muted">Remote</label>
-            <select
-              className="form-select form-select-sm"
-              style={{ minWidth: 240 }}
-              value={selectedRemote}
-              onChange={(e) => setSelectedRemote(e.target.value)}
-              disabled={mode !== 'remote'}
-            >
-              {remotes.length === 0 && <option value="">No remotes</option>}
-              {remotes.map((remote) => (
-                <option key={remote.name} value={remote.name}>{remote.name} - {remote.url}</option>
-              ))}
-            </select>
-          </div>
+          {mode === 'remote' && (
+            <div className="d-flex align-items-center gap-2">
+              <label className="form-label mb-0 small text-muted">Remote</label>
+              <select
+                className="form-select form-select-sm"
+                style={{ minWidth: 240 }}
+                value={selectedRemote}
+                onChange={(e) => setSelectedRemote(e.target.value)}
+              >
+                {remotes.length === 0 && <option value="">No remotes</option>}
+                {remotes.map((remote) => (
+                  <option key={remote.name} value={remote.name}>{remote.name} - {remote.url}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="d-flex align-items-center gap-2 ms-auto">
             <label className="form-label mb-0 small text-muted">Filter</label>
@@ -401,6 +402,10 @@ export function ImagesPage() {
         onCreated={() => {
           setMode('cache')
           setTimeout(refresh, 1500)
+        }}
+        onClose={() => {
+          // Toujours rafraîchir la liste des images quand le modal se ferme
+          setTimeout(refresh, 500)
         }}
       />
     </>
