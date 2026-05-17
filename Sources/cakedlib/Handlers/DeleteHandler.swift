@@ -55,7 +55,7 @@ public struct DeleteHandler {
 		}
 
 		return try names.compactMap { name in
-			if let u = URL(string: name), let scheme = u.scheme, VMLocation.supportedSchemes.contains(scheme) == false {
+			if let u = URL(string: name), let scheme = u.scheme, (VMLocation.supportedSchemes.contains(scheme) == false && u.isFileURL == false) {
 				let remotes = try listRemotes()
 				let purgeableStorages: [String: CommonCacheImageCache] = [
 					CloudImageCache.scheme: try CloudImageCache(runMode: runMode),
