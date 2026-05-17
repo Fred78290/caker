@@ -150,10 +150,21 @@ export function ImagesPage() {
       return
     }
 
-    setDeletingFingerprint(img.fingerprint)
+    let toDelete: string
+    
+    if (img.fingerprint && img.fingerprint.length > 0) {
+      toDelete = img.fingerprint
+    } else if (img.aliases[0]?.name && img.aliases[0].name.length > 0) {
+      toDelete = img.aliases[0].name
+    } else {
+      setError('Image has no fingerprint or alias to identify it for deletion')
+      return
+    }
+
+    setDeletingFingerprint(toDelete)
     setError(null)
     try {
-      await deleteImage(img.fingerprint)
+      await deleteImage(toDelete)
       await refresh()
     } catch (e) {
       setError(String(e))
