@@ -536,7 +536,11 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		} else if try self.agentURL.exists() {
 			let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 60, runMode: runMode)
 
-			try client.shutdown().log()
+			do {
+				try client.shutdown().log()
+			} catch {
+				killVMRun()
+			}
 		} else {
 			let reply = WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode)
 
