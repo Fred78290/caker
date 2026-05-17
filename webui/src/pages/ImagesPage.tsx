@@ -339,7 +339,7 @@ export function ImagesPage() {
                           <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
                         ) : (
                           <>
-                            <i className="bi bi-trash me-1" />Delete
+                            <i className="bi bi-trash me-1" />
                           </>
                         )}
                       </button>
