@@ -470,6 +470,13 @@ export function InstanceDetailPage() {
     }
   }, [name, vgaSession])
 
+  const handleVGADisconnected = useCallback(() => {
+    if (vgaSession) {
+      vgaRequested.current = false
+      setVgaSession(null)
+    }
+  }, [])
+
   // ── Load logs ──────────────────────────────────────────────────────────────
   const loadLogs = useCallback(async () => {
     if (!name || logsRequested.current) return
@@ -513,6 +520,13 @@ export function InstanceDetailPage() {
     if (activeTab === 'vga' && isRunning && !vgaSession) openVGA()
     if (activeTab === 'logs' && logs.length === 0 && !logsLoading) loadLogs()
   }, [activeTab, isRunning, termSession, vgaSession, logs.length, logsLoading, openTerminal, openVGA, loadLogs])
+
+  useEffect(() => {
+    if (activeTab !== 'vga') {
+      vgaRequested.current = false
+      setVgaSession(null)
+    }
+  }, [activeTab])
 
   // ─────────────────────────────────────────────────────────────────────────
   if (!instance && !loadError) return <PageSpinner />
@@ -701,7 +715,13 @@ export function InstanceDetailPage() {
             </div>
           ) : vgaSession ? (
             <div style={{ flex: 1, minHeight: 0, padding: 12 }}>
-              <VGAConsole operationId={vgaSession.operationId} fds={vgaSession.fds} />
+              {activeTab === 'vga' ? (
+                <VGAConsole
+                  operationId={vgaSession.operationId}
+                  fds={vgaSession.fds}
+                  onDisconnected={handleVGADisconnected}
+                />
+              ) : null}
             </div>
           ) : null}
         </div>

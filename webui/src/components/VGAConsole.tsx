@@ -10,6 +10,7 @@ interface Props {
    *  "0"           → WebSocket secret for VNC data channel.
    *  "vnc-password" → VNC authentication password (may be empty/absent). */
   fds: Record<string, string>
+  onDisconnected?: () => void
 }
 
 /**
@@ -18,7 +19,7 @@ interface Props {
  * The backend proxies raw VNC/RFB bytes over the WebSocket for fd "0".
  * noVNC handles the full RFB handshake, including optional password auth.
  */
-export function VGAConsole({ operationId, fds }: Props) {
+export function VGAConsole({ operationId, fds, onDisconnected }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<'connecting' | 'connected' | 'error'>('connecting')
   const [errorMsg, setErrorMsg] = useState('')
@@ -44,9 +45,15 @@ export function VGAConsole({ operationId, fds }: Props) {
       // Scale the VNC framebuffer to fill the container.
       rfb.scaleViewport = true
       rfb.resizeSession = false
+      rfb.viewOnly = false
       rfb.focusOnClick = true
+      rfb.showDotCursor = true // Affiche un curseur local si le serveur n’envoie rien
 
-      rfb.addEventListener('connect', () => setStatus('connected'))
+      rfb.addEventListener('connect', () => {
+        setStatus('connected')
+        // Ensure keyboard is grabbed as soon as the session is connected.
+        window.setTimeout(() => rfb.focus(), 0)
+      })
       rfb.addEventListener('disconnect', (e: CustomEvent) => {
         if (isIntentionalDisconnect) return
 
@@ -54,6 +61,7 @@ export function VGAConsole({ operationId, fds }: Props) {
         if (!clean) {
           setStatus('error')
           setErrorMsg('VNC connection lost')
+          onDisconnected?.()
         }
       })
       rfb.addEventListener('credentialsrequired', () => {
@@ -61,6 +69,7 @@ export function VGAConsole({ operationId, fds }: Props) {
         if (!vncPassword) {
           setStatus('error')
           setErrorMsg('VNC server requires a password but none was provided')
+          onDisconnected?.()
           isIntentionalDisconnect = true
           rfb.disconnect()
         }
@@ -79,48 +88,38 @@ export function VGAConsole({ operationId, fds }: Props) {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000' }}>
-      {status === 'connecting' && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.7)',
-            color: '#fff',
-            zIndex: 10,
-            flexDirection: 'column',
-            gap: 12,
-          }}
-        >
-          <div className="spinner-border text-primary" />
-          <span>Connecting to VGA console…</span>
-        </div>
-      )}
-      {status === 'error' && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.8)',
-            color: '#f38ba8',
-            zIndex: 10,
-            flexDirection: 'column',
-            gap: 8,
-            padding: 24,
-            textAlign: 'center',
-          }}
-        >
-          <i className="bi bi-exclamation-triangle fs-2" />
-          <span>{errorMsg || 'VGA console error'}</span>
-        </div>
-      )}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: status === 'connecting' || status === 'error' ? 'flex' : 'none',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: status === 'connecting'
+            ? 'rgba(0,0,0,0.7)'
+            : status === 'error'
+            ? 'rgba(0,0,0,0.8)'
+            : 'transparent',
+          color: status === 'error' ? '#f38ba8' : '#fff',
+          zIndex: 10,
+          flexDirection: 'column',
+          gap: status === 'error' ? 8 : 12,
+          padding: status === 'error' ? 24 : undefined,
+          textAlign: status === 'error' ? 'center' : undefined,
+          pointerEvents: 'none',
+          opacity: status === 'connecting' || status === 'error' ? 1 : 0,
+          transition: 'opacity 0.3s',
+        }}
+      >
+        {status === 'connecting' && <><div className="spinner-border text-primary" /><span>Connecting to VGA console…</span></>}
+        {status === 'error' && <><i className="bi bi-exclamation-triangle fs-2" /><span>{errorMsg || 'VGA console error'}</span></>}
+      </div>
       {/* noVNC mounts its canvas here */}
-      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+      <div
+        ref={containerRef}
+        tabIndex={0}
+        style={{ width: '100%', height: '100%', outline: 'none' }}
+      />
     </div>
   )
 }
