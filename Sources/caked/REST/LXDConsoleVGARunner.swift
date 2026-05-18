@@ -160,6 +160,21 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 				}
 			}
 
+			ws.onText { (_, text) async -> Void in
+				if text.isEmpty {
+					return
+				}
+
+				if let decoded = Data(base64Encoded: text), decoded.isEmpty == false {
+					stream.continuation.yield(decoded)
+					return
+				}
+
+				if let utf8 = text.data(using: .utf8), utf8.isEmpty == false {
+					stream.continuation.yield(utf8)
+				}
+			}
+
 			ws.onClose.whenComplete { result in
 				switch result {
 				case .failure(let error):
