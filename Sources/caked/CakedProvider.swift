@@ -255,6 +255,12 @@ extension Caked_InstallAgentRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_CertificateRequest: CreateCakedCommand {
+	func createCommand(provider: CakedProvider) throws -> any CakedCommand {
+		return CertificateHandler(request: self)
+	}
+}
+
 class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let runMode: Utils.RunMode
 	let group: EventLoopGroup
@@ -284,28 +290,28 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 	func createCakeAgentConnection(vmName: String, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
 		let listeningAddress = try StorageLocation(runMode: self.runMode).find(vmName).agentURL
-		
+
 		return CakeAgentConnection(eventLoop: self.group, listeningAddress: listeningAddress, certLocation: self.certLocation, retries: retries)
 	}
-	
+
 	func createCakeAgentHelper(vmName: String, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1)) throws -> CakeAgentHelper {
 		return try CakeAgentHelper.createCakeAgentHelper(name: vmName, connectionTimeout: connectionTimeout, retries: retries, runMode: self.runMode)
 	}
-	
+
 	func execute(command: CakedCommand) throws -> Caked_Reply {
 		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
 
 		var command = command
-		
+
 		return command.run(on: self.group.next(), runMode: self.runMode)
 	}
-	
+
 	func execute(command: CreateCakedCommand) throws -> Caked_Reply {
 		try self.execute(command: command.createCommand(provider: self))
 	}
-	
+
 	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try self.execute(command: BuildHandler(provider: self, options: request.options.buildOptions(), responseStream: responseStream, context: context) {
 			try await self.gcd.updateStatus(.with {
@@ -314,7 +320,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 			})
 		})
 	}
-	
+
 	func launch(request: Caked_LaunchRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_LaunchStreamReply>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try self.execute(command: LaunchHandler(request: request, gcd: self.gcd.haveListeners, responseStream: responseStream, context: context) {
 			try await self.gcd.updateStatus(.with {
@@ -323,31 +329,31 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 			})
 		})
 	}
-	
+
 	func start(request: Caked_StartRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func restart(request: Caked_RestartRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func duplicate(request: Caked_DuplicateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-		
+
 		if reply.vms.duplicated.duplicated {
 			try await self.gcd.updateStatus(.with {
 				$0.name = request.to
 				$0.status = .new
 			})
 		}
-		
+
 		return reply
 	}
-	
+
 	func delete(request: Caked_DeleteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-		
+
 		if reply.vms.delete.success {
 			for name in request.names.list {
 				try await self.gcd.updateStatus(.with {
@@ -356,114 +362,114 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 				})
 			}
 		}
-		
+
 		return reply
 	}
-	
+
 	func configure(request: Caked_ConfigureRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func purge(request: Caked_PurgeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func login(request: Caked_LoginRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func logout(request: Caked_LogoutRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func clone(request: Caked_CloneRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func push(request: Caked_PushRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func list(request: Caked_ListRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func image(request: Caked_ImageRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func remote(request: Caked_RemoteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func template(request: Caked_TemplateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func networks(request: Caked_NetworkRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func waitIP(request: Caked_WaitIPRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func stop(request: Caked_StopRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func suspend(request: Caked_Caked.VMRequest.SuspendRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Caked.Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func rename(request: Caked_RenameRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func run(request: Caked_RunCommand, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try self.execute(command: try ExecuteHandler(provider: self, requestStream: requestStream, responseStream: responseStream, context: context))
 	}
-	
+
 	func mount(request: Caked_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func umount(request: Caked_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func ping(request: Caked_PingRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func currentStatus(request: Caked_CurrentStatusRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try self.execute(command: CurrentStatusHandler(provider: self, request: request, responseStream: responseStream))
 	}
-	
+
 	func vncInfos(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: VNCInfosHandler(request: request))
 	}
-	
+
 	func getScreenSize(request: Caked_GetScreenSizeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func setScreenSize(request: Caked_SetScreenSizeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func installAgent(request: Caked_InstallAgentRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func grandCentralDispatcher(request: Caked_Empty, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, context: GRPCAsyncServerCallContext) async throws {
 		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
@@ -471,7 +477,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		try await gcd.processDispatch(responseStream: responseStream)
 	}
-	
+
 	func grandCentralUpdate(requestStream: GRPCAsyncRequestStream<Caked_CurrentStatus>, context: GRPCAsyncServerCallContext) async throws -> Caked_Empty {
 		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
@@ -479,7 +485,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		return try await gcd.processUpdate(requestStream: requestStream)
 	}
-	
+
 	func vncTunnel(requestStream: GRPCAsyncRequestStream<Caked_VncStream>, responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>, context: GRPCAsyncServerCallContext) async throws {
 		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
@@ -487,7 +493,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		try await self.vnc.tunnel(requestStream: requestStream, responseStream: responseStream, context: context)
 	}
-	
+
 	func checkReliability(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
@@ -500,5 +506,8 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 			}
 		}
 	}
-	
+
+	func certificate(request: Caked_CertificateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
+	}
 }

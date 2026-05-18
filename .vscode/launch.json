@@ -1,5 +1,6 @@
 {
 	"configurations": [
+
 		{
 			"type": "lldb",
 			"request": "attach",
@@ -802,6 +803,53 @@
 			"target": "Caker",
 			"configuration": "release",
 			"preLaunchTask": "swift: Build Release Caker"
+		},
+		{
+			"name": "-----------------------------------------------------------------------------"
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "webui: dev server",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": ["run", "dev"],
+			"cwd": "${workspaceFolder:caker}/webui",
+			"console": "integratedTerminal",
+			"skipFiles": ["<node_internals>/**"]
+		},
+		{
+			"type": "chrome",
+			"request": "launch",
+			"name": "webui: debug Chrome",
+			"url": "http://localhost:5173/ui/",
+			"webRoot": "${workspaceFolder:caker}/webui/src",
+			"sourceMapPathOverrides": {
+				"/@fs/*": "/*",
+				"/ui/*": "${workspaceFolder:caker}/webui/src/*"
+			}
+		},
+		{
+			"type": "firefox",
+			"request": "launch",
+			"name": "webui: debug Firefox",
+			"url": "http://localhost:5173/ui/",
+			"webRoot": "${workspaceFolder:caker}/webui/src",
+			"sourceMapPathOverrides": {
+				"/@fs/*": "/*",
+				"/ui/*": "${workspaceFolder:caker}/webui/src/*"
+			}
+		}
+	],
+	"compounds": [
+		{
+			"name": "webui: dev + Chrome",
+			"configurations": ["webui: dev server", "webui: debug Chrome"],
+			"stopAll": true
+		},
+		{
+			"name": "webui: dev + Firefox",
+			"configurations": ["webui: dev server", "webui: debug Firefox"],
+			"stopAll": true
 		}
 	]
 }

@@ -41,7 +41,7 @@ public struct StartHandler {
 
 		internal func start(promise: EventLoopPromise<String>? = nil) throws -> String {
 			let config: CakeConfig = try location.config()
-			let log: String = URL(fileURLWithPath: "output.log", relativeTo: location.rootURL).absoluteURL.path
+			let log: String = location.outputLogURL.path
 
 			guard let caked = URL.binary(Home.cakedCommandName) else {
 				throw ServiceError(String(localized: "caked not found"))

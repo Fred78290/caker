@@ -200,6 +200,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     _ request: Caked_Empty,
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Empty, Caked_Caked.Reply>
+
+  func certificate(
+    _ request: Caked_Caked.CertificateRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.CertificateRequest, Caked_Caked.Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -873,6 +878,24 @@ extension Caked_ServiceClientProtocol {
       interceptors: self.interceptors?.makeCheckReliabilityInterceptors() ?? []
     )
   }
+
+  /// Unary call to Certificate
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Certificate.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func certificate(
+    _ request: Caked_Caked.CertificateRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.CertificateRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.certificate.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCertificateInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -1114,6 +1137,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Caked_Empty,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Empty, Caked_Caked.Reply>
+
+  func makeCertificateCall(
+    _ request: Caked_Caked.CertificateRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.CertificateRequest, Caked_Caked.Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1559,6 +1587,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeCheckReliabilityInterceptors() ?? []
+    )
+  }
+
+  public func makeCertificateCall(
+    _ request: Caked_Caked.CertificateRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.CertificateRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.certificate.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCertificateInterceptors() ?? []
     )
   }
 }
@@ -2032,6 +2072,18 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeCheckReliabilityInterceptors() ?? []
     )
   }
+
+  public func certificate(
+    _ request: Caked_Caked.CertificateRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.certificate.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCertificateInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -2160,6 +2212,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'checkReliability'.
   func makeCheckReliabilityInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'certificate'.
+  func makeCertificateInterceptors() -> [ClientInterceptor<Caked_Caked.CertificateRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -2203,6 +2258,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.grandCentralDispatcher,
       Caked_ServiceClientMetadata.Methods.grandCentralUpdate,
       Caked_ServiceClientMetadata.Methods.checkReliability,
+      Caked_ServiceClientMetadata.Methods.certificate,
     ]
   )
 
@@ -2422,6 +2478,12 @@ public enum Caked_ServiceClientMetadata {
       path: "/caked.Service/CheckReliability",
       type: GRPCCallType.unary
     )
+
+    public static let certificate = GRPCMethodDescriptor(
+      name: "Certificate",
+      path: "/caked.Service/Certificate",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -2539,6 +2601,8 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   /// CheckReliability verifies the reliability of server node.
   /// This method allows you to test the connectivity and responsiveness of a remote node to ensure it can reliably handle requests.
   func checkReliability(request: Caked_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  func certificate(request: Caked_Caked.CertificateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 }
 
 extension Caked_ServiceProvider {
@@ -2877,6 +2941,15 @@ extension Caked_ServiceProvider {
         userFunction: self.checkReliability(request:context:)
       )
 
+    case "Certificate":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.CertificateRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeCertificateInterceptors() ?? [],
+        userFunction: self.certificate(request:context:)
+      )
+
     default:
       return nil
     }
@@ -3111,6 +3184,11 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   /// This method allows you to test the connectivity and responsiveness of a remote node to ensure it can reliably handle requests.
   func checkReliability(
     request: Caked_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func certificate(
+    request: Caked_Caked.CertificateRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 }
@@ -3458,6 +3536,15 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.checkReliability(request: $0, context: $1) }
       )
 
+    case "Certificate":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.CertificateRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeCertificateInterceptors() ?? [],
+        wrapping: { try await self.certificate(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -3609,6 +3696,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'checkReliability'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeCheckReliabilityInterceptors() -> [ServerInterceptor<Caked_Empty, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'certificate'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeCertificateInterceptors() -> [ServerInterceptor<Caked_Caked.CertificateRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -3652,6 +3743,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.grandCentralDispatcher,
       Caked_ServiceServerMetadata.Methods.grandCentralUpdate,
       Caked_ServiceServerMetadata.Methods.checkReliability,
+      Caked_ServiceServerMetadata.Methods.certificate,
     ]
   )
 
@@ -3869,6 +3961,12 @@ public enum Caked_ServiceServerMetadata {
     public static let checkReliability = GRPCMethodDescriptor(
       name: "CheckReliability",
       path: "/caked.Service/CheckReliability",
+      type: GRPCCallType.unary
+    )
+
+    public static let certificate = GRPCMethodDescriptor(
+      name: "Certificate",
+      path: "/caked.Service/Certificate",
       type: GRPCCallType.unary
     )
   }

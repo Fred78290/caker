@@ -54,11 +54,11 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		public var description: String {
 			switch self {
 			case .running:
-				return String(localized: "running")
+				return "running"
 			case .paused:
-				return String(localized: "paused")
+				return "paused"
 			case .stopped:
-				return String(localized: "stopped")
+				return "stopped"
 			}
 		}
 		
@@ -155,6 +155,22 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		buildURL("screenshot.png").absoluteURL
 	}
 
+	public func logURL(named fileName: String) -> URL? {
+		guard fileName.isEmpty == false else {
+			return nil
+		}
+
+		guard fileName == URL(fileURLWithPath: fileName).lastPathComponent else {
+			return nil
+		}
+
+		return rootURL.appendingPathComponent(fileName, isDirectory: false).absoluteURL
+	}
+
+	public var outputLogURL: URL {
+		rootURL.appendingPathComponent("output.log", isDirectory: false).absoluteURL
+	}
+
 	public var agentURL: URL {
 		return rootURL.resolvingSymlinksInPath().socketPath(name: "agent")
 	}
@@ -220,6 +236,14 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		rootURL.appendingPathComponent("run.pid")
 	}
 
+	public func creationDate() throws -> Date {
+		try self.rootURL.creationDate()
+	}
+	
+	public func updatedDate() throws -> Date {
+		try self.rootURL.updatedDate()
+	}
+	
 	public func accessDate() throws -> Date {
 		try self.rootURL.accessDate()
 	}
@@ -512,7 +536,11 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		} else if try self.agentURL.exists() {
 			let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 60, runMode: runMode)
 
-			try client.shutdown().log()
+			do {
+				try client.shutdown().log()
+			} catch {
+				killVMRun()
+			}
 		} else {
 			let reply = WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode)
 
@@ -623,7 +651,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				let infos = infos
 
 				if case .success(let infos) = infos {
-					if infos.ipaddresses.count > 0, let runningIP = infos.ipaddresses.first {
+					if let runningIP = infos.ipaddresses.first {
 						return runningIP
 					}
 				}

@@ -29,6 +29,9 @@ struct CurrentUsage: Codable {
 				$0.total = m.total
 				$0.free = m.free
 				$0.used = m.used
+				$0.swapTotal = m.swapTotal
+				$0.swapFree = m.swapFree
+				$0.swapUsed = m.swapUsed
 			}
 		} else {
 			self.memory = nil

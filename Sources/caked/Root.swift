@@ -12,17 +12,21 @@ import Logging
 struct CommonOptions: ParsableArguments {
 	@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
 	var logLevel: CakeAgentLib.Logger.LogLevel = .info
-
+	
 	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
-
+	
 	@Flag(
 		name: [.customLong("system"), .customShort("s")],
 		help: ArgumentHelp(String(localized: "Act as system agent, need sudo"), discussion: String(localized: "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service"), visibility: .private))
 	var asSystem: Bool = false
-
+	
 	var runMode: Utils.RunMode {
 		self.asSystem ? .system : .user
+	}
+	
+	func validate() throws {
+		Logger.setLevel(self.logLevel)
 	}
 }
 

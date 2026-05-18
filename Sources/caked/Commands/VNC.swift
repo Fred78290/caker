@@ -50,7 +50,9 @@ struct VNC: CakeAgentParsableCommand {
 		let location = try StorageLocation(runMode: runMode).find(name)
 
 		if case .running = location.status {
-			throw ValidationError(String(localized: "VM \(self.name) is not running"))
+			// ok
+		} else {
+			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
 	}
 
@@ -70,21 +72,22 @@ struct VNC: CakeAgentParsableCommand {
 				if case .running = location.status {
 					return .running
 				}
-				
+
 				return .stopped
 			}
 
-			func screenSizeAction(_ screenSize: ViewSize) -> Void {
+			func screenSizeAction(_ screenSize: ViewSize) {
 				_ = CakedLib.ScreenSizeHandler.setScreenSize(name: self.name, width: screenSize.width, height: screenSize.height, runMode: runMode)
 			}
 
-			try VNCApp.startVncClient(name: self.name,
-									  config: result.config,
-									  vncURL: vncURL,
-									  screenSize: screenSize,
-									  isDebugLoggingEnabled: vncDebug,
-									  vmStatus: vmStatus,
-									  screenSizeAction: screenSizeAction)
+			try VNCApp.startVncClient(
+				name: self.name,
+				config: result.config,
+				vncURL: vncURL,
+				screenSize: screenSize,
+				isDebugLoggingEnabled: vncDebug,
+				vmStatus: vmStatus,
+				screenSizeAction: screenSizeAction)
 
 		} catch {
 			Logger.appendNewLine(self.common.format.render(error.reason))

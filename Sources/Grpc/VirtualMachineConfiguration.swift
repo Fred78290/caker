@@ -48,10 +48,10 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 			return "x86_64"
 		}
 	}
-
+	
 	// Identifiable conformance
 	public var id: String { self.rawValue }
-
+	
 	public init(rawValue: String) {
 		switch rawValue {
 		case "arm64":
@@ -92,7 +92,7 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 			self = .amd64
 		}
 	}
-
+	
 	case arm64
 	case amd64
 	case amd64v2
@@ -108,13 +108,13 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 	case riscv64
 	case s390x
 	case x86_64
-
+	
 	public static func current() -> Architecture {
-		#if arch(arm64)
-			return .arm64
-		#elseif arch(x86_64)
-			return .amd64
-		#endif
+#if arch(arm64)
+		return .arm64
+#elseif arch(x86_64)
+		return .amd64
+#endif
 	}
 }
 

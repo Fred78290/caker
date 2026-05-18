@@ -57,6 +57,7 @@ public struct VMInformations: Sendable, Codable {
 	public var version: String?
 	public var uptime: UInt64?
 	public var memory: InfoReply.MemoryInfo?
+	public var numOfProcesses: Int32
 	public var cpuCount: Int32
 	public var diskInfos: [DiskInfo]
 	public var ipaddresses: [String]
@@ -99,6 +100,7 @@ public struct VMInformations: Sendable, Codable {
 		self.socketInfos = nil
 		self.cpuInfos = nil
 		self.agentVersion = nil
+		self.numOfProcesses = 0
 	}
 
 	public init(_ from: InfoReply, networks: [BridgeAttachement]) {
@@ -123,6 +125,7 @@ public struct VMInformations: Sendable, Codable {
 		self.socketInfos = nil
 		self.cpuInfos = from.cpuInfo
 		self.agentVersion = from.agentVersion
+		self.numOfProcesses = from.numOfProcesses
 		self.attachedNetworks = from.attachedNetworks?.map { inf in
 			if let network = networksByName[inf.network] {
 				return AttachedNetwork(network: inf.network, mode: network.mode?.description ?? nil, macAddress: inf.macAddress, ipAddresses: inf.ipAddresses)
@@ -144,6 +147,7 @@ public struct VMInformations: Sendable, Codable {
 		self.mounts = from.mounts
 		self.status = from.status.agentStatus
 		self.agentVersion = from.agentVersion
+		self.numOfProcesses = from.numOfProcesses
 
 		self.attachedNetworks = from.networks.map {
 			AttachedNetwork($0)
@@ -172,6 +176,9 @@ public struct VMInformations: Sendable, Codable {
 			$0.total = from.memory.total
 			$0.free = from.memory.free
 			$0.used = from.memory.used
+			$0.swapTotal = from.memory.swapTotal
+			$0.swapFree = from.memory.swapFree
+			$0.swapUsed = from.memory.swapUsed
 		}
 
 		if from.hasCpu {
@@ -213,13 +220,25 @@ public struct VMInformations: Sendable, Codable {
 					if let total = memory.total {
 						$0.total = total
 					}
-
+					
 					if let free = memory.free {
 						$0.free = free
 					}
-
+					
 					if let used = memory.used {
 						$0.used = used
+					}
+
+					if let swapTotal = memory.swapTotal {
+						$0.swapTotal = swapTotal
+					}
+					
+					if let swapFree = memory.swapFree {
+						$0.swapFree = swapFree
+					}
+					
+					if let swapUsed = memory.swapUsed {
+						$0.swapUsed = swapUsed
 					}
 				}
 			}
@@ -808,6 +827,9 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 	public let config: CakedConfiguration?
 	public let vncURL: [String]?
 	public let screenSize: ViewSize?
+	public let created: Date?
+	public let updated: Date?
+	public let lastUsed: Date?
 
 	public var id: String {
 		self.instanceID ?? self.name
@@ -825,6 +847,24 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.mode = "caked"
 		self.ip = from.ip
 		self.fingerprint = from.fingerprint
+
+		if from.hasCreated {
+			self.created = Date(timeIntervalSince1970: from.created)
+		} else {
+			self.created = nil
+		}
+		
+		if from.hasUpdated {
+			self.updated = Date(timeIntervalSince1970: from.updated)
+		} else {
+			self.updated = nil
+		}
+
+		if from.hasLastUsed {
+			self.lastUsed = Date(timeIntervalSince1970: from.lastUsed)
+		} else {
+			self.lastUsed = nil
+		}
 
 		if from.vncURL.isEmpty == false {
 			self.vncURL = from.vncURL
@@ -861,7 +901,10 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		mode: String = "",
 		ip: String? = nil,
 		fingerprint: String? = nil,
-		config: CakedConfiguration? = nil
+		config: CakedConfiguration? = nil,
+		created: Date?,
+		updated: Date?,
+		lastUsed: Date?
 	) {
 		self.type = type
 		self.source = source
@@ -877,6 +920,9 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.fingerprint = fingerprint
 		self.config = config
 		self.screenSize = screenSize
+		self.created = created
+		self.updated = updated
+		self.lastUsed = lastUsed
 	}
 
 	public var caked: Caked_VirtualMachineInfo {
@@ -888,32 +934,44 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 			info.diskSize = self.diskSize
 			info.sizeOnDisk = self.sizeOnDisk
 			info.state = self.state
-
+			
 			if let vncURL {
 				info.vncURL = vncURL
 			}
-
+			
 			if let screenSize {
 				info.screenSize = .with {
 					$0.width = Int32(screenSize.width)
 					$0.height = Int32(screenSize.height)
 				}
 			}
-
+			
 			if let instanceID: String = self.instanceID {
 				info.instanceID = instanceID
 			}
-
+			
 			if let ip = self.ip {
 				info.ip = ip
 			}
-
+			
 			if let fingerprint = self.fingerprint {
 				info.fingerprint = fingerprint
 			}
 			
 			if let config {
 				info.configuration = config.caked
+			}
+			
+			if let created {
+				info.created = created.timeIntervalSince1970
+			}
+			
+			if let updated {
+				info.updated = updated.timeIntervalSince1970
+			}
+			
+			if let lastUsed {
+				info.lastUsed = lastUsed.timeIntervalSince1970
 			}
 		}
 	}

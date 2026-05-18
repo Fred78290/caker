@@ -133,6 +133,8 @@ public struct BuildOptions: ParsableArguments {
 		sockets: [SocketDevice] = [],
 		consoleURL: ConsoleAttachment? = nil,
 		autoinstall: Bool = false,
+		bridgedNetwork: Bool = false,
+		dynamicPortForwarding: Bool = false
 	) {
 		self.name = name
 		self.cpu = cpu
@@ -163,6 +165,7 @@ public struct BuildOptions: ParsableArguments {
 		self.dynamicPortForwarding = false
 		self.autoinstall = autoinstall
 		self.screenSize = screenSize
+		self.bridgedNetwork = bridgedNetwork
 	}
 
 	public init(request: Caked_CommonBuildRequest) throws {

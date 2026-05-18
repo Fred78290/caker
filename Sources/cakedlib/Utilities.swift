@@ -348,6 +348,16 @@ extension URL: Purgeable {
 		}
 	}
 
+	public func creationDate() throws -> Date {
+		let attrs = try self.resourceValues(forKeys: [.creationDateKey])
+		return attrs.creationDate!
+	}
+
+	public func updatedDate() throws -> Date {
+		let attrs = try self.resourceValues(forKeys: [.contentModificationDateKey])
+		return attrs.contentModificationDate!
+	}
+
 	public func accessDate() throws -> Date {
 		let attrs = try self.resourceValues(forKeys: [.contentAccessDateKey])
 		return attrs.contentAccessDate!
