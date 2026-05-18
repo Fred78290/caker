@@ -663,3 +663,16 @@ struct VNCSetColourMapEntries {
 	var firstColour: UInt16 = 0
 	var entryCount: UInt16 = UInt16(255).bigEndian
 }
+
+struct VNCCursorHeader {
+	let hotX: UInt16
+	let hotY: UInt16
+	let width: UInt16
+	let height: UInt16
+}
+
+struct VNCCursor {
+	let header: VNCCursorHeader
+	let mask: Data
+	let data: Data
+}

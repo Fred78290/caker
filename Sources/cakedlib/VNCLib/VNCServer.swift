@@ -27,11 +27,17 @@ public protocol VNCServerDelegate: AnyObject, Sendable {
 	func vncServer(_ server: VNCServer, clientDidResizeDesktop screens: [VNCScreenDesktop])
 }
 
+public enum VNCFrameUpdateState {
+	case frame(CGImage)
+	case cursor(NSCursor)
+}
+
 public protocol VNCFrameBufferProducer {
+	var cursor: NSCursor? { get }
 	var bitmapInfos: CGBitmapInfo { get }
 	var cgImage: CGImage? { get }
 	var checkIfImageIsChanged: Bool { get }
-	func startFramebufferUpdate(continuation: AsyncStream<CGImage>.Continuation)
+	func startFramebufferUpdate(continuation: AsyncStream<VNCFrameUpdateState>.Continuation)
 	func stopFramebufferUpdate()
 }
 
@@ -208,7 +214,7 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	
 		self.isRunning = true
 
-		let stream = AsyncStream<CGImage>.makeStream(of: CGImage.self)
+		let stream = AsyncStream<VNCFrameUpdateState>.makeStream(of: VNCFrameUpdateState.self)
 		let producer = (self.sourceView as? VNCFrameBufferProducer) ?? self.framebuffer
 		let checkIfImageIsChanged = producer.checkIfImageIsChanged
 
@@ -216,8 +222,13 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 		self.updateBufferTask = Task {
 			await withTaskCancellationHandler(operation: {
-				for await image in stream.stream {
-					await self.updateFramebufferRequest(cgImage: image, checkIfImageIsChanged: checkIfImageIsChanged)
+				for await update in stream.stream {
+					switch update {
+					case .frame(let image):
+						await self.updateFramebufferRequest(cgImage: image, checkIfImageIsChanged: checkIfImageIsChanged)
+					case .cursor(let cursor):
+						await self.updateCursor(cursor: cursor)
+					}
 				}
 
 				producer.stopFramebufferUpdate()
@@ -232,9 +243,20 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		self.updateBufferTask?.cancel()
 		self.updateBufferTask = nil
 	}
-	
-	private func sendFrameBufferUpdate(connections: [VNCConnection], tiles: [VNCFramebuffer.VNCFramebufferTile], newSizePending: Bool) async {
 
+	private func sendCursorUpdate(connections: [VNCConnection], cursor: VNCCursor) async {
+		await withTaskGroup(of: Void.self) { group in
+			connections.forEach { connection in
+				group.addTask {
+					await connection.sendCursorUpdate(cursor: cursor)
+				}
+			}
+
+			await group.waitForAll()
+		}
+	}
+
+	private func sendFrameBufferUpdate(connections: [VNCConnection], tiles: [VNCFramebuffer.VNCFramebufferTile], newSizePending: Bool) async {
 		await withTaskGroup(of: Void.self) { group in
 			let width = self.framebuffer.width
 			let height = self.framebuffer.height
@@ -246,6 +268,12 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 			}
 
 			await group.waitForAll()
+		}
+	}
+
+	private func updateCursor(cursor: NSCursor) async {
+		if let vncCursor = cursor.vncCursor {
+			await self.sendCursorUpdate(connections: self.activeConnections, cursor: vncCursor)
 		}
 	}
 

@@ -1,4 +1,5 @@
 import CommonCrypto
+import AppKit
 import Compression
 import CryptoKit
 import Foundation
@@ -46,6 +47,16 @@ struct SetEncoding {
 }
 
 final class VNCConnection: @unchecked Sendable {
+	private enum PixelTranslationIndex: Int {
+		case eightBit = 0
+		case sixteenBit = 1
+		case thirtyTwoBit = 2
+	}
+
+	private static let cursorLumaRedCoefficient: Int64 = 299
+	private static let cursorLumaGreenCoefficient: Int64 = 587
+	private static let cursorLumaBlueCoefficient: Int64 = 114
+
 	weak var delegate: VNCConnectionDelegate?
 	weak var inputDelegate: VNCInputDelegate?
 	var sendFramebufferContinous: Bool = false
@@ -141,7 +152,205 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	private func transformPixel(_ pixelData: Data, width: Int, height: Int) -> Data {
-		return self.translatePixelFormat(self.translateLookupTable, self.clientPixelFormat, pixelData, width * 4, width, height)
+		return self.translatePixelFormat(self.translateLookupTable, self.framebuffer.pixelFormat, pixelData, width * 4, width, height)
+	}
+
+	private func pixelTranslationIndex(for pixelFormat: VNCPixelFormat) -> Int {
+		switch pixelFormat.bitsPerPixel {
+		case 8:
+			return PixelTranslationIndex.eightBit.rawValue
+		case 16:
+			return PixelTranslationIndex.sixteenBit.rawValue
+		case 32:
+			return PixelTranslationIndex.thirtyTwoBit.rawValue
+		default:
+			return PixelTranslationIndex.eightBit.rawValue
+		}
+	}
+
+	private func singleTableLookup(source: VNCPixelFormat, target: VNCPixelFormat) -> [[any FixedWidthInteger]] {
+		rfbInitTrueColourSingleTableFns[self.pixelTranslationIndex(for: target)](source, target)
+	}
+
+	private func rgbTableLookup(source: VNCPixelFormat, target: VNCPixelFormat) -> [[any FixedWidthInteger]] {
+		rfbInitTrueColourRGBTablesFns[self.pixelTranslationIndex(for: target)](source, target)
+	}
+
+	private func singleTableTransform(source: VNCPixelFormat, target: VNCPixelFormat) -> ClientTranslatePixelFormat {
+		rfbTranslateWithSingleTableFns[self.pixelTranslationIndex(for: source)][self.pixelTranslationIndex(for: target)]
+	}
+
+	private func rgbTableTransform(source: VNCPixelFormat, target: VNCPixelFormat) -> ClientTranslatePixelFormat {
+		rfbTranslateWithRGBTablesFns[self.pixelTranslationIndex(for: source)][self.pixelTranslationIndex(for: target)]
+	}
+
+	private func translationConfiguration(source: VNCPixelFormat, target: VNCPixelFormat) -> (transform: ClientTranslatePixelFormat, lookupTable: [[any FixedWidthInteger]]) {
+		if source.bitsPerPixel <= 16 {
+			return (
+				transform: self.singleTableTransform(source: source, target: target),
+				lookupTable: self.singleTableLookup(source: source, target: target)
+			)
+		}
+
+		return (
+			transform: self.rgbTableTransform(source: source, target: target),
+			lookupTable: self.rgbTableLookup(source: source, target: target)
+		)
+	}
+
+	private func colorDistance(r: Int, g: Int, b: Int, to referenceColor: (r: UInt8, g: UInt8, b: UInt8)) -> Int {
+		let deltaR = r - Int(referenceColor.r)
+		let deltaG = g - Int(referenceColor.g)
+		let deltaB = b - Int(referenceColor.b)
+
+		return (deltaR * deltaR) + (deltaG * deltaG) + (deltaB * deltaB)
+	}
+
+	private func transformCursorPixels(_ pixelData: Data, width: Int, height: Int) -> Data {
+		let cursorPixelFormat = VNCPixelFormat(
+			bitsPerPixel: 32,
+			depth: 24,
+			bigEndianFlag: 0,
+			trueColorFlag: 1,
+			redMax: 255,
+			greenMax: 255,
+			blueMax: 255,
+			redShift: 0,
+			greenShift: 8,
+			blueShift: 16
+		)
+
+		guard self.clientPixelFormat != cursorPixelFormat else {
+			return pixelData
+		}
+
+		let configuration = self.translationConfiguration(source: cursorPixelFormat, target: self.clientPixelFormat)
+
+		return configuration.transform(configuration.lookupTable, cursorPixelFormat, pixelData, width * 4, width, height)
+	}
+
+	private func buildXCursorPayload(cursor: VNCCursor) -> Data {
+		let width = Int(cursor.header.width)
+		let height = Int(cursor.header.height)
+
+		guard width > 0, height > 0 else {
+			return Data()
+		}
+
+		let bytesPerRow = (width + 7) / 8
+		var primary = (r: UInt8(255), g: UInt8(255), b: UInt8(255))
+		var secondary = (r: UInt8(0), g: UInt8(0), b: UInt8(0))
+		var visiblePixels: [(r: Int, g: Int, b: Int, luma: Int64)] = []
+		var totalLuma: Int64 = 0
+
+		for row in 0..<height {
+			for col in 0..<width {
+				let maskIndex = row * bytesPerRow + col / 8
+				guard maskIndex < cursor.mask.count else {
+					continue
+				}
+
+				let bit = UInt8(1 << (7 - (col % 8)))
+				guard (cursor.mask[maskIndex] & bit) != 0 else {
+					continue
+				}
+
+				let pixelIndex = (row * width + col) * 4
+				guard pixelIndex + 2 < cursor.data.count else {
+					continue
+				}
+
+				let r = Int(cursor.data[pixelIndex])
+				let g = Int(cursor.data[pixelIndex + 1])
+				let b = Int(cursor.data[pixelIndex + 2])
+				// ITU-R BT.601 luma coefficients approximate perceived brightness.
+				// The coefficients are intentionally kept scaled by 1000 so the relative
+				// brightness comparison retains precision without floating-point math.
+				let luma = (
+					(Self.cursorLumaRedCoefficient * Int64(r))
+					+ (Self.cursorLumaGreenCoefficient * Int64(g))
+					+ (Self.cursorLumaBlueCoefficient * Int64(b))
+				)
+
+				totalLuma += luma
+				visiblePixels.append((r, g, b, luma))
+			}
+		}
+
+		if !visiblePixels.isEmpty {
+			let averageLuma = totalLuma / Int64(visiblePixels.count)
+			var primarySum = (r: 0, g: 0, b: 0, count: 0)
+			var secondarySum = (r: 0, g: 0, b: 0, count: 0)
+
+			for pixel in visiblePixels {
+				if pixel.luma >= averageLuma {
+					primarySum.r += pixel.r
+					primarySum.g += pixel.g
+					primarySum.b += pixel.b
+					primarySum.count += 1
+				} else {
+					secondarySum.r += pixel.r
+					secondarySum.g += pixel.g
+					secondarySum.b += pixel.b
+					secondarySum.count += 1
+				}
+			}
+
+			if primarySum.count > 0 {
+				primary = (
+					r: UInt8(primarySum.r / primarySum.count),
+					g: UInt8(primarySum.g / primarySum.count),
+					b: UInt8(primarySum.b / primarySum.count)
+				)
+			}
+
+			if secondarySum.count > 0 {
+				secondary = (
+					r: UInt8(secondarySum.r / secondarySum.count),
+					g: UInt8(secondarySum.g / secondarySum.count),
+					b: UInt8(secondarySum.b / secondarySum.count)
+				)
+			} else {
+				secondary = primary
+			}
+		}
+
+		var bitmap = Data(count: bytesPerRow * height)
+
+		for row in 0..<height {
+			for col in 0..<width {
+				let maskIndex = row * bytesPerRow + col / 8
+				guard maskIndex < cursor.mask.count else {
+					continue
+				}
+
+				let bit = UInt8(1 << (7 - (col % 8)))
+				guard (cursor.mask[maskIndex] & bit) != 0 else {
+					continue
+				}
+
+				let pixelIndex = (row * width + col) * 4
+				guard pixelIndex + 2 < cursor.data.count else {
+					continue
+				}
+
+				let r = Int(cursor.data[pixelIndex])
+				let g = Int(cursor.data[pixelIndex + 1])
+				let b = Int(cursor.data[pixelIndex + 2])
+				let primaryDistance = self.colorDistance(r: r, g: g, b: b, to: primary)
+				let secondaryDistance = self.colorDistance(r: r, g: g, b: b, to: secondary)
+
+				if primaryDistance <= secondaryDistance {
+					bitmap[maskIndex] |= bit
+				}
+			}
+		}
+
+		var payload = Data([primary.r, primary.g, primary.b, secondary.r, secondary.g, secondary.b])
+		payload.append(bitmap)
+		payload.append(cursor.mask)
+
+		return payload
 	}
 
 	private func rfbSendRectEncodingRaw(_ pixelData: Data, width: Int, height: Int) async throws {
@@ -233,13 +442,10 @@ final class VNCConnection: @unchecked Sendable {
 		let serverPixelFormat = framebuffer.pixelFormat
 
 		guard pixelFormat == serverPixelFormat else {
-			if serverPixelFormat.bitsPerPixel <= 16 {
-				self.translatePixelFormat = rfbTranslateWithSingleTableFns[Int(serverPixelFormat.bitsPerPixel / 16)][Int(pixelFormat.bitsPerPixel / 16)]
-				self.translateLookupTable = rfbInitTrueColourSingleTableFns[Int(pixelFormat.bitsPerPixel / 16)](serverPixelFormat, pixelFormat)
-			} else {
-				self.translatePixelFormat = rfbTranslateWithRGBTablesFns[Int(serverPixelFormat.bitsPerPixel / 16)][Int(pixelFormat.bitsPerPixel / 16)]
-				self.translateLookupTable = rfbInitTrueColourRGBTablesFns[Int(pixelFormat.bitsPerPixel / 16)](serverPixelFormat, pixelFormat)
-			}
+			let configuration = self.translationConfiguration(source: serverPixelFormat, target: pixelFormat)
+
+			self.translatePixelFormat = configuration.transform
+			self.translateLookupTable = configuration.lookupTable
 
 			self.clientPixelFormat = pixelFormat
 			return
@@ -1010,6 +1216,10 @@ extension VNCConnection {
 			}
 			
 			try await sendUpdateBuffer(tiles)
+
+			if self.encodings.cursorWasChanged, let cursor = self.framebuffer.cursor?.vncCursor {
+				try await self.sendCursorShapeUpdate(cursor: cursor)
+			}
 			
 			if sendSupportedMessages {
 				try await self.sendSupportedMessages()
@@ -1019,6 +1229,60 @@ extension VNCConnection {
 				try await self.sendSupportedEncodings()
 			}
 		}
+	}
+
+	func sendCursorUpdate(cursor: VNCCursor) async {
+		if isAuthenticated && self.connection.state == .ready {
+			do {
+				// Check if cursor shape updates are enabled
+				if self.encodings.enableCursorShapeUpdates {
+					try await self.sendCursorShapeUpdate(cursor: cursor)
+				}
+			} catch {
+				self.logger.error("send cursor update failed: \(error)")
+				self.didReceiveError(error)
+			}
+		}
+	}
+
+	private func sendCursorShapeUpdate(cursor: VNCCursor) async throws {
+		#if DEBUG
+			self.logger.debug("sendCursorShapeUpdate")
+		#endif
+
+		// Send framebuffer update header
+		var payload = VNCFramebufferUpdatePayload()
+		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+		payload.message.padding = 0
+		payload.message.numberOfRectangles = UInt16(1).bigEndian
+
+		// Rectangle header with cursor encoding
+		payload.rectangle.x = cursor.header.hotX.bigEndian
+		payload.rectangle.y = cursor.header.hotY.bigEndian
+		payload.rectangle.width = cursor.header.width.bigEndian
+		payload.rectangle.height = cursor.header.height.bigEndian
+
+		// Use RichCursor encoding if configured, otherwise XCursor
+		let encodingValue = self.encodings.useRichCursorEncoding 
+			? VNCSetEncoding.Encoding.rfbEncodingRichCursor.rawValue
+			: VNCSetEncoding.Encoding.rfbEncodingXCursor.rawValue
+		payload.rectangle.encoding = encodingValue.bigEndian
+
+		try await self.sendDatas(payload)
+
+		if self.encodings.useRichCursorEncoding {
+			try await self.sendDatas(transformCursorPixels(cursor.data, width: Int(cursor.header.width), height: Int(cursor.header.height)))
+			try await self.sendDatas(cursor.mask)
+		} else {
+			try await self.sendDatas(buildXCursorPayload(cursor: cursor))
+		}
+
+		// Clear the cursor update flag
+		self.encodings.cursorWasChanged = false
+
+		#if DEBUG
+		self.logger.debug("sendCursorShapeUpdate completed: \(cursor.header.width)x\(cursor.header.height) hotspot=(\(cursor.header.hotX),\(cursor.header.hotY))")
+		#endif
 	}
 
 	func sendFramebufferUpdate(tiles: [VNCFramebuffer.VNCFramebufferTile], width: Int, height: Int, newSizePending: Bool) async {

@@ -107,7 +107,7 @@ public class NSVNCView: NSView {
 		let settings = connection.settings
 
 		self.connection = connection
-		self.currentCursor = VNCCursor.empty.nsCursor
+		self.currentCursor = RoyalVNCKit.VNCCursor.empty.nsCursor
 		self.inputMode = settings.inputMode
 		self.isScalingEnabled = settings.isScalingEnabled
 		self.useDisplayLink = settings.useDisplayLink
@@ -319,7 +319,7 @@ extension NSVNCView {
 		updateImage(framebuffer.cgImage, animated: didResizeFramebuffer)
 	}
 
-	public func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateCursor cursor: VNCCursor) {
+	public func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateCursor cursor: RoyalVNCKit.VNCCursor) {
 		DispatchQueue.main.async { [weak self] in
 			self?.currentCursor = cursor.nsCursor
 		}
