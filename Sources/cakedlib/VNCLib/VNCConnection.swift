@@ -142,7 +142,7 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	private func transformPixel(_ pixelData: Data, width: Int, height: Int) -> Data {
-		return self.translatePixelFormat(self.translateLookupTable, self.clientPixelFormat, pixelData, width * 4, width, height)
+		return self.translatePixelFormat(self.translateLookupTable, self.framebuffer.pixelFormat, pixelData, width * 4, width, height)
 	}
 
 	private func rfbSendRectEncodingRaw(_ pixelData: Data, width: Int, height: Int) async throws {
