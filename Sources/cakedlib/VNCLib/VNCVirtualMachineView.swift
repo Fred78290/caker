@@ -395,6 +395,11 @@ extension NSCursor {
 			return nil
 		}
 
+		guard cursorImage.width > 0, cursorImage.height > 0 else {
+			logger.debug("Cursor image is empty")
+			return nil
+		}
+
 		// Extract tightly packed RGBA pixel data with top-left origin.
 		guard let pixelData = extractPixelData(from: cursorImage) else {
 			logger.debug("Unable to extract pixel data from cursor image")
@@ -410,11 +415,8 @@ extension NSCursor {
 
 		// NSCursor.hotSpot uses AppKit coordinates (origin at lower-left).
 		let hs = self.hotSpot
-		let maxHotX = max(cursorImage.width - 1, 0)
-		let maxHotY = max(cursorImage.height - 1, 0)
-		let hotX = UInt16(max(0, min(maxHotX, Int(hs.x.rounded()))))
-		let flippedHotY = maxHotY - Int(hs.y.rounded())
-		let hotY = UInt16(max(0, min(maxHotY, flippedHotY)))
+		let hotX = UInt16(max(0, min(cursorImage.width - 1, Int(hs.x.rounded()))))
+		let hotY = UInt16(max(0, min(cursorImage.height - 1, (cursorImage.height - 1) - Int(hs.y.rounded()))))
 
 		return VNCCursor(
 			header: VNCCursorHeader(

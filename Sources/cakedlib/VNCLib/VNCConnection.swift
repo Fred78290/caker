@@ -145,6 +145,19 @@ final class VNCConnection: @unchecked Sendable {
 		return self.translatePixelFormat(self.translateLookupTable, self.framebuffer.pixelFormat, pixelData, width * 4, width, height)
 	}
 
+	private func pixelTranslationIndex(for pixelFormat: VNCPixelFormat) -> Int {
+		switch pixelFormat.bitsPerPixel {
+		case 8:
+			return 0
+		case 16:
+			return 1
+		case 32:
+			return 2
+		default:
+			return 0
+		}
+	}
+
 	private func transformCursorPixels(_ pixelData: Data, width: Int, height: Int) -> Data {
 		let cursorPixelFormat = VNCPixelFormat(
 			bitsPerPixel: 32,
@@ -163,9 +176,10 @@ final class VNCConnection: @unchecked Sendable {
 			return pixelData
 		}
 
-		let outputIndex = Int(self.clientPixelFormat.bitsPerPixel / 16)
+		let sourceIndex = self.pixelTranslationIndex(for: cursorPixelFormat)
+		let outputIndex = self.pixelTranslationIndex(for: self.clientPixelFormat)
 		let lookupTable = rfbInitTrueColourRGBTablesFns[outputIndex](cursorPixelFormat, self.clientPixelFormat)
-		let transform = rfbTranslateWithRGBTablesFns[Int(cursorPixelFormat.bitsPerPixel / 16)][outputIndex]
+		let transform = rfbTranslateWithRGBTablesFns[sourceIndex][outputIndex]
 
 		return transform(lookupTable, cursorPixelFormat, pixelData, width * 4, width, height)
 	}
@@ -378,14 +392,16 @@ final class VNCConnection: @unchecked Sendable {
 		}
 
 		let serverPixelFormat = framebuffer.pixelFormat
+		let serverPixelFormatIndex = self.pixelTranslationIndex(for: serverPixelFormat)
+		let clientPixelFormatIndex = self.pixelTranslationIndex(for: pixelFormat)
 
 		guard pixelFormat == serverPixelFormat else {
 			if serverPixelFormat.bitsPerPixel <= 16 {
-				self.translatePixelFormat = rfbTranslateWithSingleTableFns[Int(serverPixelFormat.bitsPerPixel / 16)][Int(pixelFormat.bitsPerPixel / 16)]
-				self.translateLookupTable = rfbInitTrueColourSingleTableFns[Int(pixelFormat.bitsPerPixel / 16)](serverPixelFormat, pixelFormat)
+				self.translatePixelFormat = rfbTranslateWithSingleTableFns[serverPixelFormatIndex][clientPixelFormatIndex]
+				self.translateLookupTable = rfbInitTrueColourSingleTableFns[clientPixelFormatIndex](serverPixelFormat, pixelFormat)
 			} else {
-				self.translatePixelFormat = rfbTranslateWithRGBTablesFns[Int(serverPixelFormat.bitsPerPixel / 16)][Int(pixelFormat.bitsPerPixel / 16)]
-				self.translateLookupTable = rfbInitTrueColourRGBTablesFns[Int(pixelFormat.bitsPerPixel / 16)](serverPixelFormat, pixelFormat)
+				self.translatePixelFormat = rfbTranslateWithRGBTablesFns[serverPixelFormatIndex][clientPixelFormatIndex]
+				self.translateLookupTable = rfbInitTrueColourRGBTablesFns[clientPixelFormatIndex](serverPixelFormat, pixelFormat)
 			}
 
 			self.clientPixelFormat = pixelFormat
