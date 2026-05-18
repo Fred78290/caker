@@ -47,6 +47,10 @@ struct SetEncoding {
 }
 
 final class VNCConnection: @unchecked Sendable {
+	private static let cursorLumaRedCoefficient: Int64 = 299
+	private static let cursorLumaGreenCoefficient: Int64 = 587
+	private static let cursorLumaBlueCoefficient: Int64 = 114
+
 	weak var delegate: VNCConnectionDelegate?
 	weak var inputDelegate: VNCInputDelegate?
 	var sendFramebufferContinous: Bool = false
@@ -174,6 +178,20 @@ final class VNCConnection: @unchecked Sendable {
 		rfbTranslateWithRGBTablesFns[self.pixelTranslationIndex(for: source)][self.pixelTranslationIndex(for: target)]
 	}
 
+	private func translationConfiguration(source: VNCPixelFormat, target: VNCPixelFormat) -> (transform: ClientTranslatePixelFormat, lookupTable: [[any FixedWidthInteger]]) {
+		if source.bitsPerPixel <= 16 {
+			return (
+				transform: self.singleTableTransform(source: source, target: target),
+				lookupTable: self.singleTableLookup(source: source, target: target)
+			)
+		}
+
+		return (
+			transform: self.rgbTableTransform(source: source, target: target),
+			lookupTable: self.rgbTableLookup(source: source, target: target)
+		)
+	}
+
 	private func colorDistance(r: Int, g: Int, b: Int, to color: (r: UInt8, g: UInt8, b: UInt8)) -> Int {
 		let deltaR = r - Int(color.r)
 		let deltaG = g - Int(color.g)
@@ -200,10 +218,9 @@ final class VNCConnection: @unchecked Sendable {
 			return pixelData
 		}
 
-		let lookupTable = self.rgbTableLookup(source: cursorPixelFormat, target: self.clientPixelFormat)
-		let transform = self.rgbTableTransform(source: cursorPixelFormat, target: self.clientPixelFormat)
+		let configuration = self.translationConfiguration(source: cursorPixelFormat, target: self.clientPixelFormat)
 
-		return transform(lookupTable, cursorPixelFormat, pixelData, width * 4, width, height)
+		return configuration.transform(configuration.lookupTable, cursorPixelFormat, pixelData, width * 4, width, height)
 	}
 
 	private func buildXCursorPayload(cursor: VNCCursor) -> Data {
@@ -241,7 +258,9 @@ final class VNCConnection: @unchecked Sendable {
 				let g = Int(cursor.data[pixelIndex + 1])
 				let b = Int(cursor.data[pixelIndex + 2])
 				// ITU-R BT.601 luma coefficients approximate perceived brightness.
-				let luma = (299 * Int64(r)) + (587 * Int64(g)) + (114 * Int64(b))
+				let luma = (Self.cursorLumaRedCoefficient * Int64(r))
+					+ (Self.cursorLumaGreenCoefficient * Int64(g))
+					+ (Self.cursorLumaBlueCoefficient * Int64(b))
 
 				totalLuma += luma
 				visiblePixels.append((r, g, b, luma))
@@ -413,13 +432,10 @@ final class VNCConnection: @unchecked Sendable {
 		let serverPixelFormat = framebuffer.pixelFormat
 
 		guard pixelFormat == serverPixelFormat else {
-			if serverPixelFormat.bitsPerPixel <= 16 {
-				self.translatePixelFormat = self.singleTableTransform(source: serverPixelFormat, target: pixelFormat)
-				self.translateLookupTable = self.singleTableLookup(source: serverPixelFormat, target: pixelFormat)
-			} else {
-				self.translatePixelFormat = self.rgbTableTransform(source: serverPixelFormat, target: pixelFormat)
-				self.translateLookupTable = self.rgbTableLookup(source: serverPixelFormat, target: pixelFormat)
-			}
+			let configuration = self.translationConfiguration(source: serverPixelFormat, target: pixelFormat)
+
+			self.translatePixelFormat = configuration.transform
+			self.translateLookupTable = configuration.lookupTable
 
 			self.clientPixelFormat = pixelFormat
 			return
