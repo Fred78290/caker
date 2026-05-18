@@ -22,11 +22,19 @@ interface OperationLogItem {
   description: string
 }
 
+const DEFAULT_NAT_NETWORK_NAME = 'nat'
+
 const DEVICE_NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_.-]*$/
 const FORWARDED_PORT_PATTERN = /^(\d{1,5}):(\d{1,5})\/(tcp|udp|both)$/i
 const VM_NAME_ADJECTIVES = ['swift', 'brave', 'calm', 'silent', 'lucky', 'rapid', 'crisp', 'frosty']
 const VM_NAME_NOUNS = ['otter', 'falcon', 'cedar', 'pine', 'ember', 'comet', 'delta', 'harbor']
 const DEFAULT_IMAGE_ALIAS = 'ubuntu:26.04'
+
+const isAutoInstallAllowed = (value: string) => {
+  const v = value.toLowerCase().trim()
+  if (!v.startsWith('iso://') && !v.endsWith('.iso')) return false
+  return v.includes('ubuntu')
+}
 
 const generateRandomVmName = () => {
   const adjective = VM_NAME_ADJECTIVES[Math.floor(Math.random() * VM_NAME_ADJECTIVES.length)]
@@ -48,8 +56,9 @@ const suggestVmNameFromAlias = (value: string) => {
     .replace(/^-+|-+$/g, '')
 
   const base = normalized || 'vm'
-  const suffix = Math.floor(100 + Math.random() * 900)
-  return `${base}-${suffix}`
+  const prefix = generateRandomVmName()
+  // const suffix = Math.floor(100 + Math.random() * 900)
+  return `${prefix}-${base}`
 }
 
 const parseProgressPercent = (value: string | null) => {
@@ -99,6 +108,8 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
   const [bridgedNetwork, setBridgedNetwork] = useState(false)
   const [nested, setNested] = useState(false)
   const [dynamicPortForwarding, setDynamicPortForwarding] = useState(false)
+  const [enableConsole, setEnableConsole] = useState(true)
+  const [autoinstall, setAutoinstall] = useState(() => isAutoInstallAllowed(initialAlias?.trim() || DEFAULT_IMAGE_ALIAS))
   const [networks, setNetworks] = useState('')
   const [availableNetworks, setAvailableNetworks] = useState<LXDNetwork[]>([])
   const [networkInterfaces, setNetworkInterfaces] = useState<NetworkInterfaceItem[]>([])
@@ -113,6 +124,48 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
   const [operationStatus, setOperationStatus] = useState<string | null>(null)
   const [operationLog, setOperationLog] = useState<OperationLogItem[]>([])
   const [error, setError] = useState<string | null>(null)
+
+  function defaultDeviceName(index: number, useNetIfnames: boolean = netIfnames) {
+    return useNetIfnames ? `eth${index}` : `enp0s${index}`
+  }
+
+  function buildNetworkConfig(items: NetworkInterfaceItem[]) {
+    if (items.length === 0) return ''
+
+    const lines: string[] = ['#cloud-config', 'network:', '  version: 2', '  ethernets:']
+
+    items.forEach((item) => {
+      lines.push(`    ${item.device}:`)
+      lines.push(`      # caker-network: ${item.network}`)
+      lines.push('      dhcp4: true')
+      lines.push('      dhcp6: true')
+    })
+
+    return lines.join('\n')
+  }
+
+  function syncInterfacesToConfig(items: NetworkInterfaceItem[]) {
+    setNetworkInterfaces(items)
+    setNetworks(buildNetworkConfig(items))
+  }
+
+  function findDefaultNatNetwork(items: LXDNetwork[]) {
+    const managedNat = items.find((item) => item.managed && item.type === 'nat')
+
+    if (managedNat) return managedNat
+
+    const lxdbr0 = items.find((item) => item.name === DEFAULT_NAT_NETWORK_NAME)
+    if (lxdbr0) return lxdbr0
+
+    return items.find((item) => item.managed && item.type === 'nat') ?? null
+  }
+
+  function buildDefaultNetworkInterfaces(items: LXDNetwork[], useNetIfnames: boolean = netIfnames): NetworkInterfaceItem[] {
+    const nat = findDefaultNatNetwork(items)
+    if (!nat) return []
+
+    return [{ network: nat.name, device: defaultDeviceName(0, useNetIfnames) }]
+  }
 
   const resetForm = (nextAlias: string = getInitialAlias()) => {
     setActiveTab('general')
@@ -137,8 +190,11 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
     setBridgedNetwork(false)
     setNested(false)
     setDynamicPortForwarding(false)
-    setNetworks('')
-    setNetworkInterfaces([])
+    setEnableConsole(false)
+    setAutoinstall(isAutoInstallAllowed(nextAlias))
+    const defaultInterfaces = buildDefaultNetworkInterfaces(availableNetworks, true)
+    syncInterfacesToConfig(defaultInterfaces)
+    setSelectedNetwork(defaultInterfaces[0]?.network ?? availableNetworks[0]?.name ?? '')
     setNetworkInterfacesError(null)
     setError(null)
     setBusy(false)
@@ -191,26 +247,6 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
     setForwardedPortsError(null)
   }
 
-  const buildNetworkConfig = (items: NetworkInterfaceItem[]) => {
-    if (items.length === 0) return ''
-
-    const lines: string[] = ['#cloud-config', 'network:', '  version: 2', '  ethernets:']
-
-    items.forEach((item) => {
-      lines.push(`    ${item.device}:`)
-      lines.push(`      # caker-network: ${item.network}`)
-      lines.push('      dhcp4: true')
-      lines.push('      dhcp6: true')
-    })
-
-    return lines.join('\n')
-  }
-
-  const syncInterfacesToConfig = (items: NetworkInterfaceItem[]) => {
-    setNetworkInterfaces(items)
-    setNetworks(buildNetworkConfig(items))
-  }
-
   const addNetworkInterface = () => {
     if (!selectedNetwork) return
 
@@ -221,7 +257,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
 
     const next: NetworkInterfaceItem[] = [
       ...networkInterfaces,
-      { network: selectedNetwork, device: `eth${networkInterfaces.length}` },
+      { network: selectedNetwork, device: defaultDeviceName(networkInterfaces.length) },
     ]
     setNetworkInterfacesError(null)
     syncInterfacesToConfig(next)
@@ -230,7 +266,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
   const removeNetworkInterface = (index: number) => {
     const next = networkInterfaces
       .filter((_, i) => i !== index)
-      .map((item, i) => ({ ...item, device: `eth${i}` }))
+      .map((item, i) => ({ ...item, device: defaultDeviceName(i) }))
 
     if (hasDuplicateDevice(next)) {
       setNetworkInterfacesError('Device names must be unique')
@@ -244,7 +280,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
 
   const updateInterfaceDevice = (index: number, device: string) => {
     const value = device.trim()
-    const next = networkInterfaces.map((item, i) => (i === index ? { ...item, device: value || `eth${index}` } : item))
+    const next = networkInterfaces.map((item, i) => (i === index ? { ...item, device: value || defaultDeviceName(index) } : item))
 
     if (hasDuplicateDevice(next)) {
       setNetworkInterfacesError('Device names must be unique')
@@ -265,7 +301,11 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
       .then((r) => {
         const items = r.data.metadata ?? []
         setAvailableNetworks(items)
-        if (items.length > 0) setSelectedNetwork(items[0].name)
+
+        const defaultInterfaces = buildDefaultNetworkInterfaces(items)
+        syncInterfacesToConfig(defaultInterfaces)
+        setSelectedNetwork(defaultInterfaces[0]?.network ?? items[0]?.name ?? '')
+        setNetworkInterfacesError(null)
       })
       .catch((e) => {
         setNetworkLoadError(String(e))
@@ -278,6 +318,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
   useEffect(() => {
     if (initialAlias?.trim()) {
       setAlias(initialAlias.trim())
+      setAutoinstall(isAutoInstallAllowed(initialAlias.trim()))
       if (!nameEdited) {
         setName(suggestVmNameFromAlias(initialAlias))
       }
@@ -446,9 +487,11 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
         ...(normalizedForwardedPorts.length > 0 ? { forwarded_ports: normalizedForwardedPorts } : {}),
         net_ifnames: netIfnames,
         autostart: autostart,
+        autoinstall: autoinstall && isAutoInstallAllowed(alias),
         bridged_network: bridgedNetwork,
         nested: nested,
         dynamic_port_forwarding: dynamicPortForwarding,
+        enable_console: enableConsole,
       })
 
       const operation = response.data.metadata
@@ -631,7 +674,10 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                   <input
                     className="form-control"
                     value={alias}
-                    onChange={(e) => setAlias(e.target.value)}
+                    onChange={(e) => {
+                      setAlias(e.target.value)
+                      setAutoinstall(isAutoInstallAllowed(e.target.value))
+                    }}
                     placeholder="ubuntu:22.04"
                   />
                 </div>
@@ -710,7 +756,16 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                       type="checkbox"
                       id="create-net-ifnames"
                       checked={netIfnames}
-                      onChange={(e) => setNetIfnames(e.target.checked)}
+                      onChange={(e) => {
+                        const checked = e.target.checked
+                        setNetIfnames(checked)
+                        const renamed = networkInterfaces.map((item, index) => ({
+                          ...item,
+                          device: defaultDeviceName(index, checked),
+                        }))
+                        syncInterfacesToConfig(renamed)
+                        setNetworkInterfacesError(null)
+                      }}
                     />
                     <label className="form-check-label" htmlFor="create-net-ifnames">Use net.ifnames</label>
                   </div>
@@ -733,6 +788,30 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                       onChange={(e) => setDynamicPortForwarding(e.target.checked)}
                     />
                     <label className="form-check-label" htmlFor="create-dynamic-port-forwarding">Dynamic port forwarding</label>
+                  </div>
+                  <div className="form-check form-switch mt-2">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="create-enable-console"
+                      checked={enableConsole}
+                      onChange={(e) => setEnableConsole(e.target.checked)}
+                    />
+                    <label className="form-check-label" htmlFor="create-enable-console">Enable log console</label>
+                  </div>
+                  <div className="form-check form-switch mt-2">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="create-autoinstall"
+                      checked={autoinstall}
+                      disabled={!isAutoInstallAllowed(alias)}
+                      onChange={(e) => setAutoinstall(e.target.checked)}
+                    />
+                    <label className={`form-check-label${!isAutoInstallAllowed(alias) ? ' text-muted' : ''}`} htmlFor="create-autoinstall">
+                      Autoinstall
+                      {!isAutoInstallAllowed(alias) && <span className="ms-1 small">(Ubuntu only)</span>}
+                    </label>
                   </div>
                 </div>
               </div>
@@ -855,7 +934,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                             className="form-control"
                             value={iface.device}
                             onChange={(e) => updateInterfaceDevice(index, e.target.value)}
-                            placeholder={`eth${index}`}
+                            placeholder={defaultDeviceName(index)}
                           />
                         </div>
                         <div className="col-2 text-end">

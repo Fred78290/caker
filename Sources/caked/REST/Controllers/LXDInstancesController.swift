@@ -136,6 +136,8 @@ struct LXDInstancesController: RouteCollection {
 										networkConfig: networkConfigPath,
 										forwardedPorts: body.forwardedPortAttachments,
 										networks: body.networkAttachments,
+										consoleURL: body.consoleAttachment,
+										autoinstall: body.autoinstall,
 										bridgedNetwork: body.bridgedNetwork,
 										dynamicPortForwarding: body.dynamicPortForwarding)
 

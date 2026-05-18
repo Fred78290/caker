@@ -106,9 +106,11 @@ export interface LXDCreateInstanceRequest {
   network_config?: string
   net_ifnames?: boolean
   autostart?: boolean
+  autoinstall?: boolean
   bridged_network?: boolean
   nested?: boolean
   dynamic_port_forwarding?: boolean
+  enable_console?: boolean
   user?: string
   password?: string
   clearPassword?: boolean

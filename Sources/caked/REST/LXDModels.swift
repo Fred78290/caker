@@ -433,9 +433,11 @@ struct LXDCreateInstanceRequest: Content {
 	var forwardedPorts: [String]?
 	var netIfnames: Bool = false
 	var autostart: Bool = false
+	var autoinstall: Bool = false
 	var bridgedNetwork: Bool = false
 	var nested: Bool = false
 	var dynamicPortForwarding: Bool = false
+	var enableConsole: Bool = false
 	/// Optional LXD-style devices map (e.g. {"eth0": {"type": "nic", "network": "br0"}}).
 	var devices: [String: [String: String]]?
 	var description: String?
@@ -448,7 +450,7 @@ struct LXDCreateInstanceRequest: Content {
 	var networkConfig: String?
 
 	enum CodingKeys: String, CodingKey {
-		case name, source, config, user, password, clearPassword, mainGroup, devices, description, type, profiles
+		case name, source, config, user, password, clearPassword, mainGroup, devices, description, type, profiles, autoinstall
 		case userData = "user_data"
 		case otherGroups = "other_groups"
 		case sshAuthorizedKey = "ssh_authorized_key"
@@ -456,8 +458,13 @@ struct LXDCreateInstanceRequest: Content {
 		case netIfnames = "net_ifnames"
 		case bridgedNetwork = "bridged_network"
 		case dynamicPortForwarding = "dynamic_port_forwarding"
+		case enableConsole = "enable_console"
 		case networkConfig = "network_config"
 		case autostart, nested
+	}
+
+	var consoleAttachment: ConsoleAttachment? {
+		enableConsole ? ConsoleAttachment(argument: "file") : nil
 	}
 
 	// MARK: Derived helpers
