@@ -47,6 +47,12 @@ struct SetEncoding {
 }
 
 final class VNCConnection: @unchecked Sendable {
+	private enum PixelTranslationIndex: Int {
+		case eightBit = 0
+		case sixteenBit = 1
+		case thirtyTwoBit = 2
+	}
+
 	private static let cursorLumaRedCoefficient: Int64 = 299
 	private static let cursorLumaGreenCoefficient: Int64 = 587
 	private static let cursorLumaBlueCoefficient: Int64 = 114
@@ -152,13 +158,13 @@ final class VNCConnection: @unchecked Sendable {
 	private func pixelTranslationIndex(for pixelFormat: VNCPixelFormat) -> Int {
 		switch pixelFormat.bitsPerPixel {
 		case 8:
-			return 0
+			return PixelTranslationIndex.eightBit.rawValue
 		case 16:
-			return 1
+			return PixelTranslationIndex.sixteenBit.rawValue
 		case 32:
-			return 2
+			return PixelTranslationIndex.thirtyTwoBit.rawValue
 		default:
-			return 0
+			return PixelTranslationIndex.eightBit.rawValue
 		}
 	}
 
@@ -258,6 +264,8 @@ final class VNCConnection: @unchecked Sendable {
 				let g = Int(cursor.data[pixelIndex + 1])
 				let b = Int(cursor.data[pixelIndex + 2])
 				// ITU-R BT.601 luma coefficients approximate perceived brightness.
+				// The coefficients are intentionally kept scaled by 1000 so the relative
+				// brightness comparison retains precision without floating-point math.
 				let luma = (Self.cursorLumaRedCoefficient * Int64(r))
 					+ (Self.cursorLumaGreenCoefficient * Int64(g))
 					+ (Self.cursorLumaBlueCoefficient * Int64(b))

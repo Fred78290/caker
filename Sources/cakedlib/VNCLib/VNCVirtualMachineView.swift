@@ -417,7 +417,9 @@ extension NSCursor {
 		let hs = self.hotSpot
 		let maxHotY = cursorImage.height - 1
 		let hotX = UInt16(max(0, min(cursorImage.width - 1, Int(hs.x.rounded()))))
-		let hotY = UInt16(max(0, min(maxHotY, Int((CGFloat(maxHotY) - hs.y).rounded()))))
+		let convertedHotY = CGFloat(maxHotY) - hs.y
+		let clampedHotY = max(0, min(maxHotY, Int(convertedHotY.rounded())))
+		let hotY = UInt16(clampedHotY)
 
 		return VNCCursor(
 			header: VNCCursorHeader(
