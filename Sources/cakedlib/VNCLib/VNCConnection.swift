@@ -1048,8 +1048,8 @@ extension VNCConnection {
 		payload.message.numberOfRectangles = UInt16(1).bigEndian
 
 		// Rectangle header with cursor encoding
-		payload.rectangle.x = 0
-		payload.rectangle.y = 0
+		payload.rectangle.x = cursor.header.hotX.bigEndian
+		payload.rectangle.y = cursor.header.hotY.bigEndian
 		payload.rectangle.width = cursor.header.width.bigEndian
 		payload.rectangle.height = cursor.header.height.bigEndian
 
@@ -1060,9 +1060,6 @@ extension VNCConnection {
 		payload.rectangle.encoding = encodingValue.bigEndian
 
 		try await self.sendDatas(payload)
-
-		// Send cursor hotspot and dimensions
-		try await self.sendDatas(cursor.header)
 
 		// Send pixel data
 		try await self.sendDatas(transformPixel(cursor.data, width: Int(cursor.header.width), height: Int(cursor.header.height)))
