@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { changeInstanceState, consoleInstance, execInstance, getInstance, getInstanceLogFile, getInstanceLogs, getInstanceState } from '../api/instances';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { changeInstanceState, consoleInstance, deleteInstance, execInstance, getInstance, getInstanceLogFile, getInstanceLogs, getInstanceState } from '../api/instances';
 import { PageSpinner } from '../components/Spinner';
 import { StatusBadge } from '../components/StatusBadge';
 import { TerminalConsole } from '../components/TerminalConsole';
@@ -282,6 +282,7 @@ function LogsPanel({ logs, selectedLog, onLogSelect, logContent, loading, error 
 
 export function InstanceDetailPage() {
   const { name } = useParams<{ name: string }>()
+  const navigate = useNavigate()
   const [instance, setInstance] = useState<LXDInstance | null>(null)
   const [state, setState] = useState<LXDInstanceState | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -406,6 +407,22 @@ export function InstanceDetailPage() {
       const expected = action === 'start' ? 'Running' : 'Stopped'
       const ok = await pollStatusChange(expected)
       if (!ok) setLoadError("Timeout: l'état n'a pas changé.")
+    } catch (e) {
+      setLoadError(String(e))
+    } finally {
+      setActionBusy(null)
+    }
+  }
+
+  const doDelete = async () => {
+    if (!instance || instance.status === 'Running') return
+    if (!window.confirm(`Delete instance "${instance.name}"? This action cannot be undone.`)) return
+
+    setActionBusy('delete')
+    setLoadError(null)
+    try {
+      await deleteInstance(instance.name)
+      navigate('/instances')
     } catch (e) {
       setLoadError(String(e))
     } finally {
@@ -565,6 +582,18 @@ export function InstanceDetailPage() {
                   )}
                 </button>
               )}
+              <button
+                className="btn btn-outline-danger btn-sm"
+                disabled={actionBusy !== null || instance.status === 'Running'}
+                title={instance.status === 'Running' ? 'Stop VM before deleting' : 'Delete VM'}
+                onClick={doDelete}
+              >
+                {actionBusy === 'delete' ? (
+                  <span className="spinner-border spinner-border-sm" />
+                ) : (
+                  <><i className="bi bi-trash me-1" />Delete</>
+                )}
+              </button>
             </div>
           )}
         </div>
