@@ -174,6 +174,14 @@ final class VNCConnection: @unchecked Sendable {
 		rfbTranslateWithRGBTablesFns[self.pixelTranslationIndex(for: source)][self.pixelTranslationIndex(for: target)]
 	}
 
+	private func colorDistance(r: Int, g: Int, b: Int, to color: (r: UInt8, g: UInt8, b: UInt8)) -> Int {
+		let deltaR = r - Int(color.r)
+		let deltaG = g - Int(color.g)
+		let deltaB = b - Int(color.b)
+
+		return (deltaR * deltaR) + (deltaG * deltaG) + (deltaB * deltaB)
+	}
+
 	private func transformCursorPixels(_ pixelData: Data, width: Int, height: Int) -> Data {
 		let cursorPixelFormat = VNCPixelFormat(
 			bitsPerPixel: 32,
@@ -209,8 +217,8 @@ final class VNCConnection: @unchecked Sendable {
 		let bytesPerRow = (width + 7) / 8
 		var primary = (r: UInt8(255), g: UInt8(255), b: UInt8(255))
 		var secondary = (r: UInt8(0), g: UInt8(0), b: UInt8(0))
-		var visiblePixels: [(r: Int, g: Int, b: Int, luma: Int)] = []
-		var totalLuma = 0
+		var visiblePixels: [(r: Int, g: Int, b: Int, luma: Int64)] = []
+		var totalLuma: Int64 = 0
 
 		for row in 0..<height {
 			for col in 0..<width {
@@ -233,7 +241,7 @@ final class VNCConnection: @unchecked Sendable {
 				let g = Int(cursor.data[pixelIndex + 1])
 				let b = Int(cursor.data[pixelIndex + 2])
 				// ITU-R BT.601 luma coefficients approximate perceived brightness.
-				let luma = (299 * r) + (587 * g) + (114 * b)
+				let luma = (299 * Int64(r)) + (587 * Int64(g)) + (114 * Int64(b))
 
 				totalLuma += luma
 				visiblePixels.append((r, g, b, luma))
@@ -241,7 +249,7 @@ final class VNCConnection: @unchecked Sendable {
 		}
 
 		if !visiblePixels.isEmpty {
-			let averageLuma = totalLuma / visiblePixels.count
+			let averageLuma = totalLuma / Int64(visiblePixels.count)
 			var primarySum = (r: 0, g: 0, b: 0, count: 0)
 			var secondarySum = (r: 0, g: 0, b: 0, count: 0)
 
@@ -300,12 +308,8 @@ final class VNCConnection: @unchecked Sendable {
 				let r = Int(cursor.data[pixelIndex])
 				let g = Int(cursor.data[pixelIndex + 1])
 				let b = Int(cursor.data[pixelIndex + 2])
-				let primaryDistance = ((r - Int(primary.r)) * (r - Int(primary.r)))
-					+ ((g - Int(primary.g)) * (g - Int(primary.g)))
-					+ ((b - Int(primary.b)) * (b - Int(primary.b)))
-				let secondaryDistance = ((r - Int(secondary.r)) * (r - Int(secondary.r)))
-					+ ((g - Int(secondary.g)) * (g - Int(secondary.g)))
-					+ ((b - Int(secondary.b)) * (b - Int(secondary.b)))
+				let primaryDistance = self.colorDistance(r: r, g: g, b: b, to: primary)
+				let secondaryDistance = self.colorDistance(r: r, g: g, b: b, to: secondary)
 
 				if primaryDistance <= secondaryDistance {
 					bitmap[maskIndex] |= bit
