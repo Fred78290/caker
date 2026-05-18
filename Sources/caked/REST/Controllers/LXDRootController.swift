@@ -39,7 +39,7 @@ struct LXDRootController: RouteCollection {
 			auth: "trusted",
 			config: [:],
 			environment: LXDEnvironment(
-				architectures: ["aarch64", "x86_64"],
+				architectures: [Architecture.current().description],
 				certificate: "",
 				certificateFingerprint: "",
 				driver: "apple-virtualization",
