@@ -395,23 +395,26 @@ extension NSCursor {
 			return nil
 		}
 
-		// Extract packed RGBA pixel data (top-left origin as drawn into context)
+		// Extract tightly packed RGBA pixel data with top-left origin.
 		guard let pixelData = extractPixelData(from: cursorImage) else {
 			logger.debug("Unable to extract pixel data from cursor image")
 			return nil
 		}
 
 		// Generate bitmask (1 bit per pixel indicating visibility)
-		let maskData = generateCursorMask(from: cursorImage)
+		let maskData = generateCursorMask(from: pixelData, width: cursorImage.width, height: cursorImage.height)
 
 		// Dimensions
 		let width = UInt16(cursorImage.width)
 		let height = UInt16(cursorImage.height)
 
-		// Hotspot from NSCursor hotSpot (clamped to bounds and converted to UInt16)
+		// NSCursor.hotSpot uses AppKit coordinates (origin at lower-left).
 		let hs = self.hotSpot
-		let hotX = UInt16(max(0, min(Int(width - 1), Int(hs.x.rounded()))))
-		let hotY = UInt16(max(0, min(Int(height - 1), Int(hs.y.rounded()))))
+		let maxHotX = max(cursorImage.width - 1, 0)
+		let maxHotY = max(cursorImage.height - 1, 0)
+		let hotX = UInt16(max(0, min(maxHotX, Int(hs.x.rounded()))))
+		let flippedHotY = maxHotY - Int(hs.y.rounded())
+		let hotY = UInt16(max(0, min(maxHotY, flippedHotY)))
 
 		return VNCCursor(
 			header: VNCCursorHeader(
@@ -428,18 +431,7 @@ extension NSCursor {
 	private func extractPixelData(from cgImage: CGImage) -> Data? {
 		let width = cgImage.width
 		let height = cgImage.height
-		let bytesPerPixel = 4  // RGBA
-
-		guard let dataProvider = cgImage.dataProvider, let data = dataProvider.data else {
-			return nil
-		}
-
-		let pixelData = Data(bytes: CFDataGetBytePtr(data), count: CFDataGetLength(data))
-
-		// Ensure we have proper RGBA format, convert if needed
-		if cgImage.bitsPerComponent == 8 && cgImage.bitsPerPixel == 32 {
-			return pixelData
-		}
+		let bytesPerPixel = 4
 
 		// Create RGBA buffer from image
 		var rgbaPixels = Data(count: width * height * bytesPerPixel)
@@ -457,6 +449,8 @@ extension NSCursor {
 				return false
 			}
 
+			context.translateBy(x: 0, y: CGFloat(height))
+			context.scaleBy(x: 1, y: -1)
 			context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
 			return true
 		}
@@ -464,37 +458,20 @@ extension NSCursor {
 		return success ? rgbaPixels : nil
 	}
 
-	private func generateCursorMask(from cgImage: CGImage) -> Data {
-		let width = cgImage.width
-		let height = cgImage.height
-
+	private func generateCursorMask(from pixelData: Data, width: Int, height: Int) -> Data {
 		// Bitmask: 1 bit per pixel, rounded to byte boundary per row
 		let bytesPerRow = (width + 7) / 8
 		var maskData = Data(count: bytesPerRow * height)
-
-		guard let dataProvider = cgImage.dataProvider, let imageData = dataProvider.data else {
-			// Return all 1s if unable to extract alpha
-			for i in 0..<maskData.count {
-				maskData[i] = 0xFF
-			}
-			return maskData
-		}
-
-		let pixelData = Data(bytes: CFDataGetBytePtr(imageData), count: CFDataGetLength(imageData))
-		let bytesPerPixel = cgImage.bitsPerPixel / 8
+		let bytesPerPixel = 4
 
 		// Set bits for pixels with alpha > 0
 		for row in 0..<height {
 			for col in 0..<width {
 				let pixelIndex = (row * width + col) * bytesPerPixel
-				let alphaValue: UInt8
-
-				if pixelData.count > pixelIndex + 3 {
-					// Assume RGBA format, alpha is last byte
-					alphaValue = pixelData[pixelIndex + 3]
-				} else {
-					alphaValue = 255
+				guard pixelData.count > pixelIndex + 3 else {
+					continue
 				}
+				let alphaValue = pixelData[pixelIndex + 3]
 
 				if alphaValue > 127 {  // Threshold for visibility
 					let maskByteIndex = row * bytesPerRow + col / 8

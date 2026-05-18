@@ -145,6 +145,152 @@ final class VNCConnection: @unchecked Sendable {
 		return self.translatePixelFormat(self.translateLookupTable, self.framebuffer.pixelFormat, pixelData, width * 4, width, height)
 	}
 
+	private func transformCursorPixels(_ pixelData: Data, width: Int, height: Int) -> Data {
+		let cursorPixelFormat = VNCPixelFormat(
+			bitsPerPixel: 32,
+			depth: 24,
+			bigEndianFlag: 0,
+			trueColorFlag: 1,
+			redMax: 255,
+			greenMax: 255,
+			blueMax: 255,
+			redShift: 0,
+			greenShift: 8,
+			blueShift: 16
+		)
+
+		guard self.clientPixelFormat != cursorPixelFormat else {
+			return pixelData
+		}
+
+		let outputIndex = Int(self.clientPixelFormat.bitsPerPixel / 16)
+		let lookupTable = rfbInitTrueColourRGBTablesFns[outputIndex](cursorPixelFormat, self.clientPixelFormat)
+		let transform = rfbTranslateWithRGBTablesFns[Int(cursorPixelFormat.bitsPerPixel / 16)][outputIndex]
+
+		return transform(lookupTable, cursorPixelFormat, pixelData, width * 4, width, height)
+	}
+
+	private func buildXCursorPayload(cursor: VNCCursor) -> Data {
+		let width = Int(cursor.header.width)
+		let height = Int(cursor.header.height)
+
+		guard width > 0, height > 0 else {
+			return Data()
+		}
+
+		let bytesPerRow = (width + 7) / 8
+		var primary = (r: UInt8(255), g: UInt8(255), b: UInt8(255))
+		var secondary = (r: UInt8(0), g: UInt8(0), b: UInt8(0))
+		var visiblePixels: [(r: Int, g: Int, b: Int, luma: Int)] = []
+		var totalLuma = 0
+
+		for row in 0..<height {
+			for col in 0..<width {
+				let maskIndex = row * bytesPerRow + col / 8
+				guard maskIndex < cursor.mask.count else {
+					continue
+				}
+
+				let bit = UInt8(1 << (7 - (col % 8)))
+				guard (cursor.mask[maskIndex] & bit) != 0 else {
+					continue
+				}
+
+				let pixelIndex = (row * width + col) * 4
+				guard pixelIndex + 2 < cursor.data.count else {
+					continue
+				}
+
+				let r = Int(cursor.data[pixelIndex])
+				let g = Int(cursor.data[pixelIndex + 1])
+				let b = Int(cursor.data[pixelIndex + 2])
+				let luma = (299 * r) + (587 * g) + (114 * b)
+
+				totalLuma += luma
+				visiblePixels.append((r, g, b, luma))
+			}
+		}
+
+		if !visiblePixels.isEmpty {
+			let averageLuma = totalLuma / visiblePixels.count
+			var primarySum = (r: 0, g: 0, b: 0, count: 0)
+			var secondarySum = (r: 0, g: 0, b: 0, count: 0)
+
+			for pixel in visiblePixels {
+				if pixel.luma >= averageLuma {
+					primarySum.r += pixel.r
+					primarySum.g += pixel.g
+					primarySum.b += pixel.b
+					primarySum.count += 1
+				} else {
+					secondarySum.r += pixel.r
+					secondarySum.g += pixel.g
+					secondarySum.b += pixel.b
+					secondarySum.count += 1
+				}
+			}
+
+			if primarySum.count > 0 {
+				primary = (
+					r: UInt8(primarySum.r / primarySum.count),
+					g: UInt8(primarySum.g / primarySum.count),
+					b: UInt8(primarySum.b / primarySum.count)
+				)
+			}
+
+			if secondarySum.count > 0 {
+				secondary = (
+					r: UInt8(secondarySum.r / secondarySum.count),
+					g: UInt8(secondarySum.g / secondarySum.count),
+					b: UInt8(secondarySum.b / secondarySum.count)
+				)
+			} else {
+				secondary = primary
+			}
+		}
+
+		var bitmap = Data(count: bytesPerRow * height)
+
+		for row in 0..<height {
+			for col in 0..<width {
+				let maskIndex = row * bytesPerRow + col / 8
+				guard maskIndex < cursor.mask.count else {
+					continue
+				}
+
+				let bit = UInt8(1 << (7 - (col % 8)))
+				guard (cursor.mask[maskIndex] & bit) != 0 else {
+					continue
+				}
+
+				let pixelIndex = (row * width + col) * 4
+				guard pixelIndex + 2 < cursor.data.count else {
+					continue
+				}
+
+				let r = Int(cursor.data[pixelIndex])
+				let g = Int(cursor.data[pixelIndex + 1])
+				let b = Int(cursor.data[pixelIndex + 2])
+				let primaryDistance = ((r - Int(primary.r)) * (r - Int(primary.r)))
+					+ ((g - Int(primary.g)) * (g - Int(primary.g)))
+					+ ((b - Int(primary.b)) * (b - Int(primary.b)))
+				let secondaryDistance = ((r - Int(secondary.r)) * (r - Int(secondary.r)))
+					+ ((g - Int(secondary.g)) * (g - Int(secondary.g)))
+					+ ((b - Int(secondary.b)) * (b - Int(secondary.b)))
+
+				if primaryDistance <= secondaryDistance {
+					bitmap[maskIndex] |= bit
+				}
+			}
+		}
+
+		var payload = Data([primary.r, primary.g, primary.b, secondary.r, secondary.g, secondary.b])
+		payload.append(bitmap)
+		payload.append(cursor.mask)
+
+		return payload
+	}
+
 	private func rfbSendRectEncodingRaw(_ pixelData: Data, width: Int, height: Int) async throws {
 		var payload = VNCFramebufferUpdatePayload()
 
@@ -1011,6 +1157,10 @@ extension VNCConnection {
 			}
 			
 			try await sendUpdateBuffer(tiles)
+
+			if self.encodings.cursorWasChanged, let cursor = self.framebuffer.cursor?.vncCursor {
+				try await self.sendCursorShapeUpdate(cursor: cursor)
+			}
 			
 			if sendSupportedMessages {
 				try await self.sendSupportedMessages()
@@ -1061,11 +1211,12 @@ extension VNCConnection {
 
 		try await self.sendDatas(payload)
 
-		// Send pixel data
-		try await self.sendDatas(transformPixel(cursor.data, width: Int(cursor.header.width), height: Int(cursor.header.height)))
-
-		// Send bitmask
-		try await self.sendDatas(cursor.mask)
+		if self.encodings.useRichCursorEncoding {
+			try await self.sendDatas(transformCursorPixels(cursor.data, width: Int(cursor.header.width), height: Int(cursor.header.height)))
+			try await self.sendDatas(cursor.mask)
+		} else {
+			try await self.sendDatas(buildXCursorPayload(cursor: cursor))
+		}
 
 		// Clear the cursor update flag
 		self.encodings.cursorWasChanged = false
