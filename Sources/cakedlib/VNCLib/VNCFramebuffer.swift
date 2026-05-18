@@ -273,7 +273,11 @@ extension VNCFramebuffer: VNCFrameBufferProducer {
 		self.sourceView.image()?.cgImage
 	}
 	
-	public func startFramebufferUpdate(continuation: AsyncStream<CGImage>.Continuation) {
+	public var cursor: NSCursor? {
+		self.sourceView.cursor
+	}
+	
+	public func startFramebufferUpdate(continuation: AsyncStream<VNCFrameUpdateState>.Continuation) {
 		let timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in
 			guard let self = self else {
 				return
@@ -294,13 +298,13 @@ extension VNCFramebuffer: VNCFrameBufferProducer {
 				}
 
 				if let cgImage = imageRepresentation.cgImage {
-					continuation.yield(cgImage)
+					continuation.yield(.frame(cgImage))
 				}
 
 				return
 			}
 
-			continuation.yield(cgImage)
+			continuation.yield(.frame(cgImage))
 		}
 
 		RunLoop.main.add(timer, forMode: .common)
