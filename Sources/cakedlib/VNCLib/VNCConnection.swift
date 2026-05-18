@@ -198,10 +198,10 @@ final class VNCConnection: @unchecked Sendable {
 		)
 	}
 
-	private func colorDistance(r: Int, g: Int, b: Int, to color: (r: UInt8, g: UInt8, b: UInt8)) -> Int {
-		let deltaR = r - Int(color.r)
-		let deltaG = g - Int(color.g)
-		let deltaB = b - Int(color.b)
+	private func colorDistance(r: Int, g: Int, b: Int, to referenceColor: (r: UInt8, g: UInt8, b: UInt8)) -> Int {
+		let deltaR = r - Int(referenceColor.r)
+		let deltaG = g - Int(referenceColor.g)
+		let deltaB = b - Int(referenceColor.b)
 
 		return (deltaR * deltaR) + (deltaG * deltaG) + (deltaB * deltaB)
 	}
@@ -266,9 +266,11 @@ final class VNCConnection: @unchecked Sendable {
 				// ITU-R BT.601 luma coefficients approximate perceived brightness.
 				// The coefficients are intentionally kept scaled by 1000 so the relative
 				// brightness comparison retains precision without floating-point math.
-				let luma = (Self.cursorLumaRedCoefficient * Int64(r))
+				let luma = (
+					(Self.cursorLumaRedCoefficient * Int64(r))
 					+ (Self.cursorLumaGreenCoefficient * Int64(g))
 					+ (Self.cursorLumaBlueCoefficient * Int64(b))
+				)
 
 				totalLuma += luma
 				visiblePixels.append((r, g, b, luma))

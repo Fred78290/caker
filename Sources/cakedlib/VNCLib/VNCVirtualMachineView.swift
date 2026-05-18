@@ -395,11 +395,6 @@ extension NSCursor {
 			return nil
 		}
 
-		guard cursorImage.width > 0, cursorImage.height > 0 else {
-			logger.debug("Cursor image is empty")
-			return nil
-		}
-
 		// Extract tightly packed RGBA pixel data with top-left origin.
 		guard let pixelData = extractPixelData(from: cursorImage) else {
 			logger.debug("Unable to extract pixel data from cursor image")
