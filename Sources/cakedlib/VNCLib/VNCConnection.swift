@@ -1,4 +1,5 @@
 import CommonCrypto
+import AppKit
 import Compression
 import CryptoKit
 import Foundation
@@ -1019,6 +1020,62 @@ extension VNCConnection {
 				try await self.sendSupportedEncodings()
 			}
 		}
+	}
+
+	func sendCursorUpdate(cursor: VNCCursor) async {
+		if isAuthenticated && self.connection.state == .ready {
+			do {
+				// Check if cursor shape updates are enabled
+				if self.encodings.enableCursorShapeUpdates {
+					try await self.sendCursorShapeUpdate(cursor: cursor)
+				}
+			} catch {
+				self.logger.error("send cursor update failed: \(error)")
+				self.didReceiveError(error)
+			}
+		}
+	}
+
+	private func sendCursorShapeUpdate(cursor: VNCCursor) async throws {
+		#if DEBUG
+			self.logger.debug("sendCursorShapeUpdate")
+		#endif
+
+		// Send framebuffer update header
+		var payload = VNCFramebufferUpdatePayload()
+		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+		payload.message.padding = 0
+		payload.message.numberOfRectangles = UInt16(1).bigEndian
+
+		// Rectangle header with cursor encoding
+		payload.rectangle.x = 0
+		payload.rectangle.y = 0
+		payload.rectangle.width = cursor.header.width.bigEndian
+		payload.rectangle.height = cursor.header.height.bigEndian
+
+		// Use RichCursor encoding if configured, otherwise XCursor
+		let encodingValue = self.encodings.useRichCursorEncoding 
+			? VNCSetEncoding.Encoding.rfbEncodingRichCursor.rawValue
+			: VNCSetEncoding.Encoding.rfbEncodingXCursor.rawValue
+		payload.rectangle.encoding = encodingValue.bigEndian
+
+		try await self.sendDatas(payload)
+
+		// Send cursor hotspot and dimensions
+		try await self.sendDatas(cursor.header)
+
+		// Send pixel data
+		try await self.sendDatas(transformPixel(cursor.data, width: Int(cursor.header.width), height: Int(cursor.header.height)))
+
+		// Send bitmask
+		try await self.sendDatas(cursor.mask)
+
+		// Clear the cursor update flag
+		self.encodings.cursorWasChanged = false
+
+		#if DEBUG
+		self.logger.debug("sendCursorShapeUpdate completed: \(cursor.header.width)x\(cursor.header.height) hotspot=(\(cursor.header.hotX),\(cursor.header.hotY))")
+		#endif
 	}
 
 	func sendFramebufferUpdate(tiles: [VNCFramebuffer.VNCFramebufferTile], width: Int, height: Int, newSizePending: Bool) async {
