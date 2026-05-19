@@ -368,6 +368,8 @@ extension UTType {
 		self.memoryInfos = MemoryInfo(from: config)
 		self.setDocumentSize(.init(self.virtualMachineConfig.display.cgSize))
 		self.updateCurrentStatus(status, suspendable: config.suspendable, vncURL: vncURL?.compactMap { URL(string: $0) })
+
+		MainApp.app?.addStateVirtualMachineDocument(with: self)
 	}
 	
 	static func anyVirtualMachineDocument() throws -> VirtualMachineDocument {

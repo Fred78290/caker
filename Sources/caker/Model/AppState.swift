@@ -493,8 +493,10 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 	
 	func removeVirtualMachineDocument(_ vmURL: URL) {
-		if self.virtualMachines[vmURL] != nil {
+		if let document = self.virtualMachines[vmURL] {
 			self.virtualMachines.removeValue(forKey: vmURL)
+
+			MainApp.app?.removeStateVirtualMachineDocument(with: document)
 		}
 
 		if self.openedVirtualMachines[vmURL] != nil {
@@ -613,6 +615,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 				let result = try vm.deleteVirtualMachine()
 				
 				if result.success {
+					vm.setState(.deleted)
 					self.removeVirtualMachineDocument(vm.url)
 				} else {
 					DispatchQueue.main.async {

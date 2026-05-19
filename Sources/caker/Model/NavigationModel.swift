@@ -111,13 +111,13 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 		self.documents.removeAll()
 		
 		appState.documents.forEach {
-			self.documents[$0.url] = .init($0)
+			self.documents.updateValue(.init($0), forKey: $0.url)
 		}
 	}
-	
+
 	func addStateVirtualMachineDocument(with document: VirtualMachineDocument) {
 		if self.documents[document.url] == nil {
-			self.documents[document.url] = .init(document)
+			self.documents.updateValue(.init(document), forKey: document.url)
 		}
 	}
 
