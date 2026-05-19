@@ -162,7 +162,7 @@ public struct BuildOptions: ParsableArguments {
 		self.networks = networks
 		self.sockets = sockets
 		self.consoleURL = consoleURL
-		self.dynamicPortForwarding = false
+		self.dynamicPortForwarding = dynamicPortForwarding
 		self.autoinstall = autoinstall
 		self.screenSize = screenSize
 		self.bridgedNetwork = bridgedNetwork

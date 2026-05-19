@@ -674,7 +674,8 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			mounts: self.mounts,
 			networks: self.networks,
 			sockets: self.sockets,
-			autoinstall: self.autoinstall
+			autoinstall: self.autoinstall,
+			dynamicPortForwarding: self.dynamicPortForwarding
 		)
 	}
 

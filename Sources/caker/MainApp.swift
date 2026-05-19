@@ -362,15 +362,19 @@ struct MainApp: App {
 	}
 
 	func addStateVirtualMachineDocument(with document: VirtualMachineDocument) {
-		self.navigationModel.addStateVirtualMachineDocument(with: document)
+		DispatchQueue.main.async {
+			self.navigationModel.addStateVirtualMachineDocument(with: document)
+		}
 	}
 
-	func removeStateVirtualMachineDocument(with document: VirtualMachineDocument) {
-		self.navigationModel.removeStateVirtualMachineDocument(with: document)
+	func removeStateVirtualMachineDocument(with url: URL) {
+		self.navigationModel.removeStateVirtualMachineDocument(with: url)
 	}
 
 	func updateStateVirtualMachineDocument(with document: VirtualMachineDocument) {
-		self.navigationModel.updateStateVirtualMachineDocument(with: document)
+		DispatchQueue.main.async {
+			self.navigationModel.updateStateVirtualMachineDocument(with: document)
+		}
 	}
 
 	@MainActor func openVirtualMachine(_ vmURL: URL) async {
