@@ -433,6 +433,15 @@ extension NSCursor {
 		let height = cgImage.height
 		let bytesPerPixel = 4
 
+		// Ensure we have proper RGBA format, convert if needed
+		if cgImage.bitsPerComponent == 8 && cgImage.bitsPerPixel == 32 {
+			guard let dataProvider = cgImage.dataProvider, let data = dataProvider.data else {
+				return nil
+			}
+
+			return Data(bytes: CFDataGetBytePtr(data), count: CFDataGetLength(data))
+		}
+
 		// Create RGBA buffer from image
 		var rgbaPixels = Data(count: width * height * bytesPerPixel)
 
@@ -449,8 +458,6 @@ extension NSCursor {
 				return false
 			}
 
-			context.translateBy(x: 0, y: CGFloat(height))
-			context.scaleBy(x: 1, y: -1)
 			context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
 			return true
 		}
