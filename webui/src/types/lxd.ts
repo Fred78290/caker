@@ -120,6 +120,14 @@ export interface LXDCreateInstanceRequest {
   forwarded_ports?: string[]
 }
 
+export interface LXDPatchInstanceRequest {
+  architecture?: string
+  config?: Record<string, string>
+  devices?: Record<string, Record<string, string>>
+  description?: string
+  profiles?: string[]
+}
+
 // ---------------------------------------------------------------------------
 // Images
 // ---------------------------------------------------------------------------

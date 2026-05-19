@@ -27,6 +27,7 @@ struct LXDInstancesController: RouteCollection {
 		
 		let named = instances.grouped(":name")
 		named.get(use: getInstance)
+		named.patch(use: patchInstance)
 		named.delete(use: deleteInstance)
 		let logs = named.grouped("logs")
 		logs.get(use: getLogs)
@@ -174,6 +175,11 @@ struct LXDInstancesController: RouteCollection {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing instance name", code: 400)
 				.encodeResponse(status: .badRequest, for: req)
 		}
+
+		guard let location = try? StorageLocation(runMode: runMode).find(name) else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' not found", code: 404)
+				.encodeResponse(status: .notFound, for: req)
+		}
 		
 		let reply = CakedLib.ListHandler.list(vmonly: true, includeConfig: false, runMode: runMode)
 		
@@ -182,9 +188,127 @@ struct LXDInstancesController: RouteCollection {
 				.encodeResponse(status: .notFound, for: req)
 		}
 		
-		let instance = LXDInstance.from(info)
+		var instance = LXDInstance.from(info)
+
+		if let config = try? location.config() {
+			let memoryMB = max(1, config.memorySize / MoB)
+			let diskGB = max(1, config.diskSize / GoB)
+
+			var lxdConfig = instance.config
+			lxdConfig["limits.cpu"] = String(config.cpuCount)
+			lxdConfig["limits.memory"] = "\(memoryMB)MB"
+			lxdConfig["limits.disk"] = "\(diskGB)GB"
+			lxdConfig["boot.autostart"] = String(config.autostart)
+			lxdConfig["security.nesting"] = String(config.nested)
+			lxdConfig["user.caker.suspendable"] = String(config.suspendable)
+			lxdConfig["user.caker.dynamic_port_forwarding"] = String(config.dynamicPortForwarding)
+
+			if let console = config.console, console.isEmpty == false {
+				lxdConfig["user.caker.enable_console"] = "true"
+			}
+
+			var devices: [String: [String: String]] = [:]
+			for (index, network) in config.networks.enumerated() {
+				var nic: [String: String] = [
+					"type": "nic",
+					"name": "eth\(index)",
+					"network": network.network,
+				]
+
+				if let mode = network.mode {
+					nic["mode"] = mode.description
+				}
+
+				if let macAddress = network.macAddress, macAddress.isEmpty == false {
+					nic["mac"] = macAddress
+				}
+
+				devices["eth\(index)"] = nic
+			}
+
+			devices["root"] = [
+				"type": "disk",
+				"path": "/",
+				"size": "\(diskGB)GB",
+			]
+
+			instance.config = lxdConfig
+			instance.expandedConfig = lxdConfig
+			instance.expandedDevices = devices
+		}
 		
 		return try await LXDResponse<LXDInstance>.sync(instance).encodeResponse(for: req)
+	}
+
+	// PATCH /1.0/instances/:name
+	@Sendable
+	func patchInstance(req: Request) async throws -> Response {
+		guard let name = req.parameters.get("name") else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing instance name", code: 400)
+				.encodeResponse(status: .badRequest, for: req)
+		}
+
+		guard (try? StorageLocation(runMode: runMode).find(name)) != nil else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' not found", code: 404)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
+		let body = try req.content.decode(LXDPatchInstanceRequest.self)
+		guard body.hasSupportedUpdates else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(
+				message: "Unsupported or empty PATCH payload. Supported fields: config(limits.*, boot.autostart, security.nesting, user.caker.*), devices (nic + root disk size).",
+				code: 400
+			).encodeResponse(status: .badRequest, for: req)
+		}
+
+		var options = ConfigureOptions(name: name)
+
+		if let cpu = body.cpuCount {
+			options.cpu = cpu
+		}
+
+		if let memory = body.memoryMB {
+			options.memory = max(256, memory)
+		}
+
+		if let disk = body.diskGB {
+			options.diskSize = max(1, disk)
+		}
+
+		if let autostart = body.autostart {
+			options.autostart = autostart
+		}
+
+		if let nested = body.nested {
+			options.nested = nested
+		}
+
+		if let suspendable = body.suspendable {
+			options.suspendable = suspendable
+		}
+
+		if let dynamicPortForwarding = body.dynamicPortForwarding {
+			options.dynamicPortForwarding = dynamicPortForwarding
+		}
+
+		if body.hasDevicesUpdate {
+			options.setNetwork(value: body.networkAttachments.map(\.description))
+		}
+
+		let operation = await LXDOperationStore.shared.create(
+			description: "Patching instance \(name)",
+			resources: ["instances": ["/1.0/instances/\(name)"]]
+		)
+
+		let opID = operation.id
+		let rm = runMode
+
+		Task.detached {
+			let result = CakedLib.ConfigureHandler.configure(name: name, options: options, runMode: rm)
+			await LXDOperationStore.shared.complete(id: opID, success: result.configured, error: result.reason)
+		}
+
+		return try await LXDAsyncResponse.make(operation: operation).encodeResponse(status: .accepted, for: req)
 	}
 	
 	// DELETE /1.0/instances/:name
@@ -325,11 +449,6 @@ struct LXDInstancesController: RouteCollection {
 			}
 
 			return nil
-		}
-
-		guard logs.isEmpty == false else {
-			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' does not expose logs", code: 404)
-				.encodeResponse(status: .notFound, for: req)
 		}
 
 		return try await LXDResponse<LXDStringListMetadata>.syncList(logs).encodeResponse(for: req)

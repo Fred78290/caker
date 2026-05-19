@@ -4,6 +4,7 @@ import type {
     LXDInstance,
     LXDInstanceState,
     LXDOperation,
+    LXDPatchInstanceRequest,
     LXDResponse,
 } from '../types/lxd';
 import client from './client';
@@ -22,6 +23,9 @@ export const createInstance = (body: LXDCreateInstanceRequest) =>
 
 export const deleteInstance = (name: string) =>
   client.delete<LXDResponse<LXDOperation>>(`/1.0/instances/${name}`)
+
+export const patchInstance = (name: string, body: LXDPatchInstanceRequest) =>
+  client.patch<LXDResponse<LXDOperation>>(`/1.0/instances/${name}`, body)
 
 export const changeInstanceState = (
   name: string,

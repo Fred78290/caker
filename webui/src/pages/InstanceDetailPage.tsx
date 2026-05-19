@@ -1,18 +1,35 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { changeInstanceState, consoleInstance, deleteInstance, execInstance, getInstance, getInstanceLogFile, getInstanceLogs, getInstanceState } from '../api/instances';
+import { changeInstanceState, consoleInstance, deleteInstance, execInstance, getInstance, getInstanceLogFile, getInstanceLogs, getInstanceState, patchInstance } from '../api/instances';
+import { listNetworks } from '../api/networks';
 import { PageSpinner } from '../components/Spinner';
 import { StatusBadge } from '../components/StatusBadge';
 import { TerminalConsole } from '../components/TerminalConsole';
 import { VGAConsole } from '../components/VGAConsole';
-import type { LXDInstance, LXDInstanceState } from '../types/lxd';
+import type { LXDInstance, LXDInstanceState, LXDNetwork, LXDPatchInstanceRequest } from '../types/lxd';
 import { eventBus } from '../utils/eventBus';
 
-type ActiveTab = 'overview' | 'terminal' | 'vga' | 'logs'
+type ActiveTab = 'overview' | 'terminal' | 'vga' | 'logs' | 'settings'
 
 interface ConsoleSession {
   operationId: string
   fds: Record<string, string>
+}
+
+interface NetworkDeviceEditor {
+  device: string
+  network: string
+}
+
+interface SettingsFormState {
+  cpu: string
+  memoryMB: string
+  diskGB: string
+  autostart: boolean
+  nested: boolean
+  suspendable: boolean
+  dynamicPortForwarding: boolean
+  networks: NetworkDeviceEditor[]
 }
 
 // ─── Overview panel ──────────────────────────────────────────────────────────
@@ -26,6 +43,32 @@ function OverviewPanel({ instance, state }: { instance: LXDInstance; state: LXDI
 
   const pct = (used: number, total: number) =>
     total > 0 ? Math.round((used / total) * 100) : 0
+
+  const knownConfigLabels: Record<string, string> = {
+    'limits.cpu': 'CPU limit',
+    'limits.memory': 'Memory limit',
+    'limits.disk': 'Disk limit',
+    'boot.autostart': 'Autostart',
+    'security.nesting': 'Nested virtualization',
+    'user.caker.suspendable': 'Suspendable mode',
+    'user.caker.dynamic_port_forwarding': 'Dynamic port forwarding',
+    'user.caker.enable_console': 'Console enabled',
+  }
+
+  const humanizeConfigKey = (key: string) => {
+    const mapped = knownConfigLabels[key]
+    if (mapped) return mapped
+
+    return key
+      .split(/[._-]+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ')
+  }
+
+  const sortedConfigEntries = Object.entries(instance.config ?? {}).sort(([a], [b]) =>
+    a.localeCompare(b),
+  )
 
   return (
     <div className="row g-4 p-4">
@@ -147,7 +190,7 @@ function OverviewPanel({ instance, state }: { instance: LXDInstance; state: LXDI
       )}
 
       {/* Config */}
-      {Object.keys(instance.config ?? {}).length > 0 && (
+      {sortedConfigEntries.length > 0 && (
         <div className="col-12">
           <div className="card border-0 shadow-sm">
             <div className="card-header bg-transparent fw-semibold">
@@ -163,9 +206,12 @@ function OverviewPanel({ instance, state }: { instance: LXDInstance; state: LXDI
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.entries(instance.config).map(([k, v]) => (
+                  {sortedConfigEntries.map(([k, v]) => (
                     <tr key={k}>
-                      <td><code className="small">{k}</code></td>
+                      <td>
+                        <div className="fw-medium">{humanizeConfigKey(k)}</div>
+                        <code className="small text-muted">{k}</code>
+                      </td>
                       <td><code className="small">{v}</code></td>
                     </tr>
                   ))}
@@ -197,6 +243,40 @@ function ConsoleLoading() {
       <span className="text-muted">Opening session…</span>
     </div>
   )
+}
+
+function parsePositiveInt(value: string): number | null {
+  const parsed = Number.parseInt(value, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
+function parseLimitValue(raw: string | undefined, defaultValue: number): string {
+  if (!raw) return String(defaultValue)
+  const parsed = Number.parseInt(raw, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? String(parsed) : String(defaultValue)
+}
+
+function parseBooleanConfig(raw: string | undefined, defaultValue = false): boolean {
+  if (!raw) return defaultValue
+  const normalized = raw.trim().toLowerCase()
+  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true
+  if (['0', 'false', 'no', 'off'].includes(normalized)) return false
+  return defaultValue
+}
+
+function buildDefaultDeviceName(index: number): string {
+  return `eth${index}`
+}
+
+function extractNetworksFromDevices(devices: Record<string, Record<string, string>>): NetworkDeviceEditor[] {
+  const entries = Object.entries(devices)
+    .filter(([, spec]) => (spec.type || '').toLowerCase() === 'nic' && !!spec.network)
+    .map(([deviceName, spec], index) => ({
+      device: spec.name || deviceName || buildDefaultDeviceName(index),
+      network: spec.network,
+    }))
+
+  return entries.sort((a, b) => a.device.localeCompare(b.device))
 }
 
 // ─── Logs panel ───────────────────────────────────────────────────────────────
@@ -307,6 +387,24 @@ export function InstanceDetailPage() {
 
   // Busy state for start/stop
   const [actionBusy, setActionBusy] = useState<string | null>(null)
+
+  // Editable settings state
+  const [settingsForm, setSettingsForm] = useState<SettingsFormState>({
+    cpu: '2',
+    memoryMB: '2048',
+    diskGB: '20',
+    autostart: false,
+    nested: false,
+    suspendable: false,
+    dynamicPortForwarding: false,
+    networks: [],
+  })
+  const [settingsBusy, setSettingsBusy] = useState(false)
+  const [settingsError, setSettingsError] = useState<string | null>(null)
+  const [settingsSuccess, setSettingsSuccess] = useState<string | null>(null)
+  const [availableNetworks, setAvailableNetworks] = useState<LXDNetwork[]>([])
+  const [selectedNetwork, setSelectedNetwork] = useState('')
+  const [loadingNetworks, setLoadingNetworks] = useState(false)
 
   // Track which sessions have been requested to avoid duplicate calls.
   const termRequested = useRef(false)
@@ -430,6 +528,131 @@ export function InstanceDetailPage() {
     }
   }
 
+  const refreshInstanceData = useCallback(async () => {
+    if (!name) return
+    const [instanceRes, stateRes] = await Promise.all([
+      getInstance(name),
+      getInstanceState(name).catch(() => null),
+    ])
+    setInstance(instanceRes.data.metadata)
+    setState(stateRes?.data.metadata ?? null)
+  }, [name])
+
+  useEffect(() => {
+    if (!instance) return
+
+    const extractedNetworks = extractNetworksFromDevices(instance.expanded_devices ?? {})
+    setSettingsForm({
+      cpu: parseLimitValue(instance.config?.['limits.cpu'], 2),
+      memoryMB: parseLimitValue(instance.config?.['limits.memory'], 2048),
+      diskGB: parseLimitValue(instance.config?.['limits.disk'], 20),
+      autostart: parseBooleanConfig(instance.config?.['boot.autostart']),
+      nested: parseBooleanConfig(instance.config?.['security.nesting']),
+      suspendable: parseBooleanConfig(instance.config?.['user.caker.suspendable']),
+      dynamicPortForwarding: parseBooleanConfig(instance.config?.['user.caker.dynamic_port_forwarding']),
+      networks: extractedNetworks,
+    })
+  }, [instance])
+
+  const loadAvailableNetworks = useCallback(async () => {
+    setLoadingNetworks(true)
+    try {
+      const res = await listNetworks()
+      const items = res.data.metadata ?? []
+      setAvailableNetworks(items)
+      setSelectedNetwork((prev) => prev || items[0]?.name || '')
+    } catch {
+      setAvailableNetworks([])
+    } finally {
+      setLoadingNetworks(false)
+    }
+  }, [])
+
+  const addNetworkInterface = useCallback(() => {
+    if (!selectedNetwork) return
+    setSettingsForm((prev) => ({
+      ...prev,
+      networks: [
+        ...prev.networks,
+        {
+          device: buildDefaultDeviceName(prev.networks.length),
+          network: selectedNetwork,
+        },
+      ],
+    }))
+  }, [selectedNetwork])
+
+  const removeNetworkInterface = useCallback((index: number) => {
+    setSettingsForm((prev) => {
+      const next = prev.networks.filter((_, i) => i !== index)
+      return {
+        ...prev,
+        networks: next.map((item, i) => ({
+          ...item,
+          device: item.device || buildDefaultDeviceName(i),
+        })),
+      }
+    })
+  }, [])
+
+  const saveSettings = useCallback(async () => {
+    if (!instance) return
+
+    const cpuValue = parsePositiveInt(settingsForm.cpu)
+    const memoryValue = parsePositiveInt(settingsForm.memoryMB)
+    const diskValue = parsePositiveInt(settingsForm.diskGB)
+
+    if (!cpuValue || !memoryValue || !diskValue) {
+      setSettingsError('CPU, memory, and disk size must be positive numbers.')
+      return
+    }
+
+    setSettingsBusy(true)
+    setSettingsError(null)
+    setSettingsSuccess(null)
+
+    try {
+      const devices = settingsForm.networks.reduce<Record<string, Record<string, string>>>((acc, item, idx) => {
+        const deviceName = item.device.trim() || buildDefaultDeviceName(idx)
+        if (item.network.trim()) {
+          acc[deviceName] = {
+            type: 'nic',
+            name: deviceName,
+            network: item.network.trim(),
+          }
+        }
+        return acc
+      }, {})
+
+      devices.root = {
+        type: 'disk',
+        path: '/',
+        size: `${diskValue}GB`,
+      }
+
+      const payload: LXDPatchInstanceRequest = {
+        config: {
+          'limits.cpu': String(cpuValue),
+          'limits.memory': `${memoryValue}MB`,
+          'limits.disk': `${diskValue}GB`,
+          'boot.autostart': String(settingsForm.autostart),
+          'security.nesting': String(settingsForm.nested),
+          'user.caker.suspendable': String(settingsForm.suspendable),
+          'user.caker.dynamic_port_forwarding': String(settingsForm.dynamicPortForwarding),
+        },
+        devices,
+      }
+
+      await patchInstance(instance.name, payload)
+      await refreshInstanceData()
+      setSettingsSuccess('Settings updated successfully.')
+    } catch (e) {
+      setSettingsError(String(e))
+    } finally {
+      setSettingsBusy(false)
+    }
+  }, [instance, refreshInstanceData, settingsForm])
+
   // ── Open terminal session ──────────────────────────────────────────────────
   const openTerminal = useCallback(async () => {
     if (!name || termRequested.current || termSession) return
@@ -519,7 +742,21 @@ export function InstanceDetailPage() {
     if (activeTab === 'terminal' && isRunning && !termSession) openTerminal()
     if (activeTab === 'vga' && isRunning && !vgaSession) openVGA()
     if (activeTab === 'logs' && logs.length === 0 && !logsLoading) loadLogs()
-  }, [activeTab, isRunning, termSession, vgaSession, logs.length, logsLoading, openTerminal, openVGA, loadLogs])
+    if (activeTab === 'settings' && availableNetworks.length === 0 && !loadingNetworks) loadAvailableNetworks()
+  }, [
+    activeTab,
+    isRunning,
+    termSession,
+    vgaSession,
+    logs.length,
+    logsLoading,
+    availableNetworks.length,
+    loadingNetworks,
+    openTerminal,
+    openVGA,
+    loadLogs,
+    loadAvailableNetworks,
+  ])
 
   useEffect(() => {
     if (activeTab !== 'vga') {
@@ -646,6 +883,12 @@ export function InstanceDetailPage() {
               Logs
             </button>
           </li>
+          <li className="nav-item">
+            <button className={tabClass('settings')} onClick={() => setActiveTab('settings')}>
+              <i className="bi bi-sliders me-1" />
+              Settings
+            </button>
+          </li>
         </ul>
       </div>
 
@@ -758,6 +1001,197 @@ export function InstanceDetailPage() {
               />
             </div>
           )}
+        </div>
+
+        {/* Settings */}
+        <div
+          style={{ display: activeTab === 'settings' ? 'block' : 'none', height: '100%', overflowY: 'auto' }}
+        >
+          <div className="p-4" style={{ maxWidth: 980 }}>
+            <div className="card border-0 shadow-sm">
+              <div className="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <span className="fw-semibold">
+                  <i className="bi bi-sliders me-2 text-primary" />
+                  VM settings
+                </span>
+                <button className="btn btn-primary btn-sm" disabled={settingsBusy} onClick={saveSettings}>
+                  {settingsBusy ? (
+                    <span className="spinner-border spinner-border-sm" />
+                  ) : (
+                    <><i className="bi bi-check2 me-1" />Save changes</>
+                  )}
+                </button>
+              </div>
+              <div className="card-body">
+                {settingsError && (
+                  <div className="alert alert-danger d-flex align-items-center gap-2">
+                    <i className="bi bi-exclamation-triangle-fill" />
+                    {settingsError}
+                  </div>
+                )}
+                {settingsSuccess && (
+                  <div className="alert alert-success d-flex align-items-center gap-2">
+                    <i className="bi bi-check-circle-fill" />
+                    {settingsSuccess}
+                  </div>
+                )}
+
+                <div className="row g-3">
+                  <div className="col-md-4">
+                    <label className="form-label fw-medium">CPU</label>
+                    <input
+                      type="number"
+                      min={1}
+                      className="form-control"
+                      value={settingsForm.cpu}
+                      onChange={(e) => setSettingsForm((prev) => ({ ...prev, cpu: e.target.value }))}
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label fw-medium">Memory (MB)</label>
+                    <input
+                      type="number"
+                      min={256}
+                      step={256}
+                      className="form-control"
+                      value={settingsForm.memoryMB}
+                      onChange={(e) => setSettingsForm((prev) => ({ ...prev, memoryMB: e.target.value }))}
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label fw-medium">Disk (GB)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      className="form-control"
+                      value={settingsForm.diskGB}
+                      onChange={(e) => setSettingsForm((prev) => ({ ...prev, diskGB: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <hr />
+
+                <div className="row g-3">
+                  <div className="col-12 col-lg-6">
+                    <div className="form-check form-switch mb-2">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="settings-autostart"
+                        checked={settingsForm.autostart}
+                        onChange={(e) => setSettingsForm((prev) => ({ ...prev, autostart: e.target.checked }))}
+                      />
+                      <label className="form-check-label" htmlFor="settings-autostart">Autostart</label>
+                    </div>
+                    <div className="form-check form-switch mb-2">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="settings-nested"
+                        checked={settingsForm.nested}
+                        onChange={(e) => setSettingsForm((prev) => ({ ...prev, nested: e.target.checked }))}
+                      />
+                      <label className="form-check-label" htmlFor="settings-nested">Nested virtualization</label>
+                    </div>
+                    <div className="form-check form-switch mb-2">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="settings-suspendable"
+                        checked={settingsForm.suspendable}
+                        onChange={(e) => setSettingsForm((prev) => ({ ...prev, suspendable: e.target.checked }))}
+                      />
+                      <label className="form-check-label" htmlFor="settings-suspendable">Suspendable mode</label>
+                    </div>
+                    <div className="form-check form-switch">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="settings-dpf"
+                        checked={settingsForm.dynamicPortForwarding}
+                        onChange={(e) => setSettingsForm((prev) => ({ ...prev, dynamicPortForwarding: e.target.checked }))}
+                      />
+                      <label className="form-check-label" htmlFor="settings-dpf">Dynamic port forwarding</label>
+                    </div>
+                  </div>
+                </div>
+
+                <hr />
+
+                <div>
+                  <label className="form-label fw-medium">Network interfaces</label>
+                  <div className="d-flex gap-2 mb-2">
+                    <select
+                      className="form-select form-select-sm"
+                      value={selectedNetwork}
+                      onChange={(e) => setSelectedNetwork(e.target.value)}
+                      disabled={loadingNetworks || availableNetworks.length === 0}
+                      style={{ maxWidth: 280 }}
+                    >
+                      {availableNetworks.map((network) => (
+                        <option key={network.name} value={network.name}>{network.name}</option>
+                      ))}
+                    </select>
+                    <button className="btn btn-outline-primary btn-sm" onClick={addNetworkInterface} disabled={!selectedNetwork}>
+                      <i className="bi bi-plus-circle me-1" />Add interface
+                    </button>
+                  </div>
+
+                  {settingsForm.networks.length === 0 ? (
+                    <p className="text-muted small mb-0">No network interface configured.</p>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table table-sm align-middle mb-0">
+                        <thead className="table-light">
+                          <tr>
+                            <th style={{ width: '35%' }}>Device</th>
+                            <th style={{ width: '50%' }}>Network</th>
+                            <th style={{ width: '15%' }} />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {settingsForm.networks.map((item, idx) => (
+                            <tr key={`${item.device}-${idx}`}>
+                              <td>
+                                <input
+                                  className="form-control form-control-sm"
+                                  value={item.device}
+                                  onChange={(e) => setSettingsForm((prev) => ({
+                                    ...prev,
+                                    networks: prev.networks.map((network, i) => i === idx ? { ...network, device: e.target.value } : network),
+                                  }))}
+                                />
+                              </td>
+                              <td>
+                                <select
+                                  className="form-select form-select-sm"
+                                  value={item.network}
+                                  onChange={(e) => setSettingsForm((prev) => ({
+                                    ...prev,
+                                    networks: prev.networks.map((network, i) => i === idx ? { ...network, network: e.target.value } : network),
+                                  }))}
+                                >
+                                  {availableNetworks.map((network) => (
+                                    <option key={network.name} value={network.name}>{network.name}</option>
+                                  ))}
+                                </select>
+                              </td>
+                              <td className="text-end">
+                                <button className="btn btn-outline-danger btn-sm" onClick={() => removeNetworkInterface(idx)}>
+                                  <i className="bi bi-trash" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

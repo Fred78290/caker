@@ -610,6 +610,174 @@ struct LXDCreateInstanceRequest: Content {
 	}
 }
 
+/// Body for PATCH /1.0/instances/{name} (subset of the LXD API).
+struct LXDPatchInstanceRequest: Content {
+	var architecture: String?
+	var config: [String: String]?
+	var devices: [String: [String: String]]?
+	var description: String?
+	var profiles: [String]?
+
+	enum CodingKeys: String, CodingKey {
+		case architecture, config, devices, description, profiles
+	}
+
+	private func trimmedConfigValue(_ key: String) -> String? {
+		guard let raw = config?[key]?.trimmingCharacters(in: .whitespacesAndNewlines), raw.isEmpty == false else {
+			return nil
+		}
+
+		return raw
+	}
+
+	private func parseBool(_ key: String) -> Bool? {
+		guard let raw = trimmedConfigValue(key)?.lowercased() else {
+			return nil
+		}
+
+		if ["1", "true", "yes", "on"].contains(raw) {
+			return true
+		}
+
+		if ["0", "false", "no", "off"].contains(raw) {
+			return false
+		}
+
+		return nil
+	}
+
+	private func parseMemoryMB(_ raw: String) -> UInt64? {
+		let normalized = raw.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+		let digits = normalized.prefix(while: { $0.isNumber })
+
+		guard let value = UInt64(digits), value > 0 else {
+			return nil
+		}
+
+		if normalized.hasSuffix("GIB") || normalized.hasSuffix("GB") {
+			return value * 1024
+		}
+
+		if normalized.hasSuffix("MIB") || normalized.hasSuffix("MB") || normalized == String(digits) {
+			return value
+		}
+
+		return nil
+	}
+
+	private func parseDiskGB(_ raw: String) -> UInt64? {
+		let normalized = raw.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+		let digits = normalized.prefix(while: { $0.isNumber })
+
+		guard let value = UInt64(digits), value > 0 else {
+			return nil
+		}
+
+		if normalized.hasSuffix("MIB") || normalized.hasSuffix("MB") {
+			let gb = value / 1024
+			return max(1, gb)
+		}
+
+		if normalized.hasSuffix("GIB") || normalized.hasSuffix("GB") || normalized == String(digits) {
+			return value
+		}
+
+		return nil
+	}
+
+	var cpuCount: UInt16? {
+		guard let raw = trimmedConfigValue("limits.cpu"), let value = UInt16(raw), value > 0 else {
+			return nil
+		}
+
+		return value
+	}
+
+	var memoryMB: UInt64? {
+		guard let raw = trimmedConfigValue("limits.memory") else {
+			return nil
+		}
+
+		return parseMemoryMB(raw)
+	}
+
+	var diskGB: UInt64? {
+		if let raw = trimmedConfigValue("limits.disk"), let parsed = parseDiskGB(raw) {
+			return parsed
+		}
+
+		guard let devices else {
+			return nil
+		}
+
+		for values in devices.values {
+			let type = values["type"]?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+			let path = values["path"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+			guard type == "disk", path == "/", let size = values["size"], let parsed = parseDiskGB(size) else {
+				continue
+			}
+
+			return parsed
+		}
+
+		return nil
+	}
+
+	var autostart: Bool? {
+		parseBool("boot.autostart")
+	}
+
+	var nested: Bool? {
+		parseBool("security.nesting")
+	}
+
+	var suspendable: Bool? {
+		parseBool("user.caker.suspendable")
+	}
+
+	var dynamicPortForwarding: Bool? {
+		parseBool("user.caker.dynamic_port_forwarding")
+	}
+
+	var hasDevicesUpdate: Bool {
+		devices != nil
+	}
+
+	/// Network attachments derived from LXD `devices` entries.
+	/// Only entries with `type = nic` and a non-empty `network` are mapped.
+	var networkAttachments: [BridgeAttachement] {
+		guard let devices else {
+			return []
+		}
+
+		return devices
+			.sorted(by: { $0.key < $1.key })
+			.compactMap { _, values in
+				let type = values["type"]?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+				guard type == "nic" else { return nil }
+
+				let network = values["network"]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+				guard network.isEmpty == false else { return nil }
+
+				let mode = values["mode"].flatMap { NetworkMode(argument: $0) }
+				let macAddress = values["mac"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+				return BridgeAttachement(network: network, mode: mode, macAddress: macAddress?.isEmpty == false ? macAddress : nil)
+			}
+	}
+
+	var hasSupportedUpdates: Bool {
+		cpuCount != nil ||
+		memoryMB != nil ||
+		diskGB != nil ||
+		autostart != nil ||
+		nested != nil ||
+		suspendable != nil ||
+		dynamicPortForwarding != nil ||
+		hasDevicesUpdate
+	}
+}
+
 // MARK: - State Change Request
 
 struct LXDStateChangeRequest: Content {
