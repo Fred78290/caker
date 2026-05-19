@@ -312,8 +312,8 @@ extension UTType {
 	deinit {
 		self.logger.debug("Release document: \(self.url)")
 		self.stopAgentMonitoring()
-		
-		MainApp.app?.removeStateVirtualMachineDocument(with: self)
+
+		MainApp.app?.removeStateVirtualMachineDocument(with: self.url)
 
 		if let monitor = self.monitor {
 			monitor.stop()
@@ -343,7 +343,7 @@ extension UTType {
 		case .paused:
 			self.status = .paused
 		}
-		
+
 		MainApp.app?.addStateVirtualMachineDocument(with: self)
 
 		try monitor?.start()
@@ -368,6 +368,8 @@ extension UTType {
 		self.memoryInfos = MemoryInfo(from: config)
 		self.setDocumentSize(.init(self.virtualMachineConfig.display.cgSize))
 		self.updateCurrentStatus(status, suspendable: config.suspendable, vncURL: vncURL?.compactMap { URL(string: $0) })
+
+		MainApp.app?.addStateVirtualMachineDocument(with: self)
 	}
 	
 	static func anyVirtualMachineDocument() throws -> VirtualMachineDocument {
