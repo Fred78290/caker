@@ -312,8 +312,8 @@ extension UTType {
 	deinit {
 		self.logger.debug("Release document: \(self.url)")
 		self.stopAgentMonitoring()
-		
-		MainApp.app?.removeStateVirtualMachineDocument(with: self)
+
+		MainApp.app?.removeStateVirtualMachineDocument(with: self.url)
 
 		if let monitor = self.monitor {
 			monitor.stop()
@@ -343,7 +343,7 @@ extension UTType {
 		case .paused:
 			self.status = .paused
 		}
-		
+
 		MainApp.app?.addStateVirtualMachineDocument(with: self)
 
 		try monitor?.start()
