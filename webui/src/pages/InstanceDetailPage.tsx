@@ -5,7 +5,7 @@ import { listNetworks } from '../api/networks';
 import { PageSpinner } from '../components/Spinner';
 import { StatusBadge } from '../components/StatusBadge';
 import { TerminalConsole } from '../components/TerminalConsole';
-import { VGAConsole } from '../components/VGAConsole';
+import { VGAConsole, VGAConsoleHandle } from '../components/VGAConsole';
 import type { LXDInstance, LXDInstanceState, LXDNetwork, LXDPatchInstanceRequest } from '../types/lxd';
 import { eventBus } from '../utils/eventBus';
 
@@ -410,6 +410,7 @@ export function InstanceDetailPage() {
   const termRequested = useRef(false)
   const vgaRequested = useRef(false)
   const logsRequested = useRef(false)
+  const vgaConsoleRef = useRef<VGAConsoleHandle>(null)
 
   // ── Load instance info ─────────────────────────────────────────────────────
   // Rafraîchissement initial et sur changement de nom
@@ -957,15 +958,28 @@ export function InstanceDetailPage() {
               </button>
             </div>
           ) : vgaSession ? (
-            <div style={{ flex: 1, minHeight: 0, padding: 12 }}>
-              {activeTab === 'vga' ? (
-                <VGAConsole
-                  operationId={vgaSession.operationId}
-                  fds={vgaSession.fds}
-                  onDisconnected={handleVGADisconnected}
-                />
-              ) : null}
-            </div>
+            <>
+              <div className="d-flex justify-content-end align-items-center" style={{ padding: '0 12px 8px 12px' }}>
+                <button
+                  className="btn btn-outline-secondary rounded-circle shadow"
+                  style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  title="Plein écran"
+                  onClick={() => vgaConsoleRef.current?.toggleFullScreen()}
+                >
+                  <i className="bi bi-arrows-fullscreen fs-5" />
+                </button>
+              </div>
+              <div style={{ flex: 1, minHeight: 0, padding: 12 }}>
+                {activeTab === 'vga' ? (
+                  <VGAConsole
+                    ref={vgaConsoleRef}
+                    operationId={vgaSession.operationId}
+                    fds={vgaSession.fds}
+                    onDisconnected={handleVGADisconnected}
+                  />
+                ) : null}
+              </div>
+            </>
           ) : null}
         </div>
 
