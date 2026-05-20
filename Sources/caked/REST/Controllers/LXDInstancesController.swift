@@ -291,7 +291,7 @@ struct LXDInstancesController: RouteCollection {
 			options.dynamicPortForwarding = dynamicPortForwarding
 		}
 
-		if body.hasDevicesUpdate {
+		if body.hasNICDevicesUpdate {
 			options.setNetwork(value: body.networkAttachments.map(\.description))
 		}
 

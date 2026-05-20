@@ -743,6 +743,14 @@ struct LXDPatchInstanceRequest: Content {
 		devices != nil
 	}
 
+	/// True when the devices map contains at least one valid NIC entry (type=nic + non-empty network).
+	/// Used to determine whether to apply a network-attachments update to the VM config.
+	/// A devices map that contains only non-NIC entries (e.g. a root disk) must NOT clear the
+	/// existing NIC list — the disk size is already parsed via `diskGB`.
+	var hasNICDevicesUpdate: Bool {
+		networkAttachments.isEmpty == false
+	}
+
 	/// Network attachments derived from LXD `devices` entries.
 	/// Only entries with `type = nic` and a non-empty `network` are mapped.
 	var networkAttachments: [BridgeAttachement] {

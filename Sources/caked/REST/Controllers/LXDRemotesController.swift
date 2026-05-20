@@ -71,8 +71,8 @@ struct LXDRemotesController: RouteCollection {
 				.encodeResponse(status: .badRequest, for: req)
 		}
 
-		let targetName = (trimmedName?.isEmpty == false ? trimmedName! : existing.name)
-		let targetURLString = (trimmedURL?.isEmpty == false ? trimmedURL! : existing.url)
+		let targetName = trimmedName.flatMap { $0.isEmpty ? nil : $0 } ?? existing.name
+		let targetURLString = trimmedURL.flatMap { $0.isEmpty ? nil : $0 } ?? existing.url
 
 		guard let targetURL = URL(string: targetURLString) else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Invalid remote URL", code: 400)
