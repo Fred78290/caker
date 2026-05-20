@@ -1,14 +1,11 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore – @novnc/novnc ships JS without bundled TS types; types are provided inline.
-import RFB from '@novnc/novnc';
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
+import { VncScreen, VncScreenHandle } from 'react-vnc';
 import { operationWsUrl } from '../utils/websocket';
 
 interface Props {
   operationId: string
   fds: Record<string, string>
   onDisconnected?: () => void
-  forwardedRef?: React.Ref<VGAConsoleHandle>
 }
 
 export interface VGAConsoleHandle {
@@ -18,8 +15,25 @@ export interface VGAConsoleHandle {
 export const VGAConsole = forwardRef<VGAConsoleHandle, Props>(
   function VGAConsole({ operationId, fds, onDisconnected }, ref) {
     const containerRef = useRef<HTMLDivElement>(null)
+    const vncRef = useRef<VncScreenHandle>(null)
     const [status, setStatus] = useState<'connecting' | 'connected' | 'error'>('connecting')
     const [errorMsg, setErrorMsg] = useState('')
+    const isIntentionalDisconnect = useRef(false)
+
+    const url = operationWsUrl(operationId, fds['0'])
+    const vncPassword: string = fds['vnc-password'] ?? ''
+    const vncCredentials = vncPassword
+      ? { username: '', password: vncPassword, target: '' }
+      : undefined
+
+    // useLayoutEffect cleanups are synchronous and fire before any useEffect
+    // cleanup in the subtree, so the flag is set before VncScreen's disconnect.
+    useLayoutEffect(() => {
+      isIntentionalDisconnect.current = false
+      return () => {
+        isIntentionalDisconnect.current = true
+      }
+    }, [url])
 
     const toggleFullScreen = useCallback(() => {
       const el = containerRef.current
@@ -34,69 +48,9 @@ export const VGAConsole = forwardRef<VGAConsoleHandle, Props>(
 
     useImperativeHandle(ref, () => ({ toggleFullScreen }), [toggleFullScreen])
 
-    useEffect(() => {
-      const el = containerRef.current
-      if (!el) return
-
-      const url = operationWsUrl(operationId, fds['0'])
-      const vncPassword: string = fds['vnc-password'] ?? ''
-      let isIntentionalDisconnect = false
-
-      setStatus('connecting')
-      setErrorMsg('')
-
-      let rfb: InstanceType<typeof RFB>
-      try {
-        rfb = new RFB(el, url, {
-          ...(vncPassword ? { credentials: { password: vncPassword } } : {}),
-          wsProtocols: [],
-        }) as InstanceType<typeof RFB>
-
-        rfb.scaleViewport = true
-        rfb.resizeSession = true // Enable dynamic resizing
-        rfb.viewOnly = false
-        rfb.focusOnClick = true
-        rfb.showDotCursor = false // Affiche un curseur local si le serveur n’envoie rien
-
-        rfb.addEventListener('connect', () => {
-          setStatus('connected')
-          // Ensure keyboard is grabbed as soon as the session is connected.
-          window.setTimeout(() => rfb.focus(), 0)
-        })
-        rfb.addEventListener('disconnect', (e: CustomEvent) => {
-          if (isIntentionalDisconnect) return
-
-          const clean: boolean = (e as CustomEvent<{ clean: boolean }>).detail?.clean ?? false
-          if (!clean) {
-            setStatus('error')
-            setErrorMsg('VNC connection lost')
-            onDisconnected?.()
-          }
-        })
-        rfb.addEventListener('credentialsrequired', () => {
-          // If the server requires credentials but we have none, show error.
-          if (!vncPassword) {
-            setStatus('error')
-            setErrorMsg('VNC server requires a password but none was provided')
-            onDisconnected?.()
-            isIntentionalDisconnect = true
-            rfb.disconnect()
-          }
-        })
-      } catch (err) {
-        setStatus('error')
-        setErrorMsg(String(err))
-        return
-      }
-
-      return () => {
-        isIntentionalDisconnect = true
-        rfb.disconnect()
-      }
-    }, [operationId, fds])
-
     return (
-      <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000' }}>
+      <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%', background: '#000' }}>
+        {/* Status overlay */}
         <div
           style={{
             position: 'absolute',
@@ -123,11 +77,39 @@ export const VGAConsole = forwardRef<VGAConsoleHandle, Props>(
           {status === 'connecting' && <><div className="spinner-border text-primary" /><span>Connecting to VGA console…</span></>}
           {status === 'error' && <><i className="bi bi-exclamation-triangle fs-2" /><span>{errorMsg || 'VGA console error'}</span></>}
         </div>
-        {/* noVNC mounts its canvas here */}
-        <div
-          ref={containerRef}
-          tabIndex={0}
-          style={{ width: '100%', height: '100%', outline: 'none' }}
+        {/* key=url forces a full remount when the session changes */}
+        <VncScreen
+          key={url}
+          ref={vncRef}
+          url={url}
+          rfbOptions={vncCredentials ? { credentials: vncCredentials } : undefined}
+          scaleViewport={false}
+          resizeSession
+          viewOnly={false}
+          focusOnClick
+          showDotCursor={false}
+          style={{ width: '100%', height: '100%' }}
+          onConnect={() => {
+            setStatus('connected')
+            window.setTimeout(() => vncRef.current?.focus(), 0)
+          }}
+          onDisconnect={() => {
+            if (isIntentionalDisconnect.current) return
+            setStatus('error')
+            setErrorMsg('VNC connection lost')
+            onDisconnected?.()
+          }}
+          onCredentialsRequired={() => {
+            if (vncCredentials) {
+              vncRef.current?.sendCredentials(vncCredentials)
+            } else {
+              setStatus('error')
+              setErrorMsg('VNC server requires a password but none was provided')
+              onDisconnected?.()
+              isIntentionalDisconnect.current = true
+              vncRef.current?.disconnect()
+            }
+          }}
         />
       </div>
     )
