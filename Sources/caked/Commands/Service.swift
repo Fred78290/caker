@@ -222,19 +222,25 @@ extension Service {
 			}
 
 			let provider = try CakedProvider(group: eventLoopGroup, password: self.password, runMode: runMode)
-			let servers: [Server] = try listenAddress.map { address in
+			let servers = listenAddress.compactMap { address in
 				logger.info("Start listening on \(address)")
 
-				return try ServiceHandler.createServer(
-					eventLoopGroup: eventLoopGroup,
-					runMode: runMode,
-					listeningAddress: URL(string: address),
-					serviceProviders: [provider],
-					password: self.password,
-					caCert: self.options.caCert,
-					tlsCert: self.options.tlsCert,
-					tlsKey: self.options.tlsKey
-				).wait()
+				do {
+					return try ServiceHandler.createServer(
+						eventLoopGroup: eventLoopGroup,
+						runMode: runMode,
+						listeningAddress: URL(string: address),
+						serviceProviders: [provider],
+						password: self.password,
+						caCert: self.options.caCert,
+						tlsCert: self.options.tlsCert,
+						tlsKey: self.options.tlsKey
+					).wait()
+				} catch {
+					logger.error("Failed to start server on \(address): \(error)")
+				}
+
+				return nil
 			}
 
 			// Start LXD REST API server if enabled
@@ -263,7 +269,7 @@ extension Service {
 						try restServer?.start()
 						logger.info("LXD REST API listening on \(listen.hiddenPasswordURL)")
 					} catch {
-						logger.error("Failed to start LXD REST server: \(error.localizedDescription)")
+						logger.error("Failed to start LXD REST server: \(error)")
 					}
 				}
 			}
