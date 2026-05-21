@@ -727,8 +727,8 @@ extension VNCConnection {
 		let nameData = self.name.data(using: .utf8)!
 		let nameLength = UInt32(nameData.count).bigEndian
 
-		serverInit.framebufferWidth = UInt16(framebuffer.width).bigEndian
-		serverInit.framebufferHeight = UInt16(framebuffer.height).bigEndian
+		serverInit.framebufferWidth = framebuffer.viewSize.width.bigEndian
+		serverInit.framebufferHeight = framebuffer.viewSize.height.bigEndian
 		serverInit.pixelFormat = self.clientPixelFormat.bigEndian
 
 		try await self.sendDatas(serverInit)
@@ -953,10 +953,13 @@ extension VNCConnection {
 
 		// Send framebuffer update
 		let tile = self.framebuffer.pixelData.withLock {
-			VNCFramebuffer.VNCFramebufferTile(bounds: .init(x: 0, y: 0, width: self.framebuffer.width, height: self.framebuffer.height), pixels: $0, sha256: nil)
+			VNCFramebuffer.VNCFramebufferTile(bounds: .init(x: 0, y: 0, width: Int(self.framebuffer.viewSize.width), height: Int(self.framebuffer.viewSize.height)), pixels: $0, sha256: nil)
 		}
 
-		try await self.sendFramebufferUpdateThrowing(tiles: [tile], width: Int(tile.bounds.width), height: Int(tile.bounds.height), newSizePending: newSizePending)
+		let size = VNCSize(width: UInt16(tile.bounds.width), height: UInt16(tile.bounds.height))
+		let cursorPosition = VNCPoint(x: 0, y: 0)
+
+		try await self.sendFramebufferUpdateThrowing(tiles: [tile], size: size, cursorPosition: cursorPosition, newSizePending: newSizePending)
 	}
 
 	private func receiveFramebufferUpdateContinue() async throws {
@@ -1094,9 +1097,9 @@ extension VNCConnection {
 
 // MARK: - Send server message
 extension VNCConnection {
-	func sendNewFBSize(width: UInt16, height: UInt16) async throws {
+	func sendNewFBSize(size: VNCSize) async throws {
 		#if DEBUG
-			self.logger.debug("sendNewFBSize: \(width)x\(height)")
+			self.logger.debug("sendNewFBSize: \(size)")
 		#endif
 
 		var payload = VNCFramebufferUpdatePayload()
@@ -1107,16 +1110,16 @@ extension VNCConnection {
 
 		payload.rectangle.x = 0
 		payload.rectangle.y = 0
-		payload.rectangle.width = UInt16(width).bigEndian
-		payload.rectangle.height = UInt16(height).bigEndian
+		payload.rectangle.width = size.width.bigEndian
+		payload.rectangle.height = size.height.bigEndian
 		payload.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingNewFBSize.rawValue.bigEndian
 
 		try await self.sendDatas(payload)
 	}
 
-	private func sendExDesktopSize(width: UInt16, height: UInt16) async throws {
+	private func sendExDesktopSize(size: VNCSize) async throws {
 		#if DEBUG
-			self.logger.debug("sendExDesktopSize: \(width)x\(height)")
+			self.logger.debug("sendExDesktopSize: \(size)")
 		#endif
 
 		var payload = VNCFramebufferUpdatePayload()
@@ -1128,13 +1131,13 @@ extension VNCConnection {
 
 		payload.rectangle.x = 0
 		payload.rectangle.y = 0
-		payload.rectangle.width = UInt16(width).bigEndian
-		payload.rectangle.height = UInt16(height).bigEndian
+		payload.rectangle.width = size.width.bigEndian
+		payload.rectangle.height = size.height.bigEndian
 		payload.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingExtDesktopSize.rawValue.bigEndian
 
 		message.numOfScreens = 1
-		message.screen.height = height.bigEndian
-		message.screen.width = width.bigEndian
+		message.screen.height = size.height.bigEndian
+		message.screen.width = size.width.bigEndian
 
 		try await self.sendDatas(payload)
 		try await self.sendDatas(message)
@@ -1192,7 +1195,7 @@ extension VNCConnection {
 		}
 	}
 
-	func sendFramebufferUpdateThrowing(tiles: [VNCFramebuffer.VNCFramebufferTile], width: Int, height: Int, newSizePending: Bool) async throws {
+	func sendFramebufferUpdateThrowing(tiles: [VNCFramebuffer.VNCFramebufferTile], size: VNCSize, cursorPosition: VNCPoint?, newSizePending: Bool) async throws {
 		if isAuthenticated && self.connection.state == .ready {
 			var sendSupportedMessages = false
 			var sendSupportedEncodings = false
@@ -1209,18 +1212,26 @@ extension VNCConnection {
 			
 			if newSizePending && self.encodings.useNewFBSize {
 				if self.encodings.useExtDesktopSize {
-					try await sendExDesktopSize(width: UInt16(width), height: UInt16(height))
+					try await sendExDesktopSize(size: size)
 				} else {
-					try await sendNewFBSize(width: UInt16(width), height: UInt16(height))
+					try await sendNewFBSize(size: size)
 				}
 			}
 			
 			try await sendUpdateBuffer(tiles)
 
-			if self.encodings.cursorWasChanged, let cursor = self.framebuffer.cursor?.vncCursor {
-				try await self.sendCursorShapeUpdate(cursor: cursor)
+			if let cursorPosition, self.encodings.cursorWasMoved && self.encodings.enableCursorPosUpdates {
+				self.encodings.cursorWasMoved = false
+				try await self.sendCursorPositionUpdate(cursorPosition: cursorPosition)
 			}
-			
+
+			if self.encodings.cursorWasChanged, self.encodings.enableCursorShapeUpdates {
+				self.encodings.cursorWasChanged = false
+				if let cursor = self.framebuffer.cursor?.vncCursor {
+					try await self.sendCursorShapeUpdate(cursor: cursor)
+				}
+			}
+
 			if sendSupportedMessages {
 				try await self.sendSupportedMessages()
 			}
@@ -1244,6 +1255,23 @@ extension VNCConnection {
 			}
 		}
 	}
+
+	func sendCursorPositionUpdate(cursorPosition: VNCPoint) async throws {
+		var payload = VNCFramebufferUpdatePayload()
+
+		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+		payload.message.padding = 0
+		payload.message.numberOfRectangles = UInt16(1).bigEndian
+
+		payload.rectangle.x = cursorPosition.x.bigEndian
+		payload.rectangle.y = cursorPosition.y.bigEndian
+		payload.rectangle.width = 0
+		payload.rectangle.height = 0
+		payload.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingPointerPos.rawValue.bigEndian
+
+		try await self.sendDatas(payload)
+	}
+
 
 	private func sendCursorShapeUpdate(cursor: VNCCursor) async throws {
 		#if DEBUG
@@ -1285,10 +1313,10 @@ extension VNCConnection {
 		#endif
 	}
 
-	func sendFramebufferUpdate(tiles: [VNCFramebuffer.VNCFramebufferTile], width: Int, height: Int, newSizePending: Bool) async {
+	func sendFramebufferUpdate(tiles: [VNCFramebuffer.VNCFramebufferTile], size: VNCSize, cursorPosition: VNCPoint?, newSizePending: Bool) async {
 		if isAuthenticated && self.connection.state == .ready {
 			do {
-				try await self.sendFramebufferUpdateThrowing(tiles: tiles, width: width, height: height, newSizePending: newSizePending)
+				try await self.sendFramebufferUpdateThrowing(tiles: tiles, size: size, cursorPosition: cursorPosition, newSizePending: newSizePending)
 			} catch {
 				self.logger.error("send framebuffer failed error: \(error)")
 				self.didReceiveError(error)
@@ -1345,6 +1373,9 @@ extension VNCConnection {
 			VNCSetEncoding.Encoding.rfbEncodingExtDesktopSize.rawValue.bigEndian,
 			VNCSetEncoding.Encoding.rfbEncodingSupportedMessages.rawValue.bigEndian,
 			VNCSetEncoding.Encoding.rfbEncodingSupportedEncodings.rawValue.bigEndian,
+			VNCSetEncoding.Encoding.rfbEncodingXCursor.rawValue.bigEndian,
+			VNCSetEncoding.Encoding.rfbEncodingRichCursor.rawValue.bigEndian,
+			VNCSetEncoding.Encoding.rfbEncodingPointerPos.rawValue.bigEndian,
 		]
 
 		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE

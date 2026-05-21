@@ -39,8 +39,8 @@ public class VNCFramebuffer {
 		}
 	}
 
-	public internal(set) var width: Int
-	public internal(set) var height: Int
+	public internal(set) var viewSize: VNCSize
+	public internal(set) var cursorPosition: NSPoint?
 	internal let pixelData: Mutex<Data>
 	internal var tiles: [VNCFramebufferTile]
 	internal weak var sourceView: NSView!
@@ -51,12 +51,26 @@ public class VNCFramebuffer {
 	private let logger = Logger("VNCFramebuffer")
 	private var timer: Timer? = nil
 
+    @MainActor
+    private func currentCursorPositionInView() -> NSPoint? {
+        guard let window = sourceView.window else { return nil }
+        // Get current mouse location in screen coordinates
+        let mouseLocationOnScreen = NSEvent.mouseLocation
+        // Convert screen -> window coordinates
+        let mouseLocationInWindow = window.convertPoint(fromScreen: mouseLocationOnScreen)
+        // Convert window -> view coordinates
+        let locationInView = sourceView.convert(mouseLocationInWindow, from: nil)
+        // Ensure it's inside the view's bounds
+        guard sourceView.bounds.contains(locationInView) else { return nil }
+        return locationInView
+    }
+
 	public init(view: NSView) {
 		var cgImage: CGImage? = nil
 
 		self.sourceView = view
-		self.width = Int(view.bounds.width)
-		self.height = Int(view.bounds.height)
+		self.viewSize = VNCSize(bounds: view.bounds)
+		self.cursorPosition = nil
 
 		if let producer = self.sourceView as? VNCFrameBufferProducer, let img = producer.cgImage {
 			cgImage = img
@@ -67,11 +81,14 @@ public class VNCFramebuffer {
 		if let cgImage = cgImage {
 			self.bitsPerPixels = cgImage.bitsPerPixel
 			self.bitmapInfo = cgImage.bitmapInfo
-			
+
 			self.pixelFormat = VNCPixelFormat(bitmapInfo: cgImage.bitmapInfo)
 			self.pixelData = .init(Self.convertImageToPixels(cgImage: cgImage))  // RGBA
 			self.tiles = Self.buildTiles(from: cgImage)  // RGBA
 		} else {
+			let bounds = view.bounds
+			let width = Int(bounds.width)
+			let height = Int(bounds.height)
 			let pixels = Data(count: width * height * 4)
 
 			self.pixelData = .init(pixels)  // RGBA
@@ -79,17 +96,16 @@ public class VNCFramebuffer {
 		}
 	}
 
-	private func updateSize(width: Int, height: Int) -> Bool {
-		guard self.width != width || self.height != height else { return false }
+	private func updateSize(size: VNCSize) -> Bool {
+		guard self.viewSize != size else { return false }
 
 		#if DEBUG
-			if width == 0 || height == 0 {
+		if size.width == 0 || size.height == 0 {
 				self.logger.debug("View size is zero, skipping frame capture.")
 			}
 		#endif
 
-		self.width = width
-		self.height = height
+		self.viewSize = size
 
 		return true
 	}
@@ -97,10 +113,11 @@ public class VNCFramebuffer {
 	@MainActor
 	func updateFromView() -> (imageRepresentation: NSBitmapImageRep?, sizeChanged: Bool) {
 		let bounds = sourceView.bounds
-		let newWidth = Int(bounds.width)
-		let newHeight = Int(bounds.height)
 
-		if newWidth == 0 || newHeight == 0 {
+        // Update cursor position relative to the sourceView
+        self.cursorPosition = currentCursorPositionInView()
+
+		if viewSize.width == 0 || viewSize.height == 0 {
 			#if DEBUG
 				self.logger.debug("View size is zero, skipping frame capture.")
 			#endif
@@ -111,7 +128,7 @@ public class VNCFramebuffer {
 			return (nil, false)
 		}
 
-		return (imageRepresentation, updateSize(width: newWidth, height: newHeight))
+		return (imageRepresentation, updateSize(size: viewSize))
 	}
 
 	static func convertImageToPixels(cgImage: CGImage) -> Data {
@@ -131,7 +148,7 @@ public class VNCFramebuffer {
 					} else {
 						for _ in 0..<cgImage.height {
 							dp.update(from: sp, count: bytesPerRow)
-							
+
 							dp = dp.advanced(by: bytesPerRow)
 							sp = sp.advanced(by: cgImage.bytesPerRow)
 						}
@@ -157,7 +174,7 @@ public class VNCFramebuffer {
 
 			$0 = pixelData
 
-			sizeChanged = updateSize(width: cgImage.width, height: cgImage.height)
+			sizeChanged = updateSize(size: VNCSize(width: UInt16(cgImage.width), height: UInt16(cgImage.height)))
 
 			if sizeChanged || oldTiles.count != self.tiles.count || self.tiles.isEmpty {
 				return ([VNCFramebufferTile(bounds: .init(x: 0, y: 0, width: cgImage.width, height: cgImage.height), pixels: pixelData, sha256: nil)], sizeChanged)
@@ -170,16 +187,16 @@ public class VNCFramebuffer {
 					if tile != oldTiles[index] {
 						return tile
 					}
-					
+
 					return nil
 				}, sizeChanged)
 			}
 		}
 	}
 
- 
+
 	/// Split the current framebuffer pixel data into 64x64 RGBA tiles.
-    /// - Returns: Array of Data, each tile is 64x64 pixels in RGBA (4 bytes per pixel). Edge tiles are smaller if width/height are not multiples of 64.
+	/// - Returns: Array of Data, each tile is 64x64 pixels in RGBA (4 bytes per pixel). Edge tiles are smaller if width/height are not multiples of 64.
 	static func buildTiles(_ pixelData: Data, tileSize: Int = 64, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> [VNCFramebufferTile] {
 		let srcTileStep = bytesPerRow * tileSize
 		let srcTileRowSize = bytesPerPixel * tileSize
@@ -207,19 +224,19 @@ public class VNCFramebuffer {
 
 					if copyWidth > 0 && copyHeight > 0 {
 						var tile = Data(count: rowSize * copyHeight)
-						
+
 						tile.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
 							guard var dstRowPtr = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
-										
+
 							// Each line in tile
 							for _ in 0..<copyHeight {
 								dstRowPtr.update(from: srcRowPtr, count: rowSize)
-								
+
 								dstRowPtr = dstRowPtr.advanced(by: rowSize)
 								srcRowPtr = srcRowPtr.advanced(by: bytesPerRow)
 							}
 						}
-						
+
 						tiles.append(.init(bounds: CGRect(x: startX, y: startY, width: copyWidth, height: copyHeight), pixels: tile))
 					}
 
@@ -234,17 +251,17 @@ public class VNCFramebuffer {
 		}
 
 		return tiles
-    }
+	}
 
 	/// Split a CGImage into 64x64 RGBA tiles using its provider data.
-    /// - Returns: Array of Data, each tile is 64x64 pixels in RGBA (4 bytes per pixel). Edge tiles are smaller if width/height are not multiples of 64.
-    static func buildTiles(from cgImage: CGImage, tileSize: Int = 64) -> [VNCFramebufferTile] {
-        guard let provider = cgImage.dataProvider, let imageSource = provider.data as Data? else {
-            return []
-        }
+	/// - Returns: Array of Data, each tile is 64x64 pixels in RGBA (4 bytes per pixel). Edge tiles are smaller if width/height are not multiples of 64.
+	static func buildTiles(from cgImage: CGImage, tileSize: Int = 64) -> [VNCFramebufferTile] {
+		guard let provider = cgImage.dataProvider, let imageSource = provider.data as Data? else {
+			return []
+		}
 
 		return Self.buildTiles(imageSource, tileSize: tileSize, width: cgImage.width, height: cgImage.height, bytesPerRow: cgImage.bytesPerRow, bytesPerPixel: cgImage.bitsPerPixel/8)
-    }
+	}
 
 	func convertToClient(_ pixelData: Data, clientFormat: VNCPixelFormat?) -> Data {
 		if let clientFormat = clientFormat {
@@ -268,20 +285,25 @@ extension VNCFramebuffer: VNCFrameBufferProducer {
 
 		return bitmapInof
 	}
-	
+
 	public var cgImage: CGImage? {
 		self.sourceView.image()?.cgImage
 	}
-	
+
 	public var cursor: NSCursor? {
 		self.sourceView.cursor
 	}
-	
+
 	public func startFramebufferUpdate(continuation: AsyncStream<VNCFrameUpdateState>.Continuation) {
 		let timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in
 			guard let self = self else {
 				return
 			}
+
+            // Refresh cursor position each tick
+            Task { @MainActor in
+                self.cursorPosition = self.currentCursorPositionInView()
+            }
 
 			let bounds = self.sourceView.bounds
 
@@ -311,7 +333,7 @@ extension VNCFramebuffer: VNCFrameBufferProducer {
 
 		self.timer = timer
 	}
-	
+
 	public func stopFramebufferUpdate() {
 		self.timer?.invalidate()
 		self.timer = nil

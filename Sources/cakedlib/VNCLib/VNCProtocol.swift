@@ -676,3 +676,28 @@ struct VNCCursor {
 	let mask: Data
 	let data: Data
 }
+
+public struct VNCSize: Sendable, Equatable {
+	public var width: UInt16 = 0
+	public var height: UInt16 = 0
+
+	public init(width: UInt16, height: UInt16) {
+		self.width = width
+		self.height = height
+	}
+
+	public init(bounds: CGRect) {
+		self.width = UInt16(bounds.width)
+		self.height = UInt16(bounds.height)
+	}
+}
+
+public struct VNCPoint: Sendable, Equatable {
+	public var x: UInt16 = 0
+	public var y: UInt16 = 0
+
+	public init(_ position: NSPoint) {
+		self.x = UInt16(position.x)
+		self.y = UInt16(position.y)
+	}
+}

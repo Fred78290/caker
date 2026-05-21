@@ -30,10 +30,12 @@ public protocol VNCServerDelegate: AnyObject, Sendable {
 public enum VNCFrameUpdateState {
 	case frame(CGImage)
 	case cursor(NSCursor)
+	case cursorPosition(NSPoint)
 }
 
 public protocol VNCFrameBufferProducer {
 	var cursor: NSCursor? { get }
+	var cursorPosition: NSPoint? { get }
 	var bitmapInfos: CGBitmapInfo { get }
 	var cgImage: CGImage? { get }
 	var checkIfImageIsChanged: Bool { get }
@@ -228,6 +230,8 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 						await self.updateFramebufferRequest(cgImage: image, checkIfImageIsChanged: checkIfImageIsChanged)
 					case .cursor(let cursor):
 						await self.updateCursor(cursor: cursor)
+					case .cursorPosition(let pos):
+						await self.updateCursorPosition(cursorPosition: pos)
 					}
 				}
 
@@ -256,19 +260,39 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		}
 	}
 
-	private func sendFrameBufferUpdate(connections: [VNCConnection], tiles: [VNCFramebuffer.VNCFramebufferTile], newSizePending: Bool) async {
+	private func sendCursorPositionUpdate(connections: [VNCConnection], cursorPosition: VNCPoint) async {
 		await withTaskGroup(of: Void.self) { group in
-			let width = self.framebuffer.width
-			let height = self.framebuffer.height
-			
 			connections.forEach { connection in
 				group.addTask {
-					await connection.sendFramebufferUpdate(tiles: tiles, width: width, height: height, newSizePending: newSizePending)
+					try? await connection.sendCursorPositionUpdate(cursorPosition: cursorPosition)
 				}
 			}
 
 			await group.waitForAll()
 		}
+	}
+
+	private func sendFrameBufferUpdate(connections: [VNCConnection], tiles: [VNCFramebuffer.VNCFramebufferTile], newSizePending: Bool) async {
+		var cursorPosition: VNCPoint? = nil
+
+		if let pos = self.framebuffer.cursorPosition {
+			cursorPosition = VNCPoint(pos)
+		}
+		await withTaskGroup(of: Void.self) { group in
+			connections.forEach { connection in
+				group.addTask {
+					await connection.sendFramebufferUpdate(tiles: tiles, size: self.framebuffer.viewSize, cursorPosition: cursorPosition, newSizePending: newSizePending)
+				}
+			}
+
+			await group.waitForAll()
+		}
+	}
+
+	private func updateCursorPosition(cursorPosition: NSPoint) async {
+		self.framebuffer.cursorPosition = cursorPosition
+
+		await self.sendCursorPositionUpdate(connections: self.activeConnections, cursorPosition: VNCPoint(cursorPosition))
 	}
 
 	private func updateCursor(cursor: NSCursor) async {
