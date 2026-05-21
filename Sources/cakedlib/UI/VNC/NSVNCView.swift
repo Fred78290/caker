@@ -669,6 +669,14 @@ extension NSVNCView {
 }
 
 extension NSVNCView {
+	@objc public func setDesktopSize(_ size: CGSize) {
+		self.connection?.setDesktopSize(self.bounds.size)
+	}
+
+	@objc public func setDesktopSize() {
+		self.setDesktopSize(self.bounds.size)
+	}
+
 	@objc func displayLinkDidUpdate() {
 		if let connection = self.connection {
 			updateImage(connection.framebuffer?.cgImage, animated: didResizeFramebuffer)

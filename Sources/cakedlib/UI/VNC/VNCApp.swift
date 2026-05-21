@@ -30,7 +30,7 @@ struct VNCView: NSViewRepresentable {
 		guard let framebuffer = appState.connection.framebuffer else {
 			fatalError("framebuffer is nil")
 		}
-		
+
 		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: self.appState.connection)
 		
 		self.appState.vncView = view
@@ -43,6 +43,15 @@ struct VNCView: NSViewRepresentable {
 	}
 	
 	func updateNSView(_ nsView: NSVNCView, context: Context) {
+		guard nsView.isLiveViewResize == false else {
+			return
+		}
+
+		if let connection = appState.connection, let framebuffer = connection.framebuffer {
+			if nsView.bounds.size != framebuffer.cgSize {
+				nsView.setDesktopSize()
+			}
+		}
 	}
 }
 
@@ -78,12 +87,12 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 		}
 	}
 
+	
 	let config: VirtualMachineConfiguration
 	let vncLogger: VNCConnectionLogger
 	let username: String?
 	let password: String?
 	let vmStatus: VNCApp.VMStatusAction
-	let screenSizeAction: VNCApp.VNCSetScreenSizeAction?
 	let settings: RoyalVNCKit.VNCConnection.Settings
 	var continuation: VncStatusStreamContinuation? = nil
 	var connection: RoyalVNCKit.VNCConnection! = nil
@@ -98,8 +107,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 		 vncURL: URL,
 		 screenSize: ViewSize,
 		 isDebugLoggingEnabled: Bool = false,
-		 vmStatus: @escaping VNCApp.VMStatusAction,
-		 screenSizeAction: VNCApp.VNCSetScreenSizeAction? = nil) throws {
+		 vmStatus: @escaping VNCApp.VMStatusAction) throws {
 
 		guard let vncPort = vncURL.port, let vncHost = vncURL.host(percentEncoded: false) else {
 			throw ServiceError(String(localized: "VM \(name) does not have a VNC connection"))
@@ -125,7 +133,6 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 		self.vncStatus = .disconnected
 		self.screenSize = screenSize
 		self.config = config
-		self.screenSizeAction = screenSizeAction
 		self.vmStatus = vmStatus
 	}
 
@@ -177,7 +184,6 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 
 		for try await connectionState in stream.stream {
 			if connectionState == .ready {
-				self.vncLogger.logDebug("VNC Connected to VM")
 				break
 			}
 		}
@@ -185,8 +191,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 
 	func setScreenSize(_ screenSize: ViewSize) {
 		self.screenSize = screenSize
-		
-		self.screenSizeAction?(screenSize)
+		self.vncView?.setDesktopSize()
 	}
 
 	func connection(_ connection: RoyalVNCKit.VNCConnection, stateDidChange connectionState: RoyalVNCKit.VNCConnection.ConnectionState) {
@@ -264,7 +269,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 			fatalError("Unknown authentication type: \(authenticationType)")
 		}
 
-		connection.logger.logDebug("connection credentialFor: \(authenticationTypeString)")
+		self.vncLogger.logger.debug("connection credentialFor: \(authenticationTypeString)")
 
 		if authenticationType.requiresUsername, authenticationType.requiresPassword {
 			if let username = readUser(), let password = readPassword() {
@@ -282,7 +287,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 	func connection(_ connection: RoyalVNCKit.VNCConnection, didCreateFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer) {
 		if self.vncStatus != .ready {
 			DispatchQueue.main.async {
-				self.vncLogger.logDebug("vnc ready")
+				self.vncLogger.logger.debug("vnc ready")
 				self.screenSize = ViewSize(framebuffer.cgSize)
 				self.vncStatus = .ready
 			}
@@ -475,18 +480,17 @@ public struct VNCApp: App {
 									  vncURL: URL,
 									  screenSize: ViewSize,
 									  isDebugLoggingEnabled: Bool = false,
-									  vmStatus: @escaping VMStatusAction,
-									  screenSizeAction: VNCSetScreenSizeAction? = nil) throws {
+									  vmStatus: @escaping VMStatusAction) throws {
 		VNCConnectionAppState.state = try VNCConnectionAppState(
 			name: name,
 			config: config,
 			vncURL: vncURL,
 			screenSize: screenSize,
 			isDebugLoggingEnabled: isDebugLoggingEnabled,
-			vmStatus: vmStatus,
-			screenSizeAction: screenSizeAction
+			vmStatus: vmStatus
 		)
 
 		VNCApp.main()
 	}
 }
+

@@ -76,18 +76,13 @@ struct VNC: CakeAgentParsableCommand {
 				return .stopped
 			}
 
-			func screenSizeAction(_ screenSize: ViewSize) {
-				_ = CakedLib.ScreenSizeHandler.setScreenSize(name: self.name, width: screenSize.width, height: screenSize.height, runMode: runMode)
-			}
-
 			try VNCApp.startVncClient(
 				name: self.name,
 				config: result.config,
 				vncURL: vncURL,
 				screenSize: screenSize,
 				isDebugLoggingEnabled: vncDebug,
-				vmStatus: vmStatus,
-				screenSizeAction: screenSizeAction)
+				vmStatus: vmStatus)
 
 		} catch {
 			Logger.appendNewLine(self.common.format.render(error.reason))

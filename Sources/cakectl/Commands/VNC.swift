@@ -34,24 +34,13 @@ struct VNC: GrpcParsableCommand {
 			return .stopped
 		}
 
-		func screenSizeAction(_ screenSize: ViewSize) -> Void {
-			_ = try? client.setScreenSize(.with {
-				$0.name = self.name
-				$0.screenSize = .with {
-					$0.width = Int32(screenSize.width)
-					$0.height = Int32(screenSize.height)
-				}
-			}).response.wait()
-		}
-
 		do {
 			try VNCApp.startVncClient(name: self.name,
 									  config: config,
 									  vncURL: vncURL,
 									  screenSize: screenSize,
 									  isDebugLoggingEnabled: vncDebug,
-									  vmStatus: vmStatus,
-									  screenSizeAction: screenSizeAction)
+									  vmStatus: vmStatus)
 		} catch {
 			// Handle or log the error; the closure itself must not throw
 			fputs("VNC client failed to start: \(error)\n", stderr)

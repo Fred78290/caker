@@ -42,15 +42,17 @@ struct VNCView: NSViewRepresentable {
 	}
 
 	func updateNSView(_ nsView: NSViewType, context: Context) {
-		#if DEBUG
-			if nsView.isLiveViewResize == false {
-				if let connection = self.document.connection, let framebuffer = connection.framebuffer {
-					self.logger.trace("updateNSView: \(nsView.frame), framebuffer: \(framebuffer.cgSize)")
-				} else {
-					self.logger.trace("updateNSView: \(nsView.frame), framebuffer: nil")
+		if nsView.isLiveViewResize == false {
+			if let connection = self.document.connection, let framebuffer = connection.framebuffer {
+				self.logger.trace("updateNSView: \(nsView.frame), framebuffer: \(framebuffer.cgSize)")
+				if nsView.bounds.size != framebuffer.cgSize {
+					nsView.setDesktopSize()
 				}
+
+			} else {
+				self.logger.trace("updateNSView: \(nsView.frame), framebuffer: nil")
 			}
-		#endif
+		}
 	}
 
 }
