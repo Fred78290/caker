@@ -38,5 +38,7 @@ export default defineConfig({
     emptyOutDir: true,
     // noVNC uses top-level await — require a modern target.
     target: 'esnext',
+    // Keep warning signal meaningful for this app's current bundle profile.
+    chunkSizeWarningLimit: 2500,
   },
 })
