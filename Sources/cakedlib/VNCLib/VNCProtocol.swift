@@ -696,6 +696,11 @@ public struct VNCPoint: Sendable, Equatable {
 	public var x: UInt16 = 0
 	public var y: UInt16 = 0
 
+	public init(x: Int, y: Int) {
+		self.x = UInt16(x)
+		self.y = UInt16(y)
+	}
+
 	public init(_ position: NSPoint) {
 		self.x = UInt16(position.x)
 		self.y = UInt16(position.y)

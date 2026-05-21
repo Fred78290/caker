@@ -9,12 +9,14 @@ import AppKit
 import Carbon
 import Cocoa
 import RoyalVNCKit
+import CakeAgentLib
 
 public protocol NSVNCViewDelegate: AnyObject {
 	func viewDidEndLiveResize(_ view: NSVNCView)
 }
 
 public class NSVNCView: NSView {
+	private let logger = Logger("NSVNCView")
 	private weak var connection: RoyalVNCKit.VNCConnection?
 	private var accumulatedScrollDeltaX: CGFloat = 0
 	private var accumulatedScrollDeltaY: CGFloat = 0
@@ -321,7 +323,7 @@ extension NSVNCView {
 
 	public func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateCursor cursor: RoyalVNCKit.VNCCursor) {
 		DispatchQueue.main.async { [weak self] in
-			self?.currentCursor = cursor.nsCursor
+			self?.currentCursor = RoyalVNCKit.VNCCursor.empty.nsCursor
 		}
 	}
 }
@@ -356,19 +358,14 @@ extension NSVNCView {
 
 		return scaledPositionUInt16
 	}
-
-	fileprivate func viewRelativePosition(of event: NSEvent) -> CGPoint {
-		var position = convert(event.locationInWindow, from: nil)
-		position.y = bounds.size.height - position.y
-
-		return position
-	}
 }
 
 // MARK: - Mouse Input
 extension NSVNCView {
 	func handleMouseMoved(with event: NSEvent) {
 		if let position = scaledContentRelativePosition(of: event), let connection = self.connection {
+			//self.logger.debug("Mouse moved to: \(event.locationInWindow) -> \(position)")
+
 			connection.mouseMove(x: position.x, y: position.y)
 		}
 	}
@@ -378,18 +375,22 @@ extension NSVNCView {
 		becomeFirstResponder()
 
 		if let position = scaledContentRelativePosition(of: event), let connection = self.connection {
+			self.logger.debug("Mouse down to: \(event.locationInWindow) -> \(position)")
+
 			connection.mouseButtonDown(.left, x: position.x, y: position.y)
 		}
 	}
 
 	func handleMouseDragged(with event: NSEvent) {
 		if let position = scaledContentRelativePosition(of: event), let connection = self.connection {
+			self.logger.debug("Mouse dragged to: \(event.locationInWindow) -> \(position)")
 			connection.mouseButtonDown(.left, x: position.x, y: position.y)
 		}
 	}
 
 	func handleMouseUp(with event: NSEvent) {
 		if let position = scaledContentRelativePosition(of: event), let connection = self.connection {
+			self.logger.debug("Mouse up to: \(event.locationInWindow) -> \(position)")
 			connection.mouseButtonUp(.left, x: position.x, y: position.y)
 		}
 	}

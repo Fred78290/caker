@@ -51,20 +51,6 @@ public class VNCFramebuffer {
 	private let logger = Logger("VNCFramebuffer")
 	private var timer: Timer? = nil
 
-    @MainActor
-    private func currentCursorPositionInView() -> NSPoint? {
-        guard let window = sourceView.window else { return nil }
-        // Get current mouse location in screen coordinates
-        let mouseLocationOnScreen = NSEvent.mouseLocation
-        // Convert screen -> window coordinates
-        let mouseLocationInWindow = window.convertPoint(fromScreen: mouseLocationOnScreen)
-        // Convert window -> view coordinates
-        let locationInView = sourceView.convert(mouseLocationInWindow, from: nil)
-        // Ensure it's inside the view's bounds
-        guard sourceView.bounds.contains(locationInView) else { return nil }
-        return locationInView
-    }
-
 	public init(view: NSView) {
 		var cgImage: CGImage? = nil
 
@@ -113,9 +99,6 @@ public class VNCFramebuffer {
 	@MainActor
 	func updateFromView() -> (imageRepresentation: NSBitmapImageRep?, sizeChanged: Bool) {
 		let bounds = sourceView.bounds
-
-        // Update cursor position relative to the sourceView
-        self.cursorPosition = currentCursorPositionInView()
 
 		if viewSize.width == 0 || viewSize.height == 0 {
 			#if DEBUG
@@ -299,11 +282,6 @@ extension VNCFramebuffer: VNCFrameBufferProducer {
 			guard let self = self else {
 				return
 			}
-
-            // Refresh cursor position each tick
-            Task { @MainActor in
-                self.cursorPosition = self.currentCursorPositionInView()
-            }
 
 			let bounds = self.sourceView.bounds
 

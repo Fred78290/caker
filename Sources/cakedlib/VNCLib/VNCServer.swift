@@ -278,6 +278,7 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		if let pos = self.framebuffer.cursorPosition {
 			cursorPosition = VNCPoint(pos)
 		}
+
 		await withTaskGroup(of: Void.self) { group in
 			connections.forEach { connection in
 				group.addTask {

@@ -957,7 +957,11 @@ extension VNCConnection {
 		}
 
 		let size = VNCSize(width: UInt16(tile.bounds.width), height: UInt16(tile.bounds.height))
-		let cursorPosition = VNCPoint(x: 0, y: 0)
+		var cursorPosition: VNCPoint? = nil
+
+		if let position = self.framebuffer.cursorPosition {
+			cursorPosition = .init(position)
+		}
 
 		try await self.sendFramebufferUpdateThrowing(tiles: [tile], size: size, cursorPosition: cursorPosition, newSizePending: newSizePending)
 	}
@@ -1001,6 +1005,10 @@ extension VNCConnection {
 		DispatchQueue.main.async {
 			self.inputHandler.handlePointerEvent(x: Int(value.xPosition), y: Int(value.yPosition), buttonMask: value.buttonMask)
 			self.inputDelegate?.vncConnection(self, didReceiveMouseEvent: Int(value.xPosition), y: Int(value.yPosition), buttonMask: value.buttonMask)
+
+			if self.encodings.enableCursorPosUpdates {
+				self.encodings.cursorWasMoved = false
+			}
 		}
 	}
 
