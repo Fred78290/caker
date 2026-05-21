@@ -1274,10 +1274,6 @@ extension VNCConnection {
 
 
 	private func sendCursorShapeUpdate(cursor: VNCCursor) async throws {
-		#if DEBUG
-			self.logger.debug("sendCursorShapeUpdate")
-		#endif
-
 		// Send framebuffer update header
 		var payload = VNCFramebufferUpdatePayload()
 		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
@@ -1307,10 +1303,6 @@ extension VNCConnection {
 
 		// Clear the cursor update flag
 		self.encodings.cursorWasChanged = false
-
-		#if DEBUG
-		self.logger.debug("sendCursorShapeUpdate completed: \(cursor.header.width)x\(cursor.header.height) hotspot=(\(cursor.header.hotX),\(cursor.header.hotY))")
-		#endif
 	}
 
 	func sendFramebufferUpdate(tiles: [VNCFramebuffer.VNCFramebufferTile], size: VNCSize, cursorPosition: VNCPoint?, newSizePending: Bool) async {
