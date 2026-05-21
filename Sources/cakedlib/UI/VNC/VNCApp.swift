@@ -16,8 +16,8 @@ struct VNCView: NSViewRepresentable {
 	typealias NSViewType = NSVNCView
 	
 	private let appState: VNCConnectionAppState
-	private let logger = Logger("HostVirtualMachineView")
-	
+	private let logger = Logger("VNCView")
+
 	init(_ appState: VNCConnectionAppState) {
 		self.appState = appState
 	}
@@ -43,12 +43,13 @@ struct VNCView: NSViewRepresentable {
 	}
 	
 	func updateNSView(_ nsView: NSVNCView, context: Context) {
-		guard nsView.isLiveViewResize == false else {
+		guard nsView.isLiveViewResize == false && nsView.bounds.size != .zero else {
 			return
 		}
 
 		if let connection = appState.connection, let framebuffer = connection.framebuffer {
 			if nsView.bounds.size != framebuffer.cgSize {
+				self.logger.debug("updateNSView: \(nsView.frame), framebuffer: \(framebuffer.cgSize)")
 				nsView.setDesktopSize()
 			}
 		}
