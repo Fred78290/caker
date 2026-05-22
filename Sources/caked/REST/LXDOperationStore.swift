@@ -15,10 +15,45 @@ import NIO
 /// Thread-safe in-memory store for LXD async operations.
 actor LXDOperationStore {
 	static let shared = LXDOperationStore()
+	private static let terminatedRetentionSeconds: TimeInterval = 3600
 	
 	private var operations: [String: LXDOperationMetadata] = [:]
 	private var storeURL: URL?
-	
+	private let crontaskTimer: RepeatedTask
+
+	deinit {
+		self.crontaskTimer.cancel()
+	}
+
+	private init() {
+		self.crontaskTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { task in
+			Task {
+				await LXDOperationStore.shared.crontask(task)
+			}
+		}
+	}
+
+	// MARK: - Crontask
+	private func crontask(_ task: RepeatedTask) {
+		let now = Date()
+		let dateFormatter = ISO8601DateFormatter()
+		var idsToDelete: [String] = []
+
+		for id in operations.keys {
+			guard let op = operations[id] else { continue }
+
+			if (op.statusCode == 200 || op.statusCode >= 400),
+			   let updatedAt = dateFormatter.date(from: op.updatedAt),
+			   now.timeIntervalSince(updatedAt) >= Self.terminatedRetentionSeconds {
+				idsToDelete.append(id)
+			}
+		}
+
+		for id in idsToDelete {
+			_ = operations.removeValue(forKey: id)
+		}
+	}
+
 	// MARK: - Persistence
 	
 	func create(description: String, resources: [String: [String]] = [:]) -> LXDOperationMetadata {
@@ -141,6 +176,8 @@ actor LXDOperationStore {
 	}
 
 	func shutdown() async throws {
+		crontaskTimer.cancel()
+
 		let on = Utilities.group.next()
 
 		try await EventLoopFuture.andAllComplete(operations.values.compactMap { operation in
