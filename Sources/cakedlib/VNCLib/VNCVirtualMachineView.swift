@@ -509,13 +509,9 @@ extension NSCursor {
 		let width = UInt16(cursorImage.width)
 		let height = UInt16(cursorImage.height)
 
-		// NSCursor.hotSpot uses AppKit coordinates (origin at lower-left).
 		let hs = self.hotSpot
-		let maxHotY = cursorImage.height - 1
-		let hotX = UInt16(max(0, min(cursorImage.width - 1, Int(hs.x.rounded()))))
-		let convertedHotY = CGFloat(maxHotY) - hs.y
-		let clampedHotY = max(0, min(maxHotY, Int(convertedHotY.rounded())))
-		let hotY = UInt16(clampedHotY)
+		let hotX = UInt16(hs.x)
+		let hotY = UInt16(hs.y)
 
 		return VNCCursor(
 			header: VNCCursorHeader(
