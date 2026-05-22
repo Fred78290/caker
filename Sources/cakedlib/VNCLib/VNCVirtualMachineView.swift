@@ -413,11 +413,7 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 
 extension VNCVirtualMachineView: VNCFrameBufferProducer {
 	public var cursorPosition: NSPoint? {
-		guard let cursorPosition = self.currentCursorPositionInView() else {
-			return nil
-		}
-
-		return self.viewRelativePosition(of: cursorPosition)
+		self.currentCursorPositionInView()
 	}
 	
 	public var checkIfImageIsChanged: Bool {
