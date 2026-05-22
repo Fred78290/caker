@@ -671,7 +671,11 @@ extension NSVNCView {
 
 extension NSVNCView {
 	@objc public func setDesktopSize(_ size: CGSize) {
-		self.connection?.setDesktopSize(self.bounds.size)
+		guard size != .zero else {
+			return
+		}
+
+		self.connection?.setDesktopSize(size)
 	}
 
 	@objc public func setDesktopSize() {
