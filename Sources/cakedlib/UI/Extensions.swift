@@ -76,7 +76,17 @@ extension NSEvent {
 			parts.append("subtype: \(self.subtype)")
 			break
 
-		case .scrollWheel, .mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged:
+		case .leftMouseDragged, .rightMouseDragged, .otherMouseDragged:
+			parts.append("momentumPhase: \(self.momentumPhase)")
+
+			parts.append("hasPreciseScrollingDeltas: \(self.hasPreciseScrollingDeltas)")
+			parts.append("buttonNumber: \(self.buttonNumber)")
+			parts.append("deltaX: \(self.deltaX)")
+			parts.append("deltaY: \(self.deltaY)")
+			parts.append("deltaZ: \(self.deltaZ)")
+			break
+
+		case .scrollWheel, .mouseMoved:
 			parts.append("phase: \(self.phase.rawValue)")
 			parts.append("momentumPhase: \(self.momentumPhase)")
 			parts.append("isDirectionInvertedFromDevice: \(self.isDirectionInvertedFromDevice)")

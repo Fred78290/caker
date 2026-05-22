@@ -1026,8 +1026,12 @@ extension VirtualMachineDocument {
 				self.logger.debug("setVncScreenSize: \(screenSize.description)")
 			#endif
 
-			Task {
-				await self.connectionManager.setVncScreenSize(vmURL: self.url, screenSize: screenSize)
+			if self.connectionManager.connectionMode == .remote {
+				self.vncView?.setDesktopSize()
+			} else {
+				Task {
+					await self.connectionManager.setVncScreenSize(vmURL: self.url, screenSize: screenSize)
+				}
 			}
 		}
 	}

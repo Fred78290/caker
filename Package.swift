@@ -17,7 +17,7 @@ let package = Package(
 	],
 	dependencies: [
 		.package(url :"https://github.com/Fred78290/FileMonitor.git", revision: "82bf1ff8dbaccac3359cfd6b49f30db690c8dc38"),
-		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "a43bcb045beed438a788d855c309ffa060ca8857"),
+		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "9d88e35a1a1ccc2e9a0a4d6fc6faeb266559a7c7"),
 		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "0cc3f8a471909c06d240650a239772c1eb137e5b"),
 		.package(url: "https://github.com/Fred78290/containerization", revision: "c829f8d7b56b405c2e80b0b5e29fdde679dc73cc"),
 		.package(url: "https://github.com/Fred78290/GzipSwift", branch: "main"),

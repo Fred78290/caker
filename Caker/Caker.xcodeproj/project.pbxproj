@@ -4375,8 +4375,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Fred78290/royalvnc.git";
 			requirement = {
-				branch = a43bcb045beed438a788d855c309ffa060ca8857;
-				kind = branch;
+				kind = revision;
+				revision = 9d88e35a1a1ccc2e9a0a4d6fc6faeb266559a7c7;
 			};
 		};
 		9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {

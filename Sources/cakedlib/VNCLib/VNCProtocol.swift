@@ -676,3 +676,46 @@ struct VNCCursor {
 	let mask: Data
 	let data: Data
 }
+
+public struct VNCSize: Sendable, Equatable {
+	public var width: UInt16 = 0
+	public var height: UInt16 = 0
+
+	static func clampedDimension(_ value: Int) -> UInt16 {
+		let clampedValue = min(max(value, 0), Int(UInt16.max))
+		return UInt16(clampedValue)
+	}
+
+	static func clampedDimension(_ value: CGFloat) -> UInt16 {
+		guard value.isFinite else {
+			return 0
+		}
+
+		return clampedDimension(Int(value.rounded()))
+	}
+
+	public init(width: UInt16, height: UInt16) {
+		self.width = width
+		self.height = height
+	}
+
+	public init(bounds: CGRect) {
+		self.width = Self.clampedDimension(bounds.width)
+		self.height = Self.clampedDimension(bounds.height)
+	}
+}
+
+public struct VNCPoint: Sendable, Equatable {
+	public var x: UInt16 = 0
+	public var y: UInt16 = 0
+
+	public init(x: Int, y: Int) {
+		self.x = UInt16(x)
+		self.y = UInt16(y)
+	}
+
+	public init(_ position: NSPoint) {
+		self.x = VNCSize.clampedDimension(position.x)
+		self.y = VNCSize.clampedDimension(position.y)
+	}
+}
