@@ -323,7 +323,7 @@ extension NSVNCView {
 
 	public func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateCursor cursor: RoyalVNCKit.VNCCursor) {
 		DispatchQueue.main.async { [weak self] in
-			self?.currentCursor = RoyalVNCKit.VNCCursor.empty.nsCursor
+			self?.currentCursor = cursor.nsCursor
 		}
 	}
 }
