@@ -264,7 +264,7 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		await withTaskGroup(of: Void.self) { group in
 			connections.forEach { connection in
 				group.addTask {
-					try? await connection.sendCursorPositionUpdate(cursorPosition: cursorPosition)
+					try? await connection.sendCursorPosition(cursorPosition: cursorPosition)
 				}
 			}
 

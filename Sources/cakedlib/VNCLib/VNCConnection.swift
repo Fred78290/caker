@@ -1233,7 +1233,7 @@ extension VNCConnection {
 				try await self.sendCursorPositionUpdate(cursorPosition: cursorPosition)
 			}
 
-			if self.encodings.cursorWasChanged, self.encodings.enableCursorShapeUpdates {
+			if self.encodings.cursorWasChanged && self.encodings.enableCursorShapeUpdates {
 				self.encodings.cursorWasChanged = false
 				if let cursor = self.framebuffer.cursor?.vncCursor {
 					try await self.sendCursorShapeUpdate(cursor: cursor)
@@ -1264,6 +1264,20 @@ extension VNCConnection {
 		}
 	}
 
+	func sendCursorPosition(cursorPosition: VNCPoint) async throws {
+		if isAuthenticated && self.connection.state == .ready {
+			do {
+				// Check if cursor shape updates are enabled
+				if self.encodings.enableCursorPosUpdates {
+					try await self.sendCursorPositionUpdate(cursorPosition: cursorPosition)
+				}
+			} catch {
+				self.logger.error("send cursor update failed: \(error)")
+				self.didReceiveError(error)
+			}
+		}
+	}
+
 	func sendCursorPositionUpdate(cursorPosition: VNCPoint) async throws {
 		var payload = VNCFramebufferUpdatePayload()
 
@@ -1284,6 +1298,7 @@ extension VNCConnection {
 	private func sendCursorShapeUpdate(cursor: VNCCursor) async throws {
 		// Send framebuffer update header
 		var payload = VNCFramebufferUpdatePayload()
+
 		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
 		payload.message.padding = 0
 		payload.message.numberOfRectangles = UInt16(1).bigEndian
@@ -1369,6 +1384,7 @@ extension VNCConnection {
 		var payload = VNCFramebufferUpdatePayload()
 		let supportedEncoding: [Int32] = [
 			VNCSetEncoding.Encoding.rfbEncodingRaw.rawValue.bigEndian,
+			VNCSetEncoding.Encoding.rfbEncodingZlib.rawValue.bigEndian,
 			VNCSetEncoding.Encoding.rfbEncodingNewFBSize.rawValue.bigEndian,
 			VNCSetEncoding.Encoding.rfbEncodingExtDesktopSize.rawValue.bigEndian,
 			VNCSetEncoding.Encoding.rfbEncodingSupportedMessages.rawValue.bigEndian,
