@@ -57,6 +57,9 @@ extension Service {
 		@Flag(help: ArgumentHelp(String(localized: "Allows LXD to connect to this host"), visibility: .hidden))
 		var rest: Bool = false
 
+		@Option(name: [.customLong("rest-log-level")], help: ArgumentHelp(String(localized: "Log level"), visibility: .hidden))
+		public var restLogLevel: CakeAgentLib.Logger.LogLevel = .warning
+
 		@Option(name: [.customLong("rest-port")], help: ArgumentHelp(String(localized: "Override LXD REST API listen port"), discussion: "By default LXD will listen on 8443 for https and 8080 for http"))
 		var restPort: Int = 0
 
@@ -265,7 +268,7 @@ extension Service {
 
 				if let listen = components.url {
 					do {
-						restServer = try await LXDRESTServer(group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.webUIDirectory)
+						restServer = try await LXDRESTServer(group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.webUIDirectory, restLogLevel: self.options.restLogLevel)
 						try restServer?.start()
 						logger.info("LXD REST API listening on \(listen.hiddenPasswordURL)")
 					} catch {

@@ -275,12 +275,10 @@ final class LXDRESTServer: Sendable {
 	static var runMode: Utils.RunMode = .user
 
 	/// Creates and configures the Vapor application but does not start it.
-	init(group: EventLoopGroup, listen: URL, caCert: String?, tlsCert: String?, tlsKey: String?, runMode: Utils.RunMode, webUIDirectory: String? = nil) async throws {
-		var logger = Logger(label: "LXDRESTServer")
-		let app = try await Application.make(Environment.current(), .shared(group), logger: logger)
+	init(group: EventLoopGroup, listen: URL, caCert: String?, tlsCert: String?, tlsKey: String?, runMode: Utils.RunMode, webUIDirectory: String? = nil, restLogLevel: CakeAgentLib.Logger.LogLevel = .warning) async throws {
+		let app = try await Application.make(Environment.current(), .shared(group), logger: Logger(label: "LXDRESTServer"))
 
 		Self.runMode = runMode
-		logger.logLevel = CakeAgentLib.Logger.LoggingLevel()
 
 		// Configure JSON encoder/decoder for LXD snake_case + ISO8601 dates
 		let encoder = JSONEncoder()
@@ -325,7 +323,7 @@ final class LXDRESTServer: Sendable {
 		app.http.server.configuration = serverConfiguration
 
 		// Disable default Vapor console logging to avoid noise (use caked's logger)
-		app.logger.logLevel = CakeAgentLib.Logger.LoggingLevel()
+		app.logger.logLevel = restLogLevel.level
 
 		// Restore persisted state for all LXD stores
 		try await LXDAuthGroupStore.shared.configure(runMode: runMode)
