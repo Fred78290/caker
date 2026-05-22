@@ -681,14 +681,17 @@ public struct VNCSize: Sendable, Equatable {
 	public var width: UInt16 = 0
 	public var height: UInt16 = 0
 
-	private static func clampedDimension(_ value: CGFloat) -> UInt16 {
+	static func clampedDimension(_ value: Int) -> UInt16 {
+		let clampedValue = min(max(value, 0), Int(UInt16.max))
+		return UInt16(clampedValue)
+	}
+
+	static func clampedDimension(_ value: CGFloat) -> UInt16 {
 		guard value.isFinite else {
 			return 0
 		}
 
-		let roundedValue = Int(value.rounded())
-		let clampedValue = min(max(roundedValue, 0), Int(UInt16.max))
-		return UInt16(clampedValue)
+		return clampedDimension(Int(value.rounded()))
 	}
 
 	public init(width: UInt16, height: UInt16) {
@@ -712,7 +715,7 @@ public struct VNCPoint: Sendable, Equatable {
 	}
 
 	public init(_ position: NSPoint) {
-		self.x = UInt16(position.x)
-		self.y = UInt16(position.y)
+		self.x = VNCSize.clampedDimension(position.x)
+		self.y = VNCSize.clampedDimension(position.y)
 	}
 }
