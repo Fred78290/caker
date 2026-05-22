@@ -318,79 +318,96 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 	}
 }
 
-	extension VNCVirtualMachineView {
-		public override func mouseDown(with event: NSEvent) {
+extension VNCVirtualMachineView {
+	public override func mouseDown(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("mouseDown: \(event.dumpEvent)")
+		#endif
 
-			self.updateCursorPosition(with: event)
+		self.updateCursorPosition(with: event)
 
-			super.mouseDown(with: event)
-		}
+		super.mouseDown(with: event)
+	}
 
-		public override func mouseDragged(with event: NSEvent) {
+	public override func mouseDragged(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("mouseDragged: \(event.dumpEvent)")
+		#endif
 
-			self.updateCursorPosition(with: event)
+		self.updateCursorPosition(with: event)
 
-			super.mouseDragged(with: event)
-		}
+		super.mouseDragged(with: event)
+	}
 
-		public override func mouseUp(with event: NSEvent) {
+	public override func mouseUp(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("mouseUp: \(event.dumpEvent)")
+		#endif
 
-			self.updateCursorPosition(with: event)
+		self.updateCursorPosition(with: event)
 
-			super.mouseUp(with: event)
-		}
+		super.mouseUp(with: event)
+	}
 
-		public override func rightMouseDown(with event: NSEvent) {
+	public override func rightMouseDown(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("rightMouseDown: \(event.dumpEvent)")
-			
-			self.updateCursorPosition(with: event)
-			
-			super.rightMouseDown(with: event)
-		}
+		#endif
 
-		public override func rightMouseDragged(with event: NSEvent) {
+		self.updateCursorPosition(with: event)
+
+		super.rightMouseDown(with: event)
+	}
+
+	public override func rightMouseDragged(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("rightMouseDragged: \(event.dumpEvent)")
-			
-			self.updateCursorPosition(with: event)
-			
-			super.rightMouseDragged(with: event)
-		}
-		
-		public override func rightMouseUp(with event: NSEvent) {
-			self.logger.debug("rightMouseUp: \(event.dumpEvent)")
-			
-			self.updateCursorPosition(with: event)
-			
-			super.rightMouseUp(with: event)
-		}
+		#endif
 
-		public override func otherMouseDown(with event: NSEvent) {
+		self.updateCursorPosition(with: event)
+
+		super.rightMouseDragged(with: event)
+	}
+
+	public override func rightMouseUp(with event: NSEvent) {
+		#if DEBUGEVENT
+			self.logger.debug("rightMouseUp: \(event.dumpEvent)")
+		#endif
+
+		self.updateCursorPosition(with: event)
+
+		super.rightMouseUp(with: event)
+	}
+
+	public override func otherMouseDown(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("otherMouseDown: \(event.dumpEvent)")
-			
-			self.updateCursorPosition(with: event)
-			
-			super.otherMouseDown(with: event)
-		}
-		
-		public override func otherMouseDragged(with event: NSEvent) {
+		#endif
+
+		self.updateCursorPosition(with: event)
+
+		super.otherMouseDown(with: event)
+	}
+
+	public override func otherMouseDragged(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("otherMouseDragged: \(event.dumpEvent)")
-			
-			self.updateCursorPosition(with: event)
-			
-			super.otherMouseDragged(with: event)
-		}
-		
-		public override func otherMouseUp(with event: NSEvent) {
+		#endif
+
+		self.updateCursorPosition(with: event)
+
+		super.otherMouseDragged(with: event)
+	}
+
+	public override func otherMouseUp(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("otherMouseUp: \(event.dumpEvent)")
-			
-			self.updateCursorPosition(with: event)
-			
-			super.otherMouseUp(with: event)
-		}
-#if DEBUGEVENT
+		#endif
+		self.updateCursorPosition(with: event)
+
+		super.otherMouseUp(with: event)
+	}
+	#if DEBUGEVENT
 		public override func keyDown(with event: NSEvent) {
 			self.logger.debug("keyDown: \(event.dumpEvent)")
 
@@ -408,14 +425,14 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 
 			super.scrollWheel(with: event)
 		}
-#endif
-	}
+	#endif
+}
 
 extension VNCVirtualMachineView: VNCFrameBufferProducer {
 	public var cursorPosition: NSPoint? {
 		self.currentCursorPositionInView()
 	}
-	
+
 	public var checkIfImageIsChanged: Bool {
 		false
 	}
@@ -540,14 +557,16 @@ extension NSCursor {
 
 		let success: Bool = rgbaPixels.withUnsafeMutableBytes { (mutablePtr: UnsafeMutableRawBufferPointer) in
 			guard let baseAddress = mutablePtr.baseAddress else { return false }
-			guard let context = CGContext(
+			guard
+				let context = CGContext(
 					data: baseAddress,
 					width: width,
 					height: height,
 					bitsPerComponent: 8,
 					bytesPerRow: width * bytesPerPixel,
 					space: CGColorSpaceCreateDeviceRGB(),
-					bitmapInfo: CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue) else {
+					bitmapInfo: CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue)
+			else {
 				return false
 			}
 
