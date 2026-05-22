@@ -1,7 +1,7 @@
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { operationWsUrl } from '../utils/websocket';
 
 interface Props {
@@ -9,6 +9,7 @@ interface Props {
   /** fd name → WebSocket secret map returned by exec/console. */
   fds: Record<string, string>
   isActive: boolean
+  onDisconnected?: () => void
 }
 
 /**
@@ -17,9 +18,19 @@ interface Props {
  * fd "0"       : raw PTY data (binary, bidirectional)
  * fd "control" : JSON control channel (resize/signal)
  */
-export function TerminalConsole({ operationId, fds, isActive }: Props) {
+export function TerminalConsole({ operationId, fds, isActive, onDisconnected }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const fitVisibleRef = useRef<() => void>(() => {})
+  const isIntentionalDisconnect = useRef(false)
+
+  // useLayoutEffect cleanups are synchronous and fire before any useEffect
+  // cleanup in the subtree, so the flag is set before the WebSocket closes.
+  useLayoutEffect(() => {
+    isIntentionalDisconnect.current = false
+    return () => {
+      isIntentionalDisconnect.current = true
+    }
+  }, [operationId])
 
   useEffect(() => {
     const el = containerRef.current
@@ -103,6 +114,9 @@ export function TerminalConsole({ operationId, fds, isActive }: Props) {
 
     dataWs.onclose = () => {
       term.write('\r\n\x1b[90m[disconnected]\x1b[0m\r\n')
+      if (!isIntentionalDisconnect.current) {
+        onDisconnected?.()
+      }
     }
 
     // Terminal input → data WebSocket
@@ -131,7 +145,7 @@ export function TerminalConsole({ operationId, fds, isActive }: Props) {
       term.dispose()
       fitVisibleRef.current = () => {}
     }
-  }, [operationId, fds])
+  }, [operationId, fds, onDisconnected])
 
   useEffect(() => {
     if (!isActive) return

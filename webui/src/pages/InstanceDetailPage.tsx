@@ -268,6 +268,10 @@ function buildDefaultDeviceName(index: number): string {
   return `eth${index}`
 }
 
+function shouldRetryVGAReconnect(status: string | undefined): boolean {
+  return status === 'Running' || status === 'Starting' || status === 'Stopping' || status === 'Pending'
+}
+
 function extractNetworksFromDevices(devices: Record<string, Record<string, string>>): NetworkDeviceEditor[] {
   const entries = Object.entries(devices)
     .filter(([, spec]) => (spec.type || '').toLowerCase() === 'nic' && !!spec.network)
@@ -408,7 +412,9 @@ export function InstanceDetailPage() {
 
   // Track which sessions have been requested to avoid duplicate calls.
   const termRequested = useRef(false)
+  const termReconnectRequested = useRef(false)
   const vgaRequested = useRef(false)
+  const vgaReconnectRequested = useRef(false)
   const logsRequested = useRef(false)
   const vgaConsoleRef = useRef<VGAConsoleHandle>(null)
 
@@ -663,6 +669,7 @@ export function InstanceDetailPage() {
     try {
       const res = await execInstance(name, ['sh'])
       const meta = res.data.metadata
+      termReconnectRequested.current = false
       setTermSession({ operationId: meta.id, fds: meta.metadata.fds })
     } catch (e: unknown) {
       termRequested.current = false
@@ -674,6 +681,30 @@ export function InstanceDetailPage() {
     }
   }, [name, termSession])
 
+  const handleTerminalDisconnected = useCallback(() => {
+    termRequested.current = false
+    setTermSession(null)
+
+    if (shouldRetryVGAReconnect(instance?.status)) {
+      termReconnectRequested.current = true
+    }
+  }, [instance?.status])
+
+  useEffect(() => {
+    if (activeTab !== 'terminal' || !termReconnectRequested.current || termSession || termRequested.current) {
+      return
+    }
+
+    if (instance?.status === 'Running') {
+      openTerminal()
+      return
+    }
+
+    if (!shouldRetryVGAReconnect(instance?.status)) {
+      termReconnectRequested.current = false
+    }
+  }, [activeTab, instance?.status, openTerminal, termSession])
+
   // ── Open VGA session ───────────────────────────────────────────────────────
   const openVGA = useCallback(async () => {
     if (!name || vgaRequested.current || vgaSession) return
@@ -683,6 +714,7 @@ export function InstanceDetailPage() {
     try {
       const res = await consoleInstance(name, 'vga')
       const meta = res.data.metadata
+      vgaReconnectRequested.current = false
       setVgaSession({ operationId: meta.id, fds: meta.metadata.fds })
     } catch (e: unknown) {
       vgaRequested.current = false
@@ -695,11 +727,28 @@ export function InstanceDetailPage() {
   }, [name, vgaSession])
 
   const handleVGADisconnected = useCallback(() => {
-    if (vgaSession) {
-      vgaRequested.current = false
-      setVgaSession(null)
+    vgaRequested.current = false
+    setVgaSession(null)
+
+    if (shouldRetryVGAReconnect(instance?.status)) {
+      vgaReconnectRequested.current = true
     }
-  }, [])
+  }, [instance?.status])
+
+  useEffect(() => {
+    if (activeTab !== 'vga' || !vgaReconnectRequested.current || vgaSession || vgaRequested.current) {
+      return
+    }
+
+    if (instance?.status === 'Running') {
+      openVGA()
+      return
+    }
+
+    if (!shouldRetryVGAReconnect(instance?.status)) {
+      vgaReconnectRequested.current = false
+    }
+  }, [activeTab, instance?.status, openVGA, vgaSession])
 
   // ── Load logs ──────────────────────────────────────────────────────────────
   const loadLogs = useCallback(async () => {
@@ -762,7 +811,16 @@ export function InstanceDetailPage() {
   useEffect(() => {
     if (activeTab !== 'vga') {
       vgaRequested.current = false
+      vgaReconnectRequested.current = false
       setVgaSession(null)
+    }
+  }, [activeTab])
+
+  useEffect(() => {
+    if (activeTab !== 'terminal') {
+      termRequested.current = false
+      termReconnectRequested.current = false
+      setTermSession(null)
     }
   }, [activeTab])
 
@@ -930,6 +988,7 @@ export function InstanceDetailPage() {
                 operationId={termSession.operationId}
                 fds={termSession.fds}
                 isActive={activeTab === 'terminal'}
+                onDisconnected={handleTerminalDisconnected}
               />
             </div>
           ) : null}
