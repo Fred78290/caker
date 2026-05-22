@@ -96,24 +96,6 @@ public class VNCFramebuffer {
 		return true
 	}
 
-	@MainActor
-	func updateFromView() -> (imageRepresentation: NSBitmapImageRep?, sizeChanged: Bool) {
-		let bounds = sourceView.bounds
-
-		if viewSize.width == 0 || viewSize.height == 0 {
-			#if DEBUG
-				self.logger.debug("View size is zero, skipping frame capture.")
-			#endif
-			return (nil, false)
-		}
-
-		guard let imageRepresentation = sourceView.imageRepresentationSync(in: bounds) else {
-			return (nil, false)
-		}
-
-		return (imageRepresentation, updateSize(size: viewSize))
-	}
-
 	static func convertImageToPixels(cgImage: CGImage) -> Data {
 		let bytesPerRow = cgImage.width * (cgImage.bitsPerPixel / 8)
 		let bufferSize = bytesPerRow * cgImage.height
