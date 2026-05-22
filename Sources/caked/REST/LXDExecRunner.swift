@@ -147,15 +147,15 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 		}
 		#if DEBUG
 			stdinWS.onClose.whenComplete { _ in
-				self.logger.info("Stdin WebSocket closed")
+				self.logger.debug("Stdin WebSocket closed")
 			}
 
 			stdoutWS.onClose.whenComplete { _ in
-				self.logger.info("Stdout WebSocket closed")
+				self.logger.debug("Stdout WebSocket closed")
 			}
 
 			stderrWS.onClose.whenComplete { _ in
-				self.logger.info("Stderr WebSocket closed")
+				self.logger.debug("Stderr WebSocket closed")
 			}
 		#endif
 
@@ -224,11 +224,11 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 
 		#if DEBUG
 			ptyWS.onClose.whenComplete { _ in
-				self.logger.info("ptyWS WebSocket closed")
+				self.logger.debug("ptyWS WebSocket closed")
 			}
 
 			controlWS.onClose.whenComplete { _ in
-				self.logger.info("controlWS WebSocket closed")
+				self.logger.debug("controlWS WebSocket closed")
 			}
 		#endif
 
