@@ -1267,7 +1267,7 @@ extension VNCConnection {
 	func sendCursorPosition(cursorPosition: VNCPoint) async throws {
 		if isAuthenticated && self.connection.state == .ready {
 			do {
-				// Check if cursor shape updates are enabled
+				// Check if cursor position updates are enabled
 				if self.encodings.enableCursorPosUpdates {
 					try await self.sendCursorPositionUpdate(cursorPosition: cursorPosition)
 				}
