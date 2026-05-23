@@ -262,11 +262,22 @@ public struct ServiceHandler {
 	}
 	
 	public static func agentLaunchURL(runMode: Utils.RunMode) -> URL {
+		let url: URL
+
 		if runMode == .system {
-			return URL(fileURLWithPath: "/Library/LaunchDaemons/\(Utils.cakerSignature).plist")
+			url = URL(fileURLWithPath: "/Library/LaunchDaemons/\(Utils.cakerSignature).plist")
 		} else {
-			return URL(fileURLWithPath: "\(NSHomeDirectory())/Library/LaunchAgents/\(Utils.cakerSignature).plist")
+			url = URL(fileURLWithPath: "\(NSHomeDirectory())/Library/LaunchAgents/\(Utils.cakerSignature).plist")
 		}
+		
+		let parentDirectory = url.deletingLastPathComponent()
+		let fm = FileManager.default
+
+		if !fm.fileExists(atPath: parentDirectory.path) {
+			try? fm.createDirectory(at: parentDirectory, withIntermediateDirectories: true, attributes: nil)
+		}
+
+		return url
 	}
 	
 	public static func uninstallAgent(runMode: Utils.RunMode) throws {
