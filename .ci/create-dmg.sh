@@ -40,7 +40,7 @@ if [ -f "${PROJECT_ROOT}/.ci/dmg-resources/DS_Store" ]; then
 
 	cp "${PROJECT_ROOT}/.ci/dmg-resources/background.png" "${DMG_DIR}/dmg-resources/.background/background.png"
 	cp "${PROJECT_ROOT}/.ci/dmg-resources/DS_Store" "${DMG_DIR}/dmg-resources/.DS_Store"
-	ln -s /Applications "${DMG_DIR}/dmg-resources/Applications"
+	ln -fs /Applications "${DMG_DIR}/dmg-resources/Applications"
 
 	hdiutil create \
 		-volname "Caker" \
