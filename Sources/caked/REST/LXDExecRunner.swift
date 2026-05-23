@@ -12,14 +12,6 @@ import GRPCLib
 import NIOCore
 import Vapor
 
-// MARK: - Control channel message
-
-/// Minimal decodable for LXD WebSocket control-channel messages.
-private struct LXDControlMessage: Decodable {
-	var command: String
-	var args: [String: String]?
-}
-
 // MARK: - Runner
 
 /// Namespace for running an LXD exec operation once all WebSocket fds are connected.
@@ -31,14 +23,12 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 	let location: VMLocation
 	let logger = Logger("LXDExecRunner")
 	var phase: CancellablePhase = .none
-	var shellStream: (any ShellHandler.ShellHandlerProtocol)? = nil
 
 	enum CancellablePhase {
 		case none
 		case waitConnection(Task<[String: WebSocket]?, Never>, Task<Void, Never>)
 		case waitInput([String: WebSocket], AsyncThrowingStreamDatas)
-		case runNonIteractive([String: WebSocket])
-		case runIteractive([String: WebSocket], any ShellHandler.ShellHandlerProtocol)
+		case webSocket([String: WebSocket])
 	}
 
 	init(_ location: VMLocation, operationId: String, context: LXDExecContext) {
@@ -57,13 +47,7 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 			for ws in websockets.values {
 				try? await ws.close(code: .goingAway)
 			}
-		case .runNonIteractive(let websockets):
-			for ws in websockets.values {
-				try? await ws.close(code: .goingAway)
-			}
-		case .runIteractive(let websockets, let stream):
-			stream.finish()
-			stream.closeShell(promise: nil)
+		case .webSocket(let websockets):
 			for ws in websockets.values {
 				try? await ws.close(code: .goingAway)
 			}
@@ -111,13 +95,7 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 				let controlWS = websockets["control"]
 
 				do {
-					let exitCode: Int32
-
-					if context.mode == .interactive {
-						exitCode = try await runInteractiveExec(websockets: websockets)
-					} else {
-						exitCode = try await runNonInteractive(websockets: websockets)
-					}
+					let exitCode = try await runNonInteractive(websockets: websockets)
 
 					sendExitCode(exitCode, to: controlWS)
 					await LXDOperationStore.shared.complete(id: operationId, success: exitCode == 0)
@@ -210,103 +188,6 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 		try? await stderrWS.close(code: .normalClosure)
 
 		return reply.exitCode
-	}
-
-	// MARK: - Interactive exec
-
-	/// Starts an interactive PTY shell via `ShellHandler`, then bridges:
-	/// - WebSocket 0 (pty) ↔ shell stdin/stdout
-	/// - WebSocket control → shell terminal resize
-	private func runInteractiveExec(websockets: [String: WebSocket]) async throws -> Int32 {
-		guard let ptyWS = websockets["0"], let controlWS = websockets["control"] else {
-			throw ServiceError("Missing pty/control WebSocket")
-		}
-
-		#if DEBUG
-			ptyWS.onClose.whenComplete { _ in
-				self.logger.debug("ptyWS WebSocket closed")
-			}
-
-			controlWS.onClose.whenComplete { _ in
-				self.logger.debug("controlWS WebSocket closed")
-			}
-		#endif
-
-		let shell = try ShellHandler.shell(
-			vmURL: location.url,
-			terminalSize: ShellHandler.TerminalSize(rows: Int32(context.height), cols: Int32(context.width)),
-			connectionTimeout: 30,
-			runMode: context.runMode
-		)
-
-		self.shellStream = shell
-		self.phase = .runIteractive(websockets, shell)
-
-		@discardableResult
-		func closeWebSockets(_ exitCode: Int32 = 0) async -> Int32 {
-			shell.finish()
-			shell.closeShell(promise: nil)
-
-			try? await ptyWS.close(code: .normalClosure)
-			
-			return exitCode
-		}
-
-		// PTY WebSocket → shell stdin
-		ptyWS.onBinary { (_, buf) async -> Void in
-			var buf = buf
-			if let bytes = buf.readBytes(length: buf.readableBytes), bytes.isEmpty == false {
-				self.shellStream?.sendDatas(data: bytes[...])
-			}
-		}
-
-		ptyWS.onText { (_, text) async -> Void in
-			if let data = text.data(using: .utf8), !data.isEmpty {
-				let bytes = [UInt8](data)
-				self.shellStream?.sendDatas(data: bytes[...])
-			}
-		}
-
-		// Control WebSocket → terminal resize
-		controlWS.onText { (_, text) async -> Void in
-			guard
-				let data = text.data(using: .utf8),
-				let msg = try? JSONDecoder().decode(LXDControlMessage.self, from: data),
-				msg.command == "window-resize",
-				let heightStr = msg.args?["height"],
-				let widthStr = msg.args?["width"],
-				let h = Int(heightStr),
-				let w = Int(widthStr)
-			else { return }
-			self.shellStream?.sendTerminalSize(rows: h, cols: w)
-		}
-
-		do {
-			guard let stream = self.shellStream else {
-				return await closeWebSockets(1)
-			}
-			for try await response in stream {
-				switch response {
-				case .stdout(let data):
-					try? await ptyWS.send([UInt8](data))
-				case .stderr(let data):
-					// On a PTY stderr is merged into the same fd.
-					try? await ptyWS.send([UInt8](data))
-				case .exitCode(let code):
-					return await closeWebSockets(code)
-				case .failure(let reason):
-					self.logger.error("Shell failure: \(reason)")
-					return await closeWebSockets(1)
-				case .established:
-					break
-				}
-			}
-		} catch {
-			await closeWebSockets()
-			throw error
-		}
-
-		return await closeWebSockets()
 	}
 
 	// MARK: - Helpers

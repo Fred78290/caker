@@ -595,8 +595,14 @@ struct LXDInstancesController: RouteCollection {
 		)
 		
 		await LXDExecSessionStore.shared.register(operationId: operationId, context: context)
-		let runner = LXDExecRunner(location, operationId: operationId, context: context)
+		let runner: LXDRunnable
 		
+		if context.mode == .interactive {
+			runner = try LXDConsoleTextRunner(location, operationId: operationId, context: context)
+		} else {
+			runner = LXDExecRunner(location, operationId: operationId, context: context)
+		}
+
 		// Start background exec task (waits for WebSocket connections, then runs)
 		let task = Task.detached {
 			await runner.run()
@@ -610,13 +616,13 @@ struct LXDInstancesController: RouteCollection {
 		return try await response.encodeResponse(status: .accepted, for: req)
 	}
 	
-	private func createConsoleRunner(_ location: VMLocation, consoleType: String, operationId: String, context: LXDExecContext) -> LXDRunnable {
+	private func createConsoleRunner(_ location: VMLocation, consoleType: String, operationId: String, context: LXDExecContext) throws -> LXDRunnable {
 		if consoleType == "vga" {
 			// VGA console: bridge the VNC WebSocket to the VM's raw VNC TCP socket.
 			LXDConsoleVGARunner(location, operationId: operationId, context: context)
 		} else {
 			// Text (PTY) console: reuse exec infrastructure via ShellHandler.
-			LXDExecRunner(location, operationId: operationId, context: context)
+			try LXDConsoleTextRunner(location, operationId: operationId, context: context)
 		}
 	}
 	
@@ -677,7 +683,8 @@ struct LXDInstancesController: RouteCollection {
 			runMode: runMode,
 			fds: metadatas
 		)
-		let runner = self.createConsoleRunner(location, consoleType: consoleType, operationId: operationId, context: context)
+
+		let runner = try self.createConsoleRunner(location, consoleType: consoleType, operationId: operationId, context: context)
 		
 		await LXDExecSessionStore.shared.register(operationId: operationId, context: context)
 		
