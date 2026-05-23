@@ -94,7 +94,7 @@ export function TerminalConsole({ operationId, fds, isActive, onDisconnected }: 
     const sendResize = (cols: number, rows: number) => {
       if (controlWs?.readyState === WebSocket.OPEN) {
         controlWs.send(
-          JSON.stringify({ command: 'window-resize', args: { width: cols, height: rows } }),
+          JSON.stringify({ command: 'window-resize', args: { width: `${cols}`, height: `${rows}` } }),
         )
       }
     }
