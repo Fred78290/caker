@@ -6,6 +6,7 @@ interface Props {
   operationId: string
   fds: Record<string, string>
   onDisconnected?: () => void
+  onConnected?: () => void
 }
 
 export interface VGAConsoleHandle {
@@ -13,7 +14,7 @@ export interface VGAConsoleHandle {
 }
 
 export const VGAConsole = forwardRef<VGAConsoleHandle, Props>(
-  function VGAConsole({ operationId, fds, onDisconnected }, ref) {
+  function VGAConsole({ operationId, fds, onDisconnected, onConnected }, ref) {
     const containerRef = useRef<HTMLDivElement>(null)
     const vncRef = useRef<VncScreenHandle>(null)
     const [status, setStatus] = useState<'connecting' | 'connected' | 'error'>('connecting')
@@ -91,6 +92,7 @@ export const VGAConsole = forwardRef<VGAConsoleHandle, Props>(
           style={{ width: '100%', height: '100%' }}
           onConnect={() => {
             setStatus('connected')
+            onConnected?.()
             window.setTimeout(() => vncRef.current?.focus(), 0)
           }}
           onDisconnect={() => {

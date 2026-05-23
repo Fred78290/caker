@@ -377,6 +377,8 @@ export function InstanceDetailPage() {
   // Kept in refs so they survive re-renders without triggering effects.
   const [termSession, setTermSession] = useState<ConsoleSession | null>(null)
   const [vgaSession, setVgaSession] = useState<ConsoleSession | null>(null)
+  const [termReconnecting, setTermReconnecting] = useState(false)
+  const [vgaReconnecting, setVgaReconnecting] = useState(false)
   const [sessionError, setSessionError] = useState<string | null>(null)
   const [sessionLoading, setSessionLoading] = useState(false)
 
@@ -661,8 +663,8 @@ export function InstanceDetailPage() {
   }, [instance, refreshInstanceData, settingsForm])
 
   // ── Open terminal session ──────────────────────────────────────────────────
-  const openTerminal = useCallback(async () => {
-    if (!name || termRequested.current || termSession) return
+  const openTerminal = useCallback(async (forceReconnect = false) => {
+    if (!name || termRequested.current || (termSession && !forceReconnect && !termReconnectRequested.current)) return
     termRequested.current = true
     setSessionError(null)
     setSessionLoading(true)
@@ -670,6 +672,7 @@ export function InstanceDetailPage() {
       const res = await execInstance(name, ['sh'])
       const meta = res.data.metadata
       termReconnectRequested.current = false
+      setTermReconnecting(false)
       setTermSession({ operationId: meta.id, fds: meta.metadata.fds })
     } catch (e: unknown) {
       termRequested.current = false
@@ -683,31 +686,36 @@ export function InstanceDetailPage() {
 
   const handleTerminalDisconnected = useCallback(() => {
     termRequested.current = false
-    setTermSession(null)
 
     if (shouldRetryVGAReconnect(instance?.status)) {
       termReconnectRequested.current = true
+      setTermReconnecting(true)
+      return
     }
+
+    setTermReconnecting(false)
+    setTermSession(null)
   }, [instance?.status])
 
   useEffect(() => {
-    if (activeTab !== 'terminal' || !termReconnectRequested.current || termSession || termRequested.current) {
+    if (activeTab !== 'terminal' || (!termReconnectRequested.current && !termReconnecting) || termRequested.current) {
       return
     }
 
     if (instance?.status === 'Running') {
-      openTerminal()
+      openTerminal(true)
       return
     }
 
     if (!shouldRetryVGAReconnect(instance?.status)) {
       termReconnectRequested.current = false
+      setTermReconnecting(false)
     }
-  }, [activeTab, instance?.status, openTerminal, termSession])
+  }, [activeTab, instance?.status, openTerminal, termReconnecting])
 
   // ── Open VGA session ───────────────────────────────────────────────────────
-  const openVGA = useCallback(async () => {
-    if (!name || vgaRequested.current || vgaSession) return
+  const openVGA = useCallback(async (forceReconnect = false) => {
+    if (!name || vgaRequested.current || (vgaSession && !forceReconnect && !vgaReconnectRequested.current)) return
     vgaRequested.current = true
     setSessionError(null)
     setSessionLoading(true)
@@ -715,6 +723,7 @@ export function InstanceDetailPage() {
       const res = await consoleInstance(name, 'vga')
       const meta = res.data.metadata
       vgaReconnectRequested.current = false
+      setVgaReconnecting(false)
       setVgaSession({ operationId: meta.id, fds: meta.metadata.fds })
     } catch (e: unknown) {
       vgaRequested.current = false
@@ -728,27 +737,49 @@ export function InstanceDetailPage() {
 
   const handleVGADisconnected = useCallback(() => {
     vgaRequested.current = false
-    setVgaSession(null)
 
     if (shouldRetryVGAReconnect(instance?.status)) {
       vgaReconnectRequested.current = true
-    }
-  }, [instance?.status])
-
-  useEffect(() => {
-    if (activeTab !== 'vga' || !vgaReconnectRequested.current || vgaSession || vgaRequested.current) {
+      setVgaReconnecting(true)
       return
     }
 
-    if (instance?.status === 'Running') {
-      openVGA()
+    setVgaReconnecting(false)
+    setVgaSession(null)
+  }, [instance?.status])
+
+  const handleVGAConnected = useCallback(() => {
+    vgaReconnectRequested.current = false
+    setVgaReconnecting(false)
+    setSessionError(null)
+  }, [])
+
+  useEffect(() => {
+    if (activeTab !== 'vga' || (!vgaReconnectRequested.current && !vgaReconnecting)) {
       return
     }
 
     if (!shouldRetryVGAReconnect(instance?.status)) {
       vgaReconnectRequested.current = false
+      setVgaReconnecting(false)
+      return
     }
-  }, [activeTab, instance?.status, openVGA, vgaSession])
+
+    if (instance?.status !== 'Running') {
+      return
+    }
+
+    // Retry periodically while the backend VNC endpoint is not ready yet.
+    const retryTimer = window.setInterval(() => {
+      if (!vgaRequested.current) {
+        openVGA(true)
+      }
+    }, 1200)
+
+    return () => {
+      window.clearInterval(retryTimer)
+    }
+  }, [activeTab, instance?.status, openVGA, vgaReconnecting])
 
   // ── Load logs ──────────────────────────────────────────────────────────────
   const loadLogs = useCallback(async () => {
@@ -812,6 +843,7 @@ export function InstanceDetailPage() {
     if (activeTab !== 'vga') {
       vgaRequested.current = false
       vgaReconnectRequested.current = false
+      setVgaReconnecting(false)
       setVgaSession(null)
     }
   }, [activeTab])
@@ -820,6 +852,7 @@ export function InstanceDetailPage() {
     if (activeTab !== 'terminal') {
       termRequested.current = false
       termReconnectRequested.current = false
+      setTermReconnecting(false)
       setTermSession(null)
     }
   }, [activeTab])
@@ -983,13 +1016,43 @@ export function InstanceDetailPage() {
               </button>
             </div>
           ) : termSession ? (
-            <div style={{ flex: 1, minHeight: 0, padding: 12 }}>
-              <TerminalConsole
-                operationId={termSession.operationId}
-                fds={termSession.fds}
-                isActive={activeTab === 'terminal'}
-                onDisconnected={handleTerminalDisconnected}
-              />
+            <div style={{ flex: 1, minHeight: 0, padding: 12, position: 'relative', background: '#1e2030' }}>
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  opacity: termReconnecting ? 0 : 1,
+                  transition: 'opacity 150ms ease',
+                }}
+              >
+                <TerminalConsole
+                  operationId={termSession.operationId}
+                  fds={termSession.fds}
+                  isActive={activeTab === 'terminal'}
+                  onDisconnected={handleTerminalDisconnected}
+                />
+              </div>
+              {termReconnecting && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 12,
+                    background: 'rgba(10, 13, 20, 0.95)',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    pointerEvents: 'none',
+                    fontSize: 14,
+                    backdropFilter: 'blur(3px)',
+                  }}
+                >
+                  <span className="d-inline-flex align-items-center gap-2">
+                    <span className="spinner-border spinner-border-sm" />
+                    Reconnecting terminal…
+                  </span>
+                </div>
+              )}
             </div>
           ) : null}
         </div>
@@ -1029,14 +1092,47 @@ export function InstanceDetailPage() {
                 </button>
               </div>
               <div style={{ flex: 1, minHeight: 0, padding: 12 }}>
-                {activeTab === 'vga' ? (
-                  <VGAConsole
-                    ref={vgaConsoleRef}
-                    operationId={vgaSession.operationId}
-                    fds={vgaSession.fds}
-                    onDisconnected={handleVGADisconnected}
-                  />
-                ) : null}
+                <div style={{ width: '100%', height: '100%', position: 'relative', background: '#000' }}>
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      opacity: vgaReconnecting ? 0 : 1,
+                      transition: 'opacity 150ms ease',
+                    }}
+                  >
+                    {activeTab === 'vga' ? (
+                      <VGAConsole
+                        ref={vgaConsoleRef}
+                        operationId={vgaSession.operationId}
+                        fds={vgaSession.fds}
+                        onConnected={handleVGAConnected}
+                        onDisconnected={handleVGADisconnected}
+                      />
+                    ) : null}
+                  </div>
+                  {vgaReconnecting && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(5, 8, 14, 0.94)',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pointerEvents: 'none',
+                        fontSize: 14,
+                        backdropFilter: 'blur(3px)',
+                      }}
+                    >
+                      <span className="d-inline-flex align-items-center gap-2">
+                        <span className="spinner-border spinner-border-sm" />
+                        Reconnecting VGA console…
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           ) : null}
