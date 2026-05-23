@@ -26,7 +26,7 @@ actor LXDOperationStore {
 	}
 
 	private init() {
-		self.crontaskTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { task in
+		self.crontaskTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(60), delay: .seconds(60)) { task in
 			Task {
 				await LXDOperationStore.shared.crontask(task)
 			}

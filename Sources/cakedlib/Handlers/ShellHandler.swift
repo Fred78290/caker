@@ -345,9 +345,9 @@ public struct ShellHandler {
 		}
 		
 		public func sendTerminalSize(rows: Int, cols: Int) {
-			self.terminalSize = TerminalSize(rows: Int32(rows), cols: Int32(cols))
-
 			self.cakedShellStream.withLock {
+				self.terminalSize = TerminalSize(rows: Int32(rows), cols: Int32(cols))
+
 				if let shellStream = $0 {
 					shellStream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
 				}
