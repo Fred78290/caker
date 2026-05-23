@@ -112,6 +112,13 @@ export function TerminalConsole({ operationId, fds, isActive, onDisconnected }: 
       requestAnimationFrame(() => fitIfVisible())
     }
 
+    if (controlWs) {
+      controlWs.onopen = () => {
+        // Ensure backend PTY gets current dimensions even if control opens after data channel.
+        requestAnimationFrame(() => fitIfVisible())
+      }
+    }
+
     dataWs.onclose = () => {
       term.write('\r\n\x1b[90m[disconnected]\x1b[0m\r\n')
       if (!isIntentionalDisconnect.current) {
