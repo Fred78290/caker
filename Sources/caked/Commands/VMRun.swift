@@ -212,11 +212,15 @@ private final class TeeStandardIOWrapper: Cancellable {
 	}
 
 	func stop() {
-		guard stopped.withLock({ $0 }) == false else {
+		guard stopped.withLock({
+			guard !$0 else {
+				return false
+			}
+			$0 = true; return true
+		}) else {
 			return
 		}
 
-		stopped.withLock { $0 = true }
 		outputPipe.fileHandleForReading.readabilityHandler = nil
 		errorPipe.fileHandleForReading.readabilityHandler = nil
 
