@@ -163,24 +163,20 @@ final class LXDConsoleTextRunner: @unchecked Sendable, LXDRunnable {
 			return out
 		}
 
-		#if DEBUG
-			ptyWS.onClose.whenComplete { _ in
-				self.logger.debug("ptyWS WebSocket closed")
-			}
+		ptyWS.onClose.whenComplete { _ in
+			self.logger.debug("ptyWS WebSocket closed")
+		}
 
-			controlWS.onClose.whenComplete { _ in
-				self.logger.debug("controlWS WebSocket closed")
+		controlWS.onClose.whenComplete { _ in
+			self.logger.debug("controlWS WebSocket closed")
 
-				self.shellStream.closeShell()
-			}
-		#endif
+			self.shellStream.closeShell()
+		}
 
 		self.phase = .webSocket(websockets)
 
 		@discardableResult
 		func closeWebSockets(_ exitCode: Int32 = 0) async -> Int32 {
-			self.shellStream.closeShell()
-
 			try? await ptyWS.close(code: .normalClosure)
 			try? await controlWS.close(code: .normalClosure)
 
