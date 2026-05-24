@@ -5,12 +5,12 @@ import CakedLib
 import CakeAgentLib
 import Cocoa
 import Foundation
+import Gzip
 import GRPCLib
 import NIOPortForwarding
 import System
 import Virtualization
 import Darwin
-import Compression
 
 private final class TeeStandardIOWrapper: Cancellable {
 	private let outputPipe = Pipe()
@@ -23,7 +23,7 @@ private final class TeeStandardIOWrapper: Cancellable {
 	private let ioQueue = DispatchQueue(label: "caker.vmrun.tee")
 	private let stdoutFD = FileHandle.standardOutput.fileDescriptor
 	private let stderrFD = FileHandle.standardError.fileDescriptor
-	private var stopped = false
+	private let stopped = Mutex(false)
 	private static let rotationInterval: DispatchTimeInterval = .seconds(15)
 
 	init(logURL: URL) throws {
@@ -106,7 +106,7 @@ private final class TeeStandardIOWrapper: Cancellable {
 	}
 
 	private func rotateAndRefreshHandleIfNeeded() {
-		guard stopped == false else {
+		guard stopped.withLock({ $0 }) == false else {
 			return
 		}
 
@@ -137,35 +137,15 @@ private final class TeeStandardIOWrapper: Cancellable {
 		let maxSize: UInt64 = 5 * 1024 * 1024  // 5 MB
 		let maxFiles = 5
 		let fm = FileManager.default
-
-		func gzip(data: Data) -> Data? {
-			var sourceBuffer = Array(data)
-			let destinationBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: data.count)
-
-			defer {
-				destinationBuffer.deallocate()
-			}
-
-			let compressedSize = compression_encode_buffer(
-				destinationBuffer,
-				data.count,
-				&sourceBuffer,
-				data.count,
-				nil,
-				COMPRESSION_ZLIB)
-
-			if compressedSize == 0 {
-				return nil
-			}
-
-			return Data(bytes: destinationBuffer, count: compressedSize)
-		}
+		var didRotate = false
 
 		func rotatedURL(_ index: Int) -> URL {
 			logURL.appendingPathExtension("\(index)")
 		}
 
-		var didRotate = false
+		func rotatedGZURL(_ index: Int) -> URL {
+			rotatedURL(index).appendingPathExtension("gz")
+		}
 
 		if fm.fileExists(atPath: logURL.path) {
 			if let fileSize = try? logURL.fileSize(), fileSize >= maxSize {
@@ -176,9 +156,13 @@ private final class TeeStandardIOWrapper: Cancellable {
 					try? currentOutputHandle.close()
 				}
 
-				// Delete the oldest
+				// Delete the oldest rotated generation in either format.
 				if fm.fileExists(atPath: rotatedURL(maxFiles).path) {
 					try? fm.removeItem(at: rotatedURL(maxFiles))
+				}
+
+				if fm.fileExists(atPath: rotatedGZURL(maxFiles).path) {
+					try? fm.removeItem(at: rotatedGZURL(maxFiles))
 				}
 
 				// Shift others
@@ -186,6 +170,12 @@ private final class TeeStandardIOWrapper: Cancellable {
 					for i in stride(from: maxFiles - 1, through: 1, by: -1) {
 						let src = rotatedURL(i)
 						let dst = rotatedURL(i + 1)
+						let srcGZ = rotatedGZURL(i)
+						let dstGZ = rotatedGZURL(i + 1)
+
+						if fm.fileExists(atPath: srcGZ.path) {
+							try? fm.moveItem(at: srcGZ, to: dstGZ)
+						}
 
 						if fm.fileExists(atPath: src.path) {
 							try? fm.moveItem(at: src, to: dst)
@@ -196,13 +186,15 @@ private final class TeeStandardIOWrapper: Cancellable {
 				// Move current to .1
 				try? fm.moveItem(at: logURL, to: rotatedURL(1))
 
-				// Gzip rotated files (.1 .. .5)
+				// Keep rotated files consistently as .N.gz (and clean legacy .N files).
 				for i in 1...maxFiles {
 					let src = rotatedURL(i)
-					let gz = src.appendingPathExtension("gz")
+					let gz = rotatedGZURL(i)
 
 					if fm.fileExists(atPath: src.path) {
-						if let d = try? Data(contentsOf: src), let gzData = gzip(data: d) {
+						if fm.fileExists(atPath: gz.path) {
+							try? fm.removeItem(at: src)
+						} else if let d = try? Data(contentsOf: src), let gzData = try? d.gzipped() {
 							try? gzData.write(to: gz, options: .atomic)
 							try? fm.removeItem(at: src)
 						}
@@ -220,11 +212,11 @@ private final class TeeStandardIOWrapper: Cancellable {
 	}
 
 	func stop() {
-		guard stopped == false else {
+		guard stopped.withLock({ $0 }) == false else {
 			return
 		}
 
-		stopped = true
+		stopped.withLock { $0 = true }
 		outputPipe.fileHandleForReading.readabilityHandler = nil
 		errorPipe.fileHandleForReading.readabilityHandler = nil
 
