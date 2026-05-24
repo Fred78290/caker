@@ -40,8 +40,7 @@ final class LXDConsoleTextRunner: @unchecked Sendable, LXDRunnable {
 	}
 
 	deinit {
-		self.shellStream.finish()
-		self.shellStream.closeShell(promise: nil)
+		self.shellStream.closeShell()
 	}
 
 	init(_ location: VMLocation, operationId: String, context: LXDExecContext) throws {
@@ -74,8 +73,7 @@ final class LXDConsoleTextRunner: @unchecked Sendable, LXDRunnable {
 			break
 		}
 
-		self.shellStream.finish()
-		self.shellStream.closeShell(promise: nil)
+		self.shellStream.closeShell()
 
 		await LXDOperationStore.shared.complete(id: operationId, success: false, error: "Cancelled")
 		await LXDExecSessionStore.shared.remove(operationId: operationId)
@@ -120,7 +118,7 @@ final class LXDConsoleTextRunner: @unchecked Sendable, LXDRunnable {
 					let exitCode = try await runInteractiveExec(websockets: websockets)
 
 					sendExitCode(exitCode, to: controlWS)
-					await LXDOperationStore.shared.complete(id: operationId, success: exitCode == 0)
+					await LXDOperationStore.shared.complete(id: operationId, success: exitCode == 0, error: exitCode == 0 ? "Success" : "Exit code \(exitCode)")
 				} catch {
 					self.logger.error("Exec failed: \(error)")
 					sendExitCode(1, to: controlWS)
@@ -172,6 +170,8 @@ final class LXDConsoleTextRunner: @unchecked Sendable, LXDRunnable {
 
 			controlWS.onClose.whenComplete { _ in
 				self.logger.debug("controlWS WebSocket closed")
+
+				self.shellStream.closeShell()
 			}
 		#endif
 
@@ -179,10 +179,10 @@ final class LXDConsoleTextRunner: @unchecked Sendable, LXDRunnable {
 
 		@discardableResult
 		func closeWebSockets(_ exitCode: Int32 = 0) async -> Int32 {
-			self.shellStream.finish()
-			self.shellStream.closeShell(promise: nil)
+			self.shellStream.closeShell()
 
 			try? await ptyWS.close(code: .normalClosure)
+			try? await controlWS.close(code: .normalClosure)
 
 			return exitCode
 		}

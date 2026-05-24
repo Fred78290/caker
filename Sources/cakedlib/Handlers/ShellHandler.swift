@@ -21,7 +21,6 @@ public struct ShellHandler {
 		func sendDatas(data: ArraySlice<UInt8>)
 		func sendEof()
 		func closeShell(promise: EventLoopPromise<Void>?)
-		func finish()
 	}
 
 	public enum ExecuteResponse: Equatable, Sendable {
@@ -158,7 +157,7 @@ public struct ShellHandler {
 	internal class ShellCaked: ShellHandlerProtocol {
 		private let name: String
 		private let runMode: Utils.RunMode
-		private let logger = Logger("ShellHandler")
+		private let logger = Logger("ShellCaked")
 		private let serviceClient: CakedServiceClient
 		private var cakedShellStream: CakedExecuteStream! = nil
 		private var stream: AsyncThrowingStreamShellResponse! = nil
@@ -221,7 +220,19 @@ public struct ShellHandler {
 			}
 		}
 		
-		func closeShell(promise: EventLoopPromise<Void>?) {
+		func closeShell(promise: EventLoopPromise<Void>? = nil) {
+			guard let stream = self.stream else {
+				if let promise {
+					promise.succeed()
+				}
+				return
+			}
+
+
+			self.logger.debug("Finish shell stream: \(self.name)")
+			self.stream = nil
+			stream.continuation.finish()
+
 			func closeClient() {
 				if let taskQueue {
 					self.taskQueue = nil
@@ -257,11 +268,6 @@ public struct ShellHandler {
 			}
 		}
 
-		func finish() {
-			self.logger.debug("Finish shell stream: \(self.name)")
-			self.stream?.continuation.finish()
-		}
-
 		private func startShell() -> AsyncThrowingStreamShellResponse {
 			self.taskQueue = .init(label: "CakeAgent.InteractiveShell.\(self.name)")
 			
@@ -287,7 +293,7 @@ public struct ShellHandler {
 	internal class ShellCakeAgent: ShellHandlerProtocol {
 		private let location: VMLocation
 		private let runMode: Utils.RunMode
-		private let logger = Logger("ShellHandler")
+		private let logger = Logger("ShellCakeAgent")
 		private var helper: CakeAgentHelper! = nil
 		// cakedShellStream holds the active bidirectional execute stream from the CakeAgent helper.
 		// Use an optional directly because this class accesses the stream as an optional value
@@ -368,12 +374,19 @@ public struct ShellHandler {
 			}
 		}
 
-		func finish() {
-			self.logger.debug("Finish shell stream: \(self.location.name)")
-			self.stream?.continuation.finish()
-		}
+		public func closeShell(promise: EventLoopPromise<Void>? = nil) {
+			guard let stream = self.stream else {
+				if let promise {
+					promise.succeed()
+				}
+				return
+			}
 
-		public func closeShell(promise: EventLoopPromise<Void>?) {
+			self.logger.debug("Finish shell stream: \(self.location.name)")
+
+			self.stream = nil
+			stream.continuation.finish()
+
 			func closeClient() {
 				if let taskQueue {
 					self.taskQueue = nil
@@ -448,5 +461,11 @@ public struct ShellHandler {
 
 			return stream
 		}
+	}
+}
+
+extension ShellHandler.ShellHandlerProtocol {
+	public func closeShell() {
+		self.closeShell(promise: nil)
 	}
 }

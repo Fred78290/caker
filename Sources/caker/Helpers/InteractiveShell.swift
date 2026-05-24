@@ -64,9 +64,10 @@ class InteractiveShell {
 	
 	private func cancelledShell() {
 		if let shellStream {
-			shellStream.finish()
+			shellStream.closeShell()
 		}
 
+		self.shellStream = nil
 		self.task = nil
 	}
 
@@ -97,14 +98,13 @@ class InteractiveShell {
 			return
 		}
 		
+		self.shellStream = nil
+
 #if DEBUG
 		self.logger.debug("Close shell: \(self.name) \(_file):\(_line)")
 #endif
-		shellStream.finish()
 
-		self.shellStream = nil
-
-		shellStream.closeShell(promise: nil)
+		shellStream.closeShell()
 	}
 
 	func startShell(rows: Int, cols: Int, handler: @MainActor @escaping (ShellHandler.ExecuteResponse) -> Void) {
