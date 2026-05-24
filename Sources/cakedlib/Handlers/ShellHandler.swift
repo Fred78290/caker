@@ -159,7 +159,7 @@ public struct ShellHandler {
 		private let runMode: Utils.RunMode
 		private let logger = Logger("ShellCaked")
 		private let serviceClient: CakedServiceClient
-		private var cakedShellStream: CakedExecuteStream! = nil
+		private let cakedShellStream: Mutex<CakedExecuteStream?> = .init(nil)
 		private var stream: AsyncThrowingStreamShellResponse! = nil
 		private var taskQueue: TaskQueue! = nil
 		private var terminalSize: TerminalSize
@@ -195,28 +195,36 @@ public struct ShellHandler {
 		func sendEof() {
 			self.logger.debug("Send EOF shell, VM: \(self.name)")
 
-			if let shellStream = self.cakedShellStream {
-				shellStream.sendEof()
+			self.cakedShellStream.withLock {
+				if let shellStream = $0 {
+					shellStream.sendEof()
+				}
 			}
 		}
 		
 		func sendTerminalSize(rows: Int, cols: Int) {
 			self.terminalSize = TerminalSize(rows: Int32(rows), cols: Int32(cols))
 
-			if let shellStream = self.cakedShellStream {
-				shellStream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
+			self.cakedShellStream.withLock {
+				if let shellStream = $0 {
+					shellStream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
+				}
 			}
 		}
 		
 		func sendDatas(data: ArraySlice<UInt8>) {
-			if let shellStream = self.cakedShellStream {
-				data.withUnsafeBytes { ptr in
-					let message = Caked_ExecuteRequest.with {
-						$0.input = Data(bytes: ptr.baseAddress!, count: ptr.count)
-					}
-					
-					try? shellStream.sendMessage(message).wait()
+			let shellStream: CakedExecuteStream? = self.cakedShellStream.withLock { $0 }
+
+			guard let shellStream else {
+				return
+			}
+
+			data.withUnsafeBytes { ptr in
+				let message = Caked_ExecuteRequest.with {
+					$0.input = Data(bytes: ptr.baseAddress!, count: ptr.count)
 				}
+
+				try? shellStream.sendMessage(message).wait()
 			}
 		}
 		
@@ -247,16 +255,24 @@ public struct ShellHandler {
 					}
 				}
 			}
-			
-			guard let cakedShellStream else {
-				closeClient()
+
+			var capturedStream: CakedExecuteStream? = nil
+
+			self.cakedShellStream.withLock {
+				guard let current = $0 else {
+					closeClient()
+					return
+				}
+				$0 = nil
+				capturedStream = current
+			}
+
+			guard let cakedShellStream = capturedStream else {
 				return
 			}
-			
+
 			self.logger.debug("Close shell: \(self.name)")
-			
-			self.cakedShellStream = nil
-			
+
 			cakedShellStream.sendEof().whenComplete {_ in
 				let promise = cakedShellStream.eventLoop.makePromise(of: Void.self)
 				
@@ -276,12 +292,14 @@ public struct ShellHandler {
 					_ = try self.serviceClient.info(name: self.name)
 					
 					self.logger.debug("Start shell, VM: \(self.name)")
-					
-					self.cakedShellStream = try self.serviceClient.shell(name: self.name, rows: self.terminalSize.rows, cols: self.terminalSize.cols) { response in
-						continuation.yield(ExecuteResponse(response))
+
+					try self.cakedShellStream.withLock {
+						$0 = try self.serviceClient.shell(name: self.name, rows: self.terminalSize.rows, cols: self.terminalSize.cols) { response in
+							continuation.yield(ExecuteResponse(response))
+						}
+
+						self.logger.debug("Shell started, VM: \(self.name)")
 					}
-					
-					self.logger.debug("Shell started, VM: \(self.name)")
 				} catch {
 					self.logger.debug("Shell error, VM: \(self.name), \(error)")
 					continuation.finish(throwing: error)
@@ -361,16 +379,18 @@ public struct ShellHandler {
 		}
 		
 		public func sendDatas(data: ArraySlice<UInt8>) {
-			self.cakedShellStream.withLock {
-				if let shellStream = $0 {
-					data.withUnsafeBytes { ptr in
-						let message = CakeAgent.ExecuteRequest.with {
-							$0.input = Data(bytes: ptr.baseAddress!, count: ptr.count)
-						}
-						
-						try? shellStream.sendMessage(message).wait()
-					}
+			let shellStream: CakeAgentExecuteStream? = self.cakedShellStream.withLock { $0 }
+
+			guard let shellStream else {
+				return
+			}
+
+			data.withUnsafeBytes { ptr in
+				let message = CakeAgent.ExecuteRequest.with {
+					$0.input = Data(bytes: ptr.baseAddress!, count: ptr.count)
 				}
+				
+				try? shellStream.sendMessage(message).wait()
 			}
 		}
 
@@ -408,25 +428,31 @@ public struct ShellHandler {
 				}
 			}
 			
+			var capturedStream: CakeAgentExecuteStream? = nil
+
 			self.cakedShellStream.withLock {
-				guard let cakedShellStream = $0 else {
+				guard let current = $0 else {
 					closeClient()
 					return
 				}
-
 				$0 = nil
+				capturedStream = current
+			}
 
-				self.logger.debug("Close shell: \(self.location.name)")
-								
-				cakedShellStream.sendEof().whenComplete {_ in
-					let promise = cakedShellStream.eventLoop.makePromise(of: Void.self)
-					
-					promise.futureResult.whenComplete { _ in
-						closeClient()
-					}
-					
-					cakedShellStream.cancel(promise: promise)
+			guard let cakedShellStream = capturedStream else {
+				return
+			}
+
+			self.logger.debug("Close shell: \(self.location.name)")
+
+			cakedShellStream.sendEof().whenComplete { _ in
+				let promise = cakedShellStream.eventLoop.makePromise(of: Void.self)
+
+				promise.futureResult.whenComplete { _ in
+					closeClient()
 				}
+
+				cakedShellStream.cancel(promise: promise)
 			}
 
 		}
@@ -469,3 +495,4 @@ extension ShellHandler.ShellHandlerProtocol {
 		self.closeShell(promise: nil)
 	}
 }
+
