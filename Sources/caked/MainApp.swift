@@ -1,4 +1,5 @@
 import CakedLib
+import Combine
 import Foundation
 import SwiftUI
 import Virtualization
@@ -31,6 +32,7 @@ class AppState: ObservableObject, Observable {
 }
 
 struct MainApp: App, VirtualMachineDelegate {
+	static var cancellation: Cancellable?
 	static var displayUI = false
 	static var params: VMRunHandler!
 	static var vm: VirtualMachine!
@@ -170,16 +172,19 @@ struct MainApp: App, VirtualMachineDelegate {
 		try? screenshot.pngData?.write(to: vm.location.screenshotURL)
 	}
 
-	static func runUI(_ vm: VirtualMachine, params: VMRunHandler) {
+	static func runUI(_ vm: VirtualMachine, params: VMRunHandler, cancellation: Cancellable?) {
 		MainApp.displayUI = true
 		MainApp.params = params
 		MainApp.vm = vm
+		MainApp.cancellation = cancellation
 		MainApp.main()
 	}
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	func applicationDidFinishLaunching(_ notification: Notification) {
+		MainApp.cancellation?.cancel()
+
 		if MainApp.displayUI {
 			NSApp.setDockIcon()
 		}
