@@ -87,8 +87,9 @@ private final class TeeStandardIOWrapper: Cancellable {
 			return
 		}
 
+		let logHandle = self.outputLogHandle
 		self.ioQueue.async {
-			self.outputLogHandle.withLock { handle in
+			logHandle.withLock { handle in
 				try? target.write(contentsOf: data)
 				try? handle.write(contentsOf: data)
 			}
