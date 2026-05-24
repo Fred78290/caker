@@ -40,14 +40,12 @@ public struct StartHandler {
 		}
 
 		internal func start(promise: EventLoopPromise<String>? = nil) throws -> String {
-			let config: CakeConfig = try location.config()
-			let log: String = URL(fileURLWithPath: "output.log", relativeTo: location.rootURL).absoluteURL.path
-
 			guard let caked = URL.binary(Home.cakedCommandName) else {
 				throw ServiceError(String(localized: "caked not found"))
 			}
 
-			var arguments: [String] = ["exec", "'\(caked.path())'", "vmrun", "'\(location.diskURL.absoluteURL.path)'", "--log-level=\(Logger.LoggingLevel().rawValue)"]
+			let config: CakeConfig = try location.config()
+			var arguments: [String] = ["vmrun", "'\(location.diskURL.absoluteURL.path)'", "--log-level=\(Logger.LoggingLevel().rawValue)"]
 			var sharedFileDescriptors: [Int32] = []
 
 			try config.startNetworkServices(runMode: runMode)
@@ -82,7 +80,7 @@ public struct StartHandler {
 			}
 
 			if startMode == .service || startMode == .background {
-				arguments.append(contentsOf: ["2>&1", "|", "tee", "'\(log)'"])
+				arguments.append("--tee")
 			}
 
 			config.sockets.forEach {
@@ -92,7 +90,7 @@ public struct StartHandler {
 			}
 
 			let vmName = location.name
-			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode, runMode: runMode) { process in
+			let process: ProcessWithSharedFileHandle = try runCaked(caked, arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode, runMode: runMode) { process in
 				#if DEBUG
 					Logger(self).debug("VM \(vmName) exited with code \(process.terminationStatus)")
 				#endif
@@ -183,7 +181,8 @@ public struct StartHandler {
 		return EventLoopFuture.andAllComplete(future, on: on)
 	}
 
-	private static func runProccess(arguments: [String], sharedFileDescriptors: [Int32]?, startMode: StartMode, runMode: Utils.RunMode, terminationHandler: (@Sendable (ProcessWithSharedFileHandle) -> Void)?) throws -> ProcessWithSharedFileHandle {
+	private static func runCaked(_ caked: URL, arguments: [String], sharedFileDescriptors: [Int32]?, startMode: StartMode, runMode: Utils.RunMode, terminationHandler: (@Sendable (ProcessWithSharedFileHandle) -> Void)?) throws -> ProcessWithSharedFileHandle {
+
 		let process = ProcessWithSharedFileHandle()
 
 		if startMode == .foreground || startMode == .attach {
@@ -213,8 +212,8 @@ public struct StartHandler {
 
 		process.environment = try Utilities.environment(runMode: runMode)
 		process.sharedFileHandles = sharedFileDescriptors?.map { FileHandle(fileDescriptor: $0, closeOnDealloc: true) }
-		process.arguments = ["-c", arguments.joined(separator: " ")]
-		process.executableURL = URL(fileURLWithPath: "/bin/sh")
+		process.arguments = arguments
+		process.executableURL = caked
 		process.terminationHandler = terminationHandler
 
 		#if DEBUG

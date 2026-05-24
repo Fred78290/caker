@@ -124,35 +124,39 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public var configURL: URL {
-		buildURL("config.json").absoluteURL
+		buildURL("config.json")
 	}
 
 	public var cakeURL: URL {
-		buildURL("cake.json").absoluteURL
+		buildURL("cake.json")
 	}
 
 	public var diskURL: URL {
-		buildURL("disk.img").absoluteURL
+		buildURL("disk.img")
 	}
 
 	public var nvramURL: URL {
-		buildURL("nvram.bin").absoluteURL
+		buildURL("nvram.bin")
 	}
 
 	public var stateURL: URL {
-		buildURL("state.vzvmsave").absoluteURL
+		buildURL("state.vzvmsave")
 	}
 
 	public var manifestURL: URL {
-		buildURL("manifest.json").absoluteURL
+		buildURL("manifest.json")
 	}
 
 	public var cdromISO: URL {
-		buildURL(cloudInitIso).absoluteURL
+		buildURL(cloudInitIso)
 	}
 
 	public var screenshotURL: URL {
-		buildURL("screenshot.png").absoluteURL
+		buildURL("screenshot.png")
+	}
+
+	public var outputLogURL: URL {
+		buildURL("output.log")
 	}
 
 	public var agentURL: URL {
