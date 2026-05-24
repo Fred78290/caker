@@ -171,10 +171,6 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		return rootURL.appendingPathComponent(fileName, isDirectory: false).absoluteURL
 	}
 
-	public var outputLogURL: URL {
-		rootURL.appendingPathComponent("output.log", isDirectory: false).absoluteURL
-	}
-
 	public var agentURL: URL {
 		return rootURL.resolvingSymlinksInPath().socketPath(name: "agent")
 	}
