@@ -45,7 +45,7 @@ public struct StartHandler {
 			}
 
 			let config: CakeConfig = try location.config()
-			var arguments: [String] = ["vmrun", "'\(location.diskURL.absoluteURL.path)'", "--log-level=\(Logger.LoggingLevel().rawValue)"]
+			var arguments: [String] = ["vmrun", location.diskURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
 			var sharedFileDescriptors: [Int32] = []
 
 			try config.startNetworkServices(runMode: runMode)
