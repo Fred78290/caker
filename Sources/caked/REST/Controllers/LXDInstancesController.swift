@@ -154,7 +154,7 @@ struct LXDInstancesController: RouteCollection {
 			var currentMessage: String? = "Start building"
 			
 			let result = await CakedLib.BuildHandler.build(options: buildOptions, runMode: rm) { progress in
-				currentMessage = try? self.progressOperation(opID, progress: progress, currentMessage: currentMessage)
+				currentMessage = self.progressOperation(opID, progress: progress, currentMessage: currentMessage)
 			}
 
 			// Clean up temp files regardless of outcome
