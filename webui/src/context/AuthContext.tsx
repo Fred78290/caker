@@ -12,15 +12,15 @@ interface AuthState {
   logout: () => void
 }
 
-const STORAGE_KEY = 'cakerCredential' // sessionStorage key for Basic auth token
+/** In-memory credential store — never persisted to sessionStorage/localStorage. */
+let _credential: string | null = null
 
 const AuthContext = createContext<AuthState | null>(null)
 
-/** Encode and apply stored credentials (Basic auth) to the shared axios instance. */
+/** Apply the in-memory credential (Basic auth) to the shared axios instance. */
 export function applyStoredCredential() {
-  const token = sessionStorage.getItem(STORAGE_KEY)
-  if (token) {
-    client.defaults.headers.common['Authorization'] = `Basic ${token}`
+  if (_credential) {
+    client.defaults.headers.common['Authorization'] = `Basic ${_credential}`
   } else {
     delete client.defaults.headers.common['Authorization']
   }
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Listen for 401s emitted by the axios interceptor in client.ts
   useEffect(() => {
     const handle = () => {
-      sessionStorage.removeItem(STORAGE_KEY)
+      _credential = null
       setIsAuthenticated(false)
     }
     window.addEventListener('caker:unauthorized', handle)
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (password: string) => {
     // Basic auth: base64("caker:<password>") — username is ignored by PasswordAuthMiddleware
     const token = btoa(`caker:${password}`)
-    sessionStorage.setItem(STORAGE_KEY, token)
+    _credential = token
     client.defaults.headers.common['Authorization'] = `Basic ${token}`
 
     // Verify credentials
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem(STORAGE_KEY)
+    _credential = null
     delete client.defaults.headers.common['Authorization']
     setIsAuthenticated(false)
   }, [])
