@@ -33,7 +33,9 @@ struct LXDOperationsController: RouteCollection {
 		let recursion = (req.query[Int.self, at: "recursion"] ?? 0) != 0
 
 		if recursion {
-			return try await LXDResponse<[LXDOperationMetadata]>.syncList(LXDOperationStore.shared.list()).encodeResponse(for: req)
+			let operations = await LXDOperationStore.shared.list()
+
+			return try await LXDResponse<[LXDOperationMetadata]>.syncList(operations).encodeResponse(for: req)
 		}
 
 		let urls = await LXDOperationStore.shared.listURLs()
