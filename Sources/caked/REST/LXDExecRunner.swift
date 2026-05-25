@@ -160,9 +160,14 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 			stream.continuation.finish()
 		}
 
+		let maxStdinBytes = 64 * 1024 * 1024  // 64 MB — reject runaway clients early
 		var stdinData = Data()
 
 		for try await chunk in stream.stream {
+			guard stdinData.count + chunk.count <= maxStdinBytes else {
+				throw ServiceError("Stdin data exceeds the \(maxStdinBytes / 1024 / 1024) MB limit")
+			}
+
 			stdinData.append(contentsOf: chunk)
 		}
 
