@@ -165,6 +165,10 @@ final class LXDConsoleTextRunner: @unchecked Sendable, LXDRunnable {
 
 		ptyWS.onClose.whenComplete { _ in
 			self.logger.debug("ptyWS WebSocket closed")
+			// Closing controlWS triggers its onClose handler which calls closeShell().
+			// This covers the case where the PTY side drops (network error, browser tab
+			// closed) while the control channel is still alive.
+			_ = controlWS.close(code: .goingAway)
 		}
 
 		controlWS.onClose.whenComplete { _ in
