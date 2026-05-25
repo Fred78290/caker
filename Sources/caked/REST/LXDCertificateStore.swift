@@ -156,10 +156,11 @@ actor LXDCertificateStore {
         // Consider the peer trusted if any certificate in the validated chain matches a stored fingerprint.
         // We compute SHA-256 over the DER of each certificate in the chain and compare to keys in `certificates`.
 		let result = chain.first {
-			guard let hash = try? SHA256.hash(data: Data($0.serializeAsPEM().derBytes)) else {
+			guard let derBytes = try? Data($0.serializeAsPEM().derBytes) else {
 				return false
 			}
 
+			let hash = SHA256.hash(data: derBytes)
 			let fingerprint = hash.map { String(format: "%02x", $0) }.joined()
 
 			return certificates[fingerprint] != nil
