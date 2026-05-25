@@ -8,6 +8,7 @@ import CakeAgentLib
 import CakedLib
 import Combine
 import Foundation
+import Synchronization
 import NIO
 import NIOCore
 import Vapor
@@ -26,7 +27,13 @@ final class LXDConsoleVGARunner: @unchecked Sendable, LXDRunnable {
 	let context: LXDExecContext
 	let location: VMLocation
 	let logger = Logger("LXDConsoleVGARunner")
-	var phase: CancellablePhase = .none
+	// Mutex-backed so the NIO EventLoop connect callback and the Swift async
+	// cancel() function can safely read/write phase from different concurrency domains.
+	private let _phase: Mutex<CancellablePhase> = .init(.none)
+	var phase: CancellablePhase {
+		get { _phase.withLock { $0 } }
+		set { _phase.withLock { $0 = newValue } }
+	}
 
 	enum CancellablePhase {
 		case none
