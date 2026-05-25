@@ -467,6 +467,15 @@ struct LXDInstancesController: RouteCollection {
 				.encodeResponse(status: .badRequest, for: req)
 		}
 
+		// Allowlist: only known log filenames may be served.  logURL(named:) guards
+		// against path traversal but resolves into the VM root, not a logs/ subdir,
+		// so without an allowlist any file in the VM bundle would be readable.
+		let allowedLogFiles: Set<String> = ["console.log", "output.log"]
+		guard allowedLogFiles.contains(filename) else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Log file '\(filename)' not found for instance '\(name)'", code: 404)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
 		guard let location = try? StorageLocation(runMode: runMode).find(name) else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' not found", code: 404)
 				.encodeResponse(status: .notFound, for: req)
