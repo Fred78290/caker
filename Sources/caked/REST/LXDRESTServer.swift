@@ -151,6 +151,10 @@ private struct CertificateAuthMiddleware: Middleware {
 /// If the client presents a valid TLS client certificate, the password check is bypassed.
 private struct PasswordAuthMiddleware: Middleware {
 	let password: String
+	/// True when CertificateAuthMiddleware is also active — only then may a verified
+	/// TLS client certificate substitute for the password.  Without a CA cert the
+	/// server cannot verify the peer chain, so any self-signed cert would bypass auth.
+	let hasCertificateAuth: Bool
 
 	func respond(to request: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
 		// Web UI static assets are public — the React app handles authentication itself.
@@ -159,8 +163,9 @@ private struct PasswordAuthMiddleware: Middleware {
 			return next.respond(to: request)
 		}
 
-		// Allow mTLS-authenticated clients to skip password check
-		if let peerCertificateChain = request.peerCertificateChain, peerCertificateChain.isEmpty == false {
+		// Allow mTLS-authenticated clients to skip password check — only when
+		// CertificateAuthMiddleware is also active and has already validated the chain.
+		if hasCertificateAuth, let peerCertificateChain = request.peerCertificateChain, peerCertificateChain.isEmpty == false {
 			return next.respond(to: request)
 		}
 
@@ -292,10 +297,10 @@ final class LXDRESTServer: Sendable {
 		ContentConfiguration.global.use(encoder: encoder, for: .json)
 		ContentConfiguration.global.use(decoder: decoder, for: .json)
 
-		// Add Bearer/Basic password protection if a password is provided
-		if let password = listen.password(percentEncoded: false), password.isEmpty == false {
-			app.middleware.use(PasswordAuthMiddleware(password: password))
-		}
+		// Add Bearer/Basic password protection if a password is provided.
+		// hasCertificateAuth is resolved below once we know whether a CA cert is present.
+		let listenPassword = listen.password(percentEncoded: false).flatMap { $0.isEmpty ? nil : $0 }
+		let hasCertificateAuth = caCert != nil
 
 		guard let hostname = listen.host(percentEncoded: false), let port = listen.port else {
 			throw ServiceError("Invalid listen URL: host or port missing")
@@ -305,6 +310,10 @@ final class LXDRESTServer: Sendable {
 
 		serverConfiguration.hostname = hostname
 		serverConfiguration.port = port
+
+		if let password = listenPassword {
+			app.middleware.use(PasswordAuthMiddleware(password: password, hasCertificateAuth: hasCertificateAuth))
+		}
 
 		if let tlsCert = tlsCert, let tlsKey = tlsKey {
 			serverConfiguration.tlsConfiguration = try TLSConfiguration.makeServerConfiguration(caCert: caCert, tlsKey: tlsKey, tlsCert: tlsCert)
