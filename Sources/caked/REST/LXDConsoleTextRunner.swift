@@ -9,6 +9,7 @@ import CakedLib
 import Foundation
 import GRPCLib
 import NIOCore
+import Synchronization
 import Vapor
 
 // MARK: - Control channel message
@@ -29,7 +30,11 @@ final class LXDConsoleTextRunner: @unchecked Sendable, LXDRunnable {
 	let context: LXDExecContext
 	let location: VMLocation
 	let logger = Logger("LXDConsoleTextRunner")
-	var phase: CancellablePhase = .none
+	private let _phase: Mutex<CancellablePhase> = .init(.none)
+	var phase: CancellablePhase {
+		get { _phase.withLock { $0 } }
+		set { _phase.withLock { $0 = newValue } }
+	}
 	let shellStream: (any ShellHandler.ShellHandlerProtocol)
 
 	enum CancellablePhase {

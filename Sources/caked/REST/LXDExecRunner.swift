@@ -10,6 +10,7 @@ import Combine
 import Foundation
 import GRPCLib
 import NIOCore
+import Synchronization
 import Vapor
 
 // MARK: - Runner
@@ -22,7 +23,11 @@ final class LXDExecRunner: @unchecked Sendable, LXDRunnable {
 	let context: LXDExecContext
 	let location: VMLocation
 	let logger = Logger("LXDExecRunner")
-	var phase: CancellablePhase = .none
+	private let _phase: Mutex<CancellablePhase> = .init(.none)
+	var phase: CancellablePhase {
+		get { _phase.withLock { $0 } }
+		set { _phase.withLock { $0 = newValue } }
+	}
 
 	enum CancellablePhase {
 		case none
