@@ -12,6 +12,7 @@ import GRPC
 import GRPCLib
 import NIO
 import Vapor
+import Synchronization
 
 /// Handles /1.0/instances routes
 struct LXDInstancesController: RouteCollection {
@@ -612,15 +613,18 @@ struct LXDInstancesController: RouteCollection {
 			runner = LXDExecRunner(location, operationId: operationId, context: context)
 		}
 
+		// Register first so complete() always finds an existing entry, even if the
+		// runner errors out before the detached task has a chance to be referenced.
+		let taskRef: Mutex<Task<Void, Never>?> = .init(nil)
+		await LXDOperationStore.shared.registerExec(id: operationId, instanceName: name) {
+			taskRef.withLock { $0 }?.cancel()
+		}
+
 		// Start background exec task (waits for WebSocket connections, then runs)
 		let task = Task.detached {
 			await runner.run()
 		}
-		
-		// Register in operation store (for GET /1.0/operations/:id)
-		await LXDOperationStore.shared.registerExec(id: operationId, instanceName: name) {
-			task.cancel()
-		}
+		taskRef.withLock { $0 = task }
 		
 		return try await response.encodeResponse(status: .accepted, for: req)
 	}
@@ -695,16 +699,19 @@ struct LXDInstancesController: RouteCollection {
 		)
 
 		let runner = try self.createConsoleRunner(location, consoleType: consoleType, operationId: operationId, context: context)
-		
+
 		await LXDExecSessionStore.shared.register(operationId: operationId, context: context)
-		
+
+		// Register before starting the task so complete() always finds an existing entry.
+		let consoleTaskRef: Mutex<Task<Void, Never>?> = .init(nil)
+		await LXDOperationStore.shared.registerConsole(id: operationId, instanceName: name) {
+			consoleTaskRef.withLock { $0 }?.cancel()
+		}
+
 		let task = Task.detached {
 			await runner.run()
 		}
-		
-		await LXDOperationStore.shared.registerConsole(id: operationId, instanceName: name) {
-			task.cancel()
-		}
+		consoleTaskRef.withLock { $0 = task }
 		
 		return try await response.encodeResponse(status: .accepted, for: req)
 	}
