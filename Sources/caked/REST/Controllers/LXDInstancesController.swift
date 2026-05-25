@@ -726,45 +726,36 @@ struct LXDInstancesController: RouteCollection {
 		}
 	}
 	
-	private func progressOperation(_ opID: String, progress: ProgressObserver.ProgressValue, currentMessage: String?) throws -> String? {
-		return try self.group.next().makeFutureWithTask {
-			switch progress {
-			case .progress(_, let fractionCompleted):
+	private func progressOperation(_ opID: String, progress: ProgressObserver.ProgressValue, currentMessage: String?) -> String? {
+		// Store updates are dispatched as fire-and-forget Tasks to avoid blocking the
+		// cooperative thread with .wait().  Only .step returns a new currentMessage
+		// synchronously; the other cases just need a best-effort async store write.
+		switch progress {
+		case .step(let message):
+			return message
+
+		case .progress(_, let fractionCompleted):
+			Task {
 				if let currentMessage {
 					await LXDOperationStore.shared.update(id: opID, description: "\(currentMessage): (\(Int(fractionCompleted * 100))%)")
 				} else {
 					await LXDOperationStore.shared.update(id: opID, description: "(\(Int(fractionCompleted * 100))%)")
 				}
-			case .step(let message):
-				return message
-			case .terminated(let result, let message):
+			}
+
+		case .terminated(let result, let message):
+			Task {
 				if case .failure(let error) = result {
-					let errStr: String
-					let description: String
-					
-					if let message {
-						errStr = message
-						description = "Operation failed: \(message)"
-					} else {
-						errStr = error.reason
-						description = "Operation failed: \(error)"
-					}
-					
+					let errStr = message ?? error.reason
+					let description = "Operation failed: \(errStr)"
 					await LXDOperationStore.shared.complete(id: opID, success: false, description: description, error: errStr)
 				} else {
-					let description: String
-					
-					if let message {
-						description = "Operation succeeded: \(message)"
-					} else {
-						description = "Operation succeeded"
-					}
-					
+					let description = message.map { "Operation succeeded: \($0)" } ?? "Operation succeeded"
 					await LXDOperationStore.shared.complete(id: opID, success: true, description: description)
 				}
 			}
+		}
 
-			return currentMessage
-		}.wait()
+		return currentMessage
 	}
 }
