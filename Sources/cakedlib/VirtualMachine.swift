@@ -718,19 +718,17 @@ extension VirtualMachine {
 			}
 
 			while Task.isCancelled == false {
-				if self.config.agent {
+				if config.agent {
 					break
 				}
 
 				if case .running = self.status {
 					do {
-						let currentIP = self.config.runningIP.isEmpty ? runningIP : self.config.runningIP
-						let installed = try await self.location.installAgent(updateAgent: false, config: config, runningIP: currentIP, runMode: runMode)
+						let installed = try await self.location.installAgent(updateAgent: false, config: config, runningIP: runningIP, runMode: runMode)
 
 						if installed {
-							self.config.agent = true
-							self.config.runningIP = currentIP
-							try? self.config.save()
+							config.agent = true
+							try? config.save()
 							self.logger.info("VM \(self.location.name) agent installation retry succeeded")
 							break
 						}
@@ -751,7 +749,6 @@ extension VirtualMachine {
 	}
 
 	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
-
 		if self.env.runMode == .app {
 			try self.location.writePID()
 		}
@@ -825,6 +822,7 @@ extension VirtualMachine {
 
 		return response
 	}
+
 	private func start(_ mode: VMRunServiceMode, completionHandler: StartCompletionHandler? = nil) async throws {
 		var resumeVM: Bool = false
 		
