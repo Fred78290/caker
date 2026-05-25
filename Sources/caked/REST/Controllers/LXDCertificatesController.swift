@@ -119,13 +119,28 @@ struct LXDCertificatesController: RouteCollection {
 
 		let body = try req.content.decode(LXDCertificatePut.self)
 
+		guard let name = body.name, name.isEmpty == false else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Invalid certificate name", code: 400)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
+		guard let type = body.type, type != "client" else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Invalid certificate type", code: 400)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
+		guard let certificate = body.certificate, certificate.isEmpty == false else {
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Invalid certificate content", code: 400)
+				.encodeResponse(status: .notFound, for: req)
+		}
+
 		let updated = await LXDCertificateStore.shared.put(
 			fingerprint: fp,
-			name: body.name ?? "",
-			type: body.type ?? "client",
+			name: name,
+			type: type,
 			restricted: body.restricted ?? false,
 			projects: body.projects ?? [],
-			certificate: body.certificate ?? ""
+			certificate: certificate
 		)
 
 		guard updated != nil else {
