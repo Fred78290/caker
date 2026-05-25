@@ -125,24 +125,38 @@ extension Service {
 		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 
+		var password: String? {
+			if options.noPassword { return nil }
+
+			if let password = options.password { return password }
+
+			return try? CakedKeyConfig.passphrase.get()
+		}
+
 		func run() throws {
 			let runMode: Utils.RunMode = self.common.runMode
-			let listenAddress = try self.options.getListenAddress(runMode: runMode)
 
-			var caCert: String? = nil
-			var tlsCert: String? = nil
-			var tlsKey: String? = nil
+			if self.options.address.isEmpty && self.options.caCert == nil && self.options.tlsCert == nil && self.options.tlsKey == nil {
+				try ServiceHandler.installAgent(insecure: self.options.insecure, tcp: self.options.tcp, rest: self.options.rest, password: self.password, runMode: runMode)
+			} else {
+				let caCert = self.options.caCert
+				let tlsCert = self.options.tlsCert
+				let tlsKey = self.options.tlsKey
 
-			if self.options.insecure == false {
-				let certs = try self.options.getCertificats(runMode: runMode)
+				if self.options.insecure == false && caCert == nil && tlsCert == nil && tlsKey == nil {
+					_ = try self.options.getCertificats(runMode: runMode)
+				}
 
-				caCert = certs.ca
-				tlsKey = certs.key
-				tlsCert = certs.cert
+				try ServiceHandler.installAgent(
+					listenAddress: try self.options.getListenAddress(runMode: runMode),
+					insecure: self.options.insecure,
+					rest: self.options.rest,
+					password: self.password,
+					caCert: caCert,
+					tlsCert: tlsCert,
+					tlsKey: tlsKey,
+					runMode: runMode)
 			}
-
-			try ServiceHandler.installAgent(
-				listenAddress: listenAddress, insecure: self.options.insecure, rest: self.options.rest, password: (self.options.noPassword ? "" : self.options.password), caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey, runMode: runMode)
 		}
 	}
 
@@ -268,7 +282,9 @@ extension Service {
 
 				if let listen = components.url {
 					do {
-						restServer = try await LXDRESTServer(group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.webUIDirectory, restLogLevel: self.options.restLogLevel)
+						restServer = try await LXDRESTServer(
+							group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.webUIDirectory, restLogLevel: self.options.restLogLevel
+						)
 						try restServer?.start()
 						logger.info("LXD REST API listening on \(listen.hiddenPasswordURL)")
 					} catch {
@@ -320,7 +336,7 @@ extension Service {
 				futures.whenComplete { _ in
 					logger.info("All servers closed")
 				}
-				
+
 				try? futures.wait()
 			}
 
