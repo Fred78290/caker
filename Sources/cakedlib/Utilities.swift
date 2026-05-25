@@ -355,17 +355,20 @@ extension URL: Purgeable {
 
 	public func updatedDate() throws -> Date {
 		let attrs = try self.resourceValues(forKeys: [.contentModificationDateKey])
-		return attrs.contentModificationDate!
+		return attrs.contentModificationDate ?? Date()
 	}
 
 	public func accessDate() throws -> Date {
 		let attrs = try self.resourceValues(forKeys: [.contentAccessDateKey])
-		return attrs.contentAccessDate!
+		return attrs.contentAccessDate ?? Date()
 	}
 
 	public func updateAccessDate(_ accessDate: Date = Date()) throws {
 		let attrs = try self.resourceValues(forKeys: [.contentAccessDateKey])
-		let modificationDate = attrs.contentAccessDate!
+
+		guard let modificationDate = attrs.contentAccessDate else {
+			return
+		}
 
 		let times = [accessDate.asTimeval(), modificationDate.asTimeval()]
 		let ret = utimes(path, times)
