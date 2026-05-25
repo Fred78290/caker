@@ -664,24 +664,25 @@ struct LXDInstancesController: RouteCollection {
 			"control": UUID().uuidString.lowercased()
 		]
 		
-		// For VGA consoles, also expose the VNC password so the browser-side noVNC
-		// client can authenticate against the VM's VNC server.  The "vnc-password"
-		// key is not a WebSocket fd secret; it is metadata that is safe to return
-		// because the endpoint is already authenticated.
+		// For VGA consoles, return the VNC password so the browser-side noVNC client
+		// can authenticate.  Keep it out of `metadatas` (the WebSocket fd secrets)
+		// so it is not stored in LXDExecSessionStore alongside the real secrets.
+		var responseMetadatas = metadatas
 		if consoleType == "vga" {
 			mode = .vga
-			
+
 			guard let vncInfos = try? CakedLib.VNCInfosHandler.vncInfos(name: name, runMode: runMode) else {
 				return try await LXDResponse<LXDEmptyMetadata>.error(message: "Instance '\(name)' doesn't have a VGA console", code: 405)
 					.encodeResponse(status: .notFound, for: req)
 			}
-			
+
 			if let vncURLStr = vncInfos.urls.first, let components = URLComponents(string: vncURLStr), let vncPassword = components.password, vncPassword.isEmpty == false {
-				metadatas["vnc-password"] = vncPassword
+				// vnc-password goes only into the HTTP response, not into the session store.
+				responseMetadatas["vnc-password"] = vncPassword
 			}
 		}
-		
-		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, metadatas: metadatas)
+
+		let (response, operationId) = LXDExecAsyncResponse.make(instanceName: name, metadatas: responseMetadatas)
 		let context = LXDExecContext(
 			instanceName: name,
 			command: [],
@@ -690,7 +691,7 @@ struct LXDInstancesController: RouteCollection {
 			height: consoleReq.height ?? 24,
 			width: consoleReq.width ?? 80,
 			runMode: runMode,
-			fds: metadatas
+			fds: metadatas  // fd secrets only — no vnc-password
 		)
 
 		let runner = try self.createConsoleRunner(location, consoleType: consoleType, operationId: operationId, context: context)
