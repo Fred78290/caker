@@ -504,6 +504,8 @@ struct MainApp: App {
 					"service",
 					"listen",
 					"--secure",
+					"--tcp",
+					"--rest",
 					"--log-level=\(CakeAgentLib.Logger.Level().description)"
 				]
 
