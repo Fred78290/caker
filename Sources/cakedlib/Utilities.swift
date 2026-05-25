@@ -350,21 +350,33 @@ extension URL: Purgeable {
 
 	public func creationDate() throws -> Date {
 		let attrs = try self.resourceValues(forKeys: [.creationDateKey])
-		return attrs.creationDate!
+		guard let date = attrs.creationDate else {
+			throw ServiceError(String(localized: "Creation date not available for: \(self.hiddenPasswordURL.absoluteString)"))
+		}
+		return date
 	}
 
 	public func updatedDate() throws -> Date {
 		let attrs = try self.resourceValues(forKeys: [.contentModificationDateKey])
-		return attrs.contentModificationDate ?? Date()
+		guard let date = attrs.contentModificationDate else {
+			throw ServiceError(String(localized: "Modification date not available for: \(self.hiddenPasswordURL.absoluteString)"))
+		}
+		return date
 	}
 
 	public func accessDate() throws -> Date {
 		let attrs = try self.resourceValues(forKeys: [.contentAccessDateKey])
-		return attrs.contentAccessDate ?? Date()
+		guard let date = attrs.contentAccessDate else {
+			throw ServiceError(String(localized: "Access date not available for: \(self.hiddenPasswordURL.absoluteString)"))
+		}
+		return date
 	}
 
 	public func updateAccessDate(_ accessDate: Date = Date()) throws {
 		let attrs = try self.resourceValues(forKeys: [.contentAccessDateKey])
+		guard let modificationDate = attrs.contentAccessDate else {
+			throw ServiceError(String(localized: "Access date not available for: \(self.hiddenPasswordURL.absoluteString)"))
+		}
 
 		guard let modificationDate = attrs.contentAccessDate else {
 			return

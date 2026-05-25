@@ -8,7 +8,6 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 pushd ${PROJECT_ROOT}/webui > /dev/null
 
-npm install
 npm ci --no-audit --no-fund
 npm run build
 
