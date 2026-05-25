@@ -73,11 +73,17 @@ private final class TeeStandardIOWrapper: Cancellable {
 			throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
 		}
 
+		var setupComplete = false
+		defer {
+			if !setupComplete { stop() }
+		}
+
 		guard dup2(errorPipe.fileHandleForWriting.fileDescriptor, stderrFD) != -1 else {
 			throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
 		}
 
 		scheduleLogRotation()
+		setupComplete = true
 	}
 
 	private func tee(_ source: FileHandle, target: FileHandle) {

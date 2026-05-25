@@ -710,8 +710,8 @@ public struct VNCPoint: Sendable, Equatable {
 	public var y: UInt16 = 0
 
 	public init(x: Int, y: Int) {
-		self.x = UInt16(x)
-		self.y = UInt16(y)
+		self.x = VNCSize.clampedDimension(x)
+		self.y = VNCSize.clampedDimension(y)
 	}
 
 	public init(_ position: NSPoint) {

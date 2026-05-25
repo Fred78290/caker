@@ -9,7 +9,6 @@ CAKER_APP="${PKGDIR}/Contents"
 CAKED_APP="${CAKER_APP}/PlugIns/caked.bundle/Contents"
 
 pushd "${PROJECT_ROOT}/webui" > /dev/null
-npm install
 npm ci --no-audit --no-fund
 npm run build
 

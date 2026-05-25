@@ -364,11 +364,8 @@ final class LXDRESTServer: Sendable {
 
 	/// Shuts down the HTTP server and releases resources.
 	func shutdown() async {
-		#if DEBUG
-		app.logger.logLevel = .trace
-		#endif
-		try? await app.asyncShutdown()
 		try? await LXDOperationStore.shared.shutdown()
+		try? await app.asyncShutdown()
 	}
 }
 
