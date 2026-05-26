@@ -663,7 +663,7 @@ struct LXDInstancesController: RouteCollection {
 		
 		// Both console types use two fds: "0" (pty / VNC data) and "control".
 		var mode: LXDExecContext.ExecMode = .interactive
-		var metadatas: [String: String] = [
+		let metadatas: [String: String] = [
 			"0": UUID().uuidString.lowercased(),
 			"control": UUID().uuidString.lowercased()
 		]
