@@ -2880,6 +2880,7 @@
 				9BC1F9962F6D469A00A83B33 /* XCRemoteSwiftPackageReference "swift-subprocess" */,
 				9B3E2C672F7BDA1D003BF05E /* XCRemoteSwiftPackageReference "Sparkle" */,
 				9B602FA02FAA5C3800055543 /* XCRemoteSwiftPackageReference "vapor" */,
+				9B96F1462FC5D70B00C25306 /* XCRemoteSwiftPackageReference "swift-collections" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -4301,24 +4302,24 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-nio";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.92.1;
+				kind = exactVersion;
+				version = 2.92.1;
 			};
 		};
 		9B464BD42D5A414600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-http2" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-nio-http2";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.36.0;
+				kind = exactVersion;
+				version = 1.36.0;
 			};
 		};
 		9B464BDA2D5A416F00164BF5 /* XCRemoteSwiftPackageReference "swift-nio-extras" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-nio-extras";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.31.2;
+				kind = exactVersion;
+				version = 1.31.2;
 			};
 		};
 		9B464BF02D5A41A200164BF5 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
@@ -4333,8 +4334,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-log";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.10.1;
+				kind = exactVersion;
+				version = 1.10.1;
 			};
 		};
 		9B464BF82D5A41CF00164BF5 /* XCRemoteSwiftPackageReference "Shout" */ = {
@@ -4365,16 +4366,16 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/vapor/vapor.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.121.4;
+				kind = exactVersion;
+				version = 4.121.4;
 			};
 		};
 		9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/asam139/Steps";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.3.9;
+				kind = exactVersion;
+				version = 0.3.9;
 			};
 		};
 		9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */ = {
@@ -4393,6 +4394,14 @@
 				revision = 6c0bec1dc8db9e07a7738b06f380998a670e1fbc;
 			};
 		};
+		9B96F1462FC5D70B00C25306 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-collections.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.2.0;
+			};
+		};
 		9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Fred78290/containerization";
@@ -4405,8 +4414,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/swiftlang/swift-subprocess.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.4.0;
+				kind = exactVersion;
+				version = 0.4.0;
 			};
 		};
 		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {
