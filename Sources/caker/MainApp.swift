@@ -111,19 +111,23 @@ struct MainApp: App {
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 	
 	// Sparkle updater
+	#if SPARKLE
 	private let updaterController: SPUStandardUpdaterController
-	
+	#endif
+
 	init() {
 		_ = try? MainAppParseArgument.parse(CommandLine.arguments)
 		self.appState = AppState.shared
 		
+		#if SPARKLE
 		// Initialize Sparkle updater
 		self.updaterController = SPUStandardUpdaterController(
 			startingUpdater: true,
 			updaterDelegate: nil,
 			userDriverDelegate: nil
 		)
-		
+		#endif
+
 		self.navigationModel.sync(with: self.appState)
 
 		Self.app = self
