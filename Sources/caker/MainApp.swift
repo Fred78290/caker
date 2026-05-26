@@ -7,7 +7,10 @@ import SwiftUI
 import SwifterSwiftUI
 import Logging
 import Security
+
+#if SPARKLE
 import Sparkle
+#endif
 
 @MainActor
 func alertError(_ messageText: String, _ informativeText: String, completion: ((NSApplication.ModalResponse) -> Void)? = nil) {
@@ -289,10 +292,12 @@ struct MainApp: App {
 			}
 		}
 		
+		#if SPARKLE
 		CommandGroup(after: .appInfo) {
 			CheckForUpdatesView(updater: updaterController.updater)
 		}
-		
+		#endif
+
 		CommandMenu("Service") {
 			Button("Connect to remote") {
 				self.openWindow(id: "remote")

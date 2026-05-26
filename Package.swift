@@ -159,6 +159,9 @@ let package = Package(
 			.product(name: "SwiftletUtilities", package: "SwiftletUtilities"),
 			.product(name: "Sparkle", package: "Sparkle"),
 		],
+		swiftSettings: [
+			.define("SPARKLE")
+		],
 		linkerSettings: [
 			.unsafeFlags([
 				"-Xlinker", "-rpath",
