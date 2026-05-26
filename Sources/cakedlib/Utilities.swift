@@ -378,10 +378,6 @@ extension URL: Purgeable {
 			throw ServiceError(String(localized: "Access date not available for: \(self.hiddenPasswordURL.absoluteString)"))
 		}
 
-		guard let modificationDate = attrs.contentAccessDate else {
-			return
-		}
-
 		let times = [accessDate.asTimeval(), modificationDate.asTimeval()]
 		let ret = utimes(path, times)
 		if ret != 0 {
