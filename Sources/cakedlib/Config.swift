@@ -775,7 +775,12 @@ extension VirtualMachineConfiguration {
 
 		attachedDisks.append(
 			contentsOf: self.attachedDisks.compactMap {
-				try? $0.configuration(relativeTo: self.locationURL)
+				do {
+					return try $0.configuration(relativeTo: self.locationURL)
+				} catch {
+					Logger(self).error("Failed to create disk attachment for \($0.description): \(error)")
+					return nil
+				}
 			})
 
 		if try cloudInit.exists() {
