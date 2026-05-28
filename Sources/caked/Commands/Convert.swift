@@ -32,7 +32,4 @@ struct Convert: ParsableCommand {
 
 		logger.info("Conversion completed successfully")
 	}
-
-
-
 }
