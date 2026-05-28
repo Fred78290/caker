@@ -13,7 +13,6 @@ let package = Package(
 		.executable(name: "cakectl", targets: ["cakectl"]),
 		.library(name: "CakedLib", targets: ["CakedLib"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"]),
-		.library(name: "SharedPtrBridge", targets: ["SharedPtrBridge"]),
 	],
 	dependencies: [
 		.package(url :"https://github.com/Fred78290/FileMonitor.git", revision: "82bf1ff8dbaccac3359cfd6b49f30db690c8dc38"),
@@ -64,16 +63,6 @@ let package = Package(
 		//.package(url: "https://github.com/the-swift-collective/zlib", branch: "main")
 	],
 	targets: [
-		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
-		.target(name: "SharedPtrBridge", 
-			path: "Sources/SharedPtrBridge",
-			sources: ["SharedPtrBridge.mm"],
-			publicHeadersPath: ".",
-			cxxSettings: [
-				.headerSearchPath("."),
-				.define("_LIBCPP_HAS_NO_CHAR8_T")
-			]
-		),
 		.target(name: "GRPCLib", dependencies: [
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "Dynamic", package: "Dynamic"),
@@ -88,8 +77,6 @@ let package = Package(
 		]),
 		.target(name: "CakedLib", dependencies: [
 			.target(name: "GRPCLib"),
-			.target(name: "Qcow2convert"),
-			.target(name: "SharedPtrBridge"),
 			.product(name: "Algorithms", package: "swift-algorithms"),
 			.product(name: "Antlr4Static", package: "Antlr4"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),

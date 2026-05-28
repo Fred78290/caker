@@ -31,6 +31,10 @@
 		9B068D5A2EB89E2C00C68D7E /* GlassEffectHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */; };
 		9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
 		9B06995E2FB1A1B800FEAE13 /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
+		9B081B5A2FC75A1A0029B259 /* Qcow2Header.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081B582FC75A1A0029B259 /* Qcow2Header.swift */; };
+		9B081B5B2FC75A1A0029B259 /* Qcow2Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081B572FC75A1A0029B259 /* Qcow2Error.swift */; };
+		9B081B5C2FC75A1A0029B259 /* Qcow2Converter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081B562FC75A1A0029B259 /* Qcow2Converter.swift */; };
+		9B081CBC2FC88D160029B259 /* Convert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081CBB2FC88D110029B259 /* Convert.swift */; };
 		9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AC2F743641009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AD2F7436F1009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
@@ -66,7 +70,6 @@
 		9B215B772E0C39AE00AFC89D /* SocketsDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B215B762E0C39AE00AFC89D /* SocketsDetailView.swift */; };
 		9B21ABC72DF4A243000B3B40 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
-		9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; };
 		9B21DFFA2F4C651800870AD7 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21DFF92F4C651800870AD7 /* GRPC */; };
 		9B21DFFC2F4C654500870AD7 /* NIO in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21DFFB2F4C654500870AD7 /* NIO */; };
 		9B21DFFE2F4C659900870AD7 /* NIOExtras in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21DFFD2F4C659900870AD7 /* NIOExtras */; };
@@ -77,8 +80,6 @@
 		9B21E0082F4C670E00870AD7 /* ContainerizationOCI in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21E0072F4C670E00870AD7 /* ContainerizationOCI */; };
 		9B21E0092F4C676800870AD7 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9B21E00C2F4C676800870AD7 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
-		9B21E00F2F4C676800870AD7 /* Qcow2convert.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; };
-		9B21E0102F4C676800870AD7 /* Qcow2convert.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9B21E0132F4C677700870AD7 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21E0122F4C677700870AD7 /* CakeAgentLib */; };
 		9B2221CE2F5831F20037344D /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2221CD2F5831F00037344D /* InstallAgentHandler.swift */; };
 		9B27840F2FB37A83001F2B6A /* BridgeAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */; };
@@ -538,7 +539,6 @@
 		9BEBC8012DF440BF0092B196 /* Multipart in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8002DF440BF0092B196 /* Multipart */; };
 		9BEBC8032DF440BF0092B196 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8022DF440BF0092B196 /* CakeAgentLib */; };
 		9BEBC8042DF440BF0092B196 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
-		9BEBC81D2DF44A000092B196 /* Qcow2convert.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; };
 		9BEBC8242DF44B9C0092B196 /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8232DF44B9C0092B196 /* Dynamic */; };
 		9BEBC8262DF44B9C0092B196 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8252DF44B9C0092B196 /* Algorithms */; };
 		9BEBC8282DF44B9C0092B196 /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8272DF44B9C0092B196 /* AsyncAlgorithms */; };
@@ -704,7 +704,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				9B21E0102F4C676800870AD7 /* Qcow2convert.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -775,6 +774,10 @@
 		9B0202722EA8D08800053712 /* RoundedTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedTextField.swift; sourceTree = "<group>"; };
 		9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPSWInstaller.swift; sourceTree = "<group>"; };
 		9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassEffectHelper.swift; sourceTree = "<group>"; };
+		9B081B562FC75A1A0029B259 /* Qcow2Converter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qcow2Converter.swift; sourceTree = "<group>"; };
+		9B081B572FC75A1A0029B259 /* Qcow2Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qcow2Error.swift; sourceTree = "<group>"; };
+		9B081B582FC75A1A0029B259 /* Qcow2Header.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qcow2Header.swift; sourceTree = "<group>"; };
+		9B081CBB2FC88D110029B259 /* Convert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Convert.swift; sourceTree = "<group>"; };
 		9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCompatibilitySpan.tbd; path = usr/lib/swift/libswiftCompatibilitySpan.tbd; sourceTree = SDKROOT; };
 		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
@@ -920,7 +923,6 @@
 		9B464AD92D5A3E0300164BF5 /* service.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = service.pb.swift; sourceTree = "<group>"; };
 		9B464B4F2D5A3E5C00164BF5 /* cakectl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cakectl; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
-		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDRemotesController.swift; sourceTree = "<group>"; };
 		9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstanceDetailPage.tsx; sourceTree = "<group>"; };
@@ -1317,7 +1319,6 @@
 				9B13C3432F0AD87C0099F00F /* CakeAgentLib in Frameworks */,
 				9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */,
 				9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */,
-				9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */,
 				9B3E2C692F7BDA1D003BF05E /* Sparkle in Frameworks */,
 				9B08B4AD2F7436F1009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */,
 				9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */,
@@ -1388,7 +1389,6 @@
 				9B21E0022F4C65E900870AD7 /* NIOHTTP2 in Frameworks */,
 				9B21DFFA2F4C651800870AD7 /* GRPC in Frameworks */,
 				9B21DFFE2F4C659900870AD7 /* NIOExtras in Frameworks */,
-				9B21E00F2F4C676800870AD7 /* Qcow2convert.xcframework in Frameworks */,
 				9B21E0042F4C663D00870AD7 /* NIOHTTPCompression in Frameworks */,
 				9B21E0092F4C676800870AD7 /* libCakedLib.a in Frameworks */,
 				9BBE5C6F2F4C544E005B3359 /* XCTest.framework in Frameworks */,
@@ -1479,7 +1479,6 @@
 				9BEBC7D92DF440BF0092B196 /* Crypto in Frameworks */,
 				9BEBC7EF2DF440BF0092B196 /* NIOWebSocket in Frameworks */,
 				9BEBC7F12DF440BF0092B196 /* NIOHTTP2 in Frameworks */,
-				9BEBC81D2DF44A000092B196 /* Qcow2convert.xcframework in Frameworks */,
 				9BEBC7F32DF440BF0092B196 /* SwiftProtobuf in Frameworks */,
 				9BEBC7F72DF440BF0092B196 /* Shout in Frameworks */,
 				9BEBC7C92DF440BF0092B196 /* Sysctl in Frameworks */,
@@ -1510,6 +1509,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9B081B592FC75A1A0029B259 /* Qcow2 */ = {
+			isa = PBXGroup;
+			children = (
+				9B081B562FC75A1A0029B259 /* Qcow2Converter.swift */,
+				9B081B572FC75A1A0029B259 /* Qcow2Error.swift */,
+				9B081B582FC75A1A0029B259 /* Qcow2Header.swift */,
+			);
+			path = Qcow2;
+			sourceTree = "<group>";
+		};
 		9B144C0E2F9D28D900F14DEF /* VNCTunnel */ = {
 			isa = PBXGroup;
 			children = (
@@ -1787,7 +1796,6 @@
 		9B464A4B2D5A3DA000164BF5 = {
 			isa = PBXGroup;
 			children = (
-				9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */,
 				9B464A562D5A3DA000164BF5 /* Caker */,
 				9B96B0102F4B68380069C970 /* CakerTests */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
@@ -2124,6 +2132,7 @@
 		9BEBC6B12DF4400A0092B196 /* Commands */ = {
 			isa = PBXGroup;
 			children = (
+				9B081CBB2FC88D110029B259 /* Convert.swift */,
 				9BEBC6972DF4400A0092B196 /* Build.swift */,
 				9BEBC6982DF4400A0092B196 /* Certificates.swift */,
 				9BEBC69A2DF4400A0092B196 /* Configure.swift */,
@@ -2382,6 +2391,7 @@
 				9B20D6012E019FA400BEFB41 /* Importers */,
 				9BEBC7322DF440720092B196 /* IP */,
 				9BFE81A62EC8F8C500767615 /* OCI */,
+				9B081B592FC75A1A0029B259 /* Qcow2 */,
 				9BEBC7412DF440720092B196 /* Sockets */,
 				9BEBC74C2DF440720092B196 /* UI */,
 				9BEBC7522DF440720092B196 /* VMNet */,
@@ -3218,6 +3228,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9B6031352FAD103F00055543 /* LXDAuthGroupStore.swift in Sources */,
+				9B081CBC2FC88D160029B259 /* Convert.swift in Sources */,
 				9B6031362FAD103F00055543 /* LXDIdentityStore.swift in Sources */,
 				9BB149202EC760F70094D950 /* Pull.swift in Sources */,
 				9BB149222EC760FE0094D950 /* Push.swift in Sources */,
@@ -3430,6 +3441,9 @@
 				9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */,
 				9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */,
 				9BEBD1802F9CC1D20005EC80 /* SetOptions.swift in Sources */,
+				9B081B5A2FC75A1A0029B259 /* Qcow2Header.swift in Sources */,
+				9B081B5B2FC75A1A0029B259 /* Qcow2Error.swift in Sources */,
+				9B081B5C2FC75A1A0029B259 /* Qcow2Converter.swift in Sources */,
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
 				9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */,
