@@ -4827,10 +4827,10 @@ public struct Caked_Caked: Sendable {
 
       public var response: Caked_Caked.Reply.CertificateReply.OneOf_Response? = nil
 
-      public var added: Caked_Caked.Reply.CertificateReply.Certificat {
+      public var added: Caked_Caked.Reply.CertificateReply.Certificate {
         get {
           if case .added(let v)? = response {return v}
-          return Caked_Caked.Reply.CertificateReply.Certificat()
+          return Caked_Caked.Reply.CertificateReply.Certificate()
         }
         set {response = .added(newValue)}
       }
@@ -4854,13 +4854,13 @@ public struct Caked_Caked: Sendable {
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public enum OneOf_Response: Equatable, Sendable {
-        case added(Caked_Caked.Reply.CertificateReply.Certificat)
+        case added(Caked_Caked.Reply.CertificateReply.Certificate)
         case list(Caked_Caked.Reply.CertificateReply.ListCertificatesReply)
         case get(Caked_Caked.Reply.CertificateReply.PEMDocument)
 
       }
 
-      public struct Certificat: Sendable {
+      public struct Certificate: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4887,7 +4887,7 @@ public struct Caked_Caked: Sendable {
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
 
-        public var certificates: [Caked_Caked.Reply.CertificateReply.Certificat] = []
+        public var certificates: [Caked_Caked.Reply.CertificateReply.Certificate] = []
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -13288,7 +13288,7 @@ extension Caked_Caked.Reply.CertificateReply: SwiftProtobuf.Message, SwiftProtob
       case 1: try { try decoder.decodeSingularStringField(value: &self._reason) }()
       case 2: try { try decoder.decodeSingularBoolField(value: &self.success) }()
       case 3: try {
-        var v: Caked_Caked.Reply.CertificateReply.Certificat?
+        var v: Caked_Caked.Reply.CertificateReply.Certificate?
         var hadOneofValue = false
         if let current = self.response {
           hadOneofValue = true
@@ -13369,8 +13369,8 @@ extension Caked_Caked.Reply.CertificateReply: SwiftProtobuf.Message, SwiftProtob
   }
 }
 
-extension Caked_Caked.Reply.CertificateReply.Certificat: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = Caked_Caked.Reply.CertificateReply.protoMessageName + ".Certificat"
+extension Caked_Caked.Reply.CertificateReply.Certificate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.CertificateReply.protoMessageName + ".Certificate"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}type\0\u{1}restricted\0\u{1}projects\0\u{1}certificate\0\u{1}fingerprint\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -13412,7 +13412,7 @@ extension Caked_Caked.Reply.CertificateReply.Certificat: SwiftProtobuf.Message, 
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Caked_Caked.Reply.CertificateReply.Certificat, rhs: Caked_Caked.Reply.CertificateReply.Certificat) -> Bool {
+  public static func ==(lhs: Caked_Caked.Reply.CertificateReply.Certificate, rhs: Caked_Caked.Reply.CertificateReply.Certificate) -> Bool {
     if lhs.name != rhs.name {return false}
     if lhs.type != rhs.type {return false}
     if lhs.restricted != rhs.restricted {return false}

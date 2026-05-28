@@ -1119,7 +1119,7 @@ message Caked {
     }
 
     message CertificateReply {
-      message Certificat {
+      message Certificate {
         string          name        = 1;
         string          type        = 2;
         bool            restricted  = 3;
@@ -1129,7 +1129,7 @@ message Caked {
       }
 
       message ListCertificatesReply {
-        repeated Certificat certificates = 1;
+        repeated Certificate certificates = 1;
       }
 
       message PEMDocument {
@@ -1140,7 +1140,7 @@ message Caked {
       bool            success = 2;
 
       oneof response {
-        Certificat            added = 3;
+        Certificate           added = 3;
         ListCertificatesReply list  = 4;
         PEMDocument           get   = 5;
       }

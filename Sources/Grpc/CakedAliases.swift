@@ -137,7 +137,7 @@ public typealias Caked_CertificateRequestCommand = Caked_CertificateRequest.Cert
 public typealias Caked_CertificateAddRequest = Caked_Caked.CertificateRequest.CertificateAddRequest
 public typealias Caked_CertificateDeleteRequest = Caked_Caked.CertificateRequest.CertificateDeleteRequest
 
-public typealias Caked_Certificate = Caked.Reply.CertificateReply.Certificat
+public typealias Caked_Certificate = Caked.Reply.CertificateReply.Certificate
 public typealias Caked_ListCertificatesReply = Caked_Caked.Reply.CertificateReply.ListCertificatesReply
 
 extension VirtualizedOS {
