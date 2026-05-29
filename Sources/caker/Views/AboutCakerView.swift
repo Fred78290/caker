@@ -104,6 +104,7 @@ public struct AboutCakerView: View {
 				FeatureRow(icon: "cloud", text: String(localized: "Cloud-Init support for initialization"))
 				FeatureRow(icon: "gear", text: String(localized: "Automatic integrated agent"))
 				FeatureRow(icon: "terminal", text: String(localized: "Integrated VNC and terminal interfaces"))
+				FeatureRow(icon: "bonjour", text: String(localized: "Remote control via CLI and API via GUI and Web"))
 			}
 			.padding()
 		}
