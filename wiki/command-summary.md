@@ -21,6 +21,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
 - `list` / `infos` / `waitip` — inspect VM inventory, details, and IP readiness.
 - `exec` / `sh` — execute commands in guest VM context.
 - `mount` / `umount` — manage VM mounts.
+- `vnc` — open a native VNC client window connected to a running VM's display.
 
 ### Images and registries
 
@@ -41,7 +42,18 @@ This page summarizes the `ArgumentParser` commands implemented in:
   - `get` — show certificate paths
   - `generate` — generate TLS certs
   - `agent` — generate agent certs
+- `convert` — convert a VMDK or QCOW2 disk image to raw format (pure Swift, no external tools required).
+  - `--source-format` / `-f` — source format: `qcow2` (default) or `vmdk`.
 - `service` — service/daemon management entry point.
+  - `install` — install `caked` as a launchctl agent.
+  - `listen` — start the daemon listener with the following notable flags:
+    - `--rest` — enable the LXD-compatible REST API server (default port 8443 for HTTPS, 8080 for HTTP).
+    - `--rest-port <port>` — override the REST API listen port.
+    - `--web-ui <path>` — serve the bundled web UI from a directory or `.zip` archive at `/ui`.
+    - `--address` / `-l` — override the gRPC listen address.
+    - `--insecure` — disable TLS.
+  - `status` — report daemon status.
+  - `stop` — stop the running daemon.
 - `vmrun` — internal VM runtime command (hidden/internal).
 - `import` — import external VM (Multipass or VMware Fusion) from file/URL.
 - `networks` extra internal/admin subcommands:

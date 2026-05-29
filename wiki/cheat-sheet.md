@@ -25,6 +25,8 @@ Quick command reference for common daily operations.
   - `cakectl sh <vm-name>`
 - Wait for IP:
   - `cakectl waitip <vm-name>`
+- Open VNC display:
+  - `cakectl vnc <vm-name>`
 
 ## Images and registry (`cakectl`)
 
@@ -59,8 +61,13 @@ Quick command reference for common daily operations.
   - `caked certificates generate`
 - Service mode:
   - `caked service listen --secure`
+  - `caked service listen --rest` *(enable LXD REST API)*
+  - `caked service listen --rest --web-ui /path/to/webui/dist` *(with web UI)*
   - `caked service status`
   - `caked service stop`
+- Convert disk images:
+  - `caked convert source.qcow2 destination.raw`
+  - `caked convert --source-format vmdk source.vmdk destination.raw`
 
 ## Useful global options
 
@@ -110,6 +117,23 @@ cakectl infos demo-vm
 ```bash
 cakectl shell demo-vm
 cakectl exec demo-vm -- uname -a
+```
+
+### 6) Connect to VM display via VNC
+
+```bash
+cakectl start demo-vm
+cakectl vnc demo-vm
+```
+
+### 7) Convert a QCOW2 or VMDK image to raw
+
+```bash
+# QCOW2 (default)
+caked convert ubuntu-cloud.qcow2 ubuntu.raw
+
+# VMDK
+caked convert --source-format vmdk disk.vmdk disk.raw
 ```
 
 ### 4) Push a local VM image to remote registry

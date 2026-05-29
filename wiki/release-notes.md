@@ -1,5 +1,23 @@
 # Release Notes
 
+## 2026-05-29
+
+### Added
+- **LXD REST API**: `caked service listen --rest` enables an LXD-compatible HTTP/HTTPS API server at `/1.0/instances`, `/1.0/networks`, `/1.0/images`, `/1.0/operations`, `/1.0/certificates`, `/1.0/identities`, and `/1.0/auth-groups`. Default ports: 8443 (HTTPS/mTLS), 8080 (HTTP). Override with `--rest-port`.
+- **Web UI**: `caked service listen --web-ui <path>` serves the bundled React/Vite frontend at `/ui`. Accepts a directory or a `.zip` archive.
+- **`caked convert` command**: converts QCOW2 or VMDK disk images to raw format using a pure-Swift implementation (no external tools required). Flags: `--source-format qcow2` (default) or `--source-format vmdk`.
+- **`cakectl vnc` command**: opens a native VNC client window connected to a running VM's display. Automatically tunnels the VNC connection through `caked`.
+- **Ubuntu 26.04 (Resolute Rhino)** build script support updated.
+
+### Updated
+- TLS certificate handling hardened: force-unwrap removed, mTLS CA certificate required for password bypass.
+- Basic Auth credential moved to in-memory storage (no longer written to `sessionStorage`).
+- `About` view updated to reflect remote control (CLI, GUI, and Web API) capabilities.
+
+### Notes
+- The REST API is LXD-compatible; existing LXD clients and tooling can connect directly to `caked`.
+- The Web UI development proxy (`VITE_API_TARGET`) defaults to `http://127.0.0.1:8080`.
+
 ## 2026-03-26 (Git log summary - main)
 
 ### Added
