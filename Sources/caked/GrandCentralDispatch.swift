@@ -53,7 +53,15 @@ final class GrandCentralDispatch {
 	}
 
 	func addListener(_ continuation: AsyncThrowingStreamCakedReplyContinuation) -> ListenerID {
-		self.listeners.withLock { dict in
+		let runningVirtualMachines = (try? StorageLocation(runMode: runMode).list())?.values.compactMap {
+			if case .running = $0.status {
+				return $0
+			}
+			return nil
+		} ?? []
+
+		var startUpdates = false
+		let id = self.listeners.withLock { dict in
 			let empty = dict.isEmpty
 			let id = ListenerID()
 
@@ -62,26 +70,24 @@ final class GrandCentralDispatch {
 			dict[id] = continuation
 
 			if empty {
-				if let vms = try? StorageLocation(runMode: runMode).list() {
-					vms.values.compactMap {
-						if case .running = $0.status {
-							return $0
-						}
-
-						return nil
-					}.forEach {
-						self.startGrandCentralUpdate(location: $0)
-					}
-				}
+				startUpdates = true
 			}
 
 			return id
 		}
+
+		if startUpdates {
+			runningVirtualMachines.forEach {
+				self.startGrandCentralUpdate(location: $0)
+			}
+		}
+
+		return id
 	}
 
 	@discardableResult
 	func removeListener(_ id: ListenerID) -> AsyncThrowingStreamCakedReplyContinuation? {
-		var stopFuture: EventLoopFuture<Void>? = nil
+		var shouldStopUpdates = false
 
 		let value = self.listeners.withLock { (dict) -> AsyncThrowingStreamCakedReplyContinuation? in
 			self.logger.info("Removing listener: \(id)")
@@ -92,11 +98,13 @@ final class GrandCentralDispatch {
 
 			if self.shutdown.withLock({ !$0 }) && dict.isEmpty {
 				self.logger.info("No more listeners, stop all Grand Central Updates")
-				stopFuture = self.stopGrandCentralUpdate()
+				shouldStopUpdates = true
 			}
 
 			return value
 		}
+
+		let stopFuture = shouldStopUpdates ? self.stopGrandCentralUpdate() : nil
 
 		if let stopFuture {
 			stopFuture.whenComplete { result in

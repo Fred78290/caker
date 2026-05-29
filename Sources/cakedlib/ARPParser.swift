@@ -8,10 +8,19 @@ struct ARPEntry {
 }
 
 class ARPParser: DHCPLeaseProvider {
+	private struct CacheEntry {
+		let timestamp: Date
+		let arp: [String: ARPEntry]
+	}
+
+	private static let cacheTTL: TimeInterval = 10
+	private static let cacheLock = NSLock()
+	private static var cache: CacheEntry?
+
 	let arp: [String: ARPEntry]
 
 	init() throws {
-		self.arp = Self.parseArp(arpOutput: try Shell.exec(FilePath("/usr/sbin/arp"), arguments: ["-an"]))
+		self.arp = try Self.cachedArp()
 	}
 
 	subscript(macAddress: String) -> String? {
@@ -43,5 +52,22 @@ class ARPParser: DHCPLeaseProvider {
 		return entries.reduce(into: [:]) { result, entry in
 			result[entry.macAddress] = entry
 		}
+	}
+
+	private static func cachedArp() throws -> [String: ARPEntry] {
+		Self.cacheLock.lock()
+		if let cache = Self.cache, Date().timeIntervalSince(cache.timestamp) < Self.cacheTTL {
+			Self.cacheLock.unlock()
+			return cache.arp
+		}
+		Self.cacheLock.unlock()
+
+		let parsedArp = Self.parseArp(arpOutput: try Shell.exec(FilePath("/usr/sbin/arp"), arguments: ["-an"]))
+
+		Self.cacheLock.lock()
+		Self.cache = CacheEntry(timestamp: Date(), arp: parsedArp)
+		Self.cacheLock.unlock()
+
+		return parsedArp
 	}
 }

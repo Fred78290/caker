@@ -1130,16 +1130,19 @@ extension VirtualMachine {
 
 // MARK: - Screenshoot
 extension VirtualMachine {
-	nonisolated var isScreenshotEnabled: Bool {
+	private var isScreenshotEnabled: Bool {
 		!UserDefaults.standard.bool(forKey: "NoScreenshot")
 	}
 
-	nonisolated private var isScreenshotSaveEnabled: Bool {
+	private var isScreenshotSaveEnabled: Bool {
 		isScreenshotEnabled && !UserDefaults.standard.bool(forKey: "NoSaveScreenshot")
 	}
 
 	func startScreenshotTimer() -> Timer {
-		if !isScreenshotSaveEnabled {
+		let screenshotEnabled = self.isScreenshotEnabled
+		let screenshotSaveEnabled = self.isScreenshotSaveEnabled
+
+		if !screenshotSaveEnabled {
 			try? deleteScreenshot()
 		}
 
@@ -1149,7 +1152,7 @@ extension VirtualMachine {
 				return
 			}
 
-			guard self.isScreenshotEnabled else {
+			guard screenshotEnabled else {
 				return
 			}
 

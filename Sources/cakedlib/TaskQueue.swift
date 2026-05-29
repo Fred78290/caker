@@ -8,6 +8,10 @@
 
 import Foundation
 
+public enum TaskQueueError: Error {
+	case invalidResultType(expected: String, actual: String)
+}
+
 public class TaskQueue {
 	private class PendingTask {
 		let label: String?
@@ -29,11 +33,11 @@ public class TaskQueue {
 	}
 
 	private class StreamTask: PendingTask {
-		let continuation: AsyncThrowingStream<Any, Error>.Continuation
-		let block: (AsyncThrowingStream<Any, Error>.Continuation) -> Void
+		let cancel: () -> Void
+		let block: () async throws -> Void
 
-		init(label: String?, continuation: AsyncThrowingStream<Any, Error>.Continuation, block: @escaping (AsyncThrowingStream<Any, Error>.Continuation) -> Void) {
-			self.continuation = continuation
+		init(label: String?, cancel: @escaping () -> Void, block: @escaping () async throws -> Void) {
+			self.cancel = cancel
 			self.block = block
 			super.init(label: label)
 		}
@@ -67,20 +71,11 @@ public class TaskQueue {
 					}
 				} else if let task = pendingTask as? StreamTask {
 					do {
-						//                        print("StreamTask \(pendingTask.tag ?? String.empty) start",source: tag)
-						for try await value in AsyncThrowingStream(Any.self, task.block) {
-							//check task cancelled
-							//                            print("StreamTask cancelled=\(Task.isCancelled)")
-							if isScopeCancelled { throw CancellationError() }
-							//                            print("StreamTask \(pendingTask.tag ?? String.empty) yield",source: tag)
-							task.continuation.yield(value)
-						}
-						//                        print("StreamTask \(pendingTask.tag ?? String.empty) finish",source: tag)
-						task.continuation.finish()
+						try await task.block()
 					} catch {
 						//                        print("StreamTask error \(error)")
 						//                        log.error("StreamTask \(pendingTask.tag ?? String.empty) error \(error)",source: tag)
-						task.continuation.finish(throwing: error)
+						// Stream completion is handled in block.
 					}
 				} else {
 					//                    print("PendingTask discard \(pendingTask)", label ?? String.empty)
@@ -94,7 +89,7 @@ public class TaskQueue {
 				if let task = pendingTask as? AsyncTask {
 					task.continuation?.resume(throwing: CancellationError())
 				} else if let task = pendingTask as? StreamTask {
-					task.continuation.finish(throwing: CancellationError())
+					task.cancel()
 				}
 			}
 		}
@@ -137,63 +132,48 @@ public class TaskQueue {
 		}
 
 		return try await withTaskCancellationHandler {
-			return
-				(try await withCheckedThrowingContinuation({ continuation in
-					let task = AsyncTask(label: label, continuation: continuation, block: block)
-					pendingTask = task
-					pendingTasksContinuation.yield(task)
-				})) as! T
+			let result = try await withCheckedThrowingContinuation({ continuation in
+				let task = AsyncTask(label: label, continuation: continuation, block: block)
+				pendingTask = task
+				pendingTasksContinuation.yield(task)
+			})
+
+			guard let typedResult = result as? T else {
+				throw TaskQueueError.invalidResultType(expected: "\(T.self)", actual: "\(type(of: result))")
+			}
+
+			return typedResult
 		} onCancel: {
 			cancel()
 		}
 	}
 
 	public func dispatchStream<T>(label: String? = nil, block: @escaping (AsyncThrowingStream<T, Error>.Continuation) -> Void) -> (stream: AsyncThrowingStream<T, Error>, continuation: AsyncThrowingStream<T, Error>.Continuation) {
-		let anyStream = AsyncThrowingStream<Any, Error> { continuation in
-			pendingTasksContinuation.yield(
-				StreamTask(
-					label: label, continuation: continuation,
-					block: { anyContinuation in
-						Task {
-							do {
-								for try await element in AsyncThrowingStream(T.self, block) {
-									anyContinuation.yield(element)
-								}
-
-								anyContinuation.finish()
-							} catch {
-								anyContinuation.finish(throwing: error)
-							}
-						}
-					}))
-		}
-
 		let asyncStream = AsyncThrowingStream.makeStream(of: T.self)
 		let typedContinuation = asyncStream.continuation
 
-		Task {
-			do {
-				for try await element in anyStream {
-					typedContinuation.yield(element as! T)
-				}
-				typedContinuation.finish()
-			} catch {
-				typedContinuation.finish(throwing: error)
-			}
-		}
-
-		/*return AsyncThrowingStream<T, Error> { typedContinuation in
-			Task {
-				do {
-					for try await element in anyStream {
-						typedContinuation.yield(element as! T)
+		pendingTasksContinuation.yield(
+			StreamTask(
+				label: label,
+				cancel: {
+					typedContinuation.finish(throwing: CancellationError())
+				},
+				block: { [weak self] in
+					do {
+						for try await element in AsyncThrowingStream(T.self, block) {
+							guard self?.isScopeCancelled == false else {
+								throw CancellationError()
+							}
+							typedContinuation.yield(element)
+						}
+						typedContinuation.finish()
+					} catch {
+						typedContinuation.finish(throwing: error)
 					}
-					typedContinuation.finish()
-				} catch {
-					typedContinuation.finish(throwing: error)
 				}
-			}
-		}*/
+			)
+		)
+
 		return asyncStream
 	}
 }
