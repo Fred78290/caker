@@ -22,12 +22,12 @@ import SwiftProtobuf
 // incompatible with the version of SwiftProtobuf to which you are linking.
 // Please ensure that you are building against the same version of the API
 // that was used to generate this file.
-fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
+fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
   struct _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
   typealias Version = _2
 }
 
-public struct Caked_Empty: Sendable {
+public nonisolated struct Caked_Empty: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -37,14 +37,14 @@ public struct Caked_Empty: Sendable {
   public init() {}
 }
 
-public struct Caked_Caked: Sendable {
+public nonisolated struct Caked_Caked: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public enum VirtualMachineStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
+  public nonisolated enum VirtualMachineStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
     public typealias RawValue = Int
     case stopped // = 0
     case running // = 1
@@ -98,7 +98,7 @@ public struct Caked_Caked: Sendable {
 
   }
 
-  public struct VncStream: Sendable {
+  public nonisolated struct VncStream: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -110,7 +110,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct CpuCoreInfo: Sendable {
+  public nonisolated struct CpuCoreInfo: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -142,7 +142,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct CpuInfo: Sendable {
+  public nonisolated struct CpuInfo: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -174,7 +174,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct MemoryInfo: Sendable {
+  public nonisolated struct MemoryInfo: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -197,7 +197,7 @@ public struct Caked_Caked: Sendable {
   }
 
   /// Configuration represents the complete configuration for a Cake virtual machine
-  public struct Configuration: @unchecked Sendable {
+  public nonisolated struct Configuration: @unchecked Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -480,7 +480,7 @@ public struct Caked_Caked: Sendable {
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
     /// VirtualizedOS represents the type of virtualized operating system
-    public enum VirtualizedOS: SwiftProtobuf.Enum, Swift.CaseIterable {
+    public nonisolated enum VirtualizedOS: SwiftProtobuf.Enum, Swift.CaseIterable {
       public typealias RawValue = Int
       case unsupported // = 0
       case darwin // = 1
@@ -519,7 +519,7 @@ public struct Caked_Caked: Sendable {
     }
 
     /// Architecture represents the CPU architecture
-    public enum Architecture: SwiftProtobuf.Enum, Swift.CaseIterable {
+    public nonisolated enum Architecture: SwiftProtobuf.Enum, Swift.CaseIterable {
       public typealias RawValue = Int
       case other // = 0
       case arm64 // = 1
@@ -558,7 +558,7 @@ public struct Caked_Caked: Sendable {
     }
 
     /// SupportedPlatform represents the configured platform
-    public enum SupportedPlatform: SwiftProtobuf.Enum, Swift.CaseIterable {
+    public nonisolated enum SupportedPlatform: SwiftProtobuf.Enum, Swift.CaseIterable {
       public typealias RawValue = Int
       case undefined // = 0
       case ubuntu // = 1
@@ -625,7 +625,7 @@ public struct Caked_Caked: Sendable {
     }
 
     /// ImageSource represents the source of the VM image
-    public enum ImageSource: SwiftProtobuf.Enum, Swift.CaseIterable {
+    public nonisolated enum ImageSource: SwiftProtobuf.Enum, Swift.CaseIterable {
       public typealias RawValue = Int
       case unknown // = 0
       case raw // = 1
@@ -684,7 +684,7 @@ public struct Caked_Caked: Sendable {
     }
 
     /// DiskAttachment represents an attached disk
-    public struct DiskAttachment: Sendable {
+    public nonisolated struct DiskAttachment: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -702,7 +702,7 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public struct DiskOptions: Sendable {
+      public nonisolated struct DiskOptions: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -724,7 +724,7 @@ public struct Caked_Caked: Sendable {
     }
 
     /// DirectorySharingAttachment represents a mounted directory
-    public struct DirectorySharingAttachment: Sendable {
+    public nonisolated struct DirectorySharingAttachment: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -780,7 +780,7 @@ public struct Caked_Caked: Sendable {
     }
 
     /// BridgeAttachment represents a network bridge attachment
-    public struct BridgeAttachment: Sendable {
+    public nonisolated struct BridgeAttachment: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -806,7 +806,7 @@ public struct Caked_Caked: Sendable {
     }
 
     /// SocketDevice represents a socket device attachment
-    public struct SocketDevice: Sendable {
+    public nonisolated struct SocketDevice: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -824,7 +824,7 @@ public struct Caked_Caked: Sendable {
     }
 
     /// TunnelAttachement represents a port forwarding tunnel
-    public struct TunnelAttachement: Sendable {
+    public nonisolated struct TunnelAttachement: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -849,13 +849,13 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Port: Equatable, Sendable {
+      public nonisolated enum OneOf_Port: Equatable, Sendable {
         case forward(Caked_Caked.Configuration.TunnelAttachement.ForwardedPort)
         case unixDomain(Caked_Caked.Configuration.TunnelAttachement.ForwardUnixDomainSocket)
 
       }
 
-      public struct ForwardedPort: Sendable {
+      public nonisolated struct ForwardedPort: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -871,7 +871,7 @@ public struct Caked_Caked: Sendable {
         public init() {}
       }
 
-      public struct ForwardUnixDomainSocket: Sendable {
+      public nonisolated struct ForwardUnixDomainSocket: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -891,7 +891,7 @@ public struct Caked_Caked: Sendable {
     }
 
     /// MacMachineIdentifier represents Mac-specific machine identification (base64 encoded)
-    public struct MacMachineIdentifier: Sendable {
+    public nonisolated struct MacMachineIdentifier: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -904,7 +904,7 @@ public struct Caked_Caked: Sendable {
     }
 
     /// MacHardwareModel represents Mac hardware model information (base64 encoded)
-    public struct MacHardwareModel: Sendable {
+    public nonisolated struct MacHardwareModel: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -921,7 +921,7 @@ public struct Caked_Caked: Sendable {
     fileprivate var _storage = _StorageClass.defaultInstance
   }
 
-  public struct ScreenSize: Sendable {
+  public nonisolated struct ScreenSize: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -935,7 +935,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct InstallAgentRequest: Sendable {
+  public nonisolated struct InstallAgentRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -949,7 +949,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct GetScreenSizeRequest: Sendable {
+  public nonisolated struct GetScreenSizeRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -961,7 +961,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct SetScreenSizeRequest: Sendable {
+  public nonisolated struct SetScreenSizeRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -984,7 +984,7 @@ public struct Caked_Caked: Sendable {
     fileprivate var _screenSize: Caked_Caked.ScreenSize? = nil
   }
 
-  public struct PingRequest: Sendable {
+  public nonisolated struct PingRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -1000,7 +1000,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct CurrentStatusRequest: Sendable {
+  public nonisolated struct CurrentStatusRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -1014,14 +1014,14 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct VMRequest: Sendable {
+  public nonisolated struct VMRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    public struct CommonBuildRequest: @unchecked Sendable {
+    public nonisolated struct CommonBuildRequest: @unchecked Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1291,7 +1291,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _storage = _StorageClass.defaultInstance
     }
 
-    public struct BuildRequest: Sendable {
+    public nonisolated struct BuildRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1312,7 +1312,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _options: Caked_Caked.VMRequest.CommonBuildRequest? = nil
     }
 
-    public struct StartRequest: Sendable {
+    public nonisolated struct StartRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1375,7 +1375,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _recoveryMode: Bool? = nil
     }
 
-    public struct RestartRequest: Sendable {
+    public nonisolated struct RestartRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1400,7 +1400,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _waitIptimeout: Int32? = nil
     }
 
-    public struct CloneRequest: Sendable {
+    public nonisolated struct CloneRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1445,7 +1445,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _deduplicate: Bool? = nil
     }
 
-    public struct DuplicateRequest: Sendable {
+    public nonisolated struct DuplicateRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1463,7 +1463,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct LaunchRequest: Sendable {
+    public nonisolated struct LaunchRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1534,7 +1534,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _recoveryMode: Bool? = nil
     }
 
-    public struct ConfigureRequest: @unchecked Sendable {
+    public nonisolated struct ConfigureRequest: @unchecked Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1713,7 +1713,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _storage = _StorageClass.defaultInstance
     }
 
-    public struct WaitIPRequest: Sendable {
+    public nonisolated struct WaitIPRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1727,7 +1727,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct StopRequest: Sendable {
+    public nonisolated struct StopRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1754,13 +1754,13 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Stop: Equatable, Sendable {
+      public nonisolated enum OneOf_Stop: Equatable, Sendable {
         case all(Bool)
         case names(Caked_Caked.VMRequest.StopRequest.VMNames)
 
       }
 
-      public struct VMNames: Sendable {
+      public nonisolated struct VMNames: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -1775,7 +1775,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct SuspendRequest: Sendable {
+    public nonisolated struct SuspendRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1787,7 +1787,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct DeleteRequest: Sendable {
+    public nonisolated struct DeleteRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1812,13 +1812,13 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Delete: Equatable, Sendable {
+      public nonisolated enum OneOf_Delete: Equatable, Sendable {
         case all(Bool)
         case names(Caked_Caked.VMRequest.DeleteRequest.VMNames)
 
       }
 
-      public struct VMNames: Sendable {
+      public nonisolated struct VMNames: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -1833,7 +1833,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct ListRequest: Sendable {
+    public nonisolated struct ListRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1856,7 +1856,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _includeConfig: Bool? = nil
     }
 
-    public struct InfoRequest: Sendable {
+    public nonisolated struct InfoRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1870,7 +1870,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct RenameRequest: Sendable {
+    public nonisolated struct RenameRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1884,7 +1884,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct TemplateRequest: Sendable {
+    public nonisolated struct TemplateRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -1911,13 +1911,13 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Template: Equatable, Sendable {
+      public nonisolated enum OneOf_Template: Equatable, Sendable {
         case createRequest(Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd)
         case deleteRequest(String)
 
       }
 
-      public enum TemplateCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
+      public nonisolated enum TemplateCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
         public typealias RawValue = Int
         case none // = 0
         case add // = 1
@@ -1959,7 +1959,7 @@ public struct Caked_Caked: Sendable {
 
       }
 
-      public struct TemplateRequestAdd: Sendable {
+      public nonisolated struct TemplateRequestAdd: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -1978,7 +1978,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct RunCommand: Sendable {
+    public nonisolated struct RunCommand: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -2005,7 +2005,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _input: Data? = nil
     }
 
-    public struct ExecuteResponse: Sendable {
+    public nonisolated struct ExecuteResponse: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -2046,7 +2046,7 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Response: Equatable, Sendable {
+      public nonisolated enum OneOf_Response: Equatable, Sendable {
         case exitCode(Int32)
         case stdout(Data)
         case stderr(Data)
@@ -2054,7 +2054,7 @@ public struct Caked_Caked: Sendable {
 
       }
 
-      public struct EstablishedResponse: Sendable {
+      public nonisolated struct EstablishedResponse: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -2071,7 +2071,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct ExecuteRequest: Sendable {
+    public nonisolated struct ExecuteRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -2112,7 +2112,7 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Execute: Equatable, Sendable {
+      public nonisolated enum OneOf_Execute: Equatable, Sendable {
         case command(Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand)
         case input(Data)
         case size(Caked_Caked.VMRequest.ExecuteRequest.TerminalSize)
@@ -2120,7 +2120,7 @@ public struct Caked_Caked: Sendable {
 
       }
 
-      public struct ExecuteCommand: Sendable {
+      public nonisolated struct ExecuteCommand: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -2145,13 +2145,13 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public enum OneOf_Execute: Equatable, Sendable {
+        public nonisolated enum OneOf_Execute: Equatable, Sendable {
           case command(Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand.Command)
           case shell(Bool)
 
         }
 
-        public struct Command: Sendable {
+        public nonisolated struct Command: Sendable {
           // SwiftProtobuf.Message conformance is added in an extension below. See the
           // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
           // methods supported on all messages.
@@ -2168,7 +2168,7 @@ public struct Caked_Caked: Sendable {
         public init() {}
       }
 
-      public struct TerminalSize: Sendable {
+      public nonisolated struct TerminalSize: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -2188,7 +2188,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct Reply: Sendable {
+  public nonisolated struct Reply: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -2301,7 +2301,7 @@ public struct Caked_Caked: Sendable {
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    public enum OneOf_Response: Equatable, Sendable {
+    public nonisolated enum OneOf_Response: Equatable, Sendable {
       case vms(Caked_Caked.Reply.VirtualMachineReply)
       case images(Caked_Caked.Reply.ImageReply)
       case networks(Caked_Caked.Reply.NetworksReply)
@@ -2318,7 +2318,7 @@ public struct Caked_Caked: Sendable {
 
     }
 
-    public struct CurrentUsageReply: @unchecked Sendable {
+    public nonisolated struct CurrentUsageReply: @unchecked Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -2353,7 +2353,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _storage = _StorageClass.defaultInstance
     }
 
-    public struct CurrentStatusReply: Sendable {
+    public nonisolated struct CurrentStatusReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -2362,7 +2362,7 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public struct CurrentStatus: Sendable {
+      public nonisolated struct CurrentStatus: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -2405,7 +2405,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public enum OneOf_Message: Equatable, Sendable {
+        public nonisolated enum OneOf_Message: Equatable, Sendable {
           case usage(Caked_Caked.Reply.CurrentUsageReply)
           case screenshot(Data)
           case status(Caked_Caked.VirtualMachineStatus)
@@ -2419,7 +2419,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct PingReply: Sendable {
+    public nonisolated struct PingReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -2439,7 +2439,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct VirtualMachineReply: Sendable {
+    public nonisolated struct VirtualMachineReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -2592,7 +2592,7 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Response: Equatable, Sendable {
+      public nonisolated enum OneOf_Response: Equatable, Sendable {
         case list(Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply)
         case delete(Caked_Caked.Reply.VirtualMachineReply.DeleteReply)
         case stop(Caked_Caked.Reply.VirtualMachineReply.StopReply)
@@ -2614,7 +2614,7 @@ public struct Caked_Caked: Sendable {
 
       }
 
-      public struct VirtualMachineInfoReply: Sendable {
+      public nonisolated struct VirtualMachineInfoReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -2634,7 +2634,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public struct VirtualMachineInfo: @unchecked Sendable {
+        public nonisolated struct VirtualMachineInfo: @unchecked Sendable {
           // SwiftProtobuf.Message conformance is added in an extension below. See the
           // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
           // methods supported on all messages.
@@ -2763,7 +2763,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct DeleteReply: Sendable {
+      public nonisolated struct DeleteReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -2783,7 +2783,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public struct DeletedObject: Sendable {
+        public nonisolated struct DeletedObject: Sendable {
           // SwiftProtobuf.Message conformance is added in an extension below. See the
           // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
           // methods supported on all messages.
@@ -2806,7 +2806,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct StopReply: Sendable {
+      public nonisolated struct StopReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -2826,7 +2826,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public struct StoppedObject: Sendable {
+        public nonisolated struct StoppedObject: Sendable {
           // SwiftProtobuf.Message conformance is added in an extension below. See the
           // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
           // methods supported on all messages.
@@ -2847,7 +2847,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct SuspendReply: Sendable {
+      public nonisolated struct SuspendReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -2867,7 +2867,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public struct SuspendedObject: Sendable {
+        public nonisolated struct SuspendedObject: Sendable {
           // SwiftProtobuf.Message conformance is added in an extension below. See the
           // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
           // methods supported on all messages.
@@ -2888,7 +2888,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct RestartReply: Sendable {
+      public nonisolated struct RestartReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -2908,7 +2908,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public struct RestartedObject: Sendable {
+        public nonisolated struct RestartedObject: Sendable {
           // SwiftProtobuf.Message conformance is added in an extension below. See the
           // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
           // methods supported on all messages.
@@ -2929,7 +2929,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct StatusReply: Sendable {
+      public nonisolated struct StatusReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -2965,7 +2965,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public struct InfoReply: @unchecked Sendable {
+        public nonisolated struct InfoReply: @unchecked Sendable {
           // SwiftProtobuf.Message conformance is added in an extension below. See the
           // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
           // methods supported on all messages.
@@ -3104,7 +3104,7 @@ public struct Caked_Caked: Sendable {
 
           public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-          public struct DiskInfo: Sendable {
+          public nonisolated struct DiskInfo: Sendable {
             // SwiftProtobuf.Message conformance is added in an extension below. See the
             // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
             // methods supported on all messages.
@@ -3126,7 +3126,7 @@ public struct Caked_Caked: Sendable {
             public init() {}
           }
 
-          public struct AttachedNetwork: Sendable {
+          public nonisolated struct AttachedNetwork: Sendable {
             // SwiftProtobuf.Message conformance is added in an extension below. See the
             // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
             // methods supported on all messages.
@@ -3161,7 +3161,7 @@ public struct Caked_Caked: Sendable {
             fileprivate var _macAddress: String? = nil
           }
 
-          public struct TunnelInfo: Sendable {
+          public nonisolated struct TunnelInfo: Sendable {
             // SwiftProtobuf.Message conformance is added in an extension below. See the
             // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
             // methods supported on all messages.
@@ -3186,13 +3186,13 @@ public struct Caked_Caked: Sendable {
 
             public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-            public enum OneOf_Tunnel: Equatable, Sendable {
+            public nonisolated enum OneOf_Tunnel: Equatable, Sendable {
               case forward(Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.ForwardedPort)
               case unixDomain(Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.Tunnel)
 
             }
 
-            public enum ProtocolEnum: SwiftProtobuf.Enum, Swift.CaseIterable {
+            public nonisolated enum ProtocolEnum: SwiftProtobuf.Enum, Swift.CaseIterable {
               public typealias RawValue = Int
               case tcp // = 0
               case udp // = 1
@@ -3226,7 +3226,7 @@ public struct Caked_Caked: Sendable {
 
             }
 
-            public struct ForwardedPort: Sendable {
+            public nonisolated struct ForwardedPort: Sendable {
               // SwiftProtobuf.Message conformance is added in an extension below. See the
               // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
               // methods supported on all messages.
@@ -3242,7 +3242,7 @@ public struct Caked_Caked: Sendable {
               public init() {}
             }
 
-            public struct Tunnel: Sendable {
+            public nonisolated struct Tunnel: Sendable {
               // SwiftProtobuf.Message conformance is added in an extension below. See the
               // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
               // methods supported on all messages.
@@ -3261,7 +3261,7 @@ public struct Caked_Caked: Sendable {
             public init() {}
           }
 
-          public struct SocketInfo: Sendable {
+          public nonisolated struct SocketInfo: Sendable {
             // SwiftProtobuf.Message conformance is added in an extension below. See the
             // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
             // methods supported on all messages.
@@ -3274,7 +3274,7 @@ public struct Caked_Caked: Sendable {
 
             public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-            public enum Mode: SwiftProtobuf.Enum, Swift.CaseIterable {
+            public nonisolated enum Mode: SwiftProtobuf.Enum, Swift.CaseIterable {
               public typealias RawValue = Int
               case bind // = 0
               case connect // = 1
@@ -3331,7 +3331,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct LaunchReply: Sendable {
+      public nonisolated struct LaunchReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3366,7 +3366,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct StartedReply: Sendable {
+      public nonisolated struct StartedReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3401,7 +3401,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct BuildedReply: Sendable {
+      public nonisolated struct BuildedReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3426,7 +3426,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct BuildProgressValue: Sendable {
+      public nonisolated struct BuildProgressValue: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3444,7 +3444,7 @@ public struct Caked_Caked: Sendable {
         public init() {}
       }
 
-      public struct BuildTerminatedReply: Sendable {
+      public nonisolated struct BuildTerminatedReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3469,7 +3469,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public enum OneOf_Result: Equatable, Sendable {
+        public nonisolated enum OneOf_Result: Equatable, Sendable {
           case success(String)
           case failure(String)
 
@@ -3478,7 +3478,7 @@ public struct Caked_Caked: Sendable {
         public init() {}
       }
 
-      public struct BuildStreamReply: Sendable {
+      public nonisolated struct BuildStreamReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3519,7 +3519,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public enum OneOf_Current: Equatable, Sendable {
+        public nonisolated enum OneOf_Current: Equatable, Sendable {
           case progress(Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue)
           case terminated(Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply)
           case step(String)
@@ -3530,7 +3530,7 @@ public struct Caked_Caked: Sendable {
         public init() {}
       }
 
-      public struct LaunchStreamReply: Sendable {
+      public nonisolated struct LaunchStreamReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3571,7 +3571,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public enum OneOf_Current: Equatable, Sendable {
+        public nonisolated enum OneOf_Current: Equatable, Sendable {
           case progress(Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue)
           case terminated(Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply)
           case step(String)
@@ -3582,7 +3582,7 @@ public struct Caked_Caked: Sendable {
         public init() {}
       }
 
-      public struct ClonedReply: Sendable {
+      public nonisolated struct ClonedReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3609,7 +3609,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct ConfiguredReply: Sendable {
+      public nonisolated struct ConfiguredReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3634,7 +3634,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct DuplicatedReply: Sendable {
+      public nonisolated struct DuplicatedReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3661,7 +3661,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct ImportedReply: Sendable {
+      public nonisolated struct ImportedReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3688,7 +3688,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct WaitIPReply: Sendable {
+      public nonisolated struct WaitIPReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3715,7 +3715,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct PurgeReply: Sendable {
+      public nonisolated struct PurgeReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3738,7 +3738,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct RenameReply: Sendable {
+      public nonisolated struct RenameReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3765,7 +3765,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct InstalledAgentReply: Sendable {
+      public nonisolated struct InstalledAgentReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3790,7 +3790,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct VncURL: Sendable {
+      public nonisolated struct VncURL: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3816,7 +3816,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct ImageReply: Sendable {
+    public nonisolated struct ImageReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -3849,14 +3849,14 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Response: Equatable, Sendable {
+      public nonisolated enum OneOf_Response: Equatable, Sendable {
         case infos(Caked_Caked.Reply.ImageReply.ImageInfoReply)
         case pull(Caked_Caked.Reply.ImageReply.PulledImageInfoReply)
         case list(Caked_Caked.Reply.ImageReply.ListImagesInfoReply)
 
       }
 
-      public struct ImageInfo: Sendable {
+      public nonisolated struct ImageInfo: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3913,7 +3913,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _uploaded: String? = nil
       }
 
-      public struct ListImagesInfoReply: Sendable {
+      public nonisolated struct ListImagesInfoReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3938,7 +3938,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct ImageInfoReply: Sendable {
+      public nonisolated struct ImageInfoReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3971,7 +3971,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct PulledImageInfoReply: Sendable {
+      public nonisolated struct PulledImageInfoReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -3998,7 +3998,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public struct PulledImageInfo: Sendable {
+        public nonisolated struct PulledImageInfo: Sendable {
           // SwiftProtobuf.Message conformance is added in an extension below. See the
           // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
           // methods supported on all messages.
@@ -4038,7 +4038,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct NetworksReply: Sendable {
+    public nonisolated struct NetworksReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -4103,7 +4103,7 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Response: Equatable, Sendable {
+      public nonisolated enum OneOf_Response: Equatable, Sendable {
         case list(Caked_Caked.Reply.NetworksReply.ListNetworksReply)
         case status(Caked_Caked.Reply.NetworksReply.NetworkInfoReply)
         case created(Caked_Caked.Reply.NetworksReply.CreatedNetworkReply)
@@ -4114,7 +4114,7 @@ public struct Caked_Caked: Sendable {
 
       }
 
-      public struct NetworkInfo: Sendable {
+      public nonisolated struct NetworkInfo: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4142,7 +4142,7 @@ public struct Caked_Caked: Sendable {
         public init() {}
       }
 
-      public struct NetworkInfoReply: Sendable {
+      public nonisolated struct NetworkInfoReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4175,7 +4175,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct ListNetworksReply: Sendable {
+      public nonisolated struct ListNetworksReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4200,7 +4200,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct StartedNetworkReply: Sendable {
+      public nonisolated struct StartedNetworkReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4225,7 +4225,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct StoppedNetworkReply: Sendable {
+      public nonisolated struct StoppedNetworkReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4250,7 +4250,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct CreatedNetworkReply: Sendable {
+      public nonisolated struct CreatedNetworkReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4275,7 +4275,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct ConfiguredNetworkReply: Sendable {
+      public nonisolated struct ConfiguredNetworkReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4300,7 +4300,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct DeleteNetworkReply: Sendable {
+      public nonisolated struct DeleteNetworkReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4328,7 +4328,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct RemoteReply: Sendable {
+    public nonisolated struct RemoteReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -4361,14 +4361,14 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Response: Equatable, Sendable {
+      public nonisolated enum OneOf_Response: Equatable, Sendable {
         case list(Caked_Caked.Reply.RemoteReply.ListRemoteReply)
         case deleted(Caked_Caked.Reply.RemoteReply.DeleteRemoteReply)
         case created(Caked_Caked.Reply.RemoteReply.CreateRemoteReply)
 
       }
 
-      public struct ListRemoteReply: Sendable {
+      public nonisolated struct ListRemoteReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4388,7 +4388,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public struct RemoteEntry: Sendable {
+        public nonisolated struct RemoteEntry: Sendable {
           // SwiftProtobuf.Message conformance is added in an extension below. See the
           // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
           // methods supported on all messages.
@@ -4407,7 +4407,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct DeleteRemoteReply: Sendable {
+      public nonisolated struct DeleteRemoteReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4432,7 +4432,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct CreateRemoteReply: Sendable {
+      public nonisolated struct CreateRemoteReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4460,7 +4460,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct TemplateReply: Sendable {
+    public nonisolated struct TemplateReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -4493,14 +4493,14 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Response: Equatable, Sendable {
+      public nonisolated enum OneOf_Response: Equatable, Sendable {
         case list(Caked_Caked.Reply.TemplateReply.ListTemplatesReply)
         case create(Caked_Caked.Reply.TemplateReply.CreateTemplateReply)
         case delete(Caked_Caked.Reply.TemplateReply.DeleteTemplateReply)
 
       }
 
-      public struct ListTemplatesReply: Sendable {
+      public nonisolated struct ListTemplatesReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4520,7 +4520,7 @@ public struct Caked_Caked: Sendable {
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-        public struct TemplateEntry: Sendable {
+        public nonisolated struct TemplateEntry: Sendable {
           // SwiftProtobuf.Message conformance is added in an extension below. See the
           // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
           // methods supported on all messages.
@@ -4543,7 +4543,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct CreateTemplateReply: Sendable {
+      public nonisolated struct CreateTemplateReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4568,7 +4568,7 @@ public struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
-      public struct DeleteTemplateReply: Sendable {
+      public nonisolated struct DeleteTemplateReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4596,7 +4596,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct RunReply: Sendable {
+    public nonisolated struct RunReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -4612,7 +4612,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct MountReply: Sendable {
+    public nonisolated struct MountReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -4632,7 +4632,7 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public struct MountVirtioFSReply: Sendable {
+      public nonisolated struct MountVirtioFSReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4664,7 +4664,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _reason: String? = nil
     }
 
-    public struct OCIReply: Sendable {
+    public nonisolated struct OCIReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -4705,7 +4705,7 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Response: Equatable, Sendable {
+      public nonisolated enum OneOf_Response: Equatable, Sendable {
         case login(Caked_Caked.Reply.OCIReply.LoginReply)
         case logout(Caked_Caked.Reply.OCIReply.LogoutReply)
         case pull(Caked_Caked.Reply.OCIReply.PullReply)
@@ -4713,7 +4713,7 @@ public struct Caked_Caked: Sendable {
 
       }
 
-      public struct PullReply: Sendable {
+      public nonisolated struct PullReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4729,7 +4729,7 @@ public struct Caked_Caked: Sendable {
         public init() {}
       }
 
-      public struct PushReply: Sendable {
+      public nonisolated struct PushReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4743,7 +4743,7 @@ public struct Caked_Caked: Sendable {
         public init() {}
       }
 
-      public struct LoginReply: Sendable {
+      public nonisolated struct LoginReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4757,7 +4757,7 @@ public struct Caked_Caked: Sendable {
         public init() {}
       }
 
-      public struct LogoutReply: Sendable {
+      public nonisolated struct LogoutReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4774,7 +4774,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct ScreenSizeReply: Sendable {
+    public nonisolated struct ScreenSizeReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -4809,7 +4809,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _reason: String? = nil
     }
 
-    public struct CertificateReply: Sendable {
+    public nonisolated struct CertificateReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -4853,14 +4853,14 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Response: Equatable, Sendable {
+      public nonisolated enum OneOf_Response: Equatable, Sendable {
         case added(Caked_Caked.Reply.CertificateReply.Certificate)
         case list(Caked_Caked.Reply.CertificateReply.ListCertificatesReply)
         case get(Caked_Caked.Reply.CertificateReply.PEMDocument)
 
       }
 
-      public struct Certificate: Sendable {
+      public nonisolated struct Certificate: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4882,7 +4882,7 @@ public struct Caked_Caked: Sendable {
         public init() {}
       }
 
-      public struct ListCertificatesReply: Sendable {
+      public nonisolated struct ListCertificatesReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4894,7 +4894,7 @@ public struct Caked_Caked: Sendable {
         public init() {}
       }
 
-      public struct PEMDocument: Sendable {
+      public nonisolated struct PEMDocument: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
         // methods supported on all messages.
@@ -4914,7 +4914,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct NetworkRequest: Sendable {
+  public nonisolated struct NetworkRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -4949,14 +4949,14 @@ public struct Caked_Caked: Sendable {
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    public enum OneOf_Network: Equatable, Sendable {
+    public nonisolated enum OneOf_Network: Equatable, Sendable {
       case name(String)
       case create(Caked_Caked.NetworkRequest.CreateNetworkRequest)
       case configure(Caked_Caked.NetworkRequest.ConfigureNetworkRequest)
 
     }
 
-    public enum NetworkMode: SwiftProtobuf.Enum, Swift.CaseIterable {
+    public nonisolated enum NetworkMode: SwiftProtobuf.Enum, Swift.CaseIterable {
       public typealias RawValue = Int
       case shared // = 0
       case host // = 1
@@ -4990,7 +4990,7 @@ public struct Caked_Caked: Sendable {
 
     }
 
-    public enum NetworkCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
+    public nonisolated enum NetworkCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
       public typealias RawValue = Int
       case infos // = 0
       case new // = 1
@@ -5044,7 +5044,7 @@ public struct Caked_Caked: Sendable {
 
     }
 
-    public struct ConfigureNetworkRequest: Sendable {
+    public nonisolated struct ConfigureNetworkRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -5117,7 +5117,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _dhcpLease: Int32? = nil
     }
 
-    public struct CreateNetworkRequest: Sendable {
+    public nonisolated struct CreateNetworkRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -5171,7 +5171,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct ImageRequest: Sendable {
+  public nonisolated struct ImageRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -5182,7 +5182,7 @@ public struct Caked_Caked: Sendable {
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    public enum ImageCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
+    public nonisolated enum ImageCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
       public typealias RawValue = Int
       case none // = 0
       case info // = 1
@@ -5227,7 +5227,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct RemoteRequest: Sendable {
+  public nonisolated struct RemoteRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -5254,13 +5254,13 @@ public struct Caked_Caked: Sendable {
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    public enum OneOf_Remote: Equatable, Sendable {
+    public nonisolated enum OneOf_Remote: Equatable, Sendable {
       case addRequest(Caked_Caked.RemoteRequest.RemoteRequestAdd)
       case deleteRequest(String)
 
     }
 
-    public enum RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
+    public nonisolated enum RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
       public typealias RawValue = Int
       case none // = 0
       case list // = 1
@@ -5302,7 +5302,7 @@ public struct Caked_Caked: Sendable {
 
     }
 
-    public struct RemoteRequestAdd: Sendable {
+    public nonisolated struct RemoteRequestAdd: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -5319,7 +5319,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct PurgeRequest: Sendable {
+  public nonisolated struct PurgeRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -5370,7 +5370,7 @@ public struct Caked_Caked: Sendable {
     fileprivate var _gc: Bool? = nil
   }
 
-  public struct PushRequest: Sendable {
+  public nonisolated struct PushRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -5392,7 +5392,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct CloneRequest: Sendable {
+  public nonisolated struct CloneRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -5408,7 +5408,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct LoginRequest: Sendable {
+  public nonisolated struct LoginRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -5428,7 +5428,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct LogoutRequest: Sendable {
+  public nonisolated struct LogoutRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -5440,7 +5440,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct MountRequest: Sendable {
+  public nonisolated struct MountRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -5453,7 +5453,7 @@ public struct Caked_Caked: Sendable {
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    public enum MountCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
+    public nonisolated enum MountCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
       public typealias RawValue = Int
       case none // = 0
       case mount // = 1
@@ -5491,7 +5491,7 @@ public struct Caked_Caked: Sendable {
 
     }
 
-    public struct MountVirtioFS: Sendable {
+    public nonisolated struct MountVirtioFS: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -5549,7 +5549,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct CertificateRequest: Sendable {
+  public nonisolated struct CertificateRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -5584,14 +5584,14 @@ public struct Caked_Caked: Sendable {
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    public enum OneOf_Request: Equatable, Sendable {
+    public nonisolated enum OneOf_Request: Equatable, Sendable {
       case addRequest(Caked_Caked.CertificateRequest.CertificateAddRequest)
       case deleteRequest(Caked_Caked.CertificateRequest.CertificateDeleteRequest)
       case getRequest(Caked_Caked.CertificateRequest.CertificateGetRequest)
 
     }
 
-    public enum CertificateCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
+    public nonisolated enum CertificateCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
       public typealias RawValue = Int
       case none // = 0
       case add // = 1
@@ -5637,7 +5637,7 @@ public struct Caked_Caked: Sendable {
 
     }
 
-    public struct CertificateAddRequest: Sendable {
+    public nonisolated struct CertificateAddRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -5651,7 +5651,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct CertificateDeleteRequest: Sendable {
+    public nonisolated struct CertificateDeleteRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -5663,7 +5663,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct CertificateGetRequest: Sendable {
+    public nonisolated struct CertificateGetRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -5683,9 +5683,9 @@ public struct Caked_Caked: Sendable {
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
-fileprivate let _protobuf_package = "caked"
+fileprivate nonisolated let _protobuf_package = "caked"
 
-extension Caked_Empty: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Empty: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Empty"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
 
@@ -5704,7 +5704,7 @@ extension Caked_Empty: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
   }
 }
 
-extension Caked_Caked: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Caked"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
 
@@ -5723,11 +5723,11 @@ extension Caked_Caked: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
   }
 }
 
-extension Caked_Caked.VirtualMachineStatus: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VirtualMachineStatus: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0stopped\0\u{1}running\0\u{1}paused\0\u{1}deleted\0\u{1}error\0\u{1}agentReady\0\u{1}new\0")
 }
 
-extension Caked_Caked.VncStream: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VncStream: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".VncStream"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}stream\0")
 
@@ -5757,7 +5757,7 @@ extension Caked_Caked.VncStream: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   }
 }
 
-extension Caked_Caked.CpuCoreInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.CpuCoreInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".CpuCoreInfo"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}core_id\0\u{3}usage_percent\0\u{1}user\0\u{1}system\0\u{1}idle\0\u{1}iowait\0\u{1}irq\0\u{1}softirq\0\u{1}steal\0\u{1}guest\0\u{1}guestNice\0")
 
@@ -5837,7 +5837,7 @@ extension Caked_Caked.CpuCoreInfo: SwiftProtobuf.Message, SwiftProtobuf._Message
   }
 }
 
-extension Caked_Caked.CpuInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.CpuInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".CpuInfo"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}total_usage_percent\0\u{1}user\0\u{1}system\0\u{1}idle\0\u{1}iowait\0\u{1}irq\0\u{1}softirq\0\u{1}steal\0\u{1}guest\0\u{1}guestNice\0\u{1}cores\0")
 
@@ -5917,7 +5917,7 @@ extension Caked_Caked.CpuInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   }
 }
 
-extension Caked_Caked.MemoryInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.MemoryInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".MemoryInfo"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}total\0\u{1}free\0\u{1}used\0\u{1}swapTotal\0\u{1}swapFree\0\u{1}swapUsed\0")
 
@@ -5972,7 +5972,7 @@ extension Caked_Caked.MemoryInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageI
   }
 }
 
-extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Configuration"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}diskSize\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0")
 
@@ -6336,23 +6336,23 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
   }
 }
 
-extension Caked_Caked.Configuration.VirtualizedOS: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.VirtualizedOS: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0unsupported\0\u{1}darwin\0\u{1}linux\0")
 }
 
-extension Caked_Caked.Configuration.Architecture: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.Architecture: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0other\0\u{1}arm64\0\u{1}amd64\0")
 }
 
-extension Caked_Caked.Configuration.SupportedPlatform: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.SupportedPlatform: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0undefined\0\u{1}ubuntu\0\u{1}centos\0\u{1}macos\0\u{1}windows\0\u{1}debian\0\u{1}fedora\0\u{1}redhat\0\u{1}openSUSE\0\u{1}alpine\0")
 }
 
-extension Caked_Caked.Configuration.ImageSource: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.ImageSource: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0unknown\0\u{1}raw\0\u{1}cloud\0\u{1}oci\0\u{1}template\0\u{1}stream\0\u{1}iso\0\u{1}ipsw\0")
 }
 
-extension Caked_Caked.Configuration.DiskAttachment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.DiskAttachment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Configuration.protoMessageName + ".DiskAttachment"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}diskPath\0\u{1}diskOptions\0")
 
@@ -6391,7 +6391,7 @@ extension Caked_Caked.Configuration.DiskAttachment: SwiftProtobuf.Message, Swift
   }
 }
 
-extension Caked_Caked.Configuration.DiskAttachment.DiskOptions: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.DiskAttachment.DiskOptions: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Configuration.DiskAttachment.protoMessageName + ".DiskOptions"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}readOnly\0\u{1}syncMode\0\u{1}cachingMode\0")
 
@@ -6431,7 +6431,7 @@ extension Caked_Caked.Configuration.DiskAttachment.DiskOptions: SwiftProtobuf.Me
   }
 }
 
-extension Caked_Caked.Configuration.DirectorySharingAttachment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.DirectorySharingAttachment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Configuration.protoMessageName + ".DirectorySharingAttachment"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}source\0\u{1}destination\0\u{1}uid\0\u{1}gid\0\u{1}readOnly\0")
 
@@ -6490,7 +6490,7 @@ extension Caked_Caked.Configuration.DirectorySharingAttachment: SwiftProtobuf.Me
   }
 }
 
-extension Caked_Caked.Configuration.BridgeAttachment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.BridgeAttachment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Configuration.protoMessageName + ".BridgeAttachment"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}network\0\u{1}mode\0\u{1}macAddress\0")
 
@@ -6534,7 +6534,7 @@ extension Caked_Caked.Configuration.BridgeAttachment: SwiftProtobuf.Message, Swi
   }
 }
 
-extension Caked_Caked.Configuration.SocketDevice: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.SocketDevice: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Configuration.protoMessageName + ".SocketDevice"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}mode\0\u{1}port\0\u{1}bind\0")
 
@@ -6574,7 +6574,7 @@ extension Caked_Caked.Configuration.SocketDevice: SwiftProtobuf.Message, SwiftPr
   }
 }
 
-extension Caked_Caked.Configuration.TunnelAttachement: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.TunnelAttachement: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Configuration.protoMessageName + ".TunnelAttachement"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}forward\0\u{1}unixDomain\0")
 
@@ -6641,7 +6641,7 @@ extension Caked_Caked.Configuration.TunnelAttachement: SwiftProtobuf.Message, Sw
   }
 }
 
-extension Caked_Caked.Configuration.TunnelAttachement.ForwardedPort: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.TunnelAttachement.ForwardedPort: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Configuration.TunnelAttachement.protoMessageName + ".ForwardedPort"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}guestPort\0\u{1}hostPort\0\u{1}protocol\0")
 
@@ -6681,7 +6681,7 @@ extension Caked_Caked.Configuration.TunnelAttachement.ForwardedPort: SwiftProtob
   }
 }
 
-extension Caked_Caked.Configuration.TunnelAttachement.ForwardUnixDomainSocket: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.TunnelAttachement.ForwardUnixDomainSocket: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Configuration.TunnelAttachement.protoMessageName + ".ForwardUnixDomainSocket"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}hostPath\0\u{1}guestPath\0\u{1}protocol\0")
 
@@ -6721,7 +6721,7 @@ extension Caked_Caked.Configuration.TunnelAttachement.ForwardUnixDomainSocket: S
   }
 }
 
-extension Caked_Caked.Configuration.MacMachineIdentifier: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.MacMachineIdentifier: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Configuration.protoMessageName + ".MacMachineIdentifier"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}ecid\0")
 
@@ -6751,7 +6751,7 @@ extension Caked_Caked.Configuration.MacMachineIdentifier: SwiftProtobuf.Message,
   }
 }
 
-extension Caked_Caked.Configuration.MacHardwareModel: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Configuration.MacHardwareModel: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Configuration.protoMessageName + ".MacHardwareModel"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}data\0")
 
@@ -6781,7 +6781,7 @@ extension Caked_Caked.Configuration.MacHardwareModel: SwiftProtobuf.Message, Swi
   }
 }
 
-extension Caked_Caked.ScreenSize: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.ScreenSize: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".ScreenSize"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}width\0\u{1}height\0")
 
@@ -6816,7 +6816,7 @@ extension Caked_Caked.ScreenSize: SwiftProtobuf.Message, SwiftProtobuf._MessageI
   }
 }
 
-extension Caked_Caked.InstallAgentRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.InstallAgentRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".InstallAgentRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}timeout\0")
 
@@ -6851,7 +6851,7 @@ extension Caked_Caked.InstallAgentRequest: SwiftProtobuf.Message, SwiftProtobuf.
   }
 }
 
-extension Caked_Caked.GetScreenSizeRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.GetScreenSizeRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".GetScreenSizeRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0")
 
@@ -6881,7 +6881,7 @@ extension Caked_Caked.GetScreenSizeRequest: SwiftProtobuf.Message, SwiftProtobuf
   }
 }
 
-extension Caked_Caked.SetScreenSizeRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.SetScreenSizeRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".SetScreenSizeRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}screenSize\0")
 
@@ -6920,7 +6920,7 @@ extension Caked_Caked.SetScreenSizeRequest: SwiftProtobuf.Message, SwiftProtobuf
   }
 }
 
-extension Caked_Caked.PingRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.PingRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".PingRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}message\0\u{1}timestamp\0")
 
@@ -6960,7 +6960,7 @@ extension Caked_Caked.PingRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
   }
 }
 
-extension Caked_Caked.CurrentStatusRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.CurrentStatusRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".CurrentStatusRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}frequency\0")
 
@@ -6995,7 +6995,7 @@ extension Caked_Caked.CurrentStatusRequest: SwiftProtobuf.Message, SwiftProtobuf
   }
 }
 
-extension Caked_Caked.VMRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".VMRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
 
@@ -7014,7 +7014,7 @@ extension Caked_Caked.VMRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   }
 }
 
-extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".CommonBuildRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0\u{1}otherGroups\0\u{1}imageSource\0\u{1}autoinstall\0\u{1}bridgedNetwork\0")
 
@@ -7287,7 +7287,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
   }
 }
 
-extension Caked_Caked.VMRequest.BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".BuildRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}options\0")
 
@@ -7321,7 +7321,7 @@ extension Caked_Caked.VMRequest.BuildRequest: SwiftProtobuf.Message, SwiftProtob
   }
 }
 
-extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".StartRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}waitIPTimeout\0\u{1}screenSize\0\u{1}vncPassword\0\u{1}vncPort\0\u{1}recoveryMode\0")
 
@@ -7380,7 +7380,7 @@ extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message, SwiftProtob
   }
 }
 
-extension Caked_Caked.VMRequest.RestartRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.RestartRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".RestartRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}names\0\u{1}force\0\u{1}waitIPTimeout\0")
 
@@ -7424,7 +7424,7 @@ extension Caked_Caked.VMRequest.RestartRequest: SwiftProtobuf.Message, SwiftProt
   }
 }
 
-extension Caked_Caked.VMRequest.CloneRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.CloneRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".CloneRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}sourceName\0\u{1}targetName\0\u{1}insecure\0\u{1}concurrency\0\u{1}deduplicate\0")
 
@@ -7478,7 +7478,7 @@ extension Caked_Caked.VMRequest.CloneRequest: SwiftProtobuf.Message, SwiftProtob
   }
 }
 
-extension Caked_Caked.VMRequest.DuplicateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.DuplicateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".DuplicateRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}from\0\u{1}to\0\u{1}resetMacAddress\0\u{1}foreground\0")
 
@@ -7523,7 +7523,7 @@ extension Caked_Caked.VMRequest.DuplicateRequest: SwiftProtobuf.Message, SwiftPr
   }
 }
 
-extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".LaunchRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}options\0\u{1}waitIPTimeout\0\u{1}screenSize\0\u{1}vncPassword\0\u{1}vncPort\0\u{1}recoveryMode\0")
 
@@ -7582,7 +7582,7 @@ extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProto
   }
 }
 
-extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ConfigureRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}diskSize\0\u{1}displayRefit\0\u{1}autostart\0\u{1}nested\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}randomMAC\0\u{1}forwardedPort\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}suspendable\0\u{1}screenSize\0\u{1}user\0\u{1}password\0")
 
@@ -7778,7 +7778,7 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
   }
 }
 
-extension Caked_Caked.VMRequest.WaitIPRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.WaitIPRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".WaitIPRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}timeout\0")
 
@@ -7813,7 +7813,7 @@ extension Caked_Caked.VMRequest.WaitIPRequest: SwiftProtobuf.Message, SwiftProto
   }
 }
 
-extension Caked_Caked.VMRequest.StopRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.StopRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".StopRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}force\0\u{1}all\0\u{1}names\0")
 
@@ -7880,7 +7880,7 @@ extension Caked_Caked.VMRequest.StopRequest: SwiftProtobuf.Message, SwiftProtobu
   }
 }
 
-extension Caked_Caked.VMRequest.StopRequest.VMNames: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.StopRequest.VMNames: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.StopRequest.protoMessageName + ".VMNames"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0")
 
@@ -7910,7 +7910,7 @@ extension Caked_Caked.VMRequest.StopRequest.VMNames: SwiftProtobuf.Message, Swif
   }
 }
 
-extension Caked_Caked.VMRequest.SuspendRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.SuspendRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".SuspendRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}names\0")
 
@@ -7940,7 +7940,7 @@ extension Caked_Caked.VMRequest.SuspendRequest: SwiftProtobuf.Message, SwiftProt
   }
 }
 
-extension Caked_Caked.VMRequest.DeleteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.DeleteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".DeleteRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\u{2}all\0\u{1}names\0")
 
@@ -8002,7 +8002,7 @@ extension Caked_Caked.VMRequest.DeleteRequest: SwiftProtobuf.Message, SwiftProto
   }
 }
 
-extension Caked_Caked.VMRequest.DeleteRequest.VMNames: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.DeleteRequest.VMNames: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.DeleteRequest.protoMessageName + ".VMNames"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0")
 
@@ -8032,7 +8032,7 @@ extension Caked_Caked.VMRequest.DeleteRequest.VMNames: SwiftProtobuf.Message, Sw
   }
 }
 
-extension Caked_Caked.VMRequest.ListRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.ListRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ListRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vmonly\0\u{1}includeConfig\0")
 
@@ -8071,7 +8071,7 @@ extension Caked_Caked.VMRequest.ListRequest: SwiftProtobuf.Message, SwiftProtobu
   }
 }
 
-extension Caked_Caked.VMRequest.InfoRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.InfoRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".InfoRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}includeConfig\0")
 
@@ -8106,7 +8106,7 @@ extension Caked_Caked.VMRequest.InfoRequest: SwiftProtobuf.Message, SwiftProtobu
   }
 }
 
-extension Caked_Caked.VMRequest.RenameRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.RenameRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".RenameRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}oldname\0\u{1}newname\0")
 
@@ -8141,7 +8141,7 @@ extension Caked_Caked.VMRequest.RenameRequest: SwiftProtobuf.Message, SwiftProto
   }
 }
 
-extension Caked_Caked.VMRequest.TemplateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.TemplateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".TemplateRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}createRequest\0\u{1}deleteRequest\0")
 
@@ -8208,11 +8208,11 @@ extension Caked_Caked.VMRequest.TemplateRequest: SwiftProtobuf.Message, SwiftPro
   }
 }
 
-extension Caked_Caked.VMRequest.TemplateRequest.TemplateCommand: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.TemplateRequest.TemplateCommand: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}add\0\u{1}delete\0\u{1}list\0")
 }
 
-extension Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.TemplateRequest.protoMessageName + ".TemplateRequestAdd"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}sourceName\0\u{1}templateName\0\u{1}foreground\0")
 
@@ -8252,7 +8252,7 @@ extension Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd: SwiftProtobu
   }
 }
 
-extension Caked_Caked.VMRequest.RunCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.RunCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".RunCommand"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vmname\0\u{1}command\0\u{1}args\0\u{1}input\0")
 
@@ -8301,7 +8301,7 @@ extension Caked_Caked.VMRequest.RunCommand: SwiftProtobuf.Message, SwiftProtobuf
   }
 }
 
-extension Caked_Caked.VMRequest.ExecuteResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.ExecuteResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ExecuteResponse"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}exitCode\0\u{1}stdout\0\u{1}stderr\0\u{1}established\0")
 
@@ -8387,7 +8387,7 @@ extension Caked_Caked.VMRequest.ExecuteResponse: SwiftProtobuf.Message, SwiftPro
   }
 }
 
-extension Caked_Caked.VMRequest.ExecuteResponse.EstablishedResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.ExecuteResponse.EstablishedResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.ExecuteResponse.protoMessageName + ".EstablishedResponse"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}reason\0")
 
@@ -8422,7 +8422,7 @@ extension Caked_Caked.VMRequest.ExecuteResponse.EstablishedResponse: SwiftProtob
   }
 }
 
-extension Caked_Caked.VMRequest.ExecuteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.ExecuteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ExecuteRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}input\0\u{1}size\0\u{1}eof\0")
 
@@ -8513,7 +8513,7 @@ extension Caked_Caked.VMRequest.ExecuteRequest: SwiftProtobuf.Message, SwiftProt
   }
 }
 
-extension Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.ExecuteRequest.protoMessageName + ".ExecuteCommand"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}shell\0")
 
@@ -8575,7 +8575,7 @@ extension Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand: SwiftProtobuf.Mes
   }
 }
 
-extension Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand.Command: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand.Command: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand.protoMessageName + ".Command"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}args\0")
 
@@ -8610,7 +8610,7 @@ extension Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand.Command: SwiftProt
   }
 }
 
-extension Caked_Caked.VMRequest.ExecuteRequest.TerminalSize: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.VMRequest.ExecuteRequest.TerminalSize: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.ExecuteRequest.protoMessageName + ".TerminalSize"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}rows\0\u{1}cols\0")
 
@@ -8645,7 +8645,7 @@ extension Caked_Caked.VMRequest.ExecuteRequest.TerminalSize: SwiftProtobuf.Messa
   }
 }
 
-extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Reply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vms\0\u{1}images\0\u{1}networks\0\u{1}remotes\0\u{1}templates\0\u{1}run\0\u{1}mounts\0\u{1}oci\0\u{1}ping\0\u{1}status\0\u{1}screenSize\0\u{1}certificates\0\u{1}unexpected\0")
 
@@ -8894,7 +8894,7 @@ extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   }
 }
 
-extension Caked_Caked.Reply.CurrentUsageReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.CurrentUsageReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".CurrentUsageReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}cpuCount\0\u{1}cpuInfos\0\u{1}memory\0")
 
@@ -8978,7 +8978,7 @@ extension Caked_Caked.Reply.CurrentUsageReply: SwiftProtobuf.Message, SwiftProto
   }
 }
 
-extension Caked_Caked.Reply.CurrentStatusReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.CurrentStatusReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".CurrentStatusReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}statuses\0")
 
@@ -9008,7 +9008,7 @@ extension Caked_Caked.Reply.CurrentStatusReply: SwiftProtobuf.Message, SwiftProt
   }
 }
 
-extension Caked_Caked.Reply.CurrentStatusReply.CurrentStatus: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.CurrentStatusReply.CurrentStatus: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.CurrentStatusReply.protoMessageName + ".CurrentStatus"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}usage\0\u{1}screenshot\0\u{1}status\0\u{1}failure\0")
 
@@ -9099,7 +9099,7 @@ extension Caked_Caked.Reply.CurrentStatusReply.CurrentStatus: SwiftProtobuf.Mess
   }
 }
 
-extension Caked_Caked.Reply.PingReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.PingReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".PingReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0\u{1}status\0\u{3}request_timestamp\0\u{3}response_timestamp\0")
 
@@ -9149,7 +9149,7 @@ extension Caked_Caked.Reply.PingReply: SwiftProtobuf.Message, SwiftProtobuf._Mes
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".VirtualMachineReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}delete\0\u{1}stop\0\u{1}suspend\0\u{1}status\0\u{1}launched\0\u{1}started\0\u{1}build\0\u{1}cloned\0\u{1}configured\0\u{1}duplicated\0\u{1}imported\0\u{1}waitip\0\u{1}purged\0\u{1}renamed\0\u{1}restarted\0\u{1}vncURL\0\u{1}installedAgent\0")
 
@@ -9488,7 +9488,7 @@ extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftPro
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".VirtualMachineInfoReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}infos\0\u{1}reason\0\u{1}success\0")
 
@@ -9532,7 +9532,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply: SwiftPr
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.protoMessageName + ".VirtualMachineInfo"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}type\0\u{1}source\0\u{1}name\0\u{1}fqn\0\u{1}instanceID\0\u{1}diskSize\0\u{1}sizeOnDisk\0\u{1}state\0\u{1}vncURL\0\u{1}ip\0\u{1}fingerprint\0\u{1}configuration\0\u{1}screenSize\0\u{1}created\0\u{1}updated\0\u{1}lastUsed\0")
 
@@ -9707,7 +9707,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualM
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.DeleteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.DeleteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".DeleteReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}objects\0\u{1}reason\0\u{1}success\0")
 
@@ -9751,7 +9751,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.DeleteReply: SwiftProtobuf.Messa
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.DeleteReply.DeletedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.DeleteReply.DeletedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.DeleteReply.protoMessageName + ".DeletedObject"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}source\0\u{1}name\0\u{1}deleted\0\u{1}reason\0")
 
@@ -9796,7 +9796,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.DeleteReply.DeletedObject: Swift
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StopReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StopReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".StopReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}reason\0\u{1}objects\0")
 
@@ -9840,7 +9840,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StopReply: SwiftProtobuf.Message
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StopReply.StoppedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StopReply.StoppedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StopReply.protoMessageName + ".StoppedObject"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}stopped\0\u{1}reason\0")
 
@@ -9880,7 +9880,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StopReply.StoppedObject: SwiftPr
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.SuspendReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.SuspendReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".SuspendReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}objects\0\u{1}reason\0\u{1}success\0")
 
@@ -9924,7 +9924,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.SuspendReply: SwiftProtobuf.Mess
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.SuspendReply.SuspendedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.SuspendReply.SuspendedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.SuspendReply.protoMessageName + ".SuspendedObject"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}suspended\0\u{1}reason\0")
 
@@ -9964,7 +9964,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.SuspendReply.SuspendedObject: Sw
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.RestartReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.RestartReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".RestartReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}objects\0\u{1}reason\0\u{1}success\0")
 
@@ -10008,7 +10008,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.RestartReply: SwiftProtobuf.Mess
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.RestartReply.RestartedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.RestartReply.RestartedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.RestartReply.protoMessageName + ".RestartedObject"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}restarted\0\u{1}reason\0")
 
@@ -10048,7 +10048,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.RestartReply.RestartedObject: Sw
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StatusReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".StatusReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}infos\0\u{1}config\0\u{1}reason\0\u{1}success\0")
 
@@ -10097,7 +10097,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply: SwiftProtobuf.Messa
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.protoMessageName + ".InfoReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}uptime\0\u{1}memory\0\u{1}cpuCount\0\u{1}diskInfos\0\u{1}ipaddresses\0\u{1}osname\0\u{1}hostname\0\u{1}release\0\u{1}status\0\u{1}mounts\0\u{1}name\0\u{1}networks\0\u{1}tunnels\0\u{1}sockets\0\u{1}cpu\0\u{1}vncURL\0\u{1}agentVersion\0\u{1}screenSize\0\u{1}numOfProcesses\0")
 
@@ -10300,7 +10300,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.DiskInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.DiskInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.protoMessageName + ".DiskInfo"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}device\0\u{1}mount\0\u{1}fsType\0\u{1}size\0\u{1}used\0\u{1}free\0")
 
@@ -10355,7 +10355,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.DiskInfo: 
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.AttachedNetwork: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.AttachedNetwork: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.protoMessageName + ".AttachedNetwork"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}network\0\u{1}mode\0\u{1}macAddress\0\u{1}ipAddresses\0")
 
@@ -10404,7 +10404,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.AttachedNe
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.protoMessageName + ".TunnelInfo"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}forward\0\u{1}unixDomain\0")
 
@@ -10471,11 +10471,11 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.ProtocolEnum: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.ProtocolEnum: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0tcp\0\u{1}udp\0")
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.ForwardedPort: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.ForwardedPort: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.protoMessageName + ".ForwardedPort"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}protocol\0\u{1}host\0\u{1}guest\0")
 
@@ -10515,7 +10515,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.Tunnel: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.Tunnel: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.protoMessageName + ".Tunnel"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}protocol\0\u{1}host\0\u{1}guest\0")
 
@@ -10555,7 +10555,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.SocketInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.SocketInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.protoMessageName + ".SocketInfo"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}mode\0\u{1}host\0\u{1}port\0")
 
@@ -10595,11 +10595,11 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.SocketInfo
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.SocketInfo.Mode: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.SocketInfo.Mode: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0bind\0\u{1}connect\0\u{1}tcp\0\u{1}udp\0")
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.LaunchReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.LaunchReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".LaunchReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}address\0\u{1}launched\0\u{1}reason\0")
 
@@ -10648,7 +10648,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.LaunchReply: SwiftProtobuf.Messa
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.StartedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StartedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".StartedReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}address\0\u{1}started\0\u{1}reason\0")
 
@@ -10697,7 +10697,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StartedReply: SwiftProtobuf.Mess
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.BuildedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".BuildedReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}builded\0\u{1}reason\0")
 
@@ -10741,7 +10741,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.BuildedReply: SwiftProtobuf.Mess
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".BuildProgressValue"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}oldFractionCompleted\0\u{1}fractionCompleted\0\u{1}lastCompleted10\0\u{1}lastCompleted2\0")
 
@@ -10786,7 +10786,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue: SwiftProtobu
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".BuildTerminatedReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}failure\0")
 
@@ -10843,7 +10843,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply: SwiftProto
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".BuildStreamReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}progress\0\u{1}step\0\u{1}terminated\0\u{1}builded\0")
 
@@ -10939,7 +10939,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: SwiftProtobuf.
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".LaunchStreamReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}progress\0\u{1}step\0\u{1}terminated\0\u{1}launched\0")
 
@@ -11035,7 +11035,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply: SwiftProtobuf
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.ClonedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.ClonedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".ClonedReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}sourceName\0\u{1}targetName\0\u{1}cloned\0\u{1}reason\0")
 
@@ -11084,7 +11084,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.ClonedReply: SwiftProtobuf.Messa
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.ConfiguredReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.ConfiguredReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".ConfiguredReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}configured\0\u{1}reason\0")
 
@@ -11128,7 +11128,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.ConfiguredReply: SwiftProtobuf.M
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.DuplicatedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.DuplicatedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".DuplicatedReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}from\0\u{1}to\0\u{1}duplicated\0\u{1}reason\0")
 
@@ -11177,7 +11177,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.DuplicatedReply: SwiftProtobuf.M
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.ImportedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.ImportedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".ImportedReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}source\0\u{1}imported\0\u{1}reason\0")
 
@@ -11226,7 +11226,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.ImportedReply: SwiftProtobuf.Mes
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.WaitIPReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.WaitIPReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".WaitIPReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}ip\0\u{1}success\0\u{1}reason\0")
 
@@ -11275,7 +11275,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.WaitIPReply: SwiftProtobuf.Messa
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.PurgeReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.PurgeReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".PurgeReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}purged\0\u{1}reason\0")
 
@@ -11314,7 +11314,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.PurgeReply: SwiftProtobuf.Messag
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.RenameReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.RenameReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".RenameReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}oldName\0\u{1}newName\0\u{1}renamed\0\u{1}reason\0")
 
@@ -11363,7 +11363,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.RenameReply: SwiftProtobuf.Messa
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".InstalledAgentReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}installed\0\u{1}reason\0")
 
@@ -11407,7 +11407,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply: SwiftProtob
   }
 }
 
-extension Caked_Caked.Reply.VirtualMachineReply.VncURL: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.VncURL: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".VncURL"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}urls\0\u{1}screenSize\0")
 
@@ -11446,7 +11446,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VncURL: SwiftProtobuf.Message, S
   }
 }
 
-extension Caked_Caked.Reply.ImageReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.ImageReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".ImageReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}infos\0\u{1}pull\0\u{1}list\0")
 
@@ -11530,7 +11530,7 @@ extension Caked_Caked.Reply.ImageReply: SwiftProtobuf.Message, SwiftProtobuf._Me
   }
 }
 
-extension Caked_Caked.Reply.ImageReply.ImageInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.ImageReply.ImageInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.ImageReply.protoMessageName + ".ImageInfo"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}aliases\0\u{1}architecture\0\u{1}pub\0\u{1}fileName\0\u{1}fingerprint\0\u{1}size\0\u{1}type\0\u{1}created\0\u{1}expires\0\u{1}uploaded\0\u{1}properties\0")
 
@@ -11614,7 +11614,7 @@ extension Caked_Caked.Reply.ImageReply.ImageInfo: SwiftProtobuf.Message, SwiftPr
   }
 }
 
-extension Caked_Caked.Reply.ImageReply.ListImagesInfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.ImageReply.ListImagesInfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.ImageReply.protoMessageName + ".ListImagesInfoReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}reason\0\u{1}infos\0")
 
@@ -11658,7 +11658,7 @@ extension Caked_Caked.Reply.ImageReply.ListImagesInfoReply: SwiftProtobuf.Messag
   }
 }
 
-extension Caked_Caked.Reply.ImageReply.ImageInfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.ImageReply.ImageInfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.ImageReply.protoMessageName + ".ImageInfoReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}info\0\u{1}reason\0\u{1}success\0")
 
@@ -11702,7 +11702,7 @@ extension Caked_Caked.Reply.ImageReply.ImageInfoReply: SwiftProtobuf.Message, Sw
   }
 }
 
-extension Caked_Caked.Reply.ImageReply.PulledImageInfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.ImageReply.PulledImageInfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.ImageReply.protoMessageName + ".PulledImageInfoReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}info\0\u{1}reason\0\u{1}success\0")
 
@@ -11746,7 +11746,7 @@ extension Caked_Caked.Reply.ImageReply.PulledImageInfoReply: SwiftProtobuf.Messa
   }
 }
 
-extension Caked_Caked.Reply.ImageReply.PulledImageInfoReply.PulledImageInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.ImageReply.PulledImageInfoReply.PulledImageInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.ImageReply.PulledImageInfoReply.protoMessageName + ".PulledImageInfo"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}alias\0\u{1}path\0\u{1}size\0\u{1}fingerprint\0\u{1}remoteName\0\u{1}description\0")
 
@@ -11805,7 +11805,7 @@ extension Caked_Caked.Reply.ImageReply.PulledImageInfoReply.PulledImageInfo: Swi
   }
 }
 
-extension Caked_Caked.Reply.NetworksReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.NetworksReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".NetworksReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}status\0\u{1}created\0\u{1}configured\0\u{1}delete\0\u{1}started\0\u{1}stopped\0")
 
@@ -11957,7 +11957,7 @@ extension Caked_Caked.Reply.NetworksReply: SwiftProtobuf.Message, SwiftProtobuf.
   }
 }
 
-extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".NetworkInfo"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}mode\0\u{1}description\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}interfaceID\0\u{1}endpoint\0\u{1}used\0")
 
@@ -12027,7 +12027,7 @@ extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, Sw
   }
 }
 
-extension Caked_Caked.Reply.NetworksReply.NetworkInfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".NetworkInfoReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}info\0\u{1}reason\0\u{1}success\0")
 
@@ -12071,7 +12071,7 @@ extension Caked_Caked.Reply.NetworksReply.NetworkInfoReply: SwiftProtobuf.Messag
   }
 }
 
-extension Caked_Caked.Reply.NetworksReply.ListNetworksReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.NetworksReply.ListNetworksReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".ListNetworksReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}networks\0\u{1}reason\0\u{1}success\0")
 
@@ -12115,7 +12115,7 @@ extension Caked_Caked.Reply.NetworksReply.ListNetworksReply: SwiftProtobuf.Messa
   }
 }
 
-extension Caked_Caked.Reply.NetworksReply.StartedNetworkReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.NetworksReply.StartedNetworkReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".StartedNetworkReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}started\0\u{1}reason\0")
 
@@ -12159,7 +12159,7 @@ extension Caked_Caked.Reply.NetworksReply.StartedNetworkReply: SwiftProtobuf.Mes
   }
 }
 
-extension Caked_Caked.Reply.NetworksReply.StoppedNetworkReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.NetworksReply.StoppedNetworkReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".StoppedNetworkReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}stopped\0\u{1}reason\0")
 
@@ -12203,7 +12203,7 @@ extension Caked_Caked.Reply.NetworksReply.StoppedNetworkReply: SwiftProtobuf.Mes
   }
 }
 
-extension Caked_Caked.Reply.NetworksReply.CreatedNetworkReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.NetworksReply.CreatedNetworkReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".CreatedNetworkReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}created\0\u{1}reason\0")
 
@@ -12247,7 +12247,7 @@ extension Caked_Caked.Reply.NetworksReply.CreatedNetworkReply: SwiftProtobuf.Mes
   }
 }
 
-extension Caked_Caked.Reply.NetworksReply.ConfiguredNetworkReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.NetworksReply.ConfiguredNetworkReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".ConfiguredNetworkReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}configured\0\u{1}reason\0")
 
@@ -12291,7 +12291,7 @@ extension Caked_Caked.Reply.NetworksReply.ConfiguredNetworkReply: SwiftProtobuf.
   }
 }
 
-extension Caked_Caked.Reply.NetworksReply.DeleteNetworkReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.NetworksReply.DeleteNetworkReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".DeleteNetworkReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}deleted\0\u{1}reason\0")
 
@@ -12335,7 +12335,7 @@ extension Caked_Caked.Reply.NetworksReply.DeleteNetworkReply: SwiftProtobuf.Mess
   }
 }
 
-extension Caked_Caked.Reply.RemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.RemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".RemoteReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}deleted\0\u{1}created\0")
 
@@ -12419,7 +12419,7 @@ extension Caked_Caked.Reply.RemoteReply: SwiftProtobuf.Message, SwiftProtobuf._M
   }
 }
 
-extension Caked_Caked.Reply.RemoteReply.ListRemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.RemoteReply.ListRemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.RemoteReply.protoMessageName + ".ListRemoteReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}remotes\0\u{1}success\0\u{1}reason\0")
 
@@ -12463,7 +12463,7 @@ extension Caked_Caked.Reply.RemoteReply.ListRemoteReply: SwiftProtobuf.Message, 
   }
 }
 
-extension Caked_Caked.Reply.RemoteReply.ListRemoteReply.RemoteEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.RemoteReply.ListRemoteReply.RemoteEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.RemoteReply.ListRemoteReply.protoMessageName + ".RemoteEntry"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}url\0")
 
@@ -12498,7 +12498,7 @@ extension Caked_Caked.Reply.RemoteReply.ListRemoteReply.RemoteEntry: SwiftProtob
   }
 }
 
-extension Caked_Caked.Reply.RemoteReply.DeleteRemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.RemoteReply.DeleteRemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.RemoteReply.protoMessageName + ".DeleteRemoteReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}deleted\0\u{1}reason\0")
 
@@ -12542,7 +12542,7 @@ extension Caked_Caked.Reply.RemoteReply.DeleteRemoteReply: SwiftProtobuf.Message
   }
 }
 
-extension Caked_Caked.Reply.RemoteReply.CreateRemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.RemoteReply.CreateRemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.RemoteReply.protoMessageName + ".CreateRemoteReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}created\0\u{1}reason\0")
 
@@ -12586,7 +12586,7 @@ extension Caked_Caked.Reply.RemoteReply.CreateRemoteReply: SwiftProtobuf.Message
   }
 }
 
-extension Caked_Caked.Reply.TemplateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.TemplateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".TemplateReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}create\0\u{1}delete\0")
 
@@ -12670,7 +12670,7 @@ extension Caked_Caked.Reply.TemplateReply: SwiftProtobuf.Message, SwiftProtobuf.
   }
 }
 
-extension Caked_Caked.Reply.TemplateReply.ListTemplatesReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.TemplateReply.ListTemplatesReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.TemplateReply.protoMessageName + ".ListTemplatesReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}templates\0\u{1}success\0\u{1}reason\0")
 
@@ -12714,7 +12714,7 @@ extension Caked_Caked.Reply.TemplateReply.ListTemplatesReply: SwiftProtobuf.Mess
   }
 }
 
-extension Caked_Caked.Reply.TemplateReply.ListTemplatesReply.TemplateEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.TemplateReply.ListTemplatesReply.TemplateEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.TemplateReply.ListTemplatesReply.protoMessageName + ".TemplateEntry"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}fqn\0\u{1}diskSize\0\u{1}totalSize\0")
 
@@ -12759,7 +12759,7 @@ extension Caked_Caked.Reply.TemplateReply.ListTemplatesReply.TemplateEntry: Swif
   }
 }
 
-extension Caked_Caked.Reply.TemplateReply.CreateTemplateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.TemplateReply.CreateTemplateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.TemplateReply.protoMessageName + ".CreateTemplateReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}created\0\u{1}reason\0")
 
@@ -12803,7 +12803,7 @@ extension Caked_Caked.Reply.TemplateReply.CreateTemplateReply: SwiftProtobuf.Mes
   }
 }
 
-extension Caked_Caked.Reply.TemplateReply.DeleteTemplateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.TemplateReply.DeleteTemplateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.TemplateReply.protoMessageName + ".DeleteTemplateReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}deleted\0\u{1}reason\0")
 
@@ -12847,7 +12847,7 @@ extension Caked_Caked.Reply.TemplateReply.DeleteTemplateReply: SwiftProtobuf.Mes
   }
 }
 
-extension Caked_Caked.Reply.RunReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.RunReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".RunReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}exitCode\0\u{1}stdout\0\u{1}stderr\0")
 
@@ -12887,7 +12887,7 @@ extension Caked_Caked.Reply.RunReply: SwiftProtobuf.Message, SwiftProtobuf._Mess
   }
 }
 
-extension Caked_Caked.Reply.MountReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.MountReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".MountReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}reason\0\u{1}mounts\0")
 
@@ -12931,7 +12931,7 @@ extension Caked_Caked.Reply.MountReply: SwiftProtobuf.Message, SwiftProtobuf._Me
   }
 }
 
-extension Caked_Caked.Reply.MountReply.MountVirtioFSReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.MountReply.MountVirtioFSReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.MountReply.protoMessageName + ".MountVirtioFSReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}mounted\0\u{1}reason\0\u{1}name\0\u{1}path\0")
 
@@ -12980,7 +12980,7 @@ extension Caked_Caked.Reply.MountReply.MountVirtioFSReply: SwiftProtobuf.Message
   }
 }
 
-extension Caked_Caked.Reply.OCIReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.OCIReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".OCIReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}login\0\u{1}logout\0\u{1}pull\0\u{1}push\0")
 
@@ -13081,7 +13081,7 @@ extension Caked_Caked.Reply.OCIReply: SwiftProtobuf.Message, SwiftProtobuf._Mess
   }
 }
 
-extension Caked_Caked.Reply.OCIReply.PullReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.OCIReply.PullReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.OCIReply.protoMessageName + ".PullReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0\u{1}imageType\0")
 
@@ -13121,7 +13121,7 @@ extension Caked_Caked.Reply.OCIReply.PullReply: SwiftProtobuf.Message, SwiftProt
   }
 }
 
-extension Caked_Caked.Reply.OCIReply.PushReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.OCIReply.PushReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.OCIReply.protoMessageName + ".PushReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0")
 
@@ -13156,7 +13156,7 @@ extension Caked_Caked.Reply.OCIReply.PushReply: SwiftProtobuf.Message, SwiftProt
   }
 }
 
-extension Caked_Caked.Reply.OCIReply.LoginReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.OCIReply.LoginReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.OCIReply.protoMessageName + ".LoginReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0")
 
@@ -13191,7 +13191,7 @@ extension Caked_Caked.Reply.OCIReply.LoginReply: SwiftProtobuf.Message, SwiftPro
   }
 }
 
-extension Caked_Caked.Reply.OCIReply.LogoutReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.OCIReply.LogoutReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.OCIReply.protoMessageName + ".LogoutReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0")
 
@@ -13226,7 +13226,7 @@ extension Caked_Caked.Reply.OCIReply.LogoutReply: SwiftProtobuf.Message, SwiftPr
   }
 }
 
-extension Caked_Caked.Reply.ScreenSizeReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.ScreenSizeReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".ScreenSizeReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}screenSize\0\u{1}success\0\u{1}reason\0")
 
@@ -13275,7 +13275,7 @@ extension Caked_Caked.Reply.ScreenSizeReply: SwiftProtobuf.Message, SwiftProtobu
   }
 }
 
-extension Caked_Caked.Reply.CertificateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.CertificateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".CertificateReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}reason\0\u{1}success\0\u{1}added\0\u{1}list\0\u{1}get\0")
 
@@ -13369,7 +13369,7 @@ extension Caked_Caked.Reply.CertificateReply: SwiftProtobuf.Message, SwiftProtob
   }
 }
 
-extension Caked_Caked.Reply.CertificateReply.Certificate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.CertificateReply.Certificate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.CertificateReply.protoMessageName + ".Certificate"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}type\0\u{1}restricted\0\u{1}projects\0\u{1}certificate\0\u{1}fingerprint\0")
 
@@ -13424,7 +13424,7 @@ extension Caked_Caked.Reply.CertificateReply.Certificate: SwiftProtobuf.Message,
   }
 }
 
-extension Caked_Caked.Reply.CertificateReply.ListCertificatesReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.CertificateReply.ListCertificatesReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.CertificateReply.protoMessageName + ".ListCertificatesReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}certificates\0")
 
@@ -13454,7 +13454,7 @@ extension Caked_Caked.Reply.CertificateReply.ListCertificatesReply: SwiftProtobu
   }
 }
 
-extension Caked_Caked.Reply.CertificateReply.PEMDocument: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.Reply.CertificateReply.PEMDocument: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.CertificateReply.protoMessageName + ".PEMDocument"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}pem\0")
 
@@ -13484,7 +13484,7 @@ extension Caked_Caked.Reply.CertificateReply.PEMDocument: SwiftProtobuf.Message,
   }
 }
 
-extension Caked_Caked.NetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.NetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".NetworkRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}name\0\u{1}create\0\u{1}configure\0")
 
@@ -13568,15 +13568,15 @@ extension Caked_Caked.NetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._Mess
   }
 }
 
-extension Caked_Caked.NetworkRequest.NetworkMode: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.NetworkRequest.NetworkMode: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0shared\0\u{1}host\0")
 }
 
-extension Caked_Caked.NetworkRequest.NetworkCommand: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.NetworkRequest.NetworkCommand: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0infos\0\u{1}new\0\u{1}set\0\u{1}start\0\u{1}shutdown\0\u{1}remove\0\u{1}status\0")
 }
 
-extension Caked_Caked.NetworkRequest.ConfigureNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.NetworkRequest.ConfigureNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.NetworkRequest.protoMessageName + ".ConfigureNetworkRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}uuid\0\u{1}nat66prefix\0\u{1}dhcpLease\0")
 
@@ -13640,7 +13640,7 @@ extension Caked_Caked.NetworkRequest.ConfigureNetworkRequest: SwiftProtobuf.Mess
   }
 }
 
-extension Caked_Caked.NetworkRequest.CreateNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.NetworkRequest.CreateNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.NetworkRequest.protoMessageName + ".CreateNetworkRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}mode\0\u{1}name\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}uuid\0\u{1}nat66prefix\0\u{1}dhcpLease\0")
 
@@ -13709,7 +13709,7 @@ extension Caked_Caked.NetworkRequest.CreateNetworkRequest: SwiftProtobuf.Message
   }
 }
 
-extension Caked_Caked.ImageRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.ImageRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".ImageRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}name\0")
 
@@ -13744,11 +13744,11 @@ extension Caked_Caked.ImageRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 }
 
-extension Caked_Caked.ImageRequest.ImageCommand: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.ImageRequest.ImageCommand: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}info\0\u{1}pull\0\u{1}list\0")
 }
 
-extension Caked_Caked.RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".RemoteRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}addRequest\0\u{1}deleteRequest\0")
 
@@ -13815,11 +13815,11 @@ extension Caked_Caked.RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._Messa
   }
 }
 
-extension Caked_Caked.RemoteRequest.RemoteCommand: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.RemoteRequest.RemoteCommand: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}list\0\u{1}add\0\u{1}delete\0")
 }
 
-extension Caked_Caked.RemoteRequest.RemoteRequestAdd: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.RemoteRequest.RemoteRequestAdd: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.RemoteRequest.protoMessageName + ".RemoteRequestAdd"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}url\0")
 
@@ -13854,7 +13854,7 @@ extension Caked_Caked.RemoteRequest.RemoteRequestAdd: SwiftProtobuf.Message, Swi
   }
 }
 
-extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".PurgeRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}entries\0\u{1}olderThan\0\u{1}spaceBudget\0\u{2}\u{2}gc\0")
 
@@ -13903,7 +13903,7 @@ extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 }
 
-extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".PushRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}localName\0\u{1}remoteNames\0\u{1}insecure\0\u{1}chunkSize\0\u{1}concurrency\0\u{1}foreground\0")
 
@@ -13958,7 +13958,7 @@ extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
   }
 }
 
-extension Caked_Caked.CloneRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.CloneRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".CloneRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}image\0\u{1}insecure\0")
 
@@ -13998,7 +13998,7 @@ extension Caked_Caked.CloneRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 }
 
-extension Caked_Caked.LoginRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.LoginRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".LoginRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}host\0\u{1}username\0\u{1}password\0\u{1}insecure\0\u{1}noValidate\0")
 
@@ -14048,7 +14048,7 @@ extension Caked_Caked.LoginRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 }
 
-extension Caked_Caked.LogoutRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.LogoutRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".LogoutRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}host\0")
 
@@ -14078,7 +14078,7 @@ extension Caked_Caked.LogoutRequest: SwiftProtobuf.Message, SwiftProtobuf._Messa
   }
 }
 
-extension Caked_Caked.MountRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.MountRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".MountRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}name\0\u{1}mounts\0")
 
@@ -14118,11 +14118,11 @@ extension Caked_Caked.MountRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 }
 
-extension Caked_Caked.MountRequest.MountCommand: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.MountRequest.MountCommand: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}mount\0\u{1}umount\0")
 }
 
-extension Caked_Caked.MountRequest.MountVirtioFS: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.MountRequest.MountVirtioFS: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.MountRequest.protoMessageName + ".MountVirtioFS"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}source\0\u{1}target\0\u{1}name\0\u{1}uid\0\u{1}gid\0\u{1}readonly\0")
 
@@ -14181,7 +14181,7 @@ extension Caked_Caked.MountRequest.MountVirtioFS: SwiftProtobuf.Message, SwiftPr
   }
 }
 
-extension Caked_Caked.CertificateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.CertificateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".CertificateRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}addRequest\0\u{1}deleteRequest\0\u{1}getRequest\0")
 
@@ -14270,11 +14270,11 @@ extension Caked_Caked.CertificateRequest: SwiftProtobuf.Message, SwiftProtobuf._
   }
 }
 
-extension Caked_Caked.CertificateRequest.CertificateCommand: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.CertificateRequest.CertificateCommand: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}add\0\u{1}delete\0\u{1}list\0\u{1}get\0")
 }
 
-extension Caked_Caked.CertificateRequest.CertificateAddRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.CertificateRequest.CertificateAddRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.CertificateRequest.protoMessageName + ".CertificateAddRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}certAsPem\0")
 
@@ -14309,7 +14309,7 @@ extension Caked_Caked.CertificateRequest.CertificateAddRequest: SwiftProtobuf.Me
   }
 }
 
-extension Caked_Caked.CertificateRequest.CertificateDeleteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.CertificateRequest.CertificateDeleteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.CertificateRequest.protoMessageName + ".CertificateDeleteRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0")
 
@@ -14339,7 +14339,7 @@ extension Caked_Caked.CertificateRequest.CertificateDeleteRequest: SwiftProtobuf
   }
 }
 
-extension Caked_Caked.CertificateRequest.CertificateGetRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Caked_Caked.CertificateRequest.CertificateGetRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.CertificateRequest.protoMessageName + ".CertificateGetRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0")
 
