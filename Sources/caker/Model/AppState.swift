@@ -245,17 +245,19 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		
 		Utilities.group.next().makeFutureWithTask {
 			try Self.loadService(connectionManager: connectionManager)
-		}.whenComplete { [unowned self] result in
+		}.whenComplete { [weak self] result in
+			guard let self else { return }
 			let connectionMode = connectionManager.connectionMode
-			
+
 			self.logger.debug("Data loaded for new mode: installed=\(installed), runMode=\(connectionMode)")
-			
-			DispatchQueue.main.async {
+
+			DispatchQueue.main.async { [weak self] in
+				guard let self else { return }
 				self.cakedServiceInstalled = installed
 				self.cakedServiceRunning = connectionMode != .app
 				self.connectionMode = connectionMode
 				self.connectionManager = connectionManager
-				
+
 				switch result {
 				case let .failure(error):
 					alertError(error)
@@ -264,7 +266,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 					self.setNetworks(serviceReply.networks)
 					self.setRemotes(serviceReply.remotes)
 					self.setTemplates(serviceReply.templates)
-					
+
 					connectionManager.startGrandCentral()
 
 					NotificationCenter.default.post(name: Self.AppStateChanged, object: connectionManager)
@@ -272,8 +274,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 				// Restart timer
 				self.logger.debug("Restart timer for new mode: installed=\(installed), runMode=\(connectionMode)")
-				self.agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { task in
-					self.agentStatusWatch(task)
+				self.agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { [weak self] task in
+					self?.agentStatusWatch(task)
 				}
 			}
 		}
@@ -320,8 +322,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		self.agentStatusTimer = nil
 		
 		if connectionManager.connectionMode == .app {
-			self.agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { [unowned self] task in
-				self.agentStatusWatch(task)
+			self.agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { [weak self] task in
+				self?.agentStatusWatch(task)
 			}
 			
 			if let serviceReply = try? Self.loadService(connectionManager: connectionManager) {
@@ -519,8 +521,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 	
 	func replaceVirtualMachineDocument(_ url: URL, with document: VirtualMachineDocument) {
-		DispatchQueue.main.async { [unowned self] in
-			self.virtualMachines[url] = document
+		DispatchQueue.main.async { [weak self] in
+			self?.virtualMachines[url] = document
 		}
 	}
 	
