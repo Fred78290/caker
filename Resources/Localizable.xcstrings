@@ -8143,6 +8143,16 @@
         }
       }
     },
+    "Remote control via CLI and API with SwiftUI and Web" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contrôle à distance via CLI et API avec SwiftUI et Web"
+          }
+        }
+      }
+    },
     "Remote directories are not supported" : {
       "extractionState" : "manual",
       "localizations" : {
