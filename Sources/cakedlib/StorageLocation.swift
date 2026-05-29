@@ -104,12 +104,9 @@ extension StorageLocation: PurgeableStorage {
 	}
 
 	func purgeables() throws -> [any Purgeable] {
-		return try self.list().map { $1 }.filter {
-			if case .running = $0.status {
-				return false
-			} else {
-				return true
-			}
+		return try self.list().compactMap {
+			if case .running = $1.status { return nil }
+			return $1
 		}
 	}
 
