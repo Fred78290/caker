@@ -19,12 +19,17 @@ extension TLSConfiguration {
 	static public func makeServerConfiguration(caCert: String? = nil, tlsKey: String, tlsCert: String) throws -> TLSConfiguration {
 		let tlsCerts = try NIOSSLCertificate.fromPEMFile(tlsCert)
 		let tlsKey = try NIOSSLPrivateKey(file: tlsKey, format: .pem)
+
+		guard let leafCert = tlsCerts.first else {
+			throw NIOSSLError.failedToLoadCertificate
+		}
+
 		var tlsConfiguration: TLSConfiguration
 
 		if let caCert = caCert {
 			// When a CA is provided, use it for trust and require full client cert verification (mTLS)
 			tlsConfiguration = TLSConfiguration.makeServerConfiguration(
-				certificateChain: [.certificate(tlsCerts.first!)],
+				certificateChain: [.certificate(leafCert)],
 				privateKey: .privateKey(tlsKey)
 			)
 
@@ -33,7 +38,7 @@ extension TLSConfiguration {
 		} else {
 			// No CA provided: do not verify client certificates (server-only TLS)
 			tlsConfiguration = TLSConfiguration.makeServerConfiguration(
-				certificateChain: [.certificate(tlsCerts.first!)],
+				certificateChain: [.certificate(leafCert)],
 				privateKey: .privateKey(tlsKey)
 			)
 		}
@@ -214,7 +219,9 @@ private struct PasswordAuthMiddleware: Middleware {
 			// Expecting: "Basic base64(username:password)"
 			let decoded = credentials.base64DecodedString()
 			// Username is ignored — only the password (after the first ':') is validated
-			let colonIdx = decoded.firstIndex(of: ":") ?? decoded.endIndex
+			guard let colonIdx = decoded.firstIndex(of: ":") else {
+				return unauthorized(on: request)
+			}
 			let providedPassword = String(decoded[decoded.index(after: colonIdx)...])
 			guard providedPassword.isEmpty == false, providedPassword == password else {
 				return unauthorized(on: request)

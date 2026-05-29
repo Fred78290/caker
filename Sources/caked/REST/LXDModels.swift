@@ -502,7 +502,7 @@ struct LXDCreateInstanceRequest: Content {
 	var imageURL: String {
 		switch source.type {
 		case "url":
-			return source.url?.isEmpty == false ? source.url! : defaultUbuntuImage
+			return source.url.flatMap { $0.isEmpty ? nil : $0 } ?? defaultUbuntuImage
 		case "image":
 			if let alias = source.alias, alias.isEmpty == false { return alias }
 			if let fp = source.fingerprint, fp.isEmpty == false { return fp }
