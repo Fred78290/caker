@@ -161,7 +161,10 @@ public class TaskQueue {
 				block: { [weak self] in
 					do {
 						for try await element in AsyncThrowingStream(T.self, block) {
-							guard self?.isScopeCancelled == false else {
+							guard let self else {
+								throw CancellationError()
+							}
+							guard self.isScopeCancelled == false else {
 								throw CancellationError()
 							}
 							typedContinuation.yield(element)

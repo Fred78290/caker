@@ -13,6 +13,7 @@ class ARPParser: DHCPLeaseProvider {
 		let arp: [String: ARPEntry]
 	}
 
+	// Keep ARP data fresh while avoiding spawning `/usr/sbin/arp` repeatedly during polling loops.
 	private static let cacheTTL: TimeInterval = 10
 	private static let cacheLock = NSLock()
 	private static var cache: CacheEntry?
@@ -55,19 +56,31 @@ class ARPParser: DHCPLeaseProvider {
 	}
 
 	private static func cachedArp() throws -> [String: ARPEntry] {
-		Self.cacheLock.lock()
-		if let cache = Self.cache, Date().timeIntervalSince(cache.timestamp) < Self.cacheTTL {
-			Self.cacheLock.unlock()
-			return cache.arp
+		if let cachedArp = Self.freshCache() {
+			return cachedArp
 		}
-		Self.cacheLock.unlock()
 
 		let parsedArp = Self.parseArp(arpOutput: try Shell.exec(FilePath("/usr/sbin/arp"), arguments: ["-an"]))
-
-		Self.cacheLock.lock()
-		Self.cache = CacheEntry(timestamp: Date(), arp: parsedArp)
-		Self.cacheLock.unlock()
-
+		Self.updateCache(parsedArp)
 		return parsedArp
+	}
+
+	private static func freshCache() -> [String: ARPEntry]? {
+		Self.cacheLock.lock()
+		defer {
+			Self.cacheLock.unlock()
+		}
+		guard let cache = Self.cache, Date().timeIntervalSince(cache.timestamp) < Self.cacheTTL else {
+			return nil
+		}
+		return cache.arp
+	}
+
+	private static func updateCache(_ arp: [String: ARPEntry]) {
+		Self.cacheLock.lock()
+		defer {
+			Self.cacheLock.unlock()
+		}
+		Self.cache = CacheEntry(timestamp: Date(), arp: arp)
 	}
 }

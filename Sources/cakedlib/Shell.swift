@@ -40,7 +40,9 @@ public struct ShellError: Swift.Error {
 }
 
 public struct Shell {
-	private static let maxSubprocessOutputSize = Int(100 * MoB)
+	/// Cap buffered subprocess output to avoid unbounded memory growth for noisy commands.
+	/// 100 MB keeps typical command output intact while preventing OOM on very verbose tools.
+	private static let maxSubprocessOutputSize = 100 * 1024 * 1024
 
 	@discardableResult static public func sudo(
 		to command: String,
@@ -171,11 +173,6 @@ extension FileHandle {
 extension Process {
 	fileprivate func waitForExitAsync() async {
 		await withCheckedContinuation { continuation in
-			if !self.isRunning {
-				continuation.resume()
-				return
-			}
-
 			let resumeActor = ProcessExitContinuationActor(continuation)
 
 			self.terminationHandler = { process in
@@ -406,11 +403,6 @@ extension Process {
 extension ProcessWithSharedFileHandle {
 	fileprivate func waitForExitAsync() async {
 		await withCheckedContinuation { continuation in
-			if !self.isRunning {
-				continuation.resume()
-				return
-			}
-
 			let resumeActor = ProcessExitContinuationActor(continuation)
 
 			self.terminationHandler = { process in

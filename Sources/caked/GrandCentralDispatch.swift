@@ -53,12 +53,18 @@ final class GrandCentralDispatch {
 	}
 
 	func addListener(_ continuation: AsyncThrowingStreamCakedReplyContinuation) -> ListenerID {
-		let runningVirtualMachines = (try? StorageLocation(runMode: runMode).list())?.values.compactMap {
-			if case .running = $0.status {
-				return $0
+		let runningVirtualMachines: [VMLocation]
+		do {
+			runningVirtualMachines = try StorageLocation(runMode: runMode).list().values.compactMap {
+				if case .running = $0.status {
+					return $0
+				}
+				return nil
 			}
-			return nil
-		} ?? []
+		} catch {
+			self.logger.error("Unable to list virtual machines before adding listener: \(error)")
+			runningVirtualMachines = []
+		}
 
 		var startUpdates = false
 		let id = self.listeners.withLock { dict in
@@ -87,7 +93,7 @@ final class GrandCentralDispatch {
 
 	@discardableResult
 	func removeListener(_ id: ListenerID) -> AsyncThrowingStreamCakedReplyContinuation? {
-		var shouldStopUpdates = false
+		var shouldStop = false
 
 		let value = self.listeners.withLock { (dict) -> AsyncThrowingStreamCakedReplyContinuation? in
 			self.logger.info("Removing listener: \(id)")
@@ -98,13 +104,13 @@ final class GrandCentralDispatch {
 
 			if self.shutdown.withLock({ !$0 }) && dict.isEmpty {
 				self.logger.info("No more listeners, stop all Grand Central Updates")
-				shouldStopUpdates = true
+				shouldStop = true
 			}
 
 			return value
 		}
 
-		let stopFuture = shouldStopUpdates ? self.stopGrandCentralUpdate() : nil
+		let stopFuture = shouldStop ? self.stopGrandCentralUpdate() : nil
 
 		if let stopFuture {
 			stopFuture.whenComplete { result in

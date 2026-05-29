@@ -27,7 +27,7 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 	private var stream: AsyncThrowingStreamCurrentStatusReply?
 	private let logger = Logger("GrandCentralUpdater")
 	private var lastStatus = VMLocation.Status.stopped
-	private var lastScreenshotChecksum: Int?
+	private var lastScreenshotData: Data?
 	
 	public init(vm: VirtualMachine, runMode: Utils.RunMode) throws {
 		self.vm = vm
@@ -159,10 +159,9 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 	
 	public func didScreenshot(_ vm: VirtualMachine, screenshot: NSImage) {
 		if let pngData = screenshot.pngData {
-			let checksum = pngData.hashValue
-			if self.lastScreenshotChecksum != checksum {
+			if self.lastScreenshotData != pngData {
 				try? pngData.write(to: self.vm.location.screenshotURL)
-				self.lastScreenshotChecksum = checksum
+				self.lastScreenshotData = pngData
 			}
 
 			if let stream {
