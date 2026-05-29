@@ -439,6 +439,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		self.autostart = autostart
 		self.display = screenSize
 		self.vncPassword = UUID().uuidString
+		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 	}
 
 	public init(location: URL, configuredUser: String, configuredPassword: String, configuredGroup: String, clearPassword: Bool) throws {
@@ -494,6 +495,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		self.attachedDisks = options.attachedDisks
 		self.vncPassword = UUID().uuidString
 		self.display = ViewSize(width: options.screenSize.width, height: options.screenSize.height)
+		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 
 		if self.os == .darwin {
 			self.cpuCount = max(options.cpu, self.cpuCountMin)

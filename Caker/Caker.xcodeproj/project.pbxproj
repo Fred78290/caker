@@ -35,6 +35,10 @@
 		9B081B5B2FC75A1A0029B259 /* Qcow2Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081B572FC75A1A0029B259 /* Qcow2Error.swift */; };
 		9B081B5C2FC75A1A0029B259 /* Qcow2Converter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081B562FC75A1A0029B259 /* Qcow2Converter.swift */; };
 		9B081CBC2FC88D160029B259 /* Convert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081CBB2FC88D110029B259 /* Convert.swift */; };
+		9B081D932FC97DB20029B259 /* VmdkHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081D912FC97DB20029B259 /* VmdkHeader.swift */; };
+		9B081D942FC97DB20029B259 /* VmdkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081D902FC97DB20029B259 /* VmdkError.swift */; };
+		9B081D952FC97DB20029B259 /* VmdkConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081D8F2FC97DB20029B259 /* VmdkConverter.swift */; };
+		9B081DDD2FC9887F0029B259 /* VmdkDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */; };
 		9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AC2F743641009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AD2F7436F1009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
@@ -246,8 +250,6 @@
 		9B7C7B682E0E80BE009D0A26 /* VirtualMachineConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */; };
 		9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */ = {isa = PBXBuildFile; productRef = 9B7C7B6A2E0FC7DA009D0A26 /* Steps */; };
 		9B7D65B02F163AB900FE1B0B /* InteractiveShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */; };
-		9B7D682C2F17E1A700FE1B0B /* SharedPtrBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D682A2F17E1A700FE1B0B /* SharedPtrBridge.mm */; };
-		9B7D682D2F17E1A700FE1B0B /* SharedPtrBridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B7D68292F17E1A700FE1B0B /* SharedPtrBridge.h */; };
 		9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */; };
 		9B7D69252F1B92EC00FE1B0B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D69242F1B92E800FE1B0B /* Extensions.swift */; };
 		9B82D3182F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */; };
@@ -778,6 +780,10 @@
 		9B081B572FC75A1A0029B259 /* Qcow2Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qcow2Error.swift; sourceTree = "<group>"; };
 		9B081B582FC75A1A0029B259 /* Qcow2Header.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qcow2Header.swift; sourceTree = "<group>"; };
 		9B081CBB2FC88D110029B259 /* Convert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Convert.swift; sourceTree = "<group>"; };
+		9B081D8F2FC97DB20029B259 /* VmdkConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkConverter.swift; sourceTree = "<group>"; };
+		9B081D902FC97DB20029B259 /* VmdkError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkError.swift; sourceTree = "<group>"; };
+		9B081D912FC97DB20029B259 /* VmdkHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkHeader.swift; sourceTree = "<group>"; };
+		9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkDescriptor.swift; sourceTree = "<group>"; };
 		9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCompatibilitySpan.tbd; path = usr/lib/swift/libswiftCompatibilitySpan.tbd; sourceTree = SDKROOT; };
 		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
@@ -979,8 +985,6 @@
 		9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineWizard.swift; sourceTree = "<group>"; };
 		9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfig.swift; sourceTree = "<group>"; };
 		9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractiveShell.swift; sourceTree = "<group>"; };
-		9B7D68292F17E1A700FE1B0B /* SharedPtrBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SharedPtrBridge.h; sourceTree = "<group>"; };
-		9B7D682A2F17E1A700FE1B0B /* SharedPtrBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SharedPtrBridge.mm; sourceTree = "<group>"; };
 		9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHelper.swift; sourceTree = "<group>"; };
 		9B7D69242F1B92E800FE1B0B /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthServerInterceptor.swift; sourceTree = "<group>"; };
@@ -1519,6 +1523,17 @@
 			path = Qcow2;
 			sourceTree = "<group>";
 		};
+		9B081D922FC97DB20029B259 /* Vmdk */ = {
+			isa = PBXGroup;
+			children = (
+				9B081D8F2FC97DB20029B259 /* VmdkConverter.swift */,
+				9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */,
+				9B081D902FC97DB20029B259 /* VmdkError.swift */,
+				9B081D912FC97DB20029B259 /* VmdkHeader.swift */,
+			);
+			path = Vmdk;
+			sourceTree = "<group>";
+		};
 		9B144C0E2F9D28D900F14DEF /* VNCTunnel */ = {
 			isa = PBXGroup;
 			children = (
@@ -1900,7 +1915,6 @@
 		9B464ADD2D5A3E0300164BF5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				9B7D682B2F17E1A700FE1B0B /* SharedPtrBridge */,
 				9B464A892D5A3E0300164BF5 /* cakectl */,
 				9BEBC6CD2DF4400A0092B196 /* caked */,
 				9BEBC7692DF440720092B196 /* cakedlib */,
@@ -1988,15 +2002,6 @@
 				9B602F912FAA56FA00055543 /* Controllers */,
 			);
 			path = REST;
-			sourceTree = "<group>";
-		};
-		9B7D682B2F17E1A700FE1B0B /* SharedPtrBridge */ = {
-			isa = PBXGroup;
-			children = (
-				9B7D68292F17E1A700FE1B0B /* SharedPtrBridge.h */,
-				9B7D682A2F17E1A700FE1B0B /* SharedPtrBridge.mm */,
-			);
-			path = SharedPtrBridge;
 			sourceTree = "<group>";
 		};
 		9B9C4E592E23BC8B00C13D23 /* Home */ = {
@@ -2132,10 +2137,10 @@
 		9BEBC6B12DF4400A0092B196 /* Commands */ = {
 			isa = PBXGroup;
 			children = (
-				9B081CBB2FC88D110029B259 /* Convert.swift */,
 				9BEBC6972DF4400A0092B196 /* Build.swift */,
 				9BEBC6982DF4400A0092B196 /* Certificates.swift */,
 				9BEBC69A2DF4400A0092B196 /* Configure.swift */,
+				9B081CBB2FC88D110029B259 /* Convert.swift */,
 				9BEBC69B2DF4400A0092B196 /* Delete.swift */,
 				9BEBC69C2DF4400A0092B196 /* Duplicate.swift */,
 				9BEBC69D2DF4400A0092B196 /* Exec.swift */,
@@ -2394,6 +2399,7 @@
 				9B081B592FC75A1A0029B259 /* Qcow2 */,
 				9BEBC7412DF440720092B196 /* Sockets */,
 				9BEBC74C2DF440720092B196 /* UI */,
+				9B081D922FC97DB20029B259 /* Vmdk */,
 				9BEBC7522DF440720092B196 /* VMNet */,
 				9BEBC73C2DF440720092B196 /* VMRunService */,
 				9B5A377E2ED4BDA8007B59B0 /* VNCLib */,
@@ -2452,13 +2458,6 @@
 			path = Icons;
 			sourceTree = "<group>";
 		};
-		9BFE87352F7E6480005CC9B2 /* macOS */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = macOS;
-			sourceTree = "<group>";
-		};
 		9BFE87462F7E6480005CC9B2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -2475,7 +2474,6 @@
 				9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */,
 				9BFE87342F7E6480005CC9B2 /* Icons */,
 				9BFE873F2F7E6480005CC9B2 /* Info.plist */,
-				9BFE87352F7E6480005CC9B2 /* macOS */,
 				9BFE87402F7E6480005CC9B2 /* menubar.png */,
 				9BFE87412F7E6480005CC9B2 /* menubar.xcf */,
 				9BFE87422F7E6480005CC9B2 /* Prompt.png */,
@@ -2502,7 +2500,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9B7D682D2F17E1A700FE1B0B /* SharedPtrBridge.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3325,6 +3322,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */,
+				9B081DDD2FC9887F0029B259 /* VmdkDescriptor.swift in Sources */,
 				9BEBC76B2DF440720092B196 /* ImageHandler.swift in Sources */,
 				9BEBC76C2DF440720092B196 /* VMView.swift in Sources */,
 				9BEBC76D2DF440720092B196 /* Home.swift in Sources */,
@@ -3359,7 +3357,6 @@
 				9BEBC7822DF440720092B196 /* DHCPLeases.swift in Sources */,
 				9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */,
-				9B7D682C2F17E1A700FE1B0B /* SharedPtrBridge.mm in Sources */,
 				9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */,
 				9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */,
 				9BEBC7852DF440720092B196 /* CloudImageConverter.swift in Sources */,
@@ -3438,6 +3435,9 @@
 				9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */,
 				9BEBC7B22DF440720092B196 /* XPCVMRunService.swift in Sources */,
 				9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */,
+				9B081D932FC97DB20029B259 /* VmdkHeader.swift in Sources */,
+				9B081D942FC97DB20029B259 /* VmdkError.swift in Sources */,
+				9B081D952FC97DB20029B259 /* VmdkConverter.swift in Sources */,
 				9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */,
 				9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */,
 				9BEBD1802F9CC1D20005EC80 /* SetOptions.swift in Sources */,

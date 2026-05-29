@@ -11,25 +11,37 @@ import CakeAgentLib
 import Foundation
 
 struct Convert: ParsableCommand {
-	public static let build = CommandConfiguration(commandName: "convert", abstract: String(localized: "Convert qcow2 to raw"))
+	enum InputFormat: String, ExpressibleByArgument {
+		case vmdk
+		case qcow2
+	}
 
-	@Argument(help: ArgumentHelp(String(localized: "Source qcow2")))
-	public var source: String
+	static let configuration = CommandConfiguration(commandName: "convert", abstract: String(localized: "Convert vmdk or qcow2 image to raw"))
+
+	@Argument(help: ArgumentHelp(String(localized: "Source image disk to convert")))
+	var source: String
 
 	@Argument(help: ArgumentHelp(String(localized: "Destination raw image")))
-	public var destination: String
+	var destination: String
+
+	@Option(name: [ .customLong("source-format"), .customShort("f")], help: ArgumentHelp(String(localized: "Source image disk format")))
+	var format: InputFormat = .qcow2
 
 	func run() throws {
-		let context = ProgressObserver.ProgressHandlerContext()
 		let logger = Logger("Convert")
 
-		logger.info("Converting \(source) to \(destination)")
+		logger.info(String(localized: "Converting \(source) to \(destination)"))
 
-		let sourceURL = URL(fileURLWithPath: source)
-		let destinationURL = URL(fileURLWithPath: destination)
+		let sourceURL = URL(fileURLWithPath: source.expandingTildeInPath)
+		let destinationURL = URL(fileURLWithPath: destination.expandingTildeInPath)
 
-		try CloudImageConverter.convertCloudImageToRaw(from: sourceURL, to: destinationURL, progressHandler: ProgressObserver.progressHandler)
+		switch format {
+		case .vmdk:
+			try CloudImageConverter.convertVmdkToRaw(from: sourceURL, to: destinationURL, progressHandler: ProgressObserver.progressHandler)
+		case .qcow2:
+			try CloudImageConverter.convertCloudImageToRaw(from: sourceURL, to: destinationURL, progressHandler: ProgressObserver.progressHandler)
+		}
 
-		logger.info("Conversion completed successfully")
+		logger.info(String(localized: "Conversion completed successfully"))
 	}
 }
