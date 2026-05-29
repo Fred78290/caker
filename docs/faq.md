@@ -77,8 +77,9 @@ You can use:
 
 Caker works with:
 - Custom VM images built with Caker
-- Images from configured registries
+- Images from configured registries (OCI, simplestream, HTTPS)
 - Imported images from other virtualization platforms (via `import` command)
+- QCOW2 and VMDK images converted to raw format with `caked convert`
 
 ## Integration Questions
 
@@ -88,7 +89,17 @@ Yes, Caker is designed to work in automated environments. The CLI interface (`ca
 
 ### Is there REST API support?
 
-Currently, Caker uses gRPC for communication between `cakectl` and `caked`. REST API support is not available but could be added in the future.
+Yes. `caked` includes an optional LXD-compatible REST API server. Start it with the `--rest` flag:
+
+```bash
+caked service listen --rest
+```
+
+This exposes an HTTP/HTTPS API at `/1.0/instances`, `/1.0/networks`, `/1.0/images`, and other LXD-compatible endpoints. The default port is `8443` for HTTPS (mTLS) and `8080` for HTTP; override with `--rest-port`.
+
+The primary interface remains gRPC (`cakectl` ↔ `caked`), but the REST API allows integration with LXD-compatible tooling and the bundled web UI.
+
+See the [Architecture](architecture) page for a full endpoint reference.
 
 ### How does Caker compare to other virtualization tools?
 
