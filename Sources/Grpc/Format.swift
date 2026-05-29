@@ -141,8 +141,11 @@ extension InfoReply {
 				let memory = infos.memory
 
 				$0.total = memory.total
-				$0.free = memory.hasFree ? memory.free : nil
-				$0.used = memory.hasUsed ? memory.used : nil
+				$0.free = memory.free
+				$0.used = memory.used
+				$0.swapTotal = memory.swapTotal
+				$0.swapFree = memory.swapFree
+				$0.swapUsed = memory.swapUsed
 			} : nil
 
 		return InfoReply.with {
@@ -160,6 +163,7 @@ extension InfoReply {
 			$0.attachedNetworks = infos.networks.compactMap { CakeAgentLib.AttachedNetwork($0) }
 			$0.tunnelInfos = infos.tunnels.compactMap { CakeAgentLib.TunnelInfo($0) }
 			$0.socketInfos = infos.sockets.compactMap { CakeAgentLib.SocketInfo($0) }
+			$0.numOfProcesses = infos.numOfProcesses
 		}
 	}
 
@@ -190,13 +194,25 @@ extension InfoReply {
 					if let total = memory.total {
 						$0.total = total
 					}
-
+					
 					if let free = memory.free {
 						$0.free = free
 					}
-
+					
 					if let used = memory.used {
 						$0.used = used
+					}
+					
+					if let swapTotal = memory.swapTotal {
+						$0.swapTotal = swapTotal
+					}
+					
+					if let swapFree = memory.swapFree {
+						$0.swapFree = swapFree
+					}
+					
+					if let swapUsed = memory.swapUsed {
+						$0.swapUsed = swapUsed
 					}
 				}
 			}
@@ -473,7 +489,10 @@ extension CakeAgentLib.Format {
 											state: vm.state,
 											mode: vm.mode,
 											ip: vm.ip,
-											fingerprint: vm.fingerprint
+											fingerprint: vm.fingerprint,
+											created: vm.created,
+											updated: vm.updated,
+											lastUsed: vm.lastUsed
 										)))
 							}
 						}
@@ -598,6 +617,26 @@ extension CakeAgentLib.Format {
 		} else {
 			return self.renderList(data.map { ShortTemplateEntry($0) })
 		}
+	}
+
+	public func render(_ data: Caked_Certificate) -> String {
+		if self == .json {
+			return self.renderSingle(CertificateRepresentation(data))
+		}
+
+		return self.renderSingle(ShortCertificateRepresentation(data))
+	}
+
+	public func render(_ data: [CertificateRepresentation]) -> String {
+		return self.renderList(data)
+	}
+
+	public func render(_ data: [Caked_Certificate]) -> String {
+		if self == .json {
+			return self.renderList(data.map { CertificateRepresentation($0) })
+		}
+
+		return self.renderList(data.map { ShortCertificateRepresentation($0) })
 	}
 
 	public func render(_ data: Caked_ListTemplatesReply) -> String {

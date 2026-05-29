@@ -304,10 +304,6 @@ struct VMWareImporter: Importer {
 
 	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, runMode: Utils.RunMode) throws {
 		// Logic to import from a VMWare source
-		if URL.binary("qemu-img") == nil {
-			throw ServiceError(String(localized: "qemu-img binary not found. Please install qemu to import VMWare files."))
-		}
-
 		let vmxMap = try locateVM(source: source)
 		let ethernetAttachements = vmxMap.ethernetAttachements
 		let diskAttachments = vmxMap.diskAttachments
@@ -417,7 +413,7 @@ struct VMWareImporter: Importer {
 
 						logger.info("Converting VMDK disk \(attachment.disk) to raw format at \(destinationURL.path)")
 
-						try CloudImageConverter.convertVmdkToRawQemu(from: sourceURL, to: destinationURL, outputHandle: FileHandle.standardOutput, errorHandle: FileHandle.standardError)
+						try CloudImageConverter.convertVmdkToRaw(from: sourceURL, to: destinationURL, progressHandler: ProgressObserver.progressHandler)
 
 						diskCount += 1
 					} else if attachment.deviceType == .cdrom {

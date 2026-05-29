@@ -35,7 +35,10 @@ public struct ListHandler {
 					mode: status.mode,
 					ip: runningIP,
 					fingerprint: nil,
-					config: includeConfig ? CakedConfiguration(config) : nil
+					config: includeConfig ? CakedConfiguration(config) : nil,
+					created: try? location.creationDate(),
+					updated: try? location.updatedDate(),
+					lastUsed: try? location.accessDate()
 				)
 			}
 
@@ -76,7 +79,10 @@ public struct ListHandler {
 								sizeOnDisk: try purgeable.allocatedSizeBytes(),
 								state: "cached",
 								ip: nil,
-								fingerprint: purgeable.fingerprint
+								fingerprint: purgeable.fingerprint,
+								created: try? purgeable.creationDate(),
+								updated: try? purgeable.updatedDate(),
+								lastUsed: try? purgeable.updatedDate()
 							)
 						)
 					}

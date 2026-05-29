@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "2640"
+   LastUpgradeVersion = "2650"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -82,19 +82,23 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--pass-phrase=debug"
+            argument = "--rest"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--secure"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--web-ui=~/Projects/GitHub/caker/webui/dist"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--log-level=debug"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--log-level"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "debug"
+            argument = "--no-pass-phrase"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

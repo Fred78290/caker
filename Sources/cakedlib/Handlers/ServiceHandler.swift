@@ -58,6 +58,7 @@ public struct ServiceHandler {
 	
 	struct LaunchAgent: Codable {
 		let label: String
+		let associatedBundleIdentifiers: String
 		let programArguments: [String]
 		let keepAlive: [String: Bool]
 		let runAtLoad: Bool
@@ -70,6 +71,7 @@ public struct ServiceHandler {
 		
 		enum CodingKeys: String, CodingKey {
 			case label = "Label"
+			case associatedBundleIdentifiers = "AssociatedBundleIdentifiers"
 			case programArguments = "ProgramArguments"
 			case keepAlive = "KeepAlive"
 			case runAtLoad = "RunAtLoad"
@@ -180,60 +182,18 @@ public struct ServiceHandler {
 		
 		throw ServiceError(String(localized: "connection address must be specified"))
 	}
-	
-	public static func installAgent(password: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
-		let certs = try CertificatesLocation.createCertificats(runMode: runMode)
-		
-		if password == nil {
-			return try self.installAgent(listenAddress: [try Utils.getDefaultServerAddress(runMode: runMode)], insecure: false, password: password, caCert: certs.caCertURL.path, tlsCert: certs.serverCertURL.path, tlsKey: certs.serverKeyURL.path, runMode: runMode)
-		} else {
-			return try self.installAgent(listenAddress: [try Utils.getDefaultServerAddress(runMode: runMode), "tcp://0.0.0.0:\(Caked.defaultServicePort)"], insecure: false, password: password, caCert: certs.caCertURL.path, tlsCert: certs.serverCertURL.path, tlsKey: certs.serverKeyURL.path, runMode: runMode)
-		}
-	}
-	
-	public static func installAgent(listenAddress: [String], insecure: Bool, password: String?, caCert: String?, tlsCert: String?, tlsKey: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
+
+	private static func installAgent(arguments: [String], runMode: Utils.RunMode) throws {
 		let home = try Home(runMode: runMode)
 		let outputLog: String = Utils.getOutputLog(runMode: runMode)
-		var arguments: [String] = [
-			try Self.findMe(),
-			"service",
-			"listen",
-			"--log-level=\(Logger.Level().description)",
-		]
+		var caked = [try Self.findMe()]
 		
-		listenAddress.forEach {
-			arguments.append("--address=\($0)")
-		}
-		
-		if mode == .grpc {
-			arguments.append("--grpc")
-		} else {
-			arguments.append("--xpc")
-		}
-		
-		if runMode == .system {
-			arguments.append("--system")
-		}
-		
-		if insecure == false {
-			if let ca = caCert {
-				arguments.append("--ca-cert=\(ca)")
-			}
-			
-			if let key = tlsKey {
-				arguments.append("--tls-key=\(key)")
-			}
-			
-			if let cert = tlsCert {
-				arguments.append("--tls-cert=\(cert)")
-			}
-		}
-		
-		try CakedKeyConfig.passphrase.set(password)
-		
+		caked.append(contentsOf: arguments)
+
 		let agent = LaunchAgent(
 			label: Utils.cakerSignature,
-			programArguments: arguments,
+			associatedBundleIdentifiers: Utils.cakerSignature,
+			programArguments: caked,
 			keepAlive: [
 				"SuccessfulExit": false
 			],
@@ -255,14 +215,109 @@ public struct ServiceHandler {
 		Logger("ServiceHandler").info("Install agent to: \(agentURL.hiddenPasswordURL.absoluteString)")
 		
 		try agent.write(to: agentURL)
+		
+		LSRegisterURL(Bundle.main.bundleURL as CFURL, true)
+	}
+
+	public static func installAgent(insecure: Bool = false, tcp: Bool = true, rest: Bool = true, password: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
+		var arguments: [String] = [
+			"service",
+			"listen",
+			"--log-level=\(Logger.Level().description)",
+		]
+
+		if tcp {
+			arguments.append("--tcp")
+		}
+		
+		if rest {
+			arguments.append("--rest")
+		}
+
+		if mode == .grpc {
+			arguments.append("--grpc")
+		} else {
+			arguments.append("--xpc")
+		}
+
+		if runMode == .system {
+			arguments.append("--system")
+		}
+		
+		if insecure == false {
+			arguments.append("--secure")
+		}
+		
+		try CakedKeyConfig.passphrase.set(password)
+		
+		try Self.installAgent(arguments: arguments, runMode: runMode)
+	}
+
+	public static func installAgent(listenAddress: [String], insecure: Bool, rest: Bool, password: String?, caCert: String?, tlsCert: String?, tlsKey: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
+		var arguments: [String] = [
+			"service",
+			"listen",
+			"--log-level=\(Logger.Level().description)",
+		]
+		
+		listenAddress.forEach {
+			arguments.append("--address=\($0)")
+		}
+
+		if mode == .grpc {
+			arguments.append("--grpc")
+		} else {
+			arguments.append("--xpc")
+		}
+
+		if rest {
+			arguments.append("--rest")
+		}
+
+		if runMode == .system {
+			arguments.append("--system")
+		}
+		
+		if insecure == false {
+			if caCert == nil && tlsKey == nil && tlsCert == nil {
+				arguments.append("--secure")
+			} else {
+				if let ca = caCert {
+					arguments.append("--ca-cert=\(ca)")
+				}
+				
+				if let key = tlsKey {
+					arguments.append("--tls-key=\(key)")
+				}
+				
+				if let cert = tlsCert {
+					arguments.append("--tls-cert=\(cert)")
+				}
+			}
+		}
+		
+		try CakedKeyConfig.passphrase.set(password)
+		
+		try Self.installAgent(arguments: arguments, runMode: runMode)
 	}
 	
 	public static func agentLaunchURL(runMode: Utils.RunMode) -> URL {
+		let url: URL
+
 		if runMode == .system {
-			return URL(fileURLWithPath: "/Library/LaunchDaemons/\(Utils.cakerSignature).plist")
+			url = URL(fileURLWithPath: "/Library/LaunchDaemons/\(Utils.cakerSignature).plist")
 		} else {
-			return URL(fileURLWithPath: "\(NSHomeDirectory())/Library/LaunchAgents/\(Utils.cakerSignature).plist")
+			url = URL(fileURLWithPath: "\(NSHomeDirectory())/Library/LaunchAgents/\(Utils.cakerSignature).plist")
 		}
+		
+		let parentDirectory = url.deletingLastPathComponent()
+		let fm = FileManager.default
+
+		if !fm.fileExists(atPath: parentDirectory.path) {
+			try? fm.createDirectory(at: parentDirectory, withIntermediateDirectories: true, attributes: nil)
+		}
+
+		return url
 	}
 	
 	public static func uninstallAgent(runMode: Utils.RunMode) throws {

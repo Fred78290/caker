@@ -11,6 +11,7 @@ import Virtualization
 import SwiftUI
 
 private let kScreenshotPeriodSeconds = 5.0
+private let kAgentInstallRetryPeriodSeconds: UInt64 = 30
 
 public protocol VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine)
@@ -369,6 +370,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	private var vmQueue: DispatchQueue
 	private let logger = Logger("VirtualMachine")
 	private var gcd: GrandCentralUpdater? = nil
+	private var installAgentRetryTask: Task<Void, Never>? = nil
 
 	public var suspendable: Bool {
 		return self.config.suspendable
@@ -616,6 +618,8 @@ extension VirtualMachine {
 	}
 
 	private func _stopVM(completionHandler: StopCompletionHandler? = nil) {
+		self.cancelAgentInstallRetry()
+
 		try? self.saveScreenshot()
 
 		self.virtualMachine.stop { error in
@@ -656,6 +660,8 @@ extension VirtualMachine {
 			try self.virtualMachine.requestStop()
 			self.didChangedState(false)
 		} else if self.virtualMachine.canStop {
+			self.cancelAgentInstallRetry()
+
 			self.virtualMachine.stop { result in
 				self.logger.info("VM \(self.location.name) stopped")
 
@@ -684,8 +690,65 @@ extension VirtualMachine {
 
 // MARK: - Run VM
 extension VirtualMachine {
-	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
+	private func shouldRetryAgentInstall(for config: CakeConfig) -> Bool {
+		let source = config.source
 
+		return source == .iso || source == .ipsw
+	}
+
+	private func cancelAgentInstallRetry() {
+		self.installAgentRetryTask?.cancel()
+		self.installAgentRetryTask = nil
+	}
+
+	private func scheduleAgentInstallRetry(config: CakeConfig, runningIP: String, runMode: Utils.RunMode) {
+		guard self.shouldRetryAgentInstall(for: config), config.agent == false else {
+			return
+		}
+
+		if self.installAgentRetryTask != nil {
+			return
+		}
+
+		self.logger.info("VM \(self.location.name) will retry agent installation every \(kAgentInstallRetryPeriodSeconds) seconds")
+
+		self.installAgentRetryTask = Task { [weak self] in
+			guard let self else {
+				return
+			}
+
+			while Task.isCancelled == false {
+				if config.agent {
+					break
+				}
+
+				if case .running = self.status {
+					do {
+						let installed = try await self.location.installAgent(updateAgent: false, config: config, runningIP: runningIP, runMode: runMode)
+
+						if installed {
+							config.agent = true
+							try? config.save()
+							self.logger.info("VM \(self.location.name) agent installation retry succeeded")
+							break
+						}
+					} catch {
+						self.logger.warn("VM \(self.location.name) agent installation retry failed: \(error)")
+					}
+				} else {
+					break
+				}
+
+				try? await Task.sleep(nanoseconds: kAgentInstallRetryPeriodSeconds * 1_000_000_000)
+			}
+
+			self.vmQueue.async {
+				self.installAgentRetryTask = nil
+			}
+		}
+	}
+
+	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
 		if self.env.runMode == .app {
 			try self.location.writePID()
 		}
@@ -697,8 +760,16 @@ extension VirtualMachine {
 					if config.installAgent {
 						do {
 							config.agent = try await self.location.installAgent(updateAgent: false, config: config, runningIP: runningIP, runMode: runMode)
+
+							if config.agent {
+								self.cancelAgentInstallRetry()
+							}
 						} catch {
 							self.logger.error("VM \(self.location.name) failed to install agent: \(error)")
+
+							if self.shouldRetryAgentInstall(for: config) {
+								self.scheduleAgentInstallRetry(config: config, runningIP: runningIP, runMode: runMode)
+							}
 						}
 					}
 				}
@@ -751,6 +822,7 @@ extension VirtualMachine {
 
 		return response
 	}
+
 	private func start(_ mode: VMRunServiceMode, completionHandler: StartCompletionHandler? = nil) async throws {
 		var resumeVM: Bool = false
 		
@@ -917,6 +989,7 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 	}
 
 	func didChangedStateOnStop() {
+		self.cancelAgentInstallRetry()
 		self.env.signalStop()
 		self.didChangedState(true)
 	}

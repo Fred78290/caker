@@ -113,10 +113,33 @@ public struct Utils {
 
 	public static func getOutputLog(runMode: RunMode) -> String {
 		if runMode.isSystem {
-			return "/Library/Logs/caked.log"
+			// Prefer the canonical system logs directory
+			let varLog = URL(fileURLWithPath: "/var/log", isDirectory: true)
+			let varLogFile = varLog.appendingPathComponent("caked.log")
+			// Attempt to ensure directory exists (it should), and that we can write there. If not, fall back to /Library/Logs.
+			if FileManager.default.isWritableFile(atPath: varLog.path) || geteuid() == 0 {
+				return varLogFile.path
+			}
+
+			let libraryLogs = URL(fileURLWithPath: "/Library/Logs", isDirectory: true)
+			// Try to create /Library/Logs if missing (usually exists) and return fallback
+			try? FileManager.default.createDirectory(at: libraryLogs, withIntermediateDirectories: true)
+			return libraryLogs.appendingPathComponent("caked.log").path
 		}
 
-		return URL(fileURLWithPath: "caked.log", relativeTo: try? getHome(runMode: runMode)).absoluteURL.path
+		let logsDir: URL
+		if let userLibrary = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first {
+			logsDir = userLibrary.appendingPathComponent("Logs", isDirectory: true)
+			// Ensure Logs directory exists (it normally does, but be safe for sandbox or custom homes)
+			try? FileManager.default.createDirectory(at: logsDir, withIntermediateDirectories: true)
+			return logsDir.appendingPathComponent("caked.log").path
+		} else {
+			// Fallback to home directory if Library could not be resolved
+			let home = FileManager.default.homeDirectoryForCurrentUser
+			let fallback = home.appendingPathComponent("Library/Logs", isDirectory: true)
+			try? FileManager.default.createDirectory(at: fallback, withIntermediateDirectories: true)
+			return fallback.appendingPathComponent("caked.log").path
+		}
 	}
 
 	public static func saveToTempFile(_ data: Data) throws -> String {

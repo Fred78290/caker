@@ -8,6 +8,16 @@ export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 CAKER_APP="${PKGDIR}/Contents"
 CAKED_APP="${CAKER_APP}/PlugIns/caked.bundle/Contents"
 
+pushd "${PROJECT_ROOT}/webui" > /dev/null
+npm ci --no-audit --no-fund
+npm run build
+
+pushd ${PROJECT_ROOT}/webui/dist > /dev/null
+zip -r ../webui.zip .
+popd > /dev/null
+
+popd > /dev/null
+
 rm -Rf "${PKGDIR}"
 mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 	"${CAKER_APP}/MacOS" \
@@ -17,6 +27,8 @@ mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 	\
 	"${CAKED_APP}/Resources" \
 	"${CAKED_APP}/MacOS"
+
+cp "${PROJECT_ROOT}/webui/webui.zip" "${CAKED_APP}/Resources/webui.zip"
 
 xcrun xcstringstool compile \
         --output-directory "${CAKER_APP}/Resources" "${PROJECT_ROOT}/Resources/Localizable.xcstrings"

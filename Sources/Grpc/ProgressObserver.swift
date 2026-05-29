@@ -35,7 +35,12 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 		if case .progress(let context, let fractionCompleted) = result {
 			let completed = Int(100 * fractionCompleted)
 
-			if completed % 10 == 0 {
+			if completed == 0 {
+				if context.oldFractionCompleted < 0 {
+					fputs(String(format: "%0.2d%%", completed), stderr)
+					fflush(stderr)
+				}
+			} else if completed % 10 == 0 {
 				if completed - context.lastCompleted10 >= 10 || completed == 0 || completed == 100 {
 					if context.lastCompleted10 == 0 && completed == 100 {
 						fputs(String(format: String(localized: "...%0.3d%% complete") + "\n", completed), stderr)
@@ -57,6 +62,8 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 					fflush(stderr)
 				}
 			}
+
+			context.oldFractionCompleted = fractionCompleted
 		} else if case .terminated(let result, let message) = result {
 			let logger = Logger("BuildHandler")
 

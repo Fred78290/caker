@@ -86,6 +86,8 @@ service Service {
   // CheckReliability verifies the reliability of server node.
   // This method allows you to test the connectivity and responsiveness of a remote node to ensure it can reliably handle requests.
   rpc CheckReliability(Empty) returns (Caked.Reply);
+
+  rpc Certificate(Caked.CertificateRequest) returns (Caked.Reply);
 }
 
 message Empty {}
@@ -134,9 +136,12 @@ message Caked {
   }
 
   message MemoryInfo {
-    uint64          total = 1;
-    optional uint64 free  = 2;
-    optional uint64 used  = 3;
+    uint64 total     = 1;
+    uint64 free      = 2;
+    uint64 used      = 3;
+    uint64 swapTotal = 4;
+    uint64 swapFree  = 5;
+    uint64 swapUsed  = 6;
   }
 
 // Configuration represents the complete configuration for a Cake virtual machine
@@ -605,6 +610,10 @@ message Caked {
           optional string        fingerprint   = 11;
           optional Configuration configuration = 12;
           optional ScreenSize    screenSize    = 13;
+          optional double        created       = 14;
+          optional double        updated       = 15;
+          optional double        lastUsed      = 16;
+
         }
 
         repeated VirtualMachineInfo infos   = 1;
@@ -715,25 +724,26 @@ message Caked {
             int32  port = 3;
           }
 
-          optional string          version      = 1;
-          optional uint64          uptime       = 2;
-          MemoryInfo               memory       = 3;
-          int32                    cpuCount     = 4;
-          repeated DiskInfo        diskInfos    = 5;
-          repeated string          ipaddresses  = 6;
-          string                   osname       = 7;
-          optional string          hostname     = 8;
-          optional string          release      = 9;
-          VirtualMachineStatus     status       = 10;
-          repeated string          mounts       = 11;
-          string                   name         = 12;
-          repeated AttachedNetwork networks     = 13;
-          repeated TunnelInfo      tunnels      = 14;
-          repeated SocketInfo      sockets      = 15;
-          CpuInfo                  cpu          = 16;
-          repeated string          vncURL       = 17;
-          string                   agentVersion = 18;
-          optional ScreenSize      screenSize   = 19;
+          optional string          version        = 1;
+          optional uint64          uptime         = 2;
+          MemoryInfo               memory         = 3;
+          int32                    cpuCount       = 4;
+          repeated DiskInfo        diskInfos      = 5;
+          repeated string          ipaddresses    = 6;
+          string                   osname         = 7;
+          optional string          hostname       = 8;
+          optional string          release        = 9;
+          VirtualMachineStatus     status         = 10;
+          repeated string          mounts         = 11;
+          string                   name           = 12;
+          repeated AttachedNetwork networks       = 13;
+          repeated TunnelInfo      tunnels        = 14;
+          repeated SocketInfo      sockets        = 15;
+          CpuInfo                  cpu            = 16;
+          repeated string          vncURL         = 17;
+          string                   agentVersion   = 18;
+          optional ScreenSize      screenSize     = 19;
+          optional int32           numOfProcesses = 20;
         }
 
         optional InfoReply     infos   = 1;
@@ -1108,19 +1118,48 @@ message Caked {
       optional string reason     = 4;
     }
 
+    message CertificateReply {
+      message Certificate {
+        string          name        = 1;
+        string          type        = 2;
+        bool            restricted  = 3;
+        repeated string projects    = 4;
+        string          certificate = 5;
+        string          fingerprint = 6;
+      }
+
+      message ListCertificatesReply {
+        repeated Certificate certificates = 1;
+      }
+
+      message PEMDocument {
+        repeated string pem = 1;
+      }
+
+      optional string reason  = 1;
+      bool            success = 2;
+
+      oneof response {
+        Certificate           added = 3;
+        ListCertificatesReply list  = 4;
+        PEMDocument           get   = 5;
+      }
+    }
+
     oneof response {
-      VirtualMachineReply vms        = 1;
-      ImageReply          images     = 2;
-      NetworksReply       networks   = 3;
-      RemoteReply         remotes    = 4;
-      TemplateReply       templates  = 5;
-      RunReply            run        = 6;
-      MountReply          mounts     = 7;
-      OCIReply            oci        = 8;
-      PingReply           ping       = 9;
-      CurrentStatusReply  status     = 10;
-      ScreenSizeReply     screenSize = 11;
-      string              unexpected = 12;
+      VirtualMachineReply vms          = 1;
+      ImageReply          images       = 2;
+      NetworksReply       networks     = 3;
+      RemoteReply         remotes      = 4;
+      TemplateReply       templates    = 5;
+      RunReply            run          = 6;
+      MountReply          mounts       = 7;
+      OCIReply            oci          = 8;
+      PingReply           ping         = 9;
+      CurrentStatusReply  status       = 10;
+      ScreenSizeReply     screenSize   = 11;
+      CertificateReply    certificates = 12;
+      string              unexpected   = 13;
     }
   }
 
@@ -1255,5 +1294,35 @@ message Caked {
     MountCommand           command = 1;
     string                 name    = 2;
     repeated MountVirtioFS mounts  = 3;
+  }
+
+  message CertificateRequest {
+    enum CertificateCommand {
+      none   = 0;
+      add    = 1;
+      delete = 2;
+      list   = 3;
+      get    = 4;
+    }
+
+    message CertificateAddRequest {
+      string name      = 1;
+      bytes  certAsPem = 2;
+    }
+
+    message CertificateDeleteRequest {
+      string name = 1;
+    }
+
+    message CertificateGetRequest {
+      string name = 1;
+    }
+
+    CertificateCommand command = 1;
+    oneof request {
+      CertificateAddRequest    addRequest    = 2;
+      CertificateDeleteRequest deleteRequest = 3;
+      CertificateGetRequest    getRequest    = 4;
+    }
   }
 }

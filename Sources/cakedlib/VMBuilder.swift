@@ -104,8 +104,10 @@ public struct VMBuilder {
 					memorySizeMin: Self.memoryMinSize,
 					screenSize: options.screenSize)
 
-				config.useCloudInit = imageSource != .iso || options.autoinstall
-				config.agent = imageSource != .iso || options.autoinstall
+				let autoinstall = options.autoinstall && imageSource == .iso
+
+				config.useCloudInit = imageSource != .iso || autoinstall
+				config.agent = imageSource != .iso || autoinstall
 				config.nested = options.nested
 				config.attachedDisks = attachedDisks
 			}

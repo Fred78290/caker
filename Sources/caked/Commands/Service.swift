@@ -27,17 +27,14 @@ struct Service: ParsableCommand {
 
 extension Service {
 	struct ServiceOptions: ParsableArguments {
-		@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
-		var logLevel: Logger.LogLevel = .info
-
-		@Flag(name: [.customLong("system"), .customShort("s")], help: ArgumentHelp(String(localized: "Install caked as system agent, need sudo")))
-		var asSystem: Bool = false
-
 		@Option(name: [.customLong("address"), .customShort("l")], help: ArgumentHelp(String(localized: "Listen on address")))
 		var address: [String] = []
 
 		@Option(name: [.customLong("pass-phrase")], help: ArgumentHelp(String(localized: "access password"), discussion: String(localized: "This option allows to protect the service endpoint with a password")))
 		var password: String? = nil
+
+		@Flag(name: [.customLong("no-pass-phrase")], help: ArgumentHelp(String(localized: "Allow empty password"), discussion: String(localized: "Use this to explicitly set an empty password for the service endpoint")))
+		var noPassword: Bool = false
 
 		@Flag(name: [.customLong("insecure"), .customShort("i")], help: ArgumentHelp(String(localized: "Don't use TLS")))
 		var insecure: Bool = false
@@ -57,13 +54,19 @@ extension Service {
 		@Flag(help: ArgumentHelp(String(localized: "Use inet socket"), visibility: .hidden))
 		var tcp: Bool = false
 
-		var runMode: Utils.RunMode {
-			self.asSystem ? .system : .user
-		}
+		@Flag(help: ArgumentHelp(String(localized: "Allows LXD to connect to this host"), visibility: .hidden))
+		var rest: Bool = false
+
+		@Option(name: [.customLong("rest-log-level")], help: ArgumentHelp(String(localized: "Log level"), visibility: .hidden))
+		public var restLogLevel: CakeAgentLib.Logger.LogLevel = .warning
+
+		@Option(name: [.customLong("rest-port")], help: ArgumentHelp(String(localized: "Override LXD REST API listen port"), discussion: "By default LXD will listen on 8443 for https and 8080 for http"))
+		var restPort: Int = 0
+
+		@Option(name: [.customLong("web-ui")], help: ArgumentHelp(String(localized: "Path to web UI static files directory"), discussion: "When provided, caked serves the web UI under /ui"))
+		var webUIDirectory: String? = nil
 
 		func validate() throws {
-			Logger.setLevel(self.logLevel)
-
 			VMRunHandler.serviceMode = mode
 
 			if self.tcp && self.address.isEmpty == false {
@@ -87,9 +90,9 @@ extension Service {
 			}
 		}
 
-		func getCertificats() throws -> Certs {
+		func getCertificats(runMode: Utils.RunMode) throws -> Certs {
 			if self.tlsCert == nil && self.tlsKey == nil {
-				let certs = try CertificatesLocation.createCertificats(runMode: self.asSystem ? .system : .user)
+				let certs = try CertificatesLocation.createCertificats(runMode: runMode)
 
 				return Certs(ca: certs.caCertURL.path, key: certs.serverKeyURL.path, cert: certs.serverCertURL.path)
 			}
@@ -97,16 +100,16 @@ extension Service {
 			return Certs(ca: self.caCert, key: self.tlsKey, cert: self.tlsCert)
 		}
 
-		func getListenAddress() throws -> [String] {
+		func getListenAddress(runMode: Utils.RunMode) throws -> [String] {
 			if self.tcp {
 				return [
-					try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user),
+					try Utils.getDefaultServerAddress(runMode: runMode),
 					"tcp://0.0.0.0:\(Caked.defaultServicePort)",
 				]
 			}
 
 			if self.address.isEmpty {
-				return [try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user)]
+				return [try Utils.getDefaultServerAddress(runMode: runMode)]
 			}
 
 			return address
@@ -116,48 +119,75 @@ extension Service {
 	struct Install: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: String(localized: "Install caked daemon as launchctl agent"))
 
+		@OptionGroup(title: String(localized: "Global options"))
+		var common: CommonOptions
+
 		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 
+		var password: String? {
+			if options.noPassword { return nil }
+
+			if let password = options.password { return password }
+
+			return try? CakedKeyConfig.passphrase.get()
+		}
+
 		func run() throws {
-			let runMode: Utils.RunMode = self.options.runMode
-			let listenAddress = try self.options.getListenAddress()
+			let runMode: Utils.RunMode = self.common.runMode
 
-			var caCert: String? = nil
-			var tlsCert: String? = nil
-			var tlsKey: String? = nil
+			if self.options.address.isEmpty && self.options.caCert == nil && self.options.tlsCert == nil && self.options.tlsKey == nil {
+				try ServiceHandler.installAgent(insecure: self.options.insecure, tcp: self.options.tcp, rest: self.options.rest, password: self.password, runMode: runMode)
+			} else {
+				let caCert = self.options.caCert
+				let tlsCert = self.options.tlsCert
+				let tlsKey = self.options.tlsKey
 
-			if self.options.insecure == false {
-				let certs = try self.options.getCertificats()
+				if self.options.insecure == false && caCert == nil && tlsCert == nil && tlsKey == nil {
+					_ = try self.options.getCertificats(runMode: runMode)
+				}
 
-				caCert = certs.ca
-				tlsKey = certs.key
-				tlsCert = certs.cert
+				try ServiceHandler.installAgent(
+					listenAddress: try self.options.getListenAddress(runMode: runMode),
+					insecure: self.options.insecure,
+					rest: self.options.rest,
+					password: self.password,
+					caCert: caCert,
+					tlsCert: tlsCert,
+					tlsKey: tlsKey,
+					runMode: runMode)
 			}
-
-			try ServiceHandler.installAgent(listenAddress: listenAddress, insecure: self.options.insecure, password: self.options.password, caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey, runMode: runMode)
 		}
 	}
 
 	struct Listen: AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(abstract: String(localized: "caked daemon listening"))
 
-		@Flag(help: .hidden)
-		var secure: Bool = false
+		@OptionGroup(title: String(localized: "Global options"))
+		var common: CommonOptions
 
 		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 
+		@Flag(help: .hidden)
+		var secure: Bool = false
+
 		var password: String? {
-			guard let password = options.password else {
-				return try? CakedKeyConfig.passphrase.get()
+			if options.noPassword { return nil }
+			if let password = options.password { return password }
+			return try? CakedKeyConfig.passphrase.get()
+		}
+
+		var webUIDirectory: String? {
+			if self.options.webUIDirectory != nil {
+				return self.options.webUIDirectory
 			}
 
-			return password
+			return Bundle.main.path(forResource: "webui", ofType: "zip")
 		}
 
 		mutating func validate() throws {
-			let runMode: Utils.RunMode = self.options.runMode
+			let runMode: Utils.RunMode = self.common.runMode
 
 			if self.secure {
 				let certs = try CertificatesLocation.createCertificats(runMode: runMode)
@@ -183,7 +213,7 @@ extension Service {
 		}
 
 		func run() async throws {
-			let listenAddress = try self.options.getListenAddress()
+			let listenAddress = try self.options.getListenAddress(runMode: self.common.runMode)
 			let logger = Logger(self)
 
 			guard listenAddress.count > 0 else {
@@ -191,7 +221,7 @@ extension Service {
 				throw ServiceError(String(localized: "No listen address provided"))
 			}
 
-			let runMode: Utils.RunMode = self.options.runMode
+			let runMode: Utils.RunMode = self.common.runMode
 			let home = try Home(runMode: runMode)
 			let eventLoopGroup = Utilities.group
 
@@ -209,73 +239,105 @@ extension Service {
 			}
 
 			let provider = try CakedProvider(group: eventLoopGroup, password: self.password, runMode: runMode)
-			let servers: [Server] = try listenAddress.map { address in
+			let servers = listenAddress.compactMap { address in
 				logger.info("Start listening on \(address)")
 
-				return try ServiceHandler.createServer(
-					eventLoopGroup: eventLoopGroup,
-					runMode: runMode,
-					listeningAddress: URL(string: address),
-					serviceProviders: [provider],
-					password: self.password,
-					caCert: self.options.caCert,
-					tlsCert: self.options.tlsCert,
-					tlsKey: self.options.tlsKey
-				).wait()
+				do {
+					return try ServiceHandler.createServer(
+						eventLoopGroup: eventLoopGroup,
+						runMode: runMode,
+						listeningAddress: URL(string: address),
+						serviceProviders: [provider],
+						password: self.password,
+						caCert: self.options.caCert,
+						tlsCert: self.options.tlsCert,
+						tlsKey: self.options.tlsKey
+					).wait()
+				} catch {
+					logger.error("Failed to start server on \(address): \(error)")
+				}
+
+				return nil
+			}
+
+			// Start LXD REST API server if enabled
+			var restServer: LXDRESTServer? = nil
+
+			if self.options.rest {
+				var port = self.options.restPort
+				var components = URLComponents()
+
+				if port == 0 {
+					if self.options.tlsCert != nil && self.options.tlsKey != nil {
+						port = 8443
+					} else {
+						port = 8080
+					}
+				}
+
+				components.scheme = (self.options.tlsCert != nil && self.options.tlsKey != nil) ? "https" : "http"
+				components.host = "0.0.0.0"
+				components.port = port
+				components.password = self.password
+
+				if let listen = components.url {
+					do {
+						restServer = try await LXDRESTServer(
+							group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.webUIDirectory, restLogLevel: self.options.restLogLevel
+						)
+						try restServer?.start()
+						logger.info("LXD REST API listening on \(listen.hiddenPasswordURL)")
+					} catch {
+						logger.error("Failed to start LXD REST server: \(error)")
+					}
+				}
 			}
 
 			Root.sigintSrc.cancel()
 
 			signal(SIGINT, SIG_IGN)
 
-			typealias AsyncStreamVoid = (
-				stream: AsyncStream<Void>,
-				continuation: AsyncStream<Void>.Continuation
-			)
+			try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+				let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
 
-			let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
-			var stream: AsyncStreamVoid? = nil
+				sigintSrc.setEventHandler {
+					logger.info("Stop service on SIGINT")
 
-			sigintSrc.setEventHandler {
-				logger.info("Stop service on SIGINT")
+					Task {
+						await restServer?.shutdown()
+						provider.stop()
 
-				stream = AsyncStream.makeStream(of: Void.self)
+						try? await EventLoopFuture.andAllComplete(
+							servers.map {
+								$0.initiateGracefulShutdown()
+							}, on: eventLoopGroup.next()
+						).get()
 
-				Task {
-					provider.stop()
-
-					try? await EventLoopFuture.andAllComplete(
-						servers.map {
-							$0.initiateGracefulShutdown()
-						}, on: eventLoopGroup.next()
-					).get()
-
-					stream?.continuation.finish()
-
-					logger.info("Server nicely closed")
+						continuation.resume()
+						logger.info("Server nicely closed")
+					}
 				}
-			}
 
-			sigintSrc.activate()
+				sigintSrc.activate()
 
-			try home.agentPID.writePID()
-
-			// Wait on the server's `onClose` future to stop the program from exiting.
-			let futures = EventLoopFuture.andAllComplete(
-				servers.map {
-					$0.onClose
-				}, on: eventLoopGroup.next())
-
-			futures.whenComplete { _ in
-				logger.info("All servers closed")
-			}
-
-			try await futures.get()
-
-			if let stream = stream {
-				for await _ in stream.stream {
-					break
+				do {
+					try home.agentPID.writePID()
+				} catch {
+					continuation.resume(throwing: error)
+					return
 				}
+
+				// Wait on the server's `onClose` future to stop the program from exiting.
+				let futures = EventLoopFuture.andAllComplete(
+					servers.map {
+						$0.onClose
+					}, on: eventLoopGroup.next())
+
+				futures.whenComplete { _ in
+					logger.info("All servers closed")
+				}
+
+				try? futures.wait()
 			}
 
 			logger.info("Leave service")
@@ -285,29 +347,33 @@ extension Service {
 	struct Show: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: String(localized: "Help to run caked daemon"))
 
+		@OptionGroup(title: String(localized: "Global options"))
+		var common: CommonOptions
+
 		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 
 		mutating func run() throws {
-			let listenAddress = try self.options.getListenAddress()
+			let runMode = self.common.runMode
+			let listenAddress = try self.options.getListenAddress(runMode: runMode)
 
 			var arguments: [String] = [
 				try ServiceHandler.findMe(),
 				"service",
 				"listen",
-				"--log-level=\(self.options.logLevel.rawValue)",
+				"--log-level=\(self.common.logLevel.rawValue)",
 			]
 
 			listenAddress.forEach {
 				arguments.append("--address=\($0)")
 			}
 
-			if self.options.asSystem {
+			if runMode == .system {
 				arguments.append("--system")
 			}
 
 			if self.options.insecure == false {
-				let certs = try self.options.getCertificats()
+				let certs = try self.options.getCertificats(runMode: runMode)
 
 				if let ca = certs.ca {
 					arguments.append("--ca-cert=\(ca)")
@@ -320,6 +386,12 @@ extension Service {
 				if let cert = certs.cert {
 					arguments.append("--tls-cert=\(cert)")
 				}
+			}
+
+			if self.options.noPassword {
+				arguments.append("--no-pass-phrase")
+			} else if let provided = self.options.password {
+				arguments.append("--pass-phrase=\(provided)")
 			}
 
 			Logger.appendNewLine(arguments.joined(separator: " "))

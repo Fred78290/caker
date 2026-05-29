@@ -1,3 +1,4 @@
+#if SPARKLE
 import SwiftUI
 import Sparkle
 
@@ -30,3 +31,4 @@ final class CheckForUpdatesViewModel: NSObject, ObservableObject {
             .assign(to: &$canCheckForUpdates)
     }
 }
+#endif

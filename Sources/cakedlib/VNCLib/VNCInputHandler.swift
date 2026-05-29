@@ -136,7 +136,8 @@ public class VNCInputHandler {
 
 		// Convert VNC coordinates (origin top-left) to NSView (origin bottom-left)
 		let viewBounds = view.bounds
-		let nsPoint = NSPoint(x: CGFloat(x), y: viewBounds.height - CGFloat(y))
+		let viewPoint = NSPoint(x: CGFloat(x), y: viewBounds.height - CGFloat(y))
+		let nsPoint = view.convert(viewPoint, to: nil)
 		let moved = nsPoint != lastMousePosition
 
 		// Handle mouse buttons with move

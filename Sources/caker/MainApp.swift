@@ -7,7 +7,10 @@ import SwiftUI
 import SwifterSwiftUI
 import Logging
 import Security
+
+#if SPARKLE
 import Sparkle
+#endif
 
 @MainActor
 func alertError(_ messageText: String, _ informativeText: String, completion: ((NSApplication.ModalResponse) -> Void)? = nil) {
@@ -108,19 +111,23 @@ struct MainApp: App {
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 	
 	// Sparkle updater
+	#if SPARKLE
 	private let updaterController: SPUStandardUpdaterController
-	
+	#endif
+
 	init() {
 		_ = try? MainAppParseArgument.parse(CommandLine.arguments)
 		self.appState = AppState.shared
 		
+		#if SPARKLE
 		// Initialize Sparkle updater
 		self.updaterController = SPUStandardUpdaterController(
 			startingUpdater: true,
 			updaterDelegate: nil,
 			userDriverDelegate: nil
 		)
-		
+		#endif
+
 		self.navigationModel.sync(with: self.appState)
 
 		Self.app = self
@@ -289,10 +296,12 @@ struct MainApp: App {
 			}
 		}
 		
+		#if SPARKLE
 		CommandGroup(after: .appInfo) {
 			CheckForUpdatesView(updater: updaterController.updater)
 		}
-		
+		#endif
+
 		CommandMenu("Service") {
 			Button("Connect to remote") {
 				self.openWindow(id: "remote")
@@ -504,6 +513,8 @@ struct MainApp: App {
 					"service",
 					"listen",
 					"--secure",
+					"--tcp",
+					"--rest",
 					"--log-level=\(CakeAgentLib.Logger.Level().description)"
 				]
 

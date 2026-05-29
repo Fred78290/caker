@@ -35,7 +35,7 @@ fi
 
 case ${VMNAME} in
     ubuntu*)
-        CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-${ARCH1}.img
+        CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-${ARCH1}.img
         ;;
     plucky*)
         CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-${ARCH1}.img
@@ -61,7 +61,7 @@ case ${VMNAME} in
 esac
 
 #LXD_IMAGE=images:ubuntu/noble/cloud
-LXD_IMAGE=ubuntu:noble
+LXD_IMAGE=ubuntu:resolute
 #LXD_IMAGE=images:fedora/41/cloud
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO

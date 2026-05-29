@@ -73,11 +73,17 @@ private final class TeeStandardIOWrapper: Cancellable {
 			throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
 		}
 
+		var setupComplete = false
+		defer {
+			if !setupComplete { stop() }
+		}
+
 		guard dup2(errorPipe.fileHandleForWriting.fileDescriptor, stderrFD) != -1 else {
 			throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
 		}
 
 		scheduleLogRotation()
+		setupComplete = true
 	}
 
 	private func tee(_ source: FileHandle, target: FileHandle) {
@@ -87,11 +93,19 @@ private final class TeeStandardIOWrapper: Cancellable {
 			return
 		}
 
+		var logHandle: FileHandle? = nil
+
+		self.outputLogHandle.withLock {
+			logHandle = $0
+		}
+
+		guard let logHandle else {
+			return
+		}
+
 		self.ioQueue.async {
-			self.outputLogHandle.withLock { handle in
-				try? target.write(contentsOf: data)
-				try? handle.write(contentsOf: data)
-			}
+			try? target.write(contentsOf: data)
+			try? logHandle.write(contentsOf: data)
 		}
 	}
 
@@ -212,11 +226,15 @@ private final class TeeStandardIOWrapper: Cancellable {
 	}
 
 	func stop() {
-		guard stopped.withLock({ $0 }) == false else {
+		guard stopped.withLock({
+			guard !$0 else {
+				return false
+			}
+			$0 = true; return true
+		}) else {
 			return
 		}
 
-		stopped.withLock { $0 = true }
 		outputPipe.fileHandleForReading.readabilityHandler = nil
 		errorPipe.fileHandleForReading.readabilityHandler = nil
 

@@ -9,6 +9,7 @@ import CakeAgentLib
 import GRPCLib
 import GRPC
 import NIO
+import Synchronization
 
 public typealias AsyncThrowingStreamShellStream = AsyncThrowingStream<ShellHandler.ExecuteResponse, Error>
 public typealias AsyncThrowingStreamShellContinuation = AsyncThrowingStream<ShellHandler.ExecuteResponse, Error>.Continuation
@@ -20,7 +21,6 @@ public struct ShellHandler {
 		func sendDatas(data: ArraySlice<UInt8>)
 		func sendEof()
 		func closeShell(promise: EventLoopPromise<Void>?)
-		func finish()
 	}
 
 	public enum ExecuteResponse: Equatable, Sendable {
@@ -157,11 +157,12 @@ public struct ShellHandler {
 	internal class ShellCaked: ShellHandlerProtocol {
 		private let name: String
 		private let runMode: Utils.RunMode
-		private let logger = Logger("ShellHandler")
+		private let logger = Logger("ShellCaked")
 		private let serviceClient: CakedServiceClient
-		private var cakedShellStream: CakedExecuteStream! = nil
+		private let cakedShellStream: Mutex<CakedExecuteStream?> = .init(nil)
 		private var stream: AsyncThrowingStreamShellResponse! = nil
 		private var taskQueue: TaskQueue! = nil
+		private var terminalSize: TerminalSize
 
 		func makeAsyncIterator() -> AsyncThrowingStream<ShellHandler.ExecuteResponse, any Error>.Iterator {
 			self.stream.stream.makeAsyncIterator()
@@ -175,6 +176,7 @@ public struct ShellHandler {
 			self.name = vmURL.vmName
 			self.runMode = runMode
 			self.serviceClient = try ServiceHandler.createCakedServiceClient(vmURL: vmURL, connectionTimeout: connectionTimeout, runMode: runMode)
+			self.terminalSize = TerminalSize(rows: 24, cols: 80)
 		}
 
 		public func shell(terminalSize: TerminalSize) throws -> Self {
@@ -183,8 +185,9 @@ public struct ShellHandler {
 			}
 
 			self.logger.debug("Starting shell, VM: \(self.name)")
-			
-			self.stream = self.startShell(rows: terminalSize.rows, cols: terminalSize.cols)
+
+			self.terminalSize = terminalSize
+			self.stream = self.startShell()
 
 			return self
 		}
@@ -192,30 +195,52 @@ public struct ShellHandler {
 		func sendEof() {
 			self.logger.debug("Send EOF shell, VM: \(self.name)")
 
-			if let shellStream = self.cakedShellStream {
-				shellStream.sendEof()
-			}
-		}
-		
-		func sendTerminalSize(rows: Int, cols: Int) {
-			if let shellStream = self.cakedShellStream {
-				shellStream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
-			}
-		}
-		
-		func sendDatas(data: ArraySlice<UInt8>) {
-			if let shellStream = self.cakedShellStream {
-				data.withUnsafeBytes { ptr in
-					let message = Caked_ExecuteRequest.with {
-						$0.input = Data(bytes: ptr.baseAddress!, count: ptr.count)
-					}
-					
-					try? shellStream.sendMessage(message).wait()
+			self.cakedShellStream.withLock {
+				if let shellStream = $0 {
+					shellStream.sendEof()
 				}
 			}
 		}
 		
-		func closeShell(promise: EventLoopPromise<Void>?) {
+		func sendTerminalSize(rows: Int, cols: Int) {
+			self.terminalSize = TerminalSize(rows: Int32(rows), cols: Int32(cols))
+
+			self.cakedShellStream.withLock {
+				if let shellStream = $0 {
+					shellStream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
+				}
+			}
+		}
+		
+		func sendDatas(data: ArraySlice<UInt8>) {
+			let shellStream: CakedExecuteStream? = self.cakedShellStream.withLock { $0 }
+
+			guard let shellStream else {
+				return
+			}
+
+			data.withUnsafeBytes { ptr in
+				let message = Caked_ExecuteRequest.with {
+					$0.input = Data(bytes: ptr.baseAddress!, count: ptr.count)
+				}
+
+				try? shellStream.sendMessage(message).wait()
+			}
+		}
+		
+		func closeShell(promise: EventLoopPromise<Void>? = nil) {
+			guard let stream = self.stream else {
+				if let promise {
+					promise.succeed()
+				}
+				return
+			}
+
+
+			self.logger.debug("Finish shell stream: \(self.name)")
+			self.stream = nil
+			stream.continuation.finish()
+
 			func closeClient() {
 				if let taskQueue {
 					self.taskQueue = nil
@@ -230,16 +255,24 @@ public struct ShellHandler {
 					}
 				}
 			}
-			
-			guard let cakedShellStream else {
-				closeClient()
+
+			var capturedStream: CakedExecuteStream? = nil
+
+			self.cakedShellStream.withLock {
+				guard let current = $0 else {
+					closeClient()
+					return
+				}
+				$0 = nil
+				capturedStream = current
+			}
+
+			guard let cakedShellStream = capturedStream else {
 				return
 			}
-			
+
 			self.logger.debug("Close shell: \(self.name)")
-			
-			self.cakedShellStream = nil
-			
+
 			cakedShellStream.sendEof().whenComplete {_ in
 				let promise = cakedShellStream.eventLoop.makePromise(of: Void.self)
 				
@@ -251,12 +284,7 @@ public struct ShellHandler {
 			}
 		}
 
-		func finish() {
-			self.logger.debug("Finish shell stream: \(self.name)")
-			self.stream?.continuation.finish()
-		}
-
-		private func startShell(rows: Int32, cols: Int32) -> AsyncThrowingStreamShellResponse {
+		private func startShell() -> AsyncThrowingStreamShellResponse {
 			self.taskQueue = .init(label: "CakeAgent.InteractiveShell.\(self.name)")
 			
 			return taskQueue.dispatchStream { (continuation: AsyncThrowingStream<ExecuteResponse, Error>.Continuation) in
@@ -264,12 +292,14 @@ public struct ShellHandler {
 					_ = try self.serviceClient.info(name: self.name)
 					
 					self.logger.debug("Start shell, VM: \(self.name)")
-					
-					self.cakedShellStream = try self.serviceClient.shell(name: self.name, rows: rows, cols: cols) { response in
-						continuation.yield(ExecuteResponse(response))
+
+					try self.cakedShellStream.withLock {
+						$0 = try self.serviceClient.shell(name: self.name, rows: self.terminalSize.rows, cols: self.terminalSize.cols) { response in
+							continuation.yield(ExecuteResponse(response))
+						}
+
+						self.logger.debug("Shell started, VM: \(self.name)")
 					}
-					
-					self.logger.debug("Shell started, VM: \(self.name)")
 				} catch {
 					self.logger.debug("Shell error, VM: \(self.name), \(error)")
 					continuation.finish(throwing: error)
@@ -281,11 +311,15 @@ public struct ShellHandler {
 	internal class ShellCakeAgent: ShellHandlerProtocol {
 		private let location: VMLocation
 		private let runMode: Utils.RunMode
-		private let logger = Logger("ShellHandler")
+		private let logger = Logger("ShellCakeAgent")
 		private var helper: CakeAgentHelper! = nil
-		private var cakedShellStream: CakeAgentExecuteStream! = nil
+		// cakedShellStream holds the active bidirectional execute stream from the CakeAgent helper.
+		// Use an optional directly because this class accesses the stream as an optional value
+		// (see usages of `if let shellStream = self.cakedShellStream { ... }`).
+		private let cakedShellStream: Mutex<CakeAgentExecuteStream?> = .init(nil)
 		private var stream: AsyncThrowingStreamShellResponse! = nil
 		private var taskQueue: TaskQueue! = nil
+		private var terminalSize: TerminalSize
 
 		func makeAsyncIterator() -> AsyncThrowingStream<ShellHandler.ExecuteResponse, any Error>.Iterator {
 			self.stream.stream.makeAsyncIterator()
@@ -294,6 +328,7 @@ public struct ShellHandler {
 		init(vmURL: URL, runMode: Utils.RunMode) throws {
 			self.runMode = runMode
 			self.location = try VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode)
+			self.terminalSize = TerminalSize(rows: 24, cols: 80)
 		}
 
 		public func shell(terminalSize: TerminalSize, connectionTimeout: Int64) throws -> Self {
@@ -304,8 +339,8 @@ public struct ShellHandler {
 			}
 			
 			self.logger.debug("Starting shell, VM: \(self.location.name)")
-			
-			self.stream = self.startShell(rows: terminalSize.rows, cols: terminalSize.cols, helper: cakeHelper)
+			self.terminalSize = terminalSize
+			self.stream = self.startShell(helper: cakeHelper)
 			self.helper = cakeHelper
 
 			return self
@@ -314,47 +349,64 @@ public struct ShellHandler {
 		func sendEof() {
 			self.logger.debug("Send EOF shell, VM: \(self.location.name)")
 
-			if let shellStream = self.cakedShellStream {
-				shellStream.sendEof().whenComplete { _ in
-					let promise = shellStream.eventLoop.makePromise(of: Void.self)
-					
-					promise.futureResult.whenComplete { _ in
-						self.logger.debug("Helper closed, VM: \(self.location.name)")
+			self.cakedShellStream.withLock {
+				if let shellStream = $0 {
+					shellStream.sendEof().whenComplete { _ in
+						let promise = shellStream.eventLoop.makePromise(of: Void.self)
 						
-						self.helper.close().whenComplete { _ in
+						promise.futureResult.whenComplete { _ in
 							self.logger.debug("Helper closed, VM: \(self.location.name)")
+							
+							self.helper.close().whenComplete { _ in
+								self.logger.debug("Helper closed, VM: \(self.location.name)")
+							}
 						}
+						
+						shellStream.cancel(promise: promise)
 					}
-					
-					shellStream.cancel(promise: promise)
 				}
 			}
 		}
 		
 		public func sendTerminalSize(rows: Int, cols: Int) {
-			if let shellStream = self.cakedShellStream {
-				shellStream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
+			self.cakedShellStream.withLock {
+				self.terminalSize = TerminalSize(rows: Int32(rows), cols: Int32(cols))
+
+				if let shellStream = $0 {
+					shellStream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
+				}
 			}
 		}
 		
 		public func sendDatas(data: ArraySlice<UInt8>) {
-			if let shellStream = self.cakedShellStream {
-				data.withUnsafeBytes { ptr in
-					let message = CakeAgent.ExecuteRequest.with {
-						$0.input = Data(bytes: ptr.baseAddress!, count: ptr.count)
-					}
-					
-					try? shellStream.sendMessage(message).wait()
+			let shellStream: CakeAgentExecuteStream? = self.cakedShellStream.withLock { $0 }
+
+			guard let shellStream else {
+				return
+			}
+
+			data.withUnsafeBytes { ptr in
+				let message = CakeAgent.ExecuteRequest.with {
+					$0.input = Data(bytes: ptr.baseAddress!, count: ptr.count)
 				}
+				
+				try? shellStream.sendMessage(message).wait()
 			}
 		}
 
-		func finish() {
-			self.logger.debug("Finish shell stream: \(self.location.name)")
-			self.stream?.continuation.finish()
-		}
+		public func closeShell(promise: EventLoopPromise<Void>? = nil) {
+			guard let stream = self.stream else {
+				if let promise {
+					promise.succeed()
+				}
+				return
+			}
 
-		public func closeShell(promise: EventLoopPromise<Void>?) {
+			self.logger.debug("Finish shell stream: \(self.location.name)")
+
+			self.stream = nil
+			stream.continuation.finish()
+
 			func closeClient() {
 				if let taskQueue {
 					self.taskQueue = nil
@@ -376,48 +428,71 @@ public struct ShellHandler {
 				}
 			}
 			
-			guard let cakedShellStream else {
-				closeClient()
+			var capturedStream: CakeAgentExecuteStream? = nil
+
+			self.cakedShellStream.withLock {
+				guard let current = $0 else {
+					closeClient()
+					return
+				}
+				$0 = nil
+				capturedStream = current
+			}
+
+			guard let cakedShellStream = capturedStream else {
 				return
 			}
-			
+
 			self.logger.debug("Close shell: \(self.location.name)")
-			
-			self.cakedShellStream = nil
-			
-			cakedShellStream.sendEof().whenComplete {_ in
+
+			cakedShellStream.sendEof().whenComplete { _ in
 				let promise = cakedShellStream.eventLoop.makePromise(of: Void.self)
-				
+
 				promise.futureResult.whenComplete { _ in
 					closeClient()
 				}
-				
+
 				cakedShellStream.cancel(promise: promise)
 			}
+
 		}
 		
-		private func startShell(rows: Int32, cols: Int32, helper: CakeAgentHelper) -> AsyncThrowingStreamShellResponse {
+		private func startShell(helper: CakeAgentHelper) -> AsyncThrowingStreamShellResponse {
 			self.taskQueue = .init(label: "CakeAgent.InteractiveShell.\(self.location.name)")
-			
-			return taskQueue.dispatchStream { (continuation: AsyncThrowingStream<ExecuteResponse, Error>.Continuation) in
+
+			// Create the stream using the task queue without holding the lock
+			let stream: AsyncThrowingStreamShellResponse = taskQueue.dispatchStream { (continuation: AsyncThrowingStream<ExecuteResponse, Error>.Continuation) in
 				do {
 					_ = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
-					
-					self.logger.debug("Start shell, VM: \(self.location.name)")
-					
-					self.cakedShellStream = helper.client.execute(callOptions: CallOptions(timeLimit: .none)) { response in
-						continuation.yield(ExecuteResponse(response))
+
+					self.cakedShellStream.withLock {
+						self.logger.debug("Start shell, VM: \(self.location.name)")
+
+						let shellStream = helper.client.execute(callOptions: CallOptions(timeLimit: .none)) { response in
+							continuation.yield(ExecuteResponse(response))
+						}
+
+						shellStream.sendTerminalSize(rows: self.terminalSize.rows, cols: self.terminalSize.cols)
+						shellStream.sendShell()
+
+						$0 = shellStream
 					}
-					
-					self.cakedShellStream.sendTerminalSize(rows: rows, cols: cols)
-					self.cakedShellStream.sendShell()
-					
+
 					self.logger.debug("Shell started, VM: \(self.location.name)")
 				} catch {
 					self.logger.debug("Shell error, VM: \(self.location.name), \(error)")
 					continuation.finish(throwing: error)
 				}
 			}
+
+			return stream
 		}
 	}
 }
+
+extension ShellHandler.ShellHandlerProtocol {
+	public func closeShell() {
+		self.closeShell(promise: nil)
+	}
+}
+

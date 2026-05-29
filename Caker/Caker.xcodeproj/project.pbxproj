@@ -29,6 +29,16 @@
 		9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202722EA8D08800053712 /* RoundedTextField.swift */; };
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
 		9B068D5A2EB89E2C00C68D7E /* GlassEffectHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */; };
+		9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
+		9B06995E2FB1A1B800FEAE13 /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
+		9B081B5A2FC75A1A0029B259 /* Qcow2Header.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081B582FC75A1A0029B259 /* Qcow2Header.swift */; };
+		9B081B5B2FC75A1A0029B259 /* Qcow2Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081B572FC75A1A0029B259 /* Qcow2Error.swift */; };
+		9B081B5C2FC75A1A0029B259 /* Qcow2Converter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081B562FC75A1A0029B259 /* Qcow2Converter.swift */; };
+		9B081CBC2FC88D160029B259 /* Convert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081CBB2FC88D110029B259 /* Convert.swift */; };
+		9B081D932FC97DB20029B259 /* VmdkHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081D912FC97DB20029B259 /* VmdkHeader.swift */; };
+		9B081D942FC97DB20029B259 /* VmdkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081D902FC97DB20029B259 /* VmdkError.swift */; };
+		9B081D952FC97DB20029B259 /* VmdkConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081D8F2FC97DB20029B259 /* VmdkConverter.swift */; };
+		9B081DDD2FC9887F0029B259 /* VmdkDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */; };
 		9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AC2F743641009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AD2F7436F1009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
@@ -44,6 +54,11 @@
 		9B1500BF2E6B07EC00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BE2E6B07EC00B23147 /* Suspend.swift */; };
 		9B1500C12E6B092A00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500C02E6B092A00B23147 /* Suspend.swift */; };
 		9B15FE6B2E69CC5600B23147 /* VMSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */; };
+		9B1835182FAE4FB200D150FD /* Certificate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835172FAE4FB200D150FD /* Certificate.swift */; };
+		9B18351C2FAE58B500D150FD /* CertificateHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18351B2FAE58B500D150FD /* CertificateHandler.swift */; };
+		9B1835EC2FB070D300D150FD /* LXDConsoleVGARunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835E92FB070D300D150FD /* LXDConsoleVGARunner.swift */; };
+		9B1835ED2FB070D300D150FD /* LXDExecRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835EA2FB070D300D150FD /* LXDExecRunner.swift */; };
+		9B1835EE2FB070D300D150FD /* LXDExecSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835EB2FB070D300D150FD /* LXDExecSessionStore.swift */; };
 		9B1970002F59867100B424DB /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B196FFF2F59866E00B424DB /* Root.swift */; };
 		9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */; };
 		9B2032F42F48CEA90047E197 /* CurrentStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */; };
@@ -59,7 +74,6 @@
 		9B215B772E0C39AE00AFC89D /* SocketsDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B215B762E0C39AE00AFC89D /* SocketsDetailView.swift */; };
 		9B21ABC72DF4A243000B3B40 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
-		9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; };
 		9B21DFFA2F4C651800870AD7 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21DFF92F4C651800870AD7 /* GRPC */; };
 		9B21DFFC2F4C654500870AD7 /* NIO in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21DFFB2F4C654500870AD7 /* NIO */; };
 		9B21DFFE2F4C659900870AD7 /* NIOExtras in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21DFFD2F4C659900870AD7 /* NIOExtras */; };
@@ -70,10 +84,24 @@
 		9B21E0082F4C670E00870AD7 /* ContainerizationOCI in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21E0072F4C670E00870AD7 /* ContainerizationOCI */; };
 		9B21E0092F4C676800870AD7 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9B21E00C2F4C676800870AD7 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
-		9B21E00F2F4C676800870AD7 /* Qcow2convert.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; };
-		9B21E0102F4C676800870AD7 /* Qcow2convert.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9B21E0132F4C677700870AD7 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21E0122F4C677700870AD7 /* CakeAgentLib */; };
 		9B2221CE2F5831F20037344D /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2221CD2F5831F00037344D /* InstallAgentHandler.swift */; };
+		9B27840F2FB37A83001F2B6A /* BridgeAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */; };
+		9B2784102FB37A83001F2B6A /* BridgedNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */; };
+		9B2784112FB37A83001F2B6A /* CertificateRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */; };
+		9B2784122FB37A83001F2B6A /* ConsoleAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784012FB37A83001F2B6A /* ConsoleAttachment.swift */; };
+		9B2784132FB37A83001F2B6A /* DirectorySharingAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784022FB37A83001F2B6A /* DirectorySharingAttachement.swift */; };
+		9B2784142FB37A83001F2B6A /* DiskAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784032FB37A83001F2B6A /* DiskAttachement.swift */; };
+		9B2784152FB37A83001F2B6A /* Images.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784042FB37A83001F2B6A /* Images.swift */; };
+		9B2784162FB37A83001F2B6A /* Mounts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784052FB37A83001F2B6A /* Mounts.swift */; };
+		9B2784172FB37A83001F2B6A /* Registry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784062FB37A83001F2B6A /* Registry.swift */; };
+		9B2784182FB37A83001F2B6A /* RemoteEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784072FB37A83001F2B6A /* RemoteEntry.swift */; };
+		9B2784192FB37A83001F2B6A /* SocketDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784082FB37A83001F2B6A /* SocketDevice.swift */; };
+		9B27841A2FB37A83001F2B6A /* Templates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784092FB37A83001F2B6A /* Templates.swift */; };
+		9B27841B2FB37A83001F2B6A /* TunnelAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B27840A2FB37A83001F2B6A /* TunnelAttachement.swift */; };
+		9B27841C2FB37A83001F2B6A /* Validatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B27840B2FB37A83001F2B6A /* Validatable.swift */; };
+		9B27841D2FB37A83001F2B6A /* ViewSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B27840C2FB37A83001F2B6A /* ViewSize.swift */; };
+		9B27841E2FB37A83001F2B6A /* VirtualMachineInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B27840D2FB37A83001F2B6A /* VirtualMachineInfo.swift */; };
 		9B28BFA22DDB259E00B5A0AF /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B28BFA12DDB259E00B5A0AF /* ArgumentParser */; };
 		9B28BFA42DDB25BD00B5A0AF /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B28BFA32DDB25BD00B5A0AF /* ArgumentParser */; };
 		9B2BFABB2DFED25E000045C3 /* MainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2BFAB82DFED25E000045C3 /* MainApp.swift */; };
@@ -164,6 +192,7 @@
 		9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
+		9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */; };
 		9B4EA8292F7692170044C18E /* libswiftCompatibilitySpan.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9B57E9D02E745FB600C5601D /* ViewSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B57E9CF2E745FB600C5601D /* ViewSize.swift */; };
 		9B5A37812ED4BDA8007B59B0 /* VNCKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */; };
@@ -186,11 +215,28 @@
 		9B5FA0FF2F8B94F50077EF64 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */; };
 		9B5FA1032F8BABF50077EF64 /* en.xcloc in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA1002F8BABF50077EF64 /* en.xcloc */; };
 		9B5FA35F2F8D5AE80077EF64 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */; };
-		9B5FA3C42F8E272E0077EF64 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */; };
+		9B602F972FAA56FA00055543 /* LXDInstancesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F8D2FAA56FA00055543 /* LXDInstancesController.swift */; };
+		9B602F982FAA56FA00055543 /* LXDRootController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F902FAA56FA00055543 /* LXDRootController.swift */; };
+		9B602F992FAA56FA00055543 /* LXDModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F922FAA56FA00055543 /* LXDModels.swift */; };
+		9B602F9A2FAA56FA00055543 /* LXDOperationsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F8F2FAA56FA00055543 /* LXDOperationsController.swift */; };
+		9B602F9B2FAA56FA00055543 /* LXDRESTServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F942FAA56FA00055543 /* LXDRESTServer.swift */; };
+		9B602F9C2FAA56FA00055543 /* LXDOperationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F932FAA56FA00055543 /* LXDOperationStore.swift */; };
+		9B602F9D2FAA56FA00055543 /* LXDNetworksController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F8E2FAA56FA00055543 /* LXDNetworksController.swift */; };
+		9B602F9E2FAA56FA00055543 /* Routes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F952FAA56FA00055543 /* Routes.swift */; };
+		9B602F9F2FAA56FA00055543 /* LXDImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B602F8C2FAA56FA00055543 /* LXDImagesController.swift */; };
+		9B602FA22FAA5C3800055543 /* Vapor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B602FA12FAA5C3800055543 /* Vapor */; };
+		9B6031352FAD103F00055543 /* LXDAuthGroupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6031332FAD103F00055543 /* LXDAuthGroupStore.swift */; };
+		9B6031362FAD103F00055543 /* LXDIdentityStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6031342FAD103F00055543 /* LXDIdentityStore.swift */; };
+		9B6031392FAD105700055543 /* LXDIdentitiesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6031382FAD105700055543 /* LXDIdentitiesController.swift */; };
+		9B60313A2FAD105700055543 /* LXDAuthGroupsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6031372FAD105700055543 /* LXDAuthGroupsController.swift */; };
+		9B60313D2FAD2BF700055543 /* LXDCertificateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B60313B2FAD2BF700055543 /* LXDCertificateStore.swift */; };
+		9B60313E2FAD2BF700055543 /* LXDStorePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B60313C2FAD2BF700055543 /* LXDStorePersistence.swift */; };
+		9B6031402FAD2C0A00055543 /* LXDCertificatesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B60313F2FAD2C0A00055543 /* LXDCertificatesController.swift */; };
 		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
 		9B7053F32F4F06DF006C68AA /* GrandCentralDispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */; };
+		9B737DCF2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B737DCE2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift */; };
 		9B75308E2E65E557000736B3 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B75308D2E65E557000736B3 /* RoyalVNCKitStatic */; };
 		9B75A6D32E2A2C48000AA773 /* Pty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B75A6D22E2A2C45000AA773 /* Pty.swift */; };
 		9B7997252E45EDEC00147500 /* VNCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7997242E45EDEC00147500 /* VNCView.swift */; };
@@ -204,8 +250,6 @@
 		9B7C7B682E0E80BE009D0A26 /* VirtualMachineConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */; };
 		9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */ = {isa = PBXBuildFile; productRef = 9B7C7B6A2E0FC7DA009D0A26 /* Steps */; };
 		9B7D65B02F163AB900FE1B0B /* InteractiveShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */; };
-		9B7D682C2F17E1A700FE1B0B /* SharedPtrBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D682A2F17E1A700FE1B0B /* SharedPtrBridge.mm */; };
-		9B7D682D2F17E1A700FE1B0B /* SharedPtrBridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B7D68292F17E1A700FE1B0B /* SharedPtrBridge.h */; };
 		9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */; };
 		9B7D69252F1B92EC00FE1B0B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D69242F1B92E800FE1B0B /* Extensions.swift */; };
 		9B82D3182F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */; };
@@ -497,7 +541,6 @@
 		9BEBC8012DF440BF0092B196 /* Multipart in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8002DF440BF0092B196 /* Multipart */; };
 		9BEBC8032DF440BF0092B196 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8022DF440BF0092B196 /* CakeAgentLib */; };
 		9BEBC8042DF440BF0092B196 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
-		9BEBC81D2DF44A000092B196 /* Qcow2convert.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; };
 		9BEBC8242DF44B9C0092B196 /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8232DF44B9C0092B196 /* Dynamic */; };
 		9BEBC8262DF44B9C0092B196 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8252DF44B9C0092B196 /* Algorithms */; };
 		9BEBC8282DF44B9C0092B196 /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8272DF44B9C0092B196 /* AsyncAlgorithms */; };
@@ -553,8 +596,6 @@
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BFE87182F7E6202005CC9B2 /* caked.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9BFE876F2F7E64F1005CC9B2 /* embedded.provisionprofile in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */; };
-		9BFE87702F7E65F0005CC9B2 /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
-		9BFE87DC2F7E6B67005CC9B2 /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -665,7 +706,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				9B21E0102F4C676800870AD7 /* Qcow2convert.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -736,6 +776,14 @@
 		9B0202722EA8D08800053712 /* RoundedTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedTextField.swift; sourceTree = "<group>"; };
 		9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPSWInstaller.swift; sourceTree = "<group>"; };
 		9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassEffectHelper.swift; sourceTree = "<group>"; };
+		9B081B562FC75A1A0029B259 /* Qcow2Converter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qcow2Converter.swift; sourceTree = "<group>"; };
+		9B081B572FC75A1A0029B259 /* Qcow2Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qcow2Error.swift; sourceTree = "<group>"; };
+		9B081B582FC75A1A0029B259 /* Qcow2Header.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qcow2Header.swift; sourceTree = "<group>"; };
+		9B081CBB2FC88D110029B259 /* Convert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Convert.swift; sourceTree = "<group>"; };
+		9B081D8F2FC97DB20029B259 /* VmdkConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkConverter.swift; sourceTree = "<group>"; };
+		9B081D902FC97DB20029B259 /* VmdkError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkError.swift; sourceTree = "<group>"; };
+		9B081D912FC97DB20029B259 /* VmdkHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkHeader.swift; sourceTree = "<group>"; };
+		9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkDescriptor.swift; sourceTree = "<group>"; };
 		9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCompatibilitySpan.tbd; path = usr/lib/swift/libswiftCompatibilitySpan.tbd; sourceTree = SDKROOT; };
 		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
@@ -746,6 +794,11 @@
 		9B1500BE2E6B07EC00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
 		9B1500C02E6B092A00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
 		9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMSettingsView.swift; sourceTree = "<group>"; };
+		9B1835172FAE4FB200D150FD /* Certificate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Certificate.swift; sourceTree = "<group>"; };
+		9B18351B2FAE58B500D150FD /* CertificateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateHandler.swift; sourceTree = "<group>"; };
+		9B1835E92FB070D300D150FD /* LXDConsoleVGARunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDConsoleVGARunner.swift; sourceTree = "<group>"; };
+		9B1835EA2FB070D300D150FD /* LXDExecRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDExecRunner.swift; sourceTree = "<group>"; };
+		9B1835EB2FB070D300D150FD /* LXDExecSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDExecSessionStore.swift; sourceTree = "<group>"; };
 		9B196FFF2F59866E00B424DB /* Root.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Root.swift; sourceTree = "<group>"; };
 		9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentStatusHandler.swift; sourceTree = "<group>"; };
@@ -760,6 +813,22 @@
 		9B215B742E0C391500AFC89D /* NetworkAttachementDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkAttachementDetailView.swift; sourceTree = "<group>"; };
 		9B215B762E0C39AE00AFC89D /* SocketsDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketsDetailView.swift; sourceTree = "<group>"; };
 		9B2221CD2F5831F00037344D /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
+		9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeAttachement.swift; sourceTree = "<group>"; };
+		9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgedNetwork.swift; sourceTree = "<group>"; };
+		9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateRepresentation.swift; sourceTree = "<group>"; };
+		9B2784012FB37A83001F2B6A /* ConsoleAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleAttachment.swift; sourceTree = "<group>"; };
+		9B2784022FB37A83001F2B6A /* DirectorySharingAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectorySharingAttachement.swift; sourceTree = "<group>"; };
+		9B2784032FB37A83001F2B6A /* DiskAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAttachement.swift; sourceTree = "<group>"; };
+		9B2784042FB37A83001F2B6A /* Images.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Images.swift; sourceTree = "<group>"; };
+		9B2784052FB37A83001F2B6A /* Mounts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounts.swift; sourceTree = "<group>"; };
+		9B2784062FB37A83001F2B6A /* Registry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Registry.swift; sourceTree = "<group>"; };
+		9B2784072FB37A83001F2B6A /* RemoteEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteEntry.swift; sourceTree = "<group>"; };
+		9B2784082FB37A83001F2B6A /* SocketDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketDevice.swift; sourceTree = "<group>"; };
+		9B2784092FB37A83001F2B6A /* Templates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Templates.swift; sourceTree = "<group>"; };
+		9B27840A2FB37A83001F2B6A /* TunnelAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelAttachement.swift; sourceTree = "<group>"; };
+		9B27840B2FB37A83001F2B6A /* Validatable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Validatable.swift; sourceTree = "<group>"; };
+		9B27840C2FB37A83001F2B6A /* ViewSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSize.swift; sourceTree = "<group>"; };
+		9B27840D2FB37A83001F2B6A /* VirtualMachineInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineInfo.swift; sourceTree = "<group>"; };
 		9B2BFAA92DFED25E000045C3 /* DiskAttachementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAttachementView.swift; sourceTree = "<group>"; };
 		9B2BFAAA2DFED25E000045C3 /* ForwardedPortView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForwardedPortView.swift; sourceTree = "<group>"; };
 		9B2BFAAB2DFED25E000045C3 /* MountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountView.swift; sourceTree = "<group>"; };
@@ -784,6 +853,38 @@
 		9B345C112DB4EB700047D00B /* NetworkTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTest.swift; sourceTree = "<group>"; };
 		9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessWithSharedFileHandleTest.swift; sourceTree = "<group>"; };
 		9B345C132DB4EB700047D00B /* RemoteTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTest.swift; sourceTree = "<group>"; };
+		9B352EDB2FAF43C100F8F6B6 /* auth.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = auth.ts; sourceTree = "<group>"; };
+		9B352EDC2FAF43C100F8F6B6 /* client.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = client.ts; sourceTree = "<group>"; };
+		9B352EDD2FAF43C100F8F6B6 /* images.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = images.ts; sourceTree = "<group>"; };
+		9B352EDE2FAF43C100F8F6B6 /* instances.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = instances.ts; sourceTree = "<group>"; };
+		9B352EDF2FAF43C100F8F6B6 /* networks.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = networks.ts; sourceTree = "<group>"; };
+		9B352EE02FAF43C100F8F6B6 /* operations.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = operations.ts; sourceTree = "<group>"; };
+		9B352EE12FAF43C100F8F6B6 /* server.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = server.ts; sourceTree = "<group>"; };
+		9B352EE32FAF43C100F8F6B6 /* ConfirmDialog.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = ConfirmDialog.tsx; sourceTree = "<group>"; };
+		9B352EE42FAF43C100F8F6B6 /* Layout.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = Layout.tsx; sourceTree = "<group>"; };
+		9B352EE52FAF43C100F8F6B6 /* PageHeader.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = PageHeader.tsx; sourceTree = "<group>"; };
+		9B352EE62FAF43C100F8F6B6 /* Spinner.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = Spinner.tsx; sourceTree = "<group>"; };
+		9B352EE72FAF43C100F8F6B6 /* StatusBadge.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = StatusBadge.tsx; sourceTree = "<group>"; };
+		9B352EE92FAF43C100F8F6B6 /* AuthContext.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = AuthContext.tsx; sourceTree = "<group>"; };
+		9B352EEB2FAF43C100F8F6B6 /* CertificatesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = CertificatesPage.tsx; sourceTree = "<group>"; };
+		9B352EEC2FAF43C100F8F6B6 /* CreateInstanceModal.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = CreateInstanceModal.tsx; sourceTree = "<group>"; };
+		9B352EED2FAF43C100F8F6B6 /* DashboardPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = DashboardPage.tsx; sourceTree = "<group>"; };
+		9B352EEE2FAF43C100F8F6B6 /* GroupsPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = GroupsPage.tsx; sourceTree = "<group>"; };
+		9B352EEF2FAF43C100F8F6B6 /* IdentitiesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = IdentitiesPage.tsx; sourceTree = "<group>"; };
+		9B352EF02FAF43C100F8F6B6 /* ImagesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = ImagesPage.tsx; sourceTree = "<group>"; };
+		9B352EF12FAF43C100F8F6B6 /* InstancesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstancesPage.tsx; sourceTree = "<group>"; };
+		9B352EF22FAF43C100F8F6B6 /* LoginPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = LoginPage.tsx; sourceTree = "<group>"; };
+		9B352EF32FAF43C100F8F6B6 /* NetworksPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = NetworksPage.tsx; sourceTree = "<group>"; };
+		9B352EF42FAF43C100F8F6B6 /* OperationsPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = OperationsPage.tsx; sourceTree = "<group>"; };
+		9B352EF62FAF43C100F8F6B6 /* lxd.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = lxd.ts; sourceTree = "<group>"; };
+		9B352EF82FAF43C100F8F6B6 /* certgen.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = certgen.ts; sourceTree = "<group>"; };
+		9B352EFA2FAF43C100F8F6B6 /* App.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = App.tsx; sourceTree = "<group>"; };
+		9B352EFB2FAF43C100F8F6B6 /* main.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = main.tsx; sourceTree = "<group>"; };
+		9B352EFD2FAF43C100F8F6B6 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		9B352EFE2FAF43C100F8F6B6 /* package.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = package.json; sourceTree = "<group>"; };
+		9B352F002FAF43C100F8F6B6 /* tsconfig.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tsconfig.json; sourceTree = "<group>"; };
+		9B352F012FAF43C100F8F6B6 /* tsconfig.tsbuildinfo */ = {isa = PBXFileReference; lastKnownFileType = text; path = tsconfig.tsbuildinfo; sourceTree = "<group>"; };
+		9B352F022FAF43C100F8F6B6 /* vite.config.ts */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = vite.config.ts; sourceTree = "<group>"; };
 		9B3600862E1FB1AC00889BFD /* DynamicList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicList.swift; sourceTree = "<group>"; };
 		9B3600882E1FC48D00889BFD /* AsyncButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncButton.swift; sourceTree = "<group>"; };
 		9B3601902E20FBCF00889BFD /* CakerMenuBarExtraScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakerMenuBarExtraScene.swift; sourceTree = "<group>"; };
@@ -828,8 +929,10 @@
 		9B464AD92D5A3E0300164BF5 /* service.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = service.pb.swift; sourceTree = "<group>"; };
 		9B464B4F2D5A3E5C00164BF5 /* cakectl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cakectl; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
-		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDRemotesController.swift; sourceTree = "<group>"; };
+		9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstanceDetailPage.tsx; sourceTree = "<group>"; };
+		9B4C09B82FB8D72100101F0E /* RemotesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = RemotesPage.tsx; sourceTree = "<group>"; };
 		9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswiftCompatibilitySpan.dylib; path = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib"; sourceTree = "<absolute>"; };
 		9B57E9CF2E745FB600C5601D /* ViewSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSize.swift; sourceTree = "<group>"; };
 		9B5A37752ED4BDA8007B59B0 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
@@ -851,9 +954,26 @@
 		9B5FA1002F8BABF50077EF64 /* en.xcloc */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = en.xcloc; sourceTree = "<group>"; };
 		9B5FA1012F8BABF50077EF64 /* fr.xcloc */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = fr.xcloc; sourceTree = "<group>"; };
 		9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		9B602F8C2FAA56FA00055543 /* LXDImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDImagesController.swift; sourceTree = "<group>"; };
+		9B602F8D2FAA56FA00055543 /* LXDInstancesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDInstancesController.swift; sourceTree = "<group>"; };
+		9B602F8E2FAA56FA00055543 /* LXDNetworksController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDNetworksController.swift; sourceTree = "<group>"; };
+		9B602F8F2FAA56FA00055543 /* LXDOperationsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDOperationsController.swift; sourceTree = "<group>"; };
+		9B602F902FAA56FA00055543 /* LXDRootController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDRootController.swift; sourceTree = "<group>"; };
+		9B602F922FAA56FA00055543 /* LXDModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDModels.swift; sourceTree = "<group>"; };
+		9B602F932FAA56FA00055543 /* LXDOperationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDOperationStore.swift; sourceTree = "<group>"; };
+		9B602F942FAA56FA00055543 /* LXDRESTServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDRESTServer.swift; sourceTree = "<group>"; };
+		9B602F952FAA56FA00055543 /* Routes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routes.swift; sourceTree = "<group>"; };
+		9B6031332FAD103F00055543 /* LXDAuthGroupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDAuthGroupStore.swift; sourceTree = "<group>"; };
+		9B6031342FAD103F00055543 /* LXDIdentityStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDIdentityStore.swift; sourceTree = "<group>"; };
+		9B6031372FAD105700055543 /* LXDAuthGroupsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDAuthGroupsController.swift; sourceTree = "<group>"; };
+		9B6031382FAD105700055543 /* LXDIdentitiesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDIdentitiesController.swift; sourceTree = "<group>"; };
+		9B60313B2FAD2BF700055543 /* LXDCertificateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDCertificateStore.swift; sourceTree = "<group>"; };
+		9B60313C2FAD2BF700055543 /* LXDStorePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDStorePersistence.swift; sourceTree = "<group>"; };
+		9B60313F2FAD2C0A00055543 /* LXDCertificatesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDCertificatesController.swift; sourceTree = "<group>"; };
 		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
 		9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
+		9B737DCE2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDConsoleTextRunner.swift; sourceTree = "<group>"; };
 		9B75A6D22E2A2C45000AA773 /* Pty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pty.swift; sourceTree = "<group>"; };
 		9B7997242E45EDEC00147500 /* VNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCView.swift; sourceTree = "<group>"; };
 		9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForwardedPortNewItemView.swift; sourceTree = "<group>"; };
@@ -865,8 +985,6 @@
 		9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineWizard.swift; sourceTree = "<group>"; };
 		9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfig.swift; sourceTree = "<group>"; };
 		9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractiveShell.swift; sourceTree = "<group>"; };
-		9B7D68292F17E1A700FE1B0B /* SharedPtrBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SharedPtrBridge.h; sourceTree = "<group>"; };
-		9B7D682A2F17E1A700FE1B0B /* SharedPtrBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SharedPtrBridge.mm; sourceTree = "<group>"; };
 		9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHelper.swift; sourceTree = "<group>"; };
 		9B7D69242F1B92E800FE1B0B /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthServerInterceptor.swift; sourceTree = "<group>"; };
@@ -1179,11 +1297,6 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9B21ABD12DF4A2C5000B3B40 /* Model */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Model;
-			sourceTree = "<group>";
-		};
 		9B464A562D5A3DA000164BF5 /* Caker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -1210,7 +1323,6 @@
 				9B13C3432F0AD87C0099F00F /* CakeAgentLib in Frameworks */,
 				9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */,
 				9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */,
-				9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */,
 				9B3E2C692F7BDA1D003BF05E /* Sparkle in Frameworks */,
 				9B08B4AD2F7436F1009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */,
 				9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */,
@@ -1281,7 +1393,6 @@
 				9B21E0022F4C65E900870AD7 /* NIOHTTP2 in Frameworks */,
 				9B21DFFA2F4C651800870AD7 /* GRPC in Frameworks */,
 				9B21DFFE2F4C659900870AD7 /* NIOExtras in Frameworks */,
-				9B21E00F2F4C676800870AD7 /* Qcow2convert.xcframework in Frameworks */,
 				9B21E0042F4C663D00870AD7 /* NIOHTTPCompression in Frameworks */,
 				9B21E0092F4C676800870AD7 /* libCakedLib.a in Frameworks */,
 				9BBE5C6F2F4C544E005B3359 /* XCTest.framework in Frameworks */,
@@ -1325,6 +1436,7 @@
 				9BEBC86B2DF44B9D0092B196 /* libCakedLib.a in Frameworks */,
 				9BEBC84C2DF44B9C0092B196 /* NIOCore in Frameworks */,
 				9BEBC83C2DF44B9C0092B196 /* XAttr in Frameworks */,
+				9B602FA22FAA5C3800055543 /* Vapor in Frameworks */,
 				9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */,
 				9BEBC85E2DF44B9D0092B196 /* Logging in Frameworks */,
 				9B3566812F27E12D00C5E12F /* ZLib in Frameworks */,
@@ -1371,7 +1483,6 @@
 				9BEBC7D92DF440BF0092B196 /* Crypto in Frameworks */,
 				9BEBC7EF2DF440BF0092B196 /* NIOWebSocket in Frameworks */,
 				9BEBC7F12DF440BF0092B196 /* NIOHTTP2 in Frameworks */,
-				9BEBC81D2DF44A000092B196 /* Qcow2convert.xcframework in Frameworks */,
 				9BEBC7F32DF440BF0092B196 /* SwiftProtobuf in Frameworks */,
 				9BEBC7F72DF440BF0092B196 /* Shout in Frameworks */,
 				9BEBC7C92DF440BF0092B196 /* Sysctl in Frameworks */,
@@ -1402,6 +1513,27 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9B081B592FC75A1A0029B259 /* Qcow2 */ = {
+			isa = PBXGroup;
+			children = (
+				9B081B562FC75A1A0029B259 /* Qcow2Converter.swift */,
+				9B081B572FC75A1A0029B259 /* Qcow2Error.swift */,
+				9B081B582FC75A1A0029B259 /* Qcow2Header.swift */,
+			);
+			path = Qcow2;
+			sourceTree = "<group>";
+		};
+		9B081D922FC97DB20029B259 /* Vmdk */ = {
+			isa = PBXGroup;
+			children = (
+				9B081D8F2FC97DB20029B259 /* VmdkConverter.swift */,
+				9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */,
+				9B081D902FC97DB20029B259 /* VmdkError.swift */,
+				9B081D912FC97DB20029B259 /* VmdkHeader.swift */,
+			);
+			path = Vmdk;
+			sourceTree = "<group>";
+		};
 		9B144C0E2F9D28D900F14DEF /* VNCTunnel */ = {
 			isa = PBXGroup;
 			children = (
@@ -1418,6 +1550,29 @@
 				9B20D6002E019FA400BEFB41 /* VMWare.swift */,
 			);
 			path = Importers;
+			sourceTree = "<group>";
+		};
+		9B27840E2FB37A83001F2B6A /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */,
+				9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */,
+				9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */,
+				9B2784012FB37A83001F2B6A /* ConsoleAttachment.swift */,
+				9B2784022FB37A83001F2B6A /* DirectorySharingAttachement.swift */,
+				9B2784032FB37A83001F2B6A /* DiskAttachement.swift */,
+				9B2784042FB37A83001F2B6A /* Images.swift */,
+				9B2784052FB37A83001F2B6A /* Mounts.swift */,
+				9B2784062FB37A83001F2B6A /* Registry.swift */,
+				9B2784072FB37A83001F2B6A /* RemoteEntry.swift */,
+				9B2784082FB37A83001F2B6A /* SocketDevice.swift */,
+				9B2784092FB37A83001F2B6A /* Templates.swift */,
+				9B27840A2FB37A83001F2B6A /* TunnelAttachement.swift */,
+				9B27840B2FB37A83001F2B6A /* Validatable.swift */,
+				9B27840C2FB37A83001F2B6A /* ViewSize.swift */,
+				9B27840D2FB37A83001F2B6A /* VirtualMachineInfo.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 		9B2BFAAF2DFED25E000045C3 /* Settings */ = {
@@ -1555,18 +1710,116 @@
 			path = ../Tests;
 			sourceTree = SOURCE_ROOT;
 		};
+		9B352EE22FAF43C100F8F6B6 /* api */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EDB2FAF43C100F8F6B6 /* auth.ts */,
+				9B352EDC2FAF43C100F8F6B6 /* client.ts */,
+				9B352EDD2FAF43C100F8F6B6 /* images.ts */,
+				9B352EDE2FAF43C100F8F6B6 /* instances.ts */,
+				9B352EDF2FAF43C100F8F6B6 /* networks.ts */,
+				9B352EE02FAF43C100F8F6B6 /* operations.ts */,
+				9B352EE12FAF43C100F8F6B6 /* server.ts */,
+			);
+			path = api;
+			sourceTree = "<group>";
+		};
+		9B352EE82FAF43C100F8F6B6 /* components */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EE32FAF43C100F8F6B6 /* ConfirmDialog.tsx */,
+				9B352EE42FAF43C100F8F6B6 /* Layout.tsx */,
+				9B352EE52FAF43C100F8F6B6 /* PageHeader.tsx */,
+				9B352EE62FAF43C100F8F6B6 /* Spinner.tsx */,
+				9B352EE72FAF43C100F8F6B6 /* StatusBadge.tsx */,
+			);
+			path = components;
+			sourceTree = "<group>";
+		};
+		9B352EEA2FAF43C100F8F6B6 /* context */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EE92FAF43C100F8F6B6 /* AuthContext.tsx */,
+			);
+			path = context;
+			sourceTree = "<group>";
+		};
+		9B352EF52FAF43C100F8F6B6 /* pages */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EEB2FAF43C100F8F6B6 /* CertificatesPage.tsx */,
+				9B352EEC2FAF43C100F8F6B6 /* CreateInstanceModal.tsx */,
+				9B352EED2FAF43C100F8F6B6 /* DashboardPage.tsx */,
+				9B352EEE2FAF43C100F8F6B6 /* GroupsPage.tsx */,
+				9B352EEF2FAF43C100F8F6B6 /* IdentitiesPage.tsx */,
+				9B352EF02FAF43C100F8F6B6 /* ImagesPage.tsx */,
+				9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */,
+				9B352EF12FAF43C100F8F6B6 /* InstancesPage.tsx */,
+				9B352EF22FAF43C100F8F6B6 /* LoginPage.tsx */,
+				9B352EF32FAF43C100F8F6B6 /* NetworksPage.tsx */,
+				9B352EF42FAF43C100F8F6B6 /* OperationsPage.tsx */,
+				9B4C09B82FB8D72100101F0E /* RemotesPage.tsx */,
+			);
+			path = pages;
+			sourceTree = "<group>";
+		};
+		9B352EF72FAF43C100F8F6B6 /* types */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EF62FAF43C100F8F6B6 /* lxd.ts */,
+			);
+			path = types;
+			sourceTree = "<group>";
+		};
+		9B352EF92FAF43C100F8F6B6 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EF82FAF43C100F8F6B6 /* certgen.ts */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
+		9B352EFC2FAF43C100F8F6B6 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EE22FAF43C100F8F6B6 /* api */,
+				9B352EE82FAF43C100F8F6B6 /* components */,
+				9B352EEA2FAF43C100F8F6B6 /* context */,
+				9B352EF52FAF43C100F8F6B6 /* pages */,
+				9B352EF72FAF43C100F8F6B6 /* types */,
+				9B352EF92FAF43C100F8F6B6 /* utils */,
+				9B352EFA2FAF43C100F8F6B6 /* App.tsx */,
+				9B352EFB2FAF43C100F8F6B6 /* main.tsx */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		9B352F032FAF43C100F8F6B6 /* webui */ = {
+			isa = PBXGroup;
+			children = (
+				9B352EFC2FAF43C100F8F6B6 /* src */,
+				9B352EFD2FAF43C100F8F6B6 /* index.html */,
+				9B352EFE2FAF43C100F8F6B6 /* package.json */,
+				9B352F002FAF43C100F8F6B6 /* tsconfig.json */,
+				9B352F012FAF43C100F8F6B6 /* tsconfig.tsbuildinfo */,
+				9B352F022FAF43C100F8F6B6 /* vite.config.ts */,
+			);
+			name = webui;
+			path = ../webui;
+			sourceTree = SOURCE_ROOT;
+		};
 		9B464A4B2D5A3DA000164BF5 = {
 			isa = PBXGroup;
 			children = (
-				9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */,
-				9B5FA1022F8BABF50077EF64 /* Localizations */,
 				9B464A562D5A3DA000164BF5 /* Caker */,
 				9B96B0102F4B68380069C970 /* CakerTests */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
+				9B5FA1022F8BABF50077EF64 /* Localizations */,
 				9B464A552D5A3DA000164BF5 /* Products */,
 				9BFE87462F7E6480005CC9B2 /* Resources */,
 				9B464ADD2D5A3E0300164BF5 /* Sources */,
 				9B345C152DB4EB700047D00B /* Tests */,
+				9B352F032FAF43C100F8F6B6 /* webui */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1589,6 +1842,7 @@
 			isa = PBXGroup;
 			children = (
 				9B464A682D5A3E0300164BF5 /* Build.swift */,
+				9B1835172FAE4FB200D150FD /* Certificate.swift */,
 				9B464A6B2D5A3E0300164BF5 /* Configure.swift */,
 				9B464A6D2D5A3E0300164BF5 /* Delete.swift */,
 				9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */,
@@ -1652,7 +1906,7 @@
 				9B464AD82D5A3E0300164BF5 /* service.grpc.swift */,
 				9B464AD92D5A3E0300164BF5 /* service.pb.swift */,
 				9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */,
-				9B21ABD12DF4A2C5000B3B40 /* Model */,
+				9B27840E2FB37A83001F2B6A /* Model */,
 				9BB3BE1C2DB3F17500799A6A /* options */,
 			);
 			path = grpc;
@@ -1661,7 +1915,6 @@
 		9B464ADD2D5A3E0300164BF5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				9B7D682B2F17E1A700FE1B0B /* SharedPtrBridge */,
 				9B464A892D5A3E0300164BF5 /* cakectl */,
 				9BEBC6CD2DF4400A0092B196 /* caked */,
 				9BEBC7692DF440720092B196 /* cakedlib */,
@@ -1715,13 +1968,40 @@
 			path = ../Localizations;
 			sourceTree = SOURCE_ROOT;
 		};
-		9B7D682B2F17E1A700FE1B0B /* SharedPtrBridge */ = {
+		9B602F912FAA56FA00055543 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				9B7D68292F17E1A700FE1B0B /* SharedPtrBridge.h */,
-				9B7D682A2F17E1A700FE1B0B /* SharedPtrBridge.mm */,
+				9B6031372FAD105700055543 /* LXDAuthGroupsController.swift */,
+				9B60313F2FAD2C0A00055543 /* LXDCertificatesController.swift */,
+				9B6031382FAD105700055543 /* LXDIdentitiesController.swift */,
+				9B602F8C2FAA56FA00055543 /* LXDImagesController.swift */,
+				9B602F8D2FAA56FA00055543 /* LXDInstancesController.swift */,
+				9B602F8E2FAA56FA00055543 /* LXDNetworksController.swift */,
+				9B602F8F2FAA56FA00055543 /* LXDOperationsController.swift */,
+				9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */,
+				9B602F902FAA56FA00055543 /* LXDRootController.swift */,
 			);
-			path = SharedPtrBridge;
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		9B602F962FAA56FA00055543 /* REST */ = {
+			isa = PBXGroup;
+			children = (
+				9B6031332FAD103F00055543 /* LXDAuthGroupStore.swift */,
+				9B60313B2FAD2BF700055543 /* LXDCertificateStore.swift */,
+				9B737DCE2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift */,
+				9B1835E92FB070D300D150FD /* LXDConsoleVGARunner.swift */,
+				9B1835EA2FB070D300D150FD /* LXDExecRunner.swift */,
+				9B1835EB2FB070D300D150FD /* LXDExecSessionStore.swift */,
+				9B6031342FAD103F00055543 /* LXDIdentityStore.swift */,
+				9B602F922FAA56FA00055543 /* LXDModels.swift */,
+				9B602F932FAA56FA00055543 /* LXDOperationStore.swift */,
+				9B602F942FAA56FA00055543 /* LXDRESTServer.swift */,
+				9B60313C2FAD2BF700055543 /* LXDStorePersistence.swift */,
+				9B602F952FAA56FA00055543 /* Routes.swift */,
+				9B602F912FAA56FA00055543 /* Controllers */,
+			);
+			path = REST;
 			sourceTree = "<group>";
 		};
 		9B9C4E592E23BC8B00C13D23 /* Home */ = {
@@ -1860,6 +2140,7 @@
 				9BEBC6972DF4400A0092B196 /* Build.swift */,
 				9BEBC6982DF4400A0092B196 /* Certificates.swift */,
 				9BEBC69A2DF4400A0092B196 /* Configure.swift */,
+				9B081CBB2FC88D110029B259 /* Convert.swift */,
 				9BEBC69B2DF4400A0092B196 /* Delete.swift */,
 				9BEBC69C2DF4400A0092B196 /* Duplicate.swift */,
 				9BEBC69D2DF4400A0092B196 /* Exec.swift */,
@@ -1896,6 +2177,7 @@
 			isa = PBXGroup;
 			children = (
 				9BEBC6B22DF4400A0092B196 /* BuildHandler.swift */,
+				9B18351B2FAE58B500D150FD /* CertificateHandler.swift */,
 				9BEBC6B42DF4400A0092B196 /* ConfigureHandler.swift */,
 				9BBF79BC2F3DD73500F37D2C /* CurrentStatusHandler.swift */,
 				9BEBC6B52DF4400A0092B196 /* DeleteHandler.swift */,
@@ -1939,6 +2221,7 @@
 				9BEBC6CC2DF4400A0092B196 /* Root.swift */,
 				9BEBC6B12DF4400A0092B196 /* Commands */,
 				9BEBC6C92DF4400A0092B196 /* Handlers */,
+				9B602F962FAA56FA00055543 /* REST */,
 				9B144C0E2F9D28D900F14DEF /* VNCTunnel */,
 			);
 			path = caked;
@@ -2113,8 +2396,10 @@
 				9B20D6012E019FA400BEFB41 /* Importers */,
 				9BEBC7322DF440720092B196 /* IP */,
 				9BFE81A62EC8F8C500767615 /* OCI */,
+				9B081B592FC75A1A0029B259 /* Qcow2 */,
 				9BEBC7412DF440720092B196 /* Sockets */,
 				9BEBC74C2DF440720092B196 /* UI */,
+				9B081D922FC97DB20029B259 /* Vmdk */,
 				9BEBC7522DF440720092B196 /* VMNet */,
 				9BEBC73C2DF440720092B196 /* VMRunService */,
 				9B5A377E2ED4BDA8007B59B0 /* VNCLib */,
@@ -2173,13 +2458,6 @@
 			path = Icons;
 			sourceTree = "<group>";
 		};
-		9BFE87352F7E6480005CC9B2 /* macOS */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = macOS;
-			sourceTree = "<group>";
-		};
 		9BFE87462F7E6480005CC9B2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -2196,7 +2474,6 @@
 				9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */,
 				9BFE87342F7E6480005CC9B2 /* Icons */,
 				9BFE873F2F7E6480005CC9B2 /* Info.plist */,
-				9BFE87352F7E6480005CC9B2 /* macOS */,
 				9BFE87402F7E6480005CC9B2 /* menubar.png */,
 				9BFE87412F7E6480005CC9B2 /* menubar.xcf */,
 				9BFE87422F7E6480005CC9B2 /* Prompt.png */,
@@ -2223,7 +2500,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9B7D682D2F17E1A700FE1B0B /* SharedPtrBridge.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2321,9 +2597,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				9B21ABD12DF4A2C5000B3B40 /* Model */,
 			);
 			name = GRPCLib;
 			packageProductDependencies = (
@@ -2429,6 +2702,7 @@
 				9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */,
 				9B3566802F27E12D00C5E12F /* ZLib */,
 				9BC1F9972F6D469A00A83B33 /* Subprocess */,
+				9B602FA12FAA5C3800055543 /* Vapor */,
 			);
 			productName = caked;
 			productReference = 9BEBC68E2DF43FEE0092B196 /* caked */;
@@ -2505,9 +2779,11 @@
 			buildPhases = (
 				9BFE86992F7E592B005CC9B2 /* Sources */,
 				9BFE869A2F7E592B005CC9B2 /* Frameworks */,
-				9BFE869B2F7E592B005CC9B2 /* Resources */,
 				9BFE86A52F7E59C8005CC9B2 /* CopyFiles */,
 				9BFE876E2F7E64D9005CC9B2 /* CopyFiles */,
+				9B1836552FB0E28F00D150FD /* ShellScript */,
+				9B06995A2FB1A15E00FEAE13 /* Resources */,
+				9B06995F2FB1A1E400FEAE13 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -2530,7 +2806,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2640;
+				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					9B464A532D5A3DA000164BF5 = {
 						CreatedOnToolsVersion = 16.2;
@@ -2610,6 +2886,8 @@
 				9B35667D2F27DDE700C5E12F /* XCRemoteSwiftPackageReference "zlib" */,
 				9BC1F9962F6D469A00A83B33 /* XCRemoteSwiftPackageReference "swift-subprocess" */,
 				9B3E2C672F7BDA1D003BF05E /* XCRemoteSwiftPackageReference "Sparkle" */,
+				9B602FA02FAA5C3800055543 /* XCRemoteSwiftPackageReference "vapor" */,
+				9B96F1462FC5D70B00C25306 /* XCRemoteSwiftPackageReference "swift-collections" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -2629,6 +2907,15 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		9B06995A2FB1A15E00FEAE13 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */,
+				9B06995E2FB1A1B800FEAE13 /* VM.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9B464A522D5A3DA000164BF5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2647,19 +2934,29 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		9BFE869B2F7E592B005CC9B2 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				9BFE87702F7E65F0005CC9B2 /* VM.png in Resources */,
-				9B5FA3C42F8E272E0077EF64 /* Localizable.xcstrings in Resources */,
-				9BFE87DC2F7E6B67005CC9B2 /* VM.icns in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		9B06995F2FB1A1E400FEAE13 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${SOURCE_ROOT}/../Resources/Localizable.xcstrings",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${METAL_LIBRARY_OUTPUT_DIR}/en.lproj",
+				"${METAL_LIBRARY_OUTPUT_DIR}/fr.lproj",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nxcrun xcstringstool compile --output-directory \"${METAL_LIBRARY_OUTPUT_DIR}\" \"${SOURCE_ROOT}/../Resources/Localizable.xcstrings\"\n";
+		};
 		9B08B4AF2F743D68009EC5C6 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -2677,6 +2974,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# Type a script or drag a script file from your workspace to insert its path\nOSVERSION=$(uname -r|cut -d'.' -f 1)\n\nif [ \"${OSVERSION}\" -lt 25 ]; then\n  mkdir ${CONFIGURATION_BUILD_DIR}/Frameworks\n  cp /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib ${CONFIGURATION_BUILD_DIR}/Frameworks\nfi\n";
+		};
+		9B1836552FB0E28F00D150FD /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${SOURCE_ROOT}/../webui",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${METAL_LIBRARY_OUTPUT_DIR}/webui.zip",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nsource ${HOME}/.profile\n\nset -ex\n\npushd ${SOURCE_ROOT}/../webui\n\nls -l\nnpm install\nnpm ci --no-audit --no-fund\nnpm run build\n\npushd dist\nzip -r ../webui.zip .\npopd\n\ncp webui.zip ${METAL_LIBRARY_OUTPUT_DIR}\n\npopd\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -2813,6 +3129,7 @@
 				9B464B6E2D5A3E8900164BF5 /* Start.swift in Sources */,
 				9B464B6F2D5A3E8900164BF5 /* Sh.swift in Sources */,
 				9B464B702D5A3E8900164BF5 /* Pull.swift in Sources */,
+				9B1835182FAE4FB200D150FD /* Certificate.swift in Sources */,
 				9BBF7B392F3E084A00F37D2C /* Restart.swift in Sources */,
 				9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */,
 				9B1500C12E6B092A00B23147 /* Suspend.swift in Sources */,
@@ -2859,6 +3176,22 @@
 				9BB3BE282DB3F17500799A6A /* PushOptions.swift in Sources */,
 				9BB3BE292DB3F17500799A6A /* ConfigureOptions.swift in Sources */,
 				9B5C52D92F0FB27B002D628C /* GRPCTLSConfiguration.swift in Sources */,
+				9B27840F2FB37A83001F2B6A /* BridgeAttachement.swift in Sources */,
+				9B2784102FB37A83001F2B6A /* BridgedNetwork.swift in Sources */,
+				9B2784112FB37A83001F2B6A /* CertificateRepresentation.swift in Sources */,
+				9B2784122FB37A83001F2B6A /* ConsoleAttachment.swift in Sources */,
+				9B2784132FB37A83001F2B6A /* DirectorySharingAttachement.swift in Sources */,
+				9B2784142FB37A83001F2B6A /* DiskAttachement.swift in Sources */,
+				9B2784152FB37A83001F2B6A /* Images.swift in Sources */,
+				9B2784162FB37A83001F2B6A /* Mounts.swift in Sources */,
+				9B2784172FB37A83001F2B6A /* Registry.swift in Sources */,
+				9B2784182FB37A83001F2B6A /* RemoteEntry.swift in Sources */,
+				9B2784192FB37A83001F2B6A /* SocketDevice.swift in Sources */,
+				9B27841A2FB37A83001F2B6A /* Templates.swift in Sources */,
+				9B27841B2FB37A83001F2B6A /* TunnelAttachement.swift in Sources */,
+				9B27841C2FB37A83001F2B6A /* Validatable.swift in Sources */,
+				9B27841D2FB37A83001F2B6A /* ViewSize.swift in Sources */,
+				9B27841E2FB37A83001F2B6A /* VirtualMachineInfo.swift in Sources */,
 				9BB3BE2A2DB3F17500799A6A /* WaitIPOptions.swift in Sources */,
 				9BA7B0242F5601DF004AFAE8 /* ImageSource.swift in Sources */,
 				9BF8AE6A2F43915700DE5EAB /* CakedChannelStreamer.swift in Sources */,
@@ -2891,11 +3224,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B6031352FAD103F00055543 /* LXDAuthGroupStore.swift in Sources */,
+				9B081CBC2FC88D160029B259 /* Convert.swift in Sources */,
+				9B6031362FAD103F00055543 /* LXDIdentityStore.swift in Sources */,
 				9BB149202EC760F70094D950 /* Pull.swift in Sources */,
 				9BB149222EC760FE0094D950 /* Push.swift in Sources */,
+				9B18351C2FAE58B500D150FD /* CertificateHandler.swift in Sources */,
 				9B9711C02DFF3284005B161B /* Import.swift in Sources */,
 				9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */,
+				9B6031392FAD105700055543 /* LXDIdentitiesController.swift in Sources */,
+				9B60313A2FAD105700055543 /* LXDAuthGroupsController.swift in Sources */,
 				9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */,
 				9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC6D22DF4400A0092B196 /* RemoteHandler.swift in Sources */,
@@ -2908,6 +3247,9 @@
 				9BEBC6D82DF4400A0092B196 /* Build.swift in Sources */,
 				9BEBC6DA2DF4400A0092B196 /* PurgeHandler.swift in Sources */,
 				9BBF7B372F3E058D00F37D2C /* Restart.swift in Sources */,
+				9B1835EC2FB070D300D150FD /* LXDConsoleVGARunner.swift in Sources */,
+				9B1835ED2FB070D300D150FD /* LXDExecRunner.swift in Sources */,
+				9B1835EE2FB070D300D150FD /* LXDExecSessionStore.swift in Sources */,
 				9BEBC6DB2DF4400A0092B196 /* Purge.swift in Sources */,
 				9BEBC6DC2DF4400A0092B196 /* DeleteHandler.swift in Sources */,
 				9BEBC6DD2DF4400A0092B196 /* MountHandler.swift in Sources */,
@@ -2923,6 +3265,16 @@
 				9BEBC6E62DF4400A0092B196 /* Start.swift in Sources */,
 				9BEBC6E72DF4400A0092B196 /* Networks.swift in Sources */,
 				9BBE597A2F49B561005B3359 /* GrandCentralDispatch.swift in Sources */,
+				9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */,
+				9B602F972FAA56FA00055543 /* LXDInstancesController.swift in Sources */,
+				9B602F982FAA56FA00055543 /* LXDRootController.swift in Sources */,
+				9B602F992FAA56FA00055543 /* LXDModels.swift in Sources */,
+				9B602F9A2FAA56FA00055543 /* LXDOperationsController.swift in Sources */,
+				9B602F9B2FAA56FA00055543 /* LXDRESTServer.swift in Sources */,
+				9B602F9C2FAA56FA00055543 /* LXDOperationStore.swift in Sources */,
+				9B602F9D2FAA56FA00055543 /* LXDNetworksController.swift in Sources */,
+				9B602F9E2FAA56FA00055543 /* Routes.swift in Sources */,
+				9B602F9F2FAA56FA00055543 /* LXDImagesController.swift in Sources */,
 				9BEBC6E82DF4400A0092B196 /* ImagesManagement.swift in Sources */,
 				9BEBC6E92DF4400A0092B196 /* Exec.swift in Sources */,
 				9BEBC6EA2DF4400A0092B196 /* Configure.swift in Sources */,
@@ -2942,6 +3294,8 @@
 				9B82D3182F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift in Sources */,
 				9BEBC6F42DF4400A0092B196 /* Root.swift in Sources */,
 				9BEBC6F52DF4400A0092B196 /* MainApp.swift in Sources */,
+				9B60313D2FAD2BF700055543 /* LXDCertificateStore.swift in Sources */,
+				9B60313E2FAD2BF700055543 /* LXDStorePersistence.swift in Sources */,
 				9BEBC6F62DF4400A0092B196 /* Delete.swift in Sources */,
 				9BBF79BD2F3DD73700F37D2C /* CurrentStatusHandler.swift in Sources */,
 				9BEBC6F72DF4400A0092B196 /* CakedProvider.swift in Sources */,
@@ -2953,7 +3307,9 @@
 				9BEBC6FC2DF4400A0092B196 /* Unmount.swift in Sources */,
 				9BEBC6FD2DF4400A0092B196 /* StopHandler.swift in Sources */,
 				9BEBC6FE2DF4400A0092B196 /* Certificates.swift in Sources */,
+				9B6031402FAD2C0A00055543 /* LXDCertificatesController.swift in Sources */,
 				9BEBC6FF2DF4400A0092B196 /* LoginHandler.swift in Sources */,
+				9B737DCF2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift in Sources */,
 				9BB149182EC74B830094D950 /* PullHandler.swift in Sources */,
 				9BEBC7002DF4400A0092B196 /* Rename.swift in Sources */,
 				9BEBC7012DF4400A0092B196 /* Remote.swift in Sources */,
@@ -2966,6 +3322,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */,
+				9B081DDD2FC9887F0029B259 /* VmdkDescriptor.swift in Sources */,
 				9BEBC76B2DF440720092B196 /* ImageHandler.swift in Sources */,
 				9BEBC76C2DF440720092B196 /* VMView.swift in Sources */,
 				9BEBC76D2DF440720092B196 /* Home.swift in Sources */,
@@ -3000,7 +3357,6 @@
 				9BEBC7822DF440720092B196 /* DHCPLeases.swift in Sources */,
 				9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */,
-				9B7D682C2F17E1A700FE1B0B /* SharedPtrBridge.mm in Sources */,
 				9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */,
 				9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */,
 				9BEBC7852DF440720092B196 /* CloudImageConverter.swift in Sources */,
@@ -3079,9 +3435,15 @@
 				9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */,
 				9BEBC7B22DF440720092B196 /* XPCVMRunService.swift in Sources */,
 				9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */,
+				9B081D932FC97DB20029B259 /* VmdkHeader.swift in Sources */,
+				9B081D942FC97DB20029B259 /* VmdkError.swift in Sources */,
+				9B081D952FC97DB20029B259 /* VmdkConverter.swift in Sources */,
 				9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */,
 				9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */,
 				9BEBD1802F9CC1D20005EC80 /* SetOptions.swift in Sources */,
+				9B081B5A2FC75A1A0029B259 /* Qcow2Header.swift in Sources */,
+				9B081B5B2FC75A1A0029B259 /* Qcow2Error.swift in Sources */,
+				9B081B5C2FC75A1A0029B259 /* Qcow2Converter.swift in Sources */,
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
 				9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */,
@@ -3352,6 +3714,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "CakerVMnet 4";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "CakerVMnet 4";
 				REGISTER_APP_GROUPS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "SPARKLE DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -3399,6 +3762,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "CakerVMnet 4";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "CakerVMnet 4";
 				REGISTER_APP_GROUPS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = SPARKLE;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -3612,9 +3976,9 @@
 		9BFE869F2F7E592B005CC9B2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -3644,7 +4008,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -3816,8 +4180,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-async-algorithms";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = revision;
+				revision = 042e1c4d9d19748c9c228f8d4ebc97bb1e339b0b;
 			};
 		};
 		9B464B8C2D5A3F5800164BF5 /* XCRemoteSwiftPackageReference "SwiftDate" */ = {
@@ -3985,7 +4349,7 @@
 			repositoryURL = "https://github.com/apple/swift-log";
 			requirement = {
 				kind = exactVersion;
-				version = 1.8.0;
+				version = 1.10.1;
 			};
 		};
 		9B464BF82D5A41CF00164BF5 /* XCRemoteSwiftPackageReference "Shout" */ = {
@@ -4012,20 +4376,28 @@
 				kind = branch;
 			};
 		};
+		9B602FA02FAA5C3800055543 /* XCRemoteSwiftPackageReference "vapor" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/vapor.git";
+			requirement = {
+				kind = exactVersion;
+				version = 4.121.4;
+			};
+		};
 		9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/asam139/Steps";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.3.9;
+				kind = exactVersion;
+				version = 0.3.9;
 			};
 		};
 		9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Fred78290/royalvnc.git";
 			requirement = {
-				branch = a43bcb045beed438a788d855c309ffa060ca8857;
-				kind = branch;
+				kind = revision;
+				revision = 9d88e35a1a1ccc2e9a0a4d6fc6faeb266559a7c7;
 			};
 		};
 		9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
@@ -4034,6 +4406,14 @@
 			requirement = {
 				kind = revision;
 				revision = 6c0bec1dc8db9e07a7738b06f380998a670e1fbc;
+			};
+		};
+		9B96F1462FC5D70B00C25306 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-collections.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.2.0;
 			};
 		};
 		9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */ = {
@@ -4048,8 +4428,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/swiftlang/swift-subprocess.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.4.0;
+				kind = exactVersion;
+				version = 0.4.0;
 			};
 		};
 		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {
@@ -4065,7 +4445,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
 			requirement = {
 				kind = revision;
-				revision = 392d851ce59aa7f14aeafe7fbfbef87b02219e28;
+				revision = a2f355faf4c4a8e97cca00344f2537b0511965db;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -4305,6 +4685,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9BC1F9962F6D469A00A83B33 /* XCRemoteSwiftPackageReference "swift-subprocess" */;
 			productName = Subprocess;
+		};
+		9B602FA12FAA5C3800055543 /* Vapor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B602FA02FAA5C3800055543 /* XCRemoteSwiftPackageReference "vapor" */;
+			productName = Vapor;
 		};
 		9B6ECD932E22B5400003ACED /* TextTable */ = {
 			isa = XCSwiftPackageProductDependency;

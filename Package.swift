@@ -13,12 +13,11 @@ let package = Package(
 		.executable(name: "cakectl", targets: ["cakectl"]),
 		.library(name: "CakedLib", targets: ["CakedLib"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"]),
-		.library(name: "SharedPtrBridge", targets: ["SharedPtrBridge"]),
 	],
 	dependencies: [
 		.package(url :"https://github.com/Fred78290/FileMonitor.git", revision: "82bf1ff8dbaccac3359cfd6b49f30db690c8dc38"),
-		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "a43bcb045beed438a788d855c309ffa060ca8857"),
-		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "392d851ce59aa7f14aeafe7fbfbef87b02219e28"),
+		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "9d88e35a1a1ccc2e9a0a4d6fc6faeb266559a7c7"),
+		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "a2f355faf4c4a8e97cca00344f2537b0511965db"),
 		.package(url: "https://github.com/Fred78290/containerization", revision: "c829f8d7b56b405c2e80b0b5e29fdde679dc73cc"),
 		.package(url: "https://github.com/Fred78290/GzipSwift", branch: "main"),
 		.package(url: "https://github.com/Fred78290/Multipart.git", revision: "9901ef8f452ed13e176c49e4b079f2daada76bde"),
@@ -34,12 +33,12 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-atomics.git", exact: "1.3.0"),
 		.package(url: "https://github.com/apple/swift-certificates.git", exact: "1.17.0"),
 		.package(url: "https://github.com/apple/swift-crypto.git", exact: "3.15.1"),
-		.package(url: "https://github.com/apple/swift-log.git", exact: "1.8.0"),
-		.package(url: "https://github.com/apple/swift-nio-extras.git", exact: "1.31.2"),
-		.package(url: "https://github.com/apple/swift-nio-http2.git", exact: "1.39.0"),
-		.package(url: "https://github.com/apple/swift-nio-ssh.git", exact: "0.12.0"),
-		.package(url: "https://github.com/apple/swift-nio-ssl.git", exact: "2.36.0"),
-		.package(url: "https://github.com/apple/swift-nio.git", exact: "2.92.1"),
+		.package(url: "https://github.com/apple/swift-log.git", exact: "1.10.1"),
+		.package(url: "https://github.com/apple/swift-nio-extras.git", exact: "1.34.0"),
+		.package(url: "https://github.com/apple/swift-nio-http2.git", exact: "1.43.0"),
+		.package(url: "https://github.com/apple/swift-nio-ssh.git", exact: "0.13.0"),
+		.package(url: "https://github.com/apple/swift-nio-ssl.git", exact: "2.37.0"),
+		.package(url: "https://github.com/apple/swift-nio.git", exact: "2.99.0"),
 		.package(url: "https://github.com/apple/swift-protobuf.git", exact: "1.35.0"),
 		.package(url: "https://github.com/Appracatappra/SwiftletUtilities.git", exact: "2.0.6"),
 		.package(url: "https://github.com/asam139/Steps.git", exact: "0.3.9"),
@@ -48,6 +47,7 @@ let package = Package(
 		.package(url: "https://github.com/getsentry/sentry-cocoa", exact: "8.49.2"),
 		.package(url: "https://github.com/groue/Semaphore", exact: "0.0.8"),
 		.package(url: "https://github.com/grpc/grpc-swift.git", exact: "1.27.2"),
+		.package(url: "https://github.com/vapor/vapor.git", from: "4.121.4"),
 		.package(url: "https://github.com/jozefizso/swift-xattr", exact: "3.0.0"),
 		.package(url: "https://github.com/jpsim/Yams", exact: "5.1.3"),
 		.package(url: "https://github.com/malcommac/SwiftDate", exact: "7.0.0"),
@@ -63,16 +63,6 @@ let package = Package(
 		//.package(url: "https://github.com/the-swift-collective/zlib", branch: "main")
 	],
 	targets: [
-		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
-		.target(name: "SharedPtrBridge", 
-			path: "Sources/SharedPtrBridge",
-			sources: ["SharedPtrBridge.mm"],
-			publicHeadersPath: ".",
-			cxxSettings: [
-				.headerSearchPath("."),
-				.define("_LIBCPP_HAS_NO_CHAR8_T")
-			]
-		),
 		.target(name: "GRPCLib", dependencies: [
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "Dynamic", package: "Dynamic"),
@@ -87,8 +77,6 @@ let package = Package(
 		]),
 		.target(name: "CakedLib", dependencies: [
 			.target(name: "GRPCLib"),
-			.target(name: "Qcow2convert"),
-			.target(name: "SharedPtrBridge"),
 			.product(name: "Algorithms", package: "swift-algorithms"),
 			.product(name: "Antlr4Static", package: "Antlr4"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
@@ -158,6 +146,9 @@ let package = Package(
 			.product(name: "SwiftletUtilities", package: "SwiftletUtilities"),
 			.product(name: "Sparkle", package: "Sparkle"),
 		],
+		swiftSettings: [
+			.define("SPARKLE")
+		],
 		linkerSettings: [
 			.unsafeFlags([
 				"-Xlinker", "-rpath",
@@ -172,6 +163,7 @@ let package = Package(
 			.product(name: "CakeAgentLib", package: "CakeAgent"),
 			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding"),
 			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
+			.product(name: "Vapor", package: "vapor"),
 		]),
 		.executableTarget(name: "cakectl", dependencies: [
 			.target(name: "GRPCLib"),

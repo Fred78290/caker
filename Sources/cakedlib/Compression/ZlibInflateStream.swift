@@ -12,11 +12,15 @@ final class ZlibInflateStream: ZlibStream {
 		case decompressedDataLengthMismatch
 	}
 
+	private let windowBits: Int32
+
+	init(windowBits: Int32 = Int32(MAX_WBITS)) throws {
+		self.windowBits = windowBits
+		try super.init()
+	}
+
 	override func setupStream() throws {
-		var version = ZLIB_VERSION
-		let status = withUnsafeMutablePointer(to: &version) { versionPtr in
-			return inflateInit_(streamPtr, versionPtr, .init(MemoryLayout<z_stream>.size))
-		}
+		let status = inflateInit2_(streamPtr, windowBits, zlibVersion(), .init(MemoryLayout<z_stream>.size))
 
 		guard ZlibError.isSuccess(status) else {
 			throw Self.error(streamPtr: streamPtr, status: status)
