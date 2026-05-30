@@ -159,24 +159,22 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 	
 	public func didScreenshot(_ vm: VirtualMachine, screenshot: NSImage) {
 		if let pngData = screenshot.pngData {
-if self.lastScreenshotData != pngData {
+			if self.lastScreenshotData != pngData {
 				do {
 					try pngData.write(to: self.vm.location.screenshotURL)
 					self.lastScreenshotData = pngData
 				} catch {
 					self.logger.error("Failed to write VM \(self.name) screenshot: \(error)")
 				}
-			}
-			}
 
-			if let stream {
-				self.logger.trace("VM \(self.name) send screenshot")
-				
-				stream.continuation.yield(.screenshot(pngData))
-			} else {
-				self.logger.trace("VM \(self.name) can't send screenshot, stream closed")
+				if let stream {
+					self.logger.trace("VM \(self.name) send screenshot")
+					
+					stream.continuation.yield(.screenshot(pngData))
+				} else {
+					self.logger.trace("VM \(self.name) can't send screenshot, stream closed")
+				}
 			}
 		}
 	}
-	
 }
