@@ -1,5 +1,6 @@
 import Foundation
 import System
+import Synchronization
 
 struct ARPEntry {
 	let ipAddress: String
@@ -15,8 +16,7 @@ class ARPParser: DHCPLeaseProvider {
 
 	// Keep ARP data fresh while avoiding spawning `/usr/sbin/arp` repeatedly during polling loops.
 	private static let cacheTTL: TimeInterval = 10
-	private static let cacheLock = NSLock()
-	private static var cache: CacheEntry?
+	private static let cache: Mutex<CacheEntry?> = Mutex(nil)
 
 	let arp: [String: ARPEntry]
 
@@ -60,27 +60,24 @@ class ARPParser: DHCPLeaseProvider {
 			return cachedArp
 		}
 
-		let parsedArp = Self.parseArp(arpOutput: try Shell.exec(FilePath("/usr/sbin/arp"), arguments: ["-an"]))
-		Self.updateCache(parsedArp)
-		return parsedArp
+		return Self.updateCache(Self.parseArp(arpOutput: try Shell.exec(FilePath("/usr/sbin/arp"), arguments: ["-an"])))
 	}
 
 	private static func freshCache() -> [String: ARPEntry]? {
-		Self.cacheLock.lock()
-		defer {
-			Self.cacheLock.unlock()
+		return self.cache.withLock {
+			guard let cache = $0, Date().timeIntervalSince(cache.timestamp) < Self.cacheTTL else {
+				return nil
+			}
+
+			return cache.arp
 		}
-		guard let cache = Self.cache, Date().timeIntervalSince(cache.timestamp) < Self.cacheTTL else {
-			return nil
-		}
-		return cache.arp
 	}
 
-	private static func updateCache(_ arp: [String: ARPEntry]) {
-		Self.cacheLock.lock()
-		defer {
-			Self.cacheLock.unlock()
+	private static func updateCache(_ arp: [String: ARPEntry]) -> [String: ARPEntry] {
+		return self.cache.withLock {
+			$0 = CacheEntry(timestamp: Date(), arp: arp)
+
+			return arp
 		}
-		Self.cache = CacheEntry(timestamp: Date(), arp: arp)
 	}
 }
