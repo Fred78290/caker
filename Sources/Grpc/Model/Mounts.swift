@@ -72,10 +72,15 @@ public struct MountInfos: Codable {
 		self.reason = reason
 	}
 
-	public init(fromJSON: String) {
-		let decoder = JSONDecoder()
+	private static let decoder = JSONDecoder()
 
-		self = try! decoder.decode(Self.self, from: fromJSON.data(using: .utf8)!)
+	public init(fromJSON: String) {
+		guard let data = fromJSON.data(using: .utf8),
+			  let decoded = try? MountInfos.decoder.decode(Self.self, from: data) else {
+			self.init()
+			return
+		}
+		self = decoded
 	}
 
 	public func withDirectorySharingAttachment(directorySharingAttachment: DirectorySharingAttachments) -> MountInfos {
@@ -105,11 +110,13 @@ public struct MountInfos: Codable {
 		return message
 	}
 
+	private static let encoder: JSONEncoder = {
+		let e = JSONEncoder()
+		e.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+		return e
+	}()
+
 	public func toJSON() -> String {
-		let encoder = JSONEncoder()
-
-		encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
-
-		return try! encoder.encode(self).toString()
+		(try? MountInfos.encoder.encode(self).toString()) ?? "{}"
 	}
 }
