@@ -53,18 +53,6 @@ final class GrandCentralDispatch {
 	}
 
 	func addListener(_ continuation: AsyncThrowingStreamCakedReplyContinuation) -> ListenerID {
-		let runningVirtualMachines: [VMLocation]
-		do {
-			runningVirtualMachines = try StorageLocation(runMode: runMode).list().values.compactMap {
-				if case .running = $0.status {
-					return $0
-				}
-				return nil
-			}
-		} catch {
-			self.logger.error("Unable to list virtual machines before adding listener: \(error)")
-			runningVirtualMachines = []
-		}
 
 		var startUpdates = false
 		let id = self.listeners.withLock { dict in
@@ -83,9 +71,22 @@ final class GrandCentralDispatch {
 		}
 
 		if startUpdates {
-			runningVirtualMachines.forEach {
-				self.startGrandCentralUpdate(location: $0)
+			do {
+				let runningVirtualMachines = try StorageLocation(runMode: runMode).list().values.compactMap {
+					if case .running = $0.status {
+						return $0
+					}
+
+					return nil
+				}
+
+				runningVirtualMachines.forEach {
+					self.startGrandCentralUpdate(location: $0)
+				}
+			} catch {
+				self.logger.error("Unable to list virtual machines before adding listener: \(error)")
 			}
+
 		}
 
 		return id
