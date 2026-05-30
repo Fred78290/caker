@@ -171,26 +171,6 @@ extension FileHandle {
 }
 
 extension Process {
-	fileprivate func waitForExitAsync() async {
-		await withCheckedContinuation { continuation in
-			let resumeActor = ProcessExitContinuationActor(continuation)
-
-			self.terminationHandler = { process in
-				process.terminationHandler = nil
-				Task {
-					await resumeActor.resume()
-				}
-			}
-
-			if !self.isRunning {
-				self.terminationHandler = nil
-				Task {
-					await resumeActor.resume()
-				}
-			}
-		}
-	}
-
 	@discardableResult fileprivate func command(
 		_ command: String,
 		arguments: [String],
@@ -262,9 +242,7 @@ extension Process {
 			self.launch()
 		}
 
-		Task<Void, Never>.sync {
-			await self.waitForExitAsync()
-		}
+		waitUntilExit()
 
 		if let handle = outputHandle, !handle.isStandard {
 			handle.closeFile()
@@ -369,9 +347,7 @@ extension Process {
 			self.launch()
 		}
 
-		Task<Void, Never>.sync {
-			await self.waitForExitAsync()
-		}
+		waitUntilExit()
 
 		if let handle = outputHandle, !handle.isStandard {
 			handle.closeFile()
@@ -490,9 +466,7 @@ extension ProcessWithSharedFileHandle {
 			self.launch()
 		}
 
-		Task<Void, Never>.sync {
-			await self.waitForExitAsync()
-		}
+		waitUntilExit()
 
 		if let handle = outputHandle, !handle.isStandard {
 			handle.closeFile()
