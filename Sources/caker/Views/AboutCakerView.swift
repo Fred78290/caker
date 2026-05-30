@@ -30,7 +30,7 @@ public struct AboutCakerView: View {
 			// Section des crédits et liens
 			creditsSection
 		}
-		.frame(width: 520, height: 660)
+		.frame(width: 520, height: 680)
 		.background(Color(NSColor.windowBackgroundColor))
 		//.cornerRadius(12)
 		.shadow(radius: 10)
