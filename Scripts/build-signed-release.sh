@@ -34,8 +34,8 @@ trap cleanup_swift_package_mirror EXIT
 
 /usr/bin/swift package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
 /usr/bin/swift package resolve
-/usr/bin/swift build -c release --arch x86_64
-/usr/bin/swift build -c release --arch arm64
+/usr/bin/swift build -c release --arch x86_64 -Xswiftc -D -Xswiftc SPARKLE
+/usr/bin/swift build -c release --arch arm64 -Xswiftc -D -Xswiftc SPARKLE
 
 mkdir -p ${BINARYDIR}
 

@@ -8143,7 +8143,18 @@
         }
       }
     },
+    "Remote control via CLI and API via GUI and Web" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contrôle à distance via CLI et API via GUI et Web"
+          }
+        }
+      }
+    },
     "Remote control via CLI and API with SwiftUI and Web" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
