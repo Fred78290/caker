@@ -371,6 +371,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	private let logger = Logger("VirtualMachine")
 	private var gcd: GrandCentralUpdater? = nil
 	private var installAgentRetryTask: Task<Void, Never>? = nil
+	private var cachedScreenshotSaveEnabled: Bool?
 
 	public var suspendable: Bool {
 		return self.config.suspendable
@@ -1130,16 +1131,21 @@ extension VirtualMachine {
 
 // MARK: - Screenshoot
 extension VirtualMachine {
-	nonisolated var isScreenshotEnabled: Bool {
-		!UserDefaults.standard.bool(forKey: "NoScreenshot")
-	}
+	private func refreshScreenshotSettingsCache() -> (enabled: Bool, save: Bool) {
+		let enabled = !UserDefaults.standard.bool(forKey: "NoScreenshot")
+		let save = enabled && !UserDefaults.standard.bool(forKey: "NoSaveScreenshot")
 
-	nonisolated private var isScreenshotSaveEnabled: Bool {
-		isScreenshotEnabled && !UserDefaults.standard.bool(forKey: "NoSaveScreenshot")
+		self.cachedScreenshotSaveEnabled = save
+
+		return (enabled, save)
 	}
 
 	func startScreenshotTimer() -> Timer {
-		if !isScreenshotSaveEnabled {
+		let screenshotSettings = self.refreshScreenshotSettingsCache()
+		let screenshotEnabled = screenshotSettings.enabled
+		let screenshotSaveEnabled = screenshotSettings.save
+
+		if !screenshotSaveEnabled {
 			try? deleteScreenshot()
 		}
 
@@ -1149,7 +1155,7 @@ extension VirtualMachine {
 				return
 			}
 
-			guard self.isScreenshotEnabled else {
+			guard screenshotEnabled else {
 				return
 			}
 
@@ -1164,7 +1170,11 @@ extension VirtualMachine {
 	}
 
 	private func saveScreenshot() throws {
-		guard isScreenshotSaveEnabled else {
+		if self.cachedScreenshotSaveEnabled == nil {
+			_ = self.refreshScreenshotSettingsCache()
+		}
+
+		guard self.cachedScreenshotSaveEnabled == true else {
 			return
 		}
 

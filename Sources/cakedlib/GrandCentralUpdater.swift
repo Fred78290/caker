@@ -27,6 +27,7 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 	private var stream: AsyncThrowingStreamCurrentStatusReply?
 	private let logger = Logger("GrandCentralUpdater")
 	private var lastStatus = VMLocation.Status.stopped
+	private var lastScreenshotData: Data?
 	
 	public init(vm: VirtualMachine, runMode: Utils.RunMode) throws {
 		self.vm = vm
@@ -158,7 +159,15 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 	
 	public func didScreenshot(_ vm: VirtualMachine, screenshot: NSImage) {
 		if let pngData = screenshot.pngData {
-			try? pngData.write(to: self.vm.location.screenshotURL)
+if self.lastScreenshotData != pngData {
+				do {
+					try pngData.write(to: self.vm.location.screenshotURL)
+					self.lastScreenshotData = pngData
+				} catch {
+					self.logger.error("Failed to write VM \(self.name) screenshot: \(error)")
+				}
+			}
+			}
 
 			if let stream {
 				self.logger.trace("VM \(self.name) send screenshot")
@@ -171,4 +180,3 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 	}
 	
 }
-

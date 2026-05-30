@@ -112,8 +112,7 @@ class Curl {
 		let fileHandle = try FileHandle(forWritingTo: store)
 
 		for try await chunk in result.channel {
-			let chunkAsData = Data(chunk)
-			fileHandle.write(chunkAsData)
+			fileHandle.write(chunk)
 		}
 
 		try fileHandle.close()

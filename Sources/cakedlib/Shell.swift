@@ -5,6 +5,25 @@ import System
 
 nonisolated(unsafe) private var tartLocation: String = String.empty
 
+fileprivate enum ShellProcessQueues {
+	static let commandOutput = DispatchQueue(label: "caker.shell.command-output-queue")
+	static let sudoOutput = DispatchQueue(label: "caker.shell.sudo-output-queue")
+	static let bashOutput = DispatchQueue(label: "caker.shell.bash-output-queue")
+}
+
+fileprivate actor ProcessExitContinuationActor {
+	private var continuation: CheckedContinuation<Void, Never>?
+
+	init(_ continuation: CheckedContinuation<Void, Never>) {
+		self.continuation = continuation
+	}
+
+	func resume() {
+		continuation?.resume()
+		continuation = nil
+	}
+}
+
 public struct ShellError: Swift.Error {
 	/// The termination status of the command that was run
 	public let terminationStatus: Int32
@@ -21,6 +40,10 @@ public struct ShellError: Swift.Error {
 }
 
 public struct Shell {
+	/// Cap buffered subprocess output to avoid unbounded memory growth for noisy commands.
+	/// 100 MB keeps typical command output intact while preventing OOM on very verbose tools.
+	private static let maxSubprocessOutputSize = 100 * 1024 * 1024
+
 	@discardableResult static public func sudo(
 		to command: String,
 		at path: String = ".",
@@ -77,7 +100,12 @@ public struct Shell {
 
 	@discardableResult static public func exec(_ name: String, arguments: [String]) throws -> String {
 		return try Task.sync {
-			let result = try await Subprocess.run(.name(name), arguments: .init(arguments), output: .string(limit: Int.max), error: .string(limit: Int.max))
+			let result = try await Subprocess.run(
+				.name(name),
+				arguments: .init(arguments),
+				output: .string(limit: Self.maxSubprocessOutputSize),
+				error: .string(limit: Self.maxSubprocessOutputSize)
+			)
 
 			if let out: String = result.standardOutput {
 				return out.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -93,7 +121,12 @@ public struct Shell {
 
 	@discardableResult static public func exec(_ command: FilePath, arguments: [String]) throws -> String {
 		return try Task.sync {
-			let result = try await Subprocess.run(.path(command), arguments: .init(arguments), output: .string(limit: Int.max), error: .string(limit: Int.max))
+			let result = try await Subprocess.run(
+				.path(command),
+				arguments: .init(arguments),
+				output: .string(limit: Self.maxSubprocessOutputSize),
+				error: .string(limit: Self.maxSubprocessOutputSize)
+			)
 
 			if let out: String = result.standardOutput {
 				return out.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -157,7 +190,7 @@ extension Process {
 		// different queue from the calling queue, avoid a data race by
 		// protecting reads and writes to outputData and errorData on
 		// a single dispatch queue.
-		let outputQueue = DispatchQueue(label: "sudo-output-queue")
+		let outputQueue = ShellProcessQueues.commandOutput
 
 		var outputData = Data()
 		var errorData = Data()
@@ -264,7 +297,7 @@ extension Process {
 		// different queue from the calling queue, avoid a data race by
 		// protecting reads and writes to outputData and errorData on
 		// a single dispatch queue.
-		let outputQueue = DispatchQueue(label: "sudo-output-queue")
+		let outputQueue = ShellProcessQueues.sudoOutput
 
 		var outputData = Data()
 		var errorData = Data()
@@ -344,6 +377,26 @@ extension Process {
 }
 
 extension ProcessWithSharedFileHandle {
+	fileprivate func waitForExitAsync() async {
+		await withCheckedContinuation { continuation in
+			let resumeActor = ProcessExitContinuationActor(continuation)
+
+			self.terminationHandler = { process in
+				process.terminationHandler = nil
+				Task {
+					await resumeActor.resume()
+				}
+			}
+
+			if !self.isRunning {
+				self.terminationHandler = nil
+				Task {
+					await resumeActor.resume()
+				}
+			}
+		}
+	}
+
 	@discardableResult fileprivate func bash(
 		with command: String,
 		input: String? = nil,
@@ -369,7 +422,7 @@ extension ProcessWithSharedFileHandle {
 		// different queue from the calling queue, avoid a data race by
 		// protecting reads and writes to outputData and errorData on
 		// a single dispatch queue.
-		let outputQueue = DispatchQueue(label: "bash-output-queue")
+		let outputQueue = ShellProcessQueues.bashOutput
 
 		var outputData = Data()
 		var errorData = Data()
