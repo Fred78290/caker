@@ -13,7 +13,7 @@ ASSETS="${BUILDDIR}/assets"
 
 set -e
 
-/usr/bin/swift build
+/usr/bin/swift build -Xswiftc -D -Xswiftc SPARKLE
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 

@@ -11,6 +11,6 @@ SPARKLE_PUBLIC_KEY=$(cat "${PROJECT_ROOT}/.sparkle/sparkle_public_key.pem" | tr 
 
 export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 
-/usr/bin/swift build -Xswiftc -diagnostic-style=llvm
+/usr/bin/swift build -Xswiftc -diagnostic-style=llvm -Xswiftc -D -Xswiftc SPARKLE
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"

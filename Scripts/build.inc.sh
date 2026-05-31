@@ -3,6 +3,8 @@ SPARKLE_PUBLIC_KEY=${SPARKLE_PUBLIC_KEY:-}
 DEVELOPER_ID=${DEVELOPER_ID:-}
 CODESIGN_REQUIREMENT=${CODESIGN_REQUIREMENT:-}
 RELEASE=${RELEASE:-0}
+APPSTORE=${APPSTORE:-0}
+
 export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 
 CAKER_APP="${PKGDIR}/Contents"
@@ -51,17 +53,19 @@ actool "${RESOURCESDIR}/Assets.xcassets" \
 	--minimum-deployment-target 15.0 \
 	--platform macosx
 
-SPARKLE_FRAMEWORK="${CAKER_APP}/Frameworks/Sparkle.framework"
+if [ $APPSTORE -eq 0 ]; then
+	SPARKLE_FRAMEWORK="${CAKER_APP}/Frameworks/Sparkle.framework"
 
-cp -R "${BUILDDIR}/Sparkle.framework" "${CAKER_APP}/Frameworks/"
+	cp -R "${BUILDDIR}/Sparkle.framework" "${CAKER_APP}/Frameworks/"
 
-for FILE in Headers PrivateHeaders Modules Versions/Current/XPCServices/Downloader.xpc; do
-	FILE="${SPARKLE_FRAMEWORK}/${FILE}"
-	
-	if [ -d "${FILE}" ]; then
-		rm -rf "${FILE}"
-	fi
-done
+	for FILE in Headers PrivateHeaders Modules Versions/Current/XPCServices/Downloader.xpc; do
+		FILE="${SPARKLE_FRAMEWORK}/${FILE}"
+		
+		if [ -d "${FILE}" ]; then
+			rm -rf "${FILE}"
+		fi
+	done
+fi
 
 cp -c "${BINARYDIR}/Caker" "${CAKER_APP}/MacOS/Caker"
 cp -c "${BINARYDIR}/cakectl" "${CAKED_APP}/MacOS/cakectl"
@@ -75,15 +79,21 @@ cp -c "${ASSETS}/Assets.car" "${CAKER_APP}/Resources/Assets.car"
 
 cp -c "${PROJECT_ROOT}/Resources/Prompt.png" "${CAKER_APP}/Resources/Prompt.png"
 cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${CAKER_APP}/Resources/Icons"
-cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
 cp -c "${PROJECT_ROOT}/Resources/Info.plist" "${CAKER_APP}/Info.plist"
 
 cp -c "${PROJECT_ROOT}/Resources/VM.icns" "${CAKED_APP}/Resources/VM.icns"
 cp -c "${PROJECT_ROOT}/Resources/VM.png" "${CAKED_APP}/Resources/VM.png"
 cp -c "${PROJECT_ROOT}/Resources/caked.plist" "${CAKED_APP}/Info.plist"
-cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
 
-if [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
+if [ $APPSTORE -eq 0 ]; then
+	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
+else
+	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
+fi
+
+if [ $APPSTORE -eq 0 ] && [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
 	if [[ "${VERSION}" =~ SNAPSHOT ]]; then
 		APPCAST_URL="https://caker.aldunelabs.com/appcast/appcast-prerelease.xml"
 	else
@@ -100,7 +110,46 @@ plutil -replace CFBundleVersion -string "${VERSION}" "${CAKER_APP}/Info.plist"
 plutil -replace CFBundleShortVersionString -string "${VERSION}" "${CAKED_APP}/Info.plist"
 plutil -replace CFBundleVersion -string "${VERSION}" "${CAKED_APP}/Info.plist"
 
-if [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
+if [ "${APPSTORE}" -eq 1 ]; then
+	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/cakectl.entitlements" \
+		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/cakectl}" \
+		--preserve-metadata=identifier,entitlements,flags \
+		--force "${CAKED_APP}/MacOS/cakectl"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--preserve-metadata=identifier,entitlements,flags \
+		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/caked.entitlements" \
+		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/caked}" \
+		--force "${CAKED_APP}/MacOS/caked"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--preserve-metadata=identifier,entitlements,flags \
+		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/caked.entitlements" \
+		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+		--force "${CAKER_APP}/MacOS/Caker"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/caked.entitlements" \
+		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+		--force "${CAKER_APP}/PlugIns/caked.bundle"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--entitlements "${PROJECT_ROOT}/Resources/release.entitlements" \
+		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+		--force "${PKGDIR}"
+
+elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 	echo "Build and sign release binaries for version ${VERSION}, developer ID ${DEVELOPER_ID}"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \

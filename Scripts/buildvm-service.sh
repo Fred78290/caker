@@ -19,7 +19,7 @@ if [ -z "${VMNAME}" ]; then
     VMNAME=linux
 fi
 
-/usr/bin/swift build
+/usr/bin/swift build -Xswiftc -D -Xswiftc SPARKLE
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 
