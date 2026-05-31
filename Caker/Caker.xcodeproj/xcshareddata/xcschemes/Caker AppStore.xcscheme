@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "9B29F79E2FCAE4B700AEBCB8"
-               BuildableName = "Caker AppStore.app"
+               BuildableName = "Caker.app"
                BlueprintName = "Caker AppStore"
                ReferencedContainer = "container:Caker.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9B29F79E2FCAE4B700AEBCB8"
-            BuildableName = "Caker AppStore.app"
+            BuildableName = "Caker.app"
             BlueprintName = "Caker AppStore"
             ReferencedContainer = "container:Caker.xcodeproj">
          </BuildableReference>
@@ -63,7 +63,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9B29F79E2FCAE4B700AEBCB8"
-            BuildableName = "Caker AppStore.app"
+            BuildableName = "Caker.app"
             BlueprintName = "Caker AppStore"
             ReferencedContainer = "container:Caker.xcodeproj">
          </BuildableReference>
