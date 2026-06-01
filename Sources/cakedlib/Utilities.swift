@@ -14,6 +14,20 @@ extension Date {
 }
 
 extension Bundle {
+	public var cakerBuildPlugInsPath: [String] {
+		var paths: [String] = []
+		
+		if let cakedBundlePath = self.cakedBundlePath {
+			paths.append(cakedBundlePath)
+		}
+		
+		if let cakectlBundlePath = self.cakectlBundlePath {
+			paths.append(cakectlBundlePath)
+		}
+		
+		return paths
+	}
+
 	public var cakedBundlePath: String? {
 		guard let url = self.cakedBundleURL else {
 			return nil
@@ -29,8 +43,35 @@ extension Bundle {
 		
 		let cakedBundleURL = pluginURL.appendingPathComponent("caked.bundle/Contents/MacOS").absoluteURL
 		var isDirectory: ObjCBool = false
-
+		
 		guard FileManager.default.fileExists(atPath: cakedBundleURL.path, isDirectory: &isDirectory) else {
+			return nil
+		}
+		
+		guard isDirectory.boolValue else {
+			return nil
+		}
+		
+		return cakedBundleURL
+	}
+	
+	public var cakectlBundlePath: String? {
+		guard let url = self.cakectlBundleURL else {
+			return nil
+		}
+		
+		return url.path
+	}
+
+	public var cakectlBundleURL: URL? {
+		guard let pluginURL = self.builtInPlugInsURL else {
+			return nil
+		}
+		
+		let cakectlBundleURL = pluginURL.appendingPathComponent("cakectl.bundle/Contents/MacOS").absoluteURL
+		var isDirectory: ObjCBool = false
+
+		guard FileManager.default.fileExists(atPath: cakectlBundleURL.path, isDirectory: &isDirectory) else {
 			return nil
 		}
 

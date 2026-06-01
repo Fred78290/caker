@@ -9,8 +9,8 @@
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<key>com.apple.security.inherit</key>
-	<false/>
+	<true/>
 	<key>com.apple.security.app-sandbox</key>
-	<false/>
+	<true/>
 </dict>
 </plist>

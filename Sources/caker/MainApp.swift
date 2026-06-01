@@ -583,7 +583,9 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	static func ensurePrivilegedBootstrapFiles() {
-		guard let pluginPath = Bundle.main.cakedBundlePath else {
+		let pluginPaths = Bundle.main.cakerBuildPlugInsPath
+
+		guard pluginPaths.isEmpty == false else {
 			return
 		}
 
@@ -599,12 +601,14 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 				]
 
 				if needsPathsFile {
-					let content = pluginPath.hasSuffix("\n") ? pluginPath : "\(pluginPath)\n"
+					let content = pluginPaths.map {
+						$0.hasSuffix("\n") ? $0 : "\($0)\n"
+					}.joined()
 
 					try contents.append(contentsOf: installRootOwnedFile(content: content, to: pathsFile, mode: "0644"))
 				}
 				
-				if needsSudoersFile {
+				if let pluginPath = pluginPaths.first, needsSudoersFile {
 					let content = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
 
 					try contents.append(contentsOf: installRootOwnedFile(content: content, to: sudoersFile, mode: "0440"))
