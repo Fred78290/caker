@@ -607,15 +607,52 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 					try contents.append(contentsOf: installRootOwnedFile(content: content, to: pathsFile, mode: "0644"))
 				}
-				
+
 				if let pluginPath = pluginPaths.first, needsSudoersFile {
 					let content = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
 
 					try contents.append(contentsOf: installRootOwnedFile(content: content, to: sudoersFile, mode: "0440"))
 				}
-				
+
 				if geteuid() != 0 && contents.count > 1 {
-					try print(runPrivileged(contents))
+					do {
+						try print(runPrivileged(contents))
+					} catch {
+						let scriptBody = contents.dropFirst().joined(separator: "\n")
+						let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
+
+						MainActor.assumeIsolated {
+							let alert = NSAlert()
+							alert.messageText = String(localized: "Admin rights required")
+							alert.informativeText = String(localized: "Could not obtain admin privileges. Please run the following command in Terminal, then relaunch Caker:")
+
+							let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 460, height: 100))
+							textView.string = sudoScript
+							textView.isEditable = false
+							textView.isSelectable = true
+							textView.font = NSFont.monospacedSystemFont(ofSize: NSFont.smallSystemFontSize, weight: .regular)
+							textView.backgroundColor = NSColor.windowBackgroundColor
+
+							let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: 460, height: 100))
+							scrollView.documentView = textView
+							scrollView.hasVerticalScroller = true
+							scrollView.hasHorizontalScroller = true
+							scrollView.borderType = .bezelBorder
+
+							alert.accessoryView = scrollView
+							alert.addButton(withTitle: String(localized: "Copy & Quit"))
+							alert.addButton(withTitle: String(localized: "Quit"))
+
+							let response = alert.runModal()
+							if response == .alertFirstButtonReturn {
+								NSPasteboard.general.clearContents()
+								NSPasteboard.general.setString(sudoScript, forType: .string)
+							}
+						}
+
+						NSApp.terminate(self)
+						return
+					}
 				}
 			}
 		} catch {
@@ -690,14 +727,28 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		let appleScript = "do shell script \"\(temporaryFile.path)\" with administrator privileges"
 
 		try commands.joined(separator: "\n").write(to: temporaryFile, atomically: true, encoding: .utf8)
-		
+
 		defer {
 			try? FileManager.default.removeItem(at: temporaryFile)
 		}
 
 		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: temporaryFile.path)
 
+#if SPARKLE
 		return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
+#else
+		guard let script = NSAppleScript(source: appleScript) else {
+			throw NSError(domain: NSOSStatusErrorDomain, code: -1, userInfo: nil)
+		}
+		var errorInfo: NSDictionary?
+		let descriptor = script.executeAndReturnError(&errorInfo)
+		if let error = errorInfo {
+			let message = error[NSAppleScript.errorMessage] as? String ?? "AppleScript execution failed"
+			let code = (error[NSAppleScript.errorNumber] as? Int) ?? -1
+			throw NSError(domain: NSOSStatusErrorDomain, code: code, userInfo: [NSLocalizedDescriptionKey: message])
+		}
+		return descriptor.stringValue ?? ""
+#endif
 	}
 
 	private static func shellQuote(_ value: String) -> String {
