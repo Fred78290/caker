@@ -286,7 +286,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 		let runMode = ServiceHandler.runningMode
 		let connectionMode = ConnectionManager.ConnectionMode(runMode)
-		let installed = ServiceHandler.isAgentInstalled
+		let installed = MainApp.isAgentInstalled()
 		
 		if self.cakedServiceInstalled != installed || self.connectionMode != connectionMode {
 			// Suspend timer
@@ -303,7 +303,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	private init() {
 		let runMode = ServiceHandler.runningMode
 		let connectionManager = ConnectionManager.connectionManager(runMode)
-		let cakedServiceInstalled = ServiceHandler.isAgentInstalled
+		let cakedServiceInstalled = MainApp.isAgentInstalled()
 		let cakedServiceRunning = connectionManager.connectionMode != .app
 		
 		let env = ProcessInfo.processInfo.environment

@@ -7,7 +7,7 @@ import SwiftUI
 import SwifterSwiftUI
 import Logging
 import Security
-
+import ServiceManagement
 #if SPARKLE
 import Sparkle
 #endif
@@ -402,7 +402,7 @@ struct MainApp: App {
         // Try Keychain first
 		if let savedPassword = try? CakedKeyConfig.passphrase.get(), savedPassword.isEmpty == false {
             do {
-                try ServiceHandler.installAgent(password: savedPassword, runMode: .user)
+                try installLaunchAgent(savedPassword)
                 return
             } catch {
                 // If saved password fails, fall back to prompting
@@ -435,17 +435,55 @@ struct MainApp: App {
         }
 
         do {
-			try ServiceHandler.installAgent(password: password, runMode: .user)
+			try installLaunchAgent(password)
         } catch {
             DispatchQueue.main.async {
                 alertError(error)
             }
         }
 	}
-	
+
+	static var launchdAgentName: String {
+		return "com.aldunelabs.caker.plist"
+	}
+
+	static func isAgentInstalled() -> Bool {
+		#if USE_SMSERVICE
+		let service = SMAppService.agent(plistName: launchdAgentName)
+		
+		return (service.status == .requiresApproval) || (service.status == .enabled)
+		#else
+		return ServiceHandler.isAgentInstalled
+		#endif
+	}
+
+	static func installLaunchAgent(_ password: String?) throws {
+		#if USE_SMSERVICE
+		let service = SMAppService.agent(plistName: launchdAgentName)
+		
+		if service.status == .notFound || service.status == .notRegistered {
+			try service.register()
+		}
+		#else
+		try ServiceHandler.installAgent(password: password, runMode: .user)
+		#endif
+	}
+
+	static func uninstallLaunchAgent() throws {
+		#if USE_SMSERVICE
+		let service = SMAppService.agent(plistName: launchdAgentName)
+		
+		if service.status ==  .requiresApproval || service.status == .enabled {
+			try service.unregister()
+		}
+		#else
+		try ServiceHandler.uninstallAgent(runMode: .user)
+		#endif
+	}
+
 	static func removeCakedService() {
 		do {
-			try ServiceHandler.uninstallAgent(runMode: .user)
+			try uninstallLaunchAgent()
 		} catch {
 			DispatchQueue.main.async {
 				alertError(error)
@@ -597,82 +635,33 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 			guard needsPathsFile || needsSudoersFile else { return }
 
-#if SPARKLE
 			var contents: [String] = ["#!/bin/sh\n"]
+			var pathsContent: String = ""
+			var sudoersContent: String = ""
 
 			if needsPathsFile {
-				let content = pluginPaths.map { $0.hasSuffix("\n") ? $0 : "\($0)\n" }.joined()
-				try contents.append(contentsOf: installRootOwnedFile(content: content, to: pathsFile, mode: "0644"))
+				pathsContent = pluginPaths.map { $0.hasSuffix("\n") ? $0 : "\($0)\n" }.joined()
+				try contents.append(contentsOf: installRootOwnedFile(content: pathsContent, to: pathsFile, mode: "0644"))
 			}
+
 			if let pluginPath = pluginPaths.first, needsSudoersFile {
-				let content = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
-				try contents.append(contentsOf: installRootOwnedFile(content: content, to: sudoersFile, mode: "0440"))
+				sudoersContent = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
+				try contents.append(contentsOf: installRootOwnedFile(content: sudoersContent, to: sudoersFile, mode: "0440"))
 			}
 
 			if geteuid() != 0 && contents.count > 1 {
 				do {
+					#if SPARKLE
 					try print(runPrivileged(contents))
-				} catch {
-					let scriptBody = contents.dropFirst().joined(separator: "\n")
-					let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
-					showRunInTerminalAlert(sudoScript)
-					NSApp.terminate(self)
-					return
-				}
-			}
-#else
-			let pathsContent = needsPathsFile
-				? pluginPaths.map { $0.hasSuffix("\n") ? $0 : "\($0)\n" }.joined()
-				: ""
-			let sudoersContent: String = {
-				if let pluginPath = pluginPaths.first, needsSudoersFile {
-					return "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
-				}
-				return ""
-			}()
-
-			if geteuid() == 0 {
-				if !pathsContent.isEmpty {
-					_ = try installRootOwnedFile(content: pathsContent, to: pathsFile, mode: "0644")
-				}
-				if !sudoersContent.isEmpty {
-					_ = try installRootOwnedFile(content: sudoersContent, to: sudoersFile, mode: "0440")
-				}
-			} else {
-				do {
+					#else
 					try print(runPrivilegedWithBundledScript(pathsContent: pathsContent, sudoersContent: sudoersContent))
+					#endif
 				} catch {
-					var lines: [String] = []
-
-					if !pathsContent.isEmpty {
-						lines += [
-							"mkdir -p /etc/paths.d",
-							"printf '%s' \(shellQuote(pathsContent)) > /etc/paths.d/com.aldunelabs.caker",
-							"chmod 0644 /etc/paths.d/com.aldunelabs.caker",
-							"chown root:wheel /etc/paths.d/com.aldunelabs.caker",
-						]
-					}
-
-					if !sudoersContent.isEmpty {
-						lines += [
-							"mkdir -p /etc/sudoers.d",
-							"printf '%s' \(shellQuote(sudoersContent)) > /etc/sudoers.d/caked",
-							"chmod 0440 /etc/sudoers.d/caked",
-							"chown root:wheel /etc/sudoers.d/caked",
-						]
-					}
-
-					let sudoScript = "sudo sh << 'SUDOEOF'\n" + lines.joined(separator: "\n") + "\nSUDOEOF"
-
 					MainActor.assumeIsolated {
-						showRunInTerminalAlert(sudoScript)
+						showRunInTerminalAlert(contents)
 					}
-
-					NSApp.terminate(self)
-					return
 				}
 			}
-#endif
 		} catch {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
 
@@ -685,7 +674,10 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	@MainActor
-	private static func showRunInTerminalAlert(_ sudoScript: String) {
+	private static func showRunInTerminalAlert(_ contents: [String]) {
+		let scriptBody = contents.dropFirst().joined(separator: "\n")
+		let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
+
 		let alert = NSAlert()
 		alert.messageText = String(localized: "Admin rights required")
 		alert.informativeText = String(localized: "Could not obtain admin privileges. Please run the following command in Terminal, then relaunch Caker:")
@@ -712,6 +704,9 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			NSPasteboard.general.clearContents()
 			NSPasteboard.general.setString(sudoScript, forType: .string)
 		}
+
+		NSApp.terminate(self)
+		return
 	}
 
 	private static func installRootOwnedFile(content: String, to destination: URL, mode: String) throws -> [String] {

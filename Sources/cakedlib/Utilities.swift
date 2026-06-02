@@ -79,7 +79,7 @@ extension Bundle {
 			return nil
 		}
 
-		return cakedBundleURL
+		return cakectlBundleURL
 	}
 }
 

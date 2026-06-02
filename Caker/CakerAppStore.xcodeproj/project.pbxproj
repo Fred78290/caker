@@ -33,7 +33,6 @@
 		9B081DDD2FC9887F0029B259 /* VmdkDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */; };
 		9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AC2F743641009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
-		9B11AA492FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript in Sources */ = {isa = PBXBuildFile; fileRef = 9B11AA472FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript */; };
 		9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3402F0AD8540099F00F /* CakeAgentLib */; };
 		9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */; };
 		9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */; };
@@ -333,6 +332,7 @@
 		9BA9CBD22FCD7BAB00CEBFC0 /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
 		9BA9CBD32FCD7BB400CEBFC0 /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
 		9BA9CBD72FCD7EF600CEBFC0 /* cakectl.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BA9CBCA2FCD7B8000CEBFC0 /* cakectl.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9BA9CC292FCED36200CEBFC0 /* PrivilegedBootstrap.applescript in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B11AA472FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript */; };
 		9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB144D32EC33A320094D950 /* Sudo.swift */; };
 		9BB148972EC622ED0094D950 /* ContainerizationOCI in Frameworks */ = {isa = PBXBuildFile; productRef = 9BB148962EC622ED0094D950 /* ContainerizationOCI */; };
 		9BB149182EC74B830094D950 /* PullHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB149172EC74B7F0094D950 /* PullHandler.swift */; };
@@ -727,6 +727,14 @@
 			dstSubfolder = Executables;
 			files = (
 				9BA9CBD12FCD7B9F00CEBFC0 /* cakectl in CopyFiles */,
+			);
+		};
+		9BA9CC282FCED33F00CEBFC0 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = Resources;
+			files = (
+				9BA9CC292FCED36200CEBFC0 /* PrivilegedBootstrap.applescript in CopyFiles */,
 			);
 		};
 		9BEBC68C2DF43FEE0092B196 /* CopyFiles */ = {
@@ -2491,6 +2499,7 @@
 				9B29F8252FCAE4B700AEBCB8 /* Resources */,
 				9B29F8292FCAE4B700AEBCB8 /* CopyFiles */,
 				9B29F82B2FCAE4B700AEBCB8 /* CopyFiles */,
+				9BA9CC282FCED33F00CEBFC0 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -3071,7 +3080,6 @@
 				9B29F7D62FCAE4B700AEBCB8 /* NavigationModel.swift in Sources */,
 				9B29F7D72FCAE4B700AEBCB8 /* DiskAttachementView.swift in Sources */,
 				9B29F7D82FCAE4B700AEBCB8 /* InternalVirtualMachineView.swift in Sources */,
-				9B11AA492FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript in Sources */,
 				9B29F7D92FCAE4B700AEBCB8 /* VirtualMachineConfig.swift in Sources */,
 				9B29F7DA2FCAE4B700AEBCB8 /* ApplicationSettingsView.swift in Sources */,
 				9B29F7DB2FCAE4B700AEBCB8 /* Settings.swift in Sources */,
@@ -3585,6 +3593,7 @@
 				INFOPLIST_FILE = Caker/AppStore/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Caker;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Caker use AppleScript to install /etc/sudoers.d/caked and /etc/paths.d/com.aldunelabs.caker files";
 				INFOPLIST_KEY_NSHumanReadableCopyright = Fred78290;
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Caker need SSH access to running VM and create virtual network";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -3645,6 +3654,7 @@
 				INFOPLIST_FILE = Caker/AppStore/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Caker;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Caker use AppleScript to install /etc/sudoers.d/caked and /etc/paths.d/com.aldunelabs.caker files";
 				INFOPLIST_KEY_NSHumanReadableCopyright = Fred78290;
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Caker need SSH access to running VM and create virtual network";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -3956,7 +3966,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/cakectl.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;

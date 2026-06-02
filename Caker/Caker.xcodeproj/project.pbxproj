@@ -370,6 +370,10 @@
 		9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */; };
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
 		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
+		9BD69DF62FCEE912005E24AF /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
+		9BD69DF72FCEE912005E24AF /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
+		9BD69DFB2FCEE977005E24AF /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		9BD69DFD2FCEEAF3005E24AF /* cakectl.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BD69DF02FCEE8F1005E24AF /* cakectl.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */; };
 		9BDA13A72EE6D44100357544 /* OSXKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */; };
 		9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */; };
@@ -586,7 +590,6 @@
 		9BFA7D852FA5F1DB00E981F6 /* VirtualMachineDocumentState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7D842FA5F1D900E981F6 /* VirtualMachineDocumentState.swift */; };
 		9BFA7E4F2FA6256300E981F6 /* AboutCakerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */; };
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
-		9BFE86A62F7E59DC005CC9B2 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BFE87182F7E6202005CC9B2 /* caked.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9BFE876F2F7E64F1005CC9B2 /* embedded.provisionprofile in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */; };
@@ -656,19 +659,26 @@
 			remoteGlobalIDString = 9B464A532D5A3DA000164BF5;
 			remoteInfo = Caker;
 		};
+		9BD69DF42FCEE8FC005E24AF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9B464B4E2D5A3E5C00164BF5;
+			remoteInfo = cakectl;
+		};
+		9BD69DF82FCEE92E005E24AF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9BD69DEF2FCEE8F1005E24AF;
+			remoteInfo = cakectl.bundle;
+		};
 		9BDD95642DB8D43E00E46244 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 9B464A532D5A3DA000164BF5;
 			remoteInfo = Caker;
-		};
-		9BFE86A12F7E59B8005CC9B2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 9B464B4E2D5A3E5C00164BF5;
-			remoteInfo = cakectl;
 		};
 		9BFE86A32F7E59B8005CC9B2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -711,11 +721,27 @@
 				9B4EA8292F7692170044C18E /* libswiftCompatibilitySpan.dylib in CopyFiles */,
 			);
 		};
+		9BD69DFA2FCEE968005E24AF /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = Executables;
+			files = (
+				9BD69DFB2FCEE977005E24AF /* cakectl in CopyFiles */,
+			);
+		};
+		9BD69E002FCF0409005E24AF /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = Contents/Library/LaunchAgents;
+			dstSubfolder = Wrapper;
+			files = (
+			);
+		};
 		9BE569EB2DFEF9720086B9C7 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			dstPath = "";
 			dstSubfolder = PlugIns;
 			files = (
+				9BD69DFD2FCEEAF3005E24AF /* cakectl.bundle in CopyFiles */,
 				9BFE87182F7E6202005CC9B2 /* caked.bundle in CopyFiles */,
 			);
 		};
@@ -732,7 +758,6 @@
 			dstPath = "";
 			dstSubfolder = Executables;
 			files = (
-				9BFE86A62F7E59DC005CC9B2 /* cakectl in CopyFiles */,
 				9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */,
 			);
 		};
@@ -1074,6 +1099,8 @@
 		9BCEB1902ED76EB200B29B70 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
+		9BD69DF02FCEE8F1005E24AF /* cakectl.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = cakectl.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BD69DFE2FCEED57005E24AF /* cakectl.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cakectl.entitlements; sourceTree = "<group>"; };
 		9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFixedWidthInteger.swift; sourceTree = "<group>"; };
 		9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSXKeyMapper.swift; sourceTree = "<group>"; };
 		9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonKeyMapper.swift; sourceTree = "<group>"; };
@@ -1265,18 +1292,31 @@
 		9B196F3A2F588DAB00B424DB /* Exceptions for "Caker" folder in "Caker" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				AppStore.plist,
 				Info.plist,
 			);
 			target = 9B464A532D5A3DA000164BF5 /* Caker */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		9BD69E022FCF0428005E24AF /* Exceptions for "Caker" folder in "Copy Files" phase from "Caker" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			attributesByRelativePath = {
+				AppStore/com.aldunelabs.caker.plist = (CodeSignOnCopy, );
+			};
+			buildPhase = 9BD69E002FCF0409005E24AF /* CopyFiles */;
+			membershipExceptions = (
+				AppStore/com.aldunelabs.caker.plist,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9B464A562D5A3DA000164BF5 /* Caker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				9B196F3A2F588DAB00B424DB /* Exceptions for "Caker" folder in "Caker" target */,
+				9BD69E022FCF0428005E24AF /* Exceptions for "Caker" folder in "Copy Files" phase from "Caker" target */,
 			);
 			path = Caker;
 			sourceTree = "<group>";
@@ -1365,6 +1405,11 @@
 				9B21E0042F4C663D00870AD7 /* NIOHTTPCompression in Frameworks */,
 				9B21E0092F4C676800870AD7 /* libCakedLib.a in Frameworks */,
 				9BBE5C6F2F4C544E005B3359 /* XCTest.framework in Frameworks */,
+			);
+		};
+		9BD69DED2FCEE8F1005E24AF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
 			);
 		};
 		9BEBC68B2DF43FEE0092B196 /* Frameworks */ = {
@@ -1796,6 +1841,7 @@
 				9BEBC7072DF440560092B196 /* libCakedLib.a */,
 				9B96B00F2F4B68380069C970 /* CakerTests.xctest */,
 				9BFE869D2F7E592B005CC9B2 /* caked.bundle */,
+				9BD69DF02FCEE8F1005E24AF /* cakectl.bundle */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2423,6 +2469,7 @@
 		9BFE87462F7E6480005CC9B2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9BD69DFE2FCEED57005E24AF /* cakectl.entitlements */,
 				9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */,
 				9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */,
 				9BFE87362F7E6480005CC9B2 /* AppIcon.icns */,
@@ -2473,10 +2520,12 @@
 				9B464A522D5A3DA000164BF5 /* Resources */,
 				9BE569EB2DFEF9720086B9C7 /* CopyFiles */,
 				9B4EA8252F76912A0044C18E /* CopyFiles */,
+				9BD69E002FCF0409005E24AF /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				9BD69DF92FCEE92E005E24AF /* PBXTargetDependency */,
 				9BFE87172F7E61F1005CC9B2 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
@@ -2601,6 +2650,26 @@
 			productName = CakerTests;
 			productReference = 9B96B00F2F4B68380069C970 /* CakerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		9BD69DEF2FCEE8F1005E24AF /* cakectl.bundle */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9BD69DF12FCEE8F1005E24AF /* Build configuration list for PBXNativeTarget "cakectl.bundle" */;
+			buildPhases = (
+				9BD69DEC2FCEE8F1005E24AF /* Sources */,
+				9BD69DED2FCEE8F1005E24AF /* Frameworks */,
+				9BD69DEE2FCEE8F1005E24AF /* Resources */,
+				9BD69DFA2FCEE968005E24AF /* CopyFiles */,
+				9BD69DFC2FCEE989005E24AF /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9BD69DF52FCEE8FC005E24AF /* PBXTargetDependency */,
+			);
+			name = cakectl.bundle;
+			productName = cakectl.bundle;
+			productReference = 9BD69DF02FCEE8F1005E24AF /* cakectl.bundle */;
+			productType = "com.apple.product-type.bundle";
 		};
 		9BEBC68D2DF43FEE0092B196 /* caked */ = {
 			isa = PBXNativeTarget;
@@ -2729,9 +2798,9 @@
 			productReference = 9BEBC7072DF440560092B196 /* libCakedLib.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		9BFE869C2F7E592B005CC9B2 /* bundle */ = {
+		9BFE869C2F7E592B005CC9B2 /* caked.bundle */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9BFE869E2F7E592B005CC9B2 /* Build configuration list for PBXNativeTarget "bundle" */;
+			buildConfigurationList = 9BFE869E2F7E592B005CC9B2 /* Build configuration list for PBXNativeTarget "caked.bundle" */;
 			buildPhases = (
 				9BFE86992F7E592B005CC9B2 /* Sources */,
 				9BFE869A2F7E592B005CC9B2 /* Frameworks */,
@@ -2744,10 +2813,9 @@
 			buildRules = (
 			);
 			dependencies = (
-				9BFE86A22F7E59B8005CC9B2 /* PBXTargetDependency */,
 				9BFE86A42F7E59B8005CC9B2 /* PBXTargetDependency */,
 			);
-			name = bundle;
+			name = caked.bundle;
 			productName = bundle;
 			productReference = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */;
 			productType = "com.apple.product-type.bundle";
@@ -2775,6 +2843,9 @@
 					};
 					9B96B00E2F4B68380069C970 = {
 						CreatedOnToolsVersion = 26.2;
+					};
+					9BD69DEF2FCEE8F1005E24AF = {
+						CreatedOnToolsVersion = 26.5;
 					};
 					9BDD955E2DB8D41B00E46244 = {
 						CreatedOnToolsVersion = 16.3;
@@ -2855,7 +2926,8 @@
 				9B464C5B2D5A459B00164BF5 /* GRPCLib */,
 				9BEBC7062DF440560092B196 /* CakedLib */,
 				9B96B00E2F4B68380069C970 /* CakerTests */,
-				9BFE869C2F7E592B005CC9B2 /* bundle */,
+				9BFE869C2F7E592B005CC9B2 /* caked.bundle */,
+				9BD69DEF2FCEE8F1005E24AF /* cakectl.bundle */,
 			);
 		};
 /* End PBXProject section */
@@ -2879,6 +2951,13 @@
 			isa = PBXResourcesBuildPhase;
 			files = (
 				9B96B0182F4B68480069C970 /* TestPlan.xctestplan in Resources */,
+			);
+		};
+		9BD69DEE2FCEE8F1005E24AF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				9BD69DF62FCEE912005E24AF /* VM.icns in Resources */,
+				9BD69DF72FCEE912005E24AF /* VM.png in Resources */,
 			);
 		};
 /* End PBXResourcesBuildPhase section */
@@ -2947,6 +3026,22 @@
 				"",
 				"popd",
 				"",
+				"",
+			);
+		};
+		9BD69DFC2FCEE989005E24AF /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			inputPaths = (
+				"${SOURCE_ROOT}/../Resources/Localizable.xcstrings",
+			);
+			outputPaths = (
+				"${METAL_LIBRARY_OUTPUT_DIR}/en.lproj",
+				"${METAL_LIBRARY_OUTPUT_DIR}/fr.lproj",
+			);
+			shellPath = /bin/sh;
+			shellScript = (
+				"# Type a script or drag a script file from your workspace to insert its path.",
+				"xcrun xcstringstool compile --output-directory \"${METAL_LIBRARY_OUTPUT_DIR}\" \"${SOURCE_ROOT}/../Resources/Localizable.xcstrings\"",
 				"",
 			);
 		};
@@ -3166,6 +3261,11 @@
 				9B96B01C2F4B68540069C970 /* GrpcUnixSocketTest.swift in Sources */,
 				9B96B01D2F4B68540069C970 /* GrpcTcpSocketTest.swift in Sources */,
 				9B96B01E2F4B68540069C970 /* NetworkTest.swift in Sources */,
+			);
+		};
+		9BD69DEC2FCEE8F1005E24AF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
 			);
 		};
 		9BEBC68A2DF43FEE0092B196 /* Sources */ = {
@@ -3415,7 +3515,7 @@
 		};
 		9B29F8362FCAE51700AEBCB8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9BFE869C2F7E592B005CC9B2 /* bundle */;
+			target = 9BFE869C2F7E592B005CC9B2 /* caked.bundle */;
 			targetProxy = 9B29F8352FCAE51700AEBCB8 /* PBXContainerItemProxy */;
 		};
 		9B2BFA862DFED1EA000045C3 /* PBXTargetDependency */ = {
@@ -3448,15 +3548,20 @@
 			target = 9B464A532D5A3DA000164BF5 /* Caker */;
 			targetProxy = 9B96B0132F4B68380069C970 /* PBXContainerItemProxy */;
 		};
+		9BD69DF52FCEE8FC005E24AF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9B464B4E2D5A3E5C00164BF5 /* cakectl */;
+			targetProxy = 9BD69DF42FCEE8FC005E24AF /* PBXContainerItemProxy */;
+		};
+		9BD69DF92FCEE92E005E24AF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9BD69DEF2FCEE8F1005E24AF /* cakectl.bundle */;
+			targetProxy = 9BD69DF82FCEE92E005E24AF /* PBXContainerItemProxy */;
+		};
 		9BDD95652DB8D43E00E46244 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9B464A532D5A3DA000164BF5 /* Caker */;
 			targetProxy = 9BDD95642DB8D43E00E46244 /* PBXContainerItemProxy */;
-		};
-		9BFE86A22F7E59B8005CC9B2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 9B464B4E2D5A3E5C00164BF5 /* cakectl */;
-			targetProxy = 9BFE86A12F7E59B8005CC9B2 /* PBXContainerItemProxy */;
 		};
 		9BFE86A42F7E59B8005CC9B2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3465,7 +3570,7 @@
 		};
 		9BFE87172F7E61F1005CC9B2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9BFE869C2F7E592B005CC9B2 /* bundle */;
+			target = 9BFE869C2F7E592B005CC9B2 /* caked.bundle */;
 			targetProxy = 9BFE87162F7E61F1005CC9B2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -3538,7 +3643,7 @@
 				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "SPARKLE USE_SMSERVICE DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -3604,6 +3709,7 @@
 				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "SPARKLE USE_SMSERVICE";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
@@ -3650,7 +3756,6 @@
 				PROVISIONING_PROFILE_SPECIFIER = "CakerVMnet 4";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "CakerVMnet 4";
 				REGISTER_APP_GROUPS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "SPARKLE DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -3698,7 +3803,6 @@
 				PROVISIONING_PROFILE_SPECIFIER = "CakerVMnet 4";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "CakerVMnet 4";
 				REGISTER_APP_GROUPS = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = SPARKLE;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -3821,6 +3925,66 @@
 			};
 			name = Release;
 		};
+		9BD69DF22FCEE8F1005E24AF /* Debug configuration for PBXNativeTarget "cakectl.bundle" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ../Resources/cakectl.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ../Resources/cakectl.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = cakectl;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSPrincipalClass = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_NAME = cakectl;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Debug;
+		};
+		9BD69DF32FCEE8F1005E24AF /* Release configuration for PBXNativeTarget "cakectl.bundle" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ../Resources/cakectl.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ../Resources/cakectl.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = cakectl;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSPrincipalClass = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_NAME = cakectl;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				WRAPPER_EXTENSION = bundle;
+			};
+			name = Release;
+		};
 		9BDD95602DB8D41B00E46244 /* Debug configuration for PBXAggregateTarget "All" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3909,7 +4073,7 @@
 			};
 			name = Release;
 		};
-		9BFE869F2F7E592B005CC9B2 /* Debug configuration for PBXNativeTarget "bundle" */ = {
+		9BFE869F2F7E592B005CC9B2 /* Debug configuration for PBXNativeTarget "caked.bundle" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
@@ -3939,7 +4103,7 @@
 			};
 			name = Debug;
 		};
-		9BFE86A02F7E592B005CC9B2 /* Release configuration for PBXNativeTarget "bundle" */ = {
+		9BFE86A02F7E592B005CC9B2 /* Release configuration for PBXNativeTarget "caked.bundle" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
@@ -4012,6 +4176,14 @@
 			);
 			defaultConfigurationName = Release;
 		};
+		9BD69DF12FCEE8F1005E24AF /* Build configuration list for PBXNativeTarget "cakectl.bundle" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9BD69DF22FCEE8F1005E24AF /* Debug configuration for PBXNativeTarget "cakectl.bundle" */,
+				9BD69DF32FCEE8F1005E24AF /* Release configuration for PBXNativeTarget "cakectl.bundle" */,
+			);
+			defaultConfigurationName = Release;
+		};
 		9BDD955F2DB8D41B00E46244 /* Build configuration list for PBXAggregateTarget "All" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -4036,11 +4208,11 @@
 			);
 			defaultConfigurationName = Release;
 		};
-		9BFE869E2F7E592B005CC9B2 /* Build configuration list for PBXNativeTarget "bundle" */ = {
+		9BFE869E2F7E592B005CC9B2 /* Build configuration list for PBXNativeTarget "caked.bundle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				9BFE869F2F7E592B005CC9B2 /* Debug configuration for PBXNativeTarget "bundle" */,
-				9BFE86A02F7E592B005CC9B2 /* Release configuration for PBXNativeTarget "bundle" */,
+				9BFE869F2F7E592B005CC9B2 /* Debug configuration for PBXNativeTarget "caked.bundle" */,
+				9BFE86A02F7E592B005CC9B2 /* Release configuration for PBXNativeTarget "caked.bundle" */,
 			);
 			defaultConfigurationName = Release;
 		};
