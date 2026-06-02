@@ -595,66 +595,84 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			let needsPathsFile = FileManager.default.fileExists(atPath: pathsFile.path) == false
 			let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path) == false
 
-			if needsPathsFile || needsSudoersFile {
-				var contents: [String] = [
-					"#!/bin/sh\n"
-				]
+			guard needsPathsFile || needsSudoersFile else { return }
 
-				if needsPathsFile {
-					let content = pluginPaths.map {
-						$0.hasSuffix("\n") ? $0 : "\($0)\n"
-					}.joined()
+#if SPARKLE
+			var contents: [String] = ["#!/bin/sh\n"]
 
-					try contents.append(contentsOf: installRootOwnedFile(content: content, to: pathsFile, mode: "0644"))
-				}
+			if needsPathsFile {
+				let content = pluginPaths.map { $0.hasSuffix("\n") ? $0 : "\($0)\n" }.joined()
+				try contents.append(contentsOf: installRootOwnedFile(content: content, to: pathsFile, mode: "0644"))
+			}
+			if let pluginPath = pluginPaths.first, needsSudoersFile {
+				let content = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
+				try contents.append(contentsOf: installRootOwnedFile(content: content, to: sudoersFile, mode: "0440"))
+			}
 
-				if let pluginPath = pluginPaths.first, needsSudoersFile {
-					let content = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
-
-					try contents.append(contentsOf: installRootOwnedFile(content: content, to: sudoersFile, mode: "0440"))
-				}
-
-				if geteuid() != 0 && contents.count > 1 {
-					do {
-						try print(runPrivileged(contents))
-					} catch {
-						let scriptBody = contents.dropFirst().joined(separator: "\n")
-						let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
-
-						MainActor.assumeIsolated {
-							let alert = NSAlert()
-							alert.messageText = String(localized: "Admin rights required")
-							alert.informativeText = String(localized: "Could not obtain admin privileges. Please run the following command in Terminal, then relaunch Caker:")
-
-							let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 460, height: 100))
-							textView.string = sudoScript
-							textView.isEditable = false
-							textView.isSelectable = true
-							textView.font = NSFont.monospacedSystemFont(ofSize: NSFont.smallSystemFontSize, weight: .regular)
-							textView.backgroundColor = NSColor.windowBackgroundColor
-
-							let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: 460, height: 100))
-							scrollView.documentView = textView
-							scrollView.hasVerticalScroller = true
-							scrollView.hasHorizontalScroller = true
-							scrollView.borderType = .bezelBorder
-
-							alert.accessoryView = scrollView
-							alert.addButton(withTitle: String(localized: "Copy & Quit"))
-							alert.addButton(withTitle: String(localized: "Quit"))
-
-							let response = alert.runModal()
-							if response == .alertFirstButtonReturn {
-								NSPasteboard.general.clearContents()
-								NSPasteboard.general.setString(sudoScript, forType: .string)
-							}
-						}
-
-						NSApp.terminate(self)
-						return
-					}
+			if geteuid() != 0 && contents.count > 1 {
+				do {
+					try print(runPrivileged(contents))
+				} catch {
+					let scriptBody = contents.dropFirst().joined(separator: "\n")
+					let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
+					showRunInTerminalAlert(sudoScript)
+					NSApp.terminate(self)
+					return
 				}
 			}
+#else
+			let pathsContent = needsPathsFile
+				? pluginPaths.map { $0.hasSuffix("\n") ? $0 : "\($0)\n" }.joined()
+				: ""
+			let sudoersContent: String = {
+				if let pluginPath = pluginPaths.first, needsSudoersFile {
+					return "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
+				}
+				return ""
+			}()
+
+			if geteuid() == 0 {
+				if !pathsContent.isEmpty {
+					_ = try installRootOwnedFile(content: pathsContent, to: pathsFile, mode: "0644")
+				}
+				if !sudoersContent.isEmpty {
+					_ = try installRootOwnedFile(content: sudoersContent, to: sudoersFile, mode: "0440")
+				}
+			} else {
+				do {
+					try print(runPrivilegedWithBundledScript(pathsContent: pathsContent, sudoersContent: sudoersContent))
+				} catch {
+					var lines: [String] = []
+
+					if !pathsContent.isEmpty {
+						lines += [
+							"mkdir -p /etc/paths.d",
+							"printf '%s' \(shellQuote(pathsContent)) > /etc/paths.d/com.aldunelabs.caker",
+							"chmod 0644 /etc/paths.d/com.aldunelabs.caker",
+							"chown root:wheel /etc/paths.d/com.aldunelabs.caker",
+						]
+					}
+
+					if !sudoersContent.isEmpty {
+						lines += [
+							"mkdir -p /etc/sudoers.d",
+							"printf '%s' \(shellQuote(sudoersContent)) > /etc/sudoers.d/caked",
+							"chmod 0440 /etc/sudoers.d/caked",
+							"chown root:wheel /etc/sudoers.d/caked",
+						]
+					}
+
+					let sudoScript = "sudo sh << 'SUDOEOF'\n" + lines.joined(separator: "\n") + "\nSUDOEOF"
+
+					MainActor.assumeIsolated {
+						showRunInTerminalAlert(sudoScript)
+					}
+
+					NSApp.terminate(self)
+					return
+				}
+			}
+#endif
 		} catch {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
 
@@ -663,6 +681,36 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			}
 
 			NSApp.terminate(self)
+		}
+	}
+
+	@MainActor
+	private static func showRunInTerminalAlert(_ sudoScript: String) {
+		let alert = NSAlert()
+		alert.messageText = String(localized: "Admin rights required")
+		alert.informativeText = String(localized: "Could not obtain admin privileges. Please run the following command in Terminal, then relaunch Caker:")
+
+		let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 460, height: 100))
+		textView.string = sudoScript
+		textView.isEditable = false
+		textView.isSelectable = true
+		textView.font = NSFont.monospacedSystemFont(ofSize: NSFont.smallSystemFontSize, weight: .regular)
+		textView.backgroundColor = NSColor.windowBackgroundColor
+
+		let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: 460, height: 100))
+		scrollView.documentView = textView
+		scrollView.hasVerticalScroller = true
+		scrollView.hasHorizontalScroller = true
+		scrollView.borderType = .bezelBorder
+
+		alert.accessoryView = scrollView
+		alert.addButton(withTitle: String(localized: "Copy & Quit"))
+		alert.addButton(withTitle: String(localized: "Quit"))
+
+		let response = alert.runModal()
+		if response == .alertFirstButtonReturn {
+			NSPasteboard.general.clearContents()
+			NSPasteboard.general.setString(sudoScript, forType: .string)
 		}
 	}
 
@@ -722,6 +770,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		}
 	}
 
+#if SPARKLE
 	private static func runPrivileged(_ commands: [String]) throws -> String {
 		let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString).sh")
 		let appleScript = "do shell script \"\(temporaryFile.path)\" with administrator privileges"
@@ -733,24 +782,52 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		}
 
 		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: temporaryFile.path)
-
-#if SPARKLE
 		return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
-#else
-		guard let script = NSAppleScript(source: appleScript) else {
-			throw NSError(domain: NSOSStatusErrorDomain, code: -1, userInfo: nil)
-		}
-		var errorInfo: NSDictionary?
-		let descriptor = script.executeAndReturnError(&errorInfo)
-		if let error = errorInfo {
-			let message = error[NSAppleScript.errorMessage] as? String ?? "AppleScript execution failed"
-			let code = (error[NSAppleScript.errorNumber] as? Int) ?? -1
-			throw NSError(domain: NSOSStatusErrorDomain, code: code, userInfo: [NSLocalizedDescriptionKey: message])
-		}
-		return descriptor.stringValue ?? ""
-#endif
 	}
+#else
+	private static func runPrivilegedWithBundledScript(pathsContent: String, sudoersContent: String) throws -> String {
+		guard let bundledURL = Bundle.main.url(forResource: "PrivilegedBootstrap", withExtension: "applescript") else {
+			throw NSError(domain: NSOSStatusErrorDomain, code: -1, userInfo: [NSLocalizedDescriptionKey: "PrivilegedBootstrap.applescript not found in bundle"])
+		}
 
+		let scriptsDir = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+		let scriptURL = scriptsDir.appendingPathComponent("PrivilegedBootstrap.applescript")
+
+		if FileManager.default.fileExists(atPath: scriptURL.path) {
+			try FileManager.default.removeItem(at: scriptURL)
+		}
+		try FileManager.default.copyItem(at: bundledURL, to: scriptURL)
+
+		// 'aevt'/'oapp' with argv list as keyDirectObject ('----')
+		let event = NSAppleEventDescriptor.appleEvent(
+			withEventClass: 0x61657674,
+			eventID: 0x6F617070,
+			targetDescriptor: .null(),
+			returnID: -1,
+			transactionID: 0
+		)
+		let argList = NSAppleEventDescriptor.list()
+		argList.insert(NSAppleEventDescriptor(string: pathsContent), at: 0)
+		argList.insert(NSAppleEventDescriptor(string: sudoersContent), at: 0)
+		event.setParam(argList, forKeyword: 0x2D2D2D2D) // keyDirectObject
+
+		let task = try NSUserAppleScriptTask(url: scriptURL)
+		var taskResult: Result<String, Error> = .success("")
+		let semaphore = DispatchSemaphore(value: 0)
+
+		task.execute(withAppleEvent: event) { descriptor, error in
+			if let error {
+				taskResult = .failure(error)
+			} else {
+				taskResult = .success(descriptor?.stringValue ?? "")
+			}
+			semaphore.signal()
+		}
+		semaphore.wait()
+
+		return try taskResult.get()
+	}
+#endif
 	private static func shellQuote(_ value: String) -> String {
 		let escaped = value.replacingOccurrences(of: "'", with: "'\\''")
 		return "'\(escaped)'"

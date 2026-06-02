@@ -33,6 +33,7 @@
 		9B081DDD2FC9887F0029B259 /* VmdkDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */; };
 		9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AC2F743641009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
+		9B11AA492FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript in Sources */ = {isa = PBXBuildFile; fileRef = 9B11AA472FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript */; };
 		9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3402F0AD8540099F00F /* CakeAgentLib */; };
 		9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */; };
 		9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */; };
@@ -760,6 +761,7 @@
 		9B081D912FC97DB20029B259 /* VmdkHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkHeader.swift; sourceTree = "<group>"; };
 		9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkDescriptor.swift; sourceTree = "<group>"; };
 		9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCompatibilitySpan.tbd; path = usr/lib/swift/libswiftCompatibilitySpan.tbd; sourceTree = SDKROOT; };
+		9B11AA472FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.applescript; path = PrivilegedBootstrap.applescript; sourceTree = "<group>"; };
 		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
 		9B1389D22F97A9D0000329B1 /* CakedServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServerView.swift; sourceTree = "<group>"; };
@@ -805,7 +807,6 @@
 		9B27840C2FB37A83001F2B6A /* ViewSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSize.swift; sourceTree = "<group>"; };
 		9B27840D2FB37A83001F2B6A /* VirtualMachineInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineInfo.swift; sourceTree = "<group>"; };
 		9B29F8302FCAE4B700AEBCB8 /* Caker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Caker.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9B29F8C12FCAF00400AEBCB8 /* AppStore Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "AppStore Release.xcconfig"; sourceTree = "<group>"; };
 		9B2BFAA92DFED25E000045C3 /* DiskAttachementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAttachementView.swift; sourceTree = "<group>"; };
 		9B2BFAAA2DFED25E000045C3 /* ForwardedPortView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForwardedPortView.swift; sourceTree = "<group>"; };
 		9B2BFAAB2DFED25E000045C3 /* MountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountView.swift; sourceTree = "<group>"; };
@@ -1502,6 +1503,14 @@
 			path = Vmdk;
 			sourceTree = "<group>";
 		};
+		9B11AA482FCEB9E400C3C9F1 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				9B11AA472FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		9B144C0E2F9D28D900F14DEF /* VNCTunnel */ = {
 			isa = PBXGroup;
 			children = (
@@ -1541,14 +1550,6 @@
 				9B27840D2FB37A83001F2B6A /* VirtualMachineInfo.swift */,
 			);
 			path = Model;
-			sourceTree = "<group>";
-		};
-		9B29F8D72FCAF43700AEBCB8 /* Recovered References */ = {
-			isa = PBXGroup;
-			children = (
-				9B29F8C12FCAF00400AEBCB8 /* AppStore Release.xcconfig */,
-			);
-			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		9B2BFAAF2DFED25E000045C3 /* Settings */ = {
@@ -1620,14 +1621,15 @@
 		9B2BFAB92DFED25E000045C3 /* caker */ = {
 			isa = PBXGroup;
 			children = (
-				9B196FFF2F59866E00B424DB /* Root.swift */,
 				9B3601902E20FBCF00889BFD /* CakerMenuBarExtraScene.swift */,
 				9B2BFAB82DFED25E000045C3 /* MainApp.swift */,
+				9B196FFF2F59866E00B424DB /* Root.swift */,
 				9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */,
 				9BB213CE2F37548300B45692 /* Handlers */,
 				9B30BA492E0BDB5600256A9D /* Helpers */,
 				9B9C4E612E23BD8900C13D23 /* Model */,
 				9BAF74B52EBBD7CC0036CE1B /* MultiplatformTabBar */,
+				9B11AA482FCEB9E400C3C9F1 /* Resources */,
 				9B2BFAB72DFED25E000045C3 /* Views */,
 			);
 			path = caker;
@@ -1796,7 +1798,6 @@
 				9B464ADD2D5A3E0300164BF5 /* Sources */,
 				9B345C152DB4EB700047D00B /* Tests */,
 				9B352F032FAF43C100F8F6B6 /* webui */,
-				9B29F8D72FCAF43700AEBCB8 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -3070,6 +3071,7 @@
 				9B29F7D62FCAE4B700AEBCB8 /* NavigationModel.swift in Sources */,
 				9B29F7D72FCAE4B700AEBCB8 /* DiskAttachementView.swift in Sources */,
 				9B29F7D82FCAE4B700AEBCB8 /* InternalVirtualMachineView.swift in Sources */,
+				9B11AA492FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript in Sources */,
 				9B29F7D92FCAE4B700AEBCB8 /* VirtualMachineConfig.swift in Sources */,
 				9B29F7DA2FCAE4B700AEBCB8 /* ApplicationSettingsView.swift in Sources */,
 				9B29F7DB2FCAE4B700AEBCB8 /* Settings.swift in Sources */,

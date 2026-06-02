@@ -146,6 +146,9 @@ let package = Package(
 			.product(name: "SwiftletUtilities", package: "SwiftletUtilities"),
 			.product(name: "Sparkle", package: "Sparkle"),
 		],
+		resources: [
+			.process("Resources"),
+		],
 		linkerSettings: [
 			.unsafeFlags([
 				"-Xlinker", "-rpath",
