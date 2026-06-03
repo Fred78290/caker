@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AbandonProcessGroup</key>
+	<true/>
+	<key>AssociatedBundleIdentifiers</key>
+	<string>com.aldunelabs.caker</string>
+	<key>KeepAlive</key>
+	<dict>
+		<key>SuccessfulExit</key>
+		<false/>
+	</dict>
+	<key>Label</key>
+	<string>com.aldunelabs.caker</string>
+	<key>ProcessType</key>
+	<string>Background</string>
+	<key>BundleProgram</key>
+	<string>Contents/PlugIns/caked.bundle/Contents/MacOS/caked</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>Contents/PlugIns/caked.bundle/Contents/MacOS/caked</string>
+		<string>service</string>
+		<string>listen</string>
+		<string>--log-level=info</string>
+		<string>--tcp</string>
+		<string>--rest</string>
+		<string>--grpc</string>
+		<string>--secure</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>SoftResourceLimits</key>
+	<dict>
+		<key>NumberOfFiles</key>
+		<integer>4096</integer>
+	</dict>
+	<key>StandardErrorPath</key>
+	<string>/Volumes/Manix/Users/fboltz/Library/Logs/caked.log</string>
+	<key>StandardOutPath</key>
+	<string>/Volumes/Manix/Users/fboltz/Library/Logs/caked.log</string>
+</dict>
+</plist>
