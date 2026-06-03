@@ -316,7 +316,8 @@ struct MainApp: App {
 					Self.installCakedService()
 				}
 			}
-			
+
+			#if !USE_SMSERVICE
 			if self.appState.cakedServiceInstalled {
 				if self.appState.cakedServiceRunning {
 					Button("Stop service") {
@@ -338,6 +339,7 @@ struct MainApp: App {
 					}
 				}
 			}
+			#endif
 		}
 	}
 	
@@ -406,6 +408,7 @@ struct MainApp: App {
                 return
             } catch {
                 // If saved password fails, fall back to prompting
+				Logger("MainApp").warn("Failed to install launch agent with saved passphrase: \(error)")
             }
         }
 
@@ -447,10 +450,14 @@ struct MainApp: App {
 		return "com.aldunelabs.caker.plist"
 	}
 
+	static var appService: SMAppService {
+		SMAppService.agent(plistName: launchdAgentName)
+	}
+
 	static func isAgentInstalled() -> Bool {
 		#if USE_SMSERVICE
-		let service = SMAppService.agent(plistName: launchdAgentName)
-		
+		let service = Self.appService
+
 		return (service.status == .requiresApproval) || (service.status == .enabled)
 		#else
 		return ServiceHandler.isAgentInstalled
@@ -459,8 +466,8 @@ struct MainApp: App {
 
 	static func installLaunchAgent(_ password: String?) throws {
 		#if USE_SMSERVICE
-		let service = SMAppService.agent(plistName: launchdAgentName)
-		
+		let service = Self.appService
+
 		if service.status == .notFound || service.status == .notRegistered {
 			try service.register()
 		}
@@ -471,8 +478,8 @@ struct MainApp: App {
 
 	static func uninstallLaunchAgent() throws {
 		#if USE_SMSERVICE
-		let service = SMAppService.agent(plistName: launchdAgentName)
-		
+		let service = Self.appService
+
 		if service.status ==  .requiresApproval || service.status == .enabled {
 			try service.unregister()
 		}
