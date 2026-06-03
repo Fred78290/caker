@@ -4,7 +4,7 @@
 <dict>
 	<key>MachServices</key>
 	<dict>
-		<key>com.aldunelabs.caked</key>
+		<key>com.aldunelabs.caked.xpc</key>
 		<true/>
 	</dict>
 	<key>AssociatedBundleIdentifiers</key>
@@ -23,11 +23,8 @@
 		<string>--rest</string>
 		<string>--grpc</string>
 		<string>--secure</string>
+		<string>--log</string>
 	</array>
-	<key>StandardErrorPath</key>
-	<string>/Volumes/Manix/Users/fboltz/Library/Logs/caked.log</string>
-	<key>StandardOutPath</key>
-	<string>/Volumes/Manix/Users/fboltz/Library/Logs/caked.log</string>
 	<key>RunAtLoad</key>
 	<true/>
 </dict>
