@@ -447,7 +447,7 @@ struct MainApp: App {
 	}
 
 	static var launchdAgentName: String {
-		return "com.aldunelabs.caker.plist"
+		return "com.aldunelabs.caked.plist"
 	}
 
 	static var appService: SMAppService {

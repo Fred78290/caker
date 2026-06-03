@@ -19,10 +19,26 @@ struct Certs {
 	let cert: String?
 }
 
+#if USE_SMSERVICE
+fileprivate let subcommands: [ParsableCommand.Type] = [
+	Service.Listen.self,
+	Service.Show.self,
+	Service.Status.self,
+	Service.Stop.self,
+]
+#else
+fileprivate let subcommands: [ParsableCommand.Type] = [
+	Service.Install.self,
+	Service.Listen.self,
+	Service.Show.self,
+	Service.Status.self,
+	Service.Stop.self,
+]
+#endif
+
 struct Service: ParsableCommand {
 	static let configuration = CommandConfiguration(
-		abstract: String(localized: "caked as launchctl agent"),
-		subcommands: [Install.self, Listen.self, Show.self, Status.self, Stop.self])
+		abstract: String(localized: "caked as launchctl agent"), subcommands: subcommands)
 }
 
 extension Service {
@@ -212,6 +228,35 @@ extension Service {
 			}
 		}
 
+		func xpc() -> xpc_connection_t {
+			let listener = xpc_connection_create_mach_service("com.aldunelabs.caked", nil, UInt64(XPC_CONNECTION_MACH_SERVICE_LISTENER))
+
+			xpc_connection_set_event_handler(listener) { peer in
+				if xpc_get_type(peer) != XPC_TYPE_CONNECTION {
+					return
+				}
+
+				xpc_connection_set_event_handler(peer) { request in
+					if xpc_get_type(request) == XPC_TYPE_DICTIONARY {
+						let message = xpc_dictionary_get_string(request, "MessageKey")
+						let encodedMessage = String(cString: message!)
+						let reply = xpc_dictionary_create_reply(request)
+						let response = "Hello \(encodedMessage)"
+						response.withCString { rawResponse in
+							xpc_dictionary_set_string(reply!, "ResponseKey", rawResponse)
+						}
+						xpc_connection_send_message(peer, reply!)
+					}
+				}
+
+				xpc_connection_activate(peer)
+			}
+
+			xpc_connection_activate(listener)
+
+			return listener
+		}
+
 		func run() async throws {
 			let listenAddress = try self.options.getListenAddress(runMode: self.common.runMode)
 			let logger = Logger(self)
@@ -224,8 +269,11 @@ extension Service {
 			let runMode: Utils.RunMode = self.common.runMode
 			let home = try Home(runMode: runMode)
 			let eventLoopGroup = Utilities.group
+			//let listener = self.xpc()
 
 			defer {
+				//xpc_connection_cancel(listener)
+
 				try? home.agentPID.delete()
 			}
 
@@ -361,11 +409,26 @@ extension Service {
 				try ServiceHandler.findMe(),
 				"service",
 				"listen",
+				"--secure",
 				"--log-level=\(self.common.logLevel.rawValue)",
 			]
 
-			listenAddress.forEach {
-				arguments.append("--address=\($0)")
+			if self.options.tcp {
+				arguments.append("--tcp")
+			} else {
+				arguments.append(contentsOf: listenAddress.map { "--address=\($0)" })
+			}
+
+			if self.options.rest {
+				arguments.append("--rest")
+				
+				if self.options.restPort != 0 {
+					arguments.append("--rest-port=\(self.options.restPort)")
+				}
+
+				if self.options.webUIDirectory != nil {
+					arguments.append("--web-ui=\(self.options.webUIDirectory!)")
+				}
 			}
 
 			if runMode == .system {
@@ -373,18 +436,22 @@ extension Service {
 			}
 
 			if self.options.insecure == false {
-				let certs = try self.options.getCertificats(runMode: runMode)
-
-				if let ca = certs.ca {
-					arguments.append("--ca-cert=\(ca)")
-				}
-
-				if let key = certs.key {
-					arguments.append("--tls-key=\(key)")
-				}
-
-				if let cert = certs.cert {
-					arguments.append("--tls-cert=\(cert)")
+				if self.options.caCert == nil && self.options.tlsCert == nil, self.options.tlsKey == nil {
+					arguments.append("--secure")
+				} else {
+					let certs = try self.options.getCertificats(runMode: runMode)
+					
+					if let ca = certs.ca {
+						arguments.append("--ca-cert=\(ca)")
+					}
+					
+					if let key = certs.key {
+						arguments.append("--tls-key=\(key)")
+					}
+					
+					if let cert = certs.cert {
+						arguments.append("--tls-cert=\(cert)")
+					}
 				}
 			}
 

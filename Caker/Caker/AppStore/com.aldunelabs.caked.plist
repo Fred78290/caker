@@ -2,19 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>AbandonProcessGroup</key>
-	<true/>
+	<key>MachServices</key>
+	<dict>
+		<key>com.aldunelabs.caked</key>
+		<true/>
+	</dict>
 	<key>AssociatedBundleIdentifiers</key>
 	<string>com.aldunelabs.caker</string>
-	<key>KeepAlive</key>
-	<dict>
-		<key>SuccessfulExit</key>
-		<false/>
-	</dict>
 	<key>Label</key>
-	<string>com.aldunelabs.caker</string>
-	<key>ProcessType</key>
-	<string>Background</string>
+	<string>com.aldunelabs.caked</string>
 	<key>BundleProgram</key>
 	<string>Contents/PlugIns/caked.bundle/Contents/MacOS/caked</string>
 	<key>ProgramArguments</key>
@@ -28,16 +24,11 @@
 		<string>--grpc</string>
 		<string>--secure</string>
 	</array>
-	<key>RunAtLoad</key>
-	<true/>
-	<key>SoftResourceLimits</key>
-	<dict>
-		<key>NumberOfFiles</key>
-		<integer>4096</integer>
-	</dict>
 	<key>StandardErrorPath</key>
 	<string>/Volumes/Manix/Users/fboltz/Library/Logs/caked.log</string>
 	<key>StandardOutPath</key>
 	<string>/Volumes/Manix/Users/fboltz/Library/Logs/caked.log</string>
+	<key>RunAtLoad</key>
+	<true/>
 </dict>
 </plist>

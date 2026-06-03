@@ -1302,11 +1302,11 @@
 		9BD69E022FCF0428005E24AF /* Exceptions for "Caker" folder in "Copy Files" phase from "Caker" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
-				AppStore/com.aldunelabs.caker.plist = (CodeSignOnCopy, );
+				AppStore/com.aldunelabs.caked.plist = (CodeSignOnCopy, );
 			};
 			buildPhase = 9BD69E002FCF0409005E24AF /* CopyFiles */;
 			membershipExceptions = (
-				AppStore/com.aldunelabs.caker.plist,
+				AppStore/com.aldunelabs.caked.plist,
 			);
 		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
