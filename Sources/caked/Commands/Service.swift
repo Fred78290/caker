@@ -11,6 +11,7 @@ import NIOSSL
 import Security
 import SwiftASN1
 import Synchronization
+import Combine
 import X509
 
 struct Certs {
@@ -188,6 +189,9 @@ extension Service {
 		@Flag(help: .hidden)
 		var secure: Bool = false
 
+		@Flag(help: .hidden)
+		var log: Bool = false
+
 		var password: String? {
 			if options.noPassword { return nil }
 			if let password = options.password { return password }
@@ -200,6 +204,15 @@ extension Service {
 			}
 
 			return Bundle.main.path(forResource: "webui", ofType: "zip")
+		}
+
+		private var loggingCancellable: Cancellable?
+
+		init() {
+		}
+
+		init(from: Decoder) throws {
+			throw ServiceError("Direct initialization of Listen command is not supported")
 		}
 
 		mutating func validate() throws {
@@ -228,8 +241,24 @@ extension Service {
 			}
 		}
 
+		private func setupLogging() -> Cancellable? {
+			guard self.log else {
+				return nil
+			}
+
+			let logURL = URL(fileURLWithPath: Utils.getOutputLog(runMode: self.common.runMode))
+
+			do {
+				return try TeeStandardIOWrapper(logURL: logURL)
+			} catch {
+				// Best effort: if tee setup fails, keep running without tee
+			}
+
+			return nil
+		}
+
 		func xpc() -> xpc_connection_t {
-			let listener = xpc_connection_create_mach_service("com.aldunelabs.caked", nil, UInt64(XPC_CONNECTION_MACH_SERVICE_LISTENER))
+			let listener = xpc_connection_create_mach_service("com.aldunelabs.caked.xpc", nil, UInt64(XPC_CONNECTION_MACH_SERVICE_LISTENER))
 
 			xpc_connection_set_event_handler(listener) { peer in
 				if xpc_get_type(peer) != XPC_TYPE_CONNECTION {
