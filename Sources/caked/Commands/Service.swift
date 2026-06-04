@@ -206,14 +206,7 @@ extension Service {
 			return Bundle.main.path(forResource: "webui", ofType: "zip")
 		}
 
-		private var loggingCancellable: Cancellable?
-
-		init() {
-		}
-
-		init(from: Decoder) throws {
-			throw ServiceError("Direct initialization of Listen command is not supported")
-		}
+		private static var loggingCancellable: Cancellable?
 
 		mutating func validate() throws {
 			let runMode: Utils.RunMode = self.common.runMode
