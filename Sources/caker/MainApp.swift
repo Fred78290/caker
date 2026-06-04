@@ -315,9 +315,28 @@ struct MainApp: App {
 				Button("Install service") {
 					Self.installCakedService()
 				}
+				#if USE_SMAPPSERVICE
+				.disabled(self.appState.cakedServiceRunning)
+				#endif
 			}
 
-			#if !USE_SMSERVICE
+			#if USE_SMAPPSERVICE
+			if self.appState.cakedServiceInstalled {
+				Button("Stop service to uninstall") {
+					Self.stopCakedService()
+				}.disabled(self.appState.cakedServiceRunning == false)
+			} else {
+				if self.appState.cakedServiceRunning {
+					Button("Stop caked daemon") {
+						Self.stopCakedDaemon()
+					}
+				} else {
+					Button("Start caked daemon") {
+						Self.startCakedDaemon()
+					}
+				}
+			}
+			#else
 			if self.appState.cakedServiceInstalled {
 				if self.appState.cakedServiceRunning {
 					Button("Stop service") {
@@ -455,7 +474,7 @@ struct MainApp: App {
 	}
 
 	static func isAgentInstalled() -> Bool {
-		#if USE_SMSERVICE
+		#if USE_SMAPPSERVICE
 		let service = Self.appService
 
 		return (service.status == .requiresApproval) || (service.status == .enabled)
@@ -465,7 +484,7 @@ struct MainApp: App {
 	}
 
 	static func installLaunchAgent(_ password: String?) throws {
-		#if USE_SMSERVICE
+		#if USE_SMAPPSERVICE
 		let service = Self.appService
 
 		if service.status == .notFound || service.status == .notRegistered {
@@ -477,7 +496,7 @@ struct MainApp: App {
 	}
 
 	static func uninstallLaunchAgent() throws {
-		#if USE_SMSERVICE
+		#if USE_SMAPPSERVICE
 		let service = Self.appService
 
 		if service.status ==  .requiresApproval || service.status == .enabled {
@@ -586,7 +605,6 @@ struct MainApp: App {
 			}
 		}
 	}
-
 }
 
 class MainUIAppDelegate: NSObject, NSApplicationDelegate {
