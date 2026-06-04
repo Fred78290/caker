@@ -1304,14 +1304,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		9BD69E022FCF0428005E24AF /* Exceptions for "Caker" folder in "Daemon" phase from "Caker" target */ = {
+		9B37908B2FD1BAF400D3D54C /* Exceptions for "Caker" folder in "Daemon" phase from "Caker" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
-				AppStore/com.aldunelabs.caked.plist = (CodeSignOnCopy, );
+				AppStore/com.aldunelabs.caker.plist = (CodeSignOnCopy, );
 			};
 			buildPhase = 9BD69E002FCF0409005E24AF /* Daemon */;
 			membershipExceptions = (
-				AppStore/com.aldunelabs.caked.plist,
+				AppStore/com.aldunelabs.caker.plist,
 			);
 		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -1321,7 +1321,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				9B196F3A2F588DAB00B424DB /* Exceptions for "Caker" folder in "Caker" target */,
-				9BD69E022FCF0428005E24AF /* Exceptions for "Caker" folder in "Daemon" phase from "Caker" target */,
+				9B37908B2FD1BAF400D3D54C /* Exceptions for "Caker" folder in "Daemon" phase from "Caker" target */,
 			);
 			path = Caker;
 			sourceTree = "<group>";
@@ -1410,11 +1410,6 @@
 				9B21E0042F4C663D00870AD7 /* NIOHTTPCompression in Frameworks */,
 				9B21E0092F4C676800870AD7 /* libCakedLib.a in Frameworks */,
 				9BBE5C6F2F4C544E005B3359 /* XCTest.framework in Frameworks */,
-			);
-		};
-		9BD69DED2FCEE8F1005E24AF /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			files = (
 			);
 		};
 		9BEBC68B2DF43FEE0092B196 /* Frameworks */ = {
@@ -2661,11 +2656,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9BD69DF12FCEE8F1005E24AF /* Build configuration list for PBXNativeTarget "cakectl.bundle" */;
 			buildPhases = (
-				9BD69DEC2FCEE8F1005E24AF /* Sources */,
-				9BD69DED2FCEE8F1005E24AF /* Frameworks */,
 				9BD69DEE2FCEE8F1005E24AF /* Resources */,
 				9BD69DFA2FCEE968005E24AF /* CopyFiles */,
-				9BD69DFC2FCEE989005E24AF /* ShellScript */,
+				9BD69DFC2FCEE989005E24AF /* Localization */,
 			);
 			buildRules = (
 			);
@@ -2812,9 +2805,9 @@
 				9BFE869A2F7E592B005CC9B2 /* Frameworks */,
 				9BFE86A52F7E59C8005CC9B2 /* CopyFiles */,
 				9BFE876E2F7E64D9005CC9B2 /* CopyFiles */,
-				9B1836552FB0E28F00D150FD /* ShellScript */,
 				9B06995A2FB1A15E00FEAE13 /* Resources */,
-				9B06995F2FB1A1E400FEAE13 /* ShellScript */,
+				9B1836552FB0E28F00D150FD /* WebUI */,
+				9B06995F2FB1A1E400FEAE13 /* Localization */,
 			);
 			buildRules = (
 			);
@@ -2969,11 +2962,12 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		9B06995F2FB1A1E400FEAE13 /* ShellScript */ = {
+		9B06995F2FB1A1E400FEAE13 /* Localization */ = {
 			isa = PBXShellScriptBuildPhase;
 			inputPaths = (
 				"${SOURCE_ROOT}/../Resources/Localizable.xcstrings",
 			);
+			name = Localization;
 			outputPaths = (
 				"${METAL_LIBRARY_OUTPUT_DIR}/en.lproj",
 				"${METAL_LIBRARY_OUTPUT_DIR}/fr.lproj",
@@ -3002,11 +2996,12 @@
 				"",
 			);
 		};
-		9B1836552FB0E28F00D150FD /* ShellScript */ = {
+		9B1836552FB0E28F00D150FD /* WebUI */ = {
 			isa = PBXShellScriptBuildPhase;
 			inputPaths = (
 				"${SOURCE_ROOT}/../webui",
 			);
+			name = WebUI;
 			outputPaths = (
 				"${METAL_LIBRARY_OUTPUT_DIR}/webui.zip",
 			);
@@ -3035,11 +3030,12 @@
 				"",
 			);
 		};
-		9BD69DFC2FCEE989005E24AF /* ShellScript */ = {
+		9BD69DFC2FCEE989005E24AF /* Localization */ = {
 			isa = PBXShellScriptBuildPhase;
 			inputPaths = (
 				"${SOURCE_ROOT}/../Resources/Localizable.xcstrings",
 			);
+			name = Localization;
 			outputPaths = (
 				"${METAL_LIBRARY_OUTPUT_DIR}/en.lproj",
 				"${METAL_LIBRARY_OUTPUT_DIR}/fr.lproj",
@@ -3267,11 +3263,6 @@
 				9B96B01C2F4B68540069C970 /* GrpcUnixSocketTest.swift in Sources */,
 				9B96B01D2F4B68540069C970 /* GrpcTcpSocketTest.swift in Sources */,
 				9B96B01E2F4B68540069C970 /* NetworkTest.swift in Sources */,
-			);
-		};
-		9BD69DEC2FCEE8F1005E24AF /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			files = (
 			);
 		};
 		9BEBC68A2DF43FEE0092B196 /* Sources */ = {
