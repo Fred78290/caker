@@ -307,6 +307,31 @@ struct MainApp: App {
 				self.openWindow(id: "remote")
 			}
 			Divider()
+
+			#if USE_SMAPPSERVICE
+			if self.appState.cakedServiceInstalled {
+				Button("Remove service") {
+					Self.removeCakedService()
+				}
+			} else {
+				Button("Install service") {
+					Self.installCakedService()
+				}
+				.disabled(self.appState.cakedServiceRunning)
+			}
+
+			if self.appState.cakedServiceInstalled  == false {
+				if self.appState.cakedServiceRunning {
+					Button("Stop caked daemon") {
+						Self.stopCakedDaemon()
+					}
+				} else {
+					Button("Start caked daemon") {
+						Self.startCakedDaemon()
+					}
+				}
+			}
+			#else
 			if self.appState.cakedServiceInstalled {
 				Button("Remove service") {
 					Self.removeCakedService()
@@ -319,24 +344,6 @@ struct MainApp: App {
 				.disabled(self.appState.cakedServiceRunning)
 				#endif
 			}
-
-			#if USE_SMAPPSERVICE
-			if self.appState.cakedServiceInstalled {
-				Button("Stop service to uninstall") {
-					Self.stopCakedService()
-				}.disabled(self.appState.cakedServiceRunning == false)
-			} else {
-				if self.appState.cakedServiceRunning {
-					Button("Stop caked daemon") {
-						Self.stopCakedDaemon()
-					}
-				} else {
-					Button("Start caked daemon") {
-						Self.startCakedDaemon()
-					}
-				}
-			}
-			#else
 			if self.appState.cakedServiceInstalled {
 				if self.appState.cakedServiceRunning {
 					Button("Stop service") {
@@ -621,6 +628,8 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		Self.ensureCertificates()
 		Self.ensurePrivilegedBootstrapFiles()
 
+		Self.askUserToInstallCakedAgent()
+
 		if isDockIconHidden {
 			NSApp.setActivationPolicy(.accessory)
 		} else {
@@ -643,6 +652,10 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 			NSApp.terminate(self)
 		}
+	}
+
+	static var isPrivilegedBootstrapFilesInstalled: Bool {
+		FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: "/etc/sudoers.d/caked")
 	}
 
 	static func ensurePrivilegedBootstrapFiles() {
@@ -675,17 +688,19 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			}
 
 			if geteuid() != 0 && contents.count > 1 {
+				#if SPARKLE
 				do {
-					#if SPARKLE
 					try print(runPrivileged(contents))
-					#else
-					try print(runPrivilegedWithBundledScript(pathsContent: pathsContent, sudoersContent: sudoersContent))
-					#endif
 				} catch {
 					MainActor.assumeIsolated {
 						showRunInTerminalAlert(contents)
 					}
 				}
+				#else
+				MainActor.assumeIsolated {
+					showCommandToPasteAlert(contents)
+				}
+				#endif
 			}
 		} catch {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
@@ -707,14 +722,14 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		alert.messageText = String(localized: "Admin rights required")
 		alert.informativeText = String(localized: "Could not obtain admin privileges. Please run the following command in Terminal, then relaunch Caker:")
 
-		let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 460, height: 100))
+		let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 480, height: 270))
 		textView.string = sudoScript
 		textView.isEditable = false
 		textView.isSelectable = true
 		textView.font = NSFont.monospacedSystemFont(ofSize: NSFont.smallSystemFontSize, weight: .regular)
 		textView.backgroundColor = NSColor.windowBackgroundColor
 
-		let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: 460, height: 100))
+		let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: 480, height: 270))
 		scrollView.documentView = textView
 		scrollView.hasVerticalScroller = true
 		scrollView.hasHorizontalScroller = true
@@ -734,11 +749,71 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		return
 	}
 
+	@MainActor
+	private static func showCommandToPasteAlert(_ contents: [String]) {
+		let scriptBody = contents.dropFirst().joined(separator: "\n")
+		let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
+
+		let alert = NSAlert()
+		alert.messageText = String(localized: "Manual configuration required")
+		alert.informativeText = String(localized: "To allow use command caked and cakectl in terminal, path must be added to /etc/paths.d/com.aldunelabs.caker and sudoers must be added to /etc/sudoers.d/caked. Please run the following command in Terminal or do it later in settings.")
+
+		let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 480, height: 270))
+		textView.string = sudoScript
+		textView.isEditable = false
+		textView.isSelectable = true
+		textView.font = NSFont.monospacedSystemFont(ofSize: NSFont.smallSystemFontSize, weight: .regular)
+		textView.backgroundColor = NSColor.windowBackgroundColor
+
+		let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: 480, height: 270))
+		scrollView.documentView = textView
+		scrollView.hasVerticalScroller = true
+		scrollView.hasHorizontalScroller = true
+		scrollView.borderType = .bezelBorder
+
+		alert.accessoryView = scrollView
+		alert.addButton(withTitle: String(localized: "Copy"))
+
+		_ = alert.runModal()
+
+		NSPasteboard.general.clearContents()
+		NSPasteboard.general.setString(sudoScript, forType: .string)
+	}
+
+	static func askUserToInstallCakedAgent() {
+		#if USE_SMAPPSERVICE
+		if MainApp.isAgentInstalled() == false {
+			MainActor.assumeIsolated {
+				showInstallAgentAlert()
+			}
+		}
+		#endif
+	}
+
+	#if USE_SMAPPSERVICE
+	@MainActor
+	private static func showInstallAgentAlert() {
+		let alert = NSAlert()
+		alert.messageText = String(localized: "caked Agent Not Installed")
+		alert.informativeText = String(localized: "The caked background agent is not installed. Would you like to install it now to enable full functionality?")
+		alert.alertStyle = .warning
+		alert.addButton(withTitle: String(localized: "Install"))
+		alert.addButton(withTitle: String(localized: "Later"))
+
+		if alert.runModal() == .alertFirstButtonReturn {
+			MainApp.installCakedService()
+		}
+	}
+	#endif
+
 	private static func installRootOwnedFile(content: String, to destination: URL, mode: String) throws -> [String] {
-		let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString)")
+		var result: [String] = []
+
+		let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(destination.lastPathComponent)
 		let parent = destination.deletingLastPathComponent()
 		let logger = CakeAgentLib.Logger("MainUIAppDelegate")
-		var result: [String] = []
+
+		try? temporaryFile.delete()
 
 		try content.write(to: temporaryFile, atomically: true, encoding: .utf8)
 
@@ -806,48 +881,10 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 #else
 	private static func runPrivilegedWithBundledScript(pathsContent: String, sudoersContent: String) throws -> String {
-		guard let bundledURL = Bundle.main.url(forResource: "PrivilegedBootstrap", withExtension: "applescript") else {
-			throw NSError(domain: NSOSStatusErrorDomain, code: -1, userInfo: [NSLocalizedDescriptionKey: "PrivilegedBootstrap.applescript not found in bundle"])
-		}
-
-		let scriptsDir = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-		let scriptURL = scriptsDir.appendingPathComponent("PrivilegedBootstrap.applescript")
-
-		if FileManager.default.fileExists(atPath: scriptURL.path) {
-			try FileManager.default.removeItem(at: scriptURL)
-		}
-		try FileManager.default.copyItem(at: bundledURL, to: scriptURL)
-
-		// 'aevt'/'oapp' with argv list as keyDirectObject ('----')
-		let event = NSAppleEventDescriptor.appleEvent(
-			withEventClass: 0x61657674,
-			eventID: 0x6F617070,
-			targetDescriptor: .null(),
-			returnID: -1,
-			transactionID: 0
-		)
-		let argList = NSAppleEventDescriptor.list()
-		argList.insert(NSAppleEventDescriptor(string: pathsContent), at: 0)
-		argList.insert(NSAppleEventDescriptor(string: sudoersContent), at: 0)
-		event.setParam(argList, forKeyword: 0x2D2D2D2D) // keyDirectObject
-
-		let task = try NSUserAppleScriptTask(url: scriptURL)
-		var taskResult: Result<String, Error> = .success("")
-		let semaphore = DispatchSemaphore(value: 0)
-
-		task.execute(withAppleEvent: event) { descriptor, error in
-			if let error {
-				taskResult = .failure(error)
-			} else {
-				taskResult = .success(descriptor?.stringValue ?? "")
-			}
-			semaphore.signal()
-		}
-		semaphore.wait()
-
-		return try taskResult.get()
+		return "OK"
 	}
 #endif
+
 	private static func shellQuote(_ value: String) -> String {
 		let escaped = value.replacingOccurrences(of: "'", with: "'\\''")
 		return "'\(escaped)'"

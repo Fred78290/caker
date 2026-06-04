@@ -209,6 +209,8 @@ extension Service {
 		private static var loggingCancellable: Cancellable?
 
 		mutating func validate() throws {
+			Self.loggingCancellable = setupLogging()
+
 			let runMode: Utils.RunMode = self.common.runMode
 
 			if self.secure {
