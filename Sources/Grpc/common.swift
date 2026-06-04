@@ -25,11 +25,15 @@ extension Bundle {
 		var staticCode: SecStaticCode? = nil
 
 		if SecStaticCodeCreateWithPath(self.bundleURL as CFURL, defaultFlags, &staticCode) == errSecSuccess {
-			if SecStaticCodeCheckValidityWithErrors(staticCode!, SecCSFlags(rawValue: kSecCSBasicValidateOnly), nil, nil) == errSecSuccess {
+			guard let staticCode else {
+				return false
+			}
+
+			if SecStaticCodeCheckValidityWithErrors(staticCode, SecCSFlags(rawValue: kSecCSBasicValidateOnly), nil, nil) == errSecSuccess {
 				let requirementText = "entitlement[\"com.apple.security.app-sandbox\"] exists" as CFString
 				var sandboxRequirement: SecRequirement?
 				if SecRequirementCreateWithString(requirementText, defaultFlags, &sandboxRequirement) == errSecSuccess {
-					if SecStaticCodeCheckValidityWithErrors(staticCode!, defaultFlags, sandboxRequirement, nil) == errSecSuccess {
+					if SecStaticCodeCheckValidityWithErrors(staticCode, defaultFlags, sandboxRequirement, nil) == errSecSuccess {
 						return true
 					}
 				}
