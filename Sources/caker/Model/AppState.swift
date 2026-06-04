@@ -306,14 +306,6 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		let cakedServiceInstalled = MainApp.isAgentInstalled()
 		let cakedServiceRunning = connectionManager.connectionMode != .app
 		
-		let env = ProcessInfo.processInfo.environment
-		let isRunningInPreviews = env["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
-		let isRunningInTests = env["XCTestConfigurationFilePath"] != nil
-		
-		if !isRunningInPreviews && !isRunningInTests {
-			MainUIAppDelegate.ensurePrivilegedBootstrapFiles()
-		}
-		
 		// Start polling agent running status every second
 		self.connectionMode = connectionManager.connectionMode
 		self.cakedServiceInstalled = cakedServiceInstalled
