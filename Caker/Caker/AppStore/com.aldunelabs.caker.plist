@@ -10,7 +10,7 @@
 	<key>AssociatedBundleIdentifiers</key>
 	<string>com.aldunelabs.caker</string>
 	<key>Label</key>
-	<string>com.aldunelabs.caked</string>
+	<string>com.aldunelabs.caker</string>
 	<key>BundleProgram</key>
 	<string>Contents/PlugIns/caked.bundle/Contents/MacOS/caked</string>
 	<key>ProgramArguments</key>
