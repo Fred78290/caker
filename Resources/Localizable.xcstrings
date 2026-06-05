@@ -10370,6 +10370,17 @@
         }
       }
     },
+    "Tell if caker is sandboxed or not" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dites si caker est en mode bac à sable ou non"
+          }
+        }
+      }
+    },
     "Tell if the user admin allow password for ssh" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -200,6 +200,7 @@
 		9B29F82C2FCAE4B700AEBCB8 /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9B30992B2DE4DC0C00231C1E /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30992A2DE4DC0C00231C1E /* CakeAgentLib */; };
 		9B3566812F27E12D00C5E12F /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3566802F27E12D00C5E12F /* ZLib */; };
+		9B3790912FD2D9AA00D3D54C /* Sandbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3790902FD2D9A200D3D54C /* Sandbox.swift */; };
 		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
 		9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */; };
 		9B44388A2EBC9C12008BB2BB /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4438892EBC9C12008BB2BB /* Dynamic */; };
@@ -906,6 +907,7 @@
 		9B3601A22E2116E600889BFD /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSettingsView.swift; sourceTree = "<group>"; };
 		9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTemplateView.swift; sourceTree = "<group>"; };
+		9B3790902FD2D9A200D3D54C /* Sandbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sandbox.swift; sourceTree = "<group>"; };
 		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
 		9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdatesView.swift; sourceTree = "<group>"; };
 		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
@@ -2181,6 +2183,7 @@
 				9BEBC6A72DF4400A0092B196 /* Remote.swift */,
 				9BEBC6A82DF4400A0092B196 /* Rename.swift */,
 				9BBF7B362F3E058A00F37D2C /* Restart.swift */,
+				9B3790902FD2D9A200D3D54C /* Sandbox.swift */,
 				9BEBC6A92DF4400A0092B196 /* Service.swift */,
 				9BEBC6AA2DF4400A0092B196 /* Sh.swift */,
 				9BEBC6AB2DF4400A0092B196 /* Start.swift */,
@@ -3315,6 +3318,7 @@
 				9BEBC6DA2DF4400A0092B196 /* PurgeHandler.swift in Sources */,
 				9BBF7B372F3E058D00F37D2C /* Restart.swift in Sources */,
 				9B1835EC2FB070D300D150FD /* LXDConsoleVGARunner.swift in Sources */,
+				9B3790912FD2D9AA00D3D54C /* Sandbox.swift in Sources */,
 				9B1835ED2FB070D300D150FD /* LXDExecRunner.swift in Sources */,
 				9B1835EE2FB070D300D150FD /* LXDExecSessionStore.swift in Sources */,
 				9BEBC6DB2DF4400A0092B196 /* Purge.swift in Sources */,

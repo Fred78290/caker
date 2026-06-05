@@ -20,7 +20,19 @@ public let MoB: UInt64 = KoB * KoB
 public let GoB: UInt64 = MoB * KoB
 
 extension Bundle {
-	var isSandboxed: Bool {
+	private static var cacheIsSandboxed: Bool? = nil
+
+	public static var isApplicationSandboxed: Bool {
+		if let isSandboxed = cacheIsSandboxed {
+			return isSandboxed
+		}
+
+		cacheIsSandboxed = Bundle.main.isSandboxed
+		
+		return cacheIsSandboxed!
+	}
+
+	public var isSandboxed: Bool {
 		let defaultFlags: SecCSFlags = .init(rawValue: 0)
 		var staticCode: SecStaticCode? = nil
 
@@ -85,7 +97,7 @@ public struct Utils {
 					isDirectory: true,
 					relativeTo: applicationSupportDirectory)
 				cakeHomeDir = applicationSupportDirectory
-			} else if Bundle.main.isSandboxed {
+			} else if Bundle.isApplicationSandboxed {
 				cakeHomeDir = FileManager.default.homeDirectoryForCurrentUser
 			} else {
 				cakeHomeDir = FileManager.default

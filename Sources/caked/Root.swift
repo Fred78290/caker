@@ -105,7 +105,8 @@ struct Root: ParsableCommand {
 				VNC.self,
 				SetOptions.self,
 				GetOptions.self,
-				Convert.self
+				Convert.self,
+				Sandbox.self
 			])
 
 	static func parse() throws -> ParsableCommand? {
