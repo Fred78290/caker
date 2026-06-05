@@ -383,7 +383,7 @@ extension URL {
 	public func socketPath(name: String) -> URL {
 		let socketPath = self.appendingPathComponent("\(name).sock", isDirectory: false).absoluteURL
 
-		if socketPath.path.utf8.count < 103 {
+		if socketPath.path.utf8.count < 103 || Bundle.isApplicationSandboxed {
 			return URL(string: "unix://\(socketPath.path)")!
 		} else {
 			return URL(string: "unix:///tmp/\(name)-\(self.lastPathComponent).sock")!
