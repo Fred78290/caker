@@ -6,6 +6,8 @@
 	<array>
 		<string>group.com.aldunelabs.caker</string>
 	</array>
+	<key>com.apple.security.get-task-allow</key>
+	<true/>
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<key>com.apple.security.network.server</key>
@@ -13,10 +15,6 @@
 	<key>com.apple.security.virtualization</key>
 	<true/>
 	<key>com.apple.vm.networking</key>
-	<true/>
-	<key>com.apple.security.inherit</key>
-	<true/>
-	<key>com.apple.security.app-sandbox</key>
 	<true/>
 	<key>com.apple.security.temporary-exception.files.home-relative-path.read-write</key>
 	<array>
