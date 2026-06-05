@@ -56,6 +56,16 @@ extension Bundle {
 	}
 }
 
+extension FileManager {
+	public static var realHomeDirectoryForCurrentUser: URL {
+		let home: String = getpwuid(getuid()).flatMap { pw in
+			pw.pointee.pw_dir.map { String(cString: $0) }
+		} ?? NSHomeDirectory()
+
+		return URL(fileURLWithPath: home, isDirectory: true)
+	}
+}
+
 public struct Utils {
 	public static let cakerSignature = "com.aldunelabs.caker"
 	private static var homeDirectories: [Bool: URL] = [:]
@@ -252,7 +262,18 @@ extension String {
 	
 	public var expandingTildeInPath: String {
 		if self.hasPrefix("~") {
-			return (self as NSString).expandingTildeInPath
+			if Bundle.isApplicationSandboxed {
+				let home = FileManager.realHomeDirectoryForCurrentUser.path(percentEncoded: false)
+				let name = self.dropFirst(1)
+
+				if name.isEmpty {
+					return home
+				}
+
+				return home + name
+			} else {
+				return (self as NSString).expandingTildeInPath
+			}
 		}
 		
 		return self
