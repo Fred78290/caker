@@ -261,22 +261,33 @@ extension String {
 	}
 	
 	public var expandingTildeInPath: String {
-		if self.hasPrefix("~") {
-			if Bundle.isApplicationSandboxed {
-				let home = FileManager.realHomeDirectoryForCurrentUser.path(percentEncoded: false)
-				let name = self.dropFirst(1)
-
-				if name.isEmpty {
-					return home
-				}
-
-				return home + name
-			} else {
-				return (self as NSString).expandingTildeInPath
-			}
+		guard self.hasPrefix("~") else {
+			return self
 		}
-		
-		return self
+
+		let currentHome = FileManager.realHomeDirectoryForCurrentUser.path(percentEncoded: false)
+
+		// "~" or "~/..."
+		if self == "~" {
+			return currentHome
+		}
+
+		if self.hasPrefix("~/") {
+			return currentHome + String(self.dropFirst(2))
+		}
+
+		// "~user" or "~user/..."
+		let afterTilde = self.index(after: self.startIndex)
+		let slashIndex = self[afterTilde...].firstIndex(of: "/")
+		let userEnd = slashIndex ?? self.endIndex
+		let user = String(self[afterTilde..<userEnd])
+		let rest = slashIndex.map { String(self[$0...]) } ?? ""
+
+		guard let pw = getpwnam(user), let dir = pw.pointee.pw_dir else {
+			return self
+		}
+
+		return String(cString: dir) + rest
 	}
 	
 	public init(errno: Errno) {
