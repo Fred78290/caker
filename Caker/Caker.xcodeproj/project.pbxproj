@@ -125,6 +125,7 @@
 		9B3601A32E2116E600889BFD /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601A22E2116E600889BFD /* SettingsView.swift */; };
 		9B3601A52E21175900889BFD /* ApplicationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */; };
 		9B3601AB2E211A6800889BFD /* CreateTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */; };
+		9B37918F2FD44E7B00D3D54C /* Sandbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B37918E2FD44E7B00D3D54C /* Sandbox.swift */; };
 		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
 		9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */; };
 		9B3E2C692F7BDA1D003BF05E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3E2C682F7BDA1D003BF05E /* Sparkle */; };
@@ -896,6 +897,7 @@
 		9B3601A22E2116E600889BFD /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSettingsView.swift; sourceTree = "<group>"; };
 		9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTemplateView.swift; sourceTree = "<group>"; };
+		9B37918E2FD44E7B00D3D54C /* Sandbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sandbox.swift; sourceTree = "<group>"; };
 		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
 		9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdatesView.swift; sourceTree = "<group>"; };
 		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
@@ -2167,6 +2169,7 @@
 				9BEBC6A72DF4400A0092B196 /* Remote.swift */,
 				9BEBC6A82DF4400A0092B196 /* Rename.swift */,
 				9BBF7B362F3E058A00F37D2C /* Restart.swift */,
+				9B37918E2FD44E7B00D3D54C /* Sandbox.swift */,
 				9BEBC6A92DF4400A0092B196 /* Service.swift */,
 				9BEBC6AA2DF4400A0092B196 /* Sh.swift */,
 				9BEBC6AB2DF4400A0092B196 /* Start.swift */,
@@ -3292,6 +3295,7 @@
 				9BEBC6DA2DF4400A0092B196 /* PurgeHandler.swift in Sources */,
 				9BBF7B372F3E058D00F37D2C /* Restart.swift in Sources */,
 				9B1835EC2FB070D300D150FD /* LXDConsoleVGARunner.swift in Sources */,
+				9B37918F2FD44E7B00D3D54C /* Sandbox.swift in Sources */,
 				9B1835ED2FB070D300D150FD /* LXDExecRunner.swift in Sources */,
 				9B1835EE2FB070D300D150FD /* LXDExecSessionStore.swift in Sources */,
 				9BEBC6DB2DF4400A0092B196 /* Purge.swift in Sources */,
