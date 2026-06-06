@@ -251,13 +251,12 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 	}
 
-	func startPortForwarding(_ line: Int = #line) {
+	func startPortForwarding() {
 		guard portForwardingStarted == false else {
 			return
 		}
 
 		do {
-			self.logger.info("startPortForwarding: \(line)")
 			let group = Utilities.group.next()
 			var forwardedPorts: [TunnelAttachement] = self.config.forwardedPorts
 			var symlinks: [URL:URL] = [:]
