@@ -230,13 +230,7 @@ private struct PasswordAuthMiddleware: Middleware {
 			return unauthorized(on: request)
 		}
 
-		return authorized(on: request, chainingTo: next)
-	}
-
-	private func authorized(on request: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
-		let response = Response(status: .accepted)
-
-		return request.eventLoop.makeSucceededFuture(response)
+		return next.respond(to: request)
 	}
 
 	private func unauthorized(on request: Request) -> EventLoopFuture<Response> {
