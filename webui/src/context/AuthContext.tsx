@@ -12,8 +12,9 @@ interface AuthState {
   logout: () => void
 }
 
-/** In-memory credential store — never persisted to sessionStorage/localStorage. */
-let _credential: string | null = null
+const STORAGE_KEY = 'cakerCredential'
+
+let _credential: string | null = sessionStorage.getItem(STORAGE_KEY)
 
 const AuthContext = createContext<AuthState | null>(null)
 
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const handle = () => {
       _credential = null
+      sessionStorage.removeItem(STORAGE_KEY)
       setIsAuthenticated(false)
     }
     window.addEventListener('caker:unauthorized', handle)
@@ -69,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Basic auth: base64("caker:<password>") — username is ignored by PasswordAuthMiddleware
     const token = btoa(`caker:${password}`)
     _credential = token
+    sessionStorage.setItem(STORAGE_KEY, token)
     client.defaults.headers.common['Authorization'] = `Basic ${token}`
 
     // Verify credentials
@@ -78,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     _credential = null
+    sessionStorage.removeItem(STORAGE_KEY)
     delete client.defaults.headers.common['Authorization']
     setIsAuthenticated(false)
   }, [])
