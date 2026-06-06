@@ -132,6 +132,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var vzMachineView: VMView.NSViewType! = nil
 	var timer: Timer? = nil
 	var symlinks: [URL] = []
+	var portForwardingStarted = false
 	let logger = Logger("VirtualMachineEnvironment")
 
 	var runningIP: String = String.empty {
@@ -251,6 +252,10 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func startPortForwarding(_ line: Int = #line) {
+		guard portForwardingStarted == false else {
+			return
+		}
+
 		do {
 			self.logger.info("startPortForwarding: \(line)")
 			let group = Utilities.group.next()
@@ -302,6 +307,8 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		} catch {
 			self.logger.error(error)
 		}
+		
+		portForwardingStarted = true
 	}
 
 	func startCommunicationDevices(_ virtualMachine: VZVirtualMachine) {
@@ -318,7 +325,9 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 	}
 
-	func stopForwaringPorts() {
+	func stopPortForwarding() {
+		portForwardingStarted = false
+
 		try? CakeAgentPortForwardingServer.closeForwardedPort()
 
 		self.symlinks.forEach {
@@ -365,7 +374,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	func stopServices() {
 		self.logger.info("Stop services for VM \(self.location.name)...")
 		stopCommunicationDevices()
-		stopForwaringPorts()
+		stopPortForwarding()
 	}
 
 	func signalStop() {
