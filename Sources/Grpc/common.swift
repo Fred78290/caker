@@ -415,10 +415,10 @@ extension URL {
 	public func socketPath(name: String) -> URL {
 		let socketPath = self.appendingPathComponent("\(name).sock", isDirectory: false).absoluteURL
 
-		if socketPath.path.utf8.count < 103 || Bundle.isApplicationSandboxed {
+		if socketPath.path(percentEncoded: false).utf8.count < 103 {
 			return URL(string: "unix://\(socketPath.path)")!
 		} else {
-			return URL(string: "unix:///tmp/\(name)-\(self.lastPathComponent).sock")!
+			return URL(string: "unix://\(NSTemporaryDirectory())\(self.lastPathComponent.deletingPathExtension)-\(name).sock")!
 		}
 	}
 
