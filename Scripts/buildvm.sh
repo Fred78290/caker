@@ -5,7 +5,7 @@ set -e
 
 # Help tool to inspect the disk image
 # qemu-img convert -p -f raw -O vmdk ~/.cake/vms/opensuse/disk.img ~/Virtual\ Machines.localized/ubuntu-desktop.vmwarevm/linux.vmdk
-
+CMD=cakectl
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PKGDIR="${PROJECT_ROOT}/dist/Caker.app"
@@ -195,12 +195,12 @@ else
   FORWARDS_OPTIONS="--dynamic-port-forwarding --publish 2222:22/tcp"
 fi
 
-caked delete ${VMNAME} 
+${CMD} delete ${VMNAME}  
 
 if [ -z "${CLOUD_IMAGE}" ]; then
     BUILD_OPTIONS="${COMMON_OPTIONS} ${NETWORKS_OPTIONS} ${FORWARDS_OPTIONS} ${MOUNT_OPTIONS} "
-    caked build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE} 
+    ${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE} 
 else
     BUILD_OPTIONS="${COMMON_OPTIONS} ${NETWORKS_OPTIONS} ${MOUNT_OPTIONS}"
-    caked build ${VMNAME} ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
+    ${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
 fi
