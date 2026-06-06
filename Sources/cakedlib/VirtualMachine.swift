@@ -858,7 +858,11 @@ extension VirtualMachine {
 		if Task.isCancelled {
 			if virtualMachine.state == VZVirtualMachine.State.running {
 				self.logger.info("Stopping VM \(self.location.name)...")
-				self.stopVM()
+				await withCheckedContinuation { continuation in
+					self.stopVM { _ in
+						continuation.resume()
+					}
+				}
 			}
 		}
 		
