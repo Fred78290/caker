@@ -4,7 +4,10 @@ import axios from 'axios';
 // so relative URLs work for both dev (via Vite proxy) and production.
 const client = axios.create({
   baseURL: '/',
-  headers: { 'Content-Type': 'application/json' },
+  // `X-Requested-With` flags this as the SPA's own XHR traffic so caked can
+  // avoid sending a `WWW-Authenticate: Basic` challenge that would trigger the
+  // browser's native credential dialog over our custom login page.
+  headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
 })
 
 // Apply any credential stored from a previous login in this session.

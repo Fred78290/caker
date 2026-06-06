@@ -209,8 +209,8 @@ private struct PasswordAuthMiddleware: Middleware {
 				} else {
 					response = Response(status: .unauthorized)
 
-					response.headers.replaceOrAdd(name: .wwwAuthenticate, value: "Basic realm=\"Caker\"")
-					response.headers.add(name: .wwwAuthenticate, value: "Bearer realm=\"Caker\"")
+					response.headers.replaceOrAdd(name: .wwwAuthenticate, value: challenge("Basic", for: request))
+					response.headers.add(name: .wwwAuthenticate, value: challenge("Bearer", for: request))
 				}
 
 				return response
@@ -241,9 +241,24 @@ private struct PasswordAuthMiddleware: Middleware {
 
 	private func unauthorized(on request: Request) -> EventLoopFuture<Response> {
 		let response = Response(status: .unauthorized)
-		response.headers.replaceOrAdd(name: .wwwAuthenticate, value: "Basic realm=\"Caker\"")
-		response.headers.add(name: .wwwAuthenticate, value: "Bearer realm=\"Caker\"")
+		response.headers.replaceOrAdd(name: .wwwAuthenticate, value: challenge("Basic", for: request))
+		response.headers.add(name: .wwwAuthenticate, value: challenge("Bearer", for: request))
 		return request.eventLoop.makeSucceededFuture(response)
+	}
+
+	/// Builds a `WWW-Authenticate` challenge for `scheme`.
+	///
+	/// Browsers show their own built-in credential prompt whenever they recognize the
+	/// challenge scheme (`Basic`, `Digest`, `NTLM`, `Negotiate`) in a 401 response — even for
+	/// XHR/fetch requests. The web UI authenticates through its own login page, so for requests
+	/// it makes (flagged with `X-Requested-With: XMLHttpRequest`) the scheme is prefixed with a
+	/// token browsers don't recognize. `AuthContext` matches schemes by substring, so it still
+	/// detects `x-Basic`/`x-Bearer` correctly while the native dialog is suppressed. Other
+	/// clients (e.g. `cakectl`) keep receiving the standard, RFC-compliant scheme name.
+	private func challenge(_ scheme: String, for request: Request) -> String {
+		let isWebUIRequest = request.headers.first(name: "X-Requested-With")?.caseInsensitiveCompare("XMLHttpRequest") == .orderedSame
+		let token = isWebUIRequest ? "x-\(scheme)" : scheme
+		return "\(token) realm=\"Caker\""
 	}
 }
 
