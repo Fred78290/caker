@@ -248,8 +248,9 @@ private func resolveWebUIDirectory(_ path: String) throws -> String {
 
 	guard path.lowercased().hasSuffix(".zip") else { return path }
 
-	let tmpDir = FileManager.default.temporaryDirectory
-		.appendingPathComponent("caker-webui-\(UUID().uuidString)")
+	let tmpDir = FileManager.default.temporaryDirectory.appendingPathComponent("caker-webui")
+
+	try? FileManager.default.removeItem(at: tmpDir)
 	try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
 
 	let process = Process()
