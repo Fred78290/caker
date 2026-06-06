@@ -131,6 +131,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var vncServer: VZVNCServer! = nil
 	var vzMachineView: VMView.NSViewType! = nil
 	var timer: Timer? = nil
+	var symlinks: [URL] = []
 	let logger = Logger("VirtualMachineEnvironment")
 
 	var runningIP: String = String.empty {
@@ -249,16 +250,53 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 	}
 
-	func startPortForwarding() {
+	func startPortForwarding(_ line: Int = #line) {
 		do {
+			self.logger.info("startPortForwarding: \(line)")
 			let group = Utilities.group.next()
-			
+			var forwardedPorts: [TunnelAttachement] = self.config.forwardedPorts
+			var symlinks: [URL:URL] = [:]
+
+			// If the app is sandboxed, we can't create unix socket outside sandbox but symlink works
+			if Bundle.isApplicationSandboxed {
+				forwardedPorts = try forwardedPorts.map { tunnel in
+					guard let unixDomain = tunnel.unixDomain else {
+						return tunnel
+					}
+
+					guard unixDomain.host.starts(with: "~/") else {
+						return tunnel
+					}
+
+					let sandboxedTarget = URL(fileURLWithPath: (unixDomain.host as NSString).expandingTildeInPath)
+					let symlinkTarget = URL(fileURLWithPath: unixDomain.host.expandingTildeInPath)
+
+					// Must create all directories because the user map the real home not the sandbox
+					try FileManager.default.createDirectory(at: sandboxedTarget.deletingLastPathComponent(), withIntermediateDirectories: true)
+
+					// Remember it
+					symlinks[sandboxedTarget] = symlinkTarget
+
+					return TunnelAttachement(host: sandboxedTarget.path(percentEncoded: false), guest: unixDomain.guest)
+				}
+			}
+
 			try CakeAgentPortForwardingServer.createPortForwardingServer(group: group,
 																		 cakeAgentClient: try CakeAgentConnection.createCakeAgentClient(on: group.next(), listeningAddress: self.location.agentURL, timeout: 5, runMode: runMode),
 																		 name: self.location.name,
 																		 remoteAddress: self.runningIP,
-																		 forwardedPorts: self.config.forwardedPorts,
+																		 forwardedPorts: forwardedPorts,
 																		 dynamicPortForwarding: config.dynamicPortForwarding)
+
+			// Now create symlinks from sandboxed socket to real target
+			self.symlinks = try symlinks.compactMap { (target, link) in
+				// Cleanup before
+				try? FileManager.default.removeItem(at: link)
+
+				try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
+				
+				return link
+			}
 		} catch is ValidationError {
 			// Silent
 		} catch {
@@ -282,6 +320,12 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 
 	func stopForwaringPorts() {
 		try? CakeAgentPortForwardingServer.closeForwardedPort()
+
+		self.symlinks.forEach {
+			try? FileManager.default.removeItem(at: $0)
+		}
+		
+		self.symlinks.removeAll()
 	}
 
 	func stopVMRunService() {
@@ -319,6 +363,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func stopServices() {
+		self.logger.info("Stop services for VM \(self.location.name)...")
 		stopCommunicationDevices()
 		stopForwaringPorts()
 	}
