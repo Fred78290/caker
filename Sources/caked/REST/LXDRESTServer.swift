@@ -24,26 +24,15 @@ extension TLSConfiguration {
 			throw NIOSSLError.failedToLoadCertificate
 		}
 
-		var tlsConfiguration: TLSConfiguration
-
-		if let caCert = caCert {
-			// When a CA is provided, use it for trust and require full client cert verification (mTLS)
-			tlsConfiguration = TLSConfiguration.makeServerConfiguration(
-				certificateChain: [.certificate(leafCert)],
-				privateKey: .privateKey(tlsKey)
-			)
-
-			tlsConfiguration.certificateVerification = CertificateVerification.optionalVerification
-			tlsConfiguration.trustRoots = .certificates(try NIOSSLCertificate.fromPEMFile(caCert))
-		} else {
-			// No CA provided: do not verify client certificates (server-only TLS)
-			tlsConfiguration = TLSConfiguration.makeServerConfiguration(
-				certificateChain: [.certificate(leafCert)],
-				privateKey: .privateKey(tlsKey)
-			)
-		}
-
-		return tlsConfiguration
+		// Build a server-only TLS configuration (no client certificate request).
+		// mTLS settings (certificateVerification, trustRoots) are applied by the caller
+		// only when certificate auth is the sole authentication method — when password auth
+		// is also active the TLS CertificateRequest would cause browsers to show a
+		// certificate picker dialog for every new connection, even for password-auth users.
+		return TLSConfiguration.makeServerConfiguration(
+			certificateChain: [.certificate(leafCert)],
+			privateKey: .privateKey(tlsKey)
+		)
 	}
 }
 
@@ -372,11 +361,19 @@ final class LXDRESTServer: Sendable {
 
 			if let caCert = caCert {
 				let authMiddleware = try CertificateAuthMiddleware(caCert: caCert)
-
 				app.middleware.use(authMiddleware)
 
-				serverConfiguration.customCertificateVerifyCallbackWithMetadata = { peerCerts, successPromise in
-					successPromise.succeed(.certificateVerified(VerificationMetadata(ValidatedCertificateChain(peerCerts))))
+				// Only request a TLS client certificate when certificate auth is the sole method.
+				// When password auth is also configured the server must NOT send CertificateRequest:
+				// browsers (Firefox, Safari, Chrome) pop a certificate picker dialog on every new
+				// TLS connection whenever they receive CertificateRequest — even for users who only
+				// want to authenticate with a password and have no 401 involved.
+				if listenPassword == nil {
+					serverConfiguration.tlsConfiguration?.certificateVerification = .optionalVerification
+					serverConfiguration.tlsConfiguration?.trustRoots = .certificates(try NIOSSLCertificate.fromPEMFile(caCert))
+					serverConfiguration.customCertificateVerifyCallbackWithMetadata = { peerCerts, successPromise in
+						successPromise.succeed(.certificateVerified(VerificationMetadata(ValidatedCertificateChain(peerCerts))))
+					}
 				}
 			}
 		}
