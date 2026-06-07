@@ -1,15 +1,16 @@
 import ArgumentParser
+import CakeAgentLib
 import CakedLib
 import GRPCLib
-import CakeAgentLib
-import SwiftTerm
-import SwiftUI
-import SwifterSwiftUI
 import Logging
 import Security
 import ServiceManagement
+import SwiftTerm
+import SwiftUI
+import SwifterSwiftUI
+
 #if SPARKLE
-import Sparkle
+	import Sparkle
 #endif
 
 @MainActor
@@ -19,7 +20,7 @@ func alertError(_ messageText: String, _ informativeText: String, completion: ((
 	alert.messageText = messageText
 	alert.informativeText = informativeText
 	let result = alert.runModal()
-	
+
 	if let completion {
 		completion(result)
 	}
@@ -101,7 +102,7 @@ struct MainAppParseArgument: ParsableCommand {
 @main
 struct MainApp: App {
 	static var app: MainApp! = nil
-	
+
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
 	var appState: AppState
@@ -109,45 +110,45 @@ struct MainApp: App {
 	@State var navigationModel = NavigationModel()
 
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
-	
+
 	// Sparkle updater
 	#if SPARKLE
-	private let updaterController: SPUStandardUpdaterController
+		private let updaterController: SPUStandardUpdaterController
 	#endif
 
 	init() {
 		_ = try? MainAppParseArgument.parse(CommandLine.arguments)
 		self.appState = AppState.shared
-		
+
 		#if SPARKLE
-		// Initialize Sparkle updater
-		self.updaterController = SPUStandardUpdaterController(
-			startingUpdater: true,
-			updaterDelegate: nil,
-			userDriverDelegate: nil
-		)
+			// Initialize Sparkle updater
+			self.updaterController = SPUStandardUpdaterController(
+				startingUpdater: true,
+				updaterDelegate: nil,
+				userDriverDelegate: nil
+			)
 		#endif
 
 		self.navigationModel.sync(with: self.appState)
 
 		Self.app = self
 	}
-	
-	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) {		
+
+	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) {
 		guard let document = AppState.shared.currentDocument else {
 			return ("Install agent", false, true)
 		}
 
 		return document.agentCondition
 	}
-	
+
 	var body: some Scene {
 		CakerMenuBarExtraScene(model: self.navigationModel)
-		
+
 		DocumentGroup(viewing: BridgeVirtualDocument.self) { file in
 			let document = file.document.attachedVirtualDocument
 			let initialSize = document.virtualMachineConfig.display.cgSize
-			
+
 			if document.location != nil || document.url.isFileURL == false {
 				HostVirtualMachineView(document: document)
 					.colorSchemeForColor()
@@ -168,11 +169,11 @@ struct MainApp: App {
 		.commandsReplaced {
 			self.menus
 		}
-		
+
 		WindowGroup(id: "VM", for: URL.self) { $vmURL in
 			if let vmURL, let document = AppState.shared.findVirtualMachineDocument(vmURL) {
 				let initialSize = document.virtualMachineConfig.display.cgSize
-				
+
 				HostVirtualMachineView(document: document)
 					.colorSchemeForColor()
 					.windowMinimizeBehavior(.enabled)
@@ -191,7 +192,7 @@ struct MainApp: App {
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
 		.restorationState(.disabled)
-		
+
 		Window("Home", id: "home") {
 			HomeView(navigationModel: navigationModel)
 				.colorSchemeForColor()
@@ -219,13 +220,13 @@ struct MainApp: App {
 		.commands {
 			CommandGroup(replacing: .saveItem, addition: {})
 		}
-		
+
 		Settings {
 			SettingsView()
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 		}.restorationState(.disabled)
-		
+
 		Window("About Caker", id: "about") {
 			AboutCakerView()
 		}
@@ -234,7 +235,7 @@ struct MainApp: App {
 		.restorationState(.disabled)
 		.defaultPosition(.center)
 	}
-	
+
 	@CommandsBuilder private var menus: some Commands {
 		CommandGroup(before: .newItem) {
 			Button("New virtual machine") {
@@ -250,21 +251,21 @@ struct MainApp: App {
 			Button("Start") {
 				appState.currentDocument.startFromUI()
 			}.disabled(self.appState.isRunning || self.appState.currentDocument == nil)
-			
+
 			Button("Stop") {
 				appState.currentDocument.stopFromUI(force: true)
 			}.disabled(self.appState.isStopped || self.appState.isAgentInstalling || self.appState.currentDocument == nil)
-			
+
 			Button("Request stop") {
 				appState.currentDocument.stopFromUI(force: false)
 			}.disabled(self.appState.isStopped || self.appState.isAgentInstalling || self.appState.currentDocument == nil)
-			
+
 			if #available(macOS 14, *) {
 				Button("Suspend") {
 					self.appState.currentDocument.suspendFromUI()
 				}.disabled(!self.appState.isSuspendable || self.appState.isAgentInstalling || self.appState.currentDocument == nil)
 			}
-			
+
 			Button("Create template") {
 				createTemplate = true
 			}
@@ -272,14 +273,14 @@ struct MainApp: App {
 			.alert("Create template", isPresented: $createTemplate) {
 				CreateTemplateView()
 			}
-			
+
 			Divider()
-			
+
 			let agentCondition = self.agentCondition
-			
+
 			Button(agentCondition.title) {
 				self.appState.isAgentInstalling = true
-				
+
 				self.appState.currentDocument.installAgent(updateAgent: agentCondition.needUpdate) { _ in
 					self.appState.isAgentInstalling = false
 				}
@@ -289,17 +290,17 @@ struct MainApp: App {
 				CreateTemplateView()
 			}
 		}
-		
+
 		CommandGroup(replacing: .appInfo) {
 			Button("About Caker") {
 				openWindow(id: "about")
 			}
 		}
-		
+
 		#if SPARKLE
-		CommandGroup(after: .appInfo) {
-			CheckForUpdatesView(updater: updaterController.updater)
-		}
+			CommandGroup(after: .appInfo) {
+				CheckForUpdatesView(updater: updaterController.updater)
+			}
 		#endif
 
 		CommandMenu("Service") {
@@ -309,66 +310,66 @@ struct MainApp: App {
 			Divider()
 
 			#if USE_SMAPPSERVICE
-			if self.appState.cakedServiceInstalled {
-				Button("Remove service") {
-					Self.removeCakedService()
+				if self.appState.cakedServiceInstalled {
+					Button("Remove service") {
+						Self.removeCakedService()
+					}
+				} else {
+					Button("Install service") {
+						Self.installCakedService()
+					}
+					.disabled(self.appState.cakedServiceRunning)
 				}
-			} else {
-				Button("Install service") {
-					Self.installCakedService()
-				}
-				.disabled(self.appState.cakedServiceRunning)
-			}
 
-			if self.appState.cakedServiceInstalled  == false {
-				if self.appState.cakedServiceRunning {
-					Button("Stop caked daemon") {
-						Self.stopCakedDaemon()
-					}
-				} else {
-					Button("Start caked daemon") {
-						Self.startCakedDaemon()
+				if self.appState.cakedServiceInstalled == false {
+					if self.appState.cakedServiceRunning {
+						Button("Stop caked daemon") {
+							Self.stopCakedDaemon()
+						}
+					} else {
+						Button("Start caked daemon") {
+							Self.startCakedDaemon()
+						}
 					}
 				}
-			}
 			#else
-			if self.appState.cakedServiceInstalled {
-				Button("Remove service") {
-					Self.removeCakedService()
-				}.disabled(self.appState.cakedServiceRunning)
-			} else {
-				Button("Install service") {
-					Self.installCakedService()
-				}
-				#if USE_SMAPPSERVICE
-				.disabled(self.appState.cakedServiceRunning)
-				#endif
-			}
-			if self.appState.cakedServiceInstalled {
-				if self.appState.cakedServiceRunning {
-					Button("Stop service") {
-						Self.stopCakedService()
-					}.disabled(self.appState.cakedServiceInstalled == false)
+				if self.appState.cakedServiceInstalled {
+					Button("Remove service") {
+						Self.removeCakedService()
+					}.disabled(self.appState.cakedServiceRunning)
 				} else {
-					Button("Start service") {
-						Self.startCakedService()
-					}.disabled(self.appState.cakedServiceInstalled == false)
+					Button("Install service") {
+						Self.installCakedService()
+					}
+					#if USE_SMAPPSERVICE
+						.disabled(self.appState.cakedServiceRunning)
+					#endif
 				}
-			} else {
-				if self.appState.cakedServiceRunning {
-					Button("Stop caked daemon") {
-						Self.stopCakedDaemon()
+				if self.appState.cakedServiceInstalled {
+					if self.appState.cakedServiceRunning {
+						Button("Stop service") {
+							Self.stopCakedService()
+						}.disabled(self.appState.cakedServiceInstalled == false)
+					} else {
+						Button("Start service") {
+							Self.startCakedService()
+						}.disabled(self.appState.cakedServiceInstalled == false)
 					}
 				} else {
-					Button("Start caked daemon") {
-						Self.startCakedDaemon()
+					if self.appState.cakedServiceRunning {
+						Button("Stop caked daemon") {
+							Self.stopCakedDaemon()
+						}
+					} else {
+						Button("Start caked daemon") {
+							Self.startCakedDaemon()
+						}
 					}
 				}
-			}
 			#endif
 		}
 	}
-	
+
 	private func failedLoadVirtualMachine(_ title: String) -> some View {
 		LabelView("Unable to load virtual machine\n\(title)")
 			.containerBackground(.windowBackground, for: .window)
@@ -376,17 +377,17 @@ struct MainApp: App {
 			.restorationState(.disabled)
 			.frame(size: CGSize(width: 800, height: 600))
 	}
-	
+
 	private func open() {
 		let home = StorageLocation(runMode: .app).rootURL
-		
+
 		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: String(localized: "Open virtual machine"), directoryURL: home) {
 			Task {
 				try? await openDocument(at: documentURL)
 			}
 		}
 	}
-	
+
 	func newDocWizard() -> some View {
 		VirtualMachineWizard()
 			.colorSchemeForColor()
@@ -427,49 +428,49 @@ struct MainApp: App {
 	}
 
 	static func installCakedService() {
-        // Try Keychain first
+		// Try Keychain first
 		if let savedPassword = try? CakedKeyConfig.passphrase.get(), savedPassword.isEmpty == false {
-            do {
-                try installLaunchAgent(savedPassword)
-                return
-            } catch {
-                // If saved password fails, fall back to prompting
+			do {
+				try installLaunchAgent(savedPassword)
+				return
+			} catch {
+				// If saved password fails, fall back to prompting
 				Logger("MainApp").warn("Failed to install launch agent with saved passphrase: \(error)")
-            }
-        }
+			}
+		}
 
-        // Prompt for password using a secure text field
-        let alert = NSAlert()
-        alert.messageText = String(localized: "Pass-Phrase Required")
-        alert.informativeText = String(localized: "To install the service, please enter your pass-phrase.")
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: String(localized: "Install"))
-        alert.addButton(withTitle: String(localized: "Cancel"))
+		// Prompt for password using a secure text field
+		let alert = NSAlert()
+		alert.messageText = String(localized: "Pass-Phrase Required")
+		alert.informativeText = String(localized: "To install the service, please enter your pass-phrase.")
+		alert.alertStyle = .warning
+		alert.addButton(withTitle: String(localized: "Install"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
 
-        let secureField = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
-        secureField.placeholderString = String(localized: "Password")
-        alert.accessoryView = secureField
+		let secureField = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+		secureField.placeholderString = String(localized: "Password")
+		alert.accessoryView = secureField
 
-        let response = alert.runModal()
-        guard response == .alertFirstButtonReturn else {
-            return
-        }
+		let response = alert.runModal()
+		guard response == .alertFirstButtonReturn else {
+			return
+		}
 
-        let password = secureField.stringValue
-        guard password.isEmpty == false else {
-            DispatchQueue.main.async {
-                alertError(String(localized: "Password"), String(localized: "Password cannot be empty."))
-            }
-            return
-        }
+		let password = secureField.stringValue
+		guard password.isEmpty == false else {
+			DispatchQueue.main.async {
+				alertError(String(localized: "Password"), String(localized: "Password cannot be empty."))
+			}
+			return
+		}
 
-        do {
+		do {
 			try installLaunchAgent(password)
-        } catch {
-            DispatchQueue.main.async {
-                alertError(error)
-            }
-        }
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
 	}
 
 	static var launchdAgentName: String {
@@ -482,35 +483,35 @@ struct MainApp: App {
 
 	static func isAgentInstalled() -> Bool {
 		#if USE_SMAPPSERVICE
-		let service = Self.appService
+			let service = Self.appService
 
-		return (service.status == .requiresApproval) || (service.status == .enabled)
+			return (service.status == .requiresApproval) || (service.status == .enabled)
 		#else
-		return ServiceHandler.isAgentInstalled
+			return ServiceHandler.isAgentInstalled
 		#endif
 	}
 
 	static func installLaunchAgent(_ password: String?) throws {
 		#if USE_SMAPPSERVICE
-		let service = Self.appService
+			let service = Self.appService
 
-		if service.status == .notFound || service.status == .notRegistered {
-			try service.register()
-		}
+			if service.status == .notFound || service.status == .notRegistered {
+				try service.register()
+			}
 		#else
-		try ServiceHandler.installAgent(password: password, runMode: .user)
+			try ServiceHandler.installAgent(password: password, runMode: .user)
 		#endif
 	}
 
 	static func uninstallLaunchAgent() throws {
 		#if USE_SMAPPSERVICE
-		let service = Self.appService
+			let service = Self.appService
 
-		if service.status ==  .requiresApproval || service.status == .enabled {
-			try service.unregister()
-		}
+			if service.status == .requiresApproval || service.status == .enabled {
+				try service.unregister()
+			}
 		#else
-		try ServiceHandler.uninstallAgent(runMode: .user)
+			try ServiceHandler.uninstallAgent(runMode: .user)
 		#endif
 	}
 
@@ -523,7 +524,7 @@ struct MainApp: App {
 			}
 		}
 	}
-	
+
 	static func stopCakedService() {
 		do {
 			try ServiceHandler.stopAgent(runMode: .user)
@@ -533,7 +534,7 @@ struct MainApp: App {
 			}
 		}
 	}
-	
+
 	static func startCakedService() {
 		do {
 			try ServiceHandler.launchAgent(runMode: .user)
@@ -543,7 +544,7 @@ struct MainApp: App {
 			}
 		}
 	}
-	
+
 	static func stopCakedDaemon() {
 		do {
 			try ServiceHandler.stopAgentRunning(runMode: .user)
@@ -553,7 +554,7 @@ struct MainApp: App {
 			}
 		}
 	}
-	
+
 	static func startCakedDaemon() {
 		do {
 			try self.runAgent(runMode: .user)
@@ -563,7 +564,7 @@ struct MainApp: App {
 			}
 		}
 	}
-	
+
 	static func runAgent(runMode: Utils.RunMode) throws {
 		guard var pluginsURL = Bundle.main.cakedBundleURL else {
 			throw ServiceError(String(localized: "Caked bundle path is missing"))
@@ -574,34 +575,58 @@ struct MainApp: App {
 		guard try pluginsURL.exists() else {
 			throw ServiceError(String(localized: "Caked executable is missing"))
 		}
-
 		// Launch off the main thread to avoid QoS inversions and UI stalls
 		Task.detached(priority: .background) {
 			do {
-				let process = ProcessWithSharedFileHandle()
-				process.executableURL = pluginsURL
-				process.arguments = [
-					"service",
-					"listen",
-					"--secure",
-					"--tcp",
-					"--rest",
-					"--log-level=\(CakeAgentLib.Logger.Level().description)"
-				]
+				if Bundle.isApplicationSandboxed {
+					let scriptsFile = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("caked.sh")
+					let scripts: [String] = [
+						"#!/bin/sh",
+						"exec '\(pluginsURL.path(percentEncoded: false))' \"$@\"",
+					]
 
-				// If you need to capture output, switch to Pipes and read asynchronously.
-				// For now, inherit parent's stdio without blocking the main thread.
-				process.standardOutput = FileHandle.standardOutput
-				process.standardError = FileHandle.standardError
-				process.standardInput = FileHandle.nullDevice
+					try scripts.joined(separator: "\n").write(to: scriptsFile, atomically: true, encoding: .utf8)
+					try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptsFile.path(percentEncoded: false))
 
-				try process.run()
+					defer {
+						try? FileManager.default.removeItem(at: scriptsFile)
+					}
 
-				// Do not call waitUntilExit() on the main thread. If needed, wait here off-main.
-				//process.waitUntilExit()
+					let userTask = try NSUserUnixTask(url: scriptsFile)
 
-				// If you need to update UI after exit, hop back to the main actor here.
-				// await MainActor.run { /* update UI state */ }
+					userTask.standardOutput = FileHandle(fileDescriptor: dup(STDOUT_FILENO), closeOnDealloc: true)
+					userTask.standardError = FileHandle(fileDescriptor: dup(STDERR_FILENO), closeOnDealloc: true)
+					userTask.standardInput = nil
+
+					try await userTask.execute(withArguments: [
+						"service",
+						"listen",
+						"--secure",
+						"--tcp",
+						"--rest",
+						"--log-level=\(CakeAgentLib.Logger.Level().description)",
+					])
+				} else {
+					let process = Process()
+					process.executableURL = pluginsURL
+					process.environment = ProcessInfo.processInfo.environment
+					process.arguments = [
+						"service",
+						"listen",
+						"--secure",
+						"--tcp",
+						"--rest",
+						"--log-level=\(CakeAgentLib.Logger.Level().description)",
+					]
+
+					// If you need to capture output, switch to Pipes and read asynchronously.
+					// For now, inherit parent's stdio without blocking the main thread.
+					process.standardOutput = FileHandle.standardOutput
+					process.standardError = FileHandle.standardError
+					process.standardInput = nil
+
+					try process.run()
+				}
 			} catch {
 				// Report error back to the main actor if UI needs to reflect failures
 				await MainActor.run {
@@ -689,17 +714,21 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 			if geteuid() != 0 && contents.count > 1 {
 				#if SPARKLE
-				do {
-					try print(runPrivileged(contents))
-				} catch {
-					MainActor.assumeIsolated {
-						showRunInTerminalAlert(contents)
+					do {
+						try print(runPrivileged(contents))
+					} catch {
+						MainActor.assumeIsolated {
+							showRunInTerminalAlert(contents)
+						}
 					}
-				}
 				#else
-				MainActor.assumeIsolated {
-					showCommandToPasteAlert(contents)
-				}
+					do {
+						try print(runPrivilegedWithBundledScript(pathsContent: pathsContent, sudoersContent: sudoersContent))
+					} catch {
+						MainActor.assumeIsolated {
+							showCommandToPasteAlert(contents)
+						}
+					}
 				#endif
 			}
 		} catch {
@@ -756,7 +785,9 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 		let alert = NSAlert()
 		alert.messageText = String(localized: "Manual configuration required")
-		alert.informativeText = String(localized: "To allow use command caked and cakectl in terminal, path must be added to /etc/paths.d/com.aldunelabs.caker and sudoers must be added to /etc/sudoers.d/caked. Please run the following command in Terminal or do it later in settings.")
+		alert.informativeText = String(
+			localized:
+				"To allow use command caked and cakectl in terminal, path must be added to /etc/paths.d/com.aldunelabs.caker and sudoers must be added to /etc/sudoers.d/caked. Please run the following command in Terminal or do it later in settings.")
 
 		let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 480, height: 270))
 		textView.string = sudoScript
@@ -782,28 +813,28 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 	static func askUserToInstallCakedAgent() {
 		#if USE_SMAPPSERVICE
-		if MainApp.isAgentInstalled() == false {
-			MainActor.assumeIsolated {
-				showInstallAgentAlert()
+			if MainApp.isAgentInstalled() == false {
+				MainActor.assumeIsolated {
+					showInstallAgentAlert()
+				}
 			}
-		}
 		#endif
 	}
 
 	#if USE_SMAPPSERVICE
-	@MainActor
-	private static func showInstallAgentAlert() {
-		let alert = NSAlert()
-		alert.messageText = String(localized: "caked Agent Not Installed")
-		alert.informativeText = String(localized: "The caked background agent is not installed. Would you like to install it now to enable full functionality?")
-		alert.alertStyle = .warning
-		alert.addButton(withTitle: String(localized: "Install"))
-		alert.addButton(withTitle: String(localized: "Later"))
+		@MainActor
+		private static func showInstallAgentAlert() {
+			let alert = NSAlert()
+			alert.messageText = String(localized: "caked Agent Not Installed")
+			alert.informativeText = String(localized: "The caked background agent is not installed. Would you like to install it now to enable full functionality?")
+			alert.alertStyle = .warning
+			alert.addButton(withTitle: String(localized: "Install"))
+			alert.addButton(withTitle: String(localized: "Later"))
 
-		if alert.runModal() == .alertFirstButtonReturn {
-			MainApp.installCakedService()
+			if alert.runModal() == .alertFirstButtonReturn {
+				MainApp.installCakedService()
+			}
 		}
-	}
 	#endif
 
 	private static func installRootOwnedFile(content: String, to destination: URL, mode: String) throws -> [String] {
@@ -829,7 +860,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			result.append(contentsOf: [
 				"/usr/bin/install -d -m 755 \(parent.path)",
 				"/usr/bin/install -o root -g wheel -m \(mode) \(temporaryFile.path) \(destination.path)",
-				"rm -f \(temporaryFile.path)"
+				"rm -f \(temporaryFile.path)",
 			])
 		}
 
@@ -865,25 +896,68 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		}
 	}
 
-#if SPARKLE
-	private static func runPrivileged(_ commands: [String]) throws -> String {
-		let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString).sh")
-		let appleScript = "do shell script \"\(temporaryFile.path)\" with administrator privileges"
+	#if SPARKLE
+		private static func runPrivileged(_ commands: [String]) throws -> String {
+			let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString).sh")
+			let appleScript = "do shell script \"\(temporaryFile.path)\" with administrator privileges"
 
-		try commands.joined(separator: "\n").write(to: temporaryFile, atomically: true, encoding: .utf8)
+			try commands.joined(separator: "\n").write(to: temporaryFile, atomically: true, encoding: .utf8)
 
-		defer {
-			try? FileManager.default.removeItem(at: temporaryFile)
+			defer {
+				try? FileManager.default.removeItem(at: temporaryFile)
+			}
+
+			try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: temporaryFile.path)
+			return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
 		}
+	#else
+		private static func runPrivilegedWithBundledScript(pathsContent: String, sudoersContent: String) throws -> String {
+			guard let bundledURL = Bundle.main.url(forResource: "PrivilegedBootstrap", withExtension: "applescript") else {
+				throw NSError(domain: NSOSStatusErrorDomain, code: -1, userInfo: [NSLocalizedDescriptionKey: "PrivilegedBootstrap.applescript not found in bundle"])
+			}
 
-		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: temporaryFile.path)
-		return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
-	}
-#else
-	private static func runPrivilegedWithBundledScript(pathsContent: String, sudoersContent: String) throws -> String {
-		return "OK"
-	}
-#endif
+			let scriptsDir = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+			let scriptURL = scriptsDir.appendingPathComponent("PrivilegedBootstrap.applescript")
+
+			if FileManager.default.fileExists(atPath: scriptURL.path) {
+				try FileManager.default.removeItem(at: scriptURL)
+			}
+			try FileManager.default.copyItem(at: bundledURL, to: scriptURL)
+
+			defer {
+				try? FileManager.default.removeItem(at: scriptURL)
+			}
+
+			// 'aevt'/'oapp' with argv list as keyDirectObject ('----')
+			let event = NSAppleEventDescriptor.appleEvent(
+				withEventClass: 0x6165_7674,
+				eventID: 0x6F61_7070,
+				targetDescriptor: .null(),
+				returnID: -1,
+				transactionID: 0
+			)
+			let argList = NSAppleEventDescriptor.list()
+			argList.insert(NSAppleEventDescriptor(string: pathsContent), at: 0)
+			argList.insert(NSAppleEventDescriptor(string: sudoersContent), at: 0)
+			event.setParam(argList, forKeyword: 0x2D2D_2D2D)  // keyDirectObject
+
+			let task = try NSUserAppleScriptTask(url: scriptURL)
+			var taskResult: Result<String, Error> = .success("")
+			let semaphore = DispatchSemaphore(value: 0)
+
+			task.execute(withAppleEvent: event) { descriptor, error in
+				if let error {
+					taskResult = .failure(error)
+				} else {
+					taskResult = .success(descriptor?.stringValue ?? "")
+				}
+				semaphore.signal()
+			}
+			semaphore.wait()
+
+			return try taskResult.get()
+		}
+	#endif
 
 	private static func shellQuote(_ value: String) -> String {
 		let escaped = value.replacingOccurrences(of: "'", with: "'\\''")
