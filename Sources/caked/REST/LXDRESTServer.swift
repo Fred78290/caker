@@ -168,6 +168,16 @@ private struct PasswordAuthMiddleware: Middleware {
 			return next.respond(to: request)
 		}
 
+		// Operation WebSocket upgrades (terminal/VGA console, exec) carry their own
+		// one-time `secret` query token, generated only after the originating
+		// exec/console request was itself password-authenticated, and validated by
+		// LXDOperationsController.websocketForOperation. Browsers cannot attach an
+		// `Authorization` header to a WebSocket handshake, so challenging here would
+		// only fail the upgrade and pop the browser's native credential dialog.
+		if path.hasPrefix("/1.0/operations/"), path.hasSuffix("/websocket") {
+			return next.respond(to: request)
+		}
+
 		// Allow mTLS-authenticated clients to skip password check — only when
 		// CertificateAuthMiddleware is also active and has already validated the chain.
 		if hasCertificateAuth, let peerCertificateChain = request.peerCertificateChain, peerCertificateChain.isEmpty == false {
