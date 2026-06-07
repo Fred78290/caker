@@ -63,6 +63,12 @@ extension Environment {
 	}
 }
 
+/// Set by PasswordAuthMiddleware on the request after successful credential validation.
+/// CertificateAuthMiddleware reads this to skip its own challenge for already-authenticated requests.
+private enum PasswordAuthenticatedKey: StorageKey {
+	typealias Value = Bool
+}
+
 /// Middleware that requires a valid TLS client certificate when enabled.
 /// If no client certificate is presented, the request is rejected with 401.
 private struct CertificateAuthMiddleware: Middleware {
@@ -122,6 +128,16 @@ private struct CertificateAuthMiddleware: Middleware {
 		// Web UI static assets do not require a client certificate.
 		let path = request.url.path
 		if path == "/" || path.hasPrefix("/ui") {
+			return next.respond(to: request)
+		}
+
+		// Password auth already granted access — no need to also require a client certificate.
+		if request.storage[PasswordAuthenticatedKey.self] == true {
+			return next.respond(to: request)
+		}
+
+		// Operation WebSocket upgrades use their own one-time secret token (see PasswordAuthMiddleware).
+		if path.hasPrefix("/1.0/operations/"), path.hasSuffix("/websocket") {
 			return next.respond(to: request)
 		}
 
@@ -206,6 +222,7 @@ private struct PasswordAuthMiddleware: Middleware {
 			}
 
 			if bearerToken == password || decodedToken == password {
+				request.storage[PasswordAuthenticatedKey.self] = true
 				return next.respond(to: request)
 			}
 
@@ -214,6 +231,7 @@ private struct PasswordAuthMiddleware: Middleware {
 				let response: Response
 
 				if let identity {
+					request.storage[PasswordAuthenticatedKey.self] = true
 					request.parameters.set("token", to: "\(identity.authenticationMethod)/\(identity.id)")
 					response = try await next.respond(to: request).get()
 				} else {
@@ -240,6 +258,7 @@ private struct PasswordAuthMiddleware: Middleware {
 			return unauthorized(on: request)
 		}
 
+		request.storage[PasswordAuthenticatedKey.self] = true
 		return next.respond(to: request)
 	}
 
