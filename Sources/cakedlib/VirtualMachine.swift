@@ -263,17 +263,25 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 
 			// If the app is sandboxed, we can't create unix socket outside sandbox but symlink works
 			if Bundle.isApplicationSandboxed {
+				let realHome = FileManager.realHomeDirectoryForCurrentUser.path(percentEncoded: false)
+
 				forwardedPorts = try forwardedPorts.map { tunnel in
 					guard let unixDomain = tunnel.unixDomain else {
 						return tunnel
 					}
 
-					guard unixDomain.host.starts(with: "~/") else {
+					var host = unixDomain.host
+
+					if host.starts(with: realHome) {
+						host = "~/" + host.dropFirst(realHome.count)
+					}
+
+					guard host.starts(with: "~/") else {
 						return tunnel
 					}
 
-					let sandboxedTarget = URL(fileURLWithPath: (unixDomain.host as NSString).expandingTildeInPath)
-					let symlinkTarget = URL(fileURLWithPath: unixDomain.host.expandingTildeInPath)
+					let sandboxedTarget = URL(fileURLWithPath: (host as NSString).expandingTildeInPath)
+					let symlinkTarget = URL(fileURLWithPath: host.expandingTildeInPath)
 
 					// Must create all directories because the user map the real home not the sandbox
 					try FileManager.default.createDirectory(at: sandboxedTarget.deletingLastPathComponent(), withIntermediateDirectories: true)
