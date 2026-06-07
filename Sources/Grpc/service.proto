@@ -88,6 +88,9 @@ service Service {
   rpc CheckReliability(Empty) returns (Caked.Reply);
 
   rpc Certificate(Caked.CertificateRequest) returns (Caked.Reply);
+
+  // StopService gracefully stops the caked daemon process.
+  rpc StopService (Empty) returns (Caked.Reply);
 }
 
 message Empty {}

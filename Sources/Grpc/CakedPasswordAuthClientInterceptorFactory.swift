@@ -279,9 +279,12 @@ public final class CakedPasswordAuthClientInterceptorFactory: Caked_ServiceClien
 		self.interceptors(self.chainedInterceptors?.makeCheckReliabilityInterceptors())
 	}
 
-	public func makeCertificateInterceptors() -> [GRPC.ClientInterceptor<Caked_Caked.CertificateRequest, Caked_Caked.Reply>] {
+	public func makeCertificateInterceptors() -> [ClientInterceptor<Caked_Caked.CertificateRequest, Caked_Caked.Reply>] {
 		self.interceptors(self.chainedInterceptors?.makeCertificateInterceptors())
 	}
 
+	public func makeStopServiceInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Caked.Reply>] {
+		self.interceptors(self.chainedInterceptors?.makeStopServiceInterceptors())
+	}
 }
 

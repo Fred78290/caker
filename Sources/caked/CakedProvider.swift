@@ -510,4 +510,12 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func certificate(request: Caked_CertificateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
+
+	func stopService(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		// Defer the signal so the reply is delivered before the process exits.
+		DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
+			kill(getpid(), SIGINT)
+		}
+		return Caked_Reply()
+	}
 }
