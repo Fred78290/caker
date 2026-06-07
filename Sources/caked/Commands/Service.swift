@@ -524,7 +524,9 @@ extension Service {
 				throw ServiceError(String(localized: "Caked service is not running"))
 			}
 
-			if ServiceHandler.isAgentInstalled(runMode: mode) {
+			if Bundle.isApplicationSandboxed {
+				try ServiceHandler.createCakedServiceClient(runMode: mode).stopService()
+			} else if ServiceHandler.isAgentInstalled(runMode: mode) {
 				try ServiceHandler.stopAgent(runMode: mode)
 			} else {
 				try ServiceHandler.stopAgentRunning(runMode: mode)
