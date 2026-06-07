@@ -200,7 +200,7 @@
 		9B29F82C2FCAE4B700AEBCB8 /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9B30992B2DE4DC0C00231C1E /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30992A2DE4DC0C00231C1E /* CakeAgentLib */; };
 		9B3566812F27E12D00C5E12F /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3566802F27E12D00C5E12F /* ZLib */; };
-		9B3790912FD2D9AA00D3D54C /* Sandbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3790902FD2D9A200D3D54C /* Sandbox.swift */; };
+		9B37938B2FD5694500D3D54C /* Sandbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B37938A2FD5694500D3D54C /* Sandbox.swift */; };
 		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
 		9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */; };
 		9B44388A2EBC9C12008BB2BB /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4438892EBC9C12008BB2BB /* Dynamic */; };
@@ -907,7 +907,11 @@
 		9B3601A22E2116E600889BFD /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSettingsView.swift; sourceTree = "<group>"; };
 		9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTemplateView.swift; sourceTree = "<group>"; };
-		9B3790902FD2D9A200D3D54C /* Sandbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sandbox.swift; sourceTree = "<group>"; };
+		9B37938A2FD5694500D3D54C /* Sandbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sandbox.swift; sourceTree = "<group>"; };
+		9B37948E2FD577C200D3D54C /* cakectl.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cakectl.entitlements; sourceTree = "<group>"; };
+		9B37948F2FD577C200D3D54C /* caker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caker.entitlements; sourceTree = "<group>"; };
+		9B3794912FD577C200D3D54C /* cakectl.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cakectl.entitlements; sourceTree = "<group>"; };
+		9B3794922FD577C200D3D54C /* caker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caker.entitlements; sourceTree = "<group>"; };
 		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
 		9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdatesView.swift; sourceTree = "<group>"; };
 		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
@@ -1290,7 +1294,6 @@
 		9BFE87382F7E6480005CC9B2 /* Caked.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Caked.xcf; sourceTree = "<group>"; };
 		9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CakedAppIcon.png; sourceTree = "<group>"; };
 		9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = embedded.provisionprofile; sourceTree = "<group>"; };
-		9BFE873B2F7E6480005CC9B2 /* dev.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = dev.entitlements; sourceTree = "<group>"; };
 		9BFE873C2F7E6480005CC9B2 /* Document.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Document.icns; sourceTree = "<group>"; };
 		9BFE873D2F7E6480005CC9B2 /* Document.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Document.png; sourceTree = "<group>"; };
 		9BFE873E2F7E6480005CC9B2 /* Document.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Document.xcf; sourceTree = "<group>"; };
@@ -1298,7 +1301,6 @@
 		9BFE87402F7E6480005CC9B2 /* menubar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = menubar.png; sourceTree = "<group>"; };
 		9BFE87412F7E6480005CC9B2 /* menubar.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = menubar.xcf; sourceTree = "<group>"; };
 		9BFE87422F7E6480005CC9B2 /* Prompt.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Prompt.png; sourceTree = "<group>"; };
-		9BFE87432F7E6480005CC9B2 /* release.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = release.entitlements; sourceTree = "<group>"; };
 		9BFE87442F7E6480005CC9B2 /* VM.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = VM.png; sourceTree = "<group>"; };
 		9BFE87452F7E6480005CC9B2 /* VM.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = VM.xcf; sourceTree = "<group>"; };
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
@@ -1831,6 +1833,24 @@
 			path = ../webui;
 			sourceTree = SOURCE_ROOT;
 		};
+		9B3794902FD577C200D3D54C /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				9B37948E2FD577C200D3D54C /* cakectl.entitlements */,
+				9B37948F2FD577C200D3D54C /* caker.entitlements */,
+			);
+			path = debug;
+			sourceTree = "<group>";
+		};
+		9B3794932FD577C200D3D54C /* release */ = {
+			isa = PBXGroup;
+			children = (
+				9B3794912FD577C200D3D54C /* cakectl.entitlements */,
+				9B3794922FD577C200D3D54C /* caker.entitlements */,
+			);
+			path = release;
+			sourceTree = "<group>";
+		};
 		9B464A4B2D5A3DA000164BF5 = {
 			isa = PBXGroup;
 			children = (
@@ -2183,7 +2203,6 @@
 				9BEBC6A72DF4400A0092B196 /* Remote.swift */,
 				9BEBC6A82DF4400A0092B196 /* Rename.swift */,
 				9BBF7B362F3E058A00F37D2C /* Restart.swift */,
-				9B3790902FD2D9A200D3D54C /* Sandbox.swift */,
 				9BEBC6A92DF4400A0092B196 /* Service.swift */,
 				9BEBC6AA2DF4400A0092B196 /* Sh.swift */,
 				9BEBC6AB2DF4400A0092B196 /* Start.swift */,
@@ -2437,6 +2456,7 @@
 			isa = PBXGroup;
 			children = (
 				9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */,
+				9B37938A2FD5694500D3D54C /* Sandbox.swift */,
 				9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */,
 			);
 			path = Commands;
@@ -2487,27 +2507,27 @@
 		9BFE87462F7E6480005CC9B2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				9B5663E82FCC2C4300BB6136 /* appstore.provisionprofile */,
-				9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */,
-				9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */,
 				9BFE87362F7E6480005CC9B2 /* AppIcon.icns */,
-				9BFE87372F7E6480005CC9B2 /* caked.plist */,
-				9BFE87382F7E6480005CC9B2 /* Caked.xcf */,
-				9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */,
-				9BFE873B2F7E6480005CC9B2 /* dev.entitlements */,
 				9BFE873C2F7E6480005CC9B2 /* Document.icns */,
-				9BFE873D2F7E6480005CC9B2 /* Document.png */,
-				9BFE873E2F7E6480005CC9B2 /* Document.xcf */,
-				9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */,
-				9BFE87342F7E6480005CC9B2 /* Icons */,
-				9BFE873F2F7E6480005CC9B2 /* Info.plist */,
-				9BFE87402F7E6480005CC9B2 /* menubar.png */,
-				9BFE87412F7E6480005CC9B2 /* menubar.xcf */,
-				9BFE87422F7E6480005CC9B2 /* Prompt.png */,
-				9BFE87432F7E6480005CC9B2 /* release.entitlements */,
 				9BFE87DB2F7E6B67005CC9B2 /* VM.icns */,
+				9BFE87372F7E6480005CC9B2 /* caked.plist */,
+				9BFE873F2F7E6480005CC9B2 /* Info.plist */,
+				9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */,
+				9BFE873D2F7E6480005CC9B2 /* Document.png */,
+				9BFE87402F7E6480005CC9B2 /* menubar.png */,
+				9BFE87422F7E6480005CC9B2 /* Prompt.png */,
 				9BFE87442F7E6480005CC9B2 /* VM.png */,
+				9B5663E82FCC2C4300BB6136 /* appstore.provisionprofile */,
+				9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */,
+				9BFE87382F7E6480005CC9B2 /* Caked.xcf */,
+				9BFE873E2F7E6480005CC9B2 /* Document.xcf */,
+				9BFE87412F7E6480005CC9B2 /* menubar.xcf */,
 				9BFE87452F7E6480005CC9B2 /* VM.xcf */,
+				9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */,
+				9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */,
+				9B3794902FD577C200D3D54C /* debug */,
+				9BFE87342F7E6480005CC9B2 /* Icons */,
+				9B3794932FD577C200D3D54C /* release */,
 			);
 			name = Resources;
 			path = ../Resources;
@@ -3318,7 +3338,6 @@
 				9BEBC6DA2DF4400A0092B196 /* PurgeHandler.swift in Sources */,
 				9BBF7B372F3E058D00F37D2C /* Restart.swift in Sources */,
 				9B1835EC2FB070D300D150FD /* LXDConsoleVGARunner.swift in Sources */,
-				9B3790912FD2D9AA00D3D54C /* Sandbox.swift in Sources */,
 				9B1835ED2FB070D300D150FD /* LXDExecRunner.swift in Sources */,
 				9B1835EE2FB070D300D150FD /* LXDExecSessionStore.swift in Sources */,
 				9BEBC6DB2DF4400A0092B196 /* Purge.swift in Sources */,
@@ -3478,6 +3497,7 @@
 				9BEBC7AB2DF440720092B196 /* mount.grpc.swift in Sources */,
 				9BB1491C2EC74B9F0094D950 /* PullHandler.swift in Sources */,
 				9B9117782EC9D4510017791D /* RawDisk.swift in Sources */,
+				9B37938B2FD5694500D3D54C /* Sandbox.swift in Sources */,
 				9BEBC7AC2DF440720092B196 /* VZVMNet.swift in Sources */,
 				9BEBC7AD2DF440720092B196 /* IP.Block.swift in Sources */,
 				9BB1491E2EC74BA70094D950 /* PushHandler.swift in Sources */,
