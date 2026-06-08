@@ -895,7 +895,31 @@ extension VirtualMachine {
 			if FileManager.default.fileExists(atPath: location.stateURL.path) {
 				self.logger.info("Restore VM \(self.location.name) snapshot...")
 				
-				try await virtualMachine.restoreMachineStateFrom(url: location.stateURL)
+				let url = self.location.stateURL
+				let vmName = self.location.name
+				let logger = self.logger
+				let virtualMachine = self.virtualMachine
+
+				self.logger.debug("Restore VM \(vmName) from \(url) snapshot...")
+				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+					self.vmQueue.sync {
+						do {
+							try self.env.configuration.validateSaveRestoreSupport()
+							
+							virtualMachine.restoreMachineStateFrom(url: url) { error in
+								if let error {
+									logger.error("Failed to restore VM \(vmName) snapshot: \(error)")
+									continuation.resume(throwing: error)
+								} else {
+									continuation.resume()
+								}
+							}
+						} catch {
+							logger.error("Can't validate restore configuration, \(error)")
+							continuation.resume(throwing: error)
+						}
+					}
+				}
 				try FileManager.default.removeItem(at: location.stateURL)
 				
 				resumeVM = true
