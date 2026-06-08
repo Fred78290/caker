@@ -741,7 +741,7 @@ struct VirtualMachineWizard: View {
 								TextField("OS Image", text: $config.imageName)
 									.rounded(.leading)
 									.disabled(self.model.createVM)
-								
+
 								Button(action: {
 									if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
 										self.config.imageName = "file://\(imageName)"
@@ -761,16 +761,17 @@ struct VirtualMachineWizard: View {
 						}
 					}
 				case .iso:
-					VStack {
+					VStack(alignment: .leading) {
 						let platform = SupportedPlatform(rawValue: self.config.imageName)
 
-						if AppState.shared.connectionMode == .app {
-							LabeledContent("Choose an ISO image disk.") {
+						LabeledContent {
+							if AppState.shared.connectionMode == .app {
 								HStack {
-									TextField("ISO Image", text: $config.imageName)
+									TextField("Choose an ISO image disk.", text: $config.imageName)
+										.frame(width: 300)
 										.rounded(.leading)
 										.disabled(self.model.createVM)
-									
+
 									Button(action: {
 										if let imageName = chooseDiskImage(ofTypes: [UTType.iso9660, UTType.cdr]) {
 											self.config.imageName = "file://\(imageName)"
@@ -781,12 +782,23 @@ struct VirtualMachineWizard: View {
 									.disabled(self.model.createVM)
 									.buttonStyle(.borderless)
 								}
-							}
-						} else {
-							LabeledContent("Bootable iso url.") {
-								TextField("URL", text: $config.imageName)
+							} else {
+								TextField("Bootable iso url.", text: $config.imageName)
+									.frame(width: 340)
 									.rounded(.leading)
 									.disabled(self.model.createVM)
+							}
+						} label: {
+							Picker("Preconfigured ISO", selection: $model.isoImageRelease) {
+								ForEach(ISOImage.allCases, id: \.self) { os in
+									Text(os.location.label).tag(os)
+								}
+							}
+							.pickerStyle(.menu)
+							.disabled(self.model.createVM)
+							.labelsHidden()
+							.onChange(of: model.isoImageRelease) { _, newValue in
+								self.config.imageName = newValue.location.url
 							}
 						}
 
@@ -800,10 +812,11 @@ struct VirtualMachineWizard: View {
 					}
 
 				case .ipsw:
-					if AppState.shared.connectionMode == .app {
-						LabeledContent("Choose an IPSW image.") {
+					LabeledContent {
+						if AppState.shared.connectionMode == .app {
 							HStack {
 								TextField("IPSW Image", text: $config.imageName)
+									.frame(width: 330)
 									.rounded(.leading)
 									.disabled(self.model.createVM)
 								Button(action: {
@@ -816,18 +829,31 @@ struct VirtualMachineWizard: View {
 								.disabled(self.model.createVM)
 								.buttonStyle(.borderless)
 							}
-						}
-					} else {
-						LabeledContent("MacOS ipsw url.") {
-							TextField("URL", text: $config.imageName)
+						} else {
+							TextField("MacOS ipsw url.", text: $config.imageName)
+								.frame(width: 350)
 								.rounded(.leading)
 								.disabled(self.model.createVM)
 						}
+					} label: {
+						Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
+							ForEach(IPSWImage.allCases, id: \.self) { os in
+								Text(os.location.label).tag(os)
+							}
+						}
+						.pickerStyle(.menu)
+						.disabled(self.model.createVM)
+						.labelsHidden()
+						.onChange(of: model.ipswRelease) { _, newValue in
+							self.config.imageName = newValue.location.url
+						}
 					}
+
 				case .qcow2:
 					LabeledContent {
 						TextField("Cloud Image", text: $config.imageName)
 							.rounded(.leading)
+							.frame(width: 460)
 							.disabled(self.model.createVM)
 					} label: {
 						Picker("Preconfigured image", selection: $model.cloudImageRelease) {
@@ -894,12 +920,25 @@ struct VirtualMachineWizard: View {
 								Text(source.description).tag(source)
 							}
 						}.onChange(of: self.model.imageSource) { _, newValue in
-							self.config.imageName = String.empty
 							self.config.source = newValue
 
-							if newValue == .ipsw {
+							switch newValue {
+							case .raw:
+								self.config.imageName = String.empty
+							case .qcow2:
+								self.config.imageName = model.cloudImageRelease.url.absoluteString
+							case .oci:
+								self.config.imageName = String.empty
+							case .template:
+								self.config.imageName = String.empty
+							case .stream:
+								self.config.imageName = String.empty
+							case .iso:
+								self.config.imageName = self.model.isoImageRelease.location.url
+							case .ipsw:
+								self.config.imageName = self.model.ipswRelease.location.url
 								self.config.cpuCount = max(self.config.cpuCount, 4)
-								self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4 * GoB)
+								self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4096)
 								self.config.diskSizeInGoB = max(self.config.diskSizeInGoB, 40)
 							}
 						}
@@ -991,7 +1030,8 @@ struct VirtualMachineWizard: View {
 		if model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw {
 			if let url = URL(string: config.imageName) {
 				if AppState.shared.connectionMode == .app {
-					valid = (url.isFileURL && FileManager.default.fileExists(atPath: url.path))
+					valid =
+						(url.isFileURL && FileManager.default.fileExists(atPath: url.path))
 						|| ["http", "https"].contains(url.scheme)
 						|| (url.scheme == nil && FileManager.default.fileExists(atPath: url.path))
 				} else {
@@ -1053,23 +1093,23 @@ struct VirtualMachineWizard: View {
 				operation: {
 					let options = self.config.buildOptions(imageSource: model.imageSource)
 					var ipswQueue: DispatchQueue!
-					
-#if arch(arm64)
-					if AppState.shared.connectionMode == .app && self.model.imageSource == .ipsw {
-						ipswQueue = DispatchQueue(label: "IPSWQueue")
-					}
-#endif
-					
+
+					#if arch(arm64)
+						if AppState.shared.connectionMode == .app && self.model.imageSource == .ipsw {
+							ipswQueue = DispatchQueue(label: "IPSWQueue")
+						}
+					#endif
+
 					let build = try await AppState.shared.buildVirtualMachine(options: options, queue: ipswQueue) { result in
 						progressHandler(result)
 					}
-					
+
 					if build.builded == false {
 						progressHandler(.terminated(.failure(ServiceError(build.reason)), String(localized: "Create virtual machine failed")))
 					}
 				},
 				onCancel: {
-					progressHandler(.terminated(.failure(ServiceError(String(localized: "Cancelled"))), String(localized: "Create virtual machine failed")))					
+					progressHandler(.terminated(.failure(ServiceError(String(localized: "Cancelled"))), String(localized: "Create virtual machine failed")))
 				})
 		} catch {
 			await MainActor.run {
@@ -1152,4 +1192,3 @@ struct VirtualMachineWizard: View {
 #Preview {
 	VirtualMachineWizard()
 }
-
