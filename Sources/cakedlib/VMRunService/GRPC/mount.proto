@@ -26,6 +26,24 @@ service Service {
   rpc StartGrandCentralUpdate(FrequencyRequest) returns (GrandCentralUpdateReply);
 	// Stops the Grand Central update process.
   rpc StopGrandCentralUpdate(Empty) returns (GrandCentralUpdateReply);
+
+  rpc Signal(SignalRequest) returns (SignalReply);
+}
+
+enum SignalType {
+  empty = 0;
+  shutdown = 1;
+  requestStop = 2;
+  suspend = 3;
+}
+
+message SignalRequest {
+  SignalType type = 1;
+}
+
+message SignalReply {
+  bool            success = 1;
+  optional string reason  = 2;
 }
 
 message FrequencyRequest {

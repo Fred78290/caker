@@ -437,14 +437,26 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	public func restartVirtualMachine(startMode: StartHandler.StartMode, gcd: Bool, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) throws {
 		let config = try self.config()
 		let home = try Home(runMode: runMode)
-		let killVMRun: () -> Void = {
+		
+		func killVMRun() throws -> Void {
 			let pid = pidFile.isPIDRunning()
-
-			if pid.0 {
-				if pid.1 == Home.cakedCommandName {
+			
+			if pid.0 && pid.1 == Home.cakedCommandName {
 					if let pid = pid.2 {
-						kill(pid, SIGINT)
-						removePID()
+						if Bundle.isApplicationSandboxed {
+							let reply = try createVMRunServiceClient(.grpc, location: self, runMode: runMode).signal(signal: .shutdown)
+
+							if reply.success == false {
+								throw ServiceError(String(localized: "Failed to stop VM \(name), \(reply.reason)"))
+							}
+						} else {
+							if kill(pid, SIGINT) != 0 {
+								throw ServiceError(String(localized: "Failed to stop VM \(name), \(String(cString: strerror(errno)))"))
+							}
+
+							removePID()
+						}
+
 						_ = StartHandler.startVM(location: self,
 												 screenSize: nil,
 												 vncPassword: nil,
@@ -457,17 +469,14 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 												 promise: nil)
 					}
 				}
-			}
 		}
 
-		if case .running = self.status {
-			// VM is running
-		} else {
+		guard case .running = self.status else {
 			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
 
 		if force || config.agent == false {
-			killVMRun()
+			try killVMRun()
 		} else if try self.agentURL.exists() {
 			let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 60, runMode: runMode)
 
@@ -484,40 +493,50 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: String.empty)
 				try ssh.execute("sudo reboot")
 			} else {
-				killVMRun()
+				try killVMRun()
 			}
 		}
 	}
 
 	public func suspendVirtualMachine(runMode: Utils.RunMode) throws {
-		if case .running = self.status {
-			// continue
-		} else {
+		guard case .running = self.status else {
 			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
 
 		let pid = pidFile.isPIDRunning()
 
-		if pid.0 {
-			if pid.1 == Home.cakedCommandName {
-				if let pid = pid.2 {
-					kill(pid, SIGUSR1)
-					removePID()
+		if pid.0 && pid.1 == Home.cakedCommandName {
+			if Bundle.isApplicationSandboxed {
+				let reply = try createVMRunServiceClient(.grpc, location: self, runMode: runMode).signal(signal: .suspend)
+
+				if reply.success == false {
+					throw ServiceError(String(localized: "Failed to suspend VM \(name), \(reply.reason)"))
 				}
+			} else if let pid = pid.2 {
+				if kill(pid, SIGUSR1) != 0 {
+					throw ServiceError(String(localized: "Failed to suspend VM \(name), \(String(cString: strerror(errno)))"))
+				}
+				removePID()
 			}
 		}
 	}
 
 	public func stopVirtualMachine(force: Bool, runMode: Utils.RunMode) throws {
-		let killVMRun: () -> Void = {
+		func killVMRun() throws -> Void {
 			let pid = pidFile.isPIDRunning()
+			
+			if pid.0 && pid.1 == Home.cakedCommandName {
+				if Bundle.isApplicationSandboxed {
+					let reply = try createVMRunServiceClient(.grpc, location: self, runMode: runMode).signal(signal: .shutdown)
 
-			if pid.0 {
-				if pid.1 == Home.cakedCommandName {
-					if let pid = pid.2 {
-						kill(pid, SIGINT)
-						removePID()
+					if reply.success == false {
+						throw ServiceError(String(localized: "Failed to stop VM \(name), \(reply.reason)"))
 					}
+				} else if let pid = pid.2 {
+					if kill(pid, SIGINT) != 0 {
+						throw ServiceError(String(localized: "Failed to stop VM \(name), \(String(cString: strerror(errno)))"))
+					}
+					removePID()
 				}
 			}
 		}
@@ -525,21 +544,19 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		let config = try self.config()
 		let home = try Home(runMode: runMode)
 
-		if case .running = self.status {
-			// VM is running
-		} else {
+		guard case .running = self.status else {
 			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
 
 		if force || config.agent == false {
-			killVMRun()
+			try killVMRun()
 		} else if try self.agentURL.exists() {
 			let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 60, runMode: runMode)
 
 			do {
 				try client.shutdown().log()
 			} catch {
-				killVMRun()
+				try killVMRun()
 			}
 		} else {
 			let reply = WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode)
@@ -549,7 +566,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: String.empty)
 				try ssh.execute("sudo shutdown now")
 			} else {
-				killVMRun()
+				try killVMRun()
 			}
 		}
 

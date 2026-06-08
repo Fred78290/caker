@@ -15,12 +15,54 @@ import SwiftProtobuf
 // incompatible with the version of SwiftProtobuf to which you are linking.
 // Please ensure that you are building against the same version of the API
 // that was used to generate this file.
-fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
+fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAPIVersionCheck {
   struct _2: SwiftProtobuf.ProtobufAPIVersion_2 {}
   typealias Version = _2
 }
 
-public enum Vmrun_MountCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
+public nonisolated enum Vmrun_SignalType: SwiftProtobuf.Enum, Swift.CaseIterable {
+  public typealias RawValue = Int
+  case empty // = 0
+  case shutdown // = 1
+  case requestStop // = 2
+  case suspend // = 3
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .empty
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .empty
+    case 1: self = .shutdown
+    case 2: self = .requestStop
+    case 3: self = .suspend
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .empty: return 0
+    case .shutdown: return 1
+    case .requestStop: return 2
+    case .suspend: return 3
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static let allCases: [Vmrun_SignalType] = [
+    .empty,
+    .shutdown,
+    .requestStop,
+    .suspend,
+  ]
+
+}
+
+public nonisolated enum Vmrun_MountCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case none // = 0
   case mount // = 1
@@ -58,20 +100,19 @@ public enum Vmrun_MountCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
-public struct Vmrun_FrequencyRequest: Sendable {
+public nonisolated struct Vmrun_SignalRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// Update frequency in seconds
-  public var frequency: Int32 = 0
+  public var type: Vmrun_SignalType = .empty
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 }
 
-public struct Vmrun_GrandCentralUpdateReply: Sendable {
+public nonisolated struct Vmrun_SignalReply: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -94,7 +135,43 @@ public struct Vmrun_GrandCentralUpdateReply: Sendable {
   fileprivate var _reason: String? = nil
 }
 
-public struct Vmrun_ScreenSize: Sendable {
+public nonisolated struct Vmrun_FrequencyRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// Update frequency in seconds
+  public var frequency: Int32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct Vmrun_GrandCentralUpdateReply: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var success: Bool = false
+
+  public var reason: String {
+    get {_reason ?? String()}
+    set {_reason = newValue}
+  }
+  /// Returns true if `reason` has been explicitly set.
+  public var hasReason: Bool {self._reason != nil}
+  /// Clears the value of `reason`. Subsequent reads from it will return its default value.
+  public mutating func clearReason() {self._reason = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _reason: String? = nil
+}
+
+public nonisolated struct Vmrun_ScreenSize: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -108,7 +185,7 @@ public struct Vmrun_ScreenSize: Sendable {
   public init() {}
 }
 
-public struct Vmrun_Empty: Sendable {
+public nonisolated struct Vmrun_Empty: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -118,7 +195,7 @@ public struct Vmrun_Empty: Sendable {
   public init() {}
 }
 
-public struct Vmrun_InstalledAgentRequest: Sendable {
+public nonisolated struct Vmrun_InstalledAgentRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -130,7 +207,7 @@ public struct Vmrun_InstalledAgentRequest: Sendable {
   public init() {}
 }
 
-public struct Vmrun_InstalledAgentReply: Sendable {
+public nonisolated struct Vmrun_InstalledAgentReply: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -153,7 +230,7 @@ public struct Vmrun_InstalledAgentReply: Sendable {
   fileprivate var _reason: String? = nil
 }
 
-public struct Vmrun_VNCEndPointReply: Sendable {
+public nonisolated struct Vmrun_VNCEndPointReply: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -176,7 +253,7 @@ public struct Vmrun_VNCEndPointReply: Sendable {
   fileprivate var _screenSize: Vmrun_ScreenSize? = nil
 }
 
-public struct Vmrun_MountVirtioFS: Sendable {
+public nonisolated struct Vmrun_MountVirtioFS: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -231,7 +308,7 @@ public struct Vmrun_MountVirtioFS: Sendable {
   fileprivate var _gid: Int32? = nil
 }
 
-public struct Vmrun_MountRequest: Sendable {
+public nonisolated struct Vmrun_MountRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -245,7 +322,7 @@ public struct Vmrun_MountRequest: Sendable {
   public init() {}
 }
 
-public struct Vmrun_MountVirtioFSReply: Sendable {
+public nonisolated struct Vmrun_MountVirtioFSReply: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -272,7 +349,7 @@ public struct Vmrun_MountVirtioFSReply: Sendable {
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public enum OneOf_Response: Equatable, Sendable {
+  public nonisolated enum OneOf_Response: Equatable, Sendable {
     case error(String)
     case success(Bool)
 
@@ -281,7 +358,7 @@ public struct Vmrun_MountVirtioFSReply: Sendable {
   public init() {}
 }
 
-public struct Vmrun_MountReply: Sendable {
+public nonisolated struct Vmrun_MountReply: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -308,7 +385,7 @@ public struct Vmrun_MountReply: Sendable {
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public enum OneOf_Response: Equatable, Sendable {
+  public nonisolated enum OneOf_Response: Equatable, Sendable {
     case error(String)
     case success(Bool)
 
@@ -319,13 +396,86 @@ public struct Vmrun_MountReply: Sendable {
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
-fileprivate let _protobuf_package = "vmrun"
+fileprivate nonisolated let _protobuf_package = "vmrun"
 
-extension Vmrun_MountCommand: SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Vmrun_SignalType: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0empty\0\u{1}shutdown\0\u{1}requestStop\0\u{1}suspend\0")
+}
+
+nonisolated extension Vmrun_MountCommand: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}mount\0\u{1}umount\0")
 }
 
-extension Vmrun_FrequencyRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Vmrun_SignalRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".SignalRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}type\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.type) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.type != .empty {
+      try visitor.visitSingularEnumField(value: self.type, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmrun_SignalRequest, rhs: Vmrun_SignalRequest) -> Bool {
+    if lhs.type != rhs.type {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Vmrun_SignalReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".SignalReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self._reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
+    }
+    try { if let v = self._reason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmrun_SignalReply, rhs: Vmrun_SignalReply) -> Bool {
+    if lhs.success != rhs.success {return false}
+    if lhs._reason != rhs._reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Vmrun_FrequencyRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".FrequencyRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}frequency\0")
 
@@ -355,7 +505,7 @@ extension Vmrun_FrequencyRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
   }
 }
 
-extension Vmrun_GrandCentralUpdateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Vmrun_GrandCentralUpdateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".GrandCentralUpdateReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}reason\0")
 
@@ -394,7 +544,7 @@ extension Vmrun_GrandCentralUpdateReply: SwiftProtobuf.Message, SwiftProtobuf._M
   }
 }
 
-extension Vmrun_ScreenSize: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Vmrun_ScreenSize: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".ScreenSize"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}width\0\u{1}height\0")
 
@@ -429,7 +579,7 @@ extension Vmrun_ScreenSize: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   }
 }
 
-extension Vmrun_Empty: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Vmrun_Empty: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Empty"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
 
@@ -448,7 +598,7 @@ extension Vmrun_Empty: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
   }
 }
 
-extension Vmrun_InstalledAgentRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Vmrun_InstalledAgentRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".InstalledAgentRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}timeout\0")
 
@@ -478,7 +628,7 @@ extension Vmrun_InstalledAgentRequest: SwiftProtobuf.Message, SwiftProtobuf._Mes
   }
 }
 
-extension Vmrun_InstalledAgentReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Vmrun_InstalledAgentReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".InstalledAgentReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}installed\0\u{1}reason\0")
 
@@ -517,7 +667,7 @@ extension Vmrun_InstalledAgentReply: SwiftProtobuf.Message, SwiftProtobuf._Messa
   }
 }
 
-extension Vmrun_VNCEndPointReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Vmrun_VNCEndPointReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".VNCEndPointReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vncURL\0\u{1}screenSize\0")
 
@@ -556,7 +706,7 @@ extension Vmrun_VNCEndPointReply: SwiftProtobuf.Message, SwiftProtobuf._MessageI
   }
 }
 
-extension Vmrun_MountVirtioFS: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Vmrun_MountVirtioFS: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".MountVirtioFS"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}source\0\u{1}target\0\u{1}name\0\u{1}uid\0\u{1}gid\0\u{1}readonly\0")
 
@@ -615,7 +765,7 @@ extension Vmrun_MountVirtioFS: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   }
 }
 
-extension Vmrun_MountRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Vmrun_MountRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".MountRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{2}\u{3}mounts\0")
 
@@ -650,7 +800,7 @@ extension Vmrun_MountRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
   }
 }
 
-extension Vmrun_MountVirtioFSReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Vmrun_MountVirtioFSReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".MountVirtioFSReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}error\0\u{1}success\0")
 
@@ -712,7 +862,7 @@ extension Vmrun_MountVirtioFSReply: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 }
 
-extension Vmrun_MountReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+nonisolated extension Vmrun_MountReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".MountReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}mounts\0\u{1}error\0\u{1}success\0")
 
