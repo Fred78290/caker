@@ -1004,7 +1004,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CPU & Mémoire"
+            "value" : "URL iso amorçable."
           }
         }
       }
@@ -1569,7 +1569,6 @@
       }
     },
     "Check for Updates…" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -1590,6 +1589,7 @@
       }
     },
     "Choose an IPSW image." : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -3486,12 +3486,34 @@
         }
       }
     },
+    "Failed to stop VM %@, %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l'arrêt de la machine virtuelle %1$@, %2$@"
+          }
+        }
+      }
+    },
     "Failed to suspend VM" : {
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible de suspendre la machine virtuelle"
+          }
+        }
+      }
+    },
+    "Failed to suspend VM %@, %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la suspension de la VM %1$@, %2$@"
           }
         }
       }
@@ -4887,6 +4909,7 @@
       }
     },
     "ISO Image" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -7790,6 +7813,12 @@
           }
         }
       }
+    },
+    "Preconfigured IPSW" : {
+
+    },
+    "Preconfigured ISO" : {
+
     },
     "preferredName cannot be nil for named arguments" : {
       "extractionState" : "manual",
@@ -11735,6 +11764,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Option inconnue ‘%1$@’. Vouliez-vous dire «%2$@» ?"
+          }
+        }
+      }
+    },
+    "Unknown signal type: %d" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type de signal inconnu : %d"
           }
         }
       }
