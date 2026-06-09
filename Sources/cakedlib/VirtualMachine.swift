@@ -1169,12 +1169,14 @@ extension VirtualMachine {
 
 // MARK: - UI actions
 extension VirtualMachine {
-	public func startFromUI() {
+	public func startFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
 			self.virtualMachine.start(options: self.startOptions) { error in
 				let result: Result<Void, Error> = error.map(Result.failure) ?? .success(())
 
 				self.startCompletionHandler(result: result) { result in
+					completionHandler?(result)
+
 					if case .success = result {
 						guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.env.runMode)) != nil else {
 							self.logger.error("VM \(self.location.name) failed to get primary IP")
@@ -1194,9 +1196,9 @@ extension VirtualMachine {
 		}
 	}
 
-	public func stopFromUI() {
+	public func stopFromUI(completionHandler: StopCompletionHandler? = nil) {
 		self.vmQueue.async {
-			self._stopVM()
+			self._stopVM(completionHandler: completionHandler)
 		}
 	}
 
@@ -1206,19 +1208,25 @@ extension VirtualMachine {
 		}
 	}
 
-	public func suspendFromUI() {
+	public func suspendFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
-			self._pauseVM()
+			self._pauseVM(completionHandler: completionHandler)
 		}
 	}
 
-	public func resumeVMFromUI() {
+	public func resumeVMFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
 			if self.virtualMachine.canResume {
 				self.logger.info("VM \(self.location.name) can resume")
 
 				self.virtualMachine.resume { result in
 					self.startCompletionHandler(result: result) { result in
+						defer {
+							if let completionHandler = completionHandler {
+								completionHandler(result)
+							}
+						}
+
 						if case .success = result {
 							guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.env.runMode)) != nil else {
 								self.logger.error("VM \(self.location.name) failed to get primary IP")
@@ -1227,11 +1235,15 @@ extension VirtualMachine {
 						}
 					}
 				}
+			} else {
+				if let completionHandler = completionHandler {
+					completionHandler(.failure(ServiceError(String(localized: "Virtual machine is not resumable"))))
+				}
 			}
 		}
 	}
 
-	public func restoreStateVMFromUI() {
+	public func restoreStateVMFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
 			var resumeVM = false
 			let location = self.location
@@ -1250,24 +1262,46 @@ extension VirtualMachine {
 						virtualMachine.restoreMachineStateFrom(url: stateURL) { error in
 							if let error {
 								logger.error("Failed to restore VM \(vmName) snapshot: \(error)")
+
+								if let completionHandler = completionHandler {
+									completionHandler(.failure(error))
+								}
 							} else {
 								try? FileManager.default.removeItem(at: stateURL)
+
+								self.virtualMachine.resume { result in
+									self.startCompletionHandler(result: result) { result in
+										defer {
+											if let completionHandler = completionHandler {
+												completionHandler(result)
+											}
+										}
+
+										if case .success = result {
+											guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.env.runMode)) != nil else {
+												self.logger.error("VM \(self.location.name) failed to get primary IP")
+												return
+											}
+										}
+									}
+								}
 							}
 						}
 					} catch {
 						logger.error("Can't validate restore configuration, \(error)")
+
+						if let completionHandler = completionHandler {
+							completionHandler(.failure(error))
+						}
 					}
 
 					resumeVM = true
 				}
 			}
 
-			if resumeVM {
-				self.logger.info("Resume VM \(self.location.name)...")
-				self.resumeVMFromUI()
-			} else {
+			if resumeVM == false {
 				self.logger.info("Start VM \(self.location.name)...")
-				self.startFromUI()
+				self.startFromUI(completionHandler: completionHandler)
 			}
 		}
 	}
