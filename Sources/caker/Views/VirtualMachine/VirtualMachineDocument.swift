@@ -653,7 +653,8 @@ extension VirtualMachineDocument {
 
 // MARK: - Embeded VirtualMachine
 extension VirtualMachineDocument {
-	private func createVirtualMachine() throws {
+	@discardableResult
+	private func createVirtualMachine() throws -> VirtualMachine {
 		let config = try! location.config()
 		let virtualMachine = try VirtualMachine(location: location, config: config, display: .ui, screenSize: config.display.cgSize, recoveryMode: self.recoveryMode, runMode: .app)
 		
@@ -662,6 +663,8 @@ extension VirtualMachineDocument {
 		self.didChangedState(virtualMachine)
 		
 		virtualMachine.delegate = self
+
+		return virtualMachine
 	}
 
 	func loadVirtualMachine(_ url: URL) -> URL? {
@@ -798,7 +801,49 @@ extension VirtualMachineDocument {
 		
 		await self.setStateAsRunning(suspendable: suspendable, vncURL: [vncURL])
 	}
-	
+
+	func resumeFromUI() {
+		guard self.status == .paused else {
+			return
+		}
+
+		if self.isLaunchVMExternally {
+			self.setOtherState(suspendable: self.virtualMachineConfig.suspendable, status: .starting, vncURL: vncURL)
+			self.externalRunning = true
+
+			Task {
+				do {
+					if let location {
+						try await self.startLocally(location: location)
+					} else {
+						try await self.startRemotely(location: url)
+					}
+				} catch {
+					await self.setStateAsStopped()
+					await alertError(error)
+				}
+			}
+		} else if let virtualMachine = self.virtualMachine {
+			self.externalRunning = false
+
+			self.setOtherState(suspendable: virtualMachineConfig.suspendable, status: .starting)
+
+			virtualMachine.resumeVMFromUI()
+		} else {
+			do {
+				let virtualMachine = try createVirtualMachine()
+
+				self.setOtherState(suspendable: virtualMachineConfig.suspendable, status: .starting)
+
+				virtualMachine.restoreStateVMFromUI()
+			} catch {
+				MainActor.assumeIsolated {
+					alertError(error)
+				}
+			}
+		}
+	}
+
 	func startFromUI() {
 		guard self.status == .stopped else {
 			return
@@ -828,6 +873,7 @@ extension VirtualMachineDocument {
 					try createVirtualMachine()
 				} catch {
 					MainActor.assumeIsolated {
+						self.setStateAsStopped()
 						alertError(error)
 					}
 					return

@@ -189,7 +189,7 @@ struct HostVirtualMachineView: View {
 							.disabled(document.agent == .installing)
 						} else if document.status == .paused {
 							Button("Resume", systemImage: "playpause") {
-								document.startFromUI()
+								document.resumeFromUI()
 							}.help("Resume virtual machine")
 						} else {
 							Button("Start", systemImage: "play.fill") {
