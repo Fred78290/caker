@@ -21,6 +21,10 @@ public struct SuspendHandler {
 				throw ServiceError(String(localized: "VM \(location.name) is running in Caker application and use it to do action"))
 			}
 
+			guard try location.config().suspendable else {
+				return SuspendedObject(name: location.name, suspended: false, reason: String(localized: "VM is not suspendable"))
+			}
+
 			try location.suspendVirtualMachine(runMode: runMode)
 
 			return SuspendedObject(name: location.name, suspended: true, reason: String(localized: "VM Suspended"))
