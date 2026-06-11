@@ -60,3 +60,4 @@ webui/package-lock.json
 webui/webui.zip
 webui/tsconfig.tsbuildinfo
 
+.appstore/**
