@@ -1019,12 +1019,21 @@ extension VirtualMachine {
 					if self.config.os == .darwin {
 						if self.config.agent {
 							do {
-								try self.location.stopVirtualMachine(force: false, runMode: self.env.runMode)
-								// Wait real stop
-								while virtualMachine.state == .running {
-									Thread.sleep(forTimeInterval: 0.100)
+								if try self.location.agentURL.exists() {
+									let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(),
+																								   listeningAddress: self.location.agentURL,
+																								   timeout: 60,
+																								   runMode: self.env.runMode)
+
+									try client.shutdown().log()
+
+									// Wait real stop
+									while virtualMachine.state == .running {
+										Thread.sleep(forTimeInterval: 0.100)
+									}
+									
+									continuation.resume()
 								}
-								continuation.resume()
 							} catch {
 								self.stopVM { _ in
 									continuation.resume()
