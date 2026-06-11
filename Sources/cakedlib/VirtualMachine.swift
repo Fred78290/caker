@@ -122,48 +122,48 @@ extension VZVirtualMachine {
 				let virtualMachine: VZVirtualMachine
 				let completionHandler: (Error?) -> Void
 				var selfRetain: RequestStopDelegate?
-				
+
 				deinit {
 					self.virtualMachine.delegate = self.subDelegate
 				}
-				
+
 				init(virtualMachine: VZVirtualMachine, completionHandler: @escaping (Error?) -> Void) {
 					self.virtualMachine = virtualMachine
 					self.subDelegate = virtualMachine.delegate
 					self.completionHandler = completionHandler
-					
+
 					super.init()
-					
+
 					virtualMachine.delegate = self
 					self.selfRetain = self
 				}
-				
+
 				private func finish(error: Error?) {
 					selfRetain = nil
 					completionHandler(error)
 				}
-				
+
 				func guestDidStop(_ virtualMachine: VZVirtualMachine) {
 					if let subDelegate {
 						subDelegate.guestDidStop?(virtualMachine)
 					}
 					finish(error: nil)
 				}
-				
+
 				func virtualMachine(_ virtualMachine: VZVirtualMachine, didStopWithError error: any Error) {
 					if let subDelegate {
 						subDelegate.virtualMachine?(virtualMachine, didStopWithError: error)
 					}
 					finish(error: error)
 				}
-				
+
 				func virtualMachine(_ virtualMachine: VZVirtualMachine, networkDevice: VZNetworkDevice, attachmentWasDisconnectedWithError error: any Error) {
 					if let subDelegate {
 						subDelegate.virtualMachine?(virtualMachine, networkDevice: networkDevice, attachmentWasDisconnectedWithError: error)
 					}
 				}
 			}
-			
+
 			_ = RequestStopDelegate(virtualMachine: self, completionHandler: completionHandler)
 		}
 
@@ -666,52 +666,55 @@ extension VirtualMachine {
 				}
 			}
 
-			if #available(macOS 14, *) {
-				do {
-					try self.env.configuration.validateSaveRestoreSupport()
+			#if arch(arm64)
+				if #available(macOS 14, *) {
+					do {
+						try self.env.configuration.validateSaveRestoreSupport()
 
-					self.virtualMachine.pause { result in
+						self.virtualMachine.pause { result in
+							if case .failure(let err) = result {
+								self.logger.error("Failed to pause VM \(self.location.name) \(err)")
+								if let completionHandler {
+									completionHandler(.failure(err))
+								}
+							} else {
+								self.logger.info("VM \(self.location.name) paused")
 
-						if case .failure(let err) = result {
-							self.logger.error("Failed to pause VM \(self.location.name) \(err)")
-							if let completionHandler {
-								completionHandler(.failure(err))
-							}
-						} else {
-							self.logger.info("VM \(self.location.name) paused")
+								self.env.stopServices()
 
-							self.env.stopServices()
+								self.env.timer?.invalidate()
+								self.env.timer = nil
 
-							self.env.timer?.invalidate()
-							self.env.timer = nil
+								self.virtualMachine.saveMachineStateTo(url: self.location.stateURL) { result in
+									if let error = result {
+										if let completionHandler = completionHandler {
+											completionHandler(.failure(error))
+										}
+									} else {
+										self.logger.info("Snap created successfully...")
 
-							self.virtualMachine.saveMachineStateTo(url: self.location.stateURL) { result in
-								if let error = result {
-									if let completionHandler = completionHandler {
-										completionHandler(.failure(error))
-									}
-								} else {
-									self.logger.info("Snap created successfully...")
-
-									if let completionHandler = completionHandler {
-										completionHandler(.success(self))
+										if let completionHandler = completionHandler {
+											completionHandler(.success(self))
+										}
 									}
 								}
 							}
+
+							self.didChangedState(true)
 						}
+					} catch {
+						self.logger.warn("Snapshot is only supported on macOS 14 or newer")
 
-						self.didChangedState(true)
+						if let completionHandler = completionHandler {
+							completionHandler(.failure(error))
+						}
 					}
-				} catch {
-					self.logger.warn("Snapshot is only supported on macOS 14 or newer")
-
-					if let completionHandler = completionHandler {
-						completionHandler(.failure(error))
-					}
+				} else {
+					pauseVM()
 				}
-			} else {
+			#else
 				pauseVM()
-			}
+			#endif
 		} else {
 			self.logger.warn("Can't pause VM: \(self.location.name)")
 		}
@@ -951,42 +954,44 @@ extension VirtualMachine {
 
 		try self.env.startVMRunService(mode, vm: self)
 
-		if #available(macOS 14, *) {
-			if FileManager.default.fileExists(atPath: location.stateURL.path) {
-				self.logger.info("Restore VM \(self.location.name) snapshot...")
+		#if arch(arm64)
+			if #available(macOS 14, *) {
+				if FileManager.default.fileExists(atPath: location.stateURL.path) {
+					self.logger.info("Restore VM \(self.location.name) snapshot...")
 
-				let url = self.location.stateURL
-				let location = self.location
-				let vmName = location.name
-				let logger = self.logger
-				let virtualMachine = self.virtualMachine
+					let url = self.location.stateURL
+					let location = self.location
+					let vmName = location.name
+					let logger = self.logger
+					let virtualMachine = self.virtualMachine
 
-				self.logger.debug("Restore VM \(vmName) from \(url) snapshot...")
+					self.logger.debug("Restore VM \(vmName) from \(url) snapshot...")
 
-				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-					self.vmQueue.sync {
-						do {
-							try self.env.configuration.validateSaveRestoreSupport()
+					try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+						self.vmQueue.sync {
+							do {
+								try self.env.configuration.validateSaveRestoreSupport()
 
-							virtualMachine.restoreMachineStateFrom(url: url) { error in
-								if let error {
-									logger.error("Failed to restore VM \(vmName) snapshot: \(error)")
-									continuation.resume(throwing: error)
-								} else {
-									try? FileManager.default.removeItem(at: location.stateURL)
-									continuation.resume()
+								virtualMachine.restoreMachineStateFrom(url: url) { error in
+									if let error {
+										logger.error("Failed to restore VM \(vmName) snapshot: \(error)")
+										continuation.resume(throwing: error)
+									} else {
+										try? FileManager.default.removeItem(at: location.stateURL)
+										continuation.resume()
+									}
 								}
+							} catch {
+								logger.error("Can't validate restore configuration, \(error)")
+								continuation.resume(throwing: error)
 							}
-						} catch {
-							logger.error("Can't validate restore configuration, \(error)")
-							continuation.resume(throwing: error)
 						}
 					}
-				}
 
-				resumeVM = true
+					resumeVM = true
+				}
 			}
-		}
+		#endif
 
 		if resumeVM {
 			self.logger.info("Resume VM \(self.location.name)...")
@@ -1308,58 +1313,61 @@ extension VirtualMachine {
 	public func restoreStateVMFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
 			var resumeVM = false
-			let location = self.location
-			let stateURL = location.stateURL
-			let vmName = location.name
-			let logger = self.logger
-			let virtualMachine = self.virtualMachine
 
-			if #available(macOS 14, *) {
-				if FileManager.default.fileExists(atPath: stateURL.path) {
-					self.logger.debug("Restore VM \(vmName) from \(stateURL) snapshot...")
+			#if arch(arm64)
+				let location = self.location
+				let stateURL = location.stateURL
+				let vmName = location.name
+				let logger = self.logger
+				let virtualMachine = self.virtualMachine
 
-					do {
-						try self.env.configuration.validateSaveRestoreSupport()
+				if #available(macOS 14, *) {
+					if FileManager.default.fileExists(atPath: stateURL.path) {
+						self.logger.debug("Restore VM \(vmName) from \(stateURL) snapshot...")
 
-						virtualMachine.restoreMachineStateFrom(url: stateURL) { error in
-							if let error {
-								logger.error("Failed to restore VM \(vmName) snapshot: \(error)")
+						do {
+							try self.env.configuration.validateSaveRestoreSupport()
 
-								if let completionHandler = completionHandler {
-									completionHandler(.failure(error))
-								}
-							} else {
-								try? FileManager.default.removeItem(at: stateURL)
+							virtualMachine.restoreMachineStateFrom(url: stateURL) { error in
+								if let error {
+									logger.error("Failed to restore VM \(vmName) snapshot: \(error)")
 
-								self.virtualMachine.resume { result in
-									self.startCompletionHandler(result: result) { result in
-										defer {
-											if let completionHandler = completionHandler {
-												completionHandler(result)
+									if let completionHandler = completionHandler {
+										completionHandler(.failure(error))
+									}
+								} else {
+									try? FileManager.default.removeItem(at: stateURL)
+
+									self.virtualMachine.resume { result in
+										self.startCompletionHandler(result: result) { result in
+											defer {
+												if let completionHandler = completionHandler {
+													completionHandler(result)
+												}
 											}
-										}
 
-										if case .success = result {
-											guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.env.runMode)) != nil else {
-												self.logger.error("VM \(self.location.name) failed to get primary IP")
-												return
+											if case .success = result {
+												guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.env.runMode)) != nil else {
+													self.logger.error("VM \(self.location.name) failed to get primary IP")
+													return
+												}
 											}
 										}
 									}
 								}
 							}
-						}
-					} catch {
-						logger.error("Can't validate restore configuration, \(error)")
+						} catch {
+							logger.error("Can't validate restore configuration, \(error)")
 
-						if let completionHandler = completionHandler {
-							completionHandler(.failure(error))
+							if let completionHandler = completionHandler {
+								completionHandler(.failure(error))
+							}
 						}
+
+						resumeVM = true
 					}
-
-					resumeVM = true
 				}
-			}
+			#endif
 
 			if resumeVM == false {
 				self.logger.info("Start VM \(self.location.name)...")
