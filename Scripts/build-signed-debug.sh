@@ -14,6 +14,8 @@ RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
 SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 RELEASE=0
+APPSTORE=0
+USE_SMAPPSERVICE=0
 ARGUMENT_PARSER_ORIGINAL="https://github.com/apple/swift-argument-parser"
 ARGUMENT_PARSER_MIRROR="https://github.com/Fred78290/swift-argument-parser"
 

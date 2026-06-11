@@ -25,6 +25,7 @@ RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
 RELEASE=1
 APPSTORE=1
+USE_SMAPPSERVICE=1
 
 sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app" "${PROJECT_ROOT}/.appstore" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 
@@ -35,8 +36,8 @@ trap cleanup_swift_package_mirror EXIT
 
 /usr/bin/swift package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
 /usr/bin/swift package resolve
-/usr/bin/swift build -c release --arch x86_64 --build-path "${PROJECT_ROOT}/.appstore/x86_64-apple-macosx"
-/usr/bin/swift build -c release --arch arm64 --build-path "${PROJECT_ROOT}/.appstore/arm64-apple-macosx"
+/usr/bin/swift build -c release --arch x86_64 --build-path "${PROJECT_ROOT}/.appstore/x86_64-apple-macosx" -Xswiftc -D -Xswiftc USE_SMAPPSERVICE
+/usr/bin/swift build -c release --arch arm64 --build-path "${PROJECT_ROOT}/.appstore/arm64-apple-macosx" -Xswiftc -D -Xswiftc USE_SMAPPSERVICE
 
 mkdir -p ${BINARYDIR}
 
