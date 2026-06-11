@@ -89,6 +89,11 @@ if [[ -f "${WIKI_DIR}/cheat-sheet.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/cheat-sheet.md" "${DOCS_DIR}/cheat-sheet.md" "Cheat Sheet" "9"
 fi
 
+# Privacy Policy (nav_order: 99)
+if [[ -f "${WIKI_DIR}/privacy-policy.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/privacy-policy.md" "${DOCS_DIR}/privacy-policy.md" "Privacy Policy / Politique de confidentialité" "99"
+fi
+
 # Update main index page from wiki Home
 if [[ -f "${WIKI_DIR}/home.md" ]]; then
   echo "  📄 Updating home page from wiki home.md"
