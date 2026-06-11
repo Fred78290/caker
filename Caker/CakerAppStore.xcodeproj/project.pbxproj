@@ -194,8 +194,6 @@
 		9B29F8222FCAE4B700AEBCB8 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B29F8232FCAE4B700AEBCB8 /* SwiftletUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = 9B29F7A12FCAE4B700AEBCB8 /* SwiftletUtilities */; };
 		9B29F8242FCAE4B700AEBCB8 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 9B29F7A52FCAE4B700AEBCB8 /* SwiftTerm */; };
-		9B29F8262FCAE4B700AEBCB8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */; };
-		9B29F8272FCAE4B700AEBCB8 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */; };
 		9B29F82A2FCAE4B700AEBCB8 /* caked.bundle in Bundle */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9B29F82C2FCAE4B700AEBCB8 /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9B30992B2DE4DC0C00231C1E /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30992A2DE4DC0C00231C1E /* CakeAgentLib */; };
@@ -732,14 +730,6 @@
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
-		};
-		9B6ECDE22FD1A51200A51430 /* Helper */ = {
-			isa = PBXCopyFilesBuildPhase;
-			dstPath = "";
-			dstSubfolder = Executables;
-			files = (
-			);
-			name = Helper;
 		};
 		9BA9CBD02FCD7B8D00CEBFC0 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -1311,7 +1301,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				AppStore/com.aldunelabs.caker.plist,
+				AppStore/debug.provisionprofile,
 				AppStore/Info.plist,
+				AppStore/release.provisionprofile,
 				Info.plist,
 			);
 			target = 9B29F79E2FCAE4B700AEBCB8 /* Caker */;
@@ -2560,7 +2552,6 @@
 				9B29F82B2FCAE4B700AEBCB8 /* Compatibility */,
 				9BA9CC282FCED33F00CEBFC0 /* PriviligedBootstrap */,
 				9BFA90382FD08BD4007619A5 /* LaunchAgents */,
-				9B6ECDE22FD1A51200A51430 /* Helper */,
 			);
 			buildRules = (
 			);
@@ -2973,8 +2964,6 @@
 		9B29F8252FCAE4B700AEBCB8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
-				9B29F8262FCAE4B700AEBCB8 /* Localizable.xcstrings in Resources */,
-				9B29F8272FCAE4B700AEBCB8 /* InfoPlist.xcstrings in Resources */,
 			);
 		};
 		9B96B00D2F4B68380069C970 /* Resources */ = {
