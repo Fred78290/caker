@@ -164,8 +164,13 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 	var documents: [VirtualMachineDocument] {
 		var documents = Array(virtualMachines.values)
-		
-		documents.append(contentsOf: self.openedVirtualMachines.values)
+
+		// Could be same...
+		self.openedVirtualMachines.values.forEach { opened in
+			if documents.contains(opened) == false {
+				documents.append(opened)
+			}
+		}
 
 		return documents
 	}
@@ -502,16 +507,50 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		guard self.openedVirtualMachines.values.first( where: { $0.status == .running && $0.url.isFileURL && $0.externalRunning == false }) == nil else {
 			return true
 		}
-		
+
 		return virtualMachines.values.first { vm in
 			guard vm.status == .running && vm.url.isFileURL else {
 				return false
 			}
-			
+
 			return vm.externalRunning == false
 		} != nil
 	}
-	
+
+	func stopAllRunningVirtualMachines() {
+		documents
+			.filter { $0.internalRunning }
+			.forEach { $0.stopFromUI(force: true) }
+	}
+
+	func stopOrSuspendAllRunningVirtualMachines(_ completionHandler: @MainActor @escaping () -> Void) async {
+		let documents = self.documents.filter { $0.internalRunning }
+		let eventLoop = Utilities.group.next()
+		let futures = documents.map { document in
+			return eventLoop.makeFutureWithTask {
+				await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+					DispatchQueue.main.async {
+						if document.suspendable {
+							document.suspendFromUI { _ in
+								continuation.resume()
+							}
+						} else {
+							document.stopFromUI(force: false) { _ in
+								continuation.resume()
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		EventLoopFuture.andAllComplete(futures, on: eventLoop).whenComplete{ _ in
+			DispatchQueue.main.async {
+				completionHandler()
+			}
+		}
+	}
+
 	func replaceVirtualMachineDocument(_ url: URL, with document: VirtualMachineDocument) {
 		DispatchQueue.main.async { [weak self] in
 			self?.virtualMachines[url] = document

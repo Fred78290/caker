@@ -114,6 +114,63 @@ extension SSHError.Kind {
 	}
 }
 
+extension VZVirtualMachine {
+	public func requestStop(completionHandler: ((Error?) -> Void)? = nil) throws {
+		if let completionHandler {
+			final class RequestStopDelegate: NSObject, VZVirtualMachineDelegate {
+				let subDelegate: VZVirtualMachineDelegate?
+				let virtualMachine: VZVirtualMachine
+				let completionHandler: (Error?) -> Void
+				var selfRetain: RequestStopDelegate?
+				
+				deinit {
+					self.virtualMachine.delegate = self.subDelegate
+				}
+				
+				init(virtualMachine: VZVirtualMachine, completionHandler: @escaping (Error?) -> Void) {
+					self.virtualMachine = virtualMachine
+					self.subDelegate = virtualMachine.delegate
+					self.completionHandler = completionHandler
+					
+					super.init()
+					
+					virtualMachine.delegate = self
+					self.selfRetain = self
+				}
+				
+				private func finish(error: Error?) {
+					selfRetain = nil
+					completionHandler(error)
+				}
+				
+				func guestDidStop(_ virtualMachine: VZVirtualMachine) {
+					if let subDelegate {
+						subDelegate.guestDidStop?(virtualMachine)
+					}
+					finish(error: nil)
+				}
+				
+				func virtualMachine(_ virtualMachine: VZVirtualMachine, didStopWithError error: any Error) {
+					if let subDelegate {
+						subDelegate.virtualMachine?(virtualMachine, didStopWithError: error)
+					}
+					finish(error: error)
+				}
+				
+				func virtualMachine(_ virtualMachine: VZVirtualMachine, networkDevice: VZNetworkDevice, attachmentWasDisconnectedWithError error: any Error) {
+					if let subDelegate {
+						subDelegate.virtualMachine?(virtualMachine, networkDevice: networkDevice, attachmentWasDisconnectedWithError: error)
+					}
+				}
+			}
+			
+			_ = RequestStopDelegate(virtualMachine: self, completionHandler: completionHandler)
+		}
+
+		try self.requestStop()
+	}
+}
+
 class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	let location: VMLocation
 	let config: CakeConfig
@@ -711,14 +768,15 @@ extension VirtualMachine {
 		}
 	}
 
-	private func _requestStopVM() throws {
+	private func _requestStopVM(completionHandler: StopCompletionHandler? = nil) throws {
 		self.env.requestStopFromUIPending = true
 
 		try? self.saveScreenshot()
 
 		if self.virtualMachine.canRequestStop {
 			self.logger.info("Requesting stop VM \(self.location.name)...")
-			try self.virtualMachine.requestStop()
+
+			try self.virtualMachine.requestStop(completionHandler: completionHandler)
 			self.didChangedState(false)
 		} else if self.virtualMachine.canStop {
 			self.cancelAgentInstallRetry()
@@ -732,9 +790,13 @@ extension VirtualMachine {
 				if self.env.runMode == .app {
 					try? self.location.deletePID()
 				}
+
+				completionHandler?(result)
 			}
 		} else if self.virtualMachine.state == VZVirtualMachine.State.starting {
 			self.logger.error("VM \(self.location.name) can't be stopped")
+
+			completionHandler?(ExitCode(EXIT_FAILURE))
 
 			if self.env.runMode != .app {
 				throw ExitCode(EXIT_FAILURE)
@@ -742,9 +804,9 @@ extension VirtualMachine {
 		}
 	}
 
-	public func requestStopVM() throws {
+	public func requestStopVM(completionHandler: StopCompletionHandler? = nil) throws {
 		try self.vmQueue.sync {
-			try self._requestStopVM()
+			try self._requestStopVM(completionHandler: completionHandler)
 		}
 	}
 }
@@ -1202,9 +1264,9 @@ extension VirtualMachine {
 		}
 	}
 
-	public func requestStopFromUI() {
+	public func requestStopFromUI(completionHandler: StopCompletionHandler? = nil) {
 		self.vmQueue.async {
-			try? self._requestStopVM()
+			try? self._requestStopVM(completionHandler: completionHandler)
 		}
 	}
 

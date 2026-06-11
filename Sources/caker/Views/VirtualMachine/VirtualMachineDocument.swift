@@ -320,6 +320,10 @@ extension UTType {
 		return NSImage(data: screenshot)
 	}
 
+	var internalRunning: Bool {
+		self.status == .running && self.url.isFileURL && self.externalRunning == false && self.virtualMachine != nil
+	}
+
 	deinit {
 		self.logger.debug("Release document: \(self.url)")
 		self.stopAgentMonitoring()
@@ -344,6 +348,7 @@ extension UTType {
 		self.documentSize = ViewSize(config.display.cgSize)
 		self.cpuInfos = CpuInfos(from: config)
 		self.memoryInfos = MemoryInfo(from: config)
+		self.suspendable = config.suspendable && config.os == .darwin
 		self.monitor = try FileMonitor(directory: location.rootURL, delegate: self)
 		self.status = .init(location.status)
 
@@ -921,7 +926,7 @@ extension VirtualMachineDocument {
 		}
 	}
 
-	func stopFromUI(force: Bool) {
+	func stopFromUI(force: Bool, _ completionHandler: CompletionHandler? = nil) {
 		guard self.status == .running else {
 			return
 		}
@@ -937,14 +942,16 @@ extension VirtualMachineDocument {
 			}
 		} else if let virtualMachine = self.virtualMachine {
 			if force {
-				virtualMachine.stopFromUI()
+				virtualMachine.stopFromUI(completionHandler: completionHandler)
 			} else {
-				virtualMachine.requestStopFromUI()
+				virtualMachine.requestStopFromUI(completionHandler: completionHandler)
 			}
 		}
 	}
 
-	func suspendFromUI() {
+	typealias CompletionHandler = (Error?) -> Void
+	
+	func suspendFromUI(_ completionHandler: CompletionHandler? = nil) {
 		guard self.status == .running else {
 			return
 		}
@@ -974,8 +981,10 @@ extension VirtualMachineDocument {
 					if case .failure(let error) = result {
 						await self.setStateAsStopped(.error)
 						await alertError(error)
+						completionHandler?(error)
 					} else {
 						await self.setStateAsStopped(.paused)
+						completionHandler?(nil)
 					}
 				}
 			}

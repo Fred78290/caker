@@ -868,11 +868,28 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-		if AppState.shared.haveVirtualMachinesRunning() {
-			return .terminateLater
-		} else {
+		guard AppState.shared.haveVirtualMachinesRunning() else {
 			return .terminateNow
 		}
+
+		let alert = NSAlert()
+		alert.messageText = String(localized: "Virtual Machines Running")
+		alert.informativeText = String(localized: "Some virtual machines are currently running. Do you want to terminate them and quit?")
+		alert.alertStyle = .warning
+		alert.addButton(withTitle: String(localized: "Terminate All & Quit"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
+
+		if alert.runModal() == .alertFirstButtonReturn {
+			Task {
+				await AppState.shared.stopOrSuspendAllRunningVirtualMachines {
+					sender.reply(toApplicationShouldTerminate: true)
+				}
+			}
+
+			return .terminateLater
+		}
+
+		return .terminateCancel
 	}
 
 	func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
