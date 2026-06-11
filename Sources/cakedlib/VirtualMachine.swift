@@ -1022,7 +1022,7 @@ extension VirtualMachine {
 								if try self.location.agentURL.exists() {
 									let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(),
 																								   listeningAddress: self.location.agentURL,
-																								   timeout: 60,
+																								   timeout: 5,
 																								   runMode: self.env.runMode)
 
 									try client.shutdown().log()
