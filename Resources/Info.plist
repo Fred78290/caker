@@ -34,7 +34,7 @@
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.aldunelabs.caker</string>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -93,6 +93,16 @@
 	<string>Fred78290</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Caker need SSH access to running VM and create virtual network</string>
+	<key>SUAllowsAutomaticUpdates</key>
+	<true/>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://caker.aldunelabs.com/appcast/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>WJhWPnMkgsVLGzHVYX17+YhgMV1yqqqqcZUW5cqGoeg=</string>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict>
@@ -168,15 +178,5 @@
 			</dict>
 		</dict>
 	</array>
-	<key>SUFeedURL</key>
-	<string>https://caker.aldunelabs.com/appcast/appcast.xml</string>
-	<key>SUEnableAutomaticChecks</key>
-	<true/>
-	<key>SUScheduledCheckInterval</key>
-	<integer>86400</integer>
-	<key>SUPublicEDKey</key>
-	<string>WJhWPnMkgsVLGzHVYX17+YhgMV1yqqqqcZUW5cqGoeg=</string>
-	<key>SUAllowsAutomaticUpdates</key>
-	<true/>
 </dict>
 </plist>

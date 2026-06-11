@@ -24,7 +24,7 @@ From repository root:
 
 - Debug signed build: `./Scripts/build-signed-debug.sh`
 - Release signed build: `./Scripts/build-signed-release.sh`
-- Swift package build: `swift build`
+- Swift package build: `swift build -Xswiftc -D -Xswiftc SPARKLE`
 
 ### Tests
 

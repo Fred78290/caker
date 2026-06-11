@@ -41,10 +41,6 @@ else
 	fi
 fi
 
-pushd qcow2convert
-./build.sh
-popd
-
 if [ "${SETUP_KEYCHAIN}" == true ]; then
 	trap "cleanup" EXIT
 	KEYCHAIN_PATH="${RUNNER_TEMP}/app-signing.keychain-db"

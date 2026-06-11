@@ -131,9 +131,16 @@ struct VirtualMachineView: View {
 				self.open()
 			}
 			Divider()
-			Button("Start") {
-				self.vm.startFromUI()
-			}.disabled(self.vm.status.isRunning)
+			
+			if self.vm.status == .paused {
+				Button("Resume") {
+					self.vm.resumeFromUI()
+				}
+			} else {
+				Button("Start") {
+					self.vm.startFromUI()
+				}.disabled(self.vm.status.isRunning)
+			}
 
 			Button("Stop") {
 				self.vm.stopFromUI(force: vm.status != .running)

@@ -47,9 +47,14 @@ struct BuildHandler: CakedCommandAsync {
 				}
 				
 				group.addTask {
+					var lastSentCompleted = -1
+
 					for try await progress in stream {
 						if case .progress(let context, let fractionCompleted) = progress {
 							let completed = Int(100 * fractionCompleted)
+
+							guard completed != lastSentCompleted else { continue }
+							lastSentCompleted = completed
 
 							if completed % 10 == 0 {
 								if completed - context.lastCompleted10 >= 10 || completed == 0 || completed == 100 {

@@ -14,6 +14,108 @@ import UniformTypeIdentifiers
 
 typealias OptionalVMLocation = VMLocation?
 
+struct ISOLocation {
+	let label: String
+	let url: String
+}
+
+enum ISOImage: Int, CaseIterable {
+	// Ubuntu ISOs
+	case ubuntu2604Desktop
+	case ubuntu2604Server
+
+	case ubuntu2404Desktop
+	case ubuntu2404Server
+
+	case ubuntu2204Desktop
+	case ubuntu2204Server
+
+	case ubuntu2004Desktop
+	case ubuntu2004Server
+
+	case ubuntu1804Desktop
+	case ubuntu1804Server
+
+	case fedora42
+	case fedora41
+	case fedora40
+
+	case centos10
+	case centos9
+
+	var ubuntuArch: String {
+		#if arch(x86_64)
+			return "amd64"
+		#else
+			return "arm64"
+		#endif
+	}
+
+	var genericArch: String {
+		#if arch(x86_64)
+			return "x86_64"
+		#else
+			return "arm64"
+		#endif
+	}
+
+	var location: ISOLocation {
+		switch self {
+		case .ubuntu2604Desktop:
+			ISOLocation(label: "Ubuntu 26.04 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-desktop-\(ubuntuArch).iso")
+		case .ubuntu2604Server:
+			ISOLocation(label: "Ubuntu 26.04 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-live-server-\(ubuntuArch).iso")
+		case .ubuntu2404Desktop:
+			ISOLocation(label: "Ubuntu 24.04.4 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/noble/release/ubuntu-24.04.4-desktop-\(ubuntuArch).iso")
+		case .ubuntu2404Server:
+			ISOLocation(label: "Ubuntu 24.04.4 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/noble/release/ubuntu-24.04.4-live-server-\(ubuntuArch).iso")
+		case .ubuntu2204Desktop:
+			ISOLocation(label: "Ubuntu 22.04.5 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/jammy/release/ubuntu-22.04.5-desktop-\(ubuntuArch).iso")
+		case .ubuntu2204Server:
+			ISOLocation(label: "Ubuntu 22.04.5 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/jammy/release/ubuntu-22.04.5-live-server-\(ubuntuArch).iso")
+		case .ubuntu2004Desktop:
+			ISOLocation(label: "Ubuntu 20.04.5 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/focal/release/ubuntu-20.04.5-desktop-\(ubuntuArch).iso")
+		case .ubuntu2004Server:
+			ISOLocation(label: "Ubuntu 20.04.5 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/focal/release/ubuntu-20.04.5-live-server-\(ubuntuArch).iso")
+		case .ubuntu1804Desktop:
+			ISOLocation(label: "Ubuntu 18.04.6 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-desktop-\(ubuntuArch).iso")
+		case .ubuntu1804Server:
+			ISOLocation(label: "Ubuntu 18.04.6 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-live-server-\(ubuntuArch).iso")
+		case .fedora42:
+			ISOLocation(label: "Fedora 42 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/42/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-42-1.1.iso")
+		case .fedora41:
+			ISOLocation(label: "Fedora 41 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-41-1.4.iso")
+		case .fedora40:
+			ISOLocation(label: "Fedora 40 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/40/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-40-1.14.iso")
+
+		case .centos10:
+			ISOLocation(label: "CentOS Stream 10 – DVD ISO (\(genericArch))", url: "https://mirror.stream.centos.org/10-stream/BaseOS/\(genericArch)/iso/CentOS-Stream-10-latest-\(genericArch)-dvd1.iso")
+		case .centos9:
+			ISOLocation(label: "CentOS Stream 9 – DVD ISO (\(genericArch))", url: "https://mirror.centos.org/centos/9-stream/BaseOS/\(genericArch)/iso/CentOS-Stream-9-latest-\(genericArch)-dvd.iso")
+		}
+	}
+}
+
+enum IPSWImage: Int, CaseIterable {
+	case macos26_5
+	case macos15_6_1
+	case macos14_6_1
+	case macos13_6
+	
+	var location: ISOLocation {
+		switch self {
+		case .macos26_5:
+			ISOLocation(label: "macOS 26.5 – IPSW (Apple Silicon)", url: "https://updates.cdn-apple.com/2026SpringFCS/fullrestores/122-58869/DFB1CEEF-5619-4591-9924-E20DB2C8FED0/UniversalMac_26.5_25F71_Restore.ipsw")
+		case .macos15_6_1:
+			ISOLocation(label: "macOS 15.6.1 – IPSW (Apple Silicon)", url: "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw")
+		case .macos14_6_1:
+			ISOLocation(label: "macOS 14.6.1 – IPSW (Apple Silicon)", url: "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw")
+		case .macos13_6:
+			ISOLocation(label: "macOS 13.6 – IPSW (Apple Silicon)", url: "https://updates.cdn-apple.com/2023FallFCS/fullrestores/042-55833/C0830847-A2F8-458F-B680-967991820931/UniversalMac_13.6_22G120_Restore.ipsw")
+		}
+	}
+}
+
 enum OSCloudImage: Int, CaseIterable {
 	case ubuntu2604LTS
 	case ubuntu2504LTS
@@ -206,6 +308,8 @@ struct ShortImageInfoComparator: SortComparator {
 	var remoteImages: [ShortImageInfo]
 	var selectedRemoteImage: String
 	var cloudImageRelease: OSCloudImage
+	var isoImageRelease: ISOImage
+	var ipswRelease: IPSWImage
 	var createVM: Bool
 	var fractionCompleted: Double
 	var createVMMessage: String
@@ -219,7 +323,9 @@ struct ShortImageInfoComparator: SortComparator {
 		self.remoteImage = "ubuntu"
 		self.remoteImages = []
 		self.selectedRemoteImage = String.empty
-		self.cloudImageRelease = .ubuntu2404LTS
+		self.cloudImageRelease = .ubuntu2604LTS
+		self.isoImageRelease = .ubuntu2604Server
+		self.ipswRelease = .macos26_5
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
@@ -235,6 +341,8 @@ struct ShortImageInfoComparator: SortComparator {
 		self.remoteImages = []
 		self.selectedRemoteImage = String.empty
 		self.cloudImageRelease = .ubuntu2404LTS
+		self.isoImageRelease = .ubuntu2604Server
+		self.ipswRelease = .macos26_5
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
@@ -507,11 +615,14 @@ struct VirtualMachineWizard: View {
 		Section("Options") {
 			VStack(alignment: .leading) {
 				Toggle("Autostart", isOn: $config.autostart).disabled(self.model.createVM)
-				Toggle("Suspendable", isOn: $config.suspendable).disabled(self.model.createVM)
 				Toggle("Dynamic forward ports", isOn: $config.dynamicPortForwarding).disabled(self.model.createVM)
 				Toggle("Refit display", isOn: $config.displayRefit).disabled(self.model.createVM)
 				Toggle("Nested virtualization", isOn: $config.nestedVirtualization).disabled(self.model.createVM)
 				Toggle("Use network ifnames", isOn: $config.ifname).disabled(self.model.createVM)
+
+				if self.model.imageSource == .ipsw {
+					Toggle("Suspendable", isOn: $config.suspendable).disabled(self.model.createVM)
+				}
 			}
 		}
 	}
@@ -633,7 +744,7 @@ struct VirtualMachineWizard: View {
 								TextField("OS Image", text: $config.imageName)
 									.rounded(.leading)
 									.disabled(self.model.createVM)
-								
+
 								Button(action: {
 									if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
 										self.config.imageName = "file://\(imageName)"
@@ -653,16 +764,17 @@ struct VirtualMachineWizard: View {
 						}
 					}
 				case .iso:
-					VStack {
+					VStack(alignment: .leading) {
 						let platform = SupportedPlatform(rawValue: self.config.imageName)
 
-						if AppState.shared.connectionMode == .app {
-							LabeledContent("Choose an ISO image disk.") {
+						LabeledContent {
+							if AppState.shared.connectionMode == .app {
 								HStack {
-									TextField("ISO Image", text: $config.imageName)
+									TextField("Choose an ISO image disk.", text: $config.imageName)
+										.frame(width: 300)
 										.rounded(.leading)
 										.disabled(self.model.createVM)
-									
+
 									Button(action: {
 										if let imageName = chooseDiskImage(ofTypes: [UTType.iso9660, UTType.cdr]) {
 											self.config.imageName = "file://\(imageName)"
@@ -673,12 +785,23 @@ struct VirtualMachineWizard: View {
 									.disabled(self.model.createVM)
 									.buttonStyle(.borderless)
 								}
-							}
-						} else {
-							LabeledContent("Bootable iso url.") {
-								TextField("URL", text: $config.imageName)
+							} else {
+								TextField("Bootable iso url.", text: $config.imageName)
+									.frame(width: 340)
 									.rounded(.leading)
 									.disabled(self.model.createVM)
+							}
+						} label: {
+							Picker("Preconfigured ISO", selection: $model.isoImageRelease) {
+								ForEach(ISOImage.allCases, id: \.self) { os in
+									Text(os.location.label).tag(os)
+								}
+							}
+							.pickerStyle(.menu)
+							.disabled(self.model.createVM)
+							.labelsHidden()
+							.onChange(of: model.isoImageRelease) { _, newValue in
+								self.config.imageName = newValue.location.url
 							}
 						}
 
@@ -692,10 +815,11 @@ struct VirtualMachineWizard: View {
 					}
 
 				case .ipsw:
-					if AppState.shared.connectionMode == .app {
-						LabeledContent("Choose an IPSW image.") {
+					LabeledContent {
+						if AppState.shared.connectionMode == .app {
 							HStack {
 								TextField("IPSW Image", text: $config.imageName)
+									.frame(width: 330)
 									.rounded(.leading)
 									.disabled(self.model.createVM)
 								Button(action: {
@@ -708,18 +832,31 @@ struct VirtualMachineWizard: View {
 								.disabled(self.model.createVM)
 								.buttonStyle(.borderless)
 							}
-						}
-					} else {
-						LabeledContent("MacOS ipsw url.") {
-							TextField("URL", text: $config.imageName)
+						} else {
+							TextField("MacOS ipsw url.", text: $config.imageName)
+								.frame(width: 350)
 								.rounded(.leading)
 								.disabled(self.model.createVM)
 						}
+					} label: {
+						Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
+							ForEach(IPSWImage.allCases, id: \.self) { os in
+								Text(os.location.label).tag(os)
+							}
+						}
+						.pickerStyle(.menu)
+						.disabled(self.model.createVM)
+						.labelsHidden()
+						.onChange(of: model.ipswRelease) { _, newValue in
+							self.config.imageName = newValue.location.url
+						}
 					}
+
 				case .qcow2:
 					LabeledContent {
 						TextField("Cloud Image", text: $config.imageName)
 							.rounded(.leading)
+							.frame(width: 460)
 							.disabled(self.model.createVM)
 					} label: {
 						Picker("Preconfigured image", selection: $model.cloudImageRelease) {
@@ -786,12 +923,25 @@ struct VirtualMachineWizard: View {
 								Text(source.description).tag(source)
 							}
 						}.onChange(of: self.model.imageSource) { _, newValue in
-							self.config.imageName = String.empty
 							self.config.source = newValue
 
-							if newValue == .ipsw {
+							switch newValue {
+							case .raw:
+								self.config.imageName = String.empty
+							case .qcow2:
+								self.config.imageName = model.cloudImageRelease.url.absoluteString
+							case .oci:
+								self.config.imageName = String.empty
+							case .template:
+								self.config.imageName = String.empty
+							case .stream:
+								self.config.imageName = String.empty
+							case .iso:
+								self.config.imageName = self.model.isoImageRelease.location.url
+							case .ipsw:
+								self.config.imageName = self.model.ipswRelease.location.url
 								self.config.cpuCount = max(self.config.cpuCount, 4)
-								self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4 * GoB)
+								self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4096)
 								self.config.diskSizeInGoB = max(self.config.diskSizeInGoB, 40)
 							}
 						}
@@ -883,7 +1033,8 @@ struct VirtualMachineWizard: View {
 		if model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw {
 			if let url = URL(string: config.imageName) {
 				if AppState.shared.connectionMode == .app {
-					valid = (url.isFileURL && FileManager.default.fileExists(atPath: url.path))
+					valid =
+						(url.isFileURL && FileManager.default.fileExists(atPath: url.path))
 						|| ["http", "https"].contains(url.scheme)
 						|| (url.scheme == nil && FileManager.default.fileExists(atPath: url.path))
 				} else {
@@ -945,23 +1096,23 @@ struct VirtualMachineWizard: View {
 				operation: {
 					let options = self.config.buildOptions(imageSource: model.imageSource)
 					var ipswQueue: DispatchQueue!
-					
-#if arch(arm64)
-					if AppState.shared.connectionMode == .app && self.model.imageSource == .ipsw {
-						ipswQueue = DispatchQueue(label: "IPSWQueue")
-					}
-#endif
-					
+
+					#if arch(arm64)
+						if AppState.shared.connectionMode == .app && self.model.imageSource == .ipsw {
+							ipswQueue = DispatchQueue(label: "IPSWQueue")
+						}
+					#endif
+
 					let build = try await AppState.shared.buildVirtualMachine(options: options, queue: ipswQueue) { result in
 						progressHandler(result)
 					}
-					
+
 					if build.builded == false {
 						progressHandler(.terminated(.failure(ServiceError(build.reason)), String(localized: "Create virtual machine failed")))
 					}
 				},
 				onCancel: {
-					progressHandler(.terminated(.failure(ServiceError(String(localized: "Cancelled"))), String(localized: "Create virtual machine failed")))					
+					progressHandler(.terminated(.failure(ServiceError(String(localized: "Cancelled"))), String(localized: "Create virtual machine failed")))
 				})
 		} catch {
 			await MainActor.run {
@@ -1044,4 +1195,3 @@ struct VirtualMachineWizard: View {
 #Preview {
 	VirtualMachineWizard()
 }
-

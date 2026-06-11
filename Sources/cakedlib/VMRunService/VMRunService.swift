@@ -26,6 +26,13 @@ public struct VNCInfos: Codable {
 	}
 }
 
+public enum SignalType: Int32, CaseIterable {
+	case empty // = 0
+	case shutdown // = 1
+	case requestStop // = 2
+	case suspend // = 3
+}
+
 public protocol VMRunServiceClient {
 	var location: VMLocation { get }
 	var vncInfos: VNCInfos { get }
@@ -36,6 +43,7 @@ public protocol VMRunServiceClient {
 	func installAgent(timeout: UInt) throws -> (installed: Bool, reason: String)
 	func startGrandCentralUpdate(frequency: Int32) throws -> (success: Bool, reason: String)
 	func stopGrandCentralUpdate() throws -> (success: Bool, reason: String)
+	func signal(signal: SignalType) throws -> (success: Bool, reason: String)
 }
 
 extension VMRunServiceClient {

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>MachServices</key>
+	<dict>
+		<key>com.aldunelabs.caked.xpc</key>
+		<true/>
+	</dict>
+	<key>AssociatedBundleIdentifiers</key>
+	<string>com.aldunelabs.caker</string>
+	<key>Label</key>
+	<string>com.aldunelabs.caker</string>
+	<key>BundleProgram</key>
+	<string>Contents/PlugIns/caked.bundle/Contents/MacOS/caked</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>Contents/PlugIns/caked.bundle/Contents/MacOS/caked</string>
+		<string>service</string>
+		<string>listen</string>
+		<string>--log-level=info</string>
+		<string>--tcp</string>
+		<string>--rest</string>
+		<string>--grpc</string>
+		<string>--secure</string>
+		<string>--log</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+</dict>
+</plist>

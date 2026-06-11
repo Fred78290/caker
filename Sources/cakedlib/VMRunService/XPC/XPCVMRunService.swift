@@ -242,6 +242,7 @@ struct MountRequest: Codable {
 	func screenSizeReply(width: Int, height: Int)
 	func agentReply(installed: Bool, reason: String)
 	func grandCentralUpdateReply(success: Bool, reason: String)
+	func signalReply(success: Bool, reason: String)
 }
 
 @objc protocol VMRunServiceProtocol {
@@ -253,6 +254,7 @@ struct MountRequest: Codable {
 	func installAgent(timeout: UInt)
 	func startGrandCentralUpdate(frequency: Int32)
 	func stopGrandCentralUpdate()
+	func signal(signal: Int32)
 }
 
 class XPCVMRunService: VMRunService, VMRunServiceProtocol {
@@ -262,31 +264,31 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 		self.connection = connection
 		super.init(group: group, runMode: runMode, vm: vm, certLocation: certLocation, logger: logger)
 	}
-
+	
 	func reply(_ handler: (ReplyVMRunServiceProtocol) -> Void) {
 		let proxyObject = self.connection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("XPC Error: \($0)") })
-
+		
 		guard let serviceReply = proxyObject as? ReplyVMRunServiceProtocol else {
 			Logger(self).error("Failed to get proxy ReplyVMRunServiceProtocol")
 			return
 		}
-
+		
 		handler(serviceReply)
 	}
-
+	
 	func mount(request: MountRequest, umount: Bool) {
-		#if DEBUG
-			self.logger.debug("XPC mount: \(String(describing: request))")
-		#endif
-
+#if DEBUG
+		self.logger.debug("XPC mount: \(String(describing: request))")
+#endif
+		
 		self.reply { serviceReply in
 			let reply = self.mount(request: request.toCaked(umount ? .umount : .mount), umount: umount).toXPC()
 			
 			serviceReply.mountReply(response: reply.toJSON())
 			
-			#if DEBUG
-				self.logger.debug("Replied to mount request: \(reply)")
-			#endif
+#if DEBUG
+			self.logger.debug("Replied to mount request: \(reply)")
+#endif
 		}
 	}
 	
@@ -302,33 +304,33 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 	}
 	
 	func resizeScreen(width: Int, height: Int) {
-		#if DEBUG
-			self.logger.debug("XPC setScreenSize: \(width)x\(height)")
-		#endif
+#if DEBUG
+		self.logger.debug("XPC setScreenSize: \(width)x\(height)")
+#endif
 		
 		self.reply { serviceReply in
 			self.setScreenSize(width: width, height: height)
 			
 			serviceReply.screenSizeReply(width: width, height: height)
 			
-			#if DEBUG
-				self.logger.debug("Replied to resizeScreen request")
-			#endif
+#if DEBUG
+			self.logger.debug("Replied to resizeScreen request")
+#endif
 		}
 	}
 	
 	func getScreenSize() {
-		#if DEBUG
-			self.logger.debug("XPC getScreenSize")
-		#endif
+#if DEBUG
+		self.logger.debug("XPC getScreenSize")
+#endif
 		self.reply { serviceReply in
 			let (width, height) = self.vm.getScreenSize()
 			
 			serviceReply.screenSizeReply(width: width, height: height)
 			
-			#if DEBUG
-				self.logger.debug("Replied to getScreenSize request")
-			#endif
+#if DEBUG
+			self.logger.debug("Replied to getScreenSize request")
+#endif
 		}
 	}
 	
@@ -344,7 +346,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 		self.reply { serviceReply in
 			var installed: Bool = false
 			var reason : String = String.empty
-
+			
 			do {
 				installed = try self.group.any().makeFutureWithTask {
 					return try await self.installAgent(timeout: timeout)
@@ -353,8 +355,8 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 				self.logger.error("Failed to install agent: \(error)")
 				reason = error.reason
 			}
-
-
+			
+			
 			serviceReply.agentReply(installed: installed, reason: reason)
 		}
 	}
@@ -363,7 +365,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 		self.reply { serviceReply in
 			var started: Bool = true
 			var reason : String = String.empty
-
+			
 			do {
 				try self.group.next().makeFutureWithTask {
 					try await self.vm.startGrandCentralUpdate(frequency: frequency, runMode: self.runMode)
@@ -373,7 +375,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 				reason = error.reason
 				started = false
 			}
-
+			
 			serviceReply.grandCentralUpdateReply(success: started, reason: reason)
 		}
 	}
@@ -381,10 +383,31 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 	func stopGrandCentralUpdate() {
 		self.reply { serviceReply in
 			self.vm.stopGrandCentralUpdate()
-
+			
 			serviceReply.grandCentralUpdateReply(success: true, reason: String(localized: "Success"))
 		}
 	}
+	
+	func signal(signal: Int32) {
+		self.reply { serviceReply in
+			var result: Int32 = -1
+
+			switch SignalType(rawValue: signal) {
+			case .shutdown:
+				result = kill(getpid(), SIGINT)
+			case .suspend:
+				result = kill(getpid(), SIGUSR1)
+			case .requestStop:
+				result = kill(getpid(), SIGUSR2)
+			default:
+				serviceReply.signalReply(success: false, reason: String(localized: "Unknown signal type: \(signal)"))
+				return
+			}
+
+			serviceReply.signalReply(success: result != 0, reason: result != 0 ? String(cString: strerror(errno)) : "")
+		}
+	}
+	
 }
 
 class XPCVMRunServiceServer: NSObject, NSXPCListenerDelegate, VMRunServiceServerProtocol {
@@ -456,6 +479,7 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 		case screenSize(Int, Int)
 		case agent(Bool, String)
 		case gdc(Bool, String)
+		case signal(Bool, String)
 		case none
 	}
 	
@@ -511,6 +535,14 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 		self.logger.debug("Received GDC reply")
 #endif
 		self.response = .gdc(success, reason)
+		self.semaphore.signal()
+	}
+	
+	func signalReply(success: Bool, reason: String) {
+#if DEBUG
+		self.logger.debug("Received signal reply")
+#endif
+		self.response = .signal(success, reason)
 		self.semaphore.signal()
 	}
 	
@@ -590,6 +622,16 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 	}
 	
 	func waitForGDCReply() -> (Bool, String) {
+		if let reply = self.wait() {
+			if case .gdc(let success, let reason) = reply {
+				return (success, reason)
+			}
+		}
+		
+		return (false, "Internal error")
+	}
+	
+	func waitForSignalReply() -> (Bool, String) {
 		if let reply = self.wait() {
 			if case .gdc(let success, let reason) = reply {
 				return (success, reason)
@@ -727,5 +769,12 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 			return replier.waitForGDCReply()
 		}
 	}
-	
+
+	func signal(signal: SignalType) throws -> (success: Bool, reason: String) {
+		return try self.connection { (service, replier) in
+			service.signal(signal: signal.rawValue)
+			
+			return replier.waitForSignalReply()
+		}
+	}
 }

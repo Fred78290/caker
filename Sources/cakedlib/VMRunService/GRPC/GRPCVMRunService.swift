@@ -129,7 +129,6 @@ extension Vmrun_MountReply {
 }
 
 class GRPCVMRunServiceClient: VMRunServiceClient {
-
 	let client: Vmrun_ServiceNIOClient
 	let location: VMLocation
 	
@@ -168,12 +167,12 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		self.location = location
 		self.client = client
 	}
-
+	
 	private func execute<V>(_ call: @escaping () async throws -> V) throws -> V {
 		var result: V?
 		var failed: Error?
 		let semaphore = DispatchSemaphore(value: 0)
-
+		
 		Task {
 			do {
 				result = try await call()
@@ -183,22 +182,22 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 			
 			semaphore.signal()
 		}
-
+		
 		semaphore.wait()
-
+		
 		if let failed = failed {
 			throw failed
 		}
-
+		
 		return result!
 	}
-
+	
 	var vncInfos: VNCInfos {
 		get {
 			guard let result = try? self.execute({try await self.client.vncEndPoint(Vmrun_Empty()).response.get() }) else {
 				return VNCInfos(urls: [], screenSize: nil)
 			}
-
+			
 			return VNCInfos(result)
 		}
 	}
@@ -223,7 +222,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 			}
 		}
 	}
-		
+	
 	func share(mounts: DirectorySharingAttachments) throws -> MountInfos {
 		try self.execute {
 			try await self.client.mount(Vmrun_MountRequest(.mount, attachments: mounts)).response.get().toMountInfos()
@@ -244,7 +243,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 			}
 		).response.wait()
 	}
-		
+	
 	func installAgent(timeout: UInt) throws -> (installed: Bool, reason: String) {
 		try self.execute {
 			let reply = try await self.client.installAgent(.with {
@@ -254,7 +253,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 			return (reply.installed, reply.reason)
 		}
 	}
-
+	
 	func startGrandCentralUpdate(frequency: Int32) throws -> (success: Bool, reason: String) {
 		try self.execute {
 			let reply = try await self.client.startGrandCentralUpdate(.with { $0.frequency = frequency }).response.get()
@@ -270,16 +269,26 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 			return (reply.success, reply.reason)
 		}
 	}
+	
+	func signal(signal: SignalType) throws -> (success: Bool, reason: String) {
+		try self.execute {
+			let reply = try await self.client.signal(.with {
+				$0.type = .init(rawValue: Int(signal.rawValue)) ?? .empty
+			}).response.get()
+			
+			return (reply.success, reply.reason)
+		}
+	}
 }
 
 class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncProvider, VMRunServiceServerProtocol {
 	static let defaultVMRunServicePort = 5000
 	var server: Server? = nil
-
+	
 	func createServer() throws -> EventLoopFuture<Server> {
 		let listeningAddress = self.vm.location.serviceURL
 		let target: ConnectionTarget
-
+		
 		if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {
 			try listeningAddress.deleteIfFileExists()
 			target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
@@ -288,22 +297,22 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 		} else {
 			throw ServiceError(String(localized: "unsupported listening address scheme: \(String(describing: listeningAddress.scheme))"))
 		}
-
+		
 		var serverConfiguration = Server.Configuration.default(target: target, eventLoopGroup: self.group, serviceProviders: [self])
-
+		
 		serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(caCert: self.certLocation.caCertURL.path,
 																								tlsKey: self.certLocation.serverKeyURL.path,
 																								tlsCert: self.certLocation.serverCertURL.path)
-
+		
 		return Server.start(configuration: serverConfiguration)
 	}
-
+	
 	func serve() {
 		Task {
-			#if DEBUG
-				self.logger.debug("Start GRPC VMRunService server")
-			#endif
-
+#if DEBUG
+			self.logger.debug("Start GRPC VMRunService server")
+#endif
+			
 			do {
 				self.server = try await self.createServer().get()
 			} catch {
@@ -311,32 +320,32 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 			}
 		}
 	}
-
+	
 	func stop() {
-		#if DEBUG
-			self.logger.debug("Stop GRPC VMRunService server")
-		#endif
-
+#if DEBUG
+		self.logger.debug("Stop GRPC VMRunService server")
+#endif
+		
 		if let server = self.server {
 			try? server.close().wait()
 		}
 	}
-
+	
 	func vncEndPoint(request: Vmrun_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmrun_VNCEndPointReply {
 		guard let vncURL = self.vm.vncURL else {
 			return Vmrun_VNCEndPointReply()
 		}
-
+		
 		return Vmrun_VNCEndPointReply.with { reply in
 			reply.vncURL = vncURL.map(\.absoluteString)
 			reply.screenSize = .init(self.vm.getScreenSize())
 		}
 	}
-
+	
 	func installAgent(request: Vmrun_InstalledAgentRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Vmrun_InstalledAgentReply {
 		do {
 			let installed = try await self.installAgent(timeout: UInt(request.timeout))
-
+			
 			return .with {
 				$0.installed = installed
 			}
@@ -351,26 +360,26 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 	func mount(request: Vmrun_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_MountReply {
 		return self.mount(request: request.toCaked(), umount: false).toCaked()
 	}
-
+	
 	func umount(request: Vmrun_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_MountReply {
 		return self.mount(request: request.toCaked(), umount: true).toCaked()
 	}
-
+	
 	func setScreenSize(request: Vmrun_ScreenSize, context: GRPCAsyncServerCallContext) async throws -> Vmrun_Empty {
 		self.setScreenSize(width: Int(request.width), height: Int(request.height))
-
+		
 		return Vmrun_Empty()
 	}
-
+	
 	func getScreenSize(request: Vmrun_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmrun_ScreenSize {
 		let screenSize = self.vm.getScreenSize()
-
+		
 		return Vmrun_ScreenSize.with {
 			$0.width = Int32(screenSize.0)
 			$0.height = Int32(screenSize.1)
 		}
 	}
-
+	
 	func startGrandCentralUpdate(request: Vmrun_FrequencyRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_GrandCentralUpdateReply {
 		do {
 			try await self.vm.startGrandCentralUpdate(frequency: request.frequency, runMode: self.runMode)
@@ -380,7 +389,7 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 				$0.reason = error.reason
 			}
 		}
-
+		
 		return .with {
 			$0.success = true
 		}
@@ -388,9 +397,35 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 	
 	func stopGrandCentralUpdate(request: Vmrun_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmrun_GrandCentralUpdateReply {
 		self.vm.stopGrandCentralUpdate()
-
+		
 		return .with {
 			$0.success = true
 		}
 	}
+	
+	func signal(request: Vmrun_SignalRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_SignalReply {
+		var result: Int32 = -1
+
+		self.logger.debug("Received signal: \(request.type)")
+
+		switch request.type {
+		case .shutdown:
+			result = kill(getpid(), SIGINT)
+		case .suspend:
+			result = kill(getpid(), SIGUSR1)
+		case .requestStop:
+			result = kill(getpid(), SIGUSR2)
+		default:
+			return .with {
+				$0.success = false
+				$0.reason = String(localized: "Unknown signal type: \(request.type.rawValue)")
+			}
+		}
+		
+		return .with {
+			$0.success = result == 0
+			$0.reason = result != 0 ? String(cString: strerror(errno)) : ""
+		}
+	}
+	
 }

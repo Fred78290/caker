@@ -23,7 +23,16 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 				return name
 			}
 
-			return _source.dropFirst().replacingOccurrences(of: "/", with: "_")
+			let source = _source.expandingTildeInPath
+			let name = source.dropFirst().replacingOccurrences(of: "/", with: "_")
+			
+			if name.count > 36 {
+				let u = URL(fileURLWithPath: source)
+				
+				return u.lastPathComponent
+			}
+
+			return name
 		}
 		set {
 			_name = newValue
@@ -101,9 +110,9 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 		var result: String
 
 		if let destination = _destination {
-			result = "\(path.path):\(destination)"
+			result = "\(_source):\(destination)"
 		} else {
-			result = path.path
+			result = _source
 		}
 
 		if options.isEmpty == false {
@@ -120,7 +129,7 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 	public init(source: String = "~", destination: String? = nil, readOnly: Bool = false, name: String? = nil, uid: Int? = nil, gid: Int? = nil) {
 		self.readOnly = readOnly
 		self._name = name
-		self._source = source.expandingTildeInPath
+		self._source = source
 		self._destination = destination
 		self._uid = uid
 		self._gid = gid

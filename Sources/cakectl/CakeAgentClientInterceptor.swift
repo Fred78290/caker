@@ -239,4 +239,7 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 		self.interceptors()
 	}
 
+	func makeStopServiceInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Reply>] {
+		self.interceptors()
+	}
 }

@@ -221,7 +221,8 @@ struct Client: ParsableCommand {
 				VNC.self,
 				SetOptions.self,
 				GetOptions.self,
-				Certificate.self
+				Certificate.self,
+				Sandbox.self,
 			])
 
 #if DEBUG

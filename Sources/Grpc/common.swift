@@ -20,16 +20,32 @@ public let MoB: UInt64 = KoB * KoB
 public let GoB: UInt64 = MoB * KoB
 
 extension Bundle {
-	var isSandboxed: Bool {
+	private static var cacheIsSandboxed: Bool? = nil
+
+	public static var isApplicationSandboxed: Bool {
+		if let isSandboxed = cacheIsSandboxed {
+			return isSandboxed
+		}
+
+		cacheIsSandboxed = Bundle.main.isSandboxed
+		
+		return cacheIsSandboxed!
+	}
+
+	public var isSandboxed: Bool {
 		let defaultFlags: SecCSFlags = .init(rawValue: 0)
 		var staticCode: SecStaticCode? = nil
 
 		if SecStaticCodeCreateWithPath(self.bundleURL as CFURL, defaultFlags, &staticCode) == errSecSuccess {
-			if SecStaticCodeCheckValidityWithErrors(staticCode!, SecCSFlags(rawValue: kSecCSBasicValidateOnly), nil, nil) == errSecSuccess {
+			guard let staticCode else {
+				return false
+			}
+
+			if SecStaticCodeCheckValidityWithErrors(staticCode, SecCSFlags(rawValue: kSecCSBasicValidateOnly), nil, nil) == errSecSuccess {
 				let requirementText = "entitlement[\"com.apple.security.app-sandbox\"] exists" as CFString
 				var sandboxRequirement: SecRequirement?
 				if SecRequirementCreateWithString(requirementText, defaultFlags, &sandboxRequirement) == errSecSuccess {
-					if SecStaticCodeCheckValidityWithErrors(staticCode!, defaultFlags, sandboxRequirement, nil) == errSecSuccess {
+					if SecStaticCodeCheckValidityWithErrors(staticCode, defaultFlags, sandboxRequirement, nil) == errSecSuccess {
 						return true
 					}
 				}
@@ -37,6 +53,16 @@ extension Bundle {
 		}
 
 		return false
+	}
+}
+
+extension FileManager {
+	public static var realHomeDirectoryForCurrentUser: URL {
+		let home: String = getpwuid(getuid()).flatMap { pw in
+			pw.pointee.pw_dir.map { String(cString: $0) }
+		} ?? NSHomeDirectory()
+
+		return URL(fileURLWithPath: home, isDirectory: true)
 	}
 }
 
@@ -81,7 +107,7 @@ public struct Utils {
 					isDirectory: true,
 					relativeTo: applicationSupportDirectory)
 				cakeHomeDir = applicationSupportDirectory
-			} else if Bundle.main.isSandboxed {
+			} else if Bundle.isApplicationSandboxed {
 				cakeHomeDir = FileManager.default.homeDirectoryForCurrentUser
 			} else {
 				cakeHomeDir = FileManager.default
@@ -235,11 +261,33 @@ extension String {
 	}
 	
 	public var expandingTildeInPath: String {
-		if self.hasPrefix("~") {
-			return (self as NSString).expandingTildeInPath
+		guard self.hasPrefix("~") else {
+			return self
 		}
-		
-		return self
+
+		let currentHome = FileManager.realHomeDirectoryForCurrentUser.path(percentEncoded: false)
+
+		// "~" or "~/..."
+		if self == "~" {
+			return currentHome
+		}
+
+		if self.hasPrefix("~/") {
+			return currentHome + String(self.dropFirst(2))
+		}
+
+		// "~user" or "~user/..."
+		let afterTilde = self.index(after: self.startIndex)
+		let slashIndex = self[afterTilde...].firstIndex(of: "/")
+		let userEnd = slashIndex ?? self.endIndex
+		let user = String(self[afterTilde..<userEnd])
+		let rest = slashIndex.map { String(self[$0...]) } ?? ""
+
+		guard let pw = getpwnam(user), let dir = pw.pointee.pw_dir else {
+			return self
+		}
+
+		return String(cString: dir) + rest
 	}
 	
 	public init(errno: Errno) {
@@ -367,10 +415,10 @@ extension URL {
 	public func socketPath(name: String) -> URL {
 		let socketPath = self.appendingPathComponent("\(name).sock", isDirectory: false).absoluteURL
 
-		if socketPath.path.utf8.count < 103 {
+		if socketPath.path(percentEncoded: false).utf8.count < 103 {
 			return URL(string: "unix://\(socketPath.path)")!
 		} else {
-			return URL(string: "unix:///tmp/\(name)-\(self.lastPathComponent).sock")!
+			return URL(string: "unix://\(NSTemporaryDirectory())\(self.lastPathComponent.deletingPathExtension)-\(name).sock")!
 		}
 	}
 

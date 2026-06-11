@@ -24,26 +24,15 @@ extension TLSConfiguration {
 			throw NIOSSLError.failedToLoadCertificate
 		}
 
-		var tlsConfiguration: TLSConfiguration
-
-		if let caCert = caCert {
-			// When a CA is provided, use it for trust and require full client cert verification (mTLS)
-			tlsConfiguration = TLSConfiguration.makeServerConfiguration(
-				certificateChain: [.certificate(leafCert)],
-				privateKey: .privateKey(tlsKey)
-			)
-
-			tlsConfiguration.certificateVerification = CertificateVerification.optionalVerification
-			tlsConfiguration.trustRoots = .certificates(try NIOSSLCertificate.fromPEMFile(caCert))
-		} else {
-			// No CA provided: do not verify client certificates (server-only TLS)
-			tlsConfiguration = TLSConfiguration.makeServerConfiguration(
-				certificateChain: [.certificate(leafCert)],
-				privateKey: .privateKey(tlsKey)
-			)
-		}
-
-		return tlsConfiguration
+		// Build a server-only TLS configuration (no client certificate request).
+		// mTLS settings (certificateVerification, trustRoots) are applied by the caller
+		// only when certificate auth is the sole authentication method — when password auth
+		// is also active the TLS CertificateRequest would cause browsers to show a
+		// certificate picker dialog for every new connection, even for password-auth users.
+		return TLSConfiguration.makeServerConfiguration(
+			certificateChain: [.certificate(leafCert)],
+			privateKey: .privateKey(tlsKey)
+		)
 	}
 }
 
@@ -61,6 +50,12 @@ extension Environment {
 
 		return env
 	}
+}
+
+/// Set by PasswordAuthMiddleware on the request after successful credential validation.
+/// CertificateAuthMiddleware reads this to skip its own challenge for already-authenticated requests.
+private enum PasswordAuthenticatedKey: StorageKey {
+	typealias Value = Bool
 }
 
 /// Middleware that requires a valid TLS client certificate when enabled.
@@ -125,6 +120,16 @@ private struct CertificateAuthMiddleware: Middleware {
 			return next.respond(to: request)
 		}
 
+		// Password auth already granted access — no need to also require a client certificate.
+		if request.storage[PasswordAuthenticatedKey.self] == true {
+			return next.respond(to: request)
+		}
+
+		// Operation WebSocket upgrades use their own one-time secret token (see PasswordAuthMiddleware).
+		if path.hasPrefix("/1.0/operations/"), path.hasSuffix("/websocket") {
+			return next.respond(to: request)
+		}
+
 		if let chain = request.peerCertificateChain, chain.isEmpty == false {
 			// Bridge to async for actor-isolated trust check, then hop back to the event loop
 			let promise = request.eventLoop.makePromise(of: Response.self)
@@ -168,6 +173,16 @@ private struct PasswordAuthMiddleware: Middleware {
 			return next.respond(to: request)
 		}
 
+		// Operation WebSocket upgrades (terminal/VGA console, exec) carry their own
+		// one-time `secret` query token, generated only after the originating
+		// exec/console request was itself password-authenticated, and validated by
+		// LXDOperationsController.websocketForOperation. Browsers cannot attach an
+		// `Authorization` header to a WebSocket handshake, so challenging here would
+		// only fail the upgrade and pop the browser's native credential dialog.
+		if path.hasPrefix("/1.0/operations/"), path.hasSuffix("/websocket") {
+			return next.respond(to: request)
+		}
+
 		// Allow mTLS-authenticated clients to skip password check — only when
 		// CertificateAuthMiddleware is also active and has already validated the chain.
 		if hasCertificateAuth, let peerCertificateChain = request.peerCertificateChain, peerCertificateChain.isEmpty == false {
@@ -196,6 +211,7 @@ private struct PasswordAuthMiddleware: Middleware {
 			}
 
 			if bearerToken == password || decodedToken == password {
+				request.storage[PasswordAuthenticatedKey.self] = true
 				return next.respond(to: request)
 			}
 
@@ -204,13 +220,14 @@ private struct PasswordAuthMiddleware: Middleware {
 				let response: Response
 
 				if let identity {
+					request.storage[PasswordAuthenticatedKey.self] = true
 					request.parameters.set("token", to: "\(identity.authenticationMethod)/\(identity.id)")
 					response = try await next.respond(to: request).get()
 				} else {
 					response = Response(status: .unauthorized)
 
-					response.headers.replaceOrAdd(name: .wwwAuthenticate, value: "Basic realm=\"Caker\"")
-					response.headers.add(name: .wwwAuthenticate, value: "Bearer realm=\"Caker\"")
+					response.headers.replaceOrAdd(name: .wwwAuthenticate, value: challenge("Basic", for: request))
+					response.headers.add(name: .wwwAuthenticate, value: challenge("Bearer", for: request))
 				}
 
 				return response
@@ -230,14 +247,30 @@ private struct PasswordAuthMiddleware: Middleware {
 			return unauthorized(on: request)
 		}
 
+		request.storage[PasswordAuthenticatedKey.self] = true
 		return next.respond(to: request)
 	}
 
 	private func unauthorized(on request: Request) -> EventLoopFuture<Response> {
 		let response = Response(status: .unauthorized)
-		response.headers.replaceOrAdd(name: .wwwAuthenticate, value: "Basic realm=\"Caker\"")
-		response.headers.add(name: .wwwAuthenticate, value: "Bearer realm=\"Caker\"")
+		response.headers.replaceOrAdd(name: .wwwAuthenticate, value: challenge("Basic", for: request))
+		response.headers.add(name: .wwwAuthenticate, value: challenge("Bearer", for: request))
 		return request.eventLoop.makeSucceededFuture(response)
+	}
+
+	/// Builds a `WWW-Authenticate` challenge for `scheme`.
+	///
+	/// Browsers show their own built-in credential prompt whenever they recognize the
+	/// challenge scheme (`Basic`, `Digest`, `NTLM`, `Negotiate`) in a 401 response — even for
+	/// XHR/fetch requests. The web UI authenticates through its own login page, so for requests
+	/// it makes (flagged with `X-Requested-With: XMLHttpRequest`) the scheme is prefixed with a
+	/// token browsers don't recognize. `AuthContext` matches schemes by substring, so it still
+	/// detects `x-Basic`/`x-Bearer` correctly while the native dialog is suppressed. Other
+	/// clients (e.g. `cakectl`) keep receiving the standard, RFC-compliant scheme name.
+	private func challenge(_ scheme: String, for request: Request) -> String {
+		let isWebUIRequest = request.headers.first(name: "X-Requested-With")?.caseInsensitiveCompare("XMLHttpRequest") == .orderedSame
+		let token = isWebUIRequest ? "x-\(scheme)" : scheme
+		return "\(token) realm=\"Caker\""
 	}
 }
 
@@ -248,8 +281,9 @@ private func resolveWebUIDirectory(_ path: String) throws -> String {
 
 	guard path.lowercased().hasSuffix(".zip") else { return path }
 
-	let tmpDir = FileManager.default.temporaryDirectory
-		.appendingPathComponent("caker-webui-\(UUID().uuidString)")
+	let tmpDir = FileManager.default.temporaryDirectory.appendingPathComponent("caker-webui")
+
+	try? FileManager.default.removeItem(at: tmpDir)
 	try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
 
 	let process = Process()
@@ -327,11 +361,19 @@ final class LXDRESTServer: Sendable {
 
 			if let caCert = caCert {
 				let authMiddleware = try CertificateAuthMiddleware(caCert: caCert)
-
 				app.middleware.use(authMiddleware)
 
-				serverConfiguration.customCertificateVerifyCallbackWithMetadata = { peerCerts, successPromise in
-					successPromise.succeed(.certificateVerified(VerificationMetadata(ValidatedCertificateChain(peerCerts))))
+				// Only request a TLS client certificate when certificate auth is the sole method.
+				// When password auth is also configured the server must NOT send CertificateRequest:
+				// browsers (Firefox, Safari, Chrome) pop a certificate picker dialog on every new
+				// TLS connection whenever they receive CertificateRequest — even for users who only
+				// want to authenticate with a password and have no 401 involved.
+				if listenPassword == nil {
+					serverConfiguration.tlsConfiguration?.certificateVerification = .optionalVerification
+					serverConfiguration.tlsConfiguration?.trustRoots = .certificates(try NIOSSLCertificate.fromPEMFile(caCert))
+					serverConfiguration.customCertificateVerifyCallbackWithMetadata = { peerCerts, successPromise in
+						successPromise.succeed(.certificateVerified(VerificationMetadata(ValidatedCertificateChain(peerCerts))))
+					}
 				}
 			}
 		}

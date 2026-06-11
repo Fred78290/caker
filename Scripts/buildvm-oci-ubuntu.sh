@@ -8,7 +8,7 @@ BINARYDIR="${PROJECT_ROOT}/.build/debug"
 RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
 
-/usr/bin/swift build
+/usr/bin/swift build -Xswiftc -D -Xswiftc SPARKLE
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 OCI_IMAGE=ocis://ghcr.io/cirruslabs/ubuntu:latest

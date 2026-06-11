@@ -10,6 +10,10 @@ import NIO
 import Logging
 
 extension CakedServiceClient {
+	public func stopService(timeout: Int64 = 5) throws {
+		_ = try self.stopService(Caked_Empty(), callOptions: CallOptions(timeLimit: .timeout(.seconds(timeout)))).response.wait()
+	}
+
 	public func vncInfos(name: String, includeConfig: Bool = false, timeout: Int64 = 10) throws -> Caked_Reply {
 		return try self.vncInfos(.with {
 			$0.name = name

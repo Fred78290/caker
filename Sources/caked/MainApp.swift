@@ -191,10 +191,34 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	}
 
 	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-		if kill(getpid(), SIGINT) == 0 {
-			return .terminateLater
-		} else {
+		guard let vm = MainApp.vm, vm.status.isRunning else {
 			return .terminateNow
 		}
+
+		let alert = NSAlert()
+
+		alert.messageText = String(localized: "Virtual machine Running")
+		alert.informativeText = String(localized: "The virtual machine is running. Do you want terminate it them and quit?")
+		alert.alertStyle = .warning
+		alert.addButton(withTitle: String(localized: "Terminate & Quit"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
+
+		if alert.runModal() == .alertFirstButtonReturn {
+			Task {
+				if vm.suspendable {
+					vm.suspendFromUI { _ in
+						sender.reply(toApplicationShouldTerminate: true)
+					}
+				} else {
+					vm.requestStopFromUI{ _ in
+						sender.reply(toApplicationShouldTerminate: true)
+					}
+				}
+			}
+
+			return .terminateLater
+		}
+
+		return .terminateCancel
 	}
 }

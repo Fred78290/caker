@@ -135,6 +135,12 @@ typealias VirtualMachineDocumentStates = [URL: VirtualMachineDocumentState]
 		return notification.object as? T
 	}
 	
+	func resumeFromUI() {
+		if let vm = AppState.shared.findVirtualMachineDocument(self.url) {
+			vm.resumeFromUI()
+		}
+	}
+
 	func startFromUI() {
 		if let vm = AppState.shared.findVirtualMachineDocument(self.url) {
 			vm.startFromUI()

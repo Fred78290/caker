@@ -17,8 +17,14 @@ public struct SuspendHandler {
 
 	public static func suspendVM(location: VMLocation, runMode: Utils.RunMode) throws -> SuspendedObject {
 		if case .running(let mode) = location.status {
+			let config = try location.config()
+
 			guard mode.isAllowed else {
 				throw ServiceError(String(localized: "VM \(location.name) is running in Caker application and use it to do action"))
+			}
+
+			guard config.suspendable && config.os == .darwin else {
+				return SuspendedObject(name: location.name, suspended: false, reason: String(localized: "VM is not suspendable"))
 			}
 
 			try location.suspendVirtualMachine(runMode: runMode)

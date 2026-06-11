@@ -23,23 +23,34 @@ struct ApplicationSettingsView: View {
 
 	var body: some View {
 		Form {
-			Toggle(
-				isOn: $isDockIconHidden.inverted,
-				label: {
-					Text("Show dock icon")
+			VStack(alignment: .center) {
+				Toggle(
+					isOn: $isDockIconHidden.inverted,
+					label: {
+						Text("Show dock icon")
+					}
+				).onChange(of: isDockIconHidden) { _, newValue in
+					if newValue {
+						isMenuIconShown = true
+					}
 				}
-			).onChange(of: isDockIconHidden) { _, newValue in
-				if newValue {
-					isMenuIconShown = true
+				
+				Toggle(
+					isOn: $isMenuIconShown,
+					label: {
+						Text("Show menu bar icon")
+					}
+				).disabled(isDockIconHidden)
+				
+				HStack {
+					Button(action: {
+						MainUIAppDelegate.ensurePrivilegedBootstrapFiles()
+					}) {
+						Label("Configure path to use command line caked and cakectl in Terminal", systemImage: "terminal")
+					}.disabled(MainUIAppDelegate.isPrivilegedBootstrapFilesInstalled)
 				}
 			}
 
-			Toggle(
-				isOn: $isMenuIconShown,
-				label: {
-					Text("Show menu bar icon")
-				}
-			).disabled(isDockIconHidden)
 		}.formStyle(.grouped)
 	}
 }

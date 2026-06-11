@@ -222,10 +222,13 @@ struct VirtualMachineSettingsView: View {
 		Section("Options") {
 			VStack(alignment: .leading) {
 				Toggle("Autostart", isOn: $config.autostart)
-				Toggle("Suspendable", isOn: $config.suspendable)
 				Toggle("Dynamic forward ports", isOn: $config.dynamicPortForwarding)
 				Toggle("Refit display", isOn: $config.displayRefit)
 				Toggle("Nested virtualization", isOn: $config.nestedVirtualization)
+
+				if config.os == .darwin {
+					Toggle("Suspendable", isOn: $config.suspendable)
+				}
 			}
 		}
 	}

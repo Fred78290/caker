@@ -16,6 +16,8 @@ Sources/cakectl/Ignored/
 *.p12
 Caker/Caker.xcodeproj/project.xcworkspace/
 Caker/Caker.xcodeproj/xcuserdata
+Caker/CakerAppStore.xcodeproj/project.xcworkspace/
+Caker/CakerAppStore.xcodeproj/xcuserdata
 .ci/pkg/Caker.app/
 actions-runner/
 .bin/
@@ -57,3 +59,5 @@ webui/package-lock.json
 
 webui/webui.zip
 webui/tsconfig.tsbuildinfo
+
+.appstore/**

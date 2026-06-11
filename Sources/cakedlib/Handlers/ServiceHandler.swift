@@ -409,8 +409,10 @@ public struct ServiceHandler {
 		guard home.agentPID.isPIDRunning().running else {
 			throw ServiceError(String(localized: "Caked service is not running"))
 		}
-		
-		if home.agentPID.killPID(SIGINT) != 0 {
+
+		if Bundle.isApplicationSandboxed {
+			try ServiceHandler.createCakedServiceClient(runMode: runMode).stopService()
+		} else if home.agentPID.killPID(SIGINT) != 0 {
 			throw ServiceError(String(localized: "Failed to stop caked service \(errno)"))
 		}
 	}
