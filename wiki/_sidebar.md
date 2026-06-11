@@ -9,3 +9,4 @@
 - [Release Notes](release-notes)
 - [Command Summary](command-summary)
 - [Cheat Sheet](cheat-sheet)
+- [Privacy policy](privacy-policy)
