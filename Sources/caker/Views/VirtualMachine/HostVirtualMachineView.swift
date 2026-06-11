@@ -440,11 +440,15 @@ struct HostVirtualMachineView: View {
 
 			if self.isNoShutdownVMOnClose == false {
 				if document.status == .running {
-					document.stopFromUI(force: false)
-				}
-
-				DispatchQueue.main.async {
-					self.document.close()
+					document.stopFromUI(force: false) { _ in
+						DispatchQueue.main.async {
+							self.document.close()
+						}
+					}
+				} else {
+					DispatchQueue.main.async {
+						self.document.close()
+					}
 				}
 			}
 		}

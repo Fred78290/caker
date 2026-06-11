@@ -212,7 +212,6 @@ extension UTType {
 	}
 
 	private var monitor: FileMonitor?
-	private var inited = false
 	private let logger = Logger("VirtualMachineDocument")
 	private var agentMonitoring: Task<Void, Never>?
 	private var inView: Bool = false
@@ -490,7 +489,6 @@ extension VirtualMachineDocument {
 		#endif
 
 		self.virtualMachine = nil
-		self.inited = false
 		self.inView = false
 		self.vncView = nil
 		self.vncURL = nil
@@ -943,8 +941,23 @@ extension VirtualMachineDocument {
 		} else if let virtualMachine = self.virtualMachine {
 			if force {
 				virtualMachine.stopFromUI(completionHandler: completionHandler)
-			} else {
+			} else if self.virtualMachineConfig.os == .linux {
 				virtualMachine.requestStopFromUI(completionHandler: completionHandler)
+			} else if self.virtualMachineConfig.agent == false {
+				virtualMachine.suspendFromUI(completionHandler: completionHandler)
+			} else if let location = self.location {
+				Task {
+					do {
+						try location.stopVirtualMachine(force: false, runMode: .app)
+						await MainActor.run {
+							completionHandler?(nil)
+						}
+					} catch {
+						await MainActor.run {
+							completionHandler?(error)
+						}
+					}
+				}
 			}
 		}
 	}
@@ -976,9 +989,9 @@ extension VirtualMachineDocument {
 				}
 			}
 		} else if let virtualMachine = self.virtualMachine {
-			virtualMachine.suspendFromUI { result in
+			virtualMachine.suspendFromUI { error in
 				Task {
-					if case .failure(let error) = result {
+					if let error {
 						await self.setStateAsStopped(.error)
 						await alertError(error)
 						completionHandler?(error)

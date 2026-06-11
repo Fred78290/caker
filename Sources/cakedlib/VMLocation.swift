@@ -522,9 +522,16 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public func stopVirtualMachine(force: Bool, runMode: Utils.RunMode) throws {
+		let config = try self.config()
+		let home = try Home(runMode: runMode)
+
+		guard case .running = self.status else {
+			throw ServiceError(String(localized: "VM \(name) is not running"))
+		}
+
+		let pid = pidFile.isPIDRunning()
+
 		func killVMRun() throws -> Void {
-			let pid = pidFile.isPIDRunning()
-			
 			if pid.0 && pid.1 == Home.cakedCommandName {
 				if Bundle.isApplicationSandboxed {
 					let reply = try createVMRunServiceClient(.grpc, location: self, runMode: runMode).signal(signal: .shutdown)
@@ -539,13 +546,6 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 					removePID()
 				}
 			}
-		}
-
-		let config = try self.config()
-		let home = try Home(runMode: runMode)
-
-		guard case .running = self.status else {
-			throw ServiceError(String(localized: "VM \(name) is not running"))
 		}
 
 		if force || config.agent == false {
@@ -570,8 +570,10 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			}
 		}
 
-		while case .running = self.status {
-			Thread.sleep(forTimeInterval: 1)
+		if pid.pid != getpid() {
+			while case .running = self.status {
+				Thread.sleep(forTimeInterval: 1)
+			}
 		}
 
 		removePID()
