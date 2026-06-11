@@ -144,7 +144,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, recoveryMode: Bool, runMode: Utils.RunMode) throws {
-		let suspendable = config.suspendable
+		let suspendable = config.suspendable && config.os == .darwin
 		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
 		let directorySharingAttachments = try config.directorySharingAttachments()
@@ -436,7 +436,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	private var cachedScreenshotSaveEnabled: Bool?
 
 	public var suspendable: Bool {
-		return self.config.suspendable
+		return self.config.suspendable && self.config.os == .darwin
 	}
 
 	public var recoveryMode: Bool {

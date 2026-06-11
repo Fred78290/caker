@@ -127,7 +127,7 @@ public struct VMBuilder {
 			config.console = options.consoleURL?.description
 			config.forwardedPorts = options.forwardedPorts
 			config.dynamicPortForwarding = options.dynamicPortForwarding
-			config.suspendable = options.suspendable
+			config.suspendable = options.suspendable && config.os == .darwin
 			config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 			config.source = imageSource
 

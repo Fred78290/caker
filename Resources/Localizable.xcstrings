@@ -12455,6 +12455,17 @@
         }
       }
     },
+    "VM %@ is running in Caker application and use it to do action" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM %@ s’exécute dans l'application Caker. Utilisez la pour cette l'action"
+          }
+        }
+      }
+    },
     "VM already exists" : {
       "extractionState" : "manual",
       "localizations" : {

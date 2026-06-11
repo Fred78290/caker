@@ -70,7 +70,7 @@ public struct ConfigureHandler {
 				config.dynamicPortForwarding = dynamicPortForwarding
 			}
 
-			if let suspendable = options.suspendable {
+			if let suspendable = options.suspendable, config.os == .darwin {
 				config.suspendable = suspendable
 			}
 

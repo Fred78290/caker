@@ -615,11 +615,14 @@ struct VirtualMachineWizard: View {
 		Section("Options") {
 			VStack(alignment: .leading) {
 				Toggle("Autostart", isOn: $config.autostart).disabled(self.model.createVM)
-				Toggle("Suspendable", isOn: $config.suspendable).disabled(self.model.createVM)
 				Toggle("Dynamic forward ports", isOn: $config.dynamicPortForwarding).disabled(self.model.createVM)
 				Toggle("Refit display", isOn: $config.displayRefit).disabled(self.model.createVM)
 				Toggle("Nested virtualization", isOn: $config.nestedVirtualization).disabled(self.model.createVM)
 				Toggle("Use network ifnames", isOn: $config.ifname).disabled(self.model.createVM)
+
+				if self.model.imageSource == .ipsw {
+					Toggle("Suspendable", isOn: $config.suspendable).disabled(self.model.createVM)
+				}
 			}
 		}
 	}
