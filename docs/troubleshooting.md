@@ -23,7 +23,7 @@ Symptoms:
 
 Checks:
 - run package resolution again from Xcode
-- run `swift build` from the repository root
+- run `swift build -Xswiftc -D -Xswiftc SPARKLE` from the repository root
 - clear derived data/build cache if needed
 
 ## Wiki publication fails
@@ -38,6 +38,6 @@ Checks:
 
 ## Useful commands
 
-- `swift build`
+- `swift build -Xswiftc -D -Xswiftc SPARKLE`
 - `GH_TOKEN="${GITHUB_TOKEN}" ./Scripts/publish-wiki.sh Fred78290 caker`
 - `USE_SSH=1 ./Scripts/publish-wiki.sh Fred78290 caker`
