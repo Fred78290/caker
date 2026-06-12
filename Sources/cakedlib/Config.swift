@@ -3,6 +3,8 @@ import GRPCLib
 import NIOPortForwarding
 import Virtualization
 import CakeAgentLib
+import System
+import ArgumentParser
 
 enum ConfigFileName: String {
 	case config = "config.json"
@@ -776,6 +778,50 @@ extension VirtualMachineConfiguration {
 			Logger(self).warn("Network interface \(inf.network) not found")
 
 			return nil
+		}
+	}
+
+	public func rootDiskAttachment(rootDiskURL: URL) throws -> VZStorageDeviceConfiguration {
+		let diskPath = rootDiskURL.path(percentEncoded: false)
+
+		if DiskAttachement.isBlockingDevice(diskPath) {
+			guard #available(macOS 14, *) else {
+				throw ValidationError(String(localized: "Attaching block devices prior MacOS 14"))
+			}
+
+			let fd = open(diskPath, O_RDWR)
+
+			if fd == -1 {
+				let details = Errno(rawValue: CInt(errno))
+
+				switch details.rawValue {
+				case EBUSY:
+					throw ValidationError(String(localized: "\(diskPath) already in use, try umounting it"))
+				case EACCES:
+					throw ValidationError(String(localized: "\(diskPath) permission denied, consider changing the disk's owner using \"sudo chown $USER \(diskPath)\" or run as a superuser"))
+				default:
+					throw ValidationError(String(localized: "Unexpected error: \(details.description), \(diskPath)"))
+				}
+			}
+
+			let blockAttachment = try VZDiskBlockDeviceStorageDeviceAttachment(
+				fileHandle: FileHandle(fileDescriptor: fd, closeOnDealloc: true),
+				readOnly: false,
+				synchronizationMode: .full)
+
+			return VZVirtioBlockDeviceConfiguration(attachment: blockAttachment)
+		} else {
+			if FileManager.default.fileExists(atPath: diskPath) == false {
+				throw ValidationError(String(localized: "disk \(diskPath) does not exist"))
+			}
+
+			return VZVirtioBlockDeviceConfiguration(
+				attachment: try VZDiskImageStorageDeviceAttachment(
+					url: rootDiskURL,
+					readOnly: false,
+					cachingMode: self.os == .linux ? .cached : .automatic,
+					synchronizationMode: .full
+				))
 		}
 	}
 

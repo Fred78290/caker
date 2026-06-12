@@ -215,13 +215,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 
 		var sigcaught: [Int32: DispatchSourceSignal] = [:]
 		var devices: [VZStorageDeviceConfiguration] = [
-			VZVirtioBlockDeviceConfiguration(
-				attachment: try VZDiskImageStorageDeviceAttachment(
-					url: location.diskURL,
-					readOnly: false,
-					cachingMode: config.os == .linux ? .cached : .automatic,
-					synchronizationMode: .full
-				))
+			try config.rootDiskAttachment(rootDiskURL: location.diskURL)
 		]
 
 		let networkDevices = try networks.map {
