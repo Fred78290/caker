@@ -1113,6 +1113,17 @@
         }
       }
     },
+    "Build image" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Construction de l’image"
+          }
+        }
+      }
+    },
     "Build VM options" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1569,6 +1580,7 @@
       }
     },
     "Check for Updates…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -1636,6 +1648,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Taille du tronçon en Mo si le registre prend en charge les téléchargements tronçonnés"
+          }
+        }
+      }
+    },
+    "Clean cloud-init" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suppression de cloud-init"
           }
         }
       }
@@ -2081,6 +2104,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Conversion terminée avec succès"
+          }
+        }
+      }
+    },
+    "Convert %@ qcow2 to raw..." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conversion de %@ format qcow2 en brut..."
           }
         }
       }
@@ -2879,6 +2913,28 @@
         }
       }
     },
+    "Done convert %@ qcow2 to raw..." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ en format qcow2 est convertit…"
+          }
+        }
+      }
+    },
+    "Done fetching %@…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Téléchargement de %@ terminé…"
+          }
+        }
+      }
+    },
     "Dump help information as JSON." : {
       "comment" : "Help text for the experimental command to dump help information as JSON.",
       "extractionState" : "manual",
@@ -3536,6 +3592,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "fd et socket-path sont mutuellement exclusives %lld %@"
+          }
+        }
+      }
+    },
+    "Fetching %@…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Téléchargement de %@…"
           }
         }
       }
@@ -4247,6 +4314,17 @@
         }
       }
     },
+    "Install MacOS from IPSW done..." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installer MacOS à partir d'IPSW terminé..."
+          }
+        }
+      }
+    },
     "Install service" : {
       "localizations" : {
         "fr" : {
@@ -4297,6 +4375,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Installation de l'agent..."
+          }
+        }
+      }
+    },
+    "Installing MacOS from IPSW..." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installation de MacOS à partir d'IPSW..."
           }
         }
       }
@@ -7997,6 +8086,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Poussez une VM dans un registre"
+          }
+        }
+      }
+    },
+    "Push image to %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoi de l’image vers %@"
           }
         }
       }
@@ -12283,6 +12383,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nom d'utilisateur"
+          }
+        }
+      }
+    },
+    "Using cached %@ file..." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilise le fichier caché %@…"
           }
         }
       }

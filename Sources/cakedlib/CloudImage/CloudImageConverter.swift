@@ -50,7 +50,7 @@ public class CloudImageConverter {
 		}
 
 		// Download the cloud-image
-		self.step("Fetching \(fromURL.lastPathComponent)...", progressHandler: progressHandler)
+		self.step(String(localized: "Fetching \(fromURL.lastPathComponent)..."), progressHandler: progressHandler)
 
 		let temporaryLocation = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(UUID().uuidString + "." + fromURL.pathExtension)
 
@@ -69,7 +69,7 @@ public class CloudImageConverter {
 		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).\(imageCache.ext)")
 
 		if FileManager.default.fileExists(atPath: cacheLocation.path) {
-			self.step("Using cached \(cacheLocation.path) file...", progressHandler: progressHandler)
+			self.step(String(localized: "Using cached \(cacheLocation.path(percentEncoded: false)) file..."), progressHandler: progressHandler)
 			try cacheLocation.updateAccessDate()
 			return cacheLocation
 		}
@@ -120,19 +120,19 @@ public class CloudImageConverter {
 		}
 
 		if FileManager.default.fileExists(atPath: cacheLocation.path) {
-			self.step("Using cached \(cacheLocation.path) file...", progressHandler: progressHandler)
+			self.step(String(localized: "Using cached \(cacheLocation.path(percentEncoded: false)) file..."), progressHandler: progressHandler)
 			try cacheLocation.updateAccessDate()
 		} else {
 			// Download the cloud-image
-			self.step("Fetching \(from.lastPathComponent)...", progressHandler: progressHandler)
+			self.step(String(localized: "Fetching \(from.lastPathComponent)..."), progressHandler: progressHandler)
 
 			try await Curl(fromURL: from).get(store: temporaryLocation, observer: ProgressObserver(progressHandler: progressHandler).log("Fetching \(from.lastPathComponent)"))
 
-			self.step("Done fetching \(from.lastPathComponent)...", progressHandler: progressHandler)
+			self.step(String(localized: "Done fetching \(from.lastPathComponent)..."), progressHandler: progressHandler)
 
-			self.step("Convert \(from.lastPathComponent) qcow2 to raw...", progressHandler: progressHandler)
+			self.step(String(localized: "Convert \(from.lastPathComponent) qcow2 to raw..."), progressHandler: progressHandler)
 			try convertCloudImageToRaw(from: temporaryLocation, to: cacheLocation, progressHandler: progressHandler)
-			self.step("Done convert \(from.lastPathComponent) qcow2 to raw...", progressHandler: progressHandler)
+			self.step(String(localized: "Done convert \(from.lastPathComponent) qcow2 to raw..."), progressHandler: progressHandler)
 
 			try FileManager.default.removeItem(at: temporaryLocation)
 

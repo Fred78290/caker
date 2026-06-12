@@ -40,7 +40,7 @@ public struct PushHandler {
 			}
 
 			if config.os == .linux && config.useCloudInit {
-				progressHandler(.step("Clean cloud-init"))
+				progressHandler(.step(String(localized: "Clean cloud-init")))
 
 				location = try TemplateHandler.cleanCloudInit(source: location, config: config, startMode: startMode, runMode: runMode)
 				delete = true
@@ -52,7 +52,7 @@ public struct PushHandler {
 				}
 			}
 
-			progressHandler(.step("Build image"))
+			progressHandler(.step(String(localized: "Build image")))
 
 			try await InitImage.create(references: references, location: location, labels: [:], imageStore: home.imageStore, contentStore: home.contentStore, chunkSize: Int64(chunkSize), concurrency: concurrency) { events in
 				var addItems: Int? = nil
@@ -78,7 +78,7 @@ public struct PushHandler {
 			}
 
 			for normalizedReference in references {
-				progressHandler(.step("Push image to \(normalizedReference)"))
+				progressHandler(.step(String(localized: "Push image to \(normalizedReference)")))
 
 				let totalSize: Atomic<Int64> = Atomic(0)
 				let currentSize: Atomic<Int64> = Atomic(0)

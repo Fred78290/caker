@@ -186,7 +186,7 @@ import CakeAgentLib
 				self.logger.trace("[\(Thread.currentThread.description)] entering installIPSW")
 			#endif
 
-			progressHandler(.step("Installing MacOS from IPSW..."))
+			progressHandler(.step(String(localized: "Installing MacOS from IPSW...")))
 			if self.queue == nil {
 				try await self.installIPSWSync(url, progressHandler: progressHandler)
 			} else {
@@ -197,7 +197,7 @@ import CakeAgentLib
 				self.logger.trace("[\(Thread.currentThread.description)] exiting installIPSW")
 			#endif
 
-			progressHandler(.step("Install MacOS from IPSW done..."))
+			progressHandler(.step(String(localized: "Install MacOS from IPSW done...")))
 		}
 	}
 #endif
