@@ -8,10 +8,11 @@ nav_order: 3
 
 ## Components
 
-- `caked`: core background daemon
-- `cakectl`: command-line controller
-- `cakedlib`: shared library code
-- `grpc`: communication contracts and streaming/client interfaces
+- **caked command line tool** (`Sources/caked/`): core background daemon
+- **cakectl command line tool** (`Sources/cakectl/`): command-line controller
+- **CakedLib common library** (`Sources/cakedlib/`): shared library code
+- **GRPCLib communication libray** (`Sources/grpc/`): communication contracts and streaming/client interfaces
+- **Caker.app** (`Sources/caker/`): GUI source
 - **LXD REST API** (`Sources/caked/REST/`): optional LXD-compatible HTTP/HTTPS server built into `caked`
 - **Web UI** (`webui/`): React/Vite frontend served by `caked` at `/ui`
 
@@ -67,5 +68,6 @@ Sources/
 ├── cakectl/        # CLI client
 ├── cakedlib/       # Shared libraries
 └── grpc/           # gRPC definitions and generated code
+scripts/            # Some useful scripts to build and other
 webui/              # React/Vite web UI
 ```
