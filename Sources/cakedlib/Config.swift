@@ -786,7 +786,7 @@ extension VirtualMachineConfiguration {
 
 		if DiskAttachement.isBlockingDevice(diskPath) {
 			guard #available(macOS 14, *) else {
-				throw ValidationError(String(localized: "Attaching block devices prior MacOS 14"))
+				throw ValidationError(String(localized: "Attaching block devices requires macOS 14 or later"))
 			}
 
 			let fd = open(diskPath, O_RDWR)
