@@ -111,8 +111,8 @@ For any questions regarding this Privacy Policy, you may contact us via:
 - **Website**: [https://caker.aldunelabs.com](https://caker.aldunelabs.com)
 
 </div>
-
 {% raw %}
+
 <script>
   var queryLang = new URLSearchParams(window.location.search).get('lang');
   var lang = (queryLang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
@@ -121,5 +121,3 @@ For any questions regarding this Privacy Policy, you may contact us via:
   document.getElementById('privacy-en').style.display = isFrench ? 'none' : '';
 </script>
 {% endraw %}
-
-
