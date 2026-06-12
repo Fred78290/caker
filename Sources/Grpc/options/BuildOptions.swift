@@ -341,7 +341,7 @@ public struct BuildOptions: ParsableArguments {
 
 		self.imageSource = ImageSource(request.imageSource)
 		
-		if request.hasRootDisk {
+		if request.hasRootDisk, request.rootDisk.isEmpty == false {
 			self.root = request.rootDisk
 		} else {
 			self.root = nil
