@@ -796,7 +796,7 @@ extension VirtualMachineConfiguration {
 
 				switch details.rawValue {
 				case EBUSY:
-					throw ValidationError(String(localized: "\(diskPath) already in use, try umounting it"))
+					throw ValidationError(String(localized: "\(diskPath) already in use, try unmounting it"))
 				case EACCES:
 					throw ValidationError(String(localized: "\(diskPath) permission denied, consider changing the disk's owner using \"sudo chown $USER \(diskPath)\" or run as a superuser"))
 				default:
