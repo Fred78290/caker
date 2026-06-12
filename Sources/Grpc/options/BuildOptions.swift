@@ -108,6 +108,7 @@ public struct BuildOptions: ParsableArguments {
 
 	public init(
 		name: String,
+		rootDisk: String? = nil,
 		cpu: UInt16 = 2,
 		memory: UInt64 = 2048,
 		diskSize: UInt64 = 10,
@@ -139,6 +140,7 @@ public struct BuildOptions: ParsableArguments {
 		dynamicPortForwarding: Bool = false
 	) {
 		self.name = name
+		self.root = rootDisk
 		self.cpu = cpu
 		self.memory = memory
 		self.diskSize = diskSize
