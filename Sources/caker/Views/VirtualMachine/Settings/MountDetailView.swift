@@ -12,26 +12,21 @@ struct MountDetailView: View {
 	@Binding private var currentItem: DirectorySharingAttachment
 	private var readOnly: Bool
 	@State private var name: String
+	@State private var shared: Bool
 
 	init(currentItem: Binding<DirectorySharingAttachment>, readOnly: Bool = true) {
 		_currentItem = currentItem
+		let name = currentItem.wrappedValue._name ?? String.empty
+		let destination = currentItem.wrappedValue.destination ?? String.empty
+		let shared = name.isEmpty && destination.isEmpty
+
 		self.readOnly = readOnly
-		self.name = currentItem.wrappedValue._name ?? String.empty
+		self.name = name
+		self.shared = shared
 	}
 
 	var body: some View {
 		VStack {
-			LabeledContent("Name") {
-				HStack {
-					TextField("Name", text: $name, prompt: Text(currentItem.name))
-						.rounded(.leading)
-						.allowsHitTesting(readOnly == false)
-						.onChange(of: name) { _, newValue in
-							currentItem.name = newValue
-						}
-				}.frame(width: readOnly ? 500 : 350)
-			}
-
 			LabeledContent("Host path") {
 				HStack {
 					if readOnly == false {
@@ -48,12 +43,32 @@ struct MountDetailView: View {
 				}.frame(width: readOnly ? 500 : 350)
 			}
 
-			LabeledContent("Guest path") {
-				HStack {
-					TextField("Guest path", value: $currentItem.destination, format: .optional)
-						.rounded(.leading)
-						.allowsHitTesting(readOnly == false)
-				}.frame(width: readOnly ? 500 : 350)
+			if shared == false {
+				LabeledContent("Name") {
+					HStack {
+						TextField("Name", text: $name, prompt: Text(currentItem.name))
+							.rounded(.leading)
+							.allowsHitTesting(readOnly == false)
+							.onChange(of: name) { _, newValue in
+								currentItem.name = newValue
+							}
+					}.frame(width: readOnly ? 500 : 350)
+				}
+				
+				LabeledContent("Guest path") {
+					HStack {
+						TextField("Guest path", value: $currentItem.destination, format: .optional)
+							.rounded(.leading)
+							.allowsHitTesting(readOnly == false)
+					}.frame(width: readOnly ? 500 : 350)
+				}
+			}
+
+			LabeledContent("Shared mount") {
+				Toggle("Shared mount", isOn: $shared)
+					.toggleStyle(.switch)
+					.labelsHidden()
+					.allowsHitTesting(readOnly == false)
 			}
 
 			LabeledContent("Read only") {
@@ -75,6 +90,11 @@ struct MountDetailView: View {
 					.rounded(.center)
 					.frame(width: 80)
 					.allowsHitTesting(readOnly == false)
+			}
+		}.onChange(of: shared) {
+			if self.shared {
+				currentItem.destination = String.empty
+				currentItem.name = String.empty
 			}
 		}
 	}
