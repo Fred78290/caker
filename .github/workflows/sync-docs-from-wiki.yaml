@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - wiki/**
+      - '.github/workflows/publish-wiki.yaml'
+      - '.github/workflows/sync-docs-from-wiki.yaml'
   workflow_dispatch:
     inputs:
       force_sync:
