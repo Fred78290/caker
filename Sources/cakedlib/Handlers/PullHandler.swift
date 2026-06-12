@@ -161,7 +161,7 @@ public struct PullHandler {
 									netIfnames: config.ifname,
 									runMode: runMode)
 
-								try cloudInit.createDefaultCloudInit(config: config, name: name, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: location.diskURL))
+								try cloudInit.createDefaultCloudInit(config: config, name: name, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: location.configURL))
 							}
 						}
 

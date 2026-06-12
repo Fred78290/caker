@@ -132,7 +132,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public var diskURL: URL {
-		guard let config = try? self.config(), let rootDisk = config.rootDisk, rootDisk.isEmpty == false else {
+		guard let config = try? CakeConfig(location: self.rootURL), let rootDisk = config.rootDisk, rootDisk.isEmpty == false else {
 			return buildURL("disk.img")
 		}
 
@@ -207,8 +207,15 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 	public func config() throws -> CakeConfig {
 		let config = try CakeConfig(location: self.rootURL)
+		let diskURL: URL
 
-		if let diskSize = try? self.diskURL.fileSize() {
+		if let rootDisk = config.rootDisk {
+			diskURL = URL(fileURLWithPath: rootDisk.expandingTildeInPath).resolvingSymlinksInPath()
+		} else {
+			diskURL = buildURL("disk.img")
+		}
+
+		if let diskSize = try? diskURL.fileSize() {
 			config.diskSize = diskSize
 		}
 

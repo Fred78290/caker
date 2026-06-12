@@ -31,7 +31,7 @@ import CakeAgentLib
 					attachment: try VZDiskImageStorageDeviceAttachment(
 						url: location.diskURL,
 						readOnly: false,
-						cachingMode: config.os == .linux ? .cached : .automatic,
+						cachingMode: .automatic,
 						synchronizationMode: .full
 					))
 			]
@@ -71,7 +71,7 @@ import CakeAgentLib
 			configuration.consoleDevices.append(spiceAgentConsoleDevice)
 
 			if config.os == .linux {
-				let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.diskURL).absoluteURL
+				let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.configURL).absoluteURL
 
 				if FileManager.default.fileExists(atPath: cdromURL.path) {
 					devices.append(try VirtualMachineEnvironment.createCloudInitDrive(cdromURL: cdromURL))

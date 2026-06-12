@@ -257,7 +257,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		configuration.consoleDevices.append(spiceAgentConsoleDevice)
 
 		if config.os == .linux {
-			let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.diskURL).absoluteURL
+			let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.configURL).absoluteURL
 
 			if FileManager.default.fileExists(atPath: cdromURL.path) {
 				devices.append(try Self.createCloudInitDrive(cdromURL: cdromURL))
