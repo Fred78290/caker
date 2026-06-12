@@ -81,7 +81,7 @@ public struct BuildOptions: ParsableArguments {
 	public var bridgedNetwork: Bool = false
 
 	@Option(name: [.customLong("net.ifnames")], help: ArgumentHelp(String(localized: "Use ifnames for network interfaces instead of eth0, eth1, etc. This is the default on most modern Linux distributions.")))
-	public var netIfnames: Bool = true
+	public var netIfnames: Bool = false
 
 	@Option(name: [.customLong("display")], help: ArgumentHelp(String(localized: "Set the VM screen size.")))
 	public var screenSize: ViewSize = ViewSize.standard
