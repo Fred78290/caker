@@ -93,8 +93,8 @@ fi
 if [[ -f "${WIKI_DIR}/privacy-policy.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/privacy-policy.md" "${DOCS_DIR}/privacy-policy.md" "Privacy Policy / Politique de confidentialité" "99"
   cat <<EOF >> "${DOCS_DIR}/privacy-policy.md"
-{% raw %}
 
+{% raw %}
 <script>
   var queryLang = new URLSearchParams(window.location.search).get('lang');
   var lang = (queryLang || navigator.language || navigator.userLanguage || 'en').toLowerCase();

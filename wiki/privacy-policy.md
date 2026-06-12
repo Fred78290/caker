@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD033 MD024 -->
 
-<div id="privacy-fr" style="display:none">
+<div id="privacy-fr" style="display:none" markdown="1">
 
 ## Politique de confidentialité
 
@@ -53,7 +53,7 @@ Pour toute question relative à la présente Politique de confidentialité, vous
 
 </div>
 
-<div id="privacy-en" style="display:block">
+<div id="privacy-en" style="display:block" markdown="1">
 
 ## Privacy Policy
 
@@ -105,3 +105,4 @@ For any questions regarding this Privacy Policy, you may contact us via:
 - **Website**: [https://caker.aldunelabs.com](https://caker.aldunelabs.com)
 
 </div>
+
