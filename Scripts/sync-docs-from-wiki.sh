@@ -92,6 +92,18 @@ fi
 # Privacy Policy (nav_order: 99)
 if [[ -f "${WIKI_DIR}/privacy-policy.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/privacy-policy.md" "${DOCS_DIR}/privacy-policy.md" "Privacy Policy / Politique de confidentialité" "99"
+  cat <<EOF >> "${DOCS_DIR}/privacy-policy.md"
+{% raw %}
+
+<script>
+  var queryLang = new URLSearchParams(window.location.search).get('lang');
+  var lang = (queryLang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
+  var isFrench = lang === 'fr' || lang.startsWith('fr-');
+  document.getElementById('privacy-fr').style.display = isFrench ? '' : 'none';
+  document.getElementById('privacy-en').style.display = isFrench ? 'none' : '';
+</script>
+{% endraw %}
+EOF
 fi
 
 # Update main index page from wiki Home

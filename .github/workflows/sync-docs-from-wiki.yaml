@@ -153,6 +153,7 @@ jobs:
         run: bundle exec jekyll build
         env:
           JEKYLL_ENV: production
+          PAGES_REPO_NWO: "${GITHUB_REPOSITORY}"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4

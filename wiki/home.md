@@ -28,6 +28,7 @@ Contributor guide: [CONTRIBUTING.md](https://github.com/Fred78290/caker/blob/mai
 - [Release Notes](release-notes)
 - [Command Summary](command-summary)
 - [Cheat Sheet](cheat-sheet)
+- [Private Policy](private-policy)
 
 ## Repository map
 

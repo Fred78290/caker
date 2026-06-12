@@ -53,7 +53,7 @@ Pour toute question relative à la présente Politique de confidentialité, vous
 
 </div>
 
-<div id="privacy-en" style="display:none">
+<div id="privacy-en" style="display:block">
 
 ## Privacy Policy
 
@@ -105,10 +105,3 @@ For any questions regarding this Privacy Policy, you may contact us via:
 - **Website**: [https://caker.aldunelabs.com](https://caker.aldunelabs.com)
 
 </div>
-
-<script>
-  var lang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
-  var isFrench = lang === 'fr' || lang.startsWith('fr-');
-  document.getElementById('privacy-fr').style.display = isFrench ? '' : 'none';
-  document.getElementById('privacy-en').style.display = isFrench ? 'none' : '';
-</script>
