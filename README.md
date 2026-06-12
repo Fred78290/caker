@@ -11,7 +11,7 @@
 	<img src="Resources/CakedAppIcon.png" alt="Caked App Icon" width="192" />
 </p>
 
-Caker is a Swift-based tool for building and managing virtual machines with the Virtualization framework, focused on simplicity and developer experience.
+Caker is a modern toolchain for building and managing virtual machines with the Virtualization framework, focused on simplicity and developer experience.
 
 Available features include:
 - Port forwarding between the VM and the host using TCP or Unix sockets

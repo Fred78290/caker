@@ -87,7 +87,7 @@ public struct AboutCakerView: View {
 					.font(.headline)
 					.foregroundColor(.primary)
 
-				Text("Caker is a powerful Swift-based tool for creating and managing virtual machines with Apple's Virtualization framework, focused on simplicity and developer experience.")
+				Text("Caker is a powerful toolchain for creating and managing virtual machines with Apple's Virtualization framework, focused on simplicity and developer experience.")
 					.lineLimit(nil)
 					.layoutPriority(1)
 					.font(.body)

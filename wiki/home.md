@@ -6,11 +6,12 @@ Welcome to the Caker documentation wiki.
 It combines a powerful daemon (`caked`) with a practical CLI (`cakectl`) so teams can build, run, inspect, and automate virtual machines consistently.
 If you run `caked` as a service, use `cakectl` as the primary interface.
 
-Caker is a Swift-based virtualization toolchain used to build, launch, and manage virtual machines on macOS.
+Caker is a virtualization toolchain used to build, launch, and manage virtual machines on macOS.
 
-It is designed around two complementary components:
+It is designed around three complementary components:
 - `caked`: the daemon/service that performs VM, image, and network operations
 - `cakectl`: the CLI client used to control `caked`
+- `Caker.app`: the GUI client used to control `caked` or standalone
 
 In typical usage, `cakectl` sends commands to `caked` through gRPC, and `caked` executes lifecycle actions such as build, launch, start/stop, image pull/push, and network management.
 
