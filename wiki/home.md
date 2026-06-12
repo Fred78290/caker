@@ -35,5 +35,6 @@ Contributor guide: [CONTRIBUTING.md](https://github.com/Fred78290/caker/blob/mai
 - `Sources/caked/` – daemon entrypoints and commands
 - `Sources/cakectl/` – CLI commands and client logic
 - `Sources/cakedlib/` – shared core library
+- `Sources/caker/` – GUI app
 - `Sources/grpc/` – gRPC layer and generated interfaces
 - `Tests/` and `Caker/CakerTests/` – test suites
