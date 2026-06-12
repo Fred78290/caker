@@ -111,6 +111,7 @@ public struct PullHandler {
 						} else if try tempVMLocation.configURL.exists() == false {
 							config = CakeConfig(
 								location: location.rootURL,
+								rootDisk: nil,
 								os: .linux,
 								autostart: false,
 								configuredUser: "root",

@@ -577,6 +577,10 @@ extension Caked_CommonBuildRequest {
 		if let imageSource = buildOptions.imageSource {
 			self.imageSource = .init(imageSource)
 		}
+
+		if let root = buildOptions.root {
+			self.rootDisk = root
+		}
 	}
 }
 

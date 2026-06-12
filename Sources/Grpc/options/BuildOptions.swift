@@ -338,6 +338,12 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		self.imageSource = ImageSource(request.imageSource)
+		
+		if request.hasRootDisk {
+			self.root = request.rootDisk
+		} else {
+			self.root = nil
+		}
 	}
 
 	mutating public func validate(remote: Bool) throws {

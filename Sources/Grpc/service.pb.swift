@@ -1284,6 +1284,15 @@ public nonisolated struct Caked_Caked: Sendable {
       /// Clears the value of `bridgedNetwork`. Subsequent reads from it will return its default value.
       public mutating func clearBridgedNetwork() {_uniqueStorage()._bridgedNetwork = nil}
 
+      public var rootDisk: String {
+        get {_storage._rootDisk ?? String()}
+        set {_uniqueStorage()._rootDisk = newValue}
+      }
+      /// Returns true if `rootDisk` has been explicitly set.
+      public var hasRootDisk: Bool {_storage._rootDisk != nil}
+      /// Clears the value of `rootDisk`. Subsequent reads from it will return its default value.
+      public mutating func clearRootDisk() {_uniqueStorage()._rootDisk = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -7016,7 +7025,7 @@ nonisolated extension Caked_Caked.VMRequest: SwiftProtobuf.Message, SwiftProtobu
 
 nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".CommonBuildRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0\u{1}otherGroups\0\u{1}imageSource\0\u{1}autoinstall\0\u{1}bridgedNetwork\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0\u{1}otherGroups\0\u{1}imageSource\0\u{1}autoinstall\0\u{1}bridgedNetwork\0\u{1}rootDisk\0")
 
   fileprivate class _StorageClass {
     var _name: String = String()
@@ -7049,6 +7058,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
     var _imageSource: Caked_Caked.Configuration.ImageSource = .unknown
     var _autoinstall: Bool = false
     var _bridgedNetwork: Bool? = nil
+    var _rootDisk: String? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -7089,6 +7099,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
       _imageSource = source._imageSource
       _autoinstall = source._autoinstall
       _bridgedNetwork = source._bridgedNetwork
+      _rootDisk = source._rootDisk
     }
   }
 
@@ -7137,6 +7148,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
         case 28: try { try decoder.decodeSingularEnumField(value: &_storage._imageSource) }()
         case 29: try { try decoder.decodeSingularBoolField(value: &_storage._autoinstall) }()
         case 30: try { try decoder.decodeSingularBoolField(value: &_storage._bridgedNetwork) }()
+        case 31: try { try decoder.decodeSingularStringField(value: &_storage._rootDisk) }()
         default: break
         }
       }
@@ -7239,6 +7251,9 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
       try { if let v = _storage._bridgedNetwork {
         try visitor.visitSingularBoolField(value: v, fieldNumber: 30)
       } }()
+      try { if let v = _storage._rootDisk {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 31)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -7278,6 +7293,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
         if _storage._imageSource != rhs_storage._imageSource {return false}
         if _storage._autoinstall != rhs_storage._autoinstall {return false}
         if _storage._bridgedNetwork != rhs_storage._bridgedNetwork {return false}
+        if _storage._rootDisk != rhs_storage._rootDisk {return false}
         return true
       }
       if !storagesAreEqual {return false}

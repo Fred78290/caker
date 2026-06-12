@@ -132,7 +132,13 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public var diskURL: URL {
-		buildURL("disk.img")
+		guard let config = try? self.config(), let rootDisk = config.rootDisk, rootDisk.isEmpty == false else {
+			return buildURL("disk.img")
+		}
+
+		let url = URL(fileURLWithPath: rootDisk.expandingTildeInPath)
+
+		return url.path.hasPrefix("/") ? url.resolvingSymlinksInPath().absoluteURL : buildURL(rootDisk)
 	}
 
 	public var nvramURL: URL {

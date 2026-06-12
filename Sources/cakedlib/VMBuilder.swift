@@ -39,6 +39,7 @@ public struct VMBuilder {
 
 				config = CakeConfig(
 					location: location.rootURL,
+					rootDisk: options.root,
 					os: .darwin,
 					autostart: options.autostart,
 					configuredUser: options.user,
@@ -89,6 +90,7 @@ public struct VMBuilder {
 
 				config = CakeConfig(
 					location: location.rootURL,
+					rootDisk: options.root,
 					os: .linux,
 					autostart: options.autostart,
 					configuredUser: options.user,

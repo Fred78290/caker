@@ -326,6 +326,7 @@ struct MultipassImporter: Importer {
 
 		let config = CakeConfig(
 			location: location.rootURL,
+			rootDisk: nil,
 			os: .linux,
 			autostart: false,
 			configuredUser: userName,
