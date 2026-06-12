@@ -100,7 +100,7 @@ public struct BuildOptions: ParsableArguments {
 	@Argument(help: ArgumentHelp(String(localized: "create a linux VM using a cloud image"), discussion: String(localized: "cloudimage_help"), valueName: "url"))
 	public var image: String = defaultUbuntuImage
 
-	@Option(help: ArgumentHelp(String(localized: "Root disk"), discussion: String(localized: "This option allow to specify root disk for VM"), visibility: .hidden))
+	@Option(help: ArgumentHelp(String(localized: "Root disk"), discussion: String(localized: "This option allows specifying an external root disk path for the VM."), visibility: .hidden))
 	public var root: String? = nil
 
 	public init() {
