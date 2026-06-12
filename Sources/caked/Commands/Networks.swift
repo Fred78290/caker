@@ -67,6 +67,10 @@ struct Networks: ParsableCommand {
 			self.pidFile = nil
 
 			if CakedLib.NetworksHandler.isPhysicalInterface(name: networkName) {
+				if Entitlement.hasVMNetworking() {
+					throw ServiceError(String(localized: "Network \(networkName) is handled natively, please use a different network"))
+				}
+
 				self.mode = .bridged
 				self.macAddress = VZMACAddress.randomLocallyAdministered().string
 				self.gateway = nil
