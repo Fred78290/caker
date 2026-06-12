@@ -23,6 +23,18 @@ Quick command reference for common daily operations.
 - Launch a new VM:
   - `cakectl launch ...`
 
+## Authentication for webui (`cakectl certificate`)
+
+- List registered certificates:
+  - `cakectl certificate list`
+- Add a certificate (from file or stdin):
+  - `cakectl certificate add --name <name> <cert.pem>`
+  - `cat cert.pem | cakectl certificate add --name <name>`
+- Get a certificate (outputs PEM):
+  - `cakectl certificate get <fingerprint-or-name>`
+- Remove a certificate:
+  - `cakectl certificate delete <fingerprint-or-name>`
+
 ## Guest access (`cakectl`)
 
 - Run one command in guest:
@@ -66,7 +78,8 @@ Quick command reference for common daily operations.
   - `caked certificates get`
   - `caked certificates generate`
 - Service mode:
-  - `caked service listen --secure`
+  - `caked service listen --secure` *(enable secure traffic)*
+  - `caked service listen --tcp --secure`  *(enable listen on tcp)*
   - `caked service listen --rest` *(enable LXD REST API)*
   - `caked service listen --rest --web-ui /path/to/webui/dist` *(with web UI)*
   - `caked service status`
