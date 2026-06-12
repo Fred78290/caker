@@ -196,6 +196,11 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		}
 	}
 
+	public var rootDisk: String? {
+		set { self.cake["rootDisk"] = newValue }
+		get { self.cake["rootDisk"] as? String }
+	}
+
 	public var osName: String? {
 		set { self.cake["osName"] = newValue }
 		get { self.cake["osName"] as? String }

@@ -53,7 +53,6 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.long, .customShort("i")], help: ArgumentHelp(String(localized: "Optional ssh-authorized-key file path for linux VM"), valueName: "path"))
 	public var sshAuthorizedKey: String?
 
-	//@Option(help: ArgumentHelp(String(localized: "Optional cloud-init vendor-data file path for linux VM"), valueName: "path"))
 	@Option(help: .private)
 	public var vendorData: String?
 
@@ -100,6 +99,9 @@ public struct BuildOptions: ParsableArguments {
 
 	@Argument(help: ArgumentHelp(String(localized: "create a linux VM using a cloud image"), discussion: String(localized: "cloudimage_help"), valueName: "url"))
 	public var image: String = defaultUbuntuImage
+
+	@Option(help: ArgumentHelp(String(localized: "Root disk"), discussion: String(localized: "This option allow to specify root disk for VM"), visibility: .hidden))
+	public var root: String? = nil
 
 	public init() {
 	}
