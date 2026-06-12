@@ -12,16 +12,31 @@ struct EditableListNewItem<Element, Content: View>: View where Element: Hashable
 	@Environment(\.dismiss) var dismiss
 	@Binding var elements: [Element]
 	@Binding var currentItem: Element
-	@State var configChanged: Bool = false
+	@State var configChanged: Bool
 
 	private var content: () -> Content
 	private var editItem: Element.ID?
 
 	init(_ elements: Binding<[Element]>, currentItem: Binding<Element>, editItem: Element.ID? = nil, content: @escaping () -> Content) {
+
 		self._elements = elements
 		self._currentItem = currentItem
 		self.content = content
 		self.editItem = editItem
+
+		let currentItem = currentItem.wrappedValue
+
+		if currentItem.validate() {
+			if editItem != nil {
+				self.configChanged = true
+			} else if elements.first(where: { $0.id == currentItem.id }) == nil {
+				self.configChanged = true
+			} else {
+				self.configChanged = false
+			}
+		} else {
+			self.configChanged = false
+		}
 	}
 
 	var body: some View {
@@ -47,16 +62,20 @@ struct EditableListNewItem<Element, Content: View>: View where Element: Hashable
 				}.disabled(self.configChanged == false)
 			}
 		}.onChange(of: currentItem) { _, newValue in
-			self.configChanged = false
+			self.configChanged = validate(newValue)
+		}
+	}
 
-			if newValue.validate() {
-				if editItem != nil {
-					self.configChanged = true
-				} else if self.elements.first(where: { $0.id == newValue.id }) == nil {
-					self.configChanged = true
-				}
+	func validate(_ newValue: Element) -> Bool {
+		if newValue.validate() {
+			if editItem != nil {
+				return true
+			} else if self.elements.first(where: { $0.id == newValue.id }) == nil {
+				return true
 			}
 		}
+
+		return false
 	}
 
 	func save() {
