@@ -270,11 +270,11 @@ public struct NetworksHandler {
 						if vmNetworking == false {
 							try NetworksHandler.startNetworkService(networkName: networkName, runMode: runMode)
 						} else {
-							Logger(self).debug("Network interface \(networkName) handled by the Virtualization framework via the VMNetworking entitlement")
+							Logger(self).warn("Network interface \(networkName) handled by the Virtualization framework via the VMNetworking entitlement")
 						}
 					} else if networkConfig != nil {
 						if #available(macOS 26.0, *) {
-							Logger(self).debug("Network interface \(networkName) handled by vmnet")
+							Logger(self).warn("Network interface \(networkName) handled by vmnet")
 						} else {
 							try NetworksHandler.startNetworkService(networkName: networkName, runMode: runMode)
 						}
