@@ -154,6 +154,7 @@ public enum SupportedPlatform: String, Codable, CaseIterable {
 
 public protocol VirtualMachineConfiguration {
 	var locationURL: URL { get }
+	var rootDisk: String? { get }
 	var version: Int { set get }
 	var os: VirtualizedOS { set get }
 	var arch: Architecture { set get }

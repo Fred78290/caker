@@ -477,6 +477,16 @@ public nonisolated struct Caked_Caked: Sendable {
     /// Clears the value of `hardwareModel`. Subsequent reads from it will return its default value.
     public mutating func clearHardwareModel() {_uniqueStorage()._hardwareModel = nil}
 
+    /// Optional root disk path for the VM, if applicable
+    public var rootDisk: String {
+      get {_storage._rootDisk ?? String()}
+      set {_uniqueStorage()._rootDisk = newValue}
+    }
+    /// Returns true if `rootDisk` has been explicitly set.
+    public var hasRootDisk: Bool {_storage._rootDisk != nil}
+    /// Clears the value of `rootDisk`. Subsequent reads from it will return its default value.
+    public mutating func clearRootDisk() {_uniqueStorage()._rootDisk = nil}
+
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
     /// VirtualizedOS represents the type of virtualized operating system
@@ -5983,7 +5993,7 @@ nonisolated extension Caked_Caked.MemoryInfo: SwiftProtobuf.Message, SwiftProtob
 
 nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Configuration"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}diskSize\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}diskSize\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0\u{1}rootDisk\0")
 
   fileprivate class _StorageClass {
     var _version: Int32 = 0
@@ -6029,6 +6039,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
     var _ifname: Bool = false
     var _ecid: Data? = nil
     var _hardwareModel: Data? = nil
+    var _rootDisk: String? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -6082,6 +6093,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
       _ifname = source._ifname
       _ecid = source._ecid
       _hardwareModel = source._hardwareModel
+      _rootDisk = source._rootDisk
     }
   }
 
@@ -6143,6 +6155,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
         case 41: try { try decoder.decodeSingularBoolField(value: &_storage._ifname) }()
         case 42: try { try decoder.decodeSingularBytesField(value: &_storage._ecid) }()
         case 43: try { try decoder.decodeSingularBytesField(value: &_storage._hardwareModel) }()
+        case 44: try { try decoder.decodeSingularStringField(value: &_storage._rootDisk) }()
         default: break
         }
       }
@@ -6284,6 +6297,9 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
       try { if let v = _storage._hardwareModel {
         try visitor.visitSingularBytesField(value: v, fieldNumber: 43)
       } }()
+      try { if let v = _storage._rootDisk {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 44)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -6336,6 +6352,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
         if _storage._ifname != rhs_storage._ifname {return false}
         if _storage._ecid != rhs_storage._ecid {return false}
         if _storage._hardwareModel != rhs_storage._hardwareModel {return false}
+        if _storage._rootDisk != rhs_storage._rootDisk {return false}
         return true
       }
       if !storagesAreEqual {return false}

@@ -76,7 +76,7 @@ public struct ConfigureHandler {
 
 			try config.save()
 
-			if let diskSize = options.diskSize {
+			if let diskSize = options.diskSize, config.rootDisk == nil {
 				config.diskSize = diskSize * MoB
 
 				if case .running = location.status {

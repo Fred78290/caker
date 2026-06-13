@@ -24,6 +24,12 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	
 	var instanceID: String
 	
+	var rootDisk: String? = nil {
+		didSet {
+			changedFields?.insert(\.rootDisk)
+		}
+	}
+
 	var dhcpClientID: String? = nil {
 		didSet {
 			changedFields?.insert(\.dhcpClientID)
@@ -577,7 +583,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 
 		try self.saveLocally(config)
 
-		if oldDiskSize < self.diskSize && location.status == .stopped {
+		if self.rootDisk == nil && oldDiskSize < self.diskSize && location.status == .stopped {
 			if config.os == .linux {
 				try location.resizeDisk(self.diskSizeInGoB)
 			} else {
@@ -650,6 +656,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	func buildOptions(image: String, imageSource: ImageSource?, sshAuthorizedKey: String?) -> BuildOptions {
 		.init(
 			name: self.vmname!,
+			rootDisk: self.rootDisk,
 			cpu: UInt16(self.cpuCount),
 			memory: self.memorySizeInMoB,
 			diskSize: self.diskSizeInGoB,
