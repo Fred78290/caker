@@ -209,8 +209,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		let config = try CakeConfig(location: self.rootURL)
 		let diskURL: URL
 
-		if let rootDisk = config.rootDisk {
-			diskURL = URL(fileURLWithPath: rootDisk.expandingTildeInPath).resolvingSymlinksInPath()
+		if let rootDisk = config.rootDisk, rootDisk.isEmpty == false {
+			let expanded = rootDisk.expandingTildeInPath
+			diskURL = expanded.hasPrefix("/") ? URL(fileURLWithPath: expanded).resolvingSymlinksInPath() : buildURL(expanded)
 		} else {
 			diskURL = buildURL("disk.img")
 		}
