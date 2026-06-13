@@ -136,9 +136,11 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			return buildURL("disk.img")
 		}
 
-		let url = URL(fileURLWithPath: rootDisk.expandingTildeInPath)
-
-		return url.path.hasPrefix("/") ? url.resolvingSymlinksInPath().absoluteURL : buildURL(rootDisk)
+		let expanded = rootDisk.expandingTildeInPath
+		if expanded.hasPrefix("/") {
+			return URL(fileURLWithPath: expanded).resolvingSymlinksInPath().absoluteURL
+		}
+		return buildURL(expanded)
 	}
 
 	public var nvramURL: URL {
