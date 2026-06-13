@@ -304,7 +304,7 @@ public struct BuildOptions: ParsableArguments {
 		if request.hasIfnames {
 			self.netIfnames = request.ifnames
 		} else {
-			self.netIfnames = true
+			self.netIfnames = false
 		}
 
 		if request.hasSockets && request.sockets.isEmpty == false {
