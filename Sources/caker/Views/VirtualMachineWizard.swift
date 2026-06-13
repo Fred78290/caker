@@ -952,6 +952,23 @@ struct VirtualMachineWizard: View {
 				}
 			}
 
+			Section("Optional existing root disk (no copy)") {
+				LabeledContent("Path to disk (optional)") {
+					HStack {
+						TextField("path", value: $config.rootDisk, format: .optional)
+							.rounded(.leading)
+							.disabled(self.model.createVM)
+						Button(action: {
+							config.networkConfig = chooseDocument("Select root disk", showsHiddenFiles: true)
+						}) {
+							Image(systemName: "externaldrive.badge.plus")
+						}
+						.disabled(self.model.createVM)
+						.buttonStyle(.borderless)
+					}
+				}
+			}
+
 			if model.imageSource.supportCloudInit {
 				Section("Cloud init") {
 					LabeledContent("Optional user data") {

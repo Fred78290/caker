@@ -1580,7 +1580,6 @@
       }
     },
     "Check for Updates…" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -7186,6 +7185,16 @@
         }
       }
     },
+    "Optional existing root disk (no copy)" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disque racine existant en option (pas de copie)"
+          }
+        }
+      }
+    },
     "Optional forwarded port for VM, syntax like docker" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7530,6 +7539,16 @@
         }
       }
     },
+    "path" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "chemin"
+          }
+        }
+      }
+    },
     "Path or URL to a user-data cloud-init configuration, or '-' for stdin" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7543,6 +7562,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chemin d'accès ou URL vers une configuration de cloud-init de données utilisateur, ou '-' pour stdin"
+          }
+        }
+      }
+    },
+    "Path to disk (optional)" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin d'accès au disque (facultatif)"
           }
         }
       }
