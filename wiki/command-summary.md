@@ -14,8 +14,10 @@ This page summarizes the `ArgumentParser` commands implemented in:
 
 ### VM lifecycle and execution
 
-- `build` — create a VM from options.
+- `build` — create a VM from a cloud image, downloading and converting it as needed; cloud-init runs on first boot.
 - `launch` — build and start a VM.
+- `spawn` (alias: `create-from-disk`) — create a VM from an **existing** root disk (raw image file or physical block device) without cloud-init. See [Spawning from an existing disk](#spawning-from-an-existing-disk).
+- `spawn-start` — same as `spawn`, then immediately start the VM.
 - `start` / `stop` / `restart` / `suspend` — control VM runtime state.
 - `delete` / `duplicate` / `rename` / `configure` — manage VM lifecycle and configuration.
 - `list` / `infos` / `waitip` — inspect VM inventory, details, and IP readiness.
@@ -99,4 +101,87 @@ cakectl image list
 
 # Push custom image
 cakectl push myregistry.com/myimage:latest
+```
+
+## Spawning from an existing disk
+
+`spawn` and `spawn-start` register a new VM that boots directly from an **existing** disk — a raw image file you already have, or a physical block device (`/dev/diskN`). No image is downloaded or converted, and cloud-init never runs.
+
+### When to use `spawn` vs `build`
+
+| | `build` / `launch` | `spawn` / `spawn-start` |
+| --- | --- | --- |
+| Root disk | Downloaded / converted from URL | Provided by you (image or block device) |
+| cloud-init | Runs on first boot | Never runs |
+| Typical use | Fresh Linux/macOS VMs from cloud images | Pre-configured images, physical disks, migrated VMs |
+
+### Syntax
+
+```text
+caked spawn [options] <name> <root-disk>
+caked spawn-start [options] <name> <root-disk>
+```
+
+`<root-disk>` can be:
+
+- An absolute or `~`-expanded path to a raw disk image (`/path/to/disk.img`)
+- A physical block device (`/dev/disk4`)
+
+### Options
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cpus <num>` | `1` | Number of vCPUs |
+| `-m, --memory <MB>` | `512` | RAM in megabytes |
+| `--os <linux\|darwin>` | `linux` | Guest OS type |
+| `--disk <path>` | — | Additional attached disk (repeatable) |
+| `-u, --user <name>` | `admin` | Username caked uses to connect to the guest (exec/sh) |
+| `-w, --password <pass>` | — | Password for the guest user |
+| `--nvram <path>` | — | Existing NVRAM / auxiliary-storage file to copy (required for macOS on Apple Silicon when not auto-fetched) |
+| `-a, --autostart` | off | Start VM automatically at boot |
+| `-t, --nested` | off | Enable nested virtualisation |
+| `--suspendable` | off | Optimise for VM suspension (macOS guests) |
+| `-p, --publish <spec>` | — | Port forwarding, docker syntax (repeatable) |
+| `-v, --mount <spec>` | — | Virtio-FS directory share (repeatable) |
+| `-n, --network <spec>` | — | Network interface (repeatable) |
+| `--bridged` | off | Add one bridged network interface |
+| `--net.ifnames <bool>` | `false` | Use predictable interface names (eth0 → enp…) |
+| `--display <WxH>` | `1024x768` | Guest screen resolution |
+| `--socket <url>` | — | Virtio socket (repeatable) |
+| `--console <url>` | — | Serial console URL |
+
+`spawn-start` also accepts `--wait-ip-timeout <seconds>` (default `180`).
+
+#### NVRAM behaviour
+
+| Platform | `--nvram` provided | `--nvram` omitted |
+| --- | --- | --- |
+| Linux (any arch) | ignored — fresh EFI variable store is always created | fresh EFI variable store created |
+| macOS (Apple Silicon) | provided file is copied as the VM's auxiliary storage | hardware model fetched from Apple metadata; fresh auxiliary storage created automatically |
+
+#### cloud-init options not available
+
+`spawn` intentionally skips cloud-init, so options that only apply at first-boot setup — SSH authorized key injection (`-i`), group configuration (`-g`, `--other-group`), and `--clear-password` — are not present. Use `build` / `launch` when you need those.
+
+### Spawn examples
+
+```bash
+# Register a VM from a raw image, 2 vCPUs, 2 GB RAM
+caked spawn myvm ~/images/ubuntu-24.04.raw -c 2 -m 2048
+
+# Register and immediately start, with NAT network and port forwarding
+caked spawn-start myvm ~/images/ubuntu-24.04.raw \
+  -c 4 -m 4096 \
+  --network nat \
+  -p 2222:22/tcp
+
+# Boot from a physical disk, specifying the guest credentials for exec/sh
+caked spawn diskvm /dev/disk4 --os linux -c 2 -m 4096 -u ubuntu -w secret
+
+# macOS guest from an existing disk — copy its NVRAM (Apple Silicon)
+caked spawn macosvm ~/vms/macos.img --os darwin -c 4 -m 8192 \
+  --nvram ~/vms/macos.nvram
+
+# macOS guest — let caked fetch the hardware model and create NVRAM automatically
+caked spawn macosvm ~/vms/macos.img --os darwin -c 4 -m 8192
 ```

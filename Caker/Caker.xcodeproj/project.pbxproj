@@ -37,6 +37,9 @@
 		9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AC2F743641009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AD2F7436F1009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
+		9B09566B2FDDC7AD0027FF96 /* SpawnOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B09566A2FDDC7AD0027FF96 /* SpawnOptions.swift */; };
+		9B09566D2FDDC7C40027FF96 /* SpawnHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B09566C2FDDC7C40027FF96 /* SpawnHandler.swift */; };
+		9B09566F2FDDC7E60027FF96 /* Spawn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B09566E2FDDC7E60027FF96 /* Spawn.swift */; };
 		9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0D1A452E2BAA2700D70267 /* FileMonitor */; };
 		9B1389CF2F97A718000329B1 /* BonjourServiceLister.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */; };
 		9B1389D12F97A98A000329B1 /* ServiceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389D02F97A98A000329B1 /* ServiceListView.swift */; };
@@ -790,6 +793,9 @@
 		9B081D912FC97DB20029B259 /* VmdkHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkHeader.swift; sourceTree = "<group>"; };
 		9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkDescriptor.swift; sourceTree = "<group>"; };
 		9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCompatibilitySpan.tbd; path = usr/lib/swift/libswiftCompatibilitySpan.tbd; sourceTree = SDKROOT; };
+		9B09566A2FDDC7AD0027FF96 /* SpawnOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpawnOptions.swift; sourceTree = "<group>"; };
+		9B09566C2FDDC7C40027FF96 /* SpawnHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpawnHandler.swift; sourceTree = "<group>"; };
+		9B09566E2FDDC7E60027FF96 /* Spawn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spawn.swift; sourceTree = "<group>"; };
 		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
 		9B1389D22F97A9D0000329B1 /* CakedServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServerView.swift; sourceTree = "<group>"; };
@@ -2132,6 +2138,7 @@
 		9BB3BE1C2DB3F17500799A6A /* options */ = {
 			isa = PBXGroup;
 			children = (
+				9B09566A2FDDC7AD0027FF96 /* SpawnOptions.swift */,
 				9BB3BE092DB3F17500799A6A /* BuildOptions.swift */,
 				9BB3BE0B2DB3F17500799A6A /* ConfigureOptions.swift */,
 				9BB3BE0C2DB3F17500799A6A /* DeleteOptions.swift */,
@@ -2190,6 +2197,7 @@
 				9BBF7B362F3E058A00F37D2C /* Restart.swift */,
 				9BEBC6A92DF4400A0092B196 /* Service.swift */,
 				9BEBC6AA2DF4400A0092B196 /* Sh.swift */,
+				9B09566E2FDDC7E60027FF96 /* Spawn.swift */,
 				9BEBC6AB2DF4400A0092B196 /* Start.swift */,
 				9BEBC6AC2DF4400A0092B196 /* Stop.swift */,
 				9B1500BE2E6B07EC00B23147 /* Suspend.swift */,
@@ -2298,6 +2306,7 @@
 				9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */,
 				9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */,
 				9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */,
+				9B09566C2FDDC7C40027FF96 /* SpawnHandler.swift */,
 				9BEBC7282DF440720092B196 /* StartHandler.swift */,
 				9BEBC7292DF440720092B196 /* StopHandler.swift */,
 				9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */,
@@ -3229,6 +3238,7 @@
 				9B464C652D5A45DF00164BF5 /* FileLock.swift in Sources */,
 				9B464C662D5A45DF00164BF5 /* Format.swift in Sources */,
 				9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */,
+				9B09566B2FDDC7AD0027FF96 /* SpawnOptions.swift in Sources */,
 				9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */,
 				9B464C6D2D5A45EF00164BF5 /* service.pb.swift in Sources */,
 				9BC1F55B2F617B3400A83B33 /* CakedServiceClient.swift in Sources */,
@@ -3319,6 +3329,7 @@
 				9B1835EC2FB070D300D150FD /* LXDConsoleVGARunner.swift in Sources */,
 				9B1835ED2FB070D300D150FD /* LXDExecRunner.swift in Sources */,
 				9B1835EE2FB070D300D150FD /* LXDExecSessionStore.swift in Sources */,
+				9B09566F2FDDC7E60027FF96 /* Spawn.swift in Sources */,
 				9BEBC6DB2DF4400A0092B196 /* Purge.swift in Sources */,
 				9BEBC6DC2DF4400A0092B196 /* DeleteHandler.swift in Sources */,
 				9BEBC6DD2DF4400A0092B196 /* MountHandler.swift in Sources */,
@@ -3466,6 +3477,7 @@
 				9BEBC7A62DF440720092B196 /* StartHandler.swift in Sources */,
 				9B5C3F3C2F89666C005651BF /* Entitlement.swift in Sources */,
 				9B5F49C02F70032800AE1991 /* LabelView.swift in Sources */,
+				9B09566D2FDDC7C40027FF96 /* SpawnHandler.swift in Sources */,
 				9BEBC7A72DF440720092B196 /* CommunicationHandlers.swift in Sources */,
 				9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */,
 				9B5F49C22F7006B100AE1991 /* VNCConnectionLogger.swift in Sources */,
