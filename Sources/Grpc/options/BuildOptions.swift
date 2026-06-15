@@ -119,7 +119,7 @@ public struct BuildOptions: ParsableArguments {
 		autostart: Bool = true,
 		nested: Bool = true,
 		suspendable: Bool = false,
-		netIfnames: Bool = false,
+		netIfnames: Bool = true,
 		image: String = defaultUbuntuImage,
 		imageSource: ImageSource? = nil,
 		sshAuthorizedKey: String? = nil,
