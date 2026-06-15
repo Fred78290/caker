@@ -5,6 +5,7 @@ import Virtualization
 import CakeAgentLib
 import System
 import ArgumentParser
+import AppKit
 
 enum ConfigFileName: String {
 	case config = "config.json"
@@ -787,6 +788,15 @@ extension VirtualMachineConfiguration {
 		if DiskAttachement.isBlockingDevice(diskPath) {
 			guard #available(macOS 14, *) else {
 				throw ValidationError(String(localized: "Attaching block devices requires macOS 14 or later"))
+			}
+
+			let mounted = Utilities.mountedVolumes(forDisk: diskPath)
+			if mounted.isEmpty == false {
+				guard try Utilities.confirmUnmount(diskPath: diskPath, volumes: mounted) else {
+					throw ValidationError(String(localized: "\(diskPath) has mounted volumes. Please unmount them before use."))
+				}
+
+				try Utilities.unmountDisk(diskPath)
 			}
 
 			let fd = open(diskPath, O_RDWR | O_EXLOCK | O_NONBLOCK)

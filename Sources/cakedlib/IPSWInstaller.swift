@@ -25,15 +25,8 @@ import CakeAgentLib
 			let plateform = try config.platform(nvramURL: location.nvramURL, needsNestedVirtualization: config.nested)
 			let soundDeviceConfiguration = VZVirtioSoundDeviceConfiguration()
 			let memoryBallons = VZVirtioTraditionalMemoryBalloonDeviceConfiguration()
-
 			var devices: [VZStorageDeviceConfiguration] = [
-				VZVirtioBlockDeviceConfiguration(
-					attachment: try VZDiskImageStorageDeviceAttachment(
-						url: location.diskURL,
-						readOnly: false,
-						cachingMode: .automatic,
-						synchronizationMode: .full
-					))
+				try config.rootDiskAttachment(rootDiskURL: location.diskURL)
 			]
 
 			let networkDevices = try networks.map {

@@ -191,6 +191,17 @@
         }
       }
     },
+    "%@ already in use, try unmounting it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est déjà en cours d'utilisation, essayez de le démonter"
+          }
+        }
+      }
+    },
     "%@ does not exists" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -198,6 +209,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ n'existe pas"
+          }
+        }
+      }
+    },
+    "%@ has mounted volumes. Please unmount them before use." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ comporte des volumes montés. Veuillez les démonter avant utilisation."
+          }
+        }
+      }
+    },
+    "%@ has the following mounted volumes:\n%@\n\nDo you want to unmount them to use this disk with the virtual machine?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ comporte les volumes montés suivants :\n%2$@\n\nVoulez-vous les démonter pour utiliser ce disque avec la machine virtuelle ?"
           }
         }
       }
@@ -235,13 +268,13 @@
         }
       }
     },
-    "%@ permission denied, consider changing the disk's owner using \"sudo chown $USER %@\" or run as a superuser" : {
+    "%@ permission denied, consider changing the disk's owner using \"sudo chown $USER %@\" and \"sudo dseditgroup -o edit -a $USER -t user operator\" or run as a superuser" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Autorisation %@ refusée, envisagez de changer le propriétaire du disque en utilisant \"sudo chown $USER %@ »"
+            "value" : "%1$@autorisation refusée, envisagez de changer le propriétaire du disque en utilisant \"sudo chown $USER %2$@\" et \"sudo dseditgroup -o edit -a $USER -t user operator\" ou exécuter en tant que superutilisateur"
           }
         }
       }
@@ -2828,6 +2861,17 @@
         }
       }
     },
+    "Disk has mounted volumes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le disque a des volumes montés"
+          }
+        }
+      }
+    },
     "Disk Image" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3591,6 +3635,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Échec de la suspension de la VM %1$@, %2$@"
+          }
+        }
+      }
+    },
+    "Failed to unmount %@:%@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec du démontage %1$@:%2$@"
           }
         }
       }
@@ -12020,6 +12075,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Type de signal inconnu : %d"
+          }
+        }
+      }
+    },
+    "Unmount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démonter"
           }
         }
       }

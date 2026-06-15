@@ -6,6 +6,7 @@ import NIO
 import Socket
 import System
 import Virtualization
+import ArgumentParser
 
 extension Date {
 	public func asTimeval() -> timeval {
@@ -638,4 +639,69 @@ extension Thread {
 	public static var currentThread: Thread {
 		Thread.current
 	}
+}
+
+extension Utilities {
+	public static var isRunningWithGUI: Bool {
+		NSApp != nil
+	}
+
+	public static func mountedVolumes(forDisk diskPath: String) -> [String] {
+		var fsptr: UnsafeMutablePointer<statfs>?
+		let count = getmntinfo(&fsptr, MNT_NOWAIT)
+		guard count > 0, let fsptr else { return [] }
+
+		var mounted: [String] = []
+		for i in 0..<Int(count) {
+			let fs = fsptr[i]
+			let fromName = withUnsafeBytes(of: fs.f_mntfromname) { ptr in
+				String(cString: ptr.bindMemory(to: CChar.self).baseAddress!)
+			}
+			let isPartitionOfDisk = fromName == diskPath ||
+				(fromName.hasPrefix(diskPath) && fromName.dropFirst(diskPath.count).first == "s")
+			if isPartitionOfDisk {
+				let onName = withUnsafeBytes(of: fs.f_mntonname) { ptr in
+					String(cString: ptr.bindMemory(to: CChar.self).baseAddress!)
+				}
+				mounted.append(onName)
+			}
+		}
+		return mounted
+	}
+
+	public static func unmountDisk(_ diskPath: String) throws {
+		let process = Process()
+		process.executableURL = URL(fileURLWithPath: "/usr/sbin/diskutil")
+		process.arguments = ["unmountDisk", diskPath]
+
+		let pipe = Pipe()
+		process.standardOutput = pipe
+		process.standardError = pipe
+
+		try process.run()
+		process.waitUntilExit()
+
+		if process.terminationStatus != 0 {
+			let output = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+			throw ValidationError(String(localized: "Failed to unmount \(diskPath): \(output.trimmingCharacters(in: .whitespacesAndNewlines))"))
+		}
+	}
+
+	public static func confirmUnmount(diskPath: String, volumes: [String]) throws -> Bool {
+		guard isRunningWithGUI else {
+			throw ValidationError(String(localized: "\(diskPath) has mounted volumes. Please unmount them before use."))
+		}
+
+		return DispatchQueue.main.sync {
+			let alert = NSAlert()
+			alert.messageText = String(localized: "Disk has mounted volumes")
+			alert.informativeText = String(localized: "\(diskPath) has the following mounted volumes:\n\(volumes.joined(separator: "\n"))\n\nDo you want to unmount them to use this disk with the virtual machine?")
+			alert.alertStyle = .warning
+			alert.addButton(withTitle: String(localized: "Unmount"))
+			alert.addButton(withTitle: String(localized: "Cancel"))
+			return alert.runModal() == .alertFirstButtonReturn
+		}
+	}
+
+
 }
