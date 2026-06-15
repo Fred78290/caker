@@ -2316,6 +2316,28 @@
         }
       }
     },
+    "Create a VM using an existing root disk (physical device or image file)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer une machine virtuelle à l'aide d'un disque racine existant (périphérique physique ou fichier image)"
+          }
+        }
+      }
+    },
+    "Create a VM using an existing root disk then start it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créez une machine virtuelle à l'aide d'un disque racine existant, puis démarrez-la"
+          }
+        }
+      }
+    },
     "Create autoinstall config" : {
       "localizations" : {
         "fr" : {
@@ -7222,6 +7244,17 @@
         }
       }
     },
+    "Optional path to an existing NVRAM file (could be required for macOS VMs on Apple Silicon)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin d'accès facultatif à un fichier NVRAM existant (peut être requis pour les machines virtuelles macOS sur Apple Silicon)"
+          }
+        }
+      }
+    },
     "Optional SSH private key passphrase to use for the VM" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7562,6 +7595,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chemin d'accès ou URL vers une configuration de cloud-init de données utilisateur, ou '-' pour stdin"
+          }
+        }
+      }
+    },
+    "Path to an existing root disk image or physical block device" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin d'accès à une image de disque racine existante ou à un périphérique de bloc physique"
           }
         }
       }

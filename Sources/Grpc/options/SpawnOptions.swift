@@ -39,8 +39,32 @@ public struct SpawnOptions: ParsableArguments {
 	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp(String(localized: "Enable nested virtualization if possible")))
 	public var nested: Bool = false
 
+	@Option(name: [.long, .customShort("g")], help: ArgumentHelp(String(localized: "The main existing group for the user")))
+	public var mainGroup: String = "adm"
+
+	@Option(name: [.customLong("other-group"), .customShort("o")], help: ArgumentHelp(String(localized: "The other existing group for the user")))
+	public var otherGroup: [String] = ["sudo"]
+
+	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp(String(localized: "Tell if the user admin allow password for ssh")))
+	public var clearPassword: Bool = false
+
+	@Flag(help: ArgumentHelp(String(localized: "Tell if cloud-init must be configured")))
+	public var useCloudInit: Bool = false
+
 	@Flag(help: ArgumentHelp(String(localized: "Disables audio and entropy devices and switches to only Mac-specific input devices."), discussion: String(localized: "Useful for running a VM that can be suspended via suspend command.")))
 	public var suspendable: Bool = false
+
+	@Option(name: [.long, .customShort("i")], help: ArgumentHelp(String(localized: "Optional ssh-authorized-key file path for linux VM"), valueName: "path"))
+	public var sshAuthorizedKey: String?
+
+	@Option(help: .private)
+	public var vendorData: String?
+
+	@Option(name: [.customLong("cloud-init")], help: ArgumentHelp(String(localized: "Optional cloud-init user-data file path for linux VM"), discussion: String(localized: "Path or URL to a user-data cloud-init configuration, or '-' for stdin"), valueName: "path"))
+	public var userData: String?
+
+	@Option(help: ArgumentHelp(String(localized: "Optional cloud-init network-config file path for linux VM"), valueName: "path"))
+	public var networkConfig: String?
 
 	@Flag(help: ArgumentHelp(String(localized: "Whether to automatically reconfigure the VM's display to fit the window")))
 	public var displayRefit: Bool = false
@@ -74,7 +98,7 @@ public struct SpawnOptions: ParsableArguments {
 	@Option(name: [.customLong("console")], help: ArgumentHelp(String(localized: "URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")"), discussion: String(localized: "console_help"), valueName: "url"))
 	public var consoleURL: ConsoleAttachment?
 
-	@Option(name: [.customLong("nvram")], help: ArgumentHelp(String(localized: "Path to an existing NVRAM file (required for macOS VMs on Apple Silicon)"), valueName: "path"))
+	@Option(name: [.customLong("nvram")], help: ArgumentHelp(String(localized: "Optional path to an existing NVRAM file (could be required for macOS VMs on Apple Silicon)"), valueName: "path"))
 	public var nvram: String?
 
 	@Argument(help: ArgumentHelp(String(localized: "VM name")))

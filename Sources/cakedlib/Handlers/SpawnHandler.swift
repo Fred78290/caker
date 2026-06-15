@@ -26,7 +26,7 @@ public struct SpawnHandler {
 				try await withTaskCancellationHandler(
 					operation: {
 						do {
-							try await createVM(location: tempVMLocation, options: options)
+							try await createVM(location: tempVMLocation, options: options, runMode: runMode)
 							try storageLocation.relocate(options.name, from: tempVMLocation)
 						} catch {
 							try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
@@ -47,23 +47,37 @@ public struct SpawnHandler {
 		}
 	}
 
-	private static func createVM(location: VMLocation, options: SpawnOptions) async throws {
+	private static func createVM(location: VMLocation, options: SpawnOptions, runMode: Utils.RunMode) async throws {
 		let expandedRoot = options.root.expandingTildeInPath
 
 		guard FileManager.default.fileExists(atPath: expandedRoot) else {
 			throw ServiceError(String(localized: "Root disk not found: \(options.root)"))
 		}
 
-		#if arch(arm64)
+		var cpuCountMin = options.cpu
+		var memorySize = options.memory * MoB
+		var memorySizeMin = VMBuilder.memoryMinSize
+		var hardwareModel: Data? = nil
+		var ecid: Data? = nil
+
+#if arch(arm64)
 		if options.os == .darwin {
 			if let nvram = options.nvram {
 				try FileManager.default.copyItem(atPath: nvram.expandingTildeInPath, toPath: location.nvramURL.path)
 			} else {
 				let restoreImage = try await VZMacOSRestoreImage.latestSupported
-				guard let hardwareModel = restoreImage.mostFeaturefulSupportedConfiguration?.hardwareModel else {
-					throw ServiceError(String(localized: "Unable to determine hardware model for macOS VM from latest supported restore image"))
+
+				guard let requirements = restoreImage.mostFeaturefulSupportedConfiguration else {
+					throw ServiceError(String(localized: "Unsupported restore image"))
 				}
-				_ = try VZMacAuxiliaryStorage(creatingStorageAt: location.nvramURL, hardwareModel: hardwareModel)
+
+				cpuCountMin = max(UInt16(requirements.minimumSupportedCPUCount), options.cpu)
+				memorySize = max(requirements.minimumSupportedMemorySize, options.memory * MoB)
+				memorySizeMin = requirements.minimumSupportedMemorySize
+				hardwareModel = requirements.hardwareModel.dataRepresentation
+				ecid = VZMacMachineIdentifier().dataRepresentation
+
+				_ = try VZMacAuxiliaryStorage(creatingStorageAt: location.nvramURL, hardwareModel: requirements.hardwareModel)
 			}
 		} else {
 			_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
@@ -74,25 +88,25 @@ public struct SpawnHandler {
 
 		let config = CakeConfig(
 			location: location.rootURL,
-			rootDisk: expandedRoot,
+			rootDisk: options.root,
 			os: options.os,
 			autostart: options.autostart,
 			configuredUser: options.user,
 			configuredPassword: options.password,
-			configuredGroup: "adm",
-			configuredGroups: ["sudo"],
+			configuredGroup: options.mainGroup,
+			configuredGroups: options.otherGroup,
 			configuredPlatform: .unknown,
-			clearPassword: false,
+			clearPassword: options.clearPassword,
 			displayRefit: options.displayRefit,
 			ifname: options.netIfnames,
-			cpuCountMin: options.cpu,
-			memorySize: options.memory * MoB,
-			memorySizeMin: VMBuilder.memoryMinSize,
+			cpuCountMin: cpuCountMin,
+			memorySize: memorySize,
+			memorySizeMin: memorySizeMin,
 			screenSize: options.screenSize
 		)
 
-		config.useCloudInit = false
-		config.agent = false
+		config.useCloudInit = options.os == .linux && options.useCloudInit
+		config.agent = config.useCloudInit
 		config.nested = options.nested
 		config.suspendable = options.suspendable && options.os == .darwin
 		config.attachedDisks = options.attachedDisks
@@ -104,6 +118,28 @@ public struct SpawnHandler {
 		config.dynamicPortForwarding = options.dynamicPortForwarding
 		config.source = .raw
 		config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
+		config.hardwareModel = hardwareModel
+		config.ecid = ecid
+
+		if config.useCloudInit {
+			config.agent = false
+
+			let cloudInit = try CloudInit(
+				plateform: SupportedPlatform(rawValue: expandedRoot),
+				userName: options.user,
+				password: options.password,
+				mainGroup: options.mainGroup,
+				otherGroups: options.otherGroup,
+				clearPassword: options.clearPassword,
+				sshAuthorizedKeyPath: options.sshAuthorizedKey,
+				vendorDataPath: options.vendorData,
+				userDataPath: options.userData,
+				networkConfigPath: options.networkConfig,
+				netIfnames: options.netIfnames,
+				runMode: runMode)
+
+			try cloudInit.createDefaultCloudInit(config: config, name: options.name, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: location.configURL))
+		}
 
 		try config.save()
 	}
