@@ -2138,7 +2138,6 @@
 		9BB3BE1C2DB3F17500799A6A /* options */ = {
 			isa = PBXGroup;
 			children = (
-				9B09566A2FDDC7AD0027FF96 /* SpawnOptions.swift */,
 				9BB3BE092DB3F17500799A6A /* BuildOptions.swift */,
 				9BB3BE0B2DB3F17500799A6A /* ConfigureOptions.swift */,
 				9BB3BE0C2DB3F17500799A6A /* DeleteOptions.swift */,
@@ -2153,6 +2152,7 @@
 				9BB3BE152DB3F17500799A6A /* RemoteOptions.swift */,
 				9BB3BE162DB3F17500799A6A /* RenameOptions.swift */,
 				9BB3BE172DB3F17500799A6A /* ShellOptions.swift */,
+				9B09566A2FDDC7AD0027FF96 /* SpawnOptions.swift */,
 				9BB3BE182DB3F17500799A6A /* StopOptions.swift */,
 				9BB3BE192DB3F17500799A6A /* TemplateOptions.swift */,
 				9BB3BE1A2DB3F17500799A6A /* UmountOptions.swift */,
@@ -3848,7 +3848,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = LE7988HTRN;
