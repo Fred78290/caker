@@ -789,16 +789,16 @@ extension VirtualMachineConfiguration {
 				throw ValidationError(String(localized: "Attaching block devices requires macOS 14 or later"))
 			}
 
-			let fd = open(diskPath, O_RDWR)
+			let fd = open(diskPath, O_RDWR | O_EXLOCK | O_NONBLOCK)
 
 			if fd == -1 {
 				let details = Errno(rawValue: CInt(errno))
 
 				switch details.rawValue {
-				case EBUSY:
+				case EBUSY, EWOULDBLOCK:
 					throw ValidationError(String(localized: "\(diskPath) already in use, try unmounting it"))
 				case EACCES:
-					throw ValidationError(String(localized: "\(diskPath) permission denied, consider changing the disk's owner using \"sudo chown $USER \(diskPath)\" or run as a superuser"))
+					throw ValidationError(String(localized: "\(diskPath) permission denied, consider changing the disk's owner using \"sudo chown $USER \(diskPath)\" and \"sudo dseditgroup -o edit -a $USER -t user operator\" or run as a superuser"))
 				default:
 					throw ValidationError(String(localized: "Unexpected error: \(details.description), \(diskPath)"))
 				}
