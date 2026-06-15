@@ -143,7 +143,7 @@ struct NetworkConfig: Codable {
 		var index: Int = 1
 
 		networks.forEach { network in
-			let name = netIfnames ? "eth\(index - 1)" : "enp0s\(index)"
+			let name = netIfnames ? "enp0s\(index)" : "eth\(index - 1)"
 
 			index += 1
 
@@ -923,7 +923,8 @@ class CloudInit {
 			vendorData: vendorDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: vendorDataPath!)) : nil,
 			userData: userDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: userDataPath!)) : nil,
 			networkConfig: networkConfigPath != nil ? try Data(contentsOf: URL(fileURLWithPath: networkConfigPath!)) : nil,
-			netIfnames: netIfnames, runMode: runMode)
+			netIfnames: netIfnames,
+			runMode: runMode)
 	}
 
 	private func createMetaData(hostname: String, instanceID: String) throws -> Data {

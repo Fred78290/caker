@@ -22,7 +22,7 @@ fi
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
 DISK_SIZE=20
 MAINGROUP=adm
-NETIFNAMES=true
+NETIFNAMES=false
 USER_SHELL=/bin/bash
 
 if [ $(uname -m) == "arm64" ]; then
@@ -50,7 +50,7 @@ case ${VMNAME} in
     opensuse*)
         CLOUD_IMAGE=https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.${ARCH2}-NoCloud.qcow2
         MAINGROUP=root
-        NETIFNAMES=false
+        NETIFNAMES=true
         ;;
     fedora*)
         CLOUD_IMAGE=https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/${ARCH2}/images/Fedora-Cloud-Base-Generic-42-1.1.${ARCH2}.qcow2

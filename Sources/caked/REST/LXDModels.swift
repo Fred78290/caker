@@ -431,7 +431,7 @@ struct LXDCreateInstanceRequest: Content {
 	var otherGroups: [String] = ["sudo"]
 	var sshAuthorizedKey: String?
 	var forwardedPorts: [String]?
-	var netIfnames: Bool = false
+	var netIfnames: Bool = true
 	var autostart: Bool = false
 	var autoinstall: Bool = false
 	var bridgedNetwork: Bool = false
