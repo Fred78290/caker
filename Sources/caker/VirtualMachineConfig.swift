@@ -414,7 +414,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GoB : nil
 	}
 
-	var ifname: Bool = false {
+	var ifname: Bool = true {
 		didSet {
 			changedFields?.insert(\.ifname)
 		}
