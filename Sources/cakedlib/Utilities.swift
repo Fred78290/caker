@@ -692,15 +692,14 @@ extension Utilities {
 			throw ValidationError(String(localized: "\(diskPath) has mounted volumes. Please unmount them before use."))
 		}
 
-		return DispatchQueue.main.sync {
-			let alert = NSAlert()
-			alert.messageText = String(localized: "Disk has mounted volumes")
-			alert.informativeText = String(localized: "\(diskPath) has the following mounted volumes:\n\(volumes.joined(separator: "\n"))\n\nDo you want to unmount them to use this disk with the virtual machine?")
-			alert.alertStyle = .warning
-			alert.addButton(withTitle: String(localized: "Unmount"))
-			alert.addButton(withTitle: String(localized: "Cancel"))
-			return alert.runModal() == .alertFirstButtonReturn
-		}
+		let alert = NSAlert()
+
+		alert.messageText = String(localized: "Disk has mounted volumes")
+		alert.informativeText = String(localized: "\(diskPath) has the following mounted volumes:\n\(volumes.joined(separator: "\n"))\n\nDo you want to unmount them to use this disk with the virtual machine?")
+		alert.alertStyle = .warning
+		alert.addButton(withTitle: String(localized: "Unmount"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
+		return alert.runModal() == .alertFirstButtonReturn
 	}
 
 

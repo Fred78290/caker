@@ -799,14 +799,28 @@ extension VirtualMachineConfiguration {
 				try Utilities.unmountDisk(diskPath)
 			}
 
-			let fd = open(diskPath, O_RDWR | O_EXLOCK | O_NONBLOCK)
+			var fd = open(diskPath, O_RDWR | O_EXLOCK | O_NONBLOCK)
 
 			if fd == -1 {
 				let details = Errno(rawValue: CInt(errno))
 
 				switch details.rawValue {
 				case EBUSY, EWOULDBLOCK:
-					throw ValidationError(String(localized: "\(diskPath) already in use, try unmounting it"))
+					guard Utilities.isRunningWithGUI else {
+						throw ValidationError(String(localized: "\(diskPath) already in use, try unmounting it"))
+					}
+
+					guard try Utilities.confirmUnmount(diskPath: diskPath, volumes: mounted) else {
+						throw ValidationError(String(localized: "\(diskPath) already in use, try unmounting it"))
+					}
+
+					try Utilities.unmountDisk(diskPath)
+
+					fd = open(diskPath, O_RDWR | O_EXLOCK | O_NONBLOCK)
+
+					guard fd != -1 else {
+						throw ValidationError(String(localized: "\(diskPath) already in use, try unmounting it"))
+					}
 				case EACCES:
 					throw ValidationError(String(localized: "\(diskPath) permission denied, consider changing the disk's owner using \"sudo chown $USER \(diskPath)\" and \"sudo dseditgroup -o edit -a $USER -t user operator\" or run as a superuser"))
 				default:
