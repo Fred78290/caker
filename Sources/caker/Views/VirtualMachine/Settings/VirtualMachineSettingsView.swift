@@ -115,7 +115,7 @@ struct VirtualMachineSettingsView: View {
 			.padding(.bottom)
 
 		}
-		.frame(height: 605)
+		.frame(height: 630)
 		.onChange(of: config) { _, newValue in
 			self.configChanged = true
 		}
@@ -189,7 +189,9 @@ struct VirtualMachineSettingsView: View {
 	}
 
 	func cpuCountAndMemoryView() -> some View {
-		Section("CPU & Memory") {
+		let noRootDisk = (self.config.rootDisk ?? "").isEmpty
+
+		return Section(noRootDisk ? "CPU & Memory & Disk" : "CPU & Memory") {
 			let cpuRange: ClosedRange<UInt16> = 1...UInt16(System.coreCount)
 			let totalMemoryRange: ClosedRange<UInt64> = 1...ProcessInfo().physicalMemory / MiB
 
@@ -213,6 +215,16 @@ struct VirtualMachineSettingsView: View {
 					Stepper(value: $config.memorySizeInMoB, in: totalMemoryRange, step: 1) {
 
 					}.labelsHidden()
+				}
+			}
+
+			if noRootDisk {
+				HStack {
+					Text("Disk size (GiB)")
+					Spacer().border(.black)
+					TextField(String.empty, value: $config.diskSizeInGiB, format: .number)
+						.rounded(.center)
+						.frame(width: 50)
 				}
 			}
 		}

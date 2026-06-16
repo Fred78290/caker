@@ -105,13 +105,13 @@ enum IPSWImage: Int, CaseIterable {
 	var location: ISOLocation {
 		switch self {
 		case .macos26_5:
-			ISOLocation(label: "macOS 26.5 – IPSW (Apple Silicon)", url: "https://updates.cdn-apple.com/2026SpringFCS/fullrestores/122-58869/DFB1CEEF-5619-4591-9924-E20DB2C8FED0/UniversalMac_26.5_25F71_Restore.ipsw")
+			ISOLocation(label: "macOS 26.5", url: "https://updates.cdn-apple.com/2026SpringFCS/fullrestores/122-58869/DFB1CEEF-5619-4591-9924-E20DB2C8FED0/UniversalMac_26.5_25F71_Restore.ipsw")
 		case .macos15_6_1:
-			ISOLocation(label: "macOS 15.6.1 – IPSW (Apple Silicon)", url: "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw")
+			ISOLocation(label: "macOS 15.6.1", url: "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw")
 		case .macos14_6_1:
-			ISOLocation(label: "macOS 14.6.1 – IPSW (Apple Silicon)", url: "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw")
+			ISOLocation(label: "macOS 14.6.1", url: "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw")
 		case .macos13_6:
-			ISOLocation(label: "macOS 13.6 – IPSW (Apple Silicon)", url: "https://updates.cdn-apple.com/2023FallFCS/fullrestores/042-55833/C0830847-A2F8-458F-B680-967991820931/UniversalMac_13.6_22G120_Restore.ipsw")
+			ISOLocation(label: "macOS 13.6", url: "https://updates.cdn-apple.com/2023FallFCS/fullrestores/042-55833/C0830847-A2F8-458F-B680-967991820931/UniversalMac_13.6_22G120_Restore.ipsw")
 		}
 	}
 }
@@ -559,9 +559,8 @@ struct VirtualMachineWizard: View {
 	}
 
 	func cpuCountAndMemoryView() -> some View {
-		Section("CPU & Memory & Disk") {
+		Section("CPU & Memory") {
 			let cpuRange: ClosedRange<UInt16> = 1...UInt16(System.coreCount)
-			let diskRange: ClosedRange<UInt64> = 5...UInt64(UInt16.max)
 			let totalMemoryRange: ClosedRange<UInt64> = 1...ProcessInfo().physicalMemory / MiB
 
 			Picker("CPU count", selection: $config.cpuCount) {
@@ -586,22 +585,6 @@ struct VirtualMachineWizard: View {
 						.frame(width: 50)
 						.disabled(self.model.createVM)
 					Stepper(value: $config.memorySizeInMoB, in: totalMemoryRange, step: 1) {
-
-					}
-					.labelsHidden()
-					.disabled(self.model.createVM)
-				}
-			}
-
-			HStack {
-				Text("Disk size")
-				Spacer().border(.black)
-				HStack {
-					TextField(String.empty, value: $config.diskSizeInGoB, format: .number)
-						.rounded(.center)
-						.frame(width: 50)
-						.disabled(self.model.createVM)
-					Stepper(value: $config.diskSizeInGoB, in: diskRange, step: 1) {
 
 					}
 					.labelsHidden()
@@ -819,7 +802,7 @@ struct VirtualMachineWizard: View {
 						if AppState.shared.connectionMode == .app {
 							HStack {
 								TextField("IPSW Image", text: $config.imageName)
-									.frame(width: 330)
+									.frame(width: 460)
 									.rounded(.leading)
 									.disabled(self.model.createVM)
 								Button(action: {
@@ -834,7 +817,7 @@ struct VirtualMachineWizard: View {
 							}
 						} else {
 							TextField("MacOS ipsw url.", text: $config.imageName)
-								.frame(width: 350)
+								.frame(width: 460)
 								.rounded(.leading)
 								.disabled(self.model.createVM)
 						}
@@ -942,7 +925,7 @@ struct VirtualMachineWizard: View {
 								self.config.imageName = self.model.ipswRelease.location.url
 								self.config.cpuCount = max(self.config.cpuCount, 4)
 								self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4096)
-								self.config.diskSizeInGoB = max(self.config.diskSizeInGoB, 40)
+								self.config.diskSizeInGiB = max(self.config.diskSizeInGiB, 40)
 							}
 						}
 						.pickerStyle(.menu)
