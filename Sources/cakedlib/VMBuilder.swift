@@ -245,6 +245,12 @@ public struct VMBuilder {
 				#else
 					throw ServiceError(String(localized: "IPSW is only available on arm64 architecture: \(options.image)"))
 				#endif
+			} else if sourceImage == .iso {
+				if imageIsFile == false {
+					options.image = try await CloudImageConverter.downloadISO(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
+				}
+			} else {
+				throw ServiceError(String(localized: "Using root disk support only ISO and IPSW images installation"))
 			}
 
 			return options
