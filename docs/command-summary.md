@@ -72,7 +72,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
 
 ## `cakectl`-specific commands
 
-- `gcd` — stream global status updates from daemon dispatcher.
+- `certificate` — Manage certificate to authenticate API rest.
 
 ## Notes
 
