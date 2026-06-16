@@ -387,7 +387,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.changedFields?.contains(\.clearPassword) == true ? self.clearPassword : nil
 	}
 
-	var diskSize: UInt64 = 20 * GoB {
+	var diskSize: UInt64 = 20 * GiB {
 		didSet {
 			changedFields?.insert(\.diskSize)
 		}
@@ -402,16 +402,25 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		}
 	}
 
-	var diskSizeInGobIfChanged: UInt64? {
-		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GoB : nil
-	}
-
-	var diskSizeIfChanged: UInt64? {
-		self.changedFields?.contains(\.diskSize) == true ? self.diskSize : nil
+	var diskSizeInGiB: UInt64 {
+		get {
+			self.diskSize / GiB
+		}
+		set {
+			self.diskSize = newValue * GiB
+		}
 	}
 
 	var diskSizeInGoBIfChanged: UInt64? {
 		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GoB : nil
+	}
+
+	var diskSizeInGiBIfChanged: UInt64? {
+		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GiB : nil
+	}
+
+	var diskSizeIfChanged: UInt64? {
+		self.changedFields?.contains(\.diskSize) == true ? self.diskSize : nil
 	}
 
 	var ifname: Bool = true {
@@ -511,7 +520,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.configuredGroup = "adm"
 		self.configuredGroups = ["sudo"]
 		self.clearPassword = true
-		self.diskSize = 20 * GoB
+		self.diskSize = 20 * GiB
 		self.autoinstall = false
 		self.firstLaunch = true
 		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
@@ -585,9 +594,9 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 
 		if self.rootDisk == nil && oldDiskSize < self.diskSize && location.status == .stopped {
 			if config.os == .linux {
-				try location.resizeDisk(self.diskSizeInGoB)
+				try location.resizeDisk(self.diskSizeInGiB)
 			} else {
-				try location.expandDisk(self.diskSizeInGoB)
+				try location.expandDisk(self.diskSizeInGiB)
 			}
 		}
 	}

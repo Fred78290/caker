@@ -364,7 +364,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public func expandDisk(_ sizeGB: UInt64) throws {
-		let wantedFileSize = sizeGB * 1000 * 1000 * 1000
+		let wantedFileSize = sizeGB * GiB
 
 		if FileManager.default.fileExists(atPath: diskURL.path) {
 			try Shell.bash(to: "hdiutil", arguments: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path])
@@ -389,7 +389,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public func resizeDisk(_ sizeGB: UInt64) throws {
-		let wantedFileSize = sizeGB * 1000 * 1000 * 1000
+		let wantedFileSize = sizeGB * GiB
 
 		if !FileManager.default.fileExists(atPath: diskURL.path) {
 			FileManager.default.createFile(atPath: diskURL.path, contents: nil, attributes: nil)

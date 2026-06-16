@@ -193,7 +193,7 @@ struct LXDInstancesController: RouteCollection {
 
 		if let config = try? location.config() {
 			let memoryMB = max(1, config.memorySize / MoB)
-			let diskGB = max(1, config.diskSize / GoB)
+			let diskGB = max(1, config.diskSize / GiB)
 
 			var lxdConfig = instance.config
 			lxdConfig["limits.cpu"] = String(config.cpuCount)

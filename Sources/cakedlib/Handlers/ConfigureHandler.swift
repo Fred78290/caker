@@ -77,7 +77,7 @@ public struct ConfigureHandler {
 			try config.save()
 
 			if let diskSize = options.diskSize, config.rootDisk == nil {
-				config.diskSize = diskSize * MoB
+				config.diskSize = diskSize * GiB
 
 				if case .running = location.status {
 					throw ServiceError(String(localized: "VM is running, please stop it before resizing the disk"))

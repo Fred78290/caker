@@ -18,7 +18,7 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	@Option(name: [.long, .customShort("m")], help: ArgumentHelp(String(localized: "VM memory size in megabytes"), valueName: "MB"))
 	public var memory: UInt64? = nil
 
-	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp(String(localized: "Disk size in GB"), valueName: "GB"))
+	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp(String(localized: "Disk size in GiB"), valueName: "GiB"))
 	public var diskSize: UInt64? = nil
 
 	@Option(name: [.customLong("disk")], help: ArgumentHelp(String(localized: "Other attached disk"), valueName: "path"))
