@@ -39,6 +39,7 @@ struct VirtualMachineSettingsView: View {
 	@State var selectedTab: SettingsTab = .account
 	@State var showPassword = false
 	@State var userPassword: String
+	@State var noRootDisk: Bool
 
 	init() {
 		let document = try! VirtualMachineDocument.anyVirtualMachineDocument()
@@ -47,6 +48,7 @@ struct VirtualMachineSettingsView: View {
 		self.document = document
 		self.config = document.virtualMachineConfig
 		self.userPassword = config.configuredPassword ?? String.empty
+		self.noRootDisk = (config.rootDisk ?? "").isEmpty
 	}
 
 	init(document: VirtualMachineDocument) {
@@ -55,6 +57,7 @@ struct VirtualMachineSettingsView: View {
 		self.document = document
 		self.config = config
 		self.userPassword = config.configuredPassword ?? String.empty
+		self.noRootDisk = (config.rootDisk ?? "").isEmpty
 	}
 
 	var body: some View {
@@ -189,9 +192,7 @@ struct VirtualMachineSettingsView: View {
 	}
 
 	func cpuCountAndMemoryView() -> some View {
-		let noRootDisk = (self.config.rootDisk ?? "").isEmpty
-
-		return Section(noRootDisk ? "CPU & Memory & Disk" : "CPU & Memory") {
+		return Section(self.noRootDisk ? "CPU & Memory & Disk" : "CPU & Memory") {
 			let cpuRange: ClosedRange<UInt16> = 1...UInt16(System.coreCount)
 			let totalMemoryRange: ClosedRange<UInt64> = 1...ProcessInfo().physicalMemory / MiB
 
@@ -218,7 +219,7 @@ struct VirtualMachineSettingsView: View {
 				}
 			}
 
-			if noRootDisk {
+			if self.noRootDisk {
 				HStack {
 					Text("Disk size (GiB)")
 					Spacer().border(.black)

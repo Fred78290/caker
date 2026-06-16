@@ -12572,6 +12572,17 @@
         }
       }
     },
+    "Using root disk support only ISO and IPSW images installation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'utilisation d’un disque racine ne prend en charge que l'installation d'images ISO et IPSW"
+          }
+        }
+      }
+    },
     "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service" : {
       "extractionState" : "manual",
       "localizations" : {

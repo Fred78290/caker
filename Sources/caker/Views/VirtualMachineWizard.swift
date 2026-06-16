@@ -313,6 +313,7 @@ struct ShortImageInfoComparator: SortComparator {
 	var createVM: Bool
 	var fractionCompleted: Double
 	var createVMMessage: String
+	var rootDisk: String
 
 	init() {
 		self.currentStep = .name
@@ -329,6 +330,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
+		self.rootDisk = String.empty
 	}
 
 	func reset() {
@@ -346,6 +348,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
+		self.rootDisk = String.empty
 	}
 }
 
@@ -902,8 +905,14 @@ struct VirtualMachineWizard: View {
 				LabeledContent("Image source") {
 					HStack {
 						Picker("Image source", selection: $model.imageSource) {
-							ForEach(ImageSource.allCases, id: \.self) { source in
-								Text(source.description).tag(source)
+							if model.rootDisk.isEmpty {
+								ForEach(ImageSource.allCases, id: \.self) { source in
+									Text(source.description).tag(source)
+								}
+							} else {
+								ForEach([ImageSource.iso, ImageSource.ipsw], id: \.self) { source in
+									Text(source.description).tag(source)
+								}
 							}
 						}.onChange(of: self.model.imageSource) { _, newValue in
 							self.config.source = newValue
@@ -957,7 +966,7 @@ struct VirtualMachineWizard: View {
 
 				LabeledContent("Optional existing root disk (no copy)") {
 					HStack {
-						TextField("path", value: $config.rootDisk, format: .optional)
+						TextField("path", text: $model.rootDisk)
 							.rounded(.leading)
 							.disabled(self.model.createVM)
 						Button(action: {
@@ -967,6 +976,17 @@ struct VirtualMachineWizard: View {
 						}
 						.disabled(self.model.createVM)
 						.buttonStyle(.borderless)
+						.onChange(of: model.rootDisk) { _, newValue in
+							if newValue.isEmpty {
+								self.config.rootDisk = nil
+							} else {
+								if self.model.imageSource != .ipsw && self.model.imageSource != .iso {
+									self.model.imageSource = .iso
+								}
+
+								self.config.rootDisk = newValue
+							}
+						}
 					}
 				}
 			}
@@ -1048,6 +1068,10 @@ struct VirtualMachineWizard: View {
 
 	func validateConfig(config: VirtualMachineConfig) {
 		var valid = true
+
+		if model.rootDisk.isEmpty == false {
+			valid = FileManager.default.fileExists(atPath: model.rootDisk)
+		}
 
 		if model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw {
 			if let url = URL(string: config.imageName) {

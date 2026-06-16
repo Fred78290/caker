@@ -535,6 +535,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 
 	init(name: String, config: any VirtualMachineConfiguration) {
 		self.vmname = name
+		self.rootDisk = config.rootDisk
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.locationURL = config.locationURL
 		self.version = config.version
