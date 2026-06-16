@@ -935,8 +935,27 @@ struct VirtualMachineWizard: View {
 				}
 			}
 
-			Section("Optional existing root disk (no copy)") {
-				LabeledContent("Path to disk (optional)") {
+			let diskRange: ClosedRange<UInt64> = 5...UInt64(UInt16.max)
+			let noRootDisk = (config.rootDisk ?? "").isEmpty
+
+			Section("Root disk") {
+				HStack {
+					Text("Disk size (GiB)")
+					Spacer().border(.black)
+					HStack {
+						TextField(String.empty, value: $config.diskSizeInGiB, format: .number)
+							.rounded(.center)
+							.frame(width: 50)
+							.disabled(self.model.createVM && noRootDisk == false)
+						Stepper(value: $config.diskSizeInGiB, in: diskRange, step: 1) {
+
+						}
+						.labelsHidden()
+						.disabled(self.model.createVM && noRootDisk == false)
+					}
+				}
+
+				LabeledContent("Optional existing root disk (no copy)") {
 					HStack {
 						TextField("path", value: $config.rootDisk, format: .optional)
 							.rounded(.leading)

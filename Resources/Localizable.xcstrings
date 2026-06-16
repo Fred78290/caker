@@ -9052,6 +9052,16 @@
         }
       }
     },
+    "Root disk" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disque racine"
+          }
+        }
+      }
+    },
     "Run a shell on a VM" : {
       "extractionState" : "manual",
       "localizations" : {
