@@ -183,7 +183,7 @@ struct HostVirtualMachineView: View {
 							.disabled(document.agent == .installing)
 						} else if document.status == .running {
 							Button("Request to stop", systemImage: "stop") {
-								document.stopFromUI(force: false)
+								document.stopFromUI(force: NSEvent.modifierFlags.contains(.option))
 							}
 							.help("Request to stop virtual machine")
 							.disabled(document.agent == .installing)
