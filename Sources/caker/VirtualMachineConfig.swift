@@ -505,7 +505,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.macAddress = String.empty
 		self.autostart = false
 		self.suspendable = false
-		self.ifname = false
+		self.ifname = true
 		self.dynamicPortForwarding = false
 		self.displayRefit = true
 		self.nestedVirtualization = true
