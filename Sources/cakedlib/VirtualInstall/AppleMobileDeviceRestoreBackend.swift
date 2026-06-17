@@ -66,9 +66,11 @@ final class AppleMobileDeviceRestoreBackend: DeviceRestoreBackend, @unchecked Se
 		let refCon = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
 		
 		VIMDDeviceRestore(device, options as CFDictionary, { _, info, refCon in
-			guard let refCon, let info else { return }
+			guard let refCon = refCon else { return }
 			let backend = unsafeBitCast(refCon, to: AppleMobileDeviceRestoreBackend.self)
-			if let dict = (info as NSDictionary) as? [AnyHashable: Any] {
+			// `info` is a CFDictionary; bridge to NSDictionary then to Swift dictionary
+			let nsInfo = info as NSDictionary
+			if let dict = nsInfo as? [AnyHashable: Any] {
 				backend.progressHandler?(dict)
 			}
 		}, refCon)
@@ -95,3 +97,4 @@ enum AppleMobileDeviceRestoreError: LocalizedError {
 }
 
 #endif
+
