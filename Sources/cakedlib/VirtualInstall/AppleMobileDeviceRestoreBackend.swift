@@ -30,7 +30,8 @@ final class AppleMobileDeviceRestoreBackend: DeviceRestoreBackend, @unchecked Se
 			logger.error("Couldn't find device with ECID \(deviceECID)")
 			throw AppleMobileDeviceRestoreError.deviceNotFound
 		}
-		
+		defer { VIReleaseDevice(device) }
+
 		let deviceState = VIMDGetState(device)
 		logger.info("Found device \(deviceECID) with state \(deviceState.rawValue)")
 		

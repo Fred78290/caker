@@ -54,7 +54,9 @@ AMRestorableDeviceRef _Nullable VIWaitForDeviceWithECID(uint64_t ecid, AMRestora
 
         os_log_debug(log, "Found target device %@ with state %@", @(ecid), RUCopyRestorableDeviceStateStringFromState(deviceState));
 
-        outDevice = device;
+        // Retain before signalling so the caller owns a +1 reference regardless
+        // of when the framework releases the device after the callback returns.
+        outDevice = (AMRestorableDeviceRef)CFRetain(device);
 
         dispatch_async(queue, ^{
             dispatch_semaphore_signal(sema);
@@ -120,6 +122,11 @@ void __VIInvalidateContext(VIWaitForDeviceContext context)
     // Called from inside dispatch_sync(queue, …) so we must unregister directly
     // rather than dispatching back to the same queue (which would deadlock).
     VIMDUnregisterForNotifications(context.clientID);
+}
+
+void VIReleaseDevice(AMRestorableDeviceRef _Nullable device)
+{
+    if (device) CFRelease(device);
 }
 
 NSString *RUCopyRestorableDeviceStateStringFromState(AMRestorableDeviceState state)
