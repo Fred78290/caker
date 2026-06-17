@@ -1482,6 +1482,28 @@
         }
       }
     },
+    "Cannot copy a VM that uses a physical block device as its root disk" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de copier une machine virtuelle qui utilise un périphérique de bloc physique comme disque racine"
+          }
+        }
+      }
+    },
+    "Cannot create a template from a VM that uses a physical block device as its root disk" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de créer un modèle à partir d'une machine virtuelle qui utilise un périphérique de bloc physique comme disque racine"
+          }
+        }
+      }
+    },
     "Cannot create ShellCaked for file URL: %@" : {
       "extractionState" : "manual",
       "localizations" : {
