@@ -9,7 +9,7 @@ import Synchronization
 //
 import Virtualization
 
-#if !APPSTORE
+#if !APPSTORE && arch(arm64)
 	import VirtualInstallSPI
 #endif
 

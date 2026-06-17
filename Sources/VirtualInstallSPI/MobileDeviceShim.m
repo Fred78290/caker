@@ -3,7 +3,7 @@
 // Ported from VirtualBuddy 2.2-b2 / UTM.
 // Not compiled in App Store builds (private SPI + non-sandboxed only).
 
-#ifndef APPSTORE
+#if !defined(APPSTORE) && defined(__arm64__)
 
 #import "MobileDeviceShim.h"
 #import <dlfcn.h>
