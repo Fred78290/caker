@@ -15,6 +15,10 @@ struct VMSettingsView: View {
 	@AppStorage("ClipboardRedirectionEnabled") var isClipboardRedirectionEnabled = false
 	@AppStorage("DebugVNCMessageEnabled") var debugVNCMessageEnabled: Bool = false
 
+	#if !APPSTORE
+	@AppStorage("CakerForceVirtualInstallBackend") var forceVirtualInstallBackend: Bool = false
+	#endif
+
 	var body: some View {
 		Form {
 			Toggle(
@@ -71,6 +75,19 @@ struct VMSettingsView: View {
 					isClipboardRedirectionEnabled = newValue
 				}
 			}
+
+			#if !APPSTORE
+			Toggle(
+				isOn: $forceVirtualInstallBackend,
+				label: {
+					Text("Force Virtual Install Backend")
+				}
+			).onChange(of: forceVirtualInstallBackend) { _, newValue in
+				if newValue {
+					forceVirtualInstallBackend = newValue
+				}
+			}
+			#endif
 
 			#if DEBUG
 				Toggle(

@@ -63,6 +63,18 @@ let package = Package(
 		//.package(url: "https://github.com/the-swift-collective/zlib", branch: "main")
 	],
 	targets: [
+		.target(
+			name: "VirtualInstallSPI",
+			dependencies: [],
+			path: "Sources/VirtualInstallSPI",
+			publicHeadersPath: "include",
+			cSettings: [
+				.headerSearchPath("include")
+			],
+			linkerSettings: [
+				.linkedFramework("Virtualization", .when(platforms: [.macOS]))
+			]
+		),
 		.target(name: "GRPCLib", dependencies: [
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "Dynamic", package: "Dynamic"),
@@ -77,6 +89,7 @@ let package = Package(
 		]),
 		.target(name: "CakedLib", dependencies: [
 			.target(name: "GRPCLib"),
+			.target(name: "VirtualInstallSPI"),
 			.product(name: "Algorithms", package: "swift-algorithms"),
 			.product(name: "Antlr4Static", package: "Antlr4"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),

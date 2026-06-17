@@ -586,6 +586,21 @@
 		9BEBD1802F9CC1D20005EC80 /* SetOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */; };
 		9BEBD1822F9CC3A50005EC80 /* GetOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */; };
 		9BEBD1842F9CF7000005EC80 /* CakedKeyConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */; };
+		9BF1A0093001000000AA0009 /* MobileDeviceShim.m in Sources */ = {isa = PBXBuildFile; fileRef = 9BF1A0013001000000AA0001 /* MobileDeviceShim.m */; };
+		9BF1A00A3001000000AA000A /* VIWaitForDevice.m in Sources */ = {isa = PBXBuildFile; fileRef = 9BF1A0023001000000AA0002 /* VIWaitForDevice.m */; };
+		9BF1A00B3001000000AA000B /* MobileDeviceEnums.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF1A0033001000000AA0003 /* MobileDeviceEnums.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9BF1A00C3001000000AA000C /* MobileDeviceSPI.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF1A0043001000000AA0004 /* MobileDeviceSPI.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9BF1A00D3001000000AA000D /* MobileDeviceShim.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF1A0053001000000AA0005 /* MobileDeviceShim.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9BF1A00E3001000000AA000E /* VIWaitForDevice.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF1A0063001000000AA0006 /* VIWaitForDevice.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9BF1A00F3001000000AA000F /* VirtualizationPrivate.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BF1A0073001000000AA0007 /* VirtualizationPrivate.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9BF1A0103001000000AA0010 /* AppleMobileDeviceRestoreBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF1A0163001000000AA0016 /* AppleMobileDeviceRestoreBackend.swift */; };
+		9BF1A0113001000000AA0011 /* DeviceRestoreBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF1A0173001000000AA0017 /* DeviceRestoreBackend.swift */; };
+		9BF1A0123001000000AA0012 /* DeviceRestoreDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF1A0183001000000AA0018 /* DeviceRestoreDriver.swift */; };
+		9BF1A0133001000000AA0013 /* DeviceRestoreState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF1A0193001000000AA0019 /* DeviceRestoreState.swift */; };
+		9BF1A0143001000000AA0014 /* RestoreLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF1A01A3001000000AA001A /* RestoreLog.swift */; };
+		9BF1A0153001000000AA0015 /* VirtualInstallECID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF1A01B3001000000AA001B /* VirtualInstallECID.swift */; };
+		9BF1A01C3001000000AA001C /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF1A0083001000000AA0008 /* libVirtualInstallSPI.a */; };
+		9BF2D5F42FE2D30F00218073 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF1A0083001000000AA0008 /* libVirtualInstallSPI.a */; };
 		9BF43A692F8A858800618B8C /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF43A682F8A858300618B8C /* Localization.swift */; };
 		9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */; };
 		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
@@ -684,6 +699,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = 9B464A532D5A3DA000164BF5;
 			remoteInfo = Caker;
+		};
+		9BF1A0263001000000AA0026 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9BF1A0203001000000AA0020;
+			remoteInfo = VirtualInstallSPI;
+		};
+		9BF2D5F52FE2D30F00218073 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9BF1A0203001000000AA0020;
+			remoteInfo = VirtualInstallSPI;
 		};
 		9BFE86A32F7E59B8005CC9B2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1250,6 +1279,20 @@
 		9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetOptions.swift; sourceTree = "<group>"; };
 		9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetOptions.swift; sourceTree = "<group>"; };
 		9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfig.swift; sourceTree = "<group>"; };
+		9BF1A0013001000000AA0001 /* MobileDeviceShim.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MobileDeviceShim.m; sourceTree = "<group>"; };
+		9BF1A0023001000000AA0002 /* VIWaitForDevice.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VIWaitForDevice.m; sourceTree = "<group>"; };
+		9BF1A0033001000000AA0003 /* MobileDeviceEnums.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MobileDeviceEnums.h; sourceTree = "<group>"; };
+		9BF1A0043001000000AA0004 /* MobileDeviceSPI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MobileDeviceSPI.h; sourceTree = "<group>"; };
+		9BF1A0053001000000AA0005 /* MobileDeviceShim.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MobileDeviceShim.h; sourceTree = "<group>"; };
+		9BF1A0063001000000AA0006 /* VIWaitForDevice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VIWaitForDevice.h; sourceTree = "<group>"; };
+		9BF1A0073001000000AA0007 /* VirtualizationPrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VirtualizationPrivate.h; sourceTree = "<group>"; };
+		9BF1A0083001000000AA0008 /* libVirtualInstallSPI.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libVirtualInstallSPI.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BF1A0163001000000AA0016 /* AppleMobileDeviceRestoreBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMobileDeviceRestoreBackend.swift; sourceTree = "<group>"; };
+		9BF1A0173001000000AA0017 /* DeviceRestoreBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRestoreBackend.swift; sourceTree = "<group>"; };
+		9BF1A0183001000000AA0018 /* DeviceRestoreDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRestoreDriver.swift; sourceTree = "<group>"; };
+		9BF1A0193001000000AA0019 /* DeviceRestoreState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRestoreState.swift; sourceTree = "<group>"; };
+		9BF1A01A3001000000AA001A /* RestoreLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestoreLog.swift; sourceTree = "<group>"; };
+		9BF1A01B3001000000AA001B /* VirtualInstallECID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualInstallECID.swift; sourceTree = "<group>"; };
 		9BF43A682F8A858300618B8C /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
@@ -1347,6 +1390,7 @@
 			isa = PBXFrameworksBuildPhase;
 			files = (
 				9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */,
+				9BF2D5F42FE2D30F00218073 /* libVirtualInstallSPI.a in Frameworks */,
 				9B75308E2E65E557000736B3 /* RoyalVNCKitStatic in Frameworks */,
 				9B21ABC72DF4A243000B3B40 /* libCakedLib.a in Frameworks */,
 				9B13C3432F0AD87C0099F00F /* CakeAgentLib in Frameworks */,
@@ -1519,6 +1563,12 @@
 				9BEBC7E32DF440BF0092B196 /* NIOCore in Frameworks */,
 				9BEBC7BD2DF440BF0092B196 /* AsyncAlgorithms in Frameworks */,
 				9BB149282EC876640094D950 /* ContainerizationExtras in Frameworks */,
+				9BF1A01C3001000000AA001C /* libVirtualInstallSPI.a in Frameworks */,
+			);
+		};
+		9BF1A01F3001000000AA001F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
 			);
 		};
 		9BFE869A2F7E592B005CC9B2 /* Frameworks */ = {
@@ -1869,6 +1919,7 @@
 				9B96B00F2F4B68380069C970 /* CakerTests.xctest */,
 				9BFE869D2F7E592B005CC9B2 /* caked.bundle */,
 				9BD69DF02FCEE8F1005E24AF /* cakectl.bundle */,
+				9BF1A0083001000000AA0008 /* libVirtualInstallSPI.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1955,6 +2006,7 @@
 				9BEBC7692DF440720092B196 /* cakedlib */,
 				9B2BFAB92DFED25E000045C3 /* caker */,
 				9B464ADB2D5A3E0300164BF5 /* grpc */,
+				9BF1A0243001000000AA0024 /* VirtualInstallSPI */,
 			);
 			name = Sources;
 			path = ../Sources;
@@ -2442,6 +2494,7 @@
 				9BEBC7522DF440720092B196 /* VMNet */,
 				9BEBC73C2DF440720092B196 /* VMRunService */,
 				9B5A377E2ED4BDA8007B59B0 /* VNCLib */,
+				9BF1A02A3001000000AA002A /* VirtualInstall */,
 			);
 			path = cakedlib;
 			sourceTree = "<group>";
@@ -2454,6 +2507,41 @@
 				9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */,
 			);
 			path = Commands;
+			sourceTree = "<group>";
+		};
+		9BF1A0243001000000AA0024 /* VirtualInstallSPI */ = {
+			isa = PBXGroup;
+			children = (
+				9BF1A0013001000000AA0001 /* MobileDeviceShim.m */,
+				9BF1A0023001000000AA0002 /* VIWaitForDevice.m */,
+				9BF1A0253001000000AA0025 /* include */,
+			);
+			path = VirtualInstallSPI;
+			sourceTree = "<group>";
+		};
+		9BF1A0253001000000AA0025 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				9BF1A0033001000000AA0003 /* MobileDeviceEnums.h */,
+				9BF1A0043001000000AA0004 /* MobileDeviceSPI.h */,
+				9BF1A0053001000000AA0005 /* MobileDeviceShim.h */,
+				9BF1A0063001000000AA0006 /* VIWaitForDevice.h */,
+				9BF1A0073001000000AA0007 /* VirtualizationPrivate.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		9BF1A02A3001000000AA002A /* VirtualInstall */ = {
+			isa = PBXGroup;
+			children = (
+				9BF1A0163001000000AA0016 /* AppleMobileDeviceRestoreBackend.swift */,
+				9BF1A0173001000000AA0017 /* DeviceRestoreBackend.swift */,
+				9BF1A0183001000000AA0018 /* DeviceRestoreDriver.swift */,
+				9BF1A0193001000000AA0019 /* DeviceRestoreState.swift */,
+				9BF1A01A3001000000AA001A /* RestoreLog.swift */,
+				9BF1A01B3001000000AA001B /* VirtualInstallECID.swift */,
+			);
+			path = VirtualInstall;
 			sourceTree = "<group>";
 		};
 		9BFE81A62EC8F8C500767615 /* OCI */ = {
@@ -2539,6 +2627,16 @@
 			files = (
 			);
 		};
+		9BF1A01D3001000000AA001D /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			files = (
+				9BF1A00B3001000000AA000B /* MobileDeviceEnums.h in Headers */,
+				9BF1A00C3001000000AA000C /* MobileDeviceSPI.h in Headers */,
+				9BF1A00D3001000000AA000D /* MobileDeviceShim.h in Headers */,
+				9BF1A00E3001000000AA000E /* VIWaitForDevice.h in Headers */,
+				9BF1A00F3001000000AA000F /* VirtualizationPrivate.h in Headers */,
+			);
+		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -2558,6 +2656,7 @@
 			dependencies = (
 				9BD69DF92FCEE92E005E24AF /* PBXTargetDependency */,
 				9BFE87172F7E61F1005CC9B2 /* PBXTargetDependency */,
+				9BF2D5F62FE2D30F00218073 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				9B464A562D5A3DA000164BF5 /* Caker */,
@@ -2774,6 +2873,7 @@
 			);
 			dependencies = (
 				9B2BFA8A2DFED1FE000045C3 /* PBXTargetDependency */,
+				9BF1A0273001000000AA0027 /* PBXTargetDependency */,
 			);
 			name = CakedLib;
 			packageProductDependencies = (
@@ -2825,6 +2925,21 @@
 			);
 			productName = CakedLib;
 			productReference = 9BEBC7072DF440560092B196 /* libCakedLib.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		9BF1A0203001000000AA0020 /* VirtualInstallSPI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9BF1A0233001000000AA0023 /* Build configuration list for PBXNativeTarget "VirtualInstallSPI" */;
+			buildPhases = (
+				9BF1A01D3001000000AA001D /* Headers */,
+				9BF1A01E3001000000AA001E /* Sources */,
+				9BF1A01F3001000000AA001F /* Frameworks */,
+			);
+			buildRules = (
+			);
+			name = VirtualInstallSPI;
+			productName = VirtualInstallSPI;
+			productReference = 9BF1A0083001000000AA0008 /* libVirtualInstallSPI.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 		9BFE869C2F7E592B005CC9B2 /* caked.bundle */ = {
@@ -2884,6 +2999,9 @@
 					};
 					9BEBC7062DF440560092B196 = {
 						CreatedOnToolsVersion = 16.4;
+					};
+					9BF1A0203001000000AA0020 = {
+						CreatedOnToolsVersion = 26.5;
 					};
 					9BFE869C2F7E592B005CC9B2 = {
 						CreatedOnToolsVersion = 26.4;
@@ -2957,6 +3075,7 @@
 				9B96B00E2F4B68380069C970 /* CakerTests */,
 				9BFE869C2F7E592B005CC9B2 /* caked.bundle */,
 				9BD69DEF2FCEE8F1005E24AF /* cakectl.bundle */,
+				9BF1A0203001000000AA0020 /* VirtualInstallSPI */,
 			);
 		};
 /* End PBXProject section */
@@ -3529,6 +3648,19 @@
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
 				9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */,
 				9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */,
+				9BF1A0103001000000AA0010 /* AppleMobileDeviceRestoreBackend.swift in Sources */,
+				9BF1A0113001000000AA0011 /* DeviceRestoreBackend.swift in Sources */,
+				9BF1A0123001000000AA0012 /* DeviceRestoreDriver.swift in Sources */,
+				9BF1A0133001000000AA0013 /* DeviceRestoreState.swift in Sources */,
+				9BF1A0143001000000AA0014 /* RestoreLog.swift in Sources */,
+				9BF1A0153001000000AA0015 /* VirtualInstallECID.swift in Sources */,
+			);
+		};
+		9BF1A01E3001000000AA001E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				9BF1A0093001000000AA0009 /* MobileDeviceShim.m in Sources */,
+				9BF1A00A3001000000AA000A /* VIWaitForDevice.m in Sources */,
 			);
 		};
 		9BFE86992F7E592B005CC9B2 /* Sources */ = {
@@ -3598,6 +3730,16 @@
 			isa = PBXTargetDependency;
 			target = 9B464A532D5A3DA000164BF5 /* Caker */;
 			targetProxy = 9BDD95642DB8D43E00E46244 /* PBXContainerItemProxy */;
+		};
+		9BF1A0273001000000AA0027 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9BF1A0203001000000AA0020 /* VirtualInstallSPI */;
+			targetProxy = 9BF1A0263001000000AA0026 /* PBXContainerItemProxy */;
+		};
+		9BF2D5F62FE2D30F00218073 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9BF1A0203001000000AA0020 /* VirtualInstallSPI */;
+			targetProxy = 9BF2D5F52FE2D30F00218073 /* PBXContainerItemProxy */;
 		};
 		9BFE86A42F7E59B8005CC9B2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3793,6 +3935,7 @@
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = Caker;
 				REGISTER_APP_GROUPS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
@@ -3840,6 +3983,7 @@
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = Caker;
 				REGISTER_APP_GROUPS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -3865,6 +4009,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -3890,6 +4035,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -4058,6 +4204,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -4081,6 +4228,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -4093,6 +4241,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -4105,7 +4254,34 @@
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9BF1A0213001000000AA0021 /* Debug configuration for PBXNativeTarget "VirtualInstallSPI" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		9BF1A0223001000000AA0022 /* Release configuration for PBXNativeTarget "VirtualInstallSPI" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
@@ -4241,6 +4417,14 @@
 			buildConfigurations = (
 				9BEBC70E2DF440560092B196 /* Debug configuration for PBXNativeTarget "CakedLib" */,
 				9BEBC70F2DF440560092B196 /* Release configuration for PBXNativeTarget "CakedLib" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		9BF1A0233001000000AA0023 /* Build configuration list for PBXNativeTarget "VirtualInstallSPI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9BF1A0213001000000AA0021 /* Debug configuration for PBXNativeTarget "VirtualInstallSPI" */,
+				9BF1A0223001000000AA0022 /* Release configuration for PBXNativeTarget "VirtualInstallSPI" */,
 			);
 			defaultConfigurationName = Release;
 		};

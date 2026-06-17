@@ -1,4 +1,6 @@
+import CakeAgentLib
 import GRPCLib
+import Synchronization
 //
 //  IPSWInstaller.swift
 //  Caker
@@ -6,9 +8,18 @@ import GRPCLib
 //  Created by Frederic BOLTZ on 31/07/2025.
 //
 import Virtualization
-import CakeAgentLib
+
+#if !APPSTORE
+	import VirtualInstallSPI
+#endif
 
 #if arch(arm64)
+	#if !APPSTORE
+		private final class OutcomeBox: @unchecked Sendable {
+			var outcome: DeviceRestoreOutcome? = nil
+		}
+	#endif
+
 	public class IPSWInstaller: @unchecked Sendable {
 		private let virtualMachine: VZVirtualMachine
 		private let config: CakeConfig
@@ -84,6 +95,8 @@ import CakeAgentLib
 			self.virtualMachine = virtualMachine
 			self.queue = queue
 		}
+
+		// MARK: - VZMacOSInstaller path (default)
 
 		private func installIPSW(url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler, continuation: CheckedContinuation<Void, any Error>) {
 			#if DEBUG
@@ -174,17 +187,141 @@ import CakeAgentLib
 			#endif
 		}
 
+		// MARK: - AMRestore path (macOS 27+ guests, non-App Store only)
+
+		#if !APPSTORE
+			/// Returns true when the AMRestore backend should be used instead of
+			/// `VZMacOSInstaller`. Decision mirrors the UTM/VirtualBuddy logic:
+			/// forced via UserDefaults OR the restore image targets macOS 27+.
+			@available(macOS 26.0, *)
+			private func shouldUseVirtualInstallBackend(url: URL) async -> Bool {
+				if UserDefaults.standard.bool(forKey: "CakerForceVirtualInstallBackend") {
+					return true
+				}
+
+				guard let image = try? await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<VZMacOSRestoreImage, Error>) in
+						VZMacOSRestoreImage.load(from: url) { result in
+							continuation.resume(with: result)
+						}
+					})
+				else { return false }
+
+				return image.operatingSystemVersion.majorVersion >= 27
+			}
+
+			/// Installs macOS by booting the VM in DFU mode and driving the restore via
+			/// the private `AMRestorableDeviceRestore` SPI (AMRestore framework). This
+			/// works around the `VZMacOSInstaller` bug that prevents installing macOS 27
+			/// guests on macOS 26 hosts (utmapp/UTM#7746).
+			@available(macOS 26.0, *)
+			private func installViaAMRestore(url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+				guard let ecidData = config.ecid, let ecid = cakerECID(fromMachineIdentifierData: ecidData) else {
+					throw ServiceError(String(localized: "Cannot determine device ECID from VM configuration"))
+				}
+
+				progressHandler(.step(String(localized: "Starting VM in DFU mode for macOS 27 install...")))
+
+				if let queue {
+					try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+						queue.async {
+							// Start the VM in DFU mode so AMRestore can see it as a restorable device.
+							let startOptions = VZMacOSVirtualMachineStartOptions()
+							startOptions._forceDFU = true
+
+							self.virtualMachine.start(options: startOptions) { error in
+								if let error {
+									continuation.resume(throwing: error)
+								} else {
+									continuation.resume()
+								}
+							}
+						}
+					}
+				} else {
+					try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+						// Start the VM in DFU mode so AMRestore can see it as a restorable device.
+						let startOptions = VZMacOSVirtualMachineStartOptions()
+						startOptions._forceDFU = true
+
+						self.virtualMachine.start(options: startOptions) { error in
+							if let error {
+								continuation.resume(throwing: error)
+							} else {
+								continuation.resume()
+							}
+						}
+					}
+				}
+
+				progressHandler(.step(String(localized: "Installing macOS via AMRestore...")))
+
+				let backend = AppleMobileDeviceRestoreBackend()
+				let driver = try DeviceRestoreDriver(ecid: ecid, bundleURL: url, backend: backend)
+				let context = ProgressObserver.ProgressHandlerContext()
+
+				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+					DispatchQueue.global(qos: .userInitiated).async {
+						let didResume: Mutex<Bool> = .init(false)
+
+						@Sendable func resumeOnce(_ result: Result<Void, Error>) {
+							let shouldResume = didResume.withLock { resumed -> Bool in
+								guard !resumed else { return false }
+								resumed = true
+								return true
+							}
+
+							if shouldResume {
+								continuation.resume(with: result)
+							}
+						}
+
+						do {
+							try driver.start { state in
+								let fraction = state.overallProgress ?? state.progress
+
+								progressHandler(.progress(context, fraction))
+
+								switch state.outcome {
+								case .success:
+									resumeOnce(.success(()))
+								case .failure(let error):
+									resumeOnce(.failure(error ?? ServiceError(String(localized: "Failed to install IPSW"))))
+								case .none:
+									break
+								}
+							}
+						} catch {
+							resumeOnce(.failure(error))
+						}
+					}
+				}
+			}
+		#endif
+
+		// MARK: - Public entry point
+
 		public func installIPSW(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 			#if DEBUG
 				self.logger.trace("[\(Thread.currentThread.description)] entering installIPSW")
 			#endif
 
 			progressHandler(.step(String(localized: "Installing MacOS from IPSW...")))
-			if self.queue == nil {
-				try await self.installIPSWSync(url, progressHandler: progressHandler)
-			} else {
-				try await self.installIPSWAsync(url, progressHandler: progressHandler)
-			}
+
+			#if APPSTORE
+				if self.queue == nil {
+					try await self.installIPSWSync(url, progressHandler: progressHandler)
+				} else {
+					try await self.installIPSWAsync(url, progressHandler: progressHandler)
+				}
+			#else
+				if #available(macOS 26.0, *), await shouldUseVirtualInstallBackend(url: url) {
+					try await self.installViaAMRestore(url: url, progressHandler: progressHandler)
+				} else if self.queue == nil {
+					try await self.installIPSWSync(url, progressHandler: progressHandler)
+				} else {
+					try await self.installIPSWAsync(url, progressHandler: progressHandler)
+				}
+			#endif
 
 			#if DEBUG
 				self.logger.trace("[\(Thread.currentThread.description)] exiting installIPSW")
