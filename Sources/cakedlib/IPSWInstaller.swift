@@ -248,47 +248,67 @@ import Virtualization
 
 				try await startInDFUMode()
 
+				// Bail early if cancelled while the VM was starting.
+				try Task.checkCancellation()
+
 				progressHandler(.step(String(localized: "Installing macOS via AMRestore...")))
 
 				let backend = AppleMobileDeviceRestoreBackend()
 				let driver = try DeviceRestoreDriver(ecid: ecid, bundleURL: url, backend: backend)
 				let context = ProgressObserver.ProgressHandlerContext()
 
-				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-					DispatchQueue.global(qos: .userInitiated).async {
-						let didResume: Mutex<Bool> = .init(false)
+				// VIMDDeviceRestore is a blocking C call with no abort API.
+				// Stopping the VM removes the DFU device from AMRestore's view,
+				// which causes the blocking call to return with an error.
+				do {
+					try await withTaskCancellationHandler(
+						operation: {
+							try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+								DispatchQueue.global(qos: .userInitiated).async {
+									let didResume: Mutex<Bool> = .init(false)
 
-						@Sendable func resumeOnce(_ result: Result<Void, Error>) {
-							let shouldResume = didResume.withLock { resumed -> Bool in
-								guard !resumed else { return false }
-								resumed = true
-								return true
-							}
+									@Sendable func resumeOnce(_ result: Result<Void, Error>) {
+										let shouldResume = didResume.withLock { resumed -> Bool in
+											guard !resumed else { return false }
+											resumed = true
+											return true
+										}
 
-							if shouldResume {
-								continuation.resume(with: result)
-							}
-						}
+										if shouldResume {
+											continuation.resume(with: result)
+										}
+									}
 
-						do {
-							try driver.start { state in
-								let fraction = state.overallProgress ?? state.progress
+									do {
+										try driver.start { state in
+											let fraction = state.overallProgress ?? state.progress
 
-								progressHandler(.progress(context, fraction))
+											progressHandler(.progress(context, fraction))
 
-								switch state.outcome {
-								case .success:
-									resumeOnce(.success(()))
-								case .failure(let error):
-									resumeOnce(.failure(error ?? ServiceError(String(localized: "Failed to install IPSW"))))
-								case .none:
-									break
+											switch state.outcome {
+											case .success:
+												resumeOnce(.success(()))
+											case .failure(let error):
+												resumeOnce(.failure(error ?? ServiceError(String(localized: "Failed to install IPSW"))))
+											case .none:
+												break
+											}
+										}
+									} catch {
+										resumeOnce(.failure(error))
+									}
 								}
 							}
-						} catch {
-							resumeOnce(.failure(error))
+						},
+						onCancel: {
+							self.virtualMachine.stop { _ in }
 						}
+					)
+				} catch {
+					if Task.isCancelled {
+						throw CancellationError()
 					}
+					throw error
 				}
 			}
 		#endif
