@@ -1,5 +1,15 @@
 # Release Notes
 
+## 2026-06-17
+
+### Added
+- **macOS 27 (Golden Gate) installation backend** (non-App Store builds, Apple Silicon only): Caker now installs macOS 27 guests using the private `AppleMobileDeviceRestore` (AMRestore) framework instead of `VZMacOSInstaller`. This works around the `VZMacOSInstaller` regression that stalls at ~78% when installing macOS 27 guests on a macOS 26 host ([utmapp/UTM#7746](https://github.com/utmapp/UTM/issues/7746)). The new path is selected automatically whenever the IPSW targets macOS 27 or later, and can be force-enabled on any version with the `CakerForceVirtualInstallBackend` UserDefaults key.
+
+### Notes
+- AMRestore talks to system daemons (`com.apple.mobile.restored`) that are blocked by the App Sandbox, so this feature is intentionally absent from the App Store build.
+- Restore logs are written to `~/Library/Application Support/Caker/VirtualInstall/Logs/`.
+- See the [FAQ](faq) and [Troubleshooting](troubleshooting) pages for diagnosis guidance.
+
 ## 2026-05-29
 
 ### Added

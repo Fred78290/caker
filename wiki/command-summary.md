@@ -68,6 +68,43 @@ This page summarizes the `ArgumentParser` commands implemented in:
 
 - `certificate` — Manage certificate to authenticate API rest.
 
+## macOS IPSW installation
+
+`build` accepts an `.ipsw` file as the image source on Apple Silicon hosts. The installer back-end is chosen automatically based on the IPSW content.
+
+### Back-end selection
+
+| Guest macOS version | Back-end used | Availability |
+| --- | --- | --- |
+| macOS 26 or older | `VZMacOSInstaller` (system framework) | All builds |
+| macOS 27 (Golden Gate) or newer | AMRestore (`AppleMobileDeviceRestore` SPI) | Non-App Store builds only |
+
+The AMRestore path can be force-enabled for any IPSW by setting the `CakerForceVirtualInstallBackend` UserDefaults key (useful for testing):
+
+```bash
+defaults write com.aldunelabs.Caker CakerForceVirtualInstallBackend -bool true
+```
+
+Remove the override when you are done:
+
+```bash
+defaults delete com.aldunelabs.Caker CakerForceVirtualInstallBackend
+```
+
+### How the AMRestore path works
+
+1. The VM is booted in **DFU mode** using the private `_forceDFU` property on `VZMacOSVirtualMachineStartOptions`.
+2. Caker waits for the VM to appear as a restorable AMRestore device (matched by its ECID — the unique chip identifier embedded in the machine identifier).
+3. The IPSW is handed to `AMRestorableDeviceRestore` which performs personalization against `gs.apple.com` and flashes the image. The VM shuts down on completion.
+
+Restore logs are written to `~/Library/Application Support/Caker/VirtualInstall/Logs/` (four files: `global.log`, `host.log`, `device.log`, `serial.log`).
+
+### Limitations
+
+- **Apple Silicon only** — AMRestore SPI does not exist on Intel Macs.
+- **Non-App Store builds only** — AMRestore communicates with `com.apple.mobile.restored` and other system daemons that are blocked by the App Sandbox.
+- Requires macOS 26 or later on the **host**.
+
 ## Notes
 
 - Some commands are internal or hidden in help output on `caked` (`vmrun`, some `networks` subcommands).

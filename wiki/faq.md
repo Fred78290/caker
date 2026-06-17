@@ -45,6 +45,47 @@ This typically happens when:
 
 Check the [Troubleshooting](troubleshooting) guide for solutions.
 
+## macOS Installation Questions
+
+### Why does macOS 27 installation fail at ~78% with `VZMacOSInstaller`?
+
+This is a known `VZMacOSInstaller` regression ([utmapp/UTM#7746](https://github.com/utmapp/UTM/issues/7746)) that affects macOS 27 guests installed on macOS 26 hosts. Non-App Store builds of Caker work around this automatically by switching to the `AppleMobileDeviceRestore` (AMRestore) backend whenever the IPSW targets macOS 27 or later.
+
+### How does Caker decide which installation backend to use?
+
+The choice is made at the start of each `build` (IPSW) install:
+
+1. If `CakerForceVirtualInstallBackend` is `true` in UserDefaults → AMRestore.
+2. If the IPSW's `operatingSystemVersion.majorVersion >= 27` → AMRestore.
+3. Otherwise → `VZMacOSInstaller`.
+
+### Why is macOS 27 installation not available in the App Store build?
+
+The AMRestore path uses the private `AppleMobileDeviceRestore` framework and communicates with system daemons (`com.apple.mobile.restored`) that are blocked by the macOS App Sandbox. It is therefore compiled out of the App Store build using `#if !APPSTORE` guards.
+
+### How can I force the AMRestore backend for testing?
+
+```bash
+defaults write com.aldunelabs.Caker CakerForceVirtualInstallBackend -bool true
+```
+
+Remove it when you are done:
+
+```bash
+defaults delete com.aldunelabs.Caker CakerForceVirtualInstallBackend
+```
+
+### Where can I find the restore logs?
+
+AMRestore writes four log files to `~/Library/Application Support/Caker/VirtualInstall/Logs/`:
+
+| File | Content |
+| --- | --- |
+| `global.log` | Global AMRestore engine messages |
+| `host.log` | Host-side restore progress |
+| `device.log` | Messages from the virtual device |
+| `serial.log` | Serial output from the VM during restore |
+
 ## Usage Questions
 
 ### Can I run multiple VMs simultaneously?
