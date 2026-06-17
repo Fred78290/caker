@@ -124,7 +124,7 @@ public struct SpawnOptions: ParsableArguments {
 		autostart: Bool = false,
 		nested: Bool = false,
 		suspendable: Bool = false,
-		netIfnames: Bool = false,
+		netIfnames: Bool = true,
 		displayRefit: Bool = false,
 		forwardedPorts: [TunnelAttachement] = [],
 		mounts: DirectorySharingAttachments = [],

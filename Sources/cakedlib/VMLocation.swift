@@ -304,6 +304,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 	@discardableResult
 	public func templateTo(_ target: VMLocation) throws -> VMLocation {
+		guard DiskAttachement.isBlockingDevice(diskURL.path) == false else {
+			throw ServiceError(String(localized: "Cannot create a template from a VM that uses a physical block device as its root disk"))
+		}
 		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
 		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
 		try FileManager.default.copyItem(at: self.configURL, to: target.configURL)
@@ -327,6 +330,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 	@discardableResult
 	public func copyTo(_ target: VMLocation) throws -> VMLocation {
+		guard DiskAttachement.isBlockingDevice(diskURL.path) == false else {
+			throw ServiceError(String(localized: "Cannot copy a VM that uses a physical block device as its root disk"))
+		}
 		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
 		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
 		try FileManager.default.copyItem(at: self.configURL, to: target.configURL)
