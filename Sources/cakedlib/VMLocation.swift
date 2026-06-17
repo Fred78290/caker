@@ -132,7 +132,15 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public var diskURL: URL {
-		buildURL("disk.img")
+		guard let config = try? CakeConfig(location: self.rootURL), let rootDisk = config.rootDisk, rootDisk.isEmpty == false else {
+			return buildURL("disk.img")
+		}
+
+		let expanded = rootDisk.expandingTildeInPath
+		if expanded.hasPrefix("/") {
+			return URL(fileURLWithPath: expanded).resolvingSymlinksInPath().absoluteURL
+		}
+		return buildURL(expanded)
 	}
 
 	public var nvramURL: URL {
@@ -201,8 +209,16 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 	public func config() throws -> CakeConfig {
 		let config = try CakeConfig(location: self.rootURL)
+		let diskURL: URL
 
-		if let diskSize = try? self.diskURL.fileSize() {
+		if let rootDisk = config.rootDisk, rootDisk.isEmpty == false {
+			let expanded = rootDisk.expandingTildeInPath
+			diskURL = expanded.hasPrefix("/") ? URL(fileURLWithPath: expanded).resolvingSymlinksInPath() : buildURL(expanded)
+		} else {
+			diskURL = buildURL("disk.img")
+		}
+
+		if let diskSize = try? diskURL.fileSize() {
 			config.diskSize = diskSize
 		}
 
@@ -288,6 +304,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 	@discardableResult
 	public func templateTo(_ target: VMLocation) throws -> VMLocation {
+		guard DiskAttachement.isBlockingDevice(diskURL.path) == false else {
+			throw ServiceError(String(localized: "Cannot create a template from a VM that uses a physical block device as its root disk"))
+		}
 		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
 		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
 		try FileManager.default.copyItem(at: self.configURL, to: target.configURL)
@@ -311,6 +330,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 	@discardableResult
 	public func copyTo(_ target: VMLocation) throws -> VMLocation {
+		guard DiskAttachement.isBlockingDevice(diskURL.path) == false else {
+			throw ServiceError(String(localized: "Cannot copy a VM that uses a physical block device as its root disk"))
+		}
 		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
 		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
 		try FileManager.default.copyItem(at: self.configURL, to: target.configURL)
@@ -348,7 +370,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public func expandDisk(_ sizeGB: UInt64) throws {
-		let wantedFileSize = sizeGB * 1000 * 1000 * 1000
+		let wantedFileSize = sizeGB * GiB
 
 		if FileManager.default.fileExists(atPath: diskURL.path) {
 			try Shell.bash(to: "hdiutil", arguments: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path])
@@ -373,7 +395,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public func resizeDisk(_ sizeGB: UInt64) throws {
-		let wantedFileSize = sizeGB * 1000 * 1000 * 1000
+		let wantedFileSize = sizeGB * GiB
 
 		if !FileManager.default.fileExists(atPath: diskURL.path) {
 			FileManager.default.createFile(atPath: diskURL.path, contents: nil, attributes: nil)

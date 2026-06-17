@@ -318,6 +318,7 @@ struct VMWareImporter: Importer {
 		let diskAttachements = try importDiskAttachements(diskAttachments: diskAttachments, from: vmxMap.baseURL, to: location)
 		let config = CakeConfig(
 			location: location.rootURL,
+			rootDisk: nil,
 			os: .linux,
 			autostart: false,
 			configuredUser: userName,

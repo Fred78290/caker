@@ -89,6 +89,8 @@ struct Root: ParsableCommand {
 				Rename.self,
 				Service.self,
 				Sh.self,
+				Spawn.self,
+				SpawnAndStart.self,
 				Start.self,
 				Stop.self,
 				Suspend.self,

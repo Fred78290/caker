@@ -24,6 +24,12 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	
 	var instanceID: String
 	
+	var rootDisk: String? = nil {
+		didSet {
+			changedFields?.insert(\.rootDisk)
+		}
+	}
+
 	var dhcpClientID: String? = nil {
 		didSet {
 			changedFields?.insert(\.dhcpClientID)
@@ -381,7 +387,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.changedFields?.contains(\.clearPassword) == true ? self.clearPassword : nil
 	}
 
-	var diskSize: UInt64 = 20 * GoB {
+	var diskSize: UInt64 = 20 * GiB {
 		didSet {
 			changedFields?.insert(\.diskSize)
 		}
@@ -396,19 +402,28 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		}
 	}
 
-	var diskSizeInGobIfChanged: UInt64? {
-		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GoB : nil
-	}
-
-	var diskSizeIfChanged: UInt64? {
-		self.changedFields?.contains(\.diskSize) == true ? self.diskSize : nil
+	var diskSizeInGiB: UInt64 {
+		get {
+			self.diskSize / GiB
+		}
+		set {
+			self.diskSize = newValue * GiB
+		}
 	}
 
 	var diskSizeInGoBIfChanged: UInt64? {
 		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GoB : nil
 	}
 
-	var ifname: Bool = false {
+	var diskSizeInGiBIfChanged: UInt64? {
+		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GiB : nil
+	}
+
+	var diskSizeIfChanged: UInt64? {
+		self.changedFields?.contains(\.diskSize) == true ? self.diskSize : nil
+	}
+
+	var ifname: Bool = true {
 		didSet {
 			changedFields?.insert(\.ifname)
 		}
@@ -490,7 +505,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.macAddress = String.empty
 		self.autostart = false
 		self.suspendable = false
-		self.ifname = false
+		self.ifname = true
 		self.dynamicPortForwarding = false
 		self.displayRefit = true
 		self.nestedVirtualization = true
@@ -505,7 +520,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.configuredGroup = "adm"
 		self.configuredGroups = ["sudo"]
 		self.clearPassword = true
-		self.diskSize = 20 * GoB
+		self.diskSize = 20 * GiB
 		self.autoinstall = false
 		self.firstLaunch = true
 		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
@@ -520,6 +535,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 
 	init(name: String, config: any VirtualMachineConfiguration) {
 		self.vmname = name
+		self.rootDisk = config.rootDisk
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.locationURL = config.locationURL
 		self.version = config.version
@@ -577,11 +593,11 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 
 		try self.saveLocally(config)
 
-		if oldDiskSize < self.diskSize && location.status == .stopped {
+		if self.rootDisk == nil && oldDiskSize < self.diskSize && location.status == .stopped {
 			if config.os == .linux {
-				try location.resizeDisk(self.diskSizeInGoB)
+				try location.resizeDisk(self.diskSizeInGiB)
 			} else {
-				try location.expandDisk(self.diskSizeInGoB)
+				try location.expandDisk(self.diskSizeInGiB)
 			}
 		}
 	}
@@ -650,6 +666,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	func buildOptions(image: String, imageSource: ImageSource?, sshAuthorizedKey: String?) -> BuildOptions {
 		.init(
 			name: self.vmname!,
+			rootDisk: self.rootDisk,
 			cpu: UInt16(self.cpuCount),
 			memory: self.memorySizeInMoB,
 			diskSize: self.diskSizeInGoB,

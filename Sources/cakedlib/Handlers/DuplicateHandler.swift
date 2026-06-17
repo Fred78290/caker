@@ -57,7 +57,7 @@ public struct DuplicateHandler {
 				config = try resetMacAddress(fromLocation)
 
 				// Rebuild a new cloud-init iso with new mac address and network mode
-				let cdrom = URL(fileURLWithPath: cloudInitIso, relativeTo: fromLocation.diskURL)
+				let cdrom = URL(fileURLWithPath: cloudInitIso, relativeTo: fromLocation.configURL)
 				let cloudInit = try CloudInit(
 					plateform: config.configuredPlatform,
 					userName: config.configuredUser,

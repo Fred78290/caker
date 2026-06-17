@@ -215,13 +215,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 
 		var sigcaught: [Int32: DispatchSourceSignal] = [:]
 		var devices: [VZStorageDeviceConfiguration] = [
-			VZVirtioBlockDeviceConfiguration(
-				attachment: try VZDiskImageStorageDeviceAttachment(
-					url: location.diskURL,
-					readOnly: false,
-					cachingMode: config.os == .linux ? .cached : .automatic,
-					synchronizationMode: .full
-				))
+			try config.rootDiskAttachment(rootDiskURL: location.diskURL)
 		]
 
 		let networkDevices = try networks.map {
@@ -263,7 +257,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		configuration.consoleDevices.append(spiceAgentConsoleDevice)
 
 		if config.os == .linux {
-			let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.diskURL).absoluteURL
+			let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.configURL).absoluteURL
 
 			if FileManager.default.fileExists(atPath: cdromURL.path) {
 				devices.append(try Self.createCloudInitDrive(cdromURL: cdromURL))

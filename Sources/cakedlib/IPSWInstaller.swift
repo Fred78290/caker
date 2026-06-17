@@ -25,15 +25,8 @@ import CakeAgentLib
 			let plateform = try config.platform(nvramURL: location.nvramURL, needsNestedVirtualization: config.nested)
 			let soundDeviceConfiguration = VZVirtioSoundDeviceConfiguration()
 			let memoryBallons = VZVirtioTraditionalMemoryBalloonDeviceConfiguration()
-
 			var devices: [VZStorageDeviceConfiguration] = [
-				VZVirtioBlockDeviceConfiguration(
-					attachment: try VZDiskImageStorageDeviceAttachment(
-						url: location.diskURL,
-						readOnly: false,
-						cachingMode: config.os == .linux ? .cached : .automatic,
-						synchronizationMode: .full
-					))
+				try config.rootDiskAttachment(rootDiskURL: location.diskURL)
 			]
 
 			let networkDevices = try networks.map {
@@ -71,7 +64,7 @@ import CakeAgentLib
 			configuration.consoleDevices.append(spiceAgentConsoleDevice)
 
 			if config.os == .linux {
-				let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.diskURL).absoluteURL
+				let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.configURL).absoluteURL
 
 				if FileManager.default.fileExists(atPath: cdromURL.path) {
 					devices.append(try VirtualMachineEnvironment.createCloudInitDrive(cdromURL: cdromURL))

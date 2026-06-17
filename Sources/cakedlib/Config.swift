@@ -3,6 +3,9 @@ import GRPCLib
 import NIOPortForwarding
 import Virtualization
 import CakeAgentLib
+import System
+import ArgumentParser
+import AppKit
 
 enum ConfigFileName: String {
 	case config = "config.json"
@@ -194,6 +197,11 @@ public final class CakeConfig: VirtualMachineConfiguration {
 
 			return .qcow2
 		}
+	}
+
+	public var rootDisk: String? {
+		set { self.cake["rootDisk"] = newValue }
+		get { self.cake["rootDisk"] as? String }
 	}
 
 	public var osName: String? {
@@ -401,6 +409,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 
 	public init(
 		location: URL,
+		rootDisk: String?,
 		os: VirtualizedOS,
 		autostart: Bool,
 		configuredUser: String,
@@ -440,6 +449,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		self.display = screenSize
 		self.vncPassword = UUID().uuidString
 		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
+		self.rootDisk = rootDisk
 	}
 
 	public init(location: URL, configuredUser: String, configuredPassword: String, configuredGroup: String, clearPassword: Bool) throws {
@@ -496,6 +506,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		self.vncPassword = UUID().uuidString
 		self.display = ViewSize(width: options.screenSize.width, height: options.screenSize.height)
 		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
+		self.rootDisk = options.root
 
 		if self.os == .darwin {
 			self.cpuCount = max(options.cpu, self.cpuCountMin)
@@ -768,6 +779,73 @@ extension VirtualMachineConfiguration {
 			Logger(self).warn("Network interface \(inf.network) not found")
 
 			return nil
+		}
+	}
+
+	public func rootDiskAttachment(rootDiskURL: URL) throws -> VZStorageDeviceConfiguration {
+		let diskPath = rootDiskURL.path(percentEncoded: false)
+
+		if DiskAttachement.isBlockingDevice(diskPath) {
+			guard #available(macOS 14, *) else {
+				throw ValidationError(String(localized: "Attaching block devices requires macOS 14 or later"))
+			}
+
+			let mounted = Utilities.mountedVolumes(forDisk: diskPath)
+			if mounted.isEmpty == false {
+				guard try Utilities.confirmUnmount(diskPath: diskPath, volumes: mounted) else {
+					throw ValidationError(String(localized: "\(diskPath) has mounted volumes. Please unmount them before use."))
+				}
+
+				try Utilities.unmountDisk(diskPath)
+			}
+
+			var fd = open(diskPath, O_RDWR | O_EXLOCK | O_NONBLOCK)
+
+			if fd == -1 {
+				let details = Errno(rawValue: CInt(errno))
+
+				switch details.rawValue {
+				case EBUSY, EWOULDBLOCK:
+					guard Utilities.isRunningWithGUI else {
+						throw ValidationError(String(localized: "\(diskPath) already in use, try unmounting it"))
+					}
+
+					guard try Utilities.confirmUnmount(diskPath: diskPath, volumes: mounted) else {
+						throw ValidationError(String(localized: "\(diskPath) already in use, try unmounting it"))
+					}
+
+					try Utilities.unmountDisk(diskPath)
+
+					fd = open(diskPath, O_RDWR | O_EXLOCK | O_NONBLOCK)
+
+					guard fd != -1 else {
+						throw ValidationError(String(localized: "\(diskPath) already in use, try unmounting it"))
+					}
+				case EACCES:
+					throw ValidationError(String(localized: "\(diskPath) permission denied, consider changing the disk's owner using \"sudo chown $USER \(diskPath)\" and \"sudo dseditgroup -o edit -a $USER -t user operator\" or run as a superuser"))
+				default:
+					throw ValidationError(String(localized: "Unexpected error: \(details.description), \(diskPath)"))
+				}
+			}
+
+			let blockAttachment = try VZDiskBlockDeviceStorageDeviceAttachment(
+				fileHandle: FileHandle(fileDescriptor: fd, closeOnDealloc: true),
+				readOnly: false,
+				synchronizationMode: .full)
+
+			return VZVirtioBlockDeviceConfiguration(attachment: blockAttachment)
+		} else {
+			if FileManager.default.fileExists(atPath: diskPath) == false {
+				throw ValidationError(String(localized: "disk \(diskPath) does not exist"))
+			}
+
+			return VZVirtioBlockDeviceConfiguration(
+				attachment: try VZDiskImageStorageDeviceAttachment(
+					url: rootDiskURL,
+					readOnly: false,
+					cachingMode: self.os == .linux ? .cached : .automatic,
+					synchronizationMode: .full
+				))
 		}
 	}
 

@@ -1,6 +1,7 @@
 import ArgumentParser
 import CakeAgentLib
 import CakedLib
+import GRPC
 import GRPCLib
 import Logging
 import Security
@@ -30,9 +31,14 @@ func alertError(_ messageText: String, _ informativeText: String, completion: ((
 func alertError(_ error: Error, completion: ((NSApplication.ModalResponse) -> Void)? = nil) {
 	let informativeText: String
 
-	if let error = error as? ServiceError {
+	switch error {
+	case let error as ServiceError:
 		informativeText = error.description
-	} else {
+	case let error as ValidationError:
+		informativeText = error.description
+	case let error as GRPCStatus:
+		informativeText = error.description
+	default:
 		informativeText = error.localizedDescription
 	}
 

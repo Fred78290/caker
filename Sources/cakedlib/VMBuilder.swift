@@ -39,6 +39,7 @@ public struct VMBuilder {
 
 				config = CakeConfig(
 					location: location.rootURL,
+					rootDisk: options.root,
 					os: .darwin,
 					autostart: options.autostart,
 					configuredUser: options.user,
@@ -89,6 +90,7 @@ public struct VMBuilder {
 
 				config = CakeConfig(
 					location: location.rootURL,
+					rootDisk: options.root,
 					os: .linux,
 					autostart: options.autostart,
 					configuredUser: options.user,
@@ -115,10 +117,12 @@ public struct VMBuilder {
 
 		if let config = config {
 			// Create or resize disk
-			if config.os == .darwin {
-				try? location.expandDisk(options.diskSize)
-			} else {
-				try? location.resizeDisk(options.diskSize)
+			if config.rootDisk == nil {
+				if config.os == .darwin {
+					try? location.expandDisk(options.diskSize)
+				} else {
+					try? location.resizeDisk(options.diskSize)
+				}
 			}
 
 			config.networks = options.allNetworks
@@ -148,7 +152,7 @@ public struct VMBuilder {
 					netIfnames: options.netIfnames,
 					runMode: runMode)
 
-				try cloudInit.createDefaultCloudInit(config: config, name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: location.diskURL))
+				try cloudInit.createDefaultCloudInit(config: config, name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: location.configURL))
 			}
 
 			#if arch(arm64)
@@ -160,9 +164,6 @@ public struct VMBuilder {
 	}
 
 	public static func cloneImage(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
-		if FileManager.default.fileExists(atPath: location.diskURL.path) {
-			throw ServiceError(String(localized: "VM already exists"))
-		}
 		var options = options
 		var sourceImage = options.imageSource
 		let remoteDb = try Home(runMode: runMode).remoteDatabase()
@@ -229,6 +230,38 @@ public struct VMBuilder {
 
 		let imageIsFile = imageURL.isFileURL || imageURL.host == nil
 
+		if let root = options.root {
+			let root = root.expandingTildeInPath
+
+			if FileManager.default.fileExists(atPath: root) == false {
+				throw ServiceError(String(localized: "Root disk not found at expected location: \(root)"))
+			}
+
+			if sourceImage == .ipsw {
+				#if arch(arm64)
+				if imageIsFile == false {
+					options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
+				}
+				#else
+					throw ServiceError(String(localized: "IPSW is only available on arm64 architecture: \(options.image)"))
+				#endif
+			} else if sourceImage == .iso {
+				if imageIsFile == false {
+					options.image = try await CloudImageConverter.downloadISO(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
+				}
+			} else {
+				throw ServiceError(String(localized: "Using root disk support only ISO and IPSW images installation"))
+			}
+
+			return options
+		}
+
+		let diskURL = location.diskURL
+
+		if FileManager.default.fileExists(atPath: diskURL.path) {
+			throw ServiceError(String(localized: "VM already exists"))
+		}
+
 		if sourceImage == .raw {
 			let temporaryDiskURL: URL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("tmp-disk-\(UUID().uuidString)")
 
@@ -239,7 +272,7 @@ public struct VMBuilder {
 				imageURL = try await CloudImageConverter.downloadRemoteFile(fromURL: imageURL, toURL: temporaryDiskURL, runMode: runMode, progressHandler: progressHandler)
 			}
 
-			_ = try FileManager.default.replaceItemAt(location.diskURL, withItemAt: temporaryDiskURL)
+			_ = try FileManager.default.replaceItemAt(diskURL, withItemAt: temporaryDiskURL)
 			try? FileManager.default.removeItem(at: temporaryDiskURL)
 		} else if sourceImage == .template {
 			guard let templateName = imageURL.host else {
@@ -251,9 +284,9 @@ public struct VMBuilder {
 			try templateLocation.copyTo(location)
 		} else if sourceImage == .qcow2 {
 			if imageIsFile {
-				try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: location.diskURL, progressHandler: progressHandler)
+				try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: diskURL, progressHandler: progressHandler)
 			} else {
-				try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
+				try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: diskURL, runMode: runMode, progressHandler: progressHandler)
 			}
 		} else if sourceImage == .oci {
 			let ociImage = options.image.stringAfter(after: "//")
@@ -290,7 +323,7 @@ public struct VMBuilder {
 			let simpleStream = try await SimpleStreamProtocol(baseURL: remoteContainerServerURL, runMode: runMode)
 			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: String(aliasImage), runMode: runMode)
 
-			try await image.retrieveSimpleStreamImageAndConvert(to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
+			try await image.retrieveSimpleStreamImageAndConvert(to: diskURL, runMode: runMode, progressHandler: progressHandler)
 		} else {
 			throw ServiceError(String(localized: "unsupported image url: \(options.image)"))
 		}

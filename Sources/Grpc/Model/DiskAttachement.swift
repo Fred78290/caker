@@ -315,7 +315,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		return (diskPath, options.0)
 	}
 
-	static func isBlockingDevice(_ path: String) -> Bool {
+	static public func isBlockingDevice(_ path: String) -> Bool {
 		var st: stat = stat()
 
 		if stat(path, &st) < 0 {

@@ -143,7 +143,7 @@ struct VirtualMachineView: View {
 			}
 
 			Button("Stop") {
-				self.vm.stopFromUI(force: vm.status != .running)
+				self.vm.stopFromUI(force: vm.status != .running || NSEvent.modifierFlags.contains(.option))
 			}.disabled(self.vm.status.isStopped)
 
 			Button("Pause") {
@@ -181,7 +181,7 @@ struct VirtualMachineView: View {
 	func action() {
 		switch vm.status {
 		case .running, .starting, .stopping, .pausing:
-			self.vm.stopFromUI(force: vm.status != .running)
+			self.vm.stopFromUI(force: vm.status != .running || NSEvent.modifierFlags.contains(.option))
 		case .stopped, .paused:
 			self.vm.startFromUI()
 		default:

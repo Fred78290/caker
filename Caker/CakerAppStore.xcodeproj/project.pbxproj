@@ -257,6 +257,9 @@
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */; };
+		9B5A18492FDFFD55006FBD45 /* SpawnOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A18482FDFFD55006FBD45 /* SpawnOptions.swift */; };
+		9B5A184B2FDFFD62006FBD45 /* SpawnHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A184A2FDFFD62006FBD45 /* SpawnHandler.swift */; };
+		9B5A184D2FDFFD8B006FBD45 /* Spawn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A184C2FDFFD8B006FBD45 /* Spawn.swift */; };
 		9B5A37812ED4BDA8007B59B0 /* VNCKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */; };
 		9B5A37822ED4BDA8007B59B0 /* VNCProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */; };
 		9B5A37832ED4BDA8007B59B0 /* VNCConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37772ED4BDA8007B59B0 /* VNCConnection.swift */; };
@@ -947,6 +950,9 @@
 		9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswiftCompatibilitySpan.dylib; path = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib"; sourceTree = "<absolute>"; };
 		9B5663E82FCC2C4300BB6136 /* appstore.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = appstore.provisionprofile; sourceTree = "<group>"; };
 		9B57E9CF2E745FB600C5601D /* ViewSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSize.swift; sourceTree = "<group>"; };
+		9B5A18482FDFFD55006FBD45 /* SpawnOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpawnOptions.swift; sourceTree = "<group>"; };
+		9B5A184A2FDFFD62006FBD45 /* SpawnHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpawnHandler.swift; sourceTree = "<group>"; };
+		9B5A184C2FDFFD8B006FBD45 /* Spawn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spawn.swift; sourceTree = "<group>"; };
 		9B5A37752ED4BDA8007B59B0 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9B5A37772ED4BDA8007B59B0 /* VNCConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCConnection.swift; sourceTree = "<group>"; };
 		9B5A37782ED4BDA8007B59B0 /* VNCFramebuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFramebuffer.swift; sourceTree = "<group>"; };
@@ -2157,6 +2163,7 @@
 				9BB3BE152DB3F17500799A6A /* RemoteOptions.swift */,
 				9BB3BE162DB3F17500799A6A /* RenameOptions.swift */,
 				9BB3BE172DB3F17500799A6A /* ShellOptions.swift */,
+				9B5A18482FDFFD55006FBD45 /* SpawnOptions.swift */,
 				9BB3BE182DB3F17500799A6A /* StopOptions.swift */,
 				9BB3BE192DB3F17500799A6A /* TemplateOptions.swift */,
 				9BB3BE1A2DB3F17500799A6A /* UmountOptions.swift */,
@@ -2201,6 +2208,7 @@
 				9BBF7B362F3E058A00F37D2C /* Restart.swift */,
 				9BEBC6A92DF4400A0092B196 /* Service.swift */,
 				9BEBC6AA2DF4400A0092B196 /* Sh.swift */,
+				9B5A184C2FDFFD8B006FBD45 /* Spawn.swift */,
 				9BEBC6AB2DF4400A0092B196 /* Start.swift */,
 				9BEBC6AC2DF4400A0092B196 /* Stop.swift */,
 				9B1500BE2E6B07EC00B23147 /* Suspend.swift */,
@@ -2309,6 +2317,7 @@
 				9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */,
 				9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */,
 				9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */,
+				9B5A184A2FDFFD62006FBD45 /* SpawnHandler.swift */,
 				9BEBC7282DF440720092B196 /* StartHandler.swift */,
 				9BEBC7292DF440720092B196 /* StopHandler.swift */,
 				9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */,
@@ -3245,6 +3254,7 @@
 				9B464C652D5A45DF00164BF5 /* FileLock.swift in Sources */,
 				9B464C662D5A45DF00164BF5 /* Format.swift in Sources */,
 				9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */,
+				9B5A18492FDFFD55006FBD45 /* SpawnOptions.swift in Sources */,
 				9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */,
 				9B464C6D2D5A45EF00164BF5 /* service.pb.swift in Sources */,
 				9BC1F55B2F617B3400A83B33 /* CakedServiceClient.swift in Sources */,
@@ -3335,6 +3345,7 @@
 				9B1835EC2FB070D300D150FD /* LXDConsoleVGARunner.swift in Sources */,
 				9B1835ED2FB070D300D150FD /* LXDExecRunner.swift in Sources */,
 				9B1835EE2FB070D300D150FD /* LXDExecSessionStore.swift in Sources */,
+				9B5A184D2FDFFD8B006FBD45 /* Spawn.swift in Sources */,
 				9BEBC6DB2DF4400A0092B196 /* Purge.swift in Sources */,
 				9BEBC6DC2DF4400A0092B196 /* DeleteHandler.swift in Sources */,
 				9BEBC6DD2DF4400A0092B196 /* MountHandler.swift in Sources */,
@@ -3482,6 +3493,7 @@
 				9BEBC7A62DF440720092B196 /* StartHandler.swift in Sources */,
 				9B5C3F3C2F89666C005651BF /* Entitlement.swift in Sources */,
 				9B5F49C02F70032800AE1991 /* LabelView.swift in Sources */,
+				9B5A184B2FDFFD62006FBD45 /* SpawnHandler.swift in Sources */,
 				9BEBC7A72DF440720092B196 /* CommunicationHandlers.swift in Sources */,
 				9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */,
 				9B5F49C22F7006B100AE1991 /* VNCConnectionLogger.swift in Sources */,
@@ -3912,10 +3924,12 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/cakectl.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = LE7988HTRN;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readwrite;
 				ENABLE_HARDENED_RUNTIME = YES;

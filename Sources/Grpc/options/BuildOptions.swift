@@ -14,7 +14,7 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.long, .customShort("m")], help: ArgumentHelp(String(localized: "VM memory size in megabytes"), valueName: "MB"))
 	public var memory: UInt64 = 512
 
-	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp(String(localized: "Disk size in GB"), valueName: "GB"))
+	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp(String(localized: "Disk size in GiB"), valueName: "GiB"))
 	public var diskSize: UInt64 = 10
 
 	@Option(name: [.customLong("disk")], help: ArgumentHelp(String(localized: "Other attached disk"), valueName: "path"))
@@ -53,7 +53,6 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.long, .customShort("i")], help: ArgumentHelp(String(localized: "Optional ssh-authorized-key file path for linux VM"), valueName: "path"))
 	public var sshAuthorizedKey: String?
 
-	//@Option(help: ArgumentHelp(String(localized: "Optional cloud-init vendor-data file path for linux VM"), valueName: "path"))
 	@Option(help: .private)
 	public var vendorData: String?
 
@@ -82,7 +81,7 @@ public struct BuildOptions: ParsableArguments {
 	public var bridgedNetwork: Bool = false
 
 	@Option(name: [.customLong("net.ifnames")], help: ArgumentHelp(String(localized: "Use ifnames for network interfaces instead of eth0, eth1, etc. This is the default on most modern Linux distributions.")))
-	public var netIfnames: Bool = true
+	public var netIfnames: Bool = false
 
 	@Option(name: [.customLong("display")], help: ArgumentHelp(String(localized: "Set the VM screen size.")))
 	public var screenSize: ViewSize = ViewSize.standard
@@ -101,11 +100,15 @@ public struct BuildOptions: ParsableArguments {
 	@Argument(help: ArgumentHelp(String(localized: "create a linux VM using a cloud image"), discussion: String(localized: "cloudimage_help"), valueName: "url"))
 	public var image: String = defaultUbuntuImage
 
+	@Option(help: ArgumentHelp(String(localized: "Root disk"), discussion: String(localized: "This option allows specifying an external root disk path for the VM."), visibility: .hidden))
+	public var root: String? = nil
+
 	public init() {
 	}
 
 	public init(
 		name: String,
+		rootDisk: String? = nil,
 		cpu: UInt16 = 2,
 		memory: UInt64 = 2048,
 		diskSize: UInt64 = 10,
@@ -137,6 +140,7 @@ public struct BuildOptions: ParsableArguments {
 		dynamicPortForwarding: Bool = false
 	) {
 		self.name = name
+		self.root = rootDisk
 		self.cpu = cpu
 		self.memory = memory
 		self.diskSize = diskSize
@@ -300,7 +304,7 @@ public struct BuildOptions: ParsableArguments {
 		if request.hasIfnames {
 			self.netIfnames = request.ifnames
 		} else {
-			self.netIfnames = true
+			self.netIfnames = false
 		}
 
 		if request.hasSockets && request.sockets.isEmpty == false {
@@ -336,6 +340,12 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		self.imageSource = ImageSource(request.imageSource)
+		
+		if request.hasRootDisk, request.rootDisk.isEmpty == false {
+			self.root = request.rootDisk
+		} else {
+			self.root = nil
+		}
 	}
 
 	mutating public func validate(remote: Bool) throws {

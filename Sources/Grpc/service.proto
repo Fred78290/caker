@@ -319,6 +319,8 @@ message Caked {
 	// Mac-specific configuration
     optional bytes ecid          = 42;
     optional bytes hardwareModel = 43;
+  // Optional root disk path for the VM, if applicable
+    optional string rootDisk     = 44;
   }
 
   message ScreenSize {
@@ -383,6 +385,7 @@ message Caked {
       Configuration.ImageSource imageSource           = 28;
       bool                      autoinstall           = 29;
       optional bool             bridgedNetwork        = 30;
+      optional string           rootDisk              = 31;
     }
 
     message BuildRequest {

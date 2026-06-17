@@ -191,6 +191,17 @@
         }
       }
     },
+    "%@ already in use, try unmounting it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est déjà en cours d'utilisation, essayez de le démonter"
+          }
+        }
+      }
+    },
     "%@ does not exists" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -198,6 +209,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ n'existe pas"
+          }
+        }
+      }
+    },
+    "%@ has mounted volumes. Please unmount them before use." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ comporte des volumes montés. Veuillez les démonter avant utilisation."
+          }
+        }
+      }
+    },
+    "%@ has the following mounted volumes:\n%@\n\nDo you want to unmount them to use this disk with the virtual machine?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ comporte les volumes montés suivants :\n%2$@\n\nVoulez-vous les démonter pour utiliser ce disque avec la machine virtuelle ?"
           }
         }
       }
@@ -235,13 +268,13 @@
         }
       }
     },
-    "%@ permission denied, consider changing the disk's owner using \"sudo chown $USER %@\" or run as a superuser" : {
+    "%@ permission denied, consider changing the disk's owner using \"sudo chown $USER %@\" and \"sudo dseditgroup -o edit -a $USER -t user operator\" or run as a superuser" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Autorisation %@ refusée, envisagez de changer le propriétaire du disque en utilisant \"sudo chown $USER %@ »"
+            "value" : "%1$@autorisation refusée, envisagez de changer le propriétaire du disque en utilisant \"sudo chown $USER %2$@\" et \"sudo dseditgroup -o edit -a $USER -t user operator\" ou exécuter en tant que superutilisateur"
           }
         }
       }
@@ -1449,6 +1482,28 @@
         }
       }
     },
+    "Cannot copy a VM that uses a physical block device as its root disk" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de copier une machine virtuelle qui utilise un périphérique de bloc physique comme disque racine"
+          }
+        }
+      }
+    },
+    "Cannot create a template from a VM that uses a physical block device as its root disk" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de créer un modèle à partir d'une machine virtuelle qui utilise un périphérique de bloc physique comme disque racine"
+          }
+        }
+      }
+    },
     "Cannot create ShellCaked for file URL: %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1580,7 +1635,6 @@
       }
     },
     "Check for Updates…" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -2317,6 +2371,28 @@
         }
       }
     },
+    "Create a VM using an existing root disk (physical device or image file)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer une machine virtuelle à l'aide d'un disque racine existant (périphérique physique ou fichier image)"
+          }
+        }
+      }
+    },
+    "Create a VM using an existing root disk then start it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créez une machine virtuelle à l'aide d'un disque racine existant, puis démarrez-la"
+          }
+        }
+      }
+    },
     "Create autoinstall config" : {
       "localizations" : {
         "fr" : {
@@ -2807,6 +2883,17 @@
         }
       }
     },
+    "Disk has mounted volumes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le disque a des volumes montés"
+          }
+        }
+      }
+    },
     "Disk Image" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2859,13 +2946,25 @@
         }
       }
     },
-    "Disk size in GB" : {
+    "Disk size (GiB)" : {
+      "comment" : "A label displayed under the disk size slider.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taille du disque (GiB)"
+          }
+        }
+      }
+    },
+    "Disk size in GiB" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Taille du disque en GB"
+            "value" : "Taille du disque en GiB"
           }
         }
       }
@@ -3570,6 +3669,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Échec de la suspension de la VM %1$@, %2$@"
+          }
+        }
+      }
+    },
+    "Failed to unmount %@:%@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec du démontage %1$@:%2$@"
           }
         }
       }
@@ -7186,6 +7296,16 @@
         }
       }
     },
+    "Optional existing root disk (no copy)" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disque racine existant en option (pas de copie)"
+          }
+        }
+      }
+    },
     "Optional forwarded port for VM, syntax like docker" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7209,6 +7329,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Configuration du réseau optionnelle"
+          }
+        }
+      }
+    },
+    "Optional path to an existing NVRAM file (could be required for macOS VMs on Apple Silicon)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin d'accès facultatif à un fichier NVRAM existant (peut être requis pour les machines virtuelles macOS sur Apple Silicon)"
           }
         }
       }
@@ -7530,6 +7661,16 @@
         }
       }
     },
+    "path" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "chemin"
+          }
+        }
+      }
+    },
     "Path or URL to a user-data cloud-init configuration, or '-' for stdin" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7543,6 +7684,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chemin d'accès ou URL vers une configuration de cloud-init de données utilisateur, ou '-' pour stdin"
+          }
+        }
+      }
+    },
+    "Path to an existing root disk image or physical block device" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin d'accès à une image de disque racine existante ou à un périphérique de bloc physique"
+          }
+        }
+      }
+    },
+    "Path to disk (optional)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin d'accès au disque (facultatif)"
           }
         }
       }
@@ -8920,6 +9083,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fichier de certificat racine introuvable : %@"
+          }
+        }
+      }
+    },
+    "Root disk" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disque racine"
           }
         }
       }
@@ -11951,6 +12124,17 @@
         }
       }
     },
+    "Unmount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démonter"
+          }
+        }
+      }
+    },
     "Unmount a directory share from a VM" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12406,6 +12590,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Utilise le fichier caché %@…"
+          }
+        }
+      }
+    },
+    "Using root disk support only ISO and IPSW images installation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'utilisation d’un disque racine ne prend en charge que l'installation d'images ISO et IPSW"
           }
         }
       }

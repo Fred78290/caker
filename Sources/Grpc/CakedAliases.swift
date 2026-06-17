@@ -296,6 +296,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	}
 
 	public var locationURL: URL
+	public var rootDisk: String?
 	public var version: Int
 	public var os: VirtualizedOS
 	public var arch: Architecture
@@ -342,6 +343,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public init(_ from: VirtualMachineConfiguration) {
 		// Map fields directly when available on `from`. For fields not present, use safe defaults.
 		self.locationURL = from.locationURL
+		self.rootDisk = from.rootDisk
 		self.version = from.version
 		self.os = from.os
 		self.arch = from.arch
@@ -389,6 +391,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public init(_ from: Caked.Configuration) {
 		// Map fields directly when available on `from`. For fields not present, use safe defaults.
 		self.locationURL = URL(fileURLWithPath: "/dev/null")
+		self.rootDisk = from.hasRootDisk ? from.rootDisk : nil
 		self.version = Int(from.version)
 		self.os = .init(from.os)!
 		self.arch = .init(from.arch)!
@@ -576,6 +579,10 @@ extension Caked_CommonBuildRequest {
 
 		if let imageSource = buildOptions.imageSource {
 			self.imageSource = .init(imageSource)
+		}
+
+		if let root = buildOptions.root {
+			self.rootDisk = root
 		}
 	}
 }
