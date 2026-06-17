@@ -257,14 +257,16 @@ import Virtualization
 				let driver = try DeviceRestoreDriver(ecid: ecid, bundleURL: url, backend: backend)
 				let context = ProgressObserver.ProgressHandlerContext()
 
-				// VIMDDeviceRestore is a blocking C call with no abort API.
+				// VIMDDeviceRestore is a blocking C call with no abort API that can
+				// run for many minutes. A dedicated thread avoids tying up a thread
+				// from GCD's global pool for the entire restore duration.
 				// Stopping the VM removes the DFU device from AMRestore's view,
 				// which causes the blocking call to return with an error.
 				do {
 					try await withTaskCancellationHandler(
 						operation: {
 							try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-								DispatchQueue.global(qos: .userInitiated).async {
+								let thread = Thread {
 									let didResume: Mutex<Bool> = .init(false)
 
 									@Sendable func resumeOnce(_ result: Result<Void, Error>) {
@@ -298,6 +300,9 @@ import Virtualization
 										resumeOnce(.failure(error))
 									}
 								}
+								thread.name = "com.aldunelabs.caker.amrestore"
+								thread.qualityOfService = .userInitiated
+								thread.start()
 							}
 						},
 						onCancel: {
