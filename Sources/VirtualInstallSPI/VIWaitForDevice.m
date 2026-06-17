@@ -30,14 +30,15 @@ AMRestorableDeviceRef _Nullable VIWaitForDeviceWithECID(uint64_t ecid, AMRestora
     os_log_debug(log, "BEGIN wait for device %@", @(ecid));
 
     __block AMRestorableDeviceRef outDevice = NULL;
-    __block BOOL finalized = NO;
+    // Guarded by an atomic compare-and-swap so concurrent AMRestore callbacks
+    // on multiple threads can't both claim the "found" slot.
+    __block volatile int32_t finalized = 0;
 
     NSString *label = [NSString stringWithFormat:@"WaitForDevice(%@)", @(ecid)];
     dispatch_queue_t queue = dispatch_queue_create(label.UTF8String, dispatch_queue_attr_make_with_qos_class(NULL, QOS_CLASS_USER_INTERACTIVE, 0));
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
 
     VIWaitForDeviceBlock callback = ^(AMRestorableDeviceRef device, AMRestorableClientID cid) {
-        if (finalized) return;
         if (VIMDGetECID(device) != ecid) return;
 
         AMRestorableDeviceState deviceState = VIMDGetState(device);
@@ -46,7 +47,10 @@ AMRestorableDeviceRef _Nullable VIWaitForDeviceWithECID(uint64_t ecid, AMRestora
             return;
         }
 
-        finalized = YES;
+        // Atomically claim the "found" slot. Bail if another concurrent callback
+        // already succeeded so outDevice is written exactly once and the
+        // semaphore is signalled exactly once.
+        if (!__sync_bool_compare_and_swap(&finalized, 0, 1)) return;
 
         os_log_debug(log, "Found target device %@ with state %@", @(ecid), RUCopyRestorableDeviceStateStringFromState(deviceState));
 
@@ -64,13 +68,16 @@ AMRestorableDeviceRef _Nullable VIWaitForDeviceWithECID(uint64_t ecid, AMRestora
     };
 
     dispatch_async(queue, ^{
-        CFErrorRef error;
+        // Initialize to NULL so the log call below is safe even if the
+        // framework doesn't write to `error` on failure.
+        CFErrorRef error = NULL;
         context.clientID = VIMDRegisterForNotifications(__VIWaitForDeviceEventCallback, (void *)&context, &error);
 
         if (context.clientID == VIMDInvalidClientID()) {
             os_log_fault(log, "Error registering for restorable device notifications. %{public}@", error);
             dispatch_semaphore_signal(sema);
         }
+        if (error) CFRelease(error);
     });
 
     intptr_t result = dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeoutInMilliseconds * NSEC_PER_MSEC)));
@@ -81,7 +88,11 @@ AMRestorableDeviceRef _Nullable VIWaitForDeviceWithECID(uint64_t ecid, AMRestora
         os_log_error(log, "END wait for device %@: timed out after %dms", @(ecid), timeoutInMilliseconds);
     }
 
-    dispatch_async(queue, ^{
+    // Unregister synchronously before returning. This guarantees that
+    // VIMDUnregisterForNotifications completes — and the context pointer can
+    // no longer be delivered to __VIWaitForDeviceEventCallback — before the
+    // __block `context` storage is released, preventing a use-after-free.
+    dispatch_sync(queue, ^{
         __VIInvalidateContext(context);
     });
 
@@ -106,9 +117,9 @@ void __VIInvalidateContext(VIWaitForDeviceContext context)
 {
     if (context.clientID == VIMDInvalidClientID()) return;
 
-    dispatch_async(context.queue, ^{
-        VIMDUnregisterForNotifications(context.clientID);
-    });
+    // Called from inside dispatch_sync(queue, …) so we must unregister directly
+    // rather than dispatching back to the same queue (which would deadlock).
+    VIMDUnregisterForNotifications(context.clientID);
 }
 
 NSString *RUCopyRestorableDeviceStateStringFromState(AMRestorableDeviceState state)

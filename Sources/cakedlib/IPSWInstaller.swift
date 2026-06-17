@@ -209,6 +209,31 @@ import Virtualization
 				return image.operatingSystemVersion.majorVersion >= 27
 			}
 
+			/// Boots the VM into DFU mode so the AMRestore framework can see it as a
+			/// restorable device.
+			@available(macOS 26.0, *)
+			private func startInDFUMode() async throws {
+				let startOptions = VZMacOSVirtualMachineStartOptions()
+				startOptions._forceDFU = true
+
+				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+					let doStart = {
+						self.virtualMachine.start(options: startOptions) { error in
+							if let error {
+								continuation.resume(throwing: error)
+							} else {
+								continuation.resume()
+							}
+						}
+					}
+					if let queue {
+						queue.async { doStart() }
+					} else {
+						doStart()
+					}
+				}
+			}
+
 			/// Installs macOS by booting the VM in DFU mode and driving the restore via
 			/// the private `AMRestorableDeviceRestore` SPI (AMRestore framework). This
 			/// works around the `VZMacOSInstaller` bug that prevents installing macOS 27
@@ -221,37 +246,7 @@ import Virtualization
 
 				progressHandler(.step(String(localized: "Starting VM in DFU mode for macOS 27 install...")))
 
-				if let queue {
-					try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-						queue.async {
-							// Start the VM in DFU mode so AMRestore can see it as a restorable device.
-							let startOptions = VZMacOSVirtualMachineStartOptions()
-							startOptions._forceDFU = true
-
-							self.virtualMachine.start(options: startOptions) { error in
-								if let error {
-									continuation.resume(throwing: error)
-								} else {
-									continuation.resume()
-								}
-							}
-						}
-					}
-				} else {
-					try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-						// Start the VM in DFU mode so AMRestore can see it as a restorable device.
-						let startOptions = VZMacOSVirtualMachineStartOptions()
-						startOptions._forceDFU = true
-
-						self.virtualMachine.start(options: startOptions) { error in
-							if let error {
-								continuation.resume(throwing: error)
-							} else {
-								continuation.resume()
-							}
-						}
-					}
-				}
+				try await startInDFUMode()
 
 				progressHandler(.step(String(localized: "Installing macOS via AMRestore...")))
 
@@ -305,7 +300,7 @@ import Virtualization
 				self.logger.trace("[\(Thread.currentThread.description)] entering installIPSW")
 			#endif
 
-			progressHandler(.step(String(localized: "Installing MacOS from IPSW...")))
+			progressHandler(.step(String(localized: "Installing macOS from IPSW...")))
 
 			#if APPSTORE
 				if self.queue == nil {
@@ -327,7 +322,7 @@ import Virtualization
 				self.logger.trace("[\(Thread.currentThread.description)] exiting installIPSW")
 			#endif
 
-			progressHandler(.step(String(localized: "Install MacOS from IPSW done...")))
+			progressHandler(.step(String(localized: "Install macOS from IPSW done...")))
 		}
 	}
 #endif

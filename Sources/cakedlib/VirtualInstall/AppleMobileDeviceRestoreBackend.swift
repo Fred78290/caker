@@ -21,6 +21,11 @@ final class AppleMobileDeviceRestoreBackend: DeviceRestoreBackend, @unchecked Se
     private var progressHandler: DeviceRestoreProgressClosure?
 
 	func restore(deviceECID: ECID, options: RestoreOptionsDictionary, loggers: DeviceRestoreLoggers, progress: @escaping DeviceRestoreProgressClosure) throws {
+		guard VIMDAvailable() else {
+			logger.error("MobileDevice.framework is not available — AMRestore backend cannot be used")
+			throw AppleMobileDeviceRestoreError.frameworkUnavailable
+		}
+
 		guard let device = VIWaitForDeviceWithECID(deviceECID, .unknown, 5000) else {
 			logger.error("Couldn't find device with ECID \(deviceECID)")
 			throw AppleMobileDeviceRestoreError.deviceNotFound
@@ -61,9 +66,11 @@ final class AppleMobileDeviceRestoreBackend: DeviceRestoreBackend, @unchecked Se
 		let refCon = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
 		
 		VIMDDeviceRestore(device, options as CFDictionary, { _, info, refCon in
-			guard let refCon else { return }
+			guard let refCon, let info else { return }
 			let backend = unsafeBitCast(refCon, to: AppleMobileDeviceRestoreBackend.self)
-			backend.progressHandler?(info as NSDictionary as! [AnyHashable: Any])
+			if let dict = (info as NSDictionary) as? [AnyHashable: Any] {
+				backend.progressHandler?(dict)
+			}
 		}, refCon)
 	}
 }
@@ -71,12 +78,17 @@ final class AppleMobileDeviceRestoreBackend: DeviceRestoreBackend, @unchecked Se
 /// Errors surfaced by `AppleMobileDeviceRestoreBackend`.
 enum AppleMobileDeviceRestoreError: LocalizedError {
     case deviceNotFound
+    case frameworkUnavailable
 
     var errorDescription: String? {
         switch self {
         case .deviceNotFound:
             return NSLocalizedString(
                 "Couldn't find a restorable device to install onto. Make sure the virtual machine is running in DFU mode.",
+                comment: "AppleMobileDeviceRestoreBackend")
+        case .frameworkUnavailable:
+            return NSLocalizedString(
+                "MobileDevice.framework could not be loaded. AMRestore-based installation is not available on this system.",
                 comment: "AppleMobileDeviceRestoreBackend")
         }
     }
