@@ -24,7 +24,6 @@ func cakerECID(fromMachineIdentifierData data: Data) -> ECID? {
     return dict["ECID"] as? ECID
 }
 
-#if arch(arm64)
 import Virtualization
 
 @available(macOS 12.0, *)
@@ -35,6 +34,4 @@ extension VZMacMachineIdentifier {
         cakerECID(fromMachineIdentifierData: dataRepresentation)
     }
 }
-#endif
-
 #endif
