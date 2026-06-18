@@ -23,7 +23,13 @@ final class DeviceRestoreDriver: @unchecked Sendable {
     let artifactStorageURL: URL
     let loggers: DeviceRestoreLoggers
 
-    init(ecid: ECID, bundleURL: URL, variantName: String = "Customer Erase Install (IPSW)", backend: any DeviceRestoreBackend) throws {
+	deinit {
+		if !Self.preservePersonalizedBundles {
+			try? FileManager.default.removeItem(at: personalizedBundleURL)
+		}
+	}
+
+	init(ecid: ECID, bundleURL: URL, variantName: String = "Customer Erase Install (IPSW)", backend: any DeviceRestoreBackend) throws {
         self.logger = Logger("DeviceRestoreDriver(\(ecid))")
         self.ecid = ecid
         self.bundleURL = bundleURL
