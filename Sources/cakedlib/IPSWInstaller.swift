@@ -35,6 +35,7 @@ import Virtualization
 			}
 
 			func cancel() {
+				// Progress.cancel() is thread-safe per Apple SDK contract.
 				self.installer.progress.cancel()
 			}
 		}

@@ -601,6 +601,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		removePID()
 	}
 
+	@MainActor
 	public func startVirtualMachine(mode: VMRunServiceMode,
 									on: EventLoop,
 									config: CakeConfig,

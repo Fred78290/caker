@@ -63,6 +63,7 @@ public struct VMRunHandler {
 		self.recoveryMode = recoveryMode
 	}
 
+	@MainActor
 	public func run(_ completionHandler: @escaping (EventLoopFuture<String?>, VirtualMachine) -> Void) throws {
 		defer {
 			location.removePID()
