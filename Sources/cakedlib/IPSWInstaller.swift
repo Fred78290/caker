@@ -21,15 +21,22 @@ import Virtualization
 	#endif
 
 	public class IPSWInstaller: @unchecked Sendable {
-		private let virtualMachine: VZVirtualMachine
 		private let config: CakeConfig
 		private let location: VMLocation
 		private let queue: DispatchQueue!
 		private let logger = Logger("IPSWInstaller")
+		private let runMode: Utils.RunMode
 		private var installer: VZMacOSInstaller!
 
 		public init(location: VMLocation, config: CakeConfig, runMode: Utils.RunMode, queue: DispatchQueue? = nil) throws {
-			let virtualMachine: VZVirtualMachine
+			self.config = config
+			self.location = location
+			self.queue = queue
+			self.runMode = runMode
+		}
+
+		@MainActor
+		private func createVirtualMachine() throws -> VZVirtualMachine {
 			let suspendable = config.suspendable
 			let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
 			let configuration = VZVirtualMachineConfiguration()
@@ -85,28 +92,21 @@ import Virtualization
 			try configuration.validate()
 
 			if let queue = queue {
-				virtualMachine = VZVirtualMachine(configuration: configuration, queue: queue)
+				return VZVirtualMachine(configuration: configuration, queue: queue)
 			} else {
-				virtualMachine = VZVirtualMachine(configuration: configuration)
+				return VZVirtualMachine(configuration: configuration)
 			}
-
-			self.config = config
-			self.location = location
-			self.virtualMachine = virtualMachine
-			self.queue = queue
 		}
 
 		// MARK: - VZMacOSInstaller path (default)
 
-		private func installIPSW(url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler, continuation: CheckedContinuation<Void, any Error>) {
+		private func installIPSW(_ installer: VZMacOSInstaller, progressHandler: @escaping ProgressObserver.BuildProgressHandler, continuation: CheckedContinuation<Void, any Error>) {
 			#if DEBUG
 				self.logger.trace("[\(Thread.currentThread.description)] start ipsw install")
 			#endif
 
-			self.installer = VZMacOSInstaller(virtualMachine: self.virtualMachine, restoringFromImageAt: url)
-
 			let context = ProgressObserver.ProgressHandlerContext()
-			let progressObserver = self.installer.progress.observe(\.fractionCompleted, options: [.initial, .old, .new]) { progress, change in
+			let progressObserver = installer.progress.observe(\.fractionCompleted, options: [.initial, .old, .new]) { progress, change in
 				if progress.fractionCompleted != context.oldFractionCompleted {
 					#if DEBUG
 						self.logger.trace("[\(Thread.currentThread.description)] ipsw install progress \(progress.fractionCompleted)")
@@ -122,11 +122,10 @@ import Virtualization
 				}
 			}
 
-			self.installer.install { result in
+			installer.install { result in
 				#if DEBUG
 					self.logger.trace("[\(Thread.currentThread.description)] ipsw install terminated")
 				#endif
-				self.installer = nil
 
 				continuation.resume(with: result)
 				progressObserver.invalidate()
@@ -139,10 +138,12 @@ import Virtualization
 
 		@MainActor
 		private func installIPSWSync(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+			self.installer = try VZMacOSInstaller(virtualMachine: self.createVirtualMachine(), restoringFromImageAt: url)
+
 			try await withTaskCancellationHandler(
 				operation: {
 					try await withCheckedThrowingContinuation { continuation in
-						self.installIPSW(url: url, progressHandler: progressHandler, continuation: continuation)
+						self.installIPSW(self.installer, progressHandler: progressHandler, continuation: continuation)
 					}
 				},
 				onCancel: {
@@ -151,6 +152,8 @@ import Virtualization
 		}
 
 		private func installIPSWAsync(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+			self.installer = try VZMacOSInstaller(virtualMachine: await self.createVirtualMachine(), restoringFromImageAt: url)
+
 			#if DEBUG
 				self.logger.trace("[\(Thread.currentThread.description)] entering installIPSWAsync")
 			#endif
@@ -166,7 +169,7 @@ import Virtualization
 							self.logger.trace("[\(Thread.currentThread.description)] entering withCheckedThrowingContinuation")
 						#endif
 						queue.async {
-							self.installIPSW(url: url, progressHandler: progressHandler, continuation: continuation)
+							self.installIPSW(self.installer, progressHandler: progressHandler, continuation: continuation)
 						}
 						self.logger.trace("[\(Thread.currentThread.description)] exiting withCheckedThrowingContinuation")
 					}
@@ -212,13 +215,13 @@ import Virtualization
 			/// Boots the VM into DFU mode so the AMRestore framework can see it as a
 			/// restorable device.
 			@available(macOS 26.0, *)
-			private func startInDFUMode() async throws {
+		private func startInDFUMode(_ virtualMachine: VZVirtualMachine) async throws {
 				let startOptions = VZMacOSVirtualMachineStartOptions()
 				startOptions._forceDFU = true
 
 				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
 					let doStart = {
-						self.virtualMachine.start(options: startOptions) { error in
+						virtualMachine.start(options: startOptions) { error in
 							if let error {
 								continuation.resume(throwing: error)
 							} else {
@@ -246,7 +249,9 @@ import Virtualization
 
 				progressHandler(.step(String(localized: "Starting VM in DFU mode for macOS 27 install...")))
 
-				try await startInDFUMode()
+				let virtualMachine = try await self.createVirtualMachine()
+
+				try await startInDFUMode(virtualMachine)
 
 				// Bail early if cancelled while the VM was starting.
 				try Task.checkCancellation()
@@ -306,7 +311,7 @@ import Virtualization
 							}
 						},
 						onCancel: {
-							self.virtualMachine.stop { _ in }
+							virtualMachine.stop { _ in }
 						}
 					)
 				} catch {
