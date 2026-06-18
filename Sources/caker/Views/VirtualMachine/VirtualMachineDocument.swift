@@ -660,7 +660,7 @@ extension VirtualMachineDocument {
 
 // MARK: - Embeded VirtualMachine
 extension VirtualMachineDocument {
-	@discardableResult
+	@discardableResult @MainActor
 	private func createVirtualMachine() throws -> VirtualMachine {
 		let config = try! location.config()
 		let virtualMachine = try VirtualMachine(location: location, config: config, display: .ui, screenSize: config.display.cgSize, recoveryMode: self.recoveryMode, runMode: .app)
@@ -848,15 +848,15 @@ extension VirtualMachineDocument {
 
 			virtualMachine.resumeVMFromUI(completionHandler: completion)
 		} else {
-			do {
-				let virtualMachine = try createVirtualMachine()
+			Task {
+				do {
+					let virtualMachine = try await self.createVirtualMachine()
 
-				self.setOtherState(status: .starting)
+					self.setOtherState(status: .starting)
 
-				virtualMachine.restoreStateVMFromUI(completionHandler: completion)
-			} catch {
-				MainActor.assumeIsolated {
-					alertError(error)
+					virtualMachine.restoreStateVMFromUI(completionHandler: completion)
+				} catch {
+					await alertError(error)
 				}
 			}
 		}
@@ -886,22 +886,23 @@ extension VirtualMachineDocument {
 		} else {
 			self.externalRunning = false
 
-			if self.virtualMachine == nil {
-				do {
-					try createVirtualMachine()
-				} catch {
-					MainActor.assumeIsolated {
-						self.setStateAsStopped()
-						alertError(error)
-					}
-					return
-				}
-			}
-
 			if let virtualMachine = self.virtualMachine {
 				self.setOtherState(status: .starting)
 
 				virtualMachine.startFromUI()
+			} else {
+				Task {
+					do {
+						let virtualMachine = try await self.createVirtualMachine()
+
+						self.setOtherState(status: .starting)
+
+						virtualMachine.startFromUI()
+					} catch {
+						await self.setStateAsStopped()
+						await alertError(error)
+					}
+				}
 			}
 		}
 	}

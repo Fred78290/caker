@@ -413,7 +413,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 	
 	func findVirtualMachineDocument(_ url: URL?) -> VirtualMachineDocument? {
-		guard let url else {
+		guard let url = self.fullQualifiedVMUrl(url) else {
 			return nil
 		}
 

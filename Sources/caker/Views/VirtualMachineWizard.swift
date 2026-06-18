@@ -105,7 +105,7 @@ enum IPSWImage: Int, CaseIterable {
 	var location: ISOLocation {
 		switch self {
 		case .macos26_5_1:
-			ISOLocation(label: "macOS 26.5", url: "https://updates.cdn-apple.com/2026SpringFCS/fullrestores/122-88870/E47EBB85-45F2-4E3C-B9E7-6FF7868C2FBA/UniversalMac_26.5.1_25F80_Restore.ipsw")
+			ISOLocation(label: "macOS 26.5.1", url: "https://updates.cdn-apple.com/2026SpringFCS/fullrestores/122-88870/E47EBB85-45F2-4E3C-B9E7-6FF7868C2FBA/UniversalMac_26.5.1_25F80_Restore.ipsw")
 		case .macos15_6_1:
 			ISOLocation(label: "macOS 15.6.1", url: "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw")
 		case .macos14_6_1:

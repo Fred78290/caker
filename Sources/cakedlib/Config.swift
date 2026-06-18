@@ -782,6 +782,7 @@ extension VirtualMachineConfiguration {
 		}
 	}
 
+	@MainActor
 	public func rootDiskAttachment(rootDiskURL: URL) throws -> VZStorageDeviceConfiguration {
 		let diskPath = rootDiskURL.path(percentEncoded: false)
 

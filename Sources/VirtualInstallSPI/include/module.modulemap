@@ -1,0 +1,8 @@
+module VirtualInstallSPI {
+    header "MobileDeviceEnums.h"
+    header "MobileDeviceSPI.h"
+    header "MobileDeviceShim.h"
+    header "VIWaitForDevice.h"
+    header "VirtualizationPrivate.h"
+    export *
+}

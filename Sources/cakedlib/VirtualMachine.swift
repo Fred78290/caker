@@ -200,6 +200,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 	}
 
+	@MainActor
 	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, recoveryMode: Bool, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable && config.os == .darwin
 		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
@@ -555,6 +556,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		return cdrom
 	}
 
+	@MainActor
 	public init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, recoveryMode: Bool, runMode: Utils.RunMode, queue: dispatch_queue_t? = nil) throws {
 
 		if config.arch != Architecture.current() {
