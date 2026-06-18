@@ -35,7 +35,8 @@ extension CodableError {
         self.recoverySuggestion = nsError.localizedRecoverySuggestion
         self.info = [:]
         for (key, value) in nsError.userInfo {
-            self.info[key] = String(describing: value)
+            let infoKey = (key as? String) ?? String(describing: key)
+            self.info[infoKey] = String(describing: value)
         }
     }
 

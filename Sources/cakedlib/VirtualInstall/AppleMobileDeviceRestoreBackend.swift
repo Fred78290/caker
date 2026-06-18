@@ -64,11 +64,11 @@ final class AppleMobileDeviceRestoreBackend: DeviceRestoreBackend, @unchecked Se
 		// `self` is passed unretained as the callback refCon. This is safe because
 		// VIMDDeviceRestore (AMRestorableDeviceRestore) blocks until the restore finishes,
 		// delivering progress on the calling thread, so `self` outlives every callback.
-		let refCon = unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
+		let refCon = Unmanaged.passUnretained(self).toOpaque()
 		
 		VIMDDeviceRestore(device, options as CFDictionary, { _, info, refCon in
-			guard let refCon = refCon else { return }
-			let backend = unsafeBitCast(refCon, to: AppleMobileDeviceRestoreBackend.self)
+			guard let refCon else { return }
+			let backend = Unmanaged<AppleMobileDeviceRestoreBackend>.fromOpaque(refCon).takeUnretainedValue()
 			// `info` is a CFDictionary; bridge to NSDictionary then to Swift dictionary
 			let nsInfo = info as NSDictionary
 			if let dict = nsInfo as? [AnyHashable: Any] {
