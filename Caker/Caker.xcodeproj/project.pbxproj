@@ -601,6 +601,7 @@
 		9BF1A0153001000000AA0015 /* VirtualInstallECID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF1A01B3001000000AA001B /* VirtualInstallECID.swift */; };
 		9BF1A01C3001000000AA001C /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF1A0083001000000AA0008 /* libVirtualInstallSPI.a */; };
 		9BF2D5F42FE2D30F00218073 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF1A0083001000000AA0008 /* libVirtualInstallSPI.a */; };
+		9BF2D9102FE43A9C00218073 /* DirWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF2D90F2FE43A9500218073 /* DirWatcher.swift */; };
 		9BF43A692F8A858800618B8C /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF43A682F8A858300618B8C /* Localization.swift */; };
 		9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */; };
 		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
@@ -1293,6 +1294,7 @@
 		9BF1A0193001000000AA0019 /* DeviceRestoreState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRestoreState.swift; sourceTree = "<group>"; };
 		9BF1A01A3001000000AA001A /* RestoreLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestoreLog.swift; sourceTree = "<group>"; };
 		9BF1A01B3001000000AA001B /* VirtualInstallECID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualInstallECID.swift; sourceTree = "<group>"; };
+		9BF2D90F2FE43A9500218073 /* DirWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirWatcher.swift; sourceTree = "<group>"; };
 		9BF43A682F8A858300618B8C /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
@@ -1726,6 +1728,7 @@
 		9B30BA492E0BDB5600256A9D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				9BF2D90F2FE43A9500218073 /* DirWatcher.swift */,
 				9B5F4B522F728AF200AE1991 /* Authorization.swift */,
 				9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */,
 				9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */,
@@ -3268,6 +3271,7 @@
 				9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */,
 				9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */,
 				9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */,
+				9BF2D9102FE43A9C00218073 /* DirWatcher.swift in Sources */,
 				9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */,
 				9BFA7B2B2FA4E17700E981F6 /* TrackDealloc.swift in Sources */,
 				9B9C4E5D2E23BC8B00C13D23 /* VirtualMachinesView.swift in Sources */,

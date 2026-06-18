@@ -4,6 +4,7 @@
 //
 //  Created by Frederic BOLTZ on 24/04/2026.
 //
+import FileMonitorMacOS
 import Foundation
 import CakeAgentLib
 import CakedLib
@@ -58,6 +59,7 @@ final class ConnectionManager: Equatable {
 
 	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
 	private var currentStatus: AsyncThrowingStreamCurrentStatus? = nil
+	private var vmsWatcher: DirWatcher? = nil
 	private var shutdown = false
 	private let logger = Logger("ConnectionManager")
 
@@ -327,12 +329,23 @@ extension ConnectionManager {
 
 			gcd.cancel(promise: nil)
 			self.gcd = nil
-			
+
+			NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
+		} else if let watcher = self.vmsWatcher {
+			self.shutdown = true
+			watcher.stop()
+			self.vmsWatcher = nil
+
 			NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
 		}
 	}
 
 	func startGrandCentral() {
+		if connectionMode == .app {
+			startAppModeMonitor()
+			return
+		}
+
 		guard let serviceClient = self.serviceClient else {
 			return
 		}
@@ -340,16 +353,66 @@ extension ConnectionManager {
 		let gcdFuture = Utilities.group.next().makeFutureWithTask {
 			await self.gdc(client: serviceClient)
 		}
-		
+
 		gcdFuture.whenFailure { error in
 			self.logger.error("GCD failed: \(error)")
 		}
-		
+
 		gcdFuture.whenComplete { _ in
 			self.logger.debug("GCD stopped")
 			self.gcd = nil
 		}
 
+		NotificationCenter.default.post(name: Self.GrandCentralDidStartNotification, object: self)
+	}
+
+	private func startAppModeMonitor() {
+		let storage = StorageLocation(runMode: .app)
+		let root = storage.rootURL.lastPathComponent
+		let watcher = DirWatcher([storage.rootURL.path(percentEncoded: false)])
+
+		watcher.queue = DispatchQueue.global(qos: .utility)
+		watcher.callback = { [weak self] event in
+			guard let self else { return }
+
+			guard var fileURL = URL(string: "file://\(event.path.last == "/" ? String(event.path.dropLast()) : event.path)") else {
+				return
+			}
+
+			fileURL = fileURL.resolvingSymlinksInPath()
+
+			guard fileURL.pathExtension == "cakedvm", fileURL.deletingLastPathComponent().lastPathComponent == root else {
+				return
+			}
+
+			let name = fileURL.deletingPathExtension().lastPathComponent
+
+			if event.dirCreated {
+				guard storage.exists(name) else { return }
+				self.logger.debug("VM directory added: \(name)")
+				Task { await self.receiveStatus(self.vmURL(name), value: .new) }
+			} else if event.dirRemoved {
+				self.logger.debug("VM directory deleted: \(name)")
+				Task { await self.receiveStatus(self.vmURL(name), value: .deleted) }
+			} else if event.dirRenamed {
+				// FSEvents emits .renamed for both the old and new path of a move.
+				// Existence check distinguishes which side this event is for.
+				if FileManager.default.fileExists(atPath: event.path) {
+					guard VMLocation(rootURL: fileURL).inited else { return }
+					self.logger.debug("VM directory renamed in: \(name)")
+					Task { await self.receiveStatus(self.vmURL(name), value: .new) }
+				} else {
+					self.logger.debug("VM directory renamed out: \(name)")
+					Task { await self.receiveStatus(self.vmURL(name), value: .deleted) }
+				}
+			}
+		}
+
+		watcher.start()
+		self.shutdown = false
+		self.vmsWatcher = watcher
+
+		self.logger.debug("VM directory monitor started: \(storage.rootURL)")
 		NotificationCenter.default.post(name: Self.GrandCentralDidStartNotification, object: self)
 	}
 
@@ -458,6 +521,4 @@ extension ConnectionManager {
 			self.logger.error("Error in gdc: \(error)")
 		}
 	}
-
 }
-
