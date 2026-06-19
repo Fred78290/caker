@@ -326,6 +326,8 @@ extension ConnectionManager {
 			return
 		}
 
+		self.gcdStarted = false
+
 		if let gcd = self.gcd {
 			self.currentStatus?.continuation.finish(throwing: CancellationError())
 			self.currentStatus = nil
@@ -339,7 +341,6 @@ extension ConnectionManager {
 
 		self.gcd = nil
 		self.vmsWatcher = nil
-		self.gcdStarted = false
 
 		NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
 	}
