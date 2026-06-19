@@ -590,6 +590,7 @@
 		9BEBD1802F9CC1D20005EC80 /* SetOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */; };
 		9BEBD1822F9CC3A50005EC80 /* GetOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */; };
 		9BEBD1842F9CF7000005EC80 /* CakedKeyConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */; };
+		9BF2DBAE2FE5726D00218073 /* DirWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF2DBAD2FE5726D00218073 /* DirWatcher.swift */; };
 		9BF43A692F8A858800618B8C /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF43A682F8A858300618B8C /* Localization.swift */; };
 		9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */; };
 		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
@@ -1252,6 +1253,7 @@
 		9BEBD17F2F9CC1D20005EC80 /* SetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetOptions.swift; sourceTree = "<group>"; };
 		9BEBD1812F9CC3A10005EC80 /* GetOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetOptions.swift; sourceTree = "<group>"; };
 		9BEBD1832F9CF6FC0005EC80 /* CakedKeyConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfig.swift; sourceTree = "<group>"; };
+		9BF2DBAD2FE5726D00218073 /* DirWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirWatcher.swift; sourceTree = "<group>"; };
 		9BF43A682F8A858300618B8C /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
@@ -1694,6 +1696,7 @@
 				9B5D7BCD2EAA9602001FB96E /* Color.swift */,
 				9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */,
 				9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */,
+				9BF2DBAD2FE5726D00218073 /* DirWatcher.swift */,
 				9B30BA482E0BDB5600256A9D /* FileHelpers.swift */,
 				9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */,
 				9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */,
@@ -3188,6 +3191,7 @@
 				9B29F8012FCAE4B700AEBCB8 /* MultiplatformTab.swift in Sources */,
 				9B29F8022FCAE4B700AEBCB8 /* MultiplatformTabCollection.swift in Sources */,
 				9B29F8032FCAE4B700AEBCB8 /* MultiplatformTabBarVerticalAlignment.swift in Sources */,
+				9BF2DBAE2FE5726D00218073 /* DirWatcher.swift in Sources */,
 				9B29F8042FCAE4B700AEBCB8 /* MultiplatformTabBarHorizontalAlignment.swift in Sources */,
 				9B29F8052FCAE4B700AEBCB8 /* MultiplatformTabViewPosition.swift in Sources */,
 				9B29F8062FCAE4B700AEBCB8 /* VNCInfosHandler.swift in Sources */,
