@@ -1,12 +1,12 @@
-import CakeAgentLib
-import GRPCLib
-import Synchronization
 //
 //  IPSWInstaller.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 31/07/2025.
 //
+import CakeAgentLib
+import GRPCLib
+import Synchronization
 import Virtualization
 
 #if !APPSTORE && arch(arm64)
@@ -28,15 +28,83 @@ import Virtualization
 		private let runMode: Utils.RunMode
 
 		final class SendableVZMacOSInstaller: @unchecked Sendable {
-			let installer: VZMacOSInstaller
+			let canceled: Mutex<Bool> = .init(false)
+			var installer: VZMacOSInstaller?
+			let virtualMachine: VZVirtualMachine
+			let restoringFromImageAt: URL
 
 			init(_ virtualMachine: VZVirtualMachine, restoringFromImageAt: URL) {
-				self.installer = VZMacOSInstaller(virtualMachine: virtualMachine, restoringFromImageAt: restoringFromImageAt)
+				self.virtualMachine = virtualMachine
+				self.restoringFromImageAt = restoringFromImageAt
+			}
+
+			func install(progressHandler: @escaping ProgressObserver.BuildProgressHandler, continuation: CheckedContinuation<Void, any Error>) {
+				#if DEBUG
+					let logger = Logger("IPSWInstaller")
+				#endif
+
+				#if DEBUG
+					logger.trace("[\(Thread.currentThread.description)] start ipsw install")
+				#endif
+
+				let installer = VZMacOSInstaller(virtualMachine: virtualMachine, restoringFromImageAt: restoringFromImageAt)
+				let isCanceled = self.canceled.withLock { canceled in
+					if canceled {
+						return true
+					}
+					
+					self.installer = installer
+					
+					return false
+				}
+
+				if isCanceled {
+					continuation.resume(throwing: CancellationError())
+					return
+				}
+
+				let context = ProgressObserver.ProgressHandlerContext()
+				let progressObserver = installer.progress.observe(\.fractionCompleted, options: [.initial, .old, .new]) { progress, change in
+					if progress.fractionCompleted != context.oldFractionCompleted {
+						#if DEBUG
+							logger.trace("[\(Thread.currentThread.description)] ipsw install progress \(progress.fractionCompleted)")
+						#endif
+
+						progressHandler(.progress(context, progress.fractionCompleted))
+
+						#if DEBUG
+							logger.trace("[\(Thread.currentThread.description)] ipsw leave progress \(progress.fractionCompleted)")
+						#endif
+
+						context.oldFractionCompleted = progress.fractionCompleted
+					}
+				}
+
+				installer.install { result in
+					#if DEBUG
+						logger.trace("[\(Thread.currentThread.description)] ipsw install terminated")
+					#endif
+
+					self.canceled.withLock { _ in
+						self.installer = nil
+					}
+					
+					continuation.resume(with: result)
+					progressObserver.invalidate()
+				}
+
+				#if DEBUG
+					logger.trace("[\(Thread.currentThread.description)] leaving ipsw install")
+				#endif
 			}
 
 			func cancel() {
-				// Progress.cancel() is thread-safe per Apple SDK contract.
-				self.installer.progress.cancel()
+				self.canceled.withLock {
+					$0 = true
+
+					// Progress.cancel() is thread-safe per Apple SDK contract.
+					self.installer?.progress.cancel()
+				}
 			}
 		}
 
@@ -112,42 +180,6 @@ import Virtualization
 
 		// MARK: - VZMacOSInstaller path (default)
 
-		private func installIPSW(_ installer: VZMacOSInstaller, progressHandler: @escaping ProgressObserver.BuildProgressHandler, continuation: CheckedContinuation<Void, any Error>) {
-			#if DEBUG
-				self.logger.trace("[\(Thread.currentThread.description)] start ipsw install")
-			#endif
-
-			let context = ProgressObserver.ProgressHandlerContext()
-			let progressObserver = installer.progress.observe(\.fractionCompleted, options: [.initial, .old, .new]) { progress, change in
-				if progress.fractionCompleted != context.oldFractionCompleted {
-					#if DEBUG
-						self.logger.trace("[\(Thread.currentThread.description)] ipsw install progress \(progress.fractionCompleted)")
-					#endif
-
-					progressHandler(.progress(context, progress.fractionCompleted))
-
-					#if DEBUG
-						self.logger.trace("[\(Thread.currentThread.description)] ipsw leave progress \(progress.fractionCompleted)")
-					#endif
-
-					context.oldFractionCompleted = progress.fractionCompleted
-				}
-			}
-
-			installer.install { result in
-				#if DEBUG
-					self.logger.trace("[\(Thread.currentThread.description)] ipsw install terminated")
-				#endif
-
-				continuation.resume(with: result)
-				progressObserver.invalidate()
-			}
-
-			#if DEBUG
-				self.logger.trace("[\(Thread.currentThread.description)] leaving ipsw install")
-			#endif
-		}
-
 		@MainActor
 		private func installIPSWSync(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 			let installer = try SendableVZMacOSInstaller(self.createVirtualMachine(), restoringFromImageAt: url)
@@ -155,7 +187,7 @@ import Virtualization
 			try await withTaskCancellationHandler(
 				operation: {
 					try await withCheckedThrowingContinuation { continuation in
-						self.installIPSW(installer.installer, progressHandler: progressHandler, continuation: continuation)
+						installer.install(progressHandler: progressHandler, continuation: continuation)
 					}
 				},
 				onCancel: {
@@ -181,9 +213,11 @@ import Virtualization
 							self.logger.trace("[\(Thread.currentThread.description)] entering withCheckedThrowingContinuation")
 						#endif
 						queue.async {
-							self.installIPSW(installer.installer, progressHandler: progressHandler, continuation: continuation)
+							installer.install(progressHandler: progressHandler, continuation: continuation)
 						}
-						self.logger.trace("[\(Thread.currentThread.description)] exiting withCheckedThrowingContinuation")
+						#if DEBUG
+							self.logger.trace("[\(Thread.currentThread.description)] exiting withCheckedThrowingContinuation")
+						#endif
 					}
 
 					#if DEBUG
