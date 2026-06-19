@@ -57,10 +57,10 @@ final class ConnectionManager: Equatable {
 	let connectionMode: ConnectionMode
 	let serviceURL: URL?
 
+	private var gcdStarted = false
 	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
 	private var currentStatus: AsyncThrowingStreamCurrentStatus? = nil
 	private var vmsWatcher: DirWatcher? = nil
-	private var shutdown = false
 	private let logger = Logger("ConnectionManager")
 
 	deinit {
@@ -322,51 +322,64 @@ extension ConnectionManager {
 	public static let GrandCentralDidStartNotification = NSNotification.Name(rawValue: "GrandCentralDidStartNotification")
 
 	func stopGrandCentral() {
+		guard self.gcdStarted else {
+			return
+		}
+
 		if let gcd = self.gcd {
-			self.shutdown = true
 			self.currentStatus?.continuation.finish(throwing: CancellationError())
 			self.currentStatus = nil
 
 			gcd.cancel(promise: nil)
-			self.gcd = nil
-
-			NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
-		} else if let watcher = self.vmsWatcher {
-			self.shutdown = true
-			watcher.stop()
-			self.vmsWatcher = nil
-
-			NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
 		}
+
+		if let watcher = self.vmsWatcher {
+			watcher.stop()
+		}
+
+		self.gcd = nil
+		self.vmsWatcher = nil
+		self.gcdStarted = false
+
+		NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
 	}
 
 	func startGrandCentral() {
+		guard self.gcdStarted == false else {
+			return
+		}
+
 		if connectionMode == .app {
+			self.gcdStarted = true
+
 			startAppModeMonitor()
-			return
-		}
 
-		guard let serviceClient = self.serviceClient else {
-			return
-		}
+			NotificationCenter.default.post(name: Self.GrandCentralDidStartNotification, object: self)
+		} else if let serviceClient = self.serviceClient {
+			self.gcdStarted = true
 
-		let gcdFuture = Utilities.group.next().makeFutureWithTask {
-			await self.gdc(client: serviceClient)
+			let gcdFuture = Utilities.group.next().makeFutureWithTask {
+				await self.gdc(client: serviceClient)
+			}
+			
+			gcdFuture.whenFailure { error in
+				self.logger.error("GCD failed: \(error)")
+			}
+			
+			gcdFuture.whenComplete { _ in
+				self.logger.debug("GCD stopped")
+				self.gcd = nil
+			}
+			
+			NotificationCenter.default.post(name: Self.GrandCentralDidStartNotification, object: self)
 		}
-
-		gcdFuture.whenFailure { error in
-			self.logger.error("GCD failed: \(error)")
-		}
-
-		gcdFuture.whenComplete { _ in
-			self.logger.debug("GCD stopped")
-			self.gcd = nil
-		}
-
-		NotificationCenter.default.post(name: Self.GrandCentralDidStartNotification, object: self)
 	}
 
 	private func startAppModeMonitor() {
+		guard self.vmsWatcher == nil else {
+			return
+		}
+
 		let storage = StorageLocation(runMode: .app)
 		let root = storage.rootURL.lastPathComponent
 		let watcher = DirWatcher([storage.rootURL.path(percentEncoded: false)])
@@ -378,13 +391,9 @@ extension ConnectionManager {
 
 			logger.debug("VM directory change: \(event.path) flags: 0x\(String(format: "%X", event.flags)), fileChange: \(event.fileChange), dirChange: \(event.dirChange)")
 
-			guard var fileURL = URL(string: "file://\(event.path.last == "/" ? String(event.path.dropLast()) : event.path)") else {
-				return
-			}
+			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
 
-			fileURL = fileURL.resolvingSymlinksInPath()
-
-			guard fileURL.pathExtension == "cakedvm", fileURL.deletingLastPathComponent().lastPathComponent == root else {
+			guard event.dirChange, fileURL.pathExtension == "cakedvm", fileURL.deletingLastPathComponent().lastPathComponent == root else {
 				return
 			}
 
@@ -412,11 +421,9 @@ extension ConnectionManager {
 
 		watcher.start()
 
-		self.shutdown = false
 		self.vmsWatcher = watcher
 
 		self.logger.debug("VM directory monitor started: \(storage.rootURL)")
-		NotificationCenter.default.post(name: Self.GrandCentralDidStartNotification, object: self)
 	}
 
 	private func receiveScreenshot(_ vmURL: URL, value: Data) async {
@@ -475,7 +482,7 @@ extension ConnectionManager {
 			self.gcd = nil
 
 			Task { @MainActor in
-				if self.shutdown == false {
+				if self.gcdStarted {
 					alertError(String(localized: "Remote service"), String(localized: "Remote service did shut down. Will close all concerned virtual machines window.")) { _ in
 						NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
 					}
