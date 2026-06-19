@@ -76,7 +76,7 @@ class DirWatcher {
 		let paths = Unmanaged<CFArray>.fromOpaque(eventPaths).takeUnretainedValue() as! [String]
 
 		(0..<numEvents).indices.forEach { index in
-			try? fileSystemWatcher.callback?(DirWatcherEvent(eventIds[index], paths[index], eventFlags[index]))
+			fileSystemWatcher.callback?(DirWatcherEvent(eventIds[index], paths[index], eventFlags[index]))
 		}
 
 	}
@@ -102,7 +102,7 @@ class DirWatcher {
  * Convenient
  */
 extension DirWatcher {
-	typealias CallBack = (_ fileWatcherEvent: DirWatcherEvent) throws -> Void
+	typealias CallBack = (_ fileWatcherEvent: DirWatcherEvent) -> Void
 
 	convenience init(
 			_ paths: [String],
