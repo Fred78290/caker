@@ -61,7 +61,7 @@ The choice is made at the start of each `build` (IPSW) install:
 
 ### Why is macOS 27 installation not available in the App Store build?
 
-The AMRestore path uses the private `AppleMobileDeviceRestore` framework and communicates with system daemons (`com.apple.mobile.restored`) that are blocked by the macOS App Sandbox. It is therefore compiled out of the App Store build using `#if !APPSTORE` guards.
+The AMRestore path uses the private `AppleMobileDeviceRestore` framework and communicates with system daemons (`com.apple.mobile.restored`) that are blocked by the macOS App Sandbox. It is therefore compiled out of the App Store build using `#if USE_VIRTUAL_INSTALL_BACKEND` guards.
 
 ### How can I force the AMRestore backend for testing?
 

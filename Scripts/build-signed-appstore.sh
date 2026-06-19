@@ -36,8 +36,8 @@ trap cleanup_swift_package_mirror EXIT
 
 /usr/bin/swift package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
 /usr/bin/swift package resolve
-/usr/bin/swift build -c release --arch x86_64 --build-path "${PROJECT_ROOT}/.appstore/x86_64-apple-macosx" -Xswiftc -D -Xswiftc USE_SMAPPSERVICE -Xswiftc -D -Xswiftc APPSTORE
-/usr/bin/swift build -c release --arch arm64 --build-path "${PROJECT_ROOT}/.appstore/arm64-apple-macosx" -Xswiftc -D -Xswiftc USE_SMAPPSERVICE -Xswiftc -D -Xswiftc APPSTORE
+/usr/bin/swift build -c release --arch x86_64 --build-path "${PROJECT_ROOT}/.appstore/x86_64-apple-macosx" -Xswiftc -D -Xswiftc USE_SMAPPSERVICE -Xswiftc -D -Xswiftc APPSTORE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND
+/usr/bin/swift build -c release --arch arm64 --build-path "${PROJECT_ROOT}/.appstore/arm64-apple-macosx" -Xswiftc -D -Xswiftc USE_SMAPPSERVICE -Xswiftc -D -Xswiftc APPSTORE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND
 
 mkdir -p ${BINARYDIR}
 

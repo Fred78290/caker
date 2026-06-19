@@ -6,7 +6,7 @@
 // Artifact / log storage goes to `<Application Support>/Caker/VirtualInstall`.
 // Not available in the App Store build (private SPI + non-sandboxed only).
 
-#if !APPSTORE && arch(arm64)
+#if USE_VIRTUAL_INSTALL_BACKEND && arch(arm64)
 
 import Foundation
 import CakeAgentLib

@@ -9,12 +9,12 @@ import GRPCLib
 import Synchronization
 import Virtualization
 
-#if !APPSTORE && arch(arm64)
+#if USE_VIRTUAL_INSTALL_BACKEND && arch(arm64)
 	import VirtualInstallSPI
 #endif
 
 #if arch(arm64)
-	#if !APPSTORE
+	#if USE_VIRTUAL_INSTALL_BACKEND
 		private final class OutcomeBox: @unchecked Sendable {
 			var outcome: DeviceRestoreOutcome? = nil
 		}
@@ -238,7 +238,7 @@ import Virtualization
 
 		// MARK: - AMRestore path (macOS 27+ guests, non-App Store only)
 
-		#if !APPSTORE
+		#if USE_VIRTUAL_INSTALL_BACKEND
 			/// Returns true when the AMRestore backend should be used instead of
 			/// `VZMacOSInstaller`. Decision mirrors the UTM/VirtualBuddy logic:
 			/// forced via UserDefaults OR the restore image targets macOS 27+.
@@ -380,16 +380,16 @@ import Virtualization
 
 			progressHandler(.step(String(localized: "Installing macOS from IPSW...")))
 
-			#if APPSTORE
-				if self.queue == nil {
+			#if USE_VIRTUAL_INSTALL_BACKEND
+				if #available(macOS 26.0, *), await shouldUseVirtualInstallBackend(url: url) {
+					try await self.installViaAMRestore(url: url, progressHandler: progressHandler)
+				} else if self.queue == nil {
 					try await self.installIPSWSync(url, progressHandler: progressHandler)
 				} else {
 					try await self.installIPSWAsync(url, progressHandler: progressHandler)
 				}
 			#else
-				if #available(macOS 26.0, *), await shouldUseVirtualInstallBackend(url: url) {
-					try await self.installViaAMRestore(url: url, progressHandler: progressHandler)
-				} else if self.queue == nil {
+				if self.queue == nil {
 					try await self.installIPSWSync(url, progressHandler: progressHandler)
 				} else {
 					try await self.installIPSWAsync(url, progressHandler: progressHandler)

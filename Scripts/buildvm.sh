@@ -5,7 +5,7 @@ set -e
 
 # Help tool to inspect the disk image
 # qemu-img convert -p -f raw -O vmdk ~/.cake/vms/opensuse/disk.img ~/Virtual\ Machines.localized/ubuntu-desktop.vmwarevm/linux.vmdk
-CMD=cakectl
+CMD=caked
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PKGDIR="${PROJECT_ROOT}/dist/Caker.app"
@@ -22,7 +22,7 @@ fi
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
 DISK_SIZE=20
 MAINGROUP=adm
-NETIFNAMES=false
+NETIFNAMES=true
 USER_SHELL=/bin/bash
 
 if [ $(uname -m) == "arm64" ]; then
