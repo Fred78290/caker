@@ -1085,6 +1085,7 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 						self.setStateAsStopped()
 					} else if running.processName.contains(Home.cakedCommandName) {
 						self.externalRunning = true
+						self.status = .running
 						self.retrieveVNCURL()
 					} else {
 						self.externalRunning = false

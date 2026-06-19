@@ -56,9 +56,10 @@ final class ConnectionManager: Equatable {
 	let connectionMode: ConnectionMode
 	let serviceURL: URL?
 
+	private var gcdStarted = false
 	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
 	private var currentStatus: AsyncThrowingStreamCurrentStatus? = nil
-	private var shutdown = false
+	private var vmsWatcher: DirWatcher? = nil
 	private let logger = Logger("ConnectionManager")
 
 	deinit {
@@ -320,37 +321,109 @@ extension ConnectionManager {
 	public static let GrandCentralDidStartNotification = NSNotification.Name(rawValue: "GrandCentralDidStartNotification")
 
 	func stopGrandCentral() {
+		guard self.gcdStarted else {
+			return
+		}
+
+		self.gcdStarted = false
+
 		if let gcd = self.gcd {
-			self.shutdown = true
 			self.currentStatus?.continuation.finish(throwing: CancellationError())
 			self.currentStatus = nil
 
 			gcd.cancel(promise: nil)
-			self.gcd = nil
-			
-			NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
 		}
+
+		if let watcher = self.vmsWatcher {
+			watcher.stop()
+		}
+
+		self.gcd = nil
+		self.vmsWatcher = nil
+
+		NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
 	}
 
 	func startGrandCentral() {
-		guard let serviceClient = self.serviceClient else {
+		guard self.gcdStarted == false else {
 			return
 		}
 
-		let gcdFuture = Utilities.group.next().makeFutureWithTask {
-			await self.gdc(client: serviceClient)
+		if connectionMode == .app {
+			self.gcdStarted = true
+
+			startAppModeMonitor()
+
+			NotificationCenter.default.post(name: Self.GrandCentralDidStartNotification, object: self)
+		} else if let serviceClient = self.serviceClient {
+			self.gcdStarted = true
+
+			let gcdFuture = Utilities.group.next().makeFutureWithTask {
+				await self.gdc(client: serviceClient)
+			}
+			
+			gcdFuture.whenFailure { error in
+				self.logger.error("GCD failed: \(error)")
+			}
+			
+			gcdFuture.whenComplete { _ in
+				self.logger.debug("GCD stopped")
+				self.gcd = nil
+			}
+			
+			NotificationCenter.default.post(name: Self.GrandCentralDidStartNotification, object: self)
 		}
-		
-		gcdFuture.whenFailure { error in
-			self.logger.error("GCD failed: \(error)")
-		}
-		
-		gcdFuture.whenComplete { _ in
-			self.logger.debug("GCD stopped")
-			self.gcd = nil
+	}
+
+	private func startAppModeMonitor() {
+		guard self.vmsWatcher == nil else {
+			return
 		}
 
-		NotificationCenter.default.post(name: Self.GrandCentralDidStartNotification, object: self)
+		let storage = StorageLocation(runMode: .app)
+		let root = storage.rootURL.lastPathComponent
+		let watcher = DirWatcher([storage.rootURL.path(percentEncoded: false)])
+		let logger = self.logger
+
+		watcher.queue = DispatchQueue.global(qos: .utility)
+		watcher.callback = { [weak self] event in
+			guard let self else { return }
+
+			logger.debug("VM directory change: \(event.path) flags: 0x\(String(format: "%X", event.flags)), fileChange: \(event.fileChange), dirChange: \(event.dirChange)")
+
+			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
+
+			guard event.dirChange, fileURL.pathExtension == "cakedvm", fileURL.deletingLastPathComponent().lastPathComponent == root else {
+				return
+			}
+
+			let name = fileURL.deletingPathExtension().lastPathComponent
+			let location = storage.location(name)
+
+			if event.dirCreated {
+				logger.debug("VM directory added: \(name)")
+				Task { await self.receiveStatus(location.rootURL, value: .new) }
+			} else if event.dirRemoved {
+				self.logger.debug("VM directory deleted: \(name)")
+				Task { await self.receiveStatus(location.rootURL, value: .deleted) }
+			} else if event.dirRenamed {
+				// FSEvents emits .renamed for both the old and new path of a move.
+				// Existence check distinguishes which side this event is for.
+				if FileManager.default.fileExists(atPath: event.path) {
+					logger.debug("VM directory renamed in: \(name)")
+					Task { await self.receiveStatus(location.rootURL, value: .new) }
+				} else {
+					logger.debug("VM directory renamed out: \(name)")
+					Task { await self.receiveStatus(location.rootURL, value: .deleted) }
+				}
+			}
+		}
+
+		watcher.start()
+
+		self.vmsWatcher = watcher
+
+		self.logger.debug("VM directory monitor started: \(storage.rootURL)")
 	}
 
 	private func receiveScreenshot(_ vmURL: URL, value: Data) async {
@@ -409,7 +482,7 @@ extension ConnectionManager {
 			self.gcd = nil
 
 			Task { @MainActor in
-				if self.shutdown == false {
+				if self.gcdStarted {
 					alertError(String(localized: "Remote service"), String(localized: "Remote service did shut down. Will close all concerned virtual machines window.")) { _ in
 						NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
 					}
@@ -458,6 +531,5 @@ extension ConnectionManager {
 			self.logger.error("Error in gdc: \(error)")
 		}
 	}
-
 }
 

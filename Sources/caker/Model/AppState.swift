@@ -325,6 +325,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			
 			if let serviceReply = try? Self.loadService(connectionManager: connectionManager) {
 				self.updateFromReply(serviceReply: serviceReply)
+				connectionManager.startGrandCentral()
 			}
 		} else {
 			self.switchMode(cakedServiceInstalled, connectionManager: connectionManager)
