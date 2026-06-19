@@ -28,6 +28,7 @@ import Virtualization
 		private let runMode: Utils.RunMode
 
 		final class SendableVZMacOSInstaller: @unchecked Sendable {
+			let canceled: Mutex<Bool> = .init(false)
 			var installer: VZMacOSInstaller?
 			let virtualMachine: VZVirtualMachine
 			let restoringFromImageAt: URL
@@ -47,6 +48,21 @@ import Virtualization
 				#endif
 
 				let installer = VZMacOSInstaller(virtualMachine: virtualMachine, restoringFromImageAt: restoringFromImageAt)
+				let isCanceled = self.canceled.withLock { canceled in
+					if canceled {
+						return true
+					}
+					
+					self.installer = installer
+					
+					return false
+				}
+
+				if isCanceled {
+					continuation.resume(throwing: CancellationError())
+					return
+				}
+
 				let context = ProgressObserver.ProgressHandlerContext()
 				let progressObserver = installer.progress.observe(\.fractionCompleted, options: [.initial, .old, .new]) { progress, change in
 					if progress.fractionCompleted != context.oldFractionCompleted {
@@ -64,13 +80,15 @@ import Virtualization
 					}
 				}
 
-				self.installer = installer
-
 				installer.install { result in
 					#if DEBUG
 						logger.trace("[\(Thread.currentThread.description)] ipsw install terminated")
 					#endif
 
+					self.canceled.withLock { _ in
+						self.installer = nil
+					}
+					
 					continuation.resume(with: result)
 					progressObserver.invalidate()
 				}
@@ -80,12 +98,13 @@ import Virtualization
 				#endif
 			}
 
-			func start() {
-			}
-
 			func cancel() {
-				// Progress.cancel() is thread-safe per Apple SDK contract.
-				self.installer?.progress.cancel()
+				self.canceled.withLock {
+					$0 = true
+
+					// Progress.cancel() is thread-safe per Apple SDK contract.
+					self.installer?.progress.cancel()
+				}
 			}
 		}
 
@@ -196,8 +215,8 @@ import Virtualization
 						queue.async {
 							installer.install(progressHandler: progressHandler, continuation: continuation)
 						}
-#if DEBUG
-						self.logger.trace("[\(Thread.currentThread.description)] exiting withCheckedThrowingContinuation")
+						#if DEBUG
+							self.logger.trace("[\(Thread.currentThread.description)] exiting withCheckedThrowingContinuation")
 						#endif
 					}
 
@@ -361,16 +380,16 @@ import Virtualization
 
 			progressHandler(.step(String(localized: "Installing macOS from IPSW...")))
 
-			#if !APPSTORE
-				if #available(macOS 26.0, *), await shouldUseVirtualInstallBackend(url: url) {
-					try await self.installViaAMRestore(url: url, progressHandler: progressHandler)
-				} else if self.queue == nil {
+			#if APPSTORE
+				if self.queue == nil {
 					try await self.installIPSWSync(url, progressHandler: progressHandler)
 				} else {
 					try await self.installIPSWAsync(url, progressHandler: progressHandler)
 				}
 			#else
-				if self.queue == nil {
+				if #available(macOS 26.0, *), await shouldUseVirtualInstallBackend(url: url) {
+					try await self.installViaAMRestore(url: url, progressHandler: progressHandler)
+				} else if self.queue == nil {
 					try await self.installIPSWSync(url, progressHandler: progressHandler)
 				} else {
 					try await self.installIPSWAsync(url, progressHandler: progressHandler)
