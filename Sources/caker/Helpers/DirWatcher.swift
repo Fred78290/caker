@@ -72,7 +72,8 @@ class DirWatcher {
 			eventFlags: UnsafePointer<FSEventStreamEventFlags>,
 			eventIds: UnsafePointer<FSEventStreamEventId>
 	) in
-		let fileSystemWatcher = Unmanaged<DirWatcher>.fromOpaque(contextInfo!).takeUnretainedValue()
+		guard let contextInfo else { return }
+		let fileSystemWatcher = Unmanaged<DirWatcher>.fromOpaque(contextInfo).takeUnretainedValue()
 		let paths = Unmanaged<CFArray>.fromOpaque(eventPaths).takeUnretainedValue() as! [String]
 
 		(0..<numEvents).indices.forEach { index in
