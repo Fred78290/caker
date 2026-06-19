@@ -129,7 +129,7 @@ extension DirWatcher {
 				release: releaseCallback,
 				copyDescription: nil
 		)
-		streamRef = FSEventStreamCreate(
+		guard let stream = FSEventStreamCreate(
 				kCFAllocatorDefault,
 				eventCallback,
 				&context,
@@ -137,9 +137,17 @@ extension DirWatcher {
 				FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
 				0,
 				UInt32(kFSEventStreamCreateFlagUseCFTypes | kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagIgnoreSelf)
-		)
+		) else {
+			return
+		}
+
+		streamRef = stream
 		selectStreamScheduler()
-		FSEventStreamStart(streamRef!)
+		if !FSEventStreamStart(stream) {
+			FSEventStreamInvalidate(stream)
+			FSEventStreamRelease(stream)
+			streamRef = nil
+		}
 	}
 
 	/**
