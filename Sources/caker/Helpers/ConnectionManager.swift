@@ -370,10 +370,13 @@ extension ConnectionManager {
 		let storage = StorageLocation(runMode: .app)
 		let root = storage.rootURL.lastPathComponent
 		let watcher = DirWatcher([storage.rootURL.path(percentEncoded: false)])
+		let logger = self.logger
 
 		watcher.queue = DispatchQueue.global(qos: .utility)
 		watcher.callback = { [weak self] event in
 			guard let self else { return }
+
+			logger.debug("VM directory change: \(event.path) flags: 0x\(String(format: "%X", event.flags)), fileChange: \(event.fileChange), dirChange: \(event.dirChange)")
 
 			guard var fileURL = URL(string: "file://\(event.path.last == "/" ? String(event.path.dropLast()) : event.path)") else {
 				return
@@ -386,29 +389,29 @@ extension ConnectionManager {
 			}
 
 			let name = fileURL.deletingPathExtension().lastPathComponent
+			let location = storage.location(name)
 
 			if event.dirCreated {
-				guard storage.exists(name) else { return }
-				self.logger.debug("VM directory added: \(name)")
-				Task { await self.receiveStatus(self.vmURL(name), value: .new) }
+				logger.debug("VM directory added: \(name)")
+				Task { await self.receiveStatus(location.rootURL, value: .new) }
 			} else if event.dirRemoved {
 				self.logger.debug("VM directory deleted: \(name)")
-				Task { await self.receiveStatus(self.vmURL(name), value: .deleted) }
+				Task { await self.receiveStatus(location.rootURL, value: .deleted) }
 			} else if event.dirRenamed {
 				// FSEvents emits .renamed for both the old and new path of a move.
 				// Existence check distinguishes which side this event is for.
 				if FileManager.default.fileExists(atPath: event.path) {
-					guard VMLocation(rootURL: fileURL).inited else { return }
-					self.logger.debug("VM directory renamed in: \(name)")
-					Task { await self.receiveStatus(self.vmURL(name), value: .new) }
+					logger.debug("VM directory renamed in: \(name)")
+					Task { await self.receiveStatus(location.rootURL, value: .new) }
 				} else {
-					self.logger.debug("VM directory renamed out: \(name)")
-					Task { await self.receiveStatus(self.vmURL(name), value: .deleted) }
+					logger.debug("VM directory renamed out: \(name)")
+					Task { await self.receiveStatus(location.rootURL, value: .deleted) }
 				}
 			}
 		}
 
 		watcher.start()
+
 		self.shutdown = false
 		self.vmsWatcher = watcher
 
@@ -522,3 +525,4 @@ extension ConnectionManager {
 		}
 	}
 }
+

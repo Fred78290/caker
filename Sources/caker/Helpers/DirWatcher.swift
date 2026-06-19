@@ -27,8 +27,8 @@ public class DirWatcherEvent {
 		flags = eventFlags
 	}
 	
-	private var fileChange: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemIsFile)) != 0 }
-	private var dirChange: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemIsDir)) != 0 }
+	var fileChange: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemIsFile)) != 0 }
+	var dirChange: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemIsDir)) != 0 }
 	// CRUD
 	private var created: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemCreated)) != 0 }
 	private var removed: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemRemoved)) != 0 }
@@ -135,7 +135,7 @@ extension DirWatcher {
 				filePaths as CFArray,
 				FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
 				0,
-				UInt32(kFSEventStreamCreateFlagUseCFTypes)
+				UInt32(kFSEventStreamCreateFlagUseCFTypes | kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagIgnoreSelf)
 		)
 		selectStreamScheduler()
 		FSEventStreamStart(streamRef!)
