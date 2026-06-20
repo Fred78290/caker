@@ -69,7 +69,8 @@ let package = Package(
 			path: "Sources/VirtualInstallSPI",
 			publicHeadersPath: "include",
 			cSettings: [
-				.headerSearchPath("include")
+				.headerSearchPath("include"),
+				.define("USE_VIRTUAL_INSTALL_BACKEND")
 			],
 			linkerSettings: [
 				.linkedFramework("Virtualization", .when(platforms: [.macOS]))
