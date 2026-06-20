@@ -80,7 +80,7 @@ struct VMSettingsView: View {
 			Toggle(
 				isOn: $forceVirtualInstallBackend,
 				label: {
-					Text("Force Virtual Install Backend")
+					Text("Use DFU restore mode")
 				}
 			).onChange(of: forceVirtualInstallBackend) { _, newValue in
 				if newValue {
