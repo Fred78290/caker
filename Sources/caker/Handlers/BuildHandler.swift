@@ -13,17 +13,20 @@ extension BuildHandler {
 		return try await withThrowingTaskGroup(of: Void.self, returning: BuildedReply.self) { group in
 			let context: ProgressObserver.ProgressHandlerContext = .init()
 			let vmURL = URL(string: "\(VMLocation.scheme)://\(options.name)")!
-			let (stream, continuation) = AsyncStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
+			let (stream, continuation) = AsyncThrowingStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
 			var result: BuildedReply? = nil
 
 			group.addTask {
-				let stream = try client.build(Caked_BuildRequest(buildOptions: options)) { stream in
-					continuation.yield(stream.current)
+				do {
+					let stream = try client.build(Caked_BuildRequest(buildOptions: options)) { stream in
+						continuation.yield(stream.current)
+					}
+					
+					_ = try await stream.status.get()
+					continuation.finish()
+				} catch {
+					continuation.finish(throwing: error)
 				}
-				
-				_ = try await stream.status.get()
-
-				continuation.finish()
 			}
 
 			for try await current in stream {
