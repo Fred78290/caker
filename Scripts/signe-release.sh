@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# helper script to build and run a signed caked binary
-# usage: ./scripts/run-signed.sh run sonoma-base
+# Helper script to build and run a signed caked binary
+# Usage: ./Scripts/signe-release.sh <keychain-path>
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
