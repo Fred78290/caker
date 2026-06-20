@@ -4,17 +4,17 @@
 //
 //  Created by Frederic BOLTZ on 31/07/2025.
 //
-import CakeAgentLib
-import GRPCLib
-import Synchronization
-import Virtualization
-
-#if !APPSTORE && arch(arm64)
-	import VirtualInstallSPI
-#endif
-
 #if arch(arm64)
-	#if !APPSTORE
+	import CakeAgentLib
+	import GRPCLib
+	import Synchronization
+	import Virtualization
+
+	#if USE_VIRTUAL_INSTALL_BACKEND
+		import VirtualInstallSPI
+	#endif
+
+	#if USE_VIRTUAL_INSTALL_BACKEND
 		private final class OutcomeBox: @unchecked Sendable {
 			var outcome: DeviceRestoreOutcome? = nil
 		}
@@ -52,9 +52,9 @@ import Virtualization
 					if canceled {
 						return true
 					}
-					
+
 					self.installer = installer
-					
+
 					return false
 				}
 
@@ -88,7 +88,7 @@ import Virtualization
 					self.canceled.withLock { _ in
 						self.installer = nil
 					}
-					
+
 					continuation.resume(with: result)
 					progressObserver.invalidate()
 				}
@@ -184,6 +184,8 @@ import Virtualization
 		private func installIPSWSync(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 			let installer = try SendableVZMacOSInstaller(self.createVirtualMachine(), restoringFromImageAt: url)
 
+			self.logger.debug("Install IPSW via VZMacOSInstaller")
+
 			try await withTaskCancellationHandler(
 				operation: {
 					try await withCheckedThrowingContinuation { continuation in
@@ -197,6 +199,8 @@ import Virtualization
 
 		private func installIPSWAsync(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 			let installer = try SendableVZMacOSInstaller(await self.createVirtualMachine(), restoringFromImageAt: url)
+
+			self.logger.debug("Install IPSW via VZMacOSInstaller")
 
 			#if DEBUG
 				self.logger.trace("[\(Thread.currentThread.description)] entering installIPSWAsync")
@@ -236,9 +240,9 @@ import Virtualization
 			#endif
 		}
 
-		// MARK: - AMRestore path (macOS 27+ guests, non-App Store only)
+		// MARK: - AMRestore path (macOS 27+ guests)
 
-		#if !APPSTORE
+		#if USE_VIRTUAL_INSTALL_BACKEND
 			/// Returns true when the AMRestore backend should be used instead of
 			/// `VZMacOSInstaller`. Decision mirrors the UTM/VirtualBuddy logic:
 			/// forced via UserDefaults OR the restore image targets macOS 27+.
@@ -276,10 +280,11 @@ import Virtualization
 							}
 						}
 					}
+
 					if let queue {
 						queue.async { doStart() }
 					} else {
-						doStart()
+						DispatchQueue.main.async { doStart() }
 					}
 				}
 			}
@@ -294,6 +299,8 @@ import Virtualization
 					throw ServiceError(String(localized: "Cannot determine device ECID from VM configuration"))
 				}
 
+				self.logger.debug("Install IPSW via AMRestore")
+
 				progressHandler(.step(String(localized: "Starting VM in DFU mode for macOS 27 install...")))
 
 				let virtualMachine = try await self.createVirtualMachine()
@@ -303,7 +310,7 @@ import Virtualization
 				// Bail early if cancelled while the VM was starting.
 				try Task.checkCancellation()
 
-				progressHandler(.step(String(localized: "Installing macOS via AMRestore...")))
+				progressHandler(.step(String(localized: "Installing macOS from IPSW...")))
 
 				let backend = AppleMobileDeviceRestoreBackend()
 				let driver = try DeviceRestoreDriver(ecid: ecid, bundleURL: url, backend: backend)
@@ -380,16 +387,16 @@ import Virtualization
 
 			progressHandler(.step(String(localized: "Installing macOS from IPSW...")))
 
-			#if APPSTORE
-				if self.queue == nil {
+			#if USE_VIRTUAL_INSTALL_BACKEND
+				if #available(macOS 26.0, *), await shouldUseVirtualInstallBackend(url: url) {
+					try await self.installViaAMRestore(url: url, progressHandler: progressHandler)
+				} else if self.queue == nil {
 					try await self.installIPSWSync(url, progressHandler: progressHandler)
 				} else {
 					try await self.installIPSWAsync(url, progressHandler: progressHandler)
 				}
 			#else
-				if #available(macOS 26.0, *), await shouldUseVirtualInstallBackend(url: url) {
-					try await self.installViaAMRestore(url: url, progressHandler: progressHandler)
-				} else if self.queue == nil {
+				if self.queue == nil {
 					try await self.installIPSWSync(url, progressHandler: progressHandler)
 				} else {
 					try await self.installIPSWAsync(url, progressHandler: progressHandler)

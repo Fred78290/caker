@@ -15,7 +15,7 @@ struct VMSettingsView: View {
 	@AppStorage("ClipboardRedirectionEnabled") var isClipboardRedirectionEnabled = false
 	@AppStorage("DebugVNCMessageEnabled") var debugVNCMessageEnabled: Bool = false
 
-	#if !APPSTORE
+	#if USE_VIRTUAL_INSTALL_BACKEND
 	@AppStorage("CakerForceVirtualInstallBackend") var forceVirtualInstallBackend: Bool = false
 	#endif
 
@@ -76,11 +76,11 @@ struct VMSettingsView: View {
 				}
 			}
 
-			#if !APPSTORE
+			#if USE_VIRTUAL_INSTALL_BACKEND
 			Toggle(
 				isOn: $forceVirtualInstallBackend,
 				label: {
-					Text("Force Virtual Install Backend")
+					Text("Use DFU restore mode")
 				}
 			).onChange(of: forceVirtualInstallBackend) { _, newValue in
 				if newValue {

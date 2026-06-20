@@ -101,7 +101,7 @@ enum IPSWImage: Int, CaseIterable {
 	case macos15_6_1
 	case macos14_6_1
 	case macos13_6
-	
+
 	var location: ISOLocation {
 		switch self {
 		case .macos26_5_1:
@@ -399,7 +399,7 @@ struct VirtualMachineWizard: View {
 
 		self.Body().onReceive(VirtualMachineDocument.ProgressCreateVirtualMachine) { notification in
 			if let fractionCompleted = notification.object as? Double {
-				self.model.fractionCompleted = fractionCompleted
+				self.model.fractionCompleted = max(0, min(1.0, fractionCompleted))
 			}
 		}
 		.onReceive(VirtualMachineDocument.CreatedVirtualMachine) { notification in
@@ -1110,6 +1110,10 @@ struct VirtualMachineWizard: View {
 		self.model.createVMMessage = "Creating virtual machine..."
 
 		await self.createVirtualMachine { result in
+			guard self.model.createVM else {
+				return
+			}
+
 			DispatchQueue.main.async {
 				switch result {
 				case .progress(_, let fractionCompleted):
@@ -1134,9 +1138,9 @@ struct VirtualMachineWizard: View {
 	}
 
 	func createVirtualMachine(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async {
-		do {
-			try await withTaskCancellationHandler(
-				operation: {
+		await withTaskCancellationHandler(
+			operation: {
+				do {
 					let options = self.config.buildOptions(imageSource: model.imageSource)
 					var ipswQueue: DispatchQueue!
 
@@ -1153,15 +1157,13 @@ struct VirtualMachineWizard: View {
 					if build.builded == false {
 						progressHandler(.terminated(.failure(ServiceError(build.reason)), String(localized: "Create virtual machine failed")))
 					}
-				},
-				onCancel: {
-					progressHandler(.terminated(.failure(ServiceError(String(localized: "Cancelled"))), String(localized: "Create virtual machine failed")))
-				})
-		} catch {
-			await MainActor.run {
-				alertError(error)
-			}
-		}
+				} catch {
+					progressHandler(.terminated(.failure(error), String(localized: "Create virtual machine failed")))
+				}
+			},
+			onCancel: {
+				progressHandler(.terminated(.failure(ServiceError(String(localized: "Cancelled"))), String(localized: "Create virtual machine failed")))
+			})
 	}
 
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {

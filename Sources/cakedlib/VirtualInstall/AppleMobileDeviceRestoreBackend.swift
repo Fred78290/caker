@@ -7,7 +7,7 @@
 //
 // Only compiled on Apple Silicon; the AMRestore SPI does not exist on x86_64.
 
-#if !APPSTORE && arch(arm64)
+#if USE_VIRTUAL_INSTALL_BACKEND && arch(arm64)
 
 import Foundation
 import CakeAgentLib
