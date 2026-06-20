@@ -55,7 +55,7 @@ Check the [Troubleshooting](troubleshooting) guide for solutions.
 
 ### Why does macOS 27 installation fail at ~78% with `VZMacOSInstaller`?
 
-This is a known `VZMacOSInstaller` regression ([utmapp/UTM#7746](https://github.com/utmapp/UTM/issues/7746)) that affects macOS 27 guests installed on macOS 26 hosts. Non-App Store builds of Caker work around this automatically by switching to the `AppleMobileDeviceRestore` (AMRestore) backend whenever the IPSW targets macOS 27 or later.
+This is a known `VZMacOSInstaller` regression ([utmapp/UTM#7746](https://github.com/utmapp/UTM/issues/7746)) that affects macOS 27 guests installed on macOS 26 hosts. Caker works around this automatically by switching to the `AppleMobileDeviceRestore` (AMRestore) backend whenever the IPSW targets macOS 27 or later.
 
 ### How does Caker decide which installation backend to use?
 
@@ -65,9 +65,9 @@ The choice is made at the start of each `build` (IPSW) install:
 2. If the IPSW's `operatingSystemVersion.majorVersion >= 27` → AMRestore.
 3. Otherwise → `VZMacOSInstaller`.
 
-### Why is macOS 27 installation not available in the App Store build?
+### Is macOS 27 installation available in the App Store build?
 
-The AMRestore path uses the private `AppleMobileDeviceRestore` framework and communicates with system daemons (`com.apple.mobile.restored`) that are blocked by the macOS App Sandbox. It is therefore compiled out of the App Store build using `#if USE_VIRTUAL_INSTALL_BACKEND` guards.
+Yes. The AMRestore path — which relies on the private `AppleMobileDeviceRestore` framework and the `com.apple.mobile.restored` daemon — is now enabled in the App Store build via the `USE_VIRTUAL_INSTALL_BACKEND` feature flag.
 
 ### How can I force the AMRestore backend for testing?
 

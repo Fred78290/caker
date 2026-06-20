@@ -240,7 +240,7 @@
 			#endif
 		}
 
-		// MARK: - AMRestore path (macOS 27+ guests, non-App Store only)
+		// MARK: - AMRestore path (macOS 27+ guests)
 
 		#if USE_VIRTUAL_INSTALL_BACKEND
 			/// Returns true when the AMRestore backend should be used instead of
