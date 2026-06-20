@@ -1,5 +1,37 @@
 # Release Notes
 
+## 2026-06-20 (Git log summary - main)
+
+### Added
+- See commit highlights below.
+
+### Updated
+- feat: Enable macOS 27+ guest installation in App Store builds
+- feat: Correct conditional compilation for VirtualInstallSPI backend
+- feat: Enhance VM creation reliability and error reporting
+- feat: Conditionally compile IPSW installer for arm64
+- feat: Update DFU restore mode setting label
+- feat: Expand tilde in build option file paths
+- feat: Propagate build errors via build stream
+- feat: enable virtual install backend and DFU mode for App Store builds
+- fix: Ensure reliable IPSW installer cancellation in async contexts
+- fix: Correct VZMacOSInstaller lifecycle for queued IPSW installs
+- Potential fix for pull request finding
+- Potential fix for pull request finding
+- Discard uneeded import
+- refactor: Reset gcdStarted state early during GrandCentral termination
+- refactor: Enhance GrandCentral state management and watcher logic
+- feat: Set VM status to running on external process detection
+- refactor: Make DirWatcher callback non-throwing
+- feat: Enhance VM directory watcher for robustness and detailed logging
+- feat: Monitor VM directories in app mode
+- refactor: Simplify CodableError userInfo key handling
+
+### Notes
+- Summary generated automatically from recent git commits on branch `main`.
+- Command used: `git log --no-merges --oneline -n 20 -- Sources wiki .github/workflows`.
+
+
 ## 2026-06-17
 
 ### Added
