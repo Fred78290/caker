@@ -9,8 +9,8 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PKGDIR="${PKGDIR:-${PROJECT_ROOT}/dist/Caker.app}"
 KEYCHAIN_OPTIONS=${1:-}
 
-if [ -f ${PROJECT_ROOT}/.env ]; then
-	source ${PROJECT_ROOT}/.env
+if [ -f "${PROJECT_ROOT}/.env" ]; then
+	source "${PROJECT_ROOT}/.env"
 fi
 
 if [ -n "${KEYCHAIN_OPTIONS}" ]; then
