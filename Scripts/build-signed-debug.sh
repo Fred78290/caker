@@ -33,6 +33,6 @@ trap cleanup_swift_mirror EXIT
 
 /usr/bin/swift package config set-mirror --original "${ARGUMENT_PARSER_ORIGINAL}" --mirror "${ARGUMENT_PARSER_MIRROR}"
 /usr/bin/swift package resolve
-/usr/bin/swift build -Xswiftc -D -Xswiftc SPARKLE
+/usr/bin/swift build -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"
