@@ -554,11 +554,11 @@ extension Caked_CommonBuildRequest {
 		}
 
 		if let sshAuthorizedKey = buildOptions.sshAuthorizedKey {
-			self.sshAuthorizedKey = try Data(contentsOf: URL(filePath: sshAuthorizedKey))
+			self.sshAuthorizedKey = try Data(contentsOf: URL(filePath: sshAuthorizedKey.expandingTildeInPath))
 		}
 
 		if let vendorData = buildOptions.vendorData {
-			self.vendorData = try Data(contentsOf: URL(filePath: vendorData))
+			self.vendorData = try Data(contentsOf: URL(filePath: vendorData.expandingTildeInPath))
 		}
 
 		if let userData = buildOptions.userData {
@@ -567,12 +567,12 @@ extension Caked_CommonBuildRequest {
 					self.userData = input.joined(separator: "\n").data(using: .utf8)!
 				}
 			} else {
-				self.userData = try Data(contentsOf: URL(filePath: userData))
+				self.userData = try Data(contentsOf: URL(filePath: userData.expandingTildeInPath))
 			}
 		}
 
 		if let networkConfig = buildOptions.networkConfig {
-			self.networkConfig = try Data(contentsOf: URL(filePath: networkConfig))
+			self.networkConfig = try Data(contentsOf: URL(filePath: networkConfig.expandingTildeInPath))
 		}
 
 		self.dynamicPortForwarding = buildOptions.dynamicPortForwarding
