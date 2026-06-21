@@ -50,12 +50,11 @@ done
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 
-IPADIR="${PROJECT_ROOT}/appstore"
-IPANAME="${IPANAME:-Caker.ipa}"
-IPAPATH="${IPAPATH:-${IPADIR}/${IPANAME}}"
-PAYLOAD_DIR="${IPADIR}/Payload"
+OUTDIR="${PROJECT_ROOT}/appstore"
+PKGNAME="${PKGNAME:-Caker.pkg}"
+PKGPATH="${PKGPATH:-${OUTDIR}/${PKGNAME}}"
 
 productbuild ${KEYCHAIN_OPTIONS} \
 	--sign "3rd Party Mac Developer Installer: ${DEVELOPER_ID}" \
-	--component "${IPADIR}/Caker.app" /Applications \
-	"${IPADIR}/Caker.pkg"
+	--component "${OUTDIR}/Caker.app" /Applications \
+	"${PKGPATH}"
