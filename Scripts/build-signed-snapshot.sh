@@ -6,7 +6,8 @@ function cleanup() {
 	rm -rf "${RUNNER_TEMP}"
 }
 
-export VERSION=SNAPSHOT-$(git rev-parse --short HEAD)
+export BASE_VERSION=${BASE_VERSION:-1.0}
+export VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"

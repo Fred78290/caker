@@ -106,9 +106,11 @@ cp -c "${PROJECT_ROOT}/Resources/cakectl.plist" "${CAKECTL_APP}/Info.plist"
 if [ $APPSTORE -eq 0 ]; then
 	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
 	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
 else
 	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
 	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
 fi
 
 if [ $APPSTORE -eq 0 ] && [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
@@ -120,6 +122,12 @@ if [ $APPSTORE -eq 0 ] && [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
 
 	plutil -replace SUFeedURL -string "${APPCAST_URL}" "${CAKER_APP}/Info.plist"
 	plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" "${CAKER_APP}/Info.plist"
+elif [ $APPSTORE -eq 1 ]; then
+	plutil -remove SUFeedURL "${CAKER_APP}/Info.plist" 2>/dev/null || true
+	plutil -remove SUPublicEDKey "${CAKER_APP}/Info.plist" 2>/dev/null || true
+	plutil -remove SUAllowsAutomaticUpdates "${CAKER_APP}/Info.plist" 2>/dev/null || true
+	plutil -remove SUEnableAutomaticChecks "${CAKER_APP}/Info.plist" 2>/dev/null || true
+	plutil -remove SUScheduledCheckInterval "${CAKER_APP}/Info.plist" 2>/dev/null || true
 fi
 
 plutil -replace CFBundleShortVersionString -string "${VERSION}" "${CAKER_APP}/Info.plist"
@@ -134,47 +142,53 @@ plutil -replace CFBundleVersion -string "${VERSION}" "${CAKECTL_APP}/Info.plist"
 if [ "${APPSTORE}" -eq 1 ]; then
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
+		--identifier "com.aldunelabs.caker" \
 		--timestamp \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/cakectl.entitlements" \
-		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/cakectl}" \
-		--preserve-metadata=identifier,entitlements,flags \
+		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
+		--strip-disallowed-xattrs \
 		--force "${CAKECTL_APP}/MacOS/cakectl"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
-		--preserve-metadata=identifier,entitlements,flags \
+		--identifier "com.aldunelabs.caker" \
+		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/caked.entitlements" \
-		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/caked}" \
+		--strip-disallowed-xattrs \
 		--force "${CAKED_APP}/MacOS/caked"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
-		--preserve-metadata=identifier,entitlements,flags \
+		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release.entitlements" \
 		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+		--strip-disallowed-xattrs \
 		--force "${CAKER_APP}/MacOS/Caker"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
+		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/caked.entitlements" \
-		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+		--strip-disallowed-xattrs \
 		--force "${CAKER_APP}/PlugIns/caked.bundle"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
+		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/cakectl.entitlements" \
-		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+		--strip-disallowed-xattrs \
 		--force "${CAKER_APP}/PlugIns/cakectl.bundle"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
+		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release.entitlements" \
-		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+		--strip-disallowed-xattrs \
 		--force "${PKGDIR}"
 
 elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then

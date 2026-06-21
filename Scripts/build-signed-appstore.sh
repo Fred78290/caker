@@ -26,8 +26,11 @@ ASSETS="${BUILDDIR}/assets"
 RELEASE=1
 APPSTORE=1
 USE_SMAPPSERVICE=1
+BASE_VERSION=${BASE_VERSION:-1.0}
+VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
 
-sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app" "${PROJECT_ROOT}/.appstore" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
+#sudo rm -rf "${PROJECT_ROOT}/.appstore" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
+sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app"
 
 cleanup_swift_package_mirror() {
 	/usr/bin/swift package config unset-mirror --original https://github.com/apple/swift-argument-parser || true
@@ -46,3 +49,12 @@ for FILE in Caker caked cakectl; do
 done
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"
+
+OUTDIR="${PROJECT_ROOT}/appstore"
+PKGNAME="${PKGNAME:-Caker.pkg}"
+PKGPATH="${PKGPATH:-${OUTDIR}/${PKGNAME}}"
+
+productbuild ${KEYCHAIN_OPTIONS} \
+	--sign "3rd Party Mac Developer Installer: ${DEVELOPER_ID}" \
+	--component "${OUTDIR}/Caker.app" /Applications \
+	"${PKGPATH}"

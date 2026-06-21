@@ -63,3 +63,4 @@ webui/tsconfig.tsbuildinfo
 appstore/*.app
 *.app.dSYM
 *.app.dSYM.zip
+appstore/
