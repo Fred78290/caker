@@ -774,14 +774,6 @@
 			);
 			name = Compatibility;
 		};
-		9B464B4D2D5A3E5C00164BF5 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolder = None;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
 		9BA9CBD02FCD7B8D00CEBFC0 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			dstPath = "";
@@ -798,14 +790,6 @@
 				9BA9CC292FCED36200CEBFC0 /* PrivilegedBootstrap.applescript in PriviligedBootstrap */,
 			);
 			name = PriviligedBootstrap;
-		};
-		9BEBC68C2DF43FEE0092B196 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolder = None;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
 		};
 		9BFA90382FD08BD4007619A5 /* LaunchAgents */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -2716,7 +2700,6 @@
 			buildPhases = (
 				9B464B4B2D5A3E5C00164BF5 /* Sources */,
 				9B464B4C2D5A3E5C00164BF5 /* Frameworks */,
-				9B464B4D2D5A3E5C00164BF5 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -2820,8 +2803,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9BA9CBCD2FCD7B8000CEBFC0 /* Build configuration list for PBXNativeTarget "cakectl.bundle" */;
 			buildPhases = (
-				9BA9CBC82FCD7B8000CEBFC0 /* Resources */,
 				9BA9CBD02FCD7B8D00CEBFC0 /* CopyFiles */,
+				9BA9CBC82FCD7B8000CEBFC0 /* Resources */,
+				9B773B302FE8177A00C69B33 /* Profile */,
 				9BA9CBD42FCD7BCC00CEBFC0 /* Localization */,
 			);
 			buildRules = (
@@ -2840,7 +2824,6 @@
 			buildPhases = (
 				9BEBC68A2DF43FEE0092B196 /* Sources */,
 				9BEBC68B2DF43FEE0092B196 /* Frameworks */,
-				9BEBC68C2DF43FEE0092B196 /* CopyFiles */,
 				9B08B4AF2F743D68009EC5C6 /* ShellScript */,
 			);
 			buildRules = (
@@ -3221,6 +3204,23 @@
 			shellPath = /bin/sh;
 			shellScript = (
 				"# Type a script or drag a script file from your workspace to insert its path.",
+				"cp ${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}.provisionprofile ${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
+				"",
+			);
+		};
+		9B773B302FE8177A00C69B33 /* Profile */ = {
+			isa = PBXShellScriptBuildPhase;
+			inputFileListPaths = (
+				"${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}.provisionprofile",
+			);
+			name = Profile;
+			outputPaths = (
+				"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
+			);
+			shellPath = /bin/sh;
+			shellScript = (
+				"# Type a script or drag a script file from your workspace to insert its path.",
+				"set -x",
 				"cp ${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}.provisionprofile ${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
 				"",
 			);

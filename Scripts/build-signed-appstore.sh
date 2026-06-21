@@ -55,14 +55,7 @@ IPANAME="${IPANAME:-Caker.ipa}"
 IPAPATH="${IPAPATH:-${IPADIR}/${IPANAME}}"
 PAYLOAD_DIR="${IPADIR}/Payload"
 
-rm -rf "${PAYLOAD_DIR}" "${IPAPATH}"
-mkdir -p "${PAYLOAD_DIR}"
-cp -R "${PKGDIR}" "${PAYLOAD_DIR}/"
-
-pushd "${IPADIR}" > /dev/null
-zip -qry "${IPAPATH}" Payload
-popd > /dev/null
-
-rm -rf "${PAYLOAD_DIR}"
-
-echo "IPA created at ${IPAPATH}"
+productbuild ${KEYCHAIN_OPTIONS} \
+	--sign "3rd Party Mac Developer Installer: ${DEVELOPER_ID}" \
+	--component "${IPADIR}/Caker.app" /Applications \
+	"${IPADIR}/Caker.pkg"

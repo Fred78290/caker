@@ -141,47 +141,53 @@ plutil -replace CFBundleVersion -string "${VERSION}" "${CAKECTL_APP}/Info.plist"
 if [ "${APPSTORE}" -eq 1 ]; then
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
+		--identifier "com.aldunelabs.caker" \
 		--timestamp \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/cakectl.entitlements" \
-		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/cakectl}" \
-		--preserve-metadata=identifier,entitlements,flags \
+		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
+		--strip-disallowed-xattrs \
 		--force "${CAKECTL_APP}/MacOS/cakectl"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
-		--preserve-metadata=identifier,entitlements,flags \
+		--identifier "com.aldunelabs.caker" \
+		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/caked.entitlements" \
-		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/caked}" \
+		--strip-disallowed-xattrs \
 		--force "${CAKED_APP}/MacOS/caked"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
-		--preserve-metadata=identifier,entitlements,flags \
+		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release.entitlements" \
 		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+		--strip-disallowed-xattrs \
 		--force "${CAKER_APP}/MacOS/Caker"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
+		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/caked.entitlements" \
-		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+		--strip-disallowed-xattrs \
 		--force "${CAKER_APP}/PlugIns/caked.bundle"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
+		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/cakectl.entitlements" \
-		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+		--strip-disallowed-xattrs \
 		--force "${CAKER_APP}/PlugIns/cakectl.bundle"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
+		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release.entitlements" \
-		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+		--strip-disallowed-xattrs \
 		--force "${PKGDIR}"
 
 elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
