@@ -106,6 +106,7 @@ cp -c "${PROJECT_ROOT}/Resources/cakectl.plist" "${CAKECTL_APP}/Info.plist"
 if [ $APPSTORE -eq 0 ]; then
 	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
 	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
 else
 	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
 	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"

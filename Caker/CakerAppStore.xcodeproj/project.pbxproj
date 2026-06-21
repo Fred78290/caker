@@ -3194,7 +3194,7 @@
 		};
 		9B5665822FCC49BE00BB6136 /* Profile */ = {
 			isa = PBXShellScriptBuildPhase;
-			inputFileListPaths = (
+			inputPaths = (
 				"${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}.provisionprofile",
 			);
 			name = Profile;
