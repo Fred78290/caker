@@ -3210,7 +3210,7 @@
 		};
 		9B773B302FE8177A00C69B33 /* Profile */ = {
 			isa = PBXShellScriptBuildPhase;
-			inputFileListPaths = (
+			inputPaths = (
 				"${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}.provisionprofile",
 			);
 			name = Profile;
@@ -3220,8 +3220,8 @@
 			shellPath = /bin/sh;
 			shellScript = (
 				"# Type a script or drag a script file from your workspace to insert its path.",
-				"set -x",
-				"cp ${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}.provisionprofile ${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
+				"set -e",
+				"cp \"${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}.provisionprofile\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile\"",
 				"",
 			);
 		};
