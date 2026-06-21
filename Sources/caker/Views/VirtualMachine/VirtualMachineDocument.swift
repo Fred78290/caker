@@ -1,3 +1,9 @@
+//
+//  VirtualMachineDocument.swift
+//  Caker
+//
+//  Created by Frederic BOLTZ on 31/05/2025.
+//
 import CakeAgentLib
 import CakedLib
 import Dynamic
@@ -9,12 +15,6 @@ import GRPCLib
 import NIO
 import RoyalVNCKit
 import SwiftTerm
-//
-//  VirtualMachineDocument.swift
-//  Caker
-//
-//  Created by Frederic BOLTZ on 31/05/2025.
-//
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -848,14 +848,15 @@ extension VirtualMachineDocument {
 
 			virtualMachine.resumeVMFromUI(completionHandler: completion)
 		} else {
+			self.setOtherState(status: .starting)
+
 			Task {
 				do {
 					let virtualMachine = try await self.createVirtualMachine()
 
-					self.setOtherState(status: .starting)
-
 					virtualMachine.restoreStateVMFromUI(completionHandler: completion)
 				} catch {
+					await self.setStateAsStopped()
 					await alertError(error)
 				}
 			}
@@ -891,11 +892,11 @@ extension VirtualMachineDocument {
 
 				virtualMachine.startFromUI()
 			} else {
+				self.setOtherState(status: .starting)
+
 				Task {
 					do {
 						let virtualMachine = try await self.createVirtualMachine()
-
-						self.setOtherState(status: .starting)
 
 						virtualMachine.startFromUI()
 					} catch {
