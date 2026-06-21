@@ -3,7 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>NSBonjourServices</key>
-	<string>_caked._tcp.</string>
+	<array>
+		<string>_caked._tcp.</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -21,7 +23,7 @@
 	<key>CFBundleName</key>
 	<string>caked</string>
 	<key>CFBundlePackageType</key>
-	<string>APPL</string>
+	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>${VERSION}</string>
 	<key>CFBundleSupportedPlatforms</key>
@@ -30,8 +32,6 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>${VERSION}</string>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>15.0</string>
 	<key>NSAppTransportSecurity</key>

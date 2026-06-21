@@ -19,7 +19,7 @@
 	<key>CFBundleName</key>
 	<string>cakectl</string>
 	<key>CFBundlePackageType</key>
-	<string>APPL</string>
+	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>${VERSION}</string>
 	<key>CFBundleSupportedPlatforms</key>
@@ -28,8 +28,6 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>${VERSION}</string>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>15.0</string>
 	<key>NSAppTransportSecurity</key>

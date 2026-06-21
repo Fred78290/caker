@@ -109,6 +109,7 @@ if [ $APPSTORE -eq 0 ]; then
 else
 	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
 	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
 fi
 
 if [ $APPSTORE -eq 0 ] && [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
@@ -120,6 +121,12 @@ if [ $APPSTORE -eq 0 ] && [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
 
 	plutil -replace SUFeedURL -string "${APPCAST_URL}" "${CAKER_APP}/Info.plist"
 	plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" "${CAKER_APP}/Info.plist"
+elif [ $APPSTORE -eq 1 ]; then
+	plutil -remove SUFeedURL "${CAKER_APP}/Info.plist" 2>/dev/null || true
+	plutil -remove SUPublicEDKey "${CAKER_APP}/Info.plist" 2>/dev/null || true
+	plutil -remove SUAllowsAutomaticUpdates "${CAKER_APP}/Info.plist" 2>/dev/null || true
+	plutil -remove SUEnableAutomaticChecks "${CAKER_APP}/Info.plist" 2>/dev/null || true
+	plutil -remove SUScheduledCheckInterval "${CAKER_APP}/Info.plist" 2>/dev/null || true
 fi
 
 plutil -replace CFBundleShortVersionString -string "${VERSION}" "${CAKER_APP}/Info.plist"
