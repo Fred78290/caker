@@ -21,6 +21,7 @@ public struct CakerEnvVM: Codable {
 	public var user: String?
 	public var password: String?
 	public var ports: [String]?
+	public var sockets: [String]?
 	public var mounts: [String]?
 	public var networks: [String]?
 	public var cloudInit: String?
@@ -30,7 +31,7 @@ public struct CakerEnvVM: Codable {
 	public var dependsOn: [String]?
 
 	enum CodingKeys: String, CodingKey {
-		case image, cpus, memory, disk, user, password, ports, mounts, networks
+		case image, cpus, memory, disk, user, password, ports, sockets, mounts, networks
 		case cloudInit = "cloud-init"
 		case autostart, nested
 		case dependsOn = "depends-on"
@@ -51,9 +52,10 @@ public struct CakerEnvVM: Codable {
 		opts.autostart = autostart ?? false
 		opts.nested = nested ?? false
 
-		if let ports {
-			opts.forwardedPorts = ports.compactMap { TunnelAttachement(argument: $0) }
-		}
+		var tunnels: [TunnelAttachement] = ports?.compactMap { TunnelAttachement(argument: $0) } ?? []
+		tunnels += sockets?.compactMap { parseUnixSocketTunnel($0) } ?? []
+		opts.forwardedPorts = tunnels
+
 		if let mounts {
 			opts.mounts = try mounts.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
 		}
@@ -103,6 +105,7 @@ public struct CakerEnv: Codable {
 	public var user: String?
 	public var password: String?
 	public var ports: [String]?
+	public var sockets: [String]?
 	public var mounts: [String]?
 	public var networks: [String]?
 	public var cloudInit: String?
@@ -113,7 +116,7 @@ public struct CakerEnv: Codable {
 	public var vms: [String: CakerEnvVM]?
 
 	enum CodingKeys: String, CodingKey {
-		case name, image, cpus, memory, disk, user, password, ports, mounts, networks
+		case name, image, cpus, memory, disk, user, password, ports, sockets, mounts, networks
 		case cloudInit = "cloud-init"
 		case autostart, nested, vms
 	}
@@ -212,6 +215,7 @@ public struct CakerEnv: Codable {
 		vm.user = user
 		vm.password = password
 		vm.ports = ports
+		vm.sockets = sockets
 		vm.mounts = mounts
 		vm.networks = networks
 		vm.cloudInit = cloudInit
@@ -221,6 +225,8 @@ public struct CakerEnv: Codable {
 	}
 
 	// MARK: Template
+
+
 
 	public static var template: String {
 		"""
@@ -240,6 +246,9 @@ public struct CakerEnv: Codable {
 		# password: ubuntu
 		# ports:
 		#   - "3000:3000"
+		# sockets:
+		#   - "/tmp/host.sock:/tmp/guest.sock"
+		#   - "/tmp/host.sock:/tmp/guest.sock/udp"
 		# mounts:
 		#   - ".:/workspace"
 		# networks:
@@ -262,6 +271,8 @@ public struct CakerEnv: Codable {
 		    password: ubuntu
 		    ports:
 		      - "3000:3000"
+		    # sockets:
+		    #   - "/tmp/docker.sock:/var/run/docker.sock"
 		    mounts:
 		      - ".:/workspace"
 		    networks:
@@ -284,4 +295,35 @@ public struct CakerEnv: Codable {
 		      - app
 		"""
 	}
+}
+
+// MARK: - Shared helpers (internal — available within cakedlib)
+
+/// Parse a unix domain socket forwarding string into a `TunnelAttachement`.
+///
+/// Format: `"host_path:guest_path[/proto]"`  where proto is `tcp` (default), `udp`, or `both`.
+///
+/// Examples:
+/// - `"/tmp/docker.sock:/var/run/docker.sock"`
+/// - `"/tmp/host.sock:/tmp/guest.sock/udp"`
+func parseUnixSocketTunnel(_ s: String) -> TunnelAttachement? {
+	var remainder = s
+	var proto = MappedPort.Proto.tcp
+
+	// Strip optional protocol suffix (last path component if "tcp"/"udp"/"both")
+	if let lastSlash = remainder.lastIndex(of: "/") {
+		let suffix = String(remainder[remainder.index(after: lastSlash)...]).lowercased()
+		if ["tcp", "udp", "both"].contains(suffix) {
+			proto = MappedPort.Proto(suffix)
+			remainder = String(remainder[..<lastSlash])
+		}
+	}
+
+	// Split host:guest on the first ":"
+	guard let colonIdx = remainder.firstIndex(of: ":") else { return nil }
+	let hostPath = String(remainder[..<colonIdx])
+	let guestPath = String(remainder[remainder.index(after: colonIdx)...])
+	guard !hostPath.isEmpty, !guestPath.isEmpty else { return nil }
+
+	return TunnelAttachement(host: hostPath, guest: guestPath, proto: proto)
 }

@@ -180,6 +180,7 @@ public struct ComposeNetwork: Codable {
 public struct ComposeService: Codable {
 	public var image: String?
 	public var ports: [ComposePort]?
+	public var sockets: [String]?
 	public var volumes: [ComposeVolume]?
 	public var environment: ComposeEnvironment?
 	public var networks: [String]?
@@ -196,7 +197,7 @@ public struct ComposeService: Codable {
 	public var autostart: Bool?
 
 	enum CodingKeys: String, CodingKey {
-		case image, ports, volumes, environment, networks, deploy, restart, hostname
+		case image, ports, sockets, volumes, environment, networks, deploy, restart, hostname
 		case dependsOn = "depends_on"
 		case disk, user, password, nested, autostart
 	}
@@ -226,9 +227,9 @@ public struct ComposeService: Codable {
 			opts.memory = 2048
 		}
 
-		if let ports {
-			opts.forwardedPorts = ports.compactMap { $0.portString }.compactMap { TunnelAttachement(argument: $0) }
-		}
+		var tunnels: [TunnelAttachement] = ports?.compactMap { $0.portString }.compactMap { TunnelAttachement(argument: $0) } ?? []
+		tunnels += sockets?.compactMap { parseUnixSocketTunnel($0) } ?? []
+		opts.forwardedPorts = tunnels
 
 		if let volumes {
 			opts.mounts = try volumes.compactMap { $0.mountString }.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
@@ -365,6 +366,9 @@ public struct ComposeFile: Codable {
 		    image: ubuntu:24.04
 		    ports:
 		      - "3000:3000"
+		    # sockets:
+		    #   - "/tmp/docker.sock:/var/run/docker.sock"
+		    #   - "/tmp/host.sock:/tmp/guest.sock/udp"
 		    volumes:
 		      - ".:/workspace"
 		    environment:
