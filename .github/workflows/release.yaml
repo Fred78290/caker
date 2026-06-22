@@ -102,9 +102,9 @@ jobs:
       - name: 📊 Version
         id: version
         run: |
+          BASE_VERSION="${BASE_VERSION:-1.0}"
           VERSION="${BASE_VERSION}.$(git rev-list --count HEAD)"
           PACKAGE=false
-
           if [ "${{ steps.check.outputs.install_brew }}" == "true" ]; then
             brew install create-dmg gettext jq libxml2
           else
