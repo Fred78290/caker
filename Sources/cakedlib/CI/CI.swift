@@ -9,7 +9,7 @@ public struct CI {
 		ProcessInfo.processInfo.processName
 	}
 
-	public static var release: String? {
+	public static var release: String {
 		"\(appName)@\(version)"
 	}
 }
