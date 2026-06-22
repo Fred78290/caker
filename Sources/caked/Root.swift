@@ -111,7 +111,8 @@ struct Root: ParsableCommand {
 				SetOptions.self,
 				GetOptions.self,
 				Convert.self,
-				Sandbox.self
+				Sandbox.self,
+				Compose.self
 			])
 
 	static func parse() throws -> ParsableCommand? {

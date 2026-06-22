@@ -226,6 +226,7 @@ struct Client: ParsableCommand {
 				GetOptions.self,
 				Certificate.self,
 				Sandbox.self,
+				Compose.self,
 			])
 
 #if DEBUG

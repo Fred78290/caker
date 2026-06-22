@@ -198,7 +198,7 @@ public struct CakerEnv: Codable {
 
 	/// Reverse of `startOrder` — use this for graceful shutdown.
 	public func downOrder(nameOverride: String? = nil, filter: [String] = []) throws -> [(name: String, vm: CakerEnvVM)] {
-		return try startOrder(nameOverride: nameOverride, filter: filter).reversed()
+		return Array(try startOrder(nameOverride: nameOverride, filter: filter).reversed())
 	}
 
 	// MARK: Private
