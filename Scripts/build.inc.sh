@@ -1,12 +1,12 @@
-SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
+BASE_VERSION=${BASE_VERSION:-1.0}
+VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
+BUILDRELEASE=${BUILDRELEASE:-false}
 SPARKLE_PUBLIC_KEY=${SPARKLE_PUBLIC_KEY:-}
 DEVELOPER_ID=${DEVELOPER_ID:-}
 CODESIGN_REQUIREMENT=${CODESIGN_REQUIREMENT:-}
 RELEASE=${RELEASE:-0}
 APPSTORE=${APPSTORE:-0}
 USE_SMAPPSERVICE=${USE_SMAPPSERVICE:-0}
-
-export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
 
 CAKER_APP="${PKGDIR}/Contents"
 CAKED_APP="${CAKER_APP}/PlugIns/caked.bundle/Contents"
@@ -114,7 +114,7 @@ else
 fi
 
 if [ $APPSTORE -eq 0 ] && [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
-	if [[ "${VERSION}" =~ SNAPSHOT ]]; then
+	if [[ "${BUILDRELEASE}" != "true" ]]; then
 		APPCAST_URL="https://caker.aldunelabs.com/appcast/appcast-prerelease.xml"
 	else
 		APPCAST_URL="https://caker.aldunelabs.com/appcast/appcast.xml"

@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
-VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
+BASE_VERSION=${BASE_VERSION:-1.0}
+VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
 NOTARYZATION=${NOTARYZATION:=false}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

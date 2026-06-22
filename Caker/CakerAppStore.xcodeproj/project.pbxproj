@@ -2670,6 +2670,7 @@
 				9B29F82B2FCAE4B700AEBCB8 /* Compatibility */,
 				9BA9CC282FCED33F00CEBFC0 /* PriviligedBootstrap */,
 				9BFA90382FD08BD4007619A5 /* LaunchAgents */,
+				9B773DF22FE92BA200C69B33 /* Set version */,
 			);
 			buildRules = (
 			);
@@ -2807,6 +2808,7 @@
 				9BA9CBC82FCD7B8000CEBFC0 /* Resources */,
 				9B773B302FE8177A00C69B33 /* Profile */,
 				9BA9CBD42FCD7BCC00CEBFC0 /* Localization */,
+				9B773DF42FE92C9200C69B33 /* Set version */,
 			);
 			buildRules = (
 			);
@@ -2970,6 +2972,7 @@
 				9B5665822FCC49BE00BB6136 /* Profile */,
 				9B1836552FB0E28F00D150FD /* WebUI */,
 				9B06995F2FB1A1E400FEAE13 /* Localization */,
+				9B773DF32FE92C7700C69B33 /* Set version */,
 			);
 			buildRules = (
 			);
@@ -3222,6 +3225,48 @@
 				"# Type a script or drag a script file from your workspace to insert its path.",
 				"set -e",
 				"cp \"${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}.provisionprofile\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile\"",
+				"",
+			);
+		};
+		9B773DF22FE92BA200C69B33 /* Set version */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			name = "Set version";
+			shellPath = /bin/sh;
+			shellScript = (
+				"# Type a script or drag a script file from your workspace to insert its path.",
+				"BASE_VERSION=${BASE_VERSION:-1.0}",
+				"VERSION=\"${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD 2>/dev/null || echo 0)}\"",
+				"plutil -replace CFBundleShortVersionString -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
+				"plutil -replace CFBundleVersion -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
+				"",
+			);
+		};
+		9B773DF32FE92C7700C69B33 /* Set version */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			name = "Set version";
+			shellPath = /bin/sh;
+			shellScript = (
+				"# Type a script or drag a script file from your workspace to insert its path.",
+				"BASE_VERSION=${BASE_VERSION:-1.0}",
+				"VERSION=\"${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD 2>/dev/null || echo 0)}\"",
+				"plutil -replace CFBundleShortVersionString -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
+				"plutil -replace CFBundleVersion -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
+				"",
+			);
+		};
+		9B773DF42FE92C9200C69B33 /* Set version */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			name = "Set version";
+			shellPath = /bin/sh;
+			shellScript = (
+				"# Type a script or drag a script file from your workspace to insert its path.",
+				"BASE_VERSION=${BASE_VERSION:-1.0}",
+				"VERSION=\"${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD 2>/dev/null || echo 0)}\"",
+				"plutil -replace CFBundleShortVersionString -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
+				"plutil -replace CFBundleVersion -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
 				"",
 			);
 		};

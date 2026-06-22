@@ -1,18 +1,16 @@
 import Foundation
 
 public struct CI {
-	private static let rawVersion = "${VERSION}"
-
 	public static var version: String {
-		rawVersion.expanded() ? rawVersion : "SNAPSHOT"
+		Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "SNAPSHOT"
 	}
 
 	private static var appName: String {
 		ProcessInfo.processInfo.processName
 	}
 
-	public static var release: String? {
-		rawVersion.expanded() ? "\(appName)@\(rawVersion)" : nil
+	public static var release: String {
+		"\(appName)@\(version)"
 	}
 }
 

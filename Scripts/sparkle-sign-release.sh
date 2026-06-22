@@ -100,13 +100,12 @@ echo -e "${GREEN}✅  Release notes created${NC}"
 # Update or create appcast
 TEMP_ITEM=$(mktemp)
 
-if [[ "${VERSION}" =~ SNAPSHOT ]]; then
+if [[ "${BUILDRELEASE:-false}" != "true" ]]; then
     APPCAST_FILE="${APPCAST_DIR}/appcast-prerelease.xml"
-    RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${VERSION}/${RELEASE_FILENAME}"
 else
     APPCAST_FILE="${APPCAST_DIR}/appcast.xml"
-    RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/${RELEASE_FILENAME}"
 fi
+RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/${RELEASE_FILENAME}"
 
 # Create new item
 cat > "${TEMP_ITEM}" << EOF

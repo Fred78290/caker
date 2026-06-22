@@ -5,8 +5,8 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
-export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
+export BASE_VERSION=${BASE_VERSION:-1.0}
+export VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
 
 CI_DIR=${PROJECT_ROOT}/.ci
 	

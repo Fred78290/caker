@@ -10,7 +10,8 @@ if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
   exit 1
 fi
 
-SECTION_TITLE="## ${DATE_VALUE} (Git log summary - ${BRANCH_NAME})"
+BRANCH_LABEL="${1:-${BRANCH_NAME}}"
+SECTION_TITLE="## ${DATE_VALUE} (Git log summary - ${BRANCH_LABEL})"
 
 if grep -Fq "${SECTION_TITLE}" "${RELEASE_NOTES_FILE}"; then
   echo "Section already exists: ${SECTION_TITLE}"
@@ -46,7 +47,7 @@ trap 'rm -f "${TMP_FILE}"' EXIT
   echo "${COMMITS_RAW}"
   echo
   echo "### Notes"
-  echo "- Summary generated automatically from recent git commits on branch \`${BRANCH_NAME}\`."
+  echo "- Summary generated automatically from recent git commits on branch \`${BRANCH_LABEL}\`."
   echo "- Command used: \`${COMMAND_USED}\`."
   echo
 } > "${TMP_FILE}"
