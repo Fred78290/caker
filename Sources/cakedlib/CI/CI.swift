@@ -1,10 +1,8 @@
 import Foundation
 
 public struct CI {
-	private static let rawVersion = "${VERSION}"
-
 	public static var version: String {
-		rawVersion.expanded() ? rawVersion : "SNAPSHOT"
+		Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "SNAPSHOT"
 	}
 
 	private static var appName: String {
@@ -12,7 +10,7 @@ public struct CI {
 	}
 
 	public static var release: String? {
-		rawVersion.expanded() ? "\(appName)@\(rawVersion)" : nil
+		"\(appName)@\(version)"
 	}
 }
 

@@ -2,8 +2,8 @@ name: Release
 on:
   push:
     tags:
-      - "v*"
-      - "snapshot"
+      - "release"
+      - "prerelease"
 
 env:
   BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -23,7 +23,7 @@ env:
   SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
   SETUP_KEYCHAIN: ${{ vars.SETUP_KEYCHAIN }}
   CODESIGN_REQUIREMENT: ${{ vars.CODESIGN_REQUIREMENT }}
-
+  BASE_VERSION: ${{ vars.BASE_VERSION }}
 permissions:
   contents: write
 
@@ -102,15 +102,12 @@ jobs:
       - name: 📊 Version
         id: version
         run: |
-          VERSION="${GITHUB_REF##*/}"
+          VERSION="${BASE_VERSION}.$(git rev-list --count HEAD)"
           PACKAGE=false
 
           if [ "${{ steps.check.outputs.install_brew }}" == "true" ]; then
             brew install create-dmg gettext jq libxml2
           else
-            if [ -z "$(command -v envsubst)"  ]; then
-              brew install gettext
-            fi
             if [ -z "$(command -v jq)" ]; then
               brew install jq
             fi
@@ -128,12 +125,10 @@ jobs:
             KEYCHAIN_PATH=""
           fi
 
-          if [[ "${VERSION}" == "snapshot" ]]; then
-            VERSION="SNAPSHOT-$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)"
+          if [[ "${GITHUB_REF_NAME}" == "prerelease" ]]; then
             PACKAGE=true
             BUILDRELEASE=false
-          elif [[ "${VERSION}" == v* ]]; then
-            VERSION="${VERSION:1}"
+          elif [[ "${GITHUB_REF_NAME}" == "release" ]]; then
             PACKAGE=true
             BUILDRELEASE=true
           fi
@@ -163,12 +158,6 @@ jobs:
 
           echo -n "${VERSION}" > "${GITHUB_WORKSPACE}/build/version.txt"
 
-          export VERSION="${VERSION}"
-
-          TMPFILE=$(mktemp)
-          envsubst < Sources/cakedlib/CI/CI.swift > ${TMPFILE}
-          cp ${TMPFILE} Sources/cakedlib/CI/CI.swift
-
       - name: 🛠️ Install the Apple certificate and provisioning profile
         id: setup_keychain
         if: vars.SETUP_KEYCHAIN == 'true'
@@ -187,6 +176,7 @@ jobs:
         id: build
         env:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}" 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving'
 
@@ -195,6 +185,7 @@ jobs:
         if: steps.check.outputs.run_pytest == 'true'
         env:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           # Run tests for the Swift package
           export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:${PATH}
@@ -238,6 +229,21 @@ jobs:
             ${{ steps.version.outputs.version_path }}
           retention-days: 1
           overwrite: true
+
+      - name: 🏷️ Create version tag
+        id: create_tag
+        if: steps.version.outputs.build_package == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "Tag v${VERSION} already exists, skipping."
+          else
+            git tag -a "v${VERSION}" -m "Release v${VERSION}"
+            git push origin "v${VERSION}"
+          fi
 
       - name: 🧹 Clean up keychain and provisioning profile
         id: cleanup
@@ -283,19 +289,14 @@ jobs:
         run: |
           # Get the version from the build job outputs
           # Check if the release already exists
-          if [ ${VERSION##*/} == "snapshot" ]; then
-              PUB_VERSION="${VERSION}"
-              echo "Snapshot version: ${VERSION}"
-          else
-              PUB_VERSION="v${VERSION}"
-              echo "Release version: ${VERSION}"
-          fi
+          PUB_VERSION="v${VERSION}"
+          echo "Release version: ${VERSION}"
 
           if gh release view "${PUB_VERSION}" > /dev/null 2>&1; then
             echo "Release ${PUB_VERSION} already exists, skipping creation."
           else
             echo "Creating release ${PUB_VERSION}..."
-            if [ ${GITHUB_REF##*/} == "snapshot" ]; then
+            if [ "${GITHUB_REF_NAME}" == "prerelease" ]; then
               gh release create --prerelease --generate-notes \
                 --title "${PUB_VERSION}" "${PUB_VERSION}" \
                 "./build/Caker.dmg" \
@@ -313,6 +314,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      VERSION: "${{ needs.build.outputs.version }}"
     steps:
       - name: 🛠️ checkout
         id: checkout
@@ -327,7 +330,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           chmod +x ./Scripts/publish-wiki.sh
-          ./Scripts/publish-wiki.sh "${GITHUB_REPOSITORY}"
+          ./Scripts/publish-wiki.sh "v${VERSION}"
 
       - name: 📝 Update release notes from git log
         id: update-release-notes
@@ -335,7 +338,7 @@ jobs:
           RELEASE_PATHS: Sources wiki .github/workflows
           MAX_COMMITS: "100"
         run: |
-          ./Scripts/update-wiki-release-notes-from-git.sh "${GITHUB_REF_NAME}"
+          ./Scripts/update-wiki-release-notes-from-git.sh "v${VERSION}"
 
 
   sparkle-sign:

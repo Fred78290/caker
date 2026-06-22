@@ -12,7 +12,6 @@ public struct AboutCakerView: View {
 	@Environment(\.dismiss) private var dismiss
 
 	private let appVersion = CI.version
-	private let appBuild = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "Unknown"
 
 	public init() {}
 

@@ -6,10 +6,10 @@ BUILDDIR="${PROJECT_ROOT}/.build/debug"
 BINARYDIR="${PROJECT_ROOT}/.build/debug"
 RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
-SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
 SPARKLE_PUBLIC_KEY=$(cat "${PROJECT_ROOT}/.sparkle/sparkle_public_key.pem" | tr -d '\n')
 
-export VERSION=${VERSION:=SNAPSHOT-${SNAPSHOT}}
+export BASE_VERSION=${BASE_VERSION:-1.0}
+export VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
 
 /usr/bin/swift build -Xswiftc -diagnostic-style=llvm -Xswiftc -D -Xswiftc SPARKLE
 
