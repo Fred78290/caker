@@ -238,7 +238,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+          if git ls-remote --tags origin "refs/tags/v${VERSION}" | grep -q .; then
             echo "Tag v${VERSION} already exists, skipping."
           else
             git tag -a "v${VERSION}" -m "Release v${VERSION}"
