@@ -7246,6 +7246,17 @@
         }
       }
     },
+    "NVRAM file not found: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fichier NVRAM introuvable : %@"
+          }
+        }
+      }
+    },
     "Object not found" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9162,6 +9173,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disque racine"
+          }
+        }
+      }
+    },
+    "Root disk not found at expected location: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disque racine introuvable à l'emplacement prévu : %@"
+          }
+        }
+      }
+    },
+    "Root disk not found: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disque racine introuvable: %@"
           }
         }
       }
