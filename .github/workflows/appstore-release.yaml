@@ -253,13 +253,20 @@ jobs:
             > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
           chmod 600 ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
 
-      - name: 🚀 Upload to App Store Connect
+      - name: 🚀 Upload to TestFlight / App Store Connect
         env:
           VERSION: "${{ needs.build.outputs.version }}"
           PKG_PATH: "${{ github.workspace }}/appstore/Caker.pkg"
         run: |
           chmod +x ./.ci/upload-appstore.sh
           ./.ci/upload-appstore.sh
+
+      - name: 🍎 Submit for App Store review
+        if: github.ref_name == 'appstore'
+        env:
+          VERSION: "${{ needs.build.outputs.version }}"
+        run: |
+          python3 .ci/submit-appstore-review.py
 
       - name: 🧹 Clean up API key
         if: always()
