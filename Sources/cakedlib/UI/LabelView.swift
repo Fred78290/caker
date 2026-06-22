@@ -20,26 +20,27 @@ public struct LabelView: View {
 
 	@ViewBuilder
 	private func content(size: CGSize) -> some View {
-		if progress {
-			VStack(alignment: .center) {
-				ProgressView().overlay {
-					Color.white.mask {
-						ProgressView()
-					}
+		ZStack {
+			LinearGradient(
+				colors: [Color(white: 0.10), Color(white: 0.05)],
+				startPoint: .top,
+				endPoint: .bottom
+			)
+
+			VStack(spacing: 14) {
+				if progress {
+					ProgressView()
+						.scaleEffect(1.2)
+						.tint(Color.white.opacity(0.7))
 				}
 				Text(text)
-					.foregroundStyle(.white)
-					.font(.largeTitle)
+					.foregroundStyle(.white.opacity(0.85))
+					.font(.system(size: 15, weight: .medium))
+					.multilineTextAlignment(.center)
+					.padding(.horizontal, 32)
 			}
-			.frame(width: size.width, height: size.height)
-			.background(.black, ignoresSafeAreaEdges: .bottom)
-		} else {
-			HStack {
-				Text(text).foregroundStyle(.white).font(.largeTitle)
-			}
-			.frame(width: size.width, height: size.height)
-			.background(.black, ignoresSafeAreaEdges: .bottom)
 		}
+		.frame(width: size.width, height: size.height)
 	}
 
 	public var body: some View {

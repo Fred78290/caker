@@ -293,20 +293,18 @@ struct ServiceListView: View {
 			SecureField("Password", text: $enteredPassword)
 				.textFieldStyle(.roundedBorder)
 				.onSubmit {
-					handlePasswordSubmit() {
-						
-					}
+					handlePasswordSubmit { }
 				}
-			HStack {
+			HStack(spacing: 8) {
 				Button("Cancel") {
 					isPresentingPasswordPrompt = false
 					enteredPassword = ""
 				}
+				.buttonStyle(.bordered)
 				AsyncButton("Connect") { done in
-					handlePasswordSubmit() {
-						done()
-					}
+					handlePasswordSubmit { done() }
 				}
+				.buttonStyle(.borderedProminent)
 				.keyboardShortcut(.defaultAction)
 				.disabled(enteredPassword.isEmpty)
 			}
@@ -349,16 +347,18 @@ struct ServiceListView: View {
 					.foregroundStyle(.red)
 			}
 
-			HStack {
+			HStack(spacing: 8) {
 				Spacer()
 				Button("Cancel") {
 					isPresentingManualSheet = false
 					manualError = nil
 				}
+				.buttonStyle(.bordered)
 				AsyncButton("Connect") { done in
 					self.manualConnect()
 					done()
 				}
+				.buttonStyle(.borderedProminent)
 				.keyboardShortcut(.defaultAction)
 				.disabled(manualAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || manualPort == 0)
 			}
@@ -374,16 +374,9 @@ struct ServiceListView: View {
 				content: {
 					GeometryReader { geom in
 						if viewModel.services.isEmpty {
-							if #available(macOS 14, *) {
-								VStack(alignment: .center) {
-									ContentUnavailableView("Any service found", systemImage: "tray")
-								}.frame(width: geom.size.width)
-							} else {
-								VStack(alignment: .center) {
-									Image(systemName: "tray").resizable().scaledToFit().frame(width: 48, height: 48).foregroundStyle(.gray)
-									Text("Any service found").font(.largeTitle).fontWeight(.bold).foregroundStyle(.gray).multilineTextAlignment(.center)
-								}.frame(width: geom.size.width)
-							}
+							VStack(alignment: .center) {
+								ContentUnavailableView("No services found", systemImage: "antenna.radiowaves.left.and.right.slash")
+							}.frame(width: geom.size.width)
 						} else {
 							List(selection: $selectedService) {
 								ForEach(viewModel.services, id: \.name) { service in
@@ -438,13 +431,17 @@ struct ServiceListView: View {
 			)
 			.padding()
 
-			Spacer()
 			HStack {
 				Spacer()
-				Button("Connect to a server") {
-                    isPresentingManualSheet = true
+				Button {
+					isPresentingManualSheet = true
+				} label: {
+					Label("Connect to a server…", systemImage: "network.badge.plus")
 				}
-			}.padding()
+				.buttonStyle(.bordered)
+			}
+			.padding(.horizontal)
+			.padding(.bottom)
 		}
 		.onAppear {
 			viewModel.startScanning()
@@ -485,102 +482,71 @@ struct ServiceRowView: View {
 	let connected: Bool
 	let onConnect: (NetService) -> Void
 
-	var serviceInfos: some View {
-		HStack {
-			Image(systemName: "network")
-				.foregroundColor(.blue)
-
-			Text(service.name)
-				.font(.headline)
-
-			Spacer()
-
-			if let hostName = service.hostName {
-				Text(hostName)
-					.font(.caption)
-					.foregroundColor(.secondary)
-					.padding(.horizontal, 6)
-					.padding(.vertical, 2)
-					.background(Color.secondary.opacity(0.1))
-					.cornerRadius(4)
-			}
-		}
+	private var txtRecord: [String: Data] {
+		guard let data = service.txtRecordData() else { return [:] }
+		return NetService.dictionary(fromTXTRecord: data)
 	}
 
-	var serviceDetails: some View {
-		HStack(alignment: .center, spacing: 2) {
-			if let txtRecordData = service.txtRecordData() {
-				let txtRecord = NetService.dictionary(fromTXTRecord: txtRecordData)
+	var body: some View {
+		HStack(alignment: .center, spacing: 12) {
+			ZStack {
+				RoundedRectangle(cornerRadius: 9)
+					.fill((connected ? Color.green : Color.blue).gradient)
+					.frame(width: 38, height: 38)
+				Image(systemName: connected ? "checkmark.circle" : "network")
+					.font(.system(size: 16, weight: .semibold))
+					.foregroundStyle(.white)
+			}
 
-				if txtRecord.isEmpty == false {
-					ForEach(txtRecord.filter({["tls", "secure"].contains($0.key.lowercased())}) .sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
-						HStack {
-							let key = String(localized: .init(stringLiteral: key)) + ":"
+			VStack(alignment: .leading, spacing: 3) {
+				Text(service.name)
+					.font(.system(size: 13, weight: .semibold))
 
-							Text(key)
-								.fontWeight(.semibold)
-								.font(.caption)
-
-							if let stringValue = String(data: value, encoding: .utf8) {
-								Text(stringValue)
-									.font(.caption)
-									.foregroundColor(.secondary)
-									.padding(.horizontal, 6)
-									.padding(.vertical, 2)
-									.background(Color.secondary.opacity(0.1))
-									.cornerRadius(4)
-							}
+				HStack(spacing: 6) {
+					if let hostName = service.hostName {
+						Text(hostName)
+							.font(.system(size: 11, design: .monospaced))
+							.foregroundStyle(.secondary)
+					}
+					if service.port > 0 {
+						Text(":\(service.port)")
+							.font(.system(size: 11, design: .monospaced))
+							.foregroundStyle(.secondary)
+					}
+					let secureEntries = txtRecord.filter { ["tls", "secure"].contains($0.key.lowercased()) }
+					ForEach(secureEntries.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
+						if let stringValue = String(data: value, encoding: .utf8) {
+							Text("\(key): \(stringValue)")
+								.font(.system(size: 11))
+								.foregroundStyle(.secondary)
+								.padding(.horizontal, 5)
+								.padding(.vertical, 1)
+								.background(Capsule().fill(.secondary.opacity(0.10)))
 						}
 					}
 				}
 			}
+
 			Spacer()
-			if service.port > 0 {
-				Text("Port: \(service.port)")
-					.font(.caption)
-					.foregroundColor(.secondary)
-			}
-		}
-	}
 
-	var body: some View {
-		if selected {
-			HStack(alignment: .center) {
-				VStack(alignment: .leading, spacing: 4) {
-					self.serviceInfos
-					self.serviceDetails
-				}
-				.padding(.vertical, 4)
-
+			if selected {
 				if connected {
-					if #available(macOS 26.0, *) {
-						Button("Disconnect") {
-							AppState.shared.connectToLocal()
-						}.buttonStyle(.glass)
-					} else {
-						Button("Disconnect") {
-							AppState.shared.connectToLocal()
-						}.buttonStyle(.bordered)
+					Button("Disconnect") {
+						AppState.shared.connectToLocal()
 					}
+					.buttonStyle(.bordered)
 				} else {
-					if #available(macOS 26.0, *) {
-						Button("Connect") {
-							self.onConnect(self.service)
-						}.buttonStyle(.glass)
-					} else {
-						Button("Connect") {
-							self.onConnect(self.service)
-						}.buttonStyle(.bordered)
+					Button("Connect") {
+						onConnect(service)
 					}
+					.buttonStyle(.borderedProminent)
 				}
+			} else {
+				GlossyCircle(color: connected ? .green : .secondary)
+					.frame(width: 10, height: 10)
 			}
-		} else {
-			VStack(alignment: .leading, spacing: 4) {
-				self.serviceInfos
-				self.serviceDetails
-			}
-			.padding(.vertical, 4)
 		}
+		.padding(.vertical, 4)
 	}
 }
 

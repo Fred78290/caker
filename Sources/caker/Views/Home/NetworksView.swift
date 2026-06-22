@@ -30,46 +30,53 @@ extension BridgedNetwork {
 }
 
 struct NetworksView: View {
-	@Environment(\.colorScheme) var colorScheme: ColorScheme
 	@Bindable var navigationModel: NavigationModel
 	@State private var selection: BridgedNetwork.ID? = nil
 	@State private var disabled: Bool = false
 
+	private func iconColor(for mode: BridgedNetworkMode) -> Color {
+		switch mode {
+		case .bridged: return .blue
+		case .host: return .green
+		case .nat: return .orange
+		case .shared: return .purple
+		}
+	}
+
 	var body: some View {
 		GeometryReader { geom in
 			if AppState.shared.networks.isEmpty {
-				if #available(macOS 14, *) {
-					VStack(alignment: .center) {
-						ContentUnavailableView("List empty", systemImage: "tray")
-					}.frame(width: geom.size.width)
-				} else {
-					VStack(alignment: .center) {
-						Image(systemName: "tray").resizable().scaledToFit().frame(width: 48, height: 48).foregroundStyle(.gray)
-						Text("List empty").font(.largeTitle).fontWeight(.bold).foregroundStyle(.gray).multilineTextAlignment(.center)
-					}.frame(width: geom.size.width)
-				}
+				VStack(alignment: .center) {
+					ContentUnavailableView("List empty", systemImage: "tray")
+				}.frame(width: geom.size.width)
 			} else {
 				List(AppState.shared.networks, id: \.self, selection: $navigationModel.selectedNetwork) { network in
-					GeometryReader { geom in
-						HStack {
+					HStack(spacing: 12) {
+						ZStack {
+							RoundedRectangle(cornerRadius: 9)
+								.fill(iconColor(for: network.mode).gradient)
+								.frame(width: 38, height: 38)
 							network.icon
 								.resizable()
 								.aspectRatio(contentMode: .fit)
-								.foregroundStyle(self.colorScheme == .dark ? .white : .primary)
-								.frame(size: CGSize(width: geom.size.height, height: geom.size.height))
-
-							Text("\(network.name)")
-								.font(.headline)
-								.frame(width: 60, alignment: .leading)
-
-							Text("\(network.description)")
-								.font(.headline)
-
-							Spacer()
-							GlossyCircle(color: network.endpoint.isEmpty ? .red : .green)
-								.frame(size: CGSize(width: geom.size.height, height: geom.size.height))
+								.foregroundStyle(.white)
+								.frame(width: 20, height: 20)
 						}
+
+						VStack(alignment: .leading, spacing: 2) {
+							Text(network.name)
+								.font(.system(size: 13, weight: .semibold))
+							Text(network.description)
+								.font(.system(size: 11))
+								.foregroundStyle(.secondary)
+						}
+
+						Spacer()
+
+						GlossyCircle(color: network.endpoint.isEmpty ? .red : .green)
+							.frame(width: 12, height: 12)
 					}
+					.padding(.vertical, 4)
 				}
 				.listStyle(.inset(alternatesRowBackgrounds: true))
 				.frame(size: geom.size)

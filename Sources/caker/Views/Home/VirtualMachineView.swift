@@ -58,64 +58,80 @@ struct VirtualMachineView: View {
 			RoundedRectangle(cornerRadius: radius)
 				.fill(self.selected ? selectedSystemFill : secondarySystemFill, strokeBorder: .white, lineWidth: 0.2)
 				.overlay {
-					VStack {
-						HStack(alignment: .center) {
-							GlossyCircle(color: lightColor)
-								.frame(width: 14, height: 14)
+					VStack(spacing: 0) {
+						VStack(spacing: 6) {
+							HStack(alignment: .center, spacing: 8) {
+								GlossyCircle(color: lightColor)
+									.frame(width: 12, height: 12)
 
-							Text("\(vm.name)").font(.headline)
-							Spacer()
+								Text(vm.name)
+									.font(.system(size: 14, weight: .semibold))
+									.lineLimit(1)
+								Spacer()
 
-							Button(action: action) {
-								Image(systemName: imageName)
-									.font(.headline)
-							}
-							.buttonStyle(.borderless)
-							.labelsHidden()
-						}
-						.padding(EdgeInsets(top: 4, leading: 10, bottom: 0, trailing: 10))
-						.frame(width: geometry.size.width)
-
-						HStack {
-							Spacer()
-							Label("\(vm.cpuCount)", systemImage: "cpu")
-								.font(.headline)
-								.foregroundStyle(Color.secondary)
-							Label("\(vm.humanReadableDiskSize)", systemImage: "internaldrive")
-								.font(.headline)
-								.foregroundStyle(Color.secondary)
-							Label("\(vm.humanReadableMemorySize)", systemImage: "memorychip")
-								.font(.headline)
-								.foregroundStyle(Color.secondary)
-							Spacer()
-						}
-						.frame(width: geometry.size.width, height: 20)
-
-						HStack {
-							GeometryReader { geom in
-								if let screenshot = self.screenshot {
-									Rectangle()
-										.fill(.black)
-										.frame(size: geom.size)
-										.overlay {
-											Image(nsImage: screenshot)
-												.resizable()
-												.blur(radius: 8)
-												.aspectRatio(contentMode: .fit)
-												.scaledToFit()
-										}.clipped()
-								} else {
-									Rectangle()
-										.fill(.black)
-										.frame(size: geom.size)
+								Button(action: action) {
+									Image(systemName: imageName)
+										.font(.system(size: 14, weight: .medium))
 								}
+								.buttonStyle(.borderless)
+								.labelsHidden()
 							}
-						}.overlay {
-							self.vm.osImage.frame(size: CGSize(width: 64, height: 64))
+							.padding(.horizontal, 12)
+							.padding(.top, 10)
+
+							HStack(spacing: 10) {
+								Spacer()
+								statBadge(systemImage: "cpu", value: "\(vm.cpuCount) vCPU")
+								statBadge(systemImage: "internaldrive", value: vm.humanReadableDiskSize)
+								statBadge(systemImage: "memorychip", value: vm.humanReadableMemorySize)
+								Spacer()
+							}
+							.padding(.bottom, 8)
 						}
-						.padding(10)
-						.frame(width: geometry.size.width, height: geometry.size.height * 0.75)
+						.background(
+							UnevenRoundedRectangle(
+								topLeadingRadius: radius,
+								bottomLeadingRadius: 0,
+								bottomTrailingRadius: 0,
+								topTrailingRadius: radius
+							)
+							.fill(lightColor.opacity(0.10))
+						)
+
+						GeometryReader { geom in
+							ZStack {
+								Group {
+									if let screenshot = self.screenshot {
+										Image(nsImage: screenshot)
+											.resizable()
+											.blur(radius: 8)
+											.aspectRatio(contentMode: .fill)
+									} else {
+										LinearGradient(
+											colors: [Color(white: 0.12), Color(white: 0.05)],
+											startPoint: .top,
+											endPoint: .bottom
+										)
+									}
+								}
+								.frame(size: geom.size)
+								.clipped()
+
+								vm.osImage.frame(width: 72, height: 72)
+							}
+							.frame(size: geom.size)
+						}
+						.frame(maxWidth: .infinity, maxHeight: .infinity)
+						.clipShape(
+							UnevenRoundedRectangle(
+								topLeadingRadius: 0,
+								bottomLeadingRadius: radius,
+								bottomTrailingRadius: radius,
+								topTrailingRadius: 0
+							)
+						)
 					}
+					.frame(size: geometry.size)
 				}
 				.clipShape(RoundedRectangle(cornerRadius: radius))
 				.frame(size: geometry.size)
@@ -160,6 +176,20 @@ struct VirtualMachineView: View {
 			}.disabled(vm.status.isRunning)
 		}
 
+	}
+
+	@ViewBuilder
+	func statBadge(systemImage: String, value: String) -> some View {
+		HStack(spacing: 4) {
+			Image(systemName: systemImage)
+				.font(.system(size: 10, weight: .medium))
+			Text(value)
+				.font(.system(size: 11, weight: .medium, design: .monospaced))
+		}
+		.foregroundStyle(.secondary)
+		.padding(.horizontal, 8)
+		.padding(.vertical, 3)
+		.background(Capsule().fill(.secondary.opacity(0.12)))
 	}
 
 	func open() {

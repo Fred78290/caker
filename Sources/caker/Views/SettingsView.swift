@@ -18,7 +18,7 @@ struct SettingsView: View {
 				.tabItem {
 					Label("Virtual machines", systemImage: "display")
 				}
-		}.frame(minWidth: 450, minHeight: 350, alignment: .topLeading)
+		}.frame(minWidth: 450, alignment: .topLeading)
 	}
 }
 

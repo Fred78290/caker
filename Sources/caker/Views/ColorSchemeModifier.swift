@@ -7,16 +7,46 @@
 
 import SwiftUI
 
-struct ColorSchemeModifier: ViewModifier {
-	@Environment(\.colorScheme) var colorScheme
+enum AppearancePreference: String, CaseIterable {
+	case system
+	case light
+	case dark
 
-	init() {
+	var title: LocalizedStringKey {
+		switch self {
+		case .system: return "System"
+		case .light: return "Light"
+		case .dark: return "Dark"
+		}
 	}
 
-	func body(content: Content) -> some View {
-		content.onChange(of: self.colorScheme) { _, newValue in
-			Color.colorScheme = newValue
+	var colorScheme: ColorScheme? {
+		switch self {
+		case .system: return nil
+		case .light: return .light
+		case .dark: return .dark
 		}
+	}
+
+	var systemImage: String {
+		switch self {
+		case .system: return "circle.lefthalf.filled"
+		case .light: return "sun.max.fill"
+		case .dark: return "moon.fill"
+		}
+	}
+}
+
+struct ColorSchemeModifier: ViewModifier {
+	@Environment(\.colorScheme) var colorScheme
+	@AppStorage("AppearancePreference") var appearancePreference: AppearancePreference = .system
+
+	func body(content: Content) -> some View {
+		content
+			.preferredColorScheme(appearancePreference.colorScheme)
+			.onChange(of: self.colorScheme) { _, newValue in
+				Color.colorScheme = newValue
+			}
 	}
 }
 

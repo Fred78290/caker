@@ -175,34 +175,15 @@ struct HostVirtualMachineView: View {
 				}
 				.toolbar {
 					ToolbarItemGroup(placement: .navigation) {
-						if document.status == .stopping {
-							Button("Force stop", systemImage: "power") {
-								document.stopFromUI(force: true)
-							}
-							.help("Force to stop virtual machine")
-							.disabled(document.agent == .installing)
-						} else if document.status == .running {
-							Button("Request to stop", systemImage: "stop") {
-								document.stopFromUI(force: NSEvent.modifierFlags.contains(.option))
-							}
-							.help("Request to stop virtual machine")
-							.disabled(document.agent == .installing)
-						} else if document.status == .paused {
-							Button("Resume", systemImage: "playpause") {
-								document.resumeFromUI()
-							}.help("Resume virtual machine")
-						} else {
-							Button("Start", systemImage: "play.fill") {
-								document.startFromUI()
-							}
-							.help("Start virtual machine")
-							.disabled(document.status == .starting || document.status == .stopping)
-						}
+						GlossyCircle(color: vmStatusColor(document.status))
+							.frame(width: 11, height: 11)
+
+						powerButton
 
 						Button("Pause", systemImage: "pause") {
 							document.suspendFromUI()
 						}
-						.help("Suspends virtual machine")
+						.help("Suspend virtual machine")
 						.disabled(document.suspendable == false || document.agent == .installing)
 
 						Button("Restart", systemImage: "arrow.trianglehead.clockwise") {
@@ -215,82 +196,59 @@ struct HostVirtualMachineView: View {
 							createTemplate = true
 						}
 						.help("Create template from virtual machine")
-						.disabled(self.document.status.isRunning)
-						
-						if self.document.externalRunning == false {
+						.disabled(document.status.isRunning)
+
+						if document.externalRunning == false {
 							Spacer()
-							Button("Show cursor", systemImage: self.showsHostCursor ? "pointer.arrow.slash" : "pointer.arrow") {
-								self.showsHostCursor.toggle()
+							Button("Show cursor", systemImage: showsHostCursor ? "pointer.arrow.slash" : "pointer.arrow") {
+								showsHostCursor.toggle()
 							}
 							.help("Show/Hide host cursor in VM view")
-							.disabled(self.document.status.isRunning == false)
+							.disabled(document.status.isRunning == false)
 						}
 					}
 
+					if document.status == .running && document.agentReady {
+						ToolbarItemGroup(placement: .status) {
+							cpuUsageView
+						}
+						.backgroundVisibility(false)
+					}
+
 					ToolbarItemGroup(placement: .primaryAction) {
-						if self.document.virtualMachineConfig.os == .darwin {
+						if document.virtualMachineConfig.os == .darwin {
 							Button("Recovery mode", systemImage: document.recoveryMode ? "cross.case.fill" : "cross.case") {
 								document.recoveryMode.toggle()
 							}
-							.disabled(self.document.status != .stopped)
-							.help("Allows starting the MacOS VM in recovery mode")
+							.disabled(document.status != .stopped)
+							.help("Start the macOS VM in recovery mode")
 						}
 
-						if self.document.url.isFileURL {
-							if self.document.status == .stopped && self.document.externalRunning == false {
-								if self.launchExternally {
-									Button("Run hosted", systemImage: "personalhotspot.slash") {
-										launchExternally.toggle()
-										document.launchVMExternally = false
-									}
-									.help("Launch machine in detached mode")
-								} else {
-									Button("Run detached", systemImage: "personalhotspot") {
-										launchExternally.toggle()
-										document.launchVMExternally = true
-									}
-									.help("Launch machine inside app")
+						if document.url.isFileURL && document.status == .stopped && document.externalRunning == false {
+							if launchExternally {
+								Button("Run hosted", systemImage: "arrow.down.backward.app") {
+									launchExternally.toggle()
+									document.launchVMExternally = false
 								}
+								.help("Run virtual machine inside app")
+							} else {
+								Button("Run detached", systemImage: "arrow.up.forward.app") {
+									launchExternally.toggle()
+									document.launchVMExternally = true
+								}
+								.help("Run virtual machine in a detached window")
 							}
 						}
 
-						let agentCondition = self.document.agentCondition
-
-						Button(
-							action: {
-								AppState.shared.isAgentInstalling = true
-
-								self.document.installAgent(updateAgent: agentCondition.needUpdate) { _ in
-									AppState.shared.isAgentInstalling = false
-								}
-							},
-							label: {
-								ZStack {
-									if AppState.shared.isAgentInstalling {
-										Image(systemName: "person.badge.clock")
-									} else {
-										Image(systemName: agentCondition.needUpdate ? "person.2.badge.plus" : "person.badge.plus")
-									}
-								}
-							}
-						)
-						.help(agentCondition.title)
-						.disabled(agentCondition.disabled)
+						agentButton
 
 						Button("Delete", systemImage: "trash") {
 							AppState.shared.deleteVirtualMachine(document: self.document)
 						}
 						.help("Delete virtual machine")
-						.disabled(self.document.status.isRunning || self.document.status == .paused)
-					}
+						.tint(.red)
+						.disabled(document.status.isRunning || document.status == .paused)
 
-					if document.status == .running && document.agentReady {
-						ToolbarItemGroup(placement: .status) {
-							self.cpuUsageView
-						}.backgroundVisibility(false)
-					}
-
-					ToolbarItemGroup(placement: .primaryAction) {
 						Button("Settings", systemImage: "gear") {
 							displaySettings = true
 						}
@@ -313,6 +271,68 @@ struct HostVirtualMachineView: View {
 				view.windowToolbarFullScreenVisibility(.onHover)
 			}
 		}
+	}
+
+	private func vmStatusColor(_ status: VirtualMachineDocument.Status) -> Color {
+		switch status {
+		case .starting, .resuming, .restoring: return .orange
+		case .running: return .green
+		case .stopping, .saving, .pausing: return .yellow
+		case .stopped: return .red
+		case .paused: return .yellow
+		case .error: return Color(NSColor.systemGray)
+		default: return Color(NSColor.systemGray)
+		}
+	}
+
+	@ViewBuilder
+	private var powerButton: some View {
+		if document.status == .stopping {
+			Button("Force stop", systemImage: "square.fill") {
+				document.stopFromUI(force: true)
+			}
+			.help("Force stop virtual machine")
+			.disabled(document.agent == .installing)
+		} else if document.status == .running {
+			Button("Stop", systemImage: "square.fill") {
+				document.stopFromUI(force: NSEvent.modifierFlags.contains(.option))
+			}
+			.help("Stop virtual machine (hold Option to force stop)")
+			.disabled(document.agent == .installing)
+		} else if document.status == .paused {
+			Button("Resume", systemImage: "play.fill") {
+				document.resumeFromUI()
+			}
+			.help("Resume virtual machine")
+		} else {
+			Button("Start", systemImage: "play.fill") {
+				document.startFromUI()
+			}
+			.help("Start virtual machine")
+			.disabled(document.status == .starting || document.status == .stopping)
+		}
+	}
+
+	@ViewBuilder
+	private var agentButton: some View {
+		let agentCondition = self.document.agentCondition
+
+		Button(action: {
+			AppState.shared.isAgentInstalling = true
+			self.document.installAgent(updateAgent: agentCondition.needUpdate) { _ in
+				AppState.shared.isAgentInstalling = false
+			}
+		}) {
+			if AppState.shared.isAgentInstalling {
+				ProgressView()
+					.scaleEffect(0.7)
+					.frame(width: 16, height: 16)
+			} else {
+				Image(systemName: agentCondition.needUpdate ? "person.2.badge.plus" : "person.badge.plus")
+			}
+		}
+		.help(agentCondition.title)
+		.disabled(agentCondition.disabled)
 	}
 
 	var cpuUsageView: some View {

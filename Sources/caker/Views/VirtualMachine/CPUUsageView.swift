@@ -56,17 +56,26 @@ struct CPUUsageView: View {
 
 	private func bar(height: CGFloat) -> some View {
 		GeometryReader { proxy in
-			Rectangle()
-				.fill(Self.bgColor.opacity(0.4))
-				.frame(width: proxy.size.width, height: proxy.size.height)
-				.border(Self.borderColor.opacity(0.6), width: 0.5)
-				.overlay {
-					Rectangle()
-						.fill(Self.barColor)
-						.frame(width: proxy.size.width - 2, height: height)
-						.offset(x: 0, y: ((proxy.size.height - height) / 2) - 1)
-						.animation(Animation.easeInOut(duration: 0.1), value: height)
-				}
+			ZStack(alignment: .bottom) {
+				RoundedRectangle(cornerRadius: 2)
+					.fill(Self.bgColor.opacity(0.22))
+
+				RoundedRectangle(cornerRadius: 2)
+					.fill(
+						LinearGradient(
+							colors: [Self.barColor, Self.barColor.opacity(0.65)],
+							startPoint: .bottom,
+							endPoint: .top
+						)
+					)
+					.frame(height: max(2, height))
+					.animation(.easeInOut(duration: 0.1), value: height)
+			}
+			.frame(width: proxy.size.width, height: proxy.size.height)
+			.overlay(
+				RoundedRectangle(cornerRadius: 2)
+					.strokeBorder(Self.borderColor.opacity(0.12), lineWidth: 0.5)
+			)
 		}
 	}
 
@@ -131,7 +140,7 @@ struct CPUUsageView: View {
 				HStack(alignment: .center, spacing: 2) {
 					Image(systemName: "cpu")
 						.foregroundColor(.secondary)
-						.font(.title2)
+						.font(.system(size: 12, weight: .medium))
 					
 					cpuGraph(cores: cores)
 						.frame(width: CGFloat(cores.count * 10), height: 20)
@@ -140,7 +149,7 @@ struct CPUUsageView: View {
 				HStack(alignment: .center, spacing: 2) {
 					Image(systemName: "memorychip")
 						.foregroundColor(.secondary)
-						.font(.title2)
+						.font(.system(size: 12, weight: .medium))
 					
 					memGraph(memoryInfos: memoryInfos)
 						.frame(width: 8, height: 20)

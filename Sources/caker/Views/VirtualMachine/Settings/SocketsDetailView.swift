@@ -21,6 +21,46 @@ struct SocketsDetailView: View {
 	}
 
 	var body: some View {
+		if readOnly {
+			compactRow
+		} else {
+			fullForm
+		}
+	}
+
+	@ViewBuilder
+	var compactRow: some View {
+		HStack(spacing: 10) {
+			ZStack {
+				RoundedRectangle(cornerRadius: 7)
+					.fill(Color.purple.gradient)
+					.frame(width: 28, height: 28)
+				Image(systemName: "powerplug")
+					.font(.system(size: 12, weight: .semibold))
+					.foregroundStyle(.white)
+			}
+
+			VStack(alignment: .leading, spacing: 2) {
+				Text(currentItem.bind)
+					.font(.system(size: 12, design: .monospaced))
+					.lineLimit(1)
+				HStack(spacing: 6) {
+					Text(currentItem.mode.description)
+						.font(.system(size: 11))
+						.foregroundStyle(.secondary)
+					Text("port \(currentItem.port)")
+						.font(.system(size: 11, design: .monospaced))
+						.foregroundStyle(.secondary)
+				}
+			}
+
+			Spacer()
+		}
+		.padding(.vertical, 4)
+	}
+
+	@ViewBuilder
+	var fullForm: some View {
 		VStack {
 			LabeledContent("Socket mode") {
 				HStack {
@@ -30,31 +70,24 @@ struct SocketsDetailView: View {
 							Text(mode.description).tag(mode)
 						}
 					}
-					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
 				}.frame(width: 100)
 			}
 
 			LabeledContent("Host path") {
 				HStack {
-					if readOnly == false {
-						Button(action: {
-							chooseSocketFile()
-						}) {
-							Image(systemName: "powerplug")
-						}.buttonStyle(.borderless)
-					}
+					Button(action: chooseSocketFile) {
+						Image(systemName: "powerplug")
+					}.buttonStyle(.borderless)
 					TextField("Host path", text: $currentItem.bind)
 						.rounded(.leading)
-						.allowsHitTesting(readOnly == false)
-				}.frame(width: readOnly ? 450 : 350)
+				}.frame(width: 350)
 			}
 
 			LabeledContent("Guest port") {
 				TextField("Guest port", text: $port.text)
 					.rounded(.center)
 					.frame(width: 50)
-					.allowsHitTesting(readOnly == false)
 					.formatAndValidate($port) {
 						RangeIntegerStyle.guestPortRange.outside($0)
 					}
@@ -62,7 +95,6 @@ struct SocketsDetailView: View {
 						self.currentItem.port = newValue
 					}
 			}
-
 		}
 	}
 

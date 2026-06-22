@@ -493,42 +493,51 @@ struct VirtualMachineWizard: View {
 	}
 
 	func Footer() -> some View {
-		VStack {
+		VStack(spacing: 0) {
 			if self.model.createVM {
-				VStack(alignment: .center) {
-					Text(self.model.createVMMessage)
-					ProgressView(value: self.model.fractionCompleted).frame(width: 300)
-				}.frame(height: 30)
+				VStack(alignment: .center, spacing: 6) {
+					HStack(spacing: 6) {
+						Image(systemName: "gearshape.2")
+							.foregroundStyle(.secondary)
+							.font(.callout)
+						Text(self.model.createVMMessage)
+							.font(.callout)
+							.foregroundStyle(.secondary)
+					}
+					ProgressView(value: self.model.fractionCompleted)
+						.frame(width: 320)
+						.tint(.accentColor)
+				}
+				.padding(.vertical, 10)
 			}
 
 			Divider()
 
 			HStack {
-				HStack {
-				}.frame(maxWidth: .infinity)
-
-				Spacer()
-
-				HStack {
+				HStack(spacing: 6) {
 					Button {
 						self.previousStep()
 					} label: {
-						Text("Previous").frame(width: 80)
+						HStack(spacing: 4) {
+							Image(systemName: "chevron.left")
+							Text("Previous")
+						}.frame(width: 90)
 					}
 					.disabled(self.hasPrevious == false || self.model.createVM)
+
 					Button {
 						self.nextStep()
 					} label: {
-						Text("Next").frame(width: 80)
+						HStack(spacing: 4) {
+							Text("Next")
+							Image(systemName: "chevron.right")
+						}.frame(width: 70)
 					}
 					.disabled(self.hasNext == false || self.model.createVM)
 				}
+				.frame(maxWidth: .infinity, alignment: .center)
 
-				Spacer()
-
-				HStack {
-					Spacer()
-
+				HStack(spacing: 8) {
 					if self.sheet {
 						Button {
 							self.dismiss()
@@ -542,9 +551,11 @@ struct VirtualMachineWizard: View {
 					} label: {
 						Text("Create").frame(width: 80)
 					}
+					.buttonStyle(.borderedProminent)
 					.disabled(self.model.configValid == false)
-				}.frame(maxWidth: .infinity)
-			}.padding(EdgeInsets(top: 1, leading: 15, bottom: 15, trailing: 15))
+				}
+			}
+			.padding(EdgeInsets(top: 10, leading: 16, bottom: 16, trailing: 16))
 		}
 		.onChange(of: config) { _, newValue in
 			self.validateConfig(config: newValue)
@@ -581,7 +592,7 @@ struct VirtualMachineWizard: View {
 
 			HStack {
 				Text("Memory size")
-				Spacer().border(.black)
+				Spacer()
 				HStack {
 					TextField(String.empty, value: $config.memorySizeInMoB, format: .number)
 						.rounded(.center)
@@ -618,7 +629,7 @@ struct VirtualMachineWizard: View {
 			VStack(alignment: .leading) {
 				HStack {
 					Text("Width")
-					Spacer().border(.black)
+					Spacer()
 					TextField(String.empty, value: $config.display.width, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
@@ -626,7 +637,7 @@ struct VirtualMachineWizard: View {
 				}
 				HStack {
 					Text("Height")
-					Spacer().border(.black)
+					Spacer()
 					TextField(String.empty, value: $config.display.height, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
@@ -950,7 +961,7 @@ struct VirtualMachineWizard: View {
 			Section("Root disk") {
 				HStack {
 					Text("Disk size (GiB)")
-					Spacer().border(.black)
+					Spacer()
 					HStack {
 						TextField(String.empty, value: $config.diskSizeInGiB, format: .number)
 							.rounded(.center)

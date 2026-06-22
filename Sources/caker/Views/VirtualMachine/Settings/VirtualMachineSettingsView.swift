@@ -85,10 +85,9 @@ struct VirtualMachineSettingsView: View {
 					self.diskAttachementView()
 				}
 
-			Spacer()
 			Divider()
 
-			HStack(alignment: .bottom) {
+			HStack(spacing: 8) {
 				Spacer()
 
 				Button {
@@ -97,9 +96,7 @@ struct VirtualMachineSettingsView: View {
 					Text("Cancel")
 						.frame(width: 80)
 				}
-				.buttonStyle(.borderedProminent)
-
-				Spacer()
+				.buttonStyle(.bordered)
 
 				Button {
 					self.document.virtualMachineConfig = self.config
@@ -109,13 +106,11 @@ struct VirtualMachineSettingsView: View {
 					Text("Save")
 						.frame(width: 80)
 				}
-				.buttonStyle(.bordered)
+				.buttonStyle(.borderedProminent)
 				.disabled(self.configChanged == false)
-
-				Spacer()
 			}
-			.frame(width: 200)
-			.padding(.bottom)
+			.padding(.horizontal, 16)
+			.padding(.vertical, 12)
 
 		}
 		.frame(height: 630)
@@ -208,7 +203,7 @@ struct VirtualMachineSettingsView: View {
 
 			HStack {
 				Text("Memory size")
-				Spacer().border(.black)
+				Spacer()
 				HStack {
 					TextField(String.empty, value: $config.memorySizeInMoB, format: .number /*.memory(.useGB)*/)
 						.rounded(.center)
@@ -222,7 +217,7 @@ struct VirtualMachineSettingsView: View {
 			if self.noRootDisk {
 				HStack {
 					Text("Disk size (GiB)")
-					Spacer().border(.black)
+					Spacer()
 					TextField(String.empty, value: $config.diskSizeInGiB, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
@@ -251,14 +246,14 @@ struct VirtualMachineSettingsView: View {
 			VStack(alignment: .leading) {
 				HStack {
 					Text("Width")
-					Spacer().border(.black)
+					Spacer()
 					TextField(String.empty, value: $config.display.width, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
 				}
 				HStack {
 					Text("Height")
-					Spacer().border(.black)
+					Spacer()
 					TextField(String.empty, value: $config.display.height, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
