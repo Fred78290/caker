@@ -257,7 +257,7 @@ When `<root-disk>` points to a block device rather than an image file, caked:
 
 The lock is held for the entire lifetime of the VM, preventing macOS from re-mounting the disk while the VM is running.
 
-> **Note:** Attaching physical block devices requires macOS 14 (Sonoma) or later.
+> **Note:** Attaching physical block devices requires macOS 14 (Sonoma) or later and is **not supported in the App Store version**. The App Sandbox cannot acquire the exclusive lock (`O_EXLOCK`) required to open a block device safely. Use the direct-download build if you need raw disk access.
 
 ### Taking ownership of a physical device
 
