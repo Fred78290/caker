@@ -1,0 +1,267 @@
+name: AppStore Release
+
+on:
+  push:
+    tags:
+      - "appstore"
+      - "appstore-prerelease"
+
+env:
+  BUILD_APPSTORE_CERTIFICATE_BASE64: ${{ secrets.BUILD_APPSTORE_CERTIFICATE_BASE64 }}
+  P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+  KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+  APPLE_ID: ${{ secrets.APPLE_ID }}
+  TEAM_ID: ${{ vars.TEAM_ID }}
+  DEVELOPER_ID: ${{ vars.DEVELOPER_ID }}
+  APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+  APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+  APP_STORE_CONNECT_API_KEY_P8_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8_BASE64 }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  RUN_PYTEST: ${{ vars.RUN_PYTEST }}
+  RUN_SWIFT_TESTS: ${{ vars.RUN_SWIFT_TESTS }}
+  CAKE_HOME: "${{ github.workspace }}/.cake"
+  PKGDIR: "${{ github.workspace }}/appstore/Caker.app"
+  SETUP_KEYCHAIN: ${{ vars.SETUP_KEYCHAIN }}
+  CODESIGN_REQUIREMENT: ${{ vars.CODESIGN_REQUIREMENT }}
+  BASE_VERSION: ${{ vars.BASE_VERSION }}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
+    runs-on: self-hosted
+    timeout-minutes: 60
+    outputs:
+      build_package: ${{ steps.version.outputs.build_package }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check tools
+        id: check
+        run: |
+          echo "run_pytest=${RUN_PYTEST}" >> ${GITHUB_OUTPUT}
+          if [ "${RUNNER_ENVIRONMENT}" == "github-hosted" ]; then
+            echo "Running on github-hosted runner, checking for required tools..."
+            echo PATH=${PATH}
+            if [ -z "$(command -v python)" ]; then
+              echo "install_python=true" >> ${GITHUB_OUTPUT}
+            else
+              echo "install_python=false" >> ${GITHUB_OUTPUT}
+            fi
+
+            if [ -z "$(command -v go)" ]; then
+              echo "install_golang=true" >> ${GITHUB_OUTPUT}
+            else
+              echo "install_golang=false" >> ${GITHUB_OUTPUT}
+            fi
+
+            if [ -z "$(command -v brew)" ]; then
+              echo "install_brew=true" >> ${GITHUB_OUTPUT}
+            else
+              echo "install_brew=false" >> ${GITHUB_OUTPUT}
+            fi
+
+            if [ -z "$(command -v swift)" ]; then
+              echo "install_swift=true" >> ${GITHUB_OUTPUT}
+            else
+              echo "install_swift=false" >> ${GITHUB_OUTPUT}
+            fi
+          else
+            echo "Not running on github-hosted runner, skipping tool checks."
+            echo "install_python=false" >> ${GITHUB_OUTPUT}
+            echo "install_golang=false" >> ${GITHUB_OUTPUT}
+            echo "install_brew=false" >> ${GITHUB_OUTPUT}
+            echo "install_swift=false" >> ${GITHUB_OUTPUT}
+          fi
+
+      - name: 🛠️ checkout
+        id: checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: 🛠️ Setup Homebrew
+        id: homebrew
+        if: steps.check.outputs.install_brew == 'true'
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: 🛠️ Setup Python
+        id: python
+        uses: actions/setup-python@v6
+        if: steps.check.outputs.install_python == 'true'
+        with:
+          python-version: "3.13"
+
+      - name: 🛠️ Setup Swift
+        id: swift
+        if: steps.check.outputs.install_swift == 'true'
+        uses: swift-actions/setup-swift@v2.4.0
+
+      - name: 📊 Version
+        id: version
+        run: |
+          BASE_VERSION="${BASE_VERSION:-1.0}"
+          VERSION="${BASE_VERSION}.$(git rev-list --count HEAD)"
+          PACKAGE=false
+
+          if [ "${{ steps.check.outputs.install_brew }}" == "true" ]; then
+            brew install jq
+          else
+            if [ -z "$(command -v jq)" ]; then
+              brew install jq
+            fi
+          fi
+
+          if [ "${SETUP_KEYCHAIN}" == "true" ]; then
+            KEYCHAIN_PATH="${RUNNER_TEMP}/app-signing.keychain-db"
+          else
+            KEYCHAIN_PATH=""
+          fi
+
+          if [[ "${GITHUB_REF_NAME}" == "appstore-prerelease" ]]; then
+            PACKAGE=true
+          elif [[ "${GITHUB_REF_NAME}" == "appstore" ]]; then
+            PACKAGE=true
+          fi
+
+          if [ ${PACKAGE} == "true" ] && [ ${GITHUB_EVENT_NAME} != "push" ]; then
+            PACKAGE=false
+          fi
+
+          mkdir -p "${GITHUB_WORKSPACE}/appstore"
+          PKG_PATH="${GITHUB_WORKSPACE}/appstore/Caker.pkg"
+
+          echo "PKG_PATH=${PKG_PATH}" >> ${GITHUB_ENV}
+          echo "VERSION=${VERSION}" >> ${GITHUB_ENV}
+          echo "PACKAGE=${PACKAGE}" >> ${GITHUB_ENV}
+          echo "KEYCHAIN_PATH=${KEYCHAIN_PATH}" >> ${GITHUB_ENV}
+
+          echo "build_package=${PACKAGE}" >> ${GITHUB_OUTPUT}
+          echo "version=${VERSION}" >> ${GITHUB_OUTPUT}
+          echo "pkg_path=${PKG_PATH}" >> ${GITHUB_OUTPUT}
+          echo "version_path=${GITHUB_WORKSPACE}/appstore/version.txt" >> ${GITHUB_OUTPUT}
+          echo "keychain_path=${KEYCHAIN_PATH}" >> ${GITHUB_OUTPUT}
+
+          echo -n "${VERSION}" > "${GITHUB_WORKSPACE}/appstore/version.txt"
+
+      - name: 🛠️ Install the Apple Distribution certificate
+        id: setup_keychain
+        if: vars.SETUP_KEYCHAIN == 'true'
+        run: |
+          ./.ci/setup-appstore-keychain.sh "${KEYCHAIN_PATH}"
+
+      - name: 🧪 Run tests
+        id: tests
+        if: vars.RUN_SWIFT_TESTS == 'true'
+        run: |
+          export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns:${PATH}
+          swift test 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving|CoreData'
+
+      - name: 👷 Build Swift package for App Store
+        id: build
+        env:
+          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
+          VERSION: ${{ steps.version.outputs.version }}
+          PKGPATH: ${{ steps.version.outputs.pkg_path }}
+        run: |
+          ./Scripts/build-signed-appstore.sh "${KEYCHAIN_PATH}" 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving'
+
+      - name: 🧪 Run integration tests
+        id: integration_tests
+        if: steps.check.outputs.run_pytest == 'true'
+        env:
+          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns:${PATH}
+          if [ -z "$(command -v virtualenv)" ]; then
+            brew install virtualenv
+          fi
+          cd integration/tests
+          virtualenv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+          pytest --verbose --junit-xml=pytest-junit.xml
+
+      - name: 📦 Upload build artifacts
+        uses: actions/upload-artifact@v7
+        if: steps.version.outputs.build_package == 'true'
+        with:
+          name: appstore-outputs
+          path: |
+            ${{ steps.version.outputs.pkg_path }}
+            ${{ steps.version.outputs.version_path }}
+          retention-days: 1
+          overwrite: true
+
+      - name: 🏷️ Create version tag
+        id: create_tag
+        if: steps.version.outputs.build_package == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --tags origin "refs/tags/v${VERSION}-appstore" | grep -q .; then
+            echo "Tag v${VERSION}-appstore already exists, skipping."
+          else
+            git tag -a "v${VERSION}-appstore" -m "App Store Release v${VERSION}"
+            git push origin "v${VERSION}-appstore"
+          fi
+
+      - name: 🧹 Clean up keychain
+        id: cleanup
+        env:
+          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
+        if: always() && vars.SETUP_KEYCHAIN == 'true'
+        run: |
+          security delete-keychain "${KEYCHAIN_PATH}"
+
+      - name: 🧹 Clean up repo
+        id: cleanup-repo
+        if: always()
+        run: |
+          export
+          git clean -fd
+          git reset --hard HEAD
+
+  upload-appstore:
+    if: needs.build.outputs.build_package == 'true'
+    needs: [build]
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - name: 🛠️ checkout
+        id: checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: 📱 Download build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: appstore-outputs
+          path: appstore/
+
+      - name: 🔑 Setup App Store Connect API Key
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "${APP_STORE_CONNECT_API_KEY_P8_BASE64}" | base64 --decode \
+            > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+          chmod 600 ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+
+      - name: 🚀 Upload to App Store Connect
+        env:
+          VERSION: "${{ needs.build.outputs.version }}"
+          PKG_PATH: "${{ github.workspace }}/appstore/Caker.pkg"
+        run: |
+          chmod +x ./.ci/upload-appstore.sh
+          ./.ci/upload-appstore.sh
+
+      - name: 🧹 Clean up API key
+        if: always()
+        run: |
+          rm -f ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
