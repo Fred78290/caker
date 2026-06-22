@@ -3264,7 +3264,7 @@
 			shellScript = (
 				"# Type a script or drag a script file from your workspace to insert its path.",
 				"BASE_VERSION=${BASE_VERSION:-1.0}",
-				"VERSION=\"${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}\"",
+				"VERSION=\"${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD 2>/dev/null || echo 0)}\"",
 				"plutil -replace CFBundleShortVersionString -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
 				"plutil -replace CFBundleVersion -string \"${VERSION}\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Info.plist\"",
 				"",
