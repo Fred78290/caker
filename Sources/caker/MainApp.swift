@@ -240,6 +240,26 @@ struct MainApp: App {
 		.windowToolbarStyle(.unifiedCompact)
 		.restorationState(.disabled)
 		.defaultPosition(.center)
+
+		Window("Import from Multipass", id: "import-multipass") {
+			ImportMultipassView()
+				.colorSchemeForColor()
+				.containerBackground(.windowBackground, for: .window)
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+		.restorationState(.disabled)
+		.defaultPosition(.center)
+
+		Window("Import from VMware", id: "import-vmware") {
+			ImportVMwareView()
+				.colorSchemeForColor()
+				.containerBackground(.windowBackground, for: .window)
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+		.restorationState(.disabled)
+		.defaultPosition(.center)
 	}
 
 	@CommandsBuilder private var menus: some Commands {
@@ -252,6 +272,15 @@ struct MainApp: App {
 			}
 			.keyboardShortcut(KeyboardShortcut("o"))
 			.disabled(self.appState.connectionMode == .remote)
+		}
+
+		CommandMenu("Import") {
+			Button("From Multipass…") {
+				openWindow(id: "import-multipass")
+			}
+			Button("From VMware…") {
+				openWindow(id: "import-vmware")
+			}
 		}
 		CommandMenu("Control") {
 			Button("Start") {

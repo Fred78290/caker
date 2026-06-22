@@ -6,6 +6,14 @@ import SwiftUI
 import CakeAgentLib
 import NIO
 
+struct MultipassVMInfo: Identifiable {
+	var id: String { name }
+	let name: String
+	let state: String
+	let release: String
+	let ipv4: [String]
+}
+
 typealias VirtualMachineDocumentByURL = [URL: VirtualMachineDocument]
 
 extension VirtualMachineDocumentByURL {
@@ -752,6 +760,79 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		}
 
 		self.openedVirtualMachines.removeValue(forKey: document.url)
+	}
+
+	func reloadVirtualMachines() {
+		if let vms = try? self.connectionManager.loadVirtualMachines() {
+			self.setVirtualMachines(vms)
+		}
+	}
+
+	func listMultipassVMs() -> [MultipassVMInfo] {
+		struct ListEntry: Decodable {
+			let name: String
+			let state: String
+			let release: String
+			let ipv4: [String]?
+		}
+		struct ListResponse: Decodable {
+			let list: [ListEntry]
+		}
+
+		guard let output = try? Shell.exec("multipass", arguments: ["list", "--format", "json"]),
+		      let data = output.data(using: .utf8),
+		      let response = try? JSONDecoder().decode(ListResponse.self, from: data)
+		else {
+			return []
+		}
+
+		return response.list.map { entry in
+			MultipassVMInfo(name: entry.name, state: entry.state, release: entry.release, ipv4: entry.ipv4 ?? [])
+		}
+	}
+
+	func importFromMultipass(source: String, name: String, userName: String, password: String) -> ImportedReply {
+		let arguments = [
+			"import",
+			source,
+			name,
+			"--from=multipass",
+			"--user=\(userName)",
+			"--password=\(password)",
+			"--uid=\(geteuid())",
+			"--gid=\(getegid())",
+		]
+
+		do {
+			let sudo = try SudoCaked(arguments: arguments, runMode: connectionMode.runMode)
+			try sudo.run()
+			let exitCode = sudo.waitUntilExit()
+
+			if exitCode == 0 {
+				return ImportedReply(source: source, name: name, imported: true, reason: String(localized: "VM imported successfully"))
+			}
+
+			let reason = sudo.standardError.trimmingCharacters(in: .whitespacesAndNewlines)
+			return ImportedReply(source: source, name: name, imported: false, reason: reason.isEmpty ? String(localized: "Import failed with exit code \(exitCode)") : reason)
+		} catch {
+			return ImportedReply(source: source, name: name, imported: false, reason: error.localizedDescription)
+		}
+	}
+
+	func importFromVMware(source: String, name: String, userName: String, password: String) -> ImportedReply {
+		ImportHandler.importVM(
+			importer: ImportHandler.ImportSource.vmdk.importer,
+			name: name,
+			source: source,
+			userName: userName,
+			password: password,
+			clearPassword: false,
+			sshPrivateKey: nil,
+			passphrase: nil,
+			uid: geteuid(),
+			gid: getegid(),
+			runMode: connectionMode.runMode
+		)
 	}
 }
 
