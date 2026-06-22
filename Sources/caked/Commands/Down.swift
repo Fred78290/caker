@@ -13,8 +13,8 @@ import CakeAgentLib
 struct Down: ParsableCommand {
 	static let configuration = CommandConfiguration(
 		commandName: "down",
-		abstract: String(localized: "Stop the VM defined in .cakerenv"),
-		discussion: String(localized: "Reads the VM name from .cakerenv in the current directory (or --env-file) and stops it.")
+		abstract: String(localized: "Stop VMs defined in .cakerenv"),
+		discussion: String(localized: "Reads .cakerenv from the current directory (or --env-file) and stops VMs in reverse depends-on order.")
 	)
 
 	@OptionGroup(title: String(localized: "Global options"))
@@ -30,8 +30,8 @@ struct Down: ParsableCommand {
 		help: ArgumentHelp(String(localized: "Force stop without waiting for graceful shutdown")))
 	var force: Bool = false
 
-	@Argument(help: ArgumentHelp(String(localized: "VM name override")))
-	var nameOverride: String?
+	@Argument(help: ArgumentHelp(String(localized: "VM names to stop (default: all VMs in .cakerenv)")))
+	var names: [String] = []
 
 	mutating func validate() throws {
 		Logger.setLevel(common.logLevel)
@@ -39,9 +39,12 @@ struct Down: ParsableCommand {
 
 	func run() throws {
 		let env = try loadEnv()
-		let vmName = env.resolvedName(override: nameOverride)
-		let reply = StopHandler.stopVM(name: vmName, force: force, runMode: common.runMode)
-		Logger.appendNewLine(common.format.render([reply]))
+		let vmsToStop = try env.downOrder(filter: names)
+
+		for (vmName, _) in vmsToStop {
+			let reply = StopHandler.stopVM(name: vmName, force: force, runMode: common.runMode)
+			Logger.appendNewLine(common.format.render([reply]))
+		}
 	}
 
 	private func loadEnv() throws -> CakerEnv {

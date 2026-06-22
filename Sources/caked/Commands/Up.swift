@@ -13,8 +13,8 @@ import CakeAgentLib
 struct Up: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(
 		commandName: "up",
-		abstract: String(localized: "Start or create the VM defined in .cakerenv"),
-		discussion: String(localized: "Reads .cakerenv from the current directory (or --env-file). If the VM does not exist it is created and started. If it exists but is stopped it is started. If it is already running nothing happens.")
+		abstract: String(localized: "Start or create VMs defined in .cakerenv"),
+		discussion: String(localized: "Reads .cakerenv from the current directory (or --env-file). Starts all VMs in depends-on order, or only the VMs listed as arguments. Creates VMs that do not yet exist.")
 	)
 
 	@OptionGroup(title: String(localized: "Global options"))
@@ -29,8 +29,8 @@ struct Up: AsyncParsableCommand {
 		help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
 	var waitIPTimeout: Int = 180
 
-	@Argument(help: ArgumentHelp(String(localized: "VM name override (defaults to 'name' in .cakerenv or directory name)")))
-	var nameOverride: String?
+	@Argument(help: ArgumentHelp(String(localized: "VM names to start (default: all VMs in .cakerenv)")))
+	var names: [String] = []
 
 	mutating func validate() throws {
 		Logger.setLevel(common.logLevel)
@@ -38,38 +38,40 @@ struct Up: AsyncParsableCommand {
 
 	func run() async throws {
 		let env = try loadEnv()
-		var buildOpts = try env.toBuildOptions(name: env.resolvedName(override: nameOverride))
-		try buildOpts.validate(remote: false)
+		let vmsToStart = try env.startOrder(filter: names)
 
-		let storage = StorageLocation(runMode: common.runMode)
+		for (vmName, vmSpec) in vmsToStart {
+			var buildOpts = try vmSpec.toBuildOptions(name: vmName)
+			try buildOpts.validate(remote: false)
 
-		if storage.exists(buildOpts.name) {
-			// VM exists — find its location and start it
-			let location = try storage.find(buildOpts.name)
-			let reply = StartHandler.startVM(
-				location: location,
-				screenSize: nil,
-				vncPassword: nil,
-				vncPort: nil,
-				waitIPTimeout: waitIPTimeout,
-				startMode: .background,
-				gcd: false,
-				recoveryMode: false,
-				runMode: common.runMode
-			)
-			Logger.appendNewLine(common.format.render(reply))
-		} else {
-			// VM doesn't exist — build and launch it
-			let reply = await LaunchHandler.buildAndLaunchVM(
-				runMode: common.runMode,
-				options: buildOpts,
-				waitIPTimeout: waitIPTimeout,
-				startMode: .background,
-				gcd: false,
-				recoveryMode: false,
-				progressHandler: ProgressObserver.progressHandler
-			)
-			Logger.appendNewLine(common.format.render(reply))
+			let storage = StorageLocation(runMode: common.runMode)
+
+			if storage.exists(vmName) {
+				let location = try storage.find(vmName)
+				let reply = StartHandler.startVM(
+					location: location,
+					screenSize: nil,
+					vncPassword: nil,
+					vncPort: nil,
+					waitIPTimeout: waitIPTimeout,
+					startMode: .background,
+					gcd: false,
+					recoveryMode: false,
+					runMode: common.runMode
+				)
+				Logger.appendNewLine(common.format.render(reply))
+			} else {
+				let reply = await LaunchHandler.buildAndLaunchVM(
+					runMode: common.runMode,
+					options: buildOpts,
+					waitIPTimeout: waitIPTimeout,
+					startMode: .background,
+					gcd: false,
+					recoveryMode: false,
+					progressHandler: ProgressObserver.progressHandler
+				)
+				Logger.appendNewLine(common.format.render(reply))
+			}
 		}
 	}
 

@@ -15,8 +15,8 @@ import CakeAgentLib
 struct Down: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(
 		commandName: "down",
-		abstract: String(localized: "Stop the VM defined in .cakerenv"),
-		discussion: String(localized: "Reads the VM name from .cakerenv in the current directory (or --env-file) and stops it.")
+		abstract: String(localized: "Stop VMs defined in .cakerenv"),
+		discussion: String(localized: "Reads .cakerenv from the current directory (or --env-file) and stops VMs in reverse depends-on order.")
 	)
 
 	@OptionGroup(title: String(localized: "Client options"))
@@ -32,26 +32,31 @@ struct Down: GrpcParsableCommand {
 		help: ArgumentHelp(String(localized: "Force stop without waiting for graceful shutdown")))
 	var force: Bool = false
 
-	@Argument(help: ArgumentHelp(String(localized: "VM name override")))
-	var nameOverride: String?
+	@Argument(help: ArgumentHelp(String(localized: "VM names to stop (default: all VMs in .cakerenv)")))
+	var names: [String] = []
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let env = try loadEnv()
-		let vmName = env.resolvedName(override: nameOverride)
+		let vmsToStop = try env.downOrder(filter: names)
+		var output: [String] = []
 
-		let result = try client.stop(
-			.with {
-				$0.force = force
-				$0.names = .with { $0.list = [vmName] }
-			},
-			callOptions: callOptions
-		).response.wait().vms.stop
+		for (vmName, _) in vmsToStop {
+			let result = try client.stop(
+				.with {
+					$0.force = force
+					$0.names = .with { $0.list = [vmName] }
+				},
+				callOptions: callOptions
+			).response.wait().vms.stop
 
-		if result.success {
-			return options.format.render(result.objects)
-		} else {
-			return options.format.render(result.reason)
+			if result.success {
+				output.append(options.format.render(result.objects))
+			} else {
+				output.append(options.format.render(result.reason))
+			}
 		}
+
+		return output.joined(separator: "\n")
 	}
 
 	private func loadEnv() throws -> CakerEnv {
