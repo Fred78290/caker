@@ -3219,6 +3219,7 @@
 		};
 		9B773E4F2FE92DE300C69B33 /* Set version */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			name = "Set version";
 			shellPath = /bin/sh;
 			shellScript = (
