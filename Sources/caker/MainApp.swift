@@ -278,9 +278,11 @@ struct MainApp: App {
 			Button("From Multipass…") {
 				openWindow(id: "import-multipass")
 			}
+			.disabled(self.appState.connectionMode == .remote)
 			Button("From VMware…") {
 				openWindow(id: "import-vmware")
 			}
+			.disabled(self.appState.connectionMode == .remote)
 		}
 		CommandMenu("Control") {
 			Button("Start") {
