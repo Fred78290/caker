@@ -71,7 +71,7 @@ struct ImportVMwareView: View {
 	private var configForm: some View {
 		Form {
 			Section("VMware configuration") {
-				LabeledContent("VM bundle") {
+				LabeledContent("VMWare virtual machine") {
 					HStack(spacing: 6) {
 						TextField("Choose a .vmwarevm bundle…", text: $vmxPath)
 							.rounded(.leading)
@@ -206,10 +206,10 @@ struct ImportVMwareView: View {
 			return
 		}
 
-		vmxPath = vmxURL.path(percentEncoded: false)
 		if targetName.isEmpty {
 			targetName = url.deletingPathExtension().lastPathComponent
 		}
+		vmxPath = vmxURL.path(percentEncoded: false)
 	}
 
 	private func findVMX(in bundleURL: URL) -> URL? {
