@@ -983,7 +983,7 @@ struct VirtualMachineWizard: View {
 							.rounded(.leading)
 							.disabled(self.model.createVM)
 						Button(action: {
-							config.networkConfig = chooseDocument(String(localized: "Choose a root disk"), showsHiddenFiles: true)
+						model.rootDisk = chooseDocument(String(localized: "Choose a root disk"), showsHiddenFiles: true) ?? String.empty
 						}) {
 							Image(systemName: "externaldrive.badge.plus")
 						}
