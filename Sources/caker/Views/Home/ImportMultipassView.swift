@@ -109,12 +109,11 @@ struct ImportMultipassView: View {
 	}
 
 	private func doImport() {
-		guard let vm = selectedVM, !targetName.isEmpty else { return }
+		guard let source = selectedVM.first, !targetName.isEmpty else { return }
 
 		isImporting = true
 		errorMessage = nil
 
-		let source = vm.name
 		let name = targetName
 		let user = userName
 		let pass = password
