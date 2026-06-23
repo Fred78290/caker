@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct SettingsView: View {
+	@AppStorage("AppearancePreference") var appearancePreference: AppearancePreference = .system
+
 	var body: some View {
 		TabView {
 			ApplicationSettingsView().padding()
@@ -18,7 +20,7 @@ struct SettingsView: View {
 				.tabItem {
 					Label("Virtual machines", systemImage: "display")
 				}
-		}.frame(minWidth: 450, alignment: .topLeading)
+		}.frame(minWidth: 450, alignment: .topLeading).preferredColorScheme(self.appearancePreference.colorScheme)
 	}
 }
 

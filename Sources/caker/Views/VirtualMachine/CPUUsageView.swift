@@ -17,9 +17,10 @@ let colors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .pink, .b
 
 struct CPUUsageView: View {
 	private static let barColor = Color(fromHex: "0076fFFF")!
+	@Environment(\.colorScheme) private var colorScheme
 
-	private static var borderColor:Color {
-		switch Color.colorScheme {
+	private var borderColor: Color {
+		switch self.colorScheme {
 		case .dark:
 			return .white
 		default:
@@ -27,8 +28,8 @@ struct CPUUsageView: View {
 		}
 	}
 
-	private static var bgColor:Color {
-		switch Color.colorScheme {
+	private var bgColor: Color {
+		switch self.colorScheme {
 		case .dark:
 			return Color(fromHex: "C7C7CCFF")!
 		default:
@@ -58,7 +59,7 @@ struct CPUUsageView: View {
 		GeometryReader { proxy in
 			ZStack(alignment: .bottom) {
 				RoundedRectangle(cornerRadius: 2)
-					.fill(Self.bgColor.opacity(0.22))
+					.fill(self.bgColor.opacity(0.22))
 
 				RoundedRectangle(cornerRadius: 2)
 					.fill(
@@ -74,7 +75,7 @@ struct CPUUsageView: View {
 			.frame(width: proxy.size.width, height: proxy.size.height)
 			.overlay(
 				RoundedRectangle(cornerRadius: 2)
-					.strokeBorder(Self.borderColor.opacity(0.12), lineWidth: 0.5)
+					.strokeBorder(self.borderColor.opacity(0.12), lineWidth: 0.5)
 			)
 		}
 	}
@@ -170,4 +171,3 @@ struct CPUUsageView: View {
 		}
 	}
 }
-
