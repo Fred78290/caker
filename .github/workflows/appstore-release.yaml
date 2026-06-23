@@ -155,6 +155,7 @@ jobs:
       - name: 🧪 Run tests
         id: tests
         if: vars.RUN_SWIFT_TESTS == 'true'
+        run: |
           set -o pipefail
           export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns:${PATH}
           swift test 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving|CoreData'
@@ -165,6 +166,7 @@ jobs:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
           VERSION: ${{ steps.version.outputs.version }}
           PKGPATH: ${{ steps.version.outputs.pkg_path }}
+        run: |
           set -o pipefail
           ./Scripts/build-signed-appstore.sh "${KEYCHAIN_PATH}" 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving'
 
@@ -223,7 +225,6 @@ jobs:
         id: cleanup-repo
         if: always()
         run: |
-          export
           git clean -fd
           git reset --hard HEAD
 

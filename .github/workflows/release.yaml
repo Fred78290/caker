@@ -261,7 +261,6 @@ jobs:
         if: always()
         run: |
           # Reset git working directory
-          export
           git clean -fd
           git reset --hard HEAD
 
