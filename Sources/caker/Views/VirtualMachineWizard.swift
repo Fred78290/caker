@@ -699,7 +699,7 @@ struct VirtualMachineWizard: View {
 							.rounded(.leading)
 							.disabled(self.model.createVM)
 						Button(action: {
-							if let sshPublicKey = chooseDocument("Select public key", ofType: UTType.sshPublicKey, showsHiddenFiles: true) {
+							if let sshPublicKey = chooseDocument(String(localized: "Choose a public ssh key"), ofType: UTType.sshPublicKey, showsHiddenFiles: true) {
 								self.config.sshAuthorizedKey = sshPublicKey
 							}
 						}) {
@@ -981,7 +981,7 @@ struct VirtualMachineWizard: View {
 							.rounded(.leading)
 							.disabled(self.model.createVM)
 						Button(action: {
-							config.networkConfig = chooseDocument("Select root disk", showsHiddenFiles: true)
+							config.networkConfig = chooseDocument(String(localized: "Choose a root disk"), showsHiddenFiles: true)
 						}) {
 							Image(systemName: "externaldrive.badge.plus")
 						}
@@ -1178,7 +1178,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {
-		if let diskImg = FileHelpers.selectSingleInputFile(ofType: ofTypes, withTitle: String(localized: "Select image"), allowsOtherFileTypes: true) {
+		if let diskImg = FileHelpers.selectSingleInputFile(ofType: ofTypes, withTitle: String(localized: "Choose an image disk"), allowsOtherFileTypes: true) {
 			return diskImg.absoluteURL.path
 		}
 
@@ -1198,7 +1198,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	func chooseYAML() -> String? {
-		if let choosenFile = FileHelpers.selectSingleInputFile(ofType: [.yaml], withTitle: String(localized: "Select data file"), allowsOtherFileTypes: true) {
+		if let choosenFile = FileHelpers.selectSingleInputFile(ofType: [.yaml], withTitle: String(localized: "Choose a data file"), allowsOtherFileTypes: true) {
 			return choosenFile.absoluteURL.path
 		}
 

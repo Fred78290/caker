@@ -105,7 +105,7 @@ struct DiskAttachementDetailView: View {
 	}
 
 	func chooseDiskImage() {
-		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [.diskImage, .iso9660], withTitle: String(localized: "Select a disk image"), allowsOtherFileTypes: true) {
+		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [.diskImage, .iso9660], withTitle: String(localized: "Choose an image disk"), allowsOtherFileTypes: true) {
 			currentItem.diskPath = diskImg.absoluteURL.path
 
 			if currentItem.diskPath.lowercased().hasSuffix(".iso") {
