@@ -351,6 +351,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
 		self.rootDisk = String.empty
+		self.mountPoints = []
 	}
 }
 
