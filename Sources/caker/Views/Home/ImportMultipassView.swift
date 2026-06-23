@@ -77,11 +77,10 @@ struct ImportMultipassView: View {
 						.controlSize(.small)
 						.padding(.trailing, 4)
 				}
-				Button("Import") {
-					doImport()
-				}
-				.disabled(selectedVM == nil || targetName.isEmpty || isImporting)
-
+			Button("Import") {
+				doImport()
+			}
+			.disabled(selectedVM.isEmpty || targetName.isEmpty || isImporting)
 				Button("Cancel") {
 					dismiss()
 				}
