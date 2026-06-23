@@ -80,31 +80,32 @@ private struct AppearanceTile: View {
 	let onTap: () -> Void
 
 	var body: some View {
-		VStack(spacing: 6) {
-			ZStack {
-				RoundedRectangle(cornerRadius: 10)
-					.fill(thumbnailBackground)
-					.frame(width: 80, height: 54)
+		Button(action: onTap) {
+			VStack(spacing: 6) {
+				ZStack {
+					RoundedRectangle(cornerRadius: 10)
+						.fill(thumbnailBackground)
+						.frame(width: 80, height: 54)
 
-				Image(systemName: pref.systemImage)
-					.font(.system(size: 22, weight: .medium))
-					.foregroundStyle(thumbnailForeground)
+					Image(systemName: pref.systemImage)
+						.font(.system(size: 22, weight: .medium))
+						.foregroundStyle(thumbnailForeground)
+				}
+				.overlay(
+					RoundedRectangle(cornerRadius: 10)
+						.strokeBorder(
+							isSelected ? Color.accentColor : Color.secondary.opacity(0.25),
+							lineWidth: isSelected ? 2.5 : 1
+						)
+				)
+				.shadow(color: .black.opacity(0.12), radius: 3, y: 1)
+
+				Text(pref.title)
+					.font(.system(size: 11, weight: isSelected ? .semibold : .regular))
+					.foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
 			}
-			.overlay(
-				RoundedRectangle(cornerRadius: 10)
-					.strokeBorder(
-						isSelected ? Color.accentColor : Color.secondary.opacity(0.25),
-						lineWidth: isSelected ? 2.5 : 1
-					)
-			)
-			.shadow(color: .black.opacity(0.12), radius: 3, y: 1)
-
-			Text(pref.title)
-				.font(.system(size: 11, weight: isSelected ? .semibold : .regular))
-				.foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
 		}
-		.contentShape(Rectangle())
-		.onTapGesture { onTap() }
+		.buttonStyle(.plain)
 	}
 
 	private var thumbnailBackground: Color {
