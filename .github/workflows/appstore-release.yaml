@@ -165,7 +165,7 @@ jobs:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
           VERSION: ${{ steps.version.outputs.version }}
           PKGPATH: ${{ steps.version.outputs.pkg_path }}
-        run: |
+          set -o pipefail
           ./Scripts/build-signed-appstore.sh "${KEYCHAIN_PATH}" 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving'
 
       - name: 🧪 Run integration tests
