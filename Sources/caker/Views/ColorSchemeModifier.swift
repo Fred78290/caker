@@ -41,18 +41,9 @@ struct ColorSchemeModifier: ViewModifier {
 	@Environment(\.colorScheme) var colorScheme
 	@AppStorage("AppearancePreference") var appearancePreference: AppearancePreference = .system
 
-	private func resolved(_ colorScheme: ColorScheme?) -> ColorScheme? {
-		guard let colorScheme else {
-			Color.colorScheme = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? .dark : .light
-			return nil
-		}
-
-		return colorScheme
-	}
-
 	func body(content: Content) -> some View {
 		content
-			.preferredColorScheme(resolved(appearancePreference.colorScheme))
+			.preferredColorScheme(appearancePreference.colorScheme)
 			.containerBackground(.windowBackground, for: .window)
 			.onAppear {
 				Color.colorScheme = self.colorScheme
