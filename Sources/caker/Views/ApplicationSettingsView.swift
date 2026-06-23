@@ -20,16 +20,24 @@ extension Binding where Value == Bool {
 struct ApplicationSettingsView: View {
 	@AppStorage("HideDockIcon") var isDockIconHidden = false
 	@AppStorage("ShowMenuIcon") var isMenuIconShown = false
-	@AppStorage("AppearancePreference") var appearancePreference: AppearancePreference = .system
 
+	@State private var state: AppState = AppState.shared
+	
 	var body: some View {
 		Form {
 			Section {
 				HStack(spacing: 20) {
 					Spacer()
 					ForEach(AppearancePreference.allCases, id: \.self) { pref in
-						AppearanceTile(pref: pref, isSelected: appearancePreference == pref) {
-							appearancePreference = pref
+						AppearanceTile(pref: pref, isSelected: state.appearancePreference == pref) {
+							if pref == .system {
+								state.appearancePreference = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? .dark : .light
+								DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+									state.appearancePreference = .system
+								}
+							} else {
+								state.appearancePreference = pref
+							}
 						}
 					}
 					Spacer()

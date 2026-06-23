@@ -144,9 +144,12 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 	
 	@ObservationIgnored @AppStorage("VMLaunchMode") var launchVMExternally = false
+	@ObservationIgnored @AppStorage("AppearancePreference") var appearancePreference: AppearancePreference = .system
 	@ObservationIgnored @AppStorage("ClipboardRedirectionEnabled") var isClipboardRedirectionEnabled = false
 	@ObservationIgnored @AppStorage("DebugVNCMessageEnabled") var debugVNCMessageEnabled: Bool = false
-	
+	@ObservationIgnored @AppStorage("HideDockIcon") var isDockIconHidden = false
+	@ObservationIgnored @AppStorage("ShowMenuIcon") var isMenuIconShown = false
+
 	private(set) var cakedServiceInstalled: Bool = false
 	private(set) var cakedServiceRunning: Bool = false
 	private(set) var connectionMode: ConnectionManager.ConnectionMode = .app
