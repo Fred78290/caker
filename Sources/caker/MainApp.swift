@@ -235,6 +235,8 @@ struct MainApp: App {
 
 		Window("About Caker", id: "about") {
 			AboutCakerView()
+				.colorSchemeForColor()
+				.containerBackground(.windowBackground, for: .window)
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
