@@ -9,7 +9,7 @@ import ArgumentParser
 import CakedLib
 import Foundation
 import CakeAgentLib
-
+import GRPCLib
 // MARK: - Parent command
 
 struct Compose: ParsableCommand {
@@ -61,7 +61,7 @@ struct ComposeUp: AsyncParsableCommand {
 
 			if storage.exists(serviceName) {
 				let location = try storage.find(serviceName)
-				let reply = StartHandler.startVM(
+				let reply = CakedLib.StartHandler.startVM(
 					location: location,
 					screenSize: nil,
 					vncPassword: nil,
@@ -74,7 +74,7 @@ struct ComposeUp: AsyncParsableCommand {
 				)
 				Logger.appendNewLine(common.format.render(reply))
 			} else {
-				let reply = await LaunchHandler.buildAndLaunchVM(
+				let reply = await CakedLib.LaunchHandler.buildAndLaunchVM(
 					runMode: common.runMode,
 					options: buildOpts,
 					waitIPTimeout: waitIPTimeout,
@@ -128,7 +128,7 @@ struct ComposeDown: ParsableCommand {
 		let toStop = try compose.downOrder(filter: services)
 
 		for (serviceName, _) in toStop {
-			let reply = StopHandler.stopVM(name: serviceName, force: force, runMode: common.runMode)
+			let reply = CakedLib.StopHandler.stopVM(name: serviceName, force: force, runMode: common.runMode)
 			Logger.appendNewLine(common.format.render([reply]))
 		}
 	}

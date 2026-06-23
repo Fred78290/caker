@@ -42,7 +42,7 @@ struct Down: ParsableCommand {
 		let vmsToStop = try env.downOrder(filter: names)
 
 		for (vmName, _) in vmsToStop {
-			let reply = StopHandler.stopVM(name: vmName, force: force, runMode: common.runMode)
+			let reply = CakedLib.StopHandler.stopVM(name: vmName, force: force, runMode: common.runMode)
 			Logger.appendNewLine(common.format.render([reply]))
 		}
 	}

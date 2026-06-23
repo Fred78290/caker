@@ -7,7 +7,9 @@
 
 import Foundation
 import GRPCLib
+import CakeAgentLib
 import Yams
+import NIOPortForwarding
 
 // MARK: - Per-VM specification
 

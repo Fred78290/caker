@@ -805,8 +805,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 		do {
 			let sudo = try SudoCaked(arguments: arguments, runMode: connectionMode.runMode)
-			try sudo.run()
-			let exitCode = sudo.waitUntilExit()
+			let exitCode = try sudo.run().waitUntilExit()
 
 			if exitCode == 0 {
 				return ImportedReply(source: source, name: name, imported: true, reason: String(localized: "VM imported successfully"))

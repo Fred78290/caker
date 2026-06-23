@@ -9,6 +9,7 @@ import ArgumentParser
 import CakedLib
 import Foundation
 import CakeAgentLib
+import GRPCLib
 
 struct Up: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(
@@ -48,7 +49,7 @@ struct Up: AsyncParsableCommand {
 
 			if storage.exists(vmName) {
 				let location = try storage.find(vmName)
-				let reply = StartHandler.startVM(
+				let reply = CakedLib.StartHandler.startVM(
 					location: location,
 					screenSize: nil,
 					vncPassword: nil,
@@ -61,7 +62,7 @@ struct Up: AsyncParsableCommand {
 				)
 				Logger.appendNewLine(common.format.render(reply))
 			} else {
-				let reply = await LaunchHandler.buildAndLaunchVM(
+				let reply = await CakedLib.LaunchHandler.buildAndLaunchVM(
 					runMode: common.runMode,
 					options: buildOpts,
 					waitIPTimeout: waitIPTimeout,

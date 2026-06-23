@@ -56,13 +56,13 @@ struct ComposeUp: AsyncGrpcParsableCommand {
 			var buildOpts = try serviceSpec.toBuildOptions(name: serviceName)
 			try buildOpts.validate(remote: true)
 
-			let statusReply = try client.info(
+			let statusReply = try await client.info(
 				.with {
 					$0.name = serviceName
 					$0.includeConfig = false
 				},
 				callOptions: callOptions
-			).response.wait().vms.status
+			).response.get().vms.status
 
 			if statusReply.success {
 				switch statusReply.infos.status {
@@ -71,14 +71,14 @@ struct ComposeUp: AsyncGrpcParsableCommand {
 				case .paused:
 					output.append(String(localized: "\(serviceName) is paused — resume it with `cakectl start \(serviceName)`."))
 				default:
-					let startReply = try client.start(
+					let startReply = try await client.start(
 						.with {
 							$0.name = serviceName
 							$0.waitIptimeout = Int32(waitIPTimeout)
 							$0.recoveryMode = false
 						},
 						callOptions: callOptions
-					).response.wait().vms.started
+					).response.get().vms.started
 					output.append(options.format.render(startReply))
 				}
 			} else {

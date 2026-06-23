@@ -7,6 +7,7 @@
 
 import Foundation
 import GRPCLib
+import CakeAgentLib
 import Yams
 
 // MARK: - Polymorphic helpers

@@ -7,6 +7,7 @@
 
 import ArgumentParser
 import CakedLib
+import CakeAgentLib
 import Foundation
 
 struct EnvInit: ParsableCommand {
