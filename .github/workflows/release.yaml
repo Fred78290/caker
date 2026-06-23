@@ -169,6 +169,7 @@ jobs:
         if: vars.RUN_SWIFT_TESTS == 'true'
         run: |
           # Run tests for the Swift package
+          set -o pipefail
           export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:${PATH}
           swift test 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving|CoreData'
 
@@ -178,6 +179,7 @@ jobs:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
+          set -o pipefail
           ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}" 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving'
 
       - name: 🧪 Run integration tests
