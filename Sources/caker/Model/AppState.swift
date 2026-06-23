@@ -791,8 +791,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		}
 	}
 
-	func importFromMultipass(source: String, name: String, userName: String, password: String) -> ImportedReply {
-		let arguments = [
+	func importFromMultipass(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?) -> ImportedReply {
+		var arguments = [
 			"import",
 			source,
 			name,
@@ -802,6 +802,16 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			"--uid=\(geteuid())",
 			"--gid=\(getegid())",
 		]
+
+		if clearPassword {
+			arguments.append("--clear-password")
+		}
+		if let sshKey {
+			arguments.append("--ssh-key=\(sshKey)")
+		}
+		if let sshPassphrase {
+			arguments.append("--ssh-passphrase=\(sshPassphrase)")
+		}
 
 		do {
 			let sudo = try SudoCaked(arguments: arguments, runMode: connectionMode.runMode)
@@ -818,16 +828,16 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		}
 	}
 
-	func importFromVMware(source: String, name: String, userName: String, password: String) -> ImportedReply {
+	func importFromVMware(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?) -> ImportedReply {
 		ImportHandler.importVM(
 			importer: ImportHandler.ImportSource.vmdk.importer,
 			name: name,
 			source: source,
 			userName: userName,
 			password: password,
-			clearPassword: false,
-			sshPrivateKey: nil,
-			passphrase: nil,
+			clearPassword: clearPassword,
+			sshPrivateKey: sshKey.flatMap { $0.isEmpty ? nil : $0 },
+			passphrase: sshPassphrase.flatMap { $0.isEmpty ? nil : $0 },
 			uid: geteuid(),
 			gid: getegid(),
 			runMode: connectionMode.runMode
