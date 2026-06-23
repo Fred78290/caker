@@ -15,7 +15,7 @@ struct ImportVMwareView: View {
 	@State private var vmxPath: String = ""
 	@State private var targetName: String = ""
 	@State private var userName: String = "admin"
-	@State private var password: String = "admin"
+	@State private var password: String = ""
 	@State private var isImporting: Bool = false
 	@State private var errorMessage: String? = nil
 
