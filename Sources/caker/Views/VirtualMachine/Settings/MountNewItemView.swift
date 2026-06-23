@@ -21,7 +21,7 @@ extension MountPoints {
 struct MountNewItemView: View {
 	@Binding private var mounts: MountPoints
 	@State private var newItem: MountPoint
-	private let editItem: SocketDevice.ID?
+	private let editItem: MountPoint.ID?
 
 	init(_ mounts: Binding<MountPoints>, editItem: MountPoint.ID? = nil) {
 		self._mounts = mounts
