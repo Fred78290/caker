@@ -782,15 +782,20 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			let list: [ListEntry]
 		}
 
-		guard let output = try? Shell.exec("multipass", arguments: ["list", "--format", "json"]),
-		      let data = output.data(using: .utf8),
-		      let response = try? JSONDecoder().decode(ListResponse.self, from: data)
-		else {
-			return []
-		}
+		do {
+			let output = try Shell.exec("multipass", arguments: ["list", "--format", "json"])
+			guard let data = output.data(using: .utf8) else {
+				return []
+			}
 
-		return response.list.map { entry in
-			MultipassVMInfo(name: entry.name, state: entry.state, release: entry.release, ipv4: entry.ipv4 ?? [])
+			let response = try JSONDecoder().decode(ListResponse.self, from: data)
+
+			return response.list.map { entry in
+				MultipassVMInfo(name: entry.name, state: entry.state, release: entry.release, ipv4: entry.ipv4 ?? [])
+			}
+		} catch {
+			Logger(self).error("Unable to list Multipass VMs: \(error)")
+			return []
 		}
 	}
 
@@ -801,17 +806,22 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			name,
 			"--from=multipass",
 			"--user=\(userName)",
-			"--password=\(password)",
 			"--uid=\(geteuid())",
 			"--gid=\(getegid())",
 		]
 
+		if password.isEmpty == false {
+			arguments.append("--password=\(password)")
+		}
+
 		if clearPassword {
 			arguments.append("--clear-password")
 		}
+
 		if let sshKey {
 			arguments.append("--ssh-key=\(sshKey)")
 		}
+
 		if let sshPassphrase {
 			arguments.append("--ssh-passphrase=\(sshPassphrase)")
 		}
