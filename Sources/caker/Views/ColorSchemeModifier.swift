@@ -14,9 +14,13 @@ struct ColorSchemeModifier: ViewModifier {
 	}
 
 	func body(content: Content) -> some View {
-		content.onChange(of: self.colorScheme) { _, newValue in
-			Color.colorScheme = newValue
-		}
+		content
+			.onAppear {
+				Color.colorScheme = self.colorScheme
+			}
+			.onChange(of: self.colorScheme) { _, newValue in
+				Color.colorScheme = newValue
+			}
 	}
 }
 

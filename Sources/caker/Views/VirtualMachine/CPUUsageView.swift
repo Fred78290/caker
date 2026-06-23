@@ -17,9 +17,10 @@ let colors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .pink, .b
 
 struct CPUUsageView: View {
 	private static let barColor = Color(fromHex: "0076fFFF")!
+	@Environment(\.colorScheme) private var colorScheme
 
-	private static var borderColor:Color {
-		switch Color.colorScheme {
+	private var borderColor: Color {
+		switch self.colorScheme {
 		case .dark:
 			return .white
 		default:
@@ -27,8 +28,8 @@ struct CPUUsageView: View {
 		}
 	}
 
-	private static var bgColor:Color {
-		switch Color.colorScheme {
+	private var bgColor: Color {
+		switch self.colorScheme {
 		case .dark:
 			return Color(fromHex: "C7C7CCFF")!
 		default:
@@ -57,9 +58,9 @@ struct CPUUsageView: View {
 	private func bar(height: CGFloat) -> some View {
 		GeometryReader { proxy in
 			Rectangle()
-				.fill(Self.bgColor.opacity(0.4))
+				.fill(self.bgColor.opacity(0.4))
 				.frame(width: proxy.size.width, height: proxy.size.height)
-				.border(Self.borderColor.opacity(0.6), width: 0.5)
+				.border(self.borderColor.opacity(0.6), width: 0.5)
 				.overlay {
 					Rectangle()
 						.fill(Self.barColor)
@@ -161,4 +162,3 @@ struct CPUUsageView: View {
 		}
 	}
 }
-
