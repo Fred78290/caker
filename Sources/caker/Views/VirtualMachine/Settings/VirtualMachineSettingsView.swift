@@ -40,15 +40,19 @@ struct VirtualMachineSettingsView: View {
 	@State var showPassword = false
 	@State var userPassword: String
 	@State var noRootDisk: Bool
+	@State var mountPoints: MountPoints
 
 	init() {
 		let document = try! VirtualMachineDocument.anyVirtualMachineDocument()
 		let config = document.virtualMachineConfig
 
 		self.document = document
-		self.config = document.virtualMachineConfig
+		self.config = config
 		self.userPassword = config.configuredPassword ?? String.empty
 		self.noRootDisk = (config.rootDisk ?? "").isEmpty
+		self.mountPoints = config.mounts.map {
+			MountPoint($0)
+		}
 	}
 
 	init(document: VirtualMachineDocument) {
@@ -58,6 +62,9 @@ struct VirtualMachineSettingsView: View {
 		self.config = config
 		self.userPassword = config.configuredPassword ?? String.empty
 		self.noRootDisk = (config.rootDisk ?? "").isEmpty
+		self.mountPoints = config.mounts.map {
+			MountPoint($0)
+		}
 	}
 
 	var body: some View {
@@ -116,6 +123,9 @@ struct VirtualMachineSettingsView: View {
 		.frame(height: 630)
 		.onChange(of: config) { _, newValue in
 			self.configChanged = true
+		}
+		.onChange(of: mountPoints) { _, newValue in
+			self.config.mounts = newValue.map { $0.directorySharingAttachment }
 		}
 	}
 
@@ -281,7 +291,7 @@ struct VirtualMachineSettingsView: View {
 	func mountsView() -> some View {
 		Form {
 			Section("Directory sharing") {
-				MountView(mounts: $config.mounts, disabled: .constant(false)).frame(height: 380)
+				MountView(mounts: $mountPoints, disabled: .constant(false)).frame(height: 380)
 			}
 		}.formStyle(.grouped).frame(maxHeight: .infinity)
 	}

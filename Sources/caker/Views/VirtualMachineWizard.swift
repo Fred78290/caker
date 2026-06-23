@@ -314,6 +314,7 @@ struct ShortImageInfoComparator: SortComparator {
 	var fractionCompleted: Double
 	var createVMMessage: String
 	var rootDisk: String
+	var mountPoints: MountPoints
 
 	init() {
 		self.currentStep = .name
@@ -331,6 +332,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
 		self.rootDisk = String.empty
+		self.mountPoints = []
 	}
 
 	func reset() {
@@ -1056,7 +1058,10 @@ struct VirtualMachineWizard: View {
 	func mountsView() -> some View {
 		Form {
 			Section("Directory sharing") {
-				MountView(mounts: $config.mounts, disabled: $model.createVM).frame(height: listHeight)
+				MountView(mounts: $model.mountPoints, disabled: $model.createVM).frame(height: listHeight)
+					.onChange(of: model.mountPoints) { _, newValue in
+						self.config.mounts = newValue.map { $0.directorySharingAttachment }
+					}
 			}
 		}.formStyle(.grouped)
 	}
@@ -1078,13 +1083,13 @@ struct VirtualMachineWizard: View {
 	}
 
 	func validateConfig(config: VirtualMachineConfig) {
-		var valid = true
+		var valid = model.mountPoints.first(where: {$0.validate() == false }) == nil
 
-		if model.rootDisk.isEmpty == false {
+		if valid && model.rootDisk.isEmpty == false {
 			valid = FileManager.default.fileExists(atPath: model.rootDisk)
 		}
 
-		if model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw {
+		if valid && (model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw) {
 			if let url = URL(string: config.imageName) {
 				if AppState.shared.connectionMode == .app {
 					valid =

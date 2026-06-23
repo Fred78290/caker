@@ -9,20 +9,15 @@ import GRPCLib
 import SwiftUI
 
 struct MountDetailView: View {
-	@Binding private var currentItem: DirectorySharingAttachment
+	@Binding private var currentItem: MountPoint
 	private var readOnly: Bool
 	@State private var name: String
-	@State private var shared: Bool
 
-	init(currentItem: Binding<DirectorySharingAttachment>, readOnly: Bool = true) {
+	init(currentItem: Binding<MountPoint>, readOnly: Bool = true) {
 		_currentItem = currentItem
-		let name = currentItem.wrappedValue._name ?? String.empty
-		let destination = currentItem.wrappedValue.destination ?? String.empty
-		let shared = name.isEmpty && destination.isEmpty
 
 		self.readOnly = readOnly
-		self.name = name
-		self.shared = shared
+		self.name = currentItem.wrappedValue.name ?? String.empty
 	}
 
 	var body: some View {
@@ -30,8 +25,8 @@ struct MountDetailView: View {
 			compactRow
 		} else {
 			fullForm
-				.onChange(of: shared) {
-					if self.shared {
+				.onChange(of: currentItem.shared) {
+					if currentItem.shared {
 						currentItem.destination = String.empty
 						currentItem.name = String.empty
 					}
@@ -55,7 +50,7 @@ struct MountDetailView: View {
 				Text(currentItem.source)
 					.font(.system(size: 12, design: .monospaced))
 					.lineLimit(1)
-				Text(currentItem.destination ?? currentItem.name)
+				Text(currentItem.currentDestination)
 					.font(.system(size: 11, design: .monospaced))
 					.foregroundStyle(.secondary)
 					.lineLimit(1)
@@ -89,9 +84,9 @@ struct MountDetailView: View {
 				}.frame(width: 350)
 			}
 
-			if shared == false {
+			if currentItem.shared == false {
 				LabeledContent("Name") {
-					TextField("Name", text: $name, prompt: Text(currentItem.name))
+					TextField("Name", text: $name, prompt: Text(currentItem.currentName))
 						.rounded(.leading)
 						.onChange(of: name) { _, newValue in
 							currentItem.name = newValue
@@ -107,7 +102,7 @@ struct MountDetailView: View {
 			}
 
 			LabeledContent("Shared mount") {
-				Toggle("Shared mount", isOn: $shared)
+				Toggle("Shared mount", isOn: $currentItem.shared)
 					.toggleStyle(.switch)
 					.labelsHidden()
 			}
