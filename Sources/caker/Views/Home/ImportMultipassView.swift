@@ -12,7 +12,7 @@ struct ImportMultipassView: View {
 	@Environment(\.dismiss) private var dismiss
 
 	@State private var vms: [MultipassVMInfo] = []
-	@State private var selectedVM: MultipassVMInfo? = nil
+	@State private var selectedVM: Set<MultipassVMInfo.ID> = []
 	@State private var targetName: String = ""
 	@State private var userName: String = "ubuntu"
 	@State private var password: String = "ubuntu"
