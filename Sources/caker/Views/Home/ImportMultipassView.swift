@@ -81,12 +81,14 @@ struct ImportMultipassView: View {
 			.frame(maxWidth: .infinity)
 			.frame(height: 130)
 		} else if vms.isEmpty {
-			ContentUnavailableView(
-				"No VMs Found",
-				systemImage: "tray",
-				description: Text("Make sure Multipass is installed and running.")
-			)
-			.frame(height: 130)
+			GeometryReader { geom in
+				ContentUnavailableView(
+					"No VMs Found",
+					systemImage: "tray",
+					description: Text("Make sure Multipass is installed and running.")
+				)
+				.frame(width: geom.size.width, height: 130)
+			}
 		} else {
 			Table(vms, selection: $selectedVM) {
 				TableColumn("Name") { vm in
