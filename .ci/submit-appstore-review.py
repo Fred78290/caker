@@ -78,15 +78,21 @@ def main() -> None:
     _ensure_pyjwt()
 
     version = os.environ.get("VERSION", "").strip()
-    key_id = os.environ["APP_STORE_CONNECT_API_KEY_ID"]
-    issuer_id = os.environ["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]
-    key_path = os.path.expanduser(
-        f"~/.appstoreconnect/private_keys/AuthKey_{key_id}.p8"
-    )
+    key_id = os.environ.get("APP_STORE_CONNECT_API_KEY_ID", "").strip()
+    issuer_id = os.environ.get("APP_STORE_CONNECT_API_KEY_ISSUER_ID", "").strip()
 
     if not version:
         print("Error: VERSION environment variable is required.", file=sys.stderr)
         sys.exit(1)
+
+    if not key_id or not issuer_id:
+        print(
+            "Error: APP_STORE_CONNECT_API_KEY_ID and APP_STORE_CONNECT_API_KEY_ISSUER_ID are required.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    key_path = os.path.expanduser(f"~/.appstoreconnect/private_keys/AuthKey_{key_id}.p8")
 
     if not os.path.exists(key_path):
         print(f"Error: API key not found at {key_path}", file=sys.stderr)
