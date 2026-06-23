@@ -18,14 +18,15 @@ import urllib.error
 import urllib.request
 
 
-def _ensure_pyjwt() -> None:
+def _require_pyjwt() -> None:
     try:
         import jwt  # noqa: F401
     except ImportError:
-        import subprocess
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", "--quiet", "PyJWT[crypto]>=2.0"],
+        print(
+            "Error: PyJWT is required. Install 'PyJWT[crypto]>=2.0' before running this script.",
+            file=sys.stderr,
         )
+        sys.exit(1)
 
 
 def generate_token(key_id: str, issuer_id: str, private_key_path: str) -> str:
@@ -75,7 +76,7 @@ BUNDLE_ID = "com.aldunelabs.caker"
 
 
 def main() -> None:
-    _ensure_pyjwt()
+    _require_pyjwt()
 
     version = os.environ.get("VERSION", "").strip()
     key_id = os.environ.get("APP_STORE_CONNECT_API_KEY_ID", "").strip()

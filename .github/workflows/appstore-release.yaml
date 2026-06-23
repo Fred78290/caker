@@ -266,7 +266,10 @@ jobs:
         env:
           VERSION: "${{ needs.build.outputs.version }}"
         run: |
-          python3 .ci/submit-appstore-review.py
+          VENV_DIR="${RUNNER_TEMP}/appstore-submit-venv"
+          python3 -m venv "${VENV_DIR}"
+          "${VENV_DIR}/bin/pip" install --quiet "PyJWT[crypto]>=2.0"
+          "${VENV_DIR}/bin/python" .ci/submit-appstore-review.py
 
       - name: 🧹 Clean up API key
         if: always()
