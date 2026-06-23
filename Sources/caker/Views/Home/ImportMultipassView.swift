@@ -15,7 +15,7 @@ struct ImportMultipassView: View {
 	@State private var selectedVM: Set<MultipassVMInfo.ID> = []
 	@State private var targetName: String = ""
 	@State private var userName: String = "ubuntu"
-	@State private var password: String = "ubuntu"
+	@State private var password: String = ""
 	@State private var isLoading: Bool = false
 	@State private var isImporting: Bool = false
 	@State private var errorMessage: String? = nil
