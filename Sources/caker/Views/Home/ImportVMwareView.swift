@@ -39,6 +39,10 @@ struct ImportVMwareView: View {
 			footer
 		}
 		.frame(minWidth: 480)
+		.onChange(of: vmxPath) { _, newPath in
+			guard targetName.isEmpty, !newPath.isEmpty else { return }
+			targetName = URL(fileURLWithPath: newPath).deletingPathExtension().lastPathComponent
+		}
 	}
 
 	private var header: some View {

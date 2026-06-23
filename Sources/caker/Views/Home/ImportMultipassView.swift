@@ -39,6 +39,11 @@ struct ImportMultipassView: View {
 		}
 		.frame(minWidth: 500)
 		.onAppear { loadVMs() }
+		.onChange(of: selectedVM) { _, newSelection in
+			if let name = newSelection.first, targetName.isEmpty {
+				targetName = name
+			}
+		}
 	}
 
 	private var header: some View {
