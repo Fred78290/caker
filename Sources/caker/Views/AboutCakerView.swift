@@ -17,27 +17,17 @@ public struct AboutCakerView: View {
 
 	public var body: some View {
 		VStack(spacing: 0) {
-			// Header avec icône et nom
 			headerSection
-
-			// Section principale avec description
 			mainInfoSection
-
-			// Section des composants
 			componentsSection
-
-			// Section des crédits et liens
 			creditsSection
 		}
 		.frame(width: 520, height: 680)
-		.background(Color(NSColor.windowBackgroundColor))
-		//.cornerRadius(12)
 		.shadow(radius: 10)
 	}
 
 	private var headerSection: some View {
 		VStack(spacing: 16) {
-			// Icône de l'application
 			VStack {
 				if let appIcon = NSApplication.shared.applicationIconImage {
 					Image(nsImage: appIcon)
@@ -58,21 +48,20 @@ public struct AboutCakerView: View {
 						.overlay(
 							Image(systemName: "cloud.bolt")
 								.font(.system(size: 40, weight: .medium))
-								.foregroundColor(.white)
+								.foregroundStyle(.white)
 						)
 						.shadow(radius: 8)
 				}
 			}
 
-			// Nom et version
 			VStack(spacing: 4) {
 				Text("Caker")
 					.font(.system(size: 28, weight: .bold, design: .rounded))
-					.foregroundColor(.primary)
+					.foregroundStyle(.primary)
 
 				Text("Version \(appVersion)")
 					.font(.system(size: 14, weight: .medium))
-					.foregroundColor(.secondary)
+					.foregroundStyle(.secondary)
 			}
 		}
 		.padding(.top, 32)
@@ -84,19 +73,18 @@ public struct AboutCakerView: View {
 			VStack(spacing: 12) {
 				Text("Virtual Machine Manager")
 					.font(.headline)
-					.foregroundColor(.primary)
+					.foregroundStyle(.primary)
 
 				Text("Caker is a powerful toolchain for creating and managing virtual machines with Apple's Virtualization framework, focused on simplicity and developer experience.")
 					.lineLimit(nil)
 					.layoutPriority(1)
 					.font(.body)
 					.fixedSize(horizontal: false, vertical: true)
-					.foregroundColor(.secondary)
+					.foregroundStyle(.secondary)
 					.multilineTextAlignment(.center)
 					.lineSpacing(2)
 			}
 
-			// Fonctionnalités principales
 			VStack(alignment: .leading, spacing: 8) {
 				FeatureRow(icon: "network", text: String(localized: "Dynamic TCP/Unix port forwarding"))
 				FeatureRow(icon: "globe", text: String(localized: "Bridge, hosted, or NAT mode networks"))
@@ -110,62 +98,6 @@ public struct AboutCakerView: View {
 		.padding(.horizontal, 24)
 	}
 
-	private var creditsSection: some View {
-		VStack(spacing: 12) {
-			Divider()
-				.padding(.horizontal)
-
-			VStack(spacing: 8) {
-				Text("Developed by")
-					.font(.headline)
-					.foregroundColor(.primary)
-
-				Text("Fred78290 / Aldune Labs")
-					.font(.body)
-					.foregroundColor(.blue)
-
-				HStack(spacing: 16) {
-					Button(action: showLicenseInfo) {
-						HStack(spacing: 4) {
-							Image(systemName: "book")
-							Text("Licenses")
-						}
-						.font(.caption)
-					}
-					.buttonStyle(.bordered)
-
-					Button(action: openWebsite) {
-						HStack(spacing: 4) {
-							Image(systemName: "safari")
-							Text("Documentation")
-						}
-						.font(.caption)
-					}
-					.buttonStyle(.bordered)
-
-					Button(action: openGitHub) {
-						HStack(spacing: 4) {
-							Image(systemName: "curlybraces")
-							Text("Source Code")
-						}
-						.font(.caption)
-					}
-					.buttonStyle(.bordered)
-
-					Button(action: reportIssue) {
-						HStack(spacing: 4) {
-							Image(systemName: "ladybug")
-							Text("Report Issue")
-						}
-						.font(.caption)
-					}
-					.buttonStyle(.bordered)
-				}
-			}
-		}
-		.padding([.top, .bottom], 16)
-	}
-
 	private var componentsSection: some View {
 		VStack(spacing: 12) {
 			Divider()
@@ -174,7 +106,7 @@ public struct AboutCakerView: View {
 			VStack(spacing: 8) {
 				Text("Components")
 					.font(.headline)
-					.foregroundColor(.primary)
+					.foregroundStyle(.primary)
 
 				VStack(alignment: .leading, spacing: 4) {
 					ComponentRow(name: String(localized: "caked"), description: String(localized: "VM management daemon"))
@@ -184,6 +116,50 @@ public struct AboutCakerView: View {
 				.padding(.horizontal)
 			}
 		}
+	}
+
+	private var creditsSection: some View {
+		VStack(spacing: 12) {
+			Divider()
+				.padding(.horizontal)
+
+			VStack(spacing: 8) {
+				Text("Developed by")
+					.font(.headline)
+					.foregroundStyle(.primary)
+
+				Text("Fred78290 / Aldune Labs")
+					.font(.body)
+					.foregroundStyle(Color.accentColor)
+
+				HStack(spacing: 12) {
+					Button(action: showLicenseInfo) {
+						Label("Licenses", systemImage: "book")
+							.font(.caption)
+					}
+					.buttonStyle(.bordered)
+
+					Button(action: openWebsite) {
+						Label("Documentation", systemImage: "safari")
+							.font(.caption)
+					}
+					.buttonStyle(.bordered)
+
+					Button(action: openGitHub) {
+						Label("Source Code", systemImage: "curlybraces")
+							.font(.caption)
+					}
+					.buttonStyle(.bordered)
+
+					Button(action: reportIssue) {
+						Label("Report Issue", systemImage: "ladybug")
+							.font(.caption)
+					}
+					.buttonStyle(.bordered)
+				}
+			}
+		}
+		.padding([.top, .bottom], 16)
 	}
 
 	private func openWebsite() {
@@ -250,11 +226,11 @@ private struct FeatureRow: View {
 	var body: some View {
 		HStack(spacing: 8) {
 			Image(systemName: icon)
-				.foregroundColor(.blue)
+				.foregroundStyle(Color.accentColor)
 				.frame(width: 16)
 			Text(text)
 				.font(.caption)
-				.foregroundColor(.secondary)
+				.foregroundStyle(.secondary)
 			Spacer()
 		}
 	}
@@ -267,16 +243,16 @@ private struct ComponentRow: View {
 	var body: some View {
 		HStack {
 			Text("•")
-				.foregroundColor(.blue)
+				.foregroundStyle(Color.accentColor)
 			Text(name)
 				.font(.caption)
 				.fontWeight(.medium)
-				.foregroundColor(.primary)
+				.foregroundStyle(.primary)
 			Text("—")
-				.foregroundColor(.secondary)
+				.foregroundStyle(.secondary)
 			Text(description)
 				.font(.caption)
-				.foregroundColor(.secondary)
+				.foregroundStyle(.secondary)
 			Spacer()
 		}
 	}

@@ -314,6 +314,7 @@ struct ShortImageInfoComparator: SortComparator {
 	var fractionCompleted: Double
 	var createVMMessage: String
 	var rootDisk: String
+	var mountPoints: MountPoints
 
 	init() {
 		self.currentStep = .name
@@ -331,6 +332,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
 		self.rootDisk = String.empty
+		self.mountPoints = []
 	}
 
 	func reset() {
@@ -349,6 +351,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
 		self.rootDisk = String.empty
+		self.mountPoints = []
 	}
 }
 
@@ -493,42 +496,51 @@ struct VirtualMachineWizard: View {
 	}
 
 	func Footer() -> some View {
-		VStack {
+		VStack(spacing: 0) {
 			if self.model.createVM {
-				VStack(alignment: .center) {
-					Text(self.model.createVMMessage)
-					ProgressView(value: self.model.fractionCompleted).frame(width: 300)
-				}.frame(height: 30)
+				VStack(alignment: .center, spacing: 6) {
+					HStack(spacing: 6) {
+						Image(systemName: "gearshape.2")
+							.foregroundStyle(.secondary)
+							.font(.callout)
+						Text(self.model.createVMMessage)
+							.font(.callout)
+							.foregroundStyle(.secondary)
+					}
+					ProgressView(value: self.model.fractionCompleted)
+						.frame(width: 320)
+						.tint(.accentColor)
+				}
+				.padding(.vertical, 10)
 			}
 
 			Divider()
 
 			HStack {
-				HStack {
-				}.frame(maxWidth: .infinity)
-
-				Spacer()
-
-				HStack {
+				HStack(spacing: 6) {
 					Button {
 						self.previousStep()
 					} label: {
-						Text("Previous").frame(width: 80)
+						HStack(spacing: 4) {
+							Image(systemName: "chevron.left")
+							Text("Previous")
+						}.frame(width: 90)
 					}
 					.disabled(self.hasPrevious == false || self.model.createVM)
+
 					Button {
 						self.nextStep()
 					} label: {
-						Text("Next").frame(width: 80)
+						HStack(spacing: 4) {
+							Text("Next")
+							Image(systemName: "chevron.right")
+						}.frame(width: 70)
 					}
 					.disabled(self.hasNext == false || self.model.createVM)
 				}
+				.frame(maxWidth: .infinity, alignment: .center)
 
-				Spacer()
-
-				HStack {
-					Spacer()
-
+				HStack(spacing: 8) {
 					if self.sheet {
 						Button {
 							self.dismiss()
@@ -542,9 +554,11 @@ struct VirtualMachineWizard: View {
 					} label: {
 						Text("Create").frame(width: 80)
 					}
+					.buttonStyle(.borderedProminent)
 					.disabled(self.model.configValid == false)
-				}.frame(maxWidth: .infinity)
-			}.padding(EdgeInsets(top: 1, leading: 15, bottom: 15, trailing: 15))
+				}
+			}
+			.padding(EdgeInsets(top: 10, leading: 16, bottom: 16, trailing: 16))
 		}
 		.onChange(of: config) { _, newValue in
 			self.validateConfig(config: newValue)
@@ -581,7 +595,7 @@ struct VirtualMachineWizard: View {
 
 			HStack {
 				Text("Memory size")
-				Spacer().border(.black)
+				Spacer()
 				HStack {
 					TextField(String.empty, value: $config.memorySizeInMoB, format: .number)
 						.rounded(.center)
@@ -618,7 +632,7 @@ struct VirtualMachineWizard: View {
 			VStack(alignment: .leading) {
 				HStack {
 					Text("Width")
-					Spacer().border(.black)
+					Spacer()
 					TextField(String.empty, value: $config.display.width, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
@@ -626,7 +640,7 @@ struct VirtualMachineWizard: View {
 				}
 				HStack {
 					Text("Height")
-					Spacer().border(.black)
+					Spacer()
 					TextField(String.empty, value: $config.display.height, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
@@ -688,7 +702,7 @@ struct VirtualMachineWizard: View {
 							.rounded(.leading)
 							.disabled(self.model.createVM)
 						Button(action: {
-							if let sshPublicKey = chooseDocument("Select public key", ofType: UTType.sshPublicKey, showsHiddenFiles: true) {
+							if let sshPublicKey = chooseDocument(String(localized: "Choose a public ssh key"), ofType: UTType.sshPublicKey, showsHiddenFiles: true) {
 								self.config.sshAuthorizedKey = sshPublicKey
 							}
 						}) {
@@ -950,7 +964,7 @@ struct VirtualMachineWizard: View {
 			Section("Root disk") {
 				HStack {
 					Text("Disk size (GiB)")
-					Spacer().border(.black)
+					Spacer()
 					HStack {
 						TextField(String.empty, value: $config.diskSizeInGiB, format: .number)
 							.rounded(.center)
@@ -970,7 +984,7 @@ struct VirtualMachineWizard: View {
 							.rounded(.leading)
 							.disabled(self.model.createVM)
 						Button(action: {
-							config.networkConfig = chooseDocument("Select root disk", showsHiddenFiles: true)
+						model.rootDisk = chooseDocument(String(localized: "Choose a root disk"), showsHiddenFiles: true) ?? String.empty
 						}) {
 							Image(systemName: "externaldrive.badge.plus")
 						}
@@ -1045,7 +1059,10 @@ struct VirtualMachineWizard: View {
 	func mountsView() -> some View {
 		Form {
 			Section("Directory sharing") {
-				MountView(mounts: $config.mounts, disabled: $model.createVM).frame(height: listHeight)
+				MountView(mounts: $model.mountPoints, disabled: $model.createVM).frame(height: listHeight)
+					.onChange(of: model.mountPoints) { _, newValue in
+						self.config.mounts = newValue.map { $0.directorySharingAttachment }
+					}
 			}
 		}.formStyle(.grouped)
 	}
@@ -1067,13 +1084,13 @@ struct VirtualMachineWizard: View {
 	}
 
 	func validateConfig(config: VirtualMachineConfig) {
-		var valid = true
+		var valid = model.mountPoints.first(where: {$0.validate() == false }) == nil
 
-		if model.rootDisk.isEmpty == false {
+		if valid && model.rootDisk.isEmpty == false {
 			valid = FileManager.default.fileExists(atPath: model.rootDisk)
 		}
 
-		if model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw {
+		if valid && (model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw) {
 			if let url = URL(string: config.imageName) {
 				if AppState.shared.connectionMode == .app {
 					valid =
@@ -1167,7 +1184,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {
-		if let diskImg = FileHelpers.selectSingleInputFile(ofType: ofTypes, withTitle: String(localized: "Select image"), allowsOtherFileTypes: true) {
+		if let diskImg = FileHelpers.selectSingleInputFile(ofType: ofTypes, withTitle: String(localized: "Choose an image disk"), allowsOtherFileTypes: true) {
 			return diskImg.absoluteURL.path
 		}
 
@@ -1187,7 +1204,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	func chooseYAML() -> String? {
-		if let choosenFile = FileHelpers.selectSingleInputFile(ofType: [.yaml], withTitle: String(localized: "Select data file"), allowsOtherFileTypes: true) {
+		if let choosenFile = FileHelpers.selectSingleInputFile(ofType: [.yaml], withTitle: String(localized: "Choose a data file"), allowsOtherFileTypes: true) {
 			return choosenFile.absoluteURL.path
 		}
 

@@ -383,6 +383,7 @@
 		9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */; };
 		9BDA14BF2EEAC18900357544 /* VirtualMachineInformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA14BE2EEAC17F00357544 /* VirtualMachineInformations.swift */; };
 		9BDBAC2D2E15618000215DF5 /* MemorySizeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */; };
+		9BDC00FF2FEAB3B800802A3C /* MountPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC00FE2FEAB3B800802A3C /* MountPoint.swift */; };
 		9BDC05902FEADB3300802A3C /* ImportVMwareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC058F2FEADB3300802A3C /* ImportVMwareView.swift */; };
 		9BDC05912FEADB3300802A3C /* ImportMultipassView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC058E2FEADB3300802A3C /* ImportMultipassView.swift */; };
 		9BDC05932FEADB4400802A3C /* CakerEnv.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05922FEADB4400802A3C /* CakerEnv.swift */; };
@@ -1163,6 +1164,7 @@
 		9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonKeyMapper.swift; sourceTree = "<group>"; };
 		9BDA14BE2EEAC17F00357544 /* VirtualMachineInformations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineInformations.swift; sourceTree = "<group>"; };
 		9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySizeStyle.swift; sourceTree = "<group>"; };
+		9BDC00FE2FEAB3B800802A3C /* MountPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountPoint.swift; sourceTree = "<group>"; };
 		9BDC058E2FEADB3300802A3C /* ImportMultipassView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMultipassView.swift; sourceTree = "<group>"; };
 		9BDC058F2FEADB3300802A3C /* ImportVMwareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportVMwareView.swift; sourceTree = "<group>"; };
 		9BDC05922FEADB4400802A3C /* CakerEnv.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakerEnv.swift; sourceTree = "<group>"; };
@@ -2145,6 +2147,7 @@
 			isa = PBXGroup;
 			children = (
 				9B9C4E8E2E23BF1300C13D23 /* AppState.swift */,
+				9BDC00FE2FEAB3B800802A3C /* MountPoint.swift */,
 				9B9C4E622E23BDA400C13D23 /* NavigationModel.swift */,
 				9B9C4E8F2E23BF1300C13D23 /* RemoteData.swift */,
 				9B57E9CF2E745FB600C5601D /* ViewSize.swift */,
@@ -3389,6 +3392,7 @@
 				9B215B6F2E0C347A00AFC89D /* DiskAttachementDetailView.swift in Sources */,
 				9BFA7E4F2FA6256300E981F6 /* AboutCakerView.swift in Sources */,
 				9B9620CB2EAB62EF0075CD18 /* ToolbarSettings.swift in Sources */,
+				9BDC00FF2FEAB3B800802A3C /* MountPoint.swift in Sources */,
 				9B2BFAC42DFED25E000045C3 /* HostingViewFinder.swift in Sources */,
 				9B4438902EBDE9AD008BB2BB /* RemoteWizard.swift in Sources */,
 				9BB8D9B02ED32ACB00AD4700 /* CPUUsageView.swift in Sources */,

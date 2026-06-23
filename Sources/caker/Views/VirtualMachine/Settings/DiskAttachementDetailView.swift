@@ -22,28 +22,65 @@ struct DiskAttachementDetailView: View {
 	}
 
 	var body: some View {
+		if readOnly {
+			compactRow
+		} else {
+			fullForm
+		}
+	}
+
+	@ViewBuilder
+	var compactRow: some View {
+		HStack(spacing: 10) {
+			ZStack {
+				RoundedRectangle(cornerRadius: 7)
+					.fill(Color.gray.gradient)
+					.frame(width: 28, height: 28)
+				Image(systemName: currentItem.diskPath.hasSuffix(".iso") ? "opticaldiscdrive" : "internaldrive")
+					.font(.system(size: 12, weight: .semibold))
+					.foregroundStyle(.white)
+			}
+
+			Text(currentItem.diskPath)
+				.font(.system(size: 12, design: .monospaced))
+				.lineLimit(1)
+
+			Spacer()
+
+			HStack(spacing: 4) {
+				if currentItem.diskOptions.readOnly {
+					Text("ro")
+						.font(.system(size: 11, weight: .medium))
+						.foregroundStyle(.secondary)
+						.padding(.horizontal, 6)
+						.padding(.vertical, 2)
+						.background(Capsule().fill(.secondary.opacity(0.10)))
+				}
+				Text(currentItem.diskOptions.cachingMode)
+					.font(.system(size: 11))
+					.foregroundStyle(.secondary)
+			}
+		}
+		.padding(.vertical, 4)
+	}
+
+	@ViewBuilder
+	var fullForm: some View {
 		VStack {
 			LabeledContent("Disk path") {
 				HStack {
 					TextField("Disk image path", text: $currentItem.diskPath)
 						.rounded(.leading)
-						.allowsHitTesting(readOnly == false)
-
-					if readOnly == false {
-						Button(action: {
-							chooseDiskImage()
-						}) {
-							Image(systemName: "opticaldiscdrive")
-						}.buttonStyle(.borderless)
-					}
-				}.frame(width: readOnly ? 500 : 350)
+					Button(action: chooseDiskImage) {
+						Image(systemName: "opticaldiscdrive")
+					}.buttonStyle(.borderless)
+				}.frame(width: 350)
 			}
 
 			LabeledContent("Syncing") {
 				Toggle("Syncing", isOn: $syncing)
 					.labelsHidden()
 					.toggleStyle(.switch)
-					.allowsHitTesting(readOnly == false)
 					.onChange(of: syncing) { _, newValue in
 						self.currentItem.diskOptions.syncMode = newValue ? "full" : "none"
 					}
@@ -53,7 +90,6 @@ struct DiskAttachementDetailView: View {
 				Toggle("Read only", isOn: $currentItem.diskOptions.readOnly)
 					.labelsHidden()
 					.toggleStyle(.switch)
-					.allowsHitTesting(readOnly == false)
 			}
 
 			LabeledContent("Cache mode") {
@@ -62,7 +98,6 @@ struct DiskAttachementDetailView: View {
 						Text(LocalizedStringKey(stringLiteral: name)).tag(name).frame(width: 100)
 					}
 				}
-				.allowsHitTesting(readOnly == false)
 				.labelsHidden()
 				.pickerStyle(.menu)
 			}
@@ -70,7 +105,7 @@ struct DiskAttachementDetailView: View {
 	}
 
 	func chooseDiskImage() {
-		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [.diskImage, .iso9660], withTitle: String(localized: "Select a disk image"), allowsOtherFileTypes: true) {
+		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [.diskImage, .iso9660], withTitle: String(localized: "Choose an image disk"), allowsOtherFileTypes: true) {
 			currentItem.diskPath = diskImg.absoluteURL.path
 
 			if currentItem.diskPath.lowercased().hasSuffix(".iso") {

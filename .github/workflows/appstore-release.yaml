@@ -1,29 +1,30 @@
-name: Release
+name: AppStore Release
+
 on:
   push:
     tags:
-      - "release"
-      - "prerelease"
+      - "appstore"
+      - "appstore-prerelease"
 
 env:
-  BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+  BUILD_APPSTORE_CERTIFICATE_BASE64: ${{ secrets.BUILD_APPSTORE_CERTIFICATE_BASE64 }}
   P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
   KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
   APPLE_ID: ${{ secrets.APPLE_ID }}
   TEAM_ID: ${{ vars.TEAM_ID }}
   DEVELOPER_ID: ${{ vars.DEVELOPER_ID }}
-  APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+  APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+  APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+  APP_STORE_CONNECT_API_KEY_P8_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8_BASE64 }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   RUN_PYTEST: ${{ vars.RUN_PYTEST }}
   RUN_SWIFT_TESTS: ${{ vars.RUN_SWIFT_TESTS }}
   CAKE_HOME: "${{ github.workspace }}/.cake"
-  PKGDIR: "${{ github.workspace }}/.ci/pkg/Caker.app"
-  NOTARYZATION: ${{ vars.NOTARYZATION }}
-  SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
-  SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
+  PKGDIR: "${{ github.workspace }}/appstore/Caker.app"
   SETUP_KEYCHAIN: ${{ vars.SETUP_KEYCHAIN }}
   CODESIGN_REQUIREMENT: ${{ vars.CODESIGN_REQUIREMENT }}
   BASE_VERSION: ${{ vars.BASE_VERSION }}
+
 permissions:
   contents: write
 
@@ -33,7 +34,6 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 60
     outputs:
-      build_release: ${{ steps.version.outputs.build_release }}
       build_package: ${{ steps.version.outputs.build_package }}
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -105,17 +105,12 @@ jobs:
           BASE_VERSION="${BASE_VERSION:-1.0}"
           VERSION="${BASE_VERSION}.$(git rev-list --count HEAD)"
           PACKAGE=false
+
           if [ "${{ steps.check.outputs.install_brew }}" == "true" ]; then
-            brew install create-dmg gettext jq libxml2
+            brew install jq
           else
             if [ -z "$(command -v jq)" ]; then
               brew install jq
-            fi
-            if [ -z "$(command -v create-dmg)" ]; then
-              brew install create-dmg
-            fi
-            if [ -z "$(command -v xmllint)" ]; then
-              brew install libxml2
             fi
           fi
 
@@ -125,62 +120,55 @@ jobs:
             KEYCHAIN_PATH=""
           fi
 
-          if [[ "${GITHUB_REF_NAME}" == "prerelease" ]]; then
+          if [[ "${GITHUB_REF_NAME}" == "appstore-prerelease" ]]; then
             PACKAGE=true
-            BUILDRELEASE=false
-          elif [[ "${GITHUB_REF_NAME}" == "release" ]]; then
+          elif [[ "${GITHUB_REF_NAME}" == "appstore" ]]; then
             PACKAGE=true
-            BUILDRELEASE=true
           fi
 
           if [ ${PACKAGE} == "true" ] && [ ${GITHUB_EVENT_NAME} != "push" ]; then
             PACKAGE=false
           fi
 
-          mkdir -p "${GITHUB_WORKSPACE}/build"
-          PKG_PATH="${GITHUB_WORKSPACE}/build/Caker.pkg"
-          DMG_PATH="${GITHUB_WORKSPACE}/build/Caker.dmg"
+          mkdir -p "${GITHUB_WORKSPACE}/appstore"
+          PKG_PATH="${GITHUB_WORKSPACE}/appstore/Caker.pkg"
 
           echo "PKG_PATH=${PKG_PATH}" >> ${GITHUB_ENV}
-          echo "DMG_PATH=${DMG_PATH}" >> ${GITHUB_ENV}
           echo "VERSION=${VERSION}" >> ${GITHUB_ENV}
           echo "PACKAGE=${PACKAGE}" >> ${GITHUB_ENV}
-          echo "BUILDRELEASE=${BUILDRELEASE}" >> ${GITHUB_ENV}
           echo "KEYCHAIN_PATH=${KEYCHAIN_PATH}" >> ${GITHUB_ENV}
 
-          echo "build_release=${BUILDRELEASE}" >> ${GITHUB_OUTPUT}
           echo "build_package=${PACKAGE}" >> ${GITHUB_OUTPUT}
           echo "version=${VERSION}" >> ${GITHUB_OUTPUT}
           echo "pkg_path=${PKG_PATH}" >> ${GITHUB_OUTPUT}
-          echo "dmg_path=${DMG_PATH}" >> ${GITHUB_OUTPUT}
-          echo "version_path=${GITHUB_WORKSPACE}/build/version.txt" >> ${GITHUB_OUTPUT}
+          echo "version_path=${GITHUB_WORKSPACE}/appstore/version.txt" >> ${GITHUB_OUTPUT}
           echo "keychain_path=${KEYCHAIN_PATH}" >> ${GITHUB_OUTPUT}
 
-          echo -n "${VERSION}" > "${GITHUB_WORKSPACE}/build/version.txt"
+          echo -n "${VERSION}" > "${GITHUB_WORKSPACE}/appstore/version.txt"
 
-      - name: 🛠️ Install the Apple certificate and provisioning profile
+      - name: 🛠️ Install the Apple Distribution certificate
         id: setup_keychain
         if: vars.SETUP_KEYCHAIN == 'true'
         run: |
-          ./.ci/setup-keychain.sh "${KEYCHAIN_PATH}"
+          ./.ci/setup-appstore-keychain.sh "${KEYCHAIN_PATH}"
 
       - name: 🧪 Run tests
         id: tests
         if: vars.RUN_SWIFT_TESTS == 'true'
         run: |
-          # Run tests for the Swift package
           set -o pipefail
-          export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:${PATH}
+          export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns:${PATH}
           swift test 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving|CoreData'
 
-      - name: 👷 Build Swift package
+      - name: 👷 Build Swift package for App Store
         id: build
         env:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
           VERSION: ${{ steps.version.outputs.version }}
+          PKGPATH: ${{ steps.version.outputs.pkg_path }}
         run: |
           set -o pipefail
-          ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}" 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving'
+          ./Scripts/build-signed-appstore.sh "${KEYCHAIN_PATH}" 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving'
 
       - name: 🧪 Run integration tests
         id: integration_tests
@@ -189,8 +177,7 @@ jobs:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          # Run tests for the Swift package
-          export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns:${PATH}
+          export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns:${PATH}
           if [ -z "$(command -v virtualenv)" ]; then
             brew install virtualenv
           fi
@@ -200,33 +187,12 @@ jobs:
           pip install -r requirements.txt
           pytest --verbose --junit-xml=pytest-junit.xml
 
-      - name: 📦 Package
-        id: package
-        if: steps.version.outputs.build_package == 'true'
-        env:
-          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
-          PKG_PATH: ${{ steps.version.outputs.pkg_path }}
-        run: |
-          export VERSION="${{ steps.version.outputs.version }}"
-          ./.ci/create-pkg.sh "${KEYCHAIN_PATH}"
-
-      - name: 💿 Create DMG
-        id: create_dmg
-        if: steps.version.outputs.build_package == 'true'
-        env:
-          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
-          DMG_PATH: ${{ steps.version.outputs.dmg_path }}
-        run: |
-          export VERSION="${{ steps.version.outputs.version }}"
-          ./.ci/create-dmg.sh "${KEYCHAIN_PATH}"
-
       - name: 📦 Upload build artifacts
         uses: actions/upload-artifact@v7
         if: steps.version.outputs.build_package == 'true'
         with:
-          name: build-outputs
+          name: appstore-outputs
           path: |
-            ${{ steps.version.outputs.dmg_path }}
             ${{ steps.version.outputs.pkg_path }}
             ${{ steps.version.outputs.version_path }}
           retention-days: 1
@@ -240,14 +206,14 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git ls-remote --tags origin "refs/tags/v${VERSION}" | grep -q .; then
-            echo "Tag v${VERSION} already exists, skipping."
+          if git ls-remote --tags origin "refs/tags/v${VERSION}-appstore" | grep -q .; then
+            echo "Tag v${VERSION}-appstore already exists, skipping."
           else
-            git tag -a "v${VERSION}" -m "Release v${VERSION}"
-            git push origin "v${VERSION}"
+            git tag -a "v${VERSION}-appstore" -m "App Store Release v${VERSION}"
+            git push origin "v${VERSION}-appstore"
           fi
 
-      - name: 🧹 Clean up keychain and provisioning profile
+      - name: 🧹 Clean up keychain
         id: cleanup
         env:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
@@ -255,19 +221,17 @@ jobs:
         run: |
           security delete-keychain "${KEYCHAIN_PATH}"
 
-
       - name: 🧹 Clean up repo
         id: cleanup-repo
         if: always()
         run: |
-          # Reset git working directory
           git clean -fd
           git reset --hard HEAD
 
-  publish:
+  upload-appstore:
     if: needs.build.outputs.build_package == 'true'
     needs: [build]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 30
     steps:
       - name: 🛠️ checkout
@@ -280,116 +244,35 @@ jobs:
       - name: 📱 Download build artifacts
         uses: actions/download-artifact@v8
         with:
-          name: build-outputs
-          path: build/
+          name: appstore-outputs
+          path: appstore/
 
-      - name: 📡 Publish package on GitHub
-        id: publish_package
+      - name: 🔑 Setup App Store Connect API Key
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s' "${APP_STORE_CONNECT_API_KEY_P8_BASE64}" | base64 --decode \
+            > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+          chmod 600 ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+
+      - name: 🚀 Upload to TestFlight / App Store Connect
+        env:
+          VERSION: "${{ needs.build.outputs.version }}"
+          PKG_PATH: "${{ github.workspace }}/appstore/Caker.pkg"
+        run: |
+          chmod +x ./.ci/upload-appstore.sh
+          ./.ci/upload-appstore.sh
+
+      - name: 🍎 Submit for App Store review
+        if: github.ref_name == 'appstore'
         env:
           VERSION: "${{ needs.build.outputs.version }}"
         run: |
-          # Get the version from the build job outputs
-          # Check if the release already exists
-          PUB_VERSION="v${VERSION}"
-          echo "Release version: ${VERSION}"
+          VENV_DIR="${RUNNER_TEMP}/appstore-submit-venv"
+          python3 -m venv "${VENV_DIR}"
+          "${VENV_DIR}/bin/pip" install --quiet "PyJWT[crypto]>=2.0"
+          "${VENV_DIR}/bin/python" .ci/submit-appstore-review.py
 
-          if gh release view "${PUB_VERSION}" > /dev/null 2>&1; then
-            echo "Release ${PUB_VERSION} already exists, skipping creation."
-          else
-            echo "Creating release ${PUB_VERSION}..."
-            if [ "${GITHUB_REF_NAME}" == "prerelease" ]; then
-              gh release create --prerelease --generate-notes \
-                --title "${PUB_VERSION}" "${PUB_VERSION}" \
-                "./build/Caker.dmg" \
-                "./build/Caker.pkg"
-            else
-              gh release create --generate-notes \
-                --title "${PUB_VERSION}" "${PUB_VERSION}" \
-                "./build/Caker.dmg" \
-                "./build/Caker.pkg"
-            fi
-          fi
-
-  wiki:
-    if: needs.build.outputs.build_release == 'true'
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      VERSION: "${{ needs.build.outputs.version }}"
-    steps:
-      - name: 🛠️ checkout
-        id: checkout
-        uses: actions/checkout@v6
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: 📖 Publish wiki
-        env:
-          GH_TOKEN: ${{ secrets.WIKI_TOKEN }}
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: 🧹 Clean up API key
+        if: always()
         run: |
-          chmod +x ./Scripts/publish-wiki.sh
-          ./Scripts/publish-wiki.sh "v${VERSION}"
-
-      - name: 📝 Update release notes from git log
-        id: update-release-notes
-        env:
-          RELEASE_PATHS: Sources wiki .github/workflows
-          MAX_COMMITS: "100"
-        run: |
-          ./Scripts/update-wiki-release-notes-from-git.sh "v${VERSION}"
-
-
-  sparkle-sign:
-    if: needs.build.outputs.build_release == 'true'
-    needs: [build, publish]
-    runs-on: self-hosted
-    timeout-minutes: 30
-    env:
-      VERSION: "${{ needs.build.outputs.version }}"
-    steps:
-      - name: 🛠️ checkout
-        id: checkout
-        uses: actions/checkout@v6
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: 📱 Download build artifacts
-        uses: actions/download-artifact@v8
-        with:
-          name: build-outputs
-          path: build/
-
-      - name: 👷 Setup Sparkle
-        id: setup_sparkle
-        run: |
-          rm -rf .bin
-          curl -L https://github.com/sparkle-project/Sparkle/releases/download/2.9.1/Sparkle-for-Swift-Package-Manager.zip -o /tmp/sparkle.zip
-          unzip -o -j /tmp/sparkle.zip bin/generate_appcast bin/sign_update bin/generate_keys -d .bin
-          rm -rf /tmp/sparkle.zip
-
-      - name: 🔐 Setup Sparkle keys
-        id: sparkle_keys
-        run: |
-          mkdir -p .sparkle
-          echo "${SPARKLE_PRIVATE_KEY}" > .sparkle/sparkle_private_key.pem
-          echo "${SPARKLE_PUBLIC_KEY}" > .sparkle/sparkle_public_key.pem
-
-      - name: 📡 Generate Custom Appcast
-        id: appcast
-        run: |
-          # Generate custom XML appcast
-          ./Scripts/sparkle-sign-release.sh "${VERSION}" ./build/Caker.dmg
-
-      - name: 🌐 Deploy Appcast to GitHub Pages
-        id: deploy-appcast
-        run: |
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Deploy appcast automatically
-          ./Scripts/sparkle-deploy-appcast.sh --force
+          rm -f ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8

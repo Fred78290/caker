@@ -27,42 +27,52 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 	}
 
 	func body(content: Content) -> some View {
-		VStack {
+		VStack(spacing: 0) {
 			content
-			Spacer()
-			HStack(alignment: .center) {
+			Divider()
+			HStack(spacing: 0) {
 				Button(action: {
 					displayAddItemView = true
 				}) {
 					Image(systemName: "plus")
+						.frame(width: 28, height: 22)
 				}
 				.buttonStyle(.borderless)
-				.font(.headline)
+				.font(.system(size: 13))
 				.disabled(self.disabled)
 
 				if let deleteItem = deleteItem {
+					Divider().frame(height: 14)
 					Button(action: {
 						deleteItem()
 					}) {
 						Image(systemName: "minus")
+							.frame(width: 28, height: 22)
 					}
 					.buttonStyle(.borderless)
-					.font(.headline)
+					.font(.system(size: 13))
 					.disabled(self.selection == nil || self.disabled)
 				}
+
+				Divider().frame(height: 14)
 
 				Button(action: {
 					displayEditItemView = true
 				}) {
 					Image(systemName: "pencil")
+						.frame(width: 28, height: 22)
 				}
 				.buttonStyle(.borderless)
-				.font(.headline)
+				.font(.system(size: 13))
 				.disabled(self.selection == nil || self.disabled)
 
 				Spacer()
 			}
-		}.sheet(isPresented: $displayAddItemView, onDismiss: { displayAddItemView = false }) {
+			.padding(.horizontal, 4)
+			.padding(.vertical, 3)
+			.background(Color(NSColor.controlBackgroundColor))
+		}
+		.sheet(isPresented: $displayAddItemView, onDismiss: { displayAddItemView = false }) {
 			Group {
 				self.editItemClosure(nil)
 			}.frame(width: 550).padding()
@@ -124,16 +134,9 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 			ScrollView {
 				VStack(alignment: .center) {
 					if data.isEmpty {
-						if #available(macOS 14, *) {
-							VStack(alignment: .center) {
-								ContentUnavailableView("List empty", systemImage: "tray")
-							}.frame(width: geom.size.width)
-						} else {
-							VStack(alignment: .center) {
-								Image(systemName: "tray").resizable().scaledToFit().frame(width: 48, height: 48).foregroundStyle(.gray)
-								Text("List empty").font(.largeTitle).fontWeight(.bold).foregroundStyle(.gray).multilineTextAlignment(.center)
-							}.frame(width: geom.size.width)
-						}
+						VStack(alignment: .center) {
+							ContentUnavailableView("List empty", systemImage: "tray")
+						}.frame(width: geom.size.width)
 					} else {
 						List(selection: $selection) {
 							ForEach($data, content: listItem)

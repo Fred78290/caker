@@ -92,6 +92,21 @@ AMRestore writes four log files to `~/Library/Application Support/Caker/VirtualI
 | `device.log` | Messages from the virtual device |
 | `serial.log` | Serial output from the VM during restore |
 
+## App Store Limitations
+
+### Can I use physical block devices (raw disk mode) in the App Store version?
+
+No. The App Store version runs inside the macOS App Sandbox, which prevents acquiring the exclusive lock (`O_EXLOCK`) that Caker requires when opening a physical block device (`/dev/diskN`). This restriction applies even though the sandbox grants temporary read-write access to `/dev`.
+
+Affected operations:
+- `caked spawn <name> /dev/diskN` — fails with a permission error.
+- `caked spawn-start <name> /dev/diskN` — same.
+- Any VM configuration that references a `/dev/diskN` path as a root or additional disk.
+
+Raw image files (`.raw`, `.img`, `.qcow2` after conversion, etc.) stored in your home directory are not affected and work normally in the App Store version.
+
+If you need to boot a VM directly from a physical block device, use the **direct-download build** of Caker available from the [GitHub releases page](https://github.com/Fred78290/caker/releases).
+
 ## Usage Questions
 
 ### Can I run multiple VMs simultaneously?

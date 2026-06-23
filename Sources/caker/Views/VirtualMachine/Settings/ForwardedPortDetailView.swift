@@ -125,7 +125,65 @@ struct ForwardedPortDetailView: View {
 	}
 
 	var body: some View {
-		return VStack {
+		Group {
+			if readOnly {
+				compactRow
+			} else {
+				fullForm
+			}
+		}
+		.onChange(of: model) { _, newValue in
+			self.currentItem.oneOf = newValue.tunnelAttachement.oneOf
+		}
+	}
+
+	@ViewBuilder
+	var compactRow: some View {
+		HStack(spacing: 10) {
+			ZStack {
+				RoundedRectangle(cornerRadius: 7)
+					.fill((model.mode == .portForwarding ? Color.blue : Color.purple).gradient)
+					.frame(width: 28, height: 28)
+				Image(systemName: model.mode == .portForwarding ? "arrow.left.and.right" : "powerplug")
+					.font(.system(size: 12, weight: .semibold))
+					.foregroundStyle(.white)
+			}
+
+			if model.mode == .portForwarding {
+				Text(":\(model.hostPort.text)")
+					.font(.system(size: 13, weight: .medium, design: .monospaced))
+				Image(systemName: "arrow.right")
+					.font(.system(size: 11))
+					.foregroundStyle(.tertiary)
+				Text(":\(model.guestPort.text)")
+					.font(.system(size: 13, weight: .medium, design: .monospaced))
+			} else {
+				VStack(alignment: .leading, spacing: 2) {
+					Text(model.hostPath ?? "–")
+						.font(.system(size: 12, design: .monospaced))
+						.lineLimit(1)
+					Text(model.guestPath ?? "–")
+						.font(.system(size: 11, design: .monospaced))
+						.foregroundStyle(.secondary)
+						.lineLimit(1)
+				}
+			}
+
+			Spacer()
+
+			Text(model.selectedProtocol.rawValue.uppercased())
+				.font(.system(size: 11, weight: .medium))
+				.foregroundStyle(.secondary)
+				.padding(.horizontal, 6)
+				.padding(.vertical, 2)
+				.background(Capsule().fill(.secondary.opacity(0.10)))
+		}
+		.padding(.vertical, 4)
+	}
+
+	@ViewBuilder
+	var fullForm: some View {
+		VStack {
 			LabeledContent("Mode") {
 				HStack {
 					Spacer()
@@ -134,7 +192,6 @@ struct ForwardedPortDetailView: View {
 							Text(selected.description).tag(selected)
 						}
 					}
-					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
 					.onChange(of: model.mode) { _, newValue in
 						self.currentItem.oneOf = model.tunnelAttachement.oneOf
@@ -150,7 +207,6 @@ struct ForwardedPortDetailView: View {
 							Text(LocalizedStringKey(stringLiteral: proto.rawValue)).tag(proto)
 						}
 					}
-					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
 					.onChange(of: model.selectedProtocol) { _, newValue in
 						self.currentItem.oneOf = model.tunnelAttachement.oneOf
@@ -165,7 +221,6 @@ struct ForwardedPortDetailView: View {
 						TextField("Host port", text: $model.hostPort.text)
 							.rounded(.center)
 							.frame(width: 80)
-							.allowsHitTesting(readOnly == false)
 							.formatAndValidate($model.hostPort) {
 								RangeIntegerStyle.hostPortRange.outside($0)
 							}
@@ -181,7 +236,6 @@ struct ForwardedPortDetailView: View {
 						TextField("Guest port", text: $model.guestPort.text)
 							.rounded(.center)
 							.frame(width: 80)
-							.allowsHitTesting(readOnly == false)
 							.formatAndValidate($model.guestPort) {
 								RangeIntegerStyle.guestPortRange.outside($0)
 							}
@@ -195,38 +249,29 @@ struct ForwardedPortDetailView: View {
 					HStack {
 						TextField("Host path", value: $model.hostPath, format: .optional)
 							.rounded(.leading)
-							.allowsHitTesting(readOnly == false)
 							.onChange(of: model.hostPath) { _, newValue in
 								self.currentItem.oneOf = model.tunnelAttachement.oneOf
 							}
-						if readOnly == false {
-							Button(action: {
-								chooseSocketFile()
-							}) {
-								Image(systemName: "powerplug")
-							}.buttonStyle(.borderless)
-						}
-					}.frame(width: readOnly ? 450 : 350)
+						Button(action: chooseSocketFile) {
+							Image(systemName: "powerplug")
+						}.buttonStyle(.borderless)
+					}.frame(width: 350)
 				}
 
 				LabeledContent("Guest path") {
-					HStack {
-						TextField("Guest path", value: $model.guestPath, format: .optional)
-							.rounded(.leading)
-							.allowsHitTesting(readOnly == false)
-							.onChange(of: model.guestPath) { _, newValue in
-								self.currentItem.oneOf = model.tunnelAttachement.oneOf
-							}
-					}.frame(width: readOnly ? 450 : 350)
+					TextField("Guest path", value: $model.guestPath, format: .optional)
+						.rounded(.leading)
+						.onChange(of: model.guestPath) { _, newValue in
+							self.currentItem.oneOf = model.tunnelAttachement.oneOf
+						}
+						.frame(width: 350)
 				}
 			}
-		}.onChange(of: model) { _, newValue in
-			self.currentItem.oneOf = newValue.tunnelAttachement.oneOf
 		}
 	}
 
 	func chooseSocketFile() {
-		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: String(localized: "Select socket file"), allowsOtherFileTypes: true) {
+		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: String(localized: "Choose a socket file"), allowsOtherFileTypes: true) {
 			self.model.hostPath = hostPath.absoluteURL.path
 		}
 	}
