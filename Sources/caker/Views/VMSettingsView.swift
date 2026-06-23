@@ -21,88 +21,82 @@ struct VMSettingsView: View {
 
 	var body: some View {
 		Form {
-			Toggle(
-				isOn: $launchVMExternally.inverted,
-				label: {
-					Text("Launch VM inside app")
+			Section {
+				Toggle(isOn: $launchVMExternally.inverted) {
+					Label("Launch inside app", systemImage: "macwindow")
 				}
-			).onChange(of: launchVMExternally) { _, newValue in
-				if newValue {
-					launchVMExternally = true
+				.onChange(of: launchVMExternally) { _, newValue in
+					if newValue { launchVMExternally = true }
 				}
+
+				Toggle(isOn: $isNoShutdownVMOnClose.inverted) {
+					Label("Shutdown on window close", systemImage: "power")
+				}
+				.onChange(of: isNoShutdownVMOnClose) { _, newValue in
+					if newValue { isNoShutdownVMOnClose = newValue }
+				}
+			} header: {
+				Label("Window", systemImage: "macwindow")
 			}
 
-			Toggle(
-				isOn: $isNoScreenshot.inverted,
-				label: {
-					Text("Enable VM screenshoting")
+			Section {
+				Toggle(isOn: $isNoScreenshot.inverted) {
+					Label("Enable screenshotting", systemImage: "camera.viewfinder")
 				}
-			).onChange(of: isNoScreenshot) { _, newValue in
-				if newValue {
-					isNoScreenshot = newValue
+				.onChange(of: isNoScreenshot) { _, newValue in
+					if newValue { isNoScreenshot = newValue }
 				}
+
+				Toggle(isOn: $isNoSaveScreenshot.inverted) {
+					Label("Save screenshots to disk", systemImage: "photo.on.rectangle")
+				}
+				.onChange(of: isNoSaveScreenshot) { _, newValue in
+					if newValue { isNoSaveScreenshot = newValue }
+				}
+			} header: {
+				Label("Screenshots", systemImage: "camera")
 			}
 
-			Toggle(
-				isOn: $isNoSaveScreenshot.inverted,
-				label: {
-					Text("Save VM screenshots")
+			Section {
+				Toggle(isOn: $isClipboardRedirectionEnabled) {
+					Label("Send clipboard to VM", systemImage: "clipboard")
 				}
-			).onChange(of: isNoSaveScreenshot) { _, newValue in
-				if newValue {
-					isNoSaveScreenshot = newValue
+				.onChange(of: isClipboardRedirectionEnabled) { _, newValue in
+					if newValue { isClipboardRedirectionEnabled = newValue }
 				}
-			}
-
-			Toggle(
-				isOn: $isNoShutdownVMOnClose.inverted,
-				label: {
-					Text("Shutdown VM on window close")
-				}
-			).onChange(of: isNoShutdownVMOnClose) { _, newValue in
-				if newValue {
-					isNoShutdownVMOnClose = newValue
-				}
-			}
-
-			Toggle(
-				isOn: $isClipboardRedirectionEnabled,
-				label: {
-					Text("Send clipboard data to VM on VNC view")
-				}
-			).onChange(of: isClipboardRedirectionEnabled) { _, newValue in
-				if newValue {
-					isClipboardRedirectionEnabled = newValue
-				}
+			} header: {
+				Label("VNC", systemImage: "play.display")
 			}
 
 			#if USE_VIRTUAL_INSTALL_BACKEND
-			Toggle(
-				isOn: $forceVirtualInstallBackend,
-				label: {
-					Text("Use DFU restore mode")
+			Section {
+				Toggle(isOn: $forceVirtualInstallBackend) {
+					Label("Use DFU restore mode", systemImage: "arrow.down.circle")
 				}
-			).onChange(of: forceVirtualInstallBackend) { _, newValue in
-				if newValue {
-					forceVirtualInstallBackend = newValue
+				.onChange(of: forceVirtualInstallBackend) { _, newValue in
+					if newValue { forceVirtualInstallBackend = newValue }
 				}
+			} header: {
+				Label("Restore", systemImage: "arrow.down.circle")
 			}
 			#endif
 
 			#if DEBUG
-				Toggle(
-					isOn: $debugVNCMessageEnabled,
-					label: {
-						Text("Debug VNC messages")
-					}
-				).onChange(of: debugVNCMessageEnabled) { _, newValue in
-					if newValue {
-						debugVNCMessageEnabled = newValue
-					}
+			Section {
+				Toggle(isOn: $debugVNCMessageEnabled) {
+					Label("Debug VNC messages", systemImage: "ladybug")
 				}
+				.onChange(of: debugVNCMessageEnabled) { _, newValue in
+					if newValue { debugVNCMessageEnabled = newValue }
+				}
+			} header: {
+				Label("Debug", systemImage: "ant")
+			}
 			#endif
-
-		}.formStyle(.grouped)
+		}
+		.formStyle(.grouped)
+		.scrollDisabled(true)
+		.fixedSize(horizontal: false, vertical: true)
 	}
 }
 

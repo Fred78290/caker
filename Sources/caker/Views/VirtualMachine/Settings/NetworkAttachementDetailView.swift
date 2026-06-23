@@ -37,6 +37,49 @@ struct NetworkAttachementDetailView: View {
 	}
 
 	var body: some View {
+		if readOnly {
+			compactRow
+		} else {
+			fullForm
+		}
+	}
+
+	@ViewBuilder
+	var compactRow: some View {
+		HStack(spacing: 10) {
+			ZStack {
+				RoundedRectangle(cornerRadius: 7)
+					.fill(Color.green.gradient)
+					.frame(width: 28, height: 28)
+				Image(systemName: "network")
+					.font(.system(size: 12, weight: .semibold))
+					.foregroundStyle(.white)
+			}
+
+			VStack(alignment: .leading, spacing: 2) {
+				Text(currentItem.network)
+					.font(.system(size: 13, weight: .semibold))
+				HStack(spacing: 6) {
+					Text(currentItem.mode?.description ?? "default")
+						.font(.system(size: 11))
+						.foregroundStyle(.secondary)
+					if let mac = currentItem.macAddress {
+						Text(mac)
+							.font(.system(size: 11, design: .monospaced))
+							.foregroundStyle(.secondary)
+					}
+				}
+			}
+
+			Spacer()
+		}
+		.padding(.vertical, 4)
+	}
+
+	@ViewBuilder
+	var fullForm: some View {
+		@Bindable var model = self.model
+
 		VStack {
 			LabeledContent("Network name") {
 				HStack {
@@ -46,7 +89,6 @@ struct NetworkAttachementDetailView: View {
 							Text(name).tag(name)
 						}
 					}
-					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
 				}.frame(width: 200)
 			}
@@ -60,25 +102,21 @@ struct NetworkAttachementDetailView: View {
 							Text(LocalizedStringKey(stringLiteral: mode.description)).tag(mode as NetworkMode?)
 						}
 					}
-					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
 				}.frame(width: 200)
 			}
 
 			LabeledContent("Mac address") {
 				HStack {
-					if readOnly == false {
-						Button(action: {
-							model.macAddress = .init(value: VZMACAddress.randomLocallyAdministered().string, type: .macAddress, maxLength: 18, allowNegative: false, formatter: OptionalMacAddressParseableFormatStyle())
-						}) {
-							Image(systemName: "arrow.trianglehead.clockwise")
-						}.buttonStyle(.borderless)
-					}
+					Button(action: {
+						model.macAddress = .init(value: VZMACAddress.randomLocallyAdministered().string, type: .macAddress, maxLength: 18, allowNegative: false, formatter: OptionalMacAddressParseableFormatStyle())
+					}) {
+						Image(systemName: "arrow.trianglehead.clockwise")
+					}.buttonStyle(.borderless)
 
 					TextField(String.empty, text: $model.macAddress.text)
 						.rounded(.center)
 						.formatAndValidate($model.macAddress)
-						.allowsHitTesting(readOnly == false)
 						.onChange(of: model.macAddress.value) { _, newValue in
 							self.currentItem.macAddress = newValue
 						}

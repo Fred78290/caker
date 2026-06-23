@@ -9,9 +9,9 @@ import GRPCLib
 import SwiftUI
 
 struct MountView: View {
-	@Binding var mounts: DirectorySharingAttachments
+	@Binding var mounts: MountPoints
 	@Binding var disabled: Bool
-	@State private var selection: DirectorySharingAttachment.ID? = nil
+	@State private var selection: MountPoint.ID? = nil
 
 	var body: some View {
 		GeometryReader { geometry in

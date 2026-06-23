@@ -72,6 +72,7 @@ struct HomeView: View {
 			}
 			.sheet(isPresented: $presented) {
 				self.sheet
+					.colorSchemeForColor()
 			}
 			.onChange(of: self.appState.connectionMode) {
 				self.navigationModel.resetSelections()

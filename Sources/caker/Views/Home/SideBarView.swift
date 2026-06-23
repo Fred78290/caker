@@ -13,7 +13,16 @@ struct SideBarView: View {
 	@Binding var selectedCategory: Category
 
 	var fillColor: Color {
-		self.appearsActive ? Color.primary.opacity(0.80) : Color.secondary
+		self.appearsActive ? Color.primary.opacity(0.90) : Color.secondary
+	}
+
+	private func iconColor(for category: Category) -> Color {
+		switch category {
+		case .virtualMachine: return .blue
+		case .networks: return .green
+		case .images: return .orange
+		case .templates: return .purple
+		}
 	}
 
 	var body: some View {
@@ -24,14 +33,17 @@ struct SideBarView: View {
 				Label {
 					Text(category.title)
 						.foregroundStyle(foregroundColor)
-						.font(.system(size: 14, weight: .regular, design: .default))
-						.padding(4)
+						.font(.system(size: 13, weight: .medium))
 				} icon: {
-					Image(systemName: category.iconName)
-						.symbolRenderingMode(.hierarchical)
-						.font(.system(size: 14, weight: .regular, design: .default))
-						.foregroundStyle(Color.primary.opacity(0.80))
-						.padding(4)
+					ZStack {
+						RoundedRectangle(cornerRadius: 7)
+							.fill(iconColor(for: category).gradient)
+							.frame(width: 28, height: 28)
+						Image(systemName: category.iconName)
+							.symbolRenderingMode(.hierarchical)
+							.font(.system(size: 13, weight: .semibold))
+							.foregroundStyle(.white)
+					}
 				}
 			}
 		}

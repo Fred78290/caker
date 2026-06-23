@@ -48,19 +48,24 @@ struct EditableListNewItem<Element, Content: View>: View where Element: Hashable
 			Spacer()
 			Divider()
 
-			HStack(alignment: .bottom) {
+			HStack(spacing: 8) {
 				Spacer()
 				Button {
 					dismiss()
 				} label: {
 					Text("Cancel").frame(width: 80)
 				}
+				.buttonStyle(.bordered)
 				Button {
 					save()
 				} label: {
 					Text(self.editItem == nil ? "Add" : "Save").frame(width: 80)
-				}.disabled(self.configChanged == false)
+				}
+				.buttonStyle(.borderedProminent)
+				.disabled(self.configChanged == false)
 			}
+			.padding(.horizontal, 16)
+			.padding(.vertical, 12)
 		}.onChange(of: currentItem) { _, newValue in
 			self.configChanged = validate(newValue)
 		}

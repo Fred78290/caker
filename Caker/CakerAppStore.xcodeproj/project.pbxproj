@@ -390,6 +390,7 @@
 		9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */; };
 		9BDA13A72EE6D44100357544 /* OSXKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */; };
 		9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */; };
+		9BDC00A52FEA904300802A3C /* MountPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC00A42FEA903B00802A3C /* MountPoint.swift */; };
 		9BE0B6FE2F1E4CBD0040EDD4 /* TaskQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE0B6FD2F1E4CBD0040EDD4 /* TaskQueue.swift */; };
 		9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */; };
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
@@ -1153,6 +1154,7 @@
 		9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonKeyMapper.swift; sourceTree = "<group>"; };
 		9BDA14BE2EEAC17F00357544 /* VirtualMachineInformations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineInformations.swift; sourceTree = "<group>"; };
 		9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySizeStyle.swift; sourceTree = "<group>"; };
+		9BDC00A42FEA903B00802A3C /* MountPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountPoint.swift; sourceTree = "<group>"; };
 		9BE0B6FD2F1E4CBD0040EDD4 /* TaskQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskQueue.swift; sourceTree = "<group>"; };
 		9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PIDLock.swift; sourceTree = "<group>"; };
 		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
@@ -2129,6 +2131,7 @@
 			isa = PBXGroup;
 			children = (
 				9B9C4E8E2E23BF1300C13D23 /* AppState.swift */,
+				9BDC00A42FEA903B00802A3C /* MountPoint.swift */,
 				9B9C4E622E23BDA400C13D23 /* NavigationModel.swift */,
 				9B9C4E8F2E23BF1300C13D23 /* RemoteData.swift */,
 				9B57E9CF2E745FB600C5601D /* ViewSize.swift */,
@@ -3303,6 +3306,7 @@
 				9B29F7B72FCAE4B700AEBCB8 /* BonjourServiceLister.swift in Sources */,
 				9B29F7B82FCAE4B700AEBCB8 /* ViewSize.swift in Sources */,
 				9B29F7B92FCAE4B700AEBCB8 /* MainApp.swift in Sources */,
+				9BDC00A52FEA904300802A3C /* MountPoint.swift in Sources */,
 				9B29F7BA2FCAE4B700AEBCB8 /* EditableList.swift in Sources */,
 				9B29F7BB2FCAE4B700AEBCB8 /* DuplicateHandler.swift in Sources */,
 				9B29F7BC2FCAE4B700AEBCB8 /* MountNewItemView.swift in Sources */,

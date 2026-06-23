@@ -40,15 +40,19 @@ struct VirtualMachineSettingsView: View {
 	@State var showPassword = false
 	@State var userPassword: String
 	@State var noRootDisk: Bool
+	@State var mountPoints: MountPoints
 
 	init() {
 		let document = try! VirtualMachineDocument.anyVirtualMachineDocument()
 		let config = document.virtualMachineConfig
 
 		self.document = document
-		self.config = document.virtualMachineConfig
+		self.config = config
 		self.userPassword = config.configuredPassword ?? String.empty
 		self.noRootDisk = (config.rootDisk ?? "").isEmpty
+		self.mountPoints = config.mounts.map {
+			MountPoint($0)
+		}
 	}
 
 	init(document: VirtualMachineDocument) {
@@ -58,6 +62,9 @@ struct VirtualMachineSettingsView: View {
 		self.config = config
 		self.userPassword = config.configuredPassword ?? String.empty
 		self.noRootDisk = (config.rootDisk ?? "").isEmpty
+		self.mountPoints = config.mounts.map {
+			MountPoint($0)
+		}
 	}
 
 	var body: some View {
@@ -85,10 +92,9 @@ struct VirtualMachineSettingsView: View {
 					self.diskAttachementView()
 				}
 
-			Spacer()
 			Divider()
 
-			HStack(alignment: .bottom) {
+			HStack(spacing: 8) {
 				Spacer()
 
 				Button {
@@ -97,9 +103,7 @@ struct VirtualMachineSettingsView: View {
 					Text("Cancel")
 						.frame(width: 80)
 				}
-				.buttonStyle(.borderedProminent)
-
-				Spacer()
+				.buttonStyle(.bordered)
 
 				Button {
 					self.document.virtualMachineConfig = self.config
@@ -109,18 +113,19 @@ struct VirtualMachineSettingsView: View {
 					Text("Save")
 						.frame(width: 80)
 				}
-				.buttonStyle(.bordered)
+				.buttonStyle(.borderedProminent)
 				.disabled(self.configChanged == false)
-
-				Spacer()
 			}
-			.frame(width: 200)
-			.padding(.bottom)
+			.padding(.horizontal, 16)
+			.padding(.vertical, 12)
 
 		}
 		.frame(height: 630)
 		.onChange(of: config) { _, newValue in
 			self.configChanged = true
+		}
+		.onChange(of: mountPoints) { _, newValue in
+			self.config.mounts = newValue.map { $0.directorySharingAttachment }
 		}
 	}
 
@@ -208,7 +213,7 @@ struct VirtualMachineSettingsView: View {
 
 			HStack {
 				Text("Memory size")
-				Spacer().border(.black)
+				Spacer()
 				HStack {
 					TextField(String.empty, value: $config.memorySizeInMoB, format: .number /*.memory(.useGB)*/)
 						.rounded(.center)
@@ -222,7 +227,7 @@ struct VirtualMachineSettingsView: View {
 			if self.noRootDisk {
 				HStack {
 					Text("Disk size (GiB)")
-					Spacer().border(.black)
+					Spacer()
 					TextField(String.empty, value: $config.diskSizeInGiB, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
@@ -251,14 +256,14 @@ struct VirtualMachineSettingsView: View {
 			VStack(alignment: .leading) {
 				HStack {
 					Text("Width")
-					Spacer().border(.black)
+					Spacer()
 					TextField(String.empty, value: $config.display.width, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
 				}
 				HStack {
 					Text("Height")
-					Spacer().border(.black)
+					Spacer()
 					TextField(String.empty, value: $config.display.height, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
@@ -286,7 +291,7 @@ struct VirtualMachineSettingsView: View {
 	func mountsView() -> some View {
 		Form {
 			Section("Directory sharing") {
-				MountView(mounts: $config.mounts, disabled: .constant(false)).frame(height: 380)
+				MountView(mounts: $mountPoints, disabled: .constant(false)).frame(height: 380)
 			}
 		}.formStyle(.grouped).frame(maxHeight: .infinity)
 	}

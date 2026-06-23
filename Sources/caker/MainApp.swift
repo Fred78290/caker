@@ -164,7 +164,6 @@ struct MainApp: App {
 					.windowToolbarFullScreenVisibility(.onHover)
 					.restorationState(.disabled)
 					.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize)
-					.containerBackground(.windowBackground, for: .window)
 			} else {
 				self.failedLoadVirtualMachine(document.name)
 			}
@@ -188,10 +187,10 @@ struct MainApp: App {
 					.windowToolbarFullScreenVisibility(.onHover)
 					.restorationState(.disabled)
 					.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize)
-					.containerBackground(.windowBackground, for: .window)
 					.navigationTitle(document.name)
 			} else {
 				self.failedLoadVirtualMachine("Service is not runing or stopped")
+					.colorSchemeForColor()
 			}
 		}
 		.handlesExternalEvents(matching: [])
@@ -202,7 +201,6 @@ struct MainApp: App {
 		Window("Home", id: "home") {
 			HomeView(navigationModel: navigationModel)
 				.colorSchemeForColor()
-				.containerBackground(.windowBackground, for: .window)
 				.frame(size: CGSize(width: 1200, height: 800))
 		}
 		.windowResizability(.contentSize)
@@ -211,7 +209,6 @@ struct MainApp: App {
 		Window("Browser of services", id: "remote") {
 			CakedServerView()
 				.colorSchemeForColor()
-				.containerBackground(.windowBackground, for: .window)
 				.frame(size: CGSize(width: 600, height: 400))
 		}
 		.windowResizability(.contentSize)
@@ -230,11 +227,11 @@ struct MainApp: App {
 		Settings {
 			SettingsView()
 				.colorSchemeForColor()
-				.containerBackground(.windowBackground, for: .window)
 		}.restorationState(.disabled)
 
 		Window("About Caker", id: "about") {
 			AboutCakerView()
+				.colorSchemeForColor()
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
@@ -378,7 +375,6 @@ struct MainApp: App {
 
 	private func failedLoadVirtualMachine(_ title: String) -> some View {
 		LabelView("Unable to load virtual machine\n\(title)")
-			.containerBackground(.windowBackground, for: .window)
 			.colorSchemeForColor()
 			.restorationState(.disabled)
 			.frame(size: CGSize(width: 800, height: 600))

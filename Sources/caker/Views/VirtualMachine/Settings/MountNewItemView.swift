@@ -8,8 +8,8 @@
 import GRPCLib
 import SwiftUI
 
-extension DirectorySharingAttachments {
-	func editItem(_ editItem: DirectorySharingAttachment.ID?) -> DirectorySharingAttachment {
+extension MountPoints {
+	func editItem(_ editItem: MountPoint.ID?) -> MountPoint {
 		if let editItem = editItem {
 			return self.first(where: { $0.id == editItem }) ?? .init()
 		} else {
@@ -19,11 +19,11 @@ extension DirectorySharingAttachments {
 }
 
 struct MountNewItemView: View {
-	@Binding private var mounts: DirectorySharingAttachments
-	@State private var newItem: DirectorySharingAttachment
-	private let editItem: SocketDevice.ID?
+	@Binding private var mounts: MountPoints
+	@State private var newItem: MountPoint
+	private let editItem: MountPoint.ID?
 
-	init(_ mounts: Binding<DirectorySharingAttachments>, editItem: DirectorySharingAttachment.ID? = nil) {
+	init(_ mounts: Binding<MountPoints>, editItem: MountPoint.ID? = nil) {
 		self._mounts = mounts
 		self.editItem = editItem
 		self.newItem = mounts.wrappedValue.editItem(editItem)
