@@ -77,7 +77,9 @@ struct ImportVMwareView: View {
 		panel.allowsMultipleSelection = false
 		panel.canChooseDirectories = false
 		panel.canChooseFiles = true
-		panel.allowedContentTypes = [UTType(filenameExtension: "vmx") ?? .data]
+		let vmxType = UTType(tag: "vmx", tagClass: .filenameExtension, conformingTo: nil)
+			?? UTType(exportedAs: "com.vmware.vmx")
+		panel.allowedContentTypes = [vmxType]
 		panel.title = String(localized: "Select VMware Configuration File")
 
 		if panel.runModal() == .OK, let url = panel.url {
