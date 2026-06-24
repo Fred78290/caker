@@ -112,7 +112,8 @@ struct Root: ParsableCommand {
 				GetOptions.self,
 				Convert.self,
 				Sandbox.self,
-				Compose.self
+				Compose.self,
+				CakeHome.self
 			])
 
 	static func parse() throws -> ParsableCommand? {
