@@ -87,8 +87,8 @@ public struct Home {
 	public let contentStore: LocalContentStore!
 	public let imageStore: ImageStore!
 
-	public init(runMode: Utils.RunMode, createItIfNotExists: Bool = true) throws {
-		self.cakeHomeDirectory = try Utils.getHome(runMode: runMode, createItIfNotExists: createItIfNotExists)
+	public init(_ cakeHomeDirectory: URL, runMode: Utils.RunMode, createItIfNotExists: Bool = true) throws {
+		self.cakeHomeDirectory = cakeHomeDirectory
 		self.networkDirectory = self.cakeHomeDirectory.appendingPathComponent("networks", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.cacheDirectory = self.cakeHomeDirectory.appendingPathComponent("cache", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
@@ -97,6 +97,10 @@ public struct Home {
 		self.remoteDb = self.cakeHomeDirectory.appendingPathComponent("remote.json", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.contentStoreURL = self.cacheDirectory.appendingPathComponent("oci/storage")
 		self.imageStoreURL = cacheDirectory.appendingPathComponent("oci")
+
+		if try cakeHomeDirectory.exists() == false && createItIfNotExists {
+			try FileManager.default.createDirectory(at: cakeHomeDirectory, withIntermediateDirectories: true)
+		}
 
 		if createItIfNotExists {
 			self.contentStore = try LocalContentStore(path: self.contentStoreURL)
@@ -122,6 +126,10 @@ public struct Home {
 			try FileManager.default.createDirectory(at: self.agentDirectory, withIntermediateDirectories: true)
 			_ = try CertificatesLocation.createAgentCertificats(runMode: runMode, force: true)
 		}
+	}
+
+	public init(runMode: Utils.RunMode, createItIfNotExists: Bool = true) throws {
+		try self.init(try Utils.getHome(runMode: runMode, createItIfNotExists: createItIfNotExists), runMode: runMode, createItIfNotExists: createItIfNotExists)
 	}
 
 	public func sharedNetworks() throws -> VZVMNetConfig {

@@ -22,11 +22,14 @@ public struct StorageLocation {
 	public let rootURL: URL
 	public let template: Bool
 
-	public init(runMode: Utils.RunMode, name: String = "vms") {
-		let home = try! Home(runMode: runMode)
+	public init(_ home: Home, runMode: Utils.RunMode, name: String = "vms") {
 		self.template = name != "vms"
 		self.rootURL = home.cakeHomeDirectory.appendingPathComponent(name, isDirectory: true)
 		try? FileManager.default.createDirectory(at: self.rootURL, withIntermediateDirectories: true)
+	}
+
+	public init(runMode: Utils.RunMode, name: String = "vms") {
+		self.init(try! Home(runMode: runMode), runMode: runMode, name: name)
 	}
 
 	public init(runMode: Utils.RunMode, template: Bool) {
