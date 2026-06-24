@@ -25,7 +25,7 @@ struct ImportVMwareView: View {
 	@State private var errorMessage: String? = nil
 
 	private var importDisabled: Bool {
-		vmxPath.isEmpty || targetName.isEmpty || isImporting
+		vmxPath.isEmpty || targetName.isEmpty || userName.isEmpty || password.isEmpty || isImporting
 	}
 
 	var body: some View {
@@ -38,7 +38,7 @@ struct ImportVMwareView: View {
 			Divider()
 			footer
 		}
-		.frame(minWidth: 480)
+		.frame(width: 500)
 		.onChange(of: vmxPath) { _, newPath in
 			guard targetName.isEmpty, !newPath.isEmpty else { return }
 			targetName = URL(fileURLWithPath: newPath).deletingPathExtension().lastPathComponent
@@ -165,6 +165,8 @@ struct ImportVMwareView: View {
 				Text(errorMessage)
 					.font(.callout)
 					.foregroundStyle(.red)
+					.lineLimit(nil)
+					.fixedSize(horizontal: false, vertical: true)
 			}
 			.padding(.horizontal, 20)
 			.padding(.vertical, 8)

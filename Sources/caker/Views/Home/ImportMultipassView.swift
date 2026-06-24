@@ -29,6 +29,10 @@ struct ImportMultipassView: View {
 	@State private var showMultipassPassphrase: Bool = false
 	@State private var isAuthenticating: Bool = false
 
+	private var importDisabled: Bool {
+		selectedVM.isEmpty || targetName.isEmpty || userName.isEmpty || password.isEmpty || isImporting
+	}
+
 	var body: some View {
 		VStack(alignment: .leading, spacing: 0) {
 			header
@@ -41,7 +45,7 @@ struct ImportMultipassView: View {
 			Divider()
 			footer
 		}
-		.frame(minWidth: 500)
+		.frame(width: 500)
 		.onAppear { loadVMs() }
 		.onChange(of: selectedVM) { _, newSelection in
 			if let name = newSelection.first, targetName.isEmpty {
@@ -197,6 +201,8 @@ struct ImportMultipassView: View {
 				Text(errorMessage)
 					.font(.callout)
 					.foregroundStyle(.red)
+					.lineLimit(nil)
+					.fixedSize(horizontal: false, vertical: true)
 			}
 			.padding(.horizontal, 20)
 			.padding(.vertical, 8)
@@ -248,7 +254,7 @@ struct ImportMultipassView: View {
 			} else {
 				Button("Import") { doImport() }
 					.buttonStyle(.borderedProminent)
-					.disabled(selectedVM.isEmpty || targetName.isEmpty || isImporting)
+					.disabled(importDisabled)
 			}
 		}
 		.padding(.horizontal, 20)

@@ -1,10 +1,10 @@
+import CakeAgentLib
 import CakedLib
 import Foundation
 import GRPC
 import GRPCLib
-import SwiftUI
-import CakeAgentLib
 import NIO
+import SwiftUI
 
 struct MultipassVMInfo: Identifiable {
 	var id: String { name }
@@ -30,7 +30,7 @@ extension VirtualMachineDocumentByURL {
 
 struct VirtualMachineDocumentComparator: SortComparator {
 	var order: SortOrder = .forward
-	
+
 	func compare(_ lhs: VirtualMachineDocument, _ rhs: VirtualMachineDocument) -> ComparisonResult {
 		if lhs.name == rhs.name {
 			return .orderedSame
@@ -129,11 +129,11 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		let networks: [BridgedNetwork]
 		let virtualMachines: [URL: VirtualMachineDocument]
 	}
-	
+
 	private let logger = Logger("AppState")
 	private var agentStatusTimer: RepeatedTask? = nil
 	private static var _shared: AppState! = nil
-	
+
 	static func loadSharedAppState() async {
 		Self._shared = AppState()
 	}
@@ -147,10 +147,10 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			_shared = AppState()
 			return _shared
 		}
-		
+
 		return shared
 	}
-	
+
 	@ObservationIgnored @AppStorage("VMLaunchMode") var launchVMExternally = false
 	@ObservationIgnored @AppStorage("AppearancePreference") var appearancePreference: AppearancePreference = .system
 	@ObservationIgnored @AppStorage("ClipboardRedirectionEnabled") var isClipboardRedirectionEnabled = false
@@ -241,7 +241,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 	private static func loadService(connectionManager: ConnectionManager) throws -> ServiceReply {
 		Logger("AppState").debug("Loading data for mode: connectionMode=\(connectionManager.connectionMode.runMode)")
-		
+
 		return try ServiceReply(
 			remotes: connectionManager.loadRemotes(),
 			templates: connectionManager.loadTemplates(),
@@ -249,7 +249,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			virtualMachines: connectionManager.loadVirtualMachines()
 		)
 	}
-	
+
 	private func switchMode(_ installed: Bool, connectionManager: ConnectionManager) {
 		self.logger.debug("Switching mode: installed=\(installed), connectionMode=\(connectionMode)")
 
@@ -258,7 +258,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		}) == nil {
 			self.connectionManager.stopGrandCentral()
 		}
-		
+
 		Utilities.group.next().makeFutureWithTask {
 			try Self.loadService(connectionManager: connectionManager)
 		}.whenComplete { [weak self] result in
@@ -275,9 +275,9 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 				self.connectionManager = connectionManager
 
 				switch result {
-				case let .failure(error):
+				case .failure(let error):
 					alertError(error)
-				case let .success(serviceReply):
+				case .success(let serviceReply):
 					self.setVirtualMachines(serviceReply.virtualMachines)
 					self.setNetworks(serviceReply.networks)
 					self.setRemotes(serviceReply.remotes)
@@ -296,14 +296,14 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			}
 		}
 	}
-	
+
 	func agentStatusWatch(_ task: RepeatedTask) {
 		guard self.connectionMode != .remote else { return }
 
 		let runMode = ServiceHandler.runningMode
 		let connectionMode = ConnectionManager.ConnectionMode(runMode)
 		let installed = MainApp.isAgentInstalled()
-		
+
 		if self.cakedServiceInstalled != installed || self.connectionMode != connectionMode {
 			// Suspend timer
 			self.logger.debug("Suspend timer for new mode: installed=\(installed), connectionMode=\(connectionMode)")
@@ -315,25 +315,25 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			}
 		}
 	}
-	
+
 	private init() {
 		let runMode = ServiceHandler.runningMode
 		let connectionManager = ConnectionManager.connectionManager(runMode)
 		let cakedServiceInstalled = MainApp.isAgentInstalled()
 		let cakedServiceRunning = connectionManager.connectionMode != .app
-		
+
 		// Start polling agent running status every second
 		self.connectionMode = connectionManager.connectionMode
 		self.cakedServiceInstalled = cakedServiceInstalled
 		self.cakedServiceRunning = cakedServiceRunning
 		self.connectionManager = connectionManager
 		self.agentStatusTimer = nil
-		
+
 		if connectionManager.connectionMode == .app {
 			self.agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { [weak self] task in
 				self?.agentStatusWatch(task)
 			}
-			
+
 			if let serviceReply = try? Self.loadService(connectionManager: connectionManager) {
 				self.updateFromReply(serviceReply: serviceReply)
 				connectionManager.startGrandCentral()
@@ -342,88 +342,88 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			self.switchMode(cakedServiceInstalled, connectionManager: connectionManager)
 		}
 	}
-	
+
 	func connectToRemote(_ serviceURL: URL) {
 		self.switchMode(self.cakedServiceInstalled, connectionManager: ConnectionManager(serviceURL: serviceURL))
 	}
-	
+
 	func connectToLocal() {
 		self.switchMode(self.cakedServiceInstalled, connectionManager: ConnectionManager.appConnectionManager)
 	}
-	
+
 	func loadNetworks() -> [BridgedNetwork] {
 		self.connectionManager.loadNetworks()
 	}
-	
+
 	func reloadNetworks() {
 		self.setNetworks(self.loadNetworks())
 	}
-	
+
 	func loadRemotes() -> [RemoteEntry] {
 		if let result = try? self.connectionManager.loadRemotes() {
 			return result
 		}
-		
+
 		return []
 	}
-	
+
 	func reloadRemotes() {
 		self.setRemotes(self.loadRemotes())
 	}
-	
+
 	func loadTemplates() -> [TemplateEntry] {
 		if let result = try? self.connectionManager.loadTemplates() {
 			return result
 		}
-		
+
 		return []
 	}
-	
+
 	func reloadTemplates() {
 		self.setTemplates(self.loadTemplates())
 	}
-	
+
 	func loadImages(remote: String) async -> [ImageInfo] {
 		if let result = try? await self.connectionManager.loadImages(remote: remote) {
 			return result
 		}
-		
+
 		return []
 	}
-	
+
 	func createNetwork(network: BridgedNetwork) throws {
 		try self.connectionManager.createNetwork(network: network)
 		self.reloadNetworks()
 	}
-	
+
 	func startNetwork(networkName: String) -> StartedNetworkReply {
 		self.connectionManager.startNetwork(networkName: networkName)
 	}
-	
+
 	func stopNetwork(networkName: String) -> StoppedNetworkReply {
 		self.connectionManager.stopNetwork(networkName: networkName)
 	}
-	
+
 	func createTemplate(templateName: String) throws -> CreateTemplateReply {
 		guard let currentDocument = self.currentDocument else {
 			throw ServiceError(String(localized: "No VM found"))
 		}
-		
+
 		guard currentDocument.status.isStopped else {
 			throw ServiceError(String(localized: "VM is running"))
 		}
-		
+
 		return try self.connectionManager.createTemplate(vmURL: currentDocument.url, templateName: templateName)
 	}
-	
+
 	func templateExists(name: String) -> Bool {
 		self.connectionManager.templateExists(name: name)
 	}
-	
+
 	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
 		try await self.connectionManager.buildVirtualMachine(options: options, queue: queue, progressHandler: progressHandler)
 	}
-	
+
 	func findVirtualMachineDocument(_ url: URL?) -> VirtualMachineDocument? {
 		guard let url = self.fullQualifiedVMUrl(url) else {
 			return nil
@@ -439,7 +439,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	func findVirtualMachineDocument(_ name: String) -> VirtualMachineDocument? {
 		findVirtualMachineDocument(self.connectionManager.vmURL(name))
 	}
-	
+
 	func fullQualifiedVMUrl(_ vmURL: URL?) -> URL? {
 		guard let vmURL = vmURL else {
 			return nil
@@ -467,42 +467,42 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 				return location.rootURL
 			}
 		}
-		
+
 		return vmURL
 	}
-	
+
 	func tryVirtualMachineDocument(_ vmURL: URL) -> VirtualMachineDocument? {
 		guard let vmURL = self.fullQualifiedVMUrl(vmURL) else {
 			return nil
 		}
-		
+
 		guard let vm = self.findVirtualMachineDocument(vmURL) else {
 			guard let vm = try? VirtualMachineDocument.openVirtualMachineDocument(vmURL, connectionManager: self.connectionManager) else {
 				return nil
 			}
-			
+
 			self.virtualMachines[vmURL] = vm
-			
+
 			return vm
 		}
-		
+
 		return vm
 	}
-	
+
 	@discardableResult
 	func addVirtualMachineDocument(_ vmURL: URL) -> VirtualMachineDocument? {
 		guard let vm = self.findVirtualMachineDocument(vmURL) else {
 			guard let vm = try? VirtualMachineDocument.openVirtualMachineDocument(vmURL, connectionManager: self.connectionManager) else {
 				return nil
 			}
-			
+
 			self.virtualMachines[vmURL] = vm
 			return vm
 		}
-		
+
 		return vm
 	}
-	
+
 	func removeVirtualMachineDocument(_ vmURL: URL) {
 		if self.virtualMachines[vmURL] != nil {
 			self.virtualMachines.removeValue(forKey: vmURL)
@@ -514,9 +514,9 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			self.openedVirtualMachines.removeValue(forKey: vmURL)
 		}
 	}
-	
+
 	func haveVirtualMachinesRunning() -> Bool {
-		guard self.openedVirtualMachines.values.first( where: { $0.status == .running && $0.url.isFileURL && $0.externalRunning == false }) == nil else {
+		guard self.openedVirtualMachines.values.first(where: { $0.status == .running && $0.url.isFileURL && $0.externalRunning == false }) == nil else {
 			return true
 		}
 
@@ -555,8 +555,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 				}
 			}
 		}
-		
-		EventLoopFuture.andAllComplete(futures, on: eventLoop).whenComplete{ _ in
+
+		EventLoopFuture.andAllComplete(futures, on: eventLoop).whenComplete { _ in
 			DispatchQueue.main.async {
 				completionHandler()
 			}
@@ -568,23 +568,23 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			self?.virtualMachines[url] = document
 		}
 	}
-	
+
 	func createTemplate(document vm: VirtualMachineDocument) {
 		let alert = NSAlert()
 		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
-		
+
 		alert.messageText = String(localized: "Create template")
 		alert.informativeText = String(localized: "Name of the new template")
 		alert.alertStyle = .informational
 		alert.addButton(withTitle: String(localized: "Create"))
 		alert.addButton(withTitle: String(localized: "Cancel"))
-		
+
 		alert.accessoryView = txt
-		
+
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
 				let templateResult = try self.connectionManager.createTemplate(vmURL: vm.url, templateName: txt.stringValue)
-				
+
 				if templateResult.created == false {
 					self.reloadTemplates()
 				} else {
@@ -599,28 +599,28 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			}
 		}
 	}
-	
+
 	func duplicateVirtualMachine(document vm: VirtualMachineDocument) {
 		let alert = NSAlert()
 		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
-		
+
 		alert.messageText = String(localized: "Duplicate virtual machine")
 		alert.informativeText = String(localized: "Name of the new vm")
 		alert.alertStyle = .informational
 		alert.addButton(withTitle: String(localized: "Duplicate"))
 		alert.addButton(withTitle: String(localized: "Cancel"))
-		
+
 		alert.accessoryView = txt
-		
+
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
 				let result = try vm.duplicateVirtualMachine(to: txt.stringValue)
-				
+
 				if result.duplicated {
 					if self.connectionMode == .app {
 						let location = try StorageLocation(runMode: self.connectionMode.runMode).find(txt.stringValue)
 						self.addVirtualMachineDocument(location.rootURL)
-					} else if let vmURL = URL(string:"\(VMLocation.scheme)://\(txt.stringValue)") {
+					} else if let vmURL = URL(string: "\(VMLocation.scheme)://\(txt.stringValue)") {
 						self.addVirtualMachineDocument(vmURL)
 					} else {
 						DispatchQueue.main.async {
@@ -639,26 +639,26 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			}
 		}
 	}
-	
+
 	func saveConfiguration(document vm: VirtualMachineDocument) {
 		vm.saveConfiguration()
 	}
-	
+
 	func deleteVirtualMachine(document vm: VirtualMachineDocument) {
 		let alert = NSAlert()
-		
+
 		alert.messageText = String(localized: "Delete virtual machine")
 		alert.informativeText = String(localized: "Are you sure you want to delete \(vm.name)? This action cannot be undone.")
 		alert.alertStyle = .critical
 		alert.addButton(withTitle: String(localized: "Delete"))
 		alert.addButton(withTitle: String(localized: "Cancel"))
-		
+
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
 				NotificationCenter.default.post(name: VirtualMachineDocument.DeleteVirtualMachine, object: vm, userInfo: ["document": vm.url])
-				
+
 				let result = try vm.deleteVirtualMachine()
-				
+
 				if result.success {
 					vm.setState(.deleted)
 					self.removeVirtualMachineDocument(vm.url)
@@ -674,19 +674,19 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			}
 		}
 	}
-	
+
 	func deleteNetwork(name: String) {
 		let alert = NSAlert()
-		
+
 		alert.messageText = String(localized: "Delete network")
 		alert.informativeText = String(localized: "Are you sure you want to delete network \(name)? This action cannot be undone.")
 		alert.alertStyle = .critical
 		alert.addButton(withTitle: String(localized: "Delete"))
 		alert.addButton(withTitle: String(localized: "Cancel"))
-		
+
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			let result = self.connectionManager.deleteNetwork(networkName: name)
-			
+
 			if result.deleted {
 				self.reloadNetworks()
 			} else {
@@ -696,20 +696,20 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			}
 		}
 	}
-	
+
 	func deleteTemplate(name: String) {
 		let alert = NSAlert()
-		
+
 		alert.messageText = String(localized: "Delete template")
 		alert.informativeText = String(localized: "Are you sure you want to delete template \(name)? This action cannot be undone.")
 		alert.alertStyle = .critical
 		alert.addButton(withTitle: String(localized: "Delete"))
 		alert.addButton(withTitle: String(localized: "Cancel"))
-		
+
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
 				let result = try self.connectionManager.deleteTemplate(templateName: name)
-				
+
 				if result.deleted {
 					self.reloadTemplates()
 				} else {
@@ -724,20 +724,20 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			}
 		}
 	}
-	
+
 	func deleteRemote(name: String) {
 		let alert = NSAlert()
-		
+
 		alert.messageText = String(localized: "Delete remote")
 		alert.informativeText = String(localized: "Are you sure you want to delete remote \(name)? This action cannot be undone.")
 		alert.alertStyle = .critical
 		alert.addButton(withTitle: String(localized: "Delete"))
 		alert.addButton(withTitle: String(localized: "Cancel"))
-		
+
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
 				let result = try self.connectionManager.deleteRemote(name: name)
-				
+
 				if result.deleted {
 					self.reloadRemotes()
 				} else {
@@ -752,7 +752,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			}
 		}
 	}
-	
+
 	func openVirtualMachineDocument(_ document: VirtualMachineDocument) {
 		self.openedVirtualMachines[document.url] = document
 	}
@@ -799,45 +799,19 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 
 	func importFromMultipass(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?) -> ImportedReply {
-		var arguments = [
-			"import",
-			source,
-			name,
-			"--from=multipass",
-			"--user=\(userName)",
-			"--uid=\(geteuid())",
-			"--gid=\(getegid())",
-		]
-
-		if password.isEmpty == false {
-			arguments.append("--password=\(password)")
-		}
-
-		if clearPassword {
-			arguments.append("--clear-password")
-		}
-
-		if let sshKey {
-			arguments.append("--ssh-key=\(sshKey)")
-		}
-
-		if let sshPassphrase {
-			arguments.append("--ssh-passphrase=\(sshPassphrase)")
-		}
-
-		do {
-			let sudo = try SudoCaked(arguments: arguments, runMode: connectionMode.runMode)
-			let exitCode = try sudo.run().waitUntilExit()
-
-			if exitCode == 0 {
-				return ImportedReply(source: source, name: name, imported: true, reason: String(localized: "VM imported successfully"))
-			}
-
-			let reason = sudo.standardError.trimmingCharacters(in: .whitespacesAndNewlines)
-			return ImportedReply(source: source, name: name, imported: false, reason: reason.isEmpty ? String(localized: "Import failed with exit code \(exitCode)") : reason)
-		} catch {
-			return ImportedReply(source: source, name: name, imported: false, reason: error.localizedDescription)
-		}
+		ImportHandler.importVM(
+			importer: ImportHandler.ImportSource.multipass.importer,
+			name: name,
+			source: source,
+			userName: userName,
+			password: password,
+			clearPassword: clearPassword,
+			sshPrivateKey: sshKey.flatMap { $0.isEmpty ? nil : $0 },
+			passphrase: sshPassphrase.flatMap { $0.isEmpty ? nil : $0 },
+			uid: geteuid(),
+			gid: getegid(),
+			runMode: connectionMode.runMode
+		)
 	}
 
 	func importFromVMware(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?) -> ImportedReply {
@@ -856,4 +830,3 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		)
 	}
 }
-

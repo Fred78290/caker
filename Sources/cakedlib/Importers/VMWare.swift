@@ -290,6 +290,10 @@ struct VMWareImporter: Importer {
 		return "VMWare"
 	}
 
+	var source: String {
+		return "vmdk"
+	}
+
 	struct VMNet {
 		var deviceNumber: Int
 		var dhcp: Bool = false

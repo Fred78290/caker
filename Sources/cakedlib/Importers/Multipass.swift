@@ -287,13 +287,17 @@ func newJSONEncoder() -> JSONEncoder {
 	return encoder
 }
 
-struct MultipassImporter: Importer {
+struct MultipassImporter: Importer {	
 	var needSudo: Bool {
 		return true  // Multipass operations typically require elevated privileges
 	}
 
 	var name: String {
 		return "Multipass Importer"
+	}
+
+	var source: String {
+		return "multipass"
 	}
 
 	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, runMode: Utils.RunMode) throws {
