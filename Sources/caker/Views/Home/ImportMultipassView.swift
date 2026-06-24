@@ -24,6 +24,10 @@ struct ImportMultipassView: View {
 	@State private var isLoading: Bool = false
 	@State private var isImporting: Bool = false
 	@State private var errorMessage: String? = nil
+	@State private var requiresAuthentication: Bool = false
+	@State private var multipassPassphrase: String = ""
+	@State private var showMultipassPassphrase: Bool = false
+	@State private var isAuthenticating: Bool = false
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 0) {
@@ -80,6 +84,8 @@ struct ImportMultipassView: View {
 			}
 			.frame(maxWidth: .infinity)
 			.frame(height: 130)
+		} else if requiresAuthentication {
+			authenticationPrompt
 		} else if vms.isEmpty {
 			GeometryReader { geom in
 				ContentUnavailableView(
@@ -197,18 +203,53 @@ struct ImportMultipassView: View {
 		}
 	}
 
+	private var authenticationPrompt: some View {
+		VStack(spacing: 10) {
+			Label("Multipass Authentication Required", systemImage: "lock.circle.fill")
+				.font(.callout.weight(.semibold))
+				.foregroundStyle(.orange)
+			Text("Enter the Multipass passphrase to authenticate.")
+				.font(.caption)
+				.foregroundStyle(.secondary)
+			HStack(spacing: 6) {
+				if showMultipassPassphrase {
+					TextField("Passphrase", text: $multipassPassphrase)
+						.textFieldStyle(.roundedBorder)
+				} else {
+					SecureField("Passphrase", text: $multipassPassphrase)
+						.textFieldStyle(.roundedBorder)
+				}
+				Button {
+					showMultipassPassphrase.toggle()
+				} label: {
+					Image(systemName: showMultipassPassphrase ? "eye.fill" : "eye.slash.fill")
+				}
+				.buttonStyle(.borderless)
+			}
+			.padding(.horizontal, 80)
+		}
+		.frame(maxWidth: .infinity)
+		.padding(.vertical, 16)
+	}
+
 	private var footer: some View {
 		HStack(spacing: 8) {
-			if isImporting {
+			if isImporting || isAuthenticating {
 				ProgressView()
 					.controlSize(.small)
 			}
 			Spacer()
 			Button("Cancel") { dismiss() }
 				.buttonStyle(.bordered)
-			Button("Import") { doImport() }
-				.buttonStyle(.borderedProminent)
-				.disabled(selectedVM.isEmpty || targetName.isEmpty || isImporting)
+			if requiresAuthentication {
+				Button("Authenticate") { doSetPassphrase() }
+					.buttonStyle(.borderedProminent)
+					.disabled(multipassPassphrase.isEmpty || isAuthenticating)
+			} else {
+				Button("Import") { doImport() }
+					.buttonStyle(.borderedProminent)
+					.disabled(selectedVM.isEmpty || targetName.isEmpty || isImporting)
+			}
 		}
 		.padding(.horizontal, 20)
 		.padding(.vertical, 12)
@@ -230,13 +271,52 @@ struct ImportMultipassView: View {
 	private func loadVMs() {
 		isLoading = true
 		errorMessage = nil
+		requiresAuthentication = false
 
 		Task.detached(priority: .userInitiated) {
-			let result = AppState.shared.listMultipassVMs()
+			do {
+				let result = try AppState.shared.listMultipassVMs()
 
-			await MainActor.run {
-				vms = result
-				isLoading = false
+				await MainActor.run {
+					vms = result
+					isLoading = false
+				}
+			} catch let shellError as ShellError where shellError.error.contains("multipass authenticate") {
+				await MainActor.run {
+					isLoading = false
+					requiresAuthentication = true
+				}
+			} catch {
+				await MainActor.run {
+					isLoading = false
+					errorMessage = error.localizedDescription
+				}
+			}
+		}
+	}
+
+	private func doSetPassphrase() {
+		isAuthenticating = true
+		errorMessage = nil
+
+		let passphrase = multipassPassphrase
+
+		Task.detached(priority: .userInitiated) {
+			do {
+				try AppState.shared.authenticateMultipass(passphrase)
+
+				await MainActor.run {
+					isAuthenticating = false
+					multipassPassphrase = ""
+					showMultipassPassphrase = false
+				}
+
+				await MainActor.run { loadVMs() }
+			} catch {
+				await MainActor.run {
+					isAuthenticating = false
+					errorMessage = (error as? ShellError)?.error ?? error.localizedDescription
+				}
 			}
 		}
 	}

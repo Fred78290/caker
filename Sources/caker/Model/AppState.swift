@@ -771,7 +771,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		}
 	}
 
-	func listMultipassVMs() -> [MultipassVMInfo] {
+	func listMultipassVMs() throws -> [MultipassVMInfo] {
 		struct ListEntry: Decodable {
 			let name: String
 			let state: String
@@ -782,21 +782,20 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			let list: [ListEntry]
 		}
 
-		do {
-			let output = try Shell.exec("multipass", arguments: ["list", "--format", "json"])
-			guard let data = output.data(using: .utf8) else {
-				return []
-			}
-
-			let response = try JSONDecoder().decode(ListResponse.self, from: data)
-
-			return response.list.map { entry in
-				MultipassVMInfo(name: entry.name, state: entry.state, release: entry.release, ipv4: entry.ipv4 ?? [])
-			}
-		} catch {
-			Logger(self).error("Unable to list Multipass VMs: \(error)")
+		let output = try Shell.exec("multipass", arguments: ["list", "--format", "json"])
+		guard let data = output.data(using: .utf8) else {
 			return []
 		}
+
+		let response = try JSONDecoder().decode(ListResponse.self, from: data)
+
+		return response.list.map { entry in
+			MultipassVMInfo(name: entry.name, state: entry.state, release: entry.release, ipv4: entry.ipv4 ?? [])
+		}
+	}
+
+	func authenticateMultipass(_ passphrase: String) throws {
+		try Shell.exec("multipass", arguments: ["authenticate", passphrase])
 	}
 
 	func importFromMultipass(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?) -> ImportedReply {
