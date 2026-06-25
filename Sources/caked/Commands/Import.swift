@@ -55,8 +55,8 @@ struct Import: ParsableCommand {
 			self.common.format.render(
 				ImportHandler.importVM(
 					importer: importer,
-					name: name,
 					source: source,
+					name: name,
 					userName: user,
 					password: password,
 					clearPassword: clearPassword,

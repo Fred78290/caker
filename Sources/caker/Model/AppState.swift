@@ -801,8 +801,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	func importFromMultipass(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?) -> ImportedReply {
 		ImportHandler.importVM(
 			importer: ImportHandler.ImportSource.multipass.importer,
-			name: name,
 			source: source,
+			name: name,
 			userName: userName,
 			password: password,
 			clearPassword: clearPassword,
@@ -817,8 +817,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	func importFromVMware(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?) -> ImportedReply {
 		ImportHandler.importVM(
 			importer: ImportHandler.ImportSource.vmdk.importer,
-			name: name,
 			source: source,
+			name: name,
 			userName: userName,
 			password: password,
 			clearPassword: clearPassword,

@@ -18,7 +18,7 @@ struct CommonOptions: ParsableArguments {
 	
 	@Flag(
 		name: [.customLong("system"), .customShort("s")],
-		help: ArgumentHelp(String(localized: "Act as system agent, need sudo"), discussion: String(localized: "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service"), visibility: .private))
+		help: ArgumentHelp(String(localized: "Act as system agent, need sudo"), discussion: String(localized: "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service"), visibility: .hidden))
 	var asSystem: Bool = false
 	
 	var runMode: Utils.RunMode {

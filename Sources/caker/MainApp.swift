@@ -746,15 +746,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			}
 
 			if geteuid() != 0 && contents.count > 1 {
-				#if SPARKLE
-					do {
-						try print(runPrivileged(contents))
-					} catch {
-						MainActor.assumeIsolated {
-							showRunInTerminalAlert(contents)
-						}
-					}
-				#else
+				if Bundle.isApplicationSandboxed {
 					do {
 						try print(runPrivilegedWithBundledScript(pathsContent: pathsContent, sudoersContent: sudoersContent))
 					} catch {
@@ -762,7 +754,15 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 							showCommandToPasteAlert(contents)
 						}
 					}
-				#endif
+				} else {
+					do {
+						try print(runPrivileged(contents))
+					} catch {
+						MainActor.assumeIsolated {
+							showRunInTerminalAlert(contents)
+						}
+					}
+				}
 			}
 		} catch {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
@@ -946,68 +946,66 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		}
 	}
 
-	#if SPARKLE
-		private static func runPrivileged(_ commands: [String]) throws -> String {
-			let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString).sh")
-			let appleScript = "do shell script \"\(temporaryFile.path)\" with administrator privileges"
+	private static func runPrivileged(_ commands: [String]) throws -> String {
+		let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString).sh")
+		let appleScript = "do shell script \"\(temporaryFile.path)\" with administrator privileges"
 
-			try commands.joined(separator: "\n").write(to: temporaryFile, atomically: true, encoding: .utf8)
+		try commands.joined(separator: "\n").write(to: temporaryFile, atomically: true, encoding: .utf8)
 
-			defer {
-				try? FileManager.default.removeItem(at: temporaryFile)
-			}
-
-			try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: temporaryFile.path)
-			return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
+		defer {
+			try? FileManager.default.removeItem(at: temporaryFile)
 		}
-	#else
-		private static func runPrivilegedWithBundledScript(pathsContent: String, sudoersContent: String) throws -> String {
-			guard let bundledURL = Bundle.main.url(forResource: "PrivilegedBootstrap", withExtension: "applescript") else {
-				throw NSError(domain: NSOSStatusErrorDomain, code: -1, userInfo: [NSLocalizedDescriptionKey: "PrivilegedBootstrap.applescript not found in bundle"])
-			}
 
-			let scriptsDir = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-			let scriptURL = scriptsDir.appendingPathComponent("PrivilegedBootstrap.applescript")
+		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: temporaryFile.path)
+		return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
+	}
 
-			if FileManager.default.fileExists(atPath: scriptURL.path) {
-				try FileManager.default.removeItem(at: scriptURL)
-			}
-			try FileManager.default.copyItem(at: bundledURL, to: scriptURL)
-
-			defer {
-				try? FileManager.default.removeItem(at: scriptURL)
-			}
-
-			// 'aevt'/'oapp' with argv list as keyDirectObject ('----')
-			let event = NSAppleEventDescriptor.appleEvent(
-				withEventClass: 0x6165_7674,
-				eventID: 0x6F61_7070,
-				targetDescriptor: .null(),
-				returnID: -1,
-				transactionID: 0
-			)
-			let argList = NSAppleEventDescriptor.list()
-			argList.insert(NSAppleEventDescriptor(string: pathsContent), at: 0)
-			argList.insert(NSAppleEventDescriptor(string: sudoersContent), at: 0)
-			event.setParam(argList, forKeyword: 0x2D2D_2D2D)  // keyDirectObject
-
-			let task = try NSUserAppleScriptTask(url: scriptURL)
-			var taskResult: Result<String, Error> = .success("")
-			let semaphore = DispatchSemaphore(value: 0)
-
-			task.execute(withAppleEvent: event) { descriptor, error in
-				if let error {
-					taskResult = .failure(error)
-				} else {
-					taskResult = .success(descriptor?.stringValue ?? "")
-				}
-				semaphore.signal()
-			}
-			semaphore.wait()
-
-			return try taskResult.get()
+	private static func runPrivilegedWithBundledScript(pathsContent: String, sudoersContent: String) throws -> String {
+		guard let bundledURL = Bundle.main.url(forResource: "PrivilegedBootstrap", withExtension: "applescript") else {
+			throw NSError(domain: NSOSStatusErrorDomain, code: -1, userInfo: [NSLocalizedDescriptionKey: "PrivilegedBootstrap.applescript not found in bundle"])
 		}
-	#endif
+
+		let scriptsDir = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+		let scriptURL = scriptsDir.appendingPathComponent("PrivilegedBootstrap.applescript")
+
+		if FileManager.default.fileExists(atPath: scriptURL.path) {
+			try FileManager.default.removeItem(at: scriptURL)
+		}
+		try FileManager.default.copyItem(at: bundledURL, to: scriptURL)
+
+		defer {
+			try? FileManager.default.removeItem(at: scriptURL)
+		}
+
+		// 'aevt'/'oapp' with argv list as keyDirectObject ('----')
+		let event = NSAppleEventDescriptor.appleEvent(
+			withEventClass: 0x6165_7674,
+			eventID: 0x6F61_7070,
+			targetDescriptor: .null(),
+			returnID: -1,
+			transactionID: 0
+		)
+		let argList = NSAppleEventDescriptor.list()
+		argList.insert(NSAppleEventDescriptor(string: pathsContent), at: 0)
+		argList.insert(NSAppleEventDescriptor(string: sudoersContent), at: 0)
+		event.setParam(argList, forKeyword: 0x2D2D_2D2D)  // keyDirectObject
+
+		let task = try NSUserAppleScriptTask(url: scriptURL)
+		var taskResult: Result<String, Error> = .success("")
+		let semaphore = DispatchSemaphore(value: 0)
+
+		task.execute(withAppleEvent: event) { descriptor, error in
+			if let error {
+				taskResult = .failure(error)
+			} else {
+				taskResult = .success(descriptor?.stringValue ?? "")
+			}
+			semaphore.signal()
+		}
+		semaphore.wait()
+
+		return try taskResult.get()
+	}
 
 	private static func shellQuote(_ value: String) -> String {
 		let escaped = value.replacingOccurrences(of: "'", with: "'\\''")

@@ -70,22 +70,35 @@ public struct ImportHandler {
 	}
 
 	public static func importVM(
-		importer: Importer, name: String, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String?, passphrase: String?, uid: UInt32, gid: UInt32, runMode: Utils.RunMode, standardOutput: FileHandle? = nil,
+		importer: Importer,
+		source: String,
+		name: String,
+		userName: String,
+		password: String,
+		clearPassword: Bool,
+		sshPrivateKey: String?,
+		passphrase: String?,
+		uid: UInt32,
+		gid: UInt32,
+		runMode: Utils.RunMode,
+		standardOutput: FileHandle? = nil,
 		standardError: FileHandle? = nil
 	) -> ImportedReply {
 		let storageLocation = StorageLocation(runMode: runMode)
 
 		if importer.needSudo && geteuid() != 0 {
+			let vmName = UUID().uuidString
+
 			var arguments = [
 				"import",
-				name,
 				source,
+				vmName,
 				"--from=\(importer.source)",
 				"--user=\(userName)",
 				"--password=\(password)",
 				"--uid=\(uid)",
 				"--gid=\(gid)",
-				"--json"
+				"--json",
 			]
 
 			if let sshPrivateKey {
@@ -103,18 +116,39 @@ public struct ImportHandler {
 					}
 					pluginsURL = pluginsURL.appendingPathComponent(Home.cakedCommandName)
 
-					let home = try Home(runMode: runMode).cakeHomeDirectory.path(percentEncoded: false)
-
-					arguments.insert(pluginsURL.path(percentEncoded: false), at: 1)
+					arguments.insert(pluginsURL.path(percentEncoded: false), at: 0)
 
 					let replyString = try runPrivilegedAppleScript(arguments.joined(separator: " "))
 
 					if let data = replyString.data(using: .utf8) {
 						do {
 							let decoded = try JSONDecoder().decode(ImportedReply.self, from: data)
-							
+
 							if decoded.imported {
-								
+								do {
+									let rootHome = try Home(runMode: .system, createItIfNotExists: false)
+									let rootStorage = StorageLocation(rootHome, runMode: .system)
+									let localStorage = StorageLocation(runMode: runMode)
+
+									if rootStorage.exists(vmName) == false {
+										return ImportedReply(
+											source: source, name: name, imported: false,
+											reason: String(
+												localized: """
+															Imported VM not found in root storage
+															Add the user to the wheel group to allow access to the VM
+															sudo dseditgroup -o edit -a $USER -t user wheel
+													"""))
+									}
+
+									let vmLocation = rootStorage.location(vmName)
+
+									try localStorage.relocate(name, from: vmLocation)
+									// Add the user to the operator group to allow access to the VM
+									//"dseditgroup -o edit -a $USER -t user operator"
+								} catch {
+									return ImportedReply(source: source, name: name, imported: false, reason: "\(error)")
+								}
 							}
 
 							return decoded
@@ -162,4 +196,3 @@ public struct ImportHandler {
 		return ImportedReply(source: source, name: name, imported: true, reason: String(localized: "VM imported successfully"))
 	}
 }
-
