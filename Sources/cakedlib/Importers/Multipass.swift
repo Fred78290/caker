@@ -347,6 +347,9 @@ struct MultipassImporter: Importer {
 			screenSize: .standard
 		)
 
+		config.osName = "Ubuntu"
+		config.osRelease = registeredInstance.image.currentRelease.isEmpty ? registeredInstance.image.originalRelease : registeredInstance.image.currentRelease
+
 		if let sshPrivateKey = sshPrivateKey {
 			config.sshPrivateKeyPath = sshPrivateKey
 		} else {
