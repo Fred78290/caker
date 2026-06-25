@@ -92,8 +92,33 @@ public struct StorageLocation {
 	}
 
 	public func relocate(_ name: String, from: VMLocation) throws {
+		let vmURL = vmURL(name)
+		
 		_ = try FileManager.default.createDirectory(at: rootURL, withIntermediateDirectories: true)
-		_ = try FileManager.default.replaceItemAt(vmURL(name), withItemAt: from.rootURL)
+		do {
+			_ = try FileManager.default.replaceItemAt(vmURL, withItemAt: from.rootURL)
+		} catch let nsError as NSError where nsError.domain == NSCocoaErrorDomain {
+			guard let nsError = nsError.underlyingErrorForDomain(NSPOSIXErrorDomain), nsError.code == POSIXError.EXDEV.rawValue else {
+				throw nsError
+			}
+			
+			try FileManager.default.copyItem(at: from.rootURL, to: vmURL)
+			try? FileManager.default.removeItem(at: from.rootURL)
+		}
+	}
+}
+
+extension NSError {
+	func underlyingErrorForDomain(_ userDomain: String) -> NSError? {
+		return self.underlyingErrors.compactMap {
+			let error = $0 as NSError
+
+			if error.domain == userDomain {
+				return error
+			}
+
+			return error.underlyingErrorForDomain(userDomain)
+		}.first
 	}
 }
 
@@ -114,3 +139,4 @@ extension StorageLocation: PurgeableStorage {
 	}
 
 }
+
