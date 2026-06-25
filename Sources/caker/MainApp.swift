@@ -746,14 +746,15 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			}
 
 			if geteuid() != 0 && contents.count > 1 {
+				let shouldContinue = MainActor.assumeIsolated {
+					showPrivilegedInstallationConfirmation()
+				}
+				guard shouldContinue else {
+					NSApp.terminate(self)
+					return
+				}
+
 				if Bundle.isApplicationSandboxed {
-					let shouldContinue = MainActor.assumeIsolated {
-						showPrivilegedInstallationConfirmation()
-					}
-					guard shouldContinue else {
-						NSApp.terminate(self)
-						return
-					}
 					do {
 						try print(runPrivilegedWithBundledScript(pathsContent: pathsContent, sudoersContent: sudoersContent))
 					} catch {

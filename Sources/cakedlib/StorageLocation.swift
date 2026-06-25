@@ -93,7 +93,7 @@ public struct StorageLocation {
 
 	public func relocate(_ name: String, from: VMLocation) throws {
 		let vmURL = vmURL(name)
-		
+
 		_ = try FileManager.default.createDirectory(at: rootURL, withIntermediateDirectories: true)
 		do {
 			_ = try FileManager.default.replaceItemAt(vmURL, withItemAt: from.rootURL)
@@ -101,10 +101,18 @@ public struct StorageLocation {
 			guard let nsError = nsError.underlyingErrorForDomain(NSPOSIXErrorDomain), nsError.code == POSIXError.EXDEV.rawValue else {
 				throw nsError
 			}
-			
+
 			try FileManager.default.copyItem(at: from.rootURL, to: vmURL)
 			try? FileManager.default.removeItem(at: from.rootURL)
 		}
+	}
+
+	public func relocateByCopy(_ name: String, from: VMLocation) throws {
+		let vmURL = vmURL(name)
+
+		_ = try FileManager.default.createDirectory(at: rootURL, withIntermediateDirectories: true)
+		try FileManager.default.copyItem(at: from.rootURL, to: vmURL)
+		try? FileManager.default.removeItem(at: from.rootURL)
 	}
 }
 

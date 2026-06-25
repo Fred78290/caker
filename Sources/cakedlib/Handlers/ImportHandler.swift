@@ -109,7 +109,7 @@ public struct ImportHandler {
 
 					let vmLocation = rootStorage.location(vmName)
 
-					try localStorage.relocate(name, from: vmLocation)
+					try localStorage.relocateByCopy(name, from: vmLocation)
 					// Add the user to the wheel group to allow access to the VM
 					//"dseditgroup -o edit -a $USER -t user operator"
 					if let output = try? runPrivilegedAppleScript("caked --home=/var/root/.cake/ delete \(vmName)") {
