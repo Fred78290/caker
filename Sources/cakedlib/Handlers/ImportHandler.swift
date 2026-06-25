@@ -2,6 +2,7 @@ import ArgumentParser
 import CakeAgentLib
 import Foundation
 import GRPCLib
+import System
 
 // /var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json
 // /var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json
@@ -35,38 +36,36 @@ public struct ImportHandler {
 	}
 
 	static func runPrivilegedAppleScript(_ script: String) throws -> String {
-		let appleScript = "do shell script \"\(script)\" with administrator privileges"
+		let appleScript = """
+			do shell script "\(script)" with administrator privileges
+			"""
 
-		if Bundle.isApplicationSandboxed {
-			let scriptName = UUID().uuidString
-			let scriptsDir = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-			let scriptURL = scriptsDir.appendingPathComponent("\(scriptName).applescript")
+		let scriptName = UUID().uuidString
+		let scriptsDir = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+		let scriptURL = scriptsDir.appendingPathComponent("\(scriptName).applescript")
 
-			try appleScript.write(to: scriptURL, atomically: false, encoding: .utf8)
+		try appleScript.write(to: scriptURL, atomically: false, encoding: .utf8)
 
-			let task = try NSUserAppleScriptTask(url: scriptURL)
-			var taskResult: Result<String, Error> = .success("")
-			let semaphore = DispatchSemaphore(value: 0)
-
-			defer {
-				try? FileManager.default.removeItem(at: scriptURL)
-			}
-
-			task.execute(withAppleEvent: nil) { descriptor, error in
-				if let error {
-					taskResult = .failure(error)
-				} else {
-					taskResult = .success(descriptor?.stringValue ?? "")
-				}
-				semaphore.signal()
-			}
-
-			semaphore.wait()
-
-			return try taskResult.get()
-		} else {
-			return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
+		defer {
+			try? FileManager.default.removeItem(at: scriptURL)
 		}
+
+		let task = try NSUserAppleScriptTask(url: scriptURL)
+		var taskResult: Result<String, Error> = .success("")
+		let semaphore = DispatchSemaphore(value: 0)
+
+		task.execute(withAppleEvent: nil) { descriptor, error in
+			if let error {
+				taskResult = .failure(error)
+			} else {
+				taskResult = .success(descriptor?.stringValue ?? "")
+			}
+			semaphore.signal()
+		}
+
+		semaphore.wait()
+
+		return try taskResult.get()
 	}
 
 	public static func importVM(
@@ -85,38 +84,73 @@ public struct ImportHandler {
 		standardError: FileHandle? = nil
 	) -> ImportedReply {
 		let storageLocation = StorageLocation(runMode: runMode)
+		let isApplicationSandboxed = Bundle.isApplicationSandboxed
 
 		if importer.needSudo && geteuid() != 0 {
-			let vmName = UUID().uuidString
+			let vmName = isApplicationSandboxed ? UUID().uuidString : name
 
-			var arguments = [
-				"import",
-				source,
-				vmName,
-				"--from=\(importer.source)",
-				"--user=\(userName)",
-				"--password=\(password)",
-				"--uid=\(uid)",
-				"--gid=\(gid)",
-				"--json",
-			]
+			func recopySandboxedVM() -> ImportedReply {
+				do {
+					let rootHome = try Home(URL(fileURLWithPath: "/var/root/.cake/"), runMode: .system, createItIfNotExists: false)
+					let rootStorage = StorageLocation(rootHome, runMode: .system)
+					let localStorage = StorageLocation(runMode: runMode)
 
-			if let sshPrivateKey {
-				arguments.append("--ssh-key=\(sshPrivateKey)")
-			}
+					if rootStorage.exists(vmName) == false {
+						return ImportedReply(
+							source: source, name: name, imported: false,
+							reason: String(
+								localized:
+									"""
+									Imported VM not found in root storage
+									Add the user to the wheel group to allow access to the VM
+									sudo dseditgroup -o edit -a $USER -t user wheel
+									"""))
+					}
 
-			if let passphrase {
-				arguments.append("--ssh-passphrase=\(passphrase)")
+					let vmLocation = rootStorage.location(vmName)
+
+					try localStorage.relocate(name, from: vmLocation)
+					// Add the user to the wheel group to allow access to the VM
+					//"dseditgroup -o edit -a $USER -t user operator"
+					if let output = try? runPrivilegedAppleScript("caked --home=/var/root/.cake/ delete \(vmName)") {
+						print(output)
+					}
+				} catch {
+					return ImportedReply(source: source, name: name, imported: false, reason: "\(error)")
+				}
+
+				return ImportedReply(source: source, name: name, imported: true, reason: String(localized: "VM imported successfully"))
 			}
 
 			do {
-				if Bundle.isApplicationSandboxed {
+				if isApplicationSandboxed {
 					guard var pluginsURL = Bundle.main.cakedBundleURL else {
 						throw ServiceError(String(localized: "Caked bundle path is missing"))
 					}
+
 					pluginsURL = pluginsURL.appendingPathComponent(Home.cakedCommandName)
 
-					arguments.insert(pluginsURL.path(percentEncoded: false), at: 0)
+					var arguments = [
+						pluginsURL.path(percentEncoded: false),
+						"import",
+						source,
+						vmName,
+						"--home=/var/root/.cake/",
+						"--from=\(importer.source)",
+						"--user=\(userName)",
+						"--password=\(password)",
+						"--uid=\(uid)",
+						"--gid=\(gid)",
+						"--json",
+					]
+
+					if let sshPrivateKey {
+						arguments.append("--ssh-key=\(sshPrivateKey)")
+					}
+
+					if let passphrase {
+						arguments.append("--ssh-passphrase=\(passphrase)")
+					}
 
 					let replyString = try runPrivilegedAppleScript(arguments.joined(separator: " "))
 
@@ -125,30 +159,7 @@ public struct ImportHandler {
 							let decoded = try JSONDecoder().decode(ImportedReply.self, from: data)
 
 							if decoded.imported {
-								do {
-									let rootHome = try Home(runMode: .system, createItIfNotExists: false)
-									let rootStorage = StorageLocation(rootHome, runMode: .system)
-									let localStorage = StorageLocation(runMode: runMode)
-
-									if rootStorage.exists(vmName) == false {
-										return ImportedReply(
-											source: source, name: name, imported: false,
-											reason: String(
-												localized: """
-															Imported VM not found in root storage
-															Add the user to the wheel group to allow access to the VM
-															sudo dseditgroup -o edit -a $USER -t user wheel
-													"""))
-									}
-
-									let vmLocation = rootStorage.location(vmName)
-
-									try localStorage.relocate(name, from: vmLocation)
-									// Add the user to the operator group to allow access to the VM
-									//"dseditgroup -o edit -a $USER -t user operator"
-								} catch {
-									return ImportedReply(source: source, name: name, imported: false, reason: "\(error)")
-								}
+								return recopySandboxedVM()
 							}
 
 							return decoded
@@ -159,6 +170,26 @@ public struct ImportHandler {
 						return ImportedReply(source: source, name: name, imported: false, reason: String(localized: "Invalid response encoding from privileged script"))
 					}
 				} else {
+					var arguments = [
+						"import",
+						source,
+						name,
+						"--from=\(importer.source)",
+						"--user=\(userName)",
+						"--password=\(password)",
+						"--uid=\(uid)",
+						"--gid=\(gid)",
+						"--json",
+					]
+
+					if let sshPrivateKey {
+						arguments.append("--ssh-key=\(sshPrivateKey)")
+					}
+
+					if let passphrase {
+						arguments.append("--ssh-passphrase=\(passphrase)")
+					}
+
 					let sudo = try SudoCaked(arguments: arguments, runMode: runMode, standardOutput: standardOutput, standardError: standardError)
 					let exitCode = try sudo.runAndWait()
 
@@ -172,6 +203,8 @@ public struct ImportHandler {
 						return ImportedReply(source: source, name: name, imported: false, reason: reason.isEmpty ? String(localized: "Import failed with exit code \(exitCode)") : reason)
 					}
 				}
+			} catch let shellError as ShellError {
+				return ImportedReply(source: source, name: name, imported: false, reason: shellError.error)
 			} catch {
 				return ImportedReply(source: source, name: name, imported: false, reason: error.localizedDescription)
 			}
