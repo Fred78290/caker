@@ -747,6 +747,13 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 			if geteuid() != 0 && contents.count > 1 {
 				if Bundle.isApplicationSandboxed {
+					let shouldContinue = MainActor.assumeIsolated {
+						showPrivilegedInstallationConfirmation()
+					}
+					guard shouldContinue else {
+						NSApp.terminate(self)
+						return
+					}
 					do {
 						try print(runPrivilegedWithBundledScript(pathsContent: pathsContent, sudoersContent: sudoersContent))
 					} catch {
@@ -809,6 +816,19 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 		NSApp.terminate(self)
 		return
+	}
+
+	@MainActor
+	private static func showPrivilegedInstallationConfirmation() -> Bool {
+		let alert = NSAlert()
+		alert.messageText = String(localized: "Administrator Access Required")
+		alert.informativeText = String(
+			localized:
+				"Caker needs to install privileged files to allow caked and cakectl to function. macOS will prompt for your administrator password via a system dialog. Click Continue to proceed, or Quit to exit.")
+		alert.alertStyle = .informational
+		alert.addButton(withTitle: String(localized: "Continue"))
+		alert.addButton(withTitle: String(localized: "Quit"))
+		return alert.runModal() == .alertFirstButtonReturn
 	}
 
 	@MainActor
