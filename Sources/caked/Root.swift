@@ -13,6 +13,9 @@ struct CommonOptions: ParsableArguments {
 	@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
 	var logLevel: CakeAgentLib.Logger.LogLevel = .info
 	
+	@Option(help: ArgumentHelp(String(localized: "Cake home path"), visibility: .hidden))
+	var home: String? = nil
+
 	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
 	
@@ -27,6 +30,10 @@ struct CommonOptions: ParsableArguments {
 	
 	func validate() throws {
 		Logger.setLevel(self.logLevel)
+		
+		if let home = self.home {
+			setenv("CAKE_HOME", home, 1)
+		}
 	}
 }
 

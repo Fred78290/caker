@@ -99,11 +99,7 @@ public struct Utils {
 			if let customHome = ProcessInfo.processInfo.environment["CAKE_HOME"] {
 				cakeHomeDir = URL(fileURLWithPath: customHome)
 			} else if Bundle.isApplicationSandboxed {
-				if runMode.isSystem || getuid() == 0 {
-					cakeHomeDir = URL(fileURLWithPath: "/var/root/.cake/")
-				} else {
-					cakeHomeDir = FileManager.default.homeDirectoryForCurrentUser
-				}
+				cakeHomeDir = FileManager.default.homeDirectoryForCurrentUser
 			} else if runMode.isSystem || geteuid() == 0 {
 				let paths = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .systemDomainMask, true)
 				var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)
