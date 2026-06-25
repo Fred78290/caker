@@ -42,6 +42,7 @@ struct ImportMultipassView: View {
 	var body: some View {
 		VStack(alignment: .leading, spacing: 0) {
 			header
+			advisoryBanner
 			Divider()
 			vmList
 			Divider()
@@ -81,6 +82,39 @@ struct ImportMultipassView: View {
 		.padding(.horizontal, 20)
 		.padding(.top, 20)
 		.padding(.bottom, 16)
+	}
+
+	private var advisoryBanner: some View {
+		HStack(alignment: .top, spacing: 8) {
+			Image(systemName: "exclamationmark.shield.fill")
+				.foregroundStyle(.orange)
+				.font(.system(size: 14, weight: .semibold))
+				.padding(.top, 1)
+			VStack(alignment: .leading, spacing: 4) {
+				Text("Importing from Multipass requires **root access**. Your user account must be a member of the **wheel** group.")
+					.font(.caption)
+					.foregroundStyle(.secondary)
+					.fixedSize(horizontal: false, vertical: true)
+				Text("To add your user to the wheel group, run in Terminal:")
+					.font(.caption)
+					.foregroundStyle(.secondary)
+				Text("sudo dseditgroup -o edit -a $USER -t user wheel")
+					.font(.system(size: 11, design: .monospaced))
+					.foregroundStyle(.primary)
+					.textSelection(.enabled)
+				if Bundle.isApplicationSandboxed {
+					Spacer()
+					Text("You wheel be prompted for your password two times by osascript. Accept the prompt to continue.")
+						.font(.caption)
+						.foregroundStyle(.secondary)
+						.fixedSize(horizontal: false, vertical: true)
+				}
+			}
+		}
+		.padding(.horizontal, 20)
+		.padding(.vertical, 10)
+		.frame(maxWidth: .infinity, alignment: .leading)
+		.background(Color.orange.opacity(0.08))
 	}
 
 	@ViewBuilder
@@ -155,7 +189,7 @@ struct ImportMultipassView: View {
 				}
 			}
 
-			Section("SSH configuration") {
+			Section("User optional SSH configuration") {
 				Toggle(isOn: $clearPassword) {
 					Label("Allow password authentication for SSH", systemImage: "key")
 				}
