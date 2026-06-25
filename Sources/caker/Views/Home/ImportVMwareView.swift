@@ -24,8 +24,14 @@ struct ImportVMwareView: View {
 	@State private var isImporting: Bool = false
 	@State private var errorMessage: String? = nil
 
+	private let storageLocation = StorageLocation(runMode: .app)
+
 	private var importDisabled: Bool {
-		vmxPath.isEmpty || targetName.isEmpty || userName.isEmpty || password.isEmpty || isImporting
+		guard (vmxPath.isEmpty || targetName.isEmpty || userName.isEmpty || password.isEmpty || isImporting) == false else {
+			return true
+		}
+
+		return storageLocation.exists(targetName)
 	}
 
 	var body: some View {

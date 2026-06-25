@@ -29,8 +29,14 @@ struct ImportMultipassView: View {
 	@State private var showMultipassPassphrase: Bool = false
 	@State private var isAuthenticating: Bool = false
 
+	private let storageLocation = StorageLocation(runMode: .app)
+
 	private var importDisabled: Bool {
-		selectedVM.isEmpty || targetName.isEmpty || userName.isEmpty || password.isEmpty || isImporting
+		guard (selectedVM.isEmpty || targetName.isEmpty || userName.isEmpty || password.isEmpty || isImporting) == false else {
+			return true
+		}
+
+		return storageLocation.exists(targetName)
 	}
 
 	var body: some View {
