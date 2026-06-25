@@ -15,7 +15,7 @@ struct CakeHome: ParsableCommand {
 	var common: CommonOptions
 
 	func run() throws {
-		let home = try Utils.getHome(runMode: self.common.runMode, createItIfNotExists: false)
+		let home = try Utils.getHome(runMode: self.common.runMode, createItIfNotExists: true)
 
 		print(home.path(percentEncoded: false))
 	}
