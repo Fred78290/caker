@@ -175,14 +175,53 @@ public struct ComposeNetwork: Codable {
 		case bridge // bridge network
 		case none
 	}
-
+	
 	public var driver: SupportedDriver = .none
 	public var external: Bool = false // true name is already defined network, false create a new one
 	public var name: String?
-
+	
 	// driver options depends
 	// bridge -> mode=shared|host, gateway=192.168.105.1/24, dhcp-end=192.168.105.254, dhcp-lease=300
 	public var driverOpts: [String: String]?
+	
+	/// Derives a deterministic /24 subnet for a compose network from its name.
+	/// Uses the range 192.168.100.x – 192.168.199.x to avoid conflicts with Caker defaults.
+	private func composeNetworkSubnet(_ name: String, mode: VMNetMode) -> VZSharedNetwork {
+		let hash = name.unicodeScalars.reduce(0) { ($0 &* 31 &+ Int($1.value)) & 0x7FFF_FFFF }
+		let subnet = 100 + (hash % 100)
+
+		return VZSharedNetwork(
+			mode: mode,
+			netmask: "255.255.255.0",
+			dhcpStart: "192.168.\(subnet).1",
+			dhcpEnd: "192.168.\(subnet).254",
+			interfaceID: UUID().uuidString
+		)
+	}
+
+	public func composeNetworkSubnet(name: String) -> VZSharedNetwork {
+		let mode: VMNetMode = self.driverOpts?["mode"].flatMap { VMNetMode.init(argument: $0) } ?? .shared
+		guard let gateway = self.driverOpts?["gateway"] else {
+			return composeNetworkSubnet(name, mode: mode)
+		}
+
+		guard let gateway = gateway.toNetwork() else {
+			return composeNetworkSubnet(name, mode: mode)
+		}
+
+		var dhcpEnd = gateway.range.upperBound
+		if let dhcp_end = self.driverOpts?["dhcp_end"], let dhcp_end = IP.V4(dhcp_end) {
+			dhcpEnd = dhcp_end
+		}
+
+		return VZSharedNetwork(
+			mode: mode,
+			netmask: "\(gateway.bits)".cidrToNetmask(),
+			dhcpStart: gateway.range.lowerBound.description,
+			dhcpEnd: dhcpEnd.description,
+			interfaceID: UUID().uuidString
+		)
+	}
 }
 
 // MARK: - Service

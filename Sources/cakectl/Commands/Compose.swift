@@ -58,24 +58,28 @@ struct ComposeUp: AsyncGrpcParsableCommand {
 				.with { $0.command = .infos },
 				callOptions: callOptions
 			).response.get().networks.list
+
 			let existingNetworks = Set(listReply.success ? listReply.networks.map(\.name) : [])
 			let builtins: Set<String> = ["nat", "default", "host", "none"]
 
 			for (networkName, networkConfig) in composeNetworks.sorted(by: { $0.key < $1.key }) {
+				guard let networkConfig else { continue }
+				guard networkConfig.external != true else { continue }
+				guard networkConfig.driver == .bridge else { continue }
 				guard !builtins.contains(networkName) else { continue }
-				guard networkConfig?.external != true else { continue }
+				guard networkConfig.driver == .bridge else { throw ServiceError(String(localized: "Only bridge driver is supported")) }
 				guard !existingNetworks.contains(networkName) else { continue }
 
-				let (gateway, dhcpEnd) = composeNetworkSubnet(networkName)
+				let network = networkConfig.composeNetworkSubnet(name: networkName)
 				let created = try await client.networks(
 					.with {
 						$0.command = .new
 						$0.create = .with {
 							$0.name = networkName
-							$0.mode = networkConfig?.driver == "host" ? .host : .shared
-							$0.gateway = gateway
-							$0.dhcpEnd = dhcpEnd
-							$0.netmask = "255.255.255.0"
+							$0.mode = .init(network.mode)
+							$0.gateway = network.dhcpStart
+							$0.dhcpEnd = network.dhcpEnd
+							$0.netmask = network.netmask
 							$0.uuid = UUID().uuidString
 						}
 					},

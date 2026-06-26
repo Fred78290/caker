@@ -6,10 +6,11 @@
 //
 
 import ArgumentParser
+import CakeAgentLib
 import CakedLib
 import Foundation
-import CakeAgentLib
 import GRPCLib
+
 // MARK: - Parent command
 
 struct Compose: ParsableCommand {
@@ -59,21 +60,20 @@ struct ComposeUp: AsyncParsableCommand {
 			let builtins: Set<String> = ["nat", "default", "host", "none"]
 
 			for (networkName, networkConfig) in composeNetworks.sorted(by: { $0.key < $1.key }) {
-				guard !builtins.contains(networkName) else { continue }
-				guard networkConfig?.external != true else { continue }
+				guard let networkConfig else { continue }
+				guard networkConfig.external != true else { continue }
 				guard !CakedLib.NetworksHandler.isPhysicalInterface(name: networkName) else { continue }
+
+				guard networkConfig.driver == .bridge else { throw ServiceError(String(localized: "Only bridge driver is supported")) }
+				guard !builtins.contains(networkName) else { continue }
 				guard existingNetworks.sharedNetworks[networkName] == nil else { continue }
 
-				let (gateway, dhcpEnd) = composeNetworkSubnet(networkName)
-				let mode: VMNetMode = networkConfig?.driver == "host" ? .host : .shared
-				let network = VZSharedNetwork(
-					mode: mode,
-					netmask: "255.255.255.0",
-					dhcpStart: gateway,
-					dhcpEnd: dhcpEnd,
-					interfaceID: UUID().uuidString
-				)
+				let network = networkConfig.composeNetworkSubnet(name: networkName)
+				
+				try network.validate(runMode: common.runMode)
+
 				let result = CakedLib.NetworksHandler.create(networkName: networkName, network: network, runMode: common.runMode)
+
 				Logger.appendNewLine(common.format.render(result))
 			}
 		}
@@ -111,14 +111,6 @@ struct ComposeUp: AsyncParsableCommand {
 				Logger.appendNewLine(common.format.render(reply))
 			}
 		}
-	}
-
-	/// Derives a deterministic /24 subnet for a compose network from its name.
-	/// Uses the range 192.168.100.x – 192.168.199.x to avoid conflicts with Caker defaults.
-	private func composeNetworkSubnet(_ name: String) -> (gateway: String, dhcpEnd: String) {
-		let hash = name.unicodeScalars.reduce(0) { ($0 &* 31 &+ Int($1.value)) & 0x7FFF_FFFF }
-		let subnet = 100 + (hash % 100)
-		return ("192.168.\(subnet).1", "192.168.\(subnet).254")
 	}
 
 	private func loadCompose() throws -> ComposeFile {
