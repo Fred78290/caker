@@ -23,6 +23,7 @@ struct Compose: ParsableCommand {
 }
 
 // MARK: - Up
+
 struct ComposeUp: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(
 		commandName: "up",
@@ -50,67 +51,14 @@ struct ComposeUp: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		let compose = try loadCompose()
-		let toStart = try compose.startOrder(filter: services)
-
-		// Provision missing networks before starting services
-		if let composeNetworks = compose.networks {
-			let home = try Home(runMode: common.runMode)
-			let existingNetworks = try home.sharedNetworks()
-			let builtins: Set<String> = ["nat", "default", "host", "none"]
-
-			for (networkName, networkConfig) in composeNetworks.sorted(by: { $0.key < $1.key }) {
-				guard let networkConfig else { continue }
-				guard networkConfig.external != true else { continue }
-				guard !CakedLib.NetworksHandler.isPhysicalInterface(name: networkName) else { continue }
-
-				guard networkConfig.driver == .bridge else { throw ServiceError(String(localized: "Only bridge driver is supported")) }
-				guard !builtins.contains(networkName) else { continue }
-				guard existingNetworks.sharedNetworks[networkName] == nil else { continue }
-
-				let network = networkConfig.composeNetworkSubnet(name: networkName)
-				
-				try network.validate(runMode: common.runMode)
-
-				let result = CakedLib.NetworksHandler.create(networkName: networkName, network: network, runMode: common.runMode)
-
-				Logger.appendNewLine(common.format.render(result))
-			}
-		}
-
-		for (serviceName, serviceSpec) in toStart {
-			var buildOpts = try serviceSpec.toBuildOptions(name: serviceName)
-			try buildOpts.validate(remote: false)
-
-			let storage = StorageLocation(runMode: common.runMode)
-
-			if storage.exists(serviceName) {
-				let location = try storage.find(serviceName)
-				let reply = CakedLib.StartHandler.startVM(
-					location: location,
-					screenSize: nil,
-					vncPassword: nil,
-					vncPort: nil,
-					waitIPTimeout: waitIPTimeout,
-					startMode: .background,
-					gcd: false,
-					recoveryMode: false,
-					runMode: common.runMode
-				)
-				Logger.appendNewLine(common.format.render(reply))
-			} else {
-				let reply = await CakedLib.LaunchHandler.buildAndLaunchVM(
-					runMode: common.runMode,
-					options: buildOpts,
-					waitIPTimeout: waitIPTimeout,
-					startMode: .background,
-					gcd: false,
-					recoveryMode: false,
-					progressHandler: ProgressObserver.progressHandler
-				)
-				Logger.appendNewLine(common.format.render(reply))
-			}
-		}
+		try await ComposeHandler.up(
+			compose: try loadCompose(),
+			services: services,
+			waitIPTimeout: waitIPTimeout,
+			format: common.format,
+			runMode: common.runMode,
+			output: Logger.appendNewLine
+		)
 	}
 
 	private func loadCompose() throws -> ComposeFile {
@@ -149,13 +97,14 @@ struct ComposeDown: ParsableCommand {
 	}
 
 	func run() throws {
-		let compose = try loadCompose()
-		let toStop = try compose.downOrder(filter: services)
-
-		for (serviceName, _) in toStop {
-			let reply = CakedLib.StopHandler.stopVM(name: serviceName, force: force, runMode: common.runMode)
-			Logger.appendNewLine(common.format.render([reply]))
-		}
+		try ComposeHandler.down(
+			compose: try loadCompose(),
+			services: services,
+			force: force,
+			format: common.format,
+			runMode: common.runMode,
+			output: Logger.appendNewLine
+		)
 	}
 
 	private func loadCompose() throws -> ComposeFile {
@@ -189,16 +138,12 @@ struct ComposePs: ParsableCommand {
 	}
 
 	func run() throws {
-		let compose = try loadCompose()
-		let resolved = compose.resolvedServices(filter: services)
-		let storage = StorageLocation(runMode: common.runMode)
-
-		for (serviceName, svc) in resolved {
-			let exists = storage.exists(serviceName)
-			let image = svc.image ?? "-"
-			let status = exists ? "provisioned" : "not found"
-			Logger.appendNewLine("\(serviceName)\t\(status)\t\(image)")
-		}
+		try ComposeHandler.ps(
+			compose: try loadCompose(),
+			services: services,
+			runMode: common.runMode,
+			output: Logger.appendNewLine
+		)
 	}
 
 	private func loadCompose() throws -> ComposeFile {
@@ -242,22 +187,15 @@ struct ComposeRm: ParsableCommand {
 	}
 
 	func run() throws {
-		let compose = try loadCompose()
-		let toRemove = try compose.downOrder(filter: services)
-
-		for (serviceName, _) in toRemove {
-			if stop {
-				_ = CakedLib.StopHandler.stopVM(name: serviceName, force: true, runMode: common.runMode)
-			}
-
-			let result = CakedLib.DeleteHandler.delete(all: false, names: [serviceName], runMode: common.runMode)
-
-			if result.success {
-				Logger.appendNewLine(common.format.render(result.objects))
-			} else if !force {
-				Logger.appendNewLine(common.format.render(result.reason))
-			}
-		}
+		try ComposeHandler.rm(
+			compose: try loadCompose(),
+			services: services,
+			stop: stop,
+			force: force,
+			format: common.format,
+			runMode: common.runMode,
+			output: Logger.appendNewLine
+		)
 	}
 
 	private func loadCompose() throws -> ComposeFile {
