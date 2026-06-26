@@ -171,9 +171,18 @@ public struct ComposeResourceLimits: Codable {
 // MARK: - Network config (top-level)
 
 public struct ComposeNetwork: Codable {
-	public var driver: String?
-	public var external: Bool?
+	public enum SupportedDriver: String, Codable {
+		case bridge // bridge network
+		case none
+	}
+
+	public var driver: SupportedDriver = .none
+	public var external: Bool = false // true name is already defined network, false create a new one
 	public var name: String?
+
+	// driver options depends
+	// bridge -> mode=shared|host, gateway=192.168.105.1/24, dhcp-end=192.168.105.254, dhcp-lease=300
+	public var driverOpts: [String: String]?
 }
 
 // MARK: - Service
