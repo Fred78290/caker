@@ -18,7 +18,7 @@ struct Compose: ParsableCommand {
 		commandName: "compose",
 		abstract: String(localized: "Manage VMs from a compose.yml file"),
 		discussion: String(localized: "Reads compose.yml (or docker-compose.yml) and manages VMs as services."),
-		subcommands: [ComposeUp.self, ComposeDown.self, ComposePs.self, ComposeInit.self]
+		subcommands: [ComposeUp.self, ComposeDown.self, ComposePs.self, ComposeRm.self, ComposeInit.self]
 	)
 }
 
@@ -198,6 +198,65 @@ struct ComposePs: ParsableCommand {
 			let image = svc.image ?? "-"
 			let status = exists ? "provisioned" : "not found"
 			Logger.appendNewLine("\(serviceName)\t\(status)\t\(image)")
+		}
+	}
+
+	private func loadCompose() throws -> ComposeFile {
+		if let path = file { return try ComposeFile.load(fromFile: path) }
+		return try ComposeFile.load()
+	}
+}
+
+// MARK: - Rm
+
+struct ComposeRm: ParsableCommand {
+	static let configuration = CommandConfiguration(
+		commandName: "rm",
+		abstract: String(localized: "Remove stopped services"),
+		discussion: String(localized: "Deletes VMs for services defined in compose.yml, in reverse depends_on order. Use --stop to stop running services first.")
+	)
+
+	@OptionGroup(title: String(localized: "Global options"))
+	var common: CommonOptions
+
+	@Option(
+		name: [.customLong("file"), .customShort("f")],
+		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
+	var file: String? = nil
+
+	@Flag(
+		name: [.customShort("s"), .customLong("stop")],
+		help: ArgumentHelp(String(localized: "Stop running services before removing")))
+	var stop: Bool = false
+
+	@Flag(
+		name: [.customLong("force")],
+		help: ArgumentHelp(String(localized: "Do not error if a service VM is not found")))
+	var force: Bool = false
+
+	@Argument(help: ArgumentHelp(String(localized: "Services to remove (default: all)")))
+	var services: [String] = []
+
+	mutating func validate() throws {
+		Logger.setLevel(common.logLevel)
+	}
+
+	func run() throws {
+		let compose = try loadCompose()
+		let toRemove = try compose.downOrder(filter: services)
+
+		for (serviceName, _) in toRemove {
+			if stop {
+				_ = CakedLib.StopHandler.stopVM(name: serviceName, force: true, runMode: common.runMode)
+			}
+
+			let result = CakedLib.DeleteHandler.delete(all: false, names: [serviceName], runMode: common.runMode)
+
+			if result.success {
+				Logger.appendNewLine(common.format.render(result.objects))
+			} else if !force {
+				Logger.appendNewLine(common.format.render(result.reason))
+			}
 		}
 	}
 

@@ -19,7 +19,7 @@ struct Compose: ParsableCommand {
 		commandName: "compose",
 		abstract: String(localized: "Manage VMs from a compose.yml file"),
 		discussion: String(localized: "Reads compose.yml (or docker-compose.yml) and manages VMs as services, with the same CLI as docker compose."),
-		subcommands: [ComposeUp.self, ComposeDown.self, ComposePs.self, ComposeInit.self]
+		subcommands: [ComposeUp.self, ComposeDown.self, ComposePs.self, ComposeRm.self, ComposeInit.self]
 	)
 }
 
@@ -277,6 +277,73 @@ struct ComposePs: GrpcParsableCommand {
 				output.append(options.format.render(reply.infos))
 			} else {
 				output.append("[\(serviceName)] not found")
+			}
+		}
+
+		return output.joined(separator: "\n")
+	}
+
+	private func loadCompose() throws -> ComposeFile {
+		if let path = file { return try ComposeFile.load(fromFile: path) }
+		return try ComposeFile.load()
+	}
+}
+
+// MARK: - Rm
+
+struct ComposeRm: GrpcParsableCommand {
+	static let configuration = CommandConfiguration(
+		commandName: "rm",
+		abstract: String(localized: "Remove stopped services"),
+		discussion: String(localized: "Deletes VMs for services defined in compose.yml, in reverse depends_on order. Use --stop to stop running services first.")
+	)
+
+	@OptionGroup(title: String(localized: "Client options"))
+	var options: Client.Options
+
+	@Option(
+		name: [.customLong("file"), .customShort("f")],
+		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
+	var file: String? = nil
+
+	@Flag(
+		name: [.customShort("s"), .customLong("stop")],
+		help: ArgumentHelp(String(localized: "Stop running services before removing")))
+	var stop: Bool = false
+
+	@Flag(
+		name: [.customLong("force")],
+		help: ArgumentHelp(String(localized: "Do not error if a service VM is not found")))
+	var force: Bool = false
+
+	@Argument(help: ArgumentHelp(String(localized: "Services to remove (default: all)")))
+	var services: [String] = []
+
+	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		let compose = try loadCompose()
+		let toRemove = try compose.downOrder(filter: services)
+		var output: [String] = []
+
+		for (serviceName, _) in toRemove {
+			if stop {
+				_ = try? client.stop(
+					.with {
+						$0.force = true
+						$0.names = .with { $0.list = [serviceName] }
+					},
+					callOptions: callOptions
+				).response.wait()
+			}
+
+			let result = try client.delete(
+				.with { $0.names = .with { $0.list = [serviceName] } },
+				callOptions: callOptions
+			).response.wait().vms.delete
+
+			if result.success {
+				output.append(options.format.render(result.objects))
+			} else if !force {
+				output.append(options.format.render(result.reason))
 			}
 		}
 
