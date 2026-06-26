@@ -102,7 +102,7 @@ public enum ComposeEnvironment: Codable {
 	public var lines: [String] {
 		switch self {
 		case .list(let l): return l
-		case .map(let m): return m.sorted(by: { $0.key < $1.key }).map { k, v in v.map { "\(k)=\($0)" } ?? k }
+		case .map(let m): return m.sorted(by: { $0.key < $1.key }).map { k, v in v.map { "\(k)=\($0)" } ?? "\(k)=" }
 		}
 	}
 
@@ -410,15 +410,21 @@ public struct ComposeFile: Codable {
 
 	// MARK: Ordering
 
-	public func resolvedServices(filter: [String] = []) -> [(name: String, service: ComposeService)] {
+	public func resolvedServices(filter: [String] = []) throws -> [(name: String, service: ComposeService)] {
+		if !filter.isEmpty {
+			let unknown = filter.filter { services[$0] == nil }
+			if !unknown.isEmpty {
+				throw ServiceError(String(localized: "Unknown service\(unknown.count == 1 ? "" : "s"): \(unknown.joined(separator: ", "))"))
+			}
+		}
 		let keys: [String] = filter.isEmpty ? services.keys.sorted() : filter
 		return keys.compactMap { k in services[k].map { (k, $0) } }
 	}
 
 	/// Services sorted by `depends_on` (topological order). Throws on cycles or missing deps.
 	public func startOrder(filter: [String] = []) throws -> [(name: String, service: ComposeService)] {
-		let entries = resolvedServices(filter: filter)
-		guard entries.count > 1 else { return entries }
+		let entries = try resolvedServices(filter: filter)
+		guard !entries.isEmpty else { return [] }
 
 		var result: [(name: String, service: ComposeService)] = []
 		var visited = Set<String>()

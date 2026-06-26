@@ -41,10 +41,10 @@ struct Down: ParsableCommand {
 		let env = try loadEnv()
 		let vmsToStop = try env.downOrder(filter: names)
 
-		for (vmName, _) in vmsToStop {
-			let reply = CakedLib.StopHandler.stopVM(name: vmName, force: force, runMode: common.runMode)
-			Logger.appendNewLine(common.format.render([reply]))
+		let replies = vmsToStop.map { (vmName, _) in
+			CakedLib.StopHandler.stopVM(name: vmName, force: force, runMode: common.runMode)
 		}
+		Logger.appendNewLine(common.format.render(replies))
 	}
 
 	private func loadEnv() throws -> CakerEnv {

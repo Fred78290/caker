@@ -119,54 +119,11 @@ struct ComposeUp: AsyncGrpcParsableCommand {
 					output.append(options.format.render(startReply))
 				}
 			} else {
-				output.append(try await launchService(buildOpts: buildOpts, serviceName: serviceName, client: client, callOptions: callOptions))
+				output.append(try await launchAndStream(buildOpts: buildOpts, name: serviceName, waitIPTimeout: waitIPTimeout, client: client, callOptions: callOptions, format: options.format))
 			}
 		}
 
 		return output.joined(separator: "\n")
-	}
-
-	private func launchService(buildOpts: BuildOptions, serviceName: String, client: CakedServiceClient, callOptions: CallOptions?) async throws -> String {
-		return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
-			let context = ProgressObserver.ProgressHandlerContext()
-			let (stream, continuation) = AsyncStream.makeStream(of: Caked_LaunchStreamReply.OneOf_Current?.self)
-			var result = String.empty
-
-			group.addTask {
-				let rpc = try client.launch(
-					.with {
-						$0.options = try Caked_CommonBuildRequest(buildOptions: buildOpts)
-						$0.waitIptimeout = Int32(waitIPTimeout)
-						$0.recoveryMode = false
-					}
-				) { reply in
-					continuation.yield(reply.current)
-				}
-				_ = try await rpc.status.get()
-				continuation.finish()
-			}
-
-			for try await current in stream {
-				switch current {
-				case .progress(let p):
-					ProgressObserver.progressHandler(.progress(context, p.fractionCompleted))
-				case .step(let step):
-					ProgressObserver.progressHandler(.step(step))
-				case .terminated(let status):
-					if case .success(let v)? = status.result {
-						ProgressObserver.progressHandler(.terminated(.success(serviceName), v))
-					} else if case .failure(let v)? = status.result {
-						ProgressObserver.progressHandler(.terminated(.failure(GrpcError(code: 1, reason: v)), nil))
-					}
-				case .launched(let launched):
-					result = options.format.render(LaunchReply(launched))
-				default:
-					break
-				}
-			}
-
-			return result
-		}
 	}
 
 	/// Derives a deterministic /24 subnet for a compose network from its name.
@@ -176,6 +133,7 @@ struct ComposeUp: AsyncGrpcParsableCommand {
 		let subnet = 100 + (hash % 100)
 		return ("192.168.\(subnet).1", "192.168.\(subnet).254")
 	}
+
 
 	private func loadCompose() throws -> ComposeFile {
 		if let path = file { return try ComposeFile.load(fromFile: path) }
@@ -260,7 +218,7 @@ struct ComposePs: GrpcParsableCommand {
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let compose = try loadCompose()
-		let resolved = compose.resolvedServices(filter: services)
+		let resolved = try compose.resolvedServices(filter: services)
 		var output: [String] = []
 
 		for (serviceName, _) in resolved {

@@ -40,12 +40,11 @@ struct Up: AsyncParsableCommand {
 	func run() async throws {
 		let env = try loadEnv()
 		let vmsToStart = try env.startOrder(filter: names)
+		let storage = StorageLocation(runMode: common.runMode)
 
 		for (vmName, vmSpec) in vmsToStart {
 			var buildOpts = try vmSpec.toBuildOptions(name: vmName)
 			try buildOpts.validate(remote: false)
-
-			let storage = StorageLocation(runMode: common.runMode)
 
 			if storage.exists(vmName) {
 				let location = try storage.find(vmName)

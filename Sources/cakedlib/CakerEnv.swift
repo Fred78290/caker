@@ -160,21 +160,29 @@ public struct CakerEnv: Codable {
 
 	/// All VM entries, optionally filtered by name.
 	/// In single-VM mode (no `vms:` key) returns one entry derived from top-level fields.
-	public func resolvedVMs(nameOverride: String? = nil, filter: [String] = []) -> [(name: String, vm: CakerEnvVM)] {
+	public func resolvedVMs(nameOverride: String? = nil, filter: [String] = []) throws -> [(name: String, vm: CakerEnvVM)] {
 		if let vms, !vms.isEmpty {
+			if !filter.isEmpty {
+				let unknown = filter.filter { vms[$0] == nil }
+				if !unknown.isEmpty {
+					throw ServiceError(String(localized: "Unknown VM\(unknown.count == 1 ? "" : "s"): \(unknown.joined(separator: ", "))"))
+				}
+			}
 			let keys: [String] = filter.isEmpty ? vms.keys.sorted() : filter
 			return keys.compactMap { k in vms[k].map { (k, $0) } }
 		}
 		let singleName = resolvedName(override: nameOverride)
-		if !filter.isEmpty && !filter.contains(singleName) { return [] }
+		if !filter.isEmpty && !filter.contains(singleName) {
+			throw ServiceError(String(localized: "Unknown VM '\(filter.joined(separator: ", "))' — this \(CakerEnv.filename) defines a single VM named '\(singleName)'"))
+		}
 		return [(singleName, singleVMSpec())]
 	}
 
 	/// VM entries sorted by `depends-on` declarations (topological order).
 	/// Throws on cycles or references to undefined VMs.
 	public func startOrder(nameOverride: String? = nil, filter: [String] = []) throws -> [(name: String, vm: CakerEnvVM)] {
-		let entries = resolvedVMs(nameOverride: nameOverride, filter: filter)
-		guard entries.count > 1 else { return entries }
+		let entries = try resolvedVMs(nameOverride: nameOverride, filter: filter)
+		guard !entries.isEmpty else { return [] }
 
 		var result: [(name: String, vm: CakerEnvVM)] = []
 		var visited = Set<String>()
