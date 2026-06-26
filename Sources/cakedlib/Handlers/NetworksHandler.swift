@@ -502,7 +502,7 @@ public struct NetworksHandler {
 		}
 
 		if socketURL.pidFile.isCakedRunning() {
-			throw ServiceError(String(localized: "\(executableURL.path) is already running"))
+			throw ServiceError(String(localized: "\(executableURL.path) is already running."))
 		}
 
 		try? socketURL.socket.delete()

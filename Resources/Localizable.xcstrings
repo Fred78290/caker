@@ -205,6 +205,17 @@
         }
       }
     },
+    "%@ already exists — use --force to overwrite." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ existe déjà — utilisez --force pour écraser."
+          }
+        }
+      }
+    },
     "%@ already in use, try umounting it" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -260,13 +271,13 @@
         }
       }
     },
-    "%@ is already running" : {
+    "%@ is already running." : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ est déjà en cours d'exécution"
+            "value" : "%@ est déjà en cours d'exécution."
           }
         }
       }
@@ -278,6 +289,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ n'est pas sudoable"
+          }
+        }
+      }
+    },
+    "%@ is paused — resume it with `cakectl start %@`." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ est en pause — reprenez-le avec `cakectl start %2$@`."
           }
         }
       }
@@ -411,6 +433,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%u cœurs"
+          }
+        }
+      }
+    },
+    "'%@' depends_on '%@' which is not defined" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%1$@' dépend de '%2$@' qui n'est pas défini"
           }
         }
       }
@@ -1850,6 +1883,17 @@
         }
       }
     },
+    "Circular dependency involving '%@'" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dépendance circulaire impliquant '%@'"
+          }
+        }
+      }
+    },
     "Clean cloud-init" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2473,6 +2517,17 @@
         }
       }
     },
+    "Create a compose.yml template" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer un modèle compose.yml"
+          }
+        }
+      }
+    },
     "Create a linux VM and initialize it with cloud-init" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2544,6 +2599,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Créez une machine virtuelle à l'aide d'un disque racine existant, puis démarrez-la"
+          }
+        }
+      }
+    },
+    "Create and start services" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer et démarrer les services"
           }
         }
       }
@@ -2639,6 +2705,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La création de la machine virtuelle a échoué"
+          }
+        }
+      }
+    },
+    "Created %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créé %@"
           }
         }
       }
@@ -3308,6 +3385,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Transfert de port TCP/Unix dynamique"
+          }
+        }
+      }
+    },
+    "Edit compose.yml then run `cakectl compose up` to start your services." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Éditez compose.yml puis lancez `cakectl compose up` pour démarrer vos services."
+          }
+        }
+      }
+    },
+    "Edit compose.yml then run `caked compose up` to start your services." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Éditez compose.yml puis lancez `caked compose up` pour démarrer vos services."
           }
         }
       }
@@ -4077,6 +4176,17 @@
         }
       }
     },
+    "Force stop without graceful shutdown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forcer l'arrêt sans extinction progressive"
+          }
+        }
+      }
+    },
     "Forwarded ports" : {
       "localizations" : {
         "fr" : {
@@ -4578,6 +4688,7 @@
     },
     "Import failed with exit code %d" : {
       "comment" : "A reason for why a VM import failed.",
+      "extractionState" : "stale",
       "isCommentAutoGenerated" : true,
       "localizations" : {
         "fr" : {
@@ -5726,6 +5837,17 @@
         }
       }
     },
+    "List service status" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lister l'état des services"
+          }
+        }
+      }
+    },
     "List the available remotes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6159,6 +6281,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gérer les modèles de VM"
+          }
+        }
+      }
+    },
+    "Manage VMs from a compose.yml file" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gérer les VM depuis un fichier compose.yml"
           }
         }
       }
@@ -7227,6 +7360,17 @@
         }
       }
     },
+    "No compose.yml found in %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun compose.yml trouvé dans %@"
+          }
+        }
+      }
+    },
     "No disk files found in the specified directory: %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7972,6 +8116,17 @@
         }
       }
     },
+    "Overwrite an existing compose.yml" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écraser un compose.yml existant"
+          }
+        }
+      }
+    },
     "Packet too big" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8115,6 +8270,17 @@
         }
       }
     },
+    "Path to compose file" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin vers le fichier compose"
+          }
+        }
+      }
+    },
     "Path to PEM certificate file or undefined for stdin" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8122,6 +8288,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chemin d'accès au fichier de certificat PEM ou non défini pour stdin"
+          }
+        }
+      }
+    },
+    "Path to the environment file" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin vers le fichier d'environnement"
           }
         }
       }
@@ -8793,6 +8970,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lecture seule"
+          }
+        }
+      }
+    },
+    "Reads .cakerenv from the current directory (or --env-file). Starts all VMs in depends-on order, or only the VMs listed as arguments. Creates VMs that do not yet exist." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lit .cakerenv depuis le répertoire courant (ou --env-file). Démarre toutes les VM dans l'ordre depends-on, ou seulement les VM listées en arguments. Crée les VM qui n'existent pas encore."
+          }
+        }
+      }
+    },
+    "Reads compose.yml (or docker-compose.yml) and manages VMs as services, with the same CLI as docker compose." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lit compose.yml (ou docker-compose.yml) et gère les VM comme des services, avec la même CLI que docker compose."
+          }
+        }
+      }
+    },
+    "Reads compose.yml (or docker-compose.yml) and manages VMs as services." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lit compose.yml (ou docker-compose.yml) et gère les VM comme des services."
           }
         }
       }
@@ -9908,6 +10118,39 @@
         }
       }
     },
+    "Services to show (default: all)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Services à afficher (par défaut : tous)"
+          }
+        }
+      }
+    },
+    "Services to start (default: all)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Services à démarrer (par défaut : tous)"
+          }
+        }
+      }
+    },
+    "Services to stop (default: all)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Services à arrêter (par défaut : tous)"
+          }
+        }
+      }
+    },
     "Set DHCP lease duration." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10222,6 +10465,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Afficher/Masquer le curseur de l'hôte dans la vue VM"
+          }
+        }
+      }
+    },
+    "Shows the status of services defined in compose.yml." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche l'état des services définis dans compose.yml."
+          }
+        }
+      }
+    },
+    "Shows which services defined in compose.yml are provisioned on this host." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche les services définis dans compose.yml qui sont provisionnés sur cet hôte."
           }
         }
       }
@@ -10819,6 +11084,17 @@
         }
       }
     },
+    "Start or create VMs defined in .cakerenv" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrer ou créer les VM définies dans .cakerenv"
+          }
+        }
+      }
+    },
     "Start service" : {
       "localizations" : {
         "fr" : {
@@ -10894,6 +11170,17 @@
         }
       }
     },
+    "Starts services defined in compose.yml in depends_on order. Creates VMs that do not yet exist." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarre les services définis dans compose.yml dans l'ordre depends_on. Crée les VM qui n'existent pas encore."
+          }
+        }
+      }
+    },
     "State" : {
       "comment" : "A column in a table that shows the state of a VM.",
       "isCommentAutoGenerated" : true,
@@ -10929,6 +11216,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Arrêter toutes les VM"
+          }
+        }
+      }
+    },
+    "Stop and remove services" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter et supprimer les services"
           }
         }
       }
@@ -11001,6 +11299,17 @@
         }
       }
     },
+    "Stop services" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter les services"
+          }
+        }
+      }
+    },
     "Stop virtual machine" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11060,6 +11369,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "arrêté"
+          }
+        }
+      }
+    },
+    "Stops services in reverse depends_on order." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrête les services dans l'ordre inverse de depends_on."
           }
         }
       }
@@ -13782,6 +14102,17 @@
         }
       }
     },
+    "VM names to start (default: all VMs in .cakerenv)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noms des VM à démarrer (par défaut : toutes les VM dans .cakerenv)"
+          }
+        }
+      }
+    },
     "VM names to stop" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14091,6 +14422,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fenêtre"
+          }
+        }
+      }
+    },
+    "Writes a commented compose.yml with example services. Edit it then run `cakectl compose up`." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écrit un compose.yml commenté avec des services d'exemple. Éditez-le puis lancez `cakectl compose up`."
+          }
+        }
+      }
+    },
+    "Writes a commented compose.yml with example services. Edit it then run `caked compose up`." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écrit un compose.yml commenté avec des services d'exemple. Éditez-le puis lancez `caked compose up`."
           }
         }
       }
