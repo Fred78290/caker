@@ -99,6 +99,17 @@
         }
       }
     },
+    "'%@' depends_on '%@' which is not defined" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%1$@' dépend de '%2$@' qui n'est pas défini"
+          }
+        }
+      }
+    },
     "(default as flag: %@)" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -433,17 +444,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%u cœurs"
-          }
-        }
-      }
-    },
-    "'%@' depends_on '%@' which is not defined" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "'%1$@' dépend de '%2$@' qui n'est pas défini"
           }
         }
       }
@@ -7768,6 +7768,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "OK"
+          }
+        }
+      }
+    },
+    "Only bridge driver is supported" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seul le pilote bridge est pris en charge"
           }
         }
       }
