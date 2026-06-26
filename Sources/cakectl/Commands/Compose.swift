@@ -52,6 +52,39 @@ struct ComposeUp: AsyncGrpcParsableCommand {
 		let toStart = try compose.startOrder(filter: services)
 		var output: [String] = []
 
+		// Provision missing networks before starting services
+		if let composeNetworks = compose.networks {
+			let listReply = try await client.networks(
+				.with { $0.command = .infos },
+				callOptions: callOptions
+			).response.get().networks.list
+			let existingNetworks = Set(listReply.success ? listReply.networks.map(\.name) : [])
+			let builtins: Set<String> = ["nat", "default", "host", "none"]
+
+			for (networkName, networkConfig) in composeNetworks.sorted(by: { $0.key < $1.key }) {
+				guard !builtins.contains(networkName) else { continue }
+				guard networkConfig?.external != true else { continue }
+				guard !existingNetworks.contains(networkName) else { continue }
+
+				let (gateway, dhcpEnd) = composeNetworkSubnet(networkName)
+				let created = try await client.networks(
+					.with {
+						$0.command = .new
+						$0.create = .with {
+							$0.name = networkName
+							$0.mode = networkConfig?.driver == "host" ? .host : .shared
+							$0.gateway = gateway
+							$0.dhcpEnd = dhcpEnd
+							$0.netmask = "255.255.255.0"
+							$0.uuid = UUID().uuidString
+						}
+					},
+					callOptions: callOptions
+				).response.get().networks.created
+				output.append(options.format.render(created))
+			}
+		}
+
 		for (serviceName, serviceSpec) in toStart {
 			var buildOpts = try serviceSpec.toBuildOptions(name: serviceName)
 			try buildOpts.validate(remote: true)
@@ -130,6 +163,14 @@ struct ComposeUp: AsyncGrpcParsableCommand {
 
 			return result
 		}
+	}
+
+	/// Derives a deterministic /24 subnet for a compose network from its name.
+	/// Uses the range 192.168.100.x – 192.168.199.x to avoid conflicts with Caker defaults.
+	private func composeNetworkSubnet(_ name: String) -> (gateway: String, dhcpEnd: String) {
+		let hash = name.unicodeScalars.reduce(0) { ($0 &* 31 &+ Int($1.value)) & 0x7FFF_FFFF }
+		let subnet = 100 + (hash % 100)
+		return ("192.168.\(subnet).1", "192.168.\(subnet).254")
 	}
 
 	private func loadCompose() throws -> ComposeFile {
