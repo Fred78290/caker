@@ -38,7 +38,7 @@ struct ComposeUp: AsyncGrpcParsableCommand {
 	@Option(
 		name: [.customLong("file"), .customShort("f")],
 		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
-	var file: String?
+	var file: String? = nil
 
 	@Option(
 		help: ArgumentHelp(String(localized: "Max time to wait for IP"), valueName: "seconds"))
@@ -153,7 +153,7 @@ struct ComposeDown: GrpcParsableCommand {
 	@Option(
 		name: [.customLong("file"), .customShort("f")],
 		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
-	var file: String?
+	var file: String? = nil
 
 	@Flag(
 		name: [.customLong("force")],
@@ -208,7 +208,7 @@ struct ComposePs: GrpcParsableCommand {
 	@Option(
 		name: [.customLong("file"), .customShort("f")],
 		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
-	var file: String?
+	var file: String? = nil
 
 	@Argument(help: ArgumentHelp(String(localized: "Services to show (default: all)")))
 	var services: [String] = []
