@@ -98,6 +98,322 @@ public nonisolated struct Caked_Caked: Sendable {
 
   }
 
+  public nonisolated struct ComposeRequest: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    public var compose: Caked_Caked.ComposeRequest.OneOf_Compose? = nil
+
+    public var up: Caked_Caked.ComposeRequest.ComposeRequestUp {
+      get {
+        if case .up(let v)? = compose {return v}
+        return Caked_Caked.ComposeRequest.ComposeRequestUp()
+      }
+      set {compose = .up(newValue)}
+    }
+
+    public var down: Caked_Caked.ComposeRequest.ComposeRequestDown {
+      get {
+        if case .down(let v)? = compose {return v}
+        return Caked_Caked.ComposeRequest.ComposeRequestDown()
+      }
+      set {compose = .down(newValue)}
+    }
+
+    public var delete: Caked_Caked.ComposeRequest.ComposeRequestDelete {
+      get {
+        if case .delete(let v)? = compose {return v}
+        return Caked_Caked.ComposeRequest.ComposeRequestDelete()
+      }
+      set {compose = .delete(newValue)}
+    }
+
+    public var ps: Caked_Caked.ComposeRequest.ComposeRequestPs {
+      get {
+        if case .ps(let v)? = compose {return v}
+        return Caked_Caked.ComposeRequest.ComposeRequestPs()
+      }
+      set {compose = .ps(newValue)}
+    }
+
+    public var ls: Caked_Caked.ComposeRequest.ComposeRequestList {
+      get {
+        if case .ls(let v)? = compose {return v}
+        return Caked_Caked.ComposeRequest.ComposeRequestList()
+      }
+      set {compose = .ls(newValue)}
+    }
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    public nonisolated enum OneOf_Compose: Equatable, Sendable {
+      case up(Caked_Caked.ComposeRequest.ComposeRequestUp)
+      case down(Caked_Caked.ComposeRequest.ComposeRequestDown)
+      case delete(Caked_Caked.ComposeRequest.ComposeRequestDelete)
+      case ps(Caked_Caked.ComposeRequest.ComposeRequestPs)
+      case ls(Caked_Caked.ComposeRequest.ComposeRequestList)
+
+    }
+
+    public nonisolated struct ComposeRequestUp: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var composeDatas: Data = Data()
+
+      public var waitIptimeout: Int32 = 0
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public nonisolated struct ComposeRequestDown: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var name: String = String()
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public nonisolated struct ComposeRequestDelete: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var name: String = String()
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public nonisolated struct ComposeRequestPs: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var name: String = String()
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public nonisolated struct ComposeRequestList: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var active: Bool = false
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public init() {}
+  }
+
+  public nonisolated struct ComposeReply: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    public var compose: Caked_Caked.ComposeReply.OneOf_Compose? = nil
+
+    public var up: Caked_Caked.ComposeReply.ComposeReplyUp {
+      get {
+        if case .up(let v)? = compose {return v}
+        return Caked_Caked.ComposeReply.ComposeReplyUp()
+      }
+      set {compose = .up(newValue)}
+    }
+
+    public var down: Caked_Caked.ComposeReply.ComposeReplyDown {
+      get {
+        if case .down(let v)? = compose {return v}
+        return Caked_Caked.ComposeReply.ComposeReplyDown()
+      }
+      set {compose = .down(newValue)}
+    }
+
+    public var delete: Caked_Caked.ComposeReply.ComposeReplyDelete {
+      get {
+        if case .delete(let v)? = compose {return v}
+        return Caked_Caked.ComposeReply.ComposeReplyDelete()
+      }
+      set {compose = .delete(newValue)}
+    }
+
+    public var ps: Caked_Caked.ComposeReply.ComposeReplyPs {
+      get {
+        if case .ps(let v)? = compose {return v}
+        return Caked_Caked.ComposeReply.ComposeReplyPs()
+      }
+      set {compose = .ps(newValue)}
+    }
+
+    public var ls: Caked_Caked.ComposeReply.ComposeReplyList {
+      get {
+        if case .ls(let v)? = compose {return v}
+        return Caked_Caked.ComposeReply.ComposeReplyList()
+      }
+      set {compose = .ls(newValue)}
+    }
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    public nonisolated enum OneOf_Compose: Equatable, Sendable {
+      case up(Caked_Caked.ComposeReply.ComposeReplyUp)
+      case down(Caked_Caked.ComposeReply.ComposeReplyDown)
+      case delete(Caked_Caked.ComposeReply.ComposeReplyDelete)
+      case ps(Caked_Caked.ComposeReply.ComposeReplyPs)
+      case ls(Caked_Caked.ComposeReply.ComposeReplyList)
+
+    }
+
+    public nonisolated struct ComposeReplyUp: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var name: String = String()
+
+      public var success: Bool = false
+
+      public var reason: String = String()
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public nonisolated struct ComposeReplyDown: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var name: String = String()
+
+      public var success: Bool = false
+
+      public var reason: String = String()
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public nonisolated struct ComposeReplyDelete: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var name: String = String()
+
+      public var success: Bool = false
+
+      public var reason: String = String()
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public nonisolated struct ComposeServiceInfo: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var serviceName: String = String()
+
+      public var image: String = String()
+
+      public var status: String = String()
+
+      public var running: Bool = false
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
+    public nonisolated struct ComposeReplyPs: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var composeName: String = String()
+
+      public var services: [Caked_Caked.ComposeReply.ComposeServiceInfo] = []
+
+      public var success: Bool = false
+
+      public var reason: String {
+        get {_reason ?? String()}
+        set {_reason = newValue}
+      }
+      /// Returns true if `reason` has been explicitly set.
+      public var hasReason: Bool {self._reason != nil}
+      /// Clears the value of `reason`. Subsequent reads from it will return its default value.
+      public mutating func clearReason() {self._reason = nil}
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+
+      fileprivate var _reason: String? = nil
+    }
+
+    public nonisolated struct ComposeReplyList: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var composeFiles: [Caked_Caked.ComposeReply.ComposeReplyList.ComposeInfo] = []
+
+      public var success: Bool = false
+
+      public var reason: String {
+        get {_reason ?? String()}
+        set {_reason = newValue}
+      }
+      /// Returns true if `reason` has been explicitly set.
+      public var hasReason: Bool {self._reason != nil}
+      /// Clears the value of `reason`. Subsequent reads from it will return its default value.
+      public mutating func clearReason() {self._reason = nil}
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public nonisolated struct ComposeInfo: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var composeName: String = String()
+
+        public var services: [Caked_Caked.ComposeReply.ComposeServiceInfo] = []
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+      }
+
+      public init() {}
+
+      fileprivate var _reason: String? = nil
+    }
+
+    public init() {}
+  }
+
   public nonisolated struct VncStream: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2318,6 +2634,14 @@ public nonisolated struct Caked_Caked: Sendable {
       set {response = .unexpected(newValue)}
     }
 
+    public var compose: Caked_Caked.ComposeReply {
+      get {
+        if case .compose(let v)? = response {return v}
+        return Caked_Caked.ComposeReply()
+      }
+      set {response = .compose(newValue)}
+    }
+
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
     public nonisolated enum OneOf_Response: Equatable, Sendable {
@@ -2334,6 +2658,7 @@ public nonisolated struct Caked_Caked: Sendable {
       case screenSize(Caked_Caked.Reply.ScreenSizeReply)
       case certificates(Caked_Caked.Reply.CertificateReply)
       case unexpected(String)
+      case compose(Caked_Caked.ComposeReply)
 
     }
 
@@ -5746,6 +6071,690 @@ nonisolated extension Caked_Caked.VirtualMachineStatus: SwiftProtobuf._ProtoName
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0stopped\0\u{1}running\0\u{1}paused\0\u{1}deleted\0\u{1}error\0\u{1}agentReady\0\u{1}new\0")
 }
 
+nonisolated extension Caked_Caked.ComposeRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".ComposeRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}up\0\u{1}down\0\u{1}delete\0\u{1}ps\0\u{1}ls\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Caked_Caked.ComposeRequest.ComposeRequestUp?
+        var hadOneofValue = false
+        if let current = self.compose {
+          hadOneofValue = true
+          if case .up(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.compose = .up(v)
+        }
+      }()
+      case 2: try {
+        var v: Caked_Caked.ComposeRequest.ComposeRequestDown?
+        var hadOneofValue = false
+        if let current = self.compose {
+          hadOneofValue = true
+          if case .down(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.compose = .down(v)
+        }
+      }()
+      case 3: try {
+        var v: Caked_Caked.ComposeRequest.ComposeRequestDelete?
+        var hadOneofValue = false
+        if let current = self.compose {
+          hadOneofValue = true
+          if case .delete(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.compose = .delete(v)
+        }
+      }()
+      case 4: try {
+        var v: Caked_Caked.ComposeRequest.ComposeRequestPs?
+        var hadOneofValue = false
+        if let current = self.compose {
+          hadOneofValue = true
+          if case .ps(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.compose = .ps(v)
+        }
+      }()
+      case 5: try {
+        var v: Caked_Caked.ComposeRequest.ComposeRequestList?
+        var hadOneofValue = false
+        if let current = self.compose {
+          hadOneofValue = true
+          if case .ls(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.compose = .ls(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.compose {
+    case .up?: try {
+      guard case .up(let v)? = self.compose else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .down?: try {
+      guard case .down(let v)? = self.compose else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .delete?: try {
+      guard case .delete(let v)? = self.compose else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .ps?: try {
+      guard case .ps(let v)? = self.compose else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case .ls?: try {
+      guard case .ls(let v)? = self.compose else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeRequest, rhs: Caked_Caked.ComposeRequest) -> Bool {
+    if lhs.compose != rhs.compose {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestUp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.ComposeRequest.protoMessageName + ".ComposeRequestUp"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}composeDatas\0\u{1}waitIPTimeout\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.composeDatas) }()
+      case 2: try { try decoder.decodeSingularInt32Field(value: &self.waitIptimeout) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.composeDatas.isEmpty {
+      try visitor.visitSingularBytesField(value: self.composeDatas, fieldNumber: 1)
+    }
+    if self.waitIptimeout != 0 {
+      try visitor.visitSingularInt32Field(value: self.waitIptimeout, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeRequest.ComposeRequestUp, rhs: Caked_Caked.ComposeRequest.ComposeRequestUp) -> Bool {
+    if lhs.composeDatas != rhs.composeDatas {return false}
+    if lhs.waitIptimeout != rhs.waitIptimeout {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestDown: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.ComposeRequest.protoMessageName + ".ComposeRequestDown"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeRequest.ComposeRequestDown, rhs: Caked_Caked.ComposeRequest.ComposeRequestDown) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestDelete: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.ComposeRequest.protoMessageName + ".ComposeRequestDelete"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeRequest.ComposeRequestDelete, rhs: Caked_Caked.ComposeRequest.ComposeRequestDelete) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestPs: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.ComposeRequest.protoMessageName + ".ComposeRequestPs"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeRequest.ComposeRequestPs, rhs: Caked_Caked.ComposeRequest.ComposeRequestPs) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestList: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.ComposeRequest.protoMessageName + ".ComposeRequestList"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}active\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.active) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.active != false {
+      try visitor.visitSingularBoolField(value: self.active, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeRequest.ComposeRequestList, rhs: Caked_Caked.ComposeRequest.ComposeRequestList) -> Bool {
+    if lhs.active != rhs.active {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".ComposeReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}up\0\u{1}down\0\u{1}delete\0\u{1}ps\0\u{1}ls\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Caked_Caked.ComposeReply.ComposeReplyUp?
+        var hadOneofValue = false
+        if let current = self.compose {
+          hadOneofValue = true
+          if case .up(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.compose = .up(v)
+        }
+      }()
+      case 2: try {
+        var v: Caked_Caked.ComposeReply.ComposeReplyDown?
+        var hadOneofValue = false
+        if let current = self.compose {
+          hadOneofValue = true
+          if case .down(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.compose = .down(v)
+        }
+      }()
+      case 3: try {
+        var v: Caked_Caked.ComposeReply.ComposeReplyDelete?
+        var hadOneofValue = false
+        if let current = self.compose {
+          hadOneofValue = true
+          if case .delete(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.compose = .delete(v)
+        }
+      }()
+      case 4: try {
+        var v: Caked_Caked.ComposeReply.ComposeReplyPs?
+        var hadOneofValue = false
+        if let current = self.compose {
+          hadOneofValue = true
+          if case .ps(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.compose = .ps(v)
+        }
+      }()
+      case 5: try {
+        var v: Caked_Caked.ComposeReply.ComposeReplyList?
+        var hadOneofValue = false
+        if let current = self.compose {
+          hadOneofValue = true
+          if case .ls(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.compose = .ls(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.compose {
+    case .up?: try {
+      guard case .up(let v)? = self.compose else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .down?: try {
+      guard case .down(let v)? = self.compose else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .delete?: try {
+      guard case .delete(let v)? = self.compose else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .ps?: try {
+      guard case .ps(let v)? = self.compose else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case .ls?: try {
+      guard case .ls(let v)? = self.compose else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeReply, rhs: Caked_Caked.ComposeReply) -> Bool {
+    if lhs.compose != rhs.compose {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeReply.ComposeReplyUp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.ComposeReply.protoMessageName + ".ComposeReplyUp"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}success\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 2)
+    }
+    if !self.reason.isEmpty {
+      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeReply.ComposeReplyUp, rhs: Caked_Caked.ComposeReply.ComposeReplyUp) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.success != rhs.success {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeReply.ComposeReplyDown: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.ComposeReply.protoMessageName + ".ComposeReplyDown"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}success\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 2)
+    }
+    if !self.reason.isEmpty {
+      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeReply.ComposeReplyDown, rhs: Caked_Caked.ComposeReply.ComposeReplyDown) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.success != rhs.success {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeReply.ComposeReplyDelete: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.ComposeReply.protoMessageName + ".ComposeReplyDelete"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}success\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 2)
+    }
+    if !self.reason.isEmpty {
+      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeReply.ComposeReplyDelete, rhs: Caked_Caked.ComposeReply.ComposeReplyDelete) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.success != rhs.success {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeReply.ComposeServiceInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.ComposeReply.protoMessageName + ".ComposeServiceInfo"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}serviceName\0\u{1}image\0\u{1}status\0\u{1}running\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.serviceName) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.image) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.status) }()
+      case 4: try { try decoder.decodeSingularBoolField(value: &self.running) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.serviceName.isEmpty {
+      try visitor.visitSingularStringField(value: self.serviceName, fieldNumber: 1)
+    }
+    if !self.image.isEmpty {
+      try visitor.visitSingularStringField(value: self.image, fieldNumber: 2)
+    }
+    if !self.status.isEmpty {
+      try visitor.visitSingularStringField(value: self.status, fieldNumber: 3)
+    }
+    if self.running != false {
+      try visitor.visitSingularBoolField(value: self.running, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeReply.ComposeServiceInfo, rhs: Caked_Caked.ComposeReply.ComposeServiceInfo) -> Bool {
+    if lhs.serviceName != rhs.serviceName {return false}
+    if lhs.image != rhs.image {return false}
+    if lhs.status != rhs.status {return false}
+    if lhs.running != rhs.running {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeReply.ComposeReplyPs: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.ComposeReply.protoMessageName + ".ComposeReplyPs"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}composeName\0\u{1}services\0\u{1}success\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.composeName) }()
+      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.services) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self._reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.composeName.isEmpty {
+      try visitor.visitSingularStringField(value: self.composeName, fieldNumber: 1)
+    }
+    if !self.services.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.services, fieldNumber: 2)
+    }
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 3)
+    }
+    try { if let v = self._reason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeReply.ComposeReplyPs, rhs: Caked_Caked.ComposeReply.ComposeReplyPs) -> Bool {
+    if lhs.composeName != rhs.composeName {return false}
+    if lhs.services != rhs.services {return false}
+    if lhs.success != rhs.success {return false}
+    if lhs._reason != rhs._reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeReply.ComposeReplyList: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.ComposeReply.protoMessageName + ".ComposeReplyList"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}composeFiles\0\u{1}success\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.composeFiles) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.composeFiles.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.composeFiles, fieldNumber: 1)
+    }
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 2)
+    }
+    try { if let v = self._reason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeReply.ComposeReplyList, rhs: Caked_Caked.ComposeReply.ComposeReplyList) -> Bool {
+    if lhs.composeFiles != rhs.composeFiles {return false}
+    if lhs.success != rhs.success {return false}
+    if lhs._reason != rhs._reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.ComposeReply.ComposeReplyList.ComposeInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.ComposeReply.ComposeReplyList.protoMessageName + ".ComposeInfo"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}composeName\0\u{1}services\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.composeName) }()
+      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.services) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.composeName.isEmpty {
+      try visitor.visitSingularStringField(value: self.composeName, fieldNumber: 1)
+    }
+    if !self.services.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.services, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ComposeReply.ComposeReplyList.ComposeInfo, rhs: Caked_Caked.ComposeReply.ComposeReplyList.ComposeInfo) -> Bool {
+    if lhs.composeName != rhs.composeName {return false}
+    if lhs.services != rhs.services {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 nonisolated extension Caked_Caked.VncStream: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".VncStream"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}stream\0")
@@ -8680,7 +9689,7 @@ nonisolated extension Caked_Caked.VMRequest.ExecuteRequest.TerminalSize: SwiftPr
 
 nonisolated extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Reply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vms\0\u{1}images\0\u{1}networks\0\u{1}remotes\0\u{1}templates\0\u{1}run\0\u{1}mounts\0\u{1}oci\0\u{1}ping\0\u{1}status\0\u{1}screenSize\0\u{1}certificates\0\u{1}unexpected\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vms\0\u{1}images\0\u{1}networks\0\u{1}remotes\0\u{1}templates\0\u{1}run\0\u{1}mounts\0\u{1}oci\0\u{1}ping\0\u{1}status\0\u{1}screenSize\0\u{1}certificates\0\u{1}unexpected\0\u{1}compose\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -8852,6 +9861,19 @@ nonisolated extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._M
           self.response = .unexpected(v)
         }
       }()
+      case 14: try {
+        var v: Caked_Caked.ComposeReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .compose(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .compose(v)
+        }
+      }()
       default: break
       }
     }
@@ -8914,6 +9936,10 @@ nonisolated extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._M
     case .unexpected?: try {
       guard case .unexpected(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularStringField(value: v, fieldNumber: 13)
+    }()
+    case .compose?: try {
+      guard case .compose(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 14)
     }()
     case nil: break
     }

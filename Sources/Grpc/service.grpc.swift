@@ -210,6 +210,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     _ request: Caked_Empty,
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Empty, Caked_Caked.Reply>
+
+  func compose(
+    _ request: Caked_Caked.ComposeRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.ComposeRequest, Caked_Caked.Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -919,6 +924,24 @@ extension Caked_ServiceClientProtocol {
       interceptors: self.interceptors?.makeStopServiceInterceptors() ?? []
     )
   }
+
+  /// Compose allows for the orchestration of multiple virtual machines and services defined in a compose file.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Compose.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func compose(
+    _ request: Caked_Caked.ComposeRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.ComposeRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.compose.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeComposeInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -1170,6 +1193,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Caked_Empty,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Empty, Caked_Caked.Reply>
+
+  func makeComposeCall(
+    _ request: Caked_Caked.ComposeRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.ComposeRequest, Caked_Caked.Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1639,6 +1667,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStopServiceInterceptors() ?? []
+    )
+  }
+
+  public func makeComposeCall(
+    _ request: Caked_Caked.ComposeRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.ComposeRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.compose.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeComposeInterceptors() ?? []
     )
   }
 }
@@ -2136,6 +2176,18 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeStopServiceInterceptors() ?? []
     )
   }
+
+  public func compose(
+    _ request: Caked_Caked.ComposeRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.compose.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeComposeInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -2270,6 +2322,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'stopService'.
   func makeStopServiceInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'compose'.
+  func makeComposeInterceptors() -> [ClientInterceptor<Caked_Caked.ComposeRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -2315,6 +2370,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.checkReliability,
       Caked_ServiceClientMetadata.Methods.certificate,
       Caked_ServiceClientMetadata.Methods.stopService,
+      Caked_ServiceClientMetadata.Methods.compose,
     ]
   )
 
@@ -2546,6 +2602,12 @@ public enum Caked_ServiceClientMetadata {
       path: "/caked.Service/StopService",
       type: GRPCCallType.unary
     )
+
+    public static let compose = GRPCMethodDescriptor(
+      name: "Compose",
+      path: "/caked.Service/Compose",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -2668,6 +2730,9 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   /// StopService gracefully stops the caked daemon process.
   func stopService(request: Caked_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  /// Compose allows for the orchestration of multiple virtual machines and services defined in a compose file.
+  func compose(request: Caked_Caked.ComposeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 }
 
 extension Caked_ServiceProvider {
@@ -3024,6 +3089,15 @@ extension Caked_ServiceProvider {
         userFunction: self.stopService(request:context:)
       )
 
+    case "Compose":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.ComposeRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeComposeInterceptors() ?? [],
+        userFunction: self.compose(request:context:)
+      )
+
     default:
       return nil
     }
@@ -3269,6 +3343,12 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   /// StopService gracefully stops the caked daemon process.
   func stopService(
     request: Caked_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  /// Compose allows for the orchestration of multiple virtual machines and services defined in a compose file.
+  func compose(
+    request: Caked_Caked.ComposeRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 }
@@ -3634,6 +3714,15 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.stopService(request: $0, context: $1) }
       )
 
+    case "Compose":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.ComposeRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeComposeInterceptors() ?? [],
+        wrapping: { try await self.compose(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -3793,6 +3882,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'stopService'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeStopServiceInterceptors() -> [ServerInterceptor<Caked_Empty, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'compose'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeComposeInterceptors() -> [ServerInterceptor<Caked_Caked.ComposeRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -3838,6 +3931,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.checkReliability,
       Caked_ServiceServerMetadata.Methods.certificate,
       Caked_ServiceServerMetadata.Methods.stopService,
+      Caked_ServiceServerMetadata.Methods.compose,
     ]
   )
 
@@ -4067,6 +4161,12 @@ public enum Caked_ServiceServerMetadata {
     public static let stopService = GRPCMethodDescriptor(
       name: "StopService",
       path: "/caked.Service/StopService",
+      type: GRPCCallType.unary
+    )
+
+    public static let compose = GRPCMethodDescriptor(
+      name: "Compose",
+      path: "/caked.Service/Compose",
       type: GRPCCallType.unary
     )
   }

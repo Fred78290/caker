@@ -134,13 +134,16 @@ public typealias Caked_VncStream = Caked.VncStream
 
 public typealias Caked_CertificateRequest = Caked.CertificateRequest
 public typealias Caked_CertificateRequestCommand = Caked_CertificateRequest.CertificateCommand
-public typealias Caked_CertificateAddRequest = Caked_Caked.CertificateRequest.CertificateAddRequest
-public typealias Caked_CertificateDeleteRequest = Caked_Caked.CertificateRequest.CertificateDeleteRequest
+public typealias Caked_CertificateAddRequest = Caked_CertificateRequest.CertificateAddRequest
+public typealias Caked_CertificateDeleteRequest = Caked_CertificateRequest.CertificateDeleteRequest
 
 public typealias Caked_Certificate = Caked.Reply.CertificateReply.Certificate
-public typealias Caked_ListCertificatesReply = Caked_Caked.Reply.CertificateReply.ListCertificatesReply
+public typealias Caked_ListCertificatesReply = Caked_Reply.CertificateReply.ListCertificatesReply
 
 public typealias Caked_NetworkRequestNetworkMode = Caked_Caked.NetworkRequest.NetworkMode
+
+public typealias Caked_ComposeRequest = Caked_Caked.ComposeRequest
+public typealias Caked_ComposeReply = Caked_Caked.ComposeReply
 
 extension VirtualizedOS {
 	public init?(_ from: Caked.Configuration.VirtualizedOS) {
