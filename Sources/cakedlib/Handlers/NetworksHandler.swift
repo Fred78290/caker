@@ -1107,3 +1107,16 @@ public struct NetworksHandler {
 		}
 	}
 }
+
+extension Caked_NetworkRequestNetworkMode {
+	public init(_ from: VMNetMode) {
+		switch from {
+		case .host:
+			self = .host
+		case .shared:
+			self = .shared
+		default:
+			self = .UNRECOGNIZED(Int(from.integerValue))
+		}
+	}
+}

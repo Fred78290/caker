@@ -140,6 +140,8 @@ public typealias Caked_CertificateDeleteRequest = Caked_Caked.CertificateRequest
 public typealias Caked_Certificate = Caked.Reply.CertificateReply.Certificate
 public typealias Caked_ListCertificatesReply = Caked_Caked.Reply.CertificateReply.ListCertificatesReply
 
+public typealias Caked_NetworkRequestNetworkMode = Caked_Caked.NetworkRequest.NetworkMode
+
 extension VirtualizedOS {
 	public init?(_ from: Caked.Configuration.VirtualizedOS) {
 		switch from {
