@@ -51,14 +51,15 @@ struct ComposeUp: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		try await ComposeHandler.up(
-			compose: try loadCompose(),
-			services: services,
-			waitIPTimeout: waitIPTimeout,
-			format: common.format,
-			runMode: common.runMode,
-			output: Logger.appendNewLine
-		)
+		let composeDatabase = try Home(runMode: common.runMode).composeFileDatabase()
+		let compose = try loadCompose()
+
+		if composeDatabase.get(compose.name) == nil {
+			composeDatabase.add(compose.name, compose)
+			try composeDatabase.save()
+		}
+
+		try await self.common.format.render(CakedLib.ComposeHandler.up(compose: compose, services: services, waitIPTimeout: waitIPTimeout, runMode: common.runMode))
 	}
 
 	private func loadCompose() throws -> ComposeFile {
@@ -97,14 +98,14 @@ struct ComposeDown: ParsableCommand {
 	}
 
 	func run() throws {
-		try ComposeHandler.down(
-			compose: try loadCompose(),
-			services: services,
-			force: force,
-			format: common.format,
-			runMode: common.runMode,
-			output: Logger.appendNewLine
-		)
+		let composeDatabase = try Home(runMode: common.runMode).composeFileDatabase()
+		let compose = try loadCompose()
+
+		guard composeDatabase.get(compose.name) == nil else {
+			throw ServiceError(String(localized: "Composition is not registered"))
+		}
+
+		try self.common.format.render(CakedLib.ComposeHandler.down(compose: compose, services: services, force: force, runMode: common.runMode))
 	}
 
 	private func loadCompose() throws -> ComposeFile {
@@ -138,12 +139,14 @@ struct ComposePs: ParsableCommand {
 	}
 
 	func run() throws {
-		try ComposeHandler.ps(
-			compose: try loadCompose(),
-			services: services,
-			runMode: common.runMode,
-			output: Logger.appendNewLine
-		)
+		let composeDatabase = try Home(runMode: common.runMode).composeFileDatabase()
+		let compose = try loadCompose()
+
+		guard composeDatabase.get(compose.name) == nil else {
+			throw ServiceError(String(localized: "Composition is not registered"))
+		}
+
+		try self.common.format.render(CakedLib.ComposeHandler.ps(compose: compose, services: services, runMode: common.runMode))
 	}
 
 	private func loadCompose() throws -> ComposeFile {
@@ -187,15 +190,14 @@ struct ComposeRm: ParsableCommand {
 	}
 
 	func run() throws {
-		try ComposeHandler.rm(
-			compose: try loadCompose(),
-			services: services,
-			stop: stop,
-			force: force,
-			format: common.format,
-			runMode: common.runMode,
-			output: Logger.appendNewLine
-		)
+		let composeDatabase = try Home(runMode: common.runMode).composeFileDatabase()
+		let compose = try loadCompose()
+
+		guard composeDatabase.get(compose.name) == nil else {
+			throw ServiceError(String(localized: "Composition is not registered"))
+		}
+
+		try self.common.format.render(CakedLib.ComposeHandler.rm(compose: compose, services: services, stop: stop, force: force, runMode: common.runMode))
 	}
 
 	private func loadCompose() throws -> ComposeFile {

@@ -5,133 +5,175 @@
 //  Created by Frederic BOLTZ on 22/06/2026.
 //
 
+import CakeAgentLib
 import Foundation
 import GRPCLib
 
 public struct ComposeHandler {
 	private static let builtinNetworks: Set<String> = ["nat", "default", "host", "none"]
-
 	// MARK: - Up
 
 	/// Provisions missing compose networks then starts or creates each service in depends_on order.
 	/// `output` is called with each rendered result line as it is produced.
-	public static func up(
-		compose: ComposeFile,
-		services: [String],
-		waitIPTimeout: Int,
-		format: Format,
-		runMode: Utils.RunMode,
-		output: @escaping (String) -> Void
-	) async throws {
-		try provisionNetworks(compose: compose, format: format, runMode: runMode, output: output)
+	public static func up(compose: ComposeFile, services: [String], waitIPTimeout: Int, runMode: Utils.RunMode) async -> ComposeReplyUp {
 
-		let toStart = try compose.startOrder(filter: services)
+		do {
+			try provisionNetworks(compose: compose, runMode: runMode)
 
-		for (serviceName, serviceSpec) in toStart {
-			var buildOpts = try serviceSpec.toBuildOptions(name: serviceName)
-			try buildOpts.validate(remote: false)
+			let toStart = try compose.startOrder(filter: services)
 
-			let storage = StorageLocation(runMode: runMode)
+			for (serviceName, serviceSpec) in toStart {
+				var buildOpts = try serviceSpec.toBuildOptions(name: serviceName)
+				try buildOpts.validate(remote: false)
 
-			if storage.exists(serviceName) {
-				let location = try storage.find(serviceName)
-				let reply = StartHandler.startVM(
-					location: location,
-					screenSize: nil,
-					vncPassword: nil,
-					vncPort: nil,
-					waitIPTimeout: waitIPTimeout,
-					startMode: .background,
-					gcd: false,
-					recoveryMode: false,
-					runMode: runMode
-				)
-				output(format.render(reply))
-			} else {
-				let reply = await LaunchHandler.buildAndLaunchVM(
-					runMode: runMode,
-					options: buildOpts,
-					waitIPTimeout: waitIPTimeout,
-					startMode: .background,
-					gcd: false,
-					recoveryMode: false,
-					progressHandler: ProgressObserver.progressHandler
-				)
-				output(format.render(reply))
+				let storage = StorageLocation(runMode: runMode)
+
+				if storage.exists(serviceName) {
+					let location = try storage.find(serviceName)
+					let reply = StartHandler.startVM(
+						location: location,
+						screenSize: nil,
+						vncPassword: nil,
+						vncPort: nil,
+						waitIPTimeout: waitIPTimeout,
+						startMode: .background,
+						gcd: false,
+						recoveryMode: false,
+						runMode: runMode
+					)
+
+					if Logger.LoggingLevel() > .info {
+						print(Format.text.render(reply))
+					}
+
+					if reply.started == false {
+						return ComposeReplyUp(name: serviceName, success: false, reason: reply.reason)
+					}
+				} else {
+					let reply = await LaunchHandler.buildAndLaunchVM(
+						runMode: runMode,
+						options: buildOpts,
+						waitIPTimeout: waitIPTimeout,
+						startMode: .background,
+						gcd: false,
+						recoveryMode: false,
+						progressHandler: ProgressObserver.progressHandler
+					)
+
+					if Logger.LoggingLevel() > .info {
+						print(Format.text.render(reply))
+					}
+
+					if reply.launched == false {
+						return ComposeReplyUp(name: serviceName, success: false, reason: reply.reason)
+					}
+				}
 			}
+			return ComposeReplyUp(name: compose.name, success: true, reason: "")
+		} catch {
+			return ComposeReplyUp(name: compose.name, success: false, reason: error.reason)
 		}
 	}
 
 	// MARK: - Down
 
 	/// Stops services in reverse depends_on order.
-	public static func down(
-		compose: ComposeFile,
-		services: [String],
-		force: Bool,
-		format: Format,
-		runMode: Utils.RunMode,
-		output: (String) -> Void
-	) throws {
-		let toStop = try compose.downOrder(filter: services)
-		for (serviceName, _) in toStop {
-			let reply = StopHandler.stopVM(name: serviceName, force: force, runMode: runMode)
-			output(format.render([reply]))
+	public static func down(compose: ComposeFile, services: [String], force: Bool, runMode: Utils.RunMode) -> ComposeReplyDown {
+		do {
+			let toStop = try compose.downOrder(filter: services)
+
+			for (serviceName, _) in toStop {
+				let reply = StopHandler.stopVM(name: serviceName, force: force, runMode: runMode)
+
+				if Logger.LoggingLevel() > .info {
+					print(Format.text.render(reply))
+				}
+			}
+
+			return ComposeReplyDown(name: compose.name, success: true, reason: "")
+		} catch {
+			return ComposeReplyDown(name: compose.name, success: false, reason: error.reason)
 		}
 	}
 
 	// MARK: - Ps
 
 	/// Lists provisioned status of each service (tab-separated: name, status, image).
-	public static func ps(
-		compose: ComposeFile,
-		services: [String],
-		runMode: Utils.RunMode,
-		output: (String) -> Void
-	) throws {
+	public static func ps(compose: ComposeFile, services: [String], runMode: Utils.RunMode) -> ComposeReplyPs {
 		let resolved = compose.resolvedServices(filter: services)
 		let storage = StorageLocation(runMode: runMode)
+		var serviceInfos: [ComposeServiceInfo] = []
+
 		for (serviceName, svc) in resolved {
-			let status = storage.exists(serviceName) ? "provisioned" : "not found"
 			let image = svc.image ?? "-"
-			output("\(serviceName)\t\(status)\t\(image)")
+
+			if let location = try? storage.find(serviceName) {
+				serviceInfos.append(ComposeServiceInfo(name: serviceName, image: image, status: "provisioned", running: location.status.isRunning))
+			} else {
+				serviceInfos.append(ComposeServiceInfo(name: serviceName, image: image, status: "not found", running: false))
+			}
 		}
+
+		return ComposeReplyPs(name: compose.name, services: serviceInfos, success: true, reason: "")
 	}
 
 	// MARK: - Rm
 
 	/// Removes services in reverse depends_on order, optionally stopping them first.
-	public static func rm(
-		compose: ComposeFile,
-		services: [String],
-		stop: Bool,
-		force: Bool,
-		format: Format,
-		runMode: Utils.RunMode,
-		output: (String) -> Void
-	) throws {
-		let toRemove = try compose.downOrder(filter: services)
-		for (serviceName, _) in toRemove {
-			if stop {
-				_ = StopHandler.stopVM(name: serviceName, force: true, runMode: runMode)
+	public static func rm(compose: ComposeFile, services: [String], stop: Bool, force: Bool, runMode: Utils.RunMode) -> ComposeReplyDelete {
+		do {
+			let toRemove = try compose.downOrder(filter: services)
+
+			for (serviceName, _) in toRemove {
+				if stop {
+					_ = StopHandler.stopVM(name: serviceName, force: force, runMode: runMode)
+				}
+				let result = DeleteHandler.delete(all: false, names: [serviceName], runMode: runMode)
+
+				if Logger.LoggingLevel() > .info {
+					print(Format.text.render(result.objects))
+				}
+
+				if result.success == false {
+					return ComposeReplyDelete(name: serviceName, success: false, reason: result.reason)
+				}
 			}
-			let result = DeleteHandler.delete(all: false, names: [serviceName], runMode: runMode)
-			if result.success {
-				output(format.render(result.objects))
-			} else if !force {
-				output(format.render(result.reason))
-			}
+		} catch {
+			return ComposeReplyDelete(name: compose.name, success: false, reason: error.reason)
 		}
+
+		return ComposeReplyDelete(name: compose.name, success: true, reason: "")
+	}
+
+	// MARK: - List
+	public static func list(database: ComposeFileDatabase, runMode: Utils.RunMode) -> ComposeReplyList {
+		let storage = StorageLocation(runMode: runMode)
+		var composeFiles: [ComposeReplyList.ComposeInfo] = []
+
+		// Assuming database.files is a dictionary-like collection: [String: ComposeFile]
+		for (fileName, app) in database.files {
+			var services: [ComposeServiceInfo] = []
+
+			// Assuming app.services is a dictionary-like collection: [String: ComposeFile]
+			for (serviceName, compose) in app.services {
+				let image = compose.image ?? "-"
+
+				if let location = try? storage.find(serviceName) {
+					services.append(ComposeServiceInfo(name: serviceName, image: image, status: "provisioned", running: location.status.isRunning))
+				} else {
+					services.append(ComposeServiceInfo(name: serviceName, image: image, status: "not found", running: false))
+				}
+			}
+
+			composeFiles.append(ComposeReplyList.ComposeInfo(name: fileName, services: services))
+		}
+
+		return ComposeReplyList(composeFiles: composeFiles, success: true, reason: "")
 	}
 
 	// MARK: - Private
 
-	private static func provisionNetworks(
-		compose: ComposeFile,
-		format: Format,
-		runMode: Utils.RunMode,
-		output: (String) -> Void
-	) throws {
+	private static func provisionNetworks(compose: ComposeFile, runMode: Utils.RunMode) throws {
 		guard let composeNetworks = compose.networks else { return }
 
 		let home = try Home(runMode: runMode)
@@ -150,7 +192,10 @@ public struct ComposeHandler {
 			let network = networkConfig.composeNetworkSubnet(name: networkName)
 			try network.validate(runMode: runMode)
 			let result = NetworksHandler.create(networkName: networkName, network: network, runMode: runMode)
-			output(format.render(result))
+
+			if result.created == false {
+				throw ServiceError(result.reason)
+			}
 		}
 	}
 }

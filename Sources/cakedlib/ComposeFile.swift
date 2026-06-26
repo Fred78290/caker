@@ -10,6 +10,56 @@ import GRPCLib
 import CakeAgentLib
 import Yams
 
+public class ComposeFileDatabase {
+	public var files: [String: ComposeFile] = [:]
+	public let url: URL
+	public let lock: FileLock
+	public var names: [String] {
+		return self.files.keys.compactMap { $0 }
+	}
+
+	deinit {
+		try? self.lock.unlock()
+	}
+
+	init(_ url: URL) throws {
+		self.url = url
+
+		if try self.url.exists() == false {
+			try files.write(to: self.url)
+		} else {
+			self.files = try Dictionary(contentsOf: url)
+		}
+
+		self.lock = try FileLock(lockURL: url)
+		try self.lock.lock()
+	}
+
+	public func add(_ key: String, _ value: ComposeFile) {
+		self.files[key] = value
+	}
+
+	public func get(_ key: String) -> ComposeFile? {
+		guard key.isEmpty == false else {
+			return nil
+		}
+
+		return self.files[key]
+	}
+
+	@inlinable public func map<T>(_ transform: ((key: String, value: ComposeFile)) throws -> T) throws -> [T] {
+		return try self.files.map(transform)
+	}
+
+	@discardableResult public func remove(_ key: String) -> Bool {
+		return self.files.removeValue(forKey: key) != nil
+	}
+
+	public func save() throws {
+		try self.files.write(to: self.url)
+	}
+}
+
 // MARK: - Polymorphic helpers
 
 /// `depends_on` — either a plain list or a condition map.
@@ -325,11 +375,13 @@ public struct ComposeFile: Codable {
 	public static let filename = "compose.yml"
 	public static let legacyFilenames = ["compose.yaml", "docker-compose.yml", "docker-compose.yaml"]
 
+	public var name: String
 	public var version: String?
 	public var services: [String: ComposeService] = [:]
 	public var networks: [String: ComposeNetwork?]?
 
-	public init(services: [String: ComposeService] = [:]) {
+	public init(name: String, services: [String: ComposeService] = [:]) {
+		self.name = name
 		self.services = services
 	}
 
@@ -401,58 +453,58 @@ public struct ComposeFile: Codable {
 	// MARK: Template
 
 	public static var template: String {
-		"""
-		# compose.yml — Caker multi-VM environment (docker compose compatible)
-		# Run `cakectl compose up` to start all services in depends_on order.
-		# Run `cakectl compose down` to stop them in reverse order.
-		# Run `cakectl compose ps` to show their status.
-		# Run `cakectl compose init` to regenerate this file.
+"""
+# compose.yml — Caker multi-VM environment (docker compose compatible)
+# Run `cakectl compose up` to start all services in depends_on order.
+# Run `cakectl compose down` to stop them in reverse order.
+# Run `cakectl compose ps` to show their status.
+# Run `cakectl compose init` to regenerate this file.
+name: template
+services:
+  app:
+	image: ubuntu:24.04
+	ports:
+	  - "3000:3000"
+	# sockets:
+	#   - "/tmp/docker.sock:/var/run/docker.sock"
+	#   - "/tmp/host.sock:/tmp/guest.sock/udp"
+	volumes:
+	  - ".:/workspace"
+	environment:
+	  - NODE_ENV=production
+	networks:
+	  - default
+	deploy:
+	  resources:
+		limits:
+		  cpus: "2"
+		  memory: 2048M
+	# Caker VM extensions:
+	disk: 20          # GiB
+	user: ubuntu
+	password: ubuntu
 
-		services:
-		  app:
-		    image: ubuntu:24.04
-		    ports:
-		      - "3000:3000"
-		    # sockets:
-		    #   - "/tmp/docker.sock:/var/run/docker.sock"
-		    #   - "/tmp/host.sock:/tmp/guest.sock/udp"
-		    volumes:
-		      - ".:/workspace"
-		    environment:
-		      - NODE_ENV=production
-		    networks:
-		      - default
-		    deploy:
-		      resources:
-		        limits:
-		          cpus: "2"
-		          memory: 2048M
-		    # Caker VM extensions:
-		    disk: 20          # GiB
-		    user: ubuntu
-		    password: ubuntu
+  database:
+	image: ubuntu:24.04
+	environment:
+	  POSTGRES_PASSWORD: secret
+	  POSTGRES_DB: myapp
+	networks:
+	  - default
+	deploy:
+	  resources:
+		limits:
+		  cpus: "2"
+		  memory: 4096M
+	disk: 40
+	user: ubuntu
+	password: ubuntu
+	depends_on:
+	  - app
 
-		  database:
-		    image: ubuntu:24.04
-		    environment:
-		      POSTGRES_PASSWORD: secret
-		      POSTGRES_DB: myapp
-		    networks:
-		      - default
-		    deploy:
-		      resources:
-		        limits:
-		          cpus: "2"
-		          memory: 4096M
-		    disk: 40
-		    user: ubuntu
-		    password: ubuntu
-		    depends_on:
-		      - app
-
-		networks:
-		  default:
-		    driver: bridge
-		"""
+networks:
+  default:
+	driver: bridge
+"""
 	}
 }

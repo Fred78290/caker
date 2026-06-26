@@ -79,6 +79,7 @@ public struct Home {
 	public let agentDirectory: URL
 	public let temporaryDirectory: URL
 	public let remoteDb: URL
+	public let composeFileDb: URL
 	public let sshPrivateKey: URL
 	public let sshPublicKey: URL
 	public let contentStoreURL: URL
@@ -95,6 +96,7 @@ public struct Home {
 		self.agentPID = self.agentDirectory.appendingPathComponent("agent.pid", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.temporaryDirectory = self.cakeHomeDirectory.appendingPathComponent("tmp", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.remoteDb = self.cakeHomeDirectory.appendingPathComponent("remote.json", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
+		self.composeFileDb = self.cakeHomeDirectory.appendingPathComponent("compose.json", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.contentStoreURL = self.cacheDirectory.appendingPathComponent("oci/storage")
 		self.imageStoreURL = cacheDirectory.appendingPathComponent("oci")
 
@@ -120,6 +122,11 @@ public struct Home {
 			if try self.remoteDb.exists() == false {
 				try defaultRemotes.write(to: self.remoteDb)
 			}
+		}
+
+		if try self.composeFileDb.exists() == false {
+			let defaultComposeFiles: [String: ComposeFileDatabase] = [:]
+			try defaultComposeFiles.write(to: self.composeFileDb)
 		}
 
 		if try self.agentDirectory.exists() == false && createItIfNotExists {
@@ -157,6 +164,10 @@ public struct Home {
 
 	public func remoteDatabase() throws -> RemoteDatabase {
 		return try RemoteDatabase(self.remoteDb)
+	}
+
+	public func composeFileDatabase() throws -> ComposeFileDatabase {
+		return try ComposeFileDatabase(self.composeFileDb)
 	}
 
 	public func getSharedPublicKey() throws -> String {

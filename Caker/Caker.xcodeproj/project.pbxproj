@@ -384,6 +384,9 @@
 		9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */; };
 		9BDA14BF2EEAC18900357544 /* VirtualMachineInformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA14BE2EEAC17F00357544 /* VirtualMachineInformations.swift */; };
 		9BDBAC2D2E15618000215DF5 /* MemorySizeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */; };
+		9BDBCAAF2FEEB8FF007241E2 /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBCAAE2FEEB8FF007241E2 /* ComposeHandler.swift */; };
+		9BDBCB092FEEBF5D007241E2 /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBCB082FEEBF5A007241E2 /* ComposeHandler.swift */; };
+		9BDBCB0B2FEEC246007241E2 /* Compose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBCB0A2FEEC242007241E2 /* Compose.swift */; };
 		9BDC00FF2FEAB3B800802A3C /* MountPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC00FE2FEAB3B800802A3C /* MountPoint.swift */; };
 		9BDC05902FEADB3300802A3C /* ImportVMwareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC058F2FEADB3300802A3C /* ImportVMwareView.swift */; };
 		9BDC05912FEADB3300802A3C /* ImportMultipassView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC058E2FEADB3300802A3C /* ImportMultipassView.swift */; };
@@ -1166,6 +1169,9 @@
 		9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonKeyMapper.swift; sourceTree = "<group>"; };
 		9BDA14BE2EEAC17F00357544 /* VirtualMachineInformations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineInformations.swift; sourceTree = "<group>"; };
 		9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySizeStyle.swift; sourceTree = "<group>"; };
+		9BDBCAAE2FEEB8FF007241E2 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
+		9BDBCB082FEEBF5A007241E2 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
+		9BDBCB0A2FEEC242007241E2 /* Compose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compose.swift; sourceTree = "<group>"; };
 		9BDC00FE2FEAB3B800802A3C /* MountPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountPoint.swift; sourceTree = "<group>"; };
 		9BDC058E2FEADB3300802A3C /* ImportMultipassView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMultipassView.swift; sourceTree = "<group>"; };
 		9BDC058F2FEADB3300802A3C /* ImportVMwareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportVMwareView.swift; sourceTree = "<group>"; };
@@ -1651,6 +1657,7 @@
 		9B27840E2FB37A83001F2B6A /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				9BDBCB0A2FEEC242007241E2 /* Compose.swift */,
 				9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */,
 				9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */,
 				9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */,
@@ -2308,6 +2315,7 @@
 		9BEBC6C92DF4400A0092B196 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				9BDBCB082FEEBF5A007241E2 /* ComposeHandler.swift */,
 				9BEBC6B22DF4400A0092B196 /* BuildHandler.swift */,
 				9B18351B2FAE58B500D150FD /* CertificateHandler.swift */,
 				9BEBC6B42DF4400A0092B196 /* ConfigureHandler.swift */,
@@ -2375,6 +2383,7 @@
 			isa = PBXGroup;
 			children = (
 				9BEBC7162DF440720092B196 /* BuildHandler.swift */,
+				9BDBCAAE2FEEB8FF007241E2 /* ComposeHandler.swift */,
 				9BEBC7182DF440720092B196 /* ConfigureHandler.swift */,
 				9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */,
 				9BEBC7192DF440720092B196 /* DeleteHandler.swift */,
@@ -3020,7 +3029,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2650;
+				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					9B464A532D5A3DA000164BF5 = {
 						CreatedOnToolsVersion = 16.2;
@@ -3487,6 +3496,7 @@
 				9B2784162FB37A83001F2B6A /* Mounts.swift in Sources */,
 				9B2784172FB37A83001F2B6A /* Registry.swift in Sources */,
 				9B2784182FB37A83001F2B6A /* RemoteEntry.swift in Sources */,
+				9BDBCB0B2FEEC246007241E2 /* Compose.swift in Sources */,
 				9B2784192FB37A83001F2B6A /* SocketDevice.swift in Sources */,
 				9B27841A2FB37A83001F2B6A /* Templates.swift in Sources */,
 				9B27841B2FB37A83001F2B6A /* TunnelAttachement.swift in Sources */,
@@ -3533,6 +3543,7 @@
 				9B6031392FAD105700055543 /* LXDIdentitiesController.swift in Sources */,
 				9B60313A2FAD105700055543 /* LXDAuthGroupsController.swift in Sources */,
 				9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */,
+				9BDBCB092FEEBF5D007241E2 /* ComposeHandler.swift in Sources */,
 				9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC6D22DF4400A0092B196 /* RemoteHandler.swift in Sources */,
 				9BEBC6D32DF4400A0092B196 /* LogoutHandler.swift in Sources */,
@@ -3700,6 +3711,7 @@
 				9BEBC7A42DF440720092B196 /* ImageCache.swift in Sources */,
 				9BEBC7A52DF440720092B196 /* RemoteHandler.swift in Sources */,
 				9BEBC7A62DF440720092B196 /* StartHandler.swift in Sources */,
+				9BDBCAAF2FEEB8FF007241E2 /* ComposeHandler.swift in Sources */,
 				9B5C3F3C2F89666C005651BF /* Entitlement.swift in Sources */,
 				9B5F49C02F70032800AE1991 /* LabelView.swift in Sources */,
 				9B09566D2FDDC7C40027FF96 /* SpawnHandler.swift in Sources */,
