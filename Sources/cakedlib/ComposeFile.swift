@@ -207,38 +207,36 @@ public struct ComposeService: Codable {
 
 	/// Convert to `BuildOptions`. Environment variables are injected via cloud-init.
 	public func toBuildOptions(name: String) throws -> BuildOptions {
-		var opts = BuildOptions()
-		opts.name = name
-		opts.image = image ?? defaultUbuntuImage
-		opts.user = user ?? "ubuntu"
-		opts.password = password
-		opts.autostart = autostart ?? false
-		opts.nested = nested ?? false
-		opts.diskSize = disk ?? 10
-
-		if let cpuStr = deploy?.resources?.limits?.cpus, let cpuDouble = Double(cpuStr) {
-			opts.cpu = UInt16(max(1, cpuDouble))
-		} else {
-			opts.cpu = 2
-		}
-
-		if let memStr = deploy?.resources?.limits?.memory {
-			opts.memory = parseMemoryMB(memStr) ?? 2048
-		} else {
-			opts.memory = 2048
-		}
-
+		let memoryMB = parseMemoryMB(deploy?.resources?.limits?.memory ?? "") ?? 2048
 		var tunnels: [TunnelAttachement] = ports?.compactMap { $0.portString }.compactMap { TunnelAttachement(argument: $0) } ?? []
-		tunnels += sockets?.compactMap { parseUnixSocketTunnel($0) } ?? []
-		opts.forwardedPorts = tunnels
+		var mounts: [DirectorySharingAttachment] = []
+		var ethernets: [BridgeAttachement] = []
+
+		if let sockets {
+			tunnels += sockets.compactMap { parseUnixSocketTunnel($0) }
+		}
 
 		if let volumes {
-			opts.mounts = try volumes.compactMap { $0.mountString }.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
+			mounts = try volumes.compactMap { $0.mountString }.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
 		}
 
 		if let networks {
-			opts.networks = try networks.compactMap { try BridgeAttachement(parseFrom: $0) }
+			ethernets = try networks.compactMap { try BridgeAttachement(parseFrom: $0) }
 		}
+
+		var opts = BuildOptions(
+			name: name,
+			// use Double literals to avoid type-inference/parsing ambiguity
+			cpu: UInt16(max(1.0, Double(deploy?.resources?.limits?.cpus ?? "2") ?? 2.0)),
+			memory: memoryMB,
+			diskSize: disk ?? 10,
+			autostart: autostart ?? false,
+			nested: nested ?? false,
+			image: image ?? defaultUbuntuImage,
+			forwardedPorts: tunnels,
+			mounts: mounts,
+			networks: ethernets
+		)
 
 		if let env = environment {
 			let envLines = env.lines
