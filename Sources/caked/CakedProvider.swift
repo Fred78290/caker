@@ -275,7 +275,7 @@ extension Caked_ComposeRequest: CreateCakedCommand {
 		case .delete(let request):
 			return ComposeHandler.Delete(request: request)
 		case .none:
-			throw ServiceError(String(localized: "Unkonw compose command"))
+			throw ServiceError(String(localized: "Unknown compose command"))
 		}
 	}
 }
