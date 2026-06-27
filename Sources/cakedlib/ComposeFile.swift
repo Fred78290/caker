@@ -491,26 +491,26 @@ services:
     password: ubuntu
 
   database:
-	image: ubuntu:24.04
-	environment:
-	  POSTGRES_PASSWORD: secret
-	  POSTGRES_DB: myapp
-	networks:
-	  - default
-	deploy:
-	  resources:
-		limits:
-		  cpus: "2"
-		  memory: 4096M
-	disk: 40
-	user: ubuntu
-	password: ubuntu
-	depends_on:
-	  - app
+    image: ubuntu:24.04
+    environment:
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: myapp
+    networks:
+      - default
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4096M
+    disk: 40
+    user: ubuntu
+    password: ubuntu
+    depends_on:
+      - app
 
 networks:
   default:
-	driver: bridge
+    driver: bridge
 """
 	}
 }
