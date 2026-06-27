@@ -122,11 +122,11 @@ public struct Home {
 			if try self.remoteDb.exists() == false {
 				try defaultRemotes.write(to: self.remoteDb)
 			}
-		}
 
-		if try self.composeFileDb.exists() == false {
-			let defaultComposeFiles: [String: ComposeFileDatabase] = [:]
-			try defaultComposeFiles.write(to: self.composeFileDb)
+			if try self.composeFileDb.exists() == false {
+				let defaultComposeFiles: [String: ComposeFileDatabase.ComposeFileStatus] = [:]
+				try defaultComposeFiles.write(to: self.composeFileDb)
+			}
 		}
 
 		if try self.agentDirectory.exists() == false && createItIfNotExists {

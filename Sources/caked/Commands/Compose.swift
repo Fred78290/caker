@@ -68,7 +68,9 @@ struct ComposeUp: AsyncParsableCommand {
 
 		let reply = await CakedLib.ComposeHandler.up(compose: &composeStatus, services: services, waitIPTimeout: waitIPTimeout, runMode: common.runMode)
 
-		if reply.success {
+		// Persist whatever was successfully launched, even on partial failure, so the
+		// next `compose up` doesn't attempt to re-create already-existing VMs.
+		if reply.success || composeStatus.installed.isEmpty == false {
 			composeFileDatabase.applications[compose.name] = composeStatus
 			try composeFileDatabase.save()
 		}
@@ -213,10 +215,14 @@ struct ComposeRm: ParsableCommand {
 
 		let reply = CakedLib.ComposeHandler.rm(compose: &compose, services: services, stop: stop, force: force, runMode: common.runMode)
 
-		if reply.success {
+		// Persist partial deletions even on failure. If all tracked services are gone,
+		// remove the app entry; otherwise update it with the remaining installed set.
+		if compose.installed.isEmpty {
 			composeFileDatabase.remove(appName)
-			try composeFileDatabase.save()
+		} else {
+			composeFileDatabase.applications[appName] = compose
 		}
+		try composeFileDatabase.save()
 
 		Logger.appendNewLine(self.common.format.render(reply))
 	}

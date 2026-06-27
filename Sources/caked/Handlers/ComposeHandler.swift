@@ -193,12 +193,16 @@ struct ComposeHandler {
 					return replyError(error: ServiceError(String(localized: "compose \(request.name) not found")))
 				}
 
-				let reply = CakedLib.ComposeHandler.rm(compose: &compose, services: [], stop: request.stop, force: request.force, runMode: runMode)
+				let reply = CakedLib.ComposeHandler.rm(compose: &compose, services: request.services, stop: request.stop, force: request.force, runMode: runMode)
 
-				if reply.success {
+				// Persist whatever was successfully removed, even on partial failure.
+				// If all tracked services are gone, remove the app entry entirely.
+				if compose.installed.isEmpty {
 					composeFileDatabase.remove(request.name)
-					try composeFileDatabase.save()
+				} else {
+					composeFileDatabase.applications[request.name] = compose
 				}
+				try composeFileDatabase.save()
 
 				return .with {
 					$0.compose = .with {

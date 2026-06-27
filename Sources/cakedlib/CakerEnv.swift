@@ -184,6 +184,7 @@ public struct CakerEnv: Codable {
 		let entries = try resolvedVMs(nameOverride: nameOverride, filter: filter)
 		guard !entries.isEmpty else { return [] }
 
+		let entrySet = Set(entries.map { $0.name })
 		var result: [(name: String, vm: CakerEnvVM)] = []
 		var visited = Set<String>()
 		var visiting = Set<String>()
@@ -198,7 +199,11 @@ public struct CakerEnv: Codable {
 				guard let depSpec = vms?[dep] else {
 					throw ServiceError(String(localized: "'\(vmName)' depends on '\(dep)' which is not defined in \(CakerEnv.filename)"))
 				}
-				try visit(dep, depSpec)
+				// Only follow transitive deps that are in the requested set to avoid
+				// stopping/starting VMs the caller did not ask for.
+				if entrySet.contains(dep) {
+					try visit(dep, depSpec)
+				}
 			}
 			visiting.remove(vmName)
 			visited.insert(vmName)

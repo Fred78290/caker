@@ -40,14 +40,18 @@ public class ComposeFileDatabase {
 	init(_ url: URL) throws {
 		self.url = url
 
-		if try self.url.exists() == false {
-			try applications.write(to: self.url)
-		} else {
-			self.applications = try Dictionary(contentsOf: url)
+		// Ensure the file exists so FileLock can open it
+		if try url.exists() == false {
+			try ([String: ComposeFileStatus]()).write(to: url)
 		}
 
+		// Acquire lock BEFORE reading to close the TOCTOU window, then release
+		// immediately so long-running callers (e.g. compose up) don't block other
+		// compose commands for the duration of the VM build.
 		self.lock = try FileLock(lockURL: url)
 		try self.lock.lock()
+		self.applications = try Dictionary(contentsOf: url)
+		try self.lock.unlock()
 	}
 
 	public func add(_ key: String, _ value: ComposeFileStatus) {
@@ -71,6 +75,8 @@ public class ComposeFileDatabase {
 	}
 
 	public func save() throws {
+		try self.lock.lock()
+		defer { try? self.lock.unlock() }
 		try self.applications.write(to: self.url)
 	}
 }
@@ -467,11 +473,12 @@ public struct ComposeFile: Codable {
 	/// Services sorted by `depends_on` (topological order). Throws on cycles or missing deps.
 	public func startOrder(filter: [String] = []) throws -> [(name: String, service: ComposeService)] {
 		let entries = try resolvedServices(filter: filter)
-		
+
 		guard entries.isEmpty == false else {
 			return []
 		}
 
+		let entrySet = Set(entries.map { $0.name })
 		var result: [(name: String, service: ComposeService)] = []
 		var visited = Set<String>()
 		var visiting = Set<String>()
@@ -492,7 +499,11 @@ public struct ComposeFile: Codable {
 					throw ServiceError(String(localized: "'\(n)' depends_on '\(dep)' which is not defined"))
 				}
 
-				try visit(dep, depSvc)
+				// Only follow transitive deps that are in the requested set to avoid
+				// stopping/starting services the caller did not ask for.
+				if entrySet.contains(dep) {
+					try visit(dep, depSvc)
+				}
 			}
 
 			visiting.remove(n)
