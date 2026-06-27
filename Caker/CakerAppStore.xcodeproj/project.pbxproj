@@ -324,6 +324,9 @@
 		9B9DCD8A2F6FFF4B00E07852 /* AboutApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCD892F6FFF4900E07852 /* AboutApplication.swift */; };
 		9B9DCDEF2F70006D00E07852 /* CI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCDED2F70006D00E07852 /* CI.swift */; };
 		9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */; };
+		9B9DF6122FEFDA85006FAE72 /* Compose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DF6112FEFDA85006FAE72 /* Compose.swift */; };
+		9B9DF6142FEFDBD2006FAE72 /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DF6132FEFDBD2006FAE72 /* ComposeHandler.swift */; };
+		9B9DF6162FEFDCF8006FAE72 /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DF6152FEFDCF8006FAE72 /* ComposeHandler.swift */; };
 		9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */; };
 		9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */; };
 		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
@@ -1085,6 +1088,9 @@
 		9B9DCDED2F70006D00E07852 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9B9DCED32F572202007EEACC /* InfosHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfosHandler.swift; sourceTree = "<group>"; };
 		9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentHelper.swift; sourceTree = "<group>"; };
+		9B9DF6112FEFDA85006FAE72 /* Compose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compose.swift; sourceTree = "<group>"; };
+		9B9DF6132FEFDBD2006FAE72 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
+		9B9DF6152FEFDCF8006FAE72 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
 		9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibInflateStream.swift; sourceTree = "<group>"; };
 		9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibStream.swift; sourceTree = "<group>"; };
 		9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibDeflateStream.swift; sourceTree = "<group>"; };
@@ -1667,6 +1673,7 @@
 				9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */,
 				9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */,
 				9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */,
+				9B9DF6112FEFDA85006FAE72 /* Compose.swift */,
 				9B2784012FB37A83001F2B6A /* ConsoleAttachment.swift */,
 				9B2784022FB37A83001F2B6A /* DirectorySharingAttachement.swift */,
 				9B2784032FB37A83001F2B6A /* DiskAttachement.swift */,
@@ -2324,6 +2331,7 @@
 			children = (
 				9BEBC6B22DF4400A0092B196 /* BuildHandler.swift */,
 				9B18351B2FAE58B500D150FD /* CertificateHandler.swift */,
+				9B9DF6152FEFDCF8006FAE72 /* ComposeHandler.swift */,
 				9BEBC6B42DF4400A0092B196 /* ConfigureHandler.swift */,
 				9BBF79BC2F3DD73500F37D2C /* CurrentStatusHandler.swift */,
 				9BEBC6B52DF4400A0092B196 /* DeleteHandler.swift */,
@@ -2389,6 +2397,7 @@
 			isa = PBXGroup;
 			children = (
 				9BEBC7162DF440720092B196 /* BuildHandler.swift */,
+				9B9DF6132FEFDBD2006FAE72 /* ComposeHandler.swift */,
 				9BEBC7182DF440720092B196 /* ConfigureHandler.swift */,
 				9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */,
 				9BEBC7192DF440720092B196 /* DeleteHandler.swift */,
@@ -3524,6 +3533,7 @@
 				9B2784162FB37A83001F2B6A /* Mounts.swift in Sources */,
 				9B2784172FB37A83001F2B6A /* Registry.swift in Sources */,
 				9B2784182FB37A83001F2B6A /* RemoteEntry.swift in Sources */,
+				9B9DF6122FEFDA85006FAE72 /* Compose.swift in Sources */,
 				9B2784192FB37A83001F2B6A /* SocketDevice.swift in Sources */,
 				9B27841A2FB37A83001F2B6A /* Templates.swift in Sources */,
 				9B27841B2FB37A83001F2B6A /* TunnelAttachement.swift in Sources */,
@@ -3570,6 +3580,7 @@
 				9B6031392FAD105700055543 /* LXDIdentitiesController.swift in Sources */,
 				9B60313A2FAD105700055543 /* LXDAuthGroupsController.swift in Sources */,
 				9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */,
+				9B9DF6162FEFDCF8006FAE72 /* ComposeHandler.swift in Sources */,
 				9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC6D22DF4400A0092B196 /* RemoteHandler.swift in Sources */,
 				9BEBC6D32DF4400A0092B196 /* LogoutHandler.swift in Sources */,
@@ -3737,6 +3748,7 @@
 				9BEBC79D2DF440720092B196 /* VZVMNetFileHandle.swift in Sources */,
 				9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */,
 				9BEBC79F2DF440720092B196 /* ProcessWithSharedFileHandle.swift in Sources */,
+				9B9DF6142FEFDBD2006FAE72 /* ComposeHandler.swift in Sources */,
 				9BEBC7A12DF440720092B196 /* BuildHandler.swift in Sources */,
 				9BEBC7A22DF440720092B196 /* SimpleStreams.swift in Sources */,
 				9BEBC7A32DF440720092B196 /* NetworksHandler.swift in Sources */,
@@ -4437,10 +4449,12 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = LE7988HTRN;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readwrite;
 				ENABLE_HARDENED_RUNTIME = YES;
