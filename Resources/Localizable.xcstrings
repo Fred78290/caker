@@ -99,6 +99,17 @@
         }
       }
     },
+    "'%@' depends on '%@' which is not defined in %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%1$@' dépend de '%2$@' qui n'est pas défini dans %3$@"
+          }
+        }
+      }
+    },
     "'%@' depends_on '%@' which is not defined" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -482,6 +493,17 @@
         }
       }
     },
+    "a CA certificate is required when TLS is enabled without a password" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "un certificat CA est requis lorsque TLS est activé sans mot de passe"
+          }
+        }
+      }
+    },
     "A key, or a key-value pair. The key specifies a path to the setting to configure.\nThe value is its intended value. If only the key is given, the value will be prompted for." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -510,6 +532,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "À propos de Caker"
+          }
+        }
+      }
+    },
+    "Access date not available for: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date d'accès non disponible pour : %@"
           }
         }
       }
@@ -760,6 +793,17 @@
         }
       }
     },
+    "Allow empty password" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autoriser un mot de passe vide"
+          }
+        }
+      }
+    },
     "Allow password authentication for SSH" : {
       "localizations" : {
         "fr" : {
@@ -798,6 +842,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permettre d'utiliser la redirection de port dynamique, la valeur par défaut est false"
+          }
+        }
+      }
+    },
+    "Allows LXD to connect to this host" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permet à LXD de se connecter à cet hôte"
           }
         }
       }
@@ -896,6 +951,17 @@
         }
       }
     },
+    "arg" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "arg"
+          }
+        }
+      }
+    },
     "Arguments" : {
       "comment" : "Title of the help section that lists positional arguments.",
       "extractionState" : "manual",
@@ -946,6 +1012,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Attacher des block devices avant macOS 14"
+          }
+        }
+      }
+    },
+    "Attaching block devices requires macOS 14 or later" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'attachement de périphériques blocs nécessite macOS 14 ou version ultérieure"
           }
         }
       }
@@ -1295,6 +1372,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "avec cache"
+          }
+        }
+      }
+    },
+    "Cake home path" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin d'accueil de Caker"
           }
         }
       }
@@ -2071,6 +2159,39 @@
         }
       }
     },
+    "compose %@ not found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "compose %@ introuvable"
+          }
+        }
+      }
+    },
+    "compose name must not be empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "le nom de compose ne doit pas être vide"
+          }
+        }
+      }
+    },
+    "Composition is not registered" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La composition n'est pas enregistrée"
+          }
+        }
+      }
+    },
     "compress error" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2496,6 +2617,17 @@
         }
       }
     },
+    "CPU: %@ cores" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU : %@ cœurs"
+          }
+        }
+      }
+    },
     "CPU: %u cores" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2513,6 +2645,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Créer"
+          }
+        }
+      }
+    },
+    "Create a .cakerenv template in the current directory" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer un modèle .cakerenv dans le répertoire courant"
           }
         }
       }
@@ -2720,6 +2863,17 @@
         }
       }
     },
+    "Creation date not available for: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date de création non disponible pour : %@"
+          }
+        }
+      }
+    },
     "Dark" : {
       "comment" : "Color scheme for the color.",
       "isCommentAutoGenerated" : true,
@@ -2907,6 +3061,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "supprimé"
+          }
+        }
+      }
+    },
+    "Deletes VMs for services defined in compose.yml, in reverse depends_on order. Use --stop to stop running services first." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprime les VM des services définis dans compose.yml, dans l'ordre inverse de depends_on. Utilisez --stop pour arrêter d'abord les services en cours d'exécution."
           }
         }
       }
@@ -3235,6 +3400,17 @@
         }
       }
     },
+    "Do not error if a service VM is not found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ne pas générer d'erreur si une VM de service est introuvable"
+          }
+        }
+      }
+    },
     "Dock & Menu Bar" : {
       "comment" : "A section in the application settings view that deals with the dock and menu bar.",
       "isCommentAutoGenerated" : true,
@@ -3281,13 +3457,13 @@
         }
       }
     },
-    "Done fetching %@…" : {
+    "Done fetching %@..." : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Téléchargement de %@ terminé…"
+            "value" : "Téléchargement de %@ terminé..."
           }
         }
       }
@@ -3389,6 +3565,28 @@
         }
       }
     },
+    "Edit %@ then run `cakectl up` to start your VM." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Éditez %@ puis lancez `cakectl up` pour démarrer votre VM."
+          }
+        }
+      }
+    },
+    "Edit %@ then run `caked up` to start your VM." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Éditez %@ puis lancez `caked up` pour démarrer votre VM."
+          }
+        }
+      }
+    },
     "Edit compose.yml then run `cakectl compose up` to start your services." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3430,6 +3628,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activer la capture d'écran"
+          }
+        }
+      }
+    },
+    "Encodes compose.yml and sends it to caked, which provisions networks and starts VMs in depends_on order." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encode compose.yml et l'envoie à caked, qui provisionne les réseaux et démarre les VM dans l'ordre depends_on."
           }
         }
       }
@@ -3567,6 +3776,17 @@
         }
       }
     },
+    "exitCode:%@, reason: %@ infos: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "codeSortie:%1$@, raison : %2$@ infos : %3$@"
+          }
+        }
+      }
+    },
     "exitCode:%d, reason: %@ infos: %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3656,6 +3876,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Échec de la création du modèle"
+          }
+        }
+      }
+    },
+    "Failed to decode import reply: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec du décodage de la réponse d'importation : %@"
           }
         }
       }
@@ -3861,6 +4092,17 @@
         }
       }
     },
+    "Failed to set permissions 0644 on PID file at %@: errno=%@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la définition des permissions 0644 sur le fichier PID à %1$@ : errno=%2$@"
+          }
+        }
+      }
+    },
     "Failed to set permissions 0644 on PID file at %@: errno=%d" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3925,6 +4167,17 @@
         }
       }
     },
+    "Failed to stop caked service %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l'arrêt du service caked %@"
+          }
+        }
+      }
+    },
     "Failed to stop caked service %d" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3978,13 +4231,13 @@
         }
       }
     },
-    "Failed to unmount %@:%@" : {
+    "Failed to unmount %@: %@" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Échec du démontage %1$@:%2$@"
+            "value" : "Échec du démontage de %1$@ : %2$@"
           }
         }
       }
@@ -4000,6 +4253,17 @@
         }
       }
     },
+    "fd and socket-path are mutually exclusive %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "fd et socket-path sont mutuellement exclusifs %1$@ %2$@"
+          }
+        }
+      }
+    },
     "fd and socket-path are mutually exclusive %lld %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4011,13 +4275,13 @@
         }
       }
     },
-    "Fetching %@…" : {
+    "Fetching %@..." : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Téléchargement de %@…"
+            "value" : "Téléchargement de %@..."
           }
         }
       }
@@ -4187,6 +4451,17 @@
         }
       }
     },
+    "Force stop without waiting for graceful shutdown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forcer l'arrêt sans attendre l'extinction progressive"
+          }
+        }
+      }
+    },
     "Forwarded ports" : {
       "localizations" : {
         "fr" : {
@@ -4322,6 +4597,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Générer des certificats tls pour grpc"
+          }
+        }
+      }
+    },
+    "Get home directory location" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtenir l'emplacement du répertoire personnel"
           }
         }
       }
@@ -4571,6 +4857,17 @@
         }
       }
     },
+    "HTTP error: %@ for URL: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur HTTP : %1$@ pour l'URL : %2$@"
+          }
+        }
+      }
+    },
     "HTTP error: %lld for URL: %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4682,6 +4979,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Importer une VM externe à partir d'un fichier ou d'une URL."
+          }
+        }
+      }
+    },
+    "Import failed with exit code %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'importation a échoué avec le code de sortie %@"
           }
         }
       }
@@ -4848,13 +5156,13 @@
         }
       }
     },
-    "Install MacOS from IPSW done..." : {
+    "Install macOS from IPSW done..." : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Installer MacOS à partir d'IPSW terminé..."
+            "value" : "Installation de macOS depuis IPSW terminée..."
           }
         }
       }
@@ -5238,6 +5546,17 @@
         }
       }
     },
+    "Invalid dhcp lease %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bail DHCP invalide %@"
+          }
+        }
+      }
+    },
     "Invalid dhcp lease %d" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5413,6 +5732,17 @@
         }
       }
     },
+    "Invalid response encoding from privileged script" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encodage de réponse invalide du script privilégié"
+          }
+        }
+      }
+    },
     "Invalid serial console URL" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5460,6 +5790,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "argument invalide"
+          }
+        }
+      }
+    },
+    "Invalid VNC URL: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL VNC invalide : %@"
           }
         }
       }
@@ -5606,6 +5947,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "échec de l'échange de clé"
+          }
+        }
+      }
+    },
+    "keyval" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "clevaleur"
           }
         }
       }
@@ -5822,6 +6174,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lister les images"
+          }
+        }
+      }
+    },
+    "List registered compose projects" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lister les projets compose enregistrés"
           }
         }
       }
@@ -6478,6 +6841,17 @@
         }
       }
     },
+    "Modification date not available for: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date de modification non disponible pour : %@"
+          }
+        }
+      }
+    },
     "Mount %@ already exists" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6768,6 +7142,17 @@
         }
       }
     },
+    "Network %@ failed to start: %@, %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le réseau %1$@ n'a pas démarré : %2$@, %3$@"
+          }
+        }
+      }
+    },
     "Network %@ failed to start: %d, %lld" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6798,6 +7183,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Le réseau %@ est une interface physique"
+          }
+        }
+      }
+    },
+    "Network %@ is already running with PID=%@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le réseau %1$@ est déjà en cours d'exécution avec PID=%2$@"
           }
         }
       }
@@ -6917,6 +7313,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Réseau %@ démarré"
+          }
+        }
+      }
+    },
+    "Network %@ stopped: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réseau %1$@ arrêté : %2$@"
           }
         }
       }
@@ -7326,6 +7733,17 @@
         }
       }
     },
+    "No %@ found in %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun %1$@ trouvé dans %2$@"
+          }
+        }
+      }
+    },
     "no CAKEAGENT_VMNAME header" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7638,6 +8056,17 @@
         }
       }
     },
+    "No VNC URL found for VM: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune URL VNC trouvée pour la VM : %@"
+          }
+        }
+      }
+    },
     "Not a file URL: %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7779,6 +8208,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Seul le pilote bridge est pris en charge"
+          }
+        }
+      }
+    },
+    "Only bridge driver is supported for network '%@'" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seul le pilote bridge est supporté pour le réseau '%@'"
           }
         }
       }
@@ -8116,6 +8556,17 @@
         }
       }
     },
+    "Override LXD REST API listen port" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remplacer le port d'écoute de l'API REST LXD"
+          }
+        }
+      }
+    },
     "OVERVIEW: %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8123,6 +8574,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "APERÇU : %@"
+          }
+        }
+      }
+    },
+    "Overwrite an existing .cakerenv" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écraser un .cakerenv existant"
           }
         }
       }
@@ -8327,6 +8789,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chemin vers le disk.img VM ou son nom"
+          }
+        }
+      }
+    },
+    "Path to web UI static files directory" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin vers le répertoire des fichiers statiques de l'interface web"
           }
         }
       }
@@ -8985,6 +9458,17 @@
         }
       }
     },
+    "Reads .cakerenv from the current directory (or --env-file) and stops VMs in reverse depends-on order." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lit .cakerenv depuis le répertoire courant (ou --env-file) et arrête les VM dans l'ordre inverse de depends-on."
+          }
+        }
+      }
+    },
     "Reads .cakerenv from the current directory (or --env-file). Starts all VMs in depends-on order, or only the VMs listed as arguments. Creates VMs that do not yet exist." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9327,6 +9811,17 @@
         }
       }
     },
+    "Remove and unregister services" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer et désenregistrer les services"
+          }
+        }
+      }
+    },
     "Remove directory shares. If omitted all mounts will be removed from the named vm" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9384,6 +9879,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Supprimer le service"
+          }
+        }
+      }
+    },
+    "Remove stopped services" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer les services arrêtés"
           }
         }
       }
@@ -10129,6 +10635,17 @@
         }
       }
     },
+    "Services to remove (default: all)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Services à supprimer (par défaut : tous)"
+          }
+        }
+      }
+    },
     "Services to show (default: all)" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10207,6 +10724,17 @@
         }
       }
     },
+    "setsockopt(SO_RCVBUF) returned %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "setsockopt(SO_RCVBUF) a retourné %@"
+          }
+        }
+      }
+    },
     "setsockopt(SO_RCVBUF) returned %d" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10220,6 +10748,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "setsockopt(SO_RCVBUF) a renvoyé %d"
+          }
+        }
+      }
+    },
+    "setsockopt(SO_SNDBUF) returned %@, %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "setsockopt(SO_SNDBUF) a retourné %1$@, %2$@"
           }
         }
       }
@@ -10480,6 +11019,17 @@
         }
       }
     },
+    "Shows all compose projects registered with caked and their service status." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche tous les projets compose enregistrés auprès de caked et leur état de service."
+          }
+        }
+      }
+    },
     "Shows the status of services defined in compose.yml." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10487,6 +11037,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Affiche l'état des services définis dans compose.yml."
+          }
+        }
+      }
+    },
+    "Shows the status of services registered under this compose project." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche l'état des services enregistrés sous ce projet compose."
           }
         }
       }
@@ -10531,6 +11092,17 @@
         }
       }
     },
+    "Socket device not found on port:%@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Périphérique socket introuvable sur le port : %@"
+          }
+        }
+      }
+    },
     "Socket device not found on port:%lld" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10561,6 +11133,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Déconnexion du socket"
+          }
+        }
+      }
+    },
+    "Socket error: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erreur socket : %@"
           }
         }
       }
@@ -10882,6 +11465,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "VM source introuvable"
+          }
+        }
+      }
+    },
+    "Spawn VM options" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Options de démarrage de VM"
           }
         }
       }
@@ -11300,6 +11894,17 @@
         }
       }
     },
+    "Stop running services before removing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter les services en cours avant la suppression"
+          }
+        }
+      }
+    },
     "Stop service" : {
       "localizations" : {
         "fr" : {
@@ -11367,6 +11972,17 @@
         }
       }
     },
+    "Stop VMs defined in .cakerenv" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter les VM définies dans .cakerenv"
+          }
+        }
+      }
+    },
     "stopped" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11384,6 +12000,17 @@
         }
       }
     },
+    "Stops and deletes VMs for services in this compose project, then removes the project from the registry." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrête et supprime les VM des services de ce projet compose, puis supprime le projet du registre."
+          }
+        }
+      }
+    },
     "Stops services in reverse depends_on order." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11391,6 +12018,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Arrête les services dans l'ordre inverse de depends_on."
+          }
+        }
+      }
+    },
+    "Stops services registered under this compose project in reverse depends_on order." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrête les services enregistrés sous ce projet compose dans l'ordre inverse de depends_on."
           }
         }
       }
@@ -11641,6 +12279,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La VM cible existe déjà"
+          }
+        }
+      }
+    },
+    "Tee standard output and error to log file" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dupliquer stdout et stderr vers le fichier journal"
           }
         }
       }
@@ -12217,6 +12866,17 @@
         }
       }
     },
+    "This command must be run as root not as user %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette commande doit être exécutée en tant que root et non en tant qu'utilisateur %@"
+          }
+        }
+      }
+    },
     "This command must be run as root not as user %u" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12349,6 +13009,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cette option permet d'exécuter le serveur VNC avec le mot de passe"
+          }
+        }
+      }
+    },
+    "This option allows setting custom screen size for the VM display" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette option permet de définir une taille d'écran personnalisée pour l'affichage VM"
           }
         }
       }
@@ -12680,6 +13351,17 @@
         }
       }
     },
+    "Unable to create CGEvent for %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de créer CGEvent pour %@"
+          }
+        }
+      }
+    },
     "Unable to create CGEvent for %u" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12877,6 +13559,17 @@
         }
       }
     },
+    "Unauthorized access" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accès non autorisé"
+          }
+        }
+      }
+    },
     "uncached" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13008,6 +13701,17 @@
         }
       }
     },
+    "Unknown command %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commande inconnue %@"
+          }
+        }
+      }
+    },
     "Unknown command %lld" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13015,6 +13719,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Commande inconnue %lld"
+          }
+        }
+      }
+    },
+    "Unknown compose command" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commande compose inconnue"
           }
         }
       }
@@ -13060,6 +13775,39 @@
         }
       }
     },
+    "Unknown service" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Service inconnu"
+          }
+        }
+      }
+    },
+    "Unknown services" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Services inconnus"
+          }
+        }
+      }
+    },
+    "Unknown signal type: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type de signal inconnu : %@"
+          }
+        }
+      }
+    },
     "Unknown signal type: %d" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13067,6 +13815,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Type de signal inconnu : %d"
+          }
+        }
+      }
+    },
+    "Unknown VM '%@' — this %@ defines a single VM named '%@'" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VM '%1$@' inconnue — ce %2$@ définit une seule VM nommée '%3$@'"
+          }
+        }
+      }
+    },
+    "Unknown VM%@: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VM%1$@ inconnue : %2$@"
           }
         }
       }
@@ -13469,6 +14239,17 @@
         }
       }
     },
+    "Use this to explicitly set an empty password for the service endpoint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser ceci pour définir explicitement un mot de passe vide pour le point de terminaison du service"
+          }
+        }
+      }
+    },
     "Use TLS" : {
       "localizations" : {
         "fr" : {
@@ -13676,6 +14457,17 @@
         }
       }
     },
+    "Virtual machine is not resumable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La machine virtuelle ne peut pas être reprise"
+          }
+        }
+      }
+    },
     "Virtual machine is remote" : {
       "localizations" : {
         "fr" : {
@@ -13768,6 +14560,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La VM \"%@\" a quitté avec le code %d"
+          }
+        }
+      }
+    },
+    "VM \"%@\" exited with code %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM \"%@\" s'est terminée avec le code %lld"
           }
         }
       }
@@ -13944,6 +14747,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La VM n'est pas en cours d'exécution"
+          }
+        }
+      }
+    },
+    "VM is not suspendable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM n'est pas suspendable"
           }
         }
       }
@@ -14131,6 +14945,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Noms de VM à arrêter"
+          }
+        }
+      }
+    },
+    "VM names to stop (default: all VMs in .cakerenv)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noms des VM à arrêter (par défaut : toutes les VM dans .cakerenv)"
           }
         }
       }
@@ -14437,6 +15262,28 @@
         }
       }
     },
+    "Writes a commented .cakerenv YAML file with sensible defaults. Edit it, then run `cakectl up` to start the VM." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écrit un fichier YAML .cakerenv commenté avec des valeurs par défaut judicieuses. Éditez-le, puis lancez `cakectl up` pour démarrer la VM."
+          }
+        }
+      }
+    },
+    "Writes a commented .cakerenv YAML file with sensible defaults. Edit it, then run `caked up` to start the VM." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écrit un fichier YAML .cakerenv commenté avec des valeurs par défaut judicieuses. Éditez-le, puis lancez `caked up` pour démarrer la VM."
+          }
+        }
+      }
+    },
     "Writes a commented compose.yml with example services. Edit it then run `cakectl compose up`." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14466,6 +15313,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "mauvais hôtes connus"
+          }
+        }
+      }
+    },
+    "Wrong listen address" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse d'écoute incorrecte"
           }
         }
       }
@@ -14569,14 +15427,25 @@
         }
       }
     },
-    "You wheel be prompted for your password two times by osascript. Accept the prompt to continue." : {
-      "comment" : "A warning message displayed in the Import Multipass view.",
+    "You will be prompted for your password two times by osascript. Accept the prompt to continue." : {
+      "comment" : "A message displayed in the Import Multipass view.",
       "isCommentAutoGenerated" : true,
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vous serez invité à entrer votre mot de passe deux fois par osascript. Acceptez l'invite pour continuer."
+          }
+        }
+      }
+    },
+    "zlib described a larger decompressed size (%@) than the actual data (%@)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "zlib a décrit une taille décompressée plus grande (%1$@) que les données réelles (%2$@)"
           }
         }
       }
@@ -14588,6 +15457,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "zlib a décrit une taille décompressée (%llu) plus grande que les données réelles (%llu)"
+          }
+        }
+      }
+    },
+    "zlib did not decompress the expected number of bytes (%@)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "zlib n'a pas décompressé le nombre d'octets attendu (%@)"
           }
         }
       }
