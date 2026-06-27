@@ -36,9 +36,10 @@ public struct ImportHandler {
 	}
 
 	static func runPrivilegedAppleScript(_ script: String) throws -> String {
-		let appleScript = """
-			do shell script "\(script)" with administrator privileges
-			"""
+		let escaped = script
+			.replacingOccurrences(of: "\\", with: "\\\\")
+			.replacingOccurrences(of: "\"", with: "\\\"")
+		let appleScript = "do shell script \"\(escaped)\" with administrator privileges"
 
 		let scriptName = UUID().uuidString
 		let scriptsDir = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
