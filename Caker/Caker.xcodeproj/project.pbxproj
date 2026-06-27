@@ -2315,9 +2315,9 @@
 		9BEBC6C92DF4400A0092B196 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
-				9BDBCB082FEEBF5A007241E2 /* ComposeHandler.swift */,
 				9BEBC6B22DF4400A0092B196 /* BuildHandler.swift */,
 				9B18351B2FAE58B500D150FD /* CertificateHandler.swift */,
+				9BDBCB082FEEBF5A007241E2 /* ComposeHandler.swift */,
 				9BEBC6B42DF4400A0092B196 /* ConfigureHandler.swift */,
 				9BBF79BC2F3DD73500F37D2C /* CurrentStatusHandler.swift */,
 				9BEBC6B52DF4400A0092B196 /* DeleteHandler.swift */,

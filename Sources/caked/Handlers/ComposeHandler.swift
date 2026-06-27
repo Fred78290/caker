@@ -27,7 +27,7 @@ struct ComposeHandler {
 
 				return .with {
 					$0.compose = .with {
-						$0.down = CakedLib.ComposeHandler.down(compose: compose, services: [], force: false, runMode: runMode).caked
+						$0.down = CakedLib.ComposeHandler.down(compose: compose, services: request.services, force: request.force, runMode: runMode).caked
 					}
 				}
 			} catch {
@@ -71,7 +71,7 @@ struct ComposeHandler {
 					composeStatus = ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
 				}
 
-				let reply = await CakedLib.ComposeHandler.up(compose: &composeStatus, services: [], waitIPTimeout: Int(request.waitIptimeout), runMode: runMode).caked
+				let reply = await CakedLib.ComposeHandler.up(compose: &composeStatus, services: request.services, waitIPTimeout: Int(request.waitIptimeout), runMode: runMode).caked
 
 				if reply.success {
 					composeFileDatabase.applications[compose.name] = composeStatus
@@ -115,13 +115,13 @@ struct ComposeHandler {
 					return replyError(error: ServiceError(String(localized: "compose name must not be empty")))
 				}
 
-				guard var compose = composeFileDatabase.get(request.name) else {
+				guard let compose = composeFileDatabase.get(request.name) else {
 					return replyError(error: ServiceError(String(localized: "compose \(request.name) not found")))
 				}
 				
 				return .with {
 					$0.compose = .with {
-						$0.ps = CakedLib.ComposeHandler.ps(compose: compose.composeFile, services: [], runMode: runMode).caked
+						$0.ps = CakedLib.ComposeHandler.ps(compose: compose.composeFile, services: request.services, runMode: runMode).caked
 					}
 				}
 			} catch {
@@ -193,7 +193,7 @@ struct ComposeHandler {
 					return replyError(error: ServiceError(String(localized: "compose \(request.name) not found")))
 				}
 
-				let reply = CakedLib.ComposeHandler.rm(compose: &compose, services: [], stop: true, force: false, runMode: runMode)
+				let reply = CakedLib.ComposeHandler.rm(compose: &compose, services: [], stop: request.stop, force: request.force, runMode: runMode)
 
 				if reply.success {
 					composeFileDatabase.remove(request.name)

@@ -319,8 +319,9 @@ public struct ComposeService: Codable {
 	public init() {}
 
 	/// Convert to `BuildOptions`. Environment variables are injected via cloud-init.
-	public func toBuildOptions(name: String) throws -> BuildOptions {
+	public func toBuildOptions(name: String) throws -> (options: BuildOptions, cleanup: [URL]) {
 		let memoryMB = parseMemoryMB(deploy?.resources?.limits?.memory ?? "") ?? 2048
+		var filesToClean: [URL] = []
 		var mounts: [DirectorySharingAttachment] = []
 		var ethernets: [BridgeAttachement] = []
 		var tunnels: [TunnelAttachement] = ports?.compactMap {
@@ -380,11 +381,12 @@ public struct ComposeService: Codable {
 
 				try cloudInit.write(to: tempFile, atomically: true, encoding: .utf8)
 
-				opts.userData = tempFile.path
+				opts.userData = tempFile.path(percentEncoded: false)
+				filesToClean.append(tempFile)
 			}
 		}
 
-		return opts
+		return (opts, filesToClean)
 	}
 
 	private func parseMemoryMB(_ s: String) -> UInt64? {

@@ -165,6 +165,8 @@ public nonisolated struct Caked_Caked: Sendable {
 
       public var waitIptimeout: Int32 = 0
 
+      public var services: [String] = []
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -176,6 +178,10 @@ public nonisolated struct Caked_Caked: Sendable {
       // methods supported on all messages.
 
       public var name: String = String()
+
+      public var force: Bool = false
+
+      public var services: [String] = []
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -189,6 +195,12 @@ public nonisolated struct Caked_Caked: Sendable {
 
       public var name: String = String()
 
+      public var force: Bool = false
+
+      public var stop: Bool = false
+
+      public var services: [String] = []
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -200,6 +212,8 @@ public nonisolated struct Caked_Caked: Sendable {
       // methods supported on all messages.
 
       public var name: String = String()
+
+      public var services: [String] = []
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -6191,7 +6205,7 @@ nonisolated extension Caked_Caked.ComposeRequest: SwiftProtobuf.Message, SwiftPr
 
 nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestUp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.ComposeRequest.protoMessageName + ".ComposeRequestUp"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}composeDatas\0\u{1}waitIPTimeout\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}composeDatas\0\u{1}waitIPTimeout\0\u{1}services\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6201,6 +6215,7 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestUp: SwiftProtobuf
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularBytesField(value: &self.composeDatas) }()
       case 2: try { try decoder.decodeSingularInt32Field(value: &self.waitIptimeout) }()
+      case 3: try { try decoder.decodeRepeatedStringField(value: &self.services) }()
       default: break
       }
     }
@@ -6213,12 +6228,16 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestUp: SwiftProtobuf
     if self.waitIptimeout != 0 {
       try visitor.visitSingularInt32Field(value: self.waitIptimeout, fieldNumber: 2)
     }
+    if !self.services.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.services, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.ComposeRequest.ComposeRequestUp, rhs: Caked_Caked.ComposeRequest.ComposeRequestUp) -> Bool {
     if lhs.composeDatas != rhs.composeDatas {return false}
     if lhs.waitIptimeout != rhs.waitIptimeout {return false}
+    if lhs.services != rhs.services {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -6226,7 +6245,7 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestUp: SwiftProtobuf
 
 nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestDown: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.ComposeRequest.protoMessageName + ".ComposeRequestDown"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}force\0\u{1}services\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6235,6 +6254,8 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestDown: SwiftProtob
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.force) }()
+      case 3: try { try decoder.decodeRepeatedStringField(value: &self.services) }()
       default: break
       }
     }
@@ -6244,11 +6265,19 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestDown: SwiftProtob
     if !self.name.isEmpty {
       try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
     }
+    if self.force != false {
+      try visitor.visitSingularBoolField(value: self.force, fieldNumber: 2)
+    }
+    if !self.services.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.services, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.ComposeRequest.ComposeRequestDown, rhs: Caked_Caked.ComposeRequest.ComposeRequestDown) -> Bool {
     if lhs.name != rhs.name {return false}
+    if lhs.force != rhs.force {return false}
+    if lhs.services != rhs.services {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -6256,7 +6285,7 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestDown: SwiftProtob
 
 nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestDelete: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.ComposeRequest.protoMessageName + ".ComposeRequestDelete"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}force\0\u{1}stop\0\u{1}services\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6265,6 +6294,9 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestDelete: SwiftProt
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.force) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.stop) }()
+      case 4: try { try decoder.decodeRepeatedStringField(value: &self.services) }()
       default: break
       }
     }
@@ -6274,11 +6306,23 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestDelete: SwiftProt
     if !self.name.isEmpty {
       try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
     }
+    if self.force != false {
+      try visitor.visitSingularBoolField(value: self.force, fieldNumber: 2)
+    }
+    if self.stop != false {
+      try visitor.visitSingularBoolField(value: self.stop, fieldNumber: 3)
+    }
+    if !self.services.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.services, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.ComposeRequest.ComposeRequestDelete, rhs: Caked_Caked.ComposeRequest.ComposeRequestDelete) -> Bool {
     if lhs.name != rhs.name {return false}
+    if lhs.force != rhs.force {return false}
+    if lhs.stop != rhs.stop {return false}
+    if lhs.services != rhs.services {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -6286,7 +6330,7 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestDelete: SwiftProt
 
 nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestPs: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.ComposeRequest.protoMessageName + ".ComposeRequestPs"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}services\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6295,6 +6339,7 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestPs: SwiftProtobuf
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeRepeatedStringField(value: &self.services) }()
       default: break
       }
     }
@@ -6304,11 +6349,15 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestPs: SwiftProtobuf
     if !self.name.isEmpty {
       try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
     }
+    if !self.services.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.services, fieldNumber: 2)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.ComposeRequest.ComposeRequestPs, rhs: Caked_Caked.ComposeRequest.ComposeRequestPs) -> Bool {
     if lhs.name != rhs.name {return false}
+    if lhs.services != rhs.services {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

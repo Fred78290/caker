@@ -101,20 +101,27 @@ message Empty {}
 message Caked {
   message ComposeRequest {
     message ComposeRequestUp {
-      bytes  composeDatas  = 1;
-      int32  waitIPTimeout = 2;
+      bytes           composeDatas  = 1;
+      int32           waitIPTimeout = 2;
+      repeated string services      = 3;
     }
 
     message ComposeRequestDown {
-      string name = 1;
+      string          name     = 1;
+      bool            force    = 2;
+      repeated string services = 3;
     }
 
     message ComposeRequestDelete {
-      string name = 1;
+      string          name     = 1;
+      bool            force    = 2;
+      bool            stop     = 3;
+      repeated string services = 4;
     }
 
     message ComposeRequestPs {
-      string name = 1;
+      string          name     = 1;
+      repeated string services = 2;
     }
 
     message ComposeRequestList {

@@ -88,6 +88,11 @@ struct ComposeDown: GrpcParsableCommand {
 		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
 	var file: String? = nil
 
+	@Flag(
+		name: [.customLong("force")],
+		help: ArgumentHelp(String(localized: "Force stop without graceful shutdown")))
+	var force: Bool = false
+
 	@Argument(help: ArgumentHelp(String(localized: "Services to stop (default: all)")))
 	var services: [String] = []
 
@@ -95,7 +100,13 @@ struct ComposeDown: GrpcParsableCommand {
 		let compose = try loadCompose()
 
 		let reply = try client.compose(
-			.with { $0.down = .with { $0.name = compose.name } },
+			.with {
+				$0.down = .with {
+					$0.name = compose.name
+					$0.services = services
+					$0.force = force
+				}
+			},
 			callOptions: callOptions
 		).response.wait().compose.down
 
@@ -132,7 +143,12 @@ struct ComposePs: GrpcParsableCommand {
 		let compose = try loadCompose()
 
 		let reply = try client.compose(
-			.with { $0.ps = .with { $0.name = compose.name } },
+			.with {
+				$0.ps = .with {
+					$0.name = compose.name
+					$0.services = services
+				}
+			},
 			callOptions: callOptions
 		).response.wait().compose.ps
 
@@ -162,6 +178,16 @@ struct ComposeRm: GrpcParsableCommand {
 		help: ArgumentHelp(String(localized: "Path to compose file"), valueName: "path"))
 	var file: String? = nil
 
+	@Flag(
+		name: [.customShort("s"), .customLong("stop")],
+		help: ArgumentHelp(String(localized: "Stop running services before removing")))
+	var stop: Bool = false
+
+	@Flag(
+		name: [.customLong("force")],
+		help: ArgumentHelp(String(localized: "Do not error if a service VM is not found")))
+	var force: Bool = false
+
 	@Argument(help: ArgumentHelp(String(localized: "Services to remove (default: all)")))
 	var services: [String] = []
 
@@ -169,7 +195,14 @@ struct ComposeRm: GrpcParsableCommand {
 		let compose = try loadCompose()
 
 		let reply = try client.compose(
-			.with { $0.delete = .with { $0.name = compose.name } },
+			.with {
+				$0.delete = .with {
+					$0.name = compose.name
+					$0.services = services
+					$0.force = force
+					$0.stop = stop
+				}
+			},
 			callOptions: callOptions
 		).response.wait().compose.delete
 

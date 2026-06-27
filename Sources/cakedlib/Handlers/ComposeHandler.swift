@@ -63,11 +63,17 @@ public struct ComposeHandler {
 				}
 
 				var buildOpts = try serviceSpec.toBuildOptions(name: vmName)
-				try buildOpts.validate(remote: false)
+				try buildOpts.options.validate(remote: false)
+
+				defer {
+					buildOpts.cleanup.forEach {
+						try? $0.delete()
+					}
+				}
 
 				let reply = await LaunchHandler.buildAndLaunchVM(
 					runMode: runMode,
-					options: buildOpts,
+					options: buildOpts.options,
 					waitIPTimeout: waitIPTimeout,
 					startMode: .background,
 					gcd: false,
@@ -80,7 +86,7 @@ public struct ComposeHandler {
 				}
 
 				if reply.launched == false {
-					return ComposeReplyUp(name: serviceName, success: false, reason: reply.reason)
+					return ComposeReplyUp(name: appName, success: false, reason: reply.reason)
 				} else {
 					let location = try storage.find(vmName)
 					let config = try location.config()
@@ -171,16 +177,14 @@ public struct ComposeHandler {
 		do {
 			let toRemove = try compose.composeFile.downOrder(filter: services)
 			let storage = StorageLocation(runMode: runMode)
-			var vmToDelete: [String] = []
+			var vmToDelete: [String:String] = [:]
 
 			for (serviceName, _) in toRemove {
 				let vmName = "compose-\(appName)-\(serviceName)"
 
 				if let location = try? storage.find(vmName), let config = try? location.config() {
 					if compose.installed[serviceName]?.instanceIdentifier == config.instanceID {
-						compose.installed[serviceName] = nil
-						
-						vmToDelete.append(vmName)
+						vmToDelete[vmName] = serviceName
 					} else {
 						warning.append("VM \(vmName) not matched in compose name \(appName)")
 					}
@@ -191,14 +195,20 @@ public struct ComposeHandler {
 			
 			if vmToDelete.isEmpty == false {
 				if stop {
-					let result = StopHandler.stopVMs(all: false, names: vmToDelete, force: force, runMode: runMode)
+					let result = StopHandler.stopVMs(all: false, names: vmToDelete.map { $0.key }, force: force, runMode: runMode)
 
 					if Logger.LoggingLevel() > .info {
 						print(Format.text.render(result.objects))
 					}
 				}
 
-				let result = DeleteHandler.delete(all: false, names: vmToDelete, runMode: runMode)
+				let result = DeleteHandler.delete(all: false, names: vmToDelete.map { $0.key }, runMode: runMode)
+
+				result.objects.forEach {
+					if $0.deleted, let serviceName = vmToDelete[$0.name] {
+						compose.installed[serviceName] = nil
+					}
+				}
 
 				if Logger.LoggingLevel() > .info {
 					print(Format.text.render(result.objects))
@@ -223,12 +233,14 @@ public struct ComposeHandler {
 		// Assuming database.files is a dictionary-like collection: [String: ComposeFile]
 		for (fileName, app) in database.applications {
 			var services: [ComposeServiceInfo] = []
+			let appName = app.composeFile.name
 
 			// Assuming app.services is a dictionary-like collection: [String: ComposeFile]
 			for (serviceName, compose) in app.composeFile.services {
 				let image = compose.image ?? "-"
+				let vmName = "compose-\(appName)-\(serviceName)"
 
-				if let location = try? storage.find(serviceName) {
+				if let location = try? storage.find(vmName) {
 					services.append(ComposeServiceInfo(name: serviceName, image: image, status: "provisioned", running: location.status.isRunning))
 				} else {
 					services.append(ComposeServiceInfo(name: serviceName, image: image, status: "not found", running: false))
