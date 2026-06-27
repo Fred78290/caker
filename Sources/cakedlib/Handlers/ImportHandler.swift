@@ -156,7 +156,8 @@ public struct ImportHandler {
 						arguments.append("--ssh-passphrase=\(passphrase)")
 					}
 
-					let replyString = try runPrivilegedAppleScript(arguments.joined(separator: " "))
+					let quote: (String) -> String = { v in "'" + v.replacingOccurrences(of: "'", with: "'\\''") + "'" }
+					let replyString = try runPrivilegedAppleScript(arguments.map(quote).joined(separator: " "))
 
 					if let data = replyString.data(using: .utf8) {
 						do {
