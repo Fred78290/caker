@@ -492,8 +492,9 @@ final class ComposeTest: XCTestCase {
 	func testHandlerDownSucceedsWithUnprovisionedServices() throws {
 		var svc = ComposeService(); svc.image = "ubuntu:24.04"
 		let compose = ComposeFile(name: "test-down", services: ["web": svc])
+		let status = ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
 
-		let reply = ComposeHandler.down(compose: compose, services: [], force: false, runMode: .user)
+		let reply = ComposeHandler.down(compose: status, services: [], force: false, runMode: .user)
 
 		XCTAssertTrue(reply.success)
 		XCTAssertEqual(reply.name, "test-down")
@@ -504,9 +505,10 @@ final class ComposeTest: XCTestCase {
 		var app = ComposeService(); app.image = "ubuntu:24.04"
 		app.dependsOn = .list(["db"])
 		let compose = ComposeFile(name: "test-down-order", services: ["app": app, "db": db])
+		let status = ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
 
 		// downOrder is the reverse of startOrder — must not throw a cycle or missing-dep error
-		let reply = ComposeHandler.down(compose: compose, services: [], force: false, runMode: .user)
+		let reply = ComposeHandler.down(compose: status, services: [], force: false, runMode: .user)
 
 		XCTAssertTrue(reply.success)
 	}
@@ -515,8 +517,9 @@ final class ComposeTest: XCTestCase {
 		var a = ComposeService(); a.image = "ubuntu:24.04"; a.dependsOn = .list(["b"])
 		var b = ComposeService(); b.image = "ubuntu:24.04"; b.dependsOn = .list(["a"])
 		let compose = ComposeFile(name: "test-down-cycle", services: ["a": a, "b": b])
+		let status = ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
 
-		let reply = ComposeHandler.down(compose: compose, services: [], force: false, runMode: .user)
+		let reply = ComposeHandler.down(compose: status, services: [], force: false, runMode: .user)
 
 		XCTAssertFalse(reply.success)
 		XCTAssertFalse(reply.reason.isEmpty)
@@ -526,8 +529,9 @@ final class ComposeTest: XCTestCase {
 		var a = ComposeService(); a.image = "ubuntu:24.04"
 		var b = ComposeService(); b.image = "ubuntu:24.04"
 		let compose = ComposeFile(name: "test-down-filter", services: ["a": a, "b": b])
+		let status = ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
 
-		let reply = ComposeHandler.down(compose: compose, services: ["a"], force: false, runMode: .user)
+		let reply = ComposeHandler.down(compose: status, services: ["a"], force: false, runMode: .user)
 
 		XCTAssertTrue(reply.success)
 	}
