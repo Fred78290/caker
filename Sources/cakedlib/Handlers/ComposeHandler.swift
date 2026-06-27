@@ -184,14 +184,29 @@ public struct ComposeHandler {
 		let existingNetworks = try home.sharedNetworks()
 
 		for (networkName, networkConfig) in composeNetworks.sorted(by: { $0.key < $1.key }) {
-			guard let networkConfig else { continue }
-			guard !networkConfig.external else { continue }
-			guard !NetworksHandler.isPhysicalInterface(name: networkName) else { continue }
+			guard let networkConfig else {
+				continue
+			}
+			
+			guard (networkConfig.external ?? false) == false else {
+				continue
+			}
+			
+			guard NetworksHandler.isPhysicalInterface(name: networkName) == false else {
+				continue
+			}
+			
 			guard networkConfig.driver == .bridge else {
 				throw ServiceError(String(localized: "Only bridge driver is supported for network '\(networkName)'"))
 			}
-			guard !builtinNetworks.contains(networkName) else { continue }
-			guard existingNetworks.sharedNetworks[networkName] == nil else { continue }
+			
+			guard builtinNetworks.contains(networkName) == false else {
+				continue
+			}
+
+			guard existingNetworks.sharedNetworks[networkName] == nil else {
+				continue
+			}
 
 			let network = networkConfig.composeNetworkSubnet(name: networkName)
 			try network.validate(runMode: runMode)
