@@ -101,7 +101,7 @@ struct ComposeDown: ParsableCommand {
 		let composeDatabase = try Home(runMode: common.runMode).composeFileDatabase()
 		let compose = try loadCompose()
 
-		guard composeDatabase.get(compose.name) == nil else {
+		guard composeDatabase.get(compose.name) != nil else {
 			throw ServiceError(String(localized: "Composition is not registered"))
 		}
 
