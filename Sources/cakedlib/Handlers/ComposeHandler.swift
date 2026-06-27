@@ -100,21 +100,25 @@ public struct ComposeHandler {
 
 	/// Lists provisioned status of each service (tab-separated: name, status, image).
 	public static func ps(compose: ComposeFile, services: [String], runMode: Utils.RunMode) -> ComposeReplyPs {
-		let resolved = compose.resolvedServices(filter: services)
-		let storage = StorageLocation(runMode: runMode)
-		var serviceInfos: [ComposeServiceInfo] = []
+		do {
+			let resolved = try compose.resolvedServices(filter: services)
+			let storage = StorageLocation(runMode: runMode)
+			var serviceInfos: [ComposeServiceInfo] = []
 
-		for (serviceName, svc) in resolved {
-			let image = svc.image ?? "-"
+			for (serviceName, svc) in resolved {
+				let image = svc.image ?? "-"
 
-			if let location = try? storage.find(serviceName) {
-				serviceInfos.append(ComposeServiceInfo(name: serviceName, image: image, status: "provisioned", running: location.status.isRunning))
-			} else {
-				serviceInfos.append(ComposeServiceInfo(name: serviceName, image: image, status: "not found", running: false))
+				if let location = try? storage.find(serviceName) {
+					serviceInfos.append(ComposeServiceInfo(name: serviceName, image: image, status: "provisioned", running: location.status.isRunning))
+				} else {
+					serviceInfos.append(ComposeServiceInfo(name: serviceName, image: image, status: "not found", running: false))
+				}
 			}
-		}
 
-		return ComposeReplyPs(name: compose.name, services: serviceInfos, success: true, reason: "")
+			return ComposeReplyPs(name: compose.name, services: serviceInfos, success: true, reason: "")
+		} catch {
+			return ComposeReplyPs(name: compose.name, services: [], success: false, reason: error.reason)
+		}
 	}
 
 	// MARK: - Rm
