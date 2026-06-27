@@ -468,27 +468,27 @@ public struct ComposeFile: Codable {
 name: template
 services:
   app:
-	image: ubuntu:24.04
-	ports:
-	  - "3000:3000"
-	# sockets:
-	#   - "/tmp/docker.sock:/var/run/docker.sock"
-	#   - "/tmp/host.sock:/tmp/guest.sock/udp"
-	volumes:
-	  - ".:/workspace"
-	environment:
-	  - NODE_ENV=production
-	networks:
-	  - default
-	deploy:
-	  resources:
-		limits:
-		  cpus: "2"
-		  memory: 2048M
-	# Caker VM extensions:
-	disk: 20          # GiB
-	user: ubuntu
-	password: ubuntu
+    image: ubuntu:24.04
+    ports:
+      - "3000:3000"
+    # sockets:
+    #   - "/tmp/docker.sock:/var/run/docker.sock"
+    #   - "/tmp/host.sock:/tmp/guest.sock/udp"
+    volumes:
+      - ".:/workspace"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - default
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
+    # Caker VM extensions:
+    disk: 20          # GiB
+    user: ubuntu
+    password: ubuntu
 
   database:
 	image: ubuntu:24.04
