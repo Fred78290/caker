@@ -15,84 +15,123 @@ public struct ComposeHandler {
 
 	/// Provisions missing compose networks then starts or creates each service in depends_on order.
 	/// `output` is called with each rendered result line as it is produced.
-	public static func up(compose: ComposeFile, services: [String], waitIPTimeout: Int, runMode: Utils.RunMode) async -> ComposeReplyUp {
+	public static func up(compose: inout ComposeFileDatabase.ComposeFileStatus, services: [String], waitIPTimeout: Int, runMode: Utils.RunMode) async -> ComposeReplyUp {
+		let appName = compose.composeFile.name
+		let storage = StorageLocation(runMode: runMode)
+		var warning: [String] = []
 
 		do {
-			try provisionNetworks(compose: compose, runMode: runMode)
+			try provisionNetworks(compose: compose.composeFile, runMode: runMode)
 
-			let toStart = try compose.startOrder(filter: services)
+			let toStart = try compose.composeFile.startOrder(filter: services)
 
 			for (serviceName, serviceSpec) in toStart {
-				var buildOpts = try serviceSpec.toBuildOptions(name: serviceName)
-				try buildOpts.validate(remote: false)
+				var vmName = "compose-\(appName)-\(serviceName)"
 
-				let storage = StorageLocation(runMode: runMode)
+				// Check if already installed
+				if let installed = compose.installed[serviceName] {
+					// Find associated VM
+					if let location = try? storage.find(vmName), let config = try? location.config() {
 
-				if storage.exists(serviceName) {
-					let location = try storage.find(serviceName)
-					let reply = StartHandler.startVM(
-						location: location,
-						screenSize: nil,
-						vncPassword: nil,
-						vncPort: nil,
-						waitIPTimeout: waitIPTimeout,
-						startMode: .background,
-						gcd: false,
-						recoveryMode: false,
-						runMode: runMode
-					)
-
-					if Logger.LoggingLevel() > .info {
-						print(Format.text.render(reply))
-					}
-
-					if reply.started == false {
-						return ComposeReplyUp(name: serviceName, success: false, reason: reply.reason)
-					}
-				} else {
-					let reply = await LaunchHandler.buildAndLaunchVM(
-						runMode: runMode,
-						options: buildOpts,
-						waitIPTimeout: waitIPTimeout,
-						startMode: .background,
-						gcd: false,
-						recoveryMode: false,
-						progressHandler: ProgressObserver.progressHandler
-					)
-
-					if Logger.LoggingLevel() > .info {
-						print(Format.text.render(reply))
-					}
-
-					if reply.launched == false {
-						return ComposeReplyUp(name: serviceName, success: false, reason: reply.reason)
+						// Check if owned by compose
+						if installed.instanceIdentifier == config.instanceID {
+							let reply = StartHandler.startVM(
+								location: location,
+								screenSize: nil,
+								vncPassword: nil,
+								vncPort: nil,
+								waitIPTimeout: waitIPTimeout,
+								startMode: .background,
+								gcd: false,
+								recoveryMode: false,
+								runMode: runMode
+							)
+							
+							if Logger.LoggingLevel() > .info {
+								print(Format.text.render(reply))
+							}
+							
+							if reply.started == false {
+								return ComposeReplyUp(name: appName, success: false, reason: String(localized: "Compose failed to start \(serviceName), \(reply.reason)"))
+							}
+						} else {
+							warning.append("VM \(vmName) not matched in compose name \(appName)")
+						}
+						
+						continue
 					}
 				}
+
+				var buildOpts = try serviceSpec.toBuildOptions(name: vmName)
+				try buildOpts.validate(remote: false)
+
+				let reply = await LaunchHandler.buildAndLaunchVM(
+					runMode: runMode,
+					options: buildOpts,
+					waitIPTimeout: waitIPTimeout,
+					startMode: .background,
+					gcd: false,
+					recoveryMode: false,
+					progressHandler: ProgressObserver.progressHandler
+				)
+
+				if Logger.LoggingLevel() > .info {
+					print(Format.text.render(reply))
+				}
+
+				if reply.launched == false {
+					return ComposeReplyUp(name: serviceName, success: false, reason: reply.reason)
+				} else {
+					let location = try storage.find(vmName)
+					let config = try location.config()
+					
+					compose.installed[serviceName] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: config.instanceID)
+				}
 			}
-			return ComposeReplyUp(name: compose.name, success: true, reason: "")
+
+			return ComposeReplyUp(name: appName, success: true, reason: String(warning.joined(by: "\n")))
 		} catch {
-			return ComposeReplyUp(name: compose.name, success: false, reason: error.reason)
+			return ComposeReplyUp(name: appName, success: false, reason: error.reason)
 		}
 	}
 
 	// MARK: - Down
 
 	/// Stops services in reverse depends_on order.
-	public static func down(compose: ComposeFile, services: [String], force: Bool, runMode: Utils.RunMode) -> ComposeReplyDown {
+	public static func down(compose: ComposeFileDatabase.ComposeFileStatus, services: [String], force: Bool, runMode: Utils.RunMode) -> ComposeReplyDown {
+		let appName = compose.composeFile.name
+		var warning: [String] = []
+
 		do {
-			let toStop = try compose.downOrder(filter: services)
+			let toStop = try compose.composeFile.downOrder(filter: services)
+			let storage = StorageLocation(runMode: runMode)
+			var vmToStop: [String] = []
 
 			for (serviceName, _) in toStop {
-				let reply = StopHandler.stopVM(name: serviceName, force: force, runMode: runMode)
+				let vmName = "compose-\(appName)-\(serviceName)"
 
-				if Logger.LoggingLevel() > .info {
-					print(Format.text.render(reply))
+				if let location = try? storage.find(vmName), let config = try? location.config() {
+					if compose.installed[serviceName]?.instanceIdentifier == config.instanceID {
+						vmToStop.append(vmName)
+					} else {
+						warning.append("VM \(vmName) not matched in compose name \(appName)")
+					}
+				} else {
+					warning.append("VM \(vmName) not found in compose name \(appName)")
 				}
 			}
 
-			return ComposeReplyDown(name: compose.name, success: true, reason: "")
+			if vmToStop.isEmpty == false {
+				let result = StopHandler.stopVMs(all: false, names: vmToStop, force: force, runMode: runMode)
+
+				if Logger.LoggingLevel() > .info {
+					print(Format.text.render(result.objects))
+				}
+			}
+
+			return ComposeReplyDown(name: appName, success: true, reason: String(warning.joined(by: "\n")))
 		} catch {
-			return ComposeReplyDown(name: compose.name, success: false, reason: error.reason)
+			return ComposeReplyDown(name: appName, success: false, reason: error.reason)
 		}
 	}
 
@@ -106,9 +145,10 @@ public struct ComposeHandler {
 			var serviceInfos: [ComposeServiceInfo] = []
 
 			for (serviceName, svc) in resolved {
+				let vmName = "compose-\(compose.name)-\(serviceName)"
 				let image = svc.image ?? "-"
 
-				if let location = try? storage.find(serviceName) {
+				if let location = try? storage.find(vmName) {
 					serviceInfos.append(ComposeServiceInfo(name: serviceName, image: image, status: "provisioned", running: location.status.isRunning))
 				} else {
 					serviceInfos.append(ComposeServiceInfo(name: serviceName, image: image, status: "not found", running: false))
@@ -124,29 +164,55 @@ public struct ComposeHandler {
 	// MARK: - Rm
 
 	/// Removes services in reverse depends_on order, optionally stopping them first.
-	public static func rm(compose: ComposeFile, services: [String], stop: Bool, force: Bool, runMode: Utils.RunMode) -> ComposeReplyDelete {
+	public static func rm(compose: inout ComposeFileDatabase.ComposeFileStatus, services: [String], stop: Bool, force: Bool, runMode: Utils.RunMode) -> ComposeReplyDelete {
+		let appName = compose.composeFile.name
+		var warning: [String] = []
+
 		do {
-			let toRemove = try compose.downOrder(filter: services)
+			let toRemove = try compose.composeFile.downOrder(filter: services)
+			let storage = StorageLocation(runMode: runMode)
+			var vmToDelete: [String] = []
 
 			for (serviceName, _) in toRemove {
-				if stop {
-					_ = StopHandler.stopVM(name: serviceName, force: force, runMode: runMode)
+				let vmName = "compose-\(appName)-\(serviceName)"
+
+				if let location = try? storage.find(vmName), let config = try? location.config() {
+					if compose.installed[serviceName]?.instanceIdentifier == config.instanceID {
+						compose.installed[serviceName] = nil
+						
+						vmToDelete.append(vmName)
+					} else {
+						warning.append("VM \(vmName) not matched in compose name \(appName)")
+					}
+				} else {
+					warning.append("VM \(vmName) not found in compose name \(appName)")
 				}
-				let result = DeleteHandler.delete(all: false, names: [serviceName], runMode: runMode)
+			}
+			
+			if vmToDelete.isEmpty == false {
+				if stop {
+					let result = StopHandler.stopVMs(all: false, names: vmToDelete, force: force, runMode: runMode)
+
+					if Logger.LoggingLevel() > .info {
+						print(Format.text.render(result.objects))
+					}
+				}
+
+				let result = DeleteHandler.delete(all: false, names: vmToDelete, runMode: runMode)
 
 				if Logger.LoggingLevel() > .info {
 					print(Format.text.render(result.objects))
 				}
 
 				if result.success == false {
-					return ComposeReplyDelete(name: serviceName, success: false, reason: result.reason)
+					return ComposeReplyDelete(name: appName, success: false, reason: result.reason)
 				}
 			}
 		} catch {
-			return ComposeReplyDelete(name: compose.name, success: false, reason: error.reason)
+			return ComposeReplyDelete(name: appName, success: false, reason: error.reason)
 		}
 
-		return ComposeReplyDelete(name: compose.name, success: true, reason: "")
+		return ComposeReplyDelete(name: appName, success: true, reason: String(warning.joined(by: "\n")))
 	}
 
 	// MARK: - List
@@ -155,11 +221,11 @@ public struct ComposeHandler {
 		var composeFiles: [ComposeReplyList.ComposeInfo] = []
 
 		// Assuming database.files is a dictionary-like collection: [String: ComposeFile]
-		for (fileName, app) in database.files {
+		for (fileName, app) in database.applications {
 			var services: [ComposeServiceInfo] = []
 
 			// Assuming app.services is a dictionary-like collection: [String: ComposeFile]
-			for (serviceName, compose) in app.services {
+			for (serviceName, compose) in app.composeFile.services {
 				let image = compose.image ?? "-"
 
 				if let location = try? storage.find(serviceName) {

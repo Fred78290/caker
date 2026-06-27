@@ -20,8 +20,8 @@ struct ComposeHandler {
 
 		mutating func run(on: any EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 			do {
-				let home = try Home(runMode: runMode).composeFileDatabase()
-				guard let compose = home.get(request.name) else {
+				let composeFileDatabase = try Home(runMode: runMode).composeFileDatabase()
+				guard let compose = composeFileDatabase.get(request.name) else {
 					return replyError(error: ServiceError(String(localized: "compose \(request.name) not found")))
 				}
 
@@ -63,10 +63,20 @@ struct ComposeHandler {
 					return replyError(error: ServiceError(String(localized: "compose name must not be empty")))
 				}
 
-				composeFileDatabase.add(compose.name, compose)
-				try composeFileDatabase.save()
+				var composeStatus: ComposeFileDatabase.ComposeFileStatus
 
-				let reply = await CakedLib.ComposeHandler.up(compose: compose, services: [], waitIPTimeout: Int(request.waitIptimeout), runMode: runMode).caked
+				if let existingStatus = composeFileDatabase.get(compose.name) {
+					composeStatus = existingStatus
+				} else {
+					composeStatus = ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
+				}
+
+				let reply = await CakedLib.ComposeHandler.up(compose: &composeStatus, services: [], waitIPTimeout: Int(request.waitIptimeout), runMode: runMode).caked
+
+				if reply.success {
+					composeFileDatabase.applications[compose.name] = composeStatus
+					try composeFileDatabase.save()
+				}
 
 				return .with {
 					$0.compose = .with {
@@ -105,13 +115,13 @@ struct ComposeHandler {
 					return replyError(error: ServiceError(String(localized: "compose name must not be empty")))
 				}
 
-				guard let compose = composeFileDatabase.get(request.name) else {
+				guard var compose = composeFileDatabase.get(request.name) else {
 					return replyError(error: ServiceError(String(localized: "compose \(request.name) not found")))
 				}
 				
 				return .with {
 					$0.compose = .with {
-						$0.ps = CakedLib.ComposeHandler.ps(compose: compose, services: [], runMode: runMode).caked
+						$0.ps = CakedLib.ComposeHandler.ps(compose: compose.composeFile, services: [], runMode: runMode).caked
 					}
 				}
 			} catch {
@@ -179,16 +189,20 @@ struct ComposeHandler {
 					return replyError(error: ServiceError(String(localized: "compose name must not be empty")))
 				}
 
-				guard let compose = composeFileDatabase.get(request.name) else {
+				guard var compose = composeFileDatabase.get(request.name) else {
 					return replyError(error: ServiceError(String(localized: "compose \(request.name) not found")))
 				}
 
-				composeFileDatabase.remove(compose.name)
-				try composeFileDatabase.save()
+				let reply = CakedLib.ComposeHandler.rm(compose: &compose, services: [], stop: true, force: false, runMode: runMode)
+
+				if reply.success {
+					composeFileDatabase.remove(request.name)
+					try composeFileDatabase.save()
+				}
 
 				return .with {
 					$0.compose = .with {
-						$0.delete = CakedLib.ComposeHandler.rm(compose: compose, services: [], stop: true, force: false, runMode: runMode).caked
+						$0.delete = reply.caked
 					}
 				}
 			} catch {

@@ -51,15 +51,29 @@ struct ComposeUp: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		let composeDatabase = try Home(runMode: common.runMode).composeFileDatabase()
+		let composeFileDatabase = try Home(runMode: common.runMode).composeFileDatabase()
 		let compose = try loadCompose()
 
-		if composeDatabase.get(compose.name) == nil {
-			composeDatabase.add(compose.name, compose)
-			try composeDatabase.save()
+		guard compose.name.isEmpty == false else {
+			throw ServiceError(String(localized: "compose name must not be empty"))
 		}
 
-		Logger.appendNewLine(await self.common.format.render(CakedLib.ComposeHandler.up(compose: compose, services: services, waitIPTimeout: waitIPTimeout, runMode: common.runMode)))
+		var composeStatus: ComposeFileDatabase.ComposeFileStatus
+
+		if let existingStatus = composeFileDatabase.get(compose.name) {
+			composeStatus = existingStatus
+		} else {
+			composeStatus = ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
+		}
+
+		let reply = await CakedLib.ComposeHandler.up(compose: &composeStatus, services: services, waitIPTimeout: waitIPTimeout, runMode: common.runMode)
+
+		if reply.success {
+			composeFileDatabase.applications[compose.name] = composeStatus
+			try composeFileDatabase.save()
+		}
+
+		Logger.appendNewLine(self.common.format.render(reply))
 	}
 
 	private func loadCompose() throws -> ComposeFile {
@@ -98,10 +112,10 @@ struct ComposeDown: ParsableCommand {
 	}
 
 	func run() throws {
-		let composeDatabase = try Home(runMode: common.runMode).composeFileDatabase()
-		let compose = try loadCompose()
+		let composeFileDatabase = try Home(runMode: common.runMode).composeFileDatabase()
+		let appName = try loadCompose().name
 
-		guard composeDatabase.get(compose.name) != nil else {
+		guard let compose = composeFileDatabase.get(appName) else {
 			throw ServiceError(String(localized: "Composition is not registered"))
 		}
 
@@ -190,14 +204,21 @@ struct ComposeRm: ParsableCommand {
 	}
 
 	func run() throws {
-		let composeDatabase = try Home(runMode: common.runMode).composeFileDatabase()
-		let compose = try loadCompose()
+		let composeFileDatabase = try Home(runMode: common.runMode).composeFileDatabase()
+		let appName = try loadCompose().name
 
-		guard composeDatabase.get(compose.name) == nil else {
+		guard var compose = composeFileDatabase.get(appName) else {
 			throw ServiceError(String(localized: "Composition is not registered"))
 		}
 
-		Logger.appendNewLine(self.common.format.render(CakedLib.ComposeHandler.rm(compose: compose, services: services, stop: stop, force: force, runMode: common.runMode)))
+		let reply = CakedLib.ComposeHandler.rm(compose: &compose, services: services, stop: stop, force: force, runMode: common.runMode)
+
+		if reply.success {
+			composeFileDatabase.remove(appName)
+			try composeFileDatabase.save()
+		}
+
+		Logger.appendNewLine(self.common.format.render(reply))
 	}
 
 	private func loadCompose() throws -> ComposeFile {

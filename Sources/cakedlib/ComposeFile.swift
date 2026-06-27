@@ -11,11 +11,26 @@ import CakeAgentLib
 import Yams
 
 public class ComposeFileDatabase {
-	public var files: [String: ComposeFile] = [:]
+	public struct ServiceStatus: Codable {
+		public var createdAt: Date
+		public var instanceIdentifier: String
+	}
+
+	public struct ComposeFileStatus: Codable {
+		public var composeFile: ComposeFile
+		public var installed: [String: ServiceStatus]
+		
+		public init(composeFile: ComposeFile, installed: [String: ServiceStatus] = [:]) {
+			self.composeFile = composeFile
+			self.installed = installed
+		}
+	}
+
+	public var applications: [String: ComposeFileStatus] = [:]
 	public let url: URL
 	public let lock: FileLock
 	public var names: [String] {
-		return self.files.keys.compactMap { $0 }
+		return self.applications.keys.compactMap { $0 }
 	}
 
 	deinit {
@@ -26,37 +41,37 @@ public class ComposeFileDatabase {
 		self.url = url
 
 		if try self.url.exists() == false {
-			try files.write(to: self.url)
+			try applications.write(to: self.url)
 		} else {
-			self.files = try Dictionary(contentsOf: url)
+			self.applications = try Dictionary(contentsOf: url)
 		}
 
 		self.lock = try FileLock(lockURL: url)
 		try self.lock.lock()
 	}
 
-	public func add(_ key: String, _ value: ComposeFile) {
-		self.files[key] = value
+	public func add(_ key: String, _ value: ComposeFileStatus) {
+		self.applications[key] = value
 	}
 
-	public func get(_ key: String) -> ComposeFile? {
+	public func get(_ key: String) -> ComposeFileStatus? {
 		guard key.isEmpty == false else {
 			return nil
 		}
 
-		return self.files[key]
+		return self.applications[key]
 	}
 
-	@inlinable public func map<T>(_ transform: ((key: String, value: ComposeFile)) throws -> T) throws -> [T] {
-		return try self.files.map(transform)
+	@inlinable public func map<T>(_ transform: ((key: String, value: ComposeFileStatus)) throws -> T) throws -> [T] {
+		return try self.applications.map(transform)
 	}
 
 	@discardableResult public func remove(_ key: String) -> Bool {
-		return self.files.removeValue(forKey: key) != nil
+		return self.applications.removeValue(forKey: key) != nil
 	}
 
 	public func save() throws {
-		try self.files.write(to: self.url)
+		try self.applications.write(to: self.url)
 	}
 }
 
