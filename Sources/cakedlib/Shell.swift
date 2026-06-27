@@ -107,6 +107,14 @@ public struct Shell {
 				error: .string(limit: Self.maxSubprocessOutputSize)
 			)
 
+			// Fail if subprocess exited with non-zero status
+			if case let .exited(exitCode) = result.terminationStatus, exitCode != 0 {
+				let stdout = result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
+				let stderr = result.standardError?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
+
+				throw ShellError(terminationStatus: exitCode, error: stderr, message: stdout)
+			}
+
 			if let out: String = result.standardOutput {
 				return out.trimmingCharacters(in: .whitespacesAndNewlines)
 			}
@@ -127,6 +135,14 @@ public struct Shell {
 				output: .string(limit: Self.maxSubprocessOutputSize),
 				error: .string(limit: Self.maxSubprocessOutputSize)
 			)
+
+            // Fail if subprocess exited with non-zero status
+			if case let .exited(exitCode) = result.terminationStatus, exitCode != 0 {
+				let stdout = result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
+				let stderr = result.standardError?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
+
+				throw ShellError(terminationStatus: exitCode, error: stderr, message: stdout)
+			}
 
 			if let out: String = result.standardOutput {
 				return out.trimmingCharacters(in: .whitespacesAndNewlines)

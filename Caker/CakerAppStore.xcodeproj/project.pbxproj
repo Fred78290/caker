@@ -291,6 +291,7 @@
 		9B60313D2FAD2BF700055543 /* LXDCertificateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B60313B2FAD2BF700055543 /* LXDCertificateStore.swift */; };
 		9B60313E2FAD2BF700055543 /* LXDStorePersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B60313C2FAD2BF700055543 /* LXDStorePersistence.swift */; };
 		9B6031402FAD2C0A00055543 /* LXDCertificatesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B60313F2FAD2C0A00055543 /* LXDCertificatesController.swift */; };
+		9B612F492FEC32050045F79F /* CakeHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B612F482FEC32030045F79F /* CakeHome.swift */; };
 		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
 		9B7053F32F4F06DF006C68AA /* GrandCentralDispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */; };
@@ -323,6 +324,9 @@
 		9B9DCD8A2F6FFF4B00E07852 /* AboutApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCD892F6FFF4900E07852 /* AboutApplication.swift */; };
 		9B9DCDEF2F70006D00E07852 /* CI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCDED2F70006D00E07852 /* CI.swift */; };
 		9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */; };
+		9B9DF6122FEFDA85006FAE72 /* Compose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DF6112FEFDA85006FAE72 /* Compose.swift */; };
+		9B9DF6142FEFDBD2006FAE72 /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DF6132FEFDBD2006FAE72 /* ComposeHandler.swift */; };
+		9B9DF6162FEFDCF8006FAE72 /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DF6152FEFDCF8006FAE72 /* ComposeHandler.swift */; };
 		9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */; };
 		9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */; };
 		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
@@ -391,6 +395,18 @@
 		9BDA13A72EE6D44100357544 /* OSXKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */; };
 		9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */; };
 		9BDC00A52FEA904300802A3C /* MountPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC00A42FEA903B00802A3C /* MountPoint.swift */; };
+		9BDC05222FEADA9500802A3C /* ImportVMwareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05212FEADA9500802A3C /* ImportVMwareView.swift */; };
+		9BDC05232FEADA9500802A3C /* ImportMultipassView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05202FEADA9500802A3C /* ImportMultipassView.swift */; };
+		9BDC05252FEADADE00802A3C /* CakerEnv.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05242FEADADE00802A3C /* CakerEnv.swift */; };
+		9BDC052A2FEADAF100802A3C /* EnvInit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05282FEADAF100802A3C /* EnvInit.swift */; };
+		9BDC052B2FEADAF100802A3C /* Down.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05272FEADAF100802A3C /* Down.swift */; };
+		9BDC052C2FEADAF100802A3C /* Up.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05292FEADAF100802A3C /* Up.swift */; };
+		9BDC052D2FEADAF100802A3C /* Compose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05262FEADAF100802A3C /* Compose.swift */; };
+		9BDC05322FEADB0E00802A3C /* Compose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC052E2FEADB0E00802A3C /* Compose.swift */; };
+		9BDC05332FEADB0E00802A3C /* EnvInit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05302FEADB0E00802A3C /* EnvInit.swift */; };
+		9BDC05342FEADB0E00802A3C /* Up.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05312FEADB0E00802A3C /* Up.swift */; };
+		9BDC05352FEADB0E00802A3C /* Down.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC052F2FEADB0E00802A3C /* Down.swift */; };
+		9BDC05FD2FEADD6F00802A3C /* ComposeFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05FC2FEADD6F00802A3C /* ComposeFile.swift */; };
 		9BE0B6FE2F1E4CBD0040EDD4 /* TaskQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE0B6FD2F1E4CBD0040EDD4 /* TaskQueue.swift */; };
 		9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */; };
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
@@ -1019,6 +1035,7 @@
 		9B60313B2FAD2BF700055543 /* LXDCertificateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDCertificateStore.swift; sourceTree = "<group>"; };
 		9B60313C2FAD2BF700055543 /* LXDStorePersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDStorePersistence.swift; sourceTree = "<group>"; };
 		9B60313F2FAD2C0A00055543 /* LXDCertificatesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDCertificatesController.swift; sourceTree = "<group>"; };
+		9B612F482FEC32030045F79F /* CakeHome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeHome.swift; sourceTree = "<group>"; };
 		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
 		9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
@@ -1071,6 +1088,9 @@
 		9B9DCDED2F70006D00E07852 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9B9DCED32F572202007EEACC /* InfosHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfosHandler.swift; sourceTree = "<group>"; };
 		9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentHelper.swift; sourceTree = "<group>"; };
+		9B9DF6112FEFDA85006FAE72 /* Compose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compose.swift; sourceTree = "<group>"; };
+		9B9DF6132FEFDBD2006FAE72 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
+		9B9DF6152FEFDCF8006FAE72 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
 		9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibInflateStream.swift; sourceTree = "<group>"; };
 		9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibStream.swift; sourceTree = "<group>"; };
 		9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibDeflateStream.swift; sourceTree = "<group>"; };
@@ -1155,6 +1175,18 @@
 		9BDA14BE2EEAC17F00357544 /* VirtualMachineInformations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineInformations.swift; sourceTree = "<group>"; };
 		9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySizeStyle.swift; sourceTree = "<group>"; };
 		9BDC00A42FEA903B00802A3C /* MountPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountPoint.swift; sourceTree = "<group>"; };
+		9BDC05202FEADA9500802A3C /* ImportMultipassView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMultipassView.swift; sourceTree = "<group>"; };
+		9BDC05212FEADA9500802A3C /* ImportVMwareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportVMwareView.swift; sourceTree = "<group>"; };
+		9BDC05242FEADADE00802A3C /* CakerEnv.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakerEnv.swift; sourceTree = "<group>"; };
+		9BDC05262FEADAF100802A3C /* Compose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compose.swift; sourceTree = "<group>"; };
+		9BDC05272FEADAF100802A3C /* Down.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Down.swift; sourceTree = "<group>"; };
+		9BDC05282FEADAF100802A3C /* EnvInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvInit.swift; sourceTree = "<group>"; };
+		9BDC05292FEADAF100802A3C /* Up.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Up.swift; sourceTree = "<group>"; };
+		9BDC052E2FEADB0E00802A3C /* Compose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compose.swift; sourceTree = "<group>"; };
+		9BDC052F2FEADB0E00802A3C /* Down.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Down.swift; sourceTree = "<group>"; };
+		9BDC05302FEADB0E00802A3C /* EnvInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvInit.swift; sourceTree = "<group>"; };
+		9BDC05312FEADB0E00802A3C /* Up.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Up.swift; sourceTree = "<group>"; };
+		9BDC05FC2FEADD6F00802A3C /* ComposeFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeFile.swift; sourceTree = "<group>"; };
 		9BE0B6FD2F1E4CBD0040EDD4 /* TaskQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskQueue.swift; sourceTree = "<group>"; };
 		9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PIDLock.swift; sourceTree = "<group>"; };
 		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
@@ -1641,6 +1673,7 @@
 				9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */,
 				9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */,
 				9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */,
+				9B9DF6112FEFDA85006FAE72 /* Compose.swift */,
 				9B2784012FB37A83001F2B6A /* ConsoleAttachment.swift */,
 				9B2784022FB37A83001F2B6A /* DirectorySharingAttachement.swift */,
 				9B2784032FB37A83001F2B6A /* DiskAttachement.swift */,
@@ -1948,9 +1981,12 @@
 			children = (
 				9B464A682D5A3E0300164BF5 /* Build.swift */,
 				9B1835172FAE4FB200D150FD /* Certificate.swift */,
+				9BDC052E2FEADB0E00802A3C /* Compose.swift */,
 				9B464A6B2D5A3E0300164BF5 /* Configure.swift */,
 				9B464A6D2D5A3E0300164BF5 /* Delete.swift */,
+				9BDC052F2FEADB0E00802A3C /* Down.swift */,
 				9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */,
+				9BDC05302FEADB0E00802A3C /* EnvInit.swift */,
 				9B464A6E2D5A3E0300164BF5 /* Exec.swift */,
 				9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */,
 				9B464A722D5A3E0300164BF5 /* ImagesManagement.swift */,
@@ -1973,6 +2009,7 @@
 				9B1500C02E6B092A00B23147 /* Suspend.swift */,
 				9BE2E7C12D5F85FD000CA07F /* Template.swift */,
 				9BD32F862D75FF060066A01E /* Umount.swift */,
+				9BDC05312FEADB0E00802A3C /* Up.swift */,
 				9B5F49C82F7028F200AE1991 /* VNC.swift */,
 				9B464A852D5A3E0300164BF5 /* WaitIP.swift */,
 			);
@@ -2114,6 +2151,8 @@
 			isa = PBXGroup;
 			children = (
 				9B9C4E5E2E23BCA300C13D23 /* HomeView.swift */,
+				9BDC05202FEADA9500802A3C /* ImportMultipassView.swift */,
+				9BDC05212FEADA9500802A3C /* ImportVMwareView.swift */,
 				9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */,
 				9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */,
 				9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */,
@@ -2246,11 +2285,15 @@
 			isa = PBXGroup;
 			children = (
 				9BEBC6972DF4400A0092B196 /* Build.swift */,
+				9B612F482FEC32030045F79F /* CakeHome.swift */,
 				9BEBC6982DF4400A0092B196 /* Certificates.swift */,
+				9BDC05262FEADAF100802A3C /* Compose.swift */,
 				9BEBC69A2DF4400A0092B196 /* Configure.swift */,
 				9B081CBB2FC88D110029B259 /* Convert.swift */,
 				9BEBC69B2DF4400A0092B196 /* Delete.swift */,
+				9BDC05272FEADAF100802A3C /* Down.swift */,
 				9BEBC69C2DF4400A0092B196 /* Duplicate.swift */,
+				9BDC05282FEADAF100802A3C /* EnvInit.swift */,
 				9BEBC69D2DF4400A0092B196 /* Exec.swift */,
 				9BEBC69E2DF4400A0092B196 /* ImagesManagement.swift */,
 				9B9711BF2DFF3284005B161B /* Import.swift */,
@@ -2275,6 +2318,7 @@
 				9B1500BE2E6B07EC00B23147 /* Suspend.swift */,
 				9BEBC6AD2DF4400A0092B196 /* Template.swift */,
 				9BEBC6AE2DF4400A0092B196 /* Unmount.swift */,
+				9BDC05292FEADAF100802A3C /* Up.swift */,
 				9BEBC6AF2DF4400A0092B196 /* VMRun.swift */,
 				9BCEB1902ED76EB200B29B70 /* VNC.swift */,
 				9BEBC6B02DF4400A0092B196 /* WaitIP.swift */,
@@ -2287,6 +2331,7 @@
 			children = (
 				9BEBC6B22DF4400A0092B196 /* BuildHandler.swift */,
 				9B18351B2FAE58B500D150FD /* CertificateHandler.swift */,
+				9B9DF6152FEFDCF8006FAE72 /* ComposeHandler.swift */,
 				9BEBC6B42DF4400A0092B196 /* ConfigureHandler.swift */,
 				9BBF79BC2F3DD73500F37D2C /* CurrentStatusHandler.swift */,
 				9BEBC6B52DF4400A0092B196 /* DeleteHandler.swift */,
@@ -2352,6 +2397,7 @@
 			isa = PBXGroup;
 			children = (
 				9BEBC7162DF440720092B196 /* BuildHandler.swift */,
+				9B9DF6132FEFDBD2006FAE72 /* ComposeHandler.swift */,
 				9BEBC7182DF440720092B196 /* ConfigureHandler.swift */,
 				9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */,
 				9BEBC7192DF440720092B196 /* DeleteHandler.swift */,
@@ -2475,7 +2521,9 @@
 				9BEBC7552DF440720092B196 /* CakeAgentClientInterceptorFactory.swift */,
 				9BEBC7562DF440720092B196 /* CakeAgentConnection.swift */,
 				9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */,
+				9BDC05242FEADADE00802A3C /* CakerEnv.swift */,
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
+				9BDC05FC2FEADD6F00802A3C /* ComposeFile.swift */,
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
 				9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */,
@@ -3300,6 +3348,8 @@
 				9B29F7B12FCAE4B700AEBCB8 /* VirtualMachineWizard.swift in Sources */,
 				9B29F7B22FCAE4B700AEBCB8 /* AsyncButton.swift in Sources */,
 				9B29F7B32FCAE4B700AEBCB8 /* ConnectionManager.swift in Sources */,
+				9BDC05222FEADA9500802A3C /* ImportVMwareView.swift in Sources */,
+				9BDC05232FEADA9500802A3C /* ImportMultipassView.swift in Sources */,
 				9B29F7B42FCAE4B700AEBCB8 /* StartHandler.swift in Sources */,
 				9B29F7B52FCAE4B700AEBCB8 /* RestorationState.swift in Sources */,
 				9B29F7B62FCAE4B700AEBCB8 /* RoundedTextField.swift in Sources */,
@@ -3413,6 +3463,10 @@
 				9B464B632D5A3E8900164BF5 /* Push.swift in Sources */,
 				9B5F49C92F7028F500AE1991 /* VNC.swift in Sources */,
 				9B464B642D5A3E8900164BF5 /* Exec.swift in Sources */,
+				9BDC05322FEADB0E00802A3C /* Compose.swift in Sources */,
+				9BDC05332FEADB0E00802A3C /* EnvInit.swift in Sources */,
+				9BDC05342FEADB0E00802A3C /* Up.swift in Sources */,
+				9BDC05352FEADB0E00802A3C /* Down.swift in Sources */,
 				9B464B652D5A3E8900164BF5 /* Configure.swift in Sources */,
 				9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */,
 				9B464B662D5A3E8900164BF5 /* Rename.swift in Sources */,
@@ -3479,6 +3533,7 @@
 				9B2784162FB37A83001F2B6A /* Mounts.swift in Sources */,
 				9B2784172FB37A83001F2B6A /* Registry.swift in Sources */,
 				9B2784182FB37A83001F2B6A /* RemoteEntry.swift in Sources */,
+				9B9DF6122FEFDA85006FAE72 /* Compose.swift in Sources */,
 				9B2784192FB37A83001F2B6A /* SocketDevice.swift in Sources */,
 				9B27841A2FB37A83001F2B6A /* Templates.swift in Sources */,
 				9B27841B2FB37A83001F2B6A /* TunnelAttachement.swift in Sources */,
@@ -3525,6 +3580,7 @@
 				9B6031392FAD105700055543 /* LXDIdentitiesController.swift in Sources */,
 				9B60313A2FAD105700055543 /* LXDAuthGroupsController.swift in Sources */,
 				9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */,
+				9B9DF6162FEFDCF8006FAE72 /* ComposeHandler.swift in Sources */,
 				9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC6D22DF4400A0092B196 /* RemoteHandler.swift in Sources */,
 				9BEBC6D32DF4400A0092B196 /* LogoutHandler.swift in Sources */,
@@ -3559,6 +3615,7 @@
 				9B602F972FAA56FA00055543 /* LXDInstancesController.swift in Sources */,
 				9B602F982FAA56FA00055543 /* LXDRootController.swift in Sources */,
 				9B602F992FAA56FA00055543 /* LXDModels.swift in Sources */,
+				9B612F492FEC32050045F79F /* CakeHome.swift in Sources */,
 				9B602F9A2FAA56FA00055543 /* LXDOperationsController.swift in Sources */,
 				9B602F9B2FAA56FA00055543 /* LXDRESTServer.swift in Sources */,
 				9B602F9C2FAA56FA00055543 /* LXDOperationStore.swift in Sources */,
@@ -3577,6 +3634,10 @@
 				9BEBC6F02DF4400A0092B196 /* DuplicateHandler.swift in Sources */,
 				9BEBC6F12DF4400A0092B196 /* Logout.swift in Sources */,
 				9BEBC6F22DF4400A0092B196 /* ConfigureHandler.swift in Sources */,
+				9BDC052A2FEADAF100802A3C /* EnvInit.swift in Sources */,
+				9BDC052B2FEADAF100802A3C /* Down.swift in Sources */,
+				9BDC052C2FEADAF100802A3C /* Up.swift in Sources */,
+				9BDC052D2FEADAF100802A3C /* Compose.swift in Sources */,
 				9BBF7CAF2F3F1B8E00F37D2C /* ScreenSizeHandler.swift in Sources */,
 				9BEBC6F32DF4400A0092B196 /* WaitIPHandler.swift in Sources */,
 				9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */,
@@ -3633,7 +3694,9 @@
 				9BBF7B332F3DEC1E00F37D2C /* RestartHandler.swift in Sources */,
 				9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */,
 				9BEBC7772DF440720092B196 /* Curl.swift in Sources */,
+				9BDC05252FEADADE00802A3C /* CakerEnv.swift in Sources */,
 				9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */,
+				9BDC05FD2FEADD6F00802A3C /* ComposeFile.swift in Sources */,
 				9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */,
 				9B2033702F4A21400047E197 /* GrandCentralUpdater.swift in Sources */,
 				9BEBC77A2DF440720092B196 /* VZVMNetSocket.swift in Sources */,
@@ -3685,6 +3748,7 @@
 				9BEBC79D2DF440720092B196 /* VZVMNetFileHandle.swift in Sources */,
 				9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */,
 				9BEBC79F2DF440720092B196 /* ProcessWithSharedFileHandle.swift in Sources */,
+				9B9DF6142FEFDBD2006FAE72 /* ComposeHandler.swift in Sources */,
 				9BEBC7A12DF440720092B196 /* BuildHandler.swift in Sources */,
 				9BEBC7A22DF440720092B196 /* SimpleStreams.swift in Sources */,
 				9BEBC7A32DF440720092B196 /* NetworksHandler.swift in Sources */,
@@ -4385,10 +4449,12 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = LE7988HTRN;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readwrite;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -4943,7 +5009,7 @@
 			repositoryURL = "https://github.com/swiftlang/swift-subprocess.git";
 			requirement = {
 				kind = exactVersion;
-				version = 0.4.0;
+				version = 0.5.0;
 			};
 		};
 		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {

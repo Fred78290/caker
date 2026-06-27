@@ -17,8 +17,7 @@ public struct RemoteHandler {
 				return CreateRemoteReply(name: name, created: false, reason: String(localized: "remote \(name) already exists"))
 			}
 
-			remoteDb.add(name, url.absoluteString)
-			try remoteDb.save()
+			try remoteDb.upsert(name, url.absoluteString)
 
 			return CreateRemoteReply(name: name, created: true, reason: String(localized: "remote \(name) added"))
 		} catch {
@@ -34,8 +33,7 @@ public struct RemoteHandler {
 				return DeleteRemoteReply(name: name, deleted: false, reason: String(localized: "remote \(name) doesn't exists"))
 			}
 
-			remoteDb.remove(name)
-			try remoteDb.save()
+			try remoteDb.remove(name)
 
 			return DeleteRemoteReply(name: name, deleted: true, reason: String(localized: "remote \(name) deleted"))
 		} catch {

@@ -196,7 +196,9 @@ struct Client: ParsableCommand {
 				Build.self,
 				Configure.self,
 				Delete.self,
+				Down.self,
 				Duplicate.self,
+				EnvInit.self,
 				Exec.self,
 				ImagesManagement.self,
 				Infos.self,
@@ -211,6 +213,7 @@ struct Client: ParsableCommand {
 				Stop.self,
 				Suspend.self,
 				Template.self,
+				Up.self,
 				WaitIP.self,
 				Mount.self,
 				Umount.self,
@@ -223,6 +226,7 @@ struct Client: ParsableCommand {
 				GetOptions.self,
 				Certificate.self,
 				Sandbox.self,
+				Compose.self,
 			])
 
 #if DEBUG

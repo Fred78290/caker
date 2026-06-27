@@ -258,7 +258,7 @@ extension CakeAgentLib.Format {
 			return self.renderList(data.map { ImageInfo($0) })
 		}
 	}
-
+	
 	public func render(_ data: String) -> String {
 		if self == .json {
 			return self.renderSingle(["output": data])
@@ -266,7 +266,7 @@ extension CakeAgentLib.Format {
 			return data
 		}
 	}
-
+	
 	public func render(_ data: ImageInfos) -> String {
 		if self == .json {
 			return self.renderList(data)
@@ -274,7 +274,7 @@ extension CakeAgentLib.Format {
 			return self.renderList(data.map { ShortImageInfo($0) })
 		}
 	}
-
+	
 	public func render(_ data: ImageInfo) -> String {
 		if self == .json {
 			return self.renderSingle(data)
@@ -282,43 +282,43 @@ extension CakeAgentLib.Format {
 			return self.renderSingle(ShortImageInfo(data))
 		}
 	}
-
+	
 	public func render(_ data: LoginReply) -> String {
 		self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_LoginReply) -> String {
 		self.renderSingle(LoginReply(data))
 	}
-
+	
 	public func render(_ data: LogoutReply) -> String {
 		self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_LogoutReply) -> String {
 		self.renderSingle(LogoutReply(data))
 	}
-
+	
 	public func render(_ data: PullReply) -> String {
 		self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_PullReply) -> String {
 		self.renderSingle(PullReply(data))
 	}
-
+	
 	public func render(_ data: PushReply) -> String {
 		self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_PushReply) -> String {
 		self.renderSingle(PushReply(data))
 	}
-
+	
 	public func render(_ data: Caked_ImageInfo) -> String {
 		self.render(ImageInfo(data))
 	}
-
+	
 	public func render(_ data: LinuxContainerImage) -> String {
 		if self == .json {
 			return self.renderSingle(data)
@@ -326,11 +326,11 @@ extension CakeAgentLib.Format {
 			return self.renderSingle(ShortLinuxContainerImage(data))
 		}
 	}
-
+	
 	public func render(_ data: Caked_PulledImageInfo) -> String {
 		self.render(LinuxContainerImage(data))
 	}
-
+	
 	public func render(_ data: InfoReply) -> String {
 		if self == .json {
 			return self.renderSingle(data)
@@ -338,7 +338,7 @@ extension CakeAgentLib.Format {
 			return self.renderSingle(ShortInfoReply(name: data.name, ipaddresses: data.ipaddresses, cpuCount: data.cpuCount, memory: data.memory?.total ?? 0, vncURL: nil))
 		}
 	}
-
+	
 	public func render(_ data: VMInformations) -> String {
 		if self == .json {
 			return self.renderSingle(data)
@@ -346,123 +346,127 @@ extension CakeAgentLib.Format {
 			return self.renderSingle(ShortInfoReply(name: data.name, ipaddresses: data.ipaddresses, cpuCount: data.cpuCount, memory: data.memory?.total ?? 0, vncURL: data.vncURL?.first))
 		}
 	}
-
+	
 	public func render(_ data: Caked_InfoReply) -> String {
 		return self.render(InfoReply.with(infos: data))
 	}
-
+	
 	public func render(_ data: [DeletedObject]) -> String {
 		return self.renderList(data)
 	}
-
+	
 	public func render(_ data: [Caked_DeletedObject]) -> String {
 		return self.renderList(data.map { DeletedObject($0) })
 	}
-
+	
 	public func render(_ data: [RestartedObject]) -> String {
 		return self.renderList(data)
 	}
-
+	
 	public func render(_ data: [Caked_RestartObject]) -> String {
 		return self.renderList(data.map { RestartedObject($0) })
 	}
-
+	
 	public func render(_ data: [SuspendedObject]) -> String {
 		return self.renderList(data)
 	}
-
+	
 	public func render(_ data: [Caked_SuspendedObject]) -> String {
 		return self.renderList(data.map { SuspendedObject($0) })
 	}
-
+	
+	public func render(_ data: StoppedObject) -> String {
+		return self.renderSingle(data)
+	}
+	
 	public func render(_ data: [StoppedObject]) -> String {
 		return self.renderList(data)
 	}
-
+	
 	public func render(_ data: [Caked_StoppedObject]) -> String {
 		return self.renderList(data.map { StoppedObject($0) })
 	}
-
+	
 	public func render(_ data: LaunchReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_LaunchReply) -> String {
 		return self.renderSingle(LaunchReply(data))
 	}
-
+	
 	public func render(_ data: StartedReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_StartedReply) -> String {
 		return self.renderSingle(StartedReply(data))
 	}
-
+	
 	public func render(_ data: BuildedReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_BuildedReply) -> String {
 		return self.renderSingle(BuildedReply(data))
 	}
-
+	
 	public func render(_ data: ClonedReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_ClonedReply) -> String {
 		return self.renderSingle(ClonedReply(data))
 	}
-
+	
 	public func render(_ data: ConfiguredReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_ConfiguredReply) -> String {
 		return self.renderSingle(ConfiguredReply(data))
 	}
-
+	
 	public func render(_ data: DuplicatedReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_DuplicatedReply) -> String {
 		return self.renderSingle(DuplicatedReply(data))
 	}
-
+	
 	public func render(_ data: ImportedReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_ImportedReply) -> String {
 		return self.renderSingle(ImportedReply(data))
 	}
-
+	
 	public func render(_ data: WaitIPReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_WaitIPReply) -> String {
 		return self.renderSingle(WaitIPReply(data))
 	}
-
+	
 	public func render(_ data: PurgeReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_PurgeReply) -> String {
 		return self.renderSingle(PurgeReply(data))
 	}
-
+	
 	public func render(_ data: RenameReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_RenameReply) -> String {
 		return self.renderSingle(RenameReply(data))
 	}
-
+	
 	public func render(_ data: VirtualMachineInfos) -> String {
 		if self == .json {
 			return self.renderList(data)
@@ -472,7 +476,7 @@ extension CakeAgentLib.Format {
 					if vm.fqn.count > 1 {
 						vm.fqn.forEach {
 							let fqn = $0.stringAfter(after: "//")
-
+							
 							if fqn.isFingerPrint() == false {
 								result.append(
 									ShortVirtualMachineInfo(
@@ -502,115 +506,115 @@ extension CakeAgentLib.Format {
 				})
 		}
 	}
-
+	
 	public func render(_ data: [Caked_VirtualMachineInfo]) -> String {
 		return self.render(VirtualMachineInfos(data))
 	}
-
+	
 	public func render(_ data: [MountVirtioFS]) -> String {
 		return self.renderList(data)
 	}
-
+	
 	public func render(_ data: [Caked_MountVirtioFSReply]) -> String {
 		return self.renderList(data.map { MountVirtioFS($0) })
 	}
-
+	
 	public func render(_ data: BridgedNetwork) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_NetworkInfo) -> String {
 		return self.renderSingle(BridgedNetwork(data))
 	}
-
+	
 	public func render(_ data: [BridgedNetwork]) -> String {
 		return self.renderList(data)
 	}
-
+	
 	public func render(_ data: [Caked_NetworkInfo]) -> String {
 		return self.renderList(data.map { BridgedNetwork($0) })
 	}
-
+	
 	public func render(_ data: CreatedNetworkReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_CreatedNetworkReply) -> String {
 		return self.renderSingle(CreatedNetworkReply(data))
 	}
-
+	
 	public func render(_ data: ConfiguredNetworkReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_ConfiguredNetworkReply) -> String {
 		return self.renderSingle(ConfiguredNetworkReply(data))
 	}
-
+	
 	public func render(_ data: DeleteNetworkReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_DeleteNetworkReply) -> String {
 		return self.renderSingle(DeleteNetworkReply(data))
 	}
-
+	
 	public func render(_ data: StartedNetworkReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_StartedNetworkReply) -> String {
 		return self.renderSingle(StartedNetworkReply(data))
 	}
-
+	
 	public func render(_ data: StoppedNetworkReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_StoppedNetworkReply) -> String {
 		return self.render(StoppedNetworkReply(data))
 	}
-
+	
 	public func render(_ data: [RemoteEntry]) -> String {
 		return self.renderList(data)
 	}
-
+	
 	public func render(_ data: [Caked_RemoteEntry]) -> String {
 		return self.render(data.map { RemoteEntry($0) })
 	}
-
+	
 	public func render(_ data: CreateRemoteReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_CreateRemoteReply) -> String {
 		return self.renderSingle(CreateRemoteReply(data))
 	}
-
+	
 	public func render(_ data: DeleteRemoteReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_DeleteRemoteReply) -> String {
 		return self.renderSingle(DeleteRemoteReply(data))
 	}
-
+	
 	public func render(_ data: CreateTemplateReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_CreateTemplateReply) -> String {
 		return self.renderSingle(CreateTemplateReply(data))
 	}
-
+	
 	public func render(_ data: DeleteTemplateReply) -> String {
 		return self.renderSingle(data)
 	}
-
+	
 	public func render(_ data: Caked_DeleteTemplateReply) -> String {
 		return self.render(DeleteTemplateReply(data))
 	}
-
+	
 	public func render(_ data: [TemplateEntry]) -> String {
 		if self == .json {
 			return self.renderList(data)
@@ -618,32 +622,52 @@ extension CakeAgentLib.Format {
 			return self.renderList(data.map { ShortTemplateEntry($0) })
 		}
 	}
-
+	
 	public func render(_ data: Caked_Certificate) -> String {
 		if self == .json {
 			return self.renderSingle(CertificateRepresentation(data))
 		}
-
+		
 		return self.renderSingle(ShortCertificateRepresentation(data))
 	}
-
+	
 	public func render(_ data: [CertificateRepresentation]) -> String {
 		return self.renderList(data)
 	}
-
+	
 	public func render(_ data: [Caked_Certificate]) -> String {
 		if self == .json {
 			return self.renderList(data.map { CertificateRepresentation($0) })
 		}
-
+		
 		return self.renderList(data.map { ShortCertificateRepresentation($0) })
 	}
-
+	
 	public func render(_ data: Caked_ListTemplatesReply) -> String {
 		if self == .json {
 			return self.renderList(data.templates.map { TemplateEntry($0) })
 		} else {
 			return self.renderList(data.templates.map { ShortTemplateEntry($0) })
 		}
+	}
+	
+	public func render(_ data: ComposeReplyUp) -> String {
+		return self.renderSingle(data)
+	}
+	
+	public func render(_ data: ComposeReplyDown) -> String {
+		return self.renderSingle(data)
+	}
+	
+	public func render(_ data: ComposeReplyPs) -> String {
+		return self.renderSingle(data)
+	}
+	
+	public func render(_ data: ComposeReplyDelete) -> String {
+		return self.renderSingle(data)
+	}
+	
+	public func render(_ data: ComposeReplyList) -> String {
+		return self.renderSingle(data)
 	}
 }

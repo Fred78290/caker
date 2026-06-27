@@ -10,61 +10,65 @@ public let defaultRemotes: [String: String] = [
 ]
 
 public class RemoteDatabase {
-	public var remote: [String: String] = defaultRemotes
+	// Snapshot loaded at init — use for read-only queries during a command.
+	public private(set) var remote: [String: String] = defaultRemotes
 	public let url: URL
-	public let lock: FileLock
-	public var keys: [String] {
-		return self.remote.keys.compactMap { $0 }
-	}
+	private let lock: FileLock
+
+	public var keys: [String] { Array(remote.keys) }
 
 	init(_ url: URL) throws {
 		self.url = url
 
-		if try self.url.exists() == false {
-			try remote.write(to: self.url)
-		} else {
-			self.remote = try Dictionary(contentsOf: url)
+		if try url.exists() == false {
+			try defaultRemotes.write(to: url)
 		}
 
 		self.lock = try FileLock(lockURL: url)
+		// Read once under lock for a consistent snapshot, then release immediately.
 		try self.lock.lock()
-	}
-
-	deinit {
-		try? self.lock.unlock()
-	}
-
-	public func add(_ key: String, _ value: String) {
-		self.remote[key] = value
+		self.remote = try Dictionary(contentsOf: url)
+		try self.lock.unlock()
 	}
 
 	public func get(_ key: String) -> String? {
 		if key == String.empty {
-			return self.remote["images"]
+			return remote["images"]
 		}
-
-		return self.remote[key]
+		return remote[key]
 	}
 
 	public func reverseLookup(_ value: String) -> String? {
-		return self.remote.first { (key: String, val: String) in
-			if let u = URL(string: val) {
-				return u.host() == value
-			}
-			return false
+		return remote.first { (_, val: String) in
+			URL(string: val).map { $0.host() == value } ?? false
 		}?.key
 	}
 
 	@inlinable public func map<T>(_ transform: ((key: String, value: String)) throws -> T) throws -> [T] {
-		return try self.remote.map(transform)
+		return try remote.map(transform)
 	}
 
-	@discardableResult public func remove(_ key: String) -> Bool {
-		return self.remote.removeValue(forKey: key) != nil
+	/// Atomically writes `value` for `key`, re-reading disk state under lock first
+	/// so concurrent mutations to other keys are preserved.
+	public func upsert(_ key: String, _ value: String) throws {
+		try lock.lock()
+		defer { try? lock.unlock() }
+		var onDisk: [String: String] = (try? Dictionary(contentsOf: url)) ?? defaultRemotes
+		onDisk[key] = value
+		try onDisk.write(to: url)
+		self.remote = onDisk
 	}
 
-	public func save() throws {
-		try self.remote.write(to: self.url)
+	/// Atomically removes `key` and writes the updated state back to disk.
+	@discardableResult
+	public func remove(_ key: String) throws -> Bool {
+		try lock.lock()
+		defer { try? lock.unlock() }
+		var onDisk: [String: String] = (try? Dictionary(contentsOf: url)) ?? defaultRemotes
+		let removed = onDisk.removeValue(forKey: key) != nil
+		try onDisk.write(to: url)
+		self.remote = onDisk
+		return removed
 	}
 }
 
@@ -79,6 +83,7 @@ public struct Home {
 	public let agentDirectory: URL
 	public let temporaryDirectory: URL
 	public let remoteDb: URL
+	public let composeFileDb: URL
 	public let sshPrivateKey: URL
 	public let sshPublicKey: URL
 	public let contentStoreURL: URL
@@ -87,16 +92,21 @@ public struct Home {
 	public let contentStore: LocalContentStore!
 	public let imageStore: ImageStore!
 
-	public init(runMode: Utils.RunMode, createItIfNotExists: Bool = true) throws {
-		self.cakeHomeDirectory = try Utils.getHome(runMode: runMode, createItIfNotExists: createItIfNotExists)
+	public init(_ cakeHomeDirectory: URL, runMode: Utils.RunMode, createItIfNotExists: Bool = true) throws {
+		self.cakeHomeDirectory = cakeHomeDirectory
 		self.networkDirectory = self.cakeHomeDirectory.appendingPathComponent("networks", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.cacheDirectory = self.cakeHomeDirectory.appendingPathComponent("cache", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.agentPID = self.agentDirectory.appendingPathComponent("agent.pid", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.temporaryDirectory = self.cakeHomeDirectory.appendingPathComponent("tmp", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.remoteDb = self.cakeHomeDirectory.appendingPathComponent("remote.json", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
+		self.composeFileDb = self.cakeHomeDirectory.appendingPathComponent("compose.json", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.contentStoreURL = self.cacheDirectory.appendingPathComponent("oci/storage")
 		self.imageStoreURL = cacheDirectory.appendingPathComponent("oci")
+
+		if try cakeHomeDirectory.exists() == false && createItIfNotExists {
+			try FileManager.default.createDirectory(at: cakeHomeDirectory, withIntermediateDirectories: true)
+		}
 
 		if createItIfNotExists {
 			self.contentStore = try LocalContentStore(path: self.contentStoreURL)
@@ -116,12 +126,21 @@ public struct Home {
 			if try self.remoteDb.exists() == false {
 				try defaultRemotes.write(to: self.remoteDb)
 			}
+
+			if try self.composeFileDb.exists() == false {
+				let defaultComposeFiles: [String: ComposeFileDatabase.ComposeFileStatus] = [:]
+				try defaultComposeFiles.write(to: self.composeFileDb)
+			}
 		}
 
 		if try self.agentDirectory.exists() == false && createItIfNotExists {
 			try FileManager.default.createDirectory(at: self.agentDirectory, withIntermediateDirectories: true)
 			_ = try CertificatesLocation.createAgentCertificats(runMode: runMode, force: true)
 		}
+	}
+
+	public init(runMode: Utils.RunMode, createItIfNotExists: Bool = true) throws {
+		try self.init(try Utils.getHome(runMode: runMode, createItIfNotExists: createItIfNotExists), runMode: runMode, createItIfNotExists: createItIfNotExists)
 	}
 
 	public func sharedNetworks() throws -> VZVMNetConfig {
@@ -149,6 +168,10 @@ public struct Home {
 
 	public func remoteDatabase() throws -> RemoteDatabase {
 		return try RemoteDatabase(self.remoteDb)
+	}
+
+	public func composeFileDatabase() throws -> ComposeFileDatabase {
+		return try ComposeFileDatabase(self.composeFileDb)
 	}
 
 	public func getSharedPublicKey() throws -> String {

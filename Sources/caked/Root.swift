@@ -13,12 +13,15 @@ struct CommonOptions: ParsableArguments {
 	@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
 	var logLevel: CakeAgentLib.Logger.LogLevel = .info
 	
+	@Option(help: ArgumentHelp(String(localized: "Cake home path"), visibility: .hidden))
+	var home: String? = nil
+
 	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
 	
 	@Flag(
 		name: [.customLong("system"), .customShort("s")],
-		help: ArgumentHelp(String(localized: "Act as system agent, need sudo"), discussion: String(localized: "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service"), visibility: .private))
+		help: ArgumentHelp(String(localized: "Act as system agent, need sudo"), discussion: String(localized: "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service"), visibility: .hidden))
 	var asSystem: Bool = false
 	
 	var runMode: Utils.RunMode {
@@ -27,6 +30,10 @@ struct CommonOptions: ParsableArguments {
 	
 	func validate() throws {
 		Logger.setLevel(self.logLevel)
+		
+		if let home = self.home {
+			setenv("CAKE_HOME", home, 1)
+		}
 	}
 }
 
@@ -76,7 +83,9 @@ struct Root: ParsableCommand {
 				Certificates.self,
 				Configure.self,
 				Delete.self,
+				Down.self,
 				Duplicate.self,
+				EnvInit.self,
 				Exec.self,
 				ImagesManagement.self,
 				Infos.self,
@@ -97,6 +106,7 @@ struct Root: ParsableCommand {
 				Restart.self,
 				Template.self,
 				Umount.self,
+				Up.self,
 				VMRun.self,
 				WaitIP.self,
 				Import.self,
@@ -108,7 +118,9 @@ struct Root: ParsableCommand {
 				SetOptions.self,
 				GetOptions.self,
 				Convert.self,
-				Sandbox.self
+				Sandbox.self,
+				Compose.self,
+				CakeHome.self
 			])
 
 	static func parse() throws -> ParsableCommand? {

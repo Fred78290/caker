@@ -502,7 +502,7 @@ public struct NetworksHandler {
 		}
 
 		if socketURL.pidFile.isCakedRunning() {
-			throw ServiceError(String(localized: "\(executableURL.path) is already running"))
+			throw ServiceError(String(localized: "\(executableURL.path) is already running."))
 		}
 
 		try? socketURL.socket.delete()
@@ -1104,6 +1104,19 @@ public struct NetworksHandler {
 			return NetworkInfoReply(info: result, success: true, reason: String(localized: "Success"))
 		} catch {
 			return NetworkInfoReply(info: BridgedNetwork(name: String.empty, mode: .nat, description: String.empty, gateway: String.empty, dhcpLease: String.empty, interfaceID: String.empty, endpoint: String.empty, usedBy: 0), success: false, reason: error.reason)
+		}
+	}
+}
+
+extension Caked_NetworkRequestNetworkMode {
+	public init(_ from: VMNetMode) {
+		switch from {
+		case .host:
+			self = .host
+		case .shared:
+			self = .shared
+		default:
+			self = .UNRECOGNIZED(Int(from.integerValue))
 		}
 	}
 }

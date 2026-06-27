@@ -19,17 +19,18 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 
 	public var name: String {
 		get {
-			if let name = _name {
-				return name
-			}
-
-			let source = _source.expandingTildeInPath
-			let name = source.dropFirst().replacingOccurrences(of: "/", with: "_")
-			
-			if name.count > 36 {
-				let u = URL(fileURLWithPath: source)
+			guard let name = _name else {
+				let raw = _source == "." ? FileManager.default.currentDirectoryPath : _source
+				let source = raw.expandingTildeInPath
+				let name = source.dropFirst().replacingOccurrences(of: "/", with: "_")
 				
-				return u.lastPathComponent
+				if name.count > 36 {
+					let u = URL(fileURLWithPath: source)
+					
+					return u.lastPathComponent
+				}
+
+				return name
 			}
 
 			return name
@@ -48,7 +49,8 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 	}
 
 	public var path: URL {
-		URL(fileURLWithPath: _source.expandingTildeInPath)
+		let raw = _source == "." ? FileManager.default.currentDirectoryPath : _source
+		return URL(fileURLWithPath: raw.expandingTildeInPath)
 	}
 
 	public var source: String {

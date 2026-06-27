@@ -91,11 +91,104 @@ service Service {
 
   // StopService gracefully stops the caked daemon process.
   rpc StopService (Empty) returns (Caked.Reply);
+
+  // Compose allows for the orchestration of multiple virtual machines and services defined in a compose file.
+  rpc Compose (Caked.ComposeRequest) returns (Caked.Reply);
 }
 
 message Empty {}
 
 message Caked {
+  message ComposeRequest {
+    message ComposeRequestUp {
+      bytes           composeDatas  = 1;
+      int32           waitIPTimeout = 2;
+      repeated string services      = 3;
+    }
+
+    message ComposeRequestDown {
+      string          name     = 1;
+      bool            force    = 2;
+      repeated string services = 3;
+    }
+
+    message ComposeRequestDelete {
+      string          name     = 1;
+      bool            force    = 2;
+      bool            stop     = 3;
+      repeated string services = 4;
+    }
+
+    message ComposeRequestPs {
+      string          name     = 1;
+      repeated string services = 2;
+    }
+
+    message ComposeRequestList {
+      bool active = 1;
+    }
+
+    oneof compose {
+      ComposeRequestUp     up     = 1;
+      ComposeRequestDown   down   = 2;
+      ComposeRequestDelete delete = 3;
+      ComposeRequestPs     ps     = 4;
+      ComposeRequestList   ls     = 5;
+    }
+  }
+
+  message ComposeReply {
+    message ComposeReplyUp {
+      string name    = 1;
+      bool   success = 2;
+      string reason  = 3;
+    }
+
+    message ComposeReplyDown {
+      string name    = 1;
+      bool   success = 2;
+      string reason  = 3;
+    }
+
+    message ComposeReplyDelete {
+      string name    = 1;
+      bool   success = 2;
+      string reason  = 3;
+    }
+
+    message ComposeServiceInfo {
+      string serviceName = 1;
+      string image       = 2;
+      string status      = 3;
+      bool   running     = 4;
+    }
+
+    message ComposeReplyPs {
+      string                      composeName = 1;
+      repeated ComposeServiceInfo services    = 2;
+      bool                        success     = 3;
+      optional string             reason      = 4;
+    }
+
+    message ComposeReplyList {
+      message ComposeInfo {
+        string                      composeName = 1;
+        repeated ComposeServiceInfo services    = 2;
+      }
+
+      repeated ComposeInfo composeFiles = 1;
+      bool                 success      = 2;
+      optional string      reason       = 3;
+    }
+
+    oneof compose {
+      ComposeReplyUp     up     = 1;
+      ComposeReplyDown   down   = 2;
+      ComposeReplyDelete delete = 3;
+      ComposeReplyPs     ps     = 4;
+      ComposeReplyList   ls     = 5;
+    }
+  }
   enum VirtualMachineStatus {
     stopped    = 0;
     running    = 1;
@@ -320,7 +413,7 @@ message Caked {
     optional bytes ecid          = 42;
     optional bytes hardwareModel = 43;
   // Optional root disk path for the VM, if applicable
-    optional string rootDisk     = 44;
+    optional string rootDisk = 44;
   }
 
   message ScreenSize {
@@ -1166,6 +1259,7 @@ message Caked {
       ScreenSizeReply     screenSize   = 11;
       CertificateReply    certificates = 12;
       string              unexpected   = 13;
+      ComposeReply        compose      = 14;
     }
   }
 

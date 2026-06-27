@@ -1,8 +1,8 @@
 import ArgumentParser
+import CakeAgentLib
 import CakedLib
 import Foundation
 import GRPCLib
-import CakeAgentLib
 
 struct Import: ParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "import", abstract: String(localized: "Import an external VM from a file or URL."))
@@ -51,35 +51,21 @@ struct Import: ParsableCommand {
 	func run() throws {
 		let importer = self.from.importer
 
-		if importer.needSudo && geteuid() != 0 {
-			var arguments = [
-				"convert",
-				self.name,
-				self.source,
-				"--from=\(self.from.rawValue)",
-				"--user=\(self.user)",
-				"--password=\(self.password)",
-				"--uid=\(self.uid)",
-				"--gid=\(self.gid)",
-			]
-
-			if let sshPrivateKey = self.sshPrivateKey {
-				arguments.append("--ssh-key=\(sshPrivateKey)")
-			}
-
-			if let sshPrivateKeyPassphrase = self.sshPrivateKeyPassphrase {
-				arguments.append("--ssh-passphrase=\(sshPrivateKeyPassphrase)")
-			}
-
-			let exitCode = try SudoCaked(arguments: arguments, runMode: runMode, standardOutput: FileHandle.standardOutput, standardError: FileHandle.standardError).runAndWait()
-
-			if exitCode != 0 {
-				Foundation.exit(Int32(exitCode))
-			}
-		} else {
-			Logger.appendNewLine(
-				self.common.format.render(
-					ImportHandler.importVM(importer: importer, name: name, source: source, userName: user, password: password, clearPassword: clearPassword, sshPrivateKey: sshPrivateKey, passphrase: sshPrivateKeyPassphrase, uid: uid, gid: gid, runMode: .user)))
-		}
+		Logger.appendNewLine(
+			self.common.format.render(
+				ImportHandler.importVM(
+					importer: importer,
+					source: source,
+					name: name,
+					userName: user,
+					password: password,
+					clearPassword: clearPassword,
+					sshPrivateKey: sshPrivateKey,
+					passphrase: sshPrivateKeyPassphrase,
+					uid: uid,
+					gid: gid,
+					runMode: self.runMode,
+					standardOutput: FileHandle.standardOutput,
+					standardError: FileHandle.standardError)))
 	}
 }

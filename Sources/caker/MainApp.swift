@@ -237,6 +237,26 @@ struct MainApp: App {
 		.windowToolbarStyle(.unifiedCompact)
 		.restorationState(.disabled)
 		.defaultPosition(.center)
+
+		Window("Import from Multipass", id: "import-multipass") {
+			ImportMultipassView()
+				.colorSchemeForColor()
+				.containerBackground(.windowBackground, for: .window)
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+		.restorationState(.disabled)
+		.defaultPosition(.center)
+
+		Window("Import from VMware", id: "import-vmware") {
+			ImportVMwareView()
+				.colorSchemeForColor()
+				.containerBackground(.windowBackground, for: .window)
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+		.restorationState(.disabled)
+		.defaultPosition(.center)
 	}
 
 	@CommandsBuilder private var menus: some Commands {
@@ -248,6 +268,17 @@ struct MainApp: App {
 				open()
 			}
 			.keyboardShortcut(KeyboardShortcut("o"))
+			.disabled(self.appState.connectionMode == .remote)
+		}
+
+		CommandMenu("Import") {
+			Button("From Multipass…") {
+				openWindow(id: "import-multipass")
+			}
+			.disabled(self.appState.connectionMode == .remote)
+			Button("From VMware…") {
+				openWindow(id: "import-vmware")
+			}
 			.disabled(self.appState.connectionMode == .remote)
 		}
 		CommandMenu("Control") {
@@ -715,15 +746,15 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			}
 
 			if geteuid() != 0 && contents.count > 1 {
-				#if SPARKLE
-					do {
-						try print(runPrivileged(contents))
-					} catch {
-						MainActor.assumeIsolated {
-							showRunInTerminalAlert(contents)
-						}
-					}
-				#else
+				let shouldContinue = MainActor.assumeIsolated {
+					showPrivilegedInstallationConfirmation()
+				}
+				guard shouldContinue else {
+					NSApp.terminate(self)
+					return
+				}
+
+				if Bundle.isApplicationSandboxed {
 					do {
 						try print(runPrivilegedWithBundledScript(pathsContent: pathsContent, sudoersContent: sudoersContent))
 					} catch {
@@ -731,7 +762,15 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 							showCommandToPasteAlert(contents)
 						}
 					}
-				#endif
+				} else {
+					do {
+						try print(runPrivileged(contents))
+					} catch {
+						MainActor.assumeIsolated {
+							showRunInTerminalAlert(contents)
+						}
+					}
+				}
 			}
 		} catch {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
@@ -778,6 +817,19 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 		NSApp.terminate(self)
 		return
+	}
+
+	@MainActor
+	private static func showPrivilegedInstallationConfirmation() -> Bool {
+		let alert = NSAlert()
+		alert.messageText = String(localized: "Administrator Access Required")
+		alert.informativeText = String(
+			localized:
+				"Caker needs to install privileged files to allow caked and cakectl to function. macOS will prompt for your administrator password via a system dialog. Click Continue to proceed, or Quit to exit.")
+		alert.alertStyle = .informational
+		alert.addButton(withTitle: String(localized: "Continue"))
+		alert.addButton(withTitle: String(localized: "Quit"))
+		return alert.runModal() == .alertFirstButtonReturn
 	}
 
 	@MainActor
@@ -915,68 +967,66 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		}
 	}
 
-	#if SPARKLE
-		private static func runPrivileged(_ commands: [String]) throws -> String {
-			let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString).sh")
-			let appleScript = "do shell script \"\(temporaryFile.path)\" with administrator privileges"
+	private static func runPrivileged(_ commands: [String]) throws -> String {
+		let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString).sh")
+		let appleScript = "do shell script \"\(temporaryFile.path)\" with administrator privileges"
 
-			try commands.joined(separator: "\n").write(to: temporaryFile, atomically: true, encoding: .utf8)
+		try commands.joined(separator: "\n").write(to: temporaryFile, atomically: true, encoding: .utf8)
 
-			defer {
-				try? FileManager.default.removeItem(at: temporaryFile)
-			}
-
-			try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: temporaryFile.path)
-			return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
+		defer {
+			try? FileManager.default.removeItem(at: temporaryFile)
 		}
-	#else
-		private static func runPrivilegedWithBundledScript(pathsContent: String, sudoersContent: String) throws -> String {
-			guard let bundledURL = Bundle.main.url(forResource: "PrivilegedBootstrap", withExtension: "applescript") else {
-				throw NSError(domain: NSOSStatusErrorDomain, code: -1, userInfo: [NSLocalizedDescriptionKey: "PrivilegedBootstrap.applescript not found in bundle"])
-			}
 
-			let scriptsDir = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-			let scriptURL = scriptsDir.appendingPathComponent("PrivilegedBootstrap.applescript")
+		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: temporaryFile.path)
+		return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
+	}
 
-			if FileManager.default.fileExists(atPath: scriptURL.path) {
-				try FileManager.default.removeItem(at: scriptURL)
-			}
-			try FileManager.default.copyItem(at: bundledURL, to: scriptURL)
-
-			defer {
-				try? FileManager.default.removeItem(at: scriptURL)
-			}
-
-			// 'aevt'/'oapp' with argv list as keyDirectObject ('----')
-			let event = NSAppleEventDescriptor.appleEvent(
-				withEventClass: 0x6165_7674,
-				eventID: 0x6F61_7070,
-				targetDescriptor: .null(),
-				returnID: -1,
-				transactionID: 0
-			)
-			let argList = NSAppleEventDescriptor.list()
-			argList.insert(NSAppleEventDescriptor(string: pathsContent), at: 0)
-			argList.insert(NSAppleEventDescriptor(string: sudoersContent), at: 0)
-			event.setParam(argList, forKeyword: 0x2D2D_2D2D)  // keyDirectObject
-
-			let task = try NSUserAppleScriptTask(url: scriptURL)
-			var taskResult: Result<String, Error> = .success("")
-			let semaphore = DispatchSemaphore(value: 0)
-
-			task.execute(withAppleEvent: event) { descriptor, error in
-				if let error {
-					taskResult = .failure(error)
-				} else {
-					taskResult = .success(descriptor?.stringValue ?? "")
-				}
-				semaphore.signal()
-			}
-			semaphore.wait()
-
-			return try taskResult.get()
+	private static func runPrivilegedWithBundledScript(pathsContent: String, sudoersContent: String) throws -> String {
+		guard let bundledURL = Bundle.main.url(forResource: "PrivilegedBootstrap", withExtension: "applescript") else {
+			throw NSError(domain: NSOSStatusErrorDomain, code: -1, userInfo: [NSLocalizedDescriptionKey: "PrivilegedBootstrap.applescript not found in bundle"])
 		}
-	#endif
+
+		let scriptsDir = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+		let scriptURL = scriptsDir.appendingPathComponent("PrivilegedBootstrap.applescript")
+
+		if FileManager.default.fileExists(atPath: scriptURL.path) {
+			try FileManager.default.removeItem(at: scriptURL)
+		}
+		try FileManager.default.copyItem(at: bundledURL, to: scriptURL)
+
+		defer {
+			try? FileManager.default.removeItem(at: scriptURL)
+		}
+
+		// 'aevt'/'oapp' with argv list as keyDirectObject ('----')
+		let event = NSAppleEventDescriptor.appleEvent(
+			withEventClass: 0x6165_7674,
+			eventID: 0x6F61_7070,
+			targetDescriptor: .null(),
+			returnID: -1,
+			transactionID: 0
+		)
+		let argList = NSAppleEventDescriptor.list()
+		argList.insert(NSAppleEventDescriptor(string: pathsContent), at: 0)
+		argList.insert(NSAppleEventDescriptor(string: sudoersContent), at: 0)
+		event.setParam(argList, forKeyword: 0x2D2D_2D2D)  // keyDirectObject
+
+		let task = try NSUserAppleScriptTask(url: scriptURL)
+		var taskResult: Result<String, Error> = .success("")
+		let semaphore = DispatchSemaphore(value: 0)
+
+		task.execute(withAppleEvent: event) { descriptor, error in
+			if let error {
+				taskResult = .failure(error)
+			} else {
+				taskResult = .success(descriptor?.stringValue ?? "")
+			}
+			semaphore.signal()
+		}
+		semaphore.wait()
+
+		return try taskResult.get()
+	}
 
 	private static func shellQuote(_ value: String) -> String {
 		let escaped = value.replacingOccurrences(of: "'", with: "'\\''")
