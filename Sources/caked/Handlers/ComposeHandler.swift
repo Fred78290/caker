@@ -63,10 +63,6 @@ struct ComposeHandler {
 					return replyError(error: ServiceError(String(localized: "compose name must not be empty")))
 				}
 
-				guard let compose = composeFileDatabase.get(compose.name) else {
-					return replyError(error: ServiceError(String(localized: "compose \(compose.name) not found")))
-				}
-
 				composeFileDatabase.add(compose.name, compose)
 				try composeFileDatabase.save()
 
