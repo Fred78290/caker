@@ -71,8 +71,7 @@ struct ComposeUp: AsyncParsableCommand {
 		// Persist whatever was successfully launched, even on partial failure, so the
 		// next `compose up` doesn't attempt to re-create already-existing VMs.
 		if reply.success || composeStatus.installed.isEmpty == false {
-			composeFileDatabase.applications[compose.name] = composeStatus
-			try composeFileDatabase.save()
+			try composeFileDatabase.upsert(compose.name, composeStatus)
 		}
 
 		Logger.appendNewLine(self.common.format.render(reply))
@@ -218,11 +217,10 @@ struct ComposeRm: ParsableCommand {
 		// Persist partial deletions even on failure. If all tracked services are gone,
 		// remove the app entry; otherwise update it with the remaining installed set.
 		if compose.installed.isEmpty {
-			composeFileDatabase.remove(appName)
+			try composeFileDatabase.remove(appName)
 		} else {
-			composeFileDatabase.applications[appName] = compose
+			try composeFileDatabase.upsert(appName, compose)
 		}
-		try composeFileDatabase.save()
 
 		Logger.appendNewLine(self.common.format.render(reply))
 	}

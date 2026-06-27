@@ -19,65 +19,69 @@ public class ComposeFileDatabase {
 	public struct ComposeFileStatus: Codable {
 		public var composeFile: ComposeFile
 		public var installed: [String: ServiceStatus]
-		
+
 		public init(composeFile: ComposeFile, installed: [String: ServiceStatus] = [:]) {
 			self.composeFile = composeFile
 			self.installed = installed
 		}
 	}
 
-	public var applications: [String: ComposeFileStatus] = [:]
+	// Snapshot loaded at init — use for read-only queries during a command.
+	public private(set) var applications: [String: ComposeFileStatus] = [:]
 	public let url: URL
-	public let lock: FileLock
-	public var names: [String] {
-		return self.applications.keys.compactMap { $0 }
-	}
+	private let lock: FileLock
 
-	deinit {
-		try? self.lock.unlock()
-	}
+	public var names: [String] { Array(applications.keys) }
 
 	init(_ url: URL) throws {
 		self.url = url
 
-		// Ensure the file exists so FileLock can open it
 		if try url.exists() == false {
 			try ([String: ComposeFileStatus]()).write(to: url)
 		}
 
-		// Acquire lock BEFORE reading to close the TOCTOU window, then release
-		// immediately so long-running callers (e.g. compose up) don't block other
-		// compose commands for the duration of the VM build.
 		self.lock = try FileLock(lockURL: url)
+		// Read once under lock to get a consistent snapshot, then release
+		// immediately so long-running callers (e.g. compose up) don't block
+		// other compose commands for the entire duration of the VM build.
 		try self.lock.lock()
 		self.applications = try Dictionary(contentsOf: url)
 		try self.lock.unlock()
 	}
 
-	public func add(_ key: String, _ value: ComposeFileStatus) {
-		self.applications[key] = value
-	}
-
 	public func get(_ key: String) -> ComposeFileStatus? {
-		guard key.isEmpty == false else {
-			return nil
-		}
-
-		return self.applications[key]
+		guard key.isEmpty == false else { return nil }
+		return applications[key]
 	}
 
 	@inlinable public func map<T>(_ transform: ((key: String, value: ComposeFileStatus)) throws -> T) throws -> [T] {
-		return try self.applications.map(transform)
+		return try applications.map(transform)
 	}
 
-	@discardableResult public func remove(_ key: String) -> Bool {
-		return self.applications.removeValue(forKey: key) != nil
+	/// Atomically writes `value` for `key`.
+	/// Re-reads disk state under the FileLock before writing so concurrent mutations
+	/// to other keys (e.g. two simultaneous `compose up` for different projects) are
+	/// preserved — the lock is held only for the duration of the read + write, never
+	/// across long-running VM operations.
+	public func upsert(_ key: String, _ value: ComposeFileStatus) throws {
+		try lock.lock()
+		defer { try? lock.unlock() }
+		var onDisk: [String: ComposeFileStatus] = (try? Dictionary(contentsOf: url)) ?? [:]
+		onDisk[key] = value
+		try onDisk.write(to: url)
+		self.applications = onDisk
 	}
 
-	public func save() throws {
-		try self.lock.lock()
-		defer { try? self.lock.unlock() }
-		try self.applications.write(to: self.url)
+	/// Atomically removes `key` and writes the updated state back to disk.
+	@discardableResult
+	public func remove(_ key: String) throws -> Bool {
+		try lock.lock()
+		defer { try? lock.unlock() }
+		var onDisk: [String: ComposeFileStatus] = (try? Dictionary(contentsOf: url)) ?? [:]
+		let removed = onDisk.removeValue(forKey: key) != nil
+		try onDisk.write(to: url)
+		self.applications = onDisk
+		return removed
 	}
 }
 

@@ -73,9 +73,9 @@ struct ComposeHandler {
 
 				let reply = await CakedLib.ComposeHandler.up(compose: &composeStatus, services: request.services, waitIPTimeout: Int(request.waitIptimeout), runMode: runMode).caked
 
-				if reply.success {
-					composeFileDatabase.applications[compose.name] = composeStatus
-					try composeFileDatabase.save()
+				// Persist whatever was successfully launched, even on partial failure.
+				if reply.success || composeStatus.installed.isEmpty == false {
+					try composeFileDatabase.upsert(compose.name, composeStatus)
 				}
 
 				return .with {
@@ -198,11 +198,10 @@ struct ComposeHandler {
 				// Persist whatever was successfully removed, even on partial failure.
 				// If all tracked services are gone, remove the app entry entirely.
 				if compose.installed.isEmpty {
-					composeFileDatabase.remove(request.name)
+					try composeFileDatabase.remove(request.name)
 				} else {
-					composeFileDatabase.applications[request.name] = compose
+					try composeFileDatabase.upsert(request.name, compose)
 				}
-				try composeFileDatabase.save()
 
 				return .with {
 					$0.compose = .with {
