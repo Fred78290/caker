@@ -104,7 +104,7 @@ struct ImportMultipassView: View {
 					.textSelection(.enabled)
 				if Bundle.isApplicationSandboxed {
 					Spacer()
-					Text("You wheel be prompted for your password two times by osascript. Accept the prompt to continue.")
+					Text("You will be prompted for your password two times by osascript. Accept the prompt to continue.")
 						.font(.caption)
 						.foregroundStyle(.secondary)
 						.fixedSize(horizontal: false, vertical: true)
