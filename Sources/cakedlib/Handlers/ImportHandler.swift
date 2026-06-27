@@ -36,9 +36,10 @@ public struct ImportHandler {
 	}
 
 	static func runPrivilegedAppleScript(_ script: String) throws -> String {
-		let appleScript = """
-			do shell script "\(script)" with administrator privileges
-			"""
+		let escaped = script
+			.replacingOccurrences(of: "\\", with: "\\\\")
+			.replacingOccurrences(of: "\"", with: "\\\"")
+		let appleScript = "do shell script \"\(escaped)\" with administrator privileges"
 
 		let scriptName = UUID().uuidString
 		let scriptsDir = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
@@ -144,6 +145,10 @@ public struct ImportHandler {
 						"--json",
 					]
 
+					if clearPassword {
+						arguments.append("--clear-password")
+					}
+
 					if let sshPrivateKey {
 						arguments.append("--ssh-key=\(sshPrivateKey)")
 					}
@@ -152,7 +157,8 @@ public struct ImportHandler {
 						arguments.append("--ssh-passphrase=\(passphrase)")
 					}
 
-					let replyString = try runPrivilegedAppleScript(arguments.joined(separator: " "))
+					let quote: (String) -> String = { v in "'" + v.replacingOccurrences(of: "'", with: "'\\''") + "'" }
+					let replyString = try runPrivilegedAppleScript(arguments.map(quote).joined(separator: " "))
 
 					if let data = replyString.data(using: .utf8) {
 						do {
@@ -181,6 +187,10 @@ public struct ImportHandler {
 						"--gid=\(gid)",
 						"--json",
 					]
+
+					if clearPassword {
+						arguments.append("--clear-password")
+					}
 
 					if let sshPrivateKey {
 						arguments.append("--ssh-key=\(sshPrivateKey)")
