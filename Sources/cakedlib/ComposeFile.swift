@@ -227,7 +227,7 @@ public struct ComposeNetwork: Codable {
 	}
 	
 	public var driver: SupportedDriver = .none
-	public var external: Bool = false // true name is already defined network, false create a new one
+	public var external: Bool? = false // true name is already defined network, false create a new one
 	public var name: String?
 	
 	// driver options depends
