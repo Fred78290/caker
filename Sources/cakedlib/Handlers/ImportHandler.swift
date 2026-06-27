@@ -186,6 +186,10 @@ public struct ImportHandler {
 						"--json",
 					]
 
+					if clearPassword {
+						arguments.append("--clear-password")
+					}
+
 					if let sshPrivateKey {
 						arguments.append("--ssh-key=\(sshPrivateKey)")
 					}
