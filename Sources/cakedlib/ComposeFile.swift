@@ -306,20 +306,32 @@ public struct ComposeService: Codable {
 	/// Convert to `BuildOptions`. Environment variables are injected via cloud-init.
 	public func toBuildOptions(name: String) throws -> BuildOptions {
 		let memoryMB = parseMemoryMB(deploy?.resources?.limits?.memory ?? "") ?? 2048
-		var tunnels: [TunnelAttachement] = ports?.compactMap { $0.portString }.compactMap { TunnelAttachement(argument: $0) } ?? []
 		var mounts: [DirectorySharingAttachment] = []
 		var ethernets: [BridgeAttachement] = []
+		var tunnels: [TunnelAttachement] = ports?.compactMap {
+			$0.portString
+		}.compactMap {
+			TunnelAttachement(argument: $0)
+		} ?? []
 
 		if let sockets {
-			tunnels += sockets.compactMap { parseUnixSocketTunnel($0) }
+			tunnels += sockets.compactMap {
+				parseUnixSocketTunnel($0)
+			}
 		}
 
 		if let volumes {
-			mounts = try volumes.compactMap { $0.mountString }.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
+			mounts = try volumes.compactMap {
+				$0.mountString
+			}.compactMap {
+				try DirectorySharingAttachment(parseFrom: $0)
+			}
 		}
 
 		if let networks {
-			ethernets = try networks.compactMap { try BridgeAttachement(parseFrom: $0) }
+			ethernets = try networks.compactMap {
+				try BridgeAttachement(parseFrom: $0)
+			}
 		}
 
 		var opts = BuildOptions(
@@ -347,9 +359,12 @@ public struct ComposeService: Codable {
 				    content: |
 				\(indented)
 				"""
+
 				let tempFile = URL(fileURLWithPath: NSTemporaryDirectory())
 					.appendingPathComponent("compose-cloud-init-\(UUID().uuidString).yaml")
+
 				try cloudInit.write(to: tempFile, atomically: true, encoding: .utf8)
+
 				opts.userData = tempFile.path
 			}
 		}
@@ -387,67 +402,92 @@ public struct ComposeFile: Codable {
 
 	// MARK: Load
 
-	public static func load(
-		from directory: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-	) throws -> ComposeFile {
+	public static func load(from directory: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)) throws -> ComposeFile {
 		let primary = directory.appendingPathComponent(filename)
+
 		if FileManager.default.fileExists(atPath: primary.path) {
 			return try load(fromFile: primary.path)
 		}
+
 		for legacy in legacyFilenames {
 			let url = directory.appendingPathComponent(legacy)
 			if FileManager.default.fileExists(atPath: url.path) {
 				return try load(fromFile: url.path)
 			}
 		}
+
 		throw ServiceError(String(localized: "No compose.yml found in \(directory.path)"))
 	}
 
 	public static func load(fromFile path: String) throws -> ComposeFile {
 		let content = try String(contentsOfFile: path, encoding: .utf8)
+
 		return try YAMLDecoder().decode(ComposeFile.self, from: content)
 	}
 
 	// MARK: Ordering
 
 	public func resolvedServices(filter: [String] = []) throws -> [(name: String, service: ComposeService)] {
-		if !filter.isEmpty {
+		if filter.isEmpty == false {
 			let unknown = filter.filter { services[$0] == nil }
-			if !unknown.isEmpty {
-				throw ServiceError(String(localized: "Unknown service\(unknown.count == 1 ? "" : "s"): \(unknown.joined(separator: ", "))"))
+
+			if unknown.isEmpty == false {
+				let errorMessage = unknown.count == 1 ? String(localized: "Unknown service") :	String(localized: "Unknown services")
+
+				throw ServiceError("\(errorMessage): \(unknown.joined(separator: ", "))")
 			}
 		}
+
 		let keys: [String] = filter.isEmpty ? services.keys.sorted() : filter
-		return keys.compactMap { k in services[k].map { (k, $0) } }
+
+		return keys.compactMap {k in
+			services[k].map {
+				(k, $0)
+			}
+		}
 	}
 
 	/// Services sorted by `depends_on` (topological order). Throws on cycles or missing deps.
 	public func startOrder(filter: [String] = []) throws -> [(name: String, service: ComposeService)] {
 		let entries = try resolvedServices(filter: filter)
-		guard !entries.isEmpty else { return [] }
+		
+		guard entries.isEmpty == false else {
+			return []
+		}
 
 		var result: [(name: String, service: ComposeService)] = []
 		var visited = Set<String>()
 		var visiting = Set<String>()
 
 		func visit(_ n: String, _ svc: ComposeService) throws {
-			if visited.contains(n) { return }
-			guard !visiting.contains(n) else {
+			if visited.contains(n) {
+				return
+			}
+
+			guard visiting.contains(n) == false else {
 				throw ServiceError(String(localized: "Circular dependency involving '\(n)'"))
 			}
+
 			visiting.insert(n)
+
 			for dep in svc.dependsOn?.serviceNames ?? [] {
 				guard let depSvc = services[dep] else {
 					throw ServiceError(String(localized: "'\(n)' depends_on '\(dep)' which is not defined"))
 				}
+
 				try visit(dep, depSvc)
 			}
+
 			visiting.remove(n)
 			visited.insert(n)
+
 			result.append((n, svc))
 		}
 
-		for (n, svc) in entries { try visit(n, svc) }
+		for (n, svc) in entries {
+			try visit(n, svc)
+		}
+
 		return result
 	}
 
