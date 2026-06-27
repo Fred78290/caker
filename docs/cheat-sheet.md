@@ -70,6 +70,25 @@ Quick command reference for common daily operations.
   - `cakectl networks start <network>`
   - `cakectl networks stop <network>`
 
+## Compose (`cakectl compose`)
+
+- Initialise a project:
+  - `cakectl compose init`
+- Start all services:
+  - `cakectl compose up`
+- Start specific services:
+  - `cakectl compose up app database`
+- Stop all services:
+  - `cakectl compose down`
+- Show service status:
+  - `cakectl compose ps`
+- Remove and unregister (stop first):
+  - `cakectl compose rm --stop`
+- List all compose projects:
+  - `cakectl compose ls`
+- Use a custom file:
+  - `cakectl compose up -f ./infra/staging.yml`
+
 ## Local daemon/admin (`caked`)
 
 - Run daemon command directly:

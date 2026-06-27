@@ -8,5 +8,6 @@
 - [FAQ](faq)
 - [Release Notes](release-notes)
 - [Command Summary](command-summary)
+- [Compose](compose)
 - [Cheat Sheet](cheat-sheet)
 - [Privacy policy](privacy-policy)
