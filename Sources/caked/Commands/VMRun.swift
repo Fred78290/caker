@@ -160,12 +160,47 @@ struct VMRun: AsyncParsableCommand {
 			recoveryMode: self.recoveryMode,
 			runMode: runMode)
 
+		// Prepare IMDS server for Linux VMs (started once VM network is up)
+		var imdsServer: IMDSServer? = nil
+		let imdsMetadata: IMDSMetadata? = config.os == .linux ? IMDSMetadata(config: config, locationName: location.name) : nil
+
+		if let imdsMetadata {
+			do {
+				imdsServer = try await IMDSServer(group: Utilities.group, metadata: imdsMetadata)
+			} catch {
+				Logger(self).warn("Failed to create IMDS server: \(error)")
+			}
+		}
+
 		try handler.run { address, vm in
 			let logger = Logger(self)
 
 			address.whenSuccess { ip in
 				if let ip {
 					logger.info("VM Machine \(location.name) is now available at \(ip)")
+					imdsMetadata?.localIPv4 = ip
+				}
+			}
+
+			// Start IMDS server bound to the IMDS host network (169.254.169.1)
+			if let imdsServer {
+				Task {
+					var attempts = 0
+					let maxAttempts = 20
+					while attempts < maxAttempts {
+						do {
+							try imdsServer.start()
+							logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
+							break
+						} catch {
+							attempts += 1
+							if attempts == maxAttempts {
+								logger.warn("IMDS server could not start: \(error)")
+							} else {
+								try? await Task.sleep(nanoseconds: 500_000_000)
+							}
+						}
+					}
 				}
 			}
 
@@ -194,9 +229,11 @@ struct VMRun: AsyncParsableCommand {
 			} else {
 				NSApplication.shared.setActivationPolicy(.prohibited)
 				NSApplication.shared.run()
-				
+
 				cancellable?.cancel()
 			}
 		}
+
+		await imdsServer?.shutdown()
 	}
 }
