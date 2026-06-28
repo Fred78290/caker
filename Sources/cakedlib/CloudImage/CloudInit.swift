@@ -157,6 +157,19 @@ struct NetworkConfig: Codable {
 				self.network.ethernets[name] = Interface(match: Match(macAddress: network.macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac", dhcp4Overrides: .init(routeMetric: 200), dhcp6Overrides: .init(routeMetric: 200))
 			}
 		}
+
+		// Add IMDS interface for Linux VMs with a static route to 169.254.169.254
+		if config.os == .linux, let imdsMac = config.imdsMacAddress {
+			let imdsName = netIfnames ? "enp0s\(index)" : "eth\(index - 1)"
+			self.network.ethernets[imdsName] = Interface(
+				match: Match(macAddress: imdsMac),
+				setName: imdsName,
+				dhcp4: true,
+				dhcp6: false,
+				dhcpIdentifier: "mac",
+				routes: [NetworkRoute(to: "169.254.169.254/32", via: IMDSNetworkInterface.imdsGateway)]
+			)
+		}
 	}
 
 	func toCloudInit() throws -> Data {

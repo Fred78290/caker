@@ -203,11 +203,24 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	@MainActor
 	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, recoveryMode: Bool, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable && config.os == .darwin
-		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
+		var networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
 		let directorySharingAttachments = try config.directorySharingAttachments()
 		let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
 		let consoleURL = try config.consoleAttachment()
+
+		// Add IMDS network interface for Linux VMs
+		if config.os == .linux {
+			let imdsMac: VZMACAddress
+			if let stored = config.imdsMacAddress, let mac = VZMACAddress(string: stored) {
+				imdsMac = mac
+			} else {
+				imdsMac = VZMACAddress.randomLocallyAdministered()
+				config.imdsMacAddress = imdsMac.string
+				try config.save()
+			}
+			networks.append(IMDSNetworkInterface(macAddress: imdsMac))
+		}
 
 		let configuration = VZVirtualMachineConfiguration()
 		let plateform = try config.platform(nvramURL: location.nvramURL, needsNestedVirtualization: config.nested)
