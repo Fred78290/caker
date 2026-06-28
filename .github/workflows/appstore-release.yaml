@@ -133,6 +133,7 @@ jobs:
           mkdir -p "${GITHUB_WORKSPACE}/appstore"
           PKG_PATH="${GITHUB_WORKSPACE}/appstore/Caker.pkg"
 
+          echo "CAKE_HOME=${HOME}/Library/Containers/com.aldunelabs.caker/Data/.cake" >> ${GITHUB_ENV}
           echo "PKG_PATH=${PKG_PATH}" >> ${GITHUB_ENV}
           echo "VERSION=${VERSION}" >> ${GITHUB_ENV}
           echo "PACKAGE=${PACKAGE}" >> ${GITHUB_ENV}
