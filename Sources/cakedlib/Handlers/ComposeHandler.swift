@@ -26,7 +26,7 @@ public struct ComposeHandler {
 			let toStart = try compose.composeFile.startOrder(filter: services)
 
 			for (serviceName, serviceSpec) in toStart {
-				var vmName = "compose-\(appName)-\(serviceName)"
+				let vmName = "compose-\(appName)-\(serviceName)"
 
 				// Check if already installed
 				if let installed = compose.installed[serviceName] {
