@@ -157,8 +157,8 @@ jobs:
         if: vars.RUN_SWIFT_TESTS == 'true'
         run: |
           set -o pipefail
-          export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns:${PATH}
-          swift test 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving|CoreData'
+          export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS:appstore/Caker.app/Contents/PlugIns/cakectl.bundle/Contents/MacOS:${PATH}
+          swift test -Xswiftc -D -Xswiftc USE_SMAPPSERVICE -Xswiftc -D -Xswiftc APPSTORE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving|CoreData'
 
       - name: 👷 Build Swift package for App Store
         id: build
