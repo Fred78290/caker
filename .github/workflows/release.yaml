@@ -164,15 +164,6 @@ jobs:
         run: |
           ./.ci/setup-keychain.sh "${KEYCHAIN_PATH}"
 
-      - name: 🧪 Run tests
-        id: tests
-        if: vars.RUN_SWIFT_TESTS == 'true'
-        run: |
-          # Run tests for the Swift package
-          set -o pipefail
-          export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS:/.ci/pkg/Caker.app/Contents/PlugIns/cakectl.bundle/Contents/MacOS:${PATH}
-          swift test -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving|CoreData'
-
       - name: 👷 Build Swift package
         id: build
         env:
@@ -181,6 +172,15 @@ jobs:
         run: |
           set -o pipefail
           ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}" 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving'
+
+      - name: 🧪 Run tests
+        id: tests
+        if: vars.RUN_SWIFT_TESTS == 'true'
+        run: |
+          # Run tests for the Swift package
+          set -o pipefail
+          export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS:/.ci/pkg/Caker.app/Contents/PlugIns/cakectl.bundle/Contents/MacOS:${PATH}
+          swift test -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving|CoreData'
 
       - name: 🧪 Run integration tests
         id: integration_tests
