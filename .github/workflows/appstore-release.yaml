@@ -114,7 +114,7 @@ jobs:
             fi
           fi
 
-          if [ "${SETUP_KEYCHAIN}" == "true" ]; then
+          if [ "${SETUP_KEYCHAIN}" == "true" ] && [ "${RUNNER_ENVIRONMENT}" == "github-hosted" ]; then
             KEYCHAIN_PATH="${RUNNER_TEMP}/app-signing.keychain-db"
           else
             KEYCHAIN_PATH=""
@@ -148,7 +148,7 @@ jobs:
 
       - name: 🛠️ Install the Apple Distribution certificate
         id: setup_keychain
-        if: vars.SETUP_KEYCHAIN == 'true'
+        if: vars.SETUP_KEYCHAIN == 'true' && runner.environment == 'github-hosted'
         run: |
           ./.ci/setup-appstore-keychain.sh "${KEYCHAIN_PATH}"
 
@@ -223,7 +223,7 @@ jobs:
         id: cleanup
         env:
           KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
-        if: always() && vars.SETUP_KEYCHAIN == 'true'
+        if: always() && vars.SETUP_KEYCHAIN == 'true' && runner.environment == 'github-hosted'
         run: |
           security delete-keychain "${KEYCHAIN_PATH}"
 
