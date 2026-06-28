@@ -1,5 +1,6 @@
 <p align="center">
-	<a href="https://github.com/Fred78290/caker/actions/workflows/release.yaml"><img src="https://github.com/Fred78290/caker/actions/workflows/release.yaml/badge.svg?branch=main" alt="Build" /></a>
+	<a href="https://github.com/Fred78290/caker/actions/workflows/appstore-release.yaml"><img src="https://github.com/Fred78290/caker/actions/workflows/appstore-release.yaml/badge.svg" alt="Apple Store" /></a>
+	<a href="https://github.com/Fred78290/caker/actions/workflows/release.yaml"><img src="https://github.com/Fred78290/caker/actions/workflows/release.yaml/badge.svg" alt="Release" /></a>
 	<a href="https://github.com/Fred78290/caker/actions/workflows/publish-wiki.yaml"><img src="https://github.com/Fred78290/caker/actions/workflows/publish-wiki.yaml/badge.svg?branch=main" alt="Publish Wiki" /></a>
 	<a href="https://caker.aldunelabs.com"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="GitHub Pages" /></a>
 	<a href="https://github.com/Fred78290/caker/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" alt="License: AGPL v3" /></a>
