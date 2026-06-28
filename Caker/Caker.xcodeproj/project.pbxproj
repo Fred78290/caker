@@ -262,6 +262,7 @@
 		9B91237C2E2903DC006DD682 /* ExternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */; };
 		9B91237E2E290442006DD682 /* InternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */; };
 		9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 9B9123802E29253A006DD682 /* SwiftTerm */; };
+		9B9438E82FF17EBF00F69AB6 /* IMDSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9438E62FF17EBF00F69AB6 /* IMDSServer.swift */; };
 		9B9620CB2EAB62EF0075CD18 /* ToolbarSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */; };
 		9B96B0182F4B68480069C970 /* TestPlan.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 9B96B00A2F4B67250069C970 /* TestPlan.xctestplan */; };
 		9B96B0192F4B68540069C970 /* ProcessWithSharedFileHandleTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */; };
@@ -1061,6 +1062,7 @@
 		9B911A602ECF854E0017791D /* GlossyCircle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlossyCircle.swift; sourceTree = "<group>"; };
 		9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalVirtualMachineView.swift; sourceTree = "<group>"; };
+		9B9438E62FF17EBF00F69AB6 /* IMDSServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMDSServer.swift; sourceTree = "<group>"; };
 		9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarSettings.swift; sourceTree = "<group>"; };
 		9B96B00A2F4B67250069C970 /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 		9B96B00F2F4B68380069C970 /* CakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2133,6 +2135,14 @@
 			path = REST;
 			sourceTree = "<group>";
 		};
+		9B9438E72FF17EBF00F69AB6 /* IMDS */ = {
+			isa = PBXGroup;
+			children = (
+				9B9438E62FF17EBF00F69AB6 /* IMDSServer.swift */,
+			);
+			path = IMDS;
+			sourceTree = "<group>";
+		};
 		9B9C4E592E23BC8B00C13D23 /* Home */ = {
 			isa = PBXGroup;
 			children = (
@@ -2361,6 +2371,7 @@
 				9BEBC6CC2DF4400A0092B196 /* Root.swift */,
 				9BEBC6B12DF4400A0092B196 /* Commands */,
 				9BEBC6C92DF4400A0092B196 /* Handlers */,
+				9B9438E72FF17EBF00F69AB6 /* IMDS */,
 				9B602F962FAA56FA00055543 /* REST */,
 				9B144C0E2F9D28D900F14DEF /* VNCTunnel */,
 			);
@@ -3542,6 +3553,7 @@
 				9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */,
 				9B6031392FAD105700055543 /* LXDIdentitiesController.swift in Sources */,
 				9B60313A2FAD105700055543 /* LXDAuthGroupsController.swift in Sources */,
+				9B9438E82FF17EBF00F69AB6 /* IMDSServer.swift in Sources */,
 				9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */,
 				9BDBCB092FEEBF5D007241E2 /* ComposeHandler.swift in Sources */,
 				9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */,
