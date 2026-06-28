@@ -1,12 +1,12 @@
-import XCTest
+import CakeAgentLib
 import Combine
-
-@testable import CakedLib
-@testable import GRPCLib
 import NIOCore
 import NIOPortForwarding
 import NIOPosix
-import CakeAgentLib
+import XCTest
+
+@testable import CakedLib
+@testable import GRPCLib
 
 let ubuntuCloudImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
@@ -160,41 +160,38 @@ final class CloudInitTests: XCTestCase {
 	}
 
 	func buildVM(name: String, image: String, imageSource: ImageSource?) async throws {
-		var options: BuildOptions = BuildOptions()
 		let tempVMLocation: VMLocation = try VMLocation.tempDirectory(runMode: .user)
-
-		options.name = name
-		options.autostart = true
-		options.displayRefit = true
-		options.cpu = 1
-		options.memory = 512
-		options.diskSize = 20
-		options.attachedDisks = []
-		options.user = "admin"
-		options.password = nil
-		options.mainGroup = "adm"
-		options.otherGroup = ["sudo"]
-		options.clearPassword = true
-		options.image = image
-		options.imageSource = imageSource
-		options.autostart = false
-		options.nested = true
-		options.autoinstall = false
-		options.suspendable = true
-		options.sshAuthorizedKey = NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath
-		options.userData = self.userDataPath.path
-		options.vendorData = nil
-		options.screenSize = ViewSize.standard
-		options.dynamicPortForwarding = false
-		options.netIfnames = false
-		options.networkConfig = self.networkConfigPath.path
-		options.consoleURL = nil
-		options.mounts = []
-		options.networks = []
-		options.sockets = []
-		options.forwardedPorts = [
-			TunnelAttachement(host: 2022, guest: 22, proto: .tcp)
-		]
+		let options = BuildOptions(
+			name: name,
+			cpu: 1,
+			memory: 512,
+			diskSize: 20,
+			screenSize: .standard,
+			attachedDisks: [],
+			user: "admin",
+			password: nil,
+			mainGroup: "adm",
+			otherGroups: ["sudo"],
+			clearPassword: true,
+			autostart: false,
+			nested: true,
+			suspendable: true,
+			netIfnames: false,
+			image: image,
+			imageSource: imageSource,
+			sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
+			vendorData: nil,
+			userData: self.userDataPath.path,
+			networkConfig: self.networkConfigPath.path,
+			displayRefit: true,
+			forwardedPorts: [TunnelAttachement(host: 2022, guest: 22, proto: .tcp)],
+			mounts: [],
+			networks: [],
+			sockets: [],
+			consoleURL: nil,
+			autoinstall: false,
+			dynamicPortForwarding: false
+		)
 
 		_ = try await VMBuilder.buildVM(vmName: options.name, location: tempVMLocation, options: options, runMode: .user, queue: nil, progressHandler: ProgressObserver.progressHandler)
 
@@ -254,9 +251,18 @@ final class CloudInitTests: XCTestCase {
 		}
 
 		// Start VM
-		let runningIP = StartHandler.startVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: .background, gcd: false, recoveryMode: false, runMode: .user, promise: promise)
+		let result = StartHandler.startVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: .background, gcd: false, recoveryMode: false, runMode: .user, promise: promise)
 
-		print("startVM got running ip: \(runningIP)")
+		defer {
+			try? location.delete()
+		}
+
+		guard result.started else {
+			XCTFail("VM \(name) should be started")
+			return
+		}
+
+		print("startVM got running ip: \(result.ip)")
 
 		try location.stopVirtualMachine(force: false, runMode: .user)
 
@@ -282,13 +288,6 @@ final class CloudInitTests: XCTestCase {
 		let location: VMLocation = try StorageLocation(runMode: .user).find(noble_cloud_image)
 		let eventLoop = self.group.any()
 		let promise = eventLoop.makePromise(of: String.self)
-		let (stream, continuation) = AsyncThrowingStream.makeStream(of: CurrentStatusHandler.CurrentStatusReply.self)
-		let cancellable = try await CurrentStatusHandler.currentStatus(location: location, frequency: 1, statusStream: continuation, runMode: .user)
-
-		defer {
-			continuation.finish()
-			cancellable.cancel()
-		}
 
 		promise.futureResult.whenComplete { result in
 			switch result {
@@ -303,16 +302,32 @@ final class CloudInitTests: XCTestCase {
 		// Start VM
 		let result = StartHandler.startVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: .foreground, gcd: false, recoveryMode: false, runMode: .user, promise: promise)
 
-		XCTAssertTrue(result.started, "VM \(name) should be started")
+		defer {
+			try? location.delete()
+		}
 
-		print("startVM got running ip: \(result)")
+		guard result.started else {
+			try? location.delete()
+			XCTFail("VM \(name) should be started")
+			return
+		}
+
+		let (stream, continuation) = AsyncThrowingStream.makeStream(of: CurrentStatusHandler.CurrentStatusReply.self)
+		let cancellable = try await CurrentStatusHandler.currentStatus(location: location, frequency: 1, statusStream: continuation, runMode: .user)
+
+		defer {
+			continuation.finish()
+			cancellable.cancel()
+		}
+
+		print("startVM got running ip: \(result.ip)")
 
 		var count = 0
 
 		for try await status in stream {
 			print("Current Status[\(count)]: \(status)")
 			count += 1
-			
+
 			if count > 9 {
 				break
 			}

@@ -15,9 +15,11 @@ final class LXDCreateInstanceRequestTests: XCTestCase {
 		  "other_groups": ["sudo"],
 		  "net_ifnames": true,
 		  "autostart": false,
+		  "autoinstall": false,
 		  "bridged_network": false,
 		  "nested": false,
 		  "dynamic_port_forwarding": false,
+		  "enable_console": false,
 		  "devices": {
 		    "eth0": { "type": "nic", "name": "eth0", "network": "br0" },
 		    "eth1": { "type": "nic", "network": "br1" }
@@ -46,6 +48,8 @@ final class LXDCreateInstanceRequestTests: XCTestCase {
 		  "other_groups": ["sudo"],
 		  "net_ifnames": true,
 		  "autostart": false,
+		  "autoinstall": false,
+		  "enable_console": false,
 		  "bridged_network": false,
 		  "nested": false,
 		  "dynamic_port_forwarding": false,
@@ -77,6 +81,8 @@ final class LXDCreateInstanceRequestTests: XCTestCase {
 		  "other_groups": ["sudo"],
 		  "net_ifnames": true,
 		  "autostart": false,
+		  "autoinstall": false,
+		  "enable_console": false,
 		  "bridged_network": false,
 		  "nested": false,
 		  "dynamic_port_forwarding": false,
@@ -117,7 +123,9 @@ final class LXDCreateInstanceRequestTests: XCTestCase {
 		  "autostart": true,
 		  "bridged_network": true,
 		  "nested": true,
-		  "dynamic_port_forwarding": true
+		  "dynamic_port_forwarding": true,
+		  "autoinstall": false,
+		  "enable_console": false
 		}
 		"""
 
@@ -152,6 +160,8 @@ final class LXDCreateInstanceRequestTests: XCTestCase {
 		  "other_groups": ["sudo"],
 		  "net_ifnames": true,
 		  "autostart": false,
+		  "autoinstall": false,
+		  "enable_console": false,
 		  "bridged_network": false,
 		  "nested": false,
 		  "dynamic_port_forwarding": false,
@@ -183,6 +193,8 @@ final class LXDCreateInstanceRequestTests: XCTestCase {
 		  "bridged_network": false,
 		  "nested": false,
 		  "dynamic_port_forwarding": false,
+		  "autoinstall": false,
+		  "enable_console": false,
 		  "devices": {
 		    "root": { "type": "disk", "path": "/" },
 		    "eth0": { "type": "nic", "name": "eth0", "network": "br0", "mode": "auto" },
