@@ -2170,6 +2170,17 @@
         }
       }
     },
+    "Compose failed to start %@, %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compose n'a pas réussi à démarrer %@, %@"
+          }
+        }
+      }
+    },
     "compose name must not be empty" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5822,19 +5833,13 @@
         }
       }
     },
-    "IP: %@" : {
+    "IP: %@\n" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "IP: %@"
-          }
-        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "IP : %@"
+            "value" : "IP : %@\n"
           }
         }
       }
@@ -6224,6 +6229,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lister sources distantes"
+          }
+        }
+      }
+    },
+    "Listen network %@ already exists at this location: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le réseau d'écoute %@ existe déjà à cet emplacement : %@"
           }
         }
       }
@@ -14549,6 +14565,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sockets virtuels"
+          }
+        }
+      }
+    },
+    "VM \"%@\" exited with code %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM \"%@\" s'est terminée avec le code %@"
           }
         }
       }
