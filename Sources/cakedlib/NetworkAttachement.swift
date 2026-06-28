@@ -72,6 +72,13 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		self.networkConfig = networkConfig
 	}
 
+	public init(mode: VMNetMode, macAddress: VZMACAddress, networkName: String, networkConfig: VZSharedNetwork) {
+		self.mode = mode
+		self.networkName = networkName
+		self.macAddress = macAddress
+		self.networkConfig = networkConfig
+	}
+
 	public func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
 		if #available(macOS 26.0, *), networkConfig != nil, NetworksHandler.vmnetNative {
 			return (macAddress, VZVmnetNetworkDeviceAttachment(network: try self.createVMNetwork(runMode: runMode)))
@@ -317,5 +324,26 @@ public class VMNetworkInterface: SharedNetworkInterface {
 	public init(interface: VZBridgedNetworkInterface, macAddress: VZMACAddress) {
 		self.interface = interface
 		super.init(mode: .bridged, networkName: interface.identifier, macAddress: macAddress)
+	}
+}
+
+// MARK: - IMDS host network for 169.254.169.0/24
+public class IMDSNetworkInterface: SharedNetworkInterface {
+	public static let imdsGateway = "169.254.169.1"
+	public static let imdsDhcpEnd = "169.254.169.253"
+	public static let imdsNetmask = "255.255.255.0"
+	public static let imdsNetworkName = "imds"
+
+	public init(macAddress: VZMACAddress) {
+		let networkConfig = VZSharedNetwork(
+			mode: .host,
+			netmask: IMDSNetworkInterface.imdsNetmask,
+			dhcpStart: IMDSNetworkInterface.imdsGateway,
+			dhcpEnd: IMDSNetworkInterface.imdsDhcpEnd,
+			dhcpLease: nil,
+			interfaceID: IMDSNetworkInterface.imdsNetworkName,
+			nat66Prefix: nil
+		)
+		super.init(mode: .host, macAddress: macAddress, networkName: IMDSNetworkInterface.imdsNetworkName, networkConfig: networkConfig)
 	}
 }

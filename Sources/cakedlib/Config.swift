@@ -362,6 +362,11 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.cake["cloud-init"] as? Bool ?? false }
 	}
 
+	public var imdsMacAddress: String? {
+		set { self.cake["imdsMacAddress"] = newValue }
+		get { self.cake["imdsMacAddress"] as? String }
+	}
+
 	public var sockets: [SocketDevice] {
 		set { self.cake["sockets"] = newValue.map { $0.description } }
 		get {
