@@ -33,6 +33,12 @@ trap cleanup_swift_mirror EXIT
 
 /usr/bin/swift package config set-mirror --original "${ARGUMENT_PARSER_ORIGINAL}" --mirror "${ARGUMENT_PARSER_MIRROR}"
 /usr/bin/swift package resolve
+
+jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
+  .location = "https://github.com/Fred78290/swift-argument-parser" |
+  .state.revision = "d554955e8c280aa4c4a05a039a968f0205656e77"
+)' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
+
 /usr/bin/swift build -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"
