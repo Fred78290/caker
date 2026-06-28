@@ -64,18 +64,18 @@ let userData =
 	- hostnamectl set-hostname openstack-dev-k3s-worker-02
 	"""
 
-let uuid = UUID().uuidString
+let uuid = UUID().uuidString.split(separator: "-").last!
 
 final class CloudInitTests: XCTestCase {
 	let networkConfigPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("network-config.yaml").absoluteURL
 	let userDataPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("user-data.yaml").absoluteURL
 	let group: MultiThreadedEventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-	let noble_oci_image = "noble-oci-image-\(uuid)"
-	let noble_qcow2_image = "noble-qcow2-image-\(uuid)"
-	let noble_container_image = "noble-container-image-\(uuid)"
-	let noble_lxd_image = "noble-lxd-image-\(uuid)"
-	let noble_cloud_image = "noble-cloud-image-\(uuid)"
-	let noble_must_fail_image = "noble-must-fail-image"
+	let noble_oci_image = "noble-oci-\(uuid)"
+	let noble_qcow2_image = "noble-qcow2-\(uuid)"
+	let noble_container_image = "noble-container-\(uuid)"
+	let noble_lxd_image = "noble-lxd-\(uuid)"
+	let noble_cloud_image = "noble-cloud-\(uuid)"
+	let noble_must_fail_image = "noble-must-fail"
 
 	override func setUp() {
 		do {
@@ -258,7 +258,7 @@ final class CloudInitTests: XCTestCase {
 		}
 
 		guard result.started else {
-			XCTFail("VM \(name) should be started")
+			XCTFail("VM \(name) should be started, \(result.reason)")
 			return
 		}
 
@@ -308,7 +308,7 @@ final class CloudInitTests: XCTestCase {
 
 		guard result.started else {
 			try? location.delete()
-			XCTFail("VM \(name) should be started")
+			XCTFail("VM \(name) should be started, \(result.reason)")
 			return
 		}
 
