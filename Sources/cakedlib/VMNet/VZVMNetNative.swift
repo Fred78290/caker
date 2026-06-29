@@ -20,6 +20,7 @@ public class VZVMNetNative: NSObject, VZVMNet {
 	let eventLoop: EventLoop
 	let networkName: String
 	let pidFile: URL
+	let socketPath: URL
 	let semaphore = AsyncSemaphore(value: 0)
 	var networkConfig: VZSharedNetwork
 	var network_ref: vmnet_network_ref?
@@ -33,6 +34,7 @@ public class VZVMNetNative: NSObject, VZVMNet {
 		self.networkName = networkName
 		self.networkConfig = networkConfig
 		self.pidFile = pidFile
+		self.socketPath = socketPath
 		self.sigcaught = [SIGINT, SIGHUP, SIGQUIT, SIGTERM].map {
 			signal($0, SIG_IGN)
 
