@@ -304,6 +304,11 @@
 		9B9117782EC9D4510017791D /* RawDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9117772EC9D44C0017791D /* RawDisk.swift */; };
 		9B91177C2ECA05880017791D /* PurgeableContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91177B2ECA05800017791D /* PurgeableContentStore.swift */; };
 		9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */; };
+		9B943B5D2FF3084F00F69AB6 /* XPCSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B943B5C2FF3084F00F69AB6 /* XPCSerialization.swift */; };
+		9B943B5E2FF3084F00F69AB6 /* vmnet.proto in Sources */ = {isa = PBXBuildFile; fileRef = 9B943B582FF3084F00F69AB6 /* vmnet.proto */; };
+		9B943B5F2FF3084F00F69AB6 /* VZVMNetNative.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B943B5B2FF3084F00F69AB6 /* VZVMNetNative.swift */; };
+		9B943B602FF3084F00F69AB6 /* vmnet.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B943B5A2FF3084F00F69AB6 /* vmnet.pb.swift */; };
+		9B943B612FF3084F00F69AB6 /* vmnet.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B943B592FF3084F00F69AB6 /* vmnet.grpc.swift */; };
 		9B96B0182F4B68480069C970 /* TestPlan.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 9B96B00A2F4B67250069C970 /* TestPlan.xctestplan */; };
 		9B96B0192F4B68540069C970 /* ProcessWithSharedFileHandleTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */; };
 		9B96B01A2F4B68540069C970 /* RemoteTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C132DB4EB700047D00B /* RemoteTest.swift */; };
@@ -1063,6 +1068,12 @@
 		9B911A602ECF854E0017791D /* GlossyCircle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlossyCircle.swift; sourceTree = "<group>"; };
 		9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalVirtualMachineView.swift; sourceTree = "<group>"; };
+		9B943B572FF3084F00F69AB6 /* generate.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = generate.sh; sourceTree = "<group>"; };
+		9B943B582FF3084F00F69AB6 /* vmnet.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = vmnet.proto; sourceTree = "<group>"; };
+		9B943B592FF3084F00F69AB6 /* vmnet.grpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vmnet.grpc.swift; sourceTree = "<group>"; };
+		9B943B5A2FF3084F00F69AB6 /* vmnet.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vmnet.pb.swift; sourceTree = "<group>"; };
+		9B943B5B2FF3084F00F69AB6 /* VZVMNetNative.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetNative.swift; sourceTree = "<group>"; };
+		9B943B5C2FF3084F00F69AB6 /* XPCSerialization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCSerialization.swift; sourceTree = "<group>"; };
 		9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarSettings.swift; sourceTree = "<group>"; };
 		9B96B00A2F4B67250069C970 /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 		9B96B00F2F4B68380069C970 /* CakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2504,11 +2515,17 @@
 		9BEBC7522DF440720092B196 /* VMNet */ = {
 			isa = PBXGroup;
 			children = (
+				9B943B572FF3084F00F69AB6 /* generate.sh */,
+				9B943B582FF3084F00F69AB6 /* vmnet.proto */,
+				9B943B592FF3084F00F69AB6 /* vmnet.grpc.swift */,
+				9B943B5A2FF3084F00F69AB6 /* vmnet.pb.swift */,
 				9BEBC74D2DF440720092B196 /* VZVMNet.swift */,
 				9BEBC74E2DF440720092B196 /* VZVMNetConfig.swift */,
 				9BEBC74F2DF440720092B196 /* VZVMNetFileHandle.swift */,
 				9BEBC7502DF440720092B196 /* VZVMNetHandler.swift */,
+				9B943B5B2FF3084F00F69AB6 /* VZVMNetNative.swift */,
 				9BEBC7512DF440720092B196 /* VZVMNetSocket.swift */,
+				9B943B5C2FF3084F00F69AB6 /* XPCSerialization.swift */,
 			);
 			path = VMNet;
 			sourceTree = "<group>";
@@ -3768,6 +3785,11 @@
 				9BEBC7AB2DF440720092B196 /* mount.grpc.swift in Sources */,
 				9BB1491C2EC74B9F0094D950 /* PullHandler.swift in Sources */,
 				9B9117782EC9D4510017791D /* RawDisk.swift in Sources */,
+				9B943B5D2FF3084F00F69AB6 /* XPCSerialization.swift in Sources */,
+				9B943B5E2FF3084F00F69AB6 /* vmnet.proto in Sources */,
+				9B943B5F2FF3084F00F69AB6 /* VZVMNetNative.swift in Sources */,
+				9B943B602FF3084F00F69AB6 /* vmnet.pb.swift in Sources */,
+				9B943B612FF3084F00F69AB6 /* vmnet.grpc.swift in Sources */,
 				9B37938B2FD5694500D3D54C /* Sandbox.swift in Sources */,
 				9BEBC7AC2DF440720092B196 /* VZVMNet.swift in Sources */,
 				9BEBC7AD2DF440720092B196 /* IP.Block.swift in Sources */,
