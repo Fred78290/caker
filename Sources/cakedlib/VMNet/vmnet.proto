@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.aldunelabs.caker";
+option java_outer_classname = "vmnet";
+option objc_class_prefix = "vmnet";
+
+package vmnet;
+
+// Service that exposes a vmnet network serialization to allow other processes
+// to create a vmnet_network_ref connected to the same shared network.
+service VMNetService {
+  rpc GetSerialization(Empty) returns (SerializationReply);
+}
+
+message Empty {}
+
+message SerializationReply {
+  bytes           data    = 1;
+  bool            success = 2;
+  optional string reason  = 3;
+}

@@ -1,5 +1,6 @@
 import CakeAgentLib
 import Foundation
+import GRPC
 import GRPCLib
 import NIO
 import Virtualization
@@ -90,49 +91,23 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 			socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
 		}
 
-		let connectionToService = NSXPCConnection(machServiceName: "com.aldunelabs.caker.vmnet.\(networkName)")
-
-		connectionToService.remoteObjectInterface = NSXPCInterface(with: VZVMNetSerialization.self)
-		connectionToService.activate()
+		let target: ConnectionTarget = .unixDomainSocket(socketURL.socket.path)
+		let config = ClientConnection.Configuration.default(target: target, eventLoopGroup: Utilities.group)
+		let channel = ClientConnection(configuration: config)
 
 		defer {
-			connectionToService.invalidate()
+			_ = try? channel.close().wait()
 		}
 
-		let logger = Logger(self)
-		let serialization: xpc_object_t = try Task.sync {
-			// Bridge the XPC callback into a throwing continuation, and ensure we only resume once.
-			return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<xpc_object_t, Error>) in
-				// Ensure handlers resume the continuation on interruption/invalidations
-				connectionToService.invalidationHandler = {
-					logger.error("Connection to service was invalidated")
-					continuation.resume(throwing: ServiceError(String(localized: "Connection to service was invalidated")))
-				}
+		let client = Vmnet_VMNetServiceNIOClient(channel: channel)
 
-				connectionToService.interruptionHandler = {
-					logger.error("Connection to service was interrupted")
-					continuation.resume(throwing: ServiceError(String(localized: "Connection to service was interrupted")))
-				}
+		let reply = try client.getSerialization(Vmnet_Empty()).response.wait()
 
-				let proxyObject = connectionToService.synchronousRemoteObjectProxyWithErrorHandler {
-					Logger(self).error("Error: \($0)")
-					continuation.resume(throwing: $0)
-				}
-
-				guard let service = proxyObject as? VZVMNetSerialization else {
-					continuation.resume(throwing: ServiceError(String(localized: "Failed to connect to com.aldunelabs.caker.network.\(networkName)")))
-					return
-				}
-
-				service.vmnet_serialization { serialization in
-					if let serialization {
-						continuation.resume(returning: serialization)
-					} else {
-						continuation.resume(throwing: ServiceError(String(localized: "Failed to receive serialization")))
-					}
-				}
-			}
+		guard reply.success else {
+			throw ServiceError(String(localized: "VMNet serialization failed: \(reply.reason)"))
 		}
+
+		let serialization = try decodeXPCObject(reply.data)
 
 		var status: vmnet_return_t = vmnet_return_t.VMNET_SUCCESS
 

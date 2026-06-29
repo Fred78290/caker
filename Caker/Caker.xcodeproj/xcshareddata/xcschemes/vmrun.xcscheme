@@ -79,7 +79,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "linux"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "app"
@@ -87,7 +87,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "vm1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "noble-cloud-image-B4608653-4F63-429E-99CA-C6621231F89C"

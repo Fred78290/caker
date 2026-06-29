@@ -143,6 +143,7 @@ let package = Package(
 		exclude: [
 			"VMRunService/GRPC/generate.sh",
 			"VMRunService/GRPC/mount.proto",
+			"VMNet/vmnet.proto",
 			"VNCLib/README.md",
 			"VNCLib/VNCAuthExample.swift"
 		]),
