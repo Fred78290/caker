@@ -143,6 +143,14 @@ public struct UsedNetworkConfig {
 }
 
 public struct NetworksHandler {
+	public static var vmnetNative: Bool {
+		if #available(macOS 26.0, *) {
+			return true
+		} else {
+			return false
+		}
+	}
+
 	private static let InternetSharingPrefs = "/Library/Preferences/SystemConfiguration/com.apple.InternetSharing.default.plist" as CFString
 	private static let BootpD = "bootpd" as CFString
 	private static let DHCPLeaseTimeSecs = "DHCPLeaseTimeSecs"
@@ -212,13 +220,15 @@ public struct NetworksHandler {
 	public static func restartNetworkService(networkName: String, runMode: Utils.RunMode) throws -> String {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		let pidURL = socketURL.pidFile
+		let isPhysicalInterface = Self.isPhysicalInterface(name: networkName)
+		let vmnet = CakedLib.NetworksHandler.vmnetNative
 
 		guard pidURL.isCakedRunning() else {
 			Logger(self).info("Network \(networkName) is not running")
 			return "Network \(networkName) is not running"
 		}
 
-		if geteuid() == 0 {
+		if geteuid() == 0 || (vmnet && isPhysicalInterface == false) {
 			Logger(self).info("Restart network \(networkName)")
 
 			if pidURL.killPID(SIGUSR2) < 0 {
@@ -273,7 +283,7 @@ public struct NetworksHandler {
 							Logger(self).warn("Network interface \(networkName) handled by the Virtualization framework via the VMNetworking entitlement")
 						}
 					} else if networkConfig != nil {
-						if #available(macOS 26.0, *) {
+						if NetworksHandler.vmnetNative {
 							Logger(self).warn("Network interface \(networkName) handled by vmnet")
 						} else {
 							try NetworksHandler.startNetworkService(networkName: networkName, runMode: runMode)
@@ -455,8 +465,8 @@ public struct NetworksHandler {
 
 			arguments.append("--pidfile=\(socketURL.pidFile.path)")
 			arguments.append(socketURL.socket.path)
-		} else if let caker = URL.binary(Home.cakedCommandName) {
-			executableURL = caker
+		} else {
+			executableURL = try Bundle.main.caked()
 
 			arguments.append(contentsOf: ["networks", "run", "--mode=\(mode.rawValue)"])
 
@@ -497,8 +507,6 @@ public struct NetworksHandler {
 
 			arguments.append("--pidfile=\(socketURL.pidFile.path)")
 			arguments.append(socketURL.socket.path)
-		} else {
-			throw ServiceError(String(localized: "caked not found in path"))
 		}
 
 		if socketURL.pidFile.isCakedRunning() {
@@ -657,15 +665,14 @@ public struct NetworksHandler {
 		let home: Home = try Home(runMode: runMode)
 		let sharedNetworks = try home.sharedNetworks().sharedNetworks
 		let socketURL: (socket: URL, pidFile: URL)
+		let isPhysicalInterface = Self.isPhysicalInterface(name: networkName)
 
-		if Self.isPhysicalInterface(name: networkName) {
+		if isPhysicalInterface {
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		} else {
-			guard let sharedNetwork = sharedNetworks[networkName] else {
+			guard sharedNetworks[networkName] != nil else {
 				throw ServiceError(String(localized: "Network \(networkName) doesn't exists"))
 			}
-
-			try sharedNetwork.validate(runMode: runMode)
 
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		}
@@ -676,15 +683,15 @@ public struct NetworksHandler {
 			} else {
 				Logger(self).info("Network \(networkName) is already running with undetermined PID")
 			}
+
+			return socketURL
 		}
 
 		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.socket.path)")
 
-		guard let executableURL = URL.binary(Home.cakedCommandName) else {
-			throw ServiceError(String(localized: "caked not found in path"))
-		}
+		let executableURL = try Bundle.main.caked()
 
-		var arguments = ["networks", "start", networkName]
+		var arguments = ["networks", "start", "--fork", networkName]
 		let process = Process()
 		var runningArguments: [String]
 		let debug = Logger.Level() >= .debug
@@ -702,7 +709,7 @@ public struct NetworksHandler {
 		if geteuid() == 0 {
 			process.executableURL = executableURL
 			runningArguments = []
-		} else {
+		} else if Self.vmnetNative == false || isPhysicalInterface {
 			guard let sudoURL = URL.binary(SUDO) else {
 				throw ServiceError(String(localized: "sudo not found in path"))
 			}
@@ -718,6 +725,9 @@ public struct NetworksHandler {
 			if runMode.isSystem {
 				runningArguments.append("--system")
 			}
+		} else {
+			process.executableURL = executableURL
+			runningArguments = []
 		}
 
 		runningArguments.append(contentsOf: arguments)
@@ -841,10 +851,13 @@ public struct NetworksHandler {
 	public static func vmnetFileLog(networkName: String, runMode: Utils.RunMode) throws -> FileHandle {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		let logURL = socketURL.socket.deletingPathExtension().appendingPathExtension("log")
+		let logPath = logURL.path(percentEncoded: false)
 
-		if try logURL.exists() == false {
-			FileManager.default.createFile(atPath: logURL.path, contents: nil)
+		if FileManager.default.fileExists(atPath: logPath) {
+			try FileManager.default.removeItem(atPath: logPath)
 		}
+
+		FileManager.default.createFile(atPath: logPath, contents: nil)
 
 		return try FileHandle(forWritingTo: logURL)
 	}
@@ -970,7 +983,7 @@ public struct NetworksHandler {
 			Logger("NetworksHandler").error("Unable to get nat infos: \(error)")
 		}
 
-		let defaultNatNetwork = BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: dhcpStart, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: "nat", endpoint: String.empty, usedBy: referencedNetworks.usage(name: "nat"))
+		let defaultNatNetwork = BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: dhcpStart, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: "nat", endpoint: String.empty, running: true, usedBy: referencedNetworks.usage(name: "nat"))
 
 		self._defaultNatNetwork = defaultNatNetwork
 
@@ -1012,6 +1025,7 @@ public struct NetworksHandler {
 			func createBridgedNetwork(_ name: String, _ mode: BridgedNetworkMode, _ description: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String, _ dhcpLease: String) throws -> BridgedNetwork {
 				let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, runMode: runMode)
 				let endpoint: String
+				let running = socketURL.pidFile.isPIDRunning().running
 
 				if try socketURL.socket.exists() {
 					endpoint = socketURL.socket.path
@@ -1019,7 +1033,7 @@ public struct NetworksHandler {
 					endpoint = String.empty
 				}
 
-				return BridgedNetwork(name: name, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint, usedBy: referencedNetworks.usage(name: name))
+				return BridgedNetwork(name: name, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint, running: running, usedBy: referencedNetworks.usage(name: name))
 			}
 
 			try networks.append(
@@ -1094,16 +1108,17 @@ public struct NetworksHandler {
 			}
 
 			let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
+			let running = socketURL.pidFile.isPIDRunning().running
 
 			if try socketURL.socket.exists() && socketURL.pidFile.isPIDRunning().running {
 				endpoint = socketURL.socket.path
 			}
 
-			result = BridgedNetwork(name: networkName, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint, usedBy: referencedNetworks.usage(name: networkName))
+			result = BridgedNetwork(name: networkName, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint, running: running, usedBy: referencedNetworks.usage(name: networkName))
 
 			return NetworkInfoReply(info: result, success: true, reason: String(localized: "Success"))
 		} catch {
-			return NetworkInfoReply(info: BridgedNetwork(name: String.empty, mode: .nat, description: String.empty, gateway: String.empty, dhcpLease: String.empty, interfaceID: String.empty, endpoint: String.empty, usedBy: 0), success: false, reason: error.reason)
+			return NetworkInfoReply(info: BridgedNetwork(name: String.empty, mode: .nat, description: String.empty, gateway: String.empty, dhcpLease: String.empty, interfaceID: String.empty, endpoint: String.empty, running: false, usedBy: 0), success: false, reason: error.reason)
 		}
 	}
 }

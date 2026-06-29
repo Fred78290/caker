@@ -4,13 +4,13 @@ import NIO
 import Virtualization
 import vmnet
 
-public final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
+public final class VZVMNetSocket: VZVMNetImpl, @unchecked Sendable {
 	internal let channelsSyncQueue = DispatchQueue(label: "channelsQueue")
 	internal var childrenChannels: [Channel] = []
 	internal let socketPath: URL
 	internal let socketGroup: gid_t
 
-	final class VZVMNetSocketHandler: VZVMNet.VZVMNetHandler {
+	final class VZVMNetSocketHandler: VZVMNetImpl.VZVMNetHandler {
 		public typealias InboundIn = ByteBuffer
 		public typealias OutboundOut = ByteBuffer
 		private let vmnet: VZVMNetSocket

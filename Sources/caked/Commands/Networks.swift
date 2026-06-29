@@ -7,6 +7,8 @@ import GRPCLib
 import SwiftUI
 import TextTable
 import Virtualization
+import Darwin
+import Foundation
 
 struct Networks: ParsableCommand {
 	public struct VMNetOptions: ParsableArguments {
@@ -90,9 +92,9 @@ struct Networks: ParsableCommand {
 					throw ServiceError(String(localized: "Network \(networkName) is default nated, please use a different network"))
 				}
 
-				if #available(macOS 26.0, *) {
-					throw ServiceError(String(localized: "Network \(networkName) is handled natively, please use a different network"))
-				}
+				//if CakedLib.NetworksHandler.vmnetNative {
+				//	throw ServiceError(String(localized: "Network \(networkName) is handled natively, please use a different network"))
+				//}
 
 				self.mode = network.mode
 				self.gateway = network.dhcpStart
@@ -185,7 +187,18 @@ struct Networks: ParsableCommand {
 					_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
 				}
 
-				if try socketURL.socket.exists() == false {
+				if CakedLib.NetworksHandler.vmnetNative {
+					let vzvmnet = VZVMNetNative(
+						on: Utilities.group.next(),
+						socketPath: socketURL.socket,
+						socketGroup: grp.pointee.gr_gid,
+						networkName: self.networkName,
+						networkConfig: network,
+						pidFile: socketURL.pidFile
+					)
+
+					return (socketURL.pidFile, vzvmnet)
+				} else if try socketURL.socket.exists() == false {
 					let vzvmnet = VZVMNetSocket(
 						on: Utilities.group.next(),
 						socketPath: socketURL.socket,
@@ -249,7 +262,77 @@ struct Networks: ParsableCommand {
 		}
 	}
 
-	static func start(options: Networks.VMNetOptions, runMode: Utils.RunMode) -> StartedNetworkReply {
+    // Returns true if the parent process executable name is "caked"
+    static func isParentProcessCaked() -> Bool {
+        let ppid = getppid()
+        var pathBuf = [CChar](repeating: 0, count: Int(PATH_MAX))
+        let result = proc_pidpath(Int32(ppid), &pathBuf, UInt32(pathBuf.count))
+        if result > 0 {
+            let path = String(cString: pathBuf)
+            let name = URL(fileURLWithPath: path).lastPathComponent
+            return name == "caked"
+        }
+        return false
+    }
+
+	static func startNetwork(options: Networks.VMNetOptions, runMode: Utils.RunMode, socket: URL, pidFile: URL) throws {
+		let isPhysicalInterface = CakedLib.NetworksHandler.isPhysicalInterface(name: options.networkName)
+
+		try pidFile.deleteIfFileExists()
+		try socket.deleteIfFileExists()
+
+		let vzvmnet = try options.createVZVMNet(runMode: runMode)
+		var signalReconfigure: DispatchSourceSignal? = nil
+
+		defer {
+			try? pidFile.deleteIfFileExists()
+			try? socket.deleteIfFileExists()
+		}
+
+		if isPhysicalInterface == false {
+			let sig = DispatchSource.makeSignalSource(signal: SIGUSR2)
+
+			if let dhcpLease = options.dhcpLease {
+				_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
+			}
+
+			Logger(self).info("Allow reconfigure network: \(options.networkName)")
+
+			signal(SIGUSR2, SIG_IGN)
+
+			sig.setEventHandler {
+				Logger(self).info("Will reconfigure network: \(options.networkName)")
+
+				do {
+					let home: Home = try Home(runMode: runMode)
+					let networkConfig = try home.sharedNetworks()
+
+					if let network = networkConfig.sharedNetworks[options.networkName] {
+						try? vzvmnet.1.reconfigure(networkConfig: network)
+					}
+				} catch {
+					Logger(self).error("Failed to reconfigure network: \(error)")
+					Foundation.exit(1)
+				}
+			}
+
+			sig.activate()
+			signalReconfigure = sig
+		}
+
+		defer {
+			if let sig = signalReconfigure {
+				sig.cancel()
+			}
+		}
+
+		try vzvmnet.1.start()
+	}
+
+	static func start(options: Networks.VMNetOptions, fork: Bool, runMode: Utils.RunMode) -> StartedNetworkReply {
+		let isPhysicalInterface = CakedLib.NetworksHandler.isPhysicalInterface(name: options.networkName)
+		let vmnet = CakedLib.NetworksHandler.vmnetNative
+
 		do {
 			let socketURL = try options.vmnetEndpoint(runMode: runMode)
 
@@ -257,61 +340,56 @@ struct Networks: ParsableCommand {
 				return StartedNetworkReply(name: options.networkName, started: false, reason: String(localized: "Network already running"))
 			}
 
-			if geteuid() == 0 {
-				try socketURL.pidFile.deleteIfFileExists()
-				try socketURL.socket.deleteIfFileExists()
+			if fork {
+				try startNetwork(options: options, runMode: runMode, socket: socketURL.socket, pidFile: socketURL.pidFile)
 
-				let vzvmnet = try options.createVZVMNet(runMode: runMode)
-				var signalReconfigure: DispatchSourceSignal? = nil
+				return StartedNetworkReply(name: options.networkName, started: true, reason: String(localized: "Network \(options.networkName) ended"))
+			}
+			
+			let log = try CakedLib.NetworksHandler.vmnetFileLog(networkName: options.networkName, runMode: runMode)
 
-				if CakedLib.NetworksHandler.isPhysicalInterface(name: options.networkName) == false {
-					let sig = DispatchSource.makeSignalSource(signal: SIGUSR2)
+			if vmnet && isPhysicalInterface == false {
+				let cakedExecutableURL = try Bundle.main.caked()
 
-					if let dhcpLease = options.dhcpLease {
-						_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
-					}
+				var arguments: [String] = ["networks", "start", "--fork", options.networkName]
+				let process = Process()
+				
+				if runMode.isSystem {
+					arguments.append("--system")
+				}
 
-					Logger(self).info("Allow reconfigure network: \(options.networkName)")
+				arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
 
-					signal(SIGUSR2, SIG_IGN)
+				process.executableURL = cakedExecutableURL
+				process.standardInput = nil
+				process.standardOutput = log
+				process.standardError = log
+				process.arguments = arguments
+				process.terminationHandler = { process in
+					Logger(self).debug("Process died: \(process.terminationStatus), \(process.terminationReason)")
+				}
 
-					sig.setEventHandler {
-						Logger(self).info("Will reconfigure network: \(options.networkName)")
+				try process.run()
 
-						do {
-							let home: Home = try Home(runMode: runMode)
-							let networkConfig = try home.sharedNetworks()
+				sleep(1)
 
-							if let network = networkConfig.sharedNetworks[options.networkName] {
-								try? vzvmnet.1.reconfigure(networkConfig: network)
-							}
-						} catch {
-							Logger(self).error("Failed to reconfigure network: \(error)")
-							Foundation.exit(1)
+				try socketURL.pidFile.waitPID {
+					if process.isRunning == false {
+						if process.terminationReason == .uncaughtSignal {
+							throw ServiceError(String(localized: "Network \(options.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason.rawValue)"))
+						} else {
+							throw ServiceError(String(localized: "Network \(options.networkName) stopped: \(process.terminationStatus)"))
 						}
 					}
-
-					sig.activate()
-					signalReconfigure = sig
 				}
-
-				defer {
-					if let sig = signalReconfigure {
-						sig.cancel()
-					}
-				}
-
-				try vzvmnet.1.start()
-
-				return StartedNetworkReply(name: options.networkName, started: true, reason: String(localized: "Network \(options.networkName) started"))
-			} else if try SudoCaked(arguments: ["networks", "start", options.networkName], runMode: runMode, log: try CakedLib.NetworksHandler.vmnetFileLog(networkName: options.networkName, runMode: runMode)).run().terminationStatus != 0 {
+			} else if try SudoCaked(arguments: ["networks", "start", "--fork", options.networkName], runMode: runMode, log: log).run().terminationStatus != 0 {
 				throw ServiceError(String(localized: "Failed to start networks \(options.networkName)"))
 			} else {
 				sleep(1)
 				try socketURL.pidFile.waitPID()
-
-				return StartedNetworkReply(name: options.networkName, started: true, reason: String(localized: "Network \(options.networkName) started"))
 			}
+
+			return StartedNetworkReply(name: options.networkName, started: true, reason: String(localized: "Network \(options.networkName) started"))
 		} catch {
 			return StartedNetworkReply(name: options.networkName, started: false, reason: error.reason)
 		}
@@ -391,6 +469,9 @@ struct Networks: ParsableCommand {
 		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
+		@Flag(help: ArgumentHelp(String(localized: "Forked command"), visibility: .hidden))
+		public var fork: Bool = false
+
 		@Argument(help: ArgumentHelp(String(localized: "Network name"), discussion: String(localized: "The name for network")))
 		var name: String
 
@@ -415,7 +496,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(Networks.start(options: try Networks.VMNetOptions(networkName: self.name, runMode: self.common.runMode), runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(Networks.start(options: try Networks.VMNetOptions(networkName: self.name, runMode: self.common.runMode), fork: self.fork, runMode: self.common.runMode)))
 		}
 	}
 
@@ -600,7 +681,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(Networks.start(options: self.options, runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(Networks.start(options: self.options, fork: true, runMode: self.common.runMode)))
 		}
 	}
 
@@ -668,3 +749,4 @@ struct Networks: ParsableCommand {
 		}
 	}
 }
+

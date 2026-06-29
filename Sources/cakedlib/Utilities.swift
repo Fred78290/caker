@@ -28,7 +28,7 @@ extension Bundle {
 		
 		return paths
 	}
-
+	
 	public var cakedBundlePath: String? {
 		guard let url = self.cakedBundleURL else {
 			return nil
@@ -63,7 +63,7 @@ extension Bundle {
 		
 		return url.path
 	}
-
+	
 	public var cakectlBundleURL: URL? {
 		guard let pluginURL = self.builtInPlugInsURL else {
 			return nil
@@ -71,16 +71,42 @@ extension Bundle {
 		
 		let cakectlBundleURL = pluginURL.appendingPathComponent("cakectl.bundle/Contents/MacOS").absoluteURL
 		var isDirectory: ObjCBool = false
-
+		
 		guard FileManager.default.fileExists(atPath: cakectlBundleURL.path, isDirectory: &isDirectory) else {
 			return nil
 		}
-
+		
 		guard isDirectory.boolValue else {
 			return nil
 		}
-
+		
 		return cakectlBundleURL
+	}
+
+	public func caked() throws -> URL {
+        guard var pluginsURL = self.cakedBundleURL else {
+			guard let executableURL = self.executableURL, executableURL.path(percentEncoded: false).hasSuffix(Home.cakedCommandName) else {
+				guard let executableURL = URL.binary(Home.cakedCommandName) else {
+					throw ServiceError(String(localized: "caked not found in path"))
+				}
+
+				return executableURL
+			}
+
+			return executableURL
+		}
+
+		pluginsURL = pluginsURL.appendingPathComponent(Home.cakedCommandName)
+
+		guard try pluginsURL.exists() else {
+			guard let executableURL = URL.binary(Home.cakedCommandName) else {
+				throw ServiceError(String(localized: "caked not found in path"))
+			}
+
+			return executableURL
+		}
+
+		return pluginsURL
 	}
 }
 
@@ -704,3 +730,4 @@ extension Utilities {
 
 
 }
+

@@ -93,7 +93,7 @@ public struct ServiceHandler {
 	}
 	
 	public static func findMe() throws -> String {
-		if let caked = Bundle.main.path(forAuxiliaryExecutable: Home.cakedCommandName) {
+		if let caked = Bundle.main.executablePath, caked.hasSuffix(Home.cakedCommandName) {
 			return caked
 		}
 		

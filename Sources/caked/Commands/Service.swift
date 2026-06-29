@@ -430,7 +430,7 @@ extension Service {
 			let listenAddress = try self.options.getListenAddress(runMode: runMode)
 
 			var arguments: [String] = [
-				try ServiceHandler.findMe(),
+				try Bundle.main.caked().path(percentEncoded: false),
 				"service",
 				"listen",
 				"--secure",

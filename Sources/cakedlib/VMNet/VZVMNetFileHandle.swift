@@ -5,10 +5,10 @@ import Virtualization
 import vmnet
 import CakeAgentLib
 
-public final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
+public final class VZVMNetFileHandle: VZVMNetImpl, @unchecked Sendable {
 	private let fileDescriptor: CInt
 
-	final class VZVMNetFileHandleHandler: VZVMNet.VZVMNetHandler {
+	final class VZVMNetFileHandleHandler: VZVMNetImpl.VZVMNetHandler {
 		public typealias InboundIn = ByteBuffer
 		public typealias OutboundOut = ByteBuffer
 		private let vmnet: VZVMNetFileHandle

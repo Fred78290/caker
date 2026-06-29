@@ -125,14 +125,10 @@ public struct ImportHandler {
 
 			do {
 				if isApplicationSandboxed {
-					guard var pluginsURL = Bundle.main.cakedBundleURL else {
-						throw ServiceError(String(localized: "Caked bundle path is missing"))
-					}
-
-					pluginsURL = pluginsURL.appendingPathComponent(Home.cakedCommandName)
+					let cakedExecutableURL = try Bundle.main.caked()
 
 					var arguments = [
-						pluginsURL.path(percentEncoded: false),
+						cakedExecutableURL.path(percentEncoded: false),
 						"import",
 						source,
 						vmName,

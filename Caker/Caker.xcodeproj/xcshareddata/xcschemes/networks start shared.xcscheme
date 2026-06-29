@@ -15,20 +15,6 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
-               BuildableName = "caked"
-               BlueprintName = "caked"
-               ReferencedContainer = "container:Caker.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
                BlueprintIdentifier = "9B464A532D5A3DA000164BF5"
                BuildableName = "Caker.app"
                BlueprintName = "Caker"
@@ -59,58 +45,21 @@
          runnableDebuggingMode = "0"
          FilePath = "~/Library/Developer/Xcode/DerivedData/Build/Products/Debug/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked">
       </PathRunnable>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
-            BuildableName = "caked"
-            BlueprintName = "caked"
-            ReferencedContainer = "container:Caker.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "vmrun"
+            argument = "networks"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "ubuntu-desktop-25.10"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "linux"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "app"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "vm1"
+            argument = "start"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "noble-cloud-image-B4608653-4F63-429E-99CA-C6621231F89C"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--service"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--all"
+            argument = "shared"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--log-level=debug"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--vnc-port=32000"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--vnc-password=1234"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
@@ -121,16 +70,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
-            BuildableName = "caked"
-            BlueprintName = "caked"
-            ReferencedContainer = "container:Caker.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

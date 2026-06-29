@@ -84,6 +84,7 @@
 		9B21E00C2F4C676800870AD7 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9B21E0132F4C677700870AD7 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21E0122F4C677700870AD7 /* CakeAgentLib */; };
 		9B2221CE2F5831F20037344D /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2221CD2F5831F00037344D /* InstallAgentHandler.swift */; };
+		9B22CA142FF26894001D626A /* VZVMNetNative.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B22CA132FF26883001D626A /* VZVMNetNative.swift */; };
 		9B27840F2FB37A83001F2B6A /* BridgeAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */; };
 		9B2784102FB37A83001F2B6A /* BridgedNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */; };
 		9B2784112FB37A83001F2B6A /* CertificateRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */; };
@@ -871,6 +872,7 @@
 		9B215B742E0C391500AFC89D /* NetworkAttachementDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkAttachementDetailView.swift; sourceTree = "<group>"; };
 		9B215B762E0C39AE00AFC89D /* SocketsDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketsDetailView.swift; sourceTree = "<group>"; };
 		9B2221CD2F5831F00037344D /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
+		9B22CA132FF26883001D626A /* VZVMNetNative.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetNative.swift; sourceTree = "<group>"; };
 		9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeAttachement.swift; sourceTree = "<group>"; };
 		9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgedNetwork.swift; sourceTree = "<group>"; };
 		9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateRepresentation.swift; sourceTree = "<group>"; };
@@ -2490,6 +2492,7 @@
 		9BEBC7522DF440720092B196 /* VMNet */ = {
 			isa = PBXGroup;
 			children = (
+				9B22CA132FF26883001D626A /* VZVMNetNative.swift */,
 				9BEBC74D2DF440720092B196 /* VZVMNet.swift */,
 				9BEBC74E2DF440720092B196 /* VZVMNetConfig.swift */,
 				9BEBC74F2DF440720092B196 /* VZVMNetFileHandle.swift */,
@@ -3700,6 +3703,7 @@
 				9B20D6042E019FA400BEFB41 /* Multipass.swift in Sources */,
 				9BEBC7992DF440720092B196 /* Shell.swift in Sources */,
 				9BEBC79A2DF440720092B196 /* RenameHandler.swift in Sources */,
+				9B22CA142FF26894001D626A /* VZVMNetNative.swift in Sources */,
 				9BEBC79B2DF440720092B196 /* Certificate.swift in Sources */,
 				9BEBC79C2DF440720092B196 /* VirtualMachine.swift in Sources */,
 				9BEBC79D2DF440720092B196 /* VZVMNetFileHandle.swift in Sources */,

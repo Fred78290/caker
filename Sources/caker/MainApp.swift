@@ -599,15 +599,8 @@ struct MainApp: App {
 	}
 
 	static func runAgent(runMode: Utils.RunMode) throws {
-		guard var pluginsURL = Bundle.main.cakedBundleURL else {
-			throw ServiceError(String(localized: "Caked bundle path is missing"))
-		}
+		let cakedExecutableURL = try Bundle.main.caked()
 
-		pluginsURL = pluginsURL.appendingPathComponent(Home.cakedCommandName)
-
-		guard try pluginsURL.exists() else {
-			throw ServiceError(String(localized: "Caked executable is missing"))
-		}
 		// Launch off the main thread to avoid QoS inversions and UI stalls
 		Task.detached(priority: .background) {
 			do {
@@ -615,7 +608,7 @@ struct MainApp: App {
 					let scriptsFile = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("caked.sh")
 					let scripts: [String] = [
 						"#!/bin/sh",
-						"exec '\(pluginsURL.path(percentEncoded: false))' \"$@\"",
+						"exec '\(cakedExecutableURL.path(percentEncoded: false))' \"$@\"",
 					]
 
 					try scripts.joined(separator: "\n").write(to: scriptsFile, atomically: true, encoding: .utf8)
@@ -641,7 +634,7 @@ struct MainApp: App {
 					])
 				} else {
 					let process = Process()
-					process.executableURL = pluginsURL
+					process.executableURL = cakedExecutableURL
 					process.environment = ProcessInfo.processInfo.environment
 					process.arguments = [
 						"service",

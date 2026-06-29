@@ -1,9 +1,9 @@
+import CakeAgentLib
 import Foundation
 import GRPCLib
 import NIO
 import Virtualization
 import vmnet
-import CakeAgentLib
 
 public var phUseLimaVMNet = false
 
@@ -72,69 +72,72 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 	}
 
 	public func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
-		if #available(macOS 26.0, *), networkConfig != nil {
-			return (macAddress, VZVmnetNetworkDeviceAttachment(network: try self.createVMNetwork()))
+		if #available(macOS 26.0, *), networkConfig != nil, NetworksHandler.vmnetNative {
+			return (macAddress, VZVmnetNetworkDeviceAttachment(network: try self.createVMNetwork(runMode: runMode)))
 		}
 		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(location: location, runMode: runMode)))
 	}
 
 	@available(macOS 26.0, *)
-	private func createVMNetwork() throws -> vmnet_network_ref {
-		guard let networkConfig else {
+	private func createVMNetwork(runMode: Utils.RunMode) throws -> vmnet_network_ref {
+		guard networkConfig != nil else {
 			throw ServiceError(String(localized: "Unable to configure network"))
 		}
 
-		let dhcpStart = "\(networkConfig.dhcpStart)/\(networkConfig.netmask.netmaskToCidr())".toIPV4()
+		var socketURL = try self.vmnetEndpoint(runMode: runMode)
 
-		guard let network = dhcpStart.address, let netmask = dhcpStart.netmask else {
-			throw ServiceError(String(localized: "Bad network configuration \(networkConfig.dhcpStart)"))
+		if socketURL.pidFile.isPIDRunning().running == false {
+			socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
 		}
 
-		var addr = in_addr(s_addr: in_addr_t(network.storage))
-		var mask = in_addr(s_addr: in_addr_t(netmask.storage))
-		let status = UnsafeMutablePointer<vmnet_return_t>.allocate(capacity: 1)
+		let connectionToService = NSXPCConnection(machServiceName: "com.aldunelabs.caker.vmnet.\(networkName)")
 
-		guard let network_configuration = vmnet_network_configuration_create(mode == .shared ? .VMNET_SHARED_MODE : .VMNET_HOST_MODE, status) else {
-			throw ServiceError(String(localized: "Can't create vmnet configuration: \(status.pointee.description)"))
+		connectionToService.remoteObjectInterface = NSXPCInterface(with: VZVMNetSerialization.self)
+		connectionToService.activate()
+
+		defer {
+			connectionToService.invalidate()
 		}
 
-		let result = vmnet_network_configuration_set_ipv4_subnet(network_configuration, &addr, &mask)
+		let logger = Logger(self)
+		let serialization: xpc_object_t = try Task.sync {
+			// Bridge the XPC callback into a throwing continuation, and ensure we only resume once.
+			return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<xpc_object_t, Error>) in
+				// Ensure handlers resume the continuation on interruption/invalidations
+				connectionToService.invalidationHandler = {
+					logger.error("Connection to service was invalidated")
+					continuation.resume(throwing: ServiceError(String(localized: "Connection to service was invalidated")))
+				}
 
-		guard result == .VMNET_SUCCESS else {
-			throw ServiceError(String(localized: "Failed to reconfigure network: \(result.description)"))
-		}
+				connectionToService.interruptionHandler = {
+					logger.error("Connection to service was interrupted")
+					continuation.resume(throwing: ServiceError(String(localized: "Connection to service was interrupted")))
+				}
 
-		if let nat66Prefix = networkConfig.nat66Prefix {
-			let parts = nat66Prefix.split(separator: "/")
+				let proxyObject = connectionToService.synchronousRemoteObjectProxyWithErrorHandler {
+					Logger(self).error("Error: \($0)")
+					continuation.resume(throwing: $0)
+				}
 
-			guard let prefixStr = parts.first else {
-				throw ServiceError(String(localized: "Invalid NAT66 prefix \(nat66Prefix)"))
+				guard let service = proxyObject as? VZVMNetSerialization else {
+					continuation.resume(throwing: ServiceError(String(localized: "Failed to connect to com.aldunelabs.caker.network.\(networkName)")))
+					return
+				}
+
+				service.vmnet_serialization { serialization in
+					if let serialization {
+						continuation.resume(returning: serialization)
+					} else {
+						continuation.resume(throwing: ServiceError(String(localized: "Failed to receive serialization")))
+					}
+				}
 			}
-
-			let prefixLen = parts.count > 1 ? UInt8(parts[1]) ?? 64 : 64
-
-			guard let parsed = String(prefixStr).to_in6_addr() else {
-				throw ServiceError(String(localized: "Bad NAT66 prefix \(nat66Prefix)"))
-			}
-
-			var ipv6Prefix = parsed
-
-			let result = withUnsafePointer(to: &ipv6Prefix) { ptr in
-				vmnet_network_configuration_set_ipv6_prefix(network_configuration, UnsafeMutablePointer(mutating: ptr), prefixLen)
-			}
-
-			guard result == .VMNET_SUCCESS else {
-				throw ServiceError(String(localized: "Failed to set NAT66 prefix (\(result.description))"))
-			}
 		}
 
-		if mode == .host {
-			vmnet_network_configuration_disable_nat44(network_configuration)
-			vmnet_network_configuration_disable_nat66(network_configuration)
-		}
+		var status: vmnet_return_t = vmnet_return_t.VMNET_SUCCESS
 
-		guard let network = vmnet_network_create(network_configuration, status) else {
-			throw ServiceError(String(localized: "Can't create vmnet network: \(status.pointee.description)"))
+		guard let network = vmnet_network_create_with_serialization(serialization, &status) else {
+			throw ServiceError(String(localized: "Failed to create vmnet network with serialization, status: \(status.description)"))
 		}
 
 		return network

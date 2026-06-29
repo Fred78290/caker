@@ -66,11 +66,14 @@ public struct VZSharedNetwork: Codable, Equatable {
 			throw ServiceError(String(localized: "dhcp end \(dhcpEnd) is not in the range of the network \(network.description)"))
 		}
 
-		let networks = Self.networkInterfaces(includeSharedNetworks: true, runMode: runMode).map {
-			$0.value.network
+		let matches = Self.networkInterfaces(includeSharedNetworks: true, runMode: runMode).compactMap {
+			guard $0.value.network.contains(gateway) else {
+				return $0.value.network
+			}
+			return nil
 		}
 
-		guard networks.first(where: { $0.contains(gateway) }) == nil else {
+		guard matches.isEmpty else {
 			throw ServiceError(String(localized: "Gateway \(dhcpStart) is already in use"))
 		}
 

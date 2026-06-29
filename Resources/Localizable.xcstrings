@@ -1431,6 +1431,7 @@
       }
     },
     "Caked bundle path is missing" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -1452,6 +1453,7 @@
       }
     },
     "Caked executable is missing" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {

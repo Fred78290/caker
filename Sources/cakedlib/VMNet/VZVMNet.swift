@@ -7,6 +7,12 @@ import CakeAgentLib
 
 let MAX_PACKET_COUNT_AT_ONCE: UInt64 = 32
 
+public protocol VZVMNet {
+	func reconfigure(networkConfig: VZSharedNetwork) throws
+	func start() throws
+	func stop()
+}
+
 extension vmnet_return_t {
 	public var description: String {
 		switch self
@@ -69,7 +75,7 @@ extension vmnet_return_t {
 	}
 }
 
-public class VZVMNet: @unchecked Sendable {
+public class VZVMNetImpl: @unchecked Sendable, VZVMNet {
 	internal var serverChannel: Channel? = nil
 	internal let eventLoop: EventLoop
 	internal let networkName: String
@@ -79,7 +85,7 @@ public class VZVMNet: @unchecked Sendable {
 	internal let hostQueue: DispatchQueue
 	internal let pidFile: URL
 	internal let sigcaught: [DispatchSourceSignal]
-	internal let logger = Logger("VZVMNet")
+	internal let logger = Logger("VZVMNetImpl")
 	internal let trace: Bool
 
 	class VZVMNetHandler: ChannelInboundHandler {
@@ -88,9 +94,9 @@ public class VZVMNet: @unchecked Sendable {
 
 		internal let logger: Logger
 		internal let trace: Bool = Logger.Level() >= Logger.LogLevel.trace
-		internal let vzvmnet: VZVMNet
+		internal let vzvmnet: VZVMNetImpl
 
-		init(vzvmnet: VZVMNet) {
+		init(vzvmnet: VZVMNetImpl) {
 			self.vzvmnet = vzvmnet
 			self.logger = Logger(Self.self)
 		}

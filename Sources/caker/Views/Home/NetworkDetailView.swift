@@ -41,11 +41,11 @@ struct NetworkDetailView: View {
 	private var allowNetworkManagement: Bool {
 		let disabled: Bool
 
-		if #available(macOS 26.0, *) {
-			disabled = currentItem.mode == .host || currentItem.mode == .shared || currentItem.mode == .nat
-		} else {
+		//if NetworksHandler.vmnetNative {
+		//	disabled = currentItem.mode == .host || currentItem.mode == .shared || currentItem.mode == .nat
+		//} else {
 			disabled = currentItem.mode == .nat
-		}
+		//}
 
 		return disabled == false
 	}
@@ -159,7 +159,7 @@ struct NetworkDetailView: View {
 				if forEditing == false && self.allowNetworkManagement && AppState.shared.hasVMNetworking == false {
 					Divider()
 
-					if currentItem.endpoint.isEmpty {
+					if currentItem.running == false {
 						Button("Start network") {
 							let result = AppState.shared.startNetwork(networkName: self.currentItem.name)
 
