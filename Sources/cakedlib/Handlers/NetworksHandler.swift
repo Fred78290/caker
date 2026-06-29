@@ -681,7 +681,7 @@ public struct NetworksHandler {
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		}
 
-		if socketURL.pidFile.isCakedRunning() {
+		if socketURL.pidFile.isCakedRunning(), (try? socketURL.socket.exists()) == true {
 			if let pid = socketURL.pidFile.readPID() {
 				Logger(self).info("Network \(networkName) is already running with PID=\(pid)")
 			} else {
