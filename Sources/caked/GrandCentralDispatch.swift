@@ -154,7 +154,7 @@ final class GrandCentralDispatch {
 		self.logger.info("Stop Grand Central Update for \(location.name)")
 
 		let future = self.group.next().submit {
-			try createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: self.runMode).stopGrandCentralUpdate()
+			try VMRunHandler.serviceMode.client(location: location, runMode: self.runMode).stopGrandCentralUpdate()
 		}
 
 		future.whenComplete { result in
@@ -193,7 +193,7 @@ final class GrandCentralDispatch {
 		self.logger.info("Start Grand Central Update for \(location.name)")
 
 		let future = self.group.next().submit {
-			try createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: self.runMode).startGrandCentralUpdate(frequency: 1)
+			try VMRunHandler.serviceMode.client(location: location, runMode: self.runMode).startGrandCentralUpdate(frequency: 1)
 		}
 
 		future.whenComplete { result in

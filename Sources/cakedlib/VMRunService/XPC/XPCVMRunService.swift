@@ -421,7 +421,7 @@ class XPCVMRunServiceServer: NSObject, NSXPCListenerDelegate, VMRunServiceServer
 	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) {
 		let name = vm.location.name
 
-		self.listener = NSXPCListener(machServiceName: "com.aldunelabs.caked.VMRunService.\(name)")
+		self.listener = NSXPCListener(machServiceName: "com.aldunelabs.caker.vmrun.\(name)")
 		self.group = group
 		self.runMode = runMode
 		self.vm = vm
@@ -655,15 +655,26 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 	}
 	
 	private func connection<T>(_ handler: (VMRunServiceProtocol, ReplyVMRunService) -> T) throws -> T {
-		let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.VMRunService.\(location.name)")
+		let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caker.vmrun.\(location.name)")
 		let replier = ReplyVMRunService()
 		
 		xpcConnection.remoteObjectInterface = NSXPCInterface(with: VMRunServiceProtocol.self)
 		xpcConnection.exportedInterface = NSXPCInterface(with: ReplyVMRunServiceProtocol.self)
 		xpcConnection.exportedObject = replier
-		
+
+		let logger = logger
+		let vmName = location.name
+
+		xpcConnection.interruptionHandler = {
+			logger.error("VMRun xpc client interrupted for VM: \(vmName)")
+		}
+
+		xpcConnection.invalidationHandler = {
+			logger.error("VMRun xpc client invalidated for VM: \(vmName)")
+		}
+
 		xpcConnection.activate()
-		
+
 		defer {
 			xpcConnection.invalidate()
 		}
@@ -778,3 +789,4 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 		}
 	}
 }
+

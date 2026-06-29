@@ -53,7 +53,7 @@ public struct InfosHandler {
 				infos = try offline(.running)
 			}
 
-			if let vncURL = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).vncInfos {
+			if let vncURL = try? VMRunHandler.serviceMode.client(location: location, runMode: runMode).vncInfos {
 				infos.vncURL = vncURL.urls
 				infos.screenSize = vncURL.screenSize
 			} else {

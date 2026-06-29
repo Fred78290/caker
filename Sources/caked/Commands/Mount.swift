@@ -16,7 +16,7 @@ struct Mount: ParsableCommand {
 	var mount: MountOptions
 
 	@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allows mode to connect to a running service"), visibility: .hidden))
-	var mode: VMRunServiceMode = .grpc
+	var mode: VMRunServiceMode = VMRunServiceMode.default
 
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)

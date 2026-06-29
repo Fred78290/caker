@@ -90,14 +90,14 @@ public class VZVMNetNative: NSObject, VZVMNet {
 
 			setupSignals()
 
-			let listener = NSXPCListener(machServiceName: "com.aldunelabs.caked.vmnet.\(networkName)")
+			let listener = NSXPCListener(machServiceName: "com.aldunelabs.caker.vmnet.\(networkName)")
 			listener.delegate = self
 
 			(self.network_ref, self.serialization) = try createVMNetwork()
 			self.listener = listener
 
 			let future = self.eventLoop.makeFutureWithTask {
-				self.logger.info("VMNet \(self.networkName) started")
+				self.logger.info("VMNet \(self.networkName) started, \(listener.endpoint.description)")
 				listener.activate()
 				try self.pidFile.writePID()
 
@@ -200,7 +200,7 @@ extension VZVMNetNative: NSXPCListenerDelegate {
 		newConnection.exportedObject = exportedObject
 
 		// Resuming the connection allows the system to deliver more incoming messages.
-		newConnection.resume()
+		newConnection.activate()
 
 		// Returning true from this method tells the system that you have accepted this connection. If you want to reject the connection for some reason, call invalidate() on the connection and return false.
 		return true

@@ -16,7 +16,7 @@ struct Umount: ParsableCommand {
 	var umount: UmountOptions
 
 	@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allows mode to connect to a running service"), visibility: .hidden))
-	var mode: VMRunServiceMode = .grpc
+	var mode: VMRunServiceMode = VMRunServiceMode.default
 
 	public func validate() throws {
 		Logger.setLevel(self.common.logLevel)

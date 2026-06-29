@@ -66,7 +66,7 @@ extension Service {
 		var tlsKey: String?
 
 		@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allows mode to connect to a VMRun service endpoint")))
-		var mode: VMRunServiceMode = .grpc
+		var mode: VMRunServiceMode = VMRunServiceMode.default
 
 		@Flag(help: ArgumentHelp(String(localized: "Use inet socket"), visibility: .hidden))
 		var tcp: Bool = false
@@ -293,11 +293,8 @@ extension Service {
 			let runMode: Utils.RunMode = self.common.runMode
 			let home = try Home(runMode: runMode)
 			let eventLoopGroup = Utilities.group
-			//let listener = self.xpc()
 
 			defer {
-				//xpc_connection_cancel(listener)
-
 				try? home.agentPID.delete()
 			}
 

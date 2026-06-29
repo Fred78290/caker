@@ -219,7 +219,7 @@ public struct ServiceHandler {
 		LSRegisterURL(Bundle.main.bundleURL as CFURL, true)
 	}
 
-	public static func installAgent(insecure: Bool = false, tcp: Bool = true, rest: Bool = true, password: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
+	public static func installAgent(insecure: Bool = false, tcp: Bool = true, rest: Bool = true, password: String?, mode: VMRunServiceMode = VMRunServiceMode.default, runMode: Utils.RunMode) throws {
 		var arguments: [String] = [
 			"service",
 			"listen",
@@ -234,11 +234,7 @@ public struct ServiceHandler {
 			arguments.append("--rest")
 		}
 
-		if mode == .grpc {
-			arguments.append("--grpc")
-		} else {
-			arguments.append("--xpc")
-		}
+		arguments.append("--\(mode.rawValue)")
 
 		if runMode == .system {
 			arguments.append("--system")
@@ -253,7 +249,7 @@ public struct ServiceHandler {
 		try Self.installAgent(arguments: arguments, runMode: runMode)
 	}
 
-	public static func installAgent(listenAddress: [String], insecure: Bool, rest: Bool, password: String?, caCert: String?, tlsCert: String?, tlsKey: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
+	public static func installAgent(listenAddress: [String], insecure: Bool, rest: Bool, password: String?, caCert: String?, tlsCert: String?, tlsKey: String?, mode: VMRunServiceMode = VMRunServiceMode.default, runMode: Utils.RunMode) throws {
 		var arguments: [String] = [
 			"service",
 			"listen",
@@ -264,11 +260,7 @@ public struct ServiceHandler {
 			arguments.append("--address=\($0)")
 		}
 
-		if mode == .grpc {
-			arguments.append("--grpc")
-		} else {
-			arguments.append("--xpc")
-		}
+		arguments.append("--\(mode.rawValue)")
 
 		if rest {
 			arguments.append("--rest")
