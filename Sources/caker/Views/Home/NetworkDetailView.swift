@@ -189,5 +189,5 @@ struct NetworkDetailView: View {
 }
 
 #Preview {
-	NetworkDetailView(.constant(BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: String.empty, dhcpEnd: String.empty, dhcpLease: String.empty, interfaceID: "nat", endpoint: String.empty, usedBy: 0)), reloadNetwork: .constant(false), forEditing: true)
+	NetworkDetailView(.constant(BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: String.empty, dhcpEnd: String.empty, dhcpLease: String.empty, interfaceID: "nat", endpoint: String.empty, running: false, usedBy: 0)), reloadNetwork: .constant(false), forEditing: true)
 }

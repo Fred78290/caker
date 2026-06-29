@@ -1042,6 +1042,7 @@ message Caked {
         string interfaceID = 7;
         string endpoint    = 8;
         int32  used        = 9;
+        bool   running     = 10;
       }
 
       message NetworkInfoReply {

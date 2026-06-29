@@ -28,6 +28,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 	public var interfaceID: String = String.empty
 	public var endpoint: String = String.empty
 	public var usedBy: Int = 0
+	public var running: Bool = false
 
 	public var id: String {
 		"\(self.mode).\(self.name)"
@@ -61,6 +62,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		dhcpLease: String,
 		interfaceID: String,
 		endpoint: String,
+		running: Bool,
 		usedBy: Int
 	) {
 		self.name = name
@@ -72,6 +74,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		self.interfaceID = interfaceID
 		self.endpoint = endpoint
 		self.usedBy = usedBy
+		self.running = running
 	}
 
 	public init(_ from: Caked_NetworkInfo) {
@@ -83,6 +86,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		self.interfaceID = from.interfaceID
 		self.endpoint = from.endpoint
 		self.usedBy = Int(from.used)
+		self.running = from.running
 	}
 
 	public var caked: Caked_NetworkInfo {
@@ -95,6 +99,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 			$0.interfaceID = self.interfaceID
 			$0.endpoint = self.endpoint
 			$0.used = Int32(self.usedBy)
+			$0.running = self.running
 		}
 	}
 }
