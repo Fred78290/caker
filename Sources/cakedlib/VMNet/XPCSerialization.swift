@@ -64,9 +64,8 @@ private func xpcToTagged(_ obj: xpc_object_t) -> NSDictionary {
         return [kTagKey: tagArray, kValueKey: array as NSArray] as NSDictionary
 
     } else if type == XPC_TYPE_DATA {
-        let ptr = xpc_data_get_bytes_ptr(obj)!
         let count = xpc_data_get_length(obj)
-        let nsdata = NSData(bytes: ptr, length: count)
+        let nsdata = NSData(bytes: xpc_data_get_bytes_ptr(obj), length: count)
         return [kTagKey: tagData, kValueKey: nsdata] as NSDictionary
 
     } else if type == XPC_TYPE_STRING {
@@ -91,7 +90,9 @@ private func xpcToTagged(_ obj: xpc_object_t) -> NSDictionary {
         return [kTagKey: tagDouble, kValueKey: NSNumber(value: val)] as NSDictionary
 
     } else if type == XPC_TYPE_UUID {
-        let ptr = xpc_uuid_get_bytes(obj)!
+        guard let ptr = xpc_uuid_get_bytes(obj) else {
+            return [kTagKey: tagData, kValueKey: NSData()] as NSDictionary
+        }
         let uuidData = NSData(bytes: ptr, length: 16)
         return [kTagKey: tagUUID, kValueKey: uuidData] as NSDictionary
     }
@@ -131,7 +132,7 @@ private func taggedToXPC(_ plist: Any) -> xpc_object_t? {
 
     case tagData:
         guard let data = value as? Data else { return nil }
-        return data.withUnsafeBytes { xpc_data_create($0.baseAddress!, data.count) }
+        return data.withUnsafeBytes { xpc_data_create($0.baseAddress, data.count) }
 
     case tagString:
         guard let str = value as? String else { return nil }
@@ -155,8 +156,9 @@ private func taggedToXPC(_ plist: Any) -> xpc_object_t? {
 
     case tagUUID:
         guard let data = value as? Data, data.count == 16 else { return nil }
-        return data.withUnsafeBytes { ptr -> xpc_object_t in
-            xpc_uuid_create(ptr.bindMemory(to: UInt8.self).baseAddress!)
+        return data.withUnsafeBytes { ptr -> xpc_object_t? in
+            guard let base = ptr.bindMemory(to: UInt8.self).baseAddress else { return nil }
+            return xpc_uuid_create(base)
         }
 
     default:
