@@ -310,7 +310,7 @@
 				// Bail early if cancelled while the VM was starting.
 				try Task.checkCancellation()
 
-				progressHandler(.step(String(localized: "Installing macOS from IPSW...")))
+				progressHandler(.step(String(localized: "Installing macOS from IPSW…")))
 
 				let backend = AppleMobileDeviceRestoreBackend()
 				let driver = try DeviceRestoreDriver(ecid: ecid, bundleURL: url, backend: backend)
@@ -385,7 +385,7 @@
 				self.logger.trace("[\(Thread.currentThread.description)] entering installIPSW")
 			#endif
 
-			progressHandler(.step(String(localized: "Installing macOS from IPSW...")))
+			progressHandler(.step(String(localized: "Installing macOS from IPSW…")))
 
 			#if USE_VIRTUAL_INSTALL_BACKEND
 				if #available(macOS 26.0, *), await shouldUseVirtualInstallBackend(url: url) {

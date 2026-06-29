@@ -5232,7 +5232,7 @@
         }
       }
     },
-    "Installing MacOS from IPSW..." : {
+    "Installing MacOS from IPSW…" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
