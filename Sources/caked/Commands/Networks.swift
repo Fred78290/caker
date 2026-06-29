@@ -265,19 +265,6 @@ struct Networks: ParsableCommand {
 		}
 	}
 
-    // Returns true if the parent process executable name is "caked"
-    static func isParentProcessCaked() -> Bool {
-        let ppid = getppid()
-        var pathBuf = [CChar](repeating: 0, count: Int(PATH_MAX))
-        let result = proc_pidpath(Int32(ppid), &pathBuf, UInt32(pathBuf.count))
-        if result > 0 {
-            let path = String(cString: pathBuf)
-            let name = URL(fileURLWithPath: path).lastPathComponent
-            return name == "caked"
-        }
-        return false
-    }
-
 	static func startNetwork(options: Networks.VMNetOptions, runMode: Utils.RunMode, socket: URL, pidFile: URL) throws {
 		let isPhysicalInterface = CakedLib.NetworksHandler.isPhysicalInterface(name: options.networkName)
 
