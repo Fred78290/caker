@@ -24,7 +24,9 @@ class GRPCVMNetService: Vmnet_VMNetServiceAsyncProvider, @unchecked Sendable {
 	func getSerialization(request: Vmnet_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmnet_SerializationReply {
 		owner.logger.debug("VMNet \(owner.networkName) replying to serialization request")
 
-		guard let serialization = owner.serialization else {
+		let serialization = owner.serializationLock.withLock { owner.serialization }
+
+		guard let serialization else {
 			return Vmnet_SerializationReply.with {
 				$0.success = false
 				$0.reason  = "VMNet serialization not available"
@@ -57,6 +59,7 @@ public class VZVMNetNative: NSObject, VZVMNet {
 	var networkConfig: VZSharedNetwork
 	var network_ref: vmnet_network_ref?
 	let logger = Logger("VZVMNetNative")
+	let serializationLock = NSLock()
 	var serialization: xpc_object_t?
 	let sigcaught: [DispatchSourceSignal]
 
@@ -88,10 +91,11 @@ public class VZVMNetNative: NSObject, VZVMNet {
 		self.networkConfig = networkConfig
 
 		if #available(macOS 26.0, *) {
-			self.network_ref   = nil
-			self.serialization = nil
-
-			(self.network_ref, self.serialization) = try createVMNetwork()
+			let (ref, serial) = try createVMNetwork()
+			serializationLock.withLock {
+				self.network_ref   = ref
+				self.serialization = serial
+			}
 		} else {
 			throw ServiceError(String(localized: "VMNet reconfiguration is only available on macOS 26.0 and later"))
 		}
@@ -105,12 +109,14 @@ public class VZVMNetNative: NSObject, VZVMNet {
 
 		self.logger.info(String(localized: "VMNet \(self.networkName) stop network"))
 
-		self.grpcServer    = nil
-		self.network_ref   = nil
-		self.serialization = nil
+		self.grpcServer = nil
+		serializationLock.withLock {
+			self.network_ref   = nil
+			self.serialization = nil
+		}
 
-		self.semaphore.signal()
 		try? server.close().wait()
+		self.semaphore.signal()
 	}
 
 	public func start() throws {
@@ -121,7 +127,11 @@ public class VZVMNetNative: NSObject, VZVMNet {
 
 			setupSignals()
 
-			(self.network_ref, self.serialization) = try createVMNetwork()
+			let (ref, serial) = try createVMNetwork()
+			serializationLock.withLock {
+				self.network_ref   = ref
+				self.serialization = serial
+			}
 
 			let serviceProvider = GRPCVMNetService(owner: self)
 			let socketFile = socketPath.path
