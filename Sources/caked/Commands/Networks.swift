@@ -183,9 +183,10 @@ struct Networks: ParsableCommand {
 					throw ServiceError(String(localized: "Failed to get group \(self.socketGroup)"))
 				}
 
-				if let dhcpLease = self.dhcpLease {
+				if let dhcpLease = self.dhcpLease, Bundle.isApplicationSandboxed == false {
 					_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
 				}
+
 
 				if CakedLib.NetworksHandler.vmnetNative {
 					let vzvmnet = VZVMNetNative(
@@ -194,7 +195,8 @@ struct Networks: ParsableCommand {
 						socketGroup: grp.pointee.gr_gid,
 						networkName: self.networkName,
 						networkConfig: network,
-						pidFile: socketURL.pidFile
+						pidFile: socketURL.pidFile,
+						runMode: runMode
 					)
 
 					return (socketURL.pidFile, vzvmnet)
@@ -213,6 +215,7 @@ struct Networks: ParsableCommand {
 					throw ServiceError(String(localized: "Socket file already exists at \(socketURL.socket.path)"))
 				}
 			}
+
 
 			guard let pidFile = self.pidFile else {
 				throw ServiceError(String(localized: "pidfile is required when using vmfd"))
@@ -292,7 +295,7 @@ struct Networks: ParsableCommand {
 		if isPhysicalInterface == false {
 			let sig = DispatchSource.makeSignalSource(signal: SIGUSR2)
 
-			if let dhcpLease = options.dhcpLease {
+			if let dhcpLease = options.dhcpLease, Bundle.isApplicationSandboxed == false {
 				_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
 			}
 

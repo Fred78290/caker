@@ -172,6 +172,10 @@ public struct NetworksHandler {
 	}
 
 	public static func setDHCPLease(leaseTime: Int32, runMode: Utils.RunMode) throws -> String {
+		guard Bundle.isApplicationSandboxed == false else {
+			throw ServiceError(String(localized: "Unable to set DHCP lease time in sandboxed mode"))
+		}
+
 		if geteuid() == 0 {
 			guard let ref = SCPreferencesCreate(nil, Home.cakedCommandName as CFString, InternetSharingPrefs) else {
 				throw ServiceError(String(localized: "Unable to create SCPreferences"))

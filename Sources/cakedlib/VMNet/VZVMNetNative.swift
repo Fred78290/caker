@@ -8,6 +8,7 @@
 import CakeAgentLib
 import Foundation
 import GRPC
+import GRPCLib
 import NIO
 import Semaphore
 import vmnet
@@ -51,6 +52,7 @@ public class VZVMNetNative: NSObject, VZVMNet {
 	let networkName: String
 	let pidFile: URL
 	let socketPath: URL
+	let runMode: Utils.RunMode
 	let semaphore = AsyncSemaphore(value: 0)
 	var networkConfig: VZSharedNetwork
 	var network_ref: vmnet_network_ref?
@@ -58,12 +60,13 @@ public class VZVMNetNative: NSObject, VZVMNet {
 	var serialization: xpc_object_t?
 	let sigcaught: [DispatchSourceSignal]
 
-	public init(on: EventLoop, socketPath: URL, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, pidFile: URL) {
+	public init(on: EventLoop, socketPath: URL, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, pidFile: URL, runMode: Utils.RunMode) {
 		self.eventLoop = on
 		self.networkName = networkName
 		self.networkConfig = networkConfig
 		self.pidFile = pidFile
 		self.socketPath = socketPath
+		self.runMode = runMode
 		self.sigcaught = [SIGINT, SIGHUP, SIGQUIT, SIGTERM].map {
 			signal($0, SIG_IGN)
 			return DispatchSource.makeSignalSource(signal: $0)
@@ -125,11 +128,17 @@ public class VZVMNetNative: NSObject, VZVMNet {
 
 			try? FileManager.default.removeItem(atPath: socketFile)
 
-			let serverFuture = Server.insecure(group: eventLoop)
-				.withServiceProviders([serviceProvider])
-				.bind(unixDomainSocketPath: socketFile)
+			let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
+			var serverConfiguration = Server.Configuration.default(
+				target: .unixDomainSocket(socketFile),
+				eventLoopGroup: eventLoop,
+				serviceProviders: [serviceProvider])
+			serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(
+				caCert: certLocation.caCertURL.path,
+				tlsKey: certLocation.serverKeyURL.path,
+				tlsCert: certLocation.serverCertURL.path)
 
-			let server = try serverFuture.wait()
+			let server = try Server.start(configuration: serverConfiguration).wait()
 			self.grpcServer = server
 
 			let future = self.eventLoop.makeFutureWithTask {

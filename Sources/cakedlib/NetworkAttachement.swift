@@ -91,9 +91,17 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 			socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
 		}
 
-		let target: ConnectionTarget = .unixDomainSocket(socketURL.socket.path)
-		let config = ClientConnection.Configuration.default(target: target, eventLoopGroup: Utilities.group)
-		let channel = ClientConnection(configuration: config)
+		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
+		var clientConfiguration = ClientConnection.Configuration.default(
+			target: .unixDomainSocket(socketURL.socket.path),
+			eventLoopGroup: Utilities.group)
+		clientConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeClientConfiguration(
+			caCert: certLocation.caCertURL.path,
+			tlsKey: certLocation.clientKeyURL.path,
+			tlsCert: certLocation.clientCertURL.path)
+		clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: 5, minimumConnectionTimeout: 5, retries: .upTo(1))
+
+		let channel = ClientConnection(configuration: clientConfiguration)
 
 		defer {
 			_ = try? channel.close().wait()
