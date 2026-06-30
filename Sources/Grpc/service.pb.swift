@@ -4497,6 +4497,8 @@ public nonisolated struct Caked_Caked: Sendable {
 
         public var running: Bool = false
 
+        public var managed: Bool = false
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public init() {}
@@ -13069,7 +13071,7 @@ nonisolated extension Caked_Caked.Reply.NetworksReply: SwiftProtobuf.Message, Sw
 
 nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".NetworkInfo"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}mode\0\u{1}description\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}interfaceID\0\u{1}endpoint\0\u{1}used\0\u{1}running\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}mode\0\u{1}description\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}interfaceID\0\u{1}endpoint\0\u{1}used\0\u{1}running\0\u{1}managed\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -13087,6 +13089,7 @@ nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf
       case 8: try { try decoder.decodeSingularStringField(value: &self.endpoint) }()
       case 9: try { try decoder.decodeSingularInt32Field(value: &self.used) }()
       case 10: try { try decoder.decodeSingularBoolField(value: &self.running) }()
+      case 11: try { try decoder.decodeSingularBoolField(value: &self.managed) }()
       default: break
       }
     }
@@ -13123,6 +13126,9 @@ nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf
     if self.running != false {
       try visitor.visitSingularBoolField(value: self.running, fieldNumber: 10)
     }
+    if self.managed != false {
+      try visitor.visitSingularBoolField(value: self.managed, fieldNumber: 11)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -13137,6 +13143,7 @@ nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf
     if lhs.endpoint != rhs.endpoint {return false}
     if lhs.used != rhs.used {return false}
     if lhs.running != rhs.running {return false}
+    if lhs.managed != rhs.managed {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

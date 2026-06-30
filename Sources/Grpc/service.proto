@@ -1043,6 +1043,7 @@ message Caked {
         string endpoint    = 8;
         int32  used        = 9;
         bool   running     = 10;
+        bool   managed     = 11;
       }
 
       message NetworkInfoReply {
