@@ -74,7 +74,7 @@ function invoke_protoc {
 #- EXAMPLES -------------------------------------------------------------------
 
 function generate_service {
-  local proto="${here}/mount.proto"
+  local proto="${here}/vmnet.proto"
   local output="${here}"
 
   generate_message "${proto}" "$(dirname "${proto}")" "${output}" "Visibility=Public"
