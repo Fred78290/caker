@@ -87,7 +87,6 @@
 		9B22CA142FF26894001D626A /* VZVMNetNative.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B22CA132FF26883001D626A /* VZVMNetNative.swift */; };
 		9B22CC822FF3B0E9001D626A /* vmnet.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B22CC7F2FF3B0E9001D626A /* vmnet.grpc.swift */; };
 		9B22CC832FF3B0E9001D626A /* vmnet.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B22CC802FF3B0E9001D626A /* vmnet.pb.swift */; };
-		9B22CC842FF3B0E9001D626A /* vmnet.proto in Sources */ = {isa = PBXBuildFile; fileRef = 9B22CC7E2FF3B0E9001D626A /* vmnet.proto */; };
 		9B22CC852FF3B0E9001D626A /* XPCSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B22CC812FF3B0E9001D626A /* XPCSerialization.swift */; };
 		9B27840F2FB37A83001F2B6A /* BridgeAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */; };
 		9B2784102FB37A83001F2B6A /* BridgedNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */; };
@@ -3722,7 +3721,6 @@
 				9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */,
 				9B22CC822FF3B0E9001D626A /* vmnet.grpc.swift in Sources */,
 				9B22CC832FF3B0E9001D626A /* vmnet.pb.swift in Sources */,
-				9B22CC842FF3B0E9001D626A /* vmnet.proto in Sources */,
 				9B22CC852FF3B0E9001D626A /* XPCSerialization.swift in Sources */,
 				9B9DCDEF2F70006D00E07852 /* CI.swift in Sources */,
 				9BE0B6FE2F1E4CBD0040EDD4 /* TaskQueue.swift in Sources */,
