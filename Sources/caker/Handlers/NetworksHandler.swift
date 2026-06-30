@@ -34,14 +34,59 @@ extension NetworksHandler {
 	
 	public static func start(client: CakedServiceClient?, networkName: String, runMode: Utils.RunMode) -> StartedNetworkReply {
 		guard let client = client else {
+			if Bundle.mustUseUnixTask {
+				return startSandboxed(networkName: networkName, runMode: runMode)
+			}
 			return self.start(networkName: networkName, runMode: runMode)
 		}
-		
+
 		do {
 			return try StartedNetworkReply(client.networks(.with {
 				$0.command = .start
 				$0.name = networkName
 			}).response.wait().networks.started)
+		} catch {
+			return StartedNetworkReply(name: networkName, started: false, reason: error.reason)
+		}
+	}
+
+	private static func startSandboxed(networkName: String, runMode: Utils.RunMode) -> StartedNetworkReply {
+		do {
+			let socketURL = try vmnetEndpoint(networkName: networkName, runMode: runMode)
+
+			if socketURL.pidFile.isCakedRunning(), (try? socketURL.socket.exists()) == true {
+				return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) already running"))
+			}
+
+			var arguments = ["networks", "start", "--fork", networkName]
+
+			if Logger.LoggingLevel() > .info {
+				arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
+			}
+
+			if runMode.isSystem {
+				arguments.append("--system")
+			}
+
+			try? socketURL.socket.delete()
+
+			let semaphore = DispatchSemaphore(value: 0)
+			var launchError: Error?
+
+			try Bundle.runCaked(with: arguments, runMode: runMode) { error in
+				launchError = error
+				semaphore.signal()
+			}
+
+			semaphore.wait()
+
+			if let error = launchError {
+				return StartedNetworkReply(name: networkName, started: false, reason: error.localizedDescription)
+			}
+
+			try socketURL.pidFile.waitPID()
+
+			return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) started"))
 		} catch {
 			return StartedNetworkReply(name: networkName, started: false, reason: error.reason)
 		}
