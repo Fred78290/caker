@@ -54,6 +54,7 @@ extension StartHandler {
 
 		let config: CakeConfig = try location.config()
 		var arguments: [String] = ["vmrun", location.configURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
+		try config.startNetworkServices(runMode: runMode)
 
 		if startMode == .foreground {
 			arguments.append("--ui")
@@ -106,10 +107,25 @@ extension StartHandler {
 		}
 
 		do {
+			try waitForRunningState(location: location, timeout: waitIPTimeout)
 			let ip = try location.waitIP(config: config, wait: waitIPTimeout, runMode: runMode)
 			return StartedReply(name: location.name, ip: ip, started: true, reason: String(localized: "VM started"))
 		} catch {
 			return StartedReply(name: location.name, ip: String.empty, started: false, reason: error.reason)
 		}
+	}
+
+	private static func waitForRunningState(location: VMLocation, timeout: Int) throws {
+		let start = Date.now
+
+		repeat {
+			if case .running = location.status {
+				return
+			}
+
+			Thread.sleep(forTimeInterval: 0.1)
+		} while Date.now.timeIntervalSince(start) < TimeInterval(timeout)
+
+		throw ServiceError(String(localized: "VM \(location.name) is not running"))
 	}
 }
