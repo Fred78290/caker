@@ -67,10 +67,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 		}
 
 		let matches = Self.networkInterfaces(includeSharedNetworks: true, runMode: runMode).compactMap {
-			guard $0.value.network.contains(gateway) else {
-				return $0.value.network
-			}
-			return nil
+			$0.value.network.contains(gateway) ? $0.value.network : nil
 		}
 
 		guard matches.isEmpty else {
