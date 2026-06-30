@@ -39,15 +39,7 @@ struct NetworkDetailView: View {
 	}
 
 	private var allowNetworkManagement: Bool {
-		let disabled: Bool
-
-		//if NetworksHandler.vmnetNative {
-		//	disabled = currentItem.mode == .host || currentItem.mode == .shared || currentItem.mode == .nat
-		//} else {
-			disabled = currentItem.mode == .nat
-		//}
-
-		return disabled == false
+		return currentItem.mode != .nat && currentItem.managed
 	}
 
 	var body: some View {
@@ -156,7 +148,7 @@ struct NetworkDetailView: View {
 
 				}.padding()
 
-				if forEditing == false && self.allowNetworkManagement && NetworksHandler.hasVMNetEntitlement == false {
+				if forEditing == false && self.allowNetworkManagement {
 					Divider()
 
 					if currentItem.running == false {
