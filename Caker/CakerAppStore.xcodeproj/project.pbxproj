@@ -3786,7 +3786,6 @@
 				9BB1491C2EC74B9F0094D950 /* PullHandler.swift in Sources */,
 				9B9117782EC9D4510017791D /* RawDisk.swift in Sources */,
 				9B943B5D2FF3084F00F69AB6 /* XPCSerialization.swift in Sources */,
-				9B943B5E2FF3084F00F69AB6 /* vmnet.proto in Sources */,
 				9B943B5F2FF3084F00F69AB6 /* VZVMNetNative.swift in Sources */,
 				9B943B602FF3084F00F69AB6 /* vmnet.pb.swift in Sources */,
 				9B943B612FF3084F00F69AB6 /* vmnet.grpc.swift in Sources */,
