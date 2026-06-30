@@ -778,6 +778,8 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 	@MainActor
 	private static func showRunInTerminalAlert(_ contents: [String]) {
+		NSApp.setActivationPolicy(.regular)
+
 		let scriptBody = contents.dropFirst().joined(separator: "\n")
 		let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
 
@@ -814,7 +816,10 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 	@MainActor
 	private static func showPrivilegedInstallationConfirmation() -> Bool {
+		NSApp.setActivationPolicy(.regular)
+
 		let alert = NSAlert()
+
 		alert.messageText = String(localized: "Administrator Access Required")
 		alert.informativeText = String(
 			localized:
@@ -822,15 +827,19 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		alert.alertStyle = .informational
 		alert.addButton(withTitle: String(localized: "Continue"))
 		alert.addButton(withTitle: String(localized: "Quit"))
+
 		return alert.runModal() == .alertFirstButtonReturn
 	}
 
 	@MainActor
 	private static func showCommandToPasteAlert(_ contents: [String]) {
+		NSApp.setActivationPolicy(.regular)
+
 		let scriptBody = contents.dropFirst().joined(separator: "\n")
 		let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
 
 		let alert = NSAlert()
+
 		alert.messageText = String(localized: "Manual configuration required")
 		alert.informativeText = String(
 			localized:
@@ -871,7 +880,10 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	#if USE_SMAPPSERVICE
 		@MainActor
 		private static func showInstallAgentAlert() {
+			NSApp.setActivationPolicy(.regular)
+
 			let alert = NSAlert()
+
 			alert.messageText = String(localized: "caked Agent Not Installed")
 			alert.informativeText = String(localized: "The caked background agent is not installed. Would you like to install it now to enable full functionality?")
 			alert.alertStyle = .warning
