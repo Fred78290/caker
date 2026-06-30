@@ -20,16 +20,33 @@ public let MoB: UInt64 = KoB * KoB
 public let GoB: UInt64 = MoB * KoB
 
 extension Bundle {
-	private static var cacheIsSandboxed: Bool? = nil
+	private static var _cacheIsSandboxed: Bool? = nil
+	private static var _mustUseUnixTask: Bool? = nil
 
-	public static var isApplicationSandboxed: Bool {
-		if let isSandboxed = cacheIsSandboxed {
-			return isSandboxed
+	public static var mustUseUnixTask: Bool {
+		guard let mustUseUnixTask = _mustUseUnixTask else {
+			var mustUseUnixTask = isApplicationSandboxed
+
+			if mustUseUnixTask {
+				mustUseUnixTask = ProcessInfo.processInfo.processName == "caker"
+			}
+
+			_mustUseUnixTask = mustUseUnixTask
+
+			return mustUseUnixTask
 		}
 
-		cacheIsSandboxed = Bundle.main.isSandboxed
-		
-		return cacheIsSandboxed!
+		return mustUseUnixTask
+	}
+
+	public static var isApplicationSandboxed: Bool {
+		guard let isSandboxed = _cacheIsSandboxed else {
+			_cacheIsSandboxed = Bundle.main.isSandboxed
+
+			return _cacheIsSandboxed!
+		}
+
+		return isSandboxed
 	}
 
 	public var isSandboxed: Bool {

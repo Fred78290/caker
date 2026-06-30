@@ -1,3 +1,4 @@
+import ArgumentParser
 import CakeAgentLib
 import Foundation
 import GRPC
@@ -6,7 +7,6 @@ import NIO
 import Socket
 import System
 import Virtualization
-import ArgumentParser
 
 extension Date {
 	public func asTimeval() -> timeval {
@@ -17,74 +17,74 @@ extension Date {
 extension Bundle {
 	public var cakerBuildPlugInsPath: [String] {
 		var paths: [String] = []
-		
+
 		if let cakedBundlePath = self.cakedBundlePath {
 			paths.append(cakedBundlePath)
 		}
-		
+
 		if let cakectlBundlePath = self.cakectlBundlePath {
 			paths.append(cakectlBundlePath)
 		}
-		
+
 		return paths
 	}
-	
+
 	public var cakedBundlePath: String? {
 		guard let url = self.cakedBundleURL else {
 			return nil
 		}
-		
+
 		return url.path
 	}
-	
+
 	public var cakedBundleURL: URL? {
 		guard let pluginURL = self.builtInPlugInsURL else {
 			return nil
 		}
-		
+
 		let cakedBundleURL = pluginURL.appendingPathComponent("caked.bundle/Contents/MacOS").absoluteURL
 		var isDirectory: ObjCBool = false
-		
+
 		guard FileManager.default.fileExists(atPath: cakedBundleURL.path, isDirectory: &isDirectory) else {
 			return nil
 		}
-		
+
 		guard isDirectory.boolValue else {
 			return nil
 		}
-		
+
 		return cakedBundleURL
 	}
-	
+
 	public var cakectlBundlePath: String? {
 		guard let url = self.cakectlBundleURL else {
 			return nil
 		}
-		
+
 		return url.path
 	}
-	
+
 	public var cakectlBundleURL: URL? {
 		guard let pluginURL = self.builtInPlugInsURL else {
 			return nil
 		}
-		
+
 		let cakectlBundleURL = pluginURL.appendingPathComponent("cakectl.bundle/Contents/MacOS").absoluteURL
 		var isDirectory: ObjCBool = false
-		
+
 		guard FileManager.default.fileExists(atPath: cakectlBundleURL.path, isDirectory: &isDirectory) else {
 			return nil
 		}
-		
+
 		guard isDirectory.boolValue else {
 			return nil
 		}
-		
+
 		return cakectlBundleURL
 	}
 
 	public func caked() throws -> URL {
-        guard var pluginsURL = self.cakedBundleURL else {
+		guard var pluginsURL = self.cakedBundleURL else {
 			guard let executableURL = self.executableURL, executableURL.path(percentEncoded: false).hasSuffix(Home.cakedCommandName) else {
 				guard let executableURL = URL.binary(Home.cakedCommandName) else {
 					throw ServiceError(String(localized: "caked not found in path"))
@@ -107,6 +107,93 @@ extension Bundle {
 		}
 
 		return pluginsURL
+	}
+
+	public static func runCaked(
+		with arguments: [String],
+		sudo: Bool = false,
+		standardInput: FileHandle = FileHandle.standardInput,
+		standardOutput: FileHandle = FileHandle.standardOutput,
+		standardError: FileHandle = FileHandle.standardError,
+		sharedFileHandles: [FileHandle]? = nil,
+		runMode: Utils.RunMode,
+		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
+	) throws {
+		var cakedExecutableURL = try Bundle.main.caked()
+
+		if Bundle.mustUseUnixTask {
+			if sudo {
+				throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
+			}
+
+			let scriptsFile = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("caked.sh")
+			let scripts: [String] = [
+				"#!/bin/sh",
+				"exec '\(cakedExecutableURL.path(percentEncoded: false))' \"$@\"",
+			]
+
+			try scripts.joined(separator: "\n").write(to: scriptsFile, atomically: true, encoding: .utf8)
+			try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptsFile.path(percentEncoded: false))
+
+			defer {
+				try? FileManager.default.removeItem(at: scriptsFile)
+			}
+
+			let userTask = try NSUserUnixTask(url: scriptsFile)
+
+			userTask.standardOutput = FileHandle(fileDescriptor: dup(standardOutput.fileDescriptor), closeOnDealloc: true)
+			userTask.standardError = FileHandle(fileDescriptor: dup(standardError.fileDescriptor), closeOnDealloc: true)
+			userTask.standardInput = nil
+
+			userTask.execute(withArguments: arguments, completionHandler: handler)
+		} else {
+			let process = ProcessWithSharedFileHandle()
+			var runningArguments: [String] = []
+
+			if sudo {
+				guard let sudoURL = URL.binary(SUDO) else {
+					throw ServiceError(String(localized: "sudo not found in path"))
+				}
+
+				guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: cakedExecutableURL) else {
+					throw ServiceError(String(localized: "\(cakedExecutableURL.lastPathComponent) is not sudoable"))
+				}
+
+				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", cakedExecutableURL.path]
+
+				if runMode.isSystem {
+					runningArguments.append("--system")
+				}
+
+				cakedExecutableURL = sudoURL
+			} else {
+
+			}
+
+			runningArguments.append(contentsOf: arguments)
+
+			Logger(self).debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
+
+			process.executableURL = cakedExecutableURL
+			process.environment = try Utilities.environment(runMode: runMode)
+			process.arguments = runningArguments
+
+			process.sharedFileHandles = sharedFileHandles
+			process.standardOutput = standardOutput
+			process.standardError = standardError
+			process.standardInput = standardInput
+			process.terminationHandler = { process in
+				if let handler {
+					if process.terminationStatus == 0 {
+						handler(nil)
+					} else {
+						handler(NSError(domain: NSPOSIXErrorDomain, code: Int(process.terminationStatus), userInfo: [NSLocalizedDescriptionKey: process.terminationReason]))
+					}
+				}
+			}
+
+			try process.run()
+		}
 	}
 }
 
@@ -297,7 +384,7 @@ extension URL: Purgeable {
 	public static func binary(_ name: String) -> URL? {
 		if let executablePath = Bundle.main.path(forAuxiliaryExecutable: name) {
 			let url = URL(fileURLWithPath: executablePath).resolvingSymlinksInPath().absoluteURL
-			
+
 			if FileManager.default.fileExists(atPath: url.path) {
 				return url
 			}
@@ -313,7 +400,7 @@ extension URL: Purgeable {
 			main.sharedSupportPath,
 			main.resourcePath,
 			ProcessInfo.processInfo.environment["PATH"],
-			"/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin"
+			"/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin",
 		]
 
 		return pathd.compactMap {
@@ -680,8 +767,7 @@ extension Utilities {
 			let fromName = withUnsafeBytes(of: fs.f_mntfromname) { ptr in
 				String(cString: ptr.bindMemory(to: CChar.self).baseAddress!)
 			}
-			let isPartitionOfDisk = fromName == diskPath ||
-				(fromName.hasPrefix(diskPath) && fromName.dropFirst(diskPath.count).first == "s")
+			let isPartitionOfDisk = fromName == diskPath || (fromName.hasPrefix(diskPath) && fromName.dropFirst(diskPath.count).first == "s")
 			if isPartitionOfDisk {
 				let onName = withUnsafeBytes(of: fs.f_mntonname) { ptr in
 					String(cString: ptr.bindMemory(to: CChar.self).baseAddress!)
@@ -725,6 +811,4 @@ extension Utilities {
 		return alert.runModal() == .alertFirstButtonReturn
 	}
 
-
 }
-
