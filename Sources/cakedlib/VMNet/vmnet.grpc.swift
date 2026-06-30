@@ -10,8 +10,11 @@ import NIO
 import NIOConcurrencyHelpers
 import SwiftProtobuf
 
-// MARK: - Client protocol
 
+/// Service that exposes a vmnet network serialization to allow other processes
+/// to create a vmnet_network_ref connected to the same shared network.
+///
+/// Usage: instantiate `Vmnet_VMNetServiceClient`, then call methods of this protocol to make API calls.
 public protocol Vmnet_VMNetServiceClientProtocol: GRPCClient {
   var serviceName: String { get }
   var interceptors: Vmnet_VMNetServiceClientInterceptorFactoryProtocol? { get }
@@ -23,8 +26,16 @@ public protocol Vmnet_VMNetServiceClientProtocol: GRPCClient {
 }
 
 extension Vmnet_VMNetServiceClientProtocol {
-  public var serviceName: String { return "vmnet.VMNetService" }
+  public var serviceName: String {
+    return "vmnet.VMNetService"
+  }
 
+  /// Unary call to GetSerialization
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetSerialization.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func getSerialization(
     _ request: Vmnet_Empty,
     callOptions: CallOptions? = nil
@@ -38,19 +49,52 @@ extension Vmnet_VMNetServiceClientProtocol {
   }
 }
 
-// MARK: - Client interceptor factory protocol
+@available(*, deprecated)
+extension Vmnet_VMNetServiceClient: @unchecked Sendable {}
 
-public protocol Vmnet_VMNetServiceClientInterceptorFactoryProtocol: Sendable {
-  func makeGetSerializationInterceptors() -> [ClientInterceptor<Vmnet_Empty, Vmnet_SerializationReply>]
+@available(*, deprecated, renamed: "Vmnet_VMNetServiceNIOClient")
+public final class Vmnet_VMNetServiceClient: Vmnet_VMNetServiceClientProtocol {
+  private let lock = Lock()
+  private var _defaultCallOptions: CallOptions
+  private var _interceptors: Vmnet_VMNetServiceClientInterceptorFactoryProtocol?
+  public let channel: GRPCChannel
+  public var defaultCallOptions: CallOptions {
+    get { self.lock.withLock { return self._defaultCallOptions } }
+    set { self.lock.withLockVoid { self._defaultCallOptions = newValue } }
+  }
+  public var interceptors: Vmnet_VMNetServiceClientInterceptorFactoryProtocol? {
+    get { self.lock.withLock { return self._interceptors } }
+    set { self.lock.withLockVoid { self._interceptors = newValue } }
+  }
+
+  /// Creates a client for the vmnet.VMNetService service.
+  ///
+  /// - Parameters:
+  ///   - channel: `GRPCChannel` to the service host.
+  ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
+  ///   - interceptors: A factory providing interceptors for each RPC.
+  public init(
+    channel: GRPCChannel,
+    defaultCallOptions: CallOptions = CallOptions(),
+    interceptors: Vmnet_VMNetServiceClientInterceptorFactoryProtocol? = nil
+  ) {
+    self.channel = channel
+    self._defaultCallOptions = defaultCallOptions
+    self._interceptors = interceptors
+  }
 }
-
-// MARK: - NIO client
 
 public struct Vmnet_VMNetServiceNIOClient: Vmnet_VMNetServiceClientProtocol {
   public var channel: GRPCChannel
   public var defaultCallOptions: CallOptions
   public var interceptors: Vmnet_VMNetServiceClientInterceptorFactoryProtocol?
 
+  /// Creates a client for the vmnet.VMNetService service.
+  ///
+  /// - Parameters:
+  ///   - channel: `GRPCChannel` to the service host.
+  ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
+  ///   - interceptors: A factory providing interceptors for each RPC.
   public init(
     channel: GRPCChannel,
     defaultCallOptions: CallOptions = CallOptions(),
@@ -62,8 +106,8 @@ public struct Vmnet_VMNetServiceNIOClient: Vmnet_VMNetServiceClientProtocol {
   }
 }
 
-// MARK: - Async client protocol
-
+/// Service that exposes a vmnet network serialization to allow other processes
+/// to create a vmnet_network_ref connected to the same shared network.
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public protocol Vmnet_VMNetServiceAsyncClientProtocol: GRPCClient {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
@@ -81,7 +125,9 @@ extension Vmnet_VMNetServiceAsyncClientProtocol {
     return Vmnet_VMNetServiceClientMetadata.serviceDescriptor
   }
 
-  public var interceptors: Vmnet_VMNetServiceClientInterceptorFactoryProtocol? { return nil }
+  public var interceptors: Vmnet_VMNetServiceClientInterceptorFactoryProtocol? {
+    return nil
+  }
 
   public func makeGetSerializationCall(
     _ request: Vmnet_Empty,
@@ -94,12 +140,20 @@ extension Vmnet_VMNetServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeGetSerializationInterceptors() ?? []
     )
   }
+}
 
+@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+extension Vmnet_VMNetServiceAsyncClientProtocol {
   public func getSerialization(
     _ request: Vmnet_Empty,
     callOptions: CallOptions? = nil
   ) async throws -> Vmnet_SerializationReply {
-    return try await self.makeGetSerializationCall(request, callOptions: callOptions).response
+    return try await self.performAsyncUnaryCall(
+      path: Vmnet_VMNetServiceClientMetadata.Methods.getSerialization.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetSerializationInterceptors() ?? []
+    )
   }
 }
 
@@ -120,7 +174,11 @@ public struct Vmnet_VMNetServiceAsyncClient: Vmnet_VMNetServiceAsyncClientProtoc
   }
 }
 
-// MARK: - Client metadata
+public protocol Vmnet_VMNetServiceClientInterceptorFactoryProtocol: Sendable {
+
+  /// - Returns: Interceptors to use when invoking 'getSerialization'.
+  func makeGetSerializationInterceptors() -> [ClientInterceptor<Vmnet_Empty, Vmnet_SerializationReply>]
+}
 
 public enum Vmnet_VMNetServiceClientMetadata {
   public static let serviceDescriptor = GRPCServiceDescriptor(
@@ -140,8 +198,47 @@ public enum Vmnet_VMNetServiceClientMetadata {
   }
 }
 
-// MARK: - Server provider protocol
+/// Service that exposes a vmnet network serialization to allow other processes
+/// to create a vmnet_network_ref connected to the same shared network.
+///
+/// To build a server, implement a class that conforms to this protocol.
+public protocol Vmnet_VMNetServiceProvider: CallHandlerProvider {
+  var interceptors: Vmnet_VMNetServiceServerInterceptorFactoryProtocol? { get }
 
+  func getSerialization(request: Vmnet_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Vmnet_SerializationReply>
+}
+
+extension Vmnet_VMNetServiceProvider {
+  public var serviceName: Substring {
+    return Vmnet_VMNetServiceServerMetadata.serviceDescriptor.fullName[...]
+  }
+
+  /// Determines, calls and returns the appropriate request handler, depending on the request's method.
+  /// Returns nil for methods not handled by this service.
+  public func handle(
+    method name: Substring,
+    context: CallHandlerContext
+  ) -> GRPCServerHandlerProtocol? {
+    switch name {
+    case "GetSerialization":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmnet_Empty>(),
+        responseSerializer: ProtobufSerializer<Vmnet_SerializationReply>(),
+        interceptors: self.interceptors?.makeGetSerializationInterceptors() ?? [],
+        userFunction: self.getSerialization(request:context:)
+      )
+
+    default:
+      return nil
+    }
+  }
+}
+
+/// Service that exposes a vmnet network serialization to allow other processes
+/// to create a vmnet_network_ref connected to the same shared network.
+///
+/// To implement a server, implement an object which conforms to this protocol.
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public protocol Vmnet_VMNetServiceAsyncProvider: CallHandlerProvider, Sendable {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
@@ -163,7 +260,9 @@ extension Vmnet_VMNetServiceAsyncProvider {
     return Vmnet_VMNetServiceServerMetadata.serviceDescriptor.fullName[...]
   }
 
-  public var interceptors: Vmnet_VMNetServiceServerInterceptorFactoryProtocol? { return nil }
+  public var interceptors: Vmnet_VMNetServiceServerInterceptorFactoryProtocol? {
+    return nil
+  }
 
   public func handle(
     method name: Substring,
@@ -185,13 +284,12 @@ extension Vmnet_VMNetServiceAsyncProvider {
   }
 }
 
-// MARK: - Server interceptor factory protocol
-
 public protocol Vmnet_VMNetServiceServerInterceptorFactoryProtocol: Sendable {
+
+  /// - Returns: Interceptors to use when handling 'getSerialization'.
+  ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetSerializationInterceptors() -> [ServerInterceptor<Vmnet_Empty, Vmnet_SerializationReply>]
 }
-
-// MARK: - Server metadata
 
 public enum Vmnet_VMNetServiceServerMetadata {
   public static let serviceDescriptor = GRPCServiceDescriptor(

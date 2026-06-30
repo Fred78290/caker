@@ -169,7 +169,6 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	private(set) var templates: [TemplateEntry] = []
 	private(set) var networks: [BridgedNetwork] = []
 	private(set) var virtualMachines: [URL: VirtualMachineDocument] = [:]
-	private(set) var hasVMNetworking = Entitlement.hasVMNetworking()
 	private(set) var connectionManager: ConnectionManager
 	var isAgentInstalling: Bool = false
 

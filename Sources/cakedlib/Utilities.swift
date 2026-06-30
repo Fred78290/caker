@@ -279,14 +279,11 @@ extension URL: Purgeable {
 			}
 
 			if FileManager.default.fileExists(atPath: self.path) {
-				if self.isPIDRunning().0 {
-					#if DEBUG
-						Logger(self).debug("PID file exists at \(self.path)")
-					#endif
-					return
+				guard self.isPIDRunning().0 else {
+					throw ServiceError(String(localized: "PID file exists at \(self.path) but process died"))
 				}
 
-				throw ServiceError(String(localized: "PID file exists at \(self.path) but process died"))
+				return
 			}
 
 			Thread.sleep(forTimeInterval: 1)

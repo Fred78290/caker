@@ -156,7 +156,7 @@ struct NetworkDetailView: View {
 
 				}.padding()
 
-				if forEditing == false && self.allowNetworkManagement && AppState.shared.hasVMNetworking == false {
+				if forEditing == false && self.allowNetworkManagement && NetworksHandler.hasVMNetEntitlement == false {
 					Divider()
 
 					if currentItem.running == false {
@@ -189,5 +189,5 @@ struct NetworkDetailView: View {
 }
 
 #Preview {
-	NetworkDetailView(.constant(BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: String.empty, dhcpEnd: String.empty, dhcpLease: String.empty, interfaceID: "nat", endpoint: String.empty, running: false, usedBy: 0)), reloadNetwork: .constant(false), forEditing: true)
+	NetworkDetailView(.constant(BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: String.empty, dhcpEnd: String.empty, dhcpLease: String.empty, interfaceID: "nat", endpoint: String.empty, running: false, managed: false, usedBy: 0)), reloadNetwork: .constant(false), forEditing: true)
 }

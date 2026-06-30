@@ -85,6 +85,10 @@
 		9B21E0132F4C677700870AD7 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21E0122F4C677700870AD7 /* CakeAgentLib */; };
 		9B2221CE2F5831F20037344D /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2221CD2F5831F00037344D /* InstallAgentHandler.swift */; };
 		9B22CA142FF26894001D626A /* VZVMNetNative.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B22CA132FF26883001D626A /* VZVMNetNative.swift */; };
+		9B22CC822FF3B0E9001D626A /* vmnet.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B22CC7F2FF3B0E9001D626A /* vmnet.grpc.swift */; };
+		9B22CC832FF3B0E9001D626A /* vmnet.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B22CC802FF3B0E9001D626A /* vmnet.pb.swift */; };
+		9B22CC842FF3B0E9001D626A /* vmnet.proto in Sources */ = {isa = PBXBuildFile; fileRef = 9B22CC7E2FF3B0E9001D626A /* vmnet.proto */; };
+		9B22CC852FF3B0E9001D626A /* XPCSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B22CC812FF3B0E9001D626A /* XPCSerialization.swift */; };
 		9B27840F2FB37A83001F2B6A /* BridgeAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */; };
 		9B2784102FB37A83001F2B6A /* BridgedNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */; };
 		9B2784112FB37A83001F2B6A /* CertificateRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */; };
@@ -263,10 +267,6 @@
 		9B91237C2E2903DC006DD682 /* ExternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */; };
 		9B91237E2E290442006DD682 /* InternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */; };
 		9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 9B9123802E29253A006DD682 /* SwiftTerm */; };
-		9B943AA42FF2EF4400F69AB6 /* XPCSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B943AA32FF2EF4400F69AB6 /* XPCSerialization.swift */; };
-		9B943AA52FF2EF4400F69AB6 /* vmnet.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B943AA22FF2EF4400F69AB6 /* vmnet.pb.swift */; };
-		9B943AA62FF2EF4400F69AB6 /* vmnet.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B943AA12FF2EF4400F69AB6 /* vmnet.grpc.swift */; };
-		9B943BBC2FF3088E00F69AB6 /* vmnet.proto in Sources */ = {isa = PBXBuildFile; fileRef = 9B943BBB2FF3088E00F69AB6 /* vmnet.proto */; };
 		9B9620CB2EAB62EF0075CD18 /* ToolbarSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */; };
 		9B96B0182F4B68480069C970 /* TestPlan.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 9B96B00A2F4B67250069C970 /* TestPlan.xctestplan */; };
 		9B96B0192F4B68540069C970 /* ProcessWithSharedFileHandleTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */; };
@@ -877,6 +877,15 @@
 		9B215B762E0C39AE00AFC89D /* SocketsDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketsDetailView.swift; sourceTree = "<group>"; };
 		9B2221CD2F5831F00037344D /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
 		9B22CA132FF26883001D626A /* VZVMNetNative.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetNative.swift; sourceTree = "<group>"; };
+		9B22CC7D2FF3B0E9001D626A /* generate.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = generate.sh; sourceTree = "<group>"; };
+		9B22CC7E2FF3B0E9001D626A /* vmnet.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = vmnet.proto; sourceTree = "<group>"; };
+		9B22CC7F2FF3B0E9001D626A /* vmnet.grpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vmnet.grpc.swift; sourceTree = "<group>"; };
+		9B22CC802FF3B0E9001D626A /* vmnet.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vmnet.pb.swift; sourceTree = "<group>"; };
+		9B22CC812FF3B0E9001D626A /* XPCSerialization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCSerialization.swift; sourceTree = "<group>"; };
+		9B22CCDE2FF3CA3D001D626A /* cakectl.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cakectl.entitlements; sourceTree = "<group>"; };
+		9B22CCDF2FF3CA3D001D626A /* caker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caker.entitlements; sourceTree = "<group>"; };
+		9B22CCE12FF3CA48001D626A /* cakectl.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cakectl.entitlements; sourceTree = "<group>"; };
+		9B22CCE22FF3CA48001D626A /* caker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caker.entitlements; sourceTree = "<group>"; };
 		9B2783FE2FB37A83001F2B6A /* BridgeAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeAttachement.swift; sourceTree = "<group>"; };
 		9B2783FF2FB37A83001F2B6A /* BridgedNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgedNetwork.swift; sourceTree = "<group>"; };
 		9B2784002FB37A83001F2B6A /* CertificateRepresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateRepresentation.swift; sourceTree = "<group>"; };
@@ -1067,11 +1076,6 @@
 		9B911A602ECF854E0017791D /* GlossyCircle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlossyCircle.swift; sourceTree = "<group>"; };
 		9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalVirtualMachineView.swift; sourceTree = "<group>"; };
-		9B943AA12FF2EF4400F69AB6 /* vmnet.grpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vmnet.grpc.swift; sourceTree = "<group>"; };
-		9B943AA22FF2EF4400F69AB6 /* vmnet.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vmnet.pb.swift; sourceTree = "<group>"; };
-		9B943AA32FF2EF4400F69AB6 /* XPCSerialization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCSerialization.swift; sourceTree = "<group>"; };
-		9B943BBA2FF3088E00F69AB6 /* generate.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = generate.sh; sourceTree = "<group>"; };
-		9B943BBB2FF3088E00F69AB6 /* vmnet.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = vmnet.proto; sourceTree = "<group>"; };
 		9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarSettings.swift; sourceTree = "<group>"; };
 		9B96B00A2F4B67250069C970 /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 		9B96B00F2F4B68380069C970 /* CakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1663,6 +1667,24 @@
 				9B20D6002E019FA400BEFB41 /* VMWare.swift */,
 			);
 			path = Importers;
+			sourceTree = "<group>";
+		};
+		9B22CCE02FF3CA3D001D626A /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				9B22CCDE2FF3CA3D001D626A /* cakectl.entitlements */,
+				9B22CCDF2FF3CA3D001D626A /* caker.entitlements */,
+			);
+			path = debug;
+			sourceTree = "<group>";
+		};
+		9B22CCE32FF3CA48001D626A /* release */ = {
+			isa = PBXGroup;
+			children = (
+				9B22CCE12FF3CA48001D626A /* cakectl.entitlements */,
+				9B22CCE22FF3CA48001D626A /* caker.entitlements */,
+			);
+			path = release;
 			sourceTree = "<group>";
 		};
 		9B27840E2FB37A83001F2B6A /* Model */ = {
@@ -2501,17 +2523,17 @@
 		9BEBC7522DF440720092B196 /* VMNet */ = {
 			isa = PBXGroup;
 			children = (
-				9B943BBA2FF3088E00F69AB6 /* generate.sh */,
-				9B943BBB2FF3088E00F69AB6 /* vmnet.proto */,
-				9B943AA12FF2EF4400F69AB6 /* vmnet.grpc.swift */,
-				9B943AA22FF2EF4400F69AB6 /* vmnet.pb.swift */,
+				9B22CC7D2FF3B0E9001D626A /* generate.sh */,
+				9B22CC7E2FF3B0E9001D626A /* vmnet.proto */,
+				9B22CC7F2FF3B0E9001D626A /* vmnet.grpc.swift */,
+				9B22CC802FF3B0E9001D626A /* vmnet.pb.swift */,
 				9BEBC74D2DF440720092B196 /* VZVMNet.swift */,
 				9BEBC74E2DF440720092B196 /* VZVMNetConfig.swift */,
 				9BEBC74F2DF440720092B196 /* VZVMNetFileHandle.swift */,
 				9BEBC7502DF440720092B196 /* VZVMNetHandler.swift */,
 				9B22CA132FF26883001D626A /* VZVMNetNative.swift */,
 				9BEBC7512DF440720092B196 /* VZVMNetSocket.swift */,
-				9B943AA32FF2EF4400F69AB6 /* XPCSerialization.swift */,
+				9B22CC812FF3B0E9001D626A /* XPCSerialization.swift */,
 			);
 			path = VMNet;
 			sourceTree = "<group>";
@@ -2660,6 +2682,8 @@
 		9BFE87462F7E6480005CC9B2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9B22CCE32FF3CA48001D626A /* release */,
+				9B22CCE02FF3CA3D001D626A /* debug */,
 				9BFE87362F7E6480005CC9B2 /* AppIcon.icns */,
 				9BFE873C2F7E6480005CC9B2 /* Document.icns */,
 				9BFE87DB2F7E6B67005CC9B2 /* VM.icns */,
@@ -3696,6 +3720,10 @@
 				9BEBC7882DF440720092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC7892DF440720092B196 /* Utilities.swift in Sources */,
 				9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */,
+				9B22CC822FF3B0E9001D626A /* vmnet.grpc.swift in Sources */,
+				9B22CC832FF3B0E9001D626A /* vmnet.pb.swift in Sources */,
+				9B22CC842FF3B0E9001D626A /* vmnet.proto in Sources */,
+				9B22CC852FF3B0E9001D626A /* XPCSerialization.swift in Sources */,
 				9B9DCDEF2F70006D00E07852 /* CI.swift in Sources */,
 				9BE0B6FE2F1E4CBD0040EDD4 /* TaskQueue.swift in Sources */,
 				9BEBC78A2DF440720092B196 /* ConfigureHandler.swift in Sources */,
@@ -3773,9 +3801,6 @@
 				9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */,
 				9B081D932FC97DB20029B259 /* VmdkHeader.swift in Sources */,
 				9B081D942FC97DB20029B259 /* VmdkError.swift in Sources */,
-				9B943AA42FF2EF4400F69AB6 /* XPCSerialization.swift in Sources */,
-				9B943AA52FF2EF4400F69AB6 /* vmnet.pb.swift in Sources */,
-				9B943AA62FF2EF4400F69AB6 /* vmnet.grpc.swift in Sources */,
 				9B081D952FC97DB20029B259 /* VmdkConverter.swift in Sources */,
 				9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */,
 				9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */,

@@ -69,7 +69,7 @@ struct Networks: ParsableCommand {
 			self.pidFile = nil
 
 			if CakedLib.NetworksHandler.isPhysicalInterface(name: networkName) {
-				if Entitlement.hasVMNetworking() {
+				if CakedLib.NetworksHandler.hasVMNetEntitlement {
 					throw ServiceError(String(localized: "Network \(networkName) is handled natively, please use a different network"))
 				}
 
@@ -91,10 +91,6 @@ struct Networks: ParsableCommand {
 				guard network.mode != .nat else {
 					throw ServiceError(String(localized: "Network \(networkName) is default nated, please use a different network"))
 				}
-
-				//if CakedLib.NetworksHandler.vmnetNative {
-				//	throw ServiceError(String(localized: "Network \(networkName) is handled natively, please use a different network"))
-				//}
 
 				self.mode = network.mode
 				self.gateway = network.dhcpStart
@@ -321,7 +317,11 @@ struct Networks: ParsableCommand {
 
 	static func start(options: Networks.VMNetOptions, fork: Bool, runMode: Utils.RunMode) -> StartedNetworkReply {
 		let isPhysicalInterface = CakedLib.NetworksHandler.isPhysicalInterface(name: options.networkName)
-		let vmnet = CakedLib.NetworksHandler.vmnetNative
+		let networkName = options.networkName
+
+		if isPhysicalInterface && CakedLib.NetworksHandler.hasVMNetEntitlement {
+			return StartedNetworkReply(name: options.networkName, started: false, reason: String(localized: "Network \(networkName) is handled natively, please use a different network"))
+		}
 
 		do {
 			let socketURL = try options.vmnetEndpoint(runMode: runMode)
@@ -333,12 +333,12 @@ struct Networks: ParsableCommand {
 			if fork {
 				try startNetwork(options: options, runMode: runMode, socket: socketURL.socket, pidFile: socketURL.pidFile)
 
-				return StartedNetworkReply(name: options.networkName, started: true, reason: String(localized: "Network \(options.networkName) ended"))
+				return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) ended"))
 			}
 			
-			let log = try CakedLib.NetworksHandler.vmnetFileLog(networkName: options.networkName, runMode: runMode)
+			let log = try CakedLib.NetworksHandler.vmnetFileLog(networkName: networkName, runMode: runMode)
 
-			if vmnet && isPhysicalInterface == false {
+			func startForkedNetwork() throws {
 				let cakedExecutableURL = try Bundle.main.caked()
 
 				var arguments: [String] = ["networks", "start", "--fork", options.networkName]
@@ -366,22 +366,28 @@ struct Networks: ParsableCommand {
 				try socketURL.pidFile.waitPID {
 					if process.isRunning == false {
 						if process.terminationReason == .uncaughtSignal {
-							throw ServiceError(String(localized: "Network \(options.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason.rawValue)"))
+							throw ServiceError(String(localized: "Network \(networkName) failed to start: \(process.terminationStatus), \(process.terminationReason.rawValue)"))
 						} else {
-							throw ServiceError(String(localized: "Network \(options.networkName) stopped: \(process.terminationStatus)"))
+							throw ServiceError(String(localized: "Network \(networkName) stopped: \(process.terminationStatus)"))
 						}
 					}
 				}
-			} else if try SudoCaked(arguments: ["networks", "start", "--fork", options.networkName], runMode: runMode, log: log).run().terminationStatus != 0 {
-				throw ServiceError(String(localized: "Failed to start networks \(options.networkName)"))
+			}
+
+			if geteuid() == 0 || CakedLib.NetworksHandler.vmnetNative || CakedLib.NetworksHandler.hasVMNetEntitlement {
+				try startForkedNetwork()
 			} else {
+				if try SudoCaked(arguments: ["networks", "start", "--fork", networkName], runMode: runMode, log: log).run().terminationStatus != 0 {
+					throw ServiceError(String(localized: "Failed to start networks \(options.networkName)"))
+				}
+
 				sleep(1)
 				try socketURL.pidFile.waitPID()
 			}
 
-			return StartedNetworkReply(name: options.networkName, started: true, reason: String(localized: "Network \(options.networkName) started"))
+			return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) started"))
 		} catch {
-			return StartedNetworkReply(name: options.networkName, started: false, reason: error.reason)
+			return StartedNetworkReply(name: networkName, started: false, reason: error.reason)
 		}
 	}
 

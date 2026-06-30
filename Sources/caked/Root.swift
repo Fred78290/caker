@@ -67,7 +67,7 @@ struct Root: ParsableCommand {
 		_ = readLine()
 		#endif
 		
-		let vmNetworking: Bool = Entitlement.hasVMNetworking()
+		let vmNetworking: Bool = CakedLib.NetworksHandler.hasVMNetEntitlement
 
 		return "Caked \(CI.version) - " + String(localized: "Hypervisor running VM on macOS with a focus on security, performance and integration, with vmnet networking: \(vmNetworking ? "true" : "false")")
 	}

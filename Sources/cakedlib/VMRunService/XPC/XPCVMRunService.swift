@@ -450,7 +450,7 @@ class XPCVMRunServiceServer: NSObject, NSXPCListenerDelegate, VMRunServiceServer
 				Logger(self).debug("XPC start listening")
 			#endif
 
-			listener.activate()
+			listener.resume()
 
 			do {
 				try await self.semaphore.waitUnlessCancelled()
@@ -495,7 +495,11 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 	required init?(coder: NSCoder) {
 		self.response = coder.decodeObject(forKey: "response") as? ServiceReply
 	}
-	
+
+	func failed() {
+		self.semaphore.signal()
+	}
+
 	func vncInfosReply(urls: [String], width: Int, height: Int) {
 #if DEBUG
 		self.logger.debug("Received VNC URL: \(urls)")
@@ -667,10 +671,12 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 
 		xpcConnection.interruptionHandler = {
 			logger.error("VMRun xpc client interrupted for VM: \(vmName)")
+			replier.failed()
 		}
 
 		xpcConnection.invalidationHandler = {
 			logger.error("VMRun xpc client invalidated for VM: \(vmName)")
+			replier.failed()
 		}
 
 		xpcConnection.activate()

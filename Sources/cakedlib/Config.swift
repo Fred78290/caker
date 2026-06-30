@@ -722,7 +722,6 @@ extension VirtualMachineConfiguration {
 
 	public func collectNetworks(runMode: Utils.RunMode) throws -> [NetworkAttachement] {
 		let networks = self.qualifiedNetworks
-		let vmNetworking = Entitlement.hasVMNetworking()
 		let home: Home = try Home(runMode: runMode)
 		let networkConfig = try home.sharedNetworks()
 		let sharedNetworks = networkConfig.sharedNetworks
@@ -766,7 +765,7 @@ extension VirtualMachineConfiguration {
 					
 
 					if let interface = try foundInterface() {
-						if vmNetworking {
+						if NetworksHandler.hasVMNetEntitlement {
 							return BridgedNetworkInterface(interface: interface, macAddress: macAddress)
 						} else {
 							return VMNetworkInterface(interface: interface, macAddress: macAddress)
