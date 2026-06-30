@@ -3689,7 +3689,6 @@
 				9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */,
 				9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */,
-				9B943BBC2FF3088E00F69AB6 /* vmnet.proto in Sources */,
 				9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */,
 				9BEBC7852DF440720092B196 /* CloudImageConverter.swift in Sources */,
 				9BEBC7862DF440720092B196 /* CloudInit.swift in Sources */,
