@@ -662,7 +662,7 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 		xpcConnection.exportedInterface = NSXPCInterface(with: ReplyVMRunServiceProtocol.self)
 		xpcConnection.exportedObject = replier
 
-		let logger = logger
+		let logger = self.logger
 		let vmName = location.name
 
 		xpcConnection.interruptionHandler = {
