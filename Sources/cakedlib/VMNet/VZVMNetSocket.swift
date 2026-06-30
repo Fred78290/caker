@@ -3,12 +3,11 @@ import Foundation
 import NIO
 import Virtualization
 import vmnet
+import GRPCLib
 
 public final class VZVMNetSocket: VZVMNetImpl, @unchecked Sendable {
 	internal let channelsSyncQueue = DispatchQueue(label: "channelsQueue")
 	internal var childrenChannels: [Channel] = []
-	internal let socketPath: URL
-	internal let socketGroup: gid_t
 
 	final class VZVMNetSocketHandler: VZVMNetImpl.VZVMNetHandler {
 		public typealias InboundIn = ByteBuffer
@@ -43,11 +42,8 @@ public final class VZVMNetSocket: VZVMNetImpl, @unchecked Sendable {
 		}
 	}
 
-	public init(on: EventLoop, socketPath: URL, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, pidFile: URL) {
-		self.socketPath = socketPath
-		self.socketGroup = socketGroup
-
-		super.init(on: on, networkName: networkName, networkConfig: networkConfig, pidFile: pidFile)
+	public override init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
+		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, pidFile: pidFile, runMode: runMode)
 	}
 
 	public override func write(data: Data) {
@@ -108,14 +104,16 @@ public final class VZVMNetSocket: VZVMNetImpl, @unchecked Sendable {
 			}
 		}
 
-		self.serverChannel = try binder.wait()
+		let serverChannel = try binder.wait()
+		self.serverChannel = serverChannel
+		
 		try super.start()
 
-		try self.serverChannel!.closeFuture.wait()
+		try serverChannel.closeFuture.wait()
 	}
 
 	public override func stop() {
-		if let serverChannel = self.serverChannel {
+		if let serverChannel {
 			let promise = self.eventLoop.makePromise(of: Void.self)
 
 			self.logger.info("Will stop VZVMNet on \(self.socketPath)")

@@ -172,12 +172,12 @@ struct Networks: ParsableCommand {
 				network = VZSharedNetwork(mode: self.mode, netmask: self.subnetMask, dhcpStart: self.gateway!, dhcpEnd: self.dhcpEnd!, dhcpLease: self.dhcpLease, interfaceID: self.interfaceID, nat66Prefix: self.nat66Prefix)
 			}
 
+			guard let grp = getgrnam(self.socketGroup) else {
+				throw ServiceError(String(localized: "Failed to get group \(self.socketGroup)"))
+			}
+
 			guard let vmfd = self.vmfd else {
 				let socketURL = try vmnetEndpoint(runMode: runMode)
-
-				guard let grp = getgrnam(self.socketGroup) else {
-					throw ServiceError(String(localized: "Failed to get group \(self.socketGroup)"))
-				}
 
 				if let dhcpLease = self.dhcpLease, Bundle.isApplicationSandboxed == false {
 					_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
@@ -187,10 +187,10 @@ struct Networks: ParsableCommand {
 				if CakedLib.NetworksHandler.vmnetNative {
 					let vzvmnet = VZVMNetNative(
 						on: Utilities.group.next(),
-						socketPath: socketURL.socket,
 						socketGroup: grp.pointee.gr_gid,
 						networkName: self.networkName,
 						networkConfig: network,
+						socketPath: socketURL.socket,
 						pidFile: socketURL.pidFile,
 						runMode: runMode
 					)
@@ -199,11 +199,12 @@ struct Networks: ParsableCommand {
 				} else if try socketURL.socket.exists() == false {
 					let vzvmnet = VZVMNetSocket(
 						on: Utilities.group.next(),
-						socketPath: socketURL.socket,
 						socketGroup: grp.pointee.gr_gid,
 						networkName: self.networkName,
 						networkConfig: network,
-						pidFile: socketURL.pidFile
+						socketPath: socketURL.socket,
+						pidFile: socketURL.pidFile,
+						runMode: runMode
 					)
 
 					return (socketURL.pidFile, vzvmnet)
@@ -223,10 +224,13 @@ struct Networks: ParsableCommand {
 
 			let vzvmnet = VZVMNetFileHandle(
 				on: Utilities.group.next(),
+				socketGroup: grp.pointee.gr_gid,
 				inputOutput: CInt(vmfd),
 				networkName: self.networkName,
 				networkConfig: network,
-				pidFile: pidUrl)
+				socketPath: pidUrl.deletingPathExtension().appendingPathExtension("sock"),
+				pidFile: pidUrl,
+				runMode: runMode)
 
 			return (pidUrl, vzvmnet)
 		}

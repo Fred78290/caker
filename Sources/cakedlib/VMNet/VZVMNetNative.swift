@@ -13,80 +13,14 @@ import NIO
 import Semaphore
 import vmnet
 
-@available(macOS 26.0, *)
-class GRPCVMNetService: Vmnet_VMNetServiceAsyncProvider, @unchecked Sendable {
-	let owner: VZVMNetNative
-
-	init(owner: VZVMNetNative) {
-		self.owner = owner
-	}
-
-	func getSerialization(request: Vmnet_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmnet_SerializationReply {
-		owner.logger.debug("VMNet \(owner.networkName) replying to serialization request")
-
-		let serialization = owner.serializationLock.withLock { owner.serialization }
-
-		guard let serialization else {
-			return Vmnet_SerializationReply.with {
-				$0.success = false
-				$0.reason  = "VMNet serialization not available"
-			}
-		}
-
-		do {
-			let data = try encodeXPCObject(serialization)
-			return Vmnet_SerializationReply.with {
-				$0.data    = data
-				$0.success = true
-			}
-		} catch {
-			return Vmnet_SerializationReply.with {
-				$0.success = false
-				$0.reason  = error.localizedDescription
-			}
-		}
-	}
-}
-
-public class VZVMNetNative: NSObject, VZVMNet {
-	var grpcServer: Server? = nil
-	let eventLoop: EventLoop
-	let networkName: String
-	let pidFile: URL
-	let socketPath: URL
-	let runMode: Utils.RunMode
-	let semaphore = AsyncSemaphore(value: 0)
-	var networkConfig: VZSharedNetwork
+public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 	var network_ref: vmnet_network_ref?
-	let logger = Logger("VZVMNetNative")
-	let serializationLock = NSLock()
-	var serialization: xpc_object_t?
-	let sigcaught: [DispatchSourceSignal]
 
-	public init(on: EventLoop, socketPath: URL, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, pidFile: URL, runMode: Utils.RunMode) {
-		self.eventLoop = on
-		self.networkName = networkName
-		self.networkConfig = networkConfig
-		self.pidFile = pidFile
-		self.socketPath = socketPath
-		self.runMode = runMode
-		self.sigcaught = [SIGINT, SIGHUP, SIGQUIT, SIGTERM].map {
-			signal($0, SIG_IGN)
-			return DispatchSource.makeSignalSource(signal: $0)
-		}
+	public override init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
+		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, pidFile: pidFile, runMode: runMode)
 	}
 
-	private func setupSignals() {
-		sigcaught.forEach { sig in
-			sig.setEventHandler {
-				self.logger.info("Signal caught, stopping VMNet")
-				self.stop()
-			}
-			sig.activate()
-		}
-	}
-
-	public func reconfigure(networkConfig: VZSharedNetwork) throws {
+	public override func reconfigure(networkConfig: VZSharedNetwork) throws {
 		self.logger.debug("Reconfiguring VMNet \(self.networkName) with new parameters")
 		self.networkConfig = networkConfig
 
@@ -101,70 +35,21 @@ public class VZVMNetNative: NSObject, VZVMNet {
 		}
 	}
 
-	public func stop() {
-		guard let server = grpcServer else {
-			self.logger.info(String(localized: "VMNet \(self.networkName) is not running"))
-			return
-		}
-
-		self.logger.info(String(localized: "VMNet \(self.networkName) stop network"))
-
-		self.grpcServer = nil
-		serializationLock.withLock {
-			self.network_ref   = nil
-			self.serialization = nil
-		}
-
-		try? server.close().wait()
-		self.semaphore.signal()
+	public override func stop() {
+		super.stop()
+		self.network_ref = nil
 	}
 
-	public func start() throws {
+	public override func start() throws {
 		if #available(macOS 26.0, *) {
-			guard self.grpcServer == nil else {
-				throw ServiceError(String(localized: "VMNet \(self.networkName) is already running"))
-			}
-
-			setupSignals()
-
 			let (ref, serial) = try createVMNetwork()
+
 			serializationLock.withLock {
 				self.network_ref   = ref
 				self.serialization = serial
 			}
 
-			let serviceProvider = GRPCVMNetService(owner: self)
-			let socketFile = socketPath.path
-
-			try? FileManager.default.removeItem(atPath: socketFile)
-
-			let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
-			var serverConfiguration = Server.Configuration.default(
-				target: .unixDomainSocket(socketFile),
-				eventLoopGroup: eventLoop,
-				serviceProviders: [serviceProvider])
-			serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(
-				caCert: certLocation.caCertURL.path,
-				tlsKey: certLocation.serverKeyURL.path,
-				tlsCert: certLocation.serverCertURL.path)
-
-			let server = try Server.start(configuration: serverConfiguration).wait()
-			self.grpcServer = server
-
-			let future = self.eventLoop.makeFutureWithTask {
-				self.logger.info("VMNet \(self.networkName) started on \(socketFile)")
-				try self.pidFile.writePID()
-
-				do {
-					try await self.semaphore.waitUnlessCancelled()
-				} catch {
-					Logger(self).error("Error: \(error)")
-				}
-
-				self.logger.info("VMNet \(self.networkName) stopped")
-			}
-
-			try future.wait()
+			try super.start()
 		} else {
 			throw ServiceError(String(localized: "VMNet network is only available on macOS 26.0 and later"))
 		}

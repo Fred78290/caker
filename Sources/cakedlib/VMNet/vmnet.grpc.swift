@@ -23,6 +23,16 @@ public protocol Vmnet_VMNetServiceClientProtocol: GRPCClient {
     _ request: Vmnet_Empty,
     callOptions: CallOptions?
   ) -> UnaryCall<Vmnet_Empty, Vmnet_SerializationReply>
+
+  func stop(
+    _ request: Vmnet_Empty,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Vmnet_Empty, Vmnet_Empty>
+
+  func restart(
+    _ request: Vmnet_Empty,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Vmnet_Empty, Vmnet_Empty>
 }
 
 extension Vmnet_VMNetServiceClientProtocol {
@@ -45,6 +55,42 @@ extension Vmnet_VMNetServiceClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetSerializationInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Stop
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Stop.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func stop(
+    _ request: Vmnet_Empty,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Vmnet_Empty, Vmnet_Empty> {
+    return self.makeUnaryCall(
+      path: Vmnet_VMNetServiceClientMetadata.Methods.stop.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStopInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Restart
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Restart.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func restart(
+    _ request: Vmnet_Empty,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Vmnet_Empty, Vmnet_Empty> {
+    return self.makeUnaryCall(
+      path: Vmnet_VMNetServiceClientMetadata.Methods.restart.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRestartInterceptors() ?? []
     )
   }
 }
@@ -117,6 +163,16 @@ public protocol Vmnet_VMNetServiceAsyncClientProtocol: GRPCClient {
     _ request: Vmnet_Empty,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Vmnet_Empty, Vmnet_SerializationReply>
+
+  func makeStopCall(
+    _ request: Vmnet_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Vmnet_Empty, Vmnet_Empty>
+
+  func makeRestartCall(
+    _ request: Vmnet_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Vmnet_Empty, Vmnet_Empty>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -140,6 +196,30 @@ extension Vmnet_VMNetServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeGetSerializationInterceptors() ?? []
     )
   }
+
+  public func makeStopCall(
+    _ request: Vmnet_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Vmnet_Empty, Vmnet_Empty> {
+    return self.makeAsyncUnaryCall(
+      path: Vmnet_VMNetServiceClientMetadata.Methods.stop.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStopInterceptors() ?? []
+    )
+  }
+
+  public func makeRestartCall(
+    _ request: Vmnet_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Vmnet_Empty, Vmnet_Empty> {
+    return self.makeAsyncUnaryCall(
+      path: Vmnet_VMNetServiceClientMetadata.Methods.restart.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRestartInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -153,6 +233,30 @@ extension Vmnet_VMNetServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetSerializationInterceptors() ?? []
+    )
+  }
+
+  public func stop(
+    _ request: Vmnet_Empty,
+    callOptions: CallOptions? = nil
+  ) async throws -> Vmnet_Empty {
+    return try await self.performAsyncUnaryCall(
+      path: Vmnet_VMNetServiceClientMetadata.Methods.stop.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStopInterceptors() ?? []
+    )
+  }
+
+  public func restart(
+    _ request: Vmnet_Empty,
+    callOptions: CallOptions? = nil
+  ) async throws -> Vmnet_Empty {
+    return try await self.performAsyncUnaryCall(
+      path: Vmnet_VMNetServiceClientMetadata.Methods.restart.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRestartInterceptors() ?? []
     )
   }
 }
@@ -178,6 +282,12 @@ public protocol Vmnet_VMNetServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'getSerialization'.
   func makeGetSerializationInterceptors() -> [ClientInterceptor<Vmnet_Empty, Vmnet_SerializationReply>]
+
+  /// - Returns: Interceptors to use when invoking 'stop'.
+  func makeStopInterceptors() -> [ClientInterceptor<Vmnet_Empty, Vmnet_Empty>]
+
+  /// - Returns: Interceptors to use when invoking 'restart'.
+  func makeRestartInterceptors() -> [ClientInterceptor<Vmnet_Empty, Vmnet_Empty>]
 }
 
 public enum Vmnet_VMNetServiceClientMetadata {
@@ -186,6 +296,8 @@ public enum Vmnet_VMNetServiceClientMetadata {
     fullName: "vmnet.VMNetService",
     methods: [
       Vmnet_VMNetServiceClientMetadata.Methods.getSerialization,
+      Vmnet_VMNetServiceClientMetadata.Methods.stop,
+      Vmnet_VMNetServiceClientMetadata.Methods.restart,
     ]
   )
 
@@ -193,6 +305,18 @@ public enum Vmnet_VMNetServiceClientMetadata {
     public static let getSerialization = GRPCMethodDescriptor(
       name: "GetSerialization",
       path: "/vmnet.VMNetService/GetSerialization",
+      type: GRPCCallType.unary
+    )
+
+    public static let stop = GRPCMethodDescriptor(
+      name: "Stop",
+      path: "/vmnet.VMNetService/Stop",
+      type: GRPCCallType.unary
+    )
+
+    public static let restart = GRPCMethodDescriptor(
+      name: "Restart",
+      path: "/vmnet.VMNetService/Restart",
       type: GRPCCallType.unary
     )
   }
@@ -206,6 +330,10 @@ public protocol Vmnet_VMNetServiceProvider: CallHandlerProvider {
   var interceptors: Vmnet_VMNetServiceServerInterceptorFactoryProtocol? { get }
 
   func getSerialization(request: Vmnet_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Vmnet_SerializationReply>
+
+  func stop(request: Vmnet_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Vmnet_Empty>
+
+  func restart(request: Vmnet_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Vmnet_Empty>
 }
 
 extension Vmnet_VMNetServiceProvider {
@@ -229,6 +357,24 @@ extension Vmnet_VMNetServiceProvider {
         userFunction: self.getSerialization(request:context:)
       )
 
+    case "Stop":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmnet_Empty>(),
+        responseSerializer: ProtobufSerializer<Vmnet_Empty>(),
+        interceptors: self.interceptors?.makeStopInterceptors() ?? [],
+        userFunction: self.stop(request:context:)
+      )
+
+    case "Restart":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmnet_Empty>(),
+        responseSerializer: ProtobufSerializer<Vmnet_Empty>(),
+        interceptors: self.interceptors?.makeRestartInterceptors() ?? [],
+        userFunction: self.restart(request:context:)
+      )
+
     default:
       return nil
     }
@@ -248,6 +394,16 @@ public protocol Vmnet_VMNetServiceAsyncProvider: CallHandlerProvider, Sendable {
     request: Vmnet_Empty,
     context: GRPCAsyncServerCallContext
   ) async throws -> Vmnet_SerializationReply
+
+  func stop(
+    request: Vmnet_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Vmnet_Empty
+
+  func restart(
+    request: Vmnet_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Vmnet_Empty
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -278,6 +434,24 @@ extension Vmnet_VMNetServiceAsyncProvider {
         wrapping: { try await self.getSerialization(request: $0, context: $1) }
       )
 
+    case "Stop":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmnet_Empty>(),
+        responseSerializer: ProtobufSerializer<Vmnet_Empty>(),
+        interceptors: self.interceptors?.makeStopInterceptors() ?? [],
+        wrapping: { try await self.stop(request: $0, context: $1) }
+      )
+
+    case "Restart":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmnet_Empty>(),
+        responseSerializer: ProtobufSerializer<Vmnet_Empty>(),
+        interceptors: self.interceptors?.makeRestartInterceptors() ?? [],
+        wrapping: { try await self.restart(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -289,6 +463,14 @@ public protocol Vmnet_VMNetServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'getSerialization'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetSerializationInterceptors() -> [ServerInterceptor<Vmnet_Empty, Vmnet_SerializationReply>]
+
+  /// - Returns: Interceptors to use when handling 'stop'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeStopInterceptors() -> [ServerInterceptor<Vmnet_Empty, Vmnet_Empty>]
+
+  /// - Returns: Interceptors to use when handling 'restart'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeRestartInterceptors() -> [ServerInterceptor<Vmnet_Empty, Vmnet_Empty>]
 }
 
 public enum Vmnet_VMNetServiceServerMetadata {
@@ -297,6 +479,8 @@ public enum Vmnet_VMNetServiceServerMetadata {
     fullName: "vmnet.VMNetService",
     methods: [
       Vmnet_VMNetServiceServerMetadata.Methods.getSerialization,
+      Vmnet_VMNetServiceServerMetadata.Methods.stop,
+      Vmnet_VMNetServiceServerMetadata.Methods.restart,
     ]
   )
 
@@ -304,6 +488,18 @@ public enum Vmnet_VMNetServiceServerMetadata {
     public static let getSerialization = GRPCMethodDescriptor(
       name: "GetSerialization",
       path: "/vmnet.VMNetService/GetSerialization",
+      type: GRPCCallType.unary
+    )
+
+    public static let stop = GRPCMethodDescriptor(
+      name: "Stop",
+      path: "/vmnet.VMNetService/Stop",
+      type: GRPCCallType.unary
+    )
+
+    public static let restart = GRPCMethodDescriptor(
+      name: "Restart",
+      path: "/vmnet.VMNetService/Restart",
       type: GRPCCallType.unary
     )
   }

@@ -11,6 +11,8 @@ package vmnet;
 // to create a vmnet_network_ref connected to the same shared network.
 service VMNetService {
   rpc GetSerialization(Empty) returns (SerializationReply);
+  rpc Stop(Empty) returns (Empty);
+  rpc Restart(Empty) returns (Empty);
 }
 
 message Empty {}

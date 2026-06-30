@@ -4,6 +4,7 @@ import NIO
 import Virtualization
 import vmnet
 import CakeAgentLib
+import GRPCLib
 
 public final class VZVMNetFileHandle: VZVMNetImpl, @unchecked Sendable {
 	private let fileDescriptor: CInt
@@ -20,9 +21,9 @@ public final class VZVMNetFileHandle: VZVMNetImpl, @unchecked Sendable {
 		}
 	}
 
-	public init(on: EventLoop, inputOutput: CInt, networkName: String, networkConfig: VZSharedNetwork, pidFile: URL) {
+	public init(on: EventLoop, socketGroup: gid_t, inputOutput: CInt, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
 		self.fileDescriptor = inputOutput
-		super.init(on: on, networkName: networkName, networkConfig: networkConfig, pidFile: pidFile)
+		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, pidFile: pidFile, runMode: runMode)
 	}
 
 	public override func write(data: Data) {
@@ -45,6 +46,13 @@ public final class VZVMNetFileHandle: VZVMNetImpl, @unchecked Sendable {
 		#endif
 
 		let promise = self.eventLoop.makePromise(of: Void.self)
+
+		promise.futureResult.whenComplete { _ in
+			#if DEBUG
+				self.logger.debug("Pipe channel closed on fd=\(self.fileDescriptor)")
+			#endif
+		}
+
 		let pipe = NIOPipeBootstrap(group: self.eventLoop)
 			.channelOption(.maxMessagesPerRead, value: 16)
 			.takingOwnershipOfDescriptor(inputOutput: self.fileDescriptor)
@@ -62,20 +70,17 @@ public final class VZVMNetFileHandle: VZVMNetImpl, @unchecked Sendable {
 				return channel.pipeline.addHandler(VZVMNetFileHandleHandler(vmnet: self))
 			}
 
-		try pipe.wait()
-		try self.pidFile.writePID()
-
-		promise.futureResult.whenComplete { _ in
-			#if DEBUG
-				self.logger.debug("Pipe channel closed on fd=\(self.fileDescriptor)")
-			#endif
+		pipe.whenComplete { _ in
+			self.logger.debug("Started pipe channel with fd=\(self.fileDescriptor)")
 		}
+
+		try super.start()
 
 		try promise.futureResult.wait()
 	}
 
 	public override func stop() {
-		if let serverChannel = self.serverChannel {
+		if let serverChannel {
 			let promise = self.eventLoop.makePromise(of: Void.self)
 
 			#if DEBUG
