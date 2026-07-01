@@ -222,6 +222,14 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		self.setTemplates(serviceReply.templates)
 	}
 
+	func updateNetworkStatus(_ name: String, running: Bool) {
+		guard let idx = self.networks.firstIndex(where: { $0.name == name }) else {
+			return
+		}
+
+		self.networks[idx].running = running
+	}
+
 	func updateState() {
 		if let currentDocument {
 			self.isAgentInstalling = currentDocument.agent == .installing && currentDocument.status == .running

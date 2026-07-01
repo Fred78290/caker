@@ -36,6 +36,7 @@ final class GrandCentralDispatch {
 	let shutdown = Mutex<Bool>(false)
 	var taskQueue: TaskQueue = TaskQueue(label: "GrandCentralDispatch")
 	var stream: AsyncThrowingStreamCakedStatus?
+	var networksWatcher: DirWatcher? = nil
 	var haveListeners: Bool {
 		self.listeners.withLock { dict in
 			dict.isEmpty == false
@@ -176,6 +177,8 @@ final class GrandCentralDispatch {
 			return nil
 		}
 
+		self.stopNetworksMonitor()
+
 		let futures = vms.values.compactMap {
 			if case .running = $0.status {
 				return $0
@@ -188,6 +191,54 @@ final class GrandCentralDispatch {
 
 		return EventLoopFuture.andAllComplete(futures, on: self.group.next())
 	}
+
+	func stopNetworksMonitor() {
+		guard let networksWatcher else {
+			return
+		}
+
+		self.networksWatcher = nil
+		networksWatcher.stop()
+	}
+
+	func startNetworksMonitor() {
+		guard self.networksWatcher == nil else {
+			return
+		}
+
+		guard let home = try? Home(runMode: self.runMode) else {
+			return
+		}
+
+		let logger = Logger(self)
+		let networks = home.networkDirectory.lastPathComponent
+		let watcher = DirWatcher([home.networkDirectory.path(percentEncoded: false)])
+
+		watcher.queue = DispatchQueue.global(qos: .utility)
+		watcher.callback = { [weak self] event in
+			guard let self else { return }
+
+			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
+
+			if event.fileChange && fileURL.pathExtension == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
+				Task {
+					let networkName = fileURL.deletingLastPathComponent().lastPathComponent
+
+					try await self.updateStatus(.with {
+						$0.name = networkName
+						$0.network = .with {
+							$0.name = networkName
+							$0.running = fileURL.isPIDRunning().running
+						}
+					})
+
+				}
+			}
+		}
+
+		watcher.start()
+	}
+
 
 	func startGrandCentralUpdate(location: VMLocation) {
 		self.logger.info("Start Grand Central Update for \(location.name)")
@@ -212,6 +263,8 @@ final class GrandCentralDispatch {
 		guard self.stream == nil else {
 			return
 		}
+
+		self.startNetworksMonitor()
 
 		self.logger.info("Starting Grand Central Dispatch")
 

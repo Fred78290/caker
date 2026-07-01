@@ -401,7 +401,8 @@ extension ConnectionManager {
 
 			if event.fileChange && fileURL.pathExtension == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
 				Task {
-					AppState.shared.reloadNetworks()
+					AppState.shared.updateNetworkStatus(fileURL.deletingLastPathComponent().lastPathComponent, running: fileURL.isPIDRunning().running)
+					//AppState.shared.reloadNetworks()
 				}
 				return
 			}
@@ -529,6 +530,8 @@ extension ConnectionManager {
 						await self.receiveScreenshot(vmURL, value: value)
 					case .usage(let value):
 						await self.receiveUsage(vmURL, value: value)
+					case .network(let status):
+						AppState.shared.updateNetworkStatus(status.name, running: status.running)
 					default:
 						break
 					}

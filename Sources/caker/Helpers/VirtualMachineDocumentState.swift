@@ -11,9 +11,10 @@ import SwiftUI
 typealias VirtualMachineDocumentStates = [URL: VirtualMachineDocumentState]
 
 @Observable final class VirtualMachineDocumentState: Equatable, Identifiable, Comparable, Hashable {
-	var id: URL { url }
+	var id: String { self.instanceID }
 	let url: URL
 	let name: String
+	let instanceID: String
 	var status: VirtualMachineDocument.Status
 	var canStart: Bool
 	var canStop: Bool
@@ -64,6 +65,7 @@ typealias VirtualMachineDocumentStates = [URL: VirtualMachineDocumentState]
 		self.os = doc.virtualMachineConfig.os
 		self.osName = doc.virtualMachineConfig.osName
 		self.screenshot = doc.screenshot
+		self.instanceID = doc.virtualMachineConfig.instanceID
 	}
 	
 	func sync(with doc: VirtualMachineDocument) {

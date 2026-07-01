@@ -672,6 +672,11 @@ message Caked {
     }
 
     message CurrentStatusReply {
+      message NetworkStatus {
+        string name    = 1;
+        bool   running = 2;
+      }
+
       message CurrentStatus {
         string name = 1;
         oneof message {
@@ -679,6 +684,7 @@ message Caked {
           bytes                screenshot = 3;
           VirtualMachineStatus status     = 4;
           string               failure    = 5;
+          NetworkStatus        network    = 6;
         }
       }
 

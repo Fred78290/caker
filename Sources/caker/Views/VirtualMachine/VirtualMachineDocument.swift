@@ -78,7 +78,8 @@ extension UTType {
 	typealias ShellHandlerResponse = (Cakeagent_CakeAgent.ExecuteResponse) -> Void
 
 	static func == (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
-		lhs.url == rhs.url && rhs.connectionManager == lhs.connectionManager
+		//lhs.url == rhs.url && rhs.connectionManager == lhs.connectionManager
+		lhs.virtualMachineConfig.instanceID == rhs.virtualMachineConfig.instanceID
 	}
 
 	static func < (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
