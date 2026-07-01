@@ -30,11 +30,11 @@ typealias VirtualMachineDocumentStates = [URL: VirtualMachineDocumentState]
 	var screenshot: Data?
 	
 	static func == (lhs: VirtualMachineDocumentState, rhs: VirtualMachineDocumentState) -> Bool {
-		lhs.url == rhs.url
+		lhs.instanceID == rhs.instanceID
 	}
 	
 	func hash(into hasher: inout Hasher) {
-		hasher.combine(url)
+		hasher.combine(instanceID)
 	}
 	
 	static func < (lhs: VirtualMachineDocumentState, rhs: VirtualMachineDocumentState) -> Bool {

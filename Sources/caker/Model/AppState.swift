@@ -222,6 +222,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		self.setTemplates(serviceReply.templates)
 	}
 
+	@MainActor
 	func updateNetworkStatus(_ name: String, running: Bool) {
 		guard let idx = self.networks.firstIndex(where: { $0.name == name }) else {
 			return
