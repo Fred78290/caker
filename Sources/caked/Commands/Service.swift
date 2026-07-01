@@ -364,31 +364,37 @@ extension Service {
 
 			Root.sigintSrc.cancel()
 
-			signal(SIGINT, SIG_IGN)
-
+			
 			try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-				let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
+				let sigcaught = [SIGINT, SIGHUP, SIGQUIT, SIGTERM, SIGUSR2].map { sig in
+					signal(sig, SIG_IGN)
 
-				sigintSrc.setEventHandler {
-					logger.info("Stop service on SIGINT")
-
-					Task {
-						await restServer?.shutdown()
-						provider.stop()
-
-						try? await EventLoopFuture.andAllComplete(
-							servers.map {
-								$0.initiateGracefulShutdown()
-							}, on: eventLoopGroup.next()
-						).get()
-
-						continuation.resume()
-						logger.info("Server nicely closed")
+					let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: sig)
+					
+					sigintSrc.setEventHandler {
+						logger.info("Stop service on SIGINT")
+						
+						Task {
+							await restServer?.shutdown()
+							provider.stop()
+							
+							try? await EventLoopFuture.andAllComplete(
+								servers.map {
+									$0.initiateGracefulShutdown()
+								}, on: eventLoopGroup.next()
+							).get()
+							
+							continuation.resume()
+							logger.info("Server nicely closed")
+						}
 					}
+					
+					return sigintSrc
 				}
 
-				sigintSrc.activate()
-
+				sigcaught.forEach { sigintSrc in
+					sigintSrc.activate()
+				}
 				do {
 					try home.agentPID.writePID()
 				} catch {
