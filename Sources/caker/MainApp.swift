@@ -599,59 +599,28 @@ struct MainApp: App {
 	}
 
 	static func runAgent(runMode: Utils.RunMode) throws {
-		let cakedExecutableURL = try Bundle.main.caked()
-
 		// Launch off the main thread to avoid QoS inversions and UI stalls
 		Task.detached(priority: .background) {
 			do {
-				if Bundle.isApplicationSandboxed {
-					let scriptsFile = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("caked.sh")
-					let scripts: [String] = [
-						"#!/bin/sh",
-						"exec '\(cakedExecutableURL.path(percentEncoded: false))' \"$@\"",
-					]
-
-					try scripts.joined(separator: "\n").write(to: scriptsFile, atomically: true, encoding: .utf8)
-					try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptsFile.path(percentEncoded: false))
-
-					defer {
-						try? FileManager.default.removeItem(at: scriptsFile)
+				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+					do {
+						try Bundle.runCaked(with: [
+							"service",
+							"listen",
+							"--secure",
+							"--tcp",
+							"--rest",
+							"--log-level=\(CakeAgentLib.Logger.Level().description)"
+						], runMode: runMode) { error in
+							if let error {
+								continuation.resume(throwing: error)
+							} else {
+								continuation.resume()
+							}
+						}
+					} catch {
+						continuation.resume(throwing: error)
 					}
-
-					let userTask = try NSUserUnixTask(url: scriptsFile)
-
-					userTask.standardOutput = FileHandle(fileDescriptor: dup(STDOUT_FILENO), closeOnDealloc: true)
-					userTask.standardError = FileHandle(fileDescriptor: dup(STDERR_FILENO), closeOnDealloc: true)
-					userTask.standardInput = nil
-
-					try await userTask.execute(withArguments: [
-						"service",
-						"listen",
-						"--secure",
-						"--tcp",
-						"--rest",
-						"--log-level=\(CakeAgentLib.Logger.Level().description)",
-					])
-				} else {
-					let process = Process()
-					process.executableURL = cakedExecutableURL
-					process.environment = ProcessInfo.processInfo.environment
-					process.arguments = [
-						"service",
-						"listen",
-						"--secure",
-						"--tcp",
-						"--rest",
-						"--log-level=\(CakeAgentLib.Logger.Level().description)",
-					]
-
-					// If you need to capture output, switch to Pipes and read asynchronously.
-					// For now, inherit parent's stdio without blocking the main thread.
-					process.standardOutput = FileHandle.standardOutput
-					process.standardError = FileHandle.standardError
-					process.standardInput = nil
-
-					try process.run()
 				}
 			} catch {
 				// Report error back to the main actor if UI needs to reflect failures
