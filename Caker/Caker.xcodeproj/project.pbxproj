@@ -40,6 +40,7 @@
 		9B09566B2FDDC7AD0027FF96 /* SpawnOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B09566A2FDDC7AD0027FF96 /* SpawnOptions.swift */; };
 		9B09566D2FDDC7C40027FF96 /* SpawnHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B09566C2FDDC7C40027FF96 /* SpawnHandler.swift */; };
 		9B09566F2FDDC7E60027FF96 /* Spawn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B09566E2FDDC7E60027FF96 /* Spawn.swift */; };
+		9B0A37F62FF58C0A004609F2 /* DirWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0A37F52FF58C0A004609F2 /* DirWatcher.swift */; };
 		9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0D1A452E2BAA2700D70267 /* FileMonitor */; };
 		9B1389CF2F97A718000329B1 /* BonjourServiceLister.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */; };
 		9B1389D12F97A98A000329B1 /* ServiceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389D02F97A98A000329B1 /* ServiceListView.swift */; };
@@ -622,7 +623,6 @@
 		9BF1A0153001000000AA0015 /* VirtualInstallECID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF1A01B3001000000AA001B /* VirtualInstallECID.swift */; };
 		9BF1A01C3001000000AA001C /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF1A0083001000000AA0008 /* libVirtualInstallSPI.a */; };
 		9BF2D5F42FE2D30F00218073 /* libVirtualInstallSPI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF1A0083001000000AA0008 /* libVirtualInstallSPI.a */; };
-		9BF2D9102FE43A9C00218073 /* DirWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF2D90F2FE43A9500218073 /* DirWatcher.swift */; };
 		9BF43A692F8A858800618B8C /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF43A682F8A858300618B8C /* Localization.swift */; };
 		9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */; };
 		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
@@ -847,6 +847,7 @@
 		9B09566A2FDDC7AD0027FF96 /* SpawnOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpawnOptions.swift; sourceTree = "<group>"; };
 		9B09566C2FDDC7C40027FF96 /* SpawnHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpawnHandler.swift; sourceTree = "<group>"; };
 		9B09566E2FDDC7E60027FF96 /* Spawn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spawn.swift; sourceTree = "<group>"; };
+		9B0A37F52FF58C0A004609F2 /* DirWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirWatcher.swift; sourceTree = "<group>"; };
 		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
 		9B1389D22F97A9D0000329B1 /* CakedServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServerView.swift; sourceTree = "<group>"; };
@@ -1342,7 +1343,6 @@
 		9BF1A0193001000000AA0019 /* DeviceRestoreState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRestoreState.swift; sourceTree = "<group>"; };
 		9BF1A01A3001000000AA001A /* RestoreLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestoreLog.swift; sourceTree = "<group>"; };
 		9BF1A01B3001000000AA001B /* VirtualInstallECID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualInstallECID.swift; sourceTree = "<group>"; };
-		9BF2D90F2FE43A9500218073 /* DirWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirWatcher.swift; sourceTree = "<group>"; };
 		9BF43A682F8A858300618B8C /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
@@ -1795,7 +1795,6 @@
 		9B30BA492E0BDB5600256A9D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				9BF2D90F2FE43A9500218073 /* DirWatcher.swift */,
 				9B5F4B522F728AF200AE1991 /* Authorization.swift */,
 				9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */,
 				9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */,
@@ -2552,6 +2551,7 @@
 				9BEBC7592DF440720092B196 /* Curl.swift */,
 				9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */,
 				9BEBC75A2DF440720092B196 /* DHCPLeases.swift */,
+				9B0A37F52FF58C0A004609F2 /* DirWatcher.swift */,
 				9BEBC75B2DF440720092B196 /* EmbedProvisionProfile.swift */,
 				9B5C3F3B2F896662005651BF /* Entitlement.swift */,
 				9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */,
@@ -3410,7 +3410,6 @@
 				9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */,
 				9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */,
 				9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */,
-				9BF2D9102FE43A9C00218073 /* DirWatcher.swift in Sources */,
 				9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */,
 				9BFA7B2B2FA4E17700E981F6 /* TrackDealloc.swift in Sources */,
 				9B9C4E5D2E23BC8B00C13D23 /* VirtualMachinesView.swift in Sources */,
@@ -3681,6 +3680,7 @@
 				9BA9411B2F3C9A0A00B51543 /* CurrentStatusHandler.swift in Sources */,
 				9BEBC76E2DF440720092B196 /* VMBuilder.swift in Sources */,
 				9BEBC76F2DF440720092B196 /* IP.Address.swift in Sources */,
+				9B0A37F62FF58C0A004609F2 /* DirWatcher.swift in Sources */,
 				9BEBC7702DF440720092B196 /* PurgeHandler.swift in Sources */,
 				9BEBC7712DF440720092B196 /* DuplicateHandler.swift in Sources */,
 				9BEBC7722DF440720092B196 /* EmbedProvisionProfile.swift in Sources */,

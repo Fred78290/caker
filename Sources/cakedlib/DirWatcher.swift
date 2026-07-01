@@ -27,28 +27,28 @@ public class DirWatcherEvent {
 		flags = eventFlags
 	}
 	
-	var fileChange: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemIsFile)) != 0 }
-	var dirChange: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemIsDir)) != 0 }
+	public var fileChange: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemIsFile)) != 0 }
+	public var dirChange: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemIsDir)) != 0 }
 	// CRUD
 	private var created: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemCreated)) != 0 }
 	private var removed: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemRemoved)) != 0 }
 	private var renamed: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemRenamed)) != 0 }
 	private var modified: Bool { (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemModified)) != 0 }
 	
-	var fileCreated: Bool { fileChange && created }
-	var fileRemoved: Bool { fileChange && removed }
-	var fileRenamed: Bool { fileChange && renamed }
-	var fileModified: Bool { fileChange && modified }
+	public var fileCreated: Bool { fileChange && created }
+	public var fileRemoved: Bool { fileChange && removed }
+	public var fileRenamed: Bool { fileChange && renamed }
+	public var fileModified: Bool { fileChange && modified }
 	// Directory
-	var dirCreated: Bool { dirChange && created }
-	var dirRemoved: Bool { dirChange && removed }
-	var dirRenamed: Bool { dirChange && renamed }
-	var dirModified: Bool { dirChange && modified }
+	public var dirCreated: Bool { dirChange && created }
+	public var dirRemoved: Bool { dirChange && removed }
+	public var dirRenamed: Bool { dirChange && renamed }
+	public var dirModified: Bool { dirChange && modified }
 }
 
-class DirWatcher {
-	var callback: CallBack?
-	var queue: DispatchQueue?
+public class DirWatcher {
+	public var callback: CallBack?
+	public var queue: DispatchQueue?
 
 	let filePaths: [String]  // -- paths to watch - works on folders and file paths
 	var streamRef: FSEventStreamRef?
@@ -102,7 +102,7 @@ class DirWatcher {
 /**
  * Convenient
  */
-extension DirWatcher {
+public extension DirWatcher {
 	typealias CallBack = (_ fileWatcherEvent: DirWatcherEvent) -> Void
 
 	convenience init(
@@ -116,7 +116,7 @@ extension DirWatcher {
 	}
 }
 
-extension DirWatcher {
+public extension DirWatcher {
 	/**
 	* Start listening for FSEvents
 	*/
