@@ -1,6 +1,7 @@
 import Foundation
 import CakedLib
 import GRPCLib
+import CakeAgentLib
 
 extension NetworksHandler {
 	public static func create(client: CakedServiceClient?, networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> CreatedNetworkReply {
@@ -34,14 +35,49 @@ extension NetworksHandler {
 	
 	public static func start(client: CakedServiceClient?, networkName: String, runMode: Utils.RunMode) -> StartedNetworkReply {
 		guard let client = client else {
+			if Bundle.mustUseUnixTask {
+				return startSandboxed(networkName: networkName, runMode: runMode)
+			}
 			return self.start(networkName: networkName, runMode: runMode)
 		}
-		
+
 		do {
 			return try StartedNetworkReply(client.networks(.with {
 				$0.command = .start
 				$0.name = networkName
 			}).response.wait().networks.started)
+		} catch {
+			return StartedNetworkReply(name: networkName, started: false, reason: error.reason)
+		}
+	}
+
+	private static func startSandboxed(networkName: String, runMode: Utils.RunMode) -> StartedNetworkReply {
+		do {
+			let socketURL = try vmnetEndpoint(networkName: networkName, runMode: runMode)
+
+			if socketURL.pidFile.isCakedRunning() {
+				return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) already running"))
+			}
+
+			var arguments = ["networks", "start", networkName]
+
+			if Logger.LoggingLevel() > .info {
+				arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
+			}
+
+			if runMode.isSystem {
+				arguments.append("--system")
+			}
+
+			try? socketURL.socket.delete()
+
+			try Utilities.group.next().makeFutureWithTask {
+				try await Bundle.runCakedWithUnixTask(with: arguments)
+			}.wait()
+
+			try socketURL.pidFile.waitPID()
+
+			return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) started"))
 		} catch {
 			return StartedNetworkReply(name: networkName, started: false, reason: error.reason)
 		}

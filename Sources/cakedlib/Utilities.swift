@@ -15,6 +15,22 @@ extension Date {
 }
 
 extension Bundle {
+	public static func createProcess() throws -> Process {
+		guard Bundle.mustUseUnixTask == false else {
+			throw ServiceError("Process can't be used with sandboxed Caker")
+		}
+
+		return Process()
+	}
+
+	public static func createProcessWithSharedFileHandle() throws -> ProcessWithSharedFileHandle {
+		guard Bundle.mustUseUnixTask == false else {
+			throw ServiceError("ProcessWithSharedFileHandle can't be used with sandboxed Caker")
+		}
+
+		return ProcessWithSharedFileHandle()
+	}
+	
 	public var cakerBuildPlugInsPath: [String] {
 		var paths: [String] = []
 
@@ -109,13 +125,75 @@ extension Bundle {
 		return pluginsURL
 	}
 
-	public static func runCaked(
+	private static func buildScriptFile(_ cakedExecutableURL: URL) throws -> URL {
+		let scriptsFile = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("caked-\(UUID().uuidString).sh")
+		let scripts: [String] = [
+			"#!/bin/sh",
+			"exec '\(cakedExecutableURL.path(percentEncoded: false))' \"$@\"",
+		]
+
+		try scripts.joined(separator: "\n").write(to: scriptsFile, atomically: true, encoding: .utf8)
+		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptsFile.path(percentEncoded: false))
+
+		return scriptsFile
+	}
+
+	public static func runCakedWithUnixTask(
 		with arguments: [String],
-		sudo: Bool = false,
 		standardInput: FileHandle = FileHandle.standardInput,
 		standardOutput: FileHandle = FileHandle.standardOutput,
 		standardError: FileHandle = FileHandle.standardError,
-		sharedFileHandles: [FileHandle]? = nil,
+	) async throws {
+		let scriptsFile = try buildScriptFile(Bundle.main.caked())
+		let userTask = try NSUserUnixTask(url: scriptsFile)
+
+		userTask.standardOutput = FileHandle(fileDescriptor: dup(STDOUT_FILENO), closeOnDealloc: true)
+		userTask.standardError = FileHandle(fileDescriptor: dup(STDERR_FILENO), closeOnDealloc: true)
+		userTask.standardInput = nil
+
+		defer {
+			try? FileManager.default.removeItem(at: scriptsFile)
+		}
+
+		try await userTask.execute(withArguments: arguments)
+	}
+
+	public static func runCakedWithUnixTask(
+		with arguments: [String],
+		standardInput: Any? = FileHandle.standardInput,
+		standardOutput: Any? = FileHandle.standardOutput,
+		standardError: Any? = FileHandle.standardError,
+		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
+	) throws {
+		let scriptsFile = try buildScriptFile(Bundle.main.caked())
+		let userTask = try NSUserUnixTask(url: scriptsFile)
+
+		userTask.standardOutput = FileHandle(fileDescriptor: dup(STDOUT_FILENO), closeOnDealloc: true)
+		userTask.standardError = FileHandle(fileDescriptor: dup(STDERR_FILENO), closeOnDealloc: true)
+		userTask.standardInput = nil
+
+		Utilities.group.next().makeFutureWithTask {
+			try await userTask.execute(withArguments: arguments)
+		}.whenComplete { result in
+			if let handler {
+				switch result {
+				case .success:
+					handler(nil)
+				case .failure(let error):
+					handler(error)
+				}
+			}
+
+			try? FileManager.default.removeItem(at: scriptsFile)
+		}
+	}
+
+	public static func runCaked(
+		with arguments: [String],
+		sudo: Bool = false,
+		standardInput: Any? = FileHandle.standardInput,
+		standardOutput: Any? = FileHandle.standardOutput,
+		standardError: Any? = FileHandle.standardError,
 		runMode: Utils.RunMode,
 		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
 	) throws {
@@ -126,26 +204,72 @@ extension Bundle {
 				throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
 			}
 
-			let scriptsFile = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("caked.sh")
-			let scripts: [String] = [
-				"#!/bin/sh",
-				"exec '\(cakedExecutableURL.path(percentEncoded: false))' \"$@\"",
-			]
+			try runCakedWithUnixTask(with: arguments, standardInput: standardInput, standardOutput: standardOutput, standardError: standardError, completionHandler: handler)
+		} else {
+			let process = Process()
+			var runningArguments: [String] = []
 
-			try scripts.joined(separator: "\n").write(to: scriptsFile, atomically: true, encoding: .utf8)
-			try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptsFile.path(percentEncoded: false))
+			if sudo {
+				guard let sudoURL = URL.binary(SUDO) else {
+					throw ServiceError(String(localized: "sudo not found in path"))
+				}
 
-			defer {
-				try? FileManager.default.removeItem(at: scriptsFile)
+				guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: cakedExecutableURL) else {
+					throw ServiceError(String(localized: "\(cakedExecutableURL.lastPathComponent) is not sudoable"))
+				}
+
+				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", cakedExecutableURL.path]
+
+				if runMode.isSystem {
+					runningArguments.append("--system")
+				}
+
+				cakedExecutableURL = sudoURL
 			}
 
-			let userTask = try NSUserUnixTask(url: scriptsFile)
+			runningArguments.append(contentsOf: arguments)
 
-			userTask.standardOutput = FileHandle(fileDescriptor: dup(standardOutput.fileDescriptor), closeOnDealloc: true)
-			userTask.standardError = FileHandle(fileDescriptor: dup(standardError.fileDescriptor), closeOnDealloc: true)
-			userTask.standardInput = nil
+			Logger(self).debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
 
-			userTask.execute(withArguments: arguments, completionHandler: handler)
+			process.executableURL = cakedExecutableURL
+			process.environment = try Utilities.environment(runMode: runMode)
+			process.arguments = runningArguments
+
+			process.standardOutput = standardOutput
+			process.standardError = standardError
+			process.standardInput = standardInput
+			process.terminationHandler = { process in
+				if let handler {
+					if process.terminationStatus == 0 {
+						handler(nil)
+					} else {
+						handler(NSError(domain: NSPOSIXErrorDomain, code: Int(process.terminationStatus), userInfo: [NSLocalizedDescriptionKey: process.terminationReason]))
+					}
+				}
+			}
+
+			try process.run()
+		}
+	}
+
+	public static func runCaked(
+		with arguments: [String],
+		sudo: Bool = false,
+		sharedFileHandles: [FileHandle],
+		standardInput: Any? = FileHandle.standardInput,
+		standardOutput: Any? = FileHandle.standardOutput,
+		standardError: Any? = FileHandle.standardError,
+		runMode: Utils.RunMode,
+		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
+	) throws {
+		var cakedExecutableURL = try Bundle.main.caked()
+
+		if Bundle.mustUseUnixTask {
+			if sudo {
+				throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
+			}
+
+			try runCakedWithUnixTask(with: arguments, standardInput: standardInput, standardOutput: standardOutput, standardError: standardError, completionHandler: handler)
 		} else {
 			let process = ProcessWithSharedFileHandle()
 			var runningArguments: [String] = []
@@ -166,8 +290,6 @@ extension Bundle {
 				}
 
 				cakedExecutableURL = sudoURL
-			} else {
-
 			}
 
 			runningArguments.append(contentsOf: arguments)

@@ -73,7 +73,7 @@ struct NetworksView: View {
 
 						Spacer()
 
-						GlossyCircle(color: network.endpoint.isEmpty ? .red : .green)
+						GlossyCircle(color: network.running ? .green : .red)
 							.frame(width: 12, height: 12)
 					}
 					.padding(.vertical, 4)

@@ -136,11 +136,50 @@ struct Root: ParsableCommand {
 		}
 	}
 
+	
+	private static func tryForkCommand() throws -> Bool {
+		var arguments: [String] = []
+
+		guard let command = CommandLine.arguments.first else {
+			return false
+		}
+
+		arguments.append(contentsOf: CommandLine.arguments.dropFirst())
+		
+		guard arguments.first == "fork" else {
+			return false
+		}
+
+		let process = Process()
+		let executable: URL
+
+		if FileManager.default.fileExists(atPath: command) {
+			executable = URL(fileURLWithPath: command)
+		} else {
+			executable = try Bundle.main.caked()
+		}
+
+		process.executableURL = executable
+		process.standardInput = FileHandle.standardInput
+		process.standardOutput = FileHandle.standardOutput
+		process.standardError = FileHandle.standardError
+		process.arguments = Array(arguments[1...arguments.count - 1])
+
+		try process.run()
+
+		return false
+	}
+
 	public static func main() async throws {
+		if try tryForkCommand() {
+			return
+		}
+
 		// Set up logging to stderr
 		LoggingSystem.bootstrap { label in
 			StreamLogHandler.standardError(label: label)
 		}
+
 		// Set line-buffered output for stdout
 		setlinebuf(stdout)
 

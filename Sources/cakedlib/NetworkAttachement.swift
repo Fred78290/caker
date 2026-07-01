@@ -79,6 +79,24 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(location: location, runMode: runMode)))
 	}
 
+	private func startNetworkSandboxed(socketURL: (socket: URL, pidFile: URL), runMode: Utils.RunMode) throws {
+		var arguments = ["networks", "start", networkName]
+
+		if Logger.LoggingLevel() > .info {
+			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
+		}
+
+		if runMode.isSystem {
+			arguments.append("--system")
+		}
+
+		try? socketURL.socket.delete()
+
+		try Bundle.runCakedWithUnixTask(with: arguments)
+
+		try socketURL.pidFile.waitPID()
+	}
+
 	@available(macOS 26.0, *)
 	private func createVMNetwork(runMode: Utils.RunMode) throws -> vmnet_network_ref {
 		guard networkConfig != nil else {
@@ -88,7 +106,11 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		var socketURL = try self.vmnetEndpoint(runMode: runMode)
 
 		if socketURL.pidFile.isPIDRunning().running == false {
-			socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
+			if Bundle.mustUseUnixTask {
+				try startNetworkSandboxed(socketURL: socketURL, runMode: runMode)
+			} else {
+				socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
+			}
 		}
 
 		let client = try NetworksHandler.getVMNetControlClient(socketURL.socket, runMode: runMode)
@@ -174,7 +196,11 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 
 		if VMRunHandler.launchedFromService || runMode == .app {
 			if try socketURL.socket.exists() == false || (try socketURL.socket.exists() && socketURL.pidFile.isPIDRunning().running == false) {
-				socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
+				if Bundle.mustUseUnixTask {
+					try startNetworkSandboxed(socketURL: socketURL, runMode: runMode)
+				} else {
+					socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
+				}
 			}
 		}
 
