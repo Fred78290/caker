@@ -6,6 +6,7 @@
 //
 import Foundation
 import CakedLib
+import CakeAgentLib
 import GRPCLib
 import GRPC
 import NIO
@@ -53,7 +54,7 @@ extension StartHandler {
 		}
 
 		let config: CakeConfig = try location.config()
-		var arguments: [String] = ["vmrun", location.configURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
+		var arguments: [String] = ["fork", "vmrun", location.configURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
 		try config.startNetworkServices(runMode: runMode)
 
 		if startMode == .foreground {
@@ -90,12 +91,11 @@ extension StartHandler {
 
 		let vmName = location.name
 
-		try Bundle.runCaked(
+		try Bundle.runCakedWithUnixTask(
 			with: arguments,
 			standardInput: FileHandle.nullDevice,
 			standardOutput: standardOutput,
 			standardError: standardError,
-			runMode: runMode
 		) { error in
 			if let promise {
 				if let error {

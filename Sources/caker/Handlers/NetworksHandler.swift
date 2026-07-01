@@ -1,6 +1,7 @@
 import Foundation
 import CakedLib
 import GRPCLib
+import CakeAgentLib
 
 extension NetworksHandler {
 	public static func create(client: CakedServiceClient?, networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> CreatedNetworkReply {
@@ -54,11 +55,11 @@ extension NetworksHandler {
 		do {
 			let socketURL = try vmnetEndpoint(networkName: networkName, runMode: runMode)
 
-			if socketURL.pidFile.isCakedRunning(), (try? socketURL.socket.exists()) == true {
+			if socketURL.pidFile.isCakedRunning() {
 				return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) already running"))
 			}
 
-			var arguments = ["networks", "start", "--fork", networkName]
+			var arguments = ["networks", "start", networkName]
 
 			if Logger.LoggingLevel() > .info {
 				arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
@@ -70,19 +71,9 @@ extension NetworksHandler {
 
 			try? socketURL.socket.delete()
 
-			let semaphore = DispatchSemaphore(value: 0)
-			var launchError: Error?
-
-			try Bundle.runCaked(with: arguments, runMode: runMode) { error in
-				launchError = error
-				semaphore.signal()
-			}
-
-			semaphore.wait()
-
-			if let error = launchError {
-				return StartedNetworkReply(name: networkName, started: false, reason: error.localizedDescription)
-			}
+			try Utilities.group.next().makeFutureWithTask {
+				try await Bundle.runCakedWithUnixTask(with: arguments)
+			}.wait()
 
 			try socketURL.pidFile.waitPID()
 

@@ -80,7 +80,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 	}
 
 	private func startNetworkSandboxed(socketURL: (socket: URL, pidFile: URL), runMode: Utils.RunMode) throws {
-		var arguments = ["networks", "start", "--fork", networkName]
+		var arguments = ["networks", "start", networkName]
 
 		if Logger.LoggingLevel() > .info {
 			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
@@ -92,19 +92,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 
 		try? socketURL.socket.delete()
 
-		let semaphore = DispatchSemaphore(value: 0)
-		var launchError: Error?
-
-		try Bundle.runCaked(with: arguments, runMode: runMode) { error in
-			launchError = error
-			semaphore.signal()
-		}
-
-		semaphore.wait()
-
-		if let error = launchError {
-			throw error
-		}
+		try Bundle.runCakedWithUnixTask(with: arguments)
 
 		try socketURL.pidFile.waitPID()
 	}
