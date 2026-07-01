@@ -210,7 +210,6 @@ final class GrandCentralDispatch {
 			return
 		}
 
-		let logger = Logger(self)
 		let networks = home.networkDirectory.lastPathComponent
 		let watcher = DirWatcher([home.networkDirectory.path(percentEncoded: false)])
 
@@ -224,7 +223,7 @@ final class GrandCentralDispatch {
 				Task {
 					let networkName = fileURL.deletingLastPathComponent().lastPathComponent
 
-					try await self.updateStatus(.with {
+					try? await self.updateStatus(.with {
 						$0.name = networkName
 						$0.network = .with {
 							$0.name = networkName
