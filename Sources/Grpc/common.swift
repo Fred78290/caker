@@ -20,6 +20,8 @@ public let MoB: UInt64 = KoB * KoB
 public let GoB: UInt64 = MoB * KoB
 
 extension Bundle {
+	public static var runInCaker: Bool = false
+
 	private static var _cacheIsSandboxed: Bool? = nil
 	private static var _mustUseUnixTask: Bool? = nil
 
@@ -28,7 +30,7 @@ extension Bundle {
 			var mustUseUnixTask = isApplicationSandboxed
 
 			if mustUseUnixTask {
-				mustUseUnixTask = ProcessInfo.processInfo.processName == "caker"
+				mustUseUnixTask = runInCaker
 			}
 
 			_mustUseUnixTask = mustUseUnixTask

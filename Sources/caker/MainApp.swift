@@ -673,6 +673,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	override init() {
 		super.init()
 		MainUIAppDelegate.instance = self
+		Bundle.runInCaker = true
 	}
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
