@@ -346,7 +346,7 @@ struct Networks: ParsableCommand {
 				let cakedExecutableURL = try Bundle.main.caked()
 
 				var arguments: [String] = ["networks", "start", "--fork", options.networkName]
-				let process = Process()
+				let process = try Bundle.createProcess()
 				
 				if runMode.isSystem {
 					arguments.append("--system")

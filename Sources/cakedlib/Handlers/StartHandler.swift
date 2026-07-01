@@ -181,7 +181,7 @@ public struct StartHandler {
 
 	private static func runCaked(_ caked: URL, arguments: [String], sharedFileDescriptors: [Int32]?, startMode: StartMode, runMode: Utils.RunMode, terminationHandler: (@Sendable (ProcessWithSharedFileHandle) -> Void)?) throws -> ProcessWithSharedFileHandle {
 
-		let process = ProcessWithSharedFileHandle()
+		let process = try Bundle.createProcessWithSharedFileHandle()
 
 		if startMode == .foreground || startMode == .attach {
 			let outputPipe = Pipe()

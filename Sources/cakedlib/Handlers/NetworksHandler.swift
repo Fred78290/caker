@@ -322,7 +322,7 @@ public struct NetworksHandler {
 		
 		var arguments: [String] = []
 		var runningArguments: [String]
-		let process = ProcessWithSharedFileHandle()
+		let process = try Bundle.createProcessWithSharedFileHandle()
 		
 		if phUseLimaVMNet == false {
 			arguments.append(contentsOf: ["networks", "run"])
@@ -532,7 +532,7 @@ public struct NetworksHandler {
 		
 		try? socketURL.socket.delete()
 		
-		let process = Process()
+		let process = try Bundle.createProcess()
 		var runningArguments: [String]
 		
 		if geteuid() == 0 || NetworksHandler.vmnetNative || NetworksHandler.hasVMNetEntitlement {
@@ -692,7 +692,7 @@ public struct NetworksHandler {
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		}
 		
-		if socketURL.pidFile.isCakedRunning(), (try? socketURL.socket.exists()) == true {
+		if socketURL.pidFile.isCakedRunning() {
 			if let pid = socketURL.pidFile.readPID() {
 				Logger(self).info("Network \(networkName) is already running with PID=\(pid)")
 			} else {
@@ -707,7 +707,7 @@ public struct NetworksHandler {
 		let executableURL = try Bundle.main.caked()
 		
 		var arguments = ["networks", "start", "--fork", networkName]
-		let process = Process()
+		let process = try Bundle.createProcess()
 		var runningArguments: [String]
 		let debug = Logger.Level() >= .debug
 		
