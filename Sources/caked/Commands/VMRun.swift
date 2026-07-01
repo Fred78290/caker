@@ -28,7 +28,7 @@ struct VMRun: AsyncParsableCommand {
 	var display: VMRunHandler.DisplayMode = .none
 
 	@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allows run vm in service mode"), visibility: .hidden))
-	var mode: VMRunServiceMode = .grpc
+	var mode: VMRunServiceMode = VMRunServiceMode.default
 
 	@Option(help: ArgumentHelp(String(localized: "VNC server password"), discussion: String(localized: "This option allows run vnc server with password"), visibility: .hidden))
 	var vncPassword: String? = nil

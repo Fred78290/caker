@@ -599,66 +599,28 @@ struct MainApp: App {
 	}
 
 	static func runAgent(runMode: Utils.RunMode) throws {
-		guard var pluginsURL = Bundle.main.cakedBundleURL else {
-			throw ServiceError(String(localized: "Caked bundle path is missing"))
-		}
-
-		pluginsURL = pluginsURL.appendingPathComponent(Home.cakedCommandName)
-
-		guard try pluginsURL.exists() else {
-			throw ServiceError(String(localized: "Caked executable is missing"))
-		}
 		// Launch off the main thread to avoid QoS inversions and UI stalls
 		Task.detached(priority: .background) {
 			do {
-				if Bundle.isApplicationSandboxed {
-					let scriptsFile = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("caked.sh")
-					let scripts: [String] = [
-						"#!/bin/sh",
-						"exec '\(pluginsURL.path(percentEncoded: false))' \"$@\"",
-					]
-
-					try scripts.joined(separator: "\n").write(to: scriptsFile, atomically: true, encoding: .utf8)
-					try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptsFile.path(percentEncoded: false))
-
-					defer {
-						try? FileManager.default.removeItem(at: scriptsFile)
+				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+					do {
+						try Bundle.runCaked(with: [
+							"service",
+							"listen",
+							"--secure",
+							"--tcp",
+							"--rest",
+							"--log-level=\(CakeAgentLib.Logger.Level().description)"
+						], runMode: runMode) { error in
+							if let error {
+								continuation.resume(throwing: error)
+							} else {
+								continuation.resume()
+							}
+						}
+					} catch {
+						continuation.resume(throwing: error)
 					}
-
-					let userTask = try NSUserUnixTask(url: scriptsFile)
-
-					userTask.standardOutput = FileHandle(fileDescriptor: dup(STDOUT_FILENO), closeOnDealloc: true)
-					userTask.standardError = FileHandle(fileDescriptor: dup(STDERR_FILENO), closeOnDealloc: true)
-					userTask.standardInput = nil
-
-					try await userTask.execute(withArguments: [
-						"service",
-						"listen",
-						"--secure",
-						"--tcp",
-						"--rest",
-						"--log-level=\(CakeAgentLib.Logger.Level().description)",
-					])
-				} else {
-					let process = Process()
-					process.executableURL = pluginsURL
-					process.environment = ProcessInfo.processInfo.environment
-					process.arguments = [
-						"service",
-						"listen",
-						"--secure",
-						"--tcp",
-						"--rest",
-						"--log-level=\(CakeAgentLib.Logger.Level().description)",
-					]
-
-					// If you need to capture output, switch to Pipes and read asynchronously.
-					// For now, inherit parent's stdio without blocking the main thread.
-					process.standardOutput = FileHandle.standardOutput
-					process.standardError = FileHandle.standardError
-					process.standardInput = nil
-
-					try process.run()
 				}
 			} catch {
 				// Report error back to the main actor if UI needs to reflect failures
@@ -680,6 +642,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	override init() {
 		super.init()
 		MainUIAppDelegate.instance = self
+		Bundle.runInCaker = true
 	}
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
@@ -785,6 +748,8 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 	@MainActor
 	private static func showRunInTerminalAlert(_ contents: [String]) {
+		NSApp.setActivationPolicy(.regular)
+
 		let scriptBody = contents.dropFirst().joined(separator: "\n")
 		let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
 
@@ -821,7 +786,10 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 	@MainActor
 	private static func showPrivilegedInstallationConfirmation() -> Bool {
+		NSApp.setActivationPolicy(.regular)
+
 		let alert = NSAlert()
+
 		alert.messageText = String(localized: "Administrator Access Required")
 		alert.informativeText = String(
 			localized:
@@ -829,15 +797,19 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		alert.alertStyle = .informational
 		alert.addButton(withTitle: String(localized: "Continue"))
 		alert.addButton(withTitle: String(localized: "Quit"))
+
 		return alert.runModal() == .alertFirstButtonReturn
 	}
 
 	@MainActor
 	private static func showCommandToPasteAlert(_ contents: [String]) {
+		NSApp.setActivationPolicy(.regular)
+
 		let scriptBody = contents.dropFirst().joined(separator: "\n")
 		let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
 
 		let alert = NSAlert()
+
 		alert.messageText = String(localized: "Manual configuration required")
 		alert.informativeText = String(
 			localized:
@@ -878,7 +850,10 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	#if USE_SMAPPSERVICE
 		@MainActor
 		private static func showInstallAgentAlert() {
+			NSApp.setActivationPolicy(.regular)
+
 			let alert = NSAlert()
+
 			alert.messageText = String(localized: "caked Agent Not Installed")
 			alert.informativeText = String(localized: "The caked background agent is not installed. Would you like to install it now to enable full functionality?")
 			alert.alertStyle = .warning

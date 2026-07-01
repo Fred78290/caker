@@ -226,17 +226,17 @@ struct HostVirtualMachineView: View {
 
 						if document.url.isFileURL && document.status == .stopped && document.externalRunning == false {
 							if launchExternally {
-								Button("Run hosted", systemImage: "arrow.down.backward.app") {
+								Button("Run hosted", systemImage: "arrow.down.backward.square") {
 									launchExternally.toggle()
 									document.launchVMExternally = false
 								}
 								.help("Run virtual machine inside app")
 							} else {
-								Button("Run detached", systemImage: "arrow.up.forward.app") {
+								Button("Run detached", systemImage: "arrow.up.forward.square") {
 									launchExternally.toggle()
 									document.launchVMExternally = true
 								}
-								.help("Run virtual machine in a detached window")
+								.help("Run virtual machine in a detached process")
 							}
 						}
 

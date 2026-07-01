@@ -40,9 +40,7 @@ public struct StartHandler {
 		}
 
 		internal func start(promise: EventLoopPromise<String>? = nil) throws -> String {
-			guard let caked = URL.binary(Home.cakedCommandName) else {
-				throw ServiceError(String(localized: "caked not found"))
-			}
+			let executableURL = try Bundle.main.caked()
 
 			let config: CakeConfig = try location.config()
 			var arguments: [String] = ["vmrun", location.configURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
@@ -90,7 +88,7 @@ public struct StartHandler {
 			}
 
 			let vmName = location.name
-			let process: ProcessWithSharedFileHandle = try runCaked(caked, arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode, runMode: runMode) { process in
+			let process: ProcessWithSharedFileHandle = try runCaked(executableURL, arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode, runMode: runMode) { process in
 				#if DEBUG
 					Logger(self).debug("VM \(vmName) exited with code \(process.terminationStatus)")
 				#endif
@@ -183,7 +181,7 @@ public struct StartHandler {
 
 	private static func runCaked(_ caked: URL, arguments: [String], sharedFileDescriptors: [Int32]?, startMode: StartMode, runMode: Utils.RunMode, terminationHandler: (@Sendable (ProcessWithSharedFileHandle) -> Void)?) throws -> ProcessWithSharedFileHandle {
 
-		let process = ProcessWithSharedFileHandle()
+		let process = try Bundle.createProcessWithSharedFileHandle()
 
 		if startMode == .foreground || startMode == .attach {
 			let outputPipe = Pipe()

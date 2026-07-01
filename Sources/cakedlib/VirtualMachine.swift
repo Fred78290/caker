@@ -411,7 +411,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func startVMRunService(_ mode: VMRunServiceMode, vm: VirtualMachine) throws {
-		self.vmrunService = createVMRunServiceServer(mode, group: Utilities.group.next(), runMode: self.runMode, vm: vm, certLocation: try CertificatesLocation.createAgentCertificats(runMode: self.runMode))
+		self.vmrunService = mode.serve(group: Utilities.group.next(), runMode: self.runMode, vm: vm, certLocation: try CertificatesLocation.createAgentCertificats(runMode: self.runMode))
 	}
 
 	func serveVMRunService() async throws {

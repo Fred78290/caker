@@ -39,15 +39,7 @@ struct NetworkDetailView: View {
 	}
 
 	private var allowNetworkManagement: Bool {
-		let disabled: Bool
-
-		if #available(macOS 26.0, *) {
-			disabled = currentItem.mode == .host || currentItem.mode == .shared || currentItem.mode == .nat
-		} else {
-			disabled = currentItem.mode == .nat
-		}
-
-		return disabled == false
+		return currentItem.mode != .nat && currentItem.managed
 	}
 
 	var body: some View {
@@ -156,10 +148,10 @@ struct NetworkDetailView: View {
 
 				}.padding()
 
-				if forEditing == false && self.allowNetworkManagement && AppState.shared.hasVMNetworking == false {
+				if forEditing == false && self.allowNetworkManagement {
 					Divider()
 
-					if currentItem.endpoint.isEmpty {
+					if currentItem.running == false {
 						Button("Start network") {
 							let result = AppState.shared.startNetwork(networkName: self.currentItem.name)
 
@@ -189,5 +181,5 @@ struct NetworkDetailView: View {
 }
 
 #Preview {
-	NetworkDetailView(.constant(BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: String.empty, dhcpEnd: String.empty, dhcpLease: String.empty, interfaceID: "nat", endpoint: String.empty, usedBy: 0)), reloadNetwork: .constant(false), forEditing: true)
+	NetworkDetailView(.constant(BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: String.empty, dhcpEnd: String.empty, dhcpLease: String.empty, interfaceID: "nat", endpoint: String.empty, running: false, managed: false, usedBy: 0)), reloadNetwork: .constant(false), forEditing: true)
 }

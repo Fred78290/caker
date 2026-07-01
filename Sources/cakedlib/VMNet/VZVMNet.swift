@@ -1,11 +1,21 @@
+import CakeAgentLib
 import Darwin
 import Foundation
+import GRPC
+import GRPCLib
 import NIO
+import Semaphore
 import Virtualization
 import vmnet
-import CakeAgentLib
 
 let MAX_PACKET_COUNT_AT_ONCE: UInt64 = 32
+
+public protocol VZVMNet {
+	func reconfigure(networkConfig: VZSharedNetwork) throws
+	func start() throws
+	func stop()
+	func restart()
+}
 
 extension vmnet_return_t {
 	public var description: String {
@@ -69,18 +79,177 @@ extension vmnet_return_t {
 	}
 }
 
-public class VZVMNet: @unchecked Sendable {
-	internal var serverChannel: Channel? = nil
+public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
+	private class GRPCVMNetService: Vmnet_VMNetServiceAsyncProvider, @unchecked Sendable {
+		let owner: VZVMNetCommon
+
+		init(owner: VZVMNetCommon) {
+			self.owner = owner
+		}
+
+		func getSerialization(request: Vmnet_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmnet_SerializationReply {
+			owner.logger.debug("VMNet \(owner.networkName) replying to serialization request")
+
+			let serialization = owner.serializationLock.withLock { owner.serialization }
+
+			guard let serialization else {
+				return Vmnet_SerializationReply.with {
+					$0.success = false
+					$0.reason = "VMNet serialization not available"
+				}
+			}
+
+			do {
+				let data = try encodeXPCObject(serialization)
+				return Vmnet_SerializationReply.with {
+					$0.data = data
+					$0.success = true
+				}
+			} catch {
+				return Vmnet_SerializationReply.with {
+					$0.success = false
+					$0.reason = error.localizedDescription
+				}
+			}
+		}
+
+		func stop(request: Vmnet_Empty, context: GRPC.GRPCAsyncServerCallContext) async throws -> Vmnet_Empty {
+			self.owner.stop()
+			return Vmnet_Empty()
+		}
+
+		func restart(request: Vmnet_Empty, context: GRPC.GRPCAsyncServerCallContext) async throws -> Vmnet_Empty {
+			return Vmnet_Empty()
+		}
+	}
+
+	private var grpcServer: Server? = nil
+	private let semaphore = AsyncSemaphore(value: 0)
+	private let sigcaught: [Int32: DispatchSourceSignal]
+
 	internal let eventLoop: EventLoop
 	internal let networkName: String
 	internal var networkConfig: VZSharedNetwork
+	internal let logger = Logger("VZVMNetImpl")
+	internal let socketPath: URL
+	internal let pidFile: URL
+	internal let serializationLock = NSLock()
+	internal var serialization: xpc_object_t? = nil
+	internal let runMode: Utils.RunMode
+	internal let trace: Bool
+	internal let socketGroup: gid_t
+
+	private func setupSignals() {
+		sigcaught.forEach { sig in
+			sig.value.setEventHandler {
+				if sig.key == SIGUSR2 {
+					self.logger.info("Signal caught restarting VMNet")
+					self.restart()
+				} else {
+					self.logger.info("Signal caught [\(sig.key)], stopping VMNet")
+					self.stop()
+				}
+			}
+			sig.value.activate()
+		}
+	}
+
+	public init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
+		self.eventLoop = on
+		self.networkName = networkName
+		self.networkConfig = networkConfig
+		self.pidFile = pidFile
+		self.socketPath = socketPath
+		self.runMode = runMode
+		self.trace = Logger.Level() >= Logger.LogLevel.trace
+		self.socketGroup = socketGroup
+
+		self.sigcaught = Dictionary(
+			uniqueKeysWithValues: [SIGINT, SIGHUP, SIGQUIT, SIGTERM, SIGUSR2].map { sig in
+				signal(sig, SIG_IGN)
+				return (sig, DispatchSource.makeSignalSource(signal: sig))
+			})
+	}
+
+	public func reconfigure(networkConfig: VZSharedNetwork) throws {
+		self.networkConfig = networkConfig
+	}
+
+	public func start() throws {
+		guard self.grpcServer == nil else {
+			throw ServiceError(String(localized: "VMNet \(self.networkName) is already running"))
+		}
+
+		setupSignals()
+
+		let serviceProvider = GRPCVMNetService(owner: self)
+		let socketFile = socketPath.deletingPathExtension().appendingPathExtension("grpc").path(percentEncoded: false)
+
+		try? FileManager.default.removeItem(atPath: socketFile)
+
+		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
+		var serverConfiguration = Server.Configuration.default(
+			target: .unixDomainSocket(socketFile),
+			eventLoopGroup: eventLoop,
+			serviceProviders: [serviceProvider])
+
+		serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(
+			caCert: certLocation.caCertURL.path,
+			tlsKey: certLocation.serverKeyURL.path,
+			tlsCert: certLocation.serverCertURL.path)
+
+		let server = try Server.start(configuration: serverConfiguration).wait()
+		self.grpcServer = server
+
+		if chown(socketFile, getegid(), self.socketGroup) < 0 {
+			self.logger.error("Failed to set group \(self.socketGroup) on socket \(socketPath)")
+		}
+
+		let future = self.eventLoop.makeFutureWithTask {
+			self.logger.info("VMNet \(self.networkName) started on \(socketFile)")
+			try self.pidFile.writePID()
+
+			do {
+				try await self.semaphore.waitUnlessCancelled()
+			} catch {
+				Logger(self).error("Error: \(error)")
+			}
+
+			self.logger.info("VMNet \(self.networkName) stopped")
+		}
+
+		try future.wait()
+	}
+
+	public func stop() {
+		guard let server = grpcServer else {
+			self.logger.info(String(localized: "VMNet \(self.networkName) is not running"))
+			return
+		}
+
+		self.logger.info(String(localized: "VMNet \(self.networkName) stop network"))
+
+		self.grpcServer = nil
+		serializationLock.withLock {
+			self.serialization = nil
+		}
+
+		try? server.close().wait()
+		self.semaphore.signal()
+
+		try? pidFile.delete()
+	}
+
+	public func restart() {
+		try? self.reconfigure(networkConfig: self.networkConfig)
+	}
+}
+
+public class VZVMNetImpl: VZVMNetCommon, @unchecked Sendable {
+	internal var serverChannel: Channel? = nil
 	internal var iface: interface_ref?
 	internal var max_bytes: UInt64 = 2048
 	internal let hostQueue: DispatchQueue
-	internal let pidFile: URL
-	internal let sigcaught: [DispatchSourceSignal]
-	internal let logger = Logger("VZVMNet")
-	internal let trace: Bool
 
 	class VZVMNetHandler: ChannelInboundHandler {
 		public typealias InboundIn = ByteBuffer
@@ -88,9 +257,9 @@ public class VZVMNet: @unchecked Sendable {
 
 		internal let logger: Logger
 		internal let trace: Bool = Logger.Level() >= Logger.LogLevel.trace
-		internal let vzvmnet: VZVMNet
+		internal let vzvmnet: VZVMNetImpl
 
-		init(vzvmnet: VZVMNet) {
+		init(vzvmnet: VZVMNetImpl) {
 			self.vzvmnet = vzvmnet
 			self.logger = Logger(Self.self)
 		}
@@ -143,26 +312,16 @@ public class VZVMNet: @unchecked Sendable {
 		}
 	}
 
-	public init(on: EventLoop, networkName: String, networkConfig: VZSharedNetwork, pidFile: URL) {
-		self.eventLoop = on
-		self.networkName = networkName
-		self.networkConfig = networkConfig
-		self.hostQueue = DispatchQueue(label: "com.aldunelabs.caker.vmnet.host", qos: .userInitiated)
-		self.pidFile = pidFile
-		self.trace = Logger.Level() >= Logger.LogLevel.trace
-		self.sigcaught = [SIGINT, SIGHUP, SIGQUIT, SIGTERM].map {
-			signal($0, SIG_IGN)
+	public override init(on: EventLoop, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, socketPath: URL, pidFile: URL, runMode: Utils.RunMode) {
+		self.hostQueue = DispatchQueue(label: "com.aldunelabs.caker.vmnet.\(networkName)", qos: .userInitiated)
 
-			return DispatchSource.makeSignalSource(signal: $0)
-		}
+		super.init(on: on, socketGroup: socketGroup, networkName: networkName, networkConfig: networkConfig, socketPath: socketPath, pidFile: pidFile, runMode: runMode)
 	}
 
-	public func reconfigure(networkConfig: VZSharedNetwork) throws {
-		#if DEBUG
-			self.logger.debug("Reconfiguring VMNet with new parameters")
-		#endif
+	public override func reconfigure(networkConfig: VZSharedNetwork) throws {
+		self.logger.debug("Reconfiguring VMNet with new parameters")
 
-		self.networkConfig = networkConfig
+		try super.reconfigure(networkConfig: networkConfig)
 
 		if self.iface != nil {
 			self.stopInterface()
@@ -173,9 +332,7 @@ public class VZVMNet: @unchecked Sendable {
 
 	internal func print_vmnet_start_param(params: xpc_object_t?, info: String = "settings") {
 		guard let params = params else {
-			#if DEBUG
-				self.logger.debug("params not defined")
-			#endif
+			self.logger.debug("params not defined")
 			return
 		}
 
@@ -212,17 +369,6 @@ public class VZVMNet: @unchecked Sendable {
 				}
 			#endif
 			return true
-		}
-	}
-
-	private func setupSignals() {
-		sigcaught.forEach { sig in
-			sig.setEventHandler {
-				self.logger.info("Signal caught, stopping VMNet")
-				self.stop()
-			}
-
-			sig.activate()
 		}
 	}
 
@@ -395,17 +541,8 @@ public class VZVMNet: @unchecked Sendable {
 
 	public func startInterface() throws {
 		try setupInterface()
-		setupSignals()
 	}
 
 	public func write(data: Data) {
-	}
-
-	public func stop() {
-		try? pidFile.delete()
-	}
-
-	public func start() throws {
-		try self.pidFile.writePID()
 	}
 }

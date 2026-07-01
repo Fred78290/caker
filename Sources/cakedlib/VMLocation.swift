@@ -466,7 +466,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			if pid.0 && pid.1 == Home.cakedCommandName {
 					if let pid = pid.2 {
 						if Bundle.isApplicationSandboxed {
-							let reply = try createVMRunServiceClient(.grpc, location: self, runMode: runMode).signal(signal: .shutdown)
+							let reply = try VMRunHandler.serviceMode.client(location: self, runMode: runMode).signal(signal: .shutdown)
 
 							if reply.success == false {
 								throw ServiceError(String(localized: "Failed to stop VM \(name), \(reply.reason)"))
@@ -529,7 +529,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 		if pid.0 && pid.1 == Home.cakedCommandName {
 			if Bundle.isApplicationSandboxed {
-				let reply = try createVMRunServiceClient(.grpc, location: self, runMode: runMode).signal(signal: .suspend)
+				let reply = try VMRunHandler.serviceMode.client(location: self, runMode: runMode).signal(signal: .suspend)
 
 				if reply.success == false {
 					throw ServiceError(String(localized: "Failed to suspend VM \(name), \(reply.reason)"))
@@ -556,7 +556,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		func killVMRun() throws -> Void {
 			if pid.0 && pid.1 == Home.cakedCommandName {
 				if Bundle.isApplicationSandboxed {
-					let reply = try createVMRunServiceClient(.grpc, location: self, runMode: runMode).signal(signal: .shutdown)
+					let reply = try VMRunHandler.serviceMode.client(location: self, runMode: runMode).signal(signal: .shutdown)
 
 					if reply.success == false {
 						throw ServiceError(String(localized: "Failed to stop VM \(name), \(reply.reason)"))

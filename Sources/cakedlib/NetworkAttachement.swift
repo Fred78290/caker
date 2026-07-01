@@ -1,9 +1,10 @@
+import CakeAgentLib
 import Foundation
+import GRPC
 import GRPCLib
 import NIO
 import Virtualization
 import vmnet
-import CakeAgentLib
 
 public var phUseLimaVMNet = false
 
@@ -72,69 +73,64 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 	}
 
 	public func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
-		if #available(macOS 26.0, *), networkConfig != nil {
-			return (macAddress, VZVmnetNetworkDeviceAttachment(network: try self.createVMNetwork()))
+		if #available(macOS 26.0, *), networkConfig != nil, NetworksHandler.vmnetNative {
+			return (macAddress, VZVmnetNetworkDeviceAttachment(network: try self.createVMNetwork(runMode: runMode)))
 		}
 		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(location: location, runMode: runMode)))
 	}
 
+	private func startNetworkSandboxed(socketURL: (socket: URL, pidFile: URL), runMode: Utils.RunMode) throws {
+		var arguments = ["networks", "start", networkName]
+
+		if Logger.LoggingLevel() > .info {
+			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
+		}
+
+		if runMode.isSystem {
+			arguments.append("--system")
+		}
+
+		try? socketURL.socket.delete()
+
+		try Bundle.runCakedWithUnixTask(with: arguments)
+
+		try socketURL.pidFile.waitPID()
+	}
+
 	@available(macOS 26.0, *)
-	private func createVMNetwork() throws -> vmnet_network_ref {
-		guard let networkConfig else {
+	private func createVMNetwork(runMode: Utils.RunMode) throws -> vmnet_network_ref {
+		guard networkConfig != nil else {
 			throw ServiceError(String(localized: "Unable to configure network"))
 		}
 
-		let dhcpStart = "\(networkConfig.dhcpStart)/\(networkConfig.netmask.netmaskToCidr())".toIPV4()
+		var socketURL = try self.vmnetEndpoint(runMode: runMode)
 
-		guard let network = dhcpStart.address, let netmask = dhcpStart.netmask else {
-			throw ServiceError(String(localized: "Bad network configuration \(networkConfig.dhcpStart)"))
-		}
-
-		var addr = in_addr(s_addr: in_addr_t(network.storage))
-		var mask = in_addr(s_addr: in_addr_t(netmask.storage))
-		let status = UnsafeMutablePointer<vmnet_return_t>.allocate(capacity: 1)
-
-		guard let network_configuration = vmnet_network_configuration_create(mode == .shared ? .VMNET_SHARED_MODE : .VMNET_HOST_MODE, status) else {
-			throw ServiceError(String(localized: "Can't create vmnet configuration: \(status.pointee.description)"))
-		}
-
-		let result = vmnet_network_configuration_set_ipv4_subnet(network_configuration, &addr, &mask)
-
-		guard result == .VMNET_SUCCESS else {
-			throw ServiceError(String(localized: "Failed to reconfigure network: \(result.description)"))
-		}
-
-		if let nat66Prefix = networkConfig.nat66Prefix {
-			let parts = nat66Prefix.split(separator: "/")
-
-			guard let prefixStr = parts.first else {
-				throw ServiceError(String(localized: "Invalid NAT66 prefix \(nat66Prefix)"))
-			}
-
-			let prefixLen = parts.count > 1 ? UInt8(parts[1]) ?? 64 : 64
-
-			guard let parsed = String(prefixStr).to_in6_addr() else {
-				throw ServiceError(String(localized: "Bad NAT66 prefix \(nat66Prefix)"))
-			}
-
-			var ipv6Prefix = parsed
-
-			let result = withUnsafePointer(to: &ipv6Prefix) { ptr in
-				vmnet_network_configuration_set_ipv6_prefix(network_configuration, UnsafeMutablePointer(mutating: ptr), prefixLen)
-			}
-
-			guard result == .VMNET_SUCCESS else {
-				throw ServiceError(String(localized: "Failed to set NAT66 prefix (\(result.description))"))
+		if socketURL.pidFile.isPIDRunning().running == false {
+			if Bundle.mustUseUnixTask {
+				try startNetworkSandboxed(socketURL: socketURL, runMode: runMode)
+			} else {
+				socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
 			}
 		}
 
-		if mode == .host {
-			vmnet_network_configuration_disable_nat44(network_configuration)
-			vmnet_network_configuration_disable_nat66(network_configuration)
+		let client = try NetworksHandler.getVMNetControlClient(socketURL.socket, runMode: runMode)
+
+		defer {
+			_ = try? client.channel.close().wait()
 		}
 
-		guard let network = vmnet_network_create(network_configuration, status) else {
-			throw ServiceError(String(localized: "Can't create vmnet network: \(status.pointee.description)"))
+		let reply = try client.getSerialization(Vmnet_Empty()).response.wait()
+
+		guard reply.success else {
+			throw ServiceError(String(localized: "VMNet serialization failed: \(reply.reason)"))
+		}
+
+		let serialization = try decodeXPCObject(reply.data)
+
+		var status: vmnet_return_t = vmnet_return_t.VMNET_SUCCESS
+
+		guard let network = vmnet_network_create_with_serialization(serialization, &status) else {
+			throw ServiceError(String(localized: "Failed to create vmnet network with serialization, status: \(status.description)"))
 		}
 
 		return network
@@ -200,7 +196,11 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 
 		if VMRunHandler.launchedFromService || runMode == .app {
 			if try socketURL.socket.exists() == false || (try socketURL.socket.exists() && socketURL.pidFile.isPIDRunning().running == false) {
-				socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
+				if Bundle.mustUseUnixTask {
+					try startNetworkSandboxed(socketURL: socketURL, runMode: runMode)
+				} else {
+					socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
+				}
 			}
 		}
 

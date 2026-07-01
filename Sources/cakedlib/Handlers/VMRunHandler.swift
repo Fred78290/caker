@@ -9,7 +9,7 @@ import Virtualization
 
 public struct VMRunHandler {
 	public static var launchedFromService = false
-	public static var serviceMode: VMRunServiceMode = .grpc
+	public static var serviceMode: VMRunServiceMode = VMRunServiceMode.default
 
 	public enum DisplayMode: String, CustomStringConvertible, ExpressibleByArgument, CaseIterable, EnumerableFlag {
 		public var description: String {

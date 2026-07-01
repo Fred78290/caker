@@ -34,6 +34,7 @@
 		9B081DDD2FC9887F0029B259 /* VmdkDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */; };
 		9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AC2F743641009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
+		9B0A37442FF575C6004609F2 /* DirWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0A37432FF575C6004609F2 /* DirWatcher.swift */; };
 		9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3402F0AD8540099F00F /* CakeAgentLib */; };
 		9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */; };
 		9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */; };
@@ -304,6 +305,10 @@
 		9B9117782EC9D4510017791D /* RawDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9117772EC9D44C0017791D /* RawDisk.swift */; };
 		9B91177C2ECA05880017791D /* PurgeableContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91177B2ECA05800017791D /* PurgeableContentStore.swift */; };
 		9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */; };
+		9B943B5D2FF3084F00F69AB6 /* XPCSerialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B943B5C2FF3084F00F69AB6 /* XPCSerialization.swift */; };
+		9B943B5F2FF3084F00F69AB6 /* VZVMNetNative.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B943B5B2FF3084F00F69AB6 /* VZVMNetNative.swift */; };
+		9B943B602FF3084F00F69AB6 /* vmnet.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B943B5A2FF3084F00F69AB6 /* vmnet.pb.swift */; };
+		9B943B612FF3084F00F69AB6 /* vmnet.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B943B592FF3084F00F69AB6 /* vmnet.grpc.swift */; };
 		9B96B0182F4B68480069C970 /* TestPlan.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 9B96B00A2F4B67250069C970 /* TestPlan.xctestplan */; };
 		9B96B0192F4B68540069C970 /* ProcessWithSharedFileHandleTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */; };
 		9B96B01A2F4B68540069C970 /* RemoteTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C132DB4EB700047D00B /* RemoteTest.swift */; };
@@ -624,7 +629,6 @@
 		9BF2DAA02FE5490300218073 /* DeviceRestoreBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF2DA972FE5490300218073 /* DeviceRestoreBackend.swift */; };
 		9BF2DAA12FE5490300218073 /* AppleMobileDeviceRestoreBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF2DA962FE5490300218073 /* AppleMobileDeviceRestoreBackend.swift */; };
 		9BF2DAA22FE5490300218073 /* DeviceRestoreDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF2DA982FE5490300218073 /* DeviceRestoreDriver.swift */; };
-		9BF2DAA42FE5494D00218073 /* DirWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF2DAA32FE5494D00218073 /* DirWatcher.swift */; };
 		9BF43A692F8A858800618B8C /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF43A682F8A858300618B8C /* Localization.swift */; };
 		9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */; };
 		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
@@ -840,6 +844,7 @@
 		9B081D912FC97DB20029B259 /* VmdkHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkHeader.swift; sourceTree = "<group>"; };
 		9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkDescriptor.swift; sourceTree = "<group>"; };
 		9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCompatibilitySpan.tbd; path = usr/lib/swift/libswiftCompatibilitySpan.tbd; sourceTree = SDKROOT; };
+		9B0A37432FF575C6004609F2 /* DirWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirWatcher.swift; sourceTree = "<group>"; };
 		9B11AA472FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.applescript; path = PrivilegedBootstrap.applescript; sourceTree = "<group>"; };
 		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
@@ -1063,6 +1068,12 @@
 		9B911A602ECF854E0017791D /* GlossyCircle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlossyCircle.swift; sourceTree = "<group>"; };
 		9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalVirtualMachineView.swift; sourceTree = "<group>"; };
+		9B943B572FF3084F00F69AB6 /* generate.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = generate.sh; sourceTree = "<group>"; };
+		9B943B582FF3084F00F69AB6 /* vmnet.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = vmnet.proto; sourceTree = "<group>"; };
+		9B943B592FF3084F00F69AB6 /* vmnet.grpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vmnet.grpc.swift; sourceTree = "<group>"; };
+		9B943B5A2FF3084F00F69AB6 /* vmnet.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vmnet.pb.swift; sourceTree = "<group>"; };
+		9B943B5B2FF3084F00F69AB6 /* VZVMNetNative.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetNative.swift; sourceTree = "<group>"; };
+		9B943B5C2FF3084F00F69AB6 /* XPCSerialization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCSerialization.swift; sourceTree = "<group>"; };
 		9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarSettings.swift; sourceTree = "<group>"; };
 		9B96B00A2F4B67250069C970 /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 		9B96B00F2F4B68380069C970 /* CakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1331,7 +1342,6 @@
 		9BF2DA992FE5490300218073 /* DeviceRestoreState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRestoreState.swift; sourceTree = "<group>"; };
 		9BF2DA9A2FE5490300218073 /* RestoreLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestoreLog.swift; sourceTree = "<group>"; };
 		9BF2DA9B2FE5490300218073 /* VirtualInstallECID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualInstallECID.swift; sourceTree = "<group>"; };
-		9BF2DAA32FE5494D00218073 /* DirWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirWatcher.swift; sourceTree = "<group>"; };
 		9BF43A682F8A858300618B8C /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
@@ -1784,7 +1794,6 @@
 				9B5D7BCD2EAA9602001FB96E /* Color.swift */,
 				9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */,
 				9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */,
-				9BF2DAA32FE5494D00218073 /* DirWatcher.swift */,
 				9B30BA482E0BDB5600256A9D /* FileHelpers.swift */,
 				9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */,
 				9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */,
@@ -2504,11 +2513,17 @@
 		9BEBC7522DF440720092B196 /* VMNet */ = {
 			isa = PBXGroup;
 			children = (
+				9B943B572FF3084F00F69AB6 /* generate.sh */,
+				9B943B582FF3084F00F69AB6 /* vmnet.proto */,
+				9B943B592FF3084F00F69AB6 /* vmnet.grpc.swift */,
+				9B943B5A2FF3084F00F69AB6 /* vmnet.pb.swift */,
 				9BEBC74D2DF440720092B196 /* VZVMNet.swift */,
 				9BEBC74E2DF440720092B196 /* VZVMNetConfig.swift */,
 				9BEBC74F2DF440720092B196 /* VZVMNetFileHandle.swift */,
 				9BEBC7502DF440720092B196 /* VZVMNetHandler.swift */,
+				9B943B5B2FF3084F00F69AB6 /* VZVMNetNative.swift */,
 				9BEBC7512DF440720092B196 /* VZVMNetSocket.swift */,
+				9B943B5C2FF3084F00F69AB6 /* XPCSerialization.swift */,
 			);
 			path = VMNet;
 			sourceTree = "<group>";
@@ -2528,6 +2543,7 @@
 				9BEBC7592DF440720092B196 /* Curl.swift */,
 				9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */,
 				9BEBC75A2DF440720092B196 /* DHCPLeases.swift */,
+				9B0A37432FF575C6004609F2 /* DirWatcher.swift */,
 				9BEBC75B2DF440720092B196 /* EmbedProvisionProfile.swift */,
 				9B5C3F3B2F896662005651BF /* Entitlement.swift */,
 				9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */,
@@ -3431,7 +3447,6 @@
 				9B29F8012FCAE4B700AEBCB8 /* MultiplatformTab.swift in Sources */,
 				9B29F8022FCAE4B700AEBCB8 /* MultiplatformTabCollection.swift in Sources */,
 				9B29F8032FCAE4B700AEBCB8 /* MultiplatformTabBarVerticalAlignment.swift in Sources */,
-				9BF2DAA42FE5494D00218073 /* DirWatcher.swift in Sources */,
 				9B29F8042FCAE4B700AEBCB8 /* MultiplatformTabBarHorizontalAlignment.swift in Sources */,
 				9B29F8052FCAE4B700AEBCB8 /* MultiplatformTabViewPosition.swift in Sources */,
 				9B29F8062FCAE4B700AEBCB8 /* VNCInfosHandler.swift in Sources */,
@@ -3678,6 +3693,7 @@
 				9BA9411B2F3C9A0A00B51543 /* CurrentStatusHandler.swift in Sources */,
 				9BEBC76E2DF440720092B196 /* VMBuilder.swift in Sources */,
 				9BEBC76F2DF440720092B196 /* IP.Address.swift in Sources */,
+				9B0A37442FF575C6004609F2 /* DirWatcher.swift in Sources */,
 				9BF2DA9D2FE5490300218073 /* DeviceRestoreState.swift in Sources */,
 				9BF2DA9E2FE5490300218073 /* RestoreLog.swift in Sources */,
 				9BF2DA9F2FE5490300218073 /* VirtualInstallECID.swift in Sources */,
@@ -3768,6 +3784,10 @@
 				9BEBC7AB2DF440720092B196 /* mount.grpc.swift in Sources */,
 				9BB1491C2EC74B9F0094D950 /* PullHandler.swift in Sources */,
 				9B9117782EC9D4510017791D /* RawDisk.swift in Sources */,
+				9B943B5D2FF3084F00F69AB6 /* XPCSerialization.swift in Sources */,
+				9B943B5F2FF3084F00F69AB6 /* VZVMNetNative.swift in Sources */,
+				9B943B602FF3084F00F69AB6 /* vmnet.pb.swift in Sources */,
+				9B943B612FF3084F00F69AB6 /* vmnet.grpc.swift in Sources */,
 				9B37938B2FD5694500D3D54C /* Sandbox.swift in Sources */,
 				9BEBC7AC2DF440720092B196 /* VZVMNet.swift in Sources */,
 				9BEBC7AD2DF440720092B196 /* IP.Block.swift in Sources */,

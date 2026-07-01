@@ -169,7 +169,6 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	private(set) var templates: [TemplateEntry] = []
 	private(set) var networks: [BridgedNetwork] = []
 	private(set) var virtualMachines: [URL: VirtualMachineDocument] = [:]
-	private(set) var hasVMNetworking = Entitlement.hasVMNetworking()
 	private(set) var connectionManager: ConnectionManager
 	var isAgentInstalling: Bool = false
 
@@ -221,6 +220,15 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		self.setNetworks(serviceReply.networks)
 		self.setRemotes(serviceReply.remotes)
 		self.setTemplates(serviceReply.templates)
+	}
+
+	@MainActor
+	func updateNetworkStatus(_ name: String, running: Bool) {
+		guard let idx = self.networks.firstIndex(where: { $0.name == name }) else {
+			return
+		}
+
+		self.networks[idx].running = running
 	}
 
 	func updateState() {

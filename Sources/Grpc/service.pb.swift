@@ -2720,6 +2720,20 @@ public nonisolated struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
+      public nonisolated struct NetworkStatus: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var name: String = String()
+
+        public var running: Bool = false
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+      }
+
       public nonisolated struct CurrentStatus: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2761,6 +2775,14 @@ public nonisolated struct Caked_Caked: Sendable {
           set {message = .failure(newValue)}
         }
 
+        public var network: Caked_Caked.Reply.CurrentStatusReply.NetworkStatus {
+          get {
+            if case .network(let v)? = message {return v}
+            return Caked_Caked.Reply.CurrentStatusReply.NetworkStatus()
+          }
+          set {message = .network(newValue)}
+        }
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public nonisolated enum OneOf_Message: Equatable, Sendable {
@@ -2768,6 +2790,7 @@ public nonisolated struct Caked_Caked: Sendable {
           case screenshot(Data)
           case status(Caked_Caked.VirtualMachineStatus)
           case failure(String)
+          case network(Caked_Caked.Reply.CurrentStatusReply.NetworkStatus)
 
         }
 
@@ -4494,6 +4517,10 @@ public nonisolated struct Caked_Caked: Sendable {
         public var endpoint: String = String()
 
         public var used: Int32 = 0
+
+        public var running: Bool = false
+
+        public var managed: Bool = false
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -10116,9 +10143,44 @@ nonisolated extension Caked_Caked.Reply.CurrentStatusReply: SwiftProtobuf.Messag
   }
 }
 
+nonisolated extension Caked_Caked.Reply.CurrentStatusReply.NetworkStatus: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.CurrentStatusReply.protoMessageName + ".NetworkStatus"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}running\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.running) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.running != false {
+      try visitor.visitSingularBoolField(value: self.running, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.CurrentStatusReply.NetworkStatus, rhs: Caked_Caked.Reply.CurrentStatusReply.NetworkStatus) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.running != rhs.running {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 nonisolated extension Caked_Caked.Reply.CurrentStatusReply.CurrentStatus: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.CurrentStatusReply.protoMessageName + ".CurrentStatus"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}usage\0\u{1}screenshot\0\u{1}status\0\u{1}failure\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}usage\0\u{1}screenshot\0\u{1}status\0\u{1}failure\0\u{1}network\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -10164,6 +10226,19 @@ nonisolated extension Caked_Caked.Reply.CurrentStatusReply.CurrentStatus: SwiftP
           self.message = .failure(v)
         }
       }()
+      case 6: try {
+        var v: Caked_Caked.Reply.CurrentStatusReply.NetworkStatus?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .network(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .network(v)
+        }
+      }()
       default: break
       }
     }
@@ -10193,6 +10268,10 @@ nonisolated extension Caked_Caked.Reply.CurrentStatusReply.CurrentStatus: SwiftP
     case .failure?: try {
       guard case .failure(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularStringField(value: v, fieldNumber: 5)
+    }()
+    case .network?: try {
+      guard case .network(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
     }()
     case nil: break
     }
@@ -13067,7 +13146,7 @@ nonisolated extension Caked_Caked.Reply.NetworksReply: SwiftProtobuf.Message, Sw
 
 nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".NetworkInfo"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}mode\0\u{1}description\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}interfaceID\0\u{1}endpoint\0\u{1}used\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}mode\0\u{1}description\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}interfaceID\0\u{1}endpoint\0\u{1}used\0\u{1}running\0\u{1}managed\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -13084,6 +13163,8 @@ nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf
       case 7: try { try decoder.decodeSingularStringField(value: &self.interfaceID) }()
       case 8: try { try decoder.decodeSingularStringField(value: &self.endpoint) }()
       case 9: try { try decoder.decodeSingularInt32Field(value: &self.used) }()
+      case 10: try { try decoder.decodeSingularBoolField(value: &self.running) }()
+      case 11: try { try decoder.decodeSingularBoolField(value: &self.managed) }()
       default: break
       }
     }
@@ -13117,6 +13198,12 @@ nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf
     if self.used != 0 {
       try visitor.visitSingularInt32Field(value: self.used, fieldNumber: 9)
     }
+    if self.running != false {
+      try visitor.visitSingularBoolField(value: self.running, fieldNumber: 10)
+    }
+    if self.managed != false {
+      try visitor.visitSingularBoolField(value: self.managed, fieldNumber: 11)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -13130,6 +13217,8 @@ nonisolated extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf
     if lhs.interfaceID != rhs.interfaceID {return false}
     if lhs.endpoint != rhs.endpoint {return false}
     if lhs.used != rhs.used {return false}
+    if lhs.running != rhs.running {return false}
+    if lhs.managed != rhs.managed {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

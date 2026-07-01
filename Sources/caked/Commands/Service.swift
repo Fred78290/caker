@@ -66,7 +66,7 @@ extension Service {
 		var tlsKey: String?
 
 		@Flag(help: ArgumentHelp(String(localized: "Service endpoint"), discussion: String(localized: "This option allows mode to connect to a VMRun service endpoint")))
-		var mode: VMRunServiceMode = .grpc
+		var mode: VMRunServiceMode = VMRunServiceMode.default
 
 		@Flag(help: ArgumentHelp(String(localized: "Use inet socket"), visibility: .hidden))
 		var tcp: Bool = false
@@ -293,11 +293,8 @@ extension Service {
 			let runMode: Utils.RunMode = self.common.runMode
 			let home = try Home(runMode: runMode)
 			let eventLoopGroup = Utilities.group
-			//let listener = self.xpc()
 
 			defer {
-				//xpc_connection_cancel(listener)
-
 				try? home.agentPID.delete()
 			}
 
@@ -367,31 +364,37 @@ extension Service {
 
 			Root.sigintSrc.cancel()
 
-			signal(SIGINT, SIG_IGN)
-
+			
 			try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-				let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
+				let sigcaught = [SIGINT, SIGHUP, SIGQUIT, SIGTERM, SIGUSR2].map { sig in
+					signal(sig, SIG_IGN)
 
-				sigintSrc.setEventHandler {
-					logger.info("Stop service on SIGINT")
-
-					Task {
-						await restServer?.shutdown()
-						provider.stop()
-
-						try? await EventLoopFuture.andAllComplete(
-							servers.map {
-								$0.initiateGracefulShutdown()
-							}, on: eventLoopGroup.next()
-						).get()
-
-						continuation.resume()
-						logger.info("Server nicely closed")
+					let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: sig)
+					
+					sigintSrc.setEventHandler {
+						logger.info("Stop service on SIGINT")
+						
+						Task {
+							await restServer?.shutdown()
+							provider.stop()
+							
+							try? await EventLoopFuture.andAllComplete(
+								servers.map {
+									$0.initiateGracefulShutdown()
+								}, on: eventLoopGroup.next()
+							).get()
+							
+							continuation.resume()
+							logger.info("Server nicely closed")
+						}
 					}
+					
+					return sigintSrc
 				}
 
-				sigintSrc.activate()
-
+				sigcaught.forEach { sigintSrc in
+					sigintSrc.activate()
+				}
 				do {
 					try home.agentPID.writePID()
 				} catch {
@@ -430,7 +433,7 @@ extension Service {
 			let listenAddress = try self.options.getListenAddress(runMode: runMode)
 
 			var arguments: [String] = [
-				try ServiceHandler.findMe(),
+				try Bundle.main.caked().path(percentEncoded: false),
 				"service",
 				"listen",
 				"--secure",

@@ -78,7 +78,8 @@ extension UTType {
 	typealias ShellHandlerResponse = (Cakeagent_CakeAgent.ExecuteResponse) -> Void
 
 	static func == (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
-		lhs.url == rhs.url && rhs.connectionManager == lhs.connectionManager
+		//lhs.url == rhs.url && rhs.connectionManager == lhs.connectionManager
+		lhs.virtualMachineConfig.instanceID == rhs.virtualMachineConfig.instanceID
 	}
 
 	static func < (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
@@ -761,13 +762,20 @@ extension VirtualMachineDocument {
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
 
 		let result = try self.connectionManager.startVirtualMachine(vmURL: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, recoveryMode: self.recoveryMode)
-		let vncInfos = try self.connectionManager.vncInfos(vmURL: location)
-		#if DEBUG
+		
+		if result.started {
+			let vncInfos = try self.connectionManager.vncInfos(vmURL: location)
+			
+#if DEBUG
 			self.logger.debug("VM started on \(result.ip)")
 			self.logger.debug("Found VNC URL: \(vncInfos.urls)")
-		#endif
-
-		await self.setStateAsRunning(vncURL: vncInfos.urls.compactMap { URL(string: $0) })
+#endif
+			
+			await self.setStateAsRunning(vncURL: vncInfos.urls.compactMap { URL(string: $0) })
+		} else {
+			self.logger.error("VM \(self.name) failed to start: \(result.reason)")
+			await self.setStateAsStopped()
+		}
 	}
 
 	func startLocally(location: VMLocation) async throws {
@@ -775,38 +783,20 @@ extension VirtualMachineDocument {
 		let vncPassword = config.vncPassword ?? UUID().uuidString
 		let vncPort = try Utilities.findFreePort()
 		let vncURL = URL(string: "vnc://:\(vncPassword)@localhost:\(vncPort)")!
-		let promise = Utilities.group.next().makePromise(of: String.self)
-
-		promise.futureResult.whenSuccess { _ in
-			#if DEBUG
-				self.logger.debug("VM \(self.name) terminated")
-			#endif
-
-			DispatchQueue.main.async {
-				self.setStateAsStopped()
-			}
-		}
-
-		promise.futureResult.whenFailure { result in
-			self.logger.error("VM \(self.name) failed to start: \(result)")
-
-			DispatchQueue.main.async {
-				self.setStateAsStopped()
-			}
-		}
-
-		await self.tryVNCConnect(vncURL: vncURL)
-
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
-		let runningIP = try StartHandler.internalStartVM(
-			location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, gcd: false, recoveryMode: self.recoveryMode, runMode: .user, promise: promise)
+		let result = try self.connectionManager.startVirtualMachine(vmURL: location.rootURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, recoveryMode: self.recoveryMode)
 
-		#if DEBUG
-			self.logger.debug("VM started on \(runningIP)")
+		if result.started {
+#if DEBUG
+			self.logger.debug("VM started on \(result.ip)")
 			self.logger.debug("Found VNC URL: \(vncURL)")
-		#endif
+#endif
 
-		await self.setStateAsRunning(vncURL: [vncURL])
+			await self.tryVNCConnect(vncURL: vncURL)
+			await self.setStateAsRunning(vncURL: [vncURL])
+		} else {
+			self.logger.error("VM \(self.name) failed to start: \(result.reason)")
+		}
 	}
 
 	func resumeFromUI() {

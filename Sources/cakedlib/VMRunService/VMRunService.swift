@@ -109,7 +109,7 @@ extension VMRunServiceClient {
 	}
 }
 
-protocol VMRunServiceServerProtocol {
+public protocol VMRunServiceServerProtocol {
 	func serve()
 	func stop()
 }
@@ -121,6 +121,26 @@ public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgu
 
 	case grpc
 	case xpc
+
+	public static var `default`: VMRunServiceMode {
+		return .grpc
+	}
+
+	public func client(location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient {
+		if self == .xpc {
+			return try XPCVMRunServiceClient.createClient(location: location, runMode: runMode)
+		} else {
+			return try GRPCVMRunServiceClient.createClient(location: location, runMode: runMode)
+		}
+	}
+
+	public func serve(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) -> VMRunServiceServerProtocol {
+		if self == .xpc {
+			return XPCVMRunServiceServer(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
+		} else {
+			return GRPCVMRunService(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation, logger: Logger("GRPCVMRunService"))
+		}
+	}
 }
 
 class VMRunService: NSObject {
@@ -266,21 +286,5 @@ class VMRunService: NSObject {
 
 	func installAgent(timeout: UInt) async throws -> Bool {
 		try await self.vm.installAgent(updateAgent: self.vm.env.config.agent, timeout: timeout, runMode: self.runMode)
-	}
-}
-
-public func createVMRunServiceClient(_ mode: VMRunServiceMode, location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient {
-	if mode == .xpc {
-		return try XPCVMRunServiceClient.createClient(location: location, runMode: runMode)
-	} else {
-		return try GRPCVMRunServiceClient.createClient(location: location, runMode: runMode)
-	}
-}
-
-func createVMRunServiceServer(_ mode: VMRunServiceMode, group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) -> VMRunServiceServerProtocol {
-	if mode == .xpc {
-		return XPCVMRunServiceServer(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
-	} else {
-		return GRPCVMRunService(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation, logger: Logger("GRPCVMRunService"))
 	}
 }

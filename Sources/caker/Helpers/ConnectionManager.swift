@@ -60,6 +60,7 @@ final class ConnectionManager: Equatable {
 	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
 	private var currentStatus: AsyncThrowingStreamCurrentStatus? = nil
 	private var vmsWatcher: DirWatcher? = nil
+	private var networksWatcher: DirWatcher? = nil
 	private let logger = Logger("ConnectionManager")
 
 	deinit {
@@ -380,9 +381,14 @@ extension ConnectionManager {
 			return
 		}
 
+		guard let home = try? Home(runMode: .app) else {
+			return
+		}
+
 		let storage = StorageLocation(runMode: .app)
 		let root = storage.rootURL.lastPathComponent
-		let watcher = DirWatcher([storage.rootURL.path(percentEncoded: false)])
+		let networks = home.networkDirectory.lastPathComponent
+		let watcher = DirWatcher([storage.rootURL.path(percentEncoded: false), home.networkDirectory.path(percentEncoded: false)])
 		let logger = self.logger
 
 		watcher.queue = DispatchQueue.global(qos: .utility)
@@ -392,6 +398,14 @@ extension ConnectionManager {
 			logger.debug("VM directory change: \(event.path) flags: 0x\(String(format: "%X", event.flags)), fileChange: \(event.fileChange), dirChange: \(event.dirChange)")
 
 			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
+
+			if event.fileChange && fileURL.pathExtension == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
+				Task {
+					AppState.shared.updateNetworkStatus(fileURL.deletingLastPathComponent().lastPathComponent, running: fileURL.isPIDRunning().running)
+					//AppState.shared.reloadNetworks()
+				}
+				return
+			}
 
 			guard event.dirChange, fileURL.pathExtension == "cakedvm", fileURL.deletingLastPathComponent().lastPathComponent == root else {
 				return
@@ -420,8 +434,6 @@ extension ConnectionManager {
 		}
 
 		watcher.start()
-
-		self.vmsWatcher = watcher
 
 		self.logger.debug("VM directory monitor started: \(storage.rootURL)")
 	}
@@ -518,6 +530,8 @@ extension ConnectionManager {
 						await self.receiveScreenshot(vmURL, value: value)
 					case .usage(let value):
 						await self.receiveUsage(vmURL, value: value)
+					case .network(let status):
+						AppState.shared.updateNetworkStatus(status.name, running: status.running)
 					default:
 						break
 					}
