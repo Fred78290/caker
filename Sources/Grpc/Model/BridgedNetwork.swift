@@ -83,15 +83,17 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 	}
 
 	public static func random(existingNetworks: [BridgedNetwork] = []) -> BridgedNetwork {
-		let existingGateways = Set(existingNetworks.map(\.gateway))
+		let existingGatewayIPs = Set(existingNetworks.map(\.dhcpStart))
 		let existingNames = Set(existingNetworks.map(\.name))
 
 		var thirdOctet: UInt8
-		var gateway: String
+		var dhcpStart: String
 		repeat {
 			thirdOctet = UInt8.random(in: 1...254)
-			gateway = "192.168.\(thirdOctet).1/24"
-		} while existingGateways.contains(gateway)
+			dhcpStart = "192.168.\(thirdOctet).1"
+		} while existingGatewayIPs.contains(dhcpStart)
+
+		let gateway = "\(dhcpStart)/24"
 
 		var name: String
 		repeat {
