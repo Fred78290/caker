@@ -184,6 +184,7 @@ struct ImportMultipassView: View {
 						} label: {
 							Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
 						}
+						.frame(width: 20)
 						.buttonStyle(.borderless)
 					}
 				}
@@ -203,6 +204,7 @@ struct ImportMultipassView: View {
 						} label: {
 							Image(systemName: "key.fill")
 						}
+						.frame(width: 20)
 						.buttonStyle(.borderless)
 					}
 				}
@@ -221,6 +223,7 @@ struct ImportMultipassView: View {
 						} label: {
 							Image(systemName: showSshPassphrase ? "eye.fill" : "eye.slash.fill")
 						}
+						.frame(width: 20)
 						.buttonStyle(.borderless)
 					}
 				}
@@ -270,6 +273,7 @@ struct ImportMultipassView: View {
 				} label: {
 					Image(systemName: showMultipassPassphrase ? "eye.fill" : "eye.slash.fill")
 				}
+				.frame(width: 20)
 				.buttonStyle(.borderless)
 			}
 			.padding(.horizontal, 80)

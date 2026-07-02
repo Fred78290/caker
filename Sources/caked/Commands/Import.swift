@@ -28,6 +28,9 @@ struct Import: ParsableCommand {
 	@Option(name: [.customLong("ssh-passphrase"), .customShort("l")], help: ArgumentHelp(String(localized: "Optional SSH private key passphrase to use for the VM")))
 	public var sshPrivateKeyPassphrase: String? = nil
 
+	@Flag(name: .customLong("no-copy-disk"), help: ArgumentHelp(String(localized: "Don't copy the source image disk, reference it in place instead. Only supported by importers that already use a raw disk image (tart, utm, virtualbuddy).")))
+	public var noCopyDisk: Bool = false
+
 	@Option(help: .hidden)
 	public var uid: UInt32 = geteuid()
 
@@ -62,6 +65,7 @@ struct Import: ParsableCommand {
 					clearPassword: clearPassword,
 					sshPrivateKey: sshPrivateKey,
 					passphrase: sshPrivateKeyPassphrase,
+					copyDisk: !noCopyDisk,
 					uid: uid,
 					gid: gid,
 					runMode: self.runMode,

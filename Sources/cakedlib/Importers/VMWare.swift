@@ -286,8 +286,12 @@ struct VMWareImporter: Importer {
 		return false
 	}
 
+	var supportsInPlaceDisk: Bool {
+		return false  // The vmdk source image is converted, not attached directly
+	}
+
 	var name: String {
-		return "VMWare"
+		return "VMware"
 	}
 
 	var source: String {
@@ -306,7 +310,7 @@ struct VMWareImporter: Importer {
 		var natIp6Prefix: String? = nil
 	}
 
-	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, runMode: Utils.RunMode) throws {
+	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, copyDisk: Bool = true, runMode: Utils.RunMode) throws {
 		// Logic to import from a VMWare source
 		let vmxMap = try locateVM(source: source)
 		let ethernetAttachements = vmxMap.ethernetAttachements

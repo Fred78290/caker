@@ -11,18 +11,14 @@ public struct ImportHandler {
 	public enum ImportSource: String, ExpressibleByArgument, CaseIterable, Codable, Sendable {
 		case multipass
 		case vmdk
+		case tart
+		case utm
+		case virtualbuddy
 
 		public static let allValueStrings: [String] = Self.allCases.map { "\($0)" }
 
 		public init?(argument: String) {
-			switch argument {
-			case "multipass":
-				self = .multipass
-			case "vmdk":
-				self = .vmdk
-			default:
-				return nil
-			}
+			self.init(rawValue: argument)
 		}
 
 		public var importer: Importer {
@@ -31,6 +27,12 @@ public struct ImportHandler {
 				return MultipassImporter()
 			case .vmdk:
 				return VMWareImporter()
+			case .tart:
+				return TartImporter()
+			case .utm:
+				return UTMImporter()
+			case .virtualbuddy:
+				return VirtualBuddyImporter()
 			}
 		}
 	}
@@ -78,12 +80,17 @@ public struct ImportHandler {
 		clearPassword: Bool,
 		sshPrivateKey: String?,
 		passphrase: String?,
+		copyDisk: Bool,
 		uid: UInt32,
 		gid: UInt32,
 		runMode: Utils.RunMode,
 		standardOutput: FileHandle? = nil,
 		standardError: FileHandle? = nil
 	) -> ImportedReply {
+		if copyDisk == false && importer.supportsInPlaceDisk == false {
+			return ImportedReply(source: source, name: name, imported: false, reason: String(localized: "The \(importer.name) importer does not support referencing the source disk in place, remove the --no-copy-disk option"))
+		}
+
 		let storageLocation = StorageLocation(runMode: runMode)
 		let isApplicationSandboxed = Bundle.isApplicationSandboxed
 
@@ -153,6 +160,10 @@ public struct ImportHandler {
 						arguments.append("--ssh-passphrase=\(passphrase)")
 					}
 
+					if copyDisk == false {
+						arguments.append("--no-copy-disk")
+					}
+
 					let quote: (String) -> String = { v in "'" + v.replacingOccurrences(of: "'", with: "'\\''") + "'" }
 					let replyString = try runPrivilegedAppleScript(arguments.map(quote).joined(separator: " "))
 
@@ -196,6 +207,10 @@ public struct ImportHandler {
 						arguments.append("--ssh-passphrase=\(passphrase)")
 					}
 
+					if copyDisk == false {
+						arguments.append("--no-copy-disk")
+					}
+
 					let sudo = try SudoCaked(arguments: arguments, runMode: runMode, standardOutput: standardOutput, standardError: standardError)
 					let exitCode = try sudo.runAndWait()
 
@@ -222,7 +237,7 @@ public struct ImportHandler {
 			do {
 				tempLocation = try VMLocation.tempDirectory(runMode: runMode)
 
-				try importer.importVM(location: tempLocation, source: source, userName: userName, password: password, clearPassword: clearPassword, sshPrivateKey: sshPrivateKey, passphrase: passphrase, runMode: runMode)
+				try importer.importVM(location: tempLocation, source: source, userName: userName, password: password, clearPassword: clearPassword, sshPrivateKey: sshPrivateKey, passphrase: passphrase, copyDisk: copyDisk, runMode: runMode)
 				try FileManager.default.setAttributesRecursively([.ownerAccountID: uid, .groupOwnerAccountID: gid], atPath: tempLocation.rootURL.path)
 				try storageLocation.relocate(name, from: tempLocation)
 			} catch {
