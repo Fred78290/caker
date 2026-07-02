@@ -838,6 +838,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			clearPassword: clearPassword,
 			sshPrivateKey: sshKey.flatMap { $0.isEmpty ? nil : $0 },
 			passphrase: sshPassphrase.flatMap { $0.isEmpty ? nil : $0 },
+			copyDisk: true,
 			uid: geteuid(),
 			gid: getegid(),
 			runMode: connectionMode.runMode
@@ -854,6 +855,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			clearPassword: clearPassword,
 			sshPrivateKey: sshKey.flatMap { $0.isEmpty ? nil : $0 },
 			passphrase: sshPassphrase.flatMap { $0.isEmpty ? nil : $0 },
+			copyDisk: true,
 			uid: geteuid(),
 			gid: getegid(),
 			runMode: connectionMode.runMode

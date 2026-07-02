@@ -80,7 +80,7 @@ public struct ImportHandler {
 		clearPassword: Bool,
 		sshPrivateKey: String?,
 		passphrase: String?,
-		copyDisk: Bool = true,
+		copyDisk: Bool,
 		uid: UInt32,
 		gid: UInt32,
 		runMode: Utils.RunMode,
