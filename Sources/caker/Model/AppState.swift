@@ -234,13 +234,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	@MainActor
 	func updateNetworks(_ networks: [Caked_NetworksReply.NetworkInfo]) {
 		var newItems: [BridgedNetwork] = []
-		let deleted: [String] = networks.compactMap { network in
-			if networks.first(where: { $0.name == network.name }) != nil {
-				return nil
-			}
-
-			return network.name
-		}
+		let incomingNames = Set(networks.map(\.name))
+		let deleted: [String] = self.networks.compactMap { incomingNames.contains($0.name) ? nil : $0.name }
 
 		for network in networks {
 			if let idx = self.networks.firstIndex(where: { $0.name == network.name }) {
