@@ -6,7 +6,7 @@ public struct NetworkInfoOptions {
 }
 
 public struct NetworkDeleteOptions {
-	public static let configuration = CommandConfiguration(abstract: String(localized: "Delete named shared network"))
+	public static let configuration = CommandConfiguration(abstract: String(localized: "Delete named shared network"), aliases: ["rm"])
 }
 
 public struct NetworkStartOptions {
@@ -23,7 +23,7 @@ public struct NetworkListOptions {
 
 
 public struct NetworkCreateOptions: ParsableArguments, Sendable {
-	public static let configuration = CommandConfiguration(abstract: String(localized: "Create named shared or host network"))
+	public static let configuration = CommandConfiguration(abstract: String(localized: "Create named shared or host network"), aliases: ["new"])
 
 	@Option(name: [.customLong("mode")], help: ArgumentHelp(String(localized: "vmnet mode")))
 	public var mode = CreatedNetworkMode.shared
