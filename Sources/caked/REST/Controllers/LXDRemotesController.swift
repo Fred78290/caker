@@ -144,7 +144,9 @@ struct LXDRemotesController: RouteCollection {
 				.encodeResponse(status: .badRequest, for: req)
 		}
 
-		guard body.url.isEmpty == false, let url = URL(spaced: body.url) else {
+		guard body.url.isEmpty == false,
+		      let url = URL(spaced: body.url),
+		      let host = url.host(), host.contains(" ") == false else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing or invalid remote URL", code: 400)
 				.encodeResponse(status: .badRequest, for: req)
 		}
