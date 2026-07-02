@@ -12,14 +12,28 @@ import Virtualization
 struct AdvancedSettingsView: View {
 	private static let noneNetwork = "none"
 
-	@State private var bridgedNetwork: String = AdvancedSettingsView.noneNetwork
-	@State private var primaryName: String = String.empty
-	@State private var passphrase: String = String.empty
+	@State private var bridgedNetwork: String
+	@State private var primaryName: String
+	@State private var passphrase: String
 	@State private var showPassphrase: Bool = false
 	@State private var errorMessage: String? = nil
 
 	private var bridgedInterfaces: [VZBridgedNetworkInterface] {
 		VZBridgedNetworkInterface.networkInterfaces
+	}
+
+	init() {
+		bridgedNetwork = AdvancedSettingsView.noneNetwork
+		primaryName = String.empty
+		passphrase = String.empty
+
+		do {
+			bridgedNetwork = try CakedKeyConfig.bridgedNetwork.get() ?? Self.noneNetwork
+			primaryName = try CakedKeyConfig.primaryName.get() ?? String.empty
+			passphrase = try CakedKeyConfig.passphrase.get() ?? String.empty
+		} catch {
+			errorMessage = error.localizedDescription
+		}
 	}
 
 	var body: some View {
@@ -96,21 +110,10 @@ struct AdvancedSettingsView: View {
 		.formStyle(.grouped)
 		.scrollDisabled(true)
 		.fixedSize(horizontal: false, vertical: true)
-		.onAppear(perform: load)
 		.alert(errorMessage ?? String.empty, isPresented: Binding(get: { errorMessage != nil }, set: { if $0 == false { errorMessage = nil } })) {
 			Button("OK", role: .cancel) {}
 		}
 	}
-
-private func load() {
-	do {
-		bridgedNetwork = try CakedKeyConfig.bridgedNetwork.get() ?? Self.noneNetwork
-		primaryName = try CakedKeyConfig.primaryName.get() ?? String.empty
-		passphrase = try CakedKeyConfig.passphrase.get() ?? String.empty
-	} catch {
-		errorMessage = error.localizedDescription
-	}
-}
 
 	private func save(_ key: CakedKeyConfig, _ value: String?) {
 		do {
