@@ -345,6 +345,7 @@
 		9BA9CBD32FCD7BB400CEBFC0 /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
 		9BA9CBD72FCD7EF600CEBFC0 /* cakectl.bundle in Bundle */ = {isa = PBXBuildFile; fileRef = 9BA9CBCA2FCD7B8000CEBFC0 /* cakectl.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9BA9CC292FCED36200CEBFC0 /* PrivilegedBootstrap.applescript in PriviligedBootstrap */ = {isa = PBXBuildFile; fileRef = 9B11AA472FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript */; };
+		9BB030EF2FF65FF200F4612F /* AdvancedSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB030EE2FF65FF200F4612F /* AdvancedSettingsView.swift */; };
 		9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB144D32EC33A320094D950 /* Sudo.swift */; };
 		9BB148972EC622ED0094D950 /* ContainerizationOCI in Frameworks */ = {isa = PBXBuildFile; productRef = 9BB148962EC622ED0094D950 /* ContainerizationOCI */; };
 		9BB149182EC74B830094D950 /* PullHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB149172EC74B7F0094D950 /* PullHandler.swift */; };
@@ -1123,6 +1124,7 @@
 		9BAF74B22EBBD7CC0036CE1B /* MultiplatformTabBarVerticalAlignment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabBarVerticalAlignment.swift; sourceTree = "<group>"; };
 		9BAF74B32EBBD7CC0036CE1B /* MultiplatformTabCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabCollection.swift; sourceTree = "<group>"; };
 		9BAF74B42EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabViewPosition.swift; sourceTree = "<group>"; };
+		9BB030EE2FF65FF200F4612F /* AdvancedSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsView.swift; sourceTree = "<group>"; };
 		9BB144D32EC33A320094D950 /* Sudo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sudo.swift; sourceTree = "<group>"; };
 		9BB149172EC74B7F0094D950 /* PullHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullHandler.swift; sourceTree = "<group>"; };
 		9BB149192EC74B880094D950 /* PushHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushHandler.swift; sourceTree = "<group>"; };
@@ -1745,6 +1747,7 @@
 			isa = PBXGroup;
 			children = (
 				9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */,
+				9BB030EE2FF65FF200F4612F /* AdvancedSettingsView.swift */,
 				9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */,
 				9B3600882E1FC48D00889BFD /* AsyncButton.swift */,
 				9B1389D22F97A9D0000329B1 /* CakedServerView.swift */,
@@ -3366,6 +3369,7 @@
 				9B29F7B32FCAE4B700AEBCB8 /* ConnectionManager.swift in Sources */,
 				9BDC05222FEADA9500802A3C /* ImportVMwareView.swift in Sources */,
 				9BDC05232FEADA9500802A3C /* ImportMultipassView.swift in Sources */,
+				9BB030EF2FF65FF200F4612F /* AdvancedSettingsView.swift in Sources */,
 				9B29F7B42FCAE4B700AEBCB8 /* StartHandler.swift in Sources */,
 				9B29F7B52FCAE4B700AEBCB8 /* RestorationState.swift in Sources */,
 				9B29F7B62FCAE4B700AEBCB8 /* RoundedTextField.swift in Sources */,
