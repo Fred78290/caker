@@ -415,7 +415,11 @@ extension UTType {
 		if result.success {
 			if client != nil {
 				vms = try result.infos.reduce(into: vms) { (partialResult, info) in
-					guard let vmURL = URL(string: info.fqn.first!), let config = info.config else {
+					guard let fqn = info.fqn.first, let vmURL = URL(spaced: fqn) else {
+						throw ServiceError(String(localized: "Internal error"))
+					}
+
+					guard let config = info.config else {
 						throw ServiceError(String(localized: "Internal error"))
 					}
 
@@ -427,7 +431,11 @@ extension UTType {
 				let storage = StorageLocation(runMode: connectionManager.connectionMode.runMode)
 
 				vms = result.infos.reduce(into: vms) { (partialResult, info) in
-					if let vmURL = URL(string: info.fqn.first!), let location = try? storage.find(vmURL.vmName), let vm = try? VirtualMachineDocument(location: location) {
+					guard let fqn = info.fqn.first, let vmURL = URL(spaced: fqn) else {
+						return
+					}
+
+					if let location = try? storage.find(vmURL.vmName), let vm = try? VirtualMachineDocument(location: location) {
 						partialResult[vm.url] = vm
 					}
 				}

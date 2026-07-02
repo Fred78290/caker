@@ -378,7 +378,12 @@ public struct BuildOptions: ParsableArguments {
 	public mutating func validateImageSource(remote: Bool) throws {
 		var scheme: String
 
-		guard let imageURL = URL(string: image) else {
+		guard let imageURL = URL(spaced: image) else {
+			throw ValidationError(String(localized: "Malformed URL"))
+		}
+
+		if let s = imageURL.scheme, (s == "http" || s == "https"),
+		   let host = imageURL.host, host.contains(" ") {
 			throw ValidationError(String(localized: "Malformed URL"))
 		}
 
