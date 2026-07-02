@@ -316,6 +316,11 @@
 		9BAF74BA2EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74B42EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift */; };
 		9BAF74BB2EBBD7CC0036CE1B /* MultiplatformTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74B02EBBD7CC0036CE1B /* MultiplatformTabBar.swift */; };
 		9BB031492FF6603F00F4612F /* AdvancedSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB031482FF6603F00F4612F /* AdvancedSettingsView.swift */; };
+		9BB032BF2FF66A8000F4612F /* VirtualBuddy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB032BE2FF66A8000F4612F /* VirtualBuddy.swift */; };
+		9BB032C02FF66A8000F4612F /* UTM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB032BD2FF66A8000F4612F /* UTM.swift */; };
+		9BB032C12FF66A8000F4612F /* Tart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB032BC2FF66A8000F4612F /* Tart.swift */; };
+		9BB033772FF6AFC500F4612F /* Importers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB033762FF6AFC500F4612F /* Importers.swift */; };
+		9BB033792FF6AFE500F4612F /* ImportVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB033782FF6AFE500F4612F /* ImportVirtualMachineView.swift */; };
 		9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB144D32EC33A320094D950 /* Sudo.swift */; };
 		9BB148972EC622ED0094D950 /* ContainerizationOCI in Frameworks */ = {isa = PBXBuildFile; productRef = 9BB148962EC622ED0094D950 /* ContainerizationOCI */; };
 		9BB149182EC74B830094D950 /* PullHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB149172EC74B7F0094D950 /* PullHandler.swift */; };
@@ -394,7 +399,6 @@
 		9BDBCB092FEEBF5D007241E2 /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBCB082FEEBF5A007241E2 /* ComposeHandler.swift */; };
 		9BDBCB0B2FEEC246007241E2 /* Compose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBCB0A2FEEC242007241E2 /* Compose.swift */; };
 		9BDC00FF2FEAB3B800802A3C /* MountPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC00FE2FEAB3B800802A3C /* MountPoint.swift */; };
-		9BDC05902FEADB3300802A3C /* ImportVMwareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC058F2FEADB3300802A3C /* ImportVMwareView.swift */; };
 		9BDC05912FEADB3300802A3C /* ImportMultipassView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC058E2FEADB3300802A3C /* ImportMultipassView.swift */; };
 		9BDC05932FEADB4400802A3C /* CakerEnv.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05922FEADB4400802A3C /* CakerEnv.swift */; };
 		9BDC05982FEADB5800802A3C /* Compose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC05942FEADB5800802A3C /* Compose.swift */; };
@@ -1123,6 +1127,11 @@
 		9BAF74B32EBBD7CC0036CE1B /* MultiplatformTabCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabCollection.swift; sourceTree = "<group>"; };
 		9BAF74B42EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabViewPosition.swift; sourceTree = "<group>"; };
 		9BB031482FF6603F00F4612F /* AdvancedSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsView.swift; sourceTree = "<group>"; };
+		9BB032BC2FF66A8000F4612F /* Tart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tart.swift; sourceTree = "<group>"; };
+		9BB032BD2FF66A8000F4612F /* UTM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UTM.swift; sourceTree = "<group>"; };
+		9BB032BE2FF66A8000F4612F /* VirtualBuddy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualBuddy.swift; sourceTree = "<group>"; };
+		9BB033762FF6AFC500F4612F /* Importers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Importers.swift; sourceTree = "<group>"; };
+		9BB033782FF6AFE500F4612F /* ImportVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportVirtualMachineView.swift; sourceTree = "<group>"; };
 		9BB144D32EC33A320094D950 /* Sudo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sudo.swift; sourceTree = "<group>"; };
 		9BB149172EC74B7F0094D950 /* PullHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullHandler.swift; sourceTree = "<group>"; };
 		9BB149192EC74B880094D950 /* PushHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushHandler.swift; sourceTree = "<group>"; };
@@ -1191,7 +1200,6 @@
 		9BDBCB0A2FEEC242007241E2 /* Compose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compose.swift; sourceTree = "<group>"; };
 		9BDC00FE2FEAB3B800802A3C /* MountPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountPoint.swift; sourceTree = "<group>"; };
 		9BDC058E2FEADB3300802A3C /* ImportMultipassView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMultipassView.swift; sourceTree = "<group>"; };
-		9BDC058F2FEADB3300802A3C /* ImportVMwareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportVMwareView.swift; sourceTree = "<group>"; };
 		9BDC05922FEADB4400802A3C /* CakerEnv.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakerEnv.swift; sourceTree = "<group>"; };
 		9BDC05942FEADB5800802A3C /* Compose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compose.swift; sourceTree = "<group>"; };
 		9BDC05952FEADB5800802A3C /* Down.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Down.swift; sourceTree = "<group>"; };
@@ -1665,6 +1673,9 @@
 			children = (
 				9B20D5FE2E019FA400BEFB41 /* Importer.swift */,
 				9B20D5FF2E019FA400BEFB41 /* Multipass.swift */,
+				9BB032BC2FF66A8000F4612F /* Tart.swift */,
+				9BB032BD2FF66A8000F4612F /* UTM.swift */,
+				9BB032BE2FF66A8000F4612F /* VirtualBuddy.swift */,
 				9B20D6002E019FA400BEFB41 /* VMWare.swift */,
 			);
 			path = Importers;
@@ -1806,6 +1817,7 @@
 				9BEBD1162F9B75220005EC80 /* ConnectionManager.swift */,
 				9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */,
 				9B30BA482E0BDB5600256A9D /* FileHelpers.swift */,
+				9BB033762FF6AFC500F4612F /* Importers.swift */,
 				9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */,
 				9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */,
 				9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */,
@@ -2172,7 +2184,7 @@
 			children = (
 				9B9C4E5E2E23BCA300C13D23 /* HomeView.swift */,
 				9BDC058E2FEADB3300802A3C /* ImportMultipassView.swift */,
-				9BDC058F2FEADB3300802A3C /* ImportVMwareView.swift */,
+				9BB033782FF6AFE500F4612F /* ImportVirtualMachineView.swift */,
 				9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */,
 				9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */,
 				9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */,
@@ -3387,7 +3399,6 @@
 				9B2BFAC02DFED25E000045C3 /* NetworkAttachementView.swift in Sources */,
 				9BB213D72F37838400B45692 /* ImageHandler.swift in Sources */,
 				9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */,
-				9BDC05902FEADB3300802A3C /* ImportVMwareView.swift in Sources */,
 				9BDC05912FEADB3300802A3C /* ImportMultipassView.swift in Sources */,
 				9BA22F102E250F6900172D25 /* VirtualMachineView.swift in Sources */,
 				9B9C4E632E23BDAA00C13D23 /* NavigationModel.swift in Sources */,
@@ -3401,6 +3412,7 @@
 				9B1389D32F97A9D0000329B1 /* CakedServerView.swift in Sources */,
 				9B3601912E20FBCF00889BFD /* CakerMenuBarExtraScene.swift in Sources */,
 				9BEAA1502F37B073005ACC9D /* BuildHandler.swift in Sources */,
+				9BB033772FF6AFC500F4612F /* Importers.swift in Sources */,
 				9B911A612ECF85550017791D /* GlossyCircle.swift in Sources */,
 				9BBF7A3D2F3DE0C500F37D2C /* SuspendHandler.swift in Sources */,
 				9B30BA4C2E0BF2B600256A9D /* RangeIntegerStyle.swift in Sources */,
@@ -3430,6 +3442,7 @@
 				9B2BFAC22DFED25E000045C3 /* SocketsView.swift in Sources */,
 				9B7997252E45EDEC00147500 /* VNCView.swift in Sources */,
 				9B9C4E902E23BF1300C13D23 /* RemoteData.swift in Sources */,
+				9BB033792FF6AFE500F4612F /* ImportVirtualMachineView.swift in Sources */,
 				9B9C4E912E23BF1300C13D23 /* AppState.swift in Sources */,
 				9B3601AB2E211A6800889BFD /* CreateTemplateView.swift in Sources */,
 				9B75A6D32E2A2C48000AA773 /* Pty.swift in Sources */,
@@ -3712,6 +3725,9 @@
 				9B9DCB362F6EB09900E07852 /* NSVNCView.swift in Sources */,
 				9B9DCB372F6EB09900E07852 /* VNCFramebufferView.swift in Sources */,
 				9B9DCB382F6EB09900E07852 /* KeyboardModifiers.swift in Sources */,
+				9BB032BF2FF66A8000F4612F /* VirtualBuddy.swift in Sources */,
+				9BB032C02FF66A8000F4612F /* UTM.swift in Sources */,
+				9BB032C12FF66A8000F4612F /* Tart.swift in Sources */,
 				9BEBC7822DF440720092B196 /* DHCPLeases.swift in Sources */,
 				9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */,

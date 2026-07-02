@@ -249,7 +249,37 @@ struct MainApp: App {
 		.defaultPosition(.center)
 
 		Window("Import from VMware", id: "import-vmware") {
-			ImportVMwareView()
+			ImportVirtualMachineView("Select a VMware .vmx configuration file to import into Caker.", appName: "VMWare", mustCopyImageDisk: true, delegate: VMWareImporter())
+				.colorSchemeForColor()
+				.containerBackground(.windowBackground, for: .window)
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+		.restorationState(.disabled)
+		.defaultPosition(.center)
+
+		Window("Import from Tart", id: "import-tart") {
+			ImportVirtualMachineView("Enter a Tart virtual machine name (from ~/.tart/vms) or choose its directory.", appName: "Tart", mustCopyImageDisk: false, delegate: TartImporter())
+				.colorSchemeForColor()
+				.containerBackground(.windowBackground, for: .window)
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+		.restorationState(.disabled)
+		.defaultPosition(.center)
+
+		Window("Import from UTM", id: "import-utm") {
+			ImportVirtualMachineView("Select a .utm bundle using UTM's Apple Virtualization backend. QEMU-backed VMs aren't supported.", appName: "UTM", mustCopyImageDisk: false, delegate: UTMImporter())
+				.colorSchemeForColor()
+				.containerBackground(.windowBackground, for: .window)
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+		.restorationState(.disabled)
+		.defaultPosition(.center)
+
+		Window("Import from VirtualBuddy", id: "import-virtualbuddy") {
+			ImportVirtualMachineView("Select a .vbvm bundle. Only raw and ASIF boot disk images can be imported.", appName: "VirtualBuddy", mustCopyImageDisk: false, delegate: VirtualBuddyImporter())
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 		}
@@ -278,6 +308,18 @@ struct MainApp: App {
 			.disabled(self.appState.connectionMode == .remote)
 			Button("From VMware…") {
 				openWindow(id: "import-vmware")
+			}
+			.disabled(self.appState.connectionMode == .remote)
+			Button("From Tart…") {
+				openWindow(id: "import-tart")
+			}
+			.disabled(self.appState.connectionMode == .remote)
+			Button("From UTM…") {
+				openWindow(id: "import-utm")
+			}
+			.disabled(self.appState.connectionMode == .remote)
+			Button("From VirtualBuddy…") {
+				openWindow(id: "import-virtualbuddy")
 			}
 			.disabled(self.appState.connectionMode == .remote)
 		}

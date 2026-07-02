@@ -487,7 +487,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 					// Find it
 					if let location = try? storage.find(vmName), location.rootURL == vmURL {
-						return URL(string: "\(VMLocation.scheme)://\(vmName)")!
+						return URL(spaced: "\(VMLocation.scheme)://\(vmName)")!
 					}
 				}
 			}
@@ -650,7 +650,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 					if self.connectionMode == .app {
 						let location = try StorageLocation(runMode: self.connectionMode.runMode).find(txt.stringValue)
 						self.addVirtualMachineDocument(location.rootURL)
-					} else if let vmURL = URL(string: "\(VMLocation.scheme)://\(txt.stringValue)") {
+					} else if let vmURL = URL(spaced: "\(VMLocation.scheme)://\(txt.stringValue)") {
 						self.addVirtualMachineDocument(vmURL)
 					} else {
 						DispatchQueue.main.async {
@@ -858,5 +858,34 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			gid: getegid(),
 			runMode: connectionMode.runMode
 		)
+	}
+
+	private func importFrom(_ importSource: ImportHandler.ImportSource, source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) -> ImportedReply {
+		ImportHandler.importVM(
+			importer: importSource.importer,
+			source: source,
+			name: name,
+			userName: userName,
+			password: password,
+			clearPassword: clearPassword,
+			sshPrivateKey: sshKey.flatMap { $0.isEmpty ? nil : $0 },
+			passphrase: sshPassphrase.flatMap { $0.isEmpty ? nil : $0 },
+			copyDisk: copyDisk,
+			uid: geteuid(),
+			gid: getegid(),
+			runMode: connectionMode.runMode
+		)
+	}
+
+	func importFromTart(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) -> ImportedReply {
+		importFrom(.tart, source: source, name: name, userName: userName, password: password, clearPassword: clearPassword, sshKey: sshKey, sshPassphrase: sshPassphrase, copyDisk: copyDisk)
+	}
+
+	func importFromUTM(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) -> ImportedReply {
+		importFrom(.utm, source: source, name: name, userName: userName, password: password, clearPassword: clearPassword, sshKey: sshKey, sshPassphrase: sshPassphrase, copyDisk: copyDisk)
+	}
+
+	func importFromVirtualBuddy(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) -> ImportedReply {
+		importFrom(.virtualbuddy, source: source, name: name, userName: userName, password: password, clearPassword: clearPassword, sshKey: sshKey, sshPassphrase: sshPassphrase, copyDisk: copyDisk)
 	}
 }

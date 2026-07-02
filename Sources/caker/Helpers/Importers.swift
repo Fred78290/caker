@@ -1,0 +1,159 @@
+import CakedLib
+import GRPCLib
+import SwiftUI
+//
+//  Importers.swift
+//  CakerAppStore
+//
+//  Created by Frederic BOLTZ on 02/07/2026.
+//
+import UniformTypeIdentifiers
+
+struct TartImporter: ImporterDelegate {
+	func browserForVirtualMachine() -> URL? {
+		let panel = NSOpenPanel()
+		panel.allowsMultipleSelection = false
+		panel.canChooseFiles = false
+		panel.canChooseDirectories = true
+		panel.title = String(localized: "Select Tart Virtual Machine Directory")
+		panel.directoryURL = FileManager.realHomeDirectoryForCurrentUser.appendingPathComponent(".tart/vms", isDirectory: true)
+
+		guard panel.runModal() == .OK, let url = panel.url else {
+			return nil
+		}
+
+		return url
+	}
+
+	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> ImportedReply {
+		AppState.shared.importFromTart(
+			source: vmPath,
+			name: targetName,
+			userName: userName,
+			password: password,
+			clearPassword: clearPassword,
+			sshKey: sshKey,
+			sshPassphrase: sshPassphrase,
+			copyDisk: copyDisk
+		)
+	}
+}
+
+struct UTMImporter: ImporterDelegate {
+	func browserForVirtualMachine() -> URL? {
+		let panel = NSOpenPanel()
+		panel.allowsMultipleSelection = false
+		panel.canChooseFiles = true
+		panel.canChooseDirectories = true
+		panel.title = String(localized: "Select UTM Virtual Machine")
+
+		if let bundleType = UTType(tag: "utm", tagClass: .filenameExtension, conformingTo: nil) {
+			panel.allowedContentTypes = [bundleType]
+		}
+
+		panel.directoryURL = FileManager.realHomeDirectoryForCurrentUser.appendingPathComponent("Library/Containers/com.utmapp.UTM/Data/Documents", isDirectory: true)
+
+		guard panel.runModal() == .OK, let url = panel.url else {
+			return nil
+		}
+
+		return url
+	}
+	
+	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> GRPCLib.ImportedReply {
+		AppState.shared.importFromUTM(
+			source: vmPath,
+			name: targetName,
+			userName: userName,
+			password: password,
+			clearPassword: clearPassword,
+			sshKey: sshKey,
+			sshPassphrase: sshPassphrase,
+			copyDisk: copyDisk
+		)
+	}
+}
+
+struct VirtualBuddyImporter: ImporterDelegate {
+	func browserForVirtualMachine() -> URL? {
+		let panel = NSOpenPanel()
+		panel.allowsMultipleSelection = false
+		panel.canChooseFiles = true
+		panel.canChooseDirectories = true
+		panel.title = String(localized: "Select VirtualBuddy Virtual Machine")
+
+		if let bundleType = UTType(tag: "vbvm", tagClass: .filenameExtension, conformingTo: nil) {
+			panel.allowedContentTypes = [bundleType]
+		}
+		panel.directoryURL = FileManager.realHomeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/VirtualBuddy", isDirectory: true)
+
+		guard panel.runModal() == .OK, let url = panel.url else {
+			return nil
+		}
+
+		return url
+	}
+
+	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> GRPCLib.ImportedReply {
+		AppState.shared.importFromVirtualBuddy(
+			source: vmPath,
+			name: targetName,
+			userName: userName,
+			password: password,
+			clearPassword: clearPassword,
+			sshKey: sshKey,
+			sshPassphrase: sshPassphrase,
+			copyDisk: copyDisk
+		)
+	}
+}
+
+struct VMWareImporter: ImporterDelegate {
+	private func findVMX(in bundleURL: URL) -> URL? {
+		guard let contents = try? FileManager.default.contentsOfDirectory(
+			at: bundleURL,
+			includingPropertiesForKeys: nil
+		) else {
+			return nil
+		}
+		return contents.first { $0.pathExtension.lowercased() == "vmx" }
+	}
+
+	func browserForVirtualMachine() -> URL? {
+		let panel = NSOpenPanel()
+		panel.allowsMultipleSelection = false
+		panel.canChooseFiles = true
+		panel.canChooseDirectories = true
+		panel.title = String(localized: "Select UTM Virtual Machine")
+
+		if let bundleType = UTType(tag: "vmwarevm", tagClass: .filenameExtension, conformingTo: nil) {
+			panel.allowedContentTypes = [bundleType]
+		}
+		panel.title = String(localized: "Select VMware Virtual Machine")
+
+		guard panel.runModal() == .OK, let url = panel.url else {
+			return nil
+		}
+
+		guard let vmxURL = findVMX(in: url) else {
+			MainActor.assumeIsolated {
+				alertError(String(localized: "Invalid VMware VM"), String(localized: "No .vmx file found inside \"\(url.lastPathComponent)\""))
+			}
+			return nil
+		}
+
+		return vmxURL
+	}
+	
+	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> GRPCLib.ImportedReply {
+		AppState.shared.importFromVMware(
+			source: vmPath,
+			name: targetName,
+			userName: userName,
+			password: password,
+			clearPassword: clearPassword,
+			sshKey: sshKey,
+			sshPassphrase: sshPassphrase
+		)
+	}
+}

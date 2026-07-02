@@ -6,5 +6,5 @@ public protocol Importer {
 	var name: String { get }
 	var source: String { get }
 
-	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String?, passphrase: String?, runMode: Utils.RunMode) throws
+	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String?, passphrase: String?, copyDisk: Bool, runMode: Utils.RunMode) throws
 }

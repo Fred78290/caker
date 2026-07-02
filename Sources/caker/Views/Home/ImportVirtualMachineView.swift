@@ -1,18 +1,25 @@
 //
-//  ImportVMwareView.swift
+//  ImportVirtualMachineView.swift
 //  Caker
-//
-//  Created by Frederic BOLTZ on 22/06/2026.
 //
 
 import CakedLib
+import GRPCLib
 import SwiftUI
 import UniformTypeIdentifiers
 
-struct ImportVMwareView: View {
+protocol ImporterDelegate {
+	func browserForVirtualMachine() -> URL?
+	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> ImportedReply
+}
+
+struct ImportVirtualMachineView: View {
+	typealias BrowserForVirtualMachine = () -> URL?
+	typealias DoImport = () async -> Bool
+
 	@Environment(\.dismiss) private var dismiss
 
-	@State private var vmxPath: String = ""
+	@State private var vmPath: String = ""
 	@State private var targetName: String = ""
 	@State private var userName: String = "admin"
 	@State private var password: String = ""
@@ -21,17 +28,29 @@ struct ImportVMwareView: View {
 	@State private var sshKey: String = ""
 	@State private var sshPassphrase: String = ""
 	@State private var showSshPassphrase: Bool = false
+	@State private var copyDisk: Bool = true
 	@State private var isImporting: Bool = false
 	@State private var errorMessage: String? = nil
 
 	private let storageLocation = StorageLocation(runMode: .app)
+	private let description: LocalizedStringKey  // "Select a .vbvm bundle. Only raw and ASIF boot disk images can be imported."
+	private let appName: String
+	private let mustCopyImageDisk: Bool
+	private let delegate: ImporterDelegate
 
 	private var importDisabled: Bool {
-		guard (vmxPath.isEmpty || targetName.isEmpty || userName.isEmpty || password.isEmpty || isImporting) == false else {
+		guard (vmPath.isEmpty || targetName.isEmpty || userName.isEmpty || password.isEmpty || isImporting) == false else {
 			return true
 		}
 
 		return storageLocation.exists(targetName)
+	}
+
+	init(_ text: LocalizedStringKey, appName: String, mustCopyImageDisk: Bool, delegate: ImporterDelegate) {
+		self.description = text
+		self.appName = appName
+		self.mustCopyImageDisk = mustCopyImageDisk
+		self.delegate = delegate
 	}
 
 	var body: some View {
@@ -45,7 +64,7 @@ struct ImportVMwareView: View {
 			footer
 		}
 		.frame(width: 500)
-		.onChange(of: vmxPath) { _, newPath in
+		.onChange(of: vmPath) { _, newPath in
 			guard targetName.isEmpty, !newPath.isEmpty else { return }
 			targetName = URL(fileURLWithPath: newPath).deletingPathExtension().lastPathComponent
 		}
@@ -62,9 +81,9 @@ struct ImportVMwareView: View {
 					.foregroundStyle(.white)
 			}
 			VStack(alignment: .leading, spacing: 2) {
-				Text("Import from VMware")
+				Text("Import from \(appName)")
 					.font(.system(size: 16, weight: .semibold))
-				Text("Select a VMware .vmx configuration file to import into Caker.")
+				Text(description)
 					.font(.callout)
 					.foregroundStyle(.secondary)
 			}
@@ -76,16 +95,24 @@ struct ImportVMwareView: View {
 
 	private var configForm: some View {
 		Form {
-			Section("VMware configuration") {
-				LabeledContent("VMWare virtual machine") {
+			Section("\(appName) virtual machine") {
+				LabeledContent("Virtual machine path") {
 					HStack(spacing: 6) {
-						TextField("Choose a .vmwarevm bundle…", text: $vmxPath)
+						TextField("", text: $vmPath)
 							.rounded(.leading)
+							.frame(width: 213)
 						Button {
-							browseForVMwareVM()
+							if let vmPath = self.delegate.browserForVirtualMachine() {
+								self.vmPath = vmPath.path(percentEncoded: false)
+
+								if targetName.isEmpty {
+									targetName = vmPath.deletingPathExtension().lastPathComponent
+								}
+							}
 						} label: {
 							Image(systemName: "folder")
 						}
+						.frame(width: 20)
 						.buttonStyle(.borderless)
 					}
 				}
@@ -94,19 +121,23 @@ struct ImportVMwareView: View {
 			Section("Target configuration") {
 				LabeledContent("Target name") {
 					TextField("", text: $targetName)
+						.frame(width: 243)
 						.rounded(.leading)
 				}
 				LabeledContent("Username") {
 					TextField("", text: $userName)
+						.frame(width: 243)
 						.rounded(.leading)
 				}
 				LabeledContent("Password") {
 					HStack {
 						if showPassword {
 							TextField("", text: $password)
+								.frame(width: 213)
 								.rounded(.leading)
 						} else {
 							SecureField("", text: $password)
+								.frame(width: 213)
 								.rounded(.leading)
 						}
 						Button {
@@ -114,12 +145,22 @@ struct ImportVMwareView: View {
 						} label: {
 							Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
 						}
+						.frame(width: 20)
 						.buttonStyle(.borderless)
 					}
 				}
+
+				if mustCopyImageDisk == false {
+					Toggle(isOn: $copyDisk) {
+						Label("Copy disk image", systemImage: "doc.on.doc")
+					}
+					Text("When the option is off, the imported VM references the original disk image in place instead of copying it. Don't delete or move the original VM.")
+						.font(.caption)
+						.foregroundStyle(.secondary)
+				}
 			}
 
-			Section("SSH configuration") {
+			Section("Optional SSH user configuration") {
 				Toggle(isOn: $clearPassword) {
 					Label("Allow password authentication for SSH", systemImage: "key")
 				}
@@ -127,12 +168,14 @@ struct ImportVMwareView: View {
 				LabeledContent("SSH private key") {
 					HStack(spacing: 6) {
 						TextField("Optional private key path", text: $sshKey)
+							.frame(width: 213)
 							.rounded(.leading)
 						Button {
 							browseForSSHKey()
 						} label: {
 							Image(systemName: "key.fill")
 						}
+						.frame(width: 20)
 						.buttonStyle(.borderless)
 					}
 				}
@@ -141,9 +184,11 @@ struct ImportVMwareView: View {
 					HStack {
 						if showSshPassphrase {
 							TextField("", text: $sshPassphrase)
+								.frame(width: 213)
 								.rounded(.leading)
 						} else {
 							SecureField("", text: $sshPassphrase)
+								.frame(width: 213)
 								.rounded(.leading)
 						}
 						Button {
@@ -151,6 +196,7 @@ struct ImportVMwareView: View {
 						} label: {
 							Image(systemName: showSshPassphrase ? "eye.fill" : "eye.slash.fill")
 						}
+						.frame(width: 20)
 						.buttonStyle(.borderless)
 					}
 				}
@@ -196,40 +242,6 @@ struct ImportVMwareView: View {
 		.padding(.vertical, 12)
 	}
 
-	private func browseForVMwareVM() {
-		let panel = NSOpenPanel()
-		panel.allowsMultipleSelection = false
-		panel.canChooseFiles = true
-		panel.canChooseDirectories = true
-
-		if let bundleType = UTType(tag: "vmwarevm", tagClass: .filenameExtension, conformingTo: nil) {
-			panel.allowedContentTypes = [bundleType]
-		}
-		panel.title = String(localized: "Select VMware Virtual Machine")
-
-		guard panel.runModal() == .OK, let url = panel.url else { return }
-
-		guard let vmxURL = findVMX(in: url) else {
-			errorMessage = String(localized: "No .vmx file found inside \"\(url.lastPathComponent)\"")
-			return
-		}
-
-		if targetName.isEmpty {
-			targetName = url.deletingPathExtension().lastPathComponent
-		}
-		vmxPath = vmxURL.path(percentEncoded: false)
-	}
-
-	private func findVMX(in bundleURL: URL) -> URL? {
-		guard let contents = try? FileManager.default.contentsOfDirectory(
-			at: bundleURL,
-			includingPropertiesForKeys: nil
-		) else {
-			return nil
-		}
-		return contents.first { $0.pathExtension.lowercased() == "vmx" }
-	}
-
 	private func browseForSSHKey() {
 		let panel = NSOpenPanel()
 		panel.allowsMultipleSelection = false
@@ -243,29 +255,21 @@ struct ImportVMwareView: View {
 	}
 
 	private func doImport() {
-		guard !vmxPath.isEmpty, !targetName.isEmpty else { return }
+		guard !vmPath.isEmpty, !targetName.isEmpty else { return }
 
 		isImporting = true
 		errorMessage = nil
 
-		let source = vmxPath
-		let name = targetName
-		let user = userName
-		let pass = password
-		let clear = clearPassword
-		let key = sshKey.isEmpty ? nil : sshKey
-		let passphrase = sshPassphrase.isEmpty ? nil : sshPassphrase
-
 		Task.detached(priority: .userInitiated) {
-			let result = AppState.shared.importFromVMware(
-				source: source,
-				name: name,
-				userName: user,
-				password: pass,
-				clearPassword: clear,
-				sshKey: key,
-				sshPassphrase: passphrase
-			)
+			let result = await self.delegate.doImport(
+				vmPath: vmPath,
+				targetName: targetName,
+				userName: userName,
+				password: password,
+				clearPassword: clearPassword,
+				sshKey: sshKey.isEmpty ? nil : sshKey,
+				sshPassphrase: sshPassphrase.isEmpty ? nil : sshPassphrase,
+				copyDisk: copyDisk)
 
 			await MainActor.run {
 				isImporting = false
@@ -279,8 +283,4 @@ struct ImportVMwareView: View {
 			}
 		}
 	}
-}
-
-#Preview {
-	ImportVMwareView()
 }
