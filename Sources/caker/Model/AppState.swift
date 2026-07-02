@@ -231,6 +231,27 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		self.networks[idx].running = running
 	}
 
+	@MainActor
+	func updateNetworks(_ networks: [Caked_NetworksReply.NetworkInfo]) {
+		var newItems: [BridgedNetwork] = []
+		let incomingNames = Set(networks.map(\.name))
+		let deleted: [String] = self.networks.compactMap { incomingNames.contains($0.name) ? nil : $0.name }
+
+		for network in networks {
+			if let idx = self.networks.firstIndex(where: { $0.name == network.name }) {
+				self.networks[idx] = BridgedNetwork(network)
+			} else {
+				newItems.append(BridgedNetwork(network))
+			}
+		}
+
+		self.networks.removeAll(where: {
+			deleted.contains($0.name)
+		})
+
+		self.networks.append(contentsOf: newItems)
+		self.networks = self.networks.sorted(using: BridgedNetworkComparator())
+
 	func updateState() {
 		if let currentDocument {
 			self.isAgentInstalling = currentDocument.agent == .installing && currentDocument.status == .running

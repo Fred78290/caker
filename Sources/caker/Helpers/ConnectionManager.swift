@@ -399,11 +399,17 @@ extension ConnectionManager {
 
 			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
 
-			if event.fileChange && fileURL.pathExtension == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
-				Task {
-					await AppState.shared.updateNetworkStatus(fileURL.deletingLastPathComponent().lastPathComponent, running: fileURL.isPIDRunning().running)
-					//AppState.shared.reloadNetworks()
+			if event.fileChange {
+				if fileURL.lastPathComponent == Home.networksFilename && fileURL.deletingLastPathComponent().lastPathComponent == networks {
+					Task { @MainActor in
+						AppState.shared.reloadNetworks()
+					}
+				} else if fileURL.pathExtension == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
+					Task {
+						await AppState.shared.updateNetworkStatus(fileURL.deletingLastPathComponent().lastPathComponent, running: fileURL.isPIDRunning().running)
+					}
 				}
+
 				return
 			}
 
@@ -532,6 +538,8 @@ extension ConnectionManager {
 						await self.receiveUsage(vmURL, value: value)
 					case .network(let status):
 						await AppState.shared.updateNetworkStatus(status.name, running: status.running)
+					case .networkInfos(let status):
+						await AppState.shared.updateNetworks(status.networks)
 					default:
 						break
 					}
