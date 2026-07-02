@@ -18,20 +18,7 @@ public struct ImportHandler {
 		public static let allValueStrings: [String] = Self.allCases.map { "\($0)" }
 
 		public init?(argument: String) {
-			switch argument {
-			case "multipass":
-				self = .multipass
-			case "vmdk":
-				self = .vmdk
-			case "tart":
-				self = .tart
-			case "utm":
-				self = .utm
-			case "virtualbuddy":
-				self = .virtualbuddy
-			default:
-				return nil
-			}
+			self.init(rawValue: argument)
 		}
 
 		public var importer: Importer {
@@ -100,6 +87,10 @@ public struct ImportHandler {
 		standardOutput: FileHandle? = nil,
 		standardError: FileHandle? = nil
 	) -> ImportedReply {
+		if copyDisk == false && importer.supportsInPlaceDisk == false {
+			return ImportedReply(source: source, name: name, imported: false, reason: String(localized: "The \(importer.name) importer does not support referencing the source disk in place, remove the --no-copy-disk option"))
+		}
+
 		let storageLocation = StorageLocation(runMode: runMode)
 		let isApplicationSandboxed = Bundle.isApplicationSandboxed
 

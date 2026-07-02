@@ -124,12 +124,11 @@ struct VMWareImporter: ImporterDelegate {
 		panel.allowsMultipleSelection = false
 		panel.canChooseFiles = true
 		panel.canChooseDirectories = true
-		panel.title = String(localized: "Select UTM Virtual Machine")
+		panel.title = String(localized: "Select VMware Virtual Machine")
 
 		if let bundleType = UTType(tag: "vmwarevm", tagClass: .filenameExtension, conformingTo: nil) {
 			panel.allowedContentTypes = [bundleType]
 		}
-		panel.title = String(localized: "Select VMware Virtual Machine")
 
 		guard panel.runModal() == .OK, let url = panel.url else {
 			return nil
@@ -143,6 +142,18 @@ struct VMWareImporter: ImporterDelegate {
 		}
 
 		return vmxURL
+	}
+
+	// The browser returns the .vmx file inside the bundle, whose name reflects the guest OS
+	// rather than the virtual machine; suggest the enclosing bundle's name instead.
+	func suggestedName(for url: URL) -> String {
+		let parent = url.deletingLastPathComponent()
+
+		if parent.pathExtension.lowercased() == "vmwarevm" {
+			return parent.deletingPathExtension().lastPathComponent
+		}
+
+		return url.deletingPathExtension().lastPathComponent
 	}
 	
 	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> GRPCLib.ImportedReply {

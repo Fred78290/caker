@@ -286,6 +286,10 @@ struct VMWareImporter: Importer {
 		return false
 	}
 
+	var supportsInPlaceDisk: Bool {
+		return false  // The vmdk source image is converted, not attached directly
+	}
+
 	var name: String {
 		return "VMWare"
 	}

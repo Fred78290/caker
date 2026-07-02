@@ -4623,7 +4623,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "De tart…"
+            "value" : "De Tart…"
           }
         }
       }
@@ -4643,7 +4643,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "de VirtualBuddy…"
+            "value" : "De VirtualBuddy…"
           }
         }
       }
@@ -5998,7 +5998,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Virtual Machine virtuelle VMWare invalide"
+            "value" : "Machine virtuelle VMware invalide"
           }
         }
       }
