@@ -416,7 +416,7 @@ extension UTType {
 			if client != nil {
 				vms = try result.infos.reduce(into: vms) { (partialResult, info) in
 					guard let fqn = info.fqn.first, let vmURL = URL(spaced: fqn) else {
-						return
+						throw ServiceError(String(localized: "Internal error"))
 					}
 
 					guard let config = info.config else {
