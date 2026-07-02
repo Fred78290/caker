@@ -50,7 +50,12 @@ struct RemoteHandler: CakedCommand {
 			}
 		case .add:
 			reply = Caked_RemoteReply.with {
-				$0.created = CakedLib.RemoteHandler.addRemote(name: request.addRequest.name, url: URL(spaced: request.addRequest.url)!, runMode: runMode).caked
+				if let url = URL(spaced: request.addRequest.url),
+				   let host = url.host(), host.contains(" ") == false {
+					$0.created = CakedLib.RemoteHandler.addRemote(name: request.addRequest.name, url: url, runMode: runMode).caked
+				} else {
+					$0.created = CreateRemoteReply(name: request.addRequest.name, created: false, reason: String(localized: "Missing or invalid remote URL")).caked
+				}
 			}
 		case .delete:
 			reply = Caked_RemoteReply.with {
