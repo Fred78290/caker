@@ -5,6 +5,8 @@
 //  Created by Frederic BOLTZ on 12/04/2025.
 //
 
+import Foundation
+
 public enum BridgedNetworkMode: String, Codable, CaseIterable {
 	case nat
 	case bridged
@@ -78,6 +80,37 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		self.usedBy = usedBy
 		self.running = running
 		self.managed = managed
+	}
+
+	public static func random(existingNetworks: [BridgedNetwork] = []) -> BridgedNetwork {
+		let existingGateways = Set(existingNetworks.map(\.gateway))
+		let existingNames = Set(existingNetworks.map(\.name))
+
+		var thirdOctet: UInt8
+		var gateway: String
+		repeat {
+			thirdOctet = UInt8.random(in: 1...254)
+			gateway = "192.168.\(thirdOctet).1/24"
+		} while existingGateways.contains(gateway)
+
+		var name: String
+		repeat {
+			name = "net-\(String(format: "%04x", UInt16.random(in: 0...0xFFFF)))"
+		} while existingNames.contains(name)
+
+		return BridgedNetwork(
+			name: name,
+			mode: .host,
+			description: String.empty,
+			gateway: gateway,
+			dhcpEnd: "192.168.\(thirdOctet).254",
+			dhcpLease: String.empty,
+			interfaceID: UUID().uuidString,
+			endpoint: String.empty,
+			running: false,
+			managed: true,
+			usedBy: 0
+		)
 	}
 
 	public init(_ from: Caked_NetworkInfo) {

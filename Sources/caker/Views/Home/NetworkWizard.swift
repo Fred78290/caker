@@ -17,7 +17,8 @@ struct NetworkWizard: View {
 	@State private var reason: String?
 
 	init() {
-		let network = BridgedNetwork(name: "private", mode: .host, description: "Hosted network", gateway: "192.168.111.1/24", dhcpEnd: "192.168.111.254/24", dhcpLease: Self.getDhcpLease(), interfaceID: UUID().uuidString, endpoint: String.empty, running: false, managed: true, usedBy: 0)
+		var network = BridgedNetwork.random(existingNetworks: AppState.shared.networks)
+		network.dhcpLease = Self.getDhcpLease()
 		let valid = Self.validate(network)
 
 		self.vzNetwork = valid.0
