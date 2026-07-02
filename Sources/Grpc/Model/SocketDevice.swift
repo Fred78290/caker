@@ -105,7 +105,7 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 	}
 
 	public init(parseFrom: String) throws {
-		guard let url = URL(string: parseFrom) else {
+		guard let url = URL(spaced: parseFrom) else {
 			throw ValidationError(String(localized: "unsupported socket declaration: \"\(parseFrom)\""))
 		}
 

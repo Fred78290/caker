@@ -22,7 +22,7 @@ public struct DeleteHandler {
 		do {
 			if let location = try? StorageLocation(runMode: runMode).find(name) {
 				return try doIt(location)
-			} else if let vmURL = URL(string: name) {
+			} else if let vmURL = URL(spaced: name) {
 				let location: VMLocation
 				
 				if vmURL.isFileURL || VMLocation.supportedSchemes.contains(vmURL.scheme) {
@@ -55,7 +55,7 @@ public struct DeleteHandler {
 		}
 
 		return try names.compactMap { name in
-			if let u = URL(string: name), let scheme = u.scheme, (VMLocation.supportedSchemes.contains(scheme) == false && u.isFileURL == false) {
+			if let u = URL(spaced: name), let scheme = u.scheme, (VMLocation.supportedSchemes.contains(scheme) == false && u.isFileURL == false) {
 				let remotes = try listRemotes()
 				let purgeableStorages: [String: CommonCacheImageCache] = [
 					CloudImageCache.scheme: try CloudImageCache(runMode: runMode),

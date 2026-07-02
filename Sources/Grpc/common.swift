@@ -415,6 +415,10 @@ extension String {
 }
 
 extension URL {
+	public init?(spaced: String) {
+		self.init(string: spaced.replacingOccurrences(of: " ", with: "%20"))
+	}
+
 	public var hiddenPasswordURL : URL {
 		guard var components = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
 			return self
@@ -435,9 +439,9 @@ extension URL {
 		let socketPath = self.appendingPathComponent("\(name).sock", isDirectory: false).absoluteURL
 
 		if socketPath.path(percentEncoded: false).utf8.count < 103 {
-			return URL(string: "unix://\(socketPath.path)")!
+			return URL(spaced: "unix://\(socketPath.path)")!
 		} else {
-			return URL(string: "unix://\(NSTemporaryDirectory())\(self.lastPathComponent.deletingPathExtension)-\(name).sock")!
+			return URL(spaced: "unix://\(NSTemporaryDirectory())\(self.lastPathComponent.deletingPathExtension)-\(name).sock")!
 		}
 	}
 

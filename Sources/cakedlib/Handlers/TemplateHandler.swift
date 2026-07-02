@@ -135,7 +135,7 @@ public struct TemplateHandler {
 
 			if let location: VMLocation = try? storage.find(templateName) {
 				return doIt(location)
-			} else if let u = URL(string: templateName), u.scheme == "template", let location = try? StorageLocation(runMode: runMode).find(u.host()!) {
+			} else if let u = URL(spaced: templateName), u.scheme == "template", let location = try? StorageLocation(runMode: runMode).find(u.host()!) {
 				return doIt(location)
 			}
 
