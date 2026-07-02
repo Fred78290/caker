@@ -219,18 +219,28 @@ final class GrandCentralDispatch {
 
 			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
 
-			if event.fileChange && fileURL.pathExtension == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
-				Task {
-					let networkName = fileURL.deletingLastPathComponent().lastPathComponent
-
-					try? await self.updateStatus(.with {
-						$0.name = networkName
-						$0.network = .with {
+			if event.fileChange {
+				if fileURL.lastPathComponent == Home.networksFilename && fileURL.deletingLastPathComponent().lastPathComponent == networks {
+					Task {
+						try? await self.updateStatus(.with {
+							$0.name = Home.networksFilename
+							$0.networkInfos = .with {
+								$0.networks = CakedLib.NetworksHandler.networks(runMode: self.runMode).caked.networks
+							}
+						})
+					}
+				} else if fileURL.pathExtension == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
+					Task {
+						let networkName = fileURL.deletingLastPathComponent().lastPathComponent
+						
+						try? await self.updateStatus(.with {
 							$0.name = networkName
-							$0.running = fileURL.isPIDRunning().running
-						}
-					})
-
+							$0.network = .with {
+								$0.name = networkName
+								$0.running = fileURL.isPIDRunning().running
+							}
+						})
+					}
 				}
 			}
 		}

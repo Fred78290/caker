@@ -677,14 +677,19 @@ message Caked {
         bool   running = 2;
       }
 
+      message NetworkInfos {
+        repeated NetworksReply.NetworkInfo networks = 1;
+      }
+
       message CurrentStatus {
         string name = 1;
         oneof message {
-          CurrentUsageReply    usage      = 2;
-          bytes                screenshot = 3;
-          VirtualMachineStatus status     = 4;
-          string               failure    = 5;
-          NetworkStatus        network    = 6;
+          CurrentUsageReply    usage        = 2;
+          bytes                screenshot   = 3;
+          VirtualMachineStatus status       = 4;
+          string               failure      = 5;
+          NetworkStatus        network      = 6;
+          NetworkInfos         networkInfos = 7;
         }
       }
 

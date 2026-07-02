@@ -75,6 +75,7 @@ public class RemoteDatabase {
 public struct Home {
 	public static let cakedCommandName = "caked"
 	public static let cakerCommandName = "Caker"
+	public static let networksFilename = "networks.json"
 
 	public let cakeHomeDirectory: URL
 	public let agentPID: URL
@@ -144,7 +145,7 @@ public struct Home {
 	}
 
 	public func sharedNetworks() throws -> VZVMNetConfig {
-		let location = self.networkDirectory.appendingPathComponent("networks.json", isDirectory: false).absoluteURL
+		let location = self.networkDirectory.appendingPathComponent(Self.networksFilename, isDirectory: false).absoluteURL
 		let config: VZVMNetConfig
 
 		if try self.networkDirectory.exists() == false {
@@ -163,7 +164,7 @@ public struct Home {
 	}
 
 	public func setSharedNetworks(_ config: VZVMNetConfig) throws {
-		try config.save(toURL: self.networkDirectory.appendingPathComponent("networks.json", isDirectory: false).absoluteURL)
+		try config.save(toURL: self.networkDirectory.appendingPathComponent(Self.networksFilename, isDirectory: false).absoluteURL)
 	}
 
 	public func remoteDatabase() throws -> RemoteDatabase {
