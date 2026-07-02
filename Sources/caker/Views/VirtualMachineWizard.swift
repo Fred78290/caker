@@ -1091,7 +1091,7 @@ struct VirtualMachineWizard: View {
 		}
 
 		if valid && (model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw) {
-			if let url = URL(string: config.imageName) {
+			if let url = URL(spaced: config.imageName) {
 				if AppState.shared.connectionMode == .app {
 					valid =
 						(url.isFileURL && FileManager.default.fileExists(atPath: url.path))

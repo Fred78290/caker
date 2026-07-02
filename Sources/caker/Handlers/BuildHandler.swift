@@ -12,7 +12,7 @@ extension BuildHandler {
 
 		return try await withThrowingTaskGroup(of: Void.self, returning: BuildedReply.self) { group in
 			let context: ProgressObserver.ProgressHandlerContext = .init()
-			let vmURL = URL(string: "\(VMLocation.scheme)://\(options.name)")!
+			let vmURL = URL(spaced: "\(VMLocation.scheme)://\(options.name)")!
 			let (stream, continuation) = AsyncThrowingStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
 			var result: BuildedReply? = nil
 

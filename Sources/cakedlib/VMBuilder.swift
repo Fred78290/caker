@@ -18,7 +18,7 @@ public struct VMBuilder {
 
 	private static func build(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		let imageSource = options.imageSource!
-		let imageURL = URL(string: options.image)!
+		let imageURL = URL(spaced: options.image)!
 		var config: CakeConfig! = nil
 		var attachedDisks = options.attachedDisks
 
@@ -85,7 +85,7 @@ public struct VMBuilder {
 				_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
 
 				if imageSource == .iso {
-					attachedDisks.append(DiskAttachement(diskPath: URL(string: options.image)!))
+					attachedDisks.append(DiskAttachement(diskPath: URL(spaced: options.image)!))
 				}
 
 				config = CakeConfig(
@@ -181,7 +181,7 @@ public struct VMBuilder {
 			}
 		}
 
-		guard var imageURL = URL(string: options.image) else {
+		guard var imageURL = URL(spaced: options.image) else {
 			throw ServiceError(String(localized: "unsupported url: \(options.image)"))
 		}
 
@@ -217,7 +217,7 @@ public struct VMBuilder {
 					imageURL = components.url!
 				}
 			} else if remotes.contains(scheme) {
-				imageURL = URL(string: options.image)!
+				imageURL = URL(spaced: options.image)!
 				sourceImage = .stream
 			} else {
 				throw ServiceError(String(localized: "unsupported url: \(options.image)"))
@@ -225,7 +225,7 @@ public struct VMBuilder {
 
 			options.imageSource = sourceImage
 		} else {
-			imageURL = URL(string: options.image)!
+			imageURL = URL(spaced: options.image)!
 		}
 
 		let imageIsFile = imageURL.isFileURL || imageURL.host == nil

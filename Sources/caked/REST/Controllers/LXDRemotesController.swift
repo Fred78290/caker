@@ -101,7 +101,7 @@ struct LXDRemotesController: RouteCollection {
 		let created = CakedLib.RemoteHandler.addRemote(name: targetName, url: targetURL, runMode: runMode)
 
 		guard created.created else {
-			_ = CakedLib.RemoteHandler.addRemote(name: existing.name, url: URL(string: existing.url) ?? targetURL, runMode: runMode)
+			_ = CakedLib.RemoteHandler.addRemote(name: existing.name, url: URL(spaced: existing.url) ?? targetURL, runMode: runMode)
 
 			let isConflict = created.reason.localizedCaseInsensitiveContains("already exists")
 			let status: HTTPResponseStatus = isConflict ? .conflict : .badRequest
@@ -144,7 +144,7 @@ struct LXDRemotesController: RouteCollection {
 				.encodeResponse(status: .badRequest, for: req)
 		}
 
-		guard body.url.isEmpty == false, let url = URL(string: body.url) else {
+		guard body.url.isEmpty == false, let url = URL(spaced: body.url) else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing or invalid remote URL", code: 400)
 				.encodeResponse(status: .badRequest, for: req)
 		}

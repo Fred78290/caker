@@ -212,7 +212,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 
 	public func configuration(relativeTo: URL) throws -> VZStorageDeviceConfiguration {
 		if #available(macOS 14, *) {
-			let diskURL = URL(string: diskPath)!
+			let diskURL = URL(spaced: diskPath)!
 
 			if ["nbd", "nbds", "nbd+unix", "nbds+unix"].contains(diskURL.scheme) {
 				let nbdAttachment = try VZNetworkBlockDeviceStorageDeviceAttachment(
@@ -285,7 +285,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		}
 
 		let diskPath = arguments.joined(separator: ":")
-		let diskURL = URL(string: diskPath)
+		let diskURL = URL(spaced: diskPath)
 
 		if ["nbd", "nbds", "nbd+unix", "nbds+unix"].contains(diskURL?.scheme) {
 			guard #available(macOS 14, *) else {

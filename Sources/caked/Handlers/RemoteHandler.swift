@@ -50,7 +50,7 @@ struct RemoteHandler: CakedCommand {
 			}
 		case .add:
 			reply = Caked_RemoteReply.with {
-				$0.created = CakedLib.RemoteHandler.addRemote(name: request.addRequest.name, url: URL(string: request.addRequest.url)!, runMode: runMode).caked
+				$0.created = CakedLib.RemoteHandler.addRemote(name: request.addRequest.name, url: URL(spaced: request.addRequest.url)!, runMode: runMode).caked
 			}
 		case .delete:
 			reply = Caked_RemoteReply.with {
