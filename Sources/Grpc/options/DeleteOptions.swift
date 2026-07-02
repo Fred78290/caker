@@ -3,7 +3,7 @@ import Foundation
 import NIOPortForwarding
 
 public struct DeleteOptions: ParsableArguments {
-	public static let configuration: CommandConfiguration = CommandConfiguration(abstract: String(localized: "Delete a VM"))
+	public static let configuration: CommandConfiguration = CommandConfiguration(abstract: String(localized: "Delete a VM"), aliases: ["rm"])
 
 	@Flag(name: [.short, .long], help: ArgumentHelp(String(localized: "Delete all VM")))
 	public var all: Bool = false
