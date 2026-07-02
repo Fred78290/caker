@@ -102,11 +102,15 @@ struct AdvancedSettingsView: View {
 		}
 	}
 
-	private func load() {
-		bridgedNetwork = ((try? CakedKeyConfig.bridgedNetwork.get()) ?? nil) ?? Self.noneNetwork
-		primaryName = ((try? CakedKeyConfig.primaryName.get()) ?? nil) ?? String.empty
-		passphrase = ((try? CakedKeyConfig.passphrase.get()) ?? nil) ?? String.empty
+private func load() {
+	do {
+		bridgedNetwork = try CakedKeyConfig.bridgedNetwork.get() ?? Self.noneNetwork
+		primaryName = try CakedKeyConfig.primaryName.get() ?? String.empty
+		passphrase = try CakedKeyConfig.passphrase.get() ?? String.empty
+	} catch {
+		errorMessage = error.localizedDescription
 	}
+}
 
 	private func save(_ key: CakedKeyConfig, _ value: String?) {
 		do {
