@@ -1652,6 +1652,17 @@
         }
       }
     },
+    "Can't serialize vmnet network: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de sérialiser le réseau vmnet : %@"
+          }
+        }
+      }
+    },
     "Cancel" : {
       "localizations" : {
         "fr" : {
@@ -3893,6 +3904,17 @@
         }
       }
     },
+    "Failed to create vmnet network with serialization, status: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de créer le réseau vmnet avec sérialisation, statut : %@"
+          }
+        }
+      }
+    },
     "Failed to decode import reply: %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4027,6 +4049,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible de reconfigurer le réseau : %@"
+          }
+        }
+      }
+    },
+    "Failed to reconstruct XPC object from serialization data" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de reconstruire l’objet XPC depuis les données de sérialisation"
           }
         }
       }
@@ -4471,6 +4504,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Forcer l'arrêt sans attendre l'extinction progressive"
+          }
+        }
+      }
+    },
+    "Forked command" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commande forkée"
           }
         }
       }
@@ -5234,13 +5278,13 @@
         }
       }
     },
-    "Installing MacOS from IPSW…" : {
+    "Installing macOS from IPSW…" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Installation de MacOS à partir d'IPSW..."
+            "value" : "Installation de macOS depuis l’IPSW…"
           }
         }
       }
@@ -7172,6 +7216,17 @@
         }
       }
     },
+    "Network %@ ended" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réseau %@ terminé"
+          }
+        }
+      }
+    },
     "Network %@ failed to start: %@, %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7326,6 +7381,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Réseau %@ en cours d'exécution"
+          }
+        }
+      }
+    },
+    "Network %@ restarted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réseau %@ redémarré"
           }
         }
       }
@@ -12130,6 +12196,17 @@
         }
       }
     },
+    "Sudo is not supported in sandboxed mode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sudo n’est pas pris en charge en mode sandbox"
+          }
+        }
+      }
+    },
     "sudo not found in path" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13523,6 +13600,17 @@
         }
       }
     },
+    "Unable to get the list of networks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d’obtenir la liste des réseaux"
+          }
+        }
+      }
+    },
     "Unable to get URL for %@" : {
       "localizations" : {
         "fr" : {
@@ -13595,6 +13683,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible de charger la machine virtuelle %@"
+          }
+        }
+      }
+    },
+    "Unable to set DHCP lease time in sandboxed mode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de définir la durée de bail DHCP en mode sandbox"
           }
         }
       }
@@ -15109,6 +15208,39 @@
         }
       }
     },
+    "VMNet %@ is already running" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VMNet %@ est déjà en cours d’exécution"
+          }
+        }
+      }
+    },
+    "VMNet %@ is not running" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VMNet %@ n’est pas en cours d’exécution"
+          }
+        }
+      }
+    },
+    "VMNet %@ stop network" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VMNet %@ arrêter le réseau"
+          }
+        }
+      }
+    },
     "VMNET interface ID" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15127,6 +15259,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "mode vmnet"
+          }
+        }
+      }
+    },
+    "VMNet network is only available on macOS 26.0 and later" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le réseau VMNet est uniquement disponible sur macOS 26.0 et versions ultérieures"
+          }
+        }
+      }
+    },
+    "VMNet reconfiguration is only available on macOS 26.0 and later" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La reconfiguration VMNet est uniquement disponible sur macOS 26.0 et versions ultérieures"
+          }
+        }
+      }
+    },
+    "VMNet serialization failed: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sérialisation VMNet a échoué : %@"
           }
         }
       }
