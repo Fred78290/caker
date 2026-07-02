@@ -76,7 +76,7 @@
             "state" : "new",
             "value" : "Caker uses AppleScript to install the /etc/sudoers.d/caked and /etc/paths.d/com.aldunelabs.caker files."
           }
-        }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
