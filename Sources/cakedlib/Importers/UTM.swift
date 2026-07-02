@@ -16,6 +16,10 @@ struct UTMImporter: Importer {
 		return false
 	}
 
+	var supportsInPlaceDisk: Bool {
+		return true
+	}
+
 	var name: String {
 		return "UTM"
 	}
@@ -25,7 +29,7 @@ struct UTMImporter: Importer {
 	}
 
 	private var candidateLibraryURLs: [URL] {
-		let home = FileManager.default.homeDirectoryForCurrentUser
+		let home = FileManager.realHomeDirectoryForCurrentUser
 
 		return [
 			home.appendingPathComponent("Library/Containers/com.utmapp.UTM/Data/Documents", isDirectory: true),
@@ -100,7 +104,13 @@ struct UTMImporter: Importer {
 		let drives = (plist["Drive"] as? [[String: Any]]) ?? []
 		let networks = (plist["Network"] as? [[String: Any]]) ?? []
 
-		guard let bootDrive = drives.first, let imageName = bootDrive["ImageName"] as? String else {
+		guard memorySizeMib > 0 else {
+			throw ServiceError(String(localized: "Invalid memory size \(memorySizeMib) MiB in \(configURL.path)"))
+		}
+
+		// The boot disk is the first drive backed by an image in the Data folder; entries
+		// without an ImageName (external or removable drives) cannot be the boot volume.
+		guard let bootDrive = drives.first(where: { $0["ImageName"] is String }), let imageName = bootDrive["ImageName"] as? String else {
 			throw ServiceError(String(localized: "UTM virtual machine \(source) has no boot drive configured"))
 		}
 
@@ -150,7 +160,7 @@ struct UTMImporter: Importer {
 
 		config.useCloudInit = false
 		config.agent = false
-		config.nested = os == .linux
+		config.nested = os == .linux && Utils.isNestedVirtualizationSupported()
 		config.networks = networkAttachments.isEmpty ? [GRPCLib.BridgeAttachement(network: "nat", mode: .auto, macAddress: nil)] : networkAttachments
 		config.sshPrivateKeyPath = sshPrivateKey
 		config.sshPrivateKeyPassphrase = passphrase

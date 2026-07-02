@@ -249,7 +249,7 @@ struct MainApp: App {
 		.defaultPosition(.center)
 
 		Window("Import from VMware", id: "import-vmware") {
-			ImportVirtualMachineView("Select a VMware .vmx configuration file to import into Caker.", appName: "VMWare", mustCopyImageDisk: true, delegate: VMWareImporter())
+			ImportVirtualMachineView("Select a VMware .vmx configuration file to import into Caker.", appName: "VMware", mustCopyImageDisk: true, delegate: VMWareImporter())
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 		}

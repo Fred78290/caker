@@ -292,6 +292,10 @@ struct MultipassImporter: Importer {
 		return true  // Multipass operations typically require elevated privileges
 	}
 
+	var supportsInPlaceDisk: Bool {
+		return false  // The qcow2 source image is converted, not attached directly
+	}
+
 	var name: String {
 		return "Multipass Importer"
 	}

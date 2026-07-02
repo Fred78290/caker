@@ -10,13 +10,17 @@ import UniformTypeIdentifiers
 
 protocol ImporterDelegate {
 	func browserForVirtualMachine() -> URL?
+	func suggestedName(for url: URL) -> String
 	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> ImportedReply
 }
 
-struct ImportVirtualMachineView: View {
-	typealias BrowserForVirtualMachine = () -> URL?
-	typealias DoImport = () async -> Bool
+extension ImporterDelegate {
+	func suggestedName(for url: URL) -> String {
+		url.deletingPathExtension().lastPathComponent
+	}
+}
 
+struct ImportVirtualMachineView: View {
 	@Environment(\.dismiss) private var dismiss
 
 	@State private var vmPath: String = ""
@@ -33,7 +37,7 @@ struct ImportVirtualMachineView: View {
 	@State private var errorMessage: String? = nil
 
 	private let storageLocation = StorageLocation(runMode: .app)
-	private let description: LocalizedStringKey  // "Select a .vbvm bundle. Only raw and ASIF boot disk images can be imported."
+	private let description: LocalizedStringKey
 	private let appName: String
 	private let mustCopyImageDisk: Bool
 	private let delegate: ImporterDelegate
@@ -102,11 +106,11 @@ struct ImportVirtualMachineView: View {
 							.rounded(.leading)
 							.frame(width: 213)
 						Button {
-							if let vmPath = self.delegate.browserForVirtualMachine() {
-								self.vmPath = vmPath.path(percentEncoded: false)
+							if let url = self.delegate.browserForVirtualMachine() {
+								self.vmPath = url.path(percentEncoded: false)
 
 								if targetName.isEmpty {
-									targetName = vmPath.deletingPathExtension().lastPathComponent
+									targetName = self.delegate.suggestedName(for: url)
 								}
 							}
 						} label: {
@@ -260,16 +264,26 @@ struct ImportVirtualMachineView: View {
 		isImporting = true
 		errorMessage = nil
 
+		let delegate = self.delegate
+		let source = vmPath
+		let name = targetName
+		let user = userName
+		let pass = password
+		let clear = clearPassword
+		let key = sshKey.isEmpty ? nil : sshKey
+		let passphrase = sshPassphrase.isEmpty ? nil : sshPassphrase
+		let copy = copyDisk
+
 		Task.detached(priority: .userInitiated) {
-			let result = await self.delegate.doImport(
-				vmPath: vmPath,
-				targetName: targetName,
-				userName: userName,
-				password: password,
-				clearPassword: clearPassword,
-				sshKey: sshKey.isEmpty ? nil : sshKey,
-				sshPassphrase: sshPassphrase.isEmpty ? nil : sshPassphrase,
-				copyDisk: copyDisk)
+			let result = await delegate.doImport(
+				vmPath: source,
+				targetName: name,
+				userName: user,
+				password: pass,
+				clearPassword: clear,
+				sshKey: key,
+				sshPassphrase: passphrase,
+				copyDisk: copy)
 
 			await MainActor.run {
 				isImporting = false

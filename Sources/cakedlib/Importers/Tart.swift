@@ -25,6 +25,10 @@ struct TartImporter: Importer {
 		return false
 	}
 
+	var supportsInPlaceDisk: Bool {
+		return true
+	}
+
 	var name: String {
 		return "Tart"
 	}
@@ -38,7 +42,7 @@ struct TartImporter: Importer {
 			return URL(fileURLWithPath: custom, isDirectory: true)
 		}
 
-		return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".tart", isDirectory: true)
+		return FileManager.realHomeDirectoryForCurrentUser.appendingPathComponent(".tart", isDirectory: true)
 	}
 
 	func locateVM(source: String) throws -> URL {
@@ -94,9 +98,10 @@ struct TartImporter: Importer {
 			screenSize: .standard
 		)
 
+		config.cpuCount = max(UInt16(clamping: tartConfig.cpuCount ?? tartConfig.cpuCountMin), config.cpuCountMin)
 		config.useCloudInit = false
 		config.agent = false
-		config.nested = os == .linux
+		config.nested = os == .linux && Utils.isNestedVirtualizationSupported()
 		config.networks = [GRPCLib.BridgeAttachement(network: "nat", mode: .auto, macAddress: nil)]
 		config.sshPrivateKeyPath = sshPrivateKey
 		config.sshPrivateKeyPassphrase = passphrase

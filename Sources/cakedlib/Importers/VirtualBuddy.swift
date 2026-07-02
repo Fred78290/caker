@@ -17,6 +17,10 @@ struct VirtualBuddyImporter: Importer {
 		return false
 	}
 
+	var supportsInPlaceDisk: Bool {
+		return true
+	}
+
 	var name: String {
 		return "VirtualBuddy"
 	}
@@ -26,7 +30,7 @@ struct VirtualBuddyImporter: Importer {
 	}
 
 	private var defaultLibraryURL: URL {
-		FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/VirtualBuddy", isDirectory: true)
+		FileManager.realHomeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/VirtualBuddy", isDirectory: true)
 	}
 
 	func locateVM(source: String) throws -> URL {
@@ -54,12 +58,11 @@ struct VirtualBuddyImporter: Importer {
 		return dict
 	}
 
-	private static let managedImageExtensions: [String: Bool] = [
-		"img": true,  // raw
-		"asif": true,  // Apple Sparse Image Format, directly attachable
-		"dmg": false,
-		"sparseimage": false,
-	]
+	/// Importable managed disk image extensions (raw and Apple Sparse Image Format, both
+	/// directly attachable), probed before the UDIF-backed extensions so a bundle containing
+	/// both `Disk.img` and a leftover `Disk.dmg` deterministically resolves to the former.
+	private static let supportedImageExtensions: [String] = ["img", "asif"]
+	private static let unsupportedImageExtensions: [String] = ["dmg", "sparseimage"]
 
 	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, copyDisk: Bool = true, runMode: Utils.RunMode) throws {
 		let bundleURL = try locateVM(source: source)
@@ -82,7 +85,7 @@ struct VirtualBuddyImporter: Importer {
 		}
 
 		let cpuCount = hardware["cpuCount"] as? Int ?? 2
-		let memorySize = hardware["memorySize"] as? UInt64 ?? UInt64(2) * GiB
+		let memorySize = hardware["memorySize"] as? UInt64 ?? UInt64(2) * GoB
 
 		// Note: `storageDevices` is a computed property backed by the plain stored property
 		// `_storageDevices`, which is what gets serialized to the property list.
@@ -101,7 +104,7 @@ struct VirtualBuddyImporter: Importer {
 			throw ServiceError(String(localized: "Boot disk image \"\(filename)\" not found in \(bundleURL.path)"))
 		}
 
-		guard Self.managedImageExtensions[bootDiskURL.pathExtension.lowercased()] == true else {
+		guard Self.supportedImageExtensions.contains(bootDiskURL.pathExtension.lowercased()) else {
 			throw ServiceError(String(localized: "Boot disk image format \".\(bootDiskURL.pathExtension)\" is not supported for import, only raw and ASIF images can be imported"))
 		}
 
@@ -112,8 +115,7 @@ struct VirtualBuddyImporter: Importer {
 			let mac = network["macAddress"] as? String
 
 			if kind == 1 {
-				// bridge
-				return GRPCLib.BridgeAttachement(network: "bridge", mode: .auto, macAddress: mac)
+				return GRPCLib.BridgeAttachement(network: "bridged", mode: .auto, macAddress: mac)
 			}
 
 			if let mac, macAddress == nil {
@@ -145,7 +147,7 @@ struct VirtualBuddyImporter: Importer {
 
 		config.useCloudInit = false
 		config.agent = false
-		config.nested = os == .linux
+		config.nested = os == .linux && Utils.isNestedVirtualizationSupported()
 		config.networks = networkAttachments.isEmpty ? [GRPCLib.BridgeAttachement(network: "nat", mode: .auto, macAddress: nil)] : networkAttachments
 		config.sshPrivateKeyPath = sshPrivateKey
 		config.sshPrivateKeyPassphrase = passphrase
@@ -181,7 +183,13 @@ struct VirtualBuddyImporter: Importer {
 				throw ServiceError(String(localized: "macOS guests can only be imported on Apple Silicon hosts"))
 			#endif
 		} else {
-			_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
+			let nvramURL = bundleURL.appendingPathComponent("NVRAM")
+
+			if try nvramURL.exists() {
+				try FileManager.default.copyItem(at: nvramURL, to: location.nvramURL)
+			} else {
+				_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
+			}
 		}
 
 		if copyDisk {
@@ -197,7 +205,7 @@ struct VirtualBuddyImporter: Importer {
 	/// VirtualBuddy stores managed disk images at the bundle root with the format's file
 	/// extension appended to the configured filename, e.g. `Disk.img` or `Disk.asif`.
 	private func findManagedDiskImage(named filename: String, in bundleURL: URL) throws -> URL? {
-		for ext in Self.managedImageExtensions.keys {
+		for ext in Self.supportedImageExtensions + Self.unsupportedImageExtensions {
 			let url = bundleURL.appendingPathComponent(filename).appendingPathExtension(ext)
 
 			if try url.exists() {
