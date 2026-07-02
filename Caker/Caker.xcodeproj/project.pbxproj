@@ -315,6 +315,7 @@
 		9BAF74B92EBBD7CC0036CE1B /* MultiplatformTabBarHorizontalAlignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74B12EBBD7CC0036CE1B /* MultiplatformTabBarHorizontalAlignment.swift */; };
 		9BAF74BA2EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74B42EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift */; };
 		9BAF74BB2EBBD7CC0036CE1B /* MultiplatformTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74B02EBBD7CC0036CE1B /* MultiplatformTabBar.swift */; };
+		9BB031492FF6603F00F4612F /* AdvancedSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB031482FF6603F00F4612F /* AdvancedSettingsView.swift */; };
 		9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB144D32EC33A320094D950 /* Sudo.swift */; };
 		9BB148972EC622ED0094D950 /* ContainerizationOCI in Frameworks */ = {isa = PBXBuildFile; productRef = 9BB148962EC622ED0094D950 /* ContainerizationOCI */; };
 		9BB149182EC74B830094D950 /* PullHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB149172EC74B7F0094D950 /* PullHandler.swift */; };
@@ -1121,6 +1122,7 @@
 		9BAF74B22EBBD7CC0036CE1B /* MultiplatformTabBarVerticalAlignment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabBarVerticalAlignment.swift; sourceTree = "<group>"; };
 		9BAF74B32EBBD7CC0036CE1B /* MultiplatformTabCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabCollection.swift; sourceTree = "<group>"; };
 		9BAF74B42EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabViewPosition.swift; sourceTree = "<group>"; };
+		9BB031482FF6603F00F4612F /* AdvancedSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsView.swift; sourceTree = "<group>"; };
 		9BB144D32EC33A320094D950 /* Sudo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sudo.swift; sourceTree = "<group>"; };
 		9BB149172EC74B7F0094D950 /* PullHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullHandler.swift; sourceTree = "<group>"; };
 		9BB149192EC74B880094D950 /* PushHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushHandler.swift; sourceTree = "<group>"; };
@@ -1754,6 +1756,7 @@
 			isa = PBXGroup;
 			children = (
 				9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */,
+				9BB031482FF6603F00F4612F /* AdvancedSettingsView.swift */,
 				9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */,
 				9B3600882E1FC48D00889BFD /* AsyncButton.swift */,
 				9B1389D22F97A9D0000329B1 /* CakedServerView.swift */,
@@ -3369,6 +3372,7 @@
 				9BB213CF2F37548300B45692 /* RemoteHandler.swift in Sources */,
 				9BB213D02F37548300B45692 /* ListHandler.swift in Sources */,
 				9BB213D12F37548300B45692 /* NetworksHandler.swift in Sources */,
+				9BB031492FF6603F00F4612F /* AdvancedSettingsView.swift in Sources */,
 				9BB213D22F37548300B45692 /* DeleteHandler.swift in Sources */,
 				9BB213D32F37548300B45692 /* TemplateHandler.swift in Sources */,
 				9B0202712EA8CBDD00053712 /* NetworkDetailView.swift in Sources */,

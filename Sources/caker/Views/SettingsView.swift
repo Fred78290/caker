@@ -20,6 +20,10 @@ struct SettingsView: View {
 				.tabItem {
 					Label("Virtual machines", systemImage: "display")
 				}
+			AdvancedSettingsView().padding()
+				.tabItem {
+					Label("Advanced", systemImage: "gearshape.2")
+				}
 		}.frame(minWidth: 450, alignment: .topLeading).preferredColorScheme(self.appearancePreference.colorScheme)
 	}
 }
