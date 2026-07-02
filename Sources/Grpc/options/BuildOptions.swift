@@ -382,6 +382,11 @@ public struct BuildOptions: ParsableArguments {
 			throw ValidationError(String(localized: "Malformed URL"))
 		}
 
+		if let s = imageURL.scheme, (s == "http" || s == "https"),
+		   let host = imageURL.host, host.contains(" ") {
+			throw ValidationError(String(localized: "Malformed URL"))
+		}
+
 		if let s = imageURL.scheme {
 			scheme = s
 
