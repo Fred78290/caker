@@ -291,7 +291,7 @@ struct VMWareImporter: Importer {
 	}
 
 	var name: String {
-		return "VMWare"
+		return "VMware"
 	}
 
 	var source: String {
