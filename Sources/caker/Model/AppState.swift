@@ -239,20 +239,18 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 		for network in networks {
 			if let idx = self.networks.firstIndex(where: { $0.name == network.name }) {
-				withUnsafeMutablePointer(to: &self.networks[idx]) { ptr in
-					ptr.pointee = BridgedNetwork(network)
-				}
+				self.networks[idx] = BridgedNetwork(network)
 			} else {
 				newItems.append(BridgedNetwork(network))
 			}
 		}
-		
+
 		self.networks.removeAll(where: {
 			deleted.contains($0.name)
 		})
-		
+
 		self.networks.append(contentsOf: newItems)
-	}
+		self.networks = self.networks.sorted(using: BridgedNetworkComparator())
 
 	func updateState() {
 		if let currentDocument {
