@@ -401,7 +401,7 @@ extension ConnectionManager {
 
 			if event.fileChange {
 				if fileURL.lastPathComponent == Home.networksFilename && fileURL.deletingLastPathComponent().lastPathComponent == networks {
-					Task {
+					Task { @MainActor in
 						AppState.shared.reloadNetworks()
 					}
 				} else if fileURL.pathExtension == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
