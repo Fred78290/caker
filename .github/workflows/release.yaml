@@ -175,9 +175,8 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          security find-certificate -a|grep "${TEAM_ID}" || true
           set -o pipefail
-          ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH} -vvv" 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving'
+          ./Scripts/build-signed-release.sh "${KEYCHAIN_PATH}" 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving'
 
       - name: 🧪 Run tests
         id: tests

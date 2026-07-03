@@ -24,7 +24,7 @@ env:
   SETUP_KEYCHAIN: ${{ vars.SETUP_KEYCHAIN }}
   CODESIGN_REQUIREMENT: ${{ vars.CODESIGN_REQUIREMENT }}
   BASE_VERSION: ${{ vars.BASE_VERSION }}
-
+  LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
 permissions:
   contents: write
 
@@ -80,6 +80,7 @@ jobs:
             else
               echo "setup_keychain=false" >> ${GITHUB_OUTPUT}
               echo "KEYCHAIN_PATH=" | tee -a ${GITHUB_ENV}
+              security unlock-keychain -p "${LOGIN_PASSWORD}"
             fi
 
             echo "install_python=false" >> ${GITHUB_OUTPUT}
