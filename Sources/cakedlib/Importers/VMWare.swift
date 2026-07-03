@@ -327,6 +327,7 @@ struct VMWareImporter: Importer {
 		let config = CakeConfig(
 			location: location.rootURL,
 			rootDisk: nil,
+			diskFormat: .raw,
 			os: .linux,
 			autostart: false,
 			configuredUser: userName,

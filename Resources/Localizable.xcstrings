@@ -1935,6 +1935,7 @@
       }
     },
     "Check for Updates…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -4670,6 +4671,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Commande forkée"
+          }
+        }
+      }
+    },
+    "Format" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Format"
           }
         }
       }
@@ -10848,6 +10859,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disque racine"
+          }
+        }
+      }
+    },
+    "Root disk format" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Format du disque racine"
           }
         }
       }

@@ -13,19 +13,19 @@ public enum ImageSource: Int, Sendable, Codable, CaseIterable, CustomStringConve
 		"http" : .qcow2,
 		"https" : .qcow2,
 		"qcow2" : .qcow2,
-
+		
 		"file" : .raw,
 		"img" : .raw,
 		"imgs" : .raw,
-
+		
 		"oci" : .oci,
 		"ocis" : .oci,
-
+		
 		"template" : .template,
-
+		
 		"iso" : .iso,
 		"isos" : .iso,
-
+		
 		"ipsw" : .ipsw,
 	]
 	
@@ -93,7 +93,7 @@ public enum ImageSource: Int, Sendable, Codable, CaseIterable, CustomStringConve
 		guard var components = URLComponents(url: imageURL, resolvingAgainstBaseURL: false) else {
 			return imageURL
 		}
-
+		
 		switch imageURL.scheme {
 		case "qcow2":
 			components.scheme = "file"
@@ -104,12 +104,21 @@ public enum ImageSource: Int, Sendable, Codable, CaseIterable, CustomStringConve
 		default:
 			return imageURL
 		}
-
+		
 		if let imageURL = components.url {
 			return imageURL
 		}
-
+		
 		return imageURL
+	}
+
+	public func supportedDiskFormat(for format: SupportedDiskFormat) -> SupportedDiskFormat {
+		switch self {
+		case .raw, .qcow2, .oci, .stream:
+			return .raw
+		case .template, .iso, .ipsw:
+			return format
+		}
 	}
 }
 

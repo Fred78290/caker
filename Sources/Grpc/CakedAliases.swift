@@ -306,6 +306,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var os: VirtualizedOS
 	public var arch: Architecture
 	public var diskSize: UInt64
+	public var diskFormat: SupportedDiskFormat
 	public var cpuCountMin: UInt16
 	public var suspendable: Bool
 	public var cpuCount: UInt16
@@ -349,6 +350,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		// Map fields directly when available on `from`. For fields not present, use safe defaults.
 		self.locationURL = from.locationURL
 		self.rootDisk = from.rootDisk
+		self.diskFormat = from.diskFormat
 		self.version = from.version
 		self.os = from.os
 		self.arch = from.arch
@@ -401,6 +403,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.os = .init(from.os)!
 		self.arch = .init(from.arch)!
 		self.diskSize = from.diskSize
+		self.diskFormat = .init(from.diskFormat)
 		self.cpuCountMin = UInt16(from.cpuCountMin)
 		self.suspendable = from.suspendable
 		self.cpuCount = UInt16(from.cpuCount)
@@ -521,6 +524,7 @@ extension Caked_CommonBuildRequest {
 		self.cpu = UInt32(buildOptions.cpu)
 		self.memory = buildOptions.memory
 		self.diskSize = buildOptions.diskSize
+		self.diskFormat = buildOptions.diskFormat.caked
 		self.user = buildOptions.user
 		self.mainGroup = buildOptions.mainGroup
 		self.otherGroups = buildOptions.otherGroup.joined(separator: ",")

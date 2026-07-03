@@ -84,9 +84,9 @@ public struct ConfigureHandler {
 				}
 
 				if config.os == .linux {
-					try location.resizeDisk(diskSize)
+					try location.resizeDisk(diskSize, format: config.diskFormat)
 				} else {
-					try location.expandDisk(diskSize)
+					try location.expandDisk(diskSize, format: config.diskFormat)
 				}
 			}
 

@@ -315,6 +315,7 @@ struct ShortImageInfoComparator: SortComparator {
 	var createVMMessage: String
 	var rootDisk: String
 	var mountPoints: MountPoints
+	var showDiskFormat: Bool
 
 	init() {
 		self.currentStep = .name
@@ -333,6 +334,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.createVMMessage = String.empty
 		self.rootDisk = String.empty
 		self.mountPoints = []
+		self.showDiskFormat = false
 	}
 
 	func reset() {
@@ -352,6 +354,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.createVMMessage = String.empty
 		self.rootDisk = String.empty
 		self.mountPoints = []
+		self.showDiskFormat = false
 	}
 }
 
@@ -930,25 +933,41 @@ struct VirtualMachineWizard: View {
 							}
 						}.onChange(of: self.model.imageSource) { _, newValue in
 							self.config.source = newValue
+							self.config.diskFormat = newValue.supportedDiskFormat(for: self.config.diskFormat)
 
 							switch newValue {
 							case .raw:
 								self.config.imageName = String.empty
+								self.model.showDiskFormat = false
+								self.config.diskFormat = .raw
 							case .qcow2:
 								self.config.imageName = model.cloudImageRelease.url.absoluteString
+								self.model.showDiskFormat = false
+								self.config.diskFormat = .raw
 							case .oci:
 								self.config.imageName = String.empty
+								self.model.showDiskFormat = false
+								self.config.diskFormat = .raw
 							case .template:
 								self.config.imageName = String.empty
+								self.model.showDiskFormat = false
+								self.config.diskFormat = .raw
 							case .stream:
 								self.config.imageName = String.empty
+								self.model.showDiskFormat = false
+								self.model.showDiskFormat = false
+								self.config.diskFormat = .raw
 							case .iso:
 								self.config.imageName = self.model.isoImageRelease.location.url
+								self.model.showDiskFormat = true
+								self.config.diskFormat = .defaultSupportedFormat
 							case .ipsw:
 								self.config.imageName = self.model.ipswRelease.location.url
 								self.config.cpuCount = max(self.config.cpuCount, 4)
 								self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4096)
 								self.config.diskSizeInGiB = max(self.config.diskSizeInGiB, 40)
+								self.model.showDiskFormat = true
+								self.config.diskFormat = .defaultSupportedFormat
 							}
 						}
 						.pickerStyle(.menu)
@@ -975,6 +994,21 @@ struct VirtualMachineWizard: View {
 						}
 						.labelsHidden()
 						.disabled(self.model.createVM && noRootDisk == false)
+					}
+				}
+
+				if self.model.showDiskFormat {
+					LabeledContent("Root disk format") {
+						HStack {
+							Picker("Format", selection: $config.diskFormat) {
+								ForEach(SupportedDiskFormat.allCases, id: \.self) { source in
+									Text(source.description).tag(source)
+								}
+							}
+							.pickerStyle(.menu)
+							.disabled(self.model.createVM)
+							.labelsHidden()
+						}.frame(width: 100)
 					}
 				}
 

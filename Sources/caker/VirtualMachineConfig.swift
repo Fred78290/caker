@@ -30,6 +30,12 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		}
 	}
 
+	var diskFormat: SupportedDiskFormat {
+		didSet {
+			changedFields?.insert(\.diskFormat)
+		}
+	}
+
 	var dhcpClientID: String? = nil {
 		didSet {
 			changedFields?.insert(\.dhcpClientID)
@@ -500,6 +506,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.arch = Architecture.current()
 		self.os = .linux
+		self.diskFormat = .raw
 		self.cpuCount = 1
 		self.memorySize = 512 * MoB
 		self.macAddress = String.empty
@@ -536,6 +543,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	init(name: String, config: any VirtualMachineConfiguration) {
 		self.vmname = name
 		self.rootDisk = config.rootDisk
+		self.diskFormat = config.diskFormat
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.locationURL = config.locationURL
 		self.version = config.version
@@ -595,9 +603,9 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 
 		if self.rootDisk == nil && oldDiskSize < self.diskSize && location.status == .stopped {
 			if config.os == .linux {
-				try location.resizeDisk(self.diskSizeInGiB)
+				try location.resizeDisk(self.diskSizeInGiB, format: self.diskFormat)
 			} else {
-				try location.expandDisk(self.diskSizeInGiB)
+				try location.expandDisk(self.diskSizeInGiB, format: self.diskFormat)
 			}
 		}
 	}
@@ -605,6 +613,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	func saveLocally(_ config: CakeConfig) throws {
 		config.suspendable = self.suspendable
 		config.diskSize = self.diskSize
+		config.diskFormat = self.diskFormat
 		config.cpuCount = self.cpuCount
 		config.memorySizeMin = self.memorySizeMin
 		config.memorySize = self.memorySize
@@ -670,6 +679,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			cpu: UInt16(self.cpuCount),
 			memory: self.memorySizeInMoB,
 			diskSize: self.diskSizeInGoB,
+			diskFormat: self.diskFormat,
 			screenSize: self.display,
 			attachedDisks: self.attachedDisks,
 			user: self.configuredUser,

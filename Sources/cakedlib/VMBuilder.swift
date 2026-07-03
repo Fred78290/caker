@@ -40,6 +40,7 @@ public struct VMBuilder {
 				config = CakeConfig(
 					location: location.rootURL,
 					rootDisk: options.root,
+					diskFormat: options.diskFormat,
 					os: .darwin,
 					autostart: options.autostart,
 					configuredUser: options.user,
@@ -91,6 +92,7 @@ public struct VMBuilder {
 				config = CakeConfig(
 					location: location.rootURL,
 					rootDisk: options.root,
+					diskFormat: options.diskFormat,
 					os: .linux,
 					autostart: options.autostart,
 					configuredUser: options.user,
@@ -119,9 +121,9 @@ public struct VMBuilder {
 			// Create or resize disk
 			if config.rootDisk == nil {
 				if config.os == .darwin {
-					try? location.expandDisk(options.diskSize)
+					try? location.expandDisk(options.diskSize, format: config.diskFormat)
 				} else {
-					try? location.resizeDisk(options.diskSize)
+					try? location.resizeDisk(options.diskSize, format: config.diskFormat)
 				}
 			}
 

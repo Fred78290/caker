@@ -282,7 +282,12 @@ message Caked {
       ipsw     = 7;
     }
 
-// DiskAttachment represents an attached disk
+    enum DiskFormat {
+      rawDisk  = 0;
+      asifDisk = 1;
+    }
+
+    // DiskAttachment represents an attached disk
     message DiskAttachment {
       message DiskOptions {
         bool   readOnly    = 1;
@@ -413,7 +418,8 @@ message Caked {
     optional bytes ecid          = 42;
     optional bytes hardwareModel = 43;
   // Optional root disk path for the VM, if applicable
-    optional string rootDisk = 44;
+    optional string     rootDisk   = 44;
+    optional DiskFormat diskFormat = 45;
   }
 
   message ScreenSize {
@@ -448,37 +454,38 @@ message Caked {
 
   message VMRequest {
     message CommonBuildRequest {
-      string                    name                  = 1;
-      optional uint32           cpu                   = 2;
-      optional uint64           memory                = 3;
-      optional string           user                  = 4;
-      optional string           password              = 22;
-      optional string           mainGroup             = 5;
-      optional bool             sshPwAuth             = 6;
-      optional string           image                 = 7;
-      optional bytes            sshAuthorizedKey      = 8;
-      optional bytes            vendorData            = 9;
-      optional bytes            userData              = 10;
-      optional bytes            networkConfig         = 11;
-      optional uint64           diskSize              = 12;
-      optional bool             autostart             = 13;
-      optional bool             nested                = 14;
-      optional string           forwardedPort         = 15;
-      optional string           mounts                = 16;
-      optional string           networks              = 17;
-      optional string           sockets               = 18;
-      optional string           console               = 19;
-      optional string           attachedDisks         = 20;
-      optional bool             dynamicPortForwarding = 21;
-      optional bool             ifnames               = 23;
-      optional bool             suspendable           = 24;
-      optional ScreenSize       screenSize            = 25;
-      optional bool             displayRefit          = 26;
-      optional string           otherGroups           = 27;
-      Configuration.ImageSource imageSource           = 28;
-      bool                      autoinstall           = 29;
-      optional bool             bridgedNetwork        = 30;
-      optional string           rootDisk              = 31;
+      string                            name                  = 1;
+      optional uint32                   cpu                   = 2;
+      optional uint64                   memory                = 3;
+      optional string                   user                  = 4;
+      optional string                   password              = 22;
+      optional string                   mainGroup             = 5;
+      optional bool                     sshPwAuth             = 6;
+      optional string                   image                 = 7;
+      optional bytes                    sshAuthorizedKey      = 8;
+      optional bytes                    vendorData            = 9;
+      optional bytes                    userData              = 10;
+      optional bytes                    networkConfig         = 11;
+      optional uint64                   diskSize              = 12;
+      optional bool                     autostart             = 13;
+      optional bool                     nested                = 14;
+      optional string                   forwardedPort         = 15;
+      optional string                   mounts                = 16;
+      optional string                   networks              = 17;
+      optional string                   sockets               = 18;
+      optional string                   console               = 19;
+      optional string                   attachedDisks         = 20;
+      optional bool                     dynamicPortForwarding = 21;
+      optional bool                     ifnames               = 23;
+      optional bool                     suspendable           = 24;
+      optional ScreenSize               screenSize            = 25;
+      optional bool                     displayRefit          = 26;
+      optional string                   otherGroups           = 27;
+      Configuration.ImageSource         imageSource           = 28;
+      bool                              autoinstall           = 29;
+      optional bool                     bridgedNetwork        = 30;
+      optional string                   rootDisk              = 31;
+      optional Configuration.DiskFormat diskFormat            = 32;
     }
 
     message BuildRequest {

@@ -54,6 +54,7 @@ public struct SpawnHandler {
 			throw ServiceError(String(localized: "Root disk not found: \(options.root)"))
 		}
 
+		let diskFormat = Utilities.isASIFDisk(filePath: expandedRoot) ? SupportedDiskFormat.asif : SupportedDiskFormat.raw
 		var cpuCountMin = options.cpu
 		var memorySize = options.memory * MoB
 		var memorySizeMin = VMBuilder.memoryMinSize
@@ -89,6 +90,7 @@ public struct SpawnHandler {
 		let config = CakeConfig(
 			location: location.rootURL,
 			rootDisk: options.root,
+			diskFormat: diskFormat,
 			os: options.os,
 			autostart: options.autostart,
 			configuredUser: options.user,

@@ -817,6 +817,15 @@ public nonisolated struct Caked_Caked: Sendable {
     /// Clears the value of `rootDisk`. Subsequent reads from it will return its default value.
     public mutating func clearRootDisk() {_uniqueStorage()._rootDisk = nil}
 
+    public var diskFormat: Caked_Caked.Configuration.DiskFormat {
+      get {_storage._diskFormat ?? .rawDisk}
+      set {_uniqueStorage()._diskFormat = newValue}
+    }
+    /// Returns true if `diskFormat` has been explicitly set.
+    public var hasDiskFormat: Bool {_storage._diskFormat != nil}
+    /// Clears the value of `diskFormat`. Subsequent reads from it will return its default value.
+    public mutating func clearDiskFormat() {_uniqueStorage()._diskFormat = nil}
+
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
     /// VirtualizedOS represents the type of virtualized operating system
@@ -1019,6 +1028,40 @@ public nonisolated struct Caked_Caked: Sendable {
         .stream,
         .iso,
         .ipsw,
+      ]
+
+    }
+
+    public nonisolated enum DiskFormat: SwiftProtobuf.Enum, Swift.CaseIterable {
+      public typealias RawValue = Int
+      case rawDisk // = 0
+      case asifDisk // = 1
+      case UNRECOGNIZED(Int)
+
+      public init() {
+        self = .rawDisk
+      }
+
+      public init?(rawValue: Int) {
+        switch rawValue {
+        case 0: self = .rawDisk
+        case 1: self = .asifDisk
+        default: self = .UNRECOGNIZED(rawValue)
+        }
+      }
+
+      public var rawValue: Int {
+        switch self {
+        case .rawDisk: return 0
+        case .asifDisk: return 1
+        case .UNRECOGNIZED(let i): return i
+        }
+      }
+
+      // The compiler won't synthesize support with the UNRECOGNIZED case.
+      public static let allCases: [Caked_Caked.Configuration.DiskFormat] = [
+        .rawDisk,
+        .asifDisk,
       ]
 
     }
@@ -1632,6 +1675,15 @@ public nonisolated struct Caked_Caked: Sendable {
       public var hasRootDisk: Bool {_storage._rootDisk != nil}
       /// Clears the value of `rootDisk`. Subsequent reads from it will return its default value.
       public mutating func clearRootDisk() {_uniqueStorage()._rootDisk = nil}
+
+      public var diskFormat: Caked_Caked.Configuration.DiskFormat {
+        get {_storage._diskFormat ?? .rawDisk}
+        set {_uniqueStorage()._diskFormat = newValue}
+      }
+      /// Returns true if `diskFormat` has been explicitly set.
+      public var hasDiskFormat: Bool {_storage._diskFormat != nil}
+      /// Clears the value of `diskFormat`. Subsequent reads from it will return its default value.
+      public mutating func clearDiskFormat() {_uniqueStorage()._diskFormat = nil}
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -7099,7 +7151,7 @@ nonisolated extension Caked_Caked.MemoryInfo: SwiftProtobuf.Message, SwiftProtob
 
 nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Configuration"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}diskSize\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0\u{1}rootDisk\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}diskSize\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0\u{1}rootDisk\0\u{1}diskFormat\0")
 
   fileprivate class _StorageClass {
     var _version: Int32 = 0
@@ -7146,6 +7198,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
     var _ecid: Data? = nil
     var _hardwareModel: Data? = nil
     var _rootDisk: String? = nil
+    var _diskFormat: Caked_Caked.Configuration.DiskFormat? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -7200,6 +7253,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
       _ecid = source._ecid
       _hardwareModel = source._hardwareModel
       _rootDisk = source._rootDisk
+      _diskFormat = source._diskFormat
     }
   }
 
@@ -7262,6 +7316,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
         case 42: try { try decoder.decodeSingularBytesField(value: &_storage._ecid) }()
         case 43: try { try decoder.decodeSingularBytesField(value: &_storage._hardwareModel) }()
         case 44: try { try decoder.decodeSingularStringField(value: &_storage._rootDisk) }()
+        case 45: try { try decoder.decodeSingularEnumField(value: &_storage._diskFormat) }()
         default: break
         }
       }
@@ -7406,6 +7461,9 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
       try { if let v = _storage._rootDisk {
         try visitor.visitSingularStringField(value: v, fieldNumber: 44)
       } }()
+      try { if let v = _storage._diskFormat {
+        try visitor.visitSingularEnumField(value: v, fieldNumber: 45)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -7459,6 +7517,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
         if _storage._ecid != rhs_storage._ecid {return false}
         if _storage._hardwareModel != rhs_storage._hardwareModel {return false}
         if _storage._rootDisk != rhs_storage._rootDisk {return false}
+        if _storage._diskFormat != rhs_storage._diskFormat {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -7482,6 +7541,10 @@ nonisolated extension Caked_Caked.Configuration.SupportedPlatform: SwiftProtobuf
 
 nonisolated extension Caked_Caked.Configuration.ImageSource: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0unknown\0\u{1}raw\0\u{1}cloud\0\u{1}oci\0\u{1}template\0\u{1}stream\0\u{1}iso\0\u{1}ipsw\0")
+}
+
+nonisolated extension Caked_Caked.Configuration.DiskFormat: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0rawDisk\0\u{1}asifDisk\0")
 }
 
 nonisolated extension Caked_Caked.Configuration.DiskAttachment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -8148,7 +8211,7 @@ nonisolated extension Caked_Caked.VMRequest: SwiftProtobuf.Message, SwiftProtobu
 
 nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".CommonBuildRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0\u{1}otherGroups\0\u{1}imageSource\0\u{1}autoinstall\0\u{1}bridgedNetwork\0\u{1}rootDisk\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0\u{1}otherGroups\0\u{1}imageSource\0\u{1}autoinstall\0\u{1}bridgedNetwork\0\u{1}rootDisk\0\u{1}diskFormat\0")
 
   fileprivate class _StorageClass {
     var _name: String = String()
@@ -8182,6 +8245,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
     var _autoinstall: Bool = false
     var _bridgedNetwork: Bool? = nil
     var _rootDisk: String? = nil
+    var _diskFormat: Caked_Caked.Configuration.DiskFormat? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -8223,6 +8287,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
       _autoinstall = source._autoinstall
       _bridgedNetwork = source._bridgedNetwork
       _rootDisk = source._rootDisk
+      _diskFormat = source._diskFormat
     }
   }
 
@@ -8272,6 +8337,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
         case 29: try { try decoder.decodeSingularBoolField(value: &_storage._autoinstall) }()
         case 30: try { try decoder.decodeSingularBoolField(value: &_storage._bridgedNetwork) }()
         case 31: try { try decoder.decodeSingularStringField(value: &_storage._rootDisk) }()
+        case 32: try { try decoder.decodeSingularEnumField(value: &_storage._diskFormat) }()
         default: break
         }
       }
@@ -8377,6 +8443,9 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
       try { if let v = _storage._rootDisk {
         try visitor.visitSingularStringField(value: v, fieldNumber: 31)
       } }()
+      try { if let v = _storage._diskFormat {
+        try visitor.visitSingularEnumField(value: v, fieldNumber: 32)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -8417,6 +8486,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
         if _storage._autoinstall != rhs_storage._autoinstall {return false}
         if _storage._bridgedNetwork != rhs_storage._bridgedNetwork {return false}
         if _storage._rootDisk != rhs_storage._rootDisk {return false}
+        if _storage._diskFormat != rhs_storage._diskFormat {return false}
         return true
       }
       if !storagesAreEqual {return false}

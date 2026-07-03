@@ -77,10 +77,11 @@ struct TartImporter: Importer {
 
 		let tartConfig = try JSONDecoder().decode(TartVMConfig.self, from: try Data(contentsOf: configURL))
 		let os: VirtualizedOS = tartConfig.os == "darwin" ? .darwin : .linux
-
+		let diskFormat = SupportedDiskFormat(argument: tartConfig.diskFormat ?? "raw") ?? .raw
 		let config = CakeConfig(
 			location: location.rootURL,
 			rootDisk: copyDisk ? nil : diskURL.absoluteURL.path,
+			diskFormat: diskFormat,
 			os: os,
 			autostart: false,
 			configuredUser: userName,

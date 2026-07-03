@@ -109,6 +109,19 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		}
 	}
 
+	public var diskFormat: SupportedDiskFormat {
+		set {
+			self.config["diskFormat"] = newValue.rawValue
+		}
+		get {
+			guard let diskFormat = self.config["diskFormat"] as? Int else {
+				return .raw
+			}
+
+			return SupportedDiskFormat(rawValue: diskFormat) ?? .raw
+		}
+	}
+
 	public var arch: Architecture {
 		set { self.config["arch"] = newValue.rawValue }
 		get {
@@ -410,6 +423,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 	public init(
 		location: URL,
 		rootDisk: String?,
+		diskFormat: SupportedDiskFormat,
 		os: VirtualizedOS,
 		autostart: Bool,
 		configuredUser: String,
@@ -431,6 +445,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		self.cake = Config()
 		self.version = 1
 		self.os = os
+		self.diskFormat = diskFormat
 		self.cpuCountMin = cpuCountMin
 		self.memorySizeMin = memorySizeMin
 		self.macAddress = macAddress.string
@@ -452,28 +467,6 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		self.rootDisk = rootDisk
 	}
 
-	public init(location: URL, configuredUser: String, configuredPassword: String, configuredGroup: String, clearPassword: Bool) throws {
-		self.locationURL = location
-		self.config = try Config(contentsOf: self.locationURL.appendingPathComponent(ConfigFileName.config.rawValue))
-		self.cake = Config()
-		self.configuredUser = configuredUser
-		self.configuredPassword = configuredPassword
-		self.configuredGroup = configuredGroup
-		self.autostart = false
-		self.clearPassword = clearPassword
-		self.vncPassword = UUID().uuidString
-
-		self.networks = []
-		self.mounts = []
-		self.sockets = []
-		self.forwardedPorts = []
-		self.attachedDisks = []
-		self.firstLaunch = true
-		self.useCloudInit = false
-		self.agent = false
-		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
-	}
-
 	public init(location: URL) throws {
 		self.locationURL = location
 		self.config = try Config(contentsOf: self.locationURL.appendingPathComponent(ConfigFileName.config.rawValue))
@@ -491,6 +484,8 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		self.config = try Config(contentsOf: self.locationURL.appendingPathComponent(ConfigFileName.config.rawValue))
 		self.cake = Config()
 
+		self.rootDisk = options.root
+		self.diskFormat = options.diskFormat
 		self.configuredUser = options.user
 		self.configuredPassword = options.password
 		self.configuredGroup = options.mainGroup
@@ -523,6 +518,8 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		self.config = Config()
 		self.cake = Config()
 
+		self.rootDisk = config.rootDisk
+		self.diskFormat = config.diskFormat
 		self.locationURL = config.locationURL
 		self.version = config.version
 		self.os = config.os

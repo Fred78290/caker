@@ -30,7 +30,7 @@ extension Bundle {
 
 		return ProcessWithSharedFileHandle()
 	}
-	
+
 	public var cakerBuildPlugInsPath: [String] {
 		var paths: [String] = []
 
@@ -715,6 +715,24 @@ extension Socket {
 public struct Utilities {
 	public static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 	public static let keychainID = "com.aldunelabs.caker"
+
+	// Optional: Check if the boot drive image appears to be in ASIF format.
+	// We consider files with a ".asif" extension or those whose first four bytes are "ASIF" as ASIF format.
+	public static func isASIFDisk(filePath: String) -> Bool {
+		return isASIFDisk(at: URL(fileURLWithPath: filePath))
+	}
+
+	public static func isASIFDisk(at url: URL) -> Bool {
+		if url.pathExtension.lowercased() == "asif" { return true }
+		guard let handle = try? FileHandle(forReadingFrom: url) else { return false }
+		defer { try? handle.close() }
+		let header = try? handle.read(upToCount: 4)
+		if let header, header.count == 4 {
+			let magic = String(bytes: header, encoding: .ascii)
+			return magic == "ASIF"
+		}
+		return false
+	}
 
 	public static func cakeagentBinary(os: VirtualizedOS, runMode: Utils.RunMode, observer: ProgressObserver? = nil) async throws -> URL {
 		let arch = Architecture.current().rawValue

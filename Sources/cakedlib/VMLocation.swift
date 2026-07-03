@@ -369,12 +369,18 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		return self
 	}
 
-	public func expandDisk(_ sizeGB: UInt64) throws {
+	public func expandDisk(_ sizeGB: UInt64, format: SupportedDiskFormat) throws {
 		let wantedFileSize = sizeGB * GiB
 
 		if FileManager.default.fileExists(atPath: diskURL.path) {
-			try Shell.bash(to: "hdiutil", arguments: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path])
-		} else {
+			if format == .raw {
+				try Shell.bash(to: "hdiutil", arguments: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path])
+			} else if #available(macOS 26.0, *) {
+				try Shell.bash(to: "diskutil", arguments: ["image", "resize", String("\(wantedFileSize)"), diskURL.path])
+			} else {
+				throw ServiceError("ASIF format is support only on macOS 26.0+")
+			}
+		} else if format == .raw {
 			FileManager.default.createFile(atPath: diskURL.path, contents: nil, attributes: nil)
 
 			let diskFileHandle = try FileHandle.init(forWritingTo: diskURL)
@@ -391,34 +397,44 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			} else if wantedFileSize > curFileSize {
 				try diskFileHandle.truncate(atOffset: wantedFileSize)
 			}
+		} else if #available(macOS 26.0, *) {
+			try Shell.bash(to: "diskutil", arguments: ["image", "create", "blank", "--fs", "ASIF", String("\(wantedFileSize)"), diskURL.path])
+		} else {
+			throw ServiceError("ASIF format is support only on macOS 26.0+")
 		}
 	}
 
-	public func resizeDisk(_ sizeGB: UInt64) throws {
+	public func resizeDisk(_ sizeGB: UInt64, format: SupportedDiskFormat) throws {
 		let wantedFileSize = sizeGB * GiB
 
-		if !FileManager.default.fileExists(atPath: diskURL.path) {
-			FileManager.default.createFile(atPath: diskURL.path, contents: nil, attributes: nil)
-		}
-
-		let diskFileHandle = try FileHandle.init(forWritingTo: diskURL)
-
-		defer {
-			do {
-				try diskFileHandle.close()
-			} catch {
-
+		if format == .raw {
+			try Shell.bash(to: "diskutil", arguments: ["image", "resize", String("\(wantedFileSize)"), diskURL.path])
+		} else if #available(macOS 26.0, *) {
+			if !FileManager.default.fileExists(atPath: diskURL.path) {
+				FileManager.default.createFile(atPath: diskURL.path, contents: nil, attributes: nil)
 			}
-		}
 
-		let curFileSize = try diskFileHandle.seekToEnd()
+			let diskFileHandle = try FileHandle.init(forWritingTo: diskURL)
 
-		if wantedFileSize < curFileSize {
-			let curFileSizeHuman = ByteCountFormatter().string(fromByteCount: Int64(curFileSize))
-			let wantedFileSizeHuman = ByteCountFormatter().string(fromByteCount: Int64(wantedFileSize))
-			throw ServiceError(String(localized: "the new file size \(wantedFileSizeHuman) is lesser than the current disk size of \(curFileSizeHuman)"))
-		} else if wantedFileSize > curFileSize {
-			try diskFileHandle.truncate(atOffset: wantedFileSize)
+			defer {
+				do {
+					try diskFileHandle.close()
+				} catch {
+
+				}
+			}
+
+			let curFileSize = try diskFileHandle.seekToEnd()
+
+			if wantedFileSize < curFileSize {
+				let curFileSizeHuman = ByteCountFormatter().string(fromByteCount: Int64(curFileSize))
+				let wantedFileSizeHuman = ByteCountFormatter().string(fromByteCount: Int64(wantedFileSize))
+				throw ServiceError(String(localized: "the new file size \(wantedFileSizeHuman) is lesser than the current disk size of \(curFileSizeHuman)"))
+			} else if wantedFileSize > curFileSize {
+				try diskFileHandle.truncate(atOffset: wantedFileSize)
+			}
+		} else {
+			throw ServiceError("ASIF format is support only on macOS 26.0+")
 		}
 	}
 

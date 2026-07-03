@@ -366,6 +366,7 @@ public struct ComposeService: Codable {
 			cpu: UInt16(max(1.0, Double(deploy?.resources?.limits?.cpus ?? "2") ?? 2.0)),
 			memory: memoryMB,
 			diskSize: disk ?? 10,
+			diskFormat: SupportedDiskFormat.defaultSupportedFormat,
 			autostart: autostart ?? false,
 			nested: nested ?? false,
 			image: image ?? defaultUbuntuImage,
@@ -373,6 +374,8 @@ public struct ComposeService: Codable {
 			mounts: mounts,
 			networks: ethernets
 		)
+
+		try opts.validateImageSource(remote: false)
 
 		if let env = environment {
 			let envLines = env.lines
