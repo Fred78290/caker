@@ -67,21 +67,25 @@ jobs:
             else
               echo "install_swift=false" >> ${GITHUB_OUTPUT}
             fi
-            if [ "${SETUP_KEYCHAIN}" == "true" ]; then
+
+            echo "setup_keychain=true" >> ${GITHUB_OUTPUT}
+            echo "KEYCHAIN_PATH=${RUNNER_TEMP}/app-signing.keychain-db" | tee -a ${GITHUB_ENV}
+
+          else
+            echo "Not running on github-hosted runner, skipping tool checks."
+
+            if [ "${SETUP_KEYCHAIN}" == "true" ] || [ -z "$(security find-certificate -a | grep ${TEAM_ID})" ]; then
               echo "setup_keychain=true" >> ${GITHUB_OUTPUT}
               echo "KEYCHAIN_PATH=${RUNNER_TEMP}/app-signing.keychain-db" | tee -a ${GITHUB_ENV}
             else
               echo "setup_keychain=false" >> ${GITHUB_OUTPUT}
               echo "KEYCHAIN_PATH=" | tee -a ${GITHUB_ENV}
             fi
-          else
-            echo "Not running on github-hosted runner, skipping tool checks."
+
             echo "install_python=false" >> ${GITHUB_OUTPUT}
             echo "install_golang=false" >> ${GITHUB_OUTPUT}
             echo "install_brew=false" >> ${GITHUB_OUTPUT}
             echo "install_swift=false" >> ${GITHUB_OUTPUT}
-            echo "setup_keychain=true" >> ${GITHUB_OUTPUT}
-            echo "KEYCHAIN_PATH=${RUNNER_TEMP}/app-signing.keychain-db" | tee -a ${GITHUB_ENV}
           fi
 
       - name: 🛠️ checkout
@@ -221,9 +225,14 @@ jobs:
 
       - name: 🧹 Clean up keychain
         id: cleanup
-        if: ${{ steps.check.outputs.setup_keychain == 'true' }}
+        if: ${{ always() && steps.check.outputs.setup_keychain == 'true' }}
         run: |
-          security delete-keychain "${KEYCHAIN_PATH}"
+          if [ -f "${KEYCHAIN_PATH}" ]; then
+            echo "Deleting keychain at ${KEYCHAIN_PATH}"
+            security delete-keychain "${KEYCHAIN_PATH}"
+          else
+            echo "Keychain at ${KEYCHAIN_PATH} does not exist, skipping deletion."
+          fi
 
       - name: 🧹 Clean up repo
         id: cleanup-repo
