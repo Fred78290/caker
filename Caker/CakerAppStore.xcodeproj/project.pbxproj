@@ -3989,7 +3989,7 @@
 				INFOPLIST_FILE = Caker/AppStore/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Caker;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Caker use AppleScript to install /etc/sudoers.d/caked and /etc/paths.d/com.aldunelabs.caker files";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Caker uses AppleScript to install /etc/sudoers.d/caked and /etc/paths.d/com.aldunelabs.caker files";
 				INFOPLIST_KEY_NSHumanReadableCopyright = Fred78290;
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Caker need SSH access to running VM and create virtual network";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -4050,7 +4050,7 @@
 				INFOPLIST_FILE = Caker/AppStore/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Caker;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Caker use AppleScript to install /etc/sudoers.d/caked and /etc/paths.d/com.aldunelabs.caker files";
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Caker uses AppleScript to install /etc/sudoers.d/caked and /etc/paths.d/com.aldunelabs.caker files";
 				INFOPLIST_KEY_NSHumanReadableCopyright = Fred78290;
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Caker need SSH access to running VM and create virtual network";
 				LD_RUNPATH_SEARCH_PATHS = (
