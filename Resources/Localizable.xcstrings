@@ -6055,13 +6055,13 @@
         }
       }
     },
-    "Invalid or missing MachineIdentifier in %@" : {
+    "Invalid or missing machine identifier in %@" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MachineIdentifier invalide ou manquant dans %@"
+            "value" : "Identifiant de machine invalide ou manquant dans %@"
           }
         }
       }
