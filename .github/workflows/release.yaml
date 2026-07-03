@@ -67,12 +67,21 @@ jobs:
             else
               echo "install_swift=false" >> ${GITHUB_OUTPUT}
             fi
+            if [ "${SETUP_KEYCHAIN}" == "true" ]; then
+              echo "setup_keychain=true" >> ${GITHUB_OUTPUT}
+              echo "KEYCHAIN_PATH=${RUNNER_TEMP}/app-signing.keychain-db" | tee -a ${GITHUB_ENV}
+            else
+              echo "setup_keychain=false" >> ${GITHUB_OUTPUT}
+              echo "KEYCHAIN_PATH=" | tee -a ${GITHUB_ENV}
+            fi
           else
             echo "Not running on github-hosted runner, skipping tool checks."
             echo "install_python=false" >> ${GITHUB_OUTPUT}
             echo "install_golang=false" >> ${GITHUB_OUTPUT}
             echo "install_brew=false" >> ${GITHUB_OUTPUT}
             echo "install_swift=false" >> ${GITHUB_OUTPUT}
+            echo "setup_keychain=true" >> ${GITHUB_OUTPUT}
+            echo "KEYCHAIN_PATH=${RUNNER_TEMP}/app-signing.keychain-db" | tee -a ${GITHUB_ENV}
           fi
 
       - name: 🛠️ checkout
@@ -119,12 +128,6 @@ jobs:
             fi
           fi
 
-          if [ "${SETUP_KEYCHAIN}" == "true" ] && [ "${RUNNER_ENVIRONMENT}" == "github-hosted" ]; then
-            KEYCHAIN_PATH="${RUNNER_TEMP}/app-signing.keychain-db"
-          else
-            KEYCHAIN_PATH=""
-          fi
-
           if [[ "${GITHUB_REF_NAME}" == "prerelease" ]]; then
             PACKAGE=true
             BUILDRELEASE=false
@@ -141,33 +144,30 @@ jobs:
           PKG_PATH="${GITHUB_WORKSPACE}/build/Caker.pkg"
           DMG_PATH="${GITHUB_WORKSPACE}/build/Caker.dmg"
 
-          echo "PKG_PATH=${PKG_PATH}" >> ${GITHUB_ENV}
-          echo "DMG_PATH=${DMG_PATH}" >> ${GITHUB_ENV}
-          echo "VERSION=${VERSION}" >> ${GITHUB_ENV}
-          echo "PACKAGE=${PACKAGE}" >> ${GITHUB_ENV}
-          echo "BUILDRELEASE=${BUILDRELEASE}" >> ${GITHUB_ENV}
-          echo "KEYCHAIN_PATH=${KEYCHAIN_PATH}" >> ${GITHUB_ENV}
+          echo "PKG_PATH=${PKG_PATH}" | tee -a ${GITHUB_ENV}
+          echo "DMG_PATH=${DMG_PATH}" | tee -a ${GITHUB_ENV}
+          echo "VERSION=${VERSION}" | tee -a ${GITHUB_ENV}
+          echo "PACKAGE=${PACKAGE}" | tee -a ${GITHUB_ENV}
+          echo "BUILDRELEASE=${BUILDRELEASE}" | tee -a ${GITHUB_ENV}
 
-          echo "build_release=${BUILDRELEASE}" >> ${GITHUB_OUTPUT}
-          echo "build_package=${PACKAGE}" >> ${GITHUB_OUTPUT}
-          echo "version=${VERSION}" >> ${GITHUB_OUTPUT}
-          echo "pkg_path=${PKG_PATH}" >> ${GITHUB_OUTPUT}
-          echo "dmg_path=${DMG_PATH}" >> ${GITHUB_OUTPUT}
-          echo "version_path=${GITHUB_WORKSPACE}/build/version.txt" >> ${GITHUB_OUTPUT}
-          echo "keychain_path=${KEYCHAIN_PATH}" >> ${GITHUB_OUTPUT}
+          echo "build_release=${BUILDRELEASE}" | tee -a ${GITHUB_OUTPUT}
+          echo "build_package=${PACKAGE}" | tee -a ${GITHUB_OUTPUT}
+          echo "version=${VERSION}" | tee -a ${GITHUB_OUTPUT}
+          echo "pkg_path=${PKG_PATH}" | tee -a ${GITHUB_OUTPUT}
+          echo "dmg_path=${DMG_PATH}" | tee -a ${GITHUB_OUTPUT}
+          echo "version_path=${GITHUB_WORKSPACE}/build/version.txt" | tee -a ${GITHUB_OUTPUT}
 
           echo -n "${VERSION}" > "${GITHUB_WORKSPACE}/build/version.txt"
 
       - name: 🛠️ Install the Apple certificate and provisioning profile
         id: setup_keychain
-        if: vars.SETUP_KEYCHAIN == 'true' && runner.environment == 'github-hosted'
+        if: ${{ steps.check.outputs.setup_keychain == 'true' }}
         run: |
           ./.ci/setup-keychain.sh "${KEYCHAIN_PATH}"
 
       - name: 👷 Build Swift package
         id: build
         env:
-          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           security find-certificate -a|grep "${TEAM_ID}" || true
@@ -194,7 +194,6 @@ jobs:
         id: integration_tests
         if: steps.check.outputs.run_pytest == 'true'
         env:
-          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           # Run tests for the Swift package
@@ -212,7 +211,6 @@ jobs:
         id: package
         if: steps.version.outputs.build_package == 'true'
         env:
-          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
           PKG_PATH: ${{ steps.version.outputs.pkg_path }}
         run: |
           export VERSION="${{ steps.version.outputs.version }}"
@@ -222,7 +220,6 @@ jobs:
         id: create_dmg
         if: steps.version.outputs.build_package == 'true'
         env:
-          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
           DMG_PATH: ${{ steps.version.outputs.dmg_path }}
         run: |
           export VERSION="${{ steps.version.outputs.version }}"
@@ -257,9 +254,7 @@ jobs:
 
       - name: 🧹 Clean up keychain and provisioning profile
         id: cleanup
-        env:
-          KEYCHAIN_PATH: ${{ steps.version.outputs.keychain_path }}
-        if: always() && vars.SETUP_KEYCHAIN == 'true' && runner.environment == 'github-hosted'
+        if: ${{ steps.check.outputs.setup_keychain == 'true' }}
         run: |
           security delete-keychain "${KEYCHAIN_PATH}"
 
