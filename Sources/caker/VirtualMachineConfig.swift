@@ -393,7 +393,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.changedFields?.contains(\.clearPassword) == true ? self.clearPassword : nil
 	}
 
-	var diskSize: UInt64 = 20 * GiB {
+	var diskSize: UInt64 {
 		didSet {
 			changedFields?.insert(\.diskSize)
 		}
@@ -509,6 +509,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.diskFormat = .raw
 		self.cpuCount = 1
 		self.memorySize = 512 * MoB
+		self.diskSize = 20 * GiB
 		self.macAddress = String.empty
 		self.autostart = false
 		self.suspendable = false
@@ -657,7 +658,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			password: self.configuredPasswordIfChanged,
 			cpu: self.cpuCountIfChanged,
 			memory: self.memorySizeInMoBIfChanged,
-			diskSize: self.diskSizeInGoBIfChanged,
+			diskSize: self.diskSizeInGiBIfChanged,
 			screenSize: self.displayIfChanged,
 			attachedDisks: self.attachedDisksIfChanged,
 			autostart: self.autostartIfChanged,
@@ -678,7 +679,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			rootDisk: self.rootDisk,
 			cpu: UInt16(self.cpuCount),
 			memory: self.memorySizeInMoB,
-			diskSize: self.diskSizeInGoB,
+			diskSize: self.diskSizeInGiB,
 			diskFormat: self.diskFormat,
 			screenSize: self.display,
 			attachedDisks: self.attachedDisks,
