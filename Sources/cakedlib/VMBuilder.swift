@@ -120,10 +120,12 @@ public struct VMBuilder {
 		if let config = config {
 			// Create or resize disk
 			if config.rootDisk == nil {
+				config.diskSize = options.diskSize * GiB
+
 				if config.os == .darwin {
-					try? location.expandDisk(options.diskSize, format: config.diskFormat)
+					try location.expandDisk(options.diskSize, format: config.diskFormat)
 				} else {
-					try? location.resizeDisk(options.diskSize, format: config.diskFormat)
+					try location.resizeDisk(options.diskSize, format: config.diskFormat)
 				}
 			}
 

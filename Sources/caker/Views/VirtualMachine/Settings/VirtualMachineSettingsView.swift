@@ -41,6 +41,9 @@ struct VirtualMachineSettingsView: View {
 	@State var userPassword: String
 	@State var noRootDisk: Bool
 	@State var mountPoints: MountPoints
+	@State var memoryValueIsInvalid = false
+	@State var diskSizeValueIsInvalid = false
+
 
 	init() {
 		let document = try! VirtualMachineDocument.anyVirtualMachineDocument()
@@ -114,7 +117,7 @@ struct VirtualMachineSettingsView: View {
 						.frame(width: 80)
 				}
 				.buttonStyle(.borderedProminent)
-				.disabled(self.configChanged == false)
+				.disabled(self.configChanged == false && diskSizeValueIsInvalid == false && memoryValueIsInvalid == false)
 			}
 			.padding(.horizontal, 16)
 			.padding(.vertical, 12)
@@ -218,6 +221,11 @@ struct VirtualMachineSettingsView: View {
 					TextField(String.empty, value: $config.memorySizeInMoB, format: .number /*.memory(.useGB)*/)
 						.rounded(.center)
 						.frame(width: 50)
+						.foregroundStyle(memoryValueIsInvalid ? Color.red : Color.primary)
+						.onChange(of: config.memorySizeInMoB) { oldValue, newValue in
+							let clamped = min(max(newValue, config.os == .darwin ? 4096 : 512), 65535)
+							memoryValueIsInvalid = clamped != newValue
+						}
 					Stepper(value: $config.memorySizeInMoB, in: totalMemoryRange, step: 1) {
 
 					}.labelsHidden()
@@ -231,6 +239,11 @@ struct VirtualMachineSettingsView: View {
 					TextField(String.empty, value: $config.diskSizeInGiB, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
+						.foregroundStyle(diskSizeValueIsInvalid ? Color.red : Color.primary)
+						.onChange(of: config.diskSizeInGiB) { oldValue, newValue in
+							let clamped = max(newValue, self.config.source == .ipsw ? 40 : 5)
+							self.diskSizeValueIsInvalid = clamped != newValue
+						}
 				}
 			}
 		}

@@ -54,7 +54,7 @@ public struct SpawnHandler {
 			throw ServiceError(String(localized: "Root disk not found: \(options.root)"))
 		}
 
-		let diskFormat = Utilities.isASIFDisk(filePath: expandedRoot) ? SupportedDiskFormat.asif : SupportedDiskFormat.raw
+		let diskFormat = URL.isASIFDisk(filePath: expandedRoot) ? SupportedDiskFormat.asif : SupportedDiskFormat.raw
 		var cpuCountMin = options.cpu
 		var memorySize = options.memory * MoB
 		var memorySizeMin = VMBuilder.memoryMinSize

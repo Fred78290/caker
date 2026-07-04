@@ -60,7 +60,15 @@ class ARPParser: DHCPLeaseProvider {
 			return cachedArp
 		}
 
-		return Self.updateCache(Self.parseArp(arpOutput: try Shell.exec(FilePath("/usr/sbin/arp"), arguments: ["-an"])))
+		let output = try Shell.exec(FilePath("/usr/sbin/arp"), arguments: ["-an"]) { (exitCode, stdout, stderr) in
+			if exitCode != 0 {
+				throw ServiceError(String(localized: "Failed to run arp: \(exitCode) \(stderr.trimmingCharacters(in: .whitespacesAndNewlines))"))
+			}
+			
+			return stdout
+		}
+
+		return Self.updateCache(Self.parseArp(arpOutput: output))
 	}
 
 	private static func freshCache() -> [String: ARPEntry]? {

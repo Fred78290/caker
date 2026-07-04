@@ -364,6 +364,8 @@ struct VirtualMachineWizard: View {
 	@State private var config: VirtualMachineConfig = .init()
 	@State private var currentTab: Int = 0
 	@State private var model = VirtualMachineWizardStateObject()
+	@State private var memoryValueIsInvalid = false
+	@State private var diskSizeValueIsInvalid = false
 
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 	private let listHeight: CGFloat = 460
@@ -602,8 +604,13 @@ struct VirtualMachineWizard: View {
 				HStack {
 					TextField(String.empty, value: $config.memorySizeInMoB, format: .number)
 						.rounded(.center)
-						.frame(width: 50)
+						.frame(width: 60)
 						.disabled(self.model.createVM)
+						.foregroundStyle(memoryValueIsInvalid ? Color.red : Color.primary)
+						.onChange(of: config.memorySizeInMoB) { oldValue, newValue in
+							let clamped = min(max(newValue, config.source == .ipsw ? 4096 : 512), 65535)
+							memoryValueIsInvalid = clamped != newValue
+						}
 					Stepper(value: $config.memorySizeInMoB, in: totalMemoryRange, step: 1) {
 
 					}
@@ -940,14 +947,17 @@ struct VirtualMachineWizard: View {
 								self.config.imageName = String.empty
 								self.model.showDiskFormat = false
 								self.config.diskFormat = .raw
+								self.config.os = .linux
 							case .qcow2:
 								self.config.imageName = model.cloudImageRelease.url.absoluteString
 								self.model.showDiskFormat = false
 								self.config.diskFormat = .raw
+								self.config.os = .linux
 							case .oci:
 								self.config.imageName = String.empty
 								self.model.showDiskFormat = false
 								self.config.diskFormat = .raw
+								self.config.os = .linux
 							case .template:
 								self.config.imageName = String.empty
 								self.model.showDiskFormat = false
@@ -957,10 +967,12 @@ struct VirtualMachineWizard: View {
 								self.model.showDiskFormat = false
 								self.model.showDiskFormat = false
 								self.config.diskFormat = .raw
+								self.config.os = .linux
 							case .iso:
 								self.config.imageName = self.model.isoImageRelease.location.url
 								self.model.showDiskFormat = true
 								self.config.diskFormat = .defaultSupportedFormat
+								self.config.os = .linux
 							case .ipsw:
 								self.config.imageName = self.model.ipswRelease.location.url
 								self.config.cpuCount = max(self.config.cpuCount, 4)
@@ -968,6 +980,7 @@ struct VirtualMachineWizard: View {
 								self.config.diskSizeInGiB = max(self.config.diskSizeInGiB, 40)
 								self.model.showDiskFormat = true
 								self.config.diskFormat = .defaultSupportedFormat
+								self.config.os = .darwin
 							}
 						}
 						.pickerStyle(.menu)
@@ -989,6 +1002,11 @@ struct VirtualMachineWizard: View {
 							.rounded(.center)
 							.frame(width: 50)
 							.disabled(self.model.createVM && noRootDisk == false)
+							.foregroundStyle(diskSizeValueIsInvalid ? Color.red : Color.primary)
+							.onChange(of: config.diskSizeInGiB) { oldValue, newValue in
+								let clamped = max(newValue, self.config.source == .ipsw ? 40 : 5)
+								self.diskSizeValueIsInvalid = clamped != newValue
+							}
 						Stepper(value: $config.diskSizeInGiB, in: diskRange, step: 1) {
 
 						}
@@ -1119,6 +1137,14 @@ struct VirtualMachineWizard: View {
 
 	func validateConfig(config: VirtualMachineConfig) {
 		var valid = model.mountPoints.first(where: {$0.validate() == false }) == nil
+
+		if valid {
+			if config.os == .linux {
+				valid = config.memorySizeInMoB >= 512 && config.diskSizeInGiB >= 5
+			} else {
+				valid = config.memorySizeInMoB >= 4096 && config.diskSizeInGiB >= 40
+			}
+		}
 
 		if valid && model.rootDisk.isEmpty == false {
 			valid = FileManager.default.fileExists(atPath: model.rootDisk)
@@ -1291,3 +1317,4 @@ struct VirtualMachineWizard: View {
 #Preview {
 	VirtualMachineWizard()
 }
+

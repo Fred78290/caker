@@ -120,7 +120,7 @@ struct UTMImporter: Importer {
 			throw ServiceError(String(localized: "Boot disk image \(bootDiskURL.path) not found"))
 		}
 
-		let asifFormat = Utilities.isASIFDisk(at: bootDiskURL)
+		let asifFormat = bootDiskURL.asifDisk
 
 		if asifFormat {
             logger.info("Detected ASIF disk format for \(bootDiskURL.lastPathComponent)")

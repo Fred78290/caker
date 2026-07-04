@@ -218,9 +218,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			diskURL = buildURL("disk.img")
 		}
 
-		if let diskSize = try? diskURL.fileSize() {
-			config.diskSize = diskSize
-		}
+		config.diskSize = diskURL.diskSize
 
 		return config
 	}
@@ -274,11 +272,11 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 	public func diskSize() throws -> UInt64 {
 		var sizeBytes: UInt64 = 0
-
+			
 		try FileManager.default.contentsOfDirectory(at: rootURL, includingPropertiesForKeys: [.isRegularFileKey], options: .skipsSubdirectoryDescendants).forEach {
-			sizeBytes += try $0.sizeBytes()
+			sizeBytes += $0.diskSize
 		}
-
+			
 		return sizeBytes
 	}
 
@@ -371,12 +369,30 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 	public func expandDisk(_ sizeGB: UInt64, format: SupportedDiskFormat) throws {
 		let wantedFileSize = sizeGB * GiB
+		let logger = Logger(self)
 
 		if FileManager.default.fileExists(atPath: diskURL.path) {
 			if format == .raw {
-				try print(Shell.exec("hdiutil", arguments: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path]))
+				try Bundle.execSandboxed("/usr/bin/hdiutil", with: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path]) { (exitCode, stdout, stderr) in
+					guard exitCode == 0 else {
+						throw ServiceError(String(localized: "Failed to resize disk with hdutil: \(stderr)"))
+					}
+
+					logger.debug(stdout)
+
+					return stdout
+				}
+
 			} else if #available(macOS 26.0, *) {
-				try print(Shell.exec("diskutil", arguments: ["image", "resize", String("\(wantedFileSize)"), diskURL.path]))
+				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "resize", String("\(sizeGB * GoB)"), diskURL.path]) { (exitCode, stdout, stderr) in
+					guard exitCode == 0 else {
+						throw ServiceError(String(localized: "Failed to resize disk with diskutil: \(stderr)"))
+					}
+
+					logger.debug(stdout)
+
+					return stdout
+				}
 			} else {
 				throw ServiceError("ASIF format is support only on macOS 26.0+")
 			}
@@ -398,16 +414,26 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				try diskFileHandle.truncate(atOffset: wantedFileSize)
 			}
 		} else if #available(macOS 26.0, *) {
-			try print(Shell.exec("diskutil", arguments: ["image", "create", "blank", "--format=ASIF", "--size=\(sizeGB)G", diskURL.path]))
+			let wantedFileSize = sizeGB * GoB
+
+			try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "create", "blank", "--format=ASIF", "--fs=none", "--size=\(wantedFileSize)", diskURL.path]) { (exitCode, stdout, stderr) in
+				guard exitCode == 0 else {
+					   throw ServiceError(String(localized: "Failed to create disk with diskutil: \(stderr)"))
+				   }
+
+				   logger.debug(stdout)
+
+				   return stdout
+			   }
 		} else {
 			throw ServiceError("ASIF format is support only on macOS 26.0+")
 		}
 	}
 
 	public func resizeDisk(_ sizeGB: UInt64, format: SupportedDiskFormat) throws {
-		let wantedFileSize = sizeGB * GiB
-
 		if format == .raw {
+			let wantedFileSize = sizeGB * GiB
+
 			if !FileManager.default.fileExists(atPath: diskURL.path) {
 				FileManager.default.createFile(atPath: diskURL.path, contents: nil, attributes: nil)
 			}
@@ -432,10 +458,32 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				try diskFileHandle.truncate(atOffset: wantedFileSize)
 			}
 		} else if #available(macOS 26.0, *) {
+			let wantedFileSize = sizeGB * GoB
+
 			if FileManager.default.fileExists(atPath: diskURL.path) {
-				try print(Shell.exec("diskutil", arguments: ["image", "resize", "--size=\(sizeGB)G", diskURL.path]))
+				let logger = Logger(self)
+
+				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "resize", "--size=\(wantedFileSize)", diskURL.path]) { (exitCode, stdout, stderr) in
+					guard exitCode == 0 else {
+						throw ServiceError(String(localized: "Failed to resize disk with diskutil: \(stderr)"))
+					}
+
+					logger.debug(stdout)
+
+					return stdout
+				}
 			} else {
-				try print(Shell.exec("diskutil", arguments: ["image", "create", "blank", "--format=ASIF", "--size=\(sizeGB)G", diskURL.path]))
+				let logger = Logger(self)
+
+				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "create", "blank", "--fs=none", "--format=ASIF", "--size=\(wantedFileSize)", diskURL.path]) { (exitCode, stdout, stderr) in
+					guard exitCode == 0 else {
+						throw ServiceError(String(localized: "Failed to create disk with diskutil: \(stderr)"))
+					}
+
+					logger.debug(stdout)
+
+					return stdout
+				}
 			}
 		} else {
 			throw ServiceError("ASIF format is support only on macOS 26.0+")

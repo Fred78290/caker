@@ -2,10 +2,11 @@ import Foundation
 import GRPCLib
 import Subprocess
 import System
+import CakeAgentLib
 
 nonisolated(unsafe) private var tartLocation: String = String.empty
 
-private enum ShellProcessQueues {
+public enum ShellProcessQueues {
 	static let commandOutput = DispatchQueue(label: "caker.shell.command-output-queue")
 	static let sudoOutput = DispatchQueue(label: "caker.shell.sudo-output-queue")
 	static let bashOutput = DispatchQueue(label: "caker.shell.bash-output-queue")
@@ -43,6 +44,8 @@ public struct Shell {
 	/// Cap buffered subprocess output to avoid unbounded memory growth for noisy commands.
 	/// 100 MB keeps typical command output intact while preventing OOM on very verbose tools.
 	private static let maxSubprocessOutputSize = 100 * 1024 * 1024
+
+	public typealias ExecCompletion = (TerminationStatus.Code, String, String) throws -> String
 
 	@discardableResult static public func sudo(
 		to command: String,
@@ -98,8 +101,8 @@ public struct Shell {
 		)
 	}
 
-	@discardableResult static public func exec(_ name: String, arguments: [String]) throws -> String {
-		#if DEBUG
+	@discardableResult static public func exec(_ name: String, arguments: [String], _ completion: ExecCompletion? = nil) throws -> String {
+		#if TRACE
 			var debug: [String] = [name]
 			debug.append(contentsOf: arguments)
 			print("🚀 \(debug.joined(separator: " "))")
@@ -113,28 +116,43 @@ public struct Shell {
 				error: .string(limit: Self.maxSubprocessOutputSize)
 			)
 
-			// Fail if subprocess exited with non-zero status
-			if case .exited(let exitCode) = result.terminationStatus, exitCode != 0 {
-				let stdout = result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
-				let stderr = result.standardError?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
-
-				throw ShellError(terminationStatus: exitCode, error: stderr, message: stdout)
+			if let stderr = result.standardError, stderr.isEmpty == false {
+				Logger("Shell").error(stderr)
 			}
 
-			if let out: String = result.standardOutput {
-				return out.trimmingCharacters(in: .whitespacesAndNewlines)
+			guard let completion else {
+				// Fail if subprocess exited with non-zero status
+				if case .exited(let exitCode) = result.terminationStatus, exitCode != 0 {
+					let stdout = result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
+					let stderr = result.standardError?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
+
+					throw ShellError(terminationStatus: exitCode, error: stderr, message: stdout)
+				}
+
+				if let out: String = result.standardOutput {
+					return out.trimmingCharacters(in: .whitespacesAndNewlines)
+				}
+
+				return String.empty
 			}
 
-			if let out: String = result.standardError {
-				return out.trimmingCharacters(in: .whitespacesAndNewlines)
+			// Extract numeric exit code from TerminationStatus enum
+			let exitCode: TerminationStatus.Code
+
+			switch result.terminationStatus {
+			case .exited(let code):
+				exitCode = code
+			case .signaled:
+				// Use a conventional negative code for signalled termination
+				exitCode = -1
 			}
 
-			return String.empty
+			return try completion(exitCode, result.standardOutput ?? String.empty, result.standardError ?? String.empty)
 		}
 	}
 
-	@discardableResult static public func exec(_ command: FilePath, arguments: [String]) throws -> String {
-		#if DEBUG
+	@discardableResult static public func exec(_ command: FilePath, arguments: [String], _ completion: ExecCompletion? = nil) throws -> String {
+		#if TRACE
 			var debug: [String] = [command.description]
 			debug.append(contentsOf: arguments)
 			print("🚀 \(debug.joined(separator: " "))")
@@ -148,23 +166,38 @@ public struct Shell {
 				error: .string(limit: Self.maxSubprocessOutputSize)
 			)
 
-			// Fail if subprocess exited with non-zero status
-			if case .exited(let exitCode) = result.terminationStatus, exitCode != 0 {
-				let stdout = result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
-				let stderr = result.standardError?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
-
-				throw ShellError(terminationStatus: exitCode, error: stderr, message: stdout)
+			if let stderr = result.standardError, stderr.isEmpty == false {
+				Logger("Shell").error(stderr)
 			}
 
-			if let out: String = result.standardOutput {
-				return out.trimmingCharacters(in: .whitespacesAndNewlines)
+			guard let completion else {
+				// Fail if subprocess exited with non-zero status
+				if case .exited(let exitCode) = result.terminationStatus, exitCode != 0 {
+					let stdout = result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
+					let stderr = result.standardError?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
+
+					throw ShellError(terminationStatus: exitCode, error: stderr, message: stdout)
+				}
+
+				if let out: String = result.standardOutput {
+					return out.trimmingCharacters(in: .whitespacesAndNewlines)
+				}
+
+				return String.empty
 			}
 
-			if let out: String = result.standardError {
-				return out.trimmingCharacters(in: .whitespacesAndNewlines)
+			// Extract numeric exit code from TerminationStatus enum
+			let exitCode: TerminationStatus.Code
+
+			switch result.terminationStatus {
+			case .exited(let code):
+				exitCode = code
+			case .signaled:
+				// Use a conventional negative code for signalled termination
+				exitCode = -1
 			}
 
-			return String.empty
+			return try completion(exitCode, result.standardOutput ?? String.empty, result.standardError ?? String.empty)
 		}
 	}
 
@@ -193,8 +226,10 @@ public struct Shell {
 }
 
 extension FileHandle {
-	fileprivate var isStandard: Bool {
-		return self === FileHandle.standardOutput || self === FileHandle.standardError || self === FileHandle.standardInput
+	public var isStandard: Bool {
+		return [
+			STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO
+		].contains(self.fileDescriptor)
 	}
 }
 
@@ -538,3 +573,4 @@ extension Data {
 
 	}
 }
+
