@@ -384,7 +384,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				}
 
 			} else if #available(macOS 26.0, *) {
-				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "resize", String("\(sizeGB * GoB)"), diskURL.path]) { (exitCode, stdout, stderr) in
+				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "resize", String("\(sizeGB)G"), diskURL.path]) { (exitCode, stdout, stderr) in
 					guard exitCode == 0 else {
 						throw ServiceError(String(localized: "Failed to resize disk with diskutil: \(stderr)"))
 					}
@@ -414,9 +414,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				try diskFileHandle.truncate(atOffset: wantedFileSize)
 			}
 		} else if #available(macOS 26.0, *) {
-			let wantedFileSize = sizeGB * GoB
-
-			try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "create", "blank", "--format=ASIF", "--fs=none", "--size=\(wantedFileSize)", diskURL.path]) { (exitCode, stdout, stderr) in
+			try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "create", "blank", "--format=ASIF", "--fs=none", "--size=\(sizeGB)G", diskURL.path]) { (exitCode, stdout, stderr) in
 				guard exitCode == 0 else {
 					   throw ServiceError(String(localized: "Failed to create disk with diskutil: \(stderr)"))
 				   }
@@ -458,12 +456,10 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				try diskFileHandle.truncate(atOffset: wantedFileSize)
 			}
 		} else if #available(macOS 26.0, *) {
-			let wantedFileSize = sizeGB * GoB
-
 			if FileManager.default.fileExists(atPath: diskURL.path) {
 				let logger = Logger(self)
 
-				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "resize", "--size=\(wantedFileSize)", diskURL.path]) { (exitCode, stdout, stderr) in
+				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "resize", "--size=\(sizeGB)G", diskURL.path]) { (exitCode, stdout, stderr) in
 					guard exitCode == 0 else {
 						throw ServiceError(String(localized: "Failed to resize disk with diskutil: \(stderr)"))
 					}
@@ -475,7 +471,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			} else {
 				let logger = Logger(self)
 
-				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "create", "blank", "--fs=none", "--format=ASIF", "--size=\(wantedFileSize)", diskURL.path]) { (exitCode, stdout, stderr) in
+				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "create", "blank", "--fs=none", "--format=ASIF", "--size=\(sizeGB)G", diskURL.path]) { (exitCode, stdout, stderr) in
 					guard exitCode == 0 else {
 						throw ServiceError(String(localized: "Failed to create disk with diskutil: \(stderr)"))
 					}
