@@ -219,28 +219,21 @@ extension Bundle {
 			userTask.standardError = pipe.fileHandleForWriting
 		}
 
-		let future = Utilities.group.next().makeFutureWithTask {
-			#if !TRACE
-				defer {
-					try? FileManager.default.removeItem(at: scriptsFile)
-				}
-			#endif
-
-			try await userTask.execute(withArguments: arguments)
-		}
-
-		future.whenComplete { result in
-			if let handler {
-				switch result {
-				case .success:
-					handler(nil)
-				case .failure(let error):
-					handler(error)
-				}
+		#if !DEBUG
+			defer {
+				try? FileManager.default.removeItem(at: scriptsFile)
 			}
-		}
+		#endif
 
-		try future.wait()
+		do {
+			try Task.sync {
+				try await userTask.execute(withArguments: arguments)
+			}
+
+			handler?(nil)
+		} catch {
+			handler?(error)
+		}
 	}
 
 	public static func runCakedWithUnixTask(
