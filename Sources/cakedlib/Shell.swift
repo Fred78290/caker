@@ -5,7 +5,7 @@ import System
 
 nonisolated(unsafe) private var tartLocation: String = String.empty
 
-fileprivate enum ShellProcessQueues {
+private enum ShellProcessQueues {
 	static let commandOutput = DispatchQueue(label: "caker.shell.command-output-queue")
 	static let sudoOutput = DispatchQueue(label: "caker.shell.sudo-output-queue")
 	static let bashOutput = DispatchQueue(label: "caker.shell.bash-output-queue")
@@ -99,6 +99,12 @@ public struct Shell {
 	}
 
 	@discardableResult static public func exec(_ name: String, arguments: [String]) throws -> String {
+		#if DEBUG
+			var debug: [String] = [name]
+			debug.append(contentsOf: arguments)
+			print("🚀 \(debug.joined(separator: " "))")
+		#endif
+
 		return try Task.sync {
 			let result = try await Subprocess.run(
 				.name(name),
@@ -108,7 +114,7 @@ public struct Shell {
 			)
 
 			// Fail if subprocess exited with non-zero status
-			if case let .exited(exitCode) = result.terminationStatus, exitCode != 0 {
+			if case .exited(let exitCode) = result.terminationStatus, exitCode != 0 {
 				let stdout = result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
 				let stderr = result.standardError?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
 
@@ -128,6 +134,12 @@ public struct Shell {
 	}
 
 	@discardableResult static public func exec(_ command: FilePath, arguments: [String]) throws -> String {
+		#if DEBUG
+			var debug: [String] = [command.description]
+			debug.append(contentsOf: arguments)
+			print("🚀 \(debug.joined(separator: " "))")
+		#endif
+
 		return try Task.sync {
 			let result = try await Subprocess.run(
 				.path(command),
@@ -136,8 +148,8 @@ public struct Shell {
 				error: .string(limit: Self.maxSubprocessOutputSize)
 			)
 
-            // Fail if subprocess exited with non-zero status
-			if case let .exited(exitCode) = result.terminationStatus, exitCode != 0 {
+			// Fail if subprocess exited with non-zero status
+			if case .exited(let exitCode) = result.terminationStatus, exitCode != 0 {
 				let stdout = result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
 				let stderr = result.standardError?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
 
