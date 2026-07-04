@@ -111,10 +111,10 @@ public final class CakeConfig: VirtualMachineConfiguration {
 
 	public var diskFormat: SupportedDiskFormat {
 		set {
-			self.config["diskFormat"] = newValue.rawValue
+			self.cake["diskFormat"] = newValue.rawValue
 		}
 		get {
-			guard let diskFormat = self.config["diskFormat"] as? Int else {
+			guard let diskFormat = self.cake["diskFormat"] as? String else {
 				return .raw
 			}
 
