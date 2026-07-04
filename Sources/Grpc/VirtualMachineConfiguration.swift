@@ -119,9 +119,14 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 	}
 }
 
-public enum SupportedDiskFormat: Int, Codable, Hashable, CustomStringConvertible, ExpressibleByArgument, CaseIterable {
-	case raw = 0
-	case asif = 1
+public enum SupportedDiskFormat: String, Identifiable, Codable, Hashable, CustomStringConvertible, ExpressibleByArgument, CaseIterable {
+
+	public var id: String {
+		self.rawValue
+	}
+	
+	case raw
+	case asif
 
 	public var description: String {
 		switch self {
