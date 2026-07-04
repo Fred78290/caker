@@ -559,7 +559,7 @@ extension URL: Purgeable {
 	}
 
 	// Optional: Check if the boot drive image appears to be in ASIF format.
-	// We consider files with a ".asif" extension or those whose first four bytes are "ASIF" as ASIF format.
+	// We consider files with a ".asif" extension or those whose first four bytes are "shdw" as ASIF format.
 	public static func isASIFDisk(filePath: String) -> Bool {
 		return URL(fileURLWithPath: filePath).asifDisk
 	}

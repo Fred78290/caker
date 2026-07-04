@@ -117,7 +117,7 @@ struct VirtualMachineSettingsView: View {
 						.frame(width: 80)
 				}
 				.buttonStyle(.borderedProminent)
-				.disabled(self.configChanged == false && diskSizeValueIsInvalid == false && memoryValueIsInvalid == false)
+				.disabled(self.configChanged == false || diskSizeValueIsInvalid || memoryValueIsInvalid)
 			}
 			.padding(.horizontal, 16)
 			.padding(.vertical, 12)
