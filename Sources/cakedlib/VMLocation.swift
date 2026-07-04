@@ -374,9 +374,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 		if FileManager.default.fileExists(atPath: diskURL.path) {
 			if format == .raw {
-				try Shell.bash(to: "hdiutil", arguments: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path])
+				try print(Shell.exec("hdiutil", arguments: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path]))
 			} else if #available(macOS 26.0, *) {
-				try Shell.bash(to: "diskutil", arguments: ["image", "resize", String("\(wantedFileSize)"), diskURL.path])
+				try print(Shell.exec("diskutil", arguments: ["image", "resize", String("\(wantedFileSize)"), diskURL.path]))
 			} else {
 				throw ServiceError("ASIF format is support only on macOS 26.0+")
 			}
@@ -398,7 +398,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				try diskFileHandle.truncate(atOffset: wantedFileSize)
 			}
 		} else if #available(macOS 26.0, *) {
-			try Shell.bash(to: "diskutil", arguments: ["image", "create", "blank", "--fs", "ASIF", String("\(wantedFileSize)"), diskURL.path])
+			try print(Shell.exec("diskutil", arguments: ["image", "create", "blank", "--format=ASIF", "--size=\(sizeGB)G", diskURL.path]))
 		} else {
 			throw ServiceError("ASIF format is support only on macOS 26.0+")
 		}
@@ -408,8 +408,6 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		let wantedFileSize = sizeGB * GiB
 
 		if format == .raw {
-			try Shell.bash(to: "diskutil", arguments: ["image", "resize", String("\(wantedFileSize)"), diskURL.path])
-		} else if #available(macOS 26.0, *) {
 			if !FileManager.default.fileExists(atPath: diskURL.path) {
 				FileManager.default.createFile(atPath: diskURL.path, contents: nil, attributes: nil)
 			}
@@ -432,6 +430,12 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				throw ServiceError(String(localized: "the new file size \(wantedFileSizeHuman) is lesser than the current disk size of \(curFileSizeHuman)"))
 			} else if wantedFileSize > curFileSize {
 				try diskFileHandle.truncate(atOffset: wantedFileSize)
+			}
+		} else if #available(macOS 26.0, *) {
+			if FileManager.default.fileExists(atPath: diskURL.path) {
+				try print(Shell.exec("diskutil", arguments: ["image", "resize", "--size=\(sizeGB)G", diskURL.path]))
+			} else {
+				try print(Shell.exec("diskutil", arguments: ["image", "create", "blank", "--format=ASIF", "--size=\(sizeGB)G", diskURL.path]))
 			}
 		} else {
 			throw ServiceError("ASIF format is support only on macOS 26.0+")
