@@ -125,7 +125,7 @@ struct VirtualBuddyImporter: Importer {
 			return GRPCLib.BridgeAttachement(network: "nat", mode: .auto, macAddress: nil)
 		}
 
-		let diskFormat = SupportedDiskFormat(fileExtension: bootDiskURL.pathExtension)
+		let diskFormat: SupportedDiskFormat = bootDiskURL.asifDisk ? .asif : .raw
 		let config = CakeConfig(
 			location: location.rootURL,
 			rootDisk: copyDisk ? nil : bootDiskURL.absoluteURL.path,
