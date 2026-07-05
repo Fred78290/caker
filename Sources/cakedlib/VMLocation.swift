@@ -17,7 +17,7 @@ extension URL {
 	}
 }
 
-public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
+public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeable {
 	public static let defaultAgentListenPort = 5000
 	public static let scheme = "caked-vm"
 	public static let supportedSchemes: Set<String?> = ["caked-vm", "caked-vms"]
@@ -96,7 +96,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		self.template ? "template" : "vm"
 	}
 
-	public static func newVMLocation(vmURL: URL, runMode: Utils.RunMode) throws -> Self {
+	private var cachedConfig: CakeConfig?
+
+	public static func newVMLocation(vmURL: URL, runMode: Utils.RunMode) throws -> VMLocation {
 		if vmURL.isFileURL {
 			let location = VMLocation(rootURL: vmURL, template: false)
 
@@ -119,6 +121,14 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		self.template = template
 	}
 
+	public static func == (lhs: VMLocation, rhs: VMLocation) -> Bool {
+		lhs.rootURL == rhs.rootURL
+	}
+
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(rootURL)
+	}
+	
 	private func buildURL(_ path: String) -> URL {
 		return rootURL.appendingPathComponent(path).resolvingSymlinksInPath().absoluteURL
 	}
@@ -208,19 +218,24 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public func config() throws -> CakeConfig {
-		let config = try CakeConfig(location: self.rootURL)
-		let diskURL: URL
+		guard let cachedConfig else {
+			let config = try CakeConfig(location: rootURL)
+			let diskURL: URL
 
-		if let rootDisk = config.rootDisk, rootDisk.isEmpty == false {
-			let expanded = rootDisk.expandingTildeInPath
-			diskURL = expanded.hasPrefix("/") ? URL(fileURLWithPath: expanded).resolvingSymlinksInPath() : buildURL(expanded)
-		} else {
-			diskURL = buildURL("disk.img")
+			if let rootDisk = config.rootDisk, rootDisk.isEmpty == false {
+				let expanded = rootDisk.expandingTildeInPath
+				diskURL = expanded.hasPrefix("/") ? URL(fileURLWithPath: expanded).resolvingSymlinksInPath() : buildURL(expanded)
+			} else {
+				diskURL = buildURL("disk.img")
+			}
+
+			config.diskSize = diskURL.diskSize
+			
+			self.cachedConfig = config
+			return config
 		}
 
-		config.diskSize = diskURL.diskSize
-
-		return config
+		return cachedConfig
 	}
 
 	public var status: Status {
@@ -363,6 +378,8 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		if self.inited == false {
 			throw ServiceError(String(localized: "VM is not correctly inited, missing files: (\(configURL.lastPathComponent), \(diskURL.lastPathComponent) or \(nvramURL.lastPathComponent))"))
 		}
+
+		_ = try self.config()
 
 		return self
 	}

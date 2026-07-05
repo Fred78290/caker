@@ -48,14 +48,14 @@ extension DisplaySize {
 	}
 }
 
-public final class CakeConfig: VirtualMachineConfiguration {
+public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable {
 	private var config: Config
 	private var cake: Config
 
 	public var diskSize: UInt64 = 0
 	public var locationURL: URL
 
-	internal final class Config {
+	internal final class Config: @unchecked Sendable {
 		var data: [String: Any]
 		var dirty: Bool
 
