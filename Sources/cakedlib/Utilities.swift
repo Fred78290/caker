@@ -479,7 +479,7 @@ extension Bundle {
 			do {
 				var catchedError: Error? = nil
 
-				try Self.runExecutableWithUnixTask(URL(filePath: command)!, with: arguments, standardInput: nil, standardOutput: stdout.fileHandleForWriting, standardError: stderr.fileHandleForWriting) { error in
+				try Self.runExecutableWithUnixTask(URL(filePath: command), with: arguments, standardInput: nil, standardOutput: stdout.fileHandleForWriting, standardError: stderr.fileHandleForWriting) { error in
 					if let error {
 						#if TRACE
 							Logger(self).debug("Command \(command) failed \(error)")
