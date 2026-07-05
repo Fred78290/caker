@@ -352,14 +352,12 @@ public struct BuildOptions: ParsableArguments {
 
 		self.imageSource = ImageSource(request.imageSource)
 		
-		if request.hasDiskFormat {
-			self.diskFormat = SupportedDiskFormat(request.diskFormat)
-		} else {
-			self.diskFormat = .raw
-		}
-
+		let requestedFormat: SupportedDiskFormat = request.hasDiskFormat
+			? SupportedDiskFormat(request.diskFormat)
+			: SupportedDiskFormat.defaultSupportedFormat
+		
 		if let imageSource = self.imageSource {
-			self.diskFormat = imageSource.supportedDiskFormat(for: self.diskFormat)
+			self.diskFormat = imageSource.supportedDiskFormat(for: requestedFormat)
 		} else {
 			self.diskFormat = .raw
 		}
