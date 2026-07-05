@@ -83,6 +83,10 @@ public struct ConfigureHandler {
 					throw ServiceError(String(localized: "VM is running, please stop it before resizing the disk"))
 				}
 
+				if Bundle.isApplicationSandboxed && Bundle.mustUseUnixTask == false && config.diskFormat == .asif {
+					throw ServiceError(String(localized: "Resize disk is not available in sandboxed mode with command line interface, use the Caker application instead or `diskutil image resize --size=\(diskSize)G \"\(location.rootURL.path(percentEncoded: false))\"`"))
+				}
+
 				if config.os == .linux {
 					try location.resizeDisk(diskSize, format: config.diskFormat)
 				} else {

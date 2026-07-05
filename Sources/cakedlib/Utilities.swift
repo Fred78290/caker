@@ -568,38 +568,54 @@ extension URL: Purgeable {
 			return diskSize
 		}
 
-		if self.asifDisk {
-			_ = try? Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "info", "--plist", self.path(percentEncoded: false)]) { (exitCode, stdout, stderr) in
-				guard exitCode == 0 else {
-					throw ServiceError(String(localized: "Failed to get disk info: \(stderr)"))
-				}
-				
-				guard let data = stdout.data(using: .utf8), let plist = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] else {
-					throw ServiceError(String(localized: "Failed to parse disk info"))
-				}
-				
-				guard let sizeInfo = plist["Size Info"] as? [String: Any], let totalBytes = sizeInfo["Total Bytes"] as? UInt64 else {
-					throw ServiceError(String(localized: "Failed to parse disk info"))
-				}
-				
-				diskSize = totalBytes
-				
-				return stdout
-			}
+		if let asifSize = self.asifDiskSize {
+			diskSize = asifSize
 		}
 
 		return diskSize
+	}
+
+	// Logical size of an ASIF disk image, read from its header (https://github.com/huven/asif-format).
+	// Integers are big-endian: magic "shdw" at 0x00, sector count (UInt64) at 0x30, block size (UInt16) at 0x44.
+	// Logical size = sector count * block size, matching "Size Info > Total Bytes" from `diskutil image info`.
+	public var asifDiskSize: UInt64? {
+		guard let handle = try? FileHandle(forReadingFrom: self) else {
+			return nil
+		}
+
+		defer {
+			try? handle.close()
+		}
+
+		guard let header = try? handle.read(upToCount: 0x46), header.count == 0x46 else {
+			return nil
+		}
+
+		guard String(bytes: header.prefix(4), encoding: .ascii) == "shdw" else {
+			return nil
+		}
+
+		let sectorCount = header.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: 0x30, as: UInt64.self) }.bigEndian
+		let blockSize = header.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: 0x44, as: UInt16.self) }.bigEndian
+
+		let (size, overflow) = sectorCount.multipliedReportingOverflow(by: UInt64(blockSize))
+
+		guard overflow == false, size > 0 else {
+			return nil
+		}
+
+		return size
 	}
 
 	public var asifDisk: Bool {
 		if self.pathExtension.lowercased() == "asif" {
 			return true
 		}
-		
+
 		guard let handle = try? FileHandle(forReadingFrom: self) else {
 			return false
 		}
-		
+
 		defer {
 			try? handle.close()
 		}
