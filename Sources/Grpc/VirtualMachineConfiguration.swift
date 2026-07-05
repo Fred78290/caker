@@ -477,6 +477,7 @@ extension VirtualMachineConfiguration {
 				$0.osRelease = osRelease
 			}
 			$0.diskSize = self.diskSize
+			$0.diskFormat = self.diskFormat.caked
 			$0.cpuCount = UInt32(self.cpuCount)
 			$0.cpuCountMin = UInt32(self.cpuCountMin)
 			$0.memorySize = self.memorySize

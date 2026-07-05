@@ -355,6 +355,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.os = from.os
 		self.arch = from.arch
 		self.diskSize = from.diskSize
+		self.diskFormat = from.diskFormat
 		self.cpuCountMin = from.cpuCountMin
 		self.suspendable = from.suspendable
 		self.cpuCount = from.cpuCount
