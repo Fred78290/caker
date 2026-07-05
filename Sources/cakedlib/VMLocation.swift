@@ -401,7 +401,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				}
 
 			} else if #available(macOS 26.0, *) {
-				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "resize", String("\(sizeGB)G"), diskURL.path]) { (exitCode, stdout, stderr) in
+				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "resize", "--size=\(sizeGB)G", diskURL.path]) { (exitCode, stdout, stderr) in
 					guard exitCode == 0 else {
 						throw ServiceError(String(localized: "Failed to resize disk with diskutil: \(stderr)"))
 					}
