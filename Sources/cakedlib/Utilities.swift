@@ -202,24 +202,24 @@ extension Bundle {
 		let userTask = try NSUserUnixTask(url: scriptsFile)
 
 		if let standardInput = standardInput as? FileHandle {
-			userTask.standardInput = standardInput  //FileHandle(fileDescriptor: dup(standardInput.fileDescriptor), closeOnDealloc: true)
+			userTask.standardInput = FileHandle(fileDescriptor: dup(standardInput.fileDescriptor), closeOnDealloc: true)
 		} else if let pipe = standardInput as? Pipe {
 			userTask.standardInput = pipe.fileHandleForReading
 		}
 
 		if let standardOutput = standardOutput as? FileHandle {
-			userTask.standardOutput = standardOutput  //FileHandle(fileDescriptor: dup(standardOutput.fileDescriptor), closeOnDealloc: true)
+			userTask.standardOutput = FileHandle(fileDescriptor: dup(standardOutput.fileDescriptor), closeOnDealloc: true)
 		} else if let pipe = standardOutput as? Pipe {
 			userTask.standardOutput = pipe.fileHandleForWriting
 		}
 
 		if let standardError = standardError as? FileHandle {
-			userTask.standardError = standardError  //FileHandle(fileDescriptor: dup(standardError.fileDescriptor), closeOnDealloc: true)
+			userTask.standardError = FileHandle(fileDescriptor: dup(standardError.fileDescriptor), closeOnDealloc: true)
 		} else if let pipe = standardError as? Pipe {
 			userTask.standardError = pipe.fileHandleForWriting
 		}
 
-		#if !DEBUG
+		#if !TRACE
 			defer {
 				try? FileManager.default.removeItem(at: scriptsFile)
 			}
@@ -439,6 +439,13 @@ extension Bundle {
 	}
 
 	@discardableResult public static func execSandboxed(_ command: FilePath, with arguments: [String], _ completion: Shell.ExecCompletion? = nil) throws -> String {
+
+		#if TRACE
+			var debug: [String] = [command.description]
+			debug.append(contentsOf: arguments)
+			print("🚀 \(debug.joined(separator: " "))")
+		#endif
+
 		if Bundle.mustUseUnixTask {
 			let stderr = Pipe()
 			let stdout = Pipe()
@@ -447,9 +454,7 @@ extension Bundle {
 			let outputQueue = ShellProcessQueues.commandOutput
 
 			#if DEBUG
-				var debug: [String] = [command.description]
-				debug.append(contentsOf: arguments)
-				print("🚀 \(debug.joined(separator: " "))")
+				Logger(self).debug("Command \(command) entering sandboxed execution with arguments: \(arguments.joined(separator: " "))")
 			#endif
 
 			stdout.fileHandleForReading.readabilityHandler = { handler in
@@ -472,11 +477,28 @@ extension Bundle {
 			}
 
 			do {
-				try Self.runExecutableWithUnixTask(URL(filePath: command)!, with: arguments, standardInput: nil, standardOutput: stdout.fileHandleForWriting, standardError: stderr.fileHandleForWriting)
+				var catchedError: Error? = nil
+
+				try Self.runExecutableWithUnixTask(URL(filePath: command)!, with: arguments, standardInput: nil, standardOutput: stdout.fileHandleForWriting, standardError: stderr.fileHandleForWriting) { error in
+					if let error {
+						#if TRACE
+							Logger(self).debug("Command \(command) failed \(error)")
+						#endif
+						catchedError = error
+					}
+				}
+
+				if let catchedError {
+					throw catchedError
+				}
 
 				let output = outputQueue.sync {
 					return (stdout: String(data: outputData, encoding: .utf8) ?? "", stderr: String(data: errorData, encoding: .utf8) ?? "")
 				}
+
+				#if TRACE
+					Logger(self).debug("Command \(command) succeeded with output, stdout: \(output.stdout), stderr: \(output.stderr)")
+				#endif
 
 				guard let completion else {
 					return output.stdout
@@ -487,9 +509,11 @@ extension Bundle {
 				let output = outputQueue.sync {
 					return (stdout: String(data: outputData, encoding: .utf8) ?? "", stderr: String(data: errorData, encoding: .utf8) ?? "")
 				}
-
+				#if TRACE
+					Logger(self).debug("Command \(command) failed \(error) with output, stdout: \(output.stdout), stderr: \(output.stderr)")
+				#endif
 				guard let completion else {
-					return output.stdout
+					throw error
 				}
 
 				return try completion(1, output.stdout, output.stderr)

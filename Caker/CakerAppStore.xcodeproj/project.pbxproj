@@ -202,6 +202,7 @@
 		9B37938B2FD5694500D3D54C /* Sandbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B37938A2FD5694500D3D54C /* Sandbox.swift */; };
 		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
 		9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */; };
+		9B4159B72FFA66F400E2B275 /* ConfigureHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4159B62FFA66F000E2B275 /* ConfigureHandler.swift */; };
 		9B44388A2EBC9C12008BB2BB /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4438892EBC9C12008BB2BB /* Dynamic */; };
 		9B464B5F2D5A3E7F00164BF5 /* CakeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A872D5A3E0300164BF5 /* CakeProvider.swift */; };
 		9B464B602D5A3E7F00164BF5 /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A882D5A3E0300164BF5 /* Client.swift */; };
@@ -966,6 +967,7 @@
 		9B3794922FD577C200D3D54C /* caker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caker.entitlements; sourceTree = "<group>"; };
 		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
 		9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdatesView.swift; sourceTree = "<group>"; };
+		9B4159B62FFA66F000E2B275 /* ConfigureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureHandler.swift; sourceTree = "<group>"; };
 		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
 		9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteWizard.swift; sourceTree = "<group>"; };
 		9B4517E62F067E7B0088F093 /* GraphCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphCapsule.swift; sourceTree = "<group>"; };
@@ -2249,6 +2251,7 @@
 		9BB213CE2F37548300B45692 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				9B4159B62FFA66F000E2B275 /* ConfigureHandler.swift */,
 				9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */,
 				9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */,
 				9BB213C92F37548300B45692 /* DeleteHandler.swift */,
@@ -3412,6 +3415,7 @@
 				9B29F7CE2FCAE4B700AEBCB8 /* FileHelpers.swift in Sources */,
 				9B29F7CF2FCAE4B700AEBCB8 /* Root.swift in Sources */,
 				9B29F7D02FCAE4B700AEBCB8 /* BridgeVirtualDocument.swift in Sources */,
+				9B4159B72FFA66F400E2B275 /* ConfigureHandler.swift in Sources */,
 				9B29F7D12FCAE4B700AEBCB8 /* ExternalVirtualMachineView.swift in Sources */,
 				9B29F7D22FCAE4B700AEBCB8 /* NetworkAttachementView.swift in Sources */,
 				9B29F7D32FCAE4B700AEBCB8 /* ImageHandler.swift in Sources */,

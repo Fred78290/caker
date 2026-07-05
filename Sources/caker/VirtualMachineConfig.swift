@@ -15,6 +15,7 @@ import Virtualization
 
 struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	private var changedFields: Set<PartialKeyPath<Self>>? = nil
+	private var initialDiskSize: UInt64
 
 	var locationURL: URL
 	
@@ -429,6 +430,10 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.changedFields?.contains(\.diskSize) == true ? self.diskSize : nil
 	}
 
+	var diskSizeIsChanged: Bool {
+		guard let diskSize = self.diskSizeIfChanged else { return false }
+		return diskSize != self.initialDiskSize
+	}
 	var ifname: Bool = true {
 		didSet {
 			changedFields?.insert(\.ifname)
@@ -510,6 +515,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.cpuCount = 1
 		self.memorySize = 512 * MoB
 		self.diskSize = 20 * GiB
+		self.initialDiskSize = 20 * GiB
 		self.macAddress = String.empty
 		self.autostart = false
 		self.suspendable = false
@@ -545,6 +551,8 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.vmname = name
 		self.rootDisk = config.rootDisk
 		self.diskFormat = config.diskFormat
+		self.diskSize = config.diskSize
+		self.initialDiskSize = config.diskSize
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.locationURL = config.locationURL
 		self.version = config.version
@@ -651,14 +659,14 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		return self.buildOptions(image: self.imageName, imageSource: imageSource, sshAuthorizedKey: self.sshAuthorizedKey)
 	}
 
-	func configureOptions() -> ConfigureOptions {
+	func configureOptions(allowReconfigureDisk: Bool) -> ConfigureOptions {
 		.init(
 			name: self.vmname!,
 			user: self.configuredUserIfChanged,
 			password: self.configuredPasswordIfChanged,
 			cpu: self.cpuCountIfChanged,
 			memory: self.memorySizeInMoBIfChanged,
-			diskSize: self.diskSizeInGiBIfChanged,
+			diskSize: allowReconfigureDisk ? self.diskSizeInGiBIfChanged : nil,
 			screenSize: self.displayIfChanged,
 			attachedDisks: self.attachedDisksIfChanged,
 			autostart: self.autostartIfChanged,

@@ -200,6 +200,12 @@ public struct BuildOptions: ParsableArguments {
 			self.diskSize = 20
 		}
 
+		if request.hasDiskFormat {
+			self.diskFormat = .init(request.diskFormat)
+		} else {
+			self.diskFormat = SupportedDiskFormat.defaultSupportedFormat
+		}
+
 		if request.hasAttachedDisks {
 			self.attachedDisks = try request.attachedDisks.components(separatedBy: String.grpcSeparator).compactMap {
 				try DiskAttachement(parseFrom: $0)
