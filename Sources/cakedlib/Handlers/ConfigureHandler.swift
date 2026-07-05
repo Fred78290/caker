@@ -84,7 +84,7 @@ public struct ConfigureHandler {
 				}
 
 				if Bundle.isApplicationSandboxed && Bundle.mustUseUnixTask == false && config.diskFormat == .asif {
-					throw ServiceError(String(localized: "Resize disk is not available in sandboxed mode with command line interface, use the Caker application instead or `diskutil image resize --size=\(diskSize)G \"\(location.rootURL.path(percentEncoded: false))\"`"))
+					throw ServiceError(String(localized: "Resize disk is not available in sandboxed mode with command line interface, use the Caker application instead or `diskutil image resize --size=\(diskSize)G \"\(location.diskURL.path(percentEncoded: false))\"`"))
 				}
 
 				if config.os == .linux {
