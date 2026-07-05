@@ -411,7 +411,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 					return stdout
 				}
 			} else {
-				throw ServiceError("ASIF format is support only on macOS 26.0+")
+				throw ServiceError(String(localized: "ASIF format is supported only on macOS 26.0+"))
 			}
 		} else if format == .raw {
 			FileManager.default.createFile(atPath: diskURL.path, contents: nil, attributes: nil)
