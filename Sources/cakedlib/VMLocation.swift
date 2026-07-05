@@ -392,7 +392,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			if format == .raw {
 				try Bundle.execSandboxed("/usr/bin/hdiutil", with: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path]) { (exitCode, stdout, stderr) in
 					guard exitCode == 0 else {
-						throw ServiceError(String(localized: "Failed to resize disk with hdutil: \(stderr)"))
+					throw ServiceError(String(localized: "Failed to resize disk with hdiutil: \(stderr)"))
 					}
 
 					logger.debug(stdout)
