@@ -560,7 +560,6 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.arch = config.arch
 		self.cpuCountMin = config.cpuCountMin
 		self.suspendable = config.suspendable
-		self.diskSize = config.diskSize
 		self.cpuCount = config.cpuCount
 		self.memorySizeMin = config.memorySizeMin
 		self.memorySize = config.memorySize
