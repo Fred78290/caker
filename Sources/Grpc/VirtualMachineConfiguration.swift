@@ -1,3 +1,5 @@
+import ArgumentParser
+import CakeAgentLib
 //
 //  VirtualMachineConfiguration.swift
 //  Caker
@@ -6,7 +8,6 @@
 //
 import Foundation
 import NIOPortForwarding
-import CakeAgentLib
 
 public enum VirtualizedOS: String, Codable {
 	case darwin
@@ -48,10 +49,10 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 			return "x86_64"
 		}
 	}
-	
+
 	// Identifiable conformance
 	public var id: String { self.rawValue }
-	
+
 	public init(rawValue: String) {
 		switch rawValue {
 		case "arm64":
@@ -92,7 +93,7 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 			self = .amd64
 		}
 	}
-	
+
 	case arm64
 	case amd64
 	case amd64v2
@@ -108,13 +109,94 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 	case riscv64
 	case s390x
 	case x86_64
-	
+
 	public static func current() -> Architecture {
-#if arch(arm64)
-		return .arm64
-#elseif arch(x86_64)
-		return .amd64
-#endif
+		#if arch(arm64)
+			return .arm64
+		#elseif arch(x86_64)
+			return .amd64
+		#endif
+	}
+}
+
+public enum SupportedDiskFormat: String, Identifiable, Codable, Hashable, CustomStringConvertible, ExpressibleByArgument, CaseIterable {
+
+	public var id: String {
+		self.rawValue
+	}
+	
+	case raw
+	case asif
+
+	public var description: String {
+		switch self {
+		case .raw:
+			return "Raw"
+		case .asif:
+			return "ASIF"
+		}
+	}
+
+	public static var allCases: Self.AllCases {
+		if #available(macOS 26, *) {
+			return [.raw, .asif]
+		} else {
+			return [.raw]
+		}
+	}
+
+	public var caked: Caked_Caked.Configuration.DiskFormat {
+		if #available(macOS 26, *) {
+			switch self {
+			case .asif:
+				return .asifDisk
+			default:
+				return .rawDisk
+			}
+		} else {
+			return .rawDisk
+		}
+	}
+
+	public init?(argument: String) {
+		switch argument.lowercased() {
+		case "raw":
+			self = .raw
+		case "asif":
+			self = .asif
+		default:
+			return nil
+		}
+	}
+
+	public init(fileExtension: String) {
+		switch fileExtension.lowercased() {
+		case "asif":
+			self = .asif
+		default:
+			self = .raw
+		}
+	}
+
+	public init(_ from: Caked_Caked.Configuration.DiskFormat) {
+		if #available(macOS 26, *) {
+			if from == .asifDisk {
+				self = .asif
+			} else {
+				self = .raw
+			}
+		} else {
+			self = .raw
+		}
+
+	}
+
+	static public var defaultSupportedFormat: SupportedDiskFormat {
+		if #available(macOS 26, *) {
+			.asif
+		} else {
+			.raw
+		}
 	}
 }
 
@@ -155,6 +237,7 @@ public enum SupportedPlatform: String, Codable, CaseIterable {
 public protocol VirtualMachineConfiguration {
 	var locationURL: URL { get }
 	var rootDisk: String? { get }
+	var diskFormat: SupportedDiskFormat { get }
 	var version: Int { set get }
 	var os: VirtualizedOS { set get }
 	var arch: Architecture { set get }
@@ -195,7 +278,7 @@ public protocol VirtualMachineConfiguration {
 	var runningIP: String? { set get }
 	var display: ViewSize { set get }
 	var vncPassword: String? { set get }
-	var ecid: Data? /*VZMacMachineIdentifier*/  { set get }
+	var ecid: Data? /*VZMacMachineIdentifier*/ { set get }
 	var hardwareModel: Data? /*VZMacHardwareModel?*/ { set get }
 }
 
@@ -272,15 +355,15 @@ extension Caked.Configuration.DirectorySharingAttachment {
 		self = .with {
 			$0.source = attachment.source
 			$0.readOnly = attachment.readOnly
-			
+
 			if let name = attachment._name {
 				$0.name = name
 			}
-			
+
 			if let destination = attachment._destination {
 				$0.destination = destination
 			}
-			
+
 			if let uid = attachment._uid {
 				$0.uid = Int32(uid)
 			}
@@ -389,7 +472,7 @@ extension VirtualMachineConfiguration {
 			if let osName {
 				$0.osName = osName
 			}
-			
+
 			if let osRelease {
 				$0.osRelease = osRelease
 			}
@@ -401,7 +484,7 @@ extension VirtualMachineConfiguration {
 			if let macAddress {
 				$0.macAddress = macAddress
 			}
-			$0.networks = self.networks.map({.init($0)})
+			$0.networks = self.networks.map({ .init($0) })
 			$0.dynamicPortForwarding = self.dynamicPortForwarding
 			$0.display = .with {
 				let display = self.display
@@ -410,13 +493,13 @@ extension VirtualMachineConfiguration {
 				$0.height = Int32(display.height)
 			}
 			$0.displayRefit = self.displayRefit
-			$0.mounts = self.mounts.map({.init($0)})
-			$0.attachedDisks = self.attachedDisks.map({.init($0)})
-			$0.sockets = self.sockets.map({.init($0)})
+			$0.mounts = self.mounts.map({ .init($0) })
+			$0.attachedDisks = self.attachedDisks.map({ .init($0) })
+			$0.sockets = self.sockets.map({ .init($0) })
 			if let console {
 				$0.console = console
 			}
-			$0.forwardedPorts = self.forwardedPorts.map({.init($0)})
+			$0.forwardedPorts = self.forwardedPorts.map({ .init($0) })
 			$0.configuredUser = self.configuredUser
 			if let configuredPassword = self.configuredPassword {
 				$0.configuredPassword = configuredPassword
@@ -425,18 +508,18 @@ extension VirtualMachineConfiguration {
 			if let configuredGroups {
 				$0.configuredGroups = configuredGroups
 			}
-			
+
 			if let sshPrivateKeyPath {
 				$0.sshPrivateKeyPath = sshPrivateKeyPath
 			}
-			
+
 			if let sshPrivateKeyPassphrase {
 				$0.sshPrivateKeyPassphrase = sshPrivateKeyPassphrase
 			}
-			
+
 			$0.clearPassword_p = self.clearPassword
 			$0.source = .init(self.source)
-			
+
 			if let dhcpClientID {
 				$0.dhcpClientID = dhcpClientID
 			}
@@ -444,11 +527,11 @@ extension VirtualMachineConfiguration {
 			if let vncPassword {
 				$0.vncPassword = vncPassword
 			}
-			
+
 			if let runningIP {
 				$0.runningIp = runningIP
 			}
-			
+
 			$0.useCloudInit = self.useCloudInit
 			$0.autostart = self.autostart
 			$0.agent = self.agent
@@ -456,11 +539,11 @@ extension VirtualMachineConfiguration {
 			$0.nested = self.nested
 			$0.suspendable = self.suspendable
 			$0.ifname = self.ifname
-			
+
 			if let ecid {
 				$0.ecid = ecid
 			}
-			
+
 			if let hardwareModel {
 				$0.hardwareModel = hardwareModel
 			}

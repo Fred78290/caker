@@ -45,6 +45,36 @@ func alertError(_ error: Error, completion: ((NSApplication.ModalResponse) -> Vo
 	alertError(String(localized: "An error occurred"), informativeText, completion: completion)
 }
 
+@MainActor
+func showDiskResizeAlert(informativeText: String, command: String) {
+	let alert = NSAlert()
+	alert.messageText = String(localized: "Resize Disk Unavailable")
+	alert.informativeText = informativeText
+
+	let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 480, height: 60))
+	textView.string = command
+	textView.isEditable = false
+	textView.isSelectable = true
+	textView.font = NSFont.monospacedSystemFont(ofSize: NSFont.smallSystemFontSize, weight: .regular)
+	textView.backgroundColor = NSColor.windowBackgroundColor
+
+	let scrollView = NSScrollView(frame: NSRect(x: 0, y: 0, width: 480, height: 60))
+	scrollView.documentView = textView
+	scrollView.hasVerticalScroller = false
+	scrollView.hasHorizontalScroller = false
+	scrollView.borderType = .bezelBorder
+
+	alert.accessoryView = scrollView
+	alert.addButton(withTitle: String(localized: "Copy Command"))
+	alert.addButton(withTitle: String(localized: "OK"))
+
+	let response = alert.runModal()
+	if response == .alertFirstButtonReturn {
+		NSPasteboard.general.clearContents()
+		NSPasteboard.general.setString(command, forType: .string)
+	}
+}
+
 struct Defaults {
 	static func currentTerminalFont(defaultValue: NSFont = NSFont.monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)) -> NSFont {
 		guard let name = UserDefaults.standard.object(forKey: "TerminalFontName") as? String else {

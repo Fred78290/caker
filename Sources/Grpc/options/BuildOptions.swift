@@ -17,6 +17,9 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp(String(localized: "Disk size in GiB"), valueName: "GiB"))
 	public var diskSize: UInt64 = 10
 
+	@Option(name: [.customLong("disk-format"), .customShort("f")], help: ArgumentHelp(String(localized: "Root disk format, ignored if the image disk is already bootable"), valueName: "format"))
+	public var diskFormat: SupportedDiskFormat = SupportedDiskFormat.defaultSupportedFormat
+
 	@Option(name: [.customLong("disk")], help: ArgumentHelp(String(localized: "Other attached disk"), valueName: "path"))
 	public var attachedDisks: [DiskAttachement] = []
 
@@ -112,6 +115,7 @@ public struct BuildOptions: ParsableArguments {
 		cpu: UInt16 = 2,
 		memory: UInt64 = 2048,
 		diskSize: UInt64 = 10,
+		diskFormat: SupportedDiskFormat, // = SupportedDiskFormat.raw,
 		screenSize: ViewSize = .standard,
 		attachedDisks: [DiskAttachement] = [],
 		user: String = "admin",
@@ -144,6 +148,7 @@ public struct BuildOptions: ParsableArguments {
 		self.cpu = cpu
 		self.memory = memory
 		self.diskSize = diskSize
+		self.diskFormat = diskFormat
 		self.attachedDisks = attachedDisks
 		self.user = user
 		self.password = password
@@ -193,6 +198,12 @@ public struct BuildOptions: ParsableArguments {
 			self.diskSize = request.diskSize
 		} else {
 			self.diskSize = 20
+		}
+
+		if request.hasDiskFormat {
+			self.diskFormat = .init(request.diskFormat)
+		} else {
+			self.diskFormat = SupportedDiskFormat.defaultSupportedFormat
 		}
 
 		if request.hasAttachedDisks {
@@ -341,6 +352,16 @@ public struct BuildOptions: ParsableArguments {
 
 		self.imageSource = ImageSource(request.imageSource)
 		
+		let requestedFormat: SupportedDiskFormat = request.hasDiskFormat
+			? SupportedDiskFormat(request.diskFormat)
+			: SupportedDiskFormat.defaultSupportedFormat
+		
+		if let imageSource = self.imageSource {
+			self.diskFormat = imageSource.supportedDiskFormat(for: requestedFormat)
+		} else {
+			self.diskFormat = .raw
+		}
+
 		if request.hasRootDisk, request.rootDisk.isEmpty == false {
 			self.root = request.rootDisk
 		} else {
@@ -409,6 +430,7 @@ public struct BuildOptions: ParsableArguments {
 			if imageURL.scheme != nil {
 				if let imageSource = ImageSource.schemes[scheme] {
 					self.imageSource = imageSource
+					self.diskFormat = imageSource.supportedDiskFormat(for: self.diskFormat)
 
 					if imageURL.host == nil {
 						switch imageSource {
@@ -429,9 +451,11 @@ public struct BuildOptions: ParsableArguments {
 					}
 				} else {
 					self.imageSource = .stream
+					self.diskFormat = .raw
 				}
 			} else {
 				self.image = URL(fileURLWithPath: imageURL.path.expandingTildeInPath).absoluteString
+				self.diskFormat = .raw
 			}
 		} else {
 			guard imageURL.scheme != nil && imageURL.isFileURL == false && imageURL.scheme != "qcow2" else {
@@ -439,6 +463,8 @@ public struct BuildOptions: ParsableArguments {
 			}
 
 			if let imageSource = ImageSource.schemes[scheme] {
+				self.diskFormat = imageSource.supportedDiskFormat(for: self.diskFormat)
+
 				if imageURL.host == nil {
 					throw ValidationError(String(localized: "Local file is not supported"))
 				}
@@ -446,6 +472,7 @@ public struct BuildOptions: ParsableArguments {
 				self.imageSource = imageSource
 			} else {
 				self.imageSource = .stream
+				self.diskFormat = .raw
 			}
 		}
 	}

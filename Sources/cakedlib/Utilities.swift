@@ -5,6 +5,7 @@ import GRPC
 import GRPCLib
 import NIO
 import Socket
+import Subprocess
 import System
 import Virtualization
 
@@ -30,7 +31,7 @@ extension Bundle {
 
 		return ProcessWithSharedFileHandle()
 	}
-	
+
 	public var cakerBuildPlugInsPath: [String] {
 		var paths: [String] = []
 
@@ -125,31 +126,62 @@ extension Bundle {
 		return pluginsURL
 	}
 
-	private static func buildScriptFile(_ cakedExecutableURL: URL) throws -> URL {
-		let scriptsFile = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("caked-\(UUID().uuidString).sh")
-		let scripts: [String] = [
-			"#!/bin/sh",
-			"exec '\(cakedExecutableURL.path(percentEncoded: false))' \"$@\"",
-		]
+	private static func buildScriptFile(_ executableURL: URL) throws -> URL {
+		let uuid = UUID().uuidString
+		let scriptsFile = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("\(executableURL.lastPathComponent)-\(uuid).sh")
 
-		try scripts.joined(separator: "\n").write(to: scriptsFile, atomically: true, encoding: .utf8)
+		#if TRACE
+			let stdout = scriptsFile.deletingPathExtension().appendingPathExtension("stdout.txt").path(percentEncoded: false)
+			let stderr = scriptsFile.deletingPathExtension().appendingPathExtension("stderr.txt").path(percentEncoded: false)
+			let scripts =
+				"""
+				#!/bin/bash
+				exec > >(tee "\(stdout)") 2> >(tee "\(stderr)" >&2)
+
+				"\(executableURL.path(percentEncoded: false))" "$@"
+				"""
+		#else
+			let scripts =
+				"""
+				#!/bin/sh
+
+				exec "\(executableURL.path(percentEncoded: false))" "$@"
+				"""
+		#endif
+
+		try scripts.write(to: scriptsFile, atomically: true, encoding: .ascii)
 		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptsFile.path(percentEncoded: false))
 
 		return scriptsFile
 	}
 
-	public static func runCakedWithUnixTask(
+	public static func runExecutableWithUnixTask(
+		_ executableURL: URL,
 		with arguments: [String],
-		standardInput: FileHandle = FileHandle.standardInput,
-		standardOutput: FileHandle = FileHandle.standardOutput,
-		standardError: FileHandle = FileHandle.standardError,
+		standardInput: Any?,
+		standardOutput: Any?,
+		standardError: Any?,
 	) async throws {
-		let scriptsFile = try buildScriptFile(Bundle.main.caked())
+		let scriptsFile = try buildScriptFile(executableURL)
 		let userTask = try NSUserUnixTask(url: scriptsFile)
 
-		userTask.standardOutput = FileHandle(fileDescriptor: dup(STDOUT_FILENO), closeOnDealloc: true)
-		userTask.standardError = FileHandle(fileDescriptor: dup(STDERR_FILENO), closeOnDealloc: true)
-		userTask.standardInput = nil
+		if let standardInput = standardInput as? FileHandle {
+			userTask.standardInput = FileHandle(fileDescriptor: dup(standardInput.fileDescriptor), closeOnDealloc: true)
+		} else if let pipe = standardInput as? Pipe {
+			userTask.standardInput = pipe.fileHandleForReading
+		}
+
+		if let standardOutput = standardOutput as? FileHandle {
+			userTask.standardOutput = FileHandle(fileDescriptor: dup(standardOutput.fileDescriptor), closeOnDealloc: true)
+		} else if let pipe = standardOutput as? Pipe {
+			userTask.standardOutput = pipe.fileHandleForWriting
+		}
+
+		if let standardError = standardError as? FileHandle {
+			userTask.standardError = FileHandle(fileDescriptor: dup(standardError.fileDescriptor), closeOnDealloc: true)
+		} else if let pipe = standardError as? Pipe {
+			userTask.standardError = pipe.fileHandleForWriting
+		}
 
 		defer {
 			try? FileManager.default.removeItem(at: scriptsFile)
@@ -158,6 +190,66 @@ extension Bundle {
 		try await userTask.execute(withArguments: arguments)
 	}
 
+	public static func runExecutableWithUnixTask(
+		_ executableURL: URL,
+		with arguments: [String],
+		standardInput: Any?,
+		standardOutput: Any?,
+		standardError: Any?,
+		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
+	) throws {
+		let scriptsFile = try buildScriptFile(executableURL)
+		let userTask = try NSUserUnixTask(url: scriptsFile)
+
+		if let standardInput = standardInput as? FileHandle {
+			userTask.standardInput = FileHandle(fileDescriptor: dup(standardInput.fileDescriptor), closeOnDealloc: true)
+		} else if let pipe = standardInput as? Pipe {
+			userTask.standardInput = pipe.fileHandleForReading
+		}
+
+		if let standardOutput = standardOutput as? FileHandle {
+			userTask.standardOutput = FileHandle(fileDescriptor: dup(standardOutput.fileDescriptor), closeOnDealloc: true)
+		} else if let pipe = standardOutput as? Pipe {
+			userTask.standardOutput = pipe.fileHandleForWriting
+		}
+
+		if let standardError = standardError as? FileHandle {
+			userTask.standardError = FileHandle(fileDescriptor: dup(standardError.fileDescriptor), closeOnDealloc: true)
+		} else if let pipe = standardError as? Pipe {
+			userTask.standardError = pipe.fileHandleForWriting
+		}
+
+		#if !TRACE
+			defer {
+				try? FileManager.default.removeItem(at: scriptsFile)
+			}
+		#endif
+
+		do {
+			try Task.sync {
+				try await userTask.execute(withArguments: arguments)
+			}
+
+			handler?(nil)
+		} catch {
+			handler?(error)
+		}
+	}
+
+	public static func runCakedWithUnixTask(
+		with arguments: [String],
+		standardInput: Any? = FileHandle.standardInput,
+		standardOutput: Any? = FileHandle.standardOutput,
+		standardError: Any? = FileHandle.standardError,
+	) async throws {
+		try await runExecutableWithUnixTask(
+			Bundle.main.caked(),
+			with: arguments,
+			standardInput: standardInput,
+			standardOutput: standardOutput,
+			standardError: standardError)
+	}
+
 	public static func runCakedWithUnixTask(
 		with arguments: [String],
 		standardInput: Any? = FileHandle.standardInput,
@@ -165,30 +257,17 @@ extension Bundle {
 		standardError: Any? = FileHandle.standardError,
 		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
 	) throws {
-		let scriptsFile = try buildScriptFile(Bundle.main.caked())
-		let userTask = try NSUserUnixTask(url: scriptsFile)
-
-		userTask.standardOutput = FileHandle(fileDescriptor: dup(STDOUT_FILENO), closeOnDealloc: true)
-		userTask.standardError = FileHandle(fileDescriptor: dup(STDERR_FILENO), closeOnDealloc: true)
-		userTask.standardInput = nil
-
-		Utilities.group.next().makeFutureWithTask {
-			try await userTask.execute(withArguments: arguments)
-		}.whenComplete { result in
-			if let handler {
-				switch result {
-				case .success:
-					handler(nil)
-				case .failure(let error):
-					handler(error)
-				}
-			}
-
-			try? FileManager.default.removeItem(at: scriptsFile)
-		}
+		try runExecutableWithUnixTask(
+			Bundle.main.caked(),
+			with: arguments,
+			standardInput: standardInput,
+			standardOutput: standardOutput,
+			standardError: standardError,
+			completionHandler: handler)
 	}
 
-	public static func runCaked(
+	public static func runExecutable(
+		_ executableURL: URL,
 		with arguments: [String],
 		sudo: Bool = false,
 		standardInput: Any? = FileHandle.standardInput,
@@ -197,15 +276,14 @@ extension Bundle {
 		runMode: Utils.RunMode,
 		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
 	) throws {
-		var cakedExecutableURL = try Bundle.main.caked()
-
 		if Bundle.mustUseUnixTask {
 			if sudo {
 				throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
 			}
 
-			try runCakedWithUnixTask(with: arguments, standardInput: standardInput, standardOutput: standardOutput, standardError: standardError, completionHandler: handler)
+			try runExecutableWithUnixTask(executableURL, with: arguments, standardInput: standardInput, standardOutput: standardOutput, standardError: standardError, completionHandler: handler)
 		} else {
+			var executableURL = executableURL
 			let process = Process()
 			var runningArguments: [String] = []
 
@@ -214,24 +292,24 @@ extension Bundle {
 					throw ServiceError(String(localized: "sudo not found in path"))
 				}
 
-				guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: cakedExecutableURL) else {
-					throw ServiceError(String(localized: "\(cakedExecutableURL.lastPathComponent) is not sudoable"))
+				guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
+					throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
 				}
 
-				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", cakedExecutableURL.path]
+				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
 
 				if runMode.isSystem {
 					runningArguments.append("--system")
 				}
 
-				cakedExecutableURL = sudoURL
+				executableURL = sudoURL
 			}
 
 			runningArguments.append(contentsOf: arguments)
 
 			Logger(self).debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
 
-			process.executableURL = cakedExecutableURL
+			process.executableURL = executableURL
 			process.environment = try Utilities.environment(runMode: runMode)
 			process.arguments = runningArguments
 
@@ -252,7 +330,8 @@ extension Bundle {
 		}
 	}
 
-	public static func runCaked(
+	public static func runExecutable(
+		_ executableURL: URL,
 		with arguments: [String],
 		sudo: Bool = false,
 		sharedFileHandles: [FileHandle],
@@ -262,15 +341,14 @@ extension Bundle {
 		runMode: Utils.RunMode,
 		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
 	) throws {
-		var cakedExecutableURL = try Bundle.main.caked()
-
 		if Bundle.mustUseUnixTask {
 			if sudo {
 				throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
 			}
 
-			try runCakedWithUnixTask(with: arguments, standardInput: standardInput, standardOutput: standardOutput, standardError: standardError, completionHandler: handler)
+			try runExecutableWithUnixTask(executableURL, with: arguments, standardInput: standardInput, standardOutput: standardOutput, standardError: standardError, completionHandler: handler)
 		} else {
+			var executableURL = executableURL
 			let process = ProcessWithSharedFileHandle()
 			var runningArguments: [String] = []
 
@@ -279,24 +357,24 @@ extension Bundle {
 					throw ServiceError(String(localized: "sudo not found in path"))
 				}
 
-				guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: cakedExecutableURL) else {
-					throw ServiceError(String(localized: "\(cakedExecutableURL.lastPathComponent) is not sudoable"))
+				guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
+					throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
 				}
 
-				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", cakedExecutableURL.path]
+				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
 
 				if runMode.isSystem {
 					runningArguments.append("--system")
 				}
 
-				cakedExecutableURL = sudoURL
+				executableURL = sudoURL
 			}
 
 			runningArguments.append(contentsOf: arguments)
 
 			Logger(self).debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
 
-			process.executableURL = cakedExecutableURL
+			process.executableURL = executableURL
 			process.environment = try Utilities.environment(runMode: runMode)
 			process.arguments = runningArguments
 
@@ -315,6 +393,139 @@ extension Bundle {
 			}
 
 			try process.run()
+		}
+	}
+
+	public static func runCaked(
+		with arguments: [String],
+		sudo: Bool = false,
+		standardInput: Any? = FileHandle.standardInput,
+		standardOutput: Any? = FileHandle.standardOutput,
+		standardError: Any? = FileHandle.standardError,
+		runMode: Utils.RunMode,
+		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
+	) throws {
+		try runExecutable(
+			Bundle.main.caked(),
+			with: arguments,
+			sudo: sudo,
+			standardInput: standardInput,
+			standardOutput: standardOutput,
+			standardError: standardError,
+			runMode: runMode,
+			completionHandler: handler)
+	}
+
+	public static func runCaked(
+		with arguments: [String],
+		sudo: Bool = false,
+		sharedFileHandles: [FileHandle],
+		standardInput: Any? = FileHandle.standardInput,
+		standardOutput: Any? = FileHandle.standardOutput,
+		standardError: Any? = FileHandle.standardError,
+		runMode: Utils.RunMode,
+		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
+	) throws {
+		try runExecutable(
+			Bundle.main.caked(),
+			with: arguments,
+			sudo: sudo,
+			sharedFileHandles: sharedFileHandles,
+			standardInput: standardInput,
+			standardOutput: standardOutput,
+			standardError: standardError,
+			runMode: runMode,
+			completionHandler: handler)
+	}
+
+	@discardableResult public static func execSandboxed(_ command: FilePath, with arguments: [String], _ completion: Shell.ExecCompletion? = nil) throws -> String {
+
+		#if TRACE
+			var debug: [String] = [command.description]
+			debug.append(contentsOf: arguments)
+			print("🚀 \(debug.joined(separator: " "))")
+		#endif
+
+		if Bundle.mustUseUnixTask {
+			let stderr = Pipe()
+			let stdout = Pipe()
+			var outputData = Data()
+			var errorData = Data()
+			let outputQueue = ShellProcessQueues.commandOutput
+
+			#if DEBUG
+				Logger(self).debug("Command \(command) entering sandboxed execution with arguments: \(arguments.joined(separator: " "))")
+			#endif
+
+			stdout.fileHandleForReading.readabilityHandler = { handler in
+				let data = handler.availableData
+				outputQueue.async {
+					outputData.append(data)
+				}
+			}
+
+			stderr.fileHandleForReading.readabilityHandler = { handler in
+				let data = handler.availableData
+				outputQueue.async {
+					errorData.append(data)
+				}
+			}
+
+			defer {
+				try? stderr.close()
+				try? stdout.close()
+			}
+
+			do {
+				var catchedError: Error? = nil
+
+				try Self.runExecutableWithUnixTask(URL(filePath: command)!, with: arguments, standardInput: nil, standardOutput: stdout.fileHandleForWriting, standardError: stderr.fileHandleForWriting) { error in
+					if let error {
+						#if TRACE
+							Logger(self).debug("Command \(command) failed \(error)")
+						#endif
+						catchedError = error
+					}
+				}
+
+				if let catchedError {
+					throw catchedError
+				}
+
+				stdout.fileHandleForReading.readabilityHandler = nil
+				stderr.fileHandleForReading.readabilityHandler = nil
+
+				let output = outputQueue.sync {
+					return (stdout: String(data: outputData, encoding: .utf8) ?? "", stderr: String(data: errorData, encoding: .utf8) ?? "")
+				}
+
+				#if TRACE
+					Logger(self).debug("Command \(command) succeeded with output, stdout: \(output.stdout), stderr: \(output.stderr)")
+				#endif
+
+				guard let completion else {
+					return output.stdout
+				}
+
+				return try completion(0, output.stdout, output.stderr)
+			} catch {
+				stdout.fileHandleForReading.readabilityHandler = nil
+				stderr.fileHandleForReading.readabilityHandler = nil
+
+				let output = outputQueue.sync {
+					return (stdout: String(data: outputData, encoding: .utf8) ?? "", stderr: String(data: errorData, encoding: .utf8) ?? "")
+				}
+				#if TRACE
+					Logger(self).debug("Command \(command) failed \(error) with output, stdout: \(output.stdout), stderr: \(output.stderr)")
+				#endif
+				guard let completion else {
+					throw error
+				}
+
+				return try completion(1, output.stdout, output.stderr)
+			}
+		} else {
+			return try Shell.exec(command, arguments: arguments, completion)
 		}
 	}
 }
@@ -368,6 +579,82 @@ public func processExist(_ runningPID: pid_t) throws -> (running: Bool, processN
 extension URL: Purgeable {
 	public var fingerprint: String? {
 		nil
+	}
+
+	// Optional: Check if the boot drive image appears to be in ASIF format.
+	// We consider files with a ".asif" extension or those whose first four bytes are "shdw" as ASIF format.
+	public static func isASIFDisk(filePath: String) -> Bool {
+		return URL(fileURLWithPath: filePath).asifDisk
+	}
+
+	public var diskSize: UInt64 {
+		var diskSize: UInt64 = 0
+
+		if let fileSize = try? self.fileSize() {
+			diskSize = fileSize
+		}
+
+		guard self.pathExtension == "img" || self.pathExtension == "asif" else {
+			return diskSize
+		}
+
+		if let asifSize = self.asifDiskSize {
+			diskSize = asifSize
+		}
+
+		return diskSize
+	}
+
+	// Logical size of an ASIF disk image, read from its header (https://github.com/huven/asif-format).
+	// Integers are big-endian: magic "shdw" at 0x00, sector count (UInt64) at 0x30, block size (UInt16) at 0x44.
+	// Logical size = sector count * block size, matching "Size Info > Total Bytes" from `diskutil image info`.
+	public var asifDiskSize: UInt64? {
+		guard let handle = try? FileHandle(forReadingFrom: self) else {
+			return nil
+		}
+
+		defer {
+			try? handle.close()
+		}
+
+		guard let header = try? handle.read(upToCount: 0x46), header.count == 0x46 else {
+			return nil
+		}
+
+		guard String(bytes: header.prefix(4), encoding: .ascii) == "shdw" else {
+			return nil
+		}
+
+		let sectorCount = header.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: 0x30, as: UInt64.self) }.bigEndian
+		let blockSize = header.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: 0x44, as: UInt16.self) }.bigEndian
+
+		let (size, overflow) = sectorCount.multipliedReportingOverflow(by: UInt64(blockSize))
+
+		guard overflow == false, size > 0 else {
+			return nil
+		}
+
+		return size
+	}
+
+	public var asifDisk: Bool {
+		if self.pathExtension.lowercased() == "asif" {
+			return true
+		}
+
+		guard let handle = try? FileHandle(forReadingFrom: self) else {
+			return false
+		}
+
+		defer {
+			try? handle.close()
+		}
+
+		guard let header = try? handle.read(upToCount: 4), header.count == 4 else {
+			return false
+		}
+
+		return String(bytes: header, encoding: .ascii) == "shdw"
 	}
 
 	public var url: URL {

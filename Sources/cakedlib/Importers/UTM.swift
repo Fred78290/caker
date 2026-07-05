@@ -120,6 +120,12 @@ struct UTMImporter: Importer {
 			throw ServiceError(String(localized: "Boot disk image \(bootDiskURL.path) not found"))
 		}
 
+		let asifFormat = bootDiskURL.asifDisk
+
+		if asifFormat {
+            logger.info("Detected ASIF disk format for \(bootDiskURL.lastPathComponent)")
+        }
+
 		var macAddress: VZMACAddress? = nil
 		let networkAttachments: [GRPCLib.BridgeAttachement] = networks.compactMap { network in
 			let mode = network["Mode"] as? String ?? "Shared"
@@ -141,6 +147,7 @@ struct UTMImporter: Importer {
 		let config = CakeConfig(
 			location: location.rootURL,
 			rootDisk: copyDisk ? nil : bootDiskURL.absoluteURL.path,
+			diskFormat: asifFormat ? .asif : .raw,
 			os: os,
 			autostart: false,
 			configuredUser: userName,

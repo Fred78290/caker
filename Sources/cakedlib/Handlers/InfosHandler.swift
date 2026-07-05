@@ -21,8 +21,8 @@ public struct InfosHandler {
 
 		func offline(_ status: Status = .stopped) throws -> VMInformations {
 			var diskInfos: [DiskInfo] = []
-
-			diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.locationURL).absoluteURL.path, mount: "/", fsType: "native", total: UInt64(try location.diskSize()), free: 0, used: 0))
+			
+			diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.locationURL).absoluteURL.path, mount: "/", fsType: "native", total: config.diskSize, free: 0, used: 0))
 
 			for disk in config.attachedDisks {
 				let diskURL = URL(fileURLWithPath: disk.diskPath, relativeTo: config.locationURL).absoluteURL

@@ -98,7 +98,7 @@ public struct PullHandler {
 						let macAddress = VZMACAddress.randomLocallyAdministered()
 
 						if result.imageType == .tart {
-							config = try CakeConfig(location: location.rootURL, options: .init(name: name, password: "admin"))
+							config = try CakeConfig(location: location.rootURL, options: .init(name: name, diskFormat: .raw, password: "admin"))
 
 							if config.os == .darwin {
 								#if arch(arm64)
@@ -112,6 +112,7 @@ public struct PullHandler {
 							config = CakeConfig(
 								location: location.rootURL,
 								rootDisk: nil,
+								diskFormat: .raw,
 								os: .linux,
 								autostart: false,
 								configuredUser: "root",

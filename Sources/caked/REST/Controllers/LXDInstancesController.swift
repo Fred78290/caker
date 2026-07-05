@@ -120,10 +120,11 @@ struct LXDInstancesController: RouteCollection {
 			userDataPath = try Utils.saveToTempFile(Data(raw.utf8))
 		}
 		
-		let buildOptions = BuildOptions(name: body.name,
+		var buildOptions = BuildOptions(name: body.name,
 										cpu: body.cpuCount,
 										memory: body.memoryMB,
 										diskSize: body.diskGB,
+										diskFormat: SupportedDiskFormat.defaultSupportedFormat,
 										user: body.user,
 										password: body.password,
 										mainGroup: body.mainGroup,
@@ -142,6 +143,8 @@ struct LXDInstancesController: RouteCollection {
 										autoinstall: body.autoinstall,
 										bridgedNetwork: body.bridgedNetwork,
 										dynamicPortForwarding: body.dynamicPortForwarding)
+
+		try buildOptions.validateImageSource(remote: true)
 
 		let operation = await LXDOperationStore.shared.create(
 			description: "Creating instance \(body.name)",

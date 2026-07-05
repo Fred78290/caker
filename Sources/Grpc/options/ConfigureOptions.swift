@@ -108,7 +108,6 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 
 	public init(request: Caked_ConfigureRequest) {
 		self.name = request.name
-		self.displayRefit = false
 
 		if request.hasUser {
 			self.user = request.user
@@ -140,10 +139,10 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 			self.diskSize = nil
 		}
 
-		if request.hasNested {
-			self.nested = request.nested
+		if request.hasAttachedDisks {
+			self.disks = request.attachedDisks.components(separatedBy: String.grpcSeparator)
 		} else {
-			self.nested = nil
+			self.disks = ["unset"]
 		}
 
 		if request.hasAutostart {
@@ -152,10 +151,34 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 			self.autostart = nil
 		}
 
-		if request.hasAttachedDisks {
-			self.disks = request.attachedDisks.components(separatedBy: String.grpcSeparator)
+		if request.hasNested {
+			self.nested = request.nested
 		} else {
-			self.disks = ["unset"]
+			self.nested = nil
+		}
+
+		if request.hasSuspendable {
+			self.suspendable = request.suspendable
+		} else {
+			self.suspendable = nil
+		}
+
+		if request.hasDisplayRefit {
+			self.displayRefit = request.displayRefit
+		} else {
+			self.displayRefit = nil
+		}
+
+		if request.hasDynamicPortForwarding {
+			self.dynamicPortForwarding = request.dynamicPortForwarding
+		} else {
+			self.dynamicPortForwarding = nil
+		}
+
+		if request.hasForwardedPort {
+			self.published = request.forwardedPort.components(separatedBy: String.grpcSeparator)
+		} else {
+			self.published = ["unset"]
 		}
 
 		if request.hasMounts {
@@ -170,16 +193,6 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 			self.network = ["unset"]
 		}
 
-		if request.hasRandomMac {
-			self.randomMAC = request.randomMac
-		}
-
-		if request.hasForwardedPort {
-			self.published = request.forwardedPort.components(separatedBy: String.grpcSeparator)
-		} else {
-			self.published = ["unset"]
-		}
-
 		if request.hasSockets {
 			self.socket = request.sockets.components(separatedBy: String.grpcSeparator)
 		} else {
@@ -188,24 +201,20 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 
 		if request.hasConsole {
 			self.console = request.console
-		}
-
-		if request.hasDynamicPortForwarding {
-			self.dynamicPortForwarding = request.dynamicPortForwarding
 		} else {
-			self.dynamicPortForwarding = nil
-		}
-
-		if request.hasSuspendable {
-			self.suspendable = request.suspendable
-		} else {
-			self.suspendable = nil
+			self.console = nil
 		}
 
 		if request.hasScreenSize {
 			self.screenSize = ViewSize(width: Int(request.screenSize.width), height: Int(request.screenSize.height))
 		} else {
 			self.screenSize = nil
+		}
+
+		if request.hasRandomMac {
+			self.randomMAC = request.randomMac
+		} else {
+			self.randomMAC = false
 		}
 	}
 

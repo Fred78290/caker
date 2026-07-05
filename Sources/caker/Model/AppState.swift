@@ -812,7 +812,14 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			let list: [ListEntry]
 		}
 
-		let output = try Shell.exec("multipass", arguments: ["list", "--format", "json"])
+		let output = try Shell.exec("multipass", arguments: ["list", "--format", "json"]) { (exitCode, stdout, stderr) in
+			guard exitCode == 0 else {
+				throw ServiceError(String(localized: "Multipass: failed to list VMs: \(stderr)"))
+			}
+
+			return stdout
+		}
+
 		guard let data = output.data(using: .utf8) else {
 			return []
 		}
@@ -825,7 +832,13 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 
 	func authenticateMultipass(_ passphrase: String) throws {
-		try Shell.exec("multipass", arguments: ["authenticate", passphrase])
+		try Shell.exec("multipass", arguments: ["authenticate", passphrase]){ (exitCode, stdout, stderr) in
+			guard exitCode == 0 else {
+				throw ServiceError(String(localized: "Multipass: failed to authenticate: \(stderr)"))
+			}
+
+			return stdout
+		}
 	}
 
 	func importFromMultipass(source: String, name: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?) -> ImportedReply {

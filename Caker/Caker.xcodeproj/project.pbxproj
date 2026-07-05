@@ -138,6 +138,7 @@
 		9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */; };
 		9B3E2C692F7BDA1D003BF05E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3E2C682F7BDA1D003BF05E /* Sparkle */; };
 		9B3E2C6B2F7BDAD2003BF05E /* CheckForUpdatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */; };
+		9B415A692FFA89D400E2B275 /* ConfigureHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B415A682FFA89D400E2B275 /* ConfigureHandler.swift */; };
 		9B44388A2EBC9C12008BB2BB /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4438892EBC9C12008BB2BB /* Dynamic */; };
 		9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */; };
 		9B4438902EBDE9AD008BB2BB /* RemoteWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */; };
@@ -977,6 +978,7 @@
 		9B3794382FD56CD300D3D54C /* caker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caker.entitlements; sourceTree = "<group>"; };
 		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
 		9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdatesView.swift; sourceTree = "<group>"; };
+		9B415A682FFA89D400E2B275 /* ConfigureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureHandler.swift; sourceTree = "<group>"; };
 		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
 		9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteWizard.swift; sourceTree = "<group>"; };
 		9B4517E62F067E7B0088F093 /* GraphCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphCapsule.swift; sourceTree = "<group>"; };
@@ -2258,6 +2260,7 @@
 			isa = PBXGroup;
 			children = (
 				9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */,
+				9B415A682FFA89D400E2B275 /* ConfigureHandler.swift */,
 				9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */,
 				9BB213C92F37548300B45692 /* DeleteHandler.swift */,
 				9BB213D42F375CC700B45692 /* DuplicateHandler.swift */,
@@ -3378,6 +3381,7 @@
 				9BC1F6852F66B25C00A83B33 /* ColorWell.swift in Sources */,
 				9B2BFABD2DFED25E000045C3 /* ForwardedPortView.swift in Sources */,
 				9B5F4B532F728AF600AE1991 /* Authorization.swift in Sources */,
+				9B415A692FFA89D400E2B275 /* ConfigureHandler.swift in Sources */,
 				9B2221CE2F5831F20037344D /* InstallAgentHandler.swift in Sources */,
 				9B5D7BCE2EAA960B001FB96E /* Color.swift in Sources */,
 				9B30BA502E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift in Sources */,

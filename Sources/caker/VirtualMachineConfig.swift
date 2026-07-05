@@ -15,6 +15,7 @@ import Virtualization
 
 struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	private var changedFields: Set<PartialKeyPath<Self>>? = nil
+	private var initialDiskSize: UInt64
 
 	var locationURL: URL
 	
@@ -27,6 +28,12 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	var rootDisk: String? = nil {
 		didSet {
 			changedFields?.insert(\.rootDisk)
+		}
+	}
+
+	var diskFormat: SupportedDiskFormat {
+		didSet {
+			changedFields?.insert(\.diskFormat)
 		}
 	}
 
@@ -387,7 +394,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.changedFields?.contains(\.clearPassword) == true ? self.clearPassword : nil
 	}
 
-	var diskSize: UInt64 = 20 * GiB {
+	var diskSize: UInt64 {
 		didSet {
 			changedFields?.insert(\.diskSize)
 		}
@@ -423,6 +430,10 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.changedFields?.contains(\.diskSize) == true ? self.diskSize : nil
 	}
 
+	var diskSizeIsChanged: Bool {
+		guard let diskSize = self.diskSizeIfChanged else { return false }
+		return diskSize != self.initialDiskSize
+	}
 	var ifname: Bool = true {
 		didSet {
 			changedFields?.insert(\.ifname)
@@ -500,8 +511,11 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.arch = Architecture.current()
 		self.os = .linux
+		self.diskFormat = .raw
 		self.cpuCount = 1
 		self.memorySize = 512 * MoB
+		self.diskSize = 20 * GiB
+		self.initialDiskSize = 20 * GiB
 		self.macAddress = String.empty
 		self.autostart = false
 		self.suspendable = false
@@ -536,6 +550,9 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	init(name: String, config: any VirtualMachineConfiguration) {
 		self.vmname = name
 		self.rootDisk = config.rootDisk
+		self.diskFormat = config.diskFormat
+		self.diskSize = config.diskSize
+		self.initialDiskSize = config.diskSize
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.locationURL = config.locationURL
 		self.version = config.version
@@ -595,9 +612,9 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 
 		if self.rootDisk == nil && oldDiskSize < self.diskSize && location.status == .stopped {
 			if config.os == .linux {
-				try location.resizeDisk(self.diskSizeInGiB)
+				try location.resizeDisk(self.diskSizeInGiB, format: self.diskFormat)
 			} else {
-				try location.expandDisk(self.diskSizeInGiB)
+				try location.expandDisk(self.diskSizeInGiB, format: self.diskFormat)
 			}
 		}
 	}
@@ -605,6 +622,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	func saveLocally(_ config: CakeConfig) throws {
 		config.suspendable = self.suspendable
 		config.diskSize = self.diskSize
+		config.diskFormat = self.diskFormat
 		config.cpuCount = self.cpuCount
 		config.memorySizeMin = self.memorySizeMin
 		config.memorySize = self.memorySize
@@ -641,14 +659,14 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		return self.buildOptions(image: self.imageName, imageSource: imageSource, sshAuthorizedKey: self.sshAuthorizedKey)
 	}
 
-	func configureOptions() -> ConfigureOptions {
+	func configureOptions(allowReconfigureDisk: Bool) -> ConfigureOptions {
 		.init(
 			name: self.vmname!,
 			user: self.configuredUserIfChanged,
 			password: self.configuredPasswordIfChanged,
 			cpu: self.cpuCountIfChanged,
 			memory: self.memorySizeInMoBIfChanged,
-			diskSize: self.diskSizeInGoBIfChanged,
+			diskSize: allowReconfigureDisk ? self.diskSizeInGiBIfChanged : nil,
 			screenSize: self.displayIfChanged,
 			attachedDisks: self.attachedDisksIfChanged,
 			autostart: self.autostartIfChanged,
@@ -669,7 +687,8 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			rootDisk: self.rootDisk,
 			cpu: UInt16(self.cpuCount),
 			memory: self.memorySizeInMoB,
-			diskSize: self.diskSizeInGoB,
+			diskSize: self.diskSizeInGiB,
+			diskFormat: self.diskFormat,
 			screenSize: self.display,
 			attachedDisks: self.attachedDisks,
 			user: self.configuredUser,

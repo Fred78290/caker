@@ -43,33 +43,50 @@ public struct CakerEnvVM: Codable {
 
 	/// Convert to `BuildOptions`. Writes any inline `cloud-init` to a temp file.
 	public func toBuildOptions(name: String) throws -> BuildOptions {
-		var opts = BuildOptions()
-		opts.name = name
-		opts.image = image ?? defaultUbuntuImage
-		opts.cpu = cpus ?? 2
-		opts.memory = memory ?? 2048
-		opts.diskSize = disk ?? 10
-		opts.user = user ?? "admin"
-		opts.password = password
-		opts.autostart = autostart ?? false
-		opts.nested = nested ?? false
+		var shared: [DirectorySharingAttachment] = []
+		var ethernets: [BridgeAttachement] = []
+		var userData: String? = nil
+		var tunnels: [TunnelAttachement] = ports?.compactMap {
+			TunnelAttachement(argument: $0)
+		} ?? []
 
-		var tunnels: [TunnelAttachement] = ports?.compactMap { TunnelAttachement(argument: $0) } ?? []
-		tunnels += sockets?.compactMap { parseUnixSocketTunnel($0) } ?? []
-		opts.forwardedPorts = tunnels
+		if let sockets {
+			tunnels += sockets.compactMap {
+				parseUnixSocketTunnel($0)
+			}
+		}
 
 		if let mounts {
-			opts.mounts = try mounts.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
+			shared = try mounts.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
 		}
 		if let networks {
-			opts.networks = try networks.compactMap { try BridgeAttachement(parseFrom: $0) }
+			ethernets = try networks.compactMap { try BridgeAttachement(parseFrom: $0) }
 		}
 		if let cloudInit {
 			let tempFile = URL(fileURLWithPath: NSTemporaryDirectory())
 				.appendingPathComponent("cakerenv-cloud-init-\(UUID().uuidString).yaml")
 			try cloudInit.write(to: tempFile, atomically: true, encoding: .utf8)
-			opts.userData = tempFile.path
+			userData = tempFile.path
 		}
+
+
+		var opts = BuildOptions(
+			name: name,
+			cpu: cpus ?? 2,
+			memory: memory ?? 2048,
+			diskSize: disk ?? 10,
+			diskFormat: SupportedDiskFormat.defaultSupportedFormat,
+			autostart: autostart ?? false,
+			nested: nested ?? false,
+			image: image ?? defaultUbuntuImage,
+			userData: userData,
+			forwardedPorts: tunnels,
+			mounts: shared,
+			networks: ethernets
+		)
+
+		try opts.validateImageSource(remote: false)
+
 		return opts
 	}
 }

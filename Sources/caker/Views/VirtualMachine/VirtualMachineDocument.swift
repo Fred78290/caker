@@ -1017,7 +1017,34 @@ extension VirtualMachineDocument {
 
 		do {
 			if connectionMode != .app {
-				let reply = ConfigureHandler.configure(name: self.name, options: self.virtualMachineConfig.configureOptions(), runMode: connectionMode.runMode)
+				var allowReconfigureDisk = true
+
+				if Bundle.isApplicationSandboxed && self.virtualMachineConfig.diskSizeIsChanged && self.virtualMachineConfig.diskFormat == .asif {
+					let informativeText: String
+					let command: String
+
+					if connectionMode == .remote {
+						command = "diskutil image resize --size=\(virtualMachineConfig.diskSizeInGiB)G \"$(caked home)/vms/\(self.name).cakedvm/disk.img\""
+						informativeText = String(localized: "Resize disk is not available in sandboxed mode with remote connection. To resize the disk, run the following command on the target machine:")
+					} else {
+						let home = try Utils.getHome(runMode: connectionMode.runMode, createItIfNotExists: true).appendingPathComponent("vms/\(self.name).cakedvm/disk.img")
+						
+						command = "diskutil image resize --size=\(virtualMachineConfig.diskSizeInGiB)G \"\(home.path(percentEncoded: false))\""
+						informativeText = String(localized: "Resize disk is not available in sandboxed mode via service. To resize the disk, run the following command in Terminal:")
+					}
+
+					DispatchQueue.main.async {
+						showDiskResizeAlert(
+							informativeText: informativeText,
+							command: command
+						)
+					}
+
+					allowReconfigureDisk = false
+				}
+
+				let options = self.virtualMachineConfig.configureOptions(allowReconfigureDisk: allowReconfigureDisk)
+				let reply = try ConfigureHandler.configure(client: self.connectionManager.serviceClient, name: self.name, options: options, runMode: connectionMode.runMode)
 
 				if reply.configured == false {
 					throw ServiceError(String(localized: "Failed to save VM configuration: \(reply.reason)"))
