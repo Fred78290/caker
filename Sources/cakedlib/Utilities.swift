@@ -492,6 +492,9 @@ extension Bundle {
 					throw catchedError
 				}
 
+				stdout.fileHandleForReading.readabilityHandler = nil
+				stderr.fileHandleForReading.readabilityHandler = nil
+
 				let output = outputQueue.sync {
 					return (stdout: String(data: outputData, encoding: .utf8) ?? "", stderr: String(data: errorData, encoding: .utf8) ?? "")
 				}
@@ -506,6 +509,9 @@ extension Bundle {
 
 				return try completion(0, output.stdout, output.stderr)
 			} catch {
+				stdout.fileHandleForReading.readabilityHandler = nil
+				stderr.fileHandleForReading.readabilityHandler = nil
+
 				let output = outputQueue.sync {
 					return (stdout: String(data: outputData, encoding: .utf8) ?? "", stderr: String(data: errorData, encoding: .utf8) ?? "")
 				}
