@@ -136,6 +136,14 @@ from simplestream remote
 cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G ubuntu:noble
 ```
 
+choosing the root-disk format (`asif` is the default on macOS 26+, `raw` on older hosts — see [Disk formats](command-summary#disk-formats-raw-and-asif))
+
+```bash
+cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G --disk-format asif ubuntu:noble
+```
+
+> ⚠️ In the App Store (sandboxed) version, resizing an **ASIF** disk with `configure --disk-size` is not available from the command line — use the Caker application or run the `diskutil image resize` command shown in the error message.
+
 ### 2) Start an existing VM, wait for IP, inspect status
 
 ```bash

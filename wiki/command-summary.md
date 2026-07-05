@@ -150,6 +150,48 @@ cakectl image list
 cakectl push myregistry.com/myimage:latest
 ```
 
+## Disk formats: raw and ASIF
+
+Caker supports two root-disk image formats, selected with `--disk-format` / `-f` on `build` and `launch`:
+
+| Format | Value | Host requirement | Description |
+| --- | --- | --- | --- |
+| Raw | `raw` | Any supported macOS | Flat disk image resized by extending the file. Default on hosts older than macOS 26. |
+| ASIF | `asif` | macOS 26 (Tahoe) or later | Apple Sparse Image Format, created and managed with `diskutil image`. Space-efficient — the file only occupies the blocks actually written by the guest. **Default on macOS 26+.** |
+
+```bash
+# Create a VM with an ASIF root disk (macOS 26+, default there)
+cakectl build myvm --disk-size 40 --disk-format asif ubuntu:noble
+
+# Force the raw format
+cakectl build myvm --disk-size 40 --disk-format raw ubuntu:noble
+```
+
+Notes:
+
+- ASIF requires macOS 26 or later on the **host**. On older hosts the format is unavailable and `raw` is used.
+- Caker recognizes an ASIF disk by its `.asif` extension **or** its `shdw` magic header, so an existing ASIF image is detected regardless of its file name.
+- Growing a disk with `configure --disk-size <GiB>` uses `diskutil image resize` for ASIF disks and file truncation for raw disks. The VM must be stopped first. Shrinking is not supported.
+
+### ⚠️ ASIF disk resize is not available from the command line in the App Store (sandboxed) version
+
+The App Store version of Caker runs inside the macOS App Sandbox, which prevents the `caked`/`cakectl` command-line interface and the background service from invoking `diskutil image resize`. Attempting to resize an ASIF disk from the CLI fails with:
+
+```text
+Resize disk is not available in sandboxed mode with command line interface, ...
+```
+
+To resize an ASIF disk in the sandboxed version you can either:
+
+1. **Use the Caker application** — resizing from the VM settings UI works normally, or
+2. **Run the `diskutil` command manually** in Terminal (with the VM stopped):
+
+```bash
+diskutil image resize --size=<new-size>G "$(caked home)/vms/<vm-name>.cakedvm/disk.img"
+```
+
+When the resize is refused, the Caker application displays the exact command to run for your VM. Raw disks and the direct-download build are not affected — `configure --disk-size` works normally there.
+
 ## Spawning from an existing disk
 
 `spawn` and `spawn-start` register a new VM that boots directly from an **existing** disk — a raw image file you already have, or a physical block device (`/dev/diskN`). No image is downloaded or converted, and cloud-init does not run by default.

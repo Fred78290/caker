@@ -57,6 +57,27 @@ Checks:
 
 7. **Check signing server reachability** — AMRestore personalizes the IPSW against `gs.apple.com:443`. Make sure that host is reachable from the Mac (no corporate firewall or proxy blocking it).
 
+## ASIF disk resize fails in the App Store (sandboxed) version
+
+**Symptoms:**
+- `configure --disk-size <GiB>` on a VM with an ASIF disk fails with: `Resize disk is not available in sandboxed mode with command line interface, ...`
+- The Caker application shows an alert with a `diskutil image resize` command instead of resizing the disk (remote or service connection).
+
+**Cause:**
+
+The App Store version runs inside the macOS App Sandbox, which prevents the command-line interface and the background service from invoking `diskutil image resize` on ASIF disks. This is a sandbox restriction, not a bug.
+
+**Solutions:**
+
+1. **Use the Caker application** to resize the disk from the VM settings UI, or
+2. **Run the command manually** in Terminal, with the VM stopped:
+   ```bash
+   diskutil image resize --size=<new-size>G "$(caked home)/vms/<vm-name>.cakedvm/disk.img"
+   ```
+   The alert / error message shows the exact command to run for your VM.
+
+Raw-format disks and the direct-download build are not affected. See [Disk formats: raw and ASIF](command-summary#disk-formats-raw-and-asif).
+
 ## Useful commands
 
 - `swift build -Xswiftc -D -Xswiftc SPARKLE`
