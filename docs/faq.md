@@ -107,6 +107,21 @@ Raw image files (`.raw`, `.img`, `.qcow2` after conversion, etc.) stored in your
 
 If you need to boot a VM directly from a physical block device, use the **direct-download build** of Caker available from the [GitHub releases page](https://github.com/Fred78290/caker/releases).
 
+### Can I resize an ASIF disk from the command line in the App Store version?
+
+No. Resizing an ASIF (Apple Sparse Image Format) disk relies on `diskutil image resize`, which the App Sandbox does not allow the `caked`/`cakectl` command-line interface or the background service to invoke. Running `configure --disk-size` on an ASIF disk fails with an explicit error in the sandboxed version.
+
+Workarounds:
+
+- **Use the Caker application** — resizing from the VM settings UI works normally, or
+- **Run the command manually** in Terminal, with the VM stopped:
+
+```bash
+diskutil image resize --size=<new-size>G "$(caked home)/vms/<vm-name>.cakedvm/disk.img"
+```
+
+When the resize is refused, the Caker application shows the exact command to run for your VM. Raw-format disks are not affected, and neither is the direct-download build. See [Disk formats: raw and ASIF](command-summary#disk-formats-raw-and-asif) for details.
+
 ## Usage Questions
 
 ### Can I run multiple VMs simultaneously?
@@ -136,6 +151,8 @@ Caker works with:
 - Images from configured registries (OCI, simplestream, HTTPS)
 - Imported images from other virtualization platforms (via `import` command)
 - QCOW2 and VMDK images converted to raw format with `caked convert`
+
+Root disks can use the **raw** or **ASIF** (Apple Sparse Image Format, macOS 26+) format — see [Disk formats: raw and ASIF](command-summary#disk-formats-raw-and-asif).
 
 ## Integration Questions
 
