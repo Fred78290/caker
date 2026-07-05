@@ -994,39 +994,45 @@ struct VirtualMachineWizard: View {
 			let noRootDisk = (config.rootDisk ?? "").isEmpty
 
 			Section("Root disk") {
-				HStack {
-					Text("Disk size (GiB)")
-					Spacer()
+				if self.model.rootDisk.isEmpty {
 					HStack {
-						TextField(String.empty, value: $config.diskSizeInGiB, format: .number)
-							.rounded(.center)
-							.frame(width: 50)
-							.disabled(self.model.createVM && noRootDisk == false)
-							.foregroundStyle(diskSizeValueIsInvalid ? Color.red : Color.primary)
-							.onChange(of: config.diskSizeInGiB) { oldValue, newValue in
-								let clamped = max(newValue, self.config.source == .ipsw ? 40 : 5)
-								self.diskSizeValueIsInvalid = clamped != newValue
-							}
-						Stepper(value: $config.diskSizeInGiB, in: diskRange, step: 1) {
-
-						}
-						.labelsHidden()
-						.disabled(self.model.createVM && noRootDisk == false)
-					}
-				}
-
-				if self.model.showDiskFormat {
-					LabeledContent("Root disk format") {
+						Text("Disk size (GiB)")
+						Spacer()
 						HStack {
-							Picker("Format", selection: $config.diskFormat) {
-								ForEach(SupportedDiskFormat.allCases, id: \.self) { source in
-									Text(source.description).tag(source)
+							TextField(String.empty, value: $config.diskSizeInGiB, format: .number)
+								.rounded(.center)
+								.frame(width: 50)
+								.disabled(self.model.createVM && noRootDisk == false)
+								.foregroundStyle(diskSizeValueIsInvalid ? Color.red : Color.primary)
+								.onChange(of: config.diskSizeInGiB) { oldValue, newValue in
+									let clamped = max(newValue, self.config.source == .ipsw ? 40 : 5)
+									self.diskSizeValueIsInvalid = clamped != newValue
 								}
+							Stepper(value: $config.diskSizeInGiB, in: diskRange, step: 1) {
+
 							}
-							.pickerStyle(.menu)
-							.disabled(self.model.createVM)
 							.labelsHidden()
-						}.frame(width: 100)
+							.disabled(self.model.createVM && noRootDisk == false)
+						}
+					}
+
+					if self.model.showDiskFormat {
+						LabeledContent("Root disk format") {
+							HStack {
+								Picker("Format", selection: $config.diskFormat) {
+									ForEach(SupportedDiskFormat.allCases, id: \.self) { source in
+										Text(source.description).tag(source)
+									}
+								}
+								.pickerStyle(.menu)
+								.disabled(self.model.createVM)
+								.labelsHidden()
+							}.frame(width: 100)
+						}
+
+						if Bundle.isApplicationSandboxed && self.config.diskFormat == .asif && AppState.shared.connectionMode != .app {
+							Text("Warning by choosing asif format, command line tools will be unable to resize the disk. If you choose it, you must use diskutil to resize the disk.").font(.callout).foregroundStyle(Color.red)
+						}
 					}
 				}
 

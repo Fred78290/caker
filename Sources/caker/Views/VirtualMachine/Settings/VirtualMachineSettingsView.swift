@@ -245,6 +245,9 @@ struct VirtualMachineSettingsView: View {
 							self.diskSizeValueIsInvalid = clamped != newValue
 						}
 				}
+				if Bundle.isApplicationSandboxed && self.config.diskFormat == .asif && self.document.connectionManager.connectionMode != .app {
+					Text("Warning resize will not be available in sandboxed mode for asif disk format. If you want to resize the disk, you must use diskutil to resize the disk.").font(.callout).foregroundStyle(Color.red)
+				}
 			}
 		}
 	}

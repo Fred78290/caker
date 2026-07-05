@@ -192,7 +192,9 @@ public enum SupportedDiskFormat: String, Identifiable, Codable, Hashable, Custom
 	}
 
 	static public var defaultSupportedFormat: SupportedDiskFormat {
-		if #available(macOS 26, *) {
+		if Bundle.isApplicationSandboxed {
+			.raw
+		} else if #available(macOS 26, *) {
 			.asif
 		} else {
 			.raw
