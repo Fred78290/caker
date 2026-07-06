@@ -541,6 +541,10 @@ extension Caked_CommonBuildRequest {
 			$0.height = Int32(buildOptions.screenSize.height)
 		}
 
+		if let password = buildOptions.password {
+			self.password = password
+		}
+
 		if mounts.isEmpty == false {
 			self.mounts = mounts.joined(separator: String.grpcSeparator)
 		}
