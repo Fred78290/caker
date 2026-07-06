@@ -166,6 +166,7 @@ final class CloudInitTests: XCTestCase {
 			cpu: 1,
 			memory: 512,
 			diskSize: 20,
+			diskFormat: .raw,
 			screenSize: .standard,
 			attachedDisks: [],
 			user: "admin",
