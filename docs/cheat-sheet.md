@@ -146,7 +146,7 @@ depuis un remote simplestream
 cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G ubuntu:noble
 ```
 
-en choisissant le format du disque racine (`asif` est le défaut sur macOS 26+, `raw` sur les hôtes plus anciens — voir [Formats de disque](command-summary#disk-formats-raw-and-asif))
+en choisissant le format du disque racine (`asif` est le défaut sur macOS 26+, `raw` sur les hôtes plus anciens — voir [Formats de disque](command-summary#disk-formats-raw-and-asif-fr))
 
 ```bash
 cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G --disk-format asif ubuntu:noble

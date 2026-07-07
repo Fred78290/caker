@@ -12,7 +12,7 @@ nav_order: 7
 
 ## Questions générales
 
-## Quelle est la différence entre `caked` et `cakectl` ?
+### Quelle est la différence entre `caked` et `cakectl` ?
 
 - `caked` est le démon d'arrière-plan qui effectue les opérations.
 - `cakectl` est le client CLI utilisé pour envoyer des commandes à `caked`.
@@ -29,7 +29,7 @@ Actuellement, Caker ne supporte que macOS en raison de sa dépendance au framewo
 
 ## Questions de développement
 
-## Pourquoi la publication du wiki échoue-t-elle avec « repository not found » ?
+### Pourquoi la publication du wiki échoue-t-elle avec « repository not found » ?
 
 Causes courantes :
 - La fonctionnalité wiki n'est pas activée dans les paramètres du dépôt.
@@ -124,7 +124,7 @@ Solutions de contournement :
 diskutil image resize --size=<new-size>G "$(caked home)/vms/<vm-name>.cakedvm/disk.img"
 ```
 
-Lorsque le redimensionnement est refusé, l'application Caker affiche la commande exacte à exécuter pour votre VM. Les disques au format raw ne sont pas concernés, pas plus que le build en téléchargement direct. Voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif) pour plus de détails.
+Lorsque le redimensionnement est refusé, l'application Caker affiche la commande exacte à exécuter pour votre VM. Les disques au format raw ne sont pas concernés, pas plus que le build en téléchargement direct. Voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif-fr) pour plus de détails.
 
 ## Questions d'utilisation
 
@@ -156,7 +156,7 @@ Caker fonctionne avec :
 - Des images importées depuis d'autres plateformes de virtualisation (via la commande `import`)
 - Des images QCOW2 et VMDK converties au format raw avec `caked convert`
 
-Les disques racines peuvent utiliser le format **raw** ou **ASIF** (Apple Sparse Image Format, macOS 26+) — voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif).
+Les disques racines peuvent utiliser le format **raw** ou **ASIF** (Apple Sparse Image Format, macOS 26+) — voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif-fr).
 
 ## Questions d'intégration
 

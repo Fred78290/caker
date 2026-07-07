@@ -28,7 +28,7 @@ nav_order: 8
 - fix: Correct VZMacOSInstaller lifecycle for queued IPSW installs
 - Potential fix for pull request finding
 - Potential fix for pull request finding
-- Discard uneeded import
+- Discard unneeded import
 - refactor: Reset gcdStarted state early during GrandCentral termination
 - refactor: Enhance GrandCentral state management and watcher logic
 - feat: Set VM status to running on external process detection
