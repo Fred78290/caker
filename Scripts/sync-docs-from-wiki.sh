@@ -44,6 +44,13 @@ convert_wiki_to_docs() {
   sed \
     -e 's|Resources/CakedAppIcon\.png|{{ "/assets/images/CakedAppIcon.png" \| relative_url }}|g' \
     "${wiki_file}" >> "${docs_file}"
+
+  # Wiki pages carry bilingual content in .lang-fr / .lang-en elements;
+  # append the shared include that shows the right one based on browser language.
+  if grep -q 'class="lang-fr"' "${docs_file}" && grep -q 'class="lang-en"' "${docs_file}"; then
+    echo "" >> "${docs_file}"
+    echo '{% include lang-toggle.html %}' >> "${docs_file}"
+  fi
 }
 
 # Convert individual pages
@@ -89,27 +96,20 @@ if [[ -f "${WIKI_DIR}/cheat-sheet.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/cheat-sheet.md" "${DOCS_DIR}/cheat-sheet.md" "Cheat Sheet" "9"
 fi
 
+# Compose (nav_order: 10)
+if [[ -f "${WIKI_DIR}/compose.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/compose.md" "${DOCS_DIR}/compose.md" "Compose" "10"
+fi
+
 # Privacy Policy (nav_order: 99)
 if [[ -f "${WIKI_DIR}/privacy-policy.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/privacy-policy.md" "${DOCS_DIR}/privacy-policy.md" "Privacy Policy / Politique de confidentialité" "99"
-  cat <<EOF >> "${DOCS_DIR}/privacy-policy.md"
-
-{% raw %}
-<script>
-  var queryLang = new URLSearchParams(window.location.search).get('lang');
-  var lang = (queryLang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
-  var isFrench = lang === 'fr' || lang.startsWith('fr-');
-  document.getElementById('privacy-fr').style.display = isFrench ? '' : 'none';
-  document.getElementById('privacy-en').style.display = isFrench ? 'none' : '';
-</script>
-{% endraw %}
-EOF
 fi
 
 # Update main index page from wiki Home
 if [[ -f "${WIKI_DIR}/home.md" ]]; then
   echo "  📄 Updating home page from wiki home.md"
-  
+
   # Create updated index.md
   {
     echo "---"
@@ -122,17 +122,20 @@ if [[ -f "${WIKI_DIR}/home.md" ]]; then
     echo ""
     echo "![Caker App Icon]({{ '/assets/images/CakedAppIcon.png' | relative_url }}){: width=\"192\" }"
     echo ""
-    echo "**Caker** is a Swift-native virtualization platform for macOS that streamlines VM lifecycle management from development to operations. It combines a powerful daemon (\`caked\`) with a practical CLI (\`cakectl\`) so teams can build, run, inspect, and automate virtual machines consistently."
-    echo ""
     echo "[![Build](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/release.yaml/badge.svg?branch=main)](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/release.yaml)"
     echo "[![Publish Wiki](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/publish-wiki.yaml/badge.svg?branch=main)](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/publish-wiki.yaml)"
     echo "[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://caker.aldunelabs.com)"
     echo "[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://github.com/${GITHUB_REPOSITORY}/blob/main/LICENSE)"
     echo ""
-    
-    # Add content from wiki Home, skipping the title and initial content
-    tail -n +10 "${WIKI_DIR}/home.md"
-      
+
+    # Add the full bilingual body from wiki Home
+    cat "${WIKI_DIR}/home.md"
+
+    if grep -q 'class="lang-fr"' "${WIKI_DIR}/home.md" && grep -q 'class="lang-en"' "${WIKI_DIR}/home.md"; then
+      echo ""
+      echo '{% include lang-toggle.html %}'
+    fi
+
   } > "${DOCS_DIR}/index.md"
 fi
 

@@ -1,3 +1,141 @@
+<!-- markdownlint-disable MD033 MD024 -->
+
+<div class="lang-fr" style="display:none" markdown="1">
+
+# Développement
+
+## Organisation du code
+
+- `Sources/cakectl/Commands/` – gestionnaires de commandes CLI
+- `Sources/caked/Commands/` et `Sources/caked/Handlers/` – gestionnaires de commandes et d'exécution du démon
+- `Sources/cakedlib/` – utilitaires partagés, configuration et abstractions principales
+
+## Tests
+
+Emplacements principaux des tests :
+
+- `Tests/CakerTests/`
+- `Caker/CakerTests/`
+- `integration/tests/`
+
+## Workflow de contribution
+
+1. Créez une branche depuis `main`.
+2. Implémentez des modifications ciblées.
+3. Exécutez les tests pertinents et les vérifications de build.
+4. Ouvrez une pull request avec un contexte clair.
+
+Guide du contributeur :
+
+- [CONTRIBUTING.md](https://github.com/Fred78290/caker/blob/main/CONTRIBUTING.md)
+
+## Interface Web
+
+Caker inclut une interface Web basée sur React, située dans le répertoire `webui/`. Elle est construite avec Vite, TypeScript et Bootstrap 5.
+
+### Prérequis
+
+- Node.js ≥ 18
+- npm ≥ 9
+
+### Installer les dépendances
+
+```bash
+cd webui
+npm install
+```
+
+### Mode développement
+
+Démarrez le serveur de développement Vite avec un proxy vers un `caked` exécuté localement :
+
+```bash
+cd webui
+npm run dev
+```
+
+Le serveur de développement écoute sur `http://localhost:5173`. Les appels API vers `/1.0` sont redirigés par défaut vers `http://127.0.0.1:8080`. Modifiez la cible avec la variable d'environnement `VITE_API_TARGET` :
+
+```bash
+VITE_API_TARGET=http://127.0.0.1:9090 npm run dev
+```
+
+### Build de production
+
+```bash
+cd webui
+npm run build
+```
+
+Le résultat est écrit dans `webui/dist/`. Passez ce répertoire à `caked` avec l'option `--web-ui` :
+
+```bash
+caked service --rest --web-ui /path/to/caker/webui/dist
+```
+
+L'interface est alors servie sur `http://<host>:<port>/ui`.
+
+### Déploiement depuis une archive zip
+
+`--web-ui` accepte également une archive `.zip`. `caked` l'extrait automatiquement au démarrage dans un répertoire temporaire :
+
+```bash
+cd webui && npm run build && zip -r ../webui-dist.zip dist/
+caked service --rest --web-ui /path/to/webui-dist.zip
+```
+
+Si l'archive contient un unique répertoire de premier niveau (par ex. `dist/`), `caked` y descend automatiquement pour résoudre correctement le fichier index.
+
+### Structure du projet
+
+```
+webui/
+  index.html            # Point d'entrée HTML
+  vite.config.ts        # Configuration Vite (base /ui/, proxy /1.0)
+  tsconfig.json         # Configuration TypeScript
+  src/
+    main.tsx            # Point d'entrée React (CSS/JS Bootstrap importés ici)
+    App.tsx             # HashRouter + routes
+    types/lxd.ts         # Interfaces TypeScript correspondant à l'API REST
+    api/                # Modules du client API axios
+    components/         # Composants UI partagés (Layout, StatusBadge, …)
+    pages/              # Un composant par page
+  dist/                 # Sortie de production (après npm run build)
+```
+
+## Scripts utiles
+
+- `Scripts/build-signed-debug.sh` - Compile la version debug avec signature
+- `Scripts/build-signed-release.sh` - Compile la version release avec signature
+- `Scripts/build-signed-snapshot.sh` - Compile le package et le dmg avec signature
+- `Scripts/act.sh` - Test local des GitHub Actions
+- `Scripts/run-signed-caked.sh` - Exécute le démon signé
+- `Scripts/run-signed-cakectl.sh` - Exécute la CLI signée
+
+## Environnement de développement
+
+### Prérequis
+- macOS (requis pour le framework Virtualization)
+- Xcode avec toolchain Swift
+- Certificats de signature et profils de provisioning
+- Optionnel : GitHub CLI pour la gestion des pull requests
+
+### Démarrage
+1. Clonez le dépôt
+2. Exécutez `./Scripts/build-signed-debug.sh` pour compiler
+3. Utilisez les scripts d'exécution pour tester les composants
+4. Exécutez les tests via Xcode ou en ligne de commande
+
+### Style de code
+- Suivez les conventions Swift
+- Utilisez des noms clairs et descriptifs
+- Documentez les API publiques
+- Incluez des tests pour les nouvelles fonctionnalités
+
+</div>
+
+<div class="lang-en" style="display:block" markdown="1">
+
 # Development
 
 ## Code organization
@@ -127,3 +265,5 @@ webui/
 - Use clear, descriptive naming
 - Add documentation for public APIs
 - Include tests for new functionality
+
+</div>

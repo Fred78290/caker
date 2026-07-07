@@ -4,6 +4,203 @@ title: FAQ
 nav_order: 7
 ---
 
+<!-- markdownlint-disable MD033 MD024 -->
+
+<div class="lang-fr" style="display:none" markdown="1">
+
+# FAQ
+
+## Questions générales
+
+## Quelle est la différence entre `caked` et `cakectl` ?
+
+- `caked` est le démon d'arrière-plan qui effectue les opérations.
+- `cakectl` est le client CLI utilisé pour envoyer des commandes à `caked`.
+
+Voyez cela comme Docker : `caked` est comme le démon Docker, et `cakectl` est comme la commande CLI `docker`.
+
+## Sur quelle branche baser mon travail ?
+
+- Utilisez `main` comme branche de base pour les contributions à ce dépôt.
+
+### Quelles plateformes sont supportées ?
+
+Actuellement, Caker ne supporte que macOS en raison de sa dépendance au framework Virtualization d'Apple. Le support de Linux et Windows n'est pas prévu pour le moment.
+
+## Questions de développement
+
+## Pourquoi la publication du wiki échoue-t-elle avec « repository not found » ?
+
+Causes courantes :
+- La fonctionnalité wiki n'est pas activée dans les paramètres du dépôt.
+- Jeton d'authentification GitHub manquant ou invalide.
+- Permissions insuffisantes pour l'accès au wiki d'un dépôt privé.
+
+## Comment publier rapidement les pages du wiki ?
+
+```bash
+# Avec authentification par jeton
+GH_TOKEN="${GITHUB_TOKEN}" ./Scripts/publish-wiki.sh Fred78290 caker
+
+# Avec authentification SSH
+USE_SSH=1 ./Scripts/publish-wiki.sh Fred78290 caker
+```
+
+### Pourquoi les scripts de build échouent-ils avec des erreurs de signature ?
+
+Cela se produit généralement lorsque :
+- Les profils de provisioning sont manquants ou expirés
+- Les certificats de signature ne sont pas correctement configurés
+- Les fichiers d'entitlements sont invalides
+
+Consultez le guide de [Dépannage](troubleshooting) pour les solutions.
+
+## Questions sur l'installation de macOS
+
+### Pourquoi l'installation de macOS 27 échoue-t-elle à environ 78 % avec `VZMacOSInstaller` ?
+
+Il s'agit d'une régression connue de `VZMacOSInstaller` ([utmapp/UTM#7746](https://github.com/utmapp/UTM/issues/7746)) qui affecte les invités macOS 27 installés sur des hôtes macOS 26. Caker contourne automatiquement ce problème en basculant vers le backend `AppleMobileDeviceRestore` (AMRestore) dès que l'IPSW cible macOS 27 ou une version ultérieure.
+
+### Comment Caker choisit-il quel backend d'installation utiliser ?
+
+Le choix est effectué au début de chaque installation `build` (IPSW) :
+
+1. Si `CakerForceVirtualInstallBackend` vaut `true` dans UserDefaults → AMRestore.
+2. Si `operatingSystemVersion.majorVersion >= 27` de l'IPSW → AMRestore.
+3. Sinon → `VZMacOSInstaller`.
+
+### L'installation de macOS 27 est-elle disponible dans le build App Store ?
+
+Oui. Le chemin AMRestore — qui repose sur le framework privé `AppleMobileDeviceRestore` et le démon `com.apple.mobile.restored` — est désormais activé dans le build App Store via le feature flag `USE_VIRTUAL_INSTALL_BACKEND`.
+
+### Comment puis-je forcer le backend AMRestore pour les tests ?
+
+```bash
+defaults write com.aldunelabs.Caker CakerForceVirtualInstallBackend -bool true
+```
+
+Supprimez-le une fois terminé :
+
+```bash
+defaults delete com.aldunelabs.Caker CakerForceVirtualInstallBackend
+```
+
+### Où puis-je trouver les journaux de restauration ?
+
+AMRestore écrit quatre fichiers journaux dans `~/Library/Application Support/Caker/VirtualInstall/Logs/` :
+
+| Fichier | Contenu |
+| --- | --- |
+| `global.log` | Messages globaux du moteur AMRestore |
+| `host.log` | Progression de la restauration côté hôte |
+| `device.log` | Messages provenant de l'appareil virtuel |
+| `serial.log` | Sortie série de la VM pendant la restauration |
+
+## Limitations App Store
+
+### Puis-je utiliser des périphériques bloc physiques (mode disque raw) dans la version App Store ?
+
+Non. La version App Store s'exécute dans le App Sandbox de macOS, ce qui empêche l'acquisition du verrou exclusif (`O_EXLOCK`) requis par Caker pour ouvrir un périphérique bloc physique (`/dev/diskN`). Cette restriction s'applique même si le sandbox accorde un accès en lecture-écriture temporaire à `/dev`.
+
+Opérations concernées :
+- `caked spawn <name> /dev/diskN` — échoue avec une erreur de permission.
+- `caked spawn-start <name> /dev/diskN` — idem.
+- Toute configuration de VM référençant un chemin `/dev/diskN` comme disque racine ou supplémentaire.
+
+Les fichiers image raw (`.raw`, `.img`, `.qcow2` après conversion, etc.) stockés dans votre répertoire personnel ne sont pas concernés et fonctionnent normalement dans la version App Store.
+
+Si vous devez démarrer une VM directement depuis un périphérique bloc physique, utilisez le **build en téléchargement direct** de Caker disponible sur la [page des releases GitHub](https://github.com/Fred78290/caker/releases).
+
+### Puis-je redimensionner un disque ASIF depuis la ligne de commande dans la version App Store ?
+
+Non. Le redimensionnement d'un disque ASIF (Apple Sparse Image Format) repose sur `diskutil image resize`, que l'App Sandbox n'autorise pas l'interface en ligne de commande `caked`/`cakectl` ni le service en arrière-plan à invoquer. L'exécution de `configure --disk-size` sur un disque ASIF échoue avec une erreur explicite dans la version sandboxée.
+
+Solutions de contournement :
+
+- **Utilisez l'application Caker** — le redimensionnement depuis l'interface des paramètres de la VM fonctionne normalement, ou
+- **Exécutez la commande manuellement** dans Terminal, avec la VM arrêtée :
+
+```bash
+diskutil image resize --size=<new-size>G "$(caked home)/vms/<vm-name>.cakedvm/disk.img"
+```
+
+Lorsque le redimensionnement est refusé, l'application Caker affiche la commande exacte à exécuter pour votre VM. Les disques au format raw ne sont pas concernés, pas plus que le build en téléchargement direct. Voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif) pour plus de détails.
+
+## Questions d'utilisation
+
+### Puis-je exécuter plusieurs VM simultanément ?
+
+Oui, Caker permet d'exécuter plusieurs VM en parallèle, dans la limite des ressources disponibles sur votre système (CPU, mémoire, espace disque).
+
+### Comment configurer le réseau pour les VM ?
+
+Caker prend en charge plusieurs modes réseau :
+- **Mode pont (bridge)** : accès direct au réseau de l'hôte
+- **Mode hébergé (hosted)** : communication VM-hôte
+- **Mode NAT** : accès Internet sortant avec redirection de ports
+
+Voir le [Résumé des commandes](command-summary) pour les commandes de configuration réseau.
+
+### Comment transférer des fichiers entre l'hôte et la VM ?
+
+Vous pouvez utiliser :
+- Des points de montage configurés lors de la création de la VM
+- La commande `exec` pour exécuter des outils de transfert de fichiers
+- Des protocoles de partage de fichiers réseau
+
+### Quels formats d'image Caker supporte-t-il ?
+
+Caker fonctionne avec :
+- Des images de VM personnalisées construites avec Caker
+- Des images provenant de registres configurés (OCI, simplestream, HTTPS)
+- Des images importées depuis d'autres plateformes de virtualisation (via la commande `import`)
+- Des images QCOW2 et VMDK converties au format raw avec `caked convert`
+
+Les disques racines peuvent utiliser le format **raw** ou **ASIF** (Apple Sparse Image Format, macOS 26+) — voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif).
+
+## Questions d'intégration
+
+### Puis-je utiliser Caker dans des pipelines CI/CD ?
+
+Oui, Caker est conçu pour fonctionner dans des environnements automatisés. L'interface CLI (`cakectl`) fournit des commandes scriptables pour la gestion du cycle de vie des VM.
+
+### Y a-t-il un support de l'API REST ?
+
+Oui. `caked` inclut un serveur API REST optionnel compatible LXD. Démarrez-le avec l'option `--rest` :
+
+```bash
+caked service listen --rest
+```
+
+Cela expose une API HTTP/HTTPS sur `/1.0/instances`, `/1.0/networks`, `/1.0/images`, et d'autres points de terminaison compatibles LXD. Le port par défaut est `8443` pour HTTPS (mTLS) et `8080` pour HTTP ; modifiable avec `--rest-port`.
+
+L'interface principale reste gRPC (`cakectl` ↔ `caked`), mais l'API REST permet l'intégration avec des outils compatibles LXD et l'interface Web fournie.
+
+Voir la page [Architecture](architecture) pour une référence complète des points de terminaison.
+
+### Comment Caker se compare-t-il aux autres outils de virtualisation ?
+
+Caker est spécifiquement conçu pour :
+- les environnements macOS utilisant le framework Virtualization
+- les workflows et l'automatisation pour développeurs
+- l'intégration native Swift
+- la gestion de VM pilotée par configuration
+
+Il se différencie d'outils comme Docker (conteneurs) ou VirtualBox (VM multiplateformes) en se concentrant sur la virtualisation macOS native avec une interface conviviale pour les développeurs.
+
+## Besoin d'aide supplémentaire
+
+Vous ne trouvez pas la réponse à votre question ici ?
+
+1. Consultez le guide de [Dépannage](troubleshooting)
+2. Consultez le [Résumé des commandes](command-summary) pour les détails d'utilisation
+3. Visitez la section [Développement](development) pour les informations de contribution
+4. Ouvrez un ticket sur [GitHub](https://github.com/Fred78290/caker/issues)
+
+</div>
+
+<div class="lang-en" style="display:block" markdown="1">
+
 # FAQ
 
 ## General Questions
@@ -192,3 +389,7 @@ Don't see your question answered here?
 2. Review the [Command Summary](command-summary) for usage details
 3. Visit the [Development](development) section for contribution info
 4. Open an issue on [GitHub](https://github.com/Fred78290/caker/issues)
+
+</div>
+
+{% include lang-toggle.html %}

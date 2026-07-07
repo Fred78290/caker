@@ -4,6 +4,202 @@ title: Release Notes
 nav_order: 8
 ---
 
+<!-- markdownlint-disable MD033 MD024 -->
+
+<div class="lang-fr" style="display:none" markdown="1">
+
+# Notes de version
+
+## 2026-06-20 (Résumé du log Git - main)
+
+### Ajouté
+- Voir les points marquants des commits ci-dessous.
+
+### Mis à jour
+- feat: Enable macOS 27+ guest installation in App Store builds
+- feat: Correct conditional compilation for VirtualInstallSPI backend
+- feat: Enhance VM creation reliability and error reporting
+- feat: Conditionally compile IPSW installer for arm64
+- feat: Update DFU restore mode setting label
+- feat: Expand tilde in build option file paths
+- feat: Propagate build errors via build stream
+- feat: enable virtual install backend and DFU mode for App Store builds
+- fix: Ensure reliable IPSW installer cancellation in async contexts
+- fix: Correct VZMacOSInstaller lifecycle for queued IPSW installs
+- Potential fix for pull request finding
+- Potential fix for pull request finding
+- Discard uneeded import
+- refactor: Reset gcdStarted state early during GrandCentral termination
+- refactor: Enhance GrandCentral state management and watcher logic
+- feat: Set VM status to running on external process detection
+- refactor: Make DirWatcher callback non-throwing
+- feat: Enhance VM directory watcher for robustness and detailed logging
+- feat: Monitor VM directories in app mode
+- refactor: Simplify CodableError userInfo key handling
+
+### Notes
+- Résumé généré automatiquement à partir des commits Git récents sur la branche `main`.
+- Commande utilisée : `git log --no-merges --oneline -n 20 -- Sources wiki .github/workflows`.
+
+
+## 2026-06-17
+
+### Ajouté
+- **Backend d'installation macOS 27 (Golden Gate)** (builds hors App Store, Apple Silicon uniquement) : Caker installe désormais les invités macOS 27 en utilisant le framework privé `AppleMobileDeviceRestore` (AMRestore) au lieu de `VZMacOSInstaller`. Cela contourne la régression de `VZMacOSInstaller` qui se bloque vers 78 % lors de l'installation d'invités macOS 27 sur un hôte macOS 26 ([utmapp/UTM#7746](https://github.com/utmapp/UTM/issues/7746)). Le nouveau chemin est sélectionné automatiquement dès que l'IPSW cible macOS 27 ou une version ultérieure, et peut être forcé sur n'importe quelle version avec la clé UserDefaults `CakerForceVirtualInstallBackend`.
+
+### Notes
+- AMRestore communique avec des démons système (`com.apple.mobile.restored`) bloqués par l'App Sandbox ; cette fonctionnalité est donc intentionnellement absente du build App Store.
+- Les journaux de restauration sont écrits dans `~/Library/Application Support/Caker/VirtualInstall/Logs/`.
+- Voir les pages [FAQ](faq) et [Dépannage](troubleshooting) pour les conseils de diagnostic.
+
+## 2026-05-29
+
+### Ajouté
+- **API REST LXD** : `caked service listen --rest` active un serveur API HTTP/HTTPS compatible LXD sur `/1.0/instances`, `/1.0/networks`, `/1.0/images`, `/1.0/operations`, `/1.0/certificates`, `/1.0/identities` et `/1.0/auth-groups`. Ports par défaut : 8443 (HTTPS/mTLS), 8080 (HTTP). Modifiable avec `--rest-port`.
+- **Interface Web** : `caked service listen --web-ui <path>` sert le frontend React/Vite fourni sur `/ui`. Accepte un répertoire ou une archive `.zip`.
+- **Commande `caked convert`** : convertit des images disque QCOW2 ou VMDK au format raw grâce à une implémentation pure Swift (aucun outil externe requis). Options : `--source-format qcow2` (par défaut) ou `--source-format vmdk`.
+- **Commande `cakectl vnc`** : ouvre une fenêtre de client VNC native connectée à l'affichage d'une VM en cours d'exécution. Établit automatiquement un tunnel de connexion VNC via `caked`.
+- Support du script de build **Ubuntu 26.04 (Resolute Rhino)** mis à jour.
+
+### Mis à jour
+- Renforcement de la gestion des certificats TLS : suppression du force-unwrap, certificat CA mTLS requis pour le contournement par mot de passe.
+- Les identifiants d'authentification de base sont désormais stockés en mémoire (plus écrits dans `sessionStorage`).
+- Vue « À propos » mise à jour pour refléter les capacités de contrôle à distance (CLI, GUI et API Web).
+
+### Notes
+- L'API REST est compatible LXD ; les clients et outils LXD existants peuvent se connecter directement à `caked`.
+- Le proxy de développement de l'interface Web (`VITE_API_TARGET`) pointe par défaut vers `http://127.0.0.1:8080`.
+
+## 2026-03-26 (Résumé du log Git - main)
+
+### Ajouté
+- Voir les points marquants des commits ci-dessous.
+
+### Mis à jour
+- Refactor ensurePrivilegedBootstrapFiles call
+- Update Sources/caker/Model/AppState.swift
+- Terminate app and alert user on privileged bootstrap failure
+- Use singleton pattern for AppState and automate bootstrap file check
+- Clarify error message for IPSW usage on non-ARM architectures
+- Use shared constant for the caked command name
+- Improve error feedback for virtual machine loading failures
+- Adjust daemon launch priority to background
+- Refactor service management and introduce manual daemon control
+- Refactor AppState service loading and mode switching logic
+- Configure window title and toolbar style for HomeView
+- Add run mode status indicator to the HomeView toolbar
+- Group navigation toolbar items
+- Finish shell stream when closing the interactive shell
+- Hide background visibility for VM status toolbar items
+- Update Sources/caker/MainApp.swift
+- Update Sources/caker/Helpers/Authorization.swift
+- Update Sources/caker/Helpers/Authorization.swift
+- Update Sources/caker/Helpers/Authorization.swift
+- Refactor privileged operations to use native Authorization Services
+
+### Notes
+- Résumé généré automatiquement à partir des commits Git récents sur la branche `main`.
+- Commande utilisée : `git log --no-merges --oneline -n 20 -- Sources wiki`.
+
+
+## 2026-03-03 (Résumé du log Git - main)
+
+### Ajouté
+- Voir les points marquants des commits ci-dessous.
+
+### Mis à jour
+- Adds helper for consistent virtual machine document creation
+- Adds handler for retrieving VM infos and configuration
+- Refactors agent helper creation for consistency
+- Refactors command handlers to use provider instead of client
+- Adds utility to instantiate agent helpers with varied inputs
+- Simplifies init call syntax for data conversion
+- Refactors info retrieval to support VMLocation input
+- Removes runMode check when selecting gRPC client usage
+- Adds option to include VM config in list output
+- Adds option to include VM config in list commands
+- Use display.cgSize for document view sizing
+- Add Codable conformance to SupportedPlatform
+- Make enum codable and remove unused conformances
+- Simplifies console config to use String instead of struct
+- Standardizes display size types across the application
+- Refactors `InfosHandler` file structure
+- Adds optional VM configuration to list requests
+- Refactor config mapping and introduce public model
+- Refactors VM hardware identifier storage
+- Centralizes VM configuration and image source types
+
+### Notes
+- Résumé généré automatiquement à partir des commits Git récents sur la branche `main`.
+- Commande utilisée : `git log --no-merges --oneline -n 20 -- Sources wiki`.
+
+
+## 2026-02-26 (Résumé du log Git - main)
+
+### Ajouté
+- Capacités Grand Central Dispatch pour le streaming en direct de l'état des VM/du système (incluant la commande `gcd` et le flux de mise à jour).
+- Méthodes gRPC pour le dispatcher Grand Central/les chemins de mise à jour et la gestion associée des flux de statut.
+- Dépendances de projet supplémentaires et échafaudage de plan de tests.
+
+### Mis à jour
+- Comportement de démarrage/arrêt du service affiné.
+- Aide/descriptions de la commande de démarrage de VM améliorées.
+- Gestion des demandes d'aide CLI et des erreurs améliorée.
+- Fiabilité d'exécution des VM/réseau améliorée (mises à jour de statut, stabilité gRPC, logique de démarrage réseau).
+- Gestion des commandes shell améliorée (y compris un échappement plus sûr des arguments).
+
+### Notes
+- Résumé généré à partir des commits récents sur la branche `main`.
+- Voir l'historique Git pour tous les détails : `git log --oneline`.
+
+## 2026-02-26
+
+### Ajouté
+- Structure initiale du wiki publiée.
+- Pages Démarrage, Architecture, Développement, Dépannage et FAQ.
+- Script de publication du wiki : `Scripts/publish-wiki.sh`.
+
+### Mis à jour
+- Consignes de contribution alignées sur la branche de base `main`.
+- Formulation et structure améliorées sur les principales pages du wiki.
+
+### Notes
+- La publication du wiki nécessite l'accès au wiki GitHub sur le dépôt cible.
+- Pour les dépôts privés, utilisez `GH_TOKEN`/`GITHUB_TOKEN` ou `USE_SSH=1`.
+
+## Comment mettre à jour ce wiki
+
+1. Modifiez les pages dans le répertoire local `wiki/`.
+2. Passez en revue les modifications et gardez la navigation synchronisée (`Home.md` et `_Sidebar.md`).
+3. (Optionnel) Créez automatiquement une entrée de notes de version datée avec :
+	- `./Scripts/new-wiki-release-entry.sh`
+	- ou `./Scripts/new-wiki-release-entry.sh YYYY-MM-DD`
+4. Publiez avec :
+	- `GH_TOKEN="${GITHUB_TOKEN}" ./Scripts/publish-wiki.sh Fred78290 caker`
+	- ou `USE_SSH=1 ./Scripts/publish-wiki.sh Fred78290 caker`
+5. Ajoutez les mises à jour de documentation notables dans la nouvelle entrée datée.
+
+## Modèle d'entrée
+
+Copiez/collez ce bloc pour la prochaine mise à jour :
+
+```markdown
+## YYYY-MM-DD
+
+### Ajouté
+- ...
+
+### Mis à jour
+- ...
+
+### Notes
+- ...
+```
+
+</div>
+
+<div class="lang-en" style="display:block" markdown="1">
+
 # Release Notes
 
 ## 2026-06-20 (Git log summary - main)
@@ -191,3 +387,7 @@ Copy/paste this block for the next update:
 ### Notes
 - ...
 ```
+
+</div>
+
+{% include lang-toggle.html %}

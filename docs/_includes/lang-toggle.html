@@ -1,0 +1,16 @@
+{% raw %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var queryLang = new URLSearchParams(window.location.search).get('lang');
+    var lang = (queryLang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
+    var isFrench = lang === 'fr' || lang.startsWith('fr-');
+    document.documentElement.setAttribute('lang', isFrench ? 'fr' : 'en');
+    document.querySelectorAll('.lang-fr').forEach(function (el) {
+      el.style.display = isFrench ? '' : 'none';
+    });
+    document.querySelectorAll('.lang-en').forEach(function (el) {
+      el.style.display = isFrench ? 'none' : '';
+    });
+  });
+</script>
+{% endraw %}

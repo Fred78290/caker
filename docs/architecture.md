@@ -4,6 +4,82 @@ title: Architecture
 nav_order: 3
 ---
 
+<!-- markdownlint-disable MD033 MD024 -->
+
+<div class="lang-fr" style="display:none" markdown="1">
+
+# Architecture
+
+## Composants
+
+- **outil en ligne de commande caked** (`Sources/caked/`) : démon d'arrière-plan principal
+- **outil en ligne de commande cakectl** (`Sources/cakectl/`) : contrôleur en ligne de commande
+- **bibliothèque commune CakedLib** (`Sources/cakedlib/`) : code de bibliothèque partagé
+- **bibliothèque de communication GRPCLib** (`Sources/grpc/`) : contrats de communication et interfaces de streaming/client
+- **Caker.app** (`Sources/caker/`) : source de l'interface graphique
+- **API REST LXD** (`Sources/caked/REST/`) : serveur HTTP/HTTPS optionnel compatible LXD intégré à `caked`
+- **Interface Web** (`webui/`) : frontend React/Vite servi par `caked` sur `/ui`
+
+## Flux général
+
+1. `cakectl` envoie des commandes à `caked` via gRPC
+2. `caked` exécute les opérations de cycle de vie/ressources
+3. Les réponses et flux sont transmis via gRPC vers les clients
+4. Les journaux/statuts sont renvoyés aux clients
+
+Optionnellement, des outils externes compatibles LXD communiquent avec `caked` via l'API REST :
+
+1. `caked` démarre un listener HTTP(S) en parallèle du serveur gRPC lorsque `--rest` est activé
+2. Les clients REST LXD (par ex. `lxc`, l'interface Web, ou tout client HTTP) appellent les points de terminaison `/1.0/...`
+3. `caked` traduit les requêtes REST vers les mêmes opérations internes que celles utilisées par gRPC
+
+## Responsabilités du service
+
+`caked` est responsable de :
+- la gestion du cycle de vie (construction, lancement, démarrage/arrêt/redémarrage/suspension/suppression)
+- l'allocation des ressources
+- la surveillance de l'état de santé
+- la journalisation et le diagnostic
+- l'API REST optionnelle compatible LXD (instances, réseaux, images, certificats, identités, opérations)
+- l'hébergement optionnel de l'interface Web
+
+## API REST LXD
+
+Lorsqu'il est démarré avec `--rest`, `caked` expose une API REST compatible LXD :
+
+| Groupe de points de terminaison | Description |
+| --- | --- |
+| `/1.0` | Informations serveur et capacités |
+| `/1.0/instances` | Cycle de vie des VM, état, exec, console, journaux |
+| `/1.0/networks` | Gestion réseau |
+| `/1.0/images` | Liste et métadonnées des images |
+| `/1.0/operations` | Suivi des opérations asynchrones |
+| `/1.0/certificates` | Gestion des certificats TLS |
+| `/1.0/auth-groups` | Groupes d'autorisation |
+| `/1.0/identities` | Gestion des identités |
+
+Ports par défaut : `8443` (HTTPS/mTLS) ou `8080` (HTTP). Modifiable avec `--rest-port`.
+
+Voir le [Résumé des commandes](command-summary) pour la référence complète des options de `service listen`.
+
+## Structure du dépôt
+
+```text
+Sources/
+├── caked/          # Implémentation du démon
+│   └── REST/       # Serveur et contrôleurs API REST LXD
+├── caker/          # Application graphique (macOS SwiftUI)
+├── cakectl/        # Client CLI
+├── cakedlib/       # Bibliothèques partagées
+└── grpc/           # Définitions gRPC et code généré
+scripts/            # Quelques scripts utiles pour la construction et autres
+webui/              # Interface Web React/Vite
+```
+
+</div>
+
+<div class="lang-en" style="display:block" markdown="1">
+
 # Architecture
 
 ## Components
@@ -71,3 +147,7 @@ Sources/
 scripts/            # Some useful scripts to build and other
 webui/              # React/Vite web UI
 ```
+
+</div>
+
+{% include lang-toggle.html %}
