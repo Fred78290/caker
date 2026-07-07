@@ -806,8 +806,9 @@ message Caked {
 
           message TunnelInfo {
             enum Protocol {
-              tcp = 0;
-              udp = 1;
+              tcp  = 0;
+              udp  = 1;
+              both = 2;
             }
 
             message ForwardedPort {

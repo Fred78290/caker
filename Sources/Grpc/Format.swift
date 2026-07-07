@@ -84,6 +84,7 @@ extension Caked_InfoReply.TunnelInfo.ProtocolEnum {
 		switch self {
 		case .tcp: return .tcp
 		case .udp: return .udp
+		case .both: return .both
 		default: return .tcp
 		}
 	}
@@ -92,6 +93,7 @@ extension Caked_InfoReply.TunnelInfo.ProtocolEnum {
 		switch from {
 		case .tcp: self = .tcp
 		case .udp: self = .udp
+		case .both: self = .both
 		default: fatalError()
 		}
 	}
