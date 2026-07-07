@@ -91,7 +91,7 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
 | Version macOS invitée | Backend utilisé | Disponibilité |
 | --- | --- | --- |
 | macOS 26 ou antérieur | `VZMacOSInstaller` (framework système) | Tous les builds |
-| macOS 27 (Golden Gate) ou plus récent | AMRestore (SPI `AppleMobileDeviceRestore`) | Builds hors App Store uniquement |
+| macOS 27 (Golden Gate) ou plus récent | AMRestore (SPI `AppleMobileDeviceRestore`) | Tous les builds |
 
 Le chemin AMRestore peut être forcé pour n'importe quel IPSW en définissant la clé UserDefaults `CakerForceVirtualInstallBackend` (utile pour les tests) :
 
@@ -116,7 +116,6 @@ Les journaux de restauration sont écrits dans `~/Library/Application Support/Ca
 ### Limitations
 
 - **Apple Silicon uniquement** — le SPI AMRestore n'existe pas sur les Mac Intel.
-- **Builds hors App Store uniquement** — AMRestore communique avec `com.apple.mobile.restored` et d'autres démons système bloqués par l'App Sandbox.
 - Nécessite macOS 26 ou ultérieur sur l'**hôte**.
 
 ## Notes
@@ -154,6 +153,7 @@ cakectl image list
 cakectl push myregistry.com/myimage:latest
 ```
 
+<a name="disk-formats-raw-and-asif-fr"></a>
 ## Formats de disque : raw et ASIF
 
 Caker prend en charge deux formats d'image de disque racine, sélectionnés avec `--disk-format` / `-f` sur `build` et `launch` :
@@ -435,7 +435,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
 | Guest macOS version | Back-end used | Availability |
 | --- | --- | --- |
 | macOS 26 or older | `VZMacOSInstaller` (system framework) | All builds |
-| macOS 27 (Golden Gate) or newer | AMRestore (`AppleMobileDeviceRestore` SPI) | Non-App Store builds only |
+| macOS 27 (Golden Gate) or newer | AMRestore (`AppleMobileDeviceRestore` SPI) | All builds |
 
 The AMRestore path can be force-enabled for any IPSW by setting the `CakerForceVirtualInstallBackend` UserDefaults key (useful for testing):
 
@@ -460,7 +460,6 @@ Restore logs are written to `~/Library/Application Support/Caker/VirtualInstall/
 ### Limitations
 
 - **Apple Silicon only** — AMRestore SPI does not exist on Intel Macs.
-- **Non-App Store builds only** — AMRestore communicates with `com.apple.mobile.restored` and other system daemons that are blocked by the App Sandbox.
 - Requires macOS 26 or later on the **host**.
 
 ## Notes

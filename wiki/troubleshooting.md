@@ -43,23 +43,21 @@ Vérifications :
 
 **Vérifications :**
 
-1. **Vérifiez que vous utilisez un build hors App Store** — le backend AMRestore n'est disponible qu'en dehors de l'App Store. Le build App Store se replie sur `VZMacOSInstaller`, connu pour échouer vers 78 % pour les invités macOS 27 sur des hôtes macOS 26.
+1. **Vérifiez que l'hôte est en macOS 26 ou ultérieur** — le chemin AMRestore nécessite les API `macOS 26.0`. Sur macOS 26, le build App Store utilise également le backend AMRestore (activé via le flag `USE_VIRTUAL_INSTALL_BACKEND`) ; sur les versions antérieures, il se replie sur `VZMacOSInstaller`, connu pour échouer vers 78 % pour les invités macOS 27.
 
-2. **Vérifiez que l'hôte est en macOS 26 ou ultérieur** — le chemin AMRestore nécessite les API `macOS 26.0`.
+2. **Vérifiez si l'ECID peut être résolu** — le moteur AMRestore identifie la VM par son ECID (intégré à l'identifiant machine). Si Caker journalise « Cannot determine device ECID from VM configuration », l'identifiant machine de la VM est peut-être manquant ou corrompu. Supprimez et recréez la VM.
 
-3. **Vérifiez si l'ECID peut être résolu** — le moteur AMRestore identifie la VM par son ECID (intégré à l'identifiant machine). Si Caker journalise « Cannot determine device ECID from VM configuration », l'identifiant machine de la VM est peut-être manquant ou corrompu. Supprimez et recréez la VM.
+3. **Consultez les journaux de restauration** — quatre fichiers journaux sont écrits dans `~/Library/Application Support/Caker/VirtualInstall/Logs/`. Examinez d'abord `global.log` pour les erreurs de haut niveau, puis `host.log` pour la trace de restauration côté hôte.
 
-4. **Consultez les journaux de restauration** — quatre fichiers journaux sont écrits dans `~/Library/Application Support/Caker/VirtualInstall/Logs/`. Examinez d'abord `global.log` pour les erreurs de haut niveau, puis `host.log` pour la trace de restauration côté hôte.
+4. **Appareil introuvable en 5 secondes** — si Caker journalise « Couldn't find device with ECID <n> », la VM n'est pas entrée en mode DFU à temps. Vérifiez qu'aucun autre processus ne bloque la VM ou n'empêche son démarrage.
 
-5. **Appareil introuvable en 5 secondes** — si Caker journalise « Couldn't find device with ECID <n> », la VM n'est pas entrée en mode DFU à temps. Vérifiez qu'aucun autre processus ne bloque la VM ou n'empêche son démarrage.
-
-6. **Forcer l'activation du backend AMRestore pour le diagnostic :**
+5. **Forcer l'activation du backend AMRestore pour le diagnostic :**
    ```bash
    defaults write com.aldunelabs.Caker CakerForceVirtualInstallBackend -bool true
    ```
    Cela contourne la vérification de version et utilise toujours AMRestore, ce qui peut aider à isoler si le problème vient de la sélection du backend ou de la restauration elle-même.
 
-7. **Vérifiez l'accessibilité du serveur de signature** — AMRestore personnalise l'IPSW auprès de `gs.apple.com:443`. Assurez-vous que cet hôte est joignable depuis le Mac (pas de pare-feu ou de proxy d'entreprise le bloquant).
+6. **Vérifiez l'accessibilité du serveur de signature** — AMRestore personnalise l'IPSW auprès de `gs.apple.com:443`. Assurez-vous que cet hôte est joignable depuis le Mac (pas de pare-feu ou de proxy d'entreprise le bloquant).
 
 ## L'agrandissement d'un disque ASIF échoue dans la version App Store (sandboxée)
 
@@ -133,23 +131,21 @@ Checks:
 
 **Checks:**
 
-1. **Verify you are using a non-App Store build** — the AMRestore backend is only available outside the App Store. The App Store build falls back to `VZMacOSInstaller`, which is known to fail at ~78% for macOS 27 guests on macOS 26 hosts.
+1. **Verify the host is macOS 26 or later** — the AMRestore path requires `macOS 26.0` APIs. On macOS 26, the App Store build also uses the AMRestore backend (enabled via the `USE_VIRTUAL_INSTALL_BACKEND` flag); on earlier hosts it falls back to `VZMacOSInstaller`, which is known to fail at ~78% for macOS 27 guests.
 
-2. **Verify the host is macOS 26 or later** — the AMRestore path requires `macOS 26.0` APIs.
+2. **Check whether the ECID can be resolved** — the AMRestore engine identifies the VM by its ECID (embedded in the machine identifier). If Caker logs `"Cannot determine device ECID from VM configuration"`, the VM's machine identifier may be missing or corrupted. Delete and recreate the VM.
 
-3. **Check whether the ECID can be resolved** — the AMRestore engine identifies the VM by its ECID (embedded in the machine identifier). If Caker logs `"Cannot determine device ECID from VM configuration"`, the VM's machine identifier may be missing or corrupted. Delete and recreate the VM.
+3. **Check the restore logs** — four log files are written to `~/Library/Application Support/Caker/VirtualInstall/Logs/`. Review `global.log` first for top-level errors, then `host.log` for the host-side restore trace.
 
-4. **Check the restore logs** — four log files are written to `~/Library/Application Support/Caker/VirtualInstall/Logs/`. Review `global.log` first for top-level errors, then `host.log` for the host-side restore trace.
+4. **Device not found within 5 seconds** — if Caker logs `"Couldn't find device with ECID <n>"`, the VM did not enter DFU mode in time. Confirm that no other process is holding the VM or preventing it from starting.
 
-5. **Device not found within 5 seconds** — if Caker logs `"Couldn't find device with ECID <n>"`, the VM did not enter DFU mode in time. Confirm that no other process is holding the VM or preventing it from starting.
-
-6. **Force-enable the AMRestore backend for diagnosis:**
+5. **Force-enable the AMRestore backend for diagnosis:**
    ```bash
    defaults write com.aldunelabs.Caker CakerForceVirtualInstallBackend -bool true
    ```
    This bypasses the version check and always uses AMRestore, which can help isolate whether the issue is in backend selection or in the restore itself.
 
-7. **Check signing server reachability** — AMRestore personalizes the IPSW against `gs.apple.com:443`. Make sure that host is reachable from the Mac (no corporate firewall or proxy blocking it).
+6. **Check signing server reachability** — AMRestore personalizes the IPSW against `gs.apple.com:443`. Make sure that host is reachable from the Mac (no corporate firewall or proxy blocking it).
 
 ## ASIF disk resize fails in the App Store (sandboxed) version
 
