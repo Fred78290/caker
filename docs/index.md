@@ -15,7 +15,7 @@ nav_order: 1
 
 <!-- markdownlint-disable MD033 MD024 -->
 
-<div id="content-fr" style="display:none" markdown="1">
+<div class="lang-fr" style="display:none" markdown="1">
 
 Bienvenue dans le wiki de documentation de Caker.
 
@@ -59,7 +59,7 @@ Guide du contributeur : [CONTRIBUTING.md](https://github.com/Fred78290/caker/blo
 
 </div>
 
-<div id="content-en" style="display:block" markdown="1">
+<div class="lang-en" style="display:block" markdown="1">
 
 Welcome to the Caker documentation wiki.
 

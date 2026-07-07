@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD033 MD024 -->
 
-<div id="content-fr" style="display:none" markdown="1">
+<div class="lang-fr" style="display:none" markdown="1">
 
 # Résumé des commandes
 
@@ -344,7 +344,7 @@ Après avoir accordé l'accès avec l'une ou l'autre option, relancez la command
 
 </div>
 
-<div id="content-en" style="display:block" markdown="1">
+<div class="lang-en" style="display:block" markdown="1">
 
 # Command Summary
 

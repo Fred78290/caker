@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD033 MD024 -->
 
-<div id="content-fr" style="display:none" markdown="1">
+<div class="lang-fr" style="display:none" markdown="1">
 
 # FAQ
 
@@ -193,7 +193,7 @@ Vous ne trouvez pas la réponse à votre question ici ?
 
 </div>
 
-<div id="content-en" style="display:block" markdown="1">
+<div class="lang-en" style="display:block" markdown="1">
 
 # FAQ
 

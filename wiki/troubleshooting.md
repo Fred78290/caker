@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD033 MD024 -->
 
-<div id="content-fr" style="display:none" markdown="1">
+<div class="lang-fr" style="display:none" markdown="1">
 
 # Dépannage
 
@@ -90,7 +90,7 @@ Les disques au format raw et le build en téléchargement direct ne sont pas con
 
 </div>
 
-<div id="content-en" style="display:block" markdown="1">
+<div class="lang-en" style="display:block" markdown="1">
 
 # Troubleshooting
 

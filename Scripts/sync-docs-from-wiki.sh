@@ -45,9 +45,9 @@ convert_wiki_to_docs() {
     -e 's|Resources/CakedAppIcon\.png|{{ "/assets/images/CakedAppIcon.png" \| relative_url }}|g' \
     "${wiki_file}" >> "${docs_file}"
 
-  # Wiki pages carry bilingual content in #content-fr / #content-en divs;
+  # Wiki pages carry bilingual content in .lang-fr / .lang-en elements;
   # append the shared include that shows the right one based on browser language.
-  if grep -q 'id="content-fr"' "${docs_file}" && grep -q 'id="content-en"' "${docs_file}"; then
+  if grep -q 'class="lang-fr"' "${docs_file}" && grep -q 'class="lang-en"' "${docs_file}"; then
     echo "" >> "${docs_file}"
     echo '{% include lang-toggle.html %}' >> "${docs_file}"
   fi
@@ -131,7 +131,7 @@ if [[ -f "${WIKI_DIR}/home.md" ]]; then
     # Add the full bilingual body from wiki Home
     cat "${WIKI_DIR}/home.md"
 
-    if grep -q 'id="content-fr"' "${WIKI_DIR}/home.md" && grep -q 'id="content-en"' "${WIKI_DIR}/home.md"; then
+    if grep -q 'class="lang-fr"' "${WIKI_DIR}/home.md" && grep -q 'class="lang-en"' "${WIKI_DIR}/home.md"; then
       echo ""
       echo '{% include lang-toggle.html %}'
     fi
