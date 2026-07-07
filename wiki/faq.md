@@ -6,7 +6,7 @@
 
 ## Questions générales
 
-## Quelle est la différence entre `caked` et `cakectl` ?
+### Quelle est la différence entre `caked` et `cakectl` ?
 
 - `caked` est le démon d'arrière-plan qui effectue les opérations.
 - `cakectl` est le client CLI utilisé pour envoyer des commandes à `caked`.
