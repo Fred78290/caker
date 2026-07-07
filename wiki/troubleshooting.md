@@ -80,7 +80,7 @@ La version App Store s'exécute dans le App Sandbox de macOS, ce qui empêche l'
    ```
    L'alerte / le message d'erreur affiche la commande exacte à exécuter pour votre VM.
 
-Les disques au format raw et le build en téléchargement direct ne sont pas concernés. Voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif).
+Les disques au format raw et le build en téléchargement direct ne sont pas concernés. Voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif-fr).
 
 ## Commandes utiles
 
