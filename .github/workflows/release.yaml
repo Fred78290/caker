@@ -221,6 +221,9 @@ jobs:
           PKG_PATH: ${{ steps.version.outputs.pkg_path }}
         run: |
           export VERSION="${{ steps.version.outputs.version }}"
+          if [ -z "${KEYCHAIN_PATH}" ]; then
+            security unlock-keychain -p "${LOGIN_PASSWORD}"
+          fi
           ./.ci/create-pkg.sh "${KEYCHAIN_PATH}"
 
       - name: 💿 Create DMG
@@ -230,6 +233,9 @@ jobs:
           DMG_PATH: ${{ steps.version.outputs.dmg_path }}
         run: |
           export VERSION="${{ steps.version.outputs.version }}"
+          if [ -z "${KEYCHAIN_PATH}" ]; then
+            security unlock-keychain -p "${LOGIN_PASSWORD}"
+          fi
           ./.ci/create-dmg.sh "${KEYCHAIN_PATH}"
 
       - name: 📦 Upload build artifacts
