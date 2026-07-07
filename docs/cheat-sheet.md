@@ -4,6 +4,209 @@ title: Cheat Sheet
 nav_order: 9
 ---
 
+<!-- markdownlint-disable MD033 MD024 -->
+
+<div id="content-fr" style="display:none" markdown="1">
+
+# Pense-bête
+
+Référence rapide des commandes pour les opérations quotidiennes courantes.
+
+> ⚠️ Si le service `caked` est actif, n'utilisez pas `caked` directement. Utilisez les commandes `cakectl` contre le service en cours d'exécution.
+
+## Cycle de vie des VM (`cakectl`)
+
+- Lister les VM :
+  - `cakectl list`
+- Obtenir les détails d'une VM :
+  - `cakectl infos <vm-name>`
+- Démarrer / arrêter / redémarrer :
+  - `cakectl start <vm-name>`
+  - `cakectl stop <vm-name>`
+  - `cakectl restart <vm-name>`
+- Lancer une nouvelle VM :
+  - `cakectl launch ...`
+
+## Authentification pour la webui (`cakectl certificate`)
+
+- Lister les certificats enregistrés :
+  - `cakectl certificate list`
+- Ajouter un certificat (depuis un fichier ou stdin) :
+  - `cakectl certificate add --name <name> <cert.pem>`
+  - `cat cert.pem | cakectl certificate add --name <name>`
+- Obtenir un certificat (affiche le PEM) :
+  - `cakectl certificate get <fingerprint-or-name>`
+- Supprimer un certificat :
+  - `cakectl certificate delete <fingerprint-or-name>`
+
+## Accès invité (`cakectl`)
+
+- Exécuter une commande dans l'invité :
+  - `cakectl exec <vm-name> -- <command> [args...]`
+- Ouvrir un shell invité :
+  - `cakectl sh <vm-name>`
+- Attendre l'IP :
+  - `cakectl waitip <vm-name>`
+- Ouvrir l'affichage VNC :
+  - `cakectl vnc <vm-name>`
+
+## Images et registre (`cakectl`)
+
+- Liste/info/pull d'image :
+  - `cakectl image list <remote>`
+  - `cakectl image info <image>`
+  - `cakectl image pull <image>`
+- Authentification au registre :
+  - `cakectl login <host>`
+  - `cakectl logout <host>`
+- Push/pull d'images de VM :
+  - `cakectl pull <name> <image>`
+  - `cakectl push <local-name> <remote-name>`
+
+## Réseaux (`cakectl`)
+
+- Lister les réseaux :
+  - `cakectl networks list`
+- Inspecter un réseau :
+  - `cakectl networks infos <network>`
+- Créer/démarrer/arrêter :
+  - `cakectl networks create ...`
+  - `cakectl networks start <network>`
+  - `cakectl networks stop <network>`
+
+## Compose (`cakectl compose`)
+
+- Initialiser un projet :
+  - `cakectl compose init`
+- Démarrer tous les services :
+  - `cakectl compose up`
+- Démarrer des services spécifiques :
+  - `cakectl compose up app database`
+- Arrêter tous les services :
+  - `cakectl compose down`
+- Afficher le statut des services :
+  - `cakectl compose ps`
+- Supprimer et désenregistrer (arrêter d'abord) :
+  - `cakectl compose rm --stop`
+- Lister tous les projets compose :
+  - `cakectl compose ls`
+- Utiliser un fichier personnalisé :
+  - `cakectl compose up -f ./infra/staging.yml`
+
+## Démon local/admin (`caked`)
+
+- Exécuter une commande du démon directement :
+  - `caked <command> ...`
+- Certificats :
+  - `caked certificates get`
+  - `caked certificates generate`
+- Mode service :
+  - `caked service listen --secure` *(activer le trafic sécurisé)*
+  - `caked service listen --tcp --secure`  *(activer l'écoute sur tcp)*
+  - `caked service listen --rest` *(activer l'API REST LXD)*
+  - `caked service listen --rest --web-ui /path/to/webui/dist` *(avec interface Web)*
+  - `caked service status`
+  - `caked service stop`
+- Convertir des images disque :
+  - `caked convert source.qcow2 destination.raw`
+  - `caked convert --source-format vmdk source.vmdk destination.raw`
+
+## Options globales utiles
+
+- `cakectl --connect <address>`
+- `cakectl --disable-tls`
+- `cakectl --system`
+- `caked --log-level <level>`
+- `caked --format json`
+
+## Liens vers la documentation
+
+- Groupes de commandes détaillés : [Résumé des commandes](command-summary)
+- Dépannage : [Dépannage](troubleshooting)
+
+## Workflows réels
+
+### 1) Créer et démarrer une VM
+
+depuis un registre OCI
+
+```bash
+cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G oci://ghcr.io/example/image:latest
+```
+
+depuis https
+
+```bash
+cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+```
+
+depuis un remote simplestream
+
+```bash
+cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G ubuntu:noble
+```
+
+en choisissant le format du disque racine (`asif` est le défaut sur macOS 26+, `raw` sur les hôtes plus anciens — voir [Formats de disque](command-summary#disk-formats-raw-and-asif))
+
+```bash
+cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G --disk-format asif ubuntu:noble
+```
+
+> ⚠️ Dans la version App Store (sandboxée), le redimensionnement d'un disque **ASIF** avec `configure --disk-size` n'est pas disponible en ligne de commande — utilisez l'application Caker ou exécutez la commande `diskutil image resize` affichée dans le message d'erreur.
+
+### 2) Démarrer une VM existante, attendre l'IP, inspecter le statut
+
+```bash
+cakectl start demo-vm
+cakectl waitip demo-vm
+cakectl infos demo-vm
+```
+
+### 3) Ouvrir un shell et exécuter une commande dans l'invité
+
+```bash
+cakectl shell demo-vm
+cakectl exec demo-vm -- uname -a
+```
+
+### 6) Se connecter à l'affichage de la VM via VNC
+
+```bash
+cakectl start demo-vm
+cakectl vnc demo-vm
+```
+
+### 7) Convertir une image QCOW2 ou VMDK en raw
+
+```bash
+# QCOW2 (par défaut)
+caked convert ubuntu-cloud.qcow2 ubuntu.raw
+
+# VMDK
+caked convert --source-format vmdk disk.vmdk disk.raw
+```
+
+### 4) Pousser une image de VM locale vers un registre distant
+
+```bash
+cakectl login ghcr.io --username <username> --password <password>
+cakectl push demo-vm ghcr.io/<owner>/demo-vm:latest
+cakectl logout ghcr.io
+```
+
+### 5) Créer et gérer un réseau partagé
+
+```bash
+cakectl networks create --name shared-dev --mode shared --gateway 192.168.105.1 --dhcp-end 192.168.105.254 --netmask 255.255.255.0
+cakectl networks start shared-dev
+cakectl networks infos shared-dev
+cakectl networks stop shared-dev
+```
+
+</div>
+
+<div id="content-en" style="display:block" markdown="1">
+
 # Cheat Sheet
 
 Quick command reference for common daily operations.
@@ -198,3 +401,7 @@ cakectl networks start shared-dev
 cakectl networks infos shared-dev
 cakectl networks stop shared-dev
 ```
+
+</div>
+
+{% include lang-toggle.html %}

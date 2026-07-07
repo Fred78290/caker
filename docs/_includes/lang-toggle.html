@@ -1,0 +1,13 @@
+{% raw %}
+<script>
+  var queryLang = new URLSearchParams(window.location.search).get('lang');
+  var lang = (queryLang || navigator.language || navigator.userLanguage || 'en').toLowerCase();
+  var isFrench = lang === 'fr' || lang.startsWith('fr-');
+  var fr = document.getElementById('content-fr');
+  var en = document.getElementById('content-en');
+  if (fr && en) {
+    fr.style.display = isFrench ? '' : 'none';
+    en.style.display = isFrench ? 'none' : '';
+  }
+</script>
+{% endraw %}
