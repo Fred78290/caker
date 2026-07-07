@@ -150,7 +150,7 @@ Caker fonctionne avec :
 - Des images importées depuis d'autres plateformes de virtualisation (via la commande `import`)
 - Des images QCOW2 et VMDK converties au format raw avec `caked convert`
 
-Les disques racines peuvent utiliser le format **raw** ou **ASIF** (Apple Sparse Image Format, macOS 26+) — voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif).
+Les disques racines peuvent utiliser le format **raw** ou **ASIF** (Apple Sparse Image Format, macOS 26+) — voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif-fr).
 
 ## Questions d'intégration
 
