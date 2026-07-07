@@ -3650,6 +3650,7 @@ public nonisolated struct Caked_Caked: Sendable {
               public typealias RawValue = Int
               case tcp // = 0
               case udp // = 1
+              case both // = 2
               case UNRECOGNIZED(Int)
 
               public init() {
@@ -3660,6 +3661,7 @@ public nonisolated struct Caked_Caked: Sendable {
                 switch rawValue {
                 case 0: self = .tcp
                 case 1: self = .udp
+                case 2: self = .both
                 default: self = .UNRECOGNIZED(rawValue)
                 }
               }
@@ -3668,6 +3670,7 @@ public nonisolated struct Caked_Caked: Sendable {
                 switch self {
                 case .tcp: return 0
                 case .udp: return 1
+                case .both: return 2
                 case .UNRECOGNIZED(let i): return i
                 }
               }
@@ -3676,6 +3679,7 @@ public nonisolated struct Caked_Caked: Sendable {
               public static let allCases: [Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.ProtocolEnum] = [
                 .tcp,
                 .udp,
+                .both,
               ]
 
             }
@@ -11797,7 +11801,7 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoRepl
 }
 
 nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.ProtocolEnum: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0tcp\0\u{1}udp\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0tcp\0\u{1}udp\0\u{1}both\0")
 }
 
 nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo.ForwardedPort: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
