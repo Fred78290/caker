@@ -21,10 +21,8 @@ env:
   NOTARYZATION: ${{ vars.NOTARYZATION }}
   SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
   SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_KEY }}
-  SETUP_KEYCHAIN: ${{ vars.SETUP_KEYCHAIN }}
   CODESIGN_REQUIREMENT: ${{ vars.CODESIGN_REQUIREMENT }}
   BASE_VERSION: ${{ vars.BASE_VERSION }}
-  LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
 permissions:
   contents: write
 
@@ -74,14 +72,13 @@ jobs:
           else
             echo "Not running on github-hosted runner, skipping tool checks."
 
-            if [ "${SETUP_KEYCHAIN}" == "true" ] || [ -z "$(security find-certificate -a | grep ${TEAM_ID})" ]; then
-              echo "setup_keychain=true" >> ${GITHUB_OUTPUT}
-              echo "KEYCHAIN_PATH=${RUNNER_TEMP}/app-signing.keychain-db" | tee -a ${GITHUB_ENV}
-            else
-              echo "setup_keychain=false" >> ${GITHUB_OUTPUT}
-              echo "KEYCHAIN_PATH=" | tee -a ${GITHUB_ENV}
-              security unlock-keychain -p "${LOGIN_PASSWORD}"
-            fi
+            # Always use a dedicated, ephemeral signing keychain on self-hosted
+            # runners instead of unlocking the login keychain: the runner service
+            # has no Security Session attached, so `security unlock-keychain`
+            # against the login keychain fails with "Interaction is not allowed
+            # with the Security Server".
+            echo "setup_keychain=true" >> ${GITHUB_OUTPUT}
+            echo "KEYCHAIN_PATH=${RUNNER_TEMP}/app-signing.keychain-db" | tee -a ${GITHUB_ENV}
 
             echo "install_python=false" >> ${GITHUB_OUTPUT}
             echo "install_golang=false" >> ${GITHUB_OUTPUT}
@@ -192,9 +189,6 @@ jobs:
             .state.revision = "d554955e8c280aa4c4a05a039a968f0205656e77"
           )' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
 
-          if [ -z "${KEYCHAIN_PATH}" ]; then
-            security unlock-keychain -p "${LOGIN_PASSWORD}"
-          fi
           swift test -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND 2>&1 | grep -v -E 'Emit|Compiling|Fetch|Comput|Creating|Working|Write|Copy|Archiving|CoreData'
 
       - name: 🧪 Run integration tests
@@ -221,9 +215,6 @@ jobs:
           PKG_PATH: ${{ steps.version.outputs.pkg_path }}
         run: |
           export VERSION="${{ steps.version.outputs.version }}"
-          if [ -z "${KEYCHAIN_PATH}" ]; then
-            security unlock-keychain -p "${LOGIN_PASSWORD}"
-          fi
           ./.ci/create-pkg.sh "${KEYCHAIN_PATH}"
 
       - name: 💿 Create DMG
@@ -233,9 +224,6 @@ jobs:
           DMG_PATH: ${{ steps.version.outputs.dmg_path }}
         run: |
           export VERSION="${{ steps.version.outputs.version }}"
-          if [ -z "${KEYCHAIN_PATH}" ]; then
-            security unlock-keychain -p "${LOGIN_PASSWORD}"
-          fi
           ./.ci/create-dmg.sh "${KEYCHAIN_PATH}"
 
       - name: 📦 Upload build artifacts
@@ -269,6 +257,9 @@ jobs:
         id: cleanup
         if: ${{ always() && steps.check.outputs.setup_keychain == 'true' }}
         run: |
+          # Restore the search list to the login keychain before removing the
+          # temporary one, otherwise deleting it can leave the search list empty.
+          security list-keychains -d user -s "${HOME}/Library/Keychains/login.keychain-db"
           if [ -f "${KEYCHAIN_PATH}" ]; then
             echo "Deleting keychain at ${KEYCHAIN_PATH}"
             security delete-keychain "${KEYCHAIN_PATH}"

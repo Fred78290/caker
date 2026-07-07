@@ -16,7 +16,11 @@ security unlock-keychain -p "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
 
 security import "${CERTIFICATE_PATH}" -P "${P12_PASSWORD}" -A -t cert -f pkcs12 -k "${KEYCHAIN_PATH}"
 security set-key-partition-list -S apple-tool:,apple: -k "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
-security list-keychain -d user -s "${KEYCHAIN_PATH}"
+
+# Append to the search list instead of replacing it, otherwise login.keychain-db
+# is silently dropped from the search list (list-keychains -s overwrites, not appends).
+EXISTING_KEYCHAINS=$(security list-keychains -d user | sed -e 's/^[[:space:]]*"//' -e 's/"[[:space:]]*$//')
+security list-keychains -d user -s "${KEYCHAIN_PATH}" ${EXISTING_KEYCHAINS}
 
 rm -f "${CERTIFICATE_PATH}"
 echo "App Store keychain configured at ${KEYCHAIN_PATH}"

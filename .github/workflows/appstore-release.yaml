@@ -21,10 +21,8 @@ env:
   RUN_SWIFT_TESTS: ${{ vars.RUN_SWIFT_TESTS }}
   CAKE_HOME: "${{ github.workspace }}/.cake"
   PKGDIR: "${{ github.workspace }}/appstore/Caker.app"
-  SETUP_KEYCHAIN: ${{ vars.SETUP_KEYCHAIN }}
   CODESIGN_REQUIREMENT: ${{ vars.CODESIGN_REQUIREMENT }}
   BASE_VERSION: ${{ vars.BASE_VERSION }}
-  LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
 permissions:
   contents: write
 
@@ -74,14 +72,13 @@ jobs:
           else
             echo "Not running on github-hosted runner, skipping tool checks."
 
-            if [ "${SETUP_KEYCHAIN}" == "true" ] || [ -z "$(security find-certificate -a | grep ${TEAM_ID})" ]; then
-              echo "setup_keychain=true" >> ${GITHUB_OUTPUT}
-              echo "KEYCHAIN_PATH=${RUNNER_TEMP}/app-signing.keychain-db" | tee -a ${GITHUB_ENV}
-            else
-              echo "setup_keychain=false" >> ${GITHUB_OUTPUT}
-              echo "KEYCHAIN_PATH=" | tee -a ${GITHUB_ENV}
-              security unlock-keychain -p "${LOGIN_PASSWORD}"
-            fi
+            # Always use a dedicated, ephemeral signing keychain on self-hosted
+            # runners instead of unlocking the login keychain: the runner service
+            # has no Security Session attached, so `security unlock-keychain`
+            # against the login keychain fails with "Interaction is not allowed
+            # with the Security Server".
+            echo "setup_keychain=true" >> ${GITHUB_OUTPUT}
+            echo "KEYCHAIN_PATH=${RUNNER_TEMP}/app-signing.keychain-db" | tee -a ${GITHUB_ENV}
 
             echo "install_python=false" >> ${GITHUB_OUTPUT}
             echo "install_golang=false" >> ${GITHUB_OUTPUT}
@@ -228,6 +225,9 @@ jobs:
         id: cleanup
         if: ${{ always() && steps.check.outputs.setup_keychain == 'true' }}
         run: |
+          # Restore the search list to the login keychain before removing the
+          # temporary one, otherwise deleting it can leave the search list empty.
+          security list-keychains -d user -s "${HOME}/Library/Keychains/login.keychain-db"
           if [ -f "${KEYCHAIN_PATH}" ]; then
             echo "Deleting keychain at ${KEYCHAIN_PATH}"
             security delete-keychain "${KEYCHAIN_PATH}"
