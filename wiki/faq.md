@@ -23,7 +23,7 @@ Actuellement, Caker ne supporte que macOS en raison de sa dépendance au framewo
 
 ## Questions de développement
 
-## Pourquoi la publication du wiki échoue-t-elle avec « repository not found » ?
+### Pourquoi la publication du wiki échoue-t-elle avec « repository not found » ?
 
 Causes courantes :
 - La fonctionnalité wiki n'est pas activée dans les paramètres du dépôt.
