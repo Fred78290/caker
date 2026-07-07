@@ -118,7 +118,7 @@ Solutions de contournement :
 diskutil image resize --size=<new-size>G "$(caked home)/vms/<vm-name>.cakedvm/disk.img"
 ```
 
-Lorsque le redimensionnement est refusé, l'application Caker affiche la commande exacte à exécuter pour votre VM. Les disques au format raw ne sont pas concernés, pas plus que le build en téléchargement direct. Voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif) pour plus de détails.
+Lorsque le redimensionnement est refusé, l'application Caker affiche la commande exacte à exécuter pour votre VM. Les disques au format raw ne sont pas concernés, pas plus que le build en téléchargement direct. Voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif-fr) pour plus de détails.
 
 ## Questions d'utilisation
 
