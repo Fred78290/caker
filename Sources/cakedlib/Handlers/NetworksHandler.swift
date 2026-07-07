@@ -281,10 +281,16 @@ public struct NetworksHandler {
 		let home: Home = try Home(runMode: runMode)
 		let networkConfig = try home.sharedNetworks()
 		let sharedNetworks = networkConfig.sharedNetworks
-		let bridgedNetwork = try CakedKeyConfig.bridgedNetwork.get()
-		
-		if bridgedNetwork == nil && networks.contains(where: { $0.isBridged() }) {
-			Logger(self).error("Bridged network is not configured, skipping bridged networks")
+		let bridgedNetwork: String?
+
+		if networks.contains(where: { $0.isBridged() }) {
+			bridgedNetwork = try CakedKeyConfig.bridgedNetwork.get()
+
+			if bridgedNetwork == nil {
+				Logger(self).error("Bridged network is not configured, skipping bridged networks")
+			}
+		} else {
+			bridgedNetwork = nil
 		}
 		
 		try networks.forEach { inf in
