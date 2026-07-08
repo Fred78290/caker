@@ -4192,7 +4192,7 @@
 					"$(SDKROOT)/usr/lib/swift",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.cakectl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -4218,7 +4218,7 @@
 					"$(SDKROOT)/usr/lib/swift",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.cakectl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -4306,15 +4306,16 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = LE7988HTRN;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ../Resources/cakectl.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = cakectl;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = Fred78290;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Caker needs SSH access to running VM and create virtual network";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.cakectl;
 				PRODUCT_NAME = cakectl;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -4336,15 +4337,16 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = LE7988HTRN;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ../Resources/cakectl.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = cakectl;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = Fred78290;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Caker needs SSH access to running VM and create virtual network";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.cakectl;
 				PRODUCT_NAME = cakectl;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -4387,7 +4389,7 @@
 					"$(SDKROOT)/usr/lib/swift",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.caked;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -4411,7 +4413,7 @@
 					"$(SDKROOT)/usr/lib/swift",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.caked;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -4492,7 +4494,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.caked;
 				PRODUCT_NAME = caked;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -4522,7 +4524,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.caked;
 				PRODUCT_NAME = caked;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;

@@ -1084,6 +1084,7 @@
 		9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarSettings.swift; sourceTree = "<group>"; };
 		9B96B00A2F4B67250069C970 /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 		9B96B00F2F4B68380069C970 /* CakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B96E8FF2FFE4A500027A8D3 /* cakectl.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = cakectl.plist; sourceTree = "<group>"; };
 		9B9711BF2DFF3284005B161B /* Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		9B9711C12DFF32A0005B161B /* ImportHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHandler.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
@@ -2692,6 +2693,7 @@
 		9BFE87462F7E6480005CC9B2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9B96E8FF2FFE4A500027A8D3 /* cakectl.plist */,
 				9BFE87362F7E6480005CC9B2 /* AppIcon.icns */,
 				9BFE873C2F7E6480005CC9B2 /* Document.icns */,
 				9BFE87DB2F7E6B67005CC9B2 /* VM.icns */,
@@ -4291,7 +4293,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				OTHER_CODE_SIGN_FLAGS = "-i $(PRODUCT_BUNDLE_IDENTIFIER)";
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.cakectl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -4388,7 +4390,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.cakectl;
 				PRODUCT_NAME = cakectl;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -4419,7 +4421,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.cakectl;
 				PRODUCT_NAME = cakectl;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -4520,7 +4522,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				OTHER_CODE_SIGN_FLAGS = "$(inherited) -i $(PRODUCT_BUNDLE_IDENTIFIER)";
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.caked;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -4607,7 +4609,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.caked;
 				PRODUCT_NAME = caked;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -4639,7 +4641,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.caked;
 				PRODUCT_NAME = caked;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
