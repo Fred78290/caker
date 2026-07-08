@@ -143,7 +143,7 @@ plutil -replace CFBundleVersion -string "${VERSION}" "${CAKECTL_APP}/Info.plist"
 if [ "${APPSTORE}" -eq 1 ]; then
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
-		--identifier "com.aldunelabs.caker" \
+		--identifier "com.aldunelabs.caker.cakectl" \
 		--timestamp \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/cakectl.entitlements" \
 		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
@@ -153,7 +153,7 @@ if [ "${APPSTORE}" -eq 1 ]; then
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
-		--identifier "com.aldunelabs.caker" \
+		--identifier "com.aldunelabs.caker.caked" \
 		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/caked.entitlements" \
 		--strip-disallowed-xattrs \
