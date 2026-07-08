@@ -436,7 +436,7 @@ struct ServiceListView: View {
 				Button {
 					isPresentingManualSheet = true
 				} label: {
-					Label("Connect to a server…", systemImage: "network.badge.plus")
+					Label("Connect to a server…", systemImage: "link.badge.plus")
 				}
 				.buttonStyle(.bordered)
 			}
