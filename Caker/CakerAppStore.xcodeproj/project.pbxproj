@@ -318,6 +318,7 @@
 		9B96B01D2F4B68540069C970 /* GrpcTcpSocketTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0E2DB4EB700047D00B /* GrpcTcpSocketTest.swift */; };
 		9B96B01E2F4B68540069C970 /* NetworkTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C112DB4EB700047D00B /* NetworkTest.swift */; };
 		9B96B01F2F4B685D0069C970 /* CloudInitTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0C2DB4EB700047D00B /* CloudInitTest.swift */; };
+		9B96EA822FFE93120027A8D3 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9B9711C02DFF3284005B161B /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711BF2DFF3284005B161B /* Import.swift */; };
 		9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711C12DFF32A0005B161B /* ImportHandler.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
@@ -721,6 +722,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 9BA9CBC92FCD7B8000CEBFC0;
 			remoteInfo = cakectl.bundle;
+		};
+		9B96EA832FFE93120027A8D3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9B464C5B2D5A459B00164BF5;
+			remoteInfo = GRPCLib;
 		};
 		9BA9CBCE2FCD7B8900CEBFC0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1411,12 +1419,15 @@
 		9B29F8322FCAE4B800AEBCB8 /* Exceptions for "Caker" folder in "Caker" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				AppStore/Caker_AdHoc.mobileprovision,
-				AppStore/Caker_Development.provisionprofile,
 				AppStore/com.aldunelabs.caker.plist,
-				AppStore/debug.provisionprofile,
+				AppStore/debug/cakectl.provisionprofile,
+				AppStore/debug/caked.provisionprofile,
+				AppStore/debug/caker.provisionprofile,
 				AppStore/Info.plist,
 				AppStore/release.provisionprofile,
+				AppStore/release/cakectl.provisionprofile,
+				AppStore/release/caked.provisionprofile,
+				AppStore/release/caker.provisionprofile,
 				Info.plist,
 			);
 			target = 9B29F79E2FCAE4B700AEBCB8 /* Caker */;
@@ -1638,6 +1649,7 @@
 		9BF2DA732FE5470700218073 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				9B96EA822FFE93120027A8D3 /* libGRPCLib.a in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -3045,6 +3057,9 @@
 			);
 			buildRules = (
 			);
+			dependencies = (
+				9B96EA842FFE93120027A8D3 /* PBXTargetDependency */,
+			);
 			name = VirtualInstallSPI;
 			productName = VirtualInstallSPI;
 			productReference = 9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */;
@@ -3294,7 +3309,9 @@
 			shellPath = /bin/sh;
 			shellScript = (
 				"# Type a script or drag a script file from your workspace to insert its path.",
-				"cp ${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}.provisionprofile ${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
+				"set -e",
+				"",
+				"cp ${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}/${EXECUTABLE_NAME}.provisionprofile ${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
 				"",
 			);
 		};
@@ -3311,7 +3328,8 @@
 			shellScript = (
 				"# Type a script or drag a script file from your workspace to insert its path.",
 				"set -e",
-				"cp \"${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}.provisionprofile\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile\"",
+				"",
+				"cp ${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}/caker.provisionprofile ${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
 				"",
 			);
 		};
@@ -3922,6 +3940,11 @@
 			target = 9BA9CBC92FCD7B8000CEBFC0 /* cakectl.bundle */;
 			targetProxy = 9B6ECDE62FD1A78E00A51430 /* PBXContainerItemProxy */;
 		};
+		9B96EA842FFE93120027A8D3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9B464C5B2D5A459B00164BF5 /* GRPCLib */;
+			targetProxy = 9B96EA832FFE93120027A8D3 /* PBXContainerItemProxy */;
+		};
 		9BA9CBCF2FCD7B8900CEBFC0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9B464B4E2D5A3E5C00164BF5 /* cakectl */;
@@ -4266,12 +4289,10 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/cakectl.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
+				DEVELOPMENT_TEAM = LE7988HTRN;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readwrite;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -4374,12 +4395,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/cakectl.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = LE7988HTRN;
+				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -4405,12 +4426,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/cakectl.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = LE7988HTRN;
+				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -4495,12 +4516,10 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
+				DEVELOPMENT_TEAM = LE7988HTRN;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readwrite;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -4592,13 +4611,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Frederic BOLTZ (LE7988HTRN)";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = LE7988HTRN;
+				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -4624,13 +4643,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = LE7988HTRN;
+				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;

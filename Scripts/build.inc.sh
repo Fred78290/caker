@@ -105,13 +105,13 @@ cp -c "${PROJECT_ROOT}/Resources/VM.png" "${CAKECTL_APP}/Resources/VM.png"
 cp -c "${PROJECT_ROOT}/Resources/cakectl.plist" "${CAKECTL_APP}/Info.plist"
 
 if [ $APPSTORE -eq 0 ]; then
-	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
-	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
-	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Resources/caker.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Resources/caked.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Resources/cakectl.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
 else
-	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
-	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
-	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Caker/Caker/AppStore/release/caker.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Caker/Caker/AppStore/release/caked.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Caker/Caker/AppStore/release/cakectl.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
 fi
 
 if [ $APPSTORE -eq 0 ] && [ -n "${SPARKLE_PUBLIC_KEY}" ]; then

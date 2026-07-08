@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9B29F79E2FCAE4B700AEBCB8"
-               BuildableName = "Caker.app"
-               BlueprintName = "Caker"
+               BlueprintIdentifier = "9B464B4E2D5A3E5C00164BF5"
+               BuildableName = "cakectl"
+               BlueprintName = "cakectl"
                ReferencedContainer = "container:CakerAppStore.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -40,14 +40,15 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES"
+      viewDebuggingEnabled = "No"
       queueDebuggingEnableBacktraceRecording = "Yes">
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9B29F79E2FCAE4B700AEBCB8"
-            BuildableName = "Caker.app"
-            BlueprintName = "Caker"
+            BlueprintIdentifier = "9B464B4E2D5A3E5C00164BF5"
+            BuildableName = "cakectl"
+            BlueprintName = "cakectl"
             ReferencedContainer = "container:CakerAppStore.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,9 +63,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9B29F79E2FCAE4B700AEBCB8"
-            BuildableName = "Caker.app"
-            BlueprintName = "Caker"
+            BlueprintIdentifier = "9B464B4E2D5A3E5C00164BF5"
+            BuildableName = "cakectl"
+            BlueprintName = "cakectl"
             ReferencedContainer = "container:CakerAppStore.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
