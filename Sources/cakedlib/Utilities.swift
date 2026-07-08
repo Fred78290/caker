@@ -307,7 +307,7 @@ extension Bundle {
 
 			runningArguments.append(contentsOf: arguments)
 
-			Logger(self).debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
+			Logger(self).debug("Running: \(executableURL.path) \(runningArguments.joined(separator: " "))")
 
 			process.executableURL = executableURL
 			process.environment = try Utilities.environment(runMode: runMode)
@@ -372,7 +372,7 @@ extension Bundle {
 
 			runningArguments.append(contentsOf: arguments)
 
-			Logger(self).debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
+			Logger(self).debug("Running: \(executableURL.path) \(runningArguments.joined(separator: " "))")
 
 			process.executableURL = executableURL
 			process.environment = try Utilities.environment(runMode: runMode)

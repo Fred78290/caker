@@ -66,7 +66,9 @@ let package = Package(
 	targets: [
 		.target(
 			name: "VirtualInstallSPI",
-			dependencies: [],
+			dependencies: [
+				.target(name: "GRPCLib"),
+			],
 			path: "Sources/VirtualInstallSPI",
 			publicHeadersPath: "include",
 			cSettings: [
