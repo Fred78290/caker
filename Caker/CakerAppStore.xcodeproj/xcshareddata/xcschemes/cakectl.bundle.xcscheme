@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9B29F79E2FCAE4B700AEBCB8"
-               BuildableName = "Caker.app"
-               BlueprintName = "Caker"
+               BlueprintIdentifier = "9BA9CBC92FCD7B8000CEBFC0"
+               BuildableName = "cakectl.app"
+               BlueprintName = "cakectl.app"
                ReferencedContainer = "container:CakerAppStore.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -41,16 +41,6 @@
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES"
       queueDebuggingEnableBacktraceRecording = "Yes">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9B29F79E2FCAE4B700AEBCB8"
-            BuildableName = "Caker.app"
-            BlueprintName = "Caker"
-            ReferencedContainer = "container:CakerAppStore.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -58,16 +48,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9B29F79E2FCAE4B700AEBCB8"
-            BuildableName = "Caker.app"
-            BlueprintName = "Caker"
+            BlueprintIdentifier = "9BA9CBC92FCD7B8000CEBFC0"
+            BuildableName = "cakectl.app"
+            BlueprintName = "cakectl.app"
             ReferencedContainer = "container:CakerAppStore.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

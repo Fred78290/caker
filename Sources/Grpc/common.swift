@@ -118,7 +118,11 @@ public struct Utils {
 			if let customHome = ProcessInfo.processInfo.environment["CAKE_HOME"] {
 				cakeHomeDir = URL(fileURLWithPath: customHome)
 			} else if Bundle.isApplicationSandboxed {
-				cakeHomeDir = FileManager.default.homeDirectoryForCurrentUser
+				if runMode.isSystem {
+					cakeHomeDir = URL(fileURLWithPath: "/var/root/Library/Group Containers/group.\(cakerSignature)")
+				} else {
+					cakeHomeDir = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.\(cakerSignature)")!
+				}
 			} else if runMode.isSystem || geteuid() == 0 {
 				let paths = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .systemDomainMask, true)
 				var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)

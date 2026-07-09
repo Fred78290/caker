@@ -3,7 +3,7 @@
 // for a single DFU device identified by its ECID.
 //
 // Ported from VirtualBuddy 2.2-b2 / UTM, adapted for Caker.
-// Artifact / log storage goes to `<Application Support>/Caker/VirtualInstall`.
+// Artifact / log storage goes to `<Caker Home>/spi`.
 // Not available in the App Store build (private SPI + non-sandboxed only).
 
 #if USE_VIRTUAL_INSTALL_BACKEND && arch(arm64)
@@ -18,7 +18,7 @@ final class DeviceRestoreDriver: @unchecked Sendable {
     private let variantName: String
     private let backend: any DeviceRestoreBackend
 
-    private let personalizedBundleURL: URL
+	private let personalizedBundleURL: URL
 
     let artifactStorageURL: URL
     let loggers: DeviceRestoreLoggers
@@ -29,14 +29,14 @@ final class DeviceRestoreDriver: @unchecked Sendable {
 		}
 	}
 
-	init(ecid: ECID, bundleURL: URL, variantName: String = "Customer Erase Install (IPSW)", backend: any DeviceRestoreBackend) throws {
+	init(ecid: ECID, bundleURL: URL, variantName: String = "Customer Erase Install (IPSW)", backend: any DeviceRestoreBackend, runMode: Utils.RunMode) throws {
         self.logger = Logger("DeviceRestoreDriver(\(ecid))")
         self.ecid = ecid
         self.bundleURL = bundleURL
         self.variantName = variantName
         self.backend = backend
 
-        self.artifactStorageURL = try Self.artifactStorageBaseURL()
+		self.artifactStorageURL = try Self.artifactStorageBaseURL(runMode: runMode)
         self.personalizedBundleURL = try Self.ensureExistingDirectory(
             artifactStorageURL.appendingPathComponent(
                 "Personalized_\(bundleURL.deletingPathExtension().lastPathComponent)_\(ecid)_\(Int(Date().timeIntervalSinceReferenceDate))",
@@ -108,11 +108,11 @@ final class DeviceRestoreDriver: @unchecked Sendable {
     // MARK: - Storage helpers
 
     /// Base directory: `<Application Support>/Caker/VirtualInstall`.
-    private static func artifactStorageBaseURL() throws -> URL {
-        let base = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appendingPathComponent("Caker", isDirectory: true)
-            .appendingPathComponent("VirtualInstall", isDirectory: true)
-        return try ensureExistingDirectory(base)
+	private static func artifactStorageBaseURL(runMode: Utils.RunMode) throws -> URL {
+		let home = try Utils.getHome(runMode: runMode)
+		let base = home.appendingPathComponent("spi", isDirectory: true)
+
+		return try ensureExistingDirectory(base)
     }
 
     @discardableResult

@@ -24,7 +24,7 @@ BINARYDIR="${PROJECT_ROOT}/.appstore/universal/release"
 RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
 RELEASE=1
-APPSTORE=1
+export APPSTORE=1
 USE_SMAPPSERVICE=1
 BASE_VERSION=${BASE_VERSION:-1.0}
 VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
@@ -60,6 +60,7 @@ OUTDIR="${PROJECT_ROOT}/appstore"
 PKGNAME="${PKGNAME:-Caker.pkg}"
 PKGPATH="${PKGPATH:-${OUTDIR}/${PKGNAME}}"
 
+xattr -r -d com.apple.quarantine "${OUTDIR}/Caker.app" 2>/dev/null || true
 productbuild ${KEYCHAIN_OPTIONS} \
 	--sign "3rd Party Mac Developer Installer: ${DEVELOPER_ID}" \
 	--component "${OUTDIR}/Caker.app" /Applications \

@@ -336,10 +336,22 @@ struct ImportMultipassView: View {
 					isLoading = false
 					requiresAuthentication = true
 				}
-			} catch {
+			} catch let serviceError as ServiceError where serviceError.description.contains("multipass authenticate") {
 				await MainActor.run {
 					isLoading = false
-					errorMessage = error.localizedDescription
+					requiresAuthentication = true
+				}
+			} catch {
+				if error.localizedDescription.contains("multipass authenticate") {
+					await MainActor.run {
+						isLoading = false
+						requiresAuthentication = true
+					}
+				} else {
+					await MainActor.run {
+						isLoading = false
+						errorMessage = error.localizedDescription
+					}
 				}
 			}
 		}

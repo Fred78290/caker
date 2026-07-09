@@ -1,6 +1,11 @@
 // swift-tools-version:6.0
 
 import PackageDescription
+import Foundation
+
+// App Store builds must not depend on or link Sparkle.framework, since it is
+// excluded from the app bundle (Sparkle isn't permitted on the Mac App Store).
+let isAppStoreBuild = ProcessInfo.processInfo.environment["APPSTORE"] == "1"
 
 let package = Package(
 	name: "Caker",
@@ -57,16 +62,19 @@ let package = Package(
 		.package(url: "https://github.com/sersoft-gmbh/swift-sysctl.git", exact: "1.8.0"),
 		//.package(url: "https://github.com/swiftlang/swift-subprocess.git", revision: "7928f39b374b3403224c3a243da6326bdf7c918a"),
 		.package(url: "https://github.com/swiftlang/swift-subprocess.git", exact: "0.5.0"),
-		.package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.1"),
 		//.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
 		//.package(url: "https://github.com/apple/swift-collections.git", exact: "1.2.1"),
 		//.package(url: "https://github.com/apple/swift-nio-transport-services.git", exact: "1.24.0"),
 		//.package(url: "https://github.com/the-swift-collective/zlib", branch: "main")
-	],
+	] + (isAppStoreBuild ? [] : [
+		.package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.1"),
+	]),
 	targets: [
 		.target(
 			name: "VirtualInstallSPI",
-			dependencies: [],
+			dependencies: [
+				.target(name: "GRPCLib"),
+			],
 			path: "Sources/VirtualInstallSPI",
 			publicHeadersPath: "include",
 			cSettings: [
@@ -161,8 +169,9 @@ let package = Package(
 			.product(name: "FileMonitor", package: "FileMonitor"),
 			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
 			.product(name: "SwiftletUtilities", package: "SwiftletUtilities"),
+		] + (isAppStoreBuild ? [] : [
 			.product(name: "Sparkle", package: "Sparkle"),
-		],
+		]),
 		resources: [
 			.process("Resources"),
 		],

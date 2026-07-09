@@ -1,6 +1,7 @@
 import ArgumentParser
 import CakeAgentLib
 import CakedLib
+import Combine
 import Crypto
 import Foundation
 import GRPC
@@ -9,9 +10,9 @@ import NIOCore
 import NIOPosix
 import NIOSSL
 import Security
+import ServiceManagement
 import SwiftASN1
 import Synchronization
-import Combine
 import X509
 
 struct Certs {
@@ -20,21 +21,23 @@ struct Certs {
 	let cert: String?
 }
 
-#if USE_SMSERVICE
-fileprivate let subcommands: [ParsableCommand.Type] = [
-	Service.Listen.self,
-	Service.Show.self,
-	Service.Status.self,
-	Service.Stop.self,
-]
+#if USE_SMAPPSERVICE
+	private let subcommands: [ParsableCommand.Type] = [
+		Service.Install.self,
+		Service.Uninstall.self,
+		Service.Listen.self,
+		Service.Show.self,
+		Service.Status.self,
+		Service.Stop.self,
+	]
 #else
-fileprivate let subcommands: [ParsableCommand.Type] = [
-	Service.Install.self,
-	Service.Listen.self,
-	Service.Show.self,
-	Service.Status.self,
-	Service.Stop.self,
-]
+	private let subcommands: [ParsableCommand.Type] = [
+		Service.Install.self,
+		Service.Listen.self,
+		Service.Show.self,
+		Service.Status.self,
+		Service.Stop.self,
+	]
 #endif
 
 struct Service: ParsableCommand {
@@ -133,46 +136,100 @@ extension Service {
 		}
 	}
 
+	#if USE_SMAPPSERVICE
+		struct Uninstall: ParsableCommand {
+			static let configuration = CommandConfiguration(abstract: String(localized: "Uninstall launchctl caked daemon"))
+
+			@OptionGroup(title: String(localized: "Global options"))
+			var common: CommonOptions
+
+			func run() throws {
+				struct UninstallReply: Codable {
+					let installed: Bool
+					let reason: String
+				}
+
+				func uninstall() -> UninstallReply {
+					let service = ServiceHandler.appService
+					
+					if service.status == .requiresApproval || service.status == .enabled {
+						do {
+							try service.unregister()
+							return UninstallReply(installed: true, reason: "")
+						} catch {
+							return UninstallReply(installed: false, reason: error.reason)
+						}
+					} else {
+						return UninstallReply(installed: false, reason: String(localized: "Service is not installed"))
+					}
+				}
+
+				Logger.appendNewLine(self.common.format.renderSingle(uninstall()))
+			}
+		}
+
+	#endif
+
 	struct Install: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: String(localized: "Install caked daemon as launchctl agent"))
 
 		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
-		@OptionGroup(title: String(localized: "Agent common options"))
-		var options: ServiceOptions
+		#if !USE_SMAPPSERVICE
+			@OptionGroup(title: String(localized: "Agent common options"))
+			var options: ServiceOptions
 
-		var password: String? {
-			if options.noPassword { return nil }
+			var password: String? {
+				if options.noPassword { return nil }
 
-			if let password = options.password { return password }
+				if let password = options.password { return password }
 
-			return try? CakedKeyConfig.passphrase.get()
-		}
+				return try? CakedKeyConfig.passphrase.get()
+			}
+		#endif
 
 		func run() throws {
-			let runMode: Utils.RunMode = self.common.runMode
+			struct InstallReply: Codable {
+				let installed: Bool
+				let reason: String
+			}
 
-			if self.options.address.isEmpty && self.options.caCert == nil && self.options.tlsCert == nil && self.options.tlsKey == nil {
-				try ServiceHandler.installAgent(insecure: self.options.insecure, tcp: self.options.tcp, rest: self.options.rest, password: self.password, runMode: runMode)
-			} else {
-				let caCert = self.options.caCert
-				let tlsCert = self.options.tlsCert
-				let tlsKey = self.options.tlsKey
+			do {
+				#if USE_SMAPPSERVICE
+					let service = ServiceHandler.appService
 
-				if self.options.insecure == false && caCert == nil && tlsCert == nil && tlsKey == nil {
-					_ = try self.options.getCertificats(runMode: runMode)
-				}
+					if service.status == .notFound || service.status == .notRegistered {
+						try service.register()
+					}
+				#else
+					let runMode: Utils.RunMode = self.common.runMode
 
-				try ServiceHandler.installAgent(
-					listenAddress: try self.options.getListenAddress(runMode: runMode),
-					insecure: self.options.insecure,
-					rest: self.options.rest,
-					password: self.password,
-					caCert: caCert,
-					tlsCert: tlsCert,
-					tlsKey: tlsKey,
-					runMode: runMode)
+					if self.options.address.isEmpty && self.options.caCert == nil && self.options.tlsCert == nil && self.options.tlsKey == nil {
+						try ServiceHandler.installAgent(insecure: self.options.insecure, tcp: self.options.tcp, rest: self.options.rest, password: self.password, runMode: runMode)
+					} else {
+						let caCert = self.options.caCert
+						let tlsCert = self.options.tlsCert
+						let tlsKey = self.options.tlsKey
+
+						if self.options.insecure == false && caCert == nil && tlsCert == nil && tlsKey == nil {
+							_ = try self.options.getCertificats(runMode: runMode)
+						}
+
+						try ServiceHandler.installAgent(
+							listenAddress: try self.options.getListenAddress(runMode: runMode),
+							insecure: self.options.insecure,
+							rest: self.options.rest,
+							password: self.password,
+							caCert: caCert,
+							tlsCert: tlsCert,
+							tlsKey: tlsKey,
+							runMode: runMode)
+					}
+				#endif
+				Logger.appendNewLine(self.common.format.renderSingle(InstallReply(installed: true, reason: "")))
+			} catch {
+				Logger.appendNewLine(self.common.format.renderSingle(InstallReply(installed: false, reason: error.reason)))
 			}
 		}
 	}
@@ -364,31 +421,30 @@ extension Service {
 
 			Root.sigintSrc.cancel()
 
-			
 			try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
 				let sigcaught = [SIGINT, SIGHUP, SIGQUIT, SIGTERM, SIGUSR2].map { sig in
 					signal(sig, SIG_IGN)
 
 					let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: sig)
-					
+
 					sigintSrc.setEventHandler {
 						logger.info("Stop service on SIGINT")
-						
+
 						Task {
 							await restServer?.shutdown()
 							provider.stop()
-							
+
 							try? await EventLoopFuture.andAllComplete(
 								servers.map {
 									$0.initiateGracefulShutdown()
 								}, on: eventLoopGroup.next()
 							).get()
-							
+
 							continuation.resume()
 							logger.info("Server nicely closed")
 						}
 					}
-					
+
 					return sigintSrc
 				}
 
@@ -448,7 +504,7 @@ extension Service {
 
 			if self.options.rest {
 				arguments.append("--rest")
-				
+
 				if self.options.restPort != 0 {
 					arguments.append("--rest-port=\(self.options.restPort)")
 				}
@@ -467,15 +523,15 @@ extension Service {
 					arguments.append("--secure")
 				} else {
 					let certs = try self.options.getCertificats(runMode: runMode)
-					
+
 					if let ca = certs.ca {
 						arguments.append("--ca-cert=\(ca)")
 					}
-					
+
 					if let key = certs.key {
 						arguments.append("--tls-key=\(key)")
 					}
-					
+
 					if let cert = certs.cert {
 						arguments.append("--tls-cert=\(cert)")
 					}

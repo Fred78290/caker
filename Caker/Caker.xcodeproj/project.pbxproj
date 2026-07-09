@@ -20,6 +20,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		9B001A0A300023EF0048894C /* com.aldunelabs.caker.caked.plist in LaunchAgent */ = {isa = PBXBuildFile; fileRef = 9BB7AEFA2FFFC3E300B7DD6D /* com.aldunelabs.caker.caked.plist */; };
 		9B0202712EA8CBDD00053712 /* NetworkDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */; };
 		9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202722EA8D08800053712 /* RoundedTextField.swift */; };
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
@@ -198,7 +199,7 @@
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */; };
-		9B4EA8292F7692170044C18E /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		9B4EA8292F7692170044C18E /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; };
 		9B57E9D02E745FB600C5601D /* ViewSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B57E9CF2E745FB600C5601D /* ViewSize.swift */; };
 		9B5A37812ED4BDA8007B59B0 /* VNCKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */; };
 		9B5A37822ED4BDA8007B59B0 /* VNCProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */; };
@@ -390,7 +391,7 @@
 		9BD69DF62FCEE912005E24AF /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
 		9BD69DF72FCEE912005E24AF /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
 		9BD69DFB2FCEE977005E24AF /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		9BD69DFD2FCEEAF3005E24AF /* cakectl.bundle in Bundle */ = {isa = PBXBuildFile; fileRef = 9BD69DF02FCEE8F1005E24AF /* cakectl.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9BD69DFD2FCEEAF3005E24AF /* cakectl.app in Bundle */ = {isa = PBXBuildFile; fileRef = 9BD69DF02FCEE8F1005E24AF /* cakectl.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */; };
 		9BDA13A72EE6D44100357544 /* OSXKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */; };
 		9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */; };
@@ -639,8 +640,7 @@
 		9BFA908E2FD091C4007619A5 /* TeeStandardIOWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA908D2FD091C2007619A5 /* TeeStandardIOWrapper.swift */; };
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		9BFE87182F7E6202005CC9B2 /* caked.bundle in Bundle */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		9BFE876F2F7E64F1005CC9B2 /* embedded.provisionprofile in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */; };
+		9BFE87182F7E6202005CC9B2 /* caked.app in Bundle */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -759,6 +759,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		9B001A083000034A0048894C /* LaunchAgent */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = Contents/Library/LaunchAgents;
+			dstSubfolder = Wrapper;
+			files = (
+				9B001A0A300023EF0048894C /* com.aldunelabs.caker.caked.plist in LaunchAgent */,
+			);
+			name = LaunchAgent;
+		};
 		9B21E0112F4C676800870AD7 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			dstPath = "";
@@ -766,14 +775,6 @@
 			files = (
 			);
 			name = "Embed Frameworks";
-		};
-		9B464B4D2D5A3E5C00164BF5 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolder = None;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
 		};
 		9B4EA8252F76912A0044C18E /* Compatibility */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -784,6 +785,13 @@
 			);
 			name = Compatibility;
 		};
+		9BB7AEF92FFFC3C500B7DD6D /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = Contents/Library/LaunchAgents;
+			dstSubfolder = Resources;
+			files = (
+			);
+		};
 		9BD69DFA2FCEE968005E24AF /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			dstPath = "";
@@ -792,21 +800,13 @@
 				9BD69DFB2FCEE977005E24AF /* cakectl in CopyFiles */,
 			);
 		};
-		9BD69E002FCF0409005E24AF /* Daemon */ = {
-			isa = PBXCopyFilesBuildPhase;
-			dstPath = Contents/Library/LaunchAgents;
-			dstSubfolder = Wrapper;
-			files = (
-			);
-			name = Daemon;
-		};
 		9BE569EB2DFEF9720086B9C7 /* Bundle */ = {
 			isa = PBXCopyFilesBuildPhase;
 			dstPath = "";
 			dstSubfolder = PlugIns;
 			files = (
-				9BD69DFD2FCEEAF3005E24AF /* cakectl.bundle in Bundle */,
-				9BFE87182F7E6202005CC9B2 /* caked.bundle in Bundle */,
+				9BD69DFD2FCEEAF3005E24AF /* cakectl.app in Bundle */,
+				9BFE87182F7E6202005CC9B2 /* caked.app in Bundle */,
 			);
 			name = Bundle;
 		};
@@ -826,17 +826,12 @@
 				9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */,
 			);
 		};
-		9BFE876E2F7E64D9005CC9B2 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			dstPath = Contents;
-			dstSubfolder = Wrapper;
-			files = (
-				9BFE876F2F7E64F1005CC9B2 /* embedded.provisionprofile in CopyFiles */,
-			);
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9B001A0C300025340048894C /* cakectl.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = cakectl.provisionprofile; sourceTree = "<group>"; };
+		9B001A0D300025340048894C /* caked.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caked.provisionprofile; sourceTree = "<group>"; };
+		9B001A0E300025340048894C /* caker.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caker.provisionprofile; sourceTree = "<group>"; };
 		9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDetailView.swift; sourceTree = "<group>"; };
 		9B0202722EA8D08800053712 /* RoundedTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedTextField.swift; sourceTree = "<group>"; };
 		9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPSWInstaller.swift; sourceTree = "<group>"; };
@@ -1166,6 +1161,7 @@
 		9BB3BE192DB3F17500799A6A /* TemplateOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateOptions.swift; sourceTree = "<group>"; };
 		9BB3BE1A2DB3F17500799A6A /* UmountOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UmountOptions.swift; sourceTree = "<group>"; };
 		9BB3BE1B2DB3F17500799A6A /* WaitIPOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitIPOptions.swift; sourceTree = "<group>"; };
+		9BB7AEFA2FFFC3E300B7DD6D /* com.aldunelabs.caker.caked.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.aldunelabs.caker.caked.plist; sourceTree = "<group>"; };
 		9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUUsageView.swift; sourceTree = "<group>"; };
 		9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
 		9BBE5C6E2F4C544E005B3359 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
@@ -1191,7 +1187,7 @@
 		9BCEB1902ED76EB200B29B70 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
-		9BD69DF02FCEE8F1005E24AF /* cakectl.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = cakectl.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BD69DF02FCEE8F1005E24AF /* cakectl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = cakectl.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFixedWidthInteger.swift; sourceTree = "<group>"; };
 		9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSXKeyMapper.swift; sourceTree = "<group>"; };
 		9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonKeyMapper.swift; sourceTree = "<group>"; };
@@ -1364,7 +1360,7 @@
 		9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutCakerView.swift; sourceTree = "<group>"; };
 		9BFA908D2FD091C2007619A5 /* TeeStandardIOWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeStandardIOWrapper.swift; sourceTree = "<group>"; };
 		9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCIManagement.swift; sourceTree = "<group>"; };
-		9BFE869D2F7E592B005CC9B2 /* caked.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = caked.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BFE869D2F7E592B005CC9B2 /* caked.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = caked.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BFE871B2F7E6480005CC9B2 /* almalinux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = almalinux.png; sourceTree = "<group>"; };
 		9BFE871C2F7E6480005CC9B2 /* alpine.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = alpine.png; sourceTree = "<group>"; };
 		9BFE871D2F7E6480005CC9B2 /* arch-linux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "arch-linux.png"; sourceTree = "<group>"; };
@@ -1394,7 +1390,6 @@
 		9BFE87372F7E6480005CC9B2 /* caked.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = caked.plist; sourceTree = "<group>"; };
 		9BFE87382F7E6480005CC9B2 /* Caked.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Caked.xcf; sourceTree = "<group>"; };
 		9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CakedAppIcon.png; sourceTree = "<group>"; };
-		9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = embedded.provisionprofile; sourceTree = "<group>"; };
 		9BFE873C2F7E6480005CC9B2 /* Document.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Document.icns; sourceTree = "<group>"; };
 		9BFE873D2F7E6480005CC9B2 /* Document.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Document.png; sourceTree = "<group>"; };
 		9BFE873E2F7E6480005CC9B2 /* Document.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Document.xcf; sourceTree = "<group>"; };
@@ -1411,31 +1406,26 @@
 		9B196F3A2F588DAB00B424DB /* Exceptions for "Caker" folder in "Caker" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AppStore/com.aldunelabs.caker.plist,
+				AppStore/debug/cakectl.provisionprofile,
+				AppStore/debug/caked.provisionprofile,
+				AppStore/debug/caker.provisionprofile,
+				AppStore/Info.plist,
+				AppStore/release.provisionprofile,
+				AppStore/release/cakectl.provisionprofile,
+				AppStore/release/caked.provisionprofile,
+				AppStore/release/caker.provisionprofile,
 				Info.plist,
 			);
 			target = 9B464A532D5A3DA000164BF5 /* Caker */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		9B37908B2FD1BAF400D3D54C /* Exceptions for "Caker" folder in "Daemon" phase from "Caker" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			attributesByRelativePath = {
-				AppStore/com.aldunelabs.caker.plist = (CodeSignOnCopy, );
-			};
-			buildPhase = 9BD69E002FCF0409005E24AF /* Daemon */;
-			membershipExceptions = (
-				AppStore/com.aldunelabs.caker.plist,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9B464A562D5A3DA000164BF5 /* Caker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				9B196F3A2F588DAB00B424DB /* Exceptions for "Caker" folder in "Caker" target */,
-				9B37908B2FD1BAF400D3D54C /* Exceptions for "Caker" folder in "Daemon" phase from "Caker" target */,
 			);
 			path = Caker;
 			sourceTree = "<group>";
@@ -1629,11 +1619,6 @@
 			);
 		};
 		9BF1A01F3001000000AA001F /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			files = (
-			);
-		};
-		9BFE869A2F7E592B005CC9B2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
 			);
@@ -2003,8 +1988,8 @@
 				9BEBC68E2DF43FEE0092B196 /* caked */,
 				9BEBC7072DF440560092B196 /* libCakedLib.a */,
 				9B96B00F2F4B68380069C970 /* CakerTests.xctest */,
-				9BFE869D2F7E592B005CC9B2 /* caked.bundle */,
-				9BD69DF02FCEE8F1005E24AF /* cakectl.bundle */,
+				9BFE869D2F7E592B005CC9B2 /* caked.app */,
+				9BD69DF02FCEE8F1005E24AF /* cakectl.app */,
 				9BF1A0083001000000AA0008 /* libVirtualInstallSPI.a */,
 			);
 			name = Products;
@@ -2699,27 +2684,30 @@
 		9BFE87462F7E6480005CC9B2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				9B22CCE32FF3CA48001D626A /* release */,
-				9B22CCE02FF3CA3D001D626A /* debug */,
 				9BFE87362F7E6480005CC9B2 /* AppIcon.icns */,
 				9BFE873C2F7E6480005CC9B2 /* Document.icns */,
 				9BFE87DB2F7E6B67005CC9B2 /* VM.icns */,
 				9BFE87372F7E6480005CC9B2 /* caked.plist */,
+				9BB7AEFA2FFFC3E300B7DD6D /* com.aldunelabs.caker.caked.plist */,
 				9BFE873F2F7E6480005CC9B2 /* Info.plist */,
 				9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */,
 				9BFE873D2F7E6480005CC9B2 /* Document.png */,
 				9BFE87402F7E6480005CC9B2 /* menubar.png */,
 				9BFE87422F7E6480005CC9B2 /* Prompt.png */,
 				9BFE87442F7E6480005CC9B2 /* VM.png */,
-				9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */,
+				9B001A0C300025340048894C /* cakectl.provisionprofile */,
+				9B001A0D300025340048894C /* caked.provisionprofile */,
+				9B001A0E300025340048894C /* caker.provisionprofile */,
 				9BFE87382F7E6480005CC9B2 /* Caked.xcf */,
 				9BFE873E2F7E6480005CC9B2 /* Document.xcf */,
 				9BFE87412F7E6480005CC9B2 /* menubar.xcf */,
 				9BFE87452F7E6480005CC9B2 /* VM.xcf */,
 				9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */,
 				9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */,
+				9B22CCE02FF3CA3D001D626A /* debug */,
 				9B3794362FD56CD300D3D54C /* debug */,
 				9BFE87342F7E6480005CC9B2 /* Icons */,
+				9B22CCE32FF3CA48001D626A /* release */,
 				9B3794392FD56CD300D3D54C /* release */,
 			);
 			name = Resources;
@@ -2761,7 +2749,6 @@
 				9B464A522D5A3DA000164BF5 /* Resources */,
 				9BE569EB2DFEF9720086B9C7 /* Bundle */,
 				9B4EA8252F76912A0044C18E /* Compatibility */,
-				9BD69E002FCF0409005E24AF /* Daemon */,
 				9B773E4D2FE92DBF00C69B33 /* Set version */,
 			);
 			buildRules = (
@@ -2794,7 +2781,6 @@
 			buildPhases = (
 				9B464B4B2D5A3E5C00164BF5 /* Sources */,
 				9B464B4C2D5A3E5C00164BF5 /* Frameworks */,
-				9B464B4D2D5A3E5C00164BF5 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -2894,9 +2880,9 @@
 			productReference = 9B96B00F2F4B68380069C970 /* CakerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		9BD69DEF2FCEE8F1005E24AF /* cakectl.bundle */ = {
+		9BD69DEF2FCEE8F1005E24AF /* cakectl.app */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9BD69DF12FCEE8F1005E24AF /* Build configuration list for PBXNativeTarget "cakectl.bundle" */;
+			buildConfigurationList = 9BD69DF12FCEE8F1005E24AF /* Build configuration list for PBXNativeTarget "cakectl.app" */;
 			buildPhases = (
 				9BD69DEE2FCEE8F1005E24AF /* Resources */,
 				9BD69DFA2FCEE968005E24AF /* CopyFiles */,
@@ -2908,9 +2894,9 @@
 			dependencies = (
 				9BD69DF52FCEE8FC005E24AF /* PBXTargetDependency */,
 			);
-			name = cakectl.bundle;
+			name = cakectl.app;
 			productName = cakectl.bundle;
-			productReference = 9BD69DF02FCEE8F1005E24AF /* cakectl.bundle */;
+			productReference = 9BD69DF02FCEE8F1005E24AF /* cakectl.app */;
 			productType = "com.apple.product-type.bundle";
 		};
 		9BEBC68D2DF43FEE0092B196 /* caked */ = {
@@ -2921,6 +2907,7 @@
 				9BEBC68B2DF43FEE0092B196 /* Frameworks */,
 				9BEBC68C2DF43FEE0092B196 /* CopyFiles */,
 				9B08B4AF2F743D68009EC5C6 /* ShellScript */,
+				9BB7AEF92FFFC3C500B7DD6D /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -3056,27 +3043,26 @@
 			productReference = 9BF1A0083001000000AA0008 /* libVirtualInstallSPI.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		9BFE869C2F7E592B005CC9B2 /* caked.bundle */ = {
+		9BFE869C2F7E592B005CC9B2 /* caked.app */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9BFE869E2F7E592B005CC9B2 /* Build configuration list for PBXNativeTarget "caked.bundle" */;
+			buildConfigurationList = 9BFE869E2F7E592B005CC9B2 /* Build configuration list for PBXNativeTarget "caked.app" */;
 			buildPhases = (
-				9BFE86992F7E592B005CC9B2 /* Sources */,
-				9BFE869A2F7E592B005CC9B2 /* Frameworks */,
 				9BFE86A52F7E59C8005CC9B2 /* CopyFiles */,
-				9BFE876E2F7E64D9005CC9B2 /* CopyFiles */,
 				9B06995A2FB1A15E00FEAE13 /* Resources */,
 				9B1836552FB0E28F00D150FD /* WebUI */,
 				9B06995F2FB1A1E400FEAE13 /* Localization */,
 				9B773E4E2FE92DD500C69B33 /* Set version */,
+				9B001A083000034A0048894C /* LaunchAgent */,
+				9B001A10300025710048894C /* ShellScript */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				9BFE86A42F7E59B8005CC9B2 /* PBXTargetDependency */,
 			);
-			name = caked.bundle;
+			name = caked.app;
 			productName = bundle;
-			productReference = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */;
+			productReference = 9BFE869D2F7E592B005CC9B2 /* caked.app */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -3188,8 +3174,8 @@
 				9B464C5B2D5A459B00164BF5 /* GRPCLib */,
 				9BEBC7062DF440560092B196 /* CakedLib */,
 				9B96B00E2F4B68380069C970 /* CakerTests */,
-				9BFE869C2F7E592B005CC9B2 /* caked.bundle */,
-				9BD69DEF2FCEE8F1005E24AF /* cakectl.bundle */,
+				9BFE869C2F7E592B005CC9B2 /* caked.app */,
+				9BD69DEF2FCEE8F1005E24AF /* cakectl.app */,
 				9BF1A0203001000000AA0020 /* VirtualInstallSPI */,
 			);
 		};
@@ -3226,6 +3212,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		9B001A10300025710048894C /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			inputPaths = (
+				"${SOURCE_ROOT}/../Resources/caked.provisionprofile",
+			);
+			outputPaths = (
+				"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
+			);
+			shellPath = /bin/sh;
+			shellScript = (
+				"# Type a script or drag a script file from your workspace to insert its path.",
+				"cp ${SOURCE_ROOT}/../Resources/caked.provisionprofile ${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
+				"",
+			);
+		};
 		9B06995F2FB1A1E400FEAE13 /* Localization */ = {
 			isa = PBXShellScriptBuildPhase;
 			inputPaths = (
@@ -3849,11 +3850,6 @@
 				9BF1A00A3001000000AA000A /* VIWaitForDevice.m in Sources */,
 			);
 		};
-		9BFE86992F7E592B005CC9B2 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			files = (
-			);
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -3869,7 +3865,7 @@
 		};
 		9B29F8362FCAE51700AEBCB8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9BFE869C2F7E592B005CC9B2 /* caked.bundle */;
+			target = 9BFE869C2F7E592B005CC9B2 /* caked.app */;
 			targetProxy = 9B29F8352FCAE51700AEBCB8 /* PBXContainerItemProxy */;
 		};
 		9B2BFA862DFED1EA000045C3 /* PBXTargetDependency */ = {
@@ -3909,7 +3905,7 @@
 		};
 		9BD69DF92FCEE92E005E24AF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9BD69DEF2FCEE8F1005E24AF /* cakectl.bundle */;
+			target = 9BD69DEF2FCEE8F1005E24AF /* cakectl.app */;
 			targetProxy = 9BD69DF82FCEE92E005E24AF /* PBXContainerItemProxy */;
 		};
 		9BDD95652DB8D43E00E46244 /* PBXTargetDependency */ = {
@@ -3934,7 +3930,7 @@
 		};
 		9BFE87172F7E61F1005CC9B2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9BFE869C2F7E592B005CC9B2 /* caked.bundle */;
+			target = 9BFE869C2F7E592B005CC9B2 /* caked.app */;
 			targetProxy = 9BFE87162F7E61F1005CC9B2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -4295,7 +4291,7 @@
 			};
 			name = Release;
 		};
-		9BD69DF22FCEE8F1005E24AF /* Debug configuration for PBXNativeTarget "cakectl.bundle" */ = {
+		9BD69DF22FCEE8F1005E24AF /* Debug configuration for PBXNativeTarget "cakectl.app" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "../Resources/$(CONFIGURATION)/cakectl.entitlements";
@@ -4322,11 +4318,11 @@
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
 		};
-		9BD69DF32FCEE8F1005E24AF /* Release configuration for PBXNativeTarget "cakectl.bundle" */ = {
+		9BD69DF32FCEE8F1005E24AF /* Release configuration for PBXNativeTarget "cakectl.app" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "../Resources/$(CONFIGURATION)/cakectl.entitlements";
@@ -4353,7 +4349,7 @@
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
 		};
@@ -4475,7 +4471,7 @@
 			};
 			name = Release;
 		};
-		9BFE869F2F7E592B005CC9B2 /* Debug configuration for PBXNativeTarget "caked.bundle" */ = {
+		9BFE869F2F7E592B005CC9B2 /* Debug configuration for PBXNativeTarget "caked.app" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
@@ -4501,11 +4497,11 @@
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
 		};
-		9BFE86A02F7E592B005CC9B2 /* Release configuration for PBXNativeTarget "caked.bundle" */ = {
+		9BFE86A02F7E592B005CC9B2 /* Release configuration for PBXNativeTarget "caked.app" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
@@ -4531,7 +4527,7 @@
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
 		};
@@ -4578,11 +4574,11 @@
 			);
 			defaultConfigurationName = Release;
 		};
-		9BD69DF12FCEE8F1005E24AF /* Build configuration list for PBXNativeTarget "cakectl.bundle" */ = {
+		9BD69DF12FCEE8F1005E24AF /* Build configuration list for PBXNativeTarget "cakectl.app" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				9BD69DF22FCEE8F1005E24AF /* Debug configuration for PBXNativeTarget "cakectl.bundle" */,
-				9BD69DF32FCEE8F1005E24AF /* Release configuration for PBXNativeTarget "cakectl.bundle" */,
+				9BD69DF22FCEE8F1005E24AF /* Debug configuration for PBXNativeTarget "cakectl.app" */,
+				9BD69DF32FCEE8F1005E24AF /* Release configuration for PBXNativeTarget "cakectl.app" */,
 			);
 			defaultConfigurationName = Release;
 		};
@@ -4618,11 +4614,11 @@
 			);
 			defaultConfigurationName = Release;
 		};
-		9BFE869E2F7E592B005CC9B2 /* Build configuration list for PBXNativeTarget "caked.bundle" */ = {
+		9BFE869E2F7E592B005CC9B2 /* Build configuration list for PBXNativeTarget "caked.app" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				9BFE869F2F7E592B005CC9B2 /* Debug configuration for PBXNativeTarget "caked.bundle" */,
-				9BFE86A02F7E592B005CC9B2 /* Release configuration for PBXNativeTarget "caked.bundle" */,
+				9BFE869F2F7E592B005CC9B2 /* Debug configuration for PBXNativeTarget "caked.app" */,
+				9BFE86A02F7E592B005CC9B2 /* Release configuration for PBXNativeTarget "caked.app" */,
 			);
 			defaultConfigurationName = Release;
 		};

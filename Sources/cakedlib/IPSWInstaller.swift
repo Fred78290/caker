@@ -164,7 +164,7 @@
 			if config.os == .linux {
 				let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.configURL).absoluteURL
 
-				if FileManager.default.fileExists(atPath: cdromURL.path) {
+				if FileManager.default.fileExists(atPath: cdromURL.path(percentEncoded: false)) {
 					devices.append(try VirtualMachineEnvironment.createCloudInitDrive(cdromURL: cdromURL))
 				}
 			}
@@ -313,7 +313,7 @@
 				progressHandler(.step(String(localized: "Installing macOS from IPSW…")))
 
 				let backend = AppleMobileDeviceRestoreBackend()
-				let driver = try DeviceRestoreDriver(ecid: ecid, bundleURL: url, backend: backend)
+				let driver = try DeviceRestoreDriver(ecid: ecid, bundleURL: url, backend: backend, runMode: self.runMode)
 				let context = ProgressObserver.ProgressHandlerContext()
 
 				// VIMDDeviceRestore is a blocking C call with no abort API that can

@@ -9,8 +9,8 @@ APPSTORE=${APPSTORE:-0}
 USE_SMAPPSERVICE=${USE_SMAPPSERVICE:-0}
 
 CAKER_APP="${PKGDIR}/Contents"
-CAKED_APP="${CAKER_APP}/PlugIns/caked.bundle/Contents"
-CAKECTL_APP="${CAKER_APP}/PlugIns/cakectl.bundle/Contents"
+CAKED_APP="${CAKER_APP}/PlugIns/caked.app/Contents"
+CAKECTL_APP="${CAKER_APP}/PlugIns/cakectl.app/Contents"
 
 pushd "${PROJECT_ROOT}/webui" > /dev/null
 npm install
@@ -29,11 +29,10 @@ mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 	"${CAKER_APP}/Resources" \
 	"${CAKER_APP}/Resources/Icons" \
 	"${CAKER_APP}/PlugIns" \
-	"${CAKER_APP}/Library" \
-	"${CAKER_APP}/Library/LaunchAgents" \
 	\
 	"${CAKED_APP}/Resources" \
 	"${CAKED_APP}/MacOS" \
+	"${CAKED_APP}/Library/LaunchAgents" \
 	\
 	"${CAKECTL_APP}/Resources" \
 	"${CAKECTL_APP}/MacOS"
@@ -79,7 +78,7 @@ fi
 cp "${PROJECT_ROOT}/webui/webui.zip" "${CAKED_APP}/Resources/webui.zip"
 
 if [ $USE_SMAPPSERVICE -eq 1 ]; then
-	cp "${PROJECT_ROOT}/Caker/Caker/AppStore/com.aldunelabs.caker.plist" "${CAKER_APP}/Library/LaunchAgents/com.aldunelabs.caker.plist"
+	cp "${PROJECT_ROOT}/Resources/com.aldunelabs.caker.caked.plist" "${CAKED_APP}/Library/LaunchAgents/com.aldunelabs.caker.caked.plist"
 fi
 
 cp -c "${BINARYDIR}/Caker" "${CAKER_APP}/MacOS/Caker"
@@ -105,13 +104,13 @@ cp -c "${PROJECT_ROOT}/Resources/VM.png" "${CAKECTL_APP}/Resources/VM.png"
 cp -c "${PROJECT_ROOT}/Resources/cakectl.plist" "${CAKECTL_APP}/Info.plist"
 
 if [ $APPSTORE -eq 0 ]; then
-	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
-	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
-	cp -c "${PROJECT_ROOT}/Resources/embedded.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Resources/caker.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Resources/caked.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Resources/cakectl.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
 else
-	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
-	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
-	cp -c "${PROJECT_ROOT}/Resources/appstore.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Caker/Caker/AppStore/release/caker.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Caker/Caker/AppStore/release/caked.provisionprofile" "${CAKED_APP}/embedded.provisionprofile"
+	cp -c "${PROJECT_ROOT}/Caker/Caker/AppStore/release/cakectl.provisionprofile" "${CAKECTL_APP}/embedded.provisionprofile"
 fi
 
 if [ $APPSTORE -eq 0 ] && [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
@@ -174,7 +173,7 @@ if [ "${APPSTORE}" -eq 1 ]; then
 		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/caked.entitlements" \
 		--strip-disallowed-xattrs \
-		--force "${CAKER_APP}/PlugIns/caked.bundle"
+		--force "${CAKER_APP}/PlugIns/caked.app"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
@@ -182,7 +181,7 @@ if [ "${APPSTORE}" -eq 1 ]; then
 		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/cakectl.entitlements" \
 		--strip-disallowed-xattrs \
-		--force "${CAKER_APP}/PlugIns/cakectl.bundle"
+		--force "${CAKER_APP}/PlugIns/cakectl.app"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
@@ -243,14 +242,14 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 			--timestamp \
 			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
 			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
-			--force "${CAKER_APP}/PlugIns/caked.bundle"
+			--force "${CAKER_APP}/PlugIns/caked.app"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
 			--entitlements "${PROJECT_ROOT}/Resources/release/cakectl.entitlements" \
 			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
-			--force "${CAKER_APP}/PlugIns/cakectl.bundle"
+			--force "${CAKER_APP}/PlugIns/cakectl.app"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
@@ -283,13 +282,13 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
-			--force "${CAKER_APP}/PlugIns/caked.bundle"
+			--force "${CAKER_APP}/PlugIns/caked.app"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release/cakectl.entitlements" \
-			--force "${CAKER_APP}/PlugIns/cakectl.bundle"
+			--force "${CAKER_APP}/PlugIns/cakectl.app"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \

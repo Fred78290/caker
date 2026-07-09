@@ -59,7 +59,7 @@ extension Bundle {
 			return nil
 		}
 
-		let cakedBundleURL = pluginURL.appendingPathComponent("caked.bundle/Contents/MacOS").absoluteURL
+		let cakedBundleURL = pluginURL.appendingPathComponent("caked.app/Contents/MacOS").absoluteURL
 		var isDirectory: ObjCBool = false
 
 		guard FileManager.default.fileExists(atPath: cakedBundleURL.path, isDirectory: &isDirectory) else {
@@ -86,7 +86,7 @@ extension Bundle {
 			return nil
 		}
 
-		let cakectlBundleURL = pluginURL.appendingPathComponent("cakectl.bundle/Contents/MacOS").absoluteURL
+		let cakectlBundleURL = pluginURL.appendingPathComponent("cakectl.app/Contents/MacOS").absoluteURL
 		var isDirectory: ObjCBool = false
 
 		guard FileManager.default.fileExists(atPath: cakectlBundleURL.path, isDirectory: &isDirectory) else {
@@ -276,11 +276,11 @@ extension Bundle {
 		runMode: Utils.RunMode,
 		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
 	) throws {
-		if Bundle.mustUseUnixTask {
-			if sudo {
-				throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
-			}
+		if sudo && Bundle.isApplicationSandboxed {
+			throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
+		}
 
+		if Bundle.mustUseUnixTask {
 			try runExecutableWithUnixTask(executableURL, with: arguments, standardInput: standardInput, standardOutput: standardOutput, standardError: standardError, completionHandler: handler)
 		} else {
 			var executableURL = executableURL
@@ -307,7 +307,7 @@ extension Bundle {
 
 			runningArguments.append(contentsOf: arguments)
 
-			Logger(self).debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
+			Logger(self).debug("Running: \(executableURL.path) \(runningArguments.joined(separator: " "))")
 
 			process.executableURL = executableURL
 			process.environment = try Utilities.environment(runMode: runMode)
@@ -341,11 +341,11 @@ extension Bundle {
 		runMode: Utils.RunMode,
 		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
 	) throws {
-		if Bundle.mustUseUnixTask {
-			if sudo {
-				throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
-			}
+		if sudo && Bundle.isApplicationSandboxed {
+			throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
+		}
 
+		if Bundle.mustUseUnixTask {
 			try runExecutableWithUnixTask(executableURL, with: arguments, standardInput: standardInput, standardOutput: standardOutput, standardError: standardError, completionHandler: handler)
 		} else {
 			var executableURL = executableURL
@@ -372,7 +372,7 @@ extension Bundle {
 
 			runningArguments.append(contentsOf: arguments)
 
-			Logger(self).debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
+			Logger(self).debug("Running: \(executableURL.path) \(runningArguments.joined(separator: " "))")
 
 			process.executableURL = executableURL
 			process.environment = try Utilities.environment(runMode: runMode)

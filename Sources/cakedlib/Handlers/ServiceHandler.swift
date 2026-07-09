@@ -1,3 +1,5 @@
+import CakeAgentLib
+import Cocoa
 //
 //  ServiceHandler.swift
 //  Caker
@@ -9,53 +11,66 @@ import GRPC
 import GRPCLib
 import NIO
 import NIOSSL
-import CakeAgentLib
-import Cocoa
+import ServiceManagement
 
 public struct ServiceHandler {
 	// Keep a strong reference to the Bonjour service so it remains published
 	private static var bonjourService: Set<NetService> = []
 	private static var bonjourDeletegate: ServiceHandlerBonjourDelegate?
-	
+
+	public static var launchdAgentName: String {
+		#if USE_SMAPPSERVICE
+			return "com.aldunelabs.caker.caked"
+		#else
+			return Utils.cakerSignature
+		#endif
+	}
+
+	#if USE_SMAPPSERVICE
+		public static var appService: SMAppService {
+			SMAppService.agent(plistName: "\(launchdAgentName).plist")
+		}
+	#endif
+
 	class ServiceHandlerBonjourDelegate: NSObject, NetServiceDelegate {
 		func netServiceWillPublish(_ sender: NetService) {
 			Logger("ServiceHandler").debug("Attempting to publish Bonjour service '\(sender.name)' on port \(sender.port) with type '\(sender.type)'")
 		}
-		
+
 		func netServiceDidPublish(_ sender: NetService) {
 			Logger("ServiceHandler").debug("Successfully published Bonjour service '\(sender.name)' on port \(sender.port) with type '\(sender.type)'")
 		}
-		
-		func netService(_ sender: NetService, didNotPublish errorDict: [String : NSNumber]) {
+
+		func netService(_ sender: NetService, didNotPublish errorDict: [String: NSNumber]) {
 			Logger("ServiceHandler").error("Failed to publish Bonjour service '\(sender.name)' with type '\(sender.type)'. Error: \(errorDict)")
 		}
-		
+
 		func netServiceDidStop(_ sender: NetService) {
 			Logger("ServiceHandler").info("Stopped Bonjour service '\(sender.name)' with type '\(sender.type)'")
 		}
-		
+
 	}
-	
+
 	private static func publishBonjourService(name: String, type: String, domain: String = "local.", port: Int32, txt: [String: String] = [:]) {
 		let service = NetService(domain: domain, type: type, name: name, port: port)
-		
+
 		if txt.isEmpty == false {
 			let dict = txt.reduce(into: [String: Data]()) { acc, pair in
 				acc[pair.key] = pair.value.data(using: .utf8)
 			}
 			service.setTXTRecord(NetService.data(fromTXTRecord: dict))
 		}
-		
+
 		if bonjourDeletegate == nil {
 			bonjourDeletegate = ServiceHandlerBonjourDelegate()
 		}
-		
+
 		service.delegate = bonjourDeletegate!
 		service.publish()
-		
+
 		self.bonjourService.insert(service)
 	}
-	
+
 	struct LaunchAgent: Codable {
 		let label: String
 		let associatedBundleIdentifiers: String
@@ -68,7 +83,7 @@ public struct ServiceHandler {
 		let standardErrorPath: String
 		let standardOutPath: String
 		let processType: String
-		
+
 		enum CodingKeys: String, CodingKey {
 			case label = "Label"
 			case associatedBundleIdentifiers = "AssociatedBundleIdentifiers"
@@ -82,28 +97,28 @@ public struct ServiceHandler {
 			case standardOutPath = "StandardOutPath"
 			case processType = "ProcessType"
 		}
-		
+
 		func write(to: URL) throws {
 			let encoder = PropertyListEncoder()
 			encoder.outputFormat = .xml
-			
+
 			let data = try encoder.encode(self)
 			try data.write(to: to)
 		}
 	}
-	
+
 	public static func findMe() throws -> String {
 		if let caked = Bundle.main.executablePath, caked.hasSuffix(Home.cakedCommandName) {
 			return caked
 		}
-		
+
 		guard let url = URL.binary(Home.cakedCommandName) else {
 			return try Shell.execute(to: "command", arguments: ["-v", Home.cakedCommandName])
 		}
-		
+
 		return url.path
 	}
-	
+
 	public static func createServer(
 		eventLoopGroup: EventLoopGroup,
 		runMode: Utils.RunMode,
@@ -117,30 +132,30 @@ public struct ServiceHandler {
 		if let listeningAddress = listeningAddress {
 			let target: ConnectionTarget
 			var listeningPort = 0
-			
+
 			if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {
 				try listeningAddress.deleteIfFileExists()
 				target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
 			} else if listeningAddress.scheme == "tcp" {
 				let listeningHost = listeningAddress.host ?? "127.0.0.1"
-				
+
 				listeningPort = listeningAddress.port ?? Caked.defaultServicePort
-				
+
 				if listeningPort == 0 {
 					listeningPort = try Utilities.findFreePort(listeningHost)
 				}
-				
+
 				target = ConnectionTarget.hostAndPort(listeningHost, listeningPort)
 				// TCP target selected; we'll publish via Bonjour after server starts.
 			} else {
 				throw ServiceError(String(localized: "unsupported listening address scheme: \(String(describing: listeningAddress.scheme))"))
 			}
-			
+
 			var serverConfiguration = Server.Configuration.default(
 				target: target,
 				eventLoopGroup: eventLoopGroup,
 				serviceProviders: serviceProviders)
-			
+
 			if let tlsCert = tlsCert, let tlsKey = tlsKey {
 				if password == nil {
 					guard let caCert = caCert else {
@@ -151,182 +166,178 @@ public struct ServiceHandler {
 					serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(caCert: nil, tlsKey: tlsKey, tlsCert: tlsCert, certificateVerification: .none)
 				}
 			}
-			
+
 			let serverFuture = Server.start(configuration: serverConfiguration)
-			
+
 			// If using TCP, publish a Bonjour service once the server has started and bound to a port
 			if listeningAddress.scheme == "tcp" {
 				return serverFuture.flatMap { server in
 					// Try to read the bound port from the server's channel
 					let boundPort: Int32 = Int32(listeningPort)
-					
+
 					// Service type must be of the form _name._tcp.
 					let serviceType = "_caked._tcp."
-					
+
 					let txt: [String: String] = [
 						"host": listeningAddress.host ?? "localhost",
 						"tls": serverConfiguration.tlsConfiguration != nil ? "true" : "false",
 						"secure": (password ?? "").isEmpty ? "false" : "true",
 					]
-					
+
 					Logger("ServiceHandler").info("Publishing Bonjour service on port \(boundPort) with type '\(serviceType)'")
-					
+
 					Self.publishBonjourService(name: "", type: serviceType, port: boundPort, txt: txt)
-					
+
 					return serverFuture
 				}
 			}
-			
+
 			return serverFuture
 		}
-		
+
 		throw ServiceError(String(localized: "connection address must be specified"))
 	}
 
-	private static func installAgent(arguments: [String], runMode: Utils.RunMode) throws {
-		let home = try Home(runMode: runMode)
-		let outputLog: String = Utils.getOutputLog(runMode: runMode)
-		var caked = [try Self.findMe()]
-		
-		caked.append(contentsOf: arguments)
+	#if !USE_SMAPPSERVICE
+		private static func installAgent(arguments: [String], runMode: Utils.RunMode) throws {
+			let home = try Home(runMode: runMode)
+			let outputLog: String = Utils.getOutputLog(runMode: runMode)
+			var caked = [try Self.findMe()]
 
-		let agent = LaunchAgent(
-			label: Utils.cakerSignature,
-			associatedBundleIdentifiers: Utils.cakerSignature,
-			programArguments: caked,
-			keepAlive: [
-				"SuccessfulExit": false
-			],
-			runAtLoad: true,
-			abandonProcessGroup: true,
-			softResourceLimits: [
-				"NumberOfFiles": 4096
-			],
-			environmentVariables: [
-				"PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin/:/sbin",
-				"CAKE_HOME": home.cakeHomeDirectory.path,
-			],
-			standardErrorPath: outputLog,
-			standardOutPath: outputLog,
-			processType: "Background")
-		
-		let agentURL = self.agentLaunchURL(runMode: runMode)
-		
-		Logger("ServiceHandler").info("Install agent to: \(agentURL.hiddenPasswordURL.absoluteString)")
-		
-		try agent.write(to: agentURL)
-		
-		LSRegisterURL(Bundle.main.bundleURL as CFURL, true)
-	}
+			caked.append(contentsOf: arguments)
 
-	public static func installAgent(insecure: Bool = false, tcp: Bool = true, rest: Bool = true, password: String?, mode: VMRunServiceMode = VMRunServiceMode.default, runMode: Utils.RunMode) throws {
-		var arguments: [String] = [
-			"service",
-			"listen",
-			"--log-level=\(Logger.Level().description)",
-		]
+			let agent = LaunchAgent(
+				label: ServiceHandler.launchdAgentName,
+				associatedBundleIdentifiers: ServiceHandler.launchdAgentName,
+				programArguments: caked,
+				keepAlive: [
+					"SuccessfulExit": false
+				],
+				runAtLoad: true,
+				abandonProcessGroup: true,
+				softResourceLimits: [
+					"NumberOfFiles": 4096
+				],
+				environmentVariables: [
+					"PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin/:/sbin",
+					"CAKE_HOME": home.cakeHomeDirectory.path,
+				],
+				standardErrorPath: outputLog,
+				standardOutPath: outputLog,
+				processType: "Background")
 
-		if tcp {
-			arguments.append("--tcp")
-		}
-		
-		if rest {
-			arguments.append("--rest")
+			let agentURL = self.agentLaunchURL(runMode: runMode)
+
+			Logger("ServiceHandler").info("Install agent to: \(agentURL.hiddenPasswordURL.absoluteString)")
+
+			try agent.write(to: agentURL)
+
+			LSRegisterURL(Bundle.main.bundleURL as CFURL, true)
 		}
 
-		arguments.append("--\(mode.rawValue)")
+		public static func installAgent(insecure: Bool = false, tcp: Bool = true, rest: Bool = true, password: String?, mode: VMRunServiceMode = VMRunServiceMode.default, runMode: Utils.RunMode) throws {
+			var arguments: [String] = [
+				"service",
+				"listen",
+				"--log-level=\(Logger.Level().description)",
+			]
 
-		if runMode == .system {
-			arguments.append("--system")
-		}
-		
-		if insecure == false {
-			arguments.append("--secure")
-		}
-		
-		try CakedKeyConfig.passphrase.set(password)
-		
-		try Self.installAgent(arguments: arguments, runMode: runMode)
-	}
+			if tcp {
+				arguments.append("--tcp")
+			}
 
-	public static func installAgent(listenAddress: [String], insecure: Bool, rest: Bool, password: String?, caCert: String?, tlsCert: String?, tlsKey: String?, mode: VMRunServiceMode = VMRunServiceMode.default, runMode: Utils.RunMode) throws {
-		var arguments: [String] = [
-			"service",
-			"listen",
-			"--log-level=\(Logger.Level().description)",
-		]
-		
-		listenAddress.forEach {
-			arguments.append("--address=\($0)")
-		}
+			if rest {
+				arguments.append("--rest")
+			}
 
-		arguments.append("--\(mode.rawValue)")
+			arguments.append("--\(mode.rawValue)")
 
-		if rest {
-			arguments.append("--rest")
-		}
+			if runMode == .system {
+				arguments.append("--system")
+			}
 
-		if runMode == .system {
-			arguments.append("--system")
-		}
-		
-		if insecure == false {
-			if caCert == nil && tlsKey == nil && tlsCert == nil {
+			if insecure == false {
 				arguments.append("--secure")
-			} else {
-				if let ca = caCert {
-					arguments.append("--ca-cert=\(ca)")
-				}
-				
-				if let key = tlsKey {
-					arguments.append("--tls-key=\(key)")
-				}
-				
-				if let cert = tlsCert {
-					arguments.append("--tls-cert=\(cert)")
+			}
+
+			try CakedKeyConfig.passphrase.set(password)
+
+			try Self.installAgent(arguments: arguments, runMode: runMode)
+		}
+
+		public static func installAgent(listenAddress: [String], insecure: Bool, rest: Bool, password: String?, caCert: String?, tlsCert: String?, tlsKey: String?, mode: VMRunServiceMode = VMRunServiceMode.default, runMode: Utils.RunMode) throws {
+			var arguments: [String] = [
+				"service",
+				"listen",
+				"--log-level=\(Logger.Level().description)",
+			]
+
+			listenAddress.forEach {
+				arguments.append("--address=\($0)")
+			}
+
+			arguments.append("--\(mode.rawValue)")
+
+			if rest {
+				arguments.append("--rest")
+			}
+
+			if runMode == .system {
+				arguments.append("--system")
+			}
+
+			if insecure == false {
+				if caCert == nil && tlsKey == nil && tlsCert == nil {
+					arguments.append("--secure")
+				} else {
+					if let ca = caCert {
+						arguments.append("--ca-cert=\(ca)")
+					}
+
+					if let key = tlsKey {
+						arguments.append("--tls-key=\(key)")
+					}
+
+					if let cert = tlsCert {
+						arguments.append("--tls-cert=\(cert)")
+					}
 				}
 			}
-		}
-		
-		try CakedKeyConfig.passphrase.set(password)
-		
-		try Self.installAgent(arguments: arguments, runMode: runMode)
-	}
-	
-	public static func agentLaunchURL(runMode: Utils.RunMode) -> URL {
-		let url: URL
 
-		if runMode == .system {
-			url = URL(fileURLWithPath: "/Library/LaunchDaemons/\(Utils.cakerSignature).plist")
-		} else {
-			url = URL(fileURLWithPath: "\(NSHomeDirectory())/Library/LaunchAgents/\(Utils.cakerSignature).plist")
-		}
-		
-		let parentDirectory = url.deletingLastPathComponent()
-		let fm = FileManager.default
+			try CakedKeyConfig.passphrase.set(password)
 
-		if !fm.fileExists(atPath: parentDirectory.path) {
-			try? fm.createDirectory(at: parentDirectory, withIntermediateDirectories: true, attributes: nil)
+			try Self.installAgent(arguments: arguments, runMode: runMode)
 		}
 
-		return url
-	}
-	
-	public static func uninstallAgent(runMode: Utils.RunMode) throws {
-		if self.isAgentRunning(runMode: runMode).running {
-			try self.stopAgent(runMode: runMode)
+		public static func agentLaunchURL(runMode: Utils.RunMode) -> URL {
+			let url: URL
+
+			if runMode == .system {
+				url = URL(fileURLWithPath: "/Library/LaunchDaemons/\(ServiceHandler.launchdAgentName).plist")
+			} else {
+				url = URL(fileURLWithPath: "\(NSHomeDirectory())/Library/LaunchAgents/\(ServiceHandler.launchdAgentName).plist")
+			}
+
+			let parentDirectory = url.deletingLastPathComponent()
+			let fm = FileManager.default
+
+			if !fm.fileExists(atPath: parentDirectory.path) {
+				try? fm.createDirectory(at: parentDirectory, withIntermediateDirectories: true, attributes: nil)
+			}
+
+			return url
 		}
-		
-		try self.agentLaunchURL(runMode: runMode).delete()
-	}
-	
+
+		public static func uninstallAgent(runMode: Utils.RunMode) throws {
+			if self.isAgentRunning(runMode: runMode).running {
+				try self.stopAgent(runMode: runMode)
+			}
+
+			try self.agentLaunchURL(runMode: runMode).delete()
+		}
+	#endif
+
 	public static func launchAgent(runMode: Utils.RunMode) throws {
-		let plistURL = self.agentLaunchURL(runMode: runMode)
-		
-		guard (try? plistURL.exists()) == true else {
-			throw ServiceError(String(localized: "agent not installed: missing plist at \(plistURL.path)"))
-		}
-		
 		// Determine launchctl domain and commands
 		let domain: String
 		switch runMode {
@@ -335,23 +346,37 @@ public struct ServiceHandler {
 		default:
 			domain = "gui/\(getuid())"
 		}
-		
-		// Use modern launchctl where possible
-		// 1) bootstrap the plist
-		do {
-			_ = try Shell.execute(to: "/bin/launchctl", arguments: ["bootstrap", domain, plistURL.path])
-		} catch {
-			// If already bootstrapped or on older systems, try load as a fallback
-			_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["load", plistURL.path])
-		}
-		
-		// 2) enable the service
-		_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["enable", "\(domain)/\(Utils.cakerSignature)"])
-		
-		// 3) kickstart (start immediately)
-		_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["kickstart", "-k", "\(domain)/\(Utils.cakerSignature)"])
+
+		#if USE_SMAPPSERVICE
+			// 2) enable the service
+			_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["enable", "\(domain)/\(ServiceHandler.launchdAgentName)"])
+
+			// 3) kickstart (start immediately)
+			_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["kickstart", "-k", "\(domain)/\(ServiceHandler.launchdAgentName)"])
+		#else
+			let plistURL = self.agentLaunchURL(runMode: runMode)
+
+			guard (try? plistURL.exists()) == true else {
+				throw ServiceError(String(localized: "agent not installed: missing plist at \(plistURL.path)"))
+			}
+
+			// Use modern launchctl where possible
+			// 1) bootstrap the plist
+			do {
+				_ = try Shell.execute(to: "/bin/launchctl", arguments: ["bootstrap", domain, plistURL.path])
+			} catch {
+				// If already bootstrapped or on older systems, try load as a fallback
+				_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["load", plistURL.path])
+			}
+
+			// 2) enable the service
+			_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["enable", "\(domain)/\(ServiceHandler.launchdAgentName)"])
+
+			// 3) kickstart (start immediately)
+			_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["kickstart", "-k", "\(domain)/\(ServiceHandler.launchdAgentName)"])
+		#endif
 	}
-	
+
 	public static func stopAgent(runMode: Utils.RunMode) throws {
 		// Determine launchctl domain and service label
 		let domain: String
@@ -361,43 +386,60 @@ public struct ServiceHandler {
 		default:
 			domain = "gui/\(getuid())"
 		}
-		
-		let service = "\(domain)/\(Utils.cakerSignature)"
-		
+
+		let service = "\(domain)/\(ServiceHandler.launchdAgentName)"
+
 		// Try to stop and remove the service from the bootstrap namespace
 		do {
 			_ = try Shell.execute(to: "/bin/launchctl", arguments: ["bootout", service])
 		} catch {
-			// Fallback for older systems: unload the plist if present
-			let plistURL = self.agentLaunchURL(runMode: runMode)
-			_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["unload", plistURL.path])
+			#if !USE_SMAPPSERVICE
+				// Fallback for older systems: unload the plist if present
+				let plistURL = self.agentLaunchURL(runMode: runMode)
+				_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["unload", plistURL.path])
+			#endif
 		}
-		
+
 		// Best-effort disable so it doesn't auto-restart until explicitly launched again
 		_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["disable", service])
 	}
-	
+
+	// In USE_SMAPPSERVICE builds the runMode parameter is unused; SMAppService status
+	// covers all registration states including .requiresApproval.
 	public static func isAgentInstalled(runMode: Utils.RunMode) -> Bool {
-		if let exist = try? self.agentLaunchURL(runMode: runMode).exists(), exist {
-			return true
-		}
-		
-		return false
-	}
-	
-	public static var isAgentInstalled: Bool {
-		for runMode in [Utils.RunMode.system, .user] {
-			if let exist = try? self.agentLaunchURL(runMode: runMode).exists(), exist {
-				return true
+		#if USE_SMAPPSERVICE
+			let status = appService.status
+			return status == .enabled || status == .requiresApproval
+		#else
+			let domain: String
+			switch runMode {
+			case .system:
+				domain = "system"
+			default:
+				domain = "gui/\(getuid())"
 			}
-		}
-		
-		return false
+
+			return (try? Shell.execute(to: "/bin/launchctl", arguments: ["print", "\(domain)/\(launchdAgentName)"])) != nil
+		#endif
 	}
-	
+
+	public static var isAgentInstalled: Bool {
+		#if USE_SMAPPSERVICE
+			return isAgentInstalled(runMode: .user)
+		#else
+			for runMode in [Utils.RunMode.system, .user] {
+				if isAgentInstalled(runMode: runMode) {
+					return true
+				}
+			}
+
+			return false
+		#endif
+	}
+
 	public static func stopAgentRunning(runMode: Utils.RunMode) throws {
 		let home = try Home(runMode: runMode, createItIfNotExists: false)
-		
+
 		guard home.agentPID.isPIDRunning().running else {
 			throw ServiceError(String(localized: "Caked service is not running"))
 		}
@@ -408,66 +450,82 @@ public struct ServiceHandler {
 			throw ServiceError(String(localized: "Failed to stop caked service \(errno)"))
 		}
 	}
-	
+
 	public static func isAgentRunning(runMode: Utils.RunMode) -> (running: Bool, agentURL: URL?, pid: Int32?) {
 		if let home = try? Home(runMode: runMode, createItIfNotExists: false) {
-			let run = home.agentPID.isPIDRunning()
+			let domain: String
 			
-			if run.running {
-				return (true, home.agentPID, run.pid)
+			switch runMode {
+			case .system:
+				domain = "system"
+			default:
+				domain = "gui/\(getuid())"
+			}
+
+			guard let output = try? Shell.execute(to: "/bin/launchctl", arguments: ["print", "\(domain)/\(launchdAgentName)"]) else {
+				return (false, nil, nil)
+			}
+
+			for line in output.components(separatedBy: "\n") {
+				let parts = line.components(separatedBy: "=")
+				if parts.count == 2 && parts[0].trimmingCharacters(in: .whitespaces) == "pid" {
+					if let pid = Int32(parts[1].trimmingCharacters(in: .whitespaces)) {
+						return (true, home.agentPID, pid)
+					}
+				}
 			}
 		}
-		
+
 		return (false, nil, nil)
 	}
-	
+
 	public static var isAgentRunningWithPID: (running: Bool, agentURL: URL?, pid: Int32?) {
 		for runMode in [Utils.RunMode.system, .user] {
 			let run = self.isAgentRunning(runMode: runMode)
-			
+
 			if run.running {
 				return run
 			}
 		}
-		
+
 		return (false, nil, nil)
 	}
-	
+
 	public static var isAgentRunning: Bool {
 		for runMode in [Utils.RunMode.system, .user] {
 			if self.isAgentRunning(runMode: runMode).running {
 				return true
 			}
 		}
-		
+
 		return false
 	}
-	
+
 	public static var runningMode: Utils.RunMode {
 		for runMode in [Utils.RunMode.system, .user] {
 			if self.isAgentRunning(runMode: runMode).running {
 				return runMode
 			}
 		}
-		
+
 		return .app
 	}
-	
+
 	public static var serviceClient: CakedServiceClient? {
 		for runMode in [Utils.RunMode.system, .user] {
 			if let client = try? self.createCakedServiceClient(tls: true, runMode: runMode) {
 				return client
 			}
 		}
-		
+
 		return nil
 	}
-	
+
 	public static func createCakedServiceClient(vmURL: URL, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
 		guard var components = URLComponents(url: vmURL, resolvingAgainstBaseURL: false) else {
 			throw ServiceError(String(localized: "Wrong listen address"))
 		}
-		
+
 		if components.path.isEmpty {
 			return try self.createCakedServiceClient(listenAddress: nil, password: nil, tls: true, runMode: runMode)
 		} else {
@@ -477,31 +535,32 @@ public struct ServiceHandler {
 			return try self.createCakedServiceClient(serviceURL: components.url!, runMode: runMode)
 		}
 	}
-	
-	public static func createCakedServiceClient(listenAddress: String? = nil, password: String? = nil, tls: Bool = true, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
+
+	public static func createCakedServiceClient(listenAddress: String? = nil, password: String? = nil, tls: Bool = true, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient
+	{
 		let serviceURL: URL
-		
+
 		if let listenAddress {
 			guard let u = URL(string: listenAddress) else {
 				throw ServiceError(String(localized: "Wrong listen address"))
 			}
-			
+
 			guard Caked.supportedSchemes.contains(u.scheme) || u.isFileURL else {
 				throw ServiceError(String(localized: "unsupported listening address scheme: \(listenAddress)"))
 			}
-			
+
 			serviceURL = u
 		} else {
 			guard isAgentRunning(runMode: runMode).running else {
 				throw ServiceError(String(localized: "Caked service is not running"))
 			}
-			
+
 			serviceURL = try URL(string: Utils.getDefaultServerAddress(runMode: runMode))!
 		}
 
 		return try Self.createCakedServiceClient(serviceURL: serviceURL, runMode: runMode)
 	}
-	
+
 	public static func createCakedServiceClient(serviceURL: URL, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
 		var caCert: String? = nil
 		var tlsCert: String? = nil
@@ -517,13 +576,13 @@ public struct ServiceHandler {
 			}
 		}
 
-		return try Caked.createClient(on: Utilities.group.next(),
-									  listeningAddress: serviceURL,
-									  connectionTimeout: connectionTimeout,
-									  retries: retries,
-									  caCert: caCert,
-									  tlsCert: tlsCert,
-									  tlsKey: tlsKey)
+		return try Caked.createClient(
+			on: Utilities.group.next(),
+			listeningAddress: serviceURL,
+			connectionTimeout: connectionTimeout,
+			retries: retries,
+			caCert: caCert,
+			tlsCert: tlsCert,
+			tlsKey: tlsKey)
 	}
 }
-

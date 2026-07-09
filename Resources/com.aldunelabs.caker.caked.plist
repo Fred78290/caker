@@ -8,14 +8,14 @@
 		<true/>
 	</dict>
 	<key>AssociatedBundleIdentifiers</key>
-	<string>com.aldunelabs.caker</string>
+	<string>com.aldunelabs.caker.caked</string>
 	<key>Label</key>
-	<string>com.aldunelabs.caker</string>
+	<string>com.aldunelabs.caker.caked</string>
 	<key>BundleProgram</key>
-	<string>Contents/PlugIns/caked.app/Contents/MacOS/caked</string>
+	<string>Contents/MacOS/caked</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>Contents/PlugIns/caked.app/Contents/MacOS/caked</string>
+		<string>Contents/MacOS/caked</string>
 		<string>service</string>
 		<string>listen</string>
 		<string>--log-level=info</string>

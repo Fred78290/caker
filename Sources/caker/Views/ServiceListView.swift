@@ -436,7 +436,7 @@ struct ServiceListView: View {
 				Button {
 					isPresentingManualSheet = true
 				} label: {
-					Label("Connect to a server…", systemImage: "network.badge.plus")
+					Label("Connect to a server…", systemImage: "link.badge.plus")
 				}
 				.buttonStyle(.bordered)
 			}
@@ -503,17 +503,18 @@ struct ServiceRowView: View {
 					.font(.system(size: 13, weight: .semibold))
 
 				HStack(spacing: 6) {
-					if let hostName = service.hostName {
-						Text(hostName)
+					if let hostName = service.hostName, service.port > 0 {
+						Text(verbatim: "\(hostName):\(String(service.port))")
+							.font(.system(size: 11, design: .monospaced))
+							.foregroundStyle(.secondary)
+					} else if service.port > 0 {
+						Text(verbatim: ":\(String(service.port))")
 							.font(.system(size: 11, design: .monospaced))
 							.foregroundStyle(.secondary)
 					}
-					if service.port > 0 {
-						Text(":\(service.port)")
-							.font(.system(size: 11, design: .monospaced))
-							.foregroundStyle(.secondary)
-					}
+
 					let secureEntries = txtRecord.filter { ["tls", "secure"].contains($0.key.lowercased()) }
+
 					ForEach(secureEntries.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
 						if let stringValue = String(data: value, encoding: .utf8) {
 							Text("\(key): \(stringValue)")
