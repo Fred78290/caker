@@ -181,7 +181,7 @@ jobs:
         run: |
           # Run tests for the Swift package
           set -o pipefail
-          export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS:/.ci/pkg/Caker.app/Contents/PlugIns/cakectl.bundle/Contents/MacOS:${PATH}
+          export PATH=${GITHUB_WORKSPACE}/.ci/pkg/Caker.app/Contents/PlugIns/caked.app/Contents/MacOS:/.ci/pkg/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS:${PATH}
           swift package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
           swift package resolve
           jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
