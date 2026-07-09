@@ -59,7 +59,7 @@ extension Bundle {
 			return nil
 		}
 
-		let cakedBundleURL = pluginURL.appendingPathComponent("caked.bundle/Contents/MacOS").absoluteURL
+		let cakedBundleURL = pluginURL.appendingPathComponent("caked.app/Contents/MacOS").absoluteURL
 		var isDirectory: ObjCBool = false
 
 		guard FileManager.default.fileExists(atPath: cakedBundleURL.path, isDirectory: &isDirectory) else {
@@ -86,7 +86,7 @@ extension Bundle {
 			return nil
 		}
 
-		let cakectlBundleURL = pluginURL.appendingPathComponent("cakectl.bundle/Contents/MacOS").absoluteURL
+		let cakectlBundleURL = pluginURL.appendingPathComponent("cakectl.app/Contents/MacOS").absoluteURL
 		var isDirectory: ObjCBool = false
 
 		guard FileManager.default.fileExists(atPath: cakectlBundleURL.path, isDirectory: &isDirectory) else {

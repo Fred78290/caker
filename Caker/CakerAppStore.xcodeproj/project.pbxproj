@@ -195,7 +195,7 @@
 		9B29F8222FCAE4B700AEBCB8 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B29F8232FCAE4B700AEBCB8 /* SwiftletUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = 9B29F7A12FCAE4B700AEBCB8 /* SwiftletUtilities */; };
 		9B29F8242FCAE4B700AEBCB8 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 9B29F7A52FCAE4B700AEBCB8 /* SwiftTerm */; };
-		9B29F82A2FCAE4B700AEBCB8 /* caked.bundle in Bundle */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9B29F82A2FCAE4B700AEBCB8 /* caked.app in Bundle */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9B29F82C2FCAE4B700AEBCB8 /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9B30992B2DE4DC0C00231C1E /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30992A2DE4DC0C00231C1E /* CakeAgentLib */; };
 		9B3566812F27E12D00C5E12F /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3566802F27E12D00C5E12F /* ZLib */; };
@@ -345,7 +345,7 @@
 		9BA9CBD12FCD7B9F00CEBFC0 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BA9CBD22FCD7BAB00CEBFC0 /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
 		9BA9CBD32FCD7BB400CEBFC0 /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
-		9BA9CBD72FCD7EF600CEBFC0 /* cakectl.bundle in Bundle */ = {isa = PBXBuildFile; fileRef = 9BA9CBCA2FCD7B8000CEBFC0 /* cakectl.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9BA9CBD72FCD7EF600CEBFC0 /* cakectl.app in Bundle */ = {isa = PBXBuildFile; fileRef = 9BA9CBCA2FCD7B8000CEBFC0 /* cakectl.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9BA9CC292FCED36200CEBFC0 /* PrivilegedBootstrap.applescript in PriviligedBootstrap */ = {isa = PBXBuildFile; fileRef = 9B11AA472FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript */; };
 		9BB030EF2FF65FF200F4612F /* AdvancedSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB030EE2FF65FF200F4612F /* AdvancedSettingsView.swift */; };
 		9BB032552FF66A0400F4612F /* UTM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB032532FF66A0400F4612F /* UTM.swift */; };
@@ -383,6 +383,7 @@
 		9BB3BE2D2DB3F17500799A6A /* UmountOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE1A2DB3F17500799A6A /* UmountOptions.swift */; };
 		9BB3BE2E2DB3F17500799A6A /* RemoteOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE152DB3F17500799A6A /* RemoteOptions.swift */; };
 		9BB3BE2F2DB3F17500799A6A /* PullOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE122DB3F17500799A6A /* PullOptions.swift */; };
+		9BB7AEF82FFFC38C00B7DD6D /* com.aldunelabs.caker.caked.plist in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BB7AE962FFFA4AF00B7DD6D /* com.aldunelabs.caker.caked.plist */; };
 		9BBE597A2F49B561005B3359 /* GrandCentralDispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */; };
 		9BBE5C6F2F4C544E005B3359 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BBE5C6E2F4C544E005B3359 /* XCTest.framework */; };
 		9BBF79BD2F3DD73700F37D2C /* CurrentStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF79BC2F3DD73500F37D2C /* CurrentStatusHandler.swift */; };
@@ -795,8 +796,8 @@
 			dstPath = "";
 			dstSubfolder = PlugIns;
 			files = (
-				9BA9CBD72FCD7EF600CEBFC0 /* cakectl.bundle in Bundle */,
-				9B29F82A2FCAE4B700AEBCB8 /* caked.bundle in Bundle */,
+				9BA9CBD72FCD7EF600CEBFC0 /* cakectl.app in Bundle */,
+				9B29F82A2FCAE4B700AEBCB8 /* caked.app in Bundle */,
 			);
 			name = Bundle;
 		};
@@ -826,13 +827,13 @@
 			);
 			name = PriviligedBootstrap;
 		};
-		9BFA90382FD08BD4007619A5 /* LaunchAgents */ = {
+		9BB7AE932FFFA48800B7DD6D /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			dstPath = Contents/Library/LaunchAgents;
 			dstSubfolder = Wrapper;
 			files = (
+				9BB7AEF82FFFC38C00B7DD6D /* com.aldunelabs.caker.caked.plist in CopyFiles */,
 			);
-			name = LaunchAgents;
 		};
 		9BFE86A52F7E59C8005CC9B2 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -1129,7 +1130,7 @@
 		9BA941162F3C890C00B51543 /* PingHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingHandler.swift; sourceTree = "<group>"; };
 		9BA941182F3C896E00B51543 /* PingHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingHandler.swift; sourceTree = "<group>"; };
 		9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentStatusHandler.swift; sourceTree = "<group>"; };
-		9BA9CBCA2FCD7B8000CEBFC0 /* cakectl.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = cakectl.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BA9CBCA2FCD7B8000CEBFC0 /* cakectl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = cakectl.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BACEB6D2EB2833600EB4C8D /* WizardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WizardModel.swift; sourceTree = "<group>"; };
 		9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeVirtualDocument.swift; sourceTree = "<group>"; };
 		9BAF74AF2EBBD7CC0036CE1B /* MultiplatformTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTab.swift; sourceTree = "<group>"; };
@@ -1176,6 +1177,7 @@
 		9BB3BE192DB3F17500799A6A /* TemplateOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateOptions.swift; sourceTree = "<group>"; };
 		9BB3BE1A2DB3F17500799A6A /* UmountOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UmountOptions.swift; sourceTree = "<group>"; };
 		9BB3BE1B2DB3F17500799A6A /* WaitIPOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitIPOptions.swift; sourceTree = "<group>"; };
+		9BB7AE962FFFA4AF00B7DD6D /* com.aldunelabs.caker.caked.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.aldunelabs.caker.caked.plist; sourceTree = "<group>"; };
 		9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUUsageView.swift; sourceTree = "<group>"; };
 		9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
 		9BBE5C6E2F4C544E005B3359 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
@@ -1371,7 +1373,7 @@
 		9BFA7E4E2FA6256300E981F6 /* AboutCakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutCakerView.swift; sourceTree = "<group>"; };
 		9BFA90E12FD092E9007619A5 /* TeeStandardIOWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeStandardIOWrapper.swift; sourceTree = "<group>"; };
 		9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCIManagement.swift; sourceTree = "<group>"; };
-		9BFE869D2F7E592B005CC9B2 /* caked.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = caked.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BFE869D2F7E592B005CC9B2 /* caked.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = caked.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BFE871B2F7E6480005CC9B2 /* almalinux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = almalinux.png; sourceTree = "<group>"; };
 		9BFE871C2F7E6480005CC9B2 /* alpine.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = alpine.png; sourceTree = "<group>"; };
 		9BFE871D2F7E6480005CC9B2 /* arch-linux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "arch-linux.png"; sourceTree = "<group>"; };
@@ -1432,25 +1434,11 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		9BFA903A2FD08BE1007619A5 /* Exceptions for "Caker" folder in "LaunchAgents" phase from "Caker" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			attributesByRelativePath = {
-				AppStore/com.aldunelabs.caker.plist = (CodeSignOnCopy, );
-			};
-			buildPhase = 9BFA90382FD08BD4007619A5 /* LaunchAgents */;
-			membershipExceptions = (
-				AppStore/com.aldunelabs.caker.plist,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9B464A562D5A3DA000164BF5 /* Caker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				9B29F8322FCAE4B800AEBCB8 /* Exceptions for "Caker" folder in "Caker" target */,
-				9BFA903A2FD08BE1007619A5 /* Exceptions for "Caker" folder in "LaunchAgents" phase from "Caker" target */,
 			);
 			path = Caker;
 			sourceTree = "<group>";
@@ -2005,9 +1993,9 @@
 				9BEBC68E2DF43FEE0092B196 /* caked */,
 				9BEBC7072DF440560092B196 /* libCakedLib.a */,
 				9B96B00F2F4B68380069C970 /* CakerTests.xctest */,
-				9BFE869D2F7E592B005CC9B2 /* caked.bundle */,
+				9BFE869D2F7E592B005CC9B2 /* caked.app */,
 				9B29F8302FCAE4B700AEBCB8 /* Caker.app */,
-				9BA9CBCA2FCD7B8000CEBFC0 /* cakectl.bundle */,
+				9BA9CBCA2FCD7B8000CEBFC0 /* cakectl.app */,
 				9BF2DA752FE5470700218073 /* libVirtualInstallSPI.a */,
 			);
 			name = Products;
@@ -2703,6 +2691,7 @@
 		9BFE87462F7E6480005CC9B2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9BB7AE962FFFA4AF00B7DD6D /* com.aldunelabs.caker.caked.plist */,
 				9B96E8FF2FFE4A500027A8D3 /* cakectl.plist */,
 				9BFE87362F7E6480005CC9B2 /* AppIcon.icns */,
 				9BFE873C2F7E6480005CC9B2 /* Document.icns */,
@@ -2764,7 +2753,6 @@
 				9B29F8292FCAE4B700AEBCB8 /* Bundle */,
 				9B29F82B2FCAE4B700AEBCB8 /* Compatibility */,
 				9BA9CC282FCED33F00CEBFC0 /* PriviligedBootstrap */,
-				9BFA90382FD08BD4007619A5 /* LaunchAgents */,
 				9B773DF22FE92BA200C69B33 /* Set version */,
 			);
 			buildRules = (
@@ -2912,7 +2900,7 @@
 			);
 			name = cakectl.bundle;
 			productName = cakectl.bundle;
-			productReference = 9BA9CBCA2FCD7B8000CEBFC0 /* cakectl.bundle */;
+			productReference = 9BA9CBCA2FCD7B8000CEBFC0 /* cakectl.app */;
 			productType = "com.apple.product-type.bundle";
 		};
 		9BEBC68D2DF43FEE0092B196 /* caked */ = {
@@ -3071,6 +3059,7 @@
 				9B1836552FB0E28F00D150FD /* WebUI */,
 				9B06995F2FB1A1E400FEAE13 /* Localization */,
 				9B773DF32FE92C7700C69B33 /* Set version */,
+				9BB7AE932FFFA48800B7DD6D /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -3079,7 +3068,7 @@
 			);
 			name = caked.bundle;
 			productName = bundle;
-			productReference = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */;
+			productReference = 9BFE869D2F7E592B005CC9B2 /* caked.app */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -4414,7 +4403,7 @@
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
 		};
@@ -4445,7 +4434,7 @@
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
 		};
@@ -4631,7 +4620,7 @@
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
 		};
@@ -4663,7 +4652,7 @@
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
 		};

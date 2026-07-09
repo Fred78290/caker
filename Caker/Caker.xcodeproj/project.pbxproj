@@ -359,6 +359,7 @@
 		9BB3BE2D2DB3F17500799A6A /* UmountOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE1A2DB3F17500799A6A /* UmountOptions.swift */; };
 		9BB3BE2E2DB3F17500799A6A /* RemoteOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE152DB3F17500799A6A /* RemoteOptions.swift */; };
 		9BB3BE2F2DB3F17500799A6A /* PullOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE122DB3F17500799A6A /* PullOptions.swift */; };
+		9BB7AEFB2FFFC3FD00B7DD6D /* com.aldunelabs.caker.caked.plist in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BB7AEFA2FFFC3E300B7DD6D /* com.aldunelabs.caker.caked.plist */; };
 		9BB8D9B02ED32ACB00AD4700 /* CPUUsageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */; };
 		9BBE597A2F49B561005B3359 /* GrandCentralDispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */; };
 		9BBE5C6F2F4C544E005B3359 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BBE5C6E2F4C544E005B3359 /* XCTest.framework */; };
@@ -640,7 +641,6 @@
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BFE87182F7E6202005CC9B2 /* caked.bundle in Bundle */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		9BFE876F2F7E64F1005CC9B2 /* embedded.provisionprofile in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -784,6 +784,14 @@
 			);
 			name = Compatibility;
 		};
+		9BB7AEF92FFFC3C500B7DD6D /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = Contents/Library/LaunchAgents;
+			dstSubfolder = Resources;
+			files = (
+				9BB7AEFB2FFFC3FD00B7DD6D /* com.aldunelabs.caker.caked.plist in CopyFiles */,
+			);
+		};
 		9BD69DFA2FCEE968005E24AF /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			dstPath = "";
@@ -791,14 +799,6 @@
 			files = (
 				9BD69DFB2FCEE977005E24AF /* cakectl in CopyFiles */,
 			);
-		};
-		9BD69E002FCF0409005E24AF /* Daemon */ = {
-			isa = PBXCopyFilesBuildPhase;
-			dstPath = Contents/Library/LaunchAgents;
-			dstSubfolder = Wrapper;
-			files = (
-			);
-			name = Daemon;
 		};
 		9BE569EB2DFEF9720086B9C7 /* Bundle */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -831,7 +831,6 @@
 			dstPath = Contents;
 			dstSubfolder = Wrapper;
 			files = (
-				9BFE876F2F7E64F1005CC9B2 /* embedded.provisionprofile in CopyFiles */,
 			);
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -1166,6 +1165,7 @@
 		9BB3BE192DB3F17500799A6A /* TemplateOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateOptions.swift; sourceTree = "<group>"; };
 		9BB3BE1A2DB3F17500799A6A /* UmountOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UmountOptions.swift; sourceTree = "<group>"; };
 		9BB3BE1B2DB3F17500799A6A /* WaitIPOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitIPOptions.swift; sourceTree = "<group>"; };
+		9BB7AEFA2FFFC3E300B7DD6D /* com.aldunelabs.caker.caked.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.aldunelabs.caker.caked.plist; sourceTree = "<group>"; };
 		9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUUsageView.swift; sourceTree = "<group>"; };
 		9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
 		9BBE5C6E2F4C544E005B3359 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
@@ -1394,7 +1394,6 @@
 		9BFE87372F7E6480005CC9B2 /* caked.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = caked.plist; sourceTree = "<group>"; };
 		9BFE87382F7E6480005CC9B2 /* Caked.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Caked.xcf; sourceTree = "<group>"; };
 		9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CakedAppIcon.png; sourceTree = "<group>"; };
-		9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = embedded.provisionprofile; sourceTree = "<group>"; };
 		9BFE873C2F7E6480005CC9B2 /* Document.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Document.icns; sourceTree = "<group>"; };
 		9BFE873D2F7E6480005CC9B2 /* Document.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Document.png; sourceTree = "<group>"; };
 		9BFE873E2F7E6480005CC9B2 /* Document.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Document.xcf; sourceTree = "<group>"; };
@@ -1417,25 +1416,11 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		9B37908B2FD1BAF400D3D54C /* Exceptions for "Caker" folder in "Daemon" phase from "Caker" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			attributesByRelativePath = {
-				AppStore/com.aldunelabs.caker.plist = (CodeSignOnCopy, );
-			};
-			buildPhase = 9BD69E002FCF0409005E24AF /* Daemon */;
-			membershipExceptions = (
-				AppStore/com.aldunelabs.caker.plist,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9B464A562D5A3DA000164BF5 /* Caker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				9B196F3A2F588DAB00B424DB /* Exceptions for "Caker" folder in "Caker" target */,
-				9B37908B2FD1BAF400D3D54C /* Exceptions for "Caker" folder in "Daemon" phase from "Caker" target */,
 			);
 			path = Caker;
 			sourceTree = "<group>";
@@ -2699,27 +2684,27 @@
 		9BFE87462F7E6480005CC9B2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				9B22CCE32FF3CA48001D626A /* release */,
-				9B22CCE02FF3CA3D001D626A /* debug */,
 				9BFE87362F7E6480005CC9B2 /* AppIcon.icns */,
 				9BFE873C2F7E6480005CC9B2 /* Document.icns */,
 				9BFE87DB2F7E6B67005CC9B2 /* VM.icns */,
 				9BFE87372F7E6480005CC9B2 /* caked.plist */,
+				9BB7AEFA2FFFC3E300B7DD6D /* com.aldunelabs.caker.caked.plist */,
 				9BFE873F2F7E6480005CC9B2 /* Info.plist */,
 				9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */,
 				9BFE873D2F7E6480005CC9B2 /* Document.png */,
 				9BFE87402F7E6480005CC9B2 /* menubar.png */,
 				9BFE87422F7E6480005CC9B2 /* Prompt.png */,
 				9BFE87442F7E6480005CC9B2 /* VM.png */,
-				9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */,
 				9BFE87382F7E6480005CC9B2 /* Caked.xcf */,
 				9BFE873E2F7E6480005CC9B2 /* Document.xcf */,
 				9BFE87412F7E6480005CC9B2 /* menubar.xcf */,
 				9BFE87452F7E6480005CC9B2 /* VM.xcf */,
 				9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */,
 				9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */,
+				9B22CCE02FF3CA3D001D626A /* debug */,
 				9B3794362FD56CD300D3D54C /* debug */,
 				9BFE87342F7E6480005CC9B2 /* Icons */,
+				9B22CCE32FF3CA48001D626A /* release */,
 				9B3794392FD56CD300D3D54C /* release */,
 			);
 			name = Resources;
@@ -2761,7 +2746,6 @@
 				9B464A522D5A3DA000164BF5 /* Resources */,
 				9BE569EB2DFEF9720086B9C7 /* Bundle */,
 				9B4EA8252F76912A0044C18E /* Compatibility */,
-				9BD69E002FCF0409005E24AF /* Daemon */,
 				9B773E4D2FE92DBF00C69B33 /* Set version */,
 			);
 			buildRules = (
@@ -2921,6 +2905,7 @@
 				9BEBC68B2DF43FEE0092B196 /* Frameworks */,
 				9BEBC68C2DF43FEE0092B196 /* CopyFiles */,
 				9B08B4AF2F743D68009EC5C6 /* ShellScript */,
+				9BB7AEF92FFFC3C500B7DD6D /* CopyFiles */,
 			);
 			buildRules = (
 			);
