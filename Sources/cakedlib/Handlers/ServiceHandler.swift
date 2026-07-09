@@ -404,26 +404,37 @@ public struct ServiceHandler {
 		_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["disable", service])
 	}
 
+	// In USE_SMAPPSERVICE builds the runMode parameter is unused; SMAppService status
+	// covers all registration states including .requiresApproval.
 	public static func isAgentInstalled(runMode: Utils.RunMode) -> Bool {
-		let domain: String
-		switch runMode {
-		case .system:
-			domain = "system"
-		default:
-			domain = "gui/\(getuid())"
-		}
+		#if USE_SMAPPSERVICE
+			let status = appService.status
+			return status == .enabled || status == .requiresApproval
+		#else
+			let domain: String
+			switch runMode {
+			case .system:
+				domain = "system"
+			default:
+				domain = "gui/\(getuid())"
+			}
 
-		return (try? Shell.execute(to: "/bin/launchctl", arguments: ["print", "\(domain)/\(launchdAgentName)"])) != nil
+			return (try? Shell.execute(to: "/bin/launchctl", arguments: ["print", "\(domain)/\(launchdAgentName)"])) != nil
+		#endif
 	}
 
 	public static var isAgentInstalled: Bool {
-		for runMode in [Utils.RunMode.system, .user] {
-			if isAgentInstalled(runMode: runMode) {
-				return true
+		#if USE_SMAPPSERVICE
+			return isAgentInstalled(runMode: .user)
+		#else
+			for runMode in [Utils.RunMode.system, .user] {
+				if isAgentInstalled(runMode: runMode) {
+					return true
+				}
 			}
-		}
 
-		return false
+			return false
+		#endif
 	}
 
 	public static func stopAgentRunning(runMode: Utils.RunMode) throws {
