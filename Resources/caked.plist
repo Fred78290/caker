@@ -13,13 +13,13 @@
 	<key>CFBundleIconName</key>
 	<string>VM</string>
 	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<string>com.aldunelabs.caker.caked</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>caked</string>
 	<key>CFBundlePackageType</key>
-	<string>BNDL</string>
+	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>${VERSION}</string>
 	<key>CFBundleSupportedPlatforms</key>
