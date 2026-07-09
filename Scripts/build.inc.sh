@@ -79,7 +79,7 @@ fi
 cp "${PROJECT_ROOT}/webui/webui.zip" "${CAKED_APP}/Resources/webui.zip"
 
 if [ $USE_SMAPPSERVICE -eq 1 ]; then
-	cp "${PROJECT_ROOT}/Caker/Caker/AppStore/com.aldunelabs.caker.plist" "${CAKER_APP}/Library/LaunchAgents/com.aldunelabs.caker.plist"
+	cp "${PROJECT_ROOT}/Resources/com.aldunelabs.caker.caked.plist" "${CAKED_APP}/Library/LaunchAgents/com.aldunelabs.caker.plist"
 fi
 
 cp -c "${BINARYDIR}/Caker" "${CAKER_APP}/MacOS/Caker"

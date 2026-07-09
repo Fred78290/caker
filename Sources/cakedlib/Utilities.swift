@@ -276,11 +276,11 @@ extension Bundle {
 		runMode: Utils.RunMode,
 		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
 	) throws {
-		if Bundle.mustUseUnixTask {
-			if sudo {
-				throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
-			}
+		if sudo && Bundle.isApplicationSandboxed {
+			throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
+		}
 
+		if Bundle.mustUseUnixTask {
 			try runExecutableWithUnixTask(executableURL, with: arguments, standardInput: standardInput, standardOutput: standardOutput, standardError: standardError, completionHandler: handler)
 		} else {
 			var executableURL = executableURL
@@ -341,11 +341,11 @@ extension Bundle {
 		runMode: Utils.RunMode,
 		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
 	) throws {
-		if Bundle.mustUseUnixTask {
-			if sudo {
-				throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
-			}
+		if sudo && Bundle.isApplicationSandboxed {
+			throw ServiceError(String(localized: "Sudo is not supported in sandboxed mode"))
+		}
 
+		if Bundle.mustUseUnixTask {
 			try runExecutableWithUnixTask(executableURL, with: arguments, standardInput: standardInput, standardOutput: standardOutput, standardError: standardError, completionHandler: handler)
 		} else {
 			var executableURL = executableURL

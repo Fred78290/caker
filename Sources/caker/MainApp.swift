@@ -578,31 +578,13 @@ struct MainApp: App {
 		}
 	}
 
-	static var launchdAgentName: String {
-		return "com.aldunelabs.caker.plist"
-	}
-
-	static var appService: SMAppService {
-		SMAppService.agent(plistName: launchdAgentName)
-	}
-
 	static func isAgentInstalled() -> Bool {
-		#if USE_SMAPPSERVICE
-			let service = Self.appService
-
-			return (service.status == .requiresApproval) || (service.status == .enabled)
-		#else
-			return ServiceHandler.isAgentInstalled
-		#endif
+		return ServiceHandler.isAgentInstalled
 	}
 
 	static func installLaunchAgent(_ password: String?) throws {
 		#if USE_SMAPPSERVICE
-			let service = Self.appService
-
-			if service.status == .notFound || service.status == .notRegistered {
-				try service.register()
-			}
+			try Bundle.runCaked(with: ["service", "install"], runMode: .app)
 		#else
 			try ServiceHandler.installAgent(password: password, runMode: .user)
 		#endif
@@ -610,11 +592,7 @@ struct MainApp: App {
 
 	static func uninstallLaunchAgent() throws {
 		#if USE_SMAPPSERVICE
-			let service = Self.appService
-
-			if service.status == .requiresApproval || service.status == .enabled {
-				try service.unregister()
-			}
+		try Bundle.runCaked(with: ["service", "uninstall"], runMode: .app)
 		#else
 			try ServiceHandler.uninstallAgent(runMode: .user)
 		#endif
@@ -676,14 +654,16 @@ struct MainApp: App {
 			do {
 				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
 					do {
-						try Bundle.runCaked(with: [
-							"service",
-							"listen",
-							"--secure",
-							"--tcp",
-							"--rest",
-							"--log-level=\(CakeAgentLib.Logger.Level().description)"
-						], runMode: runMode) { error in
+						try Bundle.runCaked(
+							with: [
+								"service",
+								"listen",
+								"--secure",
+								"--tcp",
+								"--rest",
+								"--log-level=\(CakeAgentLib.Logger.Level().description)",
+							], runMode: runMode
+						) { error in
 							if let error {
 								continuation.resume(throwing: error)
 							} else {
