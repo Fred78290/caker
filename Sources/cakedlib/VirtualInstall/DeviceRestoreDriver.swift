@@ -10,7 +10,6 @@
 
 import Foundation
 import CakeAgentLib
-import GRPCLib
 
 final class DeviceRestoreDriver: @unchecked Sendable {
     private let logger: Logger
