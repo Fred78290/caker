@@ -17,7 +17,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "9BA9CBC92FCD7B8000CEBFC0"
                BuildableName = "cakectl.app"
-               BlueprintName = "cakectl.bundle"
+               BlueprintName = "cakectl.app"
                ReferencedContainer = "container:CakerAppStore.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -53,7 +53,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9BA9CBC92FCD7B8000CEBFC0"
             BuildableName = "cakectl.app"
-            BlueprintName = "cakectl.bundle"
+            BlueprintName = "cakectl.app"
             ReferencedContainer = "container:CakerAppStore.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
