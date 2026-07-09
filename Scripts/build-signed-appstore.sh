@@ -60,8 +60,7 @@ OUTDIR="${PROJECT_ROOT}/appstore"
 PKGNAME="${PKGNAME:-Caker.pkg}"
 PKGPATH="${PKGPATH:-${OUTDIR}/${PKGNAME}}"
 
-xattr -r -d com.apple.quarantine "${OUTDIR}/Caker.app"
-
+xattr -r -d com.apple.quarantine "${OUTDIR}/Caker.app" 2>/dev/null || true
 productbuild ${KEYCHAIN_OPTIONS} \
 	--sign "3rd Party Mac Developer Installer: ${DEVELOPER_ID}" \
 	--component "${OUTDIR}/Caker.app" /Applications \
