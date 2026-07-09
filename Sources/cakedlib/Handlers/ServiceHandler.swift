@@ -22,7 +22,7 @@ public struct ServiceHandler {
 		#if USE_SMAPPSERVICE
 			return "com.aldunelabs.caker.caked"
 		#else
-			Utils.cakerSignature
+			return Utils.cakerSignature
 		#endif
 	}
 
