@@ -1015,7 +1015,6 @@
 		9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstanceDetailPage.tsx; sourceTree = "<group>"; };
 		9B4C09B82FB8D72100101F0E /* RemotesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = RemotesPage.tsx; sourceTree = "<group>"; };
 		9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswiftCompatibilitySpan.dylib; path = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib"; sourceTree = "<absolute>"; };
-		9B5663E82FCC2C4300BB6136 /* appstore.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = appstore.provisionprofile; sourceTree = "<group>"; };
 		9B57E9CF2E745FB600C5601D /* ViewSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSize.swift; sourceTree = "<group>"; };
 		9B5A18482FDFFD55006FBD45 /* SpawnOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpawnOptions.swift; sourceTree = "<group>"; };
 		9B5A184A2FDFFD62006FBD45 /* SpawnHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpawnHandler.swift; sourceTree = "<group>"; };
@@ -1402,7 +1401,6 @@
 		9BFE87372F7E6480005CC9B2 /* caked.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = caked.plist; sourceTree = "<group>"; };
 		9BFE87382F7E6480005CC9B2 /* Caked.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Caked.xcf; sourceTree = "<group>"; };
 		9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = CakedAppIcon.png; sourceTree = "<group>"; };
-		9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = embedded.provisionprofile; sourceTree = "<group>"; };
 		9BFE873C2F7E6480005CC9B2 /* Document.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Document.icns; sourceTree = "<group>"; };
 		9BFE873D2F7E6480005CC9B2 /* Document.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Document.png; sourceTree = "<group>"; };
 		9BFE873E2F7E6480005CC9B2 /* Document.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Document.xcf; sourceTree = "<group>"; };
@@ -2716,8 +2714,6 @@
 				9BFE87402F7E6480005CC9B2 /* menubar.png */,
 				9BFE87422F7E6480005CC9B2 /* Prompt.png */,
 				9BFE87442F7E6480005CC9B2 /* VM.png */,
-				9B5663E82FCC2C4300BB6136 /* appstore.provisionprofile */,
-				9BFE873A2F7E6480005CC9B2 /* embedded.provisionprofile */,
 				9BFE87382F7E6480005CC9B2 /* Caked.xcf */,
 				9BFE873E2F7E6480005CC9B2 /* Document.xcf */,
 				9BFE87412F7E6480005CC9B2 /* menubar.xcf */,
