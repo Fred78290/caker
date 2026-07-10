@@ -46,6 +46,12 @@ struct Service: ParsableCommand {
 }
 
 extension Service {
+#if USE_SMAPPSERVICE
+	static var appService: SMAppService {
+		SMAppService.agent(plistName: "\(ServiceHandler.launchdAgentName).plist")
+	}
+#endif
+
 	struct ServiceOptions: ParsableArguments {
 		@Option(name: [.customLong("address"), .customShort("l")], help: ArgumentHelp(String(localized: "Listen on address")))
 		var address: [String] = []
@@ -150,7 +156,7 @@ extension Service {
 				}
 
 				func uninstall() -> UninstallReply {
-					let service = ServiceHandler.appService
+					let service = Service.appService
 					
 					if service.status == .requiresApproval || service.status == .enabled {
 						do {
@@ -197,7 +203,7 @@ extension Service {
 
 			do {
 				#if USE_SMAPPSERVICE
-					let service = ServiceHandler.appService
+					let service = Service.appService
 
 					if service.status == .notFound || service.status == .notRegistered {
 						try service.register()

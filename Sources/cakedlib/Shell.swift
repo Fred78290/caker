@@ -67,12 +67,12 @@ public struct Shell {
 		to command: String,
 		arguments: [String] = [],
 		at path: String = ".",
-		process: ProcessWithSharedFileHandle = .init(),
 		input: String? = nil,
 		outputHandle: FileHandle? = nil,
 		errorHandle: FileHandle? = nil,
-		sharedFileHandles: [FileHandle]? = nil
+		sharedFileHandles: [FileHandle]?
 	) throws -> String {
+		let process: ProcessWithSharedFileHandle = .init()
 		let command = "cd \(path.replacingOccurrences(of: " ", with: "\\ ")) && \(command) \(arguments.joined(separator: " "))"
 
 		return try process.bash(
@@ -81,6 +81,25 @@ public struct Shell {
 			outputHandle: outputHandle,
 			errorHandle: errorHandle,
 			sharedFileHandles: sharedFileHandles
+		)
+	}
+
+	@discardableResult static public func execute(
+		to command: String,
+		arguments: [String] = [],
+		at path: String = ".",
+		input: String? = nil,
+		outputHandle: FileHandle? = nil,
+		errorHandle: FileHandle? = nil,
+	) throws -> String {
+		let process: Process = .init()
+		let command = "cd \(path.replacingOccurrences(of: " ", with: "\\ ")) && \(command) \(arguments.joined(separator: " "))"
+
+		return try process.bash(
+			with: command,
+			input: input,
+			outputHandle: outputHandle,
+			errorHandle: errorHandle
 		)
 	}
 
@@ -396,6 +415,123 @@ extension Process {
 		if var input = input {
 			input = input + "\n"
 			inputPipe = Pipe()
+
+			inputPipe.fileHandleForWriting.writeabilityHandler = { handler in
+				handler.write(input.data(using: .utf8)!)
+			}
+
+			self.standardInput = inputPipe
+		}
+
+		if #available(OSX 10.13, *) {
+			try self.run()
+		} else {
+			self.launch()
+		}
+
+		waitUntilExit()
+
+		if let handle = outputHandle, !handle.isStandard {
+			handle.closeFile()
+		}
+
+		if let handle = errorHandle, !handle.isStandard {
+			handle.closeFile()
+		}
+
+		outputPipe.fileHandleForReading.readabilityHandler = nil
+		errorPipe.fileHandleForReading.readabilityHandler = nil
+
+		// Block until all writes have occurred to outputData and errorData,
+		// and then read the data back out.
+		return try outputQueue.sync {
+			if terminationStatus != 0 {
+				throw ShellError(
+					terminationStatus: terminationStatus,
+					error: errorData.toString(),
+					message: outputData.toString()
+				)
+			}
+
+			return outputData.toString()
+		}
+	}
+}
+
+extension Process {
+	fileprivate func waitForExitAsync() async {
+		await withCheckedContinuation { continuation in
+			let resumeActor = ProcessExitContinuationActor(continuation)
+
+			self.terminationHandler = { process in
+				process.terminationHandler = nil
+				Task {
+					await resumeActor.resume()
+				}
+			}
+
+			if !self.isRunning {
+				self.terminationHandler = nil
+				Task {
+					await resumeActor.resume()
+				}
+			}
+		}
+	}
+
+	@discardableResult fileprivate func bash(
+		with command: String,
+		input: String? = nil,
+		outputHandle: FileHandle? = nil,
+		errorHandle: FileHandle? = nil,
+		environment: [String: String]? = nil,
+	) throws -> String {
+
+		if #available(OSX 10.13, *) {
+			self.executableURL = URL(fileURLWithPath: "/bin/bash")
+		} else {
+			self.launchPath = "/bin/bash"
+		}
+		self.arguments = ["-c", command]
+
+		if environment != nil {
+			self.environment = environment
+		}
+
+		// Because FileHandle's readabilityHandler might be called from a
+		// different queue from the calling queue, avoid a data race by
+		// protecting reads and writes to outputData and errorData on
+		// a single dispatch queue.
+		let outputQueue = ShellProcessQueues.bashOutput
+
+		var outputData = Data()
+		var errorData = Data()
+		let outputPipe = Pipe()
+		let errorPipe = Pipe()
+
+		standardOutput = outputPipe
+
+		standardError = errorPipe
+
+		outputPipe.fileHandleForReading.readabilityHandler = { handler in
+			let data = handler.availableData
+			outputQueue.async {
+				outputData.append(data)
+				outputHandle?.write(data)
+			}
+		}
+
+		errorPipe.fileHandleForReading.readabilityHandler = { handler in
+			let data = handler.availableData
+			outputQueue.async {
+				errorData.append(data)
+				errorHandle?.write(data)
+			}
+		}
+
+		if var input = input {
+			input = input + "\n"
+			let inputPipe = Pipe()
 
 			inputPipe.fileHandleForWriting.writeabilityHandler = { handler in
 				handler.write(input.data(using: .utf8)!)

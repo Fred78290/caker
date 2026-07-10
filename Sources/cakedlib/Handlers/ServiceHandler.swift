@@ -26,12 +26,6 @@ public struct ServiceHandler {
 		#endif
 	}
 
-	#if USE_SMAPPSERVICE
-		public static var appService: SMAppService {
-			SMAppService.agent(plistName: "\(launchdAgentName).plist")
-		}
-	#endif
-
 	class ServiceHandlerBonjourDelegate: NSObject, NetServiceDelegate {
 		func netServiceWillPublish(_ sender: NetService) {
 			Logger("ServiceHandler").debug("Attempting to publish Bonjour service '\(sender.name)' on port \(sender.port) with type '\(sender.type)'")
@@ -407,20 +401,15 @@ public struct ServiceHandler {
 	// In USE_SMAPPSERVICE builds the runMode parameter is unused; SMAppService status
 	// covers all registration states including .requiresApproval.
 	public static func isAgentInstalled(runMode: Utils.RunMode) -> Bool {
-		#if USE_SMAPPSERVICE
-			let status = appService.status
-			return status == .enabled || status == .requiresApproval
-		#else
-			let domain: String
-			switch runMode {
-			case .system:
-				domain = "system"
-			default:
-				domain = "gui/\(getuid())"
-			}
+		let domain: String
+		switch runMode {
+		case .system:
+			domain = "system"
+		default:
+			domain = "gui/\(getuid())"
+		}
 
-			return (try? Shell.execute(to: "/bin/launchctl", arguments: ["print", "\(domain)/\(launchdAgentName)"])) != nil
-		#endif
+		return (try? Shell.execute(to: "/bin/launchctl", arguments: ["print", "\(domain)/\(launchdAgentName)"])) != nil
 	}
 
 	public static var isAgentInstalled: Bool {
