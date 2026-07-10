@@ -166,7 +166,7 @@ struct VirtualBuddyImporter: Importer {
 				}
 
 				guard try machineIdentifierURL.exists(), let ecid = VZMacMachineIdentifier(dataRepresentation: try Data(contentsOf: machineIdentifierURL)) else {
-					throw ServiceError(String(localized: "Invalid or missing MachineIdentifier in \(bundleURL.path)"))
+					throw ServiceError(String(localized: "Invalid or missing machine identifier in \(bundleURL.path)"))
 				}
 
 				guard hardwareModel.isSupported else {

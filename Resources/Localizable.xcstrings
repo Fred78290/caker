@@ -6122,13 +6122,13 @@
         }
       }
     },
-    "Invalid or missing MachineIdentifier in %@" : {
+    "Invalid or missing machine identifier in %@" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MachineIdentifier invalide ou manquant dans %@"
+            "value" : "Identifiant machine invalide ou manquant dans %@"
           }
         }
       }
@@ -11448,6 +11448,17 @@
         }
       }
     },
+    "Service is not installed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le service n'est pas installé"
+          }
+        }
+      }
+    },
     "Service is shutting down" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14525,6 +14536,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Non implémenté"
+          }
+        }
+      }
+    },
+    "Uninstall launchctl caked daemon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désinstaller le démon launchctl caked"
           }
         }
       }
