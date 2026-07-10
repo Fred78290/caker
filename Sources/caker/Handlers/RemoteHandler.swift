@@ -12,18 +12,18 @@ extension RemoteHandler {
 		return try ListRemoteReply(client.remote(.with { $0.command = .list}).response.wait().remotes.list)
 	}
 
-	public static func addRemote(client: CakedServiceClient?, name: String, url: URL, runMode: Utils.RunMode) throws -> CreateRemoteReply {
+	public static func addRemote(client: CakedServiceClient?, name: String, url: URL, runMode: Utils.RunMode) async throws -> CreateRemoteReply {
 		guard let client = client else {
 			return self.addRemote(name: name, url: url, runMode: runMode)
 		}
 
-		return try CreateRemoteReply(client.remote(.with {
+		return try await CreateRemoteReply(client.remote(.with {
 			$0.command = .add
 			$0.addRequest = .with {
 				$0.name = name
 				$0.url = url.absoluteString
 			}
-		}).response.wait().remotes.created)
+		}).response.get().remotes.created)
 	}
 
 	public static func deleteRemote(client: CakedServiceClient?, name: String, runMode: Utils.RunMode) throws -> DeleteRemoteReply {

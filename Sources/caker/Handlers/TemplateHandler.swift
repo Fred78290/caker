@@ -54,15 +54,15 @@ extension TemplateHandler {
 		}).response.wait().templates.duplicate)
 	}
 
-	public static func infos(client: CakedServiceClient?, templateName: String, runMode: Utils.RunMode) throws -> InfoTemplateReply {
+	public static func infos(client: CakedServiceClient?, templateName: String, runMode: Utils.RunMode) async throws -> InfoTemplateReply {
 		guard let client else {
 			return self.infos(templateName: templateName, runMode: runMode)
 		}
 
-		return try InfoTemplateReply(client.template(.with {
+		return try await InfoTemplateReply(client.template(.with {
 			$0.command = .infos
 			$0.infoRequest = templateName
-		}).response.wait().templates.infos)
+		}).response.get().templates.infos)
 	}
 
 	public static func listTemplate(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ListTemplateReply {

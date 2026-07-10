@@ -76,7 +76,7 @@ struct RemoteWizard: View {
 		}
 
 		do {
-			try AppState.shared.addRemote(name: self.name, url: parsed)
+			try await AppState.shared.addRemote(name: self.name, url: parsed)
 
 			await MainActor.run {
 				self.dismiss()

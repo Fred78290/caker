@@ -186,7 +186,7 @@ struct TemplateDetailView: View {
 		self.loading = true
 		self.errorMessage = nil
 
-		let result = AppState.shared.templateInfos(name: self.template.name)
+		let result = await AppState.shared.templateInfos(name: self.template.name)
 
 		self.loading = false
 
