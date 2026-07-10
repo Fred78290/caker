@@ -214,24 +214,29 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 		--timestamp \
 		--force "${SPARKLE_FRAMEWORK}"
 
-	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
-		--options runtime \
-		--timestamp \
-		--preserve-metadata=identifier,entitlements,flags \
-		--force "${CAKECTL_APP}/MacOS/cakectl"
-
 	if [ -n "${CODESIGN_REQUIREMENT}" ]; then
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
+			--identifier "com.aldunelabs.caker.cakectl" \
 			--timestamp \
 			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
-			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/caked}" \
+			--entitlements "${PROJECT_ROOT}/Resources/release/cakectl.entitlements" \
+			--strip-disallowed-xattrs \
+			--force "${CAKECTL_APP}/MacOS/cakectl"
+
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--timestamp \
+			--identifier "com.aldunelabs.caker.caked" \
+			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements "${PROJECT_ROOT}/Resources/release/caked.entitlements" \
+			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker.caked}" \
 			--force "${CAKED_APP}/MacOS/caked"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
+			--identifier "com.aldunelabs.caker" \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
 			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
@@ -241,14 +246,14 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 			--options runtime \
 			--timestamp \
 			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
-			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker.caked}" \
 			--force "${CAKER_APP}/PlugIns/caked.app"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
 			--entitlements "${PROJECT_ROOT}/Resources/release/cakectl.entitlements" \
-			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
+			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker.cakectl}" \
 			--force "${CAKER_APP}/PlugIns/cakectl.app"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
@@ -263,7 +268,7 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
+			--entitlements "${PROJECT_ROOT}/Resources/release/caked.entitlements" \
 			--force "${CAKED_APP}/MacOS/caked"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
@@ -281,7 +286,7 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
+			--entitlements "${PROJECT_ROOT}/Resources/release/caked.entitlements" \
 			--force "${CAKER_APP}/PlugIns/caked.app"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
