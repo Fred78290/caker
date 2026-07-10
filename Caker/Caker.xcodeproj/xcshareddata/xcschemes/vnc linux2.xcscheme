@@ -43,7 +43,7 @@
       queueDebuggingEnableBacktraceRecording = "Yes">
       <PathRunnable
          runnableDebuggingMode = "0"
-         FilePath = "~/Library/Developer/Xcode/DerivedData/Build/Products/Debug/Caker.app/Contents/PlugIns/cakectl.bundle/Contents/MacOS/cakectl">
+         FilePath = "~/Library/Developer/Xcode/DerivedData/Build/Products/Debug/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS/cakectl">
       </PathRunnable>
       <CommandLineArguments>
          <CommandLineArgument
