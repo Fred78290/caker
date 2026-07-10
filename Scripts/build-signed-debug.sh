@@ -39,6 +39,6 @@ jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
   .state.revision = "d554955e8c280aa4c4a05a039a968f0205656e77"
 )' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
 
-/usr/bin/swift build -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND
+/usr/bin/swift build -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND -Xswiftc -D -Xswiftc USE_SMAPPSERVICE
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"

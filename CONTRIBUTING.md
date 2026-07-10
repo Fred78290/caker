@@ -24,7 +24,7 @@ From repository root:
 
 - Debug signed build: `./Scripts/build-signed-debug.sh`
 - Release signed build: `./Scripts/build-signed-release.sh`
-- Swift package build: `swift build -Xswiftc -D -Xswiftc SPARKLE`
+- Swift package build: `swift build -Xswiftc -D -Xswiftc SPARKLE -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND -Xswiftc -D -Xswiftc USE_SMAPPSERVICE`
 
 ### Tests
 
@@ -35,6 +35,7 @@ If your change impacts integration behavior, also run the relevant tests under `
 ## Where to change code
 
 - `Sources/caked/` → daemon/service side
+- `Sources/caker/` → GUI application side
 - `Sources/cakectl/` → CLI client side
 - `Sources/cakedlib/` → shared core logic
 - `Sources/grpc/` → gRPC contracts/generated client-server bindings

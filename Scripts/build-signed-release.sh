@@ -27,7 +27,8 @@ RELEASE=1
 APPSTORE=0
 USE_SMAPPSERVICE=0
 
-sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app" "${PROJECT_ROOT}/.build" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
+sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
+#sudo rm -rf ""${PROJECT_ROOT}/.build"
 
 cleanup_swift_package_mirror() {
 	/usr/bin/swift package config unset-mirror --original https://github.com/apple/swift-argument-parser || true
@@ -42,8 +43,8 @@ jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
   .state.revision = "d554955e8c280aa4c4a05a039a968f0205656e77"
 )' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
 
-/usr/bin/swift build -c release --arch x86_64 -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND
-/usr/bin/swift build -c release --arch arm64 -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND
+/usr/bin/swift build -c release --arch x86_64 -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND -Xswiftc -D -Xswiftc USE_SMAPPSERVICE
+/usr/bin/swift build -c release --arch arm64 -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND -Xswiftc -D -Xswiftc USE_SMAPPSERVICE
 
 mkdir -p ${BINARYDIR}
 
