@@ -145,8 +145,18 @@ public struct TemplateHandler {
 		}
 	}
 
-	public static func duplicateTemplate(sourceName: String, templateName: String, runMode: Utils.RunMode) -> DuplicateTemplateReply {
+public static func duplicateTemplate(sourceName: String, templateName: String, runMode: Utils.RunMode) -> DuplicateTemplateReply {
 		do {
+			guard !sourceName.isEmpty,
+				  !templateName.isEmpty,
+				  sourceName == URL(fileURLWithPath: sourceName).lastPathComponent,
+				  templateName == URL(fileURLWithPath: templateName).lastPathComponent,
+				  sourceName.contains("..") == false,
+				  templateName.contains("..") == false
+			else {
+				return DuplicateTemplateReply(name: templateName, duplicated: false, reason: String(localized: "Invalid argument"))
+			}
+
 			let storage = StorageLocation(runMode: runMode, template: true)
 			let lock = try FileLock(lockURL: storage.rootURL)
 
