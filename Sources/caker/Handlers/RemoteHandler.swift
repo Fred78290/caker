@@ -4,14 +4,28 @@ import GRPCLib
 
 extension RemoteHandler {
 	public static func listRemote(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ListRemoteReply {
-		
+
 		guard let client = client else {
 			return self.listRemote(runMode: runMode)
 		}
-		
+
 		return try ListRemoteReply(client.remote(.with { $0.command = .list}).response.wait().remotes.list)
 	}
-	
+
+	public static func addRemote(client: CakedServiceClient?, name: String, url: URL, runMode: Utils.RunMode) throws -> CreateRemoteReply {
+		guard let client = client else {
+			return self.addRemote(name: name, url: url, runMode: runMode)
+		}
+
+		return try CreateRemoteReply(client.remote(.with {
+			$0.command = .add
+			$0.addRequest = .with {
+				$0.name = name
+				$0.url = url.absoluteString
+			}
+		}).response.wait().remotes.created)
+	}
+
 	public static func deleteRemote(client: CakedServiceClient?, name: String, runMode: Utils.RunMode) throws -> DeleteRemoteReply {
 		guard let client = client else {
 			return self.deleteRemote(name: name, runMode: runMode)

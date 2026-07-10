@@ -401,6 +401,16 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		self.setRemotes(self.loadRemotes())
 	}
 
+	func addRemote(name: String, url: URL) throws {
+		let result = try self.connectionManager.addRemote(name: name, url: url)
+
+		guard result.created else {
+			throw ServiceError(result.reason)
+		}
+
+		self.reloadRemotes()
+	}
+
 	func loadTemplates() -> [TemplateEntry] {
 		if let result = try? self.connectionManager.loadTemplates() {
 			return result

@@ -41,7 +41,7 @@ struct HomeView: View {
 
 			return network.usedBy != 0 || [.nat, .bridged].contains(network.mode)
 		case .images:
-			return navigationModel.selectedTemplate == nil
+			return navigationModel.selectedRemote == nil
 		}
 	}
 
@@ -55,7 +55,7 @@ struct HomeView: View {
 
 					Button("Plus", systemImage: "plus") {
 						self.actionPlus()
-					}
+					}.disabled(self.selectedCategory == .templates)
 				}
 
 				if self.haveDetailView {
@@ -220,7 +220,7 @@ struct HomeView: View {
 	var idealDetailSize: CGFloat {
 		switch self.selectedCategory {
 		case .images:
-			return 200
+			return 450
 		case .templates:
 			return 400
 		case .networks:
@@ -315,7 +315,12 @@ struct HomeView: View {
 					EmptyView()
 				}
 			case .images:
-				Text("Hello, Remote!")
+				if let selectedRemote = navigationModel.selectedRemote {
+					RemoteDetailView(remote: selectedRemote)
+						.background(Color(NSColor.tertiarySystemFill))
+				} else {
+					EmptyView()
+				}
 			case .templates:
 				if let selectedTemplate = navigationModel.selectedTemplate {
 					TemplateDetailView(template: selectedTemplate)
@@ -372,7 +377,7 @@ struct HomeView: View {
 		case .images:
 			self.presented = true
 		case .templates:
-			self.presented = true
+			self.presented = false
 		}
 	}
 }

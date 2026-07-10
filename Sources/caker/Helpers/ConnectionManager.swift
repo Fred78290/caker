@@ -165,7 +165,11 @@ final class ConnectionManager: Equatable {
 	func loadRemotes()throws  -> [RemoteEntry] {
 		return try RemoteHandler.listRemote(client: self.serviceClient, runMode: self.connectionMode.runMode).remotes.sorted(using: RemoteHandlerComparator())
 	}
-	
+
+	func addRemote(name: String, url: URL) throws -> CreateRemoteReply {
+		return try RemoteHandler.addRemote(client: self.serviceClient, name: name, url: url, runMode: self.connectionMode.runMode)
+	}
+
 	func loadTemplates() throws -> [TemplateEntry] {
 		try TemplateHandler.listTemplate(client: self.serviceClient, runMode: self.connectionMode.runMode).templates.sorted(using: TemplateEntryComparator())
 	}

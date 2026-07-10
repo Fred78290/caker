@@ -22,6 +22,7 @@
 /* Begin PBXBuildFile section */
 		9B001A0A300023EF0048894C /* com.aldunelabs.caker.caked.plist in LaunchAgent */ = {isa = PBXBuildFile; fileRef = 9BB7AEFA2FFFC3E300B7DD6D /* com.aldunelabs.caker.caked.plist */; };
 		9B001B8E3001703F0048894C /* TemplateDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001B8D3001703F0048894C /* TemplateDetailView.swift */; };
+		9B001E2B30018DC00048894C /* RemoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001E2A30018DC00048894C /* RemoteDetailView.swift */; };
 		9B0202712EA8CBDD00053712 /* NetworkDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */; };
 		9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202722EA8D08800053712 /* RoundedTextField.swift */; };
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
@@ -834,6 +835,7 @@
 		9B001A0D300025340048894C /* caked.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caked.provisionprofile; sourceTree = "<group>"; };
 		9B001A0E300025340048894C /* caker.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caker.provisionprofile; sourceTree = "<group>"; };
 		9B001B8D3001703F0048894C /* TemplateDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateDetailView.swift; sourceTree = "<group>"; };
+		9B001E2A30018DC00048894C /* RemoteDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteDetailView.swift; sourceTree = "<group>"; };
 		9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDetailView.swift; sourceTree = "<group>"; };
 		9B0202722EA8D08800053712 /* RoundedTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedTextField.swift; sourceTree = "<group>"; };
 		9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPSWInstaller.swift; sourceTree = "<group>"; };
@@ -2177,6 +2179,7 @@
 				9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */,
 				9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */,
 				9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */,
+				9B001E2A30018DC00048894C /* RemoteDetailView.swift */,
 				9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */,
 				9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */,
 				9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */,
@@ -3459,6 +3462,7 @@
 				9BAF74B72EBBD7CC0036CE1B /* MultiplatformTabCollection.swift in Sources */,
 				9BAF74B82EBBD7CC0036CE1B /* MultiplatformTabBarVerticalAlignment.swift in Sources */,
 				9BAF74B92EBBD7CC0036CE1B /* MultiplatformTabBarHorizontalAlignment.swift in Sources */,
+				9B001E2B30018DC00048894C /* RemoteDetailView.swift in Sources */,
 				9BAF74BA2EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift in Sources */,
 				9BBF7CB32F3F28F600F37D2C /* VNCInfosHandler.swift in Sources */,
 				9BAF74BB2EBBD7CC0036CE1B /* MultiplatformTabBar.swift in Sources */,

@@ -372,21 +372,36 @@ struct VirtualMachineWizard: View {
 
 	var sheet: Bool = false
 
-	init(sheet: Bool = false, presetTemplate: TemplateEntry? = nil) {
+	init(sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil) {
 		self.sheet = sheet
 
-		guard let presetTemplate else { return }
+		if let presetTemplate {
+			var config = VirtualMachineConfig()
+			config.source = .template
+			config.imageName = presetTemplate.fqn
+			config.vmname = presetTemplate.name
 
-		var config = VirtualMachineConfig()
-		config.source = .template
-		config.imageName = presetTemplate.fqn
-		config.vmname = presetTemplate.name
+			let model = VirtualMachineWizardStateObject()
+			model.imageSource = .template
 
-		let model = VirtualMachineWizardStateObject()
-		model.imageSource = .template
+			self._config = State(initialValue: config)
+			self._model = State(initialValue: model)
+		} else if let presetRemoteImage {
+			var config = VirtualMachineConfig()
+			config.source = .stream
+			config.diskFormat = .raw
+			config.os = .linux
+			config.imageName = "\(presetRemoteImage.remote)://\(presetRemoteImage.image.fingerprint)"
 
-		self._config = State(initialValue: config)
-		self._model = State(initialValue: model)
+			let model = VirtualMachineWizardStateObject()
+			model.imageSource = .stream
+			model.remoteImage = presetRemoteImage.remote
+			model.selectedRemoteImage = presetRemoteImage.image.fingerprint
+			model.remoteImages = [ShortImageInfo(presetRemoteImage.image)]
+
+			self._config = State(initialValue: config)
+			self._model = State(initialValue: model)
+		}
 	}
 
 	@ViewBuilder
