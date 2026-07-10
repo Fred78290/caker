@@ -21,7 +21,12 @@ struct RemoteWizard: View {
 			return false
 		}
 
-		guard let parsed = URL(string: self.url), let scheme = parsed.scheme, ["http", "https"].contains(scheme) else {
+		guard let parsed = URL(string: self.url),
+			  let scheme = parsed.scheme?.lowercased(),
+			  ["http", "https"].contains(scheme),
+			  let host = parsed.host,
+			  host.isEmpty == false
+		else {
 			return false
 		}
 
