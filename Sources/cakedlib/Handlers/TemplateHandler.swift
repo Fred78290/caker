@@ -188,8 +188,15 @@ public static func duplicateTemplate(sourceName: String, templateName: String, r
 		}
 	}
 
-	public static func infos(templateName: String, runMode: Utils.RunMode) -> InfoTemplateReply {
+public static func infos(templateName: String, runMode: Utils.RunMode) -> InfoTemplateReply {
 		do {
+			guard !templateName.isEmpty,
+				templateName == URL(fileURLWithPath: templateName).lastPathComponent,
+				templateName.contains("..") == false
+			else {
+				return InfoTemplateReply(success: false, reason: String(localized: "Invalid argument"), infos: nil)
+			}
+
 			let location = try StorageLocation(runMode: runMode, template: true).find(templateName)
 			let config: CakeConfig = try location.config()
 			let infos = try InfosHandler.offlineInfos(location: location, config: config, status: .stopped)
