@@ -32,6 +32,7 @@ struct TemplateHandler: CakedCommand {
 		case .duplicate:
 			reply = Caked_TemplateReply.with {
 				$0.duplicate = .with {
+					$0.name = request.duplicateRequest.templateName
 					$0.duplicated = false
 					$0.reason = error.reason
 				}
