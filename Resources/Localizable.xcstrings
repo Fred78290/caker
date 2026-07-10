@@ -2375,13 +2375,13 @@
         }
       }
     },
-    "config.plist not found in %@" : {
+    "Config.plist not found in %@" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "config.plist introuvable dans %@"
+            "value" : "Config.plist introuvable dans %@"
           }
         }
       }
@@ -3760,6 +3760,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Options de duplication"
+          }
+        }
+      }
+    },
+    "Duplicate template options" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Options de duplication de modèle"
           }
         }
       }
@@ -5556,6 +5567,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Le rapport du dictionnaire d'information en cours ne correspond pas au type de dictionnaire attendu"
+          }
+        }
+      }
+    },
+    "Infos template options" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Options d'informations de modèle"
           }
         }
       }
@@ -13422,6 +13444,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "modèle créé"
+          }
+        }
+      }
+    },
+    "template duplicated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "modèle dupliqué"
           }
         }
       }
