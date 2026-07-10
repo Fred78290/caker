@@ -28,6 +28,7 @@ import SwiftUI
 struct NetworkDetailView: View {
 	@Binding private var currentItem: BridgedNetwork
 	@Binding private var reloadNetwork: Bool
+	@State private var networkActionRunning = false
 	private var model: NetworkDetailViewModel
 	private var forEditing: Bool
 
@@ -152,27 +153,47 @@ struct NetworkDetailView: View {
 					Divider()
 
 					if currentItem.running == false {
-						Button("Start network") {
+						AsyncButton("Start network") { done in
+							networkActionRunning = true
 							let result = AppState.shared.startNetwork(networkName: self.currentItem.name)
 
-							if result.started == false {
-								alertError(String(localized: "Start network failed"), result.reason)
-							} else {
-								self.currentItem.endpoint = result.reason
-								self.reloadNetwork = true
+							await MainActor.run {
+								defer {
+									networkActionRunning = false
+									done()
+								}
+
+								if result.started == false {
+									alertError(String(localized: "Start network failed"), result.reason)
+								} else {
+									self.currentItem.endpoint = result.reason
+									self.currentItem.running = true
+									self.reloadNetwork = true
+								}
 							}
 						}
+						.disabled(networkActionRunning)
 					} else {
-						Button("Stop network") {
+						AsyncButton("Stop network") { done in
+							networkActionRunning = true
+
 							let result = AppState.shared.stopNetwork(networkName: self.currentItem.name)
 
-							if result.stopped == false {
-								alertError(String(localized: "Stop network failed"), result.reason)
-							} else {
-								self.currentItem.endpoint = String.empty
-								self.reloadNetwork = true
+							await MainActor.run {
+								defer {
+									networkActionRunning = false
+									done()
+								}
+
+								if result.stopped == false {
+									alertError(String(localized: "Stop network failed"), result.reason)
+								} else {
+									self.currentItem.endpoint = String.empty
+									self.currentItem.running = false
+									self.reloadNetwork = true
+								}
 							}
-						}
+						}.disabled(networkActionRunning)
 					}
 				}
 			}
@@ -181,5 +202,8 @@ struct NetworkDetailView: View {
 }
 
 #Preview {
-	NetworkDetailView(.constant(BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: String.empty, dhcpEnd: String.empty, dhcpLease: String.empty, interfaceID: "nat", endpoint: String.empty, running: false, managed: false, usedBy: 0)), reloadNetwork: .constant(false), forEditing: true)
+	NetworkDetailView(
+		.constant(
+			BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: String.empty, dhcpEnd: String.empty, dhcpLease: String.empty, interfaceID: "nat", endpoint: String.empty, running: false, managed: false, usedBy: 0)),
+		reloadNetwork: .constant(false), forEditing: true)
 }
