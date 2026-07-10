@@ -90,7 +90,7 @@ extension NetworksHandler {
 		
 		do {
 			return try StoppedNetworkReply(client.networks(.with {
-				$0.command = .start
+				$0.command = .shutdown
 				$0.name = networkName
 			}).response.wait().networks.stopped)
 		} catch {
