@@ -450,6 +450,14 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		self.connectionManager.templateExists(name: name)
 	}
 
+	func templateInfos(name: String) -> InfoTemplateReply {
+		if let result = try? self.connectionManager.templateInfos(templateName: name) {
+			return result
+		}
+
+		return InfoTemplateReply(success: false, reason: String(localized: "Failed to load template info"), infos: nil)
+	}
+
 	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
 		try await self.connectionManager.buildVirtualMachine(options: options, queue: queue, progressHandler: progressHandler)
 	}
@@ -722,6 +730,37 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			} else {
 				DispatchQueue.main.async {
 					alertError(String(localized: "Delete failed"), result.reason)
+				}
+			}
+		}
+	}
+
+	func duplicateTemplate(name: String) {
+		let alert = NSAlert()
+		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+
+		alert.messageText = String(localized: "Clone template")
+		alert.informativeText = String(localized: "Name of the new template")
+		alert.alertStyle = .informational
+		alert.addButton(withTitle: String(localized: "Clone"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
+
+		alert.accessoryView = txt
+
+		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
+			do {
+				let result = try self.connectionManager.duplicateTemplate(sourceName: name, templateName: txt.stringValue)
+
+				if result.duplicated {
+					self.reloadTemplates()
+				} else {
+					DispatchQueue.main.async {
+						alertError(String(localized: "Failed to clone template"), result.reason)
+					}
+				}
+			} catch {
+				DispatchQueue.main.async {
+					alertError(error)
 				}
 			}
 		}

@@ -15,42 +15,53 @@ public struct InfosHandler {
 		return try InfosHandler.infos(location: StorageLocation(runMode: runMode).find(name), runMode: runMode, client: client, callOptions: callOptions)
 	}
 
+	public static func offlineInfos(location: VMLocation, config: CakeConfig, status: Status = .stopped) throws -> VMInformations {
+		var diskInfos: [DiskInfo] = []
+
+		diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.locationURL).absoluteURL.path, mount: "/", fsType: "native", total: config.diskSize, free: 0, used: 0))
+
+		for disk in config.attachedDisks {
+			let diskURL = URL(fileURLWithPath: disk.diskPath, relativeTo: config.locationURL).absoluteURL
+
+			diskInfos.append(DiskInfo(device: diskURL.path, mount: "not mounted", fsType: "native", total: UInt64(try diskURL.sizeBytes()), free: 0, used: 0))
+		}
+
+		var infos = VMInformations.with {
+			$0.osname = config.osName ?? config.os.rawValue
+			$0.status = status
+			$0.cpuCount = Int32(config.cpuCount)
+			$0.diskInfos = diskInfos
+			$0.attachedNetworks = config.networks.map { AttachedNetwork(network: $0.network, mode: $0.mode?.description ?? nil, macAddress: $0.macAddress ?? nil, ipAddresses: nil) }
+			$0.memory = .with {
+				$0.total = config.memorySize
+			}
+
+			if let runningIP = config.runningIP, status == .running {
+				$0.ipaddresses = [runningIP]
+			}
+		}
+
+		infos.name = location.name
+		infos.mounts = config.mounts.map { $0.description }
+		infos.tunnelInfos = config.forwardedPorts.compactMap { $0.tunnelInfo }
+		infos.socketInfos = config.sockets.compactMap { $0.socketInfo }
+
+		return infos
+	}
+
 	public static func infos(location: VMLocation, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
 		let config: CakeConfig = try location.config()
 		var infos: VMInformations
 
-		func offline(_ status: Status = .stopped) throws -> VMInformations {
-			var diskInfos: [DiskInfo] = []
-			
-			diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.locationURL).absoluteURL.path, mount: "/", fsType: "native", total: config.diskSize, free: 0, used: 0))
-
-			for disk in config.attachedDisks {
-				let diskURL = URL(fileURLWithPath: disk.diskPath, relativeTo: config.locationURL).absoluteURL
-
-				diskInfos.append(DiskInfo(device: diskURL.path, mount: "not mounted", fsType: "native", total: UInt64(try diskURL.sizeBytes()), free: 0, used: 0))
-			}
-
-			return VMInformations.with {
-				$0.osname = config.os.rawValue
-				$0.status = status
-				$0.cpuCount = Int32(config.cpuCount)
-				$0.diskInfos = diskInfos
-				$0.attachedNetworks = config.networks.map { AttachedNetwork(network: $0.network, mode: $0.mode?.description ?? nil, macAddress: $0.macAddress ?? nil, ipAddresses: nil) }
-				$0.memory = .with {
-					$0.total = config.memorySize
-				}
-
-				if let runningIP = config.runningIP, status == .running {
-					$0.ipaddresses = [runningIP]
-				}
-			}
-		}
-
 		if case .running = location.status {
 			if let agent = try? client.info(callOptions: callOptions) {
 				infos = .init(agent, networks: config.networks)
+				infos.name = location.name
+				infos.mounts = config.mounts.map { $0.description }
+				infos.tunnelInfos = config.forwardedPorts.compactMap { $0.tunnelInfo }
+				infos.socketInfos = config.sockets.compactMap { $0.socketInfo }
 			} else {
-				infos = try offline(.running)
+				infos = try offlineInfos(location: location, config: config, status: .running)
 			}
 
 			if let vncURL = try? VMRunHandler.serviceMode.client(location: location, runMode: runMode).vncInfos {
@@ -61,13 +72,8 @@ public struct InfosHandler {
 				infos.screenSize = nil
 			}
 		} else {
-			infos = try offline(.stopped)
+			infos = try offlineInfos(location: location, config: config, status: .stopped)
 		}
-
-		infos.name = location.name
-		infos.mounts = config.mounts.map { $0.description }
-		infos.tunnelInfos = config.forwardedPorts.compactMap { $0.tunnelInfo }
-		infos.socketInfos = config.sockets.compactMap { $0.socketInfo }
 
 		return (infos, config)
 	}

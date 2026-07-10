@@ -40,6 +40,31 @@ extension TemplateHandler {
 		}).response.wait().templates.delete )
 	}
 
+	public static func duplicateTemplate(client: CakedServiceClient?, sourceName: String, templateName: String, runMode: Utils.RunMode) throws -> DuplicateTemplateReply {
+		guard let client else {
+			return self.duplicateTemplate(sourceName: sourceName, templateName: templateName, runMode: runMode)
+		}
+
+		return try DuplicateTemplateReply(client.template(.with {
+			$0.command = .duplicate
+			$0.duplicateRequest = .with {
+				$0.sourceName = sourceName
+				$0.templateName = templateName
+			}
+		}).response.wait().templates.duplicate)
+	}
+
+	public static func infos(client: CakedServiceClient?, templateName: String, runMode: Utils.RunMode) throws -> InfoTemplateReply {
+		guard let client else {
+			return self.infos(templateName: templateName, runMode: runMode)
+		}
+
+		return try InfoTemplateReply(client.template(.with {
+			$0.command = .infos
+			$0.infoRequest = templateName
+		}).response.wait().templates.infos)
+	}
+
 	public static func listTemplate(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ListTemplateReply {
 		guard let client = client else {
 			return self.listTemplate(runMode: runMode)

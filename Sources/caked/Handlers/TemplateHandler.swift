@@ -29,6 +29,22 @@ struct TemplateHandler: CakedCommand {
 				}
 			}
 
+		case .duplicate:
+			reply = Caked_TemplateReply.with {
+				$0.duplicate = .with {
+					$0.duplicated = false
+					$0.reason = error.reason
+				}
+			}
+
+		case .infos:
+			reply = Caked_TemplateReply.with {
+				$0.infos = .with {
+					$0.success = false
+					$0.reason = error.reason
+				}
+			}
+
 		case .list:
 			reply = .with {
 				$0.list = .with {
@@ -58,6 +74,16 @@ struct TemplateHandler: CakedCommand {
 		case .delete:
 			reply = Caked_TemplateReply.with {
 				$0.delete = CakedLib.TemplateHandler.deleteTemplate(templateName: request.deleteRequest, runMode: runMode).caked
+			}
+
+		case .duplicate:
+			reply = Caked_TemplateReply.with {
+				$0.duplicate = CakedLib.TemplateHandler.duplicateTemplate(sourceName: request.duplicateRequest.sourceName, templateName: request.duplicateRequest.templateName, runMode: runMode).caked
+			}
+
+		case .infos:
+			reply = Caked_TemplateReply.with {
+				$0.infos = CakedLib.TemplateHandler.infos(templateName: request.infoRequest, runMode: runMode).caked
 			}
 
 		case .list:

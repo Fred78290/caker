@@ -222,7 +222,7 @@ struct HomeView: View {
 		case .images:
 			return 200
 		case .templates:
-			return 200
+			return 400
 		case .networks:
 			return 450
 		case .virtualMachine:
@@ -317,7 +317,12 @@ struct HomeView: View {
 			case .images:
 				Text("Hello, Remote!")
 			case .templates:
-				Text("Hello, Template!")
+				if let selectedTemplate = navigationModel.selectedTemplate {
+					TemplateDetailView(template: selectedTemplate)
+						.background(Color(NSColor.tertiarySystemFill))
+				} else {
+					EmptyView()
+				}
 			}
 		}
 		.navigationSplitViewColumnWidth(min: self.idealDetailSize, ideal: self.idealDetailSize, max: self.idealDetailSize)

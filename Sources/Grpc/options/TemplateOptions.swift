@@ -17,8 +17,31 @@ public struct TemplateCreateOptions: ParsableArguments {
 	}
 }
 
+public struct TemplateDuplicateOptions: ParsableArguments {
+	public static let configuration = CommandConfiguration(commandName: "duplicate", abstract: String(localized: "Clone a template"), aliases: ["clone"])
+
+	@Argument(help: ArgumentHelp(String(localized: "Source template name")))
+	public var name: String
+
+	@Argument(help: ArgumentHelp(String(localized: "New template name")))
+	public var template: String
+
+	public init() {
+	}
+}
+
 public struct TemplateDeletionOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(commandName: "delete", abstract: String(localized: "Remove remotes"))
+
+	@Argument(help: ArgumentHelp(String(localized: "Template name")))
+	public var name: String
+
+	public init() {
+	}
+}
+
+public struct TemplateInfosOptions: ParsableArguments {
+	public static let configuration = CommandConfiguration(commandName: "infos", abstract: String(localized: "Get info for template"))
 
 	@Argument(help: ArgumentHelp(String(localized: "Template name")))
 	public var name: String

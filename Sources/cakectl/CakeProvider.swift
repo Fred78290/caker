@@ -210,6 +210,23 @@ extension Caked_TemplateRequest {
 		self.deleteRequest = command.template.name
 	}
 
+	init(command: Template.DuplicateTemplate) {
+		self.init()
+
+		self.command = .duplicate
+		self.duplicateRequest = Caked_TemplateRequest.TemplateRequestDuplicate.with {
+			$0.sourceName = command.template.name
+			$0.templateName = command.template.template
+		}
+	}
+
+	init(command: Template.InfosTemplate) {
+		self.init()
+
+		self.command = .infos
+		self.infoRequest = command.template.name
+	}
+
 	init(command: Template.ListTemplate) {
 		self.init()
 

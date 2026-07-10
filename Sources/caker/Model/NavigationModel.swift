@@ -77,8 +77,8 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	var selectedVirtualMachine: VirtualMachineDocumentState! = nil
 	var documents: VirtualMachineDocumentStates = [:]
 	
-	static var categories: [Category] = [.virtualMachine, .networks]
-	
+	static var categories: [Category] = [.virtualMachine, .networks, .templates, .images]
+
 	init(selectedCategory: Category = .virtualMachine) {
 		self.newSelectedCategory(selectedCategory)
 	}

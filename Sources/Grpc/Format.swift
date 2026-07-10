@@ -616,7 +616,15 @@ extension CakeAgentLib.Format {
 	public func render(_ data: Caked_DeleteTemplateReply) -> String {
 		return self.render(DeleteTemplateReply(data))
 	}
-	
+
+	public func render(_ data: DuplicateTemplateReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_DuplicateTemplateReply) -> String {
+		return self.render(DuplicateTemplateReply(data))
+	}
+
 	public func render(_ data: [TemplateEntry]) -> String {
 		if self == .json {
 			return self.renderList(data)

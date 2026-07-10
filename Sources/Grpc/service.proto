@@ -602,10 +602,12 @@ message Caked {
 
     message TemplateRequest {
       enum TemplateCommand {
-        none   = 0;
-        add    = 1;
-        delete = 2;
-        list   = 3;
+        none      = 0;
+        add       = 1;
+        delete    = 2;
+        list      = 3;
+        duplicate = 4;
+        infos     = 5;
       }
 
       message TemplateRequestAdd {
@@ -614,11 +616,18 @@ message Caked {
         bool   foreground   = 3;
       }
 
+      message TemplateRequestDuplicate {
+        string sourceName   = 1;
+        string templateName = 2;
+      }
+
       TemplateCommand command = 1;
 
       oneof template {
-        TemplateRequestAdd createRequest = 2;
-        string             deleteRequest = 3;
+        TemplateRequestAdd       createRequest    = 2;
+        string                   deleteRequest    = 3;
+        TemplateRequestDuplicate duplicateRequest = 4;
+        string                   infoRequest       = 5;
       }
     }
 
@@ -1175,10 +1184,24 @@ message Caked {
         optional string reason  = 3;
       }
 
+      message DuplicateTemplateReply {
+        string          name      = 1;
+        bool            duplicated = 2;
+        optional string reason    = 3;
+      }
+
+      message InfoTemplateReply {
+        bool                            success = 1;
+        optional string                 reason  = 2;
+        optional VirtualMachineReply.StatusReply.InfoReply infos = 3;
+      }
+
       oneof response {
-        ListTemplatesReply  list   = 1;
-        CreateTemplateReply create = 2;
-        DeleteTemplateReply delete = 3;
+        ListTemplatesReply     list      = 1;
+        CreateTemplateReply    create    = 2;
+        DeleteTemplateReply    delete    = 3;
+        DuplicateTemplateReply duplicate = 4;
+        InfoTemplateReply      infos     = 5;
       }
     }
 

@@ -145,6 +145,51 @@ public struct TemplateHandler {
 		}
 	}
 
+	public static func duplicateTemplate(sourceName: String, templateName: String, runMode: Utils.RunMode) -> DuplicateTemplateReply {
+		do {
+			let storage = StorageLocation(runMode: runMode, template: true)
+			let lock = try FileLock(lockURL: storage.rootURL)
+
+			try lock.lock()
+
+			defer {
+				try? lock.unlock()
+			}
+
+			guard storage.exists(templateName) == false else {
+				return DuplicateTemplateReply(name: templateName, duplicated: false, reason: String(localized: "template \(templateName) already exists"))
+			}
+
+			guard let source = try? storage.find(sourceName) else {
+				return DuplicateTemplateReply(name: templateName, duplicated: false, reason: String(localized: "Template \(sourceName) not found"))
+			}
+
+			let destination = storage.location(templateName)
+
+			Logger(self).info("Duplicating template \(sourceName) to \(templateName)")
+
+			try FileManager.default.copyItem(at: source.rootURL, to: destination.rootURL)
+
+			return DuplicateTemplateReply(name: templateName, duplicated: true, reason: String(localized: "template duplicated"))
+		} catch {
+			Logger(self).error(error)
+
+			return DuplicateTemplateReply(name: templateName, duplicated: false, reason: error.reason)
+		}
+	}
+
+	public static func infos(templateName: String, runMode: Utils.RunMode) -> InfoTemplateReply {
+		do {
+			let location = try StorageLocation(runMode: runMode, template: true).find(templateName)
+			let config: CakeConfig = try location.config()
+			let infos = try InfosHandler.offlineInfos(location: location, config: config, status: .stopped)
+
+			return InfoTemplateReply(success: true, reason: String(localized: "Success"), infos: infos)
+		} catch {
+			return InfoTemplateReply(success: false, reason: error.reason, infos: nil)
+		}
+	}
+
 	public static func exists(name: String, runMode: Utils.RunMode) -> Bool {
 		let storage = StorageLocation(runMode: runMode, template: true)
 

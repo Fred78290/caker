@@ -2310,11 +2310,29 @@ public nonisolated struct Caked_Caked: Sendable {
         set {template = .deleteRequest(newValue)}
       }
 
+      public var duplicateRequest: Caked_Caked.VMRequest.TemplateRequest.TemplateRequestDuplicate {
+        get {
+          if case .duplicateRequest(let v)? = template {return v}
+          return Caked_Caked.VMRequest.TemplateRequest.TemplateRequestDuplicate()
+        }
+        set {template = .duplicateRequest(newValue)}
+      }
+
+      public var infoRequest: String {
+        get {
+          if case .infoRequest(let v)? = template {return v}
+          return String()
+        }
+        set {template = .infoRequest(newValue)}
+      }
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public nonisolated enum OneOf_Template: Equatable, Sendable {
         case createRequest(Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd)
         case deleteRequest(String)
+        case duplicateRequest(Caked_Caked.VMRequest.TemplateRequest.TemplateRequestDuplicate)
+        case infoRequest(String)
 
       }
 
@@ -2324,6 +2342,8 @@ public nonisolated struct Caked_Caked: Sendable {
         case add // = 1
         case delete // = 2
         case list // = 3
+        case duplicate // = 4
+        case infos // = 5
         case UNRECOGNIZED(Int)
 
         public init() {
@@ -2336,6 +2356,8 @@ public nonisolated struct Caked_Caked: Sendable {
           case 1: self = .add
           case 2: self = .delete
           case 3: self = .list
+          case 4: self = .duplicate
+          case 5: self = .infos
           default: self = .UNRECOGNIZED(rawValue)
           }
         }
@@ -2346,6 +2368,8 @@ public nonisolated struct Caked_Caked: Sendable {
           case .add: return 1
           case .delete: return 2
           case .list: return 3
+          case .duplicate: return 4
+          case .infos: return 5
           case .UNRECOGNIZED(let i): return i
           }
         }
@@ -2356,6 +2380,8 @@ public nonisolated struct Caked_Caked: Sendable {
           .add,
           .delete,
           .list,
+          .duplicate,
+          .infos,
         ]
 
       }
@@ -2370,6 +2396,20 @@ public nonisolated struct Caked_Caked: Sendable {
         public var templateName: String = String()
 
         public var foreground: Bool = false
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+      }
+
+      public nonisolated struct TemplateRequestDuplicate: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var sourceName: String = String()
+
+        public var templateName: String = String()
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -4953,12 +4993,30 @@ public nonisolated struct Caked_Caked: Sendable {
         set {response = .delete(newValue)}
       }
 
+      public var duplicate: Caked_Caked.Reply.TemplateReply.DuplicateTemplateReply {
+        get {
+          if case .duplicate(let v)? = response {return v}
+          return Caked_Caked.Reply.TemplateReply.DuplicateTemplateReply()
+        }
+        set {response = .duplicate(newValue)}
+      }
+
+      public var infos: Caked_Caked.Reply.TemplateReply.InfoTemplateReply {
+        get {
+          if case .infos(let v)? = response {return v}
+          return Caked_Caked.Reply.TemplateReply.InfoTemplateReply()
+        }
+        set {response = .infos(newValue)}
+      }
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public nonisolated enum OneOf_Response: Equatable, Sendable {
         case list(Caked_Caked.Reply.TemplateReply.ListTemplatesReply)
         case create(Caked_Caked.Reply.TemplateReply.CreateTemplateReply)
         case delete(Caked_Caked.Reply.TemplateReply.DeleteTemplateReply)
+        case duplicate(Caked_Caked.Reply.TemplateReply.DuplicateTemplateReply)
+        case infos(Caked_Caked.Reply.TemplateReply.InfoTemplateReply)
 
       }
 
@@ -5053,6 +5111,64 @@ public nonisolated struct Caked_Caked: Sendable {
         public init() {}
 
         fileprivate var _reason: String? = nil
+      }
+
+      public nonisolated struct DuplicateTemplateReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var name: String = String()
+
+        public var duplicated: Bool = false
+
+        public var reason: String {
+          get {_reason ?? String()}
+          set {_reason = newValue}
+        }
+        /// Returns true if `reason` has been explicitly set.
+        public var hasReason: Bool {self._reason != nil}
+        /// Clears the value of `reason`. Subsequent reads from it will return its default value.
+        public mutating func clearReason() {self._reason = nil}
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+
+        fileprivate var _reason: String? = nil
+      }
+
+      public nonisolated struct InfoTemplateReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var success: Bool = false
+
+        public var reason: String {
+          get {_reason ?? String()}
+          set {_reason = newValue}
+        }
+        /// Returns true if `reason` has been explicitly set.
+        public var hasReason: Bool {self._reason != nil}
+        /// Clears the value of `reason`. Subsequent reads from it will return its default value.
+        public mutating func clearReason() {self._reason = nil}
+
+        public var infos: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply {
+          get {_infos ?? Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply()}
+          set {_infos = newValue}
+        }
+        /// Returns true if `infos` has been explicitly set.
+        public var hasInfos: Bool {self._infos != nil}
+        /// Clears the value of `infos`. Subsequent reads from it will return its default value.
+        public mutating func clearInfos() {self._infos = nil}
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+
+        fileprivate var _reason: String? = nil
+        fileprivate var _infos: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply? = nil
       }
 
       public init() {}
@@ -9356,7 +9472,7 @@ nonisolated extension Caked_Caked.VMRequest.RenameRequest: SwiftProtobuf.Message
 
 nonisolated extension Caked_Caked.VMRequest.TemplateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".TemplateRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}createRequest\0\u{1}deleteRequest\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}createRequest\0\u{1}deleteRequest\0\u{1}duplicateRequest\0\u{1}infoRequest\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -9386,6 +9502,27 @@ nonisolated extension Caked_Caked.VMRequest.TemplateRequest: SwiftProtobuf.Messa
           self.template = .deleteRequest(v)
         }
       }()
+      case 4: try {
+        var v: Caked_Caked.VMRequest.TemplateRequest.TemplateRequestDuplicate?
+        var hadOneofValue = false
+        if let current = self.template {
+          hadOneofValue = true
+          if case .duplicateRequest(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.template = .duplicateRequest(v)
+        }
+      }()
+      case 5: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.template != nil {try decoder.handleConflictingOneOf()}
+          self.template = .infoRequest(v)
+        }
+      }()
       default: break
       }
     }
@@ -9408,6 +9545,14 @@ nonisolated extension Caked_Caked.VMRequest.TemplateRequest: SwiftProtobuf.Messa
       guard case .deleteRequest(let v)? = self.template else { preconditionFailure() }
       try visitor.visitSingularStringField(value: v, fieldNumber: 3)
     }()
+    case .duplicateRequest?: try {
+      guard case .duplicateRequest(let v)? = self.template else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case .infoRequest?: try {
+      guard case .infoRequest(let v)? = self.template else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
+    }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -9422,7 +9567,7 @@ nonisolated extension Caked_Caked.VMRequest.TemplateRequest: SwiftProtobuf.Messa
 }
 
 nonisolated extension Caked_Caked.VMRequest.TemplateRequest.TemplateCommand: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}add\0\u{1}delete\0\u{1}list\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}add\0\u{1}delete\0\u{1}list\0\u{1}duplicate\0\u{1}infos\0")
 }
 
 nonisolated extension Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -9460,6 +9605,41 @@ nonisolated extension Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd: 
     if lhs.sourceName != rhs.sourceName {return false}
     if lhs.templateName != rhs.templateName {return false}
     if lhs.foreground != rhs.foreground {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.VMRequest.TemplateRequest.TemplateRequestDuplicate: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.VMRequest.TemplateRequest.protoMessageName + ".TemplateRequestDuplicate"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}sourceName\0\u{1}templateName\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.sourceName) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.templateName) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.sourceName.isEmpty {
+      try visitor.visitSingularStringField(value: self.sourceName, fieldNumber: 1)
+    }
+    if !self.templateName.isEmpty {
+      try visitor.visitSingularStringField(value: self.templateName, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.VMRequest.TemplateRequest.TemplateRequestDuplicate, rhs: Caked_Caked.VMRequest.TemplateRequest.TemplateRequestDuplicate) -> Bool {
+    if lhs.sourceName != rhs.sourceName {return false}
+    if lhs.templateName != rhs.templateName {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -13927,7 +14107,7 @@ nonisolated extension Caked_Caked.Reply.RemoteReply.CreateRemoteReply: SwiftProt
 
 nonisolated extension Caked_Caked.Reply.TemplateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".TemplateReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}create\0\u{1}delete\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}create\0\u{1}delete\0\u{1}duplicate\0\u{1}infos\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -13974,6 +14154,32 @@ nonisolated extension Caked_Caked.Reply.TemplateReply: SwiftProtobuf.Message, Sw
           self.response = .delete(v)
         }
       }()
+      case 4: try {
+        var v: Caked_Caked.Reply.TemplateReply.DuplicateTemplateReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .duplicate(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .duplicate(v)
+        }
+      }()
+      case 5: try {
+        var v: Caked_Caked.Reply.TemplateReply.InfoTemplateReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .infos(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .infos(v)
+        }
+      }()
       default: break
       }
     }
@@ -13996,6 +14202,14 @@ nonisolated extension Caked_Caked.Reply.TemplateReply: SwiftProtobuf.Message, Sw
     case .delete?: try {
       guard case .delete(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .duplicate?: try {
+      guard case .duplicate(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case .infos?: try {
+      guard case .infos(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
     }()
     case nil: break
     }
@@ -14181,6 +14395,94 @@ nonisolated extension Caked_Caked.Reply.TemplateReply.DeleteTemplateReply: Swift
     if lhs.name != rhs.name {return false}
     if lhs.deleted != rhs.deleted {return false}
     if lhs._reason != rhs._reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.Reply.TemplateReply.DuplicateTemplateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.TemplateReply.protoMessageName + ".DuplicateTemplateReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}duplicated\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.duplicated) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.duplicated != false {
+      try visitor.visitSingularBoolField(value: self.duplicated, fieldNumber: 2)
+    }
+    try { if let v = self._reason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.TemplateReply.DuplicateTemplateReply, rhs: Caked_Caked.Reply.TemplateReply.DuplicateTemplateReply) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.duplicated != rhs.duplicated {return false}
+    if lhs._reason != rhs._reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.Reply.TemplateReply.InfoTemplateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.TemplateReply.protoMessageName + ".InfoTemplateReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}reason\0\u{1}infos\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self._reason) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._infos) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
+    }
+    try { if let v = self._reason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._infos {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.TemplateReply.InfoTemplateReply, rhs: Caked_Caked.Reply.TemplateReply.InfoTemplateReply) -> Bool {
+    if lhs.success != rhs.success {return false}
+    if lhs._reason != rhs._reason {return false}
+    if lhs._infos != rhs._infos {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

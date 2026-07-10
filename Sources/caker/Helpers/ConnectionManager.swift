@@ -211,6 +211,14 @@ final class ConnectionManager: Equatable {
 	func deleteTemplate(templateName: String) throws -> DeleteTemplateReply {
 		return try TemplateHandler.deleteTemplate(client: self.serviceClient, templateName: templateName, runMode: self.connectionMode.runMode)
 	}
+
+	func duplicateTemplate(sourceName: String, templateName: String) throws -> DuplicateTemplateReply {
+		return try TemplateHandler.duplicateTemplate(client: self.serviceClient, sourceName: sourceName, templateName: templateName, runMode: self.connectionMode.runMode)
+	}
+
+	func templateInfos(templateName: String) throws -> InfoTemplateReply {
+		return try TemplateHandler.infos(client: self.serviceClient, templateName: templateName, runMode: self.connectionMode.runMode)
+	}
 	
 	func templateExists(name: String) -> Bool {
 		TemplateHandler.exists(client: self.serviceClient, name: name, runMode: self.connectionMode.runMode)
@@ -386,9 +394,11 @@ extension ConnectionManager {
 		}
 
 		let storage = StorageLocation(runMode: .app)
+		let templateStorage = StorageLocation(runMode: .app, template: true)
 		let root = storage.rootURL.lastPathComponent
+		let templatesRoot = templateStorage.rootURL.lastPathComponent
 		let networks = home.networkDirectory.lastPathComponent
-		let watcher = DirWatcher([storage.rootURL.path(percentEncoded: false), home.networkDirectory.path(percentEncoded: false)])
+		let watcher = DirWatcher([storage.rootURL.path(percentEncoded: false), templateStorage.rootURL.path(percentEncoded: false), home.networkDirectory.path(percentEncoded: false)])
 		let logger = self.logger
 
 		watcher.queue = DispatchQueue.global(qos: .utility)
@@ -413,7 +423,19 @@ extension ConnectionManager {
 				return
 			}
 
-			guard event.dirChange, fileURL.pathExtension == "cakedvm", fileURL.deletingLastPathComponent().lastPathComponent == root else {
+			guard event.dirChange, fileURL.pathExtension == "cakedvm" else {
+				return
+			}
+
+			if fileURL.deletingLastPathComponent().lastPathComponent == templatesRoot {
+				logger.debug("Templates directory change: \(fileURL.deletingPathExtension().lastPathComponent)")
+				Task { @MainActor in
+					AppState.shared.reloadTemplates()
+				}
+				return
+			}
+
+			guard fileURL.deletingLastPathComponent().lastPathComponent == root else {
 				return
 			}
 
