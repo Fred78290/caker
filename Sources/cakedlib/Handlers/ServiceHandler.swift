@@ -250,8 +250,8 @@ public struct ServiceHandler {
 				arguments.append("--system")
 			}
 
-			if insecure == false {
-				arguments.append("--secure")
+			if insecure {
+				arguments.append("--disable-tls")
 			}
 
 			try CakedKeyConfig.passphrase.set(password)
@@ -280,22 +280,12 @@ public struct ServiceHandler {
 				arguments.append("--system")
 			}
 
-			if insecure == false {
-				if caCert == nil && tlsKey == nil && tlsCert == nil {
-					arguments.append("--secure")
-				} else {
-					if let ca = caCert {
-						arguments.append("--ca-cert=\(ca)")
-					}
-
-					if let key = tlsKey {
-						arguments.append("--tls-key=\(key)")
-					}
-
-					if let cert = tlsCert {
-						arguments.append("--tls-cert=\(cert)")
-					}
-				}
+			if insecure {
+				arguments.append("--disable-tls")
+			} else if let caCert, let tlsKey, let tlsCert  {
+				arguments.append("--ca-cert=\(caCert)")
+				arguments.append("--tls-key=\(tlsKey)")
+				arguments.append("--tls-cert=\(tlsCert)")
 			}
 
 			try CakedKeyConfig.passphrase.set(password)

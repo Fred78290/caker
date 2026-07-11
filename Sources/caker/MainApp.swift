@@ -658,7 +658,6 @@ struct MainApp: App {
 							with: [
 								"service",
 								"listen",
-								"--secure",
 								"--tcp",
 								"--rest",
 								"--log-level=\(CakeAgentLib.Logger.Level().description)",

@@ -62,7 +62,7 @@ extension Service {
 		@Flag(name: [.customLong("no-pass-phrase")], help: ArgumentHelp(String(localized: "Allow empty password"), discussion: String(localized: "Use this to explicitly set an empty password for the service endpoint")))
 		var noPassword: Bool = false
 
-		@Flag(name: [.customLong("insecure"), .customShort("i")], help: ArgumentHelp(String(localized: "Don't use TLS")))
+		@Flag(name: [.customLong("disable-tls")], help: ArgumentHelp(String(localized: "Don't use TLS")))
 		var insecure: Bool = false
 
 		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: ArgumentHelp(String(localized: "CA TLS certificate")))
@@ -249,8 +249,8 @@ extension Service {
 		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 
-		@Flag(help: .hidden)
-		var secure: Bool = false
+		@Flag(name: [.customLong("disable-tls")], help: ArgumentHelp(String(localized: "Don't use TLS")))
+		var unsecure: Bool = false
 
 		@Flag(help: .hidden)
 		var log: Bool = false
@@ -276,7 +276,7 @@ extension Service {
 
 			let runMode: Utils.RunMode = self.common.runMode
 
-			if self.secure {
+			if self.unsecure == false {
 				let certs = try CertificatesLocation.createCertificats(runMode: runMode)
 
 				self.options.caCert = certs.caCertURL.path
@@ -492,20 +492,16 @@ extension Service {
 
 		mutating func run() throws {
 			let runMode = self.common.runMode
-			let listenAddress = try self.options.getListenAddress(runMode: runMode)
 
 			var arguments: [String] = [
 				try Bundle.main.caked().path(percentEncoded: false),
 				"service",
 				"listen",
-				"--secure",
 				"--log-level=\(self.common.logLevel.rawValue)",
 			]
 
 			if self.options.tcp {
 				arguments.append("--tcp")
-			} else {
-				arguments.append(contentsOf: listenAddress.map { "--address=\($0)" })
 			}
 
 			if self.options.rest {
@@ -524,24 +520,12 @@ extension Service {
 				arguments.append("--system")
 			}
 
-			if self.options.insecure == false {
-				if self.options.caCert == nil && self.options.tlsCert == nil, self.options.tlsKey == nil {
-					arguments.append("--secure")
-				} else {
-					let certs = try self.options.getCertificats(runMode: runMode)
-
-					if let ca = certs.ca {
-						arguments.append("--ca-cert=\(ca)")
-					}
-
-					if let key = certs.key {
-						arguments.append("--tls-key=\(key)")
-					}
-
-					if let cert = certs.cert {
-						arguments.append("--tls-cert=\(cert)")
-					}
-				}
+			if self.options.insecure {
+				arguments.append("--disable-tls")
+			} else if let ca = self.options.caCert, let cert = self.options.tlsCert, let key = self.options.tlsKey {
+				arguments.append("--ca-cert=\(ca)")
+				arguments.append("--tls-key=\(key)")
+				arguments.append("--tls-cert=\(cert)")
 			}
 
 			if self.options.noPassword {

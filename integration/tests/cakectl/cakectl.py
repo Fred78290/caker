@@ -26,7 +26,7 @@ class CakeCtl:
 		env = os.environ.copy()
 		env.update({"CAKE_HOME": self.home()})
 		self.listen_address = os.path.join(self.home(), "caked.sock")
-		self.service_caked = subprocess.Popen(["caked", "service", "listen", "--secure", "--address", "unix://" + self.listen_address], env=env)
+		self.service_caked = subprocess.Popen(["caked", "service", "listen", "--address", "unix://" + self.listen_address], env=env)
 
 		# Wait for the socket file to be created
 		while not os.path.exists(self.listen_address):
