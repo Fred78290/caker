@@ -9,7 +9,7 @@ public struct RemoteAddOptions: ParsableArguments {
 }
 
 public struct RemoteDeleteOptions: ParsableArguments {
-	public static let configuration = CommandConfiguration(commandName: "delete", abstract: String(localized: "Remove remotes"))
+	public static let configuration = CommandConfiguration(commandName: "delete", abstract: String(localized: "Remove remotes"), aliases: ["rm"])
 
 	public init() {
 	}
