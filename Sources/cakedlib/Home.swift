@@ -76,6 +76,8 @@ public struct Home {
 	public static let cakedCommandName = "caked"
 	public static let cakerCommandName = "Caker"
 	public static let networksFilename = "networks.json"
+	public static let remoteFilename = "remote.json"
+	public static let vmExtension = "cakedvm"
 
 	public let cakeHomeDirectory: URL
 	public let agentPID: URL
@@ -100,7 +102,7 @@ public struct Home {
 		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.agentPID = self.agentDirectory.appendingPathComponent("agent.pid", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.temporaryDirectory = self.cakeHomeDirectory.appendingPathComponent("tmp", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
-		self.remoteDb = self.cakeHomeDirectory.appendingPathComponent("remote.json", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
+		self.remoteDb = self.cakeHomeDirectory.appendingPathComponent(Home.remoteFilename, isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.composeFileDb = self.cakeHomeDirectory.appendingPathComponent("compose.json", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.contentStoreURL = self.cacheDirectory.appendingPathComponent("oci/storage")
 		self.imageStoreURL = cacheDirectory.appendingPathComponent("oci")
