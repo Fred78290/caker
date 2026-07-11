@@ -211,15 +211,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 
 		// Add IMDS network interface for Linux VMs
 		if config.os == .linux {
-			let imdsMac: VZMACAddress
-			if let stored = config.imdsMacAddress, let mac = VZMACAddress(string: stored) {
-				imdsMac = mac
-			} else {
-				imdsMac = VZMACAddress.randomLocallyAdministered()
-				config.imdsMacAddress = imdsMac.string
-				try config.save()
-			}
-			networks.append(IMDSNetworkInterface(macAddress: imdsMac))
+			networks.append(IMDSNetworkInterface(macAddress: try config.ensureImdsMacAddress()))
 		}
 
 		let configuration = VZVirtualMachineConfiguration()

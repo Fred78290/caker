@@ -162,6 +162,7 @@ struct VMRun: AsyncParsableCommand {
 
 		// Prepare IMDS server for Linux VMs (started once VM network is up)
 		var imdsServer: IMDSServer? = nil
+		var imdsStartTask: Task<Void, Error>? = nil
 		let imdsMetadata: IMDSMetadata? = config.os == .linux ? IMDSMetadata(config: config, locationName: location.name) : nil
 
 		if let imdsMetadata {
@@ -184,22 +185,14 @@ struct VMRun: AsyncParsableCommand {
 
 			// Start IMDS server bound to the IMDS host network (169.254.169.1)
 			if let imdsServer {
-				Task {
-					var attempts = 0
-					let maxAttempts = 20
-					while attempts < maxAttempts {
-						do {
-							try imdsServer.start()
-							logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
-							break
-						} catch {
-							attempts += 1
-							if attempts == maxAttempts {
-								logger.warn("IMDS server could not start: \(error)")
-							} else {
-								try? await Task.sleep(nanoseconds: 500_000_000)
-							}
-						}
+				imdsStartTask = Task {
+					do {
+						try await imdsServer.startWithRetry()
+						logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
+					} catch is CancellationError {
+						// Torn down before it managed to start; nothing to log.
+					} catch {
+						logger.warn("IMDS server could not start: \(error)")
 					}
 				}
 			}
@@ -234,6 +227,8 @@ struct VMRun: AsyncParsableCommand {
 			}
 		}
 
+		imdsStartTask?.cancel()
+		_ = await imdsStartTask?.result
 		await imdsServer?.shutdown()
 	}
 }
