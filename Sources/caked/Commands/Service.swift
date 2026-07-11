@@ -492,21 +492,16 @@ extension Service {
 
 		mutating func run() throws {
 			let runMode = self.common.runMode
-			let listenAddress = try self.options.getListenAddress(runMode: runMode)
 
 			var arguments: [String] = [
 				try Bundle.main.caked().path(percentEncoded: false),
 				"service",
 				"listen",
-				"--rest",
-				"--tcp",
 				"--log-level=\(self.common.logLevel.rawValue)",
 			]
 
 			if self.options.tcp {
 				arguments.append("--tcp")
-			} else {
-				arguments.append(contentsOf: listenAddress.map { "--address=\($0)" })
 			}
 
 			if self.options.rest {
