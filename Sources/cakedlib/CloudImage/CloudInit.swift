@@ -137,7 +137,7 @@ func newYAMLDecoder() -> YAMLDecoder {
 struct NetworkConfig: Codable {
 	var network: CloudInitNetwork = CloudInitNetwork()
 
-	init(netIfnames: Bool, config: CakeConfig) {
+	init(netIfnames: Bool, config: CakeConfig) throws {
 		let networks = config.qualifiedNetworks
 
 		var index: Int = 1
@@ -159,10 +159,11 @@ struct NetworkConfig: Codable {
 		}
 
 		// Add IMDS interface for Linux VMs with a static route to 169.254.169.254
-		if config.os == .linux, let imdsMac = config.imdsMacAddress {
+		if config.os == .linux {
+			let imdsMac = try config.ensureImdsMacAddress()
 			let imdsName = netIfnames ? "enp0s\(index)" : "eth\(index - 1)"
 			self.network.ethernets[imdsName] = Interface(
-				match: Match(macAddress: imdsMac),
+				match: Match(macAddress: imdsMac.string),
 				setName: imdsName,
 				dhcp4: true,
 				dhcp6: false,
@@ -1032,7 +1033,7 @@ class CloudInit {
 		if let networkConfig = self.networkConfig {
 			return try YAMLDecoder().decode(NetworkConfig.self, from: networkConfig)
 		} else {
-			return NetworkConfig(netIfnames: self.netIfnames, config: config)
+			return try NetworkConfig(netIfnames: self.netIfnames, config: config)
 		}
 	}
 
@@ -1301,7 +1302,7 @@ class CloudInit {
 		if let networkConfig = self.networkConfig {
 			return networkConfig
 		} else {
-			let networkConfig: NetworkConfig = NetworkConfig(netIfnames: self.netIfnames, config: config)
+			let networkConfig: NetworkConfig = try NetworkConfig(netIfnames: self.netIfnames, config: config)
 
 			return try networkConfig.toCloudInit()
 		}

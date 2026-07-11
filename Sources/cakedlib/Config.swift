@@ -367,6 +367,22 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.cake["imdsMacAddress"] as? String }
 	}
 
+	/// Returns the persisted IMDS MAC address, generating and saving one on first use.
+	/// Must be called before generating cloud-init network config so the guest's netplan
+	/// and the VM's attached IMDS network device always agree on the same MAC.
+	public func ensureImdsMacAddress() throws -> VZMACAddress {
+		if let stored = self.imdsMacAddress, let mac = VZMACAddress(string: stored) {
+			return mac
+		}
+
+		let mac = VZMACAddress.randomLocallyAdministered()
+
+		self.imdsMacAddress = mac.string
+		try self.save()
+
+		return mac
+	}
+
 	public var sockets: [SocketDevice] {
 		set { self.cake["sockets"] = newValue.map { $0.description } }
 		get {
@@ -600,6 +616,10 @@ extension CakeConfig {
 		self.macAddress = VZMACAddress.randomLocallyAdministered().string
 		self.networks = self.networks.map {
 			$0.clone()
+		}
+
+		if self.imdsMacAddress != nil {
+			self.imdsMacAddress = VZMACAddress.randomLocallyAdministered().string
 		}
 	}
 
