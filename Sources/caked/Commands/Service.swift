@@ -358,6 +358,20 @@ extension Service {
 				try? home.agentPID.delete()
 			}
 
+			// Central IMDS server for Linux VMs (see IMDSCoordinator's doc comment): the
+			// daemon learns about VM start/stop through VMLifecycleHooks, fired by
+			// CakedLib.StartHandler whenever it spawns or reaps a `caked vmrun` child,
+			// whether that's from autostart below or from a `Caked_StartRequest` RPC.
+			let imdsCoordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode)
+
+			VMLifecycleHooks.setHandler { event in
+				Task {
+					await imdsCoordinator.handle(event)
+				}
+			}
+
+			await imdsCoordinator.registerAlreadyRunning()
+
 			try CakedLib.StartHandler.autostart(on: eventLoopGroup.next(), runMode: runMode).whenComplete { result in
 				switch result {
 				case .failure(let error):
@@ -434,6 +448,8 @@ extension Service {
 						logger.info("Stop service on SIGINT")
 
 						Task {
+							VMLifecycleHooks.setHandler(nil)
+							await imdsCoordinator.shutdown()
 							await restServer?.shutdown()
 							provider.stop()
 

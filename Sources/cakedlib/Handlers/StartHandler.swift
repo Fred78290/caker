@@ -92,6 +92,11 @@ public struct StartHandler {
 				#if DEBUG
 					Logger(self).debug("VM \(vmName) exited with code \(process.terminationStatus)")
 				#endif
+
+				// Fires regardless of exit reason (clean stop, crash, kill) so daemon-side
+				// observers (e.g. IMDSCoordinator) never leak state for a VM that's gone.
+				VMLifecycleHooks.notify(.stopped(location: self.location, runMode: self.runMode))
+
 				if let promise = promise {
 					if process.terminationStatus == 0 {
 						promise.succeed(vmName)
@@ -103,6 +108,8 @@ public struct StartHandler {
 
 			do {
 				let runningIP = try location.waitIP(config: config, wait: 180, runMode: runMode, startedProcess: process)
+
+				VMLifecycleHooks.notify(.started(location: location, runMode: runMode))
 
 				return runningIP
 			} catch {

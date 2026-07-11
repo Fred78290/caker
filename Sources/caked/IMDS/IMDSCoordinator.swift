@@ -1,0 +1,139 @@
+import CakeAgentLib
+import CakedLib
+import Foundation
+import GRPCLib
+import NIO
+
+/// Owns the single, process-wide `IMDSServer` for the `caked` daemon.
+///
+/// Design summary (see also the doc comment on `IMDSRegistry`):
+///
+/// - All Linux VMs on a host share one host-only "imds" vmnet virtual switch
+///   (169.254.169.0/24, gateway 169.254.169.1), so exactly one `IMDSServer`
+///   bound to 169.254.169.1:80 is correct for any number of concurrently
+///   running VMs — there's no need to bind per network interface.
+/// - The server is started lazily, on the first Linux VM to start, and torn
+///   down once the last one stops — so hosts that never run Linux guests
+///   never bind the socket, and we never leak it.
+/// - The daemon learns about VM start/stop through `VMLifecycleHooks`
+///   (`CakedLib`), which `StartHandler` fires whenever it spawns or reaps a
+///   `caked vmrun` child process. This covers both `cakectl start`-initiated
+///   launches and `StartHandler.autostart()` at daemon boot — the only two
+///   ways `caked service listen` itself brings up a VM. VMs started via a
+///   standalone `caked vmrun` invocation that bypasses the daemon (or via
+///   Caker.app running a VM in-process without a daemon) are *not* observed
+///   by this hook and therefore won't get IMDS support; see the migration's
+///   commit message for the reasoning behind accepting that limitation.
+public actor IMDSCoordinator {
+	private let group: EventLoopGroup
+	private let runMode: Utils.RunMode
+	private let registry = IMDSRegistry()
+	private let logger = Logger("IMDSCoordinator")
+
+	private var server: IMDSServer?
+	private var startTask: Task<Void, Error>?
+
+	public init(group: EventLoopGroup, runMode: Utils.RunMode) {
+		self.group = group
+		self.runMode = runMode
+	}
+
+	/// Registers every Linux VM that's already running at daemon startup (e.g. the daemon
+	/// restarted while VMs kept running, or VMs were started by a previous daemon instance).
+	/// Uses the values already persisted on disk rather than re-deriving them, since a
+	/// running VM's `caked vmrun` process already wrote them once it had them.
+	public func registerAlreadyRunning() async {
+		guard let vms = try? StorageLocation(runMode: self.runMode).list() else {
+			return
+		}
+
+		for (_, location) in vms {
+			guard case .running = location.status else { continue }
+
+			await self.register(location: location)
+		}
+	}
+
+	public func handle(_ event: VMLifecycleEvent) async {
+		switch event {
+		case .started(let location, _):
+			await self.register(location: location)
+		case .stopped(let location, _):
+			await self.unregister(location: location)
+		}
+	}
+
+	/// Tears down the IMDS server (if running) and clears the registry. Call this once, as
+	/// part of daemon shutdown.
+	public func shutdown() async {
+		self.startTask?.cancel()
+		_ = await self.startTask?.result
+		self.startTask = nil
+
+		if let server = self.server {
+			await server.shutdown()
+			self.server = nil
+			self.logger.info("IMDS server stopped")
+		}
+	}
+
+	// MARK: - Internals
+
+	private func register(location: VMLocation) async {
+		guard let config = try? location.config(), config.os == .linux else {
+			return
+		}
+
+		guard let imdsMac = config.imdsMacAddress else {
+			self.logger.warn("Linux VM \(location.name) has no persisted IMDS MAC address yet; skipping IMDS registration")
+			return
+		}
+
+		let metadata = IMDSMetadata(config: config, locationName: location.name, imdsMac: imdsMac)
+
+		metadata.localIPv4 = config.runningIP ?? ""
+
+		self.registry.register(name: location.name, metadata: metadata)
+
+		self.logger.info("Registered VM \(location.name) with IMDS (mac: \(imdsMac))")
+
+		await self.ensureServerRunning()
+	}
+
+	private func unregister(location: VMLocation) async {
+		guard self.registry.unregister(name: location.name) else {
+			return
+		}
+
+		self.logger.info("Unregistered VM \(location.name) from IMDS")
+
+		if self.registry.isEmpty {
+			await self.shutdown()
+		}
+	}
+
+	private func ensureServerRunning() async {
+		guard self.server == nil, self.startTask == nil else {
+			return
+		}
+
+		do {
+			let server = try await IMDSServer(group: self.group, registry: self.registry)
+
+			self.server = server
+
+			self.startTask = Task {
+				do {
+					try await server.startWithRetry()
+					self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
+				} catch is CancellationError {
+					// Torn down before it managed to start; nothing to log.
+				} catch {
+					self.logger.warn("IMDS server could not start: \(error)")
+				}
+			}
+		} catch {
+			self.logger.warn("Failed to create IMDS server: \(error)")
+		}
+	}
+}
