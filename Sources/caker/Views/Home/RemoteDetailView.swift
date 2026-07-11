@@ -14,7 +14,8 @@ struct RemoteDetailView: View {
 
 	@State private var images: [ImageInfo] = []
 	@State private var loading = false
-	@State private var vmFromImage: ImageInfo? = nil
+	@State private var selectedImage: ImageInfo? = nil
+	@State private var createVM: Bool = false
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 0) {
@@ -35,17 +36,58 @@ struct RemoteDetailView: View {
 					Spacer()
 				}.frame(maxWidth: .infinity, maxHeight: .infinity)
 			} else {
-				List(self.images) { image in
-					HStack(spacing: 12) {
-						VStack(alignment: .leading, spacing: 2) {
-							Text(image.aliases.description.isEmpty ? image.fingerprint : image.aliases.description)
-								.font(.system(size: 13, weight: .semibold))
-								.lineLimit(1)
+				List(self.images, id: \.self, selection: $selectedImage) { image in
+					HStack(alignment: .center, spacing: 12) {
+						let labelWidth = 80.0
 
-							Text(image.properties["description"] ?? image.fingerprint)
-								.font(.system(size: 11))
-								.foregroundStyle(.secondary)
-								.lineLimit(1)
+						GeometryReader { geom in
+							VStack(alignment: .leading, spacing: 2) {
+								LabeledContent(content: {
+									Text(image.aliases.joined(separator: ", "))
+										.font(.system(size: 13, weight: .semibold))
+										.lineLimit(1)
+										.frame(width: geom.size.width - labelWidth, alignment: .leading)
+								}, label: {
+									Text("Aliases:")
+										.font(.system(size: 13, weight: .semibold))
+								})
+
+								LabeledContent(content: {
+									Text(image.fingerprint.substring(..<12))
+										.font(.system(size: 11))
+										.foregroundStyle(.secondary)
+										.lineLimit(1)
+										.frame(width: geom.size.width - labelWidth, alignment: .leading)
+								}, label: {
+									Text("Fingerprint:")
+										.font(.system(size: 11, weight: .semibold))
+										.foregroundStyle(.secondary)
+								})
+
+								LabeledContent(content: {
+									Text(image.properties["description"] ?? "")
+										.font(.system(size: 11))
+										.foregroundStyle(.secondary)
+										.lineLimit(1)
+										.frame(width: geom.size.width - labelWidth, alignment: .leading)
+								}, label: {
+									Text("Description:")
+										.font(.system(size: 11, weight: .semibold))
+										.foregroundStyle(.secondary)
+								})
+
+								LabeledContent(content: {
+									Text(image.uploaded ?? "")
+										.font(.system(size: 11))
+										.foregroundStyle(.secondary)
+										.lineLimit(1)
+										.frame(width: geom.size.width - labelWidth, alignment: .leading)
+								}, label: {
+									Text("Uploaded:")
+										.font(.system(size: 11, weight: .semibold))
+										.foregroundStyle(.secondary)
+								})
+							}
 						}
 
 						Spacer()
@@ -54,11 +96,15 @@ struct RemoteDetailView: View {
 							.font(.system(size: 11, design: .monospaced))
 							.foregroundStyle(.secondary)
 					}
+					.frame(height: 60.0)
 					.padding(.vertical, 4)
 					.contentShape(Rectangle())
+					.onTapGesture(count: 2) {
+						self.createVM = true
+					}
 					.contextMenu {
 						Button("New Virtual Machine…") {
-							self.vmFromImage = image
+							self.createVM = true
 						}
 					}
 				}
@@ -68,11 +114,13 @@ struct RemoteDetailView: View {
 		.task(id: self.remote.id) {
 			await self.loadImages()
 		}
-		.sheet(item: self.$vmFromImage) { image in
-			VirtualMachineWizard(sheet: true, presetRemoteImage: (remote: self.remote.name, image: image))
-				.colorSchemeForColor()
-				.restorationState(.disabled)
-				.frame(minWidth: 700, minHeight: 670)
+		.sheet(isPresented: $createVM) {
+			if let selectedImage {
+				VirtualMachineWizard(sheet: true, presetRemoteImage: (remote: self.remote.name, image: selectedImage))
+					.colorSchemeForColor()
+					.restorationState(.disabled)
+					.frame(minWidth: 700, minHeight: 670)
+			}
 		}
 	}
 

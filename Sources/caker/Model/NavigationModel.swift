@@ -71,10 +71,10 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	var selectedElement: SelectedElement? = nil
 	var navigationSplitViewVisibility: NavigationSplitViewVisibility = .all
 	var navigationSplitViewColumn: NavigationSplitViewColumn = .content
-	var selectedRemote: RemoteEntry! = nil
-	var selectedTemplate: TemplateEntry! = nil
-	var selectedNetwork: BridgedNetwork! = nil
-	var selectedVirtualMachine: VirtualMachineDocumentState! = nil
+	var selectedRemote: RemoteEntry? = nil
+	var selectedTemplate: TemplateEntry? = nil
+	var selectedNetwork: BridgedNetwork? = nil
+	var selectedVirtualMachine: VirtualMachineDocumentState? = nil
 	var documents: VirtualMachineDocumentStates = [:]
 	
 	static var categories: [Category] = [.virtualMachine, .networks, .templates, .images]

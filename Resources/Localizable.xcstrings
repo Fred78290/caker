@@ -839,6 +839,9 @@
         }
       }
     },
+    "Aliases:" : {
+
+    },
     "allocation failure" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3293,6 +3296,9 @@
         }
       }
     },
+    "Description:" : {
+
+    },
     "Destination raw image" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4693,6 +4699,9 @@
           }
         }
       }
+    },
+    "Fingerprint:" : {
+
     },
     "first ip used for the configured shared network, e.g., \"192.168.105.1\"" : {
       "extractionState" : "manual",
@@ -15165,6 +15174,9 @@
           }
         }
       }
+    },
+    "Uploaded:" : {
+
     },
     "url" : {
       "extractionState" : "manual",
