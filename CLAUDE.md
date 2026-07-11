@@ -48,7 +48,8 @@ pytest integration/tests/
 | `cakectl` | `Sources/cakectl/` | CLI client — talks to caked over gRPC |
 | `caker` (Caker.app) | `Sources/caker/` | macOS SwiftUI desktop app, embedded VM runner |
 | `CakedLib` | `Sources/cakedlib/` | Shared core: VM logic, networking, OCI, Cloud-Init, importers |
-| `GRPCLib` | `Sources/grpc/` | gRPC contract + generated client/server code |
+| `GRPCLib` | `Sources/Grpc/` | gRPC contract + generated client/server code |
+| `VirtualInstallSPI` | `Sources/VirtualInstallSPI/` | C shim exposing private `MobileDevice`/`Virtualization` SPIs, used by `CakedLib` |
 
 ### Communication Flow
 
@@ -79,10 +80,10 @@ When `caked` is running as a service, operations should go through `cakectl` rat
 
 ### gRPC Contract
 
-The single source of truth is `Sources/grpc/service.proto`. The generated files `service.grpc.swift` and `service.pb.swift` **must not be edited manually** — regenerate them with:
+The single source of truth is `Sources/Grpc/service.proto`. The generated files `service.grpc.swift` and `service.pb.swift` **must not be edited manually** — regenerate them with:
 
 ```bash
-cd Sources/grpc && ./generate.sh
+cd Sources/Grpc && ./generate.sh
 ```
 
 This script clones `grpc-swift`, builds the protoc plugins, then runs `protoc`. The `VMRunService` has its own separate proto at `Sources/cakedlib/VMRunService/GRPC/mount.proto`.
@@ -124,16 +125,16 @@ CI workflows run only on `push` and `workflow_dispatch` events — **never on `p
 if: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
 ```
 
-Workflows: `release.yaml` (GitHub release + DMG), `appstore-release.yaml` (App Store submission), `publish-wiki.yaml` (wiki → GitHub Pages sync).
+Workflows: `release.yaml` (GitHub release + DMG), `appstore-release.yaml` (App Store submission), `publish-wiki.yaml` (wiki → GitHub Pages sync), `sync-docs-from-wiki.yaml` (wiki → `docs/` Jekyll site → GitHub Pages).
 
 ## Documentation / Wiki
 
-Wiki source lives in `wiki/`. Publish manually:
+Wiki source lives in `wiki/` — edit this, not `docs/`. Publish manually:
 ```bash
 GH_TOKEN="${GITHUB_TOKEN}" ./Scripts/publish-wiki.sh <owner> <repo>
 ```
 
-Automated wiki publication syncs `wiki/` to GitHub Pages (at `caker.aldunelabs.com`) on push to main.
+On push to `main`, `publish-wiki.yaml` syncs `wiki/` to the GitHub wiki, and `sync-docs-from-wiki.yaml` regenerates the Jekyll site under `docs/` (published at `caker.aldunelabs.com`) from it. `docs/` is generated output — changes there are overwritten by the sync.
 
 ## Tests
 
