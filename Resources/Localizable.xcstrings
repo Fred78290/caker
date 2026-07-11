@@ -840,7 +840,14 @@
       }
     },
     "Aliases:" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alias:"
+          }
+        }
+      }
     },
     "allocation failure" : {
       "extractionState" : "manual",
@@ -3297,7 +3304,14 @@
       }
     },
     "Description:" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Description:"
+          }
+        }
+      }
     },
     "Destination raw image" : {
       "extractionState" : "manual",
@@ -4701,7 +4715,14 @@
       }
     },
     "Fingerprint:" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empreinte:"
+          }
+        }
+      }
     },
     "first ip used for the configured shared network, e.g., \"192.168.105.1\"" : {
       "extractionState" : "manual",
@@ -15176,7 +15197,14 @@
       }
     },
     "Uploaded:" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouté le:"
+          }
+        }
+      }
     },
     "url" : {
       "extractionState" : "manual",
