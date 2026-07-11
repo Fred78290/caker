@@ -249,7 +249,7 @@ extension Service {
 		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 
-		@Flag(help: .hidden)
+		@Flag(name: [.customLong("disable-tls")], help: ArgumentHelp(String(localized: "Don't use TLS")))
 		var unsecure: Bool = false
 
 		@Flag(help: .hidden)
