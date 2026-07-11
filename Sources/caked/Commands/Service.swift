@@ -568,7 +568,7 @@ extension Service {
 		}
 
 		mutating func run() throws {
-			let running = ServiceHandler.isAgentRunningWithPID
+			let running = ServiceHandler.isAgentRunning
 			let status = ServiceStatus(
 				installed: ServiceHandler.isAgentInstalled,
 				run: running.running,

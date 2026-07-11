@@ -136,7 +136,7 @@ struct VMRun: AsyncParsableCommand {
 			displaySize = config.display.cgSize
 		}
 
-		if (self.launchedFromService && self.startGCD) || (self.launchedFromService == false && ServiceHandler.isAgentRunning) {
+		if (self.launchedFromService && self.startGCD) || (self.launchedFromService == false && ServiceHandler.isAgentRunning.running) {
 			startGrandCentral = true
 
 			if display == .none {

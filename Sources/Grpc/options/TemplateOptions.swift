@@ -31,7 +31,7 @@ public struct TemplateDuplicateOptions: ParsableArguments {
 }
 
 public struct TemplateDeletionOptions: ParsableArguments {
-	public static let configuration = CommandConfiguration(commandName: "delete", abstract: String(localized: "Remove remotes"))
+	public static let configuration = CommandConfiguration(commandName: "delete", abstract: String(localized: "Remove remotes"), aliases: ["rm"])
 
 	@Argument(help: ArgumentHelp(String(localized: "Template name")))
 	public var name: String
@@ -51,7 +51,7 @@ public struct TemplateInfosOptions: ParsableArguments {
 }
 
 public struct TemplateListOptions: ParsableArguments {
-	public static let configuration = CommandConfiguration(commandName: "list", abstract: String(localized: "List the available remotes"))
+	public static let configuration = CommandConfiguration(commandName: "list", abstract: String(localized: "List the available remotes"), aliases: ["ls"])
 
 	public init() {
 	}

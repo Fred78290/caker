@@ -839,6 +839,16 @@
         }
       }
     },
+    "Aliases:" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alias:"
+          }
+        }
+      }
+    },
     "allocation failure" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3293,6 +3303,16 @@
         }
       }
     },
+    "Description:" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Description:"
+          }
+        }
+      }
+    },
     "Destination raw image" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4701,6 +4721,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fichier non trouvé"
+          }
+        }
+      }
+    },
+    "Fingerprint:" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empreinte:"
           }
         }
       }
@@ -15195,6 +15225,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mise à jour de l'agent"
+          }
+        }
+      }
+    },
+    "Uploaded:" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouté le:"
           }
         }
       }

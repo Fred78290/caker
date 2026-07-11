@@ -71,7 +71,7 @@ struct Certificate: ParsableCommand {
 	struct ListCertificates: GrpcParsableCommand {
 		static let configuration = CommandConfiguration(
 			commandName: "list",
-			abstract: String(localized: "List registered TLS client certificates")
+			abstract: String(localized: "List registered TLS client certificates"), aliases: ["ls"]
 		)
 		
 		@OptionGroup(title: String(localized: "Client options"))
@@ -90,7 +90,7 @@ struct Certificate: ParsableCommand {
 	
 	// MARK: delete
 	struct DeleteCertificate: GrpcParsableCommand {
-		static let configuration = CommandConfiguration(commandName: "delete", abstract: String(localized: "Remove a registered TLS client certificate"))
+		static let configuration = CommandConfiguration(commandName: "delete", abstract: String(localized: "Remove a registered TLS client certificate"), aliases: ["rm"])
 		
 		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options

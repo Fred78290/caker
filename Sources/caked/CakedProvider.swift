@@ -418,15 +418,39 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func remote(request: Caked_RemoteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: request)
+		let reply = try self.execute(command: request)
+
+		if request.command == .add || request.command == .delete {
+			Task {
+				await self.gcd.updateStatusRemotes()
+			}
+		}
+
+		return reply
 	}
 	
 	func template(request: Caked_TemplateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: request)
+		let reply = try self.execute(command: request)
+
+		if request.command == .add || request.command == .delete {
+			Task {
+				await self.gcd.updateStatusRemotes()
+			}
+		}
+
+		return reply
 	}
 	
 	func networks(request: Caked_NetworkRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: request)
+		let reply = try self.execute(command: request)
+
+		if request.command == .new || request.command == .remove || request.command == .set {
+			Task {
+				await self.gcd.updateStatusNetworks()
+			}
+		}
+
+		return reply
 	}
 	
 	func waitIP(request: Caked_WaitIPRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {

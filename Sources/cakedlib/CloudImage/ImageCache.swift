@@ -112,7 +112,7 @@ public class TemplateImageCache: CommonCacheImageCache {
 	}
 
 	public init(name: String, runMode: Utils.RunMode) throws {
-		try super.init(scheme: Self.scheme, location: "templates", name: name, ext: "cakedvm", root: try Home(runMode: runMode).cakeHomeDirectory, runMode: runMode)
+		try super.init(scheme: Self.scheme, location: "templates", name: name, ext: Home.vmExtension, root: try Home(runMode: runMode).cakeHomeDirectory, runMode: runMode)
 	}
 
 	override public func fqn(_ purgeable: Purgeable) -> [String] {

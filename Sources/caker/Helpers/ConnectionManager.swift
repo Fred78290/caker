@@ -208,24 +208,20 @@ final class ConnectionManager: Equatable {
 		NetworksHandler.delete(client: self.serviceClient, networkName: networkName, runMode: self.connectionMode.runMode)
 	}
 	
-	func createTemplate(vmURL: URL, templateName: String) throws -> CreateTemplateReply {
-		return try TemplateHandler.createTemplate(client: self.serviceClient, vmURL: vmURL, templateName: templateName, runMode: self.connectionMode.runMode)
+	func createTemplate(vmURL: URL, templateName: String) async throws -> CreateTemplateReply {
+		return try await TemplateHandler.createTemplate(client: self.serviceClient, vmURL: vmURL, templateName: templateName, runMode: self.connectionMode.runMode)
 	}
 	
-	func deleteTemplate(templateName: String) throws -> DeleteTemplateReply {
-		return try TemplateHandler.deleteTemplate(client: self.serviceClient, templateName: templateName, runMode: self.connectionMode.runMode)
+	func deleteTemplate(templateName: String) async throws -> DeleteTemplateReply {
+		return try await TemplateHandler.deleteTemplate(client: self.serviceClient, templateName: templateName, runMode: self.connectionMode.runMode)
 	}
 
-	func duplicateTemplate(sourceName: String, templateName: String) throws -> DuplicateTemplateReply {
-		return try TemplateHandler.duplicateTemplate(client: self.serviceClient, sourceName: sourceName, templateName: templateName, runMode: self.connectionMode.runMode)
+	func duplicateTemplate(sourceName: String, templateName: String) async throws -> DuplicateTemplateReply {
+		return try await TemplateHandler.duplicateTemplate(client: self.serviceClient, sourceName: sourceName, templateName: templateName, runMode: self.connectionMode.runMode)
 	}
 
 	func templateInfos(templateName: String) async throws -> InfoTemplateReply {
 		return try await TemplateHandler.infos(client: self.serviceClient, templateName: templateName, runMode: self.connectionMode.runMode)
-	}
-	
-	func templateExists(name: String) -> Bool {
-		TemplateHandler.exists(client: self.serviceClient, name: name, runMode: self.connectionMode.runMode)
 	}
 	
 	@discardableResult
@@ -402,23 +398,34 @@ extension ConnectionManager {
 		let root = storage.rootURL.lastPathComponent
 		let templatesRoot = templateStorage.rootURL.lastPathComponent
 		let networks = home.networkDirectory.lastPathComponent
-		let watcher = DirWatcher([storage.rootURL.path(percentEncoded: false), templateStorage.rootURL.path(percentEncoded: false), home.networkDirectory.path(percentEncoded: false)])
 		let logger = self.logger
+		let watcher = DirWatcher([
+			storage.rootURL.path(percentEncoded: false),
+			templateStorage.rootURL.path(percentEncoded: false),
+			home.networkDirectory.path(percentEncoded: false),
+			home.remoteDb.path(percentEncoded: false)
+		])
 
 		watcher.queue = DispatchQueue.global(qos: .utility)
 		watcher.callback = { [weak self] event in
 			guard let self else { return }
 
+			#if DEBUG
 			logger.debug("VM directory change: \(event.path) flags: 0x\(String(format: "%X", event.flags)), fileChange: \(event.fileChange), dirChange: \(event.dirChange)")
+			#endif
 
 			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
 
 			if event.fileChange {
-				if fileURL.lastPathComponent == Home.networksFilename && fileURL.deletingLastPathComponent().lastPathComponent == networks {
+				if fileURL.lastPathComponent == Home.remoteFilename {
+					Task { @MainActor in
+						AppState.shared.reloadRemotes()
+					}
+				} else if fileURL.lastPathComponent == Home.networksFilename && fileURL.deletingLastPathComponent().lastPathComponent == networks {
 					Task { @MainActor in
 						AppState.shared.reloadNetworks()
 					}
-				} else if fileURL.pathExtension == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
+				} else if fileURL.lastPathComponent == "vmnet.pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
 					Task {
 						await AppState.shared.updateNetworkStatus(fileURL.deletingLastPathComponent().lastPathComponent, running: fileURL.isPIDRunning().running)
 					}
@@ -427,7 +434,7 @@ extension ConnectionManager {
 				return
 			}
 
-			guard event.dirChange, fileURL.pathExtension == "cakedvm" else {
+			guard event.dirChange, fileURL.pathExtension == Home.vmExtension else {
 				return
 			}
 
@@ -566,6 +573,14 @@ extension ConnectionManager {
 						await AppState.shared.updateNetworkStatus(status.name, running: status.running)
 					case .networkInfos(let status):
 						await AppState.shared.updateNetworks(status.networks)
+					case .templateInfos(let status):
+						await AppState.shared.updateTemplates(status.templates.map {
+							TemplateEntry($0)
+						})
+					case .remotesInfos(let status):
+						await AppState.shared.updateRemote(status.remotes.map {
+							RemoteEntry($0)
+						})
 					default:
 						break
 					}

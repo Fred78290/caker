@@ -36,7 +36,7 @@ final class GrandCentralDispatch {
 	let shutdown = Mutex<Bool>(false)
 	var taskQueue: TaskQueue = TaskQueue(label: "GrandCentralDispatch")
 	var stream: AsyncThrowingStreamCakedStatus?
-	var networksWatcher: DirWatcher? = nil
+	var filesWatcher: DirWatcher? = nil
 	var haveListeners: Bool {
 		self.listeners.withLock { dict in
 			dict.isEmpty == false
@@ -134,8 +134,16 @@ final class GrandCentralDispatch {
 	}
 
 	func stopGrandCentralDispatch() {
+		self.stopFilesMonitor()
+
 		guard let stream else {
 			return
+		}
+
+		func shutdownStream() {
+			stream.continuation.finish()
+			
+			self.stream = nil
 		}
 
 		self.shutdown.withLock { $0 = true }
@@ -146,8 +154,12 @@ final class GrandCentralDispatch {
 			}
 		}
 
-		self.stopGrandCentralUpdate()?.whenComplete { _ in
-			stream.continuation.finish()
+		if let future = self.stopGrandCentralUpdate() {
+			future.whenComplete { _ in
+				shutdownStream()
+			}
+		} else {
+			shutdownStream()
 		}
 	}
 
@@ -161,7 +173,9 @@ final class GrandCentralDispatch {
 		future.whenComplete { result in
 			switch result {
 			case .success((let success, let reason)):
-				if success == false {
+				if success {
+					self.logger.debug("Grand Central Update stopped for \(location.name)")
+				} else {
 					self.logger.error("Failed to stop Grand Central Update for \(location.name): \(reason)")
 				}
 			case .failure(let error):
@@ -177,77 +191,20 @@ final class GrandCentralDispatch {
 			return nil
 		}
 
-		self.stopNetworksMonitor()
-
 		let futures = vms.values.compactMap {
 			if case .running = $0.status {
-				return $0
+				return self.stopGrandCentralUpdate(location: $0)
 			}
 
 			return nil
-		}.map {
-			self.stopGrandCentralUpdate(location: $0)
+		}
+		
+		guard futures.isEmpty == false else {
+			return nil
 		}
 
 		return EventLoopFuture.andAllComplete(futures, on: self.group.next())
 	}
-
-	func stopNetworksMonitor() {
-		guard let networksWatcher else {
-			return
-		}
-
-		self.networksWatcher = nil
-		networksWatcher.stop()
-	}
-
-	func startNetworksMonitor() {
-		guard self.networksWatcher == nil else {
-			return
-		}
-
-		guard let home = try? Home(runMode: self.runMode) else {
-			return
-		}
-
-		let networks = home.networkDirectory.lastPathComponent
-		let watcher = DirWatcher([home.networkDirectory.path(percentEncoded: false)])
-
-		watcher.queue = DispatchQueue.global(qos: .utility)
-		watcher.callback = { [weak self] event in
-			guard let self else { return }
-
-			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
-
-			if event.fileChange {
-				if fileURL.lastPathComponent == Home.networksFilename && fileURL.deletingLastPathComponent().lastPathComponent == networks {
-					Task {
-						try? await self.updateStatus(.with {
-							$0.name = Home.networksFilename
-							$0.networkInfos = .with {
-								$0.networks = CakedLib.NetworksHandler.networks(runMode: self.runMode).caked.networks
-							}
-						})
-					}
-				} else if fileURL.pathExtension == "pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
-					Task {
-						let networkName = fileURL.deletingLastPathComponent().lastPathComponent
-						
-						try? await self.updateStatus(.with {
-							$0.name = networkName
-							$0.network = .with {
-								$0.name = networkName
-								$0.running = fileURL.isPIDRunning().running
-							}
-						})
-					}
-				}
-			}
-		}
-
-		watcher.start()
-	}
-
 
 	func startGrandCentralUpdate(location: VMLocation) {
 		self.logger.info("Start Grand Central Update for \(location.name)")
@@ -259,7 +216,9 @@ final class GrandCentralDispatch {
 		future.whenComplete { result in
 			switch result {
 			case .success((let success, let reason)):
-				if success == false {
+				if success {
+					self.logger.debug("Grand Central Update started for \(location.name)")
+				} else {
 					self.logger.error("Failed to start Grand Central Update for \(location.name): \(reason)")
 				}
 			case .failure(let error):
@@ -273,7 +232,7 @@ final class GrandCentralDispatch {
 			return
 		}
 
-		self.startNetworksMonitor()
+		self.startFilesMonitor()
 
 		self.logger.info("Starting Grand Central Dispatch")
 
@@ -374,4 +333,123 @@ final class GrandCentralDispatch {
 
 		return Caked_Empty()
 	}
+}
+
+extension GrandCentralDispatch {
+	func stopFilesMonitor() {
+		guard let filesWatcher else {
+			return
+		}
+
+		self.filesWatcher = nil
+		filesWatcher.stop()
+	}
+
+	func updateStatusNetworks() async {
+		try? await self.updateStatus(.with {
+			$0.name = Home.networksFilename
+			$0.networkInfos = .with {
+				$0.networks = CakedLib.NetworksHandler.networks(runMode: self.runMode).caked.networks
+			}
+		})
+	}
+
+	func updateStatusRemotes() async {
+		let list = CakedLib.RemoteHandler.listRemote(runMode: self.runMode)
+		
+		if list.success {
+			try? await self.updateStatus(.with {
+				$0.name = "remote"
+				$0.remotesInfos = .with {
+					$0.remotes = list.remotes.map(\.caked)
+				}
+			})
+		}
+	}
+
+	func updateStatusTemplates() async {
+		let list = CakedLib.TemplateHandler.listTemplate(runMode: self.runMode)
+		
+		if list.success {
+			try? await self.updateStatus(.with {
+				$0.name = "templates"
+				$0.templateInfos = .with {
+					$0.templates = list.templates.map(\.caked)
+				}
+			})
+		}
+	}
+
+	func updateStatusNetwork(_ fileURL: URL) async {
+		let networkName = fileURL.deletingLastPathComponent().lastPathComponent
+		
+		try? await self.updateStatus(.with {
+			$0.name = networkName
+			$0.network = .with {
+				$0.name = networkName
+				$0.running = fileURL.isPIDRunning().running
+			}
+		})
+	}
+
+	func startFilesMonitor() {
+		guard self.filesWatcher == nil else {
+			return
+		}
+
+		guard let home = try? Home(runMode: self.runMode) else {
+			return
+		}
+
+		let templateStorage = StorageLocation(runMode: self.runMode, template: true)
+		let templatesRoot = templateStorage.rootURL.lastPathComponent
+		let logger = self.logger
+		let watcher = DirWatcher([
+			home.remoteDb.path(percentEncoded: false),
+			home.networkDirectory.path(percentEncoded: false),
+			templateStorage.rootURL.path(percentEncoded: false)])
+
+		self.filesWatcher = watcher
+
+		watcher.queue = DispatchQueue.global(qos: .utility)
+		watcher.callback = { [weak self] event in
+			guard let self else { return }
+
+			#if DEBUG
+			logger.debug("VM directory change: \(event.path) flags: 0x\(String(format: "%X", event.flags)), fileChange: \(event.fileChange), dirChange: \(event.dirChange)")
+			#endif
+
+			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
+
+			if event.dirChange {
+				// Watch templates directory
+				if fileURL.pathExtension == Home.vmExtension && fileURL.deletingLastPathComponent().lastPathComponent == templatesRoot {
+					Task {
+						await self.updateStatusTemplates()
+					}
+				}
+			} else if event.fileChange {
+				// Watch remote.json
+				if fileURL.lastPathComponent == Home.remoteFilename {
+					Task {
+						await self.updateStatusRemotes()
+					}
+				}
+				// Watch networks/networks.json
+				else if fileURL.lastPathComponent == Home.networksFilename {
+					Task {
+						await self.updateStatusNetworks()
+					}
+				// Watch networks/<network dir>/vmnet.pid
+				} else if fileURL.lastPathComponent == "vmnet.pid" {
+					Task {
+						await self.updateStatusNetwork(fileURL)
+					}
+				}
+			}
+		}
+
+		watcher.start()
+	}
+
 }

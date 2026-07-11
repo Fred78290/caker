@@ -76,6 +76,22 @@ struct HomeView: View {
 			}
 			.onChange(of: self.appState.connectionMode) {
 				self.navigationModel.resetSelections()
+			}.onChange(of: self.appState.virtualMachines) {
+				if let selectedVirtualMachine = navigationModel.selectedVirtualMachine, self.appState.findVirtualMachineDocument(selectedVirtualMachine.url) == nil {
+					navigationModel.selectedVirtualMachine = nil
+				}
+			}.onChange(of: self.appState.networks) {
+				if let selectedNetwork = navigationModel.selectedNetwork, self.appState.networkExists(name: selectedNetwork.name) == false {
+					navigationModel.selectedNetwork = nil
+				}
+			}.onChange(of: self.appState.templates) {
+				if let selectedTemplate = navigationModel.selectedTemplate, self.appState.templateExists(name: selectedTemplate.name) == false {
+					navigationModel.selectedTemplate = nil
+				}
+			}.onChange(of: self.appState.remotes) {
+				if let selectedRemote = navigationModel.selectedRemote, self.appState.remoteExists(name: selectedRemote.name) == false {
+					navigationModel.selectedRemote = nil
+				}
 			}.onReceive(AppState.AppStateChanged) { notification in
 				self.navigationModel.selectedTemplate = nil
 				self.navigationModel.selectedVirtualMachine = nil
@@ -167,13 +183,9 @@ struct HomeView: View {
 
 
 	var showDetailView: Bool {
-		guard self.selectedCategory != .virtualMachine else {
-			return false
-		}
-
 		switch self.selectedCategory {
 		case .virtualMachine:
-			break  // already handled by the guard above
+			return false
 		case .networks:
 			guard navigationModel.selectedNetwork != nil else {
 				return false
@@ -358,13 +370,25 @@ struct HomeView: View {
 	func actionDelete() {
 		switch self.selectedCategory {
 		case .virtualMachine:
-			navigationModel.selectedVirtualMachine?.deleteVirtualMachine()
+			if let selectedVirtualMachine = navigationModel.selectedVirtualMachine {
+				selectedVirtualMachine.deleteVirtualMachine()
+				navigationModel.selectedVirtualMachine = nil
+			}
 		case .networks:
-			self.appState.deleteNetwork(name: navigationModel.selectedNetwork.name)
+			if let selectedNetwork = navigationModel.selectedNetwork {
+				self.appState.deleteNetwork(name: selectedNetwork.name)
+				navigationModel.selectedNetwork = nil
+			}
 		case .images:
-			self.appState.deleteRemote(name: navigationModel.selectedRemote.name)
+			if let selectedRemote = navigationModel.selectedRemote {
+				self.appState.deleteRemote(name: selectedRemote.name)
+				navigationModel.selectedRemote = nil
+			}
 		case .templates:
-			self.appState.deleteTemplate(name: navigationModel.selectedTemplate.name)
+			if let selectedTemplate = navigationModel.selectedTemplate {
+				self.appState.deleteTemplate(name: selectedTemplate.name)
+				navigationModel.selectedTemplate = nil
+			}
 		}
 	}
 

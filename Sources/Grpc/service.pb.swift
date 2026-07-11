@@ -2838,6 +2838,30 @@ public nonisolated struct Caked_Caked: Sendable {
         public init() {}
       }
 
+      public nonisolated struct TemplateInfos: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var templates: [Caked_Caked.Reply.TemplateReply.ListTemplatesReply.TemplateEntry] = []
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+      }
+
+      public nonisolated struct RemotesInfos: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var remotes: [Caked_Caked.Reply.RemoteReply.ListRemoteReply.RemoteEntry] = []
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+      }
+
       public nonisolated struct CurrentStatus: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2895,6 +2919,22 @@ public nonisolated struct Caked_Caked: Sendable {
           set {message = .networkInfos(newValue)}
         }
 
+        public var templateInfos: Caked_Caked.Reply.CurrentStatusReply.TemplateInfos {
+          get {
+            if case .templateInfos(let v)? = message {return v}
+            return Caked_Caked.Reply.CurrentStatusReply.TemplateInfos()
+          }
+          set {message = .templateInfos(newValue)}
+        }
+
+        public var remotesInfos: Caked_Caked.Reply.CurrentStatusReply.RemotesInfos {
+          get {
+            if case .remotesInfos(let v)? = message {return v}
+            return Caked_Caked.Reply.CurrentStatusReply.RemotesInfos()
+          }
+          set {message = .remotesInfos(newValue)}
+        }
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public nonisolated enum OneOf_Message: Equatable, Sendable {
@@ -2904,6 +2944,8 @@ public nonisolated struct Caked_Caked: Sendable {
           case failure(String)
           case network(Caked_Caked.Reply.CurrentStatusReply.NetworkStatus)
           case networkInfos(Caked_Caked.Reply.CurrentStatusReply.NetworkInfos)
+          case templateInfos(Caked_Caked.Reply.CurrentStatusReply.TemplateInfos)
+          case remotesInfos(Caked_Caked.Reply.CurrentStatusReply.RemotesInfos)
 
         }
 
@@ -10483,9 +10525,69 @@ nonisolated extension Caked_Caked.Reply.CurrentStatusReply.NetworkInfos: SwiftPr
   }
 }
 
+nonisolated extension Caked_Caked.Reply.CurrentStatusReply.TemplateInfos: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.CurrentStatusReply.protoMessageName + ".TemplateInfos"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}templates\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.templates) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.templates.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.templates, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.CurrentStatusReply.TemplateInfos, rhs: Caked_Caked.Reply.CurrentStatusReply.TemplateInfos) -> Bool {
+    if lhs.templates != rhs.templates {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.Reply.CurrentStatusReply.RemotesInfos: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.CurrentStatusReply.protoMessageName + ".RemotesInfos"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}remotes\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.remotes) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.remotes.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.remotes, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.CurrentStatusReply.RemotesInfos, rhs: Caked_Caked.Reply.CurrentStatusReply.RemotesInfos) -> Bool {
+    if lhs.remotes != rhs.remotes {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 nonisolated extension Caked_Caked.Reply.CurrentStatusReply.CurrentStatus: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.CurrentStatusReply.protoMessageName + ".CurrentStatus"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}usage\0\u{1}screenshot\0\u{1}status\0\u{1}failure\0\u{1}network\0\u{1}networkInfos\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}usage\0\u{1}screenshot\0\u{1}status\0\u{1}failure\0\u{1}network\0\u{1}networkInfos\0\u{1}templateInfos\0\u{1}remotesInfos\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -10557,6 +10659,32 @@ nonisolated extension Caked_Caked.Reply.CurrentStatusReply.CurrentStatus: SwiftP
           self.message = .networkInfos(v)
         }
       }()
+      case 8: try {
+        var v: Caked_Caked.Reply.CurrentStatusReply.TemplateInfos?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .templateInfos(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .templateInfos(v)
+        }
+      }()
+      case 9: try {
+        var v: Caked_Caked.Reply.CurrentStatusReply.RemotesInfos?
+        var hadOneofValue = false
+        if let current = self.message {
+          hadOneofValue = true
+          if case .remotesInfos(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.message = .remotesInfos(v)
+        }
+      }()
       default: break
       }
     }
@@ -10594,6 +10722,14 @@ nonisolated extension Caked_Caked.Reply.CurrentStatusReply.CurrentStatus: SwiftP
     case .networkInfos?: try {
       guard case .networkInfos(let v)? = self.message else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
+    }()
+    case .templateInfos?: try {
+      guard case .templateInfos(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+    }()
+    case .remotesInfos?: try {
+      guard case .remotesInfos(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
     }()
     case nil: break
     }
