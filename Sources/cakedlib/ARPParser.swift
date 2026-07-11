@@ -8,6 +8,18 @@ struct ARPEntry {
 	let interface: String
 }
 
+/// Public, allocation-cheap wrapper around the host's ARP cache. Used to resolve which
+/// guest (by MAC address) currently owns a given source IP on a shared host-only network —
+/// e.g. the IMDS network, where several VMs' guest NICs share one virtual switch and the
+/// only way to tell them apart at the HTTP layer is the request's source IP.
+public enum ARPResolver {
+	/// Returns the current IPv4 address the host's ARP cache has for `macAddress`, if any.
+	/// Backed by `ARPParser`'s 10s cache, so safe to call per-request.
+	public static func ipAddress(forMACAddress macAddress: String) -> String? {
+		(try? ARPParser())?[macAddress]
+	}
+}
+
 class ARPParser: DHCPLeaseProvider {
 	private struct CacheEntry {
 		let timestamp: Date
