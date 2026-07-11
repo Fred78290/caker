@@ -401,8 +401,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		self.setRemotes(self.loadRemotes())
 	}
 
-	func addRemote(name: String, url: URL) throws {
-		let result = try self.connectionManager.addRemote(name: name, url: url)
+	func addRemote(name: String, url: URL) async throws {
+		let result = try await self.connectionManager.addRemote(name: name, url: url)
 
 		guard result.created else {
 			throw ServiceError(result.reason)
@@ -460,8 +460,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		self.connectionManager.templateExists(name: name)
 	}
 
-	func templateInfos(name: String) -> InfoTemplateReply {
-		if let result = try? self.connectionManager.templateInfos(templateName: name) {
+	func templateInfos(name: String) async -> InfoTemplateReply {
+		if let result = try? await self.connectionManager.templateInfos(templateName: name) {
 			return result
 		}
 

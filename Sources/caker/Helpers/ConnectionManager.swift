@@ -166,8 +166,8 @@ final class ConnectionManager: Equatable {
 		return try RemoteHandler.listRemote(client: self.serviceClient, runMode: self.connectionMode.runMode).remotes.sorted(using: RemoteHandlerComparator())
 	}
 
-	func addRemote(name: String, url: URL) throws -> CreateRemoteReply {
-		return try RemoteHandler.addRemote(client: self.serviceClient, name: name, url: url, runMode: self.connectionMode.runMode)
+	func addRemote(name: String, url: URL) async throws -> CreateRemoteReply {
+		return try await RemoteHandler.addRemote(client: self.serviceClient, name: name, url: url, runMode: self.connectionMode.runMode)
 	}
 
 	func loadTemplates() throws -> [TemplateEntry] {
@@ -220,8 +220,8 @@ final class ConnectionManager: Equatable {
 		return try TemplateHandler.duplicateTemplate(client: self.serviceClient, sourceName: sourceName, templateName: templateName, runMode: self.connectionMode.runMode)
 	}
 
-	func templateInfos(templateName: String) throws -> InfoTemplateReply {
-		return try TemplateHandler.infos(client: self.serviceClient, templateName: templateName, runMode: self.connectionMode.runMode)
+	func templateInfos(templateName: String) async throws -> InfoTemplateReply {
+		return try await TemplateHandler.infos(client: self.serviceClient, templateName: templateName, runMode: self.connectionMode.runMode)
 	}
 	
 	func templateExists(name: String) -> Bool {
