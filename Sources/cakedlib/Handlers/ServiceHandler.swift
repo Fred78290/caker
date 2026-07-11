@@ -442,8 +442,14 @@ public struct ServiceHandler {
 
 	public static func isAgentRunning(runMode: Utils.RunMode) -> (running: Bool, agentURL: URL?, pid: Int32?) {
 		if let home = try? Home(runMode: runMode, createItIfNotExists: false) {
+			let run = home.agentPID.isPIDRunning()
+
+			if run.running {
+				return (true, home.agentPID, run.pid)
+			}
+
 			let domain: String
-			
+
 			switch runMode {
 			case .system:
 				domain = "system"
@@ -468,7 +474,7 @@ public struct ServiceHandler {
 		return (false, nil, nil)
 	}
 
-	public static var isAgentRunningWithPID: (running: Bool, agentURL: URL?, pid: Int32?) {
+	public static var isAgentRunning: (running: Bool, agentURL: URL?, pid: Int32?) {
 		for runMode in [Utils.RunMode.system, .user] {
 			let run = self.isAgentRunning(runMode: runMode)
 
@@ -478,16 +484,6 @@ public struct ServiceHandler {
 		}
 
 		return (false, nil, nil)
-	}
-
-	public static var isAgentRunning: Bool {
-		for runMode in [Utils.RunMode.system, .user] {
-			if self.isAgentRunning(runMode: runMode).running {
-				return true
-			}
-		}
-
-		return false
 	}
 
 	public static var runningMode: Utils.RunMode {
