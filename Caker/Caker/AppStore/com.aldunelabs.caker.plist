@@ -22,7 +22,6 @@
 		<string>--tcp</string>
 		<string>--rest</string>
 		<string>--grpc</string>
-		<string>--secure</string>
 		<string>--log</string>
 	</array>
 	<key>RunAtLoad</key>
