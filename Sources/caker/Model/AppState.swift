@@ -659,7 +659,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 				do {
 					let templateResult = try await self.connectionManager.createTemplate(vmURL: vm.url, templateName: txt.stringValue)
 					
-					if templateResult.created == false {
+					if templateResult.created {
 						await self.reloadTemplates()
 					} else {
 						await alertError(String(localized: "Failed to create template"), templateResult.reason ?? String(localized: "Internal error"))
