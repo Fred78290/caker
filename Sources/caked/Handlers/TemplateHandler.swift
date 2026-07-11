@@ -6,7 +6,7 @@ import GRPCLib
 import NIO
 import Shout
 
-struct TemplateHandler: CakedCommand {
+struct TemplateHandler: CakedCommandAsync {
 	let request: Caked_TemplateRequest
 
 	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
@@ -63,7 +63,7 @@ struct TemplateHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
+	func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
 		let reply: Caked_TemplateReply
 
 		switch request.command {
@@ -78,8 +78,14 @@ struct TemplateHandler: CakedCommand {
 			}
 
 		case .duplicate:
+			let sourceName = request.duplicateRequest.sourceName
+			let templateName = request.duplicateRequest.templateName
+			let result = await Task.detached(priority: .utility) {
+				CakedLib.TemplateHandler.duplicateTemplate(sourceName: sourceName, templateName: templateName, runMode: runMode)
+			}.value
+
 			reply = Caked_TemplateReply.with {
-				$0.duplicate = CakedLib.TemplateHandler.duplicateTemplate(sourceName: request.duplicateRequest.sourceName, templateName: request.duplicateRequest.templateName, runMode: runMode).caked
+				$0.duplicate = result.caked
 			}
 
 		case .infos:
