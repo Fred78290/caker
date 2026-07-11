@@ -372,6 +372,38 @@ struct VirtualMachineWizard: View {
 
 	var sheet: Bool = false
 
+	init(sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil) {
+		self.sheet = sheet
+
+		if let presetTemplate {
+			var config = VirtualMachineConfig()
+			config.source = .template
+			config.imageName = presetTemplate.fqn
+			config.vmname = presetTemplate.name
+
+			let model = VirtualMachineWizardStateObject()
+			model.imageSource = .template
+
+			self._config = State(initialValue: config)
+			self._model = State(initialValue: model)
+		} else if let presetRemoteImage {
+			var config = VirtualMachineConfig()
+			config.source = .stream
+			config.diskFormat = .raw
+			config.os = .linux
+			config.imageName = "\(presetRemoteImage.remote)://\(presetRemoteImage.image.fingerprint)"
+
+			let model = VirtualMachineWizardStateObject()
+			model.imageSource = .stream
+			model.remoteImage = presetRemoteImage.remote
+			model.selectedRemoteImage = presetRemoteImage.image.fingerprint
+			model.remoteImages = [ShortImageInfo(presetRemoteImage.image)]
+
+			self._config = State(initialValue: config)
+			self._model = State(initialValue: model)
+		}
+	}
+
 	@ViewBuilder
 	func Content(currentStep: WizardModel.SelectedItem) -> some View {
 		switch currentStep {
@@ -1036,27 +1068,29 @@ struct VirtualMachineWizard: View {
 					}
 				}
 
-				LabeledContent("Optional existing root disk (no copy)") {
-					HStack {
-						TextField("path", text: $model.rootDisk)
-							.rounded(.leading)
+				if model.imageSource == .iso || model.imageSource == .ipsw {
+					LabeledContent("Optional existing root disk (no copy)") {
+						HStack {
+							TextField("path", text: $model.rootDisk)
+								.rounded(.leading)
+								.disabled(self.model.createVM)
+							Button(action: {
+							model.rootDisk = chooseDocument(String(localized: "Choose a root disk"), showsHiddenFiles: true) ?? String.empty
+							}) {
+								Image(systemName: "externaldrive.badge.plus")
+							}
 							.disabled(self.model.createVM)
-						Button(action: {
-						model.rootDisk = chooseDocument(String(localized: "Choose a root disk"), showsHiddenFiles: true) ?? String.empty
-						}) {
-							Image(systemName: "externaldrive.badge.plus")
-						}
-						.disabled(self.model.createVM)
-						.buttonStyle(.borderless)
-						.onChange(of: model.rootDisk) { _, newValue in
-							if newValue.isEmpty {
-								self.config.rootDisk = nil
-							} else {
-								if self.model.imageSource != .ipsw && self.model.imageSource != .iso {
-									self.model.imageSource = .iso
-								}
+							.buttonStyle(.borderless)
+							.onChange(of: model.rootDisk) { _, newValue in
+								if newValue.isEmpty {
+									self.config.rootDisk = nil
+								} else {
+									if self.model.imageSource != .ipsw && self.model.imageSource != .iso {
+										self.model.imageSource = .iso
+									}
 
-								self.config.rootDisk = newValue
+									self.config.rootDisk = newValue
+								}
 							}
 						}
 					}

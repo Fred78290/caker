@@ -10,6 +10,48 @@ import SwiftUI
 
 typealias VirtualMachineDocumentStates = [URL: VirtualMachineDocumentState]
 
+private let knownOSImageNames = [
+	"almalinux",
+	"alpine",
+	"arch-linux",
+	"backtrack",
+	"centos",
+	"debian",
+	"elementary-os",
+	"fedora",
+	"gentoo",
+	"knoppix",
+	"kubuntu",
+	"linux",
+	"lubuntu",
+	"mac",
+	"mandriva",
+	"mint",
+	"openwrt",
+	"pop-os",
+	"red-hat",
+	"slackware",
+	"suse",
+	"syllable",
+	"ubuntu",
+	"webos",
+	"xubuntu",
+]
+
+func osImageName(for osname: String) -> String {
+	let osname = osname.lowercased()
+
+	if osname == "darwin" {
+		return "mac"
+	}
+
+	return knownOSImageNames.first { osname.contains($0) } ?? "linux"
+}
+
+func osIconImage(for osname: String) -> some View {
+	Image(osImageName(for: osname)).resizable().aspectRatio(contentMode: .fit)
+}
+
 @Observable final class VirtualMachineDocumentState: Equatable, Identifiable, Comparable, Hashable {
 	var id: String { self.instanceID }
 	let url: URL
@@ -85,48 +127,7 @@ typealias VirtualMachineDocumentStates = [URL: VirtualMachineDocumentState]
 	}
 	
 	var osImage: some View {
-		var name = "linux"
-		
-		if self.os == .darwin {
-			name = "mac"
-		} else if let osName = self.osName {
-			let osNames = [
-				"almalinux",
-				"alpine",
-				"arch-linux",
-				"backtrack",
-				"centos",
-				"debian",
-				"elementary-os",
-				"fedora",
-				"gentoo",
-				"knoppix",
-				"kubuntu",
-				"linux",
-				"lubuntu",
-				"mac",
-				"mandriva",
-				"mint",
-				"openwrt",
-				"pop-os",
-				"red-hat",
-				"slackware",
-				"suse",
-				"syllable",
-				"ubuntu",
-				"webos",
-				"xubuntu",
-			]
-			
-			for value in osNames {
-				if osName.lowercased().contains(value) {
-					name = value
-					break
-				}
-			}
-		}
-		
-		return Image(name).resizable().aspectRatio(contentMode: .fit)
+		osIconImage(for: self.os == .darwin ? "darwin" : (self.osName ?? self.os.rawValue))
 	}
 	
 	func issuedNotificationFromDocument<T>(_ notification: Notification) -> T? {

@@ -23,7 +23,7 @@ struct CreateTemplateView: View {
 					switch result {
 					case .success(let value):
 						self.templateResult = value
-						AppState.shared.reloadRemotes()
+						AppState.shared.reloadTemplates()
 					case .failure(let error):
 						alertError(error)
 					}
@@ -51,12 +51,10 @@ struct CreateTemplateView: View {
 	}
 
 	private func createTemplate(_ done: @escaping (Result<CreateTemplateReply, Error>) -> Void) async {
-		DispatchQueue.main.async {
-			do {
-				done(.success(try AppState.shared.createTemplate(templateName: self.templateName)))
-			} catch {
-				done(.failure(error))
-			}
+		do {
+			await done(.success(try AppState.shared.createTemplate(templateName: self.templateName)))
+		} catch {
+			done(.failure(error))
 		}
 	}
 }

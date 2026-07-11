@@ -146,3 +146,58 @@ public struct DeleteTemplateReply: Codable {
 		self.reason = from.reason
 	}
 }
+
+public struct DuplicateTemplateReply: Codable {
+	public let name: String
+	public let duplicated: Bool
+	public let reason: String
+
+	public var caked: Caked_DuplicateTemplateReply {
+		Caked_DuplicateTemplateReply.with {
+			$0.name = self.name
+			$0.duplicated = self.duplicated
+			$0.reason = self.reason
+		}
+	}
+
+	public init(name: String, duplicated: Bool, reason: String) {
+		self.name = name
+		self.duplicated = duplicated
+		self.reason = reason
+	}
+
+	public init(_ from: Caked_DuplicateTemplateReply) {
+		self.name = from.name
+		self.duplicated = from.duplicated
+		self.reason = from.reason
+	}
+}
+
+public struct InfoTemplateReply: Codable {
+	public let success: Bool
+	public let reason: String
+	public let infos: VMInformations?
+
+	public var caked: Caked_InfoTemplateReply {
+		Caked_InfoTemplateReply.with {
+			$0.success = self.success
+			$0.reason = self.reason
+
+			if let infos = self.infos {
+				$0.infos = infos.caked
+			}
+		}
+	}
+
+	public init(success: Bool, reason: String, infos: VMInformations?) {
+		self.success = success
+		self.reason = reason
+		self.infos = infos
+	}
+
+	public init(_ from: Caked_InfoTemplateReply) {
+		self.success = from.success
+		self.reason = from.reason
+		self.infos = from.hasInfos ? VMInformations(from.infos) : nil
+	}
+}

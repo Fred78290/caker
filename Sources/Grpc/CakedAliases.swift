@@ -64,6 +64,8 @@ public typealias Caked_PullReply = Caked.Reply.OCIReply.PullReply
 public typealias Caked_TemplateReply = Caked.Reply.TemplateReply
 public typealias Caked_CreateTemplateReply = Caked.Reply.TemplateReply.CreateTemplateReply
 public typealias Caked_DeleteTemplateReply = Caked.Reply.TemplateReply.DeleteTemplateReply
+public typealias Caked_DuplicateTemplateReply = Caked.Reply.TemplateReply.DuplicateTemplateReply
+public typealias Caked_InfoTemplateReply = Caked.Reply.TemplateReply.InfoTemplateReply
 public typealias Caked_ListTemplatesReply = Caked.Reply.TemplateReply.ListTemplatesReply
 public typealias Caked_TemplateEntry = Caked.Reply.TemplateReply.ListTemplatesReply.TemplateEntry
 

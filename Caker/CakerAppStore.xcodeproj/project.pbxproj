@@ -21,6 +21,8 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		9B001DCA300189A80048894C /* TemplateDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001DC9300189A80048894C /* TemplateDetailView.swift */; };
+		9B001E8C300191920048894C /* RemoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001E8B300191920048894C /* RemoteDetailView.swift */; };
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
 		9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
 		9B06995E2FB1A1B800FEAE13 /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
@@ -847,6 +849,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9B001DC9300189A80048894C /* TemplateDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateDetailView.swift; sourceTree = "<group>"; };
+		9B001E8B300191920048894C /* RemoteDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteDetailView.swift; sourceTree = "<group>"; };
 		9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDetailView.swift; sourceTree = "<group>"; };
 		9B0202722EA8D08800053712 /* RoundedTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedTextField.swift; sourceTree = "<group>"; };
 		9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPSWInstaller.swift; sourceTree = "<group>"; };
@@ -2182,9 +2186,11 @@
 				9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */,
 				9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */,
 				9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */,
+				9B001E8B300191920048894C /* RemoteDetailView.swift */,
 				9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */,
 				9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */,
 				9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */,
+				9B001DC9300189A80048894C /* TemplateDetailView.swift */,
 				9B9C4E922E23C92900C13D23 /* TemplatesView.swift */,
 				9B9C4E582E23BC8B00C13D23 /* VirtualMachinesView.swift */,
 				9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */,
@@ -3406,6 +3412,7 @@
 				9B29F7BF2FCAE4B700AEBCB8 /* ForwardedPortView.swift in Sources */,
 				9B29F7C02FCAE4B700AEBCB8 /* Authorization.swift in Sources */,
 				9B29F7C12FCAE4B700AEBCB8 /* InstallAgentHandler.swift in Sources */,
+				9B001E8C300191920048894C /* RemoteDetailView.swift in Sources */,
 				9B29F7C22FCAE4B700AEBCB8 /* Color.swift in Sources */,
 				9B29F7C32FCAE4B700AEBCB8 /* VZMacAddressParseableFormatStyle.swift in Sources */,
 				9B29F7C42FCAE4B700AEBCB8 /* RemoteHandler.swift in Sources */,
@@ -3461,6 +3468,7 @@
 				9B29F7F42FCAE4B700AEBCB8 /* SocketsNewItemView.swift in Sources */,
 				9B29F7F52FCAE4B700AEBCB8 /* NetworkAttachementNewItemView.swift in Sources */,
 				9B29F7F62FCAE4B700AEBCB8 /* MemorySizeStyle.swift in Sources */,
+				9B001DCA300189A80048894C /* TemplateDetailView.swift in Sources */,
 				9B29F7F72FCAE4B700AEBCB8 /* CurrentStatusHandler.swift in Sources */,
 				9B29F7F82FCAE4B700AEBCB8 /* ScreenSizeHandler.swift in Sources */,
 				9B29F7F92FCAE4B700AEBCB8 /* ForwardedPortDetailView.swift in Sources */,

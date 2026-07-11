@@ -69,7 +69,7 @@ struct VirtualBuddyImporter: Importer {
 		let configURL = bundleURL.appendingPathComponent(".vbdata/Config.plist")
 
 		guard try configURL.exists() else {
-			throw ServiceError(String(localized: "Config.plist not found in \(bundleURL.path)"))
+			throw ServiceError(String(localized: "config.plist not found in \(bundleURL.path)"))
 		}
 
 		let plist = try Self.plist(at: configURL)

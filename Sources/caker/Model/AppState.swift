@@ -401,6 +401,27 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		self.setRemotes(self.loadRemotes())
 	}
 
+	func addRemote(name: String, url: URL) async throws {
+		let result = try await self.connectionManager.addRemote(name: name, url: url)
+
+		guard result.created else {
+			throw ServiceError(result.reason)
+		}
+
+		self.reloadRemotes()
+	}
+
+	func remoteExists(name: String) -> Bool {
+		self.remotes.first {
+			$0.name == name
+		} != nil
+	}
+
+	@MainActor
+	func updateRemote(_ remotes: [RemoteEntry]) {
+		self.setRemotes(remotes)
+	}
+
 	func loadTemplates() -> [TemplateEntry] {
 		if let result = try? self.connectionManager.loadTemplates() {
 			return result
@@ -409,8 +430,14 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		return []
 	}
 
+	@MainActor
 	func reloadTemplates() {
 		self.setTemplates(self.loadTemplates())
+	}
+
+	@MainActor
+	func updateTemplates(_ templates: [TemplateEntry]) {
+		self.setTemplates(templates)
 	}
 
 	func loadImages(remote: String) async -> [ImageInfo] {
@@ -434,7 +461,13 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		self.connectionManager.stopNetwork(networkName: networkName)
 	}
 
-	func createTemplate(templateName: String) throws -> CreateTemplateReply {
+	func networkExists(name: String) -> Bool {
+		self.networks.first {
+			$0.name == name
+		} != nil
+	}
+
+	func createTemplate(templateName: String) async throws -> CreateTemplateReply {
 		guard let currentDocument = self.currentDocument else {
 			throw ServiceError(String(localized: "No VM found"))
 		}
@@ -443,11 +476,21 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			throw ServiceError(String(localized: "VM is running"))
 		}
 
-		return try self.connectionManager.createTemplate(vmURL: currentDocument.url, templateName: templateName)
+		return try await self.connectionManager.createTemplate(vmURL: currentDocument.url, templateName: templateName)
 	}
 
 	func templateExists(name: String) -> Bool {
-		self.connectionManager.templateExists(name: name)
+		self.templates.first {
+			$0.name == name
+		} != nil
+	}
+
+	func templateInfos(name: String) async -> InfoTemplateReply {
+		if let result = try? await self.connectionManager.templateInfos(templateName: name) {
+			return result
+		}
+
+		return InfoTemplateReply(success: false, reason: String(localized: "Failed to load template info"), infos: nil)
 	}
 
 	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
@@ -612,19 +655,17 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		alert.accessoryView = txt
 
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			do {
-				let templateResult = try self.connectionManager.createTemplate(vmURL: vm.url, templateName: txt.stringValue)
-
-				if templateResult.created == false {
-					self.reloadTemplates()
-				} else {
-					DispatchQueue.main.async {
-						alertError(String(localized: "Failed to create template"), templateResult.reason ?? String(localized: "Internal error"))
+			Task {
+				do {
+					let templateResult = try await self.connectionManager.createTemplate(vmURL: vm.url, templateName: txt.stringValue)
+					
+					if templateResult.created {
+						await self.reloadTemplates()
+					} else {
+						await alertError(String(localized: "Failed to create template"), templateResult.reason ?? String(localized: "Internal error"))
 					}
-				}
-			} catch {
-				DispatchQueue.main.async {
-					alertError(error)
+				} catch {
+					await alertError(error)
 				}
 			}
 		}
@@ -727,6 +768,36 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		}
 	}
 
+	func duplicateTemplate(name: String) {
+		let alert = NSAlert()
+		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+
+		alert.messageText = String(localized: "Clone template")
+		alert.informativeText = String(localized: "Name of the new template")
+		alert.alertStyle = .informational
+		alert.addButton(withTitle: String(localized: "Clone"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
+
+		alert.accessoryView = txt
+
+		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
+			let templateName = txt.stringValue
+			Task {
+				do {
+					let result = try await self.connectionManager.duplicateTemplate(sourceName: name, templateName: templateName)
+					
+					if result.duplicated {
+						await self.reloadTemplates()
+					} else {
+						await alertError(String(localized: "Failed to clone template"), result.reason)
+					}
+				} catch {
+					await alertError(error)
+				}
+			}
+		}
+	}
+
 	func deleteTemplate(name: String) {
 		let alert = NSAlert()
 
@@ -737,19 +808,17 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		alert.addButton(withTitle: String(localized: "Cancel"))
 
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			do {
-				let result = try self.connectionManager.deleteTemplate(templateName: name)
-
-				if result.deleted {
-					self.reloadTemplates()
-				} else {
-					DispatchQueue.main.async {
-						alertError(String(localized: "Delete failed"), result.reason)
+			Task {
+				do {
+					let result = try await self.connectionManager.deleteTemplate(templateName: name)
+					
+					if result.deleted {
+						await self.reloadTemplates()
+					} else {
+						await alertError(String(localized: "Delete failed"), result.reason)
 					}
-				}
-			} catch {
-				DispatchQueue.main.async {
-					alertError(error)
+				} catch {
+					await alertError(error)
 				}
 			}
 		}
