@@ -432,9 +432,9 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func template(request: Caked_TemplateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
 
-		if request.command == .add || request.command == .delete {
+		if request.command == .add || request.command == .delete || request.command == .duplicate {
 			Task {
-				await self.gcd.updateStatusRemotes()
+				await self.gcd.updateStatusTemplates()
 			}
 		}
 
