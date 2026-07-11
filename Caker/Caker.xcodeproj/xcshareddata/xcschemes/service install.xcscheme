@@ -86,10 +86,6 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--secure"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "--web-ui=~/Projects/GitHub/caker/webui/dist"
             isEnabled = "NO">
          </CommandLineArgument>
