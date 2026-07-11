@@ -101,8 +101,8 @@ Référence rapide des commandes pour les opérations quotidiennes courantes.
   - `caked certificates get`
   - `caked certificates generate`
 - Mode service :
-  - `caked service listen --secure` *(activer le trafic sécurisé)*
-  - `caked service listen --tcp --secure`  *(activer l'écoute sur tcp)*
+  - `caked service listen --disable-tls` *(activer le trafic sans TLS)*
+  - `caked service listen --tcp`  *(activer l'écoute sur tcp)*
   - `caked service listen --rest` *(activer l'API REST LXD)*
   - `caked service listen --rest --web-ui /path/to/webui/dist` *(avec interface Web)*
   - `caked service status`
@@ -300,8 +300,8 @@ Quick command reference for common daily operations.
   - `caked certificates get`
   - `caked certificates generate`
 - Service mode:
-  - `caked service listen --secure` *(enable secure traffic)*
-  - `caked service listen --tcp --secure`  *(enable listen on tcp)*
+  - `caked service listen --disable-tls` *(enable traffic without TLS)*
+  - `caked service listen --tcp`  *(enable listen on tcp)*
   - `caked service listen --rest` *(enable LXD REST API)*
   - `caked service listen --rest --web-ui /path/to/webui/dist` *(with web UI)*
   - `caked service status`
