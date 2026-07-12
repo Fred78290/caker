@@ -419,7 +419,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 	@MainActor
 	func updateRemote(_ remotes: [RemoteEntry]) {
-		self.setRemotes(remotes)
+		self.setRemotes(remotes.sorted(using: RemoteHandlerComparator()))
 	}
 
 	func loadTemplates() -> [TemplateEntry] {
@@ -437,7 +437,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 	@MainActor
 	func updateTemplates(_ templates: [TemplateEntry]) {
-		self.setTemplates(templates)
+		self.setTemplates(templates.sorted(using: TemplateEntryComparator()))
 	}
 
 	func loadImages(remote: String) async -> [ImageInfo] {
