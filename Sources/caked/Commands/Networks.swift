@@ -700,13 +700,19 @@ struct Networks: ParsableCommand {
 	/// as a short-lived, separately-privileged helper via `SudoCaked` from `IMDSCoordinator`
 	/// — nothing about the daemon itself runs as root.
 	struct ImdsRedirect: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: String(localized: "Manage the IMDS port-80 pf redirect"), shouldDisplay: false)
+		static let configuration = CommandConfiguration(abstract: String(localized: "Manage the IMDS pf redirects"), shouldDisplay: false)
 
 		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
 
 		@Flag(help: .hidden)
 		var disable: Bool = false
+
+		/// When set, this invocation manages the address-alias redirect (`externalAddress`
+		/// → `internalAddress`, any port preserved) instead of the port-80 redirect
+		/// (`externalAddress:externalPort` → `internalAddress:internalPort`).
+		@Flag(name: [.customLong("alias")], help: .hidden)
+		var alias: Bool = false
 
 		@Option(name: [.customLong("external-address")], help: .hidden)
 		var externalAddress: String = IMDSNetworkInterface.imdsGateway
@@ -727,13 +733,19 @@ struct Networks: ParsableCommand {
 				throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))
 			}
 
-			if self.disable == false && self.internalPort == 0 {
+			if self.disable == false && self.alias == false && self.internalPort == 0 {
 				throw ValidationError(String(localized: "--internal-port is required"))
 			}
 		}
 
 		func run() throws {
-			if self.disable {
+			if self.alias {
+				if self.disable {
+					try PFRedirect.disableAddressAlias()
+				} else {
+					try PFRedirect.enableAddressAlias(externalAddress: self.externalAddress, targetAddress: self.internalAddress)
+				}
+			} else if self.disable {
 				try PFRedirect.disable()
 			} else {
 				try PFRedirect.enable(externalAddress: self.externalAddress, externalPort: self.externalPort, internalAddress: self.internalAddress, internalPort: self.internalPort)

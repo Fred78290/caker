@@ -169,7 +169,7 @@ struct NetworkConfig: Codable {
 				dhcp4: true,
 				dhcp6: false,
 				dhcpIdentifier: "mac",
-				routes: [NetworkRoute(to: "169.254.169.254/32", via: IMDSNetworkInterface.imdsGateway)]
+				routes: [NetworkRoute(to: "\(IMDSNetworkInterface.awsCompatAddress)/32", via: IMDSNetworkInterface.imdsGateway)]
 			)
 		}
 	}

@@ -86,6 +86,8 @@ public actor IMDSCoordinator {
 				await self.disablePFRedirect()
 			}
 
+			await self.disableAddressAlias()
+
 			await server.shutdown()
 			self.server = nil
 			self.logger.info("IMDS server stopped")
@@ -152,6 +154,12 @@ public actor IMDSCoordinator {
 					} else {
 						self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
 					}
+
+					// Best-effort, regardless of root/--imds-redirect: makes the AWS-style
+					// 169.254.169.254/32 route already installed in the guest's netplan
+					// (CloudInit.swift) actually reach the gateway, on whichever port IMDS
+					// is bound to.
+					await self.enableAddressAlias()
 				} catch is CancellationError {
 					// Torn down before it managed to start; nothing to log.
 				} catch {
@@ -229,6 +237,63 @@ public actor IMDSCoordinator {
 			}.value
 		} catch {
 			self.logger.warn("Could not remove IMDS pf redirect: \(error)")
+		}
+	}
+
+	/// Installs a `pf` redirect so `IMDSNetworkInterface.awsCompatAddress`
+	/// (169.254.169.254) — not itself on-link on the IMDS subnet, only reachable via the
+	/// static route CloudInit.swift installs in the guest — actually reaches the gateway,
+	/// on whatever port IMDS is listening on. Unlike `enablePFRedirect`, this runs
+	/// regardless of root or `--imds-redirect`: it's a pure address rewrite (no port
+	/// involved), so it's equally relevant whether IMDS ended up on port 80 or an
+	/// unprivileged port. Best-effort and silently skipped in sandboxed builds (needs
+	/// `sudo`) — IMDS stays reachable at its real gateway address regardless.
+	private func enableAddressAlias() async {
+		guard Bundle.isApplicationSandboxed == false else {
+			return
+		}
+
+		let runMode = self.runMode
+
+		do {
+			try await Task.detached(priority: .utility) {
+				let helper = try SudoCaked(
+					arguments: [
+						"networks", "imds-redirect", "--alias",
+						"--external-address=\(IMDSNetworkInterface.awsCompatAddress)",
+						"--internal-address=\(IMDSServer.bindAddress)",
+					],
+					runMode: runMode
+				)
+
+				guard try helper.runAndWait() == 0 else {
+					throw ServiceError(helper.standardError.isEmpty ? helper.standardOutput : helper.standardError)
+				}
+			}.value
+
+			self.logger.info("IMDS also reachable at http://\(IMDSNetworkInterface.awsCompatAddress) (AWS-style compatibility address)")
+		} catch {
+			self.logger.warn("Could not install IMDS address-alias pf redirect for \(IMDSNetworkInterface.awsCompatAddress) (is passwordless sudo configured for caked?): \(error)")
+		}
+	}
+
+	private func disableAddressAlias() async {
+		guard Bundle.isApplicationSandboxed == false else {
+			return
+		}
+
+		let runMode = self.runMode
+
+		do {
+			try await Task.detached(priority: .utility) {
+				let helper = try SudoCaked(arguments: ["networks", "imds-redirect", "--alias", "--disable"], runMode: runMode)
+
+				guard try helper.runAndWait() == 0 else {
+					throw ServiceError(helper.standardError.isEmpty ? helper.standardOutput : helper.standardError)
+				}
+			}.value
+		} catch {
+			self.logger.warn("Could not remove IMDS address-alias pf redirect: \(error)")
 		}
 	}
 }

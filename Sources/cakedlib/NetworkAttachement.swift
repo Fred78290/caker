@@ -342,6 +342,11 @@ public class IMDSNetworkInterface: SharedNetworkInterface {
 	public static let imdsNetmask = "255.255.255.0"
 	public static let imdsNetworkName = "imds"
 
+	/// The AWS-style link-local address guests get a static route to (see CloudInit.swift).
+	/// Not on-link on the imds subnet itself — genuinely reaching it host-side needs a `pf`
+	/// address-alias redirect to `imdsGateway` (see `PFRedirect.enableAddressAlias`).
+	public static let awsCompatAddress = "169.254.169.254"
+
 	public init(macAddress: VZMACAddress) {
 		let networkConfig = VZSharedNetwork(
 			mode: .host,
