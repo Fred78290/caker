@@ -8,10 +8,10 @@ import NIO
 ///
 /// Design summary (see also the doc comment on `IMDSRegistry`):
 ///
-/// - All Linux VMs on a host share one host-only "imds" vmnet virtual switch
-///   (169.254.169.0/24, gateway 169.254.169.1), so exactly one `IMDSServer`
-///   bound to 169.254.169.1:80 is correct for any number of concurrently
-///   running VMs — there's no need to bind per network interface.
+/// - All Linux VMs on a host share one host-only "imds" vmnet virtual switch (see
+///   `IMDSNetworkInterface` for the subnet/gateway), so exactly one `IMDSServer` bound
+///   to that gateway is correct for any number of concurrently running VMs — there's no
+///   need to bind per network interface.
 /// - The server is started lazily, on the first Linux VM to start, and torn
 ///   down once the last one stops — so hosts that never run Linux guests
 ///   never bind the socket, and we never leak it.

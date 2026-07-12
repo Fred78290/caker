@@ -47,10 +47,11 @@ private final class TokenStore: Sendable {
 public final class IMDSMetadata: Sendable {
 	private let _localIPv4: Mutex<String> = Mutex("")
 
-	/// The VM's MAC address on the shared IMDS host-only network (169.254.169.0/24). This
-	/// is *not* a data-plane address — it's only used by `IMDSRegistry` to figure out, via
-	/// the host's ARP cache, which currently-connected guest a given metadata request came
-	/// from (all Linux VMs on a host share the same "imds" virtual switch and gateway).
+	/// The VM's MAC address on the shared IMDS host-only network (see `IMDSNetworkInterface`
+	/// for the actual subnet). This is *not* a data-plane address — it's only used by
+	/// `IMDSRegistry` to figure out, via the host's ARP cache, which currently-connected
+	/// guest a given metadata request came from (all Linux VMs on a host share the same
+	/// "imds" virtual switch and gateway).
 	public let imdsMac: String
 
 	public let instanceID: String
@@ -81,14 +82,15 @@ public final class IMDSMetadata: Sendable {
 
 // MARK: - Registry of the VMs currently served by the shared IMDS server
 
-/// Every Linux VM on the host shares a single host-only "imds" vmnet virtual switch
-/// (169.254.169.0/24, gateway 169.254.169.1) — see `IMDSNetworkInterface` in
-/// `NetworkAttachement.swift`: its `networkName` is the fixed literal `"imds"` for every VM,
-/// so the first VM to attach spawns the vmnet host process and every other VM's attachment
-/// simply connects to that same running process as a client. There is therefore exactly one
-/// IMDS network segment per host, not one per VM, and binding one process-wide HTTP server to
-/// 169.254.169.1:80 is correct and sufficient for any number of concurrently-running Linux
-/// VMs — there's no per-VM isolated switch to disambiguate with interface-scoped binding.
+/// Every Linux VM on the host shares a single host-only "imds" vmnet virtual switch (see
+/// `IMDSNetworkInterface` in `NetworkAttachement.swift` for the actual subnet/gateway):
+/// its `networkName` is the fixed literal `"imds"` for every VM, so the first VM to attach
+/// spawns the vmnet host process and every other VM's attachment simply connects to that
+/// same running process as a client. There is therefore exactly one IMDS network segment
+/// per host, not one per VM, and binding one process-wide HTTP server to
+/// `IMDSServer.bindAddress:bindPort` is correct and sufficient for any number of
+/// concurrently-running Linux VMs — there's no per-VM isolated switch to disambiguate with
+/// interface-scoped binding.
 ///
 /// What *does* need disambiguating is which VM a given HTTP request came from, since they all
 /// arrive on the same listener. We resolve that from the request's source IP by cross
@@ -215,8 +217,10 @@ private struct IMDSResolverMiddleware: AsyncMiddleware {
 
 // MARK: - Vapor IMDS server
 
-/// HTTP server that implements IMDSv1 and IMDSv2 on the IMDS host network (169.254.169.0/24).
-/// Binds exclusively to 169.254.169.1:80 so only guests on that network can reach it.
+/// HTTP server that implements IMDSv1 and IMDSv2 on the IMDS host network (see
+/// `IMDSNetworkInterface` for the subnet/gateway — kept within 192.168.0.0/16 since
+/// vmnet.framework rejects link-local subnets). Binds exclusively to that gateway address
+/// so only guests on that network can reach it.
 public final class IMDSServer: Sendable {
 	private let app: Application
 
@@ -386,7 +390,7 @@ public final class IMDSServer: Sendable {
 		}
 
 		macsBase.get(":mac", "subnet-ipv4-cidr-block") { req -> Response in
-			plainText("169.254.169.0/24", on: req)
+			plainText(IMDSNetworkInterface.imdsSubnetCIDR, on: req)
 		}
 
 		macsBase.get(":mac", "vpc-id") { req -> Response in

@@ -327,10 +327,18 @@ public class VMNetworkInterface: SharedNetworkInterface {
 	}
 }
 
-// MARK: - IMDS host network for 169.254.169.0/24
+// MARK: - IMDS host network
+//
+// vmnet.framework's host-mode API only accepts subnets within 192.168.0.0/16 — it rejects
+// link-local (169.254.0.0/16) ranges outright — so the actual DHCP subnet/gateway below live
+// in that range, not at the AWS-style 169.254.169.x addresses. The guest still gets a static
+// route for 169.254.169.254/32 via this gateway (see CloudInit.swift), matching AWS's own
+// convention (169.254.169.254 isn't on-link there either — it's routed) for tooling that
+// hardcodes that address, on a best-effort basis.
 public class IMDSNetworkInterface: SharedNetworkInterface {
-	public static let imdsGateway = "169.254.169.1"
-	public static let imdsDhcpEnd = "169.254.169.253"
+	public static let imdsGateway = "192.168.169.1"
+	public static let imdsDhcpEnd = "192.168.169.253"
+	public static let imdsSubnetCIDR = "192.168.169.0/24"
 	public static let imdsNetmask = "255.255.255.0"
 	public static let imdsNetworkName = "imds"
 
