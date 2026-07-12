@@ -220,13 +220,14 @@ private struct IMDSResolverMiddleware: AsyncMiddleware {
 /// HTTP server that implements IMDSv1 and IMDSv2 for the IMDS host network (see
 /// `IMDSNetworkInterface` for the subnet/gateway).
 ///
-/// The daemon that owns this server (`caked service listen`) runs unprivileged and can't
-/// `bind()` `bindPort` (80) directly, so this actually binds on loopback at
-/// `internalBindPort` — an ordinary, unprivileged port — and relies on a `pf` redirect
-/// (`PFRedirect`, installed by `IMDSCoordinator` via a short-lived root helper) to make
-/// `bindAddress:bindPort` reachable from the guest. `bindAddress`/`bindPort` remain the
-/// guest-visible, documented address; nothing outside this file needs to know the traffic
-/// actually arrives on loopback.
+/// `bindAddress`/`bindPort` (the gateway, port 80) are the guest-visible, documented
+/// address. Whether this actually binds there directly depends on privilege:
+/// - Running as root (`caked service listen --system`), it binds `bindAddress:bindPort`
+///   directly — nothing else needed.
+/// - Running unprivileged (the common case), it can't `bind()` port 80, so it binds on
+///   loopback at `internalBindPort` instead, and `needsPFRedirect` tells the caller
+///   (`IMDSCoordinator`) it needs to install a `pf` redirect (`PFRedirect`, via a
+///   short-lived root helper) to make `bindAddress:bindPort` actually reachable.
 public final class IMDSServer: Sendable {
 	private let app: Application
 
@@ -236,16 +237,29 @@ public final class IMDSServer: Sendable {
 	static let internalBindAddress = "127.0.0.1"
 	static let internalBindPort = 28080
 
+	/// True when this bound on the internal loopback port rather than `bindAddress:bindPort`
+	/// directly, meaning a `pf` redirect is needed for the guest to actually reach it.
+	public let needsPFRedirect: Bool
+
 	/// One server serves every currently-running Linux VM: they all share the same IMDS
 	/// virtual network (see `IMDSRegistry` doc comment), so `registry` is consulted per
 	/// request to figure out which VM's metadata to answer with.
 	public init(group: EventLoopGroup, registry: IMDSRegistry) async throws {
 		let env = try Environment.current()
 		let app = try await Application.make(env, .shared(group))
+		let runningAsRoot = geteuid() == 0
 
-		app.http.server.configuration.hostname = Self.internalBindAddress
-		app.http.server.configuration.port = Self.internalBindPort
+		if runningAsRoot {
+			app.http.server.configuration.hostname = Self.bindAddress
+			app.http.server.configuration.port = Self.bindPort
+		} else {
+			app.http.server.configuration.hostname = Self.internalBindAddress
+			app.http.server.configuration.port = Self.internalBindPort
+		}
+
 		app.logger.logLevel = .warning
+
+		self.needsPFRedirect = runningAsRoot == false
 
 		let tokens = TokenStore()
 		Self.registerRoutes(on: app, registry: registry, tokens: tokens)

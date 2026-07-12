@@ -71,7 +71,10 @@ public actor IMDSCoordinator {
 		self.startTask = nil
 
 		if let server = self.server {
-			await self.disablePFRedirect()
+			if server.needsPFRedirect {
+				await self.disablePFRedirect()
+			}
+
 			await server.shutdown()
 			self.server = nil
 			self.logger.info("IMDS server stopped")
@@ -126,9 +129,13 @@ public actor IMDSCoordinator {
 			self.startTask = Task {
 				do {
 					try await server.startWithRetry()
-					self.logger.info("IMDS server listening internally on \(IMDSServer.internalBindAddress):\(IMDSServer.internalBindPort)")
 
-					await self.enablePFRedirect()
+					if server.needsPFRedirect {
+						self.logger.info("IMDS server listening internally on \(IMDSServer.internalBindAddress):\(IMDSServer.internalBindPort)")
+						await self.enablePFRedirect()
+					} else {
+						self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
+					}
 				} catch is CancellationError {
 					// Torn down before it managed to start; nothing to log.
 				} catch {
@@ -155,6 +162,15 @@ public actor IMDSCoordinator {
 	/// passwordless sudo on `caked`, this fails and is logged, but the server keeps running
 	/// (reachable at least on the internal loopback port for local diagnostics).
 	private func enablePFRedirect() async {
+		// Sandboxed builds (App Store) can't shell out to sudo at all — see
+		// Utilities.swift's `if sudo && Bundle.isApplicationSandboxed` for the same
+		// restriction elsewhere in this codebase. Don't even attempt it; it would just
+		// fail with a confusing error.
+		guard Bundle.isApplicationSandboxed == false else {
+			self.logger.warn("IMDS is only reachable on the internal loopback port in sandboxed builds (sudo isn't available to install the port-80 pf redirect)")
+			return
+		}
+
 		let runMode = self.runMode
 
 		do {
@@ -179,6 +195,11 @@ public actor IMDSCoordinator {
 	}
 
 	private func disablePFRedirect() async {
+		guard Bundle.isApplicationSandboxed == false else {
+			// Never installed in the first place — see enablePFRedirect().
+			return
+		}
+
 		let runMode = self.runMode
 
 		do {
