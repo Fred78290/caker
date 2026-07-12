@@ -160,7 +160,7 @@ private struct IMDSAuthMiddleware: Middleware {
 public final class IMDSServer: Sendable {
 	private let app: Application
 
-	public static let bindAddress = "169.254.169.1"
+	public static let bindAddress = IMDSNetworkInterface.imdsGateway
 	public static let bindPort = 80
 
 	/// One server serves every currently-running Linux VM: they all share the same IMDS

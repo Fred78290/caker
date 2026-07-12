@@ -1084,7 +1084,7 @@ public struct NetworksHandler {
 			
 			let dhcpLease = networkConfig.defaultNatNetwork.dhcpLease != nil ? "\(networkConfig.defaultNatNetwork.dhcpLease!)" : String.empty
 			
-			networks = try networkConfig.sharedNetworks.reduce(into: networks) {
+			networks = try networkConfig.sharedNetworks.filter({ $1.visible }).reduce(into: networks) {
 				let cidr = $1.value.netmask.netmaskToCidr()
 				let gateway = "\($1.value.dhcpStart)/\(cidr)"
 				let dhcpEnd = "\($1.value.dhcpEnd)/\(cidr)"
