@@ -316,7 +316,12 @@ struct Networks: ParsableCommand {
 			}
 		}
 
-		try vzvmnet.1.start()
+		do {
+			try vzvmnet.1.start()
+		} catch {
+			Logger(self).error("Failed to start network: \(error)")
+			Foundation.exit(1)
+		}
 	}
 
 	static func start(options: Networks.VMNetOptions, fork: Bool, runMode: Utils.RunMode) -> StartedNetworkReply {
