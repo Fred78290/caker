@@ -250,6 +250,7 @@ struct Networks: ParsableCommand {
 			Networks.Start.self,
 			Networks.Restart.self,
 			Networks.Stop.self,
+			Networks.ImdsRedirect.self,
 		],
 		aliases: ["net"])
 
@@ -691,6 +692,52 @@ struct Networks: ParsableCommand {
 
 		func run() async throws {
 			Logger.appendNewLine(self.common.format.render(Networks.start(options: self.options, fork: true, runMode: self.common.runMode)))
+		}
+	}
+
+	/// Installs/removes the `pf` redirect that lets the unprivileged `caked service listen`
+	/// daemon serve IMDS on port 80 without binding it directly (see `PFRedirect`). Invoked
+	/// as a short-lived, separately-privileged helper via `SudoCaked` from `IMDSCoordinator`
+	/// — nothing about the daemon itself runs as root.
+	struct ImdsRedirect: ParsableCommand {
+		static let configuration = CommandConfiguration(abstract: String(localized: "Manage the IMDS port-80 pf redirect"), shouldDisplay: false)
+
+		@OptionGroup(title: String(localized: "Global options"))
+		var common: CommonOptions
+
+		@Flag(help: .hidden)
+		var disable: Bool = false
+
+		@Option(name: [.customLong("external-address")], help: .hidden)
+		var externalAddress: String = IMDSNetworkInterface.imdsGateway
+
+		@Option(name: [.customLong("external-port")], help: .hidden)
+		var externalPort: Int = 80
+
+		@Option(name: [.customLong("internal-address")], help: .hidden)
+		var internalAddress: String = "127.0.0.1"
+
+		@Option(name: [.customLong("internal-port")], help: .hidden)
+		var internalPort: Int = 0
+
+		func validate() throws {
+			Logger.setLevel(self.common.logLevel)
+
+			if geteuid() != 0 {
+				throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))
+			}
+
+			if self.disable == false && self.internalPort == 0 {
+				throw ValidationError(String(localized: "--internal-port is required"))
+			}
+		}
+
+		func run() throws {
+			if self.disable {
+				try PFRedirect.disable()
+			} else {
+				try PFRedirect.enable(externalAddress: self.externalAddress, externalPort: self.externalPort, internalAddress: self.internalAddress, internalPort: self.internalPort)
+			}
 		}
 	}
 

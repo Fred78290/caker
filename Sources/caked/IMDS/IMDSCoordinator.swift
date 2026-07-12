@@ -71,6 +71,7 @@ public actor IMDSCoordinator {
 		self.startTask = nil
 
 		if let server = self.server {
+			await self.disablePFRedirect()
 			await server.shutdown()
 			self.server = nil
 			self.logger.info("IMDS server stopped")
@@ -125,7 +126,9 @@ public actor IMDSCoordinator {
 			self.startTask = Task {
 				do {
 					try await server.startWithRetry()
-					self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
+					self.logger.info("IMDS server listening internally on \(IMDSServer.internalBindAddress):\(IMDSServer.internalBindPort)")
+
+					await self.enablePFRedirect()
 				} catch is CancellationError {
 					// Torn down before it managed to start; nothing to log.
 				} catch {
@@ -142,6 +145,52 @@ public actor IMDSCoordinator {
 			}
 		} catch {
 			self.logger.warn("Failed to create IMDS server: \(error)")
+		}
+	}
+
+	/// Makes `IMDSServer.bindAddress:bindPort` (port 80, which this unprivileged daemon
+	/// can't bind directly) reachable by installing a `pf` redirect to where the server is
+	/// actually listening. Runs a short-lived root helper via `SudoCaked` — see
+	/// `Networks.ImdsRedirect` / `PFRedirect`. Best-effort: if the host isn't set up for
+	/// passwordless sudo on `caked`, this fails and is logged, but the server keeps running
+	/// (reachable at least on the internal loopback port for local diagnostics).
+	private func enablePFRedirect() async {
+		let runMode = self.runMode
+
+		do {
+			try await Task.detached(priority: .utility) {
+				let helper = try SudoCaked(
+					arguments: [
+						"networks", "imds-redirect",
+						"--internal-port=\(IMDSServer.internalBindPort)",
+					],
+					runMode: runMode
+				)
+
+				guard try helper.runAndWait() == 0 else {
+					throw ServiceError(helper.standardError.isEmpty ? helper.standardOutput : helper.standardError)
+				}
+			}.value
+
+			self.logger.info("IMDS reachable at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
+		} catch {
+			self.logger.warn("Could not install IMDS pf redirect (is passwordless sudo configured for caked?): \(error)")
+		}
+	}
+
+	private func disablePFRedirect() async {
+		let runMode = self.runMode
+
+		do {
+			try await Task.detached(priority: .utility) {
+				let helper = try SudoCaked(arguments: ["networks", "imds-redirect", "--disable"], runMode: runMode)
+
+				guard try helper.runAndWait() == 0 else {
+					throw ServiceError(helper.standardError.isEmpty ? helper.standardOutput : helper.standardError)
+				}
+			}.value
+		} catch {
+			self.logger.warn("Could not remove IMDS pf redirect: \(error)")
 		}
 	}
 }
