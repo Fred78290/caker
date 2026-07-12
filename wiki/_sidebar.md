@@ -9,5 +9,6 @@
 - [Release Notes](release-notes)
 - [Command Summary](command-summary)
 - [Compose](compose)
+- [IMDS](imds)
 - [Cheat Sheet](cheat-sheet)
 - [Privacy policy](privacy-policy)

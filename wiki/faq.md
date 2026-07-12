@@ -120,6 +120,10 @@ diskutil image resize --size=<new-size>G "$(caked home)/vms/<vm-name>.cakedvm/di
 
 Lorsque le redimensionnement est refusé, l'application Caker affiche la commande exacte à exécuter pour votre VM. Les disques au format raw ne sont pas concernés, pas plus que le build en téléchargement direct. Voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif-fr) pour plus de détails.
 
+### IMDS est-il disponible dans la version App Store ?
+
+Non. Le service de métadonnées d'instance (IMDS) pour les VM Linux est totalement désactivé dans la version sandboxée : aucune interface réseau dédiée n'est attachée aux VM Linux, et le serveur IMDS n'est jamais démarré, car l'App Sandbox macOS interdit l'invocation de `sudo` nécessaire pour exposer IMDS aux invités. Utilisez le build en téléchargement direct si vous avez besoin de cette fonctionnalité. Voir [IMDS](imds) pour plus de détails.
+
 ## Questions d'utilisation
 
 ### Puis-je exécuter plusieurs VM simultanément ?
@@ -312,6 +316,10 @@ diskutil image resize --size=<new-size>G "$(caked home)/vms/<vm-name>.cakedvm/di
 ```
 
 When the resize is refused, the Caker application shows the exact command to run for your VM. Raw-format disks are not affected, and neither is the direct-download build. See [Disk formats: raw and ASIF](command-summary#disk-formats-raw-and-asif) for details.
+
+### Is IMDS available in the App Store version?
+
+No. The instance metadata service (IMDS) for Linux VMs is disabled entirely in the sandboxed version: no dedicated network interface is attached to Linux VMs, and the IMDS server is never started, since the macOS App Sandbox blocks invoking the `sudo` needed to expose IMDS to guests. Use the direct-download build if you need this feature. See [IMDS](imds) for details.
 
 ## Usage Questions
 
