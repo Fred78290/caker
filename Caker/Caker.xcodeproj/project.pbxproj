@@ -242,6 +242,8 @@
 		9B612FA32FEC345B0045F79F /* CakeHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B612FA22FEC345B0045F79F /* CakeHome.swift */; };
 		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
+		9B6EC39C3002DCF400ABFDED /* IMDSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6EC39B3002DCF400ABFDED /* IMDSCoordinator.swift */; };
+		9B6EC3FD3002DD5300ABFDED /* VMLifecycleHooks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6EC3FC3002DD5300ABFDED /* VMLifecycleHooks.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
 		9B7053F32F4F06DF006C68AA /* GrandCentralDispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */; };
 		9B737DCF2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B737DCE2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift */; };
@@ -1058,6 +1060,8 @@
 		9B612FA22FEC345B0045F79F /* CakeHome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeHome.swift; sourceTree = "<group>"; };
 		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
+		9B6EC39B3002DCF400ABFDED /* IMDSCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMDSCoordinator.swift; sourceTree = "<group>"; };
+		9B6EC3FC3002DD5300ABFDED /* VMLifecycleHooks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLifecycleHooks.swift; sourceTree = "<group>"; };
 		9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
 		9B737DCE2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDConsoleTextRunner.swift; sourceTree = "<group>"; };
 		9B75A6D22E2A2C45000AA773 /* Pty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pty.swift; sourceTree = "<group>"; };
@@ -2175,6 +2179,7 @@
 		9B9438E72FF17EBF00F69AB6 /* IMDS */ = {
 			isa = PBXGroup;
 			children = (
+				9B6EC39B3002DCF400ABFDED /* IMDSCoordinator.swift */,
 				9B9438E62FF17EBF00F69AB6 /* IMDSServer.swift */,
 			);
 			path = IMDS;
@@ -2590,6 +2595,7 @@
 				9BEBC7652DF440720092B196 /* Utilities.swift */,
 				9BEBC7662DF440720092B196 /* VirtualMachine.swift */,
 				9BEBC7672DF440720092B196 /* VMBuilder.swift */,
+				9B6EC3FC3002DD5300ABFDED /* VMLifecycleHooks.swift */,
 				9BEBC7682DF440720092B196 /* VMLocation.swift */,
 				9B9DCDEE2F70006D00E07852 /* CI */,
 				9BEBC7152DF440720092B196 /* CloudImage */,
@@ -3616,6 +3622,7 @@
 				9B6031362FAD103F00055543 /* LXDIdentityStore.swift in Sources */,
 				9BB149202EC760F70094D950 /* Pull.swift in Sources */,
 				9BB149222EC760FE0094D950 /* Push.swift in Sources */,
+				9B6EC39C3002DCF400ABFDED /* IMDSCoordinator.swift in Sources */,
 				9B18351C2FAE58B500D150FD /* CertificateHandler.swift in Sources */,
 				9B9711C02DFF3284005B161B /* Import.swift in Sources */,
 				9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */,
@@ -3858,6 +3865,7 @@
 				9BF1A0103001000000AA0010 /* AppleMobileDeviceRestoreBackend.swift in Sources */,
 				9BF1A0113001000000AA0011 /* DeviceRestoreBackend.swift in Sources */,
 				9BF1A0123001000000AA0012 /* DeviceRestoreDriver.swift in Sources */,
+				9B6EC3FD3002DD5300ABFDED /* VMLifecycleHooks.swift in Sources */,
 				9BF1A0133001000000AA0013 /* DeviceRestoreState.swift in Sources */,
 				9BF1A0143001000000AA0014 /* RestoreLog.swift in Sources */,
 				9BF1A0153001000000AA0015 /* VirtualInstallECID.swift in Sources */,
