@@ -92,11 +92,11 @@ extension Service {
 		@Option(name: [.customLong("web-ui")], help: ArgumentHelp(String(localized: "Path to web UI static files directory"), discussion: "When provided, caked serves the web UI under /ui"))
 		var webUIDirectory: String? = nil
 
-		@Flag(name: [.customLong("imds")], help: ArgumentHelp(String(localized: "Enable IMDS for Linux VMs"), discussion: "AWS-style instance metadata service, reachable from Linux guests at http://\(IMDSNetworkInterface.imdsGateway). Not available in sandboxed builds."))
-		var imds: Bool = false
-
-		@Option(name: [.customLong("imds-port")], help: ArgumentHelp(String(localized: "Internal port IMDS listens on"), discussion: "When running unprivileged, IMDS binds this ordinary port on loopback and is exposed to guests on port 80 via a pf redirect; ignored when caked runs as root, since IMDS then binds port 80 directly."))
+		@Option(name: [.customLong("imds-port")], help: ArgumentHelp(String(localized: "Internal port IMDS listens on"), discussion: "AWS-style instance metadata service for Linux VMs. Enabled by default (not in sandboxed builds), bound on this ordinary, unprivileged port on loopback. Not reachable from guests at http://\(IMDSNetworkInterface.imdsGateway) unless --imds-redirect is also set (or caked runs as root, in which case it's reachable there directly and this port isn't used)."))
 		var imdsPort: Int = IMDSServer.internalBindPort
+
+		@Flag(name: [.customLong("imds-redirect")], help: ArgumentHelp(String(localized: "Expose IMDS to guests on port 80"), discussion: "Installs a pf redirect (via a short-lived root helper) so Linux guests can reach IMDS at http://\(IMDSNetworkInterface.imdsGateway). Without this, IMDS still runs but is only reachable on the internal --imds-port. Not available in sandboxed builds. Ignored when caked runs as root, since IMDS then binds port 80 directly."))
+		var imdsRedirect: Bool = false
 
 		func validate() throws {
 			VMRunHandler.serviceMode = mode
@@ -368,14 +368,15 @@ extension Service {
 			// daemon learns about VM start/stop through VMLifecycleHooks, fired by
 			// CakedLib.StartHandler whenever it spawns or reaps a `caked vmrun` child,
 			// whether that's from autostart below or from a `Caked_StartRequest` RPC.
-			// Opt-in via --imds; not started at all in sandboxed builds either way — IMDS
-			// needs a pf redirect installed via sudo to be reachable, which sandboxed apps
-			// can't do (see IMDSCoordinator.enablePFRedirect).
+			// Enabled by default (on its internal, unprivileged port) except in sandboxed
+			// builds, where it can never be reachable at all — see IMDSCoordinator's
+			// sandboxed guard. Exposing it to guests on port 80 (--imds-redirect) is a
+			// separate opt-in, since that requires a pf redirect installed via sudo.
 			var imdsCoordinator: IMDSCoordinator? = nil
 			var imdsLifecycleHandler: VMLifecycleHooks.HandlerID? = nil
 
-			if self.options.imds && Bundle.isApplicationSandboxed == false {
-				let coordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode, internalPort: self.options.imdsPort)
+			if Bundle.isApplicationSandboxed == false {
+				let coordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode, internalPort: self.options.imdsPort, enablePFRedirect: self.options.imdsRedirect)
 
 				imdsLifecycleHandler = VMLifecycleHooks.addHandler { event in
 					Task {
@@ -547,12 +548,12 @@ extension Service {
 				}
 			}
 
-			if self.options.imds {
-				arguments.append("--imds")
+			if self.options.imdsPort != IMDSServer.internalBindPort {
+				arguments.append("--imds-port=\(self.options.imdsPort)")
+			}
 
-				if self.options.imdsPort != IMDSServer.internalBindPort {
-					arguments.append("--imds-port=\(self.options.imdsPort)")
-				}
+			if self.options.imdsRedirect {
+				arguments.append("--imds-redirect")
 			}
 
 			if runMode == .system {

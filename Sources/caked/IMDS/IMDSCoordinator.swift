@@ -28,16 +28,25 @@ public actor IMDSCoordinator {
 	private let group: EventLoopGroup
 	private let runMode: Utils.RunMode
 	private let internalPort: Int
+	private let redirectRequested: Bool
 	private let registry = IMDSRegistry()
 	private let logger = Logger("IMDSCoordinator")
 
 	private var server: IMDSServer?
 	private var startTask: Task<Void, Error>?
 
-	public init(group: EventLoopGroup, runMode: Utils.RunMode, internalPort: Int = IMDSServer.internalBindPort) {
+	/// - Parameters:
+	///   - internalPort: The unprivileged loopback port IMDS binds to when running
+	///     unprivileged (ignored when root — see `IMDSServer`).
+	///   - enablePFRedirect: Whether to install a `pf` redirect so guests can reach IMDS
+	///     on port 80. IMDS still starts (on `internalPort`) either way; this only
+	///     controls whether it's exposed to guests, since that step needs a short-lived
+	///     root helper. Ignored when root (nothing to redirect — already on port 80).
+	public init(group: EventLoopGroup, runMode: Utils.RunMode, internalPort: Int = IMDSServer.internalBindPort, enablePFRedirect: Bool = false) {
 		self.group = group
 		self.runMode = runMode
 		self.internalPort = internalPort
+		self.redirectRequested = enablePFRedirect
 	}
 
 	/// Registers every Linux VM that's already running at daemon startup (e.g. the daemon
@@ -73,7 +82,7 @@ public actor IMDSCoordinator {
 		self.startTask = nil
 
 		if let server = self.server {
-			if server.needsPFRedirect {
+			if server.needsPFRedirect && self.redirectRequested {
 				await self.disablePFRedirect()
 			}
 
@@ -142,7 +151,12 @@ public actor IMDSCoordinator {
 
 					if server.needsPFRedirect {
 						self.logger.info("IMDS server listening internally on \(IMDSServer.internalBindAddress):\(server.internalPort)")
-						await self.enablePFRedirect(internalPort: server.internalPort)
+
+						if self.redirectRequested {
+							await self.enablePFRedirect(internalPort: server.internalPort)
+						} else {
+							self.logger.info("Not exposing IMDS on port 80 (pass --imds-redirect to make it reachable from guests)")
+						}
 					} else {
 						self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
 					}
