@@ -158,7 +158,7 @@ public struct StartHandler {
 		}
 
 		// Collect autotstart networks
-		let networks = try vms.reduce(into: [BridgeAttachement]()) { (result, element) in
+		var networks = try vms.reduce(into: [BridgeAttachement]()) { (result, element) in
 			try element.0.networks.forEach { network in
 				if result.contains(network) == false {
 					let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: network.network, runMode: runMode)
@@ -167,6 +167,20 @@ public struct StartHandler {
 						result.append(network)
 					}
 				}
+			}
+		}
+
+		// The IMDS network isn't part of any VM's `config.networks` (it's attached
+		// separately, unconditionally, for every Linux VM — see VirtualMachine.swift), so
+		// it's never picked up by the loop above. Pre-start it here too when at least one
+		// autostart VM needs it, same as every other network, instead of leaving it to be
+		// created lazily on first VM boot.
+		if vms.contains(where: { $0.0.os == .linux }) {
+			let imdsNetwork = BridgeAttachement(network: IMDSNetworkInterface.imdsNetworkName)
+			let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: imdsNetwork.network, runMode: runMode)
+
+			if try socketURL.socket.exists() == false || (try socketURL.socket.exists() && socketURL.pidFile.isPIDRunning().running == false) {
+				networks.append(imdsNetwork)
 			}
 		}
 
