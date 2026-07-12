@@ -297,6 +297,9 @@
 		9B6031402FAD2C0A00055543 /* LXDCertificatesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B60313F2FAD2C0A00055543 /* LXDCertificatesController.swift */; };
 		9B612F492FEC32050045F79F /* CakeHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B612F482FEC32030045F79F /* CakeHome.swift */; };
 		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
+		9B6EC45E30037F6600ABFDED /* VMLifecycleHooks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6EC45D30037F6600ABFDED /* VMLifecycleHooks.swift */; };
+		9B6EC46330037FA400ABFDED /* IMDSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6EC46030037FA400ABFDED /* IMDSCoordinator.swift */; };
+		9B6EC46430037FA400ABFDED /* IMDSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6EC46130037FA400ABFDED /* IMDSServer.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
 		9B7053F32F4F06DF006C68AA /* GrandCentralDispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */; };
 		9B737DCF2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B737DCE2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift */; };
@@ -1063,6 +1066,9 @@
 		9B612F482FEC32030045F79F /* CakeHome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeHome.swift; sourceTree = "<group>"; };
 		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
+		9B6EC45D30037F6600ABFDED /* VMLifecycleHooks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLifecycleHooks.swift; sourceTree = "<group>"; };
+		9B6EC46030037FA400ABFDED /* IMDSCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMDSCoordinator.swift; sourceTree = "<group>"; };
+		9B6EC46130037FA400ABFDED /* IMDSServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMDSServer.swift; sourceTree = "<group>"; };
 		9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
 		9B737DCE2FC1EC2D0061E2CA /* LXDConsoleTextRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDConsoleTextRunner.swift; sourceTree = "<group>"; };
 		9B75A6D22E2A2C45000AA773 /* Pty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pty.swift; sourceTree = "<group>"; };
@@ -2177,6 +2183,15 @@
 			path = REST;
 			sourceTree = "<group>";
 		};
+		9B6EC46230037FA400ABFDED /* IMDS */ = {
+			isa = PBXGroup;
+			children = (
+				9B6EC46030037FA400ABFDED /* IMDSCoordinator.swift */,
+				9B6EC46130037FA400ABFDED /* IMDSServer.swift */,
+			);
+			path = IMDS;
+			sourceTree = "<group>";
+		};
 		9B9C4E592E23BC8B00C13D23 /* Home */ = {
 			isa = PBXGroup;
 			children = (
@@ -2408,6 +2423,7 @@
 				9BEBC6CC2DF4400A0092B196 /* Root.swift */,
 				9BEBC6B12DF4400A0092B196 /* Commands */,
 				9BEBC6C92DF4400A0092B196 /* Handlers */,
+				9B6EC46230037FA400ABFDED /* IMDS */,
 				9B602F962FAA56FA00055543 /* REST */,
 				9B144C0E2F9D28D900F14DEF /* VNCTunnel */,
 			);
@@ -2586,6 +2602,7 @@
 				9BEBC7652DF440720092B196 /* Utilities.swift */,
 				9BEBC7662DF440720092B196 /* VirtualMachine.swift */,
 				9BEBC7672DF440720092B196 /* VMBuilder.swift */,
+				9B6EC45D30037F6600ABFDED /* VMLifecycleHooks.swift */,
 				9BEBC7682DF440720092B196 /* VMLocation.swift */,
 				9B9DCDEE2F70006D00E07852 /* CI */,
 				9BEBC7152DF440720092B196 /* CloudImage */,
@@ -3692,6 +3709,8 @@
 				9BEBC6F32DF4400A0092B196 /* WaitIPHandler.swift in Sources */,
 				9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */,
 				9BA941192F3C896F00B51543 /* PingHandler.swift in Sources */,
+				9B6EC46330037FA400ABFDED /* IMDSCoordinator.swift in Sources */,
+				9B6EC46430037FA400ABFDED /* IMDSServer.swift in Sources */,
 				9B82D3182F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift in Sources */,
 				9BEBC6F42DF4400A0092B196 /* Root.swift in Sources */,
 				9BEBC6F52DF4400A0092B196 /* MainApp.swift in Sources */,
@@ -3864,6 +3883,7 @@
 				9B081B5B2FC75A1A0029B259 /* Qcow2Error.swift in Sources */,
 				9B081B5C2FC75A1A0029B259 /* Qcow2Converter.swift in Sources */,
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
+				9B6EC45E30037F6600ABFDED /* VMLifecycleHooks.swift in Sources */,
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
 				9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */,
 				9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */,
