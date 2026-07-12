@@ -99,7 +99,7 @@ Référence rapide des commandes pour les opérations quotidiennes courantes.
   - `caked service listen --tcp`  *(activer l'écoute sur tcp)*
   - `caked service listen --rest` *(activer l'API REST LXD)*
   - `caked service listen --rest --web-ui /path/to/webui/dist` *(avec interface Web)*
-  - `caked service listen --imds-redirect` *(exposer IMDS aux VM Linux sur le port 80, voir [IMDS](imds))*
+  - `caked service listen --imds-redirect` *(exposer en plus IMDS sur le port standard 80, voir [IMDS](imds))*
   - `caked service status`
   - `caked service stop`
 - Convertir des images disque :
@@ -299,7 +299,7 @@ Quick command reference for common daily operations.
   - `caked service listen --tcp`  *(enable listen on tcp)*
   - `caked service listen --rest` *(enable LXD REST API)*
   - `caked service listen --rest --web-ui /path/to/webui/dist` *(with web UI)*
-  - `caked service listen --imds-redirect` *(expose IMDS to Linux VMs on port 80, see [IMDS](imds))*
+  - `caked service listen --imds-redirect` *(additionally expose IMDS on the standard port 80, see [IMDS](imds))*
   - `caked service status`
   - `caked service stop`
 - Convert disk images:

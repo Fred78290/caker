@@ -122,7 +122,7 @@ Lorsque le redimensionnement est refusé, l'application Caker affiche la command
 
 ### IMDS est-il disponible dans la version App Store ?
 
-Non. Le service de métadonnées d'instance (IMDS) pour les VM Linux est totalement désactivé dans la version sandboxée : aucune interface réseau dédiée n'est attachée aux VM Linux, et le serveur IMDS n'est jamais démarré, car l'App Sandbox macOS interdit l'invocation de `sudo` nécessaire pour exposer IMDS aux invités. Utilisez le build en téléchargement direct si vous avez besoin de cette fonctionnalité. Voir [IMDS](imds) pour plus de détails.
+Oui, le service de métadonnées d'instance (IMDS) pour les VM Linux fonctionne dans la version sandboxée, sur son port non privilégié (`--imds-port`, `28080` par défaut) — les invités le joignent directement, sans root ni `sudo`. Seule l'exposition *supplémentaire* sur le port standard 80 (`--imds-redirect`) est indisponible en version sandboxée, car elle nécessite `sudo`, que l'App Sandbox macOS interdit. Voir [IMDS](imds) pour plus de détails.
 
 ## Questions d'utilisation
 
@@ -319,7 +319,7 @@ When the resize is refused, the Caker application shows the exact command to run
 
 ### Is IMDS available in the App Store version?
 
-No. The instance metadata service (IMDS) for Linux VMs is disabled entirely in the sandboxed version: no dedicated network interface is attached to Linux VMs, and the IMDS server is never started, since the macOS App Sandbox blocks invoking the `sudo` needed to expose IMDS to guests. Use the direct-download build if you need this feature. See [IMDS](imds) for details.
+Yes, the instance metadata service (IMDS) for Linux VMs works in the sandboxed version, on its unprivileged port (`--imds-port`, default `28080`) — guests reach it directly there, no root or `sudo` involved. Only *additionally* exposing it on the standard port 80 (`--imds-redirect`) is unavailable in the sandboxed version, since that needs `sudo`, which the macOS App Sandbox blocks. See [IMDS](imds) for details.
 
 ## Usage Questions
 

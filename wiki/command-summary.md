@@ -68,8 +68,8 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
     - `--web-ui <path>` — sert l'interface Web fournie depuis un répertoire ou une archive `.zip` sur `/ui`.
     - `--address` / `-l` — modifie l'adresse d'écoute gRPC.
     - `--insecure` — désactive TLS.
-    - `--imds-port <port>` — port interne non privilégié sur lequel IMDS écoute (par défaut `28080`). Voir [IMDS](imds).
-    - `--imds-redirect` — expose IMDS aux invités sur le port 80 via une redirection `pf` (nécessite un `sudo` non interactif configuré). Voir [IMDS](imds).
+    - `--imds-port <port>` — port non privilégié sur lequel IMDS écoute, joignable directement par les invités sans root (par défaut `28080`). Voir [IMDS](imds).
+    - `--imds-redirect` — expose *en plus* IMDS aux invités sur le port standard 80 via une redirection `pf` (nécessite un `sudo` non interactif configuré ; indisponible en version sandboxée). Voir [IMDS](imds).
   - `status` — rapporte le statut du démon.
   - `stop` — arrête le démon en cours d'exécution.
 - `vmrun` — commande interne d'exécution de VM (masquée/interne).
@@ -415,8 +415,8 @@ This page summarizes the `ArgumentParser` commands implemented in:
     - `--web-ui <path>` — serve the bundled web UI from a directory or `.zip` archive at `/ui`.
     - `--address` / `-l` — override the gRPC listen address.
     - `--insecure` — disable TLS.
-    - `--imds-port <port>` — internal, unprivileged port IMDS listens on (default `28080`). See [IMDS](imds).
-    - `--imds-redirect` — expose IMDS to guests on port 80 via a `pf` redirect (needs passwordless sudo configured). See [IMDS](imds).
+    - `--imds-port <port>` — unprivileged port IMDS listens on, directly reachable by guests with no root needed (default `28080`). See [IMDS](imds).
+    - `--imds-redirect` — *additionally* expose IMDS to guests on the standard port 80 via a `pf` redirect (needs passwordless sudo configured; not available in sandboxed builds). See [IMDS](imds).
   - `status` — report daemon status.
   - `stop` — stop the running daemon.
 - `vmrun` — internal VM runtime command (hidden/internal).
