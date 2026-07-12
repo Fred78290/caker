@@ -209,8 +209,11 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
 		let consoleURL = try config.consoleAttachment()
 
-		// Add IMDS network interface for Linux VMs
-		if config.os == .linux {
+		// Add IMDS network interface for Linux VMs. Not available in sandboxed builds: IMDS
+		// needs a pf redirect installed via sudo to be reachable (IMDSCoordinator), which
+		// sandboxed apps can't do — so there's no point attaching the network or generating
+		// guest netplan/routes for it.
+		if config.os == .linux, Bundle.isApplicationSandboxed == false {
 			networks.append(IMDSNetworkInterface(macAddress: try config.ensureImdsMacAddress()))
 		}
 

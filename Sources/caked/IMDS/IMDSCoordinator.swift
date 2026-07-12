@@ -84,6 +84,14 @@ public actor IMDSCoordinator {
 	// MARK: - Internals
 
 	private func register(location: VMLocation) async {
+		// IMDS isn't available in sandboxed builds at all (see VirtualMachine.swift/
+		// CloudInit.swift's matching guards) — no network is attached and no MAC is ever
+		// persisted for it, so skip silently rather than warning about a MAC that will
+		// never show up.
+		guard Bundle.isApplicationSandboxed == false else {
+			return
+		}
+
 		guard let config = try? location.config(), config.os == .linux else {
 			return
 		}
