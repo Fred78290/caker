@@ -220,29 +220,35 @@ private struct IMDSResolverMiddleware: AsyncMiddleware {
 /// HTTP server that implements IMDSv1 and IMDSv2 for the IMDS host network (see
 /// `IMDSNetworkInterface` for the subnet/gateway).
 ///
-/// `bindAddress`/`bindPort` (the gateway, port 80) are the guest-visible, documented
-/// address. Whether this actually binds there directly depends on privilege:
+/// Always binds on the gateway address — guests can always reach it there, with no
+/// privilege or `pf` redirect required, since binding an unprivileged port is always
+/// possible. Whether the *port* is 80 (the AWS-style, guest-documented default) depends on
+/// privilege:
 /// - Running as root (`caked service listen --system`), it binds `bindAddress:bindPort`
-///   directly — nothing else needed.
-/// - Running unprivileged (the common case), it can't `bind()` port 80, so it binds on
-///   loopback at `internalBindPort` instead, and `needsPFRedirect` tells the caller
-///   (`IMDSCoordinator`) it needs to install a `pf` redirect (`PFRedirect`, via a
-///   short-lived root helper) to make `bindAddress:bindPort` actually reachable.
+///   (port 80) directly — nothing else needed.
+/// - Running unprivileged (the common case, including sandboxed builds), it can't `bind()`
+///   port 80, so it binds `bindAddress:internalPort` instead — still directly reachable
+///   from the guest, just on a non-standard port. `needsPFRedirect` tells the caller
+///   (`IMDSCoordinator`) that *additionally* exposing the standard `bindAddress:bindPort`
+///   would need a `pf` redirect (`PFRedirect`, via a short-lived root helper) — an optional
+///   convenience for guest tooling that hardcodes port 80, not a requirement for guests to
+///   reach IMDS at all.
 public final class IMDSServer: Sendable {
 	private let app: Application
 
 	public static let bindAddress = IMDSNetworkInterface.imdsGateway
 	public static let bindPort = 80
 
-	public static let internalBindAddress = "127.0.0.1"
 	public static let internalBindPort = 28080
 
-	/// True when this bound on the internal loopback port rather than `bindAddress:bindPort`
-	/// directly, meaning a `pf` redirect is needed for the guest to actually reach it.
+	/// True when this bound on `internalPort` rather than `bindPort` (80) directly, meaning
+	/// a `pf` redirect is needed for the guest to additionally reach it on the standard
+	/// port 80 — IMDS is already reachable at `bindAddress:internalPort` either way.
 	public let needsPFRedirect: Bool
 
-	/// The internal loopback port actually used (matches `internalBindPort` unless the
-	/// caller overrode it, e.g. via `caked service listen --imds-port`).
+	/// The port actually used when running unprivileged (matches `internalBindPort` unless
+	/// the caller overrode it, e.g. via `caked service listen --imds-port`). Always
+	/// `bindPort` (80) when running as root.
 	public let internalPort: Int
 
 	/// One server serves every currently-running Linux VM: they all share the same IMDS
@@ -254,12 +260,12 @@ public final class IMDSServer: Sendable {
 		let app = try await Application.make(env, .shared(group))
 		let runningAsRoot = geteuid() == 0
 
+		app.http.server.configuration.hostname = Self.bindAddress
+
 		if runningAsRoot {
-			app.http.server.configuration.hostname = Self.bindAddress
 			app.http.server.configuration.port = Self.bindPort
 			self.internalPort = Self.bindPort
 		} else {
-			app.http.server.configuration.hostname = Self.internalBindAddress
 			app.http.server.configuration.port = internalPort
 			self.internalPort = internalPort
 		}

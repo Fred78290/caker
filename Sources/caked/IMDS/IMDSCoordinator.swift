@@ -95,14 +95,6 @@ public actor IMDSCoordinator {
 	// MARK: - Internals
 
 	private func register(location: VMLocation) async {
-		// IMDS isn't available in sandboxed builds at all (see VirtualMachine.swift/
-		// CloudInit.swift's matching guards) — no network is attached and no MAC is ever
-		// persisted for it, so skip silently rather than warning about a MAC that will
-		// never show up.
-		guard Bundle.isApplicationSandboxed == false else {
-			return
-		}
-
 		guard let config = try? location.config(), config.os == .linux else {
 			return
 		}
@@ -150,12 +142,12 @@ public actor IMDSCoordinator {
 					try await server.startWithRetry()
 
 					if server.needsPFRedirect {
-						self.logger.info("IMDS server listening internally on \(IMDSServer.internalBindAddress):\(server.internalPort)")
+						self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(server.internalPort) (reachable from guests already)")
 
 						if self.redirectRequested {
 							await self.enablePFRedirect(internalPort: server.internalPort)
 						} else {
-							self.logger.info("Not exposing IMDS on port 80 (pass --imds-redirect to make it reachable from guests)")
+							self.logger.info("Not additionally exposing IMDS on the standard port 80 (pass --imds-redirect to do so)")
 						}
 					} else {
 						self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
@@ -180,18 +172,19 @@ public actor IMDSCoordinator {
 	}
 
 	/// Makes `IMDSServer.bindAddress:bindPort` (port 80, which this unprivileged daemon
-	/// can't bind directly) reachable by installing a `pf` redirect to where the server is
-	/// actually listening. Runs a short-lived root helper via `SudoCaked` — see
+	/// can't bind directly) *additionally* reachable there, on top of the internal port it's
+	/// already reachable on. Runs a short-lived root helper via `SudoCaked` — see
 	/// `Networks.ImdsRedirect` / `PFRedirect`. Best-effort: if the host isn't set up for
 	/// passwordless sudo on `caked`, this fails and is logged, but the server keeps running
-	/// (reachable at least on the internal loopback port for local diagnostics).
+	/// and stays reachable on its internal port regardless.
 	private func enablePFRedirect(internalPort: Int) async {
 		// Sandboxed builds (App Store) can't shell out to sudo at all — see
 		// Utilities.swift's `if sudo && Bundle.isApplicationSandboxed` for the same
 		// restriction elsewhere in this codebase. Don't even attempt it; it would just
-		// fail with a confusing error.
+		// fail with a confusing error. IMDS itself still works in sandboxed builds — this
+		// only skips the optional port-80 exposure.
 		guard Bundle.isApplicationSandboxed == false else {
-			self.logger.warn("IMDS is only reachable on the internal loopback port in sandboxed builds (sudo isn't available to install the port-80 pf redirect)")
+			self.logger.warn("Can't expose IMDS on the standard port 80 in sandboxed builds (sudo isn't available); it stays reachable at http://\(IMDSServer.bindAddress):\(internalPort)")
 			return
 		}
 
