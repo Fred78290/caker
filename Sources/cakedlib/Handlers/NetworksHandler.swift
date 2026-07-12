@@ -600,9 +600,17 @@ public struct NetworksHandler {
 	
 	public static func configure(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) -> ConfiguredNetworkReply {
 		do {
+			// "nat" and "imds" are always derived (VZVMNetConfig.sharedNetworks
+			// recomputes them from defaultNatNetwork/defaultImdsNetwork on every access),
+			// so any override written here would be silently discarded on the next read.
+			// Reject up front rather than reporting a misleading "configured: true".
+			guard networkName != "nat", networkName != IMDSNetworkInterface.imdsNetworkName else {
+				throw ServiceError(String(localized: "Network \(networkName) is a reserved default network and cannot be configured"))
+			}
+
 			let home: Home = try Home(runMode: runMode)
 			var networkConfig = try home.sharedNetworks()
-			
+
 			guard let existing = networkConfig.sharedNetworks[networkName] else {
 				throw ServiceError(String(localized: "Network \(networkName) doesn't exists"))
 			}

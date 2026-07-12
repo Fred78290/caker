@@ -364,7 +364,7 @@ extension Service {
 			// whether that's from autostart below or from a `Caked_StartRequest` RPC.
 			let imdsCoordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode)
 
-			VMLifecycleHooks.setHandler { event in
+			let imdsLifecycleHandler = VMLifecycleHooks.addHandler { event in
 				Task {
 					await imdsCoordinator.handle(event)
 				}
@@ -448,7 +448,7 @@ extension Service {
 						logger.info("Stop service on SIGINT")
 
 						Task {
-							VMLifecycleHooks.setHandler(nil)
+							VMLifecycleHooks.removeHandler(imdsLifecycleHandler)
 							await imdsCoordinator.shutdown()
 							await restServer?.shutdown()
 							provider.stop()

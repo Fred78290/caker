@@ -130,6 +130,14 @@ public actor IMDSCoordinator {
 					// Torn down before it managed to start; nothing to log.
 				} catch {
 					self.logger.warn("IMDS server could not start: \(error)")
+
+					// Clear state so the next registration (e.g. once whatever blocked the
+					// bind is fixed) retries instead of finding server/startTask non-nil
+					// forever. Safe to do unconditionally here: this branch only runs on a
+					// genuine startWithRetry() failure, not on the cancellation shutdown()
+					// itself triggers.
+					self.server = nil
+					self.startTask = nil
 				}
 			}
 		} catch {

@@ -109,6 +109,13 @@ public struct StartHandler {
 			do {
 				let runningIP = try location.waitIP(config: config, wait: 180, runMode: runMode, startedProcess: process)
 
+				// Persist on the daemon's own (cached) config instance so that
+				// VMLifecycleHooks observers (e.g. IMDSCoordinator), which read this same
+				// cached CakeConfig via `location.config()`, see the current IP rather than
+				// whatever was on disk before this VM started.
+				config.runningIP = runningIP
+				try? config.save()
+
 				VMLifecycleHooks.notify(.started(location: location, runMode: runMode))
 
 				return runningIP

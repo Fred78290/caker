@@ -153,6 +153,66 @@ private struct IMDSAuthMiddleware: Middleware {
 	}
 }
 
+// MARK: - Per-request VM resolution
+
+private struct IMDSMetadataKey: StorageKey {
+	typealias Value = IMDSMetadata
+}
+
+extension Request {
+	/// Set by `IMDSResolverMiddleware` before any `latest/meta-data` handler runs; every
+	/// handler downstream of that middleware can assume this is present.
+	fileprivate var imdsMetadata: IMDSMetadata? {
+		self.storage[IMDSMetadataKey.self]
+	}
+}
+
+/// Resolves which VM a request came from exactly once per request (instead of once per
+/// handler), and off the NIO event loop: `IMDSRegistry.metadata(forRemoteIP:)` does an ARP
+/// cache lookup that can shell out to `/usr/sbin/arp` on a cache miss, which would otherwise
+/// block the event loop thread handling this (and every other multiplexed) connection.
+/// Runs after `IMDSAuthMiddleware` so an invalid token still gets 401 rather than 404.
+private struct IMDSResolverMiddleware: AsyncMiddleware {
+	let registry: IMDSRegistry
+
+	/// A guest's ARP entry may not have populated on the host yet right after boot (it's
+	/// only learned once the guest sends a packet), which would otherwise show up as an
+	/// immediate 404 indistinguishable from "IMDS isn't running" — and cloud-init only
+	/// retries IMDS for a short, bounded window. A few short retries here (entirely via
+	/// suspension, not blocking anything) closes most of that race without needing a
+	/// different VM-identification mechanism.
+	static let maxAttempts = 3
+	static let retryDelayNanoseconds: UInt64 = 300_000_000
+
+	func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
+		guard let remoteIP = request.remoteAddress?.ipAddress else {
+			return Response(status: .notFound)
+		}
+
+		var metadata: IMDSMetadata?
+
+		for attempt in 1...Self.maxAttempts {
+			metadata = try? await request.application.threadPool.runIfActive {
+				registry.metadata(forRemoteIP: remoteIP)
+			}
+
+			if metadata != nil || attempt == Self.maxAttempts {
+				break
+			}
+
+			try? await Task.sleep(nanoseconds: Self.retryDelayNanoseconds)
+		}
+
+		guard let metadata else {
+			return Response(status: .notFound)
+		}
+
+		request.storage[IMDSMetadataKey.self] = metadata
+
+		return try await next.respond(to: request)
+	}
+}
+
 // MARK: - Vapor IMDS server
 
 /// HTTP server that implements IMDSv1 and IMDSv2 on the IMDS host network (169.254.169.0/24).
@@ -214,17 +274,6 @@ public final class IMDSServer: Sendable {
 
 	// MARK: - Route registration
 
-	/// Resolves which VM `req` came from via `registry`, using the request's TCP source
-	/// address. Guests that aren't currently a registered, running Linux VM (e.g. a stale
-	/// ARP entry, or a request racing VM shutdown) get a 404 rather than another VM's data.
-	private static func resolveMetadata(_ req: Request, registry: IMDSRegistry) -> IMDSMetadata? {
-		guard let remoteIP = req.remoteAddress?.ipAddress else {
-			return nil
-		}
-
-		return registry.metadata(forRemoteIP: remoteIP)
-	}
-
 	private static func registerRoutes(on app: Application, registry: IMDSRegistry, tokens: TokenStore) {
 		// IMDSv2: obtain a session token via PUT. Not gated by IMDSAuthMiddleware — this is
 		// the endpoint used to obtain a token in the first place.
@@ -242,13 +291,14 @@ public final class IMDSServer: Sendable {
 			return plainText(token, on: req)
 		}
 
-		let meta = app.grouped("latest", "meta-data").grouped(IMDSAuthMiddleware(tokens: tokens))
+		// Auth first (401 for an invalid/missing v2 token), then resolve which VM the
+		// request is from (404 if unresolvable) — every handler below can assume
+		// `req.imdsMetadata` is present.
+		let meta = app.grouped("latest", "meta-data")
+			.grouped(IMDSAuthMiddleware(tokens: tokens))
+			.grouped(IMDSResolverMiddleware(registry: registry))
 
 		meta.get { req -> Response in
-			guard resolveMetadata(req, registry: registry) != nil else {
-				return Response(status: .notFound)
-			}
-
 			let keys = """
 				ami-id
 				ami-launch-index
@@ -265,89 +315,82 @@ public final class IMDSServer: Sendable {
 		}
 
 		meta.get("instance-id") { req -> Response in
-			guard let metadata = resolveMetadata(req, registry: registry) else { return Response(status: .notFound) }
+			guard let metadata = req.imdsMetadata else { return Response(status: .notFound) }
 			return plainText(metadata.instanceID, on: req)
 		}
 
 		meta.get("hostname") { req -> Response in
-			guard let metadata = resolveMetadata(req, registry: registry) else { return Response(status: .notFound) }
+			guard let metadata = req.imdsMetadata else { return Response(status: .notFound) }
 			return plainText("\(metadata.hostname).caker.local", on: req)
 		}
 
 		meta.get("local-hostname") { req -> Response in
-			guard let metadata = resolveMetadata(req, registry: registry) else { return Response(status: .notFound) }
+			guard let metadata = req.imdsMetadata else { return Response(status: .notFound) }
 			return plainText("\(metadata.hostname).caker.local", on: req)
 		}
 
 		meta.get("local-ipv4") { req -> Response in
-			guard let metadata = resolveMetadata(req, registry: registry) else { return Response(status: .notFound) }
+			guard let metadata = req.imdsMetadata else { return Response(status: .notFound) }
 			return plainText(metadata.localIPv4, on: req)
 		}
 
 		meta.get("mac") { req -> Response in
-			guard let metadata = resolveMetadata(req, registry: registry) else { return Response(status: .notFound) }
+			guard let metadata = req.imdsMetadata else { return Response(status: .notFound) }
 			return plainText(metadata.mac, on: req)
 		}
 
 		meta.get("ami-id") { req -> Response in
-			guard let metadata = resolveMetadata(req, registry: registry) else { return Response(status: .notFound) }
+			guard let metadata = req.imdsMetadata else { return Response(status: .notFound) }
 			let suffix = String(metadata.instanceID.suffix(8)).lowercased()
 			return plainText("ami-\(suffix)", on: req)
 		}
 
 		meta.get("ami-launch-index") { req -> Response in
-			guard resolveMetadata(req, registry: registry) != nil else { return Response(status: .notFound) }
-			return plainText("0", on: req)
+			plainText("0", on: req)
 		}
 
 		meta.get("instance-type") { req -> Response in
-			guard let metadata = resolveMetadata(req, registry: registry) else { return Response(status: .notFound) }
+			guard let metadata = req.imdsMetadata else { return Response(status: .notFound) }
 			return plainText(metadata.instanceType, on: req)
 		}
 
 		// Placement
 		meta.get("placement") { req -> Response in
-			guard resolveMetadata(req, registry: registry) != nil else { return Response(status: .notFound) }
-			return plainText("availability-zone\nregion", on: req)
+			plainText("availability-zone\nregion", on: req)
 		}
 
 		meta.get("placement", "availability-zone") { req -> Response in
-			guard resolveMetadata(req, registry: registry) != nil else { return Response(status: .notFound) }
-			return plainText("caker-1a", on: req)
+			plainText("caker-1a", on: req)
 		}
 
 		meta.get("placement", "region") { req -> Response in
-			guard resolveMetadata(req, registry: registry) != nil else { return Response(status: .notFound) }
-			return plainText("caker-1", on: req)
+			plainText("caker-1", on: req)
 		}
 
 		// Network interfaces / MACs
 		let macsBase = meta.grouped("network", "interfaces", "macs")
 
 		macsBase.get { req -> Response in
-			guard let metadata = resolveMetadata(req, registry: registry) else { return Response(status: .notFound) }
+			guard let metadata = req.imdsMetadata else { return Response(status: .notFound) }
 			let list = metadata.networks.map { "\($0.mac)/" }.joined(separator: "\n")
 			return plainText(list, on: req)
 		}
 
 		macsBase.get(":mac") { req -> Response in
-			guard resolveMetadata(req, registry: registry) != nil else { return Response(status: .notFound) }
-			return plainText("local-ipv4s\nsubnet-ipv4-cidr-block\nvpc-id", on: req)
+			plainText("local-ipv4s\nsubnet-ipv4-cidr-block\nvpc-id", on: req)
 		}
 
 		macsBase.get(":mac", "local-ipv4s") { req -> Response in
-			guard let metadata = resolveMetadata(req, registry: registry) else { return Response(status: .notFound) }
+			guard let metadata = req.imdsMetadata else { return Response(status: .notFound) }
 			return plainText(metadata.localIPv4, on: req)
 		}
 
 		macsBase.get(":mac", "subnet-ipv4-cidr-block") { req -> Response in
-			guard resolveMetadata(req, registry: registry) != nil else { return Response(status: .notFound) }
-			return plainText("169.254.169.0/24", on: req)
+			plainText("169.254.169.0/24", on: req)
 		}
 
 		macsBase.get(":mac", "vpc-id") { req -> Response in
-			guard resolveMetadata(req, registry: registry) != nil else { return Response(status: .notFound) }
-			return plainText("vpc-caker", on: req)
+			plainText("vpc-caker", on: req)
 		}
 	}
 

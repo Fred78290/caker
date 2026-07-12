@@ -21,20 +21,34 @@ public enum VMLifecycleEvent: Sendable {
 }
 
 /// Process-wide hook that lets the daemon layer observe VM lifecycle transitions that
-/// happen inside `CakedLib` (`StartHandler`). At most one handler is installed at a time —
-/// only the `caked service listen` process installs one.
+/// happen inside `CakedLib` (`StartHandler`). Multiple independent subscribers are
+/// supported (unlike a single mutable handler slot, which one subscriber calling
+/// `addHandler` would otherwise silently kick another off) — modeled after
+/// `GrandCentralDispatch`'s multi-listener fan-out, the codebase's other daemon-wide
+/// VM-state observation mechanism.
 public enum VMLifecycleHooks {
 	public typealias Handler = @Sendable (VMLifecycleEvent) -> Void
+	public typealias HandlerID = UUID
 
-	private static let handler: Mutex<Handler?> = Mutex(nil)
+	private static let handlers: Mutex<[HandlerID: Handler]> = Mutex([:])
 
-	public static func setHandler(_ handler: Handler?) {
-		Self.handler.withLock { $0 = handler }
+	/// Registers `handler` and returns a token to later remove it with `removeHandler(_:)`.
+	@discardableResult
+	public static func addHandler(_ handler: @escaping Handler) -> HandlerID {
+		let id = HandlerID()
+
+		Self.handlers.withLock { $0[id] = handler }
+
+		return id
+	}
+
+	public static func removeHandler(_ id: HandlerID) {
+		Self.handlers.withLock { _ = $0.removeValue(forKey: id) }
 	}
 
 	static func notify(_ event: VMLifecycleEvent) {
-		let current = Self.handler.withLock { $0 }
+		let current = Self.handlers.withLock { $0 }
 
-		current?(event)
+		current.values.forEach { $0(event) }
 	}
 }

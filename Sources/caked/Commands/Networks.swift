@@ -596,6 +596,10 @@ struct Networks: ParsableCommand {
 				throw ValidationError(String(localized: "Unable to configure physical network \(self.options.name)"))
 			}
 
+			if self.options.name == "nat" || self.options.name == CakedLib.IMDSNetworkInterface.imdsNetworkName {
+				throw ValidationError(String(localized: "Network \(self.options.name) is a reserved default network and cannot be configured"))
+			}
+
 			guard let existing = networkConfig.sharedNetworks[self.options.name] else {
 				throw ValidationError(String(localized: "Network \(self.options.name) does not exist"))
 			}

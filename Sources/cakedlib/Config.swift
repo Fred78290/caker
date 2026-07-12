@@ -618,9 +618,12 @@ extension CakeConfig {
 			$0.clone()
 		}
 
-		if self.imdsMacAddress != nil {
-			self.imdsMacAddress = VZMACAddress.randomLocallyAdministered().string
-		}
+		// Deliberately does NOT touch imdsMacAddress: the guest's cloud-init netplan
+		// matches on that MAC (see ensureImdsMacAddress()'s doc comment), so it can only
+		// be safely changed by a caller that also rebuilds cloud-init afterward (see
+		// DuplicateHandler, which clears imdsMacAddress explicitly right before doing so).
+		// Callers that just need to resolve a live primary-MAC collision (VMRunHandler)
+		// must not silently desync the already-baked guest network config.
 	}
 
 	public func platform(nvramURL: URL, needsNestedVirtualization: Bool) throws -> GuestPlateForm {
