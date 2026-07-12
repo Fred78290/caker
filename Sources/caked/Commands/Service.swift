@@ -362,15 +362,25 @@ extension Service {
 			// daemon learns about VM start/stop through VMLifecycleHooks, fired by
 			// CakedLib.StartHandler whenever it spawns or reaps a `caked vmrun` child,
 			// whether that's from autostart below or from a `Caked_StartRequest` RPC.
-			let imdsCoordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode)
+			// Not started at all in sandboxed builds — IMDS needs a pf redirect installed
+			// via sudo to be reachable, which sandboxed apps can't do (see
+			// IMDSCoordinator.enablePFRedirect), so there's nothing for it to do here.
+			var imdsCoordinator: IMDSCoordinator? = nil
+			var imdsLifecycleHandler: VMLifecycleHooks.HandlerID? = nil
 
-			let imdsLifecycleHandler = VMLifecycleHooks.addHandler { event in
-				Task {
-					await imdsCoordinator.handle(event)
+			if Bundle.isApplicationSandboxed == false {
+				let coordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode)
+
+				imdsLifecycleHandler = VMLifecycleHooks.addHandler { event in
+					Task {
+						await coordinator.handle(event)
+					}
 				}
-			}
 
-			await imdsCoordinator.registerAlreadyRunning()
+				await coordinator.registerAlreadyRunning()
+
+				imdsCoordinator = coordinator
+			}
 
 			try CakedLib.StartHandler.autostart(on: eventLoopGroup.next(), runMode: runMode).whenComplete { result in
 				switch result {
@@ -448,8 +458,10 @@ extension Service {
 						logger.info("Stop service on SIGINT")
 
 						Task {
-							VMLifecycleHooks.removeHandler(imdsLifecycleHandler)
-							await imdsCoordinator.shutdown()
+							if let imdsLifecycleHandler {
+								VMLifecycleHooks.removeHandler(imdsLifecycleHandler)
+							}
+							await imdsCoordinator?.shutdown()
 							await restServer?.shutdown()
 							provider.stop()
 
