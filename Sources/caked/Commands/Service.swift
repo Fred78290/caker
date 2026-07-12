@@ -249,9 +249,6 @@ extension Service {
 		@OptionGroup(title: String(localized: "Agent common options"))
 		var options: ServiceOptions
 
-		@Flag(name: [.customLong("disable-tls")], help: ArgumentHelp(String(localized: "Don't use TLS")))
-		var unsecure: Bool = false
-
 		@Flag(help: .hidden)
 		var log: Bool = false
 
@@ -276,7 +273,7 @@ extension Service {
 
 			let runMode: Utils.RunMode = self.common.runMode
 
-			if self.unsecure == false {
+			if self.options.insecure == false {
 				let certs = try CertificatesLocation.createCertificats(runMode: runMode)
 
 				self.options.caCert = certs.caCertURL.path
