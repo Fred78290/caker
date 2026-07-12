@@ -92,6 +92,12 @@ extension Service {
 		@Option(name: [.customLong("web-ui")], help: ArgumentHelp(String(localized: "Path to web UI static files directory"), discussion: "When provided, caked serves the web UI under /ui"))
 		var webUIDirectory: String? = nil
 
+		@Flag(name: [.customLong("imds")], help: ArgumentHelp(String(localized: "Enable IMDS for Linux VMs"), discussion: "AWS-style instance metadata service, reachable from Linux guests at http://\(IMDSNetworkInterface.imdsGateway). Not available in sandboxed builds."))
+		var imds: Bool = false
+
+		@Option(name: [.customLong("imds-port")], help: ArgumentHelp(String(localized: "Internal port IMDS listens on"), discussion: "When running unprivileged, IMDS binds this ordinary port on loopback and is exposed to guests on port 80 via a pf redirect; ignored when caked runs as root, since IMDS then binds port 80 directly."))
+		var imdsPort: Int = IMDSServer.internalBindPort
+
 		func validate() throws {
 			VMRunHandler.serviceMode = mode
 
@@ -362,14 +368,14 @@ extension Service {
 			// daemon learns about VM start/stop through VMLifecycleHooks, fired by
 			// CakedLib.StartHandler whenever it spawns or reaps a `caked vmrun` child,
 			// whether that's from autostart below or from a `Caked_StartRequest` RPC.
-			// Not started at all in sandboxed builds — IMDS needs a pf redirect installed
-			// via sudo to be reachable, which sandboxed apps can't do (see
-			// IMDSCoordinator.enablePFRedirect), so there's nothing for it to do here.
+			// Opt-in via --imds; not started at all in sandboxed builds either way — IMDS
+			// needs a pf redirect installed via sudo to be reachable, which sandboxed apps
+			// can't do (see IMDSCoordinator.enablePFRedirect).
 			var imdsCoordinator: IMDSCoordinator? = nil
 			var imdsLifecycleHandler: VMLifecycleHooks.HandlerID? = nil
 
-			if Bundle.isApplicationSandboxed == false {
-				let coordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode)
+			if self.options.imds && Bundle.isApplicationSandboxed == false {
+				let coordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode, internalPort: self.options.imdsPort)
 
 				imdsLifecycleHandler = VMLifecycleHooks.addHandler { event in
 					Task {
@@ -538,6 +544,14 @@ extension Service {
 
 				if self.options.webUIDirectory != nil {
 					arguments.append("--web-ui=\(self.options.webUIDirectory!)")
+				}
+			}
+
+			if self.options.imds {
+				arguments.append("--imds")
+
+				if self.options.imdsPort != IMDSServer.internalBindPort {
+					arguments.append("--imds-port=\(self.options.imdsPort)")
 				}
 			}
 

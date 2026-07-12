@@ -234,17 +234,22 @@ public final class IMDSServer: Sendable {
 	public static let bindAddress = IMDSNetworkInterface.imdsGateway
 	public static let bindPort = 80
 
-	static let internalBindAddress = "127.0.0.1"
-	static let internalBindPort = 28080
+	public static let internalBindAddress = "127.0.0.1"
+	public static let internalBindPort = 28080
 
 	/// True when this bound on the internal loopback port rather than `bindAddress:bindPort`
 	/// directly, meaning a `pf` redirect is needed for the guest to actually reach it.
 	public let needsPFRedirect: Bool
 
+	/// The internal loopback port actually used (matches `internalBindPort` unless the
+	/// caller overrode it, e.g. via `caked service listen --imds-port`).
+	public let internalPort: Int
+
 	/// One server serves every currently-running Linux VM: they all share the same IMDS
 	/// virtual network (see `IMDSRegistry` doc comment), so `registry` is consulted per
-	/// request to figure out which VM's metadata to answer with.
-	public init(group: EventLoopGroup, registry: IMDSRegistry) async throws {
+	/// request to figure out which VM's metadata to answer with. `internalPort` is only
+	/// used when running unprivileged (see the type doc comment) — ignored when root.
+	public init(group: EventLoopGroup, registry: IMDSRegistry, internalPort: Int = IMDSServer.internalBindPort) async throws {
 		let env = try Environment.current()
 		let app = try await Application.make(env, .shared(group))
 		let runningAsRoot = geteuid() == 0
@@ -252,9 +257,11 @@ public final class IMDSServer: Sendable {
 		if runningAsRoot {
 			app.http.server.configuration.hostname = Self.bindAddress
 			app.http.server.configuration.port = Self.bindPort
+			self.internalPort = Self.bindPort
 		} else {
 			app.http.server.configuration.hostname = Self.internalBindAddress
-			app.http.server.configuration.port = Self.internalBindPort
+			app.http.server.configuration.port = internalPort
+			self.internalPort = internalPort
 		}
 
 		app.logger.logLevel = .warning

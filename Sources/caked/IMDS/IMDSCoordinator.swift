@@ -27,15 +27,17 @@ import NIO
 public actor IMDSCoordinator {
 	private let group: EventLoopGroup
 	private let runMode: Utils.RunMode
+	private let internalPort: Int
 	private let registry = IMDSRegistry()
 	private let logger = Logger("IMDSCoordinator")
 
 	private var server: IMDSServer?
 	private var startTask: Task<Void, Error>?
 
-	public init(group: EventLoopGroup, runMode: Utils.RunMode) {
+	public init(group: EventLoopGroup, runMode: Utils.RunMode, internalPort: Int = IMDSServer.internalBindPort) {
 		self.group = group
 		self.runMode = runMode
+		self.internalPort = internalPort
 	}
 
 	/// Registers every Linux VM that's already running at daemon startup (e.g. the daemon
@@ -130,7 +132,7 @@ public actor IMDSCoordinator {
 		}
 
 		do {
-			let server = try await IMDSServer(group: self.group, registry: self.registry)
+			let server = try await IMDSServer(group: self.group, registry: self.registry, internalPort: self.internalPort)
 
 			self.server = server
 
@@ -139,8 +141,8 @@ public actor IMDSCoordinator {
 					try await server.startWithRetry()
 
 					if server.needsPFRedirect {
-						self.logger.info("IMDS server listening internally on \(IMDSServer.internalBindAddress):\(IMDSServer.internalBindPort)")
-						await self.enablePFRedirect()
+						self.logger.info("IMDS server listening internally on \(IMDSServer.internalBindAddress):\(server.internalPort)")
+						await self.enablePFRedirect(internalPort: server.internalPort)
 					} else {
 						self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
 					}
@@ -169,7 +171,7 @@ public actor IMDSCoordinator {
 	/// `Networks.ImdsRedirect` / `PFRedirect`. Best-effort: if the host isn't set up for
 	/// passwordless sudo on `caked`, this fails and is logged, but the server keeps running
 	/// (reachable at least on the internal loopback port for local diagnostics).
-	private func enablePFRedirect() async {
+	private func enablePFRedirect(internalPort: Int) async {
 		// Sandboxed builds (App Store) can't shell out to sudo at all — see
 		// Utilities.swift's `if sudo && Bundle.isApplicationSandboxed` for the same
 		// restriction elsewhere in this codebase. Don't even attempt it; it would just
@@ -186,7 +188,7 @@ public actor IMDSCoordinator {
 				let helper = try SudoCaked(
 					arguments: [
 						"networks", "imds-redirect",
-						"--internal-port=\(IMDSServer.internalBindPort)",
+						"--internal-port=\(internalPort)",
 					],
 					runMode: runMode
 				)
