@@ -1,4 +1,5 @@
 import Foundation
+import CakeAgentLib
 
 /// Installs/removes `pf` (packet filter) redirect rules, used by IMDS since
 /// `caked service listen` runs unprivileged and can't `bind()` privileged addresses/ports
@@ -14,12 +15,12 @@ import Foundation
 /// load but never actually be evaluated against traffic.
 public enum PFRedirect {
 	public static let anchorName = "com.apple/com.aldunelabs.caker/imds"
-	public static let addressAliasAnchorName = "com.apple/com.aldunelabs.caker/imds-address"
+	public static let addressAliasAnchorName = "com.apple/com.aldunelabs.caker-imds"
 
 	/// Redirects `proto tcp` traffic addressed to `externalAddress:externalPort` to
 	/// `internalAddress:internalPort`. Must be called as root.
 	public static func enable(externalAddress: String, externalPort: Int, internalAddress: String, internalPort: Int) throws {
-		let rule = "rdr pass proto tcp from any to \(externalAddress) port \(externalPort) -> \(internalAddress) port \(internalPort)\n"
+		let rule = "rdr pass proto tcp from any to \(externalAddress) port \(externalPort) -> \(internalAddress) port \(internalPort)"
 
 		try Self.loadAnchor(name: Self.anchorName, rule: rule)
 		try Self.ensureEnabled()
@@ -56,6 +57,8 @@ public enum PFRedirect {
 			throw ServiceError(String(localized: "PFRedirect must be run as root"))
 		}
 
+		Logger("PFRedirect").debug("/sbin/pfctl -a \(name) -f - <<<'\(rule)'")
+
 		try Shell.bash(to: "/sbin/pfctl", arguments: ["-a", name, "-f", "-"], input: rule)
 	}
 
@@ -63,8 +66,12 @@ public enum PFRedirect {
 		// `pfctl -e` fails harmlessly (non-zero exit, "pf already enabled") if pf is
 		// already on; only surface a genuine failure to enable it.
 		do {
+			Logger("PFRedirect").debug("exec: /sbin/pfctl -e")
+
 			try Shell.bash(to: "/sbin/pfctl", arguments: ["-e"])
 		} catch {
+			Logger("PFRedirect").debug("exec: /sbin/pfctl -s info")
+
 			let status = try Shell.bash(to: "/sbin/pfctl", arguments: ["-s", "info"])
 
 			guard status.contains("Status: Enabled") else {
