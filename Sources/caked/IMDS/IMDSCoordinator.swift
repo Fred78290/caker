@@ -202,10 +202,14 @@ public actor IMDSCoordinator {
 			try await Task.detached(priority: .utility) {
 				let helper = try SudoCaked(
 					arguments: [
-						"networks", "imds-redirect",
+						"networks",
+						"imds-redirect",
 						"--internal-port=\(internalPort)",
+						"--log-level=\(Logger.Level().description)",
 					],
-					runMode: runMode
+					runMode: runMode,
+					standardOutput: FileHandle.standardOutput,
+					standardError: FileHandle.standardError
 				)
 
 				guard try helper.runAndWait() == 0 else {
@@ -229,7 +233,17 @@ public actor IMDSCoordinator {
 
 		do {
 			try await Task.detached(priority: .utility) {
-				let helper = try SudoCaked(arguments: ["networks", "imds-redirect", "--disable"], runMode: runMode)
+				let helper = try SudoCaked(
+					arguments: [
+						"networks",
+						"imds-redirect",
+						"--disable",
+						"--log-level=\(Logger.Level().description)",
+					],
+					runMode: runMode,
+					standardOutput: FileHandle.standardOutput,
+					standardError: FileHandle.standardError
+				)
 
 				guard try helper.runAndWait() == 0 else {
 					throw ServiceError(helper.standardError.isEmpty ? helper.standardOutput : helper.standardError)
@@ -259,11 +273,16 @@ public actor IMDSCoordinator {
 			try await Task.detached(priority: .utility) {
 				let helper = try SudoCaked(
 					arguments: [
-						"networks", "imds-redirect", "--alias",
+						"networks",
+						"imds-redirect",
+						"--alias",
 						"--external-address=\(IMDSNetworkInterface.awsCompatAddress)",
 						"--internal-address=\(IMDSServer.bindAddress)",
+						"--log-level=\(Logger.Level().description)",
 					],
-					runMode: runMode
+					runMode: runMode,
+					standardOutput: FileHandle.standardOutput,
+					standardError: FileHandle.standardError
 				)
 
 				guard try helper.runAndWait() == 0 else {
@@ -286,7 +305,18 @@ public actor IMDSCoordinator {
 
 		do {
 			try await Task.detached(priority: .utility) {
-				let helper = try SudoCaked(arguments: ["networks", "imds-redirect", "--alias", "--disable"], runMode: runMode)
+				let helper = try SudoCaked(
+					arguments: [
+						"networks",
+						"imds-redirect",
+						"--alias",
+						"--disable",
+						"--log-level=\(Logger.Level().description)",
+					],
+					runMode: runMode,
+					standardOutput: FileHandle.standardOutput,
+					standardError: FileHandle.standardError
+				)
 
 				guard try helper.runAndWait() == 0 else {
 					throw ServiceError(helper.standardError.isEmpty ? helper.standardOutput : helper.standardError)
