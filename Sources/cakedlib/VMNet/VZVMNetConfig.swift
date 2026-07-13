@@ -359,7 +359,7 @@ public struct VZVMNetConfig: Codable {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 
 		self.defaultNatNetwork = VZSharedNetwork.defaultNatNetwork
-		self.defaultImdsNetwork = VZSharedNetwork.defaultImdsNetwork
+		self.defaultImdsNetwork = IMDSNetworkInterface.imdsEnabled ? VZSharedNetwork.defaultImdsNetwork : nil
 		self.userNetworks = try container.decodeIfPresent([String: VZSharedNetwork].self, forKey: .userNetworks) ?? [:]
 	}
 
