@@ -172,11 +172,12 @@ public struct StartHandler {
 
 		// The IMDS network isn't part of any VM's `config.networks` (it's attached
 		// separately, unconditionally, for every Linux VM — see VirtualMachine.swift), so
-		// it's never picked up by the loop above. Always pre-start it here too, regardless
-		// of whether this particular autostart batch happens to include a Linux VM: IMDS
-		// is enabled by default and IMDSCoordinator can bind its server as soon as any
-		// Linux VM registers, including ones started later outside this batch (e.g. via
-		// `cakectl start`) — if the network isn't already up by then, that bind fails.
+		// it's never picked up by the loop above. When IMDS is enabled (off by default —
+		// see IMDSNetworkInterface.imdsEnabled), always pre-start it here too, regardless
+		// of whether this particular autostart batch happens to include a Linux VM:
+		// IMDSCoordinator can bind its server as soon as any Linux VM registers, including
+		// ones started later outside this batch (e.g. via `cakectl start`) — if the network
+		// isn't already up by then, that bind fails.
 		if IMDSNetworkInterface.imdsEnabled {
 			let imdsNetwork = BridgeAttachement(network: IMDSNetworkInterface.imdsNetworkName)
 			let imdsSocketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: imdsNetwork.network, runMode: runMode)

@@ -24,10 +24,12 @@ extension UserDefaults {
 				Logger("UserDefaults").error("Failed to create shared: group.\(Utils.cakerSignature)")
 				return UserDefaults.standard
 			}
-			
+
+			Self._shared = shared
+
 			return shared
 		}
-		
+
 		return _shared
 	}
 }

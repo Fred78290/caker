@@ -328,7 +328,7 @@ struct Networks: ParsableCommand {
 			try vzvmnet.1.start()
 		} catch {
 			Logger(self).error("Failed to start network: \(error)")
-			Foundation.exit(1)
+			throw error
 		}
 	}
 
