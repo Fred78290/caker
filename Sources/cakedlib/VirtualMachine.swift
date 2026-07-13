@@ -213,7 +213,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		// IMDS binds an unprivileged port on this network's gateway either way, reachable
 		// from the guest with no root/sudo required (see IMDSServer). Only exposing it on
 		// the *standard* port 80 (--imds-redirect) needs sudo and is unavailable there.
-		if config.os == .linux {
+		if IMDSNetworkInterface.imdsEnabled && config.os == .linux {
 			networks.append(IMDSNetworkInterface(macAddress: try config.ensureImdsMacAddress()))
 		}
 

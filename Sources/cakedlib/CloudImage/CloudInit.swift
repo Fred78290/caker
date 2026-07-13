@@ -160,7 +160,8 @@ struct NetworkConfig: Codable {
 
 		// Add IMDS interface for Linux VMs with a static route to 169.254.169.254. Available
 		// in sandboxed builds too — see VirtualMachine.swift's matching comment.
-		if config.os == .linux {
+		if IMDSNetworkInterface.imdsEnabled && config.os == .linux {
+			let routes = Bundle.isApplicationSandboxed ? nil : [NetworkRoute(to: "\(IMDSNetworkInterface.awsCompatAddress)/32", via: IMDSNetworkInterface.imdsGateway)]
 			let imdsMac = try config.ensureImdsMacAddress()
 			let imdsName = netIfnames ? "enp0s\(index)" : "eth\(index - 1)"
 			self.network.ethernets[imdsName] = Interface(
@@ -169,7 +170,10 @@ struct NetworkConfig: Codable {
 				dhcp4: true,
 				dhcp6: false,
 				dhcpIdentifier: "mac",
-				routes: [NetworkRoute(to: "\(IMDSNetworkInterface.awsCompatAddress)/32", via: IMDSNetworkInterface.imdsGateway)]
+				optional: true,
+				critical: false,
+				localLink: ["ipv4"],
+				routes: routes
 			)
 		}
 	}
@@ -237,6 +241,9 @@ struct Interface: Codable {
 	var dhcp4: Bool? = nil
 	var dhcp6: Bool? = nil
 	var dhcpIdentifier: String? = nil
+	var optional: Bool? = nil
+	var critical: Bool? = nil
+	var localLink: [String]? = nil
 	var dhcp4Overrides: DHCPOverides? = nil
 	var dhcp6Overrides: DHCPOverides? = nil
 	var routes: [NetworkRoute]? = nil
@@ -254,6 +261,9 @@ struct Interface: Codable {
 		case dhcp4Overrides = "dhcp4-overrides"
 		case dhcp6Overrides = "dhcp6-overrides"
 		case routes = "routes"
+		case optional = "optional"
+		case critical = "critical"
+		case localLink = "link-local"
 	}
 
 	func encode(to encoder: Encoder) throws {
@@ -263,6 +273,8 @@ struct Interface: Codable {
 		try container.encodeIfPresent(setName, forKey: .setName)
 		try container.encodeIfPresent(addresses, forKey: .addresses)
 		try container.encodeIfPresent(nameservers, forKey: .nameservers)
+		try container.encodeIfPresent(optional, forKey: .optional)
+		try container.encodeIfPresent(critical, forKey: .critical)
 		try container.encodeIfPresent(gateway4, forKey: .gateway4)
 		try container.encodeIfPresent(gateway6, forKey: .gateway6)
 		try container.encodeIfPresent(dhcp4, forKey: .dhcp4)
@@ -271,6 +283,7 @@ struct Interface: Codable {
 		try container.encodeIfPresent(dhcp4Overrides, forKey: .dhcp4Overrides)
 		try container.encodeIfPresent(dhcp6Overrides, forKey: .dhcp6Overrides)
 		try container.encodeIfPresent(routes, forKey: .routes)
+		try container.encodeIfPresent(localLink, forKey: .localLink)
 	}
 }
 

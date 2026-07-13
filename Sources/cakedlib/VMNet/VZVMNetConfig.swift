@@ -308,7 +308,7 @@ extension String {
 public struct VZVMNetConfig: Codable {
 	public var userNetworks: [String: VZSharedNetwork]
 	public var defaultNatNetwork: VZSharedNetwork
-	public var defaultImdsNetwork: VZSharedNetwork
+	public var defaultImdsNetwork: VZSharedNetwork?
 
 	public var sharedNetworks: [String: VZSharedNetwork] {
 		var result: [String: VZSharedNetwork] = [:]
@@ -318,7 +318,9 @@ public struct VZVMNetConfig: Codable {
 		}
 
 		result["nat"] = self.defaultNatNetwork
-		result["imds"] = self.defaultImdsNetwork
+		if let network = self.defaultImdsNetwork {
+			result[IMDSNetworkInterface.imdsNetworkName] = network
+		}
 
 		return result
 	}
@@ -337,7 +339,8 @@ public struct VZVMNetConfig: Codable {
 
 	public init() throws {
 		self.defaultNatNetwork = VZSharedNetwork.defaultNatNetwork
-		self.defaultImdsNetwork = VZSharedNetwork.defaultImdsNetwork
+		self.defaultImdsNetwork = IMDSNetworkInterface.imdsEnabled ? VZSharedNetwork.defaultImdsNetwork : nil
+
 		self.userNetworks = [
 			"shared": try VZSharedNetwork.createNetwork(mode: .shared, baseAddress: "192.168", cidr: 24, runMode: .user),
 			"host": try VZSharedNetwork.createNetwork(mode: .host, baseAddress: "172.\(Int.random(in: 16...31))", cidr: 24, runMode: .user),

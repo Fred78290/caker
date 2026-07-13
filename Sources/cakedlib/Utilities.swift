@@ -15,6 +15,22 @@ extension Date {
 	}
 }
 
+extension UserDefaults {
+	private static var _shared: UserDefaults?
+
+	public static var shared: UserDefaults {
+		guard let _shared else {
+			guard let shared = UserDefaults(suiteName: "group.\(Utils.cakerSignature)") else {
+				Logger("UserDefaults").error("Failed to create shared: group.\(Utils.cakerSignature)")
+				return UserDefaults.standard
+			}
+			
+			return shared
+		}
+		
+		return _shared
+	}
+}
 extension Bundle {
 	public static func createProcess() throws -> Process {
 		guard Bundle.mustUseUnixTask == false else {

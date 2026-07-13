@@ -342,6 +342,15 @@ public class IMDSNetworkInterface: SharedNetworkInterface {
 	public static let imdsNetmask = "255.255.255.0"
 	public static let imdsNetworkName = "imds"
 
+	public static var imdsEnabled: Bool {
+		get {
+			return UserDefaults.shared.bool(forKey: "AwsEC2MetadataEnabled")
+		}
+		set {
+			UserDefaults.shared.set(newValue, forKey: "AwsEC2MetadataEnabled")
+		}
+	}
+	
 	/// The AWS-style link-local address guests get a static route to (see CloudInit.swift).
 	/// Not on-link on the imds subnet itself — genuinely reaching it host-side needs a `pf`
 	/// address-alias redirect to `imdsGateway` (see `PFRedirect.enableAddressAlias`).

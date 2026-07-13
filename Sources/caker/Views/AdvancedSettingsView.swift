@@ -12,6 +12,8 @@ import Virtualization
 struct AdvancedSettingsView: View {
 	private static let noneNetwork = "none"
 
+	@AppStorage("AwsEC2MetadataEnabled", store: .shared) var awsEC2MetadataEnabled: Bool = false
+
 	@State private var bridgedNetwork: String
 	@State private var primaryName: String
 	@State private var passphrase: String
@@ -106,6 +108,19 @@ struct AdvancedSettingsView: View {
 					.font(.caption)
 					.foregroundStyle(.secondary)
 			}
+
+			Section {
+				Toggle(isOn: $awsEC2MetadataEnabled) {
+					Text("Enable AWS EC2 Metadata")
+				}
+			} header: {
+				Label("AWS EC2 Metadata", systemImage: "cloud.fill")
+			} footer: {
+				Text("Enable IMDSv2 metadata service for virtual machines running on linux. Need to restart caked daemon to take effect.")
+					.font(.caption)
+					.foregroundStyle(.secondary)
+			}
+
 		}
 		.formStyle(.grouped)
 		.scrollDisabled(true)

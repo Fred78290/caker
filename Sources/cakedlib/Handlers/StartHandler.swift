@@ -177,11 +177,13 @@ public struct StartHandler {
 		// is enabled by default and IMDSCoordinator can bind its server as soon as any
 		// Linux VM registers, including ones started later outside this batch (e.g. via
 		// `cakectl start`) — if the network isn't already up by then, that bind fails.
-		let imdsNetwork = BridgeAttachement(network: IMDSNetworkInterface.imdsNetworkName)
-		let imdsSocketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: imdsNetwork.network, runMode: runMode)
+		if IMDSNetworkInterface.imdsEnabled {
+			let imdsNetwork = BridgeAttachement(network: IMDSNetworkInterface.imdsNetworkName)
+			let imdsSocketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: imdsNetwork.network, runMode: runMode)
 
-		if try imdsSocketURL.socket.exists() == false || (try imdsSocketURL.socket.exists() && imdsSocketURL.pidFile.isPIDRunning().running == false) {
-			networks.append(imdsNetwork)
+			if try imdsSocketURL.socket.exists() == false || (try imdsSocketURL.socket.exists() && imdsSocketURL.pidFile.isPIDRunning().running == false) {
+				networks.append(imdsNetwork)
+			}
 		}
 
 		// Start networks
