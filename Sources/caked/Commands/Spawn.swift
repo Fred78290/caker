@@ -18,7 +18,7 @@ struct Spawn: AsyncParsableCommand {
 		try self.options.validate()
 
 		if self.options.bridgedNetwork {
-			guard try CakedKeyConfig.bridgedNetwork.get() != nil else {
+			guard CakedKeyConfig.bridgedNetwork.string() != nil else {
 				throw ValidationError(String(localized: "Any bridged network is not configured"))
 			}
 		}
@@ -58,7 +58,7 @@ struct SpawnAndStart: AsyncParsableCommand {
 		try self.options.validate()
 
 		if self.options.bridgedNetwork {
-			guard try CakedKeyConfig.bridgedNetwork.get() != nil else {
+			guard CakedKeyConfig.bridgedNetwork.string() != nil else {
 				throw ValidationError(String(localized: "Any bridged network is not configured"))
 			}
 		}

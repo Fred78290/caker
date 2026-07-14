@@ -39,11 +39,11 @@ public struct SetOptions: ParsableCommand {
 			}
 
 			if keyValue.count == 2 {
-				try config.set(String(keyValue[1]))
+				config.set(String(keyValue[1]))
 			} else {
 				print("\(String(localized: "Value for")) \(String(keyValue[0])):", terminator: " ")
 
-				try config.set(readLine())
+				config.set(readLine())
 			}
 		}
 	}

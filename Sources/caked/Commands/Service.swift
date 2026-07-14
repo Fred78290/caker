@@ -42,7 +42,7 @@ struct Certs {
 
 struct Service: ParsableCommand {
 	static let configuration = CommandConfiguration(
-		abstract: String(localized: "caked as launchctl agent"), subcommands: subcommands)
+		abstract: String(localized: "caked as launchctl agent"), subcommands: subcommands, aliases: ["svc"])
 }
 
 extension Service {
@@ -197,7 +197,7 @@ extension Service {
 
 				if let password = options.password { return password }
 
-				return try? CakedKeyConfig.passphrase.get()
+				return CakedKeyConfig.passphrase.string()
 			}
 		#endif
 
@@ -261,7 +261,7 @@ extension Service {
 		var password: String? {
 			if options.noPassword { return nil }
 			if let password = options.password { return password }
-			return try? CakedKeyConfig.passphrase.get()
+			return CakedKeyConfig.passphrase.string()
 		}
 
 		var webUIDirectory: String? {

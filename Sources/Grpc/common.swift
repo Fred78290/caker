@@ -8,6 +8,7 @@ import Security
 import System
 import Virtualization
 import Combine
+import CakeAgentLib
 
 public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 
@@ -18,6 +19,25 @@ public let GiB: UInt64 = MiB * KiB
 public let KoB: UInt64 = 1024
 public let MoB: UInt64 = KoB * KoB
 public let GoB: UInt64 = MoB * KoB
+
+extension UserDefaults {
+	private static var _shared: UserDefaults?
+
+	public static var shared: UserDefaults {
+		guard let _shared else {
+			guard let shared = UserDefaults(suiteName: "group.\(Utils.cakerSignature)") else {
+				Logger("UserDefaults").error("Failed to create shared: group.\(Utils.cakerSignature)")
+				return UserDefaults.standard
+			}
+
+			Self._shared = shared
+
+			return shared
+		}
+
+		return _shared
+	}
+}
 
 extension Bundle {
 	public static var runInCaker: Bool = false

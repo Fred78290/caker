@@ -33,7 +33,7 @@ extension GrpcCommand {
 	
 	var password: String? {
 		guard let password = options.password else {
-			return try? CakedKeyConfig.passphrase.get()
+			return CakedKeyConfig.passphrase.string()
 		}
 
 		return password

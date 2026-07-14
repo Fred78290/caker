@@ -775,7 +775,7 @@ extension VirtualMachineConfiguration {
 						let network: String
 
 						if inf.isBridged() {
-							guard let name = try CakedKeyConfig.bridgedNetwork.get() else {
+							guard let name = CakedKeyConfig.bridgedNetwork.string() else {
 								throw ServiceError(String(localized: "Any bridged network is not configured"))
 							}
 							network = name

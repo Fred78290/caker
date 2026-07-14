@@ -344,10 +344,10 @@ public class IMDSNetworkInterface: SharedNetworkInterface {
 
 	public static var imdsEnabled: Bool {
 		get {
-			return UserDefaults.shared.bool(forKey: "AwsEC2MetadataEnabled")
+			return CakedKeyConfig.imdsEnabled.bool()
 		}
 		set {
-			UserDefaults.shared.set(newValue, forKey: "AwsEC2MetadataEnabled")
+			CakedKeyConfig.imdsEnabled.set(newValue)
 		}
 	}
 	
