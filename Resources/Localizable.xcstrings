@@ -3922,7 +3922,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activez le service de métadonnées IMDSv2 pour les machines virtuelles fonctionnant sous Linux. Besoin de redémarrer le démon caqué pour prendre effet."
+            "value" : "Activez le service de métadonnées IMDSv2 pour les machines virtuelles fonctionnant sous Linux. Besoin de redémarrer le démon caked pour prendre effet."
           }
         }
       }

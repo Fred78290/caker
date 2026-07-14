@@ -360,6 +360,7 @@ public struct VZVMNetConfig: Codable {
 
 		self.defaultNatNetwork = VZSharedNetwork.defaultNatNetwork
 		self.defaultImdsNetwork = IMDSNetworkInterface.imdsEnabled ? VZSharedNetwork.defaultImdsNetwork : nil
+
 		self.userNetworks = try container.decodeIfPresent([String: VZSharedNetwork].self, forKey: .userNetworks) ?? [:]
 	}
 

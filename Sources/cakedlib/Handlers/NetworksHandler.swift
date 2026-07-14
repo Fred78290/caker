@@ -292,7 +292,7 @@ public struct NetworksHandler {
 		} else {
 			bridgedNetwork = nil
 		}
-		
+
 		try networks.forEach { inf in
 			if inf.isNAT() == false {
 				if let networkName = inf.isBridged() ? bridgedNetwork : inf.network {
@@ -306,11 +306,7 @@ public struct NetworksHandler {
 							Logger(self).warn("Network interface \(networkName) handled by the Virtualization framework via the VMNetworking entitlement")
 						}
 					} else if networkConfig != nil {
-						if NetworksHandler.vmnetNative {
-							Logger(self).warn("Network interface \(networkName) handled by vmnet")
-						} else {
-							try NetworksHandler.startNetworkService(networkName: networkName, runMode: runMode)
-						}
+						try NetworksHandler.startNetworkService(networkName: networkName, runMode: runMode)
 					} else {
 						Logger(self).error("Network interface \(networkName) not found")
 					}

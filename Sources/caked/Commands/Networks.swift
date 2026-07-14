@@ -328,7 +328,11 @@ struct Networks: ParsableCommand {
 			try vzvmnet.1.start()
 		} catch {
 			Logger(self).error("Failed to start network: \(error)")
-			throw error
+
+			try? pidFile.deleteIfFileExists()
+			try? socket.deleteIfFileExists()
+			// Exit because vmnet scrash
+			Foundation.exit(1)
 		}
 	}
 
