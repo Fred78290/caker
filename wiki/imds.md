@@ -52,7 +52,9 @@ curl -H "X-aws-ec2-metadata-token: $TOKEN" http://192.168.169.1:28080/latest/met
 
 `GET /` (la racine, sans préfixe `latest/meta-data`) renvoie la liste des versions d'API prises en charge, comme sur une vraie instance EC2 (`1.0`, une série de dates, puis `latest`).
 
-Points de terminaison disponibles sous `latest/meta-data` : `instance-id`, `hostname`, `local-hostname`, `local-ipv4`, `mac`, `ami-id`, `ami-launch-index`, `instance-type`, `placement/availability-zone`, `placement/region`, `network/interfaces/macs/<mac>/{local-ipv4s,subnet-ipv4-cidr-block,vpc-id}`.
+Points de terminaison disponibles sous `latest/meta-data` : `instance-id`, `hostname`, `local-hostname`, `local-ipv4`, `mac`, `public-hostname`, `public-ipv4`, `ami-id`, `ami-launch-index`, `instance-type`, `placement/availability-zone`, `placement/region`, `network/interfaces/macs/<mac>/{local-ipv4s,subnet-ipv4-cidr-block,vpc-id}`.
+
+`public-ipv4` / `public-hostname` ne sont disponibles que pour les VM possédant une interface réseau `bridged` (par exemple `cakectl config vm --network name=bridged`) — l'équivalent le plus proche d'une adresse IP publique EC2, puisque le mode bridgé place la VM directement sur le réseau local physique. `public-ipv4` est résolue en direct via le cache ARP de l'hôte pour l'adresse MAC de cette interface (comme pour l'adresse IMDS elle-même), et n'est donc renvoyée qu'une fois que la VM a effectivement émis du trafic sur ce réseau. `public-hostname` tente ensuite une résolution DNS inverse (PTR) sur cette adresse via le résolveur système — ce qui couvre à la fois de vrais enregistrements PTR (si le routeur/DNS du réseau local en publie) et les noms mDNS/Bonjour (`.local`), macOS relayant cette dernière résolution vers `mDNSResponder` — puis se rabat sur `<hostname>.local` si aucune des deux n'aboutit. Sans interface `bridged`, ces deux points de terminaison renvoient 404, comme sur une véritable instance EC2 sans IP publique.
 
 <a name="imds-limitations-fr"></a>
 ## Limitations
@@ -114,7 +116,9 @@ curl -H "X-aws-ec2-metadata-token: $TOKEN" http://192.168.169.1:28080/latest/met
 
 `GET /` (the bare root, no `latest/meta-data` prefix) returns the list of supported API versions, matching a real EC2 instance (`1.0`, a run of dates, then `latest`).
 
-Available endpoints under `latest/meta-data`: `instance-id`, `hostname`, `local-hostname`, `local-ipv4`, `mac`, `ami-id`, `ami-launch-index`, `instance-type`, `placement/availability-zone`, `placement/region`, `network/interfaces/macs/<mac>/{local-ipv4s,subnet-ipv4-cidr-block,vpc-id}`.
+Available endpoints under `latest/meta-data`: `instance-id`, `hostname`, `local-hostname`, `local-ipv4`, `mac`, `public-hostname`, `public-ipv4`, `ami-id`, `ami-launch-index`, `instance-type`, `placement/availability-zone`, `placement/region`, `network/interfaces/macs/<mac>/{local-ipv4s,subnet-ipv4-cidr-block,vpc-id}`.
+
+`public-ipv4` / `public-hostname` are only available for VMs with a `bridged` network attachment (e.g. `cakectl config vm --network name=bridged`) — the closest analogue to an EC2 public IP this host has, since bridged mode puts the VM directly on the physical LAN. `public-ipv4` is resolved live from the host's ARP cache for that interface's MAC address (the same mechanism used for the IMDS network itself), so it's only returned once the VM has actually sent traffic on that network. `public-hostname` then attempts a reverse DNS (PTR) lookup on that address through the system resolver — covering both real PTR records (if the LAN's router/DNS publishes one) and mDNS/Bonjour `.local` names, since macOS transparently routes that lookup through `mDNSResponder` — falling back to `<hostname>.local` if neither resolves. With no `bridged` attachment, both endpoints return 404, matching a real EC2 instance with no public IP.
 
 <a name="imds-limitations"></a>
 ## Limitations

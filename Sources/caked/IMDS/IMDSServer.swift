@@ -1,8 +1,40 @@
 import CakedLib
+import Darwin
 import Foundation
 import NIO
 import Synchronization
 import Vapor
+
+// MARK: - Public (bridged-network) address resolution
+
+/// Resolves a "public" hostname for an IPv4 address the way a LAN client would: a reverse
+/// PTR lookup through the system resolver. On macOS this transparently covers both real DNS
+/// PTR records (if the LAN's router/DNS server publishes one) *and* mDNS/Bonjour names for
+/// `169.254.0.0/16`- and local-subnet addresses (macOS's resolver proxies those through
+/// `mDNSResponder`), so this one call is enough for both cases without a separate `NetService`
+/// browse.
+private enum ReverseDNS {
+	static func hostname(forIPv4 address: String) -> String? {
+		guard let addr = address.to_in_addr() else { return nil }
+
+		var sin = sockaddr_in()
+		sin.sin_family = sa_family_t(AF_INET)
+		sin.sin_addr = addr
+
+		var hostBuffer = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+		let result = withUnsafePointer(to: &sin) { ptr -> Int32 in
+			ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { saPtr in
+				getnameinfo(saPtr, socklen_t(MemoryLayout<sockaddr_in>.size), &hostBuffer, socklen_t(hostBuffer.count), nil, 0, NI_NAMEREQD)
+			}
+		}
+
+		guard result == 0 else { return nil }
+
+		let name = String(cString: hostBuffer)
+
+		return name.isEmpty ? nil : name
+	}
+}
 
 // MARK: - IMDSv2 token store
 
@@ -60,6 +92,15 @@ public final class IMDSMetadata: Sendable {
 	public let instanceType: String
 	public let networks: [(mac: String, name: String)]
 
+	/// The VM's MAC address on its `bridged` network attachment, if it has one. Unlike
+	/// `imdsMac` this MAC lives directly on the physical LAN, so the host's ARP cache can
+	/// resolve it to whatever LAN-facing address the VM currently holds there — the closest
+	/// analogue this host has to an EC2 instance's public IP. `nil` when the VM has no
+	/// `bridged` attachment (e.g. NAT/shared-only), in which case `public-ipv4` and
+	/// `public-hostname` simply aren't available, matching how real EC2 omits them for
+	/// instances with no public IP.
+	public let publicMac: String?
+
 	public var localIPv4: String {
 		get { self._localIPv4.withLock { $0 } }
 		set { self._localIPv4.withLock { $0 = newValue } }
@@ -77,6 +118,7 @@ public final class IMDSMetadata: Sendable {
 			guard let mac = net.macAddress ?? config.macAddress else { return nil }
 			return (mac: mac, name: net.network)
 		}
+		self.publicMac = qualified.first(where: { $0.isBridged() })?.macAddress
 	}
 }
 
@@ -359,6 +401,8 @@ public final class IMDSServer: Sendable {
 				mac
 				network/
 				placement/
+				public-hostname
+				public-ipv4
 				"""
 			return plainText(keys, on: req)
 		}
@@ -386,6 +430,41 @@ public final class IMDSServer: Sendable {
 		meta.get("mac") { req -> Response in
 			guard let metadata = req.imdsMetadata else { return Response(status: .notFound) }
 			return plainText(metadata.mac, on: req)
+		}
+
+		// Public (bridged-network) address — only present for VMs with a `bridged`
+		// attachment, resolved live via the host's ARP cache the same way `IMDSRegistry`
+		// resolves the IMDS network itself. Off the event loop: ARP resolution can shell
+		// out on a cache miss.
+		meta.get("public-ipv4") { req async -> Response in
+			guard let metadata = req.imdsMetadata, let publicMac = metadata.publicMac else {
+				return Response(status: .notFound)
+			}
+
+			let ip = try? await req.application.threadPool.runIfActive {
+				ARPResolver.ipAddress(forMACAddress: publicMac)
+			}
+
+			guard let ip = ip ?? nil else { return Response(status: .notFound) }
+
+			return plainText(ip, on: req)
+		}
+
+		// Reverse-DNS on the resolved public IPv4 (also covers mDNS/Bonjour `.local` names
+		// on macOS — see `ReverseDNS`); falls back to `<hostname>.local`, since a bridged VM
+		// sits directly on the physical LAN and is typically itself reachable that way via
+		// mDNS even when nothing publishes a PTR record for it.
+		meta.get("public-hostname") { req async -> Response in
+			guard let metadata = req.imdsMetadata, let publicMac = metadata.publicMac else {
+				return Response(status: .notFound)
+			}
+
+			let resolved = try? await req.application.threadPool.runIfActive { () -> String? in
+				guard let ip = ARPResolver.ipAddress(forMACAddress: publicMac) else { return nil }
+				return ReverseDNS.hostname(forIPv4: ip)
+			}
+
+			return plainText((resolved ?? nil) ?? "\(metadata.hostname).local", on: req)
 		}
 
 		meta.get("ami-id") { req -> Response in
