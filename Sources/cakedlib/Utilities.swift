@@ -767,27 +767,29 @@ extension URL: Purgeable {
 	}
 
 	public func waitPID(maxRetries: Int = 10, handler: WaitPIDHandler? = nil) throws {
-		var retries = 0
+		try Task.sync {
+			var retries = 0
 
-		while retries < maxRetries {
-			if let handler = handler {
-				try handler()
-			}
+			while retries < maxRetries {
+				if FileManager.default.fileExists(atPath: self.path) {
+					guard self.isPIDRunning().0 else {
+						throw ServiceError(String(localized: "PID file exists at \(self.path) but process died"))
+					}
 
-			if FileManager.default.fileExists(atPath: self.path) {
-				guard self.isPIDRunning().0 else {
-					throw ServiceError(String(localized: "PID file exists at \(self.path) but process died"))
+					return
 				}
 
-				return
+				try await Task.sleep(for: .seconds(1))
+
+				retries += 1
 			}
 
-			Thread.sleep(forTimeInterval: 1)
-
-			retries += 1
+			throw ServiceError(String(localized: "PID file \(self.path) did not appear within the expected time"))
 		}
 
-		throw ServiceError(String(localized: "PID file \(self.path) did not appear within the expected time"))
+		if let handler = handler {
+			try handler()
+		}
 	}
 
 	public static func binary(_ name: String) -> URL? {
