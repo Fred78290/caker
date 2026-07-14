@@ -50,7 +50,9 @@ TOKEN=$(curl -X PUT "http://192.168.169.1:28080/latest/api/token" -H "X-aws-ec2-
 curl -H "X-aws-ec2-metadata-token: $TOKEN" http://192.168.169.1:28080/latest/meta-data/hostname
 ```
 
-Points de terminaison disponibles : `instance-id`, `hostname`, `local-hostname`, `local-ipv4`, `mac`, `ami-id`, `ami-launch-index`, `instance-type`, `placement/availability-zone`, `placement/region`, `network/interfaces/macs/<mac>/{local-ipv4s,subnet-ipv4-cidr-block,vpc-id}`.
+`GET /` (la racine, sans préfixe `latest/meta-data`) renvoie la liste des versions d'API prises en charge, comme sur une vraie instance EC2 (`1.0`, une série de dates, puis `latest`).
+
+Points de terminaison disponibles sous `latest/meta-data` : `instance-id`, `hostname`, `local-hostname`, `local-ipv4`, `mac`, `ami-id`, `ami-launch-index`, `instance-type`, `placement/availability-zone`, `placement/region`, `network/interfaces/macs/<mac>/{local-ipv4s,subnet-ipv4-cidr-block,vpc-id}`.
 
 <a name="imds-limitations-fr"></a>
 ## Limitations
@@ -110,7 +112,9 @@ TOKEN=$(curl -X PUT "http://192.168.169.1:28080/latest/api/token" -H "X-aws-ec2-
 curl -H "X-aws-ec2-metadata-token: $TOKEN" http://192.168.169.1:28080/latest/meta-data/hostname
 ```
 
-Available endpoints: `instance-id`, `hostname`, `local-hostname`, `local-ipv4`, `mac`, `ami-id`, `ami-launch-index`, `instance-type`, `placement/availability-zone`, `placement/region`, `network/interfaces/macs/<mac>/{local-ipv4s,subnet-ipv4-cidr-block,vpc-id}`.
+`GET /` (the bare root, no `latest/meta-data` prefix) returns the list of supported API versions, matching a real EC2 instance (`1.0`, a run of dates, then `latest`).
+
+Available endpoints under `latest/meta-data`: `instance-id`, `hostname`, `local-hostname`, `local-ipv4`, `mac`, `ami-id`, `ami-launch-index`, `instance-type`, `placement/availability-zone`, `placement/region`, `network/interfaces/macs/<mac>/{local-ipv4s,subnet-ipv4-cidr-block,vpc-id}`.
 
 <a name="imds-limitations"></a>
 ## Limitations

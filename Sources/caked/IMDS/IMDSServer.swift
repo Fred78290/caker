@@ -334,9 +334,18 @@ public final class IMDSServer: Sendable {
 		// Auth first (401 for an invalid/missing v2 token), then resolve which VM the
 		// request is from (404 if unresolvable) — every handler below can assume
 		// `req.imdsMetadata` is present.
-		let meta = app.grouped("latest", "meta-data")
-			.grouped(IMDSAuthMiddleware(tokens: tokens))
+		let guarded = app.grouped(IMDSAuthMiddleware(tokens: tokens))
 			.grouped(IMDSResolverMiddleware(registry: registry))
+
+		// GET / — the API version listing real EC2 instances return, e.g. `curl
+		// http://169.254.169.254/`. Guest tooling that probes this before hitting
+		// `/latest/meta-data/...` (some SDKs do) gets a plausible, stable response.
+		guarded.get { req -> Response in
+			guard req.imdsMetadata != nil else { return Response(status: .notFound) }
+			return plainText(Self.supportedAPIVersions, on: req)
+		}
+
+		let meta = guarded.grouped("latest", "meta-data")
 
 		meta.get { req -> Response in
 			let keys = """
@@ -433,6 +442,39 @@ public final class IMDSServer: Sendable {
 			plainText("vpc-caker", on: req)
 		}
 	}
+
+	/// The exact API version list real EC2 instances report at `GET /` — a stable,
+	/// well-known constant (unrelated to any AWS account/region), reproduced here purely
+	/// for guest-tooling compatibility with code that parses or expects this listing.
+	private static let supportedAPIVersions = """
+		1.0
+		2007-01-19
+		2007-03-01
+		2007-08-29
+		2007-10-10
+		2007-12-15
+		2008-02-01
+		2008-09-01
+		2009-04-04
+		2011-01-01
+		2011-05-01
+		2012-01-12
+		2014-02-25
+		2014-11-05
+		2015-10-20
+		2016-04-19
+		2016-06-30
+		2016-09-02
+		2018-03-28
+		2018-08-17
+		2018-09-24
+		2019-10-01
+		2020-10-27
+		2021-01-03
+		2021-03-23
+		2021-07-15
+		latest
+		"""
 
 	private static func plainText(_ body: String, on req: Request) -> Response {
 		let response = Response(status: .ok, body: .init(string: body))
