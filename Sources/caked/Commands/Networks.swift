@@ -385,7 +385,9 @@ struct Networks: ParsableCommand {
 				sleep(1)
 
 				try socketURL.pidFile.waitPID {
-					if process.isRunning == false {
+					if process.isRunning {
+						Logger(self).info("Network \(networkName) started")
+					} else {
 						if process.terminationReason == .uncaughtSignal {
 							throw ServiceError(String(localized: "Network \(networkName) failed to start: \(process.terminationStatus), \(process.terminationReason.rawValue)"))
 						} else {
@@ -409,6 +411,26 @@ struct Networks: ParsableCommand {
 			return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) started"))
 		} catch {
 			return StartedNetworkReply(name: networkName, started: false, reason: error.reason)
+		}
+	}
+
+	public static func startAll(runMode: Utils.RunMode) -> [StartedNetworkReply] {
+		let networks = CakedLib.NetworksHandler.networks(all: true, runMode: runMode)
+
+		func start(_ name: String) -> StartedNetworkReply {
+			do {
+				return Networks.start(options: try Networks.VMNetOptions(networkName: name, runMode: runMode), fork: false, runMode: runMode)
+			} catch {
+				return StartedNetworkReply(name: name, started: false, reason: networks.reason)
+			}
+		}
+
+		if networks.success {
+			return networks.networks.filter { $0.running == false && $0.managed }.map { network in
+				start(network.name)
+			}
+		} else {
+			return [StartedNetworkReply(name: "<all>", started: false, reason: networks.reason)]
 		}
 	}
 
@@ -491,30 +513,39 @@ struct Networks: ParsableCommand {
 		public var fork: Bool = false
 
 		@Argument(help: ArgumentHelp(String(localized: "Network name"), discussion: String(localized: "The name for network")))
-		var name: String
+		var name: String? = nil
+
+		@Flag(name: .shortAndLong, help: ArgumentHelp(String(localized: "Start all networks")))
+		public var all: Bool = false
 
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			try validateNetwork(networkName: self.name, runMode: self.common.runMode)
-
-			let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: name, runMode: self.common.runMode)
-
-			if socketURL.pidFile.isCakedRunning() {
-				if let pid = socketURL.pidFile.readPID() {
-					throw ValidationError(String(localized: "Network \(self.name) is already running with PID=\(pid)"))
-				} else {
-					throw ValidationError(String(localized: "Network \(self.name) is already running with undetermined PID"))
-				}
+			if name != nil && all {
+				throw ValidationError("You can only specify one of <name> or --all")
 			}
 
-			//if FileManager.default.fileExists(atPath: socketURL.socket.path) {
-			//	throw ValidationError(String(localized: "Listen network \(self.name) already exists at this location: \(socketURL.socket.path)"))
-			//}
+			if let name {
+				try validateNetwork(networkName: name, runMode: self.common.runMode)
+
+				let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: name, runMode: self.common.runMode)
+
+				if socketURL.pidFile.isCakedRunning() {
+					if let pid = socketURL.pidFile.readPID() {
+						throw ValidationError(String(localized: "Network \(name) is already running with PID=\(pid)"))
+					} else {
+						throw ValidationError(String(localized: "Network \(name) is already running with undetermined PID"))
+					}
+				}
+			}
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(Networks.start(options: try Networks.VMNetOptions(networkName: self.name, runMode: self.common.runMode), fork: self.fork, runMode: self.common.runMode)))
+			if all {
+				Logger.appendNewLine(self.common.format.render(Networks.startAll(runMode: self.common.runMode)))
+			} else if let name {
+				Logger.appendNewLine(self.common.format.render(Networks.start(options: try Networks.VMNetOptions(networkName: name, runMode: self.common.runMode), fork: self.fork, runMode: self.common.runMode)))
+			}
 		}
 	}
 
@@ -777,28 +808,35 @@ struct Networks: ParsableCommand {
 		@Argument(help: ArgumentHelp(String(localized: "network name"), discussion: String(localized: "network to stop, e.g., \"en0\" or \"shared\"")))
 		var networkName: String? = nil
 
+		@Flag(name: .shortAndLong, help: ArgumentHelp(String(localized: "Stop all networks")))
+		public var all: Bool = false
+
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			if networkName != nil && pidFile != nil {
-				throw ValidationError(String(localized: "You can only specify one of --network or --pidfile"))
+			if networkName != nil && pidFile != nil && all {
+				throw ValidationError(String(localized: "You can only specify one of --network or --pidfile or --all"))
 			}
 
-			if networkName == nil && pidFile == nil {
-				throw ValidationError(String(localized: "You must specify one of --network or --pidfile"))
+			if networkName == nil && pidFile == nil && all == false {
+				throw ValidationError(String(localized: "You must specify one of --network or --pidfile or --all"))
 			}
 
-			if let networkName {
-				try Networks.validateNetwork(networkName: networkName, runMode: self.common.runMode)
-			} else if let pidFile {
-				if !FileManager.default.fileExists(atPath: pidFile) {
-					throw ValidationError(String(localized: "PID file \(pidFile) does not exist"))
+			if all == false {
+				if let networkName {
+					try Networks.validateNetwork(networkName: networkName, runMode: self.common.runMode)
+				} else if let pidFile {
+					if !FileManager.default.fileExists(atPath: pidFile) {
+						throw ValidationError(String(localized: "PID file \(pidFile) does not exist"))
+					}
 				}
 			}
 		}
 
 		func run() throws {
-			if let pidFile {
+			if all {
+				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stopAll(runMode: self.common.runMode)))
+			} else if let pidFile {
 				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stop(pidURL: URL(fileURLWithPath: pidFile), runMode: self.common.runMode)))
 			} else if let networkName {
 				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stop(networkName: networkName, runMode: self.common.runMode)))

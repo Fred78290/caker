@@ -12668,6 +12668,17 @@
         }
       }
     },
+    "Start all networks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrer tous les réseaux"
+          }
+        }
+      }
+    },
     "Start an existing VM" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12865,6 +12876,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Arrêter"
+          }
+        }
+      }
+    },
+    "Stop all networks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter tous les réseaux"
           }
         }
       }
@@ -16681,7 +16703,18 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vous ne pouvez spécifier qu'un seul de --network ou --pidfile"
+            "value" : "Vous ne pouvez spécifier qu'un seul de --network ou --pidfile ou —all"
+          }
+        }
+      }
+    },
+    "You can only specify one of <name> or --all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous ne pouvez spécifier qu'un seul de <name> ou --all"
           }
         }
       }
@@ -16714,7 +16747,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vous devez spécifier un de --network ou --pidfile"
+            "value" : "Vous devez spécifier un de --network ou --pidfile ou —all"
           }
         }
       }
