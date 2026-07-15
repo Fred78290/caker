@@ -96,7 +96,7 @@ public actor IMDSCoordinator {
 			return
 		}
 
-		let metadata = IMDSMetadata(config: config, locationName: location.name, imdsMac: imdsMac)
+		let metadata = IMDSMetadata(config: config, locationName: location.name, imdsMac: imdsMac, agentURL: location.agentURL, runMode: self.runMode)
 
 		metadata.localIPv4 = config.runningIP ?? ""
 

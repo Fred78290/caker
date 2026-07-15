@@ -1,6 +1,7 @@
 import CakedLib
 import Darwin
 import Foundation
+import GRPCLib
 import NIO
 import Synchronization
 import Vapor
@@ -101,17 +102,25 @@ public final class IMDSMetadata: Sendable {
 	/// instances with no public IP.
 	public let publicMac: String?
 
+	/// This VM's `caked vmrun` agent socket, used to ask the in-guest `cakeagent` for its own
+	/// view of `publicMac`'s IP address — see the resolution comment on the `public-ipv4`
+	/// route for why that's tried before falling back to the host's ARP cache.
+	public let agentURL: URL
+	public let runMode: Utils.RunMode
+
 	public var localIPv4: String {
 		get { self._localIPv4.withLock { $0 } }
 		set { self._localIPv4.withLock { $0 = newValue } }
 	}
 
-	public init(config: CakeConfig, locationName: String, imdsMac: String) {
+	public init(config: CakeConfig, locationName: String, imdsMac: String, agentURL: URL, runMode: Utils.RunMode) {
 		self.imdsMac = imdsMac
 		self.instanceID = config.instanceID
 		self.hostname = locationName
 		self.mac = config.macAddress ?? ""
 		self.instanceType = "caker.\(config.cpuCount)xlarge"
+		self.agentURL = agentURL
+		self.runMode = runMode
 
 		let qualified = config.qualifiedNetworks
 		self.networks = qualified.compactMap { net in
@@ -354,6 +363,45 @@ public final class IMDSServer: Sendable {
 		try? await app.asyncShutdown()
 	}
 
+	// MARK: - Public (bridged-network) IP resolution
+
+	/// Resolves `publicMac`'s current LAN IPv4 address.
+	///
+	/// Tries the in-guest `cakeagent` first: it reports its own interfaces' MACs and IPs
+	/// straight from inside the guest (`Caked_InfoReply.networks`), so it works identically
+	/// whether the bridged attachment is the entitled native `VZBridgedNetworkDeviceAttachment`
+	/// or the custom vmnet.framework fallback (`VZVMNetImpl`) — unlike the host's ARP cache,
+	/// which only ever reflects traffic the *host* has actually seen, and sees none at all in
+	/// the entitled/native case since `caked` isn't in that packet path.
+	///
+	/// Falls back to the host's ARP cache (prodded with a broadcast ping on a miss — see
+	/// `ARPResolver.ipAddress(forMACAddress:proddingInterface:)`) for VMs where `cakeagent`
+	/// isn't installed or isn't reachable yet.
+	private static func resolvePublicIPv4(metadata: IMDSMetadata, publicMac: String) -> String? {
+		if let ip = queryAgentIPAddress(forMAC: publicMac, metadata: metadata) {
+			return ip
+		}
+
+		return ARPResolver.ipAddress(forMACAddress: publicMac, proddingInterface: CakedKeyConfig.bridgedNetwork.string())
+	}
+
+	/// Asks `cakeagent` for its current network interfaces and picks the one matching `mac`.
+	/// Best-effort and short-timeout: `cakeagent` may not be installed yet (agent install
+	/// happens after the VM already has an IP — see `VirtualMachine.swift`), which is a normal,
+	/// silent miss here rather than an error.
+	private static func queryAgentIPAddress(forMAC mac: String, metadata: IMDSMetadata) -> String? {
+		guard
+			let connection = try? CakeAgentConnection.createCakeAgentConnection(
+				on: Utilities.group.next(), listeningAddress: metadata.agentURL, timeout: 2, runMode: metadata.runMode, retries: .none)
+		else {
+			return nil
+		}
+
+		guard let infos: Caked_InfoReply = try? connection.info() else { return nil }
+
+		return infos.networks.first(where: { $0.macAddress == mac })?.ipAddresses.first
+	}
+
 	// MARK: - Route registration
 
 	private static func registerRoutes(on app: Application, registry: IMDSRegistry, tokens: TokenStore) {
@@ -445,16 +493,15 @@ public final class IMDSServer: Sendable {
 		}
 
 		// Public (bridged-network) address — only present for VMs with a `bridged`
-		// attachment, resolved live via the host's ARP cache the same way `IMDSRegistry`
-		// resolves the IMDS network itself. Off the event loop: ARP resolution can shell
-		// out on a cache miss.
+		// attachment. Off the event loop: both resolution paths below can block (a gRPC
+		// round-trip to the guest, or `arp`/a broadcast probe on a cache miss).
 		meta.get("public-ipv4") { req async -> Response in
 			guard let metadata = req.imdsMetadata, let publicMac = metadata.publicMac else {
 				return Response(status: .notFound)
 			}
 
 			let ip = try? await req.application.threadPool.runIfActive {
-				ARPResolver.ipAddress(forMACAddress: publicMac)
+				Self.resolvePublicIPv4(metadata: metadata, publicMac: publicMac)
 			}
 
 			guard let ip = ip ?? nil else { return Response(status: .notFound) }
@@ -472,7 +519,7 @@ public final class IMDSServer: Sendable {
 			}
 
 			let resolved = try? await req.application.threadPool.runIfActive { () -> String? in
-				guard let ip = ARPResolver.ipAddress(forMACAddress: publicMac) else { return nil }
+				guard let ip = Self.resolvePublicIPv4(metadata: metadata, publicMac: publicMac) else { return nil }
 				return ReverseDNS.hostname(forIPv4: ip)
 			}
 
