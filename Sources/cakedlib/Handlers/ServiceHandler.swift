@@ -254,7 +254,7 @@ public struct ServiceHandler {
 				arguments.append("--disable-tls")
 			}
 
-			try CakedKeyConfig.passphrase.set(password)
+			CakedKeyConfig.passphrase.set(password)
 
 			try Self.installAgent(arguments: arguments, runMode: runMode)
 		}
@@ -288,7 +288,7 @@ public struct ServiceHandler {
 				arguments.append("--tls-cert=\(tlsCert)")
 			}
 
-			try CakedKeyConfig.passphrase.set(password)
+			CakedKeyConfig.passphrase.set(password)
 
 			try Self.installAgent(arguments: arguments, runMode: runMode)
 		}

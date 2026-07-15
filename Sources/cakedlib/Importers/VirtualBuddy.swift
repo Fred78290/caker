@@ -162,7 +162,7 @@ struct VirtualBuddyImporter: Importer {
 				let auxiliaryStorageURL = bundleURL.appendingPathComponent("AuxiliaryStorage")
 
 				guard try hardwareModelURL.exists(), let hardwareModel = VZMacHardwareModel(dataRepresentation: try Data(contentsOf: hardwareModelURL)) else {
-					throw ServiceError(String(localized: "Invalid or missing HardwareModel in \(bundleURL.path)"))
+					throw ServiceError(String(localized: "Invalid or missing hardware model in \(bundleURL.path)"))
 				}
 
 				guard try machineIdentifierURL.exists(), let ecid = VZMacMachineIdentifier(dataRepresentation: try Data(contentsOf: machineIdentifierURL)) else {

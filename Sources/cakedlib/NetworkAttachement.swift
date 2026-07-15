@@ -72,6 +72,13 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		self.networkConfig = networkConfig
 	}
 
+	public init(mode: VMNetMode, macAddress: VZMACAddress, networkName: String, networkConfig: VZSharedNetwork) {
+		self.mode = mode
+		self.networkName = networkName
+		self.macAddress = macAddress
+		self.networkConfig = networkConfig
+	}
+
 	public func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
 		if #available(macOS 26.0, *), networkConfig != nil, NetworksHandler.vmnetNative {
 			return (macAddress, VZVmnetNetworkDeviceAttachment(network: try self.createVMNetwork(runMode: runMode)))
@@ -317,5 +324,48 @@ public class VMNetworkInterface: SharedNetworkInterface {
 	public init(interface: VZBridgedNetworkInterface, macAddress: VZMACAddress) {
 		self.interface = interface
 		super.init(mode: .bridged, networkName: interface.identifier, macAddress: macAddress)
+	}
+}
+
+// MARK: - IMDS host network
+//
+// vmnet.framework's host-mode API only accepts subnets within 192.168.0.0/16 — it rejects
+// link-local (169.254.0.0/16) ranges outright — so the actual DHCP subnet/gateway below live
+// in that range, not at the AWS-style 169.254.169.x addresses. The guest still gets a static
+// route for 169.254.169.254/32 via this gateway (see CloudInit.swift), matching AWS's own
+// convention (169.254.169.254 isn't on-link there either — it's routed) for tooling that
+// hardcodes that address, on a best-effort basis.
+public class IMDSNetworkInterface: SharedNetworkInterface {
+	public static let imdsGateway = "192.168.169.1"
+	public static let imdsDhcpEnd = "192.168.169.253"
+	public static let imdsSubnetCIDR = "192.168.169.0/24"
+	public static let imdsNetmask = "255.255.255.0"
+	public static let imdsNetworkName = "imds"
+
+	public static var imdsEnabled: Bool {
+		get {
+			return CakedKeyConfig.imdsEnabled.bool()
+		}
+		set {
+			CakedKeyConfig.imdsEnabled.set(newValue)
+		}
+	}
+	
+	/// The AWS-style link-local address guests get a static route to (see CloudInit.swift).
+	/// Not on-link on the imds subnet itself — genuinely reaching it host-side needs a `pf`
+	/// address-alias redirect to `imdsGateway` (see `PFRedirect.enableAddressAlias`).
+	public static let awsCompatAddress = "169.254.169.254"
+
+	public init(macAddress: VZMACAddress) {
+		let networkConfig = VZSharedNetwork(
+			mode: .host,
+			netmask: IMDSNetworkInterface.imdsNetmask,
+			dhcpStart: IMDSNetworkInterface.imdsGateway,
+			dhcpEnd: IMDSNetworkInterface.imdsDhcpEnd,
+			dhcpLease: nil,
+			interfaceID: IMDSNetworkInterface.imdsNetworkName,
+			nat66Prefix: nil
+		)
+		super.init(mode: .host, macAddress: macAddress, networkName: IMDSNetworkInterface.imdsNetworkName, networkConfig: networkConfig)
 	}
 }

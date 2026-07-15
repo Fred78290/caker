@@ -13,7 +13,7 @@ public struct SpawnHandler {
 			}
 
 			if options.bridgedNetwork {
-				guard try CakedKeyConfig.bridgedNetwork.get() != nil else {
+				guard CakedKeyConfig.bridgedNetwork.string() != nil else {
 					return BuildedReply(name: options.name, builded: false, reason: String(localized: "Any bridged network is not configured"))
 				}
 			}

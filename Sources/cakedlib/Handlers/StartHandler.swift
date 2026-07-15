@@ -92,6 +92,11 @@ public struct StartHandler {
 				#if DEBUG
 					Logger(self).debug("VM \(vmName) exited with code \(process.terminationStatus)")
 				#endif
+
+				// Fires regardless of exit reason (clean stop, crash, kill) so daemon-side
+				// observers (e.g. IMDSCoordinator) never leak state for a VM that's gone.
+				VMLifecycleHooks.notify(.stopped(location: self.location, runMode: self.runMode))
+
 				if let promise = promise {
 					if process.terminationStatus == 0 {
 						promise.succeed(vmName)
@@ -103,6 +108,15 @@ public struct StartHandler {
 
 			do {
 				let runningIP = try location.waitIP(config: config, wait: 180, runMode: runMode, startedProcess: process)
+
+				// Persist on the daemon's own (cached) config instance so that
+				// VMLifecycleHooks observers (e.g. IMDSCoordinator), which read this same
+				// cached CakeConfig via `location.config()`, see the current IP rather than
+				// whatever was on disk before this VM started.
+				config.runningIP = runningIP
+				try? config.save()
+
+				VMLifecycleHooks.notify(.started(location: location, runMode: runMode))
 
 				return runningIP
 			} catch {
@@ -144,7 +158,7 @@ public struct StartHandler {
 		}
 
 		// Collect autotstart networks
-		let networks = try vms.reduce(into: [BridgeAttachement]()) { (result, element) in
+		var networks = try vms.reduce(into: [BridgeAttachement]()) { (result, element) in
 			try element.0.networks.forEach { network in
 				if result.contains(network) == false {
 					let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: network.network, runMode: runMode)
@@ -153,6 +167,23 @@ public struct StartHandler {
 						result.append(network)
 					}
 				}
+			}
+		}
+
+		// The IMDS network isn't part of any VM's `config.networks` (it's attached
+		// separately, unconditionally, for every Linux VM — see VirtualMachine.swift), so
+		// it's never picked up by the loop above. When IMDS is enabled (off by default —
+		// see IMDSNetworkInterface.imdsEnabled), always pre-start it here too, regardless
+		// of whether this particular autostart batch happens to include a Linux VM:
+		// IMDSCoordinator can bind its server as soon as any Linux VM registers, including
+		// ones started later outside this batch (e.g. via `cakectl start`) — if the network
+		// isn't already up by then, that bind fails.
+		if IMDSNetworkInterface.imdsEnabled {
+			let imdsNetwork = BridgeAttachement(network: IMDSNetworkInterface.imdsNetworkName)
+			let imdsSocketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: imdsNetwork.network, runMode: runMode)
+
+			if try imdsSocketURL.socket.exists() == false || (try imdsSocketURL.socket.exists() && imdsSocketURL.pidFile.isPIDRunning().running == false) {
+				networks.append(imdsNetwork)
 			}
 		}
 

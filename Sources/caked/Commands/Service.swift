@@ -42,7 +42,7 @@ struct Certs {
 
 struct Service: ParsableCommand {
 	static let configuration = CommandConfiguration(
-		abstract: String(localized: "caked as launchctl agent"), subcommands: subcommands)
+		abstract: String(localized: "caked as launchctl agent"), subcommands: subcommands, aliases: ["svc"])
 }
 
 extension Service {
@@ -91,6 +91,9 @@ extension Service {
 
 		@Option(name: [.customLong("web-ui")], help: ArgumentHelp(String(localized: "Path to web UI static files directory"), discussion: "When provided, caked serves the web UI under /ui"))
 		var webUIDirectory: String? = nil
+
+		@Option(name: [.customLong("imds-port")], help: ArgumentHelp(String(localized: "Unprivileged port IMDS listens on"), discussion: "AWS-style instance metadata service for Linux VMs. Off by default — enable it via the \"AWS EC2 Metadata\" toggle in Caker's Advanced settings. Once enabled, bound on this ordinary, unprivileged port on the IMDS gateway (\(IMDSNetworkInterface.imdsGateway)) — always reachable from guests there, no privilege required, including in sandboxed builds. Ignored when caked runs as root, since IMDS then binds the standard port 80 directly instead."))
+		var imdsPort: Int = IMDSServer.internalBindPort
 
 		func validate() throws {
 			VMRunHandler.serviceMode = mode
@@ -191,7 +194,7 @@ extension Service {
 
 				if let password = options.password { return password }
 
-				return try? CakedKeyConfig.passphrase.get()
+				return CakedKeyConfig.passphrase.string()
 			}
 		#endif
 
@@ -255,7 +258,7 @@ extension Service {
 		var password: String? {
 			if options.noPassword { return nil }
 			if let password = options.password { return password }
-			return try? CakedKeyConfig.passphrase.get()
+			return CakedKeyConfig.passphrase.string()
 		}
 
 		var webUIDirectory: String? {
@@ -358,6 +361,30 @@ extension Service {
 				try? home.agentPID.delete()
 			}
 
+			var imdsCoordinator: IMDSCoordinator? = nil
+			var imdsLifecycleHandler: VMLifecycleHooks.HandlerID? = nil
+
+			if IMDSNetworkInterface.imdsEnabled {
+				// Central IMDS server for Linux VMs (see IMDSCoordinator's doc comment): the
+				// daemon learns about VM start/stop through VMLifecycleHooks, fired by
+				// CakedLib.StartHandler whenever it spawns or reaps a `caked vmrun` child,
+				// whether that's from autostart below or from a `Caked_StartRequest` RPC.
+				// Off by default (IMDSNetworkInterface.imdsEnabled, toggled from Caker's
+				// Advanced settings) — once on, this works including in sandboxed builds,
+				// guests can always reach it on its unprivileged port.
+				let coordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode, internalPort: self.options.imdsPort)
+
+				imdsCoordinator = coordinator
+
+				imdsLifecycleHandler = VMLifecycleHooks.addHandler { event in
+					Task {
+						await coordinator.handle(event)
+					}
+				}
+
+				await coordinator.registerAlreadyRunning()
+			}
+
 			try CakedLib.StartHandler.autostart(on: eventLoopGroup.next(), runMode: runMode).whenComplete { result in
 				switch result {
 				case .failure(let error):
@@ -434,6 +461,14 @@ extension Service {
 						logger.info("Stop service on SIGINT")
 
 						Task {
+							if let handler = imdsLifecycleHandler, let coordinator = imdsCoordinator {
+								imdsLifecycleHandler = nil
+								imdsCoordinator = nil
+
+								VMLifecycleHooks.removeHandler(handler)
+								await coordinator.shutdown()
+							}
+
 							await restServer?.shutdown()
 							provider.stop()
 
@@ -511,6 +546,10 @@ extension Service {
 				if self.options.webUIDirectory != nil {
 					arguments.append("--web-ui=\(self.options.webUIDirectory!)")
 				}
+			}
+
+			if self.options.imdsPort != IMDSServer.internalBindPort {
+				arguments.append("--imds-port=\(self.options.imdsPort)")
 			}
 
 			if runMode == .system {

@@ -137,7 +137,7 @@ func newYAMLDecoder() -> YAMLDecoder {
 struct NetworkConfig: Codable {
 	var network: CloudInitNetwork = CloudInitNetwork()
 
-	init(netIfnames: Bool, config: CakeConfig) {
+	init(netIfnames: Bool, config: CakeConfig) throws {
 		let networks = config.qualifiedNetworks
 
 		var index: Int = 1
@@ -156,6 +156,25 @@ struct NetworkConfig: Codable {
 			} else if network.mode == nil || network.mode == .auto {
 				self.network.ethernets[name] = Interface(match: Match(macAddress: network.macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac", dhcp4Overrides: .init(routeMetric: 200), dhcp6Overrides: .init(routeMetric: 200))
 			}
+		}
+
+		// Add IMDS interface for Linux VMs with a static route to 169.254.169.254. Available
+		// in sandboxed builds too — see VirtualMachine.swift's matching comment.
+		if IMDSNetworkInterface.imdsEnabled && config.os == .linux {
+			let routes = Bundle.isApplicationSandboxed ? nil : [NetworkRoute(to: "\(IMDSNetworkInterface.awsCompatAddress)/32", via: IMDSNetworkInterface.imdsGateway)]
+			let imdsMac = try config.ensureImdsMacAddress()
+			let imdsName = netIfnames ? "enp0s\(index)" : "eth\(index - 1)"
+			self.network.ethernets[imdsName] = Interface(
+				match: Match(macAddress: imdsMac.string),
+				setName: imdsName,
+				dhcp4: true,
+				dhcp6: false,
+				dhcpIdentifier: "mac",
+				optional: true,
+				critical: false,
+				localLink: ["ipv4"],
+				routes: routes
+			)
 		}
 	}
 
@@ -222,6 +241,9 @@ struct Interface: Codable {
 	var dhcp4: Bool? = nil
 	var dhcp6: Bool? = nil
 	var dhcpIdentifier: String? = nil
+	var optional: Bool? = nil
+	var critical: Bool? = nil
+	var localLink: [String]? = nil
 	var dhcp4Overrides: DHCPOverides? = nil
 	var dhcp6Overrides: DHCPOverides? = nil
 	var routes: [NetworkRoute]? = nil
@@ -239,6 +261,9 @@ struct Interface: Codable {
 		case dhcp4Overrides = "dhcp4-overrides"
 		case dhcp6Overrides = "dhcp6-overrides"
 		case routes = "routes"
+		case optional = "optional"
+		case critical = "critical"
+		case localLink = "link-local"
 	}
 
 	func encode(to encoder: Encoder) throws {
@@ -248,6 +273,8 @@ struct Interface: Codable {
 		try container.encodeIfPresent(setName, forKey: .setName)
 		try container.encodeIfPresent(addresses, forKey: .addresses)
 		try container.encodeIfPresent(nameservers, forKey: .nameservers)
+		try container.encodeIfPresent(optional, forKey: .optional)
+		try container.encodeIfPresent(critical, forKey: .critical)
 		try container.encodeIfPresent(gateway4, forKey: .gateway4)
 		try container.encodeIfPresent(gateway6, forKey: .gateway6)
 		try container.encodeIfPresent(dhcp4, forKey: .dhcp4)
@@ -256,6 +283,7 @@ struct Interface: Codable {
 		try container.encodeIfPresent(dhcp4Overrides, forKey: .dhcp4Overrides)
 		try container.encodeIfPresent(dhcp6Overrides, forKey: .dhcp6Overrides)
 		try container.encodeIfPresent(routes, forKey: .routes)
+		try container.encodeIfPresent(localLink, forKey: .localLink)
 	}
 }
 
@@ -981,6 +1009,35 @@ class CloudInit {
 		return install_cakeagent
 	}
 
+	/// `net.ipv4.conf.*.arp_notify` is off by default on most distros, so the guest kernel
+	/// never announces a newly-assigned address to its L2 segment. That's invisible on a
+	/// host-only network (the guest always talks to the host as its gateway anyway, which
+	/// populates the host's ARP cache as a side effect), but on a `bridged` attachment the
+	/// host has no reason to exchange any traffic with the guest directly — so without this,
+	/// the host's ARP cache (which `IMDSServer`'s `public-ipv4`/`public-hostname` read from)
+	/// never learns the guest's address until *something* forces an ARP exchange. Turning
+	/// `arp_notify` on makes the kernel itself send a gratuitous ARP announce whenever an
+	/// interface comes up or gets a new address (DHCP lease, link flap, ...), which every
+	/// host on the segment — including this one — passively learns from.
+	///
+	/// Written once via cloud-init `write_files`, but the resulting `/etc/sysctl.d` file is
+	/// read by `systemd-sysctl.service` on every subsequent boot regardless — that covers
+	/// reboots and future DHCP renewals reliably. The guest's *very first* DHCP-acquired
+	/// address on the boot that writes this file is a narrower case: the kernel only fires
+	/// the announce from a netdevice notifier event (interface-up / address-change), not from
+	/// the sysctl write itself, and that first address is already assigned by the time
+	/// `runcmd` gets a chance to apply this file (see `buildVendorData`/`createAutoInstallData`)
+	/// — so `ARPResolver`'s broadcast-probe/`cakeagent` fallback (see `IMDSServer.resolvePublicIPv4`)
+	/// still matters for that narrow window.
+	private func arpNotifySysctlFile() -> WriteFile {
+		WriteFile(
+			path: "/etc/sysctl.d/99-caker-arp-notify.conf",
+			content: "net.ipv4.conf.all.arp_notify=1\nnet.ipv4.conf.default.arp_notify=1\n",
+			permissions: "0644",
+			owner: "root:\(self.mainGroup)"
+		)
+	}
+
 	private func buildVendorData(config: CakeConfig, runMode: Utils.RunMode) throws -> CloudConfigData {
 		let installCakeagent = installCakeAgentScript(config: config).base64EncodedString()
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
@@ -991,7 +1048,22 @@ class CloudInit {
 			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
 			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"]),
 		]
-		let runCommand = config.mounts.isEmpty ? ["/usr/local/bin/install-cakeagent.sh"] : ["/usr/local/bin/install-cakeagent.sh"]
+		var runCommand = [
+			"/usr/local/bin/install-cakeagent.sh"
+		]
+		var writeFiles: [WriteFile] = [
+			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+		]
+
+		if IMDSNetworkInterface.imdsEnabled {
+			runCommand.append("sysctl -p /etc/sysctl.d/99-caker-arp-notify.conf")
+			writeFiles.append(self.arpNotifySysctlFile())
+		}
+
 		let vendorData = CloudConfigData(
 			defaultUser: self.userName,
 			password: self.password,
@@ -1001,13 +1073,7 @@ class CloudInit {
 			sshAuthorizedKeys: sshAuthorizedKeys,
 			tz: TimeZone.current.identifier,
 			packages: nil,
-			writeFiles: [
-				WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
-			],
+			writeFiles: writeFiles,
 			runcmd: runCommand,
 			growPart: true,
 			merge: merge)
@@ -1019,7 +1085,7 @@ class CloudInit {
 		if let networkConfig = self.networkConfig {
 			return try YAMLDecoder().decode(NetworkConfig.self, from: networkConfig)
 		} else {
-			return NetworkConfig(netIfnames: self.netIfnames, config: config)
+			return try NetworkConfig(netIfnames: self.netIfnames, config: config)
 		}
 	}
 
@@ -1202,7 +1268,22 @@ class CloudInit {
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
 		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
-		let runCommand = config.mounts.isEmpty ? ["/usr/local/bin/install-cakeagent.sh"] : ["/usr/local/bin/install-cakeagent.sh"]
+		var runCommand = [
+			"/usr/local/bin/install-cakeagent.sh"
+		]
+		var writeFiles: [WriteFile] = [
+			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+		]
+
+		if IMDSNetworkInterface.imdsEnabled {
+			runCommand.append("sysctl -p /etc/sysctl.d/99-caker-arp-notify.conf")
+			writeFiles.append(self.arpNotifySysctlFile())
+		}
+
 		let userData = CloudConfigData(
 			defaultUser: self.userName,
 			password: self.password,
@@ -1212,13 +1293,7 @@ class CloudInit {
 			sshAuthorizedKeys: sshAuthorizedKeys,
 			tz: TimeZone.current.identifier,
 			packages: nil,
-			writeFiles: [
-				WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
-			],
+			writeFiles: writeFiles,
 			runcmd: runCommand,
 			growPart: true)
 
@@ -1288,7 +1363,7 @@ class CloudInit {
 		if let networkConfig = self.networkConfig {
 			return networkConfig
 		} else {
-			let networkConfig: NetworkConfig = NetworkConfig(netIfnames: self.netIfnames, config: config)
+			let networkConfig: NetworkConfig = try NetworkConfig(netIfnames: self.netIfnames, config: config)
 
 			return try networkConfig.toCloudInit()
 		}

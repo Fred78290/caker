@@ -203,11 +203,20 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	@MainActor
 	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, recoveryMode: Bool, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable && config.os == .darwin
-		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
+		var networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
 		let directorySharingAttachments = try config.directorySharingAttachments()
 		let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
 		let consoleURL = try config.consoleAttachment()
+
+		// Add IMDS network interface for Linux VMs. Available in sandboxed builds too —
+		// IMDS binds an unprivileged port on this network's gateway either way, reachable
+		// from the guest with no root/sudo required (see IMDSServer). Only reaching it at
+		// the AWS-style 169.254.169.254 address needs a pf redirect via sudo and is
+		// unavailable there.
+		if IMDSNetworkInterface.imdsEnabled && config.os == .linux {
+			networks.append(IMDSNetworkInterface(macAddress: try config.ensureImdsMacAddress()))
+		}
 
 		let configuration = VZVirtualMachineConfiguration()
 		let plateform = try config.platform(nvramURL: location.nvramURL, needsNestedVirtualization: config.nested)

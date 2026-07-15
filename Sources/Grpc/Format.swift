@@ -565,6 +565,10 @@ extension CakeAgentLib.Format {
 		return self.renderSingle(data)
 	}
 	
+	public func render(_ data: [StartedNetworkReply]) -> String {
+		return self.renderList(data)
+	}
+
 	public func render(_ data: Caked_StartedNetworkReply) -> String {
 		return self.renderSingle(StartedNetworkReply(data))
 	}
@@ -573,6 +577,10 @@ extension CakeAgentLib.Format {
 		return self.renderSingle(data)
 	}
 	
+	public func render(_ data: [StoppedNetworkReply]) -> String {
+		return self.renderList(data)
+	}
+
 	public func render(_ data: Caked_StoppedNetworkReply) -> String {
 		return self.render(StoppedNetworkReply(data))
 	}

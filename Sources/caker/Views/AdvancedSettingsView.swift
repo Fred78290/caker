@@ -12,6 +12,8 @@ import Virtualization
 struct AdvancedSettingsView: View {
 	private static let noneNetwork = "none"
 
+	@AppStorage(CakedKeyConfig.imdsEnabled.rawValue, store: .shared) var awsEC2MetadataEnabled: Bool = false
+
 	@State private var bridgedNetwork: String
 	@State private var primaryName: String
 	@State private var passphrase: String
@@ -23,17 +25,9 @@ struct AdvancedSettingsView: View {
 	}
 
 	init() {
-		bridgedNetwork = AdvancedSettingsView.noneNetwork
-		primaryName = String.empty
-		passphrase = String.empty
-
-		do {
-			bridgedNetwork = try CakedKeyConfig.bridgedNetwork.get() ?? Self.noneNetwork
-			primaryName = try CakedKeyConfig.primaryName.get() ?? String.empty
-			passphrase = try CakedKeyConfig.passphrase.get() ?? String.empty
-		} catch {
-			errorMessage = error.localizedDescription
-		}
+		bridgedNetwork = CakedKeyConfig.bridgedNetwork.string() ?? Self.noneNetwork
+		primaryName = CakedKeyConfig.primaryName.string() ?? String.empty
+		passphrase = CakedKeyConfig.passphrase.string() ?? String.empty
 	}
 
 	var body: some View {
@@ -106,6 +100,19 @@ struct AdvancedSettingsView: View {
 					.font(.caption)
 					.foregroundStyle(.secondary)
 			}
+
+			Section {
+				Toggle(isOn: $awsEC2MetadataEnabled) {
+					Text("Enable AWS EC2 Metadata")
+				}
+			} header: {
+				Label("AWS EC2 Metadata", systemImage: "cloud.fill")
+			} footer: {
+				Text("Enable IMDSv2 metadata service for virtual machines running on linux. Need to restart caked daemon to take effect.")
+					.font(.caption)
+					.foregroundStyle(.secondary)
+			}
+
 		}
 		.formStyle(.grouped)
 		.scrollDisabled(true)
@@ -116,11 +123,7 @@ struct AdvancedSettingsView: View {
 	}
 
 	private func save(_ key: CakedKeyConfig, _ value: String?) {
-		do {
-			try key.set(value)
-		} catch {
-			errorMessage = error.localizedDescription
-		}
+		key.set(value)
 	}
 }
 

@@ -4,6 +4,7 @@
 //
 //  Created by Frederic BOLTZ on 11/11/2025.
 //
+import CakeAgentLib
 import Foundation
 import GRPCLib
 
@@ -48,7 +49,9 @@ public final class SudoCaked {
 
 		runningArguments.append(contentsOf: arguments)
 
-		//Logger("SUDO").info("SUDO: \(sudoURL) \(runningArguments.joined(separator: " "))")
+		#if DEBUG
+			Logger("SUDO").debug("SUDO: \(sudoURL) \(runningArguments.joined(separator: " "))")
+		#endif
 
 		process.executableURL = sudoURL
 		process.arguments = runningArguments

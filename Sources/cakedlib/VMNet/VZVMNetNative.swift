@@ -27,7 +27,7 @@ public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 		if #available(macOS 26.0, *) {
 			let (ref, serial) = try createVMNetwork()
 			serializationLock.withLock {
-				self.network_ref   = ref
+				self.network_ref = ref
 				self.serialization = serial
 			}
 		} else {
@@ -45,7 +45,7 @@ public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 			let (ref, serial) = try createVMNetwork()
 
 			serializationLock.withLock {
-				self.network_ref   = ref
+				self.network_ref = ref
 				self.serialization = serial
 			}
 
@@ -63,18 +63,18 @@ public class VZVMNetNative: VZVMNetCommon, @unchecked Sendable {
 			throw ServiceError(String(localized: "Bad network configuration \(networkConfig.dhcpStart)"))
 		}
 
-		var addr   = in_addr(s_addr: in_addr_t(network.storage))
-		var mask   = in_addr(s_addr: in_addr_t(netmask.storage))
+		var addr = in_addr(s_addr: in_addr_t(network.storage))
+		var mask = in_addr(s_addr: in_addr_t(netmask.storage))
 		var status: vmnet_return_t = .VMNET_SUCCESS
 
 		guard let network_configuration = vmnet_network_configuration_create(networkConfig.mode == .shared ? .VMNET_SHARED_MODE : .VMNET_HOST_MODE, &status) else {
 			throw ServiceError(String(localized: "Can't create vmnet configuration: \(status.description)"))
 		}
 
-		let result = vmnet_network_configuration_set_ipv4_subnet(network_configuration, &addr, &mask)
+		status = vmnet_network_configuration_set_ipv4_subnet(network_configuration, &addr, &mask)
 
-		guard result == .VMNET_SUCCESS else {
-			throw ServiceError(String(localized: "Failed to reconfigure network: \(result.description)"))
+		guard status == .VMNET_SUCCESS else {
+			throw ServiceError(String(localized: "Failed to reconfigure network: \(status.description)"))
 		}
 
 		if let nat66Prefix = networkConfig.nat66Prefix {

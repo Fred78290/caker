@@ -26,7 +26,7 @@ public struct GetOptions: ParsableCommand {
 	}
 	
 	public static var primaryName: String {
-		guard let name = try? CakedKeyConfig.primaryName.get() else {
+		guard let name = CakedKeyConfig.primaryName.string() else {
 			return "primary"
 		}
 
@@ -65,13 +65,13 @@ public struct GetOptions: ParsableCommand {
 				}.joined(separator: "\n")
 			}
 		} else {
-			values = try arguments.compactMap {
+			values = arguments.compactMap {
 				if let config = CakedKeyConfig(rawValue: $0) {
 					return config
 				}
 				return nil
 			}.map {
-				if let value = try $0.get() {
+				if let value = $0.string() {
 					return value
 				} else {
 					return self.raw ? "" : "<empty>"

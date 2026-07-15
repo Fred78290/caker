@@ -1039,9 +1039,6 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 		if result.status == 0 {
 			Logger(self).info("Agent installed on \(self.name), exit code: \(result.status)")
-			#if DEBUG
-				print(result.status)
-			#endif
 		} else {
 			Logger(self).error("Agent installation failed on \(self.name), exit code: \(result.status)\n\(result.output)")
 

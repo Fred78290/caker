@@ -194,7 +194,7 @@ struct VMRun: AsyncParsableCommand {
 			} else {
 				NSApplication.shared.setActivationPolicy(.prohibited)
 				NSApplication.shared.run()
-				
+
 				cancellable?.cancel()
 			}
 		}

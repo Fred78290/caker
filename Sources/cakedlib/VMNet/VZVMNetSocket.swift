@@ -92,11 +92,11 @@ public final class VZVMNetSocket: VZVMNetImpl, @unchecked Sendable {
 			case .success:
 				self.logger.info("VZVMNet listening on \(self.socketPath)")
 				if chown(socketPath, getegid(), self.socketGroup) < 0 {
-					self.logger.error("Failed to set group \(self.socketGroup) on socket \(socketPath)")
+					self.logger.error("Failed to set group \(self.socketGroup) on socket \(socketPath), reason: \(String(cString: strerror(errno)))")
 				}
 
 				if chmod(socketPath, 0o0770) < 0 {
-					self.logger.error("Failed to set mod 770 on socket \(socketPath)")
+					self.logger.error("Failed to set mod 770 on socket \(socketPath), reason: \(String(cString: strerror(errno)))")
 				}
 
 			case .failure(let error):

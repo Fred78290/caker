@@ -10,6 +10,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 	public let dhcpLease: Int32?
 	public let interfaceID: String
 	public let nat66Prefix: String?
+	public var visible: Bool = true
 
 	public init(
 		mode: VMNetMode = .bridged,
@@ -18,7 +19,8 @@ public struct VZSharedNetwork: Codable, Equatable {
 		dhcpEnd: String,
 		dhcpLease: Int32? = nil,
 		interfaceID: String = "en0",
-		nat66Prefix: String? = nil
+		nat66Prefix: String? = nil,
+		visible: Bool = true
 	) {
 		self.mode = mode
 		self.netmask = netmask
@@ -27,6 +29,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 		self.dhcpLease = dhcpLease
 		self.interfaceID = interfaceID
 		self.nat66Prefix = nat66Prefix
+		self.visible = visible
 	}
 
 	public static func == (lhs: Self, rhs: Self) -> Bool {
@@ -87,6 +90,16 @@ public struct VZSharedNetwork: Codable, Equatable {
 		let dhcpEnd = network.dhcpEnd.toIPV4()
 
 		return VZSharedNetwork(mode: .nat, netmask: dhcpStart.netmask!.description, dhcpStart: dhcpStart.address!.description, dhcpEnd: dhcpEnd.address!.description, dhcpLease: Int32(network.dhcpLease) ?? 0, interfaceID: String.empty)
+	}
+
+	public static var defaultImdsNetwork: VZSharedNetwork {
+		return VZSharedNetwork(mode: .host,
+							   netmask: IMDSNetworkInterface.imdsNetmask,
+							   dhcpStart: IMDSNetworkInterface.imdsGateway,
+							   dhcpEnd: IMDSNetworkInterface.imdsDhcpEnd,
+							   dhcpLease: try? NetworksHandler.getDHCPLease(),
+							   interfaceID: IMDSNetworkInterface.imdsNetworkName,
+							   visible: false)
 	}
 
 	public static func addresses() -> [String: String] {
@@ -295,6 +308,7 @@ extension String {
 public struct VZVMNetConfig: Codable {
 	public var userNetworks: [String: VZSharedNetwork]
 	public var defaultNatNetwork: VZSharedNetwork
+	public var defaultImdsNetwork: VZSharedNetwork?
 
 	public var sharedNetworks: [String: VZSharedNetwork] {
 		var result: [String: VZSharedNetwork] = [:]
@@ -304,6 +318,9 @@ public struct VZVMNetConfig: Codable {
 		}
 
 		result["nat"] = self.defaultNatNetwork
+		if let network = self.defaultImdsNetwork {
+			result[IMDSNetworkInterface.imdsNetworkName] = network
+		}
 
 		return result
 	}
@@ -322,6 +339,8 @@ public struct VZVMNetConfig: Codable {
 
 	public init() throws {
 		self.defaultNatNetwork = VZSharedNetwork.defaultNatNetwork
+		self.defaultImdsNetwork = IMDSNetworkInterface.imdsEnabled ? VZSharedNetwork.defaultImdsNetwork : nil
+
 		self.userNetworks = [
 			"shared": try VZSharedNetwork.createNetwork(mode: .shared, baseAddress: "192.168", cidr: 24, runMode: .user),
 			"host": try VZSharedNetwork.createNetwork(mode: .host, baseAddress: "172.\(Int.random(in: 16...31))", cidr: 24, runMode: .user),
@@ -340,6 +359,8 @@ public struct VZVMNetConfig: Codable {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 
 		self.defaultNatNetwork = VZSharedNetwork.defaultNatNetwork
+		self.defaultImdsNetwork = IMDSNetworkInterface.imdsEnabled ? VZSharedNetwork.defaultImdsNetwork : nil
+
 		self.userNetworks = try container.decodeIfPresent([String: VZSharedNetwork].self, forKey: .userNetworks) ?? [:]
 	}
 

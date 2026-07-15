@@ -106,7 +106,6 @@ struct NetworkWizard: View {
 
 			return (network, nil)
 		} catch {
-			print(error)
 			if let error = error as? ValidationError {
 				return (nil, error.description)
 			}

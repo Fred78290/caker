@@ -362,6 +362,27 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.cake["cloud-init"] as? Bool ?? false }
 	}
 
+	public var imdsMacAddress: String? {
+		set { self.cake["imdsMacAddress"] = newValue }
+		get { self.cake["imdsMacAddress"] as? String }
+	}
+
+	/// Returns the persisted IMDS MAC address, generating and saving one on first use.
+	/// Must be called before generating cloud-init network config so the guest's netplan
+	/// and the VM's attached IMDS network device always agree on the same MAC.
+	public func ensureImdsMacAddress() throws -> VZMACAddress {
+		if let stored = self.imdsMacAddress, let mac = VZMACAddress(string: stored) {
+			return mac
+		}
+
+		let mac = VZMACAddress.randomLocallyAdministered()
+
+		self.imdsMacAddress = mac.string
+		try self.save()
+
+		return mac
+	}
+
 	public var sockets: [SocketDevice] {
 		set { self.cake["sockets"] = newValue.map { $0.description } }
 		get {
@@ -596,6 +617,13 @@ extension CakeConfig {
 		self.networks = self.networks.map {
 			$0.clone()
 		}
+
+		// Deliberately does NOT touch imdsMacAddress: the guest's cloud-init netplan
+		// matches on that MAC (see ensureImdsMacAddress()'s doc comment), so it can only
+		// be safely changed by a caller that also rebuilds cloud-init afterward (see
+		// DuplicateHandler, which clears imdsMacAddress explicitly right before doing so).
+		// Callers that just need to resolve a live primary-MAC collision (VMRunHandler)
+		// must not silently desync the already-baked guest network config.
 	}
 
 	public func platform(nvramURL: URL, needsNestedVirtualization: Bool) throws -> GuestPlateForm {
@@ -747,7 +775,7 @@ extension VirtualMachineConfiguration {
 						let network: String
 
 						if inf.isBridged() {
-							guard let name = try CakedKeyConfig.bridgedNetwork.get() else {
+							guard let name = CakedKeyConfig.bridgedNetwork.string() else {
 								throw ServiceError(String(localized: "Any bridged network is not configured"))
 							}
 							network = name

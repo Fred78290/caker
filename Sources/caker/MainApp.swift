@@ -534,7 +534,7 @@ struct MainApp: App {
 
 	static func installCakedService() {
 		// Try Keychain first
-		if let savedPassword = try? CakedKeyConfig.passphrase.get(), savedPassword.isEmpty == false {
+		if let savedPassword = CakedKeyConfig.passphrase.string(), savedPassword.isEmpty == false {
 			do {
 				try installLaunchAgent(savedPassword)
 				return
