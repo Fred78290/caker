@@ -421,7 +421,7 @@ struct Networks: ParsableCommand {
 			do {
 				return Networks.start(options: try Networks.VMNetOptions(networkName: name, runMode: runMode), fork: false, runMode: runMode)
 			} catch {
-				return StartedNetworkReply(name: name, started: false, reason: networks.reason)
+				return StartedNetworkReply(name: name, started: false, reason: error.reason)
 			}
 		}
 
