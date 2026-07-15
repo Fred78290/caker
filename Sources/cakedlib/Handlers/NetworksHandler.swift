@@ -728,6 +728,9 @@ public struct NetworksHandler {
 			return socketURL
 		}
 
+		try? socketURL.pidFile.deleteIfFileExists()
+		try? socketURL.socket.deleteIfFileExists()
+
 		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.socket.path)")
 
 		let executableURL = try Bundle.main.caked()
