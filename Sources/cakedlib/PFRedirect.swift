@@ -1,5 +1,5 @@
-import Foundation
 import CakeAgentLib
+import Foundation
 import Subprocess
 
 /// Installs/removes `pf` (packet filter) redirect rules, used by IMDS since
@@ -15,6 +15,9 @@ import Subprocess
 /// to edit `/etc/pf.conf` themselves — an anchor name outside that namespace would silently
 /// load but never actually be evaluated against traffic.
 public enum PFRedirect {
+	#if DEBUG
+		static let logger = Logger("PFRedirect")
+	#endif
 	public static let addressAliasAnchorName = "com.apple/caker-alias"
 
 	/// Redirects `proto tcp` traffic addressed to `externalAddress:80` to
@@ -22,7 +25,7 @@ public enum PFRedirect {
 	/// reach the real IMDS gateway, on whichever port IMDS actually bound (80 as root, or
 	/// the unprivileged `--imds-port` otherwise). Must be called as root.
 	public static func enableAddressAlias(externalAddress: String, targetAddress: String, targetPort: Int) throws {
-		let rule = "rdr pass inet proto tcp from any to \(externalAddress) port 80 -> \(targetAddress) port \(targetPort)"
+		let rule = "rdr pass inet proto tcp from any to \(externalAddress) port 80 -> \(targetAddress) port \(targetPort)\n"
 
 		try Self.loadAnchor(name: Self.addressAliasAnchorName, rule: rule)
 		try Self.ensureEnabled()
@@ -39,32 +42,35 @@ public enum PFRedirect {
 			throw ServiceError(String(localized: "PFRedirect must be run as root"))
 		}
 
-		Logger("PFRedirect").debug("/sbin/pfctl -a \(name) -f - <<<'\(rule)'")
-
 		try pfctl("-a", name, "-f", "-", input: rule)
 	}
 
 	private static func ensureEnabled() throws {
+
 		// `pfctl -e` fails harmlessly (non-zero exit, "pf already enabled") if pf is
 		// already on; only surface a genuine failure to enable it.
 		do {
-			Logger("PFRedirect").debug("exec: /sbin/pfctl -e")
-
 			try pfctl("-e")
 		} catch {
-			Logger("PFRedirect").debug("exec: /sbin/pfctl -s info")
-
 			let status = try pfctl("-s", "info")
 
-			guard status.contains("Status: Enabled") else {
+			guard status.stdout.contains("Status: Enabled") || status.stderr.contains("Status: Enabled") else {
 				throw error
 			}
 		}
 	}
-	
+
 	@discardableResult
-	private static func pfctl(_ arguments: String..., input: String? = nil) throws -> String {
+	private static func pfctl(_ arguments: String..., input: String? = nil) throws -> (stdout: String, stderr: String) {
 		return try Task.sync {
+			#if DEBUG
+			if let input {
+				self.logger.debug("exec: /sbin/pfctl \(arguments.joined(separator: " ")) <<<'\(input)'")
+			} else {
+				self.logger.debug("exec: /sbin/pfctl \(arguments.joined(separator: " "))")
+			}
+			#endif
+
 			let maxSubprocessOutputSize = 100 * 1024 * 1024
 			let input: InputProtocol = input != nil ? .string(input!) : .none
 			let result = try await Subprocess.run(
@@ -77,7 +83,7 @@ public enum PFRedirect {
 
 			// Extract numeric exit code from TerminationStatus enum
 			let exitCode: TerminationStatus.Code
-			
+
 			switch result.terminationStatus {
 			case .exited(let code):
 				exitCode = code
@@ -86,19 +92,20 @@ public enum PFRedirect {
 				exitCode = -1
 			}
 
+			let stdout = result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
+			let stderr = result.standardError?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
+
 			if exitCode != 0 {
-				let stdout = result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
-				let stderr = result.standardError?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
-				
+				#if DEBUG
+					self.logger.debug("pfctl failed with exit code \(exitCode): stdout: \(stdout), stderr: \(stderr)")
+				#endif
 				throw ShellError(terminationStatus: exitCode, error: stderr, message: stdout)
 			}
 
-			if let out: String = result.standardOutput {
-				return out.trimmingCharacters(in: .whitespacesAndNewlines)
-			}
-			
-			return String.empty
+			#if DEBUG
+				self.logger.debug("pfctl successful stdout: \(stdout), stderr: \(stderr)")
+			#endif
+			return (stdout, stderr)
 		}
 	}
 }
-
