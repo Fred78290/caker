@@ -367,22 +367,24 @@ public final class IMDSServer: Sendable {
 
 	/// Resolves `publicMac`'s current LAN IPv4 address.
 	///
-	/// Tries the in-guest `cakeagent` first: it reports its own interfaces' MACs and IPs
-	/// straight from inside the guest (`Caked_InfoReply.networks`), so it works identically
-	/// whether the bridged attachment is the entitled native `VZBridgedNetworkDeviceAttachment`
-	/// or the custom vmnet.framework fallback (`VZVMNetImpl`) — unlike the host's ARP cache,
-	/// which only ever reflects traffic the *host* has actually seen, and sees none at all in
-	/// the entitled/native case since `caked` isn't in that packet path.
+	/// Tries the host's ARP cache first (prodded with a broadcast ping on a miss — see
+	/// `ARPResolver.ipAddress(forMACAddress:proddingInterface:)`): cheap, no round-trip into
+	/// the guest, and reliable now that guests announce their address with a gratuitous ARP on
+	/// every boot/lease change (see `CloudInit`'s `arp_notify` sysctl write-file).
 	///
-	/// Falls back to the host's ARP cache (prodded with a broadcast ping on a miss — see
-	/// `ARPResolver.ipAddress(forMACAddress:proddingInterface:)`) for VMs where `cakeagent`
-	/// isn't installed or isn't reachable yet.
+	/// Falls back to querying the in-guest `cakeagent` for its own interfaces' MACs and IPs
+	/// (`Caked_InfoReply.networks`) when the ARP cache still comes up empty — chiefly the
+	/// entitled native `VZBridgedNetworkDeviceAttachment` bridging path, where the host never
+	/// sees the guest's traffic at all (`caked` isn't in that packet path), so no amount of ARP
+	/// prodding will ever populate an entry there; the custom vmnet.framework fallback
+	/// (`VZVMNetImpl`) doesn't have that problem, so this path mostly covers early-boot races
+	/// there instead (before the guest's first announce has landed).
 	private static func resolvePublicIPv4(metadata: IMDSMetadata, publicMac: String) -> String? {
-		if let ip = queryAgentIPAddress(forMAC: publicMac, metadata: metadata) {
-			return ip
+		guard let ip = ARPResolver.ipAddress(forMACAddress: publicMac, proddingInterface: CakedKeyConfig.bridgedNetwork.string()) else {
+			return queryAgentIPAddress(forMAC: publicMac, metadata: metadata)
 		}
 
-		return ARPResolver.ipAddress(forMACAddress: publicMac, proddingInterface: CakedKeyConfig.bridgedNetwork.string())
+		return ip
 	}
 
 	/// Asks `cakeagent` for its current network interfaces and picks the one matching `mac`.
