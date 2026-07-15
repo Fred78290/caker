@@ -1009,6 +1009,27 @@ class CloudInit {
 		return install_cakeagent
 	}
 
+	/// `net.ipv4.conf.*.arp_notify` is off by default on most distros, so the guest kernel
+	/// never announces a newly-assigned address to its L2 segment. That's invisible on a
+	/// host-only network (the guest always talks to the host as its gateway anyway, which
+	/// populates the host's ARP cache as a side effect), but on a `bridged` attachment the
+	/// host has no reason to exchange any traffic with the guest directly — so without this,
+	/// the host's ARP cache (which `IMDSServer`'s `public-ipv4`/`public-hostname` read from)
+	/// never learns the guest's address until *something* forces an ARP exchange. Turning
+	/// `arp_notify` on makes the kernel itself send a gratuitous ARP announce whenever an
+	/// interface comes up or gets a new address (DHCP lease, link flap, ...), which every
+	/// host on the segment — including this one — passively learns from. Written once via
+	/// cloud-init `write_files`, but the resulting `/etc/sysctl.d` file is read by
+	/// `systemd-sysctl.service` on every subsequent boot regardless.
+	private func arpNotifySysctlFile() -> WriteFile {
+		WriteFile(
+			path: "/etc/sysctl.d/99-caker-arp-notify.conf",
+			content: "net.ipv4.conf.all.arp_notify=1\nnet.ipv4.conf.default.arp_notify=1\n",
+			permissions: "0644",
+			owner: "root:\(self.mainGroup)"
+		)
+	}
+
 	private func buildVendorData(config: CakeConfig, runMode: Utils.RunMode) throws -> CloudConfigData {
 		let installCakeagent = installCakeAgentScript(config: config).base64EncodedString()
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
@@ -1019,7 +1040,22 @@ class CloudInit {
 			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
 			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"]),
 		]
-		let runCommand = config.mounts.isEmpty ? ["/usr/local/bin/install-cakeagent.sh"] : ["/usr/local/bin/install-cakeagent.sh"]
+		var runCommand = [
+			"/usr/local/bin/install-cakeagent.sh"
+		]
+		var writeFiles: [WriteFile] = [
+			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+		]
+
+		if IMDSNetworkInterface.imdsEnabled {
+			runCommand.append("sysctl -p /etc/sysctl.d/99-caker-arp-notify.conf")
+			writeFiles.append(self.arpNotifySysctlFile())
+		}
+
 		let vendorData = CloudConfigData(
 			defaultUser: self.userName,
 			password: self.password,
@@ -1029,13 +1065,7 @@ class CloudInit {
 			sshAuthorizedKeys: sshAuthorizedKeys,
 			tz: TimeZone.current.identifier,
 			packages: nil,
-			writeFiles: [
-				WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
-			],
+			writeFiles: writeFiles,
 			runcmd: runCommand,
 			growPart: true,
 			merge: merge)
@@ -1231,6 +1261,18 @@ class CloudInit {
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
 		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
 		let runCommand = config.mounts.isEmpty ? ["/usr/local/bin/install-cakeagent.sh"] : ["/usr/local/bin/install-cakeagent.sh"]
+		var writeFiles: [WriteFile] = [
+			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+			WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+		]
+
+		if IMDSNetworkInterface.imdsEnabled {
+			writeFiles.append(self.arpNotifySysctlFile())
+		}
+
 		let userData = CloudConfigData(
 			defaultUser: self.userName,
 			password: self.password,
@@ -1240,13 +1282,7 @@ class CloudInit {
 			sshAuthorizedKeys: sshAuthorizedKeys,
 			tz: TimeZone.current.identifier,
 			packages: nil,
-			writeFiles: [
-				WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
-				WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
-			],
+			writeFiles: writeFiles,
 			runcmd: runCommand,
 			growPart: true)
 
