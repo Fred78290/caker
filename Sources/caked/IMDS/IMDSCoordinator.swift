@@ -28,7 +28,6 @@ public actor IMDSCoordinator {
 	private let group: EventLoopGroup
 	private let runMode: Utils.RunMode
 	private let internalPort: Int
-	private let redirectRequested: Bool
 	private let registry = IMDSRegistry()
 	private let logger = Logger("IMDSCoordinator")
 
@@ -38,15 +37,10 @@ public actor IMDSCoordinator {
 	/// - Parameters:
 	///   - internalPort: The unprivileged loopback port IMDS binds to when running
 	///     unprivileged (ignored when root — see `IMDSServer`).
-	///   - enablePFRedirect: Whether to install a `pf` redirect so guests can reach IMDS
-	///     on port 80. IMDS still starts (on `internalPort`) either way; this only
-	///     controls whether it's exposed to guests, since that step needs a short-lived
-	///     root helper. Ignored when root (nothing to redirect — already on port 80).
-	public init(group: EventLoopGroup, runMode: Utils.RunMode, internalPort: Int = IMDSServer.internalBindPort, enablePFRedirect: Bool = false) {
+	public init(group: EventLoopGroup, runMode: Utils.RunMode, internalPort: Int = IMDSServer.internalBindPort) {
 		self.group = group
 		self.runMode = runMode
 		self.internalPort = internalPort
-		self.redirectRequested = enablePFRedirect
 	}
 
 	/// Registers every Linux VM that's already running at daemon startup (e.g. the daemon
@@ -82,10 +76,6 @@ public actor IMDSCoordinator {
 		self.startTask = nil
 
 		if let server = self.server {
-			if server.needsPFRedirect && self.redirectRequested {
-				await self.disablePFRedirect()
-			}
-
 			await self.disableAddressAlias()
 
 			await server.shutdown()
@@ -144,22 +134,16 @@ public actor IMDSCoordinator {
 					try await server.startWithRetry()
 
 					if server.needsPFRedirect {
-						self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(server.internalPort) (reachable from guests already)")
-
-						if self.redirectRequested {
-							await self.enablePFRedirect(internalPort: server.internalPort)
-						} else {
-							self.logger.info("Not additionally exposing IMDS on the standard port 80 (pass --imds-redirect to do so)")
-						}
+						self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(server.internalPort)")
 					} else {
 						self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
 					}
 
-					// Best-effort, regardless of root/--imds-redirect: makes the AWS-style
+					// Best-effort, regardless of root: makes the AWS-style
 					// 169.254.169.254/32 route already installed in the guest's netplan
 					// (CloudInit.swift) actually reach the gateway, on whichever port IMDS
 					// is bound to.
-					await self.enableAddressAlias()
+					await self.enableAddressAlias(internalPort: server.internalPort)
 				} catch is CancellationError {
 					// Torn down before it managed to start; nothing to log.
 				} catch {
@@ -179,90 +163,15 @@ public actor IMDSCoordinator {
 		}
 	}
 
-	/// Makes `IMDSServer.bindAddress:bindPort` (port 80, which this unprivileged daemon
-	/// can't bind directly) *additionally* reachable there, on top of the internal port it's
-	/// already reachable on. Runs a short-lived root helper via `SudoCaked` — see
-	/// `Networks.ImdsRedirect` / `PFRedirect`. Best-effort: if the host isn't set up for
-	/// passwordless sudo on `caked`, this fails and is logged, but the server keeps running
-	/// and stays reachable on its internal port regardless.
-	private func enablePFRedirect(internalPort: Int) async {
-		// Sandboxed builds (App Store) can't shell out to sudo at all — see
-		// Utilities.swift's `if sudo && Bundle.isApplicationSandboxed` for the same
-		// restriction elsewhere in this codebase. Don't even attempt it; it would just
-		// fail with a confusing error. IMDS itself still works in sandboxed builds — this
-		// only skips the optional port-80 exposure.
-		guard Bundle.isApplicationSandboxed == false else {
-			self.logger.warn("Can't expose IMDS on the standard port 80 in sandboxed builds (sudo isn't available); it stays reachable at http://\(IMDSServer.bindAddress):\(internalPort)")
-			return
-		}
-
-		let runMode = self.runMode
-
-		do {
-			try await Task.detached(priority: .utility) {
-				let helper = try SudoCaked(
-					arguments: [
-						"networks",
-						"imds-redirect",
-						"--internal-port=\(internalPort)",
-						"--log-level=\(Logger.Level().description)",
-					],
-					runMode: runMode,
-					standardOutput: FileHandle.standardOutput,
-					standardError: FileHandle.standardError
-				)
-
-				guard try helper.runAndWait() == 0 else {
-					throw ServiceError(helper.standardError.isEmpty ? helper.standardOutput : helper.standardError)
-				}
-			}.value
-
-			self.logger.info("IMDS reachable at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
-		} catch {
-			self.logger.warn("Could not install IMDS pf redirect (is passwordless sudo configured for caked?): \(error)")
-		}
-	}
-
-	private func disablePFRedirect() async {
-		guard Bundle.isApplicationSandboxed == false else {
-			// Never installed in the first place — see enablePFRedirect().
-			return
-		}
-
-		let runMode = self.runMode
-
-		do {
-			try await Task.detached(priority: .utility) {
-				let helper = try SudoCaked(
-					arguments: [
-						"networks",
-						"imds-redirect",
-						"--disable",
-						"--log-level=\(Logger.Level().description)",
-					],
-					runMode: runMode,
-					standardOutput: FileHandle.standardOutput,
-					standardError: FileHandle.standardError
-				)
-
-				guard try helper.runAndWait() == 0 else {
-					throw ServiceError(helper.standardError.isEmpty ? helper.standardOutput : helper.standardError)
-				}
-			}.value
-		} catch {
-			self.logger.warn("Could not remove IMDS pf redirect: \(error)")
-		}
-	}
-
 	/// Installs a `pf` redirect so `IMDSNetworkInterface.awsCompatAddress`
 	/// (169.254.169.254) — not itself on-link on the IMDS subnet, only reachable via the
-	/// static route CloudInit.swift installs in the guest — actually reaches the gateway,
-	/// on whatever port IMDS is listening on. Unlike `enablePFRedirect`, this runs
-	/// regardless of root or `--imds-redirect`: it's a pure address rewrite (no port
-	/// involved), so it's equally relevant whether IMDS ended up on port 80 or an
-	/// unprivileged port. Best-effort and silently skipped in sandboxed builds (needs
-	/// `sudo`) — IMDS stays reachable at its real gateway address regardless.
-	private func enableAddressAlias() async {
+	/// static route CloudInit.swift installs in the guest — actually reaches the gateway, on
+	/// `internalPort` (whatever port IMDS is actually listening on: 80 as root, or the
+	/// unprivileged `--imds-port` otherwise). Runs a short-lived root helper via `SudoCaked`
+	/// — see `Networks.ImdsRedirect` / `PFRedirect`. Best-effort and silently skipped in
+	/// sandboxed builds (needs `sudo`) — IMDS stays reachable at its real gateway address
+	/// regardless.
+	private func enableAddressAlias(internalPort: Int) async {
 		guard Bundle.isApplicationSandboxed == false else {
 			return
 		}
@@ -275,9 +184,9 @@ public actor IMDSCoordinator {
 					arguments: [
 						"networks",
 						"imds-redirect",
-						"--alias",
 						"--external-address=\(IMDSNetworkInterface.awsCompatAddress)",
 						"--internal-address=\(IMDSServer.bindAddress)",
+						"--internal-port=\(internalPort)",
 						"--log-level=\(Logger.Level().description)",
 					],
 					runMode: runMode,
@@ -309,7 +218,6 @@ public actor IMDSCoordinator {
 					arguments: [
 						"networks",
 						"imds-redirect",
-						"--alias",
 						"--disable",
 						"--log-level=\(Logger.Level().description)",
 					],

@@ -95,9 +95,6 @@ extension Service {
 		@Option(name: [.customLong("imds-port")], help: ArgumentHelp(String(localized: "Unprivileged port IMDS listens on"), discussion: "AWS-style instance metadata service for Linux VMs. Off by default — enable it via the \"AWS EC2 Metadata\" toggle in Caker's Advanced settings. Once enabled, bound on this ordinary, unprivileged port on the IMDS gateway (\(IMDSNetworkInterface.imdsGateway)) — always reachable from guests there, no privilege required, including in sandboxed builds. Ignored when caked runs as root, since IMDS then binds the standard port 80 directly instead."))
 		var imdsPort: Int = IMDSServer.internalBindPort
 
-		@Option(name: [.customLong("imds-redirect")], help: ArgumentHelp(String(localized: "Also expose IMDS to guests on the standard port 80"), discussion: "Installs a pf redirect (via a short-lived root helper) so Linux guests can additionally reach IMDS at http://\(IMDSNetworkInterface.imdsGateway) on port 80, for tooling that hardcodes it. Without this, IMDS is still fully reachable on --imds-port. Not available in sandboxed builds (needs sudo). Ignored when caked runs as root, since IMDS then binds port 80 directly."))
-		var imdsRedirect: Bool = Bundle.isApplicationSandboxed == false
-
 		func validate() throws {
 			VMRunHandler.serviceMode = mode
 
@@ -374,11 +371,8 @@ extension Service {
 				// whether that's from autostart below or from a `Caked_StartRequest` RPC.
 				// Off by default (IMDSNetworkInterface.imdsEnabled, toggled from Caker's
 				// Advanced settings) — once on, this works including in sandboxed builds,
-				// guests can always reach it on its unprivileged port. Only exposing it to
-				// guests on the *standard* port 80 (--imds-redirect) is unavailable when
-				// sandboxed, since that requires a pf redirect installed via sudo (see
-				// IMDSCoordinator.enablePFRedirect).
-				let coordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode, internalPort: self.options.imdsPort, enablePFRedirect: self.options.imdsRedirect)
+				// guests can always reach it on its unprivileged port.
+				let coordinator = IMDSCoordinator(group: eventLoopGroup, runMode: runMode, internalPort: self.options.imdsPort)
 
 				imdsCoordinator = coordinator
 
@@ -556,10 +550,6 @@ extension Service {
 
 			if self.options.imdsPort != IMDSServer.internalBindPort {
 				arguments.append("--imds-port=\(self.options.imdsPort)")
-			}
-
-			if self.options.imdsRedirect {
-				arguments.append("--imds-redirect")
 			}
 
 			if runMode == .system {

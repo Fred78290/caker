@@ -738,12 +738,12 @@ struct Networks: ParsableCommand {
 		}
 	}
 
-	/// Installs/removes the `pf` redirect that lets the unprivileged `caked service listen`
-	/// daemon serve IMDS on port 80 without binding it directly (see `PFRedirect`). Invoked
-	/// as a short-lived, separately-privileged helper via `SudoCaked` from `IMDSCoordinator`
-	/// — nothing about the daemon itself runs as root.
+	/// Installs/removes the `pf` address-alias redirect that makes the AWS-style
+	/// `169.254.169.254` address reach the real IMDS gateway (see `PFRedirect`). Invoked as
+	/// a short-lived, separately-privileged helper via `SudoCaked` from `IMDSCoordinator` —
+	/// nothing about the daemon itself runs as root.
 	struct ImdsRedirect: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: String(localized: "Manage the IMDS pf redirects"), shouldDisplay: false)
+		static let configuration = CommandConfiguration(abstract: String(localized: "Manage the IMDS pf address-alias redirect"), shouldDisplay: false)
 
 		@OptionGroup(title: String(localized: "Global options"))
 		var common: CommonOptions
@@ -751,20 +751,11 @@ struct Networks: ParsableCommand {
 		@Flag(help: .hidden)
 		var disable: Bool = false
 
-		/// When set, this invocation manages the address-alias redirect (`externalAddress`
-		/// → `internalAddress`, any port preserved) instead of the port-80 redirect
-		/// (`externalAddress:externalPort` → `internalAddress:internalPort`).
-		@Flag(name: [.customLong("alias")], help: .hidden)
-		var alias: Bool = false
-
 		@Option(name: [.customLong("external-address")], help: .hidden)
-		var externalAddress: String = IMDSNetworkInterface.imdsGateway
-
-		@Option(name: [.customLong("external-port")], help: .hidden)
-		var externalPort: Int = 80
+		var externalAddress: String = IMDSNetworkInterface.awsCompatAddress
 
 		@Option(name: [.customLong("internal-address")], help: .hidden)
-		var internalAddress: String = IMDSNetworkInterface.imdsGateway
+		var internalAddress: String = IMDSServer.bindAddress
 
 		@Option(name: [.customLong("internal-port")], help: .hidden)
 		var internalPort: Int = 0
@@ -776,22 +767,16 @@ struct Networks: ParsableCommand {
 				throw ValidationError(String(localized: "This command must be run as root not as user \(geteuid())"))
 			}
 
-			if self.disable == false && self.alias == false && self.internalPort == 0 {
+			if self.disable == false && self.internalPort == 0 {
 				throw ValidationError(String(localized: "--internal-port is required"))
 			}
 		}
 
 		func run() throws {
-			if self.alias {
-				if self.disable {
-					try PFRedirect.disableAddressAlias()
-				} else {
-					try PFRedirect.enableAddressAlias(externalAddress: self.externalAddress, targetAddress: self.internalAddress)
-				}
-			} else if self.disable {
-				try PFRedirect.disable()
+			if self.disable {
+				try PFRedirect.disableAddressAlias()
 			} else {
-				try PFRedirect.enable(externalAddress: self.externalAddress, externalPort: self.externalPort, internalAddress: self.internalAddress, internalPort: self.internalPort)
+				try PFRedirect.enableAddressAlias(externalAddress: self.externalAddress, targetAddress: self.internalAddress, targetPort: self.internalPort)
 			}
 		}
 	}

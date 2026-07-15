@@ -15,33 +15,14 @@ import Subprocess
 /// to edit `/etc/pf.conf` themselves — an anchor name outside that namespace would silently
 /// load but never actually be evaluated against traffic.
 public enum PFRedirect {
-	public static let anchorName = "com.apple/caker-imds"
 	public static let addressAliasAnchorName = "com.apple/caker-alias"
 
-	/// Redirects `proto tcp` traffic addressed to `externalAddress:externalPort` to
-	/// `internalAddress:internalPort`. Must be called as root.
-	public static func enable(externalAddress: String, externalPort: Int, internalAddress: String, internalPort: Int) throws {
-		let rule = "rdr pass inet proto tcp from any to \(externalAddress) port \(externalPort) -> \(internalAddress) port \(internalPort)"
-
-		try Self.loadAnchor(name: Self.anchorName, rule: rule)
-		try Self.ensureEnabled()
-	}
-
-	/// Removes any redirect previously installed by `enable`. Must be called as root.
-	public static func disable() throws {
-		// Loading an empty ruleset into the anchor clears it; pf itself (and any other
-		// anchor) is left untouched.
-		try Self.loadAnchor(name: Self.anchorName, rule: "")
-	}
-
-	/// Redirects *all* `proto tcp` traffic addressed to `externalAddress` (any port) to
-	/// `targetAddress`, preserving the original destination port — a pure address rewrite,
-	/// not a port forward. Used to make the AWS-style `169.254.169.254` address transparently
-	/// reach the real IMDS gateway, regardless of which port IMDS actually bound (80 as
-	/// root, or the unprivileged `--imds-port` otherwise) — one rule covers both, since the
-	/// port is never rewritten. Must be called as root.
-	public static func enableAddressAlias(externalAddress: String, targetAddress: String) throws {
-		let rule = "rdr pass inet proto tcp from any to \(externalAddress) -> \(targetAddress)\n"
+	/// Redirects `proto tcp` traffic addressed to `externalAddress:80` to
+	/// `targetAddress:targetPort` — used to make the AWS-style `169.254.169.254` address
+	/// reach the real IMDS gateway, on whichever port IMDS actually bound (80 as root, or
+	/// the unprivileged `--imds-port` otherwise). Must be called as root.
+	public static func enableAddressAlias(externalAddress: String, targetAddress: String, targetPort: Int) throws {
+		let rule = "rdr pass inet proto tcp from any to \(externalAddress) port 80 -> \(targetAddress) port \(targetPort)"
 
 		try Self.loadAnchor(name: Self.addressAliasAnchorName, rule: rule)
 		try Self.ensureEnabled()

@@ -56,7 +56,7 @@ Ports par défaut : `8443` (HTTPS/mTLS) ou `8080` (HTTP). Modifiable avec `--res
 
 ## IMDS
 
-`caked` héberge également, par défaut, un service de métadonnées d'instance de style AWS pour les VM Linux (`IMDSCoordinator` + `IMDSServer` dans `Sources/caked/IMDS/`), joignable depuis l'invité via HTTP. L'exposer sur le port 80 aux invités est optionnel (`--imds-redirect`) et repose sur une redirection `pf` installée par un assistant root de courte durée, car `caked` tourne normalement sans privilège. Voir [IMDS](imds) pour les détails complets.
+`caked` héberge également, par défaut, un service de métadonnées d'instance de style AWS pour les VM Linux (`IMDSCoordinator` + `IMDSServer` dans `Sources/caked/IMDS/`), joignable depuis l'invité via HTTP. Le joindre à l'adresse `169.254.169.254` de style AWS repose sur une redirection `pf` d'alias d'adresse installée automatiquement par un assistant root de courte durée, car `caked` tourne normalement sans privilège ; sans elle, la passerelle IMDS reste pleinement joignable sur son propre port. Voir [IMDS](imds) pour les détails complets.
 
 Voir le [Résumé des commandes](command-summary) pour la référence complète des options de `service listen`.
 
@@ -132,7 +132,7 @@ Default ports: `8443` (HTTPS/mTLS) or `8080` (HTTP). Override with `--rest-port`
 
 ## IMDS
 
-`caked` also hosts, by default, an AWS-style instance metadata service for Linux VMs (`IMDSCoordinator` + `IMDSServer` in `Sources/caked/IMDS/`), reachable from the guest over HTTP. Exposing it to guests on port 80 is optional (`--imds-redirect`) and relies on a `pf` redirect installed by a short-lived root helper, since `caked` normally runs unprivileged. See [IMDS](imds) for full details.
+`caked` also hosts, by default, an AWS-style instance metadata service for Linux VMs (`IMDSCoordinator` + `IMDSServer` in `Sources/caked/IMDS/`), reachable from the guest over HTTP. Reaching it at the AWS-style `169.254.169.254` address relies on a `pf` address-alias redirect installed automatically by a short-lived root helper, since `caked` normally runs unprivileged; without it, the IMDS gateway itself stays fully reachable on its own port. See [IMDS](imds) for full details.
 
 See [Command Summary](command-summary) for full `service listen` flag reference.
 

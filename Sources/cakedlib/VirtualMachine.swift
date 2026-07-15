@@ -211,8 +211,9 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 
 		// Add IMDS network interface for Linux VMs. Available in sandboxed builds too —
 		// IMDS binds an unprivileged port on this network's gateway either way, reachable
-		// from the guest with no root/sudo required (see IMDSServer). Only exposing it on
-		// the *standard* port 80 (--imds-redirect) needs sudo and is unavailable there.
+		// from the guest with no root/sudo required (see IMDSServer). Only reaching it at
+		// the AWS-style 169.254.169.254 address needs a pf redirect via sudo and is
+		// unavailable there.
 		if IMDSNetworkInterface.imdsEnabled && config.os == .linux {
 			networks.append(IMDSNetworkInterface(macAddress: try config.ensureImdsMacAddress()))
 		}
