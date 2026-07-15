@@ -387,9 +387,21 @@ public final class IMDSServer: Sendable {
 			return plainText(Self.supportedAPIVersions, on: req)
 		}
 
+		guarded.get("latest") { req -> Response in
+			guard req.imdsMetadata != nil else { return Response(status: .notFound) }
+
+			let keys = """
+				meta-data
+				"""
+
+			return plainText(keys, on: req)
+		}
+
 		let meta = guarded.grouped("latest", "meta-data")
 
 		meta.get { req -> Response in
+			guard req.imdsMetadata != nil else { return Response(status: .notFound) }
+
 			let keys = """
 				ami-id
 				ami-launch-index
@@ -552,6 +564,10 @@ public final class IMDSServer: Sendable {
 		2021-01-03
 		2021-03-23
 		2021-07-15
+		2022-09-24
+		2024-04-11
+		2025-10-04
+		2026-04-15
 		latest
 		"""
 
