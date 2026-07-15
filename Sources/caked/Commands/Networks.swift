@@ -803,7 +803,7 @@ struct Networks: ParsableCommand {
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			if networkName != nil && pidFile != nil && all {
+			if (networkName != nil && pidFile != nil) || (networkName != nil && all) || (pidFile != nil && all) {
 				throw ValidationError(String(localized: "You can only specify one of --network or --pidfile or --all"))
 			}
 
