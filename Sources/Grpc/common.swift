@@ -21,22 +21,14 @@ public let MoB: UInt64 = KoB * KoB
 public let GoB: UInt64 = MoB * KoB
 
 extension UserDefaults {
-	private static var _shared: UserDefaults?
-
-	public static var shared: UserDefaults {
-		guard let _shared else {
-			guard let shared = UserDefaults(suiteName: "group.\(Utils.cakerSignature)") else {
-				Logger("UserDefaults").error("Failed to create shared: group.\(Utils.cakerSignature)")
-				return UserDefaults.standard
-			}
-
-			Self._shared = shared
-
+	public static let shared: UserDefaults = {
+		if let shared = UserDefaults(suiteName: "group.\(Utils.cakerSignature)") {
 			return shared
 		}
 
-		return _shared
-	}
+		Logger("UserDefaults").error("Failed to create shared: group.\(Utils.cakerSignature)")
+		return UserDefaults.standard
+	}()
 }
 
 extension Bundle {
