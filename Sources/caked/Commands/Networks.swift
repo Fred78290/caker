@@ -525,6 +525,10 @@ struct Networks: ParsableCommand {
 				throw ValidationError("You can only specify one of <name> or --all")
 			}
 
+			if name == nil && all == false {
+				throw ValidationError("You must specify one of <name> or --all")
+			}
+
 			if let name {
 				try validateNetwork(networkName: name, runMode: self.common.runMode)
 
