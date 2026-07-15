@@ -41,6 +41,17 @@
         }
       }
     },
+    "--internal-port is required" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "--internal-port est requis"
+          }
+        }
+      }
+    },
     "--username is required" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2397,13 +2408,13 @@
         }
       }
     },
-    "Config.plist not found in %@" : {
+    "config.plist not found in %@" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Config.plist introuvable dans %@"
+            "value" : "config.plist introuvable dans %@"
           }
         }
       }
@@ -7252,6 +7263,17 @@
         }
       }
     },
+    "Manage the IMDS pf address-alias redirect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gérer la redirection d'alias d'adresse pf IMDS"
+          }
+        }
+      }
+    },
     "Manage TLS client certificates for REST API authentication" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7939,6 +7961,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Le réseau %@ est une interface physique"
+          }
+        }
+      }
+    },
+    "Network %@ is a reserved default network and cannot be configured" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le réseau %@ est un réseau par défaut réservé et ne peut pas être configuré"
           }
         }
       }
@@ -9720,6 +9753,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "suspendu"
+          }
+        }
+      }
+    },
+    "PFRedirect must be run as root" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PFRedirect doit être exécuté en tant que root"
           }
         }
       }
@@ -15035,6 +15079,17 @@
         }
       }
     },
+    "Unprivileged port IMDS listens on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Port non privilégié sur lequel IMDS écoute"
+          }
+        }
+      }
+    },
     "Unrecognized settings key: %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16708,6 +16763,17 @@
         }
       }
     },
+    "You can only specify one of --network or --pidfile or --all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous ne pouvez spécifier qu'un seul parmi --network, --pidfile ou --all"
+          }
+        }
+      }
+    },
     "You can only specify one of <name> or --all" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16748,6 +16814,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vous devez spécifier un de --network ou --pidfile ou —all"
+          }
+        }
+      }
+    },
+    "You must specify one of --network or --pidfile or --all" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous devez spécifier l'un de --network, --pidfile ou --all"
           }
         }
       }
