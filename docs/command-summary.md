@@ -74,6 +74,7 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
     - `--web-ui <path>` — sert l'interface Web fournie depuis un répertoire ou une archive `.zip` sur `/ui`.
     - `--address` / `-l` — modifie l'adresse d'écoute gRPC.
     - `--insecure` — désactive TLS.
+    - `--imds-port <port>` — port non privilégié sur lequel IMDS écoute, joignable directement par les invités sans root (par défaut `28080`). Voir [IMDS](imds).
   - `status` — rapporte le statut du démon.
   - `stop` — arrête le démon en cours d'exécution.
 - `vmrun` — commande interne d'exécution de VM (masquée/interne).
@@ -83,6 +84,7 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
   - `set-dhcp-lease`
   - `restart`
   - `run` (interne)
+  - `imds-redirect` (interne, root requis) — installe/retire la redirection `pf` d'alias d'adresse pour `169.254.169.254`, voir [IMDS](imds).
 
 ## Commandes spécifiques à `cakectl`
 
@@ -418,6 +420,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
     - `--web-ui <path>` — serve the bundled web UI from a directory or `.zip` archive at `/ui`.
     - `--address` / `-l` — override the gRPC listen address.
     - `--insecure` — disable TLS.
+    - `--imds-port <port>` — unprivileged port IMDS listens on, directly reachable by guests with no root needed (default `28080`). See [IMDS](imds).
   - `status` — report daemon status.
   - `stop` — stop the running daemon.
 - `vmrun` — internal VM runtime command (hidden/internal).
@@ -427,6 +430,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
   - `set-dhcp-lease`
   - `restart`
   - `run` (internal)
+  - `imds-redirect` (internal, requires root) — installs/removes the `pf` address-alias redirect for `169.254.169.254`, see [IMDS](imds).
 
 ## `cakectl`-specific commands
 

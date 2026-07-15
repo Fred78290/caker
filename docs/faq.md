@@ -126,6 +126,10 @@ diskutil image resize --size=<new-size>G "$(caked home)/vms/<vm-name>.cakedvm/di
 
 Lorsque le redimensionnement est refusé, l'application Caker affiche la commande exacte à exécuter pour votre VM. Les disques au format raw ne sont pas concernés, pas plus que le build en téléchargement direct. Voir [Formats de disque : raw et ASIF](command-summary#disk-formats-raw-and-asif-fr) pour plus de détails.
 
+### IMDS est-il disponible dans la version App Store ?
+
+Oui, le service de métadonnées d'instance (IMDS) pour les VM Linux fonctionne dans la version sandboxée, sur son port non privilégié (`--imds-port`, `28080` par défaut) — les invités le joignent directement, sans root ni `sudo`. Seul le fait de le joindre à l'adresse `169.254.169.254` de style AWS est indisponible en version sandboxée, car cela nécessite `sudo` pour sa redirection `pf` d'alias d'adresse, que l'App Sandbox macOS interdit. Voir [IMDS](imds) pour plus de détails.
+
 ## Questions d'utilisation
 
 ### Puis-je exécuter plusieurs VM simultanément ?
@@ -318,6 +322,10 @@ diskutil image resize --size=<new-size>G "$(caked home)/vms/<vm-name>.cakedvm/di
 ```
 
 When the resize is refused, the Caker application shows the exact command to run for your VM. Raw-format disks are not affected, and neither is the direct-download build. See [Disk formats: raw and ASIF](command-summary#disk-formats-raw-and-asif) for details.
+
+### Is IMDS available in the App Store version?
+
+Yes, the instance metadata service (IMDS) for Linux VMs works in the sandboxed version, on its unprivileged port (`--imds-port`, default `28080`) — guests reach it directly there, no root or `sudo` involved. Only reaching it at the AWS-style `169.254.169.254` address is unavailable in the sandboxed version, since that needs `sudo` for its `pf` address-alias redirect, which the macOS App Sandbox blocks. See [IMDS](imds) for details.
 
 ## Usage Questions
 
