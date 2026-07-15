@@ -369,16 +369,19 @@ public final class IMDSServer: Sendable {
 	///
 	/// Tries the host's ARP cache first (prodded with a broadcast ping on a miss — see
 	/// `ARPResolver.ipAddress(forMACAddress:proddingInterface:)`): cheap, no round-trip into
-	/// the guest, and reliable now that guests announce their address with a gratuitous ARP on
-	/// every boot/lease change (see `CloudInit`'s `arp_notify` sysctl write-file).
+	/// the guest, and reliable from the guest's *second* boot/lease-change onward, since guests
+	/// then announce their address with a gratuitous ARP (see `CloudInit`'s `arp_notify` sysctl
+	/// write-file) — the kernel only fires that announce from an interface-up/address-change
+	/// event, not retroactively when the sysctl is applied, so the guest's very first
+	/// DHCP-acquired address on the boot that writes the file isn't covered by it.
 	///
 	/// Falls back to querying the in-guest `cakeagent` for its own interfaces' MACs and IPs
 	/// (`Caked_InfoReply.networks`) when the ARP cache still comes up empty — chiefly the
 	/// entitled native `VZBridgedNetworkDeviceAttachment` bridging path, where the host never
 	/// sees the guest's traffic at all (`caked` isn't in that packet path), so no amount of ARP
 	/// prodding will ever populate an entry there; the custom vmnet.framework fallback
-	/// (`VZVMNetImpl`) doesn't have that problem, so this path mostly covers early-boot races
-	/// there instead (before the guest's first announce has landed).
+	/// (`VZVMNetImpl`) doesn't have that problem, so this path mostly covers the guest's first
+	/// boot there instead (before its first gratuitous announce has landed).
 	private static func resolvePublicIPv4(metadata: IMDSMetadata, publicMac: String) -> String? {
 		guard let ip = ARPResolver.ipAddress(forMACAddress: publicMac, proddingInterface: CakedKeyConfig.bridgedNetwork.string()) else {
 			return queryAgentIPAddress(forMAC: publicMac, metadata: metadata)

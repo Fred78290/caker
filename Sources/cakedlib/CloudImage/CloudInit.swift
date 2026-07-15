@@ -1018,9 +1018,17 @@ class CloudInit {
 	/// never learns the guest's address until *something* forces an ARP exchange. Turning
 	/// `arp_notify` on makes the kernel itself send a gratuitous ARP announce whenever an
 	/// interface comes up or gets a new address (DHCP lease, link flap, ...), which every
-	/// host on the segment — including this one — passively learns from. Written once via
-	/// cloud-init `write_files`, but the resulting `/etc/sysctl.d` file is read by
-	/// `systemd-sysctl.service` on every subsequent boot regardless.
+	/// host on the segment — including this one — passively learns from.
+	///
+	/// Written once via cloud-init `write_files`, but the resulting `/etc/sysctl.d` file is
+	/// read by `systemd-sysctl.service` on every subsequent boot regardless — that covers
+	/// reboots and future DHCP renewals reliably. The guest's *very first* DHCP-acquired
+	/// address on the boot that writes this file is a narrower case: the kernel only fires
+	/// the announce from a netdevice notifier event (interface-up / address-change), not from
+	/// the sysctl write itself, and that first address is already assigned by the time
+	/// `runcmd` gets a chance to apply this file (see `buildVendorData`/`createAutoInstallData`)
+	/// — so `ARPResolver`'s broadcast-probe/`cakeagent` fallback (see `IMDSServer.resolvePublicIPv4`)
+	/// still matters for that narrow window.
 	private func arpNotifySysctlFile() -> WriteFile {
 		WriteFile(
 			path: "/etc/sysctl.d/99-caker-arp-notify.conf",
@@ -1260,7 +1268,9 @@ class CloudInit {
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
 		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
-		let runCommand = config.mounts.isEmpty ? ["/usr/local/bin/install-cakeagent.sh"] : ["/usr/local/bin/install-cakeagent.sh"]
+		var runCommand = [
+			"/usr/local/bin/install-cakeagent.sh"
+		]
 		var writeFiles: [WriteFile] = [
 			WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
 			WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
@@ -1270,6 +1280,7 @@ class CloudInit {
 		]
 
 		if IMDSNetworkInterface.imdsEnabled {
+			runCommand.append("sysctl -p /etc/sysctl.d/99-caker-arp-notify.conf")
 			writeFiles.append(self.arpNotifySysctlFile())
 		}
 
