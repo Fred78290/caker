@@ -202,7 +202,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		self.grpcServer = server
 
 		if chown(socketFile, getegid(), self.socketGroup) < 0 {
-			self.logger.error("Failed to set group \(self.socketGroup) on socket \(socketPath)")
+			self.logger.error("Failed to set group \(self.socketGroup) on socket \(socketPath), reason: \(String(cString: strerror(errno)))")
 		}
 
 		let future = self.eventLoop.makeFutureWithTask {
