@@ -64,10 +64,14 @@ struct ApplicationSettingsView: View {
 			}
 
 			Section {
-				Button(action: { MainUIAppDelegate.ensurePrivilegedBootstrapFiles() }) {
-					Label("Install command-line tools", systemImage: "terminal")
+				HStack {
+					Spacer()
+					Button(action: { MainUIAppDelegate.ensurePrivilegedBootstrapFiles() }) {
+						Label("Install command-line tools", systemImage: "terminal")
+					}
+					.disabled(MainUIAppDelegate.isPrivilegedBootstrapFilesInstalled)
+					Spacer()
 				}
-				.disabled(MainUIAppDelegate.isPrivilegedBootstrapFilesInstalled)
 			} header: {
 				Label("Developer Tools", systemImage: "wrench.and.screwdriver")
 			} footer: {
