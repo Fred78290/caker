@@ -443,7 +443,15 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 	func loadImages(remote: String) async -> [ImageInfo] {
 		if let result = try? await self.connectionManager.loadImages(remote: remote) {
-			return result
+			return result.sorted(by: {
+				if let first = $0.aliases.first, let second = $1.aliases.first {
+					return first.lowercased() < second.lowercased()
+				} else if let first = $0.uploaded, let second = $1.uploaded {
+					return first < second
+				}
+				
+				return $0.fingerprint < $1.fingerprint
+			})
 		}
 
 		return []
