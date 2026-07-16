@@ -92,16 +92,32 @@ struct RemoteDetailView: View {
 
 						Spacer()
 
-						Text(ByteCountFormatter.string(fromByteCount: Int64(image.size), countStyle: .file))
-							.font(.system(size: 11, design: .monospaced))
-							.foregroundStyle(.secondary)
+						if selectedImage == image {
+							Button {
+								self.createVM = true
+							} label: {
+								ZStack {
+									RoundedRectangle(cornerRadius: 9)
+										.fill(Color.orange.gradient)
+										.frame(width: 30, height: 30)
+									Image(systemName: "plus.square")
+										.resizable()
+										.aspectRatio(contentMode: .fit)
+										.foregroundStyle(.white)
+										.frame(width: 16, height: 16)
+								}
+							}
+							.buttonStyle(.borderless)
+							.controlSize(.small)
+						} else {
+							Text(ByteCountFormatter.string(fromByteCount: Int64(image.size), countStyle: .file))
+								.font(.system(size: 11, design: .monospaced))
+								.foregroundStyle(.secondary)
+						}
 					}
 					.frame(height: 60.0)
 					.padding(.vertical, 4)
 					.contentShape(Rectangle())
-					.onTapGesture(count: 2) {
-						self.createVM = true
-					}
 					.contextMenu {
 						Button("New Virtual Machine…") {
 							self.createVM = true
@@ -162,3 +178,4 @@ struct RemoteDetailView: View {
 #Preview {
 	RemoteDetailView(remote: RemoteEntry(name: "ubuntu", url: "https://cloud-images.ubuntu.com/releases"))
 }
+
