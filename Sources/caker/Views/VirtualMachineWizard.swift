@@ -361,9 +361,9 @@ struct ShortImageInfoComparator: SortComparator {
 struct VirtualMachineWizard: View {
 	@Environment(\.dismiss) private var dismiss
 
-	@State private var config: VirtualMachineConfig = .init()
+	@State private var config: VirtualMachineConfig
 	@State private var currentTab: Int = 0
-	@State private var model = VirtualMachineWizardStateObject()
+	@State private var model: VirtualMachineWizardStateObject
 	@State private var memoryValueIsInvalid = false
 	@State private var diskSizeValueIsInvalid = false
 
@@ -372,33 +372,80 @@ struct VirtualMachineWizard: View {
 
 	var sheet: Bool = false
 
+	private static let randomNameWords: [String] = {
+		let fallback = [
+			"swift", "brisk", "calm", "lively", "merry", "noble", "bright", "vivid", "quiet", "bold",
+			"otter", "falcon", "lynx", "panda", "tiger", "eagle", "wolf", "orca", "fox", "ibis",
+		]
+
+		guard let content = try? String(contentsOfFile: "/usr/share/dict/words", encoding: .utf8) else {
+			return fallback
+		}
+
+		let words = content.split(separator: "\n").compactMap { line -> String? in
+			guard line.count >= 3, line.count <= 8, line.allSatisfy({ ("a"..."z").contains($0) }) else {
+				return nil
+			}
+
+			return String(line)
+		}
+
+		return words.isEmpty ? fallback : words
+	}()
+
+	static func generateRandomVMName() -> String {
+		let first = randomNameWords.randomElement() ?? "swift"
+		let second = randomNameWords.randomElement() ?? "otter"
+		return "\(first)-\(second)"
+	}
+
 	init(sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil) {
 		self.sheet = sheet
-
+		
 		if let presetTemplate {
 			var config = VirtualMachineConfig()
+
 			config.source = .template
 			config.imageName = presetTemplate.fqn
 			config.vmname = presetTemplate.name
-
+			
 			let model = VirtualMachineWizardStateObject()
-			model.imageSource = .template
 
+			model.imageSource = .template
+			
 			self._config = State(initialValue: config)
 			self._model = State(initialValue: model)
 		} else if let presetRemoteImage {
 			var config = VirtualMachineConfig()
+
+			config.vmname = Self.generateRandomVMName()
 			config.source = .stream
 			config.diskFormat = .raw
 			config.os = .linux
 			config.imageName = "\(presetRemoteImage.remote)://\(presetRemoteImage.image.fingerprint)"
-
+			
 			let model = VirtualMachineWizardStateObject()
+
 			model.imageSource = .stream
 			model.remoteImage = presetRemoteImage.remote
 			model.selectedRemoteImage = presetRemoteImage.image.fingerprint
 			model.remoteImages = [ShortImageInfo(presetRemoteImage.image)]
+			
+			self._config = State(initialValue: config)
+			self._model = State(initialValue: model)
+		} else {
+			var config = VirtualMachineConfig()
 
+			config.vmname = Self.generateRandomVMName()
+			config.source = .qcow2
+			config.imageName = OSCloudImage.ubuntu2604LTS.url.absoluteString
+			config.os = .linux
+			
+			let model = VirtualMachineWizardStateObject()
+
+			model.imageSource = .qcow2
+			model.cloudImageRelease = .ubuntu2604LTS
+			
 			self._config = State(initialValue: config)
 			self._model = State(initialValue: model)
 		}
