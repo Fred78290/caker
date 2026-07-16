@@ -11,6 +11,7 @@ import Virtualization
 
 struct AdvancedSettingsView: View {
 	private static let noneNetwork = "none"
+	private static let imdsFirewallCommand = #"sudo sh -c 'echo "rdr pass inet proto tcp from any to 169.254.169.254 -> 192.168.169.1" > /etc/pf.anchors/caker-alias && echo "load anchor \"com.apple/caker-alias\" from \"/etc/pf.anchors/caker-alias\"" >> /etc/pf.conf && pfctl -e -f /etc/pf.conf'"#
 
 	@AppStorage(CakedKeyConfig.imdsEnabled.rawValue, store: .shared) var awsEC2MetadataEnabled: Bool = false
 
@@ -111,6 +112,36 @@ struct AdvancedSettingsView: View {
 				Text("Enable IMDSv2 metadata service for virtual machines running on linux. Need to restart caked daemon to take effect.")
 					.font(.caption)
 					.foregroundStyle(.secondary)
+				if Bundle.isApplicationSandboxed {
+					Spacer()
+					VStack(alignment: .leading, spacing: 4) {
+						Text("""
+							To allow access from VM to IMDSv2 metadata service via http://169.254.169.254/latest/meta-data/, you must add somes rules in firewall, else meta data will be accessible only via http://192.168.169.1:28080/latest/meta-data/ .
+
+							Run the following command in Terminal to add the firewall rules:
+							""")
+							.font(.caption)
+							.foregroundStyle(.secondary)
+						HStack {
+							Text(Self.imdsFirewallCommand)
+								.font(.caption.monospaced())
+								.textSelection(.enabled)
+								.padding(6)
+								.background(
+									RoundedRectangle(cornerRadius: 6, style: .continuous)
+										.strokeBorder(.quaternary, lineWidth: 1)
+								)
+							Button {
+								NSPasteboard.general.clearContents()
+								NSPasteboard.general.setString(Self.imdsFirewallCommand, forType: .string)
+							} label: {
+								Image(systemName: "doc.on.doc")
+							}
+							.buttonStyle(.borderless)
+							.help("Copy command")
+						}
+					}
+				}
 			}
 
 		}
