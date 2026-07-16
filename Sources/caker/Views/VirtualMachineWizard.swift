@@ -306,7 +306,7 @@ struct ShortImageInfoComparator: SortComparator {
 	var imageSource: ImageSource
 	var remoteImage: String
 	var remoteImages: [ShortImageInfo]
-	var selectedRemoteImage: String
+	var selectedRemoteImage: ShortImageInfo.ID
 	var cloudImageRelease: OSCloudImage
 	var isoImageRelease: ISOImage
 	var ipswRelease: IPSWImage
@@ -369,6 +369,8 @@ struct VirtualMachineWizard: View {
 
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 	private let listHeight: CGFloat = 460
+	private let fromPreset: Bool
+	private let presetImage: String
 
 	var sheet: Bool = false
 
@@ -412,9 +414,11 @@ struct VirtualMachineWizard: View {
 			let model = VirtualMachineWizardStateObject()
 
 			model.imageSource = .template
-			
+
 			self._config = State(initialValue: config)
 			self._model = State(initialValue: model)
+			self.fromPreset = true
+			self.presetImage = presetTemplate.name
 		} else if let presetRemoteImage {
 			var config = VirtualMachineConfig()
 
@@ -425,14 +429,17 @@ struct VirtualMachineWizard: View {
 			config.imageName = "\(presetRemoteImage.remote)://\(presetRemoteImage.image.fingerprint)"
 			
 			let model = VirtualMachineWizardStateObject()
+			let image = ShortImageInfo(presetRemoteImage.image)
 
 			model.imageSource = .stream
 			model.remoteImage = presetRemoteImage.remote
 			model.selectedRemoteImage = presetRemoteImage.image.fingerprint
-			model.remoteImages = [ShortImageInfo(presetRemoteImage.image)]
+			model.remoteImages = [image]
 			
 			self._config = State(initialValue: config)
 			self._model = State(initialValue: model)
+			self.fromPreset = true
+			self.presetImage = image.description
 		} else {
 			var config = VirtualMachineConfig()
 
@@ -448,6 +455,8 @@ struct VirtualMachineWizard: View {
 			
 			self._config = State(initialValue: config)
 			self._model = State(initialValue: model)
+			self.fromPreset = false
+			self.presetImage = ""
 		}
 	}
 
@@ -824,48 +833,108 @@ struct VirtualMachineWizard: View {
 
 	func chooseOSImage() -> some View {
 		Form {
-			Section {
-				switch self.model.imageSource {
-				case .raw:
-					if AppState.shared.connectionMode == .app {
-						LabeledContent("Choose a local image disk.") {
-							HStack {
-								TextField("OS Image", text: $config.imageName)
+			if self.fromPreset {
+				Section("Preset image source") {
+					LabeledContent("From source") {
+						Text(self.model.imageSource.description)
+					}
+					LabeledContent("Preset image") {
+						Text(presetImage)
+					}
+					LabeledContent("FQN") {
+						Text(config.imageName)
+					}
+				}
+			} else {
+				Section {
+					switch self.model.imageSource {
+					case .raw:
+						if AppState.shared.connectionMode == .app {
+							LabeledContent("Choose a local image disk.") {
+								HStack {
+									TextField("OS Image", text: $config.imageName)
+										.rounded(.leading)
+										.disabled(self.model.createVM)
+									
+									Button(action: {
+										if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
+											self.config.imageName = "file://\(imageName)"
+										}
+									}) {
+										Image(systemName: "document.badge.gearshape")
+									}
+									.buttonStyle(.borderless)
+									.disabled(self.model.createVM)
+								}
+							}
+						} else {
+							LabeledContent("Raw image url.") {
+								TextField("URL", text: $config.imageName)
 									.rounded(.leading)
 									.disabled(self.model.createVM)
-
-								Button(action: {
-									if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
-										self.config.imageName = "file://\(imageName)"
-									}
-								}) {
-									Image(systemName: "document.badge.gearshape")
-								}
-								.buttonStyle(.borderless)
-								.disabled(self.model.createVM)
 							}
 						}
-					} else {
-						LabeledContent("Raw image url.") {
-							TextField("URL", text: $config.imageName)
-								.rounded(.leading)
+					case .iso:
+						VStack(alignment: .leading) {
+							let platform = SupportedPlatform(rawValue: self.config.imageName)
+							
+							LabeledContent {
+								if AppState.shared.connectionMode == .app {
+									HStack {
+										TextField("Choose an ISO image disk.", text: $config.imageName)
+											.frame(width: 300)
+											.rounded(.leading)
+											.disabled(self.model.createVM)
+										
+										Button(action: {
+											if let imageName = chooseDiskImage(ofTypes: [UTType.iso9660, UTType.cdr]) {
+												self.config.imageName = "file://\(imageName)"
+											}
+										}) {
+											Image(systemName: "document.badge.gearshape")
+										}
+										.disabled(self.model.createVM)
+										.buttonStyle(.borderless)
+									}
+								} else {
+									TextField("Bootable iso url.", text: $config.imageName)
+										.frame(width: 340)
+										.rounded(.leading)
+										.disabled(self.model.createVM)
+								}
+							} label: {
+								Picker("Preconfigured ISO", selection: $model.isoImageRelease) {
+									ForEach(ISOImage.allCases, id: \.self) { os in
+										Text(os.location.label).tag(os)
+									}
+								}
+								.pickerStyle(.menu)
 								.disabled(self.model.createVM)
+								.labelsHidden()
+								.onChange(of: model.isoImageRelease) { _, newValue in
+									self.config.imageName = newValue.location.url
+								}
+							}
+							
+							if platform == .ubuntu {
+								Toggle("Create autoinstall config", isOn: $config.autoinstall).disabled(self.model.createVM)
+								//						} else if platform == .fedora {
+								//							Toggle("Create kickstart config", isOn: $config.autoinstall).disabled(self.model.createVM)
+								//						} else if platform == .debian {
+								//							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
+							}
 						}
-					}
-				case .iso:
-					VStack(alignment: .leading) {
-						let platform = SupportedPlatform(rawValue: self.config.imageName)
-
+						
+					case .ipsw:
 						LabeledContent {
 							if AppState.shared.connectionMode == .app {
 								HStack {
-									TextField("Choose an ISO image disk.", text: $config.imageName)
-										.frame(width: 300)
+									TextField("IPSW Image", text: $config.imageName)
+										.frame(width: 460)
 										.rounded(.leading)
 										.disabled(self.model.createVM)
-
 									Button(action: {
-										if let imageName = chooseDiskImage(ofTypes: [UTType.iso9660, UTType.cdr]) {
+										if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
 											self.config.imageName = "file://\(imageName)"
 										}
 									}) {
@@ -875,197 +944,151 @@ struct VirtualMachineWizard: View {
 									.buttonStyle(.borderless)
 								}
 							} else {
-								TextField("Bootable iso url.", text: $config.imageName)
-									.frame(width: 340)
+								TextField("MacOS ipsw url.", text: $config.imageName)
+									.frame(width: 460)
 									.rounded(.leading)
 									.disabled(self.model.createVM)
 							}
 						} label: {
-							Picker("Preconfigured ISO", selection: $model.isoImageRelease) {
-								ForEach(ISOImage.allCases, id: \.self) { os in
+							Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
+								ForEach(IPSWImage.allCases, id: \.self) { os in
 									Text(os.location.label).tag(os)
 								}
 							}
 							.pickerStyle(.menu)
 							.disabled(self.model.createVM)
 							.labelsHidden()
-							.onChange(of: model.isoImageRelease) { _, newValue in
+							.onChange(of: model.ipswRelease) { _, newValue in
 								self.config.imageName = newValue.location.url
 							}
 						}
-
-						if platform == .ubuntu {
-							Toggle("Create autoinstall config", isOn: $config.autoinstall).disabled(self.model.createVM)
-							//						} else if platform == .fedora {
-							//							Toggle("Create kickstart config", isOn: $config.autoinstall).disabled(self.model.createVM)
-							//						} else if platform == .debian {
-							//							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
-						}
-					}
-
-				case .ipsw:
-					LabeledContent {
-						if AppState.shared.connectionMode == .app {
-							HStack {
-								TextField("IPSW Image", text: $config.imageName)
-									.frame(width: 460)
-									.rounded(.leading)
-									.disabled(self.model.createVM)
-								Button(action: {
-									if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
-										self.config.imageName = "file://\(imageName)"
-									}
-								}) {
-									Image(systemName: "document.badge.gearshape")
-								}
-								.disabled(self.model.createVM)
-								.buttonStyle(.borderless)
-							}
-						} else {
-							TextField("MacOS ipsw url.", text: $config.imageName)
-								.frame(width: 460)
+						
+					case .qcow2:
+						LabeledContent {
+							TextField("Cloud Image", text: $config.imageName)
 								.rounded(.leading)
+								.frame(width: 460)
 								.disabled(self.model.createVM)
-						}
-					} label: {
-						Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
-							ForEach(IPSWImage.allCases, id: \.self) { os in
-								Text(os.location.label).tag(os)
+						} label: {
+							Picker("Preconfigured image", selection: $model.cloudImageRelease) {
+								ForEach(OSCloudImage.allCases, id: \.self) { os in
+									Text(os.stringValue).tag(os)
+								}
 							}
-						}
-						.pickerStyle(.menu)
-						.disabled(self.model.createVM)
-						.labelsHidden()
-						.onChange(of: model.ipswRelease) { _, newValue in
-							self.config.imageName = newValue.location.url
-						}
-					}
-
-				case .qcow2:
-					LabeledContent {
-						TextField("Cloud Image", text: $config.imageName)
-							.rounded(.leading)
-							.frame(width: 460)
+							.pickerStyle(.menu)
 							.disabled(self.model.createVM)
-					} label: {
-						Picker("Preconfigured image", selection: $model.cloudImageRelease) {
-							ForEach(OSCloudImage.allCases, id: \.self) { os in
-								Text(os.stringValue).tag(os)
+							.labelsHidden()
+							.onChange(of: model.cloudImageRelease) { _, newValue in
+								self.config.imageName = newValue.url.absoluteString
+							}
+						}
+						
+					case .oci:
+						TextField("OCI Image", text: $config.imageName)
+							.rounded(.leading)
+							.disabled(self.model.createVM)
+						
+					case .template:
+						Picker("Select a template", selection: $config.imageName) {
+							ForEach(AppState.shared.templates, id: \.self) { template in
+								Text(template.name).tag(template.fqn)
 							}
 						}
 						.pickerStyle(.menu)
 						.disabled(self.model.createVM)
-						.labelsHidden()
-						.onChange(of: model.cloudImageRelease) { _, newValue in
-							self.config.imageName = newValue.url.absoluteString
-						}
-					}
-
-				case .oci:
-					TextField("OCI Image", text: $config.imageName)
-						.rounded(.leading)
-						.disabled(self.model.createVM)
-
-				case .template:
-					Picker("Select a template", selection: $config.imageName) {
-						ForEach(AppState.shared.templates, id: \.self) { template in
-							Text(template.name).tag(template.fqn)
-						}
-					}
-					.pickerStyle(.menu)
-					.disabled(self.model.createVM)
-
-				case .stream:
-					VStack {
-						Picker("Select remote sources", selection: $model.remoteImage) {
-							ForEach(AppState.shared.remotes, id: \.self) { remote in
-								Text(remote.name).tag(remote.name)
-							}
-						}
-						.pickerStyle(.menu)
-						.disabled(self.model.createVM)
-						.task {
-							self.model.remoteImages = await images(remote: self.model.remoteImage)
-						}.onChange(of: self.model.remoteImage) { _, newValue in
-							Task {
-								self.model.remoteImages = await images(remote: newValue)
-							}
-						}
-						ScrollView {
-							VStack {
-								GeometryReader { geom in
-									List(self.model.remoteImages, selection: $model.selectedRemoteImage) { remoteImage in
-										Text(remoteImage.description).tag(remoteImage.fingerprint)
-									}.frame(height: geom.size.height)
-								}
-							}.frame(minHeight: 250, maxHeight: .infinity)
-						}
-					}.onChange(of: model.selectedRemoteImage) { _, newValue in
-						self.config.imageName = "\(self.model.remoteImage)://\(newValue)"
-					}
-				}
-			} header: {
-				LabeledContent("Image source") {
-					HStack {
-						Picker("Image source", selection: $model.imageSource) {
-							if model.rootDisk.isEmpty {
-								ForEach(ImageSource.allCases, id: \.self) { source in
-									Text(source.description).tag(source)
-								}
-							} else {
-								ForEach([ImageSource.iso, ImageSource.ipsw], id: \.self) { source in
-									Text(source.description).tag(source)
+						
+					case .stream:
+						VStack {
+							Picker("Select remote sources", selection: $model.remoteImage) {
+								ForEach(AppState.shared.remotes, id: \.self) { remote in
+									Text(remote.name).tag(remote.name)
 								}
 							}
-						}.onChange(of: self.model.imageSource) { _, newValue in
-							self.config.source = newValue
-							self.config.diskFormat = newValue.supportedDiskFormat(for: self.config.diskFormat)
-
-							switch newValue {
-							case .raw:
-								self.config.imageName = String.empty
-								self.model.showDiskFormat = false
-								self.config.diskFormat = .raw
-								self.config.os = .linux
-							case .qcow2:
-								self.config.imageName = model.cloudImageRelease.url.absoluteString
-								self.model.showDiskFormat = false
-								self.config.diskFormat = .raw
-								self.config.os = .linux
-							case .oci:
-								self.config.imageName = String.empty
-								self.model.showDiskFormat = false
-								self.config.diskFormat = .raw
-								self.config.os = .linux
-							case .template:
-								self.config.imageName = String.empty
-								self.model.showDiskFormat = false
-								self.config.diskFormat = .raw
-							case .stream:
-								self.config.imageName = String.empty
-								self.model.showDiskFormat = false
-								self.model.showDiskFormat = false
-								self.config.diskFormat = .raw
-								self.config.os = .linux
-							case .iso:
-								self.config.imageName = self.model.isoImageRelease.location.url
-								self.model.showDiskFormat = true
-								self.config.diskFormat = .defaultSupportedFormat
-								self.config.os = .linux
-							case .ipsw:
-								self.config.imageName = self.model.ipswRelease.location.url
-								self.config.cpuCount = max(self.config.cpuCount, 4)
-								self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4096)
-								self.config.diskSizeInGiB = max(self.config.diskSizeInGiB, 40)
-								self.model.showDiskFormat = true
-								self.config.diskFormat = .defaultSupportedFormat
-								self.config.os = .darwin
+							.pickerStyle(.menu)
+							.disabled(self.model.createVM)
+							.task {
+								self.model.remoteImages = await images(remote: self.model.remoteImage)
+							}.onChange(of: self.model.remoteImage) { _, newValue in
+								Task {
+									self.model.remoteImages = await images(remote: newValue)
+								}
 							}
+							ScrollView {
+								VStack {
+									GeometryReader { geom in
+										List(self.model.remoteImages, selection: $model.selectedRemoteImage) { remoteImage in
+											Text(remoteImage.description).tag(remoteImage.id)
+										}.frame(height: geom.size.height)
+									}
+								}.frame(minHeight: 250, maxHeight: .infinity)
+							}
+						}.onChange(of: model.selectedRemoteImage) { _, newValue in
+							self.config.imageName = "\(self.model.remoteImage)://\(newValue)"
 						}
-						.pickerStyle(.menu)
-						.disabled(self.model.createVM)
-						.labelsHidden()
-					}.frame(width: 100)
+					}
+				} header: {
+					LabeledContent("Image source") {
+						HStack {
+							Picker("Image source", selection: $model.imageSource) {
+								if model.rootDisk.isEmpty {
+									ForEach(ImageSource.allCases, id: \.self) { source in
+										Text(source.description).tag(source)
+									}
+								} else {
+									ForEach([ImageSource.iso, ImageSource.ipsw], id: \.self) { source in
+										Text(source.description).tag(source)
+									}
+								}
+							}.onChange(of: self.model.imageSource) { _, newValue in
+								self.config.source = newValue
+								self.config.diskFormat = newValue.supportedDiskFormat(for: self.config.diskFormat)
+								
+								switch newValue {
+								case .raw:
+									self.config.imageName = String.empty
+									self.model.showDiskFormat = false
+									self.config.diskFormat = .raw
+									self.config.os = .linux
+								case .qcow2:
+									self.config.imageName = model.cloudImageRelease.url.absoluteString
+									self.model.showDiskFormat = false
+									self.config.diskFormat = .raw
+									self.config.os = .linux
+								case .oci:
+									self.config.imageName = String.empty
+									self.model.showDiskFormat = false
+									self.config.diskFormat = .raw
+									self.config.os = .linux
+								case .template:
+									self.config.imageName = String.empty
+									self.model.showDiskFormat = false
+									self.config.diskFormat = .raw
+								case .stream:
+									self.config.imageName = String.empty
+									self.model.showDiskFormat = false
+									self.model.showDiskFormat = false
+									self.config.diskFormat = .raw
+									self.config.os = .linux
+								case .iso:
+									self.config.imageName = self.model.isoImageRelease.location.url
+									self.model.showDiskFormat = true
+									self.config.diskFormat = .defaultSupportedFormat
+									self.config.os = .linux
+								case .ipsw:
+									self.config.imageName = self.model.ipswRelease.location.url
+									self.config.cpuCount = max(self.config.cpuCount, 4)
+									self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4096)
+									self.config.diskSizeInGiB = max(self.config.diskSizeInGiB, 40)
+									self.model.showDiskFormat = true
+									self.config.diskFormat = .defaultSupportedFormat
+									self.config.os = .darwin
+								}
+							}
+							.pickerStyle(.menu)
+							.disabled(self.model.createVM)
+							.labelsHidden()
+						}.frame(width: 100)
+					}
 				}
 			}
 
