@@ -97,7 +97,7 @@ public struct Home {
 
 	public init(_ cakeHomeDirectory: URL, runMode: Utils.RunMode, createItIfNotExists: Bool = true) throws {
 		self.cakeHomeDirectory = cakeHomeDirectory
-		self.networkDirectory = self.cakeHomeDirectory.appendingPathComponent("networks", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
+		self.networkDirectory = self.cakeHomeDirectory.appendingPathComponent("net", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.cacheDirectory = self.cakeHomeDirectory.appendingPathComponent("cache", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.agentPID = self.agentDirectory.appendingPathComponent("agent.pid", isDirectory: false).absoluteURL.resolvingSymlinksInPath()

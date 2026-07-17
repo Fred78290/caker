@@ -59,7 +59,7 @@ public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument,
 					throw ValidationError(String(localized: "Invalid console URL"))
 				}
 
-				if u.scheme == "unix" && u.path.utf8.count > 103 {
+				if u.scheme == "unix" && u.path.utf8.count > URL.maxSocketPathLength {
 					throw ValidationError(String(localized: "The unix socket is too long"))
 				}
 			}
@@ -76,7 +76,7 @@ extension String {
 		if self == "file" {
 			return vmDir.appendingPathComponent("console.log")
 		} else if self == "unix" {
-			return vmDir.socketPath(name: "console.sock")
+			return vmDir.socketPath(name: "console")
 		} else {
 			return URL(string: self)
 		}

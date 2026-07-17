@@ -158,7 +158,7 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 				throw ValidationError(String(localized: "socket path must be defined"))
 			}
 
-			if url.path.utf8.count > 103 {
+			if url.path.utf8.count > URL.maxSocketPathLength {
 				throw ValidationError(String(localized: "The socket path is too long"))
 			}
 

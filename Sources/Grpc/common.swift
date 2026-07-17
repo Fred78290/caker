@@ -433,6 +433,8 @@ extension String {
 }
 
 extension URL {
+	public static let maxSocketPathLength = 103
+
 	public init?(spaced: String) {
 		self.init(string: spaced.replacingOccurrences(of: " ", with: "%20"))
 	}
@@ -454,12 +456,12 @@ extension URL {
 	}
 
 	public func socketPath(name: String) -> URL {
-		let socketPath = self.appendingPathComponent("\(name).sock", isDirectory: false).absoluteURL
+		let socketPath = self.appendingPathComponent(name, isDirectory: false).absoluteURL
 
-		if socketPath.path(percentEncoded: false).utf8.count < 103 {
+		if socketPath.path(percentEncoded: false).utf8.count < Self.maxSocketPathLength {
 			return URL(spaced: "unix://\(socketPath.path)")!
 		} else {
-			return URL(spaced: "unix://\(NSTemporaryDirectory())\(self.lastPathComponent.deletingPathExtension)-\(name).sock")!
+			return URL(spaced: "unix://\(NSTemporaryDirectory())\(self.lastPathComponent.deletingPathExtension).\(name)")!
 		}
 	}
 

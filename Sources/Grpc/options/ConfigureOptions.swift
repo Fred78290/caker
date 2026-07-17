@@ -298,10 +298,10 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 					throw ValidationError(String(localized: "Port is not set"))
 				}
 				if case .unixDomain(let value) = port.oneOf {
-					if value.host.utf8.count > 103 {
+					if value.host.utf8.count > URL.maxSocketPathLength {
 						throw ValidationError(String(localized: "Unix domain socket name is too long"))
 					}
-					if value.guest.utf8.count > 103 {
+					if value.guest.utf8.count > URL.maxSocketPathLength {
 						throw ValidationError(String(localized: "Unix domain socket name is too long"))
 					}
 				}

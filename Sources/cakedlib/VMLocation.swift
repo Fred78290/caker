@@ -194,7 +194,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	}
 
 	public var serviceURL: URL {
-		return rootURL.resolvingSymlinksInPath().socketPath(name: "service")
+		return rootURL.resolvingSymlinksInPath().socketPath(name: "svc")
 	}
 
 	public var name: String {
