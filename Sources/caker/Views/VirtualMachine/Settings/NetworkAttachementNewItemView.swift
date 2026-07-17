@@ -25,7 +25,9 @@ struct NetworkAttachementNewItemView: View {
 	@State private var newItem: BridgeAttachement
 	private let editItem: BridgeAttachement.ID?
 
-	let names: [String] = AppState.shared.loadNetworks().map { $0.name }
+	private let names: [String] = AppState.shared.loadNetworks().compactMap {
+		$0.mode != .nat ? $0.name : nil
+	}
 
 	init(_ networks: Binding<[BridgeAttachement]>, editItem: BridgeAttachement.ID? = nil) {
 		self._networks = networks

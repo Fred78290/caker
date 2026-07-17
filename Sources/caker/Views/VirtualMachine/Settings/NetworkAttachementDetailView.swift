@@ -11,7 +11,9 @@ import SwiftUI
 import Virtualization
 
 struct NetworkAttachementDetailView: View {
-	private let names: [String] = AppState.shared.loadNetworks().map { $0.name }
+	private let names: [String] = AppState.shared.loadNetworks().compactMap {
+		$0.mode != .nat ? $0.name : nil
+	}
 
 	@Observable class BridgeAttachementModel {
 		var network: String
