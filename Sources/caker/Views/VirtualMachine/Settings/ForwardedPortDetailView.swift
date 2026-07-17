@@ -48,6 +48,64 @@ struct ForwardedPortDetailView: View {
 		}
 	}
 
+	enum WellKnownService: Int, CaseIterable, Hashable {
+		case custom = 0
+		case ftp = 21
+		case ssh = 22
+		case telnet = 23
+		case smtp = 25
+		case dns = 53
+		case http = 80
+		case pop3 = 110
+		case ntp = 123
+		case imap = 143
+		case snmp = 161
+		case ldap = 389
+		case https = 443
+		case smtps = 465
+		case syslog = 514
+		case ldaps = 636
+		case imaps = 993
+		case pop3s = 995
+		case mysql = 3306
+		case rdp = 3389
+		case postgresql = 5432
+		case vnc = 5900
+		case httpAlt = 8080
+
+		init(port: Int) {
+			self = WellKnownService(rawValue: port) ?? .custom
+		}
+
+		var description: String {
+			switch self {
+			case .custom: return String(localized: "Custom")
+			case .ftp: return "FTP (21)"
+			case .ssh: return "SSH (22)"
+			case .telnet: return "Telnet (23)"
+			case .smtp: return "SMTP (25)"
+			case .dns: return "DNS (53)"
+			case .http: return "HTTP (80)"
+			case .pop3: return "POP3 (110)"
+			case .ntp: return "NTP (123)"
+			case .imap: return "IMAP (143)"
+			case .snmp: return "SNMP (161)"
+			case .ldap: return "LDAP (389)"
+			case .https: return "HTTPS (443)"
+			case .smtps: return "SMTPS (465)"
+			case .syslog: return "Syslog (514)"
+			case .ldaps: return "LDAPS (636)"
+			case .imaps: return "IMAPS (993)"
+			case .pop3s: return "POP3S (995)"
+			case .mysql: return "MySQL (3306)"
+			case .rdp: return "RDP (3389)"
+			case .postgresql: return "PostgreSQL (5432)"
+			case .vnc: return "VNC (5900)"
+			case .httpAlt: return "HTTP alt (8080)"
+			}
+		}
+	}
+
 	@Observable class TunnelAttachementModel: Equatable {
 		static func == (lhs: ForwardedPortDetailView.TunnelAttachementModel, rhs: ForwardedPortDetailView.TunnelAttachementModel) -> Bool {
 			lhs.tunnelAttachement == rhs.tunnelAttachement
@@ -59,6 +117,7 @@ struct ForwardedPortDetailView: View {
 		var guestPath: String?
 		var hostPort: TextFieldStore<Int, RangeIntegerStyle>
 		var guestPort: TextFieldStore<Int, RangeIntegerStyle>
+		var wellKnownService: WellKnownService = .custom
 
 		var tunnelAttachement: TunnelAttachement {
 			switch mode {
@@ -91,6 +150,8 @@ struct ForwardedPortDetailView: View {
 				self.hostPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
 				self.guestPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			}
+
+			self.wellKnownService = WellKnownService(port: self.guestPort.value)
 		}
 	}
 
@@ -215,6 +276,34 @@ struct ForwardedPortDetailView: View {
 			}
 
 			if model.mode == .portForwarding {
+				LabeledContent("Guest port") {
+					HStack {
+						Spacer()
+						Picker("Service", selection: $model.wellKnownService) {
+							ForEach(WellKnownService.allCases, id: \.self) { service in
+								Text(service.description).tag(service)
+							}
+						}
+						.labelsHidden()
+						.frame(width: 150)
+						.onChange(of: model.wellKnownService) { _, newValue in
+							if newValue != .custom {
+								model.guestPort.text = String(newValue.rawValue)
+							}
+						}
+						TextField("Guest port", text: $model.guestPort.text)
+							.rounded(.center)
+							.frame(width: 80)
+							.formatAndValidate($model.guestPort) {
+								RangeIntegerStyle.guestPortRange.outside($0)
+							}
+							.onChange(of: model.guestPort.value) { _, newValue in
+								model.wellKnownService = WellKnownService(port: newValue)
+								self.currentItem.oneOf = model.tunnelAttachement.oneOf
+							}
+					}
+				}
+
 				LabeledContent("Host port") {
 					HStack {
 						Spacer()
@@ -229,22 +318,16 @@ struct ForwardedPortDetailView: View {
 							}
 					}
 				}
-
-				LabeledContent("Guest port") {
-					HStack {
-						Spacer()
-						TextField("Guest port", text: $model.guestPort.text)
-							.rounded(.center)
-							.frame(width: 80)
-							.formatAndValidate($model.guestPort) {
-								RangeIntegerStyle.guestPortRange.outside($0)
-							}
-							.onChange(of: model.guestPort.value) { _, newValue in
-								self.currentItem.oneOf = model.tunnelAttachement.oneOf
-							}
-					}
-				}
 			} else {
+				LabeledContent("Guest path") {
+					TextField("Guest path", value: $model.guestPath, format: .optional)
+						.rounded(.leading)
+						.onChange(of: model.guestPath) { _, newValue in
+							self.currentItem.oneOf = model.tunnelAttachement.oneOf
+						}
+						.frame(width: 350)
+				}
+
 				LabeledContent("Host path") {
 					HStack {
 						TextField("Host path", value: $model.hostPath, format: .optional)
@@ -256,15 +339,6 @@ struct ForwardedPortDetailView: View {
 							Image(systemName: "powerplug")
 						}.buttonStyle(.borderless)
 					}.frame(width: 350)
-				}
-
-				LabeledContent("Guest path") {
-					TextField("Guest path", value: $model.guestPath, format: .optional)
-						.rounded(.leading)
-						.onChange(of: model.guestPath) { _, newValue in
-							self.currentItem.oneOf = model.tunnelAttachement.oneOf
-						}
-						.frame(width: 350)
 				}
 			}
 		}
