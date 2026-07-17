@@ -163,8 +163,14 @@ struct Client: ParsableCommand {
 		@Flag(help: ArgumentHelp(String(localized: "Output format")))
 		public var format: Format = .text
 
+		var runMode: Utils.RunMode {
+			self.asSystem ? .system : .user
+		}
+		
 		mutating func validate() throws {
 			Logger.setLevel(self.logLevel)
+
+			Utils.RunMode.current = self.runMode
 
 			if self.insecure {
 				self.caCert = nil

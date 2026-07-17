@@ -170,9 +170,13 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	private(set) var templates: [TemplateEntry] = []
 	private(set) var networks: [BridgedNetwork] = []
 	private(set) var virtualMachines: [URL: VirtualMachineDocument] = [:]
-	private(set) var connectionManager: ConnectionManager
-	var isAgentInstalling: Bool = false
+	private(set) var connectionManager: ConnectionManager {
+		didSet {
+			Utils.RunMode.current = self.connectionMode.runMode
+		}
+	}
 
+	var isAgentInstalling: Bool = false
 	var documents: [VirtualMachineDocument] {
 		var documents = Array(virtualMachines.values)
 

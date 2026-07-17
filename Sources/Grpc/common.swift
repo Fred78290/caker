@@ -113,6 +113,8 @@ public struct Utils {
 		public var isUser: Bool {
 			return self != .system
 		}
+
+		public static var current: RunMode = .app
 	}
 
 	public static func isNestedVirtualizationSupported() -> Bool {

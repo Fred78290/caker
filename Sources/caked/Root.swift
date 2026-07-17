@@ -31,6 +31,8 @@ struct CommonOptions: ParsableArguments {
 	func validate() throws {
 		Logger.setLevel(self.logLevel)
 		
+		Utils.RunMode.current = self.runMode
+
 		if let home = self.home {
 			setenv("CAKE_HOME", home, 1)
 		}
