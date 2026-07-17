@@ -460,6 +460,14 @@ extension URL {
 
 		if socketPath.path(percentEncoded: false).utf8.count < Self.maxSocketPathLength {
 			return URL(spaced: "unix://\(socketPath.path)")!
+		} else if Bundle.isApplicationSandboxed {
+			guard let home = try? Utils.getHome(runMode: Utils.RunMode.current) else {
+				fatalError("Something goes wrong with your home directory")
+			}
+
+			let tempPath = home.appendingPathComponent(self.lastPathComponent.deletingPathExtension, isDirectory: false).appendingPathExtension(name)
+			Logger(self).warn("Socket path \(socketPath.path(percentEncoded: false)) is too long, using \(tempPath.path(percentEncoded: false))")
+			return tempPath
 		} else {
 			return URL(spaced: "unix://\(NSTemporaryDirectory())\(self.lastPathComponent.deletingPathExtension).\(name)")!
 		}

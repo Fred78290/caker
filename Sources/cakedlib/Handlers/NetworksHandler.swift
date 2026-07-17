@@ -219,7 +219,7 @@ public struct NetworksHandler {
 			try FileManager.default.createDirectory(at: networkDirectory, withIntermediateDirectories: true)
 		}
 
-		return (networkDirectory.socketPath(name: "vmnet"), networkDirectory.appendingPathComponent("vmnet.pid").absoluteURL)
+		return (networkDirectory.socketPath(name: "net"), networkDirectory.appendingPathComponent("pid").absoluteURL)
 	}
 
 	// Must be run as root
