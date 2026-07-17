@@ -435,6 +435,22 @@ extension String {
 extension URL {
 	public static let maxSocketPathLength = 103
 
+	public static let maxNetworkNameLength = {
+		guard let home = try? Utils.getHome(runMode: Utils.RunMode.current) else {
+			fatalError("Failed to get current home")
+		}
+
+		return URL.maxSocketPathLength - home.path(percentEncoded: false).count - "net".count - 4
+	}()
+
+	public static let maxVirtualMachineNameLength = {
+		guard let home = try? Utils.getHome(runMode: Utils.RunMode.current) else {
+			fatalError("Failed to get current home")
+		}
+
+		return URL.maxSocketPathLength - home.path(percentEncoded: false).count - "vms".count - 4
+	}()
+
 	public init?(spaced: String) {
 		self.init(string: spaced.replacingOccurrences(of: " ", with: "%20"))
 	}

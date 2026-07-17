@@ -52,6 +52,26 @@ struct NetworkDetailView: View {
 			VStack {
 				Form {
 					Section {
+						LabeledContent {
+							TextField(String.empty, text: $currentItem.name)
+								.rounded(.leading)
+								.allowsHitTesting(forEditing)
+								.frame(width: contentWidth)
+						} label: {
+							VStack {
+								HStack {
+									Spacer()
+									Text("Network name")
+								}
+								HStack {
+									Spacer()
+									Text("\(currentItem.name.count)/\(URL.maxNetworkNameLength)")
+										.font(.caption)
+										.foregroundStyle(currentItem.name.count > URL.maxNetworkNameLength ? .red : .secondary)
+								}
+							}
+						}
+
 						LabeledContent("Network mode") {
 							let modes = self.forEditing ? [BridgedNetworkMode.shared, BridgedNetworkMode.host] : BridgedNetworkMode.allCases
 
@@ -68,18 +88,6 @@ struct NetworkDetailView: View {
 
 								Spacer()
 							}
-						}
-
-						LabeledContent("Network name") {
-							TextField(String.empty, text: $currentItem.name)
-								.rounded(.leading)
-								.allowsHitTesting(forEditing)
-								.frame(width: contentWidth)
-								.onChange(of: currentItem.name) { _, newValue in
-									if newValue.count > maxNetworkNameLength {
-										currentItem.name = String(newValue.prefix(maxNetworkNameLength))
-									}
-								}
 						}
 
 						LabeledContent("DHCP Lease") {

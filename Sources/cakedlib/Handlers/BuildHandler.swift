@@ -8,6 +8,10 @@ import Virtualization
 
 public struct BuildHandler {
 	public static func build(options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async -> BuildedReply {
+		if options.name.count > URL.maxVirtualMachineNameLength {
+			return BuildedReply(name: options.name, builded: false, reason: String(localized: "Virtual machine name \(options.name) is limited to \(URL.maxNetworkNameLength) characters"))
+		}
+
 		do {
 			let storageLocation = StorageLocation(runMode: runMode)
 

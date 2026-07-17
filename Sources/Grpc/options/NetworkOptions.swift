@@ -22,8 +22,6 @@ public struct NetworkListOptions {
 }
 
 
-public let maxNetworkNameLength = 8
-
 public struct NetworkCreateOptions: ParsableArguments, Sendable {
 	public static let configuration = CommandConfiguration(abstract: String(localized: "Create named shared or host network"), aliases: ["new"])
 
@@ -55,8 +53,8 @@ public struct NetworkCreateOptions: ParsableArguments, Sendable {
 	}
 
 	public func validate() throws {
-		if name.count > maxNetworkNameLength {
-			throw ValidationError(String(localized: "Network name \(name) is limited to \(maxNetworkNameLength) characters"))
+		if name.count > URL.maxNetworkNameLength {
+			throw ValidationError(String(localized: "Network name \(name) is limited to \(URL.maxNetworkNameLength) characters"))
 		}
 	}
 }
@@ -89,8 +87,8 @@ public struct NetworkConfigureOptions: ParsableArguments, Sendable {
 	}
 
 	public func validate() throws {
-		if name.count > maxNetworkNameLength {
-			throw ValidationError(String(localized: "Network name \(name) is limited to \(maxNetworkNameLength) characters"))
+		if name.count > URL.maxNetworkNameLength {
+			throw ValidationError(String(localized: "Network name \(name) is limited to \(URL.maxNetworkNameLength) characters"))
 		}
 	}
 }

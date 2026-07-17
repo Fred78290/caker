@@ -751,13 +751,22 @@ struct VirtualMachineWizard: View {
 	@ViewBuilder
 	func chooseVMName() -> some View {
 		Form {
-			Section("Virtual machine name") {
+			Section {
 				TextField("Virtual machine name", value: $config.vmname, format: .optional)
 					.rounded(.leading)
 					.disabled(self.model.createVM)
 					.onChange(of: config.vmname) {
 						self.validateConfig(config: self.config)
 					}
+
+			} header: {
+				HStack {
+					Text("Virtual machine name")
+					Spacer()
+					Text("\((config.vmname ?? String.empty).count)/\(URL.maxVirtualMachineNameLength)")
+						.font(.caption)
+						.foregroundStyle((config.vmname ?? String.empty).count > URL.maxVirtualMachineNameLength ? .red : .secondary)
+				}
 			}
 
 			Section("Administrator settings") {
@@ -1279,7 +1288,7 @@ struct VirtualMachineWizard: View {
 			if (config.configuredPassword ?? String.empty).isEmpty && config.clearPassword {
 				valid = false
 			} else if let vmname = config.vmname, self.config.imageName.isEmpty == false, vmname.isEmpty == false {
-				valid = AppState.shared.findVirtualMachineDocument(vmname) == nil
+				valid = vmname.count <= URL.maxVirtualMachineNameLength && AppState.shared.findVirtualMachineDocument(vmname) == nil
 			} else {
 				valid = false
 			}

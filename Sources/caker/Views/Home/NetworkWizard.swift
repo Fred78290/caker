@@ -66,6 +66,14 @@ struct NetworkWizard: View {
 
 	static func validate(_ network: BridgedNetwork) -> (VZSharedNetwork?, String?) {
 		do {
+			if network.name.isEmpty {
+				throw ValidationError(String(localized: "Network name must not be empty"))
+			}
+
+			if network.name.count > URL.maxNetworkNameLength {
+				throw ValidationError(String(localized: "Network name \(network.name) is limited to \(URL.maxNetworkNameLength) characters"))
+			}
+
 			guard AppState.shared.networks.first(where: { $0.name == network.name }) == nil else {
 				throw ValidationError(String(localized: "Network \(String(describing: network.name)) already exists"))
 			}

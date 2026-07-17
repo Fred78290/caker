@@ -374,6 +374,10 @@ public struct BuildOptions: ParsableArguments {
 			throw ValidationError(String(localized: "\(name) should be a local name"))
 		}
 
+		if remote == false && name.count > URL.maxVirtualMachineNameLength {
+			throw ValidationError(String(localized: "Virtual machine name \(name) is limited to \(URL.maxNetworkNameLength) characters"))
+		}
+
 		if nested && Utils.isNestedVirtualizationSupported() == false {
 			self.nested = false
 		}
