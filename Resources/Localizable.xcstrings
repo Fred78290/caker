@@ -1992,6 +1992,7 @@
       }
     },
     "Check for Updates…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -8298,6 +8299,17 @@
         }
       }
     },
+    "Network name %@ is limited to %lld characters" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le nom du réseau %1$@ est limité à %2$lld caractères"
+          }
+        }
+      }
+    },
     "Network name is required" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12823,7 +12835,6 @@
       }
     },
     "Start network" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -13029,7 +13040,6 @@
       }
     },
     "Stop network" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {

@@ -183,7 +183,7 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 		setupSignals()
 
 		let serviceProvider = GRPCVMNetService(owner: self)
-		let socketFile = socketPath.deletingPathExtension().appendingPathExtension("grpc").path(percentEncoded: false)
+		let socketFile = socketPath.deletingLastPathComponent().appendingPathComponent("ctrl").path(percentEncoded: false)
 
 		try? FileManager.default.removeItem(atPath: socketFile)
 

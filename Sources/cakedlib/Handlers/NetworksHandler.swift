@@ -1214,7 +1214,7 @@ public struct NetworksHandler {
 	}
 
 	public static func getVMNetControlClient(_ socketURL: URL, runMode: Utils.RunMode) throws -> Vmnet_VMNetServiceNIOClient {
-		let socketURL = socketURL.deletingPathExtension().appendingPathExtension("grpc")
+		let socketURL = socketURL.deletingLastPathComponent().appendingPathComponent("ctrl")
 		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		var clientConfiguration = ClientConnection.Configuration.default(
 			target: .unixDomainSocket(socketURL.path(percentEncoded: false)),
