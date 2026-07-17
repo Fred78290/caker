@@ -75,6 +75,11 @@ struct NetworkDetailView: View {
 								.rounded(.leading)
 								.allowsHitTesting(forEditing)
 								.frame(width: contentWidth)
+								.onChange(of: currentItem.name) { _, newValue in
+									if newValue.count > maxNetworkNameLength {
+										currentItem.name = String(newValue.prefix(maxNetworkNameLength))
+									}
+								}
 						}
 
 						LabeledContent("DHCP Lease") {
