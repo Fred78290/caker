@@ -844,9 +844,11 @@ struct LXDNetwork: Content {
 			config["ipv4.address"] = network.gateway
 			config["ipv4.dhcp"] = "true"
 		}
+
 		if network.dhcpEnd.isEmpty == false {
 			config["ipv4.dhcp.ranges"] = "\(network.dhcpStart)-\(network.dhcpEnd)"
 		}
+
 		if network.dhcpLease.isEmpty == false {
 			config["ipv4.dhcp.expiry"] = network.dhcpLease
 		}
@@ -855,9 +857,9 @@ struct LXDNetwork: Content {
 			config: config,
 			description: network.description,
 			locations: ["none"],
-			managed: true,
+			managed: network.managed,
 			name: name,
-			status: network.endpoint.isEmpty ? "Unavailable" : "Created",
+			status: network.running ? "Running" : network.managed ? "Stopped" : "Unavailable",
 			type: network.mode.rawValue,
 			usedBy: referencedNetworks[name] ?? []
 		)
