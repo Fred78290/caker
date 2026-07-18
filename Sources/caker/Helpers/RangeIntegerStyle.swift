@@ -37,16 +37,19 @@ struct RangeIntegerStyle: ParseableFormatStyle {
 struct OptionalRangeIntegerStyle: ParseableFormatStyle {
 	var parseStrategy: OptionalRangeIntegerStrategy = .init()
 	let range: ClosedRange<Int>
-
+	
 	func format(_ value: Int?) -> String {
 		guard let value = value else {
 			return String.empty
 		}
-
+		
 		let constrainedValue = min(max(value, range.lowerBound), range.upperBound)
-
+		
 		return "\(constrainedValue)"
 	}
+	
+	static var hostPortRange = OptionalRangeIntegerStyle.optional(((geteuid() == 0 ? 1 : 1024)...65535))
+	static var guestPortRange = OptionalRangeIntegerStyle.optional(1...65535)
 }
 
 struct RangeIntegerStrategy: ParseStrategy {
