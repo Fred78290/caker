@@ -24,6 +24,9 @@ interface OperationLogItem {
 }
 
 const DEFAULT_NAT_NETWORK_NAME = 'nat'
+const IMDS_NETWORK_NAME = 'imds'
+const IMDS_GATEWAY = '192.168.169.1'
+const IMDS_AWS_COMPAT_ADDRESS = '169.254.169.254'
 
 const DEVICE_NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_.-]*$/
 const FORWARDED_PORT_PATTERN = /^(\d{1,5}):(\d{1,5})\/(tcp|udp|both)$/i
@@ -218,6 +221,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
   const [autoinstall, setAutoinstall] = useState(() => isAutoInstallAllowed(initialAlias?.trim() || DEFAULT_IMAGE_ALIAS))
   const [networks, setNetworks] = useState('')
   const [availableNetworks, setAvailableNetworks] = useState<LXDNetwork[]>([])
+  const [imdsEnabled, setImdsEnabled] = useState(false)
   const [networkInterfaces, setNetworkInterfaces] = useState<NetworkInterfaceItem[]>([])
   const [selectedNetwork, setSelectedNetwork] = useState('')
   const [loadingNetworks, setLoadingNetworks] = useState(false)
@@ -233,11 +237,11 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
   const [error, setError] = useState<string | null>(null)
 
   function defaultDeviceName(index: number, useNetIfnames: boolean = netIfnames) {
-    return useNetIfnames ? `eth${index}` : `enp0s${index}`
+    return useNetIfnames ? `enp0s${index}` : `eth${index}`
   }
 
   function buildNetworkConfig(items: NetworkInterfaceItem[]) {
-    if (items.length === 0) return ''
+    if (items.length === 0 && !imdsEnabled) return ''
 
     const lines: string[] = ['#cloud-config', 'network:', '  version: 2', '  ethernets:']
 
@@ -247,6 +251,23 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
       lines.push('      dhcp4: true')
       lines.push('      dhcp6: true')
     })
+
+    if (imdsEnabled) {
+      // Mirrors the netplan caked itself generates for its auto-attached IMDS interface:
+      // no IPv6, optional (won't block boot if the imds vmnet isn't up yet), and a static
+      // route for the AWS-compat address since it isn't on-link on the imds subnet. The
+      // imds network is excluded from manual selection, so it's appended after every
+      // user-configured interface rather than looked up in `items`.
+      const imdsDevice = defaultDeviceName(items.length)
+      lines.push(`    ${imdsDevice}:`)
+      lines.push(`      # caker-network: ${IMDS_NETWORK_NAME}`)
+      lines.push('      dhcp4: true')
+      lines.push('      dhcp6: false')
+      lines.push('      optional: true')
+      lines.push('      routes:')
+      lines.push(`        - to: ${IMDS_AWS_COMPAT_ADDRESS}/32`)
+      lines.push(`          via: ${IMDS_GATEWAY}`)
+    }
 
     return lines.join('\n')
   }
@@ -415,7 +436,10 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
 
     listNetworks()
       .then((r) => {
-        const items = r.data.metadata ?? []
+        const allItems = r.data.metadata ?? []
+        setImdsEnabled(allItems.some((net) => net.name === IMDS_NETWORK_NAME))
+
+        const items = allItems.filter((net) => net.name !== IMDS_NETWORK_NAME)
         setAvailableNetworks(items)
 
         const defaultInterfaces = buildDefaultNetworkInterfaces(items)
