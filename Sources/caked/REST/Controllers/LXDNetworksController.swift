@@ -27,7 +27,7 @@ struct LXDNetworksController: RouteCollection {
 	@Sendable
 	func listNetworks(req: Request) async throws -> Response {
 		let recursion = (req.query[Int.self, at: "recursion"] ?? 0) != 0
-		let reply = CakedLib.NetworksHandler.networks(runMode: runMode)
+		let reply = CakedLib.NetworksHandler.networks(all: true, runMode: runMode)
 
 		guard reply.success else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: reply.reason)
@@ -51,7 +51,7 @@ struct LXDNetworksController: RouteCollection {
 				.encodeResponse(status: .badRequest, for: req)
 		}
 
-		let reply = CakedLib.NetworksHandler.networks(runMode: runMode)
+		let reply = CakedLib.NetworksHandler.networks(all: true, runMode: runMode)
 
 		guard let network = reply.networks.first(where: { $0.name == name }) else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Network '\(name)' not found", code: 404)
