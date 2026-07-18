@@ -134,9 +134,9 @@ public actor IMDSCoordinator {
 					try await server.startWithRetry()
 
 					if server.needsPFRedirect {
-						self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(server.internalPort)")
-					} else {
 						self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(IMDSServer.bindPort)")
+					} else {
+						self.logger.info("IMDS server started at http://\(IMDSServer.bindAddress):\(server.internalPort)")
 					}
 
 					// Best-effort, regardless of root: makes the AWS-style
