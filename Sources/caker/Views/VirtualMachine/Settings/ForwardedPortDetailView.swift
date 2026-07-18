@@ -115,43 +115,56 @@ struct ForwardedPortDetailView: View {
 		var selectedProtocol: Proto
 		var hostPath: String?
 		var guestPath: String?
-		var hostPort: TextFieldStore<Int, RangeIntegerStyle>
-		var guestPort: TextFieldStore<Int, RangeIntegerStyle>
+		var hostPort: TextFieldStore<Int?, OptionalRangeIntegerStyle>
+		var guestPort: TextFieldStore<Int?, OptionalRangeIntegerStyle>
 		var wellKnownService: WellKnownService = .custom
 
 		var tunnelAttachement: TunnelAttachement {
+			let value: TunnelAttachement
+
 			switch mode {
 			case .portForwarding:
-				return .init(host: hostPort.value, guest: guestPort.value, proto: selectedProtocol.proto)
+				value = TunnelAttachement(host: hostPort.text.isEmpty ? -1 : hostPort.value ?? -1, guest: guestPort.text.isEmpty ? -1 : guestPort.value ?? -1, proto: selectedProtocol.proto)
 			case .unixDomainSocket:
-				return .init(host: hostPath ?? String.empty, guest: guestPath ?? String.empty, proto: selectedProtocol.proto)
+				value = TunnelAttachement(host: hostPath ?? String.empty, guest: guestPath ?? String.empty, proto: selectedProtocol.proto)
 			}
+
+			return value
 		}
 
 		init(item: Binding<TunnelAttachement>) {
-			let hostStyle = RangeIntegerStyle.guestPortRange
-			let guestStyle = RangeIntegerStyle.guestPortRange
+			let hostStyle = OptionalRangeIntegerStyle.hostPortRange
+			let guestStyle = OptionalRangeIntegerStyle.guestPortRange
 
 			if case .forward(let forward) = item.wrappedValue.oneOf {
 				self.mode = ForwardMode.portForwarding
 				self.selectedProtocol = .init(forward.proto)
-				self.hostPort = TextFieldStore(value: forward.host, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort = TextFieldStore(value: forward.guest, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				if forward.host >= 0 {
+					self.hostPort = TextFieldStore(value: forward.host, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				} else {
+					self.hostPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				}
+				
+				if forward.guest > 0 {
+					self.guestPort = TextFieldStore(value: forward.guest, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				} else {
+					self.guestPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				}
 			} else if case .unixDomain(let unixDomain) = item.wrappedValue.oneOf {
 				self.mode = ForwardMode.unixDomainSocket
 				self.selectedProtocol = .init(unixDomain.proto)
 				self.hostPath = unixDomain.host
 				self.guestPath = unixDomain.guest
-				self.hostPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				self.hostPort = TextFieldStore(value: nil, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				self.guestPort = TextFieldStore(value: nil, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			} else {
 				self.mode = .portForwarding
 				self.selectedProtocol = .both
-				self.hostPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort = TextFieldStore(value: 0, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				self.hostPort = TextFieldStore(value: nil, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				self.guestPort = TextFieldStore(value: nil, text: String.empty, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			}
 
-			self.wellKnownService = WellKnownService(port: self.guestPort.value)
+			self.wellKnownService = WellKnownService(port: self.guestPort.value ?? 0)
 		}
 	}
 
@@ -178,7 +191,7 @@ struct ForwardedPortDetailView: View {
 			return nil
 		}
 
-		guard let hostPort = model.hostPort.getValue(), let guestPort = model.guestPort.getValue() else {
+		guard let hostPort = model.hostPort.getValue(), let hostPort = hostPort, let guestPort = model.guestPort.getValue(), let guestPort = guestPort else {
 			return nil
 		}
 
@@ -255,7 +268,7 @@ struct ForwardedPortDetailView: View {
 					}
 					.labelsHidden()
 					.onChange(of: model.mode) { _, newValue in
-						self.currentItem.oneOf = model.tunnelAttachement.oneOf
+						self.currentItem = model.tunnelAttachement
 					}
 				}.frame(width: 200)
 			}
@@ -270,7 +283,7 @@ struct ForwardedPortDetailView: View {
 					}
 					.labelsHidden()
 					.onChange(of: model.selectedProtocol) { _, newValue in
-						self.currentItem.oneOf = model.tunnelAttachement.oneOf
+						self.currentItem = model.tunnelAttachement
 					}
 				}.frame(width: 200)
 			}
@@ -295,11 +308,19 @@ struct ForwardedPortDetailView: View {
 							.rounded(.center)
 							.frame(width: 80)
 							.formatAndValidate($model.guestPort) {
-								RangeIntegerStyle.guestPortRange.outside($0)
+								guard let value = $0 else {
+									return false
+								}
+								return RangeIntegerStyle.guestPortRange.outside(value)
 							}
-							.onChange(of: model.guestPort.value) { _, newValue in
-								model.wellKnownService = WellKnownService(port: newValue)
-								self.currentItem.oneOf = model.tunnelAttachement.oneOf
+							.onChange(of: model.guestPort.text) { _, newValue in
+								if let newValue = Int(newValue) {
+									model.wellKnownService = WellKnownService(port: newValue)
+								} else {
+									model.wellKnownService = .custom
+								}
+
+								self.currentItem = model.tunnelAttachement
 							}
 					}
 				}
@@ -311,10 +332,13 @@ struct ForwardedPortDetailView: View {
 							.rounded(.center)
 							.frame(width: 80)
 							.formatAndValidate($model.hostPort) {
-								RangeIntegerStyle.hostPortRange.outside($0)
+								guard let value = $0 else {
+									return false
+								}
+								return RangeIntegerStyle.hostPortRange.outside(value)
 							}
-							.onChange(of: model.hostPort.value) { _, newValue in
-								self.currentItem.oneOf = model.tunnelAttachement.oneOf
+							.onChange(of: model.hostPort.text) { _, newValue in
+								self.currentItem = model.tunnelAttachement
 							}
 					}
 				}
@@ -323,7 +347,7 @@ struct ForwardedPortDetailView: View {
 					TextField("Guest path", value: $model.guestPath, format: .optional)
 						.rounded(.leading)
 						.onChange(of: model.guestPath) { _, newValue in
-							self.currentItem.oneOf = model.tunnelAttachement.oneOf
+							self.currentItem = model.tunnelAttachement
 						}
 						.frame(width: 350)
 				}
@@ -333,7 +357,7 @@ struct ForwardedPortDetailView: View {
 						TextField("Host path", value: $model.hostPath, format: .optional)
 							.rounded(.leading)
 							.onChange(of: model.hostPath) { _, newValue in
-								self.currentItem.oneOf = model.tunnelAttachement.oneOf
+								self.currentItem = model.tunnelAttachement
 							}
 						Button(action: chooseSocketFile) {
 							Image(systemName: "powerplug")
@@ -345,7 +369,7 @@ struct ForwardedPortDetailView: View {
 	}
 
 	func chooseSocketFile() {
-		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: String(localized: "Choose a socket file"), allowsOtherFileTypes: true) {
+		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: String(localized: "Choose a socket file"), allowsOtherFileTypes: true, directoryURL: try? Utils.getHome(runMode: .current)) {
 			self.model.hostPath = hostPath.absoluteURL.path
 		}
 	}

@@ -11,11 +11,11 @@ import SwiftUI
 import Virtualization
 
 extension [BridgeAttachement] {
-	func editItem(_ editItem: BridgeAttachement.ID?) -> BridgeAttachement {
+	func editItem(_ editItem: BridgeAttachement.ID?, name: String) -> BridgeAttachement {
 		if let editItem = editItem {
-			return self.first(where: { $0.id == editItem }) ?? .init(network: "nat", mode: .auto)
+			return self.first(where: { $0.id == editItem }) ?? .init(network: name, mode: .auto)
 		} else {
-			return .init(network: "nat", mode: .auto)
+			return .init(network: name, mode: .auto)
 		}
 	}
 }
@@ -32,7 +32,7 @@ struct NetworkAttachementNewItemView: View {
 	init(_ networks: Binding<[BridgeAttachement]>, editItem: BridgeAttachement.ID? = nil) {
 		self._networks = networks
 		self.editItem = editItem
-		self.newItem = networks.wrappedValue.editItem(editItem)
+		self.newItem = networks.wrappedValue.editItem(editItem, name: Self.names.first ?? "nat")
 	}
 
 	var body: some View {
@@ -40,6 +40,16 @@ struct NetworkAttachementNewItemView: View {
 			Section("New network attachment") {
 				NetworkAttachementDetailView(currentItem: $newItem, readOnly: false)
 			}
+		} validateItem: { item in
+			if self.networks.contains(where: { $0.network == item.network }) {
+				return (false, String(localized: "Network already exists"))
+			}
+
+			if item.network.isEmpty || item.network == "nat" {
+				return (false, String(localized: "Please select a network"))
+			}
+
+			return (true, nil)
 		}
 	}
 }

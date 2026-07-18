@@ -34,6 +34,18 @@ struct MountNewItemView: View {
 			Section("New mount point") {
 				MountDetailView(currentItem: $newItem, readOnly: false)
 			}
+		} validateItem: { item in
+			if item.source.isEmpty {
+				return (false, String(localized: "Please specify a share point"))
+			}
+
+			if item.shared == false {
+				guard let destination = item.destination, destination.isEmpty == false else {
+					return (false, String(localized: "Please specify mount point"))
+				}
+			}
+
+			return (true, nil)
 		}
 	}
 }

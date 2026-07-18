@@ -37,6 +37,16 @@ struct DiskAttachementNewItemView: View {
 			Section("New disk attachement") {
 				DiskAttachementDetailView(currentItem: $newItem, readOnly: false)
 			}
+		} validateItem: { item in
+			if item.diskOptions.syncMode.isEmpty {
+				return (false, String(localized: "Please provide a sync mode"))
+			}
+
+			if item.diskPath.isEmpty {
+				return (false, String(localized: "Please provide a disk path"))
+			}
+
+			return (true, nil)
 		}
 	}
 }
