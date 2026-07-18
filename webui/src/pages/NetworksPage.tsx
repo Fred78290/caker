@@ -13,7 +13,7 @@ export function NetworksPage() {
   const refresh = useCallback(() => {
     setLoading(true)
     listNetworks()
-      .then((r) => setNetworks(r.data.metadata ?? []))
+      .then((r) => setNetworks((r.data.metadata ?? []).filter((net) => net.name !== 'imds')))
       .catch((e) => setError(String(e)))
       .finally(() => setLoading(false))
   }, [])
