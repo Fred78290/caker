@@ -253,7 +253,6 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
 
   function syncInterfacesToConfig(items: NetworkInterfaceItem[]) {
     setNetworkInterfaces(items)
-    setNetworks(buildNetworkConfig(items))
   }
 
   function findDefaultNatNetwork(items: LXDNetwork[]) {
@@ -301,6 +300,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
     setAutoinstall(isAutoInstallAllowed(nextAlias))
     const defaultInterfaces = buildDefaultNetworkInterfaces(availableNetworks, true)
     syncInterfacesToConfig(defaultInterfaces)
+    setNetworks('')
     setSelectedNetwork(defaultInterfaces[0]?.network ?? availableNetworks[0]?.name ?? '')
     setNetworkInterfacesError(null)
     setError(null)
@@ -1109,16 +1109,26 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                   </div>
                 )}
 
-                <label className="form-label fw-medium">Networks config</label>
+                <div className="d-flex justify-content-between align-items-center">
+                  <label className="form-label fw-medium mb-0">Networks config</label>
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm"
+                    disabled={networkInterfaces.length === 0}
+                    onClick={() => setNetworks(buildNetworkConfig(networkInterfaces))}
+                  >
+                    Generate from interfaces
+                  </button>
+                </div>
                 <textarea
-                  className="form-control"
+                  className="form-control mt-2"
                   rows={4}
                   value={networks}
                   onChange={(e) => setNetworks(e.target.value)}
-                  placeholder="#cloud-config\nnetwork:\n  version: 2\n  ethernets:\n    eth0:\n      dhcp4: true"
+                  placeholder="Leave empty to let caked manage cloud-init networking automatically"
                 />
                 <div className="form-text">
-                  Add interfaces from /1.0/networks or edit YAML manually. Sent as <code>network_config</code>.
+                  Left empty, caked fills in cloud-init networking automatically. Click "Generate from interfaces" for an editable starting template, or write YAML manually. Sent as <code>network_config</code>.
                 </div>
               </div>
             </div>
