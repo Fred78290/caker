@@ -207,6 +207,10 @@ extension SocketDevice: Validatable {
 			return false
 		}
 
+		if bind.count > URL.maxSocketPathLength {
+			return false
+		}
+
 		return true
 	}
 }

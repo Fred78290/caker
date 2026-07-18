@@ -11,7 +11,7 @@ import SwiftUI
 import Virtualization
 
 struct NetworkAttachementDetailView: View {
-	private let names: [String] = AppState.shared.loadNetworks().compactMap {
+	private let names: [String] = AppState.shared.networks.compactMap {
 		$0.mode != .nat ? $0.name : nil
 	}
 

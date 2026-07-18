@@ -99,7 +99,7 @@ struct SocketsDetailView: View {
 	}
 
 	func chooseSocketFile() {
-		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: String(localized: "Choose a socket file"), allowsOtherFileTypes: true) {
+		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: String(localized: "Choose a socket file"), allowsOtherFileTypes: true, directoryURL: try? Utils.getHome(runMode: .current)) {
 			self.currentItem.bind = hostPath.absoluteURL.path
 		}
 	}

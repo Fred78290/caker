@@ -34,6 +34,30 @@ struct SocketsNewItemView: View {
 			Section("New socket endpoint") {
 				SocketsDetailView(currentItem: $newItem, readOnly: false)
 			}
+		} validateItem: { item in
+			if Bundle.isApplicationSandboxed && AppState.shared.connectionMode != .remote && item.bind.isEmpty == false {
+				if let home = try? Utils.getHome(runMode: AppState.shared.connectionMode.runMode) {
+					if (item.bind as NSString).expandingTildeInPath.starts(with: home.path(percentEncoded: false)) == false {
+						return (false, String(localized: "Host path is not in the sandbox"))
+					}
+				}
+			}
+			
+			if item.validate() == false {
+				if item.port == -1 {
+					return (false, String(localized: "Port must be defined"))
+				}
+
+				if item.bind.isEmpty {
+					return (false, String(localized: "Path must be defined"))
+				}
+
+				if item.bind.count > URL.maxSocketPathLength {
+					return (false, String(localized: "Path is too long"))
+				}
+			}
+			
+			return (true, nil)
 		}
 	}
 
