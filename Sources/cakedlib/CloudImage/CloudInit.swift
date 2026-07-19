@@ -896,6 +896,10 @@ class CloudInit {
 	var platform: SupportedPlatform = .ubuntu
 
 	private static func loadPublicKey(sshAuthorizedKey: String) throws -> String {
+		if sshAuthorizedKey.hasPrefix("ssh-") {
+			return sshAuthorizedKey
+		}
+
 		let datas: Data = try Data(contentsOf: URL(fileURLWithPath: sshAuthorizedKey.expandingTildeInPath))
 
 		if let publicKey = String(data: datas, encoding: .ascii) {
