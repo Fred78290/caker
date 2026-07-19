@@ -14,6 +14,12 @@ import SwifterSwiftUI
 	import Sparkle
 #endif
 
+#if APPSTORE
+let isAppStoreBuild = true
+#else
+let isAppStoreBuild = false
+#endif
+
 @MainActor
 func alertError(_ messageText: String, _ informativeText: String, completion: ((NSApplication.ModalResponse) -> Void)? = nil) {
 	let alert = NSAlert()
@@ -289,7 +295,7 @@ struct MainApp: App {
 		.defaultPosition(.center)
 
 		Window("Import from Tart", id: "import-tart") {
-			ImportVirtualMachineView("Enter a Tart virtual machine name (from ~/.tart/vms) or choose its directory.", appName: "Tart", mustCopyImageDisk: false, delegate: TartImporter())
+			ImportVirtualMachineView("Enter a Tart virtual machine name (from ~/.tart/vms) or choose its directory.", appName: "Tart", mustCopyImageDisk: isAppStoreBuild, delegate: TartImporter())
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 		}
@@ -299,7 +305,7 @@ struct MainApp: App {
 		.defaultPosition(.center)
 
 		Window("Import from UTM", id: "import-utm") {
-			ImportVirtualMachineView("Select a .utm bundle using UTM's Apple Virtualization backend. QEMU-backed VMs aren't supported.", appName: "UTM", mustCopyImageDisk: false, delegate: UTMImporter())
+			ImportVirtualMachineView("Select a .utm bundle using UTM's Apple Virtualization backend. QEMU-backed VMs aren't supported.", appName: "UTM", mustCopyImageDisk: isAppStoreBuild, delegate: UTMImporter())
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 		}
@@ -309,7 +315,7 @@ struct MainApp: App {
 		.defaultPosition(.center)
 
 		Window("Import from VirtualBuddy", id: "import-virtualbuddy") {
-			ImportVirtualMachineView("Select a .vbvm bundle. Only raw and ASIF boot disk images can be imported.", appName: "VirtualBuddy", mustCopyImageDisk: false, delegate: VirtualBuddyImporter())
+			ImportVirtualMachineView("Select a .vbvm bundle. Only raw and ASIF boot disk images can be imported.", appName: "VirtualBuddy", mustCopyImageDisk: isAppStoreBuild, delegate: VirtualBuddyImporter())
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 		}
@@ -592,7 +598,7 @@ struct MainApp: App {
 
 	static func uninstallLaunchAgent() throws {
 		#if USE_SMAPPSERVICE
-		try Bundle.runCaked(with: ["service", "uninstall"], runMode: .app)
+			try Bundle.runCaked(with: ["service", "uninstall"], runMode: .app)
 		#else
 			try ServiceHandler.uninstallAgent(runMode: .user)
 		#endif
@@ -727,7 +733,11 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	static var isPrivilegedBootstrapFilesInstalled: Bool {
-		FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: "/etc/sudoers.d/caked")
+		#if APPSTORE
+			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker")
+		#else
+			FileManager.default.fileExists(atPath: "/etc/paths.d/com.aldunelabs.caker") && FileManager.default.fileExists(atPath: "/etc/sudoers.d/caked")
+		#endif
 	}
 
 	static func ensurePrivilegedBootstrapFiles() {
@@ -739,25 +749,31 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 		do {
 			let pathsFile = URL(fileURLWithPath: "/etc/paths.d/com.aldunelabs.caker")
-			let sudoersFile = URL(fileURLWithPath: "/etc/sudoers.d/caked")
 			let needsPathsFile = FileManager.default.fileExists(atPath: pathsFile.path) == false
-			let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path) == false
 
-			guard needsPathsFile || needsSudoersFile else { return }
+			#if !APPSTORE
+				let sudoersFile = URL(fileURLWithPath: "/etc/sudoers.d/caked")
+				let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path) == false
+
+				guard needsPathsFile || needsSudoersFile else { return }
+			#else
+				guard needsPathsFile else { return }
+			#endif
 
 			var contents: [String] = ["#!/bin/sh\n"]
 			var pathsContent: String = ""
-			var sudoersContent: String = ""
 
 			if needsPathsFile {
 				pathsContent = pluginPaths.map { $0.hasSuffix("\n") ? $0 : "\($0)\n" }.joined()
 				try contents.append(contentsOf: installRootOwnedFile(content: pathsContent, to: pathsFile, mode: "0644"))
 			}
 
-			if let pluginPath = pluginPaths.first, needsSudoersFile {
-				sudoersContent = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
-				try contents.append(contentsOf: installRootOwnedFile(content: sudoersContent, to: sudoersFile, mode: "0440"))
-			}
+			#if !APPSTORE
+				if let pluginPath = pluginPaths.first, needsSudoersFile {
+					let sudoersContent = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
+					try contents.append(contentsOf: installRootOwnedFile(content: sudoersContent, to: sudoersFile, mode: "0440"))
+				}
+			#endif
 
 			if geteuid() != 0 && contents.count > 1 {
 				let shouldContinue = MainActor.assumeIsolated {
@@ -770,8 +786,11 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 				if Bundle.isApplicationSandboxed {
 					do {
-						try print(runPrivilegedWithBundledScript(pathsContent: pathsContent, sudoersContent: sudoersContent))
+						try print(runPrivilegedWithBundledScript(pathsContent: pathsContent))
 					} catch {
+						#if DEBUG
+							Logger(self).debug("Failed to run privileged with bundled script: \(error)")
+						#endif
 						MainActor.assumeIsolated {
 							showCommandToPasteAlert(contents)
 						}
@@ -864,7 +883,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		alert.messageText = String(localized: "Manual configuration required")
 		alert.informativeText = String(
 			localized:
-				"To allow use command caked and cakectl in terminal, path must be added to /etc/paths.d/com.aldunelabs.caker and sudoers must be added to /etc/sudoers.d/caked. Please run the following command in Terminal or do it later in settings.")
+				"To allow use command caked and cakectl in terminal, path must be added to /etc/paths.d/com.aldunelabs.caker. Please run the following command in Terminal or do it later in settings.")
 
 		let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 480, height: 270))
 		textView.string = sudoScript
@@ -1007,7 +1026,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
 	}
 
-	private static func runPrivilegedWithBundledScript(pathsContent: String, sudoersContent: String) throws -> String {
+	private static func runPrivilegedWithBundledScript(pathsContent: String) throws -> String {
 		guard let bundledURL = Bundle.main.url(forResource: "PrivilegedBootstrap", withExtension: "applescript") else {
 			throw NSError(domain: NSOSStatusErrorDomain, code: -1, userInfo: [NSLocalizedDescriptionKey: "PrivilegedBootstrap.applescript not found in bundle"])
 		}
@@ -1034,7 +1053,6 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		)
 		let argList = NSAppleEventDescriptor.list()
 		argList.insert(NSAppleEventDescriptor(string: pathsContent), at: 0)
-		argList.insert(NSAppleEventDescriptor(string: sudoersContent), at: 0)
 		event.setParam(argList, forKeyword: 0x2D2D_2D2D)  // keyDirectObject
 
 		let task = try NSUserAppleScriptTask(url: scriptURL)

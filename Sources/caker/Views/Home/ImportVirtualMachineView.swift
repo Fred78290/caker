@@ -9,6 +9,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 protocol ImporterDelegate {
+	func listVirtualMachines() -> [URL]
 	func browserForVirtualMachine() -> URL?
 	func suggestedName(for url: URL) -> String
 	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> ImportedReply
@@ -35,6 +36,7 @@ struct ImportVirtualMachineView: View {
 	@State private var copyDisk: Bool = true
 	@State private var isImporting: Bool = false
 	@State private var errorMessage: String? = nil
+	@State private var names: [URL]
 
 	private let storageLocation = StorageLocation(runMode: .app)
 	private let description: LocalizedStringKey
@@ -47,14 +49,23 @@ struct ImportVirtualMachineView: View {
 			return true
 		}
 
+		guard targetName.count <= URL.maxVirtualMachineNameLength else {
+			return true
+		}
+
 		return storageLocation.exists(targetName)
 	}
 
 	init(_ text: LocalizedStringKey, appName: String, mustCopyImageDisk: Bool, delegate: ImporterDelegate) {
 		self.description = text
 		self.appName = appName
-		self.mustCopyImageDisk = mustCopyImageDisk
 		self.delegate = delegate
+		self.names = delegate.listVirtualMachines()
+		#if APPSTORE
+			self.mustCopyImageDisk = true
+		#else
+			self.mustCopyImageDisk = mustCopyImageDisk
+		#endif
 	}
 
 	var body: some View {
@@ -100,34 +111,48 @@ struct ImportVirtualMachineView: View {
 	private var configForm: some View {
 		Form {
 			Section("\(appName) virtual machine") {
-				LabeledContent("Virtual machine path") {
-					HStack(spacing: 6) {
-						TextField("", text: $vmPath)
-							.rounded(.leading)
-							.frame(width: 213)
-						Button {
-							if let url = self.delegate.browserForVirtualMachine() {
-								self.vmPath = url.path(percentEncoded: false)
+				if names.isEmpty {
+					LabeledContent("Virtual machine path") {
+						HStack(spacing: 6) {
+							TextField("", text: $vmPath)
+								.rounded(.leading)
+								.frame(width: 213)
+							Button {
+								if let url = self.delegate.browserForVirtualMachine() {
+									self.vmPath = url.path(percentEncoded: false)
 
-								if targetName.isEmpty {
-									targetName = self.delegate.suggestedName(for: url)
+									if targetName.isEmpty {
+										targetName = self.delegate.suggestedName(for: url)
+									}
 								}
+							} label: {
+								Image(systemName: "folder")
 							}
-						} label: {
-							Image(systemName: "folder")
+							.frame(width: 20)
+							.buttonStyle(.borderless)
 						}
-						.frame(width: 20)
-						.buttonStyle(.borderless)
+					}
+				} else {
+					LabeledContent("Virtual machine name") {
+						Picker("", selection: $vmPath) {
+							ForEach(names, id: \.self) { url in
+								Text(url.lastPathComponent.deletingPathExtension).tag(url.path(percentEncoded: false))
+							}
+						}
 					}
 				}
 			}
 
 			Section("Target configuration") {
-				LabeledContent("Target name") {
+				LabeledContent {
 					TextField("", text: $targetName)
 						.frame(width: 243)
 						.rounded(.leading)
+				} label: {
+					Text("Target name (\(targetName.count)/\(URL.maxVirtualMachineNameLength))")
+						.foregroundStyle(targetName.count > URL.maxVirtualMachineNameLength ? .red : .primary)
 				}
+
 				LabeledContent("Username") {
 					TextField("", text: $userName)
 						.frame(width: 243)

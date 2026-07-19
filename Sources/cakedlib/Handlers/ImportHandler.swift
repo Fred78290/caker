@@ -97,49 +97,17 @@ public struct ImportHandler {
 		if importer.needSudo && geteuid() != 0 {
 			let vmName = isApplicationSandboxed ? UUID().uuidString : name
 
-			func recopySandboxedVM() -> ImportedReply {
-				do {
-					let rootHome = try Home(URL(fileURLWithPath: "/var/root/.cake/"), runMode: .system, createItIfNotExists: false)
-					let rootStorage = StorageLocation(rootHome, runMode: .system)
-					let localStorage = StorageLocation(runMode: runMode)
-
-					if rootStorage.exists(vmName) == false {
-						return ImportedReply(
-							source: source, name: name, imported: false,
-							reason: String(
-								localized:
-									"""
-									Imported VM not found in root storage
-									Add the user to the wheel group to allow access to the VM
-									sudo dseditgroup -o edit -a $USER -t user wheel
-									"""))
-					}
-
-					let vmLocation = rootStorage.location(vmName)
-
-					try localStorage.relocateByCopy(name, from: vmLocation)
-					// Add the user to the wheel group to allow access to the VM
-					//"dseditgroup -o edit -a $USER -t user operator"
-					if let output = try? runPrivilegedAppleScript("caked --home=/var/root/.cake/ delete \(vmName)") {
-						print(output)
-					}
-				} catch {
-					return ImportedReply(source: source, name: name, imported: false, reason: "\(error)")
-				}
-
-				return ImportedReply(source: source, name: name, imported: true, reason: String(localized: "VM imported successfully"))
-			}
-
 			do {
 				if isApplicationSandboxed {
 					let cakedExecutableURL = try Bundle.main.caked()
+					let cakeHome = "/private/tmp/cake/"
 
 					var arguments = [
 						cakedExecutableURL.path(percentEncoded: false),
 						"import",
 						source,
 						vmName,
-						"--home=/var/root/.cake/",
+						"--home=\(cakeHome)",
 						"--from=\(importer.source)",
 						"--user=\(userName)",
 						"--password=\(password)",
@@ -147,6 +115,39 @@ public struct ImportHandler {
 						"--gid=\(gid)",
 						"--json",
 					]
+
+					func recopySandboxedVM() -> ImportedReply {
+						do {
+							let rootHome = try Home(URL(fileURLWithPath: cakeHome), runMode: .system, createItIfNotExists: false)
+							let rootStorage = StorageLocation(rootHome, runMode: .system)
+							let localStorage = StorageLocation(runMode: runMode)
+
+							if rootStorage.exists(vmName) == false {
+								return ImportedReply(
+									source: source, name: name, imported: false,
+									reason: String(
+										localized:
+											"""
+											Imported VM not found in root storage
+											Add the user to the wheel group to allow access to the VM
+											sudo dseditgroup -o edit -a $USER -t user wheel
+											"""))
+							}
+
+							let vmLocation = rootStorage.location(vmName)
+
+							try localStorage.relocateByCopy(name, from: vmLocation)
+							// Add the user to the wheel group to allow access to the VM
+							//"dseditgroup -o edit -a $USER -t user operator"
+							if let output = try? runPrivilegedAppleScript("caked --home=\(cakeHome) delete \(vmName)") {
+								print(output)
+							}
+						} catch {
+							return ImportedReply(source: source, name: name, imported: false, reason: "\(error)")
+						}
+
+						return ImportedReply(source: source, name: name, imported: true, reason: String(localized: "VM imported successfully"))
+					}
 
 					if clearPassword {
 						arguments.append("--clear-password")

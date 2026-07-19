@@ -439,6 +439,14 @@ extension Bundle {
 	}
 
 	@discardableResult public static func execSandboxed(_ command: FilePath, with arguments: [String], _ completion: Shell.ExecCompletion? = nil) throws -> String {
+		try Self.execSandboxed(.path(command), with: arguments, completion)
+	}
+
+	@discardableResult public static func execSandboxed(_ name: String, with arguments: [String], _ completion: Shell.ExecCompletion? = nil) throws -> String {
+		try Self.execSandboxed(.name(name), with: arguments, completion)
+	}
+
+	@discardableResult public static func execSandboxed(_ command: Executable, with arguments: [String], _ completion: Shell.ExecCompletion? = nil) throws -> String {
 
 		#if TRACE
 			var debug: [String] = [command.description]
@@ -478,8 +486,11 @@ extension Bundle {
 
 			do {
 				var catchedError: Error? = nil
+				let execURL: URL = try Task.sync {
+					try await URL(filePath: command.resolveExecutablePath(in: .inherit))!
+				}
 
-				try Self.runExecutableWithUnixTask(URL(filePath: command)!, with: arguments, standardInput: nil, standardOutput: stdout.fileHandleForWriting, standardError: stderr.fileHandleForWriting) { error in
+				try Self.runExecutableWithUnixTask(execURL, with: arguments, standardInput: nil, standardOutput: stdout.fileHandleForWriting, standardError: stderr.fileHandleForWriting) { error in
 					if let error {
 						#if TRACE
 							Logger(self).debug("Command \(command) failed \(error)")

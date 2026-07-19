@@ -121,56 +121,14 @@ public struct Shell {
 	}
 	
 	@discardableResult static public func exec(_ name: String, arguments: [String], _ completion: ExecCompletion? = nil) throws -> String {
-#if TRACE
-		var debug: [String] = [name]
-		debug.append(contentsOf: arguments)
-		print("🚀 \(debug.joined(separator: " "))")
-#endif
-		
-		return try Task.sync {
-			let result = try await Subprocess.run(
-				.name(name),
-				arguments: .init(arguments),
-				output: .string(limit: Self.maxSubprocessOutputSize),
-				error: .string(limit: Self.maxSubprocessOutputSize)
-			)
-			
-			if let stderr = result.standardError, stderr.isEmpty == false {
-				Logger("Shell").error(stderr)
-			}
-			
-			guard let completion else {
-				// Fail if subprocess exited with non-zero status
-				if case .exited(let exitCode) = result.terminationStatus, exitCode != 0 {
-					let stdout = result.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
-					let stderr = result.standardError?.trimmingCharacters(in: .whitespacesAndNewlines) ?? String.empty
-					
-					throw ShellError(terminationStatus: exitCode, error: stderr, message: stdout)
-				}
-				
-				if let out: String = result.standardOutput {
-					return out.trimmingCharacters(in: .whitespacesAndNewlines)
-				}
-				
-				return String.empty
-			}
-			
-			// Extract numeric exit code from TerminationStatus enum
-			let exitCode: TerminationStatus.Code
-			
-			switch result.terminationStatus {
-			case .exited(let code):
-				exitCode = code
-			case .signaled:
-				// Use a conventional negative code for signalled termination
-				exitCode = -1
-			}
-			
-			return try completion(exitCode, result.standardOutput ?? String.empty, result.standardError ?? String.empty)
-		}
+		try Self.exec(.name(name), arguments: arguments, completion)
 	}
 	
 	@discardableResult static public func exec(_ command: FilePath, arguments: [String], _ completion: ExecCompletion? = nil) throws -> String {
+		try Self.exec(.path(command), arguments: arguments, completion)
+	}
+
+	@discardableResult static public func exec(_ command: Executable, arguments: [String], _ completion: ExecCompletion? = nil) throws -> String {
 #if TRACE
 		var debug: [String] = [command.description]
 		debug.append(contentsOf: arguments)
@@ -179,7 +137,7 @@ public struct Shell {
 		
 		return try Task.sync {
 			let result = try await Subprocess.run(
-				.path(command),
+				command,
 				arguments: .init(arguments),
 				output: .string(limit: Self.maxSubprocessOutputSize),
 				error: .string(limit: Self.maxSubprocessOutputSize)

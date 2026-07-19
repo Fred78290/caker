@@ -10,6 +10,17 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct TartImporter: ImporterDelegate {
+	// Provide list of VMs by enumerating the default .tart/vms directory.
+	func listVirtualMachines() -> [URL] {
+		let dir = FileManager.realHomeDirectoryForCurrentUser.appendingPathComponent(".tart/vms", isDirectory: true)
+
+		guard let contents = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) else {
+			return []
+		}
+
+		return contents.filter { $0.hasDirectoryPath }
+	}
+
 	func browserForVirtualMachine() -> URL? {
 		let panel = NSOpenPanel()
 		panel.allowsMultipleSelection = false
@@ -26,7 +37,7 @@ struct TartImporter: ImporterDelegate {
 	}
 
 	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> ImportedReply {
-		AppState.shared.importFromTart(
+		return AppState.shared.importFromTart(
 			source: vmPath,
 			name: targetName,
 			userName: userName,
@@ -40,6 +51,16 @@ struct TartImporter: ImporterDelegate {
 }
 
 struct UTMImporter: ImporterDelegate {
+	func listVirtualMachines() -> [URL] {
+		let dir = FileManager.realHomeDirectoryForCurrentUser.appendingPathComponent("Library/Containers/com.utmapp.UTM/Data/Documents", isDirectory: true)
+
+		guard let contents = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) else {
+			return []
+		}
+
+		return contents.filter { $0.hasDirectoryPath && $0.pathExtension.lowercased() == "utm" }
+	}
+
 	func browserForVirtualMachine() -> URL? {
 		let panel = NSOpenPanel()
 		panel.allowsMultipleSelection = false
@@ -60,8 +81,8 @@ struct UTMImporter: ImporterDelegate {
 		return url
 	}
 	
-	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> GRPCLib.ImportedReply {
-		AppState.shared.importFromUTM(
+	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> ImportedReply {
+		return AppState.shared.importFromUTM(
 			source: vmPath,
 			name: targetName,
 			userName: userName,
@@ -75,6 +96,16 @@ struct UTMImporter: ImporterDelegate {
 }
 
 struct VirtualBuddyImporter: ImporterDelegate {
+	func listVirtualMachines() -> [URL] {
+		let dir = FileManager.realHomeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/VirtualBuddy", isDirectory: true)
+
+		guard let contents = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) else {
+			return []
+		}
+
+		return contents.filter { $0.hasDirectoryPath && $0.pathExtension.lowercased() == "vbvm" }
+	}
+
 	func browserForVirtualMachine() -> URL? {
 		let panel = NSOpenPanel()
 		panel.allowsMultipleSelection = false
@@ -94,8 +125,8 @@ struct VirtualBuddyImporter: ImporterDelegate {
 		return url
 	}
 
-	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> GRPCLib.ImportedReply {
-		AppState.shared.importFromVirtualBuddy(
+	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> ImportedReply {
+		return AppState.shared.importFromVirtualBuddy(
 			source: vmPath,
 			name: targetName,
 			userName: userName,
@@ -109,6 +140,26 @@ struct VirtualBuddyImporter: ImporterDelegate {
 }
 
 struct VMWareImporter: ImporterDelegate {
+	func listVirtualMachines() -> [URL] {
+		// List bundles in the typical VMware directory in the user's home (if present)
+		let dirs = [
+			FileManager.realHomeDirectoryForCurrentUser.appendingPathComponent("Virtual Machines.localized", isDirectory: true),
+			FileManager.realHomeDirectoryForCurrentUser.appendingPathComponent("Documents/Virtual Machines.localized", isDirectory: true)
+		]
+		var contents: [URL] = []
+
+		for dir in dirs {
+			guard let dirContents = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) else {
+				continue
+			}
+
+			contents.append(contentsOf: dirContents)
+		}
+
+		// Return only directories with .vmwarevm extension (bundles)
+		return contents.filter { $0.hasDirectoryPath && $0.pathExtension.lowercased() == "vmwarevm" }
+	}
+
 	private func findVMX(in bundleURL: URL) -> URL? {
 		guard let contents = try? FileManager.default.contentsOfDirectory(
 			at: bundleURL,
@@ -156,8 +207,8 @@ struct VMWareImporter: ImporterDelegate {
 		return url.deletingPathExtension().lastPathComponent
 	}
 	
-	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> GRPCLib.ImportedReply {
-		AppState.shared.importFromVMware(
+	func doImport(vmPath: String, targetName: String, userName: String, password: String, clearPassword: Bool, sshKey: String?, sshPassphrase: String?, copyDisk: Bool) async -> ImportedReply {
+		return AppState.shared.importFromVMware(
 			source: vmPath,
 			name: targetName,
 			userName: userName,

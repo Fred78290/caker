@@ -1,4 +1,5 @@
 import CakeAgentLib
+import System
 import CakedLib
 import Foundation
 import GRPC
@@ -894,7 +895,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			let list: [ListEntry]
 		}
 
-		let output = try Shell.exec("multipass", arguments: ["list", "--format", "json"]) { (exitCode, stdout, stderr) in
+		let output = try Bundle.execSandboxed("multipass", with: ["list", "--format", "json"]) { (exitCode, stdout, stderr) in
 			guard exitCode == 0 else {
 				throw ServiceError(String(localized: "Multipass: failed to list VMs: \(stderr)"))
 			}
@@ -914,7 +915,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 
 	func authenticateMultipass(_ passphrase: String) throws {
-		try Shell.exec("multipass", arguments: ["authenticate", passphrase]){ (exitCode, stdout, stderr) in
+		try Bundle.execSandboxed("multipass", with: ["authenticate", passphrase]){ (exitCode, stdout, stderr) in
 			guard exitCode == 0 else {
 				throw ServiceError(String(localized: "Multipass: failed to authenticate: \(stderr)"))
 			}

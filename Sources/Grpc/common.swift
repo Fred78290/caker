@@ -448,7 +448,7 @@ extension URL {
 			fatalError("Failed to get current home")
 		}
 
-		return URL.maxSocketPathLength - home.path(percentEncoded: false).count - "vms".count - 4
+		return URL.maxSocketPathLength - home.path(percentEncoded: false).count - "vms".count - "cakedvm".count - 4
 	}()
 
 	public init?(spaced: String) {
