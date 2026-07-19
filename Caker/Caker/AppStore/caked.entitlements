@@ -20,17 +20,26 @@
 	<true/>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
+	<key>com.apple.security.temporary-exception.files.home-relative-path.read-only</key>
+	<array>
+		<string>/.ssh/</string>
+		<string>/.tart/</string>
+		<string>/Library/Containers/com.utmapp.UTM/Data/Documents/</string>
+		<string>/Library/Application Support/VirtualBuddy/</string>
+	</array>
 	<key>com.apple.security.temporary-exception.files.home-relative-path.read-write</key>
 	<array>
-		<string>/</string>
+		<string>/Public/</string>
 	</array>
 	<key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
 	<array>
-		<string>/tmp</string>
+		<string>/private/tmp/</string>
+		<string>/etc/paths.d/</string>
 	</array>
 	<key>com.apple.security.temporary-exception.files.absolute-path.read-only</key>
 	<array>
-		<string>/</string>
+		<string>/var/root/Library/Application Support/multipassd/</string>
+		<string>/Library/Preferences/VMware Fusion/</string>
 	</array>
 	<key>com.apple.developer.accessory-access.usb</key>
 	<true/>
