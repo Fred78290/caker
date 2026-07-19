@@ -61,9 +61,9 @@ struct FileHelpers {
 
 	// MARK: - Folder selection
 
-	public static func selectFolder(withTitle: String? = nil) -> URL? {
+	public static func selectFolder(withTitle: String? = nil, directoryURL: URL? = nil) -> URL? {
 
-		let openPrompt = FileHelpers().createOpenPanel(ofType: [], withTitle: withTitle)
+		let openPrompt = FileHelpers().createOpenPanel(ofType: [], withTitle: withTitle, directoryURL: directoryURL)
 
 		openPrompt.canChooseDirectories = true
 		openPrompt.canChooseFiles = false
