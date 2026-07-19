@@ -6,6 +6,7 @@
 //
 
 import CakeAgentLib
+import CakedLib
 import GRPCLib
 import NIOPortForwarding
 import SwiftUI
@@ -37,11 +38,9 @@ struct ForwardedPortNewItemView: View {
 				ForwardedPortDetailView(currentItem: $newItem, readOnly: false)
 			}
 		} validateItem: { item in
-			if Bundle.isApplicationSandboxed && AppState.shared.connectionMode != .remote {
-				if let home = try? Utils.getHome(runMode: AppState.shared.connectionMode.runMode), let unixSocket = item.unixDomain, unixSocket.host.isEmpty == false {
-					if (unixSocket.host as NSString).expandingTildeInPath.starts(with: home.path(percentEncoded: false)) == false {
-						return (false, String(localized: "Host path is not in the sandbox"))
-					}
+			if let unixSocket = item.unixDomain, unixSocket.host.isEmpty == false, AppState.shared.connectionMode != .remote {
+				if Utilities.isSandboxedPath((unixSocket.host as NSString).expandingTildeInPath, runMode: .current) == false {
+					return (false, String(localized: "Host path is not in the sandbox"))
 				}
 			}
 

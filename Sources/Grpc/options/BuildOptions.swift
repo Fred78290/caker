@@ -263,7 +263,7 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		if request.hasSshAuthorizedKey && request.sshAuthorizedKey.isEmpty == false {
-			self.sshAuthorizedKey = try Utils.saveToTempFile(request.sshAuthorizedKey)
+			self.sshAuthorizedKey = String(data: request.sshAuthorizedKey, encoding: .ascii)
 		} else {
 			self.sshAuthorizedKey = nil
 		}

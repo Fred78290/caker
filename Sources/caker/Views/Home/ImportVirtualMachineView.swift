@@ -276,6 +276,7 @@ struct ImportVirtualMachineView: View {
 		panel.allowsMultipleSelection = false
 		panel.canChooseFiles = true
 		panel.canChooseDirectories = false
+		panel.showsHiddenFiles = true
 		panel.title = String(localized: "Select SSH Private Key")
 
 		if panel.runModal() == .OK, let url = panel.url {
@@ -323,3 +324,4 @@ struct ImportVirtualMachineView: View {
 		}
 	}
 }
+

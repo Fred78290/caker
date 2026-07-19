@@ -37,6 +37,14 @@ extension Bundle {
 	private static var _cacheIsSandboxed: Bool? = nil
 	private static var _mustUseUnixTask: Bool? = nil
 
+	public static var fileAccessRestricted: Bool {
+		guard isApplicationSandboxed else {
+			return false
+		}
+
+		return runInCaker
+	}
+
 	public static var mustUseUnixTask: Bool {
 		guard let mustUseUnixTask = _mustUseUnixTask else {
 			var mustUseUnixTask = isApplicationSandboxed
@@ -434,53 +442,53 @@ extension String {
 
 extension URL {
 	public static let maxSocketPathLength = 103
-
+	
 	public static let maxNetworkNameLength = {
 		guard let home = try? Utils.getHome(runMode: Utils.RunMode.current) else {
 			fatalError("Failed to get current home")
 		}
-
+		
 		return URL.maxSocketPathLength - home.path(percentEncoded: false).count - "net".count - 4
 	}()
-
+	
 	public static let maxVirtualMachineNameLength = {
 		guard let home = try? Utils.getHome(runMode: Utils.RunMode.current) else {
 			fatalError("Failed to get current home")
 		}
-
+		
 		return URL.maxSocketPathLength - home.path(percentEncoded: false).count - "vms".count - "cakedvm".count - 4
 	}()
-
+	
 	public init?(spaced: String) {
 		self.init(string: spaced.replacingOccurrences(of: " ", with: "%20"))
 	}
-
+	
 	public var hiddenPasswordURL : URL {
 		guard var components = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
 			return self
 		}
-
+		
 		if let user = components.user, user.isEmpty == false {
 			components.user = "****"
 		}
-
+		
 		if let password = components.password, password.isEmpty == false {
 			components.password = "****"
 		}
-
+		
 		return components.url ?? self
 	}
-
+	
 	public func socketPath(name: String) -> URL {
 		let socketPath = self.appendingPathComponent(name, isDirectory: false).absoluteURL
-
+		
 		if socketPath.path(percentEncoded: false).utf8.count < Self.maxSocketPathLength {
 			return URL(spaced: "unix://\(socketPath.path)")!
 		} else if Bundle.isApplicationSandboxed {
 			guard let home = try? Utils.getHome(runMode: Utils.RunMode.current) else {
 				fatalError("Something goes wrong with your home directory")
 			}
-
+			
 			let tempPath = home.appendingPathComponent(self.lastPathComponent.deletingPathExtension, isDirectory: false).appendingPathExtension(name)
 			Logger(self).warn("Socket path \(socketPath.path(percentEncoded: false)) is too long, using \(tempPath.path(percentEncoded: false))")
 			return tempPath
@@ -488,25 +496,29 @@ extension URL {
 			return URL(spaced: "unix://\(NSTemporaryDirectory())\(self.lastPathComponent.deletingPathExtension).\(name)")!
 		}
 	}
-
+	
 	public func fileSize() throws -> UInt64 {
 		guard self.isFileURL else {
 			throw NSError(domain: NSOSStatusErrorDomain, code: Int(Errno.badAddress.rawValue), userInfo: ["description": "not a file url"])
 		}
 		let attrs = try FileManager.default.attributesOfItem(atPath: self.absoluteURL.path(percentEncoded: false))
-
+		
 		return (attrs[.size] as? NSNumber)?.uint64Value ?? 0
 	}
-
+	
 	public func fileReference() -> String? {
 		guard self.isFileURL else {
 			return nil
 		}
-
+		
 		let url: NSURL = NSURL(fileURLWithPath: self.absoluteURL.path(percentEncoded: false))
 		let dyn = Dynamic(url, memberName: "fileReferenceURL")
-
+		
 		return dyn.asString
+	}
+
+	public func stringContent() throws -> String {
+		return try String(contentsOf: self, encoding: .utf8)
 	}
 }
 

@@ -809,7 +809,7 @@ struct VirtualMachineWizard: View {
 							.rounded(.leading)
 							.disabled(self.model.createVM)
 						Button(action: {
-							if let sshPublicKey = chooseDocument(String(localized: "Choose a public ssh key"), ofType: UTType.sshPublicKey, showsHiddenFiles: true) {
+							if let sshPublicKey = chooseDocument(String(localized: "Choose a public ssh key"), ofType: UTType.sshPublicKey, showsHiddenFiles: true), let sshPublicKey = try? sshPublicKey.stringContent() {
 								self.config.sshAuthorizedKey = sshPublicKey
 							}
 						}) {
@@ -1154,7 +1154,7 @@ struct VirtualMachineWizard: View {
 								.rounded(.leading)
 								.disabled(self.model.createVM)
 							Button(action: {
-							model.rootDisk = chooseDocument(String(localized: "Choose a root disk"), showsHiddenFiles: true) ?? String.empty
+								model.rootDisk = chooseDocument(String(localized: "Choose a root disk"), showsHiddenFiles: true)?.path(percentEncoded: false) ?? String.empty
 							}) {
 								Image(systemName: "externaldrive.badge.plus")
 							}
@@ -1374,9 +1374,9 @@ struct VirtualMachineWizard: View {
 		return chooseDiskImage(ofTypes: [ofType])
 	}
 
-	func chooseDocument(_ title: String, ofType: UTType = .diskImage, showsHiddenFiles: Bool = false) -> String? {
+	func chooseDocument(_ title: String, ofType: UTType = .diskImage, showsHiddenFiles: Bool = false) -> URL? {
 		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [ofType], withTitle: title, allowsOtherFileTypes: true, showsHiddenFiles: showsHiddenFiles) {
-			return diskImg.absoluteURL.path
+			return diskImg.absoluteURL
 		}
 
 		return nil

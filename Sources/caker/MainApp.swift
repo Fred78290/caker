@@ -14,12 +14,6 @@ import SwifterSwiftUI
 	import Sparkle
 #endif
 
-#if APPSTORE
-let isAppStoreBuild = true
-#else
-let isAppStoreBuild = false
-#endif
-
 @MainActor
 func alertError(_ messageText: String, _ informativeText: String, completion: ((NSApplication.ModalResponse) -> Void)? = nil) {
 	let alert = NSAlert()
@@ -295,7 +289,7 @@ struct MainApp: App {
 		.defaultPosition(.center)
 
 		Window("Import from Tart", id: "import-tart") {
-			ImportVirtualMachineView("Enter a Tart virtual machine name (from ~/.tart/vms) or choose its directory.", appName: "Tart", mustCopyImageDisk: isAppStoreBuild, delegate: TartImporter())
+			ImportVirtualMachineView("Enter a Tart virtual machine name (from ~/.tart/vms) or choose its directory.", appName: "Tart", mustCopyImageDisk: Bundle.isApplicationSandboxed, delegate: TartImporter())
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 		}
@@ -305,7 +299,7 @@ struct MainApp: App {
 		.defaultPosition(.center)
 
 		Window("Import from UTM", id: "import-utm") {
-			ImportVirtualMachineView("Select a .utm bundle using UTM's Apple Virtualization backend. QEMU-backed VMs aren't supported.", appName: "UTM", mustCopyImageDisk: isAppStoreBuild, delegate: UTMImporter())
+			ImportVirtualMachineView("Select a .utm bundle using UTM's Apple Virtualization backend. QEMU-backed VMs aren't supported.", appName: "UTM", mustCopyImageDisk: Bundle.isApplicationSandboxed, delegate: UTMImporter())
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 		}
@@ -315,7 +309,7 @@ struct MainApp: App {
 		.defaultPosition(.center)
 
 		Window("Import from VirtualBuddy", id: "import-virtualbuddy") {
-			ImportVirtualMachineView("Select a .vbvm bundle. Only raw and ASIF boot disk images can be imported.", appName: "VirtualBuddy", mustCopyImageDisk: isAppStoreBuild, delegate: VirtualBuddyImporter())
+			ImportVirtualMachineView("Select a .vbvm bundle. Only raw and ASIF boot disk images can be imported.", appName: "VirtualBuddy", mustCopyImageDisk: Bundle.isApplicationSandboxed, delegate: VirtualBuddyImporter())
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 		}

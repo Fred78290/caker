@@ -7,6 +7,7 @@
 
 import GRPCLib
 import SwiftUI
+import CakedLib
 
 extension [SocketDevice] {
 	func editItem(_ editItem: SocketDevice.ID?) -> SocketDevice {
@@ -35,11 +36,9 @@ struct SocketsNewItemView: View {
 				SocketsDetailView(currentItem: $newItem, readOnly: false)
 			}
 		} validateItem: { item in
-			if Bundle.isApplicationSandboxed && AppState.shared.connectionMode != .remote && item.bind.isEmpty == false {
-				if let home = try? Utils.getHome(runMode: AppState.shared.connectionMode.runMode) {
-					if (item.bind as NSString).expandingTildeInPath.starts(with: home.path(percentEncoded: false)) == false {
-						return (false, String(localized: "Host path is not in the sandbox"))
-					}
+			if AppState.shared.connectionMode != .remote && item.bind.isEmpty == false {
+				if Utilities.isSandboxedPath((item.bind as NSString).expandingTildeInPath, runMode: .current) == false {
+					return (false, String(localized: "Host path is not in the sandbox"))
 				}
 			}
 			

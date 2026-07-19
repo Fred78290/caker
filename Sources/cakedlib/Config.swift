@@ -880,6 +880,16 @@ extension VirtualMachineConfiguration {
 
 		attachedDisks.append(
 			contentsOf: self.attachedDisks.compactMap {
+				if Bundle.fileAccessRestricted {
+					let diskURL = URL(fileURLWithPath: $0.diskPath.expandingTildeInPath, relativeTo: self.locationURL)
+
+					if Utilities.isSandboxedPath(diskURL, runMode: .current) == false {
+						Logger(self).warn(".fileAccessRestricted is enabled, skipping additional disk attachment: \($0.description)")
+
+						return nil
+					}
+				}
+
 				do {
 					return try $0.configuration(relativeTo: self.locationURL)
 				} catch {
@@ -902,18 +912,42 @@ extension VirtualMachineConfiguration {
 	}
 
 	public func directorySharingAttachments() throws -> [VZDirectorySharingDeviceConfiguration] {
-		return self.mounts.directorySharingAttachments(os: self.os)
+		return self.mounts.filter {
+			if Bundle.fileAccessRestricted == false || Utilities.isValidSharePoint($0.source.expandingTildeInPath, runMode: .current) {
+				return true
+			}
+
+			Logger(self).warn(".fileAccessRestricted is enabled, skipping share point: \($0.description)")
+
+			return false
+		}.directorySharingAttachments(os: self.os)
 	}
 
 	public func socketDeviceAttachments(agentURL: URL) throws -> [SocketDevice] {
-		let vsock = agentURL.absoluteURL.path
+		let vsock = agentURL.absoluteURL.path(percentEncoded: false)
 		var sockets: [SocketDevice] = [SocketDevice(mode: SocketMode.bind, port: VMLocation.defaultAgentListenPort, bind: vsock)]
 
 		if FileManager.default.fileExists(atPath: vsock) {
 			try FileManager.default.removeItem(atPath: vsock)
 		}
 
-		sockets.append(contentsOf: self.sockets)
+		sockets.append(contentsOf: self.sockets.compactMap { socket in
+			let socketURL = URL(fileURLWithPath: socket.bind.expandingTildeInPath, relativeTo: self.locationURL)
+			let socket = SocketDevice(mode: socket.mode, port: socket.port, bind: socketURL.path(percentEncoded: false))
+
+			guard Bundle.fileAccessRestricted == false else {
+
+				if Utilities.isSandboxedPath(socket.bind, runMode: .current) == false {
+					Logger(self).warn(".fileAccessRestricted is enabled, skipping socket: \(socket.description)")
+					
+					return nil
+				}
+				
+				return socket
+			}
+
+			return socket
+		})
 
 		return sockets
 	}
