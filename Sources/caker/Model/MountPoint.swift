@@ -108,7 +108,7 @@ struct MountPoint: Identifiable, Hashable, Codable, Validatable {
 		}
 	}
 
-	init(source: String = "~", destination: String? = nil, readOnly: Bool = false, name: String? = nil, uid: Int? = nil, gid: Int? = nil) {
+	init(source: String = "~/Public/", destination: String? = nil, readOnly: Bool = false, name: String? = nil, uid: Int? = nil, gid: Int? = nil) {
 		self.shared = (destination ?? "").isEmpty
 		self.readOnly = readOnly
 		self.name = name
