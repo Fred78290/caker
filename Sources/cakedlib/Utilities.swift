@@ -1016,6 +1016,44 @@ public struct Utilities {
 	public static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 	public static let keychainID = "com.aldunelabs.caker"
 
+	public static func isValidSharePoint(_ path: String, runMode: Utils.RunMode) -> Bool {
+		guard Bundle.isApplicationSandboxed else {
+			return true
+		}
+
+		let publicFolder = FileManager.realHomeDirectoryForCurrentUser.appendingPathComponent("Public").path(percentEncoded: false)
+
+		if path.starts(with: publicFolder) {
+			return true
+		}
+
+		if let home = try? Utils.getHome(runMode: runMode), path.isEmpty == false {
+			if path.starts(with: home.path(percentEncoded: false)) {
+				return true
+			}
+		}
+		
+		return false
+	}
+
+	public static func isSandboxedPath(_ path: URL, runMode: Utils.RunMode) -> Bool {
+		Self.isSandboxedPath(path.path(percentEncoded: false), runMode: runMode)
+	}
+
+	public static func isSandboxedPath(_ path: String, runMode: Utils.RunMode) -> Bool {
+		guard Bundle.isApplicationSandboxed else {
+			return true
+		}
+
+		if let home = try? Utils.getHome(runMode: runMode), path.isEmpty == false {
+			if path.starts(with: home.path(percentEncoded: false)) {
+				return true
+			}
+		}
+		
+		return false
+	}
+
 	public static func cakeagentBinary(os: VirtualizedOS, runMode: Utils.RunMode, observer: ProgressObserver? = nil) async throws -> URL {
 		let arch = Architecture.current().rawValue
 		let os = os.rawValue
