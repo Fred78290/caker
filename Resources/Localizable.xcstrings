@@ -17285,13 +17285,13 @@
         }
       }
     },
-    "Shared directories (Virtio-FS mounts) and additional disks can only point at ~/Documents, ~/Download, ~/Public, or the app's own container" : {
+    "Shared directories (Virtio-FS mounts) and additional disks can only point at ~/Documents, ~/Downloads, ~/Public, or the app's own container" : {
       "comment" : "A limitation listed on the sandbox limitations splash screen.",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les répertoires partagés (montages Virtio-FS) et les disques additionnels ne peuvent pointer que vers ~/Documents, ~/Download, ~/Public, ou le conteneur de l'application"
+            "value" : "Les répertoires partagés (montages Virtio-FS) et les disques additionnels ne peuvent pointer que vers ~/Documents, ~/Downloads, ~/Public, ou le conteneur de l'application"
           }
         }
       }
