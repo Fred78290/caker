@@ -1,11 +1,11 @@
+import AppKit
+import ArgumentParser
+import CakeAgentLib
 import Foundation
 import GRPCLib
 import NIOPortForwarding
-import Virtualization
-import CakeAgentLib
 import System
-import ArgumentParser
-import AppKit
+import Virtualization
 
 enum ConfigFileName: String {
 	case config = "config.json"
@@ -18,28 +18,28 @@ extension DisplaySize {
 	public var cgSize: CGSize {
 		CGSize(width: CGFloat(width), height: CGFloat(height))
 	}
-	
+
 	public var screenSize: ViewSize {
 		ViewSize(width: width, height: height)
 	}
-	
+
 	public var width: Int {
 		set { self["width"] = newValue }
 		get { self["width"]! }
 	}
-	
+
 	public var height: Int {
 		set { self["height"] = newValue }
 		get { self["height"]! }
 	}
-	
+
 	public init(width: Int, height: Int) {
 		self.init()
-		
+
 		self.width = width
 		self.height = height
 	}
-	
+
 	public init(viewSize: ViewSize) {
 		self.init()
 
@@ -344,7 +344,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 			}
 
 			return networks.compactMap {
-				if var network = BridgeAttachement(argument: $0)  {
+				if var network = BridgeAttachement(argument: $0) {
 					if network.isNAT() {
 						network.macAddress = self.macAddress
 					}
@@ -598,15 +598,15 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 
 		let config = FileWrapper(regularFileWithContents: dataConfig)
 		let cake = FileWrapper(regularFileWithContents: cakeData)
-		
+
 		config.preferredFilename = ConfigFileName.config.rawValue
 		cake.preferredFilename = ConfigFileName.cake.rawValue
 		config.filename = ConfigFileName.config.rawValue
 		cake.filename = ConfigFileName.cake.rawValue
-		
+
 		return FileWrapper(directoryWithFileWrappers: [
 			ConfigFileName.config.rawValue: config,
-			ConfigFileName.cake.rawValue: cake
+			ConfigFileName.cake.rawValue: cake,
 		])
 	}
 }
@@ -630,7 +630,7 @@ extension CakeConfig {
 		switch self.os {
 		#if arch(arm64)
 			case .darwin:
-			return DarwinPlateform(nvramURL: nvramURL, ecid: self.getECID(), hardwareModel: self.getHardwareModel()!)
+				return DarwinPlateform(nvramURL: nvramURL, ecid: self.getECID(), hardwareModel: self.getHardwareModel()!)
 		#endif
 		case .linux:
 			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization)
@@ -641,33 +641,33 @@ extension CakeConfig {
 		}
 	}
 
-#if arch(arm64)
-	public func setECID(_ ecid: VZMacMachineIdentifier) {
-		self.ecid = ecid.dataRepresentation
-	}
+	#if arch(arm64)
+		public func setECID(_ ecid: VZMacMachineIdentifier) {
+			self.ecid = ecid.dataRepresentation
+		}
 
-	public func getECID() -> VZMacMachineIdentifier {
-		if let ecid = self.ecid {
-			if let ecid = VZMacMachineIdentifier(dataRepresentation: ecid) {
-				return ecid
+		public func getECID() -> VZMacMachineIdentifier {
+			if let ecid = self.ecid {
+				if let ecid = VZMacMachineIdentifier(dataRepresentation: ecid) {
+					return ecid
+				}
 			}
+
+			return VZMacMachineIdentifier()
 		}
 
-		return VZMacMachineIdentifier()
-	}
-
-	public func setHardwareModel(_ model: VZMacHardwareModel) {
-		self.hardwareModel = model.dataRepresentation
-	}
-
-	public func getHardwareModel() -> VZMacHardwareModel? {
-		if let hardwareModel = self.hardwareModel {
-			return VZMacHardwareModel(dataRepresentation: hardwareModel)
+		public func setHardwareModel(_ model: VZMacHardwareModel) {
+			self.hardwareModel = model.dataRepresentation
 		}
 
-		return nil
-	}
-#endif
+		public func getHardwareModel() -> VZMacHardwareModel? {
+			if let hardwareModel = self.hardwareModel {
+				return VZMacHardwareModel(dataRepresentation: hardwareModel)
+			}
+
+			return nil
+		}
+	#endif
 
 }
 
@@ -698,7 +698,7 @@ extension VirtualMachineConfiguration {
 		if source == .iso || source == .ipsw {
 			return true
 		}
-		
+
 		return self.firstLaunch
 	}
 
@@ -787,7 +787,6 @@ extension VirtualMachineConfiguration {
 							$0.identifier == network || $0.localizedDisplayName == network
 						}
 					}
-					
 
 					if let interface = try foundInterface() {
 						if NetworksHandler.hasVMNetEntitlement {
@@ -913,11 +912,14 @@ extension VirtualMachineConfiguration {
 
 	public func directorySharingAttachments() throws -> [VZDirectorySharingDeviceConfiguration] {
 		return self.mounts.filter {
-			if Bundle.fileAccessRestricted == false || Utilities.isValidSharePoint($0.source.expandingTildeInPath, runMode: .current) {
+			let source = $0.source.expandingTildeInPath
+			let validSharePoint = Utilities.isValidSharePoint(source, runMode: .current)
+
+			if Bundle.fileAccessRestricted == false || validSharePoint {
 				return true
 			}
 
-			Logger(self).warn(".fileAccessRestricted is enabled, skipping share point: \($0.description)")
+			Logger(self).warn(".fileAccessRestricted is enabled, skipping share point: \(source)")
 
 			return false
 		}.directorySharingAttachments(os: self.os)
@@ -931,23 +933,21 @@ extension VirtualMachineConfiguration {
 			try FileManager.default.removeItem(atPath: vsock)
 		}
 
-		sockets.append(contentsOf: self.sockets.compactMap { socket in
-			let socketURL = URL(fileURLWithPath: socket.bind.expandingTildeInPath, relativeTo: self.locationURL)
-			let socket = SocketDevice(mode: socket.mode, port: socket.port, bind: socketURL.path(percentEncoded: false))
+		sockets.append(
+			contentsOf: self.sockets.compactMap { socket in
+				let socketURL = URL(fileURLWithPath: socket.bind.expandingTildeInPath, relativeTo: self.locationURL)
+				let socket = SocketDevice(mode: socket.mode, port: socket.port, bind: socketURL.path(percentEncoded: false))
 
-			guard Bundle.fileAccessRestricted == false else {
+				if Bundle.fileAccessRestricted {
+					if Utilities.isSandboxedPath(socket.bind, runMode: .current) == false {
+						Logger(self).warn(".fileAccessRestricted is enabled, skipping socket: \(socket.description)")
 
-				if Utilities.isSandboxedPath(socket.bind, runMode: .current) == false {
-					Logger(self).warn(".fileAccessRestricted is enabled, skipping socket: \(socket.description)")
-					
-					return nil
+						return nil
+					}
 				}
-				
-				return socket
-			}
 
-			return socket
-		})
+				return socket
+			})
 
 		return sockets
 	}
