@@ -268,6 +268,15 @@ struct MainApp: App {
 		.restorationState(.disabled)
 		.defaultPosition(.center)
 
+		Window("Sandbox Limitations", id: "sandbox-splash") {
+			SandboxLimitationsView()
+				.colorSchemeForColor()
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+		.restorationState(.disabled)
+		.defaultPosition(.center)
+
 		Window("Import from Multipass", id: "import-multipass") {
 			ImportMultipassView()
 				.colorSchemeForColor()
@@ -400,6 +409,12 @@ struct MainApp: App {
 		CommandGroup(replacing: .appInfo) {
 			Button("About Caker") {
 				openWindow(id: "about")
+			}
+
+			if Bundle.isApplicationSandboxed {
+				Button("Sandbox Limitations…") {
+					openWindow(id: "sandbox-splash")
+				}
 			}
 		}
 
@@ -689,6 +704,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	static private(set) var instance: MainUIAppDelegate!
 
 	@Setting("HideDockIcon") private var isDockIconHidden: Bool = false
+	@Setting("HasSeenSandboxSplash") private var hasSeenSandboxSplash: Bool = false
 
 	override init() {
 		super.init()
@@ -708,6 +724,10 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			NSApp.setActivationPolicy(.regular)
 			EnvironmentValues().openWindow(id: "home")
 			NSApp.windows.first?.makeKeyAndOrderFront(nil)
+		}
+
+		if Bundle.isApplicationSandboxed && hasSeenSandboxSplash == false {
+			EnvironmentValues().openWindow(id: "sandbox-splash")
 		}
 	}
 

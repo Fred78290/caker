@@ -44,6 +44,7 @@
 		9B09566D2FDDC7C40027FF96 /* SpawnHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B09566C2FDDC7C40027FF96 /* SpawnHandler.swift */; };
 		9B09566F2FDDC7E60027FF96 /* Spawn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B09566E2FDDC7E60027FF96 /* Spawn.swift */; };
 		9B0A37F62FF58C0A004609F2 /* DirWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0A37F52FF58C0A004609F2 /* DirWatcher.swift */; };
+		9B0BEE55300EB500003EE9E9 /* SandboxLimitationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0BEE54300EB500003EE9E9 /* SandboxLimitationsView.swift */; };
 		9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0D1A452E2BAA2700D70267 /* FileMonitor */; };
 		9B1389CF2F97A718000329B1 /* BonjourServiceLister.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */; };
 		9B1389D12F97A98A000329B1 /* ServiceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389D02F97A98A000329B1 /* ServiceListView.swift */; };
@@ -860,6 +861,7 @@
 		9B09566C2FDDC7C40027FF96 /* SpawnHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpawnHandler.swift; sourceTree = "<group>"; };
 		9B09566E2FDDC7E60027FF96 /* Spawn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spawn.swift; sourceTree = "<group>"; };
 		9B0A37F52FF58C0A004609F2 /* DirWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirWatcher.swift; sourceTree = "<group>"; };
+		9B0BEE54300EB500003EE9E9 /* SandboxLimitationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SandboxLimitationsView.swift; sourceTree = "<group>"; };
 		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
 		9B1389D22F97A9D0000329B1 /* CakedServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServerView.swift; sourceTree = "<group>"; };
@@ -1780,6 +1782,7 @@
 				9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */,
 				9B911A602ECF854E0017791D /* GlossyCircle.swift */,
 				9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */,
+				9B0BEE54300EB500003EE9E9 /* SandboxLimitationsView.swift */,
 				9B1389D02F97A98A000329B1 /* ServiceListView.swift */,
 				9B3601A22E2116E600889BFD /* SettingsView.swift */,
 				9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */,
@@ -3462,6 +3465,7 @@
 				9BB033792FF6AFE500F4612F /* ImportVirtualMachineView.swift in Sources */,
 				9B9C4E912E23BF1300C13D23 /* AppState.swift in Sources */,
 				9B3601AB2E211A6800889BFD /* CreateTemplateView.swift in Sources */,
+				9B0BEE55300EB500003EE9E9 /* SandboxLimitationsView.swift in Sources */,
 				9B75A6D32E2A2C48000AA773 /* Pty.swift in Sources */,
 				9BAF74B62EBBD7CC0036CE1B /* MultiplatformTab.swift in Sources */,
 				9BAF74B72EBBD7CC0036CE1B /* MultiplatformTabCollection.swift in Sources */,
