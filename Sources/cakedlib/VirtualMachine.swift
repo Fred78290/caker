@@ -363,13 +363,19 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 				dynamicPortForwarding: config.dynamicPortForwarding)
 
 			// Now create symlinks from sandboxed socket to real target
-			self.symlinks = try symlinks.compactMap { (target, link) in
+			self.symlinks = symlinks.compactMap { (target, link) in
 				// Cleanup before
 				try? FileManager.default.removeItem(at: link)
 
-				try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
+				do {
+					try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
 
-				return link
+					return link
+				} catch {
+					self.logger.error("The socket \(link.path(percentEncoded: false)) can't be created as a symlink, original still available here \(target.path(percentEncoded: false))")
+				}
+				
+				return nil
 			}
 		} catch is ValidationError {
 			// Silent
