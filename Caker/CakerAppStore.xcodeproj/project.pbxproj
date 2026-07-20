@@ -4929,10 +4929,10 @@
 		};
 		9B464BAA2D5A407700164BF5 /* XCRemoteSwiftPackageReference "iso9660-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/amodm/iso9660-swift";
+			repositoryURL = "https://github.com/Fred78290/iso9660-swift";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = revision;
+				revision = d30ba88cb63a0858d7aa470f10b33cf01a60461b;
 			};
 		};
 		9B464BAD2D5A408E00164BF5 /* XCRemoteSwiftPackageReference "Yams" */ = {
@@ -5028,7 +5028,7 @@
 			repositoryURL = "https://github.com/Fred78290/swift-nio-portforwarding.git";
 			requirement = {
 				kind = revision;
-				revision = d97e677fd4247e7d140aa0e8a80dd52dceab4d4d;
+				revision = 3ea9aa595764f95e5dce4dcf64f6ff4a99b2035e;
 			};
 		};
 		9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */ = {
@@ -5068,7 +5068,7 @@
 			repositoryURL = "https://github.com/Fred78290/SwiftTerm";
 			requirement = {
 				kind = revision;
-				revision = 6c0bec1dc8db9e07a7738b06f380998a670e1fbc;
+				revision = 21069a3cada82e6cd15c94868bd88b0a3b4402e3;
 			};
 		};
 		9B96F1462FC5D70B00C25306 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
@@ -5084,7 +5084,7 @@
 			repositoryURL = "https://github.com/Fred78290/containerization";
 			requirement = {
 				kind = revision;
-				revision = c829f8d7b56b405c2e80b0b5e29fdde679dc73cc;
+				revision = f0e7bfebb9b10ff5890b58566a94eb8a439e361d;
 			};
 		};
 		9BC1F9962F6D469A00A83B33 /* XCRemoteSwiftPackageReference "swift-subprocess" */ = {
@@ -5108,7 +5108,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
 			requirement = {
 				kind = revision;
-				revision = 2b36972fc696773d2f68ffd3e27d0b2758005f66;
+				revision = 2e14500c717ed4e9ff09918677bdbf5feda53c75;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
