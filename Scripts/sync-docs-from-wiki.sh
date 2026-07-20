@@ -101,6 +101,11 @@ if [[ -f "${WIKI_DIR}/compose.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/compose.md" "${DOCS_DIR}/compose.md" "Compose" "10"
 fi
 
+# Sandbox (nav_order: 11)
+if [[ -f "${WIKI_DIR}/sandbox.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/sandbox.md" "${DOCS_DIR}/sandbox.md" "Sandbox" "11"
+fi
+
 # Privacy Policy (nav_order: 99)
 if [[ -f "${WIKI_DIR}/privacy-policy.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/privacy-policy.md" "${DOCS_DIR}/privacy-policy.md" "Privacy Policy / Politique de confidentialité" "99"

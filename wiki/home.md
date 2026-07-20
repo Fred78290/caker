@@ -30,6 +30,7 @@ Guide du contributeur : [CONTRIBUTING.md](https://github.com/Fred78290/caker/blo
 - [FAQ](faq)
 - [Notes de version](release-notes)
 - [Résumé des commandes](command-summary)
+- [Sandbox](sandbox)
 - [Pense-bête](cheat-sheet)
 - [Politique de confidentialité](privacy-policy)
 
@@ -74,6 +75,7 @@ Contributor guide: [CONTRIBUTING.md](https://github.com/Fred78290/caker/blob/mai
 - [FAQ](faq)
 - [Release Notes](release-notes)
 - [Command Summary](command-summary)
+- [Sandbox](sandbox)
 - [Cheat Sheet](cheat-sheet)
 - [Private Policy](privacy-policy)
 
