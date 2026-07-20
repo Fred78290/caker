@@ -1,4 +1,6 @@
 import ArgumentParser
+import CakeAgentLib
+import Combine
 import CryptoKit
 import Dynamic
 import Foundation
@@ -7,8 +9,6 @@ import ObjectiveC
 import Security
 import System
 import Virtualization
-import Combine
-import CakeAgentLib
 
 public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 
@@ -62,13 +62,17 @@ extension Bundle {
 	}
 
 	public static var isApplicationSandboxed: Bool {
-		guard let isSandboxed = _cacheIsSandboxed else {
-			_cacheIsSandboxed = Bundle.main.isSandboxed
-
-			return _cacheIsSandboxed!
+		get {
+			guard let isSandboxed = _cacheIsSandboxed else {
+				_cacheIsSandboxed = Bundle.main.isSandboxed
+				
+				return _cacheIsSandboxed!
+			}
+			
+			return isSandboxed
+		} set {
+			_cacheIsSandboxed = newValue
 		}
-
-		return isSandboxed
 	}
 
 	public var isSandboxed: Bool {
@@ -288,23 +292,23 @@ extension String {
 	public static let fingerprint64 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{64}$")
 	public static let fingerprint12 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{12}$")
 	public static let grpcSeparator: String = "|"
-	
+
 	public func isFingerPrint() -> Bool {
 		if Self.fingerprint64.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
 			return true
 		}
-		
+
 		if Self.fingerprint12.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
 			return true
 		}
-		
+
 		return false
 	}
-	
+
 	public var deletingPathExtension: String {
 		return (self as NSString).deletingPathExtension
 	}
-	
+
 	public var expandingTildeInPath: String {
 		guard self.hasPrefix("~") else {
 			return self
@@ -334,15 +338,15 @@ extension String {
 
 		return String(cString: dir) + rest
 	}
-	
+
 	public init(errno: Errno) {
 		self = String(cString: strerror(errno.rawValue))
 	}
-	
+
 	public init(errno: Int32) {
 		self = String(cString: strerror(errno))
 	}
-	
+
 	public func stringBeforeLast(before: Character) -> String {
 		if let r = self.lastIndex(of: before) {
 			return String(self[self.startIndex..<r])
@@ -350,7 +354,7 @@ extension String {
 			return self
 		}
 	}
-	
+
 	public func stringAfterLast(after: Character) -> String {
 		if let r = self.lastIndex(of: after) {
 			guard let start = self.index(r, offsetBy: 1, limitedBy: self.endIndex) else {
@@ -361,7 +365,7 @@ extension String {
 			return self
 		}
 	}
-	
+
 	public func stringBefore(before: String) -> String {
 		if let r = self.range(of: before) {
 			return String(self[self.startIndex..<r.lowerBound])
@@ -369,7 +373,7 @@ extension String {
 			return self
 		}
 	}
-	
+
 	public func stringAfter(after: String) -> String {
 		if let r = self.range(of: after) {
 			return String(self[r.upperBound..<self.endIndex])
@@ -377,24 +381,24 @@ extension String {
 			return self
 		}
 	}
-	
+
 	public func substring(_ bounds: PartialRangeUpTo<Int>) -> String {
 		guard let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound, limitedBy: self.endIndex) else {
 			return self
 		}
-		
+
 		return String(self[self.startIndex..<endIndex])
 	}
-	
+
 	public func substring(_ bounds: Range<Int>) -> String {
 		guard let startIndex = self.index(self.startIndex, offsetBy: bounds.lowerBound, limitedBy: self.endIndex) else {
 			return String.empty
 		}
-		
+
 		guard let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound, limitedBy: self.endIndex) else {
 			return self
 		}
-		
+
 		return String(self[startIndex..<endIndex])
 	}
 
@@ -409,31 +413,31 @@ extension String {
 	public func base64EncodedString() -> String {
 		self.data(using: .utf8)?.base64EncodedString() ?? String.empty
 	}
-	
+
 	public func encrypt(key: String) throws -> String {
 		let symmetricKey = SymmetricKey(data: Data(key.utf8))
 		let cypher = try AES.GCM.seal(self.data(using: .utf8)!, using: symmetricKey)
-		
+
 		guard let combined = cypher.combined else {
 			throw NSError(domain: NSOSStatusErrorDomain, code: Int(Errno.invalidArgument.rawValue), userInfo: ["description": "encryption failed"])
 		}
-		
+
 		return "[[ENCRYPTED]:\(combined.base64EncodedString())]"
 	}
-	
+
 	public func decrypt(key: String) throws -> String {
 		if self.starts(with: "[[ENCRYPTED]:") && self.last == "]" {
 			let symmetricKey = SymmetricKey(data: Data(key.utf8))
 			let crypted = self.substring(13..<self.count - 1)
 			let sealedBox = try AES.GCM.SealedBox(combined: Data(base64Encoded: crypted)!)
-			
+
 			guard let decrypted = String(data: try AES.GCM.open(sealedBox, using: symmetricKey), encoding: .utf8) else {
 				throw NSError(domain: NSOSStatusErrorDomain, code: Int(Errno.invalidArgument.rawValue), userInfo: ["description": "decryption failed"])
 			}
-			
+
 			return decrypted
 		}
-		
+
 		return self
 	}
 
@@ -442,53 +446,53 @@ extension String {
 
 extension URL {
 	public static let maxSocketPathLength = 103
-	
+
 	public static let maxNetworkNameLength = {
 		guard let home = try? Utils.getHome(runMode: Utils.RunMode.current) else {
 			fatalError("Failed to get current home")
 		}
-		
+
 		return URL.maxSocketPathLength - home.path(percentEncoded: false).count - "net".count - 4
 	}()
-	
+
 	public static let maxVirtualMachineNameLength = {
 		guard let home = try? Utils.getHome(runMode: Utils.RunMode.current) else {
 			fatalError("Failed to get current home")
 		}
-		
+
 		return URL.maxSocketPathLength - home.path(percentEncoded: false).count - "vms".count - "cakedvm".count - 4
 	}()
-	
+
 	public init?(spaced: String) {
 		self.init(string: spaced.replacingOccurrences(of: " ", with: "%20"))
 	}
-	
-	public var hiddenPasswordURL : URL {
+
+	public var hiddenPasswordURL: URL {
 		guard var components = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
 			return self
 		}
-		
+
 		if let user = components.user, user.isEmpty == false {
 			components.user = "****"
 		}
-		
+
 		if let password = components.password, password.isEmpty == false {
 			components.password = "****"
 		}
-		
+
 		return components.url ?? self
 	}
-	
+
 	public func socketPath(name: String) -> URL {
 		let socketPath = self.appendingPathComponent(name, isDirectory: false).absoluteURL
-		
+
 		if socketPath.path(percentEncoded: false).utf8.count < Self.maxSocketPathLength {
 			return URL(spaced: "unix://\(socketPath.path)")!
 		} else if Bundle.isApplicationSandboxed {
 			guard let home = try? Utils.getHome(runMode: Utils.RunMode.current) else {
 				fatalError("Something goes wrong with your home directory")
 			}
-			
+
 			let tempPath = home.appendingPathComponent(self.lastPathComponent.deletingPathExtension, isDirectory: false).appendingPathExtension(name)
 			Logger(self).warn("Socket path \(socketPath.path(percentEncoded: false)) is too long, using \(tempPath.path(percentEncoded: false))")
 			return tempPath
@@ -496,24 +500,24 @@ extension URL {
 			return URL(spaced: "unix://\(NSTemporaryDirectory())\(self.lastPathComponent.deletingPathExtension).\(name)")!
 		}
 	}
-	
+
 	public func fileSize() throws -> UInt64 {
 		guard self.isFileURL else {
 			throw NSError(domain: NSOSStatusErrorDomain, code: Int(Errno.badAddress.rawValue), userInfo: ["description": "not a file url"])
 		}
 		let attrs = try FileManager.default.attributesOfItem(atPath: self.absoluteURL.path(percentEncoded: false))
-		
+
 		return (attrs[.size] as? NSNumber)?.uint64Value ?? 0
 	}
-	
+
 	public func fileReference() -> String? {
 		guard self.isFileURL else {
 			return nil
 		}
-		
+
 		let url: NSURL = NSURL(fileURLWithPath: self.absoluteURL.path(percentEncoded: false))
 		let dyn = Dynamic(url, memberName: "fileReferenceURL")
-		
+
 		return dyn.asString
 	}
 
@@ -671,15 +675,15 @@ extension Task {
 	/// Executes the given async closure synchronously, waiting for it to finish before returning.
 	///
 	/// **Warning**: Do not call this from a thread used by Swift Concurrency (e.g. an actor, including global actors like MainActor) if the closure - or anything it calls transitively via `await` - might be bound to that same isolation context.  Doing so may result in deadlock.
-	public static func sync(_ code: sending () async throws(Failure) -> Success) throws(Failure) -> Success { // 1
+	public static func sync(_ code: sending () async throws(Failure) -> Success) throws(Failure) -> Success {  // 1
 		let semaphore = DispatchSemaphore(value: 0)
 
-		nonisolated(unsafe) var result: Result<Success, Failure>? = nil // 2
+		nonisolated(unsafe) var result: Result<Success, Failure>? = nil  // 2
 
-		withoutActuallyEscaping(code) { // 3
-			nonisolated(unsafe) let sendableCode = $0 // 4
+		withoutActuallyEscaping(code) {  // 3
+			nonisolated(unsafe) let sendableCode = $0  // 4
 
-			let coreTask = Task<Void, Never>.detached(priority: .userInitiated) { @Sendable () async -> Void in // 5
+			let coreTask = Task<Void, Never>.detached(priority: .userInitiated) { @Sendable () async -> Void in  // 5
 				do {
 					result = .success(try await sendableCode())
 				} catch {
@@ -687,7 +691,7 @@ extension Task {
 				}
 			}
 
-			Task<Void, Never>.detached(priority: .userInitiated) { // 6
+			Task<Void, Never>.detached(priority: .userInitiated) {  // 6
 				await coreTask.value
 				semaphore.signal()
 			}
@@ -695,7 +699,7 @@ extension Task {
 			semaphore.wait()
 		}
 
-		return try result!.get() // 7
+		return try result!.get()  // 7
 	}
 }
 
@@ -734,4 +738,3 @@ extension Error {
 		"\(self)"
 	}
 }
-

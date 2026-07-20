@@ -16,6 +16,9 @@ struct CommonOptions: ParsableArguments {
 	@Option(help: ArgumentHelp(String(localized: "Cake home path"), visibility: .hidden))
 	var home: String? = nil
 
+	@Flag(help: ArgumentHelp(String(localized: "Emulate sandbox"), visibility: .hidden))
+	var sandbox: Bool = false
+
 	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
 	
@@ -32,6 +35,10 @@ struct CommonOptions: ParsableArguments {
 		Logger.setLevel(self.logLevel)
 		
 		Utils.RunMode.current = self.runMode
+		
+		if self.sandbox {
+			Bundle.isApplicationSandboxed = true
+		}
 
 		if let home = self.home {
 			setenv("CAKE_HOME", home, 1)
@@ -220,3 +227,4 @@ struct Root: ParsableCommand {
 		}
 	}
 }
+
