@@ -50,7 +50,7 @@ public struct SandboxLimitationsView: View {
 				.fixedSize(horizontal: false, vertical: true)
 
 			VStack(alignment: .leading, spacing: 10) {
-				LimitationRow(icon: "folder.badge.questionmark", text: String(localized: "Shared directories (Virtio-FS mounts) and additional disks can only point at ~/Documents, ~/Download, ~/Public, or the app's own container"))
+				LimitationRow(icon: "folder.badge.questionmark", text: String(localized: "Shared directories (Virtio-FS mounts) and additional disks can only point at ~/Documents, ~/Downloads, ~/Public, or the app's own container"))
 				LimitationRow(icon: "point.3.connected.trianglepath.dotted", text: String(localized: "Unix sockets you attach to a VM must resolve inside the app's own container"))
 				LimitationRow(icon: "externaldrive.badge.exclamationmark", text: String(localized: "Resizing an ASIF disk and attaching physical block devices from the command line are unavailable"))
 				LimitationRow(icon: "network.badge.shield.half.filled", text: String(localized: "Reaching IMDS at the AWS-style 169.254.169.254 address needs a redirect the sandbox blocks"))
