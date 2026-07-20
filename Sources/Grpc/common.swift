@@ -42,7 +42,7 @@ extension Bundle {
 			return false
 		}
 
-		return runInCaker
+		return runInCaker == false
 	}
 
 	public static var mustUseUnixTask: Bool {
@@ -486,9 +486,11 @@ extension URL {
 	public func socketPath(name: String) -> URL {
 		let socketPath = self.appendingPathComponent(name, isDirectory: false).absoluteURL
 
-		if socketPath.path(percentEncoded: false).utf8.count < Self.maxSocketPathLength {
+		guard socketPath.path(percentEncoded: false).utf8.count > Self.maxSocketPathLength else {
 			return URL(spaced: "unix://\(socketPath.path)")!
-		} else if Bundle.isApplicationSandboxed {
+		}
+
+		if Bundle.isApplicationSandboxed {
 			guard let home = try? Utils.getHome(runMode: Utils.RunMode.current) else {
 				fatalError("Something goes wrong with your home directory")
 			}
