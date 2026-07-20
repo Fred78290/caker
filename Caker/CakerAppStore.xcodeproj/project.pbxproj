@@ -37,6 +37,7 @@
 		9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B08B4AC2F743641009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B0A37442FF575C6004609F2 /* DirWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0A37432FF575C6004609F2 /* DirWatcher.swift */; };
+		9B0BEC19300E8F48003EE9E9 /* SandboxLimitationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0BEC18300E8F48003EE9E9 /* SandboxLimitationsView.swift */; };
 		9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3402F0AD8540099F00F /* CakeAgentLib */; };
 		9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */; };
 		9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */; };
@@ -869,6 +870,7 @@
 		9B081DDC2FC9887F0029B259 /* VmdkDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VmdkDescriptor.swift; sourceTree = "<group>"; };
 		9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCompatibilitySpan.tbd; path = usr/lib/swift/libswiftCompatibilitySpan.tbd; sourceTree = SDKROOT; };
 		9B0A37432FF575C6004609F2 /* DirWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirWatcher.swift; sourceTree = "<group>"; };
+		9B0BEC18300E8F48003EE9E9 /* SandboxLimitationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SandboxLimitationsView.swift; sourceTree = "<group>"; };
 		9B11AA472FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.applescript; path = PrivilegedBootstrap.applescript; sourceTree = "<group>"; };
 		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
@@ -1784,6 +1786,7 @@
 				9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */,
 				9B911A602ECF854E0017791D /* GlossyCircle.swift */,
 				9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */,
+				9B0BEC18300E8F48003EE9E9 /* SandboxLimitationsView.swift */,
 				9B1389D02F97A98A000329B1 /* ServiceListView.swift */,
 				9B3601A22E2116E600889BFD /* SettingsView.swift */,
 				9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */,
@@ -3456,6 +3459,7 @@
 				9B29F7D52FCAE4B700AEBCB8 /* VirtualMachineView.swift in Sources */,
 				9B29F7D62FCAE4B700AEBCB8 /* NavigationModel.swift in Sources */,
 				9B29F7D72FCAE4B700AEBCB8 /* DiskAttachementView.swift in Sources */,
+				9B0BEC19300E8F48003EE9E9 /* SandboxLimitationsView.swift in Sources */,
 				9B29F7D82FCAE4B700AEBCB8 /* InternalVirtualMachineView.swift in Sources */,
 				9B29F7D92FCAE4B700AEBCB8 /* VirtualMachineConfig.swift in Sources */,
 				9B29F7DA2FCAE4B700AEBCB8 /* ApplicationSettingsView.swift in Sources */,

@@ -6,6 +6,7 @@
 //
 
 import CakedLib
+import GRPCLib
 import SwiftUI
 
 public struct AboutCakerView: View {
@@ -20,9 +21,13 @@ public struct AboutCakerView: View {
 			headerSection
 			mainInfoSection
 			componentsSection
+			if Bundle.isApplicationSandboxed {
+				sandboxSection
+			}
 			creditsSection
 		}
-		.frame(width: 520, height: 680)
+		.frame(maxWidth: 700)
+		.fixedSize(horizontal: false, vertical: true)
 		.shadow(radius: 10)
 	}
 
@@ -118,6 +123,47 @@ public struct AboutCakerView: View {
 		}
 	}
 
+	private var sandboxSection: some View {
+		VStack(spacing: 8) {
+			Divider()
+				.padding(.horizontal)
+
+			VStack(spacing: 8) {
+				Label("App Store Version", systemImage: "shield.lefthalf.filled")
+					.font(.headline)
+					.foregroundStyle(.primary)
+
+				Text("This build runs inside the macOS App Sandbox, which limits shared directories, sockets, ASIF disk resizing, and physical block device access to a fixed set of locations. Install the direct-download build instead for unrestricted access.")
+					.font(.caption)
+					.foregroundStyle(.secondary)
+					.multilineTextAlignment(.center)
+					.fixedSize(horizontal: false, vertical: true)
+					.padding(.horizontal, 24)
+
+				HStack(spacing: 12) {
+					Button(action: openSandboxWiki) {
+						Label("Sandbox Limitations", systemImage: "info.circle")
+							.font(.caption)
+					}
+					.buttonStyle(.bordered)
+
+					Button(action: openSandboxLocation) {
+						Label("Locate Sandbox", systemImage: "folder")
+							.font(.caption)
+					}
+					.buttonStyle(.bordered)
+
+					Button(action: openDirectDownload) {
+						Label("Get Direct-Download Build", systemImage: "arrow.down.circle")
+							.font(.caption)
+					}
+					.buttonStyle(.bordered)
+				}
+			}
+		}
+		.padding(.top, 8)
+	}
+
 	private var creditsSection: some View {
 		VStack(spacing: 12) {
 			Divider()
@@ -176,6 +222,26 @@ public struct AboutCakerView: View {
 
 	private func openGitHub() {
 		if let url = URL(string: "https://github.com/Fred78290/caker") {
+			NSWorkspace.shared.open(url)
+		}
+	}
+
+	private func openSandboxWiki() {
+		if let url = URL(string: "https://caker.aldunelabs.com/sandbox") {
+			NSWorkspace.shared.open(url)
+		}
+	}
+
+	private func openSandboxLocation() {
+		guard let url = try? Utils.getHome(runMode: .app) else {
+			return
+		}
+
+		NSWorkspace.shared.open(url)
+	}
+
+	private func openDirectDownload() {
+		if let url = URL(string: "https://github.com/Fred78290/caker/releases") {
 			NSWorkspace.shared.open(url)
 		}
 	}
