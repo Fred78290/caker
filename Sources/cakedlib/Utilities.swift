@@ -1021,9 +1021,14 @@ public struct Utilities {
 			return true
 		}
 
-		let publicFolder = FileManager.realHomeDirectoryForCurrentUser.appendingPathComponent("Public").path(percentEncoded: false)
+		let home = FileManager.realHomeDirectoryForCurrentUser
+		let publicFolders: [String] = [
+			home.appendingPathComponent("Documents").path(percentEncoded: false),
+			home.appendingPathComponent("Download").path(percentEncoded: false),
+			home.appendingPathComponent("Public").path(percentEncoded: false),
+		]
 
-		if path.starts(with: publicFolder) {
+		if publicFolders.first(where: { path.starts(with: $0) }) != nil {
 			return true
 		}
 
@@ -1032,7 +1037,7 @@ public struct Utilities {
 				return true
 			}
 		}
-		
+
 		return false
 	}
 
@@ -1050,7 +1055,7 @@ public struct Utilities {
 				return true
 			}
 		}
-		
+
 		return false
 	}
 

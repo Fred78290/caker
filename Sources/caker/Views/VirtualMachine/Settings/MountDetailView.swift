@@ -61,13 +61,14 @@ struct MountDetailView: View {
 
 			if Utilities.isValidSharePoint(currentItem.source.expandingTildeInPath, runMode: .current) == false {
 				Image(systemName: "exclamationmark.shield.fill")
-					.font(.system(size: 12, weight: .semibold))
-					.foregroundStyle(.white).help("Folder is not in the sandbox")
+					.font(.system(size: 16, weight: .semibold))
+					.foregroundStyle(.red)
+					.help("Folder is not in the sandbox")
 			} else if currentItem.readOnly {
 				Image(systemName: "lock.fill")
-					.font(.system(size: 12, weight: .semibold))
-					.foregroundStyle(.white)
-					.foregroundStyle(.white).help("Mount is read only")
+					.font(.system(size: 16, weight: .semibold))
+					.foregroundStyle(.secondary)
+					.help("Mount is read only")
 			}
 		}
 		.padding(.vertical, 4)

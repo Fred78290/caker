@@ -881,9 +881,9 @@ extension VirtualMachineConfiguration {
 		attachedDisks.append(
 			contentsOf: self.attachedDisks.compactMap {
 				if Bundle.fileAccessRestricted {
-					let diskURL = URL(fileURLWithPath: $0.diskPath.expandingTildeInPath, relativeTo: self.locationURL)
+					let diskURL = URL(fileURLWithPath: $0.diskPath.expandingTildeInPath, relativeTo: self.locationURL).path(percentEncoded: false)
 
-					if Utilities.isSandboxedPath(diskURL, runMode: .current) == false {
+					if Utilities.isValidSharePoint(diskURL, runMode: .current) == false {
 						Logger(self).warn(".fileAccessRestricted is enabled, skipping additional disk attachment: \($0.description)")
 
 						return nil

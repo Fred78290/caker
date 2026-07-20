@@ -19,15 +19,25 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 	@Binding private var selection: Element?
 	@Binding private var disabled: Bool
 
-	init(selection: Binding<Element?>, disabled: Binding<Bool>, onEditItem: @escaping (Element?) -> SomeView, onDeleteItem: DeleteItemAction?) {
+	private let advisory: LocalizedStringKey?
+
+	init(_ advisory: LocalizedStringKey? = nil, selection: Binding<Element?>, disabled: Binding<Bool>, onEditItem: @escaping (Element?) -> SomeView, onDeleteItem: DeleteItemAction?) {
 		self.editItemClosure = onEditItem
 		self.deleteItem = onDeleteItem
+		self.advisory = advisory
 		self._selection = selection
 		self._disabled = disabled
 	}
 
 	func body(content: Content) -> some View {
 		VStack(spacing: 0) {
+			if let advisory = advisory, Bundle.isApplicationSandboxed {
+				Text(advisory)
+					.font(.caption)
+					.foregroundStyle(.secondary)
+				Spacer()
+			}
+
 			content
 			Divider()
 			HStack(spacing: 0) {
@@ -170,7 +180,7 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 }
 
 extension View {
-	func onEditItem<Element: Hashable>(selection: Binding<Element?>, disabled: Binding<Bool>, @ViewBuilder _ action: @escaping (Element?) -> some View, deleteItem: DeleteItemAction? = nil) -> some View {
-		modifier(OnEditItemListViewModifier(selection: selection, disabled: disabled, onEditItem: action, onDeleteItem: deleteItem))
+	func onEditItem<Element: Hashable>(_ advisory: LocalizedStringKey? = nil, selection: Binding<Element?>, disabled: Binding<Bool>, @ViewBuilder _ action: @escaping (Element?) -> some View, deleteItem: DeleteItemAction? = nil) -> some View {
+		modifier(OnEditItemListViewModifier(advisory, selection: selection, disabled: disabled, onEditItem: action, onDeleteItem: deleteItem))
 	}
 }

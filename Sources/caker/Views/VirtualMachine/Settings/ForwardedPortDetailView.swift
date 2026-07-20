@@ -6,6 +6,7 @@
 //
 
 import CakeAgentLib
+import CakedLib
 import GRPCLib
 import NIOPortForwarding
 import SwiftUI
@@ -244,6 +245,13 @@ struct ForwardedPortDetailView: View {
 			}
 
 			Spacer()
+
+			if model.mode == .unixDomainSocket, let hostPath = model.hostPath, Utilities.isSandboxedPath(hostPath, runMode: .current) == false {
+				Image(systemName: "exclamationmark.shield.fill")
+					.font(.system(size: 16, weight: .semibold))
+					.foregroundStyle(.red)
+					.help("socket path is not in the sandbox")
+			}
 
 			Text(model.selectedProtocol.rawValue.uppercased())
 				.font(.system(size: 11, weight: .medium))

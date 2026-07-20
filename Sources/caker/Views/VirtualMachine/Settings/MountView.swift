@@ -17,7 +17,7 @@ struct MountView: View {
 		GeometryReader { geometry in
 			EditableList($mounts, selection: $selection) { $item in
 				MountDetailView(currentItem: $item)
-			}.onEditItem(selection: $selection, disabled: $disabled) { editItem in
+			}.onEditItem("Shared folders must be in sandbox or Public, Documents, Downloads user folder to be mounted with caked command into virtual machine", selection: $selection, disabled: $disabled) { editItem in
 				MountNewItemView($mounts, editItem: editItem)
 			} deleteItem: {
 				self.mounts.removeAll {

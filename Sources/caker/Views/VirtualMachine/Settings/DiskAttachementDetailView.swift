@@ -41,24 +41,31 @@ struct DiskAttachementDetailView: View {
 					.foregroundStyle(.white)
 			}
 
-			Text(currentItem.diskPath)
+			Text(currentItem.diskPath.expandingTildeInPath)
 				.font(.system(size: 12, design: .monospaced))
 				.lineLimit(1)
 
 			Spacer()
 
 			HStack(spacing: 4) {
-				if currentItem.diskOptions.readOnly {
-					Text("ro")
-						.font(.system(size: 11, weight: .medium))
+				if Utilities.isValidSharePoint(currentItem.diskPath.expandingTildeInPath, runMode: .current) {
+					if currentItem.diskOptions.readOnly {
+						Text("ro")
+							.font(.system(size: 11, weight: .medium))
+							.foregroundStyle(.secondary)
+							.padding(.horizontal, 6)
+							.padding(.vertical, 2)
+							.background(Capsule().fill(.secondary.opacity(0.10)))
+					}
+					Text(currentItem.diskOptions.cachingMode)
+						.font(.system(size: 11))
 						.foregroundStyle(.secondary)
-						.padding(.horizontal, 6)
-						.padding(.vertical, 2)
-						.background(Capsule().fill(.secondary.opacity(0.10)))
+				} else {
+					Image(systemName: "exclamationmark.shield.fill")
+						.font(.system(size: 16, weight: .semibold))
+						.foregroundStyle(.red)
+						.help("Attached disk is not in the sandbox or is not in Public Documents Download user folder")
 				}
-				Text(currentItem.diskOptions.cachingMode)
-					.font(.system(size: 11))
-					.foregroundStyle(.secondary)
 			}
 		}
 		.padding(.vertical, 4)

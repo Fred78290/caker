@@ -18,7 +18,7 @@ struct DiskAttachementView: View {
 		GeometryReader { geometry in
 			EditableList($attachedDisks, selection: $selection) { $item in
 				DiskAttachementDetailView(currentItem: $item)
-			}.onEditItem(selection: $selection, disabled: $disabled) { editItem in
+			}.onEditItem("Attached disks must be in sandbox, or Public, Documents, Downloads user folder to be mounted with caked command into virtual machine", selection: $selection, disabled: $disabled) { editItem in
 				DiskAttachementNewItemView($attachedDisks, editItem: editItem)
 			} deleteItem: {
 				self.attachedDisks.removeAll {
