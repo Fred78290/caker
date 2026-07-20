@@ -5,7 +5,6 @@
 //  Created by Frederic BOLTZ on 20/07/2026.
 //
 
-import CakedLib
 import SwiftUI
 
 public struct SandboxLimitationsView: View {
