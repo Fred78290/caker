@@ -24,12 +24,15 @@
 	<key>com.apple.security.temporary-exception.files.home-relative-path.read-write</key>
 	<array>
 		<string>/Public/</string>
+		<string>/Downloads/</string>
+		<string>/Documents/</string>
 		<string>/Library/Application Scripts/com.aldunelabs.caker/</string>
 	</array>
 	<key>com.apple.security.temporary-exception.files.absolute-path.read-only</key>
 	<array>
 		<string>/var/root/Library/Application Support/multipassd/</string>
 		<string>/Library/Preferences/VMware Fusion/</string>
+		<string>/var/db/dhcpd_leases</string>
 	</array>
 	<key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
 	<array>
