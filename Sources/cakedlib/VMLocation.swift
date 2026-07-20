@@ -788,9 +788,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 	public func waitIP(config: CakeConfig, wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		if startedProcess == nil {
-            if case .running = self.status {
-                // ok
-            } else {
+            guard case .running = self.status else {
                 throw ServiceError(String(localized: "VM \(name) is not running"))
             }
 		}
