@@ -10,5 +10,6 @@
 - [Command Summary](command-summary)
 - [Compose](compose)
 - [IMDS](imds)
+- [Sandbox](sandbox)
 - [Cheat Sheet](cheat-sheet)
 - [Privacy policy](privacy-policy)
