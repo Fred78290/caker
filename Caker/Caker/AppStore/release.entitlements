@@ -27,6 +27,7 @@
 		<string>/Downloads/</string>
 		<string>/Documents/</string>
 		<string>/Library/Application Scripts/com.aldunelabs.caker/</string>
+		<string>/.docker/</string>
 	</array>
 	<key>com.apple.security.temporary-exception.files.absolute-path.read-only</key>
 	<array>

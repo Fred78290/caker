@@ -32,6 +32,7 @@
 		<string>/Public/</string>
 		<string>/Downloads/</string>
 		<string>/Documents/</string>
+		<string>/.docker/</string>
 	</array>
 	<key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
 	<array>
