@@ -816,9 +816,7 @@ extension URL: Purgeable {
 		var pathd: [String?] = []
 
 		if let content = try? String(contentsOfFile: "/etc/paths.d/com.aldunelabs.caker", encoding: .utf8) {
-			pathd.append(contentsOf: content.split(separator: "\n").map {
-				String($00)
-			})
+			pathd.append(contentsOf: content.split(whereSeparator: \.isNewline).map(String.init))
 		}
 
 		pathd.append(contentsOf: [
