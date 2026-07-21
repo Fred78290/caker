@@ -13,7 +13,7 @@ struct AdvancedSettingsView: View {
 	private static let noneNetwork = "none"
 	private static let imdsFirewallCommand = #"sudo sh -c 'echo "rdr pass inet proto tcp from any to 169.254.169.254 -> 192.168.169.1" > /etc/pf.anchors/caker-alias && echo "load anchor \"com.apple/caker-alias\" from \"/etc/pf.anchors/caker-alias\"" >> /etc/pf.conf && pfctl -e -f /etc/pf.conf'"#
 
-	@AppStorage(CakedKeyConfig.imdsEnabled.rawValue, store: .shared) var awsEC2MetadataEnabled: Bool = false
+	@AppStorage(CakedKeyConfig.imdsEnabled.rawValue, store: .shared) var awsEC2MetadataEnabled: Bool = true
 
 	@State private var bridgedNetwork: String
 	@State private var primaryName: String
