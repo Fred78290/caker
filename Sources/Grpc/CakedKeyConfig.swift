@@ -36,40 +36,80 @@ public enum CakedKeyConfig: String, CaseIterable {
 		return UserDefaults.shared.removeObject(forKey: self.rawValue)
 	}
 
-	public func string() -> String? {
+	public func string(_ defaultValue: String? = nil) -> String? {
+		guard self.exists() else {
+			return defaultValue
+		}
+
 		return UserDefaults.shared.string(forKey: self.rawValue)
 	}
 
-	public func array() -> [Any]? {
+	public func array(_ defaultValue: [Any]? = nil) -> [Any]? {
+		guard self.exists() else {
+			return defaultValue
+		}
+
 		return UserDefaults.shared.array(forKey: self.rawValue)
 	}
 	
-	public func dictionary() -> [String : Any]? {
+	public func dictionary(_ defaultValue: [String : Any]? = nil) -> [String : Any]? {
+		guard self.exists() else {
+			return defaultValue
+		}
+
 		return UserDefaults.shared.dictionary(forKey: self.rawValue)
 	}
 
-	public func data() -> Data? {
+	public func data(_ defaultValue: Data? = nil) -> Data? {
+		guard self.exists() else {
+			return defaultValue
+		}
+
 		return UserDefaults.shared.data(forKey: self.rawValue)
 	}
 	
-	public func stringArray() -> [String]? {
+	public func stringArray(_ defaultValue: [String]? = nil) -> [String]? {
+		guard self.exists() else {
+			return defaultValue
+		}
+
 		return UserDefaults.shared.stringArray(forKey: self.rawValue)
 	}
 
-	public func integer() -> Int {
+	public func integer(_ defaultValue: Int = 0) -> Int {
+		guard self.exists() else {
+			return defaultValue
+		}
+
 		return UserDefaults.shared.integer(forKey: self.rawValue)
 	}
 	
-	public func float() -> Float {
+	public func float(_ defaultValue: Float = 0.0) -> Float {
+		guard self.exists() else {
+			return defaultValue
+		}
+
 		return UserDefaults.shared.float(forKey: self.rawValue)
 	}
 	
-	public func double() -> Double {
+	public func double(_ defaultValue: Double = 0.0) -> Double {
+		guard self.exists() else {
+			return defaultValue
+		}
+
 		return UserDefaults.shared.double(forKey: self.rawValue)
 	}
 	
-	public func bool() -> Bool {
+	public func bool(_ defaultValue: Bool = false) -> Bool {
+		guard self.exists() else {
+			return defaultValue
+		}
+
 		return UserDefaults.shared.bool(forKey: self.rawValue)
 	}
-}
 
+    /// Returns true if a value exists for this key in UserDefaults.shared
+    public func exists() -> Bool {
+        return UserDefaults.shared.object(forKey: self.rawValue) != nil
+    }
+}

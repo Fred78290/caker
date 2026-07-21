@@ -344,7 +344,7 @@ public class IMDSNetworkInterface: SharedNetworkInterface {
 
 	public static var imdsEnabled: Bool {
 		get {
-			return CakedKeyConfig.imdsEnabled.bool()
+			return CakedKeyConfig.imdsEnabled.bool(true)
 		}
 		set {
 			CakedKeyConfig.imdsEnabled.set(newValue)
