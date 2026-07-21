@@ -108,8 +108,8 @@ public enum CakedKeyConfig: String, CaseIterable {
 		return UserDefaults.shared.bool(forKey: self.rawValue)
 	}
 
-    /// Returns true if a value exists for this key in UserDefaults.shared
-    public func exists() -> Bool {
-        return UserDefaults.shared.object(forKey: self.rawValue) != nil
-    }
+	/// Returns true if a value exists for this key in UserDefaults.shared
+	public func exists() -> Bool {
+		UserDefaults.shared.object(forKey: self.rawValue) != nil
+	}
 }
