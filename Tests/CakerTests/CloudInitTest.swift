@@ -4,6 +4,7 @@ import NIOCore
 import NIOPortForwarding
 import NIOPosix
 import XCTest
+import System
 
 @testable import CakedLib
 @testable import GRPCLib
@@ -66,6 +67,35 @@ let userData =
 
 let uuid = UUID().uuidString.split(separator: "-").last!
 
+struct ImdsHelper {
+	static var imdsEnabled: Bool {
+		get {
+			do {
+				let value = try Shell.exec(FilePath(Bundle.main.caked().path(percentEncoded: false)), arguments: ["get", "client.imds-enabled"])
+				
+				if let value = Int(value) {
+					return value != 0
+				}
+				
+				return Bool(value) ?? true
+			} catch {
+				Logger(self).error("Failed to get client.imds-enabled, \(error)")
+				return true
+			}
+		}
+		set {
+			IMDSNetworkInterface.imdsEnabled = newValue
+
+			do {
+				_ = try Shell.exec(FilePath(Bundle.main.caked().path(percentEncoded: false)), arguments: ["set", "client.imds-enabled=\(newValue)"])
+			} catch {
+				Logger(self).error("Failed to set client.imds-enabled=\(newValue), \(error)")
+			}
+		}
+	}
+
+}
+
 final class CloudInitTests: XCTestCase {
 	let networkConfigPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("network-config.yaml").absoluteURL
 	let userDataPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("user-data.yaml").absoluteURL
@@ -76,10 +106,13 @@ final class CloudInitTests: XCTestCase {
 	let noble_lxd_image = "noble-lxd-\(uuid)"
 	let noble_cloud_image = "noble-cloud-\(uuid)"
 	let noble_must_fail_image = "noble-must-fail"
+	let imdsWasEnabled = ImdsHelper.imdsEnabled
 
 	override func setUp() {
 		do {
 			Logger.setLevel(.debug)
+
+			ImdsHelper.imdsEnabled = false
 
 			var networkconfig = networkConfig
 			let sharedNetAddress = try CloudInitTests.getSharedNetAddress().split(separator: ".")
@@ -98,6 +131,8 @@ final class CloudInitTests: XCTestCase {
 	override func tearDown() {
 		let names = [noble_cloud_image, noble_qcow2_image, noble_oci_image, noble_container_image, noble_lxd_image, noble_must_fail_image]
 		let storageLocation: StorageLocation = StorageLocation(runMode: .user)
+
+		ImdsHelper.imdsEnabled = imdsWasEnabled
 
 		for name in names {
 			if storageLocation.exists(name) {
