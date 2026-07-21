@@ -813,8 +813,15 @@ extension URL: Purgeable {
 		}
 
 		let main = Bundle.main
+		var pathd: [String?] = []
 
-		let pathd = [
+		if let content = try? String(contentsOfFile: "/etc/paths.d/com.aldunelabs.caker", encoding: .utf8) {
+			pathd.append(contentsOf: content.split(separator: "\n").map {
+				String($00)
+			})
+		}
+
+		pathd.append(contentsOf: [
 			main.cakedBundlePath,
 			main.builtInPlugInsPath,
 			main.privateFrameworksPath,
@@ -822,8 +829,8 @@ extension URL: Purgeable {
 			main.sharedSupportPath,
 			main.resourcePath,
 			ProcessInfo.processInfo.environment["PATH"],
-			"/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin",
-		]
+			"/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin"
+		])
 
 		return pathd.compactMap {
 			guard let path = $0 else {
