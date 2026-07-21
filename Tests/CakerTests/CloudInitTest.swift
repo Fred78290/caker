@@ -106,14 +106,22 @@ final class CloudInitTests: XCTestCase {
 	let noble_lxd_image = "noble-lxd-\(uuid)"
 	let noble_cloud_image = "noble-cloud-\(uuid)"
 	let noble_must_fail_image = "noble-must-fail"
-	let imdsWasEnabled = ImdsHelper.imdsEnabled
+	static var imdsWasEnabled: Bool = true
+
+	override class func setUp() {
+		super.setUp()
+		imdsWasEnabled = ImdsHelper.imdsEnabled
+		ImdsHelper.imdsEnabled = false
+	}
+
+	override class func tearDown() {
+		ImdsHelper.imdsEnabled = imdsWasEnabled
+		super.tearDown()
+	}
 
 	override func setUp() {
 		do {
 			Logger.setLevel(.debug)
-
-			ImdsHelper.imdsEnabled = false
-
 			var networkconfig = networkConfig
 			let sharedNetAddress = try CloudInitTests.getSharedNetAddress().split(separator: ".")
 			let sharedNetAddressStr = "\(sharedNetAddress[0]).\(sharedNetAddress[1]).\(sharedNetAddress[2]).10"
