@@ -553,7 +553,6 @@
           }
         }
       }
-    }
     },
     "a CA certificate is required when TLS is enabled without a password" : {
       "extractionState" : "manual",
