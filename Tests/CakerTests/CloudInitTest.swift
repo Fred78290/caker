@@ -140,7 +140,6 @@ final class CloudInitTests: XCTestCase {
 		let names = [noble_cloud_image, noble_qcow2_image, noble_oci_image, noble_container_image, noble_lxd_image, noble_must_fail_image]
 		let storageLocation: StorageLocation = StorageLocation(runMode: .user)
 
-		ImdsHelper.imdsEnabled = imdsWasEnabled
 
 		for name in names {
 			if storageLocation.exists(name) {
