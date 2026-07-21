@@ -41,7 +41,6 @@ struct VirtualMachineSettingsView: View {
 	@State var userPassword: String
 	@State var noRootDisk: Bool
 	@State var mountPoints: MountPoints
-	@State var diskSizeValueIsInvalid = false
 	@State var diskSizeInGiB: Int
 
 	private let initialDiskSize: Int
@@ -122,7 +121,7 @@ struct VirtualMachineSettingsView: View {
 						.frame(width: 80)
 				}
 				.buttonStyle(.borderedProminent)
-				.disabled(self.configChanged == false || diskSizeValueIsInvalid)
+				.disabled(self.configChanged == false)
 			}
 			.padding(.horizontal, 16)
 			.padding(.vertical, 12)
@@ -286,12 +285,11 @@ struct VirtualMachineSettingsView: View {
 					TextField(String.empty, value: $diskSizeInGiB, format: range)
 						.rounded(.center)
 						.frame(width: 50)
-						.foregroundStyle(diskSizeValueIsInvalid ? Color.red : Color.primary)
 						.onChange(of: self.diskSizeInGiB) { _, newValue in
 							let minDisk = max(self.initialDiskSize, self.config.source == .ipsw ? 40 : 5)
 							let clamped = min(max(newValue, minDisk), 2048)
+
 							self.diskSizeInGiB = clamped
-							self.diskSizeValueIsInvalid = false
 							config.diskSizeInGiB = UInt64(clamped)
 						}
 				}
