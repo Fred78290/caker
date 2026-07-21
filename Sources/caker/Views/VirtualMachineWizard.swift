@@ -678,9 +678,15 @@ struct VirtualMachineWizard: View {
 				HStack {
 					Text("CPU count")
 					Spacer()
-					Text(config.cpuCount == 1 ? "1 core" : "\(config.cpuCount) cores")
-						.monospacedDigit()
-						.foregroundStyle(Color.secondary)
+					if config.cpuCount == 1 {
+						Text("1 core")
+							.monospacedDigit()
+							.foregroundStyle(Color.secondary)
+					} else {
+						Text("\(config.cpuCount) cores")
+							.monospacedDigit()
+							.foregroundStyle(Color.secondary)
+					}
 				}
 				VStack {
 					Slider(
