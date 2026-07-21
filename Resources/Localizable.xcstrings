@@ -549,10 +549,11 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "1 cœurs"
+            "value" : "1 cœur"
           }
         }
       }
+    }
     },
     "a CA certificate is required when TLS is enabled without a password" : {
       "extractionState" : "manual",
