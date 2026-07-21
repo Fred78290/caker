@@ -1141,7 +1141,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le disque joint n'est pas dans le bac à sable ou n'est pas dans le dossier utilisateur de téléchargement de documents publics"
+            "value" : "Le disque additionel n'est pas dans le container d’application ou n'est pas dans les dossiers utilisateur Public, Documents out Téléchargements"
           }
         }
       }
@@ -1153,7 +1153,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les disques attachés doivent être dans le bac à sable, ou public, documents, dossier utilisateur de téléchargements à monter avec la commande caked dans la machine virtuelle"
+            "value" : "Les disques additionnels doivent être dans le container d’application, ou dans le dossier utilisateur Public, Documents, ou Téléchargements pour être montés dans la machine virtuelle avec la commande caked"
           }
         }
       }
@@ -2056,6 +2056,7 @@
       }
     },
     "Check for Updates…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -4884,7 +4885,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le dossier n'est pas dans le bac à sable"
+            "value" : "Le dossier n'est pas dans le container d’application"
           }
         }
       }
@@ -5477,7 +5478,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le chemin hôte n'est pas dans le bac à sable"
+            "value" : "Le chemin hôte n'est pas dans le container d’application"
           }
         }
       }
@@ -7121,7 +7122,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Localiser le bac à sable"
+            "value" : "Localiser le container d’application"
           }
         }
       }
@@ -12410,7 +12411,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les dossiers partagés doivent être dans le bac à sable ou le dossier utilisateur Public, Documents, Téléchargements à monter avec la commande caked dans la machine virtuelle"
+            "value" : "Les dossiers partagés doivent être dans le container d’application ou dans le dossier utilisateur Public, Documents, Téléchargements pour être montés dans la machine virtuelle avec la commande caked"
           }
         }
       }
@@ -12796,7 +12797,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le chemin du socket n'est pas dans le bac à sable"
+            "value" : "Le chemin du socket n'est pas dans le container d’application"
           }
         }
       }
@@ -12825,7 +12826,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le chemin du socket doit être dans le bac à sable et doit comporter moins de 103 caractères pour être utilisable avec la commande caked"
+            "value" : "Le chemin du socket doit être dans le container d’application et doit comporter moins de 103 caractères pour être utilisable avec la commande caked"
           }
         }
       }
@@ -12837,7 +12838,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le chemin du socket doit être dans le bac à sable et doit être inférieur à 103 caractères pour être utilisable avec la commande caked"
+            "value" : "Le chemin du socket doit être dans le container d’application et doit être inférieur à 103 caractères pour être utilisable avec la commande caked"
           }
         }
       }
