@@ -287,9 +287,11 @@ struct VirtualMachineSettingsView: View {
 						.rounded(.center)
 						.frame(width: 50)
 						.foregroundStyle(diskSizeValueIsInvalid ? Color.red : Color.primary)
-						.onChange(of: self.diskSizeInGiB) { oldValue, newValue in
-							let clamped = max(newValue, self.config.source == .ipsw ? 40 : 5)
-							self.diskSizeValueIsInvalid = clamped != newValue
+						.onChange(of: self.diskSizeInGiB) { _, newValue in
+							let minDisk = max(self.initialDiskSize, self.config.source == .ipsw ? 40 : 5)
+							let clamped = min(max(newValue, minDisk), 2048)
+							self.diskSizeInGiB = clamped
+							self.diskSizeValueIsInvalid = false
 							config.diskSizeInGiB = UInt64(clamped)
 						}
 				}
