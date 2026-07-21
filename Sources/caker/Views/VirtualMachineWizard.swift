@@ -364,7 +364,6 @@ struct VirtualMachineWizard: View {
 	@State private var config: VirtualMachineConfig
 	@State private var currentTab: Int = 0
 	@State private var model: VirtualMachineWizardStateObject
-	@State private var memoryValueIsInvalid = false
 	@State private var diskSizeValueIsInvalid = false
 
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
@@ -671,41 +670,77 @@ struct VirtualMachineWizard: View {
 	func cpuCountAndMemoryView() -> some View {
 		Section("CPU & Memory") {
 			let cpuRange: ClosedRange<UInt16> = 1...UInt16(System.coreCount)
-			let totalMemoryRange: ClosedRange<UInt64> = 1...ProcessInfo().physicalMemory / MiB
+			let memoryLowerBound: UInt64 = config.source == .ipsw ? 4096 : 512
+			let memoryUpperBound: UInt64 = max(memoryLowerBound, ProcessInfo().physicalMemory / MoB)
+			let totalMemoryRange: ClosedRange<UInt64> = memoryLowerBound...memoryUpperBound
 
-			Picker("CPU count", selection: $config.cpuCount) {
-				ForEach(cpuRange, id: \.self) { cpu in
-					if cpu == 1 {
-						Text("\(cpu) core").tag(cpu)
+			VStack(alignment: .leading, spacing: 4) {
+				HStack {
+					Text("CPU count")
+					Spacer()
+					if config.cpuCount == 1 {
+						Text("1 core")
+							.monospacedDigit()
+							.foregroundStyle(Color.secondary)
 					} else {
-						Text("\(cpu) cores").tag(cpu)
+						Text("\(config.cpuCount) cores")
+							.monospacedDigit()
+							.foregroundStyle(Color.secondary)
 					}
 				}
-			}
-			.menuStyle(.button)
-			.pickerStyle(.menu)
-			.disabled(self.model.createVM)
-
-			HStack {
-				Text("Memory size")
-				Spacer()
-				HStack {
-					TextField(String.empty, value: $config.memorySizeInMoB, format: .number)
-						.rounded(.center)
-						.frame(width: 60)
-						.disabled(self.model.createVM)
-						.foregroundStyle(memoryValueIsInvalid ? Color.red : Color.primary)
-						.onChange(of: config.memorySizeInMoB) { oldValue, newValue in
-							let clamped = min(max(newValue, config.source == .ipsw ? 4096 : 512), 65535)
-							memoryValueIsInvalid = clamped != newValue
-						}
-					Stepper(value: $config.memorySizeInMoB, in: totalMemoryRange, step: 1) {
-
+				VStack {
+					Slider(
+						value: Binding(
+							get: { Double($config.cpuCount.wrappedValue) },
+							set: { $config.cpuCount.wrappedValue = UInt16($0.rounded()) }
+						),
+						in: Double(cpuRange.lowerBound)...Double(cpuRange.upperBound),
+						step: 1
+					) {
+						Text("CPU count")
 					}
 					.labelsHidden()
 					.disabled(self.model.createVM)
+					HStack {
+						Text("\(cpuRange.lowerBound)").font(.caption).foregroundStyle(Color.secondary)
+						Spacer()
+						Text("\(cpuRange.upperBound)").font(.caption).foregroundStyle(Color.secondary)
+					}
 				}
 			}
+			.padding(.vertical, 2)
+
+			VStack(alignment: .leading, spacing: 4) {
+				HStack {
+					Text("Memory size")
+					Spacer()
+					Text(ByteCountFormatter.string(fromByteCount: Int64(config.memorySize), countStyle: .memory))
+						.monospacedDigit()
+						.foregroundStyle(Color.secondary)
+				}
+				VStack {
+					Slider(
+						value: Binding(
+							get: { Double($config.memorySizeInMoB.wrappedValue) },
+							set: { $config.memorySizeInMoB.wrappedValue = UInt64($0.rounded()) }
+						),
+						in: Double(totalMemoryRange.lowerBound)...Double(totalMemoryRange.upperBound),
+						step: 256
+					) {
+						Text("Memory size")
+					}
+					.labelsHidden()
+					.disabled(self.model.createVM)
+					HStack {
+						Text(ByteCountFormatter.string(fromByteCount: Int64(totalMemoryRange.lowerBound * MoB), countStyle: .memory))
+							.font(.caption).foregroundStyle(Color.secondary)
+						Spacer()
+						Text(ByteCountFormatter.string(fromByteCount: Int64(totalMemoryRange.upperBound * MoB), countStyle: .memory))
+							.font(.caption).foregroundStyle(Color.secondary)
+					}
+				}
+			}
+			.padding(.vertical, 2)
 		}
 	}
 
