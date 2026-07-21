@@ -41,14 +41,17 @@ struct VirtualMachineSettingsView: View {
 	@State var userPassword: String
 	@State var noRootDisk: Bool
 	@State var mountPoints: MountPoints
-	@State var memoryValueIsInvalid = false
 	@State var diskSizeValueIsInvalid = false
+	@State var diskSizeInGiB: Int
 
+	private let initialDiskSize: Int
 
 	init() {
 		let document = try! VirtualMachineDocument.anyVirtualMachineDocument()
 		let config = document.virtualMachineConfig
 
+		self.initialDiskSize = Int(config.diskSizeInGiB)
+		self.diskSizeInGiB = Int(config.diskSizeInGiB)
 		self.document = document
 		self.config = config
 		self.userPassword = config.configuredPassword ?? String.empty
@@ -61,6 +64,8 @@ struct VirtualMachineSettingsView: View {
 	init(document: VirtualMachineDocument) {
 		let config = document.virtualMachineConfig
 
+		self.initialDiskSize = Int(config.diskSizeInGiB)
+		self.diskSizeInGiB = Int(config.diskSizeInGiB)
 		self.document = document
 		self.config = config
 		self.userPassword = config.configuredPassword ?? String.empty
@@ -117,13 +122,13 @@ struct VirtualMachineSettingsView: View {
 						.frame(width: 80)
 				}
 				.buttonStyle(.borderedProminent)
-				.disabled(self.configChanged == false || diskSizeValueIsInvalid || memoryValueIsInvalid)
+				.disabled(self.configChanged == false || diskSizeValueIsInvalid)
 			}
 			.padding(.horizontal, 16)
 			.padding(.vertical, 12)
 
 		}
-		.frame(height: 630)
+		.frame(minHeight: 630)
 		.onChange(of: config) { _, newValue in
 			self.configChanged = true
 		}
@@ -202,47 +207,84 @@ struct VirtualMachineSettingsView: View {
 	func cpuCountAndMemoryView() -> some View {
 		return Section(self.noRootDisk ? "CPU & Memory & Disk" : "CPU & Memory") {
 			let cpuRange: ClosedRange<UInt16> = 1...UInt16(System.coreCount)
-			let totalMemoryRange: ClosedRange<UInt64> = 1...ProcessInfo().physicalMemory / MiB
+			let memoryLowerBound: UInt64 = config.os == .darwin ? 4096 : 512
+			let memoryUpperBound: UInt64 = max(memoryLowerBound, ProcessInfo().physicalMemory / MoB)
+			let totalMemoryRange: ClosedRange<UInt64> = memoryLowerBound...memoryUpperBound
 
-			Picker("CPU count", selection: $config.cpuCount) {
-				ForEach(cpuRange, id: \.self) { cpu in
-					if cpu == 1 {
-						Text("\(cpu) core").tag(cpu)
-					} else {
-						Text("\(cpu) cores").tag(cpu)
+			VStack(alignment: .leading, spacing: 4) {
+				HStack {
+					Text("CPU count")
+					Spacer()
+					Text(config.cpuCount == 1 ? "1 core" : "\(config.cpuCount) cores")
+						.monospacedDigit()
+						.foregroundStyle(Color.secondary)
+				}
+				VStack {
+					Slider(
+						value: Binding(
+							get: { Double($config.cpuCount.wrappedValue) },
+							set: { $config.cpuCount.wrappedValue = UInt16($0.rounded()) }
+						),
+						in: Double(cpuRange.lowerBound)...Double(cpuRange.upperBound),
+						step: 1
+					) {
+						Text("CPU count")
+					}
+					.labelsHidden()
+					HStack {
+						Text("\(cpuRange.lowerBound)").font(.caption).foregroundStyle(Color.secondary)
+						Spacer()
+						Text("\(cpuRange.upperBound)").font(.caption).foregroundStyle(Color.secondary)
 					}
 				}
 			}
+			.padding(.vertical, 2)
 
-			HStack {
-				Text("Memory size")
-				Spacer()
+			VStack(alignment: .leading, spacing: 4) {
 				HStack {
-					TextField(String.empty, value: $config.memorySizeInMoB, format: .number /*.memory(.useGB)*/)
-						.rounded(.center)
-						.frame(width: 50)
-						.foregroundStyle(memoryValueIsInvalid ? Color.red : Color.primary)
-						.onChange(of: config.memorySizeInMoB) { oldValue, newValue in
-							let clamped = min(max(newValue, config.os == .darwin ? 4096 : 512), 65535)
-							memoryValueIsInvalid = clamped != newValue
-						}
-					Stepper(value: $config.memorySizeInMoB, in: totalMemoryRange, step: 1) {
-
-					}.labelsHidden()
+					Text("Memory size")
+					Spacer()
+					Text(ByteCountFormatter.string(fromByteCount: Int64(config.memorySize), countStyle: .memory))
+						.monospacedDigit()
+						.foregroundStyle(Color.secondary)
+				}
+				VStack {
+					Slider(
+						value: Binding(
+							get: { Double($config.memorySizeInMoB.wrappedValue) },
+							set: { $config.memorySizeInMoB.wrappedValue = UInt64($0.rounded()) }
+						),
+						in: Double(totalMemoryRange.lowerBound)...Double(totalMemoryRange.upperBound),
+						step: 256
+					) {
+						Text("Memory size")
+					}
+					.labelsHidden()
+					HStack {
+						Text(ByteCountFormatter.string(fromByteCount: Int64(totalMemoryRange.lowerBound * MoB), countStyle: .memory))
+							.font(.caption).foregroundStyle(Color.secondary)
+						Spacer()
+						Text(ByteCountFormatter.string(fromByteCount: Int64(totalMemoryRange.upperBound * MoB), countStyle: .memory))
+							.font(.caption).foregroundStyle(Color.secondary)
+					}
 				}
 			}
+			.padding(.vertical, 2)
 
 			if self.noRootDisk {
 				HStack {
+					let range = RangeIntegerStyle.ranged(Int(max(self.initialDiskSize, self.config.source == .ipsw ? 40 : 5))...2048)
+
 					Text("Disk size (GiB)")
 					Spacer()
-					TextField(String.empty, value: $config.diskSizeInGiB, format: .number)
+					TextField(String.empty, value: $diskSizeInGiB, format: range)
 						.rounded(.center)
 						.frame(width: 50)
 						.foregroundStyle(diskSizeValueIsInvalid ? Color.red : Color.primary)
-						.onChange(of: config.diskSizeInGiB) { oldValue, newValue in
+						.onChange(of: self.diskSizeInGiB) { oldValue, newValue in
 							let clamped = max(newValue, self.config.source == .ipsw ? 40 : 5)
 							self.diskSizeValueIsInvalid = clamped != newValue
+							config.diskSizeInGiB = UInt64(clamped)
 						}
 				}
 				if Bundle.isApplicationSandboxed && self.config.diskFormat == .asif && self.document.connectionManager.connectionMode != .app {
