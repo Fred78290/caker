@@ -736,7 +736,7 @@ public struct NetworksHandler {
 		let executableURL = try Bundle.main.caked()
 
 		var arguments = ["networks", "start", "--fork", networkName]
-		let process = try Bundle.createProcess()
+		let process = Process()
 		var runningArguments: [String]
 		let debug = Logger.Level() >= .debug
 		let logger = Logger(self)

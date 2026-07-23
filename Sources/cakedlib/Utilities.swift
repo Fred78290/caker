@@ -16,17 +16,17 @@ extension Date {
 }
 
 extension Bundle {
-	public static func createProcess() throws -> Process {
+	public static func createProcess(_ file: String = #file, line: Int = #line) throws -> Process {
 		guard Bundle.mustUseUnixTask == false else {
-			throw ServiceError("Process can't be used with sandboxed Caker")
+			throw ServiceError("Process can't be used with sandboxed Caker \(file):\(line)")
 		}
 
 		return Process()
 	}
 
-	public static func createProcessWithSharedFileHandle() throws -> ProcessWithSharedFileHandle {
+	public static func createProcessWithSharedFileHandle(_ file: String = #file, line: Int = #line) throws -> ProcessWithSharedFileHandle {
 		guard Bundle.mustUseUnixTask == false else {
-			throw ServiceError("ProcessWithSharedFileHandle can't be used with sandboxed Caker")
+			throw ServiceError("ProcessWithSharedFileHandle can't be used with sandboxed Caker \(file):\(line)")
 		}
 
 		return ProcessWithSharedFileHandle()
@@ -101,6 +101,14 @@ extension Bundle {
 	}
 
 	public func caked() throws -> URL {
+		if ProcessInfo.processInfo.processName.contains(Home.cakedCommandName) {
+			guard let executableURL = self.executableURL else {
+				throw ServiceError(String(localized: "caked not found in path"))
+			}
+
+			return executableURL
+		}
+
 		guard var pluginsURL = self.cakedBundleURL else {
 			guard let executableURL = self.executableURL, executableURL.path(percentEncoded: false).hasSuffix(Home.cakedCommandName) else {
 				guard let executableURL = URL.binary(Home.cakedCommandName) else {
@@ -124,6 +132,25 @@ extension Bundle {
 		}
 
 		return pluginsURL
+	}
+
+	public func cakedSandboxed() throws -> URL {
+		// My self
+		if ProcessInfo.processInfo.processName.contains(Home.cakedCommandName) {
+			guard let executableURL = self.executableURL else {
+				throw ServiceError(String(localized: "caked not found in path"))
+			}
+
+			return executableURL
+		}
+
+		let bundlesURL = self.bundleURL.appendingPathComponent("Contents/Library/Bundles/\(Home.cakedCommandName).bundle/Contents/MacOS/\(Home.cakedCommandName)")
+
+		guard try bundlesURL.exists() else {
+			throw ServiceError(String(localized: "caked not found in path"))
+		}
+
+		return bundlesURL
 	}
 
 	private static func buildScriptFile(_ executableURL: URL) throws -> URL {
@@ -153,6 +180,120 @@ extension Bundle {
 		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptsFile.path(percentEncoded: false))
 
 		return scriptsFile
+	}
+
+	public static func runExecutableWithProcess(
+		_ executableURL: URL,
+		with arguments: [String],
+		sudo: Bool = false,
+		standardInput: Any? = FileHandle.standardInput,
+		standardOutput: Any? = FileHandle.standardOutput,
+		standardError: Any? = FileHandle.standardError,
+		runMode: Utils.RunMode,
+		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
+	) throws {
+		var executableURL = executableURL
+		let process = Process()
+		var runningArguments: [String] = []
+
+		if sudo {
+			guard let sudoURL = URL.binary(SUDO) else {
+				throw ServiceError(String(localized: "sudo not found in path"))
+			}
+
+			guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
+				throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
+			}
+
+			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
+
+			if runMode.isSystem {
+				runningArguments.append("--system")
+			}
+
+			executableURL = sudoURL
+		}
+
+		runningArguments.append(contentsOf: arguments)
+
+		Logger(self).debug("Running: \(executableURL.path) \(runningArguments.joined(separator: " "))")
+
+		process.executableURL = executableURL
+		process.environment = try Utilities.environment(runMode: runMode)
+		process.arguments = runningArguments
+
+		process.standardOutput = standardOutput
+		process.standardError = standardError
+		process.standardInput = standardInput
+		process.terminationHandler = { process in
+			if let handler {
+				if process.terminationStatus == 0 {
+					handler(nil)
+				} else {
+					handler(NSError(domain: NSPOSIXErrorDomain, code: Int(process.terminationStatus), userInfo: [NSLocalizedDescriptionKey: process.terminationReason]))
+				}
+			}
+		}
+
+		try process.run()
+	}
+
+	public static func runExecutableWithProcess(
+		_ executableURL: URL,
+		with arguments: [String],
+		sudo: Bool = false,
+		sharedFileHandles: [FileHandle],
+		standardInput: Any? = FileHandle.standardInput,
+		standardOutput: Any? = FileHandle.standardOutput,
+		standardError: Any? = FileHandle.standardError,
+		runMode: Utils.RunMode,
+		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
+	) throws {
+		var executableURL = executableURL
+		let process = ProcessWithSharedFileHandle()
+		var runningArguments: [String] = []
+
+		if sudo {
+			guard let sudoURL = URL.binary(SUDO) else {
+				throw ServiceError(String(localized: "sudo not found in path"))
+			}
+
+			guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
+				throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
+			}
+
+			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
+
+			if runMode.isSystem {
+				runningArguments.append("--system")
+			}
+
+			executableURL = sudoURL
+		}
+
+		runningArguments.append(contentsOf: arguments)
+
+		Logger(self).debug("Running: \(executableURL.path) \(runningArguments.joined(separator: " "))")
+
+		process.executableURL = executableURL
+		process.environment = try Utilities.environment(runMode: runMode)
+		process.arguments = runningArguments
+
+		process.sharedFileHandles = sharedFileHandles
+		process.standardOutput = standardOutput
+		process.standardError = standardError
+		process.standardInput = standardInput
+		process.terminationHandler = { process in
+			if let handler {
+				if process.terminationStatus == 0 {
+					handler(nil)
+				} else {
+					handler(NSError(domain: NSPOSIXErrorDomain, code: Int(process.terminationStatus), userInfo: [NSLocalizedDescriptionKey: process.terminationReason]))
+				}
+			}
+		}
+
+		try process.run()
 	}
 
 	public static func runExecutableWithUnixTask(
@@ -226,7 +367,7 @@ extension Bundle {
 		#endif
 
 		do {
-			try Task.sync {
+			try withAsyncResult {
 				try await userTask.execute(withArguments: arguments)
 			}
 
@@ -236,36 +377,6 @@ extension Bundle {
 		}
 	}
 
-	public static func runCakedWithUnixTask(
-		with arguments: [String],
-		standardInput: Any? = FileHandle.standardInput,
-		standardOutput: Any? = FileHandle.standardOutput,
-		standardError: Any? = FileHandle.standardError,
-	) async throws {
-		try await runExecutableWithUnixTask(
-			Bundle.main.caked(),
-			with: arguments,
-			standardInput: standardInput,
-			standardOutput: standardOutput,
-			standardError: standardError)
-	}
-
-	public static func runCakedWithUnixTask(
-		with arguments: [String],
-		standardInput: Any? = FileHandle.standardInput,
-		standardOutput: Any? = FileHandle.standardOutput,
-		standardError: Any? = FileHandle.standardError,
-		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
-	) throws {
-		try runExecutableWithUnixTask(
-			Bundle.main.caked(),
-			with: arguments,
-			standardInput: standardInput,
-			standardOutput: standardOutput,
-			standardError: standardError,
-			completionHandler: handler)
-	}
-
 	public static func runExecutable(
 		_ executableURL: URL,
 		with arguments: [String],
@@ -281,52 +392,23 @@ extension Bundle {
 		}
 
 		if Bundle.mustUseUnixTask {
-			try runExecutableWithUnixTask(executableURL, with: arguments, standardInput: standardInput, standardOutput: standardOutput, standardError: standardError, completionHandler: handler)
+			try runExecutableWithUnixTask(
+				executableURL,
+				with: arguments,
+				standardInput: standardInput,
+				standardOutput: standardOutput,
+				standardError: standardError,
+				completionHandler: handler)
 		} else {
-			var executableURL = executableURL
-			let process = Process()
-			var runningArguments: [String] = []
-
-			if sudo {
-				guard let sudoURL = URL.binary(SUDO) else {
-					throw ServiceError(String(localized: "sudo not found in path"))
-				}
-
-				guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-					throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
-				}
-
-				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
-
-				if runMode.isSystem {
-					runningArguments.append("--system")
-				}
-
-				executableURL = sudoURL
-			}
-
-			runningArguments.append(contentsOf: arguments)
-
-			Logger(self).debug("Running: \(executableURL.path) \(runningArguments.joined(separator: " "))")
-
-			process.executableURL = executableURL
-			process.environment = try Utilities.environment(runMode: runMode)
-			process.arguments = runningArguments
-
-			process.standardOutput = standardOutput
-			process.standardError = standardError
-			process.standardInput = standardInput
-			process.terminationHandler = { process in
-				if let handler {
-					if process.terminationStatus == 0 {
-						handler(nil)
-					} else {
-						handler(NSError(domain: NSPOSIXErrorDomain, code: Int(process.terminationStatus), userInfo: [NSLocalizedDescriptionKey: process.terminationReason]))
-					}
-				}
-			}
-
-			try process.run()
+			try Self.runExecutableWithProcess(
+				executableURL,
+				with: arguments,
+				sudo: sudo,
+				standardInput: standardInput,
+				standardOutput: standardOutput,
+				standardError: standardError,
+				runMode: runMode,
+				completionHandler: handler)
 		}
 	}
 
@@ -346,53 +428,24 @@ extension Bundle {
 		}
 
 		if Bundle.mustUseUnixTask {
-			try runExecutableWithUnixTask(executableURL, with: arguments, standardInput: standardInput, standardOutput: standardOutput, standardError: standardError, completionHandler: handler)
+			try runExecutableWithUnixTask(
+				executableURL,
+				with: arguments,
+				standardInput: standardInput,
+				standardOutput: standardOutput,
+				standardError: standardError,
+				completionHandler: handler)
 		} else {
-			var executableURL = executableURL
-			let process = ProcessWithSharedFileHandle()
-			var runningArguments: [String] = []
-
-			if sudo {
-				guard let sudoURL = URL.binary(SUDO) else {
-					throw ServiceError(String(localized: "sudo not found in path"))
-				}
-
-				guard try SudoCaked.checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
-					throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
-				}
-
-				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
-
-				if runMode.isSystem {
-					runningArguments.append("--system")
-				}
-
-				executableURL = sudoURL
-			}
-
-			runningArguments.append(contentsOf: arguments)
-
-			Logger(self).debug("Running: \(executableURL.path) \(runningArguments.joined(separator: " "))")
-
-			process.executableURL = executableURL
-			process.environment = try Utilities.environment(runMode: runMode)
-			process.arguments = runningArguments
-
-			process.sharedFileHandles = sharedFileHandles
-			process.standardOutput = standardOutput
-			process.standardError = standardError
-			process.standardInput = standardInput
-			process.terminationHandler = { process in
-				if let handler {
-					if process.terminationStatus == 0 {
-						handler(nil)
-					} else {
-						handler(NSError(domain: NSPOSIXErrorDomain, code: Int(process.terminationStatus), userInfo: [NSLocalizedDescriptionKey: process.terminationReason]))
-					}
-				}
-			}
-
-			try process.run()
+			try Self.runExecutableWithProcess(
+				executableURL,
+				with: arguments,
+				sudo: sudo,
+				sharedFileHandles: sharedFileHandles,
+				standardInput: standardInput,
+				standardOutput: standardOutput,
+				standardError: standardError,
+				runMode: runMode,
+				completionHandler: handler)
 		}
 	}
 
@@ -405,15 +458,31 @@ extension Bundle {
 		runMode: Utils.RunMode,
 		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
 	) throws {
-		try runExecutable(
-			Bundle.main.caked(),
-			with: arguments,
-			sudo: sudo,
-			standardInput: standardInput,
-			standardOutput: standardOutput,
-			standardError: standardError,
-			runMode: runMode,
-			completionHandler: handler)
+		if Bundle.mustUseUnixTask {
+			var arguments = arguments
+			
+			arguments.append("--run-sandboxed")
+
+			try self.runExecutableWithProcess(
+				Bundle.main.cakedSandboxed(),
+				with: arguments,
+				sudo: sudo,
+				standardInput: standardInput,
+				standardOutput: standardOutput,
+				standardError: standardError,
+				runMode: runMode,
+				completionHandler: handler)
+		} else {
+			try runExecutable(
+				Bundle.main.caked(),
+				with: arguments,
+				sudo: sudo,
+				standardInput: standardInput,
+				standardOutput: standardOutput,
+				standardError: standardError,
+				runMode: runMode,
+				completionHandler: handler)
+		}
 	}
 
 	public static func runCaked(
@@ -426,16 +495,33 @@ extension Bundle {
 		runMode: Utils.RunMode,
 		completionHandler handler: NSUserUnixTask.CompletionHandler? = nil
 	) throws {
-		try runExecutable(
-			Bundle.main.caked(),
-			with: arguments,
-			sudo: sudo,
-			sharedFileHandles: sharedFileHandles,
-			standardInput: standardInput,
-			standardOutput: standardOutput,
-			standardError: standardError,
-			runMode: runMode,
-			completionHandler: handler)
+		if Bundle.mustUseUnixTask {
+			var arguments = arguments
+			
+			arguments.append("--run-sandboxed")
+
+			try self.runExecutableWithProcess(
+				Bundle.main.cakedSandboxed(),
+				with: arguments,
+				sudo: sudo,
+				sharedFileHandles: sharedFileHandles,
+				standardInput: standardInput,
+				standardOutput: standardOutput,
+				standardError: standardError,
+				runMode: runMode,
+				completionHandler: handler)
+		} else {
+			try runExecutable(
+				Bundle.main.caked(),
+				with: arguments,
+				sudo: sudo,
+				sharedFileHandles: sharedFileHandles,
+				standardInput: standardInput,
+				standardOutput: standardOutput,
+				standardError: standardError,
+				runMode: runMode,
+				completionHandler: handler)
+		}
 	}
 
 	@discardableResult public static func execSandboxed(_ command: FilePath, with arguments: [String], _ completion: Shell.ExecCompletion? = nil) throws -> String {
@@ -827,7 +913,7 @@ extension URL: Purgeable {
 			main.sharedSupportPath,
 			main.resourcePath,
 			ProcessInfo.processInfo.environment["PATH"],
-			"/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin"
+			"/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin",
 		])
 
 		return pathd.compactMap {

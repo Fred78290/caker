@@ -363,7 +363,7 @@ struct Networks: ParsableCommand {
 				let cakedExecutableURL = try Bundle.main.caked()
 
 				var arguments: [String] = ["networks", "start", "--fork", options.networkName]
-				let process = try Bundle.createProcess()
+				let process = Process()
 
 				if runMode.isSystem {
 					arguments.append("--system")
@@ -380,6 +380,7 @@ struct Networks: ParsableCommand {
 					Logger(self).debug("Process died: \(process.terminationStatus), \(process.terminationReason)")
 				}
 
+				Logger(self).info("Network \(networkName) will start")
 				try process.run()
 
 				sleep(1)
@@ -410,6 +411,8 @@ struct Networks: ParsableCommand {
 
 			return StartedNetworkReply(name: networkName, started: true, reason: String(localized: "Network \(networkName) started"))
 		} catch {
+			Logger(self).error("Network \(networkName) failed to start: \(error)")
+
 			return StartedNetworkReply(name: networkName, started: false, reason: error.reason)
 		}
 	}

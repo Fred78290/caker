@@ -99,7 +99,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 
 		try? socketURL.socket.delete()
 
-		try Bundle.runCakedWithUnixTask(with: arguments)
+		try Bundle.runCaked(with: arguments, runMode: runMode)
 
 		try socketURL.pidFile.waitPID()
 	}

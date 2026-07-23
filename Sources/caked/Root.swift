@@ -19,6 +19,9 @@ struct CommonOptions: ParsableArguments {
 	@Flag(help: ArgumentHelp(String(localized: "Emulate sandbox"), visibility: .hidden))
 	var sandbox: Bool = false
 
+	@Flag(name: [.customLong("run-sandboxed")], help: ArgumentHelp(String(localized: "Tell if caked run in sandbox"), visibility: .hidden))
+	var runSandboxed: Bool = false
+
 	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
 	
@@ -38,6 +41,10 @@ struct CommonOptions: ParsableArguments {
 		
 		if self.sandbox {
 			Bundle.isApplicationSandboxed = true
+		}
+
+		if self.runSandboxed {
+			Bundle.runInCaker = true
 		}
 
 		if let home = self.home {

@@ -91,11 +91,12 @@ extension StartHandler {
 
 		let vmName = location.name
 
-		try Bundle.runCakedWithUnixTask(
+		try Bundle.runCaked(
 			with: arguments,
 			standardInput: FileHandle.nullDevice,
 			standardOutput: standardOutput,
 			standardError: standardError,
+			runMode: runMode
 		) { error in
 			if let promise {
 				if let error {

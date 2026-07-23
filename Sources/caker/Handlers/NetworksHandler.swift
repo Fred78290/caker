@@ -71,9 +71,9 @@ extension NetworksHandler {
 
 			try? socketURL.socket.delete()
 
-			try Utilities.group.next().makeFutureWithTask {
-				try await Bundle.runCakedWithUnixTask(with: arguments)
-			}.wait()
+			try withAsyncResult {
+				try Bundle.runCaked(with: arguments, runMode: runMode)
+			}
 
 			try socketURL.pidFile.waitPID()
 
