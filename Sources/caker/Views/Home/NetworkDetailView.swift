@@ -167,21 +167,24 @@ struct NetworkDetailView: View {
 
 					if currentItem.running == false {
 						AsyncButton("Start network") { done in
+							let name = currentItem.name
 							networkActionRunning = true
-							let result = AppState.shared.startNetwork(networkName: self.currentItem.name)
+							Task.detached {
+								let result = AppState.shared.startNetwork(networkName: name)
 
-							await MainActor.run {
-								defer {
-									networkActionRunning = false
-									done()
-								}
+								await MainActor.run {
+									defer {
+										networkActionRunning = false
+										done()
+									}
 
-								if result.started == false {
-									alertError(String(localized: "Start network failed"), result.reason)
-								} else {
-									self.currentItem.endpoint = result.reason
-									self.currentItem.running = true
-									self.reloadNetwork = true
+									if result.started == false {
+										alertError(String(localized: "Start network failed"), result.reason)
+									} else {
+										self.currentItem.endpoint = result.reason
+										self.currentItem.running = true
+										self.reloadNetwork = true
+									}
 								}
 							}
 						}
