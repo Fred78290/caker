@@ -54,8 +54,8 @@ struct TartImporter: Importer {
 
 		let url = tartHomeDir.appendingPathComponent("vms", isDirectory: true).appendingPathComponent(source, isDirectory: true)
 
-		guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory), isDirectory.boolValue else {
-			throw ServiceError(String(localized: "No Tart virtual machine named \"\(source)\" found in \(tartHomeDir.appendingPathComponent("vms", isDirectory: true).path)"))
+		guard FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory), isDirectory.boolValue else {
+			throw ServiceError(String(localized: "No Tart virtual machine named \"\(source)\" found in \(tartHomeDir.appendingPathComponent("vms", isDirectory: true).path(percentEncoded: false))"))
 		}
 
 		return url
@@ -68,11 +68,11 @@ struct TartImporter: Importer {
 		let nvramURL = vmDir.appendingPathComponent("nvram.bin")
 
 		guard try configURL.exists() else {
-			throw ServiceError(String(localized: "config.json not found in \(vmDir.path)"))
+			throw ServiceError(String(localized: "config.json not found in \(vmDir.path(percentEncoded: false))"))
 		}
 
 		guard try diskURL.exists() else {
-			throw ServiceError(String(localized: "disk.img not found in \(vmDir.path)"))
+			throw ServiceError(String(localized: "disk.img not found in \(vmDir.path(percentEncoded: false))"))
 		}
 
 		let tartConfig = try JSONDecoder().decode(TartVMConfig.self, from: try Data(contentsOf: configURL))
@@ -80,7 +80,7 @@ struct TartImporter: Importer {
 		let diskFormat = SupportedDiskFormat(argument: tartConfig.diskFormat ?? "raw") ?? .raw
 		let config = CakeConfig(
 			location: location.rootURL,
-			rootDisk: copyDisk ? nil : diskURL.absoluteURL.path,
+			rootDisk: copyDisk ? nil : diskURL.absoluteURL.path(percentEncoded: false),
 			diskFormat: diskFormat,
 			os: os,
 			autostart: false,
@@ -111,11 +111,11 @@ struct TartImporter: Importer {
 		if os == .darwin {
 			#if arch(arm64)
 				guard let encodedECID = tartConfig.ecid, let ecidData = Data(base64Encoded: encodedECID), let ecid = VZMacMachineIdentifier(dataRepresentation: ecidData) else {
-					throw ServiceError(String(localized: "Invalid or missing machine identifier (ecid) in \(configURL.path)"))
+					throw ServiceError(String(localized: "Invalid or missing machine identifier (ecid) in \(configURL.path(percentEncoded: false))"))
 				}
 
 				guard let encodedHardwareModel = tartConfig.hardwareModel, let hardwareModelData = Data(base64Encoded: encodedHardwareModel), let hardwareModel = VZMacHardwareModel(dataRepresentation: hardwareModelData) else {
-					throw ServiceError(String(localized: "Invalid or missing hardware model in \(configURL.path)"))
+					throw ServiceError(String(localized: "Invalid or missing hardware model in \(configURL.path(percentEncoded: false))"))
 				}
 
 				guard hardwareModel.isSupported else {
@@ -140,10 +140,10 @@ struct TartImporter: Importer {
 		}
 
 		if copyDisk {
-			logger.info("Copying Tart disk image \(diskURL.path) to \(location.diskURL.path)")
+			logger.info("Copying Tart disk image \(diskURL.path(percentEncoded: false)) to \(location.diskURL.path(percentEncoded: false))")
 			try FileManager.default.copyItem(at: diskURL, to: location.diskURL)
 		} else {
-			logger.info("Referencing Tart disk image in place at \(diskURL.path)")
+			logger.info("Referencing Tart disk image in place at \(diskURL.path(percentEncoded: false))")
 		}
 
 		try config.save()

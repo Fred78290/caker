@@ -30,11 +30,11 @@ final class RestoreLog: @unchecked Sendable {
         if let handle = _fileHandle {
             return handle
         }
-        if !FileManager.default.fileExists(atPath: fileURL.path) {
-            FileManager.default.createFile(atPath: fileURL.path, contents: nil)
+        if !FileManager.default.fileExists(atPath: fileURL.path(percentEncoded: false)) {
+            FileManager.default.createFile(atPath: fileURL.path(percentEncoded: false), contents: nil)
         }
         let handle = try FileHandle(forReadingFrom: fileURL)
-        logger.info("Opened file handle at \(fileURL.path)")
+        logger.info("Opened file handle at \(fileURL.path(percentEncoded: false))")
         _fileHandle = handle
         return handle
     }

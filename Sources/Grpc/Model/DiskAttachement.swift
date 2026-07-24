@@ -194,7 +194,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 	}
 
 	public init(diskPath: URL, readOnly: Bool = true) {
-		self.diskPath = diskPath.absoluteURL.path
+		self.diskPath = diskPath.absoluteURL.path(percentEncoded: false)
 		self.diskOptions = .init(readOnly: readOnly, syncMode: "none", cachingMode: VZDiskImageCachingMode.uncached.description)
 	}
 
@@ -227,7 +227,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		}
 
 		let diskURL = URL(fileURLWithPath: self.diskPath.expandingTildeInPath, relativeTo: relativeTo).absoluteURL
-		let diskPath = diskURL.path
+		let diskPath = diskURL.path(percentEncoded: false)
 
 		if FileManager.default.fileExists(atPath: diskPath) == false {
 			throw ValidationError(String(localized: "disk \(diskPath) does not exist"))
@@ -262,7 +262,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		}
 
 		if try self.diskOptions.readOnly == false && !FileLock(lockURL: diskURL).trylock() {
-			throw ValidationError(String(localized: "disk \(diskURL.path) seems to be already in use, unmount it first in Finder"))
+			throw ValidationError(String(localized: "disk \(diskURL.path(percentEncoded: false)) seems to be already in use, unmount it first in Finder"))
 		}
 
 		let diskImageAttachment = try VZDiskImageStorageDeviceAttachment(

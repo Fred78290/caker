@@ -763,11 +763,11 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 		do {
 			let pathsFile = URL(fileURLWithPath: "/etc/paths.d/com.aldunelabs.caker")
-			let needsPathsFile = FileManager.default.fileExists(atPath: pathsFile.path) == false
+			let needsPathsFile = FileManager.default.fileExists(atPath: pathsFile.path(percentEncoded: false)) == false
 
 			#if !APPSTORE
 				let sudoersFile = URL(fileURLWithPath: "/etc/sudoers.d/caked")
-				let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path) == false
+				let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path(percentEncoded: false)) == false
 
 				guard needsPathsFile || needsSudoersFile else { return }
 			#else
@@ -968,12 +968,12 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 			try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
 
-			logger.debug(try Shell.command("/usr/bin/install", arguments: ["-o", "root", "-g", "wheel", "-m", mode, temporaryFile.path, destination.path]))
+			logger.debug(try Shell.command("/usr/bin/install", arguments: ["-o", "root", "-g", "wheel", "-m", mode, temporaryFile.path(percentEncoded: false), destination.path(percentEncoded: false)]))
 		} else {
 			result.append(contentsOf: [
-				"/usr/bin/install -d -m 755 \(parent.path)",
-				"/usr/bin/install -o root -g wheel -m \(mode) \(temporaryFile.path) \(destination.path)",
-				"rm -f \(temporaryFile.path)",
+				"/usr/bin/install -d -m 755 \(parent.path(percentEncoded: false))",
+				"/usr/bin/install -o root -g wheel -m \(mode) \(temporaryFile.path(percentEncoded: false)) \(destination.path(percentEncoded: false))",
+				"rm -f \(temporaryFile.path(percentEncoded: false))",
 			])
 		}
 
@@ -1028,7 +1028,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 	private static func runPrivileged(_ commands: [String]) throws -> String {
 		let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString).sh")
-		let appleScript = "do shell script \"\(temporaryFile.path)\" with administrator privileges"
+		let appleScript = "do shell script \"\(temporaryFile.path(percentEncoded: false))\" with administrator privileges"
 
 		try commands.joined(separator: "\n").write(to: temporaryFile, atomically: true, encoding: .utf8)
 
@@ -1036,7 +1036,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			try? FileManager.default.removeItem(at: temporaryFile)
 		}
 
-		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: temporaryFile.path)
+		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: temporaryFile.path(percentEncoded: false))
 		return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
 	}
 
@@ -1048,7 +1048,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		let scriptsDir = try FileManager.default.url(for: .applicationScriptsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
 		let scriptURL = scriptsDir.appendingPathComponent("PrivilegedBootstrap.applescript")
 
-		if FileManager.default.fileExists(atPath: scriptURL.path) {
+		if FileManager.default.fileExists(atPath: scriptURL.path(percentEncoded: false)) {
 			try FileManager.default.removeItem(at: scriptURL)
 		}
 		try FileManager.default.copyItem(at: bundledURL, to: scriptURL)

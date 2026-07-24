@@ -95,13 +95,13 @@ extension EmbedProvisionProfile {
 			if mainBundle.bundlePath.hasSuffix("PlugIns") {
 				let local = mainBundle.bundleURL.appendingPathComponent("../embedded.provisionprofile").absoluteURL
 				
-				if FileManager.default.fileExists(atPath: local.path) {
+				if FileManager.default.fileExists(atPath: local.path(percentEncoded: false)) {
 					return try load(local)
 				}
 			} else {
 				let local = mainBundle.bundleURL.appendingPathComponent("Contents").appendingPathComponent("embedded.provisionprofile")
 				
-				if FileManager.default.fileExists(atPath: local.path) {
+				if FileManager.default.fileExists(atPath: local.path(percentEncoded: false)) {
 					return try load(local)
 				}
 			}

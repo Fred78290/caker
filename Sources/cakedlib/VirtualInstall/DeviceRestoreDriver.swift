@@ -118,7 +118,7 @@ final class DeviceRestoreDriver: @unchecked Sendable {
 
     @discardableResult
     private static func ensureExistingDirectory(_ url: URL) throws -> URL {
-        if !FileManager.default.fileExists(atPath: url.path) {
+        if !FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) {
             try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         }
         return url
@@ -127,7 +127,7 @@ final class DeviceRestoreDriver: @unchecked Sendable {
 
 private extension URL {
     /// Percent-encoding-free file-system path suitable for passing to the restore engine.
-    var safeRestorePath: String { absoluteURL.path }
+    var safeRestorePath: String { absoluteURL.path(percentEncoded: false) }
 }
 
 #endif

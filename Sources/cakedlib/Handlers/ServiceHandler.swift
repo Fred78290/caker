@@ -110,7 +110,7 @@ public struct ServiceHandler {
 			return try Shell.execute(to: "command", arguments: ["-v", Home.cakedCommandName])
 		}
 
-		return url.path
+		return url.path(percentEncoded: false)
 	}
 
 	public static func createServer(
@@ -129,7 +129,7 @@ public struct ServiceHandler {
 
 			if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {
 				try listeningAddress.deleteIfFileExists()
-				target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
+				target = ConnectionTarget.unixDomainSocket(listeningAddress.path(percentEncoded: false))
 			} else if listeningAddress.scheme == "tcp" {
 				let listeningHost = listeningAddress.host ?? "127.0.0.1"
 
@@ -214,7 +214,7 @@ public struct ServiceHandler {
 				],
 				environmentVariables: [
 					"PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin/:/sbin",
-					"CAKE_HOME": home.cakeHomeDirectory.path,
+					"CAKE_HOME": home.cakeHomeDirectory.path(percentEncoded: false),
 				],
 				standardErrorPath: outputLog,
 				standardOutPath: outputLog,
@@ -305,7 +305,7 @@ public struct ServiceHandler {
 			let parentDirectory = url.deletingLastPathComponent()
 			let fm = FileManager.default
 
-			if !fm.fileExists(atPath: parentDirectory.path) {
+			if !fm.fileExists(atPath: parentDirectory.path(percentEncoded: false)) {
 				try? fm.createDirectory(at: parentDirectory, withIntermediateDirectories: true, attributes: nil)
 			}
 
@@ -341,16 +341,16 @@ public struct ServiceHandler {
 			let plistURL = self.agentLaunchURL(runMode: runMode)
 
 			guard (try? plistURL.exists()) == true else {
-				throw ServiceError(String(localized: "agent not installed: missing plist at \(plistURL.path)"))
+				throw ServiceError(String(localized: "agent not installed: missing plist at \(plistURL.path(percentEncoded: false))"))
 			}
 
 			// Use modern launchctl where possible
 			// 1) bootstrap the plist
 			do {
-				_ = try Shell.execute(to: "/bin/launchctl", arguments: ["bootstrap", domain, plistURL.path])
+				_ = try Shell.execute(to: "/bin/launchctl", arguments: ["bootstrap", domain, plistURL.path(percentEncoded: false)])
 			} catch {
 				// If already bootstrapped or on older systems, try load as a fallback
-				_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["load", plistURL.path])
+				_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["load", plistURL.path(percentEncoded: false)])
 			}
 
 			// 2) enable the service
@@ -380,7 +380,7 @@ public struct ServiceHandler {
 			#if !USE_SMAPPSERVICE
 				// Fallback for older systems: unload the plist if present
 				let plistURL = self.agentLaunchURL(runMode: runMode)
-				_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["unload", plistURL.path])
+				_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["unload", plistURL.path(percentEncoded: false)])
 			#endif
 		}
 
@@ -545,9 +545,9 @@ public struct ServiceHandler {
 			let certs = try ClientCertificatesLocation.getCertificats(runMode: runMode)
 
 			if certs.exists() {
-				caCert = certs.caCertURL.path
-				tlsCert = certs.clientCertURL.path
-				tlsKey = certs.clientKeyURL.path
+				caCert = certs.caCertURL.path(percentEncoded: false)
+				tlsCert = certs.clientCertURL.path(percentEncoded: false)
+				tlsKey = certs.clientKeyURL.path(percentEncoded: false)
 			}
 		}
 

@@ -448,7 +448,7 @@ struct LXDInstancesController: RouteCollection {
 		}
 
 		let logs: [String] = ["console.log", "output.log"].compactMap { logName in
-			if let logURL = location.logURL(named: logName), FileManager.default.fileExists(atPath: logURL.path) {
+			if let logURL = location.logURL(named: logName), FileManager.default.fileExists(atPath: logURL.path(percentEncoded: false)) {
 				return "/1.0/instances/\(name)/logs/\(logName)"
 			}
 
@@ -485,12 +485,12 @@ struct LXDInstancesController: RouteCollection {
 				.encodeResponse(status: .notFound, for: req)
 		}
 
-		guard let logURL = location.logURL(named: filename), FileManager.default.fileExists(atPath: logURL.path) else {
+		guard let logURL = location.logURL(named: filename), FileManager.default.fileExists(atPath: logURL.path(percentEncoded: false)) else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Log file '\(filename)' not found for instance '\(name)'", code: 404)
 				.encodeResponse(status: .notFound, for: req)
 		}
 
-		return try await req.fileio.asyncStreamFile(at: logURL.path)
+		return try await req.fileio.asyncStreamFile(at: logURL.path(percentEncoded: false))
 	}
 
 	// PUT /1.0/instances/:name/state

@@ -26,12 +26,12 @@ extension CertificatesLocation {
 	func flatMap() -> [CertAsText] {
 		var out: [CertAsText] = []
 
-		out.append(CertAsText(type: "CA cert", path: self.caCertURL.path, created: try! self.caCertURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
-		out.append(CertAsText(type: "CA key", path: self.caKeyURL.path, created: try! self.caKeyURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
-		out.append(CertAsText(type: "Client key", path: self.clientKeyURL.path, created: try! self.clientKeyURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
-		out.append(CertAsText(type: "Client cert", path: self.clientCertURL.path, created: try! self.clientCertURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
-		out.append(CertAsText(type: "Server key", path: self.serverKeyURL.path, created: try! self.serverKeyURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
-		out.append(CertAsText(type: "Server cert", path: self.serverCertURL.path, created: try! self.serverCertURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
+		out.append(CertAsText(type: "CA cert", path: self.caCertURL.path(percentEncoded: false), created: try! self.caCertURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
+		out.append(CertAsText(type: "CA key", path: self.caKeyURL.path(percentEncoded: false), created: try! self.caKeyURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
+		out.append(CertAsText(type: "Client key", path: self.clientKeyURL.path(percentEncoded: false), created: try! self.clientKeyURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
+		out.append(CertAsText(type: "Client cert", path: self.clientCertURL.path(percentEncoded: false), created: try! self.clientCertURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
+		out.append(CertAsText(type: "Server key", path: self.serverKeyURL.path(percentEncoded: false), created: try! self.serverKeyURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
+		out.append(CertAsText(type: "Server cert", path: self.serverCertURL.path(percentEncoded: false), created: try! self.serverCertURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
 
 		return out
 	}

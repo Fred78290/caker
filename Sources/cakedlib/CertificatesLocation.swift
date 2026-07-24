@@ -33,7 +33,7 @@ public struct CertificatesLocation: Codable {
 
 	public func isValid() -> Bool {
 		self.files.allSatisfy {
-			FileManager.default.fileExists(atPath: $0.path)
+			FileManager.default.fileExists(atPath: $0.path(percentEncoded: false))
 		}
 	}
 

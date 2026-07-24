@@ -154,15 +154,15 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 		} else if mode == .tcp || mode == .udp {
 			self.bind = host
 		} else {
-			if url.path.isEmpty {
+			if url.path(percentEncoded: false).isEmpty {
 				throw ValidationError(String(localized: "socket path must be defined"))
 			}
 
-			if url.path.utf8.count > URL.maxSocketPathLength {
+			if url.path(percentEncoded: false).utf8.count > URL.maxSocketPathLength {
 				throw ValidationError(String(localized: "The socket path is too long"))
 			}
 
-			self.bind = url.path
+			self.bind = url.path(percentEncoded: false)
 		}
 	}
 

@@ -113,7 +113,7 @@ struct DiskAttachementDetailView: View {
 
 	func chooseDiskImage() {
 		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [.diskImage, .iso9660], withTitle: String(localized: "Choose an image disk"), allowsOtherFileTypes: true) {
-			currentItem.diskPath = diskImg.absoluteURL.path
+			currentItem.diskPath = diskImg.absoluteURL.path(percentEncoded: false)
 
 			if currentItem.diskPath.lowercased().hasSuffix(".iso") {
 				self.currentItem.diskOptions.readOnly = true

@@ -211,7 +211,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 			}
 		}
 
-		let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.socket.path)
+		let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.socket.path(percentEncoded: false))
 
 		(self.vmfd, self.hostfd) = try socketAddress.withSockAddr { _, len in
 			let fds: UnsafeMutablePointer<Int32> = UnsafeMutablePointer<Int32>.allocate(capacity: MemoryLayout<Int>.stride * 2)
@@ -231,7 +231,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		}
 
 		if try socketURL.socket.exists() {
-			Logger(self).info("Use VZVMNet at: \(socketURL.socket.path)")
+			Logger(self).info("Use VZVMNet at: \(socketURL.socket.path(percentEncoded: false))")
 
 			let client = ClientBootstrap(group: Utilities.group)
 				.channelInitializer { inboundChannel in
@@ -253,9 +253,9 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 			futureChannel.whenComplete { result in
 				switch result {
 				case .success:
-					Logger(self).info("Network file handle connected to \(socketURL.socket.path)")
+					Logger(self).info("Network file handle connected to \(socketURL.socket.path(percentEncoded: false))")
 				case .failure(let error):
-					Logger(self).error("Network file handle failed to connect to \(socketURL.socket.path), \(error)")
+					Logger(self).error("Network file handle failed to connect to \(socketURL.socket.path(percentEncoded: false)), \(error)")
 				}
 			}
 

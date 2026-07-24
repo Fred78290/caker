@@ -88,7 +88,7 @@ final class ConnectionManager: Equatable {
 			return self.appConnectionManager
 		}
 
-		guard vmURL.path.isEmpty else {
+		guard vmURL.path(percentEncoded: false).isEmpty else {
 			return ConnectionManager(vmURL)
 		}
 		

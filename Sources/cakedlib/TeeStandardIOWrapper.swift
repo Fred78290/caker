@@ -157,7 +157,7 @@ public final class TeeStandardIOWrapper: Cancellable {
 			rotatedURL(index).appendingPathExtension("gz")
 		}
 
-		if fm.fileExists(atPath: logURL.path) {
+		if fm.fileExists(atPath: logURL.path(percentEncoded: false)) {
 			if let fileSize = try? logURL.fileSize(), fileSize >= maxSize {
 				didRotate = true
 
@@ -167,11 +167,11 @@ public final class TeeStandardIOWrapper: Cancellable {
 				}
 
 				// Delete the oldest rotated generation in either format.
-				if fm.fileExists(atPath: rotatedURL(maxFiles).path) {
+				if fm.fileExists(atPath: rotatedURL(maxFiles).path(percentEncoded: false)) {
 					try? fm.removeItem(at: rotatedURL(maxFiles))
 				}
 
-				if fm.fileExists(atPath: rotatedGZURL(maxFiles).path) {
+				if fm.fileExists(atPath: rotatedGZURL(maxFiles).path(percentEncoded: false)) {
 					try? fm.removeItem(at: rotatedGZURL(maxFiles))
 				}
 
@@ -183,11 +183,11 @@ public final class TeeStandardIOWrapper: Cancellable {
 						let srcGZ = rotatedGZURL(i)
 						let dstGZ = rotatedGZURL(i + 1)
 
-						if fm.fileExists(atPath: srcGZ.path) {
+						if fm.fileExists(atPath: srcGZ.path(percentEncoded: false)) {
 							try? fm.moveItem(at: srcGZ, to: dstGZ)
 						}
 
-						if fm.fileExists(atPath: src.path) {
+						if fm.fileExists(atPath: src.path(percentEncoded: false)) {
 							try? fm.moveItem(at: src, to: dst)
 						}
 					}
@@ -201,8 +201,8 @@ public final class TeeStandardIOWrapper: Cancellable {
 					let src = rotatedURL(i)
 					let gz = rotatedGZURL(i)
 
-					if fm.fileExists(atPath: src.path) {
-						if fm.fileExists(atPath: gz.path) {
+					if fm.fileExists(atPath: src.path(percentEncoded: false)) {
+						if fm.fileExists(atPath: gz.path(percentEncoded: false)) {
 							try? fm.removeItem(at: src)
 						} else if let d = try? Data(contentsOf: src), let gzData = try? d.gzipped() {
 							try? gzData.write(to: gz, options: .atomic)
@@ -214,8 +214,8 @@ public final class TeeStandardIOWrapper: Cancellable {
 		}
 
 		// Create file if missing
-		if fm.fileExists(atPath: logURL.path) == false {
-			fm.createFile(atPath: logURL.path, contents: nil)
+		if fm.fileExists(atPath: logURL.path(percentEncoded: false)) == false {
+			fm.createFile(atPath: logURL.path(percentEncoded: false), contents: nil)
 		}
 
 		return didRotate

@@ -181,9 +181,9 @@ struct Client: ParsableCommand {
 					let certs = try ClientCertificatesLocation.getCertificats(runMode: self.asSystem ? .system : .user)
 
 					if certs.exists() {
-						self.caCert = certs.caCertURL.path
-						self.tlsCert = certs.clientCertURL.path
-						self.tlsKey = certs.clientKeyURL.path
+						self.caCert = certs.caCertURL.path(percentEncoded: false)
+						self.tlsCert = certs.clientCertURL.path(percentEncoded: false)
+						self.tlsKey = certs.clientKeyURL.path(percentEncoded: false)
 					}
 				}
 			}

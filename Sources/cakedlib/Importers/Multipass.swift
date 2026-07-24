@@ -80,7 +80,7 @@ private struct MultipassRegisteredInstance: Codable, Sendable {
 		let location = URL(fileURLWithPath: self.image.path).deletingLastPathComponent()
 
 		guard let disks = try? FileManager.default.contentsOfDirectory(at: location, includingPropertiesForKeys: nil).filter({ $0.pathExtension.lowercased() == "img" || $0.pathExtension.lowercased() == "iso" }) else {
-			throw ServiceError(String(localized: "No disk files found in the specified directory: \(location.path)"))
+			throw ServiceError(String(localized: "No disk files found in the specified directory: \(location.path(percentEncoded: false))"))
 		}
 
 		return disks.compactMap { diskURL in

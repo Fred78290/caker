@@ -104,7 +104,7 @@ class Curl {
 	func get(store: URL, observer: ProgressObserver? = nil) async throws {
 		let result = try await self.fetch(request: URLRequest(url: self.fromURL), progressObserver: observer)
 
-		FileManager.default.createFile(atPath: store.path, contents: nil)
+		FileManager.default.createFile(atPath: store.path(percentEncoded: false), contents: nil)
 
 		let lock = try FileLock(lockURL: store)
 		try lock.lock()

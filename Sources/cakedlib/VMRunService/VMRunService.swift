@@ -171,9 +171,9 @@ class VMRunService: NSObject {
 			on: self.group.next(),
 			listeningAddress: self.vm.location.agentURL,
 			connectionTimeout: 30,
-			caCert: self.certLocation.caCertURL.path,
-			tlsCert: self.certLocation.clientCertURL.path,
-			tlsKey: self.certLocation.clientKeyURL.path,
+			caCert: self.certLocation.caCertURL.path(percentEncoded: false),
+			tlsCert: self.certLocation.clientCertURL.path(percentEncoded: false),
+			tlsKey: self.certLocation.clientKeyURL.path(percentEncoded: false),
 			retries: retries)
 	}
 

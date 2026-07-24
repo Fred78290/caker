@@ -288,7 +288,7 @@ private func resolveWebUIDirectory(_ path: String) throws -> String {
 
 	let process = Process()
 	process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
-	process.arguments = ["-q", path, "-d", tmpDir.path]
+	process.arguments = ["-q", path, "-d", tmpDir.path(percentEncoded: false)]
 	process.standardOutput = Pipe()
 	let errPipe = Pipe()
 	process.standardError = errPipe
@@ -301,17 +301,17 @@ private func resolveWebUIDirectory(_ path: String) throws -> String {
 	}
 
 	// Descend into a single top-level directory if present (e.g. dist/)
-	if let contents = try? FileManager.default.contentsOfDirectory(atPath: tmpDir.path),
+	if let contents = try? FileManager.default.contentsOfDirectory(atPath: tmpDir.path(percentEncoded: false)),
 	   contents.count == 1
 	{
-		let candidate = tmpDir.appendingPathComponent(contents[0]).path
+		let candidate = tmpDir.appendingPathComponent(contents[0]).path(percentEncoded: false)
 		var isDir: ObjCBool = false
 		if FileManager.default.fileExists(atPath: candidate, isDirectory: &isDir), isDir.boolValue {
 			return candidate
 		}
 	}
 
-	return tmpDir.path
+	return tmpDir.path(percentEncoded: false)
 }
 
 /// Wraps a Vapor Application providing LXD-compatible REST server lifecycle.

@@ -23,7 +23,7 @@ class Streamable {
 		let (_, headResponse) = try await Curl(fromURL: remoteURL).head()
 
 		if let etag: String = headResponse.ETag() {
-			if FileManager.default.fileExists(atPath: indexLocation.path) {
+			if FileManager.default.fileExists(atPath: indexLocation.path(percentEncoded: false)) {
 				if let cached = simpleStreamCache.findCache(fingerprintOrAlias: cachedFile) {
 					if cached.fingerprint == etag {
 						Logger(self).info("Using cached \(cachedFile) file...")
@@ -321,7 +321,7 @@ extension LinuxContainerImage {
 		let cacheLocation = try imageCache.directoryFor(directoryName: self.fingerprint).appendingPathComponent("disk.img", isDirectory: false)
 
 		if let cached = imageCache.getCache(fingerprint: fingerprint) {
-			if FileManager.default.fileExists(atPath: cacheLocation.path) && cached.fingerprint == self.fingerprint {
+			if FileManager.default.fileExists(atPath: cacheLocation.path(percentEncoded: false)) && cached.fingerprint == self.fingerprint {
 				return
 			}
 		}
@@ -336,7 +336,7 @@ extension LinuxContainerImage {
 		let cacheLocation = try imageCache.directoryFor(directoryName: self.fingerprint).appendingPathComponent("disk.img", isDirectory: false)
 
 		if let cached = imageCache.getCache(fingerprint: fingerprint) {
-			if FileManager.default.fileExists(atPath: cacheLocation.path) && cached.fingerprint == self.fingerprint {
+			if FileManager.default.fileExists(atPath: cacheLocation.path(percentEncoded: false)) && cached.fingerprint == self.fingerprint {
 				let temporaryLocation = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
 
 				try cacheLocation.updateAccessDate()

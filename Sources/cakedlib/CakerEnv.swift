@@ -66,7 +66,7 @@ public struct CakerEnvVM: Codable {
 			let tempFile = URL(fileURLWithPath: NSTemporaryDirectory())
 				.appendingPathComponent("cakerenv-cloud-init-\(UUID().uuidString).yaml")
 			try cloudInit.write(to: tempFile, atomically: true, encoding: .utf8)
-			userData = tempFile.path
+			userData = tempFile.path(percentEncoded: false)
 		}
 
 
@@ -148,10 +148,10 @@ public struct CakerEnv: Codable {
 		from directory: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
 	) throws -> CakerEnv {
 		let file = directory.appendingPathComponent(CakerEnv.filename)
-		guard FileManager.default.fileExists(atPath: file.path) else {
-			throw ServiceError(String(localized: "No \(CakerEnv.filename) found in \(directory.path)"))
+		guard FileManager.default.fileExists(atPath: file.path(percentEncoded: false)) else {
+			throw ServiceError(String(localized: "No \(CakerEnv.filename) found in \(directory.path(percentEncoded: false))"))
 		}
-		return try load(fromFile: file.path)
+		return try load(fromFile: file.path(percentEncoded: false))
 	}
 
 	public static func load(fromFile path: String) throws -> CakerEnv {

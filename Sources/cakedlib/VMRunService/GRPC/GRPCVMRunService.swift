@@ -139,7 +139,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		let retries: ConnectionBackoff.Retries = .upTo(1)
 		
 		if listeningAddress.scheme == "unix" || listeningAddress.isFileURL {
-			target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
+			target = ConnectionTarget.unixDomainSocket(listeningAddress.path(percentEncoded: false))
 		} else if listeningAddress.scheme == "tcp" {
 			target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? GRPCVMRunService.defaultVMRunServicePort)
 		} else {
@@ -150,9 +150,9 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		
 		clientConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeClientConfiguration(
-			caCert: certLocation.caCertURL.path,
-			tlsKey: certLocation.clientKeyURL.path,
-			tlsCert: certLocation.clientCertURL.path)
+			caCert: certLocation.caCertURL.path(percentEncoded: false),
+			tlsKey: certLocation.clientKeyURL.path(percentEncoded: false),
+			tlsCert: certLocation.clientCertURL.path(percentEncoded: false))
 		
 		if retries != .unlimited {
 			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: connectionTimeout, minimumConnectionTimeout: connectionTimeout, retries: retries)
@@ -167,70 +167,61 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		self.location = location
 		self.client = client
 	}
-	
-	private func execute<V>(_ call: @escaping () async throws -> V) throws -> V {
-		var result: V?
-		var failed: Error?
-		let semaphore = DispatchSemaphore(value: 0)
-		
-		Task {
-			do {
-				result = try await call()
-			} catch {
-				failed = error
-			}
-			
-			semaphore.signal()
-		}
-		
-		semaphore.wait()
-		
-		if let failed = failed {
-			throw failed
-		}
-		
-		return result!
-	}
-	
+
 	var vncInfos: VNCInfos {
 		get {
-			guard let result = try? self.execute({try await self.client.vncEndPoint(Vmrun_Empty()).response.get() }) else {
+			do {
+				let result = try withAsyncResult {
+					try await self.client.vncEndPoint(Vmrun_Empty()).response.get()
+				}
+				
+				return VNCInfos(result)
+			} catch {
+				Logger(self).error("Failed to get VNC infos: \(error)")
+
 				return VNCInfos(urls: [], screenSize: nil)
 			}
-			
-			return VNCInfos(result)
 		}
 	}
 	
 	var screenSize: (width: Int, height: Int) {
 		get {
-			guard let result = try? self.execute({try await self.client.getScreenSize(Vmrun_Empty()).response.get() }) else {
+			do {
+				let result = try withAsyncResult {
+					try await self.client.getScreenSize(Vmrun_Empty()).response.get()
+				}
+				
+				return (Int(result.width), Int(result.height))
+			} catch {
+				Logger(self).error("Failed to get screen size: \(error)")
 				return (0, 0)
 			}
-			
-			return (Int(result.width), Int(result.height))
 		}
 		
 		set {
-			_ = try? self.execute {
-				try await self.client.setScreenSize(
-					Vmrun_ScreenSize.with {
-						$0.width = Int32(newValue.width)
-						$0.height = Int32(newValue.height)
-					}
-				).response.get()
+			do {
+				_ = try withAsyncResult {
+					try await self.client.setScreenSize(
+						Vmrun_ScreenSize.with {
+							$0.width = Int32(newValue.width)
+							$0.height = Int32(newValue.height)
+						}
+					).response.get()
+				}
+			} catch {
+				Logger(self).error("Failed to set screen size: \(error)")
 			}
 		}
 	}
 	
 	func share(mounts: DirectorySharingAttachments) throws -> MountInfos {
-		try self.execute {
+		try withAsyncResult {
 			try await self.client.mount(Vmrun_MountRequest(.mount, attachments: mounts)).response.get().toMountInfos()
 		}
 	}
 	
 	func unshare(mounts: DirectorySharingAttachments) throws -> MountInfos {
-		try self.execute {
+		try withAsyncResult {
 			try await self.client.mount(Vmrun_MountRequest(.umount, attachments: mounts)).response.get().toMountInfos()
 		}
 	}
@@ -245,7 +236,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 	}
 	
 	func installAgent(timeout: UInt) throws -> (installed: Bool, reason: String) {
-		try self.execute {
+		try withAsyncResult {
 			let reply = try await self.client.installAgent(.with {
 				$0.timeout = Int32(timeout)
 			}).response.get()
@@ -255,7 +246,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 	}
 	
 	func startGrandCentralUpdate(frequency: Int32) throws -> (success: Bool, reason: String) {
-		try self.execute {
+		try withAsyncResult {
 			let reply = try await self.client.startGrandCentralUpdate(.with { $0.frequency = frequency }).response.get()
 			
 			return (reply.success, reply.reason)
@@ -263,7 +254,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 	}
 	
 	func stopGrandCentralUpdate() throws -> (success: Bool, reason: String) {
-		try self.execute {
+		try withAsyncResult {
 			let reply = try await self.client.stopGrandCentralUpdate(.init()).response.get()
 			
 			return (reply.success, reply.reason)
@@ -271,7 +262,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 	}
 	
 	func signal(signal: SignalType) throws -> (success: Bool, reason: String) {
-		try self.execute {
+		try withAsyncResult {
 			let reply = try await self.client.signal(.with {
 				$0.type = .init(rawValue: Int(signal.rawValue)) ?? .empty
 			}).response.get()
@@ -291,7 +282,7 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 		
 		if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {
 			try listeningAddress.deleteIfFileExists()
-			target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
+			target = ConnectionTarget.unixDomainSocket(listeningAddress.path(percentEncoded: false))
 		} else if listeningAddress.scheme == "tcp" {
 			target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? GRPCVMRunService.defaultVMRunServicePort)
 		} else {
@@ -300,9 +291,9 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 		
 		var serverConfiguration = Server.Configuration.default(target: target, eventLoopGroup: self.group, serviceProviders: [self])
 		
-		serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(caCert: self.certLocation.caCertURL.path,
-																								tlsKey: self.certLocation.serverKeyURL.path,
-																								tlsCert: self.certLocation.serverCertURL.path)
+		serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(caCert: self.certLocation.caCertURL.path(percentEncoded: false),
+																								tlsKey: self.certLocation.serverKeyURL.path(percentEncoded: false),
+																								tlsCert: self.certLocation.serverCertURL.path(percentEncoded: false))
 		
 		return Server.start(configuration: serverConfiguration)
 	}

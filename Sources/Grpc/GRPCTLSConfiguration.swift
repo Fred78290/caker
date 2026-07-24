@@ -38,7 +38,7 @@ extension Caked {
 			let inet: Bool
 
 			if listeningAddress.scheme == "unix" || listeningAddress.isFileURL {
-				target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
+				target = ConnectionTarget.unixDomainSocket(listeningAddress.path(percentEncoded: false))
 				inet = false
 			} else if supportedSchemes.contains(listeningAddress.scheme) {
 				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? Caked.defaultServicePort)

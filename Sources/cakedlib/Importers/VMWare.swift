@@ -261,8 +261,8 @@ struct VMXMap: Sendable {
 							let deviceType = VMXMap.DiskAttachement.DeviceType(argument: values["\(baseKey).deviceType".lowercased()])
 							let diskURL = URL(fileURLWithPath: fileName, relativeTo: baseURL).absoluteURL
 
-							if diskURL.pathExtension.lowercased() == "vmdk" && !FileManager.default.fileExists(atPath: diskURL.path) {
-								Logger("VMXMap").warn("Disk file \(diskURL.path) does not exist, skipping attachment.")
+							if diskURL.pathExtension.lowercased() == "vmdk" && !FileManager.default.fileExists(atPath: diskURL.path(percentEncoded: false)) {
+								Logger("VMXMap").warn("Disk file \(diskURL.path(percentEncoded: false)) does not exist, skipping attachment.")
 								continue
 							}
 
@@ -421,7 +421,7 @@ struct VMWareImporter: Importer {
 							result.append(try GRPCLib.DiskAttachement(parseFrom: destinationURL.lastPathComponent))
 						}
 
-						logger.info("Converting VMDK disk \(attachment.disk) to raw format at \(destinationURL.path)")
+						logger.info("Converting VMDK disk \(attachment.disk) to raw format at \(destinationURL.path(percentEncoded: false))")
 
 						try CloudImageConverter.convertVmdkToRaw(from: sourceURL, to: destinationURL, progressHandler: ProgressObserver.progressHandler)
 
@@ -430,14 +430,14 @@ struct VMWareImporter: Importer {
 						if insideVM {
 							let destinationURL = location.rootURL.appendingPathComponent(attachment.disk)
 
-							logger.info("Copying CD-ROM disk \(attachment.disk) to \(destinationURL.path)")
+							logger.info("Copying CD-ROM disk \(attachment.disk) to \(destinationURL.path(percentEncoded: false))")
 
 							try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
 
 							result.append(try GRPCLib.DiskAttachement(parseFrom: "\(destinationURL.lastPathComponent):ro"))
 						} else {
-							logger.info("Add CD-ROM disk from outside the VM at \(sourceURL.path)")
-							result.append(try GRPCLib.DiskAttachement(parseFrom: "\(sourceURL.absoluteURL.path):ro"))
+							logger.info("Add CD-ROM disk from outside the VM at \(sourceURL.path(percentEncoded: false))")
+							result.append(try GRPCLib.DiskAttachement(parseFrom: "\(sourceURL.absoluteURL.path(percentEncoded: false)):ro"))
 						}
 
 					} else if attachment.deviceType == .floppy {
@@ -589,8 +589,8 @@ struct VMWareImporter: Importer {
 
 		url = URL(fileURLWithPath: "~/Virtual Machines.localized/\(source).vmwarevm".expandingTildeInPath, isDirectory: true)
 
-		guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) else {
-			throw ServiceError(String(localized: "No Virtual Machines directory found at \(url.path)."))
+		guard FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory) else {
+			throw ServiceError(String(localized: "No Virtual Machines directory found at \(url.path(percentEncoded: false))."))
 		}
 
 		guard isDirectory.boolValue else {
@@ -602,7 +602,7 @@ struct VMWareImporter: Importer {
 
 	func findVMX(fromURL url: URL) throws -> VMXMap {
 		guard let vmxFile = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil).first(where: { $0.pathExtension.lowercased() == "vmx" }) else {
-			throw ServiceError(String(localized: "No VMX files found in the specified directory: \(url.path)"))
+			throw ServiceError(String(localized: "No VMX files found in the specified directory: \(url.path(percentEncoded: false))"))
 		}
 
 		return try VMXMap(fromURL: vmxFile)

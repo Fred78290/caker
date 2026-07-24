@@ -36,7 +36,7 @@ struct VmdkDescriptor {
         } else if let latin = try? String(contentsOf: url, encoding: .isoLatin1) {
             text = latin
         } else {
-            throw VmdkError.ioError("Cannot read descriptor '\(url.path)'")
+            throw VmdkError.ioError("Cannot read descriptor '\(url.path(percentEncoded: false))'")
         }
         return try parse(from: text)
     }

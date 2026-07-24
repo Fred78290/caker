@@ -239,7 +239,7 @@ public struct ImportHandler {
 				tempLocation = try VMLocation.tempDirectory(runMode: runMode)
 
 				try importer.importVM(location: tempLocation, source: source, userName: userName, password: password, clearPassword: clearPassword, sshPrivateKey: sshPrivateKey, passphrase: passphrase, copyDisk: copyDisk, runMode: runMode)
-				try FileManager.default.setAttributesRecursively([.ownerAccountID: uid, .groupOwnerAccountID: gid], atPath: tempLocation.rootURL.path)
+				try FileManager.default.setAttributesRecursively([.ownerAccountID: uid, .groupOwnerAccountID: gid], atPath: tempLocation.rootURL.path(percentEncoded: false))
 				try storageLocation.relocate(name, from: tempLocation)
 			} catch {
 				try? tempLocation?.delete()

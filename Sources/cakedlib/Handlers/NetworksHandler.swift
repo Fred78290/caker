@@ -249,7 +249,7 @@ public struct NetworksHandler {
 			Logger(self).info("Restart network \(networkName)")
 
 			if pidURL.killPID(SIGUSR2) < 0 {
-				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))"))
+				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false)): \(String(cString: strerror(errno)))"))
 			} else {
 				Logger(self).info("Network \(networkName) restarted")
 			}
@@ -396,7 +396,7 @@ public struct NetworksHandler {
 
 			fd = STDIN_FILENO
 			// We need to use the file descriptor of stdin, otherwise the process will not be able to read from it and will block forever
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
+			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
 			process.executableURL = sudoURL
 			process.standardInput = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
 
@@ -406,12 +406,12 @@ public struct NetworksHandler {
 		}
 
 		arguments.append("--fd=\(fd)")
-		arguments.append("--pidfile=\(pidFile.path)")
+		arguments.append("--pidfile=\(pidFile.path(percentEncoded: false))")
 
 		runningArguments.append(contentsOf: arguments)
 
 		#if DEBUG
-			logger.debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
+			logger.debug("Running: \(process.executableURL!.path(percentEncoded: false)) \(runningArguments.joined(separator: " "))")
 		#endif
 
 		try? pidFile.delete()
@@ -455,7 +455,7 @@ public struct NetworksHandler {
 			socketURL = try NetworksHandler.vmnetEndpoint(networkName: networkConfig.networkName, runMode: runMode)
 		}
 
-		Logger(self).info("Start VMNet mode: \(mode.rawValue) Using socket: \(socketURL.socket.path)")
+		Logger(self).info("Start VMNet mode: \(mode.rawValue) Using socket: \(socketURL.socket.path(percentEncoded: false))")
 
 		if useLimaVMNet {
 
@@ -495,8 +495,8 @@ public struct NetworksHandler {
 				}
 			}
 
-			arguments.append("--pidfile=\(socketURL.pidFile.path)")
-			arguments.append(socketURL.socket.path)
+			arguments.append("--pidfile=\(socketURL.pidFile.path(percentEncoded: false))")
+			arguments.append(socketURL.socket.path(percentEncoded: false))
 		} else {
 			executableURL = try Bundle.main.caked()
 
@@ -537,12 +537,12 @@ public struct NetworksHandler {
 				}
 			}
 
-			arguments.append("--pidfile=\(socketURL.pidFile.path)")
-			arguments.append(socketURL.socket.path)
+			arguments.append("--pidfile=\(socketURL.pidFile.path(percentEncoded: false))")
+			arguments.append(socketURL.socket.path(percentEncoded: false))
 		}
 
 		if socketURL.pidFile.isCakedRunning() {
-			throw ServiceError(String(localized: "\(executableURL.path) is already running."))
+			throw ServiceError(String(localized: "\(executableURL.path(percentEncoded: false)) is already running."))
 		}
 
 		try? socketURL.socket.delete()
@@ -565,7 +565,7 @@ public struct NetworksHandler {
 
 			process.executableURL = sudoURL
 
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
+			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
 
 			if runMode.isSystem {
 				runningArguments.append("--system")
@@ -574,7 +574,7 @@ public struct NetworksHandler {
 
 		runningArguments.append(contentsOf: arguments)
 
-		logger.debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
+		logger.debug("Running: \(process.executableURL!.path(percentEncoded: false)) \(runningArguments.joined(separator: " "))")
 
 		process.arguments = runningArguments
 		process.environment = try Utilities.environment(runMode: runMode)
@@ -731,7 +731,7 @@ public struct NetworksHandler {
 		try? socketURL.pidFile.deleteIfFileExists()
 		try? socketURL.socket.deleteIfFileExists()
 
-		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.socket.path)")
+		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.socket.path(percentEncoded: false))")
 
 		let executableURL = try Bundle.main.caked()
 
@@ -765,7 +765,7 @@ public struct NetworksHandler {
 
 			process.executableURL = sudoURL
 
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
+			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
 
 			if runMode.isSystem {
 				runningArguments.append("--system")
@@ -775,7 +775,7 @@ public struct NetworksHandler {
 		runningArguments.append(contentsOf: arguments)
 
 		#if DEBUG
-			logger.debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
+			logger.debug("Running: \(process.executableURL!.path(percentEncoded: false)) \(runningArguments.joined(separator: " "))")
 		#endif
 
 		process.arguments = runningArguments
@@ -910,14 +910,14 @@ public struct NetworksHandler {
 	public static func stop(pidURL: URL, runMode: Utils.RunMode) -> String {
 		do {
 			guard try pidURL.exists() else {
-				throw ServiceError(String(localized: "PID file \(pidURL.path) doesn't exists"))
+				throw ServiceError(String(localized: "PID file \(pidURL.path(percentEncoded: false)) doesn't exists"))
 			}
 
 			guard pidURL.isCakedRunning() else {
 				#if DEBUG
-					Logger(self).debug("PID \(pidURL.path) is not running")
+					Logger(self).debug("PID \(pidURL.path(percentEncoded: false)) is not running")
 				#endif
-				return "PID \(pidURL.path) is not running"
+				return "PID \(pidURL.path(percentEncoded: false)) is not running"
 			}
 
 			if Bundle.isApplicationSandboxed {
@@ -931,19 +931,19 @@ public struct NetworksHandler {
 			} else if geteuid() == 0 || NetworksHandler.vmnetNative || NetworksHandler.hasVMNetEntitlement {
 				// We are running as root, so we can just kill the process
 				if pidURL.killPID(SIGTERM) < 0 {
-					throw ServiceError(String(localized: "Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))"))
+					throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false)): \(String(cString: strerror(errno)))"))
 				} else {
 					#if DEBUG
-						Logger(self).debug("PID \(pidURL.path) stopped")
+						Logger(self).debug("PID \(pidURL.path(percentEncoded: false)) stopped")
 					#endif
 				}
-			} else if try SudoCaked(arguments: ["networks", "stop", "--pidfile=\(pidURL.path)"], runMode: runMode).runAndWait() != 0 {
-				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path)"))
+			} else if try SudoCaked(arguments: ["networks", "stop", "--pidfile=\(pidURL.path(percentEncoded: false))"], runMode: runMode).runAndWait() != 0 {
+				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false))"))
 			} else {
 				try pidURL.waitStopped()
 			}
 
-			return "PID \(pidURL.path) stopped"
+			return "PID \(pidURL.path(percentEncoded: false)) stopped"
 		} catch {
 			return error.reason
 		}
@@ -991,7 +991,7 @@ public struct NetworksHandler {
 
 				_ = try client.stop(.init()).response.wait()
 			} else if pidURL.killPID(SIGTERM) < 0 {
-				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))"))
+				throw ServiceError(String(localized: "Failed to kill process \(pidURL.path(percentEncoded: false)): \(String(cString: strerror(errno)))"))
 			} else {
 				Logger(self).info("Network \(networkName) stopped")
 			}
@@ -1105,7 +1105,7 @@ public struct NetworksHandler {
 				let managed = mode == .bridged ? NetworksHandler.hasVMNetEntitlement == false : mode != .nat
 
 				if try socketURL.socket.exists() {
-					endpoint = socketURL.socket.path
+					endpoint = socketURL.socket.path(percentEncoded: false)
 				} else {
 					endpoint = String.empty
 				}
@@ -1197,7 +1197,7 @@ public struct NetworksHandler {
 			let running = socketURL.pidFile.isPIDRunning().running
 
 			if try socketURL.socket.exists() && socketURL.pidFile.isPIDRunning().running {
-				endpoint = socketURL.socket.path
+				endpoint = socketURL.socket.path(percentEncoded: false)
 			}
 
 			result = BridgedNetwork(
@@ -1220,9 +1220,9 @@ public struct NetworksHandler {
 			target: .unixDomainSocket(socketURL.path(percentEncoded: false)),
 			eventLoopGroup: Utilities.group)
 		clientConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeClientConfiguration(
-			caCert: certLocation.caCertURL.path,
-			tlsKey: certLocation.clientKeyURL.path,
-			tlsCert: certLocation.clientCertURL.path)
+			caCert: certLocation.caCertURL.path(percentEncoded: false),
+			tlsKey: certLocation.clientKeyURL.path(percentEncoded: false),
+			tlsCert: certLocation.clientCertURL.path(percentEncoded: false))
 		clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: 5, minimumConnectionTimeout: 5, retries: .upTo(1))
 
 		return Vmnet_VMNetServiceNIOClient(channel: ClientConnection(configuration: clientConfiguration))

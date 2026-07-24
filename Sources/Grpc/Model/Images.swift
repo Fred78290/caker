@@ -56,7 +56,7 @@ public class LinuxContainerImage: Codable {
 	public var caked: Caked_PulledImageInfo {
 		Caked_PulledImageInfo.with { image in
 			image.alias = self.alias?.joined(separator: ",") ?? String.empty
-			image.path = self.path.absoluteURL.path
+			image.path = self.path.absoluteURL.path(percentEncoded: false)
 			image.size = self.size
 			image.fingerprint = self.fingerprint
 			image.remoteName = self.remoteName

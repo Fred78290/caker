@@ -38,8 +38,8 @@ public final class Qcow2Converter {
         progress: ProgressHandler? = nil
     ) throws {
         try convert(
-            fromPath: source.path,
-            toPath: destination.path,
+            fromPath: source.path(percentEncoded: false),
+            toPath: destination.path(percentEncoded: false),
             allowBackingFile: allowBackingFile,
             progress: progress
         )

@@ -1308,9 +1308,9 @@ struct VirtualMachineWizard: View {
 			if let url = URL(spaced: config.imageName) {
 				if AppState.shared.connectionMode == .app {
 					valid =
-						(url.isFileURL && FileManager.default.fileExists(atPath: url.path))
+						(url.isFileURL && FileManager.default.fileExists(atPath: url.path(percentEncoded: false)))
 						|| ["http", "https"].contains(url.scheme)
-						|| (url.scheme == nil && FileManager.default.fileExists(atPath: url.path))
+						|| (url.scheme == nil && FileManager.default.fileExists(atPath: url.path(percentEncoded: false)))
 				} else {
 					valid = ["http", "https"].contains(url.scheme)
 				}
@@ -1399,7 +1399,7 @@ struct VirtualMachineWizard: View {
 
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {
 		if let diskImg = FileHelpers.selectSingleInputFile(ofType: ofTypes, withTitle: String(localized: "Choose an image disk"), allowsOtherFileTypes: true) {
-			return diskImg.absoluteURL.path
+			return diskImg.absoluteURL.path(percentEncoded: false)
 		}
 
 		return nil
@@ -1419,7 +1419,7 @@ struct VirtualMachineWizard: View {
 
 	func chooseYAML() -> String? {
 		if let choosenFile = FileHelpers.selectSingleInputFile(ofType: [.yaml], withTitle: String(localized: "Choose a data file"), allowsOtherFileTypes: true) {
-			return choosenFile.absoluteURL.path
+			return choosenFile.absoluteURL.path(percentEncoded: false)
 		}
 
 		return nil

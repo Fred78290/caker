@@ -364,9 +364,9 @@ public final class CakeAgentConnection: Sendable {
 		self.init(
 			eventLoop: eventLoop,
 			listeningAddress: listeningAddress,
-			caCert: certLocation.caCertURL.path,
-			tlsCert: certLocation.clientCertURL.path,
-			tlsKey: certLocation.clientKeyURL.path,
+			caCert: certLocation.caCertURL.path(percentEncoded: false),
+			tlsCert: certLocation.clientCertURL.path(percentEncoded: false),
+			tlsKey: certLocation.clientKeyURL.path(percentEncoded: false),
 			timeout: timeout,
 			retries: retries)
 	}
@@ -668,9 +668,9 @@ public final class CakeAgentConnection: Sendable {
 			on: on,
 			listeningAddress: listeningAddress,
 			connectionTimeout: Int64(timeout),
-			caCert: certLocation.caCertURL.path,
-			tlsCert: certLocation.clientCertURL.path,
-			tlsKey: certLocation.clientKeyURL.path,
+			caCert: certLocation.caCertURL.path(percentEncoded: false),
+			tlsCert: certLocation.clientCertURL.path(percentEncoded: false),
+			tlsKey: certLocation.clientKeyURL.path(percentEncoded: false),
 			retries: retries)
 	}
 }

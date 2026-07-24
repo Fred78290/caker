@@ -973,7 +973,7 @@ class CloudInit {
 		let home: Home = try Home(runMode: self.runMode)
 		let localAgent = home.agentDirectory.appendingPathComponent("cakeagent-\(CAKEAGENT_SNAPSHOT)-\(os)-\(arch)", isDirectory: false)
 
-		if FileManager.default.fileExists(atPath: localAgent.path) == false {
+		if FileManager.default.fileExists(atPath: localAgent.path(percentEncoded: false)) == false {
 			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-\(os)-\(arch)") else {
 				throw CloudInitGenerateError("unable to get remote cakeagent")
 			}
@@ -1341,7 +1341,7 @@ class CloudInit {
 			throw CloudInitGenerateError("configUrl is not a file URL")
 		}
 
-		let attr = try FileManager.default.attributesOfItem(atPath: configUrl.absoluteURL.path)
+		let attr = try FileManager.default.attributesOfItem(atPath: configUrl.absoluteURL.path(percentEncoded: false))
 		let fileSize = attr[FileAttributeKey.size] as! UInt64
 
 		try writer.addFile(path: path, size: fileSize, metadata: nil)
