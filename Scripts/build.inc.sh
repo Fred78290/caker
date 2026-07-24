@@ -144,7 +144,7 @@ if [ "${APPSTORE}" -eq 1 ]; then
 		--options runtime \
 		--identifier "com.aldunelabs.caker.cakectl" \
 		--timestamp \
-		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/cakectl.entitlements" \
+		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release/cakectl.entitlements" \
 		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
 		--strip-disallowed-xattrs \
 		--force "${CAKECTL_APP}/MacOS/cakectl"
@@ -154,7 +154,7 @@ if [ "${APPSTORE}" -eq 1 ]; then
 		--timestamp \
 		--identifier "com.aldunelabs.caker.caked" \
 		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
-		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/caked.entitlements" \
+		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release/caked.entitlements" \
 		--strip-disallowed-xattrs \
 		--force "${CAKED_APP}/MacOS/caked"
 
@@ -162,7 +162,7 @@ if [ "${APPSTORE}" -eq 1 ]; then
 		--options runtime \
 		--timestamp \
 		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
-		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release.entitlements" \
+		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release/caker.entitlements" \
 		--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker}" \
 		--strip-disallowed-xattrs \
 		--force "${CAKER_APP}/MacOS/Caker"
@@ -171,7 +171,7 @@ if [ "${APPSTORE}" -eq 1 ]; then
 		--options runtime \
 		--timestamp \
 		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
-		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/caked.entitlements" \
+		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release/caked.entitlements" \
 		--strip-disallowed-xattrs \
 		--force "${CAKER_APP}/PlugIns/caked.app"
 
@@ -179,7 +179,7 @@ if [ "${APPSTORE}" -eq 1 ]; then
 		--options runtime \
 		--timestamp \
 		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
-		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/cakectl.entitlements" \
+		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release/cakectl.entitlements" \
 		--strip-disallowed-xattrs \
 		--force "${CAKER_APP}/PlugIns/cakectl.app"
 
@@ -187,7 +187,7 @@ if [ "${APPSTORE}" -eq 1 ]; then
 		--options runtime \
 		--timestamp \
 		--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints \
-		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release.entitlements" \
+		--entitlements "${PROJECT_ROOT}/Caker/Caker/AppStore/release/caker.entitlements" \
 		--strip-disallowed-xattrs \
 		--force "${PKGDIR}"
 

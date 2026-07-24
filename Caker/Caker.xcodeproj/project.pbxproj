@@ -201,6 +201,37 @@
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */; };
 		9B4EA8292F7692170044C18E /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; };
+		9B561266301350FB00E9FA7D /* agent.svg in Resources */ = {isa = PBXBuildFile; fileRef = 9B561238301350FB00E9FA7D /* agent.svg */; };
+		9B561267301350FB00E9FA7D /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9B561239301350FB00E9FA7D /* AppIcon.icns */; };
+		9B561268301350FB00E9FA7D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9B56123A301350FB00E9FA7D /* Assets.xcassets */; };
+		9B561269301350FB00E9FA7D /* Document.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9B56123B301350FB00E9FA7D /* Document.icns */; };
+		9B56126A301350FB00E9FA7D /* MenuBarIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56123C301350FB00E9FA7D /* MenuBarIcon.png */; };
+		9B56126B301350FB00E9FA7D /* Prompt.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56123D301350FB00E9FA7D /* Prompt.png */; };
+		9B56126C301350FB00E9FA7D /* almalinux.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56123F301350FB00E9FA7D /* almalinux.png */; };
+		9B56126D301350FB00E9FA7D /* alpine.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561240301350FB00E9FA7D /* alpine.png */; };
+		9B56126E301350FB00E9FA7D /* arch-linux.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561241301350FB00E9FA7D /* arch-linux.png */; };
+		9B56126F301350FB00E9FA7D /* backtrack.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561242301350FB00E9FA7D /* backtrack.png */; };
+		9B561270301350FB00E9FA7D /* centos.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561243301350FB00E9FA7D /* centos.png */; };
+		9B561271301350FB00E9FA7D /* debian.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561244301350FB00E9FA7D /* debian.png */; };
+		9B561272301350FB00E9FA7D /* elementary-os.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561245301350FB00E9FA7D /* elementary-os.png */; };
+		9B561273301350FB00E9FA7D /* fedora.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561246301350FB00E9FA7D /* fedora.png */; };
+		9B561274301350FB00E9FA7D /* gentoo.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561247301350FB00E9FA7D /* gentoo.png */; };
+		9B561275301350FB00E9FA7D /* knoppix.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561248301350FB00E9FA7D /* knoppix.png */; };
+		9B561276301350FB00E9FA7D /* kubuntu.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561249301350FB00E9FA7D /* kubuntu.png */; };
+		9B561277301350FB00E9FA7D /* linux.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56124A301350FB00E9FA7D /* linux.png */; };
+		9B561278301350FB00E9FA7D /* lubuntu.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56124B301350FB00E9FA7D /* lubuntu.png */; };
+		9B561279301350FB00E9FA7D /* mac.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56124C301350FB00E9FA7D /* mac.png */; };
+		9B56127A301350FB00E9FA7D /* mandriva.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56124D301350FB00E9FA7D /* mandriva.png */; };
+		9B56127B301350FB00E9FA7D /* mint.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56124E301350FB00E9FA7D /* mint.png */; };
+		9B56127C301350FB00E9FA7D /* openwrt.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56124F301350FB00E9FA7D /* openwrt.png */; };
+		9B56127D301350FB00E9FA7D /* pop-os.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561250301350FB00E9FA7D /* pop-os.png */; };
+		9B56127E301350FB00E9FA7D /* red-hat.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561251301350FB00E9FA7D /* red-hat.png */; };
+		9B56127F301350FB00E9FA7D /* slackware.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561252301350FB00E9FA7D /* slackware.png */; };
+		9B561280301350FB00E9FA7D /* suse.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561253301350FB00E9FA7D /* suse.png */; };
+		9B561281301350FB00E9FA7D /* syllable.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561254301350FB00E9FA7D /* syllable.png */; };
+		9B561282301350FB00E9FA7D /* ubuntu.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561255301350FB00E9FA7D /* ubuntu.png */; };
+		9B561283301350FB00E9FA7D /* webos.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561256301350FB00E9FA7D /* webos.png */; };
+		9B561284301350FB00E9FA7D /* xubuntu.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B561257301350FB00E9FA7D /* xubuntu.png */; };
 		9B57E9D02E745FB600C5601D /* ViewSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B57E9CF2E745FB600C5601D /* ViewSize.swift */; };
 		9B5A37812ED4BDA8007B59B0 /* VNCKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */; };
 		9B5A37822ED4BDA8007B59B0 /* VNCProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */; };
@@ -1023,6 +1054,55 @@
 		9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstanceDetailPage.tsx; sourceTree = "<group>"; };
 		9B4C09B82FB8D72100101F0E /* RemotesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = RemotesPage.tsx; sourceTree = "<group>"; };
 		9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswiftCompatibilitySpan.dylib; path = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib"; sourceTree = "<absolute>"; };
+		9B561226301350FB00E9FA7D /* cakectl.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cakectl.entitlements; sourceTree = "<group>"; };
+		9B561227301350FB00E9FA7D /* cakectl.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = cakectl.provisionprofile; sourceTree = "<group>"; };
+		9B561228301350FB00E9FA7D /* caked.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caked.entitlements; sourceTree = "<group>"; };
+		9B561229301350FB00E9FA7D /* caked.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caked.provisionprofile; sourceTree = "<group>"; };
+		9B56122A301350FB00E9FA7D /* caker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caker.entitlements; sourceTree = "<group>"; };
+		9B56122B301350FB00E9FA7D /* caker.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caker.provisionprofile; sourceTree = "<group>"; };
+		9B56122D301350FB00E9FA7D /* cakectl.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cakectl.entitlements; sourceTree = "<group>"; };
+		9B56122E301350FB00E9FA7D /* cakectl.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = cakectl.provisionprofile; sourceTree = "<group>"; };
+		9B56122F301350FB00E9FA7D /* caked.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caked.entitlements; sourceTree = "<group>"; };
+		9B561230301350FB00E9FA7D /* caked.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caked.provisionprofile; sourceTree = "<group>"; };
+		9B561231301350FB00E9FA7D /* caker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caker.entitlements; sourceTree = "<group>"; };
+		9B561232301350FB00E9FA7D /* caker.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caker.provisionprofile; sourceTree = "<group>"; };
+		9B561234301350FB00E9FA7D /* com.aldunelabs.caker.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.aldunelabs.caker.plist; sourceTree = "<group>"; };
+		9B561235301350FB00E9FA7D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9B561236301350FB00E9FA7D /* release.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = release.provisionprofile; sourceTree = "<group>"; };
+		9B561238301350FB00E9FA7D /* agent.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = agent.svg; sourceTree = "<group>"; };
+		9B561239301350FB00E9FA7D /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		9B56123A301350FB00E9FA7D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9B56123B301350FB00E9FA7D /* Document.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Document.icns; sourceTree = "<group>"; };
+		9B56123C301350FB00E9FA7D /* MenuBarIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MenuBarIcon.png; sourceTree = "<group>"; };
+		9B56123D301350FB00E9FA7D /* Prompt.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Prompt.png; sourceTree = "<group>"; };
+		9B56123F301350FB00E9FA7D /* almalinux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = almalinux.png; sourceTree = "<group>"; };
+		9B561240301350FB00E9FA7D /* alpine.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = alpine.png; sourceTree = "<group>"; };
+		9B561241301350FB00E9FA7D /* arch-linux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "arch-linux.png"; sourceTree = "<group>"; };
+		9B561242301350FB00E9FA7D /* backtrack.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = backtrack.png; sourceTree = "<group>"; };
+		9B561243301350FB00E9FA7D /* centos.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = centos.png; sourceTree = "<group>"; };
+		9B561244301350FB00E9FA7D /* debian.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = debian.png; sourceTree = "<group>"; };
+		9B561245301350FB00E9FA7D /* elementary-os.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "elementary-os.png"; sourceTree = "<group>"; };
+		9B561246301350FB00E9FA7D /* fedora.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fedora.png; sourceTree = "<group>"; };
+		9B561247301350FB00E9FA7D /* gentoo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gentoo.png; sourceTree = "<group>"; };
+		9B561248301350FB00E9FA7D /* knoppix.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = knoppix.png; sourceTree = "<group>"; };
+		9B561249301350FB00E9FA7D /* kubuntu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = kubuntu.png; sourceTree = "<group>"; };
+		9B56124A301350FB00E9FA7D /* linux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = linux.png; sourceTree = "<group>"; };
+		9B56124B301350FB00E9FA7D /* lubuntu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lubuntu.png; sourceTree = "<group>"; };
+		9B56124C301350FB00E9FA7D /* mac.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mac.png; sourceTree = "<group>"; };
+		9B56124D301350FB00E9FA7D /* mandriva.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mandriva.png; sourceTree = "<group>"; };
+		9B56124E301350FB00E9FA7D /* mint.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mint.png; sourceTree = "<group>"; };
+		9B56124F301350FB00E9FA7D /* openwrt.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = openwrt.png; sourceTree = "<group>"; };
+		9B561250301350FB00E9FA7D /* pop-os.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pop-os.png"; sourceTree = "<group>"; };
+		9B561251301350FB00E9FA7D /* red-hat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "red-hat.png"; sourceTree = "<group>"; };
+		9B561252301350FB00E9FA7D /* slackware.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = slackware.png; sourceTree = "<group>"; };
+		9B561253301350FB00E9FA7D /* suse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = suse.png; sourceTree = "<group>"; };
+		9B561254301350FB00E9FA7D /* syllable.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = syllable.png; sourceTree = "<group>"; };
+		9B561255301350FB00E9FA7D /* ubuntu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ubuntu.png; sourceTree = "<group>"; };
+		9B561256301350FB00E9FA7D /* webos.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = webos.png; sourceTree = "<group>"; };
+		9B561257301350FB00E9FA7D /* xubuntu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = xubuntu.png; sourceTree = "<group>"; };
+		9B561259301350FB00E9FA7D /* Caker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Caker.entitlements; sourceTree = "<group>"; };
+		9B56125A301350FB00E9FA7D /* CakerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CakerDebug.entitlements; sourceTree = "<group>"; };
+		9B56125B301350FB00E9FA7D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9B57E9CF2E745FB600C5601D /* ViewSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSize.swift; sourceTree = "<group>"; };
 		9B5A37752ED4BDA8007B59B0 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9B5A37772ED4BDA8007B59B0 /* VNCConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCConnection.swift; sourceTree = "<group>"; };
@@ -1414,41 +1494,6 @@
 		9BFE87452F7E6480005CC9B2 /* VM.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = VM.xcf; sourceTree = "<group>"; };
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9B196F3A2F588DAB00B424DB /* Exceptions for "Caker" folder in "Caker" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				AppStore/com.aldunelabs.caker.plist,
-				AppStore/debug/cakectl.provisionprofile,
-				AppStore/debug/caked.provisionprofile,
-				AppStore/debug/caker.provisionprofile,
-				AppStore/Info.plist,
-				AppStore/release.provisionprofile,
-				AppStore/release/cakectl.provisionprofile,
-				AppStore/release/caked.provisionprofile,
-				AppStore/release/caker.provisionprofile,
-				Info.plist,
-			);
-			target = 9B464A532D5A3DA000164BF5 /* Caker */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		9B464A562D5A3DA000164BF5 /* Caker */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				9B196F3A2F588DAB00B424DB /* Exceptions for "Caker" folder in "Caker" target */,
-			);
-			path = Caker;
-			sourceTree = "<group>";
-		};
-		9B96B0102F4B68380069C970 /* CakerTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = CakerTests;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		9B464A512D5A3DA000164BF5 /* Frameworks */ = {
@@ -1965,8 +2010,7 @@
 		9B464A4B2D5A3DA000164BF5 = {
 			isa = PBXGroup;
 			children = (
-				9B464A562D5A3DA000164BF5 /* Caker */,
-				9B96B0102F4B68380069C970 /* CakerTests */,
+				9B56125C301350FB00E9FA7D /* Caker */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
 				9B5FA1022F8BABF50077EF64 /* Localizations */,
 				9B464A552D5A3DA000164BF5 /* Products */,
@@ -2097,6 +2141,102 @@
 				9B464C492D5A427100164BF5 /* Virtualization.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9B56122C301350FB00E9FA7D /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				9B561226301350FB00E9FA7D /* cakectl.entitlements */,
+				9B561227301350FB00E9FA7D /* cakectl.provisionprofile */,
+				9B561228301350FB00E9FA7D /* caked.entitlements */,
+				9B561229301350FB00E9FA7D /* caked.provisionprofile */,
+				9B56122A301350FB00E9FA7D /* caker.entitlements */,
+				9B56122B301350FB00E9FA7D /* caker.provisionprofile */,
+			);
+			path = debug;
+			sourceTree = "<group>";
+		};
+		9B561233301350FB00E9FA7D /* release */ = {
+			isa = PBXGroup;
+			children = (
+				9B56122D301350FB00E9FA7D /* cakectl.entitlements */,
+				9B56122E301350FB00E9FA7D /* cakectl.provisionprofile */,
+				9B56122F301350FB00E9FA7D /* caked.entitlements */,
+				9B561230301350FB00E9FA7D /* caked.provisionprofile */,
+				9B561231301350FB00E9FA7D /* caker.entitlements */,
+				9B561232301350FB00E9FA7D /* caker.provisionprofile */,
+			);
+			path = release;
+			sourceTree = "<group>";
+		};
+		9B561237301350FB00E9FA7D /* AppStore */ = {
+			isa = PBXGroup;
+			children = (
+				9B56122C301350FB00E9FA7D /* debug */,
+				9B561233301350FB00E9FA7D /* release */,
+				9B561234301350FB00E9FA7D /* com.aldunelabs.caker.plist */,
+				9B561235301350FB00E9FA7D /* Info.plist */,
+				9B561236301350FB00E9FA7D /* release.provisionprofile */,
+			);
+			path = AppStore;
+			sourceTree = "<group>";
+		};
+		9B56123E301350FB00E9FA7D /* Content */ = {
+			isa = PBXGroup;
+			children = (
+				9B561238301350FB00E9FA7D /* agent.svg */,
+				9B561239301350FB00E9FA7D /* AppIcon.icns */,
+				9B56123A301350FB00E9FA7D /* Assets.xcassets */,
+				9B56123B301350FB00E9FA7D /* Document.icns */,
+				9B56123C301350FB00E9FA7D /* MenuBarIcon.png */,
+				9B56123D301350FB00E9FA7D /* Prompt.png */,
+			);
+			path = Content;
+			sourceTree = "<group>";
+		};
+		9B561258301350FB00E9FA7D /* Icons */ = {
+			isa = PBXGroup;
+			children = (
+				9B56123F301350FB00E9FA7D /* almalinux.png */,
+				9B561240301350FB00E9FA7D /* alpine.png */,
+				9B561241301350FB00E9FA7D /* arch-linux.png */,
+				9B561242301350FB00E9FA7D /* backtrack.png */,
+				9B561243301350FB00E9FA7D /* centos.png */,
+				9B561244301350FB00E9FA7D /* debian.png */,
+				9B561245301350FB00E9FA7D /* elementary-os.png */,
+				9B561246301350FB00E9FA7D /* fedora.png */,
+				9B561247301350FB00E9FA7D /* gentoo.png */,
+				9B561248301350FB00E9FA7D /* knoppix.png */,
+				9B561249301350FB00E9FA7D /* kubuntu.png */,
+				9B56124A301350FB00E9FA7D /* linux.png */,
+				9B56124B301350FB00E9FA7D /* lubuntu.png */,
+				9B56124C301350FB00E9FA7D /* mac.png */,
+				9B56124D301350FB00E9FA7D /* mandriva.png */,
+				9B56124E301350FB00E9FA7D /* mint.png */,
+				9B56124F301350FB00E9FA7D /* openwrt.png */,
+				9B561250301350FB00E9FA7D /* pop-os.png */,
+				9B561251301350FB00E9FA7D /* red-hat.png */,
+				9B561252301350FB00E9FA7D /* slackware.png */,
+				9B561253301350FB00E9FA7D /* suse.png */,
+				9B561254301350FB00E9FA7D /* syllable.png */,
+				9B561255301350FB00E9FA7D /* ubuntu.png */,
+				9B561256301350FB00E9FA7D /* webos.png */,
+				9B561257301350FB00E9FA7D /* xubuntu.png */,
+			);
+			path = Icons;
+			sourceTree = "<group>";
+		};
+		9B56125C301350FB00E9FA7D /* Caker */ = {
+			isa = PBXGroup;
+			children = (
+				9B561237301350FB00E9FA7D /* AppStore */,
+				9B56123E301350FB00E9FA7D /* Content */,
+				9B561258301350FB00E9FA7D /* Icons */,
+				9B561259301350FB00E9FA7D /* Caker.entitlements */,
+				9B56125A301350FB00E9FA7D /* CakerDebug.entitlements */,
+				9B56125B301350FB00E9FA7D /* Info.plist */,
+			);
+			path = Caker;
 			sourceTree = "<group>";
 		};
 		9B5A377E2ED4BDA8007B59B0 /* VNCLib */ = {
@@ -2769,9 +2909,6 @@
 				9BFE87172F7E61F1005CC9B2 /* PBXTargetDependency */,
 				9BF2D5F62FE2D30F00218073 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				9B464A562D5A3DA000164BF5 /* Caker */,
-			);
 			name = Caker;
 			packageProductDependencies = (
 				9B30BA7C2E0C202A00256A9D /* SwiftletUtilities */,
@@ -2871,9 +3008,6 @@
 				9B96B0142F4B68380069C970 /* PBXTargetDependency */,
 				9B21E00B2F4C676800870AD7 /* PBXTargetDependency */,
 				9B21E00E2F4C676800870AD7 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				9B96B0102F4B68380069C970 /* CakerTests */,
 			);
 			name = CakerTests;
 			packageProductDependencies = (
@@ -3207,6 +3341,37 @@
 			isa = PBXResourcesBuildPhase;
 			files = (
 				9B5FA0FF2F8B94F50077EF64 /* Localizable.xcstrings in Resources */,
+				9B561266301350FB00E9FA7D /* agent.svg in Resources */,
+				9B561267301350FB00E9FA7D /* AppIcon.icns in Resources */,
+				9B561268301350FB00E9FA7D /* Assets.xcassets in Resources */,
+				9B561269301350FB00E9FA7D /* Document.icns in Resources */,
+				9B56126A301350FB00E9FA7D /* MenuBarIcon.png in Resources */,
+				9B56126B301350FB00E9FA7D /* Prompt.png in Resources */,
+				9B56126C301350FB00E9FA7D /* almalinux.png in Resources */,
+				9B56126D301350FB00E9FA7D /* alpine.png in Resources */,
+				9B56126E301350FB00E9FA7D /* arch-linux.png in Resources */,
+				9B56126F301350FB00E9FA7D /* backtrack.png in Resources */,
+				9B561270301350FB00E9FA7D /* centos.png in Resources */,
+				9B561271301350FB00E9FA7D /* debian.png in Resources */,
+				9B561272301350FB00E9FA7D /* elementary-os.png in Resources */,
+				9B561273301350FB00E9FA7D /* fedora.png in Resources */,
+				9B561274301350FB00E9FA7D /* gentoo.png in Resources */,
+				9B561275301350FB00E9FA7D /* knoppix.png in Resources */,
+				9B561276301350FB00E9FA7D /* kubuntu.png in Resources */,
+				9B561277301350FB00E9FA7D /* linux.png in Resources */,
+				9B561278301350FB00E9FA7D /* lubuntu.png in Resources */,
+				9B561279301350FB00E9FA7D /* mac.png in Resources */,
+				9B56127A301350FB00E9FA7D /* mandriva.png in Resources */,
+				9B56127B301350FB00E9FA7D /* mint.png in Resources */,
+				9B56127C301350FB00E9FA7D /* openwrt.png in Resources */,
+				9B56127D301350FB00E9FA7D /* pop-os.png in Resources */,
+				9B56127E301350FB00E9FA7D /* red-hat.png in Resources */,
+				9B56127F301350FB00E9FA7D /* slackware.png in Resources */,
+				9B561280301350FB00E9FA7D /* suse.png in Resources */,
+				9B561281301350FB00E9FA7D /* syllable.png in Resources */,
+				9B561282301350FB00E9FA7D /* ubuntu.png in Resources */,
+				9B561283301350FB00E9FA7D /* webos.png in Resources */,
+				9B561284301350FB00E9FA7D /* xubuntu.png in Resources */,
 				9B5FA35F2F8D5AE80077EF64 /* InfoPlist.xcstrings in Resources */,
 			);
 		};
