@@ -715,7 +715,7 @@ public func withAsyncResult<T>(builder: @escaping () async throws -> T) throws -
 		err.deallocate()
 	}
 
-	Task {
+	Task.detached(priority: .userInitiated) {
 		err.pointee = nil
 
 		do {
