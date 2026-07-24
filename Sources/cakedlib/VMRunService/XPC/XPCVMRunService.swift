@@ -16,7 +16,7 @@ extension DirectorySharingAttachment {
 			return false
 		}
 
-		if self.path.path != to.name {
+		if self.path.path(percentEncoded: false) != to.name {
 			return false
 		}
 

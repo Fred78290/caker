@@ -27,9 +27,9 @@ extension CakedCommand {
 			on: on,
 			listeningAddress: listeningAddress,
 			connectionTimeout: 30,
-			caCert: certificates.caCertURL.path,
-			tlsCert: certificates.clientCertURL.path,
-			tlsKey: certificates.clientKeyURL.path)
+			caCert: certificates.caCertURL.path(percentEncoded: false),
+			tlsCert: certificates.clientCertURL.path(percentEncoded: false),
+			tlsKey: certificates.clientKeyURL.path(percentEncoded: false))
 	}
 }
 

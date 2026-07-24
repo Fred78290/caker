@@ -55,15 +55,15 @@ extension CakeAgentEnvironment {
 		
 		if self.options.insecure == false {
 			if self.options.caCert == nil {
-				self.options.caCert = certificates.caCertURL.path
+				self.options.caCert = certificates.caCertURL.path(percentEncoded: false)
 			}
 			
 			if self.options.tlsCert == nil {
-				self.options.tlsCert = certificates.clientCertURL.path
+				self.options.tlsCert = certificates.clientCertURL.path(percentEncoded: false)
 			}
 			
 			if self.options.tlsKey == nil {
-				self.options.tlsKey = certificates.clientKeyURL.path
+				self.options.tlsKey = certificates.clientKeyURL.path(percentEncoded: false)
 			}
 		}
 		

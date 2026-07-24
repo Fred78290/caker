@@ -147,8 +147,8 @@ public struct PrivateKeyModel {
 		let privateKey = try self.privateKeyString()
 		let publicKey = try self.publicKeyString()
 
-		FileManager.default.createFile(atPath: privateURL.path, contents: privateKey.data(using: .ascii), attributes: [.posixPermissions: 0o600])
-		FileManager.default.createFile(atPath: publicURL.path, contents: publicKey.data(using: .ascii), attributes: [.posixPermissions: 0o644])
+		FileManager.default.createFile(atPath: privateURL.path(percentEncoded: false), contents: privateKey.data(using: .ascii), attributes: [.posixPermissions: 0o600])
+		FileManager.default.createFile(atPath: publicURL.path(percentEncoded: false), contents: publicKey.data(using: .ascii), attributes: [.posixPermissions: 0o644])
 	}
 
 	public func publicKeyString() throws -> String {
@@ -346,34 +346,34 @@ public struct RSAKeyGenerator {
 
 		// Save CA key & cert
 		FileManager.default.createFile(
-			atPath: caKeyURL.absoluteURL.path,
+			atPath: caKeyURL.absoluteURL.path(percentEncoded: false),
 			contents: try rootCertKey.serializeAsPEM().pemString.data(using: .ascii),
 			attributes: [.posixPermissions: 0o600])
 
 		FileManager.default.createFile(
-			atPath: caCertURL.absoluteURL.path,
+			atPath: caCertURL.absoluteURL.path(percentEncoded: false),
 			contents: try rootCert.serializeAsPEM().pemString.data(using: .ascii),
 			attributes: [.posixPermissions: 0o600])
 
 		// Save server key & cert
 		FileManager.default.createFile(
-			atPath: serverKeyURL.absoluteURL.path,
+			atPath: serverKeyURL.absoluteURL.path(percentEncoded: false),
 			contents: try serverCertKey.serializeAsPEM().pemString.data(using: .ascii),
 			attributes: [.posixPermissions: 0o644])
 
 		FileManager.default.createFile(
-			atPath: serverCertURL.absoluteURL.path,
+			atPath: serverCertURL.absoluteURL.path(percentEncoded: false),
 			contents: try serverCertificate.serializeAsPEM().pemString.data(using: .ascii),
 			attributes: [.posixPermissions: 0o644])
 
 		// Save Client key & cert
 		FileManager.default.createFile(
-			atPath: clientKeyURL.absoluteURL.path,
+			atPath: clientKeyURL.absoluteURL.path(percentEncoded: false),
 			contents: try clientCertKey.serializeAsPEM().pemString.data(using: .ascii),
 			attributes: [.posixPermissions: 0o644])
 
 		FileManager.default.createFile(
-			atPath: clientCertURL.absoluteURL.path,
+			atPath: clientCertURL.absoluteURL.path(percentEncoded: false),
 			contents: try clientCertificate.serializeAsPEM().pemString.data(using: .ascii),
 			attributes: [.posixPermissions: 0o644])
 	}

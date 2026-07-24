@@ -123,7 +123,7 @@ extension Service {
 			if self.tlsCert == nil && self.tlsKey == nil {
 				let certs = try CertificatesLocation.createCertificats(runMode: runMode)
 
-				return Certs(ca: certs.caCertURL.path, key: certs.serverKeyURL.path, cert: certs.serverCertURL.path)
+				return Certs(ca: certs.caCertURL.path(percentEncoded: false), key: certs.serverKeyURL.path(percentEncoded: false), cert: certs.serverCertURL.path(percentEncoded: false))
 			}
 
 			return Certs(ca: self.caCert, key: self.tlsKey, cert: self.tlsCert)
@@ -279,9 +279,9 @@ extension Service {
 			if self.options.insecure == false {
 				let certs = try CertificatesLocation.createCertificats(runMode: runMode)
 
-				self.options.caCert = certs.caCertURL.path
-				self.options.tlsCert = certs.serverCertURL.path
-				self.options.tlsKey = certs.serverKeyURL.path
+				self.options.caCert = certs.caCertURL.path(percentEncoded: false)
+				self.options.tlsCert = certs.serverCertURL.path(percentEncoded: false)
+				self.options.tlsKey = certs.serverKeyURL.path(percentEncoded: false)
 			} else if let caCert = self.options.caCert, let tlsCert = self.options.tlsCert, let tlsKey = self.options.tlsKey {
 				if FileManager.default.fileExists(atPath: caCert) == false {
 					throw ServiceError(String(localized: "Root certificate file not found: \(caCert)"))

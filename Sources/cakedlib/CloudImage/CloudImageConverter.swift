@@ -40,8 +40,8 @@ public class CloudImageConverter {
 	}
 
 	public static func downloadRemoteFile(fromURL: URL, toURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
-		if FileManager.default.fileExists(atPath: toURL.path) {
-			throw ServiceError(String(localized: "file already exists: \(toURL.path)"))
+		if FileManager.default.fileExists(atPath: toURL.path(percentEncoded: false)) {
+			throw ServiceError(String(localized: "file already exists: \(toURL.path(percentEncoded: false))"))
 		}
 		var pathExtension = fromURL.pathExtension
 		
@@ -68,7 +68,7 @@ public class CloudImageConverter {
 		let fileName = remoteURL.lastPathComponent.deletingPathExtension
 		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).\(imageCache.ext)")
 
-		if FileManager.default.fileExists(atPath: cacheLocation.path) {
+		if FileManager.default.fileExists(atPath: cacheLocation.path(percentEncoded: false)) {
 			self.step(String(localized: "Using cached \(cacheLocation.path(percentEncoded: false)) file..."), progressHandler: progressHandler)
 			try cacheLocation.updateAccessDate()
 			return cacheLocation
@@ -110,7 +110,7 @@ public class CloudImageConverter {
 		let temporaryLocation = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
 
 		defer {
-			if FileManager.default.fileExists(atPath: temporaryLocation.path) {
+			if FileManager.default.fileExists(atPath: temporaryLocation.path(percentEncoded: false)) {
 				do {
 					try FileManager.default.removeItem(at: temporaryLocation)
 				} catch {
@@ -119,7 +119,7 @@ public class CloudImageConverter {
 			}
 		}
 
-		if FileManager.default.fileExists(atPath: cacheLocation.path) {
+		if FileManager.default.fileExists(atPath: cacheLocation.path(percentEncoded: false)) {
 			self.step(String(localized: "Using cached \(cacheLocation.path(percentEncoded: false)) file..."), progressHandler: progressHandler)
 			try cacheLocation.updateAccessDate()
 		} else {

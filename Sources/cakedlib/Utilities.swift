@@ -51,7 +51,7 @@ extension Bundle {
 			return nil
 		}
 
-		return url.path
+		return url.path(percentEncoded: false)
 	}
 
 	public var cakedBundleURL: URL? {
@@ -62,7 +62,7 @@ extension Bundle {
 		let cakedBundleURL = pluginURL.appendingPathComponent("caked.app/Contents/MacOS").absoluteURL
 		var isDirectory: ObjCBool = false
 
-		guard FileManager.default.fileExists(atPath: cakedBundleURL.path, isDirectory: &isDirectory) else {
+		guard FileManager.default.fileExists(atPath: cakedBundleURL.path(percentEncoded: false), isDirectory: &isDirectory) else {
 			return nil
 		}
 
@@ -78,7 +78,7 @@ extension Bundle {
 			return nil
 		}
 
-		return url.path
+		return url.path(percentEncoded: false)
 	}
 
 	public var cakectlBundleURL: URL? {
@@ -89,7 +89,7 @@ extension Bundle {
 		let cakectlBundleURL = pluginURL.appendingPathComponent("cakectl.app/Contents/MacOS").absoluteURL
 		var isDirectory: ObjCBool = false
 
-		guard FileManager.default.fileExists(atPath: cakectlBundleURL.path, isDirectory: &isDirectory) else {
+		guard FileManager.default.fileExists(atPath: cakectlBundleURL.path(percentEncoded: false), isDirectory: &isDirectory) else {
 			return nil
 		}
 
@@ -296,7 +296,7 @@ extension Bundle {
 					throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
 				}
 
-				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
+				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
 
 				if runMode.isSystem {
 					runningArguments.append("--system")
@@ -307,7 +307,7 @@ extension Bundle {
 
 			runningArguments.append(contentsOf: arguments)
 
-			Logger(self).debug("Running: \(executableURL.path) \(runningArguments.joined(separator: " "))")
+			Logger(self).debug("Running: \(executableURL.path(percentEncoded: false)) \(runningArguments.joined(separator: " "))")
 
 			process.executableURL = executableURL
 			process.environment = try Utilities.environment(runMode: runMode)
@@ -361,7 +361,7 @@ extension Bundle {
 					throw ServiceError(String(localized: "\(executableURL.lastPathComponent) is not sudoable"))
 				}
 
-				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
+				runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
 
 				if runMode.isSystem {
 					runningArguments.append("--system")
@@ -372,7 +372,7 @@ extension Bundle {
 
 			runningArguments.append(contentsOf: arguments)
 
-			Logger(self).debug("Running: \(executableURL.path) \(runningArguments.joined(separator: " "))")
+			Logger(self).debug("Running: \(executableURL.path(percentEncoded: false)) \(runningArguments.joined(separator: " "))")
 
 			process.executableURL = executableURL
 			process.environment = try Utilities.environment(runMode: runMode)
@@ -680,17 +680,17 @@ extension URL: Purgeable {
 		// Set file mode to 0644 for the PID file
 		let mode: mode_t = 0o644
 
-		let result = self.path.withCString { cstr in
+		let result = self.path(percentEncoded: false).withCString { cstr in
 			chmod(cstr, mode)
 		}
 
 		if result != 0 {
-			throw ServiceError(String(localized: "Failed to set permissions 0644 on PID file at \(self.path): errno=\(errno)"))
+			throw ServiceError(String(localized: "Failed to set permissions 0644 on PID file at \(self.path(percentEncoded: false)): errno=\(errno)"))
 		}
 	}
 
 	public func readPID() -> Int32? {
-		if FileManager.default.fileExists(atPath: self.absoluteURL.path) == false {
+		if FileManager.default.fileExists(atPath: self.absoluteURL.path(percentEncoded: false)) == false {
 			return nil
 		}
 
@@ -706,7 +706,7 @@ extension URL: Purgeable {
 	}
 
 	public func killPID(_ signal: Int32 = SIGTERM) -> Int32 {
-		if FileManager.default.fileExists(atPath: self.absoluteURL.path) == false {
+		if FileManager.default.fileExists(atPath: self.absoluteURL.path(percentEncoded: false)) == false {
 			return ENODATA
 		}
 
@@ -760,7 +760,7 @@ extension URL: Purgeable {
 					try handler()
 				}
 
-				if FileManager.default.fileExists(atPath: self.path) == false {
+				if FileManager.default.fileExists(atPath: self.path(percentEncoded: false)) == false {
 					return
 				}
 
@@ -773,7 +773,7 @@ extension URL: Purgeable {
 				retries += 1
 			}
 
-			throw ServiceError(String(localized: "PID file \(self.path) did not stopped within the expected time"))
+			throw ServiceError(String(localized: "PID file \(self.path(percentEncoded: false)) did not stopped within the expected time"))
 		}
 	}
 
@@ -782,9 +782,9 @@ extension URL: Purgeable {
 			var retries = 0
 
 			while retries < maxRetries {
-				if FileManager.default.fileExists(atPath: self.path) {
+				if FileManager.default.fileExists(atPath: self.path(percentEncoded: false)) {
 					guard self.isPIDRunning().0 else {
-						throw ServiceError(String(localized: "PID file exists at \(self.path) but process died"))
+						throw ServiceError(String(localized: "PID file exists at \(self.path(percentEncoded: false)) but process died"))
 					}
 
 					return
@@ -795,7 +795,7 @@ extension URL: Purgeable {
 				retries += 1
 			}
 
-			throw ServiceError(String(localized: "PID file \(self.path) did not appear within the expected time"))
+			throw ServiceError(String(localized: "PID file \(self.path(percentEncoded: false)) did not appear within the expected time"))
 		}
 
 		if let handler = handler {
@@ -807,7 +807,7 @@ extension URL: Purgeable {
 		if let executablePath = Bundle.main.path(forAuxiliaryExecutable: name) {
 			let url = URL(fileURLWithPath: executablePath).resolvingSymlinksInPath().absoluteURL
 
-			if FileManager.default.fileExists(atPath: url.path) {
+			if FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) {
 				return url
 			}
 		}
@@ -838,7 +838,7 @@ extension URL: Purgeable {
 			return path.split(separator: ":").compactMap { dir in
 				let url: URL = URL(fileURLWithPath: String(dir)).appendingPathComponent(name, isDirectory: false).resolvingSymlinksInPath().absoluteURL
 
-				if FileManager.default.fileExists(atPath: url.path) {
+				if FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) {
 					return url
 				}
 
@@ -865,7 +865,7 @@ extension URL: Purgeable {
 
 	public func exists() throws -> Bool {
 		if self.isFileURL || self.scheme == "unix" || self.scheme == "vsock" {
-			return FileManager.default.fileExists(atPath: self.absoluteURL.path)
+			return FileManager.default.fileExists(atPath: self.absoluteURL.path(percentEncoded: false))
 		}
 
 		throw ServiceError(String(localized: "Not a file URL: \(self.hiddenPasswordURL.absoluteString)"))
@@ -873,8 +873,8 @@ extension URL: Purgeable {
 
 	public func deleteIfFileExists() throws {
 		if self.isFileURL || self.scheme == "unix" || self.scheme == "vsock" {
-			if FileManager.default.fileExists(atPath: self.absoluteURL.path) {
-				try FileManager.default.removeItem(at: URL(fileURLWithPath: self.absoluteURL.path))
+			if FileManager.default.fileExists(atPath: self.absoluteURL.path(percentEncoded: false)) {
+				try FileManager.default.removeItem(at: URL(fileURLWithPath: self.absoluteURL.path(percentEncoded: false)))
 			}
 		}
 	}
@@ -1070,7 +1070,7 @@ public struct Utilities {
 		let home: Home = try Home(runMode: runMode)
 		let localAgent = home.agentDirectory.appendingPathComponent("cakeagent-\(CAKEAGENT_SNAPSHOT)-\(os)-\(arch)", isDirectory: false)
 
-		if FileManager.default.fileExists(atPath: localAgent.path) == false {
+		if FileManager.default.fileExists(atPath: localAgent.path(percentEncoded: false)) == false {
 			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-\(os)-\(arch)") else {
 				throw ServiceError(String(localized: "unable to get remote cakeagent"))
 			}
@@ -1100,9 +1100,9 @@ public struct Utilities {
 			on: on,
 			listeningAddress: listeningAddress,
 			connectionTimeout: connectionTimeout,
-			caCert: certificates.caCertURL.path,
-			tlsCert: certificates.clientCertURL.path,
-			tlsKey: certificates.clientKeyURL.path,
+			caCert: certificates.caCertURL.path(percentEncoded: false),
+			tlsCert: certificates.clientCertURL.path(percentEncoded: false),
+			tlsKey: certificates.clientKeyURL.path(percentEncoded: false),
 			retries: retries
 		)
 	}
@@ -1168,10 +1168,10 @@ public struct Utilities {
 		var environment = ProcessInfo.processInfo.environment
 		let home = try Utils.getHome(runMode: runMode)
 
-		environment["TART_HOME"] = home.path
+		environment["TART_HOME"] = home.path(percentEncoded: false)
 
 		if environment["CAKE_HOME"] == nil {
-			environment["CAKE_HOME"] = home.path
+			environment["CAKE_HOME"] = home.path(percentEncoded: false)
 		}
 
 		return environment

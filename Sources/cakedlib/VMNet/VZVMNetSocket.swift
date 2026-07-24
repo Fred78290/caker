@@ -62,7 +62,7 @@ public final class VZVMNetSocket: VZVMNetImpl, @unchecked Sendable {
 		}
 
 		let binder: EventLoopFuture<Channel>
-		let socketPath = socketPath.path
+		let socketPath = socketPath.path(percentEncoded: false)
 
 		// Create the server bootstrap
 		let bootstrap: ServerBootstrap = ServerBootstrap(group: Utilities.group)

@@ -269,7 +269,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		if config.os == .linux {
 			let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.configURL).absoluteURL
 
-			if FileManager.default.fileExists(atPath: cdromURL.path) {
+			if FileManager.default.fileExists(atPath: cdromURL.path(percentEncoded: false)) {
 				devices.append(try Self.createCloudInitDrive(cdromURL: cdromURL))
 			}
 		}
@@ -307,7 +307,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func connectionInitiatedByHost(socket: SocketDevice) {
-		if socket.bind == self.location.agentURL.path && self.runningIP.isEmpty == false {
+		if socket.bind == self.location.agentURL.path(percentEncoded: false) && self.runningIP.isEmpty == false {
 			startPortForwarding()
 		}
 	}
@@ -971,7 +971,7 @@ extension VirtualMachine {
 			var resumeVM: Bool = false
 
 			if #available(macOS 14, *) {
-				if FileManager.default.fileExists(atPath: location.stateURL.path) {
+				if FileManager.default.fileExists(atPath: location.stateURL.path(percentEncoded: false)) {
 					self.logger.info("Restore VM \(self.location.name) snapshot...")
 
 					let url = self.location.stateURL
@@ -1387,7 +1387,7 @@ extension VirtualMachine {
 				let virtualMachine = self.virtualMachine
 
 				if #available(macOS 14, *) {
-					if FileManager.default.fileExists(atPath: stateURL.path) {
+					if FileManager.default.fileExists(atPath: stateURL.path(percentEncoded: false)) {
 						self.logger.debug("Restore VM \(vmName) from \(stateURL) snapshot...")
 
 						do {

@@ -570,7 +570,7 @@ extension NSApplication {
 		var customIcon: NSImage? = nil
 		let path = Bundle.main.bundleURL.appendingPathComponent("../Resources/\(name).\(ofType)").absoluteURL
 
-		if FileManager.default.fileExists(atPath: path.path) {
+		if FileManager.default.fileExists(atPath: path.path(percentEncoded: false)) {
 			customIcon = NSImage(contentsOf: path)
 		} else if let path = Bundle.main.path(forResource: name, ofType: ofType) {
 			customIcon = NSImage(contentsOfFile: path)

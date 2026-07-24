@@ -297,7 +297,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 			// Setting currentDirectoryURL to nil resets to the current directory
 			if let url = newValue {
 				guard url.isFileURL else { fatalError("non-file URL argument") }
-				_currentDirectoryPath = url.path
+				_currentDirectoryPath = url.path(percentEncoded: false)
 			} else {
 				_currentDirectoryPath = FileManager.default.currentDirectoryPath
 			}
@@ -309,7 +309,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 
 	@available(*, deprecated, renamed: "executableURL")
 	open var launchPath: String? {
-		get { return executableURL?.path }
+		get { return executableURL?.path(percentEncoded: false) }
 		set { executableURL = (newValue != nil) ? URL(fileURLWithPath: newValue!) : nil }
 	}
 
@@ -423,7 +423,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 		}
 
 		// Ensure that the launch path is set
-		guard let launchPath = self.executableURL?.path else {
+		guard let launchPath = self.executableURL?.path(percentEncoded: false) else {
 			throw NSError(domain: NSCocoaErrorDomain, code: NSFileNoSuchFileError)
 		}
 
@@ -648,7 +648,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 
 		let fileManager = FileManager()
 		let previousDirectoryPath = fileManager.currentDirectoryPath
-		if let dir = currentDirectoryURL?.path, !fileManager.changeCurrentDirectoryPath(dir) {
+		if let dir = currentDirectoryURL?.path(percentEncoded: false), !fileManager.changeCurrentDirectoryPath(dir) {
 			throw _NSErrorWithErrno(errno, reading: true, url: currentDirectoryURL)
 		}
 

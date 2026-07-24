@@ -194,9 +194,9 @@ public class VZVMNetCommon: NSObject, @unchecked Sendable, VZVMNet {
 			serviceProviders: [serviceProvider])
 
 		serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(
-			caCert: certLocation.caCertURL.path,
-			tlsKey: certLocation.serverKeyURL.path,
-			tlsCert: certLocation.serverCertURL.path)
+			caCert: certLocation.caCertURL.path(percentEncoded: false),
+			tlsKey: certLocation.serverKeyURL.path(percentEncoded: false),
+			tlsCert: certLocation.serverCertURL.path(percentEncoded: false))
 
 		let server = try Server.start(configuration: serverConfiguration).wait()
 		self.grpcServer = server

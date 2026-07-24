@@ -44,7 +44,7 @@ extension StartHandler {
 	private static func startVMSandboxed(vmURL: URL, screenSize: GRPCLib.ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, recoveryMode: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> StartedReply {
 		let location = try VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode)
 
-		guard FileManager.default.fileExists(atPath: location.configURL.path) else {
+		guard FileManager.default.fileExists(atPath: location.configURL.path(percentEncoded: false)) else {
 			return StartedReply(name: location.name, ip: String.empty, started: false, reason: String(localized: "VM not found"))
 		}
 
@@ -54,7 +54,7 @@ extension StartHandler {
 		}
 
 		let config: CakeConfig = try location.config()
-		var arguments: [String] = ["fork", "vmrun", location.configURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
+		var arguments: [String] = ["fork", "vmrun", location.configURL.absoluteURL.path(percentEncoded: false), "--log-level=\(Logger.LoggingLevel().rawValue)"]
 		try config.startNetworkServices(runMode: runMode)
 
 		if startMode == .foreground {

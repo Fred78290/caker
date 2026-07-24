@@ -55,11 +55,11 @@ public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument,
 					}
 				}
 			} else {
-				if u.path == String.empty {
+				if u.path(percentEncoded: false) == String.empty {
 					throw ValidationError(String(localized: "Invalid console URL"))
 				}
 
-				if u.scheme == "unix" && u.path.utf8.count > URL.maxSocketPathLength {
+				if u.scheme == "unix" && u.path(percentEncoded: false).utf8.count > URL.maxSocketPathLength {
 					throw ValidationError(String(localized: "The unix socket is too long"))
 				}
 			}

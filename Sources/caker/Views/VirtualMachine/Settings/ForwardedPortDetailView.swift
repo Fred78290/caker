@@ -378,7 +378,7 @@ struct ForwardedPortDetailView: View {
 
 	func chooseSocketFile() {
 		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: String(localized: "Choose a socket file"), allowsOtherFileTypes: true, directoryURL: try? Utils.getHome(runMode: .current)) {
-			self.model.hostPath = hostPath.absoluteURL.path
+			self.model.hostPath = hostPath.absoluteURL.path(percentEncoded: false)
 		}
 	}
 }

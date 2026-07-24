@@ -64,7 +64,7 @@ public struct SpawnHandler {
 #if arch(arm64)
 		if options.os == .darwin {
 			if let nvram = options.nvram {
-				try FileManager.default.copyItem(atPath: nvram.expandingTildeInPath, toPath: location.nvramURL.path)
+				try FileManager.default.copyItem(atPath: nvram.expandingTildeInPath, toPath: location.nvramURL.path(percentEncoded: false))
 			} else {
 				let restoreImage = try await VZMacOSRestoreImage.latestSupported
 

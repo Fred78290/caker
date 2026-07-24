@@ -43,8 +43,8 @@ struct VirtualBuddyImporter: Importer {
 		let bundleName = source.hasSuffix(".vbvm") ? source : "\(source).vbvm"
 		let url = defaultLibraryURL.appendingPathComponent(bundleName, isDirectory: true)
 
-		guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory), isDirectory.boolValue else {
-			throw ServiceError(String(localized: "No VirtualBuddy virtual machine named \"\(source)\" found in \(defaultLibraryURL.path)"))
+		guard FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory), isDirectory.boolValue else {
+			throw ServiceError(String(localized: "No VirtualBuddy virtual machine named \"\(source)\" found in \(defaultLibraryURL.path(percentEncoded: false))"))
 		}
 
 		return url
@@ -52,7 +52,7 @@ struct VirtualBuddyImporter: Importer {
 
 	private static func plist(at url: URL) throws -> [String: Any] {
 		guard let dict = NSDictionary(contentsOf: url) as? [String: Any] else {
-			throw ServiceError(String(localized: "Unable to read property list \(url.path)"))
+			throw ServiceError(String(localized: "Unable to read property list \(url.path(percentEncoded: false))"))
 		}
 
 		return dict
@@ -69,19 +69,19 @@ struct VirtualBuddyImporter: Importer {
 		let configURL = bundleURL.appendingPathComponent(".vbdata/Config.plist")
 
 		guard try configURL.exists() else {
-			throw ServiceError(String(localized: "config.plist not found in \(bundleURL.path)"))
+			throw ServiceError(String(localized: "config.plist not found in \(bundleURL.path(percentEncoded: false))"))
 		}
 
 		let plist = try Self.plist(at: configURL)
 
 		guard let systemType = plist["systemType"] as? String else {
-			throw ServiceError(String(localized: "Missing systemType in \(configURL.path)"))
+			throw ServiceError(String(localized: "Missing systemType in \(configURL.path(percentEncoded: false))"))
 		}
 
 		let os: VirtualizedOS = systemType == "linux" ? .linux : .darwin
 
 		guard let hardware = plist["hardware"] as? [String: Any] else {
-			throw ServiceError(String(localized: "Missing hardware section in \(configURL.path)"))
+			throw ServiceError(String(localized: "Missing hardware section in \(configURL.path(percentEncoded: false))"))
 		}
 
 		let cpuCount = hardware["cpuCount"] as? Int ?? 2
@@ -101,7 +101,7 @@ struct VirtualBuddyImporter: Importer {
 		}
 
 		guard let bootDiskURL = try findManagedDiskImage(named: filename, in: bundleURL) else {
-			throw ServiceError(String(localized: "Boot disk image \"\(filename)\" not found in \(bundleURL.path)"))
+			throw ServiceError(String(localized: "Boot disk image \"\(filename)\" not found in \(bundleURL.path(percentEncoded: false))"))
 		}
 
 		guard Self.supportedImageExtensions.contains(bootDiskURL.pathExtension.lowercased()) else {
@@ -128,7 +128,7 @@ struct VirtualBuddyImporter: Importer {
 		let diskFormat: SupportedDiskFormat = bootDiskURL.asifDisk ? .asif : .raw
 		let config = CakeConfig(
 			location: location.rootURL,
-			rootDisk: copyDisk ? nil : bootDiskURL.absoluteURL.path,
+			rootDisk: copyDisk ? nil : bootDiskURL.absoluteURL.path(percentEncoded: false),
 			diskFormat: diskFormat,
 			os: os,
 			autostart: false,
@@ -162,11 +162,11 @@ struct VirtualBuddyImporter: Importer {
 				let auxiliaryStorageURL = bundleURL.appendingPathComponent("AuxiliaryStorage")
 
 				guard try hardwareModelURL.exists(), let hardwareModel = VZMacHardwareModel(dataRepresentation: try Data(contentsOf: hardwareModelURL)) else {
-					throw ServiceError(String(localized: "Invalid or missing hardware model in \(bundleURL.path)"))
+					throw ServiceError(String(localized: "Invalid or missing hardware model in \(bundleURL.path(percentEncoded: false))"))
 				}
 
 				guard try machineIdentifierURL.exists(), let ecid = VZMacMachineIdentifier(dataRepresentation: try Data(contentsOf: machineIdentifierURL)) else {
-					throw ServiceError(String(localized: "Invalid or missing machine identifier in \(bundleURL.path)"))
+					throw ServiceError(String(localized: "Invalid or missing machine identifier in \(bundleURL.path(percentEncoded: false))"))
 				}
 
 				guard hardwareModel.isSupported else {
@@ -195,10 +195,10 @@ struct VirtualBuddyImporter: Importer {
 		}
 
 		if copyDisk {
-			logger.info("Copying VirtualBuddy disk image \(bootDiskURL.path) to \(location.diskURL.path)")
+			logger.info("Copying VirtualBuddy disk image \(bootDiskURL.path(percentEncoded: false)) to \(location.diskURL.path(percentEncoded: false))")
 			try FileManager.default.copyItem(at: bootDiskURL, to: location.diskURL)
 		} else {
-			logger.info("Referencing VirtualBuddy disk image in place at \(bootDiskURL.path)")
+			logger.info("Referencing VirtualBuddy disk image in place at \(bootDiskURL.path(percentEncoded: false))")
 		}
 
 		try config.save()

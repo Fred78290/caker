@@ -18,12 +18,12 @@ public struct InfosHandler {
 	public static func offlineInfos(location: VMLocation, config: CakeConfig, status: Status = .stopped) throws -> VMInformations {
 		var diskInfos: [DiskInfo] = []
 
-		diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.locationURL).absoluteURL.path, mount: "/", fsType: "native", total: config.diskSize, free: 0, used: 0))
+		diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.locationURL).absoluteURL.path(percentEncoded: false), mount: "/", fsType: "native", total: config.diskSize, free: 0, used: 0))
 
 		for disk in config.attachedDisks {
 			let diskURL = URL(fileURLWithPath: disk.diskPath, relativeTo: config.locationURL).absoluteURL
 
-			diskInfos.append(DiskInfo(device: diskURL.path, mount: "not mounted", fsType: "native", total: UInt64(try diskURL.sizeBytes()), free: 0, used: 0))
+			diskInfos.append(DiskInfo(device: diskURL.path(percentEncoded: false), mount: "not mounted", fsType: "native", total: UInt64(try diskURL.sizeBytes()), free: 0, used: 0))
 		}
 
 		var infos = VMInformations.with {

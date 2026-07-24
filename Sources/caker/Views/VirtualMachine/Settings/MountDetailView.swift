@@ -135,7 +135,7 @@ struct MountDetailView: View {
 		let directoryURL = URL(fileURLWithPath: (Bundle.isApplicationSandboxed ? "~/Public/" : "~").expandingTildeInPath, isDirectory: true)
 
 		if let folder = FileHelpers.selectFolder(withTitle: String(localized: "Choose folder to mount inside VM"), directoryURL: directoryURL) {
-			currentItem.source = folder.absoluteURL.path
+			currentItem.source = folder.absoluteURL.path(percentEncoded: false)
 		}
 	}
 }

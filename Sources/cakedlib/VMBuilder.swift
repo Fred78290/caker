@@ -209,7 +209,7 @@ public struct VMBuilder {
 			if let imageSource = ImageSource.schemes[scheme] {
 				sourceImage = imageSource
 				if imageURL.host == nil {
-					imageURL = URL(fileURLWithPath: imageURL.path.expandingTildeInPath)
+					imageURL = URL(fileURLWithPath: imageURL.path(percentEncoded: false).expandingTildeInPath)
 				} else if var components = URLComponents(url: imageURL, resolvingAgainstBaseURL: false) {
 					switch scheme {
 						case "qcow2", "imgs", "isos", "ipsw", "https", "ocis":
@@ -262,7 +262,7 @@ public struct VMBuilder {
 
 		let diskURL = location.diskURL
 
-		if FileManager.default.fileExists(atPath: diskURL.path) {
+		if FileManager.default.fileExists(atPath: diskURL.path(percentEncoded: false)) {
 			throw ServiceError(String(localized: "VM already exists"))
 		}
 

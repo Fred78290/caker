@@ -439,7 +439,7 @@ public struct BuildOptions: ParsableArguments {
 					if imageURL.host == nil {
 						switch imageSource {
 						case .raw, .qcow2, .iso, .ipsw:
-							self.image = URL(fileURLWithPath: imageURL.path.expandingTildeInPath).absoluteString
+							self.image = URL(fileURLWithPath: imageURL.path(percentEncoded: false).expandingTildeInPath).absoluteString
 						default:
 							break
 						}
@@ -458,7 +458,7 @@ public struct BuildOptions: ParsableArguments {
 					self.diskFormat = .raw
 				}
 			} else {
-				self.image = URL(fileURLWithPath: imageURL.path.expandingTildeInPath).absoluteString
+				self.image = URL(fileURLWithPath: imageURL.path(percentEncoded: false).expandingTildeInPath).absoluteString
 				self.diskFormat = .raw
 			}
 		} else {

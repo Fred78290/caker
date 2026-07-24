@@ -256,12 +256,12 @@ struct ComposeInit: ParsableCommand {
 		let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
 		let dest = cwd.appendingPathComponent(ComposeFile.filename)
 
-		if FileManager.default.fileExists(atPath: dest.path) && !force {
+		if FileManager.default.fileExists(atPath: dest.path(percentEncoded: false)) && !force {
 			throw ValidationError(String(localized: "\(ComposeFile.filename) already exists — use --force to overwrite."))
 		}
 
 		try ComposeFile.template.write(to: dest, atomically: true, encoding: .utf8)
-		print(String(localized: "Created \(dest.path)"))
+		print(String(localized: "Created \(dest.path(percentEncoded: false))"))
 		print(String(localized: "Edit compose.yml then run `cakectl compose up` to start your services."))
 	}
 }

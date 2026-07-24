@@ -49,7 +49,7 @@ struct UTMImporter: Importer {
 		for candidate in candidateLibraryURLs {
 			let url = candidate.appendingPathComponent(bundleName, isDirectory: true)
 
-			if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory), isDirectory.boolValue {
+			if FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory), isDirectory.boolValue {
 				return url
 			}
 		}
@@ -59,7 +59,7 @@ struct UTMImporter: Importer {
 
 	private static func plist(at url: URL) throws -> [String: Any] {
 		guard let dict = NSDictionary(contentsOf: url) as? [String: Any] else {
-			throw ServiceError(String(localized: "Unable to read property list \(url.path)"))
+			throw ServiceError(String(localized: "Unable to read property list \(url.path(percentEncoded: false))"))
 		}
 
 		return dict
@@ -71,7 +71,7 @@ struct UTMImporter: Importer {
 		let dataURL = bundleURL.appendingPathComponent("Data", isDirectory: true)
 
 		guard try configURL.exists() else {
-			throw ServiceError(String(localized: "config.plist not found in \(bundleURL.path)"))
+			throw ServiceError(String(localized: "config.plist not found in \(bundleURL.path(percentEncoded: false))"))
 		}
 
 		let plist = try Self.plist(at: configURL)
@@ -81,11 +81,11 @@ struct UTMImporter: Importer {
 		}
 
 		guard let system = plist["System"] as? [String: Any] else {
-			throw ServiceError(String(localized: "Missing System section in \(configURL.path)"))
+			throw ServiceError(String(localized: "Missing System section in \(configURL.path(percentEncoded: false))"))
 		}
 
 		guard let boot = system["Boot"] as? [String: Any], let operatingSystem = boot["OperatingSystem"] as? String else {
-			throw ServiceError(String(localized: "Missing Boot section in \(configURL.path)"))
+			throw ServiceError(String(localized: "Missing Boot section in \(configURL.path(percentEncoded: false))"))
 		}
 
 		let os: VirtualizedOS
@@ -105,7 +105,7 @@ struct UTMImporter: Importer {
 		let networks = (plist["Network"] as? [[String: Any]]) ?? []
 
 		guard memorySizeMib > 0 else {
-			throw ServiceError(String(localized: "Invalid memory size \(memorySizeMib) MiB in \(configURL.path)"))
+			throw ServiceError(String(localized: "Invalid memory size \(memorySizeMib) MiB in \(configURL.path(percentEncoded: false))"))
 		}
 
 		// The boot disk is the first drive backed by an image in the Data folder; entries
@@ -117,7 +117,7 @@ struct UTMImporter: Importer {
 		let bootDiskURL = dataURL.appendingPathComponent(imageName)
 
 		guard try bootDiskURL.exists() else {
-			throw ServiceError(String(localized: "Boot disk image \(bootDiskURL.path) not found"))
+			throw ServiceError(String(localized: "Boot disk image \(bootDiskURL.path(percentEncoded: false)) not found"))
 		}
 
 		let asifFormat = bootDiskURL.asifDisk
@@ -146,7 +146,7 @@ struct UTMImporter: Importer {
 
 		let config = CakeConfig(
 			location: location.rootURL,
-			rootDisk: copyDisk ? nil : bootDiskURL.absoluteURL.path,
+			rootDisk: copyDisk ? nil : bootDiskURL.absoluteURL.path(percentEncoded: false),
 			diskFormat: asifFormat ? .asif : .raw,
 			os: os,
 			autostart: false,
@@ -176,15 +176,15 @@ struct UTMImporter: Importer {
 		if os == .darwin {
 			#if arch(arm64)
 				guard let macPlatform = system["MacPlatform"] as? [String: Any] else {
-					throw ServiceError(String(localized: "Missing MacPlatform section in \(configURL.path)"))
+					throw ServiceError(String(localized: "Missing MacPlatform section in \(configURL.path(percentEncoded: false))"))
 				}
 
 				guard let hardwareModelData = macPlatform["HardwareModel"] as? Data, let hardwareModel = VZMacHardwareModel(dataRepresentation: hardwareModelData) else {
-					throw ServiceError(String(localized: "Invalid or missing hardware model in \(configURL.path)"))
+					throw ServiceError(String(localized: "Invalid or missing hardware model in \(configURL.path(percentEncoded: false))"))
 				}
 
 				guard let machineIdentifierData = macPlatform["MachineIdentifier"] as? Data, let ecid = VZMacMachineIdentifier(dataRepresentation: machineIdentifierData) else {
-					throw ServiceError(String(localized: "Invalid or missing machine identifier in \(configURL.path)"))
+					throw ServiceError(String(localized: "Invalid or missing machine identifier in \(configURL.path(percentEncoded: false))"))
 				}
 
 				guard hardwareModel.isSupported else {
@@ -227,10 +227,10 @@ struct UTMImporter: Importer {
 		}
 
 		if copyDisk {
-			logger.info("Copying UTM disk image \(bootDiskURL.path) to \(location.diskURL.path)")
+			logger.info("Copying UTM disk image \(bootDiskURL.path(percentEncoded: false)) to \(location.diskURL.path(percentEncoded: false))")
 			try FileManager.default.copyItem(at: bootDiskURL, to: location.diskURL)
 		} else {
-			logger.info("Referencing UTM disk image in place at \(bootDiskURL.path)")
+			logger.info("Referencing UTM disk image in place at \(bootDiskURL.path(percentEncoded: false))")
 		}
 
 		try config.save()

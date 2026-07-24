@@ -43,7 +43,7 @@ public struct StartHandler {
 			let executableURL = try Bundle.main.caked()
 
 			let config: CakeConfig = try location.config()
-			var arguments: [String] = ["vmrun", location.configURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
+			var arguments: [String] = ["vmrun", location.configURL.absoluteURL.path(percentEncoded: false), "--log-level=\(Logger.LoggingLevel().rawValue)"]
 			var sharedFileDescriptors: [Int32] = []
 
 			try config.startNetworkServices(runMode: runMode)
@@ -275,7 +275,7 @@ public struct StartHandler {
 
 	public static func startVM(location: VMLocation, screenSize: ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, gcd: Bool, recoveryMode: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) -> StartedReply {
 		do {
-			if FileManager.default.fileExists(atPath: location.configURL.path) == false {
+			if FileManager.default.fileExists(atPath: location.configURL.path(percentEncoded: false)) == false {
 				return StartedReply(name: location.name, ip: String.empty, started: false, reason: String(localized: "VM not found"))
 			}
 

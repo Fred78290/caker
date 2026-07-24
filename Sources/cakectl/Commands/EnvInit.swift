@@ -26,12 +26,12 @@ struct EnvInit: ParsableCommand {
 		let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
 		let dest = cwd.appendingPathComponent(CakerEnv.filename)
 
-		if FileManager.default.fileExists(atPath: dest.path) && !force {
+		if FileManager.default.fileExists(atPath: dest.path(percentEncoded: false)) && !force {
 			throw ValidationError(String(localized: "\(CakerEnv.filename) already exists — use --force to overwrite."))
 		}
 
 		try CakerEnv.template.write(to: dest, atomically: true, encoding: .utf8)
-		Logger.appendNewLine(String(localized: "Created \(dest.path)"))
+		Logger.appendNewLine(String(localized: "Created \(dest.path(percentEncoded: false))"))
 		Logger.appendNewLine(String(localized: "Edit \(CakerEnv.filename) then run `cakectl up` to start your VM."))
 	}
 }

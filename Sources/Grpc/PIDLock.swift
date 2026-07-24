@@ -17,7 +17,7 @@ public class PIDLock {
 
 	public init(lockURL: URL) throws {
 		url = lockURL
-		fd = open(lockURL.path, 0)
+		fd = open(lockURL.path(percentEncoded: false), 0)
 
 		if fd == -1 {
 			throw FileLockError.Failed("failed to open \(lockURL)")

@@ -25,7 +25,7 @@ public final class VmdkConverter {
         to destination: URL,
         progress: ProgressHandler? = nil
     ) throws {
-        try convert(fromPath: source.path, toPath: destination.path, progress: progress)
+        try convert(fromPath: source.path(percentEncoded: false), toPath: destination.path(percentEncoded: false), progress: progress)
     }
 
     /// Path-based overload.
@@ -48,8 +48,8 @@ public final class VmdkConverter {
     // MARK: - Format detection
 
     private static func isDescriptorFile(at url: URL) throws -> Bool {
-        guard let fh = FileHandle(forReadingAtPath: url.path) else {
-            throw VmdkError.ioError("Cannot open '\(url.path)'")
+        guard let fh = FileHandle(forReadingAtPath: url.path(percentEncoded: false)) else {
+            throw VmdkError.ioError("Cannot open '\(url.path(percentEncoded: false))'")
         }
         defer { try? fh.close() }
         let probe = try fh.readExact(count: 4)
@@ -86,8 +86,8 @@ public final class VmdkConverter {
 
             case .flat:
                 let extentURL = baseDir.appendingPathComponent(extent.filename!)
-                guard let src = FileHandle(forReadingAtPath: extentURL.path) else {
-                    throw VmdkError.ioError("Cannot open extent '\(extentURL.path)'")
+                guard let src = FileHandle(forReadingAtPath: extentURL.path(percentEncoded: false)) else {
+                    throw VmdkError.ioError("Cannot open extent '\(extentURL.path(percentEncoded: false))'")
                 }
                 defer { try? src.close() }
                 try src.seek(toOffset: extent.flatOffset * 512)
@@ -96,11 +96,11 @@ public final class VmdkConverter {
 
             case .sparse:
                 let extentURL = baseDir.appendingPathComponent(extent.filename!)
-                guard let src = FileHandle(forReadingAtPath: extentURL.path) else {
-                    throw VmdkError.ioError("Cannot open extent '\(extentURL.path)'")
+                guard let src = FileHandle(forReadingAtPath: extentURL.path(percentEncoded: false)) else {
+                    throw VmdkError.ioError("Cannot open extent '\(extentURL.path(percentEncoded: false))'")
                 }
                 defer { try? src.close() }
-                let header = try parseAndValidateHeader(src, path: extentURL.path)
+                let header = try parseAndValidateHeader(src, path: extentURL.path(percentEncoded: false))
                 try writeAllGrains(src: src, dst: dst, header: header, baseOffset: baseOffset,
                                    bytesProcessed: &bytesProcessed, totalSize: totalSizeSigned, progress: progress)
             }

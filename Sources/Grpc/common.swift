@@ -164,7 +164,7 @@ public struct Utils {
 					.appendingPathComponent(".cake", isDirectory: true)
 			}
 
-			if createItIfNotExists && FileManager.default.fileExists(atPath: cakeHomeDir.path) == false {
+			if createItIfNotExists && FileManager.default.fileExists(atPath: cakeHomeDir.path(percentEncoded: false)) == false {
 				try FileManager.default.createDirectory(at: cakeHomeDir, withIntermediateDirectories: true)
 			}
 
@@ -192,14 +192,14 @@ public struct Utils {
 			let varLog = URL(fileURLWithPath: "/var/log", isDirectory: true)
 			let varLogFile = varLog.appendingPathComponent("caked.log")
 			// Attempt to ensure directory exists (it should), and that we can write there. If not, fall back to /Library/Logs.
-			if FileManager.default.isWritableFile(atPath: varLog.path) || geteuid() == 0 {
-				return varLogFile.path
+			if FileManager.default.isWritableFile(atPath: varLog.path(percentEncoded: false)) || geteuid() == 0 {
+				return varLogFile.path(percentEncoded: false)
 			}
 
 			let libraryLogs = URL(fileURLWithPath: "/Library/Logs", isDirectory: true)
 			// Try to create /Library/Logs if missing (usually exists) and return fallback
 			try? FileManager.default.createDirectory(at: libraryLogs, withIntermediateDirectories: true)
-			return libraryLogs.appendingPathComponent("caked.log").path
+			return libraryLogs.appendingPathComponent("caked.log").path(percentEncoded: false)
 		}
 
 		let logsDir: URL
@@ -207,13 +207,13 @@ public struct Utils {
 			logsDir = userLibrary.appendingPathComponent("Logs", isDirectory: true)
 			// Ensure Logs directory exists (it normally does, but be safe for sandbox or custom homes)
 			try? FileManager.default.createDirectory(at: logsDir, withIntermediateDirectories: true)
-			return logsDir.appendingPathComponent("caked.log").path
+			return logsDir.appendingPathComponent("caked.log").path(percentEncoded: false)
 		} else {
 			// Fallback to home directory if Library could not be resolved
 			let home = FileManager.default.homeDirectoryForCurrentUser
 			let fallback = home.appendingPathComponent("Library/Logs", isDirectory: true)
 			try? FileManager.default.createDirectory(at: fallback, withIntermediateDirectories: true)
-			return fallback.appendingPathComponent("caked.log").path
+			return fallback.appendingPathComponent("caked.log").path(percentEncoded: false)
 		}
 	}
 
@@ -224,7 +224,7 @@ public struct Utils {
 
 		try data.write(to: url)
 
-		return url.absoluteURL.path
+		return url.absoluteURL.path(percentEncoded: false)
 	}
 
 }
@@ -274,7 +274,7 @@ public struct ClientCertificatesLocation: Codable {
 	}
 
 	public func exists() -> Bool {
-		return FileManager.default.fileExists(atPath: self.clientKeyURL.path) && FileManager.default.fileExists(atPath: self.clientCertURL.path)
+		return FileManager.default.fileExists(atPath: self.clientKeyURL.path(percentEncoded: false)) && FileManager.default.fileExists(atPath: self.clientCertURL.path(percentEncoded: false))
 	}
 }
 
@@ -487,7 +487,7 @@ extension URL {
 		let socketPath = self.appendingPathComponent(name, isDirectory: false).absoluteURL
 
 		guard socketPath.path(percentEncoded: false).utf8.count > Self.maxSocketPathLength else {
-			return URL(spaced: "unix://\(socketPath.path)")!
+			return URL(spaced: "unix://\(socketPath.path(percentEncoded: false))")!
 		}
 
 		if Bundle.isApplicationSandboxed {
@@ -721,6 +721,9 @@ public func withAsyncResult<T>(builder: @escaping () async throws -> T) throws -
 		do {
 			await pointer.initialize(to: try builder())
 		} catch {
+			#if DEBUG
+			Logger("Task").error("Error in withAsyncResult: \(error)")
+			#endif
 			err.pointee = error
 		}
 		semaphore.signal()

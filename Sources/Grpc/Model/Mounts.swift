@@ -89,7 +89,7 @@ public struct MountInfos: Codable {
 				if let attachement = directorySharingAttachment.first(where: { attachement in attachement.name == mount.name }) {
 					return MountVirtioFS.with {
 						$0.name = mount.name
-						$0.path = attachement.path.path
+						$0.path = attachement.path.path(percentEncoded: false)
 						$0.mounted = mount.mounted
 						$0.reason = mount.reason
 					}

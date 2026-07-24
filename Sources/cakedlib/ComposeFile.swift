@@ -435,18 +435,18 @@ public struct ComposeFile: Codable {
 	public static func load(from directory: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)) throws -> ComposeFile {
 		let primary = directory.appendingPathComponent(filename)
 
-		if FileManager.default.fileExists(atPath: primary.path) {
-			return try load(fromFile: primary.path)
+		if FileManager.default.fileExists(atPath: primary.path(percentEncoded: false)) {
+			return try load(fromFile: primary.path(percentEncoded: false))
 		}
 
 		for legacy in legacyFilenames {
 			let url = directory.appendingPathComponent(legacy)
-			if FileManager.default.fileExists(atPath: url.path) {
-				return try load(fromFile: url.path)
+			if FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) {
+				return try load(fromFile: url.path(percentEncoded: false))
 			}
 		}
 
-		throw ServiceError(String(localized: "No compose.yml found in \(directory.path)"))
+		throw ServiceError(String(localized: "No compose.yml found in \(directory.path(percentEncoded: false))"))
 	}
 
 	public static func load(fromFile path: String) throws -> ComposeFile {

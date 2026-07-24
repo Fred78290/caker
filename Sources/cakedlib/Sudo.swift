@@ -41,7 +41,7 @@ public final class SudoCaked {
 
 		let process = Process()
 
-		var runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
+		var runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path(percentEncoded: false)]
 
 		if runMode.isSystem {
 			runningArguments.append("--system")
@@ -197,7 +197,7 @@ public final class SudoCaked {
 			return true
 		}
 
-		let info = try FileManager.default.attributesOfItem(atPath: binary.path) as NSDictionary
+		let info = try FileManager.default.attributesOfItem(atPath: binary.path(percentEncoded: false)) as NSDictionary
 
 		if info.fileOwnerAccountID() == 0 && (info.filePosixPermissions() & Int(S_ISUID)) != 0 {
 			return true
@@ -207,7 +207,7 @@ public final class SudoCaked {
 
 		process.executableURL = sudoURL
 		process.environment = try Utilities.environment(runMode: .user)
-		process.arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", binary.path, "--help"]
+		process.arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", binary.path(percentEncoded: false), "--help"]
 		process.standardInput = nil
 
 		#if XDEBUG

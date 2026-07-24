@@ -211,10 +211,10 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 	public var inited: Bool {
 		if self.template {
-			return FileManager.default.fileExists(atPath: diskURL.path)
+			return FileManager.default.fileExists(atPath: diskURL.path(percentEncoded: false))
 		}
 
-		return FileManager.default.fileExists(atPath: configURL.path) && FileManager.default.fileExists(atPath: diskURL.path) && FileManager.default.fileExists(atPath: nvramURL.path)
+		return FileManager.default.fileExists(atPath: configURL.path(percentEncoded: false)) && FileManager.default.fileExists(atPath: diskURL.path(percentEncoded: false)) && FileManager.default.fileExists(atPath: nvramURL.path(percentEncoded: false))
 	}
 
 	public func config() throws -> CakeConfig {
@@ -245,7 +245,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		case .caker:
 			return .running(.caker)
 		case .none:
-			if FileManager.default.fileExists(atPath: stateURL.path) {
+			if FileManager.default.fileExists(atPath: stateURL.path(percentEncoded: false)) {
 				return .paused
 			} else {
 				return .stopped
@@ -306,7 +306,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	}
 
 	public func lock() -> Bool {
-		let fd = open(configURL.path, O_RDWR)
+		let fd = open(configURL.path(percentEncoded: false), O_RDWR)
 
 		if fd != -1 {
 			close(fd)
@@ -317,7 +317,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 	@discardableResult
 	public func templateTo(_ target: VMLocation) throws -> VMLocation {
-		guard DiskAttachement.isBlockingDevice(diskURL.path) == false else {
+		guard DiskAttachement.isBlockingDevice(diskURL.path(percentEncoded: false)) == false else {
 			throw ServiceError(String(localized: "Cannot create a template from a VM that uses a physical block device as its root disk"))
 		}
 		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
@@ -343,14 +343,14 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 	@discardableResult
 	public func copyTo(_ target: VMLocation) throws -> VMLocation {
-		guard DiskAttachement.isBlockingDevice(diskURL.path) == false else {
+		guard DiskAttachement.isBlockingDevice(diskURL.path(percentEncoded: false)) == false else {
 			throw ServiceError(String(localized: "Cannot copy a VM that uses a physical block device as its root disk"))
 		}
 		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
 		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
 		try FileManager.default.copyItem(at: self.configURL, to: target.configURL)
 		try FileManager.default.copyItem(at: self.cakeURL, to: target.cakeURL)
-		if FileManager.default.fileExists(atPath: self.cdromISO.path) {
+		if FileManager.default.fileExists(atPath: self.cdromISO.path(percentEncoded: false)) {
 			try FileManager.default.copyItem(at: self.cdromISO, to: target.cdromISO)
 		}
 
@@ -371,7 +371,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 	@discardableResult
 	public func validate() throws -> VMLocation {
-		if !FileManager.default.fileExists(atPath: rootURL.path) {
+		if !FileManager.default.fileExists(atPath: rootURL.path(percentEncoded: false)) {
 			throw ServiceError(String(localized: "VM not found \(rootURL.lastPathComponent.deletingPathExtension)"))
 		}
 
@@ -388,9 +388,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let wantedFileSize = sizeGB * GiB
 		let logger = Logger(self)
 
-		if FileManager.default.fileExists(atPath: diskURL.path) {
+		if FileManager.default.fileExists(atPath: diskURL.path(percentEncoded: false)) {
 			if format == .raw {
-				try Bundle.execSandboxed("/usr/bin/hdiutil", with: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path]) { (exitCode, stdout, stderr) in
+				try Bundle.execSandboxed("/usr/bin/hdiutil", with: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path(percentEncoded: false)]) { (exitCode, stdout, stderr) in
 					guard exitCode == 0 else {
 					throw ServiceError(String(localized: "Failed to resize disk with hdiutil: \(stderr)"))
 					}
@@ -401,7 +401,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				}
 
 			} else if #available(macOS 26.0, *) {
-				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "resize", "--size=\(sizeGB)G", diskURL.path]) { (exitCode, stdout, stderr) in
+				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "resize", "--size=\(sizeGB)G", diskURL.path(percentEncoded: false)]) { (exitCode, stdout, stderr) in
 					guard exitCode == 0 else {
 						throw ServiceError(String(localized: "Failed to resize disk with diskutil: \(stderr)"))
 					}
@@ -414,7 +414,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				throw ServiceError(String(localized: "ASIF format is supported only on macOS 26.0+"))
 			}
 		} else if format == .raw {
-			FileManager.default.createFile(atPath: diskURL.path, contents: nil, attributes: nil)
+			FileManager.default.createFile(atPath: diskURL.path(percentEncoded: false), contents: nil, attributes: nil)
 
 			let diskFileHandle = try FileHandle.init(forWritingTo: diskURL)
 			let curFileSize = try diskFileHandle.seekToEnd()
@@ -431,7 +431,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				try diskFileHandle.truncate(atOffset: wantedFileSize)
 			}
 		} else if #available(macOS 26.0, *) {
-			try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "create", "blank", "--format=ASIF", "--fs=none", "--size=\(sizeGB)G", diskURL.path]) { (exitCode, stdout, stderr) in
+			try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "create", "blank", "--format=ASIF", "--fs=none", "--size=\(sizeGB)G", diskURL.path(percentEncoded: false)]) { (exitCode, stdout, stderr) in
 				guard exitCode == 0 else {
 					   throw ServiceError(String(localized: "Failed to create disk with diskutil: \(stderr)"))
 				   }
@@ -449,8 +449,8 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		if format == .raw {
 			let wantedFileSize = sizeGB * GiB
 
-			if !FileManager.default.fileExists(atPath: diskURL.path) {
-				FileManager.default.createFile(atPath: diskURL.path, contents: nil, attributes: nil)
+			if !FileManager.default.fileExists(atPath: diskURL.path(percentEncoded: false)) {
+				FileManager.default.createFile(atPath: diskURL.path(percentEncoded: false), contents: nil, attributes: nil)
 			}
 
 			let diskFileHandle = try FileHandle.init(forWritingTo: diskURL)
@@ -473,10 +473,10 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				try diskFileHandle.truncate(atOffset: wantedFileSize)
 			}
 		} else if #available(macOS 26.0, *) {
-			if FileManager.default.fileExists(atPath: diskURL.path) {
+			if FileManager.default.fileExists(atPath: diskURL.path(percentEncoded: false)) {
 				let logger = Logger(self)
 
-				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "resize", "--size=\(sizeGB)G", diskURL.path]) { (exitCode, stdout, stderr) in
+				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "resize", "--size=\(sizeGB)G", diskURL.path(percentEncoded: false)]) { (exitCode, stdout, stderr) in
 					guard exitCode == 0 else {
 						throw ServiceError(String(localized: "Failed to resize disk with diskutil: \(stderr)"))
 					}
@@ -488,7 +488,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			} else {
 				let logger = Logger(self)
 
-				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "create", "blank", "--fs=none", "--format=ASIF", "--size=\(sizeGB)G", diskURL.path]) { (exitCode, stdout, stderr) in
+				try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "create", "blank", "--fs=none", "--format=ASIF", "--size=\(sizeGB)G", diskURL.path(percentEncoded: false)]) { (exitCode, stdout, stderr) in
 					guard exitCode == 0 else {
 						throw ServiceError(String(localized: "Failed to create disk with diskutil: \(stderr)"))
 					}
@@ -528,7 +528,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	public func removePID() {
 		let pidFile = rootURL.appendingPathComponent("run.pid")
 
-		if FileManager.default.fileExists(atPath: pidFile.path) {
+		if FileManager.default.fileExists(atPath: pidFile.path(percentEncoded: false)) {
 			try? FileManager.default.removeItem(at: pidFile)
 		}
 	}
@@ -593,7 +593,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 			if reply.success {
 				let ssh = try SSH(host: reply.ip)
-				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: String.empty)
+				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(percentEncoded: false), publicKey: home.sshPublicKey.path(percentEncoded: false), passphrase: String.empty)
 				try ssh.execute("sudo reboot")
 			} else {
 				try killVMRun()
@@ -666,7 +666,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 			if reply.success {
 				let ssh = try SSH(host: reply.ip)
-				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: String.empty)
+				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(percentEncoded: false), publicKey: home.sshPublicKey.path(percentEncoded: false), passphrase: String.empty)
 				try ssh.execute("sudo shutdown now")
 			} else {
 				try killVMRun()
@@ -1023,7 +1023,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		if imageSource == .ipsw {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
-			try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path, passphrase: config.sshPrivateKeyPassphrase)
+			try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path(percentEncoded: false), passphrase: config.sshPrivateKeyPassphrase)
 		} else {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		}
