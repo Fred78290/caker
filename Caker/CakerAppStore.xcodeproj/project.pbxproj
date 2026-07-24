@@ -262,6 +262,37 @@
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */; };
+		9B5611A13013502C00E9FA7D /* agent.svg in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611733013502C00E9FA7D /* agent.svg */; };
+		9B5611A23013502C00E9FA7D /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611743013502C00E9FA7D /* AppIcon.icns */; };
+		9B5611A33013502C00E9FA7D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611753013502C00E9FA7D /* Assets.xcassets */; };
+		9B5611A43013502C00E9FA7D /* Document.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611763013502C00E9FA7D /* Document.icns */; };
+		9B5611A53013502C00E9FA7D /* MenuBarIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611773013502C00E9FA7D /* MenuBarIcon.png */; };
+		9B5611A63013502C00E9FA7D /* Prompt.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611783013502C00E9FA7D /* Prompt.png */; };
+		9B5611A73013502C00E9FA7D /* almalinux.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56117A3013502C00E9FA7D /* almalinux.png */; };
+		9B5611A83013502C00E9FA7D /* alpine.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56117B3013502C00E9FA7D /* alpine.png */; };
+		9B5611A93013502C00E9FA7D /* arch-linux.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56117C3013502C00E9FA7D /* arch-linux.png */; };
+		9B5611AA3013502C00E9FA7D /* backtrack.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56117D3013502C00E9FA7D /* backtrack.png */; };
+		9B5611AB3013502C00E9FA7D /* centos.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56117E3013502C00E9FA7D /* centos.png */; };
+		9B5611AC3013502C00E9FA7D /* debian.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56117F3013502C00E9FA7D /* debian.png */; };
+		9B5611AD3013502C00E9FA7D /* elementary-os.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611803013502C00E9FA7D /* elementary-os.png */; };
+		9B5611AE3013502C00E9FA7D /* fedora.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611813013502C00E9FA7D /* fedora.png */; };
+		9B5611AF3013502C00E9FA7D /* gentoo.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611823013502C00E9FA7D /* gentoo.png */; };
+		9B5611B03013502C00E9FA7D /* knoppix.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611833013502C00E9FA7D /* knoppix.png */; };
+		9B5611B13013502C00E9FA7D /* kubuntu.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611843013502C00E9FA7D /* kubuntu.png */; };
+		9B5611B23013502C00E9FA7D /* linux.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611853013502C00E9FA7D /* linux.png */; };
+		9B5611B33013502C00E9FA7D /* lubuntu.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611863013502C00E9FA7D /* lubuntu.png */; };
+		9B5611B43013502C00E9FA7D /* mac.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611873013502C00E9FA7D /* mac.png */; };
+		9B5611B53013502C00E9FA7D /* mandriva.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611883013502C00E9FA7D /* mandriva.png */; };
+		9B5611B63013502C00E9FA7D /* mint.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611893013502C00E9FA7D /* mint.png */; };
+		9B5611B73013502C00E9FA7D /* openwrt.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56118A3013502C00E9FA7D /* openwrt.png */; };
+		9B5611B83013502C00E9FA7D /* pop-os.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56118B3013502C00E9FA7D /* pop-os.png */; };
+		9B5611B93013502C00E9FA7D /* red-hat.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56118C3013502C00E9FA7D /* red-hat.png */; };
+		9B5611BA3013502C00E9FA7D /* slackware.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56118D3013502C00E9FA7D /* slackware.png */; };
+		9B5611BB3013502C00E9FA7D /* suse.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56118E3013502C00E9FA7D /* suse.png */; };
+		9B5611BC3013502C00E9FA7D /* syllable.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B56118F3013502C00E9FA7D /* syllable.png */; };
+		9B5611BD3013502C00E9FA7D /* ubuntu.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611903013502C00E9FA7D /* ubuntu.png */; };
+		9B5611BE3013502C00E9FA7D /* webos.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611913013502C00E9FA7D /* webos.png */; };
+		9B5611BF3013502C00E9FA7D /* xubuntu.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611923013502C00E9FA7D /* xubuntu.png */; };
 		9B5A18492FDFFD55006FBD45 /* SpawnOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A18482FDFFD55006FBD45 /* SpawnOptions.swift */; };
 		9B5A184B2FDFFD62006FBD45 /* SpawnHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A184A2FDFFD62006FBD45 /* SpawnHandler.swift */; };
 		9B5A184D2FDFFD8B006FBD45 /* Spawn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A184C2FDFFD8B006FBD45 /* Spawn.swift */; };
@@ -1027,6 +1058,55 @@
 		9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstanceDetailPage.tsx; sourceTree = "<group>"; };
 		9B4C09B82FB8D72100101F0E /* RemotesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = RemotesPage.tsx; sourceTree = "<group>"; };
 		9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswiftCompatibilitySpan.dylib; path = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib"; sourceTree = "<absolute>"; };
+		9B5611633013502C00E9FA7D /* cakectl.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = cakectl.provisionprofile; sourceTree = "<group>"; };
+		9B5611643013502C00E9FA7D /* caked.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caked.provisionprofile; sourceTree = "<group>"; };
+		9B5611653013502C00E9FA7D /* caker.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caker.provisionprofile; sourceTree = "<group>"; };
+		9B5611673013502C00E9FA7D /* cakectl.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = cakectl.provisionprofile; sourceTree = "<group>"; };
+		9B5611683013502C00E9FA7D /* caked.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caked.provisionprofile; sourceTree = "<group>"; };
+		9B5611693013502C00E9FA7D /* caker.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caker.provisionprofile; sourceTree = "<group>"; };
+		9B56116D3013502C00E9FA7D /* com.aldunelabs.caker.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.aldunelabs.caker.plist; sourceTree = "<group>"; };
+		9B56116F3013502C00E9FA7D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9B5611713013502C00E9FA7D /* release.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = release.provisionprofile; sourceTree = "<group>"; };
+		9B5611733013502C00E9FA7D /* agent.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = agent.svg; sourceTree = "<group>"; };
+		9B5611743013502C00E9FA7D /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		9B5611753013502C00E9FA7D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9B5611763013502C00E9FA7D /* Document.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Document.icns; sourceTree = "<group>"; };
+		9B5611773013502C00E9FA7D /* MenuBarIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MenuBarIcon.png; sourceTree = "<group>"; };
+		9B5611783013502C00E9FA7D /* Prompt.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Prompt.png; sourceTree = "<group>"; };
+		9B56117A3013502C00E9FA7D /* almalinux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = almalinux.png; sourceTree = "<group>"; };
+		9B56117B3013502C00E9FA7D /* alpine.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = alpine.png; sourceTree = "<group>"; };
+		9B56117C3013502C00E9FA7D /* arch-linux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "arch-linux.png"; sourceTree = "<group>"; };
+		9B56117D3013502C00E9FA7D /* backtrack.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = backtrack.png; sourceTree = "<group>"; };
+		9B56117E3013502C00E9FA7D /* centos.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = centos.png; sourceTree = "<group>"; };
+		9B56117F3013502C00E9FA7D /* debian.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = debian.png; sourceTree = "<group>"; };
+		9B5611803013502C00E9FA7D /* elementary-os.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "elementary-os.png"; sourceTree = "<group>"; };
+		9B5611813013502C00E9FA7D /* fedora.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fedora.png; sourceTree = "<group>"; };
+		9B5611823013502C00E9FA7D /* gentoo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gentoo.png; sourceTree = "<group>"; };
+		9B5611833013502C00E9FA7D /* knoppix.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = knoppix.png; sourceTree = "<group>"; };
+		9B5611843013502C00E9FA7D /* kubuntu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = kubuntu.png; sourceTree = "<group>"; };
+		9B5611853013502C00E9FA7D /* linux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = linux.png; sourceTree = "<group>"; };
+		9B5611863013502C00E9FA7D /* lubuntu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lubuntu.png; sourceTree = "<group>"; };
+		9B5611873013502C00E9FA7D /* mac.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mac.png; sourceTree = "<group>"; };
+		9B5611883013502C00E9FA7D /* mandriva.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mandriva.png; sourceTree = "<group>"; };
+		9B5611893013502C00E9FA7D /* mint.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mint.png; sourceTree = "<group>"; };
+		9B56118A3013502C00E9FA7D /* openwrt.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = openwrt.png; sourceTree = "<group>"; };
+		9B56118B3013502C00E9FA7D /* pop-os.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pop-os.png"; sourceTree = "<group>"; };
+		9B56118C3013502C00E9FA7D /* red-hat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "red-hat.png"; sourceTree = "<group>"; };
+		9B56118D3013502C00E9FA7D /* slackware.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = slackware.png; sourceTree = "<group>"; };
+		9B56118E3013502C00E9FA7D /* suse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = suse.png; sourceTree = "<group>"; };
+		9B56118F3013502C00E9FA7D /* syllable.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = syllable.png; sourceTree = "<group>"; };
+		9B5611903013502C00E9FA7D /* ubuntu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ubuntu.png; sourceTree = "<group>"; };
+		9B5611913013502C00E9FA7D /* webos.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = webos.png; sourceTree = "<group>"; };
+		9B5611923013502C00E9FA7D /* xubuntu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = xubuntu.png; sourceTree = "<group>"; };
+		9B5611943013502C00E9FA7D /* Caker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Caker.entitlements; sourceTree = "<group>"; };
+		9B5611953013502C00E9FA7D /* CakerDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CakerDebug.entitlements; sourceTree = "<group>"; };
+		9B5611963013502C00E9FA7D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9B5611C13013504000E9FA7D /* cakectl.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cakectl.entitlements; sourceTree = "<group>"; };
+		9B5611C23013504000E9FA7D /* caked.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caked.entitlements; sourceTree = "<group>"; };
+		9B5611C33013504000E9FA7D /* caker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caker.entitlements; sourceTree = "<group>"; };
+		9B5611C43013504B00E9FA7D /* cakectl.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cakectl.entitlements; sourceTree = "<group>"; };
+		9B5611C53013504B00E9FA7D /* caked.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caked.entitlements; sourceTree = "<group>"; };
+		9B5611C63013504B00E9FA7D /* caker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = caker.entitlements; sourceTree = "<group>"; };
 		9B57E9CF2E745FB600C5601D /* ViewSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSize.swift; sourceTree = "<group>"; };
 		9B5A18482FDFFD55006FBD45 /* SpawnOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpawnOptions.swift; sourceTree = "<group>"; };
 		9B5A184A2FDFFD62006FBD45 /* SpawnHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpawnHandler.swift; sourceTree = "<group>"; };
@@ -1429,41 +1509,6 @@
 		9BFE87452F7E6480005CC9B2 /* VM.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = VM.xcf; sourceTree = "<group>"; };
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9B29F8322FCAE4B800AEBCB8 /* Exceptions for "Caker" folder in "Caker" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				AppStore/com.aldunelabs.caker.plist,
-				AppStore/debug/cakectl.provisionprofile,
-				AppStore/debug/caked.provisionprofile,
-				AppStore/debug/caker.provisionprofile,
-				AppStore/Info.plist,
-				AppStore/release.provisionprofile,
-				AppStore/release/cakectl.provisionprofile,
-				AppStore/release/caked.provisionprofile,
-				AppStore/release/caker.provisionprofile,
-				Info.plist,
-			);
-			target = 9B29F79E2FCAE4B700AEBCB8 /* Caker */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		9B464A562D5A3DA000164BF5 /* Caker */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				9B29F8322FCAE4B800AEBCB8 /* Exceptions for "Caker" folder in "Caker" target */,
-			);
-			path = Caker;
-			sourceTree = "<group>";
-		};
-		9B96B0102F4B68380069C970 /* CakerTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = CakerTests;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		9B29F81A2FCAE4B700AEBCB8 /* Frameworks */ = {
@@ -1988,8 +2033,7 @@
 		9B464A4B2D5A3DA000164BF5 = {
 			isa = PBXGroup;
 			children = (
-				9B464A562D5A3DA000164BF5 /* Caker */,
-				9B96B0102F4B68380069C970 /* CakerTests */,
+				9B5611973013502C00E9FA7D /* Caker */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
 				9B5FA1022F8BABF50077EF64 /* Localizations */,
 				9B464A552D5A3DA000164BF5 /* Products */,
@@ -2120,6 +2164,102 @@
 				9B464C492D5A427100164BF5 /* Virtualization.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9B5611663013502C00E9FA7D /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				9B5611C13013504000E9FA7D /* cakectl.entitlements */,
+				9B5611633013502C00E9FA7D /* cakectl.provisionprofile */,
+				9B5611C23013504000E9FA7D /* caked.entitlements */,
+				9B5611643013502C00E9FA7D /* caked.provisionprofile */,
+				9B5611C33013504000E9FA7D /* caker.entitlements */,
+				9B5611653013502C00E9FA7D /* caker.provisionprofile */,
+			);
+			path = debug;
+			sourceTree = "<group>";
+		};
+		9B56116A3013502C00E9FA7D /* release */ = {
+			isa = PBXGroup;
+			children = (
+				9B5611C43013504B00E9FA7D /* cakectl.entitlements */,
+				9B5611673013502C00E9FA7D /* cakectl.provisionprofile */,
+				9B5611C53013504B00E9FA7D /* caked.entitlements */,
+				9B5611683013502C00E9FA7D /* caked.provisionprofile */,
+				9B5611C63013504B00E9FA7D /* caker.entitlements */,
+				9B5611693013502C00E9FA7D /* caker.provisionprofile */,
+			);
+			path = release;
+			sourceTree = "<group>";
+		};
+		9B5611723013502C00E9FA7D /* AppStore */ = {
+			isa = PBXGroup;
+			children = (
+				9B5611663013502C00E9FA7D /* debug */,
+				9B56116A3013502C00E9FA7D /* release */,
+				9B56116D3013502C00E9FA7D /* com.aldunelabs.caker.plist */,
+				9B56116F3013502C00E9FA7D /* Info.plist */,
+				9B5611713013502C00E9FA7D /* release.provisionprofile */,
+			);
+			path = AppStore;
+			sourceTree = "<group>";
+		};
+		9B5611793013502C00E9FA7D /* Content */ = {
+			isa = PBXGroup;
+			children = (
+				9B5611733013502C00E9FA7D /* agent.svg */,
+				9B5611743013502C00E9FA7D /* AppIcon.icns */,
+				9B5611753013502C00E9FA7D /* Assets.xcassets */,
+				9B5611763013502C00E9FA7D /* Document.icns */,
+				9B5611773013502C00E9FA7D /* MenuBarIcon.png */,
+				9B5611783013502C00E9FA7D /* Prompt.png */,
+			);
+			path = Content;
+			sourceTree = "<group>";
+		};
+		9B5611933013502C00E9FA7D /* Icons */ = {
+			isa = PBXGroup;
+			children = (
+				9B56117A3013502C00E9FA7D /* almalinux.png */,
+				9B56117B3013502C00E9FA7D /* alpine.png */,
+				9B56117C3013502C00E9FA7D /* arch-linux.png */,
+				9B56117D3013502C00E9FA7D /* backtrack.png */,
+				9B56117E3013502C00E9FA7D /* centos.png */,
+				9B56117F3013502C00E9FA7D /* debian.png */,
+				9B5611803013502C00E9FA7D /* elementary-os.png */,
+				9B5611813013502C00E9FA7D /* fedora.png */,
+				9B5611823013502C00E9FA7D /* gentoo.png */,
+				9B5611833013502C00E9FA7D /* knoppix.png */,
+				9B5611843013502C00E9FA7D /* kubuntu.png */,
+				9B5611853013502C00E9FA7D /* linux.png */,
+				9B5611863013502C00E9FA7D /* lubuntu.png */,
+				9B5611873013502C00E9FA7D /* mac.png */,
+				9B5611883013502C00E9FA7D /* mandriva.png */,
+				9B5611893013502C00E9FA7D /* mint.png */,
+				9B56118A3013502C00E9FA7D /* openwrt.png */,
+				9B56118B3013502C00E9FA7D /* pop-os.png */,
+				9B56118C3013502C00E9FA7D /* red-hat.png */,
+				9B56118D3013502C00E9FA7D /* slackware.png */,
+				9B56118E3013502C00E9FA7D /* suse.png */,
+				9B56118F3013502C00E9FA7D /* syllable.png */,
+				9B5611903013502C00E9FA7D /* ubuntu.png */,
+				9B5611913013502C00E9FA7D /* webos.png */,
+				9B5611923013502C00E9FA7D /* xubuntu.png */,
+			);
+			path = Icons;
+			sourceTree = "<group>";
+		};
+		9B5611973013502C00E9FA7D /* Caker */ = {
+			isa = PBXGroup;
+			children = (
+				9B5611723013502C00E9FA7D /* AppStore */,
+				9B5611793013502C00E9FA7D /* Content */,
+				9B5611933013502C00E9FA7D /* Icons */,
+				9B5611943013502C00E9FA7D /* Caker.entitlements */,
+				9B5611953013502C00E9FA7D /* CakerDebug.entitlements */,
+				9B5611963013502C00E9FA7D /* Info.plist */,
+			);
+			path = Caker;
 			sourceTree = "<group>";
 		};
 		9B5A377E2ED4BDA8007B59B0 /* VNCLib */ = {
@@ -2792,9 +2932,6 @@
 				9B29F79F2FCAE4B700AEBCB8 /* PBXTargetDependency */,
 				9BF2DA922FE547C400218073 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				9B464A562D5A3DA000164BF5 /* Caker */,
-			);
 			name = Caker;
 			packageProductDependencies = (
 				9B29F7A12FCAE4B700AEBCB8 /* SwiftletUtilities */,
@@ -2893,9 +3030,6 @@
 			dependencies = (
 				9B21E00B2F4C676800870AD7 /* PBXTargetDependency */,
 				9B21E00E2F4C676800870AD7 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				9B96B0102F4B68380069C970 /* CakerTests */,
 			);
 			name = CakerTests;
 			packageProductDependencies = (
@@ -3225,6 +3359,37 @@
 			isa = PBXResourcesBuildPhase;
 			files = (
 				9BC697702FDC048E00A60AF7 /* InfoPlist.xcstrings in Resources */,
+				9B5611A13013502C00E9FA7D /* agent.svg in Resources */,
+				9B5611A23013502C00E9FA7D /* AppIcon.icns in Resources */,
+				9B5611A33013502C00E9FA7D /* Assets.xcassets in Resources */,
+				9B5611A43013502C00E9FA7D /* Document.icns in Resources */,
+				9B5611A53013502C00E9FA7D /* MenuBarIcon.png in Resources */,
+				9B5611A63013502C00E9FA7D /* Prompt.png in Resources */,
+				9B5611A73013502C00E9FA7D /* almalinux.png in Resources */,
+				9B5611A83013502C00E9FA7D /* alpine.png in Resources */,
+				9B5611A93013502C00E9FA7D /* arch-linux.png in Resources */,
+				9B5611AA3013502C00E9FA7D /* backtrack.png in Resources */,
+				9B5611AB3013502C00E9FA7D /* centos.png in Resources */,
+				9B5611AC3013502C00E9FA7D /* debian.png in Resources */,
+				9B5611AD3013502C00E9FA7D /* elementary-os.png in Resources */,
+				9B5611AE3013502C00E9FA7D /* fedora.png in Resources */,
+				9B5611AF3013502C00E9FA7D /* gentoo.png in Resources */,
+				9B5611B03013502C00E9FA7D /* knoppix.png in Resources */,
+				9B5611B13013502C00E9FA7D /* kubuntu.png in Resources */,
+				9B5611B23013502C00E9FA7D /* linux.png in Resources */,
+				9B5611B33013502C00E9FA7D /* lubuntu.png in Resources */,
+				9B5611B43013502C00E9FA7D /* mac.png in Resources */,
+				9B5611B53013502C00E9FA7D /* mandriva.png in Resources */,
+				9B5611B63013502C00E9FA7D /* mint.png in Resources */,
+				9B5611B73013502C00E9FA7D /* openwrt.png in Resources */,
+				9B5611B83013502C00E9FA7D /* pop-os.png in Resources */,
+				9B5611B93013502C00E9FA7D /* red-hat.png in Resources */,
+				9B5611BA3013502C00E9FA7D /* slackware.png in Resources */,
+				9B5611BB3013502C00E9FA7D /* suse.png in Resources */,
+				9B5611BC3013502C00E9FA7D /* syllable.png in Resources */,
+				9B5611BD3013502C00E9FA7D /* ubuntu.png in Resources */,
+				9B5611BE3013502C00E9FA7D /* webos.png in Resources */,
+				9B5611BF3013502C00E9FA7D /* xubuntu.png in Resources */,
 				9BC697712FDC048E00A60AF7 /* Localizable.xcstrings in Resources */,
 			);
 		};
@@ -4013,7 +4178,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION).entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caker.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -4072,7 +4237,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION).entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caker.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Distribution: Frederic BOLTZ (LE7988HTRN)";
 				CODE_SIGN_STYLE = Manual;
@@ -4269,7 +4434,7 @@
 		9B464B542D5A3E5C00164BF5 /* Debug configuration for PBXNativeTarget "cakectl" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/cakectl.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/cakectl.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
@@ -4309,7 +4474,7 @@
 		9B464B552D5A3E5C00164BF5 /* Release configuration for PBXNativeTarget "cakectl" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/cakectl.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/cakectl.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
@@ -4416,7 +4581,7 @@
 		9BA9CBCB2FCD7B8000CEBFC0 /* Debug configuration for PBXNativeTarget "cakectl.app" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/cakectl.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/cakectl.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
 				CODE_SIGN_STYLE = Manual;
@@ -4447,7 +4612,7 @@
 		9BA9CBCC2FCD7B8000CEBFC0 /* Release configuration for PBXNativeTarget "cakectl.app" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/cakectl.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/cakectl.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
 				CODE_SIGN_STYLE = Manual;
@@ -4496,7 +4661,7 @@
 		9BEBC6932DF43FEE0092B196 /* Debug configuration for PBXNativeTarget "caked" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caked.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -4536,7 +4701,7 @@
 		9BEBC6942DF43FEE0092B196 /* Release configuration for PBXNativeTarget "caked" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caked.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -4632,7 +4797,7 @@
 		9BFE869F2F7E592B005CC9B2 /* Debug configuration for PBXNativeTarget "caked.app" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caked.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
@@ -4664,7 +4829,7 @@
 		9BFE86A02F7E592B005CC9B2 /* Release configuration for PBXNativeTarget "caked.app" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caked.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;

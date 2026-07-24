@@ -62,12 +62,21 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
+            BlueprintIdentifier = "9B29F79E2FCAE4B700AEBCB8"
+            BuildableName = "Caker.app"
+            BlueprintName = "Caker"
+            ReferencedContainer = "container:CakerAppStore.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
             BlueprintIdentifier = "9B464A532D5A3DA000164BF5"
             BuildableName = "Caker.app"
             BlueprintName = "Caker"
             ReferencedContainer = "container:Caker.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
       <CommandLineArguments>
          <CommandLineArgument
             argument = "--log-level"
@@ -106,6 +115,15 @@
             ReferencedContainer = "container:Caker.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "9B464A532D5A3DA000164BF5"
+            BuildableName = "Caker.app"
+            BlueprintName = "Caker"
+            ReferencedContainer = "container:Caker.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
