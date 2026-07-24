@@ -43,8 +43,34 @@
       viewDebuggingEnabled = "No">
       <PathRunnable
          runnableDebuggingMode = "0"
-         FilePath = "~/Library/Developer/Xcode/DerivedData/Build/Products/Debug/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS/cakectl">
+         FilePath = "~/Library/Developer/Xcode/DerivedData/Build/Products/Debug/Caker.app/Contents/PlugIns/caked.app/Contents/MacOS/caked">
       </PathRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "build"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "test"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "https://cdimage.ubuntu.com/releases/26.04/snapshot-4/ubuntu-26.04-snapshot4-desktop-arm64.iso"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-c=4"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-m=4096"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-d=40"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -52,15 +78,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9B464A532D5A3DA000164BF5"
-            BuildableName = "Caker.app"
-            BlueprintName = "Caker"
-            ReferencedContainer = "container:Caker.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

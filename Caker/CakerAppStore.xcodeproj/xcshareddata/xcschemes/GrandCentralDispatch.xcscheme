@@ -15,6 +15,20 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "9B464B4E2D5A3E5C00164BF5"
+               BuildableName = "cakectl"
+               BlueprintName = "cakectl"
+               ReferencedContainer = "container:Caker.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "9B464A532D5A3DA000164BF5"
                BuildableName = "Caker.app"
                BlueprintName = "Caker"
@@ -45,6 +59,15 @@
          runnableDebuggingMode = "0"
          FilePath = "~/Library/Developer/Xcode/DerivedData/Build/Products/Debug/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS/cakectl">
       </PathRunnable>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "9B464B4E2D5A3E5C00164BF5"
+            BuildableName = "cakectl"
+            BlueprintName = "cakectl"
+            ReferencedContainer = "container:Caker.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -52,15 +75,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9B464A532D5A3DA000164BF5"
-            BuildableName = "Caker.app"
-            BlueprintName = "Caker"
+            BlueprintIdentifier = "9B464B4E2D5A3E5C00164BF5"
+            BuildableName = "cakectl"
+            BlueprintName = "cakectl"
             ReferencedContainer = "container:Caker.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

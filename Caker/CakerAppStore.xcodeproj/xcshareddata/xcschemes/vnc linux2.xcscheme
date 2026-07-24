@@ -40,11 +40,21 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES"
-      viewDebuggingEnabled = "No">
+      queueDebuggingEnableBacktraceRecording = "Yes">
       <PathRunnable
          runnableDebuggingMode = "0"
          FilePath = "~/Library/Developer/Xcode/DerivedData/Build/Products/Debug/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS/cakectl">
       </PathRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "vnc"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "linux2"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -52,15 +62,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9B464A532D5A3DA000164BF5"
-            BuildableName = "Caker.app"
-            BlueprintName = "Caker"
-            ReferencedContainer = "container:Caker.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

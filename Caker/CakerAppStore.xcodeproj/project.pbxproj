@@ -4498,7 +4498,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = LE7988HTRN;
@@ -4538,7 +4538,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = LE7988HTRN;
@@ -4635,7 +4635,7 @@
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
-				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -4667,7 +4667,7 @@
 				CODE_SIGN_ENTITLEMENTS = Caker/AppStore/caked.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
-				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
