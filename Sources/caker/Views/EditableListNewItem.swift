@@ -79,13 +79,13 @@ struct EditableListNewItem<Element, Content: View>: View where Element: Hashable
 				} label: {
 					Text("Cancel").frame(width: 80)
 				}
-				.buttonStyle(.bordered)
+				.withButtonStyle(.bordered)
 				Button {
 					save()
 				} label: {
 					Text(self.editItem == nil ? "Add" : "Save").frame(width: 80)
 				}
-				.buttonStyle(.borderedProminent)
+				.withButtonStyle(.borderedProminent)
 				.disabled(self.configChanged == false)
 			}
 			.padding(.horizontal, 16)

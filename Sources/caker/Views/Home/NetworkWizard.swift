@@ -54,7 +54,7 @@ struct NetworkWizard: View {
 				}.disabled(vzNetwork == nil)
 				Button("Cancel") {
 					dismiss()
-				}.buttonStyle(.borderedProminent)
+				}.withButtonStyle(.borderedProminent)
 				Spacer()
 			}
 		}

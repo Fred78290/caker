@@ -114,7 +114,7 @@ struct NetworkAttachementDetailView: View {
 						model.macAddress = .init(value: VZMACAddress.randomLocallyAdministered().string, type: .macAddress, maxLength: 18, allowNegative: false, formatter: OptionalMacAddressParseableFormatStyle())
 					}) {
 						Image(systemName: "arrow.trianglehead.clockwise")
-					}.buttonStyle(.borderless)
+					}.withButtonStyle(.borderless)
 
 					TextField(String.empty, text: $model.macAddress.text)
 						.rounded(.center)

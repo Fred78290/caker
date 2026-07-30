@@ -300,11 +300,11 @@ struct ServiceListView: View {
 					isPresentingPasswordPrompt = false
 					enteredPassword = ""
 				}
-				.buttonStyle(.bordered)
+				.withButtonStyle(.bordered)
 				AsyncButton("Connect") { done in
 					handlePasswordSubmit { done() }
 				}
-				.buttonStyle(.borderedProminent)
+				.withButtonStyle(.borderedProminent)
 				.keyboardShortcut(.defaultAction)
 				.disabled(enteredPassword.isEmpty)
 			}
@@ -353,12 +353,12 @@ struct ServiceListView: View {
 					isPresentingManualSheet = false
 					manualError = nil
 				}
-				.buttonStyle(.bordered)
+				.withButtonStyle(.bordered)
 				AsyncButton("Connect") { done in
 					self.manualConnect()
 					done()
 				}
-				.buttonStyle(.borderedProminent)
+				.withButtonStyle(.borderedProminent)
 				.keyboardShortcut(.defaultAction)
 				.disabled(manualAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || manualPort == 0)
 			}
@@ -438,7 +438,7 @@ struct ServiceListView: View {
 				} label: {
 					Label("Connect to a server…", systemImage: "link.badge.plus")
 				}
-				.buttonStyle(.bordered)
+				.withButtonStyle(.bordered)
 			}
 			.padding(.horizontal)
 			.padding(.bottom)
@@ -535,12 +535,12 @@ struct ServiceRowView: View {
 					Button("Disconnect") {
 						AppState.shared.connectToLocal()
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 				} else {
 					Button("Connect") {
 						onConnect(service)
 					}
-					.buttonStyle(.borderedProminent)
+					.withButtonStyle(.borderedProminent)
 				}
 			} else {
 				GlossyCircle(color: connected ? .green : .secondary)

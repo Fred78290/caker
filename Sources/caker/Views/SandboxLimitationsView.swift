@@ -81,12 +81,12 @@ public struct SandboxLimitationsView: View {
 				Button(action: openSandboxWiki) {
 					Label("Learn more", systemImage: "safari")
 				}
-				.buttonStyle(.bordered)
+				.withButtonStyle(.bordered)
 
 				Button("Got it") {
 					dismiss()
 				}
-				.buttonStyle(.borderedProminent)
+				.withButtonStyle(.borderedProminent)
 				.keyboardShortcut(.defaultAction)
 			}
 		}

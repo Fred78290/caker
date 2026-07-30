@@ -58,7 +58,7 @@ struct RemoteWizard: View {
 					done()
 				})
 				.disabled(self.isValid == false)
-				.buttonStyle(.borderedProminent)
+				.withButtonStyle(.borderedProminent)
 
 				Button("Cancel", role: .cancel) {
 					self.dismiss()

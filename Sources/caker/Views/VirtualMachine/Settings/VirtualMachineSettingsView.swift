@@ -110,7 +110,7 @@ struct VirtualMachineSettingsView: View {
 					Text("Cancel")
 						.frame(width: 80)
 				}
-				.buttonStyle(.bordered)
+				.withButtonStyle(.bordered)
 
 				Button {
 					self.document.virtualMachineConfig = self.config
@@ -120,7 +120,7 @@ struct VirtualMachineSettingsView: View {
 					Text("Save")
 						.frame(width: 80)
 				}
-				.buttonStyle(.borderedProminent)
+				.withButtonStyle(.borderedProminent)
 				.disabled(self.configChanged == false)
 			}
 			.padding(.horizontal, 16)

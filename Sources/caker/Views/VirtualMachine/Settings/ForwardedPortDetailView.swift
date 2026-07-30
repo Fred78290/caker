@@ -369,7 +369,7 @@ struct ForwardedPortDetailView: View {
 							}
 						Button(action: chooseSocketFile) {
 							Image(systemName: "powerplug")
-						}.buttonStyle(.borderless)
+						}.withButtonStyle(.borderless)
 					}.frame(width: 350)
 				}
 			}

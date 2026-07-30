@@ -145,19 +145,19 @@ public struct AboutCakerView: View {
 						Label("Sandbox Limitations", systemImage: "info.circle")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 
 					Button(action: openSandboxLocation) {
 						Label("Locate Sandbox", systemImage: "folder")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 
 					Button(action: openDirectDownload) {
 						Label("Get Direct-Download Build", systemImage: "arrow.down.circle")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 				}
 			}
 		}
@@ -183,25 +183,25 @@ public struct AboutCakerView: View {
 						Label("Licenses", systemImage: "book")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 
 					Button(action: openWebsite) {
 						Label("Documentation", systemImage: "safari")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 
 					Button(action: openGitHub) {
 						Label("Source Code", systemImage: "curlybraces")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 
 					Button(action: reportIssue) {
 						Label("Report Issue", systemImage: "ladybug")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 				}
 			}
 		}

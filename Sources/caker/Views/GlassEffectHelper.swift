@@ -95,18 +95,18 @@ extension View {
 		}
 	#endif
 
-	public func withButtonStyle<S>(_ style: PrimitiveButtonStyle) -> some View {
-		if #available(macOS 26.0, *) {
-			switch style {
-			case .bordered:
-				return self.buttonStyle(.glass)
-			case .borderedProminent:
-				return self.buttonStyle(.glassProminent)
-			default:
-				return self.buttonStyle(style)
+	public func withButtonStyle<S: PrimitiveButtonStyle>(_ style: S) -> some View {
+		if #available(macOS 27.0, *) {
+			// Map bordered styles to glass variants when available; otherwise, forward the style.
+			if style is BorderedButtonStyle {
+				return AnyView(self.buttonStyle(.glass))
+			} else if style is BorderedProminentButtonStyle {
+				return AnyView(self.buttonStyle(.glassProminent))
+			} else {
+				return AnyView(self.buttonStyle(style))
 			}
 		} else {
-			return self.buttonStyle(style)
+			return AnyView(self.buttonStyle(style))
 		}
 	}
 }

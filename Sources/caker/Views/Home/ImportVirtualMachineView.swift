@@ -129,7 +129,7 @@ struct ImportVirtualMachineView: View {
 								Image(systemName: "folder")
 							}
 							.frame(width: 20)
-							.buttonStyle(.borderless)
+							.withButtonStyle(.borderless)
 						}
 					}
 				} else {
@@ -175,7 +175,7 @@ struct ImportVirtualMachineView: View {
 							Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
 						}
 						.frame(width: 20)
-						.buttonStyle(.borderless)
+						.withButtonStyle(.borderless)
 					}
 				}
 
@@ -205,7 +205,7 @@ struct ImportVirtualMachineView: View {
 							Image(systemName: "key.fill")
 						}
 						.frame(width: 20)
-						.buttonStyle(.borderless)
+						.withButtonStyle(.borderless)
 					}
 				}
 
@@ -226,7 +226,7 @@ struct ImportVirtualMachineView: View {
 							Image(systemName: showSshPassphrase ? "eye.fill" : "eye.slash.fill")
 						}
 						.frame(width: 20)
-						.buttonStyle(.borderless)
+						.withButtonStyle(.borderless)
 					}
 				}
 			}
@@ -262,9 +262,9 @@ struct ImportVirtualMachineView: View {
 			}
 			Spacer()
 			Button("Cancel") { dismiss() }
-				.buttonStyle(.bordered)
+				.withButtonStyle(.bordered)
 			Button("Import") { doImport() }
-				.buttonStyle(.borderedProminent)
+				.withButtonStyle(.borderedProminent)
 				.disabled(importDisabled)
 		}
 		.padding(.horizontal, 20)

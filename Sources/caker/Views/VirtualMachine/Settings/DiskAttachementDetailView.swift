@@ -80,7 +80,7 @@ struct DiskAttachementDetailView: View {
 						.rounded(.leading)
 					Button(action: chooseDiskImage) {
 						Image(systemName: "opticaldiscdrive")
-					}.buttonStyle(.borderless)
+					}.withButtonStyle(.borderless)
 				}.frame(width: 350)
 			}
 

@@ -185,7 +185,7 @@ struct ImportMultipassView: View {
 							Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
 						}
 						.frame(width: 20)
-						.buttonStyle(.borderless)
+						.withButtonStyle(.borderless)
 					}
 				}
 			}
@@ -205,7 +205,7 @@ struct ImportMultipassView: View {
 							Image(systemName: "key.fill")
 						}
 						.frame(width: 20)
-						.buttonStyle(.borderless)
+						.withButtonStyle(.borderless)
 					}
 				}
 
@@ -224,7 +224,7 @@ struct ImportMultipassView: View {
 							Image(systemName: showSshPassphrase ? "eye.fill" : "eye.slash.fill")
 						}
 						.frame(width: 20)
-						.buttonStyle(.borderless)
+						.withButtonStyle(.borderless)
 					}
 				}
 			}
@@ -274,7 +274,7 @@ struct ImportMultipassView: View {
 					Image(systemName: showMultipassPassphrase ? "eye.fill" : "eye.slash.fill")
 				}
 				.frame(width: 20)
-				.buttonStyle(.borderless)
+				.withButtonStyle(.borderless)
 			}
 			.padding(.horizontal, 80)
 		}
@@ -290,14 +290,14 @@ struct ImportMultipassView: View {
 			}
 			Spacer()
 			Button("Cancel") { dismiss() }
-				.buttonStyle(.bordered)
+				.withButtonStyle(.bordered)
 			if requiresAuthentication {
 				Button("Authenticate") { doSetPassphrase() }
-					.buttonStyle(.borderedProminent)
+					.withButtonStyle(.borderedProminent)
 					.disabled(multipassPassphrase.isEmpty || isAuthenticating)
 			} else {
 				Button("Import") { doImport() }
-					.buttonStyle(.borderedProminent)
+					.withButtonStyle(.borderedProminent)
 					.disabled(importDisabled)
 			}
 		}
