@@ -71,7 +71,7 @@ if [ $APPSTORE -eq 0 ]; then
 
 	cp -R "${BUILDDIR}/Sparkle.framework" "${CAKER_APP}/Frameworks/"
 
-	for FILE in Headers PrivateHeaders Modules Versions/Current/XPCServices/Downloader.xpc; do
+	for FILE in Headers PrivateHeaders Modules; do
 		FILE="${SPARKLE_FRAMEWORK}/${FILE}"
 		
 		if [ -d "${FILE}" ]; then
@@ -203,6 +203,11 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 		--options runtime \
 		--timestamp \
 		--force "${SPARKLE_FRAMEWORK}/Versions/Current/XPCServices/Installer.xpc"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--force "${SPARKLE_FRAMEWORK}/Versions/Current/XPCServices/Downloader.xpc"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 		--options runtime \
