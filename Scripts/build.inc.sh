@@ -7,6 +7,7 @@ CODESIGN_REQUIREMENT=${CODESIGN_REQUIREMENT:-}
 RELEASE=${RELEASE:-0}
 APPSTORE=${APPSTORE:-0}
 USE_SMAPPSERVICE=${USE_SMAPPSERVICE:-0}
+SPARKLE_VERSION=2.9.4
 
 CAKER_APP="${PKGDIR}/Contents"
 CAKED_APP="${CAKER_APP}/PlugIns/caked.app/Contents"
@@ -62,6 +63,10 @@ actool "${RESOURCESDIR}/Assets.xcassets" \
 	--platform macosx
 
 if [ $APPSTORE -eq 0 ]; then
+	mkdir -p "${PROJECT_ROOT}/tmp"
+	curl -L https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz -o "${PROJECT_ROOT}/tmp/Sparkle-${SPARKLE_VERSION}.tar.xz"
+	tar -xf "${PROJECT_ROOT}/tmp/Sparkle-${SPARKLE_VERSION}.tar.xz" -C "${BUILDDIR}" Sparkle.framework
+
 	SPARKLE_FRAMEWORK="${CAKER_APP}/Frameworks/Sparkle.framework"
 
 	cp -R "${BUILDDIR}/Sparkle.framework" "${CAKER_APP}/Frameworks/"

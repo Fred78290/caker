@@ -43,8 +43,8 @@ jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
   .state.revision = "d554955e8c280aa4c4a05a039a968f0205656e77"
 )' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
 
-/usr/bin/swift build -c release --arch x86_64 -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND -Xswiftc -D -Xswiftc USE_SMAPPSERVICE
-/usr/bin/swift build -c release --arch arm64 -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND -Xswiftc -D -Xswiftc USE_SMAPPSERVICE
+/usr/bin/swift build -c release --arch x86_64 --build-path "${PROJECT_ROOT}/.build/x86_64-apple-macosx" -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND -Xswiftc -D -Xswiftc USE_SMAPPSERVICE
+/usr/bin/swift build -c release --arch arm64 --build-path "${PROJECT_ROOT}/.build/arm64-apple-macosx" -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND -Xswiftc -D -Xswiftc USE_SMAPPSERVICE
 
 mkdir -p ${BINARYDIR}
 
