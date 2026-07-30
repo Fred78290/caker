@@ -10,7 +10,7 @@ import SwiftUI
 extension View {
 	public func rounded(_ alignment: TextAlignment) -> some View {
 		multilineTextAlignment(alignment)
-			.textFieldStyle(.roundedBorder)
+			.withTextFieldStyle(.roundedBorder)
 			.backgroundStyle(.windowBackground)
 			.labelsHidden()
 		//.clipShape(RoundedRectangle(cornerRadius: 4))
