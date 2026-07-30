@@ -29,7 +29,7 @@
 	<key>CFBundleVersion</key>
 	<string>${VERSION}</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>15.0</string>
+	<string>26.0</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
