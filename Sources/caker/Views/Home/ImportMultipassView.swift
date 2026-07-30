@@ -263,10 +263,10 @@ struct ImportMultipassView: View {
 			HStack(spacing: 6) {
 				if showMultipassPassphrase {
 					TextField("Passphrase", text: $multipassPassphrase)
-						.textFieldStyle(.roundedBorder)
+						.withTextFieldStyle(.roundedBorder)
 				} else {
 					SecureField("Passphrase", text: $multipassPassphrase)
-						.textFieldStyle(.roundedBorder)
+						.withTextFieldStyle(.roundedBorder)
 				}
 				Button {
 					showMultipassPassphrase.toggle()

@@ -618,6 +618,7 @@ struct VirtualMachineWizard: View {
 							Text("Previous")
 						}.frame(width: 90)
 					}
+					.withButtonStyle(.bordered)
 					.disabled(self.hasPrevious == false || self.model.createVM)
 
 					Button {
@@ -628,6 +629,7 @@ struct VirtualMachineWizard: View {
 							Image(systemName: "chevron.right")
 						}.frame(width: 70)
 					}
+					.withButtonStyle(.bordered)
 					.disabled(self.hasNext == false || self.model.createVM)
 				}
 				.frame(maxWidth: .infinity, alignment: .center)

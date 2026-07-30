@@ -80,6 +80,20 @@ private func defaultShape() -> some Shape {
 	#endif
 }
 
+/*struct GlassTextFieldModifier: ViewModifier {
+	private let style: any TextFieldStyle
+
+	init(style: any TextFieldStyle) {
+		self.style = style
+	}
+
+	func body(content: Content) -> some View {
+		GlassEffectContainer {
+			content.textFieldStyle(self.style).glassEffect()
+		}
+	}
+}*/
+
 extension View {
 	#if compiler(>=6.2)
 		func withGlassEffect(_ effect: GlassEffect = .regular(nil, nil), in shape: some Shape = defaultShape()) -> some View {
@@ -95,18 +109,37 @@ extension View {
 		}
 	#endif
 
-	public func withButtonStyle<S: PrimitiveButtonStyle>(_ style: S) -> some View {
-		if #available(macOS 27.0, *) {
+	@ViewBuilder
+	public func withTextFieldStyle<S: TextFieldStyle>(_ style: S) -> some View {
+		if #available(macOS 26.0, *) {
 			// Map bordered styles to glass variants when available; otherwise, forward the style.
-			if style is BorderedButtonStyle {
-				return AnyView(self.buttonStyle(.glass))
-			} else if style is BorderedProminentButtonStyle {
-				return AnyView(self.buttonStyle(.glassProminent))
+			if style is RoundedBorderTextFieldStyle {
+				self.textFieldStyle(style)
+					.glassEffect(.regular, in: Capsule())
+			} else if style is SquareBorderTextFieldStyle {
+				self.textFieldStyle(style)
+					.glassEffect(.regular, in: Rectangle())
 			} else {
-				return AnyView(self.buttonStyle(style))
+				self.textFieldStyle(style)
 			}
 		} else {
-			return AnyView(self.buttonStyle(style))
+			self.textFieldStyle(style)
+		}
+	}
+
+	@ViewBuilder
+	public func withButtonStyle<S: PrimitiveButtonStyle>(_ style: S) -> some View {
+		if #available(macOS 26.0, *) {
+			// Map bordered styles to glass variants when available; otherwise, forward the style.
+			if style is BorderedButtonStyle {
+				self.buttonStyle(.glass)
+			} else if style is BorderedProminentButtonStyle {
+				self.buttonStyle(.glassProminent)
+			} else {
+				self.buttonStyle(style)
+			}
+		} else {
+			self.buttonStyle(style)
 		}
 	}
 }

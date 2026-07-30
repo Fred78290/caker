@@ -291,7 +291,7 @@ struct ServiceListView: View {
 					.foregroundStyle(.secondary)
 			}
 			SecureField("Password", text: $enteredPassword)
-				.textFieldStyle(.roundedBorder)
+				.withTextFieldStyle(.roundedBorder)
 				.onSubmit {
 					handlePasswordSubmit { }
 				}
@@ -321,7 +321,7 @@ struct ServiceListView: View {
 			VStack(alignment: .leading, spacing: 8) {
 				LabeledContent("Address (host or ip)") {
 					TextField("", text: $manualAddress)
-						.textFieldStyle(.roundedBorder)
+						.withTextFieldStyle(.roundedBorder)
 						.disableAutocorrection(true)
 						.textCase(.lowercase)
 				}
@@ -329,13 +329,13 @@ struct ServiceListView: View {
 				LabeledContent("Port") {
 					Spacer()
 					TextField("", value: $manualPort, format: .number)
-						.textFieldStyle(.roundedBorder)
+						.withTextFieldStyle(.roundedBorder)
 						.frame(width: 50)
 				}
 
 				LabeledContent("Password (optional)") {
 					SecureField("", text: $manualPassword)
-						.textFieldStyle(.roundedBorder)
+						.withTextFieldStyle(.roundedBorder)
 				}
 
 				Toggle("Use TLS", isOn: $manualUseTLS)
