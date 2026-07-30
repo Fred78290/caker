@@ -209,6 +209,7 @@
 		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
 		9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */; };
 		9B4159B72FFA66F400E2B275 /* ConfigureHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4159B62FFA66F000E2B275 /* ConfigureHandler.swift */; };
+		9B426B27301B9A3800170A05 /* NSGlassEffectAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B426B26301B9A3800170A05 /* NSGlassEffectAlert.swift */; };
 		9B44388A2EBC9C12008BB2BB /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4438892EBC9C12008BB2BB /* Dynamic */; };
 		9B464B5F2D5A3E7F00164BF5 /* CakeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A872D5A3E0300164BF5 /* CakeProvider.swift */; };
 		9B464B602D5A3E7F00164BF5 /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A882D5A3E0300164BF5 /* Client.swift */; };
@@ -1020,6 +1021,7 @@
 		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
 		9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdatesView.swift; sourceTree = "<group>"; };
 		9B4159B62FFA66F000E2B275 /* ConfigureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureHandler.swift; sourceTree = "<group>"; };
+		9B426B26301B9A3800170A05 /* NSGlassEffectAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSGlassEffectAlert.swift; sourceTree = "<group>"; };
 		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
 		9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteWizard.swift; sourceTree = "<group>"; };
 		9B4517E62F067E7B0088F093 /* GraphCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphCapsule.swift; sourceTree = "<group>"; };
@@ -2690,9 +2692,10 @@
 				9B9DCD892F6FFF4900E07852 /* AboutApplication.swift */,
 				9B7D69242F1B92E800FE1B0B /* Extensions.swift */,
 				9B5F49BF2F70032800AE1991 /* LabelView.swift */,
+				9B426B26301B9A3800170A05 /* NSGlassEffectAlert.swift */,
 				9BEBC74B2DF440720092B196 /* VMView.swift */,
-				9B9DCD852F6FF16700E07852 /* WindowAccessor.swift */,
 				9B9DCB352F6EB09900E07852 /* VNC */,
+				9B9DCD852F6FF16700E07852 /* WindowAccessor.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -4059,6 +4062,7 @@
 				9B081B5B2FC75A1A0029B259 /* Qcow2Error.swift in Sources */,
 				9B081B5C2FC75A1A0029B259 /* Qcow2Converter.swift in Sources */,
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
+				9B426B27301B9A3800170A05 /* NSGlassEffectAlert.swift in Sources */,
 				9B6EC45E30037F6600ABFDED /* VMLifecycleHooks.swift in Sources */,
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
 				9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */,
