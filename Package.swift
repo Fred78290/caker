@@ -45,7 +45,7 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-nio-ssl.git", exact: "2.37.0"),
 		.package(url: "https://github.com/apple/swift-nio.git", exact: "2.99.0"),
 		.package(url: "https://github.com/apple/swift-protobuf.git", exact: "1.35.0"),
-		.package(url: "https://github.com/Appracatappra/SwiftletUtilities.git", exact: "2.1.3"),
+		.package(url: "https://github.com/Appracatappra/SwiftletUtilities.git", exact: "2.0.6"),
 		.package(url: "https://github.com/asam139/Steps.git", exact: "0.3.9"),
 		.package(url: "https://github.com/cfilipov/TextTable", branch: "master"),
 		.package(url: "https://github.com/fumoboy007/swift-retry", exact: "0.2.4"),

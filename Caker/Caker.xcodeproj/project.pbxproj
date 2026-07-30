@@ -4842,7 +4842,7 @@
 			repositoryURL = "https://github.com/Appracatappra/SwiftletUtilities.git";
 			requirement = {
 				kind = exactVersion;
-				version = 2.1.3;
+				version = 2.0.6;
 			};
 		};
 		9B35667D2F27DDE700C5E12F /* XCRemoteSwiftPackageReference "zlib" */ = {
