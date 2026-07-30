@@ -94,4 +94,19 @@ extension View {
 			modifier(GlassEffectHelper(effect, in: shape))
 		}
 	#endif
+
+	public func withButtonStyle<S>(_ style: PrimitiveButtonStyle) -> some View {
+		if #available(macOS 26.0, *) {
+			switch style {
+			case .bordered:
+				return self.buttonStyle(.glass)
+			case .borderedProminent:
+				return self.buttonStyle(.glassProminent)
+			default:
+				return self.buttonStyle(style)
+			}
+		} else {
+			return self.buttonStyle(style)
+		}
+	}
 }

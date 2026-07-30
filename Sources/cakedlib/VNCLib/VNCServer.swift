@@ -6,6 +6,7 @@ import Metal
 import Network
 import QuartzCore
 import CakeAgentLib
+import NIOCore
 
 public protocol VZVNCServer {
 	var delegate: VNCServerDelegate? { get set }
