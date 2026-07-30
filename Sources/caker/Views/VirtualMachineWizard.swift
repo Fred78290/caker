@@ -641,6 +641,7 @@ struct VirtualMachineWizard: View {
 						} label: {
 							Text("Cancel").frame(width: 80)
 						}
+						.withButtonStyle(.bordered)
 					}
 
 					AsyncButton { done in

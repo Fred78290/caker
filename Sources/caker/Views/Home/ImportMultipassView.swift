@@ -289,16 +289,29 @@ struct ImportMultipassView: View {
 					.controlSize(.small)
 			}
 			Spacer()
-			Button("Cancel") { dismiss() }
-				.withButtonStyle(.bordered)
+			Button {
+				dismiss()
+			} label: {
+				Text("Cancel").frame(width: 80.0)
+			}
+			.withButtonStyle(.bordered)
+
 			if requiresAuthentication {
-				Button("Authenticate") { doSetPassphrase() }
-					.withButtonStyle(.borderedProminent)
-					.disabled(multipassPassphrase.isEmpty || isAuthenticating)
+				Button {
+					doSetPassphrase()
+				} label: {
+					Text("Authenticate").frame(width: 80.0)
+				}
+				.withButtonStyle(.borderedProminent)
+				.disabled(multipassPassphrase.isEmpty || isAuthenticating)
 			} else {
-				Button("Import") { doImport() }
-					.withButtonStyle(.borderedProminent)
-					.disabled(importDisabled)
+				Button {
+					doImport()
+				} label: {
+					Text("Import").frame(width: 80.0)
+				}
+				.withButtonStyle(.borderedProminent)
+				.disabled(importDisabled)
 			}
 		}
 		.padding(.horizontal, 20)
@@ -350,7 +363,7 @@ struct ImportMultipassView: View {
 				} else {
 					await MainActor.run {
 						isLoading = false
-						errorMessage = error.localizedDescription
+						errorMessage = error.reason
 					}
 				}
 			}

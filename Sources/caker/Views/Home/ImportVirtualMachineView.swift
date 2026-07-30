@@ -261,11 +261,21 @@ struct ImportVirtualMachineView: View {
 					.controlSize(.small)
 			}
 			Spacer()
-			Button("Cancel") { dismiss() }
-				.withButtonStyle(.bordered)
-			Button("Import") { doImport() }
-				.withButtonStyle(.borderedProminent)
-				.disabled(importDisabled)
+
+			Button {
+				dismiss()
+			} label: {
+				Text("Cancel").frame(width: 80.0)
+			}
+			.withButtonStyle(.bordered)
+
+			Button {
+				doImport()
+			} label: {
+				Text("Import").frame(width: 80.0)
+			}
+			.withButtonStyle(.borderedProminent)
+			.disabled(importDisabled)
 		}
 		.padding(.horizontal, 20)
 		.padding(.vertical, 12)

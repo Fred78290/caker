@@ -80,20 +80,6 @@ private func defaultShape() -> some Shape {
 	#endif
 }
 
-/*struct GlassTextFieldModifier: ViewModifier {
-	private let style: any TextFieldStyle
-
-	init(style: any TextFieldStyle) {
-		self.style = style
-	}
-
-	func body(content: Content) -> some View {
-		GlassEffectContainer {
-			content.textFieldStyle(self.style).glassEffect()
-		}
-	}
-}*/
-
 extension View {
 	#if compiler(>=6.2)
 		func withGlassEffect(_ effect: GlassEffect = .regular(nil, nil), in shape: some Shape = defaultShape()) -> some View {
@@ -111,7 +97,7 @@ extension View {
 
 	@ViewBuilder
 	public func withTextFieldStyle<S: TextFieldStyle>(_ style: S) -> some View {
-		if #available(macOS 26.0, *) {
+		if #available(macOS 27.0, *) {
 			// Map bordered styles to glass variants when available; otherwise, forward the style.
 			if style is RoundedBorderTextFieldStyle {
 				self.textFieldStyle(style)
@@ -129,7 +115,7 @@ extension View {
 
 	@ViewBuilder
 	public func withButtonStyle<S: PrimitiveButtonStyle>(_ style: S) -> some View {
-		if #available(macOS 26.0, *) {
+		if #available(macOS 27.0, *) {
 			// Map bordered styles to glass variants when available; otherwise, forward the style.
 			if style is BorderedButtonStyle {
 				self.buttonStyle(.glass)

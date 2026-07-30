@@ -18,17 +18,16 @@ public struct AboutCakerView: View {
 
 	public var body: some View {
 		VStack(spacing: 0) {
-			headerSection
-			mainInfoSection
-			componentsSection
+			headerSection.shadow(radius: 10)
+			mainInfoSection.shadow(radius: 10)
+			componentsSection.shadow(radius: 10)
 			if Bundle.isApplicationSandboxed {
-				sandboxSection
+				sandboxSection.shadow(radius: 10)
 			}
 			creditsSection
 		}
 		.frame(maxWidth: 700)
 		.fixedSize(horizontal: false, vertical: true)
-		.shadow(radius: 10)
 	}
 
 	private var headerSection: some View {

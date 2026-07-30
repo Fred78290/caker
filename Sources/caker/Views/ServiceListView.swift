@@ -300,7 +300,6 @@ struct ServiceListView: View {
 					isPresentingPasswordPrompt = false
 					enteredPassword = ""
 				}
-				.withButtonStyle(.bordered)
 				AsyncButton("Connect") { done in
 					handlePasswordSubmit { done() }
 				}
