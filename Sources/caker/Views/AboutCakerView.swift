@@ -247,7 +247,7 @@ public struct AboutCakerView: View {
 	}
 
 	private func showLicenseInfo() {
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 		alert.messageText = NSLocalizedString(
 			"Caker License",
 			comment: "Title of the license information alert in the About window"
