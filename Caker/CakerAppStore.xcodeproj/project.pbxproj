@@ -50,6 +50,9 @@
 		9B1835ED2FB070D300D150FD /* LXDExecRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835EA2FB070D300D150FD /* LXDExecRunner.swift */; };
 		9B1835EE2FB070D300D150FD /* LXDExecSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835EB2FB070D300D150FD /* LXDExecSessionStore.swift */; };
 		9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */; };
+		9B1DFD913013A76200B67CE9 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9B1DFD903013A76200B67CE9 /* Gzip */; };
+		9B1DFD933013A79000B67CE9 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9B1DFD923013A79000B67CE9 /* Gzip */; };
+		9B1DFD953013A88F00B67CE9 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9B1DFD943013A88F00B67CE9 /* Gzip */; };
 		9B2033702F4A21400047E197 /* GrandCentralUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */; };
 		9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D6002E019FA400BEFB41 /* VMWare.swift */; };
 		9B20D6032E019FA400BEFB41 /* Importer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D5FE2E019FA400BEFB41 /* Importer.swift */; };
@@ -610,7 +613,6 @@
 		9BEBC7F52DF440BF0092B196 /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC7F42DF440BF0092B196 /* Logging */; };
 		9BEBC7F72DF440BF0092B196 /* Shout in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC7F62DF440BF0092B196 /* Shout */; };
 		9BEBC7F92DF440BF0092B196 /* NIOPortForwarding in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC7F82DF440BF0092B196 /* NIOPortForwarding */; };
-		9BEBC7FB2DF440BF0092B196 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC7FA2DF440BF0092B196 /* Gzip */; };
 		9BEBC7FF2DF440BF0092B196 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC7FE2DF440BF0092B196 /* ArgumentParser */; };
 		9BEBC8012DF440BF0092B196 /* Multipart in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8002DF440BF0092B196 /* Multipart */; };
 		9BEBC8032DF440BF0092B196 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8022DF440BF0092B196 /* CakeAgentLib */; };
@@ -647,7 +649,6 @@
 		9BEBC85E2DF44B9D0092B196 /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC85D2DF44B9D0092B196 /* Logging */; };
 		9BEBC8602DF44B9D0092B196 /* Shout in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC85F2DF44B9D0092B196 /* Shout */; };
 		9BEBC8622DF44B9D0092B196 /* NIOPortForwarding in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8612DF44B9D0092B196 /* NIOPortForwarding */; };
-		9BEBC8642DF44B9D0092B196 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8632DF44B9D0092B196 /* Gzip */; };
 		9BEBC8662DF44B9D0092B196 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8652DF44B9D0092B196 /* ArgumentParser */; };
 		9BEBC8682DF44B9D0092B196 /* Multipart in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8672DF44B9D0092B196 /* Multipart */; };
 		9BEBC86A2DF44B9D0092B196 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8692DF44B9D0092B196 /* CakeAgentLib */; };
@@ -1517,6 +1518,7 @@
 				9BF2DA902FE547C400218073 /* libVirtualInstallSPI.a in Frameworks */,
 				9B29F81B2FCAE4B700AEBCB8 /* Steps in Frameworks */,
 				9B29F81C2FCAE4B700AEBCB8 /* RoyalVNCKitStatic in Frameworks */,
+				9B1DFD953013A88F00B67CE9 /* Gzip in Frameworks */,
 				9B29F81D2FCAE4B700AEBCB8 /* libCakedLib.a in Frameworks */,
 				9B29F81E2FCAE4B700AEBCB8 /* CakeAgentLib in Frameworks */,
 				9B29F81F2FCAE4B700AEBCB8 /* libGRPCLib.a in Frameworks */,
@@ -1559,6 +1561,7 @@
 				9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */,
 				9B464C482D5A426200164BF5 /* Logging in Frameworks */,
 				9B464C902D5A492F00164BF5 /* X509 in Frameworks */,
+				9B1DFD913013A76200B67CE9 /* Gzip in Frameworks */,
 				9B464C892D5A48D900164BF5 /* NIOPortForwarding in Frameworks */,
 			);
 		};
@@ -1604,6 +1607,7 @@
 				9BEBC8242DF44B9C0092B196 /* Dynamic in Frameworks */,
 				9BEBC8682DF44B9D0092B196 /* Multipart in Frameworks */,
 				9BEBC8362DF44B9C0092B196 /* SwiftRadix in Frameworks */,
+				9B1DFD933013A79000B67CE9 /* Gzip in Frameworks */,
 				9BEBC85A2DF44B9D0092B196 /* NIOHTTP2 in Frameworks */,
 				9BEBC82E2DF44B9C0092B196 /* Atomics in Frameworks */,
 				9BEBC8302DF44B9C0092B196 /* SwiftFormat in Frameworks */,
@@ -1611,7 +1615,6 @@
 				9BEBC8602DF44B9D0092B196 /* Shout in Frameworks */,
 				9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */,
 				9BEBC85C2DF44B9D0092B196 /* SwiftProtobuf in Frameworks */,
-				9BEBC8642DF44B9D0092B196 /* Gzip in Frameworks */,
 				9BEBC8582DF44B9D0092B196 /* NIOWebSocket in Frameworks */,
 				9BEBC8622DF44B9D0092B196 /* NIOPortForwarding in Frameworks */,
 				9BEBC83A2DF44B9C0092B196 /* DMRetry in Frameworks */,
@@ -1645,7 +1648,6 @@
 			files = (
 				9BB149242EC876640094D950 /* Containerization in Frameworks */,
 				9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */,
-				9BEBC7FB2DF440BF0092B196 /* Gzip in Frameworks */,
 				9BEBC7BF2DF440BF0092B196 /* SwiftDate in Frameworks */,
 				9BEBC7D52DF440BF0092B196 /* Yams in Frameworks */,
 				9BEBC8042DF440BF0092B196 /* libGRPCLib.a in Frameworks */,
@@ -2940,6 +2942,7 @@
 				9B29F7A72FCAE4B700AEBCB8 /* FileMonitor */,
 				9B29F7A92FCAE4B700AEBCB8 /* RoyalVNCKitStatic */,
 				9B29F7AB2FCAE4B700AEBCB8 /* CakeAgentLib */,
+				9B1DFD943013A88F00B67CE9 /* Gzip */,
 			);
 			productName = Caker;
 			productReference = 9B29F8302FCAE4B700AEBCB8 /* Caker.app */;
@@ -2988,6 +2991,7 @@
 				9B28BFA32DDB25BD00B5A0AF /* ArgumentParser */,
 				9B13C3402F0AD8540099F00F /* CakeAgentLib */,
 				9B5F49C32F70280700AE1991 /* Subprocess */,
+				9B1DFD903013A76200B67CE9 /* Gzip */,
 			);
 			productName = cakectl;
 			productReference = 9B464B4F2D5A3E5C00164BF5 /* cakectl */;
@@ -3116,7 +3120,6 @@
 				9BEBC85D2DF44B9D0092B196 /* Logging */,
 				9BEBC85F2DF44B9D0092B196 /* Shout */,
 				9BEBC8612DF44B9D0092B196 /* NIOPortForwarding */,
-				9BEBC8632DF44B9D0092B196 /* Gzip */,
 				9BEBC8652DF44B9D0092B196 /* ArgumentParser */,
 				9BEBC8672DF44B9D0092B196 /* Multipart */,
 				9BEBC8692DF44B9D0092B196 /* CakeAgentLib */,
@@ -3124,6 +3127,7 @@
 				9B3566802F27E12D00C5E12F /* ZLib */,
 				9BC1F9972F6D469A00A83B33 /* Subprocess */,
 				9B602FA12FAA5C3800055543 /* Vapor */,
+				9B1DFD923013A79000B67CE9 /* Gzip */,
 			);
 			productName = caked;
 			productReference = 9BEBC68E2DF43FEE0092B196 /* caked */;
@@ -3178,7 +3182,6 @@
 				9BEBC7F42DF440BF0092B196 /* Logging */,
 				9BEBC7F62DF440BF0092B196 /* Shout */,
 				9BEBC7F82DF440BF0092B196 /* NIOPortForwarding */,
-				9BEBC7FA2DF440BF0092B196 /* Gzip */,
 				9BEBC7FE2DF440BF0092B196 /* ArgumentParser */,
 				9BEBC8002DF440BF0092B196 /* Multipart */,
 				9BEBC8022DF440BF0092B196 /* CakeAgentLib */,
@@ -4216,7 +4219,7 @@
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/swift",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = Caker;
@@ -4277,7 +4280,7 @@
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/swift",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = Caker;
@@ -4459,7 +4462,7 @@
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/swift",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				OTHER_CODE_SIGN_FLAGS = "-i $(PRODUCT_BUNDLE_IDENTIFIER)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -4499,7 +4502,7 @@
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/swift",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				OTHER_CODE_SIGN_FLAGS = "-i $(PRODUCT_BUNDLE_IDENTIFIER)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.cakectl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -4518,7 +4521,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				EXECUTABLE_PREFIX = lib;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -4533,7 +4536,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
 				EXECUTABLE_PREFIX = lib;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -4596,7 +4599,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.cakectl;
 				PRODUCT_NAME = cakectl;
@@ -4627,7 +4630,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.cakectl;
 				PRODUCT_NAME = cakectl;
@@ -4686,7 +4689,7 @@
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/swift",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				OTHER_CODE_SIGN_FLAGS = "$(inherited) -i $(PRODUCT_BUNDLE_IDENTIFIER)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -4726,7 +4729,7 @@
 					"$(inherited)",
 					"$(SDKROOT)/usr/lib/swift",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				OTHER_CODE_SIGN_FLAGS = "$(inherited) -i $(PRODUCT_BUNDLE_IDENTIFIER)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.caked;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -4743,7 +4746,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				EXECUTABLE_PREFIX = lib;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
@@ -4756,7 +4759,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				EXECUTABLE_PREFIX = lib;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
@@ -4773,7 +4776,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				EXECUTABLE_PREFIX = lib;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -4788,7 +4791,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				EXECUTABLE_PREFIX = lib;
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Sources/VirtualInstallSPI/include";
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -4813,7 +4816,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.caked;
 				PRODUCT_NAME = caked;
@@ -4845,7 +4848,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker.caked;
 				PRODUCT_NAME = caked;
@@ -4973,7 +4976,7 @@
 			repositoryURL = "https://github.com/Appracatappra/SwiftletUtilities.git";
 			requirement = {
 				kind = exactVersion;
-				version = 2.0.6;
+				version = 2.1.3;
 			};
 		};
 		9B35667D2F27DDE700C5E12F /* XCRemoteSwiftPackageReference "zlib" */ = {
@@ -5287,6 +5290,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */;
 			productName = CakeAgentLib;
+		};
+		9B1DFD903013A76200B67CE9 /* Gzip */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
+			productName = Gzip;
+		};
+		9B1DFD923013A79000B67CE9 /* Gzip */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
+			productName = Gzip;
+		};
+		9B1DFD943013A88F00B67CE9 /* Gzip */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
+			productName = Gzip;
 		};
 		9B21DFF92F4C651800870AD7 /* GRPC */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -5748,11 +5766,6 @@
 			package = 9B464BFB2D5A41E600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-portforwarding" */;
 			productName = NIOPortForwarding;
 		};
-		9BEBC7FA2DF440BF0092B196 /* Gzip */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
-			productName = Gzip;
-		};
 		9BEBC7FE2DF440BF0092B196 /* ArgumentParser */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
@@ -5927,11 +5940,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464BFB2D5A41E600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-portforwarding" */;
 			productName = NIOPortForwarding;
-		};
-		9BEBC8632DF44B9D0092B196 /* Gzip */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
-			productName = Gzip;
 		};
 		9BEBC8652DF44B9D0092B196 /* ArgumentParser */ = {
 			isa = XCSwiftPackageProductDependency;
