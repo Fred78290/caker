@@ -19,8 +19,8 @@ else
 	KEYCHAIN_OPTIONS=
 fi
 
-BUILDDIR="${PROJECT_ROOT}/.build/release"
-BINARYDIR="${PROJECT_ROOT}/.build/universal/release"
+BUILDDIR="${PROJECT_ROOT}/.release/release"
+BINARYDIR="${PROJECT_ROOT}/.release/universal/release"
 RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
 RELEASE=1
@@ -28,7 +28,7 @@ APPSTORE=0
 USE_SMAPPSERVICE=0
 
 sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
-#sudo rm -rf ""${PROJECT_ROOT}/.build"
+#sudo rm -rf ""${PROJECT_ROOT}/.debug"
 
 cleanup_swift_package_mirror() {
 	/usr/bin/swift package config unset-mirror --original https://github.com/apple/swift-argument-parser || true
@@ -43,13 +43,18 @@ jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
   .state.revision = "d554955e8c280aa4c4a05a039a968f0205656e77"
 )' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
 
-/usr/bin/swift build -c release --arch x86_64 --build-path "${PROJECT_ROOT}/.build/x86_64-apple-macosx" -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND -Xswiftc -D -Xswiftc USE_SMAPPSERVICE
-/usr/bin/swift build -c release --arch arm64 --build-path "${PROJECT_ROOT}/.build/arm64-apple-macosx" -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND -Xswiftc -D -Xswiftc USE_SMAPPSERVICE
+for ARCH in x86_64 arm64; do
+	/usr/bin/swift build -c release \
+		--arch ${ARCH} --build-path "${PROJECT_ROOT}/.release/${ARCH}-apple-macosx" \
+		-Xswiftc -D -Xswiftc SPARKLE \
+		-Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND \
+		-Xswiftc -D -Xswiftc USE_SMAPPSERVICE
+done	
 
 mkdir -p ${BINARYDIR}
 
 for FILE in Caker caked cakectl; do
-	lipo -create "${PROJECT_ROOT}/.build/x86_64-apple-macosx/release/${FILE}" "${PROJECT_ROOT}/.build/arm64-apple-macosx/release/${FILE}" -output "${BINARYDIR}/${FILE}"
+	lipo -create "${PROJECT_ROOT}/.release/x86_64-apple-macosx/release/${FILE}" "${PROJECT_ROOT}/.release/arm64-apple-macosx/release/${FILE}" -output "${BINARYDIR}/${FILE}"
 done
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"

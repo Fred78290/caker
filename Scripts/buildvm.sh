@@ -8,12 +8,6 @@ set -e
 CMD=caked
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PKGDIR="${PROJECT_ROOT}/dist/Caker.app"
-
-BUILDDIR="${PROJECT_ROOT}/.build/debug"
-BINARYDIR="${PROJECT_ROOT}/.build/debug"
-RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
-ASSETS="${BUILDDIR}/assets"
 
 if [ -z "${VMNAME}" ]; then
     VMNAME=linux
@@ -185,7 +179,7 @@ EOF
 fi
 
 COMMON_OPTIONS="--autostart --user admin --password admin --main-group=${MAINGROUP} --clear-password --display-refit --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=${HOME}/.ssh/id_rsa.pub --cloud-init=/tmp/user-data.yaml"
-#NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --bridged --network=shared --network=host --console=file"
+NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --bridged --network=shared --network=host --console=file"
 NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=host --bridged --console=file"
 MOUNT_OPTIONS="--mount=~/Projects --mount=~/Downloads"
 
@@ -195,12 +189,12 @@ else
   FORWARDS_OPTIONS="--dynamic-port-forwarding --publish 2222:22/tcp"
 fi
 
-${CMD} delete ${VMNAME}  
+"${CMD}" delete ${VMNAME}
 
 if [ -z "${CLOUD_IMAGE}" ]; then
     BUILD_OPTIONS="${COMMON_OPTIONS} ${NETWORKS_OPTIONS} ${FORWARDS_OPTIONS} ${MOUNT_OPTIONS} "
-    ${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE} 
+    "${CMD}" build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE} 
 else
     BUILD_OPTIONS="${COMMON_OPTIONS} ${NETWORKS_OPTIONS} ${MOUNT_OPTIONS}"
-    ${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
+    "${CMD}" build ${VMNAME} ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
 fi
