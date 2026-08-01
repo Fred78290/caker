@@ -44,7 +44,7 @@ const DEBIAN_CLOUD_BASE = 'https://cloud.debian.org/images/cloud'
 const OPENSUSE_CLOUD_BASE = 'https://download.opensuse.org/repositories/Cloud:/Images:/Leap'
 const ALPINE_CLOUD_BASE = 'https://dl-cdn.alpinelinux.org/alpine'
 const MACOS_1561_IPSW_URL = 'https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw'
-const MACOS_265_IPSW_URL = 'https://updates.cdn-apple.com/2026SpringFCS/fullrestores/122-58869/DFB1CEEF-5619-4591-9924-E20DB2C8FED0/UniversalMac_26.5_25F71_Restore.ipsw'
+const MACOS_266_IPSW_URL = 'https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-65618/10445B26-DE2C-43EC-9149-0A831602E74B/UniversalMac_26.6_25G72_Restore.ipsw'
 const MACOS_1461_IPSW_URL = 'https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw'
 const MACOS_136_IPSW_URL = 'https://updates.cdn-apple.com/2023FallFCS/fullrestores/042-55833/C0830847-A2F8-458F-B680-967991820931/UniversalMac_13.6_22G120_Restore.ipsw'
 
@@ -132,7 +132,7 @@ const buildMacosIpswSources = (lxdArch: string): { label: string; url: string }[
   if (!isArm64Server) return []
 
   return [
-    { label: 'macOS 26.5 – IPSW (Apple Silicon)', url: MACOS_265_IPSW_URL },
+    { label: 'macOS 26.6 – IPSW (Apple Silicon)', url: MACOS_266_IPSW_URL },
     { label: 'macOS 15.6.1 – IPSW (Apple Silicon)', url: MACOS_1561_IPSW_URL },
     { label: 'macOS 14.6.1 – IPSW (Apple Silicon)', url: MACOS_1461_IPSW_URL },
     { label: 'macOS 13.6 – IPSW (Apple Silicon)', url: MACOS_136_IPSW_URL },

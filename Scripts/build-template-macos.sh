@@ -1,30 +1,55 @@
 #!/bin/bash
 set -e
 
-pushd "$(dirname $0)/.." >/dev/null
-CURDIR="${PWD}"
-popd > /dev/null
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 export DISK_SIZE=100
-export MACOS_VERSION=sequoia
+export MACOS_VERSION=${1:-tahoe}
 export TART_HOME="${HOME}/.cake"
 export CAKE_HOME="${TART_HOME}"
-export CAKEAGENT_SNAPSHOT="SNAPSHOT-67fe8ab1"
+export CAKEAGENT_SNAPSHOT="SNAPSHOT-52d20477"
 export REGISTRY=devregistry.aldunelabs.com
-#IPSW=https://updates.cdn-apple.com/2025SpringFCS/fullrestores/082-16517/AACDDC33-9683-4431-98AF-F04EF7C15EE3/UniversalMac_15.4_24E248_Restore.ipsw
-export IPSW="${HOME}/Downloads/UniversalMac_15.4.1_24E263_Restore.ipsw"
 export RESOLVE_VM_NAME="macos-${MACOS_VERSION}-vanilla"
 export RESOLVE_FILE="${RESOLVE_VM_NAME}.txt"
 export PACKER_LOG="1"
 
 SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-packer init "${CURDIR}/templates/macos/vanilla-${MACOS_VERSION}.pkr.hcl"
+case ${MACOS_VERSION} in
+	sequoia)
+		IPSW="https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw"
+		;;
+	tahoe)
+		IPSW="https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-65618/10445B26-DE2C-43EC-9149-0A831602E74B/UniversalMac_26.6_25G72_Restore.ipsw"
+		;;
+	goldengate)
+		IPSW="https://updates.cdn-apple.com/2026SummerSeed/fullrestores/140-55718/5809AFC6-1923-4590-AAFC-904A0283E659/UniversalMac_27.0_26A5388g_Restore.ipsw"
+		;;
+	*)
+		echo "Unknown macOS version: ${MACOS_VERSION}"
+		exit 1
+		;;
+esac
+
+IPSW_FILE="~/Download/${IPSW##*/}"
+
+if [ -f "${IPSW_FILE}" ]; then
+	echo "Using existing IPSW file: ${IPSW_FILE}"
+else
+	echo "Downloading IPSW file: ${IPSW_FILE}"
+	curl -L -o "${IPSW_FILE}" "${IPSW}"
+fi
+
+packer init "${PROJECT_ROOT}/templates/macos/vanilla-${MACOS_VERSION}.pkr.hcl"
 packer build \
 		-var vm_name="${RESOLVE_VM_NAME}" \
-		-var from_ipsw="${IPSW}" \
+		-var from_ipsw="${IPSW_FILE}" \
 		-var disk_size="${DISK_SIZE}" \
-		"${CURDIR}/templates/macos/vanilla-${MACOS_VERSION}.pkr.hcl"
+		-var username="admin" \
+		-var password="admin" \
+		-var cakeagent_snapshot="${CAKEAGENT_SNAPSHOT}" \
+		"${PROJECT_ROOT}/templates/macos/vanilla-${MACOS_VERSION}.pkr.hcl"
 
 mkdir -p "${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}"
 
