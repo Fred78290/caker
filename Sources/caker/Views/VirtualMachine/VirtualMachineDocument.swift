@@ -263,7 +263,6 @@ extension UTType {
 	var canRequestStop: Bool = false
 	var suspendable: Bool = false
 	var vncURL: [URL]? = nil
-	var agent = AgentStatus.none
 	var agentReady: Bool = false
 	var connection: VNCConnection! = nil
 	var vncStatus: VncStatus = .disconnected
@@ -274,6 +273,19 @@ extension UTType {
 	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
 	var ipaddresses: [String] = []
 	var screenshot: Data!
+
+	var agent = AgentStatus.none {
+		didSet {
+			guard AppState.sharedLoaded else {
+				return
+			}
+
+			if AppState.shared.currentDocument == self {
+				AppState.shared.updateState()
+			}
+		}
+	}
+
 	var status: Status = .none {
 		didSet {
 			guard AppState.sharedLoaded else {
