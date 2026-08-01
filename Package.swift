@@ -29,7 +29,7 @@ let package = Package(
 		.package(url: "https://github.com/Fred78290/Shout.git", revision: "9bd074b3d0943e391021cf7a86360fd5f82268cc"),
 		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", revision: "3ea9aa595764f95e5dce4dcf64f6ff4a99b2035e"),
 		.package(url: "https://github.com/Fred78290/swift-argument-parser", revision: "d554955e8c280aa4c4a05a039a968f0205656e77"),
-		.package(url :"https://github.com/Fred78290/SwiftTerm.git", revision: "21069a3cada82e6cd15c94868bd88b0a3b4402e3"),
+		.package(url :"https://github.com/Fred78290/SwiftTerm.git", revision: "f153512964bc92b278d1d422d6f317cdeee8a3e3"),
 		.package(url: "https://github.com/Fred78290/iso9660-swift", revision: "d30ba88cb63a0858d7aa470f10b33cf01a60461b"),
 
 		.package(url: "https://github.com/antlr/antlr4", exact: "4.13.2"),

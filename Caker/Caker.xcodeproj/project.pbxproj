@@ -5110,7 +5110,7 @@
 			repositoryURL = "https://github.com/Fred78290/SwiftTerm";
 			requirement = {
 				kind = revision;
-				revision = 21069a3cada82e6cd15c94868bd88b0a3b4402e3;
+				revision = f153512964bc92b278d1d422d6f317cdeee8a3e3;
 			};
 		};
 		9B96F1462FC5D70B00C25306 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
