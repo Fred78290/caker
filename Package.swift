@@ -10,7 +10,7 @@ let isAppStoreBuild = ProcessInfo.processInfo.environment["APPSTORE"] == "1"
 let package = Package(
 	name: "Caker",
 	platforms: [
-		.macOS(.v26)
+		.macOS(.v15)
 	],
 	products: [
 		.executable(name: "caked", targets: ["caked"]),
@@ -46,6 +46,7 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-nio.git", exact: "2.99.0"),
 		.package(url: "https://github.com/apple/swift-protobuf.git", exact: "1.35.0"),
 		.package(url: "https://github.com/Appracatappra/SwiftletUtilities.git", exact: "2.0.6"),
+		.package(url: "https://github.com/Appracatappra/LogManager.git", exact: "2.0.4"),
 		.package(url: "https://github.com/asam139/Steps.git", exact: "0.3.9"),
 		.package(url: "https://github.com/cfilipov/TextTable", branch: "master"),
 		.package(url: "https://github.com/fumoboy007/swift-retry", exact: "0.2.4"),
@@ -169,6 +170,7 @@ let package = Package(
 			.product(name: "FileMonitor", package: "FileMonitor"),
 			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
 			.product(name: "SwiftletUtilities", package: "SwiftletUtilities"),
+			.product(name: "LogManager", package: "LogManager"),
 		] + (isAppStoreBuild ? [] : [
 			.product(name: "Sparkle", package: "Sparkle"),
 		]),
