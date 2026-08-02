@@ -19,10 +19,10 @@ enum PackerLiteDriverError: Error, LocalizedError {
 
 	var errorDescription: String? {
 		switch self {
-			case .stepFailed(let index, let step, let underlying):
-				return "boot_command step \(index) (\(step)) failed: \(underlying.localizedDescription)"
-			case .textNotFound(let label):
-				return "Could not locate on-screen text '\(label)' to click"
+		case .stepFailed(let index, let step, let underlying):
+			return "boot_command step \(index) (\(step)) failed: \(underlying.localizedDescription)"
+		case .textNotFound(let label):
+			return "Could not locate on-screen text '\(label)' to click"
 		}
 	}
 }
@@ -55,48 +55,46 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 	private func execute(_ step: BootCommandStep) async throws {
 		switch step {
-			case .wait(let seconds):
-				logger.debug("wait \(seconds)s")
-				try await Task.sleep(nanoseconds: UInt64(max(seconds, 0) * 1_000_000_000))
-
-			case .type(let text):
-				logger.debug("type \(text)")
-				try await type(text)
-
-			case .press(let key):
-				logger.debug("press \(key)")
-				try await press(keysym(for: key))
-
-			case .modifierOn(let modifier):
-				logger.debug("modifierOn \(modifier)")
-				inputHandler.handleKeyEvent(key: keysym(for: modifier), isDown: true)
-				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
-
-			case .modifierOff(let modifier):
-				logger.debug("modifierOff \(modifier)")
-				inputHandler.handleKeyEvent(key: keysym(for: modifier), isDown: false)
-				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
-
-			case .click(let x, let y):
-				logger.debug("click \(x),\(y)")
-				click(x: x, y: y)
-				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
-
-			case .clickText(let label):
-				logger.debug("clickText '\(label)'")
-				try await clickText(label)
+		case .wait(let seconds):
+			logger.debug("wait \(seconds)s")
+			try await Task.sleep(nanoseconds: UInt64(max(seconds, 0) * 1_000_000_000))
+		case .type(let text):
+			logger.debug("type \(text)")
+			try await type(text)
+		case .press(let key):
+			logger.debug("press \(key)")
+			try await press(keysym(for: key))
+		case .modifierOn(let modifier):
+			logger.debug("modifierOn \(modifier)")
+			await self.handleKeyEvent(key: keysym(for: modifier), isDown: true)
+			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+		case .modifierOff(let modifier):
+			logger.debug("modifierOff \(modifier)")
+			await self.handleKeyEvent(key: keysym(for: modifier), isDown: false)
+			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+		case .click(let x, let y):
+			logger.debug("click \(x),\(y)")
+			await click(x: x, y: y)
+			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+		case .clickText(let label):
+			logger.debug("clickText '\(label)'")
+			try await clickText(label)
 		}
 	}
 
 	// MARK: - Keyboard
 
-	private func type(_ text: String) async throws {
+	@MainActor private func type(_ text: String) async throws {
 		for scalar in text.unicodeScalars {
 			try await press(scalar.value)
 		}
 	}
 
-	private func press(_ keysym: UInt32) async throws {
+	@MainActor private func handleKeyEvent(key: UInt32, isDown: Bool) {
+		inputHandler.handleKeyEvent(key: key, isDown: true)
+	}
+
+	@MainActor private func press(_ keysym: UInt32) async throws {
 		inputHandler.handleKeyEvent(key: keysym, isDown: true)
 		inputHandler.handleKeyEvent(key: keysym, isDown: false)
 		try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
@@ -104,46 +102,46 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 	private func keysym(for key: KeyToken) -> UInt32 {
 		switch key {
-			case .enter: return Keysyms.XK_Return
-			case .esc: return Keysyms.XK_Escape
-			case .tab: return Keysyms.XK_Tab
-			case .spacebar: return Keysyms.XK_space
-			case .backspace: return Keysyms.XK_BackSpace
-			case .delete: return Keysyms.XK_Delete
-			case .insert: return Keysyms.XK_Insert
-			case .home: return Keysyms.XK_Home
-			case .end: return Keysyms.XK_End
-			case .pageUp: return Keysyms.XK_Page_Up
-			case .pageDown: return Keysyms.XK_Page_Down
-			case .up: return Keysyms.XK_Up
-			case .down: return Keysyms.XK_Down
-			case .left: return Keysyms.XK_Left
-			case .right: return Keysyms.XK_Right
-			case .function(let number): return Keysyms.XK_F1 + UInt32(max(1, min(12, number)) - 1)
+		case .enter: return Keysyms.XK_Return
+		case .esc: return Keysyms.XK_Escape
+		case .tab: return Keysyms.XK_Tab
+		case .spacebar: return Keysyms.XK_space
+		case .backspace: return Keysyms.XK_BackSpace
+		case .delete: return Keysyms.XK_Delete
+		case .insert: return Keysyms.XK_Insert
+		case .home: return Keysyms.XK_Home
+		case .end: return Keysyms.XK_End
+		case .pageUp: return Keysyms.XK_Page_Up
+		case .pageDown: return Keysyms.XK_Page_Down
+		case .up: return Keysyms.XK_Up
+		case .down: return Keysyms.XK_Down
+		case .left: return Keysyms.XK_Left
+		case .right: return Keysyms.XK_Right
+		case .function(let number): return Keysyms.XK_F1 + UInt32(max(1, min(12, number)) - 1)
 		}
 	}
 
 	private func keysym(for modifier: ModifierToken) -> UInt32 {
 		switch modifier {
-			case .leftShift: return Keysyms.XK_Shift_L
-			case .rightShift: return Keysyms.XK_Shift_R
-			case .leftAlt: return Keysyms.XK_Alt_L
-			case .rightAlt: return Keysyms.XK_Alt_R
-			case .leftCtrl: return Keysyms.XK_Control_L
-			case .rightCtrl: return Keysyms.XK_Control_R
-			case .leftSuper: return Keysyms.XK_Super_L
-			case .rightSuper: return Keysyms.XK_Super_R
+		case .leftShift: return Keysyms.XK_Shift_L
+		case .rightShift: return Keysyms.XK_Shift_R
+		case .leftAlt: return Keysyms.XK_Alt_L
+		case .rightAlt: return Keysyms.XK_Alt_R
+		case .leftCtrl: return Keysyms.XK_Control_L
+		case .rightCtrl: return Keysyms.XK_Control_R
+		case .leftSuper: return Keysyms.XK_Super_L
+		case .rightSuper: return Keysyms.XK_Super_R
 		}
 	}
 
 	// MARK: - Mouse
 
-	private func click(x: Int, y: Int) {
+	@MainActor private func click(x: Int, y: Int) {
 		inputHandler.handlePointerEvent(x: x, y: y, buttonMask: 0x01)
 		inputHandler.handlePointerEvent(x: x, y: y, buttonMask: 0x00)
 	}
 
-	private func clickText(_ label: String) async throws {
+	@MainActor private func clickText(_ label: String) async throws {
 		let deadline = Date().addingTimeInterval(Self.clickTextTimeout)
 
 		while true {
@@ -163,7 +161,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 	/// Locates `label` in the view's current frame via Vision OCR and returns its center,
 	/// converted into the top-left-origin pixel space `VNCInputHandler.handlePointerEvent` expects.
-	private func locate(text label: String) throws -> (x: Int, y: Int)? {
+	@MainActor private func locate(text label: String) throws -> (x: Int, y: Int)? {
 		guard
 			let image = targetView.image(),
 			let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil)
