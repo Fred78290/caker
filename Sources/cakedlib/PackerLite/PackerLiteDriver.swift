@@ -91,7 +91,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 	}
 
 	@MainActor private func handleKeyEvent(key: UInt32, isDown: Bool) {
-		inputHandler.handleKeyEvent(key: key, isDown: true)
+		inputHandler.handleKeyEvent(key: key, isDown: isDown)
 	}
 
 	@MainActor private func press(_ keysym: UInt32) async throws {
