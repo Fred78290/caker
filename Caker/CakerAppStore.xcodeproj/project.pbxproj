@@ -5273,7 +5273,7 @@
 			repositoryURL = "https://github.com/Fred78290/swift-nio-portforwarding.git";
 			requirement = {
 				kind = revision;
-				revision = 3ea9aa595764f95e5dce4dcf64f6ff4a99b2035e;
+				revision = 515b2f06fe60b81825a137a9d37b899e48ebd377;
 			};
 		};
 		9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */ = {
@@ -5353,7 +5353,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
 			requirement = {
 				kind = revision;
-				revision = 2e14500c717ed4e9ff09918677bdbf5feda53c75;
+				revision = 515b2f06fe60b81825a137a9d37b899e48ebd377;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
