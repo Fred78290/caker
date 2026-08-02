@@ -600,6 +600,18 @@ extension Caked_CommonBuildRequest {
 		if let root = buildOptions.root {
 			self.rootDisk = root
 		}
+
+		if let provisionTemplate = buildOptions.provisionTemplate {
+			self.provisionTemplate = try Data(contentsOf: URL(filePath: provisionTemplate.expandingTildeInPath))
+		}
+
+		if buildOptions.provisionVars.isEmpty == false {
+			self.provisionVars = buildOptions.provisionVars.joined(separator: String.grpcSeparator)
+		}
+
+		if let macosVersion = buildOptions.macosVersion {
+			self.macosVersion = macosVersion.rawValue
+		}
 	}
 }
 

@@ -42,11 +42,21 @@ struct AsyncButton<Label: View>: View {
 					}
 				}
 
-				Task {
-					return try await action {
-						isDisabled = false
-						showProgressView = false
-						progressViewTask?.cancel()
+				Task.detached {
+					do {
+						return try await action {
+							isDisabled = false
+							showProgressView = false
+							progressViewTask?.cancel()
+						}
+					} catch {
+						await MainActor.run {
+							isDisabled = false
+							showProgressView = false
+							progressViewTask?.cancel()
+
+							alertError(error)
+						}
 					}
 				}
 			},

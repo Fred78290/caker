@@ -486,6 +486,9 @@ message Caked {
       optional bool                     bridgedNetwork        = 30;
       optional string                   rootDisk              = 31;
       optional Configuration.DiskFormat diskFormat            = 32;
+      optional bytes                    provisionTemplate     = 33;
+      optional string                   provisionVars         = 34;
+      optional string                   macosVersion          = 35;
     }
 
     message BuildRequest {

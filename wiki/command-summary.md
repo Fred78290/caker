@@ -120,6 +120,63 @@ Les journaux de restauration sont écrits dans `~/Library/Application Support/Ca
 - **Apple Silicon uniquement** — le SPI AMRestore n'existe pas sur les Mac Intel.
 - Nécessite macOS 26 ou ultérieur sur l'**hôte**.
 
+<a name="packerlite-fr"></a>
+### PackerLite : provisioning automatisé du Setup Assistant
+
+Pour tout `build` depuis un `.ipsw`, une fois l'installation terminée, `caked` démarre la VM sans interface graphique et pilote automatiquement le Setup Assistant macOS (création du compte, activation du partage d'écran/Remote Login, désactivation de Gatekeeper, etc.) via une commande **PackerLite** — un mini-moteur intégré inspiré de Packer (`boot_command`) et de son plugin `packer-plugin-tart`, mais sans dépendre d'aucun binaire ou plugin externe. La VM est éteinte proprement une fois le provisioning terminé.
+
+Le template à utiliser est résolu dans cet ordre :
+
+1. **`--template <chemin>`** — chemin explicite vers un fichier YAML personnalisé ; prioritaire sur tout le reste.
+2. **Détection automatique** de la version macOS à partir du nom de fichier de l'IPSW (convention Apple `UniversalMac_<version>_<build>_Restore.ipsw`), puis chargement du template intégré correspondant.
+3. **`--macos-version <version>`** — si la détection échoue, utilise la version indiquée explicitement (`monterey`, `ventura`, `sonoma`, `sequoia`, `tahoe` ou `goldengate`) pour choisir le template intégré.
+4. Si aucune des trois options précédentes n'aboutit, le build **échoue** avec un message indiquant comment le résoudre (`--macos-version` ou `--template`).
+
+```bash
+# Version macOS détectée automatiquement depuis le nom du fichier IPSW
+cakectl build my-vm https://updates.cdn-apple.com/.../UniversalMac_26.6_25G72_Restore.ipsw
+
+# Nom de fichier non standard : la version doit être précisée
+cakectl build my-vm ./restore.ipsw --macos-version tahoe
+
+# Template personnalisé, ignore toute détection
+cakectl build my-vm ./restore.ipsw --template ./mon-template.packerlite.yaml
+
+# Variables de template supplémentaires (répétable)
+cakectl build my-vm ./restore.ipsw --var greeting=hello
+```
+
+| Option | Description |
+| --- | --- |
+| `--template <chemin>` | Template YAML PackerLite personnalisé ; contourne la détection automatique. |
+| `--macos-version <monterey\|ventura\|sonoma\|sequoia\|tahoe\|goldengate>` | Version macOS à utiliser pour choisir le template intégré quand elle ne peut pas être déduite du nom de fichier IPSW. |
+| `--var <clé=valeur>` | Définit une variable de template (`${var.clé}`), répétable. |
+
+**Identifiants du compte** : le compte créé par le Setup Assistant utilise toujours `--user`/`--password` (ou l'équivalent dans l'UI) — jamais une valeur propre au template. À l'intérieur d'un template, ces valeurs sont accessibles via `${var.username}` / `${var.password}`.
+
+**Templates intégrés** : cinq templates sont fournis en ressources embarquées (`Sources/cakedlib/PackerLite/Resources/`) : `monterey` (macOS 12.x), `ventura` (macOS 13.x), `sonoma` (macOS 14.x), `sequoia` (macOS 15.x, transcrit depuis `templates/macos/vanilla-sequoia.pkr.hcl`) et `tahoe` (macOS 26.x, transcrit depuis `vanilla-tahoe.pkr.hcl`). `goldengate` (macOS 27.x) est une version reconnue (détection automatique et `--macos-version` fonctionnent) mais sans template intégré pour l'instant — fournissez le vôtre avec `--template` pour cette version.
+
+**Format du template** — un YAML minimal avec une liste `boot_command` reprenant le vocabulaire de tokens de Packer (`<wait10s>`, `<enter>`, `<tab>`, `<leftShiftOn>`/`<leftShiftOff>`, `<f5>`, `<click 'Texte affiché'>` — repéré par OCR via Vision —, etc.), plus `variables:`, `create_grace_time` et `boot_timeout`. `${var.username}`/`${var.password}` sont toujours injectées par `caked` (voir ci-dessus) ; les autres `${var.*}` viennent de `variables:` ou d'un `--var` correspondant.
+
+```yaml
+# mon-template.packerlite.yaml — extrait illustratif
+create_grace_time: 30s   # délai après le démarrage avant la première frappe
+boot_timeout: 45m        # échec si le provisioning n'est pas terminé dans ce délai
+
+variables:
+  greeting: hello         # valeur par défaut, surchageable via --var greeting=...
+
+boot_command:
+  - "<wait60s><spacebar>"
+  - "<wait30s>italiano<esc>english<enter>"
+  - "<wait30s><click 'Select Your Country or Region'><wait5s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
+  - "<wait10s>${var.username}<tab>${var.password}<tab>${var.password}<tab><tab><spacebar>"
+  - "<wait10s>sudo spctl --global-disable<enter>"
+  - "<wait10s>${var.password}<enter>"
+```
+
+Voir `templates/macos/*.packerlite.yaml` (source des templates intégrés) pour des exemples complets et entièrement commentés.
+
 ## Notes
 
 - Certaines commandes sont internes ou masquées dans la sortie d'aide de `caked` (`vmrun`, certaines sous-commandes `networks`).
@@ -465,6 +522,63 @@ Restore logs are written to `~/Library/Application Support/Caker/VirtualInstall/
 
 - **Apple Silicon only** — AMRestore SPI does not exist on Intel Macs.
 - Requires macOS 26 or later on the **host**.
+
+<a name="packerlite"></a>
+### PackerLite: unattended Setup Assistant provisioning
+
+For every `build` from an `.ipsw`, once installation finishes, `caked` boots the VM headlessly and automatically drives macOS's Setup Assistant (account creation, enabling Screen Sharing/Remote Login, disabling Gatekeeper, etc.) via **PackerLite** — a small built-in engine inspired by Packer's `boot_command` and its `packer-plugin-tart` plugin, with no external binary or plugin required. The VM is shut down cleanly once provisioning completes.
+
+The template to use is resolved in this order:
+
+1. **`--template <path>`** — an explicit path to a custom YAML template; wins over everything else.
+2. **Automatic detection** of the macOS version from the IPSW's filename (Apple's `UniversalMac_<version>_<build>_Restore.ipsw` convention), loading the matching built-in template.
+3. **`--macos-version <version>`** — if detection fails, uses the explicitly given version (`monterey`, `ventura`, `sonoma`, `sequoia`, `tahoe`, or `goldengate`) to pick the built-in template.
+4. If none of the above resolve, the build **fails** with a message explaining how to fix it (`--macos-version` or `--template`).
+
+```bash
+# macOS version auto-detected from the IPSW filename
+cakectl build my-vm https://updates.cdn-apple.com/.../UniversalMac_26.6_25G72_Restore.ipsw
+
+# Non-standard filename: version must be given explicitly
+cakectl build my-vm ./restore.ipsw --macos-version tahoe
+
+# Custom template, bypasses auto-detection entirely
+cakectl build my-vm ./restore.ipsw --template ./my-template.packerlite.yaml
+
+# Extra template variables (repeatable)
+cakectl build my-vm ./restore.ipsw --var greeting=hello
+```
+
+| Option | Description |
+| --- | --- |
+| `--template <path>` | Custom PackerLite YAML template; bypasses auto-detection. |
+| `--macos-version <monterey\|ventura\|sonoma\|sequoia\|tahoe\|goldengate>` | macOS version to use for picking the built-in template when it can't be inferred from the IPSW filename. |
+| `--var <key=value>` | Sets a template variable (`${var.key}`), repeatable. |
+
+**Account credentials**: the account Setup Assistant creates always uses `--user`/`--password` (or the UI equivalent) — never a template-declared value. Inside a template, these are available as `${var.username}` / `${var.password}`.
+
+**Built-in templates**: five templates ship as embedded resources (`Sources/cakedlib/PackerLite/Resources/`): `monterey` (macOS 12.x), `ventura` (macOS 13.x), `sonoma` (macOS 14.x), `sequoia` (macOS 15.x, transcribed from `templates/macos/vanilla-sequoia.pkr.hcl`), and `tahoe` (macOS 26.x, transcribed from `vanilla-tahoe.pkr.hcl`). `goldengate` (macOS 27.x) is a recognized version (auto-detection and `--macos-version` both work) with no built-in template yet — provide your own with `--template` for that version.
+
+**Template format** — a minimal YAML file with a `boot_command` list using Packer's token vocabulary (`<wait10s>`, `<enter>`, `<tab>`, `<leftShiftOn>`/`<leftShiftOff>`, `<f5>`, `<click 'On-screen text'>` — located via Vision OCR —, etc.), plus `variables:`, `create_grace_time`, and `boot_timeout`. `${var.username}`/`${var.password}` are always injected by `caked` (see above); any other `${var.*}` comes from `variables:` or a matching `--var`.
+
+```yaml
+# my-template.packerlite.yaml — illustrative excerpt
+create_grace_time: 30s   # delay after boot before the first keystroke
+boot_timeout: 45m        # fail if provisioning isn't done within this long
+
+variables:
+  greeting: hello         # default value, overridable via --var greeting=...
+
+boot_command:
+  - "<wait60s><spacebar>"
+  - "<wait30s>italiano<esc>english<enter>"
+  - "<wait30s><click 'Select Your Country or Region'><wait5s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
+  - "<wait10s>${var.username}<tab>${var.password}<tab>${var.password}<tab><tab><spacebar>"
+  - "<wait10s>sudo spctl --global-disable<enter>"
+  - "<wait10s>${var.password}<enter>"
+```
+
+See `templates/macos/*.packerlite.yaml` (source of the built-in templates) for full, fully-commented examples.
 
 ## Notes
 

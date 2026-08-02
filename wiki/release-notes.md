@@ -4,6 +4,16 @@
 
 # Notes de version
 
+## 2026-08-01
+
+### Ajouté
+- **PackerLite** : après toute installation depuis un `.ipsw`, `caked` pilote désormais automatiquement le Setup Assistant macOS de façon totalement non interactive — plus besoin de cliquer manuellement dans la VM ni de dépendre du binaire `packer` externe et du plugin `packer-plugin-tart`. Le template à utiliser est résolu dans l'ordre : `--template` explicite → détection automatique de la version macOS depuis le nom du fichier IPSW → `--macos-version` (`monterey`, `ventura`, `sonoma`, `sequoia`, `tahoe`, `goldengate`) explicite → échec avec message d'erreur explicite si rien ne correspond. Cinq templates intégrés sont fournis (`monterey`, `ventura`, `sonoma`, `sequoia`, `tahoe`) ; voir la section [PackerLite](command-summary#packerlite-fr) du résumé des commandes.
+- Nouvelles options `build`/`create`/`launch` : `--template <chemin>`, `--macos-version <version>`, `--var <clé=valeur>`.
+
+### Notes
+- Le compte créé par le Setup Assistant utilise toujours les identifiants `--user`/`--password` du build — jamais une valeur déclarée dans le template — afin de garder une source de vérité unique.
+- Aucun template intégré n'existe encore pour `goldengate` (macOS 27) ; fournissez le vôtre avec `--template` pour cette version.
+
 ## 2026-06-20 (Résumé du log Git - main)
 
 ### Ajouté
@@ -195,6 +205,16 @@ Copiez/collez ce bloc pour la prochaine mise à jour :
 <div class="lang-en" style="display:block" markdown="1">
 
 # Release Notes
+
+## 2026-08-01
+
+### Added
+- **PackerLite**: after any `.ipsw`-based build, `caked` now automatically drives macOS's Setup Assistant completely unattended — no more manually clicking through the VM, and no dependency on the external `packer` binary or the `packer-plugin-tart` plugin. The template to use is resolved in order: an explicit `--template` → macOS version auto-detected from the IPSW filename → an explicit `--macos-version` (`monterey`, `ventura`, `sonoma`, `sequoia`, `tahoe`, `goldengate`) → failure with a clear error message if nothing matches. Five built-in templates ship out of the box (`monterey`, `ventura`, `sonoma`, `sequoia`, `tahoe`); see the [PackerLite](command-summary#packerlite) section of the command summary.
+- New `build`/`create`/`launch` options: `--template <path>`, `--macos-version <version>`, `--var <key=value>`.
+
+### Notes
+- The account Setup Assistant creates always uses the build's `--user`/`--password` credentials — never a template-declared value — keeping a single source of truth.
+- There is no built-in template yet for `goldengate` (macOS 27); provide your own with `--template` for that version.
 
 ## 2026-06-20 (Git log summary - main)
 

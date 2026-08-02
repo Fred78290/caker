@@ -154,7 +154,14 @@ let package = Package(
 			"VMNet/generate.sh",
 			"VMNet/vmnet.proto",
 			"VNCLib/README.md",
-			"VNCLib/VNCAuthExample.swift"
+			"VNCLib/VNCAuthExample.swift",
+		],
+		resources: [
+			.copy("PackerLite/Resources/vanilla-monterey.packerlite.yaml"),
+			.copy("PackerLite/Resources/vanilla-ventura.packerlite.yaml"),
+			.copy("PackerLite/Resources/vanilla-sonoma.packerlite.yaml"),
+			.copy("PackerLite/Resources/vanilla-sequoia.packerlite.yaml"),
+			.copy("PackerLite/Resources/vanilla-tahoe.packerlite.yaml"),
 		]),
 		.executableTarget(name: "caker", dependencies: [
 			.target(name: "GRPCLib"),

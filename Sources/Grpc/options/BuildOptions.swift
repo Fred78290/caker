@@ -3,6 +3,24 @@ import Foundation
 import NIOPortForwarding
 import CakeAgentLib
 
+/// macOS version accepted by `--macos-version`, used to pick a built-in PackerLite provisioning
+/// template when it can't be inferred from the IPSW filename. GRPCLib can't depend on CakedLib
+/// (CakedLib depends on GRPCLib), so this mirrors — by raw value — the `MacOSVersion` enum that
+/// actually owns the provisioning logic in `Sources/cakedlib/PackerLite/MacOSVersion.swift`. Keep
+/// the raw values in sync between the two.
+public enum MacOSVersion: String, CaseIterable, ExpressibleByArgument, Sendable {
+	case monterey
+	case ventura
+	case sonoma
+	case sequoia
+	case tahoe
+	case goldengate
+
+	public init?(argument: String) {
+		self.init(rawValue: argument.lowercased())
+	}
+}
+
 public struct BuildOptions: ParsableArguments {
 	public static let build = CommandConfiguration(commandName: "build", abstract: String(localized: "Create a linux VM and initialize it with cloud-init"), aliases: ["create"])
 
@@ -105,6 +123,15 @@ public struct BuildOptions: ParsableArguments {
 
 	@Option(help: ArgumentHelp(String(localized: "Root disk"), discussion: String(localized: "This option allows specifying an external root disk path for the VM."), visibility: .hidden))
 	public var root: String? = nil
+
+	@Option(name: [.customLong("template")], help: ArgumentHelp(String(localized: "Provisioning template (YAML) to auto-configure a macOS VM's Setup Assistant after installing from IPSW"), valueName: "path"))
+	public var provisionTemplate: String?
+
+	@Option(name: [.customLong("var")], help: ArgumentHelp(String(localized: "Set a provisioning template variable (key=value), may be repeated"), valueName: "key=value"))
+	public var provisionVars: [String] = []
+
+	@Option(name: [.customLong("macos-version")], help: ArgumentHelp(String(localized: "macOS version of the IPSW, used to select the built-in provisioning template when it can't be determined from the IPSW filename"), discussion: String(localized: "One of: \(MacOSVersion.allCases.map(\.rawValue).joined(separator: ", "))"), valueName: "version"))
+	public var macosVersion: MacOSVersion?
 
 	public init() {
 	}
@@ -367,6 +394,24 @@ public struct BuildOptions: ParsableArguments {
 		} else {
 			self.root = nil
 		}
+
+		if request.hasProvisionTemplate, request.provisionTemplate.isEmpty == false {
+			self.provisionTemplate = try Utils.saveToTempFile(request.provisionTemplate)
+		} else {
+			self.provisionTemplate = nil
+		}
+
+		if request.hasProvisionVars, request.provisionVars.isEmpty == false {
+			self.provisionVars = request.provisionVars.components(separatedBy: String.grpcSeparator)
+		} else {
+			self.provisionVars = []
+		}
+
+		if request.hasMacosVersion, request.macosVersion.isEmpty == false {
+			self.macosVersion = MacOSVersion(rawValue: request.macosVersion)
+		} else {
+			self.macosVersion = nil
+		}
 	}
 
 	mutating public func validate(remote: Bool) throws {
@@ -483,6 +528,18 @@ public struct BuildOptions: ParsableArguments {
 }
 
 extension BuildOptions {
+	/// Parses `--var key=value` entries into a dictionary for `PackerLiteTemplate` variable overrides.
+	public var provisionVarsDict: [String: String] {
+		Dictionary(uniqueKeysWithValues: provisionVars.compactMap { entry -> (String, String)? in
+			guard let separatorIndex = entry.firstIndex(of: "=") else { return nil }
+
+			let key = String(entry[..<separatorIndex])
+			let value = String(entry[entry.index(after: separatorIndex)...])
+
+			return (key, value)
+		})
+	}
+
 	public var allNetworks: [BridgeAttachement] {
 		guard self.bridgedNetwork else { return self.networks }
 		

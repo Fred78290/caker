@@ -1685,6 +1685,33 @@ public nonisolated struct Caked_Caked: Sendable {
       /// Clears the value of `diskFormat`. Subsequent reads from it will return its default value.
       public mutating func clearDiskFormat() {_uniqueStorage()._diskFormat = nil}
 
+      public var provisionTemplate: Data {
+        get {_storage._provisionTemplate ?? Data()}
+        set {_uniqueStorage()._provisionTemplate = newValue}
+      }
+      /// Returns true if `provisionTemplate` has been explicitly set.
+      public var hasProvisionTemplate: Bool {_storage._provisionTemplate != nil}
+      /// Clears the value of `provisionTemplate`. Subsequent reads from it will return its default value.
+      public mutating func clearProvisionTemplate() {_uniqueStorage()._provisionTemplate = nil}
+
+      public var provisionVars: String {
+        get {_storage._provisionVars ?? String()}
+        set {_uniqueStorage()._provisionVars = newValue}
+      }
+      /// Returns true if `provisionVars` has been explicitly set.
+      public var hasProvisionVars: Bool {_storage._provisionVars != nil}
+      /// Clears the value of `provisionVars`. Subsequent reads from it will return its default value.
+      public mutating func clearProvisionVars() {_uniqueStorage()._provisionVars = nil}
+
+      public var macosVersion: String {
+        get {_storage._macosVersion ?? String()}
+        set {_uniqueStorage()._macosVersion = newValue}
+      }
+      /// Returns true if `macosVersion` has been explicitly set.
+      public var hasMacosVersion: Bool {_storage._macosVersion != nil}
+      /// Clears the value of `macosVersion`. Subsequent reads from it will return its default value.
+      public mutating func clearMacosVersion() {_uniqueStorage()._macosVersion = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -8373,7 +8400,7 @@ nonisolated extension Caked_Caked.VMRequest: SwiftProtobuf.Message, SwiftProtobu
 
 nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".CommonBuildRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0\u{1}otherGroups\0\u{1}imageSource\0\u{1}autoinstall\0\u{1}bridgedNetwork\0\u{1}rootDisk\0\u{1}diskFormat\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0\u{1}otherGroups\0\u{1}imageSource\0\u{1}autoinstall\0\u{1}bridgedNetwork\0\u{1}rootDisk\0\u{1}diskFormat\0\u{1}provisionTemplate\0\u{1}provisionVars\0\u{1}macosVersion\0")
 
   fileprivate class _StorageClass {
     var _name: String = String()
@@ -8408,6 +8435,9 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
     var _bridgedNetwork: Bool? = nil
     var _rootDisk: String? = nil
     var _diskFormat: Caked_Caked.Configuration.DiskFormat? = nil
+    var _provisionTemplate: Data? = nil
+    var _provisionVars: String? = nil
+    var _macosVersion: String? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -8450,6 +8480,9 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
       _bridgedNetwork = source._bridgedNetwork
       _rootDisk = source._rootDisk
       _diskFormat = source._diskFormat
+      _provisionTemplate = source._provisionTemplate
+      _provisionVars = source._provisionVars
+      _macosVersion = source._macosVersion
     }
   }
 
@@ -8500,6 +8533,9 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
         case 30: try { try decoder.decodeSingularBoolField(value: &_storage._bridgedNetwork) }()
         case 31: try { try decoder.decodeSingularStringField(value: &_storage._rootDisk) }()
         case 32: try { try decoder.decodeSingularEnumField(value: &_storage._diskFormat) }()
+        case 33: try { try decoder.decodeSingularBytesField(value: &_storage._provisionTemplate) }()
+        case 34: try { try decoder.decodeSingularStringField(value: &_storage._provisionVars) }()
+        case 35: try { try decoder.decodeSingularStringField(value: &_storage._macosVersion) }()
         default: break
         }
       }
@@ -8608,6 +8644,15 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
       try { if let v = _storage._diskFormat {
         try visitor.visitSingularEnumField(value: v, fieldNumber: 32)
       } }()
+      try { if let v = _storage._provisionTemplate {
+        try visitor.visitSingularBytesField(value: v, fieldNumber: 33)
+      } }()
+      try { if let v = _storage._provisionVars {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 34)
+      } }()
+      try { if let v = _storage._macosVersion {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 35)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -8649,6 +8694,9 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
         if _storage._bridgedNetwork != rhs_storage._bridgedNetwork {return false}
         if _storage._rootDisk != rhs_storage._rootDisk {return false}
         if _storage._diskFormat != rhs_storage._diskFormat {return false}
+        if _storage._provisionTemplate != rhs_storage._provisionTemplate {return false}
+        if _storage._provisionVars != rhs_storage._provisionVars {return false}
+        if _storage._macosVersion != rhs_storage._macosVersion {return false}
         return true
       }
       if !storagesAreEqual {return false}

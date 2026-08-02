@@ -101,6 +101,7 @@ enum IPSWImage: Int, CaseIterable {
 	case macos15_6_1
 	case macos14_6_1
 	case macos13_6
+	case macos12_6_1
 
 	var location: ISOLocation {
 		switch self {
@@ -112,6 +113,8 @@ enum IPSWImage: Int, CaseIterable {
 			ISOLocation(label: "macOS 14.6.1", url: "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw")
 		case .macos13_6:
 			ISOLocation(label: "macOS 13.6", url: "https://updates.cdn-apple.com/2023FallFCS/fullrestores/042-55833/C0830847-A2F8-458F-B680-967991820931/UniversalMac_13.6_22G120_Restore.ipsw")
+		case .macos12_6_1:
+			ISOLocation(label: "macOS 12.6.1", url: "https://updates.cdn-apple.com/2022FallFCS/fullrestores/012-66032/8D8D90C6-A876-4FFF-BBF4-D158939B3841/UniversalMac_12.6.1_21G217_Restore.ipsw")
 		}
 	}
 }
@@ -328,7 +331,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.selectedRemoteImage = String.empty
 		self.cloudImageRelease = .ubuntu2604LTS
 		self.isoImageRelease = .ubuntu2604Server
-		self.ipswRelease = .macos26_5_1
+		self.ipswRelease = .macos26_6
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
@@ -348,7 +351,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.selectedRemoteImage = String.empty
 		self.cloudImageRelease = .ubuntu2404LTS
 		self.isoImageRelease = .ubuntu2604Server
-		self.ipswRelease = .macos26_5_1
+		self.ipswRelease = .macos26_6
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty

@@ -162,6 +162,26 @@ public struct VMBuilder {
 			#if arch(arm64)
 				if imageSource == .ipsw {
 					try await installIPSW(location: location, config: config, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
+
+					// Setup Assistant is driven unattended for every IPSW build: an explicit --template
+					// wins, otherwise the macOS version is auto-detected from the IPSW filename (or
+					// --macos-version) to pick a built-in template. Resolve throws if neither works.
+					// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to
+					// depend on CakedLib) — bridge it to CakedLib's own MacOSVersion by raw value.
+					let explicitMacOSVersion = options.macosVersion.flatMap { MacOSVersion(rawValue: $0.rawValue) }
+					let content = try PackerLiteTemplateResolver.resolve(explicitPath: options.provisionTemplate, explicitVersion: explicitMacOSVersion, ipswURL: imageURL)
+
+					// The VM's account is already fully determined by --user/--password (see
+					// `configuredUser`/`configuredPassword` above) — reuse it here instead of
+					// letting the template declare its own, so there's exactly one source of truth.
+					var variables = options.provisionVarsDict
+
+					variables["username"] = config.configuredUser
+					variables["password"] = config.configuredPassword ?? "admin"
+
+					let template = try PackerLiteTemplate.load(from: content, variables: variables)
+
+					try await PackerLiteEngine.provision(location: location, config: config, template: template, runMode: runMode, queue: queue, progressHandler: progressHandler)
 				}
 			#endif
 		}

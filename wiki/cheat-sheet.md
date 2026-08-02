@@ -197,6 +197,20 @@ cakectl networks infos shared-dev
 cakectl networks stop shared-dev
 ```
 
+### 8) Créer une VM macOS depuis un IPSW (Setup Assistant automatisé)
+
+Apple Silicon uniquement. La version macOS est détectée depuis le nom du fichier IPSW ; sinon précisez `--macos-version` — voir [PackerLite](command-summary#packerlite-fr).
+
+```bash
+cakectl build my-macos-vm --user admin --password admin \
+  https://updates.cdn-apple.com/.../UniversalMac_26.6_25G72_Restore.ipsw
+```
+
+```bash
+# nom de fichier non standard : version macOS explicite requise
+cakectl build my-macos-vm --user admin --password admin --macos-version tahoe ./restore.ipsw
+```
+
 </div>
 
 <div class="lang-en" style="display:block" markdown="1">
@@ -394,6 +408,20 @@ cakectl networks create --name shared-dev --mode shared --gateway 192.168.105.1 
 cakectl networks start shared-dev
 cakectl networks infos shared-dev
 cakectl networks stop shared-dev
+```
+
+### 8) Create a macOS VM from an IPSW (unattended Setup Assistant)
+
+Apple Silicon only. The macOS version is detected from the IPSW filename; otherwise pass `--macos-version` — see [PackerLite](command-summary#packerlite).
+
+```bash
+cakectl build my-macos-vm --user admin --password admin \
+  https://updates.cdn-apple.com/.../UniversalMac_26.6_25G72_Restore.ipsw
+```
+
+```bash
+# non-standard filename: an explicit macOS version is required
+cakectl build my-macos-vm --user admin --password admin --macos-version tahoe ./restore.ipsw
 ```
 
 </div>

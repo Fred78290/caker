@@ -1,0 +1,103 @@
+# vanilla-tahoe.packerlite.yaml
+#
+# Built-in PackerLite template — unattended macOS Setup Assistant provisioning,
+# driven natively by caked/caker after installing from an IPSW. No external
+# `packer` binary or packer-plugin-tart required (see vanilla-tahoe.pkr.hcl
+# for the equivalent Packer-based recipe this was transcribed from).
+#
+# Usage:
+#   cakectl build my-vm https://.../UniversalMac_26.6_25G72_Restore.ipsw \
+#     --user admin --password admin \
+#     --template templates/macos/vanilla-tahoe.packerlite.yaml
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+# How long to wait after the VM starts before sending the first keystroke.
+create_grace_time: 30s
+# Overall watchdog — provisioning fails fast instead of hanging if the UI drifts.
+boot_timeout: 45m
+
+boot_command:
+  # hello, hola, bonjour, etc.
+  - "<wait60s><spacebar>"
+  # Language: switch to another language first, then back to English, so we land
+  # on "English" rather than "English (UK)" — see vanilla-sequoia for the full note.
+  - "<wait30s>italiano<esc>english<enter>"
+  # Select Your Country or Region
+  - "<wait60s><click 'Select Your Country or Region'><wait5s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
+  # Transfer Your Data to This Mac
+  - "<wait10s><tab><tab><tab><spacebar><tab><tab><spacebar>"
+  # Written and Spoken Languages
+  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  # Accessibility
+  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  # Data & Privacy
+  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  # Create a Mac Account
+  - "<wait10s><tab><tab><tab><tab><tab><tab>Managed via Tart<tab>${var.username}<tab>${var.password}<tab>${var.password}<tab><tab><spacebar><tab><tab><spacebar>"
+  # Enable Voice Over
+  - "<wait120s><leftAltOn><f5><leftAltOff>"
+  # Sign In with Your Apple ID
+  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar><up><spacebar>"
+  # Are you sure you want to skip signing in with an Apple ID?
+  - "<wait10s><tab><spacebar>"
+  # Terms and Conditions
+  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  # I have read and agree to the macOS Software License Agreement
+  - "<wait10s><tab><spacebar>"
+  # Age Range -> Adult
+  - "<wait10s><tab><tab><tab><spacebar>"
+  # Enable Location Services
+  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  # Are you sure you don't want to use Location Services?
+  - "<wait10s><tab><spacebar>"
+  # Select Your Time Zone
+  - "<wait10s><tab><tab><tab>UTC<enter><leftShiftOn><tab><leftShiftOff><spacebar>"
+  # Analytics
+  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  # Screen Time
+  - "<wait10s><tab><tab><spacebar>"
+  # Siri
+  - "<wait10s><tab><spacebar><leftShiftOn><tab><leftShiftOff><spacebar>"
+  # Your Mac is Ready for FileVault
+  - "<wait10s><leftShiftOn><tab><tab><leftShiftOff><spacebar>"
+  # Mac Data Will Not Be Securely Encrypted
+  - "<wait10s><tab><spacebar>"
+  # Choose Your Look
+  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  # Update Mac Automatically
+  - "<wait10s><tab><tab><spacebar>"
+  # Welcome to Mac
+  - "<wait30s><spacebar>"
+  # Disable Voice Over
+  - "<wait10s><leftAltOn><f5><leftAltOff>"
+  # Enable Keyboard navigation so we can navigate System Settings using the keyboard
+  - "<wait10s><leftAltOn><spacebar><leftAltOff>Terminal<wait10s><enter>"
+  - "<wait10s><wait10s>defaults write NSGlobalDomain AppleKeyboardUIMode -int 3<enter>"
+  # Now that the installation is done, open "System Settings"
+  # On Tahoe opening System Settings through Spotlight is not very reliable, sometimes opens System Information
+  - "<wait10s>open '/System/Applications/System Settings.app'<enter>"
+  - "<wait120s>"
+  # Navigate to "Sharing"
+  - "<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Sharing<enter>"
+  # Navigate to "Screen Sharing" and enable it
+  - "<wait10s><tab><tab><tab><tab><tab><spacebar>"
+  # Type in the password to allow enabling Screen Sharing
+  - "<wait10s>${var.password}<enter>"
+  # Navigate to "Remote Login" and enable it
+  - "<wait10s><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><spacebar>"
+  # Quit System Settings
+  - "<wait10s><leftAltOn>q<leftAltOff>"
+  # Disable Gatekeeper (1/2)
+  - "<wait10s>sudo spctl --global-disable<enter>"
+  - "<wait10s>${var.password}<enter>"
+  # Disable Gatekeeper (2/2)
+  - "<wait10s>open '/System/Applications/System Settings.app'<enter>"
+  - "<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Privacy & Security<enter>"
+  - "<wait10s><leftShiftOn><tab><tab><tab><tab><tab><tab><leftShiftOff>"
+  - "<wait10s><down><wait1s><down><wait1s><enter>"
+  - "<wait10s>${var.password}<enter>"
+  - "<wait10s><leftShiftOn><tab><leftShiftOff><wait1s><spacebar>"
+  # Quit System Settings
+  - "<wait10s><leftAltOn>q<leftAltOff>"

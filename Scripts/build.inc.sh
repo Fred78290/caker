@@ -77,6 +77,9 @@ else
 	cp "${PROJECT_ROOT}/Sources/caker/Resources/PrivilegedBootstrap.applescript" "${CAKER_APP}/Resources/PrivilegedBootstrap.applescript"
 fi
 
+cp "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources/"* "${CAKED_APP}/Resources"
+cp "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources/"* "${CAKER_APP}/Resources"
+
 cp "${PROJECT_ROOT}/webui/webui.zip" "${CAKED_APP}/Resources/webui.zip"
 
 if [ $USE_SMAPPSERVICE -eq 1 ]; then
