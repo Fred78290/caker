@@ -58,8 +58,17 @@
 			do {
 				try await withThrowingTaskGroup(of: Void.self) { group in
 					group.addTask {
+						let context = ProgressObserver.ProgressHandlerContext()
+						var count = 0
+
+						progressHandler(.progress(context, 0))
+
 						for stepList in steps {
+							count += 1
+
 							try await driver.run(steps: stepList)
+
+							progressHandler(.progress(context, Double(count / steps.count)))
 						}
 					}
 
