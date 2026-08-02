@@ -125,13 +125,13 @@ public struct BuildOptions: ParsableArguments {
 	public var root: String? = nil
 
 	@Option(name: [.customLong("template")], help: ArgumentHelp(String(localized: "Provisioning template (YAML) to auto-configure a macOS VM's Setup Assistant after installing from IPSW"), valueName: "path"))
-	public var provisionTemplate: String?
+	public var provisionTemplate: String? = nil
 
 	@Option(name: [.customLong("var")], help: ArgumentHelp(String(localized: "Set a provisioning template variable (key=value), may be repeated"), valueName: "key=value"))
 	public var provisionVars: [String] = []
 
 	@Option(name: [.customLong("macos-version")], help: ArgumentHelp(String(localized: "macOS version of the IPSW, used to select the built-in provisioning template when it can't be determined from the IPSW filename"), discussion: String(localized: "One of: \(MacOSVersion.allCases.map(\.rawValue).joined(separator: ", "))"), valueName: "version"))
-	public var macosVersion: MacOSVersion?
+	public var macosVersion: MacOSVersion? = nil
 
 	public init() {
 	}
@@ -202,6 +202,9 @@ public struct BuildOptions: ParsableArguments {
 		self.autoinstall = autoinstall
 		self.screenSize = screenSize
 		self.bridgedNetwork = bridgedNetwork
+		self.provisionTemplate = nil
+		self.provisionVars = []
+		self.macosVersion = nil
 	}
 
 	public init(request: Caked_CommonBuildRequest) throws {
