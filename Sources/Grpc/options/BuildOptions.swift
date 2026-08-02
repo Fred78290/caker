@@ -533,14 +533,14 @@ public struct BuildOptions: ParsableArguments {
 extension BuildOptions {
 	/// Parses `--var key=value` entries into a dictionary for `PackerLiteTemplate` variable overrides.
 	public var provisionVarsDict: [String: String] {
-		Dictionary(uniqueKeysWithValues: provisionVars.compactMap { entry -> (String, String)? in
-			guard let separatorIndex = entry.firstIndex(of: "=") else { return nil }
+		provisionVars.reduce(into: [String: String]()) { result, entry in
+			guard let separatorIndex = entry.firstIndex(of: "=") else { return }
 
 			let key = String(entry[..<separatorIndex])
 			let value = String(entry[entry.index(after: separatorIndex)...])
 
-			return (key, value)
-		})
+			result[key] = value
+		}
 	}
 
 	public var allNetworks: [BridgeAttachement] {
