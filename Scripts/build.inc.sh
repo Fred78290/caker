@@ -73,6 +73,8 @@ if [ $APPSTORE -eq 0 ]; then
 			rm -rf "${FILE}"
 		fi
 	done
+else
+	cp "${PROJECT_ROOT}/Sources/caker/Resources/PrivilegedBootstrap.applescript" "${CAKER_APP}/Resources/PrivilegedBootstrap.applescript"
 fi
 
 cp "${PROJECT_ROOT}/webui/webui.zip" "${CAKED_APP}/Resources/webui.zip"
