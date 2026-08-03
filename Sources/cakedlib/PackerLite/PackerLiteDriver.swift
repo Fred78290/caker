@@ -145,7 +145,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		let deadline = Date().addingTimeInterval(Self.clickTextTimeout)
 
 		while true {
-			if let point = try locate(text: label) {
+			if let point = try await locate(text: label) {
 				click(x: point.x, y: point.y)
 				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 				return
@@ -161,38 +161,49 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 	/// Locates `label` in the view's current frame via Vision OCR and returns its center,
 	/// converted into the top-left-origin pixel space `VNCInputHandler.handlePointerEvent` expects.
-	@MainActor private func locate(text label: String) throws -> (x: Int, y: Int)? {
-		guard
-			let image = targetView.image(),
-			let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil)
-		else {
-			return nil
+	private func locate(text label: String) async throws -> (x: Int, y: Int)? {
+		// Capture the current CGImage on the main actor (AppKit view access must be on main).
+		let cgImage: CGImage? = await MainActor.run { [weak targetView] in
+			guard let image = targetView?.image(),
+				  let cg = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+				return nil
+			}
+			return cg
 		}
 
-		let request = VNRecognizeTextRequest()
-		request.recognitionLevel = .accurate
+		guard let cgImage else { return nil }
 
-		try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+		// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
+		let result = try await Task.detached(priority: .utility) { () throws -> (x: Int, y: Int)? in
+			let request = VNRecognizeTextRequest()
+			request.recognitionLevel = .accurate
 
-		let needle = label.lowercased()
+			try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
 
-		for observation in request.results ?? [] {
-			guard let candidate = observation.topCandidates(1).first, candidate.string.lowercased().contains(needle) else {
-				continue
+			let needle = label.lowercased()
+
+			for observation in request.results ?? [] {
+				guard let candidate = observation.topCandidates(1).first,
+					  candidate.string.lowercased().contains(needle) else {
+					continue
+				}
+
+				let box = observation.boundingBox
+				let width = CGFloat(cgImage.width)
+				let height = CGFloat(cgImage.height)
+
+				// Vision's boundingBox is normalized with origin at bottom-left; VNC coordinates
+				// (as consumed by handlePointerEvent) have origin at top-left.
+				let x = Int(box.midX * width)
+				let y = Int((1 - box.midY) * height)
+
+				return (x, y)
 			}
 
-			let box = observation.boundingBox
-			let width = CGFloat(cgImage.width)
-			let height = CGFloat(cgImage.height)
+			return nil
+		}.value
 
-			// Vision's boundingBox is normalized with origin at bottom-left; VNC coordinates
-			// (as consumed by handlePointerEvent) have origin at top-left.
-			let x = Int(box.midX * width)
-			let y = Int((1 - box.midY) * height)
-
-			return (x, y)
-		}
-
-		return nil
+		return result
 	}
 }
+

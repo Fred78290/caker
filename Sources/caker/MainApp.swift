@@ -254,6 +254,30 @@ struct MainApp: App {
 			CommandGroup(replacing: .saveItem, addition: {})
 		}
 
+		#if DEBUG
+		WindowGroup(id: "Debug PackerLite", for: UUID.self) { $id in
+			if let id, let vm = PackerLiteEngine.provisioned[id] {
+				let cgSize = vm.config.display.cgSize
+				let params = VMRunHandler(
+					mode: .grpc, storageLocation: StorageLocation(runMode: .app), location: vm.location, name: vm.location.name, display: .ui, config: vm.config, screenSize: cgSize, vncPassword: "", vncPort: 0, recoveryMode: false, runMode: .app
+				)
+
+				VMView(vm, params: params)
+					.onReceive(PackerLiteEngine.provisionedTerminatedNotification, object: vm) { notification in
+					}
+					.frame(size: vm.config.display.cgSize)
+			} else {
+				Text("Something goes wrong")
+			}
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.expanded)
+		.restorationState(.disabled)
+		.commands {
+			CommandGroup(replacing: .saveItem, addition: {})
+		}
+		#endif
+
 		Settings {
 			SettingsView()
 				.colorSchemeForColor()
