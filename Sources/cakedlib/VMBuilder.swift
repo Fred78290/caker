@@ -163,13 +163,24 @@ public struct VMBuilder {
 				if imageSource == .ipsw {
 					try await installIPSW(location: location, config: config, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
+					// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to
+					// depend on CakedLib) — bridge it to CakedLib's own MacOSVersion by raw value.
+					let explicitMacOSVersion = options.macosVersion.flatMap { MacOSVersion(rawValue: $0.rawValue) }
+
+					// Record which macOS version this VM is running — using the exact same detection
+					// PackerLite itself uses (IPSW filename, falling back to --macos-version) — regardless
+					// of whether --autoinstall provisions it right now. `caked packerlite` reads this back
+					// later for VMs provisioned after the fact.
+					let resolvedMacOSVersion = PackerLiteTemplateResolver.resolveVersion(explicitVersion: explicitMacOSVersion, ipswURL: imageURL)
+
+					config.osRelease = resolvedMacOSVersion?.rawValue
+
+					try config.save()
+
 					if options.autoinstall {
 						// Setup Assistant is driven unattended for every IPSW build: an explicit --template
-						// wins, otherwise the macOS version is auto-detected from the IPSW filename (or
-						// --macos-version) to pick a built-in template. Resolve throws if neither works.
-						// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to
-						// depend on CakedLib) — bridge it to CakedLib's own MacOSVersion by raw value.
-						let explicitMacOSVersion = options.macosVersion.flatMap { MacOSVersion(rawValue: $0.rawValue) }
+						// wins, otherwise the resolved macOS version above picks a built-in template. Resolve
+						// throws if neither works.
 						let content = try PackerLiteTemplateResolver.resolve(explicitPath: options.provisionTemplate, explicitVersion: explicitMacOSVersion, ipswURL: imageURL)
 
 						// The VM's account is already fully determined by --user/--password (see

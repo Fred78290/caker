@@ -227,6 +227,16 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.cake["osRelease"] as? String }
 	}
 
+	/// Whether PackerLite has already driven this VM's Setup Assistant to completion — either
+	/// automatically during `build --autoinstall` or via a standalone `caked packerlite` run.
+	/// Setup Assistant only runs on first boot, so provisioning a second time has nothing left to
+	/// do and would just hang waiting for screens that no longer appear — callers should refuse to
+	/// re-provision when this is already true.
+	public var provisioned: Bool {
+		set { self.cake["provisioned"] = newValue }
+		get { self.cake["provisioned"] as? Bool ?? false }
+	}
+
 	public var dynamicPortForwarding: Bool {
 		set { self.cake["dynamicPortForwarding"] = newValue }
 		get { self.cake["dynamicPortForwarding"] as? Bool ?? false }

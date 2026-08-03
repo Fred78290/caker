@@ -130,6 +130,9 @@
 
 			await shutdown(vm)
 
+			config.provisioned = true
+			try config.save()
+
 			progressHandler(.step(String(localized: "Provisioning done")))
 		}
 

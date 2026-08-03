@@ -102,6 +102,7 @@ struct Root: ParsableCommand {
 				ListObjects.self,
 				Mount.self,
 				Networks.self,
+				PackerLiteRun.self,
 				Purge.self,
 				Remote.self,
 				Rename.self,

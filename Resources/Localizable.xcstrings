@@ -3888,6 +3888,17 @@
         }
       }
     },
+    "Drive a macOS VM's Setup Assistant unattended via PackerLite" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piloter l'assistant de réglages d'une VM macOS de manière automatisée via PackerLite"
+          }
+        }
+      }
+    },
     "Dump help information as JSON." : {
       "comment" : "Help text for the experimental command to dump help information as JSON.",
       "extractionState" : "manual",
@@ -7401,6 +7412,17 @@
         }
       }
     },
+    "macOS version to use for picking the built-in template, overriding the VM's stored osRelease" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version macOS à utiliser pour choisir le modèle intégré, remplaçant l'osRelease enregistré de la VM"
+          }
+        }
+      }
+    },
     "macOS VMs are only supported on Apple Silicon Macs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10116,6 +10138,17 @@
         }
       }
     },
+    "Path to the VM disk.img or its name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin du disk.img de la VM ou son nom"
+          }
+        }
+      }
+    },
     "Path to web UI static files directory" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10702,6 +10735,17 @@
         }
       }
     },
+    "Provisioning template (YAML) to use, overriding the VM's stored macOS version" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèle de configuration (YAML) à utiliser, remplaçant la version macOS enregistrée de la VM"
+          }
+        }
+      }
+    },
     "Provisioning timed out after %@s" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10907,6 +10951,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Options de Push VM"
+          }
+        }
+      }
+    },
+    "push_options_help" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "push_options_help"
           }
         }
       }
@@ -16758,6 +16813,17 @@
         }
       }
     },
+    "VM at %@ is already provisioned — Setup Assistant only runs on first boot, so running PackerLite again would just hang" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM à %@ est déjà configurée — l'assistant de réglages ne s'exécute qu'au premier démarrage, donc relancer PackerLite resterait simplement bloqué"
+          }
+        }
+      }
+    },
     "VM at %@ is already running" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16765,6 +16831,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La VM à %@ est déjà en cours d'exécution"
+          }
+        }
+      }
+    },
+    "VM at %@ is not a macOS VM" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM à %@ n'est pas une VM macOS"
+          }
+        }
+      }
+    },
+    "VM at %@ is running — stop it first" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM à %@ est en cours d'exécution — arrêtez-la d'abord"
           }
         }
       }

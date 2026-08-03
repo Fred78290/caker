@@ -14,33 +14,42 @@ import CakeAgentLib
 import Foundation
 import GRPCLib
 
-enum PackerLiteTemplateResolver {
+public enum PackerLiteTemplateResolver {
 	private static let logger = Logger("PackerLiteTemplateResolver")
 
-	static func resolve(explicitPath: String?, explicitVersion: MacOSVersion?, ipswURL: URL) throws -> String {
-		if let explicitPath {
-			return try String(contentsOfFile: explicitPath, encoding: .utf8)
-		}
-
+	/// Determines the macOS version for an IPSW build: auto-detected from the filename, falling back
+	/// to an explicit `--macos-version`. Returns nil if neither yields anything. Exposed on its own
+	/// (not just as a `resolve` implementation detail) so callers that don't need template content —
+	/// e.g. persisting the detected version into `CakeConfig.osRelease` at build time — can reuse the
+	/// exact same detection `resolve` uses, instead of re-deriving it.
+	public static func resolveVersion(explicitVersion: MacOSVersion?, ipswURL: URL) -> MacOSVersion? {
 		let filename = ipswURL.lastPathComponent
 
 		if let detected = MacOSVersion.detect(fromIPSWFilename: filename) {
 			logger.info("Detected macOS \(detected.rawValue) from IPSW filename '\(filename)'")
 
-			return try bundledTemplateContent(for: detected)
+			return detected
 		}
 
 		logger.warn("Could not determine the macOS version from IPSW filename '\(filename)'")
 
-		guard let explicitVersion else {
+		return explicitVersion
+	}
+
+	public static func resolve(explicitPath: String?, explicitVersion: MacOSVersion?, ipswURL: URL) throws -> String {
+		if let explicitPath {
+			return try String(contentsOfFile: explicitPath, encoding: .utf8)
+		}
+
+		guard let version = resolveVersion(explicitVersion: explicitVersion, ipswURL: ipswURL) else {
 			throw ServiceError(
 				String(
 					localized:
-						"Could not determine the macOS version from the IPSW filename '\(filename)'. Specify --macos-version (\(MacOSVersion.allCases.map(\.rawValue).joined(separator: ", "))) or provide your own template with --template."
+						"Could not determine the macOS version from the IPSW filename '\(ipswURL.lastPathComponent)'. Specify --macos-version (\(MacOSVersion.allCases.map(\.rawValue).joined(separator: ", "))) or provide your own template with --template."
 				))
 		}
 
-		return try bundledTemplateContent(for: explicitVersion)
+		return try bundledTemplateContent(for: version)
 	}
 
 	private static func bundledTemplateContent(for version: MacOSVersion) throws -> String {
