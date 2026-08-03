@@ -2515,6 +2515,16 @@
         }
       }
     },
+    "Configure automaticly the system" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurer automatiquement macOS"
+          }
+        }
+      }
+    },
     "Configure named shared network" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13948,7 +13958,7 @@
         }
       }
     },
-    "Support autoinstall mecanism from iso image" : {
+    "Support autoinstall mecanism from iso image or IPSW installation" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -13960,7 +13970,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prise en charge du mécanisme d'installation automatique à partir de l'image ISO"
+            "value" : "Prise en charge du mécanisme d'installation automatique à partir de l'image ISO ou d’un IPSW"
           }
         }
       }
