@@ -21,8 +21,7 @@ boot_timeout: 45m
 boot_command:
   # hello, hola, bonjour, etc.
   - "<wait60s><spacebar>"
-  # Language: switch to another language first, then back to English, so we land
-  # on "English" rather than "English (UK)" — see vanilla-sequoia for the full note.
+  # Language: switch to another language first, then back to English, so we land on "English" rather than "English (UK)" — see vanilla-sequoia for the full note.
   - "<wait30s>italiano<esc>english<enter>"
   # Select Your Country or Region
   - "<wait60s><click 'Select Your Country or Region'><wait5s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
@@ -75,8 +74,7 @@ boot_command:
   # Enable Keyboard navigation so we can navigate System Settings using the keyboard
   - "<wait10s><leftAltOn><spacebar><leftAltOff>Terminal<wait10s><enter>"
   - "<wait10s><wait10s>defaults write NSGlobalDomain AppleKeyboardUIMode -int 3<enter>"
-  # Now that the installation is done, open "System Settings"
-  # On Tahoe opening System Settings through Spotlight is not very reliable, sometimes opens System Information
+  # Now that the installation is done, open "System Settings" On Tahoe opening System Settings through Spotlight is not very reliable, sometimes opens System Information
   - "<wait10s>open '/System/Applications/System Settings.app'<enter>"
   - "<wait120s>"
   # Navigate to "Sharing"
