@@ -62,7 +62,7 @@ public struct BuildOptions: ParsableArguments {
 	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp(String(localized: "Enable nested virtualization if possible")))
 	public var nested: Bool = false
 
-	@Flag(help: ArgumentHelp(String(localized: "Support autoinstall mecanism from iso image")))
+	@Flag(help: ArgumentHelp(String(localized: "Support autoinstall mecanism from iso image or IPSW installation")))
 	public var autoinstall: Bool = false
 
 	@Flag(help: ArgumentHelp(String(localized: "Disables audio and entropy devices and switches to only Mac-specific input devices."), discussion: String(localized: "Useful for running a VM that can be suspended via suspend command.")))

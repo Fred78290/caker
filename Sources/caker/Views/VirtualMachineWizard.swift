@@ -405,14 +405,14 @@ struct VirtualMachineWizard: View {
 
 	init(sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil) {
 		self.sheet = sheet
-		
+
 		if let presetTemplate {
 			var config = VirtualMachineConfig()
 
 			config.source = .template
 			config.imageName = presetTemplate.fqn
 			config.vmname = presetTemplate.name
-			
+
 			let model = VirtualMachineWizardStateObject()
 
 			model.imageSource = .template
@@ -429,7 +429,7 @@ struct VirtualMachineWizard: View {
 			config.diskFormat = .raw
 			config.os = .linux
 			config.imageName = "\(presetRemoteImage.remote)://\(presetRemoteImage.image.fingerprint)"
-			
+
 			let model = VirtualMachineWizardStateObject()
 			let image = ShortImageInfo(presetRemoteImage.image)
 
@@ -437,7 +437,7 @@ struct VirtualMachineWizard: View {
 			model.remoteImage = presetRemoteImage.remote
 			model.selectedRemoteImage = presetRemoteImage.image.fingerprint
 			model.remoteImages = [image]
-			
+
 			self._config = State(initialValue: config)
 			self._model = State(initialValue: model)
 			self.fromPreset = true
@@ -449,12 +449,12 @@ struct VirtualMachineWizard: View {
 			config.source = .qcow2
 			config.imageName = OSCloudImage.ubuntu2604LTS.url.absoluteString
 			config.os = .linux
-			
+
 			let model = VirtualMachineWizardStateObject()
 
 			model.imageSource = .qcow2
 			model.cloudImageRelease = .ubuntu2604LTS
-			
+
 			self._config = State(initialValue: config)
 			self._model = State(initialValue: model)
 			self.fromPreset = false
@@ -902,7 +902,7 @@ struct VirtualMachineWizard: View {
 									TextField("OS Image", text: $config.imageName)
 										.rounded(.leading)
 										.disabled(self.model.createVM)
-									
+
 									Button(action: {
 										if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
 											self.config.imageName = "file://\(imageName)"
@@ -924,7 +924,7 @@ struct VirtualMachineWizard: View {
 					case .iso:
 						VStack(alignment: .leading) {
 							let platform = SupportedPlatform(rawValue: self.config.imageName)
-							
+
 							LabeledContent {
 								if AppState.shared.connectionMode == .app {
 									HStack {
@@ -932,7 +932,7 @@ struct VirtualMachineWizard: View {
 											.frame(width: 300)
 											.rounded(.leading)
 											.disabled(self.model.createVM)
-										
+
 										Button(action: {
 											if let imageName = chooseDiskImage(ofTypes: [UTType.iso9660, UTType.cdr]) {
 												self.config.imageName = "file://\(imageName)"
@@ -962,7 +962,7 @@ struct VirtualMachineWizard: View {
 									self.config.imageName = newValue.location.url
 								}
 							}
-							
+
 							if platform == .ubuntu {
 								Toggle("Create autoinstall config", isOn: $config.autoinstall).disabled(self.model.createVM)
 								//						} else if platform == .fedora {
@@ -971,45 +971,47 @@ struct VirtualMachineWizard: View {
 								//							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
 							}
 						}
-						
+
 					case .ipsw:
-						LabeledContent {
-							if AppState.shared.connectionMode == .app {
-								HStack {
-									TextField("IPSW Image", text: $config.imageName)
+						VStack(alignment: .leading) {
+							LabeledContent {
+								if AppState.shared.connectionMode == .app {
+									HStack {
+										TextField("IPSW Image", text: $config.imageName)
+											.frame(width: 460)
+											.rounded(.leading)
+											.disabled(self.model.createVM)
+										Button(action: {
+											if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
+												self.config.imageName = "file://\(imageName)"
+											}
+										}) {
+											Image(systemName: "document.badge.gearshape")
+										}
+										.disabled(self.model.createVM)
+										.buttonStyle(.borderless)
+									}
+								} else {
+									TextField("MacOS ipsw url.", text: $config.imageName)
 										.frame(width: 460)
 										.rounded(.leading)
 										.disabled(self.model.createVM)
-									Button(action: {
-										if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
-											self.config.imageName = "file://\(imageName)"
-										}
-									}) {
-										Image(systemName: "document.badge.gearshape")
+								}
+							} label: {
+								Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
+									ForEach(IPSWImage.allCases, id: \.self) { os in
+										Text(os.location.label).tag(os)
 									}
-									.disabled(self.model.createVM)
-									.buttonStyle(.borderless)
 								}
-							} else {
-								TextField("MacOS ipsw url.", text: $config.imageName)
-									.frame(width: 460)
-									.rounded(.leading)
-									.disabled(self.model.createVM)
-							}
-						} label: {
-							Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
-								ForEach(IPSWImage.allCases, id: \.self) { os in
-									Text(os.location.label).tag(os)
+								.pickerStyle(.menu)
+								.disabled(self.model.createVM)
+								.labelsHidden()
+								.onChange(of: model.ipswRelease) { _, newValue in
+									self.config.imageName = newValue.location.url
 								}
 							}
-							.pickerStyle(.menu)
-							.disabled(self.model.createVM)
-							.labelsHidden()
-							.onChange(of: model.ipswRelease) { _, newValue in
-								self.config.imageName = newValue.location.url
-							}
+							Toggle("Configure automaticly the system", isOn: $config.autoinstall).disabled(self.model.createVM)
 						}
-						
 					case .qcow2:
 						LabeledContent {
 							TextField("Cloud Image", text: $config.imageName)
@@ -1029,12 +1031,12 @@ struct VirtualMachineWizard: View {
 								self.config.imageName = newValue.url.absoluteString
 							}
 						}
-						
+
 					case .oci:
 						TextField("OCI Image", text: $config.imageName)
 							.rounded(.leading)
 							.disabled(self.model.createVM)
-						
+
 					case .template:
 						Picker("Select a template", selection: $config.imageName) {
 							ForEach(AppState.shared.templates, id: \.self) { template in
@@ -1043,7 +1045,7 @@ struct VirtualMachineWizard: View {
 						}
 						.pickerStyle(.menu)
 						.disabled(self.model.createVM)
-						
+
 					case .stream:
 						VStack {
 							Picker("Select remote sources", selection: $model.remoteImage) {
@@ -1089,7 +1091,7 @@ struct VirtualMachineWizard: View {
 							}.onChange(of: self.model.imageSource) { _, newValue in
 								self.config.source = newValue
 								self.config.diskFormat = newValue.supportedDiskFormat(for: self.config.diskFormat)
-								
+
 								switch newValue {
 								case .raw:
 									self.config.imageName = String.empty
@@ -1117,11 +1119,13 @@ struct VirtualMachineWizard: View {
 									self.config.diskFormat = .raw
 									self.config.os = .linux
 								case .iso:
+									self.config.autoinstall = false
 									self.config.imageName = self.model.isoImageRelease.location.url
 									self.model.showDiskFormat = true
 									self.config.diskFormat = .defaultSupportedFormat
 									self.config.os = .linux
 								case .ipsw:
+									self.config.autoinstall = true
 									self.config.imageName = self.model.ipswRelease.location.url
 									self.config.cpuCount = max(self.config.cpuCount, 4)
 									self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4096)
@@ -1474,4 +1478,3 @@ struct VirtualMachineWizard: View {
 #Preview {
 	VirtualMachineWizard()
 }
-
