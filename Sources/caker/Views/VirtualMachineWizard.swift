@@ -10,6 +10,7 @@ import Steps
 //  Created by Frederic BOLTZ on 26/06/2025.
 //
 import SwiftUI
+import Synchronization
 import UniformTypeIdentifiers
 
 typealias OptionalVMLocation = VMLocation?
@@ -319,6 +320,7 @@ struct ShortImageInfoComparator: SortComparator {
 	var rootDisk: String
 	var mountPoints: MountPoints
 	var showDiskFormat: Bool
+	var createVirtualMachineTask: Task<Void, Never>?
 
 	init() {
 		self.currentStep = .name
@@ -529,6 +531,9 @@ struct VirtualMachineWizard: View {
 		.onAppear {
 			self.validateConfig(config: self.config)
 		}
+		.onDisappear {
+			self.model.createVirtualMachineTask?.cancel()
+		}
 		.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
 		.windowDismissBehavior(self.model.createVM ? .disabled : .automatic)
 		//.windowResizeBehavior(self.model.createVM ? .disabled : .automatic)
@@ -645,7 +650,9 @@ struct VirtualMachineWizard: View {
 					}
 
 					AsyncButton { done in
-						await openVirtualMachine(done)
+						self.model.createVirtualMachineTask = Task {
+							await openVirtualMachine(done)
+						}
 					} label: {
 						Text("Create").frame(width: 80)
 					}
@@ -1297,7 +1304,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	func validateConfig(config: VirtualMachineConfig) {
-		var valid = model.mountPoints.first(where: {$0.validate() == false }) == nil
+		var valid = model.mountPoints.first(where: { $0.validate() == false }) == nil
 
 		if valid {
 			if config.os == .linux {
@@ -1376,32 +1383,37 @@ struct VirtualMachineWizard: View {
 	}
 
 	func createVirtualMachine(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async {
-		await withTaskCancellationHandler(
-			operation: {
-				do {
-					let options = self.config.buildOptions(imageSource: model.imageSource)
-					var ipswQueue: DispatchQueue!
+		await withTaskCancellationHandler {
+			defer {
+				self.model.createVirtualMachineTask = nil
+			}
 
-					#if arch(arm64)
-						if AppState.shared.connectionMode == .app && self.model.imageSource == .ipsw {
-							ipswQueue = DispatchQueue(label: "IPSWQueue")
-						}
-					#endif
+			do {
+				let options = self.config.buildOptions(imageSource: model.imageSource)
+				var ipswQueue: DispatchQueue!
 
-					let build = try await AppState.shared.buildVirtualMachine(options: options, queue: ipswQueue) { result in
-						progressHandler(result)
+				#if arch(arm64)
+					if AppState.shared.connectionMode == .app && self.model.imageSource == .ipsw {
+						ipswQueue = DispatchQueue(label: "IPSWQueue")
 					}
+				#endif
 
-					if build.builded == false {
-						progressHandler(.terminated(.failure(ServiceError(build.reason)), String(localized: "Create virtual machine failed")))
-					}
-				} catch {
-					progressHandler(.terminated(.failure(error), String(localized: "Create virtual machine failed")))
+				let build = try await AppState.shared.buildVirtualMachine(options: options, queue: ipswQueue) { result in
+					progressHandler(result)
 				}
-			},
-			onCancel: {
+
+				if build.builded == false {
+					progressHandler(.terminated(.failure(ServiceError(build.reason)), String(localized: "Create virtual machine failed")))
+				}
+			} catch {
+				progressHandler(.terminated(.failure(error), String(localized: "Create virtual machine failed")))
+			}
+		} onCancel: {
+			Task { @MainActor in
+				self.model.createVirtualMachineTask = nil
 				progressHandler(.terminated(.failure(ServiceError(String(localized: "Cancelled"))), String(localized: "Create virtual machine failed")))
-			})
+			}
+		}
 	}
 
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {
