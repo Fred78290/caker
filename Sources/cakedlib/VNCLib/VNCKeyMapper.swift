@@ -385,6 +385,9 @@ extension OptionSet {
 }
 
 extension VNCKeyCode {
+	public static let capslock = VNCKeyCode(Keysyms.XK_Caps_Lock)
+	public static let shiftlock = VNCKeyCode(Keysyms.XK_Shift_Lock)
+	
 	public static let ansiKeypad0 = VNCKeyCode(Keysyms.XK_KP_0)
 	public static let ansiKeypad1 = VNCKeyCode(Keysyms.XK_KP_1)
 	public static let ansiKeypad2 = VNCKeyCode(Keysyms.XK_KP_2)
@@ -395,18 +398,62 @@ extension VNCKeyCode {
 	public static let ansiKeypad7 = VNCKeyCode(Keysyms.XK_KP_7)
 	public static let ansiKeypad8 = VNCKeyCode(Keysyms.XK_KP_8)
 	public static let ansiKeypad9 = VNCKeyCode(Keysyms.XK_KP_9)
+	
+	public static let f20 = VNCKeyCode(Keysyms.XK_F20)
+	public static let f21 = VNCKeyCode(Keysyms.XK_F21)
+	public static let f22 = VNCKeyCode(Keysyms.XK_F22)
+	public static let f23 = VNCKeyCode(Keysyms.XK_F23)
+	public static let f24 = VNCKeyCode(Keysyms.XK_F24)
+	public static let f25 = VNCKeyCode(Keysyms.XK_F25)
+	public static let f26 = VNCKeyCode(Keysyms.XK_F26)
+	public static let f27 = VNCKeyCode(Keysyms.XK_F27)
+	public static let f28 = VNCKeyCode(Keysyms.XK_F28)
+	public static let f29 = VNCKeyCode(Keysyms.XK_F29)
+	public static let f30 = VNCKeyCode(Keysyms.XK_F30)
+	public static let f31 = VNCKeyCode(Keysyms.XK_F31)
+	public static let f32 = VNCKeyCode(Keysyms.XK_F32)
+	public static let f33 = VNCKeyCode(Keysyms.XK_F33)
+	public static let f34 = VNCKeyCode(Keysyms.XK_F34)
+	public static let f35 = VNCKeyCode(Keysyms.XK_F35)
 }
 
 extension VNCKeyCode {
 	public static let vncSpecialKeyCodeToKeyCodeMapping: [UInt32: CGKeyCode] = [
-		0xFFE5: CGKeyCodes.capsLock,
-		0xFFE6: CGKeyCodes.capsLock,
+		VNCKeyCode.capslock.rawValue: CGKeyCodes.capsLock,
+		VNCKeyCode.shiftlock.rawValue: CGKeyCodes.capsLock,
 		0x1008_FF2B: CGKeyCodes.function,
 
+		VNCKeyCode.shift.rawValue: CGKeyCodes.shift,
+		VNCKeyCode.rightShift.rawValue: CGKeyCodes.rightShift,
+
+		VNCKeyCode.control.rawValue: CGKeyCodes.control,
+		VNCKeyCode.rightControl.rawValue: CGKeyCodes.rightControl,
+
+		VNCKeyCode.option.rawValue: CGKeyCodes.option,
 		VNCKeyCode.optionForARD.rawValue: CGKeyCodes.option,
+		VNCKeyCode.rightOption.rawValue: CGKeyCodes.rightOption,
 		VNCKeyCode.rightOptionForARD.rawValue: CGKeyCodes.rightOption,
+
+		VNCKeyCode.command.rawValue: CGKeyCodes.command,
 		VNCKeyCode.commandForARD.rawValue: CGKeyCodes.command,
+		VNCKeyCode.rightCommand.rawValue: CGKeyCodes.command,
 		VNCKeyCode.rightCommandForARD.rawValue: CGKeyCodes.rightCommand,
+
+		VNCKeyCode.`return`.rawValue: CGKeyCodes.return,
+		VNCKeyCode.forwardDelete.rawValue: CGKeyCodes.forwardDelete,
+		VNCKeyCode.space.rawValue: CGKeyCodes.space,
+		VNCKeyCode.delete.rawValue: CGKeyCodes.delete,
+		VNCKeyCode.tab.rawValue: CGKeyCodes.tab,
+		VNCKeyCode.escape.rawValue: CGKeyCodes.escape,
+		VNCKeyCode.leftArrow.rawValue: CGKeyCodes.leftArrow,
+		VNCKeyCode.upArrow.rawValue: CGKeyCodes.upArrow,
+		VNCKeyCode.rightArrow.rawValue: CGKeyCodes.rightArrow,
+		VNCKeyCode.downArrow.rawValue: CGKeyCodes.downArrow,
+		VNCKeyCode.pageUp.rawValue: CGKeyCodes.pageUp,
+		VNCKeyCode.pageDown.rawValue: CGKeyCodes.pageDown,
+		VNCKeyCode.end.rawValue: CGKeyCodes.end,
+		VNCKeyCode.home.rawValue: CGKeyCodes.home,
+		VNCKeyCode.insert.rawValue: CGKeyCodes.help,
 
 		VNCKeyCode.ansiKeypad0.rawValue: CGKeyCodes.ansiKeypad0,
 		VNCKeyCode.ansiKeypad1.rawValue: CGKeyCodes.ansiKeypad1,
@@ -427,6 +474,27 @@ extension VNCKeyCode {
 		VNCKeyCode.ansiKeypadPlus.rawValue: CGKeyCodes.ansiKeypadPlus,
 		VNCKeyCode.ansiKeypadEnter.rawValue: CGKeyCodes.ansiKeypadEnter,
 		VNCKeyCode.ansiKeypadDecimal.rawValue: CGKeyCodes.ansiKeypadDecimal,
+
+		VNCKeyCode.f1.rawValue: CGKeyCodes.f1,
+		VNCKeyCode.f2.rawValue: CGKeyCodes.f2,
+		VNCKeyCode.f3.rawValue: CGKeyCodes.f3,
+		VNCKeyCode.f4.rawValue: CGKeyCodes.f4,
+		VNCKeyCode.f5.rawValue: CGKeyCodes.f5,
+		VNCKeyCode.f6.rawValue: CGKeyCodes.f6,
+		VNCKeyCode.f7.rawValue: CGKeyCodes.f7,
+		VNCKeyCode.f8.rawValue: CGKeyCodes.f8,
+		VNCKeyCode.f9.rawValue: CGKeyCodes.f9,
+		VNCKeyCode.f10.rawValue: CGKeyCodes.f10,
+		VNCKeyCode.f11.rawValue: CGKeyCodes.f11,
+		VNCKeyCode.f12.rawValue: CGKeyCodes.f12,
+		VNCKeyCode.f13.rawValue: CGKeyCodes.f13,
+		VNCKeyCode.f14.rawValue: CGKeyCodes.f14,
+		VNCKeyCode.f15.rawValue: CGKeyCodes.f15,
+		VNCKeyCode.f16.rawValue: CGKeyCodes.f16,
+		VNCKeyCode.f17.rawValue: CGKeyCodes.f17,
+		VNCKeyCode.f18.rawValue: CGKeyCodes.f18,
+		VNCKeyCode.f19.rawValue: CGKeyCodes.f19,
+		VNCKeyCode.f20.rawValue: CGKeyCodes.f20,
 	]
 
 	public static func to(vncKeyCode: UInt32) -> CGKeyCode? {
@@ -438,7 +506,9 @@ public class VNCKeyMapper: Keymapper {
 	private var currentModifiers: NSEvent.ModifierFlags = NSEvent.ModifierFlags(rawValue: 0x100)
 
 	static func setupKeyMapper() throws {
-		CGKeyCode.Initializers.shared = try CGKeyCode.Initializers.init()
+		if CGKeyCode.Initializers.shared == nil {
+			CGKeyCode.Initializers.shared = try CGKeyCode.Initializers.init()
+		}
 	}
 
 	func setupKeyMapper() throws {
