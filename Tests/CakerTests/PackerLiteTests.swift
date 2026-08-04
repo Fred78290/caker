@@ -10,6 +10,17 @@ import Foundation
 
 final class PackerLiteTests: XCTestCase {
 
+	// MARK: - Keyboard translation
+	func testKeyboardTranslator() {
+		if let translator = PackerLiteDriver.LayoutTranslator("com.apple.keylayout.US") {
+			let translated = translator.translate(char: "A")
+
+			XCTAssertEqual(translated, "Q")
+		} else {
+			XCTFail("Failed to translate char, keyboard not found")
+		}
+	}
+
 	// MARK: - Token parsing
 
 	func testWaitTokenUnits() throws {
