@@ -14,6 +14,10 @@ import Foundation
 import GRPCLib
 import Vision
 
+protocol KeyLayoutTranslator {
+	func translate(char: Character) -> Character?
+}
+
 enum PackerLiteDriverError: Error, LocalizedError {
 	case stepFailed(index: Int, step: BootCommandStep, underlying: Error)
 	case textNotFound(String)
@@ -32,6 +36,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 	private let inputHandler: VNCInputHandler
 	private let targetView: VNCVirtualMachineView
 	private let logger = Logger("PackerLiteDriver")
+	private var currentKeyTranslator: KeyLayoutTranslator = NullLayoutTranslator()
 
 	/// Delay between synthesized key events, so the guest OS doesn't drop rapid-fire input.
 	private static let keyDelayNanoseconds: UInt64 = 30_000_000
@@ -80,6 +85,13 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .clickText(let label):
 			logger.debug("clickText '\(label)'")
 			try await clickText(label)
+		case .keyboard(let layout):
+			logger.debug("keyboard layout \(layout)")
+			if let translator = try? LayoutTranslator(layout) {
+				currentKeyTranslator = translator
+			} else {
+				currentKeyTranslator = NullLayoutTranslator()
+			}
 		}
 	}
 
@@ -145,7 +157,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		// produced by the current layout to the character produced by the same physical
 		// key (and shift state) on a US layout. For non-Unicode keysyms, return as-is.
 		if keysym <= 0x10FFFF, let scalar = UnicodeScalar(keysym) {
-			if let translated = LayoutTranslator.shared.translateToUS(char: Character(scalar)), let value = translated.unicodeScalars.first {
+			if let translated = currentKeyTranslator.translate(char: Character(scalar)), let value = translated.unicodeScalars.first {
 				return UInt32(value)
 			}
 
@@ -156,41 +168,44 @@ final class PackerLiteDriver: @unchecked Sendable {
 		return keysym
 	}
 
-	// MARK: - Keyboard layout translation (current layout -> US)
-	private struct LayoutTranslator {
-		static let shared = LayoutTranslator()
+	private struct NullLayoutTranslator: KeyLayoutTranslator {
+		func translate(char: Character) -> Character? {
+			return char
+		}
+	}
 
+	// MARK: - Keyboard layout translation (current layout -> Foreign)
+	private struct LayoutTranslator: KeyLayoutTranslator {
 		private let currentCharToKey: [Character: (keyCode: UInt16, shifted: Bool)]
-		private let usKeyToChar: [UInt16: (unshifted: Character?, shifted: Character?)]
+		private let currentKeyToChar: [UInt16: (unshifted: Character?, shifted: Character?)]
 
-		private init() {
+		init(_ keyLayout: String = "en") throws {
 			// Build maps once at init time. If the user changes layouts at runtime,
 			// you can re-instantiate this struct.
 			self.currentCharToKey = LayoutTranslator.buildCharToKeyMap(inputSource: TISCopyCurrentKeyboardLayoutInputSource().takeRetainedValue())
-			self.usKeyToChar = LayoutTranslator.buildUSKeyToCharMap()
+			self.currentKeyToChar = try LayoutTranslator.buildKeyToCharMap(keyLayout: keyLayout)
 		}
 
-		func translateToUS(char: Character) -> Character? {
+		func translate(char: Character) -> Character? {
 			// If ASCII, it already matches US layout for our purposes
 			if char.isASCII { return char }
 			guard let (keyCode, shifted) = currentCharToKey[char] else { return nil }
-			guard let entry = usKeyToChar[keyCode] else { return nil }
+			guard let entry = currentKeyToChar[keyCode] else { return nil }
 			return shifted ? entry.shifted ?? entry.unshifted : entry.unshifted ?? entry.shifted
 		}
 
 		// MARK: Mapping builders
-		private static func buildUSKeyToCharMap() -> [UInt16: (unshifted: Character?, shifted: Character?)] {
+		private static func buildKeyToCharMap(keyLayout: String) throws -> [UInt16: (unshifted: Character?, shifted: Character?)] {
 			var map: [UInt16: (unshifted: Character?, shifted: Character?)] = [:]
 
 			// Try to get an English (US) input source first; fall back to current layout if unavailable.
-			let usSourceUnmanaged: Unmanaged<TISInputSource>? = TISCopyInputSourceForLanguage("en" as CFString)
-			let usSource: TISInputSource
+			let usSourceUnmanaged: Unmanaged<TISInputSource>? = TISCopyInputSourceForLanguage(keyLayout as CFString)
 
-			if let unmanaged = usSourceUnmanaged {
-				usSource = unmanaged.takeRetainedValue()
-			} else {
-				usSource = TISCopyCurrentKeyboardLayoutInputSource().takeRetainedValue()
+			guard let unmanaged = TISCopyInputSourceForLanguage(keyLayout as CFString) else {
+				throw NSError(domain: "LayoutTranslator", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not find input source for language \(keyLayout)"])
 			}
+
+			let usSource = unmanaged.takeRetainedValue()
 
 			// Build the key-to-char map for the chosen source.
 			map = buildKeyToCharMap(inputSource: usSource)

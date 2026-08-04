@@ -30,6 +30,8 @@ boot_command:
   - "<wait30s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
   # Written and Spoken Languages
   - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  # Change keyboard
+  - "<keyboard 'en'>"
   # Accessibility
   - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
   # Data & Privacy

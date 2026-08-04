@@ -32,6 +32,8 @@ boot_command:
   - "<wait10s><tab><tab><tab><spacebar><tab><tab><spacebar>"
   # Written and Spoken Languages
   - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  # Change keyboard
+  - "<keyboard 'en'>"
   # Accessibility
   - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
   # Data & Privacy
