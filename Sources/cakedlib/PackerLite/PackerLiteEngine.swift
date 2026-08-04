@@ -106,9 +106,6 @@
 			runMode: Utils.RunMode,
 			progressHandler: @escaping ProgressObserver.BuildProgressHandler
 		) async throws {
-			let logger = Logger("PackerLiteEngine")
-			let steps = try template.parsedBootCommand()
-
 			try await setupKeyMapper()
 
 			progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))

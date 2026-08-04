@@ -28,7 +28,7 @@ boot_command:
   # Written and Spoken Languages
   - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
   # Change keyboard
-  - "<keyboard 'en'>"
+  - "<keyboard 'com.apple.keylayout.US'>"
   # Accessibility
   - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
   # Data & Privacy

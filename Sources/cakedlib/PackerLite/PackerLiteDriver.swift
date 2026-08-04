@@ -18,6 +18,25 @@ protocol KeyLayoutTranslator {
 	func translate(char: Character) -> Character?
 }
 
+extension TISInputSource {
+	func getLocalizedName() -> String? {
+		if let namePtr = TISGetInputSourceProperty(self, kTISPropertyLocalizedName) {
+			let cfName = unsafeBitCast(namePtr, to: CFString.self)
+			return cfName as String
+		}
+		return nil
+	}
+
+	func getSourceID() -> String? {
+		if let sourceIDPtr = TISGetInputSourceProperty(self, kTISPropertyInputSourceID) {
+			let cfSourceID = unsafeBitCast(sourceIDPtr, to: CFString.self)
+			return cfSourceID as String
+		}
+
+		return nil
+	}
+}
+
 enum PackerLiteDriverError: Error, LocalizedError {
 	case stepFailed(index: Int, step: BootCommandStep, underlying: Error)
 	case textNotFound(String)
@@ -108,7 +127,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 	}
 
 	@MainActor private func press(_ keysym: UInt32) async throws {
-		let usKeysym = toUSKeyboard(keysym)
+		let usKeysym = translate(keysym)
 
 		inputHandler.handleKeyEvent(key: usKeysym, isDown: true)
 		inputHandler.handleKeyEvent(key: usKeysym, isDown: false)
@@ -150,9 +169,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 	}
 
-	/// Translates a keysym to its US keyboard equivalent. If no translation is needed, returns the original.
-	/// This is a placeholder that can be expanded with layout-specific remapping as needed.
-	private func toUSKeyboard(_ keysym: UInt32) -> UInt32 {
+	private func translate(_ keysym: UInt32) -> UInt32 {
 		// Use a layout-aware translator based on TIS/UCKeyTranslate to map a character
 		// produced by the current layout to the character produced by the same physical
 		// key (and shift state) on a US layout. For non-Unicode keysyms, return as-is.
@@ -168,51 +185,145 @@ final class PackerLiteDriver: @unchecked Sendable {
 		return keysym
 	}
 
-	private struct NullLayoutTranslator: KeyLayoutTranslator {
+	struct NullLayoutTranslator: KeyLayoutTranslator {
 		func translate(char: Character) -> Character? {
 			return char
 		}
 	}
 
 	// MARK: - Keyboard layout translation (current layout -> Foreign)
-	private struct LayoutTranslator: KeyLayoutTranslator {
+	struct LayoutTranslator: KeyLayoutTranslator {
 		private let currentCharToKey: [Character: (keyCode: UInt16, shifted: Bool)]
 		private let currentKeyToChar: [UInt16: (unshifted: Character?, shifted: Character?)]
+		private let targetCharToKey: [Character: (keyCode: UInt16, shifted: Bool)]
+		private let targetKeyToChar: [UInt16: (unshifted: Character?, shifted: Character?)]
 
-		init(_ keyLayout: String = "en") throws {
-			// Build maps once at init time. If the user changes layouts at runtime,
-			// you can re-instantiate this struct.
-			self.currentCharToKey = LayoutTranslator.buildCharToKeyMap(inputSource: TISCopyCurrentKeyboardLayoutInputSource().takeRetainedValue())
-			self.currentKeyToChar = try LayoutTranslator.buildKeyToCharMap(keyLayout: keyLayout)
+		/// Available keyboard and sourceID
+		/// ABC - com.apple.keylayout.ABC
+		/// ABC – AZERTY - com.apple.keylayout.ABC-AZERTY
+		/// ABC – QWERTZ - com.apple.keylayout.ABC-QWERTZ
+		/// Allemand - com.apple.keylayout.German
+		/// Américain - com.apple.keylayout.US
+		/// Australien - com.apple.keylayout.Australian
+		/// Autrichien - com.apple.keylayout.Austrian
+		/// Belge - com.apple.keylayout.Belgian
+		/// Biélorusse - com.apple.keylayout.Byelorussian
+		/// Brésilien - com.apple.keylayout.Brazilian-Pro
+		/// Brésilien – ABNT2 - com.apple.keylayout.Brazilian-ABNT2
+		/// Brésilien – Ancien clavier - com.apple.keylayout.Brazilian
+		/// Britannique - com.apple.keylayout.British
+		/// Britannique – PC - com.apple.keylayout.British-PC
+		/// Bulgare – QWERTY - com.apple.keylayout.Bulgarian-Phonetic
+		/// Bulgare – Standard - com.apple.keylayout.Bulgarian
+		/// Canadien - com.apple.keylayout.Canadian
+		/// Canadien – CSA - com.apple.keylayout.Canadian-CSA
+		/// Canadien – PC - com.apple.keylayout.CanadianFrench-PC
+		/// Colemak - com.apple.keylayout.Colemak
+		/// com.apple.PressAndHold - com.apple.PressAndHold
+		/// Danois - com.apple.keylayout.Danish
+		/// Dvorak - com.apple.keylayout.Dvorak
+		/// Dvorak – Droitier - com.apple.keylayout.Dvorak-Right
+		/// Dvorak – Gaucher - com.apple.keylayout.Dvorak-Left
+		/// Dvorak – QWERTY ⌘ - com.apple.keylayout.DVORAK-QWERTYCMD
+		/// Emoji et symboles - com.apple.CharacterPaletteIM
+		/// Espagnol - com.apple.keylayout.Spanish-ISO
+		/// Espagnol – Ancien clavier - com.apple.keylayout.Spanish
+		/// Estonien - com.apple.keylayout.Estonian
+		/// Finnois - com.apple.keylayout.Finnish
+		/// Français - com.apple.keylayout.French
+		/// Français – Numérique - com.apple.keylayout.French-numerical
+		/// Français – PC - com.apple.keylayout.French-PC
+		/// Hongrois - com.apple.keylayout.Hungarian
+		/// Hongrois – QWERTY - com.apple.keylayout.Hungarian-QWERTY
+		/// Irlandais - com.apple.keylayout.Irish
+		/// Italien - com.apple.keylayout.Italian-Pro
+		/// Italien – QZERTY - com.apple.keylayout.Italian
+		/// Kana - com.apple.keylayout.KANA
+		/// Letton - com.apple.keylayout.Latvian
+		/// Lituanien – ĄŽERTY - com.apple.keylayout.Lithuanian-LST1582
+		/// Lituanien – QWERTY - com.apple.keylayout.Lithuanian
+		/// Macédonien - com.apple.keylayout.Macedonian
+		/// Néerlandais - com.apple.keylayout.Dutch
+		/// Norvégien - com.apple.keylayout.Norwegian
+		/// Polonais - com.apple.keylayout.PolishPro
+		/// Polonais – QWERTZ - com.apple.keylayout.Polish
+		/// Portugais - com.apple.keylayout.Portuguese
+		/// Russe - com.apple.keylayout.Russian
+		/// Russe – PC - com.apple.keylayout.RussianWin
+		/// Russe – QWERTY - com.apple.keylayout.Russian-Phonetic
+		/// Serbe - com.apple.keylayout.Serbian
+		/// Slovaque - com.apple.keylayout.Slovak
+		/// Slovaque – QWERTY - com.apple.keylayout.Slovak-QWERTY
+		/// Suédois - com.apple.keylayout.Swedish-Pro
+		/// Suédois – Ancien clavier - com.apple.keylayout.Swedish
+		/// Suisse allemand - com.apple.keylayout.SwissGerman
+		/// Suisse romand - com.apple.keylayout.SwissFrench
+		/// Tchèque - com.apple.keylayout.Czech
+		/// Tchèque – QWERTY - com.apple.keylayout.Czech-QWERTY
+		/// Tongan - com.apple.keylayout.Tongan
+		/// Ukrainien - com.apple.keylayout.Ukrainian-PC
+		/// Ukrainien – Ancien clavier - com.apple.keylayout.Ukrainian
+		/// US International – PC - com.apple.keylayout.USInternational-PC
+
+		static func getNamedInputSource(_ nameOrSourceID: String) -> TISInputSource? {
+			guard let unmanagedList = TISCreateInputSourceList(nil, true) else {
+				return nil
+			}
+			let array = (unmanagedList.takeRetainedValue() as [AnyObject]).map { unsafeBitCast($00, to: TISInputSource.self) }
+
+			for source in array {
+				let name = source.getLocalizedName()
+				let sourceID = source.getSourceID()
+
+				#if TRACE
+					print("\(name ?? "<no name>") - \(sourceID ?? "<no id>")")
+				#endif
+
+				if name == nameOrSourceID || source.getSourceID() == nameOrSourceID {
+					return source
+				}
+			}
+
+			return nil
+		}
+
+		init?(_ keyLayout: String = "com.apple.keylayout.US") {
+			// Build maps once at init time. If the user changes layouts at runtime, you can re-instantiate this struct.
+			guard let targetKeyboard = Self.getNamedInputSource(keyLayout) else {
+				return nil
+			}
+
+			let currentKeyboard = TISCopyCurrentKeyboardLayoutInputSource().takeRetainedValue()
+
+			self.currentCharToKey = LayoutTranslator.buildCharToKeyMap(inputSource: currentKeyboard)
+			self.currentKeyToChar = LayoutTranslator.buildKeyToCharMap(keyLayout: currentKeyboard)
+
+			self.targetCharToKey = LayoutTranslator.buildCharToKeyMap(inputSource: targetKeyboard)
+			self.targetKeyToChar = LayoutTranslator.buildKeyToCharMap(keyLayout: targetKeyboard)
 		}
 
 		func translate(char: Character) -> Character? {
-			// If ASCII, it already matches US layout for our purposes
-			if char.isASCII { return char }
-			guard let (keyCode, shifted) = currentCharToKey[char] else { return nil }
-			guard let entry = currentKeyToChar[keyCode] else { return nil }
+			guard let (keyCode, shifted) = currentCharToKey[char] else {
+				return nil
+			}
+
+			guard let entry = targetKeyToChar[keyCode] else {
+				return nil
+			}
+
 			return shifted ? entry.shifted ?? entry.unshifted : entry.unshifted ?? entry.shifted
 		}
 
 		// MARK: Mapping builders
-		private static func buildKeyToCharMap(keyLayout: String) throws -> [UInt16: (unshifted: Character?, shifted: Character?)] {
+		private static func buildKeyToCharMap(keyLayout: TISInputSource) -> [UInt16: (unshifted: Character?, shifted: Character?)] {
 			var map: [UInt16: (unshifted: Character?, shifted: Character?)] = [:]
 
-			// Try to get an English (US) input source first; fall back to current layout if unavailable.
-			let usSourceUnmanaged: Unmanaged<TISInputSource>? = TISCopyInputSourceForLanguage(keyLayout as CFString)
-
-			guard let unmanaged = TISCopyInputSourceForLanguage(keyLayout as CFString) else {
-				throw NSError(domain: "LayoutTranslator", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not find input source for language \(keyLayout)"])
-			}
-
-			let usSource = unmanaged.takeRetainedValue()
-
 			// Build the key-to-char map for the chosen source.
-			map = buildKeyToCharMap(inputSource: usSource)
+			map = buildKeyToCharMap(inputSource: keyLayout)
 
 			// Keep the Unicode layout data (if any) referenced for the duration of this scope.
-			if let layoutData = TISGetInputSourceProperty(usSource, kTISPropertyUnicodeKeyLayoutData) {
-				_ = layoutData
+			if let layoutData = TISGetInputSourceProperty(keyLayout, kTISPropertyUnicodeKeyLayoutData) {
+				_ = unsafeBitCast(layoutData, to: CFData.self)
 			}
 
 			return map
@@ -223,35 +334,34 @@ final class PackerLiteDriver: @unchecked Sendable {
 			let keyToChar = buildKeyToCharMap(inputSource: inputSource)
 
 			for (keyCode, pair) in keyToChar {
-				if let c = pair.unshifted { result[c] = (keyCode, false) }
-				if let c = pair.shifted { result[c] = (keyCode, true) }
+				if let c = pair.unshifted {
+					result[c] = (keyCode: keyCode, shifted: false)
+				}
+
+				if let c = pair.shifted {
+					result[c] = (keyCode: keyCode, shifted: true)
+				}
 			}
 
 			return result
 		}
 
 		private static func buildKeyToCharMap(inputSource: TISInputSource) -> [UInt16: (unshifted: Character?, shifted: Character?)] {
-			guard let layoutData = TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData) else {
+			guard let layoutDataPtr = TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData) else {
 				return [:]
 			}
-
-			let dataRef = unsafeBitCast(layoutData, to: CFData.self)
-
-			guard let bytes = CFDataGetBytePtr(dataRef) else {
-				return [:]
-			}
-
-			// Rebind the CFData bytes to UCKeyboardLayout safely for the duration of this scope.
-			return UnsafePointer(bytes).withMemoryRebound(to: UCKeyboardLayout.self, capacity: 1) { keyboardLayoutPtr in
+			let layoutData = unsafeBitCast(layoutDataPtr, to: CFData.self)
+			let length = CFDataGetLength(layoutData)
+			if length == 0 { return [:] }
+			return CFDataGetBytePtr(layoutData).withMemoryRebound(to: UCKeyboardLayout.self, capacity: 1) { keyboardLayoutPtr in
 				var localMap: [UInt16: (Character?, Character?)] = [:]
-
 				for keyCode in 0...127 {
-					if let unshifted = translate(keyCode: UInt16(keyCode), shift: false, keyboardLayout: keyboardLayoutPtr),
-					   let shifted = translate(keyCode: UInt16(keyCode), shift: true, keyboardLayout: keyboardLayoutPtr) {
+					let unshifted = translate(keyCode: UInt16(keyCode), shift: false, keyboardLayout: keyboardLayoutPtr)
+					let shifted = translate(keyCode: UInt16(keyCode), shift: true, keyboardLayout: keyboardLayoutPtr)
+					if unshifted != nil || shifted != nil {
 						localMap[UInt16(keyCode)] = (unshifted, shifted)
 					}
 				}
-
 				return localMap
 			}
 		}
@@ -358,4 +468,3 @@ final class PackerLiteDriver: @unchecked Sendable {
 		return result
 	}
 }
-
