@@ -177,6 +177,35 @@ boot_command:
 
 Voir `templates/macos/*.packerlite.yaml` (source des templates intégrés) pour des exemples complets et entièrement commentés.
 
+<a name="provision-fr"></a>
+### `caked provision` : relancer le provisioning de façon autonome
+
+`caked build`/`create` ne pilote PackerLite automatiquement que si l'installation `.ipsw` a utilisé `--autoinstall`. Pour une VM macOS dont le provisioning a été sauté au moment du build — ou dont l'installation de l'IPSW est antérieure à `--autoinstall` — `caked provision <vm>` relance la même automatisation du Setup Assistant directement sur une VM déjà construite. C'est une commande propre à `caked` (pas encore exposée via `cakectl`/gRPC) ; elle doit être exécutée sur l'hôte où résident les fichiers de la VM.
+
+Elle s'appuie sur l'état déjà stocké de la VM plutôt que sur l'`.ipsw` d'origine :
+
+- La version macOS provient de `CakeConfig.osRelease` — enregistrée automatiquement à chaque build `.ipsw` — sauf si `--macos-version` la surcharge.
+- Les identifiants du compte proviennent du `--user`/`--password` propre à la VM (`configuredUser`/`configuredPassword`), exactement comme au moment du build.
+
+```bash
+# Reprovisionner une VM avec sa version macOS et ses identifiants stockés
+caked provision my-vm
+
+# Forcer la version macOS résolue
+caked provision my-vm --macos-version tahoe
+
+# Utiliser un template personnalisé
+caked provision my-vm --template ./mon-template.packerlite.yaml
+```
+
+| Option | Description |
+| --- | --- |
+| `--template <chemin>` | Template YAML PackerLite personnalisé ; contourne la version macOS stockée par la VM. |
+| `--macos-version <monterey\|ventura\|sonoma\|sequoia\|tahoe\|goldengate>` | Version macOS à utiliser pour choisir le template intégré, à la place de l'`osRelease` stocké par la VM. |
+| `--var <clé=valeur>` | Définit une variable de template (`${var.clé}`), répétable. |
+
+`caked provision` refuse de s'exécuter si la VM n'est pas macOS, si elle tourne actuellement, ou si elle a déjà été provisionnée — le Setup Assistant ne s'exécute qu'au premier démarrage, donc relancer PackerLite sur une VM déjà provisionnée resterait bloqué à attendre des écrans qui n'apparaissent plus.
+
 ## Notes
 
 - Certaines commandes sont internes ou masquées dans la sortie d'aide de `caked` (`vmrun`, certaines sous-commandes `networks`).
@@ -579,6 +608,35 @@ boot_command:
 ```
 
 See `templates/macos/*.packerlite.yaml` (source of the built-in templates) for full, fully-commented examples.
+
+<a name="provision"></a>
+### `caked provision`: re-running Setup Assistant provisioning standalone
+
+`caked build`/`create` only drives PackerLite automatically when the `.ipsw` install used `--autoinstall`. For a macOS VM that skipped provisioning at build time — or whose IPSW install predates `--autoinstall` — `caked provision <vm>` re-runs the same unattended Setup Assistant automation directly against an already-built VM. It is a `caked`-only command (not currently wired through `cakectl`/gRPC) and must be run on the host where the VM's files live.
+
+It uses the VM's own stored state instead of the original `.ipsw`:
+
+- The macOS version comes from `CakeConfig.osRelease` — recorded automatically on every `.ipsw` build — unless overridden with `--macos-version`.
+- The account credentials come from the VM's own `--user`/`--password` (`configuredUser`/`configuredPassword`), exactly as at build time.
+
+```bash
+# Re-provision a VM using its stored macOS version and credentials
+caked provision my-vm
+
+# Override the resolved macOS version
+caked provision my-vm --macos-version tahoe
+
+# Use a custom template
+caked provision my-vm --template ./my-template.packerlite.yaml
+```
+
+| Option | Description |
+| --- | --- |
+| `--template <path>` | Custom PackerLite YAML template; overrides the VM's stored macOS version. |
+| `--macos-version <monterey\|ventura\|sonoma\|sequoia\|tahoe\|goldengate>` | macOS version to use for picking the built-in template, overriding the VM's stored `osRelease`. |
+| `--var <key=value>` | Sets a template variable (`${var.key}`), repeatable. |
+
+`caked provision` refuses to run if the VM isn't macOS, is currently running, or has already been provisioned — Setup Assistant only runs on first boot, so re-running against an already-provisioned VM would just hang waiting for screens that no longer appear.
 
 ## Notes
 

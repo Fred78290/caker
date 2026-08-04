@@ -6,10 +6,10 @@ import GRPCLib
 
 /// Drives an already-installed macOS VM's Setup Assistant unattended via PackerLite — the same
 /// engine `caked build`/`create` run automatically for `.ipsw` sources with `--autoinstall`, exposed
-/// here as a standalone step for VMs that skipped it at build time (or need it re-run). Internal to
-/// `caked` only, mirroring `vmrun`'s shape — not wired through gRPC/cakectl.
-struct PackerLiteRun: AsyncParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "packerlite", abstract: String(localized: "Drive a macOS VM's Setup Assistant unattended via PackerLite"), shouldDisplay: false)
+/// here as a standalone step for VMs that skipped it at build time (or need it re-run). Run directly
+/// against `caked` on the host where the VM lives — not currently wired through gRPC/cakectl.
+struct Provision: AsyncParsableCommand {
+	static let configuration = CommandConfiguration(commandName: "provision", abstract: String(localized: "Drive a macOS VM's Setup Assistant unattended via PackerLite"), discussion: String(localized: "Re-runs the same unattended Setup Assistant automation that `build`/`create` drive automatically for .ipsw sources with --autoinstall — for a VM that skipped it at build time. Uses the VM's stored macOS version and account credentials; fails if the VM isn't macOS, is currently running, or has already been provisioned."))
 
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
