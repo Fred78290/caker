@@ -418,8 +418,9 @@ message Caked {
     optional bytes ecid          = 42;
     optional bytes hardwareModel = 43;
   // Optional root disk path for the VM, if applicable
-    optional string     rootDisk   = 44;
-    optional DiskFormat diskFormat = 45;
+    optional string     rootDisk    = 44;
+    optional DiskFormat diskFormat  = 45;
+    bool                provisioned = 46;
   }
 
   message ScreenSize {

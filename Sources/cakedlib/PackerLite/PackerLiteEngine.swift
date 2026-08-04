@@ -27,6 +27,79 @@
 		}
 
 		public static func provision(
+			vm: VirtualMachine,
+			template: PackerLiteTemplate,
+			runningIP: String?,
+			runMode: Utils.RunMode,
+			progressHandler: @escaping ProgressObserver.BuildProgressHandler
+		) async throws {
+			let location = vm.location
+			let config = vm.config
+			let logger = Logger("PackerLiteEngine")
+			let steps = try template.parsedBootCommand()
+
+			try await setupKeyMapper()
+
+			progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
+
+			guard let view = vm.vzMachineView else {
+				throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
+			}
+
+			logger.info("VM \(location.name) started for provisioning")
+
+			let driver = PackerLiteDriver(targetView: view)
+
+			try await withThrowingTaskGroup(of: Void.self) { group in
+				let grp = group
+				let onCancel = {
+					grp.cancelAll()
+				}
+
+				try await withTaskCancellationHandler(
+					operation: {
+						group.addTask {
+							let context = ProgressObserver.ProgressHandlerContext()
+							var count = 0
+
+							progressHandler(.progress(context, 0))
+
+							for stepList in steps {
+								count += 1
+
+								try await driver.run(steps: stepList)
+
+								progressHandler(.progress(context, Double(count) / Double(steps.count)))
+							}
+
+							if let runningIP, runningIP.isEmpty == false {
+								progressHandler(.step(String(localized: "Install agent…")))
+
+								_ = try await location.installAgent(updateAgent: true, config: config, runningIP: runningIP, runMode: runMode)
+							}
+						}
+
+						group.addTask {
+							try await Task.sleep(nanoseconds: UInt64(template.resolvedBootTimeout * 1_000_000_000))
+
+							throw ServiceError(String(localized: "Provisioning timed out after \(Int(template.resolvedBootTimeout))s"))
+						}
+
+						try await group.next()
+						group.cancelAll()
+					},
+					onCancel: {
+						onCancel()
+					})
+			}
+
+			progressHandler(.step(String(localized: "Provisioning done")))
+
+			config.provisioned = true
+			try config.save()
+		}
+
+		public static func provision(
 			location: VMLocation,
 			config: CakeConfig,
 			template: PackerLiteTemplate,
@@ -48,10 +121,6 @@
 				return vm
 			}
 
-			guard let view = vm.vzMachineView else {
-				throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
-			}
-
 			#if DEBUG
 				let id = UUID()
 				Self.provisioned[id] = vm
@@ -66,74 +135,30 @@
 				}
 			#endif
 
-			try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+			let runningIP = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
 				vm.startVM { result in
 					switch result {
-					case .success: continuation.resume()
-					case .failure(let error): continuation.resume(throwing: error)
+					case .success:
+						do {
+							let runningIP = try location.waitIP(wait: 120, runMode: runMode)
+
+							continuation.resume(returning: runningIP)
+						} catch {
+							continuation.resume(throwing: error)
+						}
+					case .failure(let error):
+						continuation.resume(throwing: error)
 					}
 				}
 			}
-
-			logger.info("VM \(location.name) started for provisioning, waiting \(template.resolvedCreateGraceTime)s before driving boot_command")
-
-			try await Task.sleep(nanoseconds: UInt64(max(template.resolvedCreateGraceTime, 0) * 1_000_000_000))
-
-			let driver = PackerLiteDriver(targetView: view)
 
 			do {
-				try await withThrowingTaskGroup(of: Void.self) { group in
-					let grp = group
-					let onCancel = {
-						grp.cancelAll()
-					}
-
-					try await withTaskCancellationHandler(
-						operation: {
-							group.addTask {
-								let context = ProgressObserver.ProgressHandlerContext()
-								var count = 0
-
-								progressHandler(.progress(context, 0))
-
-								for stepList in steps {
-									count += 1
-
-									try await driver.run(steps: stepList)
-
-									progressHandler(.progress(context, Double(count) / Double(steps.count)))
-								}
-							}
-
-							group.addTask {
-								try await Task.sleep(nanoseconds: UInt64(template.resolvedBootTimeout * 1_000_000_000))
-
-								throw ServiceError(String(localized: "Provisioning timed out after \(Int(template.resolvedBootTimeout))s"))
-							}
-
-							try await group.next()
-							group.cancelAll()
-						},
-						onCancel: {
-							onCancel()
-						})
-				}
-			} catch {
-				logger.error("Provisioning failed for VM \(location.name): \(error)")
-
+				try await Self.provision(vm: vm, template: template, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
 				await shutdown(vm)
-
+			} catch {
+				await shutdown(vm)
 				throw error
 			}
-
-			progressHandler(.step(String(localized: "Provisioning finished, shutting down…")))
-
-			await shutdown(vm)
-
-			config.provisioned = true
-			try config.save()
-
-			progressHandler(.step(String(localized: "Provisioning done")))
 		}
 
 		private static func shutdown(_ vm: VirtualMachine) async {

@@ -502,6 +502,12 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		ByteCountFormatter.string(fromByteCount: Int64(self.diskSize), countStyle: .file)
 	}
 
+	var provisioned: Bool {
+		didSet {
+			changedFields?.insert(\.provisioned)
+		}
+	}
+
 	var humanReadableMemorySize: String {
 		ByteCountFormatter.string(fromByteCount: Int64(self.memorySize), countStyle: .memory)
 	}
@@ -538,6 +544,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.autoinstall = false
 		self.firstLaunch = true
 		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
+		self.provisioned = false
 
 		if FileManager.default.fileExists(atPath: "~/.ssh/id_rsa.pub".expandingTildeInPath) {
 			self.sshPrivateKeyPath = "~/.ssh/id_rsa"
@@ -596,6 +603,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.vncPassword = config.vncPassword
 		self.ecid = config.ecid
 		self.hardwareModel = config.hardwareModel
+		self.provisioned = config.provisioned
 		self.changedFields = Set<PartialKeyPath<Self>>()
 	}
 

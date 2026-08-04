@@ -347,6 +347,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var vncPassword: String?
 	public var ecid: Data?
 	public var hardwareModel: Data?
+	public var provisioned: Bool
 
 	public init(_ from: VirtualMachineConfiguration) {
 		// Map fields directly when available on `from`. For fields not present, use safe defaults.
@@ -396,6 +397,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.vncPassword = from.vncPassword
 		self.ecid = from.ecid
 		self.hardwareModel = from.hardwareModel
+		self.provisioned = from.provisioned
 	}
 
 	public init(_ from: Caked.Configuration) {
@@ -462,6 +464,8 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		if from.hasHardwareModel {
 			self.hardwareModel = from.hardwareModel
 		}
+		
+		self.provisioned = from.provisioned
 	}
 }
 

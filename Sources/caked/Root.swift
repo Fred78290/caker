@@ -1,18 +1,17 @@
 import ArgumentParser
+import CakeAgentLib
 import CakedLib
 import Darwin
 import Foundation
 import GRPC
 import GRPCLib
-import NIO
-import CakeAgentLib
-import CakedLib
 import Logging
+import NIO
 
 struct CommonOptions: ParsableArguments {
 	@Option(name: [.customLong("log-level")], help: ArgumentHelp(String(localized: "Log level")))
 	var logLevel: CakeAgentLib.Logger.LogLevel = .info
-	
+
 	@Option(help: ArgumentHelp(String(localized: "Cake home path"), visibility: .hidden))
 	var home: String? = nil
 
@@ -21,21 +20,23 @@ struct CommonOptions: ParsableArguments {
 
 	@Flag(help: ArgumentHelp(String(localized: "Output format: text or json")))
 	var format: Format = .text
-	
+
 	@Flag(
 		name: [.customLong("system"), .customShort("s")],
-		help: ArgumentHelp(String(localized: "Act as system agent, need sudo"), discussion: String(localized: "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service"), visibility: .hidden))
+		help: ArgumentHelp(
+			String(localized: "Act as system agent, need sudo"),
+			discussion: String(localized: "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service"), visibility: .hidden))
 	var asSystem: Bool = false
-	
+
 	var runMode: Utils.RunMode {
 		self.asSystem ? .system : .user
 	}
-	
+
 	func validate() throws {
 		Logger.setLevel(self.logLevel)
-		
+
 		Utils.RunMode.current = self.runMode
-		
+
 		if self.sandbox {
 			Bundle.isApplicationSandboxed = true
 		}
@@ -72,17 +73,17 @@ struct Root: ParsableCommand {
 
 	private static func discussion() -> String {
 		#if XDEBUG
-		print("wait for attachement of the debugger (lldb attach \(getpid())) and press enter to continue...")
-		_ = readLine()
+			print("wait for attachement of the debugger (lldb attach \(getpid())) and press enter to continue...")
+			_ = readLine()
 		#endif
-		
+
 		let vmNetworking: Bool = CakedLib.NetworksHandler.hasVMNetEntitlement
 
 		return "Caked \(CI.version) - " + String(localized: "Hypervisor running VM on macOS with a focus on security, performance and integration, with vmnet networking: \(vmNetworking ? "true" : "false")")
 	}
 
 	nonisolated(unsafe)
-	static var configuration = CommandConfiguration(
+		static var configuration = CommandConfiguration(
 			commandName: "\(Home.cakedCommandName)",
 			usage: "\(Home.cakedCommandName) <subcommand>",
 			discussion: discussion(),
@@ -102,7 +103,6 @@ struct Root: ParsableCommand {
 				ListObjects.self,
 				Mount.self,
 				Networks.self,
-				Provision.self,
 				Purge.self,
 				Remote.self,
 				Rename.self,
@@ -130,7 +130,7 @@ struct Root: ParsableCommand {
 				Convert.self,
 				Sandbox.self,
 				Compose.self,
-				CakeHome.self
+				CakeHome.self,
 			])
 
 	static func parse() throws -> ParsableCommand? {
@@ -146,7 +146,6 @@ struct Root: ParsableCommand {
 		}
 	}
 
-	
 	private static func tryForkCommand() throws -> Bool {
 		var arguments: [String] = []
 
@@ -155,7 +154,7 @@ struct Root: ParsableCommand {
 		}
 
 		arguments.append(contentsOf: CommandLine.arguments.dropFirst())
-		
+
 		guard arguments.first == "fork" else {
 			return false
 		}
@@ -181,6 +180,10 @@ struct Root: ParsableCommand {
 	}
 
 	public static func main() async throws {
+		#if arch(arm64)
+			self.configuration.subcommands.append(Provision.self)
+		#endif
+
 		if try tryForkCommand() {
 			return
 		}
@@ -228,4 +231,3 @@ struct Root: ParsableCommand {
 		}
 	}
 }
-

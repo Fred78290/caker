@@ -594,6 +594,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		self.vncPassword = config.vncPassword
 		self.ecid = config.ecid
 		self.hardwareModel = config.hardwareModel
+		self.provisioned = config.provisioned
 	}
 
 	public func save() throws {
@@ -705,7 +706,11 @@ extension VirtualMachineConfiguration {
 			return false
 		}
 
-		if source == .iso || source == .ipsw {
+		if source == .ipsw {
+			return self.provisioned
+		}
+
+		if source == .iso {
 			return true
 		}
 

@@ -19,10 +19,8 @@ create_grace_time: 30s
 boot_timeout: 45m
 
 boot_command:
-  # hello, hola, bonjour, etc.
-  - "<wait60s><spacebar>"
   # Language: switch to another language first, then back to English, so we land on "English" rather than "English (UK)" — see vanilla-sequoia for the full note.
-  - "<wait30s>italiano<esc>english<enter>"
+  - "<wait10s>italiano<esc>english<enter>"
   # Select Your Country or Region
   - "<wait60s><click 'Select Your Country or Region'><wait5s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
   # Transfer Your Data to This Mac
@@ -34,7 +32,7 @@ boot_command:
   # Data & Privacy
   - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
   # Create a Mac Account
-  - "<wait10s><tab><tab><tab><tab><tab><tab>Managed via Tart<tab>${var.username}<tab>${var.password}<tab>${var.password}<tab><tab><spacebar><tab><tab><spacebar>"
+  - "<wait10s><tab><tab><tab><tab><tab><tab>Managed via Caker<tab>${var.username}<tab>${var.password}<tab>${var.password}<tab><tab><spacebar><tab><tab><spacebar>"
   # Enable Voice Over
   - "<wait120s><leftAltOn><f5><leftAltOff>"
   # Sign In with Your Apple ID

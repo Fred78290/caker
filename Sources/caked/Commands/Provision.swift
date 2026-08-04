@@ -1,15 +1,19 @@
 import ArgumentParser
+import Combine
 import CakedLib
 import CakeAgentLib
 import Foundation
 import GRPCLib
+import AppKit
 
 /// Drives an already-installed macOS VM's Setup Assistant unattended via PackerLite — the same
 /// engine `caked build`/`create` run automatically for `.ipsw` sources with `--autoinstall`, exposed
 /// here as a standalone step for VMs that skipped it at build time (or need it re-run). Run directly
 /// against `caked` on the host where the VM lives — not currently wired through gRPC/cakectl.
 struct Provision: AsyncParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "provision", abstract: String(localized: "Drive a macOS VM's Setup Assistant unattended via PackerLite"), discussion: String(localized: "Re-runs the same unattended Setup Assistant automation that `build`/`create` drive automatically for .ipsw sources with --autoinstall — for a VM that skipped it at build time. Uses the VM's stored macOS version and account credentials; fails if the VM isn't macOS, is currently running, or has already been provisioned."))
+	static let configuration = CommandConfiguration(commandName: "provision",
+													abstract: String(localized: "Drive a macOS VM's Setup Assistant unattended via PackerLite"),
+													discussion: String(localized: "Re-runs the same unattended Setup Assistant automation that `build`/`create` drive automatically for .ipsw sources with --autoinstall — for a VM that skipped it at build time. Uses the VM's stored macOS version and account credentials; fails if the VM isn't macOS, is currently running, or has already been provisioned."))
 
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
@@ -67,59 +71,102 @@ struct Provision: AsyncParsableCommand {
 		}
 	}
 
+	@MainActor
 	func run() async throws {
-		#if arch(arm64)
-			let (_, location) = self.locations
-			let config = try location.config()
-			let logger = Logger(self)
-			let runMode = self.common.runMode
+		let (storageLocation, location) = self.locations
+		let config = try location.config()
+		let displaySize = config.display.cgSize
 
-			// Prefer an explicit --macos-version override; otherwise fall back to whatever `build`
-			// already detected and stored in config.osRelease (see VMBuilder.swift).
-			let explicitMacOSVersion: CakedLib.MacOSVersion? =
-				self.macosVersion.flatMap { CakedLib.MacOSVersion(rawValue: $0.rawValue) } ?? config.osRelease.flatMap { CakedLib.MacOSVersion(rawValue: $0) }
+		if case .running = location.status {
+			throw ServiceError(String(localized: "The VM is already running"))
+		}
 
-			// No real IPSW file at hand for an already-installed VM — filename-based detection is a
-			// no-op here, so this resolves purely from --template / the version determined above.
-			let content = try PackerLiteTemplateResolver.resolve(
-				explicitPath: self.template,
-				explicitVersion: explicitMacOSVersion,
-				ipswURL: URL(fileURLWithPath: "\(location.name).ipsw"))
+		let runMode = self.common.runMode
+		let handler = CakedLib.VMRunHandler(
+			mode: .grpc,
+			storageLocation: storageLocation,
+			location: location,
+			name: location.name,
+			display: .ui,
+			config: config,
+			screenSize: displaySize,
+			vncPassword: "",
+			vncPort: 0,
+			recoveryMode: false,
+			runMode: runMode)
 
-			// The VM's account is already fully determined by its stored configuredUser/configuredPassword
-			// — reuse it here instead of letting the template declare its own, so there's exactly one
-			// source of truth, same as the automatic build-time path.
-			var variables = Dictionary(uniqueKeysWithValues: self.vars.compactMap { entry -> (String, String)? in
-				guard let separatorIndex = entry.firstIndex(of: "=") else { return nil }
+		struct DoProvision: Cancellable {
+			let task: Task<Void, Error>
 
-				let key = String(entry[..<separatorIndex])
-				let value = String(entry[entry.index(after: separatorIndex)...])
-
-				return (key, value)
-			})
-
-			variables["username"] = config.configuredUser
-			variables["password"] = config.configuredPassword ?? "admin"
-
-			let parsedTemplate = try PackerLiteTemplate.load(from: content, variables: variables)
-
-			try await PackerLiteEngine.provision(location: location, config: config, template: parsedTemplate, runMode: runMode) { progress in
-				switch progress {
-					case .step(let message):
-						logger.info(message)
-					case .progress:
-						break
-					case .terminated(let result, let message):
-						switch result {
-							case .success:
-								logger.info(message ?? "Provisioning finished")
-							case .failure(let error):
-								logger.error("Provisioning failed: \(error)")
-						}
-				}
+			func cancel() {
+				task.cancel()
 			}
-		#else
-			throw ServiceError(String(localized: "macOS VMs are only supported on Apple Silicon Macs"))
-		#endif
+		}
+
+		try handler.run { address, vm in
+			let logger = Logger(self)
+
+			address.whenSuccess { ip in
+				if let ip {
+					logger.info("VM Machine \(location.name) is now available at \(ip)")
+				}
+				
+				MainApp.cancellation = DoProvision(task: Task {
+					defer {
+						vm.stopVM { _ in
+							DispatchQueue.main.async {
+								NSApp.terminate(self)
+							}
+						}
+					}
+
+					do {
+						try await provision(vm, runningIP: ip)
+					} catch {
+						logger.error("Provisioning failed for VM \(location.name): \(error)")
+					}					
+				})
+			}
+
+			vm.createVirtualMachineView()
+
+			MainApp.runUI(vm, params: handler, cancellation: nil)
+		}
+	}
+
+	private func provision(_ vm: VirtualMachine, runningIP: String?) async throws {
+		let location = vm.location
+		let config = vm.config
+
+		// Prefer an explicit --macos-version override; otherwise fall back to whatever `build`
+		// already detected and stored in config.osRelease (see VMBuilder.swift).
+		let explicitMacOSVersion: CakedLib.MacOSVersion? =
+			self.macosVersion.flatMap { CakedLib.MacOSVersion(rawValue: $0.rawValue) } ?? config.osRelease.flatMap { CakedLib.MacOSVersion(rawValue: $0) }
+
+		// No real IPSW file at hand for an already-installed VM — filename-based detection is a
+		// no-op here, so this resolves purely from --template / the version determined above.
+		let content = try PackerLiteTemplateResolver.resolve(
+			explicitPath: self.template,
+			explicitVersion: explicitMacOSVersion,
+			ipswURL: URL(fileURLWithPath: "\(location.name).ipsw"))
+
+		// The VM's account is already fully determined by its stored configuredUser/configuredPassword
+		// — reuse it here instead of letting the template declare its own, so there's exactly one
+		// source of truth, same as the automatic build-time path.
+		var variables = Dictionary(uniqueKeysWithValues: self.vars.compactMap { entry -> (String, String)? in
+			guard let separatorIndex = entry.firstIndex(of: "=") else { return nil }
+
+			let key = String(entry[..<separatorIndex])
+			let value = String(entry[entry.index(after: separatorIndex)...])
+
+			return (key, value)
+		})
+
+		variables["username"] = config.configuredUser
+		variables["password"] = config.configuredPassword ?? "admin"
+
+		let parsedTemplate = try PackerLiteTemplate.load(from: content, variables: variables)
+
+		try await PackerLiteEngine.provision(vm: vm, template: parsedTemplate, runningIP: runningIP, runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)
 	}
 }

@@ -282,6 +282,7 @@ public protocol VirtualMachineConfiguration {
 	var vncPassword: String? { set get }
 	var ecid: Data? /*VZMacMachineIdentifier*/ { set get }
 	var hardwareModel: Data? /*VZMacHardwareModel?*/ { set get }
+	var provisioned: Bool { set get }
 }
 
 extension Caked.Configuration.VirtualizedOS {

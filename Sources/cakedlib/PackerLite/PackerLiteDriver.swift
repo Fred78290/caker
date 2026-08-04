@@ -9,6 +9,7 @@
 
 import AppKit
 import CakeAgentLib
+import Carbon.HIToolbox
 import Foundation
 import GRPCLib
 import Vision
@@ -95,8 +96,11 @@ final class PackerLiteDriver: @unchecked Sendable {
 	}
 
 	@MainActor private func press(_ keysym: UInt32) async throws {
-		inputHandler.handleKeyEvent(key: keysym, isDown: true)
-		inputHandler.handleKeyEvent(key: keysym, isDown: false)
+		let usKeysym = toUSKeyboard(keysym)
+
+		inputHandler.handleKeyEvent(key: usKeysym, isDown: true)
+		inputHandler.handleKeyEvent(key: usKeysym, isDown: false)
+
 		try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 	}
 
@@ -134,6 +138,137 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 	}
 
+	/// Translates a keysym to its US keyboard equivalent. If no translation is needed, returns the original.
+	/// This is a placeholder that can be expanded with layout-specific remapping as needed.
+	private func toUSKeyboard(_ keysym: UInt32) -> UInt32 {
+		// Use a layout-aware translator based on TIS/UCKeyTranslate to map a character
+		// produced by the current layout to the character produced by the same physical
+		// key (and shift state) on a US layout. For non-Unicode keysyms, return as-is.
+		if keysym <= 0x10FFFF, let scalar = UnicodeScalar(keysym) {
+			if let translated = LayoutTranslator.shared.translateToUS(char: Character(scalar)), let value = translated.unicodeScalars.first {
+				return UInt32(value)
+			}
+
+			// Fallback: if we cannot translate, return original
+			return keysym
+		}
+
+		return keysym
+	}
+
+	// MARK: - Keyboard layout translation (current layout -> US)
+	private struct LayoutTranslator {
+		static let shared = LayoutTranslator()
+
+		private let currentCharToKey: [Character: (keyCode: UInt16, shifted: Bool)]
+		private let usKeyToChar: [UInt16: (unshifted: Character?, shifted: Character?)]
+
+		private init() {
+			// Build maps once at init time. If the user changes layouts at runtime,
+			// you can re-instantiate this struct.
+			self.currentCharToKey = LayoutTranslator.buildCharToKeyMap(inputSource: TISCopyCurrentKeyboardLayoutInputSource().takeRetainedValue())
+			self.usKeyToChar = LayoutTranslator.buildUSKeyToCharMap()
+		}
+
+		func translateToUS(char: Character) -> Character? {
+			// If ASCII, it already matches US layout for our purposes
+			if char.isASCII { return char }
+			guard let (keyCode, shifted) = currentCharToKey[char] else { return nil }
+			guard let entry = usKeyToChar[keyCode] else { return nil }
+			return shifted ? entry.shifted ?? entry.unshifted : entry.unshifted ?? entry.shifted
+		}
+
+		// MARK: Mapping builders
+		private static func buildUSKeyToCharMap() -> [UInt16: (unshifted: Character?, shifted: Character?)] {
+			var map: [UInt16: (unshifted: Character?, shifted: Character?)] = [:]
+
+			// Try to get an English (US) input source first; fall back to current layout if unavailable.
+			let usSourceUnmanaged: Unmanaged<TISInputSource>? = TISCopyInputSourceForLanguage("en" as CFString)
+			let usSource: TISInputSource
+
+			if let unmanaged = usSourceUnmanaged {
+				usSource = unmanaged.takeRetainedValue()
+			} else {
+				usSource = TISCopyCurrentKeyboardLayoutInputSource().takeRetainedValue()
+			}
+
+			// Build the key-to-char map for the chosen source.
+			map = buildKeyToCharMap(inputSource: usSource)
+
+			// Keep the Unicode layout data (if any) referenced for the duration of this scope.
+			if let layoutData = TISGetInputSourceProperty(usSource, kTISPropertyUnicodeKeyLayoutData) {
+				_ = layoutData
+			}
+
+			return map
+		}
+
+		private static func buildCharToKeyMap(inputSource: TISInputSource) -> [Character: (keyCode: UInt16, shifted: Bool)] {
+			var result: [Character: (UInt16, Bool)] = [:]
+			let keyToChar = buildKeyToCharMap(inputSource: inputSource)
+
+			for (keyCode, pair) in keyToChar {
+				if let c = pair.unshifted { result[c] = (keyCode, false) }
+				if let c = pair.shifted { result[c] = (keyCode, true) }
+			}
+
+			return result
+		}
+
+		private static func buildKeyToCharMap(inputSource: TISInputSource) -> [UInt16: (unshifted: Character?, shifted: Character?)] {
+			guard let layoutData = TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData) else {
+				return [:]
+			}
+
+			let dataRef = unsafeBitCast(layoutData, to: CFData.self)
+
+			guard let bytes = CFDataGetBytePtr(dataRef) else {
+				return [:]
+			}
+
+			// Rebind the CFData bytes to UCKeyboardLayout safely for the duration of this scope.
+			return UnsafePointer(bytes).withMemoryRebound(to: UCKeyboardLayout.self, capacity: 1) { keyboardLayoutPtr in
+				var localMap: [UInt16: (Character?, Character?)] = [:]
+
+				for keyCode in 0...127 {
+					if let unshifted = translate(keyCode: UInt16(keyCode), shift: false, keyboardLayout: keyboardLayoutPtr),
+					   let shifted = translate(keyCode: UInt16(keyCode), shift: true, keyboardLayout: keyboardLayoutPtr) {
+						localMap[UInt16(keyCode)] = (unshifted, shifted)
+					}
+				}
+
+				return localMap
+			}
+		}
+
+		private static func translate(keyCode: UInt16, shift: Bool, keyboardLayout: UnsafePointer<UCKeyboardLayout>) -> Character? {
+			var deadKeyState: UInt32 = 0
+			var chars: [UniChar] = Array(repeating: 0, count: 4)
+			var len: Int = 0
+			let modifiers: UInt32 = shift ? UInt32(shiftKey) : 0
+			let result = UCKeyTranslate(
+				keyboardLayout,
+				UInt16(keyCode),
+				UInt16(kUCKeyActionDown),
+				modifiers >> 8,
+				UInt32(LMGetKbdType()),
+				OptionBits(kUCKeyTranslateNoDeadKeysBit),
+				&deadKeyState,
+				chars.count,
+				&len,
+				&chars
+			)
+
+			if result != noErr || len == 0 {
+				return nil
+			}
+
+			let s = String(utf16CodeUnits: chars, count: len)
+
+			return s.first
+		}
+	}
+
 	// MARK: - Mouse
 
 	@MainActor private func click(x: Int, y: Int) {
@@ -165,7 +300,8 @@ final class PackerLiteDriver: @unchecked Sendable {
 		// Capture the current CGImage on the main actor (AppKit view access must be on main).
 		let cgImage: CGImage? = await MainActor.run { [weak targetView] in
 			guard let image = targetView?.image(),
-				  let cg = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+				let cg = image.cgImage(forProposedRect: nil, context: nil, hints: nil)
+			else {
 				return nil
 			}
 			return cg
@@ -184,7 +320,8 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 			for observation in request.results ?? [] {
 				guard let candidate = observation.topCandidates(1).first,
-					  candidate.string.lowercased().contains(needle) else {
+					candidate.string.lowercased().contains(needle)
+				else {
 					continue
 				}
 
