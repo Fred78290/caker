@@ -11,7 +11,7 @@ import Foundation
 final class PackerLiteTests: XCTestCase {
 
 	// MARK: - Keyboard translation
-	func testKeyboardTranslator() {
+	@MainActor func testKeyboardTranslator() {
 		if let translator = PackerLiteDriver.LayoutTranslator("com.apple.keylayout.US") {
 			let translated = translator.translate(char: "A")
 
@@ -21,63 +21,105 @@ final class PackerLiteTests: XCTestCase {
 		}
 	}
 
+	@MainActor func testCompareCurrentKeyboard() {
+		if let translator = PackerLiteDriver.LayoutTranslator("com.apple.keylayout.US") {
+			var original: [Character] = []
+			var translated: [Character] = []
+			
+			for ch in 32..<256 {
+				let c = Character(UnicodeScalar(ch)!)
+
+				original.append(c)
+				if let cc = translator.translate(char: c) {
+					translated.append(cc)
+				} else {
+					translated.append("¿") // placeholder for untranslatable
+				}
+			}
+			
+			let originalDisplay = "|" + original.map { String($0) }.joined(separator: "|") + "|"
+			let translatedDisplay = "|" + translated.map { String($0) }.joined(separator: "|") + "|"
+
+			print("- \(originalDisplay)\n- \(translatedDisplay)")
+		} else {
+			XCTFail("Failed to translate char, keyboard not found")
+		}
+	}
 	// MARK: - Token parsing
 
-	func testWaitTokenUnits() throws {
-		XCTAssertEqual(try BootCommand.parse("<wait60s><spacebar>"), [.wait(60), .press(.spacebar)])
-		XCTAssertEqual(try BootCommand.parse("<wait5>"), [.wait(5)])
-		XCTAssertEqual(try BootCommand.parse("<wait1m>"), [.wait(60)])
-		XCTAssertEqual(try BootCommand.parse("<wait>"), [.wait(1)])
+	func testWaitTokenUnits() async throws {
+		let a = try await BootCommand.parse("<wait60s><spacebar>")
+		XCTAssertEqual(a, [.wait(60), .press(.spacebar)])
+		let b = try await BootCommand.parse("<wait5>")
+		XCTAssertEqual(b, [.wait(5)])
+		let c = try await BootCommand.parse("<wait1m>")
+		XCTAssertEqual(c, [.wait(60)])
+		let d = try await BootCommand.parse("<wait>")
+		XCTAssertEqual(d, [.wait(1)])
 	}
 
-	func testLiteralTypingBetweenTokens() throws {
+	func testLiteralTypingBetweenTokens() async throws {
+		let parsed = try await BootCommand.parse("<wait30s>italiano<esc>english<enter>")
 		XCTAssertEqual(
-			try BootCommand.parse("<wait30s>italiano<esc>english<enter>"),
+			parsed,
 			[.wait(30), .type("italiano"), .press(.esc), .type("english"), .press(.enter)]
 		)
 	}
 
-	func testModifierOnOffPairing() throws {
+	func testModifierOnOffPairing() async throws {
+		let parsed = try await BootCommand.parse("<leftShiftOn><tab><leftShiftOff><spacebar>")
 		XCTAssertEqual(
-			try BootCommand.parse("<leftShiftOn><tab><leftShiftOff><spacebar>"),
+			parsed,
 			[.modifierOn(.leftShift), .press(.tab), .modifierOff(.leftShift), .press(.spacebar)]
 		)
 	}
 
-	func testClickTextToken() throws {
+	func testClickTextToken() async throws {
+		let parsed = try await BootCommand.parse("<wait30s><click 'Select Your Country or Region'><wait5s>united states")
 		XCTAssertEqual(
-			try BootCommand.parse("<wait30s><click 'Select Your Country or Region'><wait5s>united states"),
+			parsed,
 			[.wait(30), .clickText("Select Your Country or Region"), .wait(5), .type("united states")]
 		)
 	}
 
-	func testClickCoordinatesToken() throws {
-		XCTAssertEqual(try BootCommand.parse("<click 100,200>"), [.click(x: 100, y: 200)])
+	func testClickCoordinatesToken() async throws {
+		let parsed = try await BootCommand.parse("<click 100,200>")
+		XCTAssertEqual(parsed, [.click(x: 100, y: 200)])
 	}
 
-	func testFunctionKeyToken() throws {
+	func testFunctionKeyToken() async throws {
+		let parsed = try await BootCommand.parse("<leftAltOn><f5><leftAltOff>")
 		XCTAssertEqual(
-			try BootCommand.parse("<leftAltOn><f5><leftAltOff>"),
+			parsed,
 			[.modifierOn(.leftAlt), .press(.function(5)), .modifierOff(.leftAlt)]
 		)
 	}
 
-	func testUnknownTokenThrows() {
-		XCTAssertThrowsError(try BootCommand.parse("<notAToken>")) { error in
+	func testUnknownTokenThrows() async {
+		do {
+			_ = try await BootCommand.parse("<notAToken>")
+			XCTFail("expected unknownToken error")
+		} catch {
 			XCTAssertEqual(error as? BootCommandParseError, .unknownToken("notAToken"))
 		}
 	}
 
-	func testUnterminatedTokenThrows() {
-		XCTAssertThrowsError(try BootCommand.parse("<wait30s")) { error in
+	func testUnterminatedTokenThrows() async {
+		do {
+			_ = try await BootCommand.parse("<wait30s")
+			XCTFail("expected unterminatedToken error")
+		} catch {
 			guard case .unterminatedToken = error as? BootCommandParseError else {
 				return XCTFail("expected unterminatedToken, got \(error)")
 			}
 		}
 	}
 
-	func testMalformedClickThrows() {
-		XCTAssertThrowsError(try BootCommand.parse("<click 'unterminated>")) { error in
+	func testMalformedClickThrows() async {
+		do {
+			_ = try await BootCommand.parse("<click 'unterminated>")
+			XCTFail("expected malformedClick error")
+		} catch {
 			guard case .malformedClick = error as? BootCommandParseError else {
 				return XCTFail("expected malformedClick, got \(error)")
 			}
@@ -86,15 +128,23 @@ final class PackerLiteTests: XCTestCase {
 
 	// MARK: - Reference templates (transcribed from templates/macos/*.pkr.hcl)
 
-	func testVanillaSequoiaBootCommandParsesEveryStep() throws {
+	func testVanillaSequoiaBootCommandParsesEveryStep() async {
 		for (index, command) in Self.vanillaSequoiaBootCommand.enumerated() {
-			XCTAssertNoThrow(try BootCommand.parse(command), "boot_command[\(index)] failed to parse: \(command)")
+			do {
+				_ = try await BootCommand.parse(command)
+			} catch {
+				XCTFail("boot_command[\(index)] failed to parse: \(command): \(error)")
+			}
 		}
 	}
 
-	func testVanillaTahoeBootCommandParsesEveryStep() throws {
+	func testVanillaTahoeBootCommandParsesEveryStep() async {
 		for (index, command) in Self.vanillaTahoeBootCommand.enumerated() {
-			XCTAssertNoThrow(try BootCommand.parse(command), "boot_command[\(index)] failed to parse: \(command)")
+			do {
+				_ = try await BootCommand.parse(command)
+			} catch {
+				XCTFail("boot_command[\(index)] failed to parse: \(command): \(error)")
+			}
 		}
 	}
 
@@ -132,14 +182,17 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertEqual(withoutDurations.resolvedBootTimeout, 45 * 60)
 	}
 
-	func testParsedBootCommandWrapsFailureWithIndex() throws {
+	func testParsedBootCommandWrapsFailureWithIndex() async throws {
 		let template = try PackerLiteTemplate.load(from: """
 		boot_command:
 		  - "<enter>"
 		  - "<notAToken>"
 		""")
 
-		XCTAssertThrowsError(try template.parsedBootCommand()) { error in
+		do {
+			_ = try await template.parsedBootCommand()
+			XCTFail("expected invalidBootCommand error")
+		} catch {
 			guard case .invalidBootCommand(let index, let command, _) = error as? PackerLiteTemplateError else {
 				return XCTFail("expected invalidBootCommand, got \(error)")
 			}
@@ -180,7 +233,7 @@ final class PackerLiteTests: XCTestCase {
 
 	// MARK: - Real repo templates (Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml)
 
-	func testVanillaSequoiaPackerLiteTemplateFileLoadsAndParses() throws {
+	func testVanillaSequoiaPackerLiteTemplateFileLoadsAndParses() async throws {
 		// Mirrors what VMBuilder.swift injects: username/password come from CakeConfig, not the template.
 		let template = try PackerLiteTemplate.load(
 			fromFile: Self.templatesDirectory.appendingPathComponent("vanilla-sequoia.packerlite.yaml").path,
@@ -188,10 +241,14 @@ final class PackerLiteTests: XCTestCase {
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
 		XCTAssertTrue(template.bootCommand?.contains { $0.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
-		XCTAssertNoThrow(try template.parsedBootCommand())
+		do {
+			_ = try await template.parsedBootCommand()
+		} catch {
+			XCTFail("unexpected error: \(error)")
+		}
 	}
 
-	func testVanillaTahoePackerLiteTemplateFileLoadsAndParses() throws {
+	func testVanillaTahoePackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try PackerLiteTemplate.load(
 			fromFile: Self.templatesDirectory.appendingPathComponent("vanilla-tahoe.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
@@ -199,10 +256,14 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
 		XCTAssertTrue(template.bootCommand?.contains(where: { $0.contains("hunter2") }) == true)
 		XCTAssertTrue(template.bootCommand?.contains { $0.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
-		XCTAssertNoThrow(try template.parsedBootCommand())
+		do {
+			_ = try await template.parsedBootCommand()
+		} catch {
+			XCTFail("unexpected error: \(error)")
+		}
 	}
 
-	func testVanillaMontereyPackerLiteTemplateFileLoadsAndParses() throws {
+	func testVanillaMontereyPackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try PackerLiteTemplate.load(
 			fromFile: Self.templatesDirectory.appendingPathComponent("vanilla-monterey.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
@@ -210,10 +271,14 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
 		XCTAssertTrue(template.bootCommand?.contains(where: { $0.contains("hunter2") }) == true)
 		XCTAssertTrue(template.bootCommand?.contains { $0.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
-		XCTAssertNoThrow(try template.parsedBootCommand())
+		do {
+			_ = try await template.parsedBootCommand()
+		} catch {
+			XCTFail("unexpected error: \(error)")
+		}
 	}
 
-	func testVanillaVenturaPackerLiteTemplateFileLoadsAndParses() throws {
+	func testVanillaVenturaPackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try PackerLiteTemplate.load(
 			fromFile: Self.templatesDirectory.appendingPathComponent("vanilla-ventura.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
@@ -221,10 +286,14 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
 		XCTAssertTrue(template.bootCommand?.contains(where: { $0.contains("hunter2") }) == true)
 		XCTAssertTrue(template.bootCommand?.contains { $0.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
-		XCTAssertNoThrow(try template.parsedBootCommand())
+		do {
+			_ = try await template.parsedBootCommand()
+		} catch {
+			XCTFail("unexpected error: \(error)")
+		}
 	}
 
-	func testVanillaSonomaPackerLiteTemplateFileLoadsAndParses() throws {
+	func testVanillaSonomaPackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try PackerLiteTemplate.load(
 			fromFile: Self.templatesDirectory.appendingPathComponent("vanilla-sonoma.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
@@ -232,7 +301,11 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
 		XCTAssertTrue(template.bootCommand?.contains(where: { $0.contains("hunter2") }) == true)
 		XCTAssertTrue(template.bootCommand?.contains { $0.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
-		XCTAssertNoThrow(try template.parsedBootCommand())
+		do {
+			_ = try await template.parsedBootCommand()
+		} catch {
+			XCTFail("unexpected error: \(error)")
+		}
 	}
 
 	private static var templatesDirectory: URL {
