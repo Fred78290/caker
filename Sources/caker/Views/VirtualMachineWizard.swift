@@ -317,6 +317,7 @@ struct ShortImageInfoComparator: SortComparator {
 	var createVM: Bool
 	var fractionCompleted: Double
 	var createVMMessage: String
+	var createVMSubtitle: String
 	var rootDisk: String
 	var mountPoints: MountPoints
 	var showDiskFormat: Bool
@@ -337,6 +338,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
+		self.createVMSubtitle = String.empty
 		self.rootDisk = String.empty
 		self.mountPoints = []
 		self.showDiskFormat = false
@@ -357,6 +359,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
+		self.createVMSubtitle = String.empty
 		self.rootDisk = String.empty
 		self.mountPoints = []
 		self.showDiskFormat = false
@@ -523,9 +526,14 @@ struct VirtualMachineWizard: View {
 				alertError(error)
 			}
 		}
-		.onReceive(VirtualMachineDocument.ProgressMessageCreateVirtualMachine) { notification in
+		.onReceive(VirtualMachineDocument.ProgressTitleCreateVirtualMachine) { notification in
 			if let message = notification.object as? String {
 				self.model.createVMMessage = message
+			}
+		}
+		.onReceive(VirtualMachineDocument.ProgressSubtitleCreateVirtualMachine) { notification in
+			if let message = notification.object as? String {
+				self.model.createVMSubtitle = message
 			}
 		}
 		.onAppear {
@@ -610,6 +618,9 @@ struct VirtualMachineWizard: View {
 					ProgressView(value: self.model.fractionCompleted)
 						.frame(width: 320)
 						.tint(.accentColor)
+					Text(self.model.createVMSubtitle)
+						.font(.caption)
+						.foregroundStyle(.secondary)
 				}
 				.padding(.vertical, 10)
 			}
@@ -1376,7 +1387,9 @@ struct VirtualMachineWizard: View {
 					done()
 
 				case .step(let message):
-					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressMessageCreateVirtualMachine, object: message)
+					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressTitleCreateVirtualMachine, object: message)
+				case .substep(let message):
+					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressSubtitleCreateVirtualMachine, object: message)
 				}
 			}
 		}

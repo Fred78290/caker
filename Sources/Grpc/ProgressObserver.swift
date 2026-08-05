@@ -11,6 +11,7 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 	public enum ProgressValue: Sendable {
 		case progress(ProgressHandlerContext, Double)
 		case step(String)
+		case substep(String)
 		case terminated(Result<Sendable?, any Error>, String?)
 	}
 
@@ -77,6 +78,8 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 				logger.info(message ?? "Installation succeeded")
 			}
 		} else if case .step(let message) = result {
+			Logger(self).info(message)
+		} else if case .substep(let message) = result {
 			Logger(self).info(message)
 		}
 	}

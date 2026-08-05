@@ -39,13 +39,13 @@ extension TISInputSource {
 }
 
 enum PackerLiteDriverError: Error, LocalizedError {
-	case stepFailed(index: Int, step: BootCommandStep, underlying: Error)
+	case stepFailed(step: BootCommandStep, underlying: Error)
 	case textNotFound(String)
 
 	var errorDescription: String? {
 		switch self {
-		case .stepFailed(let index, let step, let underlying):
-			return "boot_command step \(index) (\(step)) failed: \(underlying.localizedDescription)"
+		case .stepFailed(let command, let underlying):
+			return "boot_command step \(command.title) failed: \(underlying.localizedDescription)"
 		case .textNotFound(let label):
 			return "Could not locate on-screen text '\(label)' to click"
 		}
@@ -79,44 +79,44 @@ final class PackerLiteDriver: @unchecked Sendable {
 		self.currentKeyTranslator = LayoutTranslator()!
 	}
 
-	func run(steps: [BootCommandStep]) async throws {
-		for (index, step) in steps.enumerated() {
+	func run(command: BootCommandStep) async throws {
+		for step in command.steps {
 			do {
-				try await execute(step)
+				try await execute(step, title: command.title)
 			} catch {
-				throw PackerLiteDriverError.stepFailed(index: index, step: step, underlying: error)
+				throw PackerLiteDriverError.stepFailed(step: command, underlying: error)
 			}
 		}
 	}
 
-	private func execute(_ step: BootCommandStep) async throws {
+	private func execute(_ step: BootCommandStep.Step, title: String) async throws {
 		switch step {
 		case .wait(let seconds):
-			logger.debug("wait \(seconds)s")
+			logger.debug("[\(title)]: wait \(seconds)s")
 			try await Task.sleep(nanoseconds: UInt64(max(seconds, 0) * 1_000_000_000))
 		case .type(let text):
-			logger.debug("type \(text)")
+			logger.debug("[\(title)]: type \(text)")
 			try await type(text)
 		case .press(let key):
-			logger.debug("press \(key)")
+			logger.debug("[\(title)]: press \(key)")
 			try await press(keysym(for: key))
 		case .modifierOn(let modifier):
-			logger.debug("modifierOn \(modifier)")
+			logger.debug("[\(title)]: modifierOn \(modifier)")
 			await self.handleKeyModifierEvent(keysym(for: modifier), isDown: true)
 			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 		case .modifierOff(let modifier):
-			logger.debug("modifierOff \(modifier)")
+			logger.debug("[\(title)]: modifierOff \(modifier)")
 			await self.handleKeyModifierEvent(keysym(for: modifier), isDown: false)
 			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 		case .click(let x, let y):
-			logger.debug("click \(x),\(y)")
+			logger.debug("[\(title)]: click \(x),\(y)")
 			await click(x: x, y: y)
 			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 		case .clickText(let label):
-			logger.debug("clickText '\(label)'")
+			logger.debug("[\(title)]: clickText '\(label)'")
 			try await clickText(label)
 		case .keyboard(let layout):
-			logger.debug("keyboard layout \(layout.id)")
+			logger.debug("[\(title)]: keyboard layout \(layout.id)")
 			currentKeyTranslator = layout
 		}
 	}

@@ -745,6 +745,9 @@ struct LXDInstancesController: RouteCollection {
 		case .step(let message):
 			return message
 
+		case .substep(let message):
+			return message
+
 		case .progress(_, let fractionCompleted):
 			Task {
 				if let currentMessage {

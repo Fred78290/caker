@@ -40,58 +40,44 @@ public enum ModifierToken: Equatable, Sendable {
 	case rightSuper
 }
 
-public enum BootCommandStep: Equatable, Sendable {
-	public static func == (lhs: BootCommandStep, rhs: BootCommandStep) -> Bool {
-		lhs.description == rhs.description
-	}
+public typealias BootCommandSteps = [BootCommandStep]
 
-	public var description: String {
-		switch self {
-		case .wait(let seconds): return "wait \(seconds)s"
-		case .type(let text): return "type \(text)"
-		case .press(let key): return "press \(key)"
-		case .modifierOn(let modifier): return "modifier on \(modifier)"
-		case .modifierOff(let modifier): return "modifier off \(modifier)"
-		case .click(let x, let y): return "click \(x), \(y)"
-		case .clickText(let text): return "clickText \(text)"
-		case .keyboard(let translator): return "keyboard \(translator)"
+public struct BootCommandStep: Equatable, Sendable {
+	public enum Step: Equatable, Sendable {
+		public static func == (lhs: Step, rhs: Step) -> Bool {
+			lhs.description == rhs.description
 		}
-	}
 
-	case wait(TimeInterval)
-	case type(String)
-	case press(KeyToken)
-	case modifierOn(ModifierToken)
-	case modifierOff(ModifierToken)
-	case click(x: Int, y: Int)
-	case clickText(String)
-	case keyboard(any KeyLayoutTranslator)
-}
-
-public enum BootCommandParseError: Error, LocalizedError, Equatable {
-	case unterminatedToken(String)
-	case unknownToken(String)
-	case malformedClick(String)
-	case malformedKeyboard(String)
-	case keyboardNotFound(String)
-
-	public var errorDescription: String? {
-		switch self {
-		case .unterminatedToken(let remainder): return "Unterminated boot_command token starting at: \(remainder)"
-		case .unknownToken(let token): return "Unknown boot_command token: <\(token)>"
-		case .malformedClick(let token): return "Malformed click token: <\(token)>"
-		case .malformedKeyboard(let token): return "Malformed keyboard token: <\(token)>"
-		case .keyboardNotFound(let keyboard): return "Keyboard not found: <\(keyboard)>"
+		public var description: String {
+			switch self {
+			case .wait(let seconds): return "wait \(seconds)s"
+			case .type(let text): return "type \(text)"
+			case .press(let key): return "press \(key)"
+			case .modifierOn(let modifier): return "modifier on \(modifier)"
+			case .modifierOff(let modifier): return "modifier off \(modifier)"
+			case .click(let x, let y): return "click \(x), \(y)"
+			case .clickText(let text): return "clickText \(text)"
+			case .keyboard(let translator): return "keyboard \(translator)"
+			}
 		}
-	}
-}
 
-public enum BootCommand {
-	/// Parses a single boot_command string into a sequence of steps.
-	public static func parse(_ command: String) async throws -> [BootCommandStep] {
-		var steps: [BootCommandStep] = []
+		case wait(TimeInterval)
+		case type(String)
+		case press(KeyToken)
+		case modifierOn(ModifierToken)
+		case modifierOff(ModifierToken)
+		case click(x: Int, y: Int)
+		case clickText(String)
+		case keyboard(any KeyLayoutTranslator)
+	}
+
+	public let title: String
+	public let steps: [Step]
+
+	public init(command: PackerLiteTemplate.Command) async throws {
+		var steps: [Step] = []
 		var literal = ""
-		var remainder = Substring(command)
+		var remainder = Substring(command.command)
 
 		func flushLiteral() {
 			if literal.isEmpty == false {
@@ -109,7 +95,7 @@ public enum BootCommand {
 				let tokenBody = String(remainder[remainder.index(after: remainder.startIndex)..<closeIndex])
 
 				flushLiteral()
-				try await steps.append(parseToken(tokenBody))
+				try await steps.append(Self.parseToken(tokenBody))
 				remainder = remainder[remainder.index(after: closeIndex)...]
 			} else {
 				literal.append(character)
@@ -119,10 +105,11 @@ public enum BootCommand {
 
 		flushLiteral()
 
-		return steps
+		self.title = command.title
+		self.steps = steps
 	}
 
-	private static func parseToken(_ rawBody: String) async throws -> BootCommandStep {
+	private static func parseToken(_ rawBody: String) async throws -> BootCommandStep.Step {
 		let body = rawBody.trimmingCharacters(in: .whitespaces)
 		let lower = body.lowercased()
 
@@ -181,7 +168,7 @@ public enum BootCommand {
 
 	/// Matches "wait", "waitN", "waitNs" or "waitNm" — a bare "wait" defaults to 1s,
 	/// a bare number defaults to seconds.
-	private static func parseWait(_ lower: String) -> BootCommandStep? {
+	private static func parseWait(_ lower: String) -> BootCommandStep.Step? {
 		guard lower.hasPrefix("wait") else { return nil }
 
 		let remainder = lower.dropFirst("wait".count)
@@ -209,7 +196,7 @@ public enum BootCommand {
 	}
 
 	@MainActor
-	private static func parseKeyboard(_ body: String) throws -> BootCommandStep {
+	private static func parseKeyboard(_ body: String) throws -> BootCommandStep.Step {
 		let rest = body.dropFirst("keyboard".count).trimmingCharacters(in: .whitespaces)
 
 		if let quote = rest.first, quote == "'" || quote == "\"" {
@@ -238,7 +225,7 @@ public enum BootCommand {
 	}
 
 	/// Matches `click 'Some Text'`, `click "Some Text"` (OCR-located click) or `click X,Y` (raw coordinates).
-	private static func parseClick(_ body: String) throws -> BootCommandStep {
+	private static func parseClick(_ body: String) throws -> BootCommandStep.Step {
 		let rest = body.dropFirst("click".count).trimmingCharacters(in: .whitespaces)
 
 		if let quote = rest.first, quote == "'" || quote == "\"" {
@@ -256,5 +243,30 @@ public enum BootCommand {
 		}
 
 		return .click(x: x, y: y)
+	}
+}
+
+public enum BootCommandParseError: Error, LocalizedError, Equatable {
+	case unterminatedToken(String)
+	case unknownToken(String)
+	case malformedClick(String)
+	case malformedKeyboard(String)
+	case keyboardNotFound(String)
+
+	public var errorDescription: String? {
+		switch self {
+		case .unterminatedToken(let remainder): return "Unterminated boot_command token starting at: \(remainder)"
+		case .unknownToken(let token): return "Unknown boot_command token: <\(token)>"
+		case .malformedClick(let token): return "Malformed click token: <\(token)>"
+		case .malformedKeyboard(let token): return "Malformed keyboard token: <\(token)>"
+		case .keyboardNotFound(let keyboard): return "Keyboard not found: <\(keyboard)>"
+		}
+	}
+}
+
+public enum BootCommand {
+	/// Parses a single boot_command string into a sequence of steps.
+	public static func parse(_ command: PackerLiteTemplate.Command) async throws -> BootCommandStep {
+		try await BootCommandStep(command: command)
 	}
 }

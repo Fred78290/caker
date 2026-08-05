@@ -1558,7 +1558,8 @@ extension VirtualMachineDocument {
 	static let CreatedVirtualMachine = NSNotification.Name("CreatedVirtualMachine")
 	static let FailCreateVirtualMachine = NSNotification.Name("FailCreateVirtualMachine")
 	static let ProgressCreateVirtualMachine = NSNotification.Name("ProgressCreateVirtualMachine")
-	static let ProgressMessageCreateVirtualMachine = NSNotification.Name("ProgressMessageCreateVirtualMachine")
+	static let ProgressTitleCreateVirtualMachine = NSNotification.Name("ProgressTitleCreateVirtualMachine")
+	static let ProgressSubtitleCreateVirtualMachine = NSNotification.Name("ProgressSubtitleCreateVirtualMachine")
 	static let NewScreenshot = NSNotification.Name("NewScreenshot")
 	static let VNCFramebufferSizeChanged = NSNotification.Name("VNCFramebufferSizeChanged")
 }

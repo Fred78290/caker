@@ -14,7 +14,12 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	public var variables: [String: String]?
 	public var createGraceTime: String?
 	public var bootTimeout: String?
-	public var bootCommand: [String]?
+	public var bootCommand: [Command]?
+
+	public struct Command: Codable, Sendable {
+		public var title: String
+		public var command: String
+	}
 
 	enum CodingKeys: String, CodingKey {
 		case variables
@@ -27,7 +32,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 		variables: [String: String]? = nil,
 		createGraceTime: String? = nil,
 		bootTimeout: String? = nil,
-		bootCommand: [String]? = nil
+		bootCommand: [Command]? = nil
 	) {
 		self.variables = variables
 		self.createGraceTime = createGraceTime
@@ -70,16 +75,18 @@ public struct PackerLiteTemplate: Codable, Sendable {
 
 		var resolved = self
 
-		resolved.bootCommand = bootCommand?.map { Self.substitute($0, variables: merged) }
+		resolved.bootCommand = bootCommand?.map {
+			Self.substitute($0, variables: merged)
+		}
 
 		return resolved
 	}
 
-	private static func substitute(_ text: String, variables: [String: String]) -> String {
-		var result = text
+	private static func substitute(_ cmd: Command, variables: [String: String]) -> Command {
+		var result = cmd
 
 		for (name, value) in variables {
-			result = result.replacingOccurrences(of: "${var.\(name)}", with: value)
+			result.command = result.command.replacingOccurrences(of: "${var.\(name)}", with: value)
 		}
 
 		return result
@@ -88,14 +95,19 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	// MARK: boot_command parsing
 
 	/// Parses every `boot_command` entry, wrapping parse failures with the offending index/string.
-	public func parsedBootCommand() async throws -> [[BootCommandStep]] {
-		var parsed: [[BootCommandStep]] = []
+	public func parsedBootCommand() async throws -> BootCommandSteps {
+		var parsed: [BootCommandStep] = []
 
-		for (index, command) in (bootCommand ?? []).enumerated() {
+		guard let bootCommand else {
+			return parsed
+		}
+
+		for command in bootCommand {
 			do {
-				parsed.append(try await BootCommand.parse(command))
+				let step = try await BootCommand.parse(command)
+				parsed.append(step)
 			} catch {
-				throw PackerLiteTemplateError.invalidBootCommand(index: index, command: command, underlying: error)
+				throw PackerLiteTemplateError.invalidBootCommand(command: command, underlying: error)
 			}
 		}
 
@@ -130,12 +142,12 @@ public struct PackerLiteTemplate: Codable, Sendable {
 }
 
 public enum PackerLiteTemplateError: Error, LocalizedError {
-	case invalidBootCommand(index: Int, command: String, underlying: Error)
+	case invalidBootCommand(command: PackerLiteTemplate.Command, underlying: Error)
 
 	public var errorDescription: String? {
 		switch self {
-			case .invalidBootCommand(let index, let command, let underlying):
-				return "boot_command[\(index)] (\"\(command)\") failed to parse: \(underlying.localizedDescription)"
+			case .invalidBootCommand(let command, let underlying):
+			return "boot_command[\(command.title)] (\"\(command.command)\") failed to parse: \(underlying.localizedDescription)"
 		}
 	}
 }

@@ -18,61 +18,55 @@ create_grace_time: 30s
 boot_timeout: 45m
 
 boot_command:
-  # hello, hola, bonjour, etc.
-  - "<spacebar>"
-  # Language: most of the times we have a list of "English"[1], "English (UK)" etc. with
-  # "English" language already selected. If we type "english" it'll cause us to switch
-  # to the "English (UK)" which is not what we want. To solve this, we switch to some other
-  # language first, e.g. "Italiano" and then switch back to "English". We'll then jump to the
-  # first entry in a list of "english"-prefixed items, which will be "English".
-  #
-  # [1]: should be named "English (US)" but oh well 🤷
-  - "<wait10s>italiano<esc>english<enter>"
-  # Select Your Country and Region
-  - "<wait30s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
-  # Written and Spoken Languages
-  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
-  # Change keyboard
-  - "<keyboard 'com.apple.keylayout.US'>"
-  # Accessibility
-  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
-  # Data & Privacy
-  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
-  # Migration Assistant
-  - "<wait10s><tab><tab><tab><spacebar>"
-  # Sign In with Your Apple ID
-  - "<wait10s><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><spacebar>"
-  # Are you sure you want to skip signing in with an Apple ID?
-  - "<wait10s><tab><spacebar>"
-  # Terms and Conditions
-  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
-  # I have read and agree to the macOS Software License Agreement
-  - "<wait10s><tab><spacebar>"
-  # Create a Computer Account
-  - "<wait10s>${var.username}<tab><tab>${var.password}<tab>${var.password}<tab><tab><tab><spacebar>"
-  # Enable Location Services
-  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
-  # Are you sure you don't want to use Location Services?
-  - "<wait10s><tab><spacebar>"
-  # Select Your Time Zone
-  - "<wait10s><tab>UTC<enter><leftShiftOn><tab><leftShiftOff><spacebar>"
-  # Analytics
-  - "<wait10s><tab><spacebar><leftShiftOn><tab><leftShiftOff><spacebar>"
-  # Screen Time
-  - "<wait10s><tab><spacebar>"
-  # Siri
-  - "<wait10s><tab><spacebar><leftShiftOn><tab><leftShiftOff><spacebar>"
-  # Choose Your Look
-  - "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
-  # Enable Voice Over
-  - "<wait10s><leftAltOn><f5><leftAltOff><wait5s>v"
-  # Now that the installation is done, open "System Preferences"
-  - "<wait10s><leftAltOn><spacebar><leftAltOff>System Preferences<enter>"
-  # Navigate to "Sharing"
-  - "<wait10s>sharing<enter>"
-  # Enable Screen Sharing
-  - "<wait10s><tab><tab><tab><tab><spacebar>"
-  # Enable Remote Login
-  - "<wait10s><down><down><down><down><spacebar><tab><tab><spacebar>"
-  # Disable Voice Over
-  - "<leftAltOn><f5><leftAltOff>"
+  - title: Wait hello, hola, bonjour, etc.
+    command: "<spacebar>"
+  - title: Select Language
+    command: "<wait10s>italiano<esc>english<down><enter>"
+  - title: Select Your Country and Region
+    command: "<wait30s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
+  - title: Written and Spoken Languages
+    command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  - title: Change keyboard
+    command: "<keyboard 'com.apple.keylayout.US'>"
+  - title: Accessibility
+    command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  - title: Data & Privacy
+    command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  - title: Migration Assistant
+    command: "<wait10s><tab><tab><tab><spacebar>"
+  - title: Sign In with Your Apple ID
+    command: "<wait10s><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><spacebar>"
+  - title: Are you sure you want to skip signing in with an Apple ID?
+    command: "<wait10s><tab><spacebar>"
+  - title: Terms and Conditions
+    command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  - title: I have read and agree to the macOS Software License Agreement
+    command: "<wait10s><tab><spacebar>"
+  - title: Create a Computer Account
+    command: "<wait10s>${var.username}<tab><tab>${var.password}<tab>${var.password}<tab><tab><tab><spacebar>"
+  - title: Enable Location Services
+    command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  - title: Are you sure you don't want to use Location Services?
+    command: "<wait10s><tab><spacebar>"
+  - title: Select Your Time Zone
+    command: "<wait10s><tab>UTC<enter><leftShiftOn><tab><leftShiftOff><spacebar>"
+  - title: Analytics
+    command: "<wait10s><tab><spacebar><leftShiftOn><tab><leftShiftOff><spacebar>"
+  - title: Screen Time
+    command: "<wait10s><tab><spacebar>"
+  - title: Siri
+    command: "<wait10s><tab><spacebar><leftShiftOn><tab><leftShiftOff><spacebar>"
+  - title: Choose Your Look
+    command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+  - title: Enable Voice Over
+    command: "<wait10s><leftAltOn><f5><leftAltOff><wait5s>v"
+  - title: Now that the installation is done, open "System Preferences"
+    command: "<wait10s><leftAltOn><spacebar><leftAltOff>System Preferences<enter>"
+  - title: Navigate to "Sharing"
+    command: "<wait10s>sharing<enter>"
+  - title: Enable Screen Sharing
+    command: "<wait10s><tab><tab><tab><tab><spacebar>"
+  - title: Enable Remote Login
+    command: "<wait10s><down><down><down><down><spacebar><tab><tab><spacebar>"
+  - title: Disable Voice Over
+    command: "<leftAltOn><f5><leftAltOff>"

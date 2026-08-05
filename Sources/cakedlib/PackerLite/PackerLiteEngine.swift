@@ -30,7 +30,7 @@ public enum PackerLiteEngine {
 		let location = vm.location
 		let config = vm.config
 		let logger = Logger("PackerLiteEngine")
-		let steps = try await template.parsedBootCommand()
+		let commands = try await template.parsedBootCommand()
 
 		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
 
@@ -52,16 +52,16 @@ public enum PackerLiteEngine {
 				operation: {
 					group.addTask {
 						let context = ProgressObserver.ProgressHandlerContext()
-						var count = 0
 
 						progressHandler(.progress(context, 0))
 
-						for stepList in steps {
-							count += 1
+						for (index, command) in commands.enumerated() {
+							progressHandler(.substep(command.title))
 
-							try await driver.run(steps: stepList)
+							logger.info("Execute provionning command: \(command.title)")
+							try await driver.run(command: command)
 
-							progressHandler(.progress(context, Double(count) / Double(steps.count)))
+							progressHandler(.progress(context, Double(index) / Double(commands.count)))
 						}
 
 						if let runningIP, runningIP.isEmpty == false {
