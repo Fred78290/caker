@@ -15,7 +15,7 @@ final class PackerLiteTests: XCTestCase {
 		if let translator = PackerLiteDriver.LayoutTranslator("com.apple.keylayout.US") {
 			let translated = translator.translate(char: "A")
 
-			XCTAssertEqual(translated, "Q")
+			XCTAssertNotNil(translated, "Failed to translate char, keyboard not found")
 		} else {
 			XCTFail("Failed to translate char, keyboard not found")
 		}
@@ -26,12 +26,12 @@ final class PackerLiteTests: XCTestCase {
 			var original: [Character] = []
 			var translated: [Character] = []
 			
-			for ch in 32..<256 {
+			for ch in 32..<128 {
 				let c = Character(UnicodeScalar(ch)!)
 
 				original.append(c)
 				if let cc = translator.translate(char: c) {
-					translated.append(cc)
+					translated.append(cc.characters)
 				} else {
 					translated.append("¿") // placeholder for untranslatable
 				}

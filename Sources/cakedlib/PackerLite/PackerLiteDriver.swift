@@ -12,10 +12,11 @@ import CakeAgentLib
 import Carbon.HIToolbox
 import Foundation
 import GRPCLib
+import RoyalVNCKit
 import Vision
 
 public protocol KeyLayoutTranslator: Sendable, Identifiable {
-	func translate(char: Character) -> Character?
+	func translate(char: Character) -> (keyCode: CGKeyCode, modifiers: NSEvent.ModifierFlags, characters: String, charactersIgnoringModifiers: String)?
 }
 
 extension TISInputSource {
@@ -52,10 +53,9 @@ enum PackerLiteDriverError: Error, LocalizedError {
 }
 
 final class PackerLiteDriver: @unchecked Sendable {
-	private let inputHandler: VNCInputHandler
-	private let targetView: VNCVirtualMachineView
+	private let targetView: NSView
 	private let logger = Logger("PackerLiteDriver")
-	private var currentKeyTranslator: any KeyLayoutTranslator = NullLayoutTranslator()
+	private var currentKeyTranslator: any KeyLayoutTranslator
 
 	/// Delay between synthesized key events, so the guest OS doesn't drop rapid-fire input.
 	private static let keyDelayNanoseconds: UInt64 = 30_000_000
@@ -63,9 +63,20 @@ final class PackerLiteDriver: @unchecked Sendable {
 	private static let clickTextTimeout: TimeInterval = 10
 	private static let clickTextPollNanoseconds: UInt64 = 500_000_000
 
-	init(targetView: VNCVirtualMachineView) {
+	// MARK: Input handler variables
+	private var mouseButtonState: UInt8 = 0
+	private var isDragging: Bool = false
+	private var lastMousePosition = NSPoint.zero
+	private var postEvent: Bool = false
+	private var modifiers: NSEvent.ModifierFlags = []
+	private var characters: String = String.empty
+	private var trackingNumber: Int = 0
+	private let eventSource = CGEventSource(stateID: .combinedSessionState)
+
+	@MainActor
+	init(targetView: NSView) {
 		self.targetView = targetView
-		self.inputHandler = VNCInputHandler(targetView: targetView)
+		self.currentKeyTranslator = LayoutTranslator()!
 	}
 
 	func run(steps: [BootCommandStep]) async throws {
@@ -91,11 +102,11 @@ final class PackerLiteDriver: @unchecked Sendable {
 			try await press(keysym(for: key))
 		case .modifierOn(let modifier):
 			logger.debug("modifierOn \(modifier)")
-			await self.handleKeyEvent(key: keysym(for: modifier), isDown: true)
+			await self.handleKeyModifierEvent(keysym(for: modifier), isDown: true)
 			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 		case .modifierOff(let modifier):
 			logger.debug("modifierOff \(modifier)")
-			await self.handleKeyEvent(key: keysym(for: modifier), isDown: false)
+			await self.handleKeyModifierEvent(keysym(for: modifier), isDown: false)
 			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 		case .click(let x, let y):
 			logger.debug("click \(x),\(y)")
@@ -113,91 +124,54 @@ final class PackerLiteDriver: @unchecked Sendable {
 	// MARK: - Keyboard
 
 	@MainActor private func type(_ text: String) async throws {
-		#if DEBUG
-		let translated = String(String.UnicodeScalarView(text.unicodeScalars.compactMap {
-			Unicode.Scalar(translate($0.value))
-		}))
-		logger.debug("type '\(text)' -> '\(translated)'")
-		#endif
+		for char in text {
+			if let keysym = currentKeyTranslator.translate(char: char) {
+				self.handleKeyEvent(key: keysym, isDown: true)
+				self.handleKeyEvent(key: keysym, isDown: false)
 
-		for scalar in text.unicodeScalars {
-			let keysym = translate(scalar.value)
-
-			inputHandler.handleKeyEvent(key: keysym, isDown: true)
-			inputHandler.handleKeyEvent(key: keysym, isDown: false)
-
-			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+			}
 		}
 	}
 
-	@MainActor private func handleKeyEvent(key: UInt32, isDown: Bool) {
-		inputHandler.handleKeyEvent(key: key, isDown: isDown)
-	}
-
-	@MainActor private func press(_ keysym: UInt32) async throws {
-		let usKeysym = translate(keysym)
-
-		inputHandler.handleKeyEvent(key: usKeysym, isDown: true)
-		inputHandler.handleKeyEvent(key: usKeysym, isDown: false)
+	@MainActor private func press(_ keyCode: CGKeyCode) async throws {
+		self.handleKeySpecialEvent(keyCode, isDown: true)
+		self.handleKeySpecialEvent(keyCode, isDown: false)
 
 		try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 	}
 
-	private func keysym(for key: KeyToken) -> UInt32 {
+	private func keysym(for key: KeyToken) -> CGKeyCode {
 		switch key {
-		case .enter: return Keysyms.XK_Return
-		case .esc: return Keysyms.XK_Escape
-		case .tab: return Keysyms.XK_Tab
-		case .spacebar: return Keysyms.XK_space
-		case .backspace: return Keysyms.XK_BackSpace
-		case .delete: return Keysyms.XK_Delete
-		case .insert: return Keysyms.XK_Insert
-		case .home: return Keysyms.XK_Home
-		case .end: return Keysyms.XK_End
-		case .pageUp: return Keysyms.XK_Page_Up
-		case .pageDown: return Keysyms.XK_Page_Down
-		case .up: return Keysyms.XK_Up
-		case .down: return Keysyms.XK_Down
-		case .left: return Keysyms.XK_Left
-		case .right: return Keysyms.XK_Right
-		case .function(let number): return Keysyms.XK_F1 + UInt32(max(1, min(12, number)) - 1)
+		case .enter: return CGKeyCodes.return
+		case .esc: return CGKeyCodes.escape
+		case .tab: return CGKeyCodes.tab
+		case .spacebar: return CGKeyCodes.space
+		case .backspace: return CGKeyCodes.delete
+		case .delete: return CGKeyCodes.forwardDelete
+		case .insert: return CGKeyCodes.help
+		case .home: return CGKeyCodes.home
+		case .end: return CGKeyCodes.end
+		case .pageUp: return CGKeyCodes.pageUp
+		case .pageDown: return CGKeyCodes.pageDown
+		case .up: return CGKeyCodes.upArrow
+		case .down: return CGKeyCodes.downArrow
+		case .left: return CGKeyCodes.leftArrow
+		case .right: return CGKeyCodes.rightArrow
+		case .function(let number): return CGKeyCodes.f1 + CGKeyCode(max(1, min(12, number)) - 1)
 		}
 	}
 
-	private func keysym(for modifier: ModifierToken) -> UInt32 {
+	private func keysym(for modifier: ModifierToken) -> CGKeyCode {
 		switch modifier {
-		case .leftShift: return Keysyms.XK_Shift_L
-		case .rightShift: return Keysyms.XK_Shift_R
-		case .leftAlt: return Keysyms.XK_Alt_L
-		case .rightAlt: return Keysyms.XK_Alt_R
-		case .leftCtrl: return Keysyms.XK_Control_L
-		case .rightCtrl: return Keysyms.XK_Control_R
-		case .leftSuper: return Keysyms.XK_Super_L
-		case .rightSuper: return Keysyms.XK_Super_R
-		}
-	}
-
-	private func translate(_ keysym: UInt32) -> UInt32 {
-		// Use a layout-aware translator based on TIS/UCKeyTranslate to map a character
-		// produced by the current layout to the character produced by the same physical
-		// key (and shift state) on a US layout. For non-Unicode keysyms, return as-is.
-		if keysym <= 0x10FFFF, let scalar = UnicodeScalar(keysym) {
-			if let translated = currentKeyTranslator.translate(char: Character(scalar)), let value = translated.unicodeScalars.first {
-				return UInt32(value)
-			}
-
-			// Fallback: if we cannot translate, return original
-			return keysym
-		}
-
-		return keysym
-	}
-
-	struct NullLayoutTranslator: KeyLayoutTranslator {
-		let id: String = "null"
-
-		func translate(char: Character) -> Character? {
-			return char
+		case .leftShift: return CGKeyCodes.shift
+		case .rightShift: return CGKeyCodes.rightShift
+		case .leftAlt: return CGKeyCodes.option
+		case .rightAlt: return CGKeyCodes.rightOption
+		case .leftCtrl: return CGKeyCodes.control
+		case .rightCtrl: return CGKeyCodes.rightControl
+		case .leftSuper: return CGKeyCodes.command
+		case .rightSuper: return CGKeyCodes.rightCommand
 		}
 	}
 
@@ -205,10 +179,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 	struct LayoutTranslator: KeyLayoutTranslator {
 		let id: String
 
-		private let currentCharToKey: [Character: (keyCode: UInt16, shifted: Bool)]
-		private let currentKeyToChar: [UInt16: (unshifted: Character?, shifted: Character?)]
-		private let targetCharToKey: [Character: (keyCode: UInt16, shifted: Bool)]
-		private let targetKeyToChar: [UInt16: (unshifted: Character?, shifted: Character?)]
+		private let characterKeys: [Character: CGKeyCode]
+		private let keysCharacters: [CGKeyCode: Character]
+		private let charactersModifiers: [Character: NSEvent.ModifierFlags]
 
 		/// Available keyboard and sourceID
 		/// ABC - com.apple.keylayout.ABC
@@ -300,94 +273,102 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 
 		@MainActor
+		init?(_ targetKeyboard: TISInputSource) {
+			guard let layoutDataPtr = TISGetInputSourceProperty(targetKeyboard, kTISPropertyUnicodeKeyLayoutData) else {
+				return nil
+			}
+
+			let layoutData = unsafeBitCast(layoutDataPtr, to: CFData.self)
+			if CFDataGetLength(layoutData) == 0 {
+				return nil
+			}
+
+			var characterKeys: [Character: CGKeyCode] = [:]
+			var keysCharacters: [CGKeyCode: Character] = [:]
+			var charactersModifiers: [Character: NSEvent.ModifierFlags] = [:]
+
+			CFDataGetBytePtr(layoutData).withMemoryRebound(to: UCKeyboardLayout.self, capacity: 1) { keyboardLayoutPtr in
+				for keyCode in (0..<128).map({ CGKeyCode($0) }) {
+					var characterIgnoringModifiers: Character? = nil
+
+					if let char = Self.translate(keyCode: keyCode, modifiers: 0, keyboardLayout: keyboardLayoutPtr) {
+						characterKeys[char] = keyCode
+						charactersModifiers[char] = []
+						keysCharacters[keyCode] = char
+						characterIgnoringModifiers = char
+					}
+
+					if let char = Self.translate(keyCode: keyCode, modifiers: UInt32(shiftKey | optionKey), keyboardLayout: keyboardLayoutPtr) {
+						characterKeys[char] = keyCode
+						charactersModifiers[char] = .shift.union(.option)
+
+						if let characterIgnoringModifiers {
+							keysCharacters[keyCode] = characterIgnoringModifiers
+						}
+					}
+
+					if let char = Self.translate(keyCode: keyCode, modifiers: UInt32(optionKey), keyboardLayout: keyboardLayoutPtr) {
+						characterKeys[char] = keyCode
+						charactersModifiers[char] = .option
+
+						if let characterIgnoringModifiers {
+							keysCharacters[keyCode] = characterIgnoringModifiers
+						}
+					}
+
+					if let char = Self.translate(keyCode: keyCode, modifiers: UInt32(shiftKey), keyboardLayout: keyboardLayoutPtr) {
+						characterKeys[char] = keyCode
+						charactersModifiers[char] = .shift
+
+						if let characterIgnoringModifiers {
+							keysCharacters[keyCode] = characterIgnoringModifiers
+						}
+					}
+				}
+			}
+
+			self.characterKeys = characterKeys
+			self.keysCharacters = keysCharacters
+			self.charactersModifiers = charactersModifiers
+			self.id = targetKeyboard.getSourceID()!
+		}
+
+		@MainActor
+		init?() {
+			self.init(TISCopyCurrentKeyboardInputSource().takeRetainedValue())
+		}
+
+		@MainActor
 		init?(_ keyLayout: String = "com.apple.keylayout.US") {
 			// Build maps once at init time. If the user changes layouts at runtime, you can re-instantiate this struct.
 			guard let targetKeyboard = Self.getNamedInputSource(keyLayout) else {
 				return nil
 			}
 
-			let currentKeyboard = TISCopyCurrentKeyboardLayoutInputSource().takeRetainedValue()
-
-			self.currentCharToKey = LayoutTranslator.buildCharToKeyMap(inputSource: currentKeyboard)
-			self.currentKeyToChar = LayoutTranslator.buildKeyToCharMap(keyLayout: currentKeyboard)
-
-			self.targetCharToKey = LayoutTranslator.buildCharToKeyMap(inputSource: targetKeyboard)
-			self.targetKeyToChar = LayoutTranslator.buildKeyToCharMap(keyLayout: targetKeyboard)
-			self.id = keyLayout
+			self.init(targetKeyboard)
 		}
 
-		func translate(char: Character) -> Character? {
-			guard let (keyCode, shifted) = currentCharToKey[char] else {
+		func translate(char: Character) -> (keyCode: CGKeyCode, modifiers: NSEvent.ModifierFlags, characters: String, charactersIgnoringModifiers: String)? {
+			guard let keyCode = self.characterKeys[char] else {
 				return nil
 			}
 
-			guard let entry = targetKeyToChar[keyCode] else {
-				return nil
+			var characterIgnoringModifiers: String = String.empty
+
+			if let char = self.keysCharacters[keyCode] {
+				characterIgnoringModifiers = String(char)
 			}
 
-			return shifted ? entry.shifted ?? entry.unshifted : entry.unshifted ?? entry.shifted
+			return (keyCode, self.charactersModifiers[char] ?? [], String(char), characterIgnoringModifiers)
 		}
 
-		// MARK: Mapping builders
-		private static func buildKeyToCharMap(keyLayout: TISInputSource) -> [UInt16: (unshifted: Character?, shifted: Character?)] {
-			var map: [UInt16: (unshifted: Character?, shifted: Character?)] = [:]
-
-			// Build the key-to-char map for the chosen source.
-			map = buildKeyToCharMap(inputSource: keyLayout)
-
-			// Keep the Unicode layout data (if any) referenced for the duration of this scope.
-			if let layoutData = TISGetInputSourceProperty(keyLayout, kTISPropertyUnicodeKeyLayoutData) {
-				_ = unsafeBitCast(layoutData, to: CFData.self)
-			}
-
-			return map
-		}
-
-		private static func buildCharToKeyMap(inputSource: TISInputSource) -> [Character: (keyCode: UInt16, shifted: Bool)] {
-			var result: [Character: (UInt16, Bool)] = [:]
-			let keyToChar = buildKeyToCharMap(inputSource: inputSource)
-
-			for (keyCode, pair) in keyToChar {
-				if let c = pair.unshifted {
-					result[c] = (keyCode: keyCode, shifted: false)
-				}
-
-				if let c = pair.shifted {
-					result[c] = (keyCode: keyCode, shifted: true)
-				}
-			}
-
-			return result
-		}
-
-		private static func buildKeyToCharMap(inputSource: TISInputSource) -> [UInt16: (unshifted: Character?, shifted: Character?)] {
-			guard let layoutDataPtr = TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData) else {
-				return [:]
-			}
-			let layoutData = unsafeBitCast(layoutDataPtr, to: CFData.self)
-			let length = CFDataGetLength(layoutData)
-			if length == 0 { return [:] }
-			return CFDataGetBytePtr(layoutData).withMemoryRebound(to: UCKeyboardLayout.self, capacity: 1) { keyboardLayoutPtr in
-				var localMap: [UInt16: (Character?, Character?)] = [:]
-				for keyCode in 0...127 {
-					let unshifted = translate(keyCode: UInt16(keyCode), shift: false, keyboardLayout: keyboardLayoutPtr)
-					let shifted = translate(keyCode: UInt16(keyCode), shift: true, keyboardLayout: keyboardLayoutPtr)
-					if unshifted != nil || shifted != nil {
-						localMap[UInt16(keyCode)] = (unshifted, shifted)
-					}
-				}
-				return localMap
-			}
-		}
-
-		private static func translate(keyCode: UInt16, shift: Bool, keyboardLayout: UnsafePointer<UCKeyboardLayout>) -> Character? {
+		private static func translate(keyCode: CGKeyCode, modifiers: UInt32, keyboardLayout: UnsafePointer<UCKeyboardLayout>) -> Character? {
 			var deadKeyState: UInt32 = 0
 			var chars: [UniChar] = Array(repeating: 0, count: 4)
 			var len: Int = 0
-			let modifiers: UInt32 = shift ? UInt32(shiftKey) : 0
 			let result = UCKeyTranslate(
 				keyboardLayout,
-				UInt16(keyCode),
+				keyCode,
 				UInt16(kUCKeyActionDown),
 				modifiers >> 8,
 				UInt32(LMGetKbdType()),
@@ -411,8 +392,8 @@ final class PackerLiteDriver: @unchecked Sendable {
 	// MARK: - Mouse
 
 	@MainActor private func click(x: Int, y: Int) {
-		inputHandler.handlePointerEvent(x: x, y: y, buttonMask: 0x01)
-		inputHandler.handlePointerEvent(x: x, y: y, buttonMask: 0x00)
+		self.handlePointerEvent(x: x, y: y, buttonMask: 0x01)
+		self.handlePointerEvent(x: x, y: y, buttonMask: 0x00)
 	}
 
 	@MainActor private func clickText(_ label: String) async throws {
@@ -480,5 +461,373 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}.value
 
 		return result
+	}
+}
+
+// MARK: Input handler
+extension PackerLiteDriver {
+	// MARK: - First Responder
+	@discardableResult
+	private func ensureFirstResponder() -> Bool {
+		guard let window = targetView.window else {
+			return false
+		}
+
+		// If the view is not already first responder, ask the window to make it so
+		if window.firstResponder !== targetView {
+			return window.makeFirstResponder(targetView)
+		}
+
+		return true
+	}
+
+	// MARK: - Mouse Events
+
+	func handlePointerEvent(x: Int, y: Int, buttonMask: UInt8) {
+		// Ensure the view is first responder when pointer interaction begins
+		ensureFirstResponder()
+
+		// Convert VNC coordinates (origin top-left) to NSView (origin bottom-left)
+		let viewBounds = targetView.bounds
+		let viewPoint = NSPoint(x: CGFloat(x), y: viewBounds.height - CGFloat(y))
+		let nsPoint = targetView.convert(viewPoint, to: nil)
+		let moved = nsPoint != lastMousePosition
+
+		// Handle mouse buttons with move
+		if handleMouseButtons(targetView, buttonMask: buttonMask, at: nsPoint, moved: moved) == false {
+			if moved {
+				// Handle mouse movement
+				handleMouseMovement(to: nsPoint)
+			}
+		}
+
+		lastMousePosition = nsPoint
+	}
+
+	private func dispatchEvent(_ event: NSEvent?, view: NSView) {
+		if let event = event {
+			switch event.type {
+			case .scrollWheel:
+				view.scrollWheel(with: event)
+			case .mouseEntered:
+				isDragging = true
+				view.mouseEntered(with: event)
+			case .mouseExited:
+				isDragging = false
+				view.mouseExited(with: event)
+
+			case .leftMouseDragged:
+				view.mouseDragged(with: event)
+			case .rightMouseDragged:
+				view.rightMouseDragged(with: event)
+			case .otherMouseDragged:
+				view.otherMouseDragged(with: event)
+
+			case .leftMouseDown:
+				view.mouseDown(with: event)
+			case .rightMouseDown:
+				view.rightMouseDown(with: event)
+			case .otherMouseDown:
+				view.otherMouseDown(with: event)
+
+			case .leftMouseUp:
+				view.mouseUp(with: event)
+			case .rightMouseUp:
+				view.rightMouseUp(with: event)
+			case .otherMouseUp:
+				view.otherMouseUp(with: event)
+			default:
+				break
+			}
+		}
+	}
+
+	private func handleMouseButtons(_ view: NSView, buttonMask: UInt8, at viewPoint: NSPoint, moved: Bool) -> Bool {
+		let previousState = mouseButtonState
+		var buttonEvent = false
+
+		mouseButtonState = buttonMask
+
+		// Left button (bit 0)
+		if (buttonMask & 0x01) != (previousState & 0x01) {
+			buttonEvent = true
+
+			if moved {
+				if (buttonMask & 0x01) != 0 {
+					dispatchEvent(view.postEnterExitEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+				} else {
+					dispatchEvent(view.postEnterExitEvent(type: .mouseExited, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+				}
+			} else {
+				if (buttonMask & 0x01) != 0 {
+					dispatchEvent(view.postMouseEvent(type: .leftMouseDown, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				} else {
+					dispatchEvent(view.postMouseEvent(type: .leftMouseUp, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				}
+			}
+		} else if (buttonMask & 0x01) != 0 {
+			buttonEvent = true
+
+			if isDragging {
+				dispatchEvent(view.postMouseEvent(type: .leftMouseDragged, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			} else {
+				dispatchEvent(view.postEnterExitEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+			}
+		}
+
+		// Right button (bit 2)
+		if (buttonMask & 0x04) != (previousState & 0x04) {
+			buttonEvent = true
+
+			if moved {
+				if (buttonMask & 0x04) != 0 {
+					dispatchEvent(view.postEnterExitEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+				} else {
+					dispatchEvent(view.postEnterExitEvent(type: .mouseExited, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+				}
+			} else {
+				if (buttonMask & 0x04) != 0 {
+					dispatchEvent(view.postMouseEvent(type: .rightMouseDown, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				} else {
+					dispatchEvent(view.postMouseEvent(type: .rightMouseUp, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				}
+			}
+		} else if (buttonMask & 0x04) != 0 {
+			buttonEvent = true
+
+			if isDragging {
+				dispatchEvent(view.postMouseEvent(type: .rightMouseDragged, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			} else {
+				dispatchEvent(view.postEnterExitEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+			}
+		}
+
+		// Middle button (bit 1)
+		if (buttonMask & 0x02) != (previousState & 0x02) {
+			buttonEvent = true
+
+			if moved {
+				if (buttonMask & 0x02) != 0 {
+					dispatchEvent(view.postEnterExitEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+				} else {
+					dispatchEvent(view.postEnterExitEvent(type: .mouseExited, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+				}
+			} else {
+				if (buttonMask & 0x02) != 0 {
+					dispatchEvent(view.postMouseEvent(type: .otherMouseDown, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				} else {
+					dispatchEvent(view.postMouseEvent(type: .otherMouseUp, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				}
+			}
+		} else if (buttonMask & 0x02) != 0 {
+			buttonEvent = true
+
+			if isDragging {
+				dispatchEvent(view.postMouseEvent(type: .otherMouseDragged, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			} else {
+				dispatchEvent(view.postEnterExitEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+			}
+		}
+
+		// Scroll wheel (bits 3 and 4)
+		if (buttonMask & 0x08) != 0 {  // Scroll up
+			dispatchEvent(view.postScrollEvent(eventSource: eventSource, deltaX: 0, deltaY: 1, at: viewPoint, modifierFlags: self.modifiers), view: view)
+		}
+
+		if (buttonMask & 0x10) != 0 {  // Scroll down
+			dispatchEvent(view.postScrollEvent(eventSource: eventSource, deltaX: 0, deltaY: -1, at: viewPoint, modifierFlags: self.modifiers), view: view)
+		}
+
+		// Scroll wheel (bits 5 and 6)
+		if (buttonMask & 0x20) != 0 {  // Scroll up
+			dispatchEvent(view.postScrollEvent(eventSource: eventSource, deltaX: 1, deltaY: 0, at: viewPoint, modifierFlags: self.modifiers), view: view)
+		}
+
+		if (buttonMask & 0x40) != 0 {  // Scroll down
+			dispatchEvent(view.postScrollEvent(eventSource: eventSource, deltaX: -1, deltaY: 0, at: viewPoint, modifierFlags: self.modifiers), view: view)
+		}
+
+		return buttonEvent
+	}
+
+	private func handleMouseMovement(to viewPoint: NSPoint) {
+		if let event = targetView.postMouseEvent(type: .mouseMoved, at: viewPoint, modifierFlags: self.modifiers) {
+			targetView.mouseMoved(with: event)
+		}
+	}
+
+	// MARK: - Keyboard Events
+	@MainActor func handleKeySpecialEvent(_ keyCode: CGKeyCode, isDown: Bool) {
+		ensureFirstResponder()
+
+		guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: isDown) else {
+			return
+		}
+
+		guard
+			let event = NSEvent.keyEvent(
+				with: keyboardEvent.type == .flagsChanged ? .flagsChanged : (isDown ? .keyDown : .keyUp),
+				location: lastMousePosition,
+				modifierFlags: self.modifiers,
+				timestamp: ProcessInfo.processInfo.systemUptime,
+				windowNumber: self.targetView.window?.windowNumber ?? 0,
+				context: nil,
+				characters: String.empty,
+				charactersIgnoringModifiers: String.empty,
+				isARepeat: false,
+				keyCode: keyCode)
+		else {
+			return
+		}
+
+		if event.type == .flagsChanged {
+			self.targetView.flagsChanged(with: event)
+		} else if isDown {
+			self.targetView.keyDown(with: event)
+		} else {
+			self.targetView.keyUp(with: event)
+		}
+	}
+
+	@MainActor func handleKeyModifierEvent(_ keyCode: CGKeyCode, isDown: Bool) {
+		ensureFirstResponder()
+
+		guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: isDown) else {
+			return
+		}
+
+		switch keyCode {
+		case CGKeyCodes.shift:
+			if isDown {
+				self.modifiers.insert(.leftShift.union(.shift))
+			} else {
+				self.modifiers.remove(.leftShift.union(.shift))
+			}
+		case CGKeyCodes.rightShift:
+			if isDown {
+				self.modifiers.insert(.rightShift.union(.shift))
+			} else {
+				self.modifiers.remove(.rightShift.union(.shift))
+			}
+
+		case CGKeyCodes.control:
+			if isDown {
+				self.modifiers.insert(.leftControl.union(.control))
+			} else {
+				self.modifiers.remove(.leftControl.union(.control))
+			}
+		case CGKeyCodes.rightControl:
+			if isDown {
+				self.modifiers.insert(.rightControl.union(.control))
+			} else {
+				self.modifiers.remove(.rightControl.union(.control))
+			}
+
+		case CGKeyCodes.option:
+			if isDown {
+				self.modifiers.insert(.leftOption.union(.option))
+			} else {
+				self.modifiers.remove(.leftOption.union(.option))
+			}
+		case CGKeyCodes.rightOption:
+			if isDown {
+				self.modifiers.insert(.rightOption.union(.option))
+			} else {
+				self.modifiers.remove(.rightOption.union(.option))
+			}
+
+		case CGKeyCodes.command:
+			if isDown {
+				self.modifiers.insert(.leftCommand.union(.command))
+			} else {
+				self.modifiers.remove(.leftCommand.union(.command))
+			}
+		case CGKeyCodes.rightCommand:
+			if isDown {
+				self.modifiers.insert(.rightCommand.union(.command))
+			} else {
+				self.modifiers.remove(.rightCommand.union(.command))
+			}
+
+		case CGKeyCodes.capsLock:
+			if isDown {
+				self.modifiers.insert(.capsLock)
+			} else {
+				self.modifiers.remove(.capsLock)
+			}
+
+		case CGKeyCodes.help:
+			if isDown {
+				self.modifiers.insert(.help)
+			} else {
+				self.modifiers.remove(.help)
+			}
+
+		case CGKeyCodes.function:
+			if isDown {
+				self.modifiers.insert(.function)
+			} else {
+				self.modifiers.remove(.function)
+			}
+		default:
+			break
+		}
+
+		guard
+			let event = NSEvent.keyEvent(
+				with: keyboardEvent.type == .flagsChanged ? .flagsChanged : (isDown ? .keyDown : .keyUp),
+				location: lastMousePosition,
+				modifierFlags: self.modifiers,
+				timestamp: ProcessInfo.processInfo.systemUptime,
+				windowNumber: self.targetView.window?.windowNumber ?? 0,
+				context: nil,
+				characters: String.empty,
+				charactersIgnoringModifiers: String.empty,
+				isARepeat: false,
+				keyCode: keyCode)
+		else {
+			return
+		}
+
+		if event.type == .flagsChanged {
+			self.targetView.flagsChanged(with: event)
+		} else if isDown {
+			self.targetView.keyDown(with: event)
+		} else {
+			self.targetView.keyUp(with: event)
+		}
+	}
+
+	@MainActor func handleKeyEvent(key: (keyCode: CGKeyCode, modifiers: NSEvent.ModifierFlags, characters: String, charactersIgnoringModifiers: String), isDown: Bool) {
+		// Ensure the view is first responder before delivering key events
+		ensureFirstResponder()
+
+		guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: key.keyCode, keyDown: isDown) else {
+			return
+		}
+
+		guard
+			let event = NSEvent.keyEvent(
+				with: keyboardEvent.type == .flagsChanged ? .flagsChanged : (isDown ? .keyDown : .keyUp),
+				location: lastMousePosition,
+				modifierFlags: key.modifiers,
+				timestamp: ProcessInfo.processInfo.systemUptime,
+				windowNumber: self.targetView.window?.windowNumber ?? 0,
+				context: nil,
+				characters: key.characters,
+				charactersIgnoringModifiers: key.charactersIgnoringModifiers,
+				isARepeat: false,
+				keyCode: key.keyCode)
+		else {
+			return
+		}
+
+		if event.type == .flagsChanged {
+			self.targetView.flagsChanged(with: event)
+		} else if isDown {
+			self.targetView.keyDown(with: event)
+		} else {
+			self.targetView.keyUp(with: event)
+		}
 	}
 }

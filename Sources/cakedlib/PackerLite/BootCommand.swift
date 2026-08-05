@@ -219,8 +219,12 @@ public enum BootCommand {
 
 			let keyboardString = String(rest.dropFirst().dropLast())
 
-			guard keyboardString.isEmpty == false, keyboardString != "null" else {
-				return .keyboard(PackerLiteDriver.NullLayoutTranslator())
+			if keyboardString.isEmpty == false, keyboardString == "current" {
+				guard let keyboard = PackerLiteDriver.LayoutTranslator() else {
+					throw BootCommandParseError.keyboardNotFound(keyboardString)
+				}
+
+				return .keyboard(keyboard)
 			}
 
 			guard let keyboard = PackerLiteDriver.LayoutTranslator(keyboardString) else {
