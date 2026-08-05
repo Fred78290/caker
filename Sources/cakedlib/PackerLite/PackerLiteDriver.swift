@@ -19,6 +19,22 @@ public protocol KeyLayoutTranslator: Sendable, Identifiable {
 	func translate(char: Character) -> (keyCode: CGKeyCode, modifiers: NSEvent.ModifierFlags, characters: String, charactersIgnoringModifiers: String)?
 }
 
+extension NSEvent.ModifierFlags: @retroactive CustomStringConvertible {
+	public var description: String {
+		var result: [String] = []
+
+		if contains(.command) { result.append("Command") }
+		if contains(.control) { result.append("Control") }
+		if contains(.option) { result.append("Option") }
+		if contains(.shift) { result.append("Shift") }
+		if contains(.function) { result.append("Function") }
+		if contains(.numericPad) { result.append("Numeric") }
+		if contains(.capsLock) { result.append("Caps") }
+
+		return result.joined(separator: "|")
+	}
+}
+
 extension TISInputSource {
 	func getLocalizedName() -> String? {
 		if let namePtr = TISGetInputSourceProperty(self, kTISPropertyLocalizedName) {
@@ -95,17 +111,17 @@ final class PackerLiteDriver: @unchecked Sendable {
 			logger.debug("[\(title)]: wait \(seconds)s")
 			try await Task.sleep(nanoseconds: UInt64(max(seconds, 0) * 1_000_000_000))
 		case .type(let text):
-			logger.debug("[\(title)]: type \(text)")
+			logger.debug("[\(title)]: type \(text) with modifier \(modifiers)")
 			try await type(text)
 		case .press(let key):
-			logger.debug("[\(title)]: press \(key)")
+			logger.debug("[\(title)]: press \(key) with modifier \(modifiers)")
 			try await press(keysym(for: key))
 		case .modifierOn(let modifier):
-			logger.debug("[\(title)]: modifierOn \(modifier)")
+			logger.debug("[\(title)]: modifierOn \(modifier) with modifier \(modifiers)")
 			await self.handleKeyModifierEvent(keysym(for: modifier), isDown: true)
 			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 		case .modifierOff(let modifier):
-			logger.debug("[\(title)]: modifierOff \(modifier)")
+			logger.debug("[\(title)]: modifierOff \(modifier) with modifier \(modifiers)")
 			await self.handleKeyModifierEvent(keysym(for: modifier), isDown: false)
 			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 		case .click(let x, let y):
@@ -158,7 +174,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .down: return CGKeyCodes.downArrow
 		case .left: return CGKeyCodes.leftArrow
 		case .right: return CGKeyCodes.rightArrow
-		case .function(let number): return CGKeyCodes.f1 + CGKeyCode(max(1, min(12, number)) - 1)
+		case .function(let number): return CGKeyCodes.f1 + CGKeyCode(number - 1)
 		}
 	}
 
