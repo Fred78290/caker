@@ -20,11 +20,6 @@ public enum PackerLiteEngine {
 		public static let provisionedTerminatedNotification = NSNotification.Name("ProvisionedTerminatedNotification")
 	#endif
 
-	@MainActor
-	private static func setupKeyMapper() throws {
-		try newKeyMapper().setupKeyMapper()
-	}
-
 	public static func provision(
 		vm: VirtualMachine,
 		template: PackerLiteTemplate,
@@ -36,8 +31,6 @@ public enum PackerLiteEngine {
 		let config = vm.config
 		let logger = Logger("PackerLiteEngine")
 		let steps = try await template.parsedBootCommand()
-
-		try await setupKeyMapper()
 
 		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
 
@@ -105,8 +98,6 @@ public enum PackerLiteEngine {
 		runMode: Utils.RunMode,
 		progressHandler: @escaping ProgressObserver.BuildProgressHandler
 	) async throws {
-		try await setupKeyMapper()
-
 		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
 
 		let vm = try await MainActor.run { () -> VirtualMachine in
