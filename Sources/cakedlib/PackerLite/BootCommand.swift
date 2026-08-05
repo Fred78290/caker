@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import GRPCLib
 
 public enum KeyToken: Equatable, Sendable {
 	case enter
@@ -40,6 +41,23 @@ public enum ModifierToken: Equatable, Sendable {
 }
 
 public enum BootCommandStep: Equatable, Sendable {
+	public static func == (lhs: BootCommandStep, rhs: BootCommandStep) -> Bool {
+		lhs.description == rhs.description
+	}
+
+	public var description: String {
+		switch self {
+		case .wait(let seconds): return "wait \(seconds)s"
+		case .type(let text): return "type \(text)"
+		case .press(let key): return "press \(key)"
+		case .modifierOn(let modifier): return "modifier on \(modifier)"
+		case .modifierOff(let modifier): return "modifier off \(modifier)"
+		case .click(let x, let y): return "click \(x), \(y)"
+		case .clickText(let text): return "clickText \(text)"
+		case .keyboard(let translator): return "keyboard \(translator)"
+		}
+	}
+
 	case wait(TimeInterval)
 	case type(String)
 	case press(KeyToken)
@@ -47,7 +65,7 @@ public enum BootCommandStep: Equatable, Sendable {
 	case modifierOff(ModifierToken)
 	case click(x: Int, y: Int)
 	case clickText(String)
-	case keyboard(String)
+	case keyboard(any KeyLayoutTranslator)
 }
 
 public enum BootCommandParseError: Error, LocalizedError, Equatable {
@@ -55,6 +73,7 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 	case unknownToken(String)
 	case malformedClick(String)
 	case malformedKeyboard(String)
+	case keyboardNotFound(String)
 
 	public var errorDescription: String? {
 		switch self {
@@ -62,13 +81,14 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 		case .unknownToken(let token): return "Unknown boot_command token: <\(token)>"
 		case .malformedClick(let token): return "Malformed click token: <\(token)>"
 		case .malformedKeyboard(let token): return "Malformed keyboard token: <\(token)>"
+		case .keyboardNotFound(let keyboard): return "Keyboard not found: <\(keyboard)>"
 		}
 	}
 }
 
 public enum BootCommand {
 	/// Parses a single boot_command string into a sequence of steps.
-	public static func parse(_ command: String) throws -> [BootCommandStep] {
+	public static func parse(_ command: String) async throws -> [BootCommandStep] {
 		var steps: [BootCommandStep] = []
 		var literal = ""
 		var remainder = Substring(command)
@@ -89,7 +109,7 @@ public enum BootCommand {
 				let tokenBody = String(remainder[remainder.index(after: remainder.startIndex)..<closeIndex])
 
 				flushLiteral()
-				steps.append(try parseToken(tokenBody))
+				try await steps.append(parseToken(tokenBody))
 				remainder = remainder[remainder.index(after: closeIndex)...]
 			} else {
 				literal.append(character)
@@ -102,7 +122,7 @@ public enum BootCommand {
 		return steps
 	}
 
-	private static func parseToken(_ rawBody: String) throws -> BootCommandStep {
+	private static func parseToken(_ rawBody: String) async throws -> BootCommandStep {
 		let body = rawBody.trimmingCharacters(in: .whitespaces)
 		let lower = body.lowercased()
 
@@ -111,7 +131,7 @@ public enum BootCommand {
 		}
 
 		if lower.hasPrefix("keyboard") {
-			return try parseKeyboard(body)
+			return try await parseKeyboard(body)
 		}
 
 		if lower.hasPrefix("click") {
@@ -188,6 +208,7 @@ public enum BootCommand {
 		return .wait(unit == "m" ? value * 60 : value)
 	}
 
+	@MainActor
 	private static func parseKeyboard(_ body: String) throws -> BootCommandStep {
 		let rest = body.dropFirst("keyboard".count).trimmingCharacters(in: .whitespaces)
 
@@ -196,7 +217,17 @@ public enum BootCommand {
 				throw BootCommandParseError.malformedClick(body)
 			}
 
-			return .keyboard(String(rest.dropFirst().dropLast()))
+			let keyboardString = String(rest.dropFirst().dropLast())
+
+			guard keyboardString.isEmpty == false, keyboardString != "null" else {
+				return .keyboard(PackerLiteDriver.NullLayoutTranslator())
+			}
+
+			guard let keyboard = PackerLiteDriver.LayoutTranslator(keyboardString) else {
+				throw BootCommandParseError.keyboardNotFound(keyboardString)
+			}
+
+			return .keyboard(keyboard)
 		}
 
 		throw BootCommandParseError.malformedKeyboard(body)

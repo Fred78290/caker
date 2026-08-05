@@ -36,7 +36,7 @@
 			let location = vm.location
 			let config = vm.config
 			let logger = Logger("PackerLiteEngine")
-			let steps = try template.parsedBootCommand()
+			let steps = try await template.parsedBootCommand()
 
 			try await setupKeyMapper()
 

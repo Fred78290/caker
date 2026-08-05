@@ -88,14 +88,18 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	// MARK: boot_command parsing
 
 	/// Parses every `boot_command` entry, wrapping parse failures with the offending index/string.
-	public func parsedBootCommand() throws -> [[BootCommandStep]] {
-		try (bootCommand ?? []).enumerated().map { index, command in
+	public func parsedBootCommand() async throws -> [[BootCommandStep]] {
+		var parsed: [[BootCommandStep]] = []
+
+		for (index, command) in (bootCommand ?? []).enumerated() {
 			do {
-				return try BootCommand.parse(command)
+				parsed.append(try await BootCommand.parse(command))
 			} catch {
 				throw PackerLiteTemplateError.invalidBootCommand(index: index, command: command, underlying: error)
 			}
 		}
+
+		return parsed
 	}
 
 	// MARK: Duration parsing

@@ -19,6 +19,8 @@ create_grace_time: 30s
 boot_timeout: 45m
 
 boot_command:
+  # hello, hola, bonjour, etc.
+  - "<spacebar>"
   # Language: switch to another language first, then back to English, so we land on "English" rather than "English (UK)" — see vanilla-sequoia for the full note.
   - "<wait10s>italiano<esc>english<enter>"
   # Select Your Country or Region

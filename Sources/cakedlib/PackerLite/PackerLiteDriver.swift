@@ -14,7 +14,7 @@ import Foundation
 import GRPCLib
 import Vision
 
-protocol KeyLayoutTranslator {
+public protocol KeyLayoutTranslator: Sendable, Identifiable {
 	func translate(char: Character) -> Character?
 }
 
@@ -55,7 +55,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 	private let inputHandler: VNCInputHandler
 	private let targetView: VNCVirtualMachineView
 	private let logger = Logger("PackerLiteDriver")
-	private var currentKeyTranslator: KeyLayoutTranslator = NullLayoutTranslator()
+	private var currentKeyTranslator: any KeyLayoutTranslator = NullLayoutTranslator()
 
 	/// Delay between synthesized key events, so the guest OS doesn't drop rapid-fire input.
 	private static let keyDelayNanoseconds: UInt64 = 30_000_000
@@ -105,20 +105,28 @@ final class PackerLiteDriver: @unchecked Sendable {
 			logger.debug("clickText '\(label)'")
 			try await clickText(label)
 		case .keyboard(let layout):
-			logger.debug("keyboard layout \(layout)")
-			if let translator = try? LayoutTranslator(layout) {
-				currentKeyTranslator = translator
-			} else {
-				currentKeyTranslator = NullLayoutTranslator()
-			}
+			logger.debug("keyboard layout \(layout.id)")
+			currentKeyTranslator = layout
 		}
 	}
 
 	// MARK: - Keyboard
 
 	@MainActor private func type(_ text: String) async throws {
+		#if DEBUG
+		let translated = String(String.UnicodeScalarView(text.unicodeScalars.compactMap {
+			Unicode.Scalar(translate($0.value))
+		}))
+		logger.debug("type '\(text)' -> '\(translated)'")
+		#endif
+
 		for scalar in text.unicodeScalars {
-			try await press(scalar.value)
+			let keysym = translate(scalar.value)
+
+			inputHandler.handleKeyEvent(key: keysym, isDown: true)
+			inputHandler.handleKeyEvent(key: keysym, isDown: false)
+
+			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 		}
 	}
 
@@ -186,6 +194,8 @@ final class PackerLiteDriver: @unchecked Sendable {
 	}
 
 	struct NullLayoutTranslator: KeyLayoutTranslator {
+		let id: String = "null"
+
 		func translate(char: Character) -> Character? {
 			return char
 		}
@@ -193,6 +203,8 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 	// MARK: - Keyboard layout translation (current layout -> Foreign)
 	struct LayoutTranslator: KeyLayoutTranslator {
+		let id: String
+
 		private let currentCharToKey: [Character: (keyCode: UInt16, shifted: Bool)]
 		private let currentKeyToChar: [UInt16: (unshifted: Character?, shifted: Character?)]
 		private let targetCharToKey: [Character: (keyCode: UInt16, shifted: Bool)]
@@ -265,7 +277,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		/// Ukrainien – Ancien clavier - com.apple.keylayout.Ukrainian
 		/// US International – PC - com.apple.keylayout.USInternational-PC
 
-		static func getNamedInputSource(_ nameOrSourceID: String) -> TISInputSource? {
+		private static func getNamedInputSource(_ nameOrSourceID: String) -> TISInputSource? {
 			guard let unmanagedList = TISCreateInputSourceList(nil, true) else {
 				return nil
 			}
@@ -287,6 +299,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 			return nil
 		}
 
+		@MainActor
 		init?(_ keyLayout: String = "com.apple.keylayout.US") {
 			// Build maps once at init time. If the user changes layouts at runtime, you can re-instantiate this struct.
 			guard let targetKeyboard = Self.getNamedInputSource(keyLayout) else {
@@ -300,6 +313,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 			self.targetCharToKey = LayoutTranslator.buildCharToKeyMap(inputSource: targetKeyboard)
 			self.targetKeyToChar = LayoutTranslator.buildKeyToCharMap(keyLayout: targetKeyboard)
+			self.id = keyLayout
 		}
 
 		func translate(char: Character) -> Character? {

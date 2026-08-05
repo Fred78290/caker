@@ -18,6 +18,8 @@ create_grace_time: 30s
 boot_timeout: 45m
 
 boot_command:
+  # hello, hola, bonjour, etc.
+  - "<spacebar>"
   # Language: most of the times we have a list of "English"[1], "English (UK)" etc. with
   # "English" language already selected. If we type "english" it'll cause us to switch
   # to the "English (UK)" which is not what we want. To solve this, we switch to some other

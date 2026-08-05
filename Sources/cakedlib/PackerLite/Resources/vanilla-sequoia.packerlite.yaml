@@ -19,13 +19,15 @@ create_grace_time: 30s
 boot_timeout: 45m
 
 boot_command:
+  # hello, hola, bonjour, etc.
+  - "<spacebar>"
   # Language: most of the time we have a list of "English"[1], "English (UK)", etc. with
   # "English" already selected. If we type "english", it'll switch to "English (UK)",
   # which is not what we want. To solve this, we switch to some other language first,
   # e.g. "Italiano" and then switch back to "English": we'll jump to the first entry
   # in a list of "english"-prefixed items, which will be "English".
   # [1]: should be named "English (US)", but oh well
-  - "<wait10s>italiano<esc>english<enter>"
+  - "<wait10s>italiano<esc>english<down><enter>"
   # Select Your Country or Region
   - "<wait30s><click 'Select Your Country or Region'><wait5s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
   # Transfer Your Data to This Mac
