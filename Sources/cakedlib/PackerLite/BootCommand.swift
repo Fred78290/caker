@@ -158,7 +158,7 @@ public struct BootCommandStep: Equatable, Sendable {
 		case "rightsuperon": return .modifierOn(.rightSuper)
 		case "rightsuperoff": return .modifierOff(.rightSuper)
 		default:
-			if lower.hasPrefix("f"), let number = Int(lower.dropFirst()), (1...12).contains(number) {
+			if lower.hasPrefix("f"), let number = Int(lower.dropFirst()), (1...20).contains(number) {
 				return .press(.function(number))
 			}
 
