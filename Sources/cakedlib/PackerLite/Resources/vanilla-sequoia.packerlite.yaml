@@ -21,88 +21,129 @@ boot_timeout: 45m
 boot_command:
   - title: Wait hello, hola, bonjour, etc.
     command: "<spacebar>"
+
   - title: Select Language
     command: "<wait10s>italiano<esc>english<down><enter>"
+
   - title: Select Your Country or Region
     command: "<wait30s><click 'Select Your Country or Region'><wait5s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Transfer Your Data to This Mac
     command: "<wait10s><tab><tab><tab><spacebar><tab><tab><spacebar>"
+
   - title: Written and Spoken Languages
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Change keyboard
     command: "<keyboard 'com.apple.keylayout.US'>"
+
   - title: Accessibility
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Data & Privacy
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Create a Mac Account
     command: "<wait10s>Managed via Caker<tab>${var.username}<tab>${var.password}<tab>${var.password}<tab><tab><spacebar><tab><tab><spacebar>"
+
   - title: Enable Voice Over
-    command: "<wait120s><leftAltOn><f5><leftAltOff>"
+    command: "<wait60s><leftAltOn><f5><leftAltOff>"
+
   - title: Sign In with Your Apple ID
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Are you sure you want to skip signing in with an Apple ID?
     command: "<wait10s><tab><spacebar>"
+
   - title: Terms and Conditions
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: I have read and agree to the macOS Software License Agreement
     command: "<wait10s><tab><spacebar>"
+
   - title: Enable Location Services
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Are you sure you don't want to use Location Services?
     command: "<wait10s><tab><spacebar>"
+
   - title: Select Your Time Zone
     command: "<wait10s><tab><tab>UTC<enter><leftShiftOn><tab><tab><leftShiftOff><spacebar>"
+
   - title: Analytics
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Screen Time
     command: "<wait10s><tab><spacebar>"
+
   - title: Siri
     command: "<wait10s><tab><spacebar><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Choose Your Look
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Update Mac Automatically
     command: "<wait10s><tab><spacebar>"
+
   - title: Welcome to Mac
     command: "<wait10s><spacebar>"
+
   - title: Disable Voice Over
     command: "<leftAltOn><f5><leftAltOff>"
+
   - title: Enable Keyboard navigation so we can navigate System Settings using the keyboard
     command: "<wait10s><leftAltOn><spacebar><leftAltOff>Terminal<enter>"
+
   - title: Enable full keyboard access
     command: "<wait10s>defaults write NSGlobalDomain AppleKeyboardUIMode -int 3<enter>"
+
   - title: Quit Terminal
     command: "<wait10s><leftAltOn>q<leftAltOff>"
+
   - title: Open System Settings
     command: "<wait10s><leftAltOn><spacebar><leftAltOff>System Settings<enter>"
+
   - title: Navigate to Sharing
     command: "<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Sharing<enter>"
+
   - title: Enable Screen Sharing
     command: "<wait10s><tab><tab><tab><tab><tab><tab><tab><spacebar>"
+
   - title: Enable Remote Login
     command: "<wait10s><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><spacebar>"
+
   - title: Quit System Settings
     command: "<wait10s><leftAltOn>q<leftAltOff>"
+
   - title: Disable Gatekeeper (1/2)
     command: "<wait10s><leftAltOn><spacebar><leftAltOff>Terminal<enter>"
+
   - title: Disable Gatekeeper (1/2)
     command: "<wait10s>sudo spctl --global-disable<enter>"
+
   - title: Disable Gatekeeper (1/2)
     command: "<wait10s>${var.password}<enter>"
+
   - title: Disable Gatekeeper (1/2)
     command: "<wait10s><leftAltOn>q<leftAltOff>"
-  # Disable Gatekeeper (2/2)
+
   - title: Disable Gatekeeper (2/2)
     command: "<wait10s><leftAltOn><spacebar><leftAltOff>System Settings<enter>"
+
   - title: Disable Gatekeeper (2/2)
     command: "<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Privacy & Security<enter>"
+
   - title: Disable Gatekeeper (2/2)
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff>"
+
   - title: Disable Gatekeeper (2/2)
     command: "<wait10s><down><wait1s><down><wait1s><enter>"
+
   - title: Disable Gatekeeper (2/2)
     command: "<wait10s>${var.password}<enter>"
+
   - title: Disable Gatekeeper (2/2)
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><wait1s><spacebar>"
+
   - title: Quit System Settings
     command: "<wait10s><leftAltOn>q<leftAltOff>"
