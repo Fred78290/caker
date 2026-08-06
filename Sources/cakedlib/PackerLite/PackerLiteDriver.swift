@@ -30,6 +30,7 @@ extension NSEvent.ModifierFlags: @retroactive CustomStringConvertible {
 		if contains(.function) { result.append("Function") }
 		if contains(.numericPad) { result.append("Numeric") }
 		if contains(.capsLock) { result.append("Caps") }
+		if contains(.function) { result.append("Function") }
 
 		return result.joined(separator: "|")
 	}
@@ -188,6 +189,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .rightCtrl: return CGKeyCodes.rightControl
 		case .leftSuper: return CGKeyCodes.option
 		case .rightSuper: return CGKeyCodes.rightOption
+		case .function: return CGKeyCodes.function
 		}
 	}
 

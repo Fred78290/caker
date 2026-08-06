@@ -20,53 +20,78 @@ boot_timeout: 45m
 boot_command:
   - title: Wait hello, hola, bonjour, etc.
     command: "<spacebar>"
+
   - title: Select Language
     command: "<wait10s>italiano<esc>english<down><enter>"
+
   - title: Select Your Country and Region
     command: "<wait30s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Written and Spoken Languages
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Change keyboard
     command: "<keyboard 'com.apple.keylayout.US'>"
+
   - title: Accessibility
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Data & Privacy
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Migration Assistant
     command: "<wait10s><tab><tab><tab><spacebar>"
+
   - title: Sign In with Your Apple ID
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Are you sure you want to skip signing in with an Apple ID?
     command: "<wait10s><tab><spacebar>"
+
   - title: Terms and Conditions
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: I have read and agree to the macOS Software License Agreement
     command: "<wait10s><tab><spacebar>"
+
   - title: Create a Computer Account
     command: "<wait10s>${var.username}<tab><tab>${var.password}<tab>${var.password}<tab><tab><tab><spacebar>"
+
   - title: Enable Location Services
     command: "<wait30s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Are you sure you don't want to use Location Services?
     command: "<wait10s><tab><spacebar>"
+
   - title: Select Your Time Zone
     command: "<wait10s><tab>UTC<enter><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Analytics
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Screen Time
     command: "<wait10s><tab><spacebar>"
+
   - title: Siri
     command: "<wait10s><tab><spacebar><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Choose Your Look
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Enable Voice Over
-    command: "<wait10s><leftAltOn><f5><leftAltOff><wait5s>v"
+    command: "<wait10s><leftAltOn><fnOn><f5><fnOff><leftAltOff><wait5s>v"
+
   - title: Now that the installation is done, open "System Settings"
     command: "<wait10s><leftAltOn><spacebar><leftAltOff>System Settings<enter>"
+
   - title: Navigate to "Sharing"
     command: "<wait10s><leftAltOn>f<leftAltOff>sharing<enter>"
+
   - title: Navigate to "Screen Sharing" and enable it
     command: "<wait10s><tab><tab><tab><tab><tab><spacebar>"
+
   - title: Navigate to "Remote Login" and enable it
     command: "<wait10s><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><spacebar>"
+
   - title: Disable Voice Over
-    command: "<leftAltOn><f5><leftAltOff>"
+    command: "<leftAltOn><fnOn><f5><fnOff><leftAltOff>"

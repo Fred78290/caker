@@ -21,91 +21,135 @@ boot_timeout: 45m
 boot_command:
   - title: Wait hello, hola, bonjour, etc.
     command: "<spacebar>"
+
   - title: Select Language
     command: "<wait10s>italiano<esc>english<down><enter>"
+
   - title: Select Your Country or Region
     command: "<wait60s><click 'Select Your Country or Region'><wait5s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Transfer Your Data to This Mac
     command: "<wait10s><tab><tab><tab><spacebar><tab><tab><spacebar>"
+
   - title: Written and Spoken Languages
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Change keyboard
     command: "<keyboard 'com.apple.keylayout.US'>"
+
   - title: Accessibility
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Data & Privacy
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Create a Mac Account
     command: "<wait10s><tab><tab><tab><tab><tab><tab>Managed via Caker<tab>${var.username}<tab>${var.password}<tab>${var.password}<tab><tab><spacebar><tab><tab><spacebar>"
+
   - title: Enable Voice Over
-    command: "<wait120s><leftAltOn><f5><leftAltOff>"
+    command: "<wait120s><leftAltOn><fnOn><f5><fnOff><leftAltOff>"
+
   - title: Sign In with Your Apple ID
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar><up><spacebar>"
+
   - title: Are you sure you want to skip signing in with an Apple ID?
     command: "<wait10s><tab><spacebar>"
+
   - title: Terms and Conditions
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: I have read and agree to the macOS Software License Agreement
     command: "<wait10s><tab><spacebar>"
+
   - title: Age Range -> Adult
     command: "<wait10s><tab><tab><tab><spacebar>"
+
   - title: Enable Location Services
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Are you sure you don't want to use Location Services?
     command: "<wait10s><tab><spacebar>"
+
   - title: Select Your Time Zone
     command: "<wait10s><tab><tab><tab>UTC<enter><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Analytics
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Screen Time
     command: "<wait10s><tab><tab><spacebar>"
+
   - title: Siri
     command: "<wait10s><tab><spacebar><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Your Mac is Ready for FileVault
     command: "<wait10s><leftShiftOn><tab><tab><leftShiftOff><spacebar>"
+
   - title: Mac Data Will Not Be Securely Encrypted
     command: "<wait10s><tab><spacebar>"
+
   - title: Choose Your Look
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
+
   - title: Update Mac Automatically
     command: "<wait10s><tab><tab><spacebar>"
+
   - title: Welcome to Mac
     command: "<wait30s><spacebar>"
+
   - title: Disable Voice Over
-    command: "<wait10s><leftAltOn><f5><leftAltOff>"
+    command: "<wait10s><leftAltOn><fnOn><f5><fnOff><leftAltOff>"
+
   - title: Enable Keyboard navigation
     command: "<wait10s><leftAltOn><spacebar><leftAltOff>Terminal<wait10s><enter>"
+
   - title: Enable Keyboard navigation (continued)
     command: "<wait10s><wait10s>defaults write NSGlobalDomain AppleKeyboardUIMode -int 3<enter>"
+
   - title: Open System Settings
     command: "<wait10s>open '/System/Applications/System Settings.app'<enter>"
+
   - title: Wait for System Settings to open
     command: "<wait120s>"
+
   - title: Navigate to Sharing
     command: "<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Sharing<enter>"
+
   - title: Enable Screen Sharing
     command: "<wait10s><tab><tab><tab><tab><tab><spacebar>"
+
   - title: Enter password for Screen Sharing
     command: "<wait10s>${var.password}<enter>"
+
   - title: Enable Remote Login
     command: "<wait10s><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><spacebar>"
+
   - title: Quit System Settings
     command: "<wait10s><leftAltOn>q<leftAltOff>"
+
   - title: Disable Gatekeeper (1/2)
     command: "<wait10s>sudo spctl --global-disable<enter>"
+
   - title: Enter password for Gatekeeper
     command: "<wait10s>${var.password}<enter>"
+
   - title: Disable Gatekeeper (2/2)
     command: "<wait10s>open '/System/Applications/System Settings.app'<enter>"
+
   - title: Navigate to Privacy & Security
     command: "<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Privacy & Security<enter>"
+
   - title: Unlock Privacy & Security
     command: "<wait10s><leftShiftOn><tab><tab><tab><tab><tab><tab><leftShiftOff>"
+
   - title: Disable Gatekeeper
     command: "<wait10s><down><wait1s><down><wait1s><enter>"
+
   - title: Enter password for Gatekeeper
     command: "<wait10s>${var.password}<enter>"
+
   - title: Confirm Gatekeeper disable
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><wait1s><spacebar>"
+
   - title: Quit System Settings
     command: "<wait10s><leftAltOn>q<leftAltOff>"

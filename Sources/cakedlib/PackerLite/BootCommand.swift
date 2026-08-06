@@ -38,6 +38,7 @@ public enum ModifierToken: Equatable, Sendable {
 	case rightCtrl
 	case leftSuper
 	case rightSuper
+	case function
 }
 
 public typealias BootCommandSteps = [BootCommandStep]
@@ -157,6 +158,8 @@ public struct BootCommandStep: Equatable, Sendable {
 		case "leftsuperoff": return .modifierOff(.leftSuper)
 		case "rightsuperon": return .modifierOn(.rightSuper)
 		case "rightsuperoff": return .modifierOff(.rightSuper)
+		case "fnon": return .modifierOn(.function)
+		case "fnoff": return .modifierOff(.function)
 		default:
 			if lower.hasPrefix("f"), let number = Int(lower.dropFirst()), (1...20).contains(number) {
 				return .press(.function(number))

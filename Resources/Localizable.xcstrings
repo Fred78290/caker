@@ -1285,6 +1285,16 @@
         }
       }
     },
+    "Auto configuration with provisioning" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuration automatique avec provisionnement"
+          }
+        }
+      }
+    },
     "automatic" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3888,13 +3898,13 @@
         }
       }
     },
-    "Drive a macOS VM's Setup Assistant unattended via PackerLite" : {
+    "Drive a macOS or Linux VM's Setup Assistant unattended via PackerLite" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Piloter l'assistant de réglages d'une VM macOS de manière automatisée via PackerLite"
+            "value" : "Piloter l'assistant de réglages d'une VM macOS ou Linux de manière automatisée via PackerLite"
           }
         }
       }
@@ -7412,13 +7422,13 @@
         }
       }
     },
-    "macOS version to use for picking the built-in template, overriding the VM's stored osRelease" : {
+    "macOS version to use for picking the built-in template, overriding the VM's stored osName" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Version macOS à utiliser pour choisir le modèle intégré, remplaçant l'osRelease enregistré de la VM"
+            "value" : "Version macOS à utiliser pour choisir le modèle intégré, remplaçant l'osName enregistré de la VM"
           }
         }
       }
@@ -10735,13 +10745,35 @@
         }
       }
     },
-    "Provisioning template (YAML) to use, overriding the VM's stored macOS version" : {
+    "Provisioning template (YAML) to use, will override the default template for the macOS VM, must be provided for non-macOS VMs" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Modèle de configuration (YAML) à utiliser, remplaçant la version macOS enregistrée de la VM"
+            "value" : "Modèle de provisionnement (YAML) à utiliser, remplacera le modèle par défaut pour la machine virtuelle macOS, doit être fourni pour les machines virtuelles non macOS"
+          }
+        }
+      }
+    },
+    "Provisioning template file does not exist: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le fichier de modèle de provisionnement n'existe pas : %@"
+          }
+        }
+      }
+    },
+    "Provisioning template must be provided for non-macOS VMs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un modèle de provisionnement doit être fourni pour les machines virtuelles non macOS"
           }
         }
       }
@@ -10753,6 +10785,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Délai de configuration dépassé après %@s"
+          }
+        }
+      }
+    },
+    "Provisioning yaml" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fichier d’approvisionnement"
           }
         }
       }
@@ -11016,6 +11058,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Url de l'image brute."
+          }
+        }
+      }
+    },
+    "Re-runs the same unattended Setup Assistant automation that `build`/`create` drive automatically for .ipsw or .iso sources with --autoinstall — for a VM that skipped it at build time. Uses the VM's stored macOS version and account credentials; fails if the VM is currently running, or has already been provisioned." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reexécute la même automatisation de l'assistant de configuration sans surveillance que `build`/`create` drive automatiquement pour les sources .ipsw ou .iso avec --autoinstall - pour une machine virtuelle qui l'a ignorée au moment de la construction. Utilise la version macOS et les informations d'identification du compte stockées de la machine virtuelle ; échoue si la machine virtuelle est actuellement en cours d'exécution ou a déjà été provisionnée."
           }
         }
       }

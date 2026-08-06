@@ -35,7 +35,7 @@ public enum MacOSVersion: String, CaseIterable, Sendable {
 	/// Extracts the macOS version from an Apple restore-image filename, e.g.
 	/// "UniversalMac_26.6_25G72_Restore.ipsw" -> .tahoe, "UniversalMac_15.6.1_24G90_Restore.ipsw" -> .sequoia.
 	/// Returns nil if the filename doesn't follow that convention or the version has no known codename.
-	public static func detect(fromIPSWFilename filename: String) -> MacOSVersion? {
+	public static func detect(fromIPSWFilename filename: String) -> (name: MacOSVersion?, version: String?)? {
 		let basename = (filename as NSString).lastPathComponent
 
 		guard let regex = try? NSRegularExpression(pattern: #"UniversalMac_(\d{1,2})(?:\.\d+){0,2}_"#) else {
@@ -47,11 +47,13 @@ public enum MacOSVersion: String, CaseIterable, Sendable {
 		guard
 			let match = regex.firstMatch(in: basename, range: range),
 			let majorRange = Range(match.range(at: 1), in: basename),
-			let major = Int(basename[majorRange])
+			let minorRange = Range(match.range(at: 2), in: basename),
+			let major = Int(basename[majorRange]),
+			let minor = Int(basename[minorRange])
 		else {
 			return nil
 		}
 
-		return MacOSVersion(major: major)
+		return (MacOSVersion(major: major), "\(major).\(minor)")
 	}
 }

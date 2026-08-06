@@ -173,7 +173,8 @@ public struct VMBuilder {
 					// later for VMs provisioned after the fact.
 					let resolvedMacOSVersion = PackerLiteTemplateResolver.resolveVersion(explicitVersion: explicitMacOSVersion, ipswURL: imageURL)
 
-					config.osRelease = resolvedMacOSVersion?.rawValue
+					config.osName = resolvedMacOSVersion.name?.rawValue
+					config.osRelease = resolvedMacOSVersion.version
 
 					try config.save()
 
@@ -197,6 +198,22 @@ public struct VMBuilder {
 					}
 				}
 			#endif
+
+			if let provisionTemplate = options.provisionTemplate, imageSource == .iso && options.autoinstall && provisionTemplate.isEmpty == false {
+				let content = try String(contentsOfFile: provisionTemplate, encoding: .utf8)
+
+				// The VM's account is already fully determined by --user/--password (see
+				// `configuredUser`/`configuredPassword` above) — reuse it here instead of
+				// letting the template declare its own, so there's exactly one source of truth.
+				var variables = options.provisionVarsDict
+
+				variables["username"] = config.configuredUser
+				variables["password"] = config.configuredPassword ?? "admin"
+
+				let template = try PackerLiteTemplate.load(from: content, variables: variables)
+
+				try await PackerLiteEngine.provision(location: location, config: config, template: template, runMode: runMode, progressHandler: progressHandler)
+			}
 		}
 	}
 

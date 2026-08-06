@@ -322,6 +322,7 @@ struct ShortImageInfoComparator: SortComparator {
 	var mountPoints: MountPoints
 	var showDiskFormat: Bool
 	var createVirtualMachineTask: Task<Void, Never>?
+	var provisioningTemplate: String
 
 	init() {
 		self.currentStep = .name
@@ -342,6 +343,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.rootDisk = String.empty
 		self.mountPoints = []
 		self.showDiskFormat = false
+		self.provisioningTemplate = String.empty
 	}
 
 	func reset() {
@@ -363,6 +365,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.rootDisk = String.empty
 		self.mountPoints = []
 		self.showDiskFormat = false
+		self.provisioningTemplate = String.empty
 	}
 }
 
@@ -987,6 +990,25 @@ struct VirtualMachineWizard: View {
 								//							Toggle("Create kickstart config", isOn: $config.autoinstall).disabled(self.model.createVM)
 								//						} else if platform == .debian {
 								//							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
+							} else {
+								LabeledContent("Provisioning yaml") {
+									HStack {
+										TextField("Provisioning yaml", text: $model.provisioningTemplate)
+											.frame(width: 300)
+											.rounded(.leading)
+											.disabled(self.model.createVM)
+										Button(action: {
+											if let provisioningTemplate = chooseYAML() {
+												model.provisioningTemplate = provisioningTemplate
+											}
+										}) {
+											Image(systemName: "document.badge.gearshape")
+										}
+										.disabled(self.model.createVM)
+										.buttonStyle(.borderless)
+									}
+								}
+								Toggle("Auto configuration with provisioning", isOn: $config.autoinstall).disabled(self.model.createVM)
 							}
 						}
 
@@ -1116,26 +1138,36 @@ struct VirtualMachineWizard: View {
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
+									self.config.autoinstall = false
+									self.model.provisioningTemplate = String.empty
 								case .qcow2:
 									self.config.imageName = model.cloudImageRelease.url.absoluteString
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
+									self.config.autoinstall = false
+									self.model.provisioningTemplate = String.empty
 								case .oci:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
+									self.config.autoinstall = false
+									self.model.provisioningTemplate = String.empty
 								case .template:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
+									self.config.autoinstall = false
+									self.model.provisioningTemplate = String.empty
 								case .stream:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
+									self.config.autoinstall = false
+									self.model.provisioningTemplate = String.empty
 								case .iso:
 									self.config.autoinstall = false
 									self.config.imageName = self.model.isoImageRelease.location.url
@@ -1151,6 +1183,8 @@ struct VirtualMachineWizard: View {
 									self.model.showDiskFormat = true
 									self.config.diskFormat = .defaultSupportedFormat
 									self.config.os = .darwin
+									self.config.autoinstall = false
+									self.model.provisioningTemplate = String.empty
 								}
 							}
 							.pickerStyle(.menu)
@@ -1316,6 +1350,7 @@ struct VirtualMachineWizard: View {
 
 	func validateConfig(config: VirtualMachineConfig) {
 		var valid = model.mountPoints.first(where: { $0.validate() == false }) == nil
+		let platform = SupportedPlatform(rawValue: self.config.imageName)
 
 		if valid {
 			if config.os == .linux {
@@ -1327,6 +1362,10 @@ struct VirtualMachineWizard: View {
 
 		if valid && model.rootDisk.isEmpty == false {
 			valid = FileManager.default.fileExists(atPath: model.rootDisk)
+		}
+
+		if valid && model.imageSource == .iso && platform != .ubuntu && platform != .unknown && config.autoinstall {
+			valid = self.model.provisioningTemplate.isEmpty == false
 		}
 
 		if valid && (model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw) {

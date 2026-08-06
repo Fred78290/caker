@@ -12,16 +12,16 @@ import AppKit
 /// against `caked` on the host where the VM lives — not currently wired through gRPC/cakectl.
 struct Provision: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(commandName: "provision",
-													abstract: String(localized: "Drive a macOS VM's Setup Assistant unattended via PackerLite"),
-													discussion: String(localized: "Re-runs the same unattended Setup Assistant automation that `build`/`create` drive automatically for .ipsw sources with --autoinstall — for a VM that skipped it at build time. Uses the VM's stored macOS version and account credentials; fails if the VM isn't macOS, is currently running, or has already been provisioned."))
+													abstract: String(localized: "Drive a macOS or Linux VM's Setup Assistant unattended via PackerLite"),
+													discussion: String(localized: "Re-runs the same unattended Setup Assistant automation that `build`/`create` drive automatically for .ipsw or .iso sources with --autoinstall — for a VM that skipped it at build time. Uses the VM's stored macOS version and account credentials; fails if the VM is currently running, or has already been provisioned."))
 
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Option(help: ArgumentHelp(String(localized: "Provisioning template (YAML) to use, overriding the VM's stored macOS version"), valueName: "path"))
+	@Option(help: ArgumentHelp(String(localized: "Provisioning template (YAML) to use, will override the default template for the macOS VM, must be provided for non-macOS VMs"), valueName: "path"))
 	var template: String?
 
-	@Option(name: [.customLong("macos-version")], help: ArgumentHelp(String(localized: "macOS version to use for picking the built-in template, overriding the VM's stored osRelease"), valueName: "version"))
+	@Option(name: [.customLong("macos-version")], help: ArgumentHelp(String(localized: "macOS version to use for picking the built-in template, overriding the VM's stored osName"), valueName: "version"))
 	var macosVersion: GRPCLib.MacOSVersion?
 
 	@Option(name: [.customLong("var")], help: ArgumentHelp(String(localized: "Set a provisioning template variable (key=value), may be repeated"), valueName: "key=value"))
@@ -63,7 +63,13 @@ struct Provision: AsyncParsableCommand {
 		let config = try location.config()
 
 		if config.os != .darwin {
-			throw ValidationError(String(localized: "VM at \(path) is not a macOS VM"))
+			guard let template = self.template else {
+				throw ValidationError(String(localized: "Provisioning template must be provided for non-macOS VMs"))
+			}
+			
+			if FileManager.default.fileExists(atPath: template.expandingTildeInPath) == false {
+				throw ValidationError(String(localized: "Provisioning template file does not exist: \(template)"))
+			}
 		}
 
 		if config.provisioned {
@@ -137,18 +143,25 @@ struct Provision: AsyncParsableCommand {
 	private func provision(_ vm: VirtualMachine, runningIP: String?) async throws {
 		let location = vm.location
 		let config = vm.config
+		let content: String
 
-		// Prefer an explicit --macos-version override; otherwise fall back to whatever `build`
-		// already detected and stored in config.osRelease (see VMBuilder.swift).
-		let explicitMacOSVersion: CakedLib.MacOSVersion? =
-			self.macosVersion.flatMap { CakedLib.MacOSVersion(rawValue: $0.rawValue) } ?? config.osRelease.flatMap { CakedLib.MacOSVersion(rawValue: $0) }
+		if config.os == .darwin {
+			// Prefer an explicit --macos-version override; otherwise fall back to whatever `build`
+			// already detected and stored in config.osName (see VMBuilder.swift).
+			let explicitMacOSVersion: CakedLib.MacOSVersion? =
+				self.macosVersion.flatMap { CakedLib.MacOSVersion(rawValue: $0.rawValue) } ?? config.osName.flatMap { CakedLib.MacOSVersion(rawValue: $0) }
 
-		// No real IPSW file at hand for an already-installed VM — filename-based detection is a
-		// no-op here, so this resolves purely from --template / the version determined above.
-		let content = try PackerLiteTemplateResolver.resolve(
-			explicitPath: self.template,
-			explicitVersion: explicitMacOSVersion,
-			ipswURL: URL(fileURLWithPath: "\(location.name).ipsw"))
+			// No real IPSW file at hand for an already-installed VM — filename-based detection is a
+			// no-op here, so this resolves purely from --template / the version determined above.
+			content = try PackerLiteTemplateResolver.resolve(
+				explicitPath: self.template,
+				explicitVersion: explicitMacOSVersion,
+				ipswURL: URL(fileURLWithPath: "\(location.name).ipsw"))
+		} else if let provisionTemplate = self.template {
+			content = try String(contentsOfFile: provisionTemplate, encoding: .utf8)
+		} else {
+			throw ServiceError(String(localized: "Provisioning template must be provided for non-macOS VMs"))
+		}
 
 		// The VM's account is already fully determined by its stored configuredUser/configuredPassword
 		// — reuse it here instead of letting the template declare its own, so there's exactly one

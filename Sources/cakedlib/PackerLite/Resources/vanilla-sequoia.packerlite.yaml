@@ -47,7 +47,7 @@ boot_command:
     command: "<wait10s>Managed via Caker<tab>${var.username}<tab>${var.password}<tab>${var.password}<tab><tab><spacebar><tab><tab><spacebar>"
 
   - title: Enable Voice Over
-    command: "<wait60s><leftAltOn><f5><leftAltOff>"
+    command: "<wait60s><leftAltOn><fnOn><f5><fnOff><leftAltOff>"
 
   - title: Sign In with Your Apple ID
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>"
@@ -89,7 +89,7 @@ boot_command:
     command: "<wait10s><spacebar>"
 
   - title: Disable Voice Over
-    command: "<leftAltOn><f5><leftAltOff>"
+    command: "<leftAltOn><fnOn><f5><fnOff><leftAltOff>"
 
   - title: Enable Keyboard navigation so we can navigate System Settings using the keyboard
     command: "<wait10s><leftAltOn><spacebar><leftAltOff>Terminal<enter>"
