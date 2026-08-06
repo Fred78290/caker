@@ -38,7 +38,7 @@ public enum MacOSVersion: String, CaseIterable, Sendable {
 	public static func detect(fromIPSWFilename filename: String) -> (name: MacOSVersion?, version: String?)? {
 		let basename = (filename as NSString).lastPathComponent
 
-		guard let regex = try? NSRegularExpression(pattern: #"UniversalMac_(\d{1,2})(?:\.\d+){0,2}_"#) else {
+		guard let regex = try? NSRegularExpression(pattern: #"UniversalMac_(\d{1,2})(?:\.(\d+))?(?:\.\d+)?_"#) else {
 			return nil
 		}
 
@@ -47,12 +47,13 @@ public enum MacOSVersion: String, CaseIterable, Sendable {
 		guard
 			let match = regex.firstMatch(in: basename, range: range),
 			let majorRange = Range(match.range(at: 1), in: basename),
-			let minorRange = Range(match.range(at: 2), in: basename),
-			let major = Int(basename[majorRange]),
-			let minor = Int(basename[minorRange])
+			let major = Int(basename[majorRange])
 		else {
 			return nil
 		}
+
+		// Minor is absent in filenames like "UniversalMac_26_..." — treat it as .0.
+		let minor = Range(match.range(at: 2), in: basename).flatMap { Int(basename[$0]) } ?? 0
 
 		return (MacOSVersion(major: major), "\(major).\(minor)")
 	}
