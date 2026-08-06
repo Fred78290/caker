@@ -25,18 +25,18 @@ final class PackerLiteTests: XCTestCase {
 		if let translator = PackerLiteDriver.LayoutTranslator("com.apple.keylayout.US") {
 			var original: [Character] = []
 			var translated: [Character] = []
-			
+
 			for ch in 32..<128 {
 				let c = Character(UnicodeScalar(ch)!)
 
 				original.append(c)
 				if let cc = translator.translate(char: c) {
-					translated.append(cc.characters)
+					translated.append(cc.characters.first ?? "¿")
 				} else {
 					translated.append("¿") // placeholder for untranslatable
 				}
 			}
-			
+
 			let originalDisplay = "|" + original.map { String($0) }.joined(separator: "|") + "|"
 			let translatedDisplay = "|" + translated.map { String($0) }.joined(separator: "|") + "|"
 
@@ -47,19 +47,25 @@ final class PackerLiteTests: XCTestCase {
 	}
 	// MARK: - Token parsing
 
+	/// `BootCommand.parse` takes a `{title, command}` `PackerLiteTemplate.Command`, not a bare
+	/// string — this wraps a raw boot_command string for tests that only care about the parsed steps.
+	private func parseSteps(_ raw: String, title: String = "test") async throws -> [BootCommandStep.Step] {
+		try await BootCommand.parse(PackerLiteTemplate.Command(title: title, command: raw)).steps
+	}
+
 	func testWaitTokenUnits() async throws {
-		let a = try await BootCommand.parse("<wait60s><spacebar>")
+		let a = try await parseSteps("<wait60s><spacebar>")
 		XCTAssertEqual(a, [.wait(60), .press(.spacebar)])
-		let b = try await BootCommand.parse("<wait5>")
+		let b = try await parseSteps("<wait5>")
 		XCTAssertEqual(b, [.wait(5)])
-		let c = try await BootCommand.parse("<wait1m>")
+		let c = try await parseSteps("<wait1m>")
 		XCTAssertEqual(c, [.wait(60)])
-		let d = try await BootCommand.parse("<wait>")
+		let d = try await parseSteps("<wait>")
 		XCTAssertEqual(d, [.wait(1)])
 	}
 
 	func testLiteralTypingBetweenTokens() async throws {
-		let parsed = try await BootCommand.parse("<wait30s>italiano<esc>english<enter>")
+		let parsed = try await parseSteps("<wait30s>italiano<esc>english<enter>")
 		XCTAssertEqual(
 			parsed,
 			[.wait(30), .type("italiano"), .press(.esc), .type("english"), .press(.enter)]
@@ -67,15 +73,23 @@ final class PackerLiteTests: XCTestCase {
 	}
 
 	func testModifierOnOffPairing() async throws {
-		let parsed = try await BootCommand.parse("<leftShiftOn><tab><leftShiftOff><spacebar>")
+		let parsed = try await parseSteps("<leftShiftOn><tab><leftShiftOff><spacebar>")
 		XCTAssertEqual(
 			parsed,
 			[.modifierOn(.leftShift), .press(.tab), .modifierOff(.leftShift), .press(.spacebar)]
 		)
 	}
 
+	func testFnModifierOnOffPairing() async throws {
+		let parsed = try await parseSteps("<leftAltOn><fnOn><f5><fnOff><leftAltOff>")
+		XCTAssertEqual(
+			parsed,
+			[.modifierOn(.leftAlt), .modifierOn(.function), .press(.function(5)), .modifierOff(.function), .modifierOff(.leftAlt)]
+		)
+	}
+
 	func testClickTextToken() async throws {
-		let parsed = try await BootCommand.parse("<wait30s><click 'Select Your Country or Region'><wait5s>united states")
+		let parsed = try await parseSteps("<wait30s><click 'Select Your Country or Region'><wait5s>united states")
 		XCTAssertEqual(
 			parsed,
 			[.wait(30), .clickText("Select Your Country or Region"), .wait(5), .type("united states")]
@@ -83,21 +97,26 @@ final class PackerLiteTests: XCTestCase {
 	}
 
 	func testClickCoordinatesToken() async throws {
-		let parsed = try await BootCommand.parse("<click 100,200>")
+		let parsed = try await parseSteps("<click 100,200>")
 		XCTAssertEqual(parsed, [.click(x: 100, y: 200)])
 	}
 
 	func testFunctionKeyToken() async throws {
-		let parsed = try await BootCommand.parse("<leftAltOn><f5><leftAltOff>")
+		let parsed = try await parseSteps("<leftAltOn><f5><leftAltOff>")
 		XCTAssertEqual(
 			parsed,
 			[.modifierOn(.leftAlt), .press(.function(5)), .modifierOff(.leftAlt)]
 		)
 	}
 
+	func testFunctionKeyTokenUpToF20() async throws {
+		let parsed = try await parseSteps("<f20>")
+		XCTAssertEqual(parsed, [.press(.function(20))])
+	}
+
 	func testUnknownTokenThrows() async {
 		do {
-			_ = try await BootCommand.parse("<notAToken>")
+			_ = try await parseSteps("<notAToken>")
 			XCTFail("expected unknownToken error")
 		} catch {
 			XCTAssertEqual(error as? BootCommandParseError, .unknownToken("notAToken"))
@@ -106,7 +125,7 @@ final class PackerLiteTests: XCTestCase {
 
 	func testUnterminatedTokenThrows() async {
 		do {
-			_ = try await BootCommand.parse("<wait30s")
+			_ = try await parseSteps("<wait30s")
 			XCTFail("expected unterminatedToken error")
 		} catch {
 			guard case .unterminatedToken = error as? BootCommandParseError else {
@@ -117,33 +136,11 @@ final class PackerLiteTests: XCTestCase {
 
 	func testMalformedClickThrows() async {
 		do {
-			_ = try await BootCommand.parse("<click 'unterminated>")
+			_ = try await parseSteps("<click 'unterminated>")
 			XCTFail("expected malformedClick error")
 		} catch {
 			guard case .malformedClick = error as? BootCommandParseError else {
 				return XCTFail("expected malformedClick, got \(error)")
-			}
-		}
-	}
-
-	// MARK: - Reference templates (transcribed from templates/macos/*.pkr.hcl)
-
-	func testVanillaSequoiaBootCommandParsesEveryStep() async {
-		for (index, command) in Self.vanillaSequoiaBootCommand.enumerated() {
-			do {
-				_ = try await BootCommand.parse(command)
-			} catch {
-				XCTFail("boot_command[\(index)] failed to parse: \(command): \(error)")
-			}
-		}
-	}
-
-	func testVanillaTahoeBootCommandParsesEveryStep() async {
-		for (index, command) in Self.vanillaTahoeBootCommand.enumerated() {
-			do {
-				_ = try await BootCommand.parse(command)
-			} catch {
-				XCTFail("boot_command[\(index)] failed to parse: \(command): \(error)")
 			}
 		}
 	}
@@ -159,14 +156,15 @@ final class PackerLiteTests: XCTestCase {
 		variables:
 		  greeting: hello
 		boot_command:
-		  - "<wait10s>${var.username}<tab>${var.password}<tab>${var.greeting}<enter>"
+		  - title: Sign in
+		    command: "<wait10s>${var.username}<tab>${var.password}<tab>${var.greeting}<enter>"
 		"""
 
 		let defaults = try PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "password": "admin"])
-		XCTAssertEqual(defaults.bootCommand?.first, "<wait10s>admin<tab>admin<tab>hello<enter>")
+		XCTAssertEqual(defaults.bootCommand?.first?.command, "<wait10s>admin<tab>admin<tab>hello<enter>")
 
 		let overridden = try PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "password": "hunter2"])
-		XCTAssertEqual(overridden.bootCommand?.first, "<wait10s>admin<tab>hunter2<tab>hello<enter>")
+		XCTAssertEqual(overridden.bootCommand?.first?.command, "<wait10s>admin<tab>hunter2<tab>hello<enter>")
 	}
 
 	func testTemplateDurationDefaultsAndParsing() throws {
@@ -182,41 +180,45 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertEqual(withoutDurations.resolvedBootTimeout, 45 * 60)
 	}
 
-	func testParsedBootCommandWrapsFailureWithIndex() async throws {
+	func testParsedBootCommandWrapsFailureWithOffendingCommand() async throws {
 		let template = try PackerLiteTemplate.load(from: """
 		boot_command:
-		  - "<enter>"
-		  - "<notAToken>"
+		  - title: Fine
+		    command: "<enter>"
+		  - title: Broken
+		    command: "<notAToken>"
 		""")
 
 		do {
 			_ = try await template.parsedBootCommand()
 			XCTFail("expected invalidBootCommand error")
 		} catch {
-			guard case .invalidBootCommand(let index, let command, _) = error as? PackerLiteTemplateError else {
+			guard case .invalidBootCommand(let command, _) = error as? PackerLiteTemplateError else {
 				return XCTFail("expected invalidBootCommand, got \(error)")
 			}
-			XCTAssertEqual(index, 1)
-			XCTAssertEqual(command, "<notAToken>")
+			XCTAssertEqual(command.title, "Broken")
+			XCTAssertEqual(command.command, "<notAToken>")
 		}
 	}
 
 	// MARK: - MacOSVersion
 
 	func testMacOSVersionDetectFromRealIPSWFilenames() {
-		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_26.6_25G72_Restore.ipsw"), .tahoe)
-		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_15.6.1_24G90_Restore.ipsw"), .sequoia)
-		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_27.0_26A5388g_Restore.ipsw"), .goldengate)
-		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_14.6.1_23G93_Restore.ipsw"), .sonoma)
-		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_13.6_22G120_Restore.ipsw"), .ventura)
-		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_12.7.6_21H1320_Restore.ipsw"), .monterey)
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_26.6_25G72_Restore.ipsw")?.name, .tahoe)
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_26.6_25G72_Restore.ipsw")?.version, "26.6")
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_15.6.1_24G90_Restore.ipsw")?.name, .sequoia)
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_15.6.1_24G90_Restore.ipsw")?.version, "15.6")
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_27.0_26A5388g_Restore.ipsw")?.name, .goldengate)
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_14.6.1_23G93_Restore.ipsw")?.name, .sonoma)
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_13.6_22G120_Restore.ipsw")?.name, .ventura)
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_12.7.6_21H1320_Restore.ipsw")?.name, .monterey)
 		XCTAssertEqual(
-			MacOSVersion.detect(fromIPSWFilename: "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-65618/UniversalMac_26.6_25G72_Restore.ipsw"),
+			MacOSVersion.detect(fromIPSWFilename: "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-65618/UniversalMac_26.6_25G72_Restore.ipsw")?.name,
 			.tahoe, "should work on a full URL, not just a bare filename")
 	}
 
 	func testMacOSVersionDetectReturnsNilForUnknownOrUnrecognizedFilenames() {
-		XCTAssertNil(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_11.7.10_20G1345_Restore.ipsw"), "macOS 11 (Big Sur) has no bundled template/codename")
+		XCTAssertNil(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_11.7.10_20G1345_Restore.ipsw")?.name, "macOS 11 (Big Sur) has no bundled template/codename")
 		XCTAssertNil(MacOSVersion.detect(fromIPSWFilename: "my-custom-image.ipsw"))
 		XCTAssertNil(MacOSVersion.detect(fromIPSWFilename: ""))
 	}
@@ -236,11 +238,11 @@ final class PackerLiteTests: XCTestCase {
 	func testVanillaSequoiaPackerLiteTemplateFileLoadsAndParses() async throws {
 		// Mirrors what VMBuilder.swift injects: username/password come from CakeConfig, not the template.
 		let template = try PackerLiteTemplate.load(
-			fromFile: Self.templatesDirectory.appendingPathComponent("vanilla-sequoia.packerlite.yaml").path,
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-sequoia.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "admin"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains { $0.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
+		XCTAssertTrue(template.bootCommand?.contains { $0.command.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
 		do {
 			_ = try await template.parsedBootCommand()
 		} catch {
@@ -250,12 +252,12 @@ final class PackerLiteTests: XCTestCase {
 
 	func testVanillaTahoePackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try PackerLiteTemplate.load(
-			fromFile: Self.templatesDirectory.appendingPathComponent("vanilla-tahoe.packerlite.yaml").path,
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-tahoe.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.contains("hunter2") }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
+		XCTAssertTrue(template.bootCommand?.contains(where: { $0.command.contains("hunter2") }) == true)
+		XCTAssertTrue(template.bootCommand?.contains { $0.command.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
 		do {
 			_ = try await template.parsedBootCommand()
 		} catch {
@@ -265,12 +267,12 @@ final class PackerLiteTests: XCTestCase {
 
 	func testVanillaMontereyPackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try PackerLiteTemplate.load(
-			fromFile: Self.templatesDirectory.appendingPathComponent("vanilla-monterey.packerlite.yaml").path,
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-monterey.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.contains("hunter2") }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
+		XCTAssertTrue(template.bootCommand?.contains(where: { $0.command.contains("hunter2") }) == true)
+		XCTAssertTrue(template.bootCommand?.contains { $0.command.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
 		do {
 			_ = try await template.parsedBootCommand()
 		} catch {
@@ -280,12 +282,12 @@ final class PackerLiteTests: XCTestCase {
 
 	func testVanillaVenturaPackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try PackerLiteTemplate.load(
-			fromFile: Self.templatesDirectory.appendingPathComponent("vanilla-ventura.packerlite.yaml").path,
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-ventura.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.contains("hunter2") }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
+		XCTAssertTrue(template.bootCommand?.contains(where: { $0.command.contains("hunter2") }) == true)
+		XCTAssertTrue(template.bootCommand?.contains { $0.command.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
 		do {
 			_ = try await template.parsedBootCommand()
 		} catch {
@@ -295,12 +297,12 @@ final class PackerLiteTests: XCTestCase {
 
 	func testVanillaSonomaPackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try PackerLiteTemplate.load(
-			fromFile: Self.templatesDirectory.appendingPathComponent("vanilla-sonoma.packerlite.yaml").path,
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-sonoma.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.contains("hunter2") }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
+		XCTAssertTrue(template.bootCommand?.contains(where: { $0.command.contains("hunter2") }) == true)
+		XCTAssertTrue(template.bootCommand?.contains { $0.command.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
 		do {
 			_ = try await template.parsedBootCommand()
 		} catch {
@@ -308,105 +310,55 @@ final class PackerLiteTests: XCTestCase {
 		}
 	}
 
-	private static var templatesDirectory: URL {
+	// MARK: - Reference Linux templates (templates/linux/*.packerlite.yaml, not bundled/auto-resolved)
+
+	func testFedoraWorkstationPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("fedora-workstation.packerlite.yaml")
+	}
+
+	func testCentOSStreamPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("centos-stream.packerlite.yaml")
+	}
+
+	func testRHELPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("rhel.packerlite.yaml")
+	}
+
+	func testOpenSUSELeapPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("opensuse-leap.packerlite.yaml")
+	}
+
+	func testDebianPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("debian.packerlite.yaml")
+	}
+
+	private func assertLinuxTemplateLoadsAndParses(_ filename: String) async throws {
+		let template = try PackerLiteTemplate.load(
+			fromFile: Self.linuxTemplatesDirectory.appendingPathComponent(filename).path,
+			variables: ["username": "admin", "password": "hunter2"])
+
+		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
+		XCTAssertTrue(template.bootCommand?.contains(where: { $0.command.contains("hunter2") }) == true)
+		XCTAssertTrue(template.bootCommand?.contains { $0.command.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
+		do {
+			_ = try await template.parsedBootCommand()
+		} catch {
+			XCTFail("unexpected error: \(error)")
+		}
+	}
+
+	private static var repoRoot: URL {
 		URL(fileURLWithPath: #filePath)
 			.deletingLastPathComponent()
 			.deletingLastPathComponent()
 			.deletingLastPathComponent()
-			.appendingPathComponent("Sources/cakedlib/PackerLite/Resources")
 	}
 
-	// MARK: - Fixtures
+	private static var macTemplatesDirectory: URL {
+		repoRoot.appendingPathComponent("Sources/cakedlib/PackerLite/Resources")
+	}
 
-	private static let vanillaSequoiaBootCommand: [String] = [
-		"<wait60s><spacebar>",
-		"<wait30s>italiano<esc>english<enter>",
-		"<wait30s><click 'Select Your Country or Region'><wait5s>united states<leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><tab><tab><spacebar><tab><tab><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s>Managed via Tart<tab>admin<tab>admin<tab>admin<tab><tab><spacebar><tab><tab><spacebar>",
-		"<wait120s><leftAltOn><f5><leftAltOff>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><spacebar>",
-		"<wait10s><tab><tab>UTC<enter><leftShiftOn><tab><tab><leftShiftOff><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><spacebar>",
-		"<wait10s><tab><spacebar><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><spacebar>",
-		"<wait10s><spacebar>",
-		"<leftAltOn><f5><leftAltOff>",
-		"<wait10s><leftAltOn><spacebar><leftAltOff>Terminal<enter>",
-		"<wait10s>defaults write NSGlobalDomain AppleKeyboardUIMode -int 3<enter>",
-		"<wait10s><leftAltOn>q<leftAltOff>",
-		"<wait10s><leftAltOn><spacebar><leftAltOff>System Settings<enter>",
-		"<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Sharing<enter>",
-		"<wait10s><tab><tab><tab><tab><tab><tab><tab><spacebar>",
-		"<wait10s><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><spacebar>",
-		"<wait10s><leftAltOn>q<leftAltOff>",
-		"<wait10s><leftAltOn><spacebar><leftAltOff>Terminal<enter>",
-		"<wait10s>sudo spctl --global-disable<enter>",
-		"<wait10s>admin<enter>",
-		"<wait10s><leftAltOn>q<leftAltOff>",
-		"<wait10s><leftAltOn><spacebar><leftAltOff>System Settings<enter>",
-		"<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Privacy & Security<enter>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff>",
-		"<wait10s><down><wait1s><down><wait1s><enter>",
-		"<wait10s>admin<enter>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><wait1s><spacebar>",
-		"<wait10s><leftAltOn>q<leftAltOff>",
-	]
-
-	private static let vanillaTahoeBootCommand: [String] = [
-		"<wait60s><spacebar>",
-		"<wait30s>italiano<esc>english<enter>",
-		"<wait60s><click 'Select Your Country or Region'><wait5s>united states<leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><tab><tab><spacebar><tab><tab><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><tab><tab><tab><tab><tab>Managed via Tart<tab>admin<tab>admin<tab>admin<tab><tab><spacebar><tab><tab><spacebar>",
-		"<wait120s><leftAltOn><f5><leftAltOff>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar><up><spacebar>",
-		"<wait10s><tab><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><spacebar>",
-		"<wait10s><tab><tab><tab><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><spacebar>",
-		"<wait10s><tab><tab><tab>UTC<enter><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><tab><spacebar>",
-		"<wait10s><tab><spacebar><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><leftShiftOn><tab><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><spacebar>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><spacebar>",
-		"<wait10s><tab><tab><spacebar>",
-		"<wait30s><spacebar>",
-		"<wait10s><leftAltOn><f5><leftAltOff>",
-		"<wait10s><leftAltOn><spacebar><leftAltOff>Terminal<wait10s><enter>",
-		"<wait10s><wait10s>defaults write NSGlobalDomain AppleKeyboardUIMode -int 3<enter>",
-		"<wait10s>open '/System/Applications/System Settings.app'<enter>",
-		"<wait120s>",
-		"<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Sharing<enter>",
-		"<wait10s><tab><tab><tab><tab><tab><spacebar>",
-		"<wait10s>admin<enter>",
-		"<wait10s><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><tab><spacebar>",
-		"<wait10s><leftAltOn>q<leftAltOff>",
-		"<wait10s>sudo spctl --global-disable<enter>",
-		"<wait10s>admin<enter>",
-		"<wait10s>open '/System/Applications/System Settings.app'<enter>",
-		"<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Privacy & Security<enter>",
-		"<wait10s><leftShiftOn><tab><tab><tab><tab><tab><tab><leftShiftOff>",
-		"<wait10s><down><wait1s><down><wait1s><enter>",
-		"<wait10s>admin<enter>",
-		"<wait10s><leftShiftOn><tab><leftShiftOff><wait1s><spacebar>",
-		"<wait10s><leftAltOn>q<leftAltOff>",
-	]
+	private static var linuxTemplatesDirectory: URL {
+		repoRoot.appendingPathComponent("templates/linux")
+	}
 }
