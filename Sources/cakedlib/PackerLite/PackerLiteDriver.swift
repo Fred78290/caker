@@ -182,12 +182,12 @@ final class PackerLiteDriver: @unchecked Sendable {
 		switch modifier {
 		case .leftShift: return CGKeyCodes.shift
 		case .rightShift: return CGKeyCodes.rightShift
-		case .leftAlt: return CGKeyCodes.option
-		case .rightAlt: return CGKeyCodes.rightOption
+		case .leftAlt: return CGKeyCodes.command
+		case .rightAlt: return CGKeyCodes.rightCommand
 		case .leftCtrl: return CGKeyCodes.control
 		case .rightCtrl: return CGKeyCodes.rightControl
-		case .leftSuper: return CGKeyCodes.command
-		case .rightSuper: return CGKeyCodes.rightCommand
+		case .leftSuper: return CGKeyCodes.option
+		case .rightSuper: return CGKeyCodes.rightOption
 		}
 	}
 
