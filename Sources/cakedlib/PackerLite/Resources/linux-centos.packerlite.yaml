@@ -1,0 +1,71 @@
+# centos-stream.packerlite.yaml
+#
+# Reference PackerLite template — unattended installation of CentOS Stream
+# from the official install ISO, driven natively by caked/caker after booting
+# from the ISO (see the "PackerLite" section of the wiki's command summary).
+# No built-in Linux template ships with caker — this is a starting point, not
+# a guaranteed-working recipe like the bundled macOS templates: it has been
+# reviewed for plausibility against the documented Anaconda install flow, but
+# NOT validated end-to-end against a real boot. Treat the click targets and
+# tab counts below as a first draft to verify/adjust against your own run.
+#
+# Unlike Fedora Workstation's Live ISO, CentOS Stream's install ISO boots
+# straight into the graphical Anaconda installer — there's no live desktop
+# session and no `liveinst` step needed first.
+#
+# The boot ISO's default software selection is a minimal server install with
+# no desktop environment. If you want a desktop, open the "Software Selection"
+# hub spoke and pick "Server with GUI"/"Workstation" (or use the DVD ISO,
+# whose default selection may already include one) — this template leaves
+# that spoke untouched and takes whatever the ISO's default selection is.
+#
+# Usage:
+#   cakectl build my-centos-vm ./CentOS-Stream-9-latest-x86_64-dvd1.iso \
+#     --user admin --password admin --autoinstall \
+#     --template templates/linux/centos-stream.packerlite.yaml
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+create_grace_time: 45s   # not currently honored by PackerLiteEngine — kept for documentation/forward-compat
+boot_timeout: 60m        # a full install can legitimately take 20-30+ minutes
+
+boot_command:
+  - title: Boot the GRUB menu's default "Install" entry
+    command: "<wait30s><enter>"
+
+  - title: Wait for the Anaconda installer to start
+    command: "<wait60s>"
+
+  - title: Welcome screen - continue with the default language
+    command: "<wait5s><click 'Continue'>"
+
+  - title: Open Installation Destination
+    command: "<wait5s><click 'Installation Destination'>"
+
+  - title: Accept automatic partitioning on the detected disk
+    command: "<wait5s><click 'Done'>"
+
+  - title: Open User Creation
+    command: "<wait5s><click 'User Creation'>"
+
+  - title: Fill in the full name, then replace the auto-suggested username
+    command: "<wait2s>Managed via Caker<tab><leftCtrlOn>a<leftCtrlOff>${var.username}"
+
+  - title: Make this user an administrator
+    command: "<click 'Make this user administrator'>"
+
+  - title: Set and confirm the account password
+    command: "<tab><tab>${var.password}<tab>${var.password}"
+
+  - title: Confirm the user creation spoke
+    command: "<wait2s><click 'Done'>"
+
+  - title: Begin the installation
+    command: "<wait5s><click 'Begin Installation'>"
+
+  - title: Wait for the installation to finish
+    command: "<wait30m>"
+
+  - title: Reboot into the freshly installed system
+    command: "<wait5s><click 'Reboot System'>"

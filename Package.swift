@@ -162,6 +162,11 @@ let package = Package(
 			.copy("PackerLite/Resources/vanilla-sonoma.packerlite.yaml"),
 			.copy("PackerLite/Resources/vanilla-sequoia.packerlite.yaml"),
 			.copy("PackerLite/Resources/vanilla-tahoe.packerlite.yaml"),
+			.copy("PackerLite/Resources/linux-fedora.packerlite.yaml"),
+			.copy("PackerLite/Resources/linux-centos.packerlite.yaml"),
+			.copy("PackerLite/Resources/linux-redhat.packerlite.yaml"),
+			.copy("PackerLite/Resources/linux-opensuse.packerlite.yaml"),
+			.copy("PackerLite/Resources/linux-debian.packerlite.yaml"),
 		]),
 		.executableTarget(name: "caker", dependencies: [
 			.target(name: "GRPCLib"),

@@ -1,0 +1,93 @@
+# fedora-workstation.packerlite.yaml
+#
+# Reference PackerLite template — unattended installation of Fedora Workstation
+# from the official Live ISO, driven natively by caked/caker after booting from
+# the ISO (see the "PackerLite" section of the wiki's command summary). No
+# built-in Linux template ships with caker — this is a starting point, not a
+# guaranteed-working recipe like the bundled macOS templates: it has been
+# reviewed for plausibility against Fedora's documented live-install flow, but
+# NOT validated end-to-end against a real boot. Treat the click targets and
+# tab counts below as a first draft to verify/adjust against your own run.
+#
+# Targets the CLASSIC GTK Anaconda installer used by Fedora Workstation Live
+# media through roughly Fedora 40. Fedora 41+ switched the default Workstation
+# live installer to the new Anaconda WebUI (a browser-based interface embedded
+# in a kiosk browser), which has a very different navigation flow — this
+# template will need rework to drive that instead.
+#
+# Usage:
+#   cakectl build my-fedora-vm ./Fedora-Workstation-Live-x86_64-40-1.14.iso \
+#     --user admin --password admin --autoinstall \
+#     --template templates/linux/fedora-workstation.packerlite.yaml
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+#
+# Assumptions worth checking against your own run:
+#   - The live session's default "liveuser" has passwordless sudo (true on
+#     stock Fedora media) — used to launch the installer and to reboot without
+#     a password prompt appearing mid-sequence.
+#   - GNOME Shell's Activities overview opens on a single press of the
+#     Super/Cmd key and auto-focuses its search box, matching the Spotlight
+#     idiom the bundled macOS templates use to open Terminal.
+#   - After Anaconda finishes, grub2-install/efibootmgr register the freshly
+#     installed system as the default EFI boot entry, so the *next* VM boot
+#     (after this template hands back to caked, which shuts the VM down) goes
+#     into the installed system rather than back into the live media, even
+#     though the install ISO stays attached to the VM's configuration. This
+#     template deliberately does not reboot mid-run or attempt cakeagent
+#     installation itself — the live session's root filesystem is an ephemeral
+#     overlay, so anything installed into it before the switch to the real
+#     disk would be lost anyway.
+
+create_grace_time: 45s   # not currently honored by PackerLiteEngine — kept for documentation/forward-compat
+boot_timeout: 60m        # a full desktop install can legitimately take 20-30+ minutes
+
+boot_command:
+  - title: Boot the live GRUB menu's default entry
+    command: "<wait30s><enter>"
+
+  - title: Wait for the live GNOME desktop to finish loading
+    command: "<wait90s>"
+
+  - title: Open a terminal via the Activities overview
+    command: "<leftAltOn><leftAltOff><wait2s>Terminal<enter>"
+
+  - title: Launch the graphical installer as root
+    command: "<wait5s>sudo liveinst<enter>"
+
+  - title: Wait for the Anaconda installer window to open
+    command: "<wait15s>"
+
+  - title: Welcome screen - continue with the default language
+    command: "<wait5s><click 'Continue'>"
+
+  - title: Open Installation Destination
+    command: "<wait5s><click 'Installation Destination'>"
+
+  - title: Accept automatic partitioning on the detected disk
+    command: "<wait5s><click 'Done'>"
+
+  - title: Open User Creation
+    command: "<wait5s><click 'User Creation'>"
+
+  - title: Fill in the full name, then replace the auto-suggested username
+    command: "<wait2s>Managed via Caker<tab><leftCtrlOn>a<leftCtrlOff>${var.username}"
+
+  - title: Make this user an administrator
+    command: "<click 'Make this user administrator'>"
+
+  - title: Set and confirm the account password
+    command: "<tab><tab>${var.password}<tab>${var.password}"
+
+  - title: Confirm the user creation spoke
+    command: "<wait2s><click 'Done'>"
+
+  - title: Begin the installation
+    command: "<wait5s><click 'Begin Installation'>"
+
+  - title: Wait for the installation to finish
+    command: "<wait30m>"
+
+  - title: Quit the installer once installation completes
+    command: "<wait5s><click 'Quit'>"

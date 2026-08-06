@@ -199,16 +199,25 @@ cakectl networks stop shared-dev
 
 ### 8) Créer une VM macOS depuis un IPSW (Setup Assistant automatisé)
 
-Apple Silicon uniquement. La version macOS est détectée depuis le nom du fichier IPSW ; sinon précisez `--macos-version` — voir [PackerLite](command-summary#packerlite-fr).
+Apple Silicon uniquement. Nécessite `--autoinstall` pour déclencher PackerLite. La version macOS est détectée depuis le nom du fichier IPSW ; sinon précisez `--macos-version` — voir [PackerLite](command-summary#packerlite-fr).
 
 ```bash
-cakectl build my-macos-vm --user admin --password admin \
+cakectl build my-macos-vm --user admin --password admin --autoinstall \
   https://updates.cdn-apple.com/.../UniversalMac_26.6_25G72_Restore.ipsw
 ```
 
 ```bash
 # nom de fichier non standard : version macOS explicite requise
-cakectl build my-macos-vm --user admin --password admin --macos-version tahoe ./restore.ipsw
+cakectl build my-macos-vm --user admin --password admin --autoinstall --macos-version tahoe ./restore.ipsw
+```
+
+### 9) Créer une VM Linux depuis une ISO non-Ubuntu (provisioning automatisé)
+
+Nécessite `--autoinstall` **et** `--template` — aucun template Linux n'est fourni par défaut, voir [PackerLite](command-summary#packerlite-fr).
+
+```bash
+cakectl build my-linux-vm --user admin --password admin --autoinstall \
+  --template ./debian.packerlite.yaml ./debian-13.iso
 ```
 
 </div>
@@ -412,16 +421,25 @@ cakectl networks stop shared-dev
 
 ### 8) Create a macOS VM from an IPSW (unattended Setup Assistant)
 
-Apple Silicon only. The macOS version is detected from the IPSW filename; otherwise pass `--macos-version` — see [PackerLite](command-summary#packerlite).
+Apple Silicon only. Requires `--autoinstall` to trigger PackerLite. The macOS version is detected from the IPSW filename; otherwise pass `--macos-version` — see [PackerLite](command-summary#packerlite).
 
 ```bash
-cakectl build my-macos-vm --user admin --password admin \
+cakectl build my-macos-vm --user admin --password admin --autoinstall \
   https://updates.cdn-apple.com/.../UniversalMac_26.6_25G72_Restore.ipsw
 ```
 
 ```bash
 # non-standard filename: an explicit macOS version is required
-cakectl build my-macos-vm --user admin --password admin --macos-version tahoe ./restore.ipsw
+cakectl build my-macos-vm --user admin --password admin --autoinstall --macos-version tahoe ./restore.ipsw
+```
+
+### 9) Create a Linux VM from a non-Ubuntu ISO (unattended provisioning)
+
+Requires **both** `--autoinstall` and `--template` — no Linux template ships built in, see [PackerLite](command-summary#packerlite).
+
+```bash
+cakectl build my-linux-vm --user admin --password admin --autoinstall \
+  --template ./debian.packerlite.yaml ./debian-13.iso
 ```
 
 </div>

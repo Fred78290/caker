@@ -1,0 +1,76 @@
+# opensuse-leap.packerlite.yaml
+#
+# Reference PackerLite template — unattended installation of openSUSE Leap
+# from the official DVD/NET install ISO, driven natively by caked/caker after
+# booting from the ISO (see the "PackerLite" section of the wiki's command
+# summary). No built-in Linux template ships with caker — this is a starting
+# point, not a guaranteed-working recipe like the bundled macOS templates: it
+# has been reviewed for plausibility against the documented YaST install flow,
+# but NOT validated end-to-end against a real boot, and with less confidence
+# than the Anaconda-family templates (fedora-workstation/centos-stream/rhel)
+# in this same directory — YaST's exact screen labels/order have shifted more
+# across Leap releases than Anaconda's have. Treat the click targets and tab
+# counts below as a first draft to verify/adjust against your own run.
+#
+# openSUSE's installer is YaST, not Anaconda — different installer, different
+# flow. Like CentOS Stream/RHEL, the DVD/NET ISO boots straight into the
+# graphical installer, no live desktop session needed first.
+#
+# This template picks "Desktop with KDE Plasma" at the System Role screen —
+# change that click target to "Desktop with GNOME" (or another listed role)
+# if you want something else. Unlike the Anaconda-family templates, YaST asks
+# for the desktop up front as an explicit choice rather than leaving it to a
+# separate, easy-to-miss Software Selection spoke.
+#
+# This template assumes no "Registration"/"Extension and Module Selection"
+# screen appears between Welcome and System Role — true for openSUSE Leap's
+# community media in most recent releases, unlike SUSE Linux Enterprise. If
+# your build does show one, insert a step to dismiss it before System Role.
+#
+# Usage:
+#   cakectl build my-opensuse-vm ./openSUSE-Leap-15.6-DVD-x86_64-Media.iso \
+#     --user admin --password admin --autoinstall \
+#     --template templates/linux/opensuse-leap.packerlite.yaml
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+create_grace_time: 45s   # not currently honored by PackerLiteEngine — kept for documentation/forward-compat
+boot_timeout: 60m        # a full install can legitimately take 20-30+ minutes
+
+boot_command:
+  - title: Boot the GRUB menu's default "Installation" entry
+    command: "<wait30s><enter>"
+
+  - title: Wait for the YaST installer to start (hardware probing takes a while)
+    command: "<wait90s>"
+
+  - title: Welcome screen - accept the license and continue
+    command: "<wait5s><click 'I Agree to the License Terms'><click 'Next'>"
+
+  - title: Pick the desktop environment at the System Role screen
+    command: "<wait10s><click 'Desktop with KDE Plasma'><click 'Next'>"
+
+  - title: Accept the suggested partitioning
+    command: "<wait10s><click 'Next'>"
+
+  - title: Fill in the full name, then replace the auto-suggested username
+    command: "<wait10s>Managed via Caker<tab><leftCtrlOn>a<leftCtrlOff>${var.username}"
+
+  - title: Set and confirm the account password
+    command: "<tab>${var.password}<tab>${var.password}"
+
+  - title: Use this account's password for the system administrator (root) too
+    command: "<click 'Use this password also for system administrator'><click 'Next'>"
+
+  - title: Confirm the installation summary
+    command: "<wait10s><click 'Install'>"
+
+  - title: Confirm the installation warning dialog
+    command: "<wait5s><click 'Install'>"
+
+  - title: Wait for the installation to finish
+    command: "<wait30m>"
+
+  - title: Finish and reboot into the freshly installed system
+    command: "<wait5s><click 'Finish'>"

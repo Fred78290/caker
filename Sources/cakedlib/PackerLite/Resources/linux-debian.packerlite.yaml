@@ -1,0 +1,144 @@
+# debian.packerlite.yaml
+#
+# Reference PackerLite template — unattended installation of Debian from the
+# official netinst/DVD ISO's graphical installer, driven natively by
+# caked/caker after booting from the ISO (see the "PackerLite" section of the
+# wiki's command summary). No built-in Linux template ships with caker — this
+# is a starting point, not a guaranteed-working recipe like the bundled macOS
+# templates: it has been reviewed for plausibility against the documented
+# debian-installer ("d-i") flow, but NOT validated end-to-end against a real
+# boot. This is the most speculative of the reference templates in this
+# directory — d-i has noticeably more screens than Anaconda or YaST, several
+# of them network-mirror-dependent, and each is a chance for a click target
+# or field order to be slightly off for the Debian release you're actually
+# installing. Treat this as a first draft to verify/adjust against your own
+# run, more so than the other templates here.
+#
+# Debian's own preseeding mechanism (a single answers file, no keystroke
+# replay needed) is the more typical way to automate d-i and would likely be
+# more reliable than this boot_command approach — this template exists to
+# demonstrate/exercise the PackerLite path for a distro genuinely different
+# from the Anaconda/YaST families, not because it's the recommended way to
+# automate Debian specifically.
+#
+# Assumes the isolinux/GRUB boot menu's default entry is "Graphical install"
+# (true for recent Debian netinst/DVD images) — if your image defaults to the
+# text-mode "Install" entry instead, adjust the first step to navigate down
+# before pressing Enter.
+#
+# Leaves the root password blank on purpose: d-i's documented behavior is
+# that an empty root password disables the root account and grants the first
+# created user sudo instead — exactly the "single admin account" shape the
+# other templates in this directory achieve differently (an explicit
+# "make this user an administrator" checkbox).
+#
+# Usage:
+#   cakectl build my-debian-vm ./debian-12.*-amd64-DVD-1.iso \
+#     --user admin --password admin --autoinstall \
+#     --template templates/linux/debian.packerlite.yaml
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+create_grace_time: 45s   # not currently honored by PackerLiteEngine — kept for documentation/forward-compat
+boot_timeout: 75m        # d-i's package installation stage depends on mirror speed, budget generously
+
+boot_command:
+  - title: Boot the isolinux/GRUB menu's default "Graphical install" entry
+    command: "<wait30s><enter>"
+
+  - title: Wait for the graphical installer to start
+    command: "<wait60s>"
+
+  - title: Select a language - accept the default (English)
+    command: "<wait5s><click 'Continue'>"
+
+  - title: Select your location
+    command: "<wait5s>United States<enter><click 'Continue'>"
+
+  - title: Configure the keyboard - accept the default layout
+    command: "<wait5s><click 'Continue'>"
+
+  - title: Wait for hardware/network detection to settle
+    command: "<wait30s>"
+
+  - title: Set the system's hostname
+    command: "<wait5s><leftCtrlOn>a<leftCtrlOff>${var.username}-vm<click 'Continue'>"
+
+  - title: Leave the domain name blank
+    command: "<wait5s><click 'Continue'>"
+
+  - title: Leave the root password blank (grants the created user sudo instead)
+    command: "<wait10s><click 'Continue'>"
+
+  - title: Confirm the empty root password is intentional
+    command: "<wait5s><click 'Yes'><click 'Continue'>"
+
+  - title: Full name for the new user
+    command: "<wait5s>Managed via Caker<click 'Continue'>"
+
+  - title: Replace the auto-suggested username
+    command: "<wait5s><leftCtrlOn>a<leftCtrlOff>${var.username}<click 'Continue'>"
+
+  - title: Choose a password for the new user
+    command: "<wait5s>${var.password}<click 'Continue'>"
+
+  - title: Re-enter the password to verify
+    command: "<wait5s>${var.password}<click 'Continue'>"
+
+  - title: Configure the clock - accept the detected timezone
+    command: "<wait10s><click 'Continue'>"
+
+  - title: Partition disks - use guided partitioning on the entire disk
+    command: "<wait10s><click 'Continue'>"
+
+  - title: Confirm the disk to partition
+    command: "<wait5s><click 'Continue'>"
+
+  - title: Accept the default partitioning scheme
+    command: "<wait5s><click 'Continue'>"
+
+  - title: Finish partitioning and write changes to disk
+    command: "<wait5s><click 'Continue'>"
+
+  - title: Confirm writing changes to disk
+    command: "<wait5s><click 'Yes'><click 'Continue'>"
+
+  - title: Wait for the base system install to finish
+    command: "<wait5m>"
+
+  - title: Package manager configuration - skip scanning extra media
+    command: "<wait10s><click 'Continue'>"
+
+  - title: Use a network mirror
+    command: "<wait5s><click 'Yes'><click 'Continue'>"
+
+  - title: Accept the default mirror country
+    command: "<wait5s><click 'Continue'>"
+
+  - title: Accept the default Debian archive mirror
+    command: "<wait5s><click 'Continue'>"
+
+  - title: Leave the HTTP proxy blank
+    command: "<wait5s><click 'Continue'>"
+
+  - title: Decline participation in the popularity contest
+    command: "<wait10s><click 'Continue'>"
+
+  - title: Enable the SSH server in the software selection
+    command: "<wait10s><click 'SSH server'>"
+
+  - title: Confirm the software selection and begin package installation
+    command: "<click 'Continue'>"
+
+  - title: Wait for package installation to finish
+    command: "<wait45m>"
+
+  - title: Install the GRUB boot loader to the primary disk
+    command: "<wait10s><click 'Yes'><click 'Continue'>"
+
+  - title: Confirm the boot loader install device
+    command: "<wait5s><click 'Continue'>"
+
+  - title: Finish installation and reboot into the freshly installed system
+    command: "<wait10s><click 'Continue'>"
