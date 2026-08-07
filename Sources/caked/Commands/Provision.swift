@@ -80,6 +80,7 @@ struct Provision: AsyncParsableCommand {
 	@MainActor
 	func run() async throws {
 		let (storageLocation, location) = self.locations
+		var templatePath: URL? = nil
 
 		if case .running = location.status {
 			throw ServiceError(String(localized: "The VM is already running"))
@@ -91,8 +92,20 @@ struct Provision: AsyncParsableCommand {
 			NSApp.terminate(self)
 		}
 
-		let (handler, vm, cancellation) = try await CakedLib.ProvisionHandler.provision(location: location, storageLocation: storageLocation, templatePath: nil, macosVersion: self.macosVersion, variables: self.vars, runMode: self.common.runMode, promise: promise, progressHandler: ProgressObserver.progressHandler)
-		
+		if let template = self.template {
+			templatePath = URL(fileURLWithPath: template.expandingTildeInPath)
+		}
+
+		let (handler, vm, cancellation) = try await CakedLib.ProvisionHandler.provision(location: location,
+																						storageLocation: storageLocation,
+																						display: .all,
+																						templatePath: templatePath,
+																						macosVersion: self.macosVersion,
+																						variables: self.vars,
+																						runMode: self.common.runMode,
+																						promise: promise,
+																						progressHandler: ProgressObserver.progressHandler)
+
 		MainApp.runUI(vm, params: handler, cancellation: cancellation)
 	}
 }
