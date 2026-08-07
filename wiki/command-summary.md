@@ -204,28 +204,34 @@ boot_command:
 Voir `Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml` (tous les templates embarqués — macOS `vanilla-*` et Linux `linux-*`, avec les titres) pour des exemples complets et entièrement commentés.
 
 <a name="provision-fr"></a>
-### `caked provision` : relancer le provisioning de façon autonome
+### `provision` : relancer le provisioning de façon autonome
 
-`caked build`/`create` ne pilote PackerLite automatiquement que si `--autoinstall` a été utilisé. Pour une VM (macOS ou Linux) dont le provisioning a été sauté au moment du build — ou construite avant que `--autoinstall` n'existe — `caked provision <vm>` relance la même automatisation directement sur une VM déjà construite. C'est une commande propre à `caked` (pas encore exposée via `cakectl`/gRPC) ; elle doit être exécutée sur l'hôte où résident les fichiers de la VM. Elle démarre elle-même la VM avec une fenêtre visible (comme `vmrun`) plutôt que de supposer qu'elle tourne déjà, afin que vous puissiez suivre le provisioning à l'écran, puis l'arrête une fois terminé.
+`build`/`create` ne pilote PackerLite automatiquement que si `--autoinstall` a été utilisé. Pour une VM (macOS ou Linux) dont le provisioning a été sauté au moment du build — ou construite avant que `--autoinstall` n'existe — `provision <vm>` relance la même automatisation directement sur une VM déjà construite. Disponible sous deux formes :
 
-Elle s'appuie sur l'état déjà stocké de la VM plutôt que sur l'`.ipsw`/`.iso` d'origine :
+- **`caked provision <vm>`** — exécutée localement sur l'hôte où résident les fichiers de la VM ; démarre elle-même la VM avec une fenêtre visible (comme `vmrun`) plutôt que de supposer qu'elle tourne déjà, afin que vous puissiez suivre le provisioning à l'écran sur place.
+- **`cakectl provision <vm>`** — la même opération via gRPC, en flux continu (comme `build`/`launch`), pour piloter le provisioning d'une VM à distance sans être physiquement devant l'hôte qui exécute `caked`. Le contenu du template (pas juste son chemin) est envoyé au serveur, donc `--template` peut pointer vers un fichier local à la machine où tourne `cakectl`, différente de celle qui héberge la VM.
+
+Les deux s'appuient sur l'état déjà stocké de la VM plutôt que sur l'`.ipsw`/`.iso` d'origine :
 
 - **VM macOS** : la version provient de `CakeConfig.osName` — enregistrée automatiquement à chaque build `.ipsw` — sauf si `--macos-version` la surcharge ; `--template` reste disponible pour ignorer complètement cette résolution.
 - **VM non-macOS (Linux)** : la plateforme provient de `CakeConfig.configuredPlatform` — enregistrée automatiquement à chaque build depuis une ISO — et sélectionne le même template intégré que `build` (`fedora`, `centos`, `redhat`/`rhel`, `openSUSE`, `debian`). `--template` reste disponible pour le surcharger, et devient **obligatoire** seulement si la plateforme stockée n'a pas de template intégré (Ubuntu, ou une distribution non reconnue).
-- Dans tous les cas, les identifiants du compte proviennent du `--user`/`--password` propre à la VM (`configuredUser`/`configuredPassword`), exactement comme au moment du build. Une fois le `boot_command` terminé et une IP obtenue, `caked provision` installe aussi le cakeagent si besoin — utile pour une VM Linux qui a sauté cloud-init.
+- Dans tous les cas, les identifiants du compte proviennent du `--user`/`--password` propre à la VM (`configuredUser`/`configuredPassword`), exactement comme au moment du build. Une fois le `boot_command` terminé et une IP obtenue, `provision` installe aussi le cakeagent si besoin — utile pour une VM Linux qui a sauté cloud-init.
 
 ```bash
 # Reprovisionner une VM macOS avec sa version et ses identifiants stockés
-caked provision my-vm
+cakectl provision my-vm
 
 # Forcer la version macOS résolue
-caked provision my-vm --macos-version tahoe
+cakectl provision my-vm --macos-version tahoe
 
 # Reprovisionner une VM Linux dont la plateforme stockée a un template intégré (ex. Fedora)
-caked provision my-fedora-vm
+cakectl provision my-fedora-vm
 
 # Reprovisionner une VM Linux sans template intégré (template obligatoire)
-caked provision my-linux-vm --template ./ma-distro.packerlite.yaml
+cakectl provision my-linux-vm --template ./ma-distro.packerlite.yaml
+
+# Même chose localement sur l'hôte caked, sans passer par gRPC
+caked provision my-vm
 ```
 
 | Option | Description |
@@ -666,28 +672,34 @@ boot_command:
 See `Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml` (every bundled template — macOS `vanilla-*` and Linux `linux-*`, with titles) for full, fully-commented examples.
 
 <a name="provision"></a>
-### `caked provision`: re-running provisioning standalone
+### `provision`: re-running provisioning standalone
 
-`caked build`/`create` only drives PackerLite automatically when `--autoinstall` was used. For a VM (macOS or Linux) that skipped provisioning at build time — or was built before `--autoinstall` existed — `caked provision <vm>` re-runs the same automation directly against an already-built VM. It is a `caked`-only command (not currently wired through `cakectl`/gRPC) and must be run on the host where the VM's files live. It boots the VM itself with a visible window (like `vmrun`) rather than assuming it's already running, so you can watch provisioning happen, then stops it once done.
+`build`/`create` only drives PackerLite automatically when `--autoinstall` was used. For a VM (macOS or Linux) that skipped provisioning at build time — or was built before `--autoinstall` existed — `provision <vm>` re-runs the same automation directly against an already-built VM. Available two ways:
 
-It uses the VM's own stored state instead of the original `.ipsw`/`.iso`:
+- **`caked provision <vm>`** — runs locally on the host where the VM's files live; boots the VM itself with a visible window (like `vmrun`) rather than assuming it's already running, so you can watch provisioning happen right there.
+- **`cakectl provision <vm>`** — the same operation over gRPC, streamed (like `build`/`launch`), for driving provisioning on a remote VM without being physically at the `caked` host. The template's *content* (not just its path) is sent to the server, so `--template` can point at a file local to wherever `cakectl` is running, not the machine hosting the VM.
+
+Both use the VM's own stored state instead of the original `.ipsw`/`.iso`:
 
 - **macOS VM**: the version comes from `CakeConfig.osName` — recorded automatically on every `.ipsw` build — unless overridden with `--macos-version`; `--template` is still available to bypass this resolution entirely.
 - **Non-macOS (Linux) VM**: the platform comes from `CakeConfig.configuredPlatform` — recorded automatically on every ISO build — and picks the same built-in template `build` would (`fedora`, `centos`, `redhat`/`rhel`, `openSUSE`, `debian`). `--template` is still available to override it, and only becomes **required** if the stored platform has no built-in template (Ubuntu, or an unrecognized distro).
-- Either way, account credentials come from the VM's own `--user`/`--password` (`configuredUser`/`configuredPassword`), exactly as at build time. Once the `boot_command` finishes and an IP is obtained, `caked provision` also installs the cakeagent if needed — useful for a Linux VM that skipped cloud-init.
+- Either way, account credentials come from the VM's own `--user`/`--password` (`configuredUser`/`configuredPassword`), exactly as at build time. Once the `boot_command` finishes and an IP is obtained, `provision` also installs the cakeagent if needed — useful for a Linux VM that skipped cloud-init.
 
 ```bash
 # Re-provision a macOS VM using its stored version and credentials
-caked provision my-vm
+cakectl provision my-vm
 
 # Override the resolved macOS version
-caked provision my-vm --macos-version tahoe
+cakectl provision my-vm --macos-version tahoe
 
 # Re-provision a Linux VM whose stored platform has a built-in template (e.g. Fedora)
-caked provision my-fedora-vm
+cakectl provision my-fedora-vm
 
 # Re-provision a Linux VM with no built-in template (template required)
-caked provision my-linux-vm --template ./my-distro.packerlite.yaml
+cakectl provision my-linux-vm --template ./my-distro.packerlite.yaml
+
+# The same thing run locally on the caked host, without going through gRPC
+caked provision my-vm
 ```
 
 | Option | Description |
