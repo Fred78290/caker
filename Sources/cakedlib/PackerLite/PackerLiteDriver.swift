@@ -15,25 +15,33 @@ import GRPCLib
 import RoyalVNCKit
 import Vision
 
-public protocol KeyLayoutTranslator: Sendable, Identifiable {
-	func translate(char: Character) -> (keyCode: CGKeyCode, modifiers: NSEvent.ModifierFlags, characters: String, charactersIgnoringModifiers: String)?
+extension CGKeyCodes {
+	public static let functionKeys: [CGKeyCode] = [
+		CGKeyCodes.f1,
+		CGKeyCodes.f2,
+		CGKeyCodes.f3,
+		CGKeyCodes.f4,
+		CGKeyCodes.f5,
+		CGKeyCodes.f6,
+		CGKeyCodes.f7,
+		CGKeyCodes.f8,
+		CGKeyCodes.f9,
+		CGKeyCodes.f10,
+		CGKeyCodes.f11,
+		CGKeyCodes.f12,
+		CGKeyCodes.f13,
+		CGKeyCodes.f14,
+		CGKeyCodes.f15,
+		CGKeyCodes.f16,
+		CGKeyCodes.f17,
+		CGKeyCodes.f18,
+		CGKeyCodes.f19,
+		CGKeyCodes.f20
+	]
 }
 
-extension NSEvent.ModifierFlags: @retroactive CustomStringConvertible {
-	public var description: String {
-		var result: [String] = []
-
-		if contains(.command) { result.append("Command") }
-		if contains(.control) { result.append("Control") }
-		if contains(.option) { result.append("Option") }
-		if contains(.shift) { result.append("Shift") }
-		if contains(.function) { result.append("Function") }
-		if contains(.numericPad) { result.append("Numeric") }
-		if contains(.capsLock) { result.append("Caps") }
-		if contains(.function) { result.append("Function") }
-
-		return result.joined(separator: "|")
-	}
+public protocol KeyLayoutTranslator: Sendable, Identifiable {
+	func translate(char: Character) -> (keyCode: CGKeyCode, modifiers: NSEvent.ModifierFlags, characters: String, charactersIgnoringModifiers: String)?
 }
 
 extension TISInputSource {
@@ -175,7 +183,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .down: return CGKeyCodes.downArrow
 		case .left: return CGKeyCodes.leftArrow
 		case .right: return CGKeyCodes.rightArrow
-		case .function(let number): return CGKeyCodes.f1 + CGKeyCode(number - 1)
+		case .function(let number): return CGKeyCodes.functionKeys[number - 1]
 		}
 	}
 

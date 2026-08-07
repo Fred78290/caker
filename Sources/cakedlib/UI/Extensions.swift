@@ -39,13 +39,211 @@ extension CGEvent {
 	}
 }
 
+extension NSEvent.ModifierFlags: @retroactive CustomStringConvertible {
+	public var description: String {
+		var result: [String] = []
+
+		if contains(.capsLock) { result.append("Caps") }
+		if contains(.shift) { result.append("Shift") }
+		if contains(.control) { result.append("Control") }
+		if contains(.option) { result.append("Option") }
+		if contains(.command) { result.append("Command") }
+		if contains(.numericPad) { result.append("Numeric") }
+		if contains(.help) { result.append("Help") }
+		if contains(.function) { result.append("Function") }
+		if contains(.function) { result.append("DeviceIndependentFlagsMask") }
+
+		return result.joined(separator: ", ")
+	}
+}
+
+extension NSEvent.EventType: @retroactive CustomStringConvertible {
+	public var description: String {
+		switch self {
+		case .leftMouseDown:
+			return "leftMouseDown"
+		case .leftMouseUp:
+			return "leftMouseUp"
+		case .rightMouseDown:
+			return "rightMouseDown"
+		case .rightMouseUp:
+			return "rightMouseUp"
+		case .mouseMoved:
+			return "mouseMoved"
+		case .leftMouseDragged:
+			return "leftMouseDragged"
+		case .rightMouseDragged:
+			return "rightMouseDragged"
+		case .mouseEntered:
+			return "mouseEntered"
+		case .mouseExited:
+			return "mouseExited"
+		case .keyDown:
+			return "keyDown"
+		case .keyUp:
+			return "keyUp"
+		case .flagsChanged:
+			return "flagsChanged"
+		case .appKitDefined:
+			return "appKitDefined"
+		case .systemDefined:
+			return "systemDefined"
+		case .applicationDefined:
+			return "applicationDefined"
+		case .periodic:
+			return "periodic"
+		case .cursorUpdate:
+			return "cursorUpdate"
+		case .scrollWheel:
+			return "scrollWheel"
+		case .tabletPoint:
+			return "tabletPoint"
+		case .tabletProximity:
+			return "tabletProximity"
+		case .otherMouseDown:
+			return "otherMouseDown"
+		case .otherMouseUp:
+			return "otherMouseUp"
+		case .otherMouseDragged:
+			return "otherMouseDragged"
+		case .gesture:
+			return "gesture"
+		case .magnify:
+			return "magnify"
+		case .swipe:
+			return "swipe"
+		case .rotate:
+			return "rotate"
+		case .beginGesture:
+			return "beginGesture"
+		case .endGesture:
+			return "endGesture"
+		case .smartMagnify:
+			return "smartMagnify"
+		case .quickLook:
+			return "quickLook"
+		case .pressure:
+			return "pressure"
+		case .directTouch:
+			return "directTouch"
+		case .changeMode:
+			return "changeMode"
+		case .mouseCancelled:
+			return "mouseCancelled"
+		@unknown default:
+			return "unknown"
+		}
+	}
+}
+
+extension NSEvent.EventSubtype: @retroactive CustomStringConvertible {
+	public var description: String {
+		switch self {
+		case .windowExposed:
+			return "windowExposed"
+		case .applicationActivated:
+			return "applicationActivated"
+		case .applicationDeactivated:
+			return "applicationDeactivated"
+		case .windowMoved:
+			return "windowMoved"
+		case .screenChanged:
+			return "screenChanged"
+		case .touch:
+			return "touch"
+		@unknown default:
+			return "unknown"
+		}
+	}
+}
+
+extension NSEvent.Phase: @retroactive CustomStringConvertible {
+	public var description: String {
+		var result: [String] = []
+
+		if contains(.began) { result.append("began") }
+		if contains(.stationary) { result.append("stationary") }
+		if contains(.changed) { result.append("changed") }
+		if contains(.ended) { result.append("ended") }
+		if contains(.cancelled) { result.append("cancelled") }
+		if contains(.mayBegin) { result.append("mayBegin") }
+
+		return result.joined(separator: ", ")
+	}
+}
+
+extension CGEventType: @retroactive CustomStringConvertible {
+	public var description: String {
+		switch self {
+		case .null:
+			return "null"
+		case .leftMouseDown:
+			return "leftMouseDown"
+		case .leftMouseUp:
+			return "leftMouseUp"
+		case .rightMouseDown:
+			return "rightMouseDown"
+		case .rightMouseUp:
+			return "rightMouseUp"
+		case .mouseMoved:
+			return "mouseMoved"
+		case .leftMouseDragged:
+			return "leftMouseDragged"
+		case .rightMouseDragged:
+			return "rightMouseDragged"
+		case .keyDown:
+			return "keyDown"
+		case .keyUp:
+			return "keyUp"
+		case .flagsChanged:
+			return "flagsChanged"
+		case .scrollWheel:
+			return "scrollWheel"
+		case .tabletPointer:
+			return "tabletPointer"
+		case .tabletProximity:
+			return "tabletProximity"
+		case .otherMouseDown:
+			return "otherMouseDown"
+		case .otherMouseUp:
+			return "otherMouseUp"
+		case .otherMouseDragged:
+			return "otherMouseDragged"
+		case .tapDisabledByTimeout:
+			return "tapDisabledByTimeout"
+		case .tapDisabledByUserInput:
+			return "tapDisabledByUserInput"
+		@unknown default:
+			return "unknown"
+		}
+	}
+}
+
+extension CGEventFlags: @retroactive CustomStringConvertible {
+	public var description: String {
+		var result: [String] = []
+
+		if contains(.maskAlphaShift) { result.append("maskAlphaShift") }
+		if contains(.maskShift) { result.append("maskShift") }
+		if contains(.maskControl) { result.append("maskControl") }
+		if contains(.maskAlternate) { result.append("maskAlternate") }
+		if contains(.maskCommand) { result.append("maskCommand") }
+		if contains(.maskHelp) { result.append("maskHelp") }
+		if contains(.maskSecondaryFn) { result.append("maskSecondaryFn") }
+		if contains(.maskNumericPad) { result.append("maskNumericPad") }
+		if contains(.maskNonCoalesced) { result.append("DeviceIndependentFlagsMask") }
+
+		return result.joined(separator: ", ")
+	}
+}
+
 extension NSEvent {
 	var dumpEvent: String {
 		var parts: [String] = []
 
-		parts.append("type: \(self.type)")
+		parts.append("type: \(self.type.description)")
 		parts.append("timestamp: \(self.timestamp)")
-		parts.append("modifierFlags: \(String(self.modifierFlags.rawValue, radix: 16))")
+		parts.append("modifierFlags: \(self.modifierFlags.description)")
 		parts.append("windowNumber: \(self.windowNumber)")
 		if let window = self.window { parts.append("windowFrame: \(NSStringFromRect(window.frame))") }
 
@@ -289,7 +487,6 @@ extension CGEventField: @retroactive CaseIterable {
 		.scrollWheelEventRawDeltaAxis2: "scrollWheelEventRawDeltaAxis2",
 	]
 }
-
 
 class IOSurfaceNSBitmapImageRep: NSBitmapImageRep {
 	let surface: UnsafeMutablePointer<UInt8>
