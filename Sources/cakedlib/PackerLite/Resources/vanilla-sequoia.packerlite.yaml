@@ -131,7 +131,7 @@ boot_command:
     command: "<wait10s><leftAltOn><spacebar><leftAltOff>System Settings<enter>"
 
   - title: Disable Gatekeeper (2/2)
-    command: "<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Privacy & Security<enter>"
+    command: "<wait10s><leftCtrlOn><fnOn><f2><fnOff><leftCtrlOff><right><right><right><down>Privacy & Security<enter>"
 
   - title: Disable Gatekeeper (2/2)
     command: "<wait10s><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff><leftShiftOn><tab><leftShiftOff>"

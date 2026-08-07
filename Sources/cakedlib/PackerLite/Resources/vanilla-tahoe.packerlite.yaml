@@ -113,7 +113,7 @@ boot_command:
     command: "<wait120s>"
 
   - title: Navigate to Sharing
-    command: "<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Sharing<enter>"
+    command: "<wait10s><leftCtrlOn><fnOn><f2><fnOff><leftCtrlOff><right><right><right><down>Sharing<enter>"
 
   - title: Enable Screen Sharing
     command: "<wait10s><tab><tab><tab><tab><tab><spacebar>"
@@ -137,7 +137,7 @@ boot_command:
     command: "<wait10s>open '/System/Applications/System Settings.app'<enter>"
 
   - title: Navigate to Privacy & Security
-    command: "<wait10s><leftCtrlOn><f2><leftCtrlOff><right><right><right><down>Privacy & Security<enter>"
+    command: "<wait10s><leftCtrlOn><fnOn><f2><fnOff><leftCtrlOff><right><right><right><down>Privacy & Security<enter>"
 
   - title: Unlock Privacy & Security
     command: "<wait10s><leftShiftOn><tab><tab><tab><tab><tab><tab><leftShiftOff>"
