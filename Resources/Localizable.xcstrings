@@ -5929,6 +5929,17 @@
         }
       }
     },
+    "Install agent…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installation de l'agent…"
+          }
+        }
+      }
+    },
     "Install caked as system agent, need sudo" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8950,6 +8961,28 @@
         }
       }
     },
+    "No built-in provisioning template for %@ — provide one with --template" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun modèle de configuration intégré pour %@ — fournissez-en un avec --template"
+          }
+        }
+      }
+    },
+    "No built-in provisioning template is bundled for %@ yet. Provide your own with --template." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun modèle de configuration intégré n'est disponible pour %@ pour le moment. Fournissez le vôtre avec --template."
+          }
+        }
+      }
+    },
     "No built-in provisioning template is bundled for macOS %@ yet. Provide your own with --template." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9884,6 +9917,17 @@
         }
       }
     },
+    "Overrides the built-in template auto-selected by macOS version (IPSW) or distro (ISO: fedora/centos/redhat/openSUSE/debian) — required only for a platform with no built-in template, e.g. any other Linux distro." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remplace le modèle intégré sélectionné automatiquement selon la version macOS (IPSW) ou la distribution (ISO : fedora/centos/redhat/openSUSE/debian) — requis uniquement pour une plateforme sans modèle intégré, par exemple toute autre distribution Linux."
+          }
+        }
+      }
+    },
     "OVERVIEW: %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10721,6 +10765,17 @@
         }
       }
     },
+    "Provided provisioning template file doesn't exist: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le fichier de modèle de configuration fourni n'existe pas : %@"
+          }
+        }
+      }
+    },
     "Provisioning done" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10728,6 +10783,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Configuration terminée"
+          }
+        }
+      }
+    },
+    "Provisioning failed for VM %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la configuration pour la VM %@"
+          }
+        }
+      }
+    },
+    "Provisioning failed: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la configuration : %@"
           }
         }
       }
@@ -10750,6 +10827,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Configuration de l'assistant de réglages macOS en cours…"
+          }
+        }
+      }
+    },
+    "Provisioning succeeded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuration réussie"
+          }
+        }
+      }
+    },
+    "Provisioning success for VM %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuration réussie pour la VM %@"
           }
         }
       }
@@ -10781,6 +10880,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modèle de configuration (YAML) pour configurer automatiquement l'assistant de réglages d'une VM macOS après l'installation depuis un IPSW"
+          }
+        }
+      }
+    },
+    "Provisioning template (YAML) to auto-configure a VM after installing from IPSW or ISO" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèle de configuration (YAML) pour configurer automatiquement une VM après l'installation depuis un IPSW ou un ISO"
+          }
+        }
+      }
+    },
+    "Provisioning template (YAML) to use, overriding the VM's default built-in template (by stored macOS version or Linux platform); required if the VM's platform has no built-in template" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modèle de configuration (YAML) à utiliser, remplaçant le modèle intégré par défaut de la VM (selon la version macOS ou la plateforme Linux enregistrée) ; requis si la plateforme de la VM n'a pas de modèle intégré"
           }
         }
       }
