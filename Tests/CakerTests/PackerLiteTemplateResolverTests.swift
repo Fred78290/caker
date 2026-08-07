@@ -63,7 +63,7 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 	}
 
 	func testAllBundledVersionsResolve() throws {
-		for version: CakedLib.MacOSVersion in [.monterey, .ventura, .sonoma, .sequoia, .tahoe] {
+		for version: MacOSVersion in [.monterey, .ventura, .sonoma, .sequoia, .tahoe] {
 			let resolved = try PackerLiteTemplateResolver.resolve(
 				explicitPath: nil,
 				explicitVersion: version,

@@ -211,6 +211,7 @@ struct Client: ParsableCommand {
 				Launch.self,
 				List.self,
 				Networks.self,
+				Provision.self,
 				Purge.self,
 				Remote.self,
 				Rename.self,

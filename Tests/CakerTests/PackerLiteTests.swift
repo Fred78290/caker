@@ -5,6 +5,7 @@
 
 import XCTest
 import Foundation
+import GRPCLib
 
 @testable import CakedLib
 

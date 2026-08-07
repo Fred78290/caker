@@ -90,6 +90,7 @@ struct Root: ParsableCommand {
 			version: CI.version,
 			subcommands: [
 				Build.self,
+				Provision.self,
 				Certificates.self,
 				Configure.self,
 				Delete.self,
@@ -180,10 +181,6 @@ struct Root: ParsableCommand {
 	}
 
 	public static func main() async throws {
-		#if arch(arm64)
-			self.configuration.subcommands.append(Provision.self)
-		#endif
-
 		if try tryForkCommand() {
 			return
 		}

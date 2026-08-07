@@ -91,7 +91,7 @@ struct Provision: AsyncParsableCommand {
 			NSApp.terminate(self)
 		}
 
-		let (handler, vm, cancellation) = try await CakedLib.ProvisionHandler.provision(location: location, storageLocation: storageLocation, templatePath: nil, macosVersion: self.macosVersion, runMode: self.common.runMode, promise: promise, progressHandler: ProgressObserver.progressHandler)
+		let (handler, vm, cancellation) = try await CakedLib.ProvisionHandler.provision(location: location, storageLocation: storageLocation, templatePath: nil, macosVersion: self.macosVersion, variables: self.vars, runMode: self.common.runMode, promise: promise, progressHandler: ProgressObserver.progressHandler)
 		
 		MainApp.runUI(vm, params: handler, cancellation: cancellation)
 	}

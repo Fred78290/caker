@@ -35,7 +35,7 @@ public struct ProvisionHandler {
 	}
 
 	public static func provision(
-		location: VMLocation, storageLocation: StorageLocation, templatePath: URL?, macosVersion: MacOSVersion?, runMode: Utils.RunMode, promise: EventLoopPromise<Void>?, progressHandler: @escaping ProgressObserver.BuildProgressHandler
+		location: VMLocation, storageLocation: StorageLocation, templatePath: URL?, macosVersion: MacOSVersion?, variables: [String], runMode: Utils.RunMode, promise: EventLoopPromise<Void>?, progressHandler: @escaping ProgressObserver.BuildProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
 		let config = try location.config()
 		let displaySize = config.display.cgSize
@@ -108,7 +108,7 @@ public struct ProvisionHandler {
 						template: templatePath?.path(percentEncoded: false),
 						macosVersion: macosVersion,
 						runMode: runMode,
-						variables: [],
+						variables: variables,
 						progressHandler: progressHandler
 					)
 				} catch {
@@ -122,7 +122,7 @@ public struct ProvisionHandler {
 	}
 
 	public static func provision(
-		location: VMLocation, storageLocation: StorageLocation, templateName: String?, templateContent: String?, macosVersion: MacOSVersion?, runMode: Utils.RunMode, promise: EventLoopPromise<Void>?, progressHandler: @escaping ProgressObserver.BuildProgressHandler
+		location: VMLocation, storageLocation: StorageLocation, templateName: String?, templateContent: String?, macosVersion: MacOSVersion?, variables: [String], runMode: Utils.RunMode, promise: EventLoopPromise<Void>?, progressHandler: @escaping ProgressObserver.BuildProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
 		var templatePath: URL? = nil
 
@@ -136,15 +136,15 @@ public struct ProvisionHandler {
 			templatePath = fullPath
 		}
 
-		return try await self.provision(location: location, storageLocation: storageLocation, templatePath: templatePath, macosVersion: macosVersion, runMode: runMode, promise: promise, progressHandler: progressHandler)
+		return try await self.provision(location: location, storageLocation: storageLocation, templatePath: templatePath, macosVersion: macosVersion, variables: variables, runMode: runMode, promise: promise, progressHandler: progressHandler)
 	}
 
-	public static func provision(name: String, templateName: String, templateContent: String?, macosVersion: MacOSVersion?, runMode: Utils.RunMode, promise: EventLoopPromise<Void>?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
+	public static func provision(name: String, templateName: String, templateContent: String?, macosVersion: MacOSVersion?, variables: [String], runMode: Utils.RunMode, promise: EventLoopPromise<Void>?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
 
 		let storageLocation = StorageLocation(runMode: runMode)
 		let location = try storageLocation.find(name)
 
-		return try await self.provision(location: location, storageLocation: storageLocation, templateName: templateName, templateContent: templateContent, macosVersion: macosVersion, runMode: runMode, promise: promise, progressHandler: progressHandler)
+		return try await self.provision(location: location, storageLocation: storageLocation, templateName: templateName, templateContent: templateContent, macosVersion: macosVersion, variables: variables, runMode: runMode, promise: promise, progressHandler: progressHandler)
 	}
 
 	private static func provision(_ vm: VirtualMachine, runningIP: String?, template: String?, macosVersion: MacOSVersion?, runMode: Utils.RunMode, variables: [String] = [], progressHandler: @escaping ProgressObserver.BuildProgressHandler)

@@ -39,7 +39,7 @@ struct Provision: AsyncGrpcParsableCommand {
 		if let template {
 			let u = URL(fileURLWithPath: template.expandingTildeInPath)
 
-			if FileManager.default.fileExists(atPath: u.path(percentEncoded: false)) {
+			if FileManager.default.fileExists(atPath: u.path(percentEncoded: false)) == false {
 				throw ValidationError(String(localized: "Provided provisioning template file doesn't exist: \(template)"))
 			}
 		}
@@ -52,13 +52,15 @@ struct Provision: AsyncGrpcParsableCommand {
 			var result: String = String.empty
 
 			group.addTask {
+				defer {
+					continuation.finish()
+				}
+
 				let stream = try client.provision(Caked_ProvisionRequest(command: self)) { stream in
 					continuation.yield(stream.current)
 				}
 				
 				_ = try await stream.status.get()
-
-				continuation.finish()
 			}
 
 			for try await current in stream {

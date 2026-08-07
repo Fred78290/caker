@@ -52,6 +52,9 @@ struct ProvisionHandler: CakedCommandAsync {
 				templateName: templateName,
 				templateContent: templateContent,
 				macosVersion: MacOSVersion(request.macosVersion),
+				variables: request.provisionVars.vars.map { value in
+					"\(value.key)=\(value.value)"
+				},
 				runMode: runMode,
 				promise: promise
 			) { progress in
