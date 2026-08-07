@@ -310,31 +310,31 @@ final class PackerLiteTests: XCTestCase {
 		}
 	}
 
-	// MARK: - Reference Linux templates (templates/linux/*.packerlite.yaml, not bundled/auto-resolved)
+	// MARK: - Built-in Linux templates (Sources/cakedlib/PackerLite/Resources/linux-*.packerlite.yaml)
 
-	func testFedoraWorkstationPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("fedora-workstation.packerlite.yaml")
+	func testLinuxFedoraPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("linux-fedora.packerlite.yaml")
 	}
 
-	func testCentOSStreamPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("centos-stream.packerlite.yaml")
+	func testLinuxCentOSPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("linux-centos.packerlite.yaml")
 	}
 
-	func testRHELPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("rhel.packerlite.yaml")
+	func testLinuxRedHatPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("linux-redhat.packerlite.yaml")
 	}
 
-	func testOpenSUSELeapPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("opensuse-leap.packerlite.yaml")
+	func testLinuxOpenSUSEPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("linux-opensuse.packerlite.yaml")
 	}
 
-	func testDebianPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("debian.packerlite.yaml")
+	func testLinuxDebianPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("linux-debian.packerlite.yaml")
 	}
 
 	private func assertLinuxTemplateLoadsAndParses(_ filename: String) async throws {
 		let template = try PackerLiteTemplate.load(
-			fromFile: Self.linuxTemplatesDirectory.appendingPathComponent(filename).path,
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent(filename).path,
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
@@ -356,9 +356,5 @@ final class PackerLiteTests: XCTestCase {
 
 	private static var macTemplatesDirectory: URL {
 		repoRoot.appendingPathComponent("Sources/cakedlib/PackerLite/Resources")
-	}
-
-	private static var linuxTemplatesDirectory: URL {
-		repoRoot.appendingPathComponent("templates/linux")
 	}
 }

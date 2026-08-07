@@ -216,8 +216,13 @@ public enum SupportedPlatform: String, Codable, CaseIterable {
 
 	public init(rawValue: String) {
 		let rawValue = rawValue.lowercased()
+		// .openSUSE's raw value is mixed-case ("openSUSE"), so it must be lowercased here too or
+		// it can never match the already-lowercased `rawValue` above — including when reading back
+		// a value this same type previously wrote out via its own `.rawValue` (see CakeConfig.configuredPlatform).
+		// RHEL's official ISO filenames use "rhel", not "redhat" (e.g. "rhel-9.4-x86_64-dvd.iso"), so
+		// .redhat needs that as an additional alias.
 		let value = Self.allCases.first {
-			rawValue.contains($0.rawValue)
+			rawValue.contains($0.rawValue.lowercased()) || ($0 == .redhat && rawValue.contains("rhel"))
 		}
 
 		if let value = value {

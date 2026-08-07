@@ -199,20 +199,27 @@ public struct VMBuilder {
 				}
 			#endif
 
-			if let provisionTemplate = options.provisionTemplate, imageSource == .iso && options.autoinstall && provisionTemplate.isEmpty == false {
-				let content = try String(contentsOfFile: provisionTemplate, encoding: .utf8)
+			if imageSource == .iso && options.autoinstall {
+				// An explicit --template always wins; otherwise falls back to a built-in template for
+				// the distro auto-detected from the ISO filename/URL (see PackerLiteTemplateResolver).
+				// Resolves to nil, not an error, for platforms with no PackerLite template — Ubuntu
+				// (its own cloud-init/subiquity autoinstall handles this instead) or an unrecognized
+				// distro — in which case no provisioning runs unless --template was given.
+				let explicitTemplate = (options.provisionTemplate?.isEmpty == false) ? options.provisionTemplate : nil
 
-				// The VM's account is already fully determined by --user/--password (see
-				// `configuredUser`/`configuredPassword` above) — reuse it here instead of
-				// letting the template declare its own, so there's exactly one source of truth.
-				var variables = options.provisionVarsDict
+				if let content = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: explicitTemplate, imageURL: imageURL) {
+					// The VM's account is already fully determined by --user/--password (see
+					// `configuredUser`/`configuredPassword` above) — reuse it here instead of
+					// letting the template declare its own, so there's exactly one source of truth.
+					var variables = options.provisionVarsDict
 
-				variables["username"] = config.configuredUser
-				variables["password"] = config.configuredPassword ?? "admin"
+					variables["username"] = config.configuredUser
+					variables["password"] = config.configuredPassword ?? "admin"
 
-				let template = try PackerLiteTemplate.load(from: content, variables: variables)
+					let template = try PackerLiteTemplate.load(from: content, variables: variables)
 
-				try await PackerLiteEngine.provision(location: location, config: config, template: template, runMode: runMode, progressHandler: progressHandler)
+					try await PackerLiteEngine.provision(location: location, config: config, template: template, runMode: runMode, progressHandler: progressHandler)
+				}
 			}
 		}
 	}

@@ -124,7 +124,7 @@ public struct BuildOptions: ParsableArguments {
 	@Option(help: ArgumentHelp(String(localized: "Root disk"), discussion: String(localized: "This option allows specifying an external root disk path for the VM."), visibility: .hidden))
 	public var root: String? = nil
 
-	@Option(name: [.customLong("template")], help: ArgumentHelp(String(localized: "Provisioning template (YAML) to auto-configure a macOS VM's Setup Assistant after installing from IPSW"), valueName: "path"))
+	@Option(name: [.customLong("template")], help: ArgumentHelp(String(localized: "Provisioning template (YAML) to auto-configure a VM after installing from IPSW or ISO"), discussion: String(localized: "Overrides the built-in template auto-selected by macOS version (IPSW) or distro (ISO: fedora/centos/redhat/openSUSE/debian) — required only for a platform with no built-in template, e.g. any other Linux distro."), valueName: "path"))
 	public var provisionTemplate: String? = nil
 
 	@Option(name: [.customLong("var")], help: ArgumentHelp(String(localized: "Set a provisioning template variable (key=value), may be repeated"), valueName: "key=value"))

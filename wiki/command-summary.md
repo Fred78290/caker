@@ -135,7 +135,13 @@ La résolution du template diffère selon la source :
 
 La version macOS détectée (nom de code + numéro, ex. `sequoia` / `15.6`) est toujours enregistrée dans la configuration de la VM (`osName`/`osRelease`), que `--autoinstall` soit utilisé ou non — ce qui permet à un `caked provision` ultérieur de retrouver la bonne version sans l'IPSW d'origine.
 
-**Depuis un `.iso` (Linux)** — aucun template n'est fourni par défaut. PackerLite ne se déclenche que si `--template <chemin>` est fourni explicitement **en plus** de `--autoinstall`. Les distributions gérant déjà leur propre autoinstall (Ubuntu, via cloud-init/subiquity) n'ont pas besoin de PackerLite et continuent d'utiliser ce mécanisme existant ; PackerLite couvre les ISO qui n'ont pas d'autoinstall natif. Dans l'assistant graphique de Caker.app, le sélecteur de fichier « Provisioning yaml » n'apparaît que pour les sources ISO non-Ubuntu et bloque la création tant qu'aucun template n'est choisi si l'auto-configuration est activée.
+**Depuis un `.iso` (Linux)** — résolu dans cet ordre :
+
+1. **`--template <chemin>`** — chemin explicite vers un fichier YAML personnalisé ; prioritaire sur tout le reste.
+2. **Détection automatique** de la distribution à partir du nom de fichier/URL de l'ISO, puis chargement du template intégré correspondant : `fedora`, `centos`, `redhat` (ou `rhel`), `openSUSE`, `debian`.
+3. Sinon, **aucun provisioning n'a lieu** — silencieusement, ce n'est pas une erreur. C'est le comportement attendu pour Ubuntu (qui gère déjà son propre autoinstall via cloud-init/subiquity) ou toute distribution non reconnue ; fournissez votre propre `--template` pour cette dernière.
+
+Dans l'assistant graphique de Caker.app, le sélecteur de fichier « Provisioning yaml » n'apparaît que pour les sources ISO non-Ubuntu ; il reste facultatif quand un template intégré existe pour la plateforme détectée, et devient obligatoire sinon si l'auto-configuration est activée.
 
 ```bash
 # macOS : version détectée automatiquement depuis le nom du fichier IPSW
@@ -147,8 +153,11 @@ cakectl build my-vm ./restore.ipsw --autoinstall --macos-version tahoe
 # macOS : template personnalisé, ignore toute détection
 cakectl build my-vm ./restore.ipsw --autoinstall --template ./mon-template.packerlite.yaml
 
-# Linux : template obligatoire pour une ISO non-Ubuntu
-cakectl build my-vm ./debian-13.iso --autoinstall --template ./debian.packerlite.yaml
+# Linux : distribution détectée automatiquement depuis le nom du fichier ISO (Fedora ici)
+cakectl build my-vm ./Fedora-Workstation-Live-x86_64-42.iso --autoinstall
+
+# Linux : template personnalisé, pour une distribution sans template intégré
+cakectl build my-vm ./my-distro.iso --autoinstall --template ./ma-distro.packerlite.yaml
 
 # Variables de template supplémentaires (répétable)
 cakectl build my-vm ./restore.ipsw --autoinstall --var greeting=hello
@@ -157,13 +166,15 @@ cakectl build my-vm ./restore.ipsw --autoinstall --var greeting=hello
 | Option | Description |
 | --- | --- |
 | `--autoinstall` | Active le provisioning automatique (requis dans tous les cas, macOS comme Linux). |
-| `--template <chemin>` | Template YAML PackerLite personnalisé ; contourne la détection automatique pour macOS, **obligatoire** pour une ISO Linux non-Ubuntu. |
+| `--template <chemin>` | Template YAML PackerLite personnalisé ; contourne la détection automatique pour macOS comme pour Linux. Obligatoire uniquement si la plateforme détectée n'a pas de template intégré. |
 | `--macos-version <monterey\|ventura\|sonoma\|sequoia\|tahoe\|goldengate>` | Version macOS à utiliser pour choisir le template intégré quand elle ne peut pas être déduite du nom de fichier IPSW. Sans effet pour Linux. |
 | `--var <clé=valeur>` | Définit une variable de template (`${var.clé}`), répétable. |
 
 **Identifiants du compte** : le compte créé pendant le provisioning utilise toujours `--user`/`--password` (ou l'équivalent dans l'UI) — jamais une valeur propre au template. À l'intérieur d'un template, ces valeurs sont accessibles via `${var.username}` / `${var.password}`.
 
-**Templates macOS intégrés** : cinq templates sont fournis en ressources embarquées (`Sources/cakedlib/PackerLite/Resources/`) : `monterey` (macOS 12.x), `ventura` (macOS 13.x), `sonoma` (macOS 14.x), `sequoia` (macOS 15.x, transcrit depuis `templates/macos/vanilla-sequoia.pkr.hcl`) et `tahoe` (macOS 26.x, transcrit depuis `vanilla-tahoe.pkr.hcl`). `goldengate` (macOS 27.x) est une version reconnue (détection automatique et `--macos-version` fonctionnent) mais sans template intégré pour l'instant — fournissez le vôtre avec `--template` pour cette version. **Aucun template Linux n'est fourni** — écrivez le vôtre pour la distribution ciblée.
+**Templates macOS intégrés** : cinq templates sont fournis en ressources embarquées (`Sources/cakedlib/PackerLite/Resources/`) : `monterey` (macOS 12.x), `ventura` (macOS 13.x), `sonoma` (macOS 14.x), `sequoia` (macOS 15.x, transcrit depuis `templates/macos/vanilla-sequoia.pkr.hcl`) et `tahoe` (macOS 26.x, transcrit depuis `vanilla-tahoe.pkr.hcl`). `goldengate` (macOS 27.x) est une version reconnue (détection automatique et `--macos-version` fonctionnent) mais sans template intégré pour l'instant — fournissez le vôtre avec `--template` pour cette version.
+
+**Templates Linux intégrés** : cinq templates sont également fournis en ressources embarquées, sous les mêmes noms de fichiers `linux-*.packerlite.yaml` : `linux-fedora` (Fedora Workstation, Anaconda), `linux-centos` (CentOS Stream, Anaconda), `linux-redhat` (RHEL, Anaconda — `redhat` **et** `rhel` sont tous deux reconnus dans le nom de fichier), `linux-opensuse` (openSUSE Leap, YaST) et `linux-debian` (Debian, debian-installer). **Aucun de ces cinq n'a été validé sur un vrai démarrage** — contrairement aux templates macOS transcrits depuis des recettes Packer fonctionnelles, ceux-ci ont seulement été relus pour leur plausibilité et testés unitairement pour leur analyse syntaxique ; attendez-vous à devoir ajuster les cibles de clic. Ubuntu n'a pas de template PackerLite (utilise cloud-init/subiquity) ; toute autre distribution nécessite un `--template` personnalisé.
 
 **Format du template** — un YAML minimal avec une liste `boot_command` d'entrées `title`/`command` reprenant le vocabulaire de tokens de Packer (`<wait10s>`, `<enter>`, `<tab>`, `<leftShiftOn>`/`<leftShiftOff>`, `<fnOn>`/`<fnOff>`, `<f1>`–`<f20>`, `<click 'Texte affiché'>` — repéré par OCR via Vision —, `<keyboard 'com.apple.keylayout.XXX'>` ou `<keyboard 'current'>` pour changer la disposition clavier utilisée pour traduire les caractères tapés, etc.), plus `variables:`, `create_grace_time` et `boot_timeout`. Le `title` de chaque entrée est affiché comme sous-étape de progression et dans les logs — utile pour repérer où un provisioning s'est arrêté. `${var.username}`/`${var.password}` sont toujours injectées par `caked` (voir ci-dessus) ; les autres `${var.*}` viennent de `variables:` ou d'un `--var` correspondant.
 
@@ -190,7 +201,7 @@ boot_command:
     command: "<wait10s>${var.password}<enter>"
 ```
 
-Voir `Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml` (templates macOS embarqués, avec les titres) et `templates/linux/*.packerlite.yaml` (templates Linux de référence, non embarqués : `fedora-workstation`, `centos-stream`, `rhel` — famille Anaconda —, `opensuse-leap` — YaST — et `debian` — debian-installer) pour des exemples complets et entièrement commentés.
+Voir `Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml` (tous les templates embarqués — macOS `vanilla-*` et Linux `linux-*`, avec les titres) pour des exemples complets et entièrement commentés.
 
 <a name="provision-fr"></a>
 ### `caked provision` : relancer le provisioning de façon autonome
@@ -200,7 +211,7 @@ Voir `Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml` (templates macOS 
 Elle s'appuie sur l'état déjà stocké de la VM plutôt que sur l'`.ipsw`/`.iso` d'origine :
 
 - **VM macOS** : la version provient de `CakeConfig.osName` — enregistrée automatiquement à chaque build `.ipsw` — sauf si `--macos-version` la surcharge ; `--template` reste disponible pour ignorer complètement cette résolution.
-- **VM non-macOS (Linux)** : `--template <chemin>` est **obligatoire** — sans détection possible depuis une VM déjà installée, la commande échoue immédiatement si le fichier n'est pas fourni ou n'existe pas.
+- **VM non-macOS (Linux)** : la plateforme provient de `CakeConfig.configuredPlatform` — enregistrée automatiquement à chaque build depuis une ISO — et sélectionne le même template intégré que `build` (`fedora`, `centos`, `redhat`/`rhel`, `openSUSE`, `debian`). `--template` reste disponible pour le surcharger, et devient **obligatoire** seulement si la plateforme stockée n'a pas de template intégré (Ubuntu, ou une distribution non reconnue).
 - Dans tous les cas, les identifiants du compte proviennent du `--user`/`--password` propre à la VM (`configuredUser`/`configuredPassword`), exactement comme au moment du build. Une fois le `boot_command` terminé et une IP obtenue, `caked provision` installe aussi le cakeagent si besoin — utile pour une VM Linux qui a sauté cloud-init.
 
 ```bash
@@ -210,13 +221,16 @@ caked provision my-vm
 # Forcer la version macOS résolue
 caked provision my-vm --macos-version tahoe
 
-# Reprovisionner une VM Linux (template obligatoire)
-caked provision my-linux-vm --template ./debian.packerlite.yaml
+# Reprovisionner une VM Linux dont la plateforme stockée a un template intégré (ex. Fedora)
+caked provision my-fedora-vm
+
+# Reprovisionner une VM Linux sans template intégré (template obligatoire)
+caked provision my-linux-vm --template ./ma-distro.packerlite.yaml
 ```
 
 | Option | Description |
 | --- | --- |
-| `--template <chemin>` | Template YAML PackerLite personnalisé ; contourne la version macOS stockée par la VM, **obligatoire** pour une VM non-macOS. |
+| `--template <chemin>` | Template YAML PackerLite personnalisé ; contourne la version macOS ou la plateforme Linux stockée par la VM. Obligatoire uniquement si la plateforme stockée n'a pas de template intégré. |
 | `--macos-version <monterey\|ventura\|sonoma\|sequoia\|tahoe\|goldengate>` | Version macOS à utiliser pour choisir le template intégré, à la place de l'`osName` stocké par la VM. Sans effet pour Linux. |
 | `--var <clé=valeur>` | Définit une variable de template (`${var.clé}`), répétable. |
 
@@ -583,7 +597,13 @@ Template resolution differs by source:
 
 The detected macOS version (codename + dotted version, e.g. `sequoia` / `15.6`) is always recorded on the VM's config (`osName`/`osRelease`), whether or not `--autoinstall` was used — so a later `caked provision` run can find the right version without the original IPSW.
 
-**From an `.iso` (Linux)** — no template ships built in. PackerLite only runs for an ISO build when `--template <path>` is given explicitly **in addition to** `--autoinstall`. Distros with their own autoinstall (Ubuntu, via cloud-init/subiquity) don't need PackerLite and keep using that existing path; PackerLite covers ISOs without native autoinstall support. In Caker.app's VM creation wizard, the "Provisioning yaml" file picker only appears for non-Ubuntu ISO sources, and blocks VM creation until a template is chosen if autoinstall is enabled.
+**From an `.iso` (Linux)** — resolved in this order:
+
+1. **`--template <path>`** — an explicit path to a custom YAML template; wins over everything else.
+2. **Automatic detection** of the distro from the ISO's filename/URL, loading the matching built-in template: `fedora`, `centos`, `redhat` (or `rhel`), `openSUSE`, `debian`.
+3. Otherwise, **no provisioning happens** — silently, not an error. That's the expected outcome for Ubuntu (which already handles its own autoinstall via cloud-init/subiquity) or any distro caker doesn't recognize; provide your own `--template` for the latter.
+
+In Caker.app's VM creation wizard, the "Provisioning yaml" file picker only appears for non-Ubuntu ISO sources; it stays optional when a built-in template exists for the detected platform, and only becomes required otherwise if autoinstall is enabled.
 
 ```bash
 # macOS: version auto-detected from the IPSW filename
@@ -595,8 +615,11 @@ cakectl build my-vm ./restore.ipsw --autoinstall --macos-version tahoe
 # macOS: custom template, bypasses auto-detection entirely
 cakectl build my-vm ./restore.ipsw --autoinstall --template ./my-template.packerlite.yaml
 
-# Linux: template required for a non-Ubuntu ISO
-cakectl build my-vm ./debian-13.iso --autoinstall --template ./debian.packerlite.yaml
+# Linux: distro auto-detected from the ISO filename (Fedora here)
+cakectl build my-vm ./Fedora-Workstation-Live-x86_64-42.iso --autoinstall
+
+# Linux: custom template, for a distro with no built-in template
+cakectl build my-vm ./my-distro.iso --autoinstall --template ./my-distro.packerlite.yaml
 
 # Extra template variables (repeatable)
 cakectl build my-vm ./restore.ipsw --autoinstall --var greeting=hello
@@ -605,13 +628,15 @@ cakectl build my-vm ./restore.ipsw --autoinstall --var greeting=hello
 | Option | Description |
 | --- | --- |
 | `--autoinstall` | Enables automatic provisioning (required in all cases, macOS and Linux alike). |
-| `--template <path>` | Custom PackerLite YAML template; bypasses auto-detection for macOS, **required** for a non-Ubuntu Linux ISO. |
+| `--template <path>` | Custom PackerLite YAML template; bypasses auto-detection for both macOS and Linux. Only required if the detected platform has no built-in template. |
 | `--macos-version <monterey\|ventura\|sonoma\|sequoia\|tahoe\|goldengate>` | macOS version to use for picking the built-in template when it can't be inferred from the IPSW filename. No effect for Linux. |
 | `--var <key=value>` | Sets a template variable (`${var.key}`), repeatable. |
 
 **Account credentials**: the account provisioning creates always uses `--user`/`--password` (or the UI equivalent) — never a template-declared value. Inside a template, these are available as `${var.username}` / `${var.password}`.
 
-**Built-in macOS templates**: five templates ship as embedded resources (`Sources/cakedlib/PackerLite/Resources/`): `monterey` (macOS 12.x), `ventura` (macOS 13.x), `sonoma` (macOS 14.x), `sequoia` (macOS 15.x, transcribed from `templates/macos/vanilla-sequoia.pkr.hcl`), and `tahoe` (macOS 26.x, transcribed from `vanilla-tahoe.pkr.hcl`). `goldengate` (macOS 27.x) is a recognized version (auto-detection and `--macos-version` both work) with no built-in template yet — provide your own with `--template` for that version. **No Linux template ships built in** — write your own for the target distro.
+**Built-in macOS templates**: five templates ship as embedded resources (`Sources/cakedlib/PackerLite/Resources/`): `monterey` (macOS 12.x), `ventura` (macOS 13.x), `sonoma` (macOS 14.x), `sequoia` (macOS 15.x, transcribed from `templates/macos/vanilla-sequoia.pkr.hcl`), and `tahoe` (macOS 26.x, transcribed from `vanilla-tahoe.pkr.hcl`). `goldengate` (macOS 27.x) is a recognized version (auto-detection and `--macos-version` both work) with no built-in template yet — provide your own with `--template` for that version.
+
+**Built-in Linux templates**: five templates also ship as embedded resources, under matching `linux-*.packerlite.yaml` filenames: `linux-fedora` (Fedora Workstation, Anaconda), `linux-centos` (CentOS Stream, Anaconda), `linux-redhat` (RHEL, Anaconda — both `redhat` and `rhel` are recognized in the filename), `linux-opensuse` (openSUSE Leap, YaST), and `linux-debian` (Debian, debian-installer). **None of these five have been validated against a real boot** — unlike the macOS templates, which were transcribed from working Packer recipes, these were only reviewed for plausibility and unit-tested for parseability; expect to need to adjust click targets. Ubuntu has no PackerLite template (uses cloud-init/subiquity instead); any other distro needs a custom `--template`.
 
 **Template format** — a minimal YAML file with a `boot_command` list of `title`/`command` entries using Packer's token vocabulary (`<wait10s>`, `<enter>`, `<tab>`, `<leftShiftOn>`/`<leftShiftOff>`, `<fnOn>`/`<fnOff>`, `<f1>`–`<f20>`, `<click 'On-screen text'>` — located via Vision OCR —, `<keyboard 'com.apple.keylayout.XXX'>` or `<keyboard 'current'>` to switch the keyboard layout used to translate typed characters at runtime, etc.), plus `variables:`, `create_grace_time`, and `boot_timeout`. Each entry's `title` is surfaced as a progress substep and in the logs — handy for spotting exactly where a provisioning run stalled. `${var.username}`/`${var.password}` are always injected by `caked` (see above); any other `${var.*}` comes from `variables:` or a matching `--var`.
 
@@ -638,7 +663,7 @@ boot_command:
     command: "<wait10s>${var.password}<enter>"
 ```
 
-See `Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml` (the embedded macOS templates, with titles) and `templates/linux/*.packerlite.yaml` (reference Linux templates, not bundled: `fedora-workstation`, `centos-stream`, `rhel` — Anaconda-family installers —, `opensuse-leap` — YaST — and `debian` — debian-installer) for full, fully-commented examples.
+See `Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml` (every bundled template — macOS `vanilla-*` and Linux `linux-*`, with titles) for full, fully-commented examples.
 
 <a name="provision"></a>
 ### `caked provision`: re-running provisioning standalone
@@ -648,7 +673,7 @@ See `Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml` (the embedded macO
 It uses the VM's own stored state instead of the original `.ipsw`/`.iso`:
 
 - **macOS VM**: the version comes from `CakeConfig.osName` — recorded automatically on every `.ipsw` build — unless overridden with `--macos-version`; `--template` is still available to bypass this resolution entirely.
-- **Non-macOS (Linux) VM**: `--template <path>` is **required** — there's no way to detect a version from an already-installed VM, so the command fails immediately if the file isn't given or doesn't exist.
+- **Non-macOS (Linux) VM**: the platform comes from `CakeConfig.configuredPlatform` — recorded automatically on every ISO build — and picks the same built-in template `build` would (`fedora`, `centos`, `redhat`/`rhel`, `openSUSE`, `debian`). `--template` is still available to override it, and only becomes **required** if the stored platform has no built-in template (Ubuntu, or an unrecognized distro).
 - Either way, account credentials come from the VM's own `--user`/`--password` (`configuredUser`/`configuredPassword`), exactly as at build time. Once the `boot_command` finishes and an IP is obtained, `caked provision` also installs the cakeagent if needed — useful for a Linux VM that skipped cloud-init.
 
 ```bash
@@ -658,13 +683,16 @@ caked provision my-vm
 # Override the resolved macOS version
 caked provision my-vm --macos-version tahoe
 
-# Re-provision a Linux VM (template required)
-caked provision my-linux-vm --template ./debian.packerlite.yaml
+# Re-provision a Linux VM whose stored platform has a built-in template (e.g. Fedora)
+caked provision my-fedora-vm
+
+# Re-provision a Linux VM with no built-in template (template required)
+caked provision my-linux-vm --template ./my-distro.packerlite.yaml
 ```
 
 | Option | Description |
 | --- | --- |
-| `--template <path>` | Custom PackerLite YAML template; overrides the VM's stored macOS version, **required** for a non-macOS VM. |
+| `--template <path>` | Custom PackerLite YAML template; overrides the VM's stored macOS version or Linux platform. Only required if the stored platform has no built-in template. |
 | `--macos-version <monterey\|ventura\|sonoma\|sequoia\|tahoe\|goldengate>` | macOS version to use for picking the built-in template, overriding the VM's stored `osName`. No effect for Linux. |
 | `--var <key=value>` | Sets a template variable (`${var.key}`), repeatable. |
 

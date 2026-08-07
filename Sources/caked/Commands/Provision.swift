@@ -18,7 +18,7 @@ struct Provision: AsyncParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Option(help: ArgumentHelp(String(localized: "Provisioning template (YAML) to use, will override the default template for the macOS VM, must be provided for non-macOS VMs"), valueName: "path"))
+	@Option(help: ArgumentHelp(String(localized: "Provisioning template (YAML) to use, overriding the VM's default built-in template (by stored macOS version or Linux platform); required if the VM's platform has no built-in template"), valueName: "path"))
 	var template: String?
 
 	@Option(name: [.customLong("macos-version")], help: ArgumentHelp(String(localized: "macOS version to use for picking the built-in template, overriding the VM's stored osName"), valueName: "version"))
@@ -63,12 +63,12 @@ struct Provision: AsyncParsableCommand {
 		let config = try location.config()
 
 		if config.os != .darwin {
-			guard let template = self.template else {
-				throw ValidationError(String(localized: "Provisioning template must be provided for non-macOS VMs"))
-			}
-			
-			if FileManager.default.fileExists(atPath: template.expandingTildeInPath) == false {
-				throw ValidationError(String(localized: "Provisioning template file does not exist: \(template)"))
+			if let template = self.template {
+				if FileManager.default.fileExists(atPath: template.expandingTildeInPath) == false {
+					throw ValidationError(String(localized: "Provisioning template file does not exist: \(template)"))
+				}
+			} else if PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: config.configuredPlatform) == false {
+				throw ValidationError(String(localized: "No built-in provisioning template for \(config.configuredPlatform.rawValue) — provide one with --template"))
 			}
 		}
 
@@ -157,10 +157,15 @@ struct Provision: AsyncParsableCommand {
 				explicitPath: self.template,
 				explicitVersion: explicitMacOSVersion,
 				ipswURL: URL(fileURLWithPath: "\(location.name).ipsw"))
-		} else if let provisionTemplate = self.template {
-			content = try String(contentsOfFile: provisionTemplate, encoding: .utf8)
 		} else {
-			throw ServiceError(String(localized: "Provisioning template must be provided for non-macOS VMs"))
+			// Falls back to a built-in template for the VM's stored platform (e.g. fedora, centos,
+			// redhat, openSUSE, debian) when --template isn't given — validate() already refused to
+			// get here for a platform with neither an explicit --template nor a built-in default.
+			guard let resolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: self.template, platform: config.configuredPlatform) else {
+				throw ServiceError(String(localized: "No built-in provisioning template for \(config.configuredPlatform.rawValue) — provide one with --template"))
+			}
+
+			content = resolved
 		}
 
 		// The VM's account is already fully determined by its stored configuredUser/configuredPassword

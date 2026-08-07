@@ -991,9 +991,14 @@ struct VirtualMachineWizard: View {
 								//						} else if platform == .debian {
 								//							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
 							} else {
-								LabeledContent("Provisioning yaml") {
+								// Fedora/CentOS/RHEL/openSUSE/Debian ship a built-in template (see
+								// PackerLiteTemplateResolver) auto-selected from the detected platform, so the
+								// picker below is only required to override it or for a platform with no default.
+								let hasBuiltInTemplate = PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: platform)
+
+								LabeledContent(hasBuiltInTemplate ? "Provisioning yaml (optional)" : "Provisioning yaml") {
 									HStack {
-										TextField("Provisioning yaml", text: $model.provisioningTemplate)
+										TextField(hasBuiltInTemplate ? "Uses the built-in \(platform.rawValue) template" : "Provisioning yaml", text: $model.provisioningTemplate)
 											.frame(width: 300)
 											.rounded(.leading)
 											.disabled(self.model.createVM)
@@ -1365,7 +1370,9 @@ struct VirtualMachineWizard: View {
 		}
 
 		if valid && model.imageSource == .iso && platform != .ubuntu && platform != .unknown && config.autoinstall {
-			valid = self.model.provisioningTemplate.isEmpty == false
+			// A missing provisioningTemplate is fine when the detected platform has a built-in
+			// default (see PackerLiteTemplateResolver) — only genuinely require one otherwise.
+			valid = self.model.provisioningTemplate.isEmpty == false || PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: platform)
 		}
 
 		if valid && (model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw) {

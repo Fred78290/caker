@@ -213,11 +213,18 @@ cakectl build my-macos-vm --user admin --password admin --autoinstall --macos-ve
 
 ### 9) Créer une VM Linux depuis une ISO non-Ubuntu (provisioning automatisé)
 
-Nécessite `--autoinstall` **et** `--template` — aucun template Linux n'est fourni par défaut, voir [PackerLite](command-summary#packerlite-fr).
+Nécessite `--autoinstall`. Pour Fedora, CentOS Stream, RHEL, openSUSE ou Debian, le template est sélectionné automatiquement depuis le nom du fichier ISO — voir [PackerLite](command-summary#packerlite-fr).
+
+```bash
+cakectl build my-fedora-vm --user admin --password admin --autoinstall \
+  ./Fedora-Workstation-Live-x86_64-42.iso
+```
+
+Pour toute autre distribution, `--template` est requis :
 
 ```bash
 cakectl build my-linux-vm --user admin --password admin --autoinstall \
-  --template ./debian.packerlite.yaml ./debian-13.iso
+  --template ./ma-distro.packerlite.yaml ./ma-distro.iso
 ```
 
 </div>
@@ -435,11 +442,18 @@ cakectl build my-macos-vm --user admin --password admin --autoinstall --macos-ve
 
 ### 9) Create a Linux VM from a non-Ubuntu ISO (unattended provisioning)
 
-Requires **both** `--autoinstall` and `--template` — no Linux template ships built in, see [PackerLite](command-summary#packerlite).
+Requires `--autoinstall`. For Fedora, CentOS Stream, RHEL, openSUSE, or Debian, the template is auto-selected from the ISO filename — see [PackerLite](command-summary#packerlite).
+
+```bash
+cakectl build my-fedora-vm --user admin --password admin --autoinstall \
+  ./Fedora-Workstation-Live-x86_64-42.iso
+```
+
+For any other distro, `--template` is required:
 
 ```bash
 cakectl build my-linux-vm --user admin --password admin --autoinstall \
-  --template ./debian.packerlite.yaml ./debian-13.iso
+  --template ./my-distro.packerlite.yaml ./my-distro.iso
 ```
 
 </div>

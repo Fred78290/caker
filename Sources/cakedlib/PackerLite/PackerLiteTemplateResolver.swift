@@ -2,17 +2,43 @@
 //  PackerLiteTemplateResolver.swift
 //  CakedLib
 //
-//  Decides which provisioning template content to use for an IPSW build:
+//  Decides which provisioning template content to use for a build:
+//
+//  IPSW (macOS):
 //    1. an explicit --template path always wins.
 //    2. otherwise, auto-detect the macOS version from the IPSW filename and use the
 //       matching built-in template bundled in CakedLib's resources.
 //    3. otherwise, fall back to an explicit --macos-version.
 //    4. otherwise, fail with a message telling the user what to pass.
 //
+//  ISO (Linux):
+//    1. an explicit --template path always wins.
+//    2. otherwise, auto-detect the distro from the ISO filename/URL (GRPCLib.SupportedPlatform)
+//       and use the matching built-in template, if one is bundled.
+//    3. otherwise, resolve to nil (no provisioning) — e.g. Ubuntu, which has its own
+//       cloud-init/subiquity autoinstall path instead, or a genuinely unrecognized distro.
+//
 
 import CakeAgentLib
 import Foundation
 import GRPCLib
+
+extension SupportedPlatform {
+	/// The bundled template resource name, e.g. "linux-fedora.packerlite" (paired with a ".yaml"
+	/// extension), for distros with a built-in PackerLite template. `nil` for platforms that either
+	/// have their own autoinstall mechanism already (Ubuntu, via cloud-init/subiquity) or have no
+	/// bundled template yet — both cases mean "don't auto-select anything, require --template".
+	fileprivate var bundledPackerLiteTemplateResourceName: String? {
+		switch self {
+		case .fedora: return "linux-fedora.packerlite"
+		case .centos: return "linux-centos.packerlite"
+		case .redhat: return "linux-redhat.packerlite"
+		case .openSUSE: return "linux-opensuse.packerlite"
+		case .debian: return "linux-debian.packerlite"
+		case .ubuntu, .macos, .windows, .alpine, .unknown: return nil
+		}
+	}
+}
 
 public enum PackerLiteTemplateResolver {
 	private static let logger = Logger("PackerLiteTemplateResolver")
@@ -51,15 +77,52 @@ public enum PackerLiteTemplateResolver {
 				))
 		}
 
-		return try bundledTemplateContent(for: name)
+		return try bundledTemplateContent(named: name.bundledTemplateResourceName, orThrow: String(localized: "No built-in provisioning template is bundled for macOS \(name.rawValue) yet. Provide your own with --template."))
 	}
 
-	private static func bundledTemplateContent(for version: MacOSVersion) throws -> String {
-		let bundledTemplateResourceName = version.bundledTemplateResourceName
+	/// Resolves provisioning template content for an ISO (Linux) build: an explicit `--template`
+	/// always wins; otherwise auto-detects the distro from the ISO filename/URL and returns the
+	/// matching built-in template if one is bundled. Returns `nil` — not an error — when there's no
+	/// explicit path and no bundled default for the detected platform, since that's the expected,
+	/// valid outcome for e.g. Ubuntu (its own cloud-init/subiquity path handles autoinstall instead)
+	/// or a distro caker doesn't recognize; callers should treat `nil` as "don't provision".
+	public static func resolveLinuxTemplate(explicitPath: String?, imageURL: URL) throws -> String? {
+		try resolveLinuxTemplate(explicitPath: explicitPath, platform: SupportedPlatform(rawValue: imageURL.lastPathComponent), source: imageURL.lastPathComponent)
+	}
 
-		guard let url = Bundle.main.url(forResource: bundledTemplateResourceName, withExtension: "yaml") else {
-			guard let url = resourceBundle.url(forResource: bundledTemplateResourceName, withExtension: "yaml") else {
-				throw ServiceError(String(localized: "No built-in provisioning template is bundled for macOS \(version.rawValue) yet. Provide your own with --template."))
+	/// Same resolution as above, but for a VM whose platform is already known (e.g. an already-built
+	/// VM's stored `CakeConfig.configuredPlatform`) rather than needing to be detected from a filename.
+	public static func resolveLinuxTemplate(explicitPath: String?, platform: SupportedPlatform) throws -> String? {
+		try resolveLinuxTemplate(explicitPath: explicitPath, platform: platform, source: platform.rawValue)
+	}
+
+	/// Whether `platform` has a built-in PackerLite template, without loading its content — for
+	/// callers (like `caked provision`'s `validate()`) that just need to decide whether `--template`
+	/// can be treated as optional before actually running anything.
+	public static func hasBuiltInLinuxTemplate(for platform: SupportedPlatform) -> Bool {
+		platform.bundledPackerLiteTemplateResourceName != nil
+	}
+
+	private static func resolveLinuxTemplate(explicitPath: String?, platform: SupportedPlatform, source: String) throws -> String? {
+		if let explicitPath {
+			return try String(contentsOfFile: explicitPath, encoding: .utf8)
+		}
+
+		guard let resourceName = platform.bundledPackerLiteTemplateResourceName else {
+			logger.info("No built-in provisioning template for platform \(platform.rawValue) (from '\(source)') — skipping auto-provisioning unless --template is given")
+
+			return nil
+		}
+
+		logger.info("Detected \(platform.rawValue) from '\(source)', using its built-in provisioning template")
+
+		return try bundledTemplateContent(named: resourceName, orThrow: String(localized: "No built-in provisioning template is bundled for \(platform.rawValue) yet. Provide your own with --template."))
+	}
+
+	private static func bundledTemplateContent(named resourceName: String, orThrow notFoundError: String) throws -> String {
+		guard let url = Bundle.main.url(forResource: resourceName, withExtension: "yaml") else {
+			guard let url = resourceBundle.url(forResource: resourceName, withExtension: "yaml") else {
+				throw ServiceError(notFoundError)
 			}
 
 			return try String(contentsOf: url, encoding: .utf8)
