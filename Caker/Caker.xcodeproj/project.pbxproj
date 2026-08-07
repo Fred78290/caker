@@ -143,6 +143,7 @@
 		9B32F9823025C31F0099D3A5 /* linux-redhat.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B32F9783025C31F0099D3A5 /* linux-redhat.packerlite.yaml */; };
 		9B32F98B3025E9780099D3A5 /* ProvisionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F98A3025E96E0099D3A5 /* ProvisionHandler.swift */; };
 		9B32F98D302604800099D3A5 /* ProvisionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F98C302604790099D3A5 /* ProvisionHandler.swift */; };
+		9B32F994302624DA0099D3A5 /* Provision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F993302624D70099D3A5 /* Provision.swift */; };
 		9B3566812F27E12D00C5E12F /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3566802F27E12D00C5E12F /* ZLib */; };
 		9B3600872E1FB1AE00889BFD /* DynamicList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600862E1FB1AC00889BFD /* DynamicList.swift */; };
 		9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600882E1FC48D00889BFD /* AsyncButton.swift */; };
@@ -1005,6 +1006,7 @@
 		9B32F9783025C31F0099D3A5 /* linux-redhat.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-redhat.packerlite.yaml"; sourceTree = "<group>"; };
 		9B32F98A3025E96E0099D3A5 /* ProvisionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionHandler.swift; sourceTree = "<group>"; };
 		9B32F98C302604790099D3A5 /* ProvisionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionHandler.swift; sourceTree = "<group>"; };
+		9B32F993302624D70099D3A5 /* Provision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provision.swift; sourceTree = "<group>"; };
 		9B345C0C2DB4EB700047D00B /* CloudInitTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudInitTest.swift; sourceTree = "<group>"; };
 		9B345C0D2DB4EB700047D00B /* echo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = echo.py; sourceTree = "<group>"; };
 		9B345C0E2DB4EB700047D00B /* GrpcTcpSocketTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrpcTcpSocketTest.swift; sourceTree = "<group>"; };
@@ -2107,6 +2109,7 @@
 				9B464A792D5A3E0300164BF5 /* Logout.swift */,
 				9BD32F852D75FF060066A01E /* Mount.swift */,
 				9B464A7A2D5A3E0300164BF5 /* Networks.swift */,
+				9B32F993302624D70099D3A5 /* Provision.swift */,
 				9B464A7B2D5A3E0300164BF5 /* Pull.swift */,
 				9B464A7C2D5A3E0300164BF5 /* Purge.swift */,
 				9B464A7D2D5A3E0300164BF5 /* Push.swift */,
@@ -3779,6 +3782,7 @@
 				9B5F49C92F7028F500AE1991 /* VNC.swift in Sources */,
 				9B464B642D5A3E8900164BF5 /* Exec.swift in Sources */,
 				9B464B652D5A3E8900164BF5 /* Configure.swift in Sources */,
+				9B32F994302624DA0099D3A5 /* Provision.swift in Sources */,
 				9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */,
 				9B464B662D5A3E8900164BF5 /* Rename.swift in Sources */,
 				9B464B6A2D5A3E8900164BF5 /* Remote.swift in Sources */,
