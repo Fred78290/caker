@@ -31,11 +31,11 @@ public enum MacOSVersion: String, CaseIterable, ExpressibleByArgument, Sendable 
 			self = .monterey
 		case .macosSonoma:
 			self = .sonoma
-		case .macosSequioa:
+		case .macosSequoia:
 			self = .sequoia
 		case .macosTahoe:
 			self = .tahoe
-		case .macosGoldGate:
+		case .macosGoldenGate:
 			self = .goldengate
 		case .UNRECOGNIZED(_):
 			return nil

@@ -9,7 +9,7 @@ import AppKit
 /// Drives an already-installed macOS VM's Setup Assistant unattended via PackerLite — the same
 /// engine `caked build`/`create` run automatically for `.ipsw` sources with `--autoinstall`, exposed
 /// here as a standalone step for VMs that skipped it at build time (or need it re-run). Run directly
-/// against `caked` on the host where the VM lives — not currently wired through gRPC/cakectl.
+/// against `caked` on the host where the VM lives.
 struct Provision: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(commandName: "provision",
 													abstract: String(localized: "Drive a macOS or Linux VM's Setup Assistant unattended via PackerLite"),
@@ -22,7 +22,7 @@ struct Provision: AsyncParsableCommand {
 	var template: String?
 
 	@Option(name: [.customLong("macos-version")], help: ArgumentHelp(String(localized: "macOS version to use for picking the built-in template, overriding the VM's stored osName"), valueName: "version"))
-	var macosVersion: GRPCLib.MacOSVersion?
+	var macosVersion: MacOSVersion?
 
 	@Option(name: [.customLong("var")], help: ArgumentHelp(String(localized: "Set a provisioning template variable (key=value), may be repeated"), valueName: "key=value"))
 	var vars: [String] = []

@@ -1859,9 +1859,9 @@ public nonisolated struct Caked_Caked: Sendable {
         case macosVentura // = 1
         case macosMonterey // = 2
         case macosSonoma // = 3
-        case macosSequioa // = 4
+        case macosSequoia // = 4
         case macosTahoe // = 5
-        case macosGoldGate // = 6
+        case macosGoldenGate // = 6
         case UNRECOGNIZED(Int)
 
         public init() {
@@ -1874,9 +1874,9 @@ public nonisolated struct Caked_Caked: Sendable {
           case 1: self = .macosVentura
           case 2: self = .macosMonterey
           case 3: self = .macosSonoma
-          case 4: self = .macosSequioa
+          case 4: self = .macosSequoia
           case 5: self = .macosTahoe
-          case 6: self = .macosGoldGate
+          case 6: self = .macosGoldenGate
           default: self = .UNRECOGNIZED(rawValue)
           }
         }
@@ -1887,9 +1887,9 @@ public nonisolated struct Caked_Caked: Sendable {
           case .macosVentura: return 1
           case .macosMonterey: return 2
           case .macosSonoma: return 3
-          case .macosSequioa: return 4
+          case .macosSequoia: return 4
           case .macosTahoe: return 5
-          case .macosGoldGate: return 6
+          case .macosGoldenGate: return 6
           case .UNRECOGNIZED(let i): return i
           }
         }
@@ -1900,9 +1900,9 @@ public nonisolated struct Caked_Caked: Sendable {
           .macosVentura,
           .macosMonterey,
           .macosSonoma,
-          .macosSequioa,
+          .macosSequoia,
           .macosTahoe,
-          .macosGoldGate,
+          .macosGoldenGate,
         ]
 
       }
@@ -9094,7 +9094,7 @@ nonisolated extension Caked_Caked.VMRequest.ProvisionRequest: SwiftProtobuf.Mess
 }
 
 nonisolated extension Caked_Caked.VMRequest.ProvisionRequest.MacOSVersion: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0macosUnknown\0\u{1}macosVentura\0\u{1}macosMonterey\0\u{1}macosSonoma\0\u{1}macosSequioa\0\u{1}macosTahoe\0\u{1}macosGoldGate\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0macosUnknown\0\u{1}macosVentura\0\u{1}macosMonterey\0\u{1}macosSonoma\0\u{1}macosSequoia\0\u{1}macosTahoe\0\u{1}macosGoldenGate\0")
 }
 
 nonisolated extension Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {

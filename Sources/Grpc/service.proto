@@ -510,13 +510,13 @@ message Caked {
 
     message ProvisionRequest {
       enum MacOSVersion {
-        macosUnknown  = 0;
-        macosVentura  = 1;
-        macosMonterey = 2;
-        macosSonoma   = 3;
-        macosSequioa  = 4;
-        macosTahoe    = 5;
-        macosGoldGate = 6;
+        macosUnknown    = 0;
+        macosVentura    = 1;
+        macosMonterey   = 2;
+        macosSonoma     = 3;
+        macosSequoia    = 4;
+        macosTahoe      = 5;
+        macosGoldenGate = 6;
       }
 
       message ProvisionVars {

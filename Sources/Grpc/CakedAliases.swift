@@ -151,6 +151,7 @@ public typealias Caked_ProvisionRequest = Caked_Caked.VMRequest.ProvisionRequest
 public typealias Caked_ProvisionedReply = Caked_VirtualMachineReply.ProvisionedReply
 public typealias Caked_ProvisionStreamReply = Caked_VirtualMachineReply.ProvisionStreamReply
 public typealias Caked_MacOSVersion = Caked_ProvisionRequest.MacOSVersion
+public typealias Caked_ProvisionVar = Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars.ProvisionVar
 
 extension VirtualizedOS {
 	public init?(_ from: Caked.Configuration.VirtualizedOS) {
@@ -700,5 +701,24 @@ extension Caked_ConfigureRequest {
 		}
 
 		self.randomMac = options.randomMAC
+	}
+}
+
+extension Caked_MacOSVersion {
+	public init(_ version: MacOSVersion) {
+		switch version {
+		case .monterey:
+			self = .macosMonterey
+		case .ventura:
+			self = .macosVentura
+		case .sonoma:
+			self = .macosSonoma
+		case .sequoia:
+			self = .macosSequoia
+		case .tahoe:
+			self = .macosTahoe
+		case .goldengate:
+			self = .macosGoldenGate
+		}
 	}
 }
