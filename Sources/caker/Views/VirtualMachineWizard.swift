@@ -44,6 +44,14 @@ enum ISOImage: Int, CaseIterable {
 	case centos10
 	case centos9
 
+	case debian13
+	case debian12
+	case debian11
+
+	case openSUSELeap156
+	case openSUSELeap155
+	case openSUSETumbleweed
+
 	var ubuntuArch: String {
 		#if arch(x86_64)
 			return "amd64"
@@ -93,6 +101,20 @@ enum ISOImage: Int, CaseIterable {
 			ISOLocation(label: "CentOS Stream 10 – DVD ISO (\(genericArch))", url: "https://mirror.stream.centos.org/10-stream/BaseOS/\(genericArch)/iso/CentOS-Stream-10-latest-\(genericArch)-dvd1.iso")
 		case .centos9:
 			ISOLocation(label: "CentOS Stream 9 – DVD ISO (\(genericArch))", url: "https://mirror.centos.org/centos/9-stream/BaseOS/\(genericArch)/iso/CentOS-Stream-9-latest-\(genericArch)-dvd.iso")
+
+		case .debian13:
+			ISOLocation(label: "Debian 13.1 – netinst ISO (\(ubuntuArch))", url: "https://cdimage.debian.org/debian-cd/13.1.0/\(ubuntuArch)/iso-cd/debian-13.1.0-\(ubuntuArch)-netinst.iso")
+		case .debian12:
+			ISOLocation(label: "Debian 12.11 – netinst ISO (\(ubuntuArch))", url: "https://cdimage.debian.org/debian-cd/12.11.0/\(ubuntuArch)/iso-cd/debian-12.11.0-\(ubuntuArch)-netinst.iso")
+		case .debian11:
+			ISOLocation(label: "Debian 11.11 – netinst ISO (\(ubuntuArch))", url: "https://cdimage.debian.org/debian-cd/11.11.0/\(ubuntuArch)/iso-cd/debian-11.11.0-\(ubuntuArch)-netinst.iso")
+
+		case .openSUSELeap156:
+			ISOLocation(label: "openSUSE Leap 15.6 – DVD ISO (\(genericArch))", url: "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-\(genericArch)-Media.iso")
+		case .openSUSELeap155:
+			ISOLocation(label: "openSUSE Leap 15.5 – DVD ISO (\(genericArch))", url: "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-\(genericArch)-Media.iso")
+		case .openSUSETumbleweed:
+			ISOLocation(label: "openSUSE Tumbleweed – DVD ISO (\(genericArch))", url: "https://download.opensuse.org/tumbleweed/iso/openSUSE-Tumbleweed-DVD-\(genericArch)-Current.iso")
 		}
 	}
 }
@@ -996,9 +1018,9 @@ struct VirtualMachineWizard: View {
 								// picker below is only required to override it or for a platform with no default.
 								let hasBuiltInTemplate = PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: platform)
 
-								LabeledContent(hasBuiltInTemplate ? "Provisioning yaml (optional)" : "Provisioning yaml") {
+								LabeledContent(hasBuiltInTemplate ? "Provisioning template (optional)" : "Provisioning template") {
 									HStack {
-										TextField(hasBuiltInTemplate ? "Uses the built-in \(platform.rawValue) template" : "Provisioning yaml", text: $model.provisioningTemplate)
+										TextField("", text: $model.provisioningTemplate)
 											.frame(width: 300)
 											.rounded(.leading)
 											.disabled(self.model.createVM)
@@ -1013,6 +1035,9 @@ struct VirtualMachineWizard: View {
 										.buttonStyle(.borderless)
 									}
 								}
+								Text(hasBuiltInTemplate ? "Leave empty to use the built-in \(platform.rawValue) template or provide a custom one provisioning template" : "Provide a custom one provisioning template")
+									.font(.caption)
+									.foregroundStyle(.secondary)
 								Toggle("Auto configuration with provisioning", isOn: $config.autoinstall).disabled(self.model.createVM)
 							}
 						}

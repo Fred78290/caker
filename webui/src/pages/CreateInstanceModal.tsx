@@ -41,7 +41,10 @@ const CENTOS_CLOUD_BASE = 'https://cloud.centos.org/centos'
 const FEDORA_ISO_BASE = 'https://download.fedoraproject.org/pub/fedora/linux/releases'
 const FEDORA_CLOUD_BASE = 'https://download.fedoraproject.org/pub/fedora/linux/releases'
 const DEBIAN_CLOUD_BASE = 'https://cloud.debian.org/images/cloud'
+const DEBIAN_ISO_BASE = 'https://cdimage.debian.org/debian-cd'
 const OPENSUSE_CLOUD_BASE = 'https://download.opensuse.org/repositories/Cloud:/Images:/Leap'
+const OPENSUSE_ISO_BASE = 'https://download.opensuse.org/distribution/leap'
+const OPENSUSE_TUMBLEWEED_ISO_BASE = 'https://download.opensuse.org/tumbleweed/iso'
 const ALPINE_CLOUD_BASE = 'https://dl-cdn.alpinelinux.org/alpine'
 const MACOS_1561_IPSW_URL = 'https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw'
 const MACOS_266_IPSW_URL = 'https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-65618/10445B26-DE2C-43EC-9149-0A831602E74B/UniversalMac_26.6_25G72_Restore.ipsw'
@@ -90,6 +93,14 @@ const buildSourceImages = (lxdArch: string, iso: boolean): { label: string; url:
     { label: `Fedora 42 – Server ISO (${genericArch})`, url: `${FEDORA_ISO_BASE}/42/Server/${genericArch}/iso/Fedora-Server-dvd-${genericArch}-42-1.1.iso` },
     { label: `Fedora 41 – Server ISO (${genericArch})`, url: `${FEDORA_ISO_BASE}/41/Server/${genericArch}/iso/Fedora-Server-dvd-${genericArch}-41-1.4.iso` },
     { label: `Fedora 40 – Server ISO (${genericArch})`, url: `${FEDORA_ISO_BASE}/40/Server/${genericArch}/iso/Fedora-Server-dvd-${genericArch}-40-1.14.iso` },
+    // Debian ISOs
+    { label: `Debian 13.1 – netinst ISO (${ubuntuArch})`, url: `${DEBIAN_ISO_BASE}/13.1.0/${ubuntuArch}/iso-cd/debian-13.1.0-${ubuntuArch}-netinst.iso` },
+    { label: `Debian 12.11 – netinst ISO (${ubuntuArch})`, url: `${DEBIAN_ISO_BASE}/12.11.0/${ubuntuArch}/iso-cd/debian-12.11.0-${ubuntuArch}-netinst.iso` },
+    { label: `Debian 11.11 – netinst ISO (${ubuntuArch})`, url: `${DEBIAN_ISO_BASE}/11.11.0/${ubuntuArch}/iso-cd/debian-11.11.0-${ubuntuArch}-netinst.iso` },
+    // openSUSE ISOs
+    { label: `openSUSE Leap 15.6 – DVD ISO (${genericArch})`, url: `${OPENSUSE_ISO_BASE}/15.6/iso/openSUSE-Leap-15.6-DVD-${genericArch}-Media.iso` },
+    { label: `openSUSE Leap 15.5 – DVD ISO (${genericArch})`, url: `${OPENSUSE_ISO_BASE}/15.5/iso/openSUSE-Leap-15.5-DVD-${genericArch}-Media.iso` },
+    { label: `openSUSE Tumbleweed – DVD ISO (${genericArch})`, url: `${OPENSUSE_TUMBLEWEED_ISO_BASE}/openSUSE-Tumbleweed-DVD-${genericArch}-Current.iso` },
   ]
   } else {
   return [
