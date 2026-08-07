@@ -19,7 +19,7 @@ boot_timeout: 45m
 
 boot_command:
   - title: Wait hello, hola, bonjour, etc.
-    command: "<spacebar>"
+    command: "<wait10s><spacebar>"
 
   - title: Select Language
     command: "<wait10s>italiano<esc>english<down><enter>"
