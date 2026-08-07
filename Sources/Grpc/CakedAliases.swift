@@ -147,6 +147,11 @@ public typealias Caked_NetworkRequestNetworkMode = Caked_Caked.NetworkRequest.Ne
 public typealias Caked_ComposeRequest = Caked_Caked.ComposeRequest
 public typealias Caked_ComposeReply = Caked_Caked.ComposeReply
 
+public typealias Caked_ProvisionRequest = Caked_Caked.VMRequest.ProvisionRequest
+public typealias Caked_ProvisionedReply = Caked_VirtualMachineReply.ProvisionedReply
+public typealias Caked_ProvisionStreamReply = Caked_VirtualMachineReply.ProvisionStreamReply
+public typealias Caked_MacOSVersion = Caked_ProvisionRequest.MacOSVersion
+
 extension VirtualizedOS {
 	public init?(_ from: Caked.Configuration.VirtualizedOS) {
 		switch from {

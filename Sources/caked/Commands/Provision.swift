@@ -80,111 +80,19 @@ struct Provision: AsyncParsableCommand {
 	@MainActor
 	func run() async throws {
 		let (storageLocation, location) = self.locations
-		let config = try location.config()
-		let displaySize = config.display.cgSize
 
 		if case .running = location.status {
 			throw ServiceError(String(localized: "The VM is already running"))
 		}
 
-		let runMode = self.common.runMode
-		let handler = CakedLib.VMRunHandler(
-			mode: .grpc,
-			storageLocation: storageLocation,
-			location: location,
-			name: location.name,
-			display: .ui,
-			config: config,
-			screenSize: displaySize,
-			vncPassword: "",
-			vncPort: 0,
-			recoveryMode: false,
-			runMode: runMode)
+		let promise = Utilities.group.next().makePromise(of: Void.self)
 
-		struct DoProvision: Cancellable {
-			let task: Task<Void, Error>
-
-			func cancel() {
-				task.cancel()
-			}
+		promise.futureResult.whenComplete { _ in
+			NSApp.terminate(self)
 		}
 
-		try handler.run { address, vm in
-			let logger = Logger(self)
-
-			address.whenSuccess { ip in
-				if let ip {
-					logger.info("VM Machine \(location.name) is now available at \(ip)")
-				}
-				
-				MainApp.cancellation = DoProvision(task: Task {
-					defer {
-						vm.stopVM { _ in
-							DispatchQueue.main.async {
-								NSApp.terminate(self)
-							}
-						}
-					}
-
-					do {
-						try await provision(vm, runningIP: ip)
-					} catch {
-						logger.error("Provisioning failed for VM \(location.name): \(error)")
-					}					
-				})
-			}
-
-			vm.createVirtualMachineView()
-
-			MainApp.runUI(vm, params: handler, cancellation: nil)
-		}
-	}
-
-	private func provision(_ vm: VirtualMachine, runningIP: String?) async throws {
-		let location = vm.location
-		let config = vm.config
-		let content: String
-
-		if config.os == .darwin {
-			// Prefer an explicit --macos-version override; otherwise fall back to whatever `build`
-			// already detected and stored in config.osName (see VMBuilder.swift).
-			let explicitMacOSVersion: CakedLib.MacOSVersion? =
-				self.macosVersion.flatMap { CakedLib.MacOSVersion(rawValue: $0.rawValue) } ?? config.osName.flatMap { CakedLib.MacOSVersion(rawValue: $0) }
-
-			// No real IPSW file at hand for an already-installed VM — filename-based detection is a
-			// no-op here, so this resolves purely from --template / the version determined above.
-			content = try PackerLiteTemplateResolver.resolve(
-				explicitPath: self.template,
-				explicitVersion: explicitMacOSVersion,
-				ipswURL: URL(fileURLWithPath: "\(location.name).ipsw"))
-		} else {
-			// Falls back to a built-in template for the VM's stored platform (e.g. fedora, centos,
-			// redhat, openSUSE, debian) when --template isn't given — validate() already refused to
-			// get here for a platform with neither an explicit --template nor a built-in default.
-			guard let resolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: self.template, platform: config.configuredPlatform) else {
-				throw ServiceError(String(localized: "No built-in provisioning template for \(config.configuredPlatform.rawValue) — provide one with --template"))
-			}
-
-			content = resolved
-		}
-
-		// The VM's account is already fully determined by its stored configuredUser/configuredPassword
-		// — reuse it here instead of letting the template declare its own, so there's exactly one
-		// source of truth, same as the automatic build-time path.
-		var variables = Dictionary(uniqueKeysWithValues: self.vars.compactMap { entry -> (String, String)? in
-			guard let separatorIndex = entry.firstIndex(of: "=") else { return nil }
-
-			let key = String(entry[..<separatorIndex])
-			let value = String(entry[entry.index(after: separatorIndex)...])
-
-			return (key, value)
-		})
-
-		variables["username"] = config.configuredUser
-		variables["password"] = config.configuredPassword ?? "admin"
-
-		let parsedTemplate = try PackerLiteTemplate.load(from: content, variables: variables)
-
-		try await PackerLiteEngine.provision(vm: vm, template: parsedTemplate, runningIP: runningIP, runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)
+		let (handler, vm, cancellation) = try await CakedLib.ProvisionHandler.provision(location: location, storageLocation: storageLocation, templatePath: nil, macosVersion: self.macosVersion, runMode: self.common.runMode, promise: promise, progressHandler: ProgressObserver.progressHandler)
+		
+		MainApp.runUI(vm, params: handler, cancellation: cancellation)
 	}
 }

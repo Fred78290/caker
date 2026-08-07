@@ -15,9 +15,31 @@ public enum MacOSVersion: String, CaseIterable, ExpressibleByArgument, Sendable 
 	case sequoia
 	case tahoe
 	case goldengate
-
+	
 	public init?(argument: String) {
 		self.init(rawValue: argument.lowercased())
+	}
+	
+	public init?(_ from: Caked_MacOSVersion) throws {
+		switch from {
+			
+		case .macosUnknown:
+			return nil
+		case .macosVentura:
+			self = .ventura
+		case .macosMonterey:
+			self = .monterey
+		case .macosSonoma:
+			self = .sonoma
+		case .macosSequioa:
+			self = .sequoia
+		case .macosTahoe:
+			self = .tahoe
+		case .macosGoldGate:
+			self = .goldengate
+		case .UNRECOGNIZED(_):
+			return nil
+		}
 	}
 }
 

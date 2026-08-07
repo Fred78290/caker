@@ -94,6 +94,9 @@ service Service {
 
   // Compose allows for the orchestration of multiple virtual machines and services defined in a compose file.
   rpc Compose (Caked.ComposeRequest) returns (Caked.Reply);
+
+	// Provision a stopped virtual machine.
+  rpc Provision (Caked.VMRequest.ProvisionRequest) returns (stream Caked.Reply.VirtualMachineReply.ProvisionStreamReply);
 }
 
 message Empty {}
@@ -505,6 +508,33 @@ message Caked {
       optional bool       recoveryMode  = 6;
     }
 
+    message ProvisionRequest {
+      enum MacOSVersion {
+        macosUnknown  = 0;
+        macosVentura  = 1;
+        macosMonterey = 2;
+        macosSonoma   = 3;
+        macosSequioa  = 4;
+        macosTahoe    = 5;
+        macosGoldGate = 6;
+      }
+
+      message ProvisionVars {
+        message ProvisionVar {
+          string key   = 1;
+          string value = 2;
+        }
+
+        repeated ProvisionVar vars = 1;
+      }
+
+      string                 name                  = 1;
+      optional bytes         provisionTemplate     = 2;
+      optional string        provisionTemplateName = 3;
+      optional ProvisionVars provisionVars         = 4;
+      optional MacOSVersion  macosVersion          = 5;
+    }
+
     message RestartRequest {
       repeated string names         = 1;
       bool            force         = 2;
@@ -907,6 +937,12 @@ message Caked {
         optional string reason  = 4;
       }
 
+      message ProvisionedReply {
+        string          name        = 1;
+        bool            provisioned = 2;
+        optional string reason      = 3;
+      }
+
       message BuildedReply {
         string          name    = 1;
         bool            builded = 2;
@@ -933,6 +969,16 @@ message Caked {
           BuildTerminatedReply terminated = 3;
           string               step       = 2;
           BuildedReply         builded    = 4;
+        }
+      }
+
+      message ProvisionStreamReply {
+        oneof current {
+          BuildProgressValue   progress    = 1;
+          BuildTerminatedReply terminated  = 2;
+          string               step        = 3;
+          string               substep     = 4;
+          ProvisionedReply     provisioned = 5;
         }
       }
 
@@ -1021,6 +1067,7 @@ message Caked {
         RestartReply            restarted      = 16;
         VncURL                  vncURL         = 17;
         InstalledAgentReply     installedAgent = 18;
+        ProvisionStreamReply    provisioned    = 19;
       }
     }
 

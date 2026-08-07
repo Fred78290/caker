@@ -1808,6 +1808,139 @@ public nonisolated struct Caked_Caked: Sendable {
       fileprivate var _recoveryMode: Bool? = nil
     }
 
+    public nonisolated struct ProvisionRequest: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var name: String = String()
+
+      public var provisionTemplate: Data {
+        get {_provisionTemplate ?? Data()}
+        set {_provisionTemplate = newValue}
+      }
+      /// Returns true if `provisionTemplate` has been explicitly set.
+      public var hasProvisionTemplate: Bool {self._provisionTemplate != nil}
+      /// Clears the value of `provisionTemplate`. Subsequent reads from it will return its default value.
+      public mutating func clearProvisionTemplate() {self._provisionTemplate = nil}
+
+      public var provisionTemplateName: String {
+        get {_provisionTemplateName ?? String()}
+        set {_provisionTemplateName = newValue}
+      }
+      /// Returns true if `provisionTemplateName` has been explicitly set.
+      public var hasProvisionTemplateName: Bool {self._provisionTemplateName != nil}
+      /// Clears the value of `provisionTemplateName`. Subsequent reads from it will return its default value.
+      public mutating func clearProvisionTemplateName() {self._provisionTemplateName = nil}
+
+      public var provisionVars: Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars {
+        get {_provisionVars ?? Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars()}
+        set {_provisionVars = newValue}
+      }
+      /// Returns true if `provisionVars` has been explicitly set.
+      public var hasProvisionVars: Bool {self._provisionVars != nil}
+      /// Clears the value of `provisionVars`. Subsequent reads from it will return its default value.
+      public mutating func clearProvisionVars() {self._provisionVars = nil}
+
+      public var macosVersion: Caked_Caked.VMRequest.ProvisionRequest.MacOSVersion {
+        get {_macosVersion ?? .macosUnknown}
+        set {_macosVersion = newValue}
+      }
+      /// Returns true if `macosVersion` has been explicitly set.
+      public var hasMacosVersion: Bool {self._macosVersion != nil}
+      /// Clears the value of `macosVersion`. Subsequent reads from it will return its default value.
+      public mutating func clearMacosVersion() {self._macosVersion = nil}
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public nonisolated enum MacOSVersion: SwiftProtobuf.Enum, Swift.CaseIterable {
+        public typealias RawValue = Int
+        case macosUnknown // = 0
+        case macosVentura // = 1
+        case macosMonterey // = 2
+        case macosSonoma // = 3
+        case macosSequioa // = 4
+        case macosTahoe // = 5
+        case macosGoldGate // = 6
+        case UNRECOGNIZED(Int)
+
+        public init() {
+          self = .macosUnknown
+        }
+
+        public init?(rawValue: Int) {
+          switch rawValue {
+          case 0: self = .macosUnknown
+          case 1: self = .macosVentura
+          case 2: self = .macosMonterey
+          case 3: self = .macosSonoma
+          case 4: self = .macosSequioa
+          case 5: self = .macosTahoe
+          case 6: self = .macosGoldGate
+          default: self = .UNRECOGNIZED(rawValue)
+          }
+        }
+
+        public var rawValue: Int {
+          switch self {
+          case .macosUnknown: return 0
+          case .macosVentura: return 1
+          case .macosMonterey: return 2
+          case .macosSonoma: return 3
+          case .macosSequioa: return 4
+          case .macosTahoe: return 5
+          case .macosGoldGate: return 6
+          case .UNRECOGNIZED(let i): return i
+          }
+        }
+
+        // The compiler won't synthesize support with the UNRECOGNIZED case.
+        public static let allCases: [Caked_Caked.VMRequest.ProvisionRequest.MacOSVersion] = [
+          .macosUnknown,
+          .macosVentura,
+          .macosMonterey,
+          .macosSonoma,
+          .macosSequioa,
+          .macosTahoe,
+          .macosGoldGate,
+        ]
+
+      }
+
+      public nonisolated struct ProvisionVars: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var vars: [Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars.ProvisionVar] = []
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public nonisolated struct ProvisionVar: Sendable {
+          // SwiftProtobuf.Message conformance is added in an extension below. See the
+          // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+          // methods supported on all messages.
+
+          public var key: String = String()
+
+          public var value: String = String()
+
+          public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+          public init() {}
+        }
+
+        public init() {}
+      }
+
+      public init() {}
+
+      fileprivate var _provisionTemplate: Data? = nil
+      fileprivate var _provisionTemplateName: String? = nil
+      fileprivate var _provisionVars: Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars? = nil
+      fileprivate var _macosVersion: Caked_Caked.VMRequest.ProvisionRequest.MacOSVersion? = nil
+    }
+
     public nonisolated struct RestartRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3158,6 +3291,14 @@ public nonisolated struct Caked_Caked: Sendable {
         set {response = .installedAgent(newValue)}
       }
 
+      public var provisioned: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply {
+        get {
+          if case .provisioned(let v)? = response {return v}
+          return Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply()
+        }
+        set {response = .provisioned(newValue)}
+      }
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public nonisolated enum OneOf_Response: Equatable, Sendable {
@@ -3179,6 +3320,7 @@ public nonisolated struct Caked_Caked: Sendable {
         case restarted(Caked_Caked.Reply.VirtualMachineReply.RestartReply)
         case vncURL(Caked_Caked.Reply.VirtualMachineReply.VncURL)
         case installedAgent(Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply)
+        case provisioned(Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply)
 
       }
 
@@ -3973,6 +4115,31 @@ public nonisolated struct Caked_Caked: Sendable {
         fileprivate var _reason: String? = nil
       }
 
+      public nonisolated struct ProvisionedReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var name: String = String()
+
+        public var provisioned: Bool = false
+
+        public var reason: String {
+          get {_reason ?? String()}
+          set {_reason = newValue}
+        }
+        /// Returns true if `reason` has been explicitly set.
+        public var hasReason: Bool {self._reason != nil}
+        /// Clears the value of `reason`. Subsequent reads from it will return its default value.
+        public mutating func clearReason() {self._reason = nil}
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+
+        fileprivate var _reason: String? = nil
+      }
+
       public nonisolated struct BuildedReply: Sendable {
         // SwiftProtobuf.Message conformance is added in an extension below. See the
         // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -4096,6 +4263,67 @@ public nonisolated struct Caked_Caked: Sendable {
           case terminated(Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply)
           case step(String)
           case builded(Caked_Caked.Reply.VirtualMachineReply.BuildedReply)
+
+        }
+
+        public init() {}
+      }
+
+      public nonisolated struct ProvisionStreamReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var current: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.OneOf_Current? = nil
+
+        public var progress: Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue {
+          get {
+            if case .progress(let v)? = current {return v}
+            return Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue()
+          }
+          set {current = .progress(newValue)}
+        }
+
+        public var terminated: Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply {
+          get {
+            if case .terminated(let v)? = current {return v}
+            return Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply()
+          }
+          set {current = .terminated(newValue)}
+        }
+
+        public var step: String {
+          get {
+            if case .step(let v)? = current {return v}
+            return String()
+          }
+          set {current = .step(newValue)}
+        }
+
+        public var substep: String {
+          get {
+            if case .substep(let v)? = current {return v}
+            return String()
+          }
+          set {current = .substep(newValue)}
+        }
+
+        public var provisioned: Caked_Caked.Reply.VirtualMachineReply.ProvisionedReply {
+          get {
+            if case .provisioned(let v)? = current {return v}
+            return Caked_Caked.Reply.VirtualMachineReply.ProvisionedReply()
+          }
+          set {current = .provisioned(newValue)}
+        }
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public nonisolated enum OneOf_Current: Equatable, Sendable {
+          case progress(Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue)
+          case terminated(Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply)
+          case step(String)
+          case substep(String)
+          case provisioned(Caked_Caked.Reply.VirtualMachineReply.ProvisionedReply)
 
         }
 
@@ -8811,6 +9039,129 @@ nonisolated extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message,
   }
 }
 
+nonisolated extension Caked_Caked.VMRequest.ProvisionRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ProvisionRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}provisionTemplate\0\u{1}provisionTemplateName\0\u{1}provisionVars\0\u{1}macosVersion\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBytesField(value: &self._provisionTemplate) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._provisionTemplateName) }()
+      case 4: try { try decoder.decodeSingularMessageField(value: &self._provisionVars) }()
+      case 5: try { try decoder.decodeSingularEnumField(value: &self._macosVersion) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    try { if let v = self._provisionTemplate {
+      try visitor.visitSingularBytesField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._provisionTemplateName {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try { if let v = self._provisionVars {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    } }()
+    try { if let v = self._macosVersion {
+      try visitor.visitSingularEnumField(value: v, fieldNumber: 5)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.VMRequest.ProvisionRequest, rhs: Caked_Caked.VMRequest.ProvisionRequest) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs._provisionTemplate != rhs._provisionTemplate {return false}
+    if lhs._provisionTemplateName != rhs._provisionTemplateName {return false}
+    if lhs._provisionVars != rhs._provisionVars {return false}
+    if lhs._macosVersion != rhs._macosVersion {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.VMRequest.ProvisionRequest.MacOSVersion: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0macosUnknown\0\u{1}macosVentura\0\u{1}macosMonterey\0\u{1}macosSonoma\0\u{1}macosSequioa\0\u{1}macosTahoe\0\u{1}macosGoldGate\0")
+}
+
+nonisolated extension Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.VMRequest.ProvisionRequest.protoMessageName + ".ProvisionVars"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vars\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.vars) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.vars.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.vars, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars, rhs: Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars) -> Bool {
+    if lhs.vars != rhs.vars {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars.ProvisionVar: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars.protoMessageName + ".ProvisionVar"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}key\0\u{1}value\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.key) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.value) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.key.isEmpty {
+      try visitor.visitSingularStringField(value: self.key, fieldNumber: 1)
+    }
+    if !self.value.isEmpty {
+      try visitor.visitSingularStringField(value: self.value, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars.ProvisionVar, rhs: Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars.ProvisionVar) -> Bool {
+    if lhs.key != rhs.key {return false}
+    if lhs.value != rhs.value {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 nonisolated extension Caked_Caked.VMRequest.RestartRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".RestartRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}names\0\u{1}force\0\u{1}waitIPTimeout\0")
@@ -10856,7 +11207,7 @@ nonisolated extension Caked_Caked.Reply.PingReply: SwiftProtobuf.Message, SwiftP
 
 nonisolated extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".VirtualMachineReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}delete\0\u{1}stop\0\u{1}suspend\0\u{1}status\0\u{1}launched\0\u{1}started\0\u{1}build\0\u{1}cloned\0\u{1}configured\0\u{1}duplicated\0\u{1}imported\0\u{1}waitip\0\u{1}purged\0\u{1}renamed\0\u{1}restarted\0\u{1}vncURL\0\u{1}installedAgent\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}delete\0\u{1}stop\0\u{1}suspend\0\u{1}status\0\u{1}launched\0\u{1}started\0\u{1}build\0\u{1}cloned\0\u{1}configured\0\u{1}duplicated\0\u{1}imported\0\u{1}waitip\0\u{1}purged\0\u{1}renamed\0\u{1}restarted\0\u{1}vncURL\0\u{1}installedAgent\0\u{1}provisioned\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -11098,6 +11449,19 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Messa
           self.response = .installedAgent(v)
         }
       }()
+      case 19: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .provisioned(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .provisioned(v)
+        }
+      }()
       default: break
       }
     }
@@ -11180,6 +11544,10 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Messa
     case .installedAgent?: try {
       guard case .installedAgent(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
+    }()
+    case .provisioned?: try {
+      guard case .provisioned(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 19)
     }()
     case nil: break
     }
@@ -12402,6 +12770,50 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.StartedReply: SwiftP
   }
 }
 
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.ProvisionedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".ProvisionedReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}provisioned\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.provisioned) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.provisioned != false {
+      try visitor.visitSingularBoolField(value: self.provisioned, fieldNumber: 2)
+    }
+    try { if let v = self._reason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.ProvisionedReply, rhs: Caked_Caked.Reply.VirtualMachineReply.ProvisionedReply) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.provisioned != rhs.provisioned {return false}
+    if lhs._reason != rhs._reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".BuildedReply"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}builded\0\u{1}reason\0")
@@ -12638,6 +13050,114 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: Sw
   }
 
   public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply, rhs: Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply) -> Bool {
+    if lhs.current != rhs.current {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".ProvisionStreamReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}progress\0\u{1}terminated\0\u{1}step\0\u{1}substep\0\u{1}provisioned\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue?
+        var hadOneofValue = false
+        if let current = self.current {
+          hadOneofValue = true
+          if case .progress(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.current = .progress(v)
+        }
+      }()
+      case 2: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply?
+        var hadOneofValue = false
+        if let current = self.current {
+          hadOneofValue = true
+          if case .terminated(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.current = .terminated(v)
+        }
+      }()
+      case 3: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.current != nil {try decoder.handleConflictingOneOf()}
+          self.current = .step(v)
+        }
+      }()
+      case 4: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.current != nil {try decoder.handleConflictingOneOf()}
+          self.current = .substep(v)
+        }
+      }()
+      case 5: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.ProvisionedReply?
+        var hadOneofValue = false
+        if let current = self.current {
+          hadOneofValue = true
+          if case .provisioned(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.current = .provisioned(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.current {
+    case .progress?: try {
+      guard case .progress(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .terminated?: try {
+      guard case .terminated(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .step?: try {
+      guard case .step(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    }()
+    case .substep?: try {
+      guard case .substep(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+    }()
+    case .provisioned?: try {
+      guard case .provisioned(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply, rhs: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply) -> Bool {
     if lhs.current != rhs.current {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

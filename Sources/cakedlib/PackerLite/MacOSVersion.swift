@@ -8,15 +8,9 @@
 //
 
 import Foundation
+import GRPCLib
 
-public enum MacOSVersion: String, CaseIterable, Sendable {
-	case monterey
-	case ventura
-	case sonoma
-	case sequoia
-	case tahoe
-	case goldengate
-
+extension MacOSVersion {
 	/// The bundled template resource name, e.g. "vanilla-sequoia.packerlite" (paired with a ".yaml" extension).
 	public var bundledTemplateResourceName: String { "vanilla-\(rawValue).packerlite" }
 
