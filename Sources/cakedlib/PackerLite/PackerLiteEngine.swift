@@ -110,15 +110,21 @@ public enum PackerLiteEngine {
 
 		#if DEBUG
 			let id = UUID()
-			Self.provisioned[id] = vm
 
-			defer {
-				Self.provisioned.removeValue(forKey: id)
-				NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm)
+			if Bundle.runInCaker {
+				Self.provisioned[id] = vm
+
+				await MainActor.run {
+					EnvironmentValues().openWindow(id: "Debug PackerLite", value: id)
+				}
 			}
 
-			await MainActor.run {
-				EnvironmentValues().openWindow(id: "Debug PackerLite", value: id)
+			defer {
+				if Bundle.runInCaker {
+					Self.provisioned.removeValue(forKey: id)
+
+					NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm)
+				}
 			}
 		#endif
 
