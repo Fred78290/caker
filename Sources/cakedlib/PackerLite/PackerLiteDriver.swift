@@ -122,9 +122,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .type(let text):
 			logger.debug("[\(title)]: type \(text) with modifier \(modifiers)")
 			try await type(text)
-		case .press(let key):
+		case .press(let key, let repeated):
 			logger.debug("[\(title)]: press \(key) with modifier \(modifiers)")
-			try await press(keysym(for: key))
+			try await press(keysym(for: key), repeated: repeated)
 		case .modifierOn(let modifier):
 			logger.debug("[\(title)]: modifierOn \(modifier) with modifier \(modifiers)")
 			await self.handleKeyModifierEvent(keysym(for: modifier), isDown: true)
@@ -159,11 +159,13 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 	}
 
-	@MainActor private func press(_ keyCode: CGKeyCode) async throws {
-		self.handleKeySpecialEvent(keyCode, isDown: true)
-		self.handleKeySpecialEvent(keyCode, isDown: false)
-
-		try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+	@MainActor private func press(_ keyCode: CGKeyCode, repeated: Int) async throws {
+		for _ in 0..<repeated {
+			self.handleKeySpecialEvent(keyCode, isDown: true)
+			self.handleKeySpecialEvent(keyCode, isDown: false)
+			
+			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+		}
 	}
 
 	private func keysym(for key: KeyToken) -> CGKeyCode {

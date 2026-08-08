@@ -53,7 +53,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			switch self {
 			case .wait(let seconds): return "wait \(seconds)s"
 			case .type(let text): return "type \(text)"
-			case .press(let key): return "press \(key)"
+			case .press(let key, let repeated): return "press \(key) x\(repeated)"
 			case .modifierOn(let modifier): return "modifier on \(modifier)"
 			case .modifierOff(let modifier): return "modifier off \(modifier)"
 			case .click(let x, let y): return "click \(x), \(y)"
@@ -64,7 +64,7 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		case wait(TimeInterval)
 		case type(String)
-		case press(KeyToken)
+		case press(KeyToken, repeated: Int = 1)
 		case modifierOn(ModifierToken)
 		case modifierOff(ModifierToken)
 		case click(x: Int, y: Int)
@@ -110,6 +110,50 @@ public struct BootCommandStep: Equatable, Sendable {
 		self.steps = steps
 	}
 
+	private static func parseKey(_ token: String) throws -> BootCommandStep.Step? {
+		// This function is a placeholder for potential future key parsing logic.
+		let tokens = token.split(separator: " ", maxSplits: 1)
+		var repeated = 1
+		
+		if tokens.count > 1 {
+			if tokens.count == 2, let repeatString = tokens.last {
+				let repeats = repeatString.split(separator: "=", maxSplits: 1)
+				
+				guard repeats.count == 2, repeats[0].lowercased() == "repeat", let repeatCount = Int(repeats[1]) else {
+					throw BootCommandParseError.unknownToken(token)
+				}
+				
+				repeated = repeatCount
+			} else {
+				throw BootCommandParseError.unknownToken(token)
+			}
+		}
+
+		let lower = tokens.first!.lowercased()
+
+		switch lower {
+		case "enter", "return": return .press(.enter, repeated: repeated)
+		case "esc", "escape": return .press(.esc, repeated: repeated)
+		case "tab": return .press(.tab, repeated: repeated)
+		case "spacebar", "space": return .press(.spacebar, repeated: repeated)
+		case "backspace": return .press(.backspace, repeated: repeated)
+		case "delete", "del": return .press(.delete, repeated: repeated)
+		case "insert": return .press(.insert, repeated: repeated)
+		case "home": return .press(.home, repeated: repeated)
+		case "end": return .press(.end, repeated: repeated)
+		case "pageup": return .press(.pageUp, repeated: repeated)
+		case "pagedown": return .press(.pageDown, repeated: repeated)
+		case "up": return .press(.up, repeated: repeated)
+		case "down": return .press(.down, repeated: repeated)
+		case "left": return .press(.left, repeated: repeated)
+		case "right": return .press(.right, repeated: repeated)
+		default:
+			break
+		}
+
+		return nil
+	}
+
 	private static func parseToken(_ rawBody: String) async throws -> BootCommandStep.Step {
 		let body = rawBody.trimmingCharacters(in: .whitespaces)
 		let lower = body.lowercased()
@@ -126,22 +170,11 @@ public struct BootCommandStep: Equatable, Sendable {
 			return try parseClick(body)
 		}
 
+		if let tokenStep = try parseKey(lower) {
+			return tokenStep
+		}
+
 		switch lower {
-		case "enter", "return": return .press(.enter)
-		case "esc", "escape": return .press(.esc)
-		case "tab": return .press(.tab)
-		case "spacebar", "space": return .press(.spacebar)
-		case "backspace": return .press(.backspace)
-		case "delete", "del": return .press(.delete)
-		case "insert": return .press(.insert)
-		case "home": return .press(.home)
-		case "end": return .press(.end)
-		case "pageup": return .press(.pageUp)
-		case "pagedown": return .press(.pageDown)
-		case "up": return .press(.up)
-		case "down": return .press(.down)
-		case "left": return .press(.left)
-		case "right": return .press(.right)
 		case "leftshifton": return .modifierOn(.leftShift)
 		case "leftshiftoff": return .modifierOff(.leftShift)
 		case "rightshifton": return .modifierOn(.rightShift)
