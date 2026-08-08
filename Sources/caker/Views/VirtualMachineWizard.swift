@@ -15,280 +15,6 @@ import UniformTypeIdentifiers
 
 typealias OptionalVMLocation = VMLocation?
 
-struct ISOLocation {
-	let label: String
-	let url: String
-}
-
-enum ISOImage: Int, CaseIterable {
-	// Ubuntu ISOs
-	case ubuntu2604Desktop
-	case ubuntu2604Server
-
-	case ubuntu2404Desktop
-	case ubuntu2404Server
-
-	case ubuntu2204Desktop
-	case ubuntu2204Server
-
-	case ubuntu2004Desktop
-	case ubuntu2004Server
-
-	case ubuntu1804Desktop
-	case ubuntu1804Server
-
-	case fedora44Desktop
-	case fedora44Server
-
-	case fedora43Desktop
-	case fedora43Server
-
-	case fedora42Desktop
-	case fedora42Server
-
-#if arch(x86_64)
-	case fedora41Desktop
-#endif
-	case fedora41Server
-
-	case fedora40Desktop
-	case fedora40Server
-
-
-	case centos10
-	case centos9
-
-	//case debian13
-	//case debian12
-	//case debian11
-
-	case openSUSELeap156
-	case openSUSELeap155
-	case openSUSETumbleweed
-
-	var ubuntuArch: String {
-		#if arch(x86_64)
-			return "amd64"
-		#else
-			return "arm64"
-		#endif
-	}
-
-	var genericArch: String {
-		#if arch(x86_64)
-			return "x86_64"
-		#else
-			return "aarch64"
-		#endif
-	}
-
-	var location: ISOLocation {
-		switch self {
-		case .ubuntu2604Desktop:
-			ISOLocation(label: "Ubuntu 26.04 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-desktop-\(ubuntuArch).iso")
-		case .ubuntu2604Server:
-			ISOLocation(label: "Ubuntu 26.04 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-live-server-\(ubuntuArch).iso")
-		case .ubuntu2404Desktop:
-			ISOLocation(label: "Ubuntu 24.04.4 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/noble/release/ubuntu-24.04.4-desktop-\(ubuntuArch).iso")
-		case .ubuntu2404Server:
-			ISOLocation(label: "Ubuntu 24.04.4 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/noble/release/ubuntu-24.04.4-live-server-\(ubuntuArch).iso")
-		case .ubuntu2204Desktop:
-			ISOLocation(label: "Ubuntu 22.04.5 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/jammy/release/ubuntu-22.04.5-desktop-\(ubuntuArch).iso")
-		case .ubuntu2204Server:
-			ISOLocation(label: "Ubuntu 22.04.5 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/jammy/release/ubuntu-22.04.5-live-server-\(ubuntuArch).iso")
-		case .ubuntu2004Desktop:
-			ISOLocation(label: "Ubuntu 20.04.5 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/focal/release/ubuntu-20.04.5-desktop-\(ubuntuArch).iso")
-		case .ubuntu2004Server:
-			ISOLocation(label: "Ubuntu 20.04.5 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/focal/release/ubuntu-20.04.5-live-server-\(ubuntuArch).iso")
-		case .ubuntu1804Desktop:
-			ISOLocation(label: "Ubuntu 18.04.6 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-desktop-\(ubuntuArch).iso")
-		case .ubuntu1804Server:
-			ISOLocation(label: "Ubuntu 18.04.6 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-live-server-\(ubuntuArch).iso")
-
-		case .fedora44Server:
-			ISOLocation(label: "Fedora 44 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-44-1.7.iso")
-		case .fedora44Desktop:
-			ISOLocation(label: "Fedora 44 – Workstation ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Workstation/\(genericArch)/iso/Fedora-Workstation-Live-44-1.7.\(genericArch).iso")
-
-		case .fedora43Server:
-			ISOLocation(label: "Fedora 43 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-43-1.6.iso")
-		case .fedora43Desktop:
-			ISOLocation(label: "Fedora 43 – Workstation ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Workstation/\(genericArch)/iso/Fedora-Workstation-Live-43-1.6.\(genericArch).iso")
-
-		case .fedora42Server:
-			ISOLocation(label: "Fedora 42 – Server ISO (\(genericArch))", url: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/42/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-42-1.1.iso")
-		case .fedora42Desktop:
-			ISOLocation(label: "Fedora 42 – Workstation ISO (\(genericArch))", url: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/42/Workstation/\(genericArch)/iso/Fedora-Workstation-Live-42-1.1.\(genericArch).iso")
-
-		case .fedora41Server:
-			ISOLocation(label: "Fedora 41 – Server ISO (\(genericArch))", url: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/41/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-41-1.4.iso")
-		#if arch(x86_64)
-			case .fedora41Desktop:
-				ISOLocation(label: "Fedora 41 – Workstation ISO (\(genericArch))", url: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/41/Workstation/\(genericArch)/iso/Fedora-Workstation-Live-\(genericArch)-41-1.4.iso")
-		#endif
-
-		case .fedora40Server:
-			ISOLocation(label: "Fedora 40 – Server ISO (\(genericArch))", url: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-40-1.14.iso")
-		case .fedora40Desktop:
-			ISOLocation(label: "Fedora 40 – Workstation ISO (\(genericArch))", url: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Workstation/\(genericArch)/iso/Fedora-Workstation-Live-osb-40-1.14.\(genericArch).iso")
-
-		case .centos10:
-			ISOLocation(label: "CentOS Stream 10 – DVD ISO (\(genericArch))", url: "https://mirror.stream.centos.org/10-stream/BaseOS/\(genericArch)/iso/CentOS-Stream-10-latest-\(genericArch)-dvd1.iso")
-		case .centos9:
-			ISOLocation(label: "CentOS Stream 9 – DVD ISO (\(genericArch))", url: "https://mirror.centos.org/centos/9-stream/BaseOS/\(genericArch)/iso/CentOS-Stream-9-latest-\(genericArch)-dvd.iso")
-
-		//case .debian13:
-		//	ISOLocation(label: "Debian 13.1 – netinst ISO (\(ubuntuArch))", url: "https://cdimage.debian.org/debian-cd/13.1.0/\(ubuntuArch)/iso-cd/debian-13.1.0-\(ubuntuArch)-netinst.iso")
-		//case .debian12:
-		//	ISOLocation(label: "Debian 12.11 – netinst ISO (\(ubuntuArch))", url: "https://cdimage.debian.org/debian-cd/12.11.0/\(ubuntuArch)/iso-cd/debian-12.11.0-\(ubuntuArch)-netinst.iso")
-		//case .debian11:
-		//	ISOLocation(label: "Debian 11.11 – netinst ISO (\(ubuntuArch))", url: "https://cdimage.debian.org/debian-cd/11.11.0/\(ubuntuArch)/iso-cd/debian-11.11.0-\(ubuntuArch)-netinst.iso")
-
-		case .openSUSELeap156:
-			ISOLocation(label: "openSUSE Leap 15.6 – DVD ISO (\(genericArch))", url: "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-\(genericArch)-Media.iso")
-		case .openSUSELeap155:
-			ISOLocation(label: "openSUSE Leap 15.5 – DVD ISO (\(genericArch))", url: "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-\(genericArch)-Media.iso")
-		case .openSUSETumbleweed:
-			ISOLocation(label: "openSUSE Tumbleweed – DVD ISO (\(genericArch))", url: "https://download.opensuse.org/tumbleweed/iso/openSUSE-Tumbleweed-DVD-\(genericArch)-Current.iso")
-		}
-	}
-}
-
-enum IPSWImage: Int, CaseIterable {
-	case macos26_6
-	case macos15_6_1
-	case macos14_6_1
-	case macos13_6
-	case macos12_6_1
-
-	var location: ISOLocation {
-		switch self {
-		case .macos26_6:
-			ISOLocation(label: "macOS 26.6", url: "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-65618/10445B26-DE2C-43EC-9149-0A831602E74B/UniversalMac_26.6_25G72_Restore.ipsw")
-		case .macos15_6_1:
-			ISOLocation(label: "macOS 15.6.1", url: "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw")
-		case .macos14_6_1:
-			ISOLocation(label: "macOS 14.6.1", url: "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw")
-		case .macos13_6:
-			ISOLocation(label: "macOS 13.6", url: "https://updates.cdn-apple.com/2023FallFCS/fullrestores/042-55833/C0830847-A2F8-458F-B680-967991820931/UniversalMac_13.6_22G120_Restore.ipsw")
-		case .macos12_6_1:
-			ISOLocation(label: "macOS 12.6.1", url: "https://updates.cdn-apple.com/2022FallFCS/fullrestores/012-66032/8D8D90C6-A876-4FFF-BBF4-D158939B3841/UniversalMac_12.6.1_21G217_Restore.ipsw")
-		}
-	}
-}
-
-enum OSCloudImage: Int, CaseIterable {
-	case ubuntu2604LTS
-	case ubuntu2504LTS
-	case ubuntu2404LTS
-	case ubuntu2204LTS
-	case ubuntu2004LTS
-
-	case centos10
-	case centos9
-
-	case fedora44
-	case fedora43
-	case fedora42
-	case fedora41
-	case fedora40
-
-	//case debian12
-	//case debian11
-	//case debian10
-
-	case openSUSE156
-	case openSUSE155
-	case openSUSE154
-
-	case alpine322
-	case alpine321
-	case alpine320
-
-	var stringValue: String {
-		switch self {
-		case .ubuntu2604LTS: return "Ubuntu 26.04 LTS"
-		case .ubuntu2504LTS: return "Ubuntu 25.04 LTS"
-		case .ubuntu2404LTS: return "Ubuntu 24.04 LTS"
-		case .ubuntu2204LTS: return "Ubuntu 22.04 LTS"
-		case .ubuntu2004LTS: return "Ubuntu 20.04 LTS"
-
-		case .centos10: return "CentOS 10"
-		case .centos9: return "CentOS 9"
-
-		case .fedora44: return "Fedora 44"
-		case .fedora43: return "Fedora 43"
-		case .fedora42: return "Fedora 42"
-		case .fedora41: return "Fedora 41"
-		case .fedora40: return "Fedora 40"
-
-		//case .debian12: return "Debian 12"
-		//case .debian11: return "Debian 11"
-		//case .debian10: return "Debian 10"
-
-		case .openSUSE156: return "OpenSUSE Leap 15.6"
-		case .openSUSE155: return "OpenSUSE Leap 15.6"
-		case .openSUSE154: return "OpenSUSE Leap 15.4"
-
-		case .alpine322: return "Alpine 3.22"
-		case .alpine321: return "Alpine 3.21"
-		case .alpine320: return "Alpine 3.20"
-		}
-	}
-
-	var arch: String {
-		#if arch(arm64)
-			switch self {
-			case .ubuntu2604LTS, .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS:
-				return "arm64"
-
-			default:
-				return "aarch64"
-			}
-		#elseif arch(x86_64)
-			switch self {
-			case .ubuntu2604LTS, .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS:
-				return "amd64"
-
-			default:
-				return "x86_64"
-			}
-		#endif
-	}
-
-	var url: URL {
-		switch self {
-		case .ubuntu2604LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-\(self.arch).img")!  // amd64|arm64
-		case .ubuntu2504LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-\(self.arch).img")!  // amd64|arm64
-		case .ubuntu2404LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-\(self.arch).img")!
-		case .ubuntu2204LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-cloudimg-\(self.arch).img")!
-		case .ubuntu2004LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-\(self.arch).img")!
-
-		case .centos10: return URL(string: "https://cloud.centos.org/centos/10-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-10-20250506.2.\(self.arch).qcow2")!
-		case .centos9: return URL(string: "https://cloud.centos.org/centos/9-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-9-20250526.1.\(self.arch).qcow2")!
-
-		case .fedora44: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/\(self.arch)/images/Fedora-Server-Guest-Generic-44-1.7.\(self.arch).qcow2")!
-		case .fedora43: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Server/\(self.arch)/images/Fedora-Server-Guest-Generic-43-1.6.\(self.arch).qcow2")!
-
-		case .fedora42: return URL(string: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/42/Server/\(self.arch)/images/Fedora-Server-Guest-Generic-42-1.1.\(self.arch).qcow2")!
-		case .fedora41: return URL(string: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/41/Server/\(self.arch)/images/Fedora-Server-KVM-41-1.4.\(self.arch).qcow2")!
-		case .fedora40: return URL(string: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/\(self.arch)/images/Fedora-Server-KVM-40-1.14.\(self.arch).qcow2")!
-
-		//case .debian12: return URL(string: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-\(self.arch).qcow2")!
-		//case .debian11: return URL(string: "https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-\(self.arch).qcow2")!
-		//case .debian10: return URL(string: "https://cloud.debian.org/images/cloud/buster/latest/debian-10-generic-\(self.arch).qcow2")!
-
-		case .openSUSE156: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.\(self.arch)-NoCloud.qcow2")!
-		case .openSUSE155: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.5/images/openSUSE-Leap-15.5.\(self.arch)-NoCloud.qcow2")!
-		case .openSUSE154: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.4/images/openSUSE-Leap-15.4.\(self.arch)-NoCloud.qcow2")!
-
-		case .alpine322: return URL(string: "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/cloud/generic_alpine-3.22.1-\(self.arch)-uefi-cloudinit-r0.qcow2")!
-		case .alpine321: return URL(string: "https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/generic_alpine-3.21.2-\(self.arch)-uefi-cloudinit-r0.qcow2")!
-		case .alpine320: return URL(string: "https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/generic_alpine-3.20.7-\(self.arch)-uefi-cloudinit-r0.qcow2")!
-		}
-	}
-}
-
 let groups: [String] = [
 	"root",
 	"daemon",
@@ -375,9 +101,9 @@ struct ShortImageInfoComparator: SortComparator {
 	var remoteImage: String
 	var remoteImages: [ShortImageInfo]
 	var selectedRemoteImage: ShortImageInfo.ID
-	var cloudImageRelease: OSCloudImage
-	var isoImageRelease: ISOImage
-	var ipswRelease: IPSWImage
+	var cloudImageRelease: VMImageEntry
+	var isoImageRelease: VMImageEntry
+	var ipswRelease: VMImageEntry
 	var createVM: Bool
 	var fractionCompleted: Double
 	var createVMMessage: String
@@ -397,9 +123,9 @@ struct ShortImageInfoComparator: SortComparator {
 		self.remoteImage = "ubuntu"
 		self.remoteImages = []
 		self.selectedRemoteImage = String.empty
-		self.cloudImageRelease = .ubuntu2604LTS
-		self.isoImageRelease = .ubuntu2604Server
-		self.ipswRelease = .macos26_6
+		self.cloudImageRelease = VMImageCatalog.shared.cloudImage("ubuntu2604LTS")
+		self.isoImageRelease = VMImageCatalog.shared.isoImage("ubuntu2604Server")
+		self.ipswRelease = VMImageCatalog.shared.ipswImage("macos26_6")
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
@@ -419,9 +145,9 @@ struct ShortImageInfoComparator: SortComparator {
 		self.remoteImage = "ubuntu"
 		self.remoteImages = []
 		self.selectedRemoteImage = String.empty
-		self.cloudImageRelease = .ubuntu2404LTS
-		self.isoImageRelease = .ubuntu2604Server
-		self.ipswRelease = .macos26_6
+		self.cloudImageRelease = VMImageCatalog.shared.cloudImage("ubuntu2404LTS")
+		self.isoImageRelease = VMImageCatalog.shared.isoImage("ubuntu2604Server")
+		self.ipswRelease = VMImageCatalog.shared.ipswImage("macos26_6")
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
@@ -519,13 +245,16 @@ struct VirtualMachineWizard: View {
 
 			config.vmname = Self.generateRandomVMName()
 			config.source = .qcow2
-			config.imageName = OSCloudImage.ubuntu2604LTS.url.absoluteString
+
+			let defaultCloudImage = VMImageCatalog.shared.cloudImage("ubuntu2604LTS")
+
+			config.imageName = defaultCloudImage.resolvedURL
 			config.os = .linux
 
 			let model = VirtualMachineWizardStateObject()
 
 			model.imageSource = .qcow2
-			model.cloudImageRelease = .ubuntu2604LTS
+			model.cloudImageRelease = defaultCloudImage
 
 			self._config = State(initialValue: config)
 			self._model = State(initialValue: model)
@@ -1036,15 +765,15 @@ struct VirtualMachineWizard: View {
 								}
 							} label: {
 								Picker("Preconfigured ISO", selection: $model.isoImageRelease) {
-									ForEach(ISOImage.allCases, id: \.self) { os in
-										Text(os.location.label).tag(os)
+									ForEach(VMImageCatalog.shared.availableISOImages) { os in
+										Text(os.resolvedLabel).tag(os)
 									}
 								}
 								.pickerStyle(.menu)
 								.disabled(self.model.createVM)
 								.labelsHidden()
 								.onChange(of: model.isoImageRelease) { _, newValue in
-									self.config.imageName = newValue.location.url
+									self.config.imageName = newValue.resolvedURL
 								}
 							}
 
@@ -1111,15 +840,15 @@ struct VirtualMachineWizard: View {
 								}
 							} label: {
 								Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
-									ForEach(IPSWImage.allCases, id: \.self) { os in
-										Text(os.location.label).tag(os)
+									ForEach(VMImageCatalog.shared.availableIPSWImages) { os in
+										Text(os.resolvedLabel).tag(os)
 									}
 								}
 								.pickerStyle(.menu)
 								.disabled(self.model.createVM)
 								.labelsHidden()
 								.onChange(of: model.ipswRelease) { _, newValue in
-									self.config.imageName = newValue.location.url
+									self.config.imageName = newValue.resolvedURL
 								}
 							}
 							Toggle("Configure automaticly the system", isOn: $config.autoinstall).disabled(self.model.createVM)
@@ -1132,15 +861,15 @@ struct VirtualMachineWizard: View {
 								.disabled(self.model.createVM)
 						} label: {
 							Picker("Preconfigured image", selection: $model.cloudImageRelease) {
-								ForEach(OSCloudImage.allCases, id: \.self) { os in
-									Text(os.stringValue).tag(os)
+								ForEach(VMImageCatalog.shared.availableCloudImages) { os in
+									Text(os.resolvedLabel).tag(os)
 								}
 							}
 							.pickerStyle(.menu)
 							.disabled(self.model.createVM)
 							.labelsHidden()
 							.onChange(of: model.cloudImageRelease) { _, newValue in
-								self.config.imageName = newValue.url.absoluteString
+								self.config.imageName = newValue.resolvedURL
 							}
 						}
 
@@ -1213,7 +942,7 @@ struct VirtualMachineWizard: View {
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
 								case .qcow2:
-									self.config.imageName = model.cloudImageRelease.url.absoluteString
+									self.config.imageName = model.cloudImageRelease.resolvedURL
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
@@ -1242,13 +971,13 @@ struct VirtualMachineWizard: View {
 									self.model.provisioningTemplate = String.empty
 								case .iso:
 									self.config.autoinstall = false
-									self.config.imageName = self.model.isoImageRelease.location.url
+									self.config.imageName = self.model.isoImageRelease.resolvedURL
 									self.model.showDiskFormat = true
 									self.config.diskFormat = .defaultSupportedFormat
 									self.config.os = .linux
 								case .ipsw:
 									self.config.autoinstall = true
-									self.config.imageName = self.model.ipswRelease.location.url
+									self.config.imageName = self.model.ipswRelease.resolvedURL
 									self.config.cpuCount = max(self.config.cpuCount, 4)
 									self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4096)
 									self.config.diskSizeInGiB = max(self.config.diskSizeInGiB, 40)
