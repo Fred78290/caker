@@ -79,8 +79,8 @@ struct VMImageCatalog: Codable {
 	let cloud: [VMImageEntry]
 
 	static let shared: VMImageCatalog = {
-		guard let url = vmImageCatalogResourceBundle.url(forResource: "VMImages", withExtension: "json") else {
-			fatalError("VMImages.json resource not found in bundle")
+		guard let url = vmImageCatalogResourceBundle.url(forResource: "VMImages", withExtension: "json") ?? Bundle.main.url(forResource: "VMImages", withExtension: "json") else {
+			fatalError("VMImages.json resource not found in the app bundle — add it to the target's \"Copy Bundle Resources\" build phase in Xcode")
 		}
 
 		do {

@@ -35,7 +35,7 @@
 	],
 	"cloud": [
 		{ "id": "ubuntu2604LTS", "label": "Ubuntu 26.04 LTS", "url": "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-{arch}.img", "archKind": "ubuntu" },
-		{ "id": "ubuntu2504LTS", "label": "Ubuntu 25.04 LTS", "url": "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-{arch}.img", "archKind": "ubuntu" },
+		{ "id": "ubuntu2504LTS", "label": "Ubuntu 25.04", "url": "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-{arch}.img", "archKind": "ubuntu" },
 		{ "id": "ubuntu2404LTS", "label": "Ubuntu 24.04 LTS", "url": "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-{arch}.img", "archKind": "ubuntu" },
 		{ "id": "ubuntu2204LTS", "label": "Ubuntu 22.04 LTS", "url": "https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-cloudimg-{arch}.img", "archKind": "ubuntu" },
 		{ "id": "ubuntu2004LTS", "label": "Ubuntu 20.04 LTS", "url": "https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-{arch}.img", "archKind": "ubuntu" },

@@ -10,18 +10,31 @@ final class VMImageCatalogURLTests: XCTestCase {
 		XCTAssertFalse(entries.isEmpty)
 
 		var failures: [String] = []
+		let maxConcurrentRequests = 8
 
 		await withTaskGroup(of: (String, String?).self) { group in
-			for entry in entries {
+			var pendingEntries = entries.makeIterator()
+
+			func addNextTask() {
+				guard let entry = pendingEntries.next() else {
+					return
+				}
+
 				group.addTask {
 					(entry.resolvedURL, await Self.reachabilityFailureReason(entry.resolvedURL))
 				}
 			}
 
-			for await (url, failureReason) in group {
+			for _ in 0..<maxConcurrentRequests {
+				addNextTask()
+			}
+
+			while let (url, failureReason) = await group.next() {
 				if let failureReason {
 					failures.append("\(url): \(failureReason)")
 				}
+
+				addNextTask()
 			}
 		}
 
