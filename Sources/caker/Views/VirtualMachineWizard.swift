@@ -1,14 +1,15 @@
-import CakedLib
-import GRPCLib
-//import MultiplatformTabBar
-import NIO
-import Steps
 //
 //  VirtualMachineWizard.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 26/06/2025.
 //
+
+import CakedLib
+import GRPCLib
+//import MultiplatformTabBar
+import NIO
+import Steps
 import SwiftUI
 import Synchronization
 import UniformTypeIdentifiers
