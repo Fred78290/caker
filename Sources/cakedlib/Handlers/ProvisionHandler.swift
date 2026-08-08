@@ -76,7 +76,7 @@ public struct ProvisionHandler {
 				var catchableError: Error? = nil
 
 				defer {
-					vm.stopVM { _ in
+					vm.stopFromUI { _ in
 						if let catchableError {
 							progressHandler(.terminated(.failure(catchableError), String(localized: "Provisioning failed for VM \(location.name)")))
 						} else {
