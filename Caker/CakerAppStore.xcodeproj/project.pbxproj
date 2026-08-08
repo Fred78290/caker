@@ -376,7 +376,6 @@
 		9B96B0192F4B68540069C970 /* ProcessWithSharedFileHandleTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */; };
 		9B96B01A2F4B68540069C970 /* RemoteTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C132DB4EB700047D00B /* RemoteTest.swift */; };
 		9B96B01B2F4B68540069C970 /* GrpcTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0F2DB4EB700047D00B /* GrpcTestCase.swift */; };
-		62C94F0AE8B04F108C4AC06D /* VMImageCatalogURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB1C9CEC8FF141AA9DD49FC8 /* VMImageCatalogURLTests.swift */; };
 		9B96B01C2F4B68540069C970 /* GrpcUnixSocketTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C102DB4EB700047D00B /* GrpcUnixSocketTest.swift */; };
 		9B96B01D2F4B68540069C970 /* GrpcTcpSocketTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0E2DB4EB700047D00B /* GrpcTcpSocketTest.swift */; };
 		9B96B01E2F4B68540069C970 /* NetworkTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C112DB4EB700047D00B /* NetworkTest.swift */; };
@@ -1014,7 +1013,6 @@
 		9B345C0D2DB4EB700047D00B /* echo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = echo.py; sourceTree = "<group>"; };
 		9B345C0E2DB4EB700047D00B /* GrpcTcpSocketTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrpcTcpSocketTest.swift; sourceTree = "<group>"; };
 		9B345C0F2DB4EB700047D00B /* GrpcTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrpcTestCase.swift; sourceTree = "<group>"; };
-		EB1C9CEC8FF141AA9DD49FC8 /* VMImageCatalogURLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalogURLTests.swift; sourceTree = "<group>"; };
 		9B345C102DB4EB700047D00B /* GrpcUnixSocketTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrpcUnixSocketTest.swift; sourceTree = "<group>"; };
 		9B345C112DB4EB700047D00B /* NetworkTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTest.swift; sourceTree = "<group>"; };
 		9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessWithSharedFileHandleTest.swift; sourceTree = "<group>"; };
@@ -1959,7 +1957,6 @@
 				9B345C112DB4EB700047D00B /* NetworkTest.swift */,
 				9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */,
 				9B345C132DB4EB700047D00B /* RemoteTest.swift */,
-				EB1C9CEC8FF141AA9DD49FC8 /* VMImageCatalogURLTests.swift */,
 			);
 			path = CakerTests;
 			sourceTree = "<group>";
@@ -3919,7 +3916,6 @@
 		9B96B00B2F4B68380069C970 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
-				62C94F0AE8B04F108C4AC06D /* VMImageCatalogURLTests.swift in Sources */,
 				9B96B0192F4B68540069C970 /* ProcessWithSharedFileHandleTest.swift in Sources */,
 				9B96B01F2F4B685D0069C970 /* CloudInitTest.swift in Sources */,
 				9B96B01A2F4B68540069C970 /* RemoteTest.swift in Sources */,
