@@ -10,6 +10,24 @@
 - `Sources/caked/Commands/` et `Sources/caked/Handlers/` – gestionnaires de commandes et d'exécution du démon
 - `Sources/cakedlib/` – utilitaires partagés, configuration et abstractions principales
 
+## Catalogue d'images de VM (assistant Caker.app)
+
+L'assistant de création de VM de Caker.app (`Sources/caker/Views/VirtualMachineWizard.swift`) propose des images ISO, IPSW et cloud (qcow2) préconfigurées. Cette liste n'est plus codée en dur dans des enums Swift : elle provient d'une ressource JSON embarquée, chargée au runtime.
+
+- `Sources/caker/Resources/VMImages.json` – le catalogue : trois tableaux `iso`, `ipsw` et `cloud`, chacun contenant des entrées `{id, label, url, archKind, archOnly?}`.
+- `Sources/caker/VMImageCatalog.swift` – `VMImageCatalog`/`VMImageEntry`, le modèle `Codable` qui décode ce JSON au premier accès (`VMImageCatalog.shared`) et résout chaque entrée pour l'architecture en cours d'exécution.
+
+`label` et `url` peuvent contenir un espace réservé `{arch}`, remplacé pour chaque entrée selon son `archKind` :
+
+- `"ubuntu"` → `amd64`/`arm64` (convention de nommage propre à Ubuntu)
+- `"generic"` → `x86_64`/`aarch64` (tout le reste)
+
+Un champ optionnel `archOnly` (`"x86_64"` ou `"arm64"`/`"aarch64"`) masque entièrement une entrée sur l'autre architecture — utilisé pour l'unique ISO Fedora 41 Workstation, publiée uniquement en x86_64.
+
+Pour ajouter ou modifier une entrée, il suffit d'éditer `VMImages.json` — aucune modification Swift n'est nécessaire. `Tests/CakerTests/VMImageCatalogURLTests.swift` envoie une requête HEAD à chaque URL ISO/cloud embarquée (limitée à 8 requêtes concurrentes) afin que les liens obsolètes soient détectés par `swift test` plutôt que de casser silencieusement l'assistant.
+
+Le chargement de la ressource suit le même schéma que celui déjà utilisé par `PackerLiteTemplateResolver` pour les ressources embarquées de `CakedLib` : `Bundle.module` pour les builds `swift build`/`swift test`, avec repli sur `Bundle.main` pour `Caker.xcodeproj`/`CakerAppStore.xcodeproj`, qui hébergent `caker` comme cible native sans accesseur `Bundle.module` généré. Tout nouveau fichier ajouté sous `Sources/caker/Resources/` doit donc aussi être ajouté manuellement aux deux fichiers `.xcodeproj` (référence de fichier + phase de build Resources de la cible `Caker`) pour rester disponible dans les builds construits via Xcode.
+
 ## Tests
 
 Emplacements principaux des tests :
@@ -143,6 +161,24 @@ webui/
 - `Sources/cakectl/Commands/` – CLI command handlers
 - `Sources/caked/Commands/` and `Sources/caked/Handlers/` – daemon command and runtime handlers
 - `Sources/cakedlib/` – shared utilities, config, and core abstractions
+
+## VM image catalog (Caker.app wizard)
+
+Caker.app's VM creation wizard (`Sources/caker/Views/VirtualMachineWizard.swift`) offers preconfigured ISO, IPSW, and cloud (qcow2) image choices. That list is no longer hardcoded in Swift enums — it's driven by a bundled JSON resource, decoded at runtime.
+
+- `Sources/caker/Resources/VMImages.json` – the catalog: three arrays, `iso`, `ipsw`, and `cloud`, each holding `{id, label, url, archKind, archOnly?}` entries.
+- `Sources/caker/VMImageCatalog.swift` – `VMImageCatalog`/`VMImageEntry`, the `Codable` model that decodes this JSON on first access (`VMImageCatalog.shared`) and resolves each entry for the running architecture.
+
+`label` and `url` may contain a `{arch}` placeholder, substituted per entry based on its `archKind`:
+
+- `"ubuntu"` → `amd64`/`arm64` (Ubuntu's own architecture naming)
+- `"generic"` → `x86_64`/`aarch64` (everyone else's)
+
+An optional `archOnly` field (`"x86_64"` or `"arm64"`/`"aarch64"`) hides an entry entirely on the other architecture — used for the one Fedora 41 Workstation ISO that's only published for x86_64.
+
+To add or update an entry, edit `VMImages.json` — no Swift changes needed. `Tests/CakerTests/VMImageCatalogURLTests.swift` HEAD-requests every bundled ISO/cloud URL (bounded to 8 concurrent requests) so stale links get caught by `swift test` instead of silently breaking the wizard.
+
+Resource loading follows the same pattern already used by `PackerLiteTemplateResolver` for `CakedLib`'s bundled resources: `Bundle.module` for `swift build`/`swift test` builds, falling back to `Bundle.main` for `Caker.xcodeproj`/`CakerAppStore.xcodeproj`, which mirror `caker` as a native Xcode target with no generated `Bundle.module` accessor. Any new file added under `Sources/caker/Resources/` therefore also needs to be added by hand to both `.xcodeproj` files (file reference + the `Caker` target's Resources build phase) to stay available in Xcode-built binaries.
 
 ## Tests
 
