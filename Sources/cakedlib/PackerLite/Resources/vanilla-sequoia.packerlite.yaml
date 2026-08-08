@@ -47,12 +47,9 @@ boot_command:
   - title: Transfer Your Data to This Mac
     commands: 
       - <wait10s>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <tab repeat=3>
       - <spacebar>
-      - <tab>
-      - <tab>
+      - <tab repeat=2>
       - <spacebar>
 
   - title: Written and Spoken Languages
@@ -249,45 +246,38 @@ boot_command:
   - title: Navigate to Sharing
     commands: 
       - <wait10s>
-      - <leftCtrlOn>
-      - <fnOn>
-      - <f2>
-      - <fnOff>
-      - <leftCtrlOff>
-      - <right>
-      - <right>
-      - <right>
-      - <down>
-      - Sharing
+      - <tab>
+      - remote login
       - <enter>
+      - <down>
 
-  - title: Enable Screen Sharing
+  - title: Enable Voice Over
     commands: 
-      - <wait10s>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <wait2s>
+      - <leftAltOn>
+      - <fnOn>
+      - <f5>
+      - <fnOff>
+      - <leftAltOff>
+
+  - title: Enable Remote login
+    commands: 
+      - <wait2s>
+      - <tab repeat=5>
       - <spacebar>
 
-  - title: Enable Remote Login
+  - title: Close Remote Login
     commands: 
-      - <wait10s>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <tab repeat=7>
       - <spacebar>
+
+  - title: Disable Voice Over
+    commands: 
+      - <leftAltOn>
+      - <fnOn>
+      - <f5>
+      - <fnOff>
+      - <leftAltOff>
 
   - title: Quit System Settings
     commands: 
@@ -327,75 +317,45 @@ boot_command:
   - title: Disable Gatekeeper (2/2)
     commands: 
       - <wait10s>
-      - <leftAltOn>
-      - <spacebar>
-      - <leftAltOff>
-      - System Settings
-      - <enter>
-
-  - title: Disable Gatekeeper (2/2)
-    commands: 
-      - <wait10s>
-      - <leftCtrlOn>
-      - <fnOn>
-      - <f2>
-      - <fnOff>
-      - <leftCtrlOff>
-      - <right>
-      - <right>
-      - <right>
-      - <down>
+      - <tab>
       - Privacy & Security
       - <enter>
 
-  - title: Disable Gatekeeper (2/2)
+  - title: Enable Voice Over
     commands: 
-      - <wait10s>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
+      - <wait2s>
+      - <leftAltOn>
+      - <fnOn>
+      - <f5>
+      - <fnOff>
+      - <leftAltOff>
 
   - title: Disable Gatekeeper (2/2)
     commands: 
-      - <wait10s>
-      - <down>
-      - <wait1s>
-      - <down>
-      - <wait1s>
+      - <wait5s>
+      - <tab repeat=28>
+      - <down repeat=2>
       - <enter>
 
   - title: Disable Gatekeeper (2/2)
     commands: 
-      - <wait10s>
+      - <wait1s>
       - ${var.password}
       - <enter>
 
   - title: Disable Gatekeeper (2/2)
     commands: 
-      - <wait10s>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
       - <wait1s>
+      - <tab>
       - <spacebar>
+
+  - title: Disable Voice Over
+    commands: 
+      - <leftAltOn>
+      - <fnOn>
+      - <f5>
+      - <fnOff>
+      - <leftAltOff>
 
   - title: Quit System Settings
     commands: 
