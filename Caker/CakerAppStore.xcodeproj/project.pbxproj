@@ -136,6 +136,8 @@
 		9B29F7D72FCAE4B700AEBCB8 /* DiskAttachementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2BFAA92DFED25E000045C3 /* DiskAttachementView.swift */; };
 		9B29F7D82FCAE4B700AEBCB8 /* InternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */; };
 		9B29F7D92FCAE4B700AEBCB8 /* VirtualMachineConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */; };
+		FE0534D58DB0463388B4720F /* VMImageCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */; };
+		FB20C8CCEAD84F2CA91EE0BC /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 		9B29F7DA2FCAE4B700AEBCB8 /* ApplicationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */; };
 		9B29F7DB2FCAE4B700AEBCB8 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601A02E21169200889BFD /* Settings.swift */; };
 		9B29F7DC2FCAE4B700AEBCB8 /* StopHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7A382F3DE0A900F37D2C /* StopHandler.swift */; };
@@ -1207,6 +1209,8 @@
 		9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableListNewItem.swift; sourceTree = "<group>"; };
 		9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineWizard.swift; sourceTree = "<group>"; };
 		9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfig.swift; sourceTree = "<group>"; };
+		DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalog.swift; sourceTree = "<group>"; };
+		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractiveShell.swift; sourceTree = "<group>"; };
 		9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHelper.swift; sourceTree = "<group>"; };
 		9B7D69242F1B92E800FE1B0B /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
@@ -1776,6 +1780,7 @@
 			isa = PBXGroup;
 			children = (
 				9B11AA472FCEB9E400C3C9F1 /* PrivilegedBootstrap.applescript */,
+				B424710990B7411A855EC5AD /* VMImages.json */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -1900,6 +1905,7 @@
 				9B2BFAB82DFED25E000045C3 /* MainApp.swift */,
 				9B196FFF2F59866E00B424DB /* Root.swift */,
 				9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */,
+				DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */,
 				9BB213CE2F37548300B45692 /* Handlers */,
 				9B30BA492E0BDB5600256A9D /* Helpers */,
 				9B9C4E612E23BD8900C13D23 /* Model */,
@@ -3455,6 +3461,7 @@
 		9B29F8252FCAE4B700AEBCB8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				FB20C8CCEAD84F2CA91EE0BC /* VMImages.json in Resources */,
 				9BC697702FDC048E00A60AF7 /* InfoPlist.xcstrings in Resources */,
 				9B5611A13013502C00E9FA7D /* agent.svg in Resources */,
 				9B5611A23013502C00E9FA7D /* AppIcon.icns in Resources */,
@@ -3690,6 +3697,7 @@
 		9B29F7AF2FCAE4B700AEBCB8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				FE0534D58DB0463388B4720F /* VMImageCatalog.swift in Sources */,
 				9B29F7B02FCAE4B700AEBCB8 /* VirtualMachineInformations.swift in Sources */,
 				9B29F7B12FCAE4B700AEBCB8 /* VirtualMachineWizard.swift in Sources */,
 				9B29F7B22FCAE4B700AEBCB8 /* AsyncButton.swift in Sources */,

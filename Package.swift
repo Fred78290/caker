@@ -241,7 +241,8 @@ let package = Package(
 			"GRPCLib",
 			"CakedLib",
 			"caked",
-			"cakectl"
+			"cakectl",
+			"caker"
 		], exclude: [
 			"echo.py",
 			"TestPlan.xctestplan",
