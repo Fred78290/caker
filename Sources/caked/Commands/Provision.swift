@@ -18,6 +18,9 @@ struct Provision: AsyncParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
+	@Flag(help: ArgumentHelp(String(localized: "Launch vm in foreground"), discussion: String(localized: "This option allows display window of running vm to debug it")))
+	var foreground: Bool = false
+
 	@Option(help: ArgumentHelp(String(localized: "Provisioning template (YAML) to use, overriding the VM's default built-in template (by stored macOS version or Linux platform); required if the VM's platform has no built-in template"), valueName: "path"))
 	var template: String?
 
@@ -109,6 +112,11 @@ struct Provision: AsyncParsableCommand {
 																						promise: promise,
 																						progressHandler: ProgressObserver.progressHandler)
 
-		MainApp.runUI(vm, params: handler, cancellation: cancellation)
+		if foreground {
+			MainApp.runUI(vm, params: handler, cancellation: cancellation)
+		} else {
+			NSApplication.shared.setActivationPolicy(.prohibited)
+			NSApplication.shared.run()
+		}
 	}
 }
