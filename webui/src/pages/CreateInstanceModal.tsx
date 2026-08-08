@@ -40,8 +40,8 @@ const CENTOS_ISO_BASE = 'https://mirror.centos.org/centos/9-stream/BaseOS'
 const CENTOS_CLOUD_BASE = 'https://cloud.centos.org/centos'
 const FEDORA_ISO_BASE = 'https://download.fedoraproject.org/pub/fedora/linux/releases'
 const FEDORA_CLOUD_BASE = 'https://download.fedoraproject.org/pub/fedora/linux/releases'
-const DEBIAN_CLOUD_BASE = 'https://cloud.debian.org/images/cloud'
-const DEBIAN_ISO_BASE = 'https://cdimage.debian.org/debian-cd'
+//const DEBIAN_CLOUD_BASE = 'https://cloud.debian.org/images/cloud'
+//const DEBIAN_ISO_BASE = 'https://cdimage.debian.org/debian-cd'
 const OPENSUSE_CLOUD_BASE = 'https://download.opensuse.org/repositories/Cloud:/Images:/Leap'
 const OPENSUSE_ISO_BASE = 'https://download.opensuse.org/distribution/leap'
 const OPENSUSE_TUMBLEWEED_ISO_BASE = 'https://download.opensuse.org/tumbleweed/iso'
@@ -94,9 +94,9 @@ const buildSourceImages = (lxdArch: string, iso: boolean): { label: string; url:
     { label: `Fedora 41 – Server ISO (${genericArch})`, url: `${FEDORA_ISO_BASE}/41/Server/${genericArch}/iso/Fedora-Server-dvd-${genericArch}-41-1.4.iso` },
     { label: `Fedora 40 – Server ISO (${genericArch})`, url: `${FEDORA_ISO_BASE}/40/Server/${genericArch}/iso/Fedora-Server-dvd-${genericArch}-40-1.14.iso` },
     // Debian ISOs
-    { label: `Debian 13.1 – netinst ISO (${ubuntuArch})`, url: `${DEBIAN_ISO_BASE}/13.1.0/${ubuntuArch}/iso-cd/debian-13.1.0-${ubuntuArch}-netinst.iso` },
-    { label: `Debian 12.11 – netinst ISO (${ubuntuArch})`, url: `${DEBIAN_ISO_BASE}/12.11.0/${ubuntuArch}/iso-cd/debian-12.11.0-${ubuntuArch}-netinst.iso` },
-    { label: `Debian 11.11 – netinst ISO (${ubuntuArch})`, url: `${DEBIAN_ISO_BASE}/11.11.0/${ubuntuArch}/iso-cd/debian-11.11.0-${ubuntuArch}-netinst.iso` },
+    //{ label: `Debian 13.1 – netinst ISO (${ubuntuArch})`, url: `${DEBIAN_ISO_BASE}/13.1.0/${ubuntuArch}/iso-cd/debian-13.1.0-${ubuntuArch}-netinst.iso` },
+    //{ label: `Debian 12.11 – netinst ISO (${ubuntuArch})`, url: `${DEBIAN_ISO_BASE}/12.11.0/${ubuntuArch}/iso-cd/debian-12.11.0-${ubuntuArch}-netinst.iso` },
+    //{ label: `Debian 11.11 – netinst ISO (${ubuntuArch})`, url: `${DEBIAN_ISO_BASE}/11.11.0/${ubuntuArch}/iso-cd/debian-11.11.0-${ubuntuArch}-netinst.iso` },
     // openSUSE ISOs
     { label: `openSUSE Leap 15.6 – DVD ISO (${genericArch})`, url: `${OPENSUSE_ISO_BASE}/15.6/iso/openSUSE-Leap-15.6-DVD-${genericArch}-Media.iso` },
     { label: `openSUSE Leap 15.5 – DVD ISO (${genericArch})`, url: `${OPENSUSE_ISO_BASE}/15.5/iso/openSUSE-Leap-15.5-DVD-${genericArch}-Media.iso` },
@@ -121,9 +121,9 @@ const buildSourceImages = (lxdArch: string, iso: boolean): { label: string; url:
     { label: `Fedora 40 – Cloud (${genericArch})`, url: `${FEDORA_CLOUD_BASE}/40/Server/${genericArch}/images/Fedora-Server-KVM-40-1.14.${genericArch}.qcow2` },
     
     // Debian Cloud Images
-    { label: `Debian 12 (Bookworm) – Cloud (${genericArch})`, url: `${DEBIAN_CLOUD_BASE}/bookworm/latest/debian-12-generic-${genericArch}.qcow2` },
-    { label: `Debian 11 (Bullseye) – Cloud (${genericArch})`, url: `${DEBIAN_CLOUD_BASE}/bullseye/latest/debian-11-generic-${genericArch}.qcow2` },
-    { label: `Debian 10 (Buster) – Cloud (${genericArch})`, url: `${DEBIAN_CLOUD_BASE}/buster/latest/debian-10-generic-${genericArch}.qcow2` },
+    //{ label: `Debian 12 (Bookworm) – Cloud (${genericArch})`, url: `${DEBIAN_CLOUD_BASE}/bookworm/latest/debian-12-generic-${genericArch}.qcow2` },
+    //{ label: `Debian 11 (Bullseye) – Cloud (${genericArch})`, url: `${DEBIAN_CLOUD_BASE}/bullseye/latest/debian-11-generic-${genericArch}.qcow2` },
+    //{ label: `Debian 10 (Buster) – Cloud (${genericArch})`, url: `${DEBIAN_CLOUD_BASE}/buster/latest/debian-10-generic-${genericArch}.qcow2` },
     
     // openSUSE Cloud Images
     { label: `openSUSE Leap 15.6 – Cloud (${genericArch})`, url: `${OPENSUSE_CLOUD_BASE}_15.6/images/openSUSE-Leap-15.6.${genericArch}-NoCloud.qcow2` },

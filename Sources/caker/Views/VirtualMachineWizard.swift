@@ -37,16 +37,30 @@ enum ISOImage: Int, CaseIterable {
 	case ubuntu1804Desktop
 	case ubuntu1804Server
 
-	case fedora42
-	case fedora41
-	case fedora40
+	case fedora44Desktop
+	case fedora44Server
+
+	case fedora43Desktop
+	case fedora43Server
+
+	case fedora42Desktop
+	case fedora42Server
+
+#if arch(x86_64)
+	case fedora41Desktop
+#endif
+	case fedora41Server
+
+	case fedora40Desktop
+	case fedora40Server
+
 
 	case centos10
 	case centos9
 
-	case debian13
-	case debian12
-	case debian11
+	//case debian13
+	//case debian12
+	//case debian11
 
 	case openSUSELeap156
 	case openSUSELeap155
@@ -64,7 +78,7 @@ enum ISOImage: Int, CaseIterable {
 		#if arch(x86_64)
 			return "x86_64"
 		#else
-			return "arm64"
+			return "aarch64"
 		#endif
 	}
 
@@ -90,24 +104,45 @@ enum ISOImage: Int, CaseIterable {
 			ISOLocation(label: "Ubuntu 18.04.6 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-desktop-\(ubuntuArch).iso")
 		case .ubuntu1804Server:
 			ISOLocation(label: "Ubuntu 18.04.6 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-live-server-\(ubuntuArch).iso")
-		case .fedora42:
-			ISOLocation(label: "Fedora 42 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/42/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-42-1.1.iso")
-		case .fedora41:
-			ISOLocation(label: "Fedora 41 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-41-1.4.iso")
-		case .fedora40:
-			ISOLocation(label: "Fedora 40 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/40/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-40-1.14.iso")
+
+		case .fedora44Server:
+			ISOLocation(label: "Fedora 44 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-44-1.7.iso")
+		case .fedora44Desktop:
+			ISOLocation(label: "Fedora 44 – Workstation ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Workstation/\(genericArch)/iso/Fedora-Workstation-Live-44-1.7.\(genericArch).iso")
+
+		case .fedora43Server:
+			ISOLocation(label: "Fedora 43 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-43-1.6.iso")
+		case .fedora43Desktop:
+			ISOLocation(label: "Fedora 43 – Workstation ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Workstation/\(genericArch)/iso/Fedora-Workstation-Live-43-1.6.\(genericArch).iso")
+
+		case .fedora42Server:
+			ISOLocation(label: "Fedora 42 – Server ISO (\(genericArch))", url: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/42/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-42-1.1.iso")
+		case .fedora42Desktop:
+			ISOLocation(label: "Fedora 42 – Workstation ISO (\(genericArch))", url: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/42/Workstation/\(genericArch)/iso/Fedora-Workstation-Live-42-1.1.\(genericArch).iso")
+
+		case .fedora41Server:
+			ISOLocation(label: "Fedora 41 – Server ISO (\(genericArch))", url: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/41/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-41-1.4.iso")
+		#if arch(x86_64)
+			case .fedora41Desktop:
+				ISOLocation(label: "Fedora 41 – Workstation ISO (\(genericArch))", url: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/41/Workstation/\(genericArch)/iso/Fedora-Workstation-Live-\(genericArch)-41-1.4.iso")
+		#endif
+
+		case .fedora40Server:
+			ISOLocation(label: "Fedora 40 – Server ISO (\(genericArch))", url: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-40-1.14.iso")
+		case .fedora40Desktop:
+			ISOLocation(label: "Fedora 40 – Workstation ISO (\(genericArch))", url: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Workstation/\(genericArch)/iso/Fedora-Workstation-Live-osb-40-1.14.\(genericArch).iso")
 
 		case .centos10:
 			ISOLocation(label: "CentOS Stream 10 – DVD ISO (\(genericArch))", url: "https://mirror.stream.centos.org/10-stream/BaseOS/\(genericArch)/iso/CentOS-Stream-10-latest-\(genericArch)-dvd1.iso")
 		case .centos9:
 			ISOLocation(label: "CentOS Stream 9 – DVD ISO (\(genericArch))", url: "https://mirror.centos.org/centos/9-stream/BaseOS/\(genericArch)/iso/CentOS-Stream-9-latest-\(genericArch)-dvd.iso")
 
-		case .debian13:
-			ISOLocation(label: "Debian 13.1 – netinst ISO (\(ubuntuArch))", url: "https://cdimage.debian.org/debian-cd/13.1.0/\(ubuntuArch)/iso-cd/debian-13.1.0-\(ubuntuArch)-netinst.iso")
-		case .debian12:
-			ISOLocation(label: "Debian 12.11 – netinst ISO (\(ubuntuArch))", url: "https://cdimage.debian.org/debian-cd/12.11.0/\(ubuntuArch)/iso-cd/debian-12.11.0-\(ubuntuArch)-netinst.iso")
-		case .debian11:
-			ISOLocation(label: "Debian 11.11 – netinst ISO (\(ubuntuArch))", url: "https://cdimage.debian.org/debian-cd/11.11.0/\(ubuntuArch)/iso-cd/debian-11.11.0-\(ubuntuArch)-netinst.iso")
+		//case .debian13:
+		//	ISOLocation(label: "Debian 13.1 – netinst ISO (\(ubuntuArch))", url: "https://cdimage.debian.org/debian-cd/13.1.0/\(ubuntuArch)/iso-cd/debian-13.1.0-\(ubuntuArch)-netinst.iso")
+		//case .debian12:
+		//	ISOLocation(label: "Debian 12.11 – netinst ISO (\(ubuntuArch))", url: "https://cdimage.debian.org/debian-cd/12.11.0/\(ubuntuArch)/iso-cd/debian-12.11.0-\(ubuntuArch)-netinst.iso")
+		//case .debian11:
+		//	ISOLocation(label: "Debian 11.11 – netinst ISO (\(ubuntuArch))", url: "https://cdimage.debian.org/debian-cd/11.11.0/\(ubuntuArch)/iso-cd/debian-11.11.0-\(ubuntuArch)-netinst.iso")
 
 		case .openSUSELeap156:
 			ISOLocation(label: "openSUSE Leap 15.6 – DVD ISO (\(genericArch))", url: "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-\(genericArch)-Media.iso")
@@ -152,13 +187,15 @@ enum OSCloudImage: Int, CaseIterable {
 	case centos10
 	case centos9
 
+	case fedora44
+	case fedora43
 	case fedora42
 	case fedora41
 	case fedora40
 
-	case debian12
-	case debian11
-	case debian10
+	//case debian12
+	//case debian11
+	//case debian10
 
 	case openSUSE156
 	case openSUSE155
@@ -179,13 +216,15 @@ enum OSCloudImage: Int, CaseIterable {
 		case .centos10: return "CentOS 10"
 		case .centos9: return "CentOS 9"
 
+		case .fedora44: return "Fedora 44"
+		case .fedora43: return "Fedora 43"
 		case .fedora42: return "Fedora 42"
 		case .fedora41: return "Fedora 41"
 		case .fedora40: return "Fedora 40"
 
-		case .debian12: return "Debian 12"
-		case .debian11: return "Debian 11"
-		case .debian10: return "Debian 10"
+		//case .debian12: return "Debian 12"
+		//case .debian11: return "Debian 11"
+		//case .debian10: return "Debian 10"
 
 		case .openSUSE156: return "OpenSUSE Leap 15.6"
 		case .openSUSE155: return "OpenSUSE Leap 15.6"
@@ -200,18 +239,18 @@ enum OSCloudImage: Int, CaseIterable {
 	var arch: String {
 		#if arch(arm64)
 			switch self {
-			case .ubuntu2604LTS, .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS, .debian12, .debian11, .debian10:
+			case .ubuntu2604LTS, .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS:
 				return "arm64"
 
-			case .centos10, .centos9, .fedora42, .fedora41, .fedora40, .openSUSE156, .openSUSE155, .openSUSE154, .alpine322, .alpine321, .alpine320:
+			default:
 				return "aarch64"
 			}
 		#elseif arch(x86_64)
 			switch self {
-			case .ubuntu2604LTS, .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS, .debian12, .debian11, .debian10:
+			case .ubuntu2604LTS, .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS:
 				return "amd64"
 
-			case .centos10, .centos9, .fedora42, .fedora41, .fedora40, .openSUSE156, .openSUSE155, .openSUSE154, .alpine322, .alpine321, .alpine320:
+			default:
 				return "x86_64"
 			}
 		#endif
@@ -228,13 +267,16 @@ enum OSCloudImage: Int, CaseIterable {
 		case .centos10: return URL(string: "https://cloud.centos.org/centos/10-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-10-20250506.2.\(self.arch).qcow2")!
 		case .centos9: return URL(string: "https://cloud.centos.org/centos/9-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-9-20250526.1.\(self.arch).qcow2")!
 
-		case .fedora42: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/42/Server/\(self.arch)/images/Fedora-Server-Guest-Generic-42-1.1.\(self.arch).qcow2")!
-		case .fedora41: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Server/\(self.arch)/images/Fedora-Server-KVM-41-1.4.\(self.arch).qcow2")!
+		case .fedora44: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/\(self.arch)/images/Fedora-Server-Guest-Generic-44-1.7.\(self.arch).qcow2")!
+		case .fedora43: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Server/\(self.arch)/images/Fedora-Server-Guest-Generic-43-1.6.\(self.arch).qcow2")!
+
+		case .fedora42: return URL(string: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/42/Server/\(self.arch)/images/Fedora-Server-Guest-Generic-42-1.1.\(self.arch).qcow2")!
+		case .fedora41: return URL(string: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/41/Server/\(self.arch)/images/Fedora-Server-KVM-41-1.4.\(self.arch).qcow2")!
 		case .fedora40: return URL(string: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/\(self.arch)/images/Fedora-Server-KVM-40-1.14.\(self.arch).qcow2")!
 
-		case .debian12: return URL(string: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-\(self.arch).qcow2")!
-		case .debian11: return URL(string: "https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-\(self.arch).qcow2")!
-		case .debian10: return URL(string: "https://cloud.debian.org/images/cloud/buster/latest/debian-10-generic-\(self.arch).qcow2")!
+		//case .debian12: return URL(string: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-\(self.arch).qcow2")!
+		//case .debian11: return URL(string: "https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-\(self.arch).qcow2")!
+		//case .debian10: return URL(string: "https://cloud.debian.org/images/cloud/buster/latest/debian-10-generic-\(self.arch).qcow2")!
 
 		case .openSUSE156: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.\(self.arch)-NoCloud.qcow2")!
 		case .openSUSE155: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.5/images/openSUSE-Leap-15.5.\(self.arch)-NoCloud.qcow2")!
