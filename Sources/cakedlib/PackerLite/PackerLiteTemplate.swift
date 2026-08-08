@@ -18,7 +18,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 
 	public struct Command: Codable, Sendable {
 		public var title: String
-		public var command: String
+		public var commands: [String]
 	}
 
 	enum CodingKeys: String, CodingKey {
@@ -86,7 +86,9 @@ public struct PackerLiteTemplate: Codable, Sendable {
 		var result = cmd
 
 		for (name, value) in variables {
-			result.command = result.command.replacingOccurrences(of: "${var.\(name)}", with: value)
+			result.commands = result.commands.map {
+				$0.replacingOccurrences(of: "${var.\(name)}", with: value)
+			}
 		}
 
 		return result
@@ -147,7 +149,7 @@ public enum PackerLiteTemplateError: Error, LocalizedError {
 	public var errorDescription: String? {
 		switch self {
 			case .invalidBootCommand(let command, let underlying):
-			return "boot_command[\(command.title)] (\"\(command.command)\") failed to parse: \(underlying.localizedDescription)"
+			return "boot_command[\(command.title)] (\"\(command.commands.joined(separator: ", "))\") failed to parse: \(underlying.localizedDescription)"
 		}
 	}
 }

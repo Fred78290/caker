@@ -46,100 +46,176 @@ boot_timeout: 75m        # d-i's package installation stage depends on mirror sp
 
 boot_command:
   - title: Boot the isolinux/GRUB menu's default "Graphical install" entry
-    command: "<wait30s><enter>"
+    commands: 
+      - <wait30s>
+      - <enter>
 
   - title: Wait for the graphical installer to start
-    command: "<wait60s>"
+    commands: 
+      - <wait60s>
 
   - title: Select a language - accept the default (English)
-    command: "<wait5s><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Continue'>
 
   - title: Select your location
-    command: "<wait5s>United States<enter><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - United States
+      - <enter>
+      - <click 'Continue'>
 
   - title: Configure the keyboard - accept the default layout
-    command: "<wait5s><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Continue'>
 
   - title: Wait for hardware/network detection to settle
-    command: "<wait30s>"
+    commands: 
+      - <wait30s>
 
   - title: Set the system's hostname
-    command: "<wait5s><leftCtrlOn>a<leftCtrlOff>${var.username}-vm<click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <leftCtrlOn>
+      - a
+      - <leftCtrlOff>
+      - ${var.username}-vm
+      - <click 'Continue'>
 
   - title: Leave the domain name blank
-    command: "<wait5s><click 'Continue'>"
+    commands: 
+      - <wait5s><click 'Continue'>
 
   - title: Leave the root password blank (grants the created user sudo instead)
-    command: "<wait10s><click 'Continue'>"
+    commands: 
+      - <wait10s>
+      - <click 'Continue'>
 
   - title: Confirm the empty root password is intentional
-    command: "<wait5s><click 'Yes'><click 'Continue'>"
+    commands: 
+      - <wait5s><click 'Yes'><click 'Continue'>
 
   - title: Full name for the new user
-    command: "<wait5s>Managed via Caker<click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - Managed via Caker
+      - <click 'Continue'>
 
   - title: Replace the auto-suggested username
-    command: "<wait5s><leftCtrlOn>a<leftCtrlOff>${var.username}<click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <leftCtrlOn>
+      - a
+      - <leftCtrlOff>
+      - ${var.username}
+      - <click 'Continue'>
 
   - title: Choose a password for the new user
-    command: "<wait5s>${var.password}<click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - ${var.password}
+      - <click 'Continue'>
 
   - title: Re-enter the password to verify
-    command: "<wait5s>${var.password}<click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - ${var.password}
+      - <click 'Continue'>
 
   - title: Configure the clock - accept the detected timezone
-    command: "<wait10s><click 'Continue'>"
+    commands: 
+      - <wait10s>
+      - <click 'Continue'>
 
   - title: Partition disks - use guided partitioning on the entire disk
-    command: "<wait10s><click 'Continue'>"
+    commands: 
+      - <wait10s>
+      - <click 'Continue'>
 
   - title: Confirm the disk to partition
-    command: "<wait5s><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Continue'>
 
   - title: Accept the default partitioning scheme
-    command: "<wait5s><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Continue'>
 
   - title: Finish partitioning and write changes to disk
-    command: "<wait5s><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Continue'>
 
   - title: Confirm writing changes to disk
-    command: "<wait5s><click 'Yes'><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Yes'>
+      - <click 'Continue'>
 
   - title: Wait for the base system install to finish
-    command: "<wait5m>"
+    commands: 
+      - <wait5m>
 
   - title: Package manager configuration - skip scanning extra media
-    command: "<wait10s><click 'Continue'>"
+    commands: 
+      - <wait10s>
+      - <click 'Continue'>
 
   - title: Use a network mirror
-    command: "<wait5s><click 'Yes'><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Yes'>
+      - <click 'Continue'>
 
   - title: Accept the default mirror country
-    command: "<wait5s><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Continue'>
 
   - title: Accept the default Debian archive mirror
-    command: "<wait5s><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Continue'>
 
   - title: Leave the HTTP proxy blank
-    command: "<wait5s><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Continue'>
 
   - title: Decline participation in the popularity contest
-    command: "<wait10s><click 'Continue'>"
+    commands: 
+      - <wait10s>
+      - <click 'Continue'>
 
   - title: Enable the SSH server in the software selection
-    command: "<wait10s><click 'SSH server'>"
+    commands: 
+      - <wait10s>
+      - <click 'SSH server'>
 
   - title: Confirm the software selection and begin package installation
-    command: "<click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Continue'>
 
   - title: Wait for package installation to finish
-    command: "<wait45m>"
+    commands: 
+      - <wait45m>
 
   - title: Install the GRUB boot loader to the primary disk
-    command: "<wait10s><click 'Yes'><click 'Continue'>"
+    commands: 
+      - <wait10s>
+      - <click 'Yes'>
+      - <click 'Continue'>
 
   - title: Confirm the boot loader install device
-    command: "<wait5s><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Continue'>
 
   - title: Finish installation and reboot into the freshly installed system
-    command: "<wait10s><click 'Continue'>"
+    commands: 
+      - <wait10s>
+      - <click 'Continue'>

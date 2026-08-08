@@ -43,40 +43,71 @@ boot_timeout: 60m        # a full install can legitimately take 20-30+ minutes
 
 boot_command:
   - title: Boot the GRUB menu's default "Install" entry
-    command: "<wait30s><enter>"
+    commands: 
+      - <wait30s>
+      - <enter>
 
   - title: Wait for the Anaconda installer to start
-    command: "<wait60s>"
+    commands: 
+      - <wait60s>
 
   - title: Welcome screen - continue with the default language
-    command: "<wait5s><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Continue'>
 
   - title: Open Installation Destination
-    command: "<wait5s><click 'Installation Destination'>"
+    commands: 
+      - <wait5s>
+      - <click 'Installation Destination'>
 
   - title: Accept automatic partitioning on the detected disk
-    command: "<wait5s><click 'Done'>"
+    commands: 
+      - <wait5s>
+      - <click 'Done'>
 
   - title: Open User Creation
-    command: "<wait5s><click 'User Creation'>"
+    commands: 
+      - <wait5s>
+      - <click 'User Creation'>
 
   - title: Fill in the full name, then replace the auto-suggested username
-    command: "<wait2s>Managed via Caker<tab><leftCtrlOn>a<leftCtrlOff>${var.username}"
+    commands: 
+      - <wait2s>
+      - Managed via Caker
+      - <tab>
+      - <leftCtrlOn>
+      - a
+      - <leftCtrlOff>
+      - ${var.username}
 
   - title: Make this user an administrator
-    command: "<click 'Make this user administrator'>"
+    commands: 
+      - <click 'Make this user administrator'>
 
   - title: Set and confirm the account password
-    command: "<tab><tab>${var.password}<tab>${var.password}"
+    commands: 
+      - <tab>
+      - <tab>
+      - ${var.password}
+      - <tab>
+      - ${var.password}
 
   - title: Confirm the user creation spoke
-    command: "<wait2s><click 'Done'>"
+    commands: 
+      - <wait2s>
+      - <click 'Done'>
 
   - title: Begin the installation
-    command: "<wait5s><click 'Begin Installation'>"
+    commands: 
+      - <wait5s>
+      - <click 'Begin Installation'>
 
   - title: Wait for the installation to finish
-    command: "<wait30m>"
+    commands: 
+      - <wait30m>
 
   - title: Reboot into the freshly installed system
-    command: "<wait5s><click 'Reboot System'>"
+    commands: 
+      - <wait5s>
+      - <click 'Reboot System'>

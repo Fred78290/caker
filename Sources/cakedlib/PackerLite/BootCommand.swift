@@ -78,7 +78,7 @@ public struct BootCommandStep: Equatable, Sendable {
 	public init(command: PackerLiteTemplate.Command) async throws {
 		var steps: [Step] = []
 		var literal = ""
-		var remainder = Substring(command.command)
+		var remainder = Substring(command.commands.joined())
 
 		func flushLiteral() {
 			if literal.isEmpty == false {

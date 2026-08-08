@@ -42,37 +42,68 @@ boot_timeout: 60m        # a full install can legitimately take 20-30+ minutes
 
 boot_command:
   - title: Boot the GRUB menu's default "Installation" entry
-    command: "<wait30s><enter>"
+    commands: 
+      - <wait30s>
+      - <enter>
 
   - title: Wait for the YaST installer to start (hardware probing takes a while)
-    command: "<wait90s>"
+    commands: 
+      - <wait90s>
 
   - title: Welcome screen - accept the license and continue
-    command: "<wait5s><click 'I Agree to the License Terms'><click 'Next'>"
+    commands: 
+      - <wait5s>
+      - <click 'I Agree to the License Terms'>
+      - <click 'Next'>
 
   - title: Pick the desktop environment at the System Role screen
-    command: "<wait10s><click 'Desktop with KDE Plasma'><click 'Next'>"
+    commands: 
+      - <wait10s>
+      - <click 'Desktop with KDE Plasma'>
+      - <click 'Next'>
 
   - title: Accept the suggested partitioning
-    command: "<wait10s><click 'Next'>"
+    commands: 
+      - <wait10s>
+      - <click 'Next'>
 
   - title: Fill in the full name, then replace the auto-suggested username
-    command: "<wait10s>Managed via Caker<tab><leftCtrlOn>a<leftCtrlOff>${var.username}"
+    commands: 
+      - <wait10s>
+      - Managed via Caker
+      - <tab>
+      - <leftCtrlOn>
+      - a
+      - <leftCtrlOff>
+      - ${var.username}
 
   - title: Set and confirm the account password
-    command: "<tab>${var.password}<tab>${var.password}"
+    commands: 
+      - <tab>
+      - ${var.password}
+      - <tab>
+      - ${var.password}
 
   - title: Use this account's password for the system administrator (root) too
-    command: "<click 'Use this password also for system administrator'><click 'Next'>"
+    commands: 
+      - <click 'Use this password also for system administrator'>
+      - <click 'Next'>
 
   - title: Confirm the installation summary
-    command: "<wait10s><click 'Install'>"
+    commands: 
+      - <wait10s>
+      - <click 'Install'>
 
   - title: Confirm the installation warning dialog
-    command: "<wait5s><click 'Install'>"
+    commands: 
+      - <wait5s>
+      - <click 'Install'>
 
   - title: Wait for the installation to finish
-    command: "<wait30m>"
+    commands: 
+      - <wait30m>
 
   - title: Finish and reboot into the freshly installed system
-    command: "<wait5s><click 'Finish'>"
+    commands: 
+      - <wait5s>
+      - <click 'Finish'>

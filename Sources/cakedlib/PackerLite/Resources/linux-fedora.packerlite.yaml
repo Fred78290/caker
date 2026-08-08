@@ -47,49 +47,89 @@ boot_timeout: 60m        # a full desktop install can legitimately take 20-30+ m
 
 boot_command:
   - title: Boot the live GRUB menu's default entry
-    command: "<wait30s><enter>"
+    commands: 
+      - <wait30s>
+      - <enter>
 
   - title: Wait for the live GNOME desktop to finish loading
-    command: "<wait90s>"
+    commands: 
+      - <wait90s>
 
   - title: Open a terminal via the Activities overview
-    command: "<leftAltOn><leftAltOff><wait2s>Terminal<enter>"
+    commands: 
+      - <leftAltOn>
+      - <leftAltOff>
+      - <wait2s>
+      - Terminal
+      - <enter>
 
   - title: Launch the graphical installer as root
-    command: "<wait5s>sudo liveinst<enter>"
+    commands: 
+      - <wait5s>
+      - sudo liveinst
+      - <enter>
 
   - title: Wait for the Anaconda installer window to open
-    command: "<wait15s>"
+    commands: 
+      - <wait15s>
 
   - title: Welcome screen - continue with the default language
-    command: "<wait5s><click 'Continue'>"
+    commands: 
+      - <wait5s>
+      - <click 'Continue'>
 
   - title: Open Installation Destination
-    command: "<wait5s><click 'Installation Destination'>"
+    commands: 
+      - <wait5s>
+      - <click 'Installation Destination'>
 
   - title: Accept automatic partitioning on the detected disk
-    command: "<wait5s><click 'Done'>"
+    commands: 
+      - <wait5s>
+      - <click 'Done'>
 
   - title: Open User Creation
-    command: "<wait5s><click 'User Creation'>"
+    commands: 
+      - <wait5s>
+      - <click 'User Creation'>
 
   - title: Fill in the full name, then replace the auto-suggested username
-    command: "<wait2s>Managed via Caker<tab><leftCtrlOn>a<leftCtrlOff>${var.username}"
+    commands: 
+      - <wait2s>
+      - Managed via Caker
+      - <tab>
+      - <leftCtrlOn>
+      - a
+      - <leftCtrlOff>
+      - ${var.username}
 
   - title: Make this user an administrator
-    command: "<click 'Make this user administrator'>"
+    commands: 
+      - <click 'Make this user administrator'>
 
   - title: Set and confirm the account password
-    command: "<tab><tab>${var.password}<tab>${var.password}"
+    commands: 
+      - <tab>
+      - <tab>
+      - ${var.password}
+      - <tab>
+      - ${var.password}
 
   - title: Confirm the user creation spoke
-    command: "<wait2s><click 'Done'>"
+    commands: 
+      - <wait2s>
+      - <click 'Done'>
 
   - title: Begin the installation
-    command: "<wait5s><click 'Begin Installation'>"
+    commands: 
+      - <wait5s>
+      - <click 'Begin Installation'>
 
   - title: Wait for the installation to finish
-    command: "<wait30m>"
+    commands: 
+      - <wait30m>
 
   - title: Quit the installer once installation completes
-    command: "<wait5s><click 'Quit'>"
+    commands: 
+      - <wait5s>
+      - <click 'Quit'>
