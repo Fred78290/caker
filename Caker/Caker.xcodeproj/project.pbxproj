@@ -316,6 +316,8 @@
 		9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */; };
 		9B7C7B682E0E80BE009D0A26 /* VirtualMachineConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */; };
 		9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */ = {isa = PBXBuildFile; productRef = 9B7C7B6A2E0FC7DA009D0A26 /* Steps */; };
+		DB4D602DFCF9438D8DA71D4D /* VMImageCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */; };
+		91C2CE30A7DA428FBABEB441 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 		9B7D65B02F163AB900FE1B0B /* InteractiveShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */; };
 		9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */; };
 		9B7D69252F1B92EC00FE1B0B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D69242F1B92E800FE1B0B /* Extensions.swift */; };
@@ -346,6 +348,7 @@
 		9B96B0192F4B68540069C970 /* ProcessWithSharedFileHandleTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */; };
 		9B96B01A2F4B68540069C970 /* RemoteTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C132DB4EB700047D00B /* RemoteTest.swift */; };
 		9B96B01B2F4B68540069C970 /* GrpcTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0F2DB4EB700047D00B /* GrpcTestCase.swift */; };
+		62C94F0AE8B04F108C4AC06D /* VMImageCatalogURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB1C9CEC8FF141AA9DD49FC8 /* VMImageCatalogURLTests.swift */; };
 		9B96B01C2F4B68540069C970 /* GrpcUnixSocketTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C102DB4EB700047D00B /* GrpcUnixSocketTest.swift */; };
 		9B96B01D2F4B68540069C970 /* GrpcTcpSocketTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0E2DB4EB700047D00B /* GrpcTcpSocketTest.swift */; };
 		9B96B01E2F4B68540069C970 /* NetworkTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C112DB4EB700047D00B /* NetworkTest.swift */; };
@@ -1011,6 +1014,7 @@
 		9B345C0D2DB4EB700047D00B /* echo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = echo.py; sourceTree = "<group>"; };
 		9B345C0E2DB4EB700047D00B /* GrpcTcpSocketTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrpcTcpSocketTest.swift; sourceTree = "<group>"; };
 		9B345C0F2DB4EB700047D00B /* GrpcTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrpcTestCase.swift; sourceTree = "<group>"; };
+		EB1C9CEC8FF141AA9DD49FC8 /* VMImageCatalogURLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalogURLTests.swift; sourceTree = "<group>"; };
 		9B345C102DB4EB700047D00B /* GrpcUnixSocketTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrpcUnixSocketTest.swift; sourceTree = "<group>"; };
 		9B345C112DB4EB700047D00B /* NetworkTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTest.swift; sourceTree = "<group>"; };
 		9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessWithSharedFileHandleTest.swift; sourceTree = "<group>"; };
@@ -1200,6 +1204,8 @@
 		9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableListNewItem.swift; sourceTree = "<group>"; };
 		9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineWizard.swift; sourceTree = "<group>"; };
 		9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfig.swift; sourceTree = "<group>"; };
+		DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalog.swift; sourceTree = "<group>"; };
+		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractiveShell.swift; sourceTree = "<group>"; };
 		9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHelper.swift; sourceTree = "<group>"; };
 		9B7D69242F1B92E800FE1B0B /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
@@ -1896,13 +1902,23 @@
 				9B3601902E20FBCF00889BFD /* CakerMenuBarExtraScene.swift */,
 				9B2BFAB82DFED25E000045C3 /* MainApp.swift */,
 				9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */,
+				DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */,
 				9BB213CE2F37548300B45692 /* Handlers */,
 				9B30BA492E0BDB5600256A9D /* Helpers */,
 				9B9C4E612E23BD8900C13D23 /* Model */,
 				9BAF74B52EBBD7CC0036CE1B /* MultiplatformTabBar */,
+				3028F93736164BBF8A8E6F67 /* Resources */,
 				9B2BFAB72DFED25E000045C3 /* Views */,
 			);
 			path = caker;
+			sourceTree = "<group>";
+		};
+		3028F93736164BBF8A8E6F67 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B424710990B7411A855EC5AD /* VMImages.json */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		9B30BA492E0BDB5600256A9D /* Helpers */ = {
@@ -1946,6 +1962,7 @@
 				9B345C112DB4EB700047D00B /* NetworkTest.swift */,
 				9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */,
 				9B345C132DB4EB700047D00B /* RemoteTest.swift */,
+				EB1C9CEC8FF141AA9DD49FC8 /* VMImageCatalogURLTests.swift */,
 			);
 			path = CakerTests;
 			sourceTree = "<group>";
@@ -3437,6 +3454,7 @@
 		9B464A522D5A3DA000164BF5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				91C2CE30A7DA428FBABEB441 /* VMImages.json in Resources */,
 				9B5FA0FF2F8B94F50077EF64 /* Localizable.xcstrings in Resources */,
 				9B561266301350FB00E9FA7D /* agent.svg in Resources */,
 				9B561267301350FB00E9FA7D /* AppIcon.icns in Resources */,
@@ -3656,6 +3674,7 @@
 		9B464A502D5A3DA000164BF5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				DB4D602DFCF9438D8DA71D4D /* VMImageCatalog.swift in Sources */,
 				9BDA14BF2EEAC18900357544 /* VirtualMachineInformations.swift in Sources */,
 				9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */,
 				9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */,
@@ -3875,6 +3894,7 @@
 		9B96B00B2F4B68380069C970 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				62C94F0AE8B04F108C4AC06D /* VMImageCatalogURLTests.swift in Sources */,
 				9B96B0192F4B68540069C970 /* ProcessWithSharedFileHandleTest.swift in Sources */,
 				9B96B01F2F4B685D0069C970 /* CloudInitTest.swift in Sources */,
 				9B96B01A2F4B68540069C970 /* RemoteTest.swift in Sources */,
