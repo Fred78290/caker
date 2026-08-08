@@ -66,7 +66,7 @@ public struct VMRunHandler {
 	public typealias CompletionHandler<T> = (EventLoopFuture<String?>, VirtualMachine) throws -> T
 
 	@MainActor
-	public func run<T>(_ completionHandler: CompletionHandler<T>) throws -> T {
+	public func run<T>(queue: DispatchQueue? = nil, _ completionHandler: CompletionHandler<T>) throws -> T {
 		defer {
 			location.removePID()
 		}
@@ -93,7 +93,7 @@ public struct VMRunHandler {
 			}
 		}
 
-		let result = try location.startVirtualMachine(mode: mode,on: Utilities.group.next(), config: config, screenSize: screenSize, display: display, vncPassword: vncPassword, vncPort: vncPort, recoveryMode: self.recoveryMode, internalCall: false, runMode: runMode)
+		let result = try location.startVirtualMachine(mode: mode,on: Utilities.group.next(), config: config, screenSize: screenSize, display: display, vncPassword: vncPassword, vncPort: vncPort, recoveryMode: self.recoveryMode, internalCall: false, runMode: runMode, queue: queue)
 
 		return try completionHandler(result.address, result.vm)
 	}

@@ -693,8 +693,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 									recoveryMode: Bool,
 									internalCall: Bool,
 									runMode: Utils.RunMode,
+									queue: DispatchQueue?,
 									completionHandler: VirtualMachine.StartCompletionHandler? = nil) throws -> (address: EventLoopFuture<String?>, vm: VirtualMachine) {
-		let vm = try VirtualMachine(location: self, config: config, display: display, screenSize: screenSize, recoveryMode: recoveryMode, runMode: runMode)
+		let vm = try VirtualMachine(location: self, config: config, display: display, screenSize: screenSize, recoveryMode: recoveryMode, runMode: runMode, queue: queue)
 
 		let runningIP = try vm.runInBackground(mode, on: on, internalCall: internalCall, completionHandler: completionHandler)
 

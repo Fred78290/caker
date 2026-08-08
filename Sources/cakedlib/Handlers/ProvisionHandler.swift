@@ -41,6 +41,7 @@ public struct ProvisionHandler {
 		macosVersion: MacOSVersion?,
 		variables: [String],
 		runMode: Utils.RunMode,
+		queue: DispatchQueue?,
 		promise: EventLoopPromise<Void>?,
 		progressHandler: @escaping ProgressObserver.BuildProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
@@ -137,6 +138,7 @@ public struct ProvisionHandler {
 		macosVersion: MacOSVersion?,
 		variables: [String],
 		runMode: Utils.RunMode,
+		queue: DispatchQueue?,
 		promise: EventLoopPromise<Void>?,
 		progressHandler: @escaping ProgressObserver.BuildProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
@@ -160,6 +162,7 @@ public struct ProvisionHandler {
 			macosVersion: macosVersion,
 			variables: variables,
 			runMode: runMode,
+			queue: queue,
 			promise: promise,
 			progressHandler: progressHandler
 		)
@@ -173,6 +176,7 @@ public struct ProvisionHandler {
 		macosVersion: MacOSVersion?,
 		variables: [String],
 		runMode: Utils.RunMode,
+		queue: DispatchQueue?,
 		promise: EventLoopPromise<Void>?,
 		progressHandler: @escaping ProgressObserver.BuildProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
@@ -189,6 +193,7 @@ public struct ProvisionHandler {
 			macosVersion: macosVersion,
 			variables: variables,
 			runMode: runMode,
+			queue: queue,
 			promise: promise,
 			progressHandler: progressHandler)
 	}

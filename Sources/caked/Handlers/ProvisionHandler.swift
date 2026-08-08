@@ -18,12 +18,16 @@ import SystemConfiguration
 typealias Caked_ResponseProvisionStreamReply = GRPCAsyncResponseStreamWriter<Caked_ProvisionStreamReply>
 
 struct ProvisionHandler: CakedCommandAsync {
+	static let provisionQueue = DispatchQueue(label: "caked.provision-queue")
+
 	let request: Caked_ProvisionRequest
 	let responseStream: Caked_ResponseProvisionStreamReply
+	var queue: DispatchQueue? = nil
 
 	init(provider: CakedProvider, request: Caked_ProvisionRequest, responseStream: Caked_ResponseProvisionStreamReply, runMode: Utils.RunMode) throws {
 		self.request = request
 		self.responseStream = responseStream
+		self.queue = ProvisionHandler.provisionQueue
 	}
 
 	mutating func run(on: any EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
@@ -57,6 +61,7 @@ struct ProvisionHandler: CakedCommandAsync {
 					"\(value.key)=\(value.value)"
 				},
 				runMode: runMode,
+				queue: self.queue,
 				promise: promise
 			) { progress in
 				continuation.yield(progress)

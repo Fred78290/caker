@@ -89,7 +89,9 @@ struct Provision: AsyncParsableCommand {
 		let promise = Utilities.group.next().makePromise(of: Void.self)
 
 		promise.futureResult.whenComplete { _ in
-			NSApp.terminate(self)
+			DispatchQueue.main.async {
+				NSApp.terminate(self)
+			}
 		}
 
 		if let template = self.template {
@@ -103,6 +105,7 @@ struct Provision: AsyncParsableCommand {
 																						macosVersion: self.macosVersion,
 																						variables: self.vars,
 																						runMode: self.common.runMode,
+																						queue: ProvisionHandler.provisionQueue,
 																						promise: promise,
 																						progressHandler: ProgressObserver.progressHandler)
 
