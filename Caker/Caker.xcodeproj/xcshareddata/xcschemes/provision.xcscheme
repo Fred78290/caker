@@ -78,6 +78,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--foreground"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--log-level=debug"
             isEnabled = "YES">
          </CommandLineArgument>
