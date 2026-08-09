@@ -16,6 +16,22 @@ import UniformTypeIdentifiers
 
 typealias OptionalVMLocation = VMLocation?
 
+extension VMImageEntry {
+	/// Raises `config`'s CPU count / memory to this entry's `minCPU`/`minMemoryMiB`, if any —
+	/// never lowers a value the user already raised above the minimum. IPSW entries have no
+	/// minimum here; macOS installs apply their own fixed floor separately (see the `.ipsw`
+	/// image-source case below).
+	func applyMinimumResources(to config: inout VirtualMachineConfig) {
+		if let minCPU {
+			config.cpuCount = max(config.cpuCount, minCPU)
+		}
+
+		if let minMemoryMiB {
+			config.memorySizeInMoB = max(config.memorySizeInMoB, minMemoryMiB)
+		}
+	}
+}
+
 let groups: [String] = [
 	"root",
 	"daemon",
@@ -251,6 +267,7 @@ struct VirtualMachineWizard: View {
 
 			config.imageName = defaultCloudImage.url
 			config.os = .linux
+			defaultCloudImage.applyMinimumResources(to: &config)
 
 			let model = VirtualMachineWizardStateObject()
 
@@ -775,6 +792,7 @@ struct VirtualMachineWizard: View {
 								.labelsHidden()
 								.onChange(of: model.isoImageRelease) { _, newValue in
 									self.config.imageName = newValue.url
+									newValue.applyMinimumResources(to: &self.config)
 								}
 							}
 
@@ -871,6 +889,7 @@ struct VirtualMachineWizard: View {
 							.labelsHidden()
 							.onChange(of: model.cloudImageRelease) { _, newValue in
 								self.config.imageName = newValue.url
+								newValue.applyMinimumResources(to: &self.config)
 							}
 						}
 
@@ -944,6 +963,7 @@ struct VirtualMachineWizard: View {
 									self.model.provisioningTemplate = String.empty
 								case .qcow2:
 									self.config.imageName = model.cloudImageRelease.url
+									model.cloudImageRelease.applyMinimumResources(to: &self.config)
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
@@ -973,6 +993,7 @@ struct VirtualMachineWizard: View {
 								case .iso:
 									self.config.autoinstall = false
 									self.config.imageName = self.model.isoImageRelease.url
+									self.model.isoImageRelease.applyMinimumResources(to: &self.config)
 									self.model.showDiskFormat = true
 									self.config.diskFormat = .defaultSupportedFormat
 									self.config.os = .linux

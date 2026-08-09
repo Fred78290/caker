@@ -14,6 +14,11 @@ struct VMImageEntry: Codable, Identifiable, Hashable {
 	let id: String
 	let label: String
 	let url: String
+	/// Minimum CPU count / memory (MiB) the wizard should apply when this entry is selected.
+	/// `nil` for IPSW entries — macOS installs use their own fixed minimums, set independently
+	/// of this catalog (see `VirtualMachineWizard`'s `.ipsw` image-source handling).
+	let minCPU: UInt16?
+	let minMemoryMiB: UInt64?
 }
 
 struct VMImageArchCatalog: Codable {
