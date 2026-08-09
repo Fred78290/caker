@@ -85,7 +85,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 	/// Delay between synthesized key events, so the guest OS doesn't drop rapid-fire input.
 	private static let keyDelayNanoseconds: UInt64 = 30_000_000
 	/// How long clickText retries OCR before giving up, in case the screen is still rendering.
-	private static let clickTextTimeout: TimeInterval = 10
+	public static let clickTextTimeout: TimeInterval = 10
 	private static let clickTextPollNanoseconds: UInt64 = 500_000_000
 
 	// MARK: Input handler variables
@@ -133,13 +133,13 @@ final class PackerLiteDriver: @unchecked Sendable {
 			logger.debug("[\(title)]: modifierOff \(modifier) with modifier \(modifiers)")
 			await self.handleKeyModifierEvent(keysym(for: modifier), isDown: false)
 			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
-		case .click(let x, let y):
-			logger.debug("[\(title)]: click \(x),\(y)")
-			await click(x: x, y: y)
+		case .click(let point):
+			logger.debug("[\(title)]: click \(point)")
+			await click(point)
 			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
-		case .clickText(let label):
+		case .clickText(let label, let timeout):
 			logger.debug("[\(title)]: clickText '\(label)'")
-			try await clickText(label)
+			try await clickText(label, timeout: timeout)
 		case .keyboard(let layout):
 			logger.debug("[\(title)]: keyboard layout \(layout.id)")
 			currentKeyTranslator = layout
@@ -419,17 +419,19 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 	// MARK: - Mouse
 
-	@MainActor private func click(x: Int, y: Int) {
-		self.handlePointerEvent(x: x, y: y, buttonMask: 0x01)
-		self.handlePointerEvent(x: x, y: y, buttonMask: 0x00)
+	@MainActor private func click(_ nsPoint: CGPoint) {
+		logger.debug("clickText \(nsPoint)")
+
+		self.handlePointerEvent(nsPoint, buttonMask: 0x01)
+		self.handlePointerEvent(nsPoint, buttonMask: 0x00)
 	}
 
-	@MainActor private func clickText(_ label: String) async throws {
-		let deadline = Date().addingTimeInterval(Self.clickTextTimeout)
+	@MainActor private func clickText(_ label: String, timeout: TimeInterval) async throws {
+		let deadline = Date().addingTimeInterval(timeout)
 
 		while true {
 			if let point = try await locate(text: label) {
-				click(x: point.x, y: point.y)
+				click(point)
 				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 				return
 			}

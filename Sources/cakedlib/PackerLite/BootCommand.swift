@@ -1,4 +1,3 @@
-//
 //  BootCommand.swift
 //  CakedLib
 //
@@ -56,8 +55,8 @@ public struct BootCommandStep: Equatable, Sendable {
 			case .press(let key, let repeated): return "press \(key) x\(repeated)"
 			case .modifierOn(let modifier): return "modifier on \(modifier)"
 			case .modifierOff(let modifier): return "modifier off \(modifier)"
-			case .click(let x, let y): return "click \(x), \(y)"
-			case .clickText(let text): return "clickText \(text)"
+			case .click(let point): return "click \(point)"
+			case .clickText(let text, let timeout): return "clickText \(text) x\(timeout)s"
 			case .keyboard(let translator): return "keyboard \(translator)"
 			}
 		}
@@ -67,8 +66,8 @@ public struct BootCommandStep: Equatable, Sendable {
 		case press(KeyToken, repeated: Int = 1)
 		case modifierOn(ModifierToken)
 		case modifierOff(ModifierToken)
-		case click(x: Int, y: Int)
-		case clickText(String)
+		case click(CGPoint)
+		case clickText(String, timeout: TimeInterval)
 		case keyboard(any KeyLayoutTranslator)
 	}
 
@@ -262,23 +261,111 @@ public struct BootCommandStep: Equatable, Sendable {
 
 	/// Matches `click 'Some Text'`, `click "Some Text"` (OCR-located click) or `click X,Y` (raw coordinates).
 	private static func parseClick(_ body: String) throws -> BootCommandStep.Step {
+		// Support formats:
+		// 1) click 'Some Text' or click "Some Text"
+		// 2) click X,Y
+		// 3) click timeout=10 text="Some Text"
+		// 4) click point="X,Y"
 		let rest = body.dropFirst("click".count).trimmingCharacters(in: .whitespaces)
 
+		// Attribute-style: key=value pairs
+		if rest.contains("=") {
+			let attributes = try parseAttributes(String(rest))
+
+			if let pointString = attributes["point"]?.trimmingCharacters(in: .whitespacesAndNewlines) {
+				// Expect point in form "X,Y" possibly quoted
+				let trimmed = trimMatchingQuotes(pointString)
+				let parts = trimmed.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+
+				guard parts.count == 2, let x = Int(parts[0]), let y = Int(parts[1]) else {
+					throw BootCommandParseError.malformedClick(body)
+				}
+
+				return .click(CGPoint(x: CGFloat(x), y: CGFloat(y)))
+			}
+
+			if let textValue = attributes["text"] {
+				let text = trimMatchingQuotes(textValue)
+				let timeout: TimeInterval
+
+				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
+					timeout = parsed
+				} else {
+					// Default to 10 seconds if not provided
+					timeout = 10
+				}
+
+				return .clickText(text, timeout: timeout)
+			}
+
+			// Unknown attributes
+			throw BootCommandParseError.malformedClick(body)
+		}
+
+		// Quoted text form
 		if let quote = rest.first, quote == "'" || quote == "\"" {
 			guard rest.count >= 2, rest.last == quote else {
 				throw BootCommandParseError.malformedClick(body)
 			}
 
-			return .clickText(String(rest.dropFirst().dropLast()))
+			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
+			return .clickText(String(rest.dropFirst().dropLast()), timeout: 10)
 		}
 
+		// Raw coordinates form: X,Y
 		let parts = rest.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
 
 		guard parts.count == 2, let x = Int(parts[0]), let y = Int(parts[1]) else {
 			throw BootCommandParseError.malformedClick(body)
 		}
 
-		return .click(x: x, y: y)
+		return .click(CGPoint(x: CGFloat(x), y: CGFloat(y)))
+	}
+
+	/// Parses a simple list of key=value attributes separated by whitespace.
+	/// Supports values wrapped in single or double quotes and unquoted tokens without spaces.
+	private static func parseAttributes(_ input: String) throws -> [String: String] {
+		var result: [String: String] = [:]
+		var i = input.startIndex
+		func skipSpaces() {
+			while i < input.endIndex, input[i].isWhitespace { i = input.index(after: i) }
+		}
+		while i < input.endIndex {
+			skipSpaces()
+			if i >= input.endIndex { break }
+			// Read key
+			let keyStart = i
+			while i < input.endIndex, input[i].isLetter || input[i].isNumber { i = input.index(after: i) }
+			let key = String(input[keyStart..<i]).lowercased()
+			skipSpaces()
+			guard i < input.endIndex, input[i] == "=" else { throw BootCommandParseError.malformedClick("click " + input) }
+			i = input.index(after: i)
+			skipSpaces()
+			guard i < input.endIndex else { throw BootCommandParseError.malformedClick("click " + input) }
+			let value: String
+			if input[i] == "\"" || input[i] == "'" {
+				let quote = input[i]
+				i = input.index(after: i)
+				let valueStart = i
+				while i < input.endIndex, input[i] != quote { i = input.index(after: i) }
+				guard i < input.endIndex else { throw BootCommandParseError.malformedClick("click " + input) }
+				value = String(input[valueStart..<i])
+				i = input.index(after: i) // consume closing quote
+			} else {
+				let valueStart = i
+				while i < input.endIndex, input[i].isWhitespace == false { i = input.index(after: i) }
+				value = String(input[valueStart..<i])
+			}
+			result[key] = value
+		}
+		return result
+	}
+
+	private static func trimMatchingQuotes(_ value: String) -> String {
+		guard let first = value.first, let last = value.last, (first == "\"" || first == "'") && first == last, value.count >= 2 else {
+			return value
+		}
+		return String(value.dropFirst().dropLast())
 	}
 }
 
