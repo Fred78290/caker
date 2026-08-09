@@ -177,13 +177,21 @@ struct ShortImageInfoComparator: SortComparator {
 }
 
 struct VirtualMachineWizard: View {
+	static let ProgressCreateVirtualMachine = NSNotification.Name("ProgressCreateVirtualMachine")
+	static let ProgressTitleCreateVirtualMachine = NSNotification.Name("ProgressTitleCreateVirtualMachine")
+	static let ProgressSubtitleCreateVirtualMachine = NSNotification.Name("ProgressSubtitleCreateVirtualMachine")
+	static let CreatedVirtualMachine = NSNotification.Name("CreatedVirtualMachine")
+	static let FailCreateVirtualMachine = NSNotification.Name("FailCreateVirtualMachine")
+
 	@Environment(\.dismiss) private var dismiss
 
 	@State private var config: VirtualMachineConfig
 	@State private var currentTab: Int = 0
 	@State private var model: VirtualMachineWizardStateObject
 	@State private var diskSizeValueIsInvalid = false
+	@State private var allowsOverrideMinimumResources = false
 
+	private let wizardID = UUID().uuidString
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 	private let listHeight: CGFloat = 460
 	private let fromPreset: Bool
@@ -314,39 +322,43 @@ struct VirtualMachineWizard: View {
 			}
 		}
 
-		self.Body().onReceive(VirtualMachineDocument.ProgressCreateVirtualMachine) { notification in
-			if let fractionCompleted = notification.object as? Double {
+		self.Body().onReceive(Self.ProgressCreateVirtualMachine) { notification in
+			if self.isMyNotification(notification), let fractionCompleted = notification.object as? Double {
 				self.model.fractionCompleted = max(0, min(1.0, fractionCompleted))
 			}
 		}
-		.onReceive(VirtualMachineDocument.CreatedVirtualMachine) { notification in
-			self.model.createVM = false
+		.onReceive(Self.CreatedVirtualMachine) { notification in
+			if self.isMyNotification(notification) {
+				self.model.createVM = false
+				
+				if let vmURL = notification.object as? URL {
+					Task {
+						await MainApp.app.openVirtualMachine(vmURL)
+						self.dismiss()
+					}
+				}
+				
+				self.config = VirtualMachineConfig()
+				self.model.reset()
+			}
+		}
+		.onReceive(Self.FailCreateVirtualMachine) { notification in
+			if self.isMyNotification(notification) {
+				self.model.createVM = false
+				self.model.createVMMessage = String.empty
 
-			if let vmURL = notification.object as? URL {
-				Task {
-					await MainApp.app.openVirtualMachine(vmURL)
-					self.dismiss()
+				if let error = notification.object as? Error {
+					alertError(error)
 				}
 			}
-
-			self.config = VirtualMachineConfig()
-			self.model.reset()
 		}
-		.onReceive(VirtualMachineDocument.FailCreateVirtualMachine) { notification in
-			self.model.createVM = false
-			self.model.createVMMessage = String.empty
-
-			if let error = notification.object as? Error {
-				alertError(error)
-			}
-		}
-		.onReceive(VirtualMachineDocument.ProgressTitleCreateVirtualMachine) { notification in
-			if let message = notification.object as? String {
+		.onReceive(Self.ProgressTitleCreateVirtualMachine) { notification in
+			if self.isMyNotification(notification), let message = notification.object as? String {
 				self.model.createVMMessage = message
 			}
 		}
-		.onReceive(VirtualMachineDocument.ProgressSubtitleCreateVirtualMachine) { notification in
-			if let message = notification.object as? String {
+		.onReceive(Self.ProgressSubtitleCreateVirtualMachine) { notification in
+			if self.isMyNotification(notification), let message = notification.object as? String {
 				self.model.createVMSubtitle = message
 			}
 		}
@@ -359,6 +371,10 @@ struct VirtualMachineWizard: View {
 		.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
 		.windowDismissBehavior(self.model.createVM ? .disabled : .automatic)
 		//.windowResizeBehavior(self.model.createVM ? .disabled : .automatic)
+	}
+
+	func isMyNotification(_ notification: Notification) -> Bool {
+		notification.userInfo?["wizardID"] as? String == self.wizardID
 	}
 
 	func TabBar() -> some View {
@@ -1269,23 +1285,23 @@ struct VirtualMachineWizard: View {
 			DispatchQueue.main.async {
 				switch result {
 				case .progress(_, let fractionCompleted):
-					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressCreateVirtualMachine, object: fractionCompleted)
+					NotificationCenter.default.post(name: Self.ProgressCreateVirtualMachine, object: fractionCompleted, userInfo: ["wizardID": self.wizardID])
 
 				case .terminated(let result, let message):
 					if case .failure(let error) = result {
-						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: error, userInfo: ["message": message ?? String.empty])
+						NotificationCenter.default.post(name: Self.FailCreateVirtualMachine, object: error, userInfo: ["message": message ?? String.empty, "wizardID": self.wizardID])
 					} else if case .success(let vmURL) = result {
-						NotificationCenter.default.post(name: VirtualMachineDocument.CreatedVirtualMachine, object: vmURL, userInfo: ["message": message ?? String.empty])
+						NotificationCenter.default.post(name: Self.CreatedVirtualMachine, object: vmURL, userInfo: ["message": message ?? String.empty, "wizardID": self.wizardID])
 					} else {
-						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: ServiceError(String(localized: "Internal error creating virtual machine")), userInfo: ["message": message ?? String.empty])
+						NotificationCenter.default.post(name: Self.FailCreateVirtualMachine, object: ServiceError(String(localized: "Internal error creating virtual machine")), userInfo: ["message": message ?? String.empty, "wizardID": self.wizardID])
 					}
 
 					done()
 
 				case .step(let message):
-					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressTitleCreateVirtualMachine, object: message)
+					NotificationCenter.default.post(name: Self.ProgressTitleCreateVirtualMachine, object: message, userInfo: ["wizardID": self.wizardID])
 				case .substep(let message):
-					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressSubtitleCreateVirtualMachine, object: message)
+					NotificationCenter.default.post(name: Self.ProgressSubtitleCreateVirtualMachine, object: message, userInfo: ["wizardID": self.wizardID])
 				}
 			}
 		}
