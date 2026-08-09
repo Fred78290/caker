@@ -672,6 +672,23 @@ extension URL: Purgeable {
 		self
 	}
 
+	// Resolves the real target URL after following any HTTP redirect (e.g. a shortlink
+	// or a "latest"-style download redirect). Returns self unchanged for file URLs, or
+	// if the request fails to produce a resolved location.
+	public var redirectedURL: URL {
+		get async {
+			guard self.isFileURL == false, self.host != nil else {
+				return self
+			}
+
+			guard let response = try? await URLSession.shared.data(for: URLRequest(url: self, method: "HEAD")).1 else {
+				return self
+			}
+
+			return response.url ?? self
+		}
+	}
+
 	public func writePID() throws {
 		let pid = getpid()
 
