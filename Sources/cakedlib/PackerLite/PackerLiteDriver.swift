@@ -446,51 +446,51 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 	/// Locates `label` in the view's current frame via Vision OCR and returns its center,
 	/// converted into the top-left-origin pixel space `VNCInputHandler.handlePointerEvent` expects.
-	private func locate(text label: String) async throws -> (x: Int, y: Int)? {
+	private func locate(text label: String) async throws -> CGPoint? {
 		// Capture the current CGImage on the main actor (AppKit view access must be on main).
 		let cgImage: CGImage? = await MainActor.run { [weak targetView] in
-			guard let image = targetView?.image(),
-				let cg = image.cgImage(forProposedRect: nil, context: nil, hints: nil)
-			else {
+			guard let image = targetView?.image(), let cg = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
 				return nil
 			}
+		
 			return cg
 		}
 
-		guard let cgImage else { return nil }
+		guard let cgImage else {
+			return nil
+		}
+
+		let logger = self.logger
 
 		// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
-		let result = try await Task.detached(priority: .utility) { () throws -> (x: Int, y: Int)? in
+		return try await Task.detached(priority: .utility) { () throws -> CGPoint? in
 			let request = VNRecognizeTextRequest()
 			request.recognitionLevel = .accurate
 
-			try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
-
-			let needle = label.lowercased()
-
-			for observation in request.results ?? [] {
-				guard let candidate = observation.topCandidates(1).first,
-					candidate.string.lowercased().contains(needle)
-				else {
-					continue
+			do {
+				try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+				
+				guard let results = request.results, !results.isEmpty else {
+					return nil
 				}
-
-				let box = observation.boundingBox
-				let width = CGFloat(cgImage.width)
-				let height = CGFloat(cgImage.height)
-
-				// Vision's boundingBox is normalized with origin at bottom-left; VNC coordinates
-				// (as consumed by handlePointerEvent) have origin at top-left.
-				let x = Int(box.midX * width)
-				let y = Int((1 - box.midY) * height)
-
-				return (x, y)
+				
+				let needle = label.lowercased()
+				
+				for observation in results {
+					guard let candidate = observation.topCandidates(1).first, candidate.string.lowercased().contains(needle) else {
+						continue
+					}
+					
+					let box = observation.boundingBox
+					
+					return CGPoint(x: box.midX, y: box.midY)
+				}
+			} catch {
+				logger.error("Vision OCR failed: \(error)")
 			}
 
 			return nil
 		}.value
-
-		return result
 	}
 }
 
@@ -513,14 +513,10 @@ extension PackerLiteDriver {
 
 	// MARK: - Mouse Events
 
-	func handlePointerEvent(x: Int, y: Int, buttonMask: UInt8) {
+	func handlePointerEvent(_ nsPoint: CGPoint, buttonMask: UInt8) {
 		// Ensure the view is first responder when pointer interaction begins
 		ensureFirstResponder()
 
-		// Convert VNC coordinates (origin top-left) to NSView (origin bottom-left)
-		let viewBounds = targetView.bounds
-		let viewPoint = NSPoint(x: CGFloat(x), y: viewBounds.height - CGFloat(y))
-		let nsPoint = targetView.convert(viewPoint, to: nil)
 		let moved = nsPoint != lastMousePosition
 
 		// Handle mouse buttons with move

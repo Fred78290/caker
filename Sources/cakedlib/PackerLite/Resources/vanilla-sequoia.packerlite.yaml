@@ -259,10 +259,14 @@ boot_command:
       - <f5>
       - <fnOff>
       - <leftAltOff>
+      - <click 'Do not show this message again'>
+      - <wait1s>
+      - <click 'Use VoiceOver'>
 
   - title: Enable Remote login
     commands: 
       - <wait2s>
+      - <click 'Administrators'>
       - <tab repeat=5>
       - <spacebar>
 
