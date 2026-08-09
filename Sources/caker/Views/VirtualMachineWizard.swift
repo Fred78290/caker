@@ -502,10 +502,35 @@ struct VirtualMachineWizard: View {
 		}.frame(maxHeight: .infinity)
 	}
 
+	/// The CPU/memory floor the sliders (and `validateConfig`) should enforce for the currently
+	/// selected image — the entry's own `minCPU`/`minMemoryMiB` for `.iso`/`.qcow2`, the `.ipsw`
+	/// case's own fixed minimums, or the generic floor for sources with no catalog entry. Without
+	/// this, `applyMinimumResources(to:)` only raises the config once at selection time — the
+	/// slider would still let the user drag straight back down below the image's minimum.
+	var minimumCPUCount: UInt16 {
+		switch model.imageSource {
+		case .iso: return model.isoImageRelease.minCPU ?? 1
+		case .qcow2: return model.cloudImageRelease.minCPU ?? 1
+		case .ipsw: return 4
+		default: return 1
+		}
+	}
+
+	var minimumMemoryInMiB: UInt64 {
+		switch model.imageSource {
+		case .iso: return model.isoImageRelease.minMemoryMiB ?? 512
+		case .qcow2: return model.cloudImageRelease.minMemoryMiB ?? 512
+		case .ipsw: return 4096
+		default: return 512
+		}
+	}
+
 	func cpuCountAndMemoryView() -> some View {
 		Section("CPU & Memory") {
-			let cpuRange: ClosedRange<UInt16> = 1...UInt16(System.coreCount)
-			let memoryLowerBound: UInt64 = config.source == .ipsw ? 4096 : 512
+			let cpuLowerBound: UInt16 = self.minimumCPUCount
+			let cpuUpperBound: UInt16 = max(cpuLowerBound, UInt16(System.coreCount))
+			let cpuRange: ClosedRange<UInt16> = cpuLowerBound...cpuUpperBound
+			let memoryLowerBound: UInt64 = self.minimumMemoryInMiB
 			let memoryUpperBound: UInt64 = max(memoryLowerBound, ProcessInfo().physicalMemory / MoB)
 			let totalMemoryRange: ClosedRange<UInt64> = memoryLowerBound...memoryUpperBound
 
@@ -1181,6 +1206,13 @@ struct VirtualMachineWizard: View {
 			} else {
 				valid = config.memorySizeInMoB >= 4096 && config.diskSizeInGiB >= 40
 			}
+		}
+
+		if valid {
+			// Belt-and-suspenders on top of the sliders' floor: catches a config that reached
+			// this state some other way (a preset, or a config restored without going through
+			// the sliders) still undercutting the selected image's minimum.
+			valid = config.cpuCount >= self.minimumCPUCount && config.memorySizeInMoB >= self.minimumMemoryInMiB
 		}
 
 		if valid && model.rootDisk.isEmpty == false {
