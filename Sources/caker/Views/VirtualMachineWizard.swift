@@ -524,6 +524,10 @@ struct VirtualMachineWizard: View {
 	/// this, `applyMinimumResources(to:)` only raises the config once at selection time — the
 	/// slider would still let the user drag straight back down below the image's minimum.
 	var minimumCPUCount: UInt16 {
+		guard allowsOverrideMinimumResources == false else {
+			return 1
+		}
+
 		switch model.imageSource {
 		case .iso: return model.isoImageRelease.minCPU ?? 1
 		case .qcow2: return model.cloudImageRelease.minCPU ?? 1
@@ -533,6 +537,10 @@ struct VirtualMachineWizard: View {
 	}
 
 	var minimumMemoryInMiB: UInt64 {
+		guard allowsOverrideMinimumResources == false else {
+			return 512
+		}
+
 		switch model.imageSource {
 		case .iso: return model.isoImageRelease.minMemoryMiB ?? 512
 		case .qcow2: return model.cloudImageRelease.minMemoryMiB ?? 512
@@ -617,6 +625,10 @@ struct VirtualMachineWizard: View {
 				}
 			}
 			.padding(.vertical, 2)
+			
+			Toggle("Allow override minimum resources", isOn: $allowsOverrideMinimumResources)
+				.disabled(self.model.createVM)
+				.padding(.vertical, 2)
 		}
 	}
 
