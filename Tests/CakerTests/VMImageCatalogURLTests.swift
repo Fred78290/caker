@@ -3,9 +3,18 @@ import XCTest
 @testable import caker
 
 final class VMImageCatalogURLTests: XCTestCase {
+	func testFedora41DesktopIsOnlyPublishedForAmd64() throws {
+		let catalog = VMImageCatalog.shared
+
+		XCTAssertNil(catalog.arm64.iso.first(where: { $0.id == "fedora41Desktop" }), "Fedora 41 Workstation has no aarch64 ISO upstream")
+		XCTAssertNotNil(catalog.amd64.iso.first(where: { $0.id == "fedora41Desktop" }))
+	}
+
 	func testAllISOAndCloudImageURLsAreReachable() async throws {
 		let catalog = VMImageCatalog.shared
-		let entries = catalog.availableISOImages + catalog.availableCloudImages
+		// Check both architecture nodes, not just `current` — `.shared.availableISOImages`/etc. only
+		// expose whichever arch this test happens to run on.
+		let entries = catalog.arm64.iso + catalog.arm64.cloud + catalog.amd64.iso + catalog.amd64.cloud
 
 		XCTAssertFalse(entries.isEmpty)
 
@@ -21,7 +30,7 @@ final class VMImageCatalogURLTests: XCTestCase {
 				}
 
 				group.addTask {
-					(entry.resolvedURL, await Self.reachabilityFailureReason(entry.resolvedURL))
+					(entry.url, await Self.reachabilityFailureReason(entry.url))
 				}
 			}
 
