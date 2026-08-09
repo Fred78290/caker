@@ -476,6 +476,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 			return cg
 		}
 
+
 		guard let cgImage else {
 			return nil
 		}
@@ -500,9 +501,10 @@ final class PackerLiteDriver: @unchecked Sendable {
 					guard let candidate = observation.topCandidates(1).first, candidate.string.lowercased().contains(needle) else {
 						continue
 					}
-					
-					let box = observation.boundingBox
-					
+
+					// Convert the rectangle from normalized coordinates to image coordinates.
+					let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(cgImage.width), Int(cgImage.height))
+
 					return CGPoint(x: box.midX, y: box.midY)
 				}
 			} catch {
