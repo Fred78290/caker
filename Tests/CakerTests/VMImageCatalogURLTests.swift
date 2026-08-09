@@ -10,6 +10,30 @@ final class VMImageCatalogURLTests: XCTestCase {
 		XCTAssertNotNil(catalog.amd64.iso.first(where: { $0.id == "fedora41Desktop" }))
 	}
 
+	func testMinimumResourcesMatchDesktopServerConvention() throws {
+		for archCatalog in [VMImageCatalog.shared.arm64, VMImageCatalog.shared.amd64] {
+			for entry in archCatalog.iso {
+				if entry.id.contains("Desktop") {
+					XCTAssertEqual(entry.minCPU, 4, "\(entry.id) is a desktop ISO")
+					XCTAssertEqual(entry.minMemoryMiB, 4096, "\(entry.id) is a desktop ISO")
+				} else {
+					XCTAssertEqual(entry.minCPU, 2, "\(entry.id) is a server/installer ISO")
+					XCTAssertEqual(entry.minMemoryMiB, 2048, "\(entry.id) is a server/installer ISO")
+				}
+			}
+
+			for entry in archCatalog.cloud {
+				XCTAssertEqual(entry.minCPU, 2, "\(entry.id) is a headless cloud image")
+				XCTAssertEqual(entry.minMemoryMiB, 2048, "\(entry.id) is a headless cloud image")
+			}
+
+			for entry in archCatalog.ipsw {
+				XCTAssertNil(entry.minCPU, "\(entry.id) is a macOS install; it uses its own fixed minimums")
+				XCTAssertNil(entry.minMemoryMiB, "\(entry.id) is a macOS install; it uses its own fixed minimums")
+			}
+		}
+	}
+
 	func testAllISOAndCloudImageURLsAreReachable() async throws {
 		let catalog = VMImageCatalog.shared
 		// Check both architecture nodes, not just `current` — `.shared.availableISOImages`/etc. only
