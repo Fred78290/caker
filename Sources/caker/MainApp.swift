@@ -168,6 +168,10 @@ struct MainApp: App {
 		self.navigationModel.sync(with: self.appState)
 
 		Self.app = self
+
+		Task(priority: .background) {
+			try? await VMImageCatalog.refreshFromGitHub()
+		}
 	}
 
 	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) {

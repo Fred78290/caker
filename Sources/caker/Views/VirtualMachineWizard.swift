@@ -249,7 +249,7 @@ struct VirtualMachineWizard: View {
 
 			let defaultCloudImage = VMImageCatalog.shared.cloudImage("ubuntu2604LTS")
 
-			config.imageName = defaultCloudImage.resolvedURL
+			config.imageName = defaultCloudImage.url
 			config.os = .linux
 
 			let model = VirtualMachineWizardStateObject()
@@ -767,14 +767,14 @@ struct VirtualMachineWizard: View {
 							} label: {
 								Picker("Preconfigured ISO", selection: $model.isoImageRelease) {
 									ForEach(VMImageCatalog.shared.availableISOImages) { os in
-										Text(os.resolvedLabel).tag(os)
+										Text(os.label).tag(os)
 									}
 								}
 								.pickerStyle(.menu)
 								.disabled(self.model.createVM)
 								.labelsHidden()
 								.onChange(of: model.isoImageRelease) { _, newValue in
-									self.config.imageName = newValue.resolvedURL
+									self.config.imageName = newValue.url
 								}
 							}
 
@@ -842,14 +842,14 @@ struct VirtualMachineWizard: View {
 							} label: {
 								Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
 									ForEach(VMImageCatalog.shared.availableIPSWImages) { os in
-										Text(os.resolvedLabel).tag(os)
+										Text(os.label).tag(os)
 									}
 								}
 								.pickerStyle(.menu)
 								.disabled(self.model.createVM)
 								.labelsHidden()
 								.onChange(of: model.ipswRelease) { _, newValue in
-									self.config.imageName = newValue.resolvedURL
+									self.config.imageName = newValue.url
 								}
 							}
 							Toggle("Configure automaticly the system", isOn: $config.autoinstall).disabled(self.model.createVM)
@@ -863,14 +863,14 @@ struct VirtualMachineWizard: View {
 						} label: {
 							Picker("Preconfigured image", selection: $model.cloudImageRelease) {
 								ForEach(VMImageCatalog.shared.availableCloudImages) { os in
-									Text(os.resolvedLabel).tag(os)
+									Text(os.label).tag(os)
 								}
 							}
 							.pickerStyle(.menu)
 							.disabled(self.model.createVM)
 							.labelsHidden()
 							.onChange(of: model.cloudImageRelease) { _, newValue in
-								self.config.imageName = newValue.resolvedURL
+								self.config.imageName = newValue.url
 							}
 						}
 
@@ -943,7 +943,7 @@ struct VirtualMachineWizard: View {
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
 								case .qcow2:
-									self.config.imageName = model.cloudImageRelease.resolvedURL
+									self.config.imageName = model.cloudImageRelease.url
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
@@ -972,13 +972,13 @@ struct VirtualMachineWizard: View {
 									self.model.provisioningTemplate = String.empty
 								case .iso:
 									self.config.autoinstall = false
-									self.config.imageName = self.model.isoImageRelease.resolvedURL
+									self.config.imageName = self.model.isoImageRelease.url
 									self.model.showDiskFormat = true
 									self.config.diskFormat = .defaultSupportedFormat
 									self.config.os = .linux
 								case .ipsw:
 									self.config.autoinstall = true
-									self.config.imageName = self.model.ipswRelease.resolvedURL
+									self.config.imageName = self.model.ipswRelease.url
 									self.config.cpuCount = max(self.config.cpuCount, 4)
 									self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4096)
 									self.config.diskSizeInGiB = max(self.config.diskSizeInGiB, 40)
