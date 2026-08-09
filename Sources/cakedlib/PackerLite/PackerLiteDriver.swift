@@ -140,6 +140,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .clickText(let label, let timeout):
 			logger.debug("[\(title)]: clickText '\(label)'")
 			try await clickText(label, timeout: timeout)
+		case .locate(let label, let timeout):
+			logger.debug("[\(title)]: locate '\(label)'")
+			try await locateText(label, timeout: timeout)
 		case .keyboard(let layout):
 			logger.debug("[\(title)]: keyboard layout \(layout.id)")
 			currentKeyTranslator = layout
@@ -147,7 +150,6 @@ final class PackerLiteDriver: @unchecked Sendable {
 	}
 
 	// MARK: - Keyboard
-
 	@MainActor private func type(_ text: String) async throws {
 		for char in text {
 			if let keysym = currentKeyTranslator.translate(char: char) {
@@ -432,6 +434,24 @@ final class PackerLiteDriver: @unchecked Sendable {
 		while true {
 			if let point = try await locate(text: label) {
 				click(point)
+				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+				return
+			}
+
+			if Date() >= deadline {
+				throw PackerLiteDriverError.textNotFound(label)
+			}
+
+			try await Task.sleep(nanoseconds: Self.clickTextPollNanoseconds)
+		}
+	}
+
+	@MainActor private func locateText(_ label: String, timeout: TimeInterval) async throws {
+		let deadline = Date().addingTimeInterval(timeout)
+
+		while true {
+			if let point = try await locate(text: label) {
+				self.logger.debug("Text found: \(label) at: \(point)")
 				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 				return
 			}

@@ -57,6 +57,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			case .modifierOff(let modifier): return "modifier off \(modifier)"
 			case .click(let point): return "click \(point)"
 			case .clickText(let text, let timeout): return "clickText \(text) x\(timeout)s"
+			case .locate(let text, let timeout): return "locate \(text) x\(timeout)s"
 			case .keyboard(let translator): return "keyboard \(translator)"
 			}
 		}
@@ -68,6 +69,7 @@ public struct BootCommandStep: Equatable, Sendable {
 		case modifierOff(ModifierToken)
 		case click(CGPoint)
 		case clickText(String, timeout: TimeInterval)
+		case locate(String, timeout: TimeInterval)
 		case keyboard(any KeyLayoutTranslator)
 	}
 
@@ -167,6 +169,10 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		if lower.hasPrefix("click") {
 			return try parseClick(body)
+		}
+
+		if lower.hasPrefix("locate") {
+			return try parseLocate(body)
 		}
 
 		if let tokenStep = try parseKey(lower) {
@@ -320,6 +326,48 @@ public struct BootCommandStep: Equatable, Sendable {
 		}
 
 		return .click(CGPoint(x: CGFloat(x), y: CGFloat(y)))
+	}
+
+	/// Matches `locate 'Some Text'`, `click "Some Text"
+	private static func parseLocate(_ body: String) throws -> BootCommandStep.Step {
+		// Support formats:
+		// 1) locate 'Some Text' or locate "Some Text"
+		// 3) locate timeout=10 text="Some Text"
+		let rest = body.dropFirst("locate".count).trimmingCharacters(in: .whitespaces)
+
+		// Attribute-style: key=value pairs
+		if rest.contains("=") {
+			let attributes = try parseAttributes(String(rest))
+
+			if let textValue = attributes["text"] {
+				let text = trimMatchingQuotes(textValue)
+				let timeout: TimeInterval
+
+				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
+					timeout = parsed
+				} else {
+					// Default to 10 seconds if not provided
+					timeout = 10
+				}
+
+				return .locate(text, timeout: timeout)
+			}
+
+			// Unknown attributes
+			throw BootCommandParseError.malformedClick(body)
+		}
+
+		// Quoted text form
+		if let quote = rest.first, quote == "'" || quote == "\"" {
+			guard rest.count >= 2, rest.last == quote else {
+				throw BootCommandParseError.malformedClick(body)
+			}
+
+			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
+			return .locate(String(rest.dropFirst().dropLast()), timeout: 10)
+		}
+
+		throw BootCommandParseError.malformedClick(body)
 	}
 
 	/// Parses a simple list of key=value attributes separated by whitespace.

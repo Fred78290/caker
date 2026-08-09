@@ -35,8 +35,7 @@ boot_command:
 
   - title: Select Your Country or Region
     commands: 
-      - <wait30s>
-      - <click 'Select Your Country or Region'>
+      - <click timeout=30 text='Select Your Country or Region'>
       - <wait5s>
       - united states
       - <leftShiftOn>
@@ -45,8 +44,8 @@ boot_command:
       - <spacebar>
 
   - title: Transfer Your Data to This Mac
-    commands: 
-      - <wait10s>
+    commands:
+      - <locate timeout=30 text='Transfer Your Data to This Mac'>
       - <tab repeat=3>
       - <spacebar>
       - <tab repeat=2>
@@ -54,7 +53,7 @@ boot_command:
 
   - title: Written and Spoken Languages
     commands: 
-      - <wait10s>
+      - <locate text='Written and Spoken Languages'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -66,7 +65,7 @@ boot_command:
 
   - title: Accessibility
     commands: 
-      - <wait10s>
+      - <locate text='Accessibility'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -74,7 +73,7 @@ boot_command:
 
   - title: Data & Privacy
     commands: 
-      - <wait10s>
+      - <locate text='Data & Privacy'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -82,7 +81,7 @@ boot_command:
 
   - title: Create a Mac Account
     commands: 
-      - <wait10s>
+      - <locate text='Create a Mac Account'>
       - Managed via Caker
       - <tab>
       - ${var.username}
@@ -96,19 +95,19 @@ boot_command:
       - <tab>
       - <tab>
       - <spacebar>
+      - <locate timeout=60 text='Sign In to Your Apple Account'>
 
   - title: Enable Voice Over
-    commands: 
-      - <wait60s>
+    commands:
       - <leftAltOn>
       - <fnOn>
       - <f5>
       - <fnOff>
       - <leftAltOff>
+      - <wait10s>
 
   - title: Sign In with Your Apple ID
     commands: 
-      - <wait10s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -116,13 +115,13 @@ boot_command:
 
   - title: Are you sure you want to skip signing in with an Apple ID?
     commands: 
-      - <wait10s>
+      - <wait1s>
       - <tab>
       - <spacebar>
 
   - title: Terms and Conditions
     commands: 
-      - <wait10s>
+      - <locate text='Terms and Conditions'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -136,7 +135,7 @@ boot_command:
 
   - title: Enable Location Services
     commands: 
-      - <wait10s>
+      - <locate text='Enable Location Services'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -144,13 +143,13 @@ boot_command:
 
   - title: Are you sure you don't want to use Location Services?
     commands: 
-      - <wait10s>
+      - <wait2s>
       - <tab>
       - <spacebar>
 
   - title: Select Your Time Zone
     commands: 
-      - <wait10s>
+      - <locate text='Select Your Time Zone'>
       - <tab>
       - <tab>
       - UTC
@@ -163,7 +162,7 @@ boot_command:
 
   - title: Analytics
     commands: 
-      - <wait10s>
+      - <locate text='Analytics'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -171,7 +170,7 @@ boot_command:
 
   - title: Screen Time
     commands: 
-      - <wait10s>
+      - <locate text='Screen Time'>
       - <tab>
       - <spacebar>
 
@@ -187,15 +186,12 @@ boot_command:
 
   - title: Choose Your Look
     commands: 
-      - <wait10s>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
+      - <locate text='Choose Your Look'>
       - <spacebar>
 
   - title: Update Mac Automatically
     commands: 
-      - <wait10s>
+      - <locate text='Update Mac Automatically'>
       - <tab>
       - <spacebar>
 
@@ -210,28 +206,6 @@ boot_command:
       - <fnOn>
       - <f5>
       - <fnOff>
-      - <leftAltOff>
-
-  - title: Enable Keyboard navigation so we can navigate System Settings using the keyboard
-    commands: 
-      - <wait10s>
-      - <leftAltOn>
-      - <spacebar>
-      - <leftAltOff>
-      - Terminal
-      - <enter>
-
-  - title: Enable full keyboard access
-    commands: 
-      - <wait10s>
-      - defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
-      - <enter>
-
-  - title: Quit Terminal
-    commands: 
-      - <wait10s>
-      - <leftAltOn>
-      - q
       - <leftAltOff>
 
   - title: Open System Settings
@@ -249,6 +223,7 @@ boot_command:
       - <tab>
       - remote login
       - <enter>
+      - <wait1s>
       - <down>
 
   - title: Enable Voice Over
