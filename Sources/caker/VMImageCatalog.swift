@@ -8,6 +8,7 @@
 import CakedLib
 import Foundation
 import GRPCLib
+import Synchronization
 
 struct VMImageEntry: Codable, Identifiable, Hashable {
 	let id: String
@@ -38,7 +39,14 @@ struct VMImageCatalog: Codable {
 	let arm64: VMImageArchCatalog
 	let amd64: VMImageArchCatalog
 
-	static var shared: VMImageCatalog = load()
+	// `shared` is read from the UI and written by `refreshFromGitHub()`'s background task —
+	// `Mutex` (matching the pattern already used for e.g. `ARPParser`'s static cache) keeps that
+	// safe instead of racing on a bare `static var`.
+	private static let storage: Mutex<VMImageCatalog> = Mutex(load())
+
+	static var shared: VMImageCatalog {
+		storage.withLock { $0 }
+	}
 
 	/// Raw JSON on the `main` branch — kept in sync with `Sources/caker/Resources/VMImages.json`.
 	static let githubCatalogURL = URL(string: "https://raw.githubusercontent.com/Fred78290/caker/main/Sources/caker/Resources/VMImages.json")!
@@ -127,8 +135,15 @@ struct VMImageCatalog: Codable {
 
 	/// Downloads the latest catalog from GitHub, caches it to `<CAKE_HOME>/VMImages.json`, and updates
 	/// `shared` in place so an already-running session picks it up (SwiftUI reads `.shared` live on
-	/// every render rather than caching it in view state). Throws on network/decode failure — callers
-	/// that want a best-effort background refresh should `try?` this.
+	/// every render rather than caching it in view state). Throws on network/decode/validation
+	/// failure — callers that want a best-effort background refresh should `try?` this.
+	///
+	/// This trusts `main` on GitHub as a live, mutable source for URLs the wizard hands to the user
+	/// as download links — a deliberately narrow extension of the trust the app already places in its
+	/// own repo (that's where the binary's source comes from), not a new trust root. The one check
+	/// applied here is that every entry resolves to `https://`, so a compromised or malformed catalog
+	/// can't quietly downgrade a link to plaintext HTTP or a non-http(s) scheme; it does not attempt
+	/// content signing or pinning to a specific release/commit.
 	@discardableResult
 	static func refreshFromGitHub(session: URLSession = .shared) async throws -> VMImageCatalog {
 		let (data, response) = try await session.data(from: githubCatalogURL)
@@ -139,6 +154,10 @@ struct VMImageCatalog: Codable {
 
 		let catalog = try JSONDecoder().decode(VMImageCatalog.self, from: data)
 
+		guard catalog.usesOnlyHTTPS else {
+			throw ServiceError("Downloaded VMImages.json contains a non-https:// URL, refusing to trust it")
+		}
+
 		// `Utils.getHome` only creates the directory on its first-ever call (it caches the
 		// resolved path afterwards), so a prior `createHomeIfNeeded: false` lookup — e.g. from
 		// `load()` — can leave it uncreated here despite passing `true`. Create it ourselves too.
@@ -147,8 +166,14 @@ struct VMImageCatalog: Codable {
 			try? data.write(to: destination, options: .atomic)
 		}
 
-		shared = catalog
+		storage.withLock { $0 = catalog }
 
 		return catalog
+	}
+
+	private var usesOnlyHTTPS: Bool {
+		[arm64, amd64].allSatisfy { arch in
+			(arch.iso + arch.ipsw + arch.cloud).allSatisfy { $0.url.hasPrefix("https://") }
+		}
 	}
 }

@@ -169,7 +169,7 @@ struct MainApp: App {
 
 		Self.app = self
 
-		Task.detached(priority: .background) {
+		Task(priority: .background) {
 			try? await VMImageCatalog.refreshFromGitHub()
 		}
 	}
