@@ -147,6 +147,8 @@ final class PackerLiteDriver: @unchecked Sendable {
 			logger.debug("[\(title)]: keyboard layout \(layout.id)")
 			currentKeyTranslator = layout
 		}
+
+		try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 	}
 
 	// MARK: - Keyboard
