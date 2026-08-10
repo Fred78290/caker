@@ -208,6 +208,29 @@ boot_command:
       - <fnOff>
       - <leftAltOff>
 
+  - title: Enable Keyboard navigation so we can navigate System Settings using the keyboard
+    commands: 
+      - <wait10s>
+      - <leftAltOn>
+      - <spacebar>
+      - <leftAltOff>
+      - Terminal.app
+      - <wait5s>
+      - <enter>
+
+  - title: Enable full keyboard access
+    commands: 
+      - <wait10s>
+      - defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
+      - <enter>
+
+  - title: Quit Terminal
+    commands: 
+      - <wait10s>
+      - <leftAltOn>
+      - q
+      - <leftAltOff>
+
   - title: Open System Settings
     commands: 
       - <wait10s>
@@ -222,8 +245,9 @@ boot_command:
       - <wait10s>
       - <tab>
       - remote login
-      - <enter>
       - <wait1s>
+      - <enter>
+      - <wait5s>
       - <down>
 
   - title: Enable Voice Over
