@@ -12,6 +12,7 @@ import CakeAgentLib
 import Carbon.HIToolbox
 import Foundation
 import GRPCLib
+import QuartzCore
 import RoyalVNCKit
 import Vision
 
@@ -36,7 +37,7 @@ extension CGKeyCodes {
 		CGKeyCodes.f17,
 		CGKeyCodes.f18,
 		CGKeyCodes.f19,
-		CGKeyCodes.f20
+		CGKeyCodes.f20,
 	]
 }
 
@@ -98,6 +99,68 @@ final class PackerLiteDriver: @unchecked Sendable {
 	private var trackingNumber: Int = 0
 	private let eventSource = CGEventSource(stateID: .combinedSessionState)
 
+	#if DEBUG
+		private var debugOverlayLayer: CAShapeLayer?
+
+		@MainActor
+		private func showDebugBox(_ box: CGRect, in imageSize: CGSize) {
+			guard let layer = targetView.layer else {
+				return
+			}
+
+			if let debugOverlayLayer = self.debugOverlayLayer {
+				debugOverlayLayer.removeFromSuperlayer()
+				self.debugOverlayLayer = nil
+			}
+
+			targetView.wantsLayer = true
+
+			let overlay = CAShapeLayer()
+
+			overlay.zPosition = 1000
+			layer.addSublayer(overlay)
+
+			self.debugOverlayLayer = overlay
+
+			// Convert the box from image coordinates (origin bottom-left) to the targetView coordinate space (origin bottom-left).
+			// VNImageRectForNormalizedRect yields rect in image coords origin bottom-left.
+			// NSView's layer has origin bottom-left if flipped is false, else origin top-left.
+			// AppKit views often have flipped coordinate system (origin top-left). Convert accordingly.
+
+			let viewHeight = targetView.bounds.height
+			let viewWidth = targetView.bounds.width
+
+			// The CGImage and view might differ in size, so scale accordingly
+			let scaleX = viewWidth / imageSize.width
+			let scaleY = viewHeight / imageSize.height
+
+			// Box origin is bottom-left, need to convert to AppKit's coordinate system (which is typically flipped: origin top-left)
+			// Because targetView is NSView, flipped usually true, origin top-left
+			// So convert y by (viewHeight - box.origin.y - box.height)
+			let convertedRect = CGRect(
+				x: box.origin.x * scaleX,
+				y: viewHeight - (box.origin.y + box.height) * scaleY,
+				width: box.width * scaleX,
+				height: box.height * scaleY
+			)
+
+			let path = CGPath(rect: convertedRect, transform: nil)
+
+			overlay.path = path
+			overlay.strokeColor = NSColor.red.cgColor
+			overlay.fillColor = NSColor.red.withAlphaComponent(0.2).cgColor
+			overlay.lineWidth = 2.0
+		}
+
+		@MainActor
+		private func clearDebugBox() {
+			if let debugOverlayLayer {
+				debugOverlayLayer.removeFromSuperlayer()
+				self.debugOverlayLayer = nil
+			}
+		}
+	#endif
+
 	@MainActor
 	init(targetView: NSView) {
 		self.targetView = targetView
@@ -112,6 +175,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 				throw PackerLiteDriverError.stepFailed(step: command, underlying: error)
 			}
 		}
+		#if DEBUG
+			await clearDebugBox()
+		#endif
 	}
 
 	private func execute(_ step: BootCommandStep.Step, title: String) async throws {
@@ -143,6 +209,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .locate(let label, let timeout):
 			logger.debug("[\(title)]: locate '\(label)'")
 			try await locateText(label, timeout: timeout)
+		case .scroll(let horizontal, let vertical):
+			logger.debug("[\(title)]: scroll '\(horizontal), \(vertical)'")
+			try await scroll(horizontal, vertical)
 		case .keyboard(let layout):
 			logger.debug("[\(title)]: keyboard layout \(layout.id)")
 			currentKeyTranslator = layout
@@ -167,7 +236,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		for _ in 0..<repeated {
 			self.handleKeySpecialEvent(keyCode, isDown: true)
 			self.handleKeySpecialEvent(keyCode, isDown: false)
-			
+
 			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 		}
 	}
@@ -286,7 +355,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 			guard let unmanagedList = TISCreateInputSourceList(nil, true) else {
 				return nil
 			}
-			let array = (unmanagedList.takeRetainedValue() as [AnyObject]).map { unsafeBitCast($00, to: TISInputSource.self) }
+			let array = (unmanagedList.takeRetainedValue() as [AnyObject]).map { unsafeBitCast($0, to: TISInputSource.self) }
 
 			for source in array {
 				let name = source.getLocalizedName()
@@ -430,6 +499,13 @@ final class PackerLiteDriver: @unchecked Sendable {
 		self.handlePointerEvent(nsPoint, buttonMask: 0x00)
 	}
 
+	@MainActor private func scroll(_ horizontal: Int, _ vertical: Int) async throws {
+		// Ensure the view is first responder when pointer interaction begins
+		ensureFirstResponder()
+
+		dispatchEvent(targetView.postScrollEvent(eventSource: eventSource, deltaX: Int32(horizontal), deltaY: Int32(vertical), at: lastMousePosition, modifierFlags: self.modifiers), view: targetView)
+	}
+
 	@MainActor private func clickText(_ label: String, timeout: TimeInterval) async throws {
 		let deadline = Date().addingTimeInterval(timeout)
 
@@ -470,16 +546,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 	/// converted into the top-left-origin pixel space `VNCInputHandler.handlePointerEvent` expects.
 	private func locate(text label: String) async throws -> CGPoint? {
 		// Capture the current CGImage on the main actor (AppKit view access must be on main).
-		let cgImage: CGImage? = await MainActor.run { [weak targetView] in
-			guard let image = targetView?.image(), let cg = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-				return nil
-			}
-		
-			return cg
-		}
-
-
-		guard let cgImage else {
+		guard let cgImage = await self.targetView.imageRepresentation(in: self.targetView.bounds)?.cgImage else {
 			return nil
 		}
 
@@ -492,22 +559,30 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 			do {
 				try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
-				
+
 				guard let results = request.results, !results.isEmpty else {
 					return nil
 				}
-				
+
 				let needle = label.lowercased()
-				
+
 				for observation in results {
 					guard let candidate = observation.topCandidates(1).first, candidate.string.lowercased().contains(needle) else {
 						continue
 					}
 
-					// Convert the rectangle from normalized coordinates to image coordinates.
+					// Rect in image coordinates. If you need top-left to bottom-left conversion, flip the y-origin.
 					let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(cgImage.width), Int(cgImage.height))
+					let flippedBox = CGRect(x: box.origin.x,
+											y: CGFloat(cgImage.height) - box.origin.y - box.height,
+											width: box.width,
+											height: box.height)
 
-					return CGPoint(x: box.midX, y: box.midY)
+					#if DEBUG
+						await self.showDebugBox(flippedBox, in: CGSize(width: cgImage.width, height: cgImage.height))
+					#endif
+
+					return CGPoint(x: flippedBox.midX, y: flippedBox.midY)
 				}
 			} catch {
 				logger.error("Vision OCR failed: \(error)")
@@ -881,3 +956,4 @@ extension PackerLiteDriver {
 		}
 	}
 }
+
