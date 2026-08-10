@@ -48,10 +48,11 @@ final class PackerLiteTests: XCTestCase {
 	}
 	// MARK: - Token parsing
 
-	/// `BootCommand.parse` takes a `{title, command}` `PackerLiteTemplate.Command`, not a bare
-	/// string — this wraps a raw boot_command string for tests that only care about the parsed steps.
+	/// `BootCommand.parse` takes a `{title, commands}` `PackerLiteTemplate.Command` (`commands` is a
+	/// list of token fragments concatenated together, not a bare string) — this wraps a single raw
+	/// boot_command string for tests that only care about the parsed steps.
 	private func parseSteps(_ raw: String, title: String = "test") async throws -> [BootCommandStep.Step] {
-		try await BootCommand.parse(PackerLiteTemplate.Command(title: title, command: raw)).steps
+		try await BootCommand.parse(PackerLiteTemplate.Command(title: title, commands: [raw])).steps
 	}
 
 	func testWaitTokenUnits() async throws {
@@ -89,17 +90,42 @@ final class PackerLiteTests: XCTestCase {
 		)
 	}
 
-	func testClickTextToken() async throws {
+	func testRepeatSuffixOnNamedKey() async throws {
+		let parsed = try await parseSteps("<enter repeat=3>")
+		XCTAssertEqual(parsed, [.press(.enter, repeated: 3)])
+	}
+
+	func testClickTextLegacyQuotedTokenDefaultsTimeoutToTen() async throws {
 		let parsed = try await parseSteps("<wait30s><click 'Select Your Country or Region'><wait5s>united states")
 		XCTAssertEqual(
 			parsed,
-			[.wait(30), .clickText("Select Your Country or Region"), .wait(5), .type("united states")]
+			[.wait(30), .clickText("Select Your Country or Region", timeout: 10), .wait(5), .type("united states")]
 		)
+	}
+
+	func testClickTextAttributeStyleWithExplicitTimeout() async throws {
+		let parsed = try await parseSteps("<click timeout=30 text='Select Your Country or Region'>")
+		XCTAssertEqual(parsed, [.clickText("Select Your Country or Region", timeout: 30)])
 	}
 
 	func testClickCoordinatesToken() async throws {
 		let parsed = try await parseSteps("<click 100,200>")
-		XCTAssertEqual(parsed, [.click(x: 100, y: 200)])
+		XCTAssertEqual(parsed, [.click(CGPoint(x: 100, y: 200))])
+	}
+
+	func testClickPointAttributeStyle() async throws {
+		let parsed = try await parseSteps("<click point=\"100,200\">")
+		XCTAssertEqual(parsed, [.click(CGPoint(x: 100, y: 200))])
+	}
+
+	func testLocateTokenAttributeStyle() async throws {
+		let parsed = try await parseSteps("<locate timeout=15 text='Continue'>")
+		XCTAssertEqual(parsed, [.locate("Continue", timeout: 15)])
+	}
+
+	func testLocateTokenQuotedForm() async throws {
+		let parsed = try await parseSteps("<locate 'Continue'>")
+		XCTAssertEqual(parsed, [.locate("Continue", timeout: 10)])
 	}
 
 	func testFunctionKeyToken() async throws {
@@ -158,14 +184,15 @@ final class PackerLiteTests: XCTestCase {
 		  greeting: hello
 		boot_command:
 		  - title: Sign in
-		    command: "<wait10s>${var.username}<tab>${var.password}<tab>${var.greeting}<enter>"
+		    commands:
+		      - "<wait10s>${var.username}<tab>${var.password}<tab>${var.greeting}<enter>"
 		"""
 
 		let defaults = try PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "password": "admin"])
-		XCTAssertEqual(defaults.bootCommand?.first?.command, "<wait10s>admin<tab>admin<tab>hello<enter>")
+		XCTAssertEqual(defaults.bootCommand?.first?.commands, ["<wait10s>admin<tab>admin<tab>hello<enter>"])
 
 		let overridden = try PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "password": "hunter2"])
-		XCTAssertEqual(overridden.bootCommand?.first?.command, "<wait10s>admin<tab>hunter2<tab>hello<enter>")
+		XCTAssertEqual(overridden.bootCommand?.first?.commands, ["<wait10s>admin<tab>hunter2<tab>hello<enter>"])
 	}
 
 	func testTemplateDurationDefaultsAndParsing() throws {
@@ -185,9 +212,11 @@ final class PackerLiteTests: XCTestCase {
 		let template = try PackerLiteTemplate.load(from: """
 		boot_command:
 		  - title: Fine
-		    command: "<enter>"
+		    commands:
+		      - "<enter>"
 		  - title: Broken
-		    command: "<notAToken>"
+		    commands:
+		      - "<notAToken>"
 		""")
 
 		do {
@@ -198,7 +227,7 @@ final class PackerLiteTests: XCTestCase {
 				return XCTFail("expected invalidBootCommand, got \(error)")
 			}
 			XCTAssertEqual(command.title, "Broken")
-			XCTAssertEqual(command.command, "<notAToken>")
+			XCTAssertEqual(command.commands, ["<notAToken>"])
 		}
 	}
 
@@ -243,7 +272,7 @@ final class PackerLiteTests: XCTestCase {
 			variables: ["username": "admin", "password": "admin"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains { $0.command.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
+		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
 		do {
 			_ = try await template.parsedBootCommand()
 		} catch {
@@ -257,8 +286,8 @@ final class PackerLiteTests: XCTestCase {
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.command.contains("hunter2") }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.command.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
+		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
+		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
 		do {
 			_ = try await template.parsedBootCommand()
 		} catch {
@@ -272,8 +301,8 @@ final class PackerLiteTests: XCTestCase {
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.command.contains("hunter2") }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.command.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
+		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
+		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
 		do {
 			_ = try await template.parsedBootCommand()
 		} catch {
@@ -287,8 +316,8 @@ final class PackerLiteTests: XCTestCase {
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.command.contains("hunter2") }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.command.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
+		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
+		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
 		do {
 			_ = try await template.parsedBootCommand()
 		} catch {
@@ -302,8 +331,8 @@ final class PackerLiteTests: XCTestCase {
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.command.contains("hunter2") }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.command.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
+		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
+		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
 		do {
 			_ = try await template.parsedBootCommand()
 		} catch {
@@ -339,8 +368,8 @@ final class PackerLiteTests: XCTestCase {
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.command.contains("hunter2") }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.command.contains("${var.") } == false, "all ${var.*} placeholders should have been substituted")
+		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
+		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
 		do {
 			_ = try await template.parsedBootCommand()
 		} catch {
