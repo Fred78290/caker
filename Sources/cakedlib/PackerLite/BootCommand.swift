@@ -59,6 +59,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			case .clickText(let text, let timeout): return "clickText \(text) x\(timeout)s"
 			case .locate(let text, let timeout): return "locate \(text) x\(timeout)s"
 			case .keyboard(let translator): return "keyboard \(translator)"
+			case .scroll(let vertical, let horizontal): return "scroll \(vertical),\(horizontal)"
 			}
 		}
 
@@ -70,6 +71,7 @@ public struct BootCommandStep: Equatable, Sendable {
 		case click(CGPoint)
 		case clickText(String, timeout: TimeInterval)
 		case locate(String, timeout: TimeInterval)
+		case scroll(horizontal: Int, vertical: Int)
 		case keyboard(any KeyLayoutTranslator)
 	}
 
@@ -115,15 +117,15 @@ public struct BootCommandStep: Equatable, Sendable {
 		// This function is a placeholder for potential future key parsing logic.
 		let tokens = token.split(separator: " ", maxSplits: 1)
 		var repeated = 1
-		
+
 		if tokens.count > 1 {
 			if tokens.count == 2, let repeatString = tokens.last {
 				let repeats = repeatString.split(separator: "=", maxSplits: 1)
-				
+
 				guard repeats.count == 2, repeats[0].lowercased() == "repeat", let repeatCount = Int(repeats[1]) else {
 					throw BootCommandParseError.unknownToken(token)
 				}
-				
+
 				repeated = repeatCount
 			} else {
 				throw BootCommandParseError.unknownToken(token)
@@ -370,6 +372,43 @@ public struct BootCommandStep: Equatable, Sendable {
 		throw BootCommandParseError.malformedClick(body)
 	}
 
+	/// Matches `scroll horizontal=10 vertical=20`, `scroll horizontal="10" vertical="20"`, or `scroll 20` (vertical only)
+	private static func parseScroll(_ body: String) throws -> BootCommandStep.Step {
+		let rest = body.dropFirst("scroll".count).trimmingCharacters(in: .whitespaces)
+		var horizontal: Int = 0
+		var vertical: Int = 0
+
+		// Attribute-style: key=value pairs
+		if rest.contains("=") {
+			let attributes = try parseAttributes(String(rest))
+
+			if let text = attributes["horizontal"] {
+				let text = trimMatchingQuotes(text)
+
+				if let value = Int(text) {
+					horizontal = value
+				}
+			}
+
+			if let text = attributes["vertical"] {
+				let text = trimMatchingQuotes(text)
+
+				if let value = Int(text) {
+					vertical = value
+				}
+			}
+
+			return .scroll(horizontal: horizontal, vertical: vertical)
+		}
+
+		// Quoted text form
+		if let value = Int(trimMatchingQuotes(String(rest.trimmingCharacters(in: .whitespaces)))) {
+			return .scroll(horizontal: 0, vertical: value)
+		}
+
+		throw BootCommandParseError.malformedScroll(body)
+	}
+
 	/// Parses a simple list of key=value attributes separated by whitespace.
 	/// Supports values wrapped in single or double quotes and unquoted tokens without spaces.
 	private static func parseAttributes(_ input: String) throws -> [String: String] {
@@ -398,7 +437,7 @@ public struct BootCommandStep: Equatable, Sendable {
 				while i < input.endIndex, input[i] != quote { i = input.index(after: i) }
 				guard i < input.endIndex else { throw BootCommandParseError.malformedClick("click " + input) }
 				value = String(input[valueStart..<i])
-				i = input.index(after: i) // consume closing quote
+				i = input.index(after: i)  // consume closing quote
 			} else {
 				let valueStart = i
 				while i < input.endIndex, input[i].isWhitespace == false { i = input.index(after: i) }
@@ -421,6 +460,7 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 	case unterminatedToken(String)
 	case unknownToken(String)
 	case malformedClick(String)
+	case malformedScroll(String)
 	case malformedKeyboard(String)
 	case keyboardNotFound(String)
 
@@ -429,6 +469,7 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 		case .unterminatedToken(let remainder): return "Unterminated boot_command token starting at: \(remainder)"
 		case .unknownToken(let token): return "Unknown boot_command token: <\(token)>"
 		case .malformedClick(let token): return "Malformed click token: <\(token)>"
+		case .malformedScroll(let token): return "Malformed scroll token: <\(token)>"
 		case .malformedKeyboard(let token): return "Malformed keyboard token: <\(token)>"
 		case .keyboardNotFound(let keyboard): return "Keyboard not found: <\(keyboard)>"
 		}
