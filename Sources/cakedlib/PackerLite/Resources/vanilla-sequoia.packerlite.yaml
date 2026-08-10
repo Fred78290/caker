@@ -171,22 +171,17 @@ boot_command:
   - title: Screen Time
     commands: 
       - <locate text='Screen Time'>
-      - <tab>
-      - <spacebar>
-
-  - title: Siri
-    commands: 
-      - <wait10s>
-      - <tab>
-      - <spacebar>
       - <leftShiftOn>
       - <tab>
-      - <leftShiftOff>
+      - <leftShiftOff> 
       - <spacebar>
 
   - title: Choose Your Look
     commands: 
       - <locate text='Choose Your Look'>
+       - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff> 
       - <spacebar>
 
   - title: Update Mac Automatically
@@ -196,7 +191,7 @@ boot_command:
       - <spacebar>
 
   - title: Welcome to Mac
-    commands: 
+    commands:
       - <wait10s>
       - <spacebar>
 
@@ -215,13 +210,16 @@ boot_command:
       - <spacebar>
       - <leftAltOff>
       - Terminal.app
-      - <wait5s>
+      - <wait30s>
       - <enter>
 
   - title: Enable full keyboard access
     commands: 
       - <wait10s>
       - defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
+      - <enter>
+      - <wait1s>
+      - defaults write  com.apple.VoiceOverTraining doNotShowSplashScreen -int 1
       - <enter>
 
   - title: Quit Terminal
@@ -258,9 +256,6 @@ boot_command:
       - <f5>
       - <fnOff>
       - <leftAltOff>
-      - <click 'Do not show this message again'>
-      - <wait1s>
-      - <click 'Use VoiceOver'>
 
   - title: Enable Remote login
     commands: 
