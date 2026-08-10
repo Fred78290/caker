@@ -128,6 +128,16 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertEqual(parsed, [.locate("Continue", timeout: 10)])
 	}
 
+	func testScrollTokenAttributeStyle() async throws {
+		let parsed = try await parseSteps("<scroll horizontal=5 vertical=-10>")
+		XCTAssertEqual(parsed, [.scroll(horizontal: 5, vertical: -10)])
+	}
+
+	func testScrollTokenBareVerticalForm() async throws {
+		let parsed = try await parseSteps("<scroll 20>")
+		XCTAssertEqual(parsed, [.scroll(horizontal: 0, vertical: 20)])
+	}
+
 	func testFunctionKeyToken() async throws {
 		let parsed = try await parseSteps("<leftAltOn><f5><leftAltOff>")
 		XCTAssertEqual(

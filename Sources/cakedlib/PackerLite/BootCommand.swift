@@ -177,6 +177,10 @@ public struct BootCommandStep: Equatable, Sendable {
 			return try parseLocate(body)
 		}
 
+		if lower.hasPrefix("scroll") {
+			return try parseScroll(body)
+		}
+
 		if let tokenStep = try parseKey(lower) {
 			return tokenStep
 		}

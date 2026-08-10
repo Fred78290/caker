@@ -176,7 +176,21 @@ cakectl build my-vm ./restore.ipsw --autoinstall --var greeting=hello
 
 **Templates Linux intégrés** : cinq templates sont également fournis en ressources embarquées, sous les mêmes noms de fichiers `linux-*.packerlite.yaml` : `linux-fedora` (Fedora Workstation, Anaconda), `linux-centos` (CentOS Stream, Anaconda), `linux-redhat` (RHEL, Anaconda — `redhat` **et** `rhel` sont tous deux reconnus dans le nom de fichier), `linux-opensuse` (openSUSE Leap, YaST) et `linux-debian` (Debian, debian-installer). **Aucun de ces cinq n'a été validé sur un vrai démarrage** — contrairement aux templates macOS transcrits depuis des recettes Packer fonctionnelles, ceux-ci ont seulement été relus pour leur plausibilité et testés unitairement pour leur analyse syntaxique ; attendez-vous à devoir ajuster les cibles de clic. Ubuntu n'a pas de template PackerLite (utilise cloud-init/subiquity) ; toute autre distribution nécessite un `--template` personnalisé.
 
-**Format du template** — un YAML minimal avec une liste `boot_command` d'entrées `title`/`command` reprenant le vocabulaire de tokens de Packer (`<wait10s>`, `<enter>`, `<tab>`, `<leftShiftOn>`/`<leftShiftOff>`, `<fnOn>`/`<fnOff>`, `<f1>`–`<f20>`, `<click 'Texte affiché'>` — repéré par OCR via Vision —, `<keyboard 'com.apple.keylayout.XXX'>` ou `<keyboard 'current'>` pour changer la disposition clavier utilisée pour traduire les caractères tapés, etc.), plus `variables:`, `create_grace_time` et `boot_timeout`. Le `title` de chaque entrée est affiché comme sous-étape de progression et dans les logs — utile pour repérer où un provisioning s'est arrêté. `${var.username}`/`${var.password}` sont toujours injectées par `caked` (voir ci-dessus) ; les autres `${var.*}` viennent de `variables:` ou d'un `--var` correspondant.
+**Format du template** — un YAML minimal avec une liste `boot_command` d'entrées `title`/`commands` (`commands` est une **liste** de fragments de tokens/texte, concaténés bout à bout — pas une seule chaîne — ce qui permet de mettre un token par ligne pour la lisibilité) reprenant le vocabulaire de tokens de Packer, plus `variables:`, `create_grace_time` et `boot_timeout`. Le `title` de chaque entrée est affiché comme sous-étape de progression et dans les logs — utile pour repérer où un provisioning s'est arrêté. `${var.username}`/`${var.password}` sont toujours injectées par `caked` (voir ci-dessus) ; les autres `${var.*}` viennent de `variables:` ou d'un `--var` correspondant.
+
+Vocabulaire de tokens pris en charge :
+
+| Token | Description |
+| --- | --- |
+| `<wait10s>`, `<wait1m>`, `<wait>` | Pause avant le token suivant (secondes par défaut, `s`/`m` acceptés ; `<wait>` seul = 1 s). |
+| `<enter>`, `<tab>`, `<spacebar>`, `<esc>`, etc. | Frappe d'une touche nommée. Accepte un suffixe `repeat=N` pour répéter la frappe N fois en une seule fois, ex. `<tab repeat=3>`. |
+| `<f1>` – `<f20>` | Touches de fonction. |
+| `<leftShiftOn>`/`<leftShiftOff>`, `<fnOn>`/`<fnOff>`, etc. | Maintien/relâchement d'une touche de modification, à englober autour d'autres tokens. |
+| `<click 'Texte affiché'>` ou `<click text='...' timeout=N>` | Recherche `Texte affiché` par OCR (Vision) et clique dessus ; réessaie jusqu'à expiration du délai (10 s par défaut, `timeout=N` pour le changer). |
+| `<click X,Y>` ou `<click point="X,Y">` | Clique à des coordonnées d'écran fixes (`CGPoint`), sans OCR. |
+| `<locate 'Texte affiché'>` ou `<locate text='...' timeout=N>` | Attend, via OCR, que `Texte affiché` apparaisse à l'écran — **sans cliquer** ; sert de point de synchronisation avant d'enchaîner des `<tab>`/`<spacebar>` à l'aveugle, plus robuste qu'un simple `<waitNs>` quand le délai d'affichage d'un écran varie. |
+| `<scroll N>` ou `<scroll horizontal=N vertical=N>` | Émet un événement de défilement (molette) à la position actuelle du curseur ; la forme `<scroll N>` ne défile que verticalement. |
+| `<keyboard 'com.apple.keylayout.XXX'>` ou `<keyboard 'current'>` | Change la disposition clavier utilisée pour traduire les caractères tapés à partir de ce point. |
 
 ```yaml
 # mon-template.packerlite.yaml — extrait illustratif
@@ -188,17 +202,53 @@ variables:
 
 boot_command:
   - title: Écran de bienvenue
-    command: "<wait60s><spacebar>"
+    commands:
+      - <wait60s>
+      - <spacebar>
+
   - title: Sélection de la langue
-    command: "<wait30s>italiano<esc>english<enter>"
+    commands:
+      - <wait30s>
+      - italiano
+      - <esc>
+      - english
+      - <enter>
+
   - title: Sélection du pays ou de la région
-    command: "<wait30s><click 'Select Your Country or Region'><wait5s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
+    commands:
+      - <click timeout=30 text='Select Your Country or Region'>
+      - <wait5s>
+      - united states
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Transfert de données (synchronisation par OCR avant de continuer)
+    commands:
+      - <locate timeout=30 text='Transfer Your Data to This Mac'>
+      - <tab repeat=3>
+      - <spacebar>
+
   - title: Création du compte
-    command: "<wait10s>${var.username}<tab>${var.password}<tab>${var.password}<tab><tab><spacebar>"
+    commands:
+      - "${var.username}"
+      - <tab>
+      - "${var.password}"
+      - <tab>
+      - "${var.password}"
+      - <tab>
+      - <tab>
+      - <spacebar>
+
   - title: Désactivation de Gatekeeper
-    command: "<wait10s>sudo spctl --global-disable<enter>"
-  - title: Confirmation du mot de passe
-    command: "<wait10s>${var.password}<enter>"
+    commands:
+      - <wait10s>
+      - "sudo spctl --global-disable"
+      - <enter>
+      - <wait1s>
+      - "${var.password}"
+      - <enter>
 ```
 
 Voir `Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml` (tous les templates embarqués — macOS `vanilla-*` et Linux `linux-*`, avec les titres) pour des exemples complets et entièrement commentés.
@@ -644,7 +694,21 @@ cakectl build my-vm ./restore.ipsw --autoinstall --var greeting=hello
 
 **Built-in Linux templates**: five templates also ship as embedded resources, under matching `linux-*.packerlite.yaml` filenames: `linux-fedora` (Fedora Workstation, Anaconda), `linux-centos` (CentOS Stream, Anaconda), `linux-redhat` (RHEL, Anaconda — both `redhat` and `rhel` are recognized in the filename), `linux-opensuse` (openSUSE Leap, YaST), and `linux-debian` (Debian, debian-installer). **None of these five have been validated against a real boot** — unlike the macOS templates, which were transcribed from working Packer recipes, these were only reviewed for plausibility and unit-tested for parseability; expect to need to adjust click targets. Ubuntu has no PackerLite template (uses cloud-init/subiquity instead); any other distro needs a custom `--template`.
 
-**Template format** — a minimal YAML file with a `boot_command` list of `title`/`command` entries using Packer's token vocabulary (`<wait10s>`, `<enter>`, `<tab>`, `<leftShiftOn>`/`<leftShiftOff>`, `<fnOn>`/`<fnOff>`, `<f1>`–`<f20>`, `<click 'On-screen text'>` — located via Vision OCR —, `<keyboard 'com.apple.keylayout.XXX'>` or `<keyboard 'current'>` to switch the keyboard layout used to translate typed characters at runtime, etc.), plus `variables:`, `create_grace_time`, and `boot_timeout`. Each entry's `title` is surfaced as a progress substep and in the logs — handy for spotting exactly where a provisioning run stalled. `${var.username}`/`${var.password}` are always injected by `caked` (see above); any other `${var.*}` comes from `variables:` or a matching `--var`.
+**Template format** — a minimal YAML file with a `boot_command` list of `title`/`commands` entries (`commands` is a **list** of token/text fragments, concatenated together — not a single string — so you can put one token per line for readability) using Packer's token vocabulary, plus `variables:`, `create_grace_time`, and `boot_timeout`. Each entry's `title` is surfaced as a progress substep and in the logs — handy for spotting exactly where a provisioning run stalled. `${var.username}`/`${var.password}` are always injected by `caked` (see above); any other `${var.*}` comes from `variables:` or a matching `--var`.
+
+Supported token vocabulary:
+
+| Token | Description |
+| --- | --- |
+| `<wait10s>`, `<wait1m>`, `<wait>` | Pause before the next token (seconds by default, `s`/`m` accepted; bare `<wait>` = 1s). |
+| `<enter>`, `<tab>`, `<spacebar>`, `<esc>`, etc. | Press a named key. Accepts a `repeat=N` suffix to press it N times in one go, e.g. `<tab repeat=3>`. |
+| `<f1>` – `<f20>` | Function keys. |
+| `<leftShiftOn>`/`<leftShiftOff>`, `<fnOn>`/`<fnOff>`, etc. | Hold/release a modifier key, wrapped around other tokens. |
+| `<click 'On-screen text'>` or `<click text='...' timeout=N>` | Locates `On-screen text` via Vision OCR and clicks it; retries until the timeout elapses (10s by default, `timeout=N` to change it). |
+| `<click X,Y>` or `<click point="X,Y">` | Clicks a fixed screen coordinate (`CGPoint`), no OCR involved. |
+| `<locate 'On-screen text'>` or `<locate text='...' timeout=N>` | Waits, via OCR, for `On-screen text` to appear — **without clicking**; a synchronization point before blindly chaining `<tab>`/`<spacebar>` steps, more robust than a bare `<waitNs>` when a screen's appearance time varies. |
+| `<scroll N>` or `<scroll horizontal=N vertical=N>` | Emits a scroll-wheel event at the current cursor position; `<scroll N>` scrolls vertically only. |
+| `<keyboard 'com.apple.keylayout.XXX'>` or `<keyboard 'current'>` | Switches the keyboard layout used to translate typed characters from this point on. |
 
 ```yaml
 # my-template.packerlite.yaml — illustrative excerpt
@@ -656,17 +720,53 @@ variables:
 
 boot_command:
   - title: Welcome screen
-    command: "<wait60s><spacebar>"
+    commands:
+      - <wait60s>
+      - <spacebar>
+
   - title: Select Language
-    command: "<wait30s>italiano<esc>english<enter>"
+    commands:
+      - <wait30s>
+      - italiano
+      - <esc>
+      - english
+      - <enter>
+
   - title: Select Your Country or Region
-    command: "<wait30s><click 'Select Your Country or Region'><wait5s>united states<leftShiftOn><tab><leftShiftOff><spacebar>"
+    commands:
+      - <click timeout=30 text='Select Your Country or Region'>
+      - <wait5s>
+      - united states
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Transfer data (OCR-synchronized before continuing)
+    commands:
+      - <locate timeout=30 text='Transfer Your Data to This Mac'>
+      - <tab repeat=3>
+      - <spacebar>
+
   - title: Create Account
-    command: "<wait10s>${var.username}<tab>${var.password}<tab>${var.password}<tab><tab><spacebar>"
+    commands:
+      - "${var.username}"
+      - <tab>
+      - "${var.password}"
+      - <tab>
+      - "${var.password}"
+      - <tab>
+      - <tab>
+      - <spacebar>
+
   - title: Disable Gatekeeper
-    command: "<wait10s>sudo spctl --global-disable<enter>"
-  - title: Confirm password
-    command: "<wait10s>${var.password}<enter>"
+    commands:
+      - <wait10s>
+      - "sudo spctl --global-disable"
+      - <enter>
+      - <wait1s>
+      - "${var.password}"
+      - <enter>
 ```
 
 See `Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml` (every bundled template — macOS `vanilla-*` and Linux `linux-*`, with titles) for full, fully-commented examples.
