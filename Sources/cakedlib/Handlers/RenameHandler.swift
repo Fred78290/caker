@@ -8,13 +8,22 @@ public struct RenameHandler {
 		let oldname = location.name
 
 		do {
-			if case .running = location.status {
+			switch location.status {
+			case .running:
 				return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: String(localized: "VM is running"))
+			case .paused:
+				return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: String(localized: "VM is paused"))
+			case .stopped:
+				break
+			}
+
+			guard oldname != newname else {
+				return RenameReply(oldName: oldname, newName: newname, renamed: true, reason: String(localized: "VM renamed"))
 			}
 
 			let storage = StorageLocation(runMode: runMode)
 
-			guard oldname == newname || storage.exists(newname) == false else {
+			guard storage.exists(newname) == false else {
 				return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: String(localized: "Target vm already exists"))
 			}
 

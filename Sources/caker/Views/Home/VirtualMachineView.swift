@@ -173,7 +173,7 @@ struct VirtualMachineView: View {
 
 			Button("Rename") {
 				self.vm.renameVirtualMachine()
-			}.disabled(self.vm.status.isRunning)
+			}.disabled(self.vm.status.isRunning || self.vm.status == .paused)
 
 			Button("Delete VM") {
 				self.vm.deleteVirtualMachine()
