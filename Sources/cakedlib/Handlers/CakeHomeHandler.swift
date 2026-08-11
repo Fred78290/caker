@@ -24,6 +24,11 @@ public struct CakeHomeHandler {
 			if runningCount > 0 {
 				blockers.append(String(localized: "\(runningCount) virtual machine(s) running"))
 			}
+		} else {
+			// Be conservative: if we can't enumerate VMs (permissions/IO error), don't silently
+			// treat that as "nothing running" — relocating out from under a VM we failed to see
+			// would risk corrupting its disk.
+			blockers.append(String(localized: "unable to determine whether any virtual machine is running"))
 		}
 
 		let runningNetworks = NetworksHandler.networks(all: true, runMode: runMode).networks.filter { $0.running }
@@ -89,7 +94,10 @@ public struct CakeHomeHandler {
 				throw ServiceError(String(localized: "Destination path exists and is not a directory: \(destination.path(percentEncoded: false))"))
 			}
 
-			guard try fm.contentsOfDirectory(atPath: destination.path(percentEncoded: false)).isEmpty else {
+			// Ignore hidden entries: the root of a freshly mounted volume commonly carries
+			// invisible system metadata (.Spotlight-V100, .fseventsd, .Trashes, ...), which
+			// shouldn't disqualify it as a relocation target.
+			guard try fm.contentsOfDirectory(at: destination, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]).isEmpty else {
 				throw ServiceError(String(localized: "Destination directory is not empty: \(destination.path(percentEncoded: false))"))
 			}
 		} else {
