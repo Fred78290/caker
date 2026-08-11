@@ -18,6 +18,7 @@ public enum CakedKeyConfig: String, CaseIterable {
 	case privilegedMounts = "local.privileged-mounts"
 	case primaryName = "client.primary-name"
 	case imdsEnabled = "client.imds-enabled"
+	case cakeHome = "local.cake-home"
 	
 	/// Sets a configuration value for the given key. This shim delegates to Keychain storage.
 	/// Replace this with the real API if available (e.g., CakedLib.Config or SettingsHandler).

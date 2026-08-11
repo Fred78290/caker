@@ -137,12 +137,22 @@ public struct Utils {
 		return false
 	}
 
+	/// Discards the cached home directory so a subsequent `getHome` call re-resolves it.
+	/// Must be called after relocating the cake home directory to a new path.
+	public static func resetHomeCache() {
+		homeDirectories.removeAll()
+	}
+
 	public static func getHome(runMode: RunMode, createItIfNotExists: Bool = true) throws -> URL {
 		guard let cakeHomeDir = homeDirectories[runMode.isSystem] else {
 			var cakeHomeDir: URL
 
 			if let customHome = ProcessInfo.processInfo.environment["CAKE_HOME"] {
 				cakeHomeDir = URL(fileURLWithPath: customHome)
+			} else if Bundle.isApplicationSandboxed == false, let relocatedHome = CakedKeyConfig.cakeHome.string(), relocatedHome.isEmpty == false {
+				// Non-App Store builds only: the App Store build is sandboxed and must always use
+				// its App Group container, which cannot be relocated.
+				cakeHomeDir = URL(fileURLWithPath: relocatedHome, isDirectory: true)
 			} else if Bundle.isApplicationSandboxed {
 				if runMode.isSystem {
 					cakeHomeDir = URL(fileURLWithPath: "/var/root/Library/Group Containers/group.\(cakerSignature)")
