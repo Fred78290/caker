@@ -725,6 +725,53 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		}
 	}
 
+	func renameVirtualMachine(document vm: VirtualMachineDocument) {
+		let alert = NSAlert()
+		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+
+		alert.messageText = String(localized: "Rename virtual machine")
+		alert.informativeText = String(localized: "New name for \(vm.name)")
+		alert.alertStyle = .informational
+		alert.addButton(withTitle: String(localized: "Rename"))
+		alert.addButton(withTitle: String(localized: "Cancel"))
+
+		txt.stringValue = vm.name
+		alert.accessoryView = txt
+
+		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
+			let newName = txt.stringValue
+
+			do {
+				let result = try vm.renameVirtualMachine(to: newName)
+
+				if result.renamed {
+					let oldURL = vm.url
+
+					if self.connectionMode == .app {
+						let location = try StorageLocation(runMode: self.connectionMode.runMode).find(newName)
+						self.removeVirtualMachineDocument(oldURL)
+						self.addVirtualMachineDocument(location.rootURL)
+					} else if let vmURL = URL(spaced: "\(VMLocation.scheme)://\(newName)") {
+						self.removeVirtualMachineDocument(oldURL)
+						self.addVirtualMachineDocument(vmURL)
+					} else {
+						DispatchQueue.main.async {
+							alertError(String(localized: "Failed to rename virtual machine"), String(localized: "Internal error: invalid VM location URL"))
+						}
+					}
+				} else {
+					DispatchQueue.main.async {
+						alertError(String(localized: "Failed to rename virtual machine"), result.reason)
+					}
+				}
+			} catch {
+				DispatchQueue.main.async {
+					alertError(error)
+				}
+			}
+		}
+	}
+
 	func saveConfiguration(document vm: VirtualMachineDocument) {
 		vm.saveConfiguration()
 	}
