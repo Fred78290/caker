@@ -217,6 +217,14 @@ struct AdvancedSettingsView: View {
 				await MainActor.run {
 					cakeHomePath = newHome.path(percentEncoded: false)
 					isRelocating = false
+
+					// AppState.shared's app-mode ConnectionManager (its VM/network/template
+					// lists and its directory watcher) was loaded from the old CAKE_HOME path.
+					// Reload and propagate the new location now instead of leaving it stale
+					// until some unrelated event happens to trigger a refresh.
+					if AppState.shared.connectionMode == .app {
+						AppState.shared.connectToLocal()
+					}
 				}
 			} catch {
 				await MainActor.run {
