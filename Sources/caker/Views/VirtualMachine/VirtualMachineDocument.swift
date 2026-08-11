@@ -1024,6 +1024,10 @@ extension VirtualMachineDocument {
 		try self.connectionManager.duplicateVirtualMachine(vmURL: self.url, to: to, resetMacAddress: true)
 	}
 
+	func renameVirtualMachine(to: String) throws -> RenameReply {
+		try self.connectionManager.renameVirtualMachine(vmURL: self.url, to: to)
+	}
+
 	func saveConfiguration() {
 		let connectionMode = self.connectionManager.connectionMode
 

@@ -171,6 +171,10 @@ struct VirtualMachineView: View {
 				self.vm.duplicateVirtualMachine()
 			}.disabled(self.vm.status.isRunning)
 
+			Button("Rename") {
+				self.vm.renameVirtualMachine()
+			}.disabled(self.vm.status.isRunning)
+
 			Button("Delete VM") {
 				self.vm.deleteVirtualMachine()
 			}.disabled(vm.status.isRunning)

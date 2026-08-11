@@ -179,4 +179,10 @@ func osIconImage(for osname: String) -> some View {
 			AppState.shared.duplicateVirtualMachine(document: vm)
 		}
 	}
+
+	func renameVirtualMachine() {
+		if let vm = AppState.shared.findVirtualMachineDocument(self.url) {
+			AppState.shared.renameVirtualMachine(document: vm)
+		}
+	}
 }
