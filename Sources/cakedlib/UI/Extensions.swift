@@ -9,6 +9,7 @@ import Foundation
 import QuartzCore
 import GRPCLib
 import SwiftUI
+import Carbon
 
 extension CGEvent {
 	var dumpEvent: String {
@@ -51,9 +52,24 @@ extension NSEvent.ModifierFlags: @retroactive CustomStringConvertible {
 		if contains(.numericPad) { result.append("Numeric") }
 		if contains(.help) { result.append("Help") }
 		if contains(.function) { result.append("Function") }
-		if contains(.function) { result.append("DeviceIndependentFlagsMask") }
+		if contains(.deviceIndependentFlagsMask) { result.append("DeviceIndependentFlagsMask") }
 
 		return result.joined(separator: ", ")
+	}
+	
+	public var keyCodes: [CGKeyCode] {
+		var result: [CGKeyCode] = []
+
+		if contains(.capsLock) { result.append(CGKeyCode(kVK_CapsLock)) }
+		if contains(.shift) { result.append(CGKeyCode(kVK_Shift)) }
+		if contains(.control) { result.append(CGKeyCode(kVK_Control)) }
+		if contains(.option) { result.append(CGKeyCode(kVK_Option)) }
+		if contains(.command) { result.append(CGKeyCode(kVK_Command)) }
+		if contains(.numericPad) { result.append(CGKeyCode(kVK_ANSI_KeypadClear)) }
+		if contains(.help) { result.append(CGKeyCode(kVK_Help)) }
+		if contains(.function) { result.append(CGKeyCode(kVK_Function)) }
+
+		return result
 	}
 }
 

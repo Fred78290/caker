@@ -26,7 +26,7 @@ boot_command:
 
   - title: Select Language
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='https://www.apple.com/fr/legal/sla/'>
       - italiano
       - <esc>
       - english
@@ -121,7 +121,7 @@ boot_command:
 
   - title: Terms and Conditions
     commands: 
-      - <locate text='Terms and Conditions'>
+      - <locate timeout=30 text='Terms and Conditions'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -129,13 +129,13 @@ boot_command:
 
   - title: I have read and agree to the macOS Software License Agreement
     commands: 
-      - <wait10s>
+      - <wait2s>
       - <tab>
       - <spacebar>
 
   - title: Enable Location Services
     commands: 
-      - <locate text='Enable Location Services'>
+      - <locate timeout=30 text='Enable Location Services'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -149,7 +149,7 @@ boot_command:
 
   - title: Select Your Time Zone
     commands: 
-      - <locate text='Select Your Time Zone'>
+      - <locate timeout=30 text='Select Your Time Zone'>
       - <tab>
       - <tab>
       - UTC
@@ -162,7 +162,7 @@ boot_command:
 
   - title: Analytics
     commands: 
-      - <locate text='Analytics'>
+      - <locate timeout=30 text='Analytics'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -170,23 +170,34 @@ boot_command:
 
   - title: Screen Time
     commands: 
-      - <locate text='Screen Time'>
+      - <locate timeout=30 text='Screen Time'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff> 
       - <spacebar>
 
+    # Siri on in european languages, off in US English
+  - title: Siri
+    commands: 
+      - <skipNotFound timeout=10 text='Siri'>
+      - <tab>
+      - <spacebar>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
   - title: Choose Your Look
     commands: 
-      - <locate text='Choose Your Look'>
-       - <leftShiftOn>
+      - <locate timeout=30 text='Choose Your Look'>
+      - <leftShiftOn>
       - <tab>
       - <leftShiftOff> 
       - <spacebar>
 
   - title: Update Mac Automatically
     commands: 
-      - <locate text='Update Mac Automatically'>
+      - <locate timeout=30 text='Update Mac Automatically'>
       - <tab>
       - <spacebar>
 
@@ -209,13 +220,13 @@ boot_command:
       - <leftAltOn>
       - <spacebar>
       - <leftAltOff>
-      - Terminal.app
-      - <wait30s>
+      - Terminal
+      - <wait1s>
       - <enter>
 
   - title: Enable full keyboard access
     commands: 
-      - <wait10s>
+      - <wait5s>
       - defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
       - <enter>
       - <wait1s>
@@ -224,140 +235,145 @@ boot_command:
 
   - title: Quit Terminal
     commands: 
-      - <wait10s>
+      - <wait1s>
       - <leftAltOn>
       - q
       - <leftAltOff>
 
   - title: Open System Settings
     commands: 
-      - <wait10s>
+      - <wait1s>
       - <leftAltOn>
       - <spacebar>
       - <leftAltOff>
       - System Settings
+      - <wait1s>
       - <enter>
 
   - title: Navigate to Sharing
     commands: 
-      - <wait10s>
-      - <tab>
-      - remote login
-      - <wait1s>
-      - <enter>
-      - <wait5s>
-      - <down>
-
-  - title: Enable Voice Over
-    commands: 
-      - <wait2s>
-      - <leftAltOn>
+      - <locate text='Software Update'>
+      - <leftCtrlOn>
       - <fnOn>
-      - <f5>
+      - <f2>
       - <fnOff>
-      - <leftAltOff>
+      - <leftCtrlOff>
+      - <right repeat=3>
+      - <down>
+      - Sharing
+      - <enter>
 
-  - title: Enable Remote login
+  - title: Navigate to "Screen Sharing" and enable it
     commands: 
-      - <wait2s>
-      - <click 'Administrators'>
-      - <tab repeat=5>
-      - <spacebar>
-
-  - title: Close Remote Login
-    commands: 
+      - <locate text='Screen Sharing'>
       - <tab repeat=7>
       - <spacebar>
 
-  - title: Disable Voice Over
+  - title: Navigate to "Remote Login" and enable it
     commands: 
-      - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
-      - <leftAltOff>
+      - <tab repeat=12>
+      - <spacebar>
 
   - title: Quit System Settings
     commands: 
-      - <wait10s>
       - <leftAltOn>
       - q
       - <leftAltOff>
 
-  - title: Disable Gatekeeper (1/2)
+  - title: Open Terminal to Disable Gatekeeper
     commands: 
-      - <wait10s>
       - <leftAltOn>
       - <spacebar>
       - <leftAltOff>
       - Terminal
       - <enter>
 
-  - title: Disable Gatekeeper (1/2)
+  - title: Disable Gatekeeper
     commands: 
-      - <wait10s>
+      - <wait5s>
       - sudo spctl --global-disable
       - <enter>
-
-  - title: Disable Gatekeeper (1/2)
-    commands: 
-      - <wait10s>
+      - <wait2s>
       - ${var.password}
       - <enter>
-
-  - title: Disable Gatekeeper (1/2)
-    commands: 
-      - <wait10s>
+      - <wait2s>
       - <leftAltOn>
       - q
       - <leftAltOff>
 
-  - title: Disable Gatekeeper (2/2)
+  - title: Open System Settings for Disable Gatekeeper
     commands: 
-      - <wait10s>
-      - <tab>
-      - Privacy & Security
-      - <enter>
-
-  - title: Enable Voice Over
-    commands: 
-      - <wait2s>
+      - <wait1s>
       - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
+      - <spacebar>
       - <leftAltOff>
-
-  - title: Disable Gatekeeper (2/2)
-    commands: 
-      - <wait5s>
-      - <tab repeat=28>
-      - <down repeat=2>
+      - System Settings
+      - <wait1s>
       - <enter>
 
-  - title: Disable Gatekeeper (2/2)
+  - title: Navigate to "Privacy & Security"
+    commands: 
+      - <locate text='Software Update'>
+      - <leftCtrlOn>
+      - <fnOn>
+      - <f2>
+      - <fnOff>
+      - <leftCtrlOff>
+      - <right repeat=3>
+      - <down>
+      - "Privacy & Security"
+      - <enter>
+
+  - title: Navigate to "Allow apps downloaded from" and enable "Everywhere"
+    commands: 
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <down>
+      - <wait1s>
+      - <down>
+      - <wait1s>
+      - <enter>
+
+  - title: Enter password to disable Gatekeeper
     commands: 
       - <wait1s>
       - ${var.password}
       - <enter>
 
-  - title: Disable Gatekeeper (2/2)
+  - title: Confirm Gatekeeper disable
     commands: 
-      - <wait1s>
+      - <wait5s>
+      - <leftShiftOn>
       - <tab>
+      - <leftShiftOff>
+      - <wait1s>
       - <spacebar>
-
-  - title: Disable Voice Over
-    commands: 
-      - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
-      - <leftAltOff>
 
   - title: Quit System Settings
     commands: 
-      - <wait10s>
+      - <wait5s>
       - <leftAltOn>
       - q
       - <leftAltOff>

@@ -58,6 +58,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			case .click(let point): return "click \(point)"
 			case .clickText(let text, let timeout): return "clickText \(text) x\(timeout)s"
 			case .locate(let text, let timeout): return "locate \(text) x\(timeout)s"
+			case .skipNotFound(let text, let timeout): return "skipNotFound \(text) x\(timeout)s"
 			case .keyboard(let translator): return "keyboard \(translator)"
 			case .scroll(let vertical, let horizontal): return "scroll \(vertical),\(horizontal)"
 			}
@@ -71,6 +72,7 @@ public struct BootCommandStep: Equatable, Sendable {
 		case click(CGPoint)
 		case clickText(String, timeout: TimeInterval)
 		case locate(String, timeout: TimeInterval)
+		case skipNotFound(String, timeout: TimeInterval)
 		case scroll(horizontal: Int, vertical: Int)
 		case keyboard(any KeyLayoutTranslator)
 	}
@@ -175,6 +177,10 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		if lower.hasPrefix("locate") {
 			return try parseLocate(body)
+		}
+
+		if lower.hasPrefix("skipnotfound") {
+			return try parseSkipNotFound(body)
 		}
 
 		if lower.hasPrefix("scroll") {
@@ -360,20 +366,62 @@ public struct BootCommandStep: Equatable, Sendable {
 			}
 
 			// Unknown attributes
-			throw BootCommandParseError.malformedClick(body)
+			throw BootCommandParseError.malformedLocate(body)
 		}
 
 		// Quoted text form
 		if let quote = rest.first, quote == "'" || quote == "\"" {
 			guard rest.count >= 2, rest.last == quote else {
-				throw BootCommandParseError.malformedClick(body)
+				throw BootCommandParseError.malformedLocate(body)
 			}
 
 			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
 			return .locate(String(rest.dropFirst().dropLast()), timeout: 10)
 		}
 
-		throw BootCommandParseError.malformedClick(body)
+		throw BootCommandParseError.malformedLocate(body)
+	}
+
+	/// Matches `skipNotFound 'Some Text'"
+	private static func parseSkipNotFound(_ body: String) throws -> BootCommandStep.Step {
+		// Support formats:
+		// 1) locate 'Some Text' or locate "Some Text"
+		// 3) locate timeout=10 text="Some Text"
+		let rest = body.dropFirst("skipnotfound".count).trimmingCharacters(in: .whitespaces)
+
+		// Attribute-style: key=value pairs
+		if rest.contains("=") {
+			let attributes = try parseAttributes(String(rest))
+
+			if let textValue = attributes["text"] {
+				let text = trimMatchingQuotes(textValue)
+				let timeout: TimeInterval
+
+				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
+					timeout = parsed
+				} else {
+					// Default to 10 seconds if not provided
+					timeout = 10
+				}
+
+				return .skipNotFound(text, timeout: timeout)
+			}
+
+			// Unknown attributes
+			throw BootCommandParseError.malformedSkipNotFound(body)
+		}
+
+		// Quoted text form
+		if let quote = rest.first, quote == "'" || quote == "\"" {
+			guard rest.count >= 2, rest.last == quote else {
+				throw BootCommandParseError.malformedSkipNotFound(body)
+			}
+
+			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
+			return .skipNotFound(String(rest.dropFirst().dropLast()), timeout: 10)
+		}
+
+		throw BootCommandParseError.malformedSkipNotFound(body)
 	}
 
 	/// Matches `scroll horizontal=10 vertical=20`, `scroll horizontal="10" vertical="20"`, or `scroll 20` (vertical only)
@@ -464,6 +512,8 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 	case unterminatedToken(String)
 	case unknownToken(String)
 	case malformedClick(String)
+	case malformedLocate(String)
+	case malformedSkipNotFound(String)
 	case malformedScroll(String)
 	case malformedKeyboard(String)
 	case keyboardNotFound(String)
@@ -473,6 +523,8 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 		case .unterminatedToken(let remainder): return "Unterminated boot_command token starting at: \(remainder)"
 		case .unknownToken(let token): return "Unknown boot_command token: <\(token)>"
 		case .malformedClick(let token): return "Malformed click token: <\(token)>"
+		case .malformedLocate(let token): return "Malformed locate token: <\(token)>"
+		case .malformedSkipNotFound(let token): return "Malformed skipNotFound token: <\(token)>"
 		case .malformedScroll(let token): return "Malformed scroll token: <\(token)>"
 		case .malformedKeyboard(let token): return "Malformed keyboard token: <\(token)>"
 		case .keyboardNotFound(let keyboard): return "Keyboard not found: <\(keyboard)>"

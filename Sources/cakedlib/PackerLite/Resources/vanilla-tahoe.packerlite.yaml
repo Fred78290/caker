@@ -35,8 +35,7 @@ boot_command:
 
   - title: Select Your Country or Region
     commands:
-      - <wait60s>
-      - <click 'Select Your Country or Region'>
+      - <click timeout=30 text='Select Your Country or Region'>
       - <wait5s>
       - united states
       - <leftShiftOn>
@@ -46,18 +45,15 @@ boot_command:
 
   - title: Transfer Your Data to This Mac
     commands:
-      - <wait10s>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <locate timeout=30 text='Transfer Your Data to This Mac'>
+      - <tab repeat=3>
       - <spacebar>
-      - <tab>
-      - <tab>
+      - <tab repeat=2>
       - <spacebar>
 
   - title: Written and Spoken Languages
     commands:
-      - <wait10s>
+      - <wait5s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -69,7 +65,7 @@ boot_command:
 
   - title: Accessibility
     commands:
-      - <wait10s>
+      - <locate timeout=30 text='Accessibility'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -77,7 +73,7 @@ boot_command:
 
   - title: Data & Privacy
     commands:
-      - <wait10s>
+      - <locate timeout=30 text='Data & Privacy'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -85,13 +81,7 @@ boot_command:
 
   - title: Create a Mac Account
     commands:
-      - <wait10s>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <locate timeout=30 text='Create a Mac Account'>
       - Managed via Caker
       - <tab>
       - ${var.username}
@@ -105,6 +95,7 @@ boot_command:
       - <tab>
       - <tab>
       - <spacebar>
+      - <locate timeout=60 text='Sign In to Your Apple Account'>
 
   - title: Enable Voice Over
     commands:
@@ -114,10 +105,10 @@ boot_command:
       - <f5>
       - <fnOff>
       - <leftAltOff>
+      - <wait10s>
 
   - title: Sign In with Your Apple ID
     commands:
-      - <wait10s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -127,13 +118,13 @@ boot_command:
 
   - title: Are you sure you want to skip signing in with an Apple ID?
     commands:
-      - <wait10s>
+      - <wait1s>
       - <tab>
       - <spacebar>
 
   - title: Terms and Conditions
     commands:
-      - <wait10s>
+      - <locate timeout=30 text='Terms and Conditions'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -141,13 +132,14 @@ boot_command:
 
   - title: I have read and agree to the macOS Software License Agreement
     commands:
-      - <wait10s>
+      - <wait2s>
       - <tab>
       - <spacebar>
 
+    # Age Range -> Adult
   - title: Age Range -> Adult
     commands:
-      - <wait10s>
+      - <locate timeout=30 text='Age Range'>
       - <tab>
       - <tab>
       - <tab>
@@ -155,7 +147,7 @@ boot_command:
 
   - title: Enable Location Services
     commands:
-      - <wait10s>
+      - <locate timeout=30 text='Enable Location Services'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -163,13 +155,13 @@ boot_command:
 
   - title: Are you sure you don't want to use Location Services?
     commands:
-      - <wait10s>
+      - <wait2s>
       - <tab>
       - <spacebar>
 
   - title: Select Your Time Zone
     commands:
-      - <wait10s>
+      - <locate timeout=30 text='Select Your Time Zone'>
       - <tab>
       - <tab>
       - <tab>
@@ -182,7 +174,7 @@ boot_command:
 
   - title: Analytics
     commands:
-      - <wait10s>
+      - <locate timeout=30 text='Analytics'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -190,24 +182,24 @@ boot_command:
 
   - title: Screen Time
     commands:
-      - <wait10s>
+      - <locate timeout=30 text='Screen Time'>
       - <tab>
       - <tab>
       - <spacebar>
 
   - title: Siri
     commands:
-      - <wait10s>
+      - <skipNotFound timeout=10 text='Siri'>
       - <tab>
       - <spacebar>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
       - <spacebar>
-
+    
   - title: Your Mac is Ready for FileVault
     commands:
-      - <wait10s>
+      - <locate timeout=30 text='Your Mac is Ready for FileVault'>
       - <leftShiftOn>
       - <tab>
       - <tab>
@@ -216,13 +208,13 @@ boot_command:
 
   - title: Mac Data Will Not Be Securely Encrypted
     commands:
-      - <wait10s>
+      - <wait1s>
       - <tab>
       - <spacebar>
 
   - title: Choose Your Look
     commands:
-      - <wait10s>
+      - <locate timeout=30 text='Choose Your Look'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -230,19 +222,17 @@ boot_command:
 
   - title: Update Mac Automatically
     commands:
-      - <wait10s>
-      - <tab>
+      - <locate timeout=30 text='Update Mac Automatically'>
       - <tab>
       - <spacebar>
 
   - title: Welcome to Mac
     commands:
-      - <wait30s>
+      - <wait10s>
       - <spacebar>
 
   - title: Disable Voice Over
     commands:
-      - <wait10s>
       - <leftAltOn>
       - <fnOn>
       - <f5>
@@ -256,14 +246,16 @@ boot_command:
       - <spacebar>
       - <leftAltOff>
       - Terminal
-      - <wait10s>
+      - <wait1s>
       - <enter>
 
   - title: Enable Keyboard navigation (continued)
     commands:
-      - <wait10s>
-      - <wait10s>
+      - <wait5s>
       - defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
+      - <enter>
+      - <wait1s>
+      - defaults write  com.apple.VoiceOverTraining doNotShowSplashScreen -int 1
       - <enter>
 
   - title: Open System Settings
@@ -272,136 +264,101 @@ boot_command:
       - open '/System/Applications/System Settings.app'
       - <enter>
 
-  - title: Wait for System Settings to open
-    commands:
-      - <wait120s>
-
   - title: Navigate to Sharing
     commands:
-      - <wait10s>
+      - <locate text='Software Update'>
       - <leftCtrlOn>
       - <fnOn>
       - <f2>
       - <fnOff>
       - <leftCtrlOff>
-      - <right>
-      - <right>
-      - <right>
+      - <right repeat=3>
       - <down>
       - Sharing
       - <enter>
 
-  - title: Enable Screen Sharing
+  - title: Navigate to "Screen Sharing" and enable it
     commands:
-      - <wait10s>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <locate text='Screen Sharing'>
+      - <tab repeat=5>
       - <spacebar>
 
-  - title: Enter password for Screen Sharing
+  - title: Type in the password to allow enabling Screen Sharing
     commands:
-      - <wait10s>
+      - <wait2s>
       - ${var.password}
       - <enter>
 
-  - title: Enable Remote Login
+  - title: Navigate to "Remote Login" and enable it
     commands:
-      - <wait10s>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <wait1s>
+      - <tab repeat=12>
       - <spacebar>
 
   - title: Quit System Settings
     commands:
-      - <wait10s>
+      - <wait1s>
       - <leftAltOn>
       - q
       - <leftAltOff>
 
-  - title: Disable Gatekeeper (1/2)
+  - title: Disable Gatekeeper
     commands:
-      - <wait10s>
+      - <wait1s>
       - sudo spctl --global-disable
       - <enter>
-
-  - title: Enter password for Gatekeeper
-    commands:
-      - <wait10s>
+      - <wait1s>
       - ${var.password}
       - <enter>
 
-  - title: Disable Gatekeeper (2/2)
+  - title: Open System Settings for Disable Gatekeeper
     commands:
-      - <wait10s>
+      - <wait1s>
       - open '/System/Applications/System Settings.app'
       - <enter>
 
   - title: Navigate to Privacy & Security
     commands:
-      - <wait10s>
+      - <locate text='Software Update'>
       - <leftCtrlOn>
       - <fnOn>
       - <f2>
       - <fnOff>
       - <leftCtrlOff>
-      - <right>
-      - <right>
-      - <right>
+      - <right repeat=3>
       - <down>
-      - Privacy & Security
+      - "Privacy & Security"
       - <enter>
 
   - title: Unlock Privacy & Security
     commands:
-      - <wait10s>
+      - <locate text='Location Services'>
       - <leftShiftOn>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <tab repeat=6>
       - <leftShiftOff>
 
-  - title: Disable Gatekeeper
+  - title: Navigate to "Allow apps downloaded from" and enable "Everywhere"
     commands:
-      - <wait10s>
-      - <down>
-      - <wait1s>
-      - <down>
-      - <wait1s>
+      - <down repeat=2>
       - <enter>
 
   - title: Enter password for Gatekeeper
     commands:
-      - <wait10s>
+      - <wait1s>
       - ${var.password}
       - <enter>
 
   - title: Confirm Gatekeeper disable
     commands:
-      - <wait10s>
+      - <wait2s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
-      - <wait1s>
       - <spacebar>
 
   - title: Quit System Settings
     commands:
-      - <wait10s>
+      - <wait5s>
       - <leftAltOn>
       - q
       - <leftAltOff>

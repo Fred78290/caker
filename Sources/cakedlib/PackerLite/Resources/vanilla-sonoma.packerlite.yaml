@@ -25,7 +25,7 @@ boot_command:
 
   - title: Select Language
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='https://www.apple.com/fr/legal/sla/'>
       - italiano
       - <esc>
       - english
@@ -34,7 +34,8 @@ boot_command:
 
   - title: Select Your Country and Region
     commands: 
-      - <wait30s>
+      - <click timeout=30 text='Select Your Country or Region'>
+      - <wait5s>
       - united states
       - <leftShiftOn>
       - <tab>
@@ -43,7 +44,7 @@ boot_command:
 
   - title: Written and Spoken Languages
     commands: 
-      - <wait10s>
+      - <locate text='Written and Spoken Languages'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -55,7 +56,7 @@ boot_command:
 
   - title: Accessibility
     commands: 
-      - <wait10s>
+      - <locate text='Accessibility'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -63,7 +64,7 @@ boot_command:
 
   - title: Data & Privacy
     commands: 
-      - <wait10s>
+      - <locate text='Data & Privacy'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -71,15 +72,13 @@ boot_command:
 
   - title: Migration Assistant
     commands: 
-      - <wait10s>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <locate text='Migration Assistant'>
+      - <tab repeat=3>
       - <spacebar>
 
   - title: Sign In with Your Apple ID
     commands: 
-      - <wait10s>
+      - <locate timeout=60 text='Sign In with Your Apple ID'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -90,13 +89,13 @@ boot_command:
 
   - title: Are you sure you want to skip signing in with an Apple ID?
     commands: 
-      - <wait10s>
+      - <wait2s>
       - <tab>
       - <spacebar>
 
   - title: Terms and Conditions
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Terms and Conditions'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -104,13 +103,13 @@ boot_command:
 
   - title: I have read and agree to the macOS Software License Agreement
     commands: 
-      - <wait10s>
+      - <wait2s>
       - <tab>
       - <spacebar>
 
   - title: Create a Computer Account
     commands: 
-      - <wait10s>
+      - <locate text='Create a Computer Account'>
       - ${var.username}
       - <tab>
       - <tab>
@@ -124,7 +123,7 @@ boot_command:
 
   - title: Enable Location Services
     commands: 
-      - <wait30s>
+      - <locate timeout=30 text='Enable Location Services'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -132,13 +131,13 @@ boot_command:
 
   - title: Are you sure you don't want to use Location Services?
     commands: 
-      - <wait10s>
+      - <wait2s>
       - <tab>
       - <spacebar>
 
   - title: Select Your Time Zone
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Select Your Time Zone'>
       - <tab>
       - UTC
       - <enter>
@@ -149,7 +148,7 @@ boot_command:
 
   - title: Analytics
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Analytics'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -157,13 +156,13 @@ boot_command:
 
   - title: Screen Time
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Screen Time'>
       - <tab>
       - <spacebar>
 
   - title: Siri
     commands: 
-      - <wait10s>
+      - <skipNotFound timeout=10 text='Siri'>
       - <tab>
       - <spacebar>
       - <leftShiftOn>
@@ -173,71 +172,74 @@ boot_command:
 
   - title: Choose Your Look
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Choose Your Look'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
       - <spacebar>
 
-  - title: Enable Voice Over
+  - title: Enable Keyboard navigation so we can navigate System Settings using the keyboard
     commands: 
       - <wait10s>
       - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
+      - <spacebar>
       - <leftAltOff>
-      - <wait5s>
-      - v
+      - Terminal
+      - <wait1s>
+      - <enter>
 
-  - title: Now that the installation is done, open "System Settings"
+  - title: Enable full keyboard access
     commands: 
-      - <wait10s>
+      - <wait5s>
+      - defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
+      - <enter>
+      - <wait1s>
+      - defaults write  com.apple.VoiceOverTraining doNotShowSplashScreen -int 1
+      - <enter>
+
+  - title: Quit Terminal
+    commands: 
+      - <wait1s>
+      - <leftAltOn>
+      - q
+      - <leftAltOff>
+
+  - title: Open System Settings
+    commands: 
+      - <wait1s>
       - <leftAltOn>
       - <spacebar>
       - <leftAltOff>
       - System Settings
+      - <wait1s>
       - <enter>
 
-  - title: Navigate to "Sharing"
+  - title: Navigate to Sharing
     commands: 
-      - <wait10s>
-      - <leftAltOn>
-      - f
-      - <leftAltOff>
-      - sharing
+      - <locate text='Appearance'>
+      - <leftCtrlOn>
+      - <fnOn>
+      - <f2>
+      - <fnOff>
+      - <leftCtrlOff>
+      - <right repeat=4>
+      - <down>
+      - Sharing
       - <enter>
 
   - title: Navigate to "Screen Sharing" and enable it
     commands: 
-      - <wait10s>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <locate text='Screen Sharing'>
+      - <tab repeat=7>
       - <spacebar>
 
   - title: Navigate to "Remote Login" and enable it
     commands: 
-      - <wait10s>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <tab repeat=12>
       - <spacebar>
 
-  - title: Disable Voice Over
+  - title: Quit System Settings
     commands: 
       - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
+      - q
       - <leftAltOff>

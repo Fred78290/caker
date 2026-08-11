@@ -170,7 +170,10 @@ final class PackerLiteDriver: @unchecked Sendable {
 	func run(command: BootCommandStep) async throws {
 		for step in command.steps {
 			do {
-				try await execute(step, title: command.title)
+				if try await execute(step, title: command.title) == false {
+					logger.info("Skip command: command: \(command.title)")
+					break
+				}
 			} catch {
 				throw PackerLiteDriverError.stepFailed(step: command, underlying: error)
 			}
@@ -180,54 +183,82 @@ final class PackerLiteDriver: @unchecked Sendable {
 		#endif
 	}
 
-	private func execute(_ step: BootCommandStep.Step, title: String) async throws {
+	private func execute(_ step: BootCommandStep.Step, title: String) async throws -> Bool {
 		switch step {
 		case .wait(let seconds):
 			logger.debug("[\(title)]: wait \(seconds)s")
 			try await Task.sleep(nanoseconds: UInt64(max(seconds, 0) * 1_000_000_000))
+			return true
+
 		case .type(let text):
 			logger.debug("[\(title)]: type \(text) with modifier \(modifiers)")
 			try await type(text)
+
 		case .press(let key, let repeated):
 			logger.debug("[\(title)]: press \(key) with modifier \(modifiers)")
 			try await press(keysym(for: key), repeated: repeated)
+
 		case .modifierOn(let modifier):
 			logger.debug("[\(title)]: modifierOn \(modifier) with modifier \(modifiers)")
 			await self.handleKeyModifierEvent(keysym(for: modifier), isDown: true)
-			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+
 		case .modifierOff(let modifier):
 			logger.debug("[\(title)]: modifierOff \(modifier) with modifier \(modifiers)")
 			await self.handleKeyModifierEvent(keysym(for: modifier), isDown: false)
-			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+
 		case .click(let point):
 			logger.debug("[\(title)]: click \(point)")
 			await click(point)
-			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+
 		case .clickText(let label, let timeout):
-			logger.debug("[\(title)]: clickText '\(label)'")
+			logger.debug("[\(title)]: clickText '\(label)', timeout=\(timeout)")
 			try await clickText(label, timeout: timeout)
+
 		case .locate(let label, let timeout):
-			logger.debug("[\(title)]: locate '\(label)'")
+			logger.debug("[\(title)]: locate '\(label)', timeout=\(timeout)")
 			try await locateText(label, timeout: timeout)
+
+		case .skipNotFound(let label, let timeout):
+			logger.debug("[\(title)]: skipNotFound '\(label)', timeout=\(timeout)")
+			if try await skipNotFound(label, timeout: timeout) == false {
+				return false
+			}
+
 		case .scroll(let horizontal, let vertical):
 			logger.debug("[\(title)]: scroll '\(horizontal), \(vertical)'")
 			try await scroll(horizontal, vertical)
+
 		case .keyboard(let layout):
 			logger.debug("[\(title)]: keyboard layout \(layout.id)")
 			currentKeyTranslator = layout
 		}
 
 		try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+
+		return true
 	}
 
 	// MARK: - Keyboard
 	@MainActor private func type(_ text: String) async throws {
 		for char in text {
-			if let keysym = currentKeyTranslator.translate(char: char) {
-				self.handleKeyEvent(key: keysym, isDown: true)
-				self.handleKeyEvent(key: keysym, isDown: false)
+			if let key = currentKeyTranslator.translate(char: char) {
+				let modifiers = key.modifiers.keyCodes
+
+				for code in modifiers {
+					self.handleKeyModifierEvent(code, isDown: true)
+					try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+				}
+
+				self.handleKeyEvent(key.keyCode, characters: key.characters, charactersIgnoringModifiers: key.charactersIgnoringModifiers, isDown: true)
 
 				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+
+				self.handleKeyEvent(key.keyCode, characters: key.characters, charactersIgnoringModifiers: key.charactersIgnoringModifiers, isDown: false)
+
+				for code in modifiers {
+					try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+					self.handleKeyModifierEvent(code, isDown: false)
+				}
 			}
 		}
 	}
@@ -235,8 +266,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 	@MainActor private func press(_ keyCode: CGKeyCode, repeated: Int) async throws {
 		for _ in 0..<repeated {
 			self.handleKeySpecialEvent(keyCode, isDown: true)
-			self.handleKeySpecialEvent(keyCode, isDown: false)
+			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 
+			self.handleKeySpecialEvent(keyCode, isDown: false)
 			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 		}
 	}
@@ -524,6 +556,24 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 	}
 
+	@MainActor private func skipNotFound(_ label: String, timeout: TimeInterval) async throws -> Bool {
+		let deadline = Date().addingTimeInterval(timeout)
+
+		while true {
+			if let point = try await locate(text: label) {
+				self.logger.debug("Text found: \(label) at: \(point)")
+				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+				return true
+			}
+
+			if Date() >= deadline {
+				return false
+			}
+
+			try await Task.sleep(nanoseconds: Self.clickTextPollNanoseconds)
+		}
+	}
+
 	@MainActor private func locateText(_ label: String, timeout: TimeInterval) async throws {
 		let deadline = Date().addingTimeInterval(timeout)
 
@@ -573,10 +623,11 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 					// Rect in image coordinates. If you need top-left to bottom-left conversion, flip the y-origin.
 					let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(cgImage.width), Int(cgImage.height))
-					let flippedBox = CGRect(x: box.origin.x,
-											y: CGFloat(cgImage.height) - box.origin.y - box.height,
-											width: box.width,
-											height: box.height)
+					let flippedBox = CGRect(
+						x: box.origin.x,
+						y: CGFloat(cgImage.height) - box.origin.y - box.height,
+						width: box.width,
+						height: box.height)
 
 					#if DEBUG
 						await self.showDebugBox(flippedBox, in: CGSize(width: cgImage.width, height: cgImage.height))
@@ -923,11 +974,11 @@ extension PackerLiteDriver {
 		}
 	}
 
-	@MainActor func handleKeyEvent(key: (keyCode: CGKeyCode, modifiers: NSEvent.ModifierFlags, characters: String, charactersIgnoringModifiers: String), isDown: Bool) {
+	@MainActor func handleKeyEvent(_ keyCode: CGKeyCode, characters: String, charactersIgnoringModifiers: String, isDown: Bool) {
 		// Ensure the view is first responder before delivering key events
 		ensureFirstResponder()
 
-		guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: key.keyCode, keyDown: isDown) else {
+		guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: isDown) else {
 			return
 		}
 
@@ -935,14 +986,14 @@ extension PackerLiteDriver {
 			let event = NSEvent.keyEvent(
 				with: keyboardEvent.type == .flagsChanged ? .flagsChanged : (isDown ? .keyDown : .keyUp),
 				location: lastMousePosition,
-				modifierFlags: key.modifiers,
+				modifierFlags: self.modifiers,
 				timestamp: ProcessInfo.processInfo.systemUptime,
 				windowNumber: self.targetView.window?.windowNumber ?? 0,
 				context: nil,
-				characters: key.characters,
-				charactersIgnoringModifiers: key.charactersIgnoringModifiers,
+				characters: characters,
+				charactersIgnoringModifiers: charactersIgnoringModifiers,
 				isARepeat: false,
-				keyCode: key.keyCode)
+				keyCode: keyCode)
 		else {
 			return
 		}
@@ -956,4 +1007,3 @@ extension PackerLiteDriver {
 		}
 	}
 }
-
