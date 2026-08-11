@@ -406,6 +406,8 @@ extension ConnectionManager {
 			home.remoteDb.path(percentEncoded: false)
 		])
 
+		self.vmsWatcher = watcher
+
 		watcher.queue = DispatchQueue.global(qos: .utility)
 		watcher.callback = { [weak self] event in
 			guard let self else { return }
