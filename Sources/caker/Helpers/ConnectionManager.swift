@@ -270,6 +270,10 @@ final class ConnectionManager: Equatable {
 		return try DuplicateHandler.duplicate(client: self.serviceClient, vmURL: vmURL, to: to, resetMacAddress: resetMacAddress, runMode: self.connectionMode.runMode)
 	}
 
+	func renameVirtualMachine(vmURL: URL, to: String) throws -> RenameReply {
+		return try RenameHandler.rename(client: self.serviceClient, vmURL: vmURL, newname: to, runMode: self.connectionMode.runMode)
+	}
+
 	func setVncScreenSize(vmURL: URL, screenSize: ViewSize) async {
 		do {
 			let result = try ScreenSizeHandler.setScreenSize(client: self.serviceClient, vmURL: vmURL, width: Int(screenSize.width), height: Int(screenSize.height), runMode: self.connectionMode.runMode)
