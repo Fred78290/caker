@@ -12,8 +12,6 @@
 # ${var.username}/${var.password} below resolve to the VM's actual account,
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
 
-# How long to wait after the VM starts before sending the first keystroke.
-create_grace_time: 30s
 # Overall watchdog — provisioning fails fast instead of hanging if the UI drifts.
 boot_timeout: 45m
 

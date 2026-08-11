@@ -42,7 +42,6 @@
 #     overlay, so anything installed into it before the switch to the real
 #     disk would be lost anyway.
 
-create_grace_time: 45s   # not currently honored by PackerLiteEngine — kept for documentation/forward-compat
 boot_timeout: 60m        # a full desktop install can legitimately take 20-30+ minutes
 
 boot_command:

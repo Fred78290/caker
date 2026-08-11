@@ -41,7 +41,6 @@
 # ${var.username}/${var.password} below resolve to the VM's actual account,
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
 
-create_grace_time: 45s   # not currently honored by PackerLiteEngine — kept for documentation/forward-compat
 boot_timeout: 75m        # d-i's package installation stage depends on mirror speed, budget generously
 
 boot_command:

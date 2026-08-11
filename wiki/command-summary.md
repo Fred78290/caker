@@ -176,7 +176,7 @@ cakectl build my-vm ./restore.ipsw --autoinstall --var greeting=hello
 
 **Templates Linux intégrés** : cinq templates sont également fournis en ressources embarquées, sous les mêmes noms de fichiers `linux-*.packerlite.yaml` : `linux-fedora` (Fedora Workstation, Anaconda), `linux-centos` (CentOS Stream, Anaconda), `linux-redhat` (RHEL, Anaconda — `redhat` **et** `rhel` sont tous deux reconnus dans le nom de fichier), `linux-opensuse` (openSUSE Leap, YaST) et `linux-debian` (Debian, debian-installer). **Aucun de ces cinq n'a été validé sur un vrai démarrage** — contrairement aux templates macOS transcrits depuis des recettes Packer fonctionnelles, ceux-ci ont seulement été relus pour leur plausibilité et testés unitairement pour leur analyse syntaxique ; attendez-vous à devoir ajuster les cibles de clic. Ubuntu n'a pas de template PackerLite (utilise cloud-init/subiquity) ; toute autre distribution nécessite un `--template` personnalisé.
 
-**Format du template** — un YAML minimal avec une liste `boot_command` d'entrées `title`/`commands` (`commands` est une **liste** de fragments de tokens/texte, concaténés bout à bout — pas une seule chaîne — ce qui permet de mettre un token par ligne pour la lisibilité) reprenant le vocabulaire de tokens de Packer, plus `variables:`, `create_grace_time` et `boot_timeout`. Le `title` de chaque entrée est affiché comme sous-étape de progression et dans les logs — utile pour repérer où un provisioning s'est arrêté. `${var.username}`/`${var.password}` sont toujours injectées par `caked` (voir ci-dessus) ; les autres `${var.*}` viennent de `variables:` ou d'un `--var` correspondant.
+**Format du template** — un YAML minimal avec une liste `boot_command` d'entrées `title`/`commands` (`commands` est une **liste** de fragments de tokens/texte, concaténés bout à bout — pas une seule chaîne — ce qui permet de mettre un token par ligne pour la lisibilité) reprenant le vocabulaire de tokens de Packer, plus `variables:` et `boot_timeout`. Le `title` de chaque entrée est affiché comme sous-étape de progression et dans les logs — utile pour repérer où un provisioning s'est arrêté. `${var.username}`/`${var.password}` sont toujours injectées par `caked` (voir ci-dessus) ; les autres `${var.*}` viennent de `variables:` ou d'un `--var` correspondant.
 
 Vocabulaire de tokens pris en charge :
 
@@ -194,7 +194,6 @@ Vocabulaire de tokens pris en charge :
 
 ```yaml
 # mon-template.packerlite.yaml — extrait illustratif
-create_grace_time: 30s   # délai après le démarrage avant la première frappe
 boot_timeout: 45m        # échec si le provisioning n'est pas terminé dans ce délai
 
 variables:
@@ -694,7 +693,7 @@ cakectl build my-vm ./restore.ipsw --autoinstall --var greeting=hello
 
 **Built-in Linux templates**: five templates also ship as embedded resources, under matching `linux-*.packerlite.yaml` filenames: `linux-fedora` (Fedora Workstation, Anaconda), `linux-centos` (CentOS Stream, Anaconda), `linux-redhat` (RHEL, Anaconda — both `redhat` and `rhel` are recognized in the filename), `linux-opensuse` (openSUSE Leap, YaST), and `linux-debian` (Debian, debian-installer). **None of these five have been validated against a real boot** — unlike the macOS templates, which were transcribed from working Packer recipes, these were only reviewed for plausibility and unit-tested for parseability; expect to need to adjust click targets. Ubuntu has no PackerLite template (uses cloud-init/subiquity instead); any other distro needs a custom `--template`.
 
-**Template format** — a minimal YAML file with a `boot_command` list of `title`/`commands` entries (`commands` is a **list** of token/text fragments, concatenated together — not a single string — so you can put one token per line for readability) using Packer's token vocabulary, plus `variables:`, `create_grace_time`, and `boot_timeout`. Each entry's `title` is surfaced as a progress substep and in the logs — handy for spotting exactly where a provisioning run stalled. `${var.username}`/`${var.password}` are always injected by `caked` (see above); any other `${var.*}` comes from `variables:` or a matching `--var`.
+**Template format** — a minimal YAML file with a `boot_command` list of `title`/`commands` entries (`commands` is a **list** of token/text fragments, concatenated together — not a single string — so you can put one token per line for readability) using Packer's token vocabulary, plus `variables:` and `boot_timeout`. Each entry's `title` is surfaced as a progress substep and in the logs — handy for spotting exactly where a provisioning run stalled. `${var.username}`/`${var.password}` are always injected by `caked` (see above); any other `${var.*}` comes from `variables:` or a matching `--var`.
 
 Supported token vocabulary:
 
@@ -712,7 +711,6 @@ Supported token vocabulary:
 
 ```yaml
 # my-template.packerlite.yaml — illustrative excerpt
-create_grace_time: 30s   # delay after boot before the first keystroke
 boot_timeout: 45m        # fail if provisioning isn't done within this long
 
 variables:

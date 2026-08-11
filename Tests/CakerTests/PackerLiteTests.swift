@@ -205,17 +205,23 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertEqual(overridden.bootCommand?.first?.commands, ["<wait10s>admin<tab>hunter2<tab>hello<enter>"])
 	}
 
-	func testTemplateDurationDefaultsAndParsing() throws {
-		let withDurations = try PackerLiteTemplate.load(from: """
+	func testTemplateBootTimeoutDefaultsAndParsing() throws {
+		let withDuration = try PackerLiteTemplate.load(from: "boot_timeout: 45m")
+		XCTAssertEqual(withDuration.resolvedBootTimeout, 45 * 60)
+
+		let withoutDuration = try PackerLiteTemplate.load(from: "boot_command: []")
+		XCTAssertEqual(withoutDuration.resolvedBootTimeout, 45 * 60)
+	}
+
+	func testTemplateIgnoresUnknownCreateGraceTimeKey() throws {
+		// create_grace_time was removed as dead code (PackerLiteEngine never read it), but older or
+		// hand-written templates may still declare it — decoding must tolerate the unknown key rather
+		// than failing the whole template load.
+		let template = try PackerLiteTemplate.load(from: """
 		create_grace_time: 30s
 		boot_timeout: 45m
 		""")
-		XCTAssertEqual(withDurations.resolvedCreateGraceTime, 30)
-		XCTAssertEqual(withDurations.resolvedBootTimeout, 45 * 60)
-
-		let withoutDurations = try PackerLiteTemplate.load(from: "boot_command: []")
-		XCTAssertEqual(withoutDurations.resolvedCreateGraceTime, 30)
-		XCTAssertEqual(withoutDurations.resolvedBootTimeout, 45 * 60)
+		XCTAssertEqual(template.resolvedBootTimeout, 45 * 60)
 	}
 
 	func testParsedBootCommandWrapsFailureWithOffendingCommand() async throws {

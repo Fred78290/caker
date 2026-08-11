@@ -12,7 +12,6 @@ import Yams
 
 public struct PackerLiteTemplate: Codable, Sendable {
 	public var variables: [String: String]?
-	public var createGraceTime: String?
 	public var bootTimeout: String?
 	public var bootCommand: [Command]?
 
@@ -23,24 +22,20 @@ public struct PackerLiteTemplate: Codable, Sendable {
 
 	enum CodingKeys: String, CodingKey {
 		case variables
-		case createGraceTime = "create_grace_time"
 		case bootTimeout = "boot_timeout"
 		case bootCommand = "boot_command"
 	}
 
 	public init(
 		variables: [String: String]? = nil,
-		createGraceTime: String? = nil,
 		bootTimeout: String? = nil,
 		bootCommand: [Command]? = nil
 	) {
 		self.variables = variables
-		self.createGraceTime = createGraceTime
 		self.bootTimeout = bootTimeout
 		self.bootCommand = bootCommand
 	}
 
-	public var resolvedCreateGraceTime: TimeInterval { Self.parseDuration(createGraceTime, default: 30) }
 	public var resolvedBootTimeout: TimeInterval { Self.parseDuration(bootTimeout, default: 45 * 60) }
 
 	// MARK: Loading

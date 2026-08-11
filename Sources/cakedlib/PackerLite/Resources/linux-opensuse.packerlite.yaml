@@ -37,7 +37,6 @@
 # ${var.username}/${var.password} below resolve to the VM's actual account,
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
 
-create_grace_time: 45s   # not currently honored by PackerLiteEngine — kept for documentation/forward-compat
 boot_timeout: 60m        # a full install can legitimately take 20-30+ minutes
 
 boot_command:
