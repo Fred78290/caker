@@ -11,22 +11,22 @@ extension Caked_ProvisionRequest {
 	init(command: Provision) throws {
 		self.init()
 
-		self.name = command.name
+		self.name = command.provision.name
 		
-		if let macosVersion = command.macosVersion {
+		if let macosVersion = command.provision.macosVersion {
 			self.macosVersion = Caked_MacOSVersion(macosVersion)
 		}
 
-		if let template = command.template {
+		if let template = command.provision.template {
 			let url = URL(fileURLWithPath: template.expandingTildeInPath)
 			
 			self.provisionTemplateName = url.lastPathComponent
 			self.provisionTemplate = try String(contentsOf: url, encoding: .utf8).data(using: .utf8)!
 		}
 		
-		if command.vars.isEmpty == false {
+		if command.provision.vars.isEmpty == false {
 			self.provisionVars = .with {
-				$0.vars = command.vars.map { value in
+				$0.vars = command.provision.vars.map { value in
 					let value = value.split(separator: "=", maxSplits: 1)
 
 					if value.count > 1 {

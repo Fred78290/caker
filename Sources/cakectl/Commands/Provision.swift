@@ -16,27 +16,16 @@ import CakeAgentLib
 /// here as a standalone step for VMs that skipped it at build time (or need it re-run). Run directly
 /// against `cakectl` on the host where the VM lives.
 struct Provision: AsyncGrpcParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "provision",
-													abstract: String(localized: "Drive a macOS or Linux VM's Setup Assistant unattended via PackerLite"),
-													discussion: String(localized: "Re-runs the same unattended Setup Assistant automation that `build`/`create` drive automatically for .ipsw or .iso sources with --autoinstall — for a VM that skipped it at build time. Uses the VM's stored macOS version and account credentials; fails if the VM is currently running, or has already been provisioned."))
+	static let configuration = ProvisionOptions.configuration
 
 	@OptionGroup(title: String(localized: "Client options"))
 	var options: Client.Options
 
-	@Option(help: ArgumentHelp(String(localized: "Provisioning template (YAML) to use, overriding the VM's default built-in template (by stored macOS version or Linux platform); required if the VM's platform has no built-in template"), valueName: "path"))
-	var template: String?
-
-	@Option(name: [.customLong("macos-version")], help: ArgumentHelp(String(localized: "macOS version to use for picking the built-in template, overriding the VM's stored osName"), valueName: "version"))
-	var macosVersion: MacOSVersion?
-
-	@Option(name: [.customLong("var")], help: ArgumentHelp(String(localized: "Set a provisioning template variable (key=value), may be repeated"), valueName: "key=value"))
-	var vars: [String] = []
-
-	@Argument(help: ArgumentHelp(String(localized: "VM name")))
-	var name: String
+	@OptionGroup(title: String(localized: "Provisioning options"))
+	var provision: ProvisionOptions
 
 	func validate() throws {
-		if let template {
+		if let template = self.provision.template {
 			let u = URL(fileURLWithPath: template.expandingTildeInPath)
 
 			if FileManager.default.fileExists(atPath: u.path(percentEncoded: false)) == false {
@@ -72,7 +61,7 @@ struct Provision: AsyncGrpcParsableCommand {
 					ProgressObserver.progressHandler(.substep(step))
 				} else if case .terminated(let status) = current {
 					if case .success(let v)? = status.result {
-						ProgressObserver.progressHandler(.terminated(.success(self.name), v))
+						ProgressObserver.progressHandler(.terminated(.success(self.provision.name), v))
 					} else if case .failure(let v)? = status.result {
 						ProgressObserver.progressHandler(.terminated(.failure(GrpcError(code: 1, reason: v)), nil))
 					}
