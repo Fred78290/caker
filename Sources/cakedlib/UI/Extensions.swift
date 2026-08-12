@@ -792,6 +792,8 @@ extension NSApplication {
 		}
 
 		self.setActivationPolicy(.regular)
+		NSApp.activate(ignoringOtherApps: true)
+		NSApp.unhide(self)
 
 		if let customIcon /*?? NSImage(named: NSImage.applicationIconName)*/ {
 			self.applicationIconImage = customIcon
