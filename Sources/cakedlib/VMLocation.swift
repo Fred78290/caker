@@ -1,4 +1,5 @@
 import Foundation
+import GRPC
 import GRPCLib
 import NIO
 import Shout
@@ -743,9 +744,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		throw ShellError(terminationStatus: -1, error: String(localized: "Unable to get IP for VM \(self.name)"), message: String(localized: "Timeout"))
 	}
 
-	func vmInfos(wait: Int = 5, runMode: Utils.RunMode, _ completion: @escaping (Result<Caked_InfoReply, Error>) -> Void) {
+	func vmInfos(wait: Int = 5, retries: ConnectionBackoff.Retries = .none, runMode: Utils.RunMode, _ completion: @escaping (Result<Caked_InfoReply, Error>) -> Void) {
 		do {
-			let conn = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: wait, runMode: runMode, retries: .none)
+			let conn = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: wait, runMode: runMode, retries: retries)
 			let result: EventLoopFuture<Result<Caked_InfoReply, Error>> = try conn.info()
 
 			result.whenComplete { result in

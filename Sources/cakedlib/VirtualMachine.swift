@@ -932,7 +932,7 @@ extension VirtualMachine {
 			config.firstLaunch = false
 
 			if config.agent {
-				self.location.vmInfos(runMode: runMode) { result in
+				self.location.vmInfos(retries: .upTo(5), runMode: runMode) { result in
 					switch result {
 					case .failure(let error):
 						self.logger.error("VM \(self.location.name) failed to get vm infos: \(error)")
