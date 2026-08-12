@@ -18,20 +18,20 @@ boot_timeout: 45m
 boot_command:
   - title: Wait hello, hola, bonjour, etc.
     commands: 
-      - <wait10s>
+      - <locate timeout=10 text='Get Started'>
       - <spacebar>
 
   - title: Select Language
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='https://www.apple.com/'>
+      - italiano
       - <esc>
       - english
-      - <down>
       - <enter>
 
   - title: Select Your Country and Region
     commands: 
-      - <wait30s>
+      - <click timeout=30 text='Select Your Country or Region'>
       - united states
       - <leftShiftOn>
       - <tab>
@@ -40,7 +40,7 @@ boot_command:
 
   - title: Written and Spoken Languages
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Written and Spoken Languages'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -52,7 +52,7 @@ boot_command:
 
   - title: Accessibility
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Accessibility'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -60,7 +60,7 @@ boot_command:
 
   - title: Data & Privacy
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Data & Privacy'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -68,32 +68,28 @@ boot_command:
 
   - title: Migration Assistant
     commands: 
-      - <wait10s>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <locate timeout=30 text='Migration Assistant'>
+      - <tab repeat=3>
       - <spacebar>
 
   - title: Sign In with Your Apple ID
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Sign In with Your Apple ID'>
+      - <wait2s>
       - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
+      - <tab repeat=2>
       - <leftShiftOff>
       - <spacebar>
 
   - title: Are you sure you want to skip signing in with an Apple ID?
     commands: 
-      - <wait10s>
+      - <wait1s>
       - <tab>
       - <spacebar>
 
   - title: Terms and Conditions
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Terms and Conditions'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -101,13 +97,13 @@ boot_command:
 
   - title: I have read and agree to the macOS Software License Agreement
     commands: 
-      - <wait10s>
+      - <wait1s>
       - <tab>
       - <spacebar>
 
   - title: Create a Computer Account
     commands: 
-      - <wait10s>
+      - <locate text='Create a Computer Account'>
       - ${var.username}
       - <tab>
       - <tab>
@@ -121,7 +117,7 @@ boot_command:
 
   - title: Enable Location Services
     commands: 
-      - <wait10s>
+      - <locate timeout=60 text='Enable Location Services'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -129,13 +125,13 @@ boot_command:
 
   - title: Are you sure you don't want to use Location Services?
     commands: 
-      - <wait10s>
+      - <wait1s>
       - <tab>
       - <spacebar>
 
   - title: Select Your Time Zone
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Select Your Time Zone'>
       - <tab>
       - UTC
       - <enter>
@@ -146,7 +142,7 @@ boot_command:
 
   - title: Analytics
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Analytics'>
       - <tab>
       - <spacebar>
       - <leftShiftOn>
@@ -156,13 +152,13 @@ boot_command:
 
   - title: Screen Time
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Screen Time'>
       - <tab>
       - <spacebar>
 
   - title: Siri
     commands: 
-      - <wait10s>
+      - <skipNotFound timeout=10 text='Siri'>
       - <tab>
       - <spacebar>
       - <leftShiftOn>
@@ -172,7 +168,7 @@ boot_command:
 
   - title: Choose Your Look
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text='Choose Your Look'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -189,46 +185,55 @@ boot_command:
       - <wait5s>
       - v
 
-  - title: Now that the installation is done, open "System Preferences"
-    commands: 
-      - <wait10s>
+  - title: Now that the installation is done, open "Applications folder"
+    commands:
+      - <wait2s>
       - <leftAltOn>
-      - <spacebar>
+      - <leftShiftOn>
+      - a
+      - <leftShiftOff>
       - <leftAltOff>
+      - <wait1s>
       - System Preferences
-      - <enter>
+      - <wait1s>
+      - <leftAltOn>
+      - o
+      - <leftAltOff>
 
   - title: Navigate to "Sharing"
-    commands: 
-      - <wait10s>
+    commands:
+      - <locate text='Sign in to your Apple ID'>
       - sharing
       - <enter>
 
   - title: Enable Screen Sharing
     commands: 
-      - <wait10s>
-      - <tab>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <locate text='Screen Sharing'>
+      - <tab repeat=4>
       - <spacebar>
+      - <wait1s>
 
   - title: Enable Remote Login
-    commands: 
-      - <wait10s>
-      - <down>
-      - <down>
-      - <down>
-      - <down>
+    commands:
+      - <down repeat=4>
+      - <wait1s>
       - <spacebar>
-      - <tab>
-      - <tab>
+      - <wait1s>
+      - <tab repeat=2>
       - <spacebar>
+      - <wait5s>
+
+  - title: Quit System Settings
+    commands:
+      - <leftAltOn>
+      - q
+      - <leftAltOff>
 
   - title: Disable Voice Over
-    commands: 
+    commands:
       - <leftAltOn>
       - <fnOn>
       - <f5>
       - <fnOff>
       - <leftAltOff>
+      - <wait5s>
