@@ -488,6 +488,7 @@
 		9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */; };
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
 		9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */; };
+		9BE7F199302CAC690006F53F /* ProvisionOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE7F198302CAC600006F53F /* ProvisionOptions.swift */; };
 		9BE9BE7C2EB774FE00220700 /* ColorSchemeModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */; };
 		9BEAA1502F37B073005ACC9D /* BuildHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */; };
 		9BEAA2462F38FCEE005ACC9D /* ProgressObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */; };
@@ -1362,6 +1363,7 @@
 		9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PIDLock.swift; sourceTree = "<group>"; };
 		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
 		9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListObjects.swift; sourceTree = "<group>"; };
+		9BE7F198302CAC600006F53F /* ProvisionOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionOptions.swift; sourceTree = "<group>"; };
 		9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeModifier.swift; sourceTree = "<group>"; };
 		9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHandler.swift; sourceTree = "<group>"; };
 		9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressObserver.swift; sourceTree = "<group>"; };
@@ -2516,6 +2518,7 @@
 				9BB3BE0F2DB3F17500799A6A /* LoginOptions.swift */,
 				9BB3BE102DB3F17500799A6A /* MountOptions.swift */,
 				9BB3BE112DB3F17500799A6A /* NetworkOptions.swift */,
+				9BE7F198302CAC600006F53F /* ProvisionOptions.swift */,
 				9BB3BE122DB3F17500799A6A /* PullOptions.swift */,
 				9BB3BE132DB3F17500799A6A /* PurgeOptions.swift */,
 				9BB3BE142DB3F17500799A6A /* PushOptions.swift */,
@@ -3895,6 +3898,7 @@
 				9BA7B0222F56010F004AFAE8 /* VirtualMachineConfiguration.swift in Sources */,
 				9BB3BE2D2DB3F17500799A6A /* UmountOptions.swift in Sources */,
 				9BB3BE2E2DB3F17500799A6A /* RemoteOptions.swift in Sources */,
+				9BE7F199302CAC690006F53F /* ProvisionOptions.swift in Sources */,
 				9BB3BE2F2DB3F17500799A6A /* PullOptions.swift in Sources */,
 			);
 		};

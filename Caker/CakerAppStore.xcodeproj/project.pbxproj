@@ -136,8 +136,6 @@
 		9B29F7D72FCAE4B700AEBCB8 /* DiskAttachementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2BFAA92DFED25E000045C3 /* DiskAttachementView.swift */; };
 		9B29F7D82FCAE4B700AEBCB8 /* InternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */; };
 		9B29F7D92FCAE4B700AEBCB8 /* VirtualMachineConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */; };
-		FE0534D58DB0463388B4720F /* VMImageCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */; };
-		FB20C8CCEAD84F2CA91EE0BC /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 		9B29F7DA2FCAE4B700AEBCB8 /* ApplicationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */; };
 		9B29F7DB2FCAE4B700AEBCB8 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601A02E21169200889BFD /* Settings.swift */; };
 		9B29F7DC2FCAE4B700AEBCB8 /* StopHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7A382F3DE0A900F37D2C /* StopHandler.swift */; };
@@ -486,6 +484,7 @@
 		9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */; };
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
 		9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */; };
+		9BE7F1B3302CCAB50006F53F /* ProvisionOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE7F1B2302CCAB50006F53F /* ProvisionOptions.swift */; };
 		9BEAA2462F38FCEE005ACC9D /* ProgressObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */; };
 		9BEAA4302F3D022A005ACC9D /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEAA42F2F3D022A005ACC9D /* FileMonitor */; };
 		9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B72DF4400A0092B196 /* ExecuteHandler.swift */; };
@@ -714,6 +713,8 @@
 		E9F8146A5F697526814F2ABC /* linux-opensuse.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 25A36C779DD69601BDFAA13D /* linux-opensuse.packerlite.yaml */; };
 		F22B07BC7C9E157344A3E8D8 /* linux-opensuse.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 25A36C779DD69601BDFAA13D /* linux-opensuse.packerlite.yaml */; };
 		FA2526B6C1AD84E8A936DC68 /* linux-fedora.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 32612D3D9C8B68255A45662B /* linux-fedora.packerlite.yaml */; };
+		FB20C8CCEAD84F2CA91EE0BC /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
+		FE0534D58DB0463388B4720F /* VMImageCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1209,8 +1210,6 @@
 		9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableListNewItem.swift; sourceTree = "<group>"; };
 		9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineWizard.swift; sourceTree = "<group>"; };
 		9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfig.swift; sourceTree = "<group>"; };
-		DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalog.swift; sourceTree = "<group>"; };
-		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractiveShell.swift; sourceTree = "<group>"; };
 		9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHelper.swift; sourceTree = "<group>"; };
 		9B7D69242F1B92E800FE1B0B /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
@@ -1371,6 +1370,7 @@
 		9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PIDLock.swift; sourceTree = "<group>"; };
 		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
 		9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListObjects.swift; sourceTree = "<group>"; };
+		9BE7F1B2302CCAB50006F53F /* ProvisionOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionOptions.swift; sourceTree = "<group>"; };
 		9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeModifier.swift; sourceTree = "<group>"; };
 		9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHandler.swift; sourceTree = "<group>"; };
 		9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressObserver.swift; sourceTree = "<group>"; };
@@ -1561,7 +1561,9 @@
 		9BFE87452F7E6480005CC9B2 /* VM.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = VM.xcf; sourceTree = "<group>"; };
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
 		9F65A98D0C436F32A389AF06 /* linux-centos.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-centos.packerlite.yaml"; sourceTree = "<group>"; };
+		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		CEBCF840FC996468321E4B7D /* BootCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootCommand.swift; sourceTree = "<group>"; };
+		DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalog.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2524,6 +2526,7 @@
 				9BB3BE0F2DB3F17500799A6A /* LoginOptions.swift */,
 				9BB3BE102DB3F17500799A6A /* MountOptions.swift */,
 				9BB3BE112DB3F17500799A6A /* NetworkOptions.swift */,
+				9BE7F1B2302CCAB50006F53F /* ProvisionOptions.swift */,
 				9BB3BE122DB3F17500799A6A /* PullOptions.swift */,
 				9BB3BE132DB3F17500799A6A /* PurgeOptions.swift */,
 				9BB3BE142DB3F17500799A6A /* PushOptions.swift */,
@@ -3910,6 +3913,7 @@
 				9BA7B0222F56010F004AFAE8 /* VirtualMachineConfiguration.swift in Sources */,
 				9BB3BE2D2DB3F17500799A6A /* UmountOptions.swift in Sources */,
 				9BB3BE2E2DB3F17500799A6A /* RemoteOptions.swift in Sources */,
+				9BE7F1B3302CCAB50006F53F /* ProvisionOptions.swift in Sources */,
 				9BB3BE2F2DB3F17500799A6A /* PullOptions.swift in Sources */,
 			);
 		};
