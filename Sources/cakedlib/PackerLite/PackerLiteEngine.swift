@@ -68,6 +68,8 @@ public enum PackerLiteEngine {
 							progressHandler(.step(String(localized: "Install agent…")))
 
 							_ = try await location.installAgent(updateAgent: true, config: config, runningIP: runningIP, runMode: runMode)
+							config.agent = true
+							try config.save()
 						}
 					}
 
