@@ -132,7 +132,6 @@ struct Root: ParsableCommand {
 				Sandbox.self,
 				Compose.self,
 				CakeHome.self,
-				Relocate.self,
 			])
 
 	static func parse() throws -> ParsableCommand? {
@@ -182,6 +181,10 @@ struct Root: ParsableCommand {
 	}
 
 	public static func main() async throws {
+		#if !APPLESTORE
+			configuration.subcommands.append(Relocate.self)
+		#endif
+
 		if try tryForkCommand() {
 			return
 		}
