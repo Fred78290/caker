@@ -23,7 +23,7 @@ boot_command:
 
   - title: Select Language
     commands: 
-      - <locate timeout=30 text='https://www.apple.com/fr/legal/sla/'>
+      - <locate timeout=30 text='https://www.apple.com/'>
       - italiano
       - <esc>
       - english

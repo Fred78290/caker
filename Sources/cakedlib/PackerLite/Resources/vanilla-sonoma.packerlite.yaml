@@ -23,7 +23,7 @@ boot_command:
 
   - title: Select Language
     commands: 
-      - <locate timeout=30 text='https://www.apple.com/fr/legal/sla/'>
+      - <locate timeout=30 text='https://www.apple.com/'>
       - italiano
       - <esc>
       - english
@@ -87,7 +87,7 @@ boot_command:
 
   - title: Are you sure you want to skip signing in with an Apple ID?
     commands: 
-      - <wait2s>
+      - <locate text="Are you sure">
       - <tab>
       - <spacebar>
 
@@ -101,7 +101,7 @@ boot_command:
 
   - title: I have read and agree to the macOS Software License Agreement
     commands: 
-      - <wait2s>
+      - <locate text='I have read and agree'>
       - <tab>
       - <spacebar>
 
@@ -129,7 +129,7 @@ boot_command:
 
   - title: Are you sure you don't want to use Location Services?
     commands: 
-      - <wait2s>
+      - <locate text="Are you sure">
       - <tab>
       - <spacebar>
 
