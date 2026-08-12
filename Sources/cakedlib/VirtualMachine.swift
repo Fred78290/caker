@@ -1531,10 +1531,8 @@ extension VirtualMachine {
 // MARK: - VNCServerDelegate
 extension VirtualMachine: VNCServerDelegate {
 	public func willStart(_ server: VNCServer) {
-		if self.env.display == .vnc {
-			let vmView = self.env.vzMachineView!
-
-			if let framebufferView = self.env.vzMachineView {
+		if self.env.display == .vnc, let vmView = self.env.vzMachineView {
+			if let framebufferView = self.env.vzMachineView.framebufferView {
 				vmView.autoresizesSubviews = true
 				framebufferView.autoresizingMask = [.width, .height]
 				framebufferView.frame = NSRect(origin: .zero, size: vmView.bounds.size)
