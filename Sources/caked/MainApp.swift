@@ -20,6 +20,8 @@ class AppState: ObservableObject, Observable, VirtualMachineDelegate {
 		self.isRunning = status.isRunning
 		self.isPaused = status == .paused
 		self.isSuspendable = status.isRunning && vm.suspendable
+
+		vm.delegate = self
 	}
 
 	func update(vm: VirtualMachine) {
@@ -165,30 +167,10 @@ struct MainWindow: Scene {
 				}.disabled(self.appState.isSuspendable == false)
 			}
 		}
-		
+
 		Window("About", id: "about") {
 			AboutApplication(config: self.params.config)
 		}.windowResizability(.contentSize)
-	}
-
-	var menu: some View {
-		Group {
-			Button("Start") {
-				Task { self.startFromUI() }
-			}.disabled(self.appState.isRunning)
-
-			Button("Stop") {
-				Task { self.stopFromUI() }
-			}.disabled(self.appState.isStopped)
-
-			Button("Request Stop") {
-				Task { self.requestStopFromUI() }
-			}.disabled(self.appState.isStopped)
-
-			Button("Suspend") {
-				Task { self.suspendFromUI() }
-			}.disabled(self.appState.isSuspendable == false)
-		}
 	}
 
 	#if DEBUG
@@ -218,15 +200,6 @@ struct MainWindow: Scene {
 	}
 }
 
-@available(macOS 26.0, *)
-final class VirtualMachineRepresentation: NSHostingSceneRepresentation<MainWindow> {
-	init(params: VMRunHandler, vm: VirtualMachine, appState: AppState) {
-		super.init {
-			MainWindow(params: params, vm: vm, appState: appState)
-		}
-	}
-}
-
 struct MainApp: App {
 	static var cancellation: Cancellable?
 	static var displayUI = false
@@ -239,21 +212,16 @@ struct MainApp: App {
 		MainWindow(params: Self.params, vm: Self.vm)
 	}
 
+	static func activate() {
+		NSApp.activate()
+	}
+
 	static func runUI(_ vm: VirtualMachine, params: VMRunHandler, cancellation: Cancellable?) {
 		MainApp.displayUI = true
 		MainApp.params = params
 		MainApp.vm = vm
 		MainApp.cancellation = cancellation
-
-		if #available(macOS 26.0, *) {
-			let delegate = AppDelegate(params: params, vm: vm, cancellation: cancellation)
-
-			NSApp.delegate = delegate
-			NSApp.setDockIcon()
-			NSApp.run()
-		} else {
-			MainApp.main()
-		}
+		MainApp.main()
 	}
 }
 
@@ -275,28 +243,19 @@ private struct SplashScreenView: View {
 		.padding(24)
 		.frame(width: 320, height: 180)
 		.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+		.onAppear {
+			DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+				NSApp.activate()
+			}
+		}
 	}
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
-	private var splashWindow: NSWindow?
-	private var params: VMRunHandler?
-	private var vm: VirtualMachine?
-	private var cancellation: Cancellable?
-	private var displayVM: (() -> Void)?
-	private var displayAbout: (() -> Void)?
-
-	@available(macOS 26.0, *)
-	init(params: VMRunHandler, vm: VirtualMachine, cancellation: Cancellable?) {
-		self.params = params
-		self.vm = vm
-		self.cancellation = cancellation
-	}
+	private var splashWindow: NSWindow? = nil
 
 	func applicationDidBecomeActive(_ notification: Notification) {
-		if #available(macOS 26.0, *) {
-			closeSplashWindow()
-		}
+		closeSplashWindowSingle()
 	}
 
 	func applicationWillTerminate(_ notification: Notification) {
@@ -306,10 +265,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		if MainApp.displayUI {
 			NSApp.setDockIcon()
-
-			if #available(macOS 26.0, *), let params, let vm {
-				self.showSplashWindow(params: params, vm: vm)
-			}
+			self.showSplashWindow()
 		}
 	}
 
@@ -346,9 +302,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	}
 }
 
-@available(macOS 26.0, *)
 extension AppDelegate {
-	private func showSplashWindow(params: VMRunHandler, vm: VirtualMachine) {
+	private func showSplashWindow() {
 		let size = NSSize(width: 320, height: 180)
 		let window = NSWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: .borderless, backing: .buffered, defer: false)
 
@@ -362,56 +317,9 @@ extension AppDelegate {
 		window.makeKeyAndOrderFront(self)
 
 		self.splashWindow = window
-
-		let appState = AppState(vm)
-
-		vm.delegate = appState
-
-		MainActor.assumeIsolated {
-			let scene = VirtualMachineRepresentation(params: params, vm: vm, appState: appState)
-			NSApp.addSceneRepresentation(scene)
-
-			self.displayVM = {
-				scene.environment.openWindow(id: "VM")
-			}
-
-			self.displayAbout = {
-				scene.environment.openWindow(id: "about")
-			}
-
-			NSApp.mainMenu = self.makeMainMenu(params: params, vm: vm, appState: appState)
-		}
 	}
 
-	private func makeMainMenu(params: VMRunHandler, vm: VirtualMachine, appState: AppState) -> NSMenu {
-		let mainWindow = MainWindow(params: params, vm: vm, appState: appState)
-		let mainMenu = NSMenu()
-
-		let appMenuItem = NSMenuItem()
-
-		appMenuItem.submenu = NSHostingMenu(rootView: Group {
-			Button("About \(params.name)") { [weak self] in
-				self?.displayAbout?()
-			}
-
-			Divider()
-
-			Button("Quit \(params.name)") {
-				NSApp.terminate(nil)
-			}.keyboardShortcut("q")
-		})
-
-		let controlMenuItem = NSMenuItem(title: String(localized: "Control"), action: nil, keyEquivalent: "")
-
-		controlMenuItem.submenu = NSHostingMenu(rootView: mainWindow.menu)
-
-		mainMenu.addItem(appMenuItem)
-		mainMenu.addItem(controlMenuItem)
-
-		return mainMenu
-	}
-
-	func closeSplashWindow() {
+	func closeSplashWindowSingle() {
 		guard let window = self.splashWindow else {
 			return
 		}
@@ -420,10 +328,6 @@ extension AppDelegate {
 		window.orderOut(self)
 		window.close()
 
-		if let displayVM {
-			displayVM()
-		}
+		EnvironmentValues().openWindow(id: "VM")
 	}
-
-
 }
