@@ -103,6 +103,10 @@ The TypeScript counterpart lives in `webui/src/types/lxd.ts`.
 
 Caker.app subscribes to the `GrandCentralDispatcher` gRPC streaming call to receive live VM status (CPU, memory, screenshots, state changes). Each running VM calls `GrandCentralUpdate` to push its status to `caked`, which then fans out to connected GUI clients. This is how the desktop app stays in sync without polling.
 
+### SwiftUI front-app activation from a terminal launch
+
+`caked`'s GUI paths (`MainApp.swift`, used by `caker` and by `caked provision --foreground`) are sometimes launched via fork/exec from a terminal or shell script rather than through Finder/LaunchServices. macOS does not automatically grant a process launched that way frontmost/active status, and SwiftUI's `App`/`WindowGroup` scene lifecycle alone doesn't compensate — the window can open fully behind other apps with no visible cue that it exists. `MainApp.swift`'s `AppDelegate` works around this with a plain `NSWindow` splash screen (not a SwiftUI `Window`/`WindowGroup` scene) shown at `.floating` level via `NSHostingView`, plus three layered activation attempts (`NSApp.activate(ignoringOtherApps:)` in `Extensions.swift`'s `setDockIcon()`, the splash window's own `.floating` level, and a 5s-delayed `NSApp.activate()` fallback), transitioning to the real `WindowGroup` via `EnvironmentValues().openWindow(id:)` once `applicationDidBecomeActive` actually fires. See the "Front-app activation workaround" comment block above `AppDelegate` in `Sources/caked/MainApp.swift` for the full explanation of why each layer exists.
+
 ### PackerLite (unattended OS provisioning)
 
 PackerLite drives a VM's unattended first-boot setup after `VMBuilder.swift` finishes installing it — macOS Setup Assistant for `.ipsw` builds, or a Linux first-boot/OEM installer for `.iso` builds — via a parsed `boot_command`, the same concept as HashiCorp Packer's `boot_command` / `packer-plugin-tart`, built natively with no external binary or plugin. It only runs when `--autoinstall` is passed to `build`/`create`; there's no automatic provisioning otherwise. The two source types resolve their template very differently:

@@ -244,6 +244,8 @@ private struct SplashScreenView: View {
 		.frame(width: 320, height: 180)
 		.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
 		.onAppear {
+			// Fallback retry in case setDockIcon()'s activate() call at launch lost the race —
+			// see the "Front-app activation workaround" note above AppDelegate.
 			DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
 				NSApp.activate()
 			}
@@ -251,6 +253,29 @@ private struct SplashScreenView: View {
 	}
 }
 
+// MARK: - Front-app activation workaround
+//
+// When this process is launched via fork/exec from a terminal or shell script (as `caked
+// provision --foreground` and similar are, rather than through Finder/LaunchServices), macOS
+// does not automatically grant it frontmost/active status the way a normal GUI launch would.
+// SwiftUI's `App`/`WindowGroup` alone doesn't compensate for this — the VM window can end up
+// open but buried behind whatever else has focus, with no visible sign it opened at all.
+//
+// The three layers below are a deliberate belt-and-braces workaround, not redundant flourishes;
+// each exists because the one before it wasn't reliably sufficient on its own across launch
+// contexts observed in practice:
+//   1. `setDockIcon()` (Extensions.swift) calls `NSApp.activate(ignoringOtherApps:)` immediately
+//      from `applicationDidFinishLaunching`.
+//   2. The splash `NSWindow` below is created at `.floating` level, so it visually surfaces
+//      above other apps' windows even before this process becomes the system-designated
+//      active app — activation state and window-server ordering aren't the same thing.
+//   3. `SplashScreenView` schedules a delayed `NSApp.activate()` retry, in case (1) lost a race
+//      against window-server/App Nap state still settling right after process launch.
+//
+// Once real activation lands (`applicationDidBecomeActive`), the splash window is torn down and
+// the actual SwiftUI `WindowGroup` ("VM") is opened via `EnvironmentValues().openWindow(id:)` —
+// used here specifically because `AppDelegate` isn't a View and has no SwiftUI environment to
+// pull an `openWindow` action from any other way.
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	private var splashWindow: NSWindow? = nil
 
@@ -311,6 +336,8 @@ extension AppDelegate {
 		window.isOpaque = false
 		window.backgroundColor = .clear
 		window.hasShadow = true
+		// .floating puts this above other apps' windows on the window server regardless of
+		// whether this process is the active app yet — see the note above AppDelegate.
 		window.level = .floating
 		window.center()
 		window.contentView = NSHostingView(rootView: SplashScreenView(name: MainApp.params.name))
@@ -328,6 +355,8 @@ extension AppDelegate {
 		window.orderOut(self)
 		window.close()
 
+		// AppDelegate has no SwiftUI environment of its own — reading the action from a fresh
+		// EnvironmentValues() is how a plain NSObject opens the "VM" WindowGroup by id.
 		EnvironmentValues().openWindow(id: "VM")
 	}
 }

@@ -792,6 +792,10 @@ extension NSApplication {
 		}
 
 		self.setActivationPolicy(.regular)
+		// First of three layered activation attempts for processes launched from a terminal/shell
+		// script rather than Finder/LaunchServices — see the "Front-app activation workaround" note
+		// above AppDelegate in Sources/caked/MainApp.swift for the other two and why this one alone
+		// isn't reliably sufficient.
 		NSApp.activate(ignoringOtherApps: true)
 		NSApp.unhide(self)
 
