@@ -36,7 +36,7 @@ public struct ProvisionHandler {
 	public static func provision(
 		location: VMLocation,
 		storageLocation: StorageLocation,
-		display: VMRunHandler.DisplayMode,
+		foreground: Bool,
 		templatePath: URL?,
 		macosVersion: MacOSVersion?,
 		variables: [String],
@@ -58,7 +58,7 @@ public struct ProvisionHandler {
 			storageLocation: storageLocation,
 			location: location,
 			name: location.name,
-			display: display,
+			display: foreground ? .all : .vnc,
 			config: config,
 			screenSize: displaySize,
 			vncPassword: "",
@@ -132,7 +132,7 @@ public struct ProvisionHandler {
 	public static func provision(
 		location: VMLocation,
 		storageLocation: StorageLocation,
-		display: VMRunHandler.DisplayMode,
+		foreground: Bool,
 		templateName: String?,
 		templateContent: String?,
 		macosVersion: MacOSVersion?,
@@ -157,7 +157,7 @@ public struct ProvisionHandler {
 		return try await self.provision(
 			location: location,
 			storageLocation: storageLocation,
-			display: display,
+			foreground: foreground,
 			templatePath: templatePath,
 			macosVersion: macosVersion,
 			variables: variables,
@@ -170,7 +170,7 @@ public struct ProvisionHandler {
 
 	public static func provision(
 		name: String,
-		display: VMRunHandler.DisplayMode,
+		foreground: Bool,
 		templateName: String,
 		templateContent: String?,
 		macosVersion: MacOSVersion?,
@@ -187,7 +187,7 @@ public struct ProvisionHandler {
 		return try await self.provision(
 			location: location,
 			storageLocation: storageLocation,
-			display: display,
+			foreground: foreground,
 			templateName: templateName,
 			templateContent: templateContent,
 			macosVersion: macosVersion,

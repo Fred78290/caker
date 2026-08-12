@@ -53,7 +53,7 @@ struct ProvisionHandler: CakedCommandAsync {
 			_ = try await CakedLib.ProvisionHandler.provision(
 				location: location,
 				storageLocation: storageLocation,
-				display: .vnc,
+				foreground: false,
 				templateName: templateName,
 				templateContent: templateContent,
 				macosVersion: MacOSVersion(request.macosVersion),
