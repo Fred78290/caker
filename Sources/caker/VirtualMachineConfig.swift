@@ -18,13 +18,13 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	private var initialDiskSize: UInt64
 
 	var locationURL: URL
-	
+
 	var version: Int = 0
-	
+
 	var arch: GRPCLib.Architecture = Architecture.current()
-	
+
 	var instanceID: String
-	
+
 	var rootDisk: String? = nil {
 		didSet {
 			changedFields?.insert(\.rootDisk)
@@ -52,7 +52,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			changedFields?.insert(\.nested)
 		}
 	}
-	
+
 	var nestedIfChanged: Bool? {
 		self.changedFields?.contains(\.nested) == true ? self.nested : nil
 	}
@@ -62,7 +62,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			changedFields?.insert(\.useCloudInit)
 		}
 	}
-	
+
 	var configuredPlatform: GRPCLib.SupportedPlatform = .unknown {
 		didSet {
 			changedFields?.insert(\.configuredPlatform)
@@ -101,7 +101,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 
 	var memorySizeInMoB: UInt64 {
 		get {
-			self.memorySize/MoB
+			self.memorySize / MoB
 		}
 		set {
 			self.memorySize = newValue * MoB
@@ -119,7 +119,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	}
 
 	var memorySizeInMoBIfChanged: UInt64? {
-		self.changedFields?.contains(\.memorySize) == true ? self.memorySize/MoB : nil
+		self.changedFields?.contains(\.memorySize) == true ? self.memorySize / MoB : nil
 	}
 
 	var memorySizeMin: UInt64 = 512 {
@@ -419,11 +419,11 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	}
 
 	var diskSizeInGoBIfChanged: UInt64? {
-		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GoB : nil
+		self.changedFields?.contains(\.diskSize) == true ? self.diskSize / GoB : nil
 	}
 
 	var diskSizeInGiBIfChanged: UInt64? {
-		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GiB : nil
+		self.changedFields?.contains(\.diskSize) == true ? self.diskSize / GiB : nil
 	}
 
 	var diskSizeIfChanged: UInt64? {
@@ -662,8 +662,8 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		try config.save()
 	}
 
-	func buildOptions(imageSource: ImageSource) -> BuildOptions {
-		return self.buildOptions(image: self.imageName, imageSource: imageSource, sshAuthorizedKey: self.sshAuthorizedKey)
+	func buildOptions(_ id: UUID, imageSource: ImageSource) -> BuildOptions {
+		return self.buildOptions(id, image: self.imageName, imageSource: imageSource, sshAuthorizedKey: self.sshAuthorizedKey)
 	}
 
 	func configureOptions(allowReconfigureDisk: Bool) -> ConfigureOptions {
@@ -688,8 +688,9 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		)
 	}
 
-	func buildOptions(image: String, imageSource: ImageSource?, sshAuthorizedKey: String?) -> BuildOptions {
+	func buildOptions(_ id: UUID, image: String, imageSource: ImageSource?, sshAuthorizedKey: String?) -> BuildOptions {
 		.init(
+			id,
 			name: self.vmname!,
 			rootDisk: self.rootDisk,
 			cpu: UInt16(self.cpuCount),
@@ -727,4 +728,3 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		NotificationCenter.default.post(name: name, object: object)
 	}
 }
-

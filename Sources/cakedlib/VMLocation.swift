@@ -363,8 +363,8 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return try self.copyTo(try Self.tempDirectory(runMode: runMode))
 	}
 
-	public static func tempDirectory(runMode: Utils.RunMode) throws -> VMLocation {
-		let tmpDir = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(UUID().uuidString)
+	public static func tempDirectory(_ identifier: UUID = UUID(), runMode: Utils.RunMode) throws -> VMLocation {
+		let tmpDir = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(identifier.uuidString)
 		try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
 
 		return VMLocation(rootURL: tmpDir, template: false)

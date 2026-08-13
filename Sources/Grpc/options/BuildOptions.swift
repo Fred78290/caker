@@ -155,10 +155,13 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.customLong("macos-version")], help: ArgumentHelp(String(localized: "macOS version of the IPSW, used to select the built-in provisioning template when it can't be determined from the IPSW filename"), discussion: String(localized: "One of: \(MacOSVersion.allCases.map(\.rawValue).joined(separator: ", "))"), valueName: "version"))
 	public var macosVersion: MacOSVersion? = nil
 
+	public var identifier = UUID()
+
 	public init() {
 	}
 
 	public init(
+		_ identifier: UUID = UUID(),
 		name: String,
 		rootDisk: String? = nil,
 		cpu: UInt16 = 2,
@@ -192,6 +195,7 @@ public struct BuildOptions: ParsableArguments {
 		bridgedNetwork: Bool = false,
 		dynamicPortForwarding: Bool = false
 	) {
+		self.identifier = identifier
 		self.name = name
 		self.root = rootDisk
 		self.cpu = cpu
@@ -230,6 +234,7 @@ public struct BuildOptions: ParsableArguments {
 	}
 
 	public init(request: Caked_CommonBuildRequest) throws {
+		self.identifier = UUID()
 		self.name = request.name
 		self.displayRefit = false
 		self.autoinstall = request.autoinstall

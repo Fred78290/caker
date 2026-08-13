@@ -25,7 +25,7 @@ public struct BuildHandler {
 				}
 			}
 
-			let tempVMLocation: VMLocation = try VMLocation.tempDirectory(runMode: runMode)
+			let tempVMLocation: VMLocation = try VMLocation.tempDirectory(options.identifier, runMode: runMode)
 
 			// Lock the temporary VM directory to prevent it's garbage collection
 			let tmpVMDirLock = try FileLock(lockURL: tempVMLocation.rootURL)
@@ -35,7 +35,7 @@ public struct BuildHandler {
 				operation: {
 					do {
 						let location = storageLocation.location(options.name)
-						_ = try await VMBuilder.buildVM(vmName: options.name, location: tempVMLocation, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
+						_ = try await VMBuilder.buildVM(options.identifier, vmName: options.name, location: tempVMLocation, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
 						try storageLocation.relocate(options.name, from: tempVMLocation)
 

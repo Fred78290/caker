@@ -16,7 +16,7 @@ public struct VMBuilder {
 		}
 	#endif
 
-	private static func build(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+	private static func build(id: UUID, vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		let imageSource = options.imageSource!
 		let imageURL = URL(spaced: options.image)!
 		var config: CakeConfig! = nil
@@ -194,7 +194,7 @@ public struct VMBuilder {
 
 						let template = try PackerLiteTemplate.load(from: content, variables: variables)
 
-						try await PackerLiteEngine.provision(location: location, config: config, template: template, runMode: runMode, progressHandler: progressHandler)
+						try await PackerLiteEngine.provision(id: id, location: location, config: config, template: template, runMode: runMode, progressHandler: progressHandler)
 					}
 				}
 			#endif
@@ -218,7 +218,7 @@ public struct VMBuilder {
 
 					let template = try PackerLiteTemplate.load(from: content, variables: variables)
 
-					try await PackerLiteEngine.provision(location: location, config: config, template: template, runMode: runMode, progressHandler: progressHandler)
+					try await PackerLiteEngine.provision(id: id, location: location, config: config, template: template, runMode: runMode, progressHandler: progressHandler)
 				}
 			}
 		}
@@ -394,10 +394,10 @@ public struct VMBuilder {
 		return options
 	}
 
-	static func buildVM(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
+	static func buildVM(_ id: UUID = UUID(), vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
 		let options = try await self.cloneImage(vmName: vmName, location: location, options: options, runMode: runMode, progressHandler: progressHandler)
 
-		try await self.build(vmName: vmName, location: location, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
+		try await self.build(id: id, vmName: vmName, location: location, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
 		return options
 	}
