@@ -13,6 +13,7 @@ import Steps
 import SwiftUI
 import Synchronization
 import UniformTypeIdentifiers
+import Virtualization
 
 typealias OptionalVMLocation = VMLocation?
 
@@ -176,6 +177,23 @@ struct ShortImageInfoComparator: SortComparator {
 	}
 }
 
+struct WizardVirtualMachineView: NSViewRepresentable {
+	public typealias NSViewType = VZVirtualMachineView
+
+	private let virtualMachine: VirtualMachine
+
+	init(_ virtualMachine: VirtualMachine) {
+		self.virtualMachine = virtualMachine
+	}
+
+	public func makeNSView(context: Context) -> NSViewType {
+		return self.virtualMachine.vzMachineView!
+	}
+
+	public func updateNSView(_ nsView: NSViewType, context: Context) {
+	}
+}
+
 struct VirtualMachineWizard: View {
 	static let ProgressCreateVirtualMachine = NSNotification.Name("ProgressCreateVirtualMachine")
 	static let ProgressTitleCreateVirtualMachine = NSNotification.Name("ProgressTitleCreateVirtualMachine")
@@ -184,14 +202,16 @@ struct VirtualMachineWizard: View {
 	static let FailCreateVirtualMachine = NSNotification.Name("FailCreateVirtualMachine")
 
 	@Environment(\.dismiss) private var dismiss
+	@Environment(\.openWindow) private var openWindow
 
 	@State private var config: VirtualMachineConfig
 	@State private var currentTab: Int = 0
 	@State private var model: VirtualMachineWizardStateObject
 	@State private var diskSizeValueIsInvalid = false
 	@State private var allowsOverrideMinimumResources = false
+	@State private var provisionnedVM: VirtualMachine? = nil
 
-	private let wizardID = UUID().uuidString
+	private let wizardID = UUID()
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 	private let listHeight: CGFloat = 460
 	private let fromPreset: Bool
@@ -330,14 +350,14 @@ struct VirtualMachineWizard: View {
 		.onReceive(Self.CreatedVirtualMachine) { notification in
 			if self.isMyNotification(notification) {
 				self.model.createVM = false
-				
+
 				if let vmURL = notification.object as? URL {
 					Task {
 						await MainApp.app.openVirtualMachine(vmURL)
 						self.dismiss()
 					}
 				}
-				
+
 				self.config = VirtualMachineConfig()
 				self.model.reset()
 			}
@@ -362,6 +382,21 @@ struct VirtualMachineWizard: View {
 				self.model.createVMSubtitle = message
 			}
 		}
+		.onReceive(PackerLiteEngine.provisionedStartNotification) { notification in
+			if self.isMyNotification(notification), let virtualMachine = notification.object as? VirtualMachine {
+				#if DEBUG_PAKERLITE
+					self.openWindow(id: "Debug PackerLite", value: self.wizardID)
+				#else
+					self.provisionnedVM = virtualMachine
+				#endif
+			}
+		}
+		.onReceive(PackerLiteEngine.provisionedTerminatedNotification) { notification in
+			if self.isMyNotification(notification) {
+				self.provisionnedVM = nil
+			}
+		}
+
 		.onAppear {
 			self.validateConfig(config: self.config)
 		}
@@ -374,7 +409,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	func isMyNotification(_ notification: Notification) -> Bool {
-		notification.userInfo?["wizardID"] as? String == self.wizardID
+		notification.userInfo?["wizardID"] as? UUID == self.wizardID
 	}
 
 	func TabBar() -> some View {
@@ -393,12 +428,20 @@ struct VirtualMachineWizard: View {
 	func Body() -> some View {
 		if self.sheet {
 			VStack(spacing: 12) {
-				TabBar()
+				if let provisionnedVM = self.provisionnedVM {
+					WizardVirtualMachineView(provisionnedVM).padding(10).disabled(true)
+				} else {
+					TabBar()
+				}
 				Footer()
 			}
 		} else {
 			VStack(spacing: 12) {
-				Content(currentStep: self.model.currentStep)
+				if let provisionnedVM = self.provisionnedVM {
+					WizardVirtualMachineView(provisionnedVM).padding(10).disabled(true)
+				} else {
+					Content(currentStep: self.model.currentStep)
+				}
 				Footer()
 			}
 			.toolbar {
@@ -625,7 +668,7 @@ struct VirtualMachineWizard: View {
 				}
 			}
 			.padding(.vertical, 2)
-			
+
 			Toggle("Allow override minimum resources", isOn: $allowsOverrideMinimumResources)
 				.disabled(self.model.createVM)
 				.padding(.vertical, 2)
@@ -1305,7 +1348,8 @@ struct VirtualMachineWizard: View {
 					} else if case .success(let vmURL) = result {
 						NotificationCenter.default.post(name: Self.CreatedVirtualMachine, object: vmURL, userInfo: ["message": message ?? String.empty, "wizardID": self.wizardID])
 					} else {
-						NotificationCenter.default.post(name: Self.FailCreateVirtualMachine, object: ServiceError(String(localized: "Internal error creating virtual machine")), userInfo: ["message": message ?? String.empty, "wizardID": self.wizardID])
+						NotificationCenter.default.post(
+							name: Self.FailCreateVirtualMachine, object: ServiceError(String(localized: "Internal error creating virtual machine")), userInfo: ["message": message ?? String.empty, "wizardID": self.wizardID])
 					}
 
 					done()
@@ -1326,7 +1370,7 @@ struct VirtualMachineWizard: View {
 			}
 
 			do {
-				let options = self.config.buildOptions(imageSource: model.imageSource)
+				let options = self.config.buildOptions(wizardID, imageSource: model.imageSource)
 				var ipswQueue: DispatchQueue!
 
 				#if arch(arm64)

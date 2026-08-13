@@ -15,10 +15,9 @@ import SwiftUI
 import Virtualization
 
 public enum PackerLiteEngine {
-	#if DEBUG
-		public static var provisioned: [UUID: VirtualMachine] = [:]
-		public static let provisionedTerminatedNotification = NSNotification.Name("ProvisionedTerminatedNotification")
-	#endif
+	public static var provisioned: [UUID: VirtualMachine] = [:]
+	public static let provisionedStartNotification = NSNotification.Name("ProvisionedStartNotification")
+	public static let provisionedTerminatedNotification = NSNotification.Name("ProvisionedTerminatedNotification")
 
 	public static func provision(
 		vm: VirtualMachine,
@@ -94,48 +93,31 @@ public enum PackerLiteEngine {
 	}
 
 	public static func provision(
+		id: UUID,
 		location: VMLocation,
 		config: CakeConfig,
 		template: PackerLiteTemplate,
 		runMode: Utils.RunMode,
 		progressHandler: @escaping ProgressObserver.BuildProgressHandler
 	) async throws {
+		let runInCaker = Bundle.runInCaker
+
 		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
 
 		let vm = try await MainActor.run { () -> VirtualMachine in
-			let vm = try VirtualMachine(location: location, config: config, display: .none, screenSize: config.display.cgSize, recoveryMode: false, runMode: runMode)
+			let vm = try VirtualMachine(location: location, config: config, display: runInCaker ? .ui : .none, screenSize: config.display.cgSize, recoveryMode: false, runMode: runMode)
 
 			vm.createVirtualMachineView()
 
 			return vm
 		}
 
-		#if DEBUG
-			let id = UUID()
-
-			if Bundle.runInCaker {
-				Self.provisioned[id] = vm
-
-				await MainActor.run {
-					EnvironmentValues().openWindow(id: "Debug PackerLite", value: id)
-				}
-			}
-
-			defer {
-				if Bundle.runInCaker {
-					Self.provisioned.removeValue(forKey: id)
-
-					NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm)
-				}
-			}
-		#endif
-
 		let runningIP = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
 			vm.startVM { result in
 				switch result {
 				case .success:
 					do {
-						let runningIP = try location.waitIP(wait: 120, runMode: runMode)
+						let runningIP = try location.waitIP(config: config, wait: 120, runMode: runMode)
 
 						continuation.resume(returning: runningIP)
 					} catch {
@@ -143,6 +125,24 @@ public enum PackerLiteEngine {
 					}
 				case .failure(let error):
 					continuation.resume(throwing: error)
+				}
+			}
+		}
+
+		if runInCaker {
+			Self.provisioned[id] = vm
+
+			await MainActor.run {
+				NotificationCenter.default.post(name: self.provisionedStartNotification, object: vm, userInfo: ["wizardID": id])
+			}
+		}
+
+		defer {
+			if runInCaker {
+				Self.provisioned.removeValue(forKey: id)
+
+				DispatchQueue.main.async {
+					NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm, userInfo: ["wizardID": id])
 				}
 			}
 		}

@@ -258,28 +258,38 @@ struct MainApp: App {
 			CommandGroup(replacing: .saveItem, addition: {})
 		}
 
-		#if DEBUG
-		WindowGroup(id: "Debug PackerLite", for: UUID.self) { $id in
-			if let id, let vm = PackerLiteEngine.provisioned[id] {
-				let cgSize = vm.config.display.cgSize
-				let params = VMRunHandler(
-					mode: .grpc, storageLocation: StorageLocation(runMode: .app), location: vm.location, name: vm.location.name, display: .ui, config: vm.config, screenSize: cgSize, vncPassword: "", vncPort: 0, recoveryMode: false, runMode: .app
-				)
+		#if DEBUG_PAKERLITE
+			WindowGroup(id: "Debug PackerLite", for: UUID.self) { $id in
+				if let id, let vm = PackerLiteEngine.provisioned[id] {
+					let cgSize = vm.config.display.cgSize
+					let params = VMRunHandler(
+						mode: .grpc,
+						storageLocation: StorageLocation(runMode: .app),
+						location: vm.location,
+						name: vm.location.name,
+						display: .ui,
+						config: vm.config,
+						screenSize: cgSize,
+						vncPassword: "",
+						vncPort: 0,
+						recoveryMode: false,
+						runMode: .app
+					)
 
-				VMView(vm, params: params)
-					.onReceive(PackerLiteEngine.provisionedTerminatedNotification, object: vm) { notification in
+					DismissableVMContainer(vm: vm) {
+						VMView(vm, params: params)
 					}
 					.frame(size: vm.config.display.cgSize)
-			} else {
-				Text("Something goes wrong")
+				} else {
+					Text("Something goes wrong")
+				}
 			}
-		}
-		.windowResizability(.contentSize)
-		.windowToolbarStyle(.expanded)
-		.restorationState(.disabled)
-		.commands {
-			CommandGroup(replacing: .saveItem, addition: {})
-		}
+			.windowResizability(.contentSize)
+			.windowToolbarStyle(.expanded)
+			.restorationState(.disabled)
+			.commands {
+				CommandGroup(replacing: .saveItem, addition: {})
+			}
 		#endif
 
 		Settings {
@@ -725,6 +735,20 @@ struct MainApp: App {
 				}
 			}
 		}
+	}
+}
+
+/// Helper view to wrap VMView with dismiss action on PackerLiteEngine termination notification
+private struct DismissableVMContainer<Content: View>: View {
+	@Environment(\.dismiss) private var dismiss
+	let vm: VirtualMachine
+	@ViewBuilder var content: () -> Content
+
+	var body: some View {
+		content()
+			.onReceive(PackerLiteEngine.provisionedTerminatedNotification, object: vm) { _ in
+				dismiss()
+			}
 	}
 }
 
