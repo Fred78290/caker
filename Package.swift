@@ -164,6 +164,7 @@ let package = Package(
 			.copy("PackerLite/Resources/vanilla-macos26.packerlite.yaml"),
 			.copy("PackerLite/Resources/vanilla-macos27.packerlite.yaml"),
 			.copy("PackerLite/Resources/linux-fedora.packerlite.yaml"),
+			.copy("PackerLite/Resources/linux-fedora-server.packerlite.yaml"),
 			.copy("PackerLite/Resources/linux-centos.packerlite.yaml"),
 			.copy("PackerLite/Resources/linux-redhat.packerlite.yaml"),
 			.copy("PackerLite/Resources/linux-opensuse.packerlite.yaml"),

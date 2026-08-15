@@ -1,0 +1,104 @@
+# linux-fedora-server.packerlite.yaml
+#
+# Built-in PackerLite template — unattended installation of Fedora Server
+# from the official install ISO, driven natively by caked/caker after booting
+# from the ISO (see the "PackerLite" section of the wiki's command summary).
+# This is the default template auto-selected for a Fedora ISO whose
+# filename/URL does NOT look like a desktop/workstation build (see
+# CakeConfig.osDesktop / VMBuilder's detection) when --autoinstall is passed
+# without an explicit --template — pass --template yourself to override it.
+# Unlike the bundled macOS templates, this one is NOT a guaranteed-working
+# recipe: it has been reviewed for plausibility against the documented
+# Anaconda install flow, but NOT validated end-to-end against a real boot.
+# Treat the click targets and tab counts below as a first draft to
+# verify/adjust against your own run.
+#
+# Unlike Fedora Workstation's Live ISO (linux-fedora.packerlite.yaml), Fedora
+# Server's install ISO boots straight into the graphical Anaconda installer —
+# there's no live desktop session and no `liveinst` step needed first, the
+# same shape as linux-centos.packerlite.yaml/linux-redhat.packerlite.yaml
+# (Fedora, CentOS Stream, and RHEL all share the Anaconda installer).
+#
+# The boot ISO's default software selection is a minimal server install with
+# no desktop environment. If you want a desktop, open the "Software
+# Selection" hub spoke and pick a desktop environment — this template leaves
+# that spoke untouched and takes whatever the ISO's default selection is.
+#
+# Usage:
+#   cakectl build my-fedora-vm ./Fedora-Server-dvd-x86_64-44-1.7.iso \
+#     --user admin --password admin --autoinstall
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+boot_timeout: 60m        # a full install can legitimately take 20-30+ minutes
+
+pre_boot_command:
+  - title: Boot the GRUB menu's "Install" entry
+    commands:
+      - <wait5s>
+      - <up>
+      - <enter>
+
+boot_command:
+  - title: Welcome screen - continue with the default language
+    commands:
+      - <wait5s>
+      - <click 'Continue'>
+
+  - title: Open Installation Destination
+    commands:
+      - <wait5s>
+      - <click 'Installation Destination'>
+
+  - title: Accept automatic partitioning on the detected disk
+    commands:
+      - <wait5s>
+      - <click 'Done'>
+
+  - title: Open User Creation
+    commands:
+      - <wait5s>
+      - <click 'User Creation'>
+
+  - title: Fill in the full name, then replace the auto-suggested username
+    commands:
+      - <wait2s>
+      - Managed via Caker
+      - <tab>
+      - <leftCtrlOn>
+      - a
+      - <leftCtrlOff>
+      - ${var.username}
+
+  - title: Make this user an administrator
+    commands:
+      - <click 'Make this user administrator'>
+
+  - title: Set and confirm the account password
+    commands:
+      - <tab>
+      - <tab>
+      - <tab>
+      - ${var.password}
+      - <tab>
+      - ${var.password}
+
+  - title: Confirm the user creation spoke
+    commands:
+      - <wait2s>
+      - <click 'Done'>
+
+  - title: Begin the installation
+    commands:
+      - <wait5s>
+      - <click 'Begin Installation'>
+
+  - title: Wait for the installation to finish
+    commands:
+      - <wait30m>
+
+  - title: Reboot into the freshly installed system
+    commands:
+      - <wait5s>
+      - <click 'Reboot System'>

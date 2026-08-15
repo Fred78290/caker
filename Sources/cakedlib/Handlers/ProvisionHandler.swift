@@ -221,7 +221,7 @@ public struct ProvisionHandler {
 			// Falls back to a built-in template for the VM's stored platform (e.g. fedora, centos,
 			// redhat, openSUSE, debian) when --template isn't given — validate() already refused to
 			// get here for a platform with neither an explicit --template nor a built-in default.
-			guard let resolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: template, platform: config.configuredPlatform) else {
+			guard let resolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: template, platform: config.configuredPlatform, desktop: config.osDesktop) else {
 				throw ServiceError(String(localized: "No built-in provisioning template for \(config.configuredPlatform.rawValue) — provide one with --template"))
 			}
 

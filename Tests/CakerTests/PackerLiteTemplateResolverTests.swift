@@ -109,6 +109,26 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 		}
 	}
 
+	func testFedoraDesktopFlagPicksBetweenWorkstationAndServerTemplates() throws {
+		let desktopResolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: .fedora, desktop: true)
+		let serverResolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: .fedora, desktop: false)
+
+		XCTAssertNotNil(desktopResolved)
+		XCTAssertNotNil(serverResolved)
+		XCTAssertNotEqual(desktopResolved, serverResolved, "desktop and server should resolve to two different bundled templates")
+		XCTAssertTrue(desktopResolved?.contains("sudo liveinst") == true, "the Workstation template drives the Live ISO's liveinst step")
+		XCTAssertFalse(serverResolved?.contains("sudo liveinst") == true, "the Server template boots straight into Anaconda, no liveinst step to run")
+	}
+
+	func testFedoraDesktopFlagIsIgnoredByOtherPlatforms() throws {
+		for platform: GRPCLib.SupportedPlatform in [.centos, .redhat, .openSUSE, .debian] {
+			let desktopResolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: platform, desktop: true)
+			let serverResolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: platform, desktop: false)
+
+			XCTAssertEqual(desktopResolved, serverResolved, "\(platform.rawValue) has no desktop/server split yet — both should resolve to the same single bundled template")
+		}
+	}
+
 	func testUbuntuHasNoBuiltInLinuxTemplateAndResolvesToNil() throws {
 		XCTAssertFalse(PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: .ubuntu))
 
