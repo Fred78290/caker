@@ -1016,6 +1016,8 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				mount /mnt/shared 2>/dev/null || true
 			fi
 
+			sync
+			sync
 			"""
 
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
