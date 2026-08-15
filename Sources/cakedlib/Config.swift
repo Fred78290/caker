@@ -227,6 +227,11 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.cake["osRelease"] as? String }
 	}
 
+	public var osDesktop: Bool {
+		set { self.cake["osDesktop"] = newValue }
+		get { self.cake["osDesktop"] as? Bool ?? false }
+	}
+
 	/// Whether PackerLite has already driven this VM's unattended provisioning to completion —
 	/// either automatically during `build --autoinstall` (IPSW macOS installs, or ISO Linux
 	/// installs given an explicit `--template`) or via a standalone `caked provision` run.
