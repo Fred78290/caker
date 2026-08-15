@@ -254,7 +254,7 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		if let quote = rest.first, quote == "'" || quote == "\"" {
 			guard rest.count >= 2, rest.last == quote else {
-				throw BootCommandParseError.malformedClick(body)
+				throw BootCommandParseError.malformedKeyboard(body)
 			}
 
 			let keyboardString = String(rest.dropFirst().dropLast())
@@ -288,7 +288,7 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		// Attribute-style: key=value pairs
 		if rest.contains("=") {
-			let attributes = try parseAttributes(String(rest))
+			let attributes = try parseAttributes("click", input: String(rest))
 
 			if let pointString = attributes["point"]?.trimmingCharacters(in: .whitespacesAndNewlines) {
 				// Expect point in form "X,Y" possibly quoted
@@ -349,7 +349,7 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		// Attribute-style: key=value pairs
 		if rest.contains("=") {
-			let attributes = try parseAttributes(String(rest))
+			let attributes = try parseAttributes("locate", input: String(rest))
 
 			if let textValue = attributes["text"] {
 				let text = trimMatchingQuotes(textValue)
@@ -391,7 +391,7 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		// Attribute-style: key=value pairs
 		if rest.contains("=") {
-			let attributes = try parseAttributes(String(rest))
+			let attributes = try parseAttributes("skipNotFound", input: String(rest))
 
 			if let textValue = attributes["text"] {
 				let text = trimMatchingQuotes(textValue)
@@ -432,7 +432,7 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		// Attribute-style: key=value pairs
 		if rest.contains("=") {
-			let attributes = try parseAttributes(String(rest))
+			let attributes = try parseAttributes("scroll", input: String(rest))
 
 			if let text = attributes["horizontal"] {
 				let text = trimMatchingQuotes(text)
@@ -463,7 +463,7 @@ public struct BootCommandStep: Equatable, Sendable {
 
 	/// Parses a simple list of key=value attributes separated by whitespace.
 	/// Supports values wrapped in single or double quotes and unquoted tokens without spaces.
-	private static func parseAttributes(_ input: String) throws -> [String: String] {
+	private static func parseAttributes(_ token: String, input: String) throws -> [String: String] {
 		var result: [String: String] = [:]
 		var i = input.startIndex
 		func skipSpaces() {
@@ -477,17 +477,17 @@ public struct BootCommandStep: Equatable, Sendable {
 			while i < input.endIndex, input[i].isLetter || input[i].isNumber { i = input.index(after: i) }
 			let key = String(input[keyStart..<i]).lowercased()
 			skipSpaces()
-			guard i < input.endIndex, input[i] == "=" else { throw BootCommandParseError.malformedClick("click " + input) }
+			guard i < input.endIndex, input[i] == "=" else { throw BootCommandParseError.malformedAttribute("click " + input) }
 			i = input.index(after: i)
 			skipSpaces()
-			guard i < input.endIndex else { throw BootCommandParseError.malformedClick("click " + input) }
+			guard i < input.endIndex else { throw BootCommandParseError.malformedAttribute("\(token) " + input) }
 			let value: String
 			if input[i] == "\"" || input[i] == "'" {
 				let quote = input[i]
 				i = input.index(after: i)
 				let valueStart = i
 				while i < input.endIndex, input[i] != quote { i = input.index(after: i) }
-				guard i < input.endIndex else { throw BootCommandParseError.malformedClick("click " + input) }
+				guard i < input.endIndex else { throw BootCommandParseError.malformedAttribute("\(token) " + input) }
 				value = String(input[valueStart..<i])
 				i = input.index(after: i)  // consume closing quote
 			} else {
@@ -516,6 +516,7 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 	case malformedSkipNotFound(String)
 	case malformedScroll(String)
 	case malformedKeyboard(String)
+	case malformedAttribute(String)
 	case keyboardNotFound(String)
 
 	public var errorDescription: String? {
@@ -527,6 +528,7 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 		case .malformedSkipNotFound(let token): return "Malformed skipNotFound token: <\(token)>"
 		case .malformedScroll(let token): return "Malformed scroll token: <\(token)>"
 		case .malformedKeyboard(let token): return "Malformed keyboard token: <\(token)>"
+		case .malformedAttribute(let token): return "Malformed attribute token: <\(token)>"
 		case .keyboardNotFound(let keyboard): return "Keyboard not found: <\(keyboard)>"
 		}
 	}
