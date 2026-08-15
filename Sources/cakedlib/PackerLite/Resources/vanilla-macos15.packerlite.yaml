@@ -2,8 +2,7 @@
 #
 # Built-in PackerLite template — unattended macOS Setup Assistant provisioning,
 # driven natively by caked/caker after installing from an IPSW. No external
-# `packer` binary or packer-plugin-tart required (see vanilla-sequoia.pkr.hcl
-# for the equivalent Packer-based recipe this was transcribed from).
+# `packer` binary or packer-plugin-tart required.
 #
 # Usage:
 #   cakectl build my-vm https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw \

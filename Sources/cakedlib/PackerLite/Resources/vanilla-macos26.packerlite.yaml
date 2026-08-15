@@ -2,8 +2,7 @@
 #
 # Built-in PackerLite template — unattended macOS Setup Assistant provisioning,
 # driven natively by caked/caker after installing from an IPSW. No external
-# `packer` binary or packer-plugin-tart required (see vanilla-tahoe.pkr.hcl
-# for the equivalent Packer-based recipe this was transcribed from).
+# `packer` binary or packer-plugin-tart required.
 #
 # Usage:
 #   cakectl build my-vm https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-65618/10445B26-DE2C-43EC-9149-0A831602E74B/UniversalMac_26.6_25G72_Restore.ipsw \
