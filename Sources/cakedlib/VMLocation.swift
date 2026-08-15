@@ -705,8 +705,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return (runningIP, vm)
 	}
 
-	public func waitIPWithLease(wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
-		let config = try self.config()
+	public func waitIPWithLease(config: CakeConfig, wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		let start: Date = Date.now
 		let macAddress = config.macAddress ?? String.empty
 		let clientID = config.dhcpClientID ?? macAddress
@@ -796,11 +795,11 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		}
 
 		if config.firstLaunch && (config.source == .iso || config.source == .ipsw) {
-			return try waitIPWithLease(wait: wait, runMode: runMode, startedProcess: startedProcess)
+			return try waitIPWithLease(config: config, wait: wait, runMode: runMode, startedProcess: startedProcess)
 		} else if config.agent {
 			return try waitIPWithAgent(wait: wait, runMode: runMode, startedProcess: startedProcess)
 		} else {
-			return try waitIPWithLease(wait: wait, runMode: runMode, startedProcess: startedProcess)
+			return try waitIPWithLease(config: config, wait: wait, runMode: runMode, startedProcess: startedProcess)
 		}
 	}
 
@@ -811,7 +810,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	public func waitIP(on: EventLoop, config: CakeConfig, wait: Int, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
 		if config.source == .iso && config.firstLaunch {
 			return on.submit {
-				try? self.waitIPWithLease(wait: wait, runMode: runMode)
+				try? self.waitIPWithLease(config: config, wait: wait, runMode: runMode)
 			}
 		}
 
@@ -826,7 +825,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			}
 		} else {
 			return on.submit {
-				try? self.waitIPWithLease(wait: wait, runMode: runMode)
+				try? self.waitIPWithLease(config: config, wait: wait, runMode: runMode)
 			}
 		}
 	}
@@ -1036,11 +1035,12 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
 
 		try tempFileURL.delete()
-		let cmd = "echo \(config.configuredPassword ?? config.configuredUser)|sudo -S sh -c '/tmp/install-agent.sh 2>&1 | tee /tmp/install-agent.log'"
+		let cmd = "echo \(config.configuredPassword ?? config.configuredUser)|sudo -S sh -c '/tmp/install-agent.sh 2>&1 | tee ~/install-agent.log'"
 		let result = try ssh.capture(cmd)
 
 		if result.status == 0 {
 			Logger(self).info("Agent installed on \(self.name), exit code: \(result.status)")
+			Logger(self).debug(result.output)
 		} else {
 			Logger(self).error("Agent installation failed on \(self.name), exit code: \(result.status)\n\(result.output)")
 
