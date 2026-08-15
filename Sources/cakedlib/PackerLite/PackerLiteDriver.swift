@@ -195,7 +195,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 			try await type(text)
 
 		case .press(let key, let repeated):
-			logger.debug("[\(title)]: press \(key) with modifier \(modifiers)")
+			logger.debug("[\(title)]: press \(repeated) \(key) with modifier \(modifiers)")
 			try await press(keysym(for: key), repeated: repeated)
 
 		case .modifierOn(let modifier):
