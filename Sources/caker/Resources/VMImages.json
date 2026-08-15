@@ -22,9 +22,10 @@
 			{ "id": "fedora40Server", "label": "Fedora 40 – Server ISO (aarch64)", "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/aarch64/iso/Fedora-Server-dvd-aarch64-40-1.14.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "centos10", "label": "CentOS Stream 10 – DVD ISO (aarch64)", "url": "https://mirrors.centos.org/mirrorlist?path=/10-stream/BaseOS/aarch64/iso/CentOS-Stream-10-latest-aarch64-dvd1.iso&redirect=1&protocol=https", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "centos9", "label": "CentOS Stream 9 – DVD ISO (aarch64)", "url": "https://mirrors.centos.org/mirrorlist?path=/9-stream/BaseOS/aarch64/iso/CentOS-Stream-9-latest-aarch64-dvd1.iso&redirect=1&protocol=https", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSELeap161", "label": "openSUSE Leap 16.1 – DVD ISO – DVD ISO (aarch64)", "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.aarch64-Leap_16.1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSELeap160", "label": "openSUSE Leap 16.0 – DVD ISO – DVD ISO (aarch64)", "url": "https://download.opensuse.org/distribution/leap/16.0/installer/iso/agama-installer.aarch64-Leap_16.0.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "openSUSELeap156", "label": "openSUSE Leap 15.6 – DVD ISO (aarch64)", "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-aarch64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "openSUSELeap155", "label": "openSUSE Leap 15.5 – DVD ISO (aarch64)", "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-aarch64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
-			{ "id": "openSUSETumbleweed", "label": "openSUSE Tumbleweed – DVD ISO (aarch64)", "url": "https://download.opensuse.org/tumbleweed/iso/openSUSE-Tumbleweed-DVD-aarch64-Current.iso", "minCPU": 2, "minMemoryMiB": 2048 }
 		],
 		"ipsw": [
 			{ "id": "macos26_6", "label": "macOS 26.6", "url": "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-65618/10445B26-DE2C-43EC-9149-0A831602E74B/UniversalMac_26.6_25G72_Restore.ipsw" },
@@ -78,9 +79,10 @@
 			{ "id": "fedora40Server", "label": "Fedora 40 – Server ISO (x86_64)", "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/x86_64/iso/Fedora-Server-dvd-x86_64-40-1.14.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "centos10", "label": "CentOS Stream 10 – DVD ISO (x86_64)", "url": "https://mirrors.centos.org/mirrorlist?path=/10-stream/BaseOS/x86_64/iso/CentOS-Stream-10-latest-x86_64-dvd1.iso&redirect=1&protocol=https", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "centos9", "label": "CentOS Stream 9 – DVD ISO (x86_64)", "url": "https://mirrors.centos.org/mirrorlist?path=/9-stream/BaseOS/x86_64/iso/CentOS-Stream-9-latest-x86_64-dvd1.iso&redirect=1&protocol=https", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSELeap161", "label": "openSUSE Leap 16.1 – DVD ISO – DVD ISO (aarch64)", "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.x86_64-Leap_16.1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSELeap160", "label": "openSUSE Leap 16.0 – DVD ISO – DVD ISO (aarch64)", "url": "https://download.opensuse.org/distribution/leap/16.0/installer/iso/agama-installer.x86_64-Leap_16.0.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "openSUSELeap156", "label": "openSUSE Leap 15.6 – DVD ISO (x86_64)", "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-x86_64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "openSUSELeap155", "label": "openSUSE Leap 15.5 – DVD ISO (x86_64)", "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-x86_64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
-			{ "id": "openSUSETumbleweed", "label": "openSUSE Tumbleweed – DVD ISO (x86_64)", "url": "https://download.opensuse.org/tumbleweed/iso/openSUSE-Tumbleweed-DVD-x86_64-Current.iso", "minCPU": 2, "minMemoryMiB": 2048 }
 		],
 		"ipsw": [
 			{ "id": "macos26_6", "label": "macOS 26.6", "url": "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-65618/10445B26-DE2C-43EC-9149-0A831602E74B/UniversalMac_26.6_25G72_Restore.ipsw" },

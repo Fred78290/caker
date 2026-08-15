@@ -13,6 +13,7 @@ import Yams
 public struct PackerLiteTemplate: Codable, Sendable {
 	public var variables: [String: String]?
 	public var bootTimeout: String?
+	public var preBootCommand: [Command]?
 	public var bootCommand: [Command]?
 
 	public struct Command: Codable, Sendable {
@@ -24,6 +25,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 		case variables
 		case bootTimeout = "boot_timeout"
 		case bootCommand = "boot_command"
+		case preBootCommand = "pre_boot_command"
 	}
 
 	public init(
@@ -70,6 +72,10 @@ public struct PackerLiteTemplate: Codable, Sendable {
 
 		var resolved = self
 
+		resolved.preBootCommand = preBootCommand?.map {
+			Self.substitute($0, variables: merged)
+		}
+
 		resolved.bootCommand = bootCommand?.map {
 			Self.substitute($0, variables: merged)
 		}
@@ -92,7 +98,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	// MARK: boot_command parsing
 
 	/// Parses every `boot_command` entry, wrapping parse failures with the offending index/string.
-	public func parsedBootCommand() async throws -> BootCommandSteps {
+	public func parsedBootCommand(bootCommand: [Command]?) async throws -> BootCommandSteps {
 		var parsed: [BootCommandStep] = []
 
 		guard let bootCommand else {

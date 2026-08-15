@@ -44,16 +44,14 @@
 
 boot_timeout: 60m        # a full desktop install can legitimately take 20-30+ minutes
 
-boot_command:
-  - title: Boot the live GRUB menu's default entry
-    commands: 
-      - <wait30s>
+pre_boot_command:
+  - title: Boot the GRUB menu's "Install" entry
+    commands:
+      - <wait5s>
+      - <up>
       - <enter>
 
-  - title: Wait for the live GNOME desktop to finish loading
-    commands: 
-      - <wait90s>
-
+boot_command:
   - title: Open a terminal via the Activities overview
     commands: 
       - <leftAltOn>

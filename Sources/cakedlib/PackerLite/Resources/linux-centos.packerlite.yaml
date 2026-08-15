@@ -31,16 +31,14 @@
 
 boot_timeout: 60m        # a full install can legitimately take 20-30+ minutes
 
-boot_command:
-  - title: Boot the GRUB menu's default "Install" entry
-    commands: 
-      - <wait30s>
+pre_boot_command:
+  - title: Boot the GRUB menu's "Install" entry
+    commands:
+      - <wait5s>
+      - <up>
       - <enter>
 
-  - title: Wait for the Anaconda installer to start
-    commands: 
-      - <wait60s>
-
+boot_command:
   - title: Welcome screen - continue with the default language
     commands: 
       - <wait5s>

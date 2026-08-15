@@ -43,12 +43,13 @@
 
 boot_timeout: 75m        # d-i's package installation stage depends on mirror speed, budget generously
 
-boot_command:
+pre_boot_command:
   - title: Boot the isolinux/GRUB menu's default "Graphical install" entry
-    commands: 
-      - <wait30s>
+    commands:
+      - <wait5s>
       - <enter>
 
+boot_command:
   - title: Wait for the graphical installer to start
     commands: 
       - <wait60s>

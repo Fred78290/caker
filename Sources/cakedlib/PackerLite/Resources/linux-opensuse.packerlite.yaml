@@ -39,12 +39,13 @@
 
 boot_timeout: 60m        # a full install can legitimately take 20-30+ minutes
 
-boot_command:
+pre_boot_command:
   - title: Boot the GRUB menu's default "Installation" entry
-    commands: 
-      - <wait30s>
+    commands:
+      - <wait5s>
       - <enter>
 
+boot_command:
   - title: Wait for the YaST installer to start (hardware probing takes a while)
     commands: 
       - <wait90s>

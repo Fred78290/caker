@@ -19,27 +19,16 @@ public enum PackerLiteEngine {
 	public static let provisionedStartNotification = NSNotification.Name("ProvisionedStartNotification")
 	public static let provisionedTerminatedNotification = NSNotification.Name("ProvisionedTerminatedNotification")
 
-	public static func provision(
+	private static func provision(
 		vm: VirtualMachine,
-		template: PackerLiteTemplate,
-		runningIP: String?,
-		runMode: Utils.RunMode,
+		targetView: NSView,
+		commands: BootCommandSteps,
+		resolvedBootTimeout: TimeInterval,
 		progressHandler: @escaping ProgressObserver.BuildProgressHandler
 	) async throws {
-		let location = vm.location
-		let config = vm.config
 		let logger = Logger("PackerLiteEngine")
-		let commands = try await template.parsedBootCommand()
 
-		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
-
-		guard let view = vm.vzMachineView else {
-			throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
-		}
-
-		logger.info("VM \(location.name) started for provisioning")
-
-		let driver = await PackerLiteDriver(targetView: view)
+		let driver = await PackerLiteDriver(targetView: targetView)
 
 		try await withThrowingTaskGroup(of: Void.self) { group in
 			let grp = group
@@ -62,20 +51,12 @@ public enum PackerLiteEngine {
 
 							progressHandler(.progress(context, Double(index) / Double(commands.count)))
 						}
-
-						if let runningIP, runningIP.isEmpty == false {
-							progressHandler(.step(String(localized: "Install agent…")))
-
-							_ = try await location.installAgent(updateAgent: true, config: config, runningIP: runningIP, runMode: runMode)
-							config.agent = true
-							try config.save()
-						}
 					}
 
 					group.addTask {
-						try await Task.sleep(nanoseconds: UInt64(template.resolvedBootTimeout * 1_000_000_000))
+						try await Task.sleep(nanoseconds: UInt64(resolvedBootTimeout * 1_000_000_000))
 
-						throw ServiceError(String(localized: "Provisioning timed out after \(Int(template.resolvedBootTimeout))s"))
+						throw ServiceError(String(localized: "Provisioning timed out after \(Int(resolvedBootTimeout))s"))
 					}
 
 					try await group.next()
@@ -84,6 +65,46 @@ public enum PackerLiteEngine {
 				onCancel: {
 					onCancel()
 				})
+		}
+	}
+
+	public static func provision(
+		vm: VirtualMachine,
+		template: PackerLiteTemplate,
+		runningIP: String?,
+		runMode: Utils.RunMode,
+		progressHandler: @escaping ProgressObserver.BuildProgressHandler
+	) async throws {
+		let location = vm.location
+		let config = vm.config
+		let logger = Logger("PackerLiteEngine")
+		let commands = try await template.parsedBootCommand(bootCommand: template.bootCommand)
+		var runningIP = runningIP
+
+		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
+
+		guard let view = vm.vzMachineView else {
+			throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
+		}
+
+		logger.info("VM \(location.name) started for provisioning")
+
+		try await Self.provision(
+			vm: vm,
+			targetView: view,
+			commands: commands,
+			resolvedBootTimeout: template.resolvedBootTimeout,
+			progressHandler: progressHandler)
+
+		if runningIP == nil {
+			runningIP = try location.waitIPWithLease(config: config, wait: 180, runMode: runMode)
+		}
+
+		if let runningIP, runningIP.isEmpty == false {
+			progressHandler(.step(String(localized: "Install agent…")))
+
+			_ = try await location.installAgent(updateAgent: true, config: config, runningIP: runningIP, runMode: runMode)
+			config.agent = true
 		}
 
 		progressHandler(.step(String(localized: "Provisioning done")))
@@ -112,19 +133,12 @@ public enum PackerLiteEngine {
 			return vm
 		}
 
-		let runningIP = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
-			vm.startVM { result in
-				switch result {
-				case .success:
-					do {
-						let runningIP = try location.waitIP(config: config, wait: 120, runMode: runMode)
-
-						continuation.resume(returning: runningIP)
-					} catch {
-						continuation.resume(throwing: error)
+		defer {
+			if runInCaker {
+				if Self.provisioned.removeValue(forKey: id) != nil {
+					DispatchQueue.main.async {
+						NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm, userInfo: ["wizardID": id])
 					}
-				case .failure(let error):
-					continuation.resume(throwing: error)
 				}
 			}
 		}
@@ -137,30 +151,33 @@ public enum PackerLiteEngine {
 			}
 		}
 
-		defer {
-			if runInCaker {
-				Self.provisioned.removeValue(forKey: id)
-
-				DispatchQueue.main.async {
-					NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm, userInfo: ["wizardID": id])
-				}
-			}
-		}
+		try await vm.startVM()
 
 		do {
+			guard let view = vm.vzMachineView else {
+				throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
+			}
+
+			// Preboot for linux
+			if let preBootCommand = template.preBootCommand, preBootCommand.isEmpty == false {
+				let commands = try await template.parsedBootCommand(bootCommand: preBootCommand)
+
+				try await Self.provision(
+					vm: vm,
+					targetView: view,
+					commands: commands,
+					resolvedBootTimeout: template.resolvedBootTimeout,
+					progressHandler: progressHandler)
+			}
+			
+			let runningIP = try location.waitIPWithLease(config: config, wait: 180, runMode: runMode)
+
 			try await Self.provision(vm: vm, template: template, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
-			await shutdown(vm)
 		} catch {
-			await shutdown(vm)
+			try? await vm.stopVM()
 			throw error
 		}
-	}
 
-	private static func shutdown(_ vm: VirtualMachine) async {
-		await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-			vm.stopVM { _ in
-				continuation.resume()
-			}
-		}
+		try? await vm.stopVM()
 	}
 }
