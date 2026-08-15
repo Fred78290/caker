@@ -353,16 +353,6 @@
 		9B82D3182F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */; };
 		9B82D31C2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
-		9B8F3F72301F3F52001FA32A /* vanilla-ventura.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F70301F3F52001FA32A /* vanilla-ventura.packerlite.yaml */; };
-		9B8F3F73301F3F52001FA32A /* vanilla-sequoia.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F6D301F3F52001FA32A /* vanilla-sequoia.packerlite.yaml */; };
-		9B8F3F74301F3F52001FA32A /* vanilla-monterey.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F6C301F3F52001FA32A /* vanilla-monterey.packerlite.yaml */; };
-		9B8F3F75301F3F52001FA32A /* vanilla-sonoma.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F6E301F3F52001FA32A /* vanilla-sonoma.packerlite.yaml */; };
-		9B8F3F76301F3F52001FA32A /* vanilla-tahoe.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F6F301F3F52001FA32A /* vanilla-tahoe.packerlite.yaml */; };
-		9B8F3F77301F3F52001FA32A /* vanilla-ventura.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F70301F3F52001FA32A /* vanilla-ventura.packerlite.yaml */; };
-		9B8F3F78301F3F52001FA32A /* vanilla-sequoia.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F6D301F3F52001FA32A /* vanilla-sequoia.packerlite.yaml */; };
-		9B8F3F79301F3F52001FA32A /* vanilla-monterey.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F6C301F3F52001FA32A /* vanilla-monterey.packerlite.yaml */; };
-		9B8F3F7A301F3F52001FA32A /* vanilla-sonoma.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F6E301F3F52001FA32A /* vanilla-sonoma.packerlite.yaml */; };
-		9B8F3F7B301F3F52001FA32A /* vanilla-tahoe.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B8F3F6F301F3F52001FA32A /* vanilla-tahoe.packerlite.yaml */; };
 		9B9117782EC9D4510017791D /* RawDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9117772EC9D44C0017791D /* RawDisk.swift */; };
 		9B91177C2ECA05880017791D /* PurgeableContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91177B2ECA05800017791D /* PurgeableContentStore.swift */; };
 		9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */; };
@@ -485,6 +475,18 @@
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
 		9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */; };
 		9BE7F1B3302CCAB50006F53F /* ProvisionOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE7F1B2302CCAB50006F53F /* ProvisionOptions.swift */; };
+		9BE7F1BD3030AF0A0006F53F /* vanilla-macos12.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1B73030AF0A0006F53F /* vanilla-macos12.packerlite.yaml */; };
+		9BE7F1BE3030AF0A0006F53F /* vanilla-macos14.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1B93030AF0A0006F53F /* vanilla-macos14.packerlite.yaml */; };
+		9BE7F1BF3030AF0A0006F53F /* vanilla-macos26.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1BB3030AF0A0006F53F /* vanilla-macos26.packerlite.yaml */; };
+		9BE7F1C03030AF0A0006F53F /* vanilla-macos13.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1B83030AF0A0006F53F /* vanilla-macos13.packerlite.yaml */; };
+		9BE7F1C13030AF0A0006F53F /* vanilla-macos27.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1BC3030AF0A0006F53F /* vanilla-macos27.packerlite.yaml */; };
+		9BE7F1C23030AF0A0006F53F /* vanilla-macos15.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1BA3030AF0A0006F53F /* vanilla-macos15.packerlite.yaml */; };
+		9BE7F1C33030AF0A0006F53F /* vanilla-macos12.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1B73030AF0A0006F53F /* vanilla-macos12.packerlite.yaml */; };
+		9BE7F1C43030AF0A0006F53F /* vanilla-macos14.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1B93030AF0A0006F53F /* vanilla-macos14.packerlite.yaml */; };
+		9BE7F1C53030AF0A0006F53F /* vanilla-macos26.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1BB3030AF0A0006F53F /* vanilla-macos26.packerlite.yaml */; };
+		9BE7F1C63030AF0A0006F53F /* vanilla-macos13.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1B83030AF0A0006F53F /* vanilla-macos13.packerlite.yaml */; };
+		9BE7F1C73030AF0A0006F53F /* vanilla-macos27.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1BC3030AF0A0006F53F /* vanilla-macos27.packerlite.yaml */; };
+		9BE7F1C83030AF0A0006F53F /* vanilla-macos15.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7F1BA3030AF0A0006F53F /* vanilla-macos15.packerlite.yaml */; };
 		9BEAA2462F38FCEE005ACC9D /* ProgressObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */; };
 		9BEAA4302F3D022A005ACC9D /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEAA42F2F3D022A005ACC9D /* FileMonitor */; };
 		9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B72DF4400A0092B196 /* ExecuteHandler.swift */; };
@@ -1217,11 +1219,6 @@
 		9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthClientInterceptorFactory.swift; sourceTree = "<group>"; };
 		9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldStore.swift; sourceTree = "<group>"; };
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
-		9B8F3F6C301F3F52001FA32A /* vanilla-monterey.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "vanilla-monterey.packerlite.yaml"; sourceTree = "<group>"; };
-		9B8F3F6D301F3F52001FA32A /* vanilla-sequoia.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "vanilla-sequoia.packerlite.yaml"; sourceTree = "<group>"; };
-		9B8F3F6E301F3F52001FA32A /* vanilla-sonoma.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "vanilla-sonoma.packerlite.yaml"; sourceTree = "<group>"; };
-		9B8F3F6F301F3F52001FA32A /* vanilla-tahoe.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "vanilla-tahoe.packerlite.yaml"; sourceTree = "<group>"; };
-		9B8F3F70301F3F52001FA32A /* vanilla-ventura.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "vanilla-ventura.packerlite.yaml"; sourceTree = "<group>"; };
 		9B9117772EC9D44C0017791D /* RawDisk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawDisk.swift; sourceTree = "<group>"; };
 		9B91177B2ECA05800017791D /* PurgeableContentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurgeableContentStore.swift; sourceTree = "<group>"; };
 		9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceHandler.swift; sourceTree = "<group>"; };
@@ -1371,6 +1368,12 @@
 		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
 		9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListObjects.swift; sourceTree = "<group>"; };
 		9BE7F1B2302CCAB50006F53F /* ProvisionOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionOptions.swift; sourceTree = "<group>"; };
+		9BE7F1B73030AF0A0006F53F /* vanilla-macos12.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "vanilla-macos12.packerlite.yaml"; sourceTree = "<group>"; };
+		9BE7F1B83030AF0A0006F53F /* vanilla-macos13.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "vanilla-macos13.packerlite.yaml"; sourceTree = "<group>"; };
+		9BE7F1B93030AF0A0006F53F /* vanilla-macos14.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "vanilla-macos14.packerlite.yaml"; sourceTree = "<group>"; };
+		9BE7F1BA3030AF0A0006F53F /* vanilla-macos15.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "vanilla-macos15.packerlite.yaml"; sourceTree = "<group>"; };
+		9BE7F1BB3030AF0A0006F53F /* vanilla-macos26.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "vanilla-macos26.packerlite.yaml"; sourceTree = "<group>"; };
+		9BE7F1BC3030AF0A0006F53F /* vanilla-macos27.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "vanilla-macos27.packerlite.yaml"; sourceTree = "<group>"; };
 		9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeModifier.swift; sourceTree = "<group>"; };
 		9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHandler.swift; sourceTree = "<group>"; };
 		9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressObserver.swift; sourceTree = "<group>"; };
@@ -2404,11 +2407,12 @@
 				32612D3D9C8B68255A45662B /* linux-fedora.packerlite.yaml */,
 				25A36C779DD69601BDFAA13D /* linux-opensuse.packerlite.yaml */,
 				500BE3176257638A33A6C5AC /* linux-redhat.packerlite.yaml */,
-				9B8F3F6C301F3F52001FA32A /* vanilla-monterey.packerlite.yaml */,
-				9B8F3F6D301F3F52001FA32A /* vanilla-sequoia.packerlite.yaml */,
-				9B8F3F6E301F3F52001FA32A /* vanilla-sonoma.packerlite.yaml */,
-				9B8F3F6F301F3F52001FA32A /* vanilla-tahoe.packerlite.yaml */,
-				9B8F3F70301F3F52001FA32A /* vanilla-ventura.packerlite.yaml */,
+				9BE7F1B73030AF0A0006F53F /* vanilla-macos12.packerlite.yaml */,
+				9BE7F1B83030AF0A0006F53F /* vanilla-macos13.packerlite.yaml */,
+				9BE7F1B93030AF0A0006F53F /* vanilla-macos14.packerlite.yaml */,
+				9BE7F1BA3030AF0A0006F53F /* vanilla-macos15.packerlite.yaml */,
+				9BE7F1BB3030AF0A0006F53F /* vanilla-macos26.packerlite.yaml */,
+				9BE7F1BC3030AF0A0006F53F /* vanilla-macos27.packerlite.yaml */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -3448,11 +3452,12 @@
 			isa = PBXResourcesBuildPhase;
 			files = (
 				9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */,
-				9B8F3F72301F3F52001FA32A /* vanilla-ventura.packerlite.yaml in Resources */,
-				9B8F3F73301F3F52001FA32A /* vanilla-sequoia.packerlite.yaml in Resources */,
-				9B8F3F74301F3F52001FA32A /* vanilla-monterey.packerlite.yaml in Resources */,
-				9B8F3F75301F3F52001FA32A /* vanilla-sonoma.packerlite.yaml in Resources */,
-				9B8F3F76301F3F52001FA32A /* vanilla-tahoe.packerlite.yaml in Resources */,
+				9BE7F1BD3030AF0A0006F53F /* vanilla-macos12.packerlite.yaml in Resources */,
+				9BE7F1BE3030AF0A0006F53F /* vanilla-macos14.packerlite.yaml in Resources */,
+				9BE7F1BF3030AF0A0006F53F /* vanilla-macos26.packerlite.yaml in Resources */,
+				9BE7F1C03030AF0A0006F53F /* vanilla-macos13.packerlite.yaml in Resources */,
+				9BE7F1C13030AF0A0006F53F /* vanilla-macos27.packerlite.yaml in Resources */,
+				9BE7F1C23030AF0A0006F53F /* vanilla-macos15.packerlite.yaml in Resources */,
 				09CF60A369C4AFCEDE477125 /* linux-centos.packerlite.yaml in Resources */,
 				3FD33CA662D356FEF8C13629 /* linux-debian.packerlite.yaml in Resources */,
 				FA2526B6C1AD84E8A936DC68 /* linux-fedora.packerlite.yaml in Resources */,
@@ -3481,14 +3486,15 @@
 				9B5611AD3013502C00E9FA7D /* elementary-os.png in Resources */,
 				9B5611AE3013502C00E9FA7D /* fedora.png in Resources */,
 				9B5611AF3013502C00E9FA7D /* gentoo.png in Resources */,
+				9BE7F1C33030AF0A0006F53F /* vanilla-macos12.packerlite.yaml in Resources */,
+				9BE7F1C43030AF0A0006F53F /* vanilla-macos14.packerlite.yaml in Resources */,
+				9BE7F1C53030AF0A0006F53F /* vanilla-macos26.packerlite.yaml in Resources */,
+				9BE7F1C63030AF0A0006F53F /* vanilla-macos13.packerlite.yaml in Resources */,
+				9BE7F1C73030AF0A0006F53F /* vanilla-macos27.packerlite.yaml in Resources */,
+				9BE7F1C83030AF0A0006F53F /* vanilla-macos15.packerlite.yaml in Resources */,
 				9B5611B03013502C00E9FA7D /* knoppix.png in Resources */,
 				9B5611B13013502C00E9FA7D /* kubuntu.png in Resources */,
 				9B5611B23013502C00E9FA7D /* linux.png in Resources */,
-				9B8F3F77301F3F52001FA32A /* vanilla-ventura.packerlite.yaml in Resources */,
-				9B8F3F78301F3F52001FA32A /* vanilla-sequoia.packerlite.yaml in Resources */,
-				9B8F3F79301F3F52001FA32A /* vanilla-monterey.packerlite.yaml in Resources */,
-				9B8F3F7A301F3F52001FA32A /* vanilla-sonoma.packerlite.yaml in Resources */,
-				9B8F3F7B301F3F52001FA32A /* vanilla-tahoe.packerlite.yaml in Resources */,
 				094F8B1042971209B2D4C21A /* linux-centos.packerlite.yaml in Resources */,
 				14ACF474E4A8311F1AE4935C /* linux-debian.packerlite.yaml in Resources */,
 				4142810A4CB6558C2432A31D /* linux-fedora.packerlite.yaml in Resources */,

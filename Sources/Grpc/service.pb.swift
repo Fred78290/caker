@@ -1856,12 +1856,12 @@ public nonisolated struct Caked_Caked: Sendable {
       public nonisolated enum MacOSVersion: SwiftProtobuf.Enum, Swift.CaseIterable {
         public typealias RawValue = Int
         case macosUnknown // = 0
-        case macosVentura // = 1
-        case macosMonterey // = 2
-        case macosSonoma // = 3
-        case macosSequoia // = 4
-        case macosTahoe // = 5
-        case macosGoldenGate // = 6
+        case macos12 // = 1
+        case macos13 // = 2
+        case macos14 // = 3
+        case macos15 // = 4
+        case macos26 // = 5
+        case macos27 // = 6
         case UNRECOGNIZED(Int)
 
         public init() {
@@ -1871,12 +1871,12 @@ public nonisolated struct Caked_Caked: Sendable {
         public init?(rawValue: Int) {
           switch rawValue {
           case 0: self = .macosUnknown
-          case 1: self = .macosVentura
-          case 2: self = .macosMonterey
-          case 3: self = .macosSonoma
-          case 4: self = .macosSequoia
-          case 5: self = .macosTahoe
-          case 6: self = .macosGoldenGate
+          case 1: self = .macos12
+          case 2: self = .macos13
+          case 3: self = .macos14
+          case 4: self = .macos15
+          case 5: self = .macos26
+          case 6: self = .macos27
           default: self = .UNRECOGNIZED(rawValue)
           }
         }
@@ -1884,12 +1884,12 @@ public nonisolated struct Caked_Caked: Sendable {
         public var rawValue: Int {
           switch self {
           case .macosUnknown: return 0
-          case .macosVentura: return 1
-          case .macosMonterey: return 2
-          case .macosSonoma: return 3
-          case .macosSequoia: return 4
-          case .macosTahoe: return 5
-          case .macosGoldenGate: return 6
+          case .macos12: return 1
+          case .macos13: return 2
+          case .macos14: return 3
+          case .macos15: return 4
+          case .macos26: return 5
+          case .macos27: return 6
           case .UNRECOGNIZED(let i): return i
           }
         }
@@ -1897,12 +1897,12 @@ public nonisolated struct Caked_Caked: Sendable {
         // The compiler won't synthesize support with the UNRECOGNIZED case.
         public static let allCases: [Caked_Caked.VMRequest.ProvisionRequest.MacOSVersion] = [
           .macosUnknown,
-          .macosVentura,
-          .macosMonterey,
-          .macosSonoma,
-          .macosSequoia,
-          .macosTahoe,
-          .macosGoldenGate,
+          .macos12,
+          .macos13,
+          .macos14,
+          .macos15,
+          .macos26,
+          .macos27,
         ]
 
       }
@@ -9094,7 +9094,7 @@ nonisolated extension Caked_Caked.VMRequest.ProvisionRequest: SwiftProtobuf.Mess
 }
 
 nonisolated extension Caked_Caked.VMRequest.ProvisionRequest.MacOSVersion: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0macosUnknown\0\u{1}macosVentura\0\u{1}macosMonterey\0\u{1}macosSonoma\0\u{1}macosSequoia\0\u{1}macosTahoe\0\u{1}macosGoldenGate\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0macosUnknown\0\u{1}macos12\0\u{1}macos13\0\u{1}macos14\0\u{1}macos15\0\u{1}macos26\0\u{1}macos27\0")
 }
 
 nonisolated extension Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {

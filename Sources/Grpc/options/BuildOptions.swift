@@ -9,35 +9,45 @@ import CakeAgentLib
 /// actually owns the provisioning logic in `Sources/cakedlib/PackerLite/MacOSVersion.swift`. Keep
 /// the raw values in sync between the two.
 public enum MacOSVersion: String, CaseIterable, ExpressibleByArgument, Sendable {
-	case monterey
-	case ventura
-	case sonoma
-	case sequoia
-	case tahoe
-	case goldengate
-	
+	case macos12
+	case macos13
+	case macos14
+	case macos15
+	case macos26
+	case macos27
+
+	private static let formerNames: [String: MacOSVersion] = [
+		"monterey": .macos12,
+		"ventura": .macos13,
+		"sonoma": .macos14,
+		"sequoia": .macos15,
+		"tahoe": .macos26,
+		"goldengate": .macos27
+	]
+
 	public init?(argument: String) {
-		self.init(rawValue: argument.lowercased())
+		if let value = Self.formerNames[argument] {
+			self = value
+		} else {
+			self.init(rawValue: argument.lowercased())
+		}
 	}
 	
 	public init?(_ from: Caked_MacOSVersion) throws {
-		switch from {
-			
-		case .macosUnknown:
-			return nil
-		case .macosVentura:
-			self = .ventura
-		case .macosMonterey:
-			self = .monterey
-		case .macosSonoma:
-			self = .sonoma
-		case .macosSequoia:
-			self = .sequoia
-		case .macosTahoe:
-			self = .tahoe
-		case .macosGoldenGate:
-			self = .goldengate
-		case .UNRECOGNIZED(_):
+		switch from {			
+		case .macos12:
+			self = .macos12
+		case .macos13:
+			self = .macos13
+		case .macos14:
+			self = .macos14
+		case .macos15:
+			self = .macos15
+		case .macos26:
+			self = .macos26
+		case .macos27:
+			self = .macos27
+		default:
 			return nil
 		}
 	}

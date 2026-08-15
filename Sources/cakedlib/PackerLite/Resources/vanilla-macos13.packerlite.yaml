@@ -1,13 +1,13 @@
-# vanilla-ventura.packerlite.yaml
+# vanilla-macos13.packerlite.yaml
 #
 # Built-in PackerLite template — unattended macOS Setup Assistant provisioning,
 # driven natively by caked/caker after installing from an IPSW. No external
 # `packer` binary or packer-plugin-tart required.
 #
 # Usage:
-#   cakectl build my-vm https://.../UniversalMac_13.6_22G120_Restore.ipsw \
+#   cakectl build my-vm https://updates.cdn-apple.com/2023FallFCS/fullrestores/042-55833/C0830847-A2F8-458F-B680-967991820931/UniversalMac_13.6_22G120_Restore.ipsw \
 #     --user admin --password admin \
-#     --macos-version ventura
+#     --macos-version macos13
 #
 # ${var.username}/${var.password} below resolve to the VM's actual account,
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
@@ -184,72 +184,53 @@ boot_command:
       - <leftShiftOff>
       - <spacebar>
 
-  - title: Enable Keyboard navigation so we can navigate System Settings using the keyboard
-    commands: 
-      - <wait10s>
-      - <leftAltOn>
-      - <spacebar>
-      - <leftAltOff>
-      - Terminal
-      - <wait1s>
-      - <enter>
-
-  - title: Enable full keyboard access
-    commands: 
-      - <wait5s>
-      - defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
-      - <enter>
-      - <wait1s>
-      - defaults write  com.apple.VoiceOverTraining doNotShowSplashScreen -int 1
-      - <enter>
-
-  - title: Quit Terminal
-    commands: 
-      - <wait1s>
-      - <leftAltOn>
-      - q
-      - <leftAltOff>
-
   - title: Enable Voice Over
     commands:
+      - <wait10s>
       - <leftAltOn>
       - <fnOn>
       - <f5>
       - <fnOff>
       - <leftAltOff>
-      - <wait10s>
+      - <wait2s>
+      - v
 
-  - title: Now that the installation is done, open "System Settings"
-    commands: 
+  - title: Now that the installation is done, open "Applications folder"
+    commands:
+      - <wait2s>
       - <leftAltOn>
-      - <spacebar>
+      - <leftShiftOn>
+      - a
+      - <leftShiftOff>
       - <leftAltOff>
-      - System Settings
-      - <enter>
+      - <wait1s>
+      - System Preferences
+      - <wait1s>
+      - <leftAltOn>
+      - o
+      - <leftAltOff>
 
   - title: Navigate to "Sharing"
     commands: 
       - <locate text='Appearance'>
-      - <leftCtrlOn>
-      - <fnOn>
-      - <f2>
-      - <fnOff>
-      - <leftCtrlOff>
-      - <right repeat=4>
-      - <down>
-      - Sharing
-      - <enter>
+      - General
+      - <wait1s>
+      - <tab repeat=8>
+      - <wait1s>
+      - <spacebar>
 
   - title: Navigate to "Screen Sharing" and enable it
     commands: 
       - <locate text='Screen Sharing'>
-      - <tab repeat=3>
+      - <tab repeat=2>
       - <spacebar>
+      - <wait1s>
 
   - title: Navigate to "Remote Login" and enable it
     commands: 
       - <tab repeat=6>
       - <spacebar>
+      - <wait1s>
 
   - title: Enable "Full Disk Access"
     commands: 
@@ -262,10 +243,16 @@ boot_command:
       - <tab>
       - <spacebar>
       - <leftShiftOn>
-      - <tab>
-      - <tab>
+      - <tab repeat=2>
       - <leftShiftOff>
       - <spacebar>
+      - <wait1s>
+
+  - title: Quit System Settings
+    commands: 
+      - <leftAltOn>
+      - q
+      - <leftAltOff>
 
   - title: Disable Voice Over
     commands: 
@@ -274,9 +261,4 @@ boot_command:
       - <f5>
       - <fnOff>
       - <leftAltOff>
-
-  - title: Quit System Settings
-    commands: 
-      - <leftAltOn>
-      - q
-      - <leftAltOff>
+      - <wait1s>

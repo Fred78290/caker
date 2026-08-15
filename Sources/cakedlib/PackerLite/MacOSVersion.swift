@@ -16,12 +16,12 @@ extension MacOSVersion {
 
 	public init?(major: Int) {
 		switch major {
-			case 12: self = .monterey
-			case 13: self = .ventura
-			case 14: self = .sonoma
-			case 15: self = .sequoia
-			case 26: self = .tahoe
-			case 27: self = .goldengate
+			case 12: self = .macos12
+			case 13: self = .macos13
+			case 14: self = .macos14
+			case 15: self = .macos15
+			case 26: self = .macos26
+			case 27: self = .macos27
 			default: return nil
 		}
 	}

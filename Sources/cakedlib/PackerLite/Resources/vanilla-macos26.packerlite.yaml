@@ -1,4 +1,4 @@
-# vanilla-tahoe.packerlite.yaml
+# vanilla-macos26.packerlite.yaml
 #
 # Built-in PackerLite template — unattended macOS Setup Assistant provisioning,
 # driven natively by caked/caker after installing from an IPSW. No external
@@ -6,9 +6,9 @@
 # for the equivalent Packer-based recipe this was transcribed from).
 #
 # Usage:
-#   cakectl build my-vm https://.../UniversalMac_26.6_25G72_Restore.ipsw \
+#   cakectl build my-vm https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-65618/10445B26-DE2C-43EC-9149-0A831602E74B/UniversalMac_26.6_25G72_Restore.ipsw \
 #     --user admin --password admin \
-#     --template templates/macos/vanilla-tahoe.packerlite.yaml
+#     --macos-version macos26
 #
 # ${var.username}/${var.password} below resolve to the VM's actual account,
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
@@ -19,12 +19,12 @@ boot_timeout: 45m
 boot_command:
   - title: Wait hello, hola, bonjour, etc.
     commands:
-      - <wait10s>
+      - <locate timeout=30 text="Get Started">
       - <spacebar>
 
   - title: Select Language
     commands:
-      - <wait10s>
+      - <locate timeout=30 text='https://www.apple.com/'>
       - italiano
       - <esc>
       - english
@@ -51,7 +51,7 @@ boot_command:
 
   - title: Written and Spoken Languages
     commands:
-      - <wait5s>
+      - <locate text='Written and Spoken Languages'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -138,9 +138,7 @@ boot_command:
   - title: Age Range -> Adult
     commands:
       - <locate timeout=30 text='Age Range'>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <tab repeat=3>
       - <spacebar>
 
   - title: Enable Location Services
@@ -160,9 +158,7 @@ boot_command:
   - title: Select Your Time Zone
     commands:
       - <locate timeout=30 text='Select Your Time Zone'>
-      - <tab>
-      - <tab>
-      - <tab>
+      - <tab repeat=3>
       - UTC
       - <enter>
       - <leftShiftOn>
@@ -181,8 +177,7 @@ boot_command:
   - title: Screen Time
     commands:
       - <locate timeout=30 text='Screen Time'>
-      - <tab>
-      - <tab>
+      - <tab repeat=2>
       - <spacebar>
 
   - title: Siri
@@ -199,8 +194,7 @@ boot_command:
     commands:
       - <locate timeout=30 text='Your Mac is Ready for FileVault'>
       - <leftShiftOn>
-      - <tab>
-      - <tab>
+      - <tab repeat=2>
       - <leftShiftOff>
       - <spacebar>
 
@@ -229,38 +223,20 @@ boot_command:
       - <wait10s>
       - <spacebar>
 
-  - title: Disable Voice Over
+  - title: Now that the installation is done, open "Applications folder"
     commands:
+      - <wait2s>
       - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
+      - <leftShiftOn>
+      - a
+      - <leftShiftOff>
       - <leftAltOff>
-
-  - title: Enable Keyboard navigation
-    commands:
-      - <wait10s>
+      - <wait1s>
+      - System Preferences
+      - <wait1s>
       - <leftAltOn>
-      - <spacebar>
+      - o
       - <leftAltOff>
-      - Terminal
-      - <wait1s>
-      - <enter>
-
-  - title: Enable Keyboard navigation (continued)
-    commands:
-      - <wait5s>
-      - defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
-      - <enter>
-      - <wait1s>
-      - defaults write  com.apple.VoiceOverTraining doNotShowSplashScreen -int 1
-      - <enter>
-
-  - title: Open System Settings
-    commands:
-      - <wait10s>
-      - open '/System/Applications/System Settings.app'
-      - <enter>
 
   - title: Navigate to Sharing
     commands:

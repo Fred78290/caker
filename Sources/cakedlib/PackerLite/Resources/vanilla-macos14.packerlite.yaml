@@ -1,13 +1,13 @@
-# vanilla-sonoma.packerlite.yaml
+# vanilla-macos14.packerlite.yaml
 #
 # Built-in PackerLite template — unattended macOS Setup Assistant provisioning,
 # driven natively by caked/caker after installing from an IPSW. No external
 # `packer` binary or packer-plugin-tart required.
 #
 # Usage:
-#   cakectl build my-vm https://.../UniversalMac_14.6.1_23G93_Restore.ipsw \
+#   cakectl build my-vm https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw \
 #     --user admin --password admin \
-#     --macos-version sonoma
+#     --macos-version macos114
 #
 # ${var.username}/${var.password} below resolve to the VM's actual account,
 # i.e. whatever --user/--password (or the UI) configured — not declared here.

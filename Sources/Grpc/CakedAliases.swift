@@ -707,18 +707,18 @@ extension Caked_ConfigureRequest {
 extension Caked_MacOSVersion {
 	public init(_ version: MacOSVersion) {
 		switch version {
-		case .monterey:
-			self = .macosMonterey
-		case .ventura:
-			self = .macosVentura
-		case .sonoma:
-			self = .macosSonoma
-		case .sequoia:
-			self = .macosSequoia
-		case .tahoe:
-			self = .macosTahoe
-		case .goldengate:
-			self = .macosGoldenGate
+		case .macos12:
+			self = .macos12
+		case .macos13:
+			self = .macos13
+		case .macos14:
+			self = .macos14
+		case .macos15:
+			self = .macos15
+		case .macos26:
+			self = .macos26
+		case .macos27:
+			self = .macos27
 		}
 	}
 }

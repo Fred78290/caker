@@ -1,4 +1,4 @@
-# vanilla-sequoia.packerlite.yaml
+# vanilla-macos15.packerlite.yaml
 #
 # Built-in PackerLite template — unattended macOS Setup Assistant provisioning,
 # driven natively by caked/caker after installing from an IPSW. No external
@@ -6,9 +6,9 @@
 # for the equivalent Packer-based recipe this was transcribed from).
 #
 # Usage:
-#   cakectl build my-vm https://.../UniversalMac_26.6_25G72_Restore.ipsw \
+#   cakectl build my-vm https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw \
 #     --user admin --password admin \
-#     --template templates/macos/vanilla-sequoia.packerlite.yaml
+#     --macos-version macos15
 #
 # ${var.username}/${var.password} below resolve to the VM's actual account,
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
@@ -19,7 +19,7 @@ boot_timeout: 45m
 boot_command:
   - title: Wait hello, hola, bonjour, etc.
     commands: 
-      - <wait10s>
+      - <locate timeout=30 text="Get Started">
       - <spacebar>
 
   - title: Select Language
@@ -325,31 +325,8 @@ boot_command:
   - title: Navigate to "Allow apps downloaded from" and enable "Everywhere"
     commands: 
       - <leftShiftOn>
-      - <tab>
+      - <tab repeat=7>
       - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <down>
-      - <wait1s>
       - <down>
       - <wait1s>
       - <enter>
@@ -362,7 +339,7 @@ boot_command:
 
   - title: Confirm Gatekeeper disable
     commands: 
-      - <wait5s>
+      - <wait2s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -371,7 +348,7 @@ boot_command:
 
   - title: Quit System Settings
     commands: 
-      - <wait5s>
+      - <wait1s>
       - <leftAltOn>
       - q
       - <leftAltOff>
