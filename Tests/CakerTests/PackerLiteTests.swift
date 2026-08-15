@@ -236,7 +236,7 @@ final class PackerLiteTests: XCTestCase {
 		""")
 
 		do {
-			_ = try await template.parsedBootCommand()
+			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
 			XCTFail("expected invalidBootCommand error")
 		} catch {
 			guard case .invalidBootCommand(let command, _) = error as? PackerLiteTemplateError else {
@@ -250,17 +250,17 @@ final class PackerLiteTests: XCTestCase {
 	// MARK: - MacOSVersion
 
 	func testMacOSVersionDetectFromRealIPSWFilenames() {
-		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_26.6_25G72_Restore.ipsw")?.name, .tahoe)
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_26.6_25G72_Restore.ipsw")?.name, .macos26)
 		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_26.6_25G72_Restore.ipsw")?.version, "26.6")
-		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_15.6.1_24G90_Restore.ipsw")?.name, .sequoia)
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_15.6.1_24G90_Restore.ipsw")?.name, .macos15)
 		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_15.6.1_24G90_Restore.ipsw")?.version, "15.6")
-		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_27.0_26A5388g_Restore.ipsw")?.name, .goldengate)
-		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_14.6.1_23G93_Restore.ipsw")?.name, .sonoma)
-		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_13.6_22G120_Restore.ipsw")?.name, .ventura)
-		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_12.7.6_21H1320_Restore.ipsw")?.name, .monterey)
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_27.0_26A5388g_Restore.ipsw")?.name, .macos27)
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_14.6.1_23G93_Restore.ipsw")?.name, .macos14)
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_13.6_22G120_Restore.ipsw")?.name, .macos13)
+		XCTAssertEqual(MacOSVersion.detect(fromIPSWFilename: "UniversalMac_12.7.6_21H1320_Restore.ipsw")?.name, .macos12)
 		XCTAssertEqual(
 			MacOSVersion.detect(fromIPSWFilename: "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-65618/UniversalMac_26.6_25G72_Restore.ipsw")?.name,
-			.tahoe, "should work on a full URL, not just a bare filename")
+			.macos26, "should work on a full URL, not just a bare filename")
 	}
 
 	func testMacOSVersionDetectReturnsNilForUnknownOrUnrecognizedFilenames() {
@@ -270,87 +270,118 @@ final class PackerLiteTests: XCTestCase {
 	}
 
 	func testMacOSVersionExpressibleFromRawValue() {
-		XCTAssertEqual(MacOSVersion(rawValue: "monterey"), .monterey)
-		XCTAssertEqual(MacOSVersion(rawValue: "ventura"), .ventura)
-		XCTAssertEqual(MacOSVersion(rawValue: "sonoma"), .sonoma)
-		XCTAssertEqual(MacOSVersion(rawValue: "sequoia"), .sequoia)
-		XCTAssertEqual(MacOSVersion(rawValue: "tahoe"), .tahoe)
-		XCTAssertEqual(MacOSVersion(rawValue: "goldengate"), .goldengate)
+		XCTAssertEqual(MacOSVersion(rawValue: "macos12"), .macos12)
+		XCTAssertEqual(MacOSVersion(rawValue: "macos13"), .macos13)
+		XCTAssertEqual(MacOSVersion(rawValue: "macos14"), .macos14)
+		XCTAssertEqual(MacOSVersion(rawValue: "macos15"), .macos15)
+		XCTAssertEqual(MacOSVersion(rawValue: "macos26"), .macos26)
+		XCTAssertEqual(MacOSVersion(rawValue: "macos27"), .macos27)
 		XCTAssertNil(MacOSVersion(rawValue: "bigsur"))
+		// The old marketing names are no longer valid raw values — only `init(argument:)` (the
+		// --macos-version CLI parsing path) still accepts them, via a `formerNames` compat lookup.
+		XCTAssertNil(MacOSVersion(rawValue: "monterey"))
+		XCTAssertNil(MacOSVersion(rawValue: "tahoe"))
+	}
+
+	func testMacOSVersionArgumentAcceptsFormerMarketingNames() {
+		XCTAssertEqual(MacOSVersion(argument: "monterey"), .macos12)
+		XCTAssertEqual(MacOSVersion(argument: "ventura"), .macos13)
+		XCTAssertEqual(MacOSVersion(argument: "sonoma"), .macos14)
+		XCTAssertEqual(MacOSVersion(argument: "sequoia"), .macos15)
+		XCTAssertEqual(MacOSVersion(argument: "tahoe"), .macos26)
+		XCTAssertEqual(MacOSVersion(argument: "goldengate"), .macos27)
+		// The numeric identifiers themselves still work as --macos-version input too.
+		XCTAssertEqual(MacOSVersion(argument: "macos15"), .macos15)
+		XCTAssertNil(MacOSVersion(argument: "bigsur"))
 	}
 
 	// MARK: - Real repo templates (Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml)
 
-	func testVanillaSequoiaPackerLiteTemplateFileLoadsAndParses() async throws {
+	func testVanillaMacos15PackerLiteTemplateFileLoadsAndParses() async throws {
 		// Mirrors what VMBuilder.swift injects: username/password come from CakeConfig, not the template.
 		let template = try PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-sequoia.packerlite.yaml").path,
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos15.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "admin"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
 		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
 		do {
-			_ = try await template.parsedBootCommand()
+			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
 		} catch {
 			XCTFail("unexpected error: \(error)")
 		}
 	}
 
-	func testVanillaTahoePackerLiteTemplateFileLoadsAndParses() async throws {
+	func testVanillaMacos26PackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-tahoe.packerlite.yaml").path,
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos26.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
 		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
 		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
 		do {
-			_ = try await template.parsedBootCommand()
+			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
 		} catch {
 			XCTFail("unexpected error: \(error)")
 		}
 	}
 
-	func testVanillaMontereyPackerLiteTemplateFileLoadsAndParses() async throws {
+	func testVanillaMacos27PackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-monterey.packerlite.yaml").path,
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos27.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
 		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
 		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
 		do {
-			_ = try await template.parsedBootCommand()
+			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
 		} catch {
 			XCTFail("unexpected error: \(error)")
 		}
 	}
 
-	func testVanillaVenturaPackerLiteTemplateFileLoadsAndParses() async throws {
+	func testVanillaMacos12PackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-ventura.packerlite.yaml").path,
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos12.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
 		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
 		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
 		do {
-			_ = try await template.parsedBootCommand()
+			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
 		} catch {
 			XCTFail("unexpected error: \(error)")
 		}
 	}
 
-	func testVanillaSonomaPackerLiteTemplateFileLoadsAndParses() async throws {
+	func testVanillaMacos13PackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-sonoma.packerlite.yaml").path,
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos13.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
 		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
 		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
 		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
 		do {
-			_ = try await template.parsedBootCommand()
+			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
+		} catch {
+			XCTFail("unexpected error: \(error)")
+		}
+	}
+
+	func testVanillaMacos14PackerLiteTemplateFileLoadsAndParses() async throws {
+		let template = try PackerLiteTemplate.load(
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos14.packerlite.yaml").path,
+			variables: ["username": "admin", "password": "hunter2"])
+
+		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
+		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
+		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
+		do {
+			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
 		} catch {
 			XCTFail("unexpected error: \(error)")
 		}
@@ -387,7 +418,7 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
 		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
 		do {
-			_ = try await template.parsedBootCommand()
+			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
 		} catch {
 			XCTFail("unexpected error: \(error)")
 		}

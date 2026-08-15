@@ -208,7 +208,7 @@ cakectl build my-macos-vm --user admin --password admin --autoinstall \
 
 ```bash
 # nom de fichier non standard : version macOS explicite requise
-cakectl build my-macos-vm --user admin --password admin --autoinstall --macos-version tahoe ./restore.ipsw
+cakectl build my-macos-vm --user admin --password admin --autoinstall --macos-version macos26 ./restore.ipsw
 ```
 
 ### 9) Créer une VM Linux depuis une ISO non-Ubuntu (provisioning automatisé)
@@ -437,7 +437,7 @@ cakectl build my-macos-vm --user admin --password admin --autoinstall \
 
 ```bash
 # non-standard filename: an explicit macOS version is required
-cakectl build my-macos-vm --user admin --password admin --autoinstall --macos-version tahoe ./restore.ipsw
+cakectl build my-macos-vm --user admin --password admin --autoinstall --macos-version macos26 ./restore.ipsw
 ```
 
 ### 9) Create a Linux VM from a non-Ubuntu ISO (unattended provisioning)

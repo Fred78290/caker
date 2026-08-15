@@ -41,7 +41,7 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 	func testExplicitMacOSVersionUsedWhenFilenameCannotBeDetected() throws {
 		let resolved = try PackerLiteTemplateResolver.resolve(
 			explicitPath: nil,
-			explicitVersion: .sequoia,
+			explicitVersion: .macos15,
 			ipswURL: ipswURL("my-custom-image.ipsw"))
 
 		XCTAssertTrue(resolved.contains("boot_command"))
@@ -54,16 +54,10 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 			ipswURL: ipswURL("my-custom-image.ipsw")))
 	}
 
-	func testThrowsWhenNoBundledTemplateExistsForVersion() {
-		// No built-in template is bundled for goldengate (macOS 27) yet.
-		XCTAssertThrowsError(try PackerLiteTemplateResolver.resolve(
-			explicitPath: nil,
-			explicitVersion: .goldengate,
-			ipswURL: ipswURL("my-custom-image.ipsw")))
-	}
-
 	func testAllBundledVersionsResolve() throws {
-		for version: MacOSVersion in [.monterey, .ventura, .sonoma, .sequoia, .tahoe] {
+		// Every MacOSVersion case now ships a bundled template — macos27 (formerly goldengate) was
+		// the last one still missing one.
+		for version: MacOSVersion in [.macos12, .macos13, .macos14, .macos15, .macos26, .macos27] {
 			let resolved = try PackerLiteTemplateResolver.resolve(
 				explicitPath: nil,
 				explicitVersion: version,
