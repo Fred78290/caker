@@ -179,6 +179,8 @@ public struct VMBuilder {
 					try config.save()
 
 					if options.autoinstall {
+						try await Task.sleep(nanoseconds: 2 * 100_000_000)
+
 						// Setup Assistant is driven unattended for every IPSW build: an explicit --template
 						// wins, otherwise the resolved macOS version above picks a built-in template. Resolve
 						// throws if neither works.
