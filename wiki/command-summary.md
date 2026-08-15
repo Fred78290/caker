@@ -123,7 +123,7 @@ Les journaux de restauration sont écrits dans `~/Library/Application Support/Ca
 <a name="packerlite-fr"></a>
 ### PackerLite : provisioning automatisé (macOS et Linux)
 
-Quand `build`/`create` est lancé avec `--autoinstall`, une fois l'installation terminée, `caked` pilote automatiquement le premier démarrage de la VM (création du compte, activation du partage d'écran/Remote Login, désactivation de Gatekeeper pour macOS ; script d'installation piloté par clavier pour Linux) via **PackerLite** — un mini-moteur intégré inspiré de Packer (`boot_command`) et de son plugin `packer-plugin-tart`, mais sans dépendre d'aucun binaire ou plugin externe. Sans `--autoinstall`, aucun provisioning automatique n'a lieu.
+Quand `build`/`create` est lancé avec `--autoinstall`, une fois l'installation terminée, `caked` pilote automatiquement le premier démarrage de la VM (création du compte, activation du partage d'écran/Remote Login pour macOS ; script d'installation piloté par clavier pour Linux) via **PackerLite** — un mini-moteur intégré inspiré de Packer (`boot_command`) et de son plugin `packer-plugin-tart`, mais sans dépendre d'aucun binaire ou plugin externe. Sans `--autoinstall`, aucun provisioning automatique n'a lieu.
 
 La résolution du template diffère selon la source :
 
@@ -633,7 +633,7 @@ Restore logs are written to `~/Library/Application Support/Caker/VirtualInstall/
 <a name="packerlite"></a>
 ### PackerLite: unattended provisioning (macOS and Linux)
 
-When `build`/`create` runs with `--autoinstall`, once installation finishes, `caked` automatically drives the VM's first boot (account creation, enabling Screen Sharing/Remote Login, disabling Gatekeeper for macOS; a keystroke-driven installer for Linux) via **PackerLite** — a small built-in engine inspired by Packer's `boot_command` and its `packer-plugin-tart` plugin, with no external binary or plugin required. Without `--autoinstall`, no automatic provisioning happens.
+When `build`/`create` runs with `--autoinstall`, once installation finishes, `caked` automatically drives the VM's first boot (account creation, enabling Screen Sharing/Remote Login for macOS; a keystroke-driven installer for Linux) via **PackerLite** — a small built-in engine inspired by Packer's `boot_command` and its `packer-plugin-tart` plugin, with no external binary or plugin required. Without `--autoinstall`, no automatic provisioning happens.
 
 Template resolution differs by source:
 
