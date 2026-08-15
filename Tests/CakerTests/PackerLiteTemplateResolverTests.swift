@@ -116,8 +116,11 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 		XCTAssertNotNil(desktopResolved)
 		XCTAssertNotNil(serverResolved)
 		XCTAssertNotEqual(desktopResolved, serverResolved, "desktop and server should resolve to two different bundled templates")
-		XCTAssertTrue(desktopResolved?.contains("sudo liveinst") == true, "the Workstation template drives the Live ISO's liveinst step")
-		XCTAssertFalse(serverResolved?.contains("sudo liveinst") == true, "the Server template boots straight into Anaconda, no liveinst step to run")
+		// Assert on each template's own header comment (its stable filename) rather than an
+		// implementation detail of its boot_command flow, which could change independently of which
+		// file gets selected.
+		XCTAssertTrue(desktopResolved?.contains("# linux-fedora.packerlite.yaml") == true)
+		XCTAssertTrue(serverResolved?.contains("# linux-fedora-server.packerlite.yaml") == true)
 	}
 
 	func testFedoraDesktopFlagIsIgnoredByOtherPlatforms() throws {

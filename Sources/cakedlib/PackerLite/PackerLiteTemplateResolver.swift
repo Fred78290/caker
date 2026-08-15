@@ -126,7 +126,13 @@ public enum PackerLiteTemplateResolver {
 			return nil
 		}
 
-		logger.info("Detected \(platform.rawValue) (desktop: \(desktop)) from '\(source)', using its built-in provisioning template")
+		// Only mention the desktop/server distinction for platforms it actually affects (currently just
+		// Fedora) — logging it unconditionally would be misleading for e.g. Debian, where `desktop` is
+		// accepted but ignored.
+		let desktopMatters = platform.bundledPackerLiteTemplateResourceName(desktop: true) != platform.bundledPackerLiteTemplateResourceName(desktop: false)
+		let desktopSuffix = desktopMatters ? " (desktop: \(desktop))" : ""
+
+		logger.info("Detected \(platform.rawValue)\(desktopSuffix) from '\(source)', using its built-in provisioning template")
 
 		return try bundledTemplateContent(named: resourceName, orThrow: String(localized: "No built-in provisioning template is bundled for \(platform.rawValue) yet. Provide your own with --template."))
 	}
