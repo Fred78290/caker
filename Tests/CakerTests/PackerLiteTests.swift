@@ -393,6 +393,10 @@ final class PackerLiteTests: XCTestCase {
 		try await assertLinuxTemplateLoadsAndParses("linux-fedora.packerlite.yaml")
 	}
 
+	func testLinuxFedoraServerPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("linux-fedora-server.packerlite.yaml")
+	}
+
 	func testLinuxCentOSPackerLiteTemplateFileLoadsAndParses() async throws {
 		try await assertLinuxTemplateLoadsAndParses("linux-centos.packerlite.yaml")
 	}

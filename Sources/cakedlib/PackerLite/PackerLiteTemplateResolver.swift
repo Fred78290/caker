@@ -28,9 +28,15 @@ extension SupportedPlatform {
 	/// extension), for distros with a built-in PackerLite template. `nil` for platforms that either
 	/// have their own autoinstall mechanism already (Ubuntu, via cloud-init/subiquity) or have no
 	/// bundled template yet — both cases mean "don't auto-select anything, require --template".
-	fileprivate var bundledPackerLiteTemplateResourceName: String? {
+	///
+	/// `desktop` only actually branches for `.fedora`, which has two structurally different bundled
+	/// flows: Workstation's Live ISO (opens a terminal, runs `sudo liveinst`) vs. Server's DVD ISO
+	/// (boots straight into Anaconda, same shape as CentOS/RHEL). Every other platform currently
+	/// ships exactly one bundled template regardless of `desktop` — there's no reference material
+	/// yet for a desktop/server split on those, so don't invent one.
+	fileprivate func bundledPackerLiteTemplateResourceName(desktop: Bool) -> String? {
 		switch self {
-		case .fedora: return "linux-fedora.packerlite"
+		case .fedora: return desktop ? "linux-fedora.packerlite" : "linux-fedora-server.packerlite"
 		case .centos: return "linux-centos.packerlite"
 		case .redhat: return "linux-redhat.packerlite"
 		case .openSUSE: return "linux-opensuse.packerlite"
@@ -86,35 +92,47 @@ public enum PackerLiteTemplateResolver {
 	/// explicit path and no bundled default for the detected platform, since that's the expected,
 	/// valid outcome for e.g. Ubuntu (its own cloud-init/subiquity path handles autoinstall instead)
 	/// or a distro caker doesn't recognize; callers should treat `nil` as "don't provision".
-	public static func resolveLinuxTemplate(explicitPath: String?, imageURL: URL) throws -> String? {
-		try resolveLinuxTemplate(explicitPath: explicitPath, platform: SupportedPlatform(rawValue: imageURL.lastPathComponent), source: imageURL.lastPathComponent)
+	///
+	/// `desktop` picks between a distro's desktop/workstation and server bundled templates where both
+	/// exist (currently only Fedora — see `SupportedPlatform.bundledPackerLiteTemplateResourceName`).
+	/// Defaults to `false` (server) so existing callers that don't care about the distinction don't
+	/// need to change.
+	public static func resolveLinuxTemplate(explicitPath: String?, imageURL: URL, desktop: Bool = false) throws -> String? {
+		try resolveLinuxTemplate(explicitPath: explicitPath, platform: SupportedPlatform(rawValue: imageURL.lastPathComponent), desktop: desktop, source: imageURL.lastPathComponent)
 	}
 
 	/// Same resolution as above, but for a VM whose platform is already known (e.g. an already-built
 	/// VM's stored `CakeConfig.configuredPlatform`) rather than needing to be detected from a filename.
-	public static func resolveLinuxTemplate(explicitPath: String?, platform: SupportedPlatform) throws -> String? {
-		try resolveLinuxTemplate(explicitPath: explicitPath, platform: platform, source: platform.rawValue)
+	public static func resolveLinuxTemplate(explicitPath: String?, platform: SupportedPlatform, desktop: Bool = false) throws -> String? {
+		try resolveLinuxTemplate(explicitPath: explicitPath, platform: platform, desktop: desktop, source: platform.rawValue)
 	}
 
 	/// Whether `platform` has a built-in PackerLite template, without loading its content — for
 	/// callers (like `caked provision`'s `validate()`) that just need to decide whether `--template`
-	/// can be treated as optional before actually running anything.
+	/// can be treated as optional before actually running anything. Independent of desktop/server —
+	/// every platform with a bundled template has at least the server one.
 	public static func hasBuiltInLinuxTemplate(for platform: SupportedPlatform) -> Bool {
-		platform.bundledPackerLiteTemplateResourceName != nil
+		platform.bundledPackerLiteTemplateResourceName(desktop: false) != nil
 	}
 
-	private static func resolveLinuxTemplate(explicitPath: String?, platform: SupportedPlatform, source: String) throws -> String? {
+	private static func resolveLinuxTemplate(explicitPath: String?, platform: SupportedPlatform, desktop: Bool, source: String) throws -> String? {
 		if let explicitPath {
 			return try String(contentsOfFile: explicitPath, encoding: .utf8)
 		}
 
-		guard let resourceName = platform.bundledPackerLiteTemplateResourceName else {
+		guard let resourceName = platform.bundledPackerLiteTemplateResourceName(desktop: desktop) else {
 			logger.info("No built-in provisioning template for platform \(platform.rawValue) (from '\(source)') — skipping auto-provisioning unless --template is given")
 
 			return nil
 		}
 
-		logger.info("Detected \(platform.rawValue) from '\(source)', using its built-in provisioning template")
+		// Only mention the desktop/server distinction for platforms it actually affects (currently just
+		// Fedora) — logging it unconditionally would be misleading for e.g. Debian, where `desktop` is
+		// accepted but ignored.
+		let desktopMatters = platform.bundledPackerLiteTemplateResourceName(desktop: true) != platform.bundledPackerLiteTemplateResourceName(desktop: false)
+		let desktopSuffix = desktopMatters ? " (desktop: \(desktop))" : ""
+
+		logger.info("Detected \(platform.rawValue)\(desktopSuffix) from '\(source)', using its built-in provisioning template")
 
 		return try bundledTemplateContent(named: resourceName, orThrow: String(localized: "No built-in provisioning template is bundled for \(platform.rawValue) yet. Provide your own with --template."))
 	}

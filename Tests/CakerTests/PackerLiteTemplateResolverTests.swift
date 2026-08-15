@@ -109,6 +109,29 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 		}
 	}
 
+	func testFedoraDesktopFlagPicksBetweenWorkstationAndServerTemplates() throws {
+		let desktopResolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: .fedora, desktop: true)
+		let serverResolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: .fedora, desktop: false)
+
+		XCTAssertNotNil(desktopResolved)
+		XCTAssertNotNil(serverResolved)
+		XCTAssertNotEqual(desktopResolved, serverResolved, "desktop and server should resolve to two different bundled templates")
+		// Assert on each template's own header comment (its stable filename) rather than an
+		// implementation detail of its boot_command flow, which could change independently of which
+		// file gets selected.
+		XCTAssertTrue(desktopResolved?.contains("# linux-fedora.packerlite.yaml") == true)
+		XCTAssertTrue(serverResolved?.contains("# linux-fedora-server.packerlite.yaml") == true)
+	}
+
+	func testFedoraDesktopFlagIsIgnoredByOtherPlatforms() throws {
+		for platform: GRPCLib.SupportedPlatform in [.centos, .redhat, .openSUSE, .debian] {
+			let desktopResolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: platform, desktop: true)
+			let serverResolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: platform, desktop: false)
+
+			XCTAssertEqual(desktopResolved, serverResolved, "\(platform.rawValue) has no desktop/server split yet — both should resolve to the same single bundled template")
+		}
+	}
+
 	func testUbuntuHasNoBuiltInLinuxTemplateAndResolvesToNil() throws {
 		XCTAssertFalse(PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: .ubuntu))
 

@@ -3,9 +3,11 @@
 # Built-in PackerLite template — unattended installation of Fedora Workstation
 # from the official Live ISO, driven natively by caked/caker after booting from
 # the ISO (see the "PackerLite" section of the wiki's command summary). This is
-# the default template auto-selected for an ISO whose filename/URL contains
-# "fedora" (GRPCLib.SupportedPlatform detection) when --autoinstall is passed
-# without an explicit --template — pass --template yourself to override it.
+# the default template auto-selected for a Fedora ISO whose filename/URL looks
+# like a desktop/workstation build (see CakeConfig.osDesktop / VMBuilder's
+# detection) when --autoinstall is passed without an explicit --template —
+# pass --template yourself to override it. For a Fedora Server ISO, see the
+# sibling linux-fedora-server.packerlite.yaml instead.
 # Unlike the bundled macOS templates, this one is NOT a guaranteed-working
 # recipe: it has been reviewed for plausibility against Fedora's documented
 # live-install flow, but NOT validated end-to-end against a real boot. Treat

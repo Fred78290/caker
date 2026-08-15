@@ -28,6 +28,7 @@
 		28222566B2D9D16A6EF27888 /* linux-redhat.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 500BE3176257638A33A6C5AC /* linux-redhat.packerlite.yaml */; };
 		3FD33CA662D356FEF8C13629 /* linux-debian.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 7798FFF4C78EB8F680574620 /* linux-debian.packerlite.yaml */; };
 		4142810A4CB6558C2432A31D /* linux-fedora.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 32612D3D9C8B68255A45662B /* linux-fedora.packerlite.yaml */; };
+		2C7A2E3C35CC001AA2B98432 /* linux-fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 0C56EECFC76E64F7FF0D0260 /* linux-fedora-server.packerlite.yaml */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
 		7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */; };
 		9B001DCA300189A80048894C /* TemplateDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001DC9300189A80048894C /* TemplateDetailView.swift */; };
@@ -715,6 +716,7 @@
 		E9F8146A5F697526814F2ABC /* linux-opensuse.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 25A36C779DD69601BDFAA13D /* linux-opensuse.packerlite.yaml */; };
 		F22B07BC7C9E157344A3E8D8 /* linux-opensuse.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 25A36C779DD69601BDFAA13D /* linux-opensuse.packerlite.yaml */; };
 		FA2526B6C1AD84E8A936DC68 /* linux-fedora.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 32612D3D9C8B68255A45662B /* linux-fedora.packerlite.yaml */; };
+		090D992CC5E11CDC2BF266BB /* linux-fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 0C56EECFC76E64F7FF0D0260 /* linux-fedora-server.packerlite.yaml */; };
 		FB20C8CCEAD84F2CA91EE0BC /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 		FE0534D58DB0463388B4720F /* VMImageCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */; };
 /* End PBXBuildFile section */
@@ -923,6 +925,7 @@
 		209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSVersion.swift; sourceTree = "<group>"; };
 		25A36C779DD69601BDFAA13D /* linux-opensuse.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-opensuse.packerlite.yaml"; sourceTree = "<group>"; };
 		32612D3D9C8B68255A45662B /* linux-fedora.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-fedora.packerlite.yaml"; sourceTree = "<group>"; };
+		0C56EECFC76E64F7FF0D0260 /* linux-fedora-server.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-fedora-server.packerlite.yaml"; sourceTree = "<group>"; };
 		500BE3176257638A33A6C5AC /* linux-redhat.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-redhat.packerlite.yaml"; sourceTree = "<group>"; };
 		7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteEngine.swift; sourceTree = "<group>"; };
 		7798FFF4C78EB8F680574620 /* linux-debian.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-debian.packerlite.yaml"; sourceTree = "<group>"; };
@@ -2405,6 +2408,7 @@
 				9F65A98D0C436F32A389AF06 /* linux-centos.packerlite.yaml */,
 				7798FFF4C78EB8F680574620 /* linux-debian.packerlite.yaml */,
 				32612D3D9C8B68255A45662B /* linux-fedora.packerlite.yaml */,
+				0C56EECFC76E64F7FF0D0260 /* linux-fedora-server.packerlite.yaml */,
 				25A36C779DD69601BDFAA13D /* linux-opensuse.packerlite.yaml */,
 				500BE3176257638A33A6C5AC /* linux-redhat.packerlite.yaml */,
 				9BE7F1B73030AF0A0006F53F /* vanilla-macos12.packerlite.yaml */,
@@ -3461,6 +3465,7 @@
 				09CF60A369C4AFCEDE477125 /* linux-centos.packerlite.yaml in Resources */,
 				3FD33CA662D356FEF8C13629 /* linux-debian.packerlite.yaml in Resources */,
 				FA2526B6C1AD84E8A936DC68 /* linux-fedora.packerlite.yaml in Resources */,
+				090D992CC5E11CDC2BF266BB /* linux-fedora-server.packerlite.yaml in Resources */,
 				F22B07BC7C9E157344A3E8D8 /* linux-opensuse.packerlite.yaml in Resources */,
 				B8A59F6170BC8A6D0DCC749C /* linux-redhat.packerlite.yaml in Resources */,
 				9B06995E2FB1A1B800FEAE13 /* VM.png in Resources */,
@@ -3498,6 +3503,7 @@
 				094F8B1042971209B2D4C21A /* linux-centos.packerlite.yaml in Resources */,
 				14ACF474E4A8311F1AE4935C /* linux-debian.packerlite.yaml in Resources */,
 				4142810A4CB6558C2432A31D /* linux-fedora.packerlite.yaml in Resources */,
+				2C7A2E3C35CC001AA2B98432 /* linux-fedora-server.packerlite.yaml in Resources */,
 				E9F8146A5F697526814F2ABC /* linux-opensuse.packerlite.yaml in Resources */,
 				28222566B2D9D16A6EF27888 /* linux-redhat.packerlite.yaml in Resources */,
 				9B5611B33013502C00E9FA7D /* lubuntu.png in Resources */,

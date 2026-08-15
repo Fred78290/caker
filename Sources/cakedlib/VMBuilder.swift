@@ -114,6 +114,16 @@ public struct VMBuilder {
 				config.agent = imageSource != .iso || autoinstall
 				config.nested = options.nested
 				config.attachedDisks = attachedDisks
+
+				// Desktop vs. server variant of the same distro (e.g. Fedora Workstation vs. Fedora
+				// Server), detected the same way as configuredPlatform above — from the image
+				// URL/filename, not the ISO's actual contents. Defaults to server (false) when
+				// neither word appears, matching osDesktop's own default. Persisted here (like
+				// osName for macOS) so a later standalone `caked provision` has it without needing
+				// the original ISO.
+				let imageNameLowercased = options.image.lowercased()
+
+				config.osDesktop = imageNameLowercased.contains("workstation") || imageNameLowercased.contains("desktop")
 			}
 		}
 
@@ -209,7 +219,7 @@ public struct VMBuilder {
 				// distro — in which case no provisioning runs unless --template was given.
 				let explicitTemplate = (options.provisionTemplate?.isEmpty == false) ? options.provisionTemplate : nil
 
-				if let content = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: explicitTemplate, imageURL: imageURL) {
+				if let content = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: explicitTemplate, imageURL: imageURL, desktop: config.osDesktop) {
 					// The VM's account is already fully determined by --user/--password (see
 					// `configuredUser`/`configuredPassword` above) — reuse it here instead of
 					// letting the template declare its own, so there's exactly one source of truth.
