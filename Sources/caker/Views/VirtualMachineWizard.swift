@@ -178,7 +178,7 @@ struct ShortImageInfoComparator: SortComparator {
 }
 
 struct WizardVirtualMachineView: NSViewRepresentable {
-	public typealias NSViewType = VZVirtualMachineView
+	public typealias NSViewType = NSView
 
 	private let virtualMachine: VirtualMachine
 
@@ -187,7 +187,27 @@ struct WizardVirtualMachineView: NSViewRepresentable {
 	}
 
 	public func makeNSView(context: Context) -> NSViewType {
-		return self.virtualMachine.vzMachineView!
+		guard let vzMachineView = self.virtualMachine.vzMachineView else {
+			fatalError("No virtual machine view")
+		}
+
+		let view = NSView(frame: vzMachineView.bounds)
+		view.wantsLayer = true
+		view.layer?.cornerRadius = 10
+		view.layer?.masksToBounds = true
+
+		view.addSubview(vzMachineView)
+		// Use Auto Layout to scale-fit the subview to its container
+		vzMachineView.translatesAutoresizingMaskIntoConstraints = false
+		vzMachineView.automaticallyReconfiguresDisplay = false
+		NSLayoutConstraint.activate([
+			vzMachineView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+			vzMachineView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+			vzMachineView.topAnchor.constraint(equalTo: view.topAnchor),
+			vzMachineView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+		])
+
+		return view
 	}
 
 	public func updateNSView(_ nsView: NSViewType, context: Context) {
@@ -195,6 +215,7 @@ struct WizardVirtualMachineView: NSViewRepresentable {
 }
 
 struct VirtualMachineWizard: View {
+	static let wizardQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 	static let ProgressCreateVirtualMachine = NSNotification.Name("ProgressCreateVirtualMachine")
 	static let ProgressTitleCreateVirtualMachine = NSNotification.Name("ProgressTitleCreateVirtualMachine")
 	static let ProgressSubtitleCreateVirtualMachine = NSNotification.Name("ProgressSubtitleCreateVirtualMachine")
@@ -212,7 +233,6 @@ struct VirtualMachineWizard: View {
 	@State private var provisionnedVM: VirtualMachine? = nil
 
 	private let wizardID = UUID()
-	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 	private let listHeight: CGFloat = 460
 	private let fromPreset: Bool
 	private let presetImage: String
@@ -429,7 +449,10 @@ struct VirtualMachineWizard: View {
 		if self.sheet {
 			VStack(spacing: 12) {
 				if let provisionnedVM = self.provisionnedVM {
-					WizardVirtualMachineView(provisionnedVM).padding(10).disabled(true)
+					WizardVirtualMachineView(provisionnedVM)
+						.padding(20)
+						.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+						.disabled(true)
 				} else {
 					TabBar()
 				}
@@ -438,7 +461,10 @@ struct VirtualMachineWizard: View {
 		} else {
 			VStack(spacing: 12) {
 				if let provisionnedVM = self.provisionnedVM {
-					WizardVirtualMachineView(provisionnedVM).padding(10).disabled(true)
+					WizardVirtualMachineView(provisionnedVM)
+						.padding(10)
+						.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+						.disabled(true)
 				} else {
 					Content(currentStep: self.model.currentStep)
 				}
@@ -1371,15 +1397,8 @@ struct VirtualMachineWizard: View {
 
 			do {
 				let options = self.config.buildOptions(wizardID, imageSource: model.imageSource)
-				var ipswQueue: DispatchQueue!
 
-				#if arch(arm64)
-					if AppState.shared.connectionMode == .app && self.model.imageSource == .ipsw {
-						ipswQueue = DispatchQueue(label: "IPSWQueue")
-					}
-				#endif
-
-				let build = try await AppState.shared.buildVirtualMachine(options: options, queue: ipswQueue) { result in
+				let build = try await AppState.shared.buildVirtualMachine(options: options, queue: Self.wizardQueue) { result in
 					progressHandler(result)
 				}
 
