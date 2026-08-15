@@ -374,7 +374,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 				} catch {
 					self.logger.error("The socket \(link.path(percentEncoded: false)) can't be created as a symlink, original still available here \(target.path(percentEncoded: false))")
 				}
-				
+
 				return nil
 			}
 		} catch is ValidationError {
@@ -635,6 +635,24 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 
 // MARK: - VM Control
 extension VirtualMachine {
+	public func startVM() async throws {
+		try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+			self.vmQueue.async {
+				if self.virtualMachine.canStart {
+					self.virtualMachine.start(options: self.startOptions) { error in
+						if let error {
+							continuation.resume(throwing: error)
+						} else {
+							continuation.resume()
+						}
+					}
+				} else {
+					continuation.resume(throwing: ServiceError(String(localized: "VM can not be started")))
+				}
+			}
+		}
+	}
+
 	public func startVM(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.sync {
 			if self.virtualMachine.canStart {
@@ -777,6 +795,20 @@ extension VirtualMachine {
 			}
 
 			self.didChangedState(true)
+		}
+	}
+
+	public func stopVM() async throws {
+		try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+			self.vmQueue.async {
+				self._stopVM { error in
+					if let error {
+						continuation.resume(throwing: error)
+					} else {
+						continuation.resume()
+					}
+				}
+			}
 		}
 	}
 
@@ -1019,7 +1051,6 @@ extension VirtualMachine {
 			self.startVM(completionHandler: completionHandler)
 		#endif
 
-
 		try await self.env.serveVMRunService()
 
 		if Task.isCancelled {
@@ -1031,10 +1062,11 @@ extension VirtualMachine {
 						if self.config.agent {
 							do {
 								if try self.location.agentURL.exists() {
-									let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(),
-																								   listeningAddress: self.location.agentURL,
-																								   timeout: 5,
-																								   runMode: self.env.runMode)
+									let client = try CakeAgentConnection.createCakeAgentConnection(
+										on: Utilities.group.next(),
+										listeningAddress: self.location.agentURL,
+										timeout: 5,
+										runMode: self.env.runMode)
 
 									try client.shutdown().log()
 
@@ -1042,7 +1074,7 @@ extension VirtualMachine {
 									while virtualMachine.state == .running {
 										Thread.sleep(forTimeInterval: 0.100)
 									}
-									
+
 									continuation.resume()
 								}
 							} catch {
