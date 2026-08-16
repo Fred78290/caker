@@ -80,7 +80,7 @@ public struct BootCommandStep: Equatable, Sendable {
 	public let title: String
 	public let steps: [Step]
 
-	public init(command: PackerLiteTemplate.Command) async throws {
+	public init(command: PackerLiteTemplate.Command) throws {
 		var steps: [Step] = []
 		var literal = ""
 		var remainder = Substring(command.commands.joined())
@@ -101,7 +101,7 @@ public struct BootCommandStep: Equatable, Sendable {
 				let tokenBody = String(remainder[remainder.index(after: remainder.startIndex)..<closeIndex])
 
 				flushLiteral()
-				try await steps.append(Self.parseToken(tokenBody))
+				try steps.append(Self.parseToken(tokenBody))
 				remainder = remainder[remainder.index(after: closeIndex)...]
 			} else {
 				literal.append(character)
@@ -159,7 +159,7 @@ public struct BootCommandStep: Equatable, Sendable {
 		return nil
 	}
 
-	private static func parseToken(_ rawBody: String) async throws -> BootCommandStep.Step {
+	private static func parseToken(_ rawBody: String) throws -> BootCommandStep.Step {
 		let body = rawBody.trimmingCharacters(in: .whitespaces)
 		let lower = body.lowercased()
 
@@ -168,7 +168,7 @@ public struct BootCommandStep: Equatable, Sendable {
 		}
 
 		if lower.hasPrefix("keyboard") {
-			return try await parseKeyboard(body)
+			return try parseKeyboard(body)
 		}
 
 		if lower.hasPrefix("click") {
@@ -248,7 +248,6 @@ public struct BootCommandStep: Equatable, Sendable {
 		return .wait(unit == "m" ? value * 60 : value)
 	}
 
-	@MainActor
 	private static func parseKeyboard(_ body: String) throws -> BootCommandStep.Step {
 		let rest = body.dropFirst("keyboard".count).trimmingCharacters(in: .whitespaces)
 
@@ -534,9 +533,9 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 	}
 }
 
-public enum BootCommand {
+enum BootCommand {
 	/// Parses a single boot_command string into a sequence of steps.
-	public static func parse(_ command: PackerLiteTemplate.Command) async throws -> BootCommandStep {
-		try await BootCommandStep(command: command)
+	static func parse(_ command: PackerLiteTemplate.Command) throws -> BootCommandStep {
+		try BootCommandStep(command: command)
 	}
 }

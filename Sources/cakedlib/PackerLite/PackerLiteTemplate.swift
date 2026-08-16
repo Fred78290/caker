@@ -23,10 +23,11 @@ public struct ParsedPackerLiteTemplate: Sendable {
 }
 
 public struct PackerLiteTemplate: Codable, Sendable {
-	public var variables: [String: String]?
-	public var bootTimeout: String?
-	public var preBootCommand: [Command]?
-	public var bootCommand: [Command]?
+	private var resolvedBootTimeout: TimeInterval { Self.parseDuration(bootTimeout, default: 45 * 60) }
+	private var variables: [String: String]?
+	private var bootTimeout: String?
+	private var preBootCommand: [Command]?
+	private var bootCommand: [Command]?
 
 	public struct Command: Codable, Sendable {
 		public var title: String
@@ -50,24 +51,24 @@ public struct PackerLiteTemplate: Codable, Sendable {
 		self.bootCommand = bootCommand
 	}
 
-	private var resolvedBootTimeout: TimeInterval { Self.parseDuration(bootTimeout, default: 45 * 60) }
-
 	// MARK: Loading
-	public static func load(from content: String, variables overrides: [String: String] = [:]) async throws -> ParsedPackerLiteTemplate {
+	@MainActor
+	public static func load(from content: String, variables overrides: [String: String] = [:]) throws -> ParsedPackerLiteTemplate {
 		let template = try YAMLDecoder().decode(PackerLiteTemplate.self, from: content).resolvingVariables(overrides)
 
-		return try await template.parse()
+		return try template.parse()
 	}
 
+	@MainActor
 	public static func load(fromFile path: String, variables overrides: [String: String] = [:]) async throws -> ParsedPackerLiteTemplate {
 		let content = try String(contentsOfFile: path, encoding: .utf8)
 
-		return try await load(from: content, variables: overrides)
+		return try load(from: content, variables: overrides)
 	}
 
-	private func parse() async throws -> ParsedPackerLiteTemplate {
-		let preBootCommandSteps = try await parsedBootCommand(bootCommand: preBootCommand)
-		let bootCommandSteps = try await parsedBootCommand(bootCommand: bootCommand)
+	private func parse() throws -> ParsedPackerLiteTemplate {
+		let preBootCommandSteps = try parsedBootCommand(bootCommand: preBootCommand)
+		let bootCommandSteps = try parsedBootCommand(bootCommand: bootCommand)
 
 		return ParsedPackerLiteTemplate(
 			bootTimeout: resolvedBootTimeout,
@@ -120,7 +121,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	// MARK: boot_command parsing
 
 	/// Parses every `boot_command` entry, wrapping parse failures with the offending index/string.
-	private func parsedBootCommand(bootCommand: [Command]?) async throws -> BootCommandSteps {
+	private func parsedBootCommand(bootCommand: [Command]?) throws -> BootCommandSteps {
 		var parsed: [BootCommandStep] = []
 
 		guard let bootCommand else {
@@ -129,7 +130,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 
 		for command in bootCommand {
 			do {
-				let step = try await BootCommand.parse(command)
+				let step = try BootCommand.parse(command)
 				parsed.append(step)
 			} catch {
 				throw PackerLiteTemplateError.invalidBootCommand(command: command, underlying: error)
@@ -142,7 +143,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	// MARK: Duration parsing
 
 	/// Parses durations like "30s", "45m", "1h", or a bare number (seconds).
-	static func parseDuration(_ text: String?, default defaultValue: TimeInterval) -> TimeInterval {
+	private static func parseDuration(_ text: String?, default defaultValue: TimeInterval) -> TimeInterval {
 		guard let text, text.isEmpty == false else { return defaultValue }
 
 		var digits = ""

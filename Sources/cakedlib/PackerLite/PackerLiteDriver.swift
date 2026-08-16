@@ -405,7 +405,6 @@ final class PackerLiteDriver: @unchecked Sendable {
 			return nil
 		}
 
-		@MainActor
 		init?(_ targetKeyboard: TISInputSource) {
 			guard let layoutDataPtr = TISGetInputSourceProperty(targetKeyboard, kTISPropertyUnicodeKeyLayoutData) else {
 				return nil
@@ -466,12 +465,10 @@ final class PackerLiteDriver: @unchecked Sendable {
 			self.id = targetKeyboard.getSourceID()!
 		}
 
-		@MainActor
 		init?() {
 			self.init(TISCopyCurrentKeyboardInputSource().takeRetainedValue())
 		}
 
-		@MainActor
 		init?(_ keyLayout: String = "com.apple.keylayout.US") {
 			// Build maps once at init time. If the user changes layouts at runtime, you can re-instantiate this struct.
 			guard let targetKeyboard = Self.getNamedInputSource(keyLayout) else {
