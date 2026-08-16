@@ -944,6 +944,8 @@ extension VirtualMachine {
 								self.scheduleAgentInstallRetry(config: config, runningIP: runningIP, runMode: runMode)
 							}
 						}
+					} else {
+						self.logger.error("VM \(self.location.name) disabled to install agent on ip: \(runningIP)")
 					}
 				}
 
