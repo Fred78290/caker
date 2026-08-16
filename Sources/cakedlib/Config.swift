@@ -712,12 +712,8 @@ extension VirtualMachineConfiguration {
 			return false
 		}
 
-		if source == .ipsw {
+		if source == .ipsw || source == .iso {
 			return self.provisioned
-		}
-
-		if source == .iso {
-			return true
 		}
 
 		return self.firstLaunch
