@@ -246,7 +246,7 @@ private struct SplashScreenView: View {
 		.onAppear {
 			// Fallback retry in case setDockIcon()'s activate() call at launch lost the race —
 			// see the "Front-app activation workaround" note above AppDelegate.
-			DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+			DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
 				NSApp.activate()
 			}
 		}
