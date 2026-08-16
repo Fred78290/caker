@@ -160,6 +160,10 @@ struct VMRun: AsyncParsableCommand {
 			recoveryMode: self.recoveryMode,
 			runMode: runMode)
 
+		defer {
+			location.removePID()
+		}
+
 		try handler.run { address, vm in
 			let logger = Logger(self)
 
