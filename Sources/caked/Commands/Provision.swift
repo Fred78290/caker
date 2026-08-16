@@ -89,6 +89,10 @@ struct Provision: AsyncParsableCommand {
 			templatePath = URL(fileURLWithPath: template.expandingTildeInPath)
 		}
 
+		defer {
+			location.removePID()
+		}
+
 		let (handler, vm, cancellation) = try await CakedLib.ProvisionHandler.provision(location: location,
 																						storageLocation: storageLocation,
 																						foreground: self.provision.foreground,

@@ -32,7 +32,6 @@ public struct ProvisionHandler {
 		}
 	}
 
-	@MainActor
 	public static func provision(
 		location: VMLocation,
 		storageLocation: StorageLocation,
@@ -61,72 +60,87 @@ public struct ProvisionHandler {
 			display: foreground ? .all : .vnc,
 			config: config,
 			screenSize: displaySize,
-			vncPassword: "",
+			vncPassword: config.vncPassword ?? UUID().uuidString,
 			vncPort: 0,
 			recoveryMode: false,
 			runMode: runMode)
 
-		return try handler.run { address, vm in
-			let logger = Logger(ProvisionHandler.self)
+		let result = try await handler.run(queue: queue)
+		let logger = Logger(ProvisionHandler.self)
 
-			// Start VNC server as soon as the VM is up
-			let vncURL = try vm.startVncServer(vncPassword: vncPassword, port: 0)
-			logger.info("VNC server started at \(vncURL.map(\.absoluteString).joined(separator: ", "))")
-
-			let task = ProvisionTask { runningIP in
-				var catchableError: Error? = nil
-
-				defer {
-					vm.stopFromUI { _ in
-						if let catchableError {
-							progressHandler(.terminated(.failure(catchableError), String(localized: "Provisioning failed for VM \(location.name)")))
-						} else {
-							progressHandler(.terminated(.success(location.name), String(localized: "Provisioning success for VM \(location.name)")))
-						}
-
-						if let promise {
-							if let catchableError {
-								promise.fail(catchableError)
-							} else {
-								promise.succeed()
-							}
-						}
-					}
-				}
-
-				do {
-					defer {
-						if let templatePath, templatePath.path(percentEncoded: false).starts(with: NSTemporaryDirectory()) {
-							try? FileManager.default.removeItem(at: templatePath)
-						}
-					}
-
-					try await Self.provision(
-						vm,
-						runningIP: runningIP,
-						template: templatePath?.path(percentEncoded: false),
-						macosVersion: macosVersion,
-						runMode: runMode,
-						variables: variables,
-						progressHandler: progressHandler
-					)
-				} catch {
-					catchableError = error
-					logger.error("Provisioning failed for VM \(location.name): \(error)")
-				}
-			}
-
-			// Start provisioning when we have an address (if any)
-			address.whenSuccess { ip in
-				if let ip {
-					logger.info("VM Machine \(location.name) is now available at \(ip)")
-					task.start(runningIP: ip)
-				}
-			}
-
-
-			return (handler, vm, task)
+		// Start VNC server as soon as the VM is up
+		let vncURL = try await MainActor.run {
+			try result.vm.startVncServer(vncPassword: vncPassword, port: 0)
 		}
+
+		logger.info("VNC server started at \(vncURL.map(\.absoluteString).joined(separator: ", "))")
+
+		let template = try await Self.loadTemplate(result.vm, template: templatePath?.path(percentEncoded: false), macosVersion: macosVersion, variables: variables)
+
+		// Preboot command execution (if any) before starting the provisioning task
+		if template.preBootCommand.isEmpty == false {
+			DispatchQueue.main.async {
+				Task.detached {
+					try await PackerLiteEngine.provision(
+						vm: result.vm,
+						targetView: result.vm.vzMachineView!,
+						commands: template.preBootCommand,
+						resolvedBootTimeout: template.bootTimeout,
+						progressHandler: progressHandler)
+				}
+			}
+		}
+
+		let task = ProvisionTask { runningIP in
+			var catchableError: Error? = nil
+
+			defer {
+				result.vm.stopFromUI { _ in
+					if let catchableError {
+						progressHandler(.terminated(.failure(catchableError), String(localized: "Provisioning failed for VM \(location.name)")))
+					} else {
+						progressHandler(.terminated(.success(location.name), String(localized: "Provisioning success for VM \(location.name)")))
+					}
+
+					if let promise {
+						if let catchableError {
+							promise.fail(catchableError)
+						} else {
+							promise.succeed()
+						}
+					}
+				}
+			}
+
+			do {
+				defer {
+					if let templatePath, templatePath.path(percentEncoded: false).starts(with: NSTemporaryDirectory()) {
+						try? FileManager.default.removeItem(at: templatePath)
+					}
+				}
+
+				try await PackerLiteEngine.provision(
+					vm: result.vm,
+					template: template,
+					runningIP: runningIP,
+					runMode: runMode,
+					progressHandler: progressHandler
+				)
+			} catch {
+				catchableError = error
+				logger.error("Provisioning failed for VM \(location.name): \(error)")
+			}
+		}
+
+		// Start provisioning when we have an address (if any)
+		result.address.whenSuccess { ip in
+			if let ip {
+				logger.info("VM Machine \(location.name) is now available at \(ip)")
+				task.start(runningIP: ip)
+			}
+		}
+
+		return (handler, result.vm, task)
 	}
 
 	public static func provision(
@@ -201,6 +215,12 @@ public struct ProvisionHandler {
 	private static func provision(_ vm: VirtualMachine, runningIP: String?, template: String?, macosVersion: MacOSVersion?, runMode: Utils.RunMode, variables: [String] = [], progressHandler: @escaping ProgressObserver.BuildProgressHandler)
 		async throws
 	{
+		let parsedTemplate = try await Self.loadTemplate(vm, template: template, macosVersion: macosVersion, variables: variables)
+
+		try await PackerLiteEngine.provision(vm: vm, template: parsedTemplate, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
+	}
+
+	public static func loadTemplate(_ vm: VirtualMachine, template: String?, macosVersion: MacOSVersion?, variables: [String]) async throws -> ParsedPackerLiteTemplate {
 		let location = vm.location
 		let config = vm.config
 		let content: String
@@ -244,9 +264,6 @@ public struct ProvisionHandler {
 		varsDict["username"] = config.configuredUser
 		varsDict["password"] = config.configuredPassword ?? "admin"
 
-		let parsedTemplate = try PackerLiteTemplate.load(from: content, variables: varsDict)
-
-		try await PackerLiteEngine.provision(vm: vm, template: parsedTemplate, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
+		return try await PackerLiteTemplate.load(from: content, variables: varsDict)
 	}
-
 }
