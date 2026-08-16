@@ -10,6 +10,18 @@
 import Foundation
 import Yams
 
+public struct ParsedPackerLiteTemplate: Sendable {
+	public var bootTimeout: TimeInterval
+	public var preBootCommand: BootCommandSteps
+	public var bootCommand: BootCommandSteps
+	
+	init(bootTimeout: TimeInterval, preBootCommand: BootCommandSteps, bootCommand: BootCommandSteps) {
+		self.bootTimeout = bootTimeout
+		self.preBootCommand = preBootCommand
+		self.bootCommand = bootCommand
+	}
+}
+
 public struct PackerLiteTemplate: Codable, Sendable {
 	public var variables: [String: String]?
 	public var bootTimeout: String?
@@ -38,20 +50,30 @@ public struct PackerLiteTemplate: Codable, Sendable {
 		self.bootCommand = bootCommand
 	}
 
-	public var resolvedBootTimeout: TimeInterval { Self.parseDuration(bootTimeout, default: 45 * 60) }
+	private var resolvedBootTimeout: TimeInterval { Self.parseDuration(bootTimeout, default: 45 * 60) }
 
 	// MARK: Loading
+	public static func load(from content: String, variables overrides: [String: String] = [:]) async throws -> ParsedPackerLiteTemplate {
+		let template = try YAMLDecoder().decode(PackerLiteTemplate.self, from: content).resolvingVariables(overrides)
 
-	public static func load(from content: String, variables overrides: [String: String] = [:]) throws -> PackerLiteTemplate {
-		let template = try YAMLDecoder().decode(PackerLiteTemplate.self, from: content)
-
-		return template.resolvingVariables(overrides)
+		return try await template.parse()
 	}
 
-	public static func load(fromFile path: String, variables overrides: [String: String] = [:]) throws -> PackerLiteTemplate {
+	public static func load(fromFile path: String, variables overrides: [String: String] = [:]) async throws -> ParsedPackerLiteTemplate {
 		let content = try String(contentsOfFile: path, encoding: .utf8)
 
-		return try load(from: content, variables: overrides)
+		return try await load(from: content, variables: overrides)
+	}
+
+	private func parse() async throws -> ParsedPackerLiteTemplate {
+		let preBootCommandSteps = try await parsedBootCommand(bootCommand: preBootCommand)
+		let bootCommandSteps = try await parsedBootCommand(bootCommand: bootCommand)
+
+		return ParsedPackerLiteTemplate(
+			bootTimeout: resolvedBootTimeout,
+			preBootCommand: preBootCommandSteps,
+			bootCommand: bootCommandSteps
+		)
 	}
 
 	// MARK: Variable substitution
@@ -63,7 +85,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	/// `configuredPassword`, itself sourced from `--user`/`--password` or the UI) as overrides here
 	/// rather than letting the template declare its own — there is exactly one source of truth for
 	/// the account caked creates the VM with.
-	public func resolvingVariables(_ overrides: [String: String]) -> PackerLiteTemplate {
+	private func resolvingVariables(_ overrides: [String: String]) -> PackerLiteTemplate {
 		var merged = variables ?? [:]
 
 		for (name, value) in overrides {
@@ -98,7 +120,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	// MARK: boot_command parsing
 
 	/// Parses every `boot_command` entry, wrapping parse failures with the offending index/string.
-	public func parsedBootCommand(bootCommand: [Command]?) async throws -> BootCommandSteps {
+	private func parsedBootCommand(bootCommand: [Command]?) async throws -> BootCommandSteps {
 		var parsed: [BootCommandStep] = []
 
 		guard let bootCommand else {

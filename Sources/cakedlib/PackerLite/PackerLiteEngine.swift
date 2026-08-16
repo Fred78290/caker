@@ -19,7 +19,7 @@ public enum PackerLiteEngine {
 	public static let provisionedStartNotification = NSNotification.Name("ProvisionedStartNotification")
 	public static let provisionedTerminatedNotification = NSNotification.Name("ProvisionedTerminatedNotification")
 
-	private static func provision(
+	public static func provision(
 		vm: VirtualMachine,
 		targetView: NSView,
 		commands: BootCommandSteps,
@@ -70,7 +70,7 @@ public enum PackerLiteEngine {
 
 	public static func provision(
 		vm: VirtualMachine,
-		template: PackerLiteTemplate,
+		template: ParsedPackerLiteTemplate,
 		runningIP: String?,
 		runMode: Utils.RunMode,
 		progressHandler: @escaping ProgressObserver.BuildProgressHandler
@@ -78,7 +78,7 @@ public enum PackerLiteEngine {
 		let location = vm.location
 		let config = vm.config
 		let logger = Logger("PackerLiteEngine")
-		let commands = try await template.parsedBootCommand(bootCommand: template.bootCommand)
+		let commands = template.bootCommand
 		var runningIP = runningIP
 
 		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
@@ -93,7 +93,7 @@ public enum PackerLiteEngine {
 			vm: vm,
 			targetView: view,
 			commands: commands,
-			resolvedBootTimeout: template.resolvedBootTimeout,
+			resolvedBootTimeout: template.bootTimeout,
 			progressHandler: progressHandler)
 
 		if runningIP == nil {
@@ -117,7 +117,7 @@ public enum PackerLiteEngine {
 		id: UUID,
 		location: VMLocation,
 		config: CakeConfig,
-		template: PackerLiteTemplate,
+		template: ParsedPackerLiteTemplate,
 		runMode: Utils.RunMode,
 		progressHandler: @escaping ProgressObserver.BuildProgressHandler
 	) async throws {
@@ -159,14 +159,12 @@ public enum PackerLiteEngine {
 			}
 
 			// Preboot for linux
-			if let preBootCommand = template.preBootCommand, preBootCommand.isEmpty == false {
-				let commands = try await template.parsedBootCommand(bootCommand: preBootCommand)
-
+			if template.preBootCommand.isEmpty == false {
 				try await Self.provision(
 					vm: vm,
 					targetView: view,
-					commands: commands,
-					resolvedBootTimeout: template.resolvedBootTimeout,
+					commands: template.preBootCommand,
+					resolvedBootTimeout: template.bootTimeout,
 					progressHandler: progressHandler)
 			}
 			
