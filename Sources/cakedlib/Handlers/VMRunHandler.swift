@@ -10,7 +10,7 @@ import Virtualization
 public struct VMRunHandler {
 	public static var launchedFromService = false
 	public static var serviceMode: VMRunServiceMode = VMRunServiceMode.default
-
+	
 	public enum DisplayMode: String, CustomStringConvertible, ExpressibleByArgument, CaseIterable, EnumerableFlag {
 		public var description: String {
 			switch self {
@@ -20,13 +20,13 @@ public struct VMRunHandler {
 			case .all: return "all"
 			}
 		}
-
+		
 		case none
 		case ui
 		case vnc
 		case all
 	}
-
+	
 	public let storageLocation: StorageLocation
 	public let location: VMLocation
 	public let name: String
@@ -38,7 +38,7 @@ public struct VMRunHandler {
 	public let vncPort: Int
 	public let screenSize: CGSize
 	public let recoveryMode: Bool
-
+	
 	public init(mode: VMRunServiceMode,
 				storageLocation: StorageLocation,
 				location: VMLocation,
@@ -62,7 +62,7 @@ public struct VMRunHandler {
 		self.screenSize = screenSize
 		self.recoveryMode = recoveryMode
 	}
-
+	
 	public typealias CompletionHandler<T> = (EventLoopFuture<String?>, VirtualMachine) throws -> T
 
 	@MainActor
@@ -70,11 +70,11 @@ public struct VMRunHandler {
 		defer {
 			location.removePID()
 		}
-
+		
 		if let macAddress = config.macAddress {
 			let vmHavingSameMacAddress = try storageLocation.list().first {
 				var result = false
-
+				
 				if let addr = $1.macAddress {
 					if case .running = $1.status {
 						result = addr.string == macAddress
@@ -82,19 +82,19 @@ public struct VMRunHandler {
 						result = false
 					}
 				}
-
+				
 				return result
 			}
-
+			
 			if vmHavingSameMacAddress != nil {
 				Logger(self).warn("This VM \(vmHavingSameMacAddress!.value.name) is running with the same mac address. Generating a new mac address")
 				config.resetMacAddress()
 				try config.save()
 			}
 		}
-
+		
 		let result = try location.startVirtualMachine(mode: mode,on: Utilities.group.next(), config: config, screenSize: screenSize, display: display, vncPassword: vncPassword, vncPort: vncPort, recoveryMode: self.recoveryMode, internalCall: false, runMode: runMode, queue: queue)
-
+		
 		return try completionHandler(result.address, result.vm)
 	}
 }
