@@ -204,7 +204,7 @@ public struct VMBuilder {
 						variables["username"] = config.configuredUser
 						variables["password"] = config.configuredPassword ?? "admin"
 
-						let template = try PackerLiteTemplate.load(from: content, variables: variables)
+						let template = try await PackerLiteTemplate.load(from: content, variables: variables)
 
 						try await PackerLiteEngine.provision(id: id, location: location, config: config, template: template, runMode: runMode, progressHandler: progressHandler)
 					}
@@ -228,7 +228,7 @@ public struct VMBuilder {
 					variables["username"] = config.configuredUser
 					variables["password"] = config.configuredPassword ?? "admin"
 
-					let template = try PackerLiteTemplate.load(from: content, variables: variables)
+					let template = try await PackerLiteTemplate.load(from: content, variables: variables)
 
 					try await PackerLiteEngine.provision(id: id, location: location, config: config, template: template, runMode: runMode, progressHandler: progressHandler)
 				}
