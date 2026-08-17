@@ -184,12 +184,33 @@ public struct ProvisionHandler {
 				}
 			}
 
+			// If the address future never resolves to a usable IP — either it fails outright, or it
+			// succeeds with nil (VM came up but never leased/reported an address) — `task` is never
+			// started, which previously left `progressHandler(.terminated(...))` never called and
+			// `promise` never resolved, hanging any caller awaiting overall completion indefinitely.
+			// Both paths now report failure through the same termination/cleanup shape `task`'s own
+			// handler uses, so the caller always gets a definitive outcome.
+			func fail(_ error: Error) {
+				logger.error("Provisioning failed for VM \(location.name): \(error)")
+
+				vm.stopFromUI { _ in
+					progressHandler(.terminated(.failure(error), String(localized: "Provisioning failed for VM \(location.name)")))
+					promise?.fail(error)
+				}
+			}
+
 			// Start provisioning when we have an address (if any)
 			address.whenSuccess { ip in
 				if let ip {
 					logger.info("VM Machine \(location.name) is now available at \(ip)")
 					task.start(runningIP: ip)
+				} else {
+					fail(ServiceError(String(localized: "Unable to obtain an IP address for VM \(location.name)")))
 				}
+			}
+
+			address.whenFailure { error in
+				fail(error)
 			}
 
 			return (handler, vm, task)
