@@ -265,6 +265,7 @@ extension UTType {
 	var vncURL: [URL]? = nil
 	var agentReady: Bool = false
 	var connection: VNCConnection! = nil
+	var vncChannel: Channel? = nil
 	var vncStatus: VncStatus = .disconnected
 	var documentSize: ViewSize = .zero
 	var launchVMExternally: Bool? = nil
@@ -466,23 +467,33 @@ extension VirtualMachineDocument {
 		NotificationCenter.default.post(name: VirtualMachineDocument.NewScreenshot, object: data, userInfo: ["document": self.url])
 	}
 
-	func disconnect() {
-		#if DEBUG
-			self.logger.debug("Disconnecting \(self.name)")
-		#endif
-
+	private func disconnectVNC() {
 		self.vncURL = nil
-		self.inView = false
 		self.vncStatus = .disconnected
-		self.stopAgentMonitoring()
-		if let location = self.location {
-			self.status = .init(location.status)
-		}
 
 		if let connection = self.connection {
 			self.connection = nil
 			connection.disconnect()
 		}
+
+		if let vncChannel = self.vncChannel {
+			self.vncChannel = nil
+			vncChannel.close(promise: nil)
+		}
+	}
+
+	func disconnect() {
+		#if DEBUG
+			self.logger.debug("Disconnecting \(self.name)")
+		#endif
+
+		self.inView = false
+		self.stopAgentMonitoring()
+		if let location = self.location {
+			self.status = .init(location.status)
+		}
+
+		disconnectVNC()
 
 		AppState.shared.closeVirtualMachineDocument(self)
 	}
@@ -512,17 +523,12 @@ extension VirtualMachineDocument {
 		self.virtualMachine = nil
 		self.inView = false
 		self.vncView = nil
-		self.vncURL = nil
-		self.vncStatus = .disconnected
 
 		if let location = self.location {
 			self.status = .init(location.status)
 		}
 
-		if let connection = self.connection {
-			self.connection = nil
-			connection.disconnect()
-		}
+		disconnectVNC()
 
 		AppState.shared.closeVirtualMachineDocument(self)
 	}
@@ -544,17 +550,12 @@ extension VirtualMachineDocument {
 
 		self.updateCurrentStatus(status, vncURL: nil)
 
-		self.vncURL = nil
 		self.interactiveShell = nil
-		self.vncStatus = .disconnected
 		self.externalRunning = false
 		self.agentCondition = ("Install agent", false, true)
 		self.agentReady = false
 
-		if let connection = self.connection {
-			self.connection = nil
-			connection.disconnect()
-		}
+		disconnectVNC()
 
 		if self.inView == false {
 			AppState.shared.closeVirtualMachineDocument(self)
@@ -644,14 +645,10 @@ extension VirtualMachineDocument {
 			self.interactiveShell?.cancelShell()
 
 			self.interactiveShell = nil
-			self.vncStatus = .disconnected
 			self.agentCondition = ("Install agent", false, true)
 			self.agentReady = false
 
-			if let connection = self.connection {
-				self.connection = nil
-				connection.disconnect()
-			}
+			disconnectVNC()
 		}
 	}
 
@@ -782,15 +779,15 @@ extension VirtualMachineDocument {
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
 
 		let result = try self.connectionManager.startVirtualMachine(vmURL: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, recoveryMode: self.recoveryMode)
-		
+
 		if result.started {
 			let vncInfos = try self.connectionManager.vncInfos(vmURL: location)
-			
-#if DEBUG
-			self.logger.debug("VM started on \(result.ip)")
-			self.logger.debug("Found VNC URL: \(vncInfos.urls)")
-#endif
-			
+
+			#if DEBUG
+				self.logger.debug("VM started on \(result.ip)")
+				self.logger.debug("Found VNC URL: \(vncInfos.urls)")
+			#endif
+
 			await self.setStateAsRunning(vncURL: vncInfos.urls.compactMap { URL(string: $0) })
 		} else {
 			self.logger.error("VM \(self.name) failed to start: \(result.reason)")
@@ -807,10 +804,10 @@ extension VirtualMachineDocument {
 		let result = try self.connectionManager.startVirtualMachine(vmURL: location.rootURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, recoveryMode: self.recoveryMode)
 
 		if result.started {
-#if DEBUG
-			self.logger.debug("VM started on \(result.ip)")
-			self.logger.debug("Found VNC URL: \(vncURL)")
-#endif
+			#if DEBUG
+				self.logger.debug("VM started on \(result.ip)")
+				self.logger.debug("Found VNC URL: \(vncURL)")
+			#endif
 
 			await self.tryVNCConnect(vncURL: vncURL)
 			await self.setStateAsRunning(vncURL: [vncURL])
@@ -975,7 +972,7 @@ extension VirtualMachineDocument {
 	}
 
 	typealias CompletionHandler = (Error?) -> Void
-	
+
 	func suspendFromUI(_ completionHandler: CompletionHandler? = nil) {
 		guard self.status == .running else {
 			return
@@ -1044,7 +1041,7 @@ extension VirtualMachineDocument {
 						informativeText = String(localized: "Resize disk is not available in sandboxed mode with remote connection. To resize the disk, run the following command on the target machine:")
 					} else {
 						let home = try Utils.getHome(runMode: connectionMode.runMode, createItIfNotExists: true).appendingPathComponent("vms/\(self.name).cakedvm/disk.img")
-						
+
 						command = "diskutil image resize --size=\(virtualMachineConfig.diskSizeInGiB)G \"\(home.path(percentEncoded: false))\""
 						informativeText = String(localized: "Resize disk is not available in sandboxed mode via service. To resize the disk, run the following command in Terminal:")
 					}
@@ -1262,8 +1259,10 @@ extension VirtualMachineDocument {
 			let vncURL = vncURL.first!
 
 			if let client = self.connectionManager.serviceClient {
-				_ = try? client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name) { (channel, port) in
+				if let (channel, port) = try? client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name) {
+					self.vncChannel = channel
 					var components = URLComponents()
+
 					components.scheme = "vnc"
 					components.host = "127.0.0.1"
 					components.port = port
@@ -1595,10 +1594,7 @@ extension VirtualMachineDocument {
 
 	func grandCentralDidStop() {
 		if self.connectionManager.connectionMode == .remote {
-			if let connection = self.connection {
-				self.connection = nil
-				connection.disconnect()
-			}
+			disconnectVNC()
 
 			if let interactiveShell {
 				self.interactiveShell = nil
