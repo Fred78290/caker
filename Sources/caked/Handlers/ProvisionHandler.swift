@@ -32,7 +32,7 @@ struct ProvisionHandler: CakedCommandAsync {
 		do {
 			let storageLocation = StorageLocation(runMode: runMode)
 			let location: VMLocation = try storageLocation.find(request.name)
-			let (stream, continuation) = AsyncStream.makeStream(of: ProgressObserver.ProgressValue.self)
+			let (stream, continuation) = AsyncStream.makeStream(of: CakedLib.ProvisionHandler.ProgressValue.self)
 			
 			var lastSentCompleted = -1
 			var templateName: String? = nil
@@ -123,6 +123,10 @@ struct ProvisionHandler: CakedCommandAsync {
 				} else if case .substep(let message) = progress {
 					try await responseStream.send(.with {
 						$0.substep = message
+					})
+				} else if case .infos(let message) = progress {
+					try await responseStream.send(.with {
+						$0.infos = message.caked
 					})
 				}
 			}

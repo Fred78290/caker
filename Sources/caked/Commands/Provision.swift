@@ -101,8 +101,9 @@ struct Provision: AsyncParsableCommand {
 																						variables: self.provision.vars,
 																						runMode: self.common.runMode,
 																						queue: ProvisionHandler.provisionQueue,
-																						promise: promise,
-																						progressHandler: ProgressObserver.progressHandler)
+																						promise: promise) {
+			ProgressObserver.progressHandler($0.progressValue)
+		}
 
 		if self.provision.foreground {
 			MainApp.runUI(vm, params: handler, cancellation: cancellation)
