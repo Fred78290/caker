@@ -14,6 +14,7 @@ import GRPC
 import GRPCLib
 import NIO
 import SwiftUI
+import Synchronization
 
 /// Drives an already-installed macOS VM's Setup Assistant unattended via PackerLite — the same
 /// engine `cakectl build`/`create` run automatically for `.ipsw` sources with `--autoinstall`, exposed
@@ -101,10 +102,21 @@ struct Provision: GrpcParsableCommand {
 		var result: String = ""
 		var terminated = false
 		let infos = try withAsyncResult {
-			return try await withCheckedThrowingContinuation { (checkedContinuation: CheckedContinuation<Caked_ProvisionStreamReply.ProvisionInfo, Error>) in
+			return try await withCheckedThrowingContinuation { (checkedContinuation: CheckedContinuation<Caked_ProvisionStreamReply.ProvisionInfo?, Error>) in
 
 				// Launch async work inside a Task so the continuation closure stays synchronous
 				Task {
+					let resumed: Mutex<Bool> = Mutex(false)
+
+					func resume(_ infos: Caked_ProvisionStreamReply.ProvisionInfo?) {
+						resumed.withLock { resumed in
+							if resumed == false {
+								resumed = true
+								checkedContinuation.resume(returning: infos)
+							}
+						}
+					}
+
 					do {
 						try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
 							let context: ProgressObserver.ProgressHandlerContext = .init()
@@ -112,17 +124,25 @@ struct Provision: GrpcParsableCommand {
 							let logger = Logger(self)
 
 							group.addTask {
-								defer {
-									continuation.finish()
+								do {
+									defer {
+										continuation.finish()
+									}
+
+									let stream = try client.provision(Caked_ProvisionRequest(command: self)) { stream in
+										continuation.yield(stream.current)
+									}
+
+									_ = try await stream.status.get()
+
+									resume(nil)
+
+									logger.info("Provisioning completed")
+								} catch {
+									logger.error("Provisioning failed: \(error)")
+
+									checkedContinuation.resume(throwing: error)
 								}
-
-								let stream = try client.provision(Caked_ProvisionRequest(command: self)) { stream in
-									continuation.yield(stream.current)
-								}
-
-								_ = try await stream.status.get()
-
-								logger.info("Provisioning completed")
 							}
 
 							group.addTask {
@@ -135,7 +155,7 @@ struct Provision: GrpcParsableCommand {
 										ProgressObserver.progressHandler(.substep(step))
 									} else if case .infos(let infos) = current {
 										// Resume the continuation as soon as we have enough info to launch VNC
-										checkedContinuation.resume(returning: infos)
+										resume(infos)
 									} else if case .terminated(let status) = current {
 										if case .success(let v)? = status.result {
 											ProgressObserver.progressHandler(.terminated(.success(self.provision.name), v))
@@ -171,8 +191,10 @@ struct Provision: GrpcParsableCommand {
 			}
 		}
 
-		doVNC(infos, client: client) {
-			return terminated ? .stopped : .running
+		if let infos {
+			doVNC(infos, client: client) {
+				return terminated ? .stopped : .running
+			}
 		}
 
 		return result
