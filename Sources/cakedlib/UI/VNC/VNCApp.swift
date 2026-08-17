@@ -57,8 +57,33 @@ struct VNCView: NSViewRepresentable {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
+	private var splashWindow: NSWindow? = nil
+
+	func applicationDidBecomeActive(_ notification: Notification) {
+		closeSplashWindowSingle()
+	}
+
 	func applicationWillFinishLaunching(_ notification: Notification) {
 		NSApp.setDockIcon()
+		self.showSplashWindow()
+	}
+
+	private func showSplashWindow() {
+		self.splashWindow = SplashScreenView.showSplashWindow(name: VNCConnectionAppState.state.name)
+	}
+
+	func closeSplashWindowSingle() {
+		guard let window = self.splashWindow else {
+			return
+		}
+
+		self.splashWindow = nil
+		window.orderOut(self)
+		window.close()
+
+		// AppDelegate has no SwiftUI environment of its own — reading the action from a fresh
+		// EnvironmentValues() is how a plain NSObject opens the "VM" WindowGroup by id.
+		EnvironmentValues().openWindow(id: "VM")
 	}
 }
 
