@@ -184,7 +184,7 @@ final class PackerLiteTests: XCTestCase {
 
 	// MARK: - Template loading & variable substitution
 
-	func testTemplateVariableSubstitutionUsesDefaultsThenOverrides() throws {
+	func testTemplateVariableSubstitutionUsesDefaultsThenOverrides() async throws {
 		// username/password are intentionally NOT template-declared fields — the engine injects
 		// them as overrides from CakeConfig.configuredUser/configuredPassword (see VMBuilder.swift),
 		// so there is exactly one source of truth for the VM's account. This just exercises the
@@ -198,45 +198,45 @@ final class PackerLiteTests: XCTestCase {
 		      - "<wait10s>${var.username}<tab>${var.password}<tab>${var.greeting}<enter>"
 		"""
 
-		let defaults = try PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "password": "admin"])
-		XCTAssertEqual(defaults.bootCommand?.first?.commands, ["<wait10s>admin<tab>admin<tab>hello<enter>"])
+		let defaults = try await PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "password": "admin"])
+		XCTAssertEqual(defaults.bootCommand.first?.steps, [.wait(10), .type("admin"), .press(.tab), .type("admin"), .press(.tab), .type("hello"), .press(.enter)])
 
-		let overridden = try PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "password": "hunter2"])
-		XCTAssertEqual(overridden.bootCommand?.first?.commands, ["<wait10s>admin<tab>hunter2<tab>hello<enter>"])
+		let overridden = try await PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "password": "hunter2"])
+		XCTAssertEqual(overridden.bootCommand.first?.steps, [.wait(10), .type("admin"), .press(.tab), .type("hunter2"), .press(.tab), .type("hello"), .press(.enter)])
 	}
 
-	func testTemplateBootTimeoutDefaultsAndParsing() throws {
-		let withDuration = try PackerLiteTemplate.load(from: "boot_timeout: 45m")
-		XCTAssertEqual(withDuration.resolvedBootTimeout, 45 * 60)
+	func testTemplateBootTimeoutDefaultsAndParsing() async throws {
+		let withDuration = try await PackerLiteTemplate.load(from: "boot_timeout: 45m")
+		XCTAssertEqual(withDuration.bootTimeout, 45 * 60)
 
-		let withoutDuration = try PackerLiteTemplate.load(from: "boot_command: []")
-		XCTAssertEqual(withoutDuration.resolvedBootTimeout, 45 * 60)
+		let withoutDuration = try await PackerLiteTemplate.load(from: "boot_command: []")
+		XCTAssertEqual(withoutDuration.bootTimeout, 45 * 60)
 	}
 
-	func testTemplateIgnoresUnknownCreateGraceTimeKey() throws {
+	func testTemplateIgnoresUnknownCreateGraceTimeKey() async throws {
 		// create_grace_time was removed as dead code (PackerLiteEngine never read it), but older or
 		// hand-written templates may still declare it — decoding must tolerate the unknown key rather
 		// than failing the whole template load.
-		let template = try PackerLiteTemplate.load(from: """
+		let template = try await PackerLiteTemplate.load(from: """
 		create_grace_time: 30s
 		boot_timeout: 45m
 		""")
-		XCTAssertEqual(template.resolvedBootTimeout, 45 * 60)
+		XCTAssertEqual(template.bootTimeout, 45 * 60)
 	}
 
 	func testParsedBootCommandWrapsFailureWithOffendingCommand() async throws {
-		let template = try PackerLiteTemplate.load(from: """
-		boot_command:
-		  - title: Fine
-		    commands:
-		      - "<enter>"
-		  - title: Broken
-		    commands:
-		      - "<notAToken>"
-		""")
-
+		// Parsing now happens inside `load` itself (see ParsedPackerLiteTemplate), so a malformed
+		// boot_command entry surfaces as a throw from `load`, not a separate parsing step.
 		do {
-			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
+			_ = try await PackerLiteTemplate.load(from: """
+			boot_command:
+			  - title: Fine
+			    commands:
+			      - "<enter>"
+			  - title: Broken
+			    commands:
+			      - "<notAToken>"
+			""")
 			XCTFail("expected invalidBootCommand error")
 		} catch {
 			guard case .invalidBootCommand(let command, _) = error as? PackerLiteTemplateError else {
@@ -297,94 +297,77 @@ final class PackerLiteTests: XCTestCase {
 
 	// MARK: - Real repo templates (Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml)
 
+	/// `PackerLiteTemplate.load` now parses `boot_command`/`pre_boot_command` as part of loading
+	/// (returning an already-parsed `ParsedPackerLiteTemplate`), so a successful `load` already proves
+	/// the file parses — no separate `parsedBootCommand` call needed. `bootCommand`/`preBootCommand`
+	/// are non-optional `BootCommandSteps` (`[BootCommandStep]`), each with a `.steps: [Step]`, not the
+	/// raw `[Command]`/`commands: [String]` shape the pre-parse `PackerLiteTemplate` type has.
+	private func containsUnsubstitutedVariable(_ commands: BootCommandSteps) -> Bool {
+		commands.contains { $0.steps.contains { $0.description.contains("${var.") } }
+	}
+
+	private func containsText(_ commands: BootCommandSteps, _ text: String) -> Bool {
+		commands.contains { $0.steps.contains { $0.description.contains(text) } }
+	}
+
 	func testVanillaMacos15PackerLiteTemplateFileLoadsAndParses() async throws {
 		// Mirrors what VMBuilder.swift injects: username/password come from CakeConfig, not the template.
-		let template = try PackerLiteTemplate.load(
+		let template = try await PackerLiteTemplate.load(
 			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos15.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "admin"])
 
-		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
-		do {
-			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
-		} catch {
-			XCTFail("unexpected error: \(error)")
-		}
+		XCTAssertFalse(template.bootCommand.isEmpty)
+		XCTAssertFalse(containsUnsubstitutedVariable(template.bootCommand), "all ${var.*} placeholders should have been substituted")
 	}
 
 	func testVanillaMacos26PackerLiteTemplateFileLoadsAndParses() async throws {
-		let template = try PackerLiteTemplate.load(
+		let template = try await PackerLiteTemplate.load(
 			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos26.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
-		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
-		do {
-			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
-		} catch {
-			XCTFail("unexpected error: \(error)")
-		}
+		XCTAssertFalse(template.bootCommand.isEmpty)
+		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
+		XCTAssertFalse(containsUnsubstitutedVariable(template.bootCommand), "all ${var.*} placeholders should have been substituted")
 	}
 
 	func testVanillaMacos27PackerLiteTemplateFileLoadsAndParses() async throws {
-		let template = try PackerLiteTemplate.load(
+		let template = try await PackerLiteTemplate.load(
 			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos27.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
-		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
-		do {
-			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
-		} catch {
-			XCTFail("unexpected error: \(error)")
-		}
+		XCTAssertFalse(template.bootCommand.isEmpty)
+		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
+		XCTAssertFalse(containsUnsubstitutedVariable(template.bootCommand), "all ${var.*} placeholders should have been substituted")
 	}
 
 	func testVanillaMacos12PackerLiteTemplateFileLoadsAndParses() async throws {
-		let template = try PackerLiteTemplate.load(
+		let template = try await PackerLiteTemplate.load(
 			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos12.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
-		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
-		do {
-			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
-		} catch {
-			XCTFail("unexpected error: \(error)")
-		}
+		XCTAssertFalse(template.bootCommand.isEmpty)
+		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
+		XCTAssertFalse(containsUnsubstitutedVariable(template.bootCommand), "all ${var.*} placeholders should have been substituted")
 	}
 
 	func testVanillaMacos13PackerLiteTemplateFileLoadsAndParses() async throws {
-		let template = try PackerLiteTemplate.load(
+		let template = try await PackerLiteTemplate.load(
 			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos13.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
-		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
-		do {
-			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
-		} catch {
-			XCTFail("unexpected error: \(error)")
-		}
+		XCTAssertFalse(template.bootCommand.isEmpty)
+		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
+		XCTAssertFalse(containsUnsubstitutedVariable(template.bootCommand), "all ${var.*} placeholders should have been substituted")
 	}
 
 	func testVanillaMacos14PackerLiteTemplateFileLoadsAndParses() async throws {
-		let template = try PackerLiteTemplate.load(
+		let template = try await PackerLiteTemplate.load(
 			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos14.packerlite.yaml").path,
 			variables: ["username": "admin", "password": "hunter2"])
 
-		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
-		do {
-			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
-		} catch {
-			XCTFail("unexpected error: \(error)")
-		}
+		XCTAssertFalse(template.bootCommand.isEmpty)
+		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
+		XCTAssertFalse(containsUnsubstitutedVariable(template.bootCommand), "all ${var.*} placeholders should have been substituted")
 	}
 
 	// MARK: - Built-in Linux templates (Sources/cakedlib/PackerLite/Resources/linux-*.packerlite.yaml)
@@ -414,18 +397,13 @@ final class PackerLiteTests: XCTestCase {
 	}
 
 	private func assertLinuxTemplateLoadsAndParses(_ filename: String) async throws {
-		let template = try PackerLiteTemplate.load(
+		let template = try await PackerLiteTemplate.load(
 			fromFile: Self.macTemplatesDirectory.appendingPathComponent(filename).path,
 			variables: ["username": "admin", "password": "hunter2"])
 
-		XCTAssertFalse((template.bootCommand ?? []).isEmpty)
-		XCTAssertTrue(template.bootCommand?.contains(where: { $0.commands.contains(where: { $0.contains("hunter2") }) }) == true)
-		XCTAssertTrue(template.bootCommand?.contains { $0.commands.contains(where: { $0.contains("${var.") }) } == false, "all ${var.*} placeholders should have been substituted")
-		do {
-			_ = try await template.parsedBootCommand(bootCommand: template.bootCommand)
-		} catch {
-			XCTFail("unexpected error: \(error)")
-		}
+		XCTAssertFalse(template.bootCommand.isEmpty)
+		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
+		XCTAssertFalse(containsUnsubstitutedVariable(template.bootCommand), "all ${var.*} placeholders should have been substituted")
 	}
 
 	private static var repoRoot: URL {
