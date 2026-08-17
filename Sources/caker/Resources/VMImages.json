@@ -30,7 +30,7 @@
 			{ "id": "openSUSELeap161", "label": "openSUSE Leap 16.1 – DVD", "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.aarch64-Leap_16.1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "openSUSELeap160", "label": "openSUSE Leap 16.0 – DVD", "url": "https://download.opensuse.org/distribution/leap/16.0/installer/iso/agama-installer.aarch64-Leap_16.0.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "openSUSELeap156", "label": "openSUSE Leap 15.6 – DVD", "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-aarch64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
-			{ "id": "openSUSELeap155", "label": "openSUSE Leap 15.5 – DVD", "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-aarch64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSELeap155", "label": "openSUSE Leap 15.5 – DVD", "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-aarch64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 }
 		],
 		"ipsw": [
 			{ "id": "macos27_0", "label": "macOS 27.0", "url": "https://updates.cdn-apple.com/2026SummerSeed/fullrestores/140-81421/E76AF7DE-7F9D-4808-B023-AC9A8313B177/UniversalMac_27.0_26A5406e_Restore.ipsw" },
@@ -102,7 +102,7 @@
 			{ "id": "openSUSELeap161", "label": "openSUSE Leap 16.1", "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.x86_64-Leap_16.1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "openSUSELeap160", "label": "openSUSE Leap 16.0", "url": "https://download.opensuse.org/distribution/leap/16.0/installer/iso/agama-installer.x86_64-Leap_16.0.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "openSUSELeap156", "label": "openSUSE Leap 15.6", "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-x86_64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
-			{ "id": "openSUSELeap155", "label": "openSUSE Leap 15.5", "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-x86_64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSELeap155", "label": "openSUSE Leap 15.5", "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-x86_64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 }
 		],
 		"ipsw": [
 			{ "id": "macos27_0", "label": "macOS 27.0", "url": "https://updates.cdn-apple.com/2026SummerSeed/fullrestores/140-81421/E76AF7DE-7F9D-4808-B023-AC9A8313B177/UniversalMac_27.0_26A5406e_Restore.ipsw" },
