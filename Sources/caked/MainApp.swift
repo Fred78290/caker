@@ -225,34 +225,6 @@ struct MainApp: App {
 	}
 }
 
-private struct SplashScreenView: View {
-	let name: String
-
-	var body: some View {
-		VStack(spacing: 12) {
-			Image(nsImage: NSApp.applicationIconImage ?? NSImage(named: NSImage.applicationIconName)!)
-				.resizable()
-				.frame(width: 64, height: 64)
-
-			Text(name)
-				.font(.headline)
-
-			ProgressView()
-				.controlSize(.small)
-		}
-		.padding(24)
-		.frame(width: 320, height: 180)
-		.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-		.onAppear {
-			// Fallback retry in case setDockIcon()'s activate() call at launch lost the race —
-			// see the "Front-app activation workaround" note above AppDelegate.
-			DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-				NSApp.activate()
-			}
-		}
-	}
-}
-
 // MARK: - Front-app activation workaround
 //
 // When this process is launched via fork/exec from a terminal or shell script (as `caked
@@ -329,21 +301,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
 extension AppDelegate {
 	private func showSplashWindow() {
-		let size = NSSize(width: 320, height: 180)
-		let window = NSWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: .borderless, backing: .buffered, defer: false)
-
-		window.isReleasedWhenClosed = false
-		window.isOpaque = false
-		window.backgroundColor = .clear
-		window.hasShadow = true
-		// .floating puts this above other apps' windows on the window server regardless of
-		// whether this process is the active app yet — see the note above AppDelegate.
-		window.level = .floating
-		window.center()
-		window.contentView = NSHostingView(rootView: SplashScreenView(name: MainApp.params.name))
-		window.makeKeyAndOrderFront(self)
-
-		self.splashWindow = window
+		self.splashWindow = SplashScreenView.showSplashWindow(name: MainApp.params.name)
 	}
 
 	func closeSplashWindowSingle() {
