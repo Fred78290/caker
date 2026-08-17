@@ -465,6 +465,7 @@
 		9BD69DF72FCEE912005E24AF /* VM.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87442F7E6480005CC9B2 /* VM.png */; };
 		9BD69DFB2FCEE977005E24AF /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BD69DFD2FCEEAF3005E24AF /* cakectl.app in Bundle */ = {isa = PBXBuildFile; fileRef = 9BD69DF02FCEE8F1005E24AF /* cakectl.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9BD85B23303317ED00AD9100 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD85B22303317EA00AD9100 /* SplashScreenView.swift */; };
 		9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */; };
 		9BDA13A72EE6D44100357544 /* OSXKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */; };
 		9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */; };
@@ -1342,6 +1343,7 @@
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
 		9BD69DF02FCEE8F1005E24AF /* cakectl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = cakectl.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BD85B22303317EA00AD9100 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
 		9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFixedWidthInteger.swift; sourceTree = "<group>"; };
 		9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSXKeyMapper.swift; sourceTree = "<group>"; };
 		9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonKeyMapper.swift; sourceTree = "<group>"; };
@@ -2770,6 +2772,7 @@
 				9B9DCD892F6FFF4900E07852 /* AboutApplication.swift */,
 				9B7D69242F1B92E800FE1B0B /* Extensions.swift */,
 				9B5F49BF2F70032800AE1991 /* LabelView.swift */,
+				9BD85B22303317EA00AD9100 /* SplashScreenView.swift */,
 				9BEBC74B2DF440720092B196 /* VMView.swift */,
 				9B9DCD852F6FF16700E07852 /* WindowAccessor.swift */,
 				9B9DCB352F6EB09900E07852 /* VNC */,
@@ -4179,6 +4182,7 @@
 				9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */,
 				9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */,
 				9BEBD1802F9CC1D20005EC80 /* SetOptions.swift in Sources */,
+				9BD85B23303317ED00AD9100 /* SplashScreenView.swift in Sources */,
 				9B081B5A2FC75A1A0029B259 /* Qcow2Header.swift in Sources */,
 				9B081B5B2FC75A1A0029B259 /* Qcow2Error.swift in Sources */,
 				9B081B5C2FC75A1A0029B259 /* Qcow2Converter.swift in Sources */,
