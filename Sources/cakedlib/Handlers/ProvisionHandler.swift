@@ -1,17 +1,61 @@
-import CakeAgentLib
-import Combine
 //
 //  ProvisionHandler.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 07/08/2026.
 //
+
+import CakeAgentLib
+import Combine
 import Foundation
 import GRPCLib
 import NIO
 import Virtualization
 
 public struct ProvisionHandler {
+	public struct ProvisionInfo: Sendable {
+		public let vncURL: URL
+		public let screenSize: ViewSize
+		public let config: CakeConfig
+
+		public var caked: Caked_ProvisionStreamReply.ProvisionInfo {
+			.with {
+				$0.vncURL = vncURL.absoluteString
+				$0.config = config.caked
+				$0.screenSize = .with {
+					$0.width = Int32(screenSize.width)
+					$0.height = Int32(screenSize.height)
+				}
+			}
+		}
+	}
+
+	public enum ProgressValue: Sendable {
+		case progress(ProgressObserver.ProgressHandlerContext, Double)
+		case step(String)
+		case substep(String)
+		case infos(ProvisionInfo)
+		case terminated(Result<Sendable?, any Error>, String?)
+
+		public var progressValue: ProgressObserver.ProgressValue {
+			switch self {
+
+			case .progress(let context, let value):
+				return .progress(context, value)
+			case .step(let value):
+				return .step(value)
+			case .substep(let value):
+				return .substep(value)
+			case .infos(let value):
+				return .substep(String(localized: "VNC started on \(value.vncURL.absoluteString)"))
+			case .terminated(let result, let message):
+				return .terminated(result, message)
+			}
+		}
+	}
+
+	public typealias ProvisionProgressHandler = (ProvisionHandler.ProgressValue) -> Void
+
 	private final class ProvisionTask: Cancellable, @unchecked Sendable {
 		private var task: Task<Void, Error>? = nil
 		private let handler: (_ runningIP: String) async -> Void
@@ -43,7 +87,7 @@ public struct ProvisionHandler {
 		runMode: Utils.RunMode,
 		queue: DispatchQueue?,
 		promise: EventLoopPromise<Void>?,
-		progressHandler: @escaping ProgressObserver.BuildProgressHandler
+		progressHandler: @escaping ProvisionProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
 		let config = try location.config()
 		let displaySize = config.display.cgSize
@@ -75,13 +119,23 @@ public struct ProvisionHandler {
 			let vncURL = try vm.startVncServer(vncPassword: vncPassword, port: 0)
 			logger.info("VNC server started at \(vncURL.map(\.absoluteString).joined(separator: ", "))")
 
+			guard let vzMachineView = vm.vzMachineView else {
+				throw ServiceError(String(localized: "Unable to get VZMachineView for VM \(location.name)"))
+			}
+
+			guard let vncURL = vncURL.first else {
+				throw ServiceError(String(localized: "Unable to get VNC URL for VM \(location.name)"))
+			}
+
+			progressHandler(.infos(.init(vncURL: vncURL, screenSize: .init(vzMachineView.bounds.size), config: config)))
+
 			// Preboot command execution (if any) before starting the provisioning task
 			if template.preBootCommand.isEmpty == false {
 				DispatchQueue.main.async {
 					Task.detached {
 						try await PackerLiteEngine.provision(
 							vm: vm,
-							targetView: vm.vzMachineView!,
+							targetView: vzMachineView,
 							commands: template.preBootCommand,
 							resolvedBootTimeout: template.bootTimeout,
 							progressHandler: progressHandler)
@@ -152,7 +206,7 @@ public struct ProvisionHandler {
 		runMode: Utils.RunMode,
 		queue: DispatchQueue?,
 		promise: EventLoopPromise<Void>?,
-		progressHandler: @escaping ProgressObserver.BuildProgressHandler
+		progressHandler: @escaping ProvisionProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
 		let config = try location.config()
 		let displaySize = config.display.cgSize
@@ -264,7 +318,7 @@ public struct ProvisionHandler {
 		runMode: Utils.RunMode,
 		queue: DispatchQueue?,
 		promise: EventLoopPromise<Void>?,
-		progressHandler: @escaping ProgressObserver.BuildProgressHandler
+		progressHandler: @escaping ProvisionProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
 		var templatePath: URL? = nil
 
@@ -302,7 +356,7 @@ public struct ProvisionHandler {
 		runMode: Utils.RunMode,
 		queue: DispatchQueue?,
 		promise: EventLoopPromise<Void>?,
-		progressHandler: @escaping ProgressObserver.BuildProgressHandler
+		progressHandler: @escaping ProvisionProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
 
 		let storageLocation = StorageLocation(runMode: runMode)
@@ -322,7 +376,7 @@ public struct ProvisionHandler {
 			progressHandler: progressHandler)
 	}
 
-	private static func provision(_ vm: VirtualMachine, runningIP: String?, template: String?, macosVersion: MacOSVersion?, runMode: Utils.RunMode, variables: [String] = [], progressHandler: @escaping ProgressObserver.BuildProgressHandler)
+	private static func provision(_ vm: VirtualMachine, runningIP: String?, template: String?, macosVersion: MacOSVersion?, runMode: Utils.RunMode, variables: [String] = [], progressHandler: @escaping ProvisionProgressHandler)
 		async throws
 	{
 		let parsedTemplate = try await Self.loadTemplate(vm, template: template, macosVersion: macosVersion, variables: variables)

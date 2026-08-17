@@ -206,7 +206,9 @@ public struct VMBuilder {
 
 						let template = try await PackerLiteTemplate.load(from: content, variables: variables)
 
-						try await PackerLiteEngine.provision(id: id, location: location, config: config, template: template, runMode: runMode, progressHandler: progressHandler)
+						try await PackerLiteEngine.provision(id: id, location: location, config: config, template: template, runMode: runMode) { progress in
+							progressHandler(progress.progressValue)
+						}
 					}
 				}
 			#endif
@@ -230,7 +232,9 @@ public struct VMBuilder {
 
 					let template = try await PackerLiteTemplate.load(from: content, variables: variables)
 
-					try await PackerLiteEngine.provision(id: id, location: location, config: config, template: template, runMode: runMode, progressHandler: progressHandler)
+					try await PackerLiteEngine.provision(id: id, location: location, config: config, template: template, runMode: runMode) { progress in
+						progressHandler(progress.progressValue)
+					}
 				}
 			}
 		}

@@ -24,7 +24,7 @@ public enum PackerLiteEngine {
 		targetView: NSView,
 		commands: BootCommandSteps,
 		resolvedBootTimeout: TimeInterval,
-		progressHandler: @escaping ProgressObserver.BuildProgressHandler
+		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
 	) async throws {
 		let logger = Logger("PackerLiteEngine")
 
@@ -73,7 +73,7 @@ public enum PackerLiteEngine {
 		template: ParsedPackerLiteTemplate,
 		runningIP: String?,
 		runMode: Utils.RunMode,
-		progressHandler: @escaping ProgressObserver.BuildProgressHandler
+		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
 	) async throws {
 		let location = vm.location
 		let config = vm.config
@@ -119,7 +119,7 @@ public enum PackerLiteEngine {
 		config: CakeConfig,
 		template: ParsedPackerLiteTemplate,
 		runMode: Utils.RunMode,
-		progressHandler: @escaping ProgressObserver.BuildProgressHandler
+		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
 	) async throws {
 		let runInCaker = Bundle.runInCaker
 
