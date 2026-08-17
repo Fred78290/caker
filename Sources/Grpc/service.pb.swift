@@ -4316,6 +4316,14 @@ public nonisolated struct Caked_Caked: Sendable {
           set {current = .provisioned(newValue)}
         }
 
+        public var infos: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.ProvisionInfo {
+          get {
+            if case .infos(let v)? = current {return v}
+            return Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.ProvisionInfo()
+          }
+          set {current = .infos(newValue)}
+        }
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public nonisolated enum OneOf_Current: Equatable, Sendable {
@@ -4324,7 +4332,41 @@ public nonisolated struct Caked_Caked: Sendable {
           case step(String)
           case substep(String)
           case provisioned(Caked_Caked.Reply.VirtualMachineReply.ProvisionedReply)
+          case infos(Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.ProvisionInfo)
 
+        }
+
+        public nonisolated struct ProvisionInfo: Sendable {
+          // SwiftProtobuf.Message conformance is added in an extension below. See the
+          // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+          // methods supported on all messages.
+
+          public var vncURL: String = String()
+
+          public var screenSize: Caked_Caked.ScreenSize {
+            get {_screenSize ?? Caked_Caked.ScreenSize()}
+            set {_screenSize = newValue}
+          }
+          /// Returns true if `screenSize` has been explicitly set.
+          public var hasScreenSize: Bool {self._screenSize != nil}
+          /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
+          public mutating func clearScreenSize() {self._screenSize = nil}
+
+          public var config: Caked_Caked.Configuration {
+            get {_config ?? Caked_Caked.Configuration()}
+            set {_config = newValue}
+          }
+          /// Returns true if `config` has been explicitly set.
+          public var hasConfig: Bool {self._config != nil}
+          /// Clears the value of `config`. Subsequent reads from it will return its default value.
+          public mutating func clearConfig() {self._config = nil}
+
+          public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+          public init() {}
+
+          fileprivate var _screenSize: Caked_Caked.ScreenSize? = nil
+          fileprivate var _config: Caked_Caked.Configuration? = nil
         }
 
         public init() {}
@@ -13058,7 +13100,7 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: Sw
 
 nonisolated extension Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".ProvisionStreamReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}progress\0\u{1}terminated\0\u{1}step\0\u{1}substep\0\u{1}provisioned\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}progress\0\u{1}terminated\0\u{1}step\0\u{1}substep\0\u{1}provisioned\0\u{1}infos\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -13121,6 +13163,19 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply
           self.current = .provisioned(v)
         }
       }()
+      case 6: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.ProvisionInfo?
+        var hadOneofValue = false
+        if let current = self.current {
+          hadOneofValue = true
+          if case .infos(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.current = .infos(v)
+        }
+      }()
       default: break
       }
     }
@@ -13152,6 +13207,10 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply
       guard case .provisioned(let v)? = self.current else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
     }()
+    case .infos?: try {
+      guard case .infos(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    }()
     case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -13159,6 +13218,50 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply
 
   public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply, rhs: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply) -> Bool {
     if lhs.current != rhs.current {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.ProvisionInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.protoMessageName + ".ProvisionInfo"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vncURL\0\u{1}screenSize\0\u{1}config\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.vncURL) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._screenSize) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._config) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.vncURL.isEmpty {
+      try visitor.visitSingularStringField(value: self.vncURL, fieldNumber: 1)
+    }
+    try { if let v = self._screenSize {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._config {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.ProvisionInfo, rhs: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.ProvisionInfo) -> Bool {
+    if lhs.vncURL != rhs.vncURL {return false}
+    if lhs._screenSize != rhs._screenSize {return false}
+    if lhs._config != rhs._config {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
