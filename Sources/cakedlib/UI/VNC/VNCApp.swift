@@ -88,7 +88,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 		}
 	}
 
-	
+	let name: String
 	let config: VirtualMachineConfiguration
 	let vncLogger: VNCConnectionLogger
 	let username: String?
@@ -127,6 +127,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 			colorDepth: .depth24Bit,
 			frameEncodings: .default)
 
+		self.name = name
 		self.vncLogger = VNCConnectionLogger(isDebugLoggingEnabled)
 		self.username = vncURL.user(percentEncoded: false)
 		self.password = vncURL.password(percentEncoded: false)
