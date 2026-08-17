@@ -4,44 +4,43 @@
 //
 //  Created by Frederic BOLTZ on 22/03/2026.
 //
-import ArgumentParser
-import SwiftUI
-import RoyalVNCKit
-import CakeAgentLib
-import RoyalVNCKit
-import GRPCLib
 import AppKit
+import ArgumentParser
+import CakeAgentLib
+import GRPCLib
+import RoyalVNCKit
+import SwiftUI
 
 struct VNCView: NSViewRepresentable {
 	typealias NSViewType = NSVNCView
-	
+
 	private let appState: VNCConnectionAppState
 	private let logger = Logger("VNCView")
 
 	init(_ appState: VNCConnectionAppState) {
 		self.appState = appState
 	}
-	
+
 	func makeCoordinator() -> VNCConnectionAppState {
 		return appState
 	}
-	
+
 	func makeNSView(context: Context) -> NSViewType {
 		guard let framebuffer = appState.connection.framebuffer else {
 			fatalError("framebuffer is nil")
 		}
 
 		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: self.appState.connection)
-		
+
 		self.appState.vncView = view
 
-#if DEBUG
-		self.logger.trace("makeNSView: \(view.frame), \(framebuffer.cgSize)")
-#endif
-		
+		#if DEBUG
+			self.logger.trace("makeNSView: \(view.frame), \(framebuffer.cgSize)")
+		#endif
+
 		return view
 	}
-	
+
 	func updateNSView(_ nsView: NSVNCView, context: Context) {
 		guard nsView.isLiveViewResize == false && nsView.bounds.size != .zero else {
 			return
@@ -98,7 +97,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 		case connected
 		case disconnecting
 		case ready
-		
+
 		init(vncStatus: RoyalVNCKit.VNCConnection.Status) {
 			switch vncStatus {
 			case .disconnected:
@@ -128,12 +127,14 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 
 	static var state: VNCConnectionAppState!
 
-	init(name: String,
-		 config: VirtualMachineConfiguration,
-		 vncURL: URL,
-		 screenSize: ViewSize,
-		 isDebugLoggingEnabled: Bool = false,
-		 vmStatus: @escaping VNCApp.VMStatusAction) throws {
+	init(
+		name: String,
+		config: VirtualMachineConfiguration,
+		vncURL: URL,
+		screenSize: ViewSize,
+		isDebugLoggingEnabled: Bool = false,
+		vmStatus: @escaping VNCApp.VMStatusAction
+	) throws {
 
 		guard let vncPort = vncURL.port, let vncHost = vncURL.host(percentEncoded: false) else {
 			throw ServiceError(String(localized: "VM \(name) does not have a VNC connection"))
@@ -366,7 +367,7 @@ struct VNCContentView: View {
 				.frame(width: geom.size.width, height: geom.size.height)
 				.onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
-					
+
 					if let window = self.window {
 						self.appState.setScreenSize(ViewSize(window.contentLayoutRect.size))
 					} else {
@@ -389,7 +390,7 @@ struct VNCContentView: View {
 	}
 
 	@ViewBuilder
-	func vncView(_ size: CGSize) -> some View{
+	func vncView(_ size: CGSize) -> some View {
 		switch self.appState.vncStatus {
 		case .connecting:
 			LabelView("Connecting to VNC", size: size, progress: true)
@@ -471,12 +472,12 @@ public struct VNCApp: App {
 
 	@NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 	@State var appState: VNCConnectionAppState
-	
+
 	public init() {
 		self.appState = VNCConnectionAppState.state!
 		self.appState.tryVNCConnect()
 	}
-	
+
 	public var body: some Scene {
 		WindowGroup {
 			VNCContentView(appState: self.appState, screenSize: appState.screenSize)
@@ -501,13 +502,15 @@ public struct VNCApp: App {
 			CommandGroup(replacing: .appInfo) { AboutApplication(config: self.appState.config) }
 		}
 	}
-	
-	public static func startVncClient(name: String,
-									  config: VirtualMachineConfiguration,
-									  vncURL: URL,
-									  screenSize: ViewSize,
-									  isDebugLoggingEnabled: Bool = false,
-									  vmStatus: @escaping VMStatusAction) throws {
+
+	public static func startVncClient(
+		name: String,
+		config: VirtualMachineConfiguration,
+		vncURL: URL,
+		screenSize: ViewSize,
+		isDebugLoggingEnabled: Bool = false,
+		vmStatus: @escaping VMStatusAction
+	) throws {
 		VNCConnectionAppState.state = try VNCConnectionAppState(
 			name: name,
 			config: config,
@@ -520,4 +523,3 @@ public struct VNCApp: App {
 		VNCApp.main()
 	}
 }
-
