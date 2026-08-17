@@ -479,7 +479,7 @@ public struct VNCApp: App {
 	}
 
 	public var body: some Scene {
-		WindowGroup {
+		WindowGroup(self.appState.name, id: "VM") {
 			VNCContentView(appState: self.appState, screenSize: appState.screenSize)
 				.frame(idealWidth: CGFloat(appState.screenSize.width), maxWidth: .infinity, idealHeight: CGFloat(appState.screenSize.height), maxHeight: .infinity)
 				.presentedWindowToolbarStyle(.unifiedCompact)
