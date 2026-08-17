@@ -102,13 +102,13 @@ struct Provision: GrpcParsableCommand {
 		var terminated = false
 		let infos = try withAsyncResult {
 			return try await withCheckedThrowingContinuation { (checkedContinuation: CheckedContinuation<Caked_ProvisionStreamReply.ProvisionInfo, Error>) in
+
 				// Launch async work inside a Task so the continuation closure stays synchronous
 				Task {
 					do {
-						result = try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
+						try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
 							let context: ProgressObserver.ProgressHandlerContext = .init()
 							let (stream, continuation) = AsyncStream.makeStream(of: Caked_ProvisionStreamReply.OneOf_Current?.self)
-							var result: String = String.empty
 							let logger = Logger(self)
 
 							group.addTask {
@@ -162,8 +162,6 @@ struct Provision: GrpcParsableCommand {
 								logger.debug("Terminating application after provisioning")
 								NSApp.terminate(nil)
 							}
-
-							return result
 						}
 					} catch {
 						// Ensure the continuation is resumed even on error paths
