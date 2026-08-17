@@ -89,8 +89,7 @@ extension CakedServiceClient {
 		eventLoopGroup: EventLoopGroup,
 		vmName: String,
 		localPort: Int = 0,
-		handler: @escaping (Channel, Int) -> Void
-	) throws -> Int {
+	) throws -> (Channel, Int) {
 		let logger = Logger(label: "VNCTunnel")
 
 		// Create the server bootstrap for local VNC clients
@@ -111,10 +110,8 @@ extension CakedServiceClient {
 		let actualPort = serverChannel.localAddress?.port ?? localPort
 		
 		logger.info("VNC tunnel server listening on port \(actualPort) for VM '\(vmName)'")
-		
-		handler(serverChannel, actualPort)
-		
-		return actualPort
+
+		return (serverChannel, actualPort)
 	}
 }
 
