@@ -5,6 +5,7 @@
 //  Created by Frederic BOLTZ on 07/08/2026.
 //
 import ArgumentParser
+import CakeAgentLib
 import CakedLib
 import Foundation
 import GRPC
@@ -29,6 +30,10 @@ struct ProvisionHandler: CakedCommandAsync {
 	}
 
 	mutating func run(on: any EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
+		defer {
+			Logger(self).debug("Leave Provision for VM: \(request.name)")
+		}
+
 		do {
 			let storageLocation = StorageLocation(runMode: runMode)
 			let location: VMLocation = try storageLocation.find(request.name)
