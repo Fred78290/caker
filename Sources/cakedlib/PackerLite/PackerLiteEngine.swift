@@ -153,29 +153,26 @@ public enum PackerLiteEngine {
 
 		try await vm.startVM()
 
-		do {
-			guard let view = vm.vzMachineView else {
-				throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
-			}
-
-			// Preboot for linux
-			if template.preBootCommand.isEmpty == false {
-				try await Self.provision(
-					vm: vm,
-					targetView: view,
-					commands: template.preBootCommand,
-					resolvedBootTimeout: template.bootTimeout,
-					progressHandler: progressHandler)
-			}
-			
-			let runningIP = try location.waitIPWithLease(config: config, wait: 180, runMode: runMode)
-
-			try await Self.provision(vm: vm, template: template, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
-		} catch {
-			try? await vm.stopVM()
-			throw error
+		defer {
+			vm.stopFromUI()
 		}
 
-		try? await vm.stopVM()
+		guard let view = vm.vzMachineView else {
+			throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
+		}
+
+		// Preboot for linux
+		if template.preBootCommand.isEmpty == false {
+			try await Self.provision(
+				vm: vm,
+				targetView: view,
+				commands: template.preBootCommand,
+				resolvedBootTimeout: template.bootTimeout,
+				progressHandler: progressHandler)
+		}
+
+		let runningIP = try location.waitIPWithLease(config: config, wait: 180, runMode: runMode)
+
+		try await Self.provision(vm: vm, template: template, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
 	}
 }
