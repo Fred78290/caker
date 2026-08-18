@@ -416,6 +416,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		if let service = self.vmrunService {
 			self.logger.info("Stopping infos service for VM \(self.location.name)...")
 			service.stop()
+			self.vmrunService = nil
 		}
 	}
 
