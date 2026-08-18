@@ -422,6 +422,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	func stopVncServer() {
 		if let vncServer {
 			vncServer.stop()
+			self.vncServer = nil
 		}
 	}
 
@@ -501,6 +502,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	private var gcd: GrandCentralUpdater? = nil
 	private var installAgentRetryTask: Task<Void, Never>? = nil
 	private var cachedScreenshotSaveEnabled: Bool?
+	private var vmTask: Task<Int32, Never>? = nil
 
 	public var suspendable: Bool {
 		return self.config.suspendable && self.config.os == .darwin
@@ -1159,6 +1161,7 @@ extension VirtualMachine {
 	}
 
 	public func runInBackground(_ mode: VMRunServiceMode, on: EventLoop, internalCall: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
+		
 		let task = Task {
 			var status: Int32 = 0
 
@@ -1176,6 +1179,7 @@ extension VirtualMachine {
 
 			return status
 		}
+		self.vmTask = task
 
 		if self.location.template == false && self.env.runMode != .app {
 			self.catchUserSignals(task)
@@ -1187,13 +1191,8 @@ extension VirtualMachine {
 
 // MARK: - VNCServer service
 extension VirtualMachine {
-	public func stopVncServer() throws {
-		if let vncServer = self.env.vncServer {
-			vncServer.stop()
-			self.env.vncServer = nil
-			self.env.vzMachineView.virtualMachine = nil
-			self.env.vzMachineView = nil
-		}
+	public func stopVncServer() {
+		self.env.stopVncServer()
 	}
 
 	public func startVncServer(_ vzMachineView: VMView.NSViewType, vncPassword: String, port: Int) throws -> [URL] {
@@ -1329,6 +1328,7 @@ extension VirtualMachine {
 
 // MARK: - UI actions
 extension VirtualMachine {
+	
 	public func startFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
 			self.virtualMachine.start(options: self.startOptions) { error in
@@ -1352,6 +1352,20 @@ extension VirtualMachine {
 		self.vmQueue.async {
 			self._stopVM { result in
 				self.startFromUI()
+			}
+		}
+	}
+
+	public func destroyVM(completionHandler: StopCompletionHandler? = nil) {
+		self.vmQueue.async {
+			self._stopVM { error in
+				if let vmTask = self.vmTask {
+					vmTask.cancel()
+				}
+
+				self.vmTask = nil
+
+				completionHandler?(error)
 			}
 		}
 	}
@@ -1570,7 +1584,7 @@ extension VirtualMachine: VNCServerDelegate {
 		}
 
 		if self.env.display == .vnc || self.env.display == .none {
-			if let framebufferView = self.env.vzMachineView.framebufferView {
+			if let framebufferView = vmView.framebufferView {
 				vmView.autoresizesSubviews = true
 				framebufferView.autoresizingMask = [.width, .height]
 				framebufferView.frame = NSRect(origin: .zero, size: vmView.bounds.size)
