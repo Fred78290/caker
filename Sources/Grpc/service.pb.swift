@@ -1851,6 +1851,15 @@ public nonisolated struct Caked_Caked: Sendable {
       /// Clears the value of `macosVersion`. Subsequent reads from it will return its default value.
       public mutating func clearMacosVersion() {self._macosVersion = nil}
 
+      public var foreground: Bool {
+        get {_foreground ?? false}
+        set {_foreground = newValue}
+      }
+      /// Returns true if `foreground` has been explicitly set.
+      public var hasForeground: Bool {self._foreground != nil}
+      /// Clears the value of `foreground`. Subsequent reads from it will return its default value.
+      public mutating func clearForeground() {self._foreground = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public nonisolated enum MacOSVersion: SwiftProtobuf.Enum, Swift.CaseIterable {
@@ -1939,6 +1948,7 @@ public nonisolated struct Caked_Caked: Sendable {
       fileprivate var _provisionTemplateName: String? = nil
       fileprivate var _provisionVars: Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars? = nil
       fileprivate var _macosVersion: Caked_Caked.VMRequest.ProvisionRequest.MacOSVersion? = nil
+      fileprivate var _foreground: Bool? = nil
     }
 
     public nonisolated struct RestartRequest: Sendable {
@@ -9083,7 +9093,7 @@ nonisolated extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message,
 
 nonisolated extension Caked_Caked.VMRequest.ProvisionRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ProvisionRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}provisionTemplate\0\u{1}provisionTemplateName\0\u{1}provisionVars\0\u{1}macosVersion\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}provisionTemplate\0\u{1}provisionTemplateName\0\u{1}provisionVars\0\u{1}macosVersion\0\u{1}foreground\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -9096,6 +9106,7 @@ nonisolated extension Caked_Caked.VMRequest.ProvisionRequest: SwiftProtobuf.Mess
       case 3: try { try decoder.decodeSingularStringField(value: &self._provisionTemplateName) }()
       case 4: try { try decoder.decodeSingularMessageField(value: &self._provisionVars) }()
       case 5: try { try decoder.decodeSingularEnumField(value: &self._macosVersion) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self._foreground) }()
       default: break
       }
     }
@@ -9121,6 +9132,9 @@ nonisolated extension Caked_Caked.VMRequest.ProvisionRequest: SwiftProtobuf.Mess
     try { if let v = self._macosVersion {
       try visitor.visitSingularEnumField(value: v, fieldNumber: 5)
     } }()
+    try { if let v = self._foreground {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 6)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -9130,6 +9144,7 @@ nonisolated extension Caked_Caked.VMRequest.ProvisionRequest: SwiftProtobuf.Mess
     if lhs._provisionTemplateName != rhs._provisionTemplateName {return false}
     if lhs._provisionVars != rhs._provisionVars {return false}
     if lhs._macosVersion != rhs._macosVersion {return false}
+    if lhs._foreground != rhs._foreground {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

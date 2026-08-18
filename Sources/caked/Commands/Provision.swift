@@ -95,7 +95,7 @@ struct Provision: AsyncParsableCommand {
 
 		let (handler, vm, cancellation) = try await CakedLib.ProvisionHandler.provision(location: location,
 																						storageLocation: storageLocation,
-																						foreground: self.provision.foreground,
+																						display: self.provision.foreground ? .all : .vnc,
 																						templatePath: templatePath,
 																						macosVersion: self.provision.macosVersion,
 																						variables: self.provision.vars,

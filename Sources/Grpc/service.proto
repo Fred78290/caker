@@ -534,6 +534,7 @@ message Caked {
       optional string        provisionTemplateName = 3;
       optional ProvisionVars provisionVars         = 4;
       optional MacOSVersion  macosVersion          = 5;
+      optional bool          foreground            = 6;
     }
 
     message RestartRequest {

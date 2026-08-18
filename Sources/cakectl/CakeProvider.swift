@@ -12,7 +12,8 @@ extension Caked_ProvisionRequest {
 		self.init()
 
 		self.name = command.provision.name
-		
+		self.foreground = command.provision.foreground
+
 		if let macosVersion = command.provision.macosVersion {
 			self.macosVersion = Caked_MacOSVersion(macosVersion)
 		}

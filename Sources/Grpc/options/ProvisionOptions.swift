@@ -14,7 +14,7 @@ public struct ProvisionOptions: ParsableArguments {
 														   abstract: String(localized: "Drive a macOS or Linux VM's Setup Assistant unattended via PackerLite"),
 														   discussion: String(localized: "Re-runs the same unattended Setup Assistant automation that `build`/`create` drive automatically for .ipsw or .iso sources with --autoinstall — for a VM that skipped it at build time. Uses the VM's stored macOS version and account credentials; fails if the VM is currently running, or has already been provisioned."))
 	
-	@Flag(help: ArgumentHelp(String(localized: "Launch vm in foreground"), discussion: String(localized: "This option allows display window of running vm to debug it"), visibility: (Self.cakedRunning ? .default : .hidden)))
+	@Flag(help: ArgumentHelp(String(localized: "Launch vm in foreground"), discussion: String(localized: "This option allows display window of running vm to debug it")))
 	public var foreground: Bool = false
 	
 	@Option(help: ArgumentHelp(String(localized: "Provisioning template (YAML) to use, overriding the VM's default built-in template (by stored macOS version or Linux platform); required if the VM's platform has no built-in template"), valueName: "path"))
