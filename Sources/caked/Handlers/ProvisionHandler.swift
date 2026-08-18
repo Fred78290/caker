@@ -33,7 +33,7 @@ struct ProvisionHandler: CakedCommandAsync {
 			let storageLocation = StorageLocation(runMode: runMode)
 			let location: VMLocation = try storageLocation.find(request.name)
 			let (stream, continuation) = AsyncStream.makeStream(of: CakedLib.ProvisionHandler.ProgressValue.self)
-			
+
 			var lastSentCompleted = -1
 			var templateName: String? = nil
 			var templateContent: String? = nil
@@ -51,7 +51,7 @@ struct ProvisionHandler: CakedCommandAsync {
 			_ = try await CakedLib.ProvisionHandler.provision(
 				location: location,
 				storageLocation: storageLocation,
-				foreground: false,
+				display: request.foreground ? .vnc : .none,
 				templateName: templateName,
 				templateContent: templateContent,
 				macosVersion: MacOSVersion(request.macosVersion),
@@ -86,68 +86,59 @@ struct ProvisionHandler: CakedCommandAsync {
 						}
 					}
 
-					try await responseStream.send(.with {
-						$0.progress = .with {
-							$0.fractionCompleted = Double(fractionCompleted)
-							$0.oldFractionCompleted = context.oldFractionCompleted
-							$0.lastCompleted10 = Int32(context.lastCompleted10)
-							$0.lastCompleted2 = Int32(context.lastCompleted2)
-						}
-					})
-				} else if case .terminated(let result, let message) = progress {
-					if case .failure(let error) = result {
-						if let message {
-							try await responseStream.send(.with {
-								$0.terminated = .with {
-									$0.failure = "\(message): \(error)"
-								}
-							})
-						} else {
-							try await responseStream.send(.with {
-								$0.terminated = .with {
-									$0.failure = String(localized: "Provisioning failed: \(error.reason)")
-								}
-							})
-						}
-					} else {
-						try await responseStream.send(.with {
-							$0.terminated = .with {
-								$0.success = message ?? String(localized: "Provisioning succeeded")
+					try await responseStream.send(
+						.with {
+							$0.progress = .with {
+								$0.fractionCompleted = Double(fractionCompleted)
+								$0.oldFractionCompleted = context.oldFractionCompleted
+								$0.lastCompleted10 = Int32(context.lastCompleted10)
+								$0.lastCompleted2 = Int32(context.lastCompleted2)
 							}
 						})
-					}
+				} else if case .provisioned(let result) = progress {
+					try await responseStream.send(
+						.with {
+							$0.provisioned = result.caked
+						})
 				} else if case .step(let message) = progress {
-					try await responseStream.send(.with {
-						$0.step = message
-					})
+					try await responseStream.send(
+						.with {
+							$0.step = message
+						})
 				} else if case .substep(let message) = progress {
-					try await responseStream.send(.with {
-						$0.substep = message
-					})
+					try await responseStream.send(
+						.with {
+							$0.substep = message
+						})
 				} else if case .infos(let message) = progress {
-					try await responseStream.send(.with {
-						$0.infos = message.caked
-					})
+					try await responseStream.send(
+						.with {
+							$0.infos = message.caked
+						})
 				}
 			}
 		} catch {
-			try? await responseStream.send(.with {
-				$0.terminated = .with {
-					$0.failure = String(localized: "Provisioning failed: \(error.reason)")
-				}
-			})
+			try? await responseStream.send(
+				.with {
+					$0.provisioned = .with {
+						$0.name = request.name
+						$0.provisioned = false
+						$0.reason = String(localized: "Provisioning failed: \(error.reason)")
+					}
+				})
 
 			return replyError(error: error)
 		}
 
 		return Caked_Reply()
 	}
-	
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+
+	func replyError(error: any Error) -> Caked_Reply {
 		return Caked_Reply.with { reply in
 			reply.vms = Caked_VirtualMachineReply.with {
 				$0.provisioned = .with {
 					$0.provisioned = .with {
+						$0.name = request.name
 						$0.provisioned = false
 						$0.reason = error.reason
 					}
@@ -156,4 +147,3 @@ struct ProvisionHandler: CakedCommandAsync {
 		}
 	}
 }
-

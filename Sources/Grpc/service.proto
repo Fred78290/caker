@@ -982,12 +982,11 @@ message Caked {
         }
 
         oneof current {
-          BuildProgressValue   progress    = 1;
-          BuildTerminatedReply terminated  = 2;
-          string               step        = 3;
-          string               substep     = 4;
-          ProvisionedReply     provisioned = 5;
-          ProvisionInfo        infos       = 6;
+          BuildProgressValue progress    = 1;
+          string             step        = 2;
+          string             substep     = 3;
+          ProvisionInfo      infos       = 4;
+          ProvisionedReply   provisioned = 5;
         }
       }
 

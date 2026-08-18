@@ -612,7 +612,7 @@ public struct BuildedReply: Codable {
 	}
 }
 
-public struct ProvisionedReply: Codable {
+public struct ProvisionedReply: Sendable, Codable {
 	public let name: String
 	public let provisioned: Bool
 	public let reason: String

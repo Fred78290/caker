@@ -75,20 +75,6 @@ struct Provision: GrpcParsableCommand {
 
 				if let vncURL = components.url {
 					self.doVNC(vncURL, client: client, config: CakedConfiguration(infos.config), screenSize: ViewSize(infos.screenSize), channel: channel, handlerStatus: handlerStatus)
-					//try VNCApp.connectVncClient(
-					//	name: self.provision.name,
-					//	config: CakedConfiguration(infos.config),
-					//	vncURL: vncURL,
-					//	screenSize: ViewSize(infos.screenSize),
-					//	isDebugLoggingEnabled: vncDebug,
-					//	vmStatus: handlerStatus)
-
-					//VNCConnectionAppState.state.vncURL = vncURL
-					//VNCConnectionAppState.state.screenSize = ViewSize(infos.screenSize)
-					//VNCConnectionAppState.state.config = CakedConfiguration(infos.config)
-					//VNCConnectionAppState.state.vmStatus = handlerStatus
-
-					//VNCConnectionAppState.state.tryVNCConnect()
 				}
 			} catch {
 				Logger(self).error(String(localized: "Unable to start vnc client, error occurred: \(error.reason)"))
@@ -98,12 +84,60 @@ struct Provision: GrpcParsableCommand {
 		}
 	}
 
-	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+	func provisionWithoutView(client: CakedServiceClient) async throws -> String {
+		return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
+			let context: ProgressObserver.ProgressHandlerContext = .init()
+			let (stream, continuation) = AsyncStream.makeStream(of: Caked_ProvisionStreamReply.OneOf_Current?.self)
+			let logger = Logger(self)
+			var result = ""
+
+			group.addTask {
+				defer {
+					continuation.finish()
+				}
+
+				let stream = try client.provision(Caked_ProvisionRequest(command: self)) { stream in
+					continuation.yield(stream.current)
+				}
+
+				_ = try await stream.status.get()
+
+				logger.debug("Provisioning completed")
+			}
+
+			for try await current in stream {
+				if case .progress(let progress) = current {
+					ProgressObserver.progressHandler(.progress(context, progress.fractionCompleted))
+				} else if case .step(let step) = current {
+					ProgressObserver.progressHandler(.step(step))
+				} else if case .substep(let step) = current {
+					ProgressObserver.progressHandler(.substep(step))
+				} else if case .provisioned(let provisioned) = current {
+					result = self.options.format.renderSingle(ProvisionedReply(provisioned))
+
+					if provisioned.provisioned {
+						ProgressObserver.progressHandler(.terminated(.success(self.provision.name), provisioned.reason))
+					} else {
+						ProgressObserver.progressHandler(.terminated(.failure(ServiceError(provisioned.reason)), nil))
+					}
+
+					logger.debug("Provisioning stream ended")
+					break
+				}
+			}
+
+			continuation.finish()
+			group.cancelAll()
+
+			return result
+		}
+	}
+
+	func provisionWithView(client: CakedServiceClient) throws -> String {
 		var result: String = ""
 		var terminated = false
 		let infos = try withAsyncResult {
 			return try await withCheckedThrowingContinuation { (checkedContinuation: CheckedContinuation<Caked_ProvisionStreamReply.ProvisionInfo?, Error>) in
-
 				// Launch async work inside a Task so the continuation closure stays synchronous
 				Task {
 					let resumed: Mutex<Bool> = Mutex(false)
@@ -137,7 +171,7 @@ struct Provision: GrpcParsableCommand {
 
 									resume(nil)
 
-									logger.info("Provisioning completed")
+									logger.debug("Provisioning completed")
 								} catch {
 									logger.error("Provisioning failed: \(error)")
 
@@ -156,21 +190,21 @@ struct Provision: GrpcParsableCommand {
 									} else if case .infos(let infos) = current {
 										// Resume the continuation as soon as we have enough info to launch VNC
 										resume(infos)
-									} else if case .terminated(let status) = current {
-										if case .success(let v)? = status.result {
-											ProgressObserver.progressHandler(.terminated(.success(self.provision.name), v))
-										} else if case .failure(let v)? = status.result {
-											ProgressObserver.progressHandler(.terminated(.failure(GrpcError(code: 1, reason: v)), nil))
-										}
 									} else if case .provisioned(let provisioned) = current {
-										result = self.options.format.render(ProvisionedReply(provisioned))
+										result = self.options.format.renderSingle(ProvisionedReply(provisioned))
+
+										if provisioned.provisioned {
+											ProgressObserver.progressHandler(.terminated(.success(self.provision.name), provisioned.reason))
+										} else {
+											ProgressObserver.progressHandler(.terminated(.failure(ServiceError(provisioned.reason)), nil))
+										}
 										break
 									}
 								}
 
 								terminated = true
 
-								logger.info("Provisioning stream ended")
+								logger.debug("Provisioning stream ended")
 							}
 
 							try await group.next()
@@ -198,5 +232,15 @@ struct Provision: GrpcParsableCommand {
 		}
 
 		return result
+	}
+
+	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		if self.provision.foreground {
+			return try self.provisionWithView(client: client)
+		}
+
+		return try withAsyncResult {
+			return try await self.provisionWithoutView(client: client)
+		}
 	}
 }

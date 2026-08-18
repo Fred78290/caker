@@ -35,11 +35,10 @@ public struct ProvisionHandler {
 		case step(String)
 		case substep(String)
 		case infos(ProvisionInfo)
-		case terminated(Result<Sendable?, any Error>, String?)
+		case provisioned(ProvisionedReply)
 
 		public var progressValue: ProgressObserver.ProgressValue {
 			switch self {
-
 			case .progress(let context, let value):
 				return .progress(context, value)
 			case .step(let value):
@@ -48,8 +47,12 @@ public struct ProvisionHandler {
 				return .substep(value)
 			case .infos(let value):
 				return .substep(String(localized: "VNC started on \(value.vncURL.absoluteString)"))
-			case .terminated(let result, let message):
-				return .terminated(result, message)
+			case .provisioned(let provisioned):
+				if provisioned.provisioned {
+					return .terminated(.success(provisioned), nil)
+				} else {
+					return .terminated(.failure(ServiceError(provisioned.reason)), nil)
+				}
 			}
 		}
 	}
