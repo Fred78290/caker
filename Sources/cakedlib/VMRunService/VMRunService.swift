@@ -114,11 +114,20 @@ public protocol VMRunServiceServerProtocol {
 	func stop()
 }
 
+public class NoneVMRunServiceServer: VMRunServiceServerProtocol {
+	public func serve() {
+	}
+	
+	public func stop() {
+	}
+}
+
 public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgument, CaseIterable, EnumerableFlag {
 	public var description: String {
 		return self.rawValue
 	}
 
+	case none
 	case grpc
 	case xpc
 
@@ -127,18 +136,25 @@ public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgu
 	}
 
 	public func client(location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient {
-		if self == .xpc {
-			return try XPCVMRunServiceClient.createClient(location: location, runMode: runMode)
-		} else {
+		switch self {
+			
+		case .none:
+			throw ServiceError("Not implemented")
+		case .grpc:
 			return try GRPCVMRunServiceClient.createClient(location: location, runMode: runMode)
+		case .xpc:
+			return try XPCVMRunServiceClient.createClient(location: location, runMode: runMode)
 		}
 	}
 
 	public func serve(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) -> VMRunServiceServerProtocol {
-		if self == .xpc {
-			return XPCVMRunServiceServer(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
-		} else {
+		switch self {
+		case .none:
+			return NoneVMRunServiceServer()
+		case .grpc:
 			return GRPCVMRunService(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation, logger: Logger("GRPCVMRunService"))
+		case .xpc:
+			return XPCVMRunServiceServer(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
 		}
 	}
 }

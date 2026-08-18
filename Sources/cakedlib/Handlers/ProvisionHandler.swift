@@ -101,7 +101,7 @@ public struct ProvisionHandler {
 		}
 
 		let handler = VMRunHandler(
-			mode: .grpc,
+			mode: .none,
 			storageLocation: storageLocation,
 			location: location,
 			name: location.name,

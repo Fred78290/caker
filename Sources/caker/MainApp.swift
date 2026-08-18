@@ -263,7 +263,7 @@ struct MainApp: App {
 				if let id, let vm = PackerLiteEngine.provisioned[id] {
 					let cgSize = vm.config.display.cgSize
 					let params = VMRunHandler(
-						mode: .grpc,
+						mode: .none,
 						storageLocation: StorageLocation(runMode: .app),
 						location: vm.location,
 						name: vm.location.name,
