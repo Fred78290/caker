@@ -158,6 +158,7 @@ struct VMRun: AsyncParsableCommand {
 			vncPassword: vncPassword,
 			vncPort: vncPort,
 			recoveryMode: self.recoveryMode,
+			provisioning: false,
 			runMode: runMode)
 
 		defer {

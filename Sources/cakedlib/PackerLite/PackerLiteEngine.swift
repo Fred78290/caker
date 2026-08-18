@@ -126,7 +126,13 @@ public enum PackerLiteEngine {
 		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
 
 		let vm = try await MainActor.run { () -> VirtualMachine in
-			let vm = try VirtualMachine(location: location, config: config, display: runInCaker ? .ui : .none, screenSize: config.display.cgSize, recoveryMode: false, runMode: runMode)
+			let vm = try VirtualMachine(location: location,
+										config: config,
+										display: runInCaker ? .ui : .none,
+										screenSize: config.display.cgSize,
+										recoveryMode: false,
+										provisioning: true,
+										runMode: runMode)
 
 			vm.createVirtualMachineView()
 

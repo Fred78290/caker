@@ -494,6 +494,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	public var virtualMachine: VZVirtualMachine
 	public let config: CakeConfig
 	public let location: VMLocation
+	public let provisioning: Bool
 	public var delegate: VirtualMachineDelegate? = nil
 
 	internal var env: VirtualMachineEnvironment
@@ -503,6 +504,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	private var installAgentRetryTask: Task<Void, Never>? = nil
 	private var cachedScreenshotSaveEnabled: Bool?
 	private var vmTask: Task<Int32, Never>? = nil
+	private let finalPromise = Utilities.group.next().makePromise(of: Void.self)
 
 	public var suspendable: Bool {
 		return self.config.suspendable && self.config.os == .darwin
@@ -573,13 +575,27 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		return cdrom
 	}
 
+	deinit {
+		print("Deinit virtual machine")
+	}
+
 	@MainActor
-	public init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, recoveryMode: Bool, runMode: Utils.RunMode, queue: dispatch_queue_t? = nil) throws {
+	public init(
+		location: VMLocation,
+		config: CakeConfig,
+		display: VMRunHandler.DisplayMode,
+		screenSize: CGSize,
+		recoveryMode: Bool,
+		provisioning: Bool,
+		runMode: Utils.RunMode,
+		queue: dispatch_queue_t? = nil
+	) throws {
 
 		if config.arch != Architecture.current() {
 			throw ServiceError(String(localized: "Unsupported architecture"))
 		}
 
+		self.provisioning = provisioning
 		self.config = config
 		self.location = location
 		self.env = try VirtualMachineEnvironment(location: location, config: config, display: display, screenSize: screenSize, recoveryMode: recoveryMode, runMode: runMode)
@@ -1062,7 +1078,11 @@ extension VirtualMachine {
 				self.logger.info("Stopping VM \(self.location.name)...")
 
 				await withCheckedContinuation { continuation in
-					if self.config.os == .darwin {
+					if provisioning {
+						self.stopVM { _ in
+							continuation.resume()
+						}
+					} else if self.config.os == .darwin {
 						if self.config.agent {
 							do {
 								if try self.location.agentURL.exists() {
@@ -1108,6 +1128,8 @@ extension VirtualMachine {
 				}
 			}
 		}
+
+		finalPromise.succeed()
 
 		self.logger.info("VM \(self.location.name) exited")
 	}
@@ -1160,8 +1182,13 @@ extension VirtualMachine {
 		}
 	}
 
-	public func runInBackground(_ mode: VMRunServiceMode, on: EventLoop, internalCall: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
-		
+	public func runInBackground(
+		_ mode: VMRunServiceMode,
+		on: EventLoop,
+		promise: EventLoopPromise<String?>? = nil,
+		completionHandler: StartCompletionHandler? = nil
+	) throws -> EventLoopFuture<String?> {
+
 		let task = Task {
 			var status: Int32 = 0
 
@@ -1173,7 +1200,7 @@ extension VirtualMachine {
 
 			self.location.removePID()
 
-			guard internalCall else {
+			guard self.provisioning else {
 				Foundation.exit(status)
 			}
 
@@ -1328,7 +1355,7 @@ extension VirtualMachine {
 
 // MARK: - UI actions
 extension VirtualMachine {
-	
+
 	public func startFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
 			self.virtualMachine.start(options: self.startOptions) { error in
@@ -1356,17 +1383,22 @@ extension VirtualMachine {
 		}
 	}
 
-	public func destroyVM(completionHandler: StopCompletionHandler? = nil) {
-		self.vmQueue.async {
-			self._stopVM { error in
-				if let vmTask = self.vmTask {
-					vmTask.cancel()
+	public func terminateVM(completionHandler: StopCompletionHandler? = nil) {
+		if let vmTask = self.vmTask {
+			if let completionHandler {
+				let promise: EventLoopPromise<Void> = Utilities.group.next().makePromise()
+
+				promise.futureResult.whenComplete { _ in
+					completionHandler(nil)
 				}
 
-				self.vmTask = nil
-
-				completionHandler?(error)
+				self.finalPromise.futureResult.cascade(to: promise)
 			}
+
+			self.vmTask = nil
+			vmTask.cancel()
+		} else if let completionHandler {
+			completionHandler(ServiceError("VM \(self.location.name) is not running"))
 		}
 	}
 

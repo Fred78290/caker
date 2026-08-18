@@ -101,7 +101,7 @@ public struct ProvisionHandler {
 		}
 
 		let handler = VMRunHandler(
-			mode: .none,
+			mode: .default,
 			storageLocation: storageLocation,
 			location: location,
 			name: location.name,
@@ -111,6 +111,7 @@ public struct ProvisionHandler {
 			vncPassword: vncPassword,
 			vncPort: 0,
 			recoveryMode: false,
+			provisioning: true,
 			runMode: .app)
 
 		return try handler.run { address, vm in
@@ -179,13 +180,13 @@ public struct ProvisionHandler {
 				if display == .all || display == .vnc {
 					vm.stopVncServer()
 				} else if let targetWindow {
-					DispatchQueue.main.sync {
+					MainActor.assumeIsolated {
 						targetWindow.close()
 						targetWindow.contentView = nil
 					}
 				}
 
-				vm.destroyVM { _ in
+				vm.terminateVM { _ in
 					if let error {
 						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)"))))
 					} else {

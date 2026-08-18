@@ -681,7 +681,7 @@ extension VirtualMachineDocument {
 	@discardableResult @MainActor
 	private func createVirtualMachine() throws -> VirtualMachine {
 		let config = try! location.config()
-		let virtualMachine = try VirtualMachine(location: location, config: config, display: .ui, screenSize: config.display.cgSize, recoveryMode: self.recoveryMode, runMode: .app)
+		let virtualMachine = try VirtualMachine(location: location, config: config, display: .ui, screenSize: config.display.cgSize, recoveryMode: self.recoveryMode, provisioning: false, runMode: .app)
 
 		self.virtualMachine = virtualMachine
 		self.vncURL = nil

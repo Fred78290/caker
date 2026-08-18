@@ -1,15 +1,15 @@
+import CakeAgentLib
 import Foundation
 import GRPC
 import GRPCLib
 import NIO
 import Shout
 import Virtualization
-import CakeAgentLib
 
 extension URL {
 	public var vmName: String {
 		let name = self.name
-		
+
 		guard name.isEmpty else {
 			return name
 		}
@@ -23,7 +23,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	public static let scheme = "caked-vm"
 	public static let supportedSchemes: Set<String?> = ["caked-vm", "caked-vms"]
 
-	public enum VMRunMode : Sendable{
+	public enum VMRunMode: Sendable {
 		case none
 		case caked
 		case caker
@@ -62,7 +62,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				return "stopped"
 			}
 		}
-		
+
 		public var mode: String {
 			if case .running(let mode) = self {
 				switch mode {
@@ -129,7 +129,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	public func hash(into hasher: inout Hasher) {
 		hasher.combine(rootURL)
 	}
-	
+
 	private func buildURL(_ path: String) -> URL {
 		return rootURL.appendingPathComponent(path).resolvingSymlinksInPath().absoluteURL
 	}
@@ -215,7 +215,8 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			return FileManager.default.fileExists(atPath: diskURL.path(percentEncoded: false))
 		}
 
-		return FileManager.default.fileExists(atPath: configURL.path(percentEncoded: false)) && FileManager.default.fileExists(atPath: diskURL.path(percentEncoded: false)) && FileManager.default.fileExists(atPath: nvramURL.path(percentEncoded: false))
+		return FileManager.default.fileExists(atPath: configURL.path(percentEncoded: false)) && FileManager.default.fileExists(atPath: diskURL.path(percentEncoded: false))
+			&& FileManager.default.fileExists(atPath: nvramURL.path(percentEncoded: false))
 	}
 
 	public func config() throws -> CakeConfig {
@@ -231,7 +232,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			}
 
 			config.diskSize = diskURL.diskSize
-			
+
 			self.cachedConfig = config
 			return config
 		}
@@ -269,11 +270,11 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	public func creationDate() throws -> Date {
 		try self.rootURL.creationDate()
 	}
-	
+
 	public func updatedDate() throws -> Date {
 		try self.rootURL.updatedDate()
 	}
-	
+
 	public func accessDate() throws -> Date {
 		try self.rootURL.accessDate()
 	}
@@ -288,11 +289,11 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 	public func diskSize() throws -> UInt64 {
 		var sizeBytes: UInt64 = 0
-			
+
 		try FileManager.default.contentsOfDirectory(at: rootURL, includingPropertiesForKeys: [.isRegularFileKey], options: .skipsSubdirectoryDescendants).forEach {
 			sizeBytes += $0.diskSize
 		}
-			
+
 		return sizeBytes
 	}
 
@@ -393,7 +394,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			if format == .raw {
 				try Bundle.execSandboxed("/usr/bin/hdiutil", with: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path(percentEncoded: false)]) { (exitCode, stdout, stderr) in
 					guard exitCode == 0 else {
-					throw ServiceError(String(localized: "Failed to resize disk with hdiutil: \(stderr)"))
+						throw ServiceError(String(localized: "Failed to resize disk with hdiutil: \(stderr)"))
 					}
 
 					logger.debug(stdout)
@@ -434,13 +435,13 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		} else if #available(macOS 26.0, *) {
 			try Bundle.execSandboxed("/usr/sbin/diskutil", with: ["image", "create", "blank", "--format=ASIF", "--fs=none", "--size=\(sizeGB)G", diskURL.path(percentEncoded: false)]) { (exitCode, stdout, stderr) in
 				guard exitCode == 0 else {
-					   throw ServiceError(String(localized: "Failed to create disk with diskutil: \(stderr)"))
-				   }
+					throw ServiceError(String(localized: "Failed to create disk with diskutil: \(stderr)"))
+				}
 
-				   logger.debug(stdout)
+				logger.debug(stdout)
 
-				   return stdout
-			   }
+				return stdout
+			}
 		} else {
 			throw ServiceError(String(localized: "ASIF format is supported only on macOS 26.0+"))
 		}
@@ -541,38 +542,39 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	public func restartVirtualMachine(startMode: StartHandler.StartMode, gcd: Bool, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) throws {
 		let config = try self.config()
 		let home = try Home(runMode: runMode)
-		
-		func killVMRun() throws -> Void {
+
+		func killVMRun() throws {
 			let pid = pidFile.isPIDRunning()
-			
+
 			if pid.0 && pid.1 == Home.cakedCommandName {
-					if let pid = pid.2 {
-						if Bundle.isApplicationSandboxed {
-							let reply = try VMRunHandler.serviceMode.client(location: self, runMode: runMode).signal(signal: .shutdown)
+				if let pid = pid.2 {
+					if Bundle.isApplicationSandboxed {
+						let reply = try VMRunHandler.serviceMode.client(location: self, runMode: runMode).signal(signal: .shutdown)
 
-							if reply.success == false {
-								throw ServiceError(String(localized: "Failed to stop VM \(name), \(reply.reason)"))
-							}
-						} else {
-							if kill(pid, SIGINT) != 0 {
-								throw ServiceError(String(localized: "Failed to stop VM \(name), \(String(cString: strerror(errno)))"))
-							}
-
-							removePID()
+						if reply.success == false {
+							throw ServiceError(String(localized: "Failed to stop VM \(name), \(reply.reason)"))
+						}
+					} else {
+						if kill(pid, SIGINT) != 0 {
+							throw ServiceError(String(localized: "Failed to stop VM \(name), \(String(cString: strerror(errno)))"))
 						}
 
-						_ = StartHandler.startVM(location: self,
-												 screenSize: nil,
-												 vncPassword: nil,
-												 vncPort: nil,
-												 waitIPTimeout: waitIPTimeout,
-												 startMode: startMode,
-												 gcd: gcd,
-												 recoveryMode: false,
-												 runMode: runMode,
-												 promise: nil)
+						removePID()
 					}
+
+					_ = StartHandler.startVM(
+						location: self,
+						screenSize: nil,
+						vncPassword: nil,
+						vncPort: nil,
+						waitIPTimeout: waitIPTimeout,
+						startMode: startMode,
+						gcd: gcd,
+						recoveryMode: false,
+						runMode: runMode,
+						promise: nil)
 				}
+			}
 		}
 
 		guard case .running = self.status else {
@@ -635,7 +637,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 		let pid = pidFile.isPIDRunning()
 
-		func killVMRun() throws -> Void {
+		func killVMRun() throws {
 			if pid.0 && pid.1 == Home.cakedCommandName {
 				if Bundle.isApplicationSandboxed {
 					let reply = try VMRunHandler.serviceMode.client(location: self, runMode: runMode).signal(signal: .shutdown)
@@ -684,21 +686,33 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	}
 
 	@MainActor
-	public func startVirtualMachine(mode: VMRunServiceMode,
-									on: EventLoop,
-									config: CakeConfig,
-									screenSize: CGSize,
-									display: VMRunHandler.DisplayMode,
-									vncPassword: String,
-									vncPort: Int,
-									recoveryMode: Bool,
-									internalCall: Bool,
-									runMode: Utils.RunMode,
-									queue: DispatchQueue?,
-									completionHandler: VirtualMachine.StartCompletionHandler? = nil) throws -> (address: EventLoopFuture<String?>, vm: VirtualMachine) {
-		let vm = try VirtualMachine(location: self, config: config, display: display, screenSize: screenSize, recoveryMode: recoveryMode, runMode: runMode, queue: queue)
+	public func startVirtualMachine(
+		mode: VMRunServiceMode,
+		on: EventLoop,
+		config: CakeConfig,
+		screenSize: CGSize,
+		display: VMRunHandler.DisplayMode,
+		vncPassword: String,
+		vncPort: Int,
+		recoveryMode: Bool,
+		provisioning: Bool,
+		runMode: Utils.RunMode,
+		queue: DispatchQueue?,
+		completionHandler: VirtualMachine.StartCompletionHandler? = nil
+	) throws -> (address: EventLoopFuture<String?>, vm: VirtualMachine) {
+		let vm = try VirtualMachine(
+			location: self,
+			config: config,
+			display: display,
+			screenSize: screenSize,
+			recoveryMode: recoveryMode,
+			provisioning: provisioning,
+			runMode: runMode,
+			queue: queue)
 
-		let runningIP = try vm.runInBackground(mode, on: on, internalCall: internalCall, completionHandler: completionHandler)
+		let runningIP = try vm.runInBackground(
+			mode, on: on,
+			completionHandler: completionHandler)
 
 		try self.writePID()
 
@@ -789,9 +803,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 	public func waitIP(config: CakeConfig, wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		if startedProcess == nil {
-            guard case .running = self.status else {
-                throw ServiceError(String(localized: "VM \(name) is not running"))
-            }
+			guard case .running = self.status else {
+				throw ServiceError(String(localized: "VM \(name) is not running"))
+			}
 		}
 
 		if config.firstLaunch && (config.source == .iso || config.source == .ipsw) {
@@ -1026,7 +1040,8 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		if imageSource == .ipsw {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
-			try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path(percentEncoded: false), passphrase: config.sshPrivateKeyPassphrase)
+			try ssh.authenticate(
+				username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path(percentEncoded: false), passphrase: config.sshPrivateKeyPassphrase)
 		} else {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		}

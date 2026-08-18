@@ -38,6 +38,7 @@ public struct VMRunHandler {
 	public let vncPort: Int
 	public let screenSize: CGSize
 	public let recoveryMode: Bool
+	public let provisioning: Bool
 
 	public init(
 		mode: VMRunServiceMode,
@@ -50,6 +51,7 @@ public struct VMRunHandler {
 		vncPassword: String,
 		vncPort: Int,
 		recoveryMode: Bool,
+		provisioning: Bool,
 		runMode: Utils.RunMode
 	) {
 		self.storageLocation = storageLocation
@@ -63,6 +65,7 @@ public struct VMRunHandler {
 		self.vncPassword = vncPassword
 		self.screenSize = screenSize
 		self.recoveryMode = recoveryMode
+		self.provisioning = provisioning
 	}
 
 	public typealias CompletionHandler<T> = (EventLoopFuture<String?>, VirtualMachine) throws -> T
@@ -93,7 +96,16 @@ public struct VMRunHandler {
 		}
 
 		let result = try location.startVirtualMachine(
-			mode: mode, on: Utilities.group.next(), config: config, screenSize: screenSize, display: display, vncPassword: vncPassword, vncPort: vncPort, recoveryMode: self.recoveryMode, internalCall: false, runMode: runMode, queue: queue)
+			mode: mode, on: Utilities.group.next(),
+			config: config,
+			screenSize: screenSize,
+			display: display,
+			vncPassword: vncPassword,
+			vncPort: vncPort,
+			recoveryMode: self.recoveryMode,
+			provisioning: provisioning,
+			runMode: runMode,
+			queue: queue)
 
 		return try completionHandler(result.address, result.vm)
 	}
@@ -130,7 +142,7 @@ public struct VMRunHandler {
 			vncPassword: vncPassword,
 			vncPort: vncPort,
 			recoveryMode: self.recoveryMode,
-			internalCall: false,
+			provisioning: false,
 			runMode: runMode,
 			queue: queue)
 	}
