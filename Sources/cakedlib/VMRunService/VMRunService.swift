@@ -127,7 +127,7 @@ public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgu
 		return self.rawValue
 	}
 
-	case none
+	case disabled
 	case grpc
 	case xpc
 
@@ -135,11 +135,11 @@ public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgu
 		return .grpc
 	}
 
-	public func client(location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient {
+	public func client(location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient? {
 		switch self {
 			
-		case .none:
-			throw ServiceError("Not implemented")
+		case .disabled:
+			return nil
 		case .grpc:
 			return try GRPCVMRunServiceClient.createClient(location: location, runMode: runMode)
 		case .xpc:
@@ -149,7 +149,7 @@ public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgu
 
 	public func serve(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) -> VMRunServiceServerProtocol {
 		switch self {
-		case .none:
+		case .disabled:
 			return NoneVMRunServiceServer()
 		case .grpc:
 			return GRPCVMRunService(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation, logger: Logger("GRPCVMRunService"))

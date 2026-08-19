@@ -549,7 +549,11 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			if pid.0 && pid.1 == Home.cakedCommandName {
 				if let pid = pid.2 {
 					if Bundle.isApplicationSandboxed {
-						let reply = try VMRunHandler.serviceMode.client(location: self, runMode: runMode).signal(signal: .shutdown)
+						guard let client = try VMRunHandler.serviceMode.client(location: self, runMode: runMode) else {
+							throw ServiceError(String(localized: "VM service is not running"))
+						}
+
+						let reply = try client.signal(signal: .shutdown)
 
 						if reply.success == false {
 							throw ServiceError(String(localized: "Failed to stop VM \(name), \(reply.reason)"))
@@ -613,7 +617,11 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 		if pid.0 && pid.1 == Home.cakedCommandName {
 			if Bundle.isApplicationSandboxed {
-				let reply = try VMRunHandler.serviceMode.client(location: self, runMode: runMode).signal(signal: .suspend)
+				guard let client = try VMRunHandler.serviceMode.client(location: self, runMode: runMode) else {
+					throw ServiceError(String(localized: "VM service is not running"))
+				}
+
+				let reply = try client.signal(signal: .suspend)
 
 				if reply.success == false {
 					throw ServiceError(String(localized: "Failed to suspend VM \(name), \(reply.reason)"))
@@ -640,7 +648,11 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		func killVMRun() throws {
 			if pid.0 && pid.1 == Home.cakedCommandName {
 				if Bundle.isApplicationSandboxed {
-					let reply = try VMRunHandler.serviceMode.client(location: self, runMode: runMode).signal(signal: .shutdown)
+					guard let client = try VMRunHandler.serviceMode.client(location: self, runMode: runMode) else {
+						throw ServiceError(String(localized: "VM service is not running"))
+					}
+
+					let reply = try client.signal(signal: .shutdown)
 
 					if reply.success == false {
 						throw ServiceError(String(localized: "Failed to stop VM \(name), \(reply.reason)"))
