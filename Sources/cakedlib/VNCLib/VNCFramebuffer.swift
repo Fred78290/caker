@@ -276,9 +276,16 @@ extension VNCFramebuffer: VNCFrameBufferProducer {
 
 	public func startFramebufferUpdate(continuation: AsyncStream<VNCFrameUpdateState>.Continuation) {
 		guard let producer = self.sourceView as? VNCFrameBufferProducer else {
-			let sourceView = self.sourceView!
 
-			let timer = Timer(timeInterval: 1.0, repeats: true) { _ in
+			let timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in
+				guard let self else {
+					return
+				}
+
+				guard let sourceView = self.sourceView else {
+					return
+				}
+
 				let bounds = sourceView.bounds
 
 				guard bounds.width != 0 && bounds.height != 0 else {
