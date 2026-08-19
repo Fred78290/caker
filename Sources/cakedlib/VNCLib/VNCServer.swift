@@ -46,6 +46,12 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	public weak var delegate: VNCServerDelegate?
 	public private(set) var port: UInt16
 	public private(set) var isRunning = false
+	// Tracks "has start() been called and not yet stopped" — distinct from `isRunning`, which only
+	// flips true once the NWListener's async stateUpdateHandler reports `.ready` (startFramebufferUpdates()).
+	// stop() must tear down (cancel the listener, etc.) even if that `.ready` callback never fired yet —
+	// gating on `isRunning` there let a VNCServer stopped before its listener came up skip teardown
+	// entirely, leaking the still-active NWListener (and its bound socket) indefinitely.
+	private var isStarted = false
 	public var allowRemoteInput = true  // Controls if remote inputs are accepted
 	public var password: String?  // VNC Auth password
 
@@ -119,7 +125,8 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	}
 
 	public func start() throws {
-		guard !isRunning else { return }
+		guard !isStarted else { return }
+		isStarted = true
 
 		self.delegate?.willStart(self)
 
@@ -174,7 +181,8 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	}
 
 	public func stop() {
-		guard isRunning else { return }
+		guard isStarted else { return }
+		isStarted = false
 
 		self.delegate?.willStop(self)
 
