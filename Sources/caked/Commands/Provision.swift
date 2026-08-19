@@ -1,10 +1,10 @@
+import AppKit
 import ArgumentParser
-import Combine
-import CakedLib
 import CakeAgentLib
+import CakedLib
+import Combine
 import Foundation
 import GRPCLib
-import AppKit
 
 /// Drives an already-installed macOS VM's Setup Assistant unattended via PackerLite — the same
 /// engine `caked build`/`create` run automatically for `.ipsw` sources with `--autoinstall`, exposed
@@ -71,10 +71,19 @@ struct Provision: AsyncParsableCommand {
 	@MainActor
 	func run() async throws {
 		let (storageLocation, location) = self.locations
+		let config = try location.config()
 		var templatePath: URL? = nil
 
-		if case .running = location.status {
+		if location.status.isRunning {
 			throw ServiceError(String(localized: "The VM is already running"))
+		}
+
+		guard config.source == .ipsw || config.source == .iso else {
+			throw ServiceError(String(localized: "Provisioning is only supported for macOS VMs or Linux VMs from iso"))
+		}
+
+		guard config.provisioned == false else {
+			throw ServiceError(String(localized: "The VM is already provisioned"))
 		}
 
 		let promise = Utilities.group.next().makePromise(of: Void.self)
@@ -93,23 +102,38 @@ struct Provision: AsyncParsableCommand {
 			location.removePID()
 		}
 
-		let (handler, vm, cancellation) = try await CakedLib.ProvisionHandler.provision(location: location,
-																						storageLocation: storageLocation,
-																						display: self.provision.foreground ? .all : .vnc,
-																						templatePath: templatePath,
-																						macosVersion: self.provision.macosVersion,
-																						variables: self.provision.vars,
-																						runMode: self.common.runMode,
-																						queue: ProvisionHandler.provisionQueue,
-																						promise: promise) {
-			ProgressObserver.progressHandler($0.progressValue)
-		}
+		do {
+			let (handler, vm, cancellation) = try await CakedLib.ProvisionHandler.provision(
+				location: location,
+				storageLocation: storageLocation,
+				display: self.provision.foreground ? .all : .vnc,
+				templatePath: templatePath,
+				macosVersion: self.provision.macosVersion,
+				variables: self.provision.vars,
+				runMode: self.common.runMode,
+				queue: ProvisionHandler.provisionQueue,
+				promise: promise
+			) {
+				let progress = $0.progressValue
+				
+				switch progress {
+				case .progress:
+					// Silent
+					break
+				default:
+					ProgressObserver.progressHandler($0.progressValue)
+				}
+			}
 
-		if self.provision.foreground {
-			MainApp.runUI(vm, params: handler, cancellation: cancellation)
-		} else {
-			NSApplication.shared.setActivationPolicy(.prohibited)
-			NSApplication.shared.run()
+			if self.provision.foreground {
+				MainApp.runUI(vm, params: handler, cancellation: cancellation)
+			} else {
+				NSApplication.shared.setActivationPolicy(.prohibited)
+				NSApplication.shared.run()
+			}
+		} catch {
+			promise.fail(error)
+			throw error
 		}
 	}
 }

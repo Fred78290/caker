@@ -30,19 +30,26 @@ struct ProvisionHandler: CakedCommandAsync {
 	}
 
 	mutating func run(on: any EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
+		let logger = Logger(self)
+
 		defer {
-			Logger(self).debug("Leave Provision for VM: \(request.name)")
+			logger.debug("Leave Provision for VM: \(request.name)")
+		}
+
+		let (stream, continuation) = AsyncStream.makeStream(of: CakedLib.ProvisionHandler.ProgressValue.self)
+		let promise = on.makePromise(of: Void.self)
+
+		promise.futureResult.whenComplete { result in
+			continuation.finish()
 		}
 
 		do {
 			let storageLocation = StorageLocation(runMode: runMode)
 			let location: VMLocation = try storageLocation.find(request.name)
-			let (stream, continuation) = AsyncStream.makeStream(of: CakedLib.ProvisionHandler.ProgressValue.self)
 
 			var lastSentCompleted = -1
 			var templateName: String? = nil
 			var templateContent: String? = nil
-			let promise = on.makePromise(of: Void.self)
 
 			if request.hasProvisionTemplateName {
 				templateName = request.provisionTemplateName
@@ -70,12 +77,10 @@ struct ProvisionHandler: CakedCommandAsync {
 				continuation.yield(progress)
 			}
 
-			promise.futureResult.whenComplete { result in
-				continuation.finish()
-			}
-
 			for await progress in stream {
 				if case .progress(let context, let fractionCompleted) = progress {
+					logger.debug("Provision progress: \(fractionCompleted * 100)%")
+
 					let completed = Int(100 * fractionCompleted)
 
 					guard completed != lastSentCompleted else { continue }
@@ -101,21 +106,29 @@ struct ProvisionHandler: CakedCommandAsync {
 							}
 						})
 				} else if case .provisioned(let result) = progress {
+					logger.debug("Provisioning result: \(result)")
+
 					try await responseStream.send(
 						.with {
 							$0.provisioned = result.caked
 						})
 				} else if case .step(let message) = progress {
+					logger.debug("Provisioning step: \(message)")
+
 					try await responseStream.send(
 						.with {
 							$0.step = message
 						})
 				} else if case .substep(let message) = progress {
+					logger.debug("Provisioning substep: \(message)")
+
 					try await responseStream.send(
 						.with {
 							$0.substep = message
 						})
 				} else if case .infos(let message) = progress {
+					logger.debug("Provisioning infos: \(message)")
+
 					try await responseStream.send(
 						.with {
 							$0.infos = message.caked
@@ -123,12 +136,14 @@ struct ProvisionHandler: CakedCommandAsync {
 				}
 			}
 		} catch {
+			promise.fail(error)
+
 			try? await responseStream.send(
 				.with {
 					$0.provisioned = .with {
 						$0.name = request.name
 						$0.provisioned = false
-						$0.reason = String(localized: "Provisioning failed: \(error.reason)")
+						$0.reason = error.reason
 					}
 				})
 

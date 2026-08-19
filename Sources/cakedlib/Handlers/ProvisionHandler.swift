@@ -59,17 +59,33 @@ public struct ProvisionHandler {
 
 	public typealias ProvisionProgressHandler = (ProvisionHandler.ProgressValue) -> Void
 
-	private final class ProvisionTask: Cancellable, @unchecked Sendable {
+	private final class ProvisionTask: Cancellable, VirtualMachineDelegate, @unchecked Sendable {
 		private var task: Task<Void, Error>? = nil
+		private var lastStatus: VMLocation.Status
 		private let handler: (_ runningIP: String) async -> Void
 
-		init(_ handler: @escaping (_ runningIP: String) async -> Void) {
+		private weak var chained: VirtualMachineDelegate?
+		private weak var vm :VirtualMachine!
+		
+		deinit {
+			self.vm.delegate = self.chained
+		}
+
+		init(vm: VirtualMachine, _ handler: @escaping (_ runningIP: String) async -> Void) {
+			self.chained = vm.delegate
 			self.handler = handler
+			self.lastStatus = vm.status
+			self.vm = vm
+
+			vm.delegate = self
 		}
 
 		func start(runningIP: String) {
 			self.task = Task.detached {
 				await self.handler(runningIP)
+
+				self.vm.delegate = self.chained
+				self.task = nil
 			}
 		}
 
@@ -77,6 +93,22 @@ public struct ProvisionHandler {
 			task?.cancel()
 			task = nil
 		}
+
+		func didChangedState(_ vm: VirtualMachine) {
+			self.chained?.didChangedState(vm)
+
+			let newStatus = vm.status
+
+			if let task = self.task, newStatus.isRunning == false && newStatus != self.lastStatus {
+				self.lastStatus = newStatus
+				task.cancel()
+			}
+		}
+		
+		func didScreenshot(_ vm: VirtualMachine, screenshot: NSImage) {
+			self.chained?.didScreenshot(vm, screenshot: screenshot)
+		}
+		
 	}
 
 	@MainActor
@@ -96,9 +128,20 @@ public struct ProvisionHandler {
 		let displaySize = config.display.cgSize
 		let vncPassword = config.vncPassword ?? UUID().uuidString
 
-		if case .running = location.status {
+		if location.status.isRunning {
 			throw ServiceError(String(localized: "The VM is already running"))
 		}
+
+		guard config.source == .ipsw || config.source == .iso else {
+			throw ServiceError(String(localized: "Provisioning is only supported for macOS VMs or Linux VMs from iso"))
+		}
+
+		guard config.provisioned == false else {
+			throw ServiceError(String(localized: "The VM is already provisioned"))
+		}
+
+		// Load earlier to avoid starting the VM if the template is invalid
+		let template = try Self.loadTemplate(location, template: templatePath?.path(percentEncoded: false), macosVersion: macosVersion, variables: variables)
 
 		let handler = VMRunHandler(
 			mode: .default,
@@ -117,33 +160,12 @@ public struct ProvisionHandler {
 		return try handler.run { address, vm in
 			let logger = Logger(ProvisionHandler.self)
 
-			let template = try Self.loadTemplate(vm, template: templatePath?.path(percentEncoded: false), macosVersion: macosVersion, variables: variables)
 			let targetView: NSView
-			let targetWindow: NSWindow?
 
 			// Start VNC server as soon as the VM is up
 			if display == .none {
-				vm.createVirtualMachineView()
-
-				guard let vzMachineView = vm.vzMachineView else {
-					throw ServiceError(String(localized: "Unable to get VZMachineView for VM \(location.name)"))
-				}
-
-				if let framebufferView = vzMachineView.framebufferView {
-					vzMachineView.autoresizesSubviews = true
-					framebufferView.autoresizingMask = [.width, .height]
-					framebufferView.frame = NSRect(origin: .zero, size: vzMachineView.bounds.size)
-				}
-
-				let window: NSWindow = NSWindow(contentRect: vzMachineView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
-
-				window.hidesOnDeactivate = true
-				window.canHide = true
-				window.contentView = vzMachineView
-				window.makeKeyAndOrderFront(nil)
-
-				targetView = vzMachineView
-				targetWindow = window
+				targetView = vm.createVirtualMachineView()
+				vm.setupWindow()
 			} else {
 				let vncURL = try vm.startVncServer(vncPassword: vncPassword, port: 0)
 				logger.info("VNC server started for provisioning VM \(location.name) at \(vncURL.map(\.absoluteString).joined(separator: ", "))")
@@ -157,7 +179,6 @@ public struct ProvisionHandler {
 				}
 
 				targetView = vzMachineView
-				targetWindow = nil
 
 				progressHandler(.infos(.init(vncURL: vncURL, screenSize: .init(vzMachineView.bounds.size), config: config)))
 			}
@@ -179,11 +200,10 @@ public struct ProvisionHandler {
 			func destroyVM(_ error: Error?) {
 				if display == .all || display == .vnc {
 					vm.stopVncServer()
-				} else if let targetWindow {
-					MainActor.assumeIsolated {
-						targetWindow.close()
-						targetWindow.contentView = nil
-					}
+				}
+
+				MainActor.assumeIsolated {
+					vm.disposeWindow()
 				}
 
 				vm.terminateVM { _ in
@@ -203,7 +223,7 @@ public struct ProvisionHandler {
 				}
 			}
 
-			let task = ProvisionTask { runningIP in
+			let task = ProvisionTask(vm: vm) { runningIP in
 				var catchableError: Error? = nil
 
 				defer {
@@ -228,6 +248,7 @@ public struct ProvisionHandler {
 			address.whenSuccess { ip in
 				if let ip {
 					logger.info("VM Machine \(location.name) is now available at \(ip)")
+
 					task.start(runningIP: ip)
 				} else {
 					destroyVM(ServiceError(String(localized: "Unable to obtain an IP address for VM \(location.name)")))
@@ -256,6 +277,10 @@ public struct ProvisionHandler {
 		progressHandler: @escaping ProvisionProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
 		var templatePath: URL? = nil
+
+		defer {
+			try? templatePath?.delete()
+		}
 
 		if let templateContent, let templateName {
 			// Write the provided template content to a file in the user's temporary directory
@@ -314,15 +339,14 @@ public struct ProvisionHandler {
 	private static func provision(_ vm: VirtualMachine, runningIP: String?, template: String?, macosVersion: MacOSVersion?, runMode: Utils.RunMode, variables: [String] = [], progressHandler: @escaping ProvisionProgressHandler)
 		async throws
 	{
-		let parsedTemplate = try await Self.loadTemplate(vm, template: template, macosVersion: macosVersion, variables: variables)
+		let parsedTemplate = try await Self.loadTemplate(vm.location, template: template, macosVersion: macosVersion, variables: variables)
 
 		try await PackerLiteEngine.provision(vm: vm, template: parsedTemplate, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
 	}
 
 	@MainActor
-	public static func loadTemplate(_ vm: VirtualMachine, template: String?, macosVersion: MacOSVersion?, variables: [String]) throws -> ParsedPackerLiteTemplate {
-		let location = vm.location
-		let config = vm.config
+	public static func loadTemplate(_ location: VMLocation, template: String?, macosVersion: MacOSVersion?, variables: [String]) throws -> ParsedPackerLiteTemplate {
+		let config = try location.config()
 		let content: String
 
 		if config.os == .darwin {
