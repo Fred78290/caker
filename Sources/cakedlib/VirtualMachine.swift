@@ -13,7 +13,7 @@ import Virtualization
 private let kScreenshotPeriodSeconds = 5.0
 private let kAgentInstallRetryPeriodSeconds: UInt64 = 30
 
-public protocol VirtualMachineDelegate {
+public protocol VirtualMachineDelegate: AnyObject {
 	func didChangedState(_ vm: VirtualMachine)
 	func didScreenshot(_ vm: VirtualMachine, screenshot: NSImage)
 }
@@ -187,9 +187,11 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var recoveryMode: Bool
 	var vncServer: VZVNCServer! = nil
 	var vzMachineView: VMView.NSViewType! = nil
+	var vzMachineWindow: NSWindow? = nil
 	var timer: Timer? = nil
 	var symlinks: [URL] = []
 	var portForwardingStarted = false
+	let provisioning: Bool
 	let logger = Logger("VirtualMachineEnvironment")
 
 	var runningIP: String = String.empty {
@@ -201,13 +203,14 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	@MainActor
-	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, recoveryMode: Bool, runMode: Utils.RunMode) throws {
+	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, provisioning: Bool, recoveryMode: Bool, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable && config.os == .darwin
 		var networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
 		let directorySharingAttachments = try config.directorySharingAttachments()
 		let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
 		let consoleURL = try config.consoleAttachment()
+		var communicationDevices: CommunicationDevices? = nil
 
 		// Add IMDS network interface for Linux VMs. Available in sandboxed builds too —
 		// IMDS binds an unprivileged port on this network's gateway either way, reachable
@@ -274,7 +277,9 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			}
 		}
 
-		let communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+		if provisioning == false {
+			communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+		}
 
 		try configuration.validate()
 
@@ -294,8 +299,9 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		self.screenSize = screenSize
 		self.display = display
 		self.recoveryMode = recoveryMode
+		self.provisioning = provisioning
 
-		if location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
+		if let communicationDevices = communicationDevices, location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
 			communicationDevices.delegate = self
 		}
 	}
@@ -441,6 +447,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			self.vmrunService.serve()
 			try await self.semaphore.waitUnlessCancelled()
 		} catch is CancellationError {
+			self.logger.debug("VMRunService cancelled for VM \(self.location.name)")
 		}
 	}
 
@@ -495,8 +502,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	public var virtualMachine: VZVirtualMachine
 	public let config: CakeConfig
 	public let location: VMLocation
-	public let provisioning: Bool
-	public var delegate: VirtualMachineDelegate? = nil
+	public weak var delegate: VirtualMachineDelegate? = nil
 
 	internal var env: VirtualMachineEnvironment
 	private var vmQueue: DispatchQueue
@@ -576,9 +582,11 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		return cdrom
 	}
 
-	deinit {
-		print("Deinit virtual machine")
-	}
+	#if DEBUG
+		deinit {
+			print("Deinit virtual machine")
+		}
+	#endif
 
 	@MainActor
 	public init(
@@ -596,10 +604,16 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 			throw ServiceError(String(localized: "Unsupported architecture"))
 		}
 
-		self.provisioning = provisioning
 		self.config = config
 		self.location = location
-		self.env = try VirtualMachineEnvironment(location: location, config: config, display: display, screenSize: screenSize, recoveryMode: recoveryMode, runMode: runMode)
+		self.env = try VirtualMachineEnvironment(
+			location: location,
+			config: config,
+			display: display,
+			screenSize: screenSize,
+			provisioning: provisioning,
+			recoveryMode: recoveryMode,
+			runMode: runMode)
 
 		if let queue = queue {
 			self.vmQueue = queue
@@ -618,8 +632,17 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		return self.virtualMachine
 	}
 
-	public func createVirtualMachineView() {
-		self.env.vzMachineView = VMView.createView(vm: self, frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
+	@discardableResult
+	public func createVirtualMachineView() -> VMView.NSViewType {
+		if let vzMachineView = self.env.vzMachineView {
+			return vzMachineView
+		}
+
+		let vzMachineView = VMView.createView(vm: self, frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
+
+		self.env.vzMachineView = vzMachineView
+
+		return vzMachineView
 	}
 
 	public func takeScreenshotDebug() {
@@ -1079,7 +1102,7 @@ extension VirtualMachine {
 				self.logger.info("Stopping VM \(self.location.name)...")
 
 				await withCheckedContinuation { continuation in
-					if provisioning {
+					if self.env.provisioning {
 						self.stopVM { _ in
 							continuation.resume()
 						}
@@ -1193,6 +1216,10 @@ extension VirtualMachine {
 		let task = Task {
 			var status: Int32 = 0
 
+			defer {
+				self.vmTask = nil
+			}
+
 			do {
 				try await self.start(mode, completionHandler: completionHandler)
 			} catch {
@@ -1201,12 +1228,17 @@ extension VirtualMachine {
 
 			self.location.removePID()
 
-			guard self.provisioning else {
-				Foundation.exit(status)
+			guard self.env.provisioning else {
+				await MainActor.run {
+					NSApplication.shared.terminate(self)
+				}
+
+				return status
 			}
 
 			return status
 		}
+
 		self.vmTask = task
 
 		if self.location.template == false && self.env.runMode != .app {
@@ -1611,12 +1643,26 @@ extension VirtualMachine {
 
 // MARK: - VNCServerDelegate
 extension VirtualMachine: VNCServerDelegate {
-	public func willStart(_ server: VNCServer) {
+	public func disposeWindow() {
+		guard let vmWindow = self.env.vzMachineWindow else {
+			return
+		}
+
+		vmWindow.contentView = nil
+		self.env.vzMachineWindow = nil
+
+		DispatchQueue.main.async {
+			vmWindow.contentView = nil
+			vmWindow.close()
+		}
+	}
+
+	public func setupWindow() {
 		guard let vmView = self.env.vzMachineView else {
 			return
 		}
 
-		if self.env.display == .vnc || self.env.display == .none {
+		if vmView.window == nil {
 			if let framebufferView = vmView.framebufferView {
 				vmView.autoresizesSubviews = true
 				framebufferView.autoresizingMask = [.width, .height]
@@ -1629,10 +1675,19 @@ extension VirtualMachine: VNCServerDelegate {
 				let window: NSWindow = NSWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
 			#endif
 
+			window.isReleasedWhenClosed = false
 			window.hidesOnDeactivate = true
 			window.canHide = true
 			window.contentView = vmView
 			window.makeKeyAndOrderFront(nil)
+
+			self.env.vzMachineWindow = window
+		}
+	}
+
+	public func willStart(_ server: VNCServer) {
+		if self.env.display == .vnc || self.env.display == .none {
+			self.setupWindow()
 		}
 	}
 
@@ -1645,6 +1700,7 @@ extension VirtualMachine: VNCServerDelegate {
 	}
 
 	public func didStop(_ server: VNCServer) {
+		self.disposeWindow()
 	}
 
 	public func vncServer(_ server: VNCServer, clientDidResizeDesktop screens: [VNCScreenDesktop]) {
