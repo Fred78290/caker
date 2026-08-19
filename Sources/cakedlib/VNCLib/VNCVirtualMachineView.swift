@@ -19,6 +19,19 @@ import Virtualization
 	@objc func framebufferDidUpdateColorSpace(_ framebuffer: NSObject)
 }
 
+#if DEBUG
+	open class VirtualMachineWindow: NSWindow {
+		deinit {
+			print("VirtualMachineWindow deinit")
+		}
+
+		open override func close() {
+			print("VirtualMachineWindow close")
+			super.close()
+		}
+	}
+#endif
+
 extension NSView {
 	@objc public var cursor: NSCursor? {
 		return nil

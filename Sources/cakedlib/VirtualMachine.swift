@@ -1623,7 +1623,11 @@ extension VirtualMachine: VNCServerDelegate {
 				framebufferView.frame = NSRect(origin: .zero, size: vmView.bounds.size)
 			}
 
-			let window: NSWindow = NSWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
+			#if DEBUG
+				let window: NSWindow = VirtualMachineWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
+			#else
+				let window: NSWindow = NSWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
+			#endif
 
 			window.hidesOnDeactivate = true
 			window.canHide = true
