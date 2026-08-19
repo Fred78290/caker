@@ -431,9 +431,28 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func stopVncServer() {
+		self.vncServer?.delegate = nil
+
 		if let vncServer {
 			vncServer.stop()
 			self.vncServer = nil
+		}
+
+		self.releaseMachineView()
+	}
+
+	func releaseMachineView() {
+		let vmView = self.vzMachineView
+		let vmWindow = self.vzMachineWindow
+
+		self.vzMachineView = nil
+		self.vzMachineWindow = nil
+
+		DispatchQueue.main.async {
+			vmWindow?.contentView = nil
+			vmView?.virtualMachine = nil
+			vmView?.removeFromSuperview()
+			vmWindow?.close()
 		}
 	}
 
@@ -1652,17 +1671,7 @@ extension VirtualMachine {
 // MARK: - VNCServerDelegate
 extension VirtualMachine: VNCServerDelegate {
 	public func disposeWindow() {
-		guard let vmWindow = self.env.vzMachineWindow else {
-			return
-		}
-
-		vmWindow.contentView = nil
-		self.env.vzMachineWindow = nil
-
-		DispatchQueue.main.async {
-			vmWindow.contentView = nil
-			vmWindow.close()
-		}
+		self.env.releaseMachineView()
 	}
 
 	public func setupWindow() {
