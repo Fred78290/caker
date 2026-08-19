@@ -319,7 +319,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func startPortForwarding() {
-		guard portForwardingStarted == false else {
+		guard self.provisioning == false && portForwardingStarted == false else {
 			return
 		}
 
@@ -407,6 +407,10 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func stopPortForwarding() {
+		guard portForwardingStarted else {
+			return
+		}
+
 		portForwardingStarted = false
 
 		try? CakeAgentPortForwardingServer.closeForwardedPort()
