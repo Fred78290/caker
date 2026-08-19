@@ -1304,12 +1304,16 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 	}
 
 	func didChangedState(_ stopGCD: Bool) {
-		if let delegate = self.delegate {
-			self.vmQueue.async {
-				delegate.didChangedState(self)
-				if stopGCD {
-					self.stopGrandCentralUpdate()
-				}
+		// stopGrandCentralUpdate() must run whenever stopGCD is true, independent of whether a
+		// delegate happens to be set — it used to be nested inside the `delegate != nil` check below,
+		// so a nil delegate at VM-stop time (a weak reference, e.g. ProvisionTask having already
+		// restored its chained delegate) silently skipped it, leaking the VirtualMachine <-> gcd
+		// retain cycle (VirtualMachine.gcd -> GrandCentralUpdater.vm -> back to the same VirtualMachine).
+		self.vmQueue.async {
+			self.delegate?.didChangedState(self)
+
+			if stopGCD {
+				self.stopGrandCentralUpdate()
 			}
 		}
 	}
