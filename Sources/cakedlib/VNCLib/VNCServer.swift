@@ -1,11 +1,11 @@
 import AppKit
 import ArgumentParser
+import CakeAgentLib
 import Darwin
 import Foundation
 import Metal
 import Network
 import QuartzCore
-import CakeAgentLib
 
 public protocol VZVNCServer {
 	var delegate: VNCServerDelegate? { get set }
@@ -38,14 +38,12 @@ public protocol VNCFrameBufferProducer {
 	var cursorPosition: NSPoint? { get }
 	var bitmapInfos: CGBitmapInfo { get }
 	var cgImage: CGImage? { get }
-	var checkIfImageIsChanged: Bool { get }
 	func startFramebufferUpdate(continuation: AsyncStream<VNCFrameUpdateState>.Continuation)
 	func stopFramebufferUpdate()
 }
 
 open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	public weak var delegate: VNCServerDelegate?
-	public private(set) var sourceView: NSView
 	public private(set) var port: UInt16
 	public private(set) var isRunning = false
 	public var allowRemoteInput = true  // Controls if remote inputs are accepted
@@ -55,7 +53,7 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private var listener: NWListener!
 	private var connections: [VNCConnection] = []
 	private var framebuffer: VNCFramebuffer
-	private let connectionQueue = DispatchQueue(label: "vnc.server.connections", attributes: .concurrent)
+	private let connectionQueue: DispatchQueue
 	private let name: String
 	private let eventLoop = Utilities.group.next()
 	private let allInet: Bool
@@ -74,10 +72,16 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		CFByteOrderGetCurrent() == CFByteOrderLittleEndian.rawValue
 	}
 
+	#if DEBUG
+		deinit {
+			print("Deinitializing VNCServer")
+		}
+	#endif
+
 	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0, allInet: Bool) throws {
 		try newKeyMapper().setupKeyMapper()
 
-		self.sourceView = sourceView
+		self.connectionQueue = DispatchQueue(label: "vnc.server.connections-\(name)", attributes: .concurrent)
 		self.password = password
 		self.name = name
 		self.allInet = allInet
@@ -96,7 +100,7 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 	public var urls: [URL] {
 		if self.allInet {
-			let addresses: [String:IP.V4] = VZSharedNetwork.addresses()
+			let addresses: [String: IP.V4] = VZSharedNetwork.addresses()
 
 			return addresses.compactMap { interface in
 				if let password = password {
@@ -129,10 +133,10 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 		parameters.defaultProtocolStack.transportProtocol = tcpOptions
 
-        // If not allowing all interfaces, restrict to loopback; otherwise listen on all interfaces
-        if allInet == false {
-            parameters.requiredInterfaceType = .loopback
-        }
+		// If not allowing all interfaces, restrict to loopback; otherwise listen on all interfaces
+		if allInet == false {
+			parameters.requiredInterfaceType = .loopback
+		}
 
 		listener = try NWListener(using: parameters, on: NWEndpoint.Port(integerLiteral: self.port))
 
@@ -177,6 +181,8 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		listener?.cancel()
 		listener = nil
 
+		stopFramebufferUpdates()
+
 		if self.connections.isEmpty == false {
 			connectionQueue.async {
 				self.connections.forEach {
@@ -213,39 +219,40 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		guard isRunning == false else {
 			return
 		}
-	
+
 		self.isRunning = true
 
-		let stream = AsyncStream<VNCFrameUpdateState>.makeStream(of: VNCFrameUpdateState.self)
-		let producer = (self.sourceView as? VNCFrameBufferProducer) ?? self.framebuffer
-		let checkIfImageIsChanged = producer.checkIfImageIsChanged
-
-		producer.startFramebufferUpdate(continuation: stream.continuation)
-
 		self.updateBufferTask = Task {
-			await withTaskCancellationHandler(operation: {
-				for await update in stream.stream {
-					switch update {
-					case .frame(let image):
-						await self.updateFramebufferRequest(cgImage: image, checkIfImageIsChanged: checkIfImageIsChanged)
-					case .cursor(let cursor):
-						await self.updateCursor(cursor: cursor)
-					case .cursorPosition(let pos):
-						await self.updateCursorPosition(cursorPosition: pos)
-					}
-				}
+			let stream = AsyncStream<VNCFrameUpdateState>.makeStream(of: VNCFrameUpdateState.self)
 
-				producer.stopFramebufferUpdate()
-			}, onCancel: {
-				stream.continuation.finish()
-			})
+			self.framebuffer.startFramebufferUpdate(continuation: stream.continuation)
+
+			await withTaskCancellationHandler(
+				operation: {
+					for await update in stream.stream {
+						switch update {
+						case .frame(let image):
+							await self.updateFramebufferRequest(cgImage: image)
+						case .cursor(let cursor):
+							await self.updateCursor(cursor: cursor)
+						case .cursorPosition(let pos):
+							await self.updateCursorPosition(cursorPosition: pos)
+						}
+					}
+
+					self.framebuffer.stopFramebufferUpdate()
+
+					self.isRunning = false
+					self.updateBufferTask = nil
+				},
+				onCancel: {
+					stream.continuation.finish()
+				})
 		}
 	}
 
 	private func stopFramebufferUpdates() {
-		self.isRunning = false
 		self.updateBufferTask?.cancel()
-		self.updateBufferTask = nil
 	}
 
 	private func sendCursorUpdate(connections: [VNCConnection], cursor: VNCCursor) async {
@@ -302,7 +309,7 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		}
 	}
 
-	private func updateFramebufferRequest(cgImage: CGImage, checkIfImageIsChanged: Bool) async {
+	private func updateFramebufferRequest(cgImage: CGImage) async {
 		let changedTiles = self.framebuffer.convertImageToTiles(cgImage: cgImage)
 		let connections = self.activeConnections.filter {
 			$0.sendFramebufferContinous

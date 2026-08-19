@@ -288,6 +288,12 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 
 	private let continuation: Mutex<AsyncStream<VNCFrameUpdateState>.Continuation?> = .init(nil)
 
+	#if DEBUG
+		deinit {
+			print("VNCVirtualMachineView deinit")
+		}
+	#endif
+
 	public var suppressFrameUpdates: Bool {
 		get {
 			guard let view = self.framebufferView else {
@@ -431,10 +437,6 @@ extension VNCVirtualMachineView {
 extension VNCVirtualMachineView: VNCFrameBufferProducer {
 	public var cursorPosition: NSPoint? {
 		self.currentCursorPositionInView()
-	}
-
-	public var checkIfImageIsChanged: Bool {
-		false
 	}
 
 	public var cgImage: CGImage? {

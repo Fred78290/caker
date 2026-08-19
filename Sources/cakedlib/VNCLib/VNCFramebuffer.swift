@@ -1,8 +1,8 @@
 import AppKit
+import CakeAgentLib
 import CryptoKit
 import Foundation
 import Synchronization
-import CakeAgentLib
 
 extension CGImageAlphaInfo {
 	var isFirst: Bool {
@@ -51,6 +51,12 @@ public class VNCFramebuffer {
 	private let logger = Logger("VNCFramebuffer")
 	private var timer: Timer? = nil
 
+	#if DEBUG
+	deinit {
+		print("VNCFramebuffer deinitialized")
+	}
+	#endif
+
 	public init(view: NSView) {
 		var cgImage: CGImage? = nil
 
@@ -86,7 +92,7 @@ public class VNCFramebuffer {
 		guard self.viewSize != size else { return false }
 
 		#if DEBUG
-		if size.width == 0 || size.height == 0 {
+			if size.width == 0 || size.height == 0 {
 				self.logger.debug("View size is zero, skipping frame capture.")
 			}
 		#endif
@@ -146,19 +152,20 @@ public class VNCFramebuffer {
 			} else {
 				var index = 0
 
-				return (self.tiles.compactMap { tile in
-					defer { index += 1 }
+				return (
+					self.tiles.compactMap { tile in
+						defer { index += 1 }
 
-					if tile != oldTiles[index] {
-						return tile
-					}
+						if tile != oldTiles[index] {
+							return tile
+						}
 
-					return nil
-				}, sizeChanged)
+						return nil
+					}, sizeChanged
+				)
 			}
 		}
 	}
-
 
 	/// Split the current framebuffer pixel data into 64x64 RGBA tiles.
 	/// - Returns: Array of Data, each tile is 64x64 pixels in RGBA (4 bytes per pixel). Edge tiles are smaller if width/height are not multiples of 64.
@@ -207,11 +214,11 @@ public class VNCFramebuffer {
 
 					// Next tile
 					startX += tileSize
-					tileSrcRowPtr = tileSrcRowPtr.advanced(by: srcTileRowSize) // tile * pixel size in byte
+					tileSrcRowPtr = tileSrcRowPtr.advanced(by: srcTileRowSize)  // tile * pixel size in byte
 				}
 
 				// Next band
-				srcRowPtr = srcRowPtr.advanced(by: srcTileStep) // bytesPerRow * tileSize
+				srcRowPtr = srcRowPtr.advanced(by: srcTileStep)  // bytesPerRow * tileSize
 			}
 		}
 
@@ -225,7 +232,7 @@ public class VNCFramebuffer {
 			return []
 		}
 
-		return Self.buildTiles(imageSource, tileSize: tileSize, width: cgImage.width, height: cgImage.height, bytesPerRow: cgImage.bytesPerRow, bytesPerPixel: cgImage.bitsPerPixel/8)
+		return Self.buildTiles(imageSource, tileSize: tileSize, width: cgImage.width, height: cgImage.height, bytesPerRow: cgImage.bytesPerRow, bytesPerPixel: cgImage.bitsPerPixel / 8)
 	}
 
 	func convertToClient(_ pixelData: Data, clientFormat: VNCPixelFormat?) -> Data {
@@ -239,64 +246,79 @@ public class VNCFramebuffer {
 
 // MARK: - VNCFrameBufferProducer
 extension VNCFramebuffer: VNCFrameBufferProducer {
-	public var checkIfImageIsChanged: Bool {
-		true
-	}
-
 	public var bitmapInfos: CGBitmapInfo {
-		guard let bitmapInof = self.cgImage?.bitmapInfo else {
-			return .byteOrderDefault
+		guard let producer = self.sourceView as? VNCFrameBufferProducer else {
+			guard let bitmapInof = self.cgImage?.bitmapInfo else {
+				return .byteOrderDefault
+			}
+
+			return bitmapInof
 		}
 
-		return bitmapInof
+		return producer.bitmapInfos
 	}
 
 	public var cgImage: CGImage? {
-		self.sourceView.image()?.cgImage
+		guard let producer = self.sourceView as? VNCFrameBufferProducer else {
+			return self.sourceView.image()?.cgImage
+		}
+
+		return producer.cgImage
 	}
 
 	public var cursor: NSCursor? {
-		self.sourceView.cursor
+		guard let producer = self.sourceView as? VNCFrameBufferProducer else {
+			return self.sourceView.cursor
+		}
+
+		return producer.cursor
 	}
 
 	public func startFramebufferUpdate(continuation: AsyncStream<VNCFrameUpdateState>.Continuation) {
-		let timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in
-			guard let self = self else {
-				return
-			}
+		guard let producer = self.sourceView as? VNCFrameBufferProducer else {
+			let sourceView = self.sourceView!
 
-			let bounds = self.sourceView.bounds
+			let timer = Timer(timeInterval: 1.0, repeats: true) { _ in
+				let bounds = sourceView.bounds
 
-			guard bounds.width != 0 && bounds.height != 0 else {
-				#if DEBUG
-					self.logger.debug("View size is zero, skipping frame capture.")
-				#endif
-				return
-			}
-
-			guard let cgImage = self.cgImage else {
-				guard let imageRepresentation = self.sourceView.imageRepresentationSync(in: bounds) else {
+				guard bounds.width != 0 && bounds.height != 0 else {
+					#if DEBUG
+						self.logger.debug("View size is zero, skipping frame capture.")
+					#endif
 					return
 				}
 
-				if let cgImage = imageRepresentation.cgImage {
-					continuation.yield(.frame(cgImage))
+				guard let cgImage = sourceView.image()?.cgImage else {
+					guard let imageRepresentation = sourceView.imageRepresentationSync(in: bounds) else {
+						return
+					}
+
+					if let cgImage = imageRepresentation.cgImage {
+						continuation.yield(.frame(cgImage))
+					}
+
+					return
 				}
 
-				return
+				continuation.yield(.frame(cgImage))
 			}
 
-			continuation.yield(.frame(cgImage))
+			RunLoop.main.add(timer, forMode: .common)
+
+			self.timer = timer
+
+			return
 		}
 
-		RunLoop.main.add(timer, forMode: .common)
-
-		self.timer = timer
+		producer.startFramebufferUpdate(continuation: continuation)
 	}
 
 	public func stopFramebufferUpdate() {
+		if let producer = self.sourceView as? VNCFrameBufferProducer {
+			producer.stopFramebufferUpdate()
+		}
+
 		self.timer?.invalidate()
 		self.timer = nil
 	}
 }
-
