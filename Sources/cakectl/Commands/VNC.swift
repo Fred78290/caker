@@ -24,7 +24,7 @@ struct VNC: GrpcParsableCommand {
 	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	var name: String
 
-	private func doVNC(_ vncURL: URL, client: CakedServiceClient, config: CakedConfiguration, screenSize: ViewSize, channel: Channel) {
+	private func doVNC(_ vncURL: URL, client: CakedServiceClient, config: CakedConfiguration, screenSize: ViewSize, tunnel: VNCTunnel) {
 		func vmStatus() -> Status {
 			if let result = try? client.info(name: self.name, includeConfig: false).vms.status {
 				if result.infos.status == .running || result.infos.status == .agentReady {
@@ -40,14 +40,13 @@ struct VNC: GrpcParsableCommand {
 				config: config,
 				vncURL: vncURL,
 				screenSize: screenSize,
+				tunnel: tunnel,
 				isDebugLoggingEnabled: vncDebug,
 				vmStatus: vmStatus)
 		} catch {
 			// Handle or log the error; the closure itself must not throw
 			fputs("VNC client failed to start: \(error)\n", stderr)
 		}
-
-		channel.close(promise: nil)
 	}
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
@@ -58,19 +57,19 @@ struct VNC: GrpcParsableCommand {
 			throw ValidationError(String(localized: "VM \(self.name) does not have VNC enabled"))
 		}
 
-		let (channel, port) = try client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name)
+		let tunnel = try client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name)
 		var components = URLComponents()
 
 		components.scheme = "vnc"
 		components.host = "127.0.0.1"
-		components.port = port
+		components.port = tunnel.localPort
 
 		if let password = vncURL.password {
 			components.password = password
 		}
 
 		if let vncURL = components.url {
-			self.doVNC(vncURL, client: client, config: CakedConfiguration(result.config), screenSize: screenSize, channel: channel)
+			self.doVNC(vncURL, client: client, config: CakedConfiguration(result.config), screenSize: screenSize, tunnel: tunnel)
 		}
 
 		return String.empty
