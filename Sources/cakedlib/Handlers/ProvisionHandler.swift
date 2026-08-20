@@ -188,7 +188,6 @@ public struct ProvisionHandler {
 				DispatchQueue.main.async {
 					Task.detached {
 						try await PackerLiteEngine.provision(
-							vm: vm,
 							targetView: targetView,
 							commands: template.preBootCommand,
 							resolvedBootTimeout: template.bootTimeout,

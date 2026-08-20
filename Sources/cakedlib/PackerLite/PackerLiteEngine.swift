@@ -20,14 +20,12 @@ public enum PackerLiteEngine {
 	public static let provisionedTerminatedNotification = NSNotification.Name("ProvisionedTerminatedNotification")
 
 	public static func provision(
-		vm: VirtualMachine,
 		targetView: NSView,
 		commands: BootCommandSteps,
 		resolvedBootTimeout: TimeInterval,
 		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
 	) async throws {
 		let logger = Logger("PackerLiteEngine")
-
 		let driver = await PackerLiteDriver(targetView: targetView)
 
 		try await withThrowingTaskGroup(of: Void.self) { group in
@@ -90,7 +88,6 @@ public enum PackerLiteEngine {
 		logger.info("VM \(location.name) started for provisioning")
 
 		try await Self.provision(
-			vm: vm,
 			targetView: view,
 			commands: commands,
 			resolvedBootTimeout: template.bootTimeout,
@@ -170,7 +167,6 @@ public enum PackerLiteEngine {
 		// Preboot for linux
 		if template.preBootCommand.isEmpty == false {
 			try await Self.provision(
-				vm: vm,
 				targetView: view,
 				commands: template.preBootCommand,
 				resolvedBootTimeout: template.bootTimeout,
