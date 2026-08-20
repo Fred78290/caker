@@ -265,7 +265,7 @@ extension UTType {
 	var vncURL: [URL]? = nil
 	var agentReady: Bool = false
 	var connection: VNCConnection! = nil
-	var vncChannel: Channel? = nil
+	var vncTunnel: VNCTunnel? = nil
 	var vncStatus: VncStatus = .disconnected
 	var documentSize: ViewSize = .zero
 	var launchVMExternally: Bool? = nil
@@ -476,9 +476,9 @@ extension VirtualMachineDocument {
 			connection.disconnect()
 		}
 
-		if let vncChannel = self.vncChannel {
-			self.vncChannel = nil
-			vncChannel.close(promise: nil)
+		if let vncTunnel = self.vncTunnel {
+			self.vncTunnel = nil
+			try? vncTunnel.close().wait()
 		}
 	}
 
@@ -1085,13 +1085,11 @@ extension VirtualMachineDocument {
 // MARK: - VirtualMachineDelegate
 extension VirtualMachineDocument: VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine) {
-		let virtualMachine = vm.virtualMachine
-
 		#if DEBUG
-			self.logger.debug("didChangedState: \(virtualMachine.state)")
+			self.logger.debug("didChangedState: \(vm.virtualMachine.state)")
 		#endif
 
-		guard let status = Status(rawValue: virtualMachine.state.rawValue) else {
+		guard let status = Status(rawValue: vm.virtualMachine.state.rawValue) else {
 			self.status = .none
 			return
 		}
@@ -1259,13 +1257,13 @@ extension VirtualMachineDocument {
 			let vncURL = vncURL.first!
 
 			if let client = self.connectionManager.serviceClient {
-				if let (channel, port) = try? client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name) {
-					self.vncChannel = channel
+				if let tunnel = try? client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name) {
+					self.vncTunnel = tunnel
 					var components = URLComponents()
 
 					components.scheme = "vnc"
 					components.host = "127.0.0.1"
-					components.port = port
+					components.port = tunnel.localPort
 
 					if let password = vncURL.password {
 						components.password = password

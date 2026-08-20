@@ -123,7 +123,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 	let password: String?
 	let vmStatus: VNCApp.VMStatusAction
 	let settings: RoyalVNCKit.VNCConnection.Settings
-	let tunnel: VNCTunnel
+	let tunnel: VNCTunnel?
 	var continuation: VncStatusStreamContinuation? = nil
 	var connection: RoyalVNCKit.VNCConnection! = nil
 	var vncView: NSVNCView? = nil
@@ -137,7 +137,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 		config: VirtualMachineConfiguration,
 		vncURL: URL,
 		screenSize: ViewSize,
-		tunnel: VNCTunnel,
+		tunnel: VNCTunnel?,
 		isDebugLoggingEnabled: Bool = false,
 		vmStatus: @escaping VNCApp.VMStatusAction
 	) throws {
@@ -180,7 +180,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 	}
 
 	func closeTunnel() {
-		try? tunnel.close().wait()
+		try? tunnel?.close().wait()
 	}
 
 	func tryVNCConnect() {
@@ -519,7 +519,7 @@ public struct VNCApp: App {
 		config: VirtualMachineConfiguration,
 		vncURL: URL,
 		screenSize: ViewSize,
-		tunnel: VNCTunnel,
+		tunnel: VNCTunnel?,
 		isDebugLoggingEnabled: Bool = false,
 		vmStatus: @escaping VMStatusAction
 	) throws {

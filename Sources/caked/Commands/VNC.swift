@@ -81,6 +81,7 @@ struct VNC: CakeAgentParsableCommand {
 				config: result.config,
 				vncURL: vncURL,
 				screenSize: screenSize,
+				tunnel: nil,
 				isDebugLoggingEnabled: vncDebug,
 				vmStatus: vmStatus)
 
