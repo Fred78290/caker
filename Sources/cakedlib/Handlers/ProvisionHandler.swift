@@ -187,11 +187,13 @@ public struct ProvisionHandler {
 			if template.preBootCommand.isEmpty == false {
 				DispatchQueue.main.async {
 					Task.detached {
+						progressHandler(.step(String(localized: "Starting pre-boot commands")))
 						try await PackerLiteEngine.provision(
 							targetView: targetView,
 							commands: template.preBootCommand,
 							resolvedBootTimeout: template.bootTimeout,
 							progressHandler: progressHandler)
+						progressHandler(.step(String(localized: "Pre-boot commands terminated")))
 					}
 				}
 			}
