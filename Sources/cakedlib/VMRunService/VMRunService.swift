@@ -9,17 +9,17 @@ import Virtualization
 public struct VNCInfos: Codable {
 	public var urls: [String] = []
 	public var screenSize: ViewSize? = nil
-	
+
 	public init() {
 		self.urls = []
 		self.screenSize = nil
 	}
-	
+
 	public init(urls: [URL], screenSize: (width: Int, height: Int)) {
 		self.urls = urls.map(\.absoluteString)
 		self.screenSize = .init(width: screenSize.width, height: screenSize.height)
 	}
-	
+
 	public init(urls: [String], screenSize: ViewSize?) {
 		self.urls = urls
 		self.screenSize = screenSize
@@ -117,7 +117,7 @@ public protocol VMRunServiceServerProtocol {
 public class NoneVMRunServiceServer: VMRunServiceServerProtocol {
 	public func serve() {
 	}
-	
+
 	public func stop() {
 	}
 }
@@ -137,7 +137,7 @@ public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgu
 
 	public func client(location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient? {
 		switch self {
-			
+
 		case .disabled:
 			return nil
 		case .grpc:

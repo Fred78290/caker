@@ -160,32 +160,32 @@ extension CakedServiceClient {
 private final class VNCTunnelHandler: ChannelInboundHandler, Identifiable {
 	typealias InboundIn = ByteBuffer
 	typealias OutboundOut = ByteBuffer
-	
+
 	public let id = UUID()
-	
+
 	private let client: CakedServiceClient
 	private let vmName: String
 	private let logger = Logger(label: "VNCTunnelHandler")
 	private var grpcStream: BidirectionalStreamingCall<Caked_Caked.VncStream, Caked_Caked.VncStream>! = nil
 	private let closeHandler: (VNCTunnelHandler) -> Void
-	
+
 	init(client: CakedServiceClient, vmName: String, closeHandler: @escaping (VNCTunnelHandler) -> Void) {
 		self.client = client
 		self.vmName = vmName
 		self.closeHandler = closeHandler
 	}
-	
+
 	func channelRegistered(context: ChannelHandlerContext) {
 		let channel = context.channel
-		
+
 		logger.debug("VNC client connected for VM '\(vmName)'")
-		
+
 		// Create gRPC call options with VM name header
 		let callOptions = CallOptions(
 			customMetadata: .init([("CAKEAGENT_VMNAME", vmName)]),
 			timeLimit: .none
 		)
-		
+
 		self.grpcStream = self.client.vncTunnel(callOptions: callOptions) { response in
 			if response.stream.isEmpty == false {
 				channel.eventLoop.execute {
@@ -194,16 +194,16 @@ private final class VNCTunnelHandler: ChannelInboundHandler, Identifiable {
 			}
 		}
 	}
-	
+
 	func channelRead(context: ChannelHandlerContext, data: NIOAny) {
 		let buffer = self.unwrapInboundIn(data)
-		
+
 		// Forward data from VNC client to gRPC stream
 		guard let stream = grpcStream else {
 			logger.warning("Received data but gRPC stream not ready")
 			return
 		}
-		
+
 		stream.sendMessage(
 			Caked_VncStream.with { message in
 				message.stream = Data(buffer.readableBytesView)
@@ -220,20 +220,20 @@ private final class VNCTunnelHandler: ChannelInboundHandler, Identifiable {
 			}
 		}
 	}
-	
+
 	func channelInactive(context: ChannelHandlerContext) {
 		logger.debug("VNC client disconnected for VM '\(vmName)'")
-		
+
 		self.closeHandler(self)
-		
+
 		guard let stream = grpcStream else {
 			return
 		}
-		
+
 		stream.sendEnd(promise: nil)
 		self.grpcStream = nil
 	}
-	
+
 	func errorCaught(context: ChannelHandlerContext, error: Error) {
 		logger.error("VNC tunnel error: \(error)")
 		context.close(promise: nil)
@@ -242,14 +242,14 @@ private final class VNCTunnelHandler: ChannelInboundHandler, Identifiable {
 	public func disconnect() -> EventLoopPromise<Void>? {
 		if let grpcStream {
 			let promise = grpcStream.eventLoop.makePromise(of: Void.self)
-			
+
 			grpcStream.sendEnd(promise: promise)
-			
+
 			self.grpcStream = nil
-			
+
 			return promise
 		}
-		
+
 		return nil
 	}
 }

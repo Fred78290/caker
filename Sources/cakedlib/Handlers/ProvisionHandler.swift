@@ -66,7 +66,7 @@ public struct ProvisionHandler {
 
 		private weak var chained: VirtualMachineDelegate?
 		private weak var vm :VirtualMachine!
-		
+
 		deinit {
 			self.vm.delegate = self.chained
 		}
@@ -104,11 +104,11 @@ public struct ProvisionHandler {
 				task.cancel()
 			}
 		}
-		
+
 		func didScreenshot(_ vm: VirtualMachine, screenshot: NSImage) {
 			self.chained?.didScreenshot(vm, screenshot: screenshot)
 		}
-		
+
 	}
 
 	@MainActor
