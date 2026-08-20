@@ -167,7 +167,9 @@ private final class VNCTunnelHandler: ChannelInboundHandler {
 				break // Successfully sent to gRPC stream
 			case .failure(let error):
 				self.logger.error("Failed to send VNC data to gRPC stream: \(error)")
-				self.errorCaught(context: context, error: error)
+				context.channel.eventLoop.execute {
+					self.errorCaught(context: context, error: error)
+				}
 			}
 		}
 	}
