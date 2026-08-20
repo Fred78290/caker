@@ -203,15 +203,6 @@ public struct ProvisionHandler {
 					vm.stopVncServer()
 				}
 
-				// Don't rely on didChangedState(true) -> stopGrandCentralUpdate() firing here: that
-				// chain only runs from inside _stopVM's completion handler, itself gated on
-				// virtualMachine.state == .running at the exact moment terminateVM's cancellation
-				// unwinds -- a real timing window (e.g. cancellation racing VM startup) where it's
-				// skipped entirely, leaking the VirtualMachine <-> GrandCentralUpdater cycle same as
-				// before that fix. Call it directly here, same as stopVncServer() above, so teardown
-				// doesn't depend on internal VM-state timing.
-				vm.stopGrandCentralUpdate()
-
 				MainActor.assumeIsolated {
 					vm.disposeWindow()
 				}
