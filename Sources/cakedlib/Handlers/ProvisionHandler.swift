@@ -274,7 +274,7 @@ public struct ProvisionHandler {
 		if let templateContent, let templateName {
 			// Write the provided template content to a file in the user's temporary directory
 			let tempDir = NSTemporaryDirectory()
-			let fullPath = URL(fileURLWithPath: (tempDir as NSString).appendingPathComponent(templateName))
+			let fullPath = URL(fileURLWithPath: (tempDir as NSString).appendingPathComponent("\(UUID())-\(templateName)"))
 
 			try templateContent.write(to: fullPath, atomically: true, encoding: .utf8)
 
