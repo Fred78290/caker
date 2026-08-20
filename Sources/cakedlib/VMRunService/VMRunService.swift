@@ -160,14 +160,20 @@ public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgu
 }
 
 class VMRunService: NSObject {
+	weak var vm: VirtualMachine!
 	let logger: Logger
 	let runMode: Utils.RunMode
-	let vm: VirtualMachine
 	let certLocation: CertificatesLocation
 	let group: EventLoopGroup
 
+#if DEBUG
+	deinit {
+		print("VMRunService deinit")
+	}
+#endif
+
 	var vncURL: VNCInfos? {
-		if let vncURL = vm.vncURL {
+		if let vncURL = self.vm.vncURL {
 			return VNCInfos(urls: vncURL, screenSize: vm.getScreenSize())
 		}
 
