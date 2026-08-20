@@ -52,14 +52,18 @@ public final class VNCTunnel {
 		let connections = self.connections.values
 
 		guard connections.isEmpty == false else {
-			return channel.eventLoop.makeSucceededVoidFuture()
+			return channel.close()
 		}
 
 		self.connections.removeAll()
 
-		return EventLoopFuture.andAllComplete(connections.compactMap{ handler in
+		var result = connections.compactMap{ handler in
 			handler.disconnect()?.futureResult
-		}, on: channel.eventLoop)
+		}
+
+		result.append(channel.close())
+
+		return EventLoopFuture.andAllComplete(result, on: channel.eventLoop)
 	}
 }
 
