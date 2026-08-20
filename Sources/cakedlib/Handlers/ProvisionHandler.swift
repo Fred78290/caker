@@ -62,7 +62,7 @@ public struct ProvisionHandler {
 	private final class ProvisionTask: Cancellable, VirtualMachineDelegate, @unchecked Sendable {
 		private var task: Task<Void, Error>? = nil
 		private var lastStatus: VMLocation.Status
-		private let handler: (_ runningIP: String) async -> Void
+		private let handler: () async -> Void
 
 		private weak var chained: VirtualMachineDelegate?
 		private weak var vm :VirtualMachine!
@@ -71,7 +71,7 @@ public struct ProvisionHandler {
 			self.vm.delegate = self.chained
 		}
 
-		init(vm: VirtualMachine, _ handler: @escaping (_ runningIP: String) async -> Void) {
+		init(vm: VirtualMachine, _ handler: @escaping () async -> Void) {
 			self.chained = vm.delegate
 			self.handler = handler
 			self.lastStatus = vm.status
@@ -80,9 +80,9 @@ public struct ProvisionHandler {
 			vm.delegate = self
 		}
 
-		func start(runningIP: String) {
+		func start() {
 			self.task = Task.detached {
-				await self.handler(runningIP)
+				await self.handler()
 
 				self.vm.delegate = self.chained
 				self.task = nil
@@ -183,21 +183,6 @@ public struct ProvisionHandler {
 				progressHandler(.infos(.init(vncURL: vncURL, screenSize: .init(vzMachineView.bounds.size), config: config)))
 			}
 
-			// Preboot command execution (if any) before starting the provisioning task
-			if template.preBootCommand.isEmpty == false {
-				DispatchQueue.main.async {
-					Task.detached {
-						progressHandler(.step(String(localized: "Starting pre-boot commands")))
-						try await PackerLiteEngine.provision(
-							targetView: targetView,
-							commands: template.preBootCommand,
-							resolvedBootTimeout: template.bootTimeout,
-							progressHandler: progressHandler)
-						progressHandler(.step(String(localized: "Pre-boot commands terminated")))
-					}
-				}
-			}
-
 			func destroyVM(_ error: Error?) {
 				if display == .all || display == .vnc {
 					vm.stopVncServer()
@@ -224,7 +209,7 @@ public struct ProvisionHandler {
 				}
 			}
 
-			let task = ProvisionTask(vm: vm) { runningIP in
+			let task = ProvisionTask(vm: vm) {
 				var catchableError: Error? = nil
 
 				defer {
@@ -232,6 +217,22 @@ public struct ProvisionHandler {
 				}
 
 				do {
+					if template.preBootCommand.isEmpty == false {
+						progressHandler(.step(String(localized: "Starting pre-boot commands")))
+						try await PackerLiteEngine.provision(
+							targetView: targetView,
+							commands: template.preBootCommand,
+							resolvedBootTimeout: template.bootTimeout,
+							progressHandler: progressHandler)
+						progressHandler(.step(String(localized: "Pre-boot commands terminated")))
+					}
+
+					guard let runningIP = try await address.get() else {
+						throw ServiceError(String(localized: "Unable to obtain an IP address for VM \(location.name)"))
+					}
+
+					logger.info("VM Machine \(location.name) is now available at \(runningIP)")
+
 					try await PackerLiteEngine.provision(
 						vm: vm,
 						template: template,
@@ -245,20 +246,7 @@ public struct ProvisionHandler {
 				}
 			}
 
-			// Start provisioning when we have an address (if any)
-			address.whenSuccess { ip in
-				if let ip {
-					logger.info("VM Machine \(location.name) is now available at \(ip)")
-
-					task.start(runningIP: ip)
-				} else {
-					destroyVM(ServiceError(String(localized: "Unable to obtain an IP address for VM \(location.name)")))
-				}
-			}
-
-			address.whenFailure { error in
-				destroyVM(error)
-			}
+			task.start()
 
 			return (handler, vm, task)
 		}
