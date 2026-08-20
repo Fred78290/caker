@@ -155,11 +155,19 @@ struct Provision: GrpcParsableCommand {
 					Task {
 						let resumed: Mutex<Bool> = Mutex(false)
 
-						func resume(_ infos: Caked_ProvisionStreamReply.ProvisionInfo?) {
+						func finish(_ result: Result<Caked_ProvisionStreamReply.ProvisionInfo?, Error>) {
 							resumed.withLock { resumed in
-								if resumed == false {
-									resumed = true
+								guard resumed == false else {
+									return
+								}
+
+								resumed = true
+
+								switch result {
+								case .success(let infos):
 									checkedContinuation.resume(returning: infos)
+								case .failure(let error):
+									checkedContinuation.resume(throwing: error)
 								}
 							}
 						}
@@ -182,13 +190,13 @@ struct Provision: GrpcParsableCommand {
 
 										_ = try await stream.status.get()
 
-										resume(nil)
+										finish(.success(nil))
 
 										logger.debug("Provisioning completed")
 									} catch {
 										logger.error("Provisioning failed: \(error)")
 
-										checkedContinuation.resume(throwing: error)
+										finish(.failure(error))
 									}
 								}
 
@@ -202,7 +210,7 @@ struct Provision: GrpcParsableCommand {
 											ProgressObserver.progressHandler(.substep(step))
 										} else if case .infos(let infos) = current {
 											// Resume the continuation as soon as we have enough info to launch VNC
-											resume(infos)
+											finish(.success(infos))
 										} else if case .provisioned(let provisioned) = current {
 											result = self.command.options.format.renderSingle(ProvisionedReply(provisioned))
 
@@ -243,7 +251,7 @@ struct Provision: GrpcParsableCommand {
 							}
 						} catch {
 							// Ensure the continuation is resumed even on error paths
-							checkedContinuation.resume(throwing: error)
+							finish(.failure(error))
 						}
 					}
 				}
