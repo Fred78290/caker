@@ -586,7 +586,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		return cdrom
 	}
 
-	#if DEBUG
+	#if TRACE
 		deinit {
 			print("Deinit virtual machine")
 		}
@@ -1677,7 +1677,7 @@ extension VirtualMachine: VNCServerDelegate {
 				framebufferView.frame = NSRect(origin: .zero, size: vmView.bounds.size)
 			}
 
-			#if DEBUG
+			#if TRACE
 				let window: NSWindow = VirtualMachineWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
 			#else
 				let window: NSWindow = NSWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)

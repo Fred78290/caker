@@ -78,7 +78,7 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		CFByteOrderGetCurrent() == CFByteOrderLittleEndian.rawValue
 	}
 
-	#if DEBUG
+	#if TRACE
 		deinit {
 			print("Deinitializing VNCServer")
 		}

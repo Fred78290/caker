@@ -278,7 +278,7 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 	static let defaultVMRunServicePort = 5000
 	var server: Server? = nil
 
-	#if DEBUG
+	#if TRACE
 		deinit {
 			print("GRPCVMRunService deinit")
 		}

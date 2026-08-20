@@ -51,10 +51,10 @@ public class VNCFramebuffer {
 	private let logger = Logger("VNCFramebuffer")
 	private var timer: Timer? = nil
 
-	#if DEBUG
-	deinit {
-		print("VNCFramebuffer deinitialized")
-	}
+	#if TRACE
+		deinit {
+			print("VNCFramebuffer deinitialized")
+		}
 	#endif
 
 	public init(view: NSView) {

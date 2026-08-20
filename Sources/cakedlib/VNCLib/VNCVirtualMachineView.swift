@@ -19,7 +19,7 @@ import Virtualization
 	@objc func framebufferDidUpdateColorSpace(_ framebuffer: NSObject)
 }
 
-#if DEBUG
+#if TRACE
 	open class VirtualMachineWindow: NSWindow {
 		deinit {
 			print("VirtualMachineWindow deinit")
@@ -301,7 +301,7 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 
 	private let continuation: Mutex<AsyncStream<VNCFrameUpdateState>.Continuation?> = .init(nil)
 
-	#if DEBUG
+	#if TRACE
 		deinit {
 			print("VNCVirtualMachineView deinit")
 		}
