@@ -1780,7 +1780,7 @@ extension VirtualMachine {
 	}
 
 	public func startGrandCentralUpdate(frequency: Int32, runMode: Utils.RunMode) async throws {
-		guard gcd == nil, self.config.agent else {
+		guard gcd == nil, self.config.agent, self.env.provisioning == false else {
 			return
 		}
 
