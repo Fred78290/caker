@@ -256,6 +256,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	}
 
 	func applicationWillTerminate(_ notification: Notification) {
+		if let location = MainApp.vm?.location {
+			location.removePID()
+		}
+
 		MainApp.cancellation?.cancel()
 	}
 
