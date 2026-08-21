@@ -430,11 +430,19 @@ public struct ServiceHandler {
 		}
 	}
 
+	private static var cachedAgentPID: [Utils.RunMode: Int32] = [:]
+
 	public static func isAgentRunning(runMode: Utils.RunMode) -> (running: Bool, agentURL: URL?, pid: Int32?) {
 		if let home = try? Home(runMode: runMode, createItIfNotExists: false) {
+			if let cached = cachedAgentPID[runMode] {
+				return (true, home.agentPID, cached)
+			}
+
 			let run = home.agentPID.isPIDRunning()
 
 			if run.running {
+				cachedAgentPID[runMode] = run.pid
+
 				return (true, home.agentPID, run.pid)
 			}
 
@@ -455,6 +463,7 @@ public struct ServiceHandler {
 				let parts = line.components(separatedBy: "=")
 				if parts.count == 2 && parts[0].trimmingCharacters(in: .whitespaces) == "pid" {
 					if let pid = Int32(parts[1].trimmingCharacters(in: .whitespaces)) {
+						cachedAgentPID[runMode] = pid
 						return (true, home.agentPID, pid)
 					}
 				}
