@@ -187,56 +187,8 @@ public struct VMBuilder {
 					config.osRelease = resolvedMacOSVersion.version
 
 					try config.save()
-
-					if options.autoinstall {
-						try await Task.sleep(nanoseconds: 2 * 100_000_000)
-
-						// Setup Assistant is driven unattended for every IPSW build: an explicit --template
-						// wins, otherwise the resolved macOS version above picks a built-in template. Resolve
-						// throws if neither works.
-						let content = try PackerLiteTemplateResolver.resolve(explicitPath: options.provisionTemplate, explicitVersion: explicitMacOSVersion, ipswURL: imageURL)
-
-						// The VM's account is already fully determined by --user/--password (see
-						// `configuredUser`/`configuredPassword` above) — reuse it here instead of
-						// letting the template declare its own, so there's exactly one source of truth.
-						var variables = options.provisionVarsDict
-
-						variables["username"] = config.configuredUser
-						variables["password"] = config.configuredPassword ?? "admin"
-
-						let template = try await PackerLiteTemplate.load(from: content, variables: variables)
-
-						try await PackerLiteEngine.provision(id: id, location: location, config: config, template: template, runMode: runMode) { progress in
-							progressHandler(progress.progressValue)
-						}
-					}
 				}
 			#endif
-
-			if imageSource == .iso && options.autoinstall {
-				// An explicit --template always wins; otherwise falls back to a built-in template for
-				// the distro auto-detected from the ISO filename/URL (see PackerLiteTemplateResolver).
-				// Resolves to nil, not an error, for platforms with no PackerLite template — Ubuntu
-				// (its own cloud-init/subiquity autoinstall handles this instead) or an unrecognized
-				// distro — in which case no provisioning runs unless --template was given.
-				let explicitTemplate = (options.provisionTemplate?.isEmpty == false) ? options.provisionTemplate : nil
-
-				if let content = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: explicitTemplate, imageURL: imageURL, desktop: config.osDesktop) {
-					// The VM's account is already fully determined by --user/--password (see
-					// `configuredUser`/`configuredPassword` above) — reuse it here instead of
-					// letting the template declare its own, so there's exactly one source of truth.
-					var variables = options.provisionVarsDict
-
-					variables["username"] = config.configuredUser
-					variables["password"] = config.configuredPassword ?? "admin"
-
-					let template = try await PackerLiteTemplate.load(from: content, variables: variables)
-
-					try await PackerLiteEngine.provision(id: id, location: location, config: config, template: template, runMode: runMode) { progress in
-						progressHandler(progress.progressValue)
-					}
-				}
-			}
 		}
 	}
 
