@@ -164,30 +164,30 @@ public enum PackerLiteEngine {
 
 		try await vm.startVM()
 
-		defer {
-			vm.stopFromUI()
-		}
+		try location.writePID()
+
+		FileManager.default.createFile(atPath: location.provisionningURL.path(percentEncoded: false), contents: nil)
 
 		guard let view = vm.vzMachineView else {
 			throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
 		}
 
-		func destroyVM(_ error: Error?) {
+		func destroyVM(_ error: Error?) async {
+			vm.stopVncServer()
+
+			await MainActor.run {
+				vm.disposeWindow()
+			}
+
 			if runInCaker {
 				if Self.provisioned.removeValue(forKey: id) != nil {
 					DispatchQueue.main.async {
 						NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm, userInfo: ["wizardID": id])
 					}
 				}
-			} else {
-				vm.stopVncServer()
 			}
 
-			MainActor.assumeIsolated {
-				vm.disposeWindow()
-			}
-
-			vm.terminateVM { _ in
+			vm.stopVM { _ in
 				if let error {
 					progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)"))))
 				} else {
@@ -209,9 +209,9 @@ public enum PackerLiteEngine {
 			let runningIP = try location.waitIPWithLease(config: config, wait: 180, runMode: runMode)
 
 			try await Self.provision(vm: vm, template: template, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
-			destroyVM(nil)
+			await destroyVM(nil)
 		} catch {
-			destroyVM(error)
+			await destroyVM(error)
 			throw error
 		}
 	}

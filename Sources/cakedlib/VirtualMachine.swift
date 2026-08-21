@@ -515,7 +515,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	private var installAgentRetryTask: Task<Void, Never>? = nil
 	private var cachedScreenshotSaveEnabled: Bool?
 	private var vmTask: Task<Int32, Never>? = nil
-	private let finalPromise = Utilities.group.next().makePromise(of: Void.self)
+	private var finalPromise: EventLoopPromise<Void>? = nil
 
 	public var suspendable: Bool {
 		return self.config.suspendable && self.config.os == .darwin
@@ -1045,6 +1045,10 @@ extension VirtualMachine {
 	}
 
 	private func start(_ mode: VMRunServiceMode, completionHandler: StartCompletionHandler? = nil) async throws {
+
+		let finalPromise = Utilities.group.next().makePromise(of: Void.self)
+
+		self.finalPromise = finalPromise
 		try self.env.startVMRunService(mode, vm: self)
 
 		#if arch(arm64)
@@ -1433,13 +1437,19 @@ extension VirtualMachine {
 					completionHandler(nil)
 				}
 
-				self.finalPromise.futureResult.cascade(to: promise)
+				self.finalPromise?.futureResult.cascade(to: promise)
 			}
 
 			self.vmTask = nil
 			vmTask.cancel()
 		} else if let completionHandler {
-			completionHandler(ServiceError("VM \(self.location.name) is not running"))
+			if self.virtualMachine.state == .running {
+				completionHandler(nil)
+			} else {
+				completionHandler(ServiceError("VM \(self.location.name) is not running"))
+			}
+
+			self.finalPromise?.succeed()
 		}
 	}
 

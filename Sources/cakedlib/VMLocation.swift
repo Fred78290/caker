@@ -249,14 +249,16 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	}
 
 	public var status: Status {
-		if FileManager.default.fileExists(atPath: self.provisionningURL.path(percentEncoded: false)) {
-			return .running(.provision)
-		}
-
 		switch self.isPIDRunning() {
 		case .caked:
+			if FileManager.default.fileExists(atPath: self.provisionningURL.path(percentEncoded: false)) {
+				return .running(.provision)
+			}
 			return .running(.caked)
 		case .caker:
+			if FileManager.default.fileExists(atPath: self.provisionningURL.path(percentEncoded: false)) {
+				return .running(.provision)
+			}
 			return .running(.caker)
 		case .provision:
 			return .running(.provision)
