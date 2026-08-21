@@ -500,6 +500,8 @@ extension Caked_VirtualMachineStatus: CustomStringConvertible {
 			String(localized: "unrecognized: \(value)")
 		case .new:
 			String(localized: "new")
+		case .provisioning:
+			String(localized: "provisioning")
 		}
 	}
 	

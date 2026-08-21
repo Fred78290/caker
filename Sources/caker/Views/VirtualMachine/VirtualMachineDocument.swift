@@ -156,6 +156,8 @@ extension UTType {
 				return "paused"
 			case .error:
 				return "error"
+			case .provisioning:
+				return "provisioning"
 			}
 		}
 
@@ -170,6 +172,7 @@ extension UTType {
 		case stopping = 7
 		case saving = 8
 		case restoring = 9
+		case provisioning = 10
 
 		init(_ from: CakeAgentLib.Status) {
 			switch from {
@@ -195,6 +198,8 @@ extension UTType {
 				self = .stopped
 			case .error:
 				self = .error
+			case .provisioning:
+				self = .provisioning
 			case .UNRECOGNIZED(_):
 				self = .none
 			}

@@ -27,6 +27,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		case none
 		case caked
 		case caker
+		case provision
 
 		init(_ from: String) {
 			switch from {
@@ -45,7 +46,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				return true
 			case .caker:
 				return ProcessInfo.processInfo.processName == Home.cakerCommandName
-			case .none:
+			case .none, .provision:
 				return false
 			}
 		}
@@ -54,7 +55,10 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	public enum Status: Sendable, Equatable, CustomStringConvertible {
 		public var description: String {
 			switch self {
-			case .running:
+			case .running(let mode):
+				if mode == .provision {
+					return "provisioning"
+				}
 				return "running"
 			case .paused:
 				return "paused"
@@ -178,6 +182,10 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		buildURL("output.log")
 	}
 
+	public var provisionningURL: URL {
+		buildURL("run.provision")
+	}
+
 	public func logURL(named fileName: String) -> URL? {
 		guard fileName.isEmpty == false else {
 			return nil
@@ -241,11 +249,17 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	}
 
 	public var status: Status {
+		if FileManager.default.fileExists(atPath: self.provisionningURL.path(percentEncoded: false)) {
+			return .running(.provision)
+		}
+
 		switch self.isPIDRunning() {
 		case .caked:
 			return .running(.caked)
 		case .caker:
 			return .running(.caker)
+		case .provision:
+			return .running(.provision)
 		case .none:
 			if FileManager.default.fileExists(atPath: stateURL.path(percentEncoded: false)) {
 				return .paused
@@ -520,19 +534,28 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 	public func isPIDRunning() -> VMRunMode {
 		let result = pidFile.isPIDRunning([Home.cakedCommandName, Home.cakerCommandName])
 
-		guard result.0 else {
+		guard result.running else {
 			return .none
 		}
 
-		return .init(result.1)
+		if let runningPID = result.pid {
+			if runningPID == getpid() {
+				return .provision
+			}
+
+			let running = ServiceHandler.isAgentRunning
+
+			if runningPID == running.pid {
+				return .provision
+			}
+		}
+
+		return .init(result.processName)
 	}
 
 	public func removePID() {
-		let pidFile = rootURL.appendingPathComponent("run.pid")
-
-		if FileManager.default.fileExists(atPath: pidFile.path(percentEncoded: false)) {
-			try? FileManager.default.removeItem(at: pidFile)
-		}
+		try? self.pidFile.delete()
+		try? self.provisionningURL.delete()
 	}
 
 	public func delete() throws {

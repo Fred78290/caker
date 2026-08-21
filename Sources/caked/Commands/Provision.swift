@@ -103,6 +103,8 @@ struct Provision: AsyncParsableCommand {
 		}
 
 		do {
+			FileManager.default.createFile(atPath: location.provisionningURL.path(percentEncoded: false), contents: nil)
+
 			let (handler, vm, cancellation) = try await CakedLib.ProvisionHandler.provision(
 				location: location,
 				storageLocation: storageLocation,

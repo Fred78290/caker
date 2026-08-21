@@ -711,6 +711,8 @@ struct HostVirtualMachineView: View {
 			return "VM is stopping"
 		case .restoring:
 			return "VM is restoring"
+		case .provisioning:
+			return "VM is provisioning"
 		}
 	}
 

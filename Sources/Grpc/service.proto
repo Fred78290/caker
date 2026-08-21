@@ -201,6 +201,7 @@ message Caked {
     error      = 4;
     agentReady = 5;
     new        = 6;
+    provisioning = 7;
   }
 
   message VncStream {

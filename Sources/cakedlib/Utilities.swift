@@ -750,10 +750,10 @@ extension URL: Purgeable {
 		return (false, String.empty, nil)
 	}
 
-	public func isPIDRunning(_ expectedProcessName: [String]) -> (Bool, String) {
+	public func isPIDRunning(_ expectedProcessName: [String]) -> (running: Bool, processName: String, pid: Int32?) {
 		let pid = self.isPIDRunning()
 
-		return (pid.0 && expectedProcessName.contains(pid.1), pid.1)
+		return (pid.running && expectedProcessName.contains(pid.processName), pid.processName, pid.pid)
 	}
 
 	public func isPIDRunning(_ expectedProcessName: String) -> Bool {
