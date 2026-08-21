@@ -119,31 +119,39 @@ public enum PackerLiteEngine {
 		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
 	) async throws {
 		let runInCaker = Bundle.runInCaker
+		let logger = Logger(self)
 
 		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
 
 		let vm = try await MainActor.run { () -> VirtualMachine in
+			let vncPassword = config.vncPassword ?? UUID().uuidString
 			let vm = try VirtualMachine(location: location,
 										config: config,
-										display: runInCaker ? .ui : .none,
+										display: runInCaker ? .ui : .vnc,
 										screenSize: config.display.cgSize,
 										recoveryMode: false,
 										provisioning: true,
 										runMode: runMode)
 
-			vm.createVirtualMachineView()
+			if runInCaker {
+				vm.createVirtualMachineView()
+			} else {
+				let vncURL = try vm.startVncServer(vncPassword: vncPassword, port: 0)
+
+				logger.info("VNC server started for provisioning VM \(location.name) at \(vncURL.map(\.absoluteString).joined(separator: ", "))")
+
+				guard let vzMachineView = vm.vzMachineView else {
+					throw ServiceError(String(localized: "Unable to get VZMachineView for VM \(location.name)"))
+				}
+
+				guard let vncURL = vncURL.first else {
+					throw ServiceError(String(localized: "Unable to get VNC URL for VM \(location.name)"))
+				}
+
+				progressHandler(.infos(.init(vncURL: vncURL, screenSize: .init(vzMachineView.bounds.size), config: config)))
+			}
 
 			return vm
-		}
-
-		defer {
-			if runInCaker {
-				if Self.provisioned.removeValue(forKey: id) != nil {
-					DispatchQueue.main.async {
-						NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm, userInfo: ["wizardID": id])
-					}
-				}
-			}
 		}
 
 		if runInCaker {
@@ -164,17 +172,47 @@ public enum PackerLiteEngine {
 			throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
 		}
 
-		// Preboot for linux
-		if template.preBootCommand.isEmpty == false {
-			try await Self.provision(
-				targetView: view,
-				commands: template.preBootCommand,
-				resolvedBootTimeout: template.bootTimeout,
-				progressHandler: progressHandler)
+		func destroyVM(_ error: Error?) {
+			if runInCaker {
+				if Self.provisioned.removeValue(forKey: id) != nil {
+					DispatchQueue.main.async {
+						NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm, userInfo: ["wizardID": id])
+					}
+				}
+			} else {
+				vm.stopVncServer()
+			}
+
+			MainActor.assumeIsolated {
+				vm.disposeWindow()
+			}
+
+			vm.terminateVM { _ in
+				if let error {
+					progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)"))))
+				} else {
+					progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: true, reason: String(localized: "Provisioning success for VM \(location.name)"))))
+				}
+			}
 		}
 
-		let runningIP = try location.waitIPWithLease(config: config, wait: 180, runMode: runMode)
+		do {
+			// Preboot for linux
+			if template.preBootCommand.isEmpty == false {
+				try await Self.provision(
+					targetView: view,
+					commands: template.preBootCommand,
+					resolvedBootTimeout: template.bootTimeout,
+					progressHandler: progressHandler)
+			}
 
-		try await Self.provision(vm: vm, template: template, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
+			let runningIP = try location.waitIPWithLease(config: config, wait: 180, runMode: runMode)
+
+			try await Self.provision(vm: vm, template: template, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
+			destroyVM(nil)
+		} catch {
+			destroyVM(error)
+			throw error
+		}
 	}
 }
