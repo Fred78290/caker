@@ -1656,7 +1656,6 @@ extension VirtualMachine: VNCServerDelegate {
 			return
 		}
 
-		vmWindow.contentView = nil
 		self.env.vzMachineWindow = nil
 
 		DispatchQueue.main.async {
