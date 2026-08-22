@@ -1287,7 +1287,7 @@ struct VirtualMachineWizard: View {
 				(tunnel, vncURL) = try createVncTunnel(infos)
 			}
 
-			self.vncState = try VNCConnectionAppState(
+			let vncState = try VNCConnectionAppState(
 				name: self.config.vmname,
 				config: infos.config,
 				vncURL: vncURL,
@@ -1301,6 +1301,9 @@ struct VirtualMachineWizard: View {
 
 			self.provisioningRemoteVM = true
 			self.provisionInfos = infos
+			self.vncState = vncState
+
+			vncState.tryVNCConnect()
 		} catch {
 			alertError("VNC Failed", error.reason)
 		}
