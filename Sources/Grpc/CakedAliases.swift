@@ -303,7 +303,7 @@ extension TunnelAttachement {
 	}
 }
 
-public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifiable, Hashable {
+public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifiable, Hashable, Sendable {
 	public var id: URL {
 		self.locationURL
 	}

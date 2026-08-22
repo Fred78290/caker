@@ -4262,6 +4262,14 @@ public nonisolated struct Caked_Caked: Sendable {
           set {current = .step(newValue)}
         }
 
+        public var substep: String {
+          get {
+            if case .substep(let v)? = current {return v}
+            return String()
+          }
+          set {current = .substep(newValue)}
+        }
+
         public var builded: Caked_Caked.Reply.VirtualMachineReply.BuildedReply {
           get {
             if case .builded(let v)? = current {return v}
@@ -4270,13 +4278,23 @@ public nonisolated struct Caked_Caked: Sendable {
           set {current = .builded(newValue)}
         }
 
+        public var provision: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.ProvisionInfo {
+          get {
+            if case .provision(let v)? = current {return v}
+            return Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.ProvisionInfo()
+          }
+          set {current = .provision(newValue)}
+        }
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public nonisolated enum OneOf_Current: Equatable, Sendable {
           case progress(Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue)
           case terminated(Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply)
           case step(String)
+          case substep(String)
           case builded(Caked_Caked.Reply.VirtualMachineReply.BuildedReply)
+          case provision(Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.ProvisionInfo)
 
         }
 
@@ -13014,7 +13032,7 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply
 
 nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".BuildStreamReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}progress\0\u{1}step\0\u{1}terminated\0\u{1}builded\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}progress\0\u{1}terminated\0\u{1}step\0\u{1}substep\0\u{1}builded\0\u{1}provision\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -13036,14 +13054,6 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: Sw
         }
       }()
       case 2: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.current != nil {try decoder.handleConflictingOneOf()}
-          self.current = .step(v)
-        }
-      }()
-      case 3: try {
         var v: Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply?
         var hadOneofValue = false
         if let current = self.current {
@@ -13056,7 +13066,23 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: Sw
           self.current = .terminated(v)
         }
       }()
+      case 3: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.current != nil {try decoder.handleConflictingOneOf()}
+          self.current = .step(v)
+        }
+      }()
       case 4: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.current != nil {try decoder.handleConflictingOneOf()}
+          self.current = .substep(v)
+        }
+      }()
+      case 5: try {
         var v: Caked_Caked.Reply.VirtualMachineReply.BuildedReply?
         var hadOneofValue = false
         if let current = self.current {
@@ -13067,6 +13093,19 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: Sw
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
           self.current = .builded(v)
+        }
+      }()
+      case 6: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.ProvisionInfo?
+        var hadOneofValue = false
+        if let current = self.current {
+          hadOneofValue = true
+          if case .provision(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.current = .provision(v)
         }
       }()
       default: break
@@ -13084,17 +13123,25 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: Sw
       guard case .progress(let v)? = self.current else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }()
-    case .step?: try {
-      guard case .step(let v)? = self.current else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
-    }()
     case .terminated?: try {
       guard case .terminated(let v)? = self.current else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .step?: try {
+      guard case .step(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    }()
+    case .substep?: try {
+      guard case .substep(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
     }()
     case .builded?: try {
       guard case .builded(let v)? = self.current else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    }()
+    case .provision?: try {
+      guard case .provision(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
     }()
     case nil: break
     }

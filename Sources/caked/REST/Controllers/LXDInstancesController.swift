@@ -768,6 +768,9 @@ struct LXDInstancesController: RouteCollection {
 					await LXDOperationStore.shared.complete(id: opID, success: true, description: description)
 				}
 			}
+
+		case .provision(let info):
+			return "Provisioning: \(info.vncURL)"
 		}
 
 		return currentMessage

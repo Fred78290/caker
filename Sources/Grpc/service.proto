@@ -968,10 +968,12 @@ message Caked {
 
       message BuildStreamReply {
         oneof current {
-          BuildProgressValue   progress   = 1;
-          BuildTerminatedReply terminated = 3;
-          string               step       = 2;
-          BuildedReply         builded    = 4;
+          BuildProgressValue                 progress   = 1;
+          BuildTerminatedReply               terminated = 2;
+          string                             step       = 3;
+          string                             substep    = 4;
+          BuildedReply                       builded    = 5;
+          ProvisionStreamReply.ProvisionInfo provision  = 6;
         }
       }
 

@@ -148,7 +148,7 @@ public enum PackerLiteEngine {
 					throw ServiceError(String(localized: "Unable to get VNC URL for VM \(location.name)"))
 				}
 
-				progressHandler(.infos(.init(vncURL: vncURL, screenSize: .init(vzMachineView.bounds.size), config: config)))
+				progressHandler(.infos(.init(vncURL: vncURL, screenSize: .init(vzMachineView.bounds.size), config: CakedConfiguration(config))))
 			}
 
 			return vm

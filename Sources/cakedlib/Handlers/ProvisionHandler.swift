@@ -13,28 +13,11 @@ import NIO
 import Virtualization
 
 public struct ProvisionHandler {
-	public struct ProvisionInfo: Sendable {
-		public let vncURL: URL
-		public let screenSize: ViewSize
-		public let config: CakeConfig
-
-		public var caked: Caked_ProvisionStreamReply.ProvisionInfo {
-			.with {
-				$0.vncURL = vncURL.absoluteString
-				$0.config = config.caked
-				$0.screenSize = .with {
-					$0.width = Int32(screenSize.width)
-					$0.height = Int32(screenSize.height)
-				}
-			}
-		}
-	}
-
 	public enum ProgressValue: Sendable {
 		case progress(ProgressObserver.ProgressHandlerContext, Double)
 		case step(String)
 		case substep(String)
-		case infos(ProvisionInfo)
+		case infos(ProgressObserver.ProvisionInfo)
 		case provisioned(ProvisionedReply)
 
 		public var progressValue: ProgressObserver.ProgressValue {
@@ -46,7 +29,7 @@ public struct ProvisionHandler {
 			case .substep(let value):
 				return .substep(value)
 			case .infos(let value):
-				return .substep(String(localized: "VNC started on \(value.vncURL.absoluteString)"))
+				return .provision(value)
 			case .provisioned(let provisioned):
 				if provisioned.provisioned {
 					return .terminated(.success(provisioned), nil)
@@ -180,7 +163,7 @@ public struct ProvisionHandler {
 
 				targetView = vzMachineView
 
-				progressHandler(.infos(.init(vncURL: vncURL, screenSize: .init(vzMachineView.bounds.size), config: config)))
+				progressHandler(.infos(.init(vncURL: vncURL, screenSize: .init(vzMachineView.bounds.size), config: CakedConfiguration(config))))
 			}
 
 			func destroyVM(_ error: Error?) {

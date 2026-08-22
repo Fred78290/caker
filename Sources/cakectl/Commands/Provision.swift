@@ -61,6 +61,7 @@ struct Provision: GrpcParsableCommand {
 					vncURL: vncURL,
 					screenSize: screenSize,
 					tunnel: tunnel,
+					allowClientResize: false,
 					isDebugLoggingEnabled: command.vncDebug,
 					vmStatus: handlerStatus)
 			} catch {
@@ -126,6 +127,8 @@ struct Provision: GrpcParsableCommand {
 						ProgressObserver.progressHandler(.step(step))
 					} else if case .substep(let step) = current {
 						ProgressObserver.progressHandler(.substep(step))
+					} else if case .infos(let infos) = current {
+						ProgressObserver.progressHandler(.provision(.init(infos)))
 					} else if case .provisioned(let provisioned) = current {
 						result = command.options.format.renderSingle(ProvisionedReply(provisioned))
 

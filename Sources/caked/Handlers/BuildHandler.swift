@@ -100,6 +100,14 @@ struct BuildHandler: CakedCommandAsync {
 							try await responseStream.send(.with {
 								$0.step = message
 							})
+						} else if case .substep(let message) = progress {
+							try await responseStream.send(.with {
+								$0.substep = message
+							})
+						} else if case .provision(let message) = progress {
+							try await responseStream.send(.with {
+								$0.provision = message.caked
+							})
 						}
 					}
 					

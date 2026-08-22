@@ -9,12 +9,12 @@ import CakeAgentLib
 import Foundation
 import NIOPortForwarding
 
-public enum VirtualizedOS: String, Codable {
+public enum VirtualizedOS: String, Codable, Sendable {
 	case darwin
 	case linux
 }
 
-public enum Architecture: String, Codable, CustomStringConvertible, Identifiable {
+public enum Architecture: String, Codable, CustomStringConvertible, Identifiable, Sendable {
 	public var description: String {
 		switch self {
 		case .arm64:
@@ -119,7 +119,7 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 	}
 }
 
-public enum SupportedDiskFormat: String, Identifiable, Codable, Hashable, CustomStringConvertible, ExpressibleByArgument, CaseIterable {
+public enum SupportedDiskFormat: String, Identifiable, Codable, Hashable, Sendable, CustomStringConvertible, ExpressibleByArgument, CaseIterable {
 
 	public var id: String {
 		self.rawValue
@@ -202,7 +202,7 @@ public enum SupportedDiskFormat: String, Identifiable, Codable, Hashable, Custom
 	}
 }
 
-public enum SupportedPlatform: String, Codable, CaseIterable {
+public enum SupportedPlatform: String, Codable, CaseIterable, Sendable {
 	case ubuntu
 	case centos
 	case macos

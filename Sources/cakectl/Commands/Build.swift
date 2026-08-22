@@ -42,6 +42,10 @@ struct Build: AsyncGrpcParsableCommand {
 					ProgressObserver.progressHandler(.progress(context, progress.fractionCompleted))
 				} else if case .step(let step) = current {
 					ProgressObserver.progressHandler(.step(step))
+				} else if case .substep(let step) = current {
+					ProgressObserver.progressHandler(.substep(step))
+				} else if case .provision(let info) = current {
+					ProgressObserver.progressHandler(.provision(.init(info)))
 				} else if case .terminated(let status) = current {
 					if case .success(let v)? = status.result {
 						ProgressObserver.progressHandler(.terminated(.success(self.buildOptions.name), v))
