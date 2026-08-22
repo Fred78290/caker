@@ -191,23 +191,7 @@ struct WizardVirtualMachineView: NSViewRepresentable {
 			fatalError("No virtual machine view")
 		}
 
-		let view = NSView(frame: vzMachineView.bounds)
-		view.wantsLayer = true
-		view.layer?.cornerRadius = 10
-		view.layer?.masksToBounds = true
-
-		view.addSubview(vzMachineView)
-		// Use Auto Layout to scale-fit the subview to its container
-		vzMachineView.translatesAutoresizingMaskIntoConstraints = false
-		vzMachineView.automaticallyReconfiguresDisplay = false
-		NSLayoutConstraint.activate([
-			vzMachineView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-			vzMachineView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-			vzMachineView.topAnchor.constraint(equalTo: view.topAnchor),
-			vzMachineView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-		])
-
-		return view
+		return vzMachineView
 	}
 
 	public func updateNSView(_ nsView: NSViewType, context: Context) {
@@ -456,8 +440,6 @@ struct VirtualMachineWizard: View {
 			VStack(spacing: 12) {
 				if let provisionnedVM = self.provisionnedVM {
 					WizardVirtualMachineView(provisionnedVM)
-						.padding(20)
-						.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 						.disabled(true)
 				} else if let vncState = self.vncState {
 					GeometryReader { geom in
@@ -472,8 +454,6 @@ struct VirtualMachineWizard: View {
 			VStack(spacing: 12) {
 				if let provisionnedVM = self.provisionnedVM {
 					WizardVirtualMachineView(provisionnedVM)
-						.padding(10)
-						.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 						.disabled(true)
 				} else if let vncState = self.vncState {
 					GeometryReader { geom in
