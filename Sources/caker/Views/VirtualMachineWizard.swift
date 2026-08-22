@@ -391,6 +391,7 @@ struct VirtualMachineWizard: View {
 			if self.isMyNotification(notification) {
 				self.model.createVM = false
 				self.model.createVMMessage = String.empty
+				self.model.createVMSubtitle = String.empty
 
 				if let error = notification.object as? Error {
 					alertError(error)
