@@ -51,7 +51,7 @@ public class VNCFramebuffer {
 	private let logger = Logger("VNCFramebuffer")
 	private var timer: Timer? = nil
 
-	#if TRACE
+	#if TRACE_DEINIT
 		deinit {
 			print("VNCFramebuffer deinitialized")
 		}

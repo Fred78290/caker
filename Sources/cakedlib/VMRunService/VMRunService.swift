@@ -166,7 +166,7 @@ class VMRunService: NSObject {
 	let certLocation: CertificatesLocation
 	let group: EventLoopGroup
 
-#if TRACE
+#if TRACE_DEINIT
 	deinit {
 		print("VMRunService deinit")
 	}

@@ -202,6 +202,12 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 	}
 
+#if TRACE_DEINIT
+	deinit {
+		print("VirtualMachineEnvironment deallocated")
+	}
+#endif
+
 	@MainActor
 	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, provisioning: Bool, recoveryMode: Bool, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable && config.os == .darwin
@@ -588,7 +594,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		return cdrom
 	}
 
-	#if TRACE
+	#if TRACE_DEINIT
 		deinit {
 			print("Deinit virtual machine")
 		}
@@ -1690,7 +1696,7 @@ extension VirtualMachine: VNCServerDelegate {
 				framebufferView.frame = NSRect(origin: .zero, size: vmView.bounds.size)
 			}
 
-			#if TRACE
+			#if TRACE_DEINIT
 				let window: NSWindow = VirtualMachineWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
 			#else
 				let window: NSWindow = NSWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
