@@ -231,6 +231,9 @@ struct VirtualMachineWizard: View {
 	@State private var diskSizeValueIsInvalid = false
 	@State private var allowsOverrideMinimumResources = false
 	@State private var provisionnedVM: VirtualMachine? = nil
+	@State private var provisioningRemoteVM: Bool = false
+	@State private var provisionInfos: ProgressObserver.ProvisionInfo? = nil
+	@State private var vncState: VNCConnectionAppState? = nil
 
 	private let wizardID = UUID()
 	private let listHeight: CGFloat = 460
@@ -455,6 +458,10 @@ struct VirtualMachineWizard: View {
 						.padding(20)
 						.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 						.disabled(true)
+				} else if let vncState = self.vncState {
+					GeometryReader { geom in
+						vncState.view(geom.size)
+					}
 				} else {
 					TabBar()
 				}
@@ -467,6 +474,10 @@ struct VirtualMachineWizard: View {
 						.padding(10)
 						.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 						.disabled(true)
+				} else if let vncState = self.vncState {
+					GeometryReader { geom in
+						vncState.view(geom.size)
+					}
 				} else {
 					Content(currentStep: self.model.currentStep)
 				}
@@ -1252,6 +1263,49 @@ struct VirtualMachineWizard: View {
 		}.formStyle(.grouped).disabled(self.model.createVM)
 	}
 
+	func createVncTunnel(_ infos: ProgressObserver.ProvisionInfo) throws -> (VNCTunnel, URL) {
+		let tunnel = try self.connectionManager.serviceClient!.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.config.vmname)
+		var components = URLComponents()
+
+		components.scheme = "vnc"
+		components.host = "127.0.0.1"
+		components.port = tunnel.localPort
+
+		if let password = infos.vncURL.password {
+			components.password = password
+		}
+
+		return (tunnel, components.url!)
+	}
+
+	func doVNC(_ infos: ProgressObserver.ProvisionInfo) {
+		var vncURL = infos.vncURL
+		var tunnel: VNCTunnel? = nil
+
+		do {
+			if self.connectionManager.connectionMode == .remote {
+				(tunnel, vncURL) = try createVncTunnel(infos)
+			}
+
+			self.vncState = try VNCConnectionAppState(
+				name: self.config.vmname,
+				config: infos.config,
+				vncURL: vncURL,
+				screenSize: infos.screenSize,
+				tunnel: tunnel,
+				allowClientResize: false,
+				isDebugLoggingEnabled: false
+			) {
+				self.provisioningRemoteVM ? .running : .stopped
+			}
+
+			self.provisioningRemoteVM = true
+			self.provisionInfos = infos
+		} catch {
+			alertError("VNC Failed", error.reason)
+		}
+	}
+
 	func forwardPortsView() -> some View {
 		Form {
 			Section("Forwarded ports") {
@@ -1371,6 +1425,11 @@ struct VirtualMachineWizard: View {
 					NotificationCenter.default.post(name: Self.ProgressCreateVirtualMachine, object: fractionCompleted, userInfo: ["wizardID": self.wizardID])
 
 				case .terminated(let result, let message):
+					self.provisionnedVM = nil
+					self.provisioningRemoteVM = false
+					self.provisionInfos = nil
+					self.vncState = nil
+
 					if case .failure(let error) = result {
 						NotificationCenter.default.post(name: Self.FailCreateVirtualMachine, object: error, userInfo: ["message": message ?? String.empty, "wizardID": self.wizardID])
 					} else if case .success(let vmURL) = result {
@@ -1386,6 +1445,8 @@ struct VirtualMachineWizard: View {
 					NotificationCenter.default.post(name: Self.ProgressTitleCreateVirtualMachine, object: message, userInfo: ["wizardID": self.wizardID])
 				case .substep(let message):
 					NotificationCenter.default.post(name: Self.ProgressSubtitleCreateVirtualMachine, object: message, userInfo: ["wizardID": self.wizardID])
+				case .provision(let infos):
+					self.doVNC(infos)
 				}
 			}
 		}
@@ -1490,5 +1551,5 @@ struct VirtualMachineWizard: View {
 }
 
 #Preview {
-	VirtualMachineWizard()
+	VirtualMachineWizard(connectionManager: ConnectionManager.appConnectionManager)
 }
