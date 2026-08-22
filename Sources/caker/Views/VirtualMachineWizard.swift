@@ -236,6 +236,7 @@ struct VirtualMachineWizard: View {
 	private let listHeight: CGFloat = 460
 	private let fromPreset: Bool
 	private let presetImage: String
+	private let connectionManager: ConnectionManager
 
 	var sheet: Bool = false
 
@@ -266,8 +267,9 @@ struct VirtualMachineWizard: View {
 		return "\(first)-\(second)"
 	}
 
-	init(sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil) {
+	init(connectionManager: ConnectionManager, sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil) {
 		self.sheet = sheet
+		self.connectionManager = connectionManager
 
 		if let presetTemplate {
 			var config = VirtualMachineConfig()

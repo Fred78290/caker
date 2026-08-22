@@ -547,7 +547,7 @@ struct MainApp: App {
 	}
 
 	func newDocWizard() -> some View {
-		VirtualMachineWizard()
+		VirtualMachineWizard(connectionManager: self.appState.connectionManager)
 			.colorSchemeForColor()
 			.restorationState(.disabled)
 			.frame(size: CGSize(width: 700, height: 610))
