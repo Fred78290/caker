@@ -41,6 +41,7 @@ struct VNC: GrpcParsableCommand {
 				vncURL: vncURL,
 				screenSize: screenSize,
 				tunnel: tunnel,
+				allowClientResize: true,
 				isDebugLoggingEnabled: vncDebug,
 				vmStatus: vmStatus)
 		} catch {
