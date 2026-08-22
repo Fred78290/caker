@@ -278,16 +278,18 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 
 		if provisioning == false {
-			communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+			if location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
+				communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+			}
+
+			if location.template == false && runMode != .app {
+				sigcaught = [SIGINT, SIGUSR1, SIGUSR2].reduce(into: sigcaught) { partialResult, sig in
+					partialResult[sig] = DispatchSource.makeSignalSource(signal: sig)
+				}
+			}
 		}
 
 		try configuration.validate()
-
-		if runMode != .app {
-			sigcaught = [SIGINT, SIGUSR1, SIGUSR2].reduce(into: [Int32: DispatchSourceSignal]()) { partialResult, sig in
-				partialResult[sig] = DispatchSource.makeSignalSource(signal: sig)
-			}
-		}
 
 		self.location = location
 		self.config = config
@@ -301,7 +303,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		self.recoveryMode = recoveryMode
 		self.provisioning = provisioning
 
-		if let communicationDevices = communicationDevices, location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
+		if let communicationDevices = communicationDevices {
 			communicationDevices.delegate = self
 		}
 	}
@@ -1192,17 +1194,19 @@ extension VirtualMachine {
 	}
 
 	private func catchUserSignals(_ task: Task<Int32, Never>) {
-		self.env.sigcaught[SIGINT]!.setEventHandler {
+		guard self.env.provisioning == false else { return }
+
+		self.env.sigcaught[SIGINT]?.setEventHandler {
 			task.cancel()
 		}
 
-		self.env.sigcaught[SIGUSR1]!.setEventHandler {
+		self.env.sigcaught[SIGUSR1]?.setEventHandler {
 			self.pauseVM { result in
 				task.cancel()
 			}
 		}
 
-		self.env.sigcaught[SIGUSR2]!.setEventHandler {
+		self.env.sigcaught[SIGUSR2]?.setEventHandler {
 			if self.env.requestStopFromUIPending == false {
 				try? self.requestStopVM()
 			}
@@ -1249,7 +1253,7 @@ extension VirtualMachine {
 
 		self.vmTask = task
 
-		if self.location.template == false && self.env.runMode != .app {
+		if self.location.template == false && self.env.provisioning == false && self.env.runMode != .app {
 			self.catchUserSignals(task)
 		}
 
