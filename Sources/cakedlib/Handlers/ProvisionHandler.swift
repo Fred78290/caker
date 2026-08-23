@@ -48,7 +48,7 @@ public struct ProvisionHandler {
 		private let handler: () async -> Void
 
 		private weak var chained: VirtualMachineDelegate?
-		private weak var vm :VirtualMachine!
+		private weak var vm: VirtualMachine!
 
 		deinit {
 			self.vm.delegate = self.chained
@@ -325,7 +325,7 @@ public struct ProvisionHandler {
 			// Prefer an explicit --macos-version override; otherwise fall back to whatever `build`
 			// already detected and stored in config.osName (see VMBuilder.swift).
 			let explicitMacOSVersion: MacOSVersion? =
-				macosVersion.flatMap { MacOSVersion(rawValue: $0.rawValue) } ?? config.osName.flatMap { MacOSVersion(rawValue: $0) }
+				macosVersion.flatMap { MacOSVersion(rawValue: $0.rawValue) } ?? config.osName.flatMap { MacOSVersion(argument: $0) } ?? config.osRelease.flatMap { MacOSVersion(osRelease: $0) }
 
 			// No real IPSW file at hand for an already-installed VM — filename-based detection is a
 			// no-op here, so this resolves purely from --template / the version determined above.
