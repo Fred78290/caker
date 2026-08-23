@@ -18,22 +18,22 @@ boot_timeout: 45m
 boot_command:
   - title: Wait hello, hola, bonjour, etc.
     commands:
-      - <locate timeout=30 text="Get Started">
+      - <locate timeout=60 text="Continue">
       - <spacebar>
 
   - title: Select Language
     commands:
-      - <locate timeout=30 text='https://www.apple.com/'>
+      - <locate timeout=60 text='https://www.apple.com/'>
       - italiano
       - <esc>
       - english
       - <down>
       - <enter>
+      - <wait20s>
 
   - title: Select Your Country or Region
     commands:
-      - <click timeout=30 text='Select Your Country or Region'>
-      - <wait5s>
+      - <click timeout=60 text='Select Your Country or Region'>
       - united states
       - <leftShiftOn>
       - <tab>
@@ -42,7 +42,8 @@ boot_command:
 
   - title: Transfer Your Data to This Mac
     commands:
-      - <locate timeout=30 text='Transfer Your Data to This Mac'>
+      - <locate timeout=60 text='Transfer Your Data to This Mac'>
+      - <wait1s>
       - <tab repeat=3>
       - <spacebar>
       - <tab repeat=2>
@@ -51,6 +52,7 @@ boot_command:
   - title: Written and Spoken Languages
     commands:
       - <locate text='Written and Spoken Languages'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -62,7 +64,8 @@ boot_command:
 
   - title: Accessibility
     commands:
-      - <locate timeout=30 text='Accessibility'>
+      - <locate timeout=60 text='Accessibility'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -70,7 +73,8 @@ boot_command:
 
   - title: Data & Privacy
     commands:
-      - <locate timeout=30 text='Data & Privacy'>
+      - <locate timeout=60 text='Data & Privacy'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -78,7 +82,9 @@ boot_command:
 
   - title: Create a Mac Account
     commands:
-      - <locate timeout=30 text='Create a Mac Account'>
+      - <locate timeout=60 text='Create a Mac Account'>
+      - <wait1s>
+      - <tab repeat=6>
       - Managed via Caker
       - <tab>
       - ${var.username}
@@ -86,23 +92,25 @@ boot_command:
       - ${var.password}
       - <tab>
       - ${var.password}
-      - <tab>
-      - <tab>
+      - <tab repeat=2>
       - <spacebar>
-      - <tab>
-      - <tab>
+      - <tab repeat=2>
       - <spacebar>
       - <locate timeout=60 text='Sign In to Your Apple Account'>
+      - <wait1s>
+      - <locate timeout=60 text='Email or Phone Number'>
+      - <wait1s>
+      - <locate timeout=60 text='Other Sign'>
+      - <wait1s>
 
   - title: Enable Voice Over
     commands:
-      - <wait120s>
       - <leftAltOn>
       - <fnOn>
       - <f5>
       - <fnOff>
       - <leftAltOff>
-      - <wait10s>
+      - <wait5s>
 
   - title: Sign In with Your Apple ID
     commands:
@@ -115,13 +123,15 @@ boot_command:
 
   - title: Are you sure you want to skip signing in with an Apple ID?
     commands:
+      - <locate timeout=60 text='Skip'>
       - <wait1s>
       - <tab>
       - <spacebar>
 
   - title: Terms and Conditions
     commands:
-      - <locate timeout=30 text='Terms and Conditions'>
+      - <locate timeout=60 text='Terms and Conditions'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -136,13 +146,15 @@ boot_command:
     # Age Range -> Adult
   - title: Age Range -> Adult
     commands:
-      - <locate timeout=30 text='Age Range'>
+      - <locate timeout=60 text='Age Range'>
+      - <wait1s>
       - <tab repeat=3>
       - <spacebar>
 
   - title: Enable Location Services
     commands:
-      - <locate timeout=30 text='Enable Location Services'>
+      - <locate timeout=60 text='Enable Location Services'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -156,18 +168,18 @@ boot_command:
 
   - title: Select Your Time Zone
     commands:
-      - <locate timeout=30 text='Select Your Time Zone'>
+      - <locate timeout=60 text='Select Your Time Zone'>
+      - <wait1s>
       - <tab repeat=3>
       - UTC
       - <enter>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
+      - <tab repeat=2>
       - <spacebar>
 
   - title: Analytics
     commands:
-      - <locate timeout=30 text='Analytics'>
+      - <locate timeout=60 text='Analytics'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -175,13 +187,15 @@ boot_command:
 
   - title: Screen Time
     commands:
-      - <locate timeout=30 text='Screen Time'>
+      - <locate timeout=60 text='Screen Time'>
+      - <wait1s>
       - <tab repeat=2>
       - <spacebar>
 
   - title: Siri
     commands:
       - <skipNotFound timeout=10 text='Siri'>
+      - <wait1s>
       - <tab>
       - <spacebar>
       - <leftShiftOn>
@@ -191,7 +205,8 @@ boot_command:
     
   - title: Your Mac is Ready for FileVault
     commands:
-      - <locate timeout=30 text='Your Mac is Ready for FileVault'>
+      - <locate timeout=60 text='Your Mac is Ready for FileVault'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab repeat=2>
       - <leftShiftOff>
@@ -205,7 +220,8 @@ boot_command:
 
   - title: Choose Your Look
     commands:
-      - <locate timeout=30 text='Choose Your Look'>
+      - <locate timeout=60 text='Choose Your Look'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -213,18 +229,27 @@ boot_command:
 
   - title: Update Mac Automatically
     commands:
-      - <locate timeout=30 text='Update Mac Automatically'>
-      - <tab>
+      - <locate timeout=60 text='Update Mac Automatically'>
+      - <wait1s>
+      - <tab repeat=2>
       - <spacebar>
+
+  - title: Disable Voice Over
+    commands:
+      - <leftAltOn>
+      - <fnOn>
+      - <f5>
+      - <fnOff>
+      - <leftAltOff>
 
   - title: Welcome to Mac
     commands:
-      - <wait10s>
+      - <locate timeout=60 text="Get Started">
       - <spacebar>
 
   - title: Now that the installation is done, open "Applications folder"
     commands:
-      - <wait2s>
+      - <wait10s>
       - <leftAltOn>
       - <leftShiftOn>
       - a
@@ -240,6 +265,7 @@ boot_command:
   - title: Navigate to Sharing
     commands:
       - <locate text='Software Update'>
+      - <wait1s>
       - <leftCtrlOn>
       - <fnOn>
       - <f2>
@@ -250,23 +276,43 @@ boot_command:
       - Sharing
       - <enter>
 
+  - title: Enable Voice Over
+    commands:
+      - <leftAltOn>
+      - <fnOn>
+      - <f5>
+      - <fnOff>
+      - <leftAltOff>
+      - <wait5s>
+      - v
+
   - title: Navigate to "Screen Sharing" and enable it
     commands:
       - <locate text='Screen Sharing'>
+      - <wait2s>
       - <tab repeat=5>
       - <spacebar>
 
   - title: Type in the password to allow enabling Screen Sharing
     commands:
-      - <wait2s>
+      - <wait5s>
       - ${var.password}
       - <enter>
 
   - title: Navigate to "Remote Login" and enable it
     commands:
-      - <wait1s>
+      - <wait2s>
       - <tab repeat=12>
       - <spacebar>
+
+  - title: Disable Voice Over
+    commands:
+      - <leftAltOn>
+      - <fnOn>
+      - <f5>
+      - <fnOff>
+      - <leftAltOff>
+      - <wait5s>
 
   - title: Quit System Settings
     commands:
