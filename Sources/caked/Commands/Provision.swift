@@ -90,7 +90,7 @@ struct Provision: AsyncParsableCommand {
 
 		promise.futureResult.whenComplete { _ in
 			DispatchQueue.main.async {
-				NSApp.terminate(self)
+				NSApplication.shared.terminate(self)
 			}
 		}
 
