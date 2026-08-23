@@ -31,6 +31,11 @@ public struct BuildHandler {
 			let template = try await PackerLiteTemplate.load(from: content, variables: variables)
 
 			try await PackerLiteEngine.provision(id: options.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
+				// Don't produce a terminated message here, because the VM is still running after provisioning completes — the caller will produce a terminated message when the VM is stopped.
+				if case .provisioned(_) = progress {
+					return
+				}
+
 				progressHandler(progress.progressValue)
 			}
 		} else if options.imageSource == .iso {
@@ -53,6 +58,11 @@ public struct BuildHandler {
 				let template = try await PackerLiteTemplate.load(from: content, variables: variables)
 
 				try await PackerLiteEngine.provision(id: options.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
+					// Don't produce a terminated message here, because the VM is still running after provisioning completes — the caller will produce a terminated message when the VM is stopped.
+					if case .provisioned(_) = progress {
+						return
+					}
+
 					progressHandler(progress.progressValue)
 				}
 			}
