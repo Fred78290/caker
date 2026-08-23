@@ -434,16 +434,20 @@ public struct ServiceHandler {
 
 	public static func isAgentRunning(runMode: Utils.RunMode) -> (running: Bool, agentURL: URL?, pid: Int32?) {
 		if let home = try? Home(runMode: runMode, createItIfNotExists: false) {
-			if let cached = cachedAgentPID[runMode] {
-				return (true, home.agentPID, cached)
-			}
-
-			let run = home.agentPID.isPIDRunning()
+			let run = home.agentPID.isPIDRunning([Home.cakedCommandName])
 
 			if run.running {
 				cachedAgentPID[runMode] = run.pid
 
 				return (true, home.agentPID, run.pid)
+			}
+
+			if let cached = cachedAgentPID[runMode] {
+				if let running = try? processExist(pid_t(cached)), running.running {
+					return (true, home.agentPID, cached)
+				}
+							
+				cachedAgentPID.removeValue(forKey: runMode)
 			}
 
 			let domain: String
