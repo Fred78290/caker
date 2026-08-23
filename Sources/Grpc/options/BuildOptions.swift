@@ -33,8 +33,26 @@ public enum MacOSVersion: String, CaseIterable, ExpressibleByArgument, Sendable 
 		}
 	}
 	
+	public init?(osRelease: String) {
+		let value = osRelease.split(separator: ".").first.flatMap {
+			if var version = Int($0) {
+				version -= 12
+				if version >= 0 && version < MacOSVersion.allCases.count {
+					return MacOSVersion.allCases[version]
+				}
+			}
+			return nil
+		}
+		
+		if let value {
+			self = value
+		} else {
+			return nil
+		}
+	}
+
 	public init?(_ from: Caked_MacOSVersion) throws {
-		switch from {			
+		switch from {
 		case .macos12:
 			self = .macos12
 		case .macos13:
