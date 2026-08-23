@@ -524,6 +524,10 @@ final class PackerLiteDriver: @unchecked Sendable {
 	@MainActor private func click(_ nsPoint: CGPoint) {
 		logger.debug("clickText \(nsPoint)")
 
+		#if DEBUG
+		showDebugBox(CGRect(origin: nsPoint, size: CGSize(width: 4, height: 4)), in: self.targetView.bounds.size)
+		#endif
+
 		self.handlePointerEvent(nsPoint, buttonMask: 0x01)
 		self.handlePointerEvent(nsPoint, buttonMask: 0x00)
 	}
