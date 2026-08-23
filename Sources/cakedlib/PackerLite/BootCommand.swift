@@ -55,7 +55,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			case .press(let key, let repeated): return "press \(key) x\(repeated)"
 			case .modifierOn(let modifier): return "modifier on \(modifier)"
 			case .modifierOff(let modifier): return "modifier off \(modifier)"
-			case .click(let point): return "click \(point)"
+			case .click(let point): return "click \(Int(point.x))x\(Int(point.y))"
 			case .clickText(let text, let timeout): return "clickText \(text) x\(timeout)s"
 			case .locate(let text, let timeout): return "locate \(text) x\(timeout)s"
 			case .skipNotFound(let text, let timeout): return "skipNotFound \(text) x\(timeout)s"
