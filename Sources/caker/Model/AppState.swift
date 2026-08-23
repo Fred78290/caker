@@ -165,6 +165,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	private(set) var connectionMode: ConnectionManager.ConnectionMode = .app
 	private(set) var isStopped: Bool = true
 	private(set) var isSuspendable: Bool = false
+	private(set) var isProvisioning: Bool = false
 	private(set) var isRunning: Bool = false
 	private(set) var isPaused: Bool = false
 	private(set) var remotes: [RemoteEntry] = []
