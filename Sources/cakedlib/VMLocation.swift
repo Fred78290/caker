@@ -86,6 +86,14 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		case paused
 		case stopped
 
+		public var isProvisioning: Bool {
+			if case .running(.provision) = self {
+				return true
+			} else {
+				return false
+			}
+		}
+
 		public var isRunning: Bool {
 			if case .running = self {
 				return true

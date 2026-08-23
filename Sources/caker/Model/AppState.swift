@@ -266,12 +266,14 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			self.isRunning = currentDocument.status == .running || currentDocument.status == .starting
 			self.isPaused = currentDocument.status == .paused || currentDocument.status == .pausing
 			self.isSuspendable = currentDocument.status == .running && currentDocument.suspendable
+			self.isProvisioning = currentDocument.status == .provisioning
 		} else {
 			self.isAgentInstalling = false
 			self.isStopped = true
 			self.isRunning = false
 			self.isPaused = false
 			self.isSuspendable = false
+			self.isProvisioning = false
 		}
 	}
 

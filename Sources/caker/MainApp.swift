@@ -403,26 +403,26 @@ struct MainApp: App {
 		CommandMenu("Control") {
 			Button("Start") {
 				appState.currentDocument.startFromUI()
-			}.disabled(self.appState.isRunning || self.appState.currentDocument == nil)
+			}.disabled(self.appState.isRunning || self.appState.isProvisioning || self.appState.currentDocument == nil)
 
 			Button("Stop") {
 				appState.currentDocument.stopFromUI(force: true)
-			}.disabled(self.appState.isStopped || self.appState.isAgentInstalling || self.appState.currentDocument == nil)
+			}.disabled(self.appState.isStopped || self.appState.isAgentInstalling || self.appState.isProvisioning || self.appState.currentDocument == nil)
 
 			Button("Request stop") {
 				appState.currentDocument.stopFromUI(force: false)
-			}.disabled(self.appState.isStopped || self.appState.isAgentInstalling || self.appState.currentDocument == nil)
+			}.disabled(self.appState.isStopped || self.appState.isAgentInstalling || self.appState.isProvisioning || self.appState.currentDocument == nil)
 
 			if #available(macOS 14, *) {
 				Button("Suspend") {
 					self.appState.currentDocument.suspendFromUI()
-				}.disabled(!self.appState.isSuspendable || self.appState.isAgentInstalling || self.appState.currentDocument == nil)
+				}.disabled(!self.appState.isSuspendable || self.appState.isAgentInstalling || self.appState.isProvisioning || self.appState.currentDocument == nil)
 			}
 
 			Button("Create template") {
 				createTemplate = true
 			}
-			.disabled(self.appState.isRunning || self.appState.currentDocument == nil)
+			.disabled(self.appState.isRunning || self.appState.isProvisioning || self.appState.currentDocument == nil)
 			.alert("Create template", isPresented: $createTemplate) {
 				CreateTemplateView()
 			}

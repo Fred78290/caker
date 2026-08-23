@@ -298,18 +298,36 @@ extension UTType {
 				return
 			}
 
-			if let virtualMachine = self.virtualMachine?.virtualMachine {
-				self.canStart = virtualMachine.canStart
-				self.canStop = virtualMachine.canStop
-				self.canPause = virtualMachine.canPause
-				self.canResume = virtualMachine.canResume
-				self.canRequestStop = virtualMachine.canRequestStop
+			if let vm = self.virtualMachine {
+				if vm.status.isProvisioning {
+					self.canStart = false
+					self.canStop = false
+					self.canPause = false
+					self.canResume = false
+					self.canRequestStop = false
+				} else {
+					let virtualMachine = vm.virtualMachine
+
+					self.canStart = virtualMachine.canStart
+					self.canStop = virtualMachine.canStop
+					self.canPause = virtualMachine.canPause
+					self.canResume = virtualMachine.canResume
+					self.canRequestStop = virtualMachine.canRequestStop
+				}
 			} else {
-				self.canStart = status == .stopped || status == .paused
-				self.canStop = status == .running
-				self.canPause = status == .running
-				self.canResume = status == .paused
-				self.canRequestStop = status == .running
+				if status == .provisioning {
+					self.canStart = false
+					self.canStop = false
+					self.canPause = false
+					self.canResume = false
+					self.canRequestStop = false
+				} else {
+					self.canStart = status == .stopped || status == .paused
+					self.canStop = status == .running
+					self.canPause = status == .running
+					self.canResume = status == .paused
+					self.canRequestStop = status == .running
+				}
 			}
 
 			MainApp.app?.updateStateVirtualMachineDocument(with: self)
