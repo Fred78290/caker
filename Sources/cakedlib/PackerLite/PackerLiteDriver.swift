@@ -84,7 +84,8 @@ final class PackerLiteDriver: @unchecked Sendable {
 	private var currentKeyTranslator: any KeyLayoutTranslator
 
 	/// Delay between synthesized key events, so the guest OS doesn't drop rapid-fire input.
-	private static let keyDelayNanoseconds: UInt64 = 30_000_000
+	private static let keyDelayNanoseconds: UInt64 = 100_000_000
+	private static let stepDelayNanoseconds: UInt64 = 250_000_000
 	/// How long clickText retries OCR before giving up, in case the screen is still rendering.
 	public static let clickTextTimeout: TimeInterval = 10
 	private static let clickTextPollNanoseconds: UInt64 = 500_000_000
@@ -233,7 +234,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 			currentKeyTranslator = layout
 		}
 
-		try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+		try await Task.sleep(nanoseconds: Self.stepDelayNanoseconds)
 
 		return true
 	}
@@ -269,7 +270,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 
 			self.handleKeySpecialEvent(keyCode, isDown: false)
-			try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
+			try await Task.sleep(nanoseconds: Self.stepDelayNanoseconds)
 		}
 	}
 
