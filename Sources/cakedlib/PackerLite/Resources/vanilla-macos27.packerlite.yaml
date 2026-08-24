@@ -30,6 +30,15 @@ boot_command:
       - <down>
       - <enter>
 
+  - title: Select Your Country or Region
+    commands:
+      - <click timeout=60 text='Select Your Country or Region'>
+      - united states
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
   - title: Transfer Your Data to This Mac
     commands:
       - <locate timeout=60 text='Transfer Your Data to This Mac'>
