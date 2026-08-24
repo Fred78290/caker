@@ -17,12 +17,12 @@ boot_timeout: 45m
 
 boot_command:
   - title: Wait hello, hola, bonjour, etc.
-    commands: 
-      - <wait10s>
+    commands:
+      - <locate timeout=60 text="Continue">
       - <spacebar>
 
   - title: Select Language
-    commands: 
+    commands:
       - <locate timeout=30 text='https://www.apple.com/'>
       - italiano
       - <esc>
@@ -30,174 +30,212 @@ boot_command:
       - <down>
       - <enter>
 
-  - title: Select Your Country and Region
-    commands: 
-      - <click timeout=30 text='Select Your Country or Region'>
-      - <wait5s>
-      - united states
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
+  - title: Transfer Your Data to This Mac
+    commands:
+      - <locate timeout=60 text='Transfer Your Data to This Mac'>
+      - <wait1s>
+      - <tab repeat=3>
+      - <spacebar>
+      - <tab repeat=2>
       - <spacebar>
 
   - title: Written and Spoken Languages
-    commands: 
+    commands:
       - <locate text='Written and Spoken Languages'>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <spacebar>
-
-  - title: Change keyboard
-    commands: 
-      - <skipNotFound timeout=10 text='Changekeyboard'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
       - <spacebar>
 
   - title: Select keyboard layout
-    commands: 
+    commands:
       - <keyboard 'com.apple.keylayout.US'>
 
   - title: Accessibility
-    commands: 
-      - <locate text='Accessibility'>
+    commands:
+      - <locate timeout=60 text='Accessibility'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
       - <spacebar>
 
   - title: Data & Privacy
-    commands: 
-      - <locate text='Data & Privacy'>
+    commands:
+      - <locate timeout=60 text='Data & Privacy'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
       - <spacebar>
 
-  - title: Migration Assistant
-    commands: 
-      - <locate text='Migration Assistant'>
+  - title: Create a Mac Account
+    commands:
+      - <locate timeout=60 text='Create a Mac Account'>
+      - <wait1s>
+      - <tab repeat=6>
+      - Managed via Caker
+      - <tab>
+      - ${var.username}
+      - <tab>
+      - ${var.password}
+      - <tab>
+      - ${var.password}
       - <tab repeat=3>
       - <spacebar>
+      - <locate timeout=60 text='Sign In to Your Apple Account'>
+      - <wait1s>
+      - <locate timeout=60 text='Email or Phone Number'>
+      - <wait1s>
+      - <locate timeout=60 text='Other Sign'>
+      - <wait1s>
+
+  - title: Enable Voice Over
+    commands:
+      - <leftAltOn>
+      - <fnOn>
+      - <f5>
+      - <fnOff>
+      - <leftAltOff>
+      - <wait5s>
 
   - title: Sign In with Your Apple ID
-    commands: 
-      - <locate timeout=60 text='Sign In with Your Apple ID'>
+    commands:
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
+      - <spacebar>
+      - <up>
       - <spacebar>
 
   - title: Are you sure you want to skip signing in with an Apple ID?
-    commands: 
-      - <wait2s>
+    commands:
+      - <locate timeout=60 text='Skip'>
+      - <wait1s>
       - <tab>
       - <spacebar>
 
   - title: Terms and Conditions
-    commands: 
-      - <locate timeout=30 text='Terms and Conditions'>
+    commands:
+      - <locate timeout=60 text='Terms and Conditions'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
       - <spacebar>
 
   - title: I have read and agree to the macOS Software License Agreement
-    commands: 
-      - <wait2s>
+    commands:
+      - <locate timeout=60 text='I have read and agree'>
       - <tab>
       - <spacebar>
 
-  - title: Create a Computer Account
-    commands: 
-      - <locate text='Create a Computer Account'>
-      - ${var.username}
+    # Age Range -> Adult
+  - title: Age Range -> Adult
+    commands:
+      - <locate timeout=60 text='Age Range'>
+      - <wait1s>
+      - <tab repeat=3>
+      - <spacebar>
+
+  - title: Choose Your Look
+    commands:
+      - <locate timeout=60 text='Choose Your Look'>
+      - <wait1s>
+      - <leftShiftOn>
       - <tab>
-      - <tab>
-      - ${var.password}
-      - <tab>
-      - ${var.password}
-      - <tab>
-      - <tab>
-      - <tab>
+      - <leftShiftOff>
       - <spacebar>
 
   - title: Enable Location Services
-    commands: 
-      - <locate timeout=30 text='Enable Location Services'>
+    commands:
+      - <locate timeout=60 text='Enable Location Services'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
       - <spacebar>
 
   - title: Are you sure you don't want to use Location Services?
-    commands: 
-      - <wait2s>
+    commands:
+      - <locate timeout=60 text='Use location Services'>
+      - <wait1s>
       - <tab>
       - <spacebar>
 
   - title: Select Your Time Zone
-    commands: 
-      - <locate timeout=30 text='Select Your Time Zone'>
-      - <tab>
+    commands:
+      - <locate timeout=60 text='Select Your Time Zone'>
+      - <wait1s>
+      - <tab repeat=3>
       - UTC
       - <enter>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
+      - <tab repeat=2>
       - <spacebar>
 
   - title: Analytics
-    commands: 
-      - <locate timeout=30 text='Analytics'>
+    commands:
+      - <locate timeout=60 text='Analytics'>
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
       - <spacebar>
 
   - title: Screen Time
-    commands: 
-      - <locate timeout=30 text='Screen Time'>
-      - <tab>
-      - <spacebar>
-
-  - title: Siri
-    commands: 
-      - <skipNotFound timeout=10 text='Siri'>
-      - <tab>
-      - <spacebar>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <spacebar>
-
-  - title: Choose Your Look
-    commands: 
-      - <locate timeout=30 text='Choose Your Look'>
-      - <leftShiftOn>
-      - <tab>
-      - <leftShiftOff>
-      - <spacebar>
-
-  - title: Enable Voice Over
     commands:
-      - <wait10s>
+      - <locate timeout=60 text='Screen Time'>
+      - <wait1s>
+      - <tab repeat=2>
+      - <spacebar>
+
+  - title: Your Mac is Ready for FileVault
+    commands:
+      - <locate timeout=60 text='Your Mac is Ready for FileVault'>
+      - <wait1s>
+      - <leftShiftOn>
+      - <tab repeat=2>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Mac Data Will Not Be Securely Encrypted
+    commands:
+      - <locate timeout=60 text='Cancel'>
+      - <tab>
+      - <spacebar>
+
+  - title: Update Mac Automatically
+    commands:
+      - <locate timeout=60 text='Update Mac Automatically'>
+      - <wait1s>
+      - <tab repeat=2>
+      - <spacebar>
+
+  - title: Liquid Glass
+    commands:
+      - <locate timeout=60 text="Liquid Glass">
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Disable Voice Over
+    commands:
       - <leftAltOn>
       - <fnOn>
       - <f5>
       - <fnOff>
       - <leftAltOff>
-      - <wait2s>
-      - v
+
+  - title: Welcome to Mac
+    commands:
+      - <locate timeout=60 text="Get Started">
+      - <spacebar>
 
   - title: Now that the installation is done, open "Applications folder"
     commands:
-      - <wait2s>
+      - <wait10s>
       - <leftAltOn>
       - <leftShiftOn>
       - a
@@ -210,55 +248,53 @@ boot_command:
       - o
       - <leftAltOff>
 
-  - title: Navigate to "Sharing"
-    commands: 
-      - <locate text='Appearance'>
-      - General
-      - <wait1s>
-      - <tab repeat=8>
-      - <wait1s>
-      - <spacebar>
-
-  - title: Navigate to "Screen Sharing" and enable it
-    commands: 
-      - <locate text='Screen Sharing'>
-      - <tab repeat=2>
-      - <spacebar>
+  - title: Wait System Preferences to open
+    commands:
+      - <locate text='Software Update'>
       - <wait1s>
 
-  - title: Navigate to "Remote Login" and enable it
-    commands: 
-      - <tab repeat=6>
-      - <spacebar>
-      - <wait1s>
-
-  - title: Enable "Full Disk Access"
-    commands: 
-      - <tab>
-      - <spacebar>
-
-  - title: Click "Done"
-    commands: 
-      - <locate text='Administrators'>
-      - <tab>
-      - <spacebar>
-      - <leftShiftOn>
-      - <tab repeat=2>
-      - <leftShiftOff>
-      - <spacebar>
-      - <wait1s>
-
-  - title: Quit System Settings
-    commands: 
-      - <leftAltOn>
-      - q
-      - <leftAltOff>
-
-  - title: Disable Voice Over
-    commands: 
+  - title: Enable Voice Over
+    commands:
       - <leftAltOn>
       - <fnOn>
       - <f5>
       - <fnOff>
       - <leftAltOff>
+      - <locate text='Welcome to VoiceOver'>
       - <wait1s>
+      - v
+
+  - title: Navigate to Sharing
+    commands:
+      - <tab repeat=11>
+      - <spacebar>
+      - <tab repeat=5>
+      - <spacebar>
+
+  - title: Type in the password to allow enabling Screen Sharing
+    commands:
+      - <locate text='Enter your password to continue'>
+      - ${var.password}
+      - <enter>
+
+  - title: Navigate to "Remote Login" and enable it
+    commands:
+      - <wait1s>
+      - <tab repeat=12>
+      - <spacebar>
+
+  - title: Disable Voice Over
+    commands:
+      - <leftAltOn>
+      - <fnOn>
+      - <f5>
+      - <fnOff>
+      - <leftAltOff>
+      - <wait5s>
+
+  - title: Quit System Settings
+    commands:
+      - <wait5s>
+      - <leftAltOn>
+      - q
+      - <leftAltOff>
