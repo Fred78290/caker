@@ -5,26 +5,26 @@
 //  Created by Frederic BOLTZ on 17/01/2026.
 //
 import AppKit
-import Foundation
-import QuartzCore
-import GRPCLib
-import SwiftUI
 import Carbon
+import Foundation
+import GRPCLib
+import QuartzCore
+import SwiftUI
 
 extension CGEvent {
 	var dumpEvent: String {
 		var parts: [String] = []
-		
+
 		parts.append("CGEvent: {")
 		parts.append("  flags: \(self.flags)")
 		parts.append("  type: \(self.type)")
 		parts.append("  location: \(self.location)")
 		parts.append("  timestamp: \(self.timestamp)")
-		
+
 		parts.append("  CGEventFields: {")
 		for field in CGEventField.allCases {
 			let value = self.getDoubleValueField(field)
-			
+
 			if value != 0 {
 				if let field = CGEventField.names[field] {
 					parts.append("    \(field): \(value)")
@@ -35,7 +35,7 @@ extension CGEvent {
 		}
 		parts.append("  }")
 		parts.append("}")
-		
+
 		return parts.joined(separator: ",\n")
 	}
 }
@@ -56,7 +56,7 @@ extension NSEvent.ModifierFlags: @retroactive CustomStringConvertible {
 
 		return result.joined(separator: ", ")
 	}
-	
+
 	public var keyCodes: [CGKeyCode] {
 		var result: [CGKeyCode] = []
 
@@ -347,23 +347,68 @@ extension NSEvent {
 			parts.append("  timestamp: \(cgEvent.timestamp)")
 
 			parts.append("  CGEventFields: {")
-				for field in CGEventField.allCases {
-					let value = cgEvent.getDoubleValueField(field)
+			for field in CGEventField.allCases {
+				let value = cgEvent.getDoubleValueField(field)
 
-					if value != 0 {
-						if let field = CGEventField.names[field] {
-							parts.append("    \(field): \(value)")
-						} else {
-							parts.append("    \(field): \(value)")
-						}
+				if value != 0 {
+					if let field = CGEventField.names[field] {
+						parts.append("    \(field): \(value)")
+					} else {
+						parts.append("    \(field): \(value)")
 					}
 				}
+			}
 			parts.append("  }")
 			parts.append("}")
 		}
 
 		return "\nNSEvent: {\n  " + parts.joined(separator: ",\n  ") + "\n}"
 	}
+}
+
+extension NSEvent.EventType {
+	public static let names: [String] = [
+		"leftMouseDown",
+		"leftMouseUp",
+		"rightMouseDown",
+		"rightMouseUp",
+		"mouseMoved",
+		"leftMouseDragged",
+		"rightMouseDragged",
+		"mouseEntered",
+		"mouseExited",
+		"keyDown",
+		"keyUp",
+		"flagsChanged",
+		"appKitDefined",
+		"systemDefined",
+		"applicationDefined",
+		"periodic",
+		"cursorUpdate",
+		"rotate",
+		"beginGesture",
+		"endGesture",
+		"missing21",
+		"scrollWheel",
+		"tabletPoint",
+		"tabletProximity",
+		"otherMouseDown",
+		"otherMouseUp",
+		"otherMouseDragged",
+		"missing28",
+		"gesture",
+		"magnify",
+		"swipe",
+		"smartMagnify",
+		"quickLook",
+		"pressure",
+		"missing35",
+		"missing36",
+		"directTouch",
+		"changeMode",
+		"missing39",
+		"mouseCancelled",
+	]
 }
 
 extension CGEventField: @retroactive CaseIterable {
@@ -432,10 +477,10 @@ extension CGEventField: @retroactive CaseIterable {
 		.scrollWheelEventAcceleratedDeltaAxis1,
 		.scrollWheelEventAcceleratedDeltaAxis2,
 		.scrollWheelEventRawDeltaAxis1,
-		.scrollWheelEventRawDeltaAxis2
+		.scrollWheelEventRawDeltaAxis2,
 	]
-	
-	public static let names: [CGEventField:String] = [
+
+	public static let names: [CGEventField: String] = [
 		.mouseEventNumber: "mouseEventNumber",
 		.mouseEventClickState: "mouseEventClickState",
 		.mouseEventPressure: "mouseEventPressure",
@@ -517,7 +562,7 @@ class IOSurfaceNSBitmapImageRep: NSBitmapImageRep {
 		var planes: [UnsafeMutablePointer<UInt8>?] = [data]
 		var srcPtr = ioSurface.baseAddress.bindMemory(to: UInt8.self, capacity: ioSurface.allocationSize)
 		var dstPtr = data
-		
+
 		self.surface = data
 
 		for _ in 0..<ioSurface.height {
@@ -533,17 +578,18 @@ class IOSurfaceNSBitmapImageRep: NSBitmapImageRep {
 			dstPtr = dstPtr.advanced(by: bytesPerRow)
 		}
 
-		super.init(bitmapDataPlanes: &planes,
-					pixelsWide: ioSurface.width,
-					pixelsHigh: ioSurface.height,
-					bitsPerSample: 8,
-					samplesPerPixel: ioSurface.bytesPerElement,
-					hasAlpha: true,
-					isPlanar: false,
-					colorSpaceName: .deviceRGB,
-					bitmapFormat: .thirtyTwoBitLittleEndian,
-					bytesPerRow: ioSurface.bytesPerRow,
-					bitsPerPixel: ioSurface.bytesPerElement * 8)
+		super.init(
+			bitmapDataPlanes: &planes,
+			pixelsWide: ioSurface.width,
+			pixelsHigh: ioSurface.height,
+			bitsPerSample: 8,
+			samplesPerPixel: ioSurface.bytesPerElement,
+			hasAlpha: true,
+			isPlanar: false,
+			colorSpaceName: .deviceRGB,
+			bitmapFormat: .thirtyTwoBitLittleEndian,
+			bytesPerRow: ioSurface.bytesPerRow,
+			bitsPerPixel: ioSurface.bytesPerElement * 8)
 	}
 
 	required init?(coder: NSCoder) {
@@ -551,68 +597,70 @@ class IOSurfaceNSBitmapImageRep: NSBitmapImageRep {
 	}
 }
 
-
 extension CALayer {
 	func renderIntoImage() -> CGImage? {
-        // Ensure we have a valid, non-zero size to render
-        let width = Int(ceil(self.bounds.width))
-        let height = Int(ceil(self.bounds.height))
+		// Ensure we have a valid, non-zero size to render
+		let width = Int(ceil(self.bounds.width))
+		let height = Int(ceil(self.bounds.height))
 
 		guard width > 0, height > 0 else {
 			return nil
 		}
 
-        // Create an RGBA8 bitmap context
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bytesPerPixel = 4
+		// Create an RGBA8 bitmap context
+		let colorSpace = CGColorSpaceCreateDeviceRGB()
+		let bytesPerPixel = 4
 
 		// Align bytesPerRow to a multiple of 4 for safe bitmap alignment
-        let rawBytesPerRow = width * bytesPerPixel
-        let bytesPerRow = (rawBytesPerRow + 3) & ~3
-        let dataSize = height * bytesPerRow
-        let data = UnsafeMutablePointer<UInt8>.allocate(capacity: dataSize)
+		let rawBytesPerRow = width * bytesPerPixel
+		let bytesPerRow = (rawBytesPerRow + 3) & ~3
+		let dataSize = height * bytesPerRow
+		let data = UnsafeMutablePointer<UInt8>.allocate(capacity: dataSize)
 
 		defer { data.deallocate() }
 
-        guard let ctx = CGContext(data: data,
-                                  width: width,
-                                  height: height,
-                                  bitsPerComponent: 8,
-                                  bytesPerRow: bytesPerRow,
-                                  space: colorSpace,
-                                  bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue) else {
-            return nil
-        }
+		guard
+			let ctx = CGContext(
+				data: data,
+				width: width,
+				height: height,
+				bitsPerComponent: 8,
+				bytesPerRow: bytesPerRow,
+				space: colorSpace,
+				bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue)
+		else {
+			return nil
+		}
 
-        // Clear and flip the context to AppKit coordinates
-        ctx.clear(CGRect(x: 0, y: 0, width: width, height: height))
-        //ctx.translateBy(x: 0, y: CGFloat(height))
-        //ctx.scaleBy(x: 1, y: -1)
+		// Clear and flip the context to AppKit coordinates
+		ctx.clear(CGRect(x: 0, y: 0, width: width, height: height))
+		//ctx.translateBy(x: 0, y: CGFloat(height))
+		//ctx.scaleBy(x: 1, y: -1)
 
-        // Render the layer hierarchy into the context
-        self.render(in: ctx)
+		// Render the layer hierarchy into the context
+		self.render(in: ctx)
 
-        // Create CGImage and wrap in NSImage
-        return ctx.makeImage()
+		// Create CGImage and wrap in NSImage
+		return ctx.makeImage()
 	}
 }
 
 extension OSType {
 	var string: String {
-	    // OSType is a FourCharCode (UInt32). Interpret as four ASCII bytes in big-endian order.
-	    let value = UInt32(self)
-	    let bytes: [UInt8] = [
-	        UInt8((value >> 24) & 0xFF),
-	        UInt8((value >> 16) & 0xFF),
-	        UInt8((value >> 8) & 0xFF),
-	        UInt8(value & 0xFF)
-	    ]
-	    // Some OSType values may contain non-printable bytes; fall back to hex if decoding fails.
-	    if let str = String(bytes: bytes, encoding: .macOSRoman) ?? String(bytes: bytes, encoding: .ascii) {
-	        return str
-	    } else {
-	        return String(format: "0x%08X", value)
-	    }
+		// OSType is a FourCharCode (UInt32). Interpret as four ASCII bytes in big-endian order.
+		let value = UInt32(self)
+		let bytes: [UInt8] = [
+			UInt8((value >> 24) & 0xFF),
+			UInt8((value >> 16) & 0xFF),
+			UInt8((value >> 8) & 0xFF),
+			UInt8(value & 0xFF),
+		]
+		// Some OSType values may contain non-printable bytes; fall back to hex if decoding fails.
+		if let str = String(bytes: bytes, encoding: .macOSRoman) ?? String(bytes: bytes, encoding: .ascii) {
+			return str
+		} else {
+			return String(format: "0x%08X", value)
+		}
 	}
 }
 
@@ -622,38 +670,38 @@ extension IOSurface {
 	}
 
 	#if false
-	open override var description: String {
-		return """
-\(self.className): \(self.width)x\(self.height)
-  allocationSize: \(self.allocationSize)
-  allowsPixelSizeCasting: \(self.allowsPixelSizeCasting)
-  bytesPerRow: \(self.bytesPerRow)
-  bytesPerElement: \(self.bytesPerElement)
-  elementHeight: \(self.elementHeight)
-  elementWidth: \(self.elementWidth)
-  format: \(self.pixelFormat.string)
-  inUse: \(self.isInUse)
-  localUseCount: \(self.localUseCount)
-  planeCount: \(self.planeCount)
-  seed: \(self.seed)
-  surfaceID: \(self.surfaceID)
-  IOSurfaceGetSubsampling: \(IOSurfaceGetSubsampling(self))
-  IOSurfaceGetBitDepthOfComponentOfPlane[0]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 0))
-  IOSurfaceGetBitDepthOfComponentOfPlane[1]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 1))
-  IOSurfaceGetBitDepthOfComponentOfPlane[2]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 2))
-  IOSurfaceGetBitOffsetOfComponentOfPlane[0]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 0))
-  IOSurfaceGetBitOffsetOfComponentOfPlane[1]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 1))
-  IOSurfaceGetBitOffsetOfComponentOfPlane[2]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 2))
-  IOSurfaceGetTypeOfComponentOfPlane[0]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 0))
-  IOSurfaceGetTypeOfComponentOfPlane[1]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 1))
-  IOSurfaceGetTypeOfComponentOfPlane[2]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 2))
-  IOSurfaceComponentRange[0]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 0))
-  IOSurfaceComponentRange[1]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 1))
-  IOSurfaceComponentRange[2]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 2))
+		open override var description: String {
+			return """
+				\(self.className): \(self.width)x\(self.height)
+				  allocationSize: \(self.allocationSize)
+				  allowsPixelSizeCasting: \(self.allowsPixelSizeCasting)
+				  bytesPerRow: \(self.bytesPerRow)
+				  bytesPerElement: \(self.bytesPerElement)
+				  elementHeight: \(self.elementHeight)
+				  elementWidth: \(self.elementWidth)
+				  format: \(self.pixelFormat.string)
+				  inUse: \(self.isInUse)
+				  localUseCount: \(self.localUseCount)
+				  planeCount: \(self.planeCount)
+				  seed: \(self.seed)
+				  surfaceID: \(self.surfaceID)
+				  IOSurfaceGetSubsampling: \(IOSurfaceGetSubsampling(self))
+				  IOSurfaceGetBitDepthOfComponentOfPlane[0]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 0))
+				  IOSurfaceGetBitDepthOfComponentOfPlane[1]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 1))
+				  IOSurfaceGetBitDepthOfComponentOfPlane[2]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 2))
+				  IOSurfaceGetBitOffsetOfComponentOfPlane[0]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 0))
+				  IOSurfaceGetBitOffsetOfComponentOfPlane[1]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 1))
+				  IOSurfaceGetBitOffsetOfComponentOfPlane[2]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 2))
+				  IOSurfaceGetTypeOfComponentOfPlane[0]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 0))
+				  IOSurfaceGetTypeOfComponentOfPlane[1]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 1))
+				  IOSurfaceGetTypeOfComponentOfPlane[2]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 2))
+				  IOSurfaceComponentRange[0]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 0))
+				  IOSurfaceComponentRange[1]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 1))
+				  IOSurfaceComponentRange[2]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 2))
 
-  attachments: \(self.allAttachments())
-"""
-	}
+				  attachments: \(self.allAttachments())
+				"""
+		}
 	#endif
 
 	public var cgImage: CGImage? {
@@ -661,32 +709,32 @@ extension IOSurface {
 			return nil
 		}
 
-#if XDEBUG
-		var pixels = Data(count: self.allocationSize)
+		#if XDEBUG
+			var pixels = Data(count: self.allocationSize)
 
-		pixels.withUnsafeMutableBytes { ptr in
-			guard var baseAddress = ptr.bindMemory(to: UInt8.self).baseAddress else {
-				return
-			}
-			
-			for line in 0..<self.height {
-				var pRow = baseAddress
-				let idx = line < self.height / 2 ? 0 : 2
-				let value: UInt8 = line < self.height / 2 ? 0x80 : 0x81
-				baseAddress = baseAddress.advanced(by: self.bytesPerRow)
+			pixels.withUnsafeMutableBytes { ptr in
+				guard var baseAddress = ptr.bindMemory(to: UInt8.self).baseAddress else {
+					return
+				}
 
-				for _ in 0..<Int(self.width) {
-					pRow[idx] = value
-					pRow[3] = 255
+				for line in 0..<self.height {
+					var pRow = baseAddress
+					let idx = line < self.height / 2 ? 0 : 2
+					let value: UInt8 = line < self.height / 2 ? 0x80 : 0x81
+					baseAddress = baseAddress.advanced(by: self.bytesPerRow)
 
-					pRow = pRow.advanced(by: 4)
+					for _ in 0..<Int(self.width) {
+						pRow[idx] = value
+						pRow[3] = 255
+
+						pRow = pRow.advanced(by: 4)
+					}
 				}
 			}
-		}
 
-#else
-		var pixels = Data(bytes: self.baseAddress, count: self.allocationSize)
-#endif
+		#else
+			var pixels = Data(bytes: self.baseAddress, count: self.allocationSize)
+		#endif
 
 		guard let provider = CGDataProvider(data: pixels as CFData) else {
 			return nil

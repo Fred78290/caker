@@ -525,9 +525,10 @@ final class PackerLiteDriver: @unchecked Sendable {
 		logger.debug("clickText \(nsPoint)")
 
 		#if DEBUG
-		showDebugBox(CGRect(origin: nsPoint, size: CGSize(width: 4, height: 4)), in: self.targetView.bounds.size)
+			showDebugBox(CGRect(origin: nsPoint, size: CGSize(width: 4, height: 4)), in: self.targetView.bounds.size)
 		#endif
 
+		self.handleMouseMovement(to: nsPoint)
 		self.handlePointerEvent(nsPoint, buttonMask: 0x01)
 		self.handlePointerEvent(nsPoint, buttonMask: 0x00)
 	}
@@ -683,6 +684,10 @@ extension PackerLiteDriver {
 
 	private func dispatchEvent(_ event: NSEvent?, view: NSView) {
 		if let event = event {
+			#if DEBUG_EVENT
+				self.logger.debug("\(NSEvent.EventType.names[Int(event.type.rawValue)]): \(event.dumpEvent)")
+			#endif
+
 			switch event.type {
 			case .scrollWheel:
 				view.scrollWheel(with: event)
@@ -830,6 +835,8 @@ extension PackerLiteDriver {
 	private func handleMouseMovement(to viewPoint: NSPoint) {
 		if let event = targetView.postMouseEvent(type: .mouseMoved, at: viewPoint, modifierFlags: self.modifiers) {
 			targetView.mouseMoved(with: event)
+
+			lastMousePosition = viewPoint
 		}
 	}
 
