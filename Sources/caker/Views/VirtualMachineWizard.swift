@@ -19,17 +19,10 @@ typealias OptionalVMLocation = VMLocation?
 
 extension VMImageEntry {
 	/// Raises `config`'s CPU count / memory to this entry's `minCPU`/`minMemoryMiB`, if any —
-	/// never lowers a value the user already raised above the minimum. IPSW entries have no
-	/// minimum here; macOS installs apply their own fixed floor separately (see the `.ipsw`
-	/// image-source case below).
+	/// never lowers a value the user already raised above the minimum.
 	func applyMinimumResources(to config: inout VirtualMachineConfig) {
-		if let minCPU {
-			config.cpuCount = max(config.cpuCount, minCPU)
-		}
-
-		if let minMemoryMiB {
-			config.memorySizeInMoB = max(config.memorySizeInMoB, minMemoryMiB)
-		}
+		config.cpuCount = max(config.cpuCount, minCPU)
+		config.memorySizeInMoB = max(config.memorySizeInMoB, minMemoryMiB)
 	}
 }
 
@@ -592,9 +585,9 @@ struct VirtualMachineWizard: View {
 		}
 
 		switch model.imageSource {
-		case .iso: return model.isoImageRelease.minCPU ?? 1
-		case .qcow2: return model.cloudImageRelease.minCPU ?? 1
-		case .ipsw: return 4
+		case .iso: return model.isoImageRelease.minCPU
+		case .qcow2: return model.cloudImageRelease.minCPU
+		case .ipsw: return model.ipswRelease.minCPU
 		default: return 1
 		}
 	}
@@ -605,9 +598,9 @@ struct VirtualMachineWizard: View {
 		}
 
 		switch model.imageSource {
-		case .iso: return model.isoImageRelease.minMemoryMiB ?? 512
-		case .qcow2: return model.cloudImageRelease.minMemoryMiB ?? 512
-		case .ipsw: return 4096
+		case .iso: return model.isoImageRelease.minMemoryMiB
+		case .qcow2: return model.cloudImageRelease.minMemoryMiB
+		case .ipsw: return model.ipswRelease.minMemoryMiB
 		default: return 512
 		}
 	}
@@ -1116,8 +1109,8 @@ struct VirtualMachineWizard: View {
 								case .ipsw:
 									self.config.autoinstall = true
 									self.config.imageName = self.model.ipswRelease.url
-									self.config.cpuCount = max(self.config.cpuCount, 4)
-									self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4096)
+									self.config.cpuCount = max(self.config.cpuCount, self.model.ipswRelease.minCPU)
+									self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, self.model.ipswRelease.minMemoryMiB)
 									self.config.diskSizeInGiB = max(self.config.diskSizeInGiB, 40)
 									self.model.showDiskFormat = true
 									self.config.diskFormat = .defaultSupportedFormat
