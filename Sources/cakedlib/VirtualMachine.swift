@@ -214,8 +214,6 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		var networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
 		let directorySharingAttachments = try config.directorySharingAttachments()
-		let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
-		let consoleURL = try config.consoleAttachment()
 		var communicationDevices: CommunicationDevices? = nil
 
 		// Add IMDS network interface for Linux VMs. Available in sandboxed builds too —
@@ -283,10 +281,12 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			}
 		}
 
+		
 		if provisioning == false {
-			if location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
-				communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
-			}
+			let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
+			let consoleURL = try config.consoleAttachment()
+
+			communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
 
 			if location.template == false && runMode != .app {
 				sigcaught = [SIGINT, SIGUSR1, SIGUSR2].reduce(into: sigcaught) { partialResult, sig in
@@ -309,7 +309,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		self.recoveryMode = recoveryMode
 		self.provisioning = provisioning
 
-		if let communicationDevices = communicationDevices {
+		if let communicationDevices = communicationDevices, location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
 			communicationDevices.delegate = self
 		}
 	}
