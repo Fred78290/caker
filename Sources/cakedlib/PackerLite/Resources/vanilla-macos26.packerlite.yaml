@@ -29,7 +29,7 @@ boot_command:
       - english
       - <down>
       - <enter>
-      - <wait20s>
+      - <wait10s>
 
   - title: Select Your Country or Region
     commands:
@@ -139,7 +139,7 @@ boot_command:
 
   - title: I have read and agree to the macOS Software License Agreement
     commands:
-      - <wait2s>
+      - <locate timeout=60 text='I have read and agree'>
       - <tab>
       - <spacebar>
 
@@ -162,7 +162,8 @@ boot_command:
 
   - title: Are you sure you don't want to use Location Services?
     commands:
-      - <wait2s>
+      - <locate timeout=60 text='Use location Services'>
+      - <wait1s>
       - <tab>
       - <spacebar>
 
@@ -214,7 +215,7 @@ boot_command:
 
   - title: Mac Data Will Not Be Securely Encrypted
     commands:
-      - <wait1s>
+      - <locate timeout=60 text='Cancel'>
       - <tab>
       - <spacebar>
 
