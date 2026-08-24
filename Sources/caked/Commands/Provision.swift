@@ -86,21 +86,18 @@ struct Provision: AsyncParsableCommand {
 			throw ServiceError(String(localized: "The VM is already provisioned"))
 		}
 
-		let promise = Utilities.group.next().makePromise(of: Void.self)
-
-		promise.futureResult.whenComplete { _ in
-			DispatchQueue.main.async {
-				NSApplication.shared.terminate(self)
-			}
-		}
-
 		if let template = self.provision.template {
 			templatePath = URL(fileURLWithPath: template.expandingTildeInPath)
 		}
 
+		// Load earlier to avoid starting the VM if the template is invalid
+		let template = try CakedLib.ProvisionHandler.loadTemplate(location, template: templatePath?.path(percentEncoded: false), macosVersion: self.provision.macosVersion, variables: self.provision.vars)
+
 		defer {
 			location.removePID()
 		}
+
+		let promise = Utilities.group.next().makePromise(of: Void.self)
 
 		do {
 			FileManager.default.createFile(atPath: location.provisionningURL.path(percentEncoded: false), contents: nil)
@@ -109,21 +106,31 @@ struct Provision: AsyncParsableCommand {
 				location: location,
 				storageLocation: storageLocation,
 				display: self.provision.foreground ? .all : .vnc,
-				templatePath: templatePath,
-				macosVersion: self.provision.macosVersion,
-				variables: self.provision.vars,
+				template: template,
 				runMode: self.common.runMode,
 				queue: ProvisionHandler.provisionQueue,
 				promise: promise
 			) {
 				let progress = $0.progressValue
-				
+
 				switch progress {
 				case .progress:
 					// Silent
 					break
 				default:
 					ProgressObserver.progressHandler($0.progressValue)
+				}
+			}
+
+			promise.futureResult.whenComplete { result in
+				if case .failure(let error) = result {
+					Logger(self).error("Provisioning failed: \(error.localizedDescription)")
+				}
+
+				location.removePID()
+
+				DispatchQueue.main.async {
+					NSApplication.shared.terminate(self)
 				}
 			}
 

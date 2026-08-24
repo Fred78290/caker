@@ -107,6 +107,32 @@ public struct ProvisionHandler {
 		promise: EventLoopPromise<Void>?,
 		progressHandler: @escaping ProvisionProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
+		// Load earlier to avoid starting the VM if the template is invalid
+		let template = try Self.loadTemplate(location, template: templatePath?.path(percentEncoded: false), macosVersion: macosVersion, variables: variables)
+
+		return try await self.provision(
+			location: location,
+			storageLocation: storageLocation,
+			display: display,
+			template: template,
+			runMode: runMode,
+			queue: queue,
+			promise: promise,
+			progressHandler: progressHandler
+		)
+	}
+
+	@MainActor
+	public static func provision(
+		location: VMLocation,
+		storageLocation: StorageLocation,
+		display: VMRunHandler.DisplayMode,
+		template: ParsedPackerLiteTemplate,
+		runMode: Utils.RunMode,
+		queue: DispatchQueue?,
+		promise: EventLoopPromise<Void>?,
+		progressHandler: @escaping ProvisionProgressHandler
+	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
 		let config = try location.config()
 		let displaySize = config.display.cgSize
 		let vncPassword = config.vncPassword ?? UUID().uuidString
@@ -122,9 +148,6 @@ public struct ProvisionHandler {
 		guard config.provisioned == false else {
 			throw ServiceError(String(localized: "The VM is already provisioned"))
 		}
-
-		// Load earlier to avoid starting the VM if the template is invalid
-		let template = try Self.loadTemplate(location, template: templatePath?.path(percentEncoded: false), macosVersion: macosVersion, variables: variables)
 
 		let handler = VMRunHandler(
 			mode: .default,
