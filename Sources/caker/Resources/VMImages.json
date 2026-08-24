@@ -33,7 +33,7 @@
 			{ "id": "openSUSELeap155", "label": "openSUSE Leap 15.5 – DVD", "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-aarch64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 }
 		],
 		"ipsw": [
-			{ "id": "macos27_0", "label": "macOS 27.0", "url": "https://updates.cdn-apple.com/2026SummerSeed/fullrestores/140-81421/E76AF7DE-7F9D-4808-B023-AC9A8313B177/UniversalMac_27.0_26A5406e_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
+			{ "id": "macos27_0", "label": "macOS 27.0", "url": "https://updates.cdn-apple.com/2026SummerSeed/7b1c2bd9-7617-426d-92e5-ef204407ffaa/UniversalMac_27.0_26A5416b_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
 			{ "id": "macos26_6", "label": "macOS 26.6.2", "url": "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-75212/A2A24B94-1FC1-45A3-93F7-C51B02AF1F4D/UniversalMac_26.6.2_25G83_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
 			{ "id": "macos15_6_1", "label": "macOS 15.6.1", "url": "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw", "minCPU": 4, "minMemoryMiB": 4096  },
 			{ "id": "macos14_6_1", "label": "macOS 14.6.1", "url": "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw", "minCPU": 4, "minMemoryMiB": 4096  },
@@ -105,7 +105,7 @@
 			{ "id": "openSUSELeap155", "label": "openSUSE Leap 15.5", "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-x86_64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 }
 		],
 		"ipsw": [
-			{ "id": "macos27_0", "label": "macOS 27.0", "url": "https://updates.cdn-apple.com/2026SummerSeed/fullrestores/140-81421/E76AF7DE-7F9D-4808-B023-AC9A8313B177/UniversalMac_27.0_26A5406e_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
+			{ "id": "macos27_0", "label": "macOS 27.0", "url": "https://updates.cdn-apple.com/2026SummerSeed/7b1c2bd9-7617-426d-92e5-ef204407ffaa/UniversalMac_27.0_26A5416b_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
 			{ "id": "macos26_6", "label": "macOS 26.6.2", "url": "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-75212/A2A24B94-1FC1-45A3-93F7-C51B02AF1F4D/UniversalMac_26.6.2_25G83_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
 			{ "id": "macos15_6_1", "label": "macOS 15.6.1", "url": "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw", "minCPU": 4, "minMemoryMiB": 4096  },
 			{ "id": "macos14_6_1", "label": "macOS 14.6.1", "url": "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw", "minCPU": 4, "minMemoryMiB": 4096  },
