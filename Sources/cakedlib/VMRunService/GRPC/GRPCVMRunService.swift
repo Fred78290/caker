@@ -315,13 +315,13 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 
 			do {
 				self.server = try await self.createServer().get()
+
+				#if DEBUG
+					self.logger.debug("GRPC VMRunService server started")
+				#endif
 			} catch {
 				self.logger.error("Failed to start GRPC VMRunService server: \(error)")
 			}
-
-			#if DEBUG
-				self.logger.debug("Leave GRPC VMRunService server")
-			#endif
 		}
 	}
 
