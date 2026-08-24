@@ -713,7 +713,7 @@ extension VirtualMachineConfiguration {
 		}
 
 		if source == .ipsw || source == .iso {
-			return self.provisioned
+			return self.provisioned || self.firstLaunch == false
 		}
 
 		return self.firstLaunch
