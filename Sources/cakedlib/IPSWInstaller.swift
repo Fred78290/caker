@@ -245,22 +245,26 @@
 		#if USE_VIRTUAL_INSTALL_BACKEND
 			/// Returns true when the AMRestore backend should be used instead of
 			/// `VZMacOSInstaller`. Decision mirrors the UTM/VirtualBuddy logic:
-			/// forced via UserDefaults OR the restore image targets macOS 27+.
+			/// forced via UserDefaults OR conditional restore image targets macOS 27+.
 			@available(macOS 26.0, *)
 			private func shouldUseVirtualInstallBackend(url: URL) async -> Bool {
 				if UserDefaults.standard.bool(forKey: "CakerForceVirtualInstallBackend") {
 					return true
 				}
 
-				guard
-					let image = try? await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<VZMacOSRestoreImage, Error>) in
-						VZMacOSRestoreImage.load(from: url) { result in
-							continuation.resume(with: result)
-						}
-					})
-				else { return false }
+				#if FORCE_USE_VIRTUAL_INSTALL_BACKEND
+					guard
+						let image = try? await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<VZMacOSRestoreImage, Error>) in
+							VZMacOSRestoreImage.load(from: url) { result in
+								continuation.resume(with: result)
+							}
+						})
+					else { return false }
 
-				return image.operatingSystemVersion.majorVersion >= 27
+					return image.operatingSystemVersion.majorVersion >= 27
+				#else
+					return false
+				#endif
 			}
 
 			/// Boots the VM into DFU mode so the AMRestore framework can see it as a
