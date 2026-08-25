@@ -722,7 +722,9 @@
 		D11AF315177F1969AA5E3F7A /* MacOSVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */; };
 		D3041F78F1BE1C54A952AEF4 /* PackerLiteTemplateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */; };
 		D43FC446B6C30CD981F6FA33 /* linux-fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* linux-fedora-server.packerlite.yaml */; };
-		DB4D602DFCF9438D8DA71D4D /* VMImageCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */; };
+		8D19AE739219331A241BE422 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
+		C67C4C7F7CAAA38DDCDB6738 /* VMImageCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */; };
+3B3520DB07274CD5EABB6D20 /* VMImageShorthandFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09540DFDBA37AE9FFB317EA3 /* VMImageShorthandFlags.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1563,6 +1565,7 @@
 		CEBCF840FC996468321E4B7D /* BootCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootCommand.swift; sourceTree = "<group>"; };
 		DF2B0651E51F47D5AEF8715F /* linux-fedora-server.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-fedora-server.packerlite.yaml"; sourceTree = "<group>"; };
 		DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalog.swift; sourceTree = "<group>"; };
+09540DFDBA37AE9FFB317EA3 /* VMImageShorthandFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageShorthandFlags.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1760,7 +1763,6 @@
 		3028F93736164BBF8A8E6F67 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				B424710990B7411A855EC5AD /* VMImages.json */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -1924,7 +1926,6 @@
 				9B3601902E20FBCF00889BFD /* CakerMenuBarExtraScene.swift */,
 				9B2BFAB82DFED25E000045C3 /* MainApp.swift */,
 				9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */,
-				DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */,
 				9BB213CE2F37548300B45692 /* Handlers */,
 				9B30BA492E0BDB5600256A9D /* Helpers */,
 				9B9C4E612E23BD8900C13D23 /* Model */,
@@ -2520,6 +2521,7 @@
 		9BB3BE1C2DB3F17500799A6A /* options */ = {
 			isa = PBXGroup;
 			children = (
+				09540DFDBA37AE9FFB317EA3 /* VMImageShorthandFlags.swift */,
 				9BB3BE092DB3F17500799A6A /* BuildOptions.swift */,
 				9BB3BE0B2DB3F17500799A6A /* ConfigureOptions.swift */,
 				9BB3BE0C2DB3F17500799A6A /* DeleteOptions.swift */,
@@ -2833,6 +2835,7 @@
 				9BEBC7652DF440720092B196 /* Utilities.swift */,
 				9BEBC7662DF440720092B196 /* VirtualMachine.swift */,
 				9BEBC7672DF440720092B196 /* VMBuilder.swift */,
+				DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */,
 				9B6EC3FC3002DD5300ABFDED /* VMLifecycleHooks.swift */,
 				9BEBC7682DF440720092B196 /* VMLocation.swift */,
 				9B9DCDEE2F70006D00E07852 /* CI */,
@@ -2845,6 +2848,7 @@
 				9BFE81A62EC8F8C500767615 /* OCI */,
 				FB420C69A167056615FAD715 /* PackerLite */,
 				9B081B592FC75A1A0029B259 /* Qcow2 */,
+				61D20D54533FC5B65DAD0E65 /* Resources */,
 				9BEBC7412DF440720092B196 /* Sockets */,
 				9BEBC74C2DF440720092B196 /* UI */,
 				9BF1A02A3001000000AA002A /* VirtualInstall */,
@@ -2986,6 +2990,14 @@
 				9B8F3F5C301F3DCA001FA32A /* Resources */,
 			);
 			path = PackerLite;
+			sourceTree = "<group>";
+		};
+		61D20D54533FC5B65DAD0E65 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B424710990B7411A855EC5AD /* VMImages.json */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -3457,6 +3469,7 @@
 		9B06995A2FB1A15E00FEAE13 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				8D19AE739219331A241BE422 /* VMImages.json in Resources */,
 				9B32F9793025C31F0099D3A5 /* linux-opensuse.packerlite.yaml in Resources */,
 				9B32F97A3025C31F0099D3A5 /* linux-debian.packerlite.yaml in Resources */,
 				9BE7F1B630309FA00006F53F /* vanilla-macos27.packerlite.yaml in Resources */,
@@ -3698,7 +3711,6 @@
 		9B464A502D5A3DA000164BF5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
-				DB4D602DFCF9438D8DA71D4D /* VMImageCatalog.swift in Sources */,
 				9BDA14BF2EEAC18900357544 /* VirtualMachineInformations.swift in Sources */,
 				9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */,
 				9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */,
@@ -3862,6 +3874,7 @@
 		9B464C592D5A459B00164BF5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				3B3520DB07274CD5EABB6D20 /* VMImageShorthandFlags.swift in Sources */,
 				9B464C652D5A45DF00164BF5 /* FileLock.swift in Sources */,
 				9B464C662D5A45DF00164BF5 /* Format.swift in Sources */,
 				9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */,
@@ -4039,6 +4052,7 @@
 		9BEBC7042DF440560092B196 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				C67C4C7F7CAAA38DDCDB6738 /* VMImageCatalog.swift in Sources */,
 				AB8B314DC1C7F91AAF9C7933 /* PackerLiteDriver.swift in Sources */,
 				6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */,
 				D3041F78F1BE1C54A952AEF4 /* PackerLiteTemplateResolver.swift in Sources */,

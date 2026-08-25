@@ -1,60 +1,75 @@
 //
 //  VMImageCatalog.swift
-//  Caker
+//  CakedLib
 //
 //  Created by Frederic BOLTZ on 08/08/2026.
 //
+//  Originally lived in the `caker` GUI target (as `Sources/caker/VMImageCatalog.swift`, reading
+//  `Sources/caker/Resources/VMImages.json`) and was only ever consulted by the wizard. It moved
+//  here so `caked`/`cakectl` — which don't depend on `caker` — can resolve catalog ids too (see
+//  `BuildOptions`'s generated shorthand flags, e.g. `--macos12`, `--ubuntu2604`, in
+//  `Sources/Grpc/options/VMImageShorthandFlags.swift`, and their resolution in `VMBuilder.swift`).
+//
 
-import CakedLib
 import Foundation
 import GRPCLib
 import Synchronization
 
-struct VMImageEntry: Codable, Identifiable, Hashable {
-	let id: String
-	let label: String
-	let url: String
+public struct VMImageEntry: Codable, Identifiable, Hashable, Sendable {
+	public let id: String
+	public let label: String
+	public let url: String
 	/// Minimum CPU count / memory (MiB) the wizard should apply when this entry is selected.
-	let minCPU: UInt16
-	let minMemoryMiB: UInt64
+	public let minCPU: UInt16
+	public let minMemoryMiB: UInt64
 }
 
-struct VMImageArchCatalog: Codable {
-	let iso: [VMImageEntry]
-	let ipsw: [VMImageEntry]
-	let cloud: [VMImageEntry]
+public struct VMImageArchCatalog: Codable, Sendable {
+	public let iso: [VMImageEntry]
+	public let ipsw: [VMImageEntry]
+	public let cloud: [VMImageEntry]
 }
 
 /// `Bundle.module` only exists in genuine `swift build`/`swift test` builds (SPM generates its accessor
-/// per target). Caker.xcodeproj hand-mirrors `caker` as a native Xcode target with no such accessor, so
-/// resource lookup has to branch on which build system produced this binary.
+/// per target). The two hand-mirrored Xcode projects (`Caker.xcodeproj`/`CakerAppStore.xcodeproj`)
+/// compile this file as part of the plain native `CakedLib` target with no such accessor, so resource
+/// lookup has to branch on which build system produced this binary — same pattern already used by
+/// `PackerLiteTemplateResolver.swift` for the bundled PackerLite templates.
 private final class VMImageCatalogResourceBundleMarker {}
 
 private let vmImageCatalogResourceBundle: Bundle = {
 	#if SWIFT_PACKAGE
 		return Bundle.module
 	#else
-		return Bundle(for: VMImageCatalogResourceBundleMarker.self)
+		let containingBundle = Bundle(for: VMImageCatalogResourceBundleMarker.self)
+
+		for candidate in ["Caker_CakedLib.bundle", "CakedLib_CakedLib.bundle"] {
+			if let url = containingBundle.resourceURL?.appendingPathComponent(candidate), let bundle = Bundle(url: url) {
+				return bundle
+			}
+		}
+
+		return containingBundle
 	#endif
 }()
 
-struct VMImageCatalog: Codable {
-	let arm64: VMImageArchCatalog
-	let amd64: VMImageArchCatalog
+public struct VMImageCatalog: Codable, Sendable {
+	public let arm64: VMImageArchCatalog
+	public let amd64: VMImageArchCatalog
 
 	// `shared` is read from the UI and written by `refreshFromGitHub()`'s background task —
 	// `Mutex` (matching the pattern already used for e.g. `ARPParser`'s static cache) keeps that
 	// safe instead of racing on a bare `static var`.
 	private static let storage: Mutex<VMImageCatalog> = Mutex(load())
 
-	static var shared: VMImageCatalog {
+	public static var shared: VMImageCatalog {
 		storage.withLock { $0 }
 	}
 
-	/// Raw JSON on the `main` branch — kept in sync with `Sources/caker/Resources/VMImages.json`.
-	static let githubCatalogURL = URL(string: "https://raw.githubusercontent.com/Fred78290/caker/main/Sources/caker/Resources/VMImages.json")!
+	/// Raw JSON on the `main` branch — kept in sync with `Sources/cakedlib/Resources/VMImages.json`.
+	public static let githubCatalogURL = URL(string: "https://raw.githubusercontent.com/Fred78290/caker/main/Sources/cakedlib/Resources/VMImages.json")!
 
-	var current: VMImageArchCatalog {
+	public var current: VMImageArchCatalog {
 		#if arch(arm64)
 			return arm64
 		#else
@@ -62,19 +77,19 @@ struct VMImageCatalog: Codable {
 		#endif
 	}
 
-	var availableISOImages: [VMImageEntry] {
+	public var availableISOImages: [VMImageEntry] {
 		current.iso
 	}
 
-	var availableIPSWImages: [VMImageEntry] {
+	public var availableIPSWImages: [VMImageEntry] {
 		current.ipsw
 	}
 
-	var availableCloudImages: [VMImageEntry] {
+	public var availableCloudImages: [VMImageEntry] {
 		current.cloud
 	}
 
-	func isoImage(_ id: String) -> VMImageEntry {
+	public func isoImage(_ id: String) -> VMImageEntry {
 		guard let entry = current.iso.first(where: { $0.id == id }) else {
 			fatalError("Unknown ISO image id \(id) in VMImages.json")
 		}
@@ -82,7 +97,7 @@ struct VMImageCatalog: Codable {
 		return entry
 	}
 
-	func ipswImage(_ id: String) -> VMImageEntry {
+	public func ipswImage(_ id: String) -> VMImageEntry {
 		guard let entry = current.ipsw.first(where: { $0.id == id }) else {
 			fatalError("Unknown IPSW image id \(id) in VMImages.json")
 		}
@@ -90,7 +105,7 @@ struct VMImageCatalog: Codable {
 		return entry
 	}
 
-	func cloudImage(_ id: String) -> VMImageEntry {
+	public func cloudImage(_ id: String) -> VMImageEntry {
 		guard let entry = current.cloud.first(where: { $0.id == id }) else {
 			fatalError("Unknown cloud image id \(id) in VMImages.json")
 		}
@@ -148,7 +163,7 @@ struct VMImageCatalog: Codable {
 	/// can't quietly downgrade a link to plaintext HTTP or a non-http(s) scheme; it does not attempt
 	/// content signing or pinning to a specific release/commit.
 	@discardableResult
-	static func refreshFromGitHub(session: URLSession = .shared) async throws -> VMImageCatalog {
+	public static func refreshFromGitHub(session: URLSession = .shared) async throws -> VMImageCatalog {
 		let (data, response) = try await session.data(from: githubCatalogURL)
 
 		guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
@@ -178,5 +193,49 @@ struct VMImageCatalog: Codable {
 		[arm64, amd64].allSatisfy { arch in
 			(arch.iso + arch.ipsw + arch.cloud).allSatisfy { $0.url.hasPrefix("https://") }
 		}
+	}
+}
+
+/// What a shorthand catalog id (`--macos12`, `--ubuntu2604`, ...) resolves to: the entry's URL,
+/// the `GRPCLib.ImageSource` it should be built as, and — for an `ipsw` hit whose id happens to
+/// also be a valid `MacOSVersion` raw value — the matching `MacOSVersion`, so callers can
+/// auto-populate `BuildOptions.macosVersion` when the user didn't pass `--macos-version`
+/// explicitly (see `VMBuilder.buildVM`).
+public struct VMImageCatalogResolution: Sendable {
+	public let url: String
+	public let imageSource: ImageSource
+	public let macosVersion: MacOSVersion?
+}
+
+extension VMImageCatalog {
+	/// Resolves a shorthand catalog id (the same ids `VMImageShorthandFlags`'s `--<id>` flags are
+	/// generated from) against this catalog's `current` (arch-appropriate) entries.
+	///
+	/// Checks `ipsw` → `iso` → `cloud`, in that priority order. `centos9`/`centos10` are — as of
+	/// this writing — the only ids that appear in more than one category (both `iso` and
+	/// `cloud`), and this priority order means they always resolve to the `iso` entry, never the
+	/// `cloud` one; there's no `--centos9-cloud`-style variant to disambiguate further. Returns
+	/// `nil` if `id` isn't in this catalog at all — shouldn't normally happen, since the
+	/// shorthand flags are generated from this same catalog, but a caller should still handle it
+	/// rather than force-unwrapping.
+	public func resolveShorthand(_ id: String) -> VMImageCatalogResolution? {
+		if let entry = current.ipsw.first(where: { $0.id == id }) {
+			return VMImageCatalogResolution(url: entry.url, imageSource: .ipsw, macosVersion: MacOSVersion(rawValue: id))
+		}
+
+		if let entry = current.iso.first(where: { $0.id == id }) {
+			return VMImageCatalogResolution(url: entry.url, imageSource: .iso, macosVersion: nil)
+		}
+
+		if let entry = current.cloud.first(where: { $0.id == id }) {
+			// Cloud images are plain disk images served over https (.img/.qcow2) — exactly what
+			// `.qcow2` already means elsewhere in this codebase (see `ImageSource.schemes`'s
+			// "https" -> `.qcow2` mapping in `BuildOptions.validateImageSource`). Set it
+			// explicitly here rather than leaving `imageSource` nil for a later re-validation
+			// pass to infer, since `VMBuilder.buildVM` doesn't re-run that validation.
+			return VMImageCatalogResolution(url: entry.url, imageSource: .qcow2, macosVersion: nil)
+		}
+
+		return nil
 	}
 }

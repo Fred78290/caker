@@ -1,5 +1,5 @@
 // GENERATED FILE — DO NOT EDIT BY HAND.
-// Source of truth: Sources/caker/Resources/VMImages.json (also read by VMImageCatalog.swift).
+// Source of truth: Sources/cakedlib/Resources/VMImages.json (also read by VMImageCatalog.swift).
 // Regenerate with `npm run sync-vm-images`.
 
 export interface VMImageEntry {
@@ -204,42 +204,42 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
     ],
     "ipsw": [
       {
-        "id": "macos27_0",
+        "id": "macos27",
         "label": "macOS 27.0",
         "url": "https://updates.cdn-apple.com/2026SummerSeed/7b1c2bd9-7617-426d-92e5-ef204407ffaa/UniversalMac_27.0_26A5416b_Restore.ipsw",
         "minCPU": 6,
         "minMemoryMiB": 8192
       },
       {
-        "id": "macos26_6",
+        "id": "macos26",
         "label": "macOS 26.6.2",
         "url": "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-75212/A2A24B94-1FC1-45A3-93F7-C51B02AF1F4D/UniversalMac_26.6.2_25G83_Restore.ipsw",
         "minCPU": 6,
         "minMemoryMiB": 8192
       },
       {
-        "id": "macos15_6_1",
+        "id": "macos15",
         "label": "macOS 15.6.1",
         "url": "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw",
         "minCPU": 4,
         "minMemoryMiB": 4096
       },
       {
-        "id": "macos14_6_1",
+        "id": "macos14",
         "label": "macOS 14.6.1",
         "url": "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw",
         "minCPU": 4,
         "minMemoryMiB": 4096
       },
       {
-        "id": "macos13_6",
+        "id": "macos13",
         "label": "macOS 13.6",
         "url": "https://updates.cdn-apple.com/2023FallFCS/fullrestores/042-55833/C0830847-A2F8-458F-B680-967991820931/UniversalMac_13.6_22G120_Restore.ipsw",
         "minCPU": 4,
         "minMemoryMiB": 4096
       },
       {
-        "id": "macos12_6_1",
+        "id": "macos12",
         "label": "macOS 12.6.1",
         "url": "https://updates.cdn-apple.com/2022FallFCS/fullrestores/012-66032/8D8D90C6-A876-4FFF-BBF4-D158939B3841/UniversalMac_12.6.1_21G217_Restore.ipsw",
         "minCPU": 4,
@@ -248,35 +248,35 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
     ],
     "cloud": [
       {
-        "id": "ubuntu2604LTS",
+        "id": "ubuntu2604",
         "label": "Ubuntu 26.04 LTS",
         "url": "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-arm64.img",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "ubuntu2504LTS",
+        "id": "ubuntu2504",
         "label": "Ubuntu 25.04",
         "url": "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-arm64.img",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "ubuntu2404LTS",
+        "id": "ubuntu2404",
         "label": "Ubuntu 24.04 LTS",
         "url": "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "ubuntu2204LTS",
+        "id": "ubuntu2204",
         "label": "Ubuntu 22.04 LTS",
         "url": "https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-cloudimg-arm64.img",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "ubuntu2004LTS",
+        "id": "ubuntu2004",
         "label": "Ubuntu 20.04 LTS",
         "url": "https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-arm64.img",
         "minCPU": 2,
@@ -597,42 +597,42 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
     ],
     "ipsw": [
       {
-        "id": "macos27_0",
+        "id": "macos27",
         "label": "macOS 27.0",
         "url": "https://updates.cdn-apple.com/2026SummerSeed/7b1c2bd9-7617-426d-92e5-ef204407ffaa/UniversalMac_27.0_26A5416b_Restore.ipsw",
         "minCPU": 6,
         "minMemoryMiB": 8192
       },
       {
-        "id": "macos26_6",
+        "id": "macos26",
         "label": "macOS 26.6.2",
         "url": "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-75212/A2A24B94-1FC1-45A3-93F7-C51B02AF1F4D/UniversalMac_26.6.2_25G83_Restore.ipsw",
         "minCPU": 6,
         "minMemoryMiB": 8192
       },
       {
-        "id": "macos15_6_1",
+        "id": "macos15",
         "label": "macOS 15.6.1",
         "url": "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw",
         "minCPU": 4,
         "minMemoryMiB": 4096
       },
       {
-        "id": "macos14_6_1",
+        "id": "macos14",
         "label": "macOS 14.6.1",
         "url": "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw",
         "minCPU": 4,
         "minMemoryMiB": 4096
       },
       {
-        "id": "macos13_6",
+        "id": "macos13",
         "label": "macOS 13.6",
         "url": "https://updates.cdn-apple.com/2023FallFCS/fullrestores/042-55833/C0830847-A2F8-458F-B680-967991820931/UniversalMac_13.6_22G120_Restore.ipsw",
         "minCPU": 4,
         "minMemoryMiB": 4096
       },
       {
-        "id": "macos12_6_1",
+        "id": "macos12",
         "label": "macOS 12.6.1",
         "url": "https://updates.cdn-apple.com/2022FallFCS/fullrestores/012-66032/8D8D90C6-A876-4FFF-BBF4-D158939B3841/UniversalMac_12.6.1_21G217_Restore.ipsw",
         "minCPU": 4,
@@ -641,35 +641,35 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
     ],
     "cloud": [
       {
-        "id": "ubuntu2604LTS",
+        "id": "ubuntu2604",
         "label": "Ubuntu 26.04 LTS",
         "url": "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-amd64.img",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "ubuntu2504LTS",
+        "id": "ubuntu2504",
         "label": "Ubuntu 25.04",
         "url": "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-amd64.img",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "ubuntu2404LTS",
+        "id": "ubuntu2404",
         "label": "Ubuntu 24.04 LTS",
         "url": "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "ubuntu2204LTS",
+        "id": "ubuntu2204",
         "label": "Ubuntu 22.04 LTS",
         "url": "https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-cloudimg-amd64.img",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "ubuntu2004LTS",
+        "id": "ubuntu2004",
         "label": "Ubuntu 20.04 LTS",
         "url": "https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-amd64.img",
         "minCPU": 2,
