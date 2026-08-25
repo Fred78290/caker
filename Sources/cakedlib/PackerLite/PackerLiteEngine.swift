@@ -29,40 +29,34 @@ public enum PackerLiteEngine {
 		let driver = await PackerLiteDriver(targetView: targetView)
 
 		try await withThrowingTaskGroup(of: Void.self) { group in
-			let grp = group
-			let onCancel = {
-				grp.cancelAll()
+			let context = ProgressObserver.ProgressHandlerContext()
+
+			group.addTask {
+				progressHandler(.progress(context, 0))
+				for (index, command) in commands.enumerated() {
+					progressHandler(.substep(command.title))
+					logger.info("Execute provionning command: \(command.title)")
+					try await driver.run(command: command)
+					progressHandler(.progress(context, Double(index + 1) / Double(commands.count)))
+					try Task.checkCancellation()
+				}
 			}
 
-			try await withTaskCancellationHandler(
-				operation: {
-					group.addTask {
-						let context = ProgressObserver.ProgressHandlerContext()
+			group.addTask {
+				try await Task.sleep(nanoseconds: UInt64(resolvedBootTimeout * 1_000_000_000))
+				throw ServiceError(String(localized: "Provisioning timed out after \(Int(resolvedBootTimeout))s"))
+			}
 
-						progressHandler(.progress(context, 0))
+			do {
+				// Wait for the first task to complete (either work or timeout).
+				try await group.next()
+			} catch {
+				// Cancel remaining tasks on error (timeout or command failure).
+				group.cancelAll()
+				throw error
+			}
 
-						for (index, command) in commands.enumerated() {
-							progressHandler(.substep(command.title))
-
-							logger.info("Execute provionning command: \(command.title)")
-							try await driver.run(command: command)
-
-							progressHandler(.progress(context, Double(index) / Double(commands.count)))
-						}
-					}
-
-					group.addTask {
-						try await Task.sleep(nanoseconds: UInt64(resolvedBootTimeout * 1_000_000_000))
-
-						throw ServiceError(String(localized: "Provisioning timed out after \(Int(resolvedBootTimeout))s"))
-					}
-
-					try await group.next()
-					group.cancelAll()
-				},
-				onCancel: {
-					onCancel()
-				})
+			group.cancelAll()
 		}
 	}
 
@@ -125,13 +119,14 @@ public enum PackerLiteEngine {
 
 		let vm = try await MainActor.run { () -> VirtualMachine in
 			let vncPassword = config.vncPassword ?? UUID().uuidString
-			let vm = try VirtualMachine(location: location,
-										config: config,
-										display: runInCaker ? .ui : .vnc,
-										screenSize: config.display.cgSize,
-										recoveryMode: false,
-										provisioning: true,
-										runMode: runMode)
+			let vm = try VirtualMachine(
+				location: location,
+				config: config,
+				display: runInCaker ? .ui : .vnc,
+				screenSize: config.display.cgSize,
+				recoveryMode: false,
+				provisioning: true,
+				runMode: runMode)
 
 			if runInCaker {
 				vm.createVirtualMachineView()
