@@ -223,6 +223,7 @@ struct VirtualMachineWizard: View {
 	@State private var provisioningRemoteVM: Bool = false
 	@State private var provisionInfos: ProgressObserver.ProvisionInfo? = nil
 	@State private var vncState: VNCConnectionAppState? = nil
+	@State private var wasCancelled: Bool = false
 
 	private let wizardID = UUID()
 	private let listHeight: CGFloat = 460
@@ -1411,15 +1412,22 @@ struct VirtualMachineWizard: View {
 								}
 							}
 
-							alertError(String(localized: "Provisioning failed"), error.localizedDescription) { _ in
+							if self.wasCancelled == false && !(error is CancellationError) {
+								alertError(String(localized: "Provisioning failed"), error.localizedDescription) { _ in
+									openVM(config.vmname)
+								}
+							} else {
 								openVM(config.vmname)
 							}
 
 							self.config = VirtualMachineConfig()
 							self.model.reset()
-						} else {
+						} else if self.wasCancelled == false && !(error is CancellationError) {
 							alertError(error)
 						}
+
+						self.wasCancelled = false
+
 					} else if case .success(let vmURL) = result, let vmURL = vmURL as? URL {
 						self.logger.debug("Progress - createVirtualMachine - success \(vmURL)")
 
@@ -1478,7 +1486,7 @@ struct VirtualMachineWizard: View {
 					progressHandler(result)
 				}
 
-				if build.builded == false {
+				if self.wasCancelled == false && build.builded == false {
 					progressHandler(.terminated(.failure(ServiceError(build.reason)), String(localized: "Create virtual machine failed")))
 				}
 			} catch {
@@ -1487,7 +1495,7 @@ struct VirtualMachineWizard: View {
 		} onCancel: {
 			Task { @MainActor in
 				self.model.createVirtualMachineTask = nil
-				progressHandler(.terminated(.failure(ServiceError(String(localized: "Cancelled"))), String(localized: "Create virtual machine failed")))
+				self.wasCancelled = true
 			}
 		}
 	}
