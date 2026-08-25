@@ -126,7 +126,7 @@ struct ProvisionHandler: CakedCommandAsync {
 						.with {
 							$0.substep = message
 						})
-				} else if case .infos(let message) = progress {
+				} else if case .infos(let message) = progress, let message {
 					logger.debug("Provisioning infos: \(message)")
 
 					try await responseStream.send(

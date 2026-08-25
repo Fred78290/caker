@@ -4286,6 +4286,14 @@ public nonisolated struct Caked_Caked: Sendable {
           set {current = .provision(newValue)}
         }
 
+        public var provisioned: Caked_Caked.Reply.VirtualMachineReply.ProvisionedReply {
+          get {
+            if case .provisioned(let v)? = current {return v}
+            return Caked_Caked.Reply.VirtualMachineReply.ProvisionedReply()
+          }
+          set {current = .provisioned(newValue)}
+        }
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public nonisolated enum OneOf_Current: Equatable, Sendable {
@@ -4295,6 +4303,7 @@ public nonisolated struct Caked_Caked: Sendable {
           case substep(String)
           case builded(Caked_Caked.Reply.VirtualMachineReply.BuildedReply)
           case provision(Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply.ProvisionInfo)
+          case provisioned(Caked_Caked.Reply.VirtualMachineReply.ProvisionedReply)
 
         }
 
@@ -13032,7 +13041,7 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply
 
 nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".BuildStreamReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}progress\0\u{1}terminated\0\u{1}step\0\u{1}substep\0\u{1}builded\0\u{1}provision\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}progress\0\u{1}terminated\0\u{1}step\0\u{1}substep\0\u{1}builded\0\u{1}provision\0\u{1}provisioned\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -13108,6 +13117,19 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: Sw
           self.current = .provision(v)
         }
       }()
+      case 7: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.ProvisionedReply?
+        var hadOneofValue = false
+        if let current = self.current {
+          hadOneofValue = true
+          if case .provisioned(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.current = .provisioned(v)
+        }
+      }()
       default: break
       }
     }
@@ -13142,6 +13164,10 @@ nonisolated extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: Sw
     case .provision?: try {
       guard case .provision(let v)? = self.current else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    }()
+    case .provisioned?: try {
+      guard case .provisioned(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
     }()
     case nil: break
     }

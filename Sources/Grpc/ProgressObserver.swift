@@ -42,7 +42,8 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 		case step(String)
 		case substep(String)
 		case terminated(Result<Sendable?, any Error>, String?)
-		case provision(ProvisionInfo)
+		case provision(ProvisionInfo?)
+		case provisioned(Result<ProvisionedReply?, any Error>)
 	}
 
 	public final class ProgressHandlerContext: @unchecked Sendable {
@@ -111,7 +112,7 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 			Logger(self).info(message)
 		} else if case .substep(let message) = result {
 			Logger(self).info(message)
-		} else if case .provision(let info) = result {
+		} else if case .provision(let info) = result, let info {
 			Logger(self).info("Provisioning visible at: \(info.vncURL)")
 		}
 	}

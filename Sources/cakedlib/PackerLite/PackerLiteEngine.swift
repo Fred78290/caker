@@ -130,6 +130,7 @@ public enum PackerLiteEngine {
 
 			if runInCaker {
 				vm.createVirtualMachineView()
+				progressHandler(.infos(nil))
 			} else {
 				let vncURL = try vm.startVncServer(vncPassword: vncPassword, port: 0)
 

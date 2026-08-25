@@ -17,7 +17,7 @@ public struct ProvisionHandler {
 		case progress(ProgressObserver.ProgressHandlerContext, Double)
 		case step(String)
 		case substep(String)
-		case infos(ProgressObserver.ProvisionInfo)
+		case infos(ProgressObserver.ProvisionInfo?)
 		case provisioned(ProvisionedReply)
 
 		public var progressValue: ProgressObserver.ProgressValue {
@@ -32,9 +32,9 @@ public struct ProvisionHandler {
 				return .provision(value)
 			case .provisioned(let provisioned):
 				if provisioned.provisioned {
-					return .terminated(.success(provisioned), nil)
+					return .provisioned(.success(provisioned))
 				} else {
-					return .terminated(.failure(ServiceError(provisioned.reason)), nil)
+					return .provisioned(.failure(ServiceError(provisioned.reason)))
 				}
 			}
 		}

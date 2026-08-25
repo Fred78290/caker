@@ -770,7 +770,22 @@ struct LXDInstancesController: RouteCollection {
 			}
 
 		case .provision(let info):
-			return "Provisioning: \(info.vncURL)"
+			Task {
+				if let info {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisioning: \(info.vncURL)")
+				} else {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisioning")
+				}
+			}
+
+		case .provisioned(let result):
+			Task {
+				if case .failure(let error) = result {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisionning failed: \(error)")
+				} else {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisionning succeeded")
+				}
+			}
 		}
 
 		return currentMessage
