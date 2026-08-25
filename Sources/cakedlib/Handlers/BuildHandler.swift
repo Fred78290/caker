@@ -1,9 +1,10 @@
+import CakeAgentLib
 import Dispatch
 import Foundation
 import GRPCLib
-import CakeAgentLib
 import NIOCore
 import SwiftUI
+import Synchronization
 import Virtualization
 
 public struct BuildHandler {
@@ -88,32 +89,33 @@ public struct BuildHandler {
 			}
 
 			let tempVMLocation: VMLocation = try VMLocation.tempDirectory(options.identifier, runMode: runMode)
+			let location = storageLocation.location(options.name)
 
 			// Lock the temporary VM directory to prevent it's garbage collection
 			let tmpVMDirLock = try FileLock(lockURL: tempVMLocation.rootURL)
 			try tmpVMDirLock.lock()
 
+			@Sendable func doCancel() {
+				location.removePID()
+				try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
+			}
+
 			try await withTaskCancellationHandler(
 				operation: {
 					do {
-						let location = storageLocation.location(options.name)
 						let result = try await VMBuilder.buildVM(options.identifier, vmName: options.name, location: tempVMLocation, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
 						try storageLocation.relocate(options.name, from: tempVMLocation)
 
-						if result.autoinstall {
-							if result.imageSource == .ipsw || result.imageSource == .iso {
-								let vmLocation = storageLocation.location(options.name)
+						if result.autoinstall && (result.imageSource == .ipsw || result.imageSource == .iso) {
+							try await Task.sleep(nanoseconds: 2 * 100_000_000)
 
-								try await Task.sleep(nanoseconds: 2 * 100_000_000)
-
-								try await provision(options, location: vmLocation, runMode: runMode, progressHandler: progressHandler)
-							}
+							try await provision(options, location: location, runMode: runMode, progressHandler: progressHandler)
 						}
 
 						progressHandler(.terminated(.success(location.rootURL), "Build VM finished successfully"))
 					} catch {
-						try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
+						doCancel()
 
 						progressHandler(.terminated(.failure(error), "Build VM failed"))
 
@@ -121,7 +123,7 @@ public struct BuildHandler {
 					}
 				},
 				onCancel: {
-					try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
+					doCancel()
 				})
 			return BuildedReply(name: options.name, builded: true, reason: String(localized: "VM created"))
 		} catch {
