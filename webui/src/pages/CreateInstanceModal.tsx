@@ -6,6 +6,7 @@ import { getOperation } from '../api/operations';
 import { getServerInfo } from '../api/server';
 import { Spinner } from '../components/Spinner';
 import { vmImages } from '../data/vmImages';
+import type { VMImageEntry } from '../data/vmImages';
 import type { LXDNetwork } from '../types/lxd';
 
 interface Props {
@@ -42,17 +43,41 @@ const LXD_TO_IMAGE_ARCH: Record<string, 'arm64' | 'amd64'> = {
   arm64: 'arm64',
 }
 
-const buildSourceImages = (lxdArch: string, iso: boolean): { label: string; url: string }[] => {
+const buildSourceImages = (lxdArch: string, iso: boolean): { label: string; url: string; minCPU?: number; minMemoryMiB?: number }[] => {
   const arch = LXD_TO_IMAGE_ARCH[lxdArch] ?? 'amd64'
   const entries = iso ? vmImages[arch].iso : vmImages[arch].cloud
-  return entries.map((entry) => ({ label: entry.label, url: entry.url }))
+  return entries.map((entry) => ({ label: entry.label, url: entry.url, minCPU: entry.minCPU, minMemoryMiB: entry.minMemoryMiB }))
 }
 
-const buildMacosIpswSources = (lxdArch: string): { label: string; url: string }[] => {
+const buildMacosIpswSources = (lxdArch: string): { label: string; url: string; minCPU?: number; minMemoryMiB?: number }[] => {
   const arch = LXD_TO_IMAGE_ARCH[lxdArch] ?? 'amd64'
   if (arch !== 'arm64') return []
 
-  return vmImages.arm64.ipsw.map((entry) => ({ label: `${entry.label} – IPSW (Apple Silicon)`, url: entry.url }))
+  return vmImages.arm64.ipsw.map((entry) => ({
+    label: `${entry.label} – IPSW (Apple Silicon)`,
+    url: entry.url,
+    minCPU: entry.minCPU,
+    minMemoryMiB: entry.minMemoryMiB,
+  }))
+}
+
+// Raises cpu/memoryMB to the selected image's minCPU/minMemoryMiB, if any — never lowers a value
+// the user already raised above the minimum. Mirrors VMImageEntry.applyMinimumResources(to:) in
+// the native wizard (Sources/caker/Views/VirtualMachineWizard.swift).
+const applyMinimumResources = (
+  entry: Pick<VMImageEntry, 'minCPU' | 'minMemoryMiB'> | undefined,
+  currentCpu: string,
+  currentMemoryMB: string,
+): { cpu: string; memoryMB: string } => {
+  if (!entry) return { cpu: currentCpu, memoryMB: currentMemoryMB }
+
+  const cpuValue = Number.parseInt(currentCpu, 10) || 0
+  const memoryValue = Number.parseInt(currentMemoryMB, 10) || 0
+
+  return {
+    cpu: entry.minCPU ? String(Math.max(cpuValue, entry.minCPU)) : currentCpu,
+    memoryMB: entry.minMemoryMiB ? String(Math.max(memoryValue, entry.minMemoryMiB)) : currentMemoryMB,
+  }
 }
 
 const isAutoInstallAllowed = (value: string) => {
@@ -580,6 +605,22 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
 
   const operationProgress = parseProgressPercent(operationDescription)
 
+  const macosIpswSources = buildMacosIpswSources(serverArch)
+  const cloudSources = buildSourceImages(serverArch, false)
+  const isoSources = buildSourceImages(serverArch, true)
+  const imageSourcesByUrl = new Map(
+    [...macosIpswSources, ...cloudSources, ...isoSources].map((entry) => [entry.url, entry]),
+  )
+
+  const onSelectAlias = (value: string) => {
+    setAlias(value)
+    setAutoinstall(isAutoInstallAllowed(value))
+
+    const { cpu: nextCpu, memoryMB: nextMemoryMB } = applyMinimumResources(imageSourcesByUrl.get(value), cpu, memoryMB)
+    setCpu(nextCpu)
+    setMemoryMB(nextMemoryMB)
+  }
+
   return (
     <div
       className="modal fade"
@@ -727,19 +768,10 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                 </div>
                 <div className="mb-3">
                   <label className="form-label fw-medium">Image alias or ISO</label>
-                  {(() => {
-                    const macosIpswSources = buildMacosIpswSources(serverArch)
-                    const cloudSources = buildSourceImages(serverArch, false)
-                    const isoSources = buildSourceImages(serverArch, true)
-
-                    return (
                   <select
                     className="form-select"
                     value={alias}
-                    onChange={(e) => {
-                      setAlias(e.target.value)
-                      setAutoinstall(isAutoInstallAllowed(e.target.value))
-                    }}
+                    onChange={(e) => onSelectAlias(e.target.value)}
                   >
                     <option value="">Select or type image alias...</option>
                     {macosIpswSources.length > 0 && (
@@ -766,18 +798,22 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                       ))}
                     </optgroup>
                   </select>
-                    )
-                  })()}
                   <input
                     type="text"
                     className="form-control mt-2"
                     value={alias}
-                    onChange={(e) => {
-                      setAlias(e.target.value)
-                      setAutoinstall(isAutoInstallAllowed(e.target.value))
-                    }}
+                    onChange={(e) => onSelectAlias(e.target.value)}
                     placeholder="ubuntu:22.04"
                   />
+                  {(() => {
+                    const selected = imageSourcesByUrl.get(alias)
+                    if (!selected?.minCPU && !selected?.minMemoryMiB) return null
+                    return (
+                      <div className="form-text">
+                        Requires at least {selected.minCPU ?? 1} CPU{(selected.minCPU ?? 1) > 1 ? 's' : ''} and {Math.round((selected.minMemoryMiB ?? 0) / 1024)} GB memory — applied automatically on the System tab.
+                      </div>
+                    )
+                  })()}
                 </div>
                 <div className="mb-0">
                   <label className="form-label fw-medium">Description</label>
@@ -796,7 +832,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                     <label className="form-label fw-medium">CPU</label>
                     <input
                       type="number"
-                      min={1}
+                      min={imageSourcesByUrl.get(alias)?.minCPU ?? 1}
                       className="form-control"
                       value={cpu}
                       onChange={(e) => setCpu(e.target.value)}
@@ -807,7 +843,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                     <label className="form-label fw-medium">Memory (MB)</label>
                     <input
                       type="number"
-                      min={256}
+                      min={imageSourcesByUrl.get(alias)?.minMemoryMiB ?? 256}
                       step={256}
                       className="form-control"
                       value={memoryMB}
