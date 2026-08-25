@@ -4,7 +4,7 @@
 //
 //  Created by Frederic BOLTZ on 26/06/2025.
 //
-
+import CakeAgentLib
 import CakedLib
 import GRPCLib
 import NIO
@@ -183,7 +183,24 @@ struct WizardVirtualMachineView: NSViewRepresentable {
 			fatalError("No virtual machine view")
 		}
 
-		return vzMachineView
+		let view = NSView(frame: vzMachineView.bounds)
+
+		view.wantsLayer = true
+		//view.layer?.cornerRadius = 10
+		view.layer?.masksToBounds = true
+
+		view.addSubview(vzMachineView)
+		// Use Auto Layout to scale-fit the subview to its container
+		vzMachineView.translatesAutoresizingMaskIntoConstraints = false
+		vzMachineView.automaticallyReconfiguresDisplay = false
+		NSLayoutConstraint.activate([
+			vzMachineView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+			vzMachineView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+			vzMachineView.topAnchor.constraint(equalTo: view.topAnchor),
+			vzMachineView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+		])
+
+		return view
 	}
 
 	public func updateNSView(_ nsView: NSViewType, context: Context) {
@@ -192,11 +209,6 @@ struct WizardVirtualMachineView: NSViewRepresentable {
 
 struct VirtualMachineWizard: View {
 	static let wizardQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
-	static let ProgressCreateVirtualMachine = NSNotification.Name("ProgressCreateVirtualMachine")
-	static let ProgressTitleCreateVirtualMachine = NSNotification.Name("ProgressTitleCreateVirtualMachine")
-	static let ProgressSubtitleCreateVirtualMachine = NSNotification.Name("ProgressSubtitleCreateVirtualMachine")
-	static let CreatedVirtualMachine = NSNotification.Name("CreatedVirtualMachine")
-	static let FailCreateVirtualMachine = NSNotification.Name("FailCreateVirtualMachine")
 
 	@Environment(\.dismiss) private var dismiss
 	@Environment(\.openWindow) private var openWindow
@@ -206,6 +218,7 @@ struct VirtualMachineWizard: View {
 	@State private var model: VirtualMachineWizardStateObject
 	@State private var diskSizeValueIsInvalid = false
 	@State private var allowsOverrideMinimumResources = false
+	@State private var provisioningStarted: Bool = false
 	@State private var provisionnedVM: VirtualMachine? = nil
 	@State private var provisioningRemoteVM: Bool = false
 	@State private var provisionInfos: ProgressObserver.ProvisionInfo? = nil
@@ -216,6 +229,7 @@ struct VirtualMachineWizard: View {
 	private let fromPreset: Bool
 	private let presetImage: String
 	private let connectionManager: ConnectionManager
+	private let logger = Logger("VirtualMachineWizard")
 
 	var sheet: Bool = false
 
@@ -332,6 +346,22 @@ struct VirtualMachineWizard: View {
 		}
 	}
 
+	@discardableResult
+	private func cleanup() -> Bool {
+		let result = self.provisioningStarted
+
+		self.provisionnedVM = nil
+		self.provisioningRemoteVM = false
+		self.provisionInfos = nil
+		self.vncState = nil
+		self.model.createVM = false
+		self.model.createVMMessage = String.empty
+		self.model.createVMSubtitle = String.empty
+		self.provisioningStarted = false
+
+		return result
+	}
+
 	var body: some View {
 		if #unavailable(macOS 15.0) {
 			HostingWindowFinder { window in
@@ -343,49 +373,12 @@ struct VirtualMachineWizard: View {
 			}
 		}
 
-		self.Body().onReceive(Self.ProgressCreateVirtualMachine) { notification in
-			if self.isMyNotification(notification), let fractionCompleted = notification.object as? Double {
-				self.model.fractionCompleted = max(0, min(1.0, fractionCompleted))
-			}
-		}
-		.onReceive(Self.CreatedVirtualMachine) { notification in
-			if self.isMyNotification(notification) {
-				self.model.createVM = false
-
-				if let vmURL = notification.object as? URL {
-					Task {
-						await MainApp.app.openVirtualMachine(vmURL)
-						self.dismiss()
-					}
-				}
-
-				self.config = VirtualMachineConfig()
-				self.model.reset()
-			}
-		}
-		.onReceive(Self.FailCreateVirtualMachine) { notification in
-			if self.isMyNotification(notification) {
-				self.model.createVM = false
-				self.model.createVMMessage = String.empty
-				self.model.createVMSubtitle = String.empty
-
-				if let error = notification.object as? Error {
-					alertError(error)
-				}
-			}
-		}
-		.onReceive(Self.ProgressTitleCreateVirtualMachine) { notification in
-			if self.isMyNotification(notification), let message = notification.object as? String {
-				self.model.createVMMessage = message
-			}
-		}
-		.onReceive(Self.ProgressSubtitleCreateVirtualMachine) { notification in
-			if self.isMyNotification(notification), let message = notification.object as? String {
-				self.model.createVMSubtitle = message
-			}
-		}
+		self.Body()
 		.onReceive(PackerLiteEngine.provisionedStartNotification) { notification in
+			self.logger.debug("Notification - provisionedStartNotification")
 			if self.isMyNotification(notification), let virtualMachine = notification.object as? VirtualMachine {
+				self.provisioningStarted = true
+
 				#if DEBUG_PAKERLITE
 					self.openWindow(id: "Debug PackerLite", value: self.wizardID)
 				#else
@@ -394,6 +387,7 @@ struct VirtualMachineWizard: View {
 			}
 		}
 		.onReceive(PackerLiteEngine.provisionedTerminatedNotification) { notification in
+			self.logger.debug("Notification - provisionedTerminatedNotification")
 			if self.isMyNotification(notification) {
 				self.provisionnedVM = nil
 			}
@@ -1275,6 +1269,7 @@ struct VirtualMachineWizard: View {
 			self.provisioningRemoteVM = true
 			self.provisionInfos = infos
 			self.vncState = vncState
+			self.provisioningStarted = true
 
 			vncState.tryVNCConnect()
 		} catch {
@@ -1398,31 +1393,73 @@ struct VirtualMachineWizard: View {
 			DispatchQueue.main.async {
 				switch result {
 				case .progress(_, let fractionCompleted):
-					NotificationCenter.default.post(name: Self.ProgressCreateVirtualMachine, object: fractionCompleted, userInfo: ["wizardID": self.wizardID])
+					self.model.fractionCompleted = max(0, min(1.0, fractionCompleted))
 
-				case .terminated(let result, let message):
-					self.provisionnedVM = nil
-					self.provisioningRemoteVM = false
-					self.provisionInfos = nil
-					self.vncState = nil
+				case .terminated(let result, _):
+					self.logger.debug("Progress - terminated \(result) \(self.provisioningStarted)")
 
 					if case .failure(let error) = result {
-						NotificationCenter.default.post(name: Self.FailCreateVirtualMachine, object: error, userInfo: ["message": message ?? String.empty, "wizardID": self.wizardID])
-					} else if case .success(let vmURL) = result {
-						NotificationCenter.default.post(name: Self.CreatedVirtualMachine, object: vmURL, userInfo: ["message": message ?? String.empty, "wizardID": self.wizardID])
-					} else {
-						NotificationCenter.default.post(
-							name: Self.FailCreateVirtualMachine, object: ServiceError(String(localized: "Internal error creating virtual machine")), userInfo: ["message": message ?? String.empty, "wizardID": self.wizardID])
+						self.logger.debug("Progress - createVirtualMachine - failure \(self.provisioningStarted)")
+
+						if cleanup() {
+							func openVM(_ vmName: String) {
+								if let vmURL = URL(string: "vm://\(vmName)") {
+									Task {
+										await MainApp.app.openVirtualMachine(vmURL)
+										await self.dismiss()
+									}
+								}
+							}
+
+							alertError(String(localized: "Provisioning failed"), error.localizedDescription) { _ in
+								openVM(config.vmname)
+							}
+
+							self.config = VirtualMachineConfig()
+							self.model.reset()
+						} else {
+							alertError(error)
+						}
+					} else if case .success(let vmURL) = result, let vmURL = vmURL as? URL {
+						self.logger.debug("Progress - createVirtualMachine - success \(vmURL)")
+
+						cleanup()
+
+						Task {
+							await MainApp.app.openVirtualMachine(vmURL)
+							self.dismiss()
+						}
+
+						self.config = VirtualMachineConfig()
+						self.model.reset()
 					}
 
 					done()
+					self.logger.debug("Progress - createVirtualMachine - done")
 
 				case .step(let message):
-					NotificationCenter.default.post(name: Self.ProgressTitleCreateVirtualMachine, object: message, userInfo: ["wizardID": self.wizardID])
+					self.model.createVMMessage = message
+
 				case .substep(let message):
-					NotificationCenter.default.post(name: Self.ProgressSubtitleCreateVirtualMachine, object: message, userInfo: ["wizardID": self.wizardID])
+					self.model.createVMSubtitle = message
+
 				case .provision(let infos):
-					self.doVNC(infos)
+					self.logger.debug("Progress - provision")
+
+					self.provisioningStarted = true
+
+					if let infos {
+						self.doVNC(infos)
+					}
+
+				case .provisioned(let result):
+					self.logger.debug("Progress - provisioned \(result)")
+
+					if case .failure(let error) = result {
+						self.logger.debug("Progress - provisioned - failure \(error)")
+					} else if case .success(let result) = result {
+						self.logger.debug("Progress - provisioned - success \(String(describing: result?.reason))")
+					}
 				}
 			}
 		}
