@@ -169,26 +169,36 @@ public enum PackerLiteEngine {
 		}
 
 		func destroyVM(_ error: Error?) async {
+			if let error {
+				logger.error("Provisioning failed for VM \(location.name), error: \(error.localizedDescription)")
+			} else {
+				logger.debug("Provisioning success for VM \(location.name)")
+			}
+
 			vm.stopVncServer()
 
 			await MainActor.run {
 				vm.disposeWindow()
 			}
 
-			vm.stopVM { _ in
-				location.removePID()
+			await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+				vm.stopVM { _ in
+					location.removePID()
 
-				if let error {
-					progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)"))))
-				} else {
-					progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: true, reason: String(localized: "Provisioning success for VM \(location.name)"))))
+					if let error {
+						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)"))))
+					} else {
+						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: true, reason: String(localized: "Provisioning success for VM \(location.name)"))))
+					}
+					
+					continuation.resume()
 				}
+			}
 
-				if runInCaker {
-					if Self.provisioned.removeValue(forKey: id) != nil {
-						DispatchQueue.main.async {
-							NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm, userInfo: ["wizardID": id])
-						}
+			if runInCaker {
+				if Self.provisioned.removeValue(forKey: id) != nil {
+					DispatchQueue.main.async {
+						NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm, userInfo: ["wizardID": id])
 					}
 				}
 			}

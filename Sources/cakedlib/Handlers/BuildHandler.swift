@@ -32,11 +32,6 @@ public struct BuildHandler {
 			let template = try await PackerLiteTemplate.load(from: content, variables: variables)
 
 			try await PackerLiteEngine.provision(id: options.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
-				// Don't produce a terminated message here, because the VM is still running after provisioning completes — the caller will produce a terminated message when the VM is stopped.
-				if case .provisioned(_) = progress {
-					return
-				}
-
 				progressHandler(progress.progressValue)
 			}
 		} else if options.imageSource == .iso {
@@ -59,11 +54,6 @@ public struct BuildHandler {
 				let template = try await PackerLiteTemplate.load(from: content, variables: variables)
 
 				try await PackerLiteEngine.provision(id: options.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
-					// Don't produce a terminated message here, because the VM is still running after provisioning completes — the caller will produce a terminated message when the VM is stopped.
-					if case .provisioned(_) = progress {
-						return
-					}
-
 					progressHandler(progress.progressValue)
 				}
 			}
@@ -102,22 +92,38 @@ public struct BuildHandler {
 
 			try await withTaskCancellationHandler(
 				operation: {
+					var terminatedSent = false
+
 					do {
-						let result = try await VMBuilder.buildVM(options.identifier, vmName: options.name, location: tempVMLocation, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
+						let result = try await VMBuilder.buildVM(options.identifier, vmName: options.name, location: tempVMLocation, options: options, runMode: runMode, queue: queue) { progress in
+							if case .terminated(_, _) = progress {
+								terminatedSent = true
+							}
+
+							progressHandler(progress)
+						}
 
 						try storageLocation.relocate(options.name, from: tempVMLocation)
 
 						if result.autoinstall && (result.imageSource == .ipsw || result.imageSource == .iso) {
 							try await Task.sleep(nanoseconds: 2 * 100_000_000)
 
-							try await provision(options, location: location, runMode: runMode, progressHandler: progressHandler)
+							try await provision(options, location: location, runMode: runMode) { progress in
+								if case .terminated(_, _) = progress {
+									terminatedSent = true
+								}
+
+								progressHandler(progress)
+							}
 						}
 
 						progressHandler(.terminated(.success(location.rootURL), "Build VM finished successfully"))
 					} catch {
 						doCancel()
 
-						progressHandler(.terminated(.failure(error), "Build VM failed"))
+						if terminatedSent == false {
+							progressHandler(.terminated(.failure(error), "Build VM failed"))
+						}
 
 						throw error
 					}
