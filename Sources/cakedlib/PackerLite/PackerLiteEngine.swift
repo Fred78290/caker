@@ -174,19 +174,21 @@ public enum PackerLiteEngine {
 				vm.disposeWindow()
 			}
 
-			if runInCaker {
-				if Self.provisioned.removeValue(forKey: id) != nil {
-					DispatchQueue.main.async {
-						NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm, userInfo: ["wizardID": id])
-					}
-				}
-			}
-
 			vm.stopVM { _ in
+				location.removePID()
+
 				if let error {
 					progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)"))))
 				} else {
 					progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: true, reason: String(localized: "Provisioning success for VM \(location.name)"))))
+				}
+
+				if runInCaker {
+					if Self.provisioned.removeValue(forKey: id) != nil {
+						DispatchQueue.main.async {
+							NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm, userInfo: ["wizardID": id])
+						}
+					}
 				}
 			}
 		}
