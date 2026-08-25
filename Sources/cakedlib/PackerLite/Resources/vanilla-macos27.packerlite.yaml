@@ -180,7 +180,8 @@ boot_command:
       - <tab repeat=3>
       - UTC
       - <enter>
-      - <tab repeat=2>
+      - <wait1s>
+      - <tab repeat=5>
       - <spacebar>
 
   - title: Analytics
@@ -275,8 +276,12 @@ boot_command:
 
   - title: Navigate to Sharing
     commands:
-      - <tab repeat=11>
+      - <wait2s>
+      - <leftShiftOn>
+      - <tab repeat=5>
+      - <leftShiftOff>
       - <spacebar>
+      - <wait2s>
       - <tab repeat=5>
       - <spacebar>
 
