@@ -362,8 +362,43 @@ public struct VMBuilder {
 		return options
 	}
 
+	/// Resolves `options.imageId` (set by exactly one `--<id>` shorthand flag, e.g. `--macos12`,
+	/// or decoded off the wire for a `cakectl` build — see `BuildOptions.imageId`'s doc comment)
+	/// into an actual `options.image` URL/`options.imageSource`, overriding whatever `--image`
+	/// argument default was already there. Must run before `options.image`/`options.imageSource`
+	/// are first used, i.e. before `cloneImage`. A no-op when `imageId` isn't set.
+	private static func resolveImageId(_ options: BuildOptions) throws -> BuildOptions {
+		guard let imageId = options.imageId else {
+			return options
+		}
+
+		guard let resolution = VMImageCatalog.shared.resolveShorthand(imageId) else {
+			// Shouldn't normally happen — the shorthand flags are generated from this same
+			// catalog — but VMImages.json could plausibly drift from a stale generated
+			// VMImageShorthandFlags.swift, or `imageId` could arrive over gRPC from a newer
+			// cakectl than this caked's catalog knows about.
+			throw ServiceError(String(localized: "Unknown catalog image id '\(imageId)'. Regenerate VMImageShorthandFlags.swift if VMImages.json changed, or pass an explicit image URL instead."))
+		}
+
+		var options = options
+
+		options.image = resolution.url
+		options.imageSource = resolution.imageSource
+
+		// Bonus synergy: a macOS id (e.g. "macos12") already matches a MacOSVersion raw value —
+		// auto-populate macosVersion from it when the caller didn't already pass --macos-version
+		// explicitly, so PackerLite template selection doesn't have to re-derive it from the
+		// (now catalog-resolved) IPSW filename.
+		if options.macosVersion == nil, let macosVersion = resolution.macosVersion {
+			options.macosVersion = macosVersion
+		}
+
+		return options
+	}
+
 	static func buildVM(_ id: UUID = UUID(), vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
-		let options = try await self.cloneImage(vmName: vmName, location: location, options: options, runMode: runMode, progressHandler: progressHandler)
+		let resolvedOptions = try resolveImageId(options)
+		let options = try await self.cloneImage(vmName: vmName, location: location, options: resolvedOptions, runMode: runMode, progressHandler: progressHandler)
 
 		try await self.build(id: id, vmName: vmName, location: location, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
 

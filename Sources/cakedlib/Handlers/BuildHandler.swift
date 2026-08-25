@@ -108,7 +108,13 @@ public struct BuildHandler {
 						if result.autoinstall && (result.imageSource == .ipsw || result.imageSource == .iso) {
 							try await Task.sleep(nanoseconds: 2 * 100_000_000)
 
-							try await provision(options, location: location, runMode: runMode) { progress in
+							// Use `result`, not the outer `options` — `VMBuilder.buildVM` resolves
+							// `options.imageId` (a `--macos12`-style shorthand flag) into an actual
+							// `image`/`imageSource`/`macosVersion` internally, and `provision(...)`
+							// below needs that resolved image URL (for `PackerLiteTemplateResolver`)
+							// and macOS version, not whatever `options.image` defaulted to before
+							// resolution.
+							try await provision(result, location: location, runMode: runMode) { progress in
 								if case .terminated(_, _) = progress {
 									terminatedSent = true
 								}
