@@ -181,12 +181,22 @@ public enum PackerLiteEngine {
 				vm.disposeWindow()
 			}
 
+			await vm.finishProvisioningVideo(success: error == nil)
+
 			await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
 				vm.stopVM { _ in
 					location.removePID()
 
 					if let error {
-						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)"))))
+						let reason: String
+
+						if let videoURL = location.existingProvisioningVideoURL {
+							reason = String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason). Debug recording saved to \(videoURL.path)")
+						} else {
+							reason = String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)")
+						}
+
+						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: reason)))
 					} else {
 						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: true, reason: String(localized: "Provisioning success for VM \(location.name)"))))
 					}

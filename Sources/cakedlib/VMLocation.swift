@@ -194,6 +194,23 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		buildURL("run.provision")
 	}
 
+	/// Debug recording of the periodic screenshots taken while PackerLite provisioning is
+	/// in progress (see `ProvisioningVideoRecorder`) — deleted automatically when
+	/// provisioning succeeds, kept around for inspection when it fails. Lives directly
+	/// under `rootURL` like `screenshotURL`, so whole-VM removal (`delete()`) cleans it up
+	/// for free without any dedicated handling.
+	public var provisioningVideoURL: URL {
+		buildURL("provision.mp4")
+	}
+
+	/// `provisioningVideoURL` only if a recording actually exists on disk — used to decide
+	/// whether to mention it in a provisioning-failure message.
+	public var existingProvisioningVideoURL: URL? {
+		let url = provisioningVideoURL
+
+		return FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) ? url : nil
+	}
+
 	public func logURL(named fileName: String) -> URL? {
 		guard fileName.isEmpty == false else {
 			return nil

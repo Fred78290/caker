@@ -31,6 +31,7 @@
 		3FD33CA662D356FEF8C13629 /* linux-debian.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 7798FFF4C78EB8F680574620 /* linux-debian.packerlite.yaml */; };
 		4142810A4CB6558C2432A31D /* linux-fedora.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 32612D3D9C8B68255A45662B /* linux-fedora.packerlite.yaml */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
+		A81E057BF76553D63F16EF15 /* ProvisioningVideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */; };
 		7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */; };
 		9B001DCA300189A80048894C /* TemplateDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001DC9300189A80048894C /* TemplateDetailView.swift */; };
 		9B001E8C300191920048894C /* RemoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001E8B300191920048894C /* RemoteDetailView.swift */; };
@@ -929,6 +930,7 @@
 		32612D3D9C8B68255A45662B /* linux-fedora.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-fedora.packerlite.yaml"; sourceTree = "<group>"; };
 		500BE3176257638A33A6C5AC /* linux-redhat.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-redhat.packerlite.yaml"; sourceTree = "<group>"; };
 		7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteEngine.swift; sourceTree = "<group>"; };
+		7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisioningVideoRecorder.swift; sourceTree = "<group>"; };
 		7798FFF4C78EB8F680574620 /* linux-debian.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-debian.packerlite.yaml"; sourceTree = "<group>"; };
 		7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplateResolver.swift; sourceTree = "<group>"; };
 		839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplate.swift; sourceTree = "<group>"; };
@@ -2988,6 +2990,7 @@
 				7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */,
 				839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */,
 				7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */,
+				7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */,
 				9B8F3F71301F3F52001FA32A /* Resources */,
 			);
 			path = PackerLite;
@@ -4056,6 +4059,7 @@
 				AB8B314DC1C7F91AAF9C7933 /* PackerLiteDriver.swift in Sources */,
 				6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */,
 				D3041F78F1BE1C54A952AEF4 /* PackerLiteTemplateResolver.swift in Sources */,
+				A81E057BF76553D63F16EF15 /* ProvisioningVideoRecorder.swift in Sources */,
 				7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */,
 				1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */,
 				D11AF315177F1969AA5E3F7A /* MacOSVersion.swift in Sources */,

@@ -11041,6 +11041,17 @@
         }
       }
     },
+    "Provisioning failed for VM %@, error: %@. Debug recording saved to %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la configuration pour la VM %@, erreur : %@. Enregistrement de débogage sauvegardé dans %@"
+          }
+        }
+      }
+    },
     "Provisioning failed: %@" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -189,6 +189,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var vzMachineView: VMView.NSViewType! = nil
 	var vzMachineWindow: NSWindow? = nil
 	var timer: Timer? = nil
+	var provisioningVideoRecorder: ProvisioningVideoRecorder? = nil
 	var symlinks: [URL] = []
 	var portForwardingStarted = false
 	let provisioning: Bool
@@ -1603,6 +1604,13 @@ extension VirtualMachine {
 			try? deleteScreenshot()
 		}
 
+		// Debug recording of provisioning is purely a PackerLite aid, not a general VM-run
+		// feature — only started when this VM is actually being provisioned, and only when
+		// screenshots aren't disabled entirely (there'd be no frame source otherwise).
+		if self.env.provisioning && screenshotEnabled {
+			self.startProvisioningVideoRecorder()
+		}
+
 		let timer = Timer(timeInterval: kScreenshotPeriodSeconds, repeats: true) { [weak self] timer in
 			guard let self = self else {
 				timer.invalidate()
@@ -1645,12 +1653,39 @@ extension VirtualMachine {
 
 	func takeScreenshot() {
 		if let image = self.env.vzMachineView?.image() {
+			self.env.provisioningVideoRecorder?.append(image)
+
 			if let delegate = self.delegate {
 				delegate.didScreenshot(self, screenshot: image)
 			} else {
 				try? image.pngData?.write(to: self.location.screenshotURL)
 			}
 		}
+	}
+
+	private func startProvisioningVideoRecorder() {
+		do {
+			self.env.provisioningVideoRecorder = try ProvisioningVideoRecorder(outputURL: self.location.provisioningVideoURL, frameSize: self.env.screenSize)
+		} catch {
+			self.logger.error("Failed to start provisioning video recorder for VM \(self.location.name): \(error)")
+		}
+	}
+
+	/// Finalizes the provisioning debug recording once the overall provisioning outcome
+	/// (success/failure) is known — this can't be inferred purely from VM teardown, since
+	/// teardown happens the same way in both cases. Every provisioning completion path
+	/// (`PackerLiteEngine.provision(id:location:config:template:runMode:progressHandler:)`'s
+	/// `destroyVM`, `ProvisionHandler.provision(...)`'s `destroyVM`) calls this right around
+	/// where it already decides the outcome. No-op if no recording was ever started (e.g.
+	/// this VM wasn't being provisioned, or screenshots are disabled).
+	public func finishProvisioningVideo(success: Bool) async {
+		guard let recorder = self.env.provisioningVideoRecorder else {
+			return
+		}
+
+		self.env.provisioningVideoRecorder = nil
+
+		await recorder.finish(delete: success)
 	}
 }
 
