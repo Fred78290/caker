@@ -514,7 +514,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 
 	init() {
 		self.locationURL = URL(fileURLWithPath: "/dev/null")
-		self.imageName = VMImageCatalog.shared.cloudImage("ubuntu2404LTS").url
+		self.imageName = VMImageCatalog.shared.cloudImage("ubuntu2404").url
 		self.arch = Architecture.current()
 		self.os = .linux
 		self.diskFormat = .raw
@@ -560,7 +560,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.diskFormat = config.diskFormat
 		self.diskSize = config.diskSize
 		self.initialDiskSize = config.diskSize
-		self.imageName = VMImageCatalog.shared.cloudImage("ubuntu2404LTS").url
+		self.imageName = VMImageCatalog.shared.cloudImage("ubuntu2404").url
 		self.locationURL = config.locationURL
 		self.version = config.version
 		self.os = config.os

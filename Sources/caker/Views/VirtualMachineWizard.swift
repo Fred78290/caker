@@ -133,9 +133,9 @@ struct ShortImageInfoComparator: SortComparator {
 		self.remoteImage = "ubuntu"
 		self.remoteImages = []
 		self.selectedRemoteImage = String.empty
-		self.cloudImageRelease = VMImageCatalog.shared.cloudImage("ubuntu2604LTS")
+		self.cloudImageRelease = VMImageCatalog.shared.cloudImage("ubuntu2604")
 		self.isoImageRelease = VMImageCatalog.shared.isoImage("ubuntu2604Server")
-		self.ipswRelease = VMImageCatalog.shared.ipswImage("macos26_6")
+		self.ipswRelease = VMImageCatalog.shared.ipswImage("macos26")
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
@@ -155,9 +155,9 @@ struct ShortImageInfoComparator: SortComparator {
 		self.remoteImage = "ubuntu"
 		self.remoteImages = []
 		self.selectedRemoteImage = String.empty
-		self.cloudImageRelease = VMImageCatalog.shared.cloudImage("ubuntu2404LTS")
+		self.cloudImageRelease = VMImageCatalog.shared.cloudImage("ubuntu2604")
 		self.isoImageRelease = VMImageCatalog.shared.isoImage("ubuntu2604Server")
-		self.ipswRelease = VMImageCatalog.shared.ipswImage("macos26_6")
+		self.ipswRelease = VMImageCatalog.shared.ipswImage("macos26")
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
@@ -307,7 +307,7 @@ struct VirtualMachineWizard: View {
 			config.vmname = Self.generateRandomVMName()
 			config.source = .qcow2
 
-			let defaultCloudImage = VMImageCatalog.shared.cloudImage("ubuntu2604LTS")
+			let defaultCloudImage = VMImageCatalog.shared.cloudImage("ubuntu2604")
 
 			config.imageName = defaultCloudImage.url
 			config.os = .linux
