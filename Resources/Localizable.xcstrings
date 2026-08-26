@@ -2024,6 +2024,17 @@
         }
       }
     },
+    "Catalog image alias/id to build from, in place of --image" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alias/id d'image du catalogue à utiliser pour la construction, à la place de --image"
+          }
+        }
+      }
+    },
     "Certificate %@ deleted." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7182,6 +7193,17 @@
         }
       }
     },
+    "List catalog image ids usable with build/launch --alias" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lister les ids d'image du catalogue utilisables avec build/launch --alias"
+          }
+        }
+      }
+    },
     "List created VMs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7300,6 +7322,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Écouter sur l'adresse"
+          }
+        }
+      }
+    },
+    "Lists every id from VMImages.json for the current architecture, e.g. macos12, ubuntu2604, fedora44Server." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liste tous les ids de VMImages.json pour l'architecture courante, par ex. macos12, ubuntu2604, fedora44Server."
           }
         }
       }
@@ -12720,6 +12753,17 @@
         }
       }
     },
+    "See 'caked aliases' or 'cakectl aliases' for the list of known ids." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir ‘caked aliases’ ou ‘cakectl aliases’ pour la liste des ids connus."
+          }
+        }
+      }
+    },
     "Select" : {
       "localizations" : {
         "fr" : {
@@ -16460,6 +16504,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "inconnu"
+          }
+        }
+      }
+    },
+    "Unknown catalog image id '%@'. Run 'caked aliases' or 'cakectl aliases' to see the known ids, or pass an explicit image URL instead." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Id d'image de catalogue inconnu ‘%@’. Exécutez ‘caked aliases’ ou ‘cakectl aliases’ pour voir les ids connus, ou indiquez une URL d'image explicite."
           }
         }
       }
