@@ -306,7 +306,7 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
       {
         "id": "debian11",
         "label": "Debian 11 generic cloud (bullseye)",
-        "url": "https://cloud.debian.org/images/cloud/bullseye/daily/latest/debian-11-genericcloud-amd64-daily.qcow2",
+        "url": "https://cloud.debian.org/images/cloud/bullseye/daily/latest/debian-11-genericcloud-arm64-daily.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
@@ -706,7 +706,7 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
       {
         "id": "centos10",
         "label": "CentOS 10",
-        "url": "https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2",
+        "url": "https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
