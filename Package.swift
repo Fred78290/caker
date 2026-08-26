@@ -157,6 +157,7 @@ let package = Package(
 			"VNCLib/VNCAuthExample.swift",
 		],
 		resources: [
+			.copy("Resources/VMImages.json"),
 			.copy("PackerLite/Resources/vanilla-macos12.packerlite.yaml"),
 			.copy("PackerLite/Resources/vanilla-macos13.packerlite.yaml"),
 			.copy("PackerLite/Resources/vanilla-macos14.packerlite.yaml"),

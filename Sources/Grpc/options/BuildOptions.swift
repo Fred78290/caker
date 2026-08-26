@@ -183,8 +183,29 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.customLong("macos-version")], help: ArgumentHelp(String(localized: "macOS version of the IPSW, used to select the built-in provisioning template when it can't be determined from the IPSW filename"), discussion: String(localized: "One of: \(MacOSVersion.allCases.map(\.rawValue).joined(separator: ", "))"), valueName: "version"))
 	public var macosVersion: MacOSVersion? = nil
 
+	/// A catalog id (e.g. "macos12", "ubuntu2604" — see `caked aliases`/`cakectl aliases`, or
+	/// `Sources/cakedlib/Resources/VMImages.json` directly) to build from instead of an explicit
+	/// `--image` URL. Just captures the raw id string here — `GRPCLib` can't depend on `CakedLib`
+	/// (which owns `VMImageCatalog`), so resolving it into an actual image URL/source happens in
+	/// `VMBuilder.buildVM` on the `CakedLib` side. Copied into `imageId` by `validate()` below.
+	@Option(name: [.customLong("alias")], help: ArgumentHelp(String(localized: "Catalog image alias/id to build from, in place of --image"), discussion: String(localized: "See 'caked aliases' or 'cakectl aliases' for the list of known ids."), valueName: "id"))
+	public var alias: String? = nil
+
+	/// The catalog id this build should resolve its image from, if any — a plain `String?` with no
+	/// ArgumentParser storage behind it, so unlike `alias` it's always safe to read/write from
+	/// anywhere. Populated either from `alias` (by `validate()` below, ArgumentParser's own
+	/// post-parse hook, for a local `caked build --alias macos12`) or decoded directly off the wire
+	/// (`Caked_CommonBuildRequest.imageId`, for `cakectl build --alias macos12`, which sends just
+	/// the id — see `CakedAliases.swift`).
+	public var imageId: String? = nil
+
 	public var identifier = UUID()
 
+	// IMPORTANT: this designated no-arg initializer must stay empty. ArgumentParser reflects over
+	// exactly this initializer, via `Type.init()`, for its own `--help`/parsing introspection —
+	// assigning to any `@Option`/`@Flag`/`@Argument`/`@OptionGroup` property here resolves it
+	// early and crashes that walk with "Trying to get the argument set from a resolved/parsed
+	// property."
 	public init() {
 	}
 
@@ -259,6 +280,8 @@ public struct BuildOptions: ParsableArguments {
 		self.provisionTemplate = nil
 		self.provisionVars = []
 		self.macosVersion = nil
+		self.alias = nil
+		self.imageId = nil
 	}
 
 	public init(request: Caked_CommonBuildRequest) throws {
@@ -470,6 +493,16 @@ public struct BuildOptions: ParsableArguments {
 		} else {
 			self.macosVersion = nil
 		}
+
+		// A decoded request never carries `--alias` itself — `cakectl` already resolved it into
+		// `imageId` client-side during its own parse (see `validate()` below) and sent just that
+		// id, so `imageId` is populated directly off the wire instead. `alias` is left at its
+		// `nil` default.
+		if request.hasImageID, request.imageID.isEmpty == false {
+			self.imageId = request.imageID
+		} else {
+			self.imageId = nil
+		}
 	}
 
 	mutating public func validate(remote: Bool) throws {
@@ -502,7 +535,26 @@ public struct BuildOptions: ParsableArguments {
 
 		try self.validateImageSource(remote: remote)
 	}
-	
+
+	/// `ParsableArguments`'s real, zero-argument validation hook (distinct from the `validate(remote:)`
+	/// above, which is this codebase's own convention and is *also* called manually by `Build`/
+	/// `Launch`/`Up` commands — see their `validate()` in `caked`/`cakectl`). ArgumentParser invokes
+	/// *this* one automatically, exactly once, as part of decoding any real `@OptionGroup var
+	/// options: BuildOptions` (i.e. every actual `caked build`/`cakectl build`/`launch` CLI
+	/// invocation, and `BuildOptions.parse([...])` in tests) — never on a `BuildOptions` built
+	/// programmatically via `BuildOptions()`/`init(request:)`/the `name:diskFormat:...` convenience
+	/// initializer (e.g. `CakerEnvVM.toBuildOptions(name:)`, used by `caked`/`cakectl up`, which
+	/// never goes through ArgumentParser's decode machinery at all). `alias` -> `imageId` copying
+	/// lives here rather than in `validate(remote:)` so it only ever runs on a genuinely-parsed
+	/// instance, matching what `CakerEnvVM.toBuildOptions(name:)` expects (it never sets `alias`).
+	public mutating func validate() throws {
+		// `--alias <id>` resolves into `imageId`, which is what actually crosses the
+		// GRPCLib/CakedLib boundary (see `imageId`'s doc comment above).
+		if let alias = self.alias {
+			self.imageId = alias
+		}
+	}
+
 	public mutating func validateImageSource(remote: Bool) throws {
 		var scheme: String
 

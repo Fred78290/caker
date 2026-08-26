@@ -98,7 +98,8 @@
             "value" : ": %lld"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "...%0.3d%% complete" : {
       "extractionState" : "manual",
@@ -198,7 +199,8 @@
             "value" : "%@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%@ [<options>] %@" : {
       "extractionState" : "manual",
@@ -458,7 +460,8 @@
             "value" : "%@ :"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%@: %@" : {
       "comment" : "A label displaying a key-value pair from a TXT record. The argument is the key, and the second argument is the value.",
@@ -1712,7 +1715,8 @@
             "value" : "Le chemin du paquet est manquant"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "caked daemon listening" : {
       "extractionState" : "manual",
@@ -1734,7 +1738,8 @@
             "value" : "L'exécutable est manquant"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "caked not found" : {
       "extractionState" : "manual",
@@ -1958,6 +1963,7 @@
       }
     },
     "Cancelled" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -1965,7 +1971,8 @@
             "value" : "Annulé"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Cannot copy a VM that uses a physical block device as its root disk" : {
       "extractionState" : "manual",
@@ -2019,6 +2026,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Impossible de déplacer le dossier caked pendant que le caked est actif ( ). Arrêtez le service caked, toutes les machines virtuelles et tous les réseaux en premier."
+          }
+        }
+      }
+    },
+    "Catalog image alias/id to build from, in place of --image" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alias/id d'image du catalogue à utiliser pour la construction, à la place de --image"
           }
         }
       }
@@ -5904,7 +5922,8 @@
             "value" : "Échec de l'importation avec le code de sortie %d"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Import from %@" : {
       "comment" : "A title describing the import process. The argument is the name of the app.",
@@ -6330,7 +6349,8 @@
             "value" : "Erreur interne lors de la création de la machine virtuelle"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Internal error: invalid VM location URL" : {
       "localizations" : {
@@ -7181,6 +7201,17 @@
         }
       }
     },
+    "List catalog image ids usable with build/launch --alias" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lister les ids d'image du catalogue utilisables avec build/launch --alias"
+          }
+        }
+      }
+    },
     "List created VMs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7299,6 +7330,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Écouter sur l'adresse"
+          }
+        }
+      }
+    },
+    "Lists every id from VMImages.json for the current architecture, e.g. macos12, ubuntu2604, fedora44Server." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liste tous les ids de VMImages.json pour l'architecture courante, par ex. macos12, ubuntu2604, fedora44Server."
           }
         }
       }
@@ -8245,7 +8287,8 @@
             "value" : "Nom ou répertoire VM..."
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "NAT shared network" : {
       "extractionState" : "manual",
@@ -10825,7 +10868,8 @@
             "value" : "Port: %lld"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Ports" : {
       "localizations" : {
@@ -11235,7 +11279,8 @@
             "value" : "Fichier d’approvisionnement"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "public key can't be verified" : {
       "extractionState" : "manual",
@@ -12726,6 +12771,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Voir ‘%@ <sous-commande>’ pour une aide détaillée."
+          }
+        }
+      }
+    },
+    "See 'caked aliases' or 'cakectl aliases' for the list of known ids." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir ‘caked aliases’ ou ‘cakectl aliases’ pour la liste des ids connus."
           }
         }
       }
@@ -16474,6 +16530,17 @@
         }
       }
     },
+    "Unknown catalog image id '%@'. Run 'caked aliases' or 'cakectl aliases' to see the known ids, or pass an explicit image URL instead." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Id d'image de catalogue inconnu ‘%@’. Exécutez ‘caked aliases’ ou ‘cakectl aliases’ pour voir les ids connus, ou indiquez une URL d'image explicite."
+          }
+        }
+      }
+    },
     "Unknown certificate command" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16987,7 +17054,8 @@
             "value" : "UTILISATION: %@\n\n"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Use DFU restore mode" : {
       "comment" : "A toggle to enable DFU restore mode.",

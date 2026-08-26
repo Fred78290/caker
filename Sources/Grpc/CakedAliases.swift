@@ -624,6 +624,10 @@ extension Caked_CommonBuildRequest {
 		if let macosVersion = buildOptions.macosVersion {
 			self.macosVersion = macosVersion.rawValue
 		}
+
+		if let imageId = buildOptions.imageId {
+			self.imageID = imageId
+		}
 	}
 }
 

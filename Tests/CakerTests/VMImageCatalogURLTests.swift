@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import caker
+@testable import CakedLib
 
 final class VMImageCatalogURLTests: XCTestCase {
 	func testFedora41DesktopIsOnlyPublishedForAmd64() throws {
