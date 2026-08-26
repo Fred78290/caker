@@ -7,10 +7,11 @@
 //  Originally lived in the `caker` GUI target (as `Sources/caker/VMImageCatalog.swift`, reading
 //  `Sources/caker/Resources/VMImages.json`) and was only ever consulted by the wizard. It moved
 //  here so `caked`/`cakectl` — which don't depend on `caker` — can resolve catalog ids too (see
-//  `BuildOptions`'s generated shorthand flags, e.g. `--macos12`, `--ubuntu2604`, in
-//  `Sources/Grpc/options/VMImageShorthandFlags.swift`, and their resolution in `VMBuilder.swift`).
+//  `BuildOptions.alias`, e.g. `--alias macos12`, and its resolution in `VMBuilder.swift`, plus
+//  `aliasEntries` below, used by the `caked aliases`/`cakectl aliases` commands to list them).
 //
 
+import CakeAgentLib
 import Foundation
 import GRPCLib
 import Synchronization
@@ -196,9 +197,9 @@ public struct VMImageCatalog: Codable, Sendable {
 	}
 }
 
-/// What a shorthand catalog id (`--macos12`, `--ubuntu2604`, ...) resolves to: the entry's URL,
-/// the `GRPCLib.ImageSource` it should be built as, and — for an `ipsw` hit whose id happens to
-/// also be a valid `MacOSVersion` raw value — the matching `MacOSVersion`, so callers can
+/// What a catalog id (`--alias macos12`, `--alias ubuntu2604`, ...) resolves to: the entry's
+/// URL, the `GRPCLib.ImageSource` it should be built as, and — for an `ipsw` hit whose id happens
+/// to also be a valid `MacOSVersion` raw value — the matching `MacOSVersion`, so callers can
 /// auto-populate `BuildOptions.macosVersion` when the user didn't pass `--macos-version`
 /// explicitly (see `VMBuilder.buildVM`).
 public struct VMImageCatalogResolution: Sendable {
@@ -208,16 +209,16 @@ public struct VMImageCatalogResolution: Sendable {
 }
 
 extension VMImageCatalog {
-	/// Resolves a shorthand catalog id (the same ids `VMImageShorthandFlags`'s `--<id>` flags are
-	/// generated from) against this catalog's `current` (arch-appropriate) entries.
+	/// Resolves a catalog id (the same ids `--alias` accepts, and that `aliasEntries` below lists)
+	/// against this catalog's `current` (arch-appropriate) entries.
 	///
 	/// Checks `ipsw` → `iso` → `cloud`, in that priority order. `centos9`/`centos10` are — as of
 	/// this writing — the only ids that appear in more than one category (both `iso` and
 	/// `cloud`), and this priority order means they always resolve to the `iso` entry, never the
 	/// `cloud` one; there's no `--centos9-cloud`-style variant to disambiguate further. Returns
-	/// `nil` if `id` isn't in this catalog at all — shouldn't normally happen, since the
-	/// shorthand flags are generated from this same catalog, but a caller should still handle it
-	/// rather than force-unwrapping.
+	/// `nil` if `id` isn't in this catalog at all — shouldn't normally happen, since `--alias`'s
+	/// ids are meant to come from this same catalog, but a caller should still handle it rather
+	/// than force-unwrapping.
 	public func resolveShorthand(_ id: String) -> VMImageCatalogResolution? {
 		if let entry = current.ipsw.first(where: { $0.id == id }) {
 			return VMImageCatalogResolution(url: entry.url, imageSource: .ipsw, macosVersion: MacOSVersion(rawValue: id))
@@ -237,5 +238,31 @@ extension VMImageCatalog {
 		}
 
 		return nil
+	}
+}
+
+/// One row of `caked aliases`/`cakectl aliases` output — every id `--alias` accepts, tagged with
+/// which catalog category (`ipsw`/`iso`/`cloud`) it resolves from. `centos9`/`centos10` appear
+/// twice here (once per category, see `resolveShorthand`'s doc comment above) since this listing
+/// is meant to show the full catalog contents, not just what `--alias` would actually pick.
+public struct VMImageAliasEntry: Codable, Sendable {
+	public let id: String
+	public let category: String
+	public let label: String
+}
+
+extension VMImageCatalog {
+	/// Every `--alias`-able id in `current` (arch-appropriate), across all three categories —
+	/// the data behind the `aliases` command in both `caked` and `cakectl`.
+	public var aliasEntries: [VMImageAliasEntry] {
+		current.ipsw.map { VMImageAliasEntry(id: $0.id, category: "ipsw", label: $0.label) }
+			+ current.iso.map { VMImageAliasEntry(id: $0.id, category: "iso", label: $0.label) }
+			+ current.cloud.map { VMImageAliasEntry(id: $0.id, category: "cloud", label: $0.label) }
+	}
+}
+
+extension CakeAgentLib.Format {
+	public func render(_ data: [VMImageAliasEntry]) -> String {
+		self.renderList(data)
 	}
 }

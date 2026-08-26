@@ -4,9 +4,9 @@ import XCTest
 @testable import GRPCLib
 
 /// Covers `VMImageCatalog.resolveShorthand(_:)`, the id -> URL/imageSource/macosVersion
-/// resolution `VMBuilder.buildVM` uses for the `--<id>` shorthand flags generated in
-/// `Sources/Grpc/options/VMImageShorthandFlags.swift`. See `VMImageCatalogURLTests.swift` for
-/// catalog-shape/reachability coverage — this file is specifically about the resolution logic.
+/// resolution `VMBuilder.buildVM` uses for `BuildOptions.imageId` (set via `--alias <id>`). See
+/// `VMImageCatalogURLTests.swift` for catalog-shape/reachability coverage — this file is
+/// specifically about the resolution logic.
 final class VMImageCatalogResolutionTests: XCTestCase {
 	func testIPSWIdResolvesToIPSWSourceAndMatchingMacOSVersion() throws {
 		let catalog = VMImageCatalog.shared
@@ -54,5 +54,20 @@ final class VMImageCatalogResolutionTests: XCTestCase {
 		let catalog = VMImageCatalog.shared
 
 		XCTAssertNil(catalog.resolveShorthand("not-a-real-catalog-id"))
+	}
+
+	/// `aliasEntries` is what the `caked aliases`/`cakectl aliases` commands render — every id
+	/// resolvable via `--alias` should show up here, tagged with its category.
+	func testAliasEntriesListsEveryResolvableId() throws {
+		let catalog = VMImageCatalog.shared
+		let entries = catalog.aliasEntries
+
+		XCTAssertFalse(entries.isEmpty)
+
+		let macos12 = try XCTUnwrap(entries.first(where: { $0.id == "macos12" }))
+		XCTAssertEqual(macos12.category, "ipsw")
+
+		let ubuntu2604 = try XCTUnwrap(entries.first(where: { $0.id == "ubuntu2604" }))
+		XCTAssertEqual(ubuntu2604.category, "cloud")
 	}
 }

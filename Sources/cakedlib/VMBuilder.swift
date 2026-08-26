@@ -362,22 +362,22 @@ public struct VMBuilder {
 		return options
 	}
 
-	/// Resolves `options.imageId` (set by exactly one `--<id>` shorthand flag, e.g. `--macos12`,
-	/// or decoded off the wire for a `cakectl` build — see `BuildOptions.imageId`'s doc comment)
-	/// into an actual `options.image` URL/`options.imageSource`, overriding whatever `--image`
-	/// argument default was already there. Must run before `options.image`/`options.imageSource`
-	/// are first used, i.e. before `cloneImage`. A no-op when `imageId` isn't set.
+	/// Resolves `options.imageId` (set by `--alias <id>`, e.g. `--alias macos12`, or decoded off
+	/// the wire for a `cakectl` build — see `BuildOptions.imageId`'s doc comment) into an actual
+	/// `options.image` URL/`options.imageSource`, overriding whatever `--image` argument default
+	/// was already there. Must run before `options.image`/`options.imageSource` are first used,
+	/// i.e. before `cloneImage`. A no-op when `imageId` isn't set.
 	private static func resolveImageId(_ options: BuildOptions) throws -> BuildOptions {
 		guard let imageId = options.imageId else {
 			return options
 		}
 
 		guard let resolution = VMImageCatalog.shared.resolveShorthand(imageId) else {
-			// Shouldn't normally happen — the shorthand flags are generated from this same
-			// catalog — but VMImages.json could plausibly drift from a stale generated
-			// VMImageShorthandFlags.swift, or `imageId` could arrive over gRPC from a newer
-			// cakectl than this caked's catalog knows about.
-			throw ServiceError(String(localized: "Unknown catalog image id '\(imageId)'. Regenerate VMImageShorthandFlags.swift if VMImages.json changed, or pass an explicit image URL instead."))
+			// Shouldn't normally happen — `--alias`'s ids are meant to come from this same
+			// catalog (see `caked aliases`/`cakectl aliases`) — but `imageId` could arrive over
+			// gRPC from a newer cakectl than this caked's catalog knows about, or the caller
+			// could have typed an id by hand.
+			throw ServiceError(String(localized: "Unknown catalog image id '\(imageId)'. Run 'caked aliases' or 'cakectl aliases' to see the known ids, or pass an explicit image URL instead."))
 		}
 
 		var options = options

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Regenerates src/data/vmImages.ts from Sources/cakedlib/Resources/VMImages.json, the catalog
 // also consumed by CakedLib's VMImageCatalog.swift (used by Caker.app's wizard, and by
-// caked/cakectl's `--<id>` build/launch shorthand flags — see VMImageShorthandFlags.swift).
+// caked/cakectl's `build`/`launch --alias <id>` option — see BuildOptions.swift).
 // Run via `npm run sync-vm-images`, or let `npm run dev` / `npm run build` do it automatically
 // (see the `pre*` scripts in package.json).
 import { readFileSync, writeFileSync } from 'node:fs'
