@@ -46,7 +46,7 @@ public final class ProvisioningVideoRecorder: @unchecked Sendable {
 	// Guards `sessionStarted`/`firstFrameDate`/`frameCount` and serializes calls into the
 	// writer/input/adaptor, since `append` can be called repeatedly off the screenshot timer
 	// while `finish` is awaited from an unrelated task.
-	private let syncQueue = DispatchQueue(label: "cakedlib.provisioning-video-recorder")
+	private static let syncQueue = DispatchQueue(label: "cakedlib.provisioning-video-recorder")
 
 	private var sessionStarted = false
 	private var firstFrameDate: Date?
@@ -100,7 +100,7 @@ public final class ProvisioningVideoRecorder: @unchecked Sendable {
 	/// an assumed fixed interval) so the resulting video's pacing roughly matches how long
 	/// provisioning actually took, even though it's only ~1 frame per 5 real seconds.
 	public func append(_ image: NSImage, at date: Date = Date()) {
-		syncQueue.sync {
+		Self.syncQueue.async {
 			guard let pixelBuffer = self.makePixelBuffer(from: image) else {
 				return
 			}
@@ -137,14 +137,14 @@ public final class ProvisioningVideoRecorder: @unchecked Sendable {
 	/// finalize, so this just removes any (empty/partial) file rather than calling into
 	/// `AVAssetWriter.finishWriting`, which requires a session to already be underway.
 	public func finish(delete: Bool) async {
-		let started = syncQueue.sync { self.sessionStarted }
+		let started = Self.syncQueue.sync { self.sessionStarted }
 
 		guard started else {
 			try? FileManager.default.removeItem(at: outputURL)
 			return
 		}
 
-		syncQueue.sync {
+		Self.syncQueue.sync {
 			self.input.markAsFinished()
 		}
 
