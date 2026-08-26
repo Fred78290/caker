@@ -211,6 +211,13 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) ? url : nil
 	}
 
+	/// Default `--output` destination for `caked record` (RecordHandler/Record.swift) when the
+	/// operator doesn't pass an explicit path — lives directly under `rootURL` like
+	/// `provisioningVideoURL`/`screenshotURL`, so it's swept up for free by whole-VM `delete()`.
+	public var recordedTemplateURL: URL {
+		buildURL("record.packerlite.yaml")
+	}
+
 	public func logURL(named fileName: String) -> URL? {
 		guard fileName.isEmpty == false else {
 			return nil

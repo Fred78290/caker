@@ -61,6 +61,13 @@ final class VNCConnection: @unchecked Sendable {
 	weak var inputDelegate: VNCInputDelegate?
 	var sendFramebufferContinous: Bool = false
 
+	/// Forwarded straight to `inputHandler.actionRecorder` — see `VNCInputHandler.actionRecorder`
+	/// and `VNCServer.actionRecorder` for the rest of the wiring down from a running `caked record`
+	/// session.
+	var actionRecorder: RecordedActionHandler? {
+		didSet { self.inputHandler.actionRecorder = self.actionRecorder }
+	}
+
 	internal var connectionState: NWConnection.State {
 		self.connection.state
 	}

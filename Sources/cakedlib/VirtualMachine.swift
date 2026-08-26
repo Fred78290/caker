@@ -1295,6 +1295,13 @@ extension VirtualMachine {
 		return self.env.vncServer.urls
 	}
 
+	/// Arms (non-nil) or disarms (nil) a `caked record` recording tap on this VM's VNC server, if
+	/// one has been started (`startVncServer` above) — a no-op otherwise. See
+	/// `ActionRecorder.swift` and `VNCInputHandler.actionRecorder` for the rest of the pipeline.
+	public func setActionRecorder(_ handler: RecordedActionHandler?) {
+		self.env.vncServer?.actionRecorder = handler
+	}
+
 }
 
 // MARK: - VZVirtualMachineDelegate
