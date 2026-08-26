@@ -208,8 +208,12 @@ public struct ProvisionHandler {
 							reason = String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)")
 						}
 
+						logger.error(reason)
+
 						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: reason)))
 					} else {
+						logger.info("Provisioning success for VM \(location.name)")
+
 						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: true, reason: String(localized: "Provisioning success for VM \(location.name)"))))
 					}
 

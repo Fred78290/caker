@@ -169,12 +169,6 @@ public enum PackerLiteEngine {
 		}
 
 		func destroyVM(_ error: Error?) async {
-			if let error {
-				logger.error("Provisioning failed for VM \(location.name), error: \(error.localizedDescription)")
-			} else {
-				logger.debug("Provisioning success for VM \(location.name)")
-			}
-
 			vm.stopVncServer()
 
 			await MainActor.run {
@@ -196,8 +190,12 @@ public enum PackerLiteEngine {
 							reason = String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)")
 						}
 
+						logger.error(reason)
+
 						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: reason)))
 					} else {
+						logger.info("Provisioning success for VM \(location.name)")
+
 						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: true, reason: String(localized: "Provisioning success for VM \(location.name)"))))
 					}
 					
