@@ -10,6 +10,7 @@ import Socket
 import SwiftUI
 import Virtualization
 
+private let kScreenshotProvisioningPeriodSeconds = 1.0
 private let kScreenshotPeriodSeconds = 5.0
 private let kAgentInstallRetryPeriodSeconds: UInt64 = 30
 
@@ -1183,7 +1184,7 @@ extension VirtualMachine {
 		switch result {
 		case .success:
 			self.logger.info("VM \(self.location.name) started")
-			self.env.timer = self.startScreenshotTimer()
+			self.env.timer = self.startScreenshotTimer(timeInterval: self.env.provisioning ? kScreenshotProvisioningPeriodSeconds : kScreenshotPeriodSeconds)
 			self.env.startCommunicationDevices(self.virtualMachine)
 			break
 		case .failure(let error):
@@ -1595,7 +1596,7 @@ extension VirtualMachine {
 		return (enabled, save)
 	}
 
-	func startScreenshotTimer() -> Timer {
+	func startScreenshotTimer(timeInterval: TimeInterval /* = kScreenshotPeriodSeconds */) -> Timer {
 		let screenshotSettings = self.refreshScreenshotSettingsCache()
 		let screenshotEnabled = screenshotSettings.enabled
 		let screenshotSaveEnabled = screenshotSettings.save
@@ -1611,7 +1612,7 @@ extension VirtualMachine {
 			self.startProvisioningVideoRecorder()
 		}
 
-		let timer = Timer(timeInterval: kScreenshotPeriodSeconds, repeats: true) { [weak self] timer in
+		let timer = Timer(timeInterval: timeInterval, repeats: true) { [weak self] timer in
 			guard let self = self else {
 				timer.invalidate()
 				return
