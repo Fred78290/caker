@@ -315,6 +315,24 @@ Pendant toute la durée d'un provisioning PackerLite (`build`/`create --autoinst
 
 Cet enregistrement respecte le réglage existant de désactivation des captures d'écran (`UserDefaults` `NoScreenshot`) — s'il est actif, il n'y a aucune image source et donc aucune vidéo. Voir `Sources/cakedlib/PackerLite/ProvisioningVideoRecorder.swift` (l'enregistreur lui-même), `VirtualMachine.swift` (démarrage/alimentation de l'enregistreur depuis le minuteur de captures d'écran existant), et `VMLocation.provisioningVideoURL`.
 
+### `record` : enregistrer un template `boot_command` à la main
+
+Écrire un template `boot_command` à la main revient à deviner des coordonnées et des délais, puis à itérer contre un vrai démarrage. `caked record <vm>` fait l'inverse : elle démarre `<vm>` (déjà construite, mais **pas** encore démarrée — typiquement une VM créée sans `--autoinstall`, donc arrêtée sur son écran de premier démarrage), ouvre une fenêtre VNC intégrée, et enregistre chaque clic et chaque frappe que vous effectuez à la main à travers cette fenêtre. Appuyez sur `Ctrl-C` dans le terminal pour arrêter l'enregistrement : le template `boot_command` correspondant est alors écrit sur disque.
+
+```bash
+# Enregistrer une session dans le fichier par défaut (record.packerlite.yaml, dans le répertoire de la VM)
+caked record my-vm
+
+# Choisir un autre emplacement de sortie
+caked record my-vm --output ./mon-template.packerlite.yaml
+```
+
+**Disponible uniquement en local (`caked record`) pour l'instant** — pas encore d'équivalent `cakectl`/gRPC, comme `caked provision` à ses débuts.
+
+**Le résultat est un premier jet, pas un template fiable clé en main** : les clics deviennent des tokens `<click point="X,Y">`, le texte tapé est coalescé en une seule ligne par plage continue de frappes, les touches spéciales et les modificateurs (`<enter>`, `<tab>`, `<leftShiftOn>`/`<leftShiftOff>`, etc.) utilisent le même vocabulaire de tokens que les templates écrits à la main — mais les pauses entre les actions deviennent des `<waitNs>` à délai fixe. Ce projet s'est justement éloigné des délais fixes au profit d'ancres `<locate>` synchronisées par OCR, précisément parce que les délais fixes sont peu fiables (voir la section PackerLite ci-dessus) — considérez le résultat comme un point de départ à renforcer avec des ancres `<locate>` avant de vous y fier pour un `--autoinstall` non surveillé.
+
+Les identifiants du compte (`--user`/`--password` de la VM) ne sont jamais écrits en clair dans le fichier : un texte enregistré qui correspond exactement au nom d'utilisateur ou au mot de passe configuré de la VM est automatiquement remplacé par `${var.username}`/`${var.password}`.
+
 ## Notes
 
 - Certaines commandes sont internes ou masquées dans la sortie d'aide de `caked` (`vmrun`, certaines sous-commandes `networks`).
@@ -855,6 +873,24 @@ For the whole duration of any PackerLite provisioning run (`build`/`create --aut
 - **Provisioning fails**: the video is kept, and its location is appended to the failure `reason` returned by `caked provision`/`caked build --autoinstall` and `cakectl provision`/`cakectl build --autoinstall` — no need to go hunting for it on the filesystem.
 
 This recording honors the existing screenshot opt-out (`UserDefaults`'s `NoScreenshot`) — if it's set, there's no frame source and therefore no video either. See `Sources/cakedlib/PackerLite/ProvisioningVideoRecorder.swift` (the recorder itself), `VirtualMachine.swift` (starting/feeding the recorder off the existing screenshot timer), and `VMLocation.provisioningVideoURL`.
+
+### `record`: recording a `boot_command` template by hand
+
+Writing a `boot_command` template by hand means guessing coordinates and timing, then iterating against a real boot. `caked record <vm>` does the reverse: it boots `<vm>` (already built, but **not** running yet — typically a VM created without `--autoinstall`, so it's sitting at its first-boot screen), opens an inline VNC window, and records every click and keystroke you perform through it by hand. Press `Ctrl-C` in the terminal to stop recording — the matching `boot_command` template is then written to disk.
+
+```bash
+# Record a session to the default file (record.packerlite.yaml, inside the VM's own directory)
+caked record my-vm
+
+# Pick a different output location
+caked record my-vm --output ./my-template.packerlite.yaml
+```
+
+**Local-only (`caked record`) for now** — no `cakectl`/gRPC counterpart yet, same as `caked provision` when it first shipped.
+
+**The result is a first draft, not a finished, reliable template**: clicks become `<click point="X,Y">` tokens, typed text is coalesced into one line per continuous run of keystrokes, special keys and modifiers (`<enter>`, `<tab>`, `<leftShiftOn>`/`<leftShiftOff>`, etc.) use the same token vocabulary as hand-written templates — but pauses between actions become fixed-delay `<waitNs>` steps. This project has deliberately moved away from fixed delays in favor of OCR-synced `<locate>` anchors, precisely because fixed delays are unreliable (see the PackerLite section above) — treat the result as a starting point to harden with `<locate>` anchors before relying on it for unattended `--autoinstall` runs.
+
+Account credentials (the VM's own `--user`/`--password`) are never written out in plaintext: any recorded text that exactly matches the VM's configured username or password is automatically replaced with `${var.username}`/`${var.password}`.
 
 ## Notes
 
