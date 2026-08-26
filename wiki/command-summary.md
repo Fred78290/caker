@@ -245,6 +245,28 @@ boot_command:
 
 Voir `Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml` (tous les templates embarqués — macOS `vanilla-*` et Linux `linux-*`, avec les titres) pour des exemples complets et entièrement commentés.
 
+<a name="alias-fr"></a>
+### Sélection rapide d'image : `--alias` et `aliases`
+
+Plutôt que de coller une URL d'image brute, `build`/`create`/`launch` acceptent un identifiant court du catalogue via `--alias` :
+
+```bash
+caked build --alias macos12 nouvelle-vm --autoinstall
+cakectl build --alias ubuntu2604 nouvelle-vm
+cakectl launch --alias fedora44Server ma-vm --autoinstall
+```
+
+`--alias` résout l'identifiant fourni contre le catalogue `VMImages.json` embarqué (le même catalogue que le sélecteur d'images de l'assistant Caker.app) et remplace l'URL/le format de disque par ce que le catalogue indique pour cet identifiant. Pour une entrée `ipsw` dont l'identifiant correspond aussi à une version macOS connue (ex. `macos12`), `--macos-version` est automatiquement renseigné si vous ne l'avez pas précisé vous-même. Deux identifiants (`centos9`, `centos10`) existent à la fois en `iso` et en `cloud` dans le catalogue — dans ce cas précis, `--alias` résout toujours vers l'entrée `iso`.
+
+Pour lister tous les identifiants acceptés par `--alias`, avec leur catégorie (`ipsw`/`iso`/`cloud`) :
+
+```bash
+caked aliases
+cakectl aliases
+```
+
+Le catalogue lui-même — `<CAKE_HOME>/VMImages.json`, s'il existe, prend le pas sur la version embarquée dans l'application ; voir `VMImageCatalog.refreshFromGitHub()` pour le rafraîchir depuis le dépôt.
+
 <a name="provision-fr"></a>
 ### `provision` : relancer le provisioning de façon autonome
 
@@ -763,6 +785,28 @@ boot_command:
 ```
 
 See `Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml` (every bundled template — macOS `vanilla-*` and Linux `linux-*`, with titles) for full, fully-commented examples.
+
+<a name="alias"></a>
+### Quick image selection: `--alias` and `aliases`
+
+Instead of pasting a raw image URL, `build`/`create`/`launch` accept a short catalog id via `--alias`:
+
+```bash
+caked build --alias macos12 new-vm --autoinstall
+cakectl build --alias ubuntu2604 new-vm
+cakectl launch --alias fedora44Server my-vm --autoinstall
+```
+
+`--alias` resolves the given id against the bundled `VMImages.json` catalog (the same catalog behind Caker.app's image picker) and substitutes the URL/disk format the catalog specifies for that id. For an `ipsw` entry whose id also matches a known macOS version (e.g. `macos12`), `--macos-version` is auto-populated if you didn't pass it yourself. Two ids (`centos9`, `centos10`) exist in both `iso` and `cloud` in the catalog — for those, `--alias` always resolves to the `iso` entry.
+
+To list every id `--alias` accepts, tagged with its category (`ipsw`/`iso`/`cloud`):
+
+```bash
+caked aliases
+cakectl aliases
+```
+
+The catalog itself — `<CAKE_HOME>/VMImages.json`, if present, overrides the version bundled with the app; see `VMImageCatalog.refreshFromGitHub()` to refresh it from the repo.
 
 <a name="provision"></a>
 ### `provision`: re-running provisioning standalone
