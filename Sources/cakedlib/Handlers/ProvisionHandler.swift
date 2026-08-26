@@ -200,8 +200,20 @@ public struct ProvisionHandler {
 
 				vm.terminateVM { _ in
 					if let error {
-						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)"))))
+						let reason: String
+
+						if let videoURL = location.existingProvisioningVideoURL {
+							reason = String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason). Debug recording saved to \(videoURL.path)")
+						} else {
+							reason = String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)")
+						}
+
+						logger.error(reason)
+
+						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: reason)))
 					} else {
+						logger.info("Provisioning success for VM \(location.name)")
+
 						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: true, reason: String(localized: "Provisioning success for VM \(location.name)"))))
 					}
 
@@ -217,10 +229,6 @@ public struct ProvisionHandler {
 
 			let task = ProvisionTask(vm: vm) {
 				var catchableError: Error? = nil
-
-				defer {
-					destroyVM(catchableError)
-				}
 
 				do {
 					if template.preBootCommand.isEmpty == false {
@@ -250,6 +258,9 @@ public struct ProvisionHandler {
 					catchableError = error
 					logger.error("Provisioning failed for VM \(location.name): \(error)")
 				}
+
+				await vm.finishProvisioningVideo(success: catchableError == nil)
+				destroyVM(catchableError)
 			}
 
 			task.start()

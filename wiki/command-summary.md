@@ -284,6 +284,15 @@ caked provision my-vm
 
 `caked provision` refuse de s'exécuter si la VM tourne actuellement ou si elle a déjà été provisionnée — le premier démarrage ne se produit qu'une fois, donc relancer PackerLite sur une VM déjà provisionnée resterait bloqué à attendre des écrans qui n'apparaissent plus.
 
+#### Enregistrement vidéo de débogage du provisioning
+
+Pendant toute la durée d'un provisioning PackerLite (`build`/`create --autoinstall`, ou un `provision` autonome), la VM alimente automatiquement une vidéo `.mp4` H.264 à partir des captures d'écran périodiques qu'elle prend déjà toutes les 5 secondes (le même mécanisme utilisé pour `screenshot.png`/le flux GrandCentral) — pratique pour comprendre après coup pourquoi un template `boot_command` s'est mal comporté, sans avoir eu besoin de suivre la session VNC en direct. La vidéo est écrite dans `provision.mp4` à la racine du répertoire de la VM (à côté de `screenshot.png`, `config.json`, etc.). Le format est volontairement basique — H.264 dans un conteneur `.mp4` standard, jamais de ProRes ni de HEVC/MOV propriétaire à Apple — pour être lisible partout (VLC, QuickTime, un navigateur, Windows Media Player) sans codec additionnel. Comme il ne s'agit que d'environ une image toutes les 5 secondes réelles, la vidéo n'est pas fluide — ce n'est pas l'objectif, c'est une aide au débogage, pas un enregistrement d'écran classique.
+
+- **Provisioning réussi** : la vidéo est supprimée automatiquement, aucune trace n'est laissée sur le disque.
+- **Provisioning échoué** : la vidéo est conservée, et son emplacement est ajouté au message d'erreur (`reason`) renvoyé par `caked provision`/`caked build --autoinstall` et `cakectl provision`/`cakectl build --autoinstall` — pas besoin de fouiller le système de fichiers pour la retrouver.
+
+Cet enregistrement respecte le réglage existant de désactivation des captures d'écran (`UserDefaults` `NoScreenshot`) — s'il est actif, il n'y a aucune image source et donc aucune vidéo. Voir `Sources/cakedlib/PackerLite/ProvisioningVideoRecorder.swift` (l'enregistreur lui-même), `VirtualMachine.swift` (démarrage/alimentation de l'enregistreur depuis le minuteur de captures d'écran existant), et `VMLocation.provisioningVideoURL`.
+
 ## Notes
 
 - Certaines commandes sont internes ou masquées dans la sortie d'aide de `caked` (`vmrun`, certaines sous-commandes `networks`).
@@ -793,6 +802,15 @@ caked provision my-vm
 | `--var <key=value>` | Sets a template variable (`${var.key}`), repeatable. |
 
 `caked provision` refuses to run if the VM is currently running or has already been provisioned — first boot only happens once, so re-running against an already-provisioned VM would just hang waiting for screens that no longer appear.
+
+#### Provisioning debug video recording
+
+For the whole duration of any PackerLite provisioning run (`build`/`create --autoinstall`, or a standalone `provision`), the VM automatically feeds an H.264 `.mp4` recording from the periodic screenshots it already takes every 5 seconds (the same mechanism behind `screenshot.png`/the GrandCentral stream) — handy for figuring out after the fact why a `boot_command` template misbehaved, without having had to watch the live VNC session. The video is written to `provision.mp4` at the root of the VM's directory (alongside `screenshot.png`, `config.json`, etc). The format is deliberately plain — standard H.264 inside a regular `.mp4` container, never ProRes or Apple-only HEVC-in-MOV — so it plays anywhere (VLC, QuickTime, a browser, Windows Media Player) with no extra codec needed. Since it's only about one frame every 5 real seconds, the video isn't smooth — that's expected, it's a debugging aid, not a screen recording.
+
+- **Provisioning succeeds**: the video is deleted automatically, nothing is left on disk.
+- **Provisioning fails**: the video is kept, and its location is appended to the failure `reason` returned by `caked provision`/`caked build --autoinstall` and `cakectl provision`/`cakectl build --autoinstall` — no need to go hunting for it on the filesystem.
+
+This recording honors the existing screenshot opt-out (`UserDefaults`'s `NoScreenshot`) — if it's set, there's no frame source and therefore no video either. See `Sources/cakedlib/PackerLite/ProvisioningVideoRecorder.swift` (the recorder itself), `VirtualMachine.swift` (starting/feeding the recorder off the existing screenshot timer), and `VMLocation.provisioningVideoURL`.
 
 ## Notes
 

@@ -169,25 +169,33 @@ public enum PackerLiteEngine {
 		}
 
 		func destroyVM(_ error: Error?) async {
-			if let error {
-				logger.error("Provisioning failed for VM \(location.name), error: \(error.localizedDescription)")
-			} else {
-				logger.debug("Provisioning success for VM \(location.name)")
-			}
-
 			vm.stopVncServer()
 
 			await MainActor.run {
 				vm.disposeWindow()
 			}
 
+			await vm.finishProvisioningVideo(success: error == nil)
+
 			await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
 				vm.stopVM { _ in
 					location.removePID()
 
 					if let error {
-						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)"))))
+						let reason: String
+
+						if let videoURL = location.existingProvisioningVideoURL {
+							reason = String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason). Debug recording saved to \(videoURL.path)")
+						} else {
+							reason = String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)")
+						}
+
+						logger.error(reason)
+
+						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: false, reason: reason)))
 					} else {
+						logger.info("Provisioning success for VM \(location.name)")
+
 						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: true, reason: String(localized: "Provisioning success for VM \(location.name)"))))
 					}
 					
