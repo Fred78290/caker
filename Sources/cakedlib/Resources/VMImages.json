@@ -50,7 +50,7 @@
 			{ "id": "debian14", "label": "Debian 14 generic cloud (forky)", "url": "https://cloud.debian.org/images/cloud/forky/daily/latest/debian-14-genericcloud-arm64-daily.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "debian13", "label": "Debian 13 generic cloud (trixie)", "url": "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-arm64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "debian12", "label": "Debian 12 generic cloud (bookworm)", "url": "https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-genericcloud-arm64-daily.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
-			{ "id": "debian11", "label": "Debian 11 generic cloud (bullseye)", "url": "https://cloud.debian.org/images/cloud/bullseye/daily/latest/debian-11-genericcloud-amd64-daily.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "debian11", "label": "Debian 11 generic cloud (bullseye)", "url": "https://cloud.debian.org/images/cloud/bullseye/daily/latest/debian-11-genericcloud-arm64-daily.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "centos10", "label": "CentOS 10", "url": "https://cloud.centos.org/centos/10-stream/aarch64/images/CentOS-Stream-GenericCloud-10-latest.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "centos9", "label": "CentOS 9", "url": "https://cloud.centos.org/centos/9-stream/aarch64/images/CentOS-Stream-GenericCloud-9-latest.aarch64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
@@ -124,7 +124,7 @@
 			{ "id": "debian12", "label": "Debian 12 generic cloud (bookworm)", "url": "https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-genericcloud-amd64-daily.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "debian11", "label": "Debian 11 generic cloud (bullseye)", "url": "https://cloud.debian.org/images/cloud/bullseye/daily/latest/debian-11-genericcloud-amd64-daily.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "centos10", "label": "CentOS 10", "url": "https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "centos10", "label": "CentOS 10", "url": "https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "centos9", "label": "CentOS 9", "url": "https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-latest.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "fedora44", "label": "Fedora 44", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/x86_64/images/Fedora-Server-Guest-Generic-44-1.7.x86_64.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
