@@ -49,12 +49,23 @@ struct NetworkWizard: View {
 			Divider()
 			HStack {
 				Spacer()
-				Button("Create") {
+
+				Button {
 					createNetwork()
-				}.disabled(vzNetwork == nil)
-				Button("Cancel") {
+				} label: {
+					Text("Create")
+						.frame(width: 80)
+				}
+				.withButtonStyle(.bordered)
+				.disabled(vzNetwork == nil)
+
+				Button() {
 					dismiss()
-				}.buttonStyle(.borderedProminent)
+				} label: {
+					Text("Cancel")
+						.frame(width: 80)
+				}
+				.withButtonStyle(.borderedProminent)
 				Spacer()
 			}
 		}

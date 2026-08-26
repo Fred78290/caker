@@ -39,8 +39,16 @@ struct RemoteWizard: View {
 				.font(.system(size: 16, weight: .semibold))
 
 			Form {
-				TextField("Name", text: $name)
-				TextField("URL", text: $url, prompt: Text("https://cloud-images.ubuntu.com/releases"))
+				LabeledContent("Name") {
+					TextField("Name", text: $name)
+						.rounded(.leading)
+						.labelsHidden()
+				}
+				LabeledContent("URL") {
+					TextField("URL", text: $url, prompt: Text("https://cloud-images.ubuntu.com/releases"))
+						.rounded(.leading)
+						.labelsHidden()
+				}
 			}
 
 			if let reason {
@@ -53,16 +61,24 @@ struct RemoteWizard: View {
 
 			HStack {
 				Spacer()
-				AsyncButton("Create", action: { done in
+				AsyncButton{ done in
 					await self.createRemote()
 					done()
-				})
-				.disabled(self.isValid == false)
-				.buttonStyle(.borderedProminent)
-
-				Button("Cancel", role: .cancel) {
-					self.dismiss()
+				} label: {
+					Text("Add")
+						.frame(width: 80)
 				}
+				.disabled(self.isValid == false)
+				.withButtonStyle(.bordered)
+
+				Button {
+					self.dismiss()
+				} label: {
+					Text("Cancel")
+						.frame(width: 80)
+				}
+				.withButtonStyle(.borderedProminent)
+
 				Spacer()
 			}
 		}

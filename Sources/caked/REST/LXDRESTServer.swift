@@ -135,15 +135,19 @@ private struct CertificateAuthMiddleware: Middleware {
 			let promise = request.eventLoop.makePromise(of: Response.self)
 
 			Task {
-				let trusted = await self.peerChainIsTrusted(chain)
+				do {
+					let trusted = await self.peerChainIsTrusted(chain)
 
-				if trusted {
-					let response = try await next.respond(to: request).get()
-					promise.succeed(response)
-				} else {
-					let response = Response(status: .unauthorized)
-					response.headers.replaceOrAdd(name: .wwwAuthenticate, value: "TLS-Certificate realm=\"Caker\"")
-					promise.succeed(response)
+					if trusted {
+						let response = try await next.respond(to: request).get()
+						promise.succeed(response)
+					} else {
+						let response = Response(status: .unauthorized)
+						response.headers.replaceOrAdd(name: .wwwAuthenticate, value: "TLS-Certificate realm=\"Caker\"")
+						promise.succeed(response)
+					}
+				} catch {
+					promise.fail(error)
 				}
 			}
 

@@ -47,7 +47,7 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 					Image(systemName: "plus")
 						.frame(width: 28, height: 22)
 				}
-				.buttonStyle(.borderless)
+				.withButtonStyle(.borderless)
 				.font(.system(size: 13))
 				.disabled(self.disabled)
 
@@ -59,7 +59,7 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 						Image(systemName: "minus")
 							.frame(width: 28, height: 22)
 					}
-					.buttonStyle(.borderless)
+					.withButtonStyle(.borderless)
 					.font(.system(size: 13))
 					.disabled(self.selection == nil || self.disabled)
 				}
@@ -72,7 +72,7 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 					Image(systemName: "pencil")
 						.frame(width: 28, height: 22)
 				}
-				.buttonStyle(.borderless)
+				.withButtonStyle(.borderless)
 				.font(.system(size: 13))
 				.disabled(self.selection == nil || self.disabled)
 

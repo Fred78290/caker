@@ -73,7 +73,7 @@ struct VirtualMachineView: View {
 									Image(systemName: imageName)
 										.font(.system(size: 14, weight: .medium))
 								}
-								.buttonStyle(.borderless)
+								.withButtonStyle(.borderless)
 								.labelsHidden()
 							}
 							.padding(.horizontal, 12)

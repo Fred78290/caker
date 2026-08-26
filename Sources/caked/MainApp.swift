@@ -195,7 +195,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 			return .terminateNow
 		}
 
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 
 		alert.messageText = String(localized: "Virtual machine Running")
 		alert.informativeText = String(localized: "The virtual machine is running. Do you want terminate it them and quit?")

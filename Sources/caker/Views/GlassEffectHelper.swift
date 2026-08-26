@@ -94,4 +94,38 @@ extension View {
 			modifier(GlassEffectHelper(effect, in: shape))
 		}
 	#endif
+
+	@ViewBuilder
+	public func withTextFieldStyle<S: TextFieldStyle>(_ style: S) -> some View {
+		if #available(macOS 27.0, *) {
+			// Map bordered styles to glass variants when available; otherwise, forward the style.
+			if style is RoundedBorderTextFieldStyle {
+				self.textFieldStyle(style)
+					.glassEffect(.regular, in: Capsule())
+			} else if style is SquareBorderTextFieldStyle {
+				self.textFieldStyle(style)
+					.glassEffect(.regular, in: Rectangle())
+			} else {
+				self.textFieldStyle(style)
+			}
+		} else {
+			self.textFieldStyle(style)
+		}
+	}
+
+	@ViewBuilder
+	public func withButtonStyle<S: PrimitiveButtonStyle>(_ style: S) -> some View {
+		if #available(macOS 27.0, *) {
+			// Map bordered styles to glass variants when available; otherwise, forward the style.
+			if style is BorderedButtonStyle {
+				self.buttonStyle(.glass)
+			} else if style is BorderedProminentButtonStyle {
+				self.buttonStyle(.glassProminent)
+			} else {
+				self.buttonStyle(style)
+			}
+		} else {
+			self.buttonStyle(style)
+		}
+	}
 }
