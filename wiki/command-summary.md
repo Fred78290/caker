@@ -317,7 +317,9 @@ Cet enregistrement respecte le réglage existant de désactivation des captures 
 
 ### `record` : enregistrer un template `boot_command` à la main
 
-Écrire un template `boot_command` à la main revient à deviner des coordonnées et des délais, puis à itérer contre un vrai démarrage. `caked record <vm>` fait l'inverse : elle démarre `<vm>` (déjà construite, mais **pas** encore démarrée — typiquement une VM créée sans `--autoinstall`, donc arrêtée sur son écran de premier démarrage), ouvre une fenêtre VNC intégrée, et enregistre chaque clic et chaque frappe que vous effectuez à la main à travers cette fenêtre. Appuyez sur `Ctrl-C` dans le terminal pour arrêter l'enregistrement : le template `boot_command` correspondant est alors écrit sur disque.
+Écrire un template `boot_command` à la main revient à deviner des coordonnées et des délais, puis à itérer contre un vrai démarrage. `caked record <vm>` fait l'inverse : elle démarre `<vm>` (déjà construite, mais **pas** encore démarrée — typiquement une VM créée sans `--autoinstall`, donc arrêtée sur son écran de premier démarrage), ouvre une fenêtre locale, et enregistre chaque clic et chaque frappe que vous effectuez à la main à travers cette fenêtre. Appuyez sur `Ctrl-C` dans le terminal pour arrêter l'enregistrement : le template `boot_command` correspondant est alors écrit sur disque.
+
+Cette capture se fait directement sur les événements `NSEvent` natifs de la fenêtre locale de la VM (`VNCVirtualMachineView.actionRecorder`) — aucun serveur VNC n'est démarré et aucun port réseau n'est ouvert. C'est délibérément plus simple et plus direct que l'ancienne approche par interception d'un serveur VNC (toujours utilisée par `caked provision`) : pas d'aller-retour par un keysym protocole VNC, juste les événements que macOS délivre déjà à la fenêtre. La contrepartie est que cette capture ne peut être pilotée que par un opérateur assis devant cette machine — contrairement à `caked provision`, elle ne peut pas être pilotée par un client VNC distant.
 
 ```bash
 # Enregistrer une session dans le fichier par défaut (record.packerlite.yaml, dans le répertoire de la VM)
@@ -876,7 +878,9 @@ This recording honors the existing screenshot opt-out (`UserDefaults`'s `NoScree
 
 ### `record`: recording a `boot_command` template by hand
 
-Writing a `boot_command` template by hand means guessing coordinates and timing, then iterating against a real boot. `caked record <vm>` does the reverse: it boots `<vm>` (already built, but **not** running yet — typically a VM created without `--autoinstall`, so it's sitting at its first-boot screen), opens an inline VNC window, and records every click and keystroke you perform through it by hand. Press `Ctrl-C` in the terminal to stop recording — the matching `boot_command` template is then written to disk.
+Writing a `boot_command` template by hand means guessing coordinates and timing, then iterating against a real boot. `caked record <vm>` does the reverse: it boots `<vm>` (already built, but **not** running yet — typically a VM created without `--autoinstall`, so it's sitting at its first-boot screen), opens a local window, and records every click and keystroke you perform through it by hand. Press `Ctrl-C` in the terminal to stop recording — the matching `boot_command` template is then written to disk.
+
+This capture works directly off the local window's own native `NSEvent`s (`VNCVirtualMachineView.actionRecorder`) — no VNC server is started and no network port is opened. That's deliberately simpler and more direct than tapping a VNC server (still how `caked provision` itself works): no VNC-protocol keysym round-trip, just the events macOS already delivers to the window. The trade-off is that this capture can only be driven by an operator sitting at this host — unlike `caked provision`, it can't be driven by a remote VNC client.
 
 ```bash
 # Record a session to the default file (record.packerlite.yaml, inside the VM's own directory)

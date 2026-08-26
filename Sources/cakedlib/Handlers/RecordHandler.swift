@@ -2,14 +2,18 @@
 //  RecordHandler.swift
 //  CakedLib
 //
-//  Boots a VM to its first-boot screen, starts its VNC server, and arms an ActionRecorder against
-//  it — the shared engine behind `caked record` (Sources/caked/Commands/Record.swift). Mirrors
-//  ProvisionHandler's VM-boot/VNC pattern (Sources/cakedlib/Handlers/ProvisionHandler.swift) but
-//  skips everything PackerLite itself needs (template, IP wait, agent install): recording drives
-//  no automation of its own, it only watches whatever a human operator does over VNC and writes
-//  down what happened. `caked`-local only for now — see CLAUDE.md's PackerLite section for the
-//  planned (not yet built) cakectl/gRPC counterpart, mirroring how `caked provision` itself
-//  started local-only before later gaining one.
+//  Boots a VM to its first-boot screen, shows it in a local window, and arms an ActionRecorder
+//  against that window's native NSEvent stream — the shared engine behind `caked record`
+//  (Sources/caked/Commands/Record.swift). Mirrors ProvisionHandler's `display == .none` VM-boot/
+//  local-window pattern (Sources/cakedlib/Handlers/ProvisionHandler.swift) but skips everything
+//  PackerLite itself needs (template, IP wait, agent install): recording drives no automation of
+//  its own, it only watches whatever a human operator does through the window and writes down
+//  what happened. No VNC server is started for this capture path — see
+//  VNCVirtualMachineView.actionRecorder for why a direct local window can tap the same real
+//  NSEvents AppKit already delivers to it, with no VNC-protocol keysym round-trip and no network
+//  listener. `caked`-local only for now — see CLAUDE.md's PackerLite section for the planned (not
+//  yet built) cakectl/gRPC counterpart, mirroring how `caked provision` itself started local-only
+//  before later gaining one.
 //
 
 import CakeAgentLib
@@ -17,23 +21,22 @@ import Foundation
 import GRPCLib
 
 public struct RecordHandler {
-	/// A booted, VNC-armed recording session, returned once the VM's VNC server is up and ready
-	/// for a client (typically `caked record`'s own inline VNCApp window) to connect through.
+	/// A booted recording session, returned once the VM's local window exists and its
+	/// `VNCVirtualMachineView.actionRecorder` tap is armed — ready for an operator sitting at this
+	/// host to drive the VM by hand through that window.
 	public final class Session: @unchecked Sendable {
 		public let vm: VirtualMachine
 		public let recorder: ActionRecorder
-		public let vncURL: URL
-		public let screenSize: ViewSize
 		public let config: CakedConfiguration
 
+		private let targetView: VMView.NSViewType
 		private let lock = NSLock()
 		private var stopped = false
 
-		init(vm: VirtualMachine, recorder: ActionRecorder, vncURL: URL, screenSize: ViewSize, config: CakedConfiguration) {
+		init(vm: VirtualMachine, targetView: VMView.NSViewType, recorder: ActionRecorder, config: CakedConfiguration) {
 			self.vm = vm
+			self.targetView = targetView
 			self.recorder = recorder
-			self.vncURL = vncURL
-			self.screenSize = screenSize
 			self.config = config
 		}
 
@@ -53,8 +56,7 @@ public struct RecordHandler {
 			self.stopped = true
 			self.lock.unlock()
 
-			self.vm.setActionRecorder(nil)
-			self.vm.stopVncServer()
+			self.targetView.actionRecorder = nil
 
 			MainActor.assumeIsolated {
 				self.vm.disposeWindow()
@@ -68,9 +70,10 @@ public struct RecordHandler {
 		}
 	}
 
-	/// Boots `location`'s VM (must not already be running) and starts recording. The returned
-	/// `Session.vncURL`/`screenSize`/`config` are exactly what a VNC client (e.g.
-	/// `VNCApp.startVncClient(...)`) needs to connect and let an operator drive the VM by hand.
+	/// Boots `location`'s VM (must not already be running), shows it in a local window, and starts
+	/// recording every mouse/keyboard `NSEvent` that window receives. No VNC server, no network
+	/// listener — this is a single-local-operator-only capture path (see CLAUDE.md's PackerLite
+	/// section for the trade-off against the VNC-server-tap approach).
 	@MainActor
 	public static func record(
 		location: VMLocation,
@@ -79,7 +82,6 @@ public struct RecordHandler {
 	) throws -> Session {
 		let config = try location.config()
 		let displaySize = config.display.cgSize
-		let vncPassword = config.vncPassword ?? UUID().uuidString
 
 		if location.status.isRunning {
 			throw ServiceError(String(localized: "The VM is already running"))
@@ -90,31 +92,27 @@ public struct RecordHandler {
 			storageLocation: storageLocation,
 			location: location,
 			name: location.name,
-			display: .vnc,
+			display: .none,
 			config: config,
 			screenSize: displaySize,
-			vncPassword: vncPassword,
+			vncPassword: config.vncPassword ?? UUID().uuidString,
 			vncPort: 0,
 			recoveryMode: false,
 			provisioning: true,
 			runMode: .app)
 
 		return try handler.run { _, vm in
-			let vncURLs = try vm.startVncServer(vncPassword: vncPassword, port: 0)
+			// Mirrors ProvisionHandler's `display == .none` branch exactly: a plain local
+			// NSWindow around the VM's own VNCVirtualMachineView, no VNC server involved.
+			let targetView = vm.createVirtualMachineView()
 
-			guard let vzMachineView = vm.vzMachineView else {
-				throw ServiceError(String(localized: "Unable to get VZMachineView for VM \(location.name)"))
-			}
-
-			guard let vncURL = vncURLs.first else {
-				throw ServiceError(String(localized: "Unable to get VNC URL for VM \(location.name)"))
-			}
+			vm.setupWindow()
 
 			let recorder = ActionRecorder(username: config.configuredUser, password: config.configuredPassword)
 
-			vm.setActionRecorder(recorder.record)
+			targetView.actionRecorder = recorder.record
 
-			return Session(vm: vm, recorder: recorder, vncURL: vncURL, screenSize: ViewSize(vzMachineView.bounds.size), config: CakedConfiguration(config))
+			return Session(vm: vm, targetView: targetView, recorder: recorder, config: CakedConfiguration(config))
 		}
 	}
 }
