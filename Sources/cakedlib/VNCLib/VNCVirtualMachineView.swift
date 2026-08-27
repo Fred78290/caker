@@ -1,16 +1,18 @@
-import CakeAgentLib
-import Dynamic
 //
 //  VNCVZVirtualMachineView.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 19/01/2026.
 //
+import CakeAgentLib
+import Vision
+import Dynamic
 import Foundation
 import ObjectiveC.runtime
 import QuartzCore
 import Synchronization
 import Virtualization
+import GRPCLib
 
 @objc protocol VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?)
@@ -33,6 +35,53 @@ import Virtualization
 #endif
 
 extension NSView {
+	public struct RecognizedText: Sendable {
+		public let text: String
+		public let box: CGRect
+	}
+
+	public func recognizeText() -> (CGSize, [RecognizedText])? {
+		guard let cgImage = self.imageRepresentation(in: self.bounds)?.cgImage else {
+			return nil
+		}
+
+		return try? withAsyncResult {
+			// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
+			return await Task.detached(priority: .utility) { () -> (CGSize, [RecognizedText])? in
+				let request = VNRecognizeTextRequest()
+				request.recognitionLevel = .accurate
+				
+				do {
+					try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+					
+					guard let results = request.results, results.isEmpty == false else {
+						return nil
+					}
+					
+					return (CGSize(width: cgImage.width, height: cgImage.height), results.compactMap { observation in
+						if let candidate = observation.topCandidates(1).first {
+							let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(cgImage.width), Int(cgImage.height))
+							let flippedBox = CGRect(
+								x: box.origin.x,
+								y: CGFloat(cgImage.height) - box.origin.y - box.height,
+								width: box.width,
+								height: box.height)
+							
+							
+							return RecognizedText(text: candidate.string, box: flippedBox)
+						}
+						
+						return nil
+					})
+				} catch {
+					Logger(self).error("Vision OCR failed: \(error)")
+				}
+				
+				return nil
+			}.value
+		}
+	}
+
 	@objc public var cursor: NSCursor? {
 		return nil
 	}
