@@ -132,10 +132,14 @@ public final class ActionRecorder: @unchecked Sendable {
 	/// recorded literal text run exactly matching either is scrubbed on `finish()`.
 	private let username: String?
 	private let password: String?
+	private let os: VirtualizedOS
 
-	public init(username: String?, password: String?) {
+	public init(os: VirtualizedOS, username: String?, password: String?) {
 		self.username = username
 		self.password = password
+		self.os = os
+	}
+
 	public func reset() {
 		self.lock.withLock {
 			self.steps.removeAll()
@@ -282,7 +286,8 @@ public final class ActionRecorder: @unchecked Sendable {
 			previousEnd = step.endTimestamp
 		}
 
-		let document = RecordedTemplateDocument(bootCommand: commands)
+		let preBootCommands: [PackerLiteTemplate.Command]? = self.os == .darwin ? nil : [commands.removeFirst()]
+		let document = RecordedTemplateDocument(preBootCommand: preBootCommands, bootCommand: commands)
 		let encoder = YAMLEncoder()
 
 		// Preserve field declaration order (title before commands, matching every hand-written
@@ -306,9 +311,11 @@ public final class ActionRecorder: @unchecked Sendable {
 /// itself is decode-only (see its own header comment) — recording needs to go the other way, so
 /// this small sibling type exists purely to drive `YAMLEncoder`.
 private struct RecordedTemplateDocument: Encodable {
+	var preBootCommand: [PackerLiteTemplate.Command]?
 	var bootCommand: [PackerLiteTemplate.Command]
 
 	enum CodingKeys: String, CodingKey {
+		case preBootCommand = "pre_boot_command"
 		case bootCommand = "boot_command"
 	}
 }
