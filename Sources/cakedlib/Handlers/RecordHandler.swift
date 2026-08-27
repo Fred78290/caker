@@ -16,6 +16,7 @@
 //  before later gaining one.
 //
 
+import AppKit
 import CakeAgentLib
 import Foundation
 import GRPCLib
@@ -26,8 +27,9 @@ public struct RecordHandler {
 
 	/// A booted recording session, returned once the VM's local window exists and its
 	/// `VNCVirtualMachineView.actionRecorder` tap is armed — ready for an operator sitting at this
-	/// host to drive the VM by hand through that window.
-	public final class Session: @unchecked Sendable, Cancellable {
+	/// host to drive the VM by hand through that window. `ObservableObject` so MainWindow's toolbar
+	/// recording controls can track `state`/`hasRecordedActions` live.
+	public final class Session: ObservableObject, @unchecked Sendable, Cancellable {
 		public enum State: Sendable {
 			case stopped
 			case recording
@@ -37,7 +39,11 @@ public struct RecordHandler {
 		public let vm: VirtualMachine
 		public let recorder: ActionRecorder
 		public let config: CakedConfiguration
-		public var state: State = .stopped
+		@Published public private(set) var state: State = .stopped
+
+		/// Mirrors `recorder.hasRecordedActions` onto the main thread so SwiftUI can observe it —
+		/// the recorder itself is lock-guarded, not observable.
+		@Published public private(set) var hasRecordedActions = false
 
 		private let targetView: VMView.NSViewType
 		private let destination: URL
@@ -54,10 +60,30 @@ public struct RecordHandler {
 			self.recorder = ActionRecorder(os: config.os, username: config.configuredUser, password: config.configuredPassword)
 			self.config = config
 			self.destination = destination
+			self.state = .recording
 
-			Self.setActionRecorder(self.recorder.record, on: targetView)
-			
+			Self.setActionRecorder(self.handleRecordedAction, on: targetView)
+
 			RecordHandler.currentSession = self
+		}
+
+		/// The armed tap: forwards to the recorder, then keeps the published
+		/// `hasRecordedActions` mirror in sync (on the main thread — the view tap delivers on
+		/// main, but the VNC-server tap path arrives on a background queue).
+		private func handleRecordedAction(_ sender: NSView, _ action: RecordedAction) {
+			self.recorder.record(sender, action)
+
+			let hasRecordedActions = self.recorder.hasRecordedActions
+
+			if hasRecordedActions != self.hasRecordedActions {
+				if Thread.isMainThread {
+					self.hasRecordedActions = hasRecordedActions
+				} else {
+					DispatchQueue.main.async {
+						self.hasRecordedActions = hasRecordedActions
+					}
+				}
+			}
 		}
 
 		/// Stops recording, tears the VM down, and returns the recorded session serialized as a
@@ -81,8 +107,10 @@ public struct RecordHandler {
 			}
 		}
 
+		@MainActor
 		public func reset() {
 			self.recorder.reset()
+			self.hasRecordedActions = false
 		}
 
 		@MainActor
@@ -96,7 +124,7 @@ public struct RecordHandler {
 		@MainActor
 		public func resume() {
 			if self.state == .suspended {
-				Self.setActionRecorder(self.recorder.record, on: self.targetView)
+				Self.setActionRecorder(self.handleRecordedAction, on: self.targetView)
 				self.state = .recording
 			}
 		}

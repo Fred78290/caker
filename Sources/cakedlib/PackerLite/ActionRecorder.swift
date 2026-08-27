@@ -400,7 +400,7 @@ public final class ActionRecorder: @unchecked Sendable {
 			previousEnd = step.endTimestamp
 		}
 
-		let preBootCommands: [PackerLiteTemplate.Command]? = self.os == .darwin ? nil : [commands.removeFirst()]
+		let preBootCommands: [PackerLiteTemplate.Command]? = self.os == .darwin ? nil : (commands.isEmpty ? nil : [commands.removeFirst()])
 		let document = RecordedTemplateDocument(preBootCommand: preBootCommands, bootCommand: commands)
 		let encoder = YAMLEncoder()
 
@@ -418,6 +418,15 @@ public final class ActionRecorder: @unchecked Sendable {
 		defer { self.lock.unlock() }
 
 		return self.steps.count
+	}
+
+	/// Whether anything has been captured yet — unlike `stepCount`, this also counts a still-pending
+	/// text run or held click that hasn't been flushed into a step, so it flips true on the very
+	/// first keystroke/press rather than only once a step boundary is reached.
+	public var hasRecordedActions: Bool {
+		self.lock.withLock {
+			self.steps.isEmpty == false || self.pendingText.isEmpty == false || self.pendingClickStart != nil
+		}
 	}
 }
 
