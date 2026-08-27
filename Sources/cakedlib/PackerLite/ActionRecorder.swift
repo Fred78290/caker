@@ -217,7 +217,11 @@ public final class ActionRecorder: @unchecked Sendable {
 			self.flushPendingText()
 
 			if let recognizedText = self.currentRecognizedText?.textUnderPoint(of: CGPoint(x: start.x, y: start.y)) {
-				if self.currentModifiers.contains(.leftShift) || self.currentModifiers.contains(.rightShift) {
+				// Option+click -> clickText, plain click -> locate. Option rather than Shift, since
+				// Shift+click is a more plausible thing an operator might legitimately want recorded
+				// against the guest (e.g. a real multi-select); Option+click during a first-boot
+				// installer flow is not.
+				if self.currentModifiers.contains(.leftAlt) || self.currentModifiers.contains(.rightAlt) {
 					steps.append(.clickText(text: recognizedText.recognized.text, timestamp: start.timestamp))
 				} else {
 					steps.append(.locate(text: recognizedText.recognized.text, timestamp: start.timestamp))

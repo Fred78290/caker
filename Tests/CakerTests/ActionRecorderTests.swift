@@ -123,6 +123,10 @@ final class ActionRecorderTests: XCTestCase {
 	func testModifierWhileLocateModeActiveIsNotRecorded() {
 		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
 
+		// Option is the actual clickText-vs-locate selector (see recordPointer), but the
+		// suppression rule in recordKey is modifier-agnostic — it skips *any* modifier while locate
+		// mode is armed, so this deliberately exercises a different modifier (Shift) than the real
+		// selector to confirm that genericness, not just the one modifier the UI happens to use.
 		recorder.setLocateModeActive(true, sender: view)
 		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: true, at: 0))
 		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: false, at: 0.05))
@@ -130,8 +134,25 @@ final class ActionRecorderTests: XCTestCase {
 
 		let yaml = recorder.finish()
 
-		XCTAssertFalse(yaml.contains("<leftShiftOn>"), "Shift held only to select clickText while locate mode is armed must not be recorded in:\n\(yaml)")
-		XCTAssertFalse(yaml.contains("<leftShiftOff>"), "Shift held only to select clickText while locate mode is armed must not be recorded in:\n\(yaml)")
+		XCTAssertFalse(yaml.contains("<leftShiftOn>"), "Any modifier held while locate mode is armed must not be recorded in:\n\(yaml)")
+		XCTAssertFalse(yaml.contains("<leftShiftOff>"), "Any modifier held while locate mode is armed must not be recorded in:\n\(yaml)")
+		XCTAssertEqual(recorder.stepCount, 0)
+	}
+
+	func testOptionModifierWhileLocateModeActiveIsNotRecorded() {
+		// The real clickText-vs-locate selector: Option+click. Confirms it too is suppressed while
+		// locate mode is armed, not just recordKey's suppression rule in general (above).
+		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+
+		recorder.setLocateModeActive(true, sender: view)
+		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftAlt), isDown: true, at: 0))
+		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftAlt), isDown: false, at: 0.05))
+		recorder.setLocateModeActive(false, sender: view)
+
+		let yaml = recorder.finish()
+
+		XCTAssertFalse(yaml.contains("<leftAltOn>"), "Option held only to select clickText while locate mode is armed must not be recorded in:\n\(yaml)")
+		XCTAssertFalse(yaml.contains("<leftAltOff>"), "Option held only to select clickText while locate mode is armed must not be recorded in:\n\(yaml)")
 		XCTAssertEqual(recorder.stepCount, 0)
 	}
 
