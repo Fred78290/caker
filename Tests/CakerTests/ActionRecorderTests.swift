@@ -302,4 +302,68 @@ final class ActionRecorderTests: XCTestCase {
 		let bootRange = yaml.range(of: "boot_command")!
 		XCTAssertTrue(preBootRange.lowerBound < bootRange.lowerBound, "Expected pre_boot_command to precede boot_command in:\n\(yaml)")
 	}
+
+	// MARK: - Wait-gap folding into <clickText>/<locate> timeout=
+
+	// `.clickText`/`.locate` steps are only ever produced by real Vision OCR against a real
+	// rendered view (see `ActionRecorder.recordPointer`'s `currentRecognizedText` lookup), which
+	// isn't practical to drive from this unit-test harness. `ActionRecorder.Step` and
+	// `ActionRecorder.commands(for:username:password:)` were made internal (rather than the
+	// finish()-private shape they'd otherwise have) specifically so these two cases can be
+	// constructed directly here and fed through the real wait-vs-timeout branching logic in
+	// isolation, without needing a real boot/render/OCR pipeline.
+
+	func testClickTextGapFoldsIntoTimeoutInsteadOfSeparateWait() {
+		let steps: [ActionRecorder.Step] = [
+			.click(x: 10, y: 20, timestamp: base),
+			.clickText(text: "Continue", timestamp: base.addingTimeInterval(3.4)),
+		]
+
+		let commands = ActionRecorder.commands(for: steps, username: nil, password: nil)
+
+		XCTAssertEqual(commands.count, 2, "Expected no separate <waitNs> command block before the clickText step")
+		XCTAssertEqual(commands[1].commands, ["<click text=\"Continue\" timeout=13>"], "Expected the 3.4s gap (rounded to 3) plus 10s slack folded into timeout=")
+	}
+
+	func testLocateGapFoldsIntoTimeoutInsteadOfSeparateWait() {
+		let steps: [ActionRecorder.Step] = [
+			.click(x: 10, y: 20, timestamp: base),
+			.locate(text: "Next", timestamp: base.addingTimeInterval(1.2)),
+		]
+
+		let commands = ActionRecorder.commands(for: steps, username: nil, password: nil)
+
+		XCTAssertEqual(commands.count, 2, "Expected no separate <waitNs> command block before the locate step")
+		XCTAssertEqual(commands[1].commands, ["<locate text=\"Next\" timeout=11>"], "Expected the 1.2s gap (rounded to 1) plus 10s slack folded into timeout=")
+	}
+
+	func testOtherStepTypeStillGetsSeparateWaitForSameGap() {
+		// Regression guard: the timeout-folding branch must only fire for .clickText/.locate — every
+		// other step type keeps today's separate blind <waitNs> for the exact same gap size.
+		let steps: [ActionRecorder.Step] = [
+			.click(x: 10, y: 20, timestamp: base),
+			.click(x: 30, y: 40, timestamp: base.addingTimeInterval(3.4)),
+		]
+
+		let commands = ActionRecorder.commands(for: steps, username: nil, password: nil)
+
+		XCTAssertEqual(commands.count, 3, "Expected a separate <waitNs> command block before the second click step")
+		XCTAssertEqual(commands[1].commands, ["<wait3s>"])
+		XCTAssertEqual(commands[2].commands, ["<click point=\"30,40\">"], "The click token itself must carry no timeout= attribute")
+	}
+
+	func testClickTextBelowWaitThresholdGetsNoTimeoutOverride() {
+		// A gap below minimumWaitToRecord wouldn't have produced a <waitNs> today either — it must
+		// not force a timeout= override on the clickText/locate step, leaving the parser's own 10s
+		// default in place (no timeout= attribute emitted at all).
+		let steps: [ActionRecorder.Step] = [
+			.click(x: 10, y: 20, timestamp: base),
+			.clickText(text: "Continue", timestamp: base.addingTimeInterval(0.2)),
+		]
+
+		let commands = ActionRecorder.commands(for: steps, username: nil, password: nil)
+
+		XCTAssertEqual(commands.count, 2)
+		XCTAssertEqual(commands[1].commands, ["<click text=\"Continue\">"], "Expected no timeout= attribute for a sub-threshold gap")
+	}
 }

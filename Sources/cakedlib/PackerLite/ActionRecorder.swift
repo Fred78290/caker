@@ -46,7 +46,12 @@ public final class ActionRecorder: @unchecked Sendable {
 	/// `text` carries both ends of its run — `end` (the last coalesced character's own timestamp,
 	/// not the run's start) is what the *next* step's gap-to-`<waitNs>` calculation in `finish()`
 	/// needs, since a multi-character run can itself span a non-trivial amount of wall-clock time.
-	private enum Step {
+	///
+	/// Internal rather than `private` specifically so `ActionRecorderTests` can construct
+	/// `.clickText`/`.locate` cases directly and feed them through `Self.commands(for:username:password:)`
+	/// below — those two cases are otherwise only ever produced by real Vision OCR against a real
+	/// rendered view, which a unit test can't practically drive.
+	enum Step {
 		case text(String, start: Date, end: Date)
 		case press(KeyToken, timestamp: Date)
 		case modifierOn(ModifierToken, timestamp: Date)
@@ -78,7 +83,13 @@ public final class ActionRecorder: @unchecked Sendable {
 		/// see this file's header and CLAUDE.md's PackerLite credential-scrubbing note. This is a
 		/// hard requirement, not optional: every bundled template treats the account as
 		/// caller-supplied, never hardcoded.
-		func command(username: String?, password: String?) -> PackerLiteTemplate.Command {
+		///
+		/// `timeout`, when non-nil, is only honored by `.clickText`/`.locate` — it becomes that
+		/// token's own `timeout=` attribute (folding in a wait-gap the caller measured, see
+		/// `Self.commands(for:username:password:)`), overriding `BootCommand.swift`'s 10s parser
+		/// default. Every other case ignores it entirely, since only `.clickText`/`.locate` poll for
+		/// OCR-recognized text rather than firing immediately.
+		func command(username: String?, password: String?, timeout: Int? = nil) -> PackerLiteTemplate.Command {
 			switch self {
 			case .text(let text, _, _):
 				let scrubbed: String
@@ -109,9 +120,11 @@ public final class ActionRecorder: @unchecked Sendable {
 			case .click(let x, let y, _):
 				return PackerLiteTemplate.Command(title: String(localized: "Click at (\(x), \(y))"), commands: ["<click point=\"\(x),\(y)\">"])
 			case .clickText(text: let text, _):
-				return PackerLiteTemplate.Command(title: String(localized: "Click on (\(text))"), commands: ["<click text=\"\(text)\">"])
+				let attribute = timeout.map { " timeout=\($0)" } ?? String.empty
+				return PackerLiteTemplate.Command(title: String(localized: "Click on (\(text))"), commands: ["<click text=\"\(text)\"\(attribute)>"])
 			case .locate(text: let text, _):
-				return PackerLiteTemplate.Command(title: String(localized: "Locate (\(text))"), commands: ["<locate text=\"\(text)\">"])
+				let attribute = timeout.map { " timeout=\($0)" } ?? String.empty
+				return PackerLiteTemplate.Command(title: String(localized: "Locate (\(text))"), commands: ["<locate text=\"\(text)\"\(attribute)>"])
 			}
 		}
 	}
@@ -387,15 +400,56 @@ public final class ActionRecorder: @unchecked Sendable {
 
 	// MARK: - Serialization
 
-	/// Converts the accumulated log into a `boot_command:`-shaped YAML document string, one titled
-	/// block per recorded step, plus a `<waitNs>` block wherever the gap since the previous step
-	/// was long enough to be worth recording (`minimumWaitToRecord`).
+	/// Turns a chronologically-ordered step log into its `boot_command`-shaped command list,
+	/// inserting a `<waitNs>`/`timeout=` for every gap since the previous step that's long enough
+	/// to be worth recording (`minimumWaitToRecord`).
 	///
-	/// This is a first draft, not a finished, reliable template: every gap becomes a fixed
-	/// `<waitNs>`, and this codebase has deliberately moved *away* from blind waits toward
-	/// `<locate>`/`<skipNotFound>` OCR-sync anchors precisely because fixed delays are unreliable
-	/// (see CLAUDE.md's PackerLite section). Treat the output as a starting point for a human to
-	/// harden with `<locate>` anchors, not as a finished artifact safe to rely on unattended.
+	/// A gap before a `.clickText`/`.locate` step is folded into that step's own `timeout=`
+	/// attribute instead of a separate blind wait — `seconds + 10`, the extra 10s covering OCR
+	/// recognition/rendering latency the raw recorded gap doesn't account for — since those two
+	/// tokens already *poll* for the recognized text to appear rather than firing blind, so there's
+	/// no reason to also block on a fixed sleep in front of them (see CLAUDE.md's PackerLite
+	/// section on `<locate>`/`<skipNotFound>` replacing guessed sleep durations). Every other step
+	/// keeps the plain `<waitNs>`-before behavior: every other gap becomes a fixed `<waitNs>`, which
+	/// is still a first-draft compromise this codebase has otherwise moved away from — treat the
+	/// output as a starting point for a human to harden with `<locate>` anchors, not a finished
+	/// artifact safe to rely on unattended.
+	///
+	/// Factored out of `finish()` as its own static function purely so `ActionRecorderTests` can
+	/// exercise this branching directly: `.clickText`/`.locate` steps are otherwise only ever
+	/// produced by real Vision OCR against a real rendered view, which a unit test can't practically
+	/// drive end-to-end.
+	static func commands(for steps: [Step], username: String?, password: String?) -> [PackerLiteTemplate.Command] {
+		var commands: [PackerLiteTemplate.Command] = []
+		var previousEnd: Date? = nil
+
+		for step in steps {
+			var timeoutOverride: Int? = nil
+
+			if let previousEnd {
+				let gap = step.startTimestamp.timeIntervalSince(previousEnd)
+
+				if gap >= Self.minimumWaitToRecord {
+					let seconds = max(1, Int(gap.rounded()))
+
+					switch step {
+					case .clickText, .locate:
+						timeoutOverride = seconds + 10
+					default:
+						commands.append(PackerLiteTemplate.Command(title: String(localized: "Wait \(seconds)s"), commands: ["<wait\(seconds)s>"]))
+					}
+				}
+			}
+
+			commands.append(step.command(username: username, password: password, timeout: timeoutOverride))
+			previousEnd = step.endTimestamp
+		}
+
+		return commands
+	}
+
+	/// Converts the accumulated log into a `boot_command:`-shaped YAML document string, one titled
+	/// block per recorded step, via `Self.commands(for:username:password:)` above.
 	public func finish() -> String {
 		self.lock.lock()
 
@@ -412,23 +466,7 @@ public final class ActionRecorder: @unchecked Sendable {
 
 		self.lock.unlock()
 
-		var commands: [PackerLiteTemplate.Command] = []
-		var previousEnd: Date? = nil
-
-		for step in steps {
-			if let previousEnd {
-				let gap = step.startTimestamp.timeIntervalSince(previousEnd)
-
-				if gap >= Self.minimumWaitToRecord {
-					let seconds = max(1, Int(gap.rounded()))
-
-					commands.append(PackerLiteTemplate.Command(title: String(localized: "Wait \(seconds)s"), commands: ["<wait\(seconds)s>"]))
-				}
-			}
-
-			commands.append(step.command(username: self.username, password: self.password))
-			previousEnd = step.endTimestamp
-		}
+		var commands = Self.commands(for: steps, username: self.username, password: self.password)
 
 		let preBootCommands: [PackerLiteTemplate.Command]? = self.os == .darwin ? nil : (commands.isEmpty ? nil : [commands.removeFirst()])
 		let document = RecordedTemplateDocument(preBootCommand: preBootCommands, bootCommand: commands)
