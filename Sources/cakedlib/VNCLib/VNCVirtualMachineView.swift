@@ -45,41 +45,45 @@ extension NSView {
 			return nil
 		}
 
-		return try? withAsyncResult {
-			// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
-			return await Task.detached(priority: .utility) { () -> (CGSize, [RecognizedText])? in
-				let request = VNRecognizeTextRequest()
-				request.recognitionLevel = .accurate
-				
-				do {
-					try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
-					
-					guard let results = request.results, results.isEmpty == false else {
-						return nil
-					}
-					
-					return (CGSize(width: cgImage.width, height: cgImage.height), results.compactMap { observation in
-						if let candidate = observation.topCandidates(1).first {
-							let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(cgImage.width), Int(cgImage.height))
-							let flippedBox = CGRect(
-								x: box.origin.x,
-								y: CGFloat(cgImage.height) - box.origin.y - box.height,
-								width: box.width,
-								height: box.height)
-							
-							
-							return RecognizedText(text: candidate.string, box: flippedBox)
-						}
-						
-						return nil
-					})
-				} catch {
-					Logger(self).error("Vision OCR failed: \(error)")
+		// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
+		let semaphore = DispatchSemaphore(value: 0)
+		var result: (CGSize, [RecognizedText])?
+
+		DispatchQueue.global(qos: .utility).async {
+			defer { semaphore.signal() }
+
+			let request = VNRecognizeTextRequest()
+			request.recognitionLevel = .accurate
+
+			do {
+				try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+
+				guard let results = request.results, results.isEmpty == false else {
+					return
 				}
-				
-				return nil
-			}.value
+
+				result = (CGSize(width: cgImage.width, height: cgImage.height), results.compactMap { observation in
+					if let candidate = observation.topCandidates(1).first {
+						let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(cgImage.width), Int(cgImage.height))
+						let flippedBox = CGRect(
+							x: box.origin.x,
+							y: CGFloat(cgImage.height) - box.origin.y - box.height,
+							width: box.width,
+							height: box.height)
+
+						return RecognizedText(text: candidate.string, box: flippedBox)
+					}
+
+					return nil
+				})
+			} catch {
+				Logger(self).error("Vision OCR failed: \(error)")
+			}
 		}
+
+		semaphore.wait()
+
+		return result
 	}
 
 	@objc public var cursor: NSCursor? {
