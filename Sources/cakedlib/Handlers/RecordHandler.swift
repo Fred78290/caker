@@ -56,9 +56,11 @@ public struct RecordHandler {
 			self.vm.setActionRecorder(nil)
 			self.vm.stopVncServer()
 
-			MainActor.assumeIsolated {
-				self.vm.disposeWindow()
-			}
+			// disposeWindow() already dispatches its own work onto the main queue internally —
+			// wrapping it in MainActor.assumeIsolated here was both unnecessary and unsafe, since
+			// stop() is documented as callable from a signal handler, which isn't the main actor;
+			// assumeIsolated traps if that assumption is ever wrong.
+			self.vm.disposeWindow()
 
 			let yaml = self.recorder.finish()
 
@@ -97,7 +99,7 @@ public struct RecordHandler {
 			vncPort: 0,
 			recoveryMode: false,
 			provisioning: true,
-			runMode: .app)
+			runMode: runMode)
 
 		return try handler.run { _, vm in
 			let vncURLs = try vm.startVncServer(vncPassword: vncPassword, port: 0)

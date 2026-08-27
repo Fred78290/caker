@@ -65,7 +65,16 @@ final class VNCConnection: @unchecked Sendable {
 	/// and `VNCServer.actionRecorder` for the rest of the wiring down from a running `caked record`
 	/// session.
 	var actionRecorder: RecordedActionHandler? {
-		didSet { self.inputHandler.actionRecorder = self.actionRecorder }
+		didSet {
+			// inputHandler.actionRecorder is read from handleKeyEvent/handlePointerEvent, which
+			// this file always dispatches onto DispatchQueue.main (see receiveKeyEvent/
+			// receivePointerEvent below) — assign it on the same queue to avoid a cross-thread
+			// read/write race on the closure reference when this setter is called from elsewhere
+			// (e.g. VNCServer.connectionQueue).
+			DispatchQueue.main.async {
+				self.inputHandler.actionRecorder = self.actionRecorder
+			}
+		}
 	}
 
 	internal var connectionState: NWConnection.State {
