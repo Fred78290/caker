@@ -12,6 +12,8 @@
 
 import AppKit
 import Foundation
+import GRPCLib
+import RoyalVNCKit
 import Yams
 
 /// One resolved pointer or keyboard event captured while a recording session is active. Carries
@@ -25,6 +27,16 @@ public enum RecordedAction: Sendable {
 /// Called for every resolved action while a recording session is armed. Set on
 /// `VNCInputHandler.actionRecorder` — nil (zero overhead) otherwise.
 public typealias RecordedActionHandler = (_ sender: NSView, _ action: RecordedAction) -> Void
+
+typealias RecognizedTextes = [ActionRecorder.RecognizedText]
+
+extension RecognizedTextes {
+	public func textUnderPoint(of point: CGPoint) -> ActionRecorder.RecognizedText? {
+		self.first {
+			$0.recognized.box.contains(point)
+		}
+	}
+}
 
 /// Accumulates one `caked record` session's `RecordedAction` log and turns it into a
 /// `boot_command:`-shaped YAML document on `finish()`. Thread-safe: VNC input arrives on the
@@ -40,11 +52,15 @@ public final class ActionRecorder: @unchecked Sendable {
 		case modifierOn(ModifierToken, timestamp: Date)
 		case modifierOff(ModifierToken, timestamp: Date)
 		case click(x: Int, y: Int, timestamp: Date)
+		case clickText(text: String, timestamp: Date)
+		case locate(text: String, timestamp: Date)
 
 		var startTimestamp: Date {
 			switch self {
 			case .text(_, let start, _): return start
 			case .press(_, let timestamp), .modifierOn(_, let timestamp), .modifierOff(_, let timestamp), .click(_, _, let timestamp): return timestamp
+			case .clickText(_, timestamp: let timestamp):  return timestamp
+			case .locate(_, timestamp: let timestamp):  return timestamp
 			}
 		}
 
@@ -52,6 +68,8 @@ public final class ActionRecorder: @unchecked Sendable {
 			switch self {
 			case .text(_, _, let end): return end
 			case .press(_, let timestamp), .modifierOn(_, let timestamp), .modifierOff(_, let timestamp), .click(_, _, let timestamp): return timestamp
+			case .clickText(_, timestamp: let timestamp):  return timestamp
+			case .locate(_, timestamp: let timestamp):  return timestamp
 			}
 		}
 
@@ -90,6 +108,10 @@ public final class ActionRecorder: @unchecked Sendable {
 
 			case .click(let x, let y, _):
 				return PackerLiteTemplate.Command(title: String(localized: "Click at (\(x), \(y))"), commands: ["<click point=\"\(x),\(y)\">"])
+			case .clickText(text: let text, _):
+				return PackerLiteTemplate.Command(title: String(localized: "Click on (\(text))"), commands: ["<click text=\"\(text)\">"])
+			case .locate(text: let text, _):
+				return PackerLiteTemplate.Command(title: String(localized: "Locate (\(text))"), commands: ["<locate text=\"\(text)\">"])
 			}
 		}
 	}
@@ -133,6 +155,13 @@ public final class ActionRecorder: @unchecked Sendable {
 	private let username: String?
 	private let password: String?
 	private let os: VirtualizedOS
+	private var currentModifiers: Set<ModifierToken> = []
+	private var currentRecognizedText: RecognizedTextes?
+
+	public struct RecognizedText {
+		let recognized: NSView.RecognizedText
+		let layer: CALayer
+	}
 
 	public init(os: VirtualizedOS, username: String?, password: String?) {
 		self.username = username
@@ -147,19 +176,19 @@ public final class ActionRecorder: @unchecked Sendable {
 			self.pendingTextStart = nil
 			self.pendingTextLastCharacter = nil
 			self.pendingClickStart = nil
+		}
 	}
 
 	/// Feeds one resolved action into the recorder. Safe to call from any thread — VNC input
 	/// arrives on the connection's own background dispatch queue.
 	public func record(_ sender: NSView, _ action: RecordedAction) {
-		self.lock.lock()
-		defer { self.lock.unlock() }
-
-		switch action {
-		case .pointer(let x, let y, let buttonMask, let timestamp):
-			self.recordPointer(x: x, y: y, buttonMask: buttonMask, timestamp: timestamp)
-		case .key(let keyCode, _, let characters, _, let isDown, let timestamp):
-			self.recordKey(keyCode: keyCode, characters: characters, isDown: isDown, timestamp: timestamp)
+		self.lock.withLock {
+			switch action {
+			case .pointer(let x, let y, let buttonMask, let timestamp):
+				self.recordPointer(x: x, y: y, buttonMask: buttonMask, timestamp: timestamp)
+			case .key(let keyCode, _, let characters, _, let isDown, let timestamp):
+				self.recordKey(sender, keyCode: keyCode, characters: characters, isDown: isDown, timestamp: timestamp)
+			}
 		}
 	}
 
@@ -177,7 +206,16 @@ public final class ActionRecorder: @unchecked Sendable {
 			self.pendingClickStart = (x, y, timestamp)
 		} else if isDown == false && wasDown, let start = self.pendingClickStart {
 			self.flushPendingText()
-			self.steps.append(.click(x: start.x, y: start.y, timestamp: start.timestamp))
+
+			if let recognizedText = self.currentRecognizedText?.textUnderPoint(of: CGPoint(x: start.x, y: start.y)) {
+				if self.currentModifiers.contains(.leftShift) || self.currentModifiers.contains(.rightShift) {
+					steps.append(.clickText(text: recognizedText.recognized.text, timestamp: start.timestamp))
+				} else {
+					steps.append(.locate(text: recognizedText.recognized.text, timestamp: start.timestamp))
+				}
+			} else {
+				self.steps.append(.click(x: start.x, y: start.y, timestamp: start.timestamp))
+			}
 			self.pendingClickStart = nil
 		}
 
@@ -185,9 +223,85 @@ public final class ActionRecorder: @unchecked Sendable {
 	}
 
 	// MARK: - Keyboard
+	private func hideRecognizedText(_ sender: NSView) {
+		guard let currentRecognizedText = self.currentRecognizedText else {
+			return
+		}
 
-	private func recordKey(keyCode: CGKeyCode, characters: String, isDown: Bool, timestamp: Date) {
+		currentRecognizedText.forEach {
+			$0.layer.removeFromSuperlayer()
+		}
+
+		self.currentRecognizedText = nil
+	}
+
+	private func showRecognizedText(_ sender: NSView) {
+		guard let (imageSize, recognizedText) = sender.recognizeText() else { return }
+
+		hideRecognizedText(sender)
+
+		self.currentRecognizedText = recognizedText.compactMap { text in
+			if let layer = sender.layer {
+				sender.wantsLayer = true
+
+				let overlay = CAShapeLayer()
+
+				overlay.zPosition = 1000
+				layer.addSublayer(overlay)
+
+				// Convert the box from image coordinates (origin bottom-left) to the targetView coordinate space (origin bottom-left).
+				// VNImageRectForNormalizedRect yields rect in image coords origin bottom-left.
+				// NSView's layer has origin bottom-left if flipped is false, else origin top-left.
+				// AppKit views often have flipped coordinate system (origin top-left). Convert accordingly.
+
+				let viewHeight = sender.bounds.height
+				let viewWidth = sender.bounds.width
+
+				// The CGImage and view might differ in size, so scale accordingly
+				let scaleX = viewWidth / imageSize.width
+				let scaleY = viewHeight / imageSize.height
+
+				// Box origin is bottom-left, need to convert to AppKit's coordinate system (which is typically flipped: origin top-left)
+				// Because targetView is NSView, flipped usually true, origin top-left
+				// So convert y by (viewHeight - box.origin.y - box.height)
+				let convertedRect = CGRect(
+					x: text.box.origin.x * scaleX,
+					y: viewHeight - (text.box.origin.y + text.box.height) * scaleY,
+					width: text.box.width * scaleX,
+					height: text.box.height * scaleY
+				)
+
+				let path = CGPath(rect: convertedRect, transform: nil)
+
+				overlay.path = path
+				overlay.strokeColor = NSColor.blue.cgColor
+				overlay.fillColor = NSColor.blue.withAlphaComponent(0.2).cgColor
+				overlay.lineWidth = 2.0
+
+				return RecognizedText(recognized: text, layer: overlay)
+			}
+
+			return nil
+		}
+	}
+
+	private func checkTextRecognition(_ sender: NSView, for modifierToken: ModifierToken, isDown: Bool) {
+		if isDown {
+			currentModifiers.insert(modifierToken)
+		} else {
+			currentModifiers.remove(modifierToken)
+		}
+
+		if currentModifiers.contains(.function) {
+			showRecognizedText(sender)
+		} else {
+			hideRecognizedText(sender)
+		}
+	}
+
+	private func recordKey(_ sender: NSView, keyCode: CGKeyCode, characters: String, isDown: Bool, timestamp: Date) {
 		if let modifierToken = Self.modifierTokenForKeyCode[keyCode] {
+			self.checkTextRecognition(sender, for: modifierToken, isDown: isDown)
 			self.flushPendingText()
 			self.steps.append(isDown ? .modifierOn(modifierToken, timestamp: timestamp) : .modifierOff(modifierToken, timestamp: timestamp))
 			return
