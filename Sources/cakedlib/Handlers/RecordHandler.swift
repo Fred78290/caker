@@ -45,6 +45,13 @@ public struct RecordHandler {
 		/// the recorder itself is lock-guarded, not observable.
 		@Published public private(set) var hasRecordedActions = false
 
+		/// Whether the OCR-assist overlay is currently armed — toggled explicitly from the
+		/// recording window's toolbar (see `RecordingControls` in `Sources/caked/MainApp.swift`),
+		/// not inferred from any held key. See `ActionRecorder.locateModeActive`'s doc comment for
+		/// why: Fn is heavily used by genuine macOS accessibility shortcuts (VoiceOver's Fn+F5, Full
+		/// Keyboard Access's Fn+Control+F7) that must still record normally.
+		@Published public private(set) var isLocateModeActive = false
+
 		private let targetView: VMView.NSViewType
 		private let destination: URL
 
@@ -127,6 +134,17 @@ public struct RecordHandler {
 				Self.setActionRecorder(self.handleRecordedAction, on: self.targetView)
 				self.state = .recording
 			}
+		}
+
+		/// Arms or disarms the OCR-assist overlay from the toolbar. Distinct from `suspend()`/
+		/// `resume()` — this doesn't stop action capture, it just toggles whether a click lands as
+		/// `<locate>`/`<clickText>` (when text is recognized under it) versus a raw
+		/// `<click point="X,Y">`, and suppresses modifier steps that are only the click-type
+		/// selector (see `ActionRecorder.recordKey`).
+		@MainActor
+		public func toggleLocateMode() {
+			self.isLocateModeActive.toggle()
+			self.recorder.setLocateModeActive(self.isLocateModeActive, sender: self.targetView)
 		}
 
 		public func cancel() {

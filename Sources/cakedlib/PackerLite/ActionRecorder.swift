@@ -158,6 +158,15 @@ public final class ActionRecorder: @unchecked Sendable {
 	private var currentModifiers: Set<ModifierToken> = []
 	private var currentRecognizedText: RecognizedTextes?
 
+	/// Whether the OCR-assist overlay is currently armed. Driven explicitly by the recording
+	/// window's toolbar (`RecordHandler.Session.setLocateModeActive(_:)` → `setLocateModeActive`
+	/// below) rather than inferred from any held key — Fn in particular is heavily used by genuine
+	/// macOS accessibility shortcuts an operator legitimately needs to *record* (VoiceOver's
+	/// Fn+F5, Full Keyboard Access's Fn+Control+F7), so tying this to "Fn is held" made it
+	/// impossible to ever capture those steps. See `recordKey` below for the one place this still
+	/// suppresses recording — narrowly, and only while explicitly armed.
+	private var locateModeActive = false
+
 	public struct RecognizedText {
 		let recognized: NSView.RecognizedText
 		let layer: CALayer
@@ -285,23 +294,40 @@ public final class ActionRecorder: @unchecked Sendable {
 		}
 	}
 
-	private func checkTextRecognition(_ sender: NSView, for modifierToken: ModifierToken, isDown: Bool) {
-		if isDown {
-			currentModifiers.insert(modifierToken)
-		} else {
-			currentModifiers.remove(modifierToken)
-		}
+	/// Arms or disarms the OCR-assist overlay — called from the recording window's toolbar, not
+	/// from any key event. Lock-guarded like `record(_:_:)`, since it's public API a SwiftUI
+	/// button action calls directly, from whatever thread that runs on.
+	public func setLocateModeActive(_ active: Bool, sender: NSView) {
+		self.lock.withLock {
+			self.locateModeActive = active
 
-		if currentModifiers.contains(.function) {
-			showRecognizedText(sender)
-		} else {
-			hideRecognizedText(sender)
+			if active {
+				self.showRecognizedText(sender)
+			} else {
+				self.hideRecognizedText(sender)
+			}
 		}
 	}
 
 	private func recordKey(_ sender: NSView, keyCode: CGKeyCode, characters: String, isDown: Bool, timestamp: Date) {
 		if let modifierToken = Self.modifierTokenForKeyCode[keyCode] {
-			self.checkTextRecognition(sender, for: modifierToken, isDown: isDown)
+			if isDown {
+				self.currentModifiers.insert(modifierToken)
+			} else {
+				self.currentModifiers.remove(modifierToken)
+			}
+
+			// While OCR-assist is explicitly armed (see setLocateModeActive above), a modifier held
+			// purely to pick <clickText> over <locate> (Shift) is this tool's own gesture, not
+			// something meant for the guest — don't record it, or a replay would press it against
+			// the VM. This is deliberately keyed off the explicit toolbar toggle, not off any
+			// particular key being held (an earlier revision suppressed Fn itself, which broke
+			// recording genuine Fn-based guest shortcuts like VoiceOver's Fn+F5 — see the comment on
+			// `locateModeActive` above).
+			guard self.locateModeActive == false else {
+				return
+			}
+
 			self.flushPendingText()
 			self.steps.append(isDown ? .modifierOn(modifierToken, timestamp: timestamp) : .modifierOff(modifierToken, timestamp: timestamp))
 			return

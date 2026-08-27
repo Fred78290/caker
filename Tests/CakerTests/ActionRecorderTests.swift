@@ -103,6 +103,53 @@ final class ActionRecorderTests: XCTestCase {
 		XCTAssertTrue(onIndex < textIndex && textIndex < offIndex, "Expected on/text/off in chronological order in:\n\(yaml)")
 	}
 
+	// MARK: - Locate mode: an explicit toolbar toggle, not inferred from any held key
+
+	func testGenuineFunctionKeyPressStillRecordsNormally() {
+		// Fn is heavily used by real macOS accessibility shortcuts an operator legitimately needs to
+		// *record* — VoiceOver's Fn+F5, Full Keyboard Access's Fn+Control+F7 — so, unlike an earlier
+		// revision of this feature, a plain Fn press must never be suppressed on its own.
+		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+
+		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .function), isDown: true, at: 0))
+		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .function), isDown: false, at: 0.2))
+
+		let yaml = recorder.finish()
+
+		XCTAssertTrue(yaml.contains("<fnOn>"), "Expected a genuine Fn press to record normally in:\n\(yaml)")
+		XCTAssertTrue(yaml.contains("<fnOff>"), "Expected a genuine Fn press to record normally in:\n\(yaml)")
+	}
+
+	func testModifierWhileLocateModeActiveIsNotRecorded() {
+		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+
+		recorder.setLocateModeActive(true, sender: view)
+		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: true, at: 0))
+		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: false, at: 0.05))
+		recorder.setLocateModeActive(false, sender: view)
+
+		let yaml = recorder.finish()
+
+		XCTAssertFalse(yaml.contains("<leftShiftOn>"), "Shift held only to select clickText while locate mode is armed must not be recorded in:\n\(yaml)")
+		XCTAssertFalse(yaml.contains("<leftShiftOff>"), "Shift held only to select clickText while locate mode is armed must not be recorded in:\n\(yaml)")
+		XCTAssertEqual(recorder.stepCount, 0)
+	}
+
+	func testModifierOutsideLocateModeIsStillRecorded() {
+		// Regression guard: the locate-mode suppression must not swallow ordinary modifier steps
+		// when locate mode was never armed at all — testModifierDownUpWrapsIntermediateText above
+		// already covers this, this just makes that intent explicit as its own case.
+		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+
+		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: true, at: 0))
+		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: false, at: 0.1))
+
+		let yaml = recorder.finish()
+
+		XCTAssertTrue(yaml.contains("<leftShiftOn>"))
+		XCTAssertTrue(yaml.contains("<leftShiftOff>"))
+	}
+
 	// MARK: - Click tokens
 
 	func testClickDownUpProducesClickPointToken() {

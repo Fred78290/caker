@@ -256,6 +256,17 @@ struct RecordingControls: View {
 		}
 		.help("Discard recorded steps and start over")
 		.disabled(self.session.hasRecordedActions == false)
+
+		Button {
+			self.session.toggleLocateMode()
+		} label: {
+			Image(systemName: self.session.isLocateModeActive ? "text.viewfinder" : "viewfinder")
+				.foregroundStyle(self.session.isLocateModeActive ? .blue : .primary)
+		}
+		.help(
+			self.session.isLocateModeActive
+				? "Locate mode is on — clicking recognized text records <locate>/<clickText> instead of a raw coordinate; click to turn off"
+				: "Turn on locate mode to highlight recognized text and click it for a resilient <locate>/<clickText> step, instead of a raw coordinate")
 	}
 }
 
