@@ -107,6 +107,13 @@ public struct RecordHandler {
 
 			Self.setActionRecorder(nil, on: self.targetView)
 
+			// _stopVM() (VirtualMachine.swift) never disposes the window itself — that only
+			// happens automatically via the VNC-server-stop delegate callback (didStop(_:)), which
+			// this local-window-only capture path never triggers since it starts no VNC server.
+			// Without this explicit call the window created by RecordHandler.record(...) below was
+			// simply leaked (never closed) once a recording session stopped.
+			self.vm.disposeWindow()
+
 			let yaml = self.recorder.finish()
 
 			self.vm.stopVM { _ in
@@ -194,7 +201,7 @@ public struct RecordHandler {
 			vncPassword: config.vncPassword ?? UUID().uuidString,
 			vncPort: 0,
 			vmMode: .recording,
-			runMode: .app)
+			runMode: runMode)
 
 		return (try handler.run { _, vm in
 			// Mirrors ProvisionHandler's `display == .none` branch exactly: a plain local

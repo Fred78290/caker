@@ -438,7 +438,11 @@ public final class ActionRecorder: @unchecked Sendable {
 		// bundled template) rather than newYAMLEncoder()'s sortKeys:true used elsewhere.
 		encoder.options = .init(indent: 2, width: -1, sortKeys: false)
 
-		return (try? encoder.encode(document)) ?? String.empty
+		// A bare "" on encode failure would silently write an empty, unparseable file — fall back
+		// to a minimal but valid boot_command document instead, so a caller writing this straight
+		// to disk (see RecordHandler.Session.stop()) at least gets something PackerLiteTemplate can
+		// load, rather than a failure that only surfaces much later when it's used.
+		return (try? encoder.encode(document)) ?? "boot_command: []\n"
 	}
 
 	/// Number of steps accumulated so far — for a caller to sanity-check ("recorded N actions")
