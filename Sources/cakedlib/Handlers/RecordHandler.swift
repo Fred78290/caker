@@ -40,19 +40,14 @@ public struct RecordHandler {
 		public var state: State = .stopped
 
 		private let targetView: VMView.NSViewType
-		private let lock = NSLock()
 		private let destination: URL
 
+		@MainActor
 		private static func setActionRecorder(_ actionRecorder: RecordedActionHandler?, on targetView: VMView.NSViewType) {
-			if Thread.isMainThread {
-				targetView.actionRecorder = actionRecorder
-			} else {
-				DispatchQueue.main.sync {
-					targetView.actionRecorder = actionRecorder
-				}
-			}
+			targetView.actionRecorder = actionRecorder
 		}
 
+		@MainActor
 		init(vm: VirtualMachine, targetView: VMView.NSViewType, config: CakedConfiguration, destination: URL) {
 			self.vm = vm
 			self.targetView = targetView
@@ -69,22 +64,15 @@ public struct RecordHandler {
 		/// `boot_command:` YAML document (see `ActionRecorder.finish()`). Safe to call more than
 		/// once or from a signal handler — only the first call tears anything down; later calls
 		/// just re-return the already-finished YAML.
+		@MainActor
 		public func stop(completionHandler: @escaping(String) -> Void) {
-			self.lock.lock()
-
 			guard self.state != .stopped else {
-				self.lock.unlock()
 				return completionHandler(self.recorder.finish())
 			}
 
 			self.state = .stopped
-			self.lock.unlock()
 
 			Self.setActionRecorder(nil, on: self.targetView)
-
-			//MainActor.assumeIsolated {
-			//	self.vm.disposeWindow()
-			//}
 
 			let yaml = self.recorder.finish()
 
@@ -97,21 +85,19 @@ public struct RecordHandler {
 			self.recorder.reset()
 		}
 
+		@MainActor
 		public func suspend() {
-			self.lock.withLock {
-				if self.state == .recording {
-					Self.setActionRecorder(nil, on: self.targetView)
-					self.state = .suspended
-				}
+			if self.state == .recording {
+				Self.setActionRecorder(nil, on: self.targetView)
+				self.state = .suspended
 			}
 		}
 
+		@MainActor
 		public func resume() {
-			self.lock.withLock {
-				if self.state == .suspended {
-					Self.setActionRecorder(self.recorder.record, on: self.targetView)
-					self.state = .recording
-				}
+			if self.state == .suspended {
+				Self.setActionRecorder(self.recorder.record, on: self.targetView)
+				self.state = .recording
 			}
 		}
 

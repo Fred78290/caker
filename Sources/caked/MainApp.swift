@@ -357,7 +357,9 @@ extension AppDelegate {
 		// EnvironmentValues() is how a plain NSObject opens the "VM" WindowGroup by id.
 		EnvironmentValues().openWindow(id: "VM")
 		DispatchQueue.main.async {
-			NSApp.windows.forEach { $0.makeKeyAndOrderFront(nil) }
+			NSApp.orderedWindows
+				.first(where: { $0.isVisible && !$0.isMiniaturized && $0.canBecomeKey })?
+				.makeKeyAndOrderFront(nil)
 		}
 	}
 }
