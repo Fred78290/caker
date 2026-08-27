@@ -43,6 +43,16 @@ public struct RecordHandler {
 		private let lock = NSLock()
 		private let destination: URL
 
+		private static func setActionRecorder(_ actionRecorder: RecordedActionHandler?, on targetView: VMView.NSViewType) {
+			if Thread.isMainThread {
+				targetView.actionRecorder = actionRecorder
+			} else {
+				DispatchQueue.main.sync {
+					targetView.actionRecorder = actionRecorder
+				}
+			}
+		}
+
 		init(vm: VirtualMachine, targetView: VMView.NSViewType, config: CakedConfiguration, destination: URL) {
 			self.vm = vm
 			self.targetView = targetView
@@ -50,7 +60,7 @@ public struct RecordHandler {
 			self.config = config
 			self.destination = destination
 
-			targetView.actionRecorder = self.recorder.record
+			Self.setActionRecorder(self.recorder.record, on: targetView)
 			
 			RecordHandler.currentSession = self
 		}
@@ -70,7 +80,7 @@ public struct RecordHandler {
 			self.state = .stopped
 			self.lock.unlock()
 
-			self.targetView.actionRecorder = nil
+			Self.setActionRecorder(nil, on: self.targetView)
 
 			//MainActor.assumeIsolated {
 			//	self.vm.disposeWindow()
@@ -90,7 +100,7 @@ public struct RecordHandler {
 		public func suspend() {
 			self.lock.withLock {
 				if self.state == .recording {
-					self.targetView.actionRecorder = nil
+					Self.setActionRecorder(nil, on: self.targetView)
 					self.state = .suspended
 				}
 			}
@@ -99,7 +109,7 @@ public struct RecordHandler {
 		public func resume() {
 			self.lock.withLock {
 				if self.state == .suspended {
-					self.targetView.actionRecorder = self.recorder.record
+					Self.setActionRecorder(self.recorder.record, on: self.targetView)
 					self.state = .recording
 				}
 			}

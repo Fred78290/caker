@@ -356,5 +356,8 @@ extension AppDelegate {
 		// AppDelegate has no SwiftUI environment of its own — reading the action from a fresh
 		// EnvironmentValues() is how a plain NSObject opens the "VM" WindowGroup by id.
 		EnvironmentValues().openWindow(id: "VM")
+		DispatchQueue.main.async {
+			NSApp.windows.forEach { $0.makeKeyAndOrderFront(nil) }
+		}
 	}
 }
