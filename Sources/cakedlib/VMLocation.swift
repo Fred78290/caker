@@ -756,15 +756,14 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 	@MainActor
 	public func startVirtualMachine(
-		mode: VMRunServiceMode,
+		_ serviceMode: VMRunServiceMode,
 		on: EventLoop,
 		config: CakeConfig,
 		screenSize: CGSize,
 		display: VMRunHandler.DisplayMode,
 		vncPassword: String,
 		vncPort: Int,
-		recoveryMode: Bool,
-		provisioning: Bool,
+		mode: VirtualMachine.Mode,
 		runMode: Utils.RunMode,
 		queue: DispatchQueue?,
 		completionHandler: VirtualMachine.StartCompletionHandler? = nil
@@ -774,13 +773,12 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			config: config,
 			display: display,
 			screenSize: screenSize,
-			recoveryMode: recoveryMode,
-			provisioning: provisioning,
+			mode: mode,
 			runMode: runMode,
 			queue: queue)
 
 		let runningIP = try vm.runInBackground(
-			mode, on: on,
+			serviceMode, on: on,
 			completionHandler: completionHandler)
 
 		try self.writePID()
