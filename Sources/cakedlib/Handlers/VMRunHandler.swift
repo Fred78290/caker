@@ -33,15 +33,14 @@ public struct VMRunHandler {
 	public let runMode: Utils.RunMode
 	public let display: DisplayMode
 	public let config: CakeConfig
-	public let mode: VMRunServiceMode
+	public let serviceMode: VMRunServiceMode
 	public let vncPassword: String
 	public let vncPort: Int
 	public let screenSize: CGSize
-	public let recoveryMode: Bool
-	public let provisioning: Bool
+	public let vmMode: VirtualMachine.Mode
 
 	public init(
-		mode: VMRunServiceMode,
+		serviceMode: VMRunServiceMode,
 		storageLocation: StorageLocation,
 		location: VMLocation,
 		name: String,
@@ -50,8 +49,7 @@ public struct VMRunHandler {
 		screenSize: CGSize,
 		vncPassword: String,
 		vncPort: Int,
-		recoveryMode: Bool,
-		provisioning: Bool,
+		vmMode: VirtualMachine.Mode,
 		runMode: Utils.RunMode
 	) {
 		self.storageLocation = storageLocation
@@ -60,12 +58,11 @@ public struct VMRunHandler {
 		self.runMode = runMode
 		self.display = display
 		self.config = config
-		self.mode = mode
+		self.serviceMode = serviceMode
 		self.vncPort = vncPort
 		self.vncPassword = vncPassword
 		self.screenSize = screenSize
-		self.recoveryMode = recoveryMode
-		self.provisioning = provisioning
+		self.vmMode = vmMode
 	}
 
 	public typealias CompletionHandler<T> = (EventLoopFuture<String?>, VirtualMachine) throws -> T
@@ -96,14 +93,14 @@ public struct VMRunHandler {
 		}
 
 		let result = try location.startVirtualMachine(
-			mode: mode, on: Utilities.group.next(),
+			serviceMode,
+			on: Utilities.group.next(),
 			config: config,
 			screenSize: screenSize,
 			display: display,
 			vncPassword: vncPassword,
 			vncPort: vncPort,
-			recoveryMode: self.recoveryMode,
-			provisioning: provisioning,
+			mode: vmMode,
 			runMode: runMode,
 			queue: queue)
 
@@ -134,15 +131,14 @@ public struct VMRunHandler {
 		}
 
 		return try await location.startVirtualMachine(
-			mode: mode,
+			serviceMode,
 			on: Utilities.group.next(),
 			config: config,
 			screenSize: screenSize,
 			display: display,
 			vncPassword: vncPassword,
 			vncPort: vncPort,
-			recoveryMode: self.recoveryMode,
-			provisioning: false,
+			mode: vmMode,
 			runMode: runMode,
 			queue: queue)
 	}

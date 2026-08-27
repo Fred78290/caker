@@ -134,7 +134,7 @@ public class VNCInputHandler {
 	// MARK: - Mouse Events
 
 	func handlePointerEvent(x: Int, y: Int, buttonMask: UInt8) {
-		self.actionRecorder?(.pointer(x: x, y: y, buttonMask: buttonMask, timestamp: Date()))
+		self.actionRecorder?(targetView, .pointer(x: x, y: y, buttonMask: buttonMask, timestamp: Date()))
 
 		guard let view = targetView else {
 			return
@@ -329,7 +329,7 @@ public class VNCInputHandler {
 		ensureFirstResponder()
 
 		keyMapper.mapVNCKey(keySym, isDown: isDown) { keyCode, modifiers, characters, charactersIgnoringModifiers in
-			self.actionRecorder?(
+			self.actionRecorder?(targetView,
 				.key(
 					keyCode: keyCode, modifiers: modifiers, characters: characters ?? String.empty, charactersIgnoringModifiers: charactersIgnoringModifiers ?? String.empty, isDown: isDown,
 					timestamp: Date()))

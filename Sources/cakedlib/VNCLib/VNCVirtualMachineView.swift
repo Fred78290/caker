@@ -1,16 +1,18 @@
-import CakeAgentLib
-import Dynamic
 //
 //  VNCVZVirtualMachineView.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 19/01/2026.
 //
+import CakeAgentLib
+import Vision
+import Dynamic
 import Foundation
 import ObjectiveC.runtime
 import QuartzCore
 import Synchronization
 import Virtualization
+import GRPCLib
 
 @objc protocol VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?)
@@ -33,6 +35,57 @@ import Virtualization
 #endif
 
 extension NSView {
+	public struct RecognizedText: Sendable {
+		public let text: String
+		public let box: CGRect
+	}
+
+	public func recognizeText() -> (CGSize, [RecognizedText])? {
+		guard let cgImage = self.imageRepresentation(in: self.bounds)?.cgImage else {
+			return nil
+		}
+
+		// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
+		let semaphore = DispatchSemaphore(value: 0)
+		var result: (CGSize, [RecognizedText])?
+
+		DispatchQueue.global(qos: .utility).async {
+			defer { semaphore.signal() }
+
+			let request = VNRecognizeTextRequest()
+			request.recognitionLevel = .accurate
+
+			do {
+				try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+
+				guard let results = request.results, results.isEmpty == false else {
+					return
+				}
+
+				result = (CGSize(width: cgImage.width, height: cgImage.height), results.compactMap { observation in
+					if let candidate = observation.topCandidates(1).first {
+						let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(cgImage.width), Int(cgImage.height))
+						let flippedBox = CGRect(
+							x: box.origin.x,
+							y: CGFloat(cgImage.height) - box.origin.y - box.height,
+							width: box.width,
+							height: box.height)
+
+						return RecognizedText(text: candidate.string, box: flippedBox)
+					}
+
+					return nil
+				})
+			} catch {
+				Logger(self).error("Vision OCR failed: \(error)")
+			}
+		}
+
+		semaphore.wait()
+
+		return result
+	}
+
 	@objc public var cursor: NSCursor? {
 		return nil
 	}
@@ -301,6 +354,27 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 
 	private let continuation: Mutex<AsyncStream<VNCFrameUpdateState>.Continuation?> = .init(nil)
 
+	/// Pure observer tap for `caked record`'s local-window capture path (see `ActionRecorder.swift`
+	/// and `RecordHandler.swift`): called with the already-resolved values for every mouse/keyboard
+	/// `NSEvent` this view receives, from the real native event — not a VNC-protocol keysym
+	/// round-trip like `VNCInputHandler.actionRecorder` — never mutating, delaying, or swallowing
+	/// the event itself. Only set while a recording session is actually active — nil (the default)
+	/// is zero overhead for ordinary local-window VM display.
+	public var actionRecorder: RecordedActionHandler?
+
+	/// Running VNC-style button bitmask (bit0=left, bit1=middle, bit2=right — matching
+	/// `VNCInputHandler`'s convention) built up from this view's own mouse down/up overrides, fed
+	/// to `actionRecorder` alongside each pointer event so `ActionRecorder` sees the same shape of
+	/// data it already gets from the VNC-server-tap path.
+	private var capturedButtonMask: UInt8 = 0
+
+	/// Physical modifier `keyCode`s currently considered held, used to derive `isDown` for
+	/// `flagsChanged` events — macOS reports which key changed via `event.keyCode` but not whether
+	/// it went down or up, so this view tracks that itself per key (independently of `NSEvent
+	/// .modifierFlags`, which can't distinguish "left shift still held" from "right shift still
+	/// held" once both are down).
+	private var heldModifierKeyCodes: Set<CGKeyCode> = []
+
 	#if TRACE_DEINIT
 		deinit {
 			print("VNCVirtualMachineView deinit")
@@ -338,12 +412,34 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 }
 
 extension VNCVirtualMachineView {
+	/// Bit convention matches `VNCInputHandler`'s VNC-protocol buttonMask, so `ActionRecorder`
+	/// consumes an identical shape regardless of which capture path fed it.
+	private static let leftButtonBit: UInt8 = 0x01
+	private static let middleButtonBit: UInt8 = 0x02
+	private static let rightButtonBit: UInt8 = 0x04
+
+	/// Reports the current pointer position (converted to the same top-left-origin, view-pixel
+	/// coordinate space `RecordedAction.pointer`/`<click point="X,Y">` already use elsewhere — see
+	/// `viewRelativePosition(of:)`) plus `capturedButtonMask` to `actionRecorder`, if armed. Never
+	/// mutates the event or affects dispatch — always called alongside, never instead of, `super`.
+	private func recordPointerEvent(_ event: NSEvent) {
+		guard let actionRecorder else {
+			return
+		}
+
+		let point = self.viewRelativePosition(of: event)
+
+		actionRecorder(self, .pointer(x: Int(point.x), y: Int(point.y), buttonMask: self.capturedButtonMask, timestamp: Date()))
+	}
+
 	public override func mouseDown(with event: NSEvent) {
 		#if DEBUGEVENT
 			self.logger.debug("mouseDown: \(event.dumpEvent)")
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.capturedButtonMask |= Self.leftButtonBit
+		self.recordPointerEvent(event)
 
 		super.mouseDown(with: event)
 	}
@@ -354,6 +450,7 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.recordPointerEvent(event)
 
 		super.mouseDragged(with: event)
 	}
@@ -364,6 +461,8 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.capturedButtonMask &= ~Self.leftButtonBit
+		self.recordPointerEvent(event)
 
 		super.mouseUp(with: event)
 	}
@@ -374,6 +473,8 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.capturedButtonMask |= Self.rightButtonBit
+		self.recordPointerEvent(event)
 
 		super.rightMouseDown(with: event)
 	}
@@ -384,6 +485,7 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.recordPointerEvent(event)
 
 		super.rightMouseDragged(with: event)
 	}
@@ -394,6 +496,8 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.capturedButtonMask &= ~Self.rightButtonBit
+		self.recordPointerEvent(event)
 
 		super.rightMouseUp(with: event)
 	}
@@ -404,6 +508,8 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.capturedButtonMask |= Self.middleButtonBit
+		self.recordPointerEvent(event)
 
 		super.otherMouseDown(with: event)
 	}
@@ -414,6 +520,7 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.recordPointerEvent(event)
 
 		super.otherMouseDragged(with: event)
 	}
@@ -423,28 +530,87 @@ extension VNCVirtualMachineView {
 			self.logger.debug("otherMouseUp: \(event.dumpEvent)")
 		#endif
 		self.updateCursorPosition(with: event)
+		self.capturedButtonMask &= ~Self.middleButtonBit
+		self.recordPointerEvent(event)
 
 		super.otherMouseUp(with: event)
 	}
-	#if DEBUGEVENT
-		public override func keyDown(with event: NSEvent) {
+
+	// keyDown/flagsChanged/scrollWheel used to only be compiled in under #if DEBUGEVENT (pure
+	// logging, no behavioral difference from Apple's own VZVirtualMachineView default handling).
+	// They're now unconditional so caked record's local-window capture path (see
+	// RecordHandler.swift) has somewhere to hook actionRecorder for keyboard input — the override
+	// itself and its `super` call are always compiled in; only the debug logging stays gated.
+	public override func keyDown(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("keyDown: \(event.dumpEvent)")
+		#endif
 
-			super.keyDown(with: event)
-		}
+		self.actionRecorder?(self,
+			.key(
+				keyCode: CGKeyCode(event.keyCode),
+				modifiers: event.modifierFlags,
+				characters: event.characters ?? String.empty,
+				charactersIgnoringModifiers: event.charactersIgnoringModifiers ?? String.empty,
+				isDown: true,
+				timestamp: Date()))
 
-		public override func flagsChanged(with event: NSEvent) {
+		super.keyDown(with: event)
+	}
+
+	public override func flagsChanged(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("flagsChanged: \(event.dumpEvent)")
+		#endif
 
-			super.flagsChanged(with: event)
+		if let actionRecorder {
+			let keyCode = CGKeyCode(event.keyCode)
+			let (isDown, heldModifierKeyCodes) = Self.toggledModifierState(heldKeyCodes: self.heldModifierKeyCodes, keyCode: keyCode)
+
+			self.heldModifierKeyCodes = heldModifierKeyCodes
+
+			actionRecorder(self,
+				.key(
+					keyCode: keyCode,
+					modifiers: event.modifierFlags,
+					characters: String.empty,
+					charactersIgnoringModifiers: String.empty,
+					isDown: isDown,
+					timestamp: Date()))
 		}
 
-		public override func scrollWheel(with event: NSEvent) {
+		super.flagsChanged(with: event)
+	}
+
+	/// Pure toggle behind `flagsChanged`'s `isDown` derivation, extracted purely so it can be unit
+	/// tested without a real `NSView`/window (see `VNCVirtualMachineViewCaptureTests`). `flagsChanged`
+	/// only tells us *which* physical modifier key changed (via `event.keyCode`), not whether it went
+	/// down or up — `NSEvent.modifierFlags` can't answer that either, since it reports the combined
+	/// current state and can't tell "left shift released, right shift still held" apart from "left
+	/// shift still held" once both map to the same `.shift` bit. Tracking each keyCode's own
+	/// held/released state independently sidesteps that ambiguity entirely.
+	static func toggledModifierState(heldKeyCodes: Set<CGKeyCode>, keyCode: CGKeyCode) -> (isDown: Bool, heldKeyCodes: Set<CGKeyCode>) {
+		var heldKeyCodes = heldKeyCodes
+		let isDown: Bool
+
+		if heldKeyCodes.contains(keyCode) {
+			heldKeyCodes.remove(keyCode)
+			isDown = false
+		} else {
+			heldKeyCodes.insert(keyCode)
+			isDown = true
+		}
+
+		return (isDown, heldKeyCodes)
+	}
+
+	public override func scrollWheel(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("scrollWheel: \(event.dumpEvent)")
+		#endif
 
-			super.scrollWheel(with: event)
-		}
-	#endif
+		super.scrollWheel(with: event)
+	}
 }
 
 extension VNCVirtualMachineView: VNCFrameBufferProducer {

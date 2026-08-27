@@ -59,6 +59,7 @@ extension Scene {
 struct MainWindow: Scene {
 	private var params: VMRunHandler
 	private var vm: VirtualMachine
+	private var actionRecorder: RecordedActionHandler?
 
 	@State private var appState: AppState
 
@@ -133,6 +134,12 @@ struct MainWindow: Scene {
 						.help("Restarts virtual machine")
 						.disabled(self.appState.isStopped)
 					}
+
+					if let currentSession = RecordHandler.currentSession, self.vm.mode == .recording, currentSession.state != .stopped {
+						ToolbarItemGroup(placement: .secondaryAction) {
+							RecordingControls(session: currentSession)
+						}
+					}
 				}
 				.presentedWindowToolbarStyle(.unifiedCompact)
 				.windowToolbarFullScreenVisibility(.onHover)
@@ -197,6 +204,69 @@ struct MainWindow: Scene {
 
 	func suspendFromUI() {
 		self.vm.suspendFromUI()
+	}
+}
+
+/// Toolbar controls for a live `caked record` session. A separate view (rather than inline in
+/// MainWindow's toolbar) so it can observe the session: the Recording/Paused flip and the Reset
+/// button's enablement both need to update live as `state`/`hasRecordedActions` change.
+struct RecordingControls: View {
+	@ObservedObject var session: RecordHandler.Session
+
+	var body: some View {
+		if self.session.state == .recording {
+			Button {
+				self.session.suspend()
+			} label: {
+				HStack(spacing: 4) {
+					Circle()
+						.fill(.red)
+						.frame(width: 8, height: 8)
+						.overlay(
+							Circle()
+								.fill(.red.opacity(0.3))
+								.scaleEffect(1.5)
+						)
+					Text("Recording")
+				}
+			}
+			.help("Pause recording")
+		} else {
+			Button {
+				self.session.resume()
+			} label: {
+				HStack(spacing: 4) {
+					Circle()
+						.strokeBorder(.red, lineWidth: 2)
+						.frame(width: 8, height: 8)
+					Text("Paused")
+				}
+			}
+			.help("Resume recording")
+		}
+
+		Button {
+			self.session.reset()
+		} label: {
+			HStack(spacing: 4) {
+				Image(systemName: "arrow.counterclockwise")
+					.foregroundStyle(.orange)
+				Text("Reset")
+			}
+		}
+		.help("Discard recorded steps and start over")
+		.disabled(self.session.hasRecordedActions == false)
+
+		Button {
+			self.session.toggleLocateMode()
+		} label: {
+			Image(systemName: self.session.isLocateModeActive ? "text.viewfinder" : "viewfinder")
+				.foregroundStyle(self.session.isLocateModeActive ? .blue : .primary)
+		}
+		.help(
+			self.session.isLocateModeActive
+				? "Locate mode is on — clicking recognized text records <locate>/<clickText> instead of a raw coordinate; click to turn off"
+				: "Turn on locate mode to highlight recognized text and click it for a resilient <locate>/<clickText> step, instead of a raw coordinate")
 	}
 }
 
@@ -320,5 +390,10 @@ extension AppDelegate {
 		// AppDelegate has no SwiftUI environment of its own — reading the action from a fresh
 		// EnvironmentValues() is how a plain NSObject opens the "VM" WindowGroup by id.
 		EnvironmentValues().openWindow(id: "VM")
+		DispatchQueue.main.async {
+			NSApp.orderedWindows
+				.first(where: { $0.isVisible && !$0.isMiniaturized && $0.canBecomeKey })?
+				.makeKeyAndOrderFront(nil)
+		}
 	}
 }

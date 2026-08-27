@@ -7,17 +7,20 @@ import Foundation
 import GRPCLib
 
 /// Records a human operator manually driving a freshly-installed VM's first-boot setup (macOS
-/// Setup Assistant, or a Linux installer) over VNC, and writes out a ready-to-use PackerLite
-/// `boot_command` template — the reverse of `caked provision`, which replays such a template
-/// instead of recording one. `caked`-local only for now, no `cakectl` counterpart yet (see
-/// CLAUDE.md's PackerLite section) — run directly against `caked` on the host where the VM lives.
+/// Setup Assistant, or a Linux installer) through a local window, and writes out a ready-to-use
+/// PackerLite `boot_command` template — the reverse of `caked provision`, which replays such a
+/// template instead of recording one. Captures native `NSEvent`s directly from the VM's own
+/// window (see `VNCVirtualMachineView.actionRecorder`) rather than tapping a VNC server, so this
+/// never opens a network port — but it can only be driven by an operator sitting at this host, not
+/// a remote VNC client. `caked`-local only for now, no `cakectl` counterpart yet (see CLAUDE.md's
+/// PackerLite section) — run directly against `caked` on the host where the VM lives.
 struct Record: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(
 		commandName: "record",
 		abstract: String(localized: "Record a manual VM setup session into a PackerLite boot_command template"),
 		discussion: String(
 			localized:
-				"Boots <vm> (typically built with `build`/`create` and *without* --autoinstall, so it's sitting at its first-boot screen) and opens a VNC window you drive by hand. Every click and keystroke you perform is recorded; press Ctrl-C to stop and write the recorded boot_command out to --output. The result is a first draft, not a finished template — review it and consider hardening timing-sensitive waits with <locate> anchors before relying on it for unattended --autoinstall runs."
+				"Boots <vm> (typically built with `build`/`create` and *without* --autoinstall, so it's sitting at its first-boot screen) and opens a local window you drive by hand. Every click and keystroke you perform is recorded; press Ctrl-C to stop and write the recorded boot_command out to --output. The result is a first draft, not a finished template — review it and consider hardening timing-sensitive waits with <locate> anchors before relying on it for unattended --autoinstall runs."
 		)
 	)
 
@@ -67,21 +70,21 @@ struct Record: AsyncParsableCommand {
 		let destination = self.outputURL(location)
 		let logger = Logger(self)
 
-		let session = try CakedLib.RecordHandler.record(location: location, storageLocation: storageLocation, runMode: self.common.runMode)
+		let (session, handler) = try CakedLib.RecordHandler.record(location: location, storageLocation: storageLocation, destination: destination, runMode: self.common.runMode)
 
 		func stopAndSave() {
-			let yaml = session.stop()
+			session.stop { yaml in
+				do {
+					try yaml.write(to: destination, atomically: true, encoding: .utf8)
 
-			do {
-				try yaml.write(to: destination, atomically: true, encoding: .utf8)
+					Logger.appendNewLine(String(localized: "Recorded template saved to \(destination.path)"))
+					Logger.appendNewLine(String(localized: "This is a first draft — review it and consider hardening timing-sensitive waits with <locate> anchors before relying on it for unattended --autoinstall runs."))
+				} catch {
+					logger.error("Failed to write recorded template to \(destination.path): \(error)")
+				}
 
-				Logger.appendNewLine(String(localized: "Recorded template saved to \(destination.path)"))
-				Logger.appendNewLine(String(localized: "This is a first draft — review it and consider hardening timing-sensitive waits with <locate> anchors before relying on it for unattended --autoinstall runs."))
-			} catch {
-				logger.error("Failed to write recorded template to \(destination.path): \(error)")
+				NSApplication.shared.terminate(self)
 			}
-
-			NSApplication.shared.terminate(self)
 		}
 
 		// caked's default top-level SIGINT handler (Root.sigintSrc) just force-exits the process —
@@ -99,18 +102,18 @@ struct Record: AsyncParsableCommand {
 
 		sigintSrc.activate()
 
-		Logger.appendNewLine(String(localized: "Recording started for VM \(self.name) — drive the VM through the VNC window, press Ctrl-C here when done."))
+		Logger.appendNewLine(String(localized: "Recording started for VM \(self.name) — drive the VM through the window that just opened, press Ctrl-C here when done."))
 
-		// Blocks (via VNCApp's own NSApplication.run()) until stopAndSave() above calls
-		// NSApplication.terminate(), same inline-VNC-window pattern `cakectl provision` uses.
-		try VNCApp.startVncClient(
-			name: location.name,
-			config: session.config,
-			vncURL: session.vncURL,
-			screenSize: session.screenSize,
-			tunnel: nil,
-			allowClientResize: false,
-			vmStatus: { .running }
-		)
+		// No VNC server/client involved for this capture path — RecordHandler.record(...) already
+		// created and ordered-front the VM's own local window (vm.setupWindow()). Bring it to the
+		// front the same way every other caked window shown from a terminal launch does (see
+		// CLAUDE.md's "SwiftUI front-app activation from a terminal launch" note), then block the
+		// same way Provision.swift's non-foreground path does until stopAndSave() above calls
+		// NSApplication.terminate().
+		//NSApp.setDockIcon()
+		//NSApp.windows.forEach { $0.makeKeyAndOrderFront(nil) }
+		//NSApplication.shared.run()
+
+		MainApp.runUI(session.vm, params: handler, cancellation: session)
 	}
 }
