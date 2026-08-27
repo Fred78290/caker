@@ -425,7 +425,7 @@ extension VNCVirtualMachineView {
 
 		let point = self.viewRelativePosition(of: event)
 
-		actionRecorder(.pointer(x: Int(point.x), y: Int(point.y), buttonMask: self.capturedButtonMask, timestamp: Date()))
+		actionRecorder(self, .pointer(x: Int(point.x), y: Int(point.y), buttonMask: self.capturedButtonMask, timestamp: Date()))
 	}
 
 	public override func mouseDown(with event: NSEvent) {
@@ -542,7 +542,7 @@ extension VNCVirtualMachineView {
 			self.logger.debug("keyDown: \(event.dumpEvent)")
 		#endif
 
-		self.actionRecorder?(
+		self.actionRecorder?(self,
 			.key(
 				keyCode: CGKeyCode(event.keyCode),
 				modifiers: event.modifierFlags,
@@ -565,7 +565,7 @@ extension VNCVirtualMachineView {
 
 			self.heldModifierKeyCodes = heldModifierKeyCodes
 
-			actionRecorder(
+			actionRecorder(self,
 				.key(
 					keyCode: keyCode,
 					modifiers: event.modifierFlags,

@@ -24,7 +24,7 @@ public enum RecordedAction: Sendable {
 
 /// Called for every resolved action while a recording session is armed. Set on
 /// `VNCInputHandler.actionRecorder` — nil (zero overhead) otherwise.
-public typealias RecordedActionHandler = (RecordedAction) -> Void
+public typealias RecordedActionHandler = (_ sender: NSView, _ action: RecordedAction) -> Void
 
 /// Accumulates one `caked record` session's `RecordedAction` log and turns it into a
 /// `boot_command:`-shaped YAML document on `finish()`. Thread-safe: VNC input arrives on the
@@ -140,7 +140,7 @@ public final class ActionRecorder: @unchecked Sendable {
 
 	/// Feeds one resolved action into the recorder. Safe to call from any thread — VNC input
 	/// arrives on the connection's own background dispatch queue.
-	public func record(_ action: RecordedAction) {
+	public func record(_ sender: NSView, _ action: RecordedAction) {
 		self.lock.lock()
 		defer { self.lock.unlock() }
 
