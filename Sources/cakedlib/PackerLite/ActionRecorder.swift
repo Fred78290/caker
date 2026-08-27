@@ -136,6 +136,13 @@ public final class ActionRecorder: @unchecked Sendable {
 	public init(username: String?, password: String?) {
 		self.username = username
 		self.password = password
+	public func reset() {
+		self.lock.withLock {
+			self.steps.removeAll()
+			self.pendingText.removeAll()
+			self.pendingTextStart = nil
+			self.pendingTextLastCharacter = nil
+			self.pendingClickStart = nil
 	}
 
 	/// Feeds one resolved action into the recorder. Safe to call from any thread — VNC input

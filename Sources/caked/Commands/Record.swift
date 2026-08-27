@@ -70,21 +70,21 @@ struct Record: AsyncParsableCommand {
 		let destination = self.outputURL(location)
 		let logger = Logger(self)
 
-		let session = try CakedLib.RecordHandler.record(location: location, storageLocation: storageLocation, runMode: self.common.runMode)
+		let (session, handler) = try CakedLib.RecordHandler.record(location: location, storageLocation: storageLocation, destination: destination, runMode: self.common.runMode)
 
 		func stopAndSave() {
-			let yaml = session.stop()
+			session.stop { yaml in
+				do {
+					try yaml.write(to: destination, atomically: true, encoding: .utf8)
 
-			do {
-				try yaml.write(to: destination, atomically: true, encoding: .utf8)
+					Logger.appendNewLine(String(localized: "Recorded template saved to \(destination.path)"))
+					Logger.appendNewLine(String(localized: "This is a first draft — review it and consider hardening timing-sensitive waits with <locate> anchors before relying on it for unattended --autoinstall runs."))
+				} catch {
+					logger.error("Failed to write recorded template to \(destination.path): \(error)")
+				}
 
-				Logger.appendNewLine(String(localized: "Recorded template saved to \(destination.path)"))
-				Logger.appendNewLine(String(localized: "This is a first draft — review it and consider hardening timing-sensitive waits with <locate> anchors before relying on it for unattended --autoinstall runs."))
-			} catch {
-				logger.error("Failed to write recorded template to \(destination.path): \(error)")
+				NSApplication.shared.terminate(self)
 			}
-
-			NSApplication.shared.terminate(self)
 		}
 
 		// caked's default top-level SIGINT handler (Root.sigintSrc) just force-exits the process —
@@ -110,9 +110,10 @@ struct Record: AsyncParsableCommand {
 		// CLAUDE.md's "SwiftUI front-app activation from a terminal launch" note), then block the
 		// same way Provision.swift's non-foreground path does until stopAndSave() above calls
 		// NSApplication.terminate().
-		NSApp.setDockIcon()
-		NSApp.windows.forEach { $0.makeKeyAndOrderFront(nil) }
+		//NSApp.setDockIcon()
+		//NSApp.windows.forEach { $0.makeKeyAndOrderFront(nil) }
+		//NSApplication.shared.run()
 
-		NSApplication.shared.run()
+		MainApp.runUI(session.vm, params: handler, cancellation: session)
 	}
 }

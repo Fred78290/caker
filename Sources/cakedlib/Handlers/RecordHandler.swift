@@ -19,54 +19,107 @@
 import CakeAgentLib
 import Foundation
 import GRPCLib
+import Combine
 
 public struct RecordHandler {
+	public static var currentSession: Session?
+
 	/// A booted recording session, returned once the VM's local window exists and its
 	/// `VNCVirtualMachineView.actionRecorder` tap is armed — ready for an operator sitting at this
 	/// host to drive the VM by hand through that window.
-	public final class Session: @unchecked Sendable {
+	public final class Session: @unchecked Sendable, Cancellable {
+		public enum State: Sendable {
+			case stopped
+			case recording
+			case suspended
+		}
+
 		public let vm: VirtualMachine
 		public let recorder: ActionRecorder
 		public let config: CakedConfiguration
+		public var state: State = .stopped
 
 		private let targetView: VMView.NSViewType
 		private let lock = NSLock()
-		private var stopped = false
+		private let destination: URL
 
-		init(vm: VirtualMachine, targetView: VMView.NSViewType, recorder: ActionRecorder, config: CakedConfiguration) {
+		init(vm: VirtualMachine, targetView: VMView.NSViewType, config: CakedConfiguration, destination: URL) {
 			self.vm = vm
 			self.targetView = targetView
-			self.recorder = recorder
+			self.recorder = ActionRecorder(os: config.os, username: config.configuredUser, password: config.configuredPassword)
 			self.config = config
+			self.destination = destination
+
+			targetView.actionRecorder = self.recorder.record
+			
+			RecordHandler.currentSession = self
 		}
 
 		/// Stops recording, tears the VM down, and returns the recorded session serialized as a
 		/// `boot_command:` YAML document (see `ActionRecorder.finish()`). Safe to call more than
 		/// once or from a signal handler — only the first call tears anything down; later calls
 		/// just re-return the already-finished YAML.
-		@discardableResult
-		public func stop() -> String {
+		public func stop(completionHandler: @escaping(String) -> Void) {
 			self.lock.lock()
 
-			guard self.stopped == false else {
+			guard self.state != .stopped else {
 				self.lock.unlock()
-				return self.recorder.finish()
+				return completionHandler(self.recorder.finish())
 			}
 
-			self.stopped = true
+			self.state = .stopped
 			self.lock.unlock()
 
 			self.targetView.actionRecorder = nil
 
-			MainActor.assumeIsolated {
-				self.vm.disposeWindow()
-			}
+			//MainActor.assumeIsolated {
+			//	self.vm.disposeWindow()
+			//}
 
 			let yaml = self.recorder.finish()
 
-			self.vm.terminateVM { _ in }
+			self.vm.stopVM { _ in
+				return completionHandler(yaml)
+			}
+		}
 
-			return yaml
+		public func reset() {
+			self.recorder.reset()
+		}
+
+		public func suspend() {
+			self.lock.withLock {
+				if self.state == .recording {
+					self.targetView.actionRecorder = nil
+					self.state = .suspended
+				}
+			}
+		}
+
+		public func resume() {
+			self.lock.withLock {
+				if self.state == .suspended {
+					self.targetView.actionRecorder = self.recorder.record
+					self.state = .recording
+				}
+			}
+		}
+
+		public func cancel() {
+			stopAndSave()
+		}
+
+		func stopAndSave() {
+			let yaml = self.recorder.finish()
+
+			do {
+				try yaml.write(to: destination, atomically: true, encoding: .utf8)
+
+				Logger.appendNewLine(String(localized: "Recorded template saved to \(destination.path)"))
+				Logger.appendNewLine(String(localized: "This is a first draft — review it and consider hardening timing-sensitive waits with <locate> anchors before relying on it for unattended --autoinstall runs."))
+			} catch {
+				Logger(self).error("Failed to write recorded template to \(destination.path): \(error)")
+			}
 		}
 	}
 
@@ -78,8 +131,9 @@ public struct RecordHandler {
 	public static func record(
 		location: VMLocation,
 		storageLocation: StorageLocation,
+		destination: URL,
 		runMode: Utils.RunMode
-	) throws -> Session {
+	) throws -> (Session, VMRunHandler) {
 		let config = try location.config()
 		let displaySize = config.display.cgSize
 
@@ -88,7 +142,7 @@ public struct RecordHandler {
 		}
 
 		let handler = VMRunHandler(
-			mode: .default,
+			serviceMode: .default,
 			storageLocation: storageLocation,
 			location: location,
 			name: location.name,
@@ -97,22 +151,17 @@ public struct RecordHandler {
 			screenSize: displaySize,
 			vncPassword: config.vncPassword ?? UUID().uuidString,
 			vncPort: 0,
-			recoveryMode: false,
-			provisioning: true,
+			vmMode: .recording,
 			runMode: .app)
 
-		return try handler.run { _, vm in
+		return (try handler.run { _, vm in
 			// Mirrors ProvisionHandler's `display == .none` branch exactly: a plain local
 			// NSWindow around the VM's own VNCVirtualMachineView, no VNC server involved.
 			let targetView = vm.createVirtualMachineView()
 
-			vm.setupWindow()
+			//vm.setupWindow(canHide: false)
 
-			let recorder = ActionRecorder(username: config.configuredUser, password: config.configuredPassword)
-
-			targetView.actionRecorder = recorder.record
-
-			return Session(vm: vm, targetView: targetView, recorder: recorder, config: CakedConfiguration(config))
-		}
+			return Session(vm: vm, targetView: targetView, config: CakedConfiguration(config), destination: destination)
+		}, handler)
 	}
 }

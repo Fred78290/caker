@@ -59,6 +59,7 @@ extension Scene {
 struct MainWindow: Scene {
 	private var params: VMRunHandler
 	private var vm: VirtualMachine
+	private var actionRecorder: RecordedActionHandler?
 
 	@State private var appState: AppState
 
@@ -132,6 +133,41 @@ struct MainWindow: Scene {
 						}
 						.help("Restarts virtual machine")
 						.disabled(self.appState.isStopped)
+					}
+
+					if let currentSession = RecordHandler.currentSession, self.vm.mode == .recording, currentSession.state != .stopped {
+						ToolbarItemGroup(placement: .secondaryAction) {
+							if currentSession.state == .recording {
+								Button {
+									currentSession.suspend()
+								} label: {
+									HStack(spacing: 4) {
+										Circle()
+											.fill(.red)
+											.frame(width: 8, height: 8)
+											.overlay(
+												Circle()
+													.fill(.red.opacity(0.3))
+													.scaleEffect(1.5)
+											)
+										Text("Recording")
+									}
+								}
+								.help("Pause recording")
+							} else {
+								Button {
+									currentSession.resume()
+								} label: {
+									HStack(spacing: 4) {
+										Circle()
+											.strokeBorder(.red, lineWidth: 2)
+											.frame(width: 8, height: 8)
+										Text("Paused")
+									}
+								}
+								.help("Resume recording")
+							}
+						}
 					}
 				}
 				.presentedWindowToolbarStyle(.unifiedCompact)
