@@ -40,6 +40,50 @@ public enum ModifierToken: Equatable, Sendable {
 	case function
 }
 
+extension KeyToken {
+	/// The exact `<...>` spelling `parseKey(_:)` above accepts for this token — used by
+	/// `ActionRecorder` (see `Sources/cakedlib/PackerLite/ActionRecorder.swift`) to emit tokens for
+	/// a recorded key press, kept next to the parser it must stay in sync with.
+	public var tokenName: String {
+		switch self {
+		case .enter: return "enter"
+		case .esc: return "esc"
+		case .tab: return "tab"
+		case .spacebar: return "spacebar"
+		case .backspace: return "backspace"
+		case .delete: return "delete"
+		case .insert: return "insert"
+		case .home: return "home"
+		case .end: return "end"
+		case .pageUp: return "pageup"
+		case .pageDown: return "pagedown"
+		case .up: return "up"
+		case .down: return "down"
+		case .left: return "left"
+		case .right: return "right"
+		case .function(let number): return "F\(number)"
+		}
+	}
+}
+
+extension ModifierToken {
+	/// The `<xOn>`/`<xOff>` base spelling `parseToken(_:)` above accepts for this token (i.e.
+	/// without the `On`/`Off` suffix) — same reuse reasoning as `KeyToken.tokenName` above.
+	public var tokenName: String {
+		switch self {
+		case .leftShift: return "leftShift"
+		case .rightShift: return "rightShift"
+		case .leftAlt: return "leftAlt"
+		case .rightAlt: return "rightAlt"
+		case .leftCtrl: return "leftCtrl"
+		case .rightCtrl: return "rightCtrl"
+		case .leftSuper: return "leftSuper"
+		case .rightSuper: return "rightSuper"
+		case .function: return "fn"
+		}
+	}
+}
+
 public typealias BootCommandSteps = [BootCommandStep]
 
 public struct BootCommandStep: Equatable, Sendable {

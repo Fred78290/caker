@@ -124,8 +124,7 @@ public enum PackerLiteEngine {
 				config: config,
 				display: runInCaker ? .ui : .vnc,
 				screenSize: config.display.cgSize,
-				recoveryMode: false,
-				provisioning: true,
+				mode: .provisioning,
 				runMode: runMode)
 
 			if runInCaker {

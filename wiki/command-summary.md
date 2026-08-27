@@ -315,6 +315,31 @@ Pendant toute la durée d'un provisioning PackerLite (`build`/`create --autoinst
 
 Cet enregistrement respecte le réglage existant de désactivation des captures d'écran (`UserDefaults` `NoScreenshot`) — s'il est actif, il n'y a aucune image source et donc aucune vidéo. Voir `Sources/cakedlib/PackerLite/ProvisioningVideoRecorder.swift` (l'enregistreur lui-même), `VirtualMachine.swift` (démarrage/alimentation de l'enregistreur depuis le minuteur de captures d'écran existant), et `VMLocation.provisioningVideoURL`.
 
+### `record` : enregistrer un template `boot_command` à la main
+
+Écrire un template `boot_command` à la main revient à deviner des coordonnées et des délais, puis à itérer contre un vrai démarrage. `caked record <vm>` fait l'inverse : elle démarre `<vm>` (déjà construite, mais **pas** encore démarrée — typiquement une VM créée sans `--autoinstall`, donc arrêtée sur son écran de premier démarrage), ouvre une fenêtre locale, et enregistre chaque clic et chaque frappe que vous effectuez à la main à travers cette fenêtre. Appuyez sur `Ctrl-C` dans le terminal pour arrêter l'enregistrement : le template `boot_command` correspondant est alors écrit sur disque.
+
+Cette capture se fait directement sur les événements `NSEvent` natifs de la fenêtre locale de la VM (`VNCVirtualMachineView.actionRecorder`) — aucun serveur VNC n'est démarré et aucun port réseau n'est ouvert. C'est délibérément plus simple et plus direct que l'ancienne approche par interception d'un serveur VNC (toujours utilisée par `caked provision`) : pas d'aller-retour par un keysym protocole VNC, juste les événements que macOS délivre déjà à la fenêtre. La contrepartie est que cette capture ne peut être pilotée que par un opérateur assis devant cette machine — contrairement à `caked provision`, elle ne peut pas être pilotée par un client VNC distant.
+
+```bash
+# Enregistrer une session dans le fichier par défaut (record.packerlite.yaml, dans le répertoire de la VM)
+caked record my-vm
+
+# Choisir un autre emplacement de sortie
+caked record my-vm --output ./mon-template.packerlite.yaml
+```
+
+**Disponible uniquement en local (`caked record`) pour l'instant** — pas encore d'équivalent `cakectl`/gRPC, comme `caked provision` à ses débuts.
+
+- **Pause/reprise** : la fenêtre d'enregistrement affiche un bouton dans sa barre d'outils — « Recording » (pulsant) pendant l'enregistrement, cliquez pour mettre en pause ; « Paused » pendant la pause, cliquez pour reprendre. La pause suspend uniquement la capture des actions, la VM continue de tourner. `Ctrl-C` reste le seul moyen d'arrêter réellement l'enregistrement et d'écrire le fichier, à tout moment, pause ou non.
+- **Clics assistés par OCR** : un bouton « mode repérage » dans la barre d'outils de la fenêtre d'enregistrement fait apparaître un surlignage bleu sur chaque texte reconnu à l'écran (reconnaissance Vision). Cliquer dans une zone surlignée enregistre un token `<locate text='...'>` (clic simple) ou `<clickText text='...'>` (Option+clic) plutôt qu'un `<click point="X,Y">` basé sur des coordonnées fixes — un ancrage qui résiste mieux à un léger décalage de mise en page qu'une coordonnée brute. Un clic en dehors de toute zone surlignée (ou avec le mode repérage désactivé) enregistre toujours un `<click point="X,Y">` classique. Ce mode s'active explicitement via le bouton — jamais en maintenant une touche enfoncée — pour ne jamais entrer en conflit avec de vrais raccourcis macOS que vous pourriez avoir besoin d'enregistrer tels quels (par ex. Fn+F5 pour VoiceOver).
+- **Délais avant `<clickText>`/`<locate>` repliés dans leur propre `timeout=`** : pour tout autre type d'étape, une pause ≥1s avant l'action suivante devient un `<waitNs>` séparé, comme décrit juste en dessous. Mais `<clickText>`/`<locate>` attendent déjà, via OCR, que leur texte apparaisse (jusqu'à expiration d'un `timeout=`) plutôt que de s'exécuter à l'aveugle — un `<waitNs>` séparé devant l'un de ces deux tokens serait donc redondant. L'enregistreur reporte à la place la pause mesurée (arrondie à la seconde, plus 10s de marge pour la latence de reconnaissance/rendu OCR) directement dans le `timeout=` du token, par ex. `<locate text='...' timeout=13>` pour une pause de 3,4s. Une pause sous le seuil d'1s ne force aucun `timeout=` : la valeur par défaut du parseur (10s) s'applique alors normalement.
+- **VMs Linux** : la première action enregistrée est automatiquement placée dans `pre_boot_command:` plutôt que `boot_command:` (utile pour une frappe de navigation GRUB avant que l'installeur n'ait une IP) — les VMs macOS n'ont pas ce champ. Ceci reste une heuristique grossière : vérifiez la coupure `pre_boot_command`/`boot_command` du fichier généré, elle peut avoir besoin d'un ajustement manuel.
+
+**Le résultat est un premier jet, pas un template fiable clé en main** : les clics deviennent des tokens `<click point="X,Y">`, le texte tapé est coalescé en une seule ligne par plage continue de frappes, les touches spéciales et les modificateurs (`<enter>`, `<tab>`, `<leftShiftOn>`/`<leftShiftOff>`, etc.) utilisent le même vocabulaire de tokens que les templates écrits à la main — mais les pauses entre les actions deviennent des `<waitNs>` à délai fixe (sauf devant `<clickText>`/`<locate>`, voir ci-dessus). Ce projet s'est justement éloigné des délais fixes au profit d'ancres `<locate>` synchronisées par OCR, précisément parce que les délais fixes sont peu fiables (voir la section PackerLite ci-dessus) — considérez le résultat comme un point de départ à renforcer avec des ancres `<locate>` avant de vous y fier pour un `--autoinstall` non surveillé.
+
+Les identifiants du compte (`--user`/`--password` de la VM) ne sont jamais écrits en clair dans le fichier : un texte enregistré qui correspond exactement au nom d'utilisateur ou au mot de passe configuré de la VM est automatiquement remplacé par `${var.username}`/`${var.password}`.
+
 ## Notes
 
 - Certaines commandes sont internes ou masquées dans la sortie d'aide de `caked` (`vmrun`, certaines sous-commandes `networks`).
@@ -855,6 +880,31 @@ For the whole duration of any PackerLite provisioning run (`build`/`create --aut
 - **Provisioning fails**: the video is kept, and its location is appended to the failure `reason` returned by `caked provision`/`caked build --autoinstall` and `cakectl provision`/`cakectl build --autoinstall` — no need to go hunting for it on the filesystem.
 
 This recording honors the existing screenshot opt-out (`UserDefaults`'s `NoScreenshot`) — if it's set, there's no frame source and therefore no video either. See `Sources/cakedlib/PackerLite/ProvisioningVideoRecorder.swift` (the recorder itself), `VirtualMachine.swift` (starting/feeding the recorder off the existing screenshot timer), and `VMLocation.provisioningVideoURL`.
+
+### `record`: recording a `boot_command` template by hand
+
+Writing a `boot_command` template by hand means guessing coordinates and timing, then iterating against a real boot. `caked record <vm>` does the reverse: it boots `<vm>` (already built, but **not** running yet — typically a VM created without `--autoinstall`, so it's sitting at its first-boot screen), opens a local window, and records every click and keystroke you perform through it by hand. Press `Ctrl-C` in the terminal to stop recording — the matching `boot_command` template is then written to disk.
+
+This capture works directly off the local window's own native `NSEvent`s (`VNCVirtualMachineView.actionRecorder`) — no VNC server is started and no network port is opened. That's deliberately simpler and more direct than tapping a VNC server (still how `caked provision` itself works): no VNC-protocol keysym round-trip, just the events macOS already delivers to the window. The trade-off is that this capture can only be driven by an operator sitting at this host — unlike `caked provision`, it can't be driven by a remote VNC client.
+
+```bash
+# Record a session to the default file (record.packerlite.yaml, inside the VM's own directory)
+caked record my-vm
+
+# Pick a different output location
+caked record my-vm --output ./my-template.packerlite.yaml
+```
+
+**Local-only (`caked record`) for now** — no `cakectl`/gRPC counterpart yet, same as `caked provision` when it first shipped.
+
+- **Pause/resume**: the recording window's toolbar shows a button — a pulsing "Recording" button while capturing (tap to pause), a hollow "Paused" button while paused (tap to resume). Pausing only suspends action capture; the VM keeps running either way. `Ctrl-C` is still the only way to actually stop recording and write the file, whether paused or not.
+- **OCR-assisted clicks**: a "locate mode" toggle button in the recording window's toolbar highlights every piece of recognized on-screen text in blue (Vision OCR). Clicking inside a highlighted region records a `<locate text='...'>` token (plain click) or `<clickText text='...'>` token (Option+click) instead of a raw coordinate-based `<click point="X,Y">` — an anchor that's more resilient to small layout shifts than a bare coordinate. A click outside any highlighted region (or with locate mode off) still records the usual `<click point="X,Y">`. This is an explicit button toggle, never a held key — so it can never conflict with a real macOS shortcut you might need to record verbatim (e.g. Fn+F5 for VoiceOver).
+- **Wait gaps before `<clickText>`/`<locate>` fold into their own `timeout=`**: every other step type still gets a separate `<waitNs>` for a ≥1s gap, as described below. But `<clickText>`/`<locate>` already poll, via OCR, for their text to appear (up to a `timeout=` in seconds) instead of firing blind — a separate `<waitNs>` in front of either would just be redundant. The recorder instead folds the measured gap (rounded to the second, plus a flat 10s of slack for OCR recognition/rendering latency) straight into the token's own `timeout=`, e.g. `<locate text='...' timeout=13>` for a 3.4s gap. A gap below the 1s threshold forces no `timeout=` override either — the parser's own 10s default applies as usual.
+- **Linux VMs**: the first recorded action is automatically routed into `pre_boot_command:` instead of `boot_command:` (useful for a GRUB-navigation keystroke sent before the installer has an IP) — macOS VMs never get this field. This is a coarse heuristic — check the generated file's `pre_boot_command`/`boot_command` split, it may need a manual tweak.
+
+**The result is a first draft, not a finished, reliable template**: clicks become `<click point="X,Y">` tokens, typed text is coalesced into one line per continuous run of keystrokes, special keys and modifiers (`<enter>`, `<tab>`, `<leftShiftOn>`/`<leftShiftOff>`, etc.) use the same token vocabulary as hand-written templates — but pauses between actions become fixed-delay `<waitNs>` steps (except in front of `<clickText>`/`<locate>`, see above). This project has deliberately moved away from fixed delays in favor of OCR-synced `<locate>` anchors, precisely because fixed delays are unreliable (see the PackerLite section above) — treat the result as a starting point to harden with `<locate>` anchors before relying on it for unattended `--autoinstall` runs.
+
+Account credentials (the VM's own `--user`/`--password`) are never written out in plaintext: any recorded text that exactly matches the VM's configured username or password is automatically replaced with `${var.username}`/`${var.password}`.
 
 ## Notes
 

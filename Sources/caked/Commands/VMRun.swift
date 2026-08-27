@@ -148,7 +148,7 @@ struct VMRun: AsyncParsableCommand {
 
 		let runMode = self.common.runMode
 		let handler = CakedLib.VMRunHandler(
-			mode: mode,
+			serviceMode: mode,
 			storageLocation: storageLocation,
 			location: location,
 			name: location.name,
@@ -157,8 +157,7 @@ struct VMRun: AsyncParsableCommand {
 			screenSize: displaySize,
 			vncPassword: vncPassword,
 			vncPort: vncPort,
-			recoveryMode: self.recoveryMode,
-			provisioning: false,
+			vmMode: self.recoveryMode ? .recovery : .normal,
 			runMode: runMode)
 
 		defer {

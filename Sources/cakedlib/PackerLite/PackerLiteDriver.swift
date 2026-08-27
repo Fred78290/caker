@@ -197,15 +197,15 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 		case .press(let key, let repeated):
 			logger.debug("[\(title)]: press \(repeated) \(key) with modifier \(modifiers)")
-			try await press(keysym(for: key), repeated: repeated)
+			try await press(Self.keysym(for: key), repeated: repeated)
 
 		case .modifierOn(let modifier):
 			logger.debug("[\(title)]: modifierOn \(modifier) with modifier \(modifiers)")
-			await self.handleKeyModifierEvent(keysym(for: modifier), isDown: true)
+			await self.handleKeyModifierEvent(Self.keysym(for: modifier), isDown: true)
 
 		case .modifierOff(let modifier):
 			logger.debug("[\(title)]: modifierOff \(modifier) with modifier \(modifiers)")
-			await self.handleKeyModifierEvent(keysym(for: modifier), isDown: false)
+			await self.handleKeyModifierEvent(Self.keysym(for: modifier), isDown: false)
 
 		case .click(let point):
 			logger.debug("[\(title)]: click \(point)")
@@ -274,7 +274,10 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 	}
 
-	private func keysym(for key: KeyToken) -> CGKeyCode {
+	/// `static` (rather than a plain instance method) specifically so `ActionRecorder` can invert this
+	/// table when recording — see `ActionRecorder.swift`'s `keyTokenForKeyCode` — instead of hand-writing
+	/// a second keyCode/token lookup that could drift out of sync with this one.
+	static func keysym(for key: KeyToken) -> CGKeyCode {
 		switch key {
 		case .enter: return CGKeyCodes.return
 		case .esc: return CGKeyCodes.escape
@@ -295,7 +298,8 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 	}
 
-	private func keysym(for modifier: ModifierToken) -> CGKeyCode {
+	/// See the doc comment on `keysym(for: KeyToken)` above — same reasoning.
+	static func keysym(for modifier: ModifierToken) -> CGKeyCode {
 		switch modifier {
 		case .leftShift: return CGKeyCodes.shift
 		case .rightShift: return CGKeyCodes.rightShift

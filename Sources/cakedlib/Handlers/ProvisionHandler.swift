@@ -150,7 +150,7 @@ public struct ProvisionHandler {
 		}
 
 		let handler = VMRunHandler(
-			mode: .default,
+			serviceMode: .default,
 			storageLocation: storageLocation,
 			location: location,
 			name: location.name,
@@ -159,8 +159,7 @@ public struct ProvisionHandler {
 			screenSize: displaySize,
 			vncPassword: vncPassword,
 			vncPort: 0,
-			recoveryMode: false,
-			provisioning: true,
+			vmMode: .provisioning,
 			runMode: .app)
 
 		return try handler.run { address, vm in
@@ -171,7 +170,7 @@ public struct ProvisionHandler {
 			// Start VNC server as soon as the VM is up
 			if display == .none {
 				targetView = vm.createVirtualMachineView()
-				vm.setupWindow()
+				vm.setupWindow(canHide: false)
 			} else {
 				let vncURL = try vm.startVncServer(vncPassword: vncPassword, port: 0)
 				logger.info("VNC server started for provisioning VM \(location.name) at \(vncURL.map(\.absoluteString).joined(separator: ", "))")

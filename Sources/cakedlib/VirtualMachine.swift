@@ -185,7 +185,6 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var requestStopFromUIPending = false
 	let runMode: Utils.RunMode
 	let display: VMRunHandler.DisplayMode
-	var recoveryMode: Bool
 	var vncServer: VZVNCServer! = nil
 	var vzMachineView: VMView.NSViewType! = nil
 	var vzMachineWindow: NSWindow? = nil
@@ -193,7 +192,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var provisioningVideoRecorder: ProvisioningVideoRecorder? = nil
 	var symlinks: [URL] = []
 	var portForwardingStarted = false
-	let provisioning: Bool
+	var mode: VirtualMachine.Mode
 	let logger = Logger("VirtualMachineEnvironment")
 
 	var runningIP: String = String.empty {
@@ -204,14 +203,21 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 	}
 
-#if TRACE_DEINIT
-	deinit {
-		print("VirtualMachineEnvironment deallocated")
-	}
-#endif
+	#if TRACE_DEINIT
+		deinit {
+			print("VirtualMachineEnvironment deallocated")
+		}
+	#endif
 
 	@MainActor
-	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, provisioning: Bool, recoveryMode: Bool, runMode: Utils.RunMode) throws {
+	init(
+		location: VMLocation,
+		config: CakeConfig,
+		display: VMRunHandler.DisplayMode,
+		screenSize: CGSize,
+		mode: VirtualMachine.Mode,
+		runMode: Utils.RunMode
+	) throws {
 		let suspendable = config.suspendable && config.os == .darwin
 		var networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
@@ -283,17 +289,16 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			}
 		}
 
-		
-		if provisioning == false {
+		if mode == .normal {
 			let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
 			let consoleURL = try config.consoleAttachment()
 
 			communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+		}
 
-			if location.template == false && runMode != .app {
-				sigcaught = [SIGINT, SIGUSR1, SIGUSR2].reduce(into: sigcaught) { partialResult, sig in
-					partialResult[sig] = DispatchSource.makeSignalSource(signal: sig)
-				}
+		if mode != .provisioning && location.template == false && runMode != .app {
+			sigcaught = [SIGINT, SIGUSR1, SIGUSR2].reduce(into: sigcaught) { partialResult, sig in
+				partialResult[sig] = DispatchSource.makeSignalSource(signal: sig)
 			}
 		}
 
@@ -308,8 +313,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		self.sigcaught = sigcaught
 		self.screenSize = screenSize
 		self.display = display
-		self.recoveryMode = recoveryMode
-		self.provisioning = provisioning
+		self.mode = mode
 
 		if let communicationDevices = communicationDevices, location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
 			communicationDevices.delegate = self
@@ -329,7 +333,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func startPortForwarding() {
-		guard self.provisioning == false && portForwardingStarted == false else {
+		guard self.mode == .normal && portForwardingStarted == false else {
 			return
 		}
 
@@ -506,6 +510,13 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 }
 
 public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObject {
+	public enum Mode: Int, Sendable {
+		case normal
+		case provisioning
+		case recording
+		case recovery
+	}
+
 	static func == (lhs: VirtualMachine, rhs: VirtualMachine) -> Bool {
 		lhs.location.rootURL == rhs.location.rootURL
 	}
@@ -533,11 +544,15 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 
 	public var recoveryMode: Bool {
 		get {
-			self.env.recoveryMode
+			self.env.mode == .recovery
 		}
 		set {
-			self.env.recoveryMode = newValue
+			self.env.mode = newValue ? .recovery : .normal
 		}
+	}
+
+	public var mode: Mode {
+		self.env.mode
 	}
 
 	public var status: VMLocation.Status {
@@ -608,8 +623,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		config: CakeConfig,
 		display: VMRunHandler.DisplayMode,
 		screenSize: CGSize,
-		recoveryMode: Bool,
-		provisioning: Bool,
+		mode: VirtualMachine.Mode,
 		runMode: Utils.RunMode,
 		queue: dispatch_queue_t? = nil
 	) throws {
@@ -625,8 +639,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 			config: config,
 			display: display,
 			screenSize: screenSize,
-			provisioning: provisioning,
-			recoveryMode: recoveryMode,
+			mode: mode,
 			runMode: runMode)
 
 		if let queue = queue {
@@ -1000,7 +1013,7 @@ extension VirtualMachine {
 								self.scheduleAgentInstallRetry(config: config, runningIP: runningIP, runMode: runMode)
 							}
 						}
-					} else if self.env.provisioning == false {
+					} else if self.env.mode == .normal {
 						self.logger.error("VM \(self.location.name) disabled to install agent on ip: \(runningIP)")
 					}
 				}
@@ -1120,7 +1133,7 @@ extension VirtualMachine {
 				self.logger.info("Stopping VM \(self.location.name)...")
 
 				await withCheckedContinuation { continuation in
-					if self.env.provisioning {
+					if self.env.mode != .normal {
 						self.stopVM { _ in
 							continuation.resume()
 						}
@@ -1184,7 +1197,7 @@ extension VirtualMachine {
 		switch result {
 		case .success:
 			self.logger.info("VM \(self.location.name) started")
-			self.env.timer = self.startScreenshotTimer(timeInterval: self.env.provisioning ? kScreenshotProvisioningPeriodSeconds : kScreenshotPeriodSeconds)
+			self.env.timer = self.startScreenshotTimer(timeInterval: self.env.mode == .provisioning ? kScreenshotProvisioningPeriodSeconds : kScreenshotPeriodSeconds)
 			self.env.startCommunicationDevices(self.virtualMachine)
 			break
 		case .failure(let error):
@@ -1202,7 +1215,7 @@ extension VirtualMachine {
 	}
 
 	private func catchUserSignals(_ task: Task<Int32, Never>) {
-		guard self.env.provisioning == false else { return }
+		guard self.env.sigcaught.isEmpty == false else { return }
 
 		self.env.sigcaught[SIGINT]?.setEventHandler {
 			task.cancel()
@@ -1248,7 +1261,7 @@ extension VirtualMachine {
 
 			self.location.removePID()
 
-			guard self.env.provisioning else {
+			guard self.env.mode == .provisioning else {
 				await MainActor.run {
 					NSApplication.shared.terminate(self)
 				}
@@ -1261,7 +1274,7 @@ extension VirtualMachine {
 
 		self.vmTask = task
 
-		if self.location.template == false && self.env.provisioning == false && self.env.runMode != .app {
+		if self.location.template == false && self.env.sigcaught.isEmpty == false && self.env.runMode != .app {
 			self.catchUserSignals(task)
 		}
 
@@ -1293,6 +1306,13 @@ extension VirtualMachine {
 		}
 
 		return self.env.vncServer.urls
+	}
+
+	/// Arms (non-nil) or disarms (nil) a `caked record` recording tap on this VM's VNC server, if
+	/// one has been started (`startVncServer` above) — a no-op otherwise. See
+	/// `ActionRecorder.swift` and `VNCInputHandler.actionRecorder` for the rest of the pipeline.
+	public func setActionRecorder(_ handler: RecordedActionHandler?) {
+		self.env.vncServer?.actionRecorder = handler
 	}
 
 }
@@ -1608,7 +1628,7 @@ extension VirtualMachine {
 		// Debug recording of provisioning is purely a PackerLite aid, not a general VM-run
 		// feature — only started when this VM is actually being provisioned, and only when
 		// screenshots aren't disabled entirely (there'd be no frame source otherwise).
-		if self.env.provisioning && screenshotEnabled {
+		if self.env.mode == .provisioning && screenshotEnabled {
 			self.startProvisioningVideoRecorder()
 		}
 
@@ -1720,7 +1740,7 @@ extension VirtualMachine: VNCServerDelegate {
 		}
 	}
 
-	public func setupWindow() {
+	public func setupWindow(canHide: Bool) {
 		guard let vmView = self.env.vzMachineView else {
 			return
 		}
@@ -1739,8 +1759,8 @@ extension VirtualMachine: VNCServerDelegate {
 			#endif
 
 			window.isReleasedWhenClosed = false
-			window.hidesOnDeactivate = true
-			window.canHide = true
+			window.hidesOnDeactivate = canHide
+			window.canHide = canHide
 			window.contentView = vmView
 			window.makeKeyAndOrderFront(nil)
 
@@ -1750,7 +1770,7 @@ extension VirtualMachine: VNCServerDelegate {
 
 	public func willStart(_ server: VNCServer) {
 		if self.env.display == .vnc || self.env.display == .none {
-			self.setupWindow()
+			self.setupWindow(canHide: true)
 		}
 	}
 
@@ -1835,7 +1855,7 @@ extension VirtualMachine {
 	}
 
 	public func startGrandCentralUpdate(frequency: Int32, runMode: Utils.RunMode) async throws {
-		guard gcd == nil, self.config.agent, self.env.provisioning == false else {
+		guard gcd == nil, self.config.agent, self.env.mode == .normal else {
 			return
 		}
 

@@ -728,6 +728,9 @@
 		D11AF315177F1969AA5E3F7A /* MacOSVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */; };
 		D3041F78F1BE1C54A952AEF4 /* PackerLiteTemplateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */; };
 		D43FC446B6C30CD981F6FA33 /* linux-fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* linux-fedora-server.packerlite.yaml */; };
+		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
+		CA2F8AECC06E0E7FDF5FA524 /* RecordHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8FBE599C35FC78A7C40AEE /* RecordHandler.swift */; };
+		D206198BD7C0DA5A00B1130A /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42281CEC4BB027305E68E921 /* Record.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1571,6 +1574,9 @@
 		CEBCF840FC996468321E4B7D /* BootCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootCommand.swift; sourceTree = "<group>"; };
 		DF2B0651E51F47D5AEF8715F /* linux-fedora-server.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-fedora-server.packerlite.yaml"; sourceTree = "<group>"; };
 		DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalog.swift; sourceTree = "<group>"; };
+		34D83C742935C118E4351E41 /* ActionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorder.swift; sourceTree = "<group>"; };
+		FA8FBE599C35FC78A7C40AEE /* RecordHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordHandler.swift; sourceTree = "<group>"; };
+		42281CEC4BB027305E68E921 /* Record.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2596,6 +2602,7 @@
 				9BB1491F2EC760F20094D950 /* Pull.swift */,
 				9BEBC6A62DF4400A0092B196 /* Purge.swift */,
 				9BB149212EC760FC0094D950 /* Push.swift */,
+				42281CEC4BB027305E68E921 /* Record.swift */,
 				9B48B660302BD06F00B18C35 /* Relocate.swift */,
 				9BEBC6A72DF4400A0092B196 /* Remote.swift */,
 				9BEBC6A82DF4400A0092B196 /* Rename.swift */,
@@ -2711,6 +2718,7 @@
 				9BB1491B2EC74B9B0094D950 /* PullHandler.swift */,
 				9BEBC7242DF440720092B196 /* PurgeHandler.swift */,
 				9BB1491D2EC74BA30094D950 /* PushHandler.swift */,
+				FA8FBE599C35FC78A7C40AEE /* RecordHandler.swift */,
 				9BEBC7252DF440720092B196 /* RemoteHandler.swift */,
 				9BEBC7262DF440720092B196 /* RenameHandler.swift */,
 				9BBF7B322F3DEC1900F37D2C /* RestartHandler.swift */,
@@ -3002,6 +3010,7 @@
 				839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */,
 				7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */,
 				7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */,
+				34D83C742935C118E4351E41 /* ActionRecorder.swift */,
 				9B8F3F5C301F3DCA001FA32A /* Resources */,
 			);
 			path = PackerLite;
@@ -3979,6 +3988,7 @@
 				9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */,
 				9BEBC6D82DF4400A0092B196 /* Build.swift in Sources */,
 				9BFB8905303F4FBA007AFA2A /* Aliases.swift in Sources */,
+				D206198BD7C0DA5A00B1130A /* Record.swift in Sources */,
 				9BEBC6DA2DF4400A0092B196 /* PurgeHandler.swift in Sources */,
 				9BBF7B372F3E058D00F37D2C /* Restart.swift in Sources */,
 				9B1835EC2FB070D300D150FD /* LXDConsoleVGARunner.swift in Sources */,
@@ -4063,6 +4073,7 @@
 			files = (
 				C67C4C7F7CAAA38DDCDB6738 /* VMImageCatalog.swift in Sources */,
 				AB8B314DC1C7F91AAF9C7933 /* PackerLiteDriver.swift in Sources */,
+				0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */,
 				6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */,
 				D3041F78F1BE1C54A952AEF4 /* PackerLiteTemplateResolver.swift in Sources */,
 				A81E057BF76553D63F16EF15 /* ProvisioningVideoRecorder.swift in Sources */,
@@ -4193,6 +4204,7 @@
 				9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */,
 				9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */,
 				9B32F98D302604800099D3A5 /* ProvisionHandler.swift in Sources */,
+				CA2F8AECC06E0E7FDF5FA524 /* RecordHandler.swift in Sources */,
 				9B9DCD882F6FF19100E07852 /* VNCApp.swift in Sources */,
 				9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */,
 				9BDA13A72EE6D44100357544 /* OSXKeyMapper.swift in Sources */,

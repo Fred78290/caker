@@ -10,6 +10,10 @@ import QuartzCore
 public protocol VZVNCServer {
 	var delegate: VNCServerDelegate? { get set }
 	var urls: [URL] { get }
+	/// Arms/disarms a `caked record` recording tap on every client connection's `VNCInputHandler` —
+	/// see `VNCInputHandler.actionRecorder`. nil (the default) for ordinary provisioning/VNC-viewing
+	/// sessions; `VirtualMachine.setActionRecorder(_:)` is the usual way to reach this.
+	var actionRecorder: RecordedActionHandler? { get set }
 	func start() throws
 	func stop()
 }
@@ -54,6 +58,16 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private var isStarted = false
 	public var allowRemoteInput = true  // Controls if remote inputs are accepted
 	public var password: String?  // VNC Auth password
+	/// See `VZVNCServer.actionRecorder`. Setting this after clients are already connected also
+	/// propagates to them, so `caked record` can arm it any time relative to the operator's own
+	/// VNC client connecting.
+	public var actionRecorder: RecordedActionHandler? {
+		didSet {
+			connectionQueue.async(flags: .barrier) {
+				self.connections.forEach { $0.actionRecorder = self.actionRecorder }
+			}
+		}
+	}
 
 	private let logger = Logger("VNCServer")
 	private var listener: NWListener!
@@ -208,6 +222,7 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		let connection = VNCConnection(self.name, connection: nwConnection, framebuffer: framebuffer, password: password)
 		connection.delegate = self
 		connection.inputDelegate = self
+		connection.actionRecorder = self.actionRecorder
 
 		connectionQueue.async(flags: .barrier) {
 			self.connections.append(connection)
