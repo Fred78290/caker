@@ -111,6 +111,7 @@ struct Record: AsyncParsableCommand {
 		// same way Provision.swift's non-foreground path does until stopAndSave() above calls
 		// NSApplication.terminate().
 		NSApp.setDockIcon()
+		NSApp.windows.forEach { $0.makeKeyAndOrderFront(nil) }
 
 		NSApplication.shared.run()
 	}
