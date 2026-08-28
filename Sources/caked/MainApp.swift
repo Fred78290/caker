@@ -83,6 +83,8 @@ struct MainWindow: Scene {
 		let idealWidth = CGFloat(display.width)
 		let minHeight = CGFloat(display.height)
 		let idealHeight = CGFloat(display.height)
+		let maxWidth: CGFloat = (self.vm.mode == .recording || self.vm.mode == .provisioning) ? CGFloat(display.width) : .infinity
+		let maxHeight: CGFloat = (self.vm.mode == .recording || self.vm.mode == .provisioning) ? CGFloat(display.height) : .infinity
 
 		WindowGroup(self.params.name, id: "VM") {
 			VMView(self.vm, params: self.params)
@@ -99,7 +101,7 @@ struct MainWindow: Scene {
 						Logger(self).debug("New status: \(newValue)")
 					}
 				#endif
-				.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
+				.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: maxWidth, minHeight: minHeight, idealHeight: idealHeight, maxHeight: maxHeight)
 				.toolbar {
 					ToolbarItemGroup(placement: .navigation) {
 						#if DEBUG
