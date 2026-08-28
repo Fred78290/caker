@@ -71,7 +71,7 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "--log-level=debug"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "record"
