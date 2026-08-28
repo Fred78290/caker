@@ -122,7 +122,9 @@ public struct VMBuilder {
 				// osName for macOS) so a later standalone `caked provision` has it without needing
 				// the original ISO.
 				let imageNameLowercased = options.image.lowercased()
+				let plateform = SupportedPlatform(rawValue: imageNameLowercased)
 
+				config.osName = plateform.rawValue
 				config.osDesktop = imageNameLowercased.contains("workstation") || imageNameLowercased.contains("desktop")
 			}
 		}
