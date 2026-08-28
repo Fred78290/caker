@@ -232,7 +232,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .keyboard(let layout):
 			logger.debug("[\(title)]: keyboard layout \(layout.id)")
 			currentKeyTranslator = layout
-		case .voiceOverOn(confirm: let confirm):
+		case .voiceOverOn(let confirm):
 			logger.debug("[\(title)]: voice over on \(confirm)")
 			try await self.voiceOverOn(confirm: confirm, title: title)
 		case .voiceOverOff:
@@ -251,7 +251,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		.press(.function(5)),
 		.modifierOff(.function),
 		.modifierOff(.leftAlt),
-		.wait(5.0)
+		.wait(5.0),
 	]
 
 	// MARK: - Voice Over
