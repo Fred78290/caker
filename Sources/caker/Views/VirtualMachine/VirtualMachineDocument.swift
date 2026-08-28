@@ -1134,6 +1134,7 @@ extension VirtualMachineDocument {
 	/// `caked record` itself already relies on (`VNCVirtualMachineView.actionRecorder`, see
 	/// CLAUDE.md's PackerLite/`caked record` section). Credential scrubbing, token mapping, and
 	/// wait-gap handling are all `ActionRecorder`'s own responsibility, unchanged here.
+	@MainActor
 	func startRecording(output: URL) {
 		guard self.canRecord else {
 			DispatchQueue.main.async {
