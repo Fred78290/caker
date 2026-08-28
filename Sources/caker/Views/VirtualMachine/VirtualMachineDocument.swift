@@ -273,6 +273,13 @@ extension UTType {
 	var canRequestStop: Bool = false
 	var suspendable: Bool = false
 	var isRecording: Bool = false
+
+	/// Mirrors `RecordHandler.Session`'s equivalent published state (`Sources/cakedlib/Handlers/RecordHandler.swift`)
+	/// so `HostVirtualMachineView`'s recording toolbar can offer the same locate-mode/reset/VoiceOver
+	/// controls `caked record`'s own `RecordingControls` does — see the "Recording" extension below.
+	var isLocateModeActive: Bool = false
+	var isVoiceOverActived: Bool = false
+	var hasRecordedActions: Bool = false
 	var vncURL: [URL]? = nil
 	var agentReady: Bool = false
 	var connection: VNCConnection! = nil
@@ -1155,15 +1162,79 @@ extension VirtualMachineDocument {
 			return
 		}
 
-		targetView.actionRecorder = recorder.record
+		targetView.actionRecorder = self.handleRecordedAction
 
 		self.actionRecorder = recorder
 		self.recordingOutputURL = output
 		self.isRecording = true
+		self.isLocateModeActive = false
+		self.isVoiceOverActived = false
+		self.hasRecordedActions = false
 
 		#if DEBUG
 			self.logger.debug("Started recording \(self.name) to \(output.path)")
 		#endif
+	}
+
+	/// The armed tap: forwards to the recorder, then keeps `hasRecordedActions` in sync so the
+	/// toolbar's Reset button can enable/disable live — mirrors `RecordHandler.Session.handleRecordedAction`
+	/// exactly, since `ActionRecorder` itself isn't observable.
+	private func handleRecordedAction(_ sender: NSView, _ action: RecordedAction) {
+		guard let recorder = self.actionRecorder else {
+			return
+		}
+
+		recorder.record(sender, action)
+
+		let hasRecordedActions = recorder.hasRecordedActions
+
+		if hasRecordedActions != self.hasRecordedActions {
+			if Thread.isMainThread {
+				self.hasRecordedActions = hasRecordedActions
+			} else {
+				DispatchQueue.main.async {
+					self.hasRecordedActions = hasRecordedActions
+				}
+			}
+		}
+	}
+
+	/// Arms/disarms the OCR-assist "locate mode" overlay — see `RecordHandler.Session.toggleLocateMode()`.
+	@MainActor
+	func toggleRecordingLocateMode() {
+		guard self.isRecording, let recorder = self.actionRecorder, let targetView = self.virtualMachine?.vzMachineView else {
+			return
+		}
+
+		self.isLocateModeActive.toggle()
+		recorder.setLocateModeActive(self.isLocateModeActive, sender: targetView)
+	}
+
+	/// Toggles VoiceOver in the guest via the recorder's `<voiceOverOn>`/`<voiceOverOff>` token
+	/// sequence — see `RecordHandler.Session.toggleVoiceOver(confirm:)`. Only meaningful for
+	/// Darwin VMs; the toolbar hides this control entirely for non-macOS guests.
+	@MainActor
+	func toggleRecordingVoiceOver(confirm: Bool) {
+		guard self.isRecording, let recorder = self.actionRecorder else {
+			return
+		}
+
+		self.isVoiceOverActived.toggle()
+		recorder.toggleVoiceOver(confirm: confirm)
+		self.hasRecordedActions = true
+	}
+
+	/// Discards recorded steps and starts over without stopping the session — see
+	/// `RecordHandler.Session.reset()`.
+	@MainActor
+	func resetRecording() {
+		guard self.isRecording, let recorder = self.actionRecorder else {
+			return
+		}
+
+		recorder.reset()
+		self.hasRecordedActions = false
+		self.isVoiceOverActived = false
 	}
 
 	/// Disarms the tap, serializes the captured actions (`ActionRecorder.finish()`), and writes the
@@ -1182,6 +1253,9 @@ extension VirtualMachineDocument {
 		self.actionRecorder = nil
 		self.recordingOutputURL = nil
 		self.isRecording = false
+		self.isLocateModeActive = false
+		self.isVoiceOverActived = false
+		self.hasRecordedActions = false
 
 		guard let destination else {
 			return
