@@ -133,7 +133,7 @@ public final class ActionRecorder: @unchecked Sendable {
 				let attribute = timeout.map { " timeout=\($0)" } ?? String.empty
 				return PackerLiteTemplate.Command(title: String(localized: "Locate (\(text))"), commands: ["<locate text=\"\(text)\"\(attribute)>"])
 			case .voiceOverOn(confirm: let confirm, _):
-				return PackerLiteTemplate.Command(title: String(localized: "Active VoiceOver"), commands: ["<voiceOverOn confirm=\"\(confirm)>"])
+				return PackerLiteTemplate.Command(title: String(localized: "Active VoiceOver"), commands: ["<voiceOverOn confirm=\"\(confirm)\">"])
 			case .voiceOverOff(_):
 				return PackerLiteTemplate.Command(title: String(localized: "Deactive VoiceOver"), commands: ["<voiceOverOff>"])
 			}

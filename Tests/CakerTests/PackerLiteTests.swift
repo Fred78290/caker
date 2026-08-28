@@ -138,6 +138,29 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertEqual(parsed, [.scroll(horizontal: 0, vertical: 20)])
 	}
 
+	func testVoiceOverOnBareToken() async throws {
+		let parsed = try await parseSteps("<voiceOverOn>")
+		XCTAssertEqual(parsed, [.voiceOverOn(confirm: false)])
+	}
+
+	func testVoiceOverOnConfirmAttribute() async throws {
+		let parsed = try await parseSteps("<voiceOverOn confirm=true>")
+		XCTAssertEqual(parsed, [.voiceOverOn(confirm: true)])
+	}
+
+	func testVoiceOverOnConfirmAttributeQuotedForm() async throws {
+		// This is the exact shape ActionRecorder.Step.command(...) emits for a recorded
+		// .voiceOverOn(confirm: true) step (Sources/cakedlib/PackerLite/ActionRecorder.swift) —
+		// confirms the recorder's own output round-trips through the parser correctly.
+		let parsed = try await parseSteps("<voiceOverOn confirm=\"true\">")
+		XCTAssertEqual(parsed, [.voiceOverOn(confirm: true)])
+	}
+
+	func testVoiceOverOffToken() async throws {
+		let parsed = try await parseSteps("<voiceOverOff>")
+		XCTAssertEqual(parsed, [.voiceOverOff])
+	}
+
 	func testFunctionKeyToken() async throws {
 		let parsed = try await parseSteps("<leftAltOn><f5><leftAltOff>")
 		XCTAssertEqual(

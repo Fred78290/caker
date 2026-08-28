@@ -248,7 +248,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 	private static let voiceOverToggleSequence: [BootCommandStep.Step] = [
 		.modifierOn(.leftAlt),
 		.modifierOn(.function),
-		.press(.function(2)),
+		.press(.function(5)),
 		.modifierOff(.function),
 		.modifierOff(.leftAlt),
 		.wait(5.0)
