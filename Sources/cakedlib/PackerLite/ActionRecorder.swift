@@ -161,6 +161,7 @@ public final class ActionRecorder: @unchecked Sendable {
 	private var pendingTextStart: Date? = nil
 	private var pendingTextLastCharacter: Date? = nil
 	private var pendingClickStart: (x: Int, y: Int, timestamp: Date)? = nil
+	private var pendingRightClickStart: (x: Int, y: Int, timestamp: Date)? = nil
 	private var previousButtonMask: UInt8 = 0
 
 	/// The VM's own configured account (`CakeConfig.configuredUser`/`configuredPassword`) — a
@@ -176,8 +177,10 @@ public final class ActionRecorder: @unchecked Sendable {
 	/// below) rather than inferred from any held key — Fn in particular is heavily used by genuine
 	/// macOS accessibility shortcuts an operator legitimately needs to *record* (VoiceOver's
 	/// Fn+F5, Full Keyboard Access's Fn+Control+F7), so tying this to "Fn is held" made it
-	/// impossible to ever capture those steps. See `recordKey` below for the one place this still
-	/// suppresses recording — narrowly, and only while explicitly armed.
+	/// impossible to ever capture those steps. The click-type selection itself (see `recordPointer`
+	/// below) is driven by which mouse button was used, not by any modifier, so arming this no
+	/// longer needs to suppress anything at the keyboard level either — it only toggles whether
+	/// `currentRecognizedText` is populated for `recordPointer` to check against.
 	private var locateModeActive = false
 
 	public struct RecognizedText {
@@ -221,28 +224,44 @@ public final class ActionRecorder: @unchecked Sendable {
 	/// position; movement and other buttons are observed only to track that state, not emitted.
 	private func recordPointer(x: Int, y: Int, buttonMask: UInt8, timestamp: Date) {
 		let leftBit: UInt8 = 0x01
-		let wasDown = (self.previousButtonMask & leftBit) != 0
-		let isDown = (buttonMask & leftBit) != 0
+		let rightBit: UInt8 = 0x04
 
-		if isDown && wasDown == false {
+		let leftWasDown = (self.previousButtonMask & leftBit) != 0
+		let leftIsDown = (buttonMask & leftBit) != 0
+
+		if leftIsDown && leftWasDown == false {
 			self.pendingClickStart = (x, y, timestamp)
-		} else if isDown == false && wasDown, let start = self.pendingClickStart {
+		} else if leftIsDown == false && leftWasDown, let start = self.pendingClickStart {
 			self.flushPendingText()
 
+			// Left button selects clickText when it lands on recognized text (see setLocateModeActive
+			// above — currentRecognizedText is only ever non-nil while locate mode is armed, so this
+			// naturally falls through to a plain coordinate click whenever locate mode is off, with no
+			// separate "is locate mode active" check needed here).
 			if let recognizedText = self.currentRecognizedText?.textUnderPoint(of: CGPoint(x: start.x, y: start.y)) {
-				// Option+click -> clickText, plain click -> locate. Option rather than Shift, since
-				// Shift+click is a more plausible thing an operator might legitimately want recorded
-				// against the guest (e.g. a real multi-select); Option+click during a first-boot
-				// installer flow is not.
-				if self.currentModifiers.contains(.leftAlt) || self.currentModifiers.contains(.rightAlt) {
-					steps.append(.clickText(text: recognizedText.recognized.text, timestamp: start.timestamp))
-				} else {
-					steps.append(.locate(text: recognizedText.recognized.text, timestamp: start.timestamp))
-				}
+				steps.append(.clickText(text: recognizedText.recognized.text, timestamp: start.timestamp))
 			} else {
 				self.steps.append(.click(x: start.x, y: start.y, timestamp: start.timestamp))
 			}
 			self.pendingClickStart = nil
+		}
+
+		let rightWasDown = (self.previousButtonMask & rightBit) != 0
+		let rightIsDown = (buttonMask & rightBit) != 0
+
+		if rightIsDown && rightWasDown == false {
+			self.pendingRightClickStart = (x, y, timestamp)
+		} else if rightIsDown == false && rightWasDown, let start = self.pendingRightClickStart {
+			// Right button selects locate — but only when it lands on recognized text; unlike the
+			// left button, there's no "plain coordinate" fallback for a right-click, since <locate>
+			// only makes sense as an OCR anchor. A right-click outside any highlighted region (or
+			// with locate mode off) is a pure no-op, matching right-click's behavior before this
+			// feature existed at all.
+			if let recognizedText = self.currentRecognizedText?.textUnderPoint(of: CGPoint(x: start.x, y: start.y)) {
+				self.flushPendingText()
+				steps.append(.locate(text: recognizedText.recognized.text, timestamp: start.timestamp))
+			}
+			self.pendingRightClickStart = nil
 		}
 
 		self.previousButtonMask = buttonMask
@@ -332,17 +351,6 @@ public final class ActionRecorder: @unchecked Sendable {
 				self.currentModifiers.insert(modifierToken)
 			} else {
 				self.currentModifiers.remove(modifierToken)
-			}
-
-			// While OCR-assist is explicitly armed (see setLocateModeActive above), a modifier held
-			// purely to pick <clickText> over <locate> (Shift) is this tool's own gesture, not
-			// something meant for the guest — don't record it, or a replay would press it against
-			// the VM. This is deliberately keyed off the explicit toolbar toggle, not off any
-			// particular key being held (an earlier revision suppressed Fn itself, which broke
-			// recording genuine Fn-based guest shortcuts like VoiceOver's Fn+F5 — see the comment on
-			// `locateModeActive` above).
-			guard self.locateModeActive == false else {
-				return
 			}
 
 			self.flushPendingText()
@@ -460,6 +468,16 @@ public final class ActionRecorder: @unchecked Sendable {
 			// down position rather than silently dropping it.
 			self.steps.append(.click(x: start.x, y: start.y, timestamp: start.timestamp))
 			self.pendingClickStart = nil
+		}
+
+		if let start = self.pendingRightClickStart {
+			// Same idea for a still-held right click, but only if it actually resolves to a
+			// <locate> — a right-click with no recognized text under it is a no-op, same as in
+			// recordPointer above, so there's nothing meaningful to flush in that case.
+			if let recognizedText = self.currentRecognizedText?.textUnderPoint(of: CGPoint(x: start.x, y: start.y)) {
+				self.steps.append(.locate(text: recognizedText.recognized.text, timestamp: start.timestamp))
+			}
+			self.pendingRightClickStart = nil
 		}
 
 		let steps = self.steps

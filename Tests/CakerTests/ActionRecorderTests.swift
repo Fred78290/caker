@@ -16,9 +16,10 @@ import XCTest
 
 final class ActionRecorderTests: XCTestCase {
 	private let base = Date(timeIntervalSince1970: 1_700_000_000)
-	// A bare, unbacked NSView stands in for the real VNCVirtualMachineView/VNC-tap sender — record(_:_:)
-	// only dereferences it for OCR-related bookkeeping gated on the Fn modifier, which none of these
-	// tests hold, so an unbacked placeholder view is safe here.
+	// A bare, unbacked NSView stands in for the real VNCVirtualMachineView/VNC-tap sender —
+	// record(_:_:) only dereferences it for OCR-related bookkeeping when locate mode is armed
+	// (setLocateModeActive), which none of these tests do outside the tests that call it
+	// explicitly, so an unbacked placeholder view is safe here.
 	private let view = NSView(frame: .zero)
 
 	private func keyAction(_ keyCode: CGKeyCode, characters: String = String.empty, isDown: Bool = true, at offset: TimeInterval) -> RecordedAction {
@@ -120,13 +121,13 @@ final class ActionRecorderTests: XCTestCase {
 		XCTAssertTrue(yaml.contains("<fnOff>"), "Expected a genuine Fn press to record normally in:\n\(yaml)")
 	}
 
-	func testModifierWhileLocateModeActiveIsNotRecorded() {
+	func testModifierRecordsNormallyRegardlessOfLocateMode() {
+		// clickText-vs-locate is now selected by mouse button (see recordPointer), not by holding a
+		// modifier — so arming locate mode must no longer suppress modifier recording at all. This
+		// replaces two earlier tests that asserted the opposite (a Shift/Option-suppression rule
+		// that existed only because Option used to be the click-type selector).
 		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
 
-		// Option is the actual clickText-vs-locate selector (see recordPointer), but the
-		// suppression rule in recordKey is modifier-agnostic — it skips *any* modifier while locate
-		// mode is armed, so this deliberately exercises a different modifier (Shift) than the real
-		// selector to confirm that genericness, not just the one modifier the UI happens to use.
 		recorder.setLocateModeActive(true, sender: view)
 		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: true, at: 0))
 		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: false, at: 0.05))
@@ -134,41 +135,8 @@ final class ActionRecorderTests: XCTestCase {
 
 		let yaml = recorder.finish()
 
-		XCTAssertFalse(yaml.contains("<leftShiftOn>"), "Any modifier held while locate mode is armed must not be recorded in:\n\(yaml)")
-		XCTAssertFalse(yaml.contains("<leftShiftOff>"), "Any modifier held while locate mode is armed must not be recorded in:\n\(yaml)")
-		XCTAssertEqual(recorder.stepCount, 0)
-	}
-
-	func testOptionModifierWhileLocateModeActiveIsNotRecorded() {
-		// The real clickText-vs-locate selector: Option+click. Confirms it too is suppressed while
-		// locate mode is armed, not just recordKey's suppression rule in general (above).
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
-
-		recorder.setLocateModeActive(true, sender: view)
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftAlt), isDown: true, at: 0))
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftAlt), isDown: false, at: 0.05))
-		recorder.setLocateModeActive(false, sender: view)
-
-		let yaml = recorder.finish()
-
-		XCTAssertFalse(yaml.contains("<leftAltOn>"), "Option held only to select clickText while locate mode is armed must not be recorded in:\n\(yaml)")
-		XCTAssertFalse(yaml.contains("<leftAltOff>"), "Option held only to select clickText while locate mode is armed must not be recorded in:\n\(yaml)")
-		XCTAssertEqual(recorder.stepCount, 0)
-	}
-
-	func testModifierOutsideLocateModeIsStillRecorded() {
-		// Regression guard: the locate-mode suppression must not swallow ordinary modifier steps
-		// when locate mode was never armed at all — testModifierDownUpWrapsIntermediateText above
-		// already covers this, this just makes that intent explicit as its own case.
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
-
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: true, at: 0))
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: false, at: 0.1))
-
-		let yaml = recorder.finish()
-
-		XCTAssertTrue(yaml.contains("<leftShiftOn>"))
-		XCTAssertTrue(yaml.contains("<leftShiftOff>"))
+		XCTAssertTrue(yaml.contains("<leftShiftOn>"), "Modifiers must record normally even while locate mode is armed in:\n\(yaml)")
+		XCTAssertTrue(yaml.contains("<leftShiftOff>"), "Modifiers must record normally even while locate mode is armed in:\n\(yaml)")
 	}
 
 	// MARK: - Click tokens
@@ -192,6 +160,50 @@ final class ActionRecorderTests: XCTestCase {
 		let yaml = recorder.finish()
 
 		XCTAssertTrue(yaml.contains("<click point=\"10,20\">"), "Expected click token for still-held button in:\n\(yaml)")
+	}
+
+	func testRightClickWithNoRecognizedTextIsANoOp() {
+		// Right button selects <locate>, but only when it lands on OCR-recognized text
+		// (currentRecognizedText, only ever populated by real Vision OCR against a real rendered
+		// view — never the case in this unit-test harness). Outside a highlighted region, a
+		// right-click must produce nothing at all, matching its behavior before locate mode existed.
+		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+
+		recorder.record(view, pointerAction(x: 512, y: 384, buttonMask: 0x04, at: 0))
+		recorder.record(view, pointerAction(x: 512, y: 384, buttonMask: 0x00, at: 0.05))
+
+		let yaml = recorder.finish()
+
+		XCTAssertEqual(recorder.stepCount, 0, "Expected a right-click outside any recognized-text region to produce no step")
+		XCTAssertFalse(yaml.contains("<locate"), "Did not expect a <locate> token in:\n\(yaml)")
+	}
+
+	func testStillHeldRightClickWithNoRecognizedTextAtFinishIsANoOp() {
+		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+
+		recorder.record(view, pointerAction(x: 10, y: 20, buttonMask: 0x04, at: 0))
+
+		let yaml = recorder.finish()
+
+		XCTAssertEqual(recorder.stepCount, 0, "Expected a still-held right-click outside any recognized-text region to produce no step")
+		XCTAssertFalse(yaml.contains("<locate"), "Did not expect a <locate> token in:\n\(yaml)")
+	}
+
+	func testLeftAndRightClickAtSamePointAreTrackedIndependently() {
+		// A regression guard for the two-button bookkeeping in recordPointer: a right-click must not
+		// disturb a left-click's own pending-start tracking (or vice versa) when both touch the same
+		// point, since they're now tracked as fully independent button states.
+		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+
+		recorder.record(view, pointerAction(x: 100, y: 100, buttonMask: 0x01, at: 0))
+		recorder.record(view, pointerAction(x: 100, y: 100, buttonMask: 0x05, at: 0.01))
+		recorder.record(view, pointerAction(x: 100, y: 100, buttonMask: 0x01, at: 0.02))
+		recorder.record(view, pointerAction(x: 100, y: 100, buttonMask: 0x00, at: 0.03))
+
+		let yaml = recorder.finish()
+
+		XCTAssertEqual(recorder.stepCount, 1, "Expected only the left-click's own <click> step, the right-click portion being a no-op")
+		XCTAssertTrue(yaml.contains("<click point=\"100,100\">"), "Expected the left click token in:\n\(yaml)")
 	}
 
 	// MARK: - Wait-gap sizing
