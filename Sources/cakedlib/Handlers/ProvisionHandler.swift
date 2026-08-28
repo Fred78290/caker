@@ -232,6 +232,7 @@ public struct ProvisionHandler {
 				do {
 					if template.preBootCommand.isEmpty == false {
 						progressHandler(.step(String(localized: "Starting pre-boot commands")))
+						try await Task.sleep(for: .seconds(10))
 						try await PackerLiteEngine.provision(
 							targetView: targetView,
 							commands: template.preBootCommand,
