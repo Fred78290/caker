@@ -41,6 +41,8 @@ public struct RecordHandler {
 		public let config: CakedConfiguration
 		@Published public private(set) var state: State = .stopped
 
+		@Published public private(set) var isVoiceOverActived: Bool = false
+
 		/// Mirrors `recorder.hasRecordedActions` onto the main thread so SwiftUI can observe it —
 		/// the recorder itself is lock-guarded, not observable.
 		@Published public private(set) var hasRecordedActions = false
@@ -125,6 +127,7 @@ public struct RecordHandler {
 		public func reset() {
 			self.recorder.reset()
 			self.hasRecordedActions = false
+			self.isVoiceOverActived = false
 		}
 
 		@MainActor
@@ -152,6 +155,13 @@ public struct RecordHandler {
 		public func toggleLocateMode() {
 			self.isLocateModeActive.toggle()
 			self.recorder.setLocateModeActive(self.isLocateModeActive, sender: self.targetView)
+		}
+
+		@MainActor
+		public func toggleVoiceOver(confirm: Bool) {
+			self.isVoiceOverActived.toggle()
+			self.recorder.toggleVoiceOver(confirm: confirm)
+			self.hasRecordedActions = true
 		}
 
 		public func cancel() {

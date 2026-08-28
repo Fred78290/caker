@@ -105,6 +105,8 @@ public struct BootCommandStep: Equatable, Sendable {
 			case .skipNotFound(let text, let timeout): return "skipNotFound \(text) x\(timeout)s"
 			case .keyboard(let translator): return "keyboard \(translator)"
 			case .scroll(let vertical, let horizontal): return "scroll \(vertical),\(horizontal)"
+			case .voiceOverOn(let confirm): return "voiceOverOn \(confirm)"
+			case .voiceOverOff: return "voiceOverOff"
 			}
 		}
 
@@ -119,6 +121,8 @@ public struct BootCommandStep: Equatable, Sendable {
 		case skipNotFound(String, timeout: TimeInterval)
 		case scroll(horizontal: Int, vertical: Int)
 		case keyboard(any KeyLayoutTranslator)
+		case voiceOverOn(confirm: Bool)
+		case voiceOverOff
 	}
 
 	public let title: String
@@ -229,6 +233,14 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		if lower.hasPrefix("scroll") {
 			return try parseScroll(body)
+		}
+
+		if lower.hasPrefix("voiceoveron") {
+			return try parseVoideOverOn(body)
+		}
+
+		if lower.hasPrefix("voiceoveroff") {
+			return try parseVoideOverOff(body)
 		}
 
 		if let tokenStep = try parseKey(lower) {
@@ -381,6 +393,39 @@ public struct BootCommandStep: Equatable, Sendable {
 		}
 
 		return .click(CGPoint(x: CGFloat(x), y: CGFloat(y)))
+	}
+
+	/// Matches voiceOverOn
+	private static func parseVoideOverOn(_ body: String) throws -> BootCommandStep.Step {
+		let rest = body.dropFirst("voiceoveron".count).trimmingCharacters(in: .whitespaces)
+		
+		if rest.isEmpty {
+			return .voiceOverOn(confirm: false)
+		}
+
+		let attributes = try parseAttributes("voiceoveron", input: String(rest))
+
+		if let textValue = attributes["confirm"] {
+			guard let confirm = Bool(trimMatchingQuotes(textValue)) else {
+				throw BootCommandParseError.unknownToken(body)
+			}
+
+			return .voiceOverOn(confirm: confirm)
+		}
+
+		// Unknown attributes
+		throw BootCommandParseError.malformedVoiceOverOn(body)
+	}
+
+	/// Matches voiceOverOn
+	private static func parseVoideOverOff(_ body: String) throws -> BootCommandStep.Step {
+		let rest = body.dropFirst("voiceoveroff".count).trimmingCharacters(in: .whitespaces)
+		
+		guard rest.isEmpty else {
+			throw BootCommandParseError.unknownToken("Unexpected characters after voiceoveroff: \(rest)")
+		}
+		
+		return .voiceOverOff
 	}
 
 	/// Matches `locate 'Some Text'`, `click "Some Text"
@@ -561,6 +606,7 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 	case malformedKeyboard(String)
 	case malformedAttribute(String)
 	case keyboardNotFound(String)
+	case malformedVoiceOverOn(String)
 
 	public var errorDescription: String? {
 		switch self {
@@ -573,6 +619,7 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 		case .malformedKeyboard(let token): return "Malformed keyboard token: <\(token)>"
 		case .malformedAttribute(let token): return "Malformed attribute token: <\(token)>"
 		case .keyboardNotFound(let keyboard): return "Keyboard not found: <\(keyboard)>"
+		case .malformedVoiceOverOn(let body): return "Malformed voiceOverOn token: <\(body)>"
 		}
 	}
 }

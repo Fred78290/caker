@@ -232,11 +232,43 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .keyboard(let layout):
 			logger.debug("[\(title)]: keyboard layout \(layout.id)")
 			currentKeyTranslator = layout
+		case .voiceOverOn(confirm: let confirm):
+			logger.debug("[\(title)]: voice over on \(confirm)")
+			try await self.voiceOverOn(confirm: confirm, title: title)
+		case .voiceOverOff:
+			logger.debug("[\(title)]: voice over off")
+			try await self.voiceOverOff(title: title)
 		}
 
 		try await Task.sleep(nanoseconds: Self.stepDelayNanoseconds)
 
 		return true
+	}
+
+	private static let voiceOverToggleSequence: [BootCommandStep.Step] = [
+		.modifierOn(.leftAlt),
+		.modifierOn(.function),
+		.press(.function(2)),
+		.modifierOff(.function),
+		.modifierOff(.leftAlt),
+		.wait(5.0)
+	]
+
+	// MARK: - Voice Over
+	private func voiceOverOn(confirm: Bool, title: String) async throws {
+		for step in Self.voiceOverToggleSequence {
+			_ = try await execute(step, title: title)
+		}
+
+		if confirm {
+			try await self.type("v")
+		}
+	}
+
+	private func voiceOverOff(title: String) async throws {
+		for step in Self.voiceOverToggleSequence {
+			_ = try await execute(step, title: title)
+		}
 	}
 
 	// MARK: - Keyboard

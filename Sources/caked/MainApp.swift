@@ -212,6 +212,7 @@ struct MainWindow: Scene {
 /// button's enablement both need to update live as `state`/`hasRecordedActions` change.
 struct RecordingControls: View {
 	@ObservedObject var session: RecordHandler.Session
+	let showVoiceOver: Bool
 
 	var body: some View {
 		if self.session.state == .recording {
@@ -267,6 +268,19 @@ struct RecordingControls: View {
 			self.session.isLocateModeActive
 				? "Locate mode is on — clicking recognized text records <locate>/<clickText> instead of a raw coordinate; click to turn off"
 				: "Turn on locate mode to highlight recognized text and click it for a resilient <locate>/<clickText> step, instead of a raw coordinate")
+
+		if showVoiceOver {
+			Button {
+				self.session.toggleVoiceOver(confirm: NSEvent.modifierFlags.contains(.option))
+			} label: {
+				Image(systemName: "voiceover")
+					.foregroundStyle(self.session.isVoiceOverActived ? .blue : .primary)
+			}
+			.help(
+				self.session.isVoiceOverActived
+					? "VoiceOver is active"
+					: "Turn on VoiceOver (Option-click to confirm)")
+		}
 	}
 }
 

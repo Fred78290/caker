@@ -102,12 +102,7 @@ boot_command:
 
   - title: Enable Voice Over
     commands:
-      - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
-      - <leftAltOff>
-      - <wait5s>
+      - <voiceOverOn>
 
   - title: Sign In with Your Apple ID
     commands:
@@ -232,11 +227,7 @@ boot_command:
 
   - title: Disable Voice Over
     commands:
-      - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
-      - <leftAltOff>
+      - <voiceOverOff>
 
   - title: Welcome to Mac
     commands:
@@ -265,14 +256,7 @@ boot_command:
 
   - title: Enable Voice Over
     commands:
-      - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
-      - <leftAltOff>
-      - <locate text='Welcome to VoiceOver'>
-      - <wait1s>
-      - v
+      - <voiceOverOn confirm=true>
 
   - title: Navigate to Sharing
     commands:
@@ -299,12 +283,7 @@ boot_command:
 
   - title: Disable Voice Over
     commands:
-      - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
-      - <leftAltOff>
-      - <wait5s>
+      - <voiceOverOff>
 
   - title: Quit System Settings
     commands:

@@ -11,6 +11,7 @@
 //
 
 import AppKit
+import CakeAgentLib
 import Foundation
 import GRPCLib
 import RoyalVNCKit
@@ -59,6 +60,8 @@ public final class ActionRecorder: @unchecked Sendable {
 		case click(x: Int, y: Int, timestamp: Date)
 		case clickText(text: String, timestamp: Date)
 		case locate(text: String, timestamp: Date)
+		case voiceOverOn(confirm: Bool, timestamp: Date)
+		case voiceOverOff(timestamp: Date)
 
 		var startTimestamp: Date {
 			switch self {
@@ -66,6 +69,8 @@ public final class ActionRecorder: @unchecked Sendable {
 			case .press(_, let timestamp), .modifierOn(_, let timestamp), .modifierOff(_, let timestamp), .click(_, _, let timestamp): return timestamp
 			case .clickText(_, timestamp: let timestamp):  return timestamp
 			case .locate(_, timestamp: let timestamp):  return timestamp
+			case .voiceOverOn(_, timestamp: let timestamp): return timestamp
+			case .voiceOverOff(timestamp: let timestamp): return timestamp
 			}
 		}
 
@@ -75,6 +80,8 @@ public final class ActionRecorder: @unchecked Sendable {
 			case .press(_, let timestamp), .modifierOn(_, let timestamp), .modifierOff(_, let timestamp), .click(_, _, let timestamp): return timestamp
 			case .clickText(_, timestamp: let timestamp):  return timestamp
 			case .locate(_, timestamp: let timestamp):  return timestamp
+			case .voiceOverOn(_, timestamp: let timestamp): return timestamp
+			case .voiceOverOff(timestamp: let timestamp): return timestamp
 			}
 		}
 
@@ -125,6 +132,10 @@ public final class ActionRecorder: @unchecked Sendable {
 			case .locate(text: let text, _):
 				let attribute = timeout.map { " timeout=\($0)" } ?? String.empty
 				return PackerLiteTemplate.Command(title: String(localized: "Locate (\(text))"), commands: ["<locate text=\"\(text)\"\(attribute)>"])
+			case .voiceOverOn(confirm: let confirm, _):
+				return PackerLiteTemplate.Command(title: String(localized: "Active VoiceOver"), commands: ["<voiceOverOn confirm=\"\(confirm)>"])
+			case .voiceOverOff(_):
+				return PackerLiteTemplate.Command(title: String(localized: "Deactive VoiceOver"), commands: ["<voiceOverOff>"])
 			}
 		}
 	}
@@ -183,6 +194,9 @@ public final class ActionRecorder: @unchecked Sendable {
 	/// `currentRecognizedText` is populated for `recordPointer` to check against.
 	private var locateModeActive = false
 
+	private var voiceOverActive = false
+	private let logger = Logger("ActionRecorder")
+
 	public struct RecognizedText {
 		let recognized: NSView.RecognizedText
 		let layer: CALayer
@@ -201,7 +215,14 @@ public final class ActionRecorder: @unchecked Sendable {
 			self.pendingTextStart = nil
 			self.pendingTextLastCharacter = nil
 			self.pendingClickStart = nil
+			self.voiceOverActive = false
 		}
+	}
+
+	func addStep(_ step: Step) {
+		self.logger.debug("Add step: \(step)")
+
+		self.steps.append(step)
 	}
 
 	/// Feeds one resolved action into the recorder. Safe to call from any thread — VNC input
@@ -239,9 +260,9 @@ public final class ActionRecorder: @unchecked Sendable {
 			// naturally falls through to a plain coordinate click whenever locate mode is off, with no
 			// separate "is locate mode active" check needed here).
 			if let recognizedText = self.currentRecognizedText?.textUnderPoint(of: CGPoint(x: start.x, y: start.y)) {
-				steps.append(.clickText(text: recognizedText.recognized.text, timestamp: start.timestamp))
+				self.addStep(.clickText(text: recognizedText.recognized.text, timestamp: start.timestamp))
 			} else {
-				self.steps.append(.click(x: start.x, y: start.y, timestamp: start.timestamp))
+				self.addStep(.click(x: start.x, y: start.y, timestamp: start.timestamp))
 			}
 			self.pendingClickStart = nil
 		}
@@ -259,7 +280,7 @@ public final class ActionRecorder: @unchecked Sendable {
 			// feature existed at all.
 			if let recognizedText = self.currentRecognizedText?.textUnderPoint(of: CGPoint(x: start.x, y: start.y)) {
 				self.flushPendingText()
-				steps.append(.locate(text: recognizedText.recognized.text, timestamp: start.timestamp))
+				addStep(.locate(text: recognizedText.recognized.text, timestamp: start.timestamp))
 			}
 			self.pendingRightClickStart = nil
 		}
@@ -330,6 +351,16 @@ public final class ActionRecorder: @unchecked Sendable {
 		}
 	}
 
+	public func toggleVoiceOver(confirm: Bool) {
+		if voiceOverActive {
+			self.addStep(.voiceOverOff(timestamp: Date()))
+		} else {
+			self.addStep(.voiceOverOn(confirm: confirm, timestamp: Date()))
+		}
+		
+		voiceOverActive.toggle()
+	}
+
 	/// Arms or disarms the OCR-assist overlay — called from the recording window's toolbar, not
 	/// from any key event. Lock-guarded like `record(_:_:)`, since it's public API a SwiftUI
 	/// button action calls directly, from whatever thread that runs on.
@@ -354,7 +385,7 @@ public final class ActionRecorder: @unchecked Sendable {
 			}
 
 			self.flushPendingText()
-			self.steps.append(isDown ? .modifierOn(modifierToken, timestamp: timestamp) : .modifierOff(modifierToken, timestamp: timestamp))
+			self.addStep(isDown ? .modifierOn(modifierToken, timestamp: timestamp) : .modifierOff(modifierToken, timestamp: timestamp))
 			return
 		}
 
@@ -367,7 +398,7 @@ public final class ActionRecorder: @unchecked Sendable {
 
 		if let keyToken = Self.keyTokenForKeyCode[keyCode] {
 			self.flushPendingText()
-			self.steps.append(.press(keyToken, timestamp: timestamp))
+			self.addStep(.press(keyToken, timestamp: timestamp))
 			return
 		}
 
@@ -400,7 +431,7 @@ public final class ActionRecorder: @unchecked Sendable {
 			return
 		}
 
-		self.steps.append(.text(self.pendingText, start: start, end: end))
+		self.addStep(.text(self.pendingText, start: start, end: end))
 		self.pendingText = String.empty
 		self.pendingTextStart = nil
 		self.pendingTextLastCharacter = nil
@@ -466,7 +497,7 @@ public final class ActionRecorder: @unchecked Sendable {
 		if let start = self.pendingClickStart {
 			// A button was still held down when recording stopped — record it as a click at its
 			// down position rather than silently dropping it.
-			self.steps.append(.click(x: start.x, y: start.y, timestamp: start.timestamp))
+			self.addStep(.click(x: start.x, y: start.y, timestamp: start.timestamp))
 			self.pendingClickStart = nil
 		}
 
@@ -475,7 +506,7 @@ public final class ActionRecorder: @unchecked Sendable {
 			// <locate> — a right-click with no recognized text under it is a no-op, same as in
 			// recordPointer above, so there's nothing meaningful to flush in that case.
 			if let recognizedText = self.currentRecognizedText?.textUnderPoint(of: CGPoint(x: start.x, y: start.y)) {
-				self.steps.append(.locate(text: recognizedText.recognized.text, timestamp: start.timestamp))
+				self.addStep(.locate(text: recognizedText.recognized.text, timestamp: start.timestamp))
 			}
 			self.pendingRightClickStart = nil
 		}

@@ -96,11 +96,7 @@ boot_command:
 
   - title: Enable Voice Over
     commands:
-      - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
-      - <leftAltOff>
+      - <voiceOverOn>
       - <wait10s>
 
   - title: Sign In with Your Apple ID
@@ -205,11 +201,7 @@ boot_command:
 
   - title: Disable Voice Over
     commands: 
-      - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
-      - <leftAltOff>
+      - <voiceOverOff>
 
   - title: Enable Keyboard navigation so we can navigate System Settings using the keyboard
     commands: 

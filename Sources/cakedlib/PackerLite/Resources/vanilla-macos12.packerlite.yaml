@@ -177,13 +177,7 @@ boot_command:
   - title: Enable Voice Over
     commands: 
       - <wait10s>
-      - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
-      - <leftAltOff>
-      - <wait5s>
-      - v
+      - <voiceOverOn confirm=true>
 
   - title: Now that the installation is done, open "Applications folder"
     commands:
@@ -231,9 +225,4 @@ boot_command:
 
   - title: Disable Voice Over
     commands:
-      - <leftAltOn>
-      - <fnOn>
-      - <f5>
-      - <fnOff>
-      - <leftAltOff>
-      - <wait5s>
+      - <voiceOverOff>
