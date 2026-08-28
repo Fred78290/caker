@@ -257,8 +257,6 @@ public struct VMBuilder {
 			imageURL = URL(spaced: options.image)!
 		}
 
-		imageURL = await imageURL.redirectedURL
-
 		let imageIsFile = imageURL.isFileURL || imageURL.host == nil
 
 		if let root = options.root {
