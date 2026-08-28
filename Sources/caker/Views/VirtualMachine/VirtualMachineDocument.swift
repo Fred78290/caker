@@ -1162,7 +1162,9 @@ extension VirtualMachineDocument {
 			return
 		}
 
-		targetView.actionRecorder = self.handleRecordedAction
+		targetView.actionRecorder = { [weak self] sender, action in
+			self?.handleRecordedAction(sender, action)
+		}
 
 		self.actionRecorder = recorder
 		self.recordingOutputURL = output
