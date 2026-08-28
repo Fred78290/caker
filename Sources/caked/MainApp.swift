@@ -110,7 +110,11 @@ struct MainWindow: Scene {
 
 						if self.appState.status.isRunning {
 							Button("Stop", systemImage: "stop") {
-								self.requestStopFromUI()
+								if NSEvent.modifierFlags.contains(.option) {
+									self.stopFromUI()
+								} else {
+									self.requestStopFromUI()
+								}
 							}.help("Stop virtual machine")
 						} else if self.appState.status == .paused {
 							Button("Resume", systemImage: "playpause") {
@@ -364,10 +368,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 		alert.messageText = String(localized: "Virtual machine Running")
 		alert.informativeText = String(localized: "The virtual machine is running. Do you want terminate it them and quit?")
 		alert.alertStyle = .warning
-		alert.addButton(withTitle: String(localized: "Terminate & Quit"))
+		alert.addButton(withTitle: String(localized: "Request stop & Quit"))
+		alert.addButton(withTitle: String(localized: "Force stop & Quit")).hasDestructiveAction = true
 		alert.addButton(withTitle: String(localized: "Cancel"))
 
-		if alert.runModal() == .alertFirstButtonReturn {
+		let hitButton = alert.runModal()
+
+		if hitButton == .alertFirstButtonReturn {
 			Task {
 				if vm.suspendable {
 					vm.suspendFromUI { _ in
@@ -379,11 +386,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 					}
 				}
 			}
-
-			return .terminateLater
+		} else if hitButton == .alertSecondButtonReturn {
+			Task {
+				vm.stopFromUI { _ in
+					sender.reply(toApplicationShouldTerminate: true)
+				}
+			}
+		} else {
+			return .terminateCancel
 		}
 
-		return .terminateCancel
+		return .terminateLater
 	}
 }
 
