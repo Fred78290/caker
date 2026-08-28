@@ -141,7 +141,7 @@ struct MainWindow: Scene {
 
 					if let currentSession = RecordHandler.currentSession, self.vm.mode == .recording, currentSession.state != .stopped {
 						ToolbarItemGroup(placement: .secondaryAction) {
-							RecordingControls(session: currentSession)
+							RecordingControls(session: currentSession, showVoiceOver: self.vm.config.os == .darwin)
 						}
 					}
 				}
