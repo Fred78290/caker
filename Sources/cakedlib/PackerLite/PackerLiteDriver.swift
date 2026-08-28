@@ -213,15 +213,15 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 		case .clickText(let label, let timeout):
 			logger.debug("[\(title)]: clickText '\(label)', timeout=\(timeout)")
-			try await clickText(label, timeout: timeout)
+			try await clickText(label, timeout: timeout, title: title)
 
 		case .locate(let label, let timeout):
 			logger.debug("[\(title)]: locate '\(label)', timeout=\(timeout)")
-			try await locateText(label, timeout: timeout)
+			try await locateText(label, timeout: timeout, title: title)
 
 		case .skipNotFound(let label, let timeout):
 			logger.debug("[\(title)]: skipNotFound '\(label)', timeout=\(timeout)")
-			if try await skipNotFound(label, timeout: timeout) == false {
+			if try await skipNotFound(label, timeout: timeout, title: title) == false {
 				return false
 			}
 
@@ -577,11 +577,11 @@ final class PackerLiteDriver: @unchecked Sendable {
 		dispatchEvent(targetView.postScrollEvent(eventSource: eventSource, deltaX: Int32(horizontal), deltaY: Int32(vertical), at: lastMousePosition, modifierFlags: self.modifiers), view: targetView)
 	}
 
-	@MainActor private func clickText(_ label: String, timeout: TimeInterval) async throws {
+	@MainActor private func clickText(_ label: String, timeout: TimeInterval, title: String) async throws {
 		let deadline = Date().addingTimeInterval(timeout)
 
 		while true {
-			if let point = try await locate(text: label) {
+			if let point = try await locate(text: label, title: title) {
 				click(point)
 				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 				return
@@ -595,11 +595,11 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 	}
 
-	@MainActor private func skipNotFound(_ label: String, timeout: TimeInterval) async throws -> Bool {
+	@MainActor private func skipNotFound(_ label: String, timeout: TimeInterval, title: String) async throws -> Bool {
 		let deadline = Date().addingTimeInterval(timeout)
 
 		while true {
-			if let point = try await locate(text: label) {
+			if let point = try await locate(text: label, title: title) {
 				self.logger.debug("Text found: \(label) at: \(point)")
 				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 				return true
@@ -613,11 +613,11 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 	}
 
-	@MainActor private func locateText(_ label: String, timeout: TimeInterval) async throws {
+	@MainActor private func locateText(_ label: String, timeout: TimeInterval, title: String) async throws {
 		let deadline = Date().addingTimeInterval(timeout)
 
 		while true {
-			if let point = try await locate(text: label) {
+			if let point = try await locate(text: label, title: title) {
 				self.logger.debug("Text found: \(label) at: \(point)")
 				try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 				return
@@ -633,7 +633,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 	/// Locates `label` in the view's current frame via Vision OCR and returns its center,
 	/// converted into the top-left-origin pixel space `VNCInputHandler.handlePointerEvent` expects.
-	private func locate(text label: String) async throws -> CGPoint? {
+	private func locate(text label: String, title: String) async throws -> CGPoint? {
 		// Capture the current CGImage on the main actor (AppKit view access must be on main).
 		guard let cgImage = await self.targetView.imageRepresentation(in: self.targetView.bounds)?.cgImage else {
 			return nil
@@ -650,13 +650,26 @@ final class PackerLiteDriver: @unchecked Sendable {
 				try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
 
 				guard let results = request.results, !results.isEmpty else {
+					self.logger.trace("\(title) - OCR no text found")
 					return nil
 				}
 
 				let needle = label.lowercased()
 
+				#if DEBUG
+					print("\n\n")
+				#endif
+
 				for observation in results {
-					guard let candidate = observation.topCandidates(1).first, candidate.string.lowercased().contains(needle) else {
+					guard let candidate = observation.topCandidates(1).first else {
+						continue
+					}
+
+					#if DEBUG
+						self.logger.debug("\(title) - OCR: found: \(candidate.string) <--> \(needle) : match \(candidate.string.lowercased().contains(needle))")
+					#endif
+
+					guard candidate.string.lowercased().contains(needle) else {
 						continue
 					}
 
