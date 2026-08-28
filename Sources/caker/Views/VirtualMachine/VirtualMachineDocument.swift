@@ -222,6 +222,11 @@ extension UTType {
 	private var agentMonitoring: Task<Void, Never>?
 	private var inView: Bool = false
 
+	/// Held for the duration of a `startRecording(output:)`/`stopRecording()` session — see the
+	/// "Recording" extension below. `nil` whenever `isRecording == false`.
+	private var actionRecorder: ActionRecorder?
+	private var recordingOutputURL: URL?
+
 	/// Use the document URL as the stable identity so that `ForEach` can recognise
 	/// the same VM across dictionary replacements (e.g. after a mode switch) and
 	/// update existing views in-place rather than destroying and re-creating them.
@@ -267,6 +272,7 @@ extension UTType {
 	var canResume: Bool = false
 	var canRequestStop: Bool = false
 	var suspendable: Bool = false
+	var isRecording: Bool = false
 	var vncURL: [URL]? = nil
 	var agentReady: Bool = false
 	var connection: VNCConnection! = nil
@@ -1104,6 +1110,93 @@ extension VirtualMachineDocument {
 
 			MainApp.app?.updateStateVirtualMachineDocument(with: self)
 		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
+	}
+}
+
+// MARK: - Recording
+extension VirtualMachineDocument {
+	/// Mirrors the exact condition under which `HostVirtualMachineView.vmView(_:)` renders an
+	/// `InternalVirtualMachineView` — i.e. there's a real, live `VNCVirtualMachineView` (this
+	/// document's `virtualMachine.vzMachineView`) on screen for a tap to be armed against. Recording
+	/// makes no sense for an externally-launched or remote VM: there's no local view there to tap.
+	var canRecord: Bool {
+		self.connectionManager.connectionMode == .app && self.externalRunning == false && self.virtualMachine != nil
+	}
+
+	/// Arms an `ActionRecorder` directly on this document's already-live `VNCVirtualMachineView`
+	/// (`virtualMachine.createVirtualMachineView()`, memoized to the exact same view
+	/// `CakerVZVirtualMachineView.attachtoDocument` already set as `virtualMachine.vzMachineView` —
+	/// see `InternalVirtualMachineView.swift`) — no new capture mechanism, this reuses the tap
+	/// `caked record` itself already relies on (`VNCVirtualMachineView.actionRecorder`, see
+	/// CLAUDE.md's PackerLite/`caked record` section). Credential scrubbing, token mapping, and
+	/// wait-gap handling are all `ActionRecorder`'s own responsibility, unchanged here.
+	func startRecording(output: URL) {
+		guard self.canRecord else {
+			DispatchQueue.main.async {
+				alertError(String(localized: "Unable to start recording"), String(localized: "Recording is only available for a virtual machine running locally inside Caker."))
+			}
+			return
+		}
+
+		guard self.isRecording == false else {
+			return
+		}
+
+		let recorder = ActionRecorder(os: self.virtualMachineConfig.os, username: self.virtualMachineConfig.configuredUser, password: self.virtualMachineConfig.configuredPassword)
+		let targetView = self.virtualMachine.createVirtualMachineView()
+
+		targetView.actionRecorder = recorder.record
+
+		self.actionRecorder = recorder
+		self.recordingOutputURL = output
+		self.isRecording = true
+
+		#if DEBUG
+			self.logger.debug("Started recording \(self.name) to \(output.path)")
+		#endif
+	}
+
+	/// Disarms the tap, serializes the captured actions (`ActionRecorder.finish()`), and writes the
+	/// resulting `boot_command:` YAML to the output location chosen when recording started —
+	/// mirroring `RecordHandler.Session.stopAndSave()`'s exact pattern (`Sources/cakedlib/Handlers/RecordHandler.swift`).
+	func stopRecording() {
+		guard self.isRecording, let recorder = self.actionRecorder else {
+			return
+		}
+
+		self.virtualMachine?.vzMachineView?.actionRecorder = nil
+
+		let yaml = recorder.finish()
+		let destination = self.recordingOutputURL
+
+		self.actionRecorder = nil
+		self.recordingOutputURL = nil
+		self.isRecording = false
+
+		guard let destination else {
+			return
+		}
+
+		do {
+			try yaml.write(to: destination, atomically: true, encoding: .utf8)
+
+			self.logger.info("Recorded template saved to \(destination.path)")
+
+			DispatchQueue.main.async {
+				alertError(
+					String(localized: "Recording saved"),
+					String(
+						localized:
+							"Recorded template saved to \(destination.path)\n\nThis is a first draft — review it and consider hardening timing-sensitive waits with <locate> anchors before relying on it for unattended --autoinstall runs."
+					))
+			}
+		} catch {
+			self.logger.error("Failed to write recorded template to \(destination.path): \(error)")
+
 			DispatchQueue.main.async {
 				alertError(error)
 			}

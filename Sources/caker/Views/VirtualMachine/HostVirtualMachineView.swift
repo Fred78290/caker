@@ -9,6 +9,7 @@ import CakedLib
 import GRPCLib
 import SwiftUI
 import CakeAgentLib
+import UniformTypeIdentifiers
 
 func viewLog(_ text: String) -> some View {
 	#if DEBUG
@@ -242,6 +243,10 @@ struct HostVirtualMachineView: View {
 
 						agentButton
 
+						if canRecord {
+							recordButton
+						}
+
 						Button("Delete", systemImage: "trash") {
 							AppState.shared.deleteVirtualMachine(document: self.document)
 						}
@@ -333,6 +338,60 @@ struct HostVirtualMachineView: View {
 		}
 		.help(agentCondition.title)
 		.disabled(agentCondition.disabled)
+	}
+
+	/// Only offer recording when there's an actual live local `VNCVirtualMachineView` to tap — the
+	/// same condition `vmView(_:)`'s `document.virtualMachine != nil` branch below is reachable
+	/// under, plus `document.status == .running` since (unlike `caked record`, which boots the VM
+	/// itself) recording here is layered on top of a VM the user is already driving interactively.
+	private var canRecord: Bool {
+		document.canRecord && document.status == .running
+	}
+
+	@ViewBuilder
+	private var recordButton: some View {
+		if document.isRecording {
+			Button {
+				document.stopRecording()
+			} label: {
+				HStack(spacing: 4) {
+					Circle()
+						.fill(.red)
+						.frame(width: 8, height: 8)
+					Image(systemName: "stop.circle")
+				}
+			}
+			.help("Stop recording and save the boot_command template")
+		} else {
+			Button("Record", systemImage: "record.circle") {
+				promptRecordingOutputAndStart()
+			}
+			.help("Record your actions in this VM as a boot_command template")
+		}
+	}
+
+	private func promptRecordingOutputAndStart() {
+		let panel = NSSavePanel()
+
+		panel.message = String(localized: "Save recorded template")
+		panel.prompt = String(localized: "Save")
+		panel.nameFieldStringValue = "\(document.name).packerlite.yaml"
+		panel.canCreateDirectories = true
+		panel.allowsOtherFileTypes = true
+
+		if let yamlType = UTType(filenameExtension: "yaml") {
+			panel.allowedContentTypes = [yamlType]
+		}
+
+		if let directory = document.location?.rootURL {
+			panel.directoryURL = directory
+		}
+
+		guard panel.runModal() == .OK, let url = panel.url else {
+			return
+		}
+
+		document.startRecording(output: url)
 	}
 
 	var cpuUsageView: some View {
