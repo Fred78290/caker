@@ -1196,8 +1196,8 @@ extension VirtualMachineDocument {
 				alertError(
 					String(localized: "Recording saved"),
 					String(
-						localized:
-							"Recorded template saved to \(destination.path)\n\nThis is a first draft — review it and consider hardening timing-sensitive waits with <locate> anchors before relying on it for unattended --autoinstall runs."
+						format: String(localized: "Recorded template saved to %@\n\nThis is a first draft — review it and consider hardening timing-sensitive waits with <locate> anchors before relying on it for unattended --autoinstall runs."),
+						destination.path
 					))
 			}
 		} catch {
