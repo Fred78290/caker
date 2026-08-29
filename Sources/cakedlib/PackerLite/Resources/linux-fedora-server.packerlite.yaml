@@ -31,74 +31,71 @@
 # ${var.username}/${var.password} below resolve to the VM's actual account,
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
 
-boot_timeout: 60m        # a full install can legitimately take 20-30+ minutes
+boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
 
 pre_boot_command:
-  - title: Boot the GRUB menu's "Install" entry
+  - title: Boot the GRUB menu's default "Install" entry
     commands:
-      - <wait5s>
-      - <up>
       - <enter>
 
 boot_command:
-  - title: Welcome screen - continue with the default language
+  - title: Wait Anaconda
     commands:
-      - <wait5s>
-      - <click 'Continue'>
-
-  - title: Open Installation Destination
-    commands:
-      - <wait5s>
-      - <click 'Installation Destination'>
-
-  - title: Accept automatic partitioning on the detected disk
-    commands:
-      - <wait5s>
-      - <click 'Done'>
-
-  - title: Open User Creation
-    commands:
-      - <wait5s>
-      - <click 'User Creation'>
-
-  - title: Fill in the full name, then replace the auto-suggested username
-    commands:
+      - <locate text="SERVER" timeout=120>
       - <wait2s>
-      - Managed via Caker
-      - <tab>
-      - <leftCtrlOn>
-      - a
-      - <leftCtrlOff>
+
+  - title: Choose langue
+    commands:
+      - english
+      - <tab repeat=6>
+      - <enter>
+
+  - title: Change keyboard
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Create user account
+    commands:
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="User Creation">
+
+  - title: Fill user account information
+    commands:
+      - <locate text="CREATE USER">
       - ${var.username}
-
-  - title: Make this user an administrator
-    commands:
-      - <click 'Make this user administrator'>
-
-  - title: Set and confirm the account password
-    commands:
       - <tab>
-      - <tab>
-      - <tab>
+      - ${var.username}
+      - <tab repeat=3>
       - ${var.password}
       - <tab>
       - ${var.password}
+      - <tab>
+      - <click text="Done">
 
-  - title: Confirm the user creation spoke
+  - title: Confirm password
     commands:
-      - <wait2s>
-      - <click 'Done'>
+      - <skipNotFound text="Press done again to use the password anyway">
+      - <click text="Done">
 
-  - title: Begin the installation
+  - title: Installation Destination
     commands:
-      - <wait5s>
-      - <click 'Begin Installation'>
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="Installation Destination">
+      - <locate text="Device Selection">
+      - <wait1s>
+      - <click text="Done">
+      - <wait1s>
 
-  - title: Wait for the installation to finish
+  - title: Begin Installation
     commands:
-      - <wait30m>
+      - <click text="Begin Installation">
 
-  - title: Reboot into the freshly installed system
+  - title: Wait installed and ready for you to use!
     commands:
-      - <wait5s>
-      - <click 'Reboot System'>
+      - <locate text="Fedora is now successfully installed and ready for you to use!" timeout=1200>
+
+  - title: Reboot System
+    commands:
+      - <click text="Reboot System">

@@ -41,181 +41,130 @@
 # ${var.username}/${var.password} below resolve to the VM's actual account,
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
 
-boot_timeout: 75m        # d-i's package installation stage depends on mirror speed, budget generously
+boot_timeout: 75m # d-i's package installation stage depends on mirror speed, budget generously
+ignore_ip: true
 
 pre_boot_command:
-  - title: Boot the isolinux/GRUB menu's default "Graphical install" entry
+  - title: Boot the GRUB menu's default "Install" entry
     commands:
-      - <wait5s>
       - <enter>
 
 boot_command:
-  - title: Wait for the graphical installer to start
-    commands: 
-      - <wait60s>
-
-  - title: Select a language - accept the default (English)
-    commands: 
-      - <wait5s>
-      - <click 'Continue'>
+  - title: Select a language
+    commands:
+      - <locate text="Select a language">
+      - <return>
 
   - title: Select your location
-    commands: 
-      - <wait5s>
-      - United States
+    commands:
+      - <locate text="Select your location">
       - <enter>
-      - <click 'Continue'>
 
-  - title: Configure the keyboard - accept the default layout
-    commands: 
-      - <wait5s>
-      - <click 'Continue'>
+  - title: Configure the keyboard
+    commands:
+      - <locate text="Configure the keyboard">
+      - <enter>
 
-  - title: Wait for hardware/network detection to settle
-    commands: 
-      - <wait30s>
+  - title: Select keyboard layout
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
 
-  - title: Set the system's hostname
-    commands: 
-      - <wait5s>
-      - <leftCtrlOn>
-      - a
-      - <leftCtrlOff>
+  - title: Configure the network
+    commands:
+      - <locate text="Configure the network" timeout=60>
+      - <enter>
+
+  - title: Entry for the hostname
+    commands:
+      - <locate text="Please enter the hostname for this system">
+      - <backspace repeat=6>
       - ${var.username}-vm
-      - <click 'Continue'>
+      - <enter>
 
-  - title: Leave the domain name blank
-    commands: 
-      - <wait5s><click 'Continue'>
+  - title: Domain name (leave blank)
+    commands:
+      - <locate text="The domain name is the part of your Internet address">
+      - <enter>
+
+  - title: Root account password (leave blank)
+    commands:
+      - <locate text="Set up users and passwords">
+      - <enter>
 
   - title: Leave the root password blank (grants the created user sudo instead)
-    commands: 
-      - <wait10s>
-      - <click 'Continue'>
-
-  - title: Confirm the empty root password is intentional
-    commands: 
-      - <wait5s><click 'Yes'><click 'Continue'>
+    commands:
+      - <locate text="Confirm">
+      - <enter>
 
   - title: Full name for the new user
-    commands: 
-      - <wait5s>
-      - Managed via Caker
-      - <click 'Continue'>
-
-  - title: Replace the auto-suggested username
-    commands: 
-      - <wait5s>
-      - <leftCtrlOn>
-      - a
-      - <leftCtrlOff>
+    commands:
+      - <locate text="Full name for the new user">
       - ${var.username}
-      - <click 'Continue'>
+      - <enter>
+  - title: Username for account
+    commands:
+      - <locate text="Username for account">
+      - <enter>
 
   - title: Choose a password for the new user
-    commands: 
-      - <wait5s>
+    commands:
+      - <locate text="Choose a password for the new user">
       - ${var.password}
-      - <click 'Continue'>
+      - <enter>
 
   - title: Re-enter the password to verify
-    commands: 
-      - <wait5s>
+    commands:
+      - <locate text="Re-enter the password to verify">
       - ${var.password}
-      - <click 'Continue'>
+      - <enter>
 
-  - title: Configure the clock - accept the detected timezone
-    commands: 
-      - <wait10s>
-      - <click 'Continue'>
+  - title: Configure the clock
+    commands:
+      - <locate text="Configure the clock">
+      - <enter>
 
   - title: Partition disks - use guided partitioning on the entire disk
-    commands: 
-      - <wait10s>
-      - <click 'Continue'>
+    commands:
+      - <locate text="Partition disks" timeout=30>
+      - <enter>
 
   - title: Confirm the disk to partition
-    commands: 
-      - <wait5s>
-      - <click 'Continue'>
+    commands:
+      - <locate text="Select disk to partition">
+      - <enter>
 
   - title: Accept the default partitioning scheme
-    commands: 
-      - <wait5s>
-      - <click 'Continue'>
+    commands:
+      - <locate text="All files in one partition">
+      - <enter>
 
   - title: Finish partitioning and write changes to disk
-    commands: 
-      - <wait5s>
-      - <click 'Continue'>
+    commands:
+      - <locate text="Finish partitioning and write changes to disk">
+      - <enter>
 
   - title: Confirm writing changes to disk
-    commands: 
-      - <wait5s>
-      - <click 'Yes'>
-      - <click 'Continue'>
+    commands:
+      - <locate text="Write the changes to disks?">
+      - <tab>
+      - <enter>
 
-  - title: Wait for the base system install to finish
-    commands: 
-      - <wait5m>
+  - title: Configure the package manager
+    commands:
+      - <locate text="Configure the package manager" timeout=120>
+      - <enter>
 
-  - title: Package manager configuration - skip scanning extra media
-    commands: 
-      - <wait10s>
-      - <click 'Continue'>
+  - title: Configuring popularity-contest
+    commands:
+      - <locate text="Configuring popularity-contest" timeout=60>
+      - <enter>
 
-  - title: Use a network mirror
-    commands: 
-      - <wait5s>
-      - <click 'Yes'>
-      - <click 'Continue'>
+  - title: Software selection
+    commands:
+      - <locate text="Software selection" timeout=60>
+      - <enter>
 
-  - title: Accept the default mirror country
-    commands: 
-      - <wait5s>
-      - <click 'Continue'>
-
-  - title: Accept the default Debian archive mirror
-    commands: 
-      - <wait5s>
-      - <click 'Continue'>
-
-  - title: Leave the HTTP proxy blank
-    commands: 
-      - <wait5s>
-      - <click 'Continue'>
-
-  - title: Decline participation in the popularity contest
-    commands: 
-      - <wait10s>
-      - <click 'Continue'>
-
-  - title: Enable the SSH server in the software selection
-    commands: 
-      - <wait10s>
-      - <click 'SSH server'>
-
-  - title: Confirm the software selection and begin package installation
-    commands: 
-      - <wait5s>
-      - <click 'Continue'>
-
-  - title: Wait for package installation to finish
-    commands: 
-      - <wait45m>
-
-  - title: Install the GRUB boot loader to the primary disk
-    commands: 
-      - <wait10s>
-      - <click 'Yes'>
-      - <click 'Continue'>
-
-  - title: Confirm the boot loader install device
-    commands: 
-      - <wait5s>
-      - <click 'Continue'>
-
-  - title: Finish installation and reboot into the freshly installed system
-    commands: 
-      - <wait10s>
-      - <click 'Continue'>
+  - title: Finish the installation and reboot
+    commands:
+      - <locate text="Finish the installation" timeout=120>
+      - <enter>

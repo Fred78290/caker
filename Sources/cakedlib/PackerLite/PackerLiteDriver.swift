@@ -101,17 +101,18 @@ final class PackerLiteDriver: @unchecked Sendable {
 	private let eventSource = CGEventSource(stateID: .combinedSessionState)
 
 	#if DEBUG
-		private var debugOverlayLayer: CAShapeLayer?
+		private var textFoundOverlay: CAShapeLayer?
+		private var clickFoundOverlay: CAShapeLayer?
 
 		@MainActor
-		private func showDebugBox(_ box: CGRect, in imageSize: CGSize) {
+		private func showDebugBox(_ box: CGRect) {
 			guard let layer = targetView.layer else {
 				return
 			}
 
-			if let debugOverlayLayer = self.debugOverlayLayer {
-				debugOverlayLayer.removeFromSuperlayer()
-				self.debugOverlayLayer = nil
+			if let textFoundOverlay = self.textFoundOverlay {
+				textFoundOverlay.removeFromSuperlayer()
+				self.textFoundOverlay = nil
 			}
 
 			targetView.wantsLayer = true
@@ -121,43 +122,51 @@ final class PackerLiteDriver: @unchecked Sendable {
 			overlay.zPosition = 1000
 			layer.addSublayer(overlay)
 
-			self.debugOverlayLayer = overlay
+			self.textFoundOverlay = overlay
 
-			// Convert the box from image coordinates (origin bottom-left) to the targetView coordinate space (origin bottom-left).
-			// VNImageRectForNormalizedRect yields rect in image coords origin bottom-left.
-			// NSView's layer has origin bottom-left if flipped is false, else origin top-left.
-			// AppKit views often have flipped coordinate system (origin top-left). Convert accordingly.
-
-			let viewHeight = targetView.bounds.height
-			let viewWidth = targetView.bounds.width
-
-			// The CGImage and view might differ in size, so scale accordingly
-			let scaleX = viewWidth / imageSize.width
-			let scaleY = viewHeight / imageSize.height
-
-			// Box origin is bottom-left, need to convert to AppKit's coordinate system (which is typically flipped: origin top-left)
-			// Because targetView is NSView, flipped usually true, origin top-left
-			// So convert y by (viewHeight - box.origin.y - box.height)
-			let convertedRect = CGRect(
-				x: box.origin.x * scaleX,
-				y: viewHeight - (box.origin.y + box.height) * scaleY,
-				width: box.width * scaleX,
-				height: box.height * scaleY
-			)
-
-			let path = CGPath(rect: convertedRect, transform: nil)
-
-			overlay.path = path
+			overlay.path = CGPath(rect: box, transform: nil)
 			overlay.strokeColor = NSColor.red.cgColor
 			overlay.fillColor = NSColor.red.withAlphaComponent(0.2).cgColor
 			overlay.lineWidth = 2.0
 		}
 
+		private func showClickText(_ nsPoint: CGPoint) {
+			guard let layer = targetView.layer else {
+				return
+			}
+
+			if let clickFoundOverlay = self.clickFoundOverlay {
+				clickFoundOverlay.removeFromSuperlayer()
+				self.clickFoundOverlay = nil
+			}
+
+			let box = CGRect(origin: CGPoint(x: nsPoint.x - 4.0, y: self.targetView.bounds.height - nsPoint.y - 4.0), size: CGSize(width: 8.0, height: 8.0))
+
+			targetView.wantsLayer = true
+
+			let overlay = CAShapeLayer()
+
+			overlay.zPosition = 1000
+			layer.addSublayer(overlay)
+
+			self.clickFoundOverlay = overlay
+
+			overlay.path = CGPath(ellipseIn: box, transform: nil)
+			overlay.strokeColor = NSColor.green.cgColor
+			overlay.fillColor = NSColor.green.withAlphaComponent(0.4).cgColor
+			overlay.lineWidth = 3.0
+		}
+
 		@MainActor
 		private func clearDebugBox() {
-			if let debugOverlayLayer {
-				debugOverlayLayer.removeFromSuperlayer()
-				self.debugOverlayLayer = nil
+			if let textFoundOverlay {
+				textFoundOverlay.removeFromSuperlayer()
+				self.textFoundOverlay = nil
+			}
+
+			if let clickFoundOverlay {
+				clickFoundOverlay.removeFromSuperlayer()
+				self.clickFoundOverlay = nil
 			}
 		}
 	#endif
@@ -559,15 +568,17 @@ final class PackerLiteDriver: @unchecked Sendable {
 	// MARK: - Mouse
 
 	@MainActor private func click(_ nsPoint: CGPoint) {
-		logger.debug("clickText \(nsPoint)")
-
 		#if DEBUG
-			showDebugBox(CGRect(origin: nsPoint, size: CGSize(width: 4, height: 4)), in: self.targetView.bounds.size)
+		showClickText(nsPoint)
 		#endif
 
-		self.handleMouseMovement(to: nsPoint)
-		self.handlePointerEvent(nsPoint, buttonMask: 0x01)
-		self.handlePointerEvent(nsPoint, buttonMask: 0x00)
+		let positionInWindow = self.targetView.windowRelativePosition(of: nsPoint)
+
+		logger.debug("clickText \(nsPoint), positionInWindow = \(positionInWindow)")
+
+		self.handleMouseMovement(to: positionInWindow)
+		self.handlePointerEvent(positionInWindow, buttonMask: 0x01)
+		self.handlePointerEvent(positionInWindow, buttonMask: 0x00)
 	}
 
 	@MainActor private func scroll(_ horizontal: Int, _ vertical: Int) async throws {
@@ -635,10 +646,20 @@ final class PackerLiteDriver: @unchecked Sendable {
 	/// converted into the top-left-origin pixel space `VNCInputHandler.handlePointerEvent` expects.
 	private func locate(text label: String, title: String) async throws -> CGPoint? {
 		// Capture the current CGImage on the main actor (AppKit view access must be on main).
-		guard let cgImage = await self.targetView.imageRepresentation(in: self.targetView.bounds)?.cgImage else {
+		guard let nsImage = await self.targetView.image(), let pngData = nsImage.pngData else {
 			return nil
 		}
 
+		let bounds = await MainActor.run {
+			return self.targetView.bounds
+		}
+
+		// The image and view might differ in size, so scale accordingly
+		let viewHeight = bounds.height
+		let viewWidth = bounds.width
+		let imageSize = nsImage.size
+		let scaleX = viewWidth / imageSize.width
+		let scaleY = viewHeight / imageSize.height
 		let logger = self.logger
 
 		// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
@@ -647,7 +668,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 			request.recognitionLevel = .accurate
 
 			do {
-				try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+				try VNImageRequestHandler(data: pngData, options: [:]).perform([request])
 
 				guard let results = request.results, !results.isEmpty else {
 					self.logger.trace("\(title) - OCR no text found")
@@ -674,18 +695,23 @@ final class PackerLiteDriver: @unchecked Sendable {
 					}
 
 					// Rect in image coordinates. If you need top-left to bottom-left conversion, flip the y-origin.
-					let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(cgImage.width), Int(cgImage.height))
+					let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(imageSize.width), Int(imageSize.height))
+
+					// box in NSView coordinate bottomLeft origin
 					let flippedBox = CGRect(
-						x: box.origin.x,
-						y: CGFloat(cgImage.height) - box.origin.y - box.height,
-						width: box.width,
-						height: box.height)
+						x: box.origin.x * scaleX,
+						y: box.origin.y * scaleY,
+						width: box.width * scaleX,
+						height: box.height * scaleY)
 
 					#if DEBUG
-						await self.showDebugBox(flippedBox, in: CGSize(width: cgImage.width, height: cgImage.height))
+						await self.showDebugBox(flippedBox)
 					#endif
 
-					return CGPoint(x: flippedBox.midX, y: flippedBox.midY)
+					logger.debug("Text found \(label) at \(flippedBox)")
+
+					// NSView topLeft origin
+					return CGPoint(x: flippedBox.midX, y: viewHeight - flippedBox.midY)
 				}
 			} catch {
 				logger.error("Vision OCR failed: \(error)")

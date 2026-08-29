@@ -73,7 +73,7 @@ public enum PackerLiteEngine {
 		let commands = template.bootCommand
 		var runningIP = runningIP
 
-		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
+		progressHandler(.step(String(localized: "Provisioning Virtual Machine Setup Assistant…")))
 
 		guard let view = vm.vzMachineView else {
 			throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
@@ -115,7 +115,7 @@ public enum PackerLiteEngine {
 		let runInCaker = Bundle.runInCaker
 		let logger = Logger(self)
 
-		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
+		progressHandler(.step(String(localized: "Provisioning Virtual Machine Setup Assistant…")))
 
 		let vm = try await MainActor.run { () -> VirtualMachine in
 			let vncPassword = config.vncPassword ?? UUID().uuidString

@@ -40,8 +40,17 @@ extension NSView {
 		public let box: CGRect
 	}
 
+	/// Uses Vision framework to recognize text in the view's current image representation.
+	/// Box is in NSView coordinates (origin at bottom-left, y increases towards).
+	///
+	/// Goes through `NSImage`/PNG rather than handing Vision the `CGImage` captured straight off
+	/// `cacheDisplay(in:to:)`. That capture renders via `-[CALayer renderInContext:]` on a
+	/// layer-backed view, which Apple documents as unsupported/unreliable for GPU-composited
+	/// layers (Metal, AV, etc.) — `VZVirtualMachineView`'s framebuffer is exactly that, and the
+	/// raw capture can be blank/stale/partial. A plain CGContext redraw does NOT fix this (tried,
+	/// still failed); only the actual PNG encode/decode round trip does.
 	public func recognizeText() -> (CGSize, [RecognizedText])? {
-		guard let cgImage = self.imageRepresentation(in: self.bounds)?.cgImage else {
+		guard let nsImage = self.image(), let pngData = nsImage.pngData else {
 			return nil
 		}
 
@@ -56,20 +65,27 @@ extension NSView {
 			request.recognitionLevel = .accurate
 
 			do {
-				try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+				try VNImageRequestHandler(data: pngData, options: [:]).perform([request])
 
 				guard let results = request.results, results.isEmpty == false else {
 					return
 				}
 
-				result = (CGSize(width: cgImage.width, height: cgImage.height), results.compactMap { observation in
+				// The CGImage and view might differ in size, so scale accordingly
+				let viewHeight = self.bounds.height
+				let viewWidth = self.bounds.width
+				let imageSize = nsImage.size
+				let scaleX = viewWidth / CGFloat(imageSize.width)
+				let scaleY = viewHeight / CGFloat(imageSize.height)
+
+				result = (CGSize(width: imageSize.width, height: imageSize.height), results.compactMap { observation in
 					if let candidate = observation.topCandidates(1).first {
-						let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(cgImage.width), Int(cgImage.height))
+						let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(imageSize.width), Int(imageSize.height))
 						let flippedBox = CGRect(
-							x: box.origin.x,
-							y: CGFloat(cgImage.height) - box.origin.y - box.height,
-							width: box.width,
-							height: box.height)
+							x: box.origin.x * scaleX,
+							y: box.origin.y * scaleY,
+							width: box.width * scaleX,
+							height: box.height * scaleY)
 
 						return RecognizedText(text: candidate.string, box: flippedBox)
 					}
@@ -91,13 +107,22 @@ extension NSView {
 	}
 
 	@MainActor
-	func viewRelativePosition(of event: NSEvent) -> CGPoint {
+	public func viewRelativePosition(of event: NSEvent) -> CGPoint {
 		viewRelativePosition(of: event.locationInWindow)
 	}
 
 	@MainActor
-	func viewRelativePosition(of location: NSPoint) -> CGPoint {
+	public func viewRelativePosition(of location: NSPoint) -> CGPoint {
 		var position = convert(location, from: nil)
+		position.y = bounds.size.height - position.y
+
+		return position
+	}
+
+	@MainActor
+	public func windowRelativePosition(of point: CGPoint) -> CGPoint {
+		var position = convert(point, to: nil)
+
 		position.y = bounds.size.height - position.y
 
 		return position
