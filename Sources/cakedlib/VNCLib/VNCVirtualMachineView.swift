@@ -42,6 +42,13 @@ extension NSView {
 
 	/// Uses Vision framework to recognize text in the view's current image representation.
 	/// Box is in NSView coordinates (origin at bottom-left, y increases towards).
+	///
+	/// Goes through `NSImage`/PNG rather than handing Vision the `CGImage` captured straight off
+	/// `cacheDisplay(in:to:)`. That capture renders via `-[CALayer renderInContext:]` on a
+	/// layer-backed view, which Apple documents as unsupported/unreliable for GPU-composited
+	/// layers (Metal, AV, etc.) — `VZVirtualMachineView`'s framebuffer is exactly that, and the
+	/// raw capture can be blank/stale/partial. A plain CGContext redraw does NOT fix this (tried,
+	/// still failed); only the actual PNG encode/decode round trip does.
 	public func recognizeText() -> (CGSize, [RecognizedText])? {
 		guard let nsImage = self.image(), let pngData = nsImage.pngData else {
 			return nil
