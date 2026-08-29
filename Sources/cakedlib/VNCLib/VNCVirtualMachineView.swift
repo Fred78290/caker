@@ -40,6 +40,8 @@ extension NSView {
 		public let box: CGRect
 	}
 
+	/// Uses Vision framework to recognize text in the view's current image representation.
+	/// Box is in NSView coordinates (origin at bottom-left, y increases towards).
 	public func recognizeText() -> (CGSize, [RecognizedText])? {
 		guard let cgImage = self.imageRepresentation(in: self.bounds)?.cgImage else {
 			return nil
@@ -62,14 +64,20 @@ extension NSView {
 					return
 				}
 
+				// The CGImage and view might differ in size, so scale accordingly
+				let viewHeight = self.bounds.height
+				let viewWidth = self.bounds.width
+				let scaleX = viewWidth / CGFloat(cgImage.width)
+				let scaleY = viewHeight / CGFloat(cgImage.height)
+
 				result = (CGSize(width: cgImage.width, height: cgImage.height), results.compactMap { observation in
 					if let candidate = observation.topCandidates(1).first {
 						let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(cgImage.width), Int(cgImage.height))
 						let flippedBox = CGRect(
-							x: box.origin.x,
-							y: CGFloat(cgImage.height) - box.origin.y - box.height,
-							width: box.width,
-							height: box.height)
+							x: box.origin.x * scaleX,
+							y: box.origin.y * scaleY,
+							width: box.width * scaleX,
+							height: box.height * scaleY)
 
 						return RecognizedText(text: candidate.string, box: flippedBox)
 					}
@@ -91,13 +99,22 @@ extension NSView {
 	}
 
 	@MainActor
-	func viewRelativePosition(of event: NSEvent) -> CGPoint {
+	public func viewRelativePosition(of event: NSEvent) -> CGPoint {
 		viewRelativePosition(of: event.locationInWindow)
 	}
 
 	@MainActor
-	func viewRelativePosition(of location: NSPoint) -> CGPoint {
+	public func viewRelativePosition(of location: NSPoint) -> CGPoint {
 		var position = convert(location, from: nil)
+		position.y = bounds.size.height - position.y
+
+		return position
+	}
+
+	@MainActor
+	public func windowRelativePosition(of point: CGPoint) -> CGPoint {
+		var position = convert(point, to: nil)
+
 		position.y = bounds.size.height - position.y
 
 		return position

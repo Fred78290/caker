@@ -559,15 +559,17 @@ final class PackerLiteDriver: @unchecked Sendable {
 	// MARK: - Mouse
 
 	@MainActor private func click(_ nsPoint: CGPoint) {
-		logger.debug("clickText \(nsPoint)")
-
 		#if DEBUG
-			showDebugBox(CGRect(origin: nsPoint, size: CGSize(width: 4, height: 4)), in: self.targetView.bounds.size)
+		showClickText(nsPoint)
 		#endif
 
-		self.handleMouseMovement(to: nsPoint)
-		self.handlePointerEvent(nsPoint, buttonMask: 0x01)
-		self.handlePointerEvent(nsPoint, buttonMask: 0x00)
+		let positionInWindow = self.targetView.windowRelativePosition(of: nsPoint)
+
+		logger.debug("clickText \(nsPoint), positionInWindow = \(positionInWindow)")
+
+		self.handleMouseMovement(to: positionInWindow)
+		self.handlePointerEvent(positionInWindow, buttonMask: 0x01)
+		self.handlePointerEvent(positionInWindow, buttonMask: 0x00)
 	}
 
 	@MainActor private func scroll(_ horizontal: Int, _ vertical: Int) async throws {
