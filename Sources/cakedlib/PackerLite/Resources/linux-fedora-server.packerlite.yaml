@@ -31,71 +31,71 @@
 # ${var.username}/${var.password} below resolve to the VM's actual account,
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
 
-boot_timeout: 60m        # a full install can legitimately take 20-30+ minutes
+boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
 
 pre_boot_command:
-- title: Press <enter>
-  commands:
-  - <enter>
+  - title: Boot the GRUB menu's default "Install" entry
+    commands:
+      - <enter>
 
 boot_command:
-- title: Wait Anaconda
-  commands:
-  - <locate text="SERVER" timeout=120>
-  - <wait2s>
+  - title: Wait Anaconda
+    commands:
+      - <locate text="SERVER" timeout=120>
+      - <wait2s>
 
-- title: Choose langue
-  commands:
-  - english
-  - <tab repeat=6>
-  - <enter>
+  - title: Choose langue
+    commands:
+      - english
+      - <tab repeat=6>
+      - <enter>
 
-- title: Change keyboard
-  commands:
-  - <keyboard 'com.apple.keylayout.US'>
+  - title: Change keyboard
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
 
-- title: Create user account
-  commands:
-  - <locate text="INSTALLATION SUMMARY">
-  - <wait1s>
-  - <click text="User Creation">
+  - title: Create user account
+    commands:
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="User Creation">
 
-- title: Fill user account information
-  commands:
-  - <locate text="CREATE USER">
-  - ${var.username}
-  - <tab>
-  - ${var.username}
-  - <tab repeat=3>
-  - ${var.password}
-  - <tab>
-  - ${var.password}
-  - <tab>
-  - <click text="Done">
+  - title: Fill user account information
+    commands:
+      - <locate text="CREATE USER">
+      - ${var.username}
+      - <tab>
+      - ${var.username}
+      - <tab repeat=3>
+      - ${var.password}
+      - <tab>
+      - ${var.password}
+      - <tab>
+      - <click text="Done">
 
-- title: Confirm password
-  commands:
-  - <skipNotFound text="Press done again to use the password anyway">
-  - <click text="Done">
+  - title: Confirm password
+    commands:
+      - <skipNotFound text="Press done again to use the password anyway">
+      - <click text="Done">
 
-- title: Installation Destination
-  commands:
-  - <locate text="INSTALLATION SUMMARY">
-  - <wait1s>
-  - <click text="Installation Destination">
-  - <locate text="Device Selection">
-  - <wait1s>
-  - <click text="Done">
-  - <wait1s>
+  - title: Installation Destination
+    commands:
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="Installation Destination">
+      - <locate text="Device Selection">
+      - <wait1s>
+      - <click text="Done">
+      - <wait1s>
 
-- title: Begin Installation
-  commands:
-  - <click text="Begin Installation">
+  - title: Begin Installation
+    commands:
+      - <click text="Begin Installation">
 
-- title: Wait installed and ready for you to use!
-  commands:
-  - <locate text="Fedora is now successfully installed and ready for you to use!" timeout=1200>
+  - title: Wait installed and ready for you to use!
+    commands:
+      - <locate text="Fedora is now successfully installed and ready for you to use!" timeout=1200>
 
-- title: Reboot System
-  commands:
-  - <click text="Reboot System">
+  - title: Reboot System
+    commands:
+      - <click text="Reboot System">

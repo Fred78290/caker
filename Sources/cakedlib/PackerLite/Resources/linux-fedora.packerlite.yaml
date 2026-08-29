@@ -47,88 +47,68 @@
 boot_timeout: 60m        # a full desktop install can legitimately take 20-30+ minutes
 
 pre_boot_command:
-  - title: Boot the GRUB menu's "Install" entry
-    commands:
-      - <wait5s>
-      - <up>
-      - <enter>
+- title: Boot the GRUB menu's default "Install" entry
+  commands:
+  - <enter>
 
 boot_command:
-  - title: Open a terminal via the Activities overview
-    commands: 
-      - <leftAltOn>
-      - <leftAltOff>
-      - <wait2s>
-      - Terminal
-      - <enter>
+- title: Wait Anaconda
+  commands:
+  - <locate text="SERVER" timeout=120>
+  - <wait2s>
 
-  - title: Launch the graphical installer as root
-    commands: 
-      - <wait5s>
-      - sudo liveinst
-      - <enter>
+- title: Choose langue
+  commands:
+  - english
+  - <tab repeat=6>
+  - <enter>
 
-  - title: Wait for the Anaconda installer window to open
-    commands: 
-      - <wait15s>
+- title: Change keyboard
+  commands:
+  - <keyboard 'com.apple.keylayout.US'>
 
-  - title: Welcome screen - continue with the default language
-    commands: 
-      - <wait5s>
-      - <click 'Continue'>
+- title: Create user account
+  commands:
+  - <locate text="INSTALLATION SUMMARY">
+  - <wait1s>
+  - <click text="User Creation">
 
-  - title: Open Installation Destination
-    commands: 
-      - <wait5s>
-      - <click 'Installation Destination'>
+- title: Fill user account information
+  commands:
+  - <locate text="CREATE USER">
+  - ${var.username}
+  - <tab>
+  - ${var.username}
+  - <tab repeat=3>
+  - ${var.password}
+  - <tab>
+  - ${var.password}
+  - <tab>
+  - <click text="Done">
 
-  - title: Accept automatic partitioning on the detected disk
-    commands: 
-      - <wait5s>
-      - <click 'Done'>
+- title: Confirm password
+  commands:
+  - <skipNotFound text="Press done again to use the password anyway">
+  - <click text="Done">
 
-  - title: Open User Creation
-    commands: 
-      - <wait5s>
-      - <click 'User Creation'>
+- title: Installation Destination
+  commands:
+  - <locate text="INSTALLATION SUMMARY">
+  - <wait1s>
+  - <click text="Installation Destination">
+  - <locate text="Device Selection">
+  - <wait1s>
+  - <click text="Done">
+  - <wait1s>
 
-  - title: Fill in the full name, then replace the auto-suggested username
-    commands: 
-      - <wait2s>
-      - Managed via Caker
-      - <tab>
-      - <leftCtrlOn>
-      - a
-      - <leftCtrlOff>
-      - ${var.username}
+- title: Begin Installation
+  commands:
+  - <click text="Begin Installation">
 
-  - title: Make this user an administrator
-    commands: 
-      - <click 'Make this user administrator'>
+- title: Wait installed and ready for you to use!
+  commands:
+  - <locate text="Fedora is now successfully installed and ready for you to use!" timeout=1200>
 
-  - title: Set and confirm the account password
-    commands: 
-      - <tab>
-      - <tab>
-      - ${var.password}
-      - <tab>
-      - ${var.password}
-
-  - title: Confirm the user creation spoke
-    commands: 
-      - <wait2s>
-      - <click 'Done'>
-
-  - title: Begin the installation
-    commands: 
-      - <wait5s>
-      - <click 'Begin Installation'>
-
-  - title: Wait for the installation to finish
-    commands: 
-      - <wait30m>
-
-  - title: Quit the installer once installation completes
-    commands: 
-      - <wait5s>
-      - <click 'Quit'>
+- title: Reboot System
+  commands:
+  - <click text="Reboot System">
