@@ -678,7 +678,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 				let needle = label.lowercased()
 
 				#if DEBUG
-					print("\n\n")
+				self.logger.trace("\n\n")
 				#endif
 
 				for observation in results {
@@ -687,7 +687,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 					}
 
 					#if DEBUG
-						self.logger.debug("\(title) - OCR: found: \(candidate.string) <--> \(needle) : match \(candidate.string.lowercased().contains(needle))")
+						self.logger.trace("\(title) - OCR: found: \(candidate.string) <--> \(needle) : match \(candidate.string.lowercased().contains(needle))")
 					#endif
 
 					guard candidate.string.lowercased().contains(needle) else {
