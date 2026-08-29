@@ -894,6 +894,13 @@ struct VirtualMachineWizard: View {
 								.disabled(self.model.createVM)
 								.labelsHidden()
 								.onChange(of: model.isoImageRelease) { _, newValue in
+									let plateform = SupportedPlatform(rawValue: newValue.label)
+
+									// Admin is already used on debian
+									if plateform == .debian && self.config.configuredUser == "admin" {
+										self.config.configuredUser = "administrator"
+									}
+
 									self.config.imageName = newValue.url
 									newValue.applyMinimumResources(to: &self.config)
 								}
