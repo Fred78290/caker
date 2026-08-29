@@ -43,7 +43,7 @@ extension NSView {
 	/// Uses Vision framework to recognize text in the view's current image representation.
 	/// Box is in NSView coordinates (origin at bottom-left, y increases towards).
 	public func recognizeText() -> (CGSize, [RecognizedText])? {
-		guard let cgImage = self.imageRepresentation(in: self.bounds)?.cgImage else {
+		guard let nsImage = self.image(), let pngData = nsImage.pngData else {
 			return nil
 		}
 
@@ -58,7 +58,7 @@ extension NSView {
 			request.recognitionLevel = .accurate
 
 			do {
-				try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+				try VNImageRequestHandler(data: pngData, options: [:]).perform([request])
 
 				guard let results = request.results, results.isEmpty == false else {
 					return
@@ -67,12 +67,13 @@ extension NSView {
 				// The CGImage and view might differ in size, so scale accordingly
 				let viewHeight = self.bounds.height
 				let viewWidth = self.bounds.width
-				let scaleX = viewWidth / CGFloat(cgImage.width)
-				let scaleY = viewHeight / CGFloat(cgImage.height)
+				let imageSize = nsImage.size
+				let scaleX = viewWidth / CGFloat(imageSize.width)
+				let scaleY = viewHeight / CGFloat(imageSize.height)
 
-				result = (CGSize(width: cgImage.width, height: cgImage.height), results.compactMap { observation in
+				result = (CGSize(width: imageSize.width, height: imageSize.height), results.compactMap { observation in
 					if let candidate = observation.topCandidates(1).first {
-						let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(cgImage.width), Int(cgImage.height))
+						let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(imageSize.width), Int(imageSize.height))
 						let flippedBox = CGRect(
 							x: box.origin.x * scaleX,
 							y: box.origin.y * scaleY,

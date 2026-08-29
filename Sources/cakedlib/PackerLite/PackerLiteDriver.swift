@@ -646,7 +646,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 	/// converted into the top-left-origin pixel space `VNCInputHandler.handlePointerEvent` expects.
 	private func locate(text label: String) async throws -> CGPoint? {
 		// Capture the current CGImage on the main actor (AppKit view access must be on main).
-		guard let cgImage = await self.targetView.imageRepresentation(in: self.targetView.bounds)?.cgImage else {
+		guard let nsImage = await self.targetView.image(), let pngData = nsImage.pngData else {
 			return nil
 		}
 
@@ -654,11 +654,12 @@ final class PackerLiteDriver: @unchecked Sendable {
 			return self.targetView.bounds
 		}
 
-		// The CGImage and view might differ in size, so scale accordingly
+		// The image and view might differ in size, so scale accordingly
 		let viewHeight = bounds.height
 		let viewWidth = bounds.width
-		let scaleX = viewWidth / CGFloat(cgImage.width)
-		let scaleY = viewHeight / CGFloat(cgImage.height)
+		let imageSize = nsImage.size
+		let scaleX = viewWidth / imageSize.width
+		let scaleY = viewHeight / imageSize.height
 		let logger = self.logger
 
 		// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
@@ -667,7 +668,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 			request.recognitionLevel = .accurate
 
 			do {
-				try VNImageRequestHandler(cgImage: cgImage, options: [:]).perform([request])
+				try VNImageRequestHandler(data: pngData, options: [:]).perform([request])
 
 				guard let results = request.results, !results.isEmpty else {
 					return nil
@@ -681,7 +682,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 					}
 
 					// Rect in image coordinates. If you need top-left to bottom-left conversion, flip the y-origin.
-					let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(cgImage.width), Int(cgImage.height))
+					let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(imageSize.width), Int(imageSize.height))
 
 					// box in NSView coordinate bottomLeft origin
 					let flippedBox = CGRect(
