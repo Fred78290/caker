@@ -11164,17 +11164,6 @@
         }
       }
     },
-    "Provisioning macOS Setup Assistant…" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Configuration de l'assistant de réglages macOS en cours…"
-          }
-        }
-      }
-    },
     "Provisioning options" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11301,6 +11290,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Délai de configuration dépassé après %@s"
+          }
+        }
+      }
+    },
+    "Provisioning Virtual Machine Setup Assistant…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuration de l'assistant de réglages de la machine virtuelle en cours…"
           }
         }
       }
