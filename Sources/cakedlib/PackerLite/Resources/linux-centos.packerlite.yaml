@@ -34,6 +34,7 @@ boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
 pre_boot_command:
   - title: Press <enter>
     commands:
+      - <locate text="GRUB" timeout=30>
       - <enter>
 
 boot_command:
