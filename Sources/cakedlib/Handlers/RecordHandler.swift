@@ -118,7 +118,7 @@ public struct RecordHandler {
 
 			let yaml = self.recorder.finish()
 
-			self.vm.stopVM { _ in
+			self.vm.stopFromUI { _ in
 				return completionHandler(yaml)
 			}
 		}
