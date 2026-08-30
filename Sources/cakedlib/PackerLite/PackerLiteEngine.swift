@@ -65,6 +65,7 @@ public enum PackerLiteEngine {
 		template: ParsedPackerLiteTemplate,
 		runningIP: String?,
 		runMode: Utils.RunMode,
+		waitIPTimeout: Int = 180,
 		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
 	) async throws {
 		let location = vm.location
@@ -88,7 +89,15 @@ public enum PackerLiteEngine {
 			progressHandler: progressHandler)
 
 		if runningIP == nil {
-			runningIP = try location.waitIPWithLease(config: config, wait: 180, runMode: runMode)
+			progressHandler(.step(String(localized: "Wait IP address…")))
+
+			runningIP = try location.waitIPWithLease(config: config, wait: waitIPTimeout, runMode: runMode)
+			
+			if let ip = runningIP {
+				logger.info("VM \(location.name) is now available at \(ip) after provisioning")
+			} else {
+				logger.error(String(localized: "Unable to obtain an IP address for VM \(location.name) after provisioning"))
+			}
 		}
 
 		if let runningIP, runningIP.isEmpty == false {
