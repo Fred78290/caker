@@ -42,6 +42,7 @@
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
 
 boot_timeout: 75m        # d-i's package installation stage depends on mirror speed, budget generously
+ignore_ip: true
 
 pre_boot_command:
   - title: Select keyboard layout
@@ -75,12 +76,12 @@ pre_boot_command:
 
   - title: Entry for the hostname
     commands: 
-      - <locate text="Please enter the hostname for this system">
+      - <locate text="Please enter the hostname for this system" timeout=30>
       - <backspace repeat=6>
       - ${var.username}-vm
       - <enter>
 
-  - title: Domain name (leave blank)
+  - title: Domain name
     commands: 
       - <locate text="Domain name">
       - <enter>
@@ -90,7 +91,7 @@ boot_command:
     commands:
       - <keyboard 'com.apple.keylayout.US'>
 
-  - title: Root account password (leave blank)
+  - title: Root account password
     commands: 
       - <locate text="Set up users and passwords">
       - <enter>
@@ -171,4 +172,18 @@ boot_command:
   - title: Finish the installation and reboot
     commands: 
       - <locate text="Finish the installation" timeout=3600>
+      - <enter>
+
+  - title: Boot the GRUB
+    commands:
+      - <locate text="GRUB" timeout=30>
+      - <enter>
+
+  - title: Wait login prompt
+    commands: 
+      - <locate text="login:" timeout=60>
+      - ${var.username}
+      - <enter>
+      - <locate text="Password:" timeout=60>
+      - ${var.password}
       - <enter>
