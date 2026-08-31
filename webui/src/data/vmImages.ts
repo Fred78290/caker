@@ -168,36 +168,50 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
       },
       {
         "id": "debian1360",
-        "label": "Debian 13.6.0 –",
+        "label": "Debian 13.6.0",
         "url": "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.6.0-arm64-DVD-1.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
         "id": "openSUSELeap161",
-        "label": "openSUSE Leap 16.1 – DVD",
+        "label": "openSUSE Leap 16.1",
         "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.aarch64-Leap_16.1.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
         "id": "openSUSELeap160",
-        "label": "openSUSE Leap 16.0 – DVD",
+        "label": "openSUSE Leap 16.0",
         "url": "https://download.opensuse.org/distribution/leap/16.0/installer/iso/agama-installer.aarch64-Leap_16.0.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
         "id": "openSUSELeap156",
-        "label": "openSUSE Leap 15.6 – DVD",
+        "label": "openSUSE Leap 15.6",
         "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-aarch64-Media.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
         "id": "openSUSELeap155",
-        "label": "openSUSE Leap 15.5 – DVD",
+        "label": "openSUSE Leap 15.5",
         "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-aarch64-Media.iso",
+        "minCPU": 2,
+        "minMemoryMiB": 2048
+      },
+      {
+        "id": "alpine324",
+        "label": "Alpine 3.24",
+        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-virt-3.24.1-aarch64.iso",
+        "minCPU": 2,
+        "minMemoryMiB": 2048
+      },
+      {
+        "id": "alpine323",
+        "label": "Alpine 3.23",
+        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/aarch64/alpine-virt-3.23.5-aarch64.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       }
@@ -381,6 +395,20 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
+        "id": "alpine324",
+        "label": "Alpine 3.24",
+        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/cloud/generic_alpine-3.24.1-aarch64-uefi-cloudinit-r0.qcow2",
+        "minCPU": 2,
+        "minMemoryMiB": 2048
+      },
+      {
+        "id": "alpine323",
+        "label": "Alpine 3.23",
+        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/cloud/generic_alpine-3.23.5-aarch64-uefi-cloudinit-r0.qcow2",
+        "minCPU": 2,
+        "minMemoryMiB": 2048
+      },
+      {
         "id": "alpine322",
         "label": "Alpine 3.22",
         "url": "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/cloud/generic_alpine-3.22.1-aarch64-uefi-cloudinit-r0.qcow2",
@@ -477,7 +505,7 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
       },
       {
         "id": "debian1360",
-        "label": "Debian 13.6.0 –",
+        "label": "Debian 13.6.0",
         "url": "https://cdimage.debian.org/cdimage/release/current/amd64/iso-dvd/debian-13.6.0-amd64-DVD-1.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
@@ -591,6 +619,20 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "id": "openSUSELeap155",
         "label": "openSUSE Leap 15.5",
         "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-x86_64-Media.iso",
+        "minCPU": 2,
+        "minMemoryMiB": 2048
+      },
+      {
+        "id": "alpine324",
+        "label": "Alpine 3.24",
+        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/x86_64/alpine-virt-3.24.1-x86_64.iso",
+        "minCPU": 2,
+        "minMemoryMiB": 2048
+      },
+      {
+        "id": "alpine323",
+        "label": "Alpine 3.23",
+        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/x86_64/alpine-virt-3.23.5-x86_64.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       }
@@ -770,6 +812,20 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "id": "openSUSE154",
         "label": "OpenSUSE Leap 15.4",
         "url": "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.4/images/openSUSE-Leap-15.4.x86_64-NoCloud.qcow2",
+        "minCPU": 2,
+        "minMemoryMiB": 2048
+      },
+      {
+        "id": "alpine324",
+        "label": "Alpine 3.24",
+        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/cloud/generic_alpine-3.24.1-x86_64-uefi-cloudinit-r0.qcow2",
+        "minCPU": 2,
+        "minMemoryMiB": 2048
+      },
+      {
+        "id": "alpine323",
+        "label": "Alpine 3.23",
+        "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/cloud/generic_alpine-3.23.5-x86_64-uefi-cloudinit-r0.qcow2",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
