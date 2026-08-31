@@ -426,7 +426,7 @@ public final class ActionRecorder: @unchecked Sendable {
 	/// recognition/rendering latency the raw recorded gap doesn't account for — since those two
 	/// tokens already *poll* for the recognized text to appear rather than firing blind, so there's
 	/// no reason to also block on a fixed sleep in front of them (see CLAUDE.md's PackerLite
-	/// section on `<locate>`/`<skipNotFound>` replacing guessed sleep durations). Every other step
+	/// section on `<locate>`/`<skipCommandIfNotFound>` replacing guessed sleep durations). Every other step
 	/// keeps the plain `<waitNs>`-before behavior: every other gap becomes a fixed `<waitNs>`, which
 	/// is still a first-draft compromise this codebase has otherwise moved away from — treat the
 	/// output as a starting point for a human to harden with `<locate>` anchors, not a finished

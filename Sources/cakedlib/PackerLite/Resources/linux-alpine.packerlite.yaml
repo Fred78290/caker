@@ -71,7 +71,7 @@ pre_boot_command:
 
   - title: Select ethernet interface and configure both
     commands:
-      - '<skipNotFound text="Available interfaces are: eth0 eth1" timeout=2>'
+      - '<skipCommandIfNotFound text="Available interfaces are: eth0 eth1" timeout=2>'
       - <enter>
       - <enter>
 
@@ -90,7 +90,7 @@ pre_boot_command:
 
   - title: Configure single Ethernet interface eth0
     commands:
-      - '<skipNotFound text="interfaces are: eth0." timeout=2>'
+      - '<skipCommandIfNotFound text="interfaces are: eth0." timeout=2>'
       - <enter>
       - <enter>
 

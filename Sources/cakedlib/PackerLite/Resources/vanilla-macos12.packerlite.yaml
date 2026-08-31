@@ -158,7 +158,7 @@ boot_command:
 
   - title: Siri
     commands: 
-      - <skipNotFound timeout=10 text='Siri'>
+      - <skipCommandIfNotFound timeout=10 text='Siri'>
       - <tab>
       - <spacebar>
       - <leftShiftOn>

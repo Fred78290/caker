@@ -172,7 +172,7 @@ boot_command:
     # Siri on in european languages, off in US English
   - title: Siri
     commands: 
-      - <skipNotFound timeout=10 text='Siri'>
+      - <skipCommandIfNotFound timeout=10 text='Siri'>
       - <tab>
       - <spacebar>
       - <leftShiftOn>

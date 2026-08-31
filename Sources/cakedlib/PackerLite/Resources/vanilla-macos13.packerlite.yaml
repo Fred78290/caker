@@ -50,7 +50,7 @@ boot_command:
 
   - title: Change keyboard
     commands: 
-      - <skipNotFound timeout=10 text='Changekeyboard'>
+      - <skipCommandIfNotFound timeout=10 text='Changekeyboard'>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -168,7 +168,7 @@ boot_command:
 
   - title: Siri
     commands: 
-      - <skipNotFound timeout=10 text='Siri'>
+      - <skipCommandIfNotFound timeout=10 text='Siri'>
       - <tab>
       - <spacebar>
       - <leftShiftOn>

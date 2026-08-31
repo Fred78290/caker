@@ -314,15 +314,15 @@ final class PackerLiteDriver: @unchecked Sendable {
 			logger.debug("[\(title)]: locate '\(label)', timeout=\(timeout)")
 			try await locateText(label, timeout: timeout, title: title)
 
-		case .skipNotFound(let label, let timeout):
-			logger.debug("[\(title)]: skipNotFound '\(label)', timeout=\(timeout)")
-			if try await skipNotFound(label, timeout: timeout, title: title) == false {
+		case .skipCommandIfNotFound(let label, let timeout):
+			logger.debug("[\(title)]: skipCommandIfNotFound '\(label)', timeout=\(timeout)")
+			if try await skipCommandIfNotFound(label, timeout: timeout, title: title) == false {
 				return (false, -1)
 			}
 
 		case .skipStepIfNotFound(let label, let step, let timeout):
 			logger.debug("[\(title)]: skipStepIfNotFound '\(label)', steps=\(step), timeout=\(timeout)")
-			if try await skipNotFound(label, timeout: timeout, title: title) == false {
+			if try await skipCommandIfNotFound(label, timeout: timeout, title: title) == false {
 				return (false, step)
 			}
 
@@ -724,7 +724,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 	}
 
-	@MainActor private func skipNotFound(_ label: [String], timeout: TimeInterval, title: String) async throws -> Bool {
+	@MainActor private func skipCommandIfNotFound(_ label: [String], timeout: TimeInterval, title: String) async throws -> Bool {
 		let deadline = Date().addingTimeInterval(timeout)
 
 		while true {
