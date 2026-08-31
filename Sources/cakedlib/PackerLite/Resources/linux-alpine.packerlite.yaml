@@ -35,12 +35,6 @@
 boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
 
 pre_boot_command:
-  - title: Boot the GRUB menu's default "Install" entry
-    commands:
-      - <locate text="GRUB" timeout=30>
-      - <enter>
-
-boot_command:
   - title: Change keyboard
     commands:
       - <keyboard 'com.apple.keylayout.US'>
@@ -66,7 +60,7 @@ boot_command:
   - title: Select keyboard variant
     commands:
       - <locate text="Select variant">
-      - us-mac
+      - us-intl
       - <enter>
 
   - title: Set hostname
@@ -75,24 +69,19 @@ boot_command:
       - ${var.username}-vm
       - <enter>
 
-  - title: Select ethernet interface
+  - title: Select ethernet interface and configure both
     commands:
-      - <skipNotFound text="Available interfaces are: eth0 eth1">
+      - '<skipNotFound text="Available interfaces are: eth0 eth1">'
+      #- <locate text="one do you want to initialize">
       - <enter>
-
-  - title: Configure eth0
-    commands:
-      - <locate text="IPv4 address for eth0">
+      #- <locate text="v4 address for eth0">
       - <enter>
-      - <locate text="IPv6 address for eth0">
+      #- <locate text="v6 address for eth0">
       - <enter>
-
-  - title: Configure eth1 if present
-    commands:
-      - <skipNotFound text="Available interfaces are: eth1">
+      - '<locate text="Available interfaces are: eth1.">'
       - done
       - <enter>
-      - <locate text="Do you want to do any manual network configuration" timeout=30>
+      - <locate text="Do you want to do any manual network configuration">
       - y
       - <enter>
       - <wait2s>
@@ -110,12 +99,25 @@ boot_command:
       - zz
       - <leftShiftOff>
 
+  - title: Configure single Ethernet interface eth0
+    commands:
+      - '<skipNotFound text="Available interfaces are: eth0.">'
+      #- <locate text="one do you want to initialize">
+      - <enter>
+      #- <locate text="v4 address for eth0">
+      - <enter>
+      #- <locate text="v6 address for eth0">
+      - <enter>
+      #- <locate text="Do you want to do any manual network configuration">
+      - <enter>
+
   - title: Change password for root
     commands:
       - <locate text="Changing password for root" timeout=30>
       - ${var.password}
       - <enter>
-      - <locate text="Retype password for">
+      #- <locate text="Retype password for">
+      - <wait1s>
       - ${var.password}
       - <enter>
 
@@ -126,12 +128,12 @@ boot_command:
 
   - title: Ignore proxy configuration
     commands:
-      - <locate text="HTTP/FTP proxy URL">
+      - <locate text="proxy">
       - <enter>
 
   - title: Setup NTP client
     commands:
-      - <locate text="Which NTP client to run">
+      - <locate text="Network Time Protocol">
       - <enter>
 
   - title: Select APK mirror
@@ -141,7 +143,7 @@ boot_command:
 
   - title: Create user account
     commands:
-      - <locate text="Setup a user">
+      - <locate text="enter a lower-case loginname">
       - ${var.username}
       - <enter>
       - <locate text="Full name for user">
@@ -152,12 +154,12 @@ boot_command:
       - <locate text="Retype password">
       - ${var.password}
       - <enter>
-      - <locate text="Enter SSH key or URL">
+      - <wait1s>
       - <enter>
 
   - title: Configure SSH server
     commands:
-      - <locate text="Which ssh server">
+      - <locate text="ssh server">
       - <enter>
 
   - title: Configure Disk
@@ -177,16 +179,25 @@ boot_command:
       - <locate text="Installation is complete" timeout=600>
       - reboot
       - <enter>
+      - <locate text="GRUB">
+      - <enter>
+
+boot_command:
+  - title: Change keyboard
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
 
   - title: Wait login prompt after reboot
     commands:
-      - <locate text="login" timeout=60>
+      - <locate text="Welcome to Alpine">
+      - '<locate text="login:" timeout=60>'
       - root
       - <enter>
-      - <locate text="Password:">
+      - <locate text="Password">
       - ${var.password}
-      - <locate text="Welcome to Alpine">
-      - sed -i '/^#http/s/^#//' /etc/apk/repositories
+      - <enter>
+      - <locate text="The Alpine Wiki contains">
+      - 'sed -i "/^#http/s/^#//" /etc/apk/repositories"
       - <enter>
       #- sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
       #- sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
@@ -195,6 +206,6 @@ boot_command:
       - <locate text="distinct packages available" timeout=60>
       - apk add sudo
       - <enter>
-      - echo "${var.username} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${var.username}
+      - 'echo "${var.username} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${var.username}'
       - <enter>
       - reboot
