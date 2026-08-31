@@ -16,6 +16,14 @@ import QuartzCore
 import RoyalVNCKit
 import Vision
 
+extension [String] {
+	func included(_ with: String) -> Bool {
+		self.first {
+			with.contains($0)
+		} != nil
+	}
+}
+
 extension CGKeyCodes {
 	public static let functionKeys: [CGKeyCode] = [
 		CGKeyCodes.f1,
@@ -66,7 +74,7 @@ extension TISInputSource {
 
 enum PackerLiteDriverError: Error, LocalizedError {
 	case stepFailed(step: BootCommandStep, underlying: Error)
-	case textNotFound(String)
+	case textNotFound([String])
 
 	var errorDescription: String? {
 		switch self {
@@ -99,90 +107,168 @@ final class PackerLiteDriver: @unchecked Sendable {
 	private var characters: String = String.empty
 	private var trackingNumber: Int = 0
 	private let eventSource = CGEventSource(stateID: .combinedSessionState)
+	private let level: Logger.LogLevel
 
-	#if DEBUG
-		private var textFoundOverlay: CAShapeLayer?
-		private var clickFoundOverlay: CAShapeLayer?
+	private var textesFoundOverlay: [CAShapeLayer]?
+	private var textFoundOverlay: CAShapeLayer?
+	private var clickFoundOverlay: CAShapeLayer?
 
-		@MainActor
-		private func showDebugBox(_ box: CGRect) {
-			guard let layer = targetView.layer else {
-				return
-			}
-
-			if let textFoundOverlay = self.textFoundOverlay {
-				textFoundOverlay.removeFromSuperlayer()
-				self.textFoundOverlay = nil
-			}
-
-			targetView.wantsLayer = true
-
-			let overlay = CAShapeLayer()
-
-			overlay.zPosition = 1000
-			layer.addSublayer(overlay)
-
-			self.textFoundOverlay = overlay
-
-			overlay.path = CGPath(rect: box, transform: nil)
-			overlay.strokeColor = NSColor.red.cgColor
-			overlay.fillColor = NSColor.red.withAlphaComponent(0.2).cgColor
-			overlay.lineWidth = 2.0
+	@MainActor
+	private func showDebugBox(_ box: CGRect) {
+		guard let layer = targetView.layer else {
+			return
 		}
 
-		private func showClickText(_ nsPoint: CGPoint) {
-			guard let layer = targetView.layer else {
-				return
-			}
-
-			if let clickFoundOverlay = self.clickFoundOverlay {
-				clickFoundOverlay.removeFromSuperlayer()
-				self.clickFoundOverlay = nil
-			}
-
-			let box = CGRect(origin: CGPoint(x: nsPoint.x - 4.0, y: self.targetView.bounds.height - nsPoint.y - 4.0), size: CGSize(width: 8.0, height: 8.0))
-
-			targetView.wantsLayer = true
-
-			let overlay = CAShapeLayer()
-
-			overlay.zPosition = 1000
-			layer.addSublayer(overlay)
-
-			self.clickFoundOverlay = overlay
-
-			overlay.path = CGPath(ellipseIn: box, transform: nil)
-			overlay.strokeColor = NSColor.green.cgColor
-			overlay.fillColor = NSColor.green.withAlphaComponent(0.4).cgColor
-			overlay.lineWidth = 3.0
+		if let textFoundOverlay = self.textFoundOverlay {
+			textFoundOverlay.removeFromSuperlayer()
+			self.textFoundOverlay = nil
 		}
 
-		@MainActor
-		private func clearDebugBox() {
-			if let textFoundOverlay {
-				textFoundOverlay.removeFromSuperlayer()
-				self.textFoundOverlay = nil
+		targetView.wantsLayer = true
+
+		let overlay = CAShapeLayer()
+
+		overlay.zPosition = 1000
+		layer.addSublayer(overlay)
+
+		self.textFoundOverlay = overlay
+
+		overlay.path = CGPath(rect: box, transform: nil)
+		overlay.strokeColor = NSColor.red.cgColor
+		overlay.fillColor = NSColor.red.withAlphaComponent(0.2).cgColor
+		overlay.lineWidth = 2.0
+	}
+
+	@MainActor
+	private func showTextesBox(_ observations: [VNRecognizedTextObservation], imageSize: CGSize, title: String, needles: [String]) {
+		guard let layer = targetView.layer else {
+			return
+		}
+
+		self.textesFoundOverlay?.forEach {
+			$0.removeFromSuperlayer()
+		}
+
+		let bounds = self.targetView.bounds
+		let viewHeight = bounds.height
+		let viewWidth = bounds.width
+		let scaleX = viewWidth / imageSize.width
+		let scaleY = viewHeight / imageSize.height
+
+		targetView.wantsLayer = true
+
+		self.logger.trace("\n\nStart matches: \(needles)\n\n")
+
+		self.textesFoundOverlay = observations.compactMap { observation in
+			if let candidate = observation.topCandidates(1).first {
+				let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(imageSize.width), Int(imageSize.height))
+				let flippedBox = CGRect(
+					x: box.origin.x * scaleX,
+					y: box.origin.y * scaleY,
+					width: box.width * scaleX,
+					height: box.height * scaleY)
+
+				let overlay = CAShapeLayer()
+
+				overlay.zPosition = 1000
+				layer.addSublayer(overlay)
+
+				self.textFoundOverlay = overlay
+
+				overlay.path = CGPath(rect: flippedBox, transform: nil)
+				overlay.strokeColor = NSColor.blue.cgColor
+				overlay.fillColor = NSColor.blue.withAlphaComponent(0.2).cgColor
+				overlay.lineWidth = 2.0
+
+				self.logger.trace("\(title) - OCR: found: \(candidate.string) <--> \(needles) : match \(needles.included( candidate.string.lowercased()))")
+
+				return overlay
 			}
 
-			if let clickFoundOverlay {
-				clickFoundOverlay.removeFromSuperlayer()
-				self.clickFoundOverlay = nil
-			}
+			return nil
 		}
-	#endif
+
+		self.logger.trace("\n\nEnd matches: \(needles)\n\n")
+	}
+
+	@MainActor
+	private func showClickText(_ nsPoint: CGPoint) {
+		guard let layer = targetView.layer else {
+			return
+		}
+
+		if let clickFoundOverlay = self.clickFoundOverlay {
+			clickFoundOverlay.removeFromSuperlayer()
+			self.clickFoundOverlay = nil
+		}
+
+		let box = CGRect(origin: CGPoint(x: nsPoint.x - 4.0, y: self.targetView.bounds.height - nsPoint.y - 4.0), size: CGSize(width: 8.0, height: 8.0))
+
+		targetView.wantsLayer = true
+
+		let overlay = CAShapeLayer()
+
+		overlay.zPosition = 1000
+		layer.addSublayer(overlay)
+
+		self.clickFoundOverlay = overlay
+
+		overlay.path = CGPath(ellipseIn: box, transform: nil)
+		overlay.strokeColor = NSColor.green.cgColor
+		overlay.fillColor = NSColor.green.withAlphaComponent(0.4).cgColor
+		overlay.lineWidth = 3.0
+	}
+
+	@MainActor
+	private func clearDebugBox() {
+		guard self.level >= .debug else {
+			return
+		}
+
+		textesFoundOverlay?.forEach {
+			$0.removeFromSuperlayer()
+		}
+
+		textesFoundOverlay = nil
+
+		if let textFoundOverlay {
+			textFoundOverlay.removeFromSuperlayer()
+			self.textFoundOverlay = nil
+		}
+
+		if let clickFoundOverlay {
+			clickFoundOverlay.removeFromSuperlayer()
+			self.clickFoundOverlay = nil
+		}
+	}
 
 	@MainActor
 	init(targetView: NSView) {
 		self.targetView = targetView
 		self.currentKeyTranslator = LayoutTranslator()!
+		self.level = Logger.Level()
 	}
 
 	func run(command: BootCommandStep) async throws {
+		var numberOfSteps: Int = 0
+
 		for step in command.steps {
 			do {
-				if try await execute(step, title: command.title) == false {
-					logger.info("Skip command: command: \(command.title)")
-					break
+				if numberOfSteps > 0 {
+					numberOfSteps -= 1
+					logger.info("Skip current step: \(command.title):\(step.description), remains=\(numberOfSteps)")
+				} else {
+					let result = try await execute(step, title: command.title)
+
+					if result.success == false {
+						if result.numberOfSteps > 0 {
+							logger.info("Skip \(result.numberOfSteps) next steps: \(command.title)")
+							numberOfSteps = result.numberOfSteps
+						} else {
+							logger.info("Skip command: command: \(command.title)")
+							break
+						}
+					}
 				}
 			} catch {
 				throw PackerLiteDriverError.stepFailed(step: command, underlying: error)
@@ -193,12 +279,12 @@ final class PackerLiteDriver: @unchecked Sendable {
 		#endif
 	}
 
-	private func execute(_ step: BootCommandStep.Step, title: String) async throws -> Bool {
+	private func execute(_ step: BootCommandStep.Step, title: String) async throws -> (success: Bool, numberOfSteps: Int) {
 		switch step {
 		case .wait(let seconds):
 			logger.debug("[\(title)]: wait \(seconds)s")
 			try await Task.sleep(nanoseconds: UInt64(max(seconds, 0) * 1_000_000_000))
-			return true
+			return (true, 0)
 
 		case .type(let text):
 			logger.debug("[\(title)]: type \(text) with modifier \(modifiers)")
@@ -231,7 +317,13 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .skipNotFound(let label, let timeout):
 			logger.debug("[\(title)]: skipNotFound '\(label)', timeout=\(timeout)")
 			if try await skipNotFound(label, timeout: timeout, title: title) == false {
-				return false
+				return (false, -1)
+			}
+
+		case .skipStepIfNotFound(let label, let step, let timeout):
+			logger.debug("[\(title)]: skipStepIfNotFound '\(label)', steps=\(step), timeout=\(timeout)")
+			if try await skipNotFound(label, timeout: timeout, title: title) == false {
+				return (false, step)
 			}
 
 		case .scroll(let horizontal, let vertical):
@@ -251,7 +343,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 		try await Task.sleep(nanoseconds: Self.stepDelayNanoseconds)
 
-		return true
+		return (true, 0)
 	}
 
 	private static let voiceOverToggleSequence: [BootCommandStep.Step] = [
@@ -285,6 +377,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 		for char in text {
 			if let key = currentKeyTranslator.translate(char: char) {
 				let modifiers = key.modifiers.keyCodes
+				#if DEBUG
+					self.logger.trace("type: \(char) -> \(key.keyCode)")
+				#endif
 
 				for code in modifiers {
 					self.handleKeyModifierEvent(code, isDown: true)
@@ -301,6 +396,8 @@ final class PackerLiteDriver: @unchecked Sendable {
 					try await Task.sleep(nanoseconds: Self.keyDelayNanoseconds)
 					self.handleKeyModifierEvent(code, isDown: false)
 				}
+			} else {
+				self.logger.warn("Unable to find key for \(char)")
 			}
 		}
 	}
@@ -361,6 +458,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		private let characterKeys: [Character: CGKeyCode]
 		private let keysCharacters: [CGKeyCode: Character]
 		private let charactersModifiers: [Character: NSEvent.ModifierFlags]
+		private let logger: Logger
 
 		/// Available keyboard and sourceID
 		/// ABC - com.apple.keylayout.ABC
@@ -465,41 +563,60 @@ final class PackerLiteDriver: @unchecked Sendable {
 			var keysCharacters: [CGKeyCode: Character] = [:]
 			var charactersModifiers: [Character: NSEvent.ModifierFlags] = [:]
 
+			let sourceID = targetKeyboard.getSourceID()!
+			let logger = Logger("LayoutTranslator - \(sourceID)")
+
 			CFDataGetBytePtr(layoutData).withMemoryRebound(to: UCKeyboardLayout.self, capacity: 1) { keyboardLayoutPtr in
 				for keyCode in (0..<128).map({ CGKeyCode($0) }) {
 					var characterIgnoringModifiers: Character? = nil
 
 					if let char = Self.translate(keyCode: keyCode, modifiers: 0, keyboardLayout: keyboardLayoutPtr) {
-						characterKeys[char] = keyCode
-						charactersModifiers[char] = []
-						keysCharacters[keyCode] = char
-						characterIgnoringModifiers = char
+						if let foundKeyCode = characterKeys[char] {
+							logger.trace("Alredy binded: \(char) -> \(keyCode), with: \(foundKeyCode)")
+						} else {
+							characterKeys[char] = keyCode
+							charactersModifiers[char] = []
+							keysCharacters[keyCode] = char
+							characterIgnoringModifiers = char
+						}
 					}
 
 					if let char = Self.translate(keyCode: keyCode, modifiers: UInt32(shiftKey | optionKey), keyboardLayout: keyboardLayoutPtr) {
-						characterKeys[char] = keyCode
-						charactersModifiers[char] = .shift.union(.option)
+						if let foundKeyCode = characterKeys[char] {
+							logger.trace("Alredy binded: (shift+option) \(char) -> \(keyCode), with: \(foundKeyCode)")
+						} else {
+							characterKeys[char] = keyCode
+							charactersModifiers[char] = .shift.union(.option)
 
-						if let characterIgnoringModifiers {
-							keysCharacters[keyCode] = characterIgnoringModifiers
+							if let characterIgnoringModifiers {
+								keysCharacters[keyCode] = characterIgnoringModifiers
+							}
 						}
 					}
 
 					if let char = Self.translate(keyCode: keyCode, modifiers: UInt32(optionKey), keyboardLayout: keyboardLayoutPtr) {
-						characterKeys[char] = keyCode
-						charactersModifiers[char] = .option
+						if let foundKeyCode = characterKeys[char] {
+							logger.trace("Alredy binded: (option) \(char) -> \(keyCode), with: \(foundKeyCode)")
+						} else {
+							characterKeys[char] = keyCode
+							charactersModifiers[char] = .option
 
-						if let characterIgnoringModifiers {
-							keysCharacters[keyCode] = characterIgnoringModifiers
+							if let characterIgnoringModifiers {
+								keysCharacters[keyCode] = characterIgnoringModifiers
+							}
 						}
 					}
 
-					if let char = Self.translate(keyCode: keyCode, modifiers: UInt32(shiftKey), keyboardLayout: keyboardLayoutPtr) {
-						characterKeys[char] = keyCode
-						charactersModifiers[char] = .shift
+					if let char = Self.translate(keyCode: keyCode, modifiers: UInt32(shiftKey), keyboardLayout: keyboardLayoutPtr), characterKeys[char] == nil {
+						if let foundKeyCode = characterKeys[char] {
+							logger.trace("Alredy binded: (shift) \(char) -> \(keyCode), with: \(foundKeyCode)")
+						} else {
+							characterKeys[char] = keyCode
+							charactersModifiers[char] = .shift
 
-						if let characterIgnoringModifiers {
-							keysCharacters[keyCode] = characterIgnoringModifiers
+							if let characterIgnoringModifiers {
+								keysCharacters[keyCode] = characterIgnoringModifiers
+							}
 						}
 					}
 				}
@@ -508,7 +625,8 @@ final class PackerLiteDriver: @unchecked Sendable {
 			self.characterKeys = characterKeys
 			self.keysCharacters = keysCharacters
 			self.charactersModifiers = charactersModifiers
-			self.id = targetKeyboard.getSourceID()!
+			self.id = sourceID
+			self.logger = logger
 		}
 
 		init?() {
@@ -568,9 +686,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 	// MARK: - Mouse
 
 	@MainActor private func click(_ nsPoint: CGPoint) {
-		#if DEBUG
-		showClickText(nsPoint)
-		#endif
+		if self.level >= .debug {
+			showClickText(nsPoint)
+		}
 
 		let positionInWindow = self.targetView.windowRelativePosition(of: nsPoint)
 
@@ -588,7 +706,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		dispatchEvent(targetView.postScrollEvent(eventSource: eventSource, deltaX: Int32(horizontal), deltaY: Int32(vertical), at: lastMousePosition, modifierFlags: self.modifiers), view: targetView)
 	}
 
-	@MainActor private func clickText(_ label: String, timeout: TimeInterval, title: String) async throws {
+	@MainActor private func clickText(_ label: [String], timeout: TimeInterval, title: String) async throws {
 		let deadline = Date().addingTimeInterval(timeout)
 
 		while true {
@@ -606,7 +724,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 	}
 
-	@MainActor private func skipNotFound(_ label: String, timeout: TimeInterval, title: String) async throws -> Bool {
+	@MainActor private func skipNotFound(_ label: [String], timeout: TimeInterval, title: String) async throws -> Bool {
 		let deadline = Date().addingTimeInterval(timeout)
 
 		while true {
@@ -624,7 +742,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 	}
 
-	@MainActor private func locateText(_ label: String, timeout: TimeInterval, title: String) async throws {
+	@MainActor private func locateText(_ label: [String], timeout: TimeInterval, title: String) async throws {
 		let deadline = Date().addingTimeInterval(timeout)
 
 		while true {
@@ -644,7 +762,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 	/// Locates `label` in the view's current frame via Vision OCR and returns its center,
 	/// converted into the top-left-origin pixel space `VNCInputHandler.handlePointerEvent` expects.
-	private func locate(text label: String, title: String) async throws -> CGPoint? {
+	private func locate(text label: [String], title: String) async throws -> CGPoint? {
+		await clearDebugBox()
+
 		// Capture the current CGImage on the main actor (AppKit view access must be on main).
 		guard let nsImage = await self.targetView.image(), let pngData = nsImage.pngData else {
 			return nil
@@ -675,22 +795,20 @@ final class PackerLiteDriver: @unchecked Sendable {
 					return nil
 				}
 
-				let needle = label.lowercased()
+				let needles = label.map {
+					$0.lowercased()
+				}
 
-				#if DEBUG
-				self.logger.trace("\n\n")
-				#endif
+				if self.level > .debug {
+					await self.showTextesBox(results, imageSize: imageSize, title: title, needles: needles)
+				}
 
 				for observation in results {
 					guard let candidate = observation.topCandidates(1).first else {
 						continue
 					}
 
-					#if DEBUG
-						self.logger.trace("\(title) - OCR: found: \(candidate.string) <--> \(needle) : match \(candidate.string.lowercased().contains(needle))")
-					#endif
-
-					guard candidate.string.lowercased().contains(needle) else {
+					guard needles.included(candidate.string.lowercased()) else {
 						continue
 					}
 
@@ -704,9 +822,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 						width: box.width * scaleX,
 						height: box.height * scaleY)
 
-					#if DEBUG
+					if self.level >= .debug {
 						await self.showDebugBox(flippedBox)
-					#endif
+					}
 
 					logger.debug("Text found \(label) at \(flippedBox)")
 

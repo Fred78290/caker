@@ -107,6 +107,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			case .scroll(let vertical, let horizontal): return "scroll \(vertical),\(horizontal)"
 			case .voiceOverOn(let confirm): return "voiceOverOn \(confirm)"
 			case .voiceOverOff: return "voiceOverOff"
+			case .skipStepIfNotFound(let text, let steps, let timeout): return "skipStepIfNotFound \(text) steps:\(steps) x\(timeout)s"
 			}
 		}
 
@@ -116,9 +117,10 @@ public struct BootCommandStep: Equatable, Sendable {
 		case modifierOn(ModifierToken)
 		case modifierOff(ModifierToken)
 		case click(CGPoint)
-		case clickText(String, timeout: TimeInterval)
-		case locate(String, timeout: TimeInterval)
-		case skipNotFound(String, timeout: TimeInterval)
+		case clickText([String], timeout: TimeInterval)
+		case locate([String], timeout: TimeInterval)
+		case skipNotFound([String], timeout: TimeInterval)
+		case skipStepIfNotFound([String], Int, timeout: TimeInterval)
 		case scroll(horizontal: Int, vertical: Int)
 		case keyboard(any KeyLayoutTranslator)
 		case voiceOverOn(confirm: Bool)
@@ -229,6 +231,10 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		if lower.hasPrefix("skipnotfound") {
 			return try parseSkipNotFound(body)
+		}
+
+		if lower.hasPrefix("skipstepifnotfound") {
+			return try parseSkipStepIfNotFound(body)
 		}
 
 		if lower.hasPrefix("scroll") {
@@ -358,7 +364,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			}
 
 			if let textValue = attributes["text"] {
-				let text = trimMatchingQuotes(textValue)
+				let text = trimMatchingQuotes(textValue).split(separator: "|").map{String($0)}
 				let timeout: TimeInterval
 
 				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
@@ -382,7 +388,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			}
 
 			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
-			return .clickText(String(rest.dropFirst().dropLast()), timeout: 10)
+			return .clickText(String(rest.dropFirst().dropLast()).split(separator: "|").map{String($0)}, timeout: 10)
 		}
 
 		// Raw coordinates form: X,Y
@@ -440,7 +446,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			let attributes = try parseAttributes("locate", input: String(rest))
 
 			if let textValue = attributes["text"] {
-				let text = trimMatchingQuotes(textValue)
+				let text = trimMatchingQuotes(textValue).split(separator: "|").map{String($0)}
 				let timeout: TimeInterval
 
 				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
@@ -464,7 +470,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			}
 
 			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
-			return .locate(String(rest.dropFirst().dropLast()), timeout: 10)
+			return .locate(String(rest.dropFirst().dropLast()).split(separator: "|").map{String($0)}, timeout: 10)
 		}
 
 		throw BootCommandParseError.malformedLocate(body)
@@ -482,7 +488,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			let attributes = try parseAttributes("skipNotFound", input: String(rest))
 
 			if let textValue = attributes["text"] {
-				let text = trimMatchingQuotes(textValue)
+				let text = trimMatchingQuotes(textValue).split(separator: "|").map{String($0)}
 				let timeout: TimeInterval
 
 				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
@@ -506,7 +512,57 @@ public struct BootCommandStep: Equatable, Sendable {
 			}
 
 			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
-			return .skipNotFound(String(rest.dropFirst().dropLast()), timeout: 10)
+			return .skipNotFound(String(rest.dropFirst().dropLast()).split(separator: "|").map{String($0)}, timeout: 10)
+		}
+
+		throw BootCommandParseError.malformedSkipNotFound(body)
+	}
+
+	/// Matches `skipStepIfNotFound 'Some Text'"
+	private static func parseSkipStepIfNotFound(_ body: String) throws -> BootCommandStep.Step {
+		// Support formats:
+		// 1) locate 'Some Text' or locate "Some Text"
+		// 3) locate timeout=10 text="Some Text"
+		let rest = body.dropFirst("skipstepifnotfound".count).trimmingCharacters(in: .whitespaces)
+
+		// Attribute-style: key=value pairs
+		if rest.contains("=") {
+			let attributes = try parseAttributes("skipStepIfNotFound", input: String(rest))
+
+			if let textValue = attributes["text"] {
+				let text = trimMatchingQuotes(textValue).split(separator: "|").map{String($0)}
+				let timeout: TimeInterval
+				let steps: Int
+
+				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
+					timeout = parsed
+				} else {
+					// Default to 10 seconds if not provided
+					timeout = 10
+				}
+
+				if let stepsString = attributes["steps"], let parsed = Int(trimMatchingQuotes(stepsString)) {
+					steps = parsed
+				} else {
+					// Default to 1 step if not provided
+					steps = 1
+				}
+
+				return .skipStepIfNotFound(text, steps, timeout: timeout)
+			}
+
+			// Unknown attributes
+			throw BootCommandParseError.malformedSkipNotFound(body)
+		}
+
+		// Quoted text form
+		if let quote = rest.first, quote == "'" || quote == "\"" {
+			guard rest.count >= 2, rest.last == quote else {
+				throw BootCommandParseError.malformedSkipNotFound(body)
+			}
+
+			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
+			return .skipStepIfNotFound(String(rest.dropFirst().dropLast()).split(separator: "|").map{String($0)}, 1, timeout: 10)
 		}
 
 		throw BootCommandParseError.malformedSkipNotFound(body)
@@ -554,37 +610,55 @@ public struct BootCommandStep: Equatable, Sendable {
 	private static func parseAttributes(_ token: String, input: String) throws -> [String: String] {
 		var result: [String: String] = [:]
 		var i = input.startIndex
+
 		func skipSpaces() {
 			while i < input.endIndex, input[i].isWhitespace { i = input.index(after: i) }
 		}
+
 		while i < input.endIndex {
 			skipSpaces()
+
 			if i >= input.endIndex { break }
+
 			// Read key
 			let keyStart = i
 			while i < input.endIndex, input[i].isLetter || input[i].isNumber { i = input.index(after: i) }
+
 			let key = String(input[keyStart..<i]).lowercased()
 			skipSpaces()
+
 			guard i < input.endIndex, input[i] == "=" else { throw BootCommandParseError.malformedAttribute("click " + input) }
+
 			i = input.index(after: i)
 			skipSpaces()
+
 			guard i < input.endIndex else { throw BootCommandParseError.malformedAttribute("\(token) " + input) }
+
 			let value: String
+
 			if input[i] == "\"" || input[i] == "'" {
 				let quote = input[i]
 				i = input.index(after: i)
+
 				let valueStart = i
+
 				while i < input.endIndex, input[i] != quote { i = input.index(after: i) }
+
 				guard i < input.endIndex else { throw BootCommandParseError.malformedAttribute("\(token) " + input) }
+
 				value = String(input[valueStart..<i])
 				i = input.index(after: i)  // consume closing quote
+
 			} else {
 				let valueStart = i
 				while i < input.endIndex, input[i].isWhitespace == false { i = input.index(after: i) }
+
 				value = String(input[valueStart..<i])
 			}
+
 			result[key] = value
 		}
+
 		return result
 	}
 
