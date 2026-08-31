@@ -170,6 +170,7 @@ let package = Package(
 			.copy("PackerLite/Resources/linux-redhat.packerlite.yaml"),
 			.copy("PackerLite/Resources/linux-opensuse.packerlite.yaml"),
 			.copy("PackerLite/Resources/linux-debian.packerlite.yaml"),
+			.copy("PackerLite/Resources/linux-alpine.packerlite.yaml"),
 		]),
 		.executableTarget(name: "caker", dependencies: [
 			.target(name: "GRPCLib"),

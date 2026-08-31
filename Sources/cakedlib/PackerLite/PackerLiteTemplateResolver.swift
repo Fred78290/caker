@@ -41,7 +41,8 @@ extension SupportedPlatform {
 		case .redhat: return "linux-redhat.packerlite"
 		case .openSUSE: return "linux-opensuse.packerlite"
 		case .debian: return "linux-debian.packerlite"
-		case .ubuntu, .macos, .windows, .alpine, .unknown: return nil
+		case .alpine: return "linux-alpine.packerlite"
+		case .ubuntu, .macos, .windows, .unknown: return nil
 		}
 	}
 }

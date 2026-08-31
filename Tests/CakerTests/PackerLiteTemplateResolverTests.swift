@@ -90,6 +90,7 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 			("rhel-9.4-x86_64-dvd.iso", .redhat),
 			("openSUSE-Leap-15.6-DVD-x86_64-Media.iso", .openSUSE),
 			("debian-12.5.0-amd64-DVD-1.iso", .debian),
+			("alpine-standard-3.23.0-x86_64.iso", .alpine),
 		]
 
 		for (filename, platform) in cases {
@@ -101,7 +102,7 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 	}
 
 	func testAllBundledLinuxPlatformsResolveDirectly() throws {
-		for platform: GRPCLib.SupportedPlatform in [.fedora, .centos, .redhat, .openSUSE, .debian] {
+		for platform: GRPCLib.SupportedPlatform in [.fedora, .centos, .redhat, .openSUSE, .debian, .alpine] {
 			let resolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: platform)
 
 			XCTAssertNotNil(resolved, "\(platform.rawValue) should resolve a bundled template")

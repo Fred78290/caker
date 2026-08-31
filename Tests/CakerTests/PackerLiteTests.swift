@@ -99,13 +99,13 @@ final class PackerLiteTests: XCTestCase {
 		let parsed = try await parseSteps("<wait30s><click 'Select Your Country or Region'><wait5s>united states")
 		XCTAssertEqual(
 			parsed,
-			[.wait(30), .clickText("Select Your Country or Region", timeout: 10), .wait(5), .type("united states")]
+			[.wait(30), .clickText(["Select Your Country or Region"], timeout: 10), .wait(5), .type("united states")]
 		)
 	}
 
 	func testClickTextAttributeStyleWithExplicitTimeout() async throws {
 		let parsed = try await parseSteps("<click timeout=30 text='Select Your Country or Region'>")
-		XCTAssertEqual(parsed, [.clickText("Select Your Country or Region", timeout: 30)])
+		XCTAssertEqual(parsed, [.clickText(["Select Your Country or Region"], timeout: 30)])
 	}
 
 	func testClickCoordinatesToken() async throws {
@@ -120,12 +120,27 @@ final class PackerLiteTests: XCTestCase {
 
 	func testLocateTokenAttributeStyle() async throws {
 		let parsed = try await parseSteps("<locate timeout=15 text='Continue'>")
-		XCTAssertEqual(parsed, [.locate("Continue", timeout: 15)])
+		XCTAssertEqual(parsed, [.locate(["Continue"], timeout: 15)])
 	}
 
 	func testLocateTokenQuotedForm() async throws {
 		let parsed = try await parseSteps("<locate 'Continue'>")
-		XCTAssertEqual(parsed, [.locate("Continue", timeout: 10)])
+		XCTAssertEqual(parsed, [.locate(["Continue"], timeout: 10)])
+	}
+
+	func testLocateTokenMultiTextOrMatching() async throws {
+		let parsed = try await parseSteps("<locate timeout=15 text='Accept|Continue'>")
+		XCTAssertEqual(parsed, [.locate(["Accept", "Continue"], timeout: 15)])
+	}
+
+	func testSkipStepIfNotFoundAttributeStyle() async throws {
+		let parsed = try await parseSteps("<skipStepIfNotFound timeout=5 steps=2 text='Optional Screen'>")
+		XCTAssertEqual(parsed, [.skipStepIfNotFound(["Optional Screen"], 2, timeout: 5)])
+	}
+
+	func testSkipStepIfNotFoundQuotedFormDefaultsStepsAndTimeout() async throws {
+		let parsed = try await parseSteps("<skipStepIfNotFound 'Optional Screen'>")
+		XCTAssertEqual(parsed, [.skipStepIfNotFound(["Optional Screen"], 1, timeout: 10)])
 	}
 
 	func testScrollTokenAttributeStyle() async throws {
