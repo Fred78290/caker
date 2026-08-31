@@ -60,7 +60,7 @@ pre_boot_command:
   - title: Select keyboard variant
     commands:
       - <locate text="Select variant">
-      - us-intl
+      - us-mac
       - <enter>
 
   - title: Set hostname
@@ -71,79 +71,72 @@ pre_boot_command:
 
   - title: Select ethernet interface and configure both
     commands:
-      - '<skipNotFound text="Available interfaces are: eth0 eth1">'
-      #- <locate text="one do you want to initialize">
+      - '<skipNotFound text="Available interfaces are: eth0 eth1" timeout=2>'
       - <enter>
-      #- <locate text="v4 address for eth0">
       - <enter>
-      #- <locate text="v6 address for eth0">
+
+      - <skipStepIfNotFound text="IPv6|IPub" steps=1 timeout=2>
       - <enter>
-      - '<locate text="Available interfaces are: eth1.">'
-      - done
+
+      - '<locate text="interfaces are: eth1|interfaces are: ethl" timeout=2>'
       - <enter>
-      - <locate text="Do you want to do any manual network configuration">
-      - y
       - <enter>
-      - <wait2s>
-      - <down repeat=7>
-      - i
+
+      - <skipStepIfNotFound text="IPv6|IPub" steps=1 timeout=2>
       - <enter>
-      - auto eth1
+
       - <enter>
-      - iface eth1 inet dhcp
-      - <enter>
-      - iface eth1 inet6 auto
-      - <enter>
-      - <escape>
-      - <leftShiftOn>
-      - zz
-      - <leftShiftOff>
+      - <wait5s>
 
   - title: Configure single Ethernet interface eth0
     commands:
-      - '<skipNotFound text="Available interfaces are: eth0.">'
-      #- <locate text="one do you want to initialize">
+      - '<skipNotFound text="interfaces are: eth0." timeout=2>'
       - <enter>
-      #- <locate text="v4 address for eth0">
       - <enter>
-      #- <locate text="v6 address for eth0">
+
+      - <skipStepIfNotFound text="IPv6|IPub" steps=1 timeout=2>
       - <enter>
-      #- <locate text="Do you want to do any manual network configuration">
+
       - <enter>
+      - <wait5s>
 
   - title: Change password for root
     commands:
-      - <locate text="Changing password for root" timeout=30>
+      - <locate text="Root password" timeout=30>
+      - <wait1s>
       - ${var.password}
       - <enter>
-      #- <locate text="Retype password for">
       - <wait1s>
       - ${var.password}
       - <enter>
 
   - title: Select time zone
     commands:
-      - <locate text="Which timezone are you in">
+      - <locate text="Timezone">
       - <enter>
 
   - title: Ignore proxy configuration
     commands:
       - <locate text="proxy">
+      - <wait1s>
       - <enter>
 
   - title: Setup NTP client
     commands:
       - <locate text="Network Time Protocol">
+      - <wait1s>
       - <enter>
 
   - title: Select APK mirror
     commands:
       - <locate text="Enter mirror number or URL">
+      - <wait1s>
       - <enter>
 
   - title: Create user account
     commands:
       - <locate text="enter a lower-case loginname">
+      - <wait1s>
       - ${var.username}
       - <enter>
       - <locate text="Full name for user">
@@ -160,6 +153,7 @@ pre_boot_command:
   - title: Configure SSH server
     commands:
       - <locate text="ssh server">
+      - <wait1s>
       - <enter>
 
   - title: Configure Disk
@@ -187,7 +181,7 @@ boot_command:
     commands:
       - <keyboard 'com.apple.keylayout.US'>
 
-  - title: Wait login prompt after reboot
+  - title: Continue to configure after reboot
     commands:
       - <locate text="Welcome to Alpine">
       - '<locate text="login:" timeout=60>'
@@ -197,15 +191,39 @@ boot_command:
       - ${var.password}
       - <enter>
       - <locate text="The Alpine Wiki contains">
-      - 'sed -i "/^#http/s/^#//" /etc/apk/repositories"
+      - sed -i -r "/^#http/s/^#//" /etc/apk/repositories
       - <enter>
-      #- sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
-      #- sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+      - echo "PermitRootLogin yes" > /etc/ssh/sshd_config.d/00-permit-root-login.conf
+      - <enter>
+      - echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config.d/00-permit-root-login.conf
+      - <enter>
       - apk update
       - <enter>
       - <locate text="distinct packages available" timeout=60>
       - apk add sudo
       - <enter>
-      - 'echo "${var.username} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${var.username}'
+      - chmod 640 /etc/sudoers
       - <enter>
+      - sed -i "/^# %wheel ALL=(ALL:ALL) ALL/s/^# //" /etc/sudoers
+      - <enter>
+      - chmod 440 /etc/sudoers
+      - <enter>
+      - adduser ${var.username} wheel
+      - <enter>
+      - vi /etc/sudoers.d/${var.username}
+      - <enter>
+      - <wait1s>
+      - i
+      - "${var.username} ALL=(ALL:ALL) NOPASSWD: ALL"
+      - <enter>
+      - <escape>
+      - ":w"
+      - <enter>
+      - <leftShiftOn>
+      - zz
+      - <leftShiftOff>
+      - <wait1s>
+      - sync
+      - sync
+      - <wait1s>
       - reboot
