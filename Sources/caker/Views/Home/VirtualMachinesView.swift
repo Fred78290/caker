@@ -13,7 +13,7 @@ struct VirtualMachinesView: View {
 	static let cellHeight: CGFloat = 364
 	static let cellSpacing: CGFloat = 10
 
-#if DEBUG
+#if TRACE_SWIFTUI_DEALLOC
 	let tracker = TrackDealloc(from: "VirtualMachinesView")
 #endif
 
