@@ -245,6 +245,10 @@ struct HostVirtualMachineView: View {
 
 						if canRecord {
 							recordButton
+
+							if document.isRecording {
+								recordingControls
+							}
 						}
 
 						Button("Delete", systemImage: "trash") {
@@ -367,6 +371,48 @@ struct HostVirtualMachineView: View {
 				promptRecordingOutputAndStart()
 			}
 			.help("Record your actions in this VM as a boot_command template")
+		}
+	}
+
+	/// The locate-mode/reset/VoiceOver controls, mirroring `caked record`'s own `RecordingControls`
+	/// (`Sources/caked/MainApp.swift`) — same icons, help text, and click/Option-click conventions —
+	/// shown alongside `recordButton` for the duration of an active recording session.
+	@ViewBuilder
+	private var recordingControls: some View {
+		Button {
+			document.toggleRecordingLocateMode()
+		} label: {
+			Image(systemName: document.isLocateModeActive ? "text.viewfinder" : "viewfinder")
+				.foregroundStyle(document.isLocateModeActive ? .blue : .primary)
+		}
+		.help(
+			document.isLocateModeActive
+				? "Locate mode is on — clicking recognized text records <locate>/<clickText> instead of a raw coordinate; click to turn off"
+				: "Turn on locate mode to highlight recognized text and click it for a resilient <locate>/<clickText> step, instead of a raw coordinate")
+
+		Button {
+			document.resetRecording()
+		} label: {
+			HStack(spacing: 4) {
+				Image(systemName: "arrow.counterclockwise")
+					.foregroundStyle(.orange)
+				Text("Reset")
+			}
+		}
+		.help("Discard recorded steps and start over")
+		.disabled(document.hasRecordedActions == false)
+
+		if document.virtualMachineConfig.os == .darwin {
+			Button {
+				document.toggleRecordingVoiceOver(confirm: NSEvent.modifierFlags.contains(.option))
+			} label: {
+				Image(systemName: "voiceover")
+					.foregroundStyle(document.isVoiceOverActived ? .blue : .primary)
+			}
+			.help(
+				document.isVoiceOverActived
+					? "VoiceOver is active"
+					: "Turn on VoiceOver (Option-click to confirm)")
 		}
 	}
 

@@ -302,7 +302,7 @@ public final class ActionRecorder: @unchecked Sendable {
 	}
 
 	private func showRecognizedText(_ sender: NSView) {
-		guard let (imageSize, recognizedText) = sender.recognizeText() else { return }
+		guard let (_, recognizedText) = sender.recognizeText() else { return }
 
 		hideRecognizedText(sender)
 
@@ -315,29 +315,7 @@ public final class ActionRecorder: @unchecked Sendable {
 				overlay.zPosition = 1000
 				layer.addSublayer(overlay)
 
-				// Convert the box from image coordinates (origin bottom-left) to the targetView coordinate space (origin bottom-left).
-				// VNImageRectForNormalizedRect yields rect in image coords origin bottom-left.
-				// NSView's layer has origin bottom-left if flipped is false, else origin top-left.
-				// AppKit views often have flipped coordinate system (origin top-left). Convert accordingly.
-
-				let viewHeight = sender.bounds.height
-				let viewWidth = sender.bounds.width
-
-				// The CGImage and view might differ in size, so scale accordingly
-				let scaleX = viewWidth / imageSize.width
-				let scaleY = viewHeight / imageSize.height
-
-				// Box origin is bottom-left, need to convert to AppKit's coordinate system (which is typically flipped: origin top-left)
-				// Because targetView is NSView, flipped usually true, origin top-left
-				// So convert y by (viewHeight - box.origin.y - box.height)
-				let convertedRect = CGRect(
-					x: text.box.origin.x * scaleX,
-					y: viewHeight - (text.box.origin.y + text.box.height) * scaleY,
-					width: text.box.width * scaleX,
-					height: text.box.height * scaleY
-				)
-
-				let path = CGPath(rect: convertedRect, transform: nil)
+				let path = CGPath(rect: text.box, transform: nil)
 
 				overlay.path = path
 				overlay.strokeColor = NSColor.blue.cgColor

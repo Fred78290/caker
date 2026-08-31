@@ -25,12 +25,15 @@
 			{ "id": "centos10", "label": "CentOS Stream 10", "url": "https://mirrors.centos.org/mirrorlist?path=/10-stream/BaseOS/aarch64/iso/CentOS-Stream-10-latest-aarch64-dvd1.iso&redirect=1&protocol=https", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "centos9", "label": "CentOS Stream 9", "url": "https://mirrors.centos.org/mirrorlist?path=/9-stream/BaseOS/aarch64/iso/CentOS-Stream-9-latest-aarch64-dvd1.iso&redirect=1&protocol=https", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "debian1360", "label": "Debian 13.6.0 –", "url": "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.6.0-arm64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "debian1360", "label": "Debian 13.6.0", "url": "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.6.0-arm64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "openSUSELeap161", "label": "openSUSE Leap 16.1 – DVD", "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.aarch64-Leap_16.1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
-			{ "id": "openSUSELeap160", "label": "openSUSE Leap 16.0 – DVD", "url": "https://download.opensuse.org/distribution/leap/16.0/installer/iso/agama-installer.aarch64-Leap_16.0.iso", "minCPU": 2, "minMemoryMiB": 2048 },
-			{ "id": "openSUSELeap156", "label": "openSUSE Leap 15.6 – DVD", "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-aarch64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
-			{ "id": "openSUSELeap155", "label": "openSUSE Leap 15.5 – DVD", "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-aarch64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 }
+			{ "id": "openSUSELeap161", "label": "openSUSE Leap 16.1", "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.aarch64-Leap_16.1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSELeap160", "label": "openSUSE Leap 16.0", "url": "https://download.opensuse.org/distribution/leap/16.0/installer/iso/agama-installer.aarch64-Leap_16.0.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSELeap156", "label": "openSUSE Leap 15.6", "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-aarch64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "openSUSELeap155", "label": "openSUSE Leap 15.5", "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-aarch64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+
+			{ "id": "alpine324", "label": "Alpine 3.24", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-virt-3.24.1-aarch64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "alpine323", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/aarch64/alpine-virt-3.23.5-aarch64.iso", "minCPU": 2, "minMemoryMiB": 2048 }
 		],
 		"ipsw": [
 			{ "id": "macos27", "label": "macOS 27.0", "url": "https://updates.cdn-apple.com/2026SummerSeed/7b1c2bd9-7617-426d-92e5-ef204407ffaa/UniversalMac_27.0_26A5416b_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
@@ -65,6 +68,8 @@
 			{ "id": "openSUSE155", "label": "OpenSUSE Leap 15.5", "url": "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.5/images/openSUSE-Leap-15.5.aarch64-NoCloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "openSUSE154", "label": "OpenSUSE Leap 15.4", "url": "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.4/images/openSUSE-Leap-15.4.aarch64-NoCloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
+			{ "id": "alpine324", "label": "Alpine 3.24", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/cloud/generic_alpine-3.24.1-aarch64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "alpine323", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/cloud/generic_alpine-3.23.5-aarch64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "alpine322", "label": "Alpine 3.22", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/cloud/generic_alpine-3.22.1-aarch64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "alpine321", "label": "Alpine 3.21", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/generic_alpine-3.21.2-aarch64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "alpine320", "label": "Alpine 3.20", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/generic_alpine-3.20.7-aarch64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 }
@@ -83,7 +88,7 @@
 			{ "id": "ubuntu1804Desktop", "label": "Ubuntu 18.04.6 LTS – Desktop", "url": "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-desktop-amd64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
 			{ "id": "ubuntu1804Server", "label": "Ubuntu 18.04.6 LTS – Server", "url": "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-live-server-amd64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "debian1360", "label": "Debian 13.6.0 –", "url": "https://cdimage.debian.org/cdimage/release/current/amd64/iso-dvd/debian-13.6.0-amd64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "debian1360", "label": "Debian 13.6.0", "url": "https://cdimage.debian.org/cdimage/release/current/amd64/iso-dvd/debian-13.6.0-amd64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "fedora44Desktop", "label": "Fedora 44 – Workstation", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Workstation/x86_64/iso/Fedora-Workstation-Live-44-1.7.x86_64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
 			{ "id": "fedora44Server", "label": "Fedora 44 – Server", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/x86_64/iso/Fedora-Server-dvd-x86_64-44-1.7.iso", "minCPU": 2, "minMemoryMiB": 2048 },
@@ -102,7 +107,10 @@
 			{ "id": "openSUSELeap161", "label": "openSUSE Leap 16.1", "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.x86_64-Leap_16.1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "openSUSELeap160", "label": "openSUSE Leap 16.0", "url": "https://download.opensuse.org/distribution/leap/16.0/installer/iso/agama-installer.x86_64-Leap_16.0.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "openSUSELeap156", "label": "openSUSE Leap 15.6", "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-x86_64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
-			{ "id": "openSUSELeap155", "label": "openSUSE Leap 15.5", "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-x86_64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 }
+			{ "id": "openSUSELeap155", "label": "openSUSE Leap 15.5", "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-x86_64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+
+			{ "id": "alpine324", "label": "Alpine 3.24", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/x86_64/alpine-virt-3.24.1-x86_64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "alpine323", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/x86_64/alpine-virt-3.23.5-x86_64.iso", "minCPU": 2, "minMemoryMiB": 2048 }
 		],
 		"ipsw": [
 			{ "id": "macos27", "label": "macOS 27.0", "url": "https://updates.cdn-apple.com/2026SummerSeed/7b1c2bd9-7617-426d-92e5-ef204407ffaa/UniversalMac_27.0_26A5416b_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
@@ -137,6 +145,8 @@
 			{ "id": "openSUSE155", "label": "OpenSUSE Leap 15.5", "url": "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.5/images/openSUSE-Leap-15.5.x86_64-NoCloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "openSUSE154", "label": "OpenSUSE Leap 15.4", "url": "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.4/images/openSUSE-Leap-15.4.x86_64-NoCloud.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 
+			{ "id": "alpine324", "label": "Alpine 3.24", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/cloud/generic_alpine-3.24.1-x86_64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "alpine323", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/cloud/generic_alpine-3.23.5-x86_64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "alpine322", "label": "Alpine 3.22", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/cloud/generic_alpine-3.22.1-x86_64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "alpine321", "label": "Alpine 3.21", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/generic_alpine-3.21.2-x86_64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "alpine320", "label": "Alpine 3.20", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/generic_alpine-3.20.7-x86_64-uefi-cloudinit-r0.qcow2", "minCPU": 2, "minMemoryMiB": 2048 }

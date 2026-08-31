@@ -953,6 +953,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let install_agent =
 			"""
 			#!/bin/sh
+			trap 'sync; sync' EXIT
 			set -xe
 
 			case $(uname -m) in
@@ -1116,7 +1117,11 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		_ = try ssh.sendFile(localURL: agentBinary, remotePath: "/tmp/cakeagent", permissions: .init(rawValue: 0o755))
 		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
 
-		try tempFileURL.delete()
+		if Logger.Level() < .debug {
+			Logger(self).info("Deleting temporary file: \(tempFileURL.path)")
+			try tempFileURL.delete()
+		}
+
 		let cmd = "echo \(config.configuredPassword ?? config.configuredUser)|sudo -S sh -c '/tmp/install-agent.sh 2>&1 | tee ~/install-agent.log'"
 		let result = try ssh.capture(cmd)
 

@@ -1,0 +1,229 @@
+# vanilla-alpine324.packerlite.yaml
+#
+# Built-in PackerLite template — unattended installation of Alpine Linux 3.24
+# from the official standard/virt install ISO, driven natively by caked/caker
+# after booting from the ISO (see the "PackerLite" section of the wiki's
+# command summary). This is the default template auto-selected for an ISO
+# whose filename/URL identifies it as Alpine (GRPCLib.SupportedPlatform
+# detection) when --autoinstall is passed without an explicit --template —
+# pass --template yourself to override it. Unlike the bundled macOS templates,
+# this one is NOT a guaranteed-working recipe: it has been reviewed for
+# plausibility against the documented `setup-alpine` install flow, but NOT
+# validated end-to-end against a real boot. Treat the prompts and answers
+# below as a first draft to verify/adjust against your own run.
+#
+# Alpine's ISO boots straight to a root shell (no graphical installer, no
+# Anaconda-style hub/spoke) — the whole install is driven by running the
+# interactive `setup-alpine` script and answering its prompts in sequence:
+# keyboard layout/variant, hostname, network interfaces, root password,
+# timezone, proxy, NTP client, APK mirror, one non-root user account, SSH
+# server choice, and finally disk selection/mode (`sys`, whole-disk).
+#
+# After the post-install reboot, this template also uncomments the first
+# HTTP mirror in /etc/apk/repositories (commented out by default), runs
+# `apk update`, installs `sudo`, and grants the created user passwordless
+# sudo before rebooting once more — none of that is part of `setup-alpine`
+# itself.
+#
+# Usage:
+#   cakectl build my-alpine-vm ./alpine-virt-3.24.*-x86_64.iso \
+#     --user admin --password admin --autoinstall
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
+
+pre_boot_command:
+  - title: Change keyboard
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Wait for prompt to login
+    commands:
+      - <locate text="localhost login:" timeout=30>
+      - root
+      - <enter>
+
+  - title: Wait log in to complete
+    commands:
+      - <locate text="You can setup the system with the command">
+      - setup-alpine
+      - <enter>
+
+  - title: Select keyboard layout
+    commands:
+      - <locate text="Select keyboard layout">
+      - us
+      - <enter>
+
+  - title: Select keyboard variant
+    commands:
+      - <locate text="Select variant">
+      - us-mac
+      - <enter>
+
+  - title: Set hostname
+    commands:
+      - <locate text="Enter system hostname">
+      - ${var.username}-vm
+      - <enter>
+
+  - title: Select ethernet interface and configure both
+    commands:
+      - '<skipNotFound text="Available interfaces are: eth0 eth1" timeout=2>'
+      - <enter>
+      - <enter>
+
+      - <skipStepIfNotFound text="IPv6|IPub" steps=1 timeout=2>
+      - <enter>
+
+      - '<locate text="interfaces are: eth1|interfaces are: ethl" timeout=2>'
+      - <enter>
+      - <enter>
+
+      - <skipStepIfNotFound text="IPv6|IPub" steps=1 timeout=2>
+      - <enter>
+
+      - <enter>
+      - <wait5s>
+
+  - title: Configure single Ethernet interface eth0
+    commands:
+      - '<skipNotFound text="interfaces are: eth0." timeout=2>'
+      - <enter>
+      - <enter>
+
+      - <skipStepIfNotFound text="IPv6|IPub" steps=1 timeout=2>
+      - <enter>
+
+      - <enter>
+      - <wait5s>
+
+  - title: Change password for root
+    commands:
+      - <locate text="Root password" timeout=30>
+      - <wait1s>
+      - ${var.password}
+      - <enter>
+      - <wait1s>
+      - ${var.password}
+      - <enter>
+
+  - title: Select time zone
+    commands:
+      - <locate text="Timezone">
+      - <enter>
+
+  - title: Ignore proxy configuration
+    commands:
+      - <locate text="proxy">
+      - <wait1s>
+      - <enter>
+
+  - title: Setup NTP client
+    commands:
+      - <locate text="Network Time Protocol">
+      - <wait1s>
+      - <enter>
+
+  - title: Select APK mirror
+    commands:
+      - <locate text="Enter mirror number or URL">
+      - <wait1s>
+      - <enter>
+
+  - title: Create user account
+    commands:
+      - <locate text="enter a lower-case loginname">
+      - <wait1s>
+      - ${var.username}
+      - <enter>
+      - <locate text="Full name for user">
+      - <enter>
+      - <locate text="Changing password for ${var.username}">
+      - ${var.password}
+      - <enter>
+      - <locate text="Retype password">
+      - ${var.password}
+      - <enter>
+      - <wait1s>
+      - <enter>
+
+  - title: Configure SSH server
+    commands:
+      - <locate text="ssh server">
+      - <wait1s>
+      - <enter>
+
+  - title: Configure Disk
+    commands:
+      - <locate text="Which disk(s) would you like to use">
+      - vda
+      - <enter>
+      - <locate text="How would you like to use it">
+      - sys
+      - <enter>
+      - <locate text="Erase the above disk">
+      - y
+      - <enter>
+
+  - title: Wait for installation to complete
+    commands:
+      - <locate text="Installation is complete" timeout=600>
+      - reboot
+      - <enter>
+      - <locate text="GRUB">
+      - <enter>
+
+boot_command:
+  - title: Change keyboard
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Continue to configure after reboot
+    commands:
+      - <locate text="Welcome to Alpine">
+      - '<locate text="login:" timeout=60>'
+      - root
+      - <enter>
+      - <locate text="Password">
+      - ${var.password}
+      - <enter>
+      - <locate text="The Alpine Wiki contains">
+      - sed -i -r "/^#http/s/^#//" /etc/apk/repositories
+      - <enter>
+      - echo "PermitRootLogin yes" > /etc/ssh/sshd_config.d/00-permit-root-login.conf
+      - <enter>
+      - echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config.d/00-permit-root-login.conf
+      - <enter>
+      - apk update
+      - <enter>
+      - <locate text="distinct packages available" timeout=60>
+      - apk add sudo
+      - <enter>
+      - chmod 640 /etc/sudoers
+      - <enter>
+      - sed -i "/^# %wheel ALL=(ALL:ALL) ALL/s/^# //" /etc/sudoers
+      - <enter>
+      - chmod 440 /etc/sudoers
+      - <enter>
+      - adduser ${var.username} wheel
+      - <enter>
+      - vi /etc/sudoers.d/${var.username}
+      - <enter>
+      - <wait1s>
+      - i
+      - "${var.username} ALL=(ALL:ALL) NOPASSWD: ALL"
+      - <enter>
+      - <escape>
+      - ":w"
+      - <enter>
+      - <leftShiftOn>
+      - zz
+      - <leftShiftOff>
+      - <wait1s>
+      - sync
+      - sync
+      - <wait1s>
+      - reboot

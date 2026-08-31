@@ -232,7 +232,6 @@ public struct ProvisionHandler {
 				do {
 					if template.preBootCommand.isEmpty == false {
 						progressHandler(.step(String(localized: "Starting pre-boot commands")))
-						try await Task.sleep(for: .seconds(10))
 						try await PackerLiteEngine.provision(
 							targetView: targetView,
 							commands: template.preBootCommand,
@@ -241,11 +240,17 @@ public struct ProvisionHandler {
 						progressHandler(.step(String(localized: "Pre-boot commands terminated")))
 					}
 
-					guard let runningIP = try await address.get() else {
+					var runningIP: String? = nil
+
+					if let ignoreIP = template.ignoreIP, ignoreIP {
+						logger.info("VM Machine \(location.name) ignored IP")
+					} else if let ip = try await address.get() {
+						runningIP = ip
+
+						logger.info("VM Machine \(location.name) is now available at \(ip)")
+					} else {
 						throw ServiceError(String(localized: "Unable to obtain an IP address for VM \(location.name)"))
 					}
-
-					logger.info("VM Machine \(location.name) is now available at \(runningIP)")
 
 					try await PackerLiteEngine.provision(
 						vm: vm,

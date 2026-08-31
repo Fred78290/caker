@@ -1,6 +1,7 @@
 pre_boot_command:
 - title: Press <enter>
   commands:
+  - <locate text="GRUB" timeout=30>
   - <enter>
 
 boot_command:

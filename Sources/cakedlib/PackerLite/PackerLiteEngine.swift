@@ -65,6 +65,7 @@ public enum PackerLiteEngine {
 		template: ParsedPackerLiteTemplate,
 		runningIP: String?,
 		runMode: Utils.RunMode,
+		waitIPTimeout: Int = 180,
 		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
 	) async throws {
 		let location = vm.location
@@ -73,7 +74,7 @@ public enum PackerLiteEngine {
 		let commands = template.bootCommand
 		var runningIP = runningIP
 
-		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
+		progressHandler(.step(String(localized: "Provisioning Virtual Machine Setup Assistant…")))
 
 		guard let view = vm.vzMachineView else {
 			throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
@@ -88,7 +89,15 @@ public enum PackerLiteEngine {
 			progressHandler: progressHandler)
 
 		if runningIP == nil {
-			runningIP = try location.waitIPWithLease(config: config, wait: 180, runMode: runMode)
+			progressHandler(.step(String(localized: "Wait IP address…")))
+
+			runningIP = try location.waitIPWithLease(config: config, wait: waitIPTimeout, runMode: runMode)
+			
+			if let ip = runningIP {
+				logger.info("VM \(location.name) is now available at \(ip) after provisioning")
+			} else {
+				logger.error(String(localized: "Unable to obtain an IP address for VM \(location.name) after provisioning"))
+			}
 		}
 
 		if let runningIP, runningIP.isEmpty == false {
@@ -115,7 +124,7 @@ public enum PackerLiteEngine {
 		let runInCaker = Bundle.runInCaker
 		let logger = Logger(self)
 
-		progressHandler(.step(String(localized: "Provisioning macOS Setup Assistant…")))
+		progressHandler(.step(String(localized: "Provisioning Virtual Machine Setup Assistant…")))
 
 		let vm = try await MainActor.run { () -> VirtualMachine in
 			let vncPassword = config.vncPassword ?? UUID().uuidString
