@@ -121,11 +121,11 @@ extension NSView {
 
 	@MainActor
 	public func windowRelativePosition(of point: CGPoint) -> CGPoint {
-		var position = convert(point, to: nil)
+		var position = point
 
 		position.y = bounds.size.height - position.y
 
-		return position
+		return convert(position, to: nil)
 	}
 
 	@MainActor
