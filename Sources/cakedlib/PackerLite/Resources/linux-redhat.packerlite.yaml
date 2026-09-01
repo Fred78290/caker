@@ -39,75 +39,113 @@
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
 
 boot_timeout: 60m        # a full install can legitimately take 20-30+ minutes
+ignore_ip: true
 
 pre_boot_command:
-  - title: Boot the GRUB menu's default "Install" entry
+  - title: Wait GRUB
     commands:
-      - <wait5s>
+      - <locate text="GRUB" timeout=30>
+      - <up>
       - <enter>
 
+  - title: Wait Anaconda to start
+    commands:
+      - <locate text="when reporting a bug" timeout=180>
+      - <wait10s>
+
 boot_command:
-  - title: Wait for the Anaconda installer to start
-    commands: 
-      - <wait60s>
+  - title: Change keyboard
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
 
-  - title: Welcome screen - continue with the default language
-    commands: 
-      - <wait5s>
-      - <click 'Continue'>
-
-  - title: Open Installation Destination
-    commands: 
-      - <wait5s>
-      - <click 'Installation Destination'>
-
-  - title: Accept automatic partitioning on the detected disk
-    commands: 
-      - <wait5s>
-      - <click 'Done'>
-
-  - title: Open User Creation
-    commands: 
-      - <wait5s>
-      - <click 'User Creation'>
-
-  - title: Fill in the full name, then replace the auto-suggested username
-    commands: 
+  - title: Choose langue
+    commands:
+      - <locate text="RED HAT ENTERPRISE">
+      - english
+      - <enter>
+      - <wait1s>
+      - <tab repeat=6>
+      - <enter>
       - <wait2s>
-      - Managed via Caker
+
+  - title: Connect to Red Hat Subscription
+    commands:
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="Connect to Red Hat">
+      - <wait1s>
+      - <locate text="Authentication">
+      - <wait1s>
+      - <tab repeat=2>
+      - ${var.redhat_username}
       - <tab>
-      - <leftCtrlOn>
-      - a
-      - <leftCtrlOff>
+      - ${var.redhat_password}
+      - <tab repeat=3>
+      - <spacebar>
+      - <wait1s>
+      - <tab repeat=4>
+      - <spacebar>
+      - <locate text="The system is registered" timeout=60>
+      - <click text="Done">
+      - <wait1s>
+
+  - title: Create user account
+    commands:
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="User Creation">
+      - <wait1s>
+
+  - title: Fill user account information
+    commands:
+      - <locate text="CREATE USER">
+      - <wait1s>
       - ${var.username}
-
-  - title: Make this user an administrator
-    commands: 
-      - <click 'Make this user administrator'>
-
-  - title: Set and confirm the account password
-    commands: 
       - <tab>
-      - <tab>
+      - ${var.username}
+      - <tab repeat=3>
       - ${var.password}
       - <tab>
       - ${var.password}
+      - <tab>
+      - <click text="Done">
+      - <wait1s>
 
-  - title: Confirm the user creation spoke
-    commands: 
-      - <wait2s>
-      - <click 'Done'>
+  - title: Confirm password
+    commands:
+      - <skipCommandIfNotFound text="Press done again to use the password anyway">
+      - <click text="Done">
 
-  - title: Begin the installation
-    commands: 
-      - <wait5s>
-      - <click 'Begin Installation'>
+  - title: Installation Destination
+    commands:
+      - <wait1s>
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="Installation Destination">
+      - <locate text="Device Selection">
+      - <wait1s>
+      - <click text="Done">
+      - <wait1s>
 
-  - title: Wait for the installation to finish
-    commands: 
-      - <wait30m>
+  - title: Selection software
+    commands:
+      - <skipCommandIfNotFound text="Source changed" timeout=60>
+      - <click text="Software Selection">
+      - <wait1s>
+      - <tab>
+      - <spacebar>
+      - <wait1s>
+      - <click text="Done">
+      - <wait1s>
 
-  - title: Reboot into the freshly installed system
-    commands: 
-      - <wait5s>
-      - <click 'Reboot System'>
+  - title: Begin Installation
+    commands:
+      - <click text="Begin Installation">
+
+  - title: Wait installed and ready for you to use!
+    commands:
+      - <locate text="now successfully installed and ready for you to use!" timeout=1200>
+
+  - title: Reboot System
+    commands:
+      - <click text="Reboot System">

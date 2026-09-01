@@ -51,18 +51,23 @@ boot_command:
     commands:
       - <locate text="CENTOS STREAM">
       - english
+      - <enter>
+      - <wait1s>
       - <tab repeat=6>
       - <enter>
+      - <wait2s>
 
   - title: Create user account
     commands:
       - <locate text="INSTALLATION SUMMARY">
       - <wait1s>
       - <click text="User Creation">
+      - <wait1s>
 
   - title: Fill user account information
     commands:
       - <locate text="CREATE USER">
+      - <wait1s>
       - ${var.username}
       - <tab>
       - ${var.username}
@@ -72,6 +77,7 @@ boot_command:
       - ${var.password}
       - <tab>
       - <click text="Done">
+      - <wait1s>
 
   - title: Confirm password
     commands:
@@ -80,6 +86,7 @@ boot_command:
 
   - title: Installation Destination
     commands:
+      - <wait1s>
       - <locate text="INSTALLATION SUMMARY">
       - <wait1s>
       - <click text="Installation Destination">
