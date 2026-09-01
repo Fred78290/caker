@@ -73,16 +73,20 @@ pre_boot_command:
     commands:
       - '<skipCommandIfNotFound text="Available interfaces are: eth0 eth1" timeout=2>'
       - <enter>
+      - dhcp
       - <enter>
 
       - <skipStepIfNotFound text="IPv6|IPub" steps=1 timeout=2>
+      - auto
       - <enter>
 
       - '<locate text="interfaces are: eth1|interfaces are: ethl" timeout=2>'
       - <enter>
+      - dhcp
       - <enter>
 
       - <skipStepIfNotFound text="IPv6|IPub" steps=1 timeout=2>
+      - auto
       - <enter>
 
       - <enter>
@@ -92,9 +96,11 @@ pre_boot_command:
     commands:
       - '<skipCommandIfNotFound text="interfaces are: eth0." timeout=2>'
       - <enter>
+      - dhcp
       - <enter>
 
       - <skipStepIfNotFound text="IPv6|IPub" steps=1 timeout=2>
+      - auto
       - <enter>
 
       - <enter>
@@ -202,6 +208,12 @@ boot_command:
       - <locate text="distinct packages available" timeout=60>
       - apk add sudo
       - <enter>
+      - apk add acpid
+      - <enter>
+      - rc-update add acpid default
+      - <enter>
+      - rc-service acpid start
+      - <enter>
       - chmod 640 /etc/sudoers
       - <enter>
       - sed -i "/^# %wheel ALL=(ALL:ALL) ALL/s/^# //" /etc/sudoers
@@ -224,6 +236,9 @@ boot_command:
       - <leftShiftOff>
       - <wait1s>
       - sync
+      - <enter>
       - sync
+      - <enter>
       - <wait1s>
       - reboot
+      - <enter>
