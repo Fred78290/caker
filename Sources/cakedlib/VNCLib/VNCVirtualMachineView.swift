@@ -40,6 +40,15 @@ extension NSView {
 		public let box: CGRect
 	}
 
+	@MainActor
+	public func captureImageOCR() -> (pngData: Data, imageSize: CGSize)? {
+		guard let nsImage = self.image(), let pngData = nsImage.pngData else {
+			return nil
+		}
+
+		return (pngData, nsImage.size)
+	}
+
 	/// Uses Vision framework to recognize text in the view's current image representation.
 	/// Box is in NSView coordinates (origin at bottom-left, y increases towards).
 	///
@@ -50,13 +59,19 @@ extension NSView {
 	/// raw capture can be blank/stale/partial. A plain CGContext redraw does NOT fix this (tried,
 	/// still failed); only the actual PNG encode/decode round trip does.
 	public func recognizeText() -> (CGSize, [RecognizedText])? {
-		guard let nsImage = self.image(), let pngData = nsImage.pngData else {
+		guard let capture = self.captureImageOCR() else {
 			return nil
 		}
 
 		// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
 		let semaphore = DispatchSemaphore(value: 0)
 		var result: (CGSize, [RecognizedText])?
+
+		// The CGImage and view might differ in size, so scale accordingly
+		let viewHeight = self.bounds.height
+		let viewWidth = self.bounds.width
+		let scaleX = viewWidth / CGFloat(capture.imageSize.width)
+		let scaleY = viewHeight / CGFloat(capture.imageSize.height)
 
 		DispatchQueue.global(qos: .utility).async {
 			defer { semaphore.signal() }
@@ -65,22 +80,15 @@ extension NSView {
 			request.recognitionLevel = .accurate
 
 			do {
-				try VNImageRequestHandler(data: pngData, options: [:]).perform([request])
+				try VNImageRequestHandler(data: capture.pngData, options: [:]).perform([request])
 
 				guard let results = request.results, results.isEmpty == false else {
 					return
 				}
 
-				// The CGImage and view might differ in size, so scale accordingly
-				let viewHeight = self.bounds.height
-				let viewWidth = self.bounds.width
-				let imageSize = nsImage.size
-				let scaleX = viewWidth / CGFloat(imageSize.width)
-				let scaleY = viewHeight / CGFloat(imageSize.height)
-
-				result = (CGSize(width: imageSize.width, height: imageSize.height), results.compactMap { observation in
+				result = (CGSize(width: capture.imageSize.width, height: capture.imageSize.height), results.compactMap { observation in
 					if let candidate = observation.topCandidates(1).first {
-						let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(imageSize.width), Int(imageSize.height))
+						let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(capture.imageSize.width), Int(capture.imageSize.height))
 						let flippedBox = CGRect(
 							x: box.origin.x * scaleX,
 							y: box.origin.y * scaleY,
