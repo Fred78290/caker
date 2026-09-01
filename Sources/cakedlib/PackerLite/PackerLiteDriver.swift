@@ -692,7 +692,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 		let positionInWindow = self.targetView.windowRelativePosition(of: nsPoint)
 
-		logger.debug("clickText \(nsPoint), positionInWindow = \(positionInWindow)")
+		logger.debug("clickText \(nsPoint), frame=\(self.targetView.frame), positionInWindow = \(positionInWindow)")
 
 		self.handleMouseMovement(to: positionInWindow)
 		self.handlePointerEvent(positionInWindow, buttonMask: 0x01)
@@ -826,7 +826,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 						await self.showDebugBox(flippedBox)
 					}
 
-					logger.debug("Text found \(label) at \(flippedBox)")
+					logger.debug("Text found \(label) at \(flippedBox), middle: \(Int(flippedBox.midX))x\(Int(flippedBox.midY))")
 
 					// NSView topLeft origin
 					return CGPoint(x: flippedBox.midX, y: viewHeight - flippedBox.midY)
