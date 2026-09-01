@@ -485,8 +485,8 @@ public struct BootCommandStep: Equatable, Sendable {
 	/// Matches `skipCommandIfNotFound 'Some Text'"
 	private static func parseSkipCommandIfNotFound(_ body: String) throws -> BootCommandStep.Step {
 		// Support formats:
-		// 1) locate 'Some Text' or locate "Some Text"
-		// 3) locate timeout=10 text="Some Text"
+		// 1) skipCommandIfNotFound 'Some Text' or skipCommandIfNotFound "Some Text"
+		// 2) skipCommandIfNotFound timeout=10 text="Some Text"
 		let rest = body.dropFirst("skipcommandifnotfound".count).trimmingCharacters(in: .whitespaces)
 
 		// Attribute-style: key=value pairs
