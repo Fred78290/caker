@@ -42,7 +42,8 @@ extension SupportedPlatform {
 		case .openSUSE: return "linux-opensuse.packerlite"
 		case .debian: return "linux-debian.packerlite"
 		case .alpine: return "linux-alpine.packerlite"
-		case .ubuntu, .macos, .windows, .unknown: return nil
+		case .ubuntu: return desktop ? nil : "linux-ubuntu-server.packerlite"
+		default: return nil
 		}
 	}
 }
