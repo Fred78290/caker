@@ -292,6 +292,7 @@ extension UTType {
 	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
 	var ipaddresses: [String] = []
 	var screenshot: Data!
+	var haveRequestStop: Bool = false
 
 	var agent = AgentStatus.none {
 		didSet {
@@ -585,7 +586,7 @@ extension VirtualMachineDocument {
 		self.interactiveShell?.cancelShell()
 
 		self.updateCurrentStatus(status, vncURL: nil)
-
+		self.haveRequestStop = false
 		self.interactiveShell = nil
 		self.externalRunning = false
 		self.agentCondition = ("Install agent", false, true)
@@ -990,22 +991,26 @@ extension VirtualMachineDocument {
 				}
 			}
 		} else if let virtualMachine = self.virtualMachine {
-			if force {
+			if force || self.haveRequestStop {
 				virtualMachine.stopFromUI(completionHandler: completionHandler)
-			} else if self.virtualMachineConfig.os == .linux {
-				virtualMachine.requestStopFromUI(completionHandler: completionHandler)
-			} else if self.virtualMachineConfig.agent == false {
-				virtualMachine.suspendFromUI(completionHandler: completionHandler)
-			} else if let location = self.location {
-				Task {
-					do {
-						try location.stopVirtualMachine(force: false, runMode: .app)
-						await MainActor.run {
-							completionHandler?(nil)
-						}
-					} catch {
-						await MainActor.run {
-							completionHandler?(error)
+			} else {
+				self.haveRequestStop = true
+
+				if self.virtualMachineConfig.os == .linux {
+					virtualMachine.requestStopFromUI(completionHandler: completionHandler)
+				} else if self.virtualMachineConfig.agent == false {
+					virtualMachine.suspendFromUI(completionHandler: completionHandler)
+				} else if let location = self.location {
+					Task {
+						do {
+							try location.stopVirtualMachine(force: false, runMode: .app)
+							await MainActor.run {
+								completionHandler?(nil)
+							}
+						} catch {
+							await MainActor.run {
+								completionHandler?(error)
+							}
 						}
 					}
 				}

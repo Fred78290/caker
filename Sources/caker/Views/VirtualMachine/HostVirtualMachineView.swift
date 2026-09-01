@@ -296,20 +296,22 @@ struct HostVirtualMachineView: View {
 
 	@ViewBuilder
 	private var powerButton: some View {
-		if document.status == .stopping {
-			Button("Force stop", systemImage: "square.fill") {
+		if document.status == .stopping || document.haveRequestStop {
+			Button("Force stop", systemImage: "power.circle.fill") {
 				document.stopFromUI(force: true)
 			}
 			.help("Force stop virtual machine")
 			.disabled(document.agent == .installing)
 		} else if document.status == .running {
-			Button("Stop", systemImage: "square.fill") {
-				document.stopFromUI(force: NSEvent.modifierFlags.contains(.option))
+			let option = NSEvent.modifierFlags.contains(.option)
+
+			Button("Stop", systemImage: option ? "power.circle.fill" : "square.fill") {
+				document.stopFromUI(force: option)
 			}
 			.help("Stop virtual machine (hold Option to force stop)")
 			.disabled(document.agent == .installing)
 		} else if document.status == .paused {
-			Button("Resume", systemImage: "play.fill") {
+			Button("Resume", systemImage: "play.circle") {
 				document.resumeFromUI()
 			}
 			.help("Resume virtual machine")
@@ -829,3 +831,4 @@ struct HostVirtualMachineView: View {
 #Preview {
 	HostVirtualMachineView(document: try! VirtualMachineDocument.anyVirtualMachineDocument())
 }
+
