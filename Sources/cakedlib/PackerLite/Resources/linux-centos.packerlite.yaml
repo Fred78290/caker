@@ -32,26 +32,27 @@
 boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
 
 pre_boot_command:
-  - title: Press <enter>
+  - title: Wait GRUB
     commands:
       - <locate text="GRUB" timeout=30>
       - <enter>
 
-boot_command:
   - title: Wait Anaconda to start
     commands:
-      - <locate text="CENTOS STREAM" timeout=120>
-      - <wait2s>
+      - <locate text="when reporting a bug" timeout=180>
+      - <wait10s>
 
-  - title: Choose langue
-    commands:
-      - english
-      - <tab repeat=6>
-      - <enter>
-
+boot_command:
   - title: Change keyboard
     commands:
       - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Choose langue
+    commands:
+      - <locate text="CENTOS STREAM">
+      - english
+      - <tab repeat=6>
+      - <enter>
 
   - title: Create user account
     commands:
