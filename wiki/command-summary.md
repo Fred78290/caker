@@ -150,7 +150,7 @@ cakectl build --alias ubuntu2604 nouvelle-vm
 cakectl launch --alias fedora44Server ma-vm --autoinstall
 ```
 
-`--alias` résout l'identifiant fourni contre le catalogue `VMImages.json` embarqué (le même catalogue que le sélecteur d'images de l'assistant Caker.app) et remplace l'URL/le format de disque par ce que le catalogue indique pour cet identifiant. Pour une entrée `ipsw` dont l'identifiant correspond aussi à une version macOS connue (ex. `macos12`), `--macos-version` est automatiquement renseigné si vous ne l'avez pas précisé vous-même. Deux identifiants (`centos9`, `centos10`) existent à la fois en `iso` et en `cloud` dans le catalogue — dans ce cas précis, `--alias` résout toujours vers l'entrée `iso`.
+`--alias` résout l'identifiant fourni contre le catalogue `VMImages.json` embarqué (le même catalogue que le sélecteur d'images de l'assistant Caker.app) et remplace l'URL/le format de disque par ce que le catalogue indique pour cet identifiant. Pour une entrée `ipsw` dont l'identifiant correspond aussi à une version macOS connue (ex. `macos12`), `--macos-version` est automatiquement renseigné si vous ne l'avez pas précisé vous-même. Chaque identifiant du catalogue est unique : CentOS et Alpine proposent à la fois une ISO d'installation et une image cloud préconstruite, donc leurs entrées `cloud` utilisent un identifiant suffixé par `Cloud` (ex. `centos9Cloud`, `alpine324Cloud`) pour rester accessibles à côté de l'identifiant `iso` correspondant (`centos9`, `alpine324`).
 
 Pour lister tous les identifiants acceptés par `--alias`, avec leur catégorie (`ipsw`/`iso`/`cloud`) :
 
@@ -550,7 +550,7 @@ cakectl build --alias ubuntu2604 new-vm
 cakectl launch --alias fedora44Server my-vm --autoinstall
 ```
 
-`--alias` resolves the given id against the bundled `VMImages.json` catalog (the same catalog behind Caker.app's image picker) and substitutes the URL/disk format the catalog specifies for that id. For an `ipsw` entry whose id also matches a known macOS version (e.g. `macos12`), `--macos-version` is auto-populated if you didn't pass it yourself. Two ids (`centos9`, `centos10`) exist in both `iso` and `cloud` in the catalog — for those, `--alias` always resolves to the `iso` entry.
+`--alias` resolves the given id against the bundled `VMImages.json` catalog (the same catalog behind Caker.app's image picker) and substitutes the URL/disk format the catalog specifies for that id. For an `ipsw` entry whose id also matches a known macOS version (e.g. `macos12`), `--macos-version` is auto-populated if you didn't pass it yourself. Every id in the catalog is unique: CentOS and Alpine ship both an installer ISO and a prebuilt cloud image, so their `cloud` entries use a `Cloud`-suffixed id (e.g. `centos9Cloud`, `alpine324Cloud`) to stay reachable alongside the bare `iso` id (`centos9`, `alpine324`).
 
 To list every id `--alias` accepts, tagged with its category (`ipsw`/`iso`/`cloud`):
 
