@@ -13,13 +13,15 @@ import Yams
 public struct ParsedPackerLiteTemplate: Sendable {
 	public var bootTimeout: TimeInterval
 	public var ignoreIP: Bool?
+	public var installAgent: Bool? = true
 	public var preBootCommand: BootCommandSteps
 	public var bootCommand: BootCommandSteps
 	public var postBootCommand: [String]?
 
-	init(bootTimeout: TimeInterval, ignoreIP: Bool?, preBootCommand: BootCommandSteps, bootCommand: BootCommandSteps, postBootCommand: [String]?) {
+	init(bootTimeout: TimeInterval, ignoreIP: Bool?, installAgent: Bool?, preBootCommand: BootCommandSteps, bootCommand: BootCommandSteps, postBootCommand: [String]?) {
 		self.bootTimeout = bootTimeout
 		self.ignoreIP = ignoreIP
+		self.installAgent = installAgent
 		self.postBootCommand = postBootCommand
 		self.preBootCommand = preBootCommand
 		self.bootCommand = bootCommand
@@ -30,6 +32,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	private var resolvedBootTimeout: TimeInterval { Self.parseDuration(bootTimeout, default: 45 * 60) }
 	private var variables: [String: String]?
 	public var ignoreIP: Bool?
+	public var installAgent: Bool? = true
 	private var bootTimeout: String?
 	private var preBootCommand: [Command]?
 	private var bootCommand: [Command]?
@@ -43,6 +46,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	enum CodingKeys: String, CodingKey {
 		case variables
 		case ignoreIP = "ignore_ip"
+		case installAgent = "install_agent"
 		case bootTimeout = "boot_timeout"
 		case bootCommand = "boot_command"
 		case preBootCommand = "pre_boot_command"
@@ -51,13 +55,15 @@ public struct PackerLiteTemplate: Codable, Sendable {
 
 	public init(
 		variables: [String: String]? = nil,
-		ignoreIP: Bool = true,
+		ignoreIP: Bool = false,
+		installAgent: Bool = true,
 		bootTimeout: String? = nil,
 		bootCommand: [Command]? = nil,
 		postBootCommand: [String]? = nil
 	) {
 		self.variables = variables
 		self.ignoreIP = ignoreIP
+		self.installAgent = installAgent
 		self.bootTimeout = bootTimeout
 		self.bootCommand = bootCommand
 		self.postBootCommand = postBootCommand
@@ -85,6 +91,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 		return ParsedPackerLiteTemplate(
 			bootTimeout: resolvedBootTimeout,
 			ignoreIP: ignoreIP,
+			installAgent: installAgent,
 			preBootCommand: preBootCommandSteps,
 			bootCommand: bootCommandSteps,
 			postBootCommand: postBootCommand
