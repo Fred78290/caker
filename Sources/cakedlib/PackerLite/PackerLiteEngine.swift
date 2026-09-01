@@ -123,6 +123,14 @@ public enum PackerLiteEngine {
 	) async throws {
 		let runInCaker = Bundle.runInCaker
 		let logger = Logger(self)
+		var activationPolicy : NSApplication.ActivationPolicy = .prohibited
+
+		if runInCaker == false {
+			let app = await NSApplication.shared
+			
+			activationPolicy = await app.activationPolicy()
+			await app.setActivationPolicy(.prohibited)
+		}
 
 		progressHandler(.step(String(localized: "Provisioning Virtual Machine Setup Assistant…")))
 
@@ -217,6 +225,8 @@ public enum PackerLiteEngine {
 						NotificationCenter.default.post(name: self.provisionedTerminatedNotification, object: vm, userInfo: ["wizardID": id])
 					}
 				}
+			} else {
+				await NSApplication.shared.setActivationPolicy(activationPolicy)
 			}
 		}
 
