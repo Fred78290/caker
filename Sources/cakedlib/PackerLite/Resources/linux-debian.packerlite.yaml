@@ -71,7 +71,7 @@ pre_boot_command:
 
   - title: Configure multiple network interfaces
     commands: 
-      - <skipNotFound text="system has multiple network interfaces" timeout=30>
+      - <skipCommandIfNotFound text="system has multiple network interfaces" timeout=30>
       - <enter>
 
   - title: Entry for the hostname

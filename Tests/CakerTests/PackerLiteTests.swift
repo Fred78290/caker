@@ -133,6 +133,21 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertEqual(parsed, [.locate(["Accept", "Continue"], timeout: 15)])
 	}
 
+	func testSkipCommandIfNotFoundAttributeStyle() async throws {
+		let parsed = try await parseSteps("<skipCommandIfNotFound timeout=15 text='Continue'>")
+		XCTAssertEqual(parsed, [.skipCommandIfNotFound(["Continue"], timeout: 15)])
+	}
+
+	func testSkipCommandIfNotFoundQuotedForm() async throws {
+		let parsed = try await parseSteps("<skipCommandIfNotFound 'Continue'>")
+		XCTAssertEqual(parsed, [.skipCommandIfNotFound(["Continue"], timeout: 10)])
+	}
+
+	func testSkipCommandIfNotFoundMultiTextOrMatching() async throws {
+		let parsed = try await parseSteps("<skipCommandIfNotFound timeout=15 text='Accept|Continue'>")
+		XCTAssertEqual(parsed, [.skipCommandIfNotFound(["Accept", "Continue"], timeout: 15)])
+	}
+
 	func testSkipStepIfNotFoundAttributeStyle() async throws {
 		let parsed = try await parseSteps("<skipStepIfNotFound timeout=5 steps=2 text='Optional Screen'>")
 		XCTAssertEqual(parsed, [.skipStepIfNotFound(["Optional Screen"], 2, timeout: 5)])

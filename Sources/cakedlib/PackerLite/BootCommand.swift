@@ -102,7 +102,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			case .click(let point): return "click \(Int(point.x))x\(Int(point.y))"
 			case .clickText(let text, let timeout): return "clickText \(text) x\(timeout)s"
 			case .locate(let text, let timeout): return "locate \(text) x\(timeout)s"
-			case .skipNotFound(let text, let timeout): return "skipNotFound \(text) x\(timeout)s"
+			case .skipCommandIfNotFound(let text, let timeout): return "skipCommandIfNotFound \(text) x\(timeout)s"
 			case .keyboard(let translator): return "keyboard \(translator)"
 			case .scroll(let vertical, let horizontal): return "scroll \(vertical),\(horizontal)"
 			case .voiceOverOn(let confirm): return "voiceOverOn \(confirm)"
@@ -119,7 +119,7 @@ public struct BootCommandStep: Equatable, Sendable {
 		case click(CGPoint)
 		case clickText([String], timeout: TimeInterval)
 		case locate([String], timeout: TimeInterval)
-		case skipNotFound([String], timeout: TimeInterval)
+		case skipCommandIfNotFound([String], timeout: TimeInterval)
 		case skipStepIfNotFound([String], Int, timeout: TimeInterval)
 		case scroll(horizontal: Int, vertical: Int)
 		case keyboard(any KeyLayoutTranslator)
@@ -229,8 +229,14 @@ public struct BootCommandStep: Equatable, Sendable {
 			return try parseLocate(body)
 		}
 
+		if lower.hasPrefix("skipcommandifnotfound") {
+			return try parseSkipCommandIfNotFound(body)
+		}
+
+		// Legacy alias for backward compatibility
 		if lower.hasPrefix("skipnotfound") {
-			return try parseSkipNotFound(body)
+			let remapped = "skipCommandIfNotFound" + body.dropFirst("skipnotfound".count)
+			return try parseSkipCommandIfNotFound(remapped)
 		}
 
 		if lower.hasPrefix("skipstepifnotfound") {
@@ -476,16 +482,16 @@ public struct BootCommandStep: Equatable, Sendable {
 		throw BootCommandParseError.malformedLocate(body)
 	}
 
-	/// Matches `skipNotFound 'Some Text'"
-	private static func parseSkipNotFound(_ body: String) throws -> BootCommandStep.Step {
+	/// Matches `skipCommandIfNotFound 'Some Text'"
+	private static func parseSkipCommandIfNotFound(_ body: String) throws -> BootCommandStep.Step {
 		// Support formats:
-		// 1) locate 'Some Text' or locate "Some Text"
-		// 3) locate timeout=10 text="Some Text"
-		let rest = body.dropFirst("skipnotfound".count).trimmingCharacters(in: .whitespaces)
+		// 1) skipCommandIfNotFound 'Some Text' or skipCommandIfNotFound "Some Text"
+		// 2) skipCommandIfNotFound timeout=10 text="Some Text"
+		let rest = body.dropFirst("skipcommandifnotfound".count).trimmingCharacters(in: .whitespaces)
 
 		// Attribute-style: key=value pairs
 		if rest.contains("=") {
-			let attributes = try parseAttributes("skipNotFound", input: String(rest))
+			let attributes = try parseAttributes("skipCommandIfNotFound", input: String(rest))
 
 			if let textValue = attributes["text"] {
 				let text = trimMatchingQuotes(textValue).split(separator: "|").map{String($0)}
@@ -498,24 +504,24 @@ public struct BootCommandStep: Equatable, Sendable {
 					timeout = 10
 				}
 
-				return .skipNotFound(text, timeout: timeout)
+				return .skipCommandIfNotFound(text, timeout: timeout)
 			}
 
 			// Unknown attributes
-			throw BootCommandParseError.malformedSkipNotFound(body)
+			throw BootCommandParseError.malformedSkipCommandIfNotFound(body)
 		}
 
 		// Quoted text form
 		if let quote = rest.first, quote == "'" || quote == "\"" {
 			guard rest.count >= 2, rest.last == quote else {
-				throw BootCommandParseError.malformedSkipNotFound(body)
+				throw BootCommandParseError.malformedSkipCommandIfNotFound(body)
 			}
 
 			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
-			return .skipNotFound(String(rest.dropFirst().dropLast()).split(separator: "|").map{String($0)}, timeout: 10)
+			return .skipCommandIfNotFound(String(rest.dropFirst().dropLast()).split(separator: "|").map{String($0)}, timeout: 10)
 		}
 
-		throw BootCommandParseError.malformedSkipNotFound(body)
+		throw BootCommandParseError.malformedSkipCommandIfNotFound(body)
 	}
 
 	/// Matches `skipStepIfNotFound 'Some Text'"
@@ -552,20 +558,20 @@ public struct BootCommandStep: Equatable, Sendable {
 			}
 
 			// Unknown attributes
-			throw BootCommandParseError.malformedSkipNotFound(body)
+			throw BootCommandParseError.malformedSkipStepIfNotFound(body)
 		}
 
 		// Quoted text form
 		if let quote = rest.first, quote == "'" || quote == "\"" {
 			guard rest.count >= 2, rest.last == quote else {
-				throw BootCommandParseError.malformedSkipNotFound(body)
+				throw BootCommandParseError.malformedSkipStepIfNotFound(body)
 			}
 
 			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
 			return .skipStepIfNotFound(String(rest.dropFirst().dropLast()).split(separator: "|").map{String($0)}, 1, timeout: 10)
 		}
 
-		throw BootCommandParseError.malformedSkipNotFound(body)
+		throw BootCommandParseError.malformedSkipStepIfNotFound(body)
 	}
 
 	/// Matches `scroll horizontal=10 vertical=20`, `scroll horizontal="10" vertical="20"`, or `scroll 20` (vertical only)
@@ -675,7 +681,8 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 	case unknownToken(String)
 	case malformedClick(String)
 	case malformedLocate(String)
-	case malformedSkipNotFound(String)
+	case malformedSkipCommandIfNotFound(String)
+	case malformedSkipStepIfNotFound(String)
 	case malformedScroll(String)
 	case malformedKeyboard(String)
 	case malformedAttribute(String)
@@ -688,7 +695,8 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 		case .unknownToken(let token): return "Unknown boot_command token: <\(token)>"
 		case .malformedClick(let token): return "Malformed click token: <\(token)>"
 		case .malformedLocate(let token): return "Malformed locate token: <\(token)>"
-		case .malformedSkipNotFound(let token): return "Malformed skipNotFound token: <\(token)>"
+		case .malformedSkipCommandIfNotFound(let token): return "Malformed skipCommandIfNotFound token: <\(token)>"
+		case .malformedSkipStepIfNotFound(let token): return "Malformed skipStepIfNotFound token: <\(token)>"
 		case .malformedScroll(let token): return "Malformed scroll token: <\(token)>"
 		case .malformedKeyboard(let token): return "Malformed keyboard token: <\(token)>"
 		case .malformedAttribute(let token): return "Malformed attribute token: <\(token)>"

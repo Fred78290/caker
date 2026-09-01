@@ -89,7 +89,7 @@ boot_command:
 
 - title: Confirm password
   commands:
-  - <skipNotFound text="Press done again to use the password anyway">
+  - <skipCommandIfNotFound text="Press done again to use the password anyway">
   - <click text="Done">
 
 - title: Installation Destination
