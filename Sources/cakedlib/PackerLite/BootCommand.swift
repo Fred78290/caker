@@ -233,6 +233,12 @@ public struct BootCommandStep: Equatable, Sendable {
 			return try parseSkipCommandIfNotFound(body)
 		}
 
+		// Legacy alias for backward compatibility
+		if lower.hasPrefix("skipnotfound") {
+			let remapped = "skipCommandIfNotFound" + body.dropFirst("skipnotfound".count)
+			return try parseSkipCommandIfNotFound(remapped)
+		}
+
 		if lower.hasPrefix("skipstepifnotfound") {
 			return try parseSkipStepIfNotFound(body)
 		}
