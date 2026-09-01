@@ -212,13 +212,14 @@ extension VMImageCatalog {
 	/// Resolves a catalog id (the same ids `--alias` accepts, and that `aliasEntries` below lists)
 	/// against this catalog's `current` (arch-appropriate) entries.
 	///
-	/// Checks `ipsw` → `iso` → `cloud`, in that priority order. `centos9`/`centos10` are — as of
-	/// this writing — the only ids that appear in more than one category (both `iso` and
-	/// `cloud`), and this priority order means they always resolve to the `iso` entry, never the
-	/// `cloud` one; there's no `--centos9-cloud`-style variant to disambiguate further. Returns
-	/// `nil` if `id` isn't in this catalog at all — shouldn't normally happen, since `--alias`'s
-	/// ids are meant to come from this same catalog, but a caller should still handle it rather
-	/// than force-unwrapping.
+	/// Checks `ipsw` → `iso` → `cloud`, in that priority order. Every id in `VMImages.json` is
+	/// unique across all three categories — an id that would otherwise collide between `iso` and
+	/// `cloud` (e.g. CentOS/Alpine, which ship both an installer ISO and a prebuilt cloud image)
+	/// gets a `Cloud`-suffixed id on its `cloud` entry (`centos9Cloud`, `alpine324Cloud`, ...) so
+	/// both remain independently reachable via `--alias`, rather than relying on this priority
+	/// order to pick one over the other. Returns `nil` if `id` isn't in this catalog at all —
+	/// shouldn't normally happen, since `--alias`'s ids are meant to come from this same catalog,
+	/// but a caller should still handle it rather than force-unwrapping.
 	public func resolveShorthand(_ id: String) -> VMImageCatalogResolution? {
 		if let entry = current.ipsw.first(where: { $0.id == id }) {
 			return VMImageCatalogResolution(url: entry.url, imageSource: .ipsw, macosVersion: MacOSVersion(rawValue: id))
@@ -242,9 +243,7 @@ extension VMImageCatalog {
 }
 
 /// One row of `caked aliases`/`cakectl aliases` output — every id `--alias` accepts, tagged with
-/// which catalog category (`ipsw`/`iso`/`cloud`) it resolves from. `centos9`/`centos10` appear
-/// twice here (once per category, see `resolveShorthand`'s doc comment above) since this listing
-/// is meant to show the full catalog contents, not just what `--alias` would actually pick.
+/// which catalog category (`ipsw`/`iso`/`cloud`) it resolves from.
 public struct VMImageAliasEntry: Codable, Sendable {
 	public let id: String
 	public let category: String
