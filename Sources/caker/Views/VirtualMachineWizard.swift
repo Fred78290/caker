@@ -375,33 +375,33 @@ struct VirtualMachineWizard: View {
 		}
 
 		self.Body()
-		.onReceive(PackerLiteEngine.provisionedStartNotification) { notification in
-			self.logger.debug("Notification - provisionedStartNotification")
-			if self.isMyNotification(notification), let virtualMachine = notification.object as? VirtualMachine {
-				self.provisioningStarted = true
+			.onReceive(PackerLiteEngine.provisionedStartNotification) { notification in
+				self.logger.debug("Notification - provisionedStartNotification")
+				if self.isMyNotification(notification), let virtualMachine = notification.object as? VirtualMachine {
+					self.provisioningStarted = true
 
-				#if DEBUG_PAKERLITE
-					self.openWindow(id: "Debug PackerLite", value: self.wizardID)
-				#else
-					self.provisionnedVM = virtualMachine
-				#endif
+					#if DEBUG_PAKERLITE
+						self.openWindow(id: "Debug PackerLite", value: self.wizardID)
+					#else
+						self.provisionnedVM = virtualMachine
+					#endif
+				}
 			}
-		}
-		.onReceive(PackerLiteEngine.provisionedTerminatedNotification) { notification in
-			self.logger.debug("Notification - provisionedTerminatedNotification")
-			if self.isMyNotification(notification) {
-				self.provisionnedVM = nil
+			.onReceive(PackerLiteEngine.provisionedTerminatedNotification) { notification in
+				self.logger.debug("Notification - provisionedTerminatedNotification")
+				if self.isMyNotification(notification) {
+					self.provisionnedVM = nil
+				}
 			}
-		}
 
-		.onAppear {
-			self.validateConfig(config: self.config)
-		}
-		.onDisappear {
-			self.model.createVirtualMachineTask?.cancel()
-		}
-		.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
-		.windowDismissBehavior(self.model.createVM ? .disabled : .automatic)
+			.onAppear {
+				self.validateConfig(config: self.config)
+			}
+			.onDisappear {
+				self.model.createVirtualMachineTask?.cancel()
+			}
+			.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
+			.windowDismissBehavior(self.model.createVM ? .disabled : .automatic)
 		//.windowResizeBehavior(self.model.createVM ? .disabled : .automatic)
 	}
 
@@ -906,40 +906,32 @@ struct VirtualMachineWizard: View {
 								}
 							}
 
-							if platform == .ubuntu {
-								Toggle("Create autoinstall config", isOn: $config.autoinstall).disabled(self.model.createVM)
-								//						} else if platform == .fedora {
-								//							Toggle("Create kickstart config", isOn: $config.autoinstall).disabled(self.model.createVM)
-								//						} else if platform == .debian {
-								//							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
-							} else {
-								// Fedora/CentOS/RHEL/openSUSE/Debian ship a built-in template (see
-								// PackerLiteTemplateResolver) auto-selected from the detected platform, so the
-								// picker below is only required to override it or for a platform with no default.
-								let hasBuiltInTemplate = PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: platform)
+							// Alpine/Ubuntu/Fedora/CentOS/RHEL/openSUSE/Debian ship a built-in template (see
+							// PackerLiteTemplateResolver) auto-selected from the detected platform, so the
+							// picker below is only required to override it or for a platform with no default.
+							let hasBuiltInTemplate = PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: platform)
 
-								LabeledContent(hasBuiltInTemplate ? "Provisioning template (optional)" : "Provisioning template") {
-									HStack {
-										TextField("", text: $model.provisioningTemplate)
-											.frame(width: 300)
-											.rounded(.leading)
-											.disabled(self.model.createVM)
-										Button(action: {
-											if let provisioningTemplate = chooseYAML() {
-												model.provisioningTemplate = provisioningTemplate
-											}
-										}) {
-											Image(systemName: "document.badge.gearshape")
-										}
+							LabeledContent(hasBuiltInTemplate ? "Provisioning template (optional)" : "Provisioning template") {
+								HStack {
+									TextField("", text: $model.provisioningTemplate)
+										.frame(width: 300)
+										.rounded(.leading)
 										.disabled(self.model.createVM)
-										.buttonStyle(.borderless)
+									Button(action: {
+										if let provisioningTemplate = chooseYAML() {
+											model.provisioningTemplate = provisioningTemplate
+										}
+									}) {
+										Image(systemName: "document.badge.gearshape")
 									}
+									.disabled(self.model.createVM)
+									.buttonStyle(.borderless)
 								}
-								Text(hasBuiltInTemplate ? "Leave empty to use the built-in \(platform.rawValue) template or provide a custom one provisioning template" : "Provide a custom one provisioning template")
-									.font(.caption)
-									.foregroundStyle(.secondary)
-								Toggle("Auto configuration with provisioning", isOn: $config.autoinstall).disabled(self.model.createVM)
 							}
+							Text(hasBuiltInTemplate ? "Leave empty to use the built-in \(platform.rawValue) template or provide a custom one provisioning template" : "Provide a custom one provisioning template")
+								.font(.caption)
+								.foregroundStyle(.secondary)
+							Toggle("Auto configuration with provisioning", isOn: $config.autoinstall).disabled(self.model.createVM)
 						}
 
 					case .ipsw:
