@@ -298,21 +298,12 @@ extension VZVirtualMachineView {
 	}
 
 	public func render(in bounds: NSRect) -> CGImage? {
-		var renderLayer: CALayer
-
-		guard let layer = self.layer else {
+		guard let layer = self.layer, let surface = self.surface() else {
 			return nil
 		}
 
-		guard let surface = self.surface() else {
-			return nil
-		}
+		let renderLayer = CALayer(layer: layer)
 
-		//guard let presented  = layer.presentation() else {
-		//	return nil
-		//}
-		renderLayer = CALayer(layer: layer)
-		//renderLayer = presented
 		renderLayer.drawsAsynchronously = true
 		renderLayer.isOpaque = true
 		renderLayer.masksToBounds = false
