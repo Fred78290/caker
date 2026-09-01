@@ -38,16 +38,19 @@ final class VMImageCatalogResolutionTests: XCTestCase {
 		XCTAssertNil(resolution.macosVersion)
 	}
 
-	/// `centos9`/`centos10` are the one known ambiguity: they appear in both the `iso` and
-	/// `cloud` categories under the same id. Resolution always prefers `iso` — see
-	/// `VMImageCatalog.resolveShorthand`'s doc comment.
-	func testAmbiguousCentosIdPrefersISOOverCloud() throws {
+	/// CentOS/Alpine ship both an installer ISO and a prebuilt cloud image; the `cloud` entry uses
+	/// a `Cloud`-suffixed id (e.g. `centos9Cloud`) so it stays reachable without colliding with
+	/// the bare `iso` id — see `VMImageCatalog.resolveShorthand`'s doc comment.
+	func testBareIdResolvesToISOAndSuffixedIdResolvesToCloud() throws {
 		let catalog = VMImageCatalog.shared
 
-		let resolution = try XCTUnwrap(catalog.resolveShorthand("centos9"))
+		let isoResolution = try XCTUnwrap(catalog.resolveShorthand("centos9"))
+		XCTAssertEqual(isoResolution.url, catalog.current.iso.first(where: { $0.id == "centos9" })?.url)
+		XCTAssertEqual(isoResolution.imageSource, .iso)
 
-		XCTAssertEqual(resolution.url, catalog.current.iso.first(where: { $0.id == "centos9" })?.url)
-		XCTAssertEqual(resolution.imageSource, .iso)
+		let cloudResolution = try XCTUnwrap(catalog.resolveShorthand("centos9Cloud"))
+		XCTAssertEqual(cloudResolution.url, catalog.current.cloud.first(where: { $0.id == "centos9Cloud" })?.url)
+		XCTAssertEqual(cloudResolution.imageSource, .qcow2)
 	}
 
 	func testUnknownIdResolvesToNil() {
