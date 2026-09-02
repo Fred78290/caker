@@ -41,13 +41,17 @@ extension ProvisionVariables {
 	/// with a blank (whitespace-only) key rather than sending a malformed `--var` entry.
 	var asProvisionVarStrings: [String] {
 		self.compactMap { entry in
-			let key = entry.key.trimmingCharacters(in: .whitespaces)
+			let key = entry.key.trimmingCharacters(in: .whitespacesAndNewlines)
 
-			guard key.isEmpty == false else {
+			guard key.isEmpty == false,
+				key.contains("=") == false,
+				key.contains(String.grpcSeparator) == false,
+				entry.value.contains(String.grpcSeparator) == false
+			else {
 				return nil
 			}
 
-				return "\(key)=\(entry.value)"
+			return "\(key)=\(entry.value)"
 		}
 	}
 }
