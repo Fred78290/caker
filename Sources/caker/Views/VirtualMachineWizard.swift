@@ -1070,7 +1070,6 @@ struct VirtualMachineWizard: View {
 									self.config.os = .linux
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
-									self.model.provisionVars = ProvisionVariablesStore.load()
 								case .qcow2:
 									self.config.imageName = model.cloudImageRelease.url
 									model.cloudImageRelease.applyMinimumResources(to: &self.config)
@@ -1079,7 +1078,6 @@ struct VirtualMachineWizard: View {
 									self.config.os = .linux
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
-									self.model.provisionVars = ProvisionVariablesStore.load()
 								case .oci:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
@@ -1087,14 +1085,12 @@ struct VirtualMachineWizard: View {
 									self.config.os = .linux
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
-									self.model.provisionVars = ProvisionVariablesStore.load()
 								case .template:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
-									self.model.provisionVars = ProvisionVariablesStore.load()
 								case .stream:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
@@ -1103,7 +1099,6 @@ struct VirtualMachineWizard: View {
 									self.config.os = .linux
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
-									self.model.provisionVars = ProvisionVariablesStore.load()
 								case .iso:
 									self.config.autoinstall = false
 									self.config.imageName = self.model.isoImageRelease.url
@@ -1111,6 +1106,8 @@ struct VirtualMachineWizard: View {
 									self.model.showDiskFormat = true
 									self.config.diskFormat = .defaultSupportedFormat
 									self.config.os = .linux
+									self.model.provisioningTemplate = String.empty
+									self.model.provisionVars = ProvisionVariablesStore.load()
 								case .ipsw:
 									self.config.autoinstall = true
 									self.config.imageName = self.model.ipswRelease.url
@@ -1122,6 +1119,7 @@ struct VirtualMachineWizard: View {
 									self.config.os = .darwin
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
+									self.model.provisionVars = ProvisionVariablesStore.load()
 								}
 							}
 							.pickerStyle(.menu)
@@ -1261,7 +1259,7 @@ struct VirtualMachineWizard: View {
 				.foregroundStyle(.secondary)
 
 			ProvisionVariablesView(variables: $model.provisionVars, disabled: $model.createVM)
-				.frame(height: 120)
+				.frame(height: 140)
 				// Saved to <CAKE_HOME>/ProvisionVariables.json on every edit (add/remove/rename), so
 				// the set is restored automatically the next time the wizard is opened — see
 				// ProvisionVariablesStore.
