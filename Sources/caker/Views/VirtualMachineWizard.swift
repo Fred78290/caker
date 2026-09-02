@@ -123,6 +123,7 @@ struct ShortImageInfoComparator: SortComparator {
 	var showDiskFormat: Bool
 	var createVirtualMachineTask: Task<Void, Never>?
 	var provisioningTemplate: String
+	var provisionVars: ProvisionVariables
 
 	init() {
 		self.currentStep = .name
@@ -144,6 +145,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.mountPoints = []
 		self.showDiskFormat = false
 		self.provisioningTemplate = String.empty
+		self.provisionVars = ProvisionVariablesStore.load()
 	}
 
 	func reset() {
@@ -166,6 +168,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.mountPoints = []
 		self.showDiskFormat = false
 		self.provisioningTemplate = String.empty
+		self.provisionVars = ProvisionVariablesStore.load()
 	}
 }
 
@@ -932,6 +935,8 @@ struct VirtualMachineWizard: View {
 								.font(.caption)
 								.foregroundStyle(.secondary)
 							Toggle("Auto configuration with provisioning", isOn: $config.autoinstall).disabled(self.model.createVM)
+
+							provisionVariablesSection
 						}
 
 					case .ipsw:
@@ -973,6 +978,8 @@ struct VirtualMachineWizard: View {
 								}
 							}
 							Toggle("Configure automaticly the system", isOn: $config.autoinstall).disabled(self.model.createVM)
+
+							provisionVariablesSection
 						}
 					case .qcow2:
 						LabeledContent {
@@ -1063,6 +1070,7 @@ struct VirtualMachineWizard: View {
 									self.config.os = .linux
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
+									self.model.provisionVars = ProvisionVariablesStore.load()
 								case .qcow2:
 									self.config.imageName = model.cloudImageRelease.url
 									model.cloudImageRelease.applyMinimumResources(to: &self.config)
@@ -1071,6 +1079,7 @@ struct VirtualMachineWizard: View {
 									self.config.os = .linux
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
+									self.model.provisionVars = ProvisionVariablesStore.load()
 								case .oci:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
@@ -1078,12 +1087,14 @@ struct VirtualMachineWizard: View {
 									self.config.os = .linux
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
+									self.model.provisionVars = ProvisionVariablesStore.load()
 								case .template:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
+									self.model.provisionVars = ProvisionVariablesStore.load()
 								case .stream:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
@@ -1092,6 +1103,7 @@ struct VirtualMachineWizard: View {
 									self.config.os = .linux
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
+									self.model.provisionVars = ProvisionVariablesStore.load()
 								case .iso:
 									self.config.autoinstall = false
 									self.config.imageName = self.model.isoImageRelease.url
@@ -1228,6 +1240,35 @@ struct VirtualMachineWizard: View {
 				}
 			}
 		}.formStyle(.grouped).disabled(self.model.createVM)
+	}
+
+	/// Shown below the ISO/IPSW image picker in the "Choose OS" step — lets the user add/edit
+	/// `${var.<name>}` substitutions that get injected into the provisioning template alongside
+	/// the built-in `${var.username}`/`${var.password}` (see `BuildOptions.provisionVars`/
+	/// `--var key=value`). Not gated on `config.autoinstall` — matches the "Provisioning template"
+	/// picker right above it, which is also editable regardless of whether autoinstall is currently on.
+	/// The set is saved to and restored from `<CAKE_HOME>/ProvisionVariables.json` automatically —
+	/// see `ProvisionVariablesStore` — so it doesn't need re-entering for every new VM.
+	@ViewBuilder
+	var provisionVariablesSection: some View {
+		Divider()
+
+		VStack(alignment: .leading) {
+			Text("Provisioning variables")
+				.font(.headline)
+			Text("Available in the provisioning template as ${var.<name>}, alongside the built-in ${var.username}/${var.password}")
+				.font(.caption)
+				.foregroundStyle(.secondary)
+
+			ProvisionVariablesView(variables: $model.provisionVars, disabled: $model.createVM)
+				.frame(height: 120)
+				// Saved to <CAKE_HOME>/ProvisionVariables.json on every edit (add/remove/rename), so
+				// the set is restored automatically the next time the wizard is opened — see
+				// ProvisionVariablesStore.
+				.onChange(of: model.provisionVars) { _, newValue in
+					ProvisionVariablesStore.save(newValue)
+				}
+		}
 	}
 
 	func createVncTunnel(_ infos: ProgressObserver.ProvisionInfo) throws -> (VNCTunnel, URL) {
@@ -1479,7 +1520,20 @@ struct VirtualMachineWizard: View {
 			}
 
 			do {
-				let options = self.config.buildOptions(wizardID, imageSource: model.imageSource)
+				var options = self.config.buildOptions(wizardID, imageSource: model.imageSource)
+
+				// model.provisioningTemplate/provisionVars are wizard-only UI state — buildOptions(_:imageSource:)
+				// has no knowledge of them, so they must be applied here before the build is dispatched, same as
+				// --template/--var on the CLI populate BuildOptions.provisionTemplate/provisionVars.
+				if self.model.provisioningTemplate.isEmpty == false {
+					options.provisionTemplate = self.model.provisioningTemplate
+				}
+
+				let provisionVars = self.model.provisionVars.asProvisionVarStrings
+
+				if provisionVars.isEmpty == false {
+					options.provisionVars = provisionVars
+				}
 
 				let build = try await AppState.shared.buildVirtualMachine(options: options, queue: Self.wizardQueue) { result in
 					progressHandler(result)
