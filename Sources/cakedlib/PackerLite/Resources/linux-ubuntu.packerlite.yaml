@@ -54,4 +54,4 @@ boot_command:
 
   - title: Wait install to complete
     commands:
-      - <locate text="login:" timeout=1200>
+      - <locate text="Not listed?" timeout=1200>
