@@ -4,7 +4,7 @@
 //
 //  Created by Frederic BOLTZ on 02/09/2026.
 //
-
+import CakedLib
 import SwiftUI
 
 struct ProvisionVariableDetailView: View {
@@ -41,10 +41,10 @@ struct ProvisionVariableDetailView: View {
 				Text(currentItem.key)
 					.font(.system(size: 12, design: .monospaced))
 					.lineLimit(1)
-				Text(currentItem.value)
-					.font(.system(size: 11, design: .monospaced))
-					.foregroundStyle(.secondary)
-					.lineLimit(1)
+                Text(currentItem.key.localizedCaseInsensitiveContains("password") ? String(repeating: "•", count: currentItem.value.count) : currentItem.value)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
 			}
 
 			Spacer()
@@ -73,3 +73,4 @@ struct ProvisionVariableDetailView: View {
 #Preview {
 	ProvisionVariableDetailView(currentItem: .constant(.init(key: "greeting", value: "hello")))
 }
+
