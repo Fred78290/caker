@@ -12,6 +12,23 @@ public struct BuildHandler {
 		let config = try location.config()
 		let imageURL = URL(spaced: options.image)!
 
+		// The VM's account is already fully determined by --user/--password (see
+		// `configuredUser`/`configuredPassword` above) — reuse it here instead of
+		// letting the template declare its own, so there's exactly one source of truth.
+		func setupVariables() -> [String: String] {
+			var variables = options.provisionVarsDict
+
+			variables["username"] = config.configuredUser
+			variables["password"] = config.configuredPassword ?? "admin"
+			variables["hostname"] = options.name
+
+			if let keys = try? CloudInit.sshAuthorizedKeys(sshAuthorizedKeyPath: options.sshAuthorizedKey, runMode: runMode) {
+				variables["ssh_authorized_key"] = keys.joined(separator: "\n")
+			}
+
+			return variables
+		}
+
 		if options.imageSource == .ipsw {
 			// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to
 			// depend on CakedLib) — bridge it to CakedLib's own MacOSVersion by raw value.
@@ -21,15 +38,7 @@ public struct BuildHandler {
 			// throws if neither works.
 			let content = try PackerLiteTemplateResolver.resolve(explicitPath: options.provisionTemplate, explicitVersion: explicitMacOSVersion, ipswURL: imageURL)
 
-			// The VM's account is already fully determined by --user/--password (see
-			// `configuredUser`/`configuredPassword` above) — reuse it here instead of
-			// letting the template declare its own, so there's exactly one source of truth.
-			var variables = options.provisionVarsDict
-
-			variables["username"] = config.configuredUser
-			variables["password"] = config.configuredPassword ?? "admin"
-
-			let template = try await PackerLiteTemplate.load(from: content, variables: variables)
+			let template = try await PackerLiteTemplate.load(from: content, variables: setupVariables())
 
 			try await PackerLiteEngine.provision(id: options.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
 				progressHandler(progress.progressValue)
@@ -43,15 +52,7 @@ public struct BuildHandler {
 			let explicitTemplate = (options.provisionTemplate?.isEmpty == false) ? options.provisionTemplate : nil
 
 			if let content = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: explicitTemplate, imageURL: imageURL, desktop: config.osDesktop) {
-				// The VM's account is already fully determined by --user/--password (see
-				// `configuredUser`/`configuredPassword` above) — reuse it here instead of
-				// letting the template declare its own, so there's exactly one source of truth.
-				var variables = options.provisionVarsDict
-
-				variables["username"] = config.configuredUser
-				variables["password"] = config.configuredPassword ?? "admin"
-
-				let template = try await PackerLiteTemplate.load(from: content, variables: variables)
+				let template = try await PackerLiteTemplate.load(from: content, variables: setupVariables())
 
 				try await PackerLiteEngine.provision(id: options.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
 					progressHandler(progress.progressValue)
