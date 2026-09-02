@@ -24,13 +24,22 @@ struct ProvisionVariableNewItemView: View {
 				ProvisionVariableDetailView(currentItem: $newItem, readOnly: false)
 			}
 		} validateItem: { item in
-			let key = item.key.trimmingCharacters(in: .whitespaces)
+			let key = item.key.trimmingCharacters(in: .whitespacesAndNewlines)
+			let value = item.value
 
 			if key.isEmpty {
 				return (false, String(localized: "Please specify a variable name"))
 			}
 
-			if variables.contains(where: { $0.id != item.id && $0.key == key }) {
+			if key.contains("=") {
+				return (false, String(localized: "Variable names can't contain '='"))
+			}
+
+			if key.contains("|") || value.contains("|") {
+				return (false, String(localized: "Variables can't contain '|'"))
+			}
+
+			if variables.contains(where: { $0.id != item.id && $0.key.trimmingCharacters(in: .whitespacesAndNewlines) == key }) {
 				return (false, String(localized: "A variable with this name already exists"))
 			}
 
