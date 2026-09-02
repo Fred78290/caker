@@ -1,32 +1,25 @@
-# vanilla-alpine324.packerlite.yaml
+# linux-ubuntu-server.packerlite.yaml
 #
-# Built-in PackerLite template — unattended installation of Alpine Linux 3.24
-# from the official standard/virt install ISO, driven natively by caked/caker
-# after booting from the ISO (see the "PackerLite" section of the wiki's
-# command summary). This is the default template auto-selected for an ISO
-# whose filename/URL identifies it as Alpine (GRPCLib.SupportedPlatform
-# detection) when --autoinstall is passed without an explicit --template —
-# pass --template yourself to override it. Unlike the bundled macOS templates,
-# this one is NOT a guaranteed-working recipe: it has been reviewed for
-# plausibility against the documented `setup-alpine` install flow, but NOT
-# validated end-to-end against a real boot. Treat the prompts and answers
-# below as a first draft to verify/adjust against your own run.
+# Built-in PackerLite template — unattended installation of Ubuntu Server
+# from its own install ISO, driven natively by caked/caker after booting
+# from the ISO (see the "PackerLite" section of the wiki's command summary).
+# This is the default template auto-selected for a non-desktop Ubuntu ISO
+# (GRPCLib.SupportedPlatform detection) when --autoinstall is passed without
+# an explicit --template — pass --template yourself to override it. Unlike
+# the bundled macOS templates, this one is NOT a guaranteed-working recipe:
+# it has been reviewed for plausibility, but NOT validated end-to-end
+# against a real boot. Treat the prompts and answers below as a first draft
+# to verify/adjust against your own run.
 #
-# Alpine's ISO boots straight to a root shell (no graphical installer, no
-# Anaconda-style hub/spoke) — the whole install is driven by running the
-# interactive `setup-alpine` script and answering its prompts in sequence:
-# keyboard layout/variant, hostname, network interfaces, root password,
-# timezone, proxy, NTP client, APK mirror, one non-root user account, SSH
-# server choice, and finally disk selection/mode (`sys`, whole-disk).
-#
-# After the post-install reboot, this template also uncomments the first
-# HTTP mirror in /etc/apk/repositories (commented out by default), runs
-# `apk update`, installs `sudo`, and grants the created user passwordless
-# sudo before rebooting once more — none of that is part of `setup-alpine`
-# itself.
+# Ubuntu Server's ISO already ships its own unattended-install mechanism
+# (cloud-init/subiquity's "autoinstall" boot option) rather than a scripted
+# prompt sequence like Alpine's `setup-alpine` or a click-through installer
+# like Anaconda — this template's job is mostly to select the right keyboard
+# layout and the GRUB "Install" entry, then wait for subiquity's own
+# autoinstall flow to run to completion on its own.
 #
 # Usage:
-#   cakectl build my-alpine-vm ./alpine-virt-3.24.*-x86_64.iso \
+#   cakectl build my-ubuntu-vm ./ubuntu-24.04-live-server-amd64.iso \
 #     --user admin --password admin --autoinstall
 #
 # ${var.username}/${var.password} below resolve to the VM's actual account,

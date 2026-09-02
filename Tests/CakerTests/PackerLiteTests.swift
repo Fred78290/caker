@@ -449,13 +449,40 @@ final class PackerLiteTests: XCTestCase {
 		try await assertLinuxTemplateLoadsAndParses("linux-debian.packerlite.yaml")
 	}
 
-	private func assertLinuxTemplateLoadsAndParses(_ filename: String) async throws {
+	func testLinuxAlpinePackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("linux-alpine.packerlite.yaml")
+	}
+
+	// Unlike the other bundled Linux templates, Ubuntu's boot_command never types the account
+	// credentials directly — it only navigates the GRUB menu and keyboard layout, then waits for
+	// the ISO's own cloud-init/subiquity "autoinstall" flow to run to completion on its own (see
+	// the template's own header comment).
+	func testLinuxUbuntuServerPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("linux-ubuntu-server.packerlite.yaml", expectsTypedPassword: false)
+	}
+
+	func testLinuxUbuntuDesktopPackerLiteTemplateFileLoadsAndParses() async throws {
+		try await assertLinuxTemplateLoadsAndParses("linux-ubuntu.packerlite.yaml", expectsTypedPassword: false)
+	}
+
+	private func assertLinuxTemplateLoadsAndParses(_ filename: String, expectsTypedPassword: Bool = true) async throws {
 		let template = try await PackerLiteTemplate.load(
 			fromFile: Self.macTemplatesDirectory.appendingPathComponent(filename).path,
-			variables: ["username": "admin", "password": "hunter2"])
+			variables: [
+				"username": "admin", "password": "hunter2", "hostname": "test-vm",
+				"ssh_authorized_key": "ssh-ed25519 AAAAtest test@example.com",
+				// Only linux-redhat.packerlite.yaml declares these via required_variables (Red Hat
+				// subscription-manager registration credentials, distinct from the VM's own
+				// username/password) — harmless to supply for every other template too.
+				"redhat_username": "redhat-test", "redhat_password": "redhat-hunter2",
+			])
 
 		XCTAssertFalse(template.bootCommand.isEmpty)
-		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
+
+		if expectsTypedPassword {
+			XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
+		}
+
 		XCTAssertFalse(containsUnsubstitutedVariable(template.bootCommand), "all ${var.*} placeholders should have been substituted")
 	}
 

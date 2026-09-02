@@ -1,4 +1,4 @@
-# vanilla-alpine324.packerlite.yaml
+# linux-alpine.packerlite.yaml
 #
 # Built-in PackerLite template — unattended installation of Alpine Linux 3.24
 # from the official standard/virt install ISO, driven natively by caked/caker

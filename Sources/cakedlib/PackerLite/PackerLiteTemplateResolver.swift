@@ -25,15 +25,17 @@ import GRPCLib
 
 extension SupportedPlatform {
 	/// The bundled template resource name, e.g. "linux-fedora.packerlite" (paired with a ".yaml"
-	/// extension), for distros with a built-in PackerLite template. `nil` for platforms that either
-	/// have their own autoinstall mechanism already (Ubuntu, via cloud-init/subiquity) or have no
-	/// bundled template yet — both cases mean "don't auto-select anything, require --template".
+	/// extension), for distros with a built-in PackerLite template. `nil` for platforms that have
+	/// no bundled template yet — meaning "don't auto-select anything, require --template".
 	///
-	/// `desktop` only actually branches for `.fedora`, which has two structurally different bundled
-	/// flows: Workstation's Live ISO (opens a terminal, runs `sudo liveinst`) vs. Server's DVD ISO
-	/// (boots straight into Anaconda, same shape as CentOS/RHEL). Every other platform currently
-	/// ships exactly one bundled template regardless of `desktop` — there's no reference material
-	/// yet for a desktop/server split on those, so don't invent one.
+	/// `desktop` branches for `.fedora` (Workstation's Live ISO, which opens a terminal and runs
+	/// `sudo liveinst`, vs. Server's DVD ISO, which boots straight into Anaconda like CentOS/RHEL)
+	/// and for `.ubuntu` (Desktop's graphical installer vs. Server's autoinstall flow — unlike every
+	/// other distro here, Ubuntu also has its own native cloud-init/subiquity autoinstall path
+	/// entirely independent of PackerLite; these bundled templates are an alternative for callers
+	/// that want the same OCR-driven `boot_command` approach used for everything else). Every other
+	/// platform currently ships exactly one bundled template regardless of `desktop` — there's no
+	/// reference material yet for a desktop/server split on those, so don't invent one.
 	fileprivate func bundledPackerLiteTemplateResourceName(desktop: Bool) -> String? {
 		switch self {
 		case .fedora: return desktop ? "linux-fedora.packerlite" : "linux-fedora-server.packerlite"
@@ -42,7 +44,7 @@ extension SupportedPlatform {
 		case .openSUSE: return "linux-opensuse.packerlite"
 		case .debian: return "linux-debian.packerlite"
 		case .alpine: return "linux-alpine.packerlite"
-		case .ubuntu: return desktop ? nil : "linux-ubuntu-server.packerlite"
+		case .ubuntu: return desktop ? "linux-ubuntu.packerlite" : "linux-ubuntu-server.packerlite"
 		default: return nil
 		}
 	}

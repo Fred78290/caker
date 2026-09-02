@@ -133,12 +133,17 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 		}
 	}
 
-	func testUbuntuHasNoBuiltInLinuxTemplateAndResolvesToNil() throws {
-		XCTAssertFalse(PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: .ubuntu))
+	func testUbuntuHasBuiltInServerAndDesktopTemplates() throws {
+		XCTAssertTrue(PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: .ubuntu))
 
-		let resolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: .ubuntu)
+		let serverResolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: .ubuntu, desktop: false)
+		let desktopResolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: .ubuntu, desktop: true)
 
-		XCTAssertNil(resolved, "Ubuntu has its own cloud-init/subiquity autoinstall path — no PackerLite template should be selected")
+		XCTAssertNotNil(serverResolved)
+		XCTAssertNotNil(desktopResolved)
+		XCTAssertNotEqual(serverResolved, desktopResolved, "Ubuntu Server and Desktop should resolve to two different bundled templates")
+		XCTAssertTrue(serverResolved?.contains("# linux-ubuntu-server.packerlite.yaml") == true)
+		XCTAssertTrue(desktopResolved?.contains("# linux-ubuntu.packerlite.yaml") == true)
 	}
 
 	func testUnknownPlatformHasNoBuiltInLinuxTemplateAndResolvesToNil() throws {
