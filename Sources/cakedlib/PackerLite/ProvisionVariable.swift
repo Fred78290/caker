@@ -7,29 +7,29 @@
 import Foundation
 import GRPCLib
 
-typealias ProvisionVariables = [ProvisionVariable]
+public typealias ProvisionVariables = [ProvisionVariable]
 
 /// A single `${var.<key>}` substitution the wizard offers to inject into the provisioning
 /// template alongside the built-in `${var.username}`/`${var.password}` — see `BuildOptions.provisionVars`
 /// (`--var key=value` on the CLI) and `PackerLiteTemplate`'s `${var.*}` resolution.
-struct ProvisionVariable: Identifiable, Hashable, Codable, Validatable {
-	let id: UUID
-	var key: String
-	var value: String
+public struct ProvisionVariable: Identifiable, Hashable, Codable, Validatable {
+	public let id: UUID
+	public var key: String
+	public var value: String
 
-	init(key: String = String.empty, value: String = String.empty) {
+	public init(key: String = String.empty, value: String = String.empty) {
 		self.id = UUID()
 		self.key = key
 		self.value = value
 	}
 
-	func validate() -> Bool {
+	public func validate() -> Bool {
 		self.key.trimmingCharacters(in: .whitespaces).isEmpty == false
 	}
 }
 
 extension ProvisionVariables {
-	func editItem(_ editItem: ProvisionVariable.ID?) -> ProvisionVariable {
+	public func editItem(_ editItem: ProvisionVariable.ID?) -> ProvisionVariable {
 		if let editItem {
 			return self.first(where: { $0.id == editItem }) ?? .init()
 		} else {
@@ -39,7 +39,7 @@ extension ProvisionVariables {
 
 	/// `key=value` strings in the shape `BuildOptions.provisionVars` expects, dropping any entry
 	/// with a blank (whitespace-only) key rather than sending a malformed `--var` entry.
-	var asProvisionVarStrings: [String] {
+	public var asProvisionVarStrings: [String] {
 		self.compactMap { entry in
 			let key = entry.key.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -62,7 +62,7 @@ extension ProvisionVariables {
 /// (`Sources/cakedlib/VMImageCatalog.swift`), including its "best-effort, never crash the app over
 /// user-supplied/cached state" posture: a missing or malformed file just falls back to `[]`, and a
 /// failed save is silently dropped rather than surfaced to the user.
-enum ProvisionVariablesStore {
+public enum ProvisionVariablesStore {
 	private static let filename = "ProvisionVariables.json"
 
 	private static func cakeHomeURL(createHomeIfNeeded: Bool) -> URL? {
@@ -73,7 +73,7 @@ enum ProvisionVariablesStore {
 		return home.appendingPathComponent(filename, isDirectory: false)
 	}
 
-	static func load() -> ProvisionVariables {
+	public static func load() -> ProvisionVariables {
 		guard let url = cakeHomeURL(createHomeIfNeeded: false), FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) else {
 			return []
 		}
@@ -81,7 +81,7 @@ enum ProvisionVariablesStore {
 		return (try? JSONDecoder().decode(ProvisionVariables.self, from: Data(contentsOf: url))) ?? []
 	}
 
-	static func save(_ variables: ProvisionVariables) {
+	public static func save(_ variables: ProvisionVariables) {
 		guard let url = cakeHomeURL(createHomeIfNeeded: true) else {
 			return
 		}
