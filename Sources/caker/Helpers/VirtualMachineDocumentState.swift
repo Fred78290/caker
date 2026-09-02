@@ -41,6 +41,14 @@ private let knownOSImageNames = [
 func osImageName(for osname: String) -> String {
 	let osname = osname.lowercased()
 
+	if osname == "redhat" {
+		return "red-hat"
+	}
+
+	if osname == "pop" || osname == "popos" {
+		return "pop-os"
+	}
+
 	if osname == "darwin" {
 		return "mac"
 	}
