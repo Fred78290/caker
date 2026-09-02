@@ -39,31 +39,37 @@ pre_boot_command:
       - <locate text="GRUB" timeout=30>
       - <enter>
 
+  - title: Wait Anaconda to start
+    commands:
+      - <locate text="when reporting a bug" timeout=180>
+      - <wait10s>
+
 boot_command:
-  - title: Wait Anaconda
-    commands:
-      - <locate text="SERVER" timeout=120>
-      - <wait2s>
-
-  - title: Choose langue
-    commands:
-      - english
-      - <tab repeat=6>
-      - <enter>
-
   - title: Change keyboard
     commands:
       - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Choose langue
+    commands:
+      - <locate text="SERVER">
+      - english
+      - <enter>
+      - <wait1s>
+      - <tab repeat=6>
+      - <enter>
+      - <wait2s>
 
   - title: Create user account
     commands:
       - <locate text="INSTALLATION SUMMARY">
       - <wait1s>
       - <click text="User Creation">
+      - <wait1s>
 
   - title: Fill user account information
     commands:
       - <locate text="CREATE USER">
+      - <wait1s>
       - ${var.username}
       - <tab>
       - ${var.username}
@@ -73,11 +79,27 @@ boot_command:
       - ${var.password}
       - <tab>
       - <click text="Done">
+      - <wait1s>
 
   - title: Confirm password
     commands:
       - <skipCommandIfNotFound text="Press done again to use the password anyway">
       - <click text="Done">
+      - <wait1s>
+
+  - title: Configure hostname and network
+    commands:
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="Network & Host Name">
+      - <locate text="Hardware Address">
+      - <tab repeat=5>
+      - ${var.hostname}
+      - <tab>
+      - <spacebar>
+      - <wait1s>
+      - <click text="Done">
+      - <wait1s>
 
   - title: Installation Destination
     commands:
@@ -95,7 +117,7 @@ boot_command:
 
   - title: Wait installed and ready for you to use!
     commands:
-      - <locate text="Fedora is now successfully installed and ready for you to use!" timeout=1200>
+      - <locate text="is now successfully installed and ready for you to use!" timeout=1200>
 
   - title: Reboot System
     commands:

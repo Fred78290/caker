@@ -32,7 +32,7 @@
 # that spoke untouched and takes whatever the ISO's default selection is.
 #
 # Usage:
-#   cakectl build my-rhel-vm ./rhel-9.*-x86_64-dvd.iso \
+#   cakectl build my-rhel-vm ./rhel-10.*-x86_64-dvd.iso \
 #     --user admin --password admin --autoinstall
 #
 # ${var.username}/${var.password} below resolve to the VM's actual account,
@@ -40,12 +40,14 @@
 
 boot_timeout: 60m        # a full install can legitimately take 20-30+ minutes
 ignore_ip: true
+required_variables:
+  - redhat_username
+  - redhat_password
 
 pre_boot_command:
-  - title: Wait GRUB
+  - title: Boot the GRUB menu's default "Install" entry
     commands:
       - <locate text="GRUB" timeout=30>
-      - <up>
       - <enter>
 
   - title: Wait Anaconda to start
@@ -115,10 +117,24 @@ boot_command:
     commands:
       - <skipCommandIfNotFound text="Press done again to use the password anyway">
       - <click text="Done">
+      - <wait1s>
+
+  - title: Configure hostname and network
+    commands:
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="Network & Host Name">
+      - <locate text="Hardware Address">
+      - <tab repeat=5>
+      - ${var.hostname}
+      - <tab>
+      - <spacebar>
+      - <wait1s>
+      - <click text="Done">
+      - <wait1s>
 
   - title: Installation Destination
     commands:
-      - <wait1s>
       - <locate text="INSTALLATION SUMMARY">
       - <wait1s>
       - <click text="Installation Destination">
@@ -132,7 +148,7 @@ boot_command:
       - <skipCommandIfNotFound text="Source changed" timeout=60>
       - <click text="Software Selection">
       - <wait1s>
-      - <tab>
+      - <down repeat=2>
       - <spacebar>
       - <wait1s>
       - <click text="Done">

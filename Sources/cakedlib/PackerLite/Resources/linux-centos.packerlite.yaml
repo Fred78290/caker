@@ -23,7 +23,7 @@
 # that spoke untouched and takes whatever the ISO's default selection is.
 #
 # Usage:
-#   cakectl build my-centos-vm ./CentOS-Stream-9-latest-x86_64-dvd1.iso \
+#   cakectl build my-centos-vm ./CentOS-Stream-10-latest-x86_64-dvd1.iso \
 #     --user admin --password admin --autoinstall
 #
 # ${var.username}/${var.password} below resolve to the VM's actual account,
@@ -32,7 +32,7 @@
 boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
 
 pre_boot_command:
-  - title: Wait GRUB
+  - title: Boot the GRUB menu's default "Install" entry
     commands:
       - <locate text="GRUB" timeout=30>
       - <enter>
@@ -83,14 +83,38 @@ boot_command:
     commands:
       - <skipCommandIfNotFound text="Press done again to use the password anyway">
       - <click text="Done">
+      - <wait1s>
+
+  - title: Configure hostname and network
+    commands:
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="Network & Host Name">
+      - <locate text="Hardware Address">
+      - <tab repeat=5>
+      - ${var.hostname}
+      - <tab>
+      - <spacebar>
+      - <wait1s>
+      - <click text="Done">
+      - <wait1s>
 
   - title: Installation Destination
     commands:
-      - <wait1s>
       - <locate text="INSTALLATION SUMMARY">
       - <wait1s>
       - <click text="Installation Destination">
       - <locate text="Device Selection">
+      - <wait1s>
+      - <click text="Done">
+      - <wait1s>
+
+  - title: Selection software
+    commands:
+      - <click text="Software Selection">
+      - <wait1s>
+      - <down repeat=2>
+      - <spacebar>
       - <wait1s>
       - <click text="Done">
       - <wait1s>
@@ -101,7 +125,7 @@ boot_command:
 
   - title: Wait installed and ready for you to use!
     commands:
-      - <locate text="CentOS Stream is now successfully installed and ready for you to use!" timeout=1200>
+      - <locate text="now successfully installed and ready for you to use!" timeout=1200>
 
   - title: Reboot System
     commands:

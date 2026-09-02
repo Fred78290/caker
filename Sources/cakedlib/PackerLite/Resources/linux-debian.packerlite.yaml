@@ -78,7 +78,7 @@ pre_boot_command:
     commands: 
       - <locate text="Please enter the hostname for this system" timeout=30>
       - <backspace repeat=6>
-      - ${var.username}-vm
+      - ${var.hostname}
       - <enter>
 
   - title: Domain name

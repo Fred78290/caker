@@ -104,3 +104,7 @@ boot_command:
       - <wait1s>
       - ${var.password}
       - <enter>
+      - mkdir -p ~/.ssh
+      - <enter>
+      - echo "${var.ssh_authorized_key}" > ~/.ssh/authorized_keys
+      - <enter>
