@@ -3,6 +3,7 @@ import Foundation
 import GRPC
 import GRPCLib
 import CakeAgentLib
+import CakedLib
 
 struct Build: AsyncGrpcParsableCommand {
 	static let configuration = BuildOptions.build
@@ -18,6 +19,14 @@ struct Build: AsyncGrpcParsableCommand {
 
 		if buildOptions.sockets.first(where: { $0.sharedFileDescriptors != nil }) != nil {
 			throw ValidationError(String(localized: "Shared file descriptors are not supported, use caked launch instead"))
+		}
+
+		var provisionVars = ProvisionVariablesStore.load().asProvisionVarStrings
+		
+		if provisionVars.isEmpty == false {
+			provisionVars.append(contentsOf: self.buildOptions.provisionVars)
+			
+			self.buildOptions.provisionVars = provisionVars
 		}
 	}
 

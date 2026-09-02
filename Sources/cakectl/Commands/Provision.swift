@@ -32,13 +32,21 @@ struct Provision: GrpcParsableCommand {
 	@Flag(name: .customLong("vnc-debug"), help: ArgumentHelp(String(localized: "Trace vnc traffic"), visibility: .hidden))
 	var vncDebug: Bool = false
 
-	func validate() throws {
+	mutating func validate() throws {
 		if let template = self.provision.template {
 			let u = URL(fileURLWithPath: template.expandingTildeInPath)
 
 			if FileManager.default.fileExists(atPath: u.path(percentEncoded: false)) == false {
 				throw ValidationError(String(localized: "Provided provisioning template file doesn't exist: \(template)"))
 			}
+		}
+
+		var provisionVars = ProvisionVariablesStore.load().asProvisionVarStrings
+		
+		if provisionVars.isEmpty == false {
+			provisionVars.append(contentsOf: self.provision.vars)
+			
+			self.provision.vars = provisionVars
 		}
 	}
 
