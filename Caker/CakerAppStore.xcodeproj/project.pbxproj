@@ -215,6 +215,14 @@
 		9B29F8242FCAE4B700AEBCB8 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 9B29F7A52FCAE4B700AEBCB8 /* SwiftTerm */; };
 		9B29F82A2FCAE4B700AEBCB8 /* caked.app in Bundle */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9B29F82C2FCAE4B700AEBCB8 /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		9B2D377C3048575F00204614 /* ProvisionVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D377B3048575F00204614 /* ProvisionVariable.swift */; };
+		9B2D377F3048577400204614 /* linux-ubuntu-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D377D3048577400204614 /* linux-ubuntu-server.packerlite.yaml */; };
+		9B2D37803048577400204614 /* linux-ubuntu.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D377E3048577400204614 /* linux-ubuntu.packerlite.yaml */; };
+		9B2D37813048577400204614 /* linux-ubuntu-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D377D3048577400204614 /* linux-ubuntu-server.packerlite.yaml */; };
+		9B2D37823048577400204614 /* linux-ubuntu.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D377E3048577400204614 /* linux-ubuntu.packerlite.yaml */; };
+		9B2D37863048578B00204614 /* ProvisionVariableDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D37833048578B00204614 /* ProvisionVariableDetailView.swift */; };
+		9B2D37873048578B00204614 /* ProvisionVariablesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D37853048578B00204614 /* ProvisionVariablesView.swift */; };
+		9B2D37883048578B00204614 /* ProvisionVariableNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D37843048578B00204614 /* ProvisionVariableNewItemView.swift */; };
 		9B30992B2DE4DC0C00231C1E /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30992A2DE4DC0C00231C1E /* CakeAgentLib */; };
 		9B32F98F302623290099D3A5 /* ProvisionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F98E302623290099D3A5 /* ProvisionHandler.swift */; };
 		9B32F991302623370099D3A5 /* ProvisionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B32F990302623370099D3A5 /* ProvisionHandler.swift */; };
@@ -1022,6 +1030,12 @@
 		9B2BFAB42DFED25E000045C3 /* EditableList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableList.swift; sourceTree = "<group>"; };
 		9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostingViewFinder.swift; sourceTree = "<group>"; };
 		9B2BFAB82DFED25E000045C3 /* MainApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainApp.swift; sourceTree = "<group>"; };
+		9B2D377B3048575F00204614 /* ProvisionVariable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionVariable.swift; sourceTree = "<group>"; };
+		9B2D377D3048577400204614 /* linux-ubuntu-server.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-ubuntu-server.packerlite.yaml"; sourceTree = "<group>"; };
+		9B2D377E3048577400204614 /* linux-ubuntu.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-ubuntu.packerlite.yaml"; sourceTree = "<group>"; };
+		9B2D37833048578B00204614 /* ProvisionVariableDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionVariableDetailView.swift; sourceTree = "<group>"; };
+		9B2D37843048578B00204614 /* ProvisionVariableNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionVariableNewItemView.swift; sourceTree = "<group>"; };
+		9B2D37853048578B00204614 /* ProvisionVariablesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionVariablesView.swift; sourceTree = "<group>"; };
 		9B30BA482E0BDB5600256A9D /* FileHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileHelpers.swift; sourceTree = "<group>"; };
 		9B30BA4B2E0BF2B600256A9D /* RangeIntegerStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RangeIntegerStyle.swift; sourceTree = "<group>"; };
 		9B30BA4D2E0BF37300256A9D /* RegexParseableFormatStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegexParseableFormatStyle.swift; sourceTree = "<group>"; };
@@ -1922,6 +1936,9 @@
 				9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */,
 				9B911A602ECF854E0017791D /* GlossyCircle.swift */,
 				9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */,
+				9B2D37833048578B00204614 /* ProvisionVariableDetailView.swift */,
+				9B2D37843048578B00204614 /* ProvisionVariableNewItemView.swift */,
+				9B2D37853048578B00204614 /* ProvisionVariablesView.swift */,
 				9B0BEC18300E8F48003EE9E9 /* SandboxLimitationsView.swift */,
 				9B1389D02F97A98A000329B1 /* ServiceListView.swift */,
 				9B3601A22E2116E600889BFD /* SettingsView.swift */,
@@ -2436,10 +2453,12 @@
 				9B4D214C3045EA6800082830 /* linux-alpine.packerlite.yaml */,
 				9F65A98D0C436F32A389AF06 /* linux-centos.packerlite.yaml */,
 				7798FFF4C78EB8F680574620 /* linux-debian.packerlite.yaml */,
-				32612D3D9C8B68255A45662B /* linux-fedora.packerlite.yaml */,
 				0C56EECFC76E64F7FF0D0260 /* linux-fedora-server.packerlite.yaml */,
+				32612D3D9C8B68255A45662B /* linux-fedora.packerlite.yaml */,
 				25A36C779DD69601BDFAA13D /* linux-opensuse.packerlite.yaml */,
 				500BE3176257638A33A6C5AC /* linux-redhat.packerlite.yaml */,
+				9B2D377D3048577400204614 /* linux-ubuntu-server.packerlite.yaml */,
+				9B2D377E3048577400204614 /* linux-ubuntu.packerlite.yaml */,
 				9BE7F1B73030AF0A0006F53F /* vanilla-macos12.packerlite.yaml */,
 				9BE7F1B83030AF0A0006F53F /* vanilla-macos13.packerlite.yaml */,
 				9BE7F1B93030AF0A0006F53F /* vanilla-macos14.packerlite.yaml */,
@@ -3015,6 +3034,7 @@
 		FB420C69A167056615FAD715 /* PackerLite */ = {
 			isa = PBXGroup;
 			children = (
+				34D83C742935C118E4351E41 /* ActionRecorder.swift */,
 				CEBCF840FC996468321E4B7D /* BootCommand.swift */,
 				209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */,
 				9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */,
@@ -3022,7 +3042,7 @@
 				839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */,
 				7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */,
 				7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */,
-				34D83C742935C118E4351E41 /* ActionRecorder.swift */,
+				9B2D377B3048575F00204614 /* ProvisionVariable.swift */,
 				9B8F3F71301F3F52001FA32A /* Resources */,
 			);
 			path = PackerLite;
@@ -3494,6 +3514,8 @@
 			isa = PBXResourcesBuildPhase;
 			files = (
 				4790DD9E7D6FF54441D137A8 /* VMImages.json in Resources */,
+				9B2D377F3048577400204614 /* linux-ubuntu-server.packerlite.yaml in Resources */,
+				9B2D37803048577400204614 /* linux-ubuntu.packerlite.yaml in Resources */,
 				9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */,
 				9BE7F1BD3030AF0A0006F53F /* vanilla-macos12.packerlite.yaml in Resources */,
 				9BE7F1BE3030AF0A0006F53F /* vanilla-macos14.packerlite.yaml in Resources */,
@@ -3539,6 +3561,8 @@
 				9BE7F1C73030AF0A0006F53F /* vanilla-macos27.packerlite.yaml in Resources */,
 				9BE7F1C83030AF0A0006F53F /* vanilla-macos15.packerlite.yaml in Resources */,
 				9B5611B03013502C00E9FA7D /* knoppix.png in Resources */,
+				9B2D37813048577400204614 /* linux-ubuntu-server.packerlite.yaml in Resources */,
+				9B2D37823048577400204614 /* linux-ubuntu.packerlite.yaml in Resources */,
 				9B5611B13013502C00E9FA7D /* kubuntu.png in Resources */,
 				9B5611B23013502C00E9FA7D /* linux.png in Resources */,
 				094F8B1042971209B2D4C21A /* linux-centos.packerlite.yaml in Resources */,
@@ -3774,6 +3798,9 @@
 				9B29F7BD2FCAE4B700AEBCB8 /* GlassEffectHelper.swift in Sources */,
 				9B29F7BE2FCAE4B700AEBCB8 /* ColorWell.swift in Sources */,
 				9B29F7BF2FCAE4B700AEBCB8 /* ForwardedPortView.swift in Sources */,
+				9B2D37863048578B00204614 /* ProvisionVariableDetailView.swift in Sources */,
+				9B2D37873048578B00204614 /* ProvisionVariablesView.swift in Sources */,
+				9B2D37883048578B00204614 /* ProvisionVariableNewItemView.swift in Sources */,
 				9B29F7C02FCAE4B700AEBCB8 /* Authorization.swift in Sources */,
 				9B29F7C12FCAE4B700AEBCB8 /* InstallAgentHandler.swift in Sources */,
 				9B001E8C300191920048894C /* RemoteDetailView.swift in Sources */,
@@ -4112,6 +4139,7 @@
 				9BEBC76D2DF440720092B196 /* Home.swift in Sources */,
 				9BA9411B2F3C9A0A00B51543 /* CurrentStatusHandler.swift in Sources */,
 				9BEBC76E2DF440720092B196 /* VMBuilder.swift in Sources */,
+				9B2D377C3048575F00204614 /* ProvisionVariable.swift in Sources */,
 				9BEBC76F2DF440720092B196 /* IP.Address.swift in Sources */,
 				9B0A37442FF575C6004609F2 /* DirWatcher.swift in Sources */,
 				9BF2DA9D2FE5490300218073 /* DeviceRestoreState.swift in Sources */,

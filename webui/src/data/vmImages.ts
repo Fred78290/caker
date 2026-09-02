@@ -48,48 +48,6 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "ubuntu2204Desktop",
-        "label": "Ubuntu 22.04.5 LTS – Desktop",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/jammy/release/ubuntu-22.04.5-desktop-arm64.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "ubuntu2204Server",
-        "label": "Ubuntu 22.04.5 LTS – Server",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/jammy/release/ubuntu-22.04.5-live-server-arm64.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "ubuntu2004Desktop",
-        "label": "Ubuntu 20.04.5 LTS – Desktop",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/focal/release/ubuntu-20.04.5-desktop-arm64.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "ubuntu2004Server",
-        "label": "Ubuntu 20.04.5 LTS – Server",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/focal/release/ubuntu-20.04.5-live-server-arm64.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "ubuntu1804Desktop",
-        "label": "Ubuntu 18.04.6 LTS – Desktop",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-desktop-arm64.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "ubuntu1804Server",
-        "label": "Ubuntu 18.04.6 LTS – Server",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-live-server-arm64.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
         "id": "fedora44Desktop",
         "label": "Fedora 44 – Workstation",
         "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Workstation/aarch64/iso/Fedora-Workstation-Live-44-1.7.aarch64.iso",
@@ -153,16 +111,9 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "centos10",
+        "id": "centos10-iso",
         "label": "CentOS Stream 10",
         "url": "https://mirrors.centos.org/mirrorlist?path=/10-stream/BaseOS/aarch64/iso/CentOS-Stream-10-latest-aarch64-dvd1.iso&redirect=1&protocol=https",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "centos9",
-        "label": "CentOS Stream 9",
-        "url": "https://mirrors.centos.org/mirrorlist?path=/9-stream/BaseOS/aarch64/iso/CentOS-Stream-9-latest-aarch64-dvd1.iso&redirect=1&protocol=https",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
@@ -174,42 +125,42 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSELeap161",
+        "id": "openSUSE161-iso",
         "label": "openSUSE Leap 16.1",
         "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.aarch64-Leap_16.1.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSELeap160",
+        "id": "openSUSE160-iso",
         "label": "openSUSE Leap 16.0",
         "url": "https://download.opensuse.org/distribution/leap/16.0/installer/iso/agama-installer.aarch64-Leap_16.0.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSELeap156",
+        "id": "openSUSE156-iso",
         "label": "openSUSE Leap 15.6",
         "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-aarch64-Media.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSELeap155",
+        "id": "openSUSE155-iso",
         "label": "openSUSE Leap 15.5",
         "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-aarch64-Media.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "alpine324",
+        "id": "alpine324-iso",
         "label": "Alpine 3.24",
         "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-virt-3.24.1-aarch64.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "alpine323",
+        "id": "alpine323-iso",
         "label": "Alpine 3.23",
         "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/aarch64/alpine-virt-3.23.5-aarch64.iso",
         "minCPU": 2,
@@ -332,13 +283,6 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "centos9",
-        "label": "CentOS 9",
-        "url": "https://cloud.centos.org/centos/9-stream/aarch64/images/CentOS-Stream-GenericCloud-9-latest.aarch64.qcow2",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
         "id": "fedora44",
         "label": "Fedora 44",
         "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/aarch64/images/Fedora-Server-Guest-Generic-44-1.7.aarch64.qcow2",
@@ -388,13 +332,6 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSE154",
-        "label": "OpenSUSE Leap 15.4",
-        "url": "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.4/images/openSUSE-Leap-15.4.aarch64-NoCloud.qcow2",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
         "id": "alpine324",
         "label": "Alpine 3.24",
         "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/cloud/generic_alpine-3.24.1-aarch64-uefi-cloudinit-r0.qcow2",
@@ -436,70 +373,28 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
       {
         "id": "ubuntu2604Desktop",
         "label": "Ubuntu 26.04 LTS – Desktop",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-desktop-amd64.iso",
+        "url": "https://releases.ubuntu.com/resolute/ubuntu-26.04.1-desktop-amd64.iso",
         "minCPU": 4,
         "minMemoryMiB": 4096
       },
       {
         "id": "ubuntu2604Server",
         "label": "Ubuntu 26.04 LTS – Server",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-live-server-amd64.iso",
+        "url": "https://releases.ubuntu.com/resolute/ubuntu-26.04.1-live-server-amd64.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
         "id": "ubuntu2404Desktop",
         "label": "Ubuntu 24.04.4 LTS – Desktop",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/noble/release/ubuntu-24.04.4-desktop-amd64.iso",
+        "url": "https://releases.ubuntu.com/noble/ubuntu-24.04.4-desktop-amd64.iso",
         "minCPU": 4,
         "minMemoryMiB": 4096
       },
       {
         "id": "ubuntu2404Server",
         "label": "Ubuntu 24.04.4 LTS – Server",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/noble/release/ubuntu-24.04.4-live-server-amd64.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "ubuntu2204Desktop",
-        "label": "Ubuntu 22.04.5 LTS – Desktop",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/jammy/release/ubuntu-22.04.5-desktop-amd64.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "ubuntu2204Server",
-        "label": "Ubuntu 22.04.5 LTS – Server",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/jammy/release/ubuntu-22.04.5-live-server-amd64.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "ubuntu2004Desktop",
-        "label": "Ubuntu 20.04.5 LTS – Desktop",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/focal/release/ubuntu-20.04.5-desktop-amd64.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "ubuntu2004Server",
-        "label": "Ubuntu 20.04.5 LTS – Server",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/focal/release/ubuntu-20.04.5-live-server-amd64.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "ubuntu1804Desktop",
-        "label": "Ubuntu 18.04.6 LTS – Desktop",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-desktop-amd64.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "ubuntu1804Server",
-        "label": "Ubuntu 18.04.6 LTS – Server",
-        "url": "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-live-server-amd64.iso",
+        "url": "https://releases.ubuntu.com/noble/ubuntu-24.04.4-live-server-amd64.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
@@ -581,56 +476,56 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "centos10",
+        "id": "centos10-iso",
         "label": "CentOS Stream 10 – DVD",
         "url": "https://mirrors.centos.org/mirrorlist?path=/10-stream/BaseOS/x86_64/iso/CentOS-Stream-10-latest-x86_64-dvd1.iso&redirect=1&protocol=https",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "centos9",
+        "id": "centos9-iso",
         "label": "CentOS Stream 9 – DVD",
         "url": "https://mirrors.centos.org/mirrorlist?path=/9-stream/BaseOS/x86_64/iso/CentOS-Stream-9-latest-x86_64-dvd1.iso&redirect=1&protocol=https",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSELeap161",
+        "id": "openSUSE161-iso",
         "label": "openSUSE Leap 16.1",
         "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.x86_64-Leap_16.1.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSELeap160",
+        "id": "openSUSE160-iso",
         "label": "openSUSE Leap 16.0",
         "url": "https://download.opensuse.org/distribution/leap/16.0/installer/iso/agama-installer.x86_64-Leap_16.0.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSELeap156",
+        "id": "openSUSE156-iso",
         "label": "openSUSE Leap 15.6",
         "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-x86_64-Media.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSELeap155",
+        "id": "openSUSE155-iso",
         "label": "openSUSE Leap 15.5",
         "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-x86_64-Media.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "alpine324",
+        "id": "alpine324-iso",
         "label": "Alpine 3.24",
         "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/x86_64/alpine-virt-3.24.1-x86_64.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
       {
-        "id": "alpine323",
+        "id": "alpine323-iso",
         "label": "Alpine 3.23",
         "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/x86_64/alpine-virt-3.23.5-x86_64.iso",
         "minCPU": 2,

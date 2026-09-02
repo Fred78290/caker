@@ -130,6 +130,10 @@
 		9B2BFAC52DFED25E000045C3 /* MountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2BFAAB2DFED25E000045C3 /* MountView.swift */; };
 		9B2D376F30471A3D00204614 /* linux-ubuntu-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D376E30471A3D00204614 /* linux-ubuntu-server.packerlite.yaml */; };
 		9B2D377030471A3E00204614 /* linux-ubuntu-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D376E30471A3D00204614 /* linux-ubuntu-server.packerlite.yaml */; };
+		9B2D37743048547300204614 /* ProvisionVariablesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D37733048547300204614 /* ProvisionVariablesView.swift */; };
+		9B2D37753048547300204614 /* ProvisionVariableDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D37713048547300204614 /* ProvisionVariableDetailView.swift */; };
+		9B2D37763048547300204614 /* ProvisionVariableNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D37723048547300204614 /* ProvisionVariableNewItemView.swift */; };
+		9B2D377A3048556200204614 /* ProvisionVariable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2D37793048556200204614 /* ProvisionVariable.swift */; };
 		9B30992B2DE4DC0C00231C1E /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30992A2DE4DC0C00231C1E /* CakeAgentLib */; };
 		9B30BA4A2E0BDB5600256A9D /* FileHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA482E0BDB5600256A9D /* FileHelpers.swift */; };
 		9B30BA4C2E0BF2B600256A9D /* RangeIntegerStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA4B2E0BF2B600256A9D /* RangeIntegerStyle.swift */; };
@@ -1021,6 +1025,10 @@
 		9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostingViewFinder.swift; sourceTree = "<group>"; };
 		9B2BFAB82DFED25E000045C3 /* MainApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainApp.swift; sourceTree = "<group>"; };
 		9B2D376E30471A3D00204614 /* linux-ubuntu-server.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "linux-ubuntu-server.packerlite.yaml"; sourceTree = "<group>"; };
+		9B2D37713048547300204614 /* ProvisionVariableDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionVariableDetailView.swift; sourceTree = "<group>"; };
+		9B2D37723048547300204614 /* ProvisionVariableNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionVariableNewItemView.swift; sourceTree = "<group>"; };
+		9B2D37733048547300204614 /* ProvisionVariablesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionVariablesView.swift; sourceTree = "<group>"; };
+		9B2D37793048556200204614 /* ProvisionVariable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionVariable.swift; sourceTree = "<group>"; };
 		9B30BA482E0BDB5600256A9D /* FileHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileHelpers.swift; sourceTree = "<group>"; };
 		9B30BA4B2E0BF2B600256A9D /* RangeIntegerStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RangeIntegerStyle.swift; sourceTree = "<group>"; };
 		9B30BA4D2E0BF37300256A9D /* RegexParseableFormatStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegexParseableFormatStyle.swift; sourceTree = "<group>"; };
@@ -1932,6 +1940,9 @@
 				9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */,
 				9B911A602ECF854E0017791D /* GlossyCircle.swift */,
 				9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */,
+				9B2D37713048547300204614 /* ProvisionVariableDetailView.swift */,
+				9B2D37723048547300204614 /* ProvisionVariableNewItemView.swift */,
+				9B2D37733048547300204614 /* ProvisionVariablesView.swift */,
 				9B0BEE54300EB500003EE9E9 /* SandboxLimitationsView.swift */,
 				9B1389D02F97A98A000329B1 /* ServiceListView.swift */,
 				9B3601A22E2116E600889BFD /* SettingsView.swift */,
@@ -3011,6 +3022,7 @@
 		FB420C69A167056615FAD715 /* PackerLite */ = {
 			isa = PBXGroup;
 			children = (
+				34D83C742935C118E4351E41 /* ActionRecorder.swift */,
 				CEBCF840FC996468321E4B7D /* BootCommand.swift */,
 				209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */,
 				9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */,
@@ -3018,7 +3030,7 @@
 				839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */,
 				7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */,
 				7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */,
-				34D83C742935C118E4351E41 /* ActionRecorder.swift */,
+				9B2D37793048556200204614 /* ProvisionVariable.swift */,
 				9B8F3F5C301F3DCA001FA32A /* Resources */,
 			);
 			path = PackerLite;
@@ -3740,6 +3752,9 @@
 		9B464A502D5A3DA000164BF5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				9B2D37743048547300204614 /* ProvisionVariablesView.swift in Sources */,
+				9B2D37753048547300204614 /* ProvisionVariableDetailView.swift in Sources */,
+				9B2D37763048547300204614 /* ProvisionVariableNewItemView.swift in Sources */,
 				9BDA14BF2EEAC18900357544 /* VirtualMachineInformations.swift in Sources */,
 				9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */,
 				9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */,
@@ -4161,6 +4176,7 @@
 				9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */,
 				9BEBC7982DF440720092B196 /* DeleteHandler.swift in Sources */,
 				9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */,
+				9B2D377A3048556200204614 /* ProvisionVariable.swift in Sources */,
 				9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */,
 				9B20D6032E019FA400BEFB41 /* Importer.swift in Sources */,
 				9BFA908E2FD091C4007619A5 /* TeeStandardIOWrapper.swift in Sources */,
