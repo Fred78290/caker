@@ -31,6 +31,7 @@ public struct ParsedPackerLiteTemplate: Sendable {
 public struct PackerLiteTemplate: Codable, Sendable {
 	private var resolvedBootTimeout: TimeInterval { Self.parseDuration(bootTimeout, default: 45 * 60) }
 	private var variables: [String: String]?
+	private var requiredVariables: [String]?
 	public var ignoreIP: Bool?
 	public var installAgent: Bool? = true
 	private var bootTimeout: String?
@@ -45,6 +46,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 
 	enum CodingKeys: String, CodingKey {
 		case variables
+		case requiredVariables = "required_variables"
 		case ignoreIP = "ignore_ip"
 		case installAgent = "install_agent"
 		case bootTimeout = "boot_timeout"
@@ -55,6 +57,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 
 	public init(
 		variables: [String: String]? = nil,
+		requiredVariables: [String]? = nil,
 		ignoreIP: Bool = false,
 		installAgent: Bool = true,
 		bootTimeout: String? = nil,
@@ -62,6 +65,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 		postBootCommand: [String]? = nil
 	) {
 		self.variables = variables
+		self.requiredVariables = requiredVariables
 		self.ignoreIP = ignoreIP
 		self.installAgent = installAgent
 		self.bootTimeout = bootTimeout
@@ -107,13 +111,18 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	/// `configuredPassword`, itself sourced from `--user`/`--password` or the UI) as overrides here
 	/// rather than letting the template declare its own — there is exactly one source of truth for
 	/// the account caked creates the VM with.
-	private func resolvingVariables(_ overrides: [String: String]) -> PackerLiteTemplate {
+	private func resolvingVariables(_ overrides: [String: String]) throws -> PackerLiteTemplate {
 		var merged = variables ?? [:]
 
 		for (name, value) in overrides {
 			merged[name] = value
 		}
 
+		if let requiredVariables = self.requiredVariables {
+			for name in requiredVariables where merged[name] == nil {
+				throw PackerLiteTemplateError.requiredVariableNotFound(variable: name)
+			}
+		}
 		var resolved = self
 
 		resolved.preBootCommand = preBootCommand?.map {
@@ -190,11 +199,14 @@ public struct PackerLiteTemplate: Codable, Sendable {
 
 public enum PackerLiteTemplateError: Error, LocalizedError {
 	case invalidBootCommand(command: PackerLiteTemplate.Command, underlying: Error)
+	case requiredVariableNotFound(variable: String)
 
 	public var errorDescription: String? {
 		switch self {
 			case .invalidBootCommand(let command, let underlying):
 			return "boot_command[\(command.title)] (\"\(command.commands.joined(separator: ", "))\") failed to parse: \(underlying.localizedDescription)"
+		case .requiredVariableNotFound(variable: let variable):
+			return "required variable \"\(variable)\" not found"
 		}
 	}
 }
