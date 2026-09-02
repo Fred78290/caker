@@ -133,6 +133,12 @@ public struct PackerLiteTemplate: Codable, Sendable {
 			Self.substitute($0, variables: merged)
 		}
 
+		resolved.postBootCommand = postBootCommand?.map { command in
+			merged.reduce(command) { result, entry in
+				result.replacingOccurrences(of: "${var.\(entry.key)}", with: entry.value)
+			}
+		}
+
 		return resolved
 	}
 

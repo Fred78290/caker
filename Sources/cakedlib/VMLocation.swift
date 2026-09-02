@@ -1137,4 +1137,33 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return true
 	}
 
+	public func executePostBootCommand(_ commands: [String], config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode: Utils.RunMode) async throws {
+		Logger(self).info("Running post-boot commands on \(self.name)")
+
+		let imageSource = config.source
+		let ssh = try createSSH(host: runningIP, timeout: timeout)
+
+		if imageSource == .ipsw {
+			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
+			try ssh.authenticate(
+				username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path(percentEncoded: false), passphrase: config.sshPrivateKeyPassphrase)
+		} else {
+			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+		}
+
+		for command in commands {
+			Logger(self).debug("Running post-boot command on \(self.name): \(command)")
+
+			let result = try ssh.capture(command)
+
+			if result.status != 0 {
+				Logger(self).error("Post-boot command failed on \(self.name): \(command), exit code: \(result.status)\n\(result.output)")
+				throw ServiceError(String(localized: "Post-boot command failed on \(self.name): \(command)"))
+			}
+
+			Logger(self).debug(result.output)
+		}
+	}
+
 }
