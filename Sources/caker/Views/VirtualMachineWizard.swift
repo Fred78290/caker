@@ -977,7 +977,7 @@ struct VirtualMachineWizard: View {
 									self.config.imageName = newValue.url
 								}
 							}
-							Toggle("Configure automaticly the system", isOn: $config.autoinstall).disabled(self.model.createVM)
+						Toggle("Configure automatically the system", isOn: $config.autoinstall).disabled(self.model.createVM)
 
 							provisionVariablesSection
 						}
