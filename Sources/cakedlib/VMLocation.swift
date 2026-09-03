@@ -1137,7 +1137,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return true
 	}
 
-	public func executePostBootCommand(_ commands: [String], config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode: Utils.RunMode) async throws {
+	public func executePostBootCommand(_ commands: [String], config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode _: Utils.RunMode) async throws {
 		Logger(self).info("Running post-boot commands on \(self.name)")
 
 		let imageSource = config.source
@@ -1152,17 +1152,22 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		}
 
-		for command in commands {
-			Logger(self).debug("Running post-boot command on \(self.name): \(command)")
+		// Commands/output are only logged at .debug — post_boot_command entries are author-supplied
+		// shell commands that can reasonably embed secrets (tokens, passwords), and .error-level logs
+		// are far more likely to be captured/retained than .debug ones. The thrown ServiceError (and
+		// its Localizable.xcstrings entry) intentionally identifies the failing step by index only,
+		// never by command content, for the same reason.
+		for (index, command) in commands.enumerated() {
+			Logger(self).debug("Running post-boot command #\(index + 1) on \(self.name): \(command)")
 
 			let result = try ssh.capture(command)
 
-			if result.status != 0 {
-				Logger(self).error("Post-boot command failed on \(self.name): \(command), exit code: \(result.status)\n\(result.output)")
-				throw ServiceError(String(localized: "Post-boot command failed on \(self.name): \(command)"))
-			}
+			Logger(self).debug("Post-boot command #\(index + 1) output on \(self.name):\n\(result.output)")
 
-			Logger(self).debug(result.output)
+			if result.status != 0 {
+				Logger(self).error("Post-boot command #\(index + 1) failed on \(self.name), exit code: \(result.status)")
+				throw ServiceError(String(format: String(localized: "Post-boot command #%d failed on %@"), index + 1, self.name))
+			}
 		}
 	}
 
