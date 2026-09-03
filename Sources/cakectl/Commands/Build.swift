@@ -20,14 +20,8 @@ struct Build: AsyncGrpcParsableCommand {
 		if buildOptions.sockets.first(where: { $0.sharedFileDescriptors != nil }) != nil {
 			throw ValidationError(String(localized: "Shared file descriptors are not supported, use caked launch instead"))
 		}
-
-		var provisionVars = ProvisionVariablesStore.load().asProvisionVarStrings
 		
-		if provisionVars.isEmpty == false {
-			provisionVars.append(contentsOf: self.buildOptions.provisionVars)
-			
-			self.buildOptions.provisionVars = provisionVars
-		}
+		try self.buildOptions.mergeProvisionVars(provisionVars: ProvisionVariablesStore.load())
 	}
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {

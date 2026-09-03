@@ -31,13 +31,7 @@ struct Build: AsyncParsableCommand {
 			throw ValidationError(String(localized: "Shared file descriptors are not supported, use launch instead"))
 		}
 
-		var provisionVars = ProvisionVariablesStore.load().asProvisionVarStrings
-		
-		if provisionVars.isEmpty == false {
-			provisionVars.append(contentsOf: self.options.provisionVars)
-			
-			self.options.provisionVars = provisionVars
-		}
+		try self.options.mergeProvisionVars(provisionVars: ProvisionVariablesStore.load())
 	}
 
 	func run() async throws {

@@ -63,13 +63,7 @@ struct Provision: AsyncParsableCommand {
 			}
 		}
 
-		var provisionVars = ProvisionVariablesStore.load().asProvisionVarStrings
-		
-		if provisionVars.isEmpty == false {
-			provisionVars.append(contentsOf: self.provision.vars)
-			
-			self.provision.vars = provisionVars
-		}
+		try self.provision.mergeProvisionVars(provisionVars: ProvisionVariablesStore.load())
 
 		if config.provisioned {
 			throw ValidationError(String(localized: "VM at \(self.provision.name) is already provisioned — Setup Assistant only runs on first boot, so running PackerLite again would just hang"))

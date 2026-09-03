@@ -4,6 +4,7 @@
 //
 //  Created by Frederic BOLTZ on 02/09/2026.
 //
+import ArgumentParser
 import Foundation
 import GRPCLib
 
@@ -88,5 +89,53 @@ public enum ProvisionVariablesStore {
 
 		try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
 		try? JSONEncoder().encode(variables).write(to: url, options: .atomic)
+	}
+}
+
+extension BuildOptions {
+	public mutating func mergeProvisionVars(provisionVars: ProvisionVariables) throws {
+		guard provisionVars.isEmpty == false else {
+			return
+		}
+
+		if self.provisionVars.isEmpty {
+			self.provisionVars = provisionVars.asProvisionVarStrings
+		} else {
+			for provisionVar in self.provisionVars {
+				if let candidat = provisionVars.first(where: { provisionVar.starts(with: $0.key) }) {
+					throw ValidationError(String(localized: "Duplicate provision variable: \(candidat.key)"))
+				}
+			}
+
+			var asProvisionVarStrings = provisionVars.asProvisionVarStrings
+			
+			asProvisionVarStrings.append(contentsOf: self.provisionVars)
+			
+			self.provisionVars = asProvisionVarStrings
+		}
+	}
+}
+
+extension ProvisionOptions {
+	public mutating func mergeProvisionVars(provisionVars: ProvisionVariables) throws {
+		guard provisionVars.isEmpty == false else {
+			return
+		}
+
+		if self.vars.isEmpty {
+			self.vars = provisionVars.asProvisionVarStrings
+		} else {
+			for provisionVar in self.vars {
+				if let candidat = provisionVars.first(where: { provisionVar.starts(with: $0.key) }) {
+					throw ValidationError(String(localized: "Duplicate provision variable: \(candidat.key)"))
+				}
+			}
+
+			var asProvisionVarStrings = provisionVars.asProvisionVarStrings
+			
+			asProvisionVarStrings.append(contentsOf: self.vars)
+			
+			self.vars = asProvisionVarStrings
+		}
 	}
 }
