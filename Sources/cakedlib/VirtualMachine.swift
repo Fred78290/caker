@@ -721,36 +721,36 @@ extension VirtualMachine {
 			}
 		}
 	}
-
+	
 	public func startVM(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.sync {
 			if self.virtualMachine.canStart {
 				self.virtualMachine.start(options: self.startOptions) { error in
 					let result: Result<Void, Error> = error.map(Result.failure) ?? .success(())
-
+					
 					self.startCompletionHandler(result: result, completionHandler: completionHandler)
 				}
 			}
 		}
 	}
-
+	
 	private func _pauseVM(completionHandler: StopCompletionHandler? = nil) {
 		if self.virtualMachine.canPause {
 			try? self.saveScreenshot()
-
+			
 			let pauseVM = {
 				self.virtualMachine.pause { result in
 					if case .failure(let err) = result {
 						self.logger.error("Failed to pause VM \(self.location.name) \(err)")
 					} else {
 						self.logger.info("VM \(self.location.name) paused")
-
+						
 						self.env.stopServices()
-
+						
 						self.env.timer?.invalidate()
 						self.env.timer = nil
 					}
-
+					
 					if let completionHandler {
 						switch result {
 						case .success:
@@ -759,114 +759,114 @@ extension VirtualMachine {
 							completionHandler(error)
 						}
 					}
-
+					
 					self.didChangedState(true)
 				}
 			}
-
-			#if arch(arm64)
-				if #available(macOS 14, *) {
-					do {
-						try self.env.configuration.validateSaveRestoreSupport()
-
-						self.virtualMachine.pause { result in
-							if self.env.runMode == .app {
-								self.location.removePID()
+			
+#if arch(arm64)
+			if #available(macOS 14, *) {
+				do {
+					try self.env.configuration.validateSaveRestoreSupport()
+					
+					self.virtualMachine.pause { result in
+						if self.env.runMode == .app {
+							self.location.removePID()
+						}
+						
+						if case .failure(let err) = result {
+							self.logger.error("Failed to pause VM \(self.location.name) \(err)")
+							if let completionHandler {
+								completionHandler(err)
 							}
-
-							if case .failure(let err) = result {
-								self.logger.error("Failed to pause VM \(self.location.name) \(err)")
-								if let completionHandler {
-									completionHandler(err)
-								}
-							} else {
-								self.logger.info("VM \(self.location.name) paused")
-
-								self.env.stopServices()
-
-								self.env.timer?.invalidate()
-								self.env.timer = nil
-
-								self.virtualMachine.saveMachineStateTo(url: self.location.stateURL) { result in
-									if let error = result {
-										if let completionHandler = completionHandler {
-											completionHandler(error)
-										}
-									} else {
-										self.logger.info("Snap created successfully...")
-
-										if let completionHandler = completionHandler {
-											completionHandler(nil)
-										}
+						} else {
+							self.logger.info("VM \(self.location.name) paused")
+							
+							self.env.stopServices()
+							
+							self.env.timer?.invalidate()
+							self.env.timer = nil
+							
+							self.virtualMachine.saveMachineStateTo(url: self.location.stateURL) { result in
+								if let error = result {
+									if let completionHandler = completionHandler {
+										completionHandler(error)
+									}
+								} else {
+									self.logger.info("Snap created successfully...")
+									
+									if let completionHandler = completionHandler {
+										completionHandler(nil)
 									}
 								}
 							}
-
-							self.didChangedState(true)
 						}
-					} catch {
-						self.logger.warn("Snapshot is only supported on macOS 14 or newer")
-
-						if let completionHandler = completionHandler {
-							completionHandler(error)
-						}
+						
+						self.didChangedState(true)
 					}
-				} else {
-					pauseVM()
+				} catch {
+					self.logger.warn("Snapshot is only supported on macOS 14 or newer")
+					
+					if let completionHandler = completionHandler {
+						completionHandler(error)
+					}
 				}
-			#else
+			} else {
 				pauseVM()
-			#endif
+			}
+#else
+			pauseVM()
+#endif
 		} else {
 			self.logger.warn("Can't pause VM: \(self.location.name)")
 		}
 	}
-
+	
 	public func pauseVM(completionHandler: StopCompletionHandler? = nil) {
 		self.vmQueue.sync {
 			self._pauseVM(completionHandler: completionHandler)
 		}
 	}
-
+	
 	public func resumeVM(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.sync {
 			if self.virtualMachine.canResume {
 				self.logger.info("VM \(self.location.name) can resume")
-
+				
 				self.virtualMachine.resume { result in
 					self.startCompletionHandler(result: result, completionHandler: completionHandler)
 				}
 			}
 		}
 	}
-
+	
 	private func _stopVM(completionHandler: StopCompletionHandler? = nil) {
 		self.cancelAgentInstallRetry()
-
+		
 		try? self.saveScreenshot()
-
+		
 		self.virtualMachine.stop { error in
 			if let error = error {
 				self.logger.error("VM \(self.location.name) failed to stop, \(error)")
 			} else {
 				self.logger.info("VM \(self.location.name) stopped")
-
+				
 				self.location.removePID()
 			}
-
+			
 			self.env.stopServices()
-
+			
 			self.env.timer?.invalidate()
 			self.env.timer = nil
-
+			
 			if let completionHandler = completionHandler {
 				completionHandler(error)
 			}
-
+			
 			self.didChangedState(true)
 		}
 	}
-
+	
 	public func stopVM() async throws {
 		try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
 			self.vmQueue.async {
@@ -880,52 +880,74 @@ extension VirtualMachine {
 			}
 		}
 	}
-
+	
 	public func stopVM(completionHandler: StopCompletionHandler? = nil) {
 		self.vmQueue.sync {
 			self._stopVM(completionHandler: completionHandler)
 		}
 	}
-
+	
 	private func _requestStopVM(completionHandler: StopCompletionHandler? = nil) throws {
 		self.env.requestStopFromUIPending = true
-
+		
 		try? self.saveScreenshot()
-
+		
 		if self.env.config.os != .darwin && self.virtualMachine.canRequestStop {
 			self.logger.info("Requesting stop VM \(self.location.name)...")
-
+			
 			try self.virtualMachine.requestStop(completionHandler: completionHandler)
 			self.didChangedState(false)
 		} else if self.virtualMachine.canStop {
 			self.cancelAgentInstallRetry()
-
+			
 			self.virtualMachine.stop { result in
 				self.logger.info("VM \(self.location.name) stopped")
-
+				
 				self.env.stopServices()
 				self.didChangedState(true)
-
+				
 				if self.env.runMode == .app {
 					try? self.location.deletePID()
 				}
-
+				
 				completionHandler?(result)
 			}
 		} else if self.virtualMachine.state == VZVirtualMachine.State.starting {
 			self.logger.error("VM \(self.location.name) can't be stopped")
-
+			
 			completionHandler?(ExitCode(EXIT_FAILURE))
-
+			
 			if self.env.runMode != .app {
 				throw ExitCode(EXIT_FAILURE)
 			}
 		}
 	}
-
+	
 	public func requestStopVM(completionHandler: StopCompletionHandler? = nil) throws {
 		try self.vmQueue.sync {
 			try self._requestStopVM(completionHandler: completionHandler)
+		}
+	}
+	
+	public func requestStopVM() async throws {
+		try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+			self.vmQueue.async {
+				if self.virtualMachine.canRequestStop {
+					do {
+						try self.virtualMachine.requestStop { error in
+							if let error {
+								continuation.resume(throwing: error)
+							} else {
+								continuation.resume()
+							}
+						}
+					} catch {
+						continuation.resume(throwing: error)
+					}
+				} else {
+					continuation.resume(throwing: ServiceError(String(localized: "VM can not be started")))
+				}
+			}
 		}
 	}
 }

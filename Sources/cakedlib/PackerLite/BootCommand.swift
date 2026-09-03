@@ -108,6 +108,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			case .voiceOverOn(let confirm): return "voiceOverOn \(confirm)"
 			case .voiceOverOff: return "voiceOverOff"
 			case .skipStepIfNotFound(let text, let steps, let timeout): return "skipStepIfNotFound \(text) steps:\(steps) x\(timeout)s"
+			case .reboot(let requestStop): return "reboot requestStop:\(requestStop)"
 			}
 		}
 
@@ -125,6 +126,7 @@ public struct BootCommandStep: Equatable, Sendable {
 		case keyboard(any KeyLayoutTranslator)
 		case voiceOverOn(confirm: Bool)
 		case voiceOverOff
+		case reboot(requestStop: Bool)
 	}
 
 	public let title: String
@@ -215,6 +217,10 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		if let waitStep = parseWait(lower) {
 			return waitStep
+		}
+
+		if lower.hasPrefix("reboot") {
+			return try parseReboot(body)
 		}
 
 		if lower.hasPrefix("keyboard") {
@@ -316,6 +322,27 @@ public struct BootCommandStep: Equatable, Sendable {
 		return .wait(unit == "m" ? value * 60 : value)
 	}
 
+	private static func parseReboot(_ body: String) throws -> BootCommandStep.Step {
+		let rest = body.dropFirst("reboot".count).trimmingCharacters(in: .whitespaces)
+
+		if rest.isEmpty {
+			return .reboot(requestStop: true)
+		}
+
+		let attributes = try parseAttributes("reboot", input: String(rest))
+
+		if let textValue = attributes["stop"] {
+			guard let requestStop = Bool(trimMatchingQuotes(textValue)) else {
+				throw BootCommandParseError.unknownToken(body)
+			}
+
+			return .reboot(requestStop: requestStop)
+		}
+
+		// Unknown attributes
+		throw BootCommandParseError.malformedReboot(body)
+	}
+
 	private static func parseKeyboard(_ body: String) throws -> BootCommandStep.Step {
 		let rest = body.dropFirst("keyboard".count).trimmingCharacters(in: .whitespaces)
 
@@ -370,7 +397,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			}
 
 			if let textValue = attributes["text"] {
-				let text = trimMatchingQuotes(textValue).split(separator: "|").map{String($0)}
+				let text = trimMatchingQuotes(textValue).split(separator: "|").map { String($0) }
 				let timeout: TimeInterval
 
 				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
@@ -394,7 +421,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			}
 
 			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
-			return .clickText(String(rest.dropFirst().dropLast()).split(separator: "|").map{String($0)}, timeout: 10)
+			return .clickText(String(rest.dropFirst().dropLast()).split(separator: "|").map { String($0) }, timeout: 10)
 		}
 
 		// Raw coordinates form: X,Y
@@ -410,7 +437,7 @@ public struct BootCommandStep: Equatable, Sendable {
 	/// Matches voiceOverOn
 	private static func parseVoideOverOn(_ body: String) throws -> BootCommandStep.Step {
 		let rest = body.dropFirst("voiceoveron".count).trimmingCharacters(in: .whitespaces)
-		
+
 		if rest.isEmpty {
 			return .voiceOverOn(confirm: false)
 		}
@@ -432,11 +459,11 @@ public struct BootCommandStep: Equatable, Sendable {
 	/// Matches voiceOverOn
 	private static func parseVoideOverOff(_ body: String) throws -> BootCommandStep.Step {
 		let rest = body.dropFirst("voiceoveroff".count).trimmingCharacters(in: .whitespaces)
-		
+
 		guard rest.isEmpty else {
 			throw BootCommandParseError.unknownToken("Unexpected characters after voiceoveroff: \(rest)")
 		}
-		
+
 		return .voiceOverOff
 	}
 
@@ -452,7 +479,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			let attributes = try parseAttributes("locate", input: String(rest))
 
 			if let textValue = attributes["text"] {
-				let text = trimMatchingQuotes(textValue).split(separator: "|").map{String($0)}
+				let text = trimMatchingQuotes(textValue).split(separator: "|").map { String($0) }
 				let timeout: TimeInterval
 
 				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
@@ -476,7 +503,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			}
 
 			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
-			return .locate(String(rest.dropFirst().dropLast()).split(separator: "|").map{String($0)}, timeout: 10)
+			return .locate(String(rest.dropFirst().dropLast()).split(separator: "|").map { String($0) }, timeout: 10)
 		}
 
 		throw BootCommandParseError.malformedLocate(body)
@@ -494,7 +521,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			let attributes = try parseAttributes("skipCommandIfNotFound", input: String(rest))
 
 			if let textValue = attributes["text"] {
-				let text = trimMatchingQuotes(textValue).split(separator: "|").map{String($0)}
+				let text = trimMatchingQuotes(textValue).split(separator: "|").map { String($0) }
 				let timeout: TimeInterval
 
 				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
@@ -518,7 +545,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			}
 
 			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
-			return .skipCommandIfNotFound(String(rest.dropFirst().dropLast()).split(separator: "|").map{String($0)}, timeout: 10)
+			return .skipCommandIfNotFound(String(rest.dropFirst().dropLast()).split(separator: "|").map { String($0) }, timeout: 10)
 		}
 
 		throw BootCommandParseError.malformedSkipCommandIfNotFound(body)
@@ -536,7 +563,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			let attributes = try parseAttributes("skipStepIfNotFound", input: String(rest))
 
 			if let textValue = attributes["text"] {
-				let text = trimMatchingQuotes(textValue).split(separator: "|").map{String($0)}
+				let text = trimMatchingQuotes(textValue).split(separator: "|").map { String($0) }
 				let timeout: TimeInterval
 				let steps: Int
 
@@ -568,7 +595,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			}
 
 			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
-			return .skipStepIfNotFound(String(rest.dropFirst().dropLast()).split(separator: "|").map{String($0)}, 1, timeout: 10)
+			return .skipStepIfNotFound(String(rest.dropFirst().dropLast()).split(separator: "|").map { String($0) }, 1, timeout: 10)
 		}
 
 		throw BootCommandParseError.malformedSkipStepIfNotFound(body)
@@ -686,8 +713,9 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 	case malformedScroll(String)
 	case malformedKeyboard(String)
 	case malformedAttribute(String)
-	case keyboardNotFound(String)
 	case malformedVoiceOverOn(String)
+	case malformedReboot(String)
+	case keyboardNotFound(String)
 
 	public var errorDescription: String? {
 		switch self {
@@ -700,8 +728,9 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 		case .malformedScroll(let token): return "Malformed scroll token: <\(token)>"
 		case .malformedKeyboard(let token): return "Malformed keyboard token: <\(token)>"
 		case .malformedAttribute(let token): return "Malformed attribute token: <\(token)>"
-		case .keyboardNotFound(let keyboard): return "Keyboard not found: <\(keyboard)>"
 		case .malformedVoiceOverOn(let body): return "Malformed voiceOverOn token: <\(body)>"
+		case .malformedReboot(let body): return "Malformed reboot token: <\(body)>"
+		case .keyboardNotFound(let keyboard): return "Keyboard not found: <\(keyboard)>"
 		}
 	}
 }

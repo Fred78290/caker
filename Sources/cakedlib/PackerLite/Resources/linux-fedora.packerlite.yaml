@@ -44,134 +44,143 @@
 #     overlay, so anything installed into it before the switch to the real
 #     disk would be lost anyway.
 
-boot_timeout: 60m        # a full desktop install can legitimately take 20-30+ minutes
+boot_timeout: 60m # a full desktop install can legitimately take 20-30+ minutes
 
 pre_boot_command:
-- title: Boot the GRUB menu's default "Install" entry
-  commands:
-  - <locate text="GRUB" timeout=30>
-  - <enter>
+  - title: Boot the GRUB menu's default "Install" entry
+    commands:
+      - <locate text="GRUB" timeout=30>
+      - <enter>
 
-- title: Wait Fedora to boot
-  commands:
-  - <click text="Welcome to Fedora Linux" timeout=120>
-  - <wait2s>
-  - <tab repeat=2>
-  - <spacebar>
+  - title: Wait Fedora to boot
+    commands:
+      - <click text="Welcome to Fedora Linux" timeout=120>
+      - <wait2s>
+      - <tab repeat=2>
+      - <spacebar>
 
-- title: Change keyboard
-  commands:
-  - <keyboard 'com.apple.keylayout.US'>
+  - title: Change keyboard
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
 
-- title: Choose langue
-  commands:
-  - <locate text="Workstation Edition" timeout=600>
-  - <tab repeat=3>
-  - english
-  - <wait1s>
-  - <click text="United States">
-  - <tab repeat=3>
-  - <spacebar>
-  - <wait1s>
+  - title: Choose langue
+    commands:
+      - <locate text="Workstation Edition" timeout=600>
+      - <tab repeat=3>
+      - english
+      - <wait1s>
+      - <click text="United States">
+      - <tab repeat=3>
+      - <spacebar>
+      - <wait1s>
 
-- title: Configure disk
-  commands:
-  - <locate text="Remove all partition">
-  - <wait1s>
-  - <tab repeat=4>
-  - <spacebar>
-  - <wait1s>
-  - <locate text="Secure your data">
-  - <tab repeat=3>
-  - <spacebar>
-  - <wait1s>
+  - title: Configure disk
+    commands:
+      - <locate text="Remove all partition">
+      - <wait1s>
+      - <tab repeat=4>
+      - <spacebar>
+      - <wait1s>
+      - <locate text="Secure your data">
+      - <tab repeat=3>
+      - <spacebar>
+      - <wait1s>
 
-- title: Start installation
-  commands:
-  - <click text="Erase data and install">
-  - <wait1s>
-  - <tab repeat=4>
-  - <spacebar>
-  - <wait1s>
+  - title: Start installation
+    commands:
+      - <click text="Erase data and install">
+      - <wait1s>
+      - <tab repeat=4>
+      - <spacebar>
+      - <wait1s>
 
-- title: Wait installation to finish
-  commands:
-  - <locate text="Successfully installed" timeout=600>
-  - <wait1s>
-  - <click text="Exit to live desktop">
+  - title: Wait installation to finish
+    commands:
+      - <locate text="Successfully installed" timeout=600>
+      - <wait1s>
+      - <reboot>
 
 boot_command:
-- title: Wait Fedora setup
-  commands:
-  - <locate text="Welcome to Fedora Linux" timeout=120>
-  - <wait1s>
-  - <click text="Start Setup">
-  - <wait1s>
+  - title: Wait Fedora setup
+    commands:
+      - <locate text="Welcome to Fedora Linux" timeout=120>
+      - <wait1s>
+      - <click text="Start Setup">
+      - <wait1s>
 
-- title: Configure Privacy Settings
-  commands:
-  - <locate text="Privacy">
-  - <wait1s>
-  - <click text="Location Services">
-  - <wait1s>
-  - <click text="Automatic Problem Reporting">
-  - <wait1s>
-  - <click text="Next">
-  - <wait1s>
+  - title: Configure Privacy Settings
+    commands:
+      - <locate text="Privacy">
+      - <wait1s>
+      - <click text="Location Services">
+      - <wait1s>
+      - <click text="Automatic Problem Reporting">
+      - <wait1s>
+      - <click text="Next">
+      - <wait1s>
 
-- title: Configure Time zone
-  commands:
-  - <locate text="Time Zone">
-  - <wait1s>
-  - London, East and South East England, United Kingdom
-  - <enter>
-  - <wait1s>
+  - title: Configure Time zone
+    commands:
+      - <locate text="Time Zone">
+      - <wait1s>
+      - <click text="Please search for a nearby city">
+      - <wait1s>
+      - London, East and South East England, United Kingdom
+      - <enter>
+      - <wait1s>
+      - <click text="Next">
+      - <wait1s>
 
-- title: Configure Third-Party Repositories
-  commands:
-  - <locate text="Third-Party Repositories">
-  - <wait1s>
-  - <click text="Enable Third-Party Repositories">
-  - <wait1s>
+  - title: Configure Third-Party Repositories
+    commands:
+      - <locate text="Third-Party Repositories">
+      - <wait1s>
+      - <click text="Enable Third-Party Repositories">
+      - <wait1s>
 
-- title: Fill user account information
-  commands:
-  - <locate text="About You">
-  - ${var.username}
-  - <click text="Next">
+  - title: Fill user account information
+    commands:
+      - <locate text="About You">
+      - ${var.username}
+      - <wait1s>
+      - <click text="Next">
+      - <wait1s>
 
-- title: Setup Password
-  commands:
-  - <locate text="Set a Password">
-  - ${var.password}
-  - <tab repeat=2>
-  - ${var.password}
-  - <tab>
-  - <click text="Next">
+  - title: Setup Password
+    commands:
+      - <locate text="Set a Password">
+      - ${var.password}
+      - <tab repeat=2>
+      - ${var.password}
+      - <tab>
+      - <click text="Next">
 
-- title: Start all done
-  commands:
-  - <locate text="Fedora Linux is ready to be used">
-  - <click text="Start Using Fedora Linux">
+  - title: Start all done
+    commands:
+      - <locate text="Fedora Linux is ready to be used">
+      - <click text="Start Using Fedora Linux">
 
-- title: Installation Destination
-  commands:
-  - <locate text="INSTALLATION SUMMARY">
-  - <wait1s>
-  - <click text="Installation Destination">
-  - <locate text="Device Selection">
-  - <wait1s>
-  - <click text="Done">
-  - <wait1s>
+  - title: Skip Fedora Tour
+    commands:
+      - <locate text="Welcome to Fedora Linux">
+      - <wait1s>
+      - <click text="Skip">
+      - <wait1s>
 
-- title: Begin Installation
-  commands:
-  - <click text="Begin Installation">
-
-- title: Wait installed and ready for you to use!
-  commands:
-  - <locate text="Fedora is now successfully installed and ready for you to use!" timeout=1200>
-
-- title: Reboot System
-  commands:
-  - <click text="Reboot System">
+  - title: Configure SSH
+    commands:
+      - <click text="Type to search">
+      - <wait1s>
+      - Terminal
+      - <enter>
+      - <locate text="${var.username}@fedora" timeout=30>
+      - <wait1s>
+      - sudo dnf install -y openssh-server
+      - <wait1s>
+      - ${var.password}
+      - <enter>
+      - <locate text="installed" timeout=30>
+      - sudo systemctl enable sshd
+      - <wait1s>
+      - sudo systemctl start sshd
+      - <wait1s>

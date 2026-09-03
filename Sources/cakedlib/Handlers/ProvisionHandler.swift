@@ -165,11 +165,9 @@ public struct ProvisionHandler {
 		return try handler.run { address, vm in
 			let logger = Logger(ProvisionHandler.self)
 
-			let targetView: NSView
-
 			// Start VNC server as soon as the VM is up
 			if display == .none {
-				targetView = vm.createVirtualMachineView()
+				_ = vm.createVirtualMachineView()
 				vm.setupWindow(canHide: false)
 			} else {
 				let vncURL = try vm.startVncServer(vncPassword: vncPassword, port: 0)
@@ -182,8 +180,6 @@ public struct ProvisionHandler {
 				guard let vncURL = vncURL.first else {
 					throw ServiceError(String(localized: "Unable to get VNC URL for VM \(location.name)"))
 				}
-
-				targetView = vzMachineView
 
 				progressHandler(.infos(.init(vncURL: vncURL, screenSize: .init(vzMachineView.bounds.size), config: CakedConfiguration(config))))
 			}
@@ -233,7 +229,7 @@ public struct ProvisionHandler {
 					if template.preBootCommand.isEmpty == false {
 						progressHandler(.step(String(localized: "Starting pre-boot commands")))
 						try await PackerLiteEngine.provision(
-							targetView: targetView,
+							targetVirtualMachine: vm,
 							commands: template.preBootCommand,
 							resolvedBootTimeout: template.bootTimeout,
 							progressHandler: progressHandler)

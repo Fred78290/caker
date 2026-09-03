@@ -87,6 +87,7 @@ enum PackerLiteDriverError: Error, LocalizedError {
 }
 
 final class PackerLiteDriver: @unchecked Sendable {
+	private let targetVirtualMachine: VirtualMachine
 	private let targetView: NSView
 	private let logger = Logger("PackerLiteDriver")
 	private var currentKeyTranslator: any KeyLayoutTranslator
@@ -243,8 +244,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 	}
 
 	@MainActor
-	init(targetView: NSView) {
-		self.targetView = targetView
+	init(targetVirtualMachine: VirtualMachine) {
+		self.targetVirtualMachine = targetVirtualMachine
+		self.targetView = targetVirtualMachine.vzMachineView!
 		self.currentKeyTranslator = LayoutTranslator()!
 		self.level = Logger.Level()
 	}
@@ -277,6 +279,16 @@ final class PackerLiteDriver: @unchecked Sendable {
 		#if DEBUG
 			await clearDebugBox()
 		#endif
+	}
+
+	private func reboot(_ requestStop: Bool) async throws {
+		if requestStop {
+			try await self.targetVirtualMachine.requestStopVM()
+		} else {
+			try await self.targetVirtualMachine.stopVM()
+		}
+
+		try await self.targetVirtualMachine.startVM()
 	}
 
 	private func execute(_ step: BootCommandStep.Step, title: String) async throws -> (success: Bool, numberOfSteps: Int) {
@@ -339,6 +351,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .voiceOverOff:
 			logger.debug("[\(title)]: voice over off")
 			try await self.voiceOverOff(title: title)
+		case .reboot(requestStop: let requestStop):
+			logger.debug("[\(title)]: reboot requestStop=\(requestStop)")
+			try await self.reboot(requestStop)
 		}
 
 		try await Task.sleep(nanoseconds: Self.stepDelayNanoseconds)

@@ -20,13 +20,13 @@ public enum PackerLiteEngine {
 	public static let provisionedTerminatedNotification = NSNotification.Name("ProvisionedTerminatedNotification")
 
 	public static func provision(
-		targetView: NSView,
+		targetVirtualMachine: VirtualMachine,
 		commands: BootCommandSteps,
 		resolvedBootTimeout: TimeInterval,
 		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
 	) async throws {
 		let logger = Logger("PackerLiteEngine")
-		let driver = await PackerLiteDriver(targetView: targetView)
+		let driver = await PackerLiteDriver(targetVirtualMachine: targetVirtualMachine)
 
 		try await withThrowingTaskGroup(of: Void.self) { group in
 			let context = ProgressObserver.ProgressHandlerContext()
@@ -76,14 +76,14 @@ public enum PackerLiteEngine {
 
 		progressHandler(.step(String(localized: "Provisioning Virtual Machine Setup Assistant…")))
 
-		guard let view = vm.vzMachineView else {
+		guard vm.vzMachineView != nil else {
 			throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
 		}
 
 		logger.info("VM \(location.name) started for provisioning")
 
 		try await Self.provision(
-			targetView: view,
+			targetVirtualMachine: vm,
 			commands: commands,
 			resolvedBootTimeout: template.bootTimeout,
 			progressHandler: progressHandler)
@@ -180,7 +180,7 @@ public enum PackerLiteEngine {
 
 		FileManager.default.createFile(atPath: location.provisionningURL.path(percentEncoded: false), contents: nil)
 
-		guard let view = vm.vzMachineView else {
+		guard vm.vzMachineView != nil else {
 			throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
 		}
 
@@ -234,7 +234,7 @@ public enum PackerLiteEngine {
 			// Preboot for linux
 			if template.preBootCommand.isEmpty == false {
 				try await Self.provision(
-					targetView: view,
+					targetVirtualMachine: vm,
 					commands: template.preBootCommand,
 					resolvedBootTimeout: template.bootTimeout,
 					progressHandler: progressHandler)
