@@ -52,45 +52,107 @@ pre_boot_command:
   - <locate text="GRUB" timeout=30>
   - <enter>
 
-boot_command:
-- title: Wait Anaconda
+- title: Wait Fedora to boot
   commands:
-  - <locate text="SERVER" timeout=120>
+  - <click text="Welcome to Fedora Linux" timeout=120>
   - <wait2s>
-
-- title: Choose langue
-  commands:
-  - english
-  - <tab repeat=6>
-  - <enter>
+  - <tab repeat=2>
+  - <spacebar>
 
 - title: Change keyboard
   commands:
   - <keyboard 'com.apple.keylayout.US'>
 
-- title: Create user account
+- title: Choose langue
   commands:
-  - <locate text="INSTALLATION SUMMARY">
+  - <locate text="Workstation Edition" timeout=600>
+  - <tab repeat=3>
+  - english
   - <wait1s>
-  - <click text="User Creation">
+  - <click text="United States">
+  - <tab repeat=3>
+  - <spacebar>
+  - <wait1s>
+
+- title: Configure disk
+  commands:
+  - <locate text="Remove all partition">
+  - <wait1s>
+  - <tab repeat=4>
+  - <spacebar>
+  - <wait1s>
+  - <locate text="Secure your data">
+  - <tab repeat=3>
+  - <spacebar>
+  - <wait1s>
+
+- title: Start installation
+  commands:
+  - <click text="Erase data and install">
+  - <wait1s>
+  - <tab repeat=4>
+  - <spacebar>
+  - <wait1s>
+
+- title: Wait installation to finish
+  commands:
+  - <locate text="Successfully installed" timeout=600>
+  - <wait1s>
+  - <click text="Exit to live desktop">
+
+boot_command:
+- title: Wait Fedora setup
+  commands:
+  - <locate text="Welcome to Fedora Linux" timeout=120>
+  - <wait1s>
+  - <click text="Start Setup">
+  - <wait1s>
+
+- title: Configure Privacy Settings
+  commands:
+  - <locate text="Privacy">
+  - <wait1s>
+  - <click text="Location Services">
+  - <wait1s>
+  - <click text="Automatic Problem Reporting">
+  - <wait1s>
+  - <click text="Next">
+  - <wait1s>
+
+- title: Configure Time zone
+  commands:
+  - <locate text="Time Zone">
+  - <wait1s>
+  - London, East and South East England, United Kingdom
+  - <enter>
+  - <wait1s>
+
+- title: Configure Third-Party Repositories
+  commands:
+  - <locate text="Third-Party Repositories">
+  - <wait1s>
+  - <click text="Enable Third-Party Repositories">
+  - <wait1s>
 
 - title: Fill user account information
   commands:
-  - <locate text="CREATE USER">
+  - <locate text="About You">
   - ${var.username}
-  - <tab>
-  - ${var.username}
-  - <tab repeat=3>
-  - ${var.password}
-  - <tab>
-  - ${var.password}
-  - <tab>
-  - <click text="Done">
+  - <click text="Next">
 
-- title: Confirm password
+- title: Setup Password
   commands:
-  - <skipCommandIfNotFound text="Press done again to use the password anyway">
-  - <click text="Done">
+  - <locate text="Set a Password">
+  - ${var.password}
+  - <tab repeat=2>
+  - ${var.password}
+  - <tab>
+  - <click text="Next">
+
+- title: Start all done
+  commands:
+  - <locate text="Fedora Linux is ready to be used">
+  - <click text="Start Using Fedora Linux">
 
 - title: Installation Destination
   commands:
