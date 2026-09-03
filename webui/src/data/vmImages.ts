@@ -76,41 +76,6 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "fedora42Desktop",
-        "label": "Fedora 42 – Workstation",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/42/Workstation/aarch64/iso/Fedora-Workstation-Live-42-1.1.aarch64.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "fedora42Server",
-        "label": "Fedora 42 – Server",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/42/Server/aarch64/iso/Fedora-Server-dvd-aarch64-42-1.1.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "fedora41Server",
-        "label": "Fedora 41 – Server",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/41/Server/aarch64/iso/Fedora-Server-dvd-aarch64-41-1.4.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "fedora40Desktop",
-        "label": "Fedora 40 – Workstation",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Workstation/aarch64/iso/Fedora-Workstation-Live-osb-40-1.14.aarch64.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "fedora40Server",
-        "label": "Fedora 40 – Server",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/aarch64/iso/Fedora-Server-dvd-aarch64-40-1.14.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
         "id": "centos10-iso",
         "label": "CentOS Stream 10",
         "url": "https://mirrors.centos.org/mirrorlist?path=/10-stream/BaseOS/aarch64/iso/CentOS-Stream-10-latest-aarch64-dvd1.iso&redirect=1&protocol=https",
@@ -132,23 +97,9 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSE160-iso",
-        "label": "openSUSE Leap 16.0",
-        "url": "https://download.opensuse.org/distribution/leap/16.0/installer/iso/agama-installer.aarch64-Leap_16.0.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
         "id": "openSUSE156-iso",
         "label": "openSUSE Leap 15.6",
         "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-aarch64-Media.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "openSUSE155-iso",
-        "label": "openSUSE Leap 15.5",
-        "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-aarch64-Media.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
@@ -434,58 +385,9 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "fedora42Desktop",
-        "label": "Fedora 42 – Workstation",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/42/Workstation/x86_64/iso/Fedora-Workstation-Live-42-1.1.x86_64.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "fedora42Server",
-        "label": "Fedora 42 – Server",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/42/Server/x86_64/iso/Fedora-Server-dvd-x86_64-42-1.1.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "fedora41Desktop",
-        "label": "Fedora 41 – Workstation",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/41/Workstation/x86_64/iso/Fedora-Workstation-Live-x86_64-41-1.4.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "fedora41Server",
-        "label": "Fedora 41 – Server",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/41/Server/x86_64/iso/Fedora-Server-dvd-x86_64-41-1.4.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "fedora40Desktop",
-        "label": "Fedora 40 – Workstation",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Workstation/x86_64/iso/Fedora-Workstation-Live-osb-40-1.14.x86_64.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "fedora40Server",
-        "label": "Fedora 40 – Server",
-        "url": "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/x86_64/iso/Fedora-Server-dvd-x86_64-40-1.14.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
         "id": "centos10-iso",
-        "label": "CentOS Stream 10 – DVD",
+        "label": "CentOS Stream 10",
         "url": "https://mirrors.centos.org/mirrorlist?path=/10-stream/BaseOS/x86_64/iso/CentOS-Stream-10-latest-x86_64-dvd1.iso&redirect=1&protocol=https",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "centos9-iso",
-        "label": "CentOS Stream 9 – DVD",
-        "url": "https://mirrors.centos.org/mirrorlist?path=/9-stream/BaseOS/x86_64/iso/CentOS-Stream-9-latest-x86_64-dvd1.iso&redirect=1&protocol=https",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
@@ -497,23 +399,9 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSE160-iso",
-        "label": "openSUSE Leap 16.0",
-        "url": "https://download.opensuse.org/distribution/leap/16.0/installer/iso/agama-installer.x86_64-Leap_16.0.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
         "id": "openSUSE156-iso",
         "label": "openSUSE Leap 15.6",
         "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-x86_64-Media.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
-        "id": "openSUSE155-iso",
-        "label": "openSUSE Leap 15.5",
-        "url": "https://download.opensuse.org/distribution/leap/15.5/iso/openSUSE-Leap-15.5-DVD-x86_64-Media.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
