@@ -10975,6 +10975,17 @@
         }
       }
     },
+    "Post-boot command #%d failed on %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La commande post-installation n°%d a échoué sur %@"
+          }
+        }
+      }
+    },
     "Pre-boot commands terminated" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12820,6 +12831,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "en cours d'exécution"
+          }
+        }
+      }
+    },
+    "Running post-boot commands…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exécution des commandes post-installation…"
           }
         }
       }

@@ -104,6 +104,8 @@ En plus de `boot_command`/`pre_boot_command`, un template peut déclarer `ignore
 
 Outre `${var.username}`/`${var.password}`, deux variables intégrées supplémentaires sont désormais toujours disponibles : `${var.hostname}` (le nom de la VM) et `${var.ssh_authorized_key}` (la ou les clé(s) SSH publique(s) configurée(s), absente si aucune n'est configurée).
 
+`post_boot_command: [commande1, commande2, ...]` déclare une liste de commandes shell exécutées via SSH une fois l'étape d'installation de l'agent terminée (que `install_agent` ait tourné ou non), pratique pour configurer la VM après l'installation — installer des paquets, écrire des fichiers de configuration, lancer un script — sans avoir à le faire via les frappes clavier de `boot_command`. L'exécution s'arrête à la première commande en échec. Comme `boot_command`/`pre_boot_command`, les commandes acceptent la même substitution `${var.*}`.
+
 ```yaml
 # mon-template.packerlite.yaml — extrait illustratif
 boot_timeout: 45m        # échec si le provisioning n'est pas terminé dans ce délai
@@ -341,6 +343,8 @@ Besides `boot_command`/`pre_boot_command`, a template can declare `ignore_ip: tr
 `required_variables: [name1, name2, ...]` declares variables the template requires: if any of them is missing at resolve time (not supplied via `--var`, the wizard's variable editor, or the built-in variables below), provisioning fails immediately with a clear error instead of silently substituting an empty string. The `linux-redhat` template uses this for `redhat_username`/`redhat_password` — the Red Hat subscription credentials needed to register the system, distinct from the VM's own `--user`/`--password` account.
 
 Beyond `${var.username}`/`${var.password}`, two more built-in variables are now always available: `${var.hostname}` (the VM's own name) and `${var.ssh_authorized_key}` (the configured SSH public key(s), absent if none are configured).
+
+`post_boot_command: [command1, command2, ...]` declares a list of shell commands run over SSH once the agent-install step has finished (whether or not `install_agent` actually ran) — handy for configuring the VM after install, such as installing packages, writing config files, or running a setup script, without having to drive it through `boot_command`'s keystrokes. Execution stops at the first command that fails. Like `boot_command`/`pre_boot_command`, these commands support the same `${var.*}` substitution.
 
 ```yaml
 # my-template.packerlite.yaml — illustrative excerpt

@@ -258,6 +258,22 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertEqual(overridden.bootCommand.first?.steps, [.wait(10), .type("admin"), .press(.tab), .type("hunter2"), .press(.tab), .type("hello"), .press(.enter)])
 	}
 
+	func testPostBootCommandSubstitutesVariables() async throws {
+		let yaml = """
+		post_boot_command:
+		  - "echo ${var.username} > /tmp/whoami"
+		  - "echo ${var.hostname} > /tmp/hostname"
+		"""
+
+		let template = try await PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "hostname": "my-vm"])
+		XCTAssertEqual(template.postBootCommand, ["echo admin > /tmp/whoami", "echo my-vm > /tmp/hostname"])
+	}
+
+	func testTemplateWithoutPostBootCommandLoadsWithNilValue() async throws {
+		let template = try await PackerLiteTemplate.load(from: "boot_timeout: 45m")
+		XCTAssertNil(template.postBootCommand)
+	}
+
 	func testTemplateBootTimeoutDefaultsAndParsing() async throws {
 		let withDuration = try await PackerLiteTemplate.load(from: "boot_timeout: 45m")
 		XCTAssertEqual(withDuration.bootTimeout, 45 * 60)
