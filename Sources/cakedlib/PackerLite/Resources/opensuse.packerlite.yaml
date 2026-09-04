@@ -1,4 +1,4 @@
-# linux-opensuse.packerlite.yaml
+# opensuse.packerlite.yaml
 #
 # Built-in PackerLite template — unattended installation of openSUSE Leap
 # from the official DVD/NET install ISO, driven natively by caked/caker after
@@ -10,7 +10,7 @@
 # a guaranteed-working recipe: it has been reviewed for plausibility against
 # the documented YaST install flow, but NOT validated end-to-end against a
 # real boot, and with less confidence than the Anaconda-family templates
-# (linux-fedora/linux-centos/linux-redhat) in this same directory — YaST's
+# (fedora/centos/redhat) in this same directory — YaST's
 # exact screen labels/order have shifted more across Leap releases than
 # Anaconda's have. Treat the click targets and tab counts below as a first
 # draft to verify/adjust against your own run.

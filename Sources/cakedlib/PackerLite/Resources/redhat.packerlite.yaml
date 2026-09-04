@@ -1,4 +1,4 @@
-# linux-redhat.packerlite.yaml
+# redhat.packerlite.yaml
 #
 # Built-in PackerLite template — unattended installation of Red Hat
 # Enterprise Linux from the official install ISO, driven natively by

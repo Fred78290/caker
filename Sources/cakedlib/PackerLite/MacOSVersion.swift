@@ -11,8 +11,8 @@ import Foundation
 import GRPCLib
 
 extension MacOSVersion {
-	/// The bundled template resource name, e.g. "vanilla-sequoia.packerlite" (paired with a ".yaml" extension).
-	public var bundledTemplateResourceName: String { "vanilla-\(rawValue).packerlite" }
+	/// The bundled template resource name, e.g. "macos12.packerlite" (paired with a ".yaml" extension).
+	public var bundledTemplateResourceName: String { "\(rawValue).packerlite" }
 
 	public init?(major: Int) {
 		switch major {

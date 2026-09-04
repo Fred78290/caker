@@ -24,7 +24,7 @@ import Foundation
 import GRPCLib
 
 extension SupportedPlatform {
-	/// The bundled template resource name, e.g. "linux-fedora.packerlite" (paired with a ".yaml"
+	/// The bundled template resource name, e.g. "fedora.packerlite" (paired with a ".yaml"
 	/// extension), for distros with a built-in PackerLite template. `nil` for platforms that have
 	/// no bundled template yet — meaning "don't auto-select anything, require --template".
 	///
@@ -38,13 +38,13 @@ extension SupportedPlatform {
 	/// reference material yet for a desktop/server split on those, so don't invent one.
 	fileprivate func bundledPackerLiteTemplateResourceName(desktop: Bool) -> String? {
 		switch self {
-		case .fedora: return desktop ? "linux-fedora.packerlite" : "linux-fedora-server.packerlite"
-		case .centos: return "linux-centos.packerlite"
-		case .redhat: return "linux-redhat.packerlite"
-		case .openSUSE: return "linux-opensuse.packerlite"
-		case .debian: return "linux-debian.packerlite"
-		case .alpine: return "linux-alpine.packerlite"
-		case .ubuntu: return desktop ? "linux-ubuntu.packerlite" : "linux-ubuntu-server.packerlite"
+		case .fedora: return desktop ? "fedora.packerlite" : "fedora-server.packerlite"
+		case .centos: return "centos.packerlite"
+		case .redhat: return "redhat.packerlite"
+		case .openSUSE: return "opensuse.packerlite"
+		case .debian: return "debian.packerlite"
+		case .alpine: return "alpine.packerlite"
+		case .ubuntu: return desktop ? "ubuntu.packerlite" : "ubuntu-server.packerlite"
 		default: return nil
 		}
 	}

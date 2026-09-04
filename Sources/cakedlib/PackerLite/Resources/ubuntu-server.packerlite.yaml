@@ -1,4 +1,4 @@
-# linux-ubuntu-server.packerlite.yaml
+# ubuntu-server.packerlite.yaml
 #
 # Built-in PackerLite template — unattended installation of Ubuntu Server
 # from its own install ISO, driven natively by caked/caker after booting

@@ -1,4 +1,4 @@
-# linux-debian.packerlite.yaml
+# debian.packerlite.yaml
 #
 # Built-in PackerLite template — unattended installation of Debian from the
 # official netinst/DVD ISO's graphical installer, driven natively by

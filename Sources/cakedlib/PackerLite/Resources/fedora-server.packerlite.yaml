@@ -1,29 +1,31 @@
-# linux-centos.packerlite.yaml
+# fedora-server.packerlite.yaml
 #
-# Built-in PackerLite template — unattended installation of CentOS Stream
+# Built-in PackerLite template — unattended installation of Fedora Server
 # from the official install ISO, driven natively by caked/caker after booting
 # from the ISO (see the "PackerLite" section of the wiki's command summary).
-# This is the default template auto-selected for an ISO whose filename/URL
-# contains "centos" (GRPCLib.SupportedPlatform detection) when --autoinstall
-# is passed without an explicit --template — pass --template yourself to
-# override it. Unlike the bundled macOS templates, this one is NOT a
-# guaranteed-working recipe: it has been reviewed for plausibility against the
-# documented Anaconda install flow, but NOT validated end-to-end against a
-# real boot. Treat the click targets and tab counts below as a first draft to
+# This is the default template auto-selected for a Fedora ISO whose
+# filename/URL does NOT look like a desktop/workstation build (see
+# CakeConfig.osDesktop / VMBuilder's detection) when --autoinstall is passed
+# without an explicit --template — pass --template yourself to override it.
+# Unlike the bundled macOS templates, this one is NOT a guaranteed-working
+# recipe: it has been reviewed for plausibility against the documented
+# Anaconda install flow, but NOT validated end-to-end against a real boot.
+# Treat the click targets and tab counts below as a first draft to
 # verify/adjust against your own run.
 #
-# Unlike Fedora Workstation's Live ISO, CentOS Stream's install ISO boots
-# straight into the graphical Anaconda installer — there's no live desktop
-# session and no `liveinst` step needed first.
+# Unlike Fedora Workstation's Live ISO (fedora.packerlite.yaml), Fedora
+# Server's install ISO boots straight into the graphical Anaconda installer —
+# there's no live desktop session and no `liveinst` step needed first, the
+# same shape as centos.packerlite.yaml/redhat.packerlite.yaml
+# (Fedora, CentOS Stream, and RHEL all share the Anaconda installer).
 #
 # The boot ISO's default software selection is a minimal server install with
-# no desktop environment. If you want a desktop, open the "Software Selection"
-# hub spoke and pick "Server with GUI"/"Workstation" (or use the DVD ISO,
-# whose default selection may already include one) — this template leaves
+# no desktop environment. If you want a desktop, open the "Software
+# Selection" hub spoke and pick a desktop environment — this template leaves
 # that spoke untouched and takes whatever the ISO's default selection is.
 #
 # Usage:
-#   cakectl build my-centos-vm ./CentOS-Stream-10-latest-x86_64-dvd1.iso \
+#   cakectl build my-fedora-vm ./Fedora-Server-dvd-x86_64-44-1.7.iso \
 #     --user admin --password admin --autoinstall
 #
 # ${var.username}/${var.password} below resolve to the VM's actual account,
@@ -49,7 +51,7 @@ boot_command:
 
   - title: Choose langue
     commands:
-      - <locate text="CENTOS STREAM">
+      - <locate text="SERVER">
       - english
       - <enter>
       - <wait1s>
@@ -109,23 +111,13 @@ boot_command:
       - <click text="Done">
       - <wait1s>
 
-  - title: Selection software
-    commands:
-      - <click text="Software Selection">
-      - <wait1s>
-      - <down repeat=2>
-      - <spacebar>
-      - <wait1s>
-      - <click text="Done">
-      - <wait1s>
-
   - title: Begin Installation
     commands:
       - <click text="Begin Installation">
 
   - title: Wait installed and ready for you to use!
     commands:
-      - <locate text="now successfully installed and ready for you to use!" timeout=1200>
+      - <locate text="is now successfully installed and ready for you to use!" timeout=1200>
 
   - title: Reboot System
     commands:
