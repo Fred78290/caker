@@ -537,6 +537,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	private var cachedScreenshotSaveEnabled: Bool?
 	private var vmTask: Task<Int32, Never>? = nil
 	private var finalPromise: EventLoopPromise<Void>? = nil
+	private var isRebooting: Bool = false
 
 	public var suspendable: Bool {
 		return self.config.suspendable && self.config.os == .darwin
@@ -704,6 +705,24 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 
 // MARK: - VM Control
 extension VirtualMachine {
+	public func rebootVM(requestStop: Bool) async throws {
+		defer {
+			self.isRebooting = false
+		}
+
+		self.isRebooting = true
+
+		if self.virtualMachine.state == .running {
+			if requestStop {
+				try await self.requestStopVM()
+			} else {
+				try await self.stopVM()
+			}
+		}
+
+		try await self.startVM()
+	}
+
 	public func startVM() async throws {
 		try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
 			self.vmQueue.async {
@@ -1356,9 +1375,11 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 	}
 
 	func didChangedStateOnStop() {
-		self.cancelAgentInstallRetry()
-		self.env.signalStop()
-		self.didChangedState(true)
+		if self.isRebooting == false {
+			self.cancelAgentInstallRetry()
+			self.env.signalStop()
+			self.didChangedState(true)
+		}
 	}
 
 	func didChangedState(_ stopGCD: Bool) {

@@ -282,13 +282,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 	}
 
 	private func reboot(_ requestStop: Bool) async throws {
-		if requestStop {
-			try await self.targetVirtualMachine.requestStopVM()
-		} else {
-			try await self.targetVirtualMachine.stopVM()
-		}
-
-		try await self.targetVirtualMachine.startVM()
+		try await self.targetVirtualMachine.rebootVM(requestStop: requestStop)
 	}
 
 	private func execute(_ step: BootCommandStep.Step, title: String) async throws -> (success: Bool, numberOfSteps: Int) {
