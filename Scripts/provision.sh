@@ -7,7 +7,7 @@ source "${PROJECT_ROOT}/.env"
 set -e
 
 if [ -f ${PROJECT_ROOT}/Tests/Packer/$1.packerlite.yaml ]; then
-	TEMPL_ARG="--template ${PROJECT_ROOT}/Tests/Packer/$1.packerlite.yaml"
+	TEMPL_ARG="--template=${PROJECT_ROOT}/Tests/Packer/$1.packerlite.yaml"
 else
 	TEMPL_ARG=""
 fi
