@@ -101,6 +101,10 @@ pre_boot_command:
       - <reboot>
 
 boot_command:
+  - title: Select keyboard layout
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
   - title: Wait Fedora setup
     commands:
       - <locate text="Welcome to Fedora Linux" timeout=120>
@@ -137,6 +141,8 @@ boot_command:
       - <wait1s>
       - <click text="Enable Third-Party Repositories">
       - <wait1s>
+      - <click text="Next">
+      - <wait1s>
 
   - title: Fill user account information
     commands:
@@ -153,11 +159,14 @@ boot_command:
       - <tab repeat=2>
       - ${var.password}
       - <tab>
+      - <wait1s>
+      - <click text="Next">
+      - <wait2s>
       - <click text="Next">
 
   - title: Start all done
     commands:
-      - <locate text="Fedora Linux is ready to be used">
+      - <locate text="Fedora Linux is ready to be used" timeout=60>
       - <click text="Start Using Fedora Linux">
 
   - title: Skip Fedora Tour
@@ -176,11 +185,14 @@ boot_command:
       - <locate text="${var.username}@fedora" timeout=30>
       - <wait1s>
       - sudo dnf install -y openssh-server
+      - <enter>
       - <wait1s>
       - ${var.password}
       - <enter>
       - <locate text="installed" timeout=30>
       - sudo systemctl enable sshd
+      - <enter>
       - <wait1s>
       - sudo systemctl start sshd
+      - <enter>
       - <wait1s>
