@@ -76,7 +76,7 @@ pre_boot_command:
 
   - title: Configure disk
     commands:
-      - <locate text="Remove all partition">
+      - <locate text="Remove all partition" timeout=30>
       - <wait1s>
       - <tab repeat=4>
       - <spacebar>
@@ -196,3 +196,18 @@ boot_command:
       - sudo systemctl start sshd
       - <enter>
       - <wait1s>
+
+      - sudo vi /etc/sudoers.d/${var.username}
+      - <enter>
+      - <wait1s>
+      - i
+      - "${var.username} ALL=(ALL:ALL) NOPASSWD: ALL"
+      - <enter>
+      - <escape>
+      - ":w"
+      - <enter>
+      - <leftShiftOn>
+      - zz
+      - <leftShiftOff>
+      - <wait1s>
+      - sudo dnf upgrade --refresh
