@@ -109,6 +109,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			case .voiceOverOff: return "voiceOverOff"
 			case .skipStepIfNotFound(let text, let steps, let timeout): return "skipStepIfNotFound \(text) steps:\(steps) x\(timeout)s"
 			case .reboot(let requestStop): return "reboot requestStop:\(requestStop)"
+			case .set(let name, let value): return "set \(name)=\(value)"
 			}
 		}
 
@@ -127,10 +128,16 @@ public struct BootCommandStep: Equatable, Sendable {
 		case voiceOverOn(confirm: Bool)
 		case voiceOverOff
 		case reboot(requestStop: Bool)
+		/// Sets a runtime variable (distinct from the static `${var.*}` substitution variables
+		/// resolved once at template-load time) that later `condition:` checks on other
+		/// `boot_command`/`pre_boot_command` title blocks can compare against — see
+		/// `BootCommandStep.meetCondition(_:)`. Parsed from `<set name="value">`.
+		case set(name: String, value: String)
 	}
 
 	public let title: String
 	public let steps: [Step]
+	public let conditions: [String]?
 
 	public init(command: PackerLiteTemplate.Command) throws {
 		var steps: [Step] = []
@@ -165,6 +172,45 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		self.title = command.title
 		self.steps = steps
+		self.conditions = command.conditions
+	}
+
+	/// Whether this title block should run at all, given the runtime variable set accumulated so
+	/// far by `<set name="value">` steps executed earlier in the same `boot_command`/`pre_boot_command`
+	/// run (see `PackerLiteDriver.variables`) — distinct from the static `${var.*}` substitution
+	/// variables, which are already baked into `steps`' literal text by template-load time and never
+	/// change during a run. Every listed `condition:` entry must hold (AND, not OR) for the block to
+	/// execute; an empty/absent `conditions` list always means "always run."
+	public func meetCondition(_ variables: [String: String]) -> Bool {
+		guard let conditions = self.conditions, conditions.isEmpty == false else {
+			return true
+		}
+
+		return conditions.allSatisfy { Self.evaluateCondition($0, variables: variables) }
+	}
+
+	/// Evaluates a single `condition:` entry of the form `name != "value"` or `name == "value"`
+	/// (quotes optional) against the current runtime variable set. A variable that was never set by
+	/// an earlier `<set>` step compares as an empty string, not as absent — this is what lets
+	/// `version != "44"` mean "the `<set version=...>` step on the Fedora-44-shaped title block
+	/// earlier in this run never actually executed" (e.g. because a `skipCommandIfNotFound` before
+	/// it skipped the rest of that block), not just "version was explicitly set to something else."
+	private static func evaluateCondition(_ condition: String, variables: [String: String]) -> Bool {
+		for op in ["!=", "=="] {
+			guard let range = condition.range(of: op) else {
+				continue
+			}
+
+			let name = String(condition[condition.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+			let value = trimMatchingQuotes(String(condition[range.upperBound...]).trimmingCharacters(in: .whitespaces))
+			let currentValue = variables[name] ?? String.empty
+
+			return op == "!=" ? currentValue != value : currentValue == value
+		}
+
+		// No recognized operator -- fail open rather than silently skipping a block the template
+		// author clearly intended to run under some circumstance, just not one we can parse.
+		return true
 	}
 
 	private static func parseKey(_ token: String) throws -> BootCommandStep.Step? {
@@ -251,6 +297,10 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		if lower.hasPrefix("scroll") {
 			return try parseScroll(body)
+		}
+
+		if lower.hasPrefix("set") {
+			return try parseSet(body)
 		}
 
 		if lower.hasPrefix("voiceoveron") {
@@ -341,6 +391,20 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		// Unknown attributes
 		throw BootCommandParseError.malformedReboot(body)
+	}
+
+	/// Matches `<set name="value">` — unlike every other attribute-style token, the attribute *name*
+	/// here is arbitrary (it's the runtime variable being set, not a fixed attribute like `text=`/
+	/// `timeout=`), so exactly one key=value pair is expected out of `parseAttributes`.
+	private static func parseSet(_ body: String) throws -> BootCommandStep.Step {
+		let rest = body.dropFirst("set".count).trimmingCharacters(in: .whitespaces)
+		let attributes = try parseAttributes("set", input: rest)
+
+		guard attributes.count == 1, let (name, value) = attributes.first, name.isEmpty == false else {
+			throw BootCommandParseError.malformedSet(body)
+		}
+
+		return .set(name: name, value: value)
 	}
 
 	private static func parseKeyboard(_ body: String) throws -> BootCommandStep.Step {
@@ -715,6 +779,7 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 	case malformedAttribute(String)
 	case malformedVoiceOverOn(String)
 	case malformedReboot(String)
+	case malformedSet(String)
 	case keyboardNotFound(String)
 
 	public var errorDescription: String? {
@@ -730,6 +795,7 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 		case .malformedAttribute(let token): return "Malformed attribute token: <\(token)>"
 		case .malformedVoiceOverOn(let body): return "Malformed voiceOverOn token: <\(body)>"
 		case .malformedReboot(let body): return "Malformed reboot token: <\(body)>"
+		case .malformedSet(let body): return "Malformed set token: <\(body)>"
 		case .keyboardNotFound(let keyboard): return "Keyboard not found: <\(keyboard)>"
 		}
 	}

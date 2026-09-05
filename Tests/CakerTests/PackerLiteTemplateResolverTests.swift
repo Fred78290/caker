@@ -120,8 +120,8 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 		// Assert on each template's own header comment (its stable filename) rather than an
 		// implementation detail of its boot_command flow, which could change independently of which
 		// file gets selected.
-		XCTAssertTrue(desktopResolved?.contains("# linux-fedora.packerlite.yaml") == true)
-		XCTAssertTrue(serverResolved?.contains("# linux-fedora-server.packerlite.yaml") == true)
+		XCTAssertTrue(desktopResolved?.contains("# fedora.packerlite.yaml") == true)
+		XCTAssertTrue(serverResolved?.contains("# fedora-server.packerlite.yaml") == true)
 	}
 
 	func testFedoraDesktopFlagIsIgnoredByOtherPlatforms() throws {
@@ -142,8 +142,8 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 		XCTAssertNotNil(serverResolved)
 		XCTAssertNotNil(desktopResolved)
 		XCTAssertNotEqual(serverResolved, desktopResolved, "Ubuntu Server and Desktop should resolve to two different bundled templates")
-		XCTAssertTrue(serverResolved?.contains("# linux-ubuntu-server.packerlite.yaml") == true)
-		XCTAssertTrue(desktopResolved?.contains("# linux-ubuntu.packerlite.yaml") == true)
+		XCTAssertTrue(serverResolved?.contains("# ubuntu-server.packerlite.yaml") == true)
+		XCTAssertTrue(desktopResolved?.contains("# ubuntu.packerlite.yaml") == true)
 	}
 
 	func testUnknownPlatformHasNoBuiltInLinuxTemplateAndResolvesToNil() throws {

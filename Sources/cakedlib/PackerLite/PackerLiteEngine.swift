@@ -23,21 +23,29 @@ public enum PackerLiteEngine {
 		targetVirtualMachine: VirtualMachine,
 		commands: BootCommandSteps,
 		resolvedBootTimeout: TimeInterval,
+		variables: [String: String] = [:],
 		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
 	) async throws {
 		let logger = Logger("PackerLiteEngine")
-		let driver = await PackerLiteDriver(targetVirtualMachine: targetVirtualMachine)
+		let driver = await PackerLiteDriver(targetVirtualMachine: targetVirtualMachine, variables: variables)
 
 		try await withThrowingTaskGroup(of: Void.self) { group in
 			let context = ProgressObserver.ProgressHandlerContext()
 
 			group.addTask {
 				progressHandler(.progress(context, 0))
+
 				for (index, command) in commands.enumerated() {
-					progressHandler(.substep(command.title))
-					logger.info("Execute provionning command: \(command.title)")
-					try await driver.run(command: command)
+					if command.meetCondition(driver.variables) {
+						progressHandler(.substep(command.title))
+						logger.info("Execute provisioning command: \(command.title)")
+						try await driver.run(command: command)
+					} else {
+						logger.info("Discard command: \(command.title), missing condition")
+					}
+
 					progressHandler(.progress(context, Double(index + 1) / Double(commands.count)))
+
 					try Task.checkCancellation()
 				}
 			}
@@ -86,6 +94,7 @@ public enum PackerLiteEngine {
 			targetVirtualMachine: vm,
 			commands: commands,
 			resolvedBootTimeout: template.bootTimeout,
+			variables: template.variables,
 			progressHandler: progressHandler)
 
 		if runningIP == nil {
@@ -243,6 +252,7 @@ public enum PackerLiteEngine {
 					targetVirtualMachine: vm,
 					commands: template.preBootCommand,
 					resolvedBootTimeout: template.bootTimeout,
+					variables: template.variables,
 					progressHandler: progressHandler)
 			}
 

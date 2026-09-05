@@ -113,6 +113,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 	private var textesFoundOverlay: [CAShapeLayer]?
 	private var textFoundOverlay: CAShapeLayer?
 	private var clickFoundOverlay: CAShapeLayer?
+	public private(set) var variables: [String: String] = [:]
 
 	@MainActor
 	private func showDebugBox(_ box: CGRect) {
@@ -244,11 +245,12 @@ final class PackerLiteDriver: @unchecked Sendable {
 	}
 
 	@MainActor
-	init(targetVirtualMachine: VirtualMachine) {
+	init(targetVirtualMachine: VirtualMachine, variables: [String: String] = [:]) {
 		self.targetVirtualMachine = targetVirtualMachine
 		self.targetView = targetVirtualMachine.vzMachineView!
 		self.currentKeyTranslator = LayoutTranslator()!
 		self.level = Logger.Level()
+		self.variables = variables
 	}
 
 	func run(command: BootCommandStep) async throws {
@@ -348,6 +350,10 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .reboot(requestStop: let requestStop):
 			logger.debug("[\(title)]: reboot requestStop=\(requestStop)")
 			try await self.reboot(requestStop)
+
+		case .set(let name, let value):
+			logger.debug("[\(title)]: set \(name)=\(value)")
+			self.variables[name] = value
 		}
 
 		try await Task.sleep(nanoseconds: Self.stepDelayNanoseconds)
