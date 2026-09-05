@@ -1162,12 +1162,12 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		for (index, command) in commands.commands.enumerated() {
 			Logger(self).debug("Running post-boot command #\(index + 1) on \(self.name): \(command)")
 
-			let result = try ssh.capture(command)
+			let result = try ssh.execute(command) { output in
+				print(output, terminator: "")
+			}
 
-			Logger(self).debug("Post-boot command #\(index + 1) output on \(self.name):\n\(result.output)")
-
-			if result.status != 0 {
-				Logger(self).error("Post-boot command #\(index + 1) failed on \(self.name), exit code: \(result.status)")
+			if result != 0 {
+				Logger(self).error("Post-boot command #\(index + 1) failed on \(self.name), exit code: \(result)")
 				throw ServiceError(String(format: String(localized: "Post-boot command #%d failed on %@"), index + 1, self.name))
 			}
 		}
