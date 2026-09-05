@@ -108,7 +108,7 @@ public struct ProvisionHandler {
 		progressHandler: @escaping ProvisionProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
 		// Load earlier to avoid starting the VM if the template is invalid
-		let template = try Self.loadTemplate(location, template: templatePath?.path(percentEncoded: false), macosVersion: macosVersion, variables: variables)
+		let template = try Self.loadTemplate(location, template: templatePath?.path(percentEncoded: false), macosVersion: macosVersion, variables: variables, runMode: runMode)
 
 		return try await self.provision(
 			location: location,
@@ -346,13 +346,13 @@ public struct ProvisionHandler {
 	private static func provision(_ vm: VirtualMachine, runningIP: String?, template: String?, macosVersion: MacOSVersion?, runMode: Utils.RunMode, variables: [String] = [], progressHandler: @escaping ProvisionProgressHandler)
 		async throws
 	{
-		let parsedTemplate = try await Self.loadTemplate(vm.location, template: template, macosVersion: macosVersion, variables: variables)
+		let parsedTemplate = try await Self.loadTemplate(vm.location, template: template, macosVersion: macosVersion, variables: variables, runMode: runMode)
 
 		try await PackerLiteEngine.provision(vm: vm, template: parsedTemplate, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
 	}
 
 	@MainActor
-	public static func loadTemplate(_ location: VMLocation, template: String?, macosVersion: MacOSVersion?, variables: [String]) throws -> ParsedPackerLiteTemplate {
+	public static func loadTemplate(_ location: VMLocation, template: String?, macosVersion: MacOSVersion?, variables: [String], runMode: Utils.RunMode) throws -> ParsedPackerLiteTemplate {
 		let config = try location.config()
 		let content: String
 
@@ -394,6 +394,11 @@ public struct ProvisionHandler {
 
 		varsDict["username"] = config.configuredUser
 		varsDict["password"] = config.configuredPassword ?? "admin"
+		varsDict["hostname"] = location.name
+
+		if let keys = try? CloudInit.sshAuthorizedKeys(sshAuthorizedKeyPath: config.sshPrivateKeyPath, runMode: runMode) {
+			varsDict["ssh_authorized_key"] = keys.joined(separator: "\n")
+		}
 
 		return try PackerLiteTemplate.load(from: content, variables: varsDict)
 	}

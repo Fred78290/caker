@@ -93,7 +93,9 @@ struct Provision: AsyncParsableCommand {
 		}
 
 		// Load earlier to avoid starting the VM if the template is invalid
-		let template = try CakedLib.ProvisionHandler.loadTemplate(location, template: templatePath?.path(percentEncoded: false), macosVersion: self.provision.macosVersion, variables: self.provision.vars)
+		let template = try CakedLib.ProvisionHandler.loadTemplate(
+			location, template: templatePath?.path(percentEncoded: false),
+			macosVersion: self.provision.macosVersion, variables: self.provision.vars, runMode: self.common.runMode)
 
 		defer {
 			location.removePID()
