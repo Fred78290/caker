@@ -255,3 +255,9 @@ boot_command:
   - title: Disable Voice Over
     commands: 
       - <voiceOverOff>
+
+post_boot_command:
+  use_ssh_key: false
+  commands:
+    - sh -c 'echo "${var.ssh_authorized_key}" > ~/.ssh/authorized_keys'
+    - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"
