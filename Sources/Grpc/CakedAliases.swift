@@ -328,6 +328,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var displayRefit: Bool
 	public var instanceID: String
 	public var dhcpClientID: String?
+	public var sshAuthorizedKey: String?
 	public var sshPrivateKeyPath: String?
 	public var sshPrivateKeyPassphrase: String?
 	public var configuredUser: String
@@ -378,6 +379,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.displayRefit = from.displayRefit
 		self.instanceID = from.instanceID
 		self.dhcpClientID = from.dhcpClientID
+		self.sshAuthorizedKey = from.sshAuthorizedKey
 		self.sshPrivateKeyPath = from.sshPrivateKeyPath
 		self.sshPrivateKeyPassphrase = from.sshPrivateKeyPassphrase
 		self.configuredUser = from.configuredUser
@@ -428,6 +430,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.displayRefit = from.displayRefit
 		self.instanceID = from.instanceID
 		self.dhcpClientID = from.dhcpClientID
+		self.sshAuthorizedKey = from.sshAuthorizedKey
 		self.sshPrivateKeyPath = from.sshPrivateKeyPath
 		self.sshPrivateKeyPassphrase = from.sshPrivateKeyPassphrase
 		self.configuredUser = from.configuredUser

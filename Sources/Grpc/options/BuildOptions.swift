@@ -506,6 +506,10 @@ public struct BuildOptions: ParsableArguments {
 	}
 
 	mutating public func validate(remote: Bool) throws {
+		if let sshAuthorizedKey = self.sshAuthorizedKey, sshAuthorizedKey.starts(with: "ssh-") == false {
+			self.sshAuthorizedKey = try String(contentsOfFile: sshAuthorizedKey.expandingTildeInPath, encoding: .utf8)
+		}
+
 		if name.contains("/") {
 			throw ValidationError(String(localized: "\(name) should be a local name"))
 		}

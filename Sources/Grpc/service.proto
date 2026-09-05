@@ -398,6 +398,7 @@ message Caked {
     optional string configuredPassword      = 25;
     string          configuredGroup         = 26;
     repeated string configuredGroups        = 27;
+    optional string sshAuthorizedKey        = 47;
     optional string sshPrivateKeyPath       = 28;
     optional string sshPrivateKeyPassphrase = 29;
     bool            clearPassword           = 30;

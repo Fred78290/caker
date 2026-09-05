@@ -262,6 +262,7 @@ public protocol VirtualMachineConfiguration {
 	var displayRefit: Bool { set get }
 	var instanceID: String { set get }
 	var dhcpClientID: String? { set get }
+	var sshAuthorizedKey: String? { set get }
 	var sshPrivateKeyPath: String? { set get }
 	var sshPrivateKeyPassphrase: String? { set get }
 	var configuredUser: String { set get }

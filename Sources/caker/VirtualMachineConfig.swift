@@ -546,9 +546,14 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 		self.provisioned = false
 
-		if FileManager.default.fileExists(atPath: "~/.ssh/id_rsa.pub".expandingTildeInPath) {
+		let id_rsa = "~/.ssh/id_rsa.pub".expandingTildeInPath
+
+		if FileManager.default.fileExists(atPath: id_rsa), let sshAuthorizedKey = try? String(contentsOfFile: id_rsa, encoding: .utf8) {
+			self.sshAuthorizedKey = sshAuthorizedKey.trimmingCharacters(in: .whitespacesAndNewlines)
+		}
+
+		if FileManager.default.fileExists(atPath: "~/.ssh/id_rsa".expandingTildeInPath) {
 			self.sshPrivateKeyPath = "~/.ssh/id_rsa"
-			self.sshAuthorizedKey = "~/.ssh/id_rsa.pub"
 		}
 
 		self.changedFields = Set<PartialKeyPath<Self>>()
@@ -578,6 +583,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.displayRefit = config.displayRefit
 		self.instanceID = config.instanceID
 		self.dhcpClientID = config.dhcpClientID
+		self.sshAuthorizedKey = config.sshAuthorizedKey
 		self.sshPrivateKeyPath = config.sshPrivateKeyPath
 		self.sshPrivateKeyPassphrase = config.sshPrivateKeyPassphrase
 		self.configuredUser = config.configuredUser
@@ -638,6 +644,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		config.displayRefit = self.displayRefit
 		config.instanceID = self.instanceID
 		config.dhcpClientID = self.dhcpClientID
+		config.sshAuthorizedKey = self.sshAuthorizedKey
 		config.sshPrivateKeyPath = self.sshPrivateKeyPath
 		config.sshPrivateKeyPassphrase = self.sshPrivateKeyPassphrase
 		config.configuredUser = self.configuredUser

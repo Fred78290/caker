@@ -63,6 +63,7 @@ public struct VMBuilder {
 				config.agent = false
 				config.nested = options.nested
 				config.attachedDisks = attachedDisks
+				config.sshAuthorizedKey = options.sshAuthorizedKey
 			}
 		#endif
 
@@ -114,6 +115,7 @@ public struct VMBuilder {
 				config.agent = imageSource != .iso || autoinstall
 				config.nested = options.nested
 				config.attachedDisks = attachedDisks
+				config.sshAuthorizedKey = options.sshAuthorizedKey
 
 				// Desktop vs. server variant of the same distro (e.g. Fedora Workstation vs. Fedora
 				// Server), detected the same way as configuredPlatform above — from the image

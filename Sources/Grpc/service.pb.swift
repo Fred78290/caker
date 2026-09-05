@@ -699,6 +699,15 @@ public nonisolated struct Caked_Caked: Sendable {
       set {_uniqueStorage()._configuredGroups = newValue}
     }
 
+    public var sshAuthorizedKey: String {
+      get {_storage._sshAuthorizedKey ?? String()}
+      set {_uniqueStorage()._sshAuthorizedKey = newValue}
+    }
+    /// Returns true if `sshAuthorizedKey` has been explicitly set.
+    public var hasSshAuthorizedKey: Bool {_storage._sshAuthorizedKey != nil}
+    /// Clears the value of `sshAuthorizedKey`. Subsequent reads from it will return its default value.
+    public mutating func clearSshAuthorizedKey() {_uniqueStorage()._sshAuthorizedKey = nil}
+
     public var sshPrivateKeyPath: String {
       get {_storage._sshPrivateKeyPath ?? String()}
       set {_uniqueStorage()._sshPrivateKeyPath = newValue}
@@ -7656,7 +7665,7 @@ nonisolated extension Caked_Caked.MemoryInfo: SwiftProtobuf.Message, SwiftProtob
 
 nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Configuration"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}diskSize\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0\u{1}rootDisk\0\u{1}diskFormat\0\u{1}provisioned\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}diskSize\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0\u{1}rootDisk\0\u{1}diskFormat\0\u{1}provisioned\0\u{1}sshAuthorizedKey\0")
 
   fileprivate class _StorageClass {
     var _version: Int32 = 0
@@ -7686,6 +7695,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
     var _configuredPassword: String? = nil
     var _configuredGroup: String = String()
     var _configuredGroups: [String] = []
+    var _sshAuthorizedKey: String? = nil
     var _sshPrivateKeyPath: String? = nil
     var _sshPrivateKeyPassphrase: String? = nil
     var _clearPassword_p: Bool = false
@@ -7742,6 +7752,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
       _configuredPassword = source._configuredPassword
       _configuredGroup = source._configuredGroup
       _configuredGroups = source._configuredGroups
+      _sshAuthorizedKey = source._sshAuthorizedKey
       _sshPrivateKeyPath = source._sshPrivateKeyPath
       _sshPrivateKeyPassphrase = source._sshPrivateKeyPassphrase
       _clearPassword_p = source._clearPassword_p
@@ -7825,6 +7836,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
         case 44: try { try decoder.decodeSingularStringField(value: &_storage._rootDisk) }()
         case 45: try { try decoder.decodeSingularEnumField(value: &_storage._diskFormat) }()
         case 46: try { try decoder.decodeSingularBoolField(value: &_storage._provisioned) }()
+        case 47: try { try decoder.decodeSingularStringField(value: &_storage._sshAuthorizedKey) }()
         default: break
         }
       }
@@ -7975,6 +7987,9 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
       if _storage._provisioned != false {
         try visitor.visitSingularBoolField(value: _storage._provisioned, fieldNumber: 46)
       }
+      try { if let v = _storage._sshAuthorizedKey {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 47)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -8011,6 +8026,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
         if _storage._configuredPassword != rhs_storage._configuredPassword {return false}
         if _storage._configuredGroup != rhs_storage._configuredGroup {return false}
         if _storage._configuredGroups != rhs_storage._configuredGroups {return false}
+        if _storage._sshAuthorizedKey != rhs_storage._sshAuthorizedKey {return false}
         if _storage._sshPrivateKeyPath != rhs_storage._sshPrivateKeyPath {return false}
         if _storage._sshPrivateKeyPassphrase != rhs_storage._sshPrivateKeyPassphrase {return false}
         if _storage._clearPassword_p != rhs_storage._clearPassword_p {return false}

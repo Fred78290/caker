@@ -263,6 +263,11 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.cake["dhcpClientID"] as? String }
 	}
 
+	public var sshAuthorizedKey: String? {
+		set { self.cake["sshAuthorizedKey"] = newValue }
+		get { self.cake["sshAuthorizedKey"] as? String }
+	}
+
 	public var sshPrivateKeyPath: String? {
 		set { self.cake["sshPrivateKey"] = newValue }
 		get { self.cake["sshPrivateKey"] as? String }
