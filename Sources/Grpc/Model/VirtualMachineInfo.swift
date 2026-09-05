@@ -612,6 +612,32 @@ public struct BuildedReply: Codable {
 	}
 }
 
+public struct ProvisionedReply: Sendable, Codable {
+	public let name: String
+	public let provisioned: Bool
+	public let reason: String
+
+	public init(_ from: Caked_ProvisionedReply) {
+		self.name = from.name
+		self.provisioned = from.provisioned
+		self.reason = from.reason
+	}
+
+	public init(name: String, provisioned: Bool, reason: String) {
+		self.name = name
+		self.provisioned = provisioned
+		self.reason = reason
+	}
+
+	public var caked: Caked_ProvisionedReply {
+		Caked_ProvisionedReply.with { object in
+			object.name = name
+			object.provisioned = provisioned
+			object.reason = reason
+		}
+	}
+}
+
 public struct ClonedReply: Codable {
 	public let sourceName: String
 	public let targetName: String

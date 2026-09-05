@@ -63,7 +63,7 @@ extension CakedExecuteStream {
 
 	@discardableResult
 	public func end() -> EventLoopFuture<Void> {
-		#if TRACE
+		#if TRACE_STREAM
 			redbold("Send end")
 		#endif
 		return self.sendEnd()
@@ -114,7 +114,7 @@ public final class CakedChannelStreamer: @unchecked Sendable {
 
 		do {
 			/*if case .failure(let reason) = response.response {
-				#if TRACE
+				#if TRACE_STREAM
 					redbold("failure=\(code)")
 				#endif
 				printError("\(reason)")
@@ -122,7 +122,7 @@ public final class CakedChannelStreamer: @unchecked Sendable {
 				_ = pipeChannel.channel.close()
 				self.semaphore.signal()
 			} else */if case .exitCode(let code) = response.response {
-				#if TRACE
+				#if TRACE_STREAM
 					redbold("exitCode=\(code)")
 				#endif
 				self.exitCode = code
@@ -130,7 +130,7 @@ public final class CakedChannelStreamer: @unchecked Sendable {
 				self.semaphore.signal()
 			} else if case .stdout(let datas) = response.response {
 				self.receivedLength += UInt64(datas.count)
-				#if TRACE
+				#if TRACE_STREAM
 					redbold("message length: \(datas.count), receivedLength=\(self.receivedLength)")
 				#endif
 				try self.outputHandle.write(contentsOf: datas)
@@ -138,7 +138,7 @@ public final class CakedChannelStreamer: @unchecked Sendable {
 				try self.errorHandle.write(contentsOf: datas)
 			} else if case .established(let established) = response.response {
 				if established.success {
-					#if TRACE
+					#if TRACE_STREAM
 						redbold("channel established")
 					#endif
 					if self.inputHandle.isTTY() {
@@ -216,7 +216,7 @@ public final class CakedChannelStreamer: @unchecked Sendable {
 		}
 
 		defer {
-			#if TRACE
+			#if TRACE_STREAM
 				redbold("Exit receivedLength=\(self.receivedLength)")
 			#endif
 			if let sig = sigwinch {
@@ -267,7 +267,7 @@ public final class CakedChannelStreamer: @unchecked Sendable {
 
 					if fileSize > 0 {
 						bufLength -= UInt64(buffer.readableBytes)
-						#if TRACE
+						#if TRACE_STREAM
 							redbold("Remains bufLength=\(bufLength), receivedLength=\(self.receivedLength)")
 						#endif
 						if bufLength <= 0 {
@@ -278,13 +278,13 @@ public final class CakedChannelStreamer: @unchecked Sendable {
 					}
 				}
 
-				#if TRACE
+				#if TRACE_STREAM
 					redbold("EOF bufLength=\(bufLength), receivedLength=\(self.receivedLength)")
 				#endif
 
 				shellStream.sendEof()
 			} catch {
-				#if TRACE
+				#if TRACE_STREAM
 					redbold("error: \(error)")
 				#endif
 				if error is CancellationError == false {

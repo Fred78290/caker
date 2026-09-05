@@ -9,17 +9,17 @@ import Virtualization
 public struct VNCInfos: Codable {
 	public var urls: [String] = []
 	public var screenSize: ViewSize? = nil
-	
+
 	public init() {
 		self.urls = []
 		self.screenSize = nil
 	}
-	
+
 	public init(urls: [URL], screenSize: (width: Int, height: Int)) {
 		self.urls = urls.map(\.absoluteString)
 		self.screenSize = .init(width: screenSize.width, height: screenSize.height)
 	}
-	
+
 	public init(urls: [String], screenSize: ViewSize?) {
 		self.urls = urls
 		self.screenSize = screenSize
@@ -114,11 +114,20 @@ public protocol VMRunServiceServerProtocol {
 	func stop()
 }
 
+public class NoneVMRunServiceServer: VMRunServiceServerProtocol {
+	public func serve() {
+	}
+
+	public func stop() {
+	}
+}
+
 public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgument, CaseIterable, EnumerableFlag {
 	public var description: String {
 		return self.rawValue
 	}
 
+	case disabled
 	case grpc
 	case xpc
 
@@ -126,32 +135,45 @@ public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgu
 		return .grpc
 	}
 
-	public func client(location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient {
-		if self == .xpc {
-			return try XPCVMRunServiceClient.createClient(location: location, runMode: runMode)
-		} else {
+	public func client(location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient? {
+		switch self {
+
+		case .disabled:
+			return nil
+		case .grpc:
 			return try GRPCVMRunServiceClient.createClient(location: location, runMode: runMode)
+		case .xpc:
+			return try XPCVMRunServiceClient.createClient(location: location, runMode: runMode)
 		}
 	}
 
 	public func serve(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) -> VMRunServiceServerProtocol {
-		if self == .xpc {
-			return XPCVMRunServiceServer(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
-		} else {
+		switch self {
+		case .disabled:
+			return NoneVMRunServiceServer()
+		case .grpc:
 			return GRPCVMRunService(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation, logger: Logger("GRPCVMRunService"))
+		case .xpc:
+			return XPCVMRunServiceServer(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
 		}
 	}
 }
 
 class VMRunService: NSObject {
+	weak var vm: VirtualMachine!
 	let logger: Logger
 	let runMode: Utils.RunMode
-	let vm: VirtualMachine
 	let certLocation: CertificatesLocation
 	let group: EventLoopGroup
 
+#if TRACE_DEINIT
+	deinit {
+		print("VMRunService deinit")
+	}
+#endif
+
 	var vncURL: VNCInfos? {
-		if let vncURL = vm.vncURL {
+		if let vncURL = self.vm.vncURL {
 			return VNCInfos(urls: vncURL, screenSize: vm.getScreenSize())
 		}
 

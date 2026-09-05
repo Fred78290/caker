@@ -65,7 +65,7 @@ struct TemplateDetailView: View {
 			await self.loadInfos()
 		}
 		.sheet(item: self.$vmFromTemplate) { template in
-			VirtualMachineWizard(sheet: true, presetTemplate: template)
+			VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetTemplate: template)
 				.colorSchemeForColor()
 				.restorationState(.disabled)
 				.frame(minWidth: 700, minHeight: 670)

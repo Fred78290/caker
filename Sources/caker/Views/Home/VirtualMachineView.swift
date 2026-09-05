@@ -37,7 +37,7 @@ struct VirtualMachineView: View {
 	private var vm: VirtualMachineDocumentState
 	@State private var screenshot: NSImage?
 
-#if DEBUG
+#if TRACE_SWIFTUI_DEALLOC
 	let tracker: TrackDealloc
 #endif
 
@@ -45,7 +45,7 @@ struct VirtualMachineView: View {
 		self.vm = vm
 		self.selected = selected
 		self.screenshot = vm.lastScreenshot
-#if DEBUG
+#if TRACE_SWIFTUI_DEALLOC
 		self.tracker = TrackDealloc(from: "VirtualMachineView \(vm.url.absoluteString)")
 #endif
 	}

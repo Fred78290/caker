@@ -78,8 +78,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "linux"
+            argument = "macos15"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "linux"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "app"
@@ -99,18 +103,26 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--all"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-ui"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--log-level=debug"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vnc-port=32000"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vnc-password=1234"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--screen-size=1920x1024"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

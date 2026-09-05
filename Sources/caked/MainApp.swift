@@ -1,11 +1,11 @@
+import CakeAgentLib
 import CakedLib
 import Combine
 import Foundation
 import SwiftUI
 import Virtualization
-import CakeAgentLib
 
-class AppState: ObservableObject, Observable {
+class AppState: ObservableObject, Observable, VirtualMachineDelegate {
 	@Published var status: VMLocation.Status
 	@Published var isStopped: Bool
 	@Published var isSuspendable: Bool
@@ -20,6 +20,8 @@ class AppState: ObservableObject, Observable {
 		self.isRunning = status.isRunning
 		self.isPaused = status == .paused
 		self.isSuspendable = status.isRunning && vm.suspendable
+
+		vm.delegate = self
 	}
 
 	func update(vm: VirtualMachine) {
@@ -29,32 +31,63 @@ class AppState: ObservableObject, Observable {
 		self.isPaused = status == .paused
 		self.isSuspendable = status.isRunning && vm.suspendable
 	}
+
+	func didChangedState(_ vm: VirtualMachine) {
+		self.update(vm: vm)
+	}
+
+	func didScreenshot(_ vm: VirtualMachine, screenshot: NSImage) {
+		try? screenshot.pngData?.write(to: vm.location.screenshotURL)
+	}
 }
 
-struct MainApp: App, VirtualMachineDelegate {
-	static var cancellation: Cancellable?
-	static var displayUI = false
-	static var params: VMRunHandler!
-	static var vm: VirtualMachine!
+enum RestorationStateBehavior: String {
+	case disabled
+	case automatic
+}
 
-	@State var appState: AppState
+extension Scene {
+	func restorationState(_ restoreState: RestorationStateBehavior = .disabled) -> some Scene {
+		if #available(macOS 15.0, *) {
+			return self.restorationBehavior(restoreState == .automatic ? .automatic : .disabled)
+		}
 
-	@NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
+		return self
+	}
+}
 
-	init() {
-		self.appState = AppState(Self.vm)
-		Self.vm.delegate = self
+struct MainWindow: Scene {
+	private var params: VMRunHandler
+	private var vm: VirtualMachine
+	private var actionRecorder: RecordedActionHandler?
+
+	@State private var appState: AppState
+
+	init(params: VMRunHandler, vm: VirtualMachine) {
+		let appState = AppState(vm)
+
+		vm.delegate = appState
+
+		self.init(params: params, vm: vm, appState: appState)
+	}
+
+	init(params: VMRunHandler, vm: VirtualMachine, appState: AppState) {
+		self.params = params
+		self.vm = vm
+		self.appState = appState
 	}
 
 	var body: some Scene {
-		let display = MainApp.params.config.display
+		let display = self.params.config.display
 		let minWidth = CGFloat(display.width)
 		let idealWidth = CGFloat(display.width)
 		let minHeight = CGFloat(display.height)
 		let idealHeight = CGFloat(display.height)
+		let maxWidth: CGFloat = (self.vm.mode == .recording || self.vm.mode == .provisioning) ? CGFloat(display.width) : .infinity
+		let maxHeight: CGFloat = (self.vm.mode == .recording || self.vm.mode == .provisioning) ? CGFloat(display.height) : .infinity
 
-		WindowGroup(MainApp.params.name) {
-			VMView(MainApp.vm, params: MainApp.params)
+		WindowGroup(self.params.name, id: "VM") {
+			VMView(self.vm, params: self.params)
 				.onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
 				}
@@ -68,18 +101,22 @@ struct MainApp: App, VirtualMachineDelegate {
 						Logger(self).debug("New status: \(newValue)")
 					}
 				#endif
-				.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
+				.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: maxWidth, minHeight: minHeight, idealHeight: idealHeight, maxHeight: maxHeight)
 				.toolbar {
 					ToolbarItemGroup(placement: .navigation) {
 						#if DEBUG
-						Button("Screenshot", systemImage: "photo") {
-							self.takeScreenshot()
-						}.help("Take a screenshot")
+							Button("Screenshot", systemImage: "photo") {
+								self.takeScreenshot()
+							}.help("Take a screenshot")
 						#endif
 
 						if self.appState.status.isRunning {
 							Button("Stop", systemImage: "stop") {
-								self.requestStopFromUI()
+								if NSEvent.modifierFlags.contains(.option) {
+									self.stopFromUI()
+								} else {
+									self.requestStopFromUI()
+								}
 							}.help("Stop virtual machine")
 						} else if self.appState.status == .paused {
 							Button("Resume", systemImage: "playpause") {
@@ -103,6 +140,12 @@ struct MainApp: App, VirtualMachineDelegate {
 						.help("Restarts virtual machine")
 						.disabled(self.appState.isStopped)
 					}
+
+					if let currentSession = RecordHandler.currentSession, self.vm.mode == .recording, currentSession.state != .stopped {
+						ToolbarItemGroup(placement: .secondaryAction) {
+							RecordingControls(session: currentSession, showVoiceOver: self.vm.config.os == .darwin)
+						}
+					}
 				}
 				.presentedWindowToolbarStyle(.unifiedCompact)
 				.windowToolbarFullScreenVisibility(.onHover)
@@ -110,6 +153,7 @@ struct MainApp: App, VirtualMachineDelegate {
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
 		.defaultSize(CGSize(width: idealWidth, height: idealHeight))
+		.restorationState()
 		.commands {
 			CommandGroup(replacing: .help, addition: {})
 			CommandGroup(replacing: .newItem, addition: {})
@@ -117,7 +161,7 @@ struct MainApp: App, VirtualMachineDelegate {
 			CommandGroup(replacing: .textEditing, addition: {})
 			CommandGroup(replacing: .undoRedo, addition: {})
 			CommandGroup(replacing: .windowSize, addition: {})
-			CommandGroup(replacing: .appInfo) { AboutApplication(config: MainApp.params.config) }
+			CommandGroup(replacing: .appInfo) { AboutApplication(config: self.params.config) }
 			CommandMenu("Control") {
 				Button("Start") {
 					Task { self.startFromUI() }
@@ -136,40 +180,130 @@ struct MainApp: App, VirtualMachineDelegate {
 				}.disabled(self.appState.isSuspendable == false)
 			}
 		}
+
+		Window("About", id: "about") {
+			AboutApplication(config: self.params.config)
+		}.windowResizability(.contentSize)
 	}
 
 	#if DEBUG
-	func takeScreenshot() {
-		MainApp.vm.takeScreenshotDebug()
-	}
+		func takeScreenshot() {
+			self.vm.takeScreenshotDebug()
+		}
 	#endif
-	
+
 	func startFromUI() {
-		MainApp.vm.startFromUI()
+		self.vm.startFromUI()
 	}
 
 	func restartFromUI() {
-		MainApp.vm.restartFromUI()
+		self.vm.restartFromUI()
 	}
 
 	func stopFromUI() {
-		MainApp.vm.stopFromUI()
+		self.vm.stopFromUI()
 	}
 
 	func requestStopFromUI() {
-		MainApp.vm.requestStopFromUI()
+		self.vm.requestStopFromUI()
 	}
 
 	func suspendFromUI() {
-		MainApp.vm.suspendFromUI()
+		self.vm.suspendFromUI()
+	}
+}
+
+/// Toolbar controls for a live `caked record` session. A separate view (rather than inline in
+/// MainWindow's toolbar) so it can observe the session: the Recording/Paused flip and the Reset
+/// button's enablement both need to update live as `state`/`hasRecordedActions` change.
+struct RecordingControls: View {
+	@ObservedObject var session: RecordHandler.Session
+	let showVoiceOver: Bool
+
+	var body: some View {
+		if self.session.state == .recording {
+			Button {
+				self.session.suspend()
+			} label: {
+				HStack(spacing: 4) {
+					Circle()
+						.fill(.red)
+						.frame(width: 8, height: 8)
+						.overlay(
+							Circle()
+								.fill(.red.opacity(0.3))
+								.scaleEffect(1.5)
+						)
+					Text("Recording")
+				}
+			}
+			.help("Pause recording")
+		} else {
+			Button {
+				self.session.resume()
+			} label: {
+				HStack(spacing: 4) {
+					Circle()
+						.strokeBorder(.red, lineWidth: 2)
+						.frame(width: 8, height: 8)
+					Text("Paused recording")
+				}
+			}
+			.help("Resume recording")
+		}
+
+		Button {
+			self.session.reset()
+		} label: {
+			HStack(spacing: 4) {
+				Image(systemName: "arrow.counterclockwise")
+					.foregroundStyle(.orange)
+				Text("Reset")
+			}
+		}
+		.help("Discard recorded steps and start over")
+		.disabled(self.session.hasRecordedActions == false)
+
+		Button {
+			self.session.toggleLocateMode()
+		} label: {
+			Image(systemName: self.session.isLocateModeActive ? "text.viewfinder" : "viewfinder")
+				.foregroundStyle(self.session.isLocateModeActive ? .blue : .primary)
+		}
+		.help(
+			self.session.isLocateModeActive
+				? "Locate mode is on — clicking recognized text records <locate>/<clickText> instead of a raw coordinate; click to turn off"
+				: "Turn on locate mode to highlight recognized text and click it for a resilient <locate>/<clickText> step, instead of a raw coordinate")
+
+		if showVoiceOver {
+			Button {
+				self.session.toggleVoiceOver(confirm: NSEvent.modifierFlags.contains(.option))
+			} label: {
+				Image(systemName: "voiceover")
+					.foregroundStyle(self.session.isVoiceOverActived ? .blue : .primary)
+			}
+			.help(
+				self.session.isVoiceOverActived
+					? "VoiceOver is active"
+					: "Turn on VoiceOver (Option-click to confirm)")
+		}
+	}
+}
+
+struct MainApp: App {
+	static var cancellation: Cancellable?
+	static var displayUI = false
+	static var params: VMRunHandler!
+	static var vm: VirtualMachine!
+
+	@NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
+
+	var body: some Scene {
+		MainWindow(params: Self.params, vm: Self.vm)
 	}
 
-	func didChangedState(_ vm: VirtualMachine) {
-		self.appState.update(vm: vm)
-	}
-
-	func didScreenshot(_ vm: CakedLib.VirtualMachine, screenshot: NSImage) {
-		try? screenshot.pngData?.write(to: vm.location.screenshotURL)
+	static func activate() {
+		NSApp.activate()
 	}
 
 	static func runUI(_ vm: VirtualMachine, params: VMRunHandler, cancellation: Cancellable?) {
@@ -181,12 +315,48 @@ struct MainApp: App, VirtualMachineDelegate {
 	}
 }
 
+// MARK: - Front-app activation workaround
+//
+// When this process is launched via fork/exec from a terminal or shell script (as `caked
+// provision --foreground` and similar are, rather than through Finder/LaunchServices), macOS
+// does not automatically grant it frontmost/active status the way a normal GUI launch would.
+// SwiftUI's `App`/`WindowGroup` alone doesn't compensate for this — the VM window can end up
+// open but buried behind whatever else has focus, with no visible sign it opened at all.
+//
+// The three layers below are a deliberate belt-and-braces workaround, not redundant flourishes;
+// each exists because the one before it wasn't reliably sufficient on its own across launch
+// contexts observed in practice:
+//   1. `setDockIcon()` (Extensions.swift) calls `NSApp.activate(ignoringOtherApps:)` immediately
+//      from `applicationDidFinishLaunching`.
+//   2. The splash `NSWindow` below is created at `.floating` level, so it visually surfaces
+//      above other apps' windows even before this process becomes the system-designated
+//      active app — activation state and window-server ordering aren't the same thing.
+//   3. `SplashScreenView` schedules a delayed `NSApp.activate()` retry, in case (1) lost a race
+//      against window-server/App Nap state still settling right after process launch.
+//
+// Once real activation lands (`applicationDidBecomeActive`), the splash window is torn down and
+// the actual SwiftUI `WindowGroup` ("VM") is opened via `EnvironmentValues().openWindow(id:)` —
+// used here specifically because `AppDelegate` isn't a View and has no SwiftUI environment to
+// pull an `openWindow` action from any other way.
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
-	func applicationDidFinishLaunching(_ notification: Notification) {
-		MainApp.cancellation?.cancel()
+	private var splashWindow: NSWindow? = nil
 
+	func applicationDidBecomeActive(_ notification: Notification) {
+		closeSplashWindowSingle()
+	}
+
+	func applicationWillTerminate(_ notification: Notification) {
+		if let location = MainApp.vm?.location {
+			location.removePID()
+		}
+
+		MainApp.cancellation?.cancel()
+	}
+
+	func applicationDidFinishLaunching(_ notification: Notification) {
 		if MainApp.displayUI {
 			NSApp.setDockIcon()
+			self.showSplashWindow()
 		}
 	}
 
@@ -200,25 +370,59 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 		alert.messageText = String(localized: "Virtual machine Running")
 		alert.informativeText = String(localized: "The virtual machine is running. Do you want terminate it them and quit?")
 		alert.alertStyle = .warning
-		alert.addButton(withTitle: String(localized: "Terminate & Quit"))
+		alert.addButton(withTitle: String(localized: "Request stop & Quit"))
+		alert.addButton(withTitle: String(localized: "Force stop & Quit")).hasDestructiveAction = true
 		alert.addButton(withTitle: String(localized: "Cancel"))
 
-		if alert.runModal() == .alertFirstButtonReturn {
+		let hitButton = alert.runModal()
+
+		if hitButton == .alertFirstButtonReturn {
 			Task {
 				if vm.suspendable {
 					vm.suspendFromUI { _ in
 						sender.reply(toApplicationShouldTerminate: true)
 					}
 				} else {
-					vm.requestStopFromUI{ _ in
+					vm.requestStopFromUI { _ in
 						sender.reply(toApplicationShouldTerminate: true)
 					}
 				}
 			}
-
-			return .terminateLater
+		} else if hitButton == .alertSecondButtonReturn {
+			Task {
+				vm.stopFromUI { _ in
+					sender.reply(toApplicationShouldTerminate: true)
+				}
+			}
+		} else {
+			return .terminateCancel
 		}
 
-		return .terminateCancel
+		return .terminateLater
+	}
+}
+
+extension AppDelegate {
+	private func showSplashWindow() {
+		self.splashWindow = SplashScreenView.showSplashWindow(name: MainApp.params.name)
+	}
+
+	func closeSplashWindowSingle() {
+		guard let window = self.splashWindow else {
+			return
+		}
+
+		self.splashWindow = nil
+		window.orderOut(self)
+		window.close()
+
+		// AppDelegate has no SwiftUI environment of its own — reading the action from a fresh
+		// EnvironmentValues() is how a plain NSObject opens the "VM" WindowGroup by id.
+		EnvironmentValues().openWindow(id: "VM")
+		DispatchQueue.main.async {
+			NSApp.orderedWindows
+				.first(where: { $0.isVisible && !$0.isMiniaturized && $0.canBecomeKey })?
+				.makeKeyAndOrderFront(nil)
+		}
 	}
 }

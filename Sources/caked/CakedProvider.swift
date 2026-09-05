@@ -419,37 +419,37 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	
 	func remote(request: Caked_RemoteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-
+		
 		if request.command == .add || request.command == .delete {
 			Task {
 				await self.gcd.updateStatusRemotes()
 			}
 		}
-
+		
 		return reply
 	}
 	
 	func template(request: Caked_TemplateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-
+		
 		if request.command == .add || request.command == .delete || request.command == .duplicate {
 			Task {
 				await self.gcd.updateStatusTemplates()
 			}
 		}
-
+		
 		return reply
 	}
 	
 	func networks(request: Caked_NetworkRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-
+		
 		if request.command == .new || request.command == .remove || request.command == .set {
 			Task {
 				await self.gcd.updateStatusNetworks()
 			}
 		}
-
+		
 		return reply
 	}
 	
@@ -565,5 +565,8 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func compose(request: Caked_ComposeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
+	func provision(request: Caked_ProvisionRequest, responseStream: Caked_ResponseProvisionStreamReply, context: GRPCAsyncServerCallContext) async throws {
+		_ = try self.execute(command: ProvisionHandler(provider: self, request: request, responseStream: responseStream, runMode: runMode))
+	}
 }

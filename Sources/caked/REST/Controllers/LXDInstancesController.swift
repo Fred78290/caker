@@ -745,6 +745,9 @@ struct LXDInstancesController: RouteCollection {
 		case .step(let message):
 			return message
 
+		case .substep(let message):
+			return message
+
 		case .progress(_, let fractionCompleted):
 			Task {
 				if let currentMessage {
@@ -763,6 +766,24 @@ struct LXDInstancesController: RouteCollection {
 				} else {
 					let description = message.map { "Operation succeeded: \($0)" } ?? "Operation succeeded"
 					await LXDOperationStore.shared.complete(id: opID, success: true, description: description)
+				}
+			}
+
+		case .provision(let info):
+			Task {
+				if let info {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisioning: \(info.vncURL)")
+				} else {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisioning")
+				}
+			}
+
+		case .provisioned(let result):
+			Task {
+				if case .failure(let error) = result {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisionning failed: \(error)")
+				} else {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisionning succeeded")
 				}
 			}
 		}

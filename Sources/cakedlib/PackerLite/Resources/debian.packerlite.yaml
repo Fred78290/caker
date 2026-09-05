@@ -1,0 +1,193 @@
+# debian.packerlite.yaml
+#
+# Built-in PackerLite template — unattended installation of Debian from the
+# official netinst/DVD ISO's graphical installer, driven natively by
+# caked/caker after booting from the ISO (see the "PackerLite" section of the
+# wiki's command summary). This is the default template auto-selected for an
+# ISO whose filename/URL contains "debian" (GRPCLib.SupportedPlatform
+# detection) when --autoinstall is passed without an explicit --template —
+# pass --template yourself to override it. Unlike the bundled macOS templates,
+# this one is NOT a guaranteed-working recipe: it has been reviewed for
+# plausibility against the documented debian-installer ("d-i") flow, but NOT
+# validated end-to-end against a real boot. This is the most speculative of
+# the built-in templates — d-i has noticeably more screens than Anaconda or
+# YaST, several of them network-mirror-dependent, and each is a chance for a
+# click target or field order to be slightly off for the Debian release
+# you're actually installing. Treat this as a first draft to verify/adjust
+# against your own run, more so than the other templates here.
+#
+# Debian's own preseeding mechanism (a single answers file, no keystroke
+# replay needed) is the more typical way to automate d-i and would likely be
+# more reliable than this boot_command approach — this template exists to
+# demonstrate/exercise the PackerLite path for a distro genuinely different
+# from the Anaconda/YaST families, not because it's the recommended way to
+# automate Debian specifically.
+#
+# Assumes the isolinux/GRUB boot menu's default entry is "Graphical install"
+# (true for recent Debian netinst/DVD images) — if your image defaults to the
+# text-mode "Install" entry instead, adjust the first step to navigate down
+# before pressing Enter.
+#
+# Leaves the root password blank on purpose: d-i's documented behavior is
+# that an empty root password disables the root account and grants the first
+# created user sudo instead — exactly the "single admin account" shape the
+# other templates in this directory achieve differently (an explicit
+# "make this user an administrator" checkbox).
+#
+# Usage:
+#   cakectl build my-debian-vm ./debian-12.*-amd64-DVD-1.iso \
+#     --user admin --password admin --autoinstall
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+boot_timeout: 75m        # d-i's package installation stage depends on mirror speed, budget generously
+ignore_ip: true
+required_variables:
+  - username
+  - password
+  - hostname
+
+pre_boot_command:
+  - title: Select keyboard layout
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Boot the GRUB menu's default "Install" entry
+    commands:
+      - <locate text="GRUB" timeout=30>
+      - <enter>
+
+  - title: Select a language
+    commands: 
+      - <locate text="Select a language">
+      - <return>
+
+  - title: Select your location
+    commands: 
+      - <locate text="Select your location">
+      - <enter>
+
+  - title: Configure the keyboard
+    commands: 
+      - <locate text="Configure the keyboard">
+      - <enter>
+
+  - title: Configure multiple network interfaces
+    commands: 
+      - <skipCommandIfNotFound text="system has multiple network interfaces" timeout=30>
+      - <enter>
+
+  - title: Entry for the hostname
+    commands: 
+      - <locate text="Please enter the hostname for this system" timeout=30>
+      - <backspace repeat=6>
+      - ${var.hostname}
+      - <enter>
+
+  - title: Domain name
+    commands: 
+      - <locate text="Domain name">
+      - <enter>
+
+boot_command:
+  - title: Select keyboard layout
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Root account password
+    commands: 
+      - <locate text="Set up users and passwords">
+      - <enter>
+
+  - title: Leave the root password blank (grants the created user sudo instead)
+    commands: 
+      - <locate text="enter password to verify">
+      - <enter>
+
+  - title: Full name for the new user
+    commands: 
+      - <locate text="Full name for the new user">
+      - ${var.username}
+      - <enter>
+  - title: Username for account
+    commands: 
+      - <locate text="Username for your account">
+      - <enter>
+
+  - title: Choose a password for the new user
+    commands: 
+      - <locate text="Choose a password for the new user">
+      - ${var.password}
+      - <enter>
+
+  - title: Re-enter the password to verify
+    commands: 
+      - <locate text="password to verify">
+      - ${var.password}
+      - <enter>
+
+  - title: Configure the clock
+    commands: 
+      - <locate text="Configure the clock">
+      - <enter>
+
+  - title: Partition disks - use guided partitioning on the entire disk
+    commands: 
+      - <locate text="Partition disks" timeout=30>
+      - <enter>
+
+  - title: Confirm the disk to partition
+    commands: 
+      - <locate text="Select disk to partition">
+      - <enter>
+
+  - title: Accept the default partitioning scheme
+    commands: 
+      - <locate text="All files in one partition">
+      - <enter>
+
+  - title: Finish partitioning and write changes to disk
+    commands: 
+      - <locate text="Finish partitioning and write changes to disk">
+      - <enter>
+
+  - title: Confirm writing changes to disk
+    commands: 
+      - <locate text="Write the changes to disks?">
+      - <tab>
+      - <enter>
+
+  - title: Configure the package manager
+    commands: 
+      - <locate text="Configure the package manager" timeout=120>
+      - <enter>
+
+  - title: Configuring popularity-contest
+    commands: 
+      - <locate text="Configuring popularity-contest" timeout=60>
+      - <enter>
+
+  - title: Software selection
+    commands: 
+      - <locate text="Software selection" timeout=60>
+      - <enter>
+
+  - title: Finish the installation and reboot
+    commands: 
+      - <locate text="Finish the installation" timeout=3600>
+      - <enter>
+
+  - title: Boot the GRUB
+    commands:
+      - <locate text="GRUB" timeout=30>
+      - <enter>
+
+  - title: Wait login prompt
+    commands: 
+      - <locate text="login:" timeout=60>
+      - ${var.username}
+      - <enter>
+      - <locate text="Password:" timeout=60>
+      - ${var.password}
+      - <enter>

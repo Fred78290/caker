@@ -3,6 +3,74 @@ import Foundation
 import NIOPortForwarding
 import CakeAgentLib
 
+/// macOS version accepted by `--macos-version`, used to pick a built-in PackerLite provisioning
+/// template when it can't be inferred from the IPSW filename. GRPCLib can't depend on CakedLib
+/// (CakedLib depends on GRPCLib), so this mirrors — by raw value — the `MacOSVersion` enum that
+/// actually owns the provisioning logic in `Sources/cakedlib/PackerLite/MacOSVersion.swift`. Keep
+/// the raw values in sync between the two.
+public enum MacOSVersion: String, CaseIterable, ExpressibleByArgument, Sendable {
+	case macos12
+	case macos13
+	case macos14
+	case macos15
+	case macos26
+	case macos27
+
+	private static let formerNames: [String: MacOSVersion] = [
+		"monterey": .macos12,
+		"ventura": .macos13,
+		"sonoma": .macos14,
+		"sequoia": .macos15,
+		"tahoe": .macos26,
+		"goldengate": .macos27
+	]
+
+	public init?(argument: String) {
+		if let value = Self.formerNames[argument] {
+			self = value
+		} else {
+			self.init(rawValue: argument.lowercased())
+		}
+	}
+	
+	public init?(osRelease: String) {
+		let value = osRelease.split(separator: ".").first.flatMap {
+			if var version = Int($0) {
+				version -= 12
+				if version >= 0 && version < MacOSVersion.allCases.count {
+					return MacOSVersion.allCases[version]
+				}
+			}
+			return nil
+		}
+		
+		if let value {
+			self = value
+		} else {
+			return nil
+		}
+	}
+
+	public init?(_ from: Caked_MacOSVersion) throws {
+		switch from {
+		case .macos12:
+			self = .macos12
+		case .macos13:
+			self = .macos13
+		case .macos14:
+			self = .macos14
+		case .macos15:
+			self = .macos15
+		case .macos26:
+			self = .macos26
+		case .macos27:
+			self = .macos27
+		default:
+			return nil
+		}
+	}
+}
+
 public struct BuildOptions: ParsableArguments {
 	public static let build = CommandConfiguration(commandName: "build", abstract: String(localized: "Create a linux VM and initialize it with cloud-init"), aliases: ["create"])
 
@@ -44,7 +112,7 @@ public struct BuildOptions: ParsableArguments {
 	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp(String(localized: "Enable nested virtualization if possible")))
 	public var nested: Bool = false
 
-	@Flag(help: ArgumentHelp(String(localized: "Support autoinstall mecanism from iso image")))
+	@Flag(help: ArgumentHelp(String(localized: "Support autoinstall mecanism from iso image or IPSW installation")))
 	public var autoinstall: Bool = false
 
 	@Flag(help: ArgumentHelp(String(localized: "Disables audio and entropy devices and switches to only Mac-specific input devices."), discussion: String(localized: "Useful for running a VM that can be suspended via suspend command.")))
@@ -106,10 +174,43 @@ public struct BuildOptions: ParsableArguments {
 	@Option(help: ArgumentHelp(String(localized: "Root disk"), discussion: String(localized: "This option allows specifying an external root disk path for the VM."), visibility: .hidden))
 	public var root: String? = nil
 
+	@Option(name: [.customLong("template")], help: ArgumentHelp(String(localized: "Provisioning template (YAML) to auto-configure a VM after installing from IPSW or ISO"), discussion: String(localized: "Overrides the built-in template auto-selected by macOS version (IPSW) or distro (ISO: fedora/centos/redhat/openSUSE/debian) — required only for a platform with no built-in template, e.g. any other Linux distro."), valueName: "path"))
+	public var provisionTemplate: String? = nil
+
+	@Option(name: [.customLong("var")], help: ArgumentHelp(String(localized: "Set a provisioning template variable (key=value), may be repeated"), valueName: "key=value"))
+	public var provisionVars: [String] = []
+
+	@Option(name: [.customLong("macos-version")], help: ArgumentHelp(String(localized: "macOS version of the IPSW, used to select the built-in provisioning template when it can't be determined from the IPSW filename"), discussion: String(localized: "One of: \(MacOSVersion.allCases.map(\.rawValue).joined(separator: ", "))"), valueName: "version"))
+	public var macosVersion: MacOSVersion? = nil
+
+	/// A catalog id (e.g. "macos12", "ubuntu2604" — see `caked aliases`/`cakectl aliases`, or
+	/// `Sources/cakedlib/Resources/VMImages.json` directly) to build from instead of an explicit
+	/// `--image` URL. Just captures the raw id string here — `GRPCLib` can't depend on `CakedLib`
+	/// (which owns `VMImageCatalog`), so resolving it into an actual image URL/source happens in
+	/// `VMBuilder.buildVM` on the `CakedLib` side. Copied into `imageId` by `validate()` below.
+	@Option(name: [.customLong("alias")], help: ArgumentHelp(String(localized: "Catalog image alias/id to build from, in place of --image"), discussion: String(localized: "See 'caked aliases' or 'cakectl aliases' for the list of known ids."), valueName: "id"))
+	public var alias: String? = nil
+
+	/// The catalog id this build should resolve its image from, if any — a plain `String?` with no
+	/// ArgumentParser storage behind it, so unlike `alias` it's always safe to read/write from
+	/// anywhere. Populated either from `alias` (by `validate()` below, ArgumentParser's own
+	/// post-parse hook, for a local `caked build --alias macos12`) or decoded directly off the wire
+	/// (`Caked_CommonBuildRequest.imageId`, for `cakectl build --alias macos12`, which sends just
+	/// the id — see `CakedAliases.swift`).
+	public var imageId: String? = nil
+
+	public var identifier = UUID()
+
+	// IMPORTANT: this designated no-arg initializer must stay empty. ArgumentParser reflects over
+	// exactly this initializer, via `Type.init()`, for its own `--help`/parsing introspection —
+	// assigning to any `@Option`/`@Flag`/`@Argument`/`@OptionGroup` property here resolves it
+	// early and crashes that walk with "Trying to get the argument set from a resolved/parsed
+	// property."
 	public init() {
 	}
 
 	public init(
+		_ identifier: UUID = UUID(),
 		name: String,
 		rootDisk: String? = nil,
 		cpu: UInt16 = 2,
@@ -143,6 +244,7 @@ public struct BuildOptions: ParsableArguments {
 		bridgedNetwork: Bool = false,
 		dynamicPortForwarding: Bool = false
 	) {
+		self.identifier = identifier
 		self.name = name
 		self.root = rootDisk
 		self.cpu = cpu
@@ -175,9 +277,15 @@ public struct BuildOptions: ParsableArguments {
 		self.autoinstall = autoinstall
 		self.screenSize = screenSize
 		self.bridgedNetwork = bridgedNetwork
+		self.provisionTemplate = nil
+		self.provisionVars = []
+		self.macosVersion = nil
+		self.alias = nil
+		self.imageId = nil
 	}
 
 	public init(request: Caked_CommonBuildRequest) throws {
+		self.identifier = UUID()
 		self.name = request.name
 		self.displayRefit = false
 		self.autoinstall = request.autoinstall
@@ -367,9 +475,41 @@ public struct BuildOptions: ParsableArguments {
 		} else {
 			self.root = nil
 		}
+
+		if request.hasProvisionTemplate, request.provisionTemplate.isEmpty == false {
+			self.provisionTemplate = try Utils.saveToTempFile(request.provisionTemplate)
+		} else {
+			self.provisionTemplate = nil
+		}
+
+		if request.hasProvisionVars, request.provisionVars.isEmpty == false {
+			self.provisionVars = request.provisionVars.components(separatedBy: String.grpcSeparator)
+		} else {
+			self.provisionVars = []
+		}
+
+		if request.hasMacosVersion, request.macosVersion.isEmpty == false {
+			self.macosVersion = MacOSVersion(rawValue: request.macosVersion)
+		} else {
+			self.macosVersion = nil
+		}
+
+		// A decoded request never carries `--alias` itself — `cakectl` already resolved it into
+		// `imageId` client-side during its own parse (see `validate()` below) and sent just that
+		// id, so `imageId` is populated directly off the wire instead. `alias` is left at its
+		// `nil` default.
+		if request.hasImageID, request.imageID.isEmpty == false {
+			self.imageId = request.imageID
+		} else {
+			self.imageId = nil
+		}
 	}
 
 	mutating public func validate(remote: Bool) throws {
+		if let sshAuthorizedKey = self.sshAuthorizedKey, sshAuthorizedKey.starts(with: "ssh-") == false {
+			self.sshAuthorizedKey = try String(contentsOfFile: sshAuthorizedKey.expandingTildeInPath, encoding: .utf8)
+		}
+
 		if name.contains("/") {
 			throw ValidationError(String(localized: "\(name) should be a local name"))
 		}
@@ -399,7 +539,26 @@ public struct BuildOptions: ParsableArguments {
 
 		try self.validateImageSource(remote: remote)
 	}
-	
+
+	/// `ParsableArguments`'s real, zero-argument validation hook (distinct from the `validate(remote:)`
+	/// above, which is this codebase's own convention and is *also* called manually by `Build`/
+	/// `Launch`/`Up` commands — see their `validate()` in `caked`/`cakectl`). ArgumentParser invokes
+	/// *this* one automatically, exactly once, as part of decoding any real `@OptionGroup var
+	/// options: BuildOptions` (i.e. every actual `caked build`/`cakectl build`/`launch` CLI
+	/// invocation, and `BuildOptions.parse([...])` in tests) — never on a `BuildOptions` built
+	/// programmatically via `BuildOptions()`/`init(request:)`/the `name:diskFormat:...` convenience
+	/// initializer (e.g. `CakerEnvVM.toBuildOptions(name:)`, used by `caked`/`cakectl up`, which
+	/// never goes through ArgumentParser's decode machinery at all). `alias` -> `imageId` copying
+	/// lives here rather than in `validate(remote:)` so it only ever runs on a genuinely-parsed
+	/// instance, matching what `CakerEnvVM.toBuildOptions(name:)` expects (it never sets `alias`).
+	public mutating func validate() throws {
+		// `--alias <id>` resolves into `imageId`, which is what actually crosses the
+		// GRPCLib/CakedLib boundary (see `imageId`'s doc comment above).
+		if let alias = self.alias {
+			self.imageId = alias
+		}
+	}
+
 	public mutating func validateImageSource(remote: Bool) throws {
 		var scheme: String
 
@@ -483,6 +642,18 @@ public struct BuildOptions: ParsableArguments {
 }
 
 extension BuildOptions {
+	/// Parses `--var key=value` entries into a dictionary for `PackerLiteTemplate` variable overrides.
+	public var provisionVarsDict: [String: String] {
+		provisionVars.reduce(into: [String: String]()) { result, entry in
+			guard let separatorIndex = entry.firstIndex(of: "=") else { return }
+
+			let key = String(entry[..<separatorIndex])
+			let value = String(entry[entry.index(after: separatorIndex)...])
+
+			result[key] = value
+		}
+	}
+
 	public var allNetworks: [BridgeAttachement] {
 		guard self.bridgedNetwork else { return self.networks }
 		

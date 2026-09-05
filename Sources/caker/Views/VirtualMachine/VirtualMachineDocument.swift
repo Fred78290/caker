@@ -156,6 +156,8 @@ extension UTType {
 				return "paused"
 			case .error:
 				return "error"
+			case .provisioning:
+				return "provisioning"
 			}
 		}
 
@@ -170,6 +172,7 @@ extension UTType {
 		case stopping = 7
 		case saving = 8
 		case restoring = 9
+		case provisioning = 10
 
 		init(_ from: CakeAgentLib.Status) {
 			switch from {
@@ -195,6 +198,8 @@ extension UTType {
 				self = .stopped
 			case .error:
 				self = .error
+			case .provisioning:
+				self = .provisioning
 			case .UNRECOGNIZED(_):
 				self = .none
 			}
@@ -216,6 +221,11 @@ extension UTType {
 	private let logger = Logger("VirtualMachineDocument")
 	private var agentMonitoring: Task<Void, Never>?
 	private var inView: Bool = false
+
+	/// Held for the duration of a `startRecording(output:)`/`stopRecording()` session — see the
+	/// "Recording" extension below. `nil` whenever `isRecording == false`.
+	private var actionRecorder: ActionRecorder?
+	private var recordingOutputURL: URL?
 
 	/// Use the document URL as the stable identity so that `ForEach` can recognise
 	/// the same VM across dictionary replacements (e.g. after a mode switch) and
@@ -262,9 +272,18 @@ extension UTType {
 	var canResume: Bool = false
 	var canRequestStop: Bool = false
 	var suspendable: Bool = false
+	var isRecording: Bool = false
+
+	/// Mirrors `RecordHandler.Session`'s equivalent published state (`Sources/cakedlib/Handlers/RecordHandler.swift`)
+	/// so `HostVirtualMachineView`'s recording toolbar can offer the same locate-mode/reset/VoiceOver
+	/// controls `caked record`'s own `RecordingControls` does — see the "Recording" extension below.
+	var isLocateModeActive: Bool = false
+	var isVoiceOverActived: Bool = false
+	var hasRecordedActions: Bool = false
 	var vncURL: [URL]? = nil
 	var agentReady: Bool = false
 	var connection: VNCConnection! = nil
+	var vncTunnel: VNCTunnel? = nil
 	var vncStatus: VncStatus = .disconnected
 	var documentSize: ViewSize = .zero
 	var launchVMExternally: Bool? = nil
@@ -273,6 +292,7 @@ extension UTType {
 	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
 	var ipaddresses: [String] = []
 	var screenshot: Data!
+	var haveRequestStop: Bool = false
 
 	var agent = AgentStatus.none {
 		didSet {
@@ -292,18 +312,36 @@ extension UTType {
 				return
 			}
 
-			if let virtualMachine = self.virtualMachine?.virtualMachine {
-				self.canStart = virtualMachine.canStart
-				self.canStop = virtualMachine.canStop
-				self.canPause = virtualMachine.canPause
-				self.canResume = virtualMachine.canResume
-				self.canRequestStop = virtualMachine.canRequestStop
+			if let vm = self.virtualMachine {
+				if vm.status.isProvisioning {
+					self.canStart = false
+					self.canStop = false
+					self.canPause = false
+					self.canResume = false
+					self.canRequestStop = false
+				} else {
+					let virtualMachine = vm.virtualMachine
+
+					self.canStart = virtualMachine.canStart
+					self.canStop = virtualMachine.canStop
+					self.canPause = virtualMachine.canPause
+					self.canResume = virtualMachine.canResume
+					self.canRequestStop = virtualMachine.canRequestStop
+				}
 			} else {
-				self.canStart = status == .stopped || status == .paused
-				self.canStop = status == .running
-				self.canPause = status == .running
-				self.canResume = status == .paused
-				self.canRequestStop = status == .running
+				if status == .provisioning {
+					self.canStart = false
+					self.canStop = false
+					self.canPause = false
+					self.canResume = false
+					self.canRequestStop = false
+				} else {
+					self.canStart = status == .stopped || status == .paused
+					self.canStop = status == .running
+					self.canPause = status == .running
+					self.canResume = status == .paused
+					self.canRequestStop = status == .running
+				}
 			}
 
 			MainApp.app?.updateStateVirtualMachineDocument(with: self)
@@ -466,23 +504,33 @@ extension VirtualMachineDocument {
 		NotificationCenter.default.post(name: VirtualMachineDocument.NewScreenshot, object: data, userInfo: ["document": self.url])
 	}
 
-	func disconnect() {
-		#if DEBUG
-			self.logger.debug("Disconnecting \(self.name)")
-		#endif
-
+	private func disconnectVNC() {
 		self.vncURL = nil
-		self.inView = false
 		self.vncStatus = .disconnected
-		self.stopAgentMonitoring()
-		if let location = self.location {
-			self.status = .init(location.status)
-		}
 
 		if let connection = self.connection {
 			self.connection = nil
 			connection.disconnect()
 		}
+
+		if let vncTunnel = self.vncTunnel {
+			self.vncTunnel = nil
+			try? vncTunnel.close().wait()
+		}
+	}
+
+	func disconnect() {
+		#if DEBUG
+			self.logger.debug("Disconnecting \(self.name)")
+		#endif
+
+		self.inView = false
+		self.stopAgentMonitoring()
+		if let location = self.location {
+			self.status = .init(location.status)
+		}
+
+		disconnectVNC()
 
 		AppState.shared.closeVirtualMachineDocument(self)
 	}
@@ -512,17 +560,12 @@ extension VirtualMachineDocument {
 		self.virtualMachine = nil
 		self.inView = false
 		self.vncView = nil
-		self.vncURL = nil
-		self.vncStatus = .disconnected
 
 		if let location = self.location {
 			self.status = .init(location.status)
 		}
 
-		if let connection = self.connection {
-			self.connection = nil
-			connection.disconnect()
-		}
+		disconnectVNC()
 
 		AppState.shared.closeVirtualMachineDocument(self)
 	}
@@ -543,18 +586,13 @@ extension VirtualMachineDocument {
 		self.interactiveShell?.cancelShell()
 
 		self.updateCurrentStatus(status, vncURL: nil)
-
-		self.vncURL = nil
+		self.haveRequestStop = false
 		self.interactiveShell = nil
-		self.vncStatus = .disconnected
 		self.externalRunning = false
 		self.agentCondition = ("Install agent", false, true)
 		self.agentReady = false
 
-		if let connection = self.connection {
-			self.connection = nil
-			connection.disconnect()
-		}
+		disconnectVNC()
 
 		if self.inView == false {
 			AppState.shared.closeVirtualMachineDocument(self)
@@ -644,14 +682,10 @@ extension VirtualMachineDocument {
 			self.interactiveShell?.cancelShell()
 
 			self.interactiveShell = nil
-			self.vncStatus = .disconnected
 			self.agentCondition = ("Install agent", false, true)
 			self.agentReady = false
 
-			if let connection = self.connection {
-				self.connection = nil
-				connection.disconnect()
-			}
+			disconnectVNC()
 		}
 	}
 
@@ -684,7 +718,13 @@ extension VirtualMachineDocument {
 	@discardableResult @MainActor
 	private func createVirtualMachine() throws -> VirtualMachine {
 		let config = try! location.config()
-		let virtualMachine = try VirtualMachine(location: location, config: config, display: .ui, screenSize: config.display.cgSize, recoveryMode: self.recoveryMode, runMode: .app)
+		let virtualMachine = try VirtualMachine(
+			location: location,
+			config: config,
+			display: .ui,
+			screenSize: config.display.cgSize,
+			mode: self.recoveryMode ? .recovery : .normal,
+			runMode: .app)
 
 		self.virtualMachine = virtualMachine
 		self.vncURL = nil
@@ -782,15 +822,15 @@ extension VirtualMachineDocument {
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
 
 		let result = try self.connectionManager.startVirtualMachine(vmURL: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, recoveryMode: self.recoveryMode)
-		
+
 		if result.started {
 			let vncInfos = try self.connectionManager.vncInfos(vmURL: location)
-			
-#if DEBUG
-			self.logger.debug("VM started on \(result.ip)")
-			self.logger.debug("Found VNC URL: \(vncInfos.urls)")
-#endif
-			
+
+			#if DEBUG
+				self.logger.debug("VM started on \(result.ip)")
+				self.logger.debug("Found VNC URL: \(vncInfos.urls)")
+			#endif
+
 			await self.setStateAsRunning(vncURL: vncInfos.urls.compactMap { URL(string: $0) })
 		} else {
 			self.logger.error("VM \(self.name) failed to start: \(result.reason)")
@@ -807,10 +847,10 @@ extension VirtualMachineDocument {
 		let result = try self.connectionManager.startVirtualMachine(vmURL: location.rootURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, recoveryMode: self.recoveryMode)
 
 		if result.started {
-#if DEBUG
-			self.logger.debug("VM started on \(result.ip)")
-			self.logger.debug("Found VNC URL: \(vncURL)")
-#endif
+			#if DEBUG
+				self.logger.debug("VM started on \(result.ip)")
+				self.logger.debug("Found VNC URL: \(vncURL)")
+			#endif
 
 			await self.tryVNCConnect(vncURL: vncURL)
 			await self.setStateAsRunning(vncURL: [vncURL])
@@ -951,22 +991,26 @@ extension VirtualMachineDocument {
 				}
 			}
 		} else if let virtualMachine = self.virtualMachine {
-			if force {
+			if force || self.haveRequestStop {
 				virtualMachine.stopFromUI(completionHandler: completionHandler)
-			} else if self.virtualMachineConfig.os == .linux {
-				virtualMachine.requestStopFromUI(completionHandler: completionHandler)
-			} else if self.virtualMachineConfig.agent == false {
-				virtualMachine.suspendFromUI(completionHandler: completionHandler)
-			} else if let location = self.location {
-				Task {
-					do {
-						try location.stopVirtualMachine(force: false, runMode: .app)
-						await MainActor.run {
-							completionHandler?(nil)
-						}
-					} catch {
-						await MainActor.run {
-							completionHandler?(error)
+			} else {
+				self.haveRequestStop = true
+
+				if self.virtualMachineConfig.os == .linux {
+					virtualMachine.requestStopFromUI(completionHandler: completionHandler)
+				} else if self.virtualMachineConfig.agent == false {
+					virtualMachine.suspendFromUI(completionHandler: completionHandler)
+				} else if let location = self.location {
+					Task {
+						do {
+							try location.stopVirtualMachine(force: false, runMode: .app)
+							await MainActor.run {
+								completionHandler?(nil)
+							}
+						} catch {
+							await MainActor.run {
+								completionHandler?(error)
+							}
 						}
 					}
 				}
@@ -975,7 +1019,7 @@ extension VirtualMachineDocument {
 	}
 
 	typealias CompletionHandler = (Error?) -> Void
-	
+
 	func suspendFromUI(_ completionHandler: CompletionHandler? = nil) {
 		guard self.status == .running else {
 			return
@@ -1044,7 +1088,7 @@ extension VirtualMachineDocument {
 						informativeText = String(localized: "Resize disk is not available in sandboxed mode with remote connection. To resize the disk, run the following command on the target machine:")
 					} else {
 						let home = try Utils.getHome(runMode: connectionMode.runMode, createItIfNotExists: true).appendingPathComponent("vms/\(self.name).cakedvm/disk.img")
-						
+
 						command = "diskutil image resize --size=\(virtualMachineConfig.diskSizeInGiB)G \"\(home.path(percentEncoded: false))\""
 						informativeText = String(localized: "Resize disk is not available in sandboxed mode via service. To resize the disk, run the following command in Terminal:")
 					}
@@ -1085,16 +1129,176 @@ extension VirtualMachineDocument {
 	}
 }
 
+// MARK: - Recording
+extension VirtualMachineDocument {
+	/// Mirrors the exact condition under which `HostVirtualMachineView.vmView(_:)` renders an
+	/// `InternalVirtualMachineView` — i.e. there's a real, live `VNCVirtualMachineView` (this
+	/// document's `virtualMachine.vzMachineView`) on screen for a tap to be armed against. Recording
+	/// makes no sense for an externally-launched or remote VM: there's no local view there to tap.
+	var canRecord: Bool {
+		self.connectionManager.connectionMode == .app && self.externalRunning == false && self.virtualMachine != nil
+	}
+
+	/// Arms an `ActionRecorder` directly on this document's already-live `VNCVirtualMachineView`
+	/// (`virtualMachine.createVirtualMachineView()`, memoized to the exact same view
+	/// `CakerVZVirtualMachineView.attachtoDocument` already set as `virtualMachine.vzMachineView` —
+	/// see `InternalVirtualMachineView.swift`) — no new capture mechanism, this reuses the tap
+	/// `caked record` itself already relies on (`VNCVirtualMachineView.actionRecorder`, see
+	/// CLAUDE.md's PackerLite/`caked record` section). Credential scrubbing, token mapping, and
+	/// wait-gap handling are all `ActionRecorder`'s own responsibility, unchanged here.
+	@MainActor
+	func startRecording(output: URL) {
+		guard self.canRecord else {
+			DispatchQueue.main.async {
+				alertError(String(localized: "Unable to start recording"), String(localized: "Recording is only available for a virtual machine running locally inside Caker."))
+			}
+			return
+		}
+
+		guard self.isRecording == false else {
+			return
+		}
+
+		let recorder = ActionRecorder(os: self.virtualMachineConfig.os, username: self.virtualMachineConfig.configuredUser, password: self.virtualMachineConfig.configuredPassword)
+		guard let targetView = self.virtualMachine?.vzMachineView else {
+			DispatchQueue.main.async {
+				alertError(String(localized: "Unable to start recording"), String(localized: "The VM view is not ready yet — please try again once the VM display is visible."))
+			}
+			return
+		}
+
+		targetView.actionRecorder = { [weak self] sender, action in
+			self?.handleRecordedAction(sender, action)
+		}
+
+		self.actionRecorder = recorder
+		self.recordingOutputURL = output
+		self.isRecording = true
+		self.isLocateModeActive = false
+		self.isVoiceOverActived = false
+		self.hasRecordedActions = false
+
+		#if DEBUG
+			self.logger.debug("Started recording \(self.name) to \(output.path)")
+		#endif
+	}
+
+	/// The armed tap: forwards to the recorder, then keeps `hasRecordedActions` in sync so the
+	/// toolbar's Reset button can enable/disable live — mirrors `RecordHandler.Session.handleRecordedAction`
+	/// exactly, since `ActionRecorder` itself isn't observable.
+	private func handleRecordedAction(_ sender: NSView, _ action: RecordedAction) {
+		guard let recorder = self.actionRecorder else {
+			return
+		}
+
+		recorder.record(sender, action)
+
+		let hasRecordedActions = recorder.hasRecordedActions
+
+		if hasRecordedActions != self.hasRecordedActions {
+			if Thread.isMainThread {
+				self.hasRecordedActions = hasRecordedActions
+			} else {
+				DispatchQueue.main.async {
+					self.hasRecordedActions = hasRecordedActions
+				}
+			}
+		}
+	}
+
+	/// Arms/disarms the OCR-assist "locate mode" overlay — see `RecordHandler.Session.toggleLocateMode()`.
+	@MainActor
+	func toggleRecordingLocateMode() {
+		guard self.isRecording, let recorder = self.actionRecorder, let targetView = self.virtualMachine?.vzMachineView else {
+			return
+		}
+
+		self.isLocateModeActive.toggle()
+		recorder.setLocateModeActive(self.isLocateModeActive, sender: targetView)
+	}
+
+	/// Toggles VoiceOver in the guest via the recorder's `<voiceOverOn>`/`<voiceOverOff>` token
+	/// sequence — see `RecordHandler.Session.toggleVoiceOver(confirm:)`. Only meaningful for
+	/// Darwin VMs; the toolbar hides this control entirely for non-macOS guests.
+	@MainActor
+	func toggleRecordingVoiceOver(confirm: Bool) {
+		guard self.isRecording, let recorder = self.actionRecorder else {
+			return
+		}
+
+		self.isVoiceOverActived.toggle()
+		recorder.toggleVoiceOver(confirm: confirm)
+		self.hasRecordedActions = true
+	}
+
+	/// Discards recorded steps and starts over without stopping the session — see
+	/// `RecordHandler.Session.reset()`.
+	@MainActor
+	func resetRecording() {
+		guard self.isRecording, let recorder = self.actionRecorder else {
+			return
+		}
+
+		recorder.reset()
+		self.hasRecordedActions = false
+		self.isVoiceOverActived = false
+	}
+
+	/// Disarms the tap, serializes the captured actions (`ActionRecorder.finish()`), and writes the
+	/// resulting `boot_command:` YAML to the output location chosen when recording started —
+	/// mirroring `RecordHandler.Session.stopAndSave()`'s exact pattern (`Sources/cakedlib/Handlers/RecordHandler.swift`).
+	func stopRecording() {
+		guard self.isRecording, let recorder = self.actionRecorder else {
+			return
+		}
+
+		self.virtualMachine?.vzMachineView?.actionRecorder = nil
+
+		let yaml = recorder.finish()
+		let destination = self.recordingOutputURL
+
+		self.actionRecorder = nil
+		self.recordingOutputURL = nil
+		self.isRecording = false
+		self.isLocateModeActive = false
+		self.isVoiceOverActived = false
+		self.hasRecordedActions = false
+
+		guard let destination else {
+			return
+		}
+
+		do {
+			try yaml.write(to: destination, atomically: true, encoding: .utf8)
+
+			self.logger.info("Recorded template saved to \(destination.path)")
+
+			DispatchQueue.main.async {
+				alertError(
+					String(localized: "Recording saved"),
+					String(
+						format: String(localized: "Recorded template saved to %@\n\nThis is a first draft — review it and consider hardening timing-sensitive waits with <locate> anchors before relying on it for unattended --autoinstall runs."),
+						destination.path
+					))
+			}
+		} catch {
+			self.logger.error("Failed to write recorded template to \(destination.path): \(error)")
+
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
+	}
+}
+
 // MARK: - VirtualMachineDelegate
 extension VirtualMachineDocument: VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine) {
-		let virtualMachine = vm.virtualMachine
-
 		#if DEBUG
-			self.logger.debug("didChangedState: \(virtualMachine.state)")
+			self.logger.debug("didChangedState: \(vm.virtualMachine.state)")
 		#endif
 
-		guard let status = Status(rawValue: virtualMachine.state.rawValue) else {
+		guard let status = Status(rawValue: vm.virtualMachine.state.rawValue) else {
 			self.status = .none
 			return
 		}
@@ -1262,11 +1466,13 @@ extension VirtualMachineDocument {
 			let vncURL = vncURL.first!
 
 			if let client = self.connectionManager.serviceClient {
-				_ = try? client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name) { (channel, port) in
+				if let tunnel = try? client.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.name) {
+					self.vncTunnel = tunnel
 					var components = URLComponents()
+
 					components.scheme = "vnc"
 					components.host = "127.0.0.1"
-					components.port = port
+					components.port = tunnel.localPort
 
 					if let password = vncURL.password {
 						components.password = password
@@ -1559,10 +1765,6 @@ extension VirtualMachineDocument {
 	static let OpenVirtualMachine = NSNotification.Name("OpenVirtualMachine")
 	static let StartVirtualMachine = NSNotification.Name("StartVirtualMachine")
 	static let DeleteVirtualMachine = NSNotification.Name("DeleteVirtualMachine")
-	static let CreatedVirtualMachine = NSNotification.Name("CreatedVirtualMachine")
-	static let FailCreateVirtualMachine = NSNotification.Name("FailCreateVirtualMachine")
-	static let ProgressCreateVirtualMachine = NSNotification.Name("ProgressCreateVirtualMachine")
-	static let ProgressMessageCreateVirtualMachine = NSNotification.Name("ProgressMessageCreateVirtualMachine")
 	static let NewScreenshot = NSNotification.Name("NewScreenshot")
 	static let VNCFramebufferSizeChanged = NSNotification.Name("VNCFramebufferSizeChanged")
 }
@@ -1599,10 +1801,7 @@ extension VirtualMachineDocument {
 
 	func grandCentralDidStop() {
 		if self.connectionManager.connectionMode == .remote {
-			if let connection = self.connection {
-				self.connection = nil
-				connection.disconnect()
-			}
+			disconnectVNC()
 
 			if let interactiveShell {
 				self.interactiveShell = nil

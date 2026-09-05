@@ -16,7 +16,7 @@ public struct VMBuilder {
 		}
 	#endif
 
-	private static func build(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+	private static func build(id: UUID, vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		let imageSource = options.imageSource!
 		let imageURL = URL(spaced: options.image)!
 		var config: CakeConfig! = nil
@@ -63,6 +63,7 @@ public struct VMBuilder {
 				config.agent = false
 				config.nested = options.nested
 				config.attachedDisks = attachedDisks
+				config.sshAuthorizedKey = options.sshAuthorizedKey
 			}
 		#endif
 
@@ -114,6 +115,19 @@ public struct VMBuilder {
 				config.agent = imageSource != .iso || autoinstall
 				config.nested = options.nested
 				config.attachedDisks = attachedDisks
+				config.sshAuthorizedKey = options.sshAuthorizedKey
+
+				// Desktop vs. server variant of the same distro (e.g. Fedora Workstation vs. Fedora
+				// Server), detected the same way as configuredPlatform above — from the image
+				// URL/filename, not the ISO's actual contents. Defaults to server (false) when
+				// neither word appears, matching osDesktop's own default. Persisted here (like
+				// osName for macOS) so a later standalone `caked provision` has it without needing
+				// the original ISO.
+				let imageNameLowercased = options.image.lowercased()
+				let plateform = SupportedPlatform(rawValue: imageNameLowercased)
+
+				config.osName = plateform.rawValue
+				config.osDesktop = imageNameLowercased.contains("workstation") || imageNameLowercased.contains("desktop")
 			}
 		}
 
@@ -162,6 +176,21 @@ public struct VMBuilder {
 			#if arch(arm64)
 				if imageSource == .ipsw {
 					try await installIPSW(location: location, config: config, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
+
+					// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to
+					// depend on CakedLib) — bridge it to CakedLib's own MacOSVersion by raw value.
+					let explicitMacOSVersion = options.macosVersion.flatMap { MacOSVersion(rawValue: $0.rawValue) }
+
+					// Record which macOS version this VM is running — using the exact same detection
+					// PackerLite itself uses (IPSW filename, falling back to --macos-version) — regardless
+					// of whether --autoinstall provisions it right now. `caked packerlite` reads this back
+					// later for VMs provisioned after the fact.
+					let resolvedMacOSVersion = PackerLiteTemplateResolver.resolveVersion(explicitVersion: explicitMacOSVersion, ipswURL: imageURL)
+
+					config.osName = resolvedMacOSVersion.name?.rawValue
+					config.osRelease = resolvedMacOSVersion.version
+
+					try config.save()
 				}
 			#endif
 		}
@@ -335,10 +364,45 @@ public struct VMBuilder {
 		return options
 	}
 
-	static func buildVM(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
-		let options = try await self.cloneImage(vmName: vmName, location: location, options: options, runMode: runMode, progressHandler: progressHandler)
+	/// Resolves `options.imageId` (set by `--alias <id>`, e.g. `--alias macos12`, or decoded off
+	/// the wire for a `cakectl` build — see `BuildOptions.imageId`'s doc comment) into an actual
+	/// `options.image` URL/`options.imageSource`, overriding whatever `--image` argument default
+	/// was already there. Must run before `options.image`/`options.imageSource` are first used,
+	/// i.e. before `cloneImage`. A no-op when `imageId` isn't set.
+	private static func resolveImageId(_ options: BuildOptions) throws -> BuildOptions {
+		guard let imageId = options.imageId else {
+			return options
+		}
 
-		try await self.build(vmName: vmName, location: location, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
+		guard let resolution = VMImageCatalog.shared.resolveShorthand(imageId) else {
+			// Shouldn't normally happen — `--alias`'s ids are meant to come from this same
+			// catalog (see `caked aliases`/`cakectl aliases`) — but `imageId` could arrive over
+			// gRPC from a newer cakectl than this caked's catalog knows about, or the caller
+			// could have typed an id by hand.
+			throw ServiceError(String(localized: "Unknown catalog image id '\(imageId)'. Run 'caked aliases' or 'cakectl aliases' to see the known ids, or pass an explicit image URL instead."))
+		}
+
+		var options = options
+
+		options.image = resolution.url
+		options.imageSource = resolution.imageSource
+
+		// Bonus synergy: a macOS id (e.g. "macos12") already matches a MacOSVersion raw value —
+		// auto-populate macosVersion from it when the caller didn't already pass --macos-version
+		// explicitly, so PackerLite template selection doesn't have to re-derive it from the
+		// (now catalog-resolved) IPSW filename.
+		if options.macosVersion == nil, let macosVersion = resolution.macosVersion {
+			options.macosVersion = macosVersion
+		}
+
+		return options
+	}
+
+	static func buildVM(_ id: UUID = UUID(), vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
+		let resolvedOptions = try resolveImageId(options)
+		let options = try await self.cloneImage(vmName: vmName, location: location, options: resolvedOptions, runMode: runMode, progressHandler: progressHandler)
+
+		try await self.build(id: id, vmName: vmName, location: location, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
 		return options
 	}

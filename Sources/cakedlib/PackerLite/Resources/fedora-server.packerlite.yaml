@@ -1,0 +1,140 @@
+# fedora-server.packerlite.yaml
+#
+# Built-in PackerLite template — unattended installation of Fedora Server
+# from the official install ISO, driven natively by caked/caker after booting
+# from the ISO (see the "PackerLite" section of the wiki's command summary).
+# This is the default template auto-selected for a Fedora ISO whose
+# filename/URL does NOT look like a desktop/workstation build (see
+# CakeConfig.osDesktop / VMBuilder's detection) when --autoinstall is passed
+# without an explicit --template — pass --template yourself to override it.
+# Unlike the bundled macOS templates, this one is NOT a guaranteed-working
+# recipe: it has been reviewed for plausibility against the documented
+# Anaconda install flow, but NOT validated end-to-end against a real boot.
+# Treat the click targets and tab counts below as a first draft to
+# verify/adjust against your own run.
+#
+# Unlike Fedora Workstation's Live ISO (fedora.packerlite.yaml), Fedora
+# Server's install ISO boots straight into the graphical Anaconda installer —
+# there's no live desktop session and no `liveinst` step needed first, the
+# same shape as centos.packerlite.yaml/redhat.packerlite.yaml
+# (Fedora, CentOS Stream, and RHEL all share the Anaconda installer).
+#
+# The boot ISO's default software selection is a minimal server install with
+# no desktop environment. If you want a desktop, open the "Software
+# Selection" hub spoke and pick a desktop environment — this template leaves
+# that spoke untouched and takes whatever the ISO's default selection is.
+#
+# Usage:
+#   cakectl build my-fedora-vm ./Fedora-Server-dvd-x86_64-44-1.7.iso \
+#     --user admin --password admin --autoinstall
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
+required_variables:
+  - username
+  - password
+  - hostname
+
+pre_boot_command:
+  - title: Boot the GRUB menu's default "Install" entry
+    commands:
+      - <locate text="GRUB" timeout=30>
+      - <enter>
+
+  - title: Wait Anaconda to start
+    commands:
+      - <locate text="when reporting a bug" timeout=180>
+      - <wait10s>
+
+boot_command:
+  - title: Change keyboard
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Choose langue
+    commands:
+      - <locate text="SERVER">
+      - english
+      - <enter>
+      - <wait1s>
+      - <tab repeat=6>
+      - <enter>
+      - <wait2s>
+
+  - title: Create user account
+    commands:
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="User Creation">
+      - <wait1s>
+
+  - title: Fill user account information
+    commands:
+      - <locate text="CREATE USER">
+      - <wait1s>
+      - ${var.username}
+      - <tab>
+      - ${var.username}
+      - <tab repeat=3>
+      - ${var.password}
+      - <tab>
+      - ${var.password}
+      - <tab>
+      - <click text="Done">
+      - <wait1s>
+
+  - title: Confirm password
+    commands:
+      - <skipCommandIfNotFound text="Press done again to use the password anyway">
+      - <click text="Done">
+      - <wait1s>
+
+  - title: Configure hostname and network
+    commands:
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="Connected">
+      - <locate text="Hardware Address">
+      - <tab repeat=5>
+      - ${var.hostname}
+      - <tab>
+      - <spacebar>
+      - <wait1s>
+      - <click text="Done">
+      - <wait1s>
+
+  - title: Installation Destination
+    commands:
+      - <locate text="INSTALLATION SUMMARY">
+      - <wait1s>
+      - <click text="Installation Destination">
+      - <locate text="Device Selection">
+      - <wait1s>
+      - <click text="Done">
+      - <wait1s>
+
+  - title: Begin Installation
+    commands:
+      - <click text="Begin Installation">
+
+  - title: Wait installed and ready for you to use!
+    commands:
+      - <locate text="is now successfully installed and ready for you to use!" timeout=1200>
+
+  - title: Reboot System
+    commands:
+      - <click text="Reboot System">
+
+post_boot_command:
+  use_ssh_key: false
+  commands:
+    - sh -c 'echo "${var.ssh_authorized_key}" > ~/.ssh/authorized_keys'
+    - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"
+    - sudo semanage fcontext -a -t bin_t '/usr/local/bin/cakeagent'
+    - sudo restorecon -Rv /usr/local/bin/cakeagent /etc/cakeagent /etc/sysconfig/cakeagent /var/log/cakeagent.out /var/log/cakeagent.err /etc/cakeagent/ssl/ca.pem /etc/cakeagent/ssl/server.pem /etc/cakeagent/ssl/server.key
+    - sudo ausearch -c '(cakeagent)' --raw | audit2allow -M my-cakeagent
+    - sudo semodule -i my-cakeagent.pp || true
+    - sudo restorecon -Rv /usr/local/bin/cakeagent /etc/cakeagent /etc/sysconfig/cakeagent /var/log/cakeagent.out /var/log/cakeagent.err /etc/cakeagent/ssl/ca.pem /etc/cakeagent/ssl/server.pem /etc/cakeagent/ssl/server.key
+    - sudo dnf upgrade -y --refresh

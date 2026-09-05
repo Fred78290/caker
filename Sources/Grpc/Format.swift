@@ -413,6 +413,10 @@ extension CakeAgentLib.Format {
 		return self.renderSingle(BuildedReply(data))
 	}
 	
+	public func render(_ data: ProvisionedReply) -> String {
+		return self.renderSingle(data)
+	}
+
 	public func render(_ data: ClonedReply) -> String {
 		return self.renderSingle(data)
 	}

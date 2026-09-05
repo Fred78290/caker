@@ -1,0 +1,303 @@
+# vanilla-macos27.packerlite.yaml
+#
+# Built-in PackerLite template — unattended macOS Setup Assistant provisioning,
+# driven natively by caked/caker after installing from an IPSW. No external
+# `packer` binary or packer-plugin-tart required.
+#
+# Usage:
+#   cakectl build my-vm https://updates.cdn-apple.com/2026SummerSeed/fullrestores/140-81421/E76AF7DE-7F9D-4808-B023-AC9A8313B177/UniversalMac_27.0_26A5406e_Restore.ipsw \
+#     --user admin --password admin \
+#     --macos-version macos27
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+# Overall watchdog — provisioning fails fast instead of hanging if the UI drifts.
+boot_timeout: 45m
+required_variables:
+  - username
+  - password
+  - hostname
+
+boot_command:
+  - title: Wait hello, hola, bonjour, etc.
+    commands:
+      - <locate timeout=60 text="Continue">
+      - <spacebar>
+
+  - title: Select Language
+    commands:
+      - <locate timeout=30 text='https://www.apple.com/'>
+      - italiano
+      - <esc>
+      - english
+      - <down>
+      - <enter>
+
+  - title: Select Your Country or Region
+    commands:
+      - <click timeout=60 text='Select Your Country or Region'>
+      - united states
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Transfer Your Data to This Mac
+    commands:
+      - <locate timeout=60 text='Transfer Your Data to This Mac'>
+      - <wait1s>
+      - <tab repeat=3>
+      - <spacebar>
+      - <tab repeat=2>
+      - <spacebar>
+
+  - title: Written and Spoken Languages
+    commands:
+      - <locate text='Written and Spoken Languages'>
+      - <wait1s>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Select keyboard layout
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Accessibility
+    commands:
+      - <locate timeout=60 text='Accessibility'>
+      - <wait1s>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Data & Privacy
+    commands:
+      - <locate timeout=60 text='Data & Privacy'>
+      - <wait1s>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Create a Mac Account
+    commands:
+      - <locate timeout=60 text='Create a Mac Account'>
+      - <wait1s>
+      - <tab repeat=6>
+      - Managed via Caker
+      - <tab>
+      - ${var.username}
+      - <tab>
+      - ${var.password}
+      - <tab>
+      - ${var.password}
+      - <tab repeat=3>
+      - <spacebar>
+      - <locate timeout=60 text='Sign In to Your Apple Account'>
+      - <wait1s>
+      - <locate timeout=60 text='Email or Phone Number'>
+      - <wait1s>
+      - <locate timeout=60 text='Other Sign'>
+      - <wait1s>
+
+  - title: Enable Voice Over
+    commands:
+      - <voiceOverOn>
+
+  - title: Sign In with Your Apple ID
+    commands:
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+      - <up>
+      - <spacebar>
+
+  - title: Are you sure you want to skip signing in with an Apple ID?
+    commands:
+      - <locate timeout=60 text='Skip'>
+      - <wait1s>
+      - <tab>
+      - <spacebar>
+
+  - title: Terms and Conditions
+    commands:
+      - <locate timeout=60 text='Terms and Conditions'>
+      - <wait1s>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: I have read and agree to the macOS Software License Agreement
+    commands:
+      - <locate timeout=60 text='I have read and agree'>
+      - <tab>
+      - <spacebar>
+
+    # Age Range -> Adult
+  - title: Age Range -> Adult
+    commands:
+      - <locate timeout=60 text='Age Range'>
+      - <wait1s>
+      - <tab repeat=3>
+      - <spacebar>
+
+  - title: Choose Your Look
+    commands:
+      - <locate timeout=60 text='Choose Your Look'>
+      - <wait1s>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Enable Location Services
+    commands:
+      - <locate timeout=60 text='Enable Location Services'>
+      - <wait1s>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Are you sure you don't want to use Location Services?
+    commands:
+      - <locate timeout=60 text='Use location Services'>
+      - <wait1s>
+      - <tab>
+      - <spacebar>
+
+  - title: Select Your Time Zone
+    commands:
+      - <locate timeout=60 text='Select Your Time Zone'>
+      - <wait1s>
+      - <tab repeat=3>
+      - UTC
+      - <enter>
+      - <wait1s>
+      - <tab repeat=5>
+      - <spacebar>
+
+  - title: Analytics
+    commands:
+      - <locate timeout=60 text='Analytics'>
+      - <wait1s>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Screen Time
+    commands:
+      - <locate timeout=60 text='Screen Time'>
+      - <wait1s>
+      - <tab repeat=2>
+      - <spacebar>
+
+  - title: Your Mac is Ready for FileVault
+    commands:
+      - <locate timeout=60 text='Your Mac is Ready for FileVault'>
+      - <wait1s>
+      - <leftShiftOn>
+      - <tab repeat=2>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Mac Data Will Not Be Securely Encrypted
+    commands:
+      - <locate timeout=60 text='Cancel'>
+      - <tab>
+      - <spacebar>
+
+  - title: Update Mac Automatically
+    commands:
+      - <locate timeout=60 text='Update Mac Automatically'>
+      - <wait1s>
+      - <tab repeat=2>
+      - <spacebar>
+
+  - title: Liquid Glass
+    commands:
+      - <locate timeout=60 text="Liquid Glass">
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Disable Voice Over
+    commands:
+      - <voiceOverOff>
+
+  - title: Welcome to Mac
+    commands:
+      - <locate timeout=60 text="Get Started">
+      - <spacebar>
+
+  - title: Now that the installation is done, open "Applications folder"
+    commands:
+      - <wait10s>
+      - <leftAltOn>
+      - <leftShiftOn>
+      - a
+      - <leftShiftOff>
+      - <leftAltOff>
+      - <wait1s>
+      - System Preferences
+      - <wait1s>
+      - <leftAltOn>
+      - o
+      - <leftAltOff>
+
+  - title: Wait System Preferences to open
+    commands:
+      - <locate text='Software Update'>
+      - <wait1s>
+
+  - title: Enable Voice Over
+    commands:
+      - <voiceOverOn confirm=true>
+
+  - title: Navigate to Sharing
+    commands:
+      - <wait2s>
+      - <leftShiftOn>
+      - <tab repeat=5>
+      - <leftShiftOff>
+      - <spacebar>
+      - <wait2s>
+      - <tab repeat=5>
+      - <spacebar>
+
+  - title: Type in the password to allow enabling Screen Sharing
+    commands:
+      - <locate text='Enter your password to continue'>
+      - ${var.password}
+      - <enter>
+
+  - title: Navigate to "Remote Login" and enable it
+    commands:
+      - <wait1s>
+      - <tab repeat=12>
+      - <spacebar>
+
+  - title: Disable Voice Over
+    commands:
+      - <voiceOverOff>
+
+  - title: Quit System Settings
+    commands:
+      - <wait5s>
+      - <leftAltOn>
+      - q
+      - <leftAltOff>
+
+post_boot_command:
+  use_ssh_key: false
+  commands:
+    - sh -c 'echo "${var.ssh_authorized_key}" > ~/.ssh/authorized_keys'
+    - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"

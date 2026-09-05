@@ -1,0 +1,247 @@
+# fedora.packerlite.yaml
+#
+# Built-in PackerLite template — unattended installation of Fedora Workstation
+# from the official Live ISO, driven natively by caked/caker after booting from
+# the ISO (see the "PackerLite" section of the wiki's command summary). This is
+# the default template auto-selected for a Fedora ISO whose filename/URL looks
+# like a desktop/workstation build (see CakeConfig.osDesktop / VMBuilder's
+# detection) when --autoinstall is passed without an explicit --template —
+# pass --template yourself to override it. For a Fedora Server ISO, see the
+# sibling fedora-server.packerlite.yaml instead.
+# Unlike the bundled macOS templates, this one is NOT a guaranteed-working
+# recipe: it has been reviewed for plausibility against Fedora's documented
+# live-install flow, but NOT validated end-to-end against a real boot. Treat
+# the click targets and tab counts below as a first draft to verify/adjust
+# against your own run.
+#
+# Targets the CLASSIC GTK Anaconda installer used by Fedora Workstation Live
+# media through roughly Fedora 40. Fedora 41+ switched the default Workstation
+# live installer to the new Anaconda WebUI (a browser-based interface embedded
+# in a kiosk browser), which has a very different navigation flow — this
+# template will need rework to drive that instead.
+#
+# Usage:
+#   cakectl build my-fedora-vm ./Fedora-Workstation-Live-x86_64-40-1.14.iso \
+#     --user admin --password admin --autoinstall
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+#
+# Assumptions worth checking against your own run:
+#   - The live session's default "liveuser" has passwordless sudo (true on
+#     stock Fedora media) — used to launch the installer and to reboot without
+#     a password prompt appearing mid-sequence.
+#   - GNOME Shell's Activities overview opens on a single press of the
+#     Super/Cmd key and auto-focuses its search box, matching the Spotlight
+#     idiom the bundled macOS templates use to open Terminal.
+#   - After Anaconda finishes, grub2-install/efibootmgr register the freshly
+#     installed system as the default EFI boot entry, so the *next* VM boot
+#     (after this template hands back to caked, which shuts the VM down) goes
+#     into the installed system rather than back into the live media, even
+#     though the install ISO stays attached to the VM's configuration. This
+#     template deliberately does not reboot mid-run or attempt cakeagent
+#     installation itself — the live session's root filesystem is an ephemeral
+#     overlay, so anything installed into it before the switch to the real
+#     disk would be lost anyway.
+
+boot_timeout: 60m # a full desktop install can legitimately take 20-30+ minutes
+required_variables:
+  - username
+  - password
+  - hostname
+
+pre_boot_command:
+  - title: Boot the GRUB menu's default "Install" entry
+    commands:
+      - <locate text="GRUB" timeout=30>
+      - <enter>
+
+  - title: Wait Fedora to boot
+    commands:
+      - <click text="Welcome to Fedora Linux" timeout=120>
+      - <wait2s>
+      - <tab repeat=2>
+      - <spacebar>
+
+  - title: Change keyboard
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Choose langue
+    commands:
+      - <locate text="Workstation Edition" timeout=600>
+      - <tab repeat=3>
+      - english
+      - <wait1s>
+      - <click text="United States">
+      - <tab repeat=3>
+      - <spacebar>
+      - <wait1s>
+
+  - title: Configure disk
+    commands:
+      - <locate text="Remove all partition" timeout=30>
+      - <wait1s>
+      - <tab repeat=4>
+      - <spacebar>
+      - <wait1s>
+      - <locate text="Secure your data">
+      - <tab repeat=3>
+      - <spacebar>
+      - <wait1s>
+
+  - title: Start installation
+    commands:
+      - <click text="Erase data and install">
+      - <wait1s>
+      - <tab repeat=4>
+      - <spacebar>
+      - <wait1s>
+
+  - title: Wait installation to finish
+    commands:
+      - <locate text="Successfully installed" timeout=600>
+      - <wait1s>
+      - <reboot>
+
+boot_command:
+  - title: Select keyboard layout
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Wait Fedora ready
+    commands:
+      - <locate text="Welcome" timeout=120>
+      - <wait1s>
+
+  - title: Wait Fedora 44 setup
+    commands:
+      - <skipCommandIfNotFound text="Welcome to Fedora Linux">
+      - <set version="44">
+      - <wait1s>
+      - <click text="Start Setup">
+      - <wait1s>
+
+  - title: Wait Fedora 43 setup
+    condition:
+      - version != "44"
+
+    commands:
+      - <skipCommandIfNotFound text="United States">
+      - <set version="43">
+      - <wait1s>
+      - <click text="United States">
+      - <wait1s>
+      - <click text="Next">
+      - <wait1s>
+
+  - title: Configure Privacy Settings
+    commands:
+      - <locate text="Privacy">
+      - <wait1s>
+      - <click text="Location Services">
+      - <wait1s>
+      - <click text="Automatic Problem Reporting">
+      - <wait1s>
+      - <click text="Next">
+      - <wait1s>
+
+  - title: Configure Time zone for Fedora 44
+    condition:
+      - version == "44"
+    commands:
+      - <skipCommandIfNotFound text="Please search for a nearby city">
+      - <wait1s>
+      - <click text="Please search for a nearby city">
+      - <wait1s>
+      - London, East and South East England, United Kingdom
+      - <enter>
+      - <wait1s>
+      - <click text="Next">
+      - <wait1s>
+
+  - title: Configure Time zone for Fedora 43
+    condition:
+      - version == "43"
+    commands:
+      - <click text="Search cities" timeout=5>
+      - <wait1s>
+      - London, East and South East England, United Kingdom
+      - <down>
+      - <enter>
+      - <wait1s>
+      - <click text="Next">
+      - <wait1s>
+
+  - title: Configure Third-Party Repositories
+    commands:
+      - <locate text="Third-Party Repositories">
+      - <wait1s>
+      - <click text="Enable Third-Party Repositories">
+      - <wait1s>
+      - <click text="Next">
+      - <wait1s>
+
+  - title: Fill user account information
+    commands:
+      - <locate text="About You">
+      - ${var.username}
+      - <wait1s>
+      - <click text="Next">
+      - <wait1s>
+
+  - title: Setup Password
+    commands:
+      - <locate text="Set a Password">
+      - ${var.password}
+      - <tab repeat=2>
+      - ${var.password}
+      - <tab>
+      - <wait1s>
+      - <click text="Next">
+      - <wait2s>
+      - <click text="Next">
+
+  - title: Start all done
+    commands:
+      - <locate text="Fedora Linux is ready to be used" timeout=60>
+      - <click text="Start Using Fedora Linux">
+
+  - title: Skip Fedora Tour
+    commands:
+      - <locate text="Welcome to Fedora Linux">
+      - <wait1s>
+      - <click text="Skip">
+      - <wait1s>
+
+  - title: Configure SSH
+    commands:
+      - <click text="Type to search">
+      - <wait1s>
+      - Terminal
+      - <enter>
+      - <locate text="${var.username}@fedora" timeout=30>
+      - <wait1s>
+      - sudo dnf install -y openssh-server
+      - <enter>
+      - <wait1s>
+      - ${var.password}
+      - <enter>
+      - <locate text="installed" timeout=30>
+      - sudo systemctl enable sshd
+      - <enter>
+      - <wait1s>
+      - sudo systemctl start sshd
+      - <enter>
+
+post_boot_command:
+  use_ssh_key: false
+  commands:
+    - sh -c 'echo "${var.ssh_authorized_key}" > ~/.ssh/authorized_keys'
+    - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"
+    - sudo semanage fcontext -a -t bin_t '/usr/local/bin/cakeagent'
+    - sudo restorecon -Rv /usr/local/bin/cakeagent /etc/cakeagent /etc/sysconfig/cakeagent /var/log/cakeagent.out /var/log/cakeagent.err /etc/cakeagent/ssl/ca.pem /etc/cakeagent/ssl/server.pem /etc/cakeagent/ssl/server.key
+    - sudo ausearch -c '(cakeagent)' --raw | audit2allow -M my-cakeagent
+    - sudo semodule -i my-cakeagent.pp || true
+    - sudo restorecon -Rv /usr/local/bin/cakeagent /etc/cakeagent /etc/sysconfig/cakeagent /var/log/cakeagent.out /var/log/cakeagent.err /etc/cakeagent/ssl/ca.pem /etc/cakeagent/ssl/server.pem /etc/cakeagent/ssl/server.key
+    - sudo dnf upgrade -y --refresh

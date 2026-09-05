@@ -2,7 +2,7 @@ import ArgumentParser
 import Foundation
 import Virtualization
 
-public enum NetworkMode: Int, CaseIterable, CustomStringConvertible, ExpressibleByArgument, Codable {
+public enum NetworkMode: Int, CaseIterable, CustomStringConvertible, ExpressibleByArgument, Codable, Sendable {
 	case manual, auto
 
 	public init?(argument: String) {
@@ -26,7 +26,7 @@ public enum NetworkMode: Int, CaseIterable, CustomStringConvertible, Expressible
 	}
 }
 
-public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable, Identifiable {
+public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable, Identifiable, Sendable {
 	public var network: String
 	public var mode: NetworkMode?
 	public var macAddress: String?

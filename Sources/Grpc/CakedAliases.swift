@@ -147,6 +147,12 @@ public typealias Caked_NetworkRequestNetworkMode = Caked_Caked.NetworkRequest.Ne
 public typealias Caked_ComposeRequest = Caked_Caked.ComposeRequest
 public typealias Caked_ComposeReply = Caked_Caked.ComposeReply
 
+public typealias Caked_ProvisionRequest = Caked_Caked.VMRequest.ProvisionRequest
+public typealias Caked_ProvisionedReply = Caked_VirtualMachineReply.ProvisionedReply
+public typealias Caked_ProvisionStreamReply = Caked_VirtualMachineReply.ProvisionStreamReply
+public typealias Caked_MacOSVersion = Caked_ProvisionRequest.MacOSVersion
+public typealias Caked_ProvisionVar = Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars.ProvisionVar
+
 extension VirtualizedOS {
 	public init?(_ from: Caked.Configuration.VirtualizedOS) {
 		switch from {
@@ -297,7 +303,7 @@ extension TunnelAttachement {
 	}
 }
 
-public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifiable, Hashable {
+public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifiable, Hashable, Sendable {
 	public var id: URL {
 		self.locationURL
 	}
@@ -322,6 +328,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var displayRefit: Bool
 	public var instanceID: String
 	public var dhcpClientID: String?
+	public var sshAuthorizedKey: String?
 	public var sshPrivateKeyPath: String?
 	public var sshPrivateKeyPassphrase: String?
 	public var configuredUser: String
@@ -347,6 +354,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var vncPassword: String?
 	public var ecid: Data?
 	public var hardwareModel: Data?
+	public var provisioned: Bool
 
 	public init(_ from: VirtualMachineConfiguration) {
 		// Map fields directly when available on `from`. For fields not present, use safe defaults.
@@ -371,6 +379,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.displayRefit = from.displayRefit
 		self.instanceID = from.instanceID
 		self.dhcpClientID = from.dhcpClientID
+		self.sshAuthorizedKey = from.sshAuthorizedKey
 		self.sshPrivateKeyPath = from.sshPrivateKeyPath
 		self.sshPrivateKeyPassphrase = from.sshPrivateKeyPassphrase
 		self.configuredUser = from.configuredUser
@@ -396,6 +405,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.vncPassword = from.vncPassword
 		self.ecid = from.ecid
 		self.hardwareModel = from.hardwareModel
+		self.provisioned = from.provisioned
 	}
 
 	public init(_ from: Caked.Configuration) {
@@ -420,6 +430,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.displayRefit = from.displayRefit
 		self.instanceID = from.instanceID
 		self.dhcpClientID = from.dhcpClientID
+		self.sshAuthorizedKey = from.sshAuthorizedKey
 		self.sshPrivateKeyPath = from.sshPrivateKeyPath
 		self.sshPrivateKeyPassphrase = from.sshPrivateKeyPassphrase
 		self.configuredUser = from.configuredUser
@@ -462,6 +473,8 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		if from.hasHardwareModel {
 			self.hardwareModel = from.hardwareModel
 		}
+		
+		self.provisioned = from.provisioned
 	}
 }
 
@@ -490,6 +503,8 @@ extension Caked_VirtualMachineStatus: CustomStringConvertible {
 			String(localized: "unrecognized: \(value)")
 		case .new:
 			String(localized: "new")
+		case .provisioning:
+			String(localized: "provisioning")
 		}
 	}
 	
@@ -600,6 +615,22 @@ extension Caked_CommonBuildRequest {
 		if let root = buildOptions.root {
 			self.rootDisk = root
 		}
+
+		if let provisionTemplate = buildOptions.provisionTemplate {
+			self.provisionTemplate = try Data(contentsOf: URL(filePath: provisionTemplate.expandingTildeInPath))
+		}
+
+		if buildOptions.provisionVars.isEmpty == false {
+			self.provisionVars = buildOptions.provisionVars.joined(separator: String.grpcSeparator)
+		}
+
+		if let macosVersion = buildOptions.macosVersion {
+			self.macosVersion = macosVersion.rawValue
+		}
+
+		if let imageId = buildOptions.imageId {
+			self.imageID = imageId
+		}
 	}
 }
 
@@ -679,5 +710,24 @@ extension Caked_ConfigureRequest {
 		}
 
 		self.randomMac = options.randomMAC
+	}
+}
+
+extension Caked_MacOSVersion {
+	public init(_ version: MacOSVersion) {
+		switch version {
+		case .macos12:
+			self = .macos12
+		case .macos13:
+			self = .macos13
+		case .macos14:
+			self = .macos14
+		case .macos15:
+			self = .macos15
+		case .macos26:
+			self = .macos26
+		case .macos27:
+			self = .macos27
+		}
 	}
 }

@@ -227,6 +227,22 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.cake["osRelease"] as? String }
 	}
 
+	public var osDesktop: Bool {
+		set { self.cake["osDesktop"] = newValue }
+		get { self.cake["osDesktop"] as? Bool ?? false }
+	}
+
+	/// Whether PackerLite has already driven this VM's unattended provisioning to completion —
+	/// either automatically during `build --autoinstall` (IPSW macOS installs, or ISO Linux
+	/// installs given an explicit `--template`) or via a standalone `caked provision` run.
+	/// Setup Assistant/first-boot installers only run once, so provisioning a second time has
+	/// nothing left to do and would just hang waiting for screens that no longer appear —
+	/// callers should refuse to re-provision when this is already true.
+	public var provisioned: Bool {
+		set { self.cake["provisioned"] = newValue }
+		get { self.cake["provisioned"] as? Bool ?? false }
+	}
+
 	public var dynamicPortForwarding: Bool {
 		set { self.cake["dynamicPortForwarding"] = newValue }
 		get { self.cake["dynamicPortForwarding"] as? Bool ?? false }
@@ -245,6 +261,11 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 	public var dhcpClientID: String? {
 		set { self.cake["dhcpClientID"] = newValue }
 		get { self.cake["dhcpClientID"] as? String }
+	}
+
+	public var sshAuthorizedKey: String? {
+		set { self.cake["sshAuthorizedKey"] = newValue }
+		get { self.cake["sshAuthorizedKey"] as? String }
 	}
 
 	public var sshPrivateKeyPath: String? {
@@ -584,6 +605,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		self.vncPassword = config.vncPassword
 		self.ecid = config.ecid
 		self.hardwareModel = config.hardwareModel
+		self.provisioned = config.provisioned
 	}
 
 	public func save() throws {
@@ -695,8 +717,8 @@ extension VirtualMachineConfiguration {
 			return false
 		}
 
-		if source == .iso || source == .ipsw {
-			return true
+		if source == .ipsw || source == .iso {
+			return self.provisioned || self.firstLaunch == false
 		}
 
 		return self.firstLaunch

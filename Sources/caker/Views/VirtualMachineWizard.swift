@@ -1,223 +1,27 @@
-import CakedLib
-import GRPCLib
-//import MultiplatformTabBar
-import NIO
-import Steps
 //
 //  VirtualMachineWizard.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 26/06/2025.
 //
+import CakeAgentLib
+import CakedLib
+import GRPCLib
+import NIO
+import Steps
 import SwiftUI
+import Synchronization
 import UniformTypeIdentifiers
+import Virtualization
 
 typealias OptionalVMLocation = VMLocation?
 
-struct ISOLocation {
-	let label: String
-	let url: String
-}
-
-enum ISOImage: Int, CaseIterable {
-	// Ubuntu ISOs
-	case ubuntu2604Desktop
-	case ubuntu2604Server
-
-	case ubuntu2404Desktop
-	case ubuntu2404Server
-
-	case ubuntu2204Desktop
-	case ubuntu2204Server
-
-	case ubuntu2004Desktop
-	case ubuntu2004Server
-
-	case ubuntu1804Desktop
-	case ubuntu1804Server
-
-	case fedora42
-	case fedora41
-	case fedora40
-
-	case centos10
-	case centos9
-
-	var ubuntuArch: String {
-		#if arch(x86_64)
-			return "amd64"
-		#else
-			return "arm64"
-		#endif
-	}
-
-	var genericArch: String {
-		#if arch(x86_64)
-			return "x86_64"
-		#else
-			return "arm64"
-		#endif
-	}
-
-	var location: ISOLocation {
-		switch self {
-		case .ubuntu2604Desktop:
-			ISOLocation(label: "Ubuntu 26.04 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-desktop-\(ubuntuArch).iso")
-		case .ubuntu2604Server:
-			ISOLocation(label: "Ubuntu 26.04 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-live-server-\(ubuntuArch).iso")
-		case .ubuntu2404Desktop:
-			ISOLocation(label: "Ubuntu 24.04.4 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/noble/release/ubuntu-24.04.4-desktop-\(ubuntuArch).iso")
-		case .ubuntu2404Server:
-			ISOLocation(label: "Ubuntu 24.04.4 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/noble/release/ubuntu-24.04.4-live-server-\(ubuntuArch).iso")
-		case .ubuntu2204Desktop:
-			ISOLocation(label: "Ubuntu 22.04.5 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/jammy/release/ubuntu-22.04.5-desktop-\(ubuntuArch).iso")
-		case .ubuntu2204Server:
-			ISOLocation(label: "Ubuntu 22.04.5 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/jammy/release/ubuntu-22.04.5-live-server-\(ubuntuArch).iso")
-		case .ubuntu2004Desktop:
-			ISOLocation(label: "Ubuntu 20.04.5 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/focal/release/ubuntu-20.04.5-desktop-\(ubuntuArch).iso")
-		case .ubuntu2004Server:
-			ISOLocation(label: "Ubuntu 20.04.5 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/focal/release/ubuntu-20.04.5-live-server-\(ubuntuArch).iso")
-		case .ubuntu1804Desktop:
-			ISOLocation(label: "Ubuntu 18.04.6 LTS – Desktop ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-desktop-\(ubuntuArch).iso")
-		case .ubuntu1804Server:
-			ISOLocation(label: "Ubuntu 18.04.6 LTS – Server ISO (\(ubuntuArch))", url: "https://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.6-live-server-\(ubuntuArch).iso")
-		case .fedora42:
-			ISOLocation(label: "Fedora 42 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/42/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-42-1.1.iso")
-		case .fedora41:
-			ISOLocation(label: "Fedora 41 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-41-1.4.iso")
-		case .fedora40:
-			ISOLocation(label: "Fedora 40 – Server ISO (\(genericArch))", url: "https://download.fedoraproject.org/pub/fedora/linux/releases/40/Server/\(genericArch)/iso/Fedora-Server-dvd-\(genericArch)-40-1.14.iso")
-
-		case .centos10:
-			ISOLocation(label: "CentOS Stream 10 – DVD ISO (\(genericArch))", url: "https://mirror.stream.centos.org/10-stream/BaseOS/\(genericArch)/iso/CentOS-Stream-10-latest-\(genericArch)-dvd1.iso")
-		case .centos9:
-			ISOLocation(label: "CentOS Stream 9 – DVD ISO (\(genericArch))", url: "https://mirror.centos.org/centos/9-stream/BaseOS/\(genericArch)/iso/CentOS-Stream-9-latest-\(genericArch)-dvd.iso")
-		}
-	}
-}
-
-enum IPSWImage: Int, CaseIterable {
-	case macos26_5_1
-	case macos15_6_1
-	case macos14_6_1
-	case macos13_6
-
-	var location: ISOLocation {
-		switch self {
-		case .macos26_5_1:
-			ISOLocation(label: "macOS 26.5.1", url: "https://updates.cdn-apple.com/2026SpringFCS/fullrestores/122-88870/E47EBB85-45F2-4E3C-B9E7-6FF7868C2FBA/UniversalMac_26.5.1_25F80_Restore.ipsw")
-		case .macos15_6_1:
-			ISOLocation(label: "macOS 15.6.1", url: "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw")
-		case .macos14_6_1:
-			ISOLocation(label: "macOS 14.6.1", url: "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw")
-		case .macos13_6:
-			ISOLocation(label: "macOS 13.6", url: "https://updates.cdn-apple.com/2023FallFCS/fullrestores/042-55833/C0830847-A2F8-458F-B680-967991820931/UniversalMac_13.6_22G120_Restore.ipsw")
-		}
-	}
-}
-
-enum OSCloudImage: Int, CaseIterable {
-	case ubuntu2604LTS
-	case ubuntu2504LTS
-	case ubuntu2404LTS
-	case ubuntu2204LTS
-	case ubuntu2004LTS
-
-	case centos10
-	case centos9
-
-	case fedora42
-	case fedora41
-	case fedora40
-
-	case debian12
-	case debian11
-	case debian10
-
-	case openSUSE156
-	case openSUSE155
-	case openSUSE154
-
-	case alpine322
-	case alpine321
-	case alpine320
-
-	var stringValue: String {
-		switch self {
-		case .ubuntu2604LTS: return "Ubuntu 26.04 LTS"
-		case .ubuntu2504LTS: return "Ubuntu 25.04 LTS"
-		case .ubuntu2404LTS: return "Ubuntu 24.04 LTS"
-		case .ubuntu2204LTS: return "Ubuntu 22.04 LTS"
-		case .ubuntu2004LTS: return "Ubuntu 20.04 LTS"
-
-		case .centos10: return "CentOS 10"
-		case .centos9: return "CentOS 9"
-
-		case .fedora42: return "Fedora 42"
-		case .fedora41: return "Fedora 41"
-		case .fedora40: return "Fedora 40"
-
-		case .debian12: return "Debian 12"
-		case .debian11: return "Debian 11"
-		case .debian10: return "Debian 10"
-
-		case .openSUSE156: return "OpenSUSE Leap 15.6"
-		case .openSUSE155: return "OpenSUSE Leap 15.6"
-		case .openSUSE154: return "OpenSUSE Leap 15.4"
-
-		case .alpine322: return "Alpine 3.22"
-		case .alpine321: return "Alpine 3.21"
-		case .alpine320: return "Alpine 3.20"
-		}
-	}
-
-	var arch: String {
-		#if arch(arm64)
-			switch self {
-			case .ubuntu2604LTS, .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS, .debian12, .debian11, .debian10:
-				return "arm64"
-
-			case .centos10, .centos9, .fedora42, .fedora41, .fedora40, .openSUSE156, .openSUSE155, .openSUSE154, .alpine322, .alpine321, .alpine320:
-				return "aarch64"
-			}
-		#elseif arch(x86_64)
-			switch self {
-			case .ubuntu2604LTS, .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS, .debian12, .debian11, .debian10:
-				return "amd64"
-
-			case .centos10, .centos9, .fedora42, .fedora41, .fedora40, .openSUSE156, .openSUSE155, .openSUSE154, .alpine322, .alpine321, .alpine320:
-				return "x86_64"
-			}
-		#endif
-	}
-
-	var url: URL {
-		switch self {
-		case .ubuntu2604LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-\(self.arch).img")!  // amd64|arm64
-		case .ubuntu2504LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-\(self.arch).img")!  // amd64|arm64
-		case .ubuntu2404LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-\(self.arch).img")!
-		case .ubuntu2204LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-cloudimg-\(self.arch).img")!
-		case .ubuntu2004LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-\(self.arch).img")!
-
-		case .centos10: return URL(string: "https://cloud.centos.org/centos/10-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-10-20250506.2.\(self.arch).qcow2")!
-		case .centos9: return URL(string: "https://cloud.centos.org/centos/9-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-9-20250526.1.\(self.arch).qcow2")!
-
-		case .fedora42: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/42/Server/\(self.arch)/images/Fedora-Server-Guest-Generic-42-1.1.\(self.arch).qcow2")!
-		case .fedora41: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Server/\(self.arch)/images/Fedora-Server-KVM-41-1.4.\(self.arch).qcow2")!
-		case .fedora40: return URL(string: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/\(self.arch)/images/Fedora-Server-KVM-40-1.14.\(self.arch).qcow2")!
-
-		case .debian12: return URL(string: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-\(self.arch).qcow2")!
-		case .debian11: return URL(string: "https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-\(self.arch).qcow2")!
-		case .debian10: return URL(string: "https://cloud.debian.org/images/cloud/buster/latest/debian-10-generic-\(self.arch).qcow2")!
-
-		case .openSUSE156: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.\(self.arch)-NoCloud.qcow2")!
-		case .openSUSE155: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.5/images/openSUSE-Leap-15.5.\(self.arch)-NoCloud.qcow2")!
-		case .openSUSE154: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.4/images/openSUSE-Leap-15.4.\(self.arch)-NoCloud.qcow2")!
-
-		case .alpine322: return URL(string: "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/cloud/generic_alpine-3.22.1-\(self.arch)-uefi-cloudinit-r0.qcow2")!
-		case .alpine321: return URL(string: "https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/generic_alpine-3.21.2-\(self.arch)-uefi-cloudinit-r0.qcow2")!
-		case .alpine320: return URL(string: "https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/generic_alpine-3.20.7-\(self.arch)-uefi-cloudinit-r0.qcow2")!
-		}
+extension VMImageEntry {
+	/// Raises `config`'s CPU count / memory to this entry's `minCPU`/`minMemoryMiB`, if any —
+	/// never lowers a value the user already raised above the minimum.
+	func applyMinimumResources(to config: inout VirtualMachineConfig) {
+		config.cpuCount = max(config.cpuCount, minCPU)
+		config.memorySizeInMoB = max(config.memorySizeInMoB, minMemoryMiB)
 	}
 }
 
@@ -307,15 +111,19 @@ struct ShortImageInfoComparator: SortComparator {
 	var remoteImage: String
 	var remoteImages: [ShortImageInfo]
 	var selectedRemoteImage: ShortImageInfo.ID
-	var cloudImageRelease: OSCloudImage
-	var isoImageRelease: ISOImage
-	var ipswRelease: IPSWImage
+	var cloudImageRelease: VMImageEntry
+	var isoImageRelease: VMImageEntry
+	var ipswRelease: VMImageEntry
 	var createVM: Bool
 	var fractionCompleted: Double
 	var createVMMessage: String
+	var createVMSubtitle: String
 	var rootDisk: String
 	var mountPoints: MountPoints
 	var showDiskFormat: Bool
+	var createVirtualMachineTask: Task<Void, Never>?
+	var provisioningTemplate: String
+	var provisionVars: ProvisionVariables
 
 	init() {
 		self.currentStep = .name
@@ -326,15 +134,18 @@ struct ShortImageInfoComparator: SortComparator {
 		self.remoteImage = "ubuntu"
 		self.remoteImages = []
 		self.selectedRemoteImage = String.empty
-		self.cloudImageRelease = .ubuntu2604LTS
-		self.isoImageRelease = .ubuntu2604Server
-		self.ipswRelease = .macos26_5_1
+		self.cloudImageRelease = VMImageCatalog.shared.cloudImage("ubuntu2604")
+		self.isoImageRelease = VMImageCatalog.shared.isoImage("ubuntu2604Server")
+		self.ipswRelease = VMImageCatalog.shared.ipswImage("macos26")
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
+		self.createVMSubtitle = String.empty
 		self.rootDisk = String.empty
 		self.mountPoints = []
 		self.showDiskFormat = false
+		self.provisioningTemplate = String.empty
+		self.provisionVars = ProvisionVariablesStore.load()
 	}
 
 	func reset() {
@@ -346,30 +157,83 @@ struct ShortImageInfoComparator: SortComparator {
 		self.remoteImage = "ubuntu"
 		self.remoteImages = []
 		self.selectedRemoteImage = String.empty
-		self.cloudImageRelease = .ubuntu2404LTS
-		self.isoImageRelease = .ubuntu2604Server
-		self.ipswRelease = .macos26_5_1
+		self.cloudImageRelease = VMImageCatalog.shared.cloudImage("ubuntu2604")
+		self.isoImageRelease = VMImageCatalog.shared.isoImage("ubuntu2604Server")
+		self.ipswRelease = VMImageCatalog.shared.ipswImage("macos26")
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
+		self.createVMSubtitle = String.empty
 		self.rootDisk = String.empty
 		self.mountPoints = []
 		self.showDiskFormat = false
+		self.provisioningTemplate = String.empty
+		self.provisionVars = ProvisionVariablesStore.load()
+	}
+}
+
+struct WizardVirtualMachineView: NSViewRepresentable {
+	public typealias NSViewType = NSView
+
+	private let virtualMachine: VirtualMachine
+
+	init(_ virtualMachine: VirtualMachine) {
+		self.virtualMachine = virtualMachine
+	}
+
+	public func makeNSView(context: Context) -> NSViewType {
+		guard let vzMachineView = self.virtualMachine.vzMachineView else {
+			fatalError("No virtual machine view")
+		}
+
+		let view = NSView(frame: vzMachineView.bounds)
+
+		view.wantsLayer = true
+		//view.layer?.cornerRadius = 10
+		view.layer?.masksToBounds = true
+
+		view.addSubview(vzMachineView)
+		// Use Auto Layout to scale-fit the subview to its container
+		vzMachineView.translatesAutoresizingMaskIntoConstraints = false
+		vzMachineView.automaticallyReconfiguresDisplay = false
+		NSLayoutConstraint.activate([
+			vzMachineView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+			vzMachineView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+			vzMachineView.topAnchor.constraint(equalTo: view.topAnchor),
+			vzMachineView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+		])
+
+		return view
+	}
+
+	public func updateNSView(_ nsView: NSViewType, context: Context) {
 	}
 }
 
 struct VirtualMachineWizard: View {
+	static let wizardQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
+
 	@Environment(\.dismiss) private var dismiss
+	@Environment(\.openWindow) private var openWindow
 
 	@State private var config: VirtualMachineConfig
 	@State private var currentTab: Int = 0
 	@State private var model: VirtualMachineWizardStateObject
 	@State private var diskSizeValueIsInvalid = false
+	@State private var allowsOverrideMinimumResources = false
+	@State private var provisioningStarted: Bool = false
+	@State private var provisionnedVM: VirtualMachine? = nil
+	@State private var provisioningRemoteVM: Bool = false
+	@State private var provisionInfos: ProgressObserver.ProvisionInfo? = nil
+	@State private var vncState: VNCConnectionAppState? = nil
+	@State private var wasCancelled: Bool = false
 
-	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
+	private let wizardID = UUID()
 	private let listHeight: CGFloat = 460
 	private let fromPreset: Bool
 	private let presetImage: String
+	private let connectionManager: ConnectionManager
+	private let logger = Logger("VirtualMachineWizard")
 
 	var sheet: Bool = false
 
@@ -400,16 +264,17 @@ struct VirtualMachineWizard: View {
 		return "\(first)-\(second)"
 	}
 
-	init(sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil) {
+	init(connectionManager: ConnectionManager, sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil) {
 		self.sheet = sheet
-		
+		self.connectionManager = connectionManager
+
 		if let presetTemplate {
 			var config = VirtualMachineConfig()
 
 			config.source = .template
 			config.imageName = presetTemplate.fqn
 			config.vmname = presetTemplate.name
-			
+
 			let model = VirtualMachineWizardStateObject()
 
 			model.imageSource = .template
@@ -426,7 +291,7 @@ struct VirtualMachineWizard: View {
 			config.diskFormat = .raw
 			config.os = .linux
 			config.imageName = "\(presetRemoteImage.remote)://\(presetRemoteImage.image.fingerprint)"
-			
+
 			let model = VirtualMachineWizardStateObject()
 			let image = ShortImageInfo(presetRemoteImage.image)
 
@@ -434,7 +299,7 @@ struct VirtualMachineWizard: View {
 			model.remoteImage = presetRemoteImage.remote
 			model.selectedRemoteImage = presetRemoteImage.image.fingerprint
 			model.remoteImages = [image]
-			
+
 			self._config = State(initialValue: config)
 			self._model = State(initialValue: model)
 			self.fromPreset = true
@@ -444,14 +309,18 @@ struct VirtualMachineWizard: View {
 
 			config.vmname = Self.generateRandomVMName()
 			config.source = .qcow2
-			config.imageName = OSCloudImage.ubuntu2604LTS.url.absoluteString
+
+			let defaultCloudImage = VMImageCatalog.shared.cloudImage("ubuntu2604")
+
+			config.imageName = defaultCloudImage.url
 			config.os = .linux
-			
+			defaultCloudImage.applyMinimumResources(to: &config)
+
 			let model = VirtualMachineWizardStateObject()
 
 			model.imageSource = .qcow2
-			model.cloudImageRelease = .ubuntu2604LTS
-			
+			model.cloudImageRelease = defaultCloudImage
+
 			self._config = State(initialValue: config)
 			self._model = State(initialValue: model)
 			self.fromPreset = false
@@ -481,6 +350,22 @@ struct VirtualMachineWizard: View {
 		}
 	}
 
+	@discardableResult
+	private func cleanup() -> Bool {
+		let result = self.provisioningStarted
+
+		self.provisionnedVM = nil
+		self.provisioningRemoteVM = false
+		self.provisionInfos = nil
+		self.vncState = nil
+		self.model.createVM = false
+		self.model.createVMMessage = String.empty
+		self.model.createVMSubtitle = String.empty
+		self.provisioningStarted = false
+
+		return result
+	}
+
 	var body: some View {
 		if #unavailable(macOS 15.0) {
 			HostingWindowFinder { window in
@@ -492,43 +377,39 @@ struct VirtualMachineWizard: View {
 			}
 		}
 
-		self.Body().onReceive(VirtualMachineDocument.ProgressCreateVirtualMachine) { notification in
-			if let fractionCompleted = notification.object as? Double {
-				self.model.fractionCompleted = max(0, min(1.0, fractionCompleted))
-			}
-		}
-		.onReceive(VirtualMachineDocument.CreatedVirtualMachine) { notification in
-			self.model.createVM = false
+		self.Body()
+			.onReceive(PackerLiteEngine.provisionedStartNotification) { notification in
+				self.logger.debug("Notification - provisionedStartNotification")
+				if self.isMyNotification(notification), let virtualMachine = notification.object as? VirtualMachine {
+					self.provisioningStarted = true
 
-			if let vmURL = notification.object as? URL {
-				Task {
-					await MainApp.app.openVirtualMachine(vmURL)
-					self.dismiss()
+					#if DEBUG_PAKERLITE
+						self.openWindow(id: "Debug PackerLite", value: self.wizardID)
+					#else
+						self.provisionnedVM = virtualMachine
+					#endif
+				}
+			}
+			.onReceive(PackerLiteEngine.provisionedTerminatedNotification) { notification in
+				self.logger.debug("Notification - provisionedTerminatedNotification")
+				if self.isMyNotification(notification) {
+					self.provisionnedVM = nil
 				}
 			}
 
-			self.config = VirtualMachineConfig()
-			self.model.reset()
-		}
-		.onReceive(VirtualMachineDocument.FailCreateVirtualMachine) { notification in
-			self.model.createVM = false
-			self.model.createVMMessage = String.empty
-
-			if let error = notification.object as? Error {
-				alertError(error)
+			.onAppear {
+				self.validateConfig(config: self.config)
 			}
-		}
-		.onReceive(VirtualMachineDocument.ProgressMessageCreateVirtualMachine) { notification in
-			if let message = notification.object as? String {
-				self.model.createVMMessage = message
+			.onDisappear {
+				self.model.createVirtualMachineTask?.cancel()
 			}
-		}
-		.onAppear {
-			self.validateConfig(config: self.config)
-		}
-		.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
-		.windowDismissBehavior(self.model.createVM ? .disabled : .automatic)
+			.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
+			.windowDismissBehavior(self.model.createVM ? .disabled : .automatic)
 		//.windowResizeBehavior(self.model.createVM ? .disabled : .automatic)
+	}
+
+	func isMyNotification(_ notification: Notification) -> Bool {
+		notification.userInfo?["wizardID"] as? UUID == self.wizardID
 	}
 
 	func TabBar() -> some View {
@@ -547,12 +428,30 @@ struct VirtualMachineWizard: View {
 	func Body() -> some View {
 		if self.sheet {
 			VStack(spacing: 12) {
-				TabBar()
+				if let provisionnedVM = self.provisionnedVM {
+					WizardVirtualMachineView(provisionnedVM)
+						.disabled(true)
+				} else if let vncState = self.vncState {
+					GeometryReader { geom in
+						vncState.view(geom.size)
+					}
+				} else {
+					TabBar()
+				}
 				Footer()
 			}
 		} else {
 			VStack(spacing: 12) {
-				Content(currentStep: self.model.currentStep)
+				if let provisionnedVM = self.provisionnedVM {
+					WizardVirtualMachineView(provisionnedVM)
+						.disabled(true)
+				} else if let vncState = self.vncState {
+					GeometryReader { geom in
+						vncState.view(geom.size)
+					}
+				} else {
+					Content(currentStep: self.model.currentStep)
+				}
 				Footer()
 			}
 			.toolbar {
@@ -602,6 +501,9 @@ struct VirtualMachineWizard: View {
 					ProgressView(value: self.model.fractionCompleted)
 						.frame(width: 320)
 						.tint(.accentColor)
+					Text(self.model.createVMSubtitle)
+						.font(.caption)
+						.foregroundStyle(.secondary)
 				}
 				.padding(.vertical, 10)
 			}
@@ -642,7 +544,9 @@ struct VirtualMachineWizard: View {
 					}
 
 					AsyncButton { done in
-						await openVirtualMachine(done)
+						self.model.createVirtualMachineTask = Task {
+							await openVirtualMachine(done)
+						}
 					} label: {
 						Text("Create").frame(width: 80)
 					}
@@ -667,10 +571,43 @@ struct VirtualMachineWizard: View {
 		}.frame(maxHeight: .infinity)
 	}
 
+	/// The CPU/memory floor the sliders (and `validateConfig`) should enforce for the currently
+	/// selected image — the entry's own `minCPU`/`minMemoryMiB` for `.iso`/`.qcow2`, the `.ipsw`
+	/// case's own fixed minimums, or the generic floor for sources with no catalog entry. Without
+	/// this, `applyMinimumResources(to:)` only raises the config once at selection time — the
+	/// slider would still let the user drag straight back down below the image's minimum.
+	var minimumCPUCount: UInt16 {
+		guard allowsOverrideMinimumResources == false else {
+			return 1
+		}
+
+		switch model.imageSource {
+		case .iso: return model.isoImageRelease.minCPU
+		case .qcow2: return model.cloudImageRelease.minCPU
+		case .ipsw: return model.ipswRelease.minCPU
+		default: return 1
+		}
+	}
+
+	var minimumMemoryInMiB: UInt64 {
+		guard allowsOverrideMinimumResources == false else {
+			return 512
+		}
+
+		switch model.imageSource {
+		case .iso: return model.isoImageRelease.minMemoryMiB
+		case .qcow2: return model.cloudImageRelease.minMemoryMiB
+		case .ipsw: return model.ipswRelease.minMemoryMiB
+		default: return 512
+		}
+	}
+
 	func cpuCountAndMemoryView() -> some View {
 		Section("CPU & Memory") {
-			let cpuRange: ClosedRange<UInt16> = 1...UInt16(System.coreCount)
-			let memoryLowerBound: UInt64 = config.source == .ipsw ? 4096 : 512
+			let cpuLowerBound: UInt16 = self.minimumCPUCount
+			let cpuUpperBound: UInt16 = max(cpuLowerBound, UInt16(System.coreCount))
+			let cpuRange: ClosedRange<UInt16> = cpuLowerBound...cpuUpperBound
+			let memoryLowerBound: UInt64 = self.minimumMemoryInMiB
 			let memoryUpperBound: UInt64 = max(memoryLowerBound, ProcessInfo().physicalMemory / MoB)
 			let totalMemoryRange: ClosedRange<UInt64> = memoryLowerBound...memoryUpperBound
 
@@ -741,6 +678,10 @@ struct VirtualMachineWizard: View {
 				}
 			}
 			.padding(.vertical, 2)
+
+			Toggle("Allow override minimum resources", isOn: $allowsOverrideMinimumResources)
+				.disabled(self.model.createVM)
+				.padding(.vertical, 2)
 		}
 	}
 
@@ -899,7 +840,7 @@ struct VirtualMachineWizard: View {
 									TextField("OS Image", text: $config.imageName)
 										.rounded(.leading)
 										.disabled(self.model.createVM)
-									
+
 									Button(action: {
 										if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
 											self.config.imageName = "file://\(imageName)"
@@ -921,7 +862,7 @@ struct VirtualMachineWizard: View {
 					case .iso:
 						VStack(alignment: .leading) {
 							let platform = SupportedPlatform(rawValue: self.config.imageName)
-							
+
 							LabeledContent {
 								if AppState.shared.connectionMode == .app {
 									HStack {
@@ -929,7 +870,7 @@ struct VirtualMachineWizard: View {
 											.frame(width: 300)
 											.rounded(.leading)
 											.disabled(self.model.createVM)
-										
+
 										Button(action: {
 											if let imageName = chooseDiskImage(ofTypes: [UTType.iso9660, UTType.cdr]) {
 												self.config.imageName = "file://\(imageName)"
@@ -948,38 +889,40 @@ struct VirtualMachineWizard: View {
 								}
 							} label: {
 								Picker("Preconfigured ISO", selection: $model.isoImageRelease) {
-									ForEach(ISOImage.allCases, id: \.self) { os in
-										Text(os.location.label).tag(os)
+									ForEach(VMImageCatalog.shared.availableISOImages) { os in
+										Text(os.label).tag(os)
 									}
 								}
 								.pickerStyle(.menu)
 								.disabled(self.model.createVM)
 								.labelsHidden()
 								.onChange(of: model.isoImageRelease) { _, newValue in
-									self.config.imageName = newValue.location.url
+									let plateform = SupportedPlatform(rawValue: newValue.label)
+
+									// Admin is already used on debian
+									if plateform == .debian && self.config.configuredUser == "admin" {
+										self.config.configuredUser = "administrator"
+									}
+
+									self.config.imageName = newValue.url
+									newValue.applyMinimumResources(to: &self.config)
 								}
 							}
-							
-							if platform == .ubuntu {
-								Toggle("Create autoinstall config", isOn: $config.autoinstall).disabled(self.model.createVM)
-								//						} else if platform == .fedora {
-								//							Toggle("Create kickstart config", isOn: $config.autoinstall).disabled(self.model.createVM)
-								//						} else if platform == .debian {
-								//							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
-							}
-						}
-						
-					case .ipsw:
-						LabeledContent {
-							if AppState.shared.connectionMode == .app {
+
+							// Alpine/Ubuntu/Fedora/CentOS/RHEL/openSUSE/Debian ship a built-in template (see
+							// PackerLiteTemplateResolver) auto-selected from the detected platform, so the
+							// picker below is only required to override it or for a platform with no default.
+							let hasBuiltInTemplate = PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: platform)
+
+							LabeledContent(hasBuiltInTemplate ? "Provisioning template (optional)" : "Provisioning template") {
 								HStack {
-									TextField("IPSW Image", text: $config.imageName)
-										.frame(width: 460)
+									TextField("", text: $model.provisioningTemplate)
+										.frame(width: 300)
 										.rounded(.leading)
 										.disabled(self.model.createVM)
 									Button(action: {
-										if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
-											self.config.imageName = "file://\(imageName)"
+										if let provisioningTemplate = chooseYAML() {
+											model.provisioningTemplate = provisioningTemplate
 										}
 									}) {
 										Image(systemName: "document.badge.gearshape")
@@ -987,26 +930,57 @@ struct VirtualMachineWizard: View {
 									.disabled(self.model.createVM)
 									.buttonStyle(.borderless)
 								}
-							} else {
-								TextField("MacOS ipsw url.", text: $config.imageName)
-									.frame(width: 460)
-									.rounded(.leading)
-									.disabled(self.model.createVM)
 							}
-						} label: {
-							Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
-								ForEach(IPSWImage.allCases, id: \.self) { os in
-									Text(os.location.label).tag(os)
+							Text(hasBuiltInTemplate ? "Leave empty to use the built-in \(platform.rawValue) template or provide a custom one provisioning template" : "Provide a custom one provisioning template")
+								.font(.caption)
+								.foregroundStyle(.secondary)
+							Toggle("Auto configuration with provisioning", isOn: $config.autoinstall).disabled(self.model.createVM)
+
+							provisionVariablesSection
+						}
+
+					case .ipsw:
+						VStack(alignment: .leading) {
+							LabeledContent {
+								if AppState.shared.connectionMode == .app {
+									HStack {
+										TextField("IPSW Image", text: $config.imageName)
+											.frame(width: 460)
+											.rounded(.leading)
+											.disabled(self.model.createVM)
+										Button(action: {
+											if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
+												self.config.imageName = "file://\(imageName)"
+											}
+										}) {
+											Image(systemName: "document.badge.gearshape")
+										}
+										.disabled(self.model.createVM)
+										.buttonStyle(.borderless)
+									}
+								} else {
+									TextField("MacOS ipsw url.", text: $config.imageName)
+										.frame(width: 460)
+										.rounded(.leading)
+										.disabled(self.model.createVM)
+								}
+							} label: {
+								Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
+									ForEach(VMImageCatalog.shared.availableIPSWImages) { os in
+										Text(os.label).tag(os)
+									}
+								}
+								.pickerStyle(.menu)
+								.disabled(self.model.createVM)
+								.labelsHidden()
+								.onChange(of: model.ipswRelease) { _, newValue in
+									self.config.imageName = newValue.url
 								}
 							}
-							.pickerStyle(.menu)
-							.disabled(self.model.createVM)
-							.labelsHidden()
-							.onChange(of: model.ipswRelease) { _, newValue in
-								self.config.imageName = newValue.location.url
-							}
+						Toggle("Configure automatically the system", isOn: $config.autoinstall).disabled(self.model.createVM)
+
+							provisionVariablesSection
 						}
-						
 					case .qcow2:
 						LabeledContent {
 							TextField("Cloud Image", text: $config.imageName)
@@ -1015,23 +989,24 @@ struct VirtualMachineWizard: View {
 								.disabled(self.model.createVM)
 						} label: {
 							Picker("Preconfigured image", selection: $model.cloudImageRelease) {
-								ForEach(OSCloudImage.allCases, id: \.self) { os in
-									Text(os.stringValue).tag(os)
+								ForEach(VMImageCatalog.shared.availableCloudImages) { os in
+									Text(os.label).tag(os)
 								}
 							}
 							.pickerStyle(.menu)
 							.disabled(self.model.createVM)
 							.labelsHidden()
 							.onChange(of: model.cloudImageRelease) { _, newValue in
-								self.config.imageName = newValue.url.absoluteString
+								self.config.imageName = newValue.url
+								newValue.applyMinimumResources(to: &self.config)
 							}
 						}
-						
+
 					case .oci:
 						TextField("OCI Image", text: $config.imageName)
 							.rounded(.leading)
 							.disabled(self.model.createVM)
-						
+
 					case .template:
 						Picker("Select a template", selection: $config.imageName) {
 							ForEach(AppState.shared.templates, id: \.self) { template in
@@ -1040,7 +1015,7 @@ struct VirtualMachineWizard: View {
 						}
 						.pickerStyle(.menu)
 						.disabled(self.model.createVM)
-						
+
 					case .stream:
 						VStack {
 							Picker("Select remote sources", selection: $model.remoteImage) {
@@ -1086,46 +1061,65 @@ struct VirtualMachineWizard: View {
 							}.onChange(of: self.model.imageSource) { _, newValue in
 								self.config.source = newValue
 								self.config.diskFormat = newValue.supportedDiskFormat(for: self.config.diskFormat)
-								
+
 								switch newValue {
 								case .raw:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
+									self.config.autoinstall = false
+									self.model.provisioningTemplate = String.empty
 								case .qcow2:
-									self.config.imageName = model.cloudImageRelease.url.absoluteString
+									self.config.imageName = model.cloudImageRelease.url
+									model.cloudImageRelease.applyMinimumResources(to: &self.config)
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
+									self.config.autoinstall = false
+									self.model.provisioningTemplate = String.empty
 								case .oci:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
+									self.config.autoinstall = false
+									self.model.provisioningTemplate = String.empty
 								case .template:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
+									self.config.autoinstall = false
+									self.model.provisioningTemplate = String.empty
 								case .stream:
 									self.config.imageName = String.empty
 									self.model.showDiskFormat = false
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
+									self.config.autoinstall = false
+									self.model.provisioningTemplate = String.empty
 								case .iso:
-									self.config.imageName = self.model.isoImageRelease.location.url
+									self.config.autoinstall = false
+									self.config.imageName = self.model.isoImageRelease.url
+									self.model.isoImageRelease.applyMinimumResources(to: &self.config)
 									self.model.showDiskFormat = true
 									self.config.diskFormat = .defaultSupportedFormat
 									self.config.os = .linux
+									self.model.provisioningTemplate = String.empty
+									self.model.provisionVars = ProvisionVariablesStore.load()
 								case .ipsw:
-									self.config.imageName = self.model.ipswRelease.location.url
-									self.config.cpuCount = max(self.config.cpuCount, 4)
-									self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4096)
+									self.config.autoinstall = true
+									self.config.imageName = self.model.ipswRelease.url
+									self.config.cpuCount = max(self.config.cpuCount, self.model.ipswRelease.minCPU)
+									self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, self.model.ipswRelease.minMemoryMiB)
 									self.config.diskSizeInGiB = max(self.config.diskSizeInGiB, 40)
 									self.model.showDiskFormat = true
 									self.config.diskFormat = .defaultSupportedFormat
 									self.config.os = .darwin
+									self.config.autoinstall = false
+									self.model.provisioningTemplate = String.empty
+									self.model.provisionVars = ProvisionVariablesStore.load()
 								}
 							}
 							.pickerStyle(.menu)
@@ -1246,6 +1240,82 @@ struct VirtualMachineWizard: View {
 		}.formStyle(.grouped).disabled(self.model.createVM)
 	}
 
+	/// Shown below the ISO/IPSW image picker in the "Choose OS" step — lets the user add/edit
+	/// `${var.<name>}` substitutions that get injected into the provisioning template alongside
+	/// the built-in `${var.username}`/`${var.password}` (see `BuildOptions.provisionVars`/
+	/// `--var key=value`). Not gated on `config.autoinstall` — matches the "Provisioning template"
+	/// picker right above it, which is also editable regardless of whether autoinstall is currently on.
+	/// The set is saved to and restored from `<CAKE_HOME>/ProvisionVariables.json` automatically —
+	/// see `ProvisionVariablesStore` — so it doesn't need re-entering for every new VM.
+	@ViewBuilder
+	var provisionVariablesSection: some View {
+		Divider()
+
+		VStack(alignment: .leading) {
+			Text("Provisioning variables")
+				.font(.headline)
+			Text("Available in the provisioning template as ${var.<name>}, alongside the built-in ${var.username}/${var.password}")
+				.font(.caption)
+				.foregroundStyle(.secondary)
+
+			ProvisionVariablesView(variables: $model.provisionVars, disabled: $model.createVM)
+				.frame(height: 140)
+				// Saved to <CAKE_HOME>/ProvisionVariables.json on every edit (add/remove/rename), so
+				// the set is restored automatically the next time the wizard is opened — see
+				// ProvisionVariablesStore.
+				.onChange(of: model.provisionVars) { _, newValue in
+					ProvisionVariablesStore.save(newValue)
+				}
+		}
+	}
+
+	func createVncTunnel(_ infos: ProgressObserver.ProvisionInfo) throws -> (VNCTunnel, URL) {
+		let tunnel = try self.connectionManager.serviceClient!.createVNCTunnel(eventLoopGroup: Utilities.group, vmName: self.config.vmname)
+		var components = URLComponents()
+
+		components.scheme = "vnc"
+		components.host = "127.0.0.1"
+		components.port = tunnel.localPort
+
+		if let password = infos.vncURL.password {
+			components.password = password
+		}
+
+		return (tunnel, components.url!)
+	}
+
+	func doVNC(_ infos: ProgressObserver.ProvisionInfo) {
+		var vncURL = infos.vncURL
+		var tunnel: VNCTunnel? = nil
+
+		do {
+			if self.connectionManager.connectionMode == .remote {
+				(tunnel, vncURL) = try createVncTunnel(infos)
+			}
+
+			let vncState = try VNCConnectionAppState(
+				name: self.config.vmname,
+				config: infos.config,
+				vncURL: vncURL,
+				screenSize: infos.screenSize,
+				tunnel: tunnel,
+				allowClientResize: false,
+				isDebugLoggingEnabled: false
+			) {
+				self.provisioningRemoteVM ? .running : .stopped
+			}
+
+			self.provisioningRemoteVM = true
+			self.provisionInfos = infos
+			self.vncState = vncState
+			self.provisioningStarted = true
+
+			vncState.tryVNCConnect()
+		} catch {
+			alertError("VNC Failed", error.reason)
+		}
+	}
+
 	func forwardPortsView() -> some View {
 		Form {
 			Section("Forwarded ports") {
@@ -1290,7 +1360,8 @@ struct VirtualMachineWizard: View {
 	}
 
 	func validateConfig(config: VirtualMachineConfig) {
-		var valid = model.mountPoints.first(where: {$0.validate() == false }) == nil
+		var valid = model.mountPoints.first(where: { $0.validate() == false }) == nil
+		let platform = SupportedPlatform(rawValue: self.config.imageName)
 
 		if valid {
 			if config.os == .linux {
@@ -1300,8 +1371,21 @@ struct VirtualMachineWizard: View {
 			}
 		}
 
+		if valid {
+			// Belt-and-suspenders on top of the sliders' floor: catches a config that reached
+			// this state some other way (a preset, or a config restored without going through
+			// the sliders) still undercutting the selected image's minimum.
+			valid = config.cpuCount >= self.minimumCPUCount && config.memorySizeInMoB >= self.minimumMemoryInMiB
+		}
+
 		if valid && model.rootDisk.isEmpty == false {
 			valid = FileManager.default.fileExists(atPath: model.rootDisk)
+		}
+
+		if valid && model.imageSource == .iso && platform != .ubuntu && platform != .unknown && config.autoinstall {
+			// A missing provisioningTemplate is fine when the detected platform has a built-in
+			// default (see PackerLiteTemplateResolver) — only genuinely require one otherwise.
+			valid = self.model.provisioningTemplate.isEmpty == false || PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: platform)
 		}
 
 		if valid && (model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw) {
@@ -1348,53 +1432,123 @@ struct VirtualMachineWizard: View {
 			DispatchQueue.main.async {
 				switch result {
 				case .progress(_, let fractionCompleted):
-					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressCreateVirtualMachine, object: fractionCompleted)
+					self.model.fractionCompleted = max(0, min(1.0, fractionCompleted))
 
-				case .terminated(let result, let message):
+				case .terminated(let result, _):
+					self.logger.debug("Progress - terminated \(result) \(self.provisioningStarted)")
+
 					if case .failure(let error) = result {
-						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: error, userInfo: ["message": message ?? String.empty])
-					} else if case .success(let vmURL) = result {
-						NotificationCenter.default.post(name: VirtualMachineDocument.CreatedVirtualMachine, object: vmURL, userInfo: ["message": message ?? String.empty])
-					} else {
-						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: ServiceError(String(localized: "Internal error creating virtual machine")), userInfo: ["message": message ?? String.empty])
+						self.logger.debug("Progress - createVirtualMachine - failure \(self.provisioningStarted)")
+
+						if cleanup() {
+							func openVM(_ vmName: String) {
+								if let vmURL = URL(string: "vm://\(vmName)") {
+									Task {
+										await MainApp.app.openVirtualMachine(vmURL)
+										await self.dismiss()
+									}
+								}
+							}
+
+							if self.wasCancelled == false && !(error is CancellationError) {
+								alertError(String(localized: "Provisioning failed"), error.localizedDescription) { _ in
+									openVM(config.vmname)
+								}
+							} else {
+								openVM(config.vmname)
+							}
+
+							self.config = VirtualMachineConfig()
+							self.model.reset()
+						} else if self.wasCancelled == false && !(error is CancellationError) {
+							alertError(error)
+						}
+
+						self.wasCancelled = false
+
+					} else if case .success(let vmURL) = result, let vmURL = vmURL as? URL {
+						self.logger.debug("Progress - createVirtualMachine - success \(vmURL)")
+
+						cleanup()
+
+						Task {
+							await MainApp.app.openVirtualMachine(vmURL)
+							self.dismiss()
+						}
+
+						self.config = VirtualMachineConfig()
+						self.model.reset()
 					}
 
 					done()
+					self.logger.debug("Progress - createVirtualMachine - done")
 
 				case .step(let message):
-					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressMessageCreateVirtualMachine, object: message)
+					self.model.createVMMessage = message
+
+				case .substep(let message):
+					self.model.createVMSubtitle = message
+
+				case .provision(let infos):
+					self.logger.debug("Progress - provision")
+
+					self.provisioningStarted = true
+
+					if let infos {
+						self.doVNC(infos)
+					}
+
+				case .provisioned(let result):
+					self.logger.debug("Progress - provisioned \(result)")
+
+					if case .failure(let error) = result {
+						self.logger.debug("Progress - provisioned - failure \(error)")
+					} else if case .success(let result) = result {
+						self.logger.debug("Progress - provisioned - success \(String(describing: result?.reason))")
+					}
 				}
 			}
 		}
 	}
 
 	func createVirtualMachine(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async {
-		await withTaskCancellationHandler(
-			operation: {
-				do {
-					let options = self.config.buildOptions(imageSource: model.imageSource)
-					var ipswQueue: DispatchQueue!
+		await withTaskCancellationHandler {
+			defer {
+				self.model.createVirtualMachineTask = nil
+			}
 
-					#if arch(arm64)
-						if AppState.shared.connectionMode == .app && self.model.imageSource == .ipsw {
-							ipswQueue = DispatchQueue(label: "IPSWQueue")
-						}
-					#endif
+			do {
+				var options = self.config.buildOptions(wizardID, imageSource: model.imageSource)
 
-					let build = try await AppState.shared.buildVirtualMachine(options: options, queue: ipswQueue) { result in
-						progressHandler(result)
-					}
-
-					if build.builded == false {
-						progressHandler(.terminated(.failure(ServiceError(build.reason)), String(localized: "Create virtual machine failed")))
-					}
-				} catch {
-					progressHandler(.terminated(.failure(error), String(localized: "Create virtual machine failed")))
+				// model.provisioningTemplate/provisionVars are wizard-only UI state — buildOptions(_:imageSource:)
+				// has no knowledge of them, so they must be applied here before the build is dispatched, same as
+				// --template/--var on the CLI populate BuildOptions.provisionTemplate/provisionVars.
+				if self.model.provisioningTemplate.isEmpty == false {
+					options.provisionTemplate = self.model.provisioningTemplate
 				}
-			},
-			onCancel: {
-				progressHandler(.terminated(.failure(ServiceError(String(localized: "Cancelled"))), String(localized: "Create virtual machine failed")))
-			})
+
+				let provisionVars = self.model.provisionVars.asProvisionVarStrings
+
+				if provisionVars.isEmpty == false {
+					options.provisionVars = provisionVars
+				}
+
+				let build = try await AppState.shared.buildVirtualMachine(options: options, queue: Self.wizardQueue) { result in
+					progressHandler(result)
+				}
+
+				if self.wasCancelled == false && build.builded == false {
+					progressHandler(.terminated(.failure(ServiceError(build.reason)), String(localized: "Create virtual machine failed")))
+				}
+			} catch {
+				progressHandler(.terminated(.failure(error), String(localized: "Create virtual machine failed")))
+			}
+		} onCancel: {
+			Task { @MainActor in
+				self.model.createVirtualMachineTask = nil
+				self.wasCancelled = true
+			}
+		}
 	}
 
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {
@@ -1469,6 +1623,5 @@ struct VirtualMachineWizard: View {
 }
 
 #Preview {
-	VirtualMachineWizard()
+	VirtualMachineWizard(connectionManager: ConnectionManager.appConnectionManager)
 }
-

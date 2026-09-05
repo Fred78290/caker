@@ -1,0 +1,809 @@
+//  BootCommand.swift
+//  CakedLib
+//
+//  Parses Packer-style boot_command strings (e.g. "<wait30s>italiano<esc>english<enter>")
+//  into a sequence of platform-agnostic steps. No AppKit/Virtualization dependency here —
+//  the driver that turns these into actual input events lives in CakedLib.
+//
+
+import Foundation
+import GRPCLib
+
+public enum KeyToken: Equatable, Sendable {
+	case enter
+	case esc
+	case tab
+	case spacebar
+	case backspace
+	case delete
+	case insert
+	case home
+	case end
+	case pageUp
+	case pageDown
+	case up
+	case down
+	case left
+	case right
+	case function(Int)
+}
+
+public enum ModifierToken: Equatable, Sendable {
+	case leftShift
+	case rightShift
+	case leftAlt
+	case rightAlt
+	case leftCtrl
+	case rightCtrl
+	case leftSuper
+	case rightSuper
+	case function
+}
+
+extension KeyToken {
+	/// The exact `<...>` spelling `parseKey(_:)` above accepts for this token — used by
+	/// `ActionRecorder` (see `Sources/cakedlib/PackerLite/ActionRecorder.swift`) to emit tokens for
+	/// a recorded key press, kept next to the parser it must stay in sync with.
+	public var tokenName: String {
+		switch self {
+		case .enter: return "enter"
+		case .esc: return "esc"
+		case .tab: return "tab"
+		case .spacebar: return "spacebar"
+		case .backspace: return "backspace"
+		case .delete: return "delete"
+		case .insert: return "insert"
+		case .home: return "home"
+		case .end: return "end"
+		case .pageUp: return "pageup"
+		case .pageDown: return "pagedown"
+		case .up: return "up"
+		case .down: return "down"
+		case .left: return "left"
+		case .right: return "right"
+		case .function(let number): return "F\(number)"
+		}
+	}
+}
+
+extension ModifierToken {
+	/// The `<xOn>`/`<xOff>` base spelling `parseToken(_:)` above accepts for this token (i.e.
+	/// without the `On`/`Off` suffix) — same reuse reasoning as `KeyToken.tokenName` above.
+	public var tokenName: String {
+		switch self {
+		case .leftShift: return "leftShift"
+		case .rightShift: return "rightShift"
+		case .leftAlt: return "leftAlt"
+		case .rightAlt: return "rightAlt"
+		case .leftCtrl: return "leftCtrl"
+		case .rightCtrl: return "rightCtrl"
+		case .leftSuper: return "leftSuper"
+		case .rightSuper: return "rightSuper"
+		case .function: return "fn"
+		}
+	}
+}
+
+public typealias BootCommandSteps = [BootCommandStep]
+
+public struct BootCommandStep: Equatable, Sendable {
+	public enum Step: Equatable, Sendable {
+		public static func == (lhs: Step, rhs: Step) -> Bool {
+			lhs.description == rhs.description
+		}
+
+		public var description: String {
+			switch self {
+			case .wait(let seconds): return "wait \(seconds)s"
+			case .type(let text): return "type \(text)"
+			case .press(let key, let repeated): return "press \(key) x\(repeated)"
+			case .modifierOn(let modifier): return "modifier on \(modifier)"
+			case .modifierOff(let modifier): return "modifier off \(modifier)"
+			case .click(let point): return "click \(Int(point.x))x\(Int(point.y))"
+			case .clickText(let text, let timeout): return "clickText \(text) x\(timeout)s"
+			case .locate(let text, let timeout): return "locate \(text) x\(timeout)s"
+			case .skipCommandIfNotFound(let text, let timeout): return "skipCommandIfNotFound \(text) x\(timeout)s"
+			case .keyboard(let translator): return "keyboard \(translator)"
+			case .scroll(let vertical, let horizontal): return "scroll \(vertical),\(horizontal)"
+			case .voiceOverOn(let confirm): return "voiceOverOn \(confirm)"
+			case .voiceOverOff: return "voiceOverOff"
+			case .skipStepIfNotFound(let text, let steps, let timeout): return "skipStepIfNotFound \(text) steps:\(steps) x\(timeout)s"
+			case .reboot(let requestStop): return "reboot requestStop:\(requestStop)"
+			case .set(let name, let value): return "set \(name)=\(value)"
+			}
+		}
+
+		case wait(TimeInterval)
+		case type(String)
+		case press(KeyToken, repeated: Int = 1)
+		case modifierOn(ModifierToken)
+		case modifierOff(ModifierToken)
+		case click(CGPoint)
+		case clickText([String], timeout: TimeInterval)
+		case locate([String], timeout: TimeInterval)
+		case skipCommandIfNotFound([String], timeout: TimeInterval)
+		case skipStepIfNotFound([String], Int, timeout: TimeInterval)
+		case scroll(horizontal: Int, vertical: Int)
+		case keyboard(any KeyLayoutTranslator)
+		case voiceOverOn(confirm: Bool)
+		case voiceOverOff
+		case reboot(requestStop: Bool)
+		/// Sets a runtime variable (distinct from the static `${var.*}` substitution variables
+		/// resolved once at template-load time) that later `condition:` checks on other
+		/// `boot_command`/`pre_boot_command` title blocks can compare against — see
+		/// `BootCommandStep.meetCondition(_:)`. Parsed from `<set name="value">`.
+		case set(name: String, value: String)
+	}
+
+	public let title: String
+	public let steps: [Step]
+	public let conditions: [String]?
+
+	public init(command: PackerLiteTemplate.Command) throws {
+		var steps: [Step] = []
+		var literal = ""
+		var remainder = Substring(command.commands.joined())
+
+		func flushLiteral() {
+			if literal.isEmpty == false {
+				steps.append(.type(literal))
+				literal = ""
+			}
+		}
+
+		while let character = remainder.first {
+			if character == "<" {
+				guard let closeIndex = remainder.firstIndex(of: ">") else {
+					throw BootCommandParseError.unterminatedToken(String(remainder))
+				}
+
+				let tokenBody = String(remainder[remainder.index(after: remainder.startIndex)..<closeIndex])
+
+				flushLiteral()
+				try steps.append(Self.parseToken(tokenBody))
+				remainder = remainder[remainder.index(after: closeIndex)...]
+			} else {
+				literal.append(character)
+				remainder = remainder.dropFirst()
+			}
+		}
+
+		flushLiteral()
+
+		self.title = command.title
+		self.steps = steps
+		self.conditions = command.conditions
+	}
+
+	/// Whether this title block should run at all, given the runtime variable set accumulated so
+	/// far by `<set name="value">` steps executed earlier in the same `boot_command`/`pre_boot_command`
+	/// run (see `PackerLiteDriver.variables`) — distinct from the static `${var.*}` substitution
+	/// variables, which are already baked into `steps`' literal text by template-load time and never
+	/// change during a run. Every listed `condition:` entry must hold (AND, not OR) for the block to
+	/// execute; an empty/absent `conditions` list always means "always run."
+	public func meetCondition(_ variables: [String: String]) -> Bool {
+		guard let conditions = self.conditions, conditions.isEmpty == false else {
+			return true
+		}
+
+		return conditions.allSatisfy { Self.evaluateCondition($0, variables: variables) }
+	}
+
+	/// Evaluates a single `condition:` entry of the form `name != "value"` or `name == "value"`
+	/// (quotes optional) against the current runtime variable set. A variable that was never set by
+	/// an earlier `<set>` step compares as an empty string, not as absent — this is what lets
+	/// `version != "44"` mean "the `<set version=...>` step on the Fedora-44-shaped title block
+	/// earlier in this run never actually executed" (e.g. because a `skipCommandIfNotFound` before
+	/// it skipped the rest of that block), not just "version was explicitly set to something else."
+	private static func evaluateCondition(_ condition: String, variables: [String: String]) -> Bool {
+		for op in ["!=", "=="] {
+			guard let range = condition.range(of: op) else {
+				continue
+			}
+
+			let name = String(condition[condition.startIndex..<range.lowerBound]).trimmingCharacters(in: .whitespaces)
+			let value = trimMatchingQuotes(String(condition[range.upperBound...]).trimmingCharacters(in: .whitespaces))
+			let currentValue = variables[name] ?? String.empty
+
+			return op == "!=" ? currentValue != value : currentValue == value
+		}
+
+		// No recognized operator -- fail open rather than silently skipping a block the template
+		// author clearly intended to run under some circumstance, just not one we can parse.
+		return true
+	}
+
+	private static func parseKey(_ token: String) throws -> BootCommandStep.Step? {
+		// This function is a placeholder for potential future key parsing logic.
+		let tokens = token.split(separator: " ", maxSplits: 1)
+		var repeated = 1
+
+		if tokens.count > 1 {
+			if tokens.count == 2, let repeatString = tokens.last {
+				let repeats = repeatString.split(separator: "=", maxSplits: 1)
+
+				guard repeats.count == 2, repeats[0].lowercased() == "repeat", let repeatCount = Int(repeats[1]) else {
+					throw BootCommandParseError.unknownToken(token)
+				}
+
+				repeated = repeatCount
+			} else {
+				throw BootCommandParseError.unknownToken(token)
+			}
+		}
+
+		let lower = tokens.first!.lowercased()
+
+		switch lower {
+		case "enter", "return": return .press(.enter, repeated: repeated)
+		case "esc", "escape": return .press(.esc, repeated: repeated)
+		case "tab": return .press(.tab, repeated: repeated)
+		case "spacebar", "space": return .press(.spacebar, repeated: repeated)
+		case "backspace": return .press(.backspace, repeated: repeated)
+		case "delete", "del": return .press(.delete, repeated: repeated)
+		case "insert": return .press(.insert, repeated: repeated)
+		case "home": return .press(.home, repeated: repeated)
+		case "end": return .press(.end, repeated: repeated)
+		case "pageup": return .press(.pageUp, repeated: repeated)
+		case "pagedown": return .press(.pageDown, repeated: repeated)
+		case "up": return .press(.up, repeated: repeated)
+		case "down": return .press(.down, repeated: repeated)
+		case "left": return .press(.left, repeated: repeated)
+		case "right": return .press(.right, repeated: repeated)
+		default:
+			break
+		}
+
+		return nil
+	}
+
+	private static func parseToken(_ rawBody: String) throws -> BootCommandStep.Step {
+		let body = rawBody.trimmingCharacters(in: .whitespaces)
+		let lower = body.lowercased()
+
+		if let waitStep = parseWait(lower) {
+			return waitStep
+		}
+
+		if lower.hasPrefix("reboot") {
+			return try parseReboot(body)
+		}
+
+		if lower.hasPrefix("keyboard") {
+			return try parseKeyboard(body)
+		}
+
+		if lower.hasPrefix("click") {
+			return try parseClick(body)
+		}
+
+		if lower.hasPrefix("locate") {
+			return try parseLocate(body)
+		}
+
+		if lower.hasPrefix("skipcommandifnotfound") {
+			return try parseSkipCommandIfNotFound(body)
+		}
+
+		// Legacy alias for backward compatibility
+		if lower.hasPrefix("skipnotfound") {
+			let remapped = "skipCommandIfNotFound" + body.dropFirst("skipnotfound".count)
+			return try parseSkipCommandIfNotFound(remapped)
+		}
+
+		if lower.hasPrefix("skipstepifnotfound") {
+			return try parseSkipStepIfNotFound(body)
+		}
+
+		if lower.hasPrefix("scroll") {
+			return try parseScroll(body)
+		}
+
+		if lower.hasPrefix("set") {
+			return try parseSet(body)
+		}
+
+		if lower.hasPrefix("voiceoveron") {
+			return try parseVoideOverOn(body)
+		}
+
+		if lower.hasPrefix("voiceoveroff") {
+			return try parseVoideOverOff(body)
+		}
+
+		if let tokenStep = try parseKey(lower) {
+			return tokenStep
+		}
+
+		switch lower {
+		case "leftshifton": return .modifierOn(.leftShift)
+		case "leftshiftoff": return .modifierOff(.leftShift)
+		case "rightshifton": return .modifierOn(.rightShift)
+		case "rightshiftoff": return .modifierOff(.rightShift)
+		case "leftalton": return .modifierOn(.leftAlt)
+		case "leftaltoff": return .modifierOff(.leftAlt)
+		case "rightalton": return .modifierOn(.rightAlt)
+		case "rightaltoff": return .modifierOff(.rightAlt)
+		case "leftctrlon": return .modifierOn(.leftCtrl)
+		case "leftctrloff": return .modifierOff(.leftCtrl)
+		case "rightctrlon": return .modifierOn(.rightCtrl)
+		case "rightctrloff": return .modifierOff(.rightCtrl)
+		case "leftsuperon": return .modifierOn(.leftSuper)
+		case "leftsuperoff": return .modifierOff(.leftSuper)
+		case "rightsuperon": return .modifierOn(.rightSuper)
+		case "rightsuperoff": return .modifierOff(.rightSuper)
+		case "fnon": return .modifierOn(.function)
+		case "fnoff": return .modifierOff(.function)
+		default:
+			if lower.hasPrefix("f"), let number = Int(lower.dropFirst()), (1...20).contains(number) {
+				return .press(.function(number))
+			}
+
+			throw BootCommandParseError.unknownToken(body)
+		}
+	}
+
+	/// Matches "wait", "waitN", "waitNs" or "waitNm" — a bare "wait" defaults to 1s,
+	/// a bare number defaults to seconds.
+	private static func parseWait(_ lower: String) -> BootCommandStep.Step? {
+		guard lower.hasPrefix("wait") else { return nil }
+
+		let remainder = lower.dropFirst("wait".count)
+
+		if remainder.isEmpty {
+			return .wait(1)
+		}
+
+		var digits = ""
+		var unit = ""
+
+		for character in remainder {
+			if character.isNumber {
+				digits.append(character)
+			} else {
+				unit.append(character)
+			}
+		}
+
+		guard unit.isEmpty || unit == "s" || unit == "m", let value = Double(digits) else {
+			return nil
+		}
+
+		return .wait(unit == "m" ? value * 60 : value)
+	}
+
+	private static func parseReboot(_ body: String) throws -> BootCommandStep.Step {
+		let rest = body.dropFirst("reboot".count).trimmingCharacters(in: .whitespaces)
+
+		if rest.isEmpty {
+			return .reboot(requestStop: true)
+		}
+
+		let attributes = try parseAttributes("reboot", input: String(rest))
+
+		if let textValue = attributes["stop"] {
+			guard let requestStop = Bool(trimMatchingQuotes(textValue)) else {
+				throw BootCommandParseError.unknownToken(body)
+			}
+
+			return .reboot(requestStop: requestStop)
+		}
+
+		// Unknown attributes
+		throw BootCommandParseError.malformedReboot(body)
+	}
+
+	/// Matches `<set name="value">` — unlike every other attribute-style token, the attribute *name*
+	/// here is arbitrary (it's the runtime variable being set, not a fixed attribute like `text=`/
+	/// `timeout=`), so exactly one key=value pair is expected out of `parseAttributes`.
+	private static func parseSet(_ body: String) throws -> BootCommandStep.Step {
+		let rest = body.dropFirst("set".count).trimmingCharacters(in: .whitespaces)
+		let attributes = try parseAttributes("set", input: rest)
+
+		guard attributes.count == 1, let (name, value) = attributes.first, name.isEmpty == false else {
+			throw BootCommandParseError.malformedSet(body)
+		}
+
+		return .set(name: name, value: value)
+	}
+
+	private static func parseKeyboard(_ body: String) throws -> BootCommandStep.Step {
+		let rest = body.dropFirst("keyboard".count).trimmingCharacters(in: .whitespaces)
+
+		if let quote = rest.first, quote == "'" || quote == "\"" {
+			guard rest.count >= 2, rest.last == quote else {
+				throw BootCommandParseError.malformedKeyboard(body)
+			}
+
+			let keyboardString = String(rest.dropFirst().dropLast())
+
+			if keyboardString.isEmpty == false, keyboardString == "current" {
+				guard let keyboard = PackerLiteDriver.LayoutTranslator() else {
+					throw BootCommandParseError.keyboardNotFound(keyboardString)
+				}
+
+				return .keyboard(keyboard)
+			}
+
+			guard let keyboard = PackerLiteDriver.LayoutTranslator(keyboardString) else {
+				throw BootCommandParseError.keyboardNotFound(keyboardString)
+			}
+
+			return .keyboard(keyboard)
+		}
+
+		throw BootCommandParseError.malformedKeyboard(body)
+	}
+
+	/// Matches `click 'Some Text'`, `click "Some Text"` (OCR-located click) or `click X,Y` (raw coordinates).
+	private static func parseClick(_ body: String) throws -> BootCommandStep.Step {
+		// Support formats:
+		// 1) click 'Some Text' or click "Some Text"
+		// 2) click X,Y
+		// 3) click timeout=10 text="Some Text"
+		// 4) click point="X,Y"
+		let rest = body.dropFirst("click".count).trimmingCharacters(in: .whitespaces)
+
+		// Attribute-style: key=value pairs
+		if rest.contains("=") {
+			let attributes = try parseAttributes("click", input: String(rest))
+
+			if let pointString = attributes["point"]?.trimmingCharacters(in: .whitespacesAndNewlines) {
+				// Expect point in form "X,Y" possibly quoted
+				let trimmed = trimMatchingQuotes(pointString)
+				let parts = trimmed.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+
+				guard parts.count == 2, let x = Int(parts[0]), let y = Int(parts[1]) else {
+					throw BootCommandParseError.malformedClick(body)
+				}
+
+				return .click(CGPoint(x: CGFloat(x), y: CGFloat(y)))
+			}
+
+			if let textValue = attributes["text"] {
+				let text = trimMatchingQuotes(textValue).split(separator: "|").map { String($0) }
+				let timeout: TimeInterval
+
+				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
+					timeout = parsed
+				} else {
+					// Default to 10 seconds if not provided
+					timeout = 10
+				}
+
+				return .clickText(text, timeout: timeout)
+			}
+
+			// Unknown attributes
+			throw BootCommandParseError.malformedClick(body)
+		}
+
+		// Quoted text form
+		if let quote = rest.first, quote == "'" || quote == "\"" {
+			guard rest.count >= 2, rest.last == quote else {
+				throw BootCommandParseError.malformedClick(body)
+			}
+
+			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
+			return .clickText(String(rest.dropFirst().dropLast()).split(separator: "|").map { String($0) }, timeout: 10)
+		}
+
+		// Raw coordinates form: X,Y
+		let parts = rest.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+
+		guard parts.count == 2, let x = Int(parts[0]), let y = Int(parts[1]) else {
+			throw BootCommandParseError.malformedClick(body)
+		}
+
+		return .click(CGPoint(x: CGFloat(x), y: CGFloat(y)))
+	}
+
+	/// Matches voiceOverOn
+	private static func parseVoideOverOn(_ body: String) throws -> BootCommandStep.Step {
+		let rest = body.dropFirst("voiceoveron".count).trimmingCharacters(in: .whitespaces)
+
+		if rest.isEmpty {
+			return .voiceOverOn(confirm: false)
+		}
+
+		let attributes = try parseAttributes("voiceoveron", input: String(rest))
+
+		if let textValue = attributes["confirm"] {
+			guard let confirm = Bool(trimMatchingQuotes(textValue)) else {
+				throw BootCommandParseError.unknownToken(body)
+			}
+
+			return .voiceOverOn(confirm: confirm)
+		}
+
+		// Unknown attributes
+		throw BootCommandParseError.malformedVoiceOverOn(body)
+	}
+
+	/// Matches voiceOverOn
+	private static func parseVoideOverOff(_ body: String) throws -> BootCommandStep.Step {
+		let rest = body.dropFirst("voiceoveroff".count).trimmingCharacters(in: .whitespaces)
+
+		guard rest.isEmpty else {
+			throw BootCommandParseError.unknownToken("Unexpected characters after voiceoveroff: \(rest)")
+		}
+
+		return .voiceOverOff
+	}
+
+	/// Matches `locate 'Some Text'`, `click "Some Text"
+	private static func parseLocate(_ body: String) throws -> BootCommandStep.Step {
+		// Support formats:
+		// 1) locate 'Some Text' or locate "Some Text"
+		// 3) locate timeout=10 text="Some Text"
+		let rest = body.dropFirst("locate".count).trimmingCharacters(in: .whitespaces)
+
+		// Attribute-style: key=value pairs
+		if rest.contains("=") {
+			let attributes = try parseAttributes("locate", input: String(rest))
+
+			if let textValue = attributes["text"] {
+				let text = trimMatchingQuotes(textValue).split(separator: "|").map { String($0) }
+				let timeout: TimeInterval
+
+				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
+					timeout = parsed
+				} else {
+					// Default to 10 seconds if not provided
+					timeout = 10
+				}
+
+				return .locate(text, timeout: timeout)
+			}
+
+			// Unknown attributes
+			throw BootCommandParseError.malformedLocate(body)
+		}
+
+		// Quoted text form
+		if let quote = rest.first, quote == "'" || quote == "\"" {
+			guard rest.count >= 2, rest.last == quote else {
+				throw BootCommandParseError.malformedLocate(body)
+			}
+
+			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
+			return .locate(String(rest.dropFirst().dropLast()).split(separator: "|").map { String($0) }, timeout: 10)
+		}
+
+		throw BootCommandParseError.malformedLocate(body)
+	}
+
+	/// Matches `skipCommandIfNotFound 'Some Text'"
+	private static func parseSkipCommandIfNotFound(_ body: String) throws -> BootCommandStep.Step {
+		// Support formats:
+		// 1) skipCommandIfNotFound 'Some Text' or skipCommandIfNotFound "Some Text"
+		// 2) skipCommandIfNotFound timeout=10 text="Some Text"
+		let rest = body.dropFirst("skipcommandifnotfound".count).trimmingCharacters(in: .whitespaces)
+
+		// Attribute-style: key=value pairs
+		if rest.contains("=") {
+			let attributes = try parseAttributes("skipCommandIfNotFound", input: String(rest))
+
+			if let textValue = attributes["text"] {
+				let text = trimMatchingQuotes(textValue).split(separator: "|").map { String($0) }
+				let timeout: TimeInterval
+
+				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
+					timeout = parsed
+				} else {
+					// Default to 10 seconds if not provided
+					timeout = 10
+				}
+
+				return .skipCommandIfNotFound(text, timeout: timeout)
+			}
+
+			// Unknown attributes
+			throw BootCommandParseError.malformedSkipCommandIfNotFound(body)
+		}
+
+		// Quoted text form
+		if let quote = rest.first, quote == "'" || quote == "\"" {
+			guard rest.count >= 2, rest.last == quote else {
+				throw BootCommandParseError.malformedSkipCommandIfNotFound(body)
+			}
+
+			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
+			return .skipCommandIfNotFound(String(rest.dropFirst().dropLast()).split(separator: "|").map { String($0) }, timeout: 10)
+		}
+
+		throw BootCommandParseError.malformedSkipCommandIfNotFound(body)
+	}
+
+	/// Matches `skipStepIfNotFound 'Some Text'"
+	private static func parseSkipStepIfNotFound(_ body: String) throws -> BootCommandStep.Step {
+		// Support formats:
+		// 1) locate 'Some Text' or locate "Some Text"
+		// 3) locate timeout=10 text="Some Text"
+		let rest = body.dropFirst("skipstepifnotfound".count).trimmingCharacters(in: .whitespaces)
+
+		// Attribute-style: key=value pairs
+		if rest.contains("=") {
+			let attributes = try parseAttributes("skipStepIfNotFound", input: String(rest))
+
+			if let textValue = attributes["text"] {
+				let text = trimMatchingQuotes(textValue).split(separator: "|").map { String($0) }
+				let timeout: TimeInterval
+				let steps: Int
+
+				if let timeoutString = attributes["timeout"], let parsed = TimeInterval(trimMatchingQuotes(timeoutString)) {
+					timeout = parsed
+				} else {
+					// Default to 10 seconds if not provided
+					timeout = 10
+				}
+
+				if let stepsString = attributes["steps"], let parsed = Int(trimMatchingQuotes(stepsString)) {
+					steps = parsed
+				} else {
+					// Default to 1 step if not provided
+					steps = 1
+				}
+
+				return .skipStepIfNotFound(text, steps, timeout: timeout)
+			}
+
+			// Unknown attributes
+			throw BootCommandParseError.malformedSkipStepIfNotFound(body)
+		}
+
+		// Quoted text form
+		if let quote = rest.first, quote == "'" || quote == "\"" {
+			guard rest.count >= 2, rest.last == quote else {
+				throw BootCommandParseError.malformedSkipStepIfNotFound(body)
+			}
+
+			// Use a reasonable default timeout of 10s for OCR text clicks in legacy form
+			return .skipStepIfNotFound(String(rest.dropFirst().dropLast()).split(separator: "|").map { String($0) }, 1, timeout: 10)
+		}
+
+		throw BootCommandParseError.malformedSkipStepIfNotFound(body)
+	}
+
+	/// Matches `scroll horizontal=10 vertical=20`, `scroll horizontal="10" vertical="20"`, or `scroll 20` (vertical only)
+	private static func parseScroll(_ body: String) throws -> BootCommandStep.Step {
+		let rest = body.dropFirst("scroll".count).trimmingCharacters(in: .whitespaces)
+		var horizontal: Int = 0
+		var vertical: Int = 0
+
+		// Attribute-style: key=value pairs
+		if rest.contains("=") {
+			let attributes = try parseAttributes("scroll", input: String(rest))
+
+			if let text = attributes["horizontal"] {
+				let text = trimMatchingQuotes(text)
+
+				if let value = Int(text) {
+					horizontal = value
+				}
+			}
+
+			if let text = attributes["vertical"] {
+				let text = trimMatchingQuotes(text)
+
+				if let value = Int(text) {
+					vertical = value
+				}
+			}
+
+			return .scroll(horizontal: horizontal, vertical: vertical)
+		}
+
+		// Quoted text form
+		if let value = Int(trimMatchingQuotes(String(rest.trimmingCharacters(in: .whitespaces)))) {
+			return .scroll(horizontal: 0, vertical: value)
+		}
+
+		throw BootCommandParseError.malformedScroll(body)
+	}
+
+	/// Parses a simple list of key=value attributes separated by whitespace.
+	/// Supports values wrapped in single or double quotes and unquoted tokens without spaces.
+	private static func parseAttributes(_ token: String, input: String) throws -> [String: String] {
+		var result: [String: String] = [:]
+		var i = input.startIndex
+
+		func skipSpaces() {
+			while i < input.endIndex, input[i].isWhitespace { i = input.index(after: i) }
+		}
+
+		while i < input.endIndex {
+			skipSpaces()
+
+			if i >= input.endIndex { break }
+
+			// Read key
+			let keyStart = i
+			while i < input.endIndex, input[i].isLetter || input[i].isNumber { i = input.index(after: i) }
+
+			let key = String(input[keyStart..<i]).lowercased()
+			skipSpaces()
+
+			guard i < input.endIndex, input[i] == "=" else { throw BootCommandParseError.malformedAttribute("click " + input) }
+
+			i = input.index(after: i)
+			skipSpaces()
+
+			guard i < input.endIndex else { throw BootCommandParseError.malformedAttribute("\(token) " + input) }
+
+			let value: String
+
+			if input[i] == "\"" || input[i] == "'" {
+				let quote = input[i]
+				i = input.index(after: i)
+
+				let valueStart = i
+
+				while i < input.endIndex, input[i] != quote { i = input.index(after: i) }
+
+				guard i < input.endIndex else { throw BootCommandParseError.malformedAttribute("\(token) " + input) }
+
+				value = String(input[valueStart..<i])
+				i = input.index(after: i)  // consume closing quote
+
+			} else {
+				let valueStart = i
+				while i < input.endIndex, input[i].isWhitespace == false { i = input.index(after: i) }
+
+				value = String(input[valueStart..<i])
+			}
+
+			result[key] = value
+		}
+
+		return result
+	}
+
+	private static func trimMatchingQuotes(_ value: String) -> String {
+		guard let first = value.first, let last = value.last, (first == "\"" || first == "'") && first == last, value.count >= 2 else {
+			return value
+		}
+		return String(value.dropFirst().dropLast())
+	}
+}
+
+public enum BootCommandParseError: Error, LocalizedError, Equatable {
+	case unterminatedToken(String)
+	case unknownToken(String)
+	case malformedClick(String)
+	case malformedLocate(String)
+	case malformedSkipCommandIfNotFound(String)
+	case malformedSkipStepIfNotFound(String)
+	case malformedScroll(String)
+	case malformedKeyboard(String)
+	case malformedAttribute(String)
+	case malformedVoiceOverOn(String)
+	case malformedReboot(String)
+	case malformedSet(String)
+	case keyboardNotFound(String)
+
+	public var errorDescription: String? {
+		switch self {
+		case .unterminatedToken(let remainder): return "Unterminated boot_command token starting at: \(remainder)"
+		case .unknownToken(let token): return "Unknown boot_command token: <\(token)>"
+		case .malformedClick(let token): return "Malformed click token: <\(token)>"
+		case .malformedLocate(let token): return "Malformed locate token: <\(token)>"
+		case .malformedSkipCommandIfNotFound(let token): return "Malformed skipCommandIfNotFound token: <\(token)>"
+		case .malformedSkipStepIfNotFound(let token): return "Malformed skipStepIfNotFound token: <\(token)>"
+		case .malformedScroll(let token): return "Malformed scroll token: <\(token)>"
+		case .malformedKeyboard(let token): return "Malformed keyboard token: <\(token)>"
+		case .malformedAttribute(let token): return "Malformed attribute token: <\(token)>"
+		case .malformedVoiceOverOn(let body): return "Malformed voiceOverOn token: <\(body)>"
+		case .malformedReboot(let body): return "Malformed reboot token: <\(body)>"
+		case .malformedSet(let body): return "Malformed set token: <\(body)>"
+		case .keyboardNotFound(let keyboard): return "Keyboard not found: <\(keyboard)>"
+		}
+	}
+}
+
+enum BootCommand {
+	/// Parses a single boot_command string into a sequence of steps.
+	static func parse(_ command: PackerLiteTemplate.Command) throws -> BootCommandStep {
+		try BootCommandStep(command: command)
+	}
+}

@@ -121,6 +121,8 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 			} catch {
 				self.logger.error("Unexpected error: \(error)")
 			}
+
+			logger.info("Grand Central Updater terminated for VM: \(vmName)")
 		}
 	}
 	

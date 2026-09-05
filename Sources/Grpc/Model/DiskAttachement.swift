@@ -108,7 +108,7 @@ extension VZDiskImageCachingMode: @retroactive CustomStringConvertible {
 	}
 }
 
-public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable, Identifiable {
+public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable, Identifiable, Sendable {
 	public var diskPath: String
 	public var diskOptions: DiskOptions
 
@@ -135,7 +135,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		self.description
 	}
 
-	public struct DiskOptions: CustomStringConvertible, Codable, Hashable {
+	public struct DiskOptions: CustomStringConvertible, Codable, Hashable, Sendable {
 		public var readOnly: Bool = false
 		public var syncMode: String = "none"
 		public var cachingMode: String = VZDiskImageCachingMode.automatic.description

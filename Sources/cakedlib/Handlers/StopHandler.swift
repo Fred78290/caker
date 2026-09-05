@@ -26,6 +26,10 @@ public struct StopHandler {
 	public static func stopVM(location: VMLocation, force: Bool, runMode: Utils.RunMode) -> StoppedObject {
 		do {
 			if case .running(let mode) = location.status {
+				if mode == .provision {
+					throw ServiceError(String(localized: "VM \(location.name) is provisioning, please wait until it is finished"))
+				}
+
 				guard mode.isAllowed else {
 					throw ServiceError(String(localized: "VM \(location.name) is running in Caker application and use it to do action"))
 				}

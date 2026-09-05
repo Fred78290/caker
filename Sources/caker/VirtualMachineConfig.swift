@@ -18,13 +18,13 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	private var initialDiskSize: UInt64
 
 	var locationURL: URL
-	
+
 	var version: Int = 0
-	
+
 	var arch: GRPCLib.Architecture = Architecture.current()
-	
+
 	var instanceID: String
-	
+
 	var rootDisk: String? = nil {
 		didSet {
 			changedFields?.insert(\.rootDisk)
@@ -52,7 +52,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			changedFields?.insert(\.nested)
 		}
 	}
-	
+
 	var nestedIfChanged: Bool? {
 		self.changedFields?.contains(\.nested) == true ? self.nested : nil
 	}
@@ -62,7 +62,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			changedFields?.insert(\.useCloudInit)
 		}
 	}
-	
+
 	var configuredPlatform: GRPCLib.SupportedPlatform = .unknown {
 		didSet {
 			changedFields?.insert(\.configuredPlatform)
@@ -101,7 +101,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 
 	var memorySizeInMoB: UInt64 {
 		get {
-			self.memorySize/MoB
+			self.memorySize / MoB
 		}
 		set {
 			self.memorySize = newValue * MoB
@@ -119,7 +119,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	}
 
 	var memorySizeInMoBIfChanged: UInt64? {
-		self.changedFields?.contains(\.memorySize) == true ? self.memorySize/MoB : nil
+		self.changedFields?.contains(\.memorySize) == true ? self.memorySize / MoB : nil
 	}
 
 	var memorySizeMin: UInt64 = 512 {
@@ -419,11 +419,11 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	}
 
 	var diskSizeInGoBIfChanged: UInt64? {
-		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GoB : nil
+		self.changedFields?.contains(\.diskSize) == true ? self.diskSize / GoB : nil
 	}
 
 	var diskSizeInGiBIfChanged: UInt64? {
-		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GiB : nil
+		self.changedFields?.contains(\.diskSize) == true ? self.diskSize / GiB : nil
 	}
 
 	var diskSizeIfChanged: UInt64? {
@@ -502,13 +502,19 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		ByteCountFormatter.string(fromByteCount: Int64(self.diskSize), countStyle: .file)
 	}
 
+	var provisioned: Bool {
+		didSet {
+			changedFields?.insert(\.provisioned)
+		}
+	}
+
 	var humanReadableMemorySize: String {
 		ByteCountFormatter.string(fromByteCount: Int64(self.memorySize), countStyle: .memory)
 	}
 
 	init() {
 		self.locationURL = URL(fileURLWithPath: "/dev/null")
-		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
+		self.imageName = VMImageCatalog.shared.cloudImage("ubuntu2404").url
 		self.arch = Architecture.current()
 		self.os = .linux
 		self.diskFormat = .raw
@@ -538,10 +544,16 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.autoinstall = false
 		self.firstLaunch = true
 		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
+		self.provisioned = false
 
-		if FileManager.default.fileExists(atPath: "~/.ssh/id_rsa.pub".expandingTildeInPath) {
+		let id_rsa = "~/.ssh/id_rsa.pub".expandingTildeInPath
+
+		if FileManager.default.fileExists(atPath: id_rsa), let sshAuthorizedKey = try? String(contentsOfFile: id_rsa, encoding: .utf8) {
+			self.sshAuthorizedKey = sshAuthorizedKey.trimmingCharacters(in: .whitespacesAndNewlines)
+		}
+
+		if FileManager.default.fileExists(atPath: "~/.ssh/id_rsa".expandingTildeInPath) {
 			self.sshPrivateKeyPath = "~/.ssh/id_rsa"
-			self.sshAuthorizedKey = "~/.ssh/id_rsa.pub"
 		}
 
 		self.changedFields = Set<PartialKeyPath<Self>>()
@@ -553,7 +565,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.diskFormat = config.diskFormat
 		self.diskSize = config.diskSize
 		self.initialDiskSize = config.diskSize
-		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
+		self.imageName = VMImageCatalog.shared.cloudImage("ubuntu2404").url
 		self.locationURL = config.locationURL
 		self.version = config.version
 		self.os = config.os
@@ -571,6 +583,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.displayRefit = config.displayRefit
 		self.instanceID = config.instanceID
 		self.dhcpClientID = config.dhcpClientID
+		self.sshAuthorizedKey = config.sshAuthorizedKey
 		self.sshPrivateKeyPath = config.sshPrivateKeyPath
 		self.sshPrivateKeyPassphrase = config.sshPrivateKeyPassphrase
 		self.configuredUser = config.configuredUser
@@ -596,6 +609,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.vncPassword = config.vncPassword
 		self.ecid = config.ecid
 		self.hardwareModel = config.hardwareModel
+		self.provisioned = config.provisioned
 		self.changedFields = Set<PartialKeyPath<Self>>()
 	}
 
@@ -630,6 +644,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		config.displayRefit = self.displayRefit
 		config.instanceID = self.instanceID
 		config.dhcpClientID = self.dhcpClientID
+		config.sshAuthorizedKey = self.sshAuthorizedKey
 		config.sshPrivateKeyPath = self.sshPrivateKeyPath
 		config.sshPrivateKeyPassphrase = self.sshPrivateKeyPassphrase
 		config.configuredUser = self.configuredUser
@@ -654,8 +669,8 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		try config.save()
 	}
 
-	func buildOptions(imageSource: ImageSource) -> BuildOptions {
-		return self.buildOptions(image: self.imageName, imageSource: imageSource, sshAuthorizedKey: self.sshAuthorizedKey)
+	func buildOptions(_ id: UUID, imageSource: ImageSource) -> BuildOptions {
+		return self.buildOptions(id, image: self.imageName, imageSource: imageSource, sshAuthorizedKey: self.sshAuthorizedKey)
 	}
 
 	func configureOptions(allowReconfigureDisk: Bool) -> ConfigureOptions {
@@ -680,8 +695,9 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		)
 	}
 
-	func buildOptions(image: String, imageSource: ImageSource?, sshAuthorizedKey: String?) -> BuildOptions {
+	func buildOptions(_ id: UUID, image: String, imageSource: ImageSource?, sshAuthorizedKey: String?) -> BuildOptions {
 		.init(
+			id,
 			name: self.vmname!,
 			rootDisk: self.rootDisk,
 			cpu: UInt16(self.cpuCount),
@@ -719,4 +735,3 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		NotificationCenter.default.post(name: name, object: object)
 	}
 }
-

@@ -349,7 +349,7 @@ struct HomeView: View {
 	var sheet: some View {
 		switch self.selectedCategory {
 		case .virtualMachine:
-			VirtualMachineWizard(sheet: true)
+			VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true)
 				.colorSchemeForColor()
 				.restorationState(.disabled)
 				.frame(minWidth: 700, minHeight: 670)

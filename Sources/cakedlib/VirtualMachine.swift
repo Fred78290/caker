@@ -10,10 +10,11 @@ import Socket
 import SwiftUI
 import Virtualization
 
+private let kScreenshotProvisioningPeriodSeconds = 1.0
 private let kScreenshotPeriodSeconds = 5.0
 private let kAgentInstallRetryPeriodSeconds: UInt64 = 30
 
-public protocol VirtualMachineDelegate {
+public protocol VirtualMachineDelegate: AnyObject {
 	func didChangedState(_ vm: VirtualMachine)
 	func didScreenshot(_ vm: VirtualMachine, screenshot: NSImage)
 }
@@ -184,12 +185,14 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var requestStopFromUIPending = false
 	let runMode: Utils.RunMode
 	let display: VMRunHandler.DisplayMode
-	var recoveryMode: Bool
 	var vncServer: VZVNCServer! = nil
 	var vzMachineView: VMView.NSViewType! = nil
+	var vzMachineWindow: NSWindow? = nil
 	var timer: Timer? = nil
+	var provisioningVideoRecorder: ProvisioningVideoRecorder? = nil
 	var symlinks: [URL] = []
 	var portForwardingStarted = false
+	var mode: VirtualMachine.Mode
 	let logger = Logger("VirtualMachineEnvironment")
 
 	var runningIP: String = String.empty {
@@ -200,14 +203,26 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 	}
 
+	#if TRACE_DEINIT
+		deinit {
+			print("VirtualMachineEnvironment deallocated")
+		}
+	#endif
+
 	@MainActor
-	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, recoveryMode: Bool, runMode: Utils.RunMode) throws {
+	init(
+		location: VMLocation,
+		config: CakeConfig,
+		display: VMRunHandler.DisplayMode,
+		screenSize: CGSize,
+		mode: VirtualMachine.Mode,
+		runMode: Utils.RunMode
+	) throws {
 		let suspendable = config.suspendable && config.os == .darwin
 		var networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
 		let directorySharingAttachments = try config.directorySharingAttachments()
-		let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
-		let consoleURL = try config.consoleAttachment()
+		var communicationDevices: CommunicationDevices? = nil
 
 		// Add IMDS network interface for Linux VMs. Available in sandboxed builds too —
 		// IMDS binds an unprivileged port on this network's gateway either way, reachable
@@ -274,15 +289,20 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			}
 		}
 
-		let communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+		if mode == .normal {
+			let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
+			let consoleURL = try config.consoleAttachment()
 
-		try configuration.validate()
+			communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+		}
 
-		if runMode != .app {
-			sigcaught = [SIGINT, SIGUSR1, SIGUSR2].reduce(into: [Int32: DispatchSourceSignal]()) { partialResult, sig in
+		if mode != .provisioning && location.template == false && runMode != .app {
+			sigcaught = [SIGINT, SIGUSR1, SIGUSR2].reduce(into: sigcaught) { partialResult, sig in
 				partialResult[sig] = DispatchSource.makeSignalSource(signal: sig)
 			}
 		}
+
+		try configuration.validate()
 
 		self.location = location
 		self.config = config
@@ -293,9 +313,9 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		self.sigcaught = sigcaught
 		self.screenSize = screenSize
 		self.display = display
-		self.recoveryMode = recoveryMode
+		self.mode = mode
 
-		if location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
+		if let communicationDevices = communicationDevices, location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
 			communicationDevices.delegate = self
 		}
 	}
@@ -313,7 +333,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func startPortForwarding() {
-		guard portForwardingStarted == false else {
+		guard self.mode == .normal && portForwardingStarted == false else {
 			return
 		}
 
@@ -374,7 +394,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 				} catch {
 					self.logger.error("The socket \(link.path(percentEncoded: false)) can't be created as a symlink, original still available here \(target.path(percentEncoded: false))")
 				}
-				
+
 				return nil
 			}
 		} catch is ValidationError {
@@ -401,6 +421,10 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func stopPortForwarding() {
+		guard portForwardingStarted else {
+			return
+		}
+
 		portForwardingStarted = false
 
 		try? CakeAgentPortForwardingServer.closeForwardedPort()
@@ -416,12 +440,14 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		if let service = self.vmrunService {
 			self.logger.info("Stopping infos service for VM \(self.location.name)...")
 			service.stop()
+			self.vmrunService = nil
 		}
 	}
 
 	func stopVncServer() {
 		if let vncServer {
 			vncServer.stop()
+			self.vncServer = nil
 		}
 	}
 
@@ -439,6 +465,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			self.vmrunService.serve()
 			try await self.semaphore.waitUnlessCancelled()
 		} catch is CancellationError {
+			self.logger.debug("VMRunService cancelled for VM \(self.location.name)")
 		}
 	}
 
@@ -483,6 +510,13 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 }
 
 public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObject {
+	public enum Mode: Int, Sendable {
+		case normal
+		case provisioning
+		case recording
+		case recovery
+	}
+
 	static func == (lhs: VirtualMachine, rhs: VirtualMachine) -> Bool {
 		lhs.location.rootURL == rhs.location.rootURL
 	}
@@ -493,7 +527,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	public var virtualMachine: VZVirtualMachine
 	public let config: CakeConfig
 	public let location: VMLocation
-	public var delegate: VirtualMachineDelegate? = nil
+	public weak var delegate: VirtualMachineDelegate? = nil
 
 	internal var env: VirtualMachineEnvironment
 	private var vmQueue: DispatchQueue
@@ -501,6 +535,9 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	private var gcd: GrandCentralUpdater? = nil
 	private var installAgentRetryTask: Task<Void, Never>? = nil
 	private var cachedScreenshotSaveEnabled: Bool?
+	private var vmTask: Task<Int32, Never>? = nil
+	private var finalPromise: EventLoopPromise<Void>? = nil
+	private var isRebooting: Bool = false
 
 	public var suspendable: Bool {
 		return self.config.suspendable && self.config.os == .darwin
@@ -508,11 +545,15 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 
 	public var recoveryMode: Bool {
 		get {
-			self.env.recoveryMode
+			self.env.mode == .recovery
 		}
 		set {
-			self.env.recoveryMode = newValue
+			self.env.mode = newValue ? .recovery : .normal
 		}
+	}
+
+	public var mode: Mode {
+		self.env.mode
 	}
 
 	public var status: VMLocation.Status {
@@ -571,8 +612,22 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		return cdrom
 	}
 
+	#if TRACE_DEINIT
+		deinit {
+			print("Deinit virtual machine")
+		}
+	#endif
+
 	@MainActor
-	public init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, recoveryMode: Bool, runMode: Utils.RunMode, queue: dispatch_queue_t? = nil) throws {
+	public init(
+		location: VMLocation,
+		config: CakeConfig,
+		display: VMRunHandler.DisplayMode,
+		screenSize: CGSize,
+		mode: VirtualMachine.Mode,
+		runMode: Utils.RunMode,
+		queue: dispatch_queue_t? = nil
+	) throws {
 
 		if config.arch != Architecture.current() {
 			throw ServiceError(String(localized: "Unsupported architecture"))
@@ -580,7 +635,13 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 
 		self.config = config
 		self.location = location
-		self.env = try VirtualMachineEnvironment(location: location, config: config, display: display, screenSize: screenSize, recoveryMode: recoveryMode, runMode: runMode)
+		self.env = try VirtualMachineEnvironment(
+			location: location,
+			config: config,
+			display: display,
+			screenSize: screenSize,
+			mode: mode,
+			runMode: runMode)
 
 		if let queue = queue {
 			self.vmQueue = queue
@@ -599,8 +660,17 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		return self.virtualMachine
 	}
 
-	public func createVirtualMachineView() {
-		self.env.vzMachineView = VMView.createView(vm: self, frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
+	@discardableResult
+	public func createVirtualMachineView() -> VMView.NSViewType {
+		if let vzMachineView = self.env.vzMachineView {
+			return vzMachineView
+		}
+
+		let vzMachineView = VMView.createView(vm: self, frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
+
+		self.env.vzMachineView = vzMachineView
+
+		return vzMachineView
 	}
 
 	public func takeScreenshotDebug() {
@@ -635,35 +705,71 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 
 // MARK: - VM Control
 extension VirtualMachine {
+	public func rebootVM(requestStop: Bool) async throws {
+		defer {
+			self.isRebooting = false
+		}
+
+		self.isRebooting = true
+
+		if self.virtualMachine.state == .running {
+			if requestStop {
+				try await self.requestStopVM()
+			} else {
+				try await self.stopVM()
+			}
+		}
+
+		try await self.startVM()
+	}
+
+	public func startVM() async throws {
+		try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+			self.vmQueue.async {
+				if self.virtualMachine.canStart {
+					self.virtualMachine.start(options: self.startOptions) { error in
+						if let error {
+							continuation.resume(throwing: error)
+						} else {
+							continuation.resume()
+						}
+					}
+				} else {
+					continuation.resume(throwing: ServiceError(String(localized: "VM can not be started")))
+				}
+			}
+		}
+	}
+	
 	public func startVM(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.sync {
 			if self.virtualMachine.canStart {
 				self.virtualMachine.start(options: self.startOptions) { error in
 					let result: Result<Void, Error> = error.map(Result.failure) ?? .success(())
-
+					
 					self.startCompletionHandler(result: result, completionHandler: completionHandler)
 				}
 			}
 		}
 	}
-
+	
 	private func _pauseVM(completionHandler: StopCompletionHandler? = nil) {
 		if self.virtualMachine.canPause {
 			try? self.saveScreenshot()
-
+			
 			let pauseVM = {
 				self.virtualMachine.pause { result in
 					if case .failure(let err) = result {
 						self.logger.error("Failed to pause VM \(self.location.name) \(err)")
 					} else {
 						self.logger.info("VM \(self.location.name) paused")
-
+						
 						self.env.stopServices()
-
+						
 						self.env.timer?.invalidate()
 						self.env.timer = nil
 					}
-
+					
 					if let completionHandler {
 						switch result {
 						case .success:
@@ -672,159 +778,195 @@ extension VirtualMachine {
 							completionHandler(error)
 						}
 					}
-
+					
 					self.didChangedState(true)
 				}
 			}
-
-			#if arch(arm64)
-				if #available(macOS 14, *) {
-					do {
-						try self.env.configuration.validateSaveRestoreSupport()
-
-						self.virtualMachine.pause { result in
-							if self.env.runMode == .app {
-								self.location.removePID()
+			
+#if arch(arm64)
+			if #available(macOS 14, *) {
+				do {
+					try self.env.configuration.validateSaveRestoreSupport()
+					
+					self.virtualMachine.pause { result in
+						if self.env.runMode == .app {
+							self.location.removePID()
+						}
+						
+						if case .failure(let err) = result {
+							self.logger.error("Failed to pause VM \(self.location.name) \(err)")
+							if let completionHandler {
+								completionHandler(err)
 							}
-
-							if case .failure(let err) = result {
-								self.logger.error("Failed to pause VM \(self.location.name) \(err)")
-								if let completionHandler {
-									completionHandler(err)
-								}
-							} else {
-								self.logger.info("VM \(self.location.name) paused")
-
-								self.env.stopServices()
-
-								self.env.timer?.invalidate()
-								self.env.timer = nil
-
-								self.virtualMachine.saveMachineStateTo(url: self.location.stateURL) { result in
-									if let error = result {
-										if let completionHandler = completionHandler {
-											completionHandler(error)
-										}
-									} else {
-										self.logger.info("Snap created successfully...")
-
-										if let completionHandler = completionHandler {
-											completionHandler(nil)
-										}
+						} else {
+							self.logger.info("VM \(self.location.name) paused")
+							
+							self.env.stopServices()
+							
+							self.env.timer?.invalidate()
+							self.env.timer = nil
+							
+							self.virtualMachine.saveMachineStateTo(url: self.location.stateURL) { result in
+								if let error = result {
+									if let completionHandler = completionHandler {
+										completionHandler(error)
+									}
+								} else {
+									self.logger.info("Snap created successfully...")
+									
+									if let completionHandler = completionHandler {
+										completionHandler(nil)
 									}
 								}
 							}
-
-							self.didChangedState(true)
 						}
-					} catch {
-						self.logger.warn("Snapshot is only supported on macOS 14 or newer")
-
-						if let completionHandler = completionHandler {
-							completionHandler(error)
-						}
+						
+						self.didChangedState(true)
 					}
-				} else {
-					pauseVM()
+				} catch {
+					self.logger.warn("Snapshot is only supported on macOS 14 or newer")
+					
+					if let completionHandler = completionHandler {
+						completionHandler(error)
+					}
 				}
-			#else
+			} else {
 				pauseVM()
-			#endif
+			}
+#else
+			pauseVM()
+#endif
 		} else {
 			self.logger.warn("Can't pause VM: \(self.location.name)")
 		}
 	}
-
+	
 	public func pauseVM(completionHandler: StopCompletionHandler? = nil) {
 		self.vmQueue.sync {
 			self._pauseVM(completionHandler: completionHandler)
 		}
 	}
-
+	
 	public func resumeVM(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.sync {
 			if self.virtualMachine.canResume {
 				self.logger.info("VM \(self.location.name) can resume")
-
+				
 				self.virtualMachine.resume { result in
 					self.startCompletionHandler(result: result, completionHandler: completionHandler)
 				}
 			}
 		}
 	}
-
+	
 	private func _stopVM(completionHandler: StopCompletionHandler? = nil) {
 		self.cancelAgentInstallRetry()
-
+		
 		try? self.saveScreenshot()
-
+		
 		self.virtualMachine.stop { error in
 			if let error = error {
 				self.logger.error("VM \(self.location.name) failed to stop, \(error)")
 			} else {
 				self.logger.info("VM \(self.location.name) stopped")
-
+				
 				self.location.removePID()
 			}
-
+			
 			self.env.stopServices()
-
+			
 			self.env.timer?.invalidate()
 			self.env.timer = nil
-
+			
 			if let completionHandler = completionHandler {
 				completionHandler(error)
 			}
-
+			
 			self.didChangedState(true)
 		}
 	}
-
+	
+	public func stopVM() async throws {
+		try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+			self.vmQueue.async {
+				self._stopVM { error in
+					if let error {
+						continuation.resume(throwing: error)
+					} else {
+						continuation.resume()
+					}
+				}
+			}
+		}
+	}
+	
 	public func stopVM(completionHandler: StopCompletionHandler? = nil) {
 		self.vmQueue.sync {
 			self._stopVM(completionHandler: completionHandler)
 		}
 	}
-
+	
 	private func _requestStopVM(completionHandler: StopCompletionHandler? = nil) throws {
 		self.env.requestStopFromUIPending = true
-
+		
 		try? self.saveScreenshot()
-
+		
 		if self.env.config.os != .darwin && self.virtualMachine.canRequestStop {
 			self.logger.info("Requesting stop VM \(self.location.name)...")
-
+			
 			try self.virtualMachine.requestStop(completionHandler: completionHandler)
 			self.didChangedState(false)
 		} else if self.virtualMachine.canStop {
 			self.cancelAgentInstallRetry()
-
+			
 			self.virtualMachine.stop { result in
 				self.logger.info("VM \(self.location.name) stopped")
-
+				
 				self.env.stopServices()
 				self.didChangedState(true)
-
+				
 				if self.env.runMode == .app {
 					try? self.location.deletePID()
 				}
-
+				
 				completionHandler?(result)
 			}
 		} else if self.virtualMachine.state == VZVirtualMachine.State.starting {
 			self.logger.error("VM \(self.location.name) can't be stopped")
-
+			
 			completionHandler?(ExitCode(EXIT_FAILURE))
-
+			
 			if self.env.runMode != .app {
 				throw ExitCode(EXIT_FAILURE)
 			}
 		}
 	}
-
+	
 	public func requestStopVM(completionHandler: StopCompletionHandler? = nil) throws {
 		try self.vmQueue.sync {
 			try self._requestStopVM(completionHandler: completionHandler)
+		}
+	}
+	
+	public func requestStopVM() async throws {
+		try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+			self.vmQueue.async {
+				if self.virtualMachine.canRequestStop {
+					do {
+						try self.virtualMachine.requestStop { error in
+							if let error {
+								continuation.resume(throwing: error)
+							} else {
+								continuation.resume()
+							}
+						}
+					} catch {
+						continuation.resume(throwing: error)
+					}
+				} else {
+					continuation.resume(throwing: ServiceError(String(localized: "VM can not be started")))
+				}
+			}
 		}
 	}
 }
@@ -912,6 +1054,8 @@ extension VirtualMachine {
 								self.scheduleAgentInstallRetry(config: config, runningIP: runningIP, runMode: runMode)
 							}
 						}
+					} else if self.env.mode == .normal {
+						self.logger.error("VM \(self.location.name) disabled to install agent on ip: \(runningIP)")
 					}
 				}
 
@@ -932,7 +1076,7 @@ extension VirtualMachine {
 			config.firstLaunch = false
 
 			if config.agent {
-				self.location.vmInfos(runMode: runMode) { result in
+				self.location.vmInfos(retries: .upTo(5), runMode: runMode) { result in
 					switch result {
 					case .failure(let error):
 						self.logger.error("VM \(self.location.name) failed to get vm infos: \(error)")
@@ -965,6 +1109,10 @@ extension VirtualMachine {
 	}
 
 	private func start(_ mode: VMRunServiceMode, completionHandler: StartCompletionHandler? = nil) async throws {
+
+		let finalPromise = Utilities.group.next().makePromise(of: Void.self)
+
+		self.finalPromise = finalPromise
 		try self.env.startVMRunService(mode, vm: self)
 
 		#if arch(arm64)
@@ -1019,7 +1167,6 @@ extension VirtualMachine {
 			self.startVM(completionHandler: completionHandler)
 		#endif
 
-
 		try await self.env.serveVMRunService()
 
 		if Task.isCancelled {
@@ -1027,14 +1174,19 @@ extension VirtualMachine {
 				self.logger.info("Stopping VM \(self.location.name)...")
 
 				await withCheckedContinuation { continuation in
-					if self.config.os == .darwin {
+					if self.env.mode != .normal {
+						self.stopVM { _ in
+							continuation.resume()
+						}
+					} else if self.config.os == .darwin {
 						if self.config.agent {
 							do {
 								if try self.location.agentURL.exists() {
-									let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(),
-																								   listeningAddress: self.location.agentURL,
-																								   timeout: 5,
-																								   runMode: self.env.runMode)
+									let client = try CakeAgentConnection.createCakeAgentConnection(
+										on: Utilities.group.next(),
+										listeningAddress: self.location.agentURL,
+										timeout: 5,
+										runMode: self.env.runMode)
 
 									try client.shutdown().log()
 
@@ -1042,7 +1194,7 @@ extension VirtualMachine {
 									while virtualMachine.state == .running {
 										Thread.sleep(forTimeInterval: 0.100)
 									}
-									
+
 									continuation.resume()
 								}
 							} catch {
@@ -1073,6 +1225,8 @@ extension VirtualMachine {
 			}
 		}
 
+		finalPromise.succeed()
+
 		self.logger.info("VM \(self.location.name) exited")
 	}
 
@@ -1084,7 +1238,7 @@ extension VirtualMachine {
 		switch result {
 		case .success:
 			self.logger.info("VM \(self.location.name) started")
-			self.env.timer = self.startScreenshotTimer()
+			self.env.timer = self.startScreenshotTimer(timeInterval: self.env.mode == .provisioning ? kScreenshotProvisioningPeriodSeconds : kScreenshotPeriodSeconds)
 			self.env.startCommunicationDevices(self.virtualMachine)
 			break
 		case .failure(let error):
@@ -1102,17 +1256,19 @@ extension VirtualMachine {
 	}
 
 	private func catchUserSignals(_ task: Task<Int32, Never>) {
-		self.env.sigcaught[SIGINT]!.setEventHandler {
+		guard self.env.sigcaught.isEmpty == false else { return }
+
+		self.env.sigcaught[SIGINT]?.setEventHandler {
 			task.cancel()
 		}
 
-		self.env.sigcaught[SIGUSR1]!.setEventHandler {
+		self.env.sigcaught[SIGUSR1]?.setEventHandler {
 			self.pauseVM { result in
 				task.cancel()
 			}
 		}
 
-		self.env.sigcaught[SIGUSR2]!.setEventHandler {
+		self.env.sigcaught[SIGUSR2]?.setEventHandler {
 			if self.env.requestStopFromUIPending == false {
 				try? self.requestStopVM()
 			}
@@ -1124,9 +1280,19 @@ extension VirtualMachine {
 		}
 	}
 
-	public func runInBackground(_ mode: VMRunServiceMode, on: EventLoop, internalCall: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
+	public func runInBackground(
+		_ mode: VMRunServiceMode,
+		on: EventLoop,
+		promise: EventLoopPromise<String?>? = nil,
+		completionHandler: StartCompletionHandler? = nil
+	) throws -> EventLoopFuture<String?> {
+
 		let task = Task {
 			var status: Int32 = 0
+
+			defer {
+				self.vmTask = nil
+			}
 
 			do {
 				try await self.start(mode, completionHandler: completionHandler)
@@ -1136,14 +1302,20 @@ extension VirtualMachine {
 
 			self.location.removePID()
 
-			guard internalCall else {
-				Foundation.exit(status)
+			guard self.env.mode == .provisioning else {
+				await MainActor.run {
+					NSApplication.shared.terminate(self)
+				}
+
+				return status
 			}
 
 			return status
 		}
 
-		if self.location.template == false && self.env.runMode != .app {
+		self.vmTask = task
+
+		if self.location.template == false && self.env.sigcaught.isEmpty == false && self.env.runMode != .app {
 			self.catchUserSignals(task)
 		}
 
@@ -1153,13 +1325,8 @@ extension VirtualMachine {
 
 // MARK: - VNCServer service
 extension VirtualMachine {
-	public func stopVncServer() throws {
-		if let vncServer = self.env.vncServer {
-			vncServer.stop()
-			self.env.vncServer = nil
-			self.env.vzMachineView.virtualMachine = nil
-			self.env.vzMachineView = nil
-		}
+	public func stopVncServer() {
+		self.env.stopVncServer()
 	}
 
 	public func startVncServer(_ vzMachineView: VMView.NSViewType, vncPassword: String, port: Int) throws -> [URL] {
@@ -1182,6 +1349,13 @@ extension VirtualMachine {
 		return self.env.vncServer.urls
 	}
 
+	/// Arms (non-nil) or disarms (nil) a `caked record` recording tap on this VM's VNC server, if
+	/// one has been started (`startVncServer` above) — a no-op otherwise. See
+	/// `ActionRecorder.swift` and `VNCInputHandler.actionRecorder` for the rest of the pipeline.
+	public func setActionRecorder(_ handler: RecordedActionHandler?) {
+		self.env.vncServer?.actionRecorder = handler
+	}
+
 }
 
 // MARK: - VZVirtualMachineDelegate
@@ -1201,18 +1375,24 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 	}
 
 	func didChangedStateOnStop() {
-		self.cancelAgentInstallRetry()
-		self.env.signalStop()
-		self.didChangedState(true)
+		if self.isRebooting == false {
+			self.cancelAgentInstallRetry()
+			self.env.signalStop()
+			self.didChangedState(true)
+		}
 	}
 
 	func didChangedState(_ stopGCD: Bool) {
-		if let delegate = self.delegate {
-			self.vmQueue.async {
-				delegate.didChangedState(self)
-				if stopGCD {
-					self.stopGrandCentralUpdate()
-				}
+		// stopGrandCentralUpdate() must run whenever stopGCD is true, independent of whether a
+		// delegate happens to be set — it used to be nested inside the `delegate != nil` check below,
+		// so a nil delegate at VM-stop time (a weak reference, e.g. ProvisionTask having already
+		// restored its chained delegate) silently skipped it, leaking the VirtualMachine <-> gcd
+		// retain cycle (VirtualMachine.gcd -> GrandCentralUpdater.vm -> back to the same VirtualMachine).
+		self.vmQueue.async {
+			self.delegate?.didChangedState(self)
+
+			if stopGCD {
+				self.stopGrandCentralUpdate()
 			}
 		}
 	}
@@ -1295,6 +1475,7 @@ extension VirtualMachine {
 
 // MARK: - UI actions
 extension VirtualMachine {
+
 	public func startFromUI(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.async {
 			self.virtualMachine.start(options: self.startOptions) { error in
@@ -1319,6 +1500,31 @@ extension VirtualMachine {
 			self._stopVM { result in
 				self.startFromUI()
 			}
+		}
+	}
+
+	public func terminateVM(completionHandler: StopCompletionHandler? = nil) {
+		if let vmTask = self.vmTask {
+			if let completionHandler {
+				let promise: EventLoopPromise<Void> = Utilities.group.next().makePromise()
+
+				promise.futureResult.whenComplete { _ in
+					completionHandler(nil)
+				}
+
+				self.finalPromise?.futureResult.cascade(to: promise)
+			}
+
+			self.vmTask = nil
+			vmTask.cancel()
+		} else if let completionHandler {
+			if self.virtualMachine.state == .running {
+				completionHandler(nil)
+			} else {
+				completionHandler(ServiceError("VM \(self.location.name) is not running"))
+			}
+
+			self.finalPromise?.succeed()
 		}
 	}
 
@@ -1453,7 +1659,7 @@ extension VirtualMachine {
 		return (enabled, save)
 	}
 
-	func startScreenshotTimer() -> Timer {
+	func startScreenshotTimer(timeInterval: TimeInterval /* = kScreenshotPeriodSeconds */) -> Timer {
 		let screenshotSettings = self.refreshScreenshotSettingsCache()
 		let screenshotEnabled = screenshotSettings.enabled
 		let screenshotSaveEnabled = screenshotSettings.save
@@ -1462,7 +1668,14 @@ extension VirtualMachine {
 			try? deleteScreenshot()
 		}
 
-		let timer = Timer(timeInterval: kScreenshotPeriodSeconds, repeats: true) { [weak self] timer in
+		// Debug recording of provisioning is purely a PackerLite aid, not a general VM-run
+		// feature — only started when this VM is actually being provisioned, and only when
+		// screenshots aren't disabled entirely (there'd be no frame source otherwise).
+		if self.env.mode == .provisioning && screenshotEnabled {
+			self.startProvisioningVideoRecorder()
+		}
+
+		let timer = Timer(timeInterval: timeInterval, repeats: true) { [weak self] timer in
 			guard let self = self else {
 				timer.invalidate()
 				return
@@ -1504,12 +1717,39 @@ extension VirtualMachine {
 
 	func takeScreenshot() {
 		if let image = self.env.vzMachineView?.image() {
+			self.env.provisioningVideoRecorder?.append(image)
+
 			if let delegate = self.delegate {
 				delegate.didScreenshot(self, screenshot: image)
 			} else {
 				try? image.pngData?.write(to: self.location.screenshotURL)
 			}
 		}
+	}
+
+	private func startProvisioningVideoRecorder() {
+		do {
+			self.env.provisioningVideoRecorder = try ProvisioningVideoRecorder(outputURL: self.location.provisioningVideoURL, frameSize: self.env.screenSize)
+		} catch {
+			self.logger.error("Failed to start provisioning video recorder for VM \(self.location.name): \(error)")
+		}
+	}
+
+	/// Finalizes the provisioning debug recording once the overall provisioning outcome
+	/// (success/failure) is known — this can't be inferred purely from VM teardown, since
+	/// teardown happens the same way in both cases. Every provisioning completion path
+	/// (`PackerLiteEngine.provision(id:location:config:template:runMode:progressHandler:)`'s
+	/// `destroyVM`, `ProvisionHandler.provision(...)`'s `destroyVM`) calls this right around
+	/// where it already decides the outcome. No-op if no recording was ever started (e.g.
+	/// this VM wasn't being provisioned, or screenshots are disabled).
+	public func finishProvisioningVideo(success: Bool) async {
+		guard let recorder = self.env.provisioningVideoRecorder else {
+			return
+		}
+
+		self.env.provisioningVideoRecorder = nil
+
+		await recorder.finish(delete: success)
 	}
 }
 
@@ -1530,22 +1770,50 @@ extension VirtualMachine {
 
 // MARK: - VNCServerDelegate
 extension VirtualMachine: VNCServerDelegate {
-	public func willStart(_ server: VNCServer) {
-		if self.env.display == .vnc {
-			let vmView = self.env.vzMachineView!
+	public func disposeWindow() {
+		guard let vmWindow = self.env.vzMachineWindow else {
+			return
+		}
 
-			if let framebufferView = self.env.vzMachineView {
+		self.env.vzMachineWindow = nil
+
+		DispatchQueue.main.async {
+			vmWindow.contentView = nil
+			vmWindow.close()
+		}
+	}
+
+	public func setupWindow(canHide: Bool) {
+		guard let vmView = self.env.vzMachineView else {
+			return
+		}
+
+		if vmView.window == nil {
+			if let framebufferView = vmView.framebufferView {
 				vmView.autoresizesSubviews = true
 				framebufferView.autoresizingMask = [.width, .height]
 				framebufferView.frame = NSRect(origin: .zero, size: vmView.bounds.size)
 			}
 
-			let window: NSWindow = NSWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
+			#if TRACE_DEINIT
+				let window: NSWindow = VirtualMachineWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
+			#else
+				let window: NSWindow = NSWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
+			#endif
 
-			window.hidesOnDeactivate = true
-			window.canHide = true
+			window.isReleasedWhenClosed = false
+			window.hidesOnDeactivate = canHide
+			window.canHide = canHide
 			window.contentView = vmView
 			window.makeKeyAndOrderFront(nil)
+
+			self.env.vzMachineWindow = window
+		}
+	}
+
+	public func willStart(_ server: VNCServer) {
+		if self.env.display == .vnc || self.env.display == .none {
+			self.setupWindow(canHide: true)
 		}
 	}
 
@@ -1558,6 +1826,7 @@ extension VirtualMachine: VNCServerDelegate {
 	}
 
 	public func didStop(_ server: VNCServer) {
+		self.disposeWindow()
 	}
 
 	public func vncServer(_ server: VNCServer, clientDidResizeDesktop screens: [VNCScreenDesktop]) {
@@ -1629,7 +1898,7 @@ extension VirtualMachine {
 	}
 
 	public func startGrandCentralUpdate(frequency: Int32, runMode: Utils.RunMode) async throws {
-		guard gcd == nil, self.config.agent else {
+		guard gcd == nil, self.config.agent, self.env.mode == .normal else {
 			return
 		}
 

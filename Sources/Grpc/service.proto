@@ -1,6 +1,6 @@
 // limitations under the License.
 syntax = "proto3";
-import "google/protobuf/wrappers.proto";
+//import "google/protobuf/wrappers.proto";
 
 option java_multiple_files = true;
 option java_package = "com.aldunelabs.caker";
@@ -94,6 +94,9 @@ service Service {
 
   // Compose allows for the orchestration of multiple virtual machines and services defined in a compose file.
   rpc Compose (Caked.ComposeRequest) returns (Caked.Reply);
+
+	// Provision a stopped virtual machine.
+  rpc Provision (Caked.VMRequest.ProvisionRequest) returns (stream Caked.Reply.VirtualMachineReply.ProvisionStreamReply);
 }
 
 message Empty {}
@@ -189,14 +192,16 @@ message Caked {
       ComposeReplyList   ls     = 5;
     }
   }
+
   enum VirtualMachineStatus {
-    stopped    = 0;
-    running    = 1;
-    paused     = 2;
-    deleted    = 3;
-    error      = 4;
-    agentReady = 5;
-    new        = 6;
+    stopped      = 0;
+    running      = 1;
+    paused       = 2;
+    deleted      = 3;
+    error        = 4;
+    agentReady   = 5;
+    new          = 6;
+    provisioning = 7;
   }
 
   message VncStream {
@@ -393,6 +398,7 @@ message Caked {
     optional string configuredPassword      = 25;
     string          configuredGroup         = 26;
     repeated string configuredGroups        = 27;
+    optional string sshAuthorizedKey        = 47;
     optional string sshPrivateKeyPath       = 28;
     optional string sshPrivateKeyPassphrase = 29;
     bool            clearPassword           = 30;
@@ -418,8 +424,9 @@ message Caked {
     optional bytes ecid          = 42;
     optional bytes hardwareModel = 43;
   // Optional root disk path for the VM, if applicable
-    optional string     rootDisk   = 44;
-    optional DiskFormat diskFormat = 45;
+    optional string     rootDisk    = 44;
+    optional DiskFormat diskFormat  = 45;
+    bool                provisioned = 46;
   }
 
   message ScreenSize {
@@ -486,6 +493,10 @@ message Caked {
       optional bool                     bridgedNetwork        = 30;
       optional string                   rootDisk              = 31;
       optional Configuration.DiskFormat diskFormat            = 32;
+      optional bytes                    provisionTemplate     = 33;
+      optional string                   provisionVars         = 34;
+      optional string                   macosVersion          = 35;
+      optional string                   imageId               = 36;
     }
 
     message BuildRequest {
@@ -499,6 +510,34 @@ message Caked {
       optional string     vncPassword   = 4;
       optional int32      vncPort       = 5;
       optional bool       recoveryMode  = 6;
+    }
+
+    message ProvisionRequest {
+      enum MacOSVersion {
+        macosUnknown = 0;
+        macos12      = 1;
+        macos13      = 2;
+        macos14      = 3;
+        macos15      = 4;
+        macos26      = 5;
+        macos27      = 6;
+      }
+
+      message ProvisionVars {
+        message ProvisionVar {
+          string key   = 1;
+          string value = 2;
+        }
+
+        repeated ProvisionVar vars = 1;
+      }
+
+      string                 name                  = 1;
+      optional bytes         provisionTemplate     = 2;
+      optional string        provisionTemplateName = 3;
+      optional ProvisionVars provisionVars         = 4;
+      optional MacOSVersion  macosVersion          = 5;
+      optional bool          foreground            = 6;
     }
 
     message RestartRequest {
@@ -903,6 +942,12 @@ message Caked {
         optional string reason  = 4;
       }
 
+      message ProvisionedReply {
+        string          name        = 1;
+        bool            provisioned = 2;
+        optional string reason      = 3;
+      }
+
       message BuildedReply {
         string          name    = 1;
         bool            builded = 2;
@@ -925,10 +970,29 @@ message Caked {
 
       message BuildStreamReply {
         oneof current {
-          BuildProgressValue   progress   = 1;
-          BuildTerminatedReply terminated = 3;
-          string               step       = 2;
-          BuildedReply         builded    = 4;
+          BuildProgressValue                 progress    = 1;
+          BuildTerminatedReply               terminated  = 2;
+          string                             step        = 3;
+          string                             substep     = 4;
+          BuildedReply                       builded     = 5;
+          ProvisionStreamReply.ProvisionInfo provision   = 6;
+          ProvisionedReply                   provisioned = 7;
+        }
+      }
+
+      message ProvisionStreamReply {
+        message ProvisionInfo {
+          string        vncURL     = 1;
+          ScreenSize    screenSize = 2;
+          Configuration config     = 3;
+        }
+
+        oneof current {
+          BuildProgressValue progress    = 1;
+          string             step        = 2;
+          string             substep     = 3;
+          ProvisionInfo      infos       = 4;
+          ProvisionedReply   provisioned = 5;
         }
       }
 
@@ -1017,6 +1081,7 @@ message Caked {
         RestartReply            restarted      = 16;
         VncURL                  vncURL         = 17;
         InstalledAgentReply     installedAgent = 18;
+        ProvisionStreamReply    provisioned    = 19;
       }
     }
 

@@ -120,6 +120,60 @@ Les journaux de restauration sont écrits dans `~/Library/Application Support/Ca
 - **Apple Silicon uniquement** — le SPI AMRestore n'existe pas sur les Mac Intel.
 - Nécessite macOS 26 ou ultérieur sur l'**hôte**.
 
+<a name="packerlite-fr"></a>
+### PackerLite : provisioning automatisé (macOS et Linux)
+
+Quand `build`/`create` est lancé avec `--autoinstall`, une fois l'installation terminée, `caked` pilote automatiquement le premier démarrage de la VM via **PackerLite** — un mini-moteur intégré inspiré de Packer (`boot_command`), sans dépendre d'aucun binaire ou plugin externe. Sans `--autoinstall`, aucun provisioning automatique n'a lieu.
+
+```bash
+cakectl build my-vm https://updates.cdn-apple.com/.../UniversalMac_26.6_25G72_Restore.ipsw --autoinstall
+cakectl build my-vm ./Fedora-Workstation-Live-x86_64-42.iso --autoinstall
+```
+
+| Option | Description |
+| --- | --- |
+| `--autoinstall` | Active le provisioning automatique (requis dans tous les cas). |
+| `--template <chemin>` | Template YAML PackerLite personnalisé ; contourne la détection automatique. |
+| `--macos-version <version>` | Version macOS pour choisir le template intégré si elle ne peut pas être déduite du nom de fichier IPSW. |
+| `--var <clé=valeur>` | Définit une variable de template (`${var.clé}`), répétable. |
+
+**Voir la page dédiée [Provisioning & Recording](provisioning#autoinstall-fr)** pour : la résolution complète du template (macOS et Linux), la liste des templates intégrés, le format YAML et le vocabulaire complet des tokens `boot_command`, `provision` (relancer le provisioning sur une VM déjà construite, en local ou via `cakectl`), l'enregistrement vidéo de débogage, et `caked record` (enregistrer une session manuelle pour produire un template).
+
+<a name="alias-fr"></a>
+### Sélection rapide d'image : `--alias` et `aliases`
+
+Plutôt que de coller une URL d'image brute, `build`/`create`/`launch` acceptent un identifiant court du catalogue via `--alias` :
+
+```bash
+caked build --alias macos12 nouvelle-vm --autoinstall
+cakectl build --alias ubuntu2604 nouvelle-vm
+cakectl launch --alias fedora44Server ma-vm --autoinstall
+```
+
+`--alias` résout l'identifiant fourni contre le catalogue `VMImages.json` embarqué (le même catalogue que le sélecteur d'images de l'assistant Caker.app) et remplace l'URL/le format de disque par ce que le catalogue indique pour cet identifiant. Pour une entrée `ipsw` dont l'identifiant correspond aussi à une version macOS connue (ex. `macos12`), `--macos-version` est automatiquement renseigné si vous ne l'avez pas précisé vous-même. Chaque identifiant du catalogue est unique : CentOS et Alpine proposent à la fois une ISO d'installation et une image cloud préconstruite, donc leurs entrées `cloud` utilisent un identifiant suffixé par `Cloud` (ex. `centos9Cloud`, `alpine324Cloud`) pour rester accessibles à côté de l'identifiant `iso` correspondant (`centos9`, `alpine324`).
+
+Pour lister tous les identifiants acceptés par `--alias`, avec leur catégorie (`ipsw`/`iso`/`cloud`) :
+
+```bash
+caked aliases
+cakectl aliases
+```
+
+Le catalogue lui-même — `<CAKE_HOME>/VMImages.json`, s'il existe, prend le pas sur la version embarquée dans l'application ; voir `VMImageCatalog.refreshFromGitHub()` pour le rafraîchir depuis le dépôt.
+
+<a name="provision-fr"></a>
+### `provision` et `record`
+
+- **`caked provision`/`cakectl provision <vm>`** relance PackerLite sur une VM déjà construite (build sans `--autoinstall`, ou provisioning à refaire), en local ou à distance via gRPC.
+- **`caked record <vm>`** enregistre une session manuelle (clics/frappes dans une fenêtre locale) et produit un template `.packerlite.yaml` prêt à l'emploi — l'inverse de `provision`.
+
+```bash
+cakectl provision my-vm
+caked record my-vm --output ./mon-template.packerlite.yaml
+```
+
+**Voir la page dédiée [Provisioning & Recording](provisioning#provision-fr)** pour le détail complet : résolution de version/plateforme stockée par la VM, options, l'enregistrement vidéo de débogage automatique du provisioning, et pour `record` — pause/reprise, clics assistés par OCR (mode repérage), le repli des délais dans `timeout=`, le routage `pre_boot_command` pour Linux, et le format du fichier produit.
+
 ## Notes
 
 - Certaines commandes sont internes ou masquées dans la sortie d'aide de `caked` (`vmrun`, certaines sous-commandes `networks`).
@@ -465,6 +519,60 @@ Restore logs are written to `~/Library/Application Support/Caker/VirtualInstall/
 
 - **Apple Silicon only** — AMRestore SPI does not exist on Intel Macs.
 - Requires macOS 26 or later on the **host**.
+
+<a name="packerlite"></a>
+### PackerLite: unattended provisioning (macOS and Linux)
+
+When `build`/`create` runs with `--autoinstall`, once installation finishes, `caked` automatically drives the VM's first boot via **PackerLite** — a small built-in engine inspired by Packer's `boot_command`, with no external binary or plugin required. Without `--autoinstall`, no automatic provisioning happens.
+
+```bash
+cakectl build my-vm https://updates.cdn-apple.com/.../UniversalMac_26.6_25G72_Restore.ipsw --autoinstall
+cakectl build my-vm ./Fedora-Workstation-Live-x86_64-42.iso --autoinstall
+```
+
+| Option | Description |
+| --- | --- |
+| `--autoinstall` | Enables automatic provisioning (required in all cases). |
+| `--template <path>` | Custom PackerLite YAML template; bypasses auto-detection. |
+| `--macos-version <version>` | macOS version to pick the built-in template when it can't be inferred from the IPSW filename. |
+| `--var <key=value>` | Sets a template variable (`${var.key}`), repeatable. |
+
+**See the dedicated [Provisioning & Recording](provisioning#autoinstall)** page for: full template resolution (macOS and Linux), the list of built-in templates, the YAML format and complete `boot_command` token vocabulary, `provision` (re-running provisioning against an already-built VM, locally or via `cakectl`), the debug video recording, and `caked record` (recording a manual session to produce a template).
+
+<a name="alias"></a>
+### Quick image selection: `--alias` and `aliases`
+
+Instead of pasting a raw image URL, `build`/`create`/`launch` accept a short catalog id via `--alias`:
+
+```bash
+caked build --alias macos12 new-vm --autoinstall
+cakectl build --alias ubuntu2604 new-vm
+cakectl launch --alias fedora44Server my-vm --autoinstall
+```
+
+`--alias` resolves the given id against the bundled `VMImages.json` catalog (the same catalog behind Caker.app's image picker) and substitutes the URL/disk format the catalog specifies for that id. For an `ipsw` entry whose id also matches a known macOS version (e.g. `macos12`), `--macos-version` is auto-populated if you didn't pass it yourself. Every id in the catalog is unique: CentOS and Alpine ship both an installer ISO and a prebuilt cloud image, so their `cloud` entries use a `Cloud`-suffixed id (e.g. `centos9Cloud`, `alpine324Cloud`) to stay reachable alongside the bare `iso` id (`centos9`, `alpine324`).
+
+To list every id `--alias` accepts, tagged with its category (`ipsw`/`iso`/`cloud`):
+
+```bash
+caked aliases
+cakectl aliases
+```
+
+The catalog itself — `<CAKE_HOME>/VMImages.json`, if present, overrides the version bundled with the app; see `VMImageCatalog.refreshFromGitHub()` to refresh it from the repo.
+
+<a name="provision"></a>
+### `provision` and `record`
+
+- **`caked provision`/`cakectl provision <vm>`** re-runs PackerLite against an already-built VM (a build that skipped `--autoinstall`, or provisioning that needs redoing), locally or remotely over gRPC.
+- **`caked record <vm>`** records a manual session (clicks/keystrokes in a local window) and produces a ready-to-use `.packerlite.yaml` template — the reverse of `provision`.
+
+```bash
+cakectl provision my-vm
+caked record my-vm --output ./my-template.packerlite.yaml
+```
+
+**See the dedicated [Provisioning & Recording](provisioning#provision)** page for the full detail: resolving the VM's stored version/platform, options, the automatic provisioning debug video recording, and for `record` — pause/resume, OCR-assisted clicks (locate mode), folding wait gaps into `timeout=`, `pre_boot_command` routing for Linux, and the format of the produced file.
 
 ## Notes
 

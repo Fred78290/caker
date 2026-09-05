@@ -9,6 +9,7 @@ import CakedLib
 import GRPCLib
 import SwiftUI
 import CakeAgentLib
+import UniformTypeIdentifiers
 
 func viewLog(_ text: String) -> some View {
 	#if DEBUG
@@ -242,6 +243,14 @@ struct HostVirtualMachineView: View {
 
 						agentButton
 
+						if canRecord {
+							recordButton
+
+							if document.isRecording {
+								recordingControls
+							}
+						}
+
 						Button("Delete", systemImage: "trash") {
 							AppState.shared.deleteVirtualMachine(document: self.document)
 						}
@@ -287,20 +296,22 @@ struct HostVirtualMachineView: View {
 
 	@ViewBuilder
 	private var powerButton: some View {
-		if document.status == .stopping {
-			Button("Force stop", systemImage: "square.fill") {
+		if document.status == .stopping || document.haveRequestStop {
+			Button("Force stop", systemImage: "power.circle.fill") {
 				document.stopFromUI(force: true)
 			}
 			.help("Force stop virtual machine")
 			.disabled(document.agent == .installing)
 		} else if document.status == .running {
-			Button("Stop", systemImage: "square.fill") {
-				document.stopFromUI(force: NSEvent.modifierFlags.contains(.option))
+			let option = NSEvent.modifierFlags.contains(.option)
+
+			Button("Stop", systemImage: option ? "power.circle.fill" : "square.fill") {
+				document.stopFromUI(force: option)
 			}
 			.help("Stop virtual machine (hold Option to force stop)")
 			.disabled(document.agent == .installing)
 		} else if document.status == .paused {
-			Button("Resume", systemImage: "play.fill") {
+			Button("Resume", systemImage: "play.circle") {
 				document.resumeFromUI()
 			}
 			.help("Resume virtual machine")
@@ -333,6 +344,102 @@ struct HostVirtualMachineView: View {
 		}
 		.help(agentCondition.title)
 		.disabled(agentCondition.disabled)
+	}
+
+	/// Only offer recording when there's an actual live local `VNCVirtualMachineView` to tap — the
+	/// same condition `vmView(_:)`'s `document.virtualMachine != nil` branch below is reachable
+	/// under, plus `document.status == .running` since (unlike `caked record`, which boots the VM
+	/// itself) recording here is layered on top of a VM the user is already driving interactively.
+	private var canRecord: Bool {
+		document.canRecord && document.status == .running
+	}
+
+	@ViewBuilder
+	private var recordButton: some View {
+		if document.isRecording {
+			Button {
+				document.stopRecording()
+			} label: {
+				HStack(spacing: 4) {
+					Circle()
+						.fill(.red)
+						.frame(width: 8, height: 8)
+					Image(systemName: "stop.circle")
+				}
+			}
+			.help("Stop recording and save the boot_command template")
+		} else {
+			Button("Record", systemImage: "record.circle") {
+				promptRecordingOutputAndStart()
+			}
+			.help("Record your actions in this VM as a boot_command template")
+		}
+	}
+
+	/// The locate-mode/reset/VoiceOver controls, mirroring `caked record`'s own `RecordingControls`
+	/// (`Sources/caked/MainApp.swift`) — same icons, help text, and click/Option-click conventions —
+	/// shown alongside `recordButton` for the duration of an active recording session.
+	@ViewBuilder
+	private var recordingControls: some View {
+		Button {
+			document.toggleRecordingLocateMode()
+		} label: {
+			Image(systemName: document.isLocateModeActive ? "text.viewfinder" : "viewfinder")
+				.foregroundStyle(document.isLocateModeActive ? .blue : .primary)
+		}
+		.help(
+			document.isLocateModeActive
+				? "Locate mode is on — clicking recognized text records <locate>/<clickText> instead of a raw coordinate; click to turn off"
+				: "Turn on locate mode to highlight recognized text and click it for a resilient <locate>/<clickText> step, instead of a raw coordinate")
+
+		Button {
+			document.resetRecording()
+		} label: {
+			HStack(spacing: 4) {
+				Image(systemName: "arrow.counterclockwise")
+					.foregroundStyle(.orange)
+				Text("Reset")
+			}
+		}
+		.help("Discard recorded steps and start over")
+		.disabled(document.hasRecordedActions == false)
+
+		if document.virtualMachineConfig.os == .darwin {
+			Button {
+				document.toggleRecordingVoiceOver(confirm: NSEvent.modifierFlags.contains(.option))
+			} label: {
+				Image(systemName: "voiceover")
+					.foregroundStyle(document.isVoiceOverActived ? .blue : .primary)
+			}
+			.help(
+				document.isVoiceOverActived
+					? "VoiceOver is active"
+					: "Turn on VoiceOver (Option-click to confirm)")
+		}
+	}
+
+	private func promptRecordingOutputAndStart() {
+		let panel = NSSavePanel()
+
+		panel.message = String(localized: "Save recorded template")
+		panel.prompt = String(localized: "Save")
+		panel.nameFieldStringValue = "\(document.name).packerlite.yaml"
+		panel.canCreateDirectories = true
+		panel.allowsOtherFileTypes = true
+
+		if let yamlType = UTType(filenameExtension: "yaml") {
+			panel.allowedContentTypes = [yamlType]
+		}
+
+		if let directory = document.location?.rootURL {
+			panel.directoryURL = directory
+		}
+
+		guard panel.runModal() == .OK, let url = panel.url else {
+			return
+		}
+
+		document.startRecording(output: url)
 	}
 
 	var cpuUsageView: some View {
@@ -711,6 +818,8 @@ struct HostVirtualMachineView: View {
 			return "VM is stopping"
 		case .restoring:
 			return "VM is restoring"
+		case .provisioning:
+			return "VM is provisioning"
 		}
 	}
 
@@ -722,3 +831,4 @@ struct HostVirtualMachineView: View {
 #Preview {
 	HostVirtualMachineView(document: try! VirtualMachineDocument.anyVirtualMachineDocument())
 }
+

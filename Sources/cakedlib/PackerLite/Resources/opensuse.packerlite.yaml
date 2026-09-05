@@ -1,0 +1,114 @@
+# opensuse.packerlite.yaml
+#
+# Built-in PackerLite template — unattended installation of openSUSE Leap
+# from the official DVD/NET install ISO, driven natively by caked/caker after
+# booting from the ISO (see the "PackerLite" section of the wiki's command
+# summary). This is the default template auto-selected for an ISO whose
+# filename/URL contains "opensuse" (GRPCLib.SupportedPlatform detection) when
+# --autoinstall is passed without an explicit --template — pass --template
+# yourself to override it. Unlike the bundled macOS templates, this one is NOT
+# a guaranteed-working recipe: it has been reviewed for plausibility against
+# the documented YaST install flow, but NOT validated end-to-end against a
+# real boot, and with less confidence than the Anaconda-family templates
+# (fedora/centos/redhat) in this same directory — YaST's
+# exact screen labels/order have shifted more across Leap releases than
+# Anaconda's have. Treat the click targets and tab counts below as a first
+# draft to verify/adjust against your own run.
+#
+# openSUSE's installer is YaST, not Anaconda — different installer, different
+# flow. Like CentOS Stream/RHEL, the DVD/NET ISO boots straight into the
+# graphical installer, no live desktop session needed first.
+#
+# This template picks "Desktop with KDE Plasma" at the System Role screen —
+# change that click target to "Desktop with GNOME" (or another listed role)
+# if you want something else. Unlike the Anaconda-family templates, YaST asks
+# for the desktop up front as an explicit choice rather than leaving it to a
+# separate, easy-to-miss Software Selection spoke.
+#
+# This template assumes no "Registration"/"Extension and Module Selection"
+# screen appears between Welcome and System Role — true for openSUSE Leap's
+# community media in most recent releases, unlike SUSE Linux Enterprise. If
+# your build does show one, insert a step to dismiss it before System Role.
+#
+# Usage:
+#   cakectl build my-opensuse-vm ./openSUSE-Leap-15.6-DVD-x86_64-Media.iso \
+#     --user admin --password admin --autoinstall
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
+required_variables:
+  - username
+  - password
+  - hostname
+
+pre_boot_command:
+  - title: Boot Menu
+    commands:
+      - <locate text="Install" timeout=30>
+      - <enter>
+
+boot_command:
+  - title: Wait installation to start
+    commands:
+      - <locate text="Take a moment to review the installation settings" timeout=90>
+
+  - title: Create user account
+    commands:
+      - <click text="Authentication" timeout=30>
+
+  - title: Select keyboard layout
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Fill in user account
+    commands:
+      - <click text="Define an administrator user">
+      - <locate text="Full name">
+      - <tab>
+      - ${var.username}
+      - <tab>
+      - ${var.username}
+      - <tab>
+      - ${var.password}
+      - <tab repeat=2>
+      - ${var.password}
+      - <tab repeat=4>
+      - <enter>
+      - <wait2s>
+      - <click point="111,43">
+
+  - title: Start installation
+    commands:
+      - <click text="Install now">
+
+  - title: Confirmation
+    commands:
+      - <click text="Confirm and install">
+
+  - title: Wait installation to complete
+    commands:
+      - <locate text="Installation complete" timeout=1800>
+      - <tab repeat=5> # 642,396
+      - <spacebar>
+
+  - title: Installation complete, log in and enable SSH
+    commands:
+      - <locate text="login" timeout=120>
+      - <wait5s>
+      - ${var.username}
+      - <enter>
+      - <wait1s>
+      - ${var.password}
+      - <enter>
+      - <wait1s>
+      - sudo systemctl enable --now sshd
+      - <enter>
+      - <wait1s>
+      - ${var.password}
+      - <enter>
+      - mkdir -p ~/.ssh
+      - <enter>
+      - echo "${var.ssh_authorized_key}" > ~/.ssh/authorized_keys
+      - <enter>

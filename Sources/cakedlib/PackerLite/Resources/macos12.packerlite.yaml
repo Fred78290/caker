@@ -1,0 +1,238 @@
+# vanilla-macos12.packerlite.yaml
+#
+# Built-in PackerLite template — unattended macOS Setup Assistant provisioning,
+# driven natively by caked/caker after installing from an IPSW. No external
+# `packer` binary or packer-plugin-tart required.
+#
+# Usage:
+#   cakectl build my-vm https://updates.cdn-apple.com/2022FallFCS/fullrestores/012-66032/8D8D90C6-A876-4FFF-BBF4-D158939B3841/UniversalMac_12.6.1_21G217_Restore.ipsw \
+#     --user admin --password admin \
+#     --macos-version macos12
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+# Overall watchdog — provisioning fails fast instead of hanging if the UI drifts.
+boot_timeout: 45m
+required_variables:
+  - username
+  - password
+  - hostname
+
+boot_command:
+  - title: Wait hello, hola, bonjour, etc.
+    commands: 
+      - <locate timeout=30 text='Get Started'>
+      - <spacebar>
+
+  - title: Select Language
+    commands: 
+      - <locate timeout=30 text='https://www.apple.com/'>
+      - italiano
+      - <esc>
+      - english
+      - <enter>
+
+  - title: Select Your Country and Region
+    commands: 
+      - <click timeout=30 text='Select Your Country or Region'>
+      - united states
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Written and Spoken Languages
+    commands: 
+      - <locate timeout=30 text='Written and Spoken Languages'>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Change keyboard
+    commands: 
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Accessibility
+    commands: 
+      - <locate timeout=30 text='Accessibility'>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Data & Privacy
+    commands: 
+      - <locate timeout=30 text='Data & Privacy'>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Migration Assistant
+    commands: 
+      - <locate timeout=30 text='Migration Assistant'>
+      - <tab repeat=3>
+      - <spacebar>
+
+  - title: Sign In with Your Apple ID
+    commands: 
+      - <locate timeout=30 text='Sign In with Your Apple ID'>
+      - <wait2s>
+      - <leftShiftOn>
+      - <tab repeat=2>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Are you sure you want to skip signing in with an Apple ID?
+    commands: 
+      - <wait1s>
+      - <tab>
+      - <spacebar>
+
+  - title: Terms and Conditions
+    commands: 
+      - <locate timeout=30 text='Terms and Conditions'>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: I have read and agree to the macOS Software License Agreement
+    commands: 
+      - <wait1s>
+      - <tab>
+      - <spacebar>
+
+  - title: Create a Computer Account
+    commands: 
+      - <locate text='Create a Computer Account'>
+      - ${var.username}
+      - <tab>
+      - <tab>
+      - ${var.password}
+      - <tab>
+      - ${var.password}
+      - <tab>
+      - <tab>
+      - <tab>
+      - <spacebar>
+
+  - title: Enable Location Services
+    commands: 
+      - <locate timeout=60 text='Enable Location Services'>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Are you sure you don't want to use Location Services?
+    commands: 
+      - <wait1s>
+      - <tab>
+      - <spacebar>
+
+  - title: Select Your Time Zone
+    commands: 
+      - <locate timeout=30 text='Select Your Time Zone'>
+      - <tab>
+      - UTC
+      - <enter>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Analytics
+    commands: 
+      - <locate timeout=30 text='Analytics'>
+      - <tab>
+      - <spacebar>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Screen Time
+    commands: 
+      - <locate timeout=30 text='Screen Time'>
+      - <tab>
+      - <spacebar>
+
+  - title: Siri
+    commands: 
+      - <skipCommandIfNotFound timeout=10 text='Siri'>
+      - <tab>
+      - <spacebar>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Choose Your Look
+    commands: 
+      - <locate timeout=30 text='Choose Your Look'>
+      - <leftShiftOn>
+      - <tab>
+      - <leftShiftOff>
+      - <spacebar>
+
+  - title: Enable Voice Over
+    commands: 
+      - <wait10s>
+      - <voiceOverOn confirm=true>
+
+  - title: Now that the installation is done, open "Applications folder"
+    commands:
+      - <wait2s>
+      - <leftAltOn>
+      - <leftShiftOn>
+      - a
+      - <leftShiftOff>
+      - <leftAltOff>
+      - <wait1s>
+      - System Preferences
+      - <wait1s>
+      - <leftAltOn>
+      - o
+      - <leftAltOff>
+
+  - title: Navigate to "Sharing"
+    commands:
+      - <locate text='Sign in to your Apple ID'>
+      - sharing
+      - <enter>
+
+  - title: Enable Screen Sharing
+    commands: 
+      - <locate text='Screen Sharing'>
+      - <tab repeat=4>
+      - <spacebar>
+      - <wait1s>
+
+  - title: Enable Remote Login
+    commands:
+      - <down repeat=4>
+      - <wait1s>
+      - <spacebar>
+      - <wait1s>
+      - <tab repeat=2>
+      - <spacebar>
+      - <wait5s>
+
+  - title: Quit System Settings
+    commands:
+      - <leftAltOn>
+      - q
+      - <leftAltOff>
+
+  - title: Disable Voice Over
+    commands:
+      - <voiceOverOff>
+
+post_boot_command:
+  use_ssh_key: false
+  commands:
+    - sh -c 'echo "${var.ssh_authorized_key}" > ~/.ssh/authorized_keys'
+    - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"
