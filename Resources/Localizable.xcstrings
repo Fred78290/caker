@@ -10673,6 +10673,17 @@
         }
       }
     },
+    "Paused recording" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrement en pause"
+          }
+        }
+      }
+    },
     "PFRedirect must be run as root" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -246,7 +246,7 @@ struct RecordingControls: View {
 					Circle()
 						.strokeBorder(.red, lineWidth: 2)
 						.frame(width: 8, height: 8)
-					Text("Paused")
+					Text("Paused recording")
 				}
 			}
 			.help("Resume recording")
