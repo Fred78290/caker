@@ -146,7 +146,9 @@ boot_command:
       - <click text="Next">
       - <wait1s>
 
-  - title: Try Configure Time zone for Fedora 44
+  - title: Configure Time zone for Fedora 44
+    condition:
+      - version == "44"
     commands:
       - <skipCommandIfNotFound text="Please search for a nearby city">
       - <wait1s>
@@ -158,11 +160,11 @@ boot_command:
       - <click text="Next">
       - <wait1s>
 
-  - title: Try Configure Time zone for Fedora 43
+  - title: Configure Time zone for Fedora 43
+    condition:
+      - version == "43"
     commands:
-      - <skipCommandIfNotFound text="Search cities" timeout=5>
-      - <wait1s>
-      - <click text="Search cities">
+      - <click text="Search cities" timeout=5>
       - <wait1s>
       - London, East and South East England, United Kingdom
       - <down>
