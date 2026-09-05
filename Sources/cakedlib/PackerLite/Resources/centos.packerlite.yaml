@@ -134,3 +134,15 @@ boot_command:
   - title: Reboot System
     commands:
       - <click text="Reboot System">
+
+post_boot_command:
+  use_ssh_key: false
+  commands:
+    - sh -c 'echo "${var.ssh_authorized_key}" > ~/.ssh/authorized_keys'
+    - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"
+    - sudo semanage fcontext -a -t bin_t '/usr/local/bin/cakeagent'
+    - sudo restorecon -Rv /usr/local/bin/cakeagent /etc/cakeagent /etc/sysconfig/cakeagent /var/log/cakeagent.out /var/log/cakeagent.err /etc/cakeagent/ssl/ca.pem /etc/cakeagent/ssl/server.pem /etc/cakeagent/ssl/server.key
+    - sudo ausearch -c '(cakeagent)' --raw | audit2allow -M my-cakeagent
+    - sudo semodule -i my-cakeagent.pp || true
+    - sudo restorecon -Rv /usr/local/bin/cakeagent /etc/cakeagent /etc/sysconfig/cakeagent /var/log/cakeagent.out /var/log/cakeagent.err /etc/cakeagent/ssl/ca.pem /etc/cakeagent/ssl/server.pem /etc/cakeagent/ssl/server.key
+    - sudo yum update -y
