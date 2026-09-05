@@ -396,7 +396,7 @@ public struct ProvisionHandler {
 		varsDict["password"] = config.configuredPassword ?? "admin"
 		varsDict["hostname"] = location.name
 
-		if let keys = try? CloudInit.sshAuthorizedKeys(sshAuthorizedKeyPath: config.sshPrivateKeyPath, runMode: runMode) {
+		if let keys = try? CloudInit.sshAuthorizedKeys(sshAuthorizedKeyPath: config.sshAuthorizedKey, runMode: runMode) {
 			varsDict["ssh_authorized_key"] = keys.joined(separator: "\n")
 		}
 
