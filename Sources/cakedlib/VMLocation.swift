@@ -1143,6 +1143,8 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let imageSource = config.source
 		let ssh = try createSSH(host: runningIP, timeout: timeout)
 
+		ssh.ptyType = .xterm
+
 		if imageSource == .ipsw {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath, commands.useSshKey {
