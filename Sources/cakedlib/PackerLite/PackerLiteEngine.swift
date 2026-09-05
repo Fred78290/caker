@@ -38,7 +38,7 @@ public enum PackerLiteEngine {
 				for (index, command) in commands.enumerated() {
 					if command.meetCondition(driver.variables) {
 						progressHandler(.substep(command.title))
-						logger.info("Execute provionning command: \(command.title)")
+						logger.info("Execute provisioning command: \(command.title)")
 						try await driver.run(command: command)
 					} else {
 						logger.info("Discard command: \(command.title), missing condition")
