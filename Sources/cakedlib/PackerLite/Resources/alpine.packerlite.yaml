@@ -33,6 +33,10 @@
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
 
 boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
+required_variables:
+  - username
+  - password
+  - hostname
 
 pre_boot_command:
   - title: Change keyboard

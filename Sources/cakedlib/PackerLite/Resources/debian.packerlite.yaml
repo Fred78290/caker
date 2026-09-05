@@ -43,6 +43,10 @@
 
 boot_timeout: 75m        # d-i's package installation stage depends on mirror speed, budget generously
 ignore_ip: true
+required_variables:
+  - username
+  - password
+  - hostname
 
 pre_boot_command:
   - title: Select keyboard layout

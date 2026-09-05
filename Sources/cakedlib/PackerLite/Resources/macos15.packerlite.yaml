@@ -14,6 +14,10 @@
 
 # Overall watchdog — provisioning fails fast instead of hanging if the UI drifts.
 boot_timeout: 45m
+required_variables:
+  - username
+  - password
+  - hostname
 
 boot_command:
   - title: Wait hello, hola, bonjour, etc.

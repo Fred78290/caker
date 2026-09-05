@@ -43,6 +43,9 @@ ignore_ip: true
 required_variables:
   - redhat_username
   - redhat_password
+  - username
+  - password
+  - hostname
 
 pre_boot_command:
   - title: Boot the GRUB menu's default "Install" entry
