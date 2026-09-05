@@ -6,6 +6,7 @@
 import XCTest
 import Foundation
 import GRPCLib
+import Yams
 
 @testable import CakedLib
 
@@ -168,6 +169,79 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertEqual(parsed, [.scroll(horizontal: 0, vertical: 20)])
 	}
 
+	// MARK: - <set> token and condition: gating
+
+	func testSetTokenQuotedValue() async throws {
+		let parsed = try await parseSteps("<set version=\"44\">")
+		XCTAssertEqual(parsed, [.set(name: "version", value: "44")])
+	}
+
+	func testSetTokenBareValue() async throws {
+		let parsed = try await parseSteps("<set version=44>")
+		XCTAssertEqual(parsed, [.set(name: "version", value: "44")])
+	}
+
+	func testSetTokenWithoutAttributeIsMalformed() async throws {
+		do {
+			_ = try await parseSteps("<set>")
+			XCTFail("Expected malformedSet to be thrown")
+		} catch BootCommandParseError.malformedSet {
+			// expected
+		}
+	}
+
+	/// `condition:` in the YAML decodes into `Command.conditions` despite the plural/singular
+	/// mismatch (see `PackerLiteTemplate.Command.CodingKeys`).
+	func testConditionYamlKeyDecodesIntoConditionsField() throws {
+		let command = try YAMLDecoder().decode(
+			PackerLiteTemplate.Command.self,
+			from: """
+			title: test
+			commands:
+			  - <wait1s>
+			condition:
+			  - version != "44"
+			""")
+
+		XCTAssertEqual(command.conditions, ["version != \"44\""])
+	}
+
+	func testMeetConditionWithNoConditionsAlwaysRuns() async throws {
+		let step = try await BootCommand.parse(PackerLiteTemplate.Command(title: "test", commands: ["<wait1s>"]))
+		XCTAssertTrue(step.meetCondition([:]))
+	}
+
+	func testMeetConditionNotEqualsTreatsMissingVariableAsEmptyString() async throws {
+		// This is exactly the Fedora-43-fallback shape in fedora.packerlite.yaml: if the earlier
+		// <set version="44"> step never ran (its title block was skipped because Fedora 44's own
+		// welcome screen wasn't found), `version` was never set at all -- not "set to something
+		// other than 44" -- and the fallback block should still run.
+		let step = try await BootCommand.parse(
+			PackerLiteTemplate.Command(title: "test", commands: ["<wait1s>"], conditions: ["version != \"44\""]))
+
+		XCTAssertTrue(step.meetCondition([:]))
+		XCTAssertTrue(step.meetCondition(["version": "43"]))
+		XCTAssertFalse(step.meetCondition(["version": "44"]))
+	}
+
+	func testMeetConditionEqualsOperator() async throws {
+		let step = try await BootCommand.parse(
+			PackerLiteTemplate.Command(title: "test", commands: ["<wait1s>"], conditions: ["version == \"44\""]))
+
+		XCTAssertFalse(step.meetCondition([:]))
+		XCTAssertTrue(step.meetCondition(["version": "44"]))
+		XCTAssertFalse(step.meetCondition(["version": "43"]))
+	}
+
+	func testMeetConditionMultipleConditionsRequireAll() async throws {
+		let step = try await BootCommand.parse(
+			PackerLiteTemplate.Command(title: "test", commands: ["<wait1s>"], conditions: ["version == \"44\"", "arch == \"arm64\""]))
+
+		XCTAssertTrue(step.meetCondition(["version": "44", "arch": "arm64"]))
+		XCTAssertFalse(step.meetCondition(["version": "44", "arch": "x86_64"]))
+		XCTAssertFalse(step.meetCondition([:]))
+	}
+
 	func testVoiceOverOnBareToken() async throws {
 		let parsed = try await parseSteps("<voiceOverOn>")
 		XCTAssertEqual(parsed, [.voiceOverOn(confirm: false)])
@@ -251,22 +325,24 @@ final class PackerLiteTests: XCTestCase {
 		      - "<wait10s>${var.username}<tab>${var.password}<tab>${var.greeting}<enter>"
 		"""
 
-		let defaults = try await PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "password": "admin"])
+		let defaults = try await PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "password": "admin", "hostname": "test-vm"])
 		XCTAssertEqual(defaults.bootCommand.first?.steps, [.wait(10), .type("admin"), .press(.tab), .type("admin"), .press(.tab), .type("hello"), .press(.enter)])
 
-		let overridden = try await PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "password": "hunter2"])
+		let overridden = try await PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "password": "hunter2", "hostname": "test-vm"])
 		XCTAssertEqual(overridden.bootCommand.first?.steps, [.wait(10), .type("admin"), .press(.tab), .type("hunter2"), .press(.tab), .type("hello"), .press(.enter)])
 	}
 
 	func testPostBootCommandSubstitutesVariables() async throws {
 		let yaml = """
 		post_boot_command:
-		  - "echo ${var.username} > /tmp/whoami"
-		  - "echo ${var.hostname} > /tmp/hostname"
+		  use_ssh_key: false
+		  commands:
+		    - "echo ${var.username} > /tmp/whoami"
+		    - "echo ${var.hostname} > /tmp/hostname"
 		"""
 
 		let template = try await PackerLiteTemplate.load(from: yaml, variables: ["username": "admin", "hostname": "my-vm"])
-		XCTAssertEqual(template.postBootCommand, ["echo admin > /tmp/whoami", "echo my-vm > /tmp/hostname"])
+		XCTAssertEqual(template.postBootCommand?.commands, ["echo admin > /tmp/whoami", "echo my-vm > /tmp/hostname"])
 	}
 
 	func testTemplateWithoutPostBootCommandLoadsWithNilValue() async throws {
@@ -382,8 +458,8 @@ final class PackerLiteTests: XCTestCase {
 	func testVanillaMacos15PackerLiteTemplateFileLoadsAndParses() async throws {
 		// Mirrors what VMBuilder.swift injects: username/password come from CakeConfig, not the template.
 		let template = try await PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos15.packerlite.yaml").path,
-			variables: ["username": "admin", "password": "admin"])
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("macos15.packerlite.yaml").path,
+			variables: ["username": "admin", "password": "admin", "hostname": "test-vm"])
 
 		XCTAssertFalse(template.bootCommand.isEmpty)
 		XCTAssertFalse(containsUnsubstitutedVariable(template.bootCommand), "all ${var.*} placeholders should have been substituted")
@@ -391,8 +467,8 @@ final class PackerLiteTests: XCTestCase {
 
 	func testVanillaMacos26PackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try await PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos26.packerlite.yaml").path,
-			variables: ["username": "admin", "password": "hunter2"])
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("macos26.packerlite.yaml").path,
+			variables: ["username": "admin", "password": "hunter2", "hostname": "test-vm"])
 
 		XCTAssertFalse(template.bootCommand.isEmpty)
 		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
@@ -401,8 +477,8 @@ final class PackerLiteTests: XCTestCase {
 
 	func testVanillaMacos27PackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try await PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos27.packerlite.yaml").path,
-			variables: ["username": "admin", "password": "hunter2"])
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("macos27.packerlite.yaml").path,
+			variables: ["username": "admin", "password": "hunter2", "hostname": "test-vm"])
 
 		XCTAssertFalse(template.bootCommand.isEmpty)
 		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
@@ -411,8 +487,8 @@ final class PackerLiteTests: XCTestCase {
 
 	func testVanillaMacos12PackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try await PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos12.packerlite.yaml").path,
-			variables: ["username": "admin", "password": "hunter2"])
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("macos12.packerlite.yaml").path,
+			variables: ["username": "admin", "password": "hunter2", "hostname": "test-vm"])
 
 		XCTAssertFalse(template.bootCommand.isEmpty)
 		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
@@ -421,8 +497,8 @@ final class PackerLiteTests: XCTestCase {
 
 	func testVanillaMacos13PackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try await PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos13.packerlite.yaml").path,
-			variables: ["username": "admin", "password": "hunter2"])
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("macos13.packerlite.yaml").path,
+			variables: ["username": "admin", "password": "hunter2", "hostname": "test-vm"])
 
 		XCTAssertFalse(template.bootCommand.isEmpty)
 		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
@@ -431,42 +507,57 @@ final class PackerLiteTests: XCTestCase {
 
 	func testVanillaMacos14PackerLiteTemplateFileLoadsAndParses() async throws {
 		let template = try await PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("vanilla-macos14.packerlite.yaml").path,
-			variables: ["username": "admin", "password": "hunter2"])
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("macos14.packerlite.yaml").path,
+			variables: ["username": "admin", "password": "hunter2", "hostname": "test-vm"])
 
 		XCTAssertFalse(template.bootCommand.isEmpty)
 		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
 		XCTAssertFalse(containsUnsubstitutedVariable(template.bootCommand), "all ${var.*} placeholders should have been substituted")
 	}
 
-	// MARK: - Built-in Linux templates (Sources/cakedlib/PackerLite/Resources/linux-*.packerlite.yaml)
+	// MARK: - Built-in Linux templates (Sources/cakedlib/PackerLite/Resources/*.packerlite.yaml)
 
 	func testLinuxFedoraPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("linux-fedora.packerlite.yaml")
+		try await assertLinuxTemplateLoadsAndParses("fedora.packerlite.yaml")
+	}
+
+	/// `fedora.packerlite.yaml` is the real-world source of the `condition:`/`<set>` feature (a
+	/// Fedora-44-vs-43 setup-flow fallback) -- confirms the title block's `condition:` YAML actually
+	/// decoded into `BootCommandStep.conditions` rather than silently being dropped, which the plain
+	/// "does it load and parse" check above wouldn't catch on its own (a template with `conditions ==
+	/// nil` throughout would still load and parse just fine, just without the gating ever applying).
+	func testFedoraTemplateFallbackTitleHasParsedCondition() async throws {
+		let template = try await PackerLiteTemplate.load(
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("fedora.packerlite.yaml").path,
+			variables: ["username": "admin", "password": "hunter2", "hostname": "test-vm"])
+
+		let fallback = template.bootCommand.first { $0.title == "Wait Fedora 43 setup" }
+
+		XCTAssertEqual(fallback?.conditions, ["version != \"44\""])
 	}
 
 	func testLinuxFedoraServerPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("linux-fedora-server.packerlite.yaml")
+		try await assertLinuxTemplateLoadsAndParses("fedora-server.packerlite.yaml")
 	}
 
 	func testLinuxCentOSPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("linux-centos.packerlite.yaml")
+		try await assertLinuxTemplateLoadsAndParses("centos.packerlite.yaml")
 	}
 
 	func testLinuxRedHatPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("linux-redhat.packerlite.yaml")
+		try await assertLinuxTemplateLoadsAndParses("redhat.packerlite.yaml")
 	}
 
 	func testLinuxOpenSUSEPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("linux-opensuse.packerlite.yaml")
+		try await assertLinuxTemplateLoadsAndParses("opensuse.packerlite.yaml")
 	}
 
 	func testLinuxDebianPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("linux-debian.packerlite.yaml")
+		try await assertLinuxTemplateLoadsAndParses("debian.packerlite.yaml")
 	}
 
 	func testLinuxAlpinePackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("linux-alpine.packerlite.yaml")
+		try await assertLinuxTemplateLoadsAndParses("alpine.packerlite.yaml")
 	}
 
 	// Unlike the other bundled Linux templates, Ubuntu's boot_command never types the account
@@ -474,11 +565,11 @@ final class PackerLiteTests: XCTestCase {
 	// the ISO's own cloud-init/subiquity "autoinstall" flow to run to completion on its own (see
 	// the template's own header comment).
 	func testLinuxUbuntuServerPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("linux-ubuntu-server.packerlite.yaml", expectsTypedPassword: false)
+		try await assertLinuxTemplateLoadsAndParses("ubuntu-server.packerlite.yaml", expectsTypedPassword: false)
 	}
 
 	func testLinuxUbuntuDesktopPackerLiteTemplateFileLoadsAndParses() async throws {
-		try await assertLinuxTemplateLoadsAndParses("linux-ubuntu.packerlite.yaml", expectsTypedPassword: false)
+		try await assertLinuxTemplateLoadsAndParses("ubuntu.packerlite.yaml", expectsTypedPassword: false)
 	}
 
 	private func assertLinuxTemplateLoadsAndParses(_ filename: String, expectsTypedPassword: Bool = true) async throws {

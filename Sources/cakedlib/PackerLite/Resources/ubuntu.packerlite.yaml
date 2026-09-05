@@ -1,4 +1,4 @@
-# linux-ubuntu.packerlite.yaml
+# ubuntu.packerlite.yaml
 #
 # Built-in PackerLite template — unattended installation of Ubuntu Desktop
 # from its own install ISO, driven natively by caked/caker after booting

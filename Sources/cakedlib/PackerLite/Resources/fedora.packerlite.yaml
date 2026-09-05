@@ -109,11 +109,30 @@ boot_command:
     commands:
       - <keyboard 'com.apple.keylayout.US'>
 
-  - title: Wait Fedora setup
+  - title: Wait Fedora ready
     commands:
-      - <locate text="Welcome to Fedora Linux" timeout=120>
+      - <locate text="Welcome" timeout=120>
+      - <wait1s>
+
+  - title: Wait Fedora 44 setup
+    commands:
+      - <skipCommandIfNotFound text="Welcome to Fedora Linux">
+      - <set version="44">
       - <wait1s>
       - <click text="Start Setup">
+      - <wait1s>
+
+  - title: Wait Fedora 43 setup
+    condition:
+      - version != "44"
+
+    commands:
+      - <skipCommandIfNotFound text="United States">
+      - <set version="43">
+      - <wait1s>
+      - <click text="United States">
+      - <wait1s>
+      - <click text="Next">
       - <wait1s>
 
   - title: Configure Privacy Settings
@@ -127,13 +146,26 @@ boot_command:
       - <click text="Next">
       - <wait1s>
 
-  - title: Configure Time zone
+  - title: Try Configure Time zone for Fedora 44
     commands:
-      - <locate text="Time Zone">
+      - <skipCommandIfNotFound text="Please search for a nearby city">
       - <wait1s>
       - <click text="Please search for a nearby city">
       - <wait1s>
       - London, East and South East England, United Kingdom
+      - <enter>
+      - <wait1s>
+      - <click text="Next">
+      - <wait1s>
+
+  - title: Try Configure Time zone for Fedora 43
+    commands:
+      - <skipCommandIfNotFound text="Search cities" timeout=5>
+      - <wait1s>
+      - <click text="Search cities">
+      - <wait1s>
+      - London, East and South East England, United Kingdom
+      - <down>
       - <enter>
       - <wait1s>
       - <click text="Next">

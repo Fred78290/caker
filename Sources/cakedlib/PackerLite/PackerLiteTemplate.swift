@@ -17,20 +17,31 @@ public struct ParsedPackerLiteTemplate: Sendable {
 	public var preBootCommand: BootCommandSteps
 	public var bootCommand: BootCommandSteps
 	public var postBootCommand: PackerLiteTemplate.PostCommand?
+	/// The fully-resolved `${var.*}` substitution set (declared `variables:` merged with the
+	/// caller's overrides — `--user`/`--password`/`hostname`/etc.), seeded as the starting runtime
+	/// variable set `PackerLiteDriver` mutates via `<set name="value">` and `BootCommandStep.meetCondition(_:)`
+	/// reads from. Not used for `${var.*}` text substitution itself — that already happened once, at
+	/// template-load time, and is baked into `preBootCommand`/`bootCommand`'s literal step text.
+	public var variables: [String: String]
 
-	init(bootTimeout: TimeInterval, ignoreIP: Bool?, installAgent: Bool?, preBootCommand: BootCommandSteps, bootCommand: BootCommandSteps, postBootCommand: PackerLiteTemplate.PostCommand?) {
+	init(bootTimeout: TimeInterval, ignoreIP: Bool?, installAgent: Bool?, preBootCommand: BootCommandSteps, bootCommand: BootCommandSteps, postBootCommand: PackerLiteTemplate.PostCommand?, variables: [String: String]) {
 		self.bootTimeout = bootTimeout
 		self.ignoreIP = ignoreIP
 		self.installAgent = installAgent
 		self.postBootCommand = postBootCommand
 		self.preBootCommand = preBootCommand
 		self.bootCommand = bootCommand
+		self.variables = variables
 	}
 }
 
 public struct PackerLiteTemplate: Codable, Sendable {
 	private var resolvedBootTimeout: TimeInterval { Self.parseDuration(bootTimeout, default: 45 * 60) }
 	private var variables: [String: String]?
+	/// The `variables:`/override-merged dict computed by `resolvingVariables(_:)`, carried forward
+	/// into `ParsedPackerLiteTemplate.variables`. Not part of the YAML format (absent from
+	/// `CodingKeys`) -- purely a post-resolution runtime value, always `[:]` right after decode.
+	private var resolvedVariables: [String: String] = [:]
 	private var requiredVariables: [String]?
 	public var ignoreIP: Bool?
 	public var installAgent: Bool? = true
@@ -52,6 +63,15 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	public struct Command: Codable, Sendable {
 		public var title: String
 		public var commands: [String]
+		public var conditions: [String]?
+
+		enum CodingKeys: String, CodingKey {
+			case title
+			case commands
+			// YAML spells this singular ("condition:") even though it's a list -- reads more
+			// naturally as "the condition(s) gating this block" than the plural form would.
+			case conditions = "condition"
+		}
 	}
 
 	enum CodingKeys: String, CodingKey {
@@ -108,7 +128,8 @@ public struct PackerLiteTemplate: Codable, Sendable {
 			installAgent: installAgent,
 			preBootCommand: preBootCommandSteps,
 			bootCommand: bootCommandSteps,
-			postBootCommand: postBootCommand
+			postBootCommand: postBootCommand,
+			variables: resolvedVariables
 		)
 	}
 
@@ -134,6 +155,8 @@ public struct PackerLiteTemplate: Codable, Sendable {
 			}
 		}
 		var resolved = self
+
+		resolved.resolvedVariables = merged
 
 		resolved.preBootCommand = preBootCommand?.map {
 			Self.substitute($0, variables: merged)

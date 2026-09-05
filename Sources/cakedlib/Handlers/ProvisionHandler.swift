@@ -232,6 +232,7 @@ public struct ProvisionHandler {
 							targetVirtualMachine: vm,
 							commands: template.preBootCommand,
 							resolvedBootTimeout: template.bootTimeout,
+							variables: template.variables,
 							progressHandler: progressHandler)
 						progressHandler(.step(String(localized: "Pre-boot commands terminated")))
 					}
