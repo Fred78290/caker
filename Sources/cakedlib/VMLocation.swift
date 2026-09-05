@@ -1137,7 +1137,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return true
 	}
 
-	public func executePostBootCommand(_ commands: [String], config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode _: Utils.RunMode) async throws {
+	public func executePostBootCommand(_ commands: PackerLiteTemplate.PostCommand, config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode _: Utils.RunMode) async throws {
 		Logger(self).info("Running post-boot commands on \(self.name)")
 
 		let imageSource = config.source
@@ -1145,7 +1145,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 		if imageSource == .ipsw {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
-		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
+		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath, commands.useSshKey {
 			try ssh.authenticate(
 				username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path(percentEncoded: false), passphrase: config.sshPrivateKeyPassphrase)
 		} else {
@@ -1157,7 +1157,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		// are far more likely to be captured/retained than .debug ones. The thrown ServiceError (and
 		// its Localizable.xcstrings entry) intentionally identifies the failing step by index only,
 		// never by command content, for the same reason.
-		for (index, command) in commands.enumerated() {
+		for (index, command) in commands.commands.enumerated() {
 			Logger(self).debug("Running post-boot command #\(index + 1) on \(self.name): \(command)")
 
 			let result = try ssh.capture(command)

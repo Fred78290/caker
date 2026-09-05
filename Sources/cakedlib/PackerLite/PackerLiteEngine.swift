@@ -107,7 +107,7 @@ public enum PackerLiteEngine {
 			config.agent = true
 		}
 
-		if let runningIP, runningIP.isEmpty == false, let postBootCommand = template.postBootCommand, postBootCommand.isEmpty == false {
+		if let runningIP, runningIP.isEmpty == false, let postBootCommand = template.postBootCommand, postBootCommand.commands.isEmpty == false {
 			progressHandler(.step(String(localized: "Running post-boot commands…")))
 
 			try await location.executePostBootCommand(postBootCommand, config: config, runningIP: runningIP, runMode: runMode)

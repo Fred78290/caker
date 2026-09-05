@@ -16,9 +16,9 @@ public struct ParsedPackerLiteTemplate: Sendable {
 	public var installAgent: Bool? = true
 	public var preBootCommand: BootCommandSteps
 	public var bootCommand: BootCommandSteps
-	public var postBootCommand: [String]?
+	public var postBootCommand: PackerLiteTemplate.PostCommand?
 
-	init(bootTimeout: TimeInterval, ignoreIP: Bool?, installAgent: Bool?, preBootCommand: BootCommandSteps, bootCommand: BootCommandSteps, postBootCommand: [String]?) {
+	init(bootTimeout: TimeInterval, ignoreIP: Bool?, installAgent: Bool?, preBootCommand: BootCommandSteps, bootCommand: BootCommandSteps, postBootCommand: PackerLiteTemplate.PostCommand?) {
 		self.bootTimeout = bootTimeout
 		self.ignoreIP = ignoreIP
 		self.installAgent = installAgent
@@ -37,7 +37,17 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	private var bootTimeout: String?
 	private var preBootCommand: [Command]?
 	private var bootCommand: [Command]?
-	public var postBootCommand: [String]?
+	public var postBootCommand: PostCommand?
+
+	public struct PostCommand: Codable, Sendable {
+		public var useSshKey: Bool
+		public var commands: [String]
+
+		enum CodingKeys: String, CodingKey {
+			case useSshKey = "use_ssh_key"
+			case commands
+		}
+	}
 
 	public struct Command: Codable, Sendable {
 		public var title: String
@@ -62,7 +72,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 		installAgent: Bool = true,
 		bootTimeout: String? = nil,
 		bootCommand: [Command]? = nil,
-		postBootCommand: [String]? = nil
+		postBootCommand: PostCommand? = nil
 	) {
 		self.variables = variables
 		self.requiredVariables = requiredVariables
@@ -133,10 +143,14 @@ public struct PackerLiteTemplate: Codable, Sendable {
 			Self.substitute($0, variables: merged)
 		}
 
-		resolved.postBootCommand = postBootCommand?.map { command in
-			merged.reduce(command) { result, entry in
-				result.replacingOccurrences(of: "${var.\(entry.key)}", with: entry.value)
+		if var postBootCommand = resolved.postBootCommand {
+			postBootCommand.commands = postBootCommand.commands.map { command in
+				merged.reduce(command) { result, entry in
+					result.replacingOccurrences(of: "${var.\(entry.key)}", with: entry.value)
+				}
 			}
+
+			resolved.postBootCommand = postBootCommand
 		}
 
 		return resolved
