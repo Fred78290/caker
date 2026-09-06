@@ -585,7 +585,11 @@ extension Caked_CommonBuildRequest {
 		}
 
 		if let sshAuthorizedKey = buildOptions.sshAuthorizedKey {
-			self.sshAuthorizedKey = try Data(contentsOf: URL(filePath: sshAuthorizedKey.expandingTildeInPath))
+			if sshAuthorizedKey.starts(with: "ssh-") {
+				self.sshAuthorizedKey = sshAuthorizedKey
+			} else {
+				self.sshAuthorizedKey = try String(contentsOfFile: sshAuthorizedKey.expandingTildeInPath, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+			}
 		}
 
 		if let vendorData = buildOptions.vendorData {

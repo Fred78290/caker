@@ -1495,8 +1495,8 @@ public nonisolated struct Caked_Caked: Sendable {
       /// Clears the value of `image`. Subsequent reads from it will return its default value.
       public mutating func clearImage() {_uniqueStorage()._image = nil}
 
-      public var sshAuthorizedKey: Data {
-        get {_storage._sshAuthorizedKey ?? Data()}
+      public var sshAuthorizedKey: String {
+        get {_storage._sshAuthorizedKey ?? String()}
         set {_uniqueStorage()._sshAuthorizedKey = newValue}
       }
       /// Returns true if `sshAuthorizedKey` has been explicitly set.
@@ -8750,7 +8750,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
     var _mainGroup: String? = nil
     var _sshPwAuth: Bool? = nil
     var _image: String? = nil
-    var _sshAuthorizedKey: Data? = nil
+    var _sshAuthorizedKey: String? = nil
     var _vendorData: Data? = nil
     var _userData: Data? = nil
     var _networkConfig: Data? = nil
@@ -8849,7 +8849,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
         case 5: try { try decoder.decodeSingularStringField(value: &_storage._mainGroup) }()
         case 6: try { try decoder.decodeSingularBoolField(value: &_storage._sshPwAuth) }()
         case 7: try { try decoder.decodeSingularStringField(value: &_storage._image) }()
-        case 8: try { try decoder.decodeSingularBytesField(value: &_storage._sshAuthorizedKey) }()
+        case 8: try { try decoder.decodeSingularStringField(value: &_storage._sshAuthorizedKey) }()
         case 9: try { try decoder.decodeSingularBytesField(value: &_storage._vendorData) }()
         case 10: try { try decoder.decodeSingularBytesField(value: &_storage._userData) }()
         case 11: try { try decoder.decodeSingularBytesField(value: &_storage._networkConfig) }()
@@ -8912,7 +8912,7 @@ nonisolated extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Me
         try visitor.visitSingularStringField(value: v, fieldNumber: 7)
       } }()
       try { if let v = _storage._sshAuthorizedKey {
-        try visitor.visitSingularBytesField(value: v, fieldNumber: 8)
+        try visitor.visitSingularStringField(value: v, fieldNumber: 8)
       } }()
       try { if let v = _storage._vendorData {
         try visitor.visitSingularBytesField(value: v, fieldNumber: 9)

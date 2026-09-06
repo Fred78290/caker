@@ -469,7 +469,7 @@ message Caked {
       optional string                   mainGroup             = 5;
       optional bool                     sshPwAuth             = 6;
       optional string                   image                 = 7;
-      optional bytes                    sshAuthorizedKey      = 8;
+      optional string                   sshAuthorizedKey      = 8;
       optional bytes                    vendorData            = 9;
       optional bytes                    userData              = 10;
       optional bytes                    networkConfig         = 11;

@@ -371,7 +371,7 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		if request.hasSshAuthorizedKey && request.sshAuthorizedKey.isEmpty == false {
-			self.sshAuthorizedKey = String(data: request.sshAuthorizedKey, encoding: .ascii)
+			self.sshAuthorizedKey = request.sshAuthorizedKey
 		} else {
 			self.sshAuthorizedKey = nil
 		}
