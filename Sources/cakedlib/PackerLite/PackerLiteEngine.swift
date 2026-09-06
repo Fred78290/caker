@@ -25,11 +25,11 @@ public enum PackerLiteEngine {
 		resolvedBootTimeout: TimeInterval,
 		variables: [String: String] = [:],
 		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
-	) async throws {
+	) async throws -> [String: String] {
 		let logger = Logger("PackerLiteEngine")
 		let driver = await PackerLiteDriver(targetVirtualMachine: targetVirtualMachine, variables: variables)
 
-		try await withThrowingTaskGroup(of: Void.self) { group in
+		return try await withThrowingTaskGroup(of: Void.self, returning: [String: String].self) { group in
 			let context = ProgressObserver.ProgressHandlerContext()
 
 			group.addTask {
@@ -65,6 +65,8 @@ public enum PackerLiteEngine {
 			}
 
 			group.cancelAll()
+
+			return driver.variables
 		}
 	}
 
@@ -101,7 +103,7 @@ public enum PackerLiteEngine {
 			progressHandler(.step(String(localized: "Wait IP address…")))
 
 			runningIP = try location.waitIPWithLease(config: config, wait: waitIPTimeout, runMode: runMode)
-			
+
 			if let ip = runningIP {
 				logger.info("VM \(location.name) is now available at \(ip) after provisioning")
 			} else {
@@ -109,7 +111,7 @@ public enum PackerLiteEngine {
 			}
 		}
 
-		if let runningIP, runningIP.isEmpty == false, (template.installAgent ?? true) {
+		if let runningIP, runningIP.isEmpty == false, template.installAgent ?? true {
 			progressHandler(.step(String(localized: "Install agent…")))
 
 			_ = try await location.installAgent(updateAgent: true, config: config, runningIP: runningIP, timeout: 30, runMode: runMode)
@@ -136,13 +138,14 @@ public enum PackerLiteEngine {
 		runMode: Utils.RunMode,
 		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
 	) async throws {
+		var template = template
 		let runInCaker = Bundle.runInCaker
 		let logger = Logger(self)
-		var activationPolicy : NSApplication.ActivationPolicy = .prohibited
+		var activationPolicy: NSApplication.ActivationPolicy = .prohibited
 
 		if runInCaker == false {
 			let app = await NSApplication.shared
-			
+
 			activationPolicy = await app.activationPolicy()
 			await app.setActivationPolicy(.prohibited)
 		}
@@ -229,7 +232,7 @@ public enum PackerLiteEngine {
 
 						progressHandler(.provisioned(ProvisionedReply(name: location.name, provisioned: true, reason: String(localized: "Provisioning success for VM \(location.name)"))))
 					}
-					
+
 					continuation.resume()
 				}
 			}
@@ -248,7 +251,7 @@ public enum PackerLiteEngine {
 		do {
 			// Preboot for linux
 			if template.preBootCommand.isEmpty == false {
-				try await Self.provision(
+				template.variables = try await Self.provision(
 					targetVirtualMachine: vm,
 					commands: template.preBootCommand,
 					resolvedBootTimeout: template.bootTimeout,
