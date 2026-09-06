@@ -2364,6 +2364,17 @@
         }
       }
     },
+    "Click at (%lld, %lld)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cliquer à (%lld, %lld)"
+          }
+        }
+      }
+    },
     "Click on (%@)" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6215,7 +6226,7 @@
         }
       }
     },
-    "Install agent  on IP: %@…" : {
+    "Install agent on IP: %@" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
@@ -11481,6 +11492,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Délai de configuration dépassé après %@s"
+          }
+        }
+      }
+    },
+    "Provisioning timed out after %llds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Délai de configuration dépassé après %llds"
           }
         }
       }
