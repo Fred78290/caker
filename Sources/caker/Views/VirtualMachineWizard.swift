@@ -455,7 +455,9 @@ struct VirtualMachineWizard: View {
 				Footer()
 			}
 			.toolbar {
-				ToolbarSettings($model.currentStep, items: WizardModel.items, placement: .principal)
+				if self.provisionnedVM == nil {
+					ToolbarSettings($model.currentStep, items: WizardModel.items, placement: .principal)
+				}
 			}
 			.toolbarTitleDisplayMode(.inlineLarge)
 		}
