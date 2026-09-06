@@ -1070,8 +1070,14 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 				chown root:wheel /usr/local/bin/cakeagent
 				chown -R root:wheel "${CERTS}"
 			else
-				chown root:adm /usr/local/bin/cakeagent
-				chown -R root:adm "${CERTS}"
+				if [ -z "$(grep 'adm:' /etc/group)" ]
+				then
+					 chown root:root /usr/local/bin/cakeagent
+					 chown -R root:root "${CERTS}"
+				else
+					chown root:adm /usr/local/bin/cakeagent
+					chown -R root:adm "${CERTS}"
+				fi
 				mkdir -p /mnt/shared
 				chmod 777 /mnt/shared
 			fi
