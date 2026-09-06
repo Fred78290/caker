@@ -78,6 +78,7 @@ public enum PackerLiteEngine {
 		waitIPTimeout: Int = 180,
 		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
 	) async throws {
+		var template = template
 		let location = vm.location
 		let config = vm.config
 		let logger = Logger("PackerLiteEngine")
@@ -92,7 +93,7 @@ public enum PackerLiteEngine {
 
 		logger.info("VM \(location.name) started for provisioning")
 
-		try await Self.provision(
+		template.variables = try await Self.provision(
 			targetVirtualMachine: vm,
 			commands: commands,
 			resolvedBootTimeout: template.bootTimeout,

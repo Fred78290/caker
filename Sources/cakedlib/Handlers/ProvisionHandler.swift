@@ -133,6 +133,7 @@ public struct ProvisionHandler {
 		promise: EventLoopPromise<Void>?,
 		progressHandler: @escaping ProvisionProgressHandler
 	) async throws -> (VMRunHandler, VirtualMachine, Cancellable) {
+		var template = template
 		let config = try location.config()
 		let displaySize = config.display.cgSize
 		let vncPassword = config.vncPassword ?? UUID().uuidString
@@ -228,7 +229,7 @@ public struct ProvisionHandler {
 				do {
 					if template.preBootCommand.isEmpty == false {
 						progressHandler(.step(String(localized: "Starting pre-boot commands")))
-						try await PackerLiteEngine.provision(
+						template.variables = try await PackerLiteEngine.provision(
 							targetVirtualMachine: vm,
 							commands: template.preBootCommand,
 							resolvedBootTimeout: template.bootTimeout,
