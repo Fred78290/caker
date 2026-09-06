@@ -16,7 +16,6 @@
 			{ "id": "debian1360", "label": "Debian 13.6.0", "url": "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.6.0-arm64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "openSUSE161-iso", "label": "openSUSE Leap 16.1", "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.aarch64-Leap_16.1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
-			{ "id": "openSUSE156-iso", "label": "openSUSE Leap 15.6", "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-aarch64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "alpine324-iso", "label": "Alpine 3.24", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-virt-3.24.1-aarch64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "alpine323-iso", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/aarch64/alpine-virt-3.23.5-aarch64.iso", "minCPU": 2, "minMemoryMiB": 2048 }
@@ -76,7 +75,6 @@
 			{ "id": "centos10-iso", "label": "CentOS Stream 10", "url": "https://mirrors.centos.org/mirrorlist?path=/10-stream/BaseOS/x86_64/iso/CentOS-Stream-10-latest-x86_64-dvd1.iso&redirect=1&protocol=https", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "openSUSE161-iso", "label": "openSUSE Leap 16.1", "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.x86_64-Leap_16.1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
-			{ "id": "openSUSE156-iso", "label": "openSUSE Leap 15.6", "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-x86_64-Media.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "alpine324-iso", "label": "Alpine 3.24", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/x86_64/alpine-virt-3.24.1-x86_64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "alpine323-iso", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/x86_64/alpine-virt-3.23.5-x86_64.iso", "minCPU": 2, "minMemoryMiB": 2048 }
