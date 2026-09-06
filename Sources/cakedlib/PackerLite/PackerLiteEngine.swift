@@ -113,9 +113,9 @@ public enum PackerLiteEngine {
 		}
 
 		if let runningIP, runningIP.isEmpty == false, template.installAgent ?? true {
-			progressHandler(.step(String(localized: "Install agent…")))
+			progressHandler(.step(String(localized: "Install agent on IP: \(runningIP)…")))
 
-			_ = try await location.installAgent(updateAgent: true, config: config, runningIP: runningIP, timeout: 30, runMode: runMode)
+			_ = try await location.installAgent(updateAgent: true, config: config, runningIP: runningIP, timeout: 180, runMode: runMode)
 			config.agent = true
 		}
 

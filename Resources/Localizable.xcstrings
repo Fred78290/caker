@@ -6215,13 +6215,13 @@
         }
       }
     },
-    "Install agent…" : {
+    "Install agent  on IP: %@…" : {
       "extractionState" : "manual",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Installation de l'agent…"
+            "value" : "Installation de l'agent avec l’IP: %@…"
           }
         }
       }
@@ -13011,17 +13011,6 @@
         }
       }
     },
-    "Running post-boot commands…" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exécution des commandes post-installation…"
-          }
-        }
-      }
-    },
     "Running in the App Sandbox" : {
       "comment" : "Title of the sandbox limitations splash screen.",
       "localizations" : {
@@ -13029,6 +13018,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Exécution dans l'App Sandbox"
+          }
+        }
+      }
+    },
+    "Running post-boot commands…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exécution des commandes post-installation…"
           }
         }
       }
