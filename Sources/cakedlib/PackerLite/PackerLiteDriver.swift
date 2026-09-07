@@ -49,6 +49,12 @@ extension CGKeyCodes {
 	]
 }
 
+extension NSView {
+	public func toogleVoiceOver(confirm: Bool) {
+		
+	}
+}
+
 public protocol KeyLayoutTranslator: Sendable, Identifiable {
 	func translate(char: Character) -> (keyCode: CGKeyCode, modifiers: NSEvent.ModifierFlags, characters: String, charactersIgnoringModifiers: String)?
 }

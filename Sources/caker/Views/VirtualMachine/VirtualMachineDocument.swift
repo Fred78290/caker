@@ -1159,13 +1159,14 @@ extension VirtualMachineDocument {
 			return
 		}
 
-		let recorder = ActionRecorder(os: self.virtualMachineConfig.os, username: self.virtualMachineConfig.configuredUser, password: self.virtualMachineConfig.configuredPassword)
 		guard let targetView = self.virtualMachine?.vzMachineView else {
 			DispatchQueue.main.async {
 				alertError(String(localized: "Unable to start recording"), String(localized: "The VM view is not ready yet — please try again once the VM display is visible."))
 			}
 			return
 		}
+
+		let recorder = ActionRecorder(targetView, os: self.virtualMachineConfig.os, username: self.virtualMachineConfig.configuredUser, password: self.virtualMachineConfig.configuredPassword)
 
 		targetView.actionRecorder = { [weak self] sender, action in
 			self?.handleRecordedAction(sender, action)

@@ -182,6 +182,7 @@ public final class ActionRecorder: @unchecked Sendable {
 	private let os: VirtualizedOS
 	private var currentModifiers: Set<ModifierToken> = []
 	private var currentRecognizedText: RecognizedTextes?
+	private weak var targetView: NSView!
 
 	/// Whether the OCR-assist overlay is currently armed. Driven explicitly by the recording
 	/// window's toolbar (`RecordHandler.Session.setLocateModeActive(_:)` → `setLocateModeActive`
@@ -202,13 +203,18 @@ public final class ActionRecorder: @unchecked Sendable {
 		let layer: CALayer
 	}
 
-	public init(os: VirtualizedOS, username: String?, password: String?) {
+	public init(_ targetView: NSView, os: VirtualizedOS, username: String?, password: String?) {
+		self.targetView = targetView
 		self.username = username
 		self.password = password
 		self.os = os
 	}
 
 	public func reset() {
+		if self.voiceOverActive {
+			self.targetView.toogleVoiceOver(confirm: false)
+		}
+
 		self.lock.withLock {
 			self.steps.removeAll()
 			self.pendingText.removeAll()
@@ -332,10 +338,12 @@ public final class ActionRecorder: @unchecked Sendable {
 	public func toggleVoiceOver(confirm: Bool) {
 		if voiceOverActive {
 			self.addStep(.voiceOverOff(timestamp: Date()))
+			self.targetView.toogleVoiceOver(confirm: false)
 		} else {
 			self.addStep(.voiceOverOn(confirm: confirm, timestamp: Date()))
+			self.targetView.toogleVoiceOver(confirm: true)
 		}
-		
+
 		voiceOverActive.toggle()
 	}
 

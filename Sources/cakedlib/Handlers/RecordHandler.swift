@@ -66,7 +66,7 @@ public struct RecordHandler {
 		init(vm: VirtualMachine, targetView: VMView.NSViewType, config: CakedConfiguration, destination: URL) {
 			self.vm = vm
 			self.targetView = targetView
-			self.recorder = ActionRecorder(os: config.os, username: config.configuredUser, password: config.configuredPassword)
+			self.recorder = ActionRecorder(targetView, os: config.os, username: config.configuredUser, password: config.configuredPassword)
 			self.config = config
 			self.destination = destination
 			self.state = .recording
