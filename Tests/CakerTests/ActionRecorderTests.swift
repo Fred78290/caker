@@ -33,7 +33,7 @@ final class ActionRecorderTests: XCTestCase {
 	// MARK: - Character coalescing
 
 	func testCoalescesConsecutiveCharacterKeystrokes() {
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
 		for (index, char) in "Hello".enumerated() {
 			recorder.record(view, keyAction(0, characters: String(char), at: TimeInterval(index) * 0.05))
@@ -48,7 +48,7 @@ final class ActionRecorderTests: XCTestCase {
 	}
 
 	func testKeyUpEventsDoNotDuplicateText() {
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
 		recorder.record(view, keyAction(0, characters: "H", isDown: true, at: 0))
 		recorder.record(view, keyAction(0, characters: "H", isDown: false, at: 0.05))
@@ -64,9 +64,9 @@ final class ActionRecorderTests: XCTestCase {
 	// MARK: - Special-key token mapping
 
 	func testSpecialKeyProducesNamedToken() {
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .enter), at: 0))
+		recorder.record(view, keyAction(KeyToken.enter.keysym, at: 0))
 
 		let yaml = recorder.finish()
 
@@ -74,9 +74,9 @@ final class ActionRecorderTests: XCTestCase {
 	}
 
 	func testFunctionKeyProducesNamedToken() {
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .function(5)), at: 0))
+		recorder.record(view, keyAction(KeyToken.function(5).keysym, at: 0))
 
 		let yaml = recorder.finish()
 
@@ -86,11 +86,11 @@ final class ActionRecorderTests: XCTestCase {
 	// MARK: - Modifier on/off pairing
 
 	func testModifierDownUpWrapsIntermediateText() {
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: true, at: 0))
+		recorder.record(view, keyAction(ModifierToken.leftShift.keysym, isDown: true, at: 0))
 		recorder.record(view, keyAction(2, characters: "A", isDown: true, at: 0.05))
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: false, at: 0.1))
+		recorder.record(view, keyAction(ModifierToken.leftShift.keysym, isDown: false, at: 0.1))
 
 		let yaml = recorder.finish()
 
@@ -110,10 +110,10 @@ final class ActionRecorderTests: XCTestCase {
 		// Fn is heavily used by real macOS accessibility shortcuts an operator legitimately needs to
 		// *record* — VoiceOver's Fn+F5, Full Keyboard Access's Fn+Control+F7 — so, unlike an earlier
 		// revision of this feature, a plain Fn press must never be suppressed on its own.
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .function), isDown: true, at: 0))
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .function), isDown: false, at: 0.2))
+		recorder.record(view, keyAction(ModifierToken.function.keysym, isDown: true, at: 0))
+		recorder.record(view, keyAction(ModifierToken.function.keysym, isDown: false, at: 0.2))
 
 		let yaml = recorder.finish()
 
@@ -126,11 +126,11 @@ final class ActionRecorderTests: XCTestCase {
 		// modifier — so arming locate mode must no longer suppress modifier recording at all. This
 		// replaces two earlier tests that asserted the opposite (a Shift/Option-suppression rule
 		// that existed only because Option used to be the click-type selector).
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
 		recorder.setLocateModeActive(true, sender: view)
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: true, at: 0))
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .leftShift), isDown: false, at: 0.05))
+		recorder.record(view, keyAction(ModifierToken.leftShift.keysym, isDown: true, at: 0))
+		recorder.record(view, keyAction(ModifierToken.leftShift.keysym, isDown: false, at: 0.05))
 		recorder.setLocateModeActive(false, sender: view)
 
 		let yaml = recorder.finish()
@@ -142,7 +142,7 @@ final class ActionRecorderTests: XCTestCase {
 	// MARK: - Click tokens
 
 	func testClickDownUpProducesClickPointToken() {
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
 		recorder.record(view, pointerAction(x: 512, y: 384, buttonMask: 0x01, at: 0))
 		recorder.record(view, pointerAction(x: 512, y: 384, buttonMask: 0x00, at: 0.05))
@@ -153,7 +153,7 @@ final class ActionRecorderTests: XCTestCase {
 	}
 
 	func testStillHeldClickAtFinishIsStillRecorded() {
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
 		recorder.record(view, pointerAction(x: 10, y: 20, buttonMask: 0x01, at: 0))
 
@@ -167,7 +167,7 @@ final class ActionRecorderTests: XCTestCase {
 		// (currentRecognizedText, only ever populated by real Vision OCR against a real rendered
 		// view — never the case in this unit-test harness). Outside a highlighted region, a
 		// right-click must produce nothing at all, matching its behavior before locate mode existed.
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
 		recorder.record(view, pointerAction(x: 512, y: 384, buttonMask: 0x04, at: 0))
 		recorder.record(view, pointerAction(x: 512, y: 384, buttonMask: 0x00, at: 0.05))
@@ -179,7 +179,7 @@ final class ActionRecorderTests: XCTestCase {
 	}
 
 	func testStillHeldRightClickWithNoRecognizedTextAtFinishIsANoOp() {
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
 		recorder.record(view, pointerAction(x: 10, y: 20, buttonMask: 0x04, at: 0))
 
@@ -193,7 +193,7 @@ final class ActionRecorderTests: XCTestCase {
 		// A regression guard for the two-button bookkeeping in recordPointer: a right-click must not
 		// disturb a left-click's own pending-start tracking (or vice versa) when both touch the same
 		// point, since they're now tracked as fully independent button states.
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
 		recorder.record(view, pointerAction(x: 100, y: 100, buttonMask: 0x01, at: 0))
 		recorder.record(view, pointerAction(x: 100, y: 100, buttonMask: 0x05, at: 0.01))
@@ -209,7 +209,7 @@ final class ActionRecorderTests: XCTestCase {
 	// MARK: - Wait-gap sizing
 
 	func testLargeGapBetweenActionsInsertsWaitToken() {
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
 		recorder.record(view, keyAction(0, characters: "a", at: 0))
 		recorder.record(view, keyAction(1, characters: "b", at: 3.4))
@@ -220,7 +220,7 @@ final class ActionRecorderTests: XCTestCase {
 	}
 
 	func testSmallGapBetweenActionsDoesNotInsertWaitToken() {
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
 		recorder.record(view, keyAction(0, characters: "a", at: 0))
 		recorder.record(view, keyAction(1, characters: "b", at: 0.2))
@@ -233,7 +233,7 @@ final class ActionRecorderTests: XCTestCase {
 	// MARK: - Credential scrubbing
 
 	func testExactUsernameMatchIsScrubbed() {
-		let recorder = ActionRecorder(os: .darwin, username: "vmadmin", password: "s3cret")
+		let recorder = ActionRecorder(view, os: .darwin, username: "vmadmin", password: "s3cret")
 
 		for (index, char) in "vmadmin".enumerated() {
 			recorder.record(view, keyAction(0, characters: String(char), at: TimeInterval(index) * 0.05))
@@ -246,7 +246,7 @@ final class ActionRecorderTests: XCTestCase {
 	}
 
 	func testExactPasswordMatchIsScrubbed() {
-		let recorder = ActionRecorder(os: .darwin, username: "vmadmin", password: "s3cret")
+		let recorder = ActionRecorder(view, os: .darwin, username: "vmadmin", password: "s3cret")
 
 		for (index, char) in "s3cret".enumerated() {
 			recorder.record(view, keyAction(0, characters: String(char), at: TimeInterval(index) * 0.05))
@@ -259,7 +259,7 @@ final class ActionRecorderTests: XCTestCase {
 	}
 
 	func testUnrelatedTextIsNotScrubbed() {
-		let recorder = ActionRecorder(os: .darwin, username: "vmadmin", password: "s3cret")
+		let recorder = ActionRecorder(view, os: .darwin, username: "vmadmin", password: "s3cret")
 
 		for (index, char) in "helloworld".enumerated() {
 			recorder.record(view, keyAction(0, characters: String(char), at: TimeInterval(index) * 0.05))
@@ -275,7 +275,7 @@ final class ActionRecorderTests: XCTestCase {
 	// MARK: - Empty session
 
 	func testEmptySessionProducesEmptyBootCommand() {
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 		let yaml = recorder.finish()
 
 		XCTAssertTrue(yaml.contains("boot_command"))
@@ -285,10 +285,10 @@ final class ActionRecorderTests: XCTestCase {
 	// MARK: - pre_boot_command routing (non-Darwin)
 
 	func testDarwinRecordingHasNoPreBootCommand() {
-		let recorder = ActionRecorder(os: .darwin, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .darwin, username: nil, password: nil)
 
 		recorder.record(view, keyAction(0, characters: "a", at: 0))
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .enter), at: 3))
+		recorder.record(view, keyAction(KeyToken.enter.keysym, at: 3))
 
 		let yaml = recorder.finish()
 
@@ -296,10 +296,10 @@ final class ActionRecorderTests: XCTestCase {
 	}
 
 	func testLinuxRecordingRoutesFirstCommandIntoPreBootCommand() {
-		let recorder = ActionRecorder(os: .linux, username: nil, password: nil)
+		let recorder = ActionRecorder(view, os: .linux, username: nil, password: nil)
 
 		// First command block: a lone <enter> (e.g. a GRUB boot-menu keystroke).
-		recorder.record(view, keyAction(PackerLiteDriver.keysym(for: .enter), at: 0))
+		recorder.record(view, keyAction(KeyToken.enter.keysym, at: 0))
 		// A large gap starts a new command block for the rest.
 		recorder.record(view, keyAction(0, characters: "a", at: 3))
 
