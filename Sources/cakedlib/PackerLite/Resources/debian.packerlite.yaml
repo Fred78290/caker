@@ -196,7 +196,10 @@ post_boot_command:
   use_ssh_key: false
   commands:
     - mkdir -p /home/${var.username}/.ssh
-    - sh -c 'echo "${var.ssh_authorized_key}" > /home/${var.username}/.ssh/authorized_keys'
+    - |
+      cat >> /home/${var.username}/.ssh/authorized_keys <<EOF
+      ${var.ssh_authorized_key}
+      EOF
     - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"
     - sudo apt update
     - sudo apt upgrade -y
