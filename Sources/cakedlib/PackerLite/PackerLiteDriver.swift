@@ -50,8 +50,88 @@ extension CGKeyCodes {
 }
 
 extension NSView {
+	/// Synthesizes the same `⌘`+`Fn`+`F5` sequence `PackerLiteDriver.voiceOverToggleSequence` replays during a
+	/// `boot_command` run — but directly against an arbitrary view, with no `PackerLiteDriver` instance in scope.
+	/// `ActionRecorder` calls this so toggling VoiceOver from the recording toolbar (CLI or `caker` GUI) actually
+	/// flips VoiceOver's real state in the guest, instead of only emitting the recorded step and tracking a bool.
+	///
+	/// Fire-and-forget on purpose: the caller is a synchronous SwiftUI button action, so the sequence's own
+	/// key-delay/settle waits run on a detached `@MainActor` `Task` rather than blocking the caller.
 	public func toogleVoiceOver(confirm: Bool) {
-		
+		guard let window = self.window else {
+			return
+		}
+
+		let eventSource = CGEventSource(stateID: .combinedSessionState)
+		let windowNumber = window.windowNumber
+		let view = self
+
+		func send(_ keyCode: CGKeyCode, isDown: Bool, modifierFlags: NSEvent.ModifierFlags) {
+			guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: isDown) else {
+				return
+			}
+
+			guard
+				let event = NSEvent.keyEvent(
+					with: keyboardEvent.type == .flagsChanged ? .flagsChanged : (isDown ? .keyDown : .keyUp),
+					location: .zero,
+					modifierFlags: modifierFlags,
+					timestamp: ProcessInfo.processInfo.systemUptime,
+					windowNumber: windowNumber,
+					context: nil,
+					characters: String.empty,
+					charactersIgnoringModifiers: String.empty,
+					isARepeat: false,
+					keyCode: keyCode)
+			else {
+				return
+			}
+
+			if event.type == .flagsChanged {
+				view.flagsChanged(with: event)
+			} else if isDown {
+				view.keyDown(with: event)
+			} else {
+				view.keyUp(with: event)
+			}
+		}
+
+		Task { @MainActor in
+			if window.firstResponder !== view {
+				window.makeFirstResponder(view)
+			}
+
+			var modifiers: NSEvent.ModifierFlags = []
+			let keyDelayNanoseconds: UInt64 = 100_000_000
+
+			modifiers.insert(.command)
+			send(ModifierToken.leftAlt.keysym, isDown: true, modifierFlags: modifiers)
+
+			modifiers.insert(.function)
+			send(ModifierToken.function.keysym, isDown: true, modifierFlags: modifiers)
+
+			send(KeyToken.function(5).keysym, isDown: true, modifierFlags: modifiers)
+			try? await Task.sleep(nanoseconds: keyDelayNanoseconds)
+			send(KeyToken.function(5).keysym, isDown: false, modifierFlags: modifiers)
+
+			modifiers.remove(.function)
+			send(ModifierToken.function.keysym, isDown: false, modifierFlags: modifiers)
+
+			modifiers.remove(.command)
+			send(ModifierToken.leftAlt.keysym, isDown: false, modifierFlags: modifiers)
+
+			guard confirm else {
+				return
+			}
+
+			// Give the guest time to actually render the one-time "Use VoiceOver?" confirmation dialog
+			// before dismissing it -- matches PackerLiteDriver.voiceOverToggleSequence's own settle wait.
+			try? await Task.sleep(nanoseconds: 5_000_000_000)
+
+			send(CGKeyCodes.ansiV, isDown: true, modifierFlags: [])
+			try? await Task.sleep(nanoseconds: keyDelayNanoseconds)
+			send(CGKeyCodes.ansiV, isDown: false, modifierFlags: [])
+		}
 	}
 }
 
