@@ -598,20 +598,6 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		}
 	}
 
-	private static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
-		let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(
-			url: cdromURL,
-			readOnly: true,
-			cachingMode: .cached,
-			synchronizationMode: VZDiskImageSynchronizationMode.none)
-
-		let cdrom = VZVirtioBlockDeviceConfiguration(attachment: attachment)
-
-		cdrom.blockDeviceIdentifier = "CIDATA"
-
-		return cdrom
-	}
-
 	#if TRACE_DEINIT
 		deinit {
 			print("Deinit virtual machine")
