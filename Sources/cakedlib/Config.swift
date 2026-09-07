@@ -885,11 +885,13 @@ extension VirtualMachineConfiguration {
 				throw ValidationError(String(localized: "disk \(diskPath) does not exist"))
 			}
 
+			let asif = rootDiskURL.asifDisk
+
 			return VZVirtioBlockDeviceConfiguration(
 				attachment: try VZDiskImageStorageDeviceAttachment(
 					url: rootDiskURL,
 					readOnly: false,
-					cachingMode: self.os == .linux ? .cached : .automatic,
+					cachingMode: asif ? .uncached : self.os == .linux ? .cached : .automatic,
 					synchronizationMode: .full
 				))
 		}
