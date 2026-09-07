@@ -22,7 +22,7 @@ required_variables:
 boot_command:
   - title: Wait hello, hola, bonjour, etc.
     commands: 
-      - <wait10s>
+      - <locate timeout=60 text='Get Started'>
       - <spacebar>
 
   - title: Select Language
@@ -259,5 +259,11 @@ boot_command:
 post_boot_command:
   use_ssh_key: false
   commands:
-    - sh -c 'echo "${var.ssh_authorized_key}" > ~/.ssh/authorized_keys'
+    - mkdir -p ~/.ssh
+    - |
+      cat > ~/.ssh/authorized_keys <<EOF
+      ${var.ssh_authorized_key}
+      EOF
     - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"
+    - sync
+    - sync
