@@ -8,6 +8,8 @@
 
 import Foundation
 import GRPCLib
+import RoyalVNCKit
+import Carbon
 
 public enum KeyToken: Equatable, Sendable {
 	case enter
@@ -64,6 +66,30 @@ extension KeyToken {
 		case .function(let number): return "F\(number)"
 		}
 	}
+	
+	/// `static` (rather than a plain instance method) specifically so `ActionRecorder` can invert this
+	/// table when recording — see `ActionRecorder.swift`'s `keyTokenForKeyCode` — instead of hand-writing
+	/// a second keyCode/token lookup that could drift out of sync with this one.
+	public var keysym: CGKeyCode {
+		switch self {
+		case .enter: return CGKeyCodes.return
+		case .esc: return CGKeyCodes.escape
+		case .tab: return CGKeyCodes.tab
+		case .spacebar: return CGKeyCodes.space
+		case .backspace: return CGKeyCodes.delete
+		case .delete: return CGKeyCodes.forwardDelete
+		case .insert: return CGKeyCodes.help
+		case .home: return CGKeyCodes.home
+		case .end: return CGKeyCodes.end
+		case .pageUp: return CGKeyCodes.pageUp
+		case .pageDown: return CGKeyCodes.pageDown
+		case .up: return CGKeyCodes.upArrow
+		case .down: return CGKeyCodes.downArrow
+		case .left: return CGKeyCodes.leftArrow
+		case .right: return CGKeyCodes.rightArrow
+		case .function(let number): return CGKeyCodes.functionKeys[number - 1]
+		}
+	}
 }
 
 extension ModifierToken {
@@ -82,6 +108,22 @@ extension ModifierToken {
 		case .function: return "fn"
 		}
 	}
+	
+	/// See the doc comment on `keysym(for: KeyToken)` above — same reasoning.
+	public var keysym: CGKeyCode {
+		switch self {
+		case .leftShift: return CGKeyCodes.shift
+		case .rightShift: return CGKeyCodes.rightShift
+		case .leftAlt: return CGKeyCodes.command
+		case .rightAlt: return CGKeyCodes.rightCommand
+		case .leftCtrl: return CGKeyCodes.control
+		case .rightCtrl: return CGKeyCodes.rightControl
+		case .leftSuper: return CGKeyCodes.option
+		case .rightSuper: return CGKeyCodes.rightOption
+		case .function: return CGKeyCodes.function
+		}
+	}
+
 }
 
 public typealias BootCommandSteps = [BootCommandStep]

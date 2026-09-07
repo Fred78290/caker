@@ -150,10 +150,10 @@ public final class ActionRecorder: @unchecked Sendable {
 	/// keyCode→token mapping that could silently drift out of sync with it.
 	private static let keyTokenForKeyCode: [CGKeyCode: KeyToken] = {
 		let simple: [KeyToken] = [.enter, .esc, .tab, .spacebar, .backspace, .delete, .insert, .home, .end, .pageUp, .pageDown, .up, .down, .left, .right]
-		var map = Dictionary(uniqueKeysWithValues: simple.map { (PackerLiteDriver.keysym(for: $0), $0) })
+		var map = Dictionary(uniqueKeysWithValues: simple.map { ($0.keysym, $0) })
 
 		for number in 1...20 {
-			map[PackerLiteDriver.keysym(for: .function(number))] = .function(number)
+			map[KeyToken.function(number).keysym] = .function(number)
 		}
 
 		return map
@@ -163,7 +163,7 @@ public final class ActionRecorder: @unchecked Sendable {
 	private static let modifierTokenForKeyCode: [CGKeyCode: ModifierToken] = {
 		let modifiers: [ModifierToken] = [.leftShift, .rightShift, .leftAlt, .rightAlt, .leftCtrl, .rightCtrl, .leftSuper, .rightSuper, .function]
 
-		return Dictionary(uniqueKeysWithValues: modifiers.map { (PackerLiteDriver.keysym(for: $0), $0) })
+		return Dictionary(uniqueKeysWithValues: modifiers.map { ($0.keysym, $0) })
 	}()
 
 	private let lock = NSLock()
