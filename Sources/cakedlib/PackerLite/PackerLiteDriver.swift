@@ -300,15 +300,15 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 		case .press(let key, let repeated):
 			logger.debug("[\(title)]: press \(repeated) \(key) with modifier \(modifiers)")
-			try await press(Self.keysym(for: key), repeated: repeated)
+			try await press(key.keysym, repeated: repeated)
 
 		case .modifierOn(let modifier):
 			logger.debug("[\(title)]: modifierOn \(modifier) with modifier \(modifiers)")
-			await self.handleKeyModifierEvent(Self.keysym(for: modifier), isDown: true)
+			await self.handleKeyModifierEvent(modifier.keysym, isDown: true)
 
 		case .modifierOff(let modifier):
 			logger.debug("[\(title)]: modifierOff \(modifier) with modifier \(modifiers)")
-			await self.handleKeyModifierEvent(Self.keysym(for: modifier), isDown: false)
+			await self.handleKeyModifierEvent(modifier.keysym, isDown: false)
 
 		case .click(let point):
 			logger.debug("[\(title)]: click \(point)")
@@ -424,45 +424,6 @@ final class PackerLiteDriver: @unchecked Sendable {
 
 			self.handleKeySpecialEvent(keyCode, isDown: false)
 			try await Task.sleep(nanoseconds: Self.stepDelayNanoseconds)
-		}
-	}
-
-	/// `static` (rather than a plain instance method) specifically so `ActionRecorder` can invert this
-	/// table when recording — see `ActionRecorder.swift`'s `keyTokenForKeyCode` — instead of hand-writing
-	/// a second keyCode/token lookup that could drift out of sync with this one.
-	static func keysym(for key: KeyToken) -> CGKeyCode {
-		switch key {
-		case .enter: return CGKeyCodes.return
-		case .esc: return CGKeyCodes.escape
-		case .tab: return CGKeyCodes.tab
-		case .spacebar: return CGKeyCodes.space
-		case .backspace: return CGKeyCodes.delete
-		case .delete: return CGKeyCodes.forwardDelete
-		case .insert: return CGKeyCodes.help
-		case .home: return CGKeyCodes.home
-		case .end: return CGKeyCodes.end
-		case .pageUp: return CGKeyCodes.pageUp
-		case .pageDown: return CGKeyCodes.pageDown
-		case .up: return CGKeyCodes.upArrow
-		case .down: return CGKeyCodes.downArrow
-		case .left: return CGKeyCodes.leftArrow
-		case .right: return CGKeyCodes.rightArrow
-		case .function(let number): return CGKeyCodes.functionKeys[number - 1]
-		}
-	}
-
-	/// See the doc comment on `keysym(for: KeyToken)` above — same reasoning.
-	static func keysym(for modifier: ModifierToken) -> CGKeyCode {
-		switch modifier {
-		case .leftShift: return CGKeyCodes.shift
-		case .rightShift: return CGKeyCodes.rightShift
-		case .leftAlt: return CGKeyCodes.command
-		case .rightAlt: return CGKeyCodes.rightCommand
-		case .leftCtrl: return CGKeyCodes.control
-		case .rightCtrl: return CGKeyCodes.rightControl
-		case .leftSuper: return CGKeyCodes.option
-		case .rightSuper: return CGKeyCodes.rightOption
-		case .function: return CGKeyCodes.function
 		}
 	}
 
