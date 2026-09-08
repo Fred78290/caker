@@ -196,6 +196,7 @@ public final class ActionRecorder: @unchecked Sendable {
 	private var locateModeActive = false
 
 	private var voiceOverActive = false
+	private var inVoiceOverToggle = false
 	private let logger = Logger("ActionRecorder")
 
 	public struct RecognizedText {
@@ -211,8 +212,12 @@ public final class ActionRecorder: @unchecked Sendable {
 	}
 
 	public func reset() {
+		self.logger.debug("Resetting")
+
 		if self.voiceOverActive {
-			self.targetView.toogleVoiceOver(confirm: false)
+			self.targetView.toogleVoiceOver(confirm: false) {
+				
+			}
 		}
 
 		self.lock.withLock {
@@ -226,9 +231,11 @@ public final class ActionRecorder: @unchecked Sendable {
 	}
 
 	func addStep(_ step: Step) {
-		self.logger.debug("Add step: \(step)")
+		if self.inVoiceOverToggle == false {
+			self.logger.debug("Add step: \(step)")
 
-		self.steps.append(step)
+			self.steps.append(step)
+		}
 	}
 
 	/// Feeds one resolved action into the recorder. Safe to call from any thread — VNC input
@@ -336,12 +343,18 @@ public final class ActionRecorder: @unchecked Sendable {
 	}
 
 	public func toggleVoiceOver(confirm: Bool) {
+		var confirm = confirm
+
 		if voiceOverActive {
 			self.addStep(.voiceOverOff(timestamp: Date()))
-			self.targetView.toogleVoiceOver(confirm: false)
+			confirm = false
 		} else {
 			self.addStep(.voiceOverOn(confirm: confirm, timestamp: Date()))
-			self.targetView.toogleVoiceOver(confirm: confirm)
+		}
+
+		self.inVoiceOverToggle = true
+		self.targetView.toogleVoiceOver(confirm: confirm) {
+			self.inVoiceOverToggle = false
 		}
 
 		voiceOverActive.toggle()

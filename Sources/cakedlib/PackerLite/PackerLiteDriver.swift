@@ -57,14 +57,13 @@ extension NSView {
 	///
 	/// Fire-and-forget on purpose: the caller is a synchronous SwiftUI button action, so the sequence's own
 	/// key-delay/settle waits run on a detached `@MainActor` `Task` rather than blocking the caller.
-	public func toogleVoiceOver(confirm: Bool) {
+	public func toogleVoiceOver(confirm: Bool, done: @escaping () -> Void) {
 		guard let window = self.window else {
 			return
 		}
 
 		let eventSource = CGEventSource(stateID: .combinedSessionState)
 		let windowNumber = window.windowNumber
-		let view = self
 		let keyDelayNanoseconds: UInt64 = 300_000_000
 
 		func send(_ keyCode: CGKeyCode, isDown: Bool, modifierFlags: NSEvent.ModifierFlags, characters: String = "") async {
@@ -89,38 +88,41 @@ extension NSView {
 			}
 
 			if event.type == .flagsChanged {
-				view.flagsChanged(with: event)
+				self.flagsChanged(with: event)
 			} else if isDown {
-				view.keyDown(with: event)
+				self.keyDown(with: event)
 			} else {
-				view.keyUp(with: event)
+				self.keyUp(with: event)
 			}
 
 			try? await Task.sleep(nanoseconds: keyDelayNanoseconds)
 		}
 
 		Task { @MainActor in
-			if window.firstResponder !== view {
-				window.makeFirstResponder(view)
+			defer {
+				done()
+			}
+
+			if window.firstResponder !== self {
+				window.makeFirstResponder(self)
 			}
 
 			var modifiers: NSEvent.ModifierFlags = []
 
-			await send(ModifierToken.leftAlt.keysym, isDown: true, modifierFlags: modifiers)
-			modifiers.insert(.command)
+			modifiers.insert(.leftCommand.union(.command))
+			await send(CGKeyCodes.command, isDown: true, modifierFlags: modifiers)
 
-			await send(ModifierToken.function.keysym, isDown: true, modifierFlags: modifiers)
 			modifiers.insert(.function)
+			await send(CGKeyCodes.function, isDown: true, modifierFlags: modifiers)
 
-			await send(KeyToken.function(5).keysym, isDown: true, modifierFlags: modifiers)
+			await send(CGKeyCodes.f5, isDown: true, modifierFlags: modifiers)
+			await send(CGKeyCodes.f5, isDown: false, modifierFlags: modifiers)
 
-			await send(KeyToken.function(5).keysym, isDown: false, modifierFlags: modifiers)
+			await send(CGKeyCodes.function, isDown: false, modifierFlags: modifiers)
 			modifiers.remove(.function)
 
-			await send(ModifierToken.function.keysym, isDown: false, modifierFlags: modifiers)
-			modifiers.remove(.command)
-
-			await send(ModifierToken.leftAlt.keysym, isDown: false, modifierFlags: modifiers)
+			await send(CGKeyCodes.command, isDown: false, modifierFlags: modifiers)
+			modifiers.remove(.leftCommand.union(.command))
 
 			guard confirm else {
 				return
