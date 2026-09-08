@@ -50,8 +50,91 @@ extension CGKeyCodes {
 }
 
 extension NSView {
-	public func toogleVoiceOver(confirm: Bool) {
-		
+	/// Synthesizes the same `⌘`+`Fn`+`F5` sequence `PackerLiteDriver.voiceOverToggleSequence` replays during a
+	/// `boot_command` run — but directly against an arbitrary view, with no `PackerLiteDriver` instance in scope.
+	/// `ActionRecorder` calls this so toggling VoiceOver from the recording toolbar (CLI or `caker` GUI) actually
+	/// flips VoiceOver's real state in the guest, instead of only emitting the recorded step and tracking a bool.
+	///
+	/// Fire-and-forget on purpose: the caller is a synchronous SwiftUI button action, so the sequence's own
+	/// key-delay/settle waits run on a detached `@MainActor` `Task` rather than blocking the caller.
+	public func toogleVoiceOver(confirm: Bool, done: @escaping () -> Void) {
+		guard let window = self.window else {
+			return
+		}
+
+		let eventSource = CGEventSource(stateID: .combinedSessionState)
+		let windowNumber = window.windowNumber
+		let keyDelayNanoseconds: UInt64 = 300_000_000
+
+		func send(_ keyCode: CGKeyCode, isDown: Bool, modifierFlags: NSEvent.ModifierFlags, characters: String = "") async {
+			guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: isDown) else {
+				return
+			}
+
+			guard
+				let event = NSEvent.keyEvent(
+					with: keyboardEvent.type == .flagsChanged ? .flagsChanged : (isDown ? .keyDown : .keyUp),
+					location: .zero,
+					modifierFlags: modifierFlags,
+					timestamp: ProcessInfo.processInfo.systemUptime,
+					windowNumber: windowNumber,
+					context: nil,
+					characters: characters,
+					charactersIgnoringModifiers: characters,
+					isARepeat: false,
+					keyCode: keyCode)
+			else {
+				return
+			}
+
+			if event.type == .flagsChanged {
+				self.flagsChanged(with: event)
+			} else if isDown {
+				self.keyDown(with: event)
+			} else {
+				self.keyUp(with: event)
+			}
+
+			try? await Task.sleep(nanoseconds: keyDelayNanoseconds)
+		}
+
+		Task { @MainActor in
+			defer {
+				done()
+			}
+
+			if window.firstResponder !== self {
+				window.makeFirstResponder(self)
+			}
+
+			var modifiers: NSEvent.ModifierFlags = []
+
+			modifiers.insert(.leftCommand.union(.command))
+			await send(CGKeyCodes.command, isDown: true, modifierFlags: modifiers)
+
+			modifiers.insert(.function)
+			await send(CGKeyCodes.function, isDown: true, modifierFlags: modifiers)
+
+			await send(CGKeyCodes.f5, isDown: true, modifierFlags: modifiers)
+			await send(CGKeyCodes.f5, isDown: false, modifierFlags: modifiers)
+
+			await send(CGKeyCodes.function, isDown: false, modifierFlags: modifiers)
+			modifiers.remove(.function)
+
+			await send(CGKeyCodes.command, isDown: false, modifierFlags: modifiers)
+			modifiers.remove(.leftCommand.union(.command))
+
+			guard confirm else {
+				return
+			}
+
+			// Give the guest time to actually render the one-time "Use VoiceOver?" confirmation dialog
+			// before dismissing it -- matches PackerLiteDriver.voiceOverToggleSequence's own settle wait.
+			try? await Task.sleep(nanoseconds: 5_000_000_000)
+
+			await send(CGKeyCodes.ansiV, isDown: true, modifierFlags: [], characters: "v")
+			await send(CGKeyCodes.ansiV, isDown: false, modifierFlags: [], characters: "v")
+		}
 	}
 }
 
