@@ -760,9 +760,9 @@ final class PackerLiteDriver: @unchecked Sendable {
 	/// its own screen, so this pushes it well past the bottom-right corner -- the guest OS clamps it to
 	/// that corner, out of the way of the top/center content every bundled template actually drives.
 	@MainActor private func parkCursorOutOfView() {
-		let farCorner = CGPoint(x: targetView.bounds.width + 1000, y: targetView.bounds.height + 1000)
-		let positionInWindow = self.targetView.windowRelativePosition(of: farCorner)
-
+		guard self.targetView.window != nil, self.targetView.bounds.isEmpty == false else { return }
+		let cornerInView = CGPoint(x: max(self.targetView.bounds.width - 1, 0), y: max(self.targetView.bounds.height - 1, 0))
+		let positionInWindow = self.targetView.windowRelativePosition(of: cornerInView)
 		self.handleMouseMovement(to: positionInWindow)
 	}
 
