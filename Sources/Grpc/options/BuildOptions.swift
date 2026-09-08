@@ -76,11 +76,17 @@ public struct BuildOptions: ParsableArguments {
 
 	public static let launch = CommandConfiguration(commandName: "launch", abstract: String(localized: "Create a linux VM and initialize it with cloud-init then start it"))
 
+	/// The bare `@Option` defaults below — named so a caller can tell "still at the default" apart
+	/// from "explicitly set to the same value," e.g. `VMBuilder.buildVM`'s ISO/default-resources
+	/// warning (see `Sources/cakedlib/VMBuilder.swift`).
+	public static let defaultCPU: UInt16 = 1
+	public static let defaultMemory: UInt64 = 512
+
 	@Option(name: [.customLong("cpus"), .customShort("c")], help: ArgumentHelp(String(localized: "Number of VM CPUs"), valueName: "num"))
-	public var cpu: UInt16 = 1
+	public var cpu: UInt16 = BuildOptions.defaultCPU
 
 	@Option(name: [.long, .customShort("m")], help: ArgumentHelp(String(localized: "VM memory size in megabytes"), valueName: "MB"))
-	public var memory: UInt64 = 512
+	public var memory: UInt64 = BuildOptions.defaultMemory
 
 	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp(String(localized: "Disk size in GiB"), valueName: "GiB"))
 	public var diskSize: UInt64 = 10
