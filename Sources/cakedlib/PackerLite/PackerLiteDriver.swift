@@ -340,6 +340,8 @@ final class PackerLiteDriver: @unchecked Sendable {
 		self.currentKeyTranslator = LayoutTranslator()!
 		self.level = Logger.Level()
 		self.variables = variables
+
+		self.parkCursorOutOfView()
 	}
 
 	func run(command: BootCommandStep) async throws {
@@ -749,6 +751,20 @@ final class PackerLiteDriver: @unchecked Sendable {
 	}
 
 	// MARK: - Mouse
+
+	/// Moves the guest's own mouse cursor out of the way of the content this driver is about to interact
+	/// with/OCR-scan, once at the start of a provisioning phase. Left wherever the guest last put it
+	/// (often dead center of the screen), the cursor can sit directly over exactly the text a `<locate>`/
+	/// `<clickText>` step is trying to read, and every provisioning debug video otherwise shows a stray
+	/// cursor icon parked in the middle of the screen for the whole run. A VM's cursor can't truly leave
+	/// its own screen, so this pushes it well past the bottom-right corner -- the guest OS clamps it to
+	/// that corner, out of the way of the top/center content every bundled template actually drives.
+	@MainActor private func parkCursorOutOfView() {
+		let farCorner = CGPoint(x: targetView.bounds.width + 1000, y: targetView.bounds.height + 1000)
+		let positionInWindow = self.targetView.windowRelativePosition(of: farCorner)
+
+		self.handleMouseMovement(to: positionInWindow)
+	}
 
 	@MainActor private func click(_ nsPoint: CGPoint) {
 		if self.level >= .debug {
