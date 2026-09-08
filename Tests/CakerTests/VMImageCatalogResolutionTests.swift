@@ -3,39 +3,54 @@ import XCTest
 @testable import CakedLib
 @testable import GRPCLib
 
-/// Covers `VMImageCatalog.resolveShorthand(_:)`, the id -> URL/imageSource/macosVersion
-/// resolution `VMBuilder.buildVM` uses for `BuildOptions.imageId` (set via `--alias <id>`). See
-/// `VMImageCatalogURLTests.swift` for catalog-shape/reachability coverage — this file is
-/// specifically about the resolution logic.
+/// Covers `VMImageCatalog.resolveShorthand(_:)`, the id -> URL/imageSource/macosVersion/
+/// minCPU/minMemoryMiB resolution `VMBuilder.buildVM` uses for `BuildOptions.imageId` (set via
+/// `--alias <id>`). See `VMImageCatalogURLTests.swift` for catalog-shape/reachability coverage —
+/// this file is specifically about the resolution logic.
 final class VMImageCatalogResolutionTests: XCTestCase {
 	func testIPSWIdResolvesToIPSWSourceAndMatchingMacOSVersion() throws {
 		let catalog = VMImageCatalog.shared
 
 		let resolution = try XCTUnwrap(catalog.resolveShorthand("macos12"))
+		let entry = try XCTUnwrap(catalog.current.ipsw.first(where: { $0.id == "macos12" }))
 
-		XCTAssertEqual(resolution.url, catalog.current.ipsw.first(where: { $0.id == "macos12" })?.url)
+		XCTAssertEqual(resolution.url, entry.url)
 		XCTAssertEqual(resolution.imageSource, .ipsw)
 		XCTAssertEqual(resolution.macosVersion, .macos12)
+		XCTAssertEqual(resolution.minCPU, entry.minCPU)
+		XCTAssertEqual(resolution.minMemoryMiB, entry.minMemoryMiB)
+		XCTAssertEqual(resolution.minCPU, 4)
+		XCTAssertEqual(resolution.minMemoryMiB, 4096)
 	}
 
 	func testISOIdResolvesToISOSourceWithNoMacOSVersion() throws {
 		let catalog = VMImageCatalog.shared
 
 		let resolution = try XCTUnwrap(catalog.resolveShorthand("ubuntu2604Desktop"))
+		let entry = try XCTUnwrap(catalog.current.iso.first(where: { $0.id == "ubuntu2604Desktop" }))
 
-		XCTAssertEqual(resolution.url, catalog.current.iso.first(where: { $0.id == "ubuntu2604Desktop" })?.url)
+		XCTAssertEqual(resolution.url, entry.url)
 		XCTAssertEqual(resolution.imageSource, .iso)
 		XCTAssertNil(resolution.macosVersion)
+		XCTAssertEqual(resolution.minCPU, entry.minCPU)
+		XCTAssertEqual(resolution.minMemoryMiB, entry.minMemoryMiB)
+		XCTAssertEqual(resolution.minCPU, 4)
+		XCTAssertEqual(resolution.minMemoryMiB, 4096)
 	}
 
 	func testCloudIdResolvesToQcow2SourceWithNoMacOSVersion() throws {
 		let catalog = VMImageCatalog.shared
 
 		let resolution = try XCTUnwrap(catalog.resolveShorthand("ubuntu2604"))
+		let entry = try XCTUnwrap(catalog.current.cloud.first(where: { $0.id == "ubuntu2604" }))
 
-		XCTAssertEqual(resolution.url, catalog.current.cloud.first(where: { $0.id == "ubuntu2604" })?.url)
+		XCTAssertEqual(resolution.url, entry.url)
 		XCTAssertEqual(resolution.imageSource, .qcow2)
 		XCTAssertNil(resolution.macosVersion)
+		XCTAssertEqual(resolution.minCPU, entry.minCPU)
+		XCTAssertEqual(resolution.minMemoryMiB, entry.minMemoryMiB)
+		XCTAssertEqual(resolution.minCPU, 2)
+		XCTAssertEqual(resolution.minMemoryMiB, 2048)
 	}
 
 	/// CentOS/Alpine ship both an installer ISO and a prebuilt cloud image; the `cloud` entry uses

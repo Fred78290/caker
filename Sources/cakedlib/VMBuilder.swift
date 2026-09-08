@@ -1,3 +1,4 @@
+import CakeAgentLib
 import Foundation
 import GRPCLib
 import Virtualization
@@ -395,11 +396,33 @@ public struct VMBuilder {
 			options.macosVersion = macosVersion
 		}
 
+		// Also raise cpu/memory to the catalog entry's own minimum — the wizard and web
+		// UI already do this when an entry is picked there (see `VMImageEntry
+		// .applyMinimumResources` in `Sources/caker/Views/VirtualMachineWizard.swift` and the
+		// equivalent logic in `webui/src/pages/CreateInstanceModal.tsx`), this brings `--alias`
+		// in line with them; never lowers a value the caller already set higher via
+		// `--cpus`/`--memory`.
+		options.cpu = max(options.cpu, resolution.minCPU)
+		options.memory = max(options.memory, resolution.minMemoryMiB)
+
 		return options
 	}
 
 	static func buildVM(_ id: UUID = UUID(), vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
 		let resolvedOptions = try resolveImageId(options)
+
+		// An `--alias`-resolved ISO already had cpu/memory raised to its catalog entry's own
+		// minimum above (see `resolveImageId`'s "Also raise cpu/memory..." step) — every entry's
+		// minimum is well above the bare defaults, so this only fires for a plain `--image
+		// some.iso` build with no `--alias`/`--cpus`/`--memory` override, where there's no catalog
+		// minimum to fall back on at all. Most ISO installers need more than 1 CPU/512MB to boot
+		// reliably, so this is worth a heads-up rather than a silent under-provisioned build.
+		if resolvedOptions.imageSource == .iso, resolvedOptions.cpu == BuildOptions.defaultCPU, resolvedOptions.memory == BuildOptions.defaultMemory {
+			Logger("VMBuilder").warn(
+				"Building \(vmName) from an ISO image with the default \(BuildOptions.defaultCPU) CPU / \(BuildOptions.defaultMemory)MB memory — most installers need more to boot reliably; pass --cpus/--memory explicitly, or --alias with a matching catalog id, to size the VM appropriately."
+			)
+		}
+
 		let options = try await self.cloneImage(vmName: vmName, location: location, options: resolvedOptions, runMode: runMode, progressHandler: progressHandler)
 
 		try await self.build(id: id, vmName: vmName, location: location, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
