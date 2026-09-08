@@ -395,7 +395,7 @@ public struct VMBuilder {
 			options.macosVersion = macosVersion
 		}
 
-		// Also raise cpu/memory to the catalog entry's own minimum, if any — the wizard and web
+		// Also raise cpu/memory to the catalog entry's own minimum — the wizard and web
 		// UI already do this when an entry is picked there (see `VMImageEntry
 		// .applyMinimumResources` in `Sources/caker/Views/VirtualMachineWizard.swift` and the
 		// equivalent logic in `webui/src/pages/CreateInstanceModal.tsx`), this brings `--alias`
