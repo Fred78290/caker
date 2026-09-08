@@ -201,11 +201,18 @@ public struct VMImageCatalog: Codable, Sendable {
 /// URL, the `GRPCLib.ImageSource` it should be built as, and — for an `ipsw` hit whose id happens
 /// to also be a valid `MacOSVersion` raw value — the matching `MacOSVersion`, so callers can
 /// auto-populate `BuildOptions.macosVersion` when the user didn't pass `--macos-version`
-/// explicitly (see `VMBuilder.buildVM`).
+/// explicitly (see `VMBuilder.buildVM`). Also carries the matched entry's own `minCPU`/
+/// `minMemoryMiB`, so callers can raise the build's cpu/memory to at least the catalog's stated
+/// minimum for this image — the same `max(current, minimum)` semantics `VMImageEntry
+/// .applyMinimumResources` (`Sources/caker/Views/VirtualMachineWizard.swift`) and the web UI's
+/// `CreateInstanceModal.tsx` already apply when an entry is picked there (see
+/// `VMBuilder.resolveImageId`).
 public struct VMImageCatalogResolution: Sendable {
 	public let url: String
 	public let imageSource: ImageSource
 	public let macosVersion: MacOSVersion?
+	public let minCPU: UInt16
+	public let minMemoryMiB: UInt64
 }
 
 extension VMImageCatalog {
@@ -222,11 +229,11 @@ extension VMImageCatalog {
 	/// but a caller should still handle it rather than force-unwrapping.
 	public func resolveShorthand(_ id: String) -> VMImageCatalogResolution? {
 		if let entry = current.ipsw.first(where: { $0.id == id }) {
-			return VMImageCatalogResolution(url: entry.url, imageSource: .ipsw, macosVersion: MacOSVersion(rawValue: id))
+			return VMImageCatalogResolution(url: entry.url, imageSource: .ipsw, macosVersion: MacOSVersion(rawValue: id), minCPU: entry.minCPU, minMemoryMiB: entry.minMemoryMiB)
 		}
 
 		if let entry = current.iso.first(where: { $0.id == id }) {
-			return VMImageCatalogResolution(url: entry.url, imageSource: .iso, macosVersion: nil)
+			return VMImageCatalogResolution(url: entry.url, imageSource: .iso, macosVersion: nil, minCPU: entry.minCPU, minMemoryMiB: entry.minMemoryMiB)
 		}
 
 		if let entry = current.cloud.first(where: { $0.id == id }) {
@@ -235,7 +242,7 @@ extension VMImageCatalog {
 			// "https" -> `.qcow2` mapping in `BuildOptions.validateImageSource`). Set it
 			// explicitly here rather than leaving `imageSource` nil for a later re-validation
 			// pass to infer, since `VMBuilder.buildVM` doesn't re-run that validation.
-			return VMImageCatalogResolution(url: entry.url, imageSource: .qcow2, macosVersion: nil)
+			return VMImageCatalogResolution(url: entry.url, imageSource: .qcow2, macosVersion: nil, minCPU: entry.minCPU, minMemoryMiB: entry.minMemoryMiB)
 		}
 
 		return nil
