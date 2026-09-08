@@ -341,7 +341,7 @@ public final class ActionRecorder: @unchecked Sendable {
 			self.targetView.toogleVoiceOver(confirm: false)
 		} else {
 			self.addStep(.voiceOverOn(confirm: confirm, timestamp: Date()))
-			self.targetView.toogleVoiceOver(confirm: true)
+			self.targetView.toogleVoiceOver(confirm: confirm)
 		}
 
 		voiceOverActive.toggle()

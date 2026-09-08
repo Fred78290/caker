@@ -65,8 +65,9 @@ extension NSView {
 		let eventSource = CGEventSource(stateID: .combinedSessionState)
 		let windowNumber = window.windowNumber
 		let view = self
+		let keyDelayNanoseconds: UInt64 = 300_000_000
 
-		func send(_ keyCode: CGKeyCode, isDown: Bool, modifierFlags: NSEvent.ModifierFlags) {
+		func send(_ keyCode: CGKeyCode, isDown: Bool, modifierFlags: NSEvent.ModifierFlags, characters: String = "") async {
 			guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: isDown) else {
 				return
 			}
@@ -79,8 +80,8 @@ extension NSView {
 					timestamp: ProcessInfo.processInfo.systemUptime,
 					windowNumber: windowNumber,
 					context: nil,
-					characters: String.empty,
-					charactersIgnoringModifiers: String.empty,
+					characters: characters,
+					charactersIgnoringModifiers: characters,
 					isARepeat: false,
 					keyCode: keyCode)
 			else {
@@ -94,6 +95,8 @@ extension NSView {
 			} else {
 				view.keyUp(with: event)
 			}
+
+			try? await Task.sleep(nanoseconds: keyDelayNanoseconds)
 		}
 
 		Task { @MainActor in
@@ -102,23 +105,22 @@ extension NSView {
 			}
 
 			var modifiers: NSEvent.ModifierFlags = []
-			let keyDelayNanoseconds: UInt64 = 100_000_000
 
+			await send(ModifierToken.leftAlt.keysym, isDown: true, modifierFlags: modifiers)
 			modifiers.insert(.command)
-			send(ModifierToken.leftAlt.keysym, isDown: true, modifierFlags: modifiers)
 
+			await send(ModifierToken.function.keysym, isDown: true, modifierFlags: modifiers)
 			modifiers.insert(.function)
-			send(ModifierToken.function.keysym, isDown: true, modifierFlags: modifiers)
 
-			send(KeyToken.function(5).keysym, isDown: true, modifierFlags: modifiers)
-			try? await Task.sleep(nanoseconds: keyDelayNanoseconds)
-			send(KeyToken.function(5).keysym, isDown: false, modifierFlags: modifiers)
+			await send(KeyToken.function(5).keysym, isDown: true, modifierFlags: modifiers)
 
+			await send(KeyToken.function(5).keysym, isDown: false, modifierFlags: modifiers)
 			modifiers.remove(.function)
-			send(ModifierToken.function.keysym, isDown: false, modifierFlags: modifiers)
 
+			await send(ModifierToken.function.keysym, isDown: false, modifierFlags: modifiers)
 			modifiers.remove(.command)
-			send(ModifierToken.leftAlt.keysym, isDown: false, modifierFlags: modifiers)
+
+			await send(ModifierToken.leftAlt.keysym, isDown: false, modifierFlags: modifiers)
 
 			guard confirm else {
 				return
@@ -128,9 +130,8 @@ extension NSView {
 			// before dismissing it -- matches PackerLiteDriver.voiceOverToggleSequence's own settle wait.
 			try? await Task.sleep(nanoseconds: 5_000_000_000)
 
-			send(CGKeyCodes.ansiV, isDown: true, modifierFlags: [])
-			try? await Task.sleep(nanoseconds: keyDelayNanoseconds)
-			send(CGKeyCodes.ansiV, isDown: false, modifierFlags: [])
+			await send(CGKeyCodes.ansiV, isDown: true, modifierFlags: [], characters: "v")
+			await send(CGKeyCodes.ansiV, isDown: false, modifierFlags: [], characters: "v")
 		}
 	}
 }
