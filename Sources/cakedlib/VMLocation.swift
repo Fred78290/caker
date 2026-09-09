@@ -572,16 +572,8 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			return .none
 		}
 
-		if let runningPID = result.pid {
-			if runningPID == getpid() {
-				return .provision
-			}
-
-			let running = ServiceHandler.isAgentRunning
-
-			if runningPID == running.pid {
-				return .provision
-			}
+		if self.provisionningURL.fileExists {
+			return .provision
 		}
 
 		return .init(result.processName)
