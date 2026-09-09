@@ -51,7 +51,7 @@ struct VirtualMachineView: View {
 	}
 
 	var body: some View {
-		let lightColor = self.lightColor(vm.status)
+		let lightColor = HostVirtualMachineView.vmStatusColor(vm.status)
 		let imageName = self.imageName(vm.status)
 
 		GeometryReader { geometry in
@@ -152,7 +152,7 @@ struct VirtualMachineView: View {
 				Button("Resume") {
 					self.vm.resumeFromUI()
 				}
-			} else {
+			} else if self.vm.canStart {
 				Button("Start") {
 					self.vm.startFromUI()
 				}.disabled(self.vm.status.isRunning)
@@ -160,11 +160,11 @@ struct VirtualMachineView: View {
 
 			Button("Stop") {
 				self.vm.stopFromUI(force: vm.status != .running || NSEvent.modifierFlags.contains(.option))
-			}.disabled(self.vm.status.isStopped)
+			}.disabled(self.vm.canStop == false)
 
 			Button("Pause") {
 				self.vm.suspendFromUI()
-			}.disabled(self.vm.status != .running)
+			}.disabled(self.vm.canPause == false)
 
 			Divider()
 			Button("Duplicate") {
@@ -173,7 +173,7 @@ struct VirtualMachineView: View {
 
 			Button("Rename") {
 				self.vm.renameVirtualMachine()
-			}.disabled(self.vm.status.isRunning || self.vm.status == .paused)
+			}.disabled(self.vm.status.isStopped == false)
 
 			Button("Delete VM") {
 				self.vm.deleteVirtualMachine()
@@ -243,25 +243,10 @@ struct VirtualMachineView: View {
 			return "square.and.arrow.up"
 		case .saving:
 			return "square.and.arrow.down"
+		case .provisioning:
+			return "wrench.and.screwdriver"
 		default:
 			return "questionmark.circle.fill"
-		}
-	}
-
-	func lightColor(_ status: VirtualMachineDocument.Status) -> Color {
-		switch status {
-		case .starting:
-			return Color.orange
-		case .running:
-			return Color.green
-		case .stopping:
-			return Color.brown
-		case .stopped:
-			return Color.red
-		case .paused, .pausing:
-			return Color.yellow
-		default:
-			return Color.systemGray3
 		}
 	}
 }
@@ -269,3 +254,4 @@ struct VirtualMachineView: View {
 #Preview {
 	VirtualMachineView(.init(AppState.shared.documents.first!), selected: false)
 }
+

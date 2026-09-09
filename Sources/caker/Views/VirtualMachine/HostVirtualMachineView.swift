@@ -176,7 +176,7 @@ struct HostVirtualMachineView: View {
 				}
 				.toolbar {
 					ToolbarItemGroup(placement: .navigation) {
-						GlossyCircle(color: vmStatusColor(document.status))
+						GlossyCircle(color: Self.vmStatusColor(document.status))
 							.frame(width: 11, height: 11)
 
 						powerButton
@@ -282,15 +282,16 @@ struct HostVirtualMachineView: View {
 		}
 	}
 
-	private func vmStatusColor(_ status: VirtualMachineDocument.Status) -> Color {
+	static func vmStatusColor(_ status: VirtualMachineDocument.Status) -> Color {
 		switch status {
 		case .starting, .resuming, .restoring: return .orange
 		case .running: return .green
-		case .stopping, .saving, .pausing: return .yellow
+		case .stopping: return .yellow
 		case .stopped: return .red
-		case .paused: return .yellow
-		case .error: return Color(NSColor.systemGray)
-		default: return Color(NSColor.systemGray)
+		case .paused, .saving, .pausing: return .yellow
+		case .error: return .systemGray
+		case .provisioning: return Color.blue
+		default: return .systemGray3
 		}
 	}
 
