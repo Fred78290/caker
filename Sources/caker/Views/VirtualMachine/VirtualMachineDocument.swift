@@ -116,7 +116,7 @@ extension UTType {
 	enum Status: Int, CustomStringConvertible {
 		var isStopped: Bool {
 			switch self {
-			case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring:
+			case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring, .provisioning:
 				return false
 			default:
 				return true
@@ -125,7 +125,7 @@ extension UTType {
 
 		var isRunning: Bool {
 			switch self {
-			case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring:
+			case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring, .provisioning:
 				return true
 			default:
 				return false
@@ -209,8 +209,12 @@ extension UTType {
 			switch from {
 			case .stopped:
 				self = .stopped
-			case .running:
-				self = .running
+			case .running(let mode):
+				if mode == .provision {
+					self = .provisioning
+				} else {
+					self = .running
+				}
 			case .paused:
 				self = .paused
 			}
@@ -600,12 +604,12 @@ extension VirtualMachineDocument {
 	}
 
 	@MainActor
-	func setStateAsRunning(vncURL: [URL]?) {
+	func setStateAsRunning(_ status: Status, vncURL: [URL]?) {
 		#if DEBUG
 			self.logger.debug("setStateAsRunning")
 		#endif
 
-		self.updateCurrentStatus(.running, vncURL: vncURL)
+		self.updateCurrentStatus(status, vncURL: vncURL)
 
 		self.agentReady = false
 		self.agentCondition = ("Install agent", false, self.agent != .none)
@@ -760,6 +764,7 @@ extension VirtualMachineDocument {
 			self.agent = self.virtualMachineConfig.agent ? (self.virtualMachineConfig.firstLaunch ? .installing : .installed) : .none
 			self.name = location.name
 			self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
+			self.status = .init(location.status)
 
 			if self.isLaunchVMExternally && self.externalRunning {
 				self.setDocumentSize(self.getVncScreenSize())
@@ -831,7 +836,7 @@ extension VirtualMachineDocument {
 				self.logger.debug("Found VNC URL: \(vncInfos.urls)")
 			#endif
 
-			await self.setStateAsRunning(vncURL: vncInfos.urls.compactMap { URL(string: $0) })
+			await self.setStateAsRunning(.running, vncURL: vncInfos.urls.compactMap { URL(string: $0) })
 		} else {
 			self.logger.error("VM \(self.name) failed to start: \(result.reason)")
 			await self.setStateAsStopped()
@@ -853,7 +858,7 @@ extension VirtualMachineDocument {
 			#endif
 
 			await self.tryVNCConnect(vncURL: vncURL)
-			await self.setStateAsRunning(vncURL: [vncURL])
+			await self.setStateAsRunning(.running, vncURL: [vncURL])
 		} else {
 			self.logger.error("VM \(self.name) failed to start: \(result.reason)")
 		}
@@ -870,7 +875,7 @@ extension VirtualMachineDocument {
 					await self.setStateAsStopped(.error)
 					await alertError(error)
 				} else {
-					await self.setStateAsRunning(vncURL: self.vncURL)
+					await self.setStateAsRunning(.running, vncURL: self.vncURL)
 				}
 			}
 		}
@@ -1325,18 +1330,30 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 		let check: (URL) -> Void = { file in
 			if file.lastPathComponent == location.pidFile.lastPathComponent {
 				DispatchQueue.main.async {
-					let running = location.pidFile.isPIDRunning()
+					let status = location.status
 
-					if running.running == false {
+					switch location.status {
+					case .running(let mode):
+						switch mode {
+						case .caked:
+							self.externalRunning = true
+							self.status = .running
+							self.retrieveVNCURL()
+						case .caker:
+							self.externalRunning = false
+							self.setStateAsRunning(.running, vncURL: nil)
+						case .provision:
+							self.externalRunning = true
+							self.status = .provisioning
+							self.retrieveVNCURL()
+						default:
+							break
+						}
+					case .stopped:
 						self.externalRunning = false
 						self.setStateAsStopped()
-					} else if running.processName.contains(Home.cakedCommandName) {
-						self.externalRunning = true
-						self.status = .running
-						self.retrieveVNCURL()
-					} else {
-						self.externalRunning = false
-						self.setStateAsRunning(vncURL: nil)
+					default:
+						self.setOtherState(status: .init(status))
 					}
 				}
 			} else if file.lastPathComponent == location.screenshotURL.lastPathComponent {
@@ -1383,7 +1400,7 @@ extension VirtualMachineDocument {
 	}
 
 	func retrieveVNCURL() {
-		guard self.externalRunning && self.status == .running else {
+		guard self.externalRunning && (self.status == .running || self.status == .provisioning) else {
 			return
 		}
 
@@ -1391,7 +1408,7 @@ extension VirtualMachineDocument {
 			if let vncInfos = try? self.connectionManager.vncInfos(vmURL: self.url) {
 				self.logger.info("Found VNC URL: \(vncInfos.urls)")
 
-				self.setStateAsRunning(
+				self.setStateAsRunning(self.status,
 					vncURL: vncInfos.urls.compactMap {
 						URL(string: $0)
 					})
@@ -1404,7 +1421,7 @@ extension VirtualMachineDocument {
 					self.tryVNCConnect()
 				}
 			} else {
-				self.setStateAsRunning(vncURL: nil)
+				self.setStateAsRunning(self.status, vncURL: nil)
 			}
 		}
 	}

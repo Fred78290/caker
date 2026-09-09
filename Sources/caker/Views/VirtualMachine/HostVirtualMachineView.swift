@@ -185,13 +185,13 @@ struct HostVirtualMachineView: View {
 							document.suspendFromUI()
 						}
 						.help("Suspend virtual machine")
-						.disabled(document.suspendable == false || document.agent == .installing)
+						.disabled(document.suspendable == false || document.status == .provisioning || document.agent == .installing)
 
 						Button("Restart", systemImage: "arrow.trianglehead.clockwise") {
 							document.restartFromUI()
 						}
 						.help("Restart virtual machine")
-						.disabled(document.status.isStopped || document.agent == .installing)
+						.disabled(document.status.isStopped || document.status == .provisioning || document.agent == .installing)
 
 						Button("Create template", systemImage: "archivebox") {
 							createTemplate = true
@@ -321,7 +321,7 @@ struct HostVirtualMachineView: View {
 				document.startFromUI()
 			}
 			.help("Start virtual machine")
-			.disabled(document.status == .starting || document.status == .stopping)
+			.disabled([VirtualMachineDocument.Status.starting, VirtualMachineDocument.Status.stopping, VirtualMachineDocument.Status.provisioning].contains(document.status))
 		}
 	}
 
@@ -722,7 +722,10 @@ struct HostVirtualMachineView: View {
 		case .disconnecting:
 			LabelView("VNC disconnecting", size: size)
 		case .ready:
-			VNCView(document: self.document).frame(size: size).background(.black)
+			VNCView(document: self.document)
+				.frame(size: size)
+				.background(.black)
+				.disabled(self.document.status == .provisioning)
 		}
 	}
 
@@ -748,7 +751,7 @@ struct HostVirtualMachineView: View {
 	@ViewBuilder
 	func vmView(_ size: CGSize) -> some View {
 		if self.document.status != .running {
-			if self.document.status == .starting && self.document.isLaunchVMExternally && self.document.vncURL != nil {
+			if (self.document.status == .starting || self.document.status == .provisioning) && self.document.externalRunning && self.document.vncURL != nil {
 				vncView(size)
 					.frame(size: size)
 			} else {
