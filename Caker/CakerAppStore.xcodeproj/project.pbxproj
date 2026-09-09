@@ -28,6 +28,7 @@
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
 		7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */; };
 		9B001DCA300189A80048894C /* TemplateDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001DC9300189A80048894C /* TemplateDetailView.swift */; };
+		6F24F80EC59144FFB72B9505 /* VirtualMachineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */; };
 		9B001E8C300191920048894C /* RemoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001E8B300191920048894C /* RemoteDetailView.swift */; };
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
 		9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
@@ -951,6 +952,7 @@
 		839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplate.swift; sourceTree = "<group>"; };
 		9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteDriver.swift; sourceTree = "<group>"; };
 		9B001DC9300189A80048894C /* TemplateDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateDetailView.swift; sourceTree = "<group>"; };
+		DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDetailView.swift; sourceTree = "<group>"; };
 		9B001E8B300191920048894C /* RemoteDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteDetailView.swift; sourceTree = "<group>"; };
 		9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDetailView.swift; sourceTree = "<group>"; };
 		9B0202722EA8D08800053712 /* RoundedTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedTextField.swift; sourceTree = "<group>"; };
@@ -2486,6 +2488,7 @@
 				9B9C4E922E23C92900C13D23 /* TemplatesView.swift */,
 				9B9C4E582E23BC8B00C13D23 /* VirtualMachinesView.swift */,
 				9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */,
+				DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -3861,6 +3864,7 @@
 				9B29F7F52FCAE4B700AEBCB8 /* NetworkAttachementNewItemView.swift in Sources */,
 				9B29F7F62FCAE4B700AEBCB8 /* MemorySizeStyle.swift in Sources */,
 				9B001DCA300189A80048894C /* TemplateDetailView.swift in Sources */,
+				6F24F80EC59144FFB72B9505 /* VirtualMachineDetailView.swift in Sources */,
 				9B29F7F72FCAE4B700AEBCB8 /* CurrentStatusHandler.swift in Sources */,
 				9B29F7F82FCAE4B700AEBCB8 /* ScreenSizeHandler.swift in Sources */,
 				9B29F7F92FCAE4B700AEBCB8 /* ForwardedPortDetailView.swift in Sources */,

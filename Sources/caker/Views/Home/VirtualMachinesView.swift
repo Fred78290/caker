@@ -42,8 +42,8 @@ struct VirtualMachinesView: View {
 	private func selectDocument(_ document: VirtualMachineDocumentState) {
 		self.navigationModel.selectedVirtualMachine = document
 
-		if self.appearsActive, let document = AppState.shared.findVirtualMachineDocument(document.url) {
-			AppState.shared.currentDocument = document
+		if self.appearsActive, let vmDocument = AppState.shared.findVirtualMachineDocument(document.url) {
+			AppState.shared.currentDocument = vmDocument
 		}
 	}
 

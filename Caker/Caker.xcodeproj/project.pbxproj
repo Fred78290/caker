@@ -29,6 +29,7 @@
 		91C2CE30A7DA428FBABEB441 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 		9B001A0A300023EF0048894C /* com.aldunelabs.caker.caked.plist in LaunchAgent */ = {isa = PBXBuildFile; fileRef = 9BB7AEFA2FFFC3E300B7DD6D /* com.aldunelabs.caker.caked.plist */; };
 		9B001B8E3001703F0048894C /* TemplateDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001B8D3001703F0048894C /* TemplateDetailView.swift */; };
+		A199C421AA7B30AB6695C4A5 /* VirtualMachineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */; };
 		9B001E2B30018DC00048894C /* RemoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001E2A30018DC00048894C /* RemoteDetailView.swift */; };
 		9B0202712EA8CBDD00053712 /* NetworkDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */; };
 		9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202722EA8D08800053712 /* RoundedTextField.swift */; };
@@ -941,6 +942,7 @@
 		9B001A0D300025340048894C /* caked.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caked.provisionprofile; sourceTree = "<group>"; };
 		9B001A0E300025340048894C /* caker.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caker.provisionprofile; sourceTree = "<group>"; };
 		9B001B8D3001703F0048894C /* TemplateDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateDetailView.swift; sourceTree = "<group>"; };
+		61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDetailView.swift; sourceTree = "<group>"; };
 		9B001E2A30018DC00048894C /* RemoteDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteDetailView.swift; sourceTree = "<group>"; };
 		9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDetailView.swift; sourceTree = "<group>"; };
 		9B0202722EA8D08800053712 /* RoundedTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedTextField.swift; sourceTree = "<group>"; };
@@ -2475,6 +2477,7 @@
 				9B9C4E922E23C92900C13D23 /* TemplatesView.swift */,
 				9B9C4E582E23BC8B00C13D23 /* VirtualMachinesView.swift */,
 				9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */,
+				61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -3766,6 +3769,7 @@
 				9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */,
 				9BEBD1172F9B75270005EC80 /* ConnectionManager.swift in Sources */,
 				9B001B8E3001703F0048894C /* TemplateDetailView.swift in Sources */,
+				A199C421AA7B30AB6695C4A5 /* VirtualMachineDetailView.swift in Sources */,
 				9BBF7A3B2F3DE0B800F37D2C /* StartHandler.swift in Sources */,
 				9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */,
 				9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */,
