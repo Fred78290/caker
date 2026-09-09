@@ -198,7 +198,9 @@ public struct ProvisionHandler {
 					if let error {
 						let reason: String
 
-						if let videoURL = location.existingProvisioningVideoURL {
+						if (error as? CancellationError) != nil {
+							reason = String(localized: "Cancelled")
+						} else if let videoURL = location.existingProvisioningVideoURL {
 							reason = String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason). Debug recording saved to \(videoURL.path)")
 						} else {
 							reason = String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)")
@@ -237,19 +239,19 @@ public struct ProvisionHandler {
 							progressHandler: progressHandler)
 						progressHandler(.step(String(localized: "Pre-boot commands terminated")))
 					}
-
+					
 					var runningIP: String? = nil
-
+					
 					if let ignoreIP = template.ignoreIP, ignoreIP {
 						logger.info("VM Machine \(location.name) ignored IP")
 					} else if let ip = try await address.get() {
 						runningIP = ip
-
+						
 						logger.info("VM Machine \(location.name) is now available at \(ip)")
 					} else {
 						throw ServiceError(String(localized: "Unable to obtain an IP address for VM \(location.name)"))
 					}
-
+					
 					try await PackerLiteEngine.provision(
 						vm: vm,
 						template: template,
@@ -257,6 +259,9 @@ public struct ProvisionHandler {
 						runMode: runMode,
 						progressHandler: progressHandler
 					)
+				} catch is CancellationError {
+					// Task was cancelled, likely due to the VM being stopped or the provisioning process being interrupted. Handle any necessary cleanup here if needed.
+					catchableError = CancellationError()
 				} catch {
 					catchableError = error
 					logger.error("Provisioning failed for VM \(location.name): \(error)")

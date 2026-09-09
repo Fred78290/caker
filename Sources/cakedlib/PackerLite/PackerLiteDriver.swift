@@ -354,7 +354,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 					logger.info("Skip current step: \(command.title):\(step.description), remains=\(numberOfSteps)")
 				} else {
 					let result = try await execute(step, title: command.title)
-
+					
 					if result.success == false {
 						if result.numberOfSteps > 0 {
 							logger.info("Skip \(result.numberOfSteps) next steps: \(command.title)")
@@ -365,6 +365,8 @@ final class PackerLiteDriver: @unchecked Sendable {
 						}
 					}
 				}
+			} catch is CancellationError {
+				// Silent
 			} catch {
 				throw PackerLiteDriverError.stepFailed(step: command, underlying: error)
 			}

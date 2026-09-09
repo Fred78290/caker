@@ -126,8 +126,23 @@ struct Provision: AsyncParsableCommand {
 				}
 			}
 
+			// caked's default top-level SIGINT handler (Root.sigintSrc) just force-exits the process —
+			// fine for most commands, but here Ctrl-C is the documented way to stop-and-save, so it
+			// needs to run our own teardown first. Same cancel-then-install-our-own pattern Exec/Sh
+			// already use for their own interactive needs (see Sources/caked/Commands/Exec.swift).
+			Root.sigintSrc.cancel()
+			signal(SIGINT, SIG_IGN)
+
+			let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+
+			sigintSrc.setEventHandler {
+				cancellation.cancel()
+			}
+
+			sigintSrc.activate()
+
 			promise.futureResult.whenComplete { result in
-				if case .failure(let error) = result {
+				if case .failure(let error) = result, error as? CancellationError == nil {
 					Logger(self).error("Provisioning failed: \(error.localizedDescription)")
 				}
 
