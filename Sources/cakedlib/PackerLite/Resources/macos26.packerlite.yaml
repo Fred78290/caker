@@ -100,19 +100,17 @@ boot_command:
       - <spacebar>
       - <tab repeat=2>
       - <spacebar>
-      - <locate timeout=60 text='Sign In to Your Apple Account'>
+
+  - title: Sign In to Your Apple Account
+    commands:
+      - <locate timeout=120 text='Sign In to use ICloud'>
       - <wait1s>
       - <locate timeout=60 text='Email or Phone Number'>
       - <wait1s>
       - <locate timeout=60 text='Other Sign'>
       - <wait1s>
-
-  - title: Enable Voice Over
-    commands:
       - <voiceOverOn>
-
-  - title: Sign In with Your Apple ID
-    commands:
+      - <wait1s>
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -173,8 +171,8 @@ boot_command:
       - <tab repeat=3>
       - UTC
       - <enter>
-      - <tab repeat=2>
-      - <spacebar>
+      - <wait1s>
+      - <click text='Continue'>
 
   - title: Analytics
     commands:
@@ -309,5 +307,11 @@ boot_command:
 post_boot_command:
   use_ssh_key: false
   commands:
-    - sh -c 'echo "${var.ssh_authorized_key}" > ~/.ssh/authorized_keys'
+    - mkdir -p ~/.ssh
+    - |
+      cat > ~/.ssh/authorized_keys <<EOF
+      ${var.ssh_authorized_key}
+      EOF
     - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"
+    - sync
+    - sync
