@@ -295,6 +295,35 @@ struct HostVirtualMachineView: View {
 		}
 	}
 
+	/// The icon for the quick power-toggle button (`VirtualMachineDocumentState.toggleAction()`) —
+	/// shared by the mosaic tile and the list-mode detail pane.
+	static func vmActionIcon(_ status: VirtualMachineDocument.Status) -> String {
+		switch status {
+		case .starting:
+			return "memories"
+		case .running:
+			return "stop.fill"
+		case .stopping:
+			return "play.fill"
+		case .stopped:
+			return "play.fill"
+		case .pausing:
+			return "arrow.down.circle.badge.pause"
+		case .paused:
+			return "pause.fill"
+		case .error:
+			return "exclamationmark.triangle"
+		case .resuming, .restoring:
+			return "square.and.arrow.up"
+		case .saving:
+			return "square.and.arrow.down"
+		case .provisioning:
+			return "wrench.and.screwdriver"
+		default:
+			return "questionmark.circle.fill"
+		}
+	}
+
 	@ViewBuilder
 	private var powerButton: some View {
 		if document.status == .stopping || document.haveRequestStop {

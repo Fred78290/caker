@@ -193,4 +193,20 @@ func osIconImage(for osname: String) -> some View {
 			AppState.shared.renameVirtualMachine(document: vm)
 		}
 	}
+
+	/// The single quick-action a status/power-toggle button performs — stop (with a force-stop
+	/// shortcut via Option-click, matching every other stop control in this app) while running/
+	/// transitioning, start while stopped/paused, a no-op otherwise. Shared by the mosaic tile
+	/// (`VirtualMachineView`) and the list-mode detail pane (`VirtualMachineDetailView`), which
+	/// otherwise had no reason to duplicate this switch.
+	func toggleAction() {
+		switch self.status {
+		case .running, .starting, .stopping, .pausing:
+			self.stopFromUI(force: self.status != .running || NSEvent.modifierFlags.contains(.option))
+		case .stopped, .paused:
+			self.startFromUI()
+		default:
+			break
+		}
+	}
 }

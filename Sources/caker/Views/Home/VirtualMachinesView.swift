@@ -21,6 +21,31 @@ struct VirtualMachinesView: View {
 	var appState: AppState = .shared
 	@State var navigationModel: NavigationModel
 	@State var columns: [GridItem]
+	@AppStorage("VirtualMachinesViewMode") private var viewMode: VirtualMachinesViewMode = .mosaic
+
+	private var sortedDocuments: [VirtualMachineDocumentState] {
+		Array(self.navigationModel.documents.values).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+	}
+
+	private func openDocument(_ document: VirtualMachineDocumentState) {
+		self.navigationModel.selectedVirtualMachine = document
+
+		if self.appearsActive, let document = AppState.shared.findVirtualMachineDocument(document.url) {
+			AppState.shared.currentDocument = document
+		}
+
+		Task {
+			await MainApp.app.openVirtualMachine(document.url)
+		}
+	}
+
+	private func selectDocument(_ document: VirtualMachineDocumentState) {
+		self.navigationModel.selectedVirtualMachine = document
+
+		if self.appearsActive, let document = AppState.shared.findVirtualMachineDocument(document.url) {
+			AppState.shared.currentDocument = document
+		}
+	}
 
 	@ViewBuilder
 	func virtualMachineView(_ document: VirtualMachineDocumentState) -> some View {
@@ -31,30 +56,26 @@ struct VirtualMachinesView: View {
 	}
 
 	var body: some View {
+		switch self.viewMode {
+		case .mosaic:
+			self.mosaicBody
+		case .list:
+			self.listBody
+		}
+	}
+
+	@ViewBuilder
+	private var mosaicBody: some View {
 		GeometryReader { geometry in
 			ScrollView {
 				LazyVGrid(columns: self.columns, alignment: .leading, spacing: Self.cellSpacing) {
-					let documents = Array(self.navigationModel.documents.values).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-
-					ForEach(documents, id: \.url) { document in
+					ForEach(self.sortedDocuments, id: \.url) { document in
 						self.virtualMachineView(document)
 							.onTapGesture(count: 2) {
-								self.navigationModel.selectedVirtualMachine = document
-
-								if self.appearsActive, let document = AppState.shared.findVirtualMachineDocument(document.url) {
-									AppState.shared.currentDocument = document
-								}
-
-								Task {
-									await MainApp.app.openVirtualMachine(document.url)
-								}
+								self.openDocument(document)
 							}
 							.onTapGesture {
-								self.navigationModel.selectedVirtualMachine = document
-
-								if self.appearsActive, let document = AppState.shared.findVirtualMachineDocument(document.url) {
-									AppState.shared.currentDocument = document
-								}
+								self.selectDocument(document)
 							}
 					}
 				}
@@ -66,6 +87,50 @@ struct VirtualMachinesView: View {
 			proxy.frame(in: .global)
 		} action: { newValue in
 			self.columns = Self.buildColumns(newValue.size)
+		}
+	}
+
+	@ViewBuilder
+	private func listRow(_ document: VirtualMachineDocumentState) -> some View {
+		HStack(spacing: 12) {
+			document.osImage
+				.frame(width: 28, height: 28)
+
+			VStack(alignment: .leading, spacing: 2) {
+				Text(document.name)
+					.font(.system(size: 13, weight: .semibold))
+					.lineLimit(1)
+				Text(document.status.description.capitalized)
+					.font(.system(size: 11))
+					.foregroundStyle(.secondary)
+			}
+
+			Spacer()
+
+			GlossyCircle(color: HostVirtualMachineView.vmStatusColor(document.status))
+				.frame(width: 10, height: 10)
+		}
+		.padding(.vertical, 4)
+		.contentShape(Rectangle())
+		.onTapGesture(count: 2) {
+			self.openDocument(document)
+		}
+	}
+
+	@ViewBuilder
+	private var listBody: some View {
+		if self.sortedDocuments.isEmpty {
+			ContentUnavailableView("List empty", systemImage: "tray")
+		} else {
+			List(self.sortedDocuments, id: \.self, selection: $navigationModel.selectedVirtualMachine) { document in
+				self.listRow(document)
+			}
+			.listStyle(.inset(alternatesRowBackgrounds: true))
+			.onChange(of: self.navigationModel.selectedVirtualMachine) { _, newValue in
+				if self.appearsActive, let document = newValue.flatMap({ AppState.shared.findVirtualMachineDocument($0.url) }) {
+					AppState.shared.currentDocument = document
+				}
+			}
 		}
 	}
 

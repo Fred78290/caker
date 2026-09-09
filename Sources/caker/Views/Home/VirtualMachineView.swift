@@ -52,7 +52,7 @@ struct VirtualMachineView: View {
 
 	var body: some View {
 		let lightColor = HostVirtualMachineView.vmStatusColor(vm.status)
-		let imageName = self.imageName(vm.status)
+		let imageName = HostVirtualMachineView.vmActionIcon(vm.status)
 
 		GeometryReader { geometry in
 			RoundedRectangle(cornerRadius: radius)
@@ -69,7 +69,7 @@ struct VirtualMachineView: View {
 									.lineLimit(1)
 								Spacer()
 
-								Button(action: action) {
+								Button(action: { self.vm.toggleAction() }) {
 									Image(systemName: imageName)
 										.font(.system(size: 14, weight: .medium))
 								}
@@ -212,43 +212,6 @@ struct VirtualMachineView: View {
 		}
 	}
 
-	func action() {
-		switch vm.status {
-		case .running, .starting, .stopping, .pausing:
-			self.vm.stopFromUI(force: vm.status != .running || NSEvent.modifierFlags.contains(.option))
-		case .stopped, .paused:
-			self.vm.startFromUI()
-		default:
-			break
-		}
-	}
-
-	func imageName(_ status: VirtualMachineDocument.Status) -> String {
-		switch status {
-		case .starting:
-			return "memories"
-		case .running:
-			return "stop.fill"
-		case .stopping:
-			return "play.fill"
-		case .stopped:
-			return "play.fill"
-		case .pausing:
-			return "arrow.down.circle.badge.pause"
-		case .paused:
-			return "pause.fill"
-		case .error:
-			return "exclamationmark.triangle"
-		case .resuming, .restoring:
-			return "square.and.arrow.up"
-		case .saving:
-			return "square.and.arrow.down"
-		case .provisioning:
-			return "wrench.and.screwdriver"
-		default:
-			return "questionmark.circle.fill"
-		}
-	}
 }
 
 #Preview {
