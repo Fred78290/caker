@@ -499,12 +499,12 @@ extension Caked_VirtualMachineStatus: CustomStringConvertible {
 			String(localized: "error")
 		case .agentReady:
 			String(localized: "agentReady")
-		case .UNRECOGNIZED(let value):
-			String(localized: "unrecognized: \(value)")
 		case .new:
 			String(localized: "new")
 		case .provisioning:
 			String(localized: "provisioning")
+		case .UNRECOGNIZED(let value):
+			String(localized: "unrecognized: \(value)")
 		}
 	}
 	
