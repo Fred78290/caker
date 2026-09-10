@@ -221,10 +221,11 @@ extension VMImageCatalog {
 	///
 	/// Checks `ipsw` → `iso` → `cloud`, in that priority order. Every id in `VMImages.json` is
 	/// unique across all three categories — an id that would otherwise collide between `iso` and
-	/// `cloud` (e.g. CentOS/Alpine, which ship both an installer ISO and a prebuilt cloud image)
-	/// gets a `Cloud`-suffixed id on its `cloud` entry (`centos9Cloud`, `alpine324Cloud`, ...) so
-	/// both remain independently reachable via `--alias`, rather than relying on this priority
-	/// order to pick one over the other. Returns `nil` if `id` isn't in this catalog at all —
+	/// `cloud` (e.g. CentOS/openSUSE/Alpine, which ship both an installer ISO and a prebuilt cloud
+	/// image) gets an `-iso`-suffixed id on its `iso` entry (`centos10-iso`, `alpine324-iso`, ...),
+	/// leaving the bare id on the `cloud` entry, so both remain independently reachable via
+	/// `--alias` rather than relying on this priority order to pick one over the other. Returns
+	/// `nil` if `id` isn't in this catalog at all —
 	/// shouldn't normally happen, since `--alias`'s ids are meant to come from this same catalog,
 	/// but a caller should still handle it rather than force-unwrapping.
 	public func resolveShorthand(_ id: String) -> VMImageCatalogResolution? {

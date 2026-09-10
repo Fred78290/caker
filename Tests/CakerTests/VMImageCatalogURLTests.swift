@@ -3,13 +3,6 @@ import XCTest
 @testable import CakedLib
 
 final class VMImageCatalogURLTests: XCTestCase {
-	func testFedora41DesktopIsOnlyPublishedForAmd64() throws {
-		let catalog = VMImageCatalog.shared
-
-		XCTAssertNil(catalog.arm64.iso.first(where: { $0.id == "fedora41Desktop" }), "Fedora 41 Workstation has no aarch64 ISO upstream")
-		XCTAssertNotNil(catalog.amd64.iso.first(where: { $0.id == "fedora41Desktop" }))
-	}
-
 	func testMinimumResourcesMatchDesktopServerConvention() throws {
 		for archCatalog in [VMImageCatalog.shared.arm64, VMImageCatalog.shared.amd64] {
 			for entry in archCatalog.iso {

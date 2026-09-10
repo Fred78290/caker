@@ -53,18 +53,18 @@ final class VMImageCatalogResolutionTests: XCTestCase {
 		XCTAssertEqual(resolution.minMemoryMiB, 2048)
 	}
 
-	/// CentOS/Alpine ship both an installer ISO and a prebuilt cloud image; the `cloud` entry uses
-	/// a `Cloud`-suffixed id (e.g. `centos9Cloud`) so it stays reachable without colliding with
-	/// the bare `iso` id — see `VMImageCatalog.resolveShorthand`'s doc comment.
-	func testBareIdResolvesToISOAndSuffixedIdResolvesToCloud() throws {
+	/// CentOS/openSUSE/Alpine ship both an installer ISO and a prebuilt cloud image; the `iso`
+	/// entry uses an `-iso`-suffixed id (e.g. `centos10-iso`) so it stays reachable without
+	/// colliding with the bare `cloud` id — see `VMImageCatalog.resolveShorthand`'s doc comment.
+	func testSuffixedIdResolvesToISOAndBareIdResolvesToCloud() throws {
 		let catalog = VMImageCatalog.shared
 
-		let isoResolution = try XCTUnwrap(catalog.resolveShorthand("centos9"))
-		XCTAssertEqual(isoResolution.url, catalog.current.iso.first(where: { $0.id == "centos9" })?.url)
+		let isoResolution = try XCTUnwrap(catalog.resolveShorthand("centos10-iso"))
+		XCTAssertEqual(isoResolution.url, catalog.current.iso.first(where: { $0.id == "centos10-iso" })?.url)
 		XCTAssertEqual(isoResolution.imageSource, .iso)
 
-		let cloudResolution = try XCTUnwrap(catalog.resolveShorthand("centos9Cloud"))
-		XCTAssertEqual(cloudResolution.url, catalog.current.cloud.first(where: { $0.id == "centos9Cloud" })?.url)
+		let cloudResolution = try XCTUnwrap(catalog.resolveShorthand("centos10"))
+		XCTAssertEqual(cloudResolution.url, catalog.current.cloud.first(where: { $0.id == "centos10" })?.url)
 		XCTAssertEqual(cloudResolution.imageSource, .qcow2)
 	}
 
