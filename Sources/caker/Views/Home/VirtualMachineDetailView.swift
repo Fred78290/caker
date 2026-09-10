@@ -141,10 +141,10 @@ struct VirtualMachineDetailView: View {
 			}
 
 			HStack(spacing: 10) {
+				Spacer()
 				self.statBadge(systemImage: "cpu", value: "\(self.vm.cpuCount) vCPU")
 				self.statBadge(systemImage: "memorychip", value: self.vm.humanReadableMemorySize)
 				self.statBadge(systemImage: "internaldrive", value: self.vm.humanReadableDiskSize)
-
 				Spacer()
 			}
 		}
