@@ -6193,6 +6193,17 @@
         }
       }
     },
+    "Information" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Informations"
+          }
+        }
+      }
+    },
     "Infos template options" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6400,6 +6411,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "L'instance %@ n'est pas dans un état arrêté, état actuel : %@"
+          }
+        }
+      }
+    },
+    "Instance ID" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID d’instance"
           }
         }
       }
@@ -7309,6 +7331,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clair"
+          }
+        }
+      }
+    },
+    "List" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liste"
           }
         }
       }
@@ -8249,6 +8282,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Date de modification non disponible pour : %@"
+          }
+        }
+      }
+    },
+    "Mosaic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mosaïque"
           }
         }
       }
@@ -14713,6 +14757,17 @@
         }
       }
     },
+    "Status" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Statut"
+          }
+        }
+      }
+    },
     "Stop" : {
       "localizations" : {
         "fr" : {
@@ -17965,6 +18020,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Voir la licence complète"
+          }
+        }
+      }
+    },
+    "View mode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode d’affichage"
           }
         }
       }

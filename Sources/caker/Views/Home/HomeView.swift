@@ -19,6 +19,7 @@ struct HomeView: View {
 	@State private var mustShowDetailView: Bool = true
 	@State private var window: NSWindow? = nil
 	@State private var selectedCategory: Category = .virtualMachine
+	@AppStorage("VirtualMachinesViewMode") private var virtualMachinesViewMode: VirtualMachinesViewMode = .mosaic
 
 	init(navigationModel: NavigationModel) {
 		self.navigationModel = navigationModel
@@ -56,6 +57,21 @@ struct HomeView: View {
 					Button("Plus", systemImage: "plus") {
 						self.actionPlus()
 					}.disabled(self.selectedCategory == .templates)
+				}
+
+				if self.selectedCategory == .virtualMachine {
+					ToolbarItem(placement: .automatic) {
+						Picker("View mode", selection: $virtualMachinesViewMode) {
+							ForEach(VirtualMachinesViewMode.allCases) { mode in
+								Image(systemName: mode.iconName)
+									.help(mode.label)
+									.tag(mode)
+							}
+						}
+						.pickerStyle(.segmented)
+						.labelsHidden()
+						.frame(width: 76)
+					}
 				}
 
 				if self.haveDetailView {
@@ -175,7 +191,9 @@ struct HomeView: View {
 
 	var haveDetailView: Bool {
 		guard self.selectedCategory != .virtualMachine else {
-			return false
+			// Mosaic mode already shows a live screenshot/status on every tile, so the detail
+			// column only makes sense once the VM collection is shown as a plain list.
+			return self.virtualMachinesViewMode == .list
 		}
 
 		return true
@@ -185,7 +203,9 @@ struct HomeView: View {
 	var showDetailView: Bool {
 		switch self.selectedCategory {
 		case .virtualMachine:
-			return false
+			guard self.virtualMachinesViewMode == .list, navigationModel.selectedVirtualMachine != nil else {
+				return false
+			}
 		case .networks:
 			guard navigationModel.selectedNetwork != nil else {
 				return false
@@ -212,6 +232,10 @@ struct HomeView: View {
 		case .networks:
 			return nil
 		case .virtualMachine:
+			guard self.virtualMachinesViewMode == .mosaic else {
+				return nil
+			}
+
 			return VirtualMachinesView.cellWidth + (VirtualMachinesView.cellSpacing * 2)
 		}
 	}
@@ -225,6 +249,10 @@ struct HomeView: View {
 		case .networks:
 			return 200
 		case .virtualMachine:
+			guard self.virtualMachinesViewMode == .mosaic else {
+				return 240
+			}
+
 			return (VirtualMachinesView.cellWidth + (VirtualMachinesView.cellSpacing * 2)) * max(1, min(2, CGFloat(self.navigationModel.documents.count)))
 		}
 	}
@@ -238,7 +266,7 @@ struct HomeView: View {
 		case .networks:
 			return 450
 		case .virtualMachine:
-			return 200
+			return 340
 		}
 	}
 
@@ -294,7 +322,12 @@ struct HomeView: View {
 		GeometryReader { geometry in
 			switch self.selectedCategory {
 			case .virtualMachine:
-				Text("Hello, VM!")
+				if let selectedVirtualMachine = navigationModel.selectedVirtualMachine {
+					VirtualMachineDetailView(vm: selectedVirtualMachine)
+						.background(Color(NSColor.tertiarySystemFill))
+				} else {
+					EmptyView()
+				}
 			case .networks:
 				if navigationModel.selectedNetwork != nil {
 					NetworkDetailView(
