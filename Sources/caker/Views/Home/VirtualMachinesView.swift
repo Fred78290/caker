@@ -112,9 +112,14 @@ struct VirtualMachinesView: View {
 		}
 		.padding(.vertical, 4)
 		.contentShape(Rectangle())
-		.onTapGesture(count: 2) {
-			self.openDocument(document)
-		}
+		.gesture(
+			DragGesture(minimumDistance: 0)
+				.onChanged({ _ in
+					self.selectDocument(document)
+				}).simultaneously(with: TapGesture(count: 2).onEnded {
+					self.openDocument(document)
+			 })
+		)
 	}
 
 	@ViewBuilder
@@ -124,6 +129,49 @@ struct VirtualMachinesView: View {
 		} else {
 			List(self.sortedDocuments, id: \.self, selection: $navigationModel.selectedVirtualMachine) { document in
 				self.listRow(document)
+			}
+			.contextMenu(forSelectionType: VirtualMachineDocumentState.self) { selection in
+				if let document = selection.first {
+					Button("Open") {
+						self.openDocument(document)
+					}
+					Divider()
+					
+					if document.status == .paused {
+						Button("Resume") {
+							document.resumeFromUI()
+						}
+					} else if document.canStart {
+						Button("Start") {
+							document.startFromUI()
+						}.disabled(document.status.isRunning)
+					}
+
+					Button("Stop") {
+						document.stopFromUI(force: document.status != .running || NSEvent.modifierFlags.contains(.option))
+					}.disabled(document.canStop == false)
+
+					Button("Pause") {
+						document.suspendFromUI()
+					}.disabled(document.canPause == false)
+
+					Divider()
+					Button("Duplicate") {
+						document.duplicateVirtualMachine()
+					}.disabled(document.status.isRunning)
+
+					Button("Rename") {
+						document.renameVirtualMachine()
+					}.disabled(document.status.isStopped == false)
+
+					Button("Delete VM") {
+						document.deleteVirtualMachine()
+					}.disabled(document.status.isRunning)
+				}
+			} primaryAction: { selection in
+				if let document = selection.first {
+					self.selectDocument(document)
+				}
 			}
 			.listStyle(.inset(alternatesRowBackgrounds: true))
 			.onChange(of: self.navigationModel.selectedVirtualMachine) { _, newValue in
