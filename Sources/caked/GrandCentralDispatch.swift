@@ -388,6 +388,10 @@ extension GrandCentralDispatch {
 		}
 	}
 
+	func updateStatusVM(_ fileURL: URL) async {
+		self.logger.debug("Updating VM status for \(fileURL.path)")
+	}
+
 	func updateStatusNetwork(_ fileURL: URL) async {
 		let networkName = fileURL.deletingLastPathComponent().lastPathComponent
 		
@@ -409,10 +413,12 @@ extension GrandCentralDispatch {
 			return
 		}
 
+		let storage = StorageLocation(runMode: self.runMode)
 		let templateStorage = StorageLocation(runMode: self.runMode, template: true)
 		let templatesRoot = templateStorage.rootURL.lastPathComponent
 		let logger = self.logger
 		let watcher = DirWatcher([
+			storage.rootURL.path(percentEncoded: false),
 			home.remoteDb.path(percentEncoded: false),
 			home.networkDirectory.path(percentEncoded: false),
 			templateStorage.rootURL.path(percentEncoded: false)])
@@ -430,10 +436,17 @@ extension GrandCentralDispatch {
 			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
 
 			if event.dirChange {
-				// Watch templates directory
-				if fileURL.pathExtension == Home.vmExtension && fileURL.deletingLastPathComponent().lastPathComponent == templatesRoot {
-					Task {
-						await self.updateStatusTemplates()
+				if fileURL.pathExtension == Home.vmExtension {
+					// Watch templates directory
+					if fileURL.deletingLastPathComponent().lastPathComponent == templatesRoot {
+						Task {
+							await self.updateStatusTemplates()
+						}
+					} else {
+						/// Watch vms directory
+						Task {
+							await self.updateStatusVM(fileURL)
+						}
 					}
 				}
 			} else if event.fileChange {
