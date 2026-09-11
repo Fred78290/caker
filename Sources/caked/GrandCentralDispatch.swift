@@ -137,22 +137,24 @@ final class GrandCentralDispatch {
 		lock.withLock {
 			// Avoid flooding the stream with duplicate status updates for the same VM. Only update the stream when the status changes.
 			if case .status(let value) = status.message {
+				if value == .new {
+					guard self.vmNames.contains(status.name) == false else {
+						return
+					}
+
+					self.vmNames.append(status.name)
+					self.vmNames.sort()
+				} else if value == .deleted {
+					guard let index = self.vmNames.firstIndex(of: status.name) else {
+						return
+					}
+					self.vmNames.remove(at: index)
+				}
+
 				#if DEBUG
 					self.logger.debug("Updating status for \(status.name), state: \(value)")
 				#endif
 
-				if value == .new && self.vmNames.contains(status.name) == false {
-					self.vmNames.append(status.name)
-					self.vmNames.sort()
-				} else {
-					return
-				}
-
-				if value == .deleted, let index = self.vmNames.firstIndex(of: status.name) {
-					self.vmNames.remove(at: index)
-				} else {
-					return
-				}
 			}
 
 			stream.continuation.yield(status)
@@ -419,52 +421,65 @@ extension GrandCentralDispatch {
 		}
 	}
 
-	func updateStatusVM(_ event: DirWatcherEvent, location: VMLocation, fileURL: URL) throws {
+	func updateStatusVM(_ event: DirWatcherEvent, location: VMLocation, fileURL: URL) {
 		let name = location.name
 
-		if event.fileChange {
-			if fileURL.lastPathComponent == location.provisionningURL.lastPathComponent {
-				try self.updateStatus(
-					.with {
-						$0.name = name
-						$0.status = .provisioning
-					})
-			} else if fileURL.lastPathComponent == location.pidFile.lastPathComponent && location.provisionningURL.fileExists == false {
-				try self.updateStatus(
-					.with {
-						$0.name = location.name
-						$0.status = .running
-					})
-			}
-
-		} else if event.dirCreated {
-			try self.updateStatus(
-				.with {
-					$0.name = name
-					$0.status = .new
-				})
-		} else if event.dirRemoved {
-			try self.updateStatus(
-				.with {
-					$0.name = name
-					$0.status = .deleted
-				})
-		} else if event.dirRenamed {
-			// FSEvents emits .renamed for both the old and new path of a move.
-			// Existence check distinguishes which side this event is for.
-			if FileManager.default.fileExists(atPath: event.path) {
+		do {
+			if event.fileChange {
+				if event.fileRemoved {
+					if fileURL.lastPathComponent == location.pidFile.lastPathComponent {
+						try self.updateStatus(
+							.with {
+								$0.name = name
+								$0.status = .stopped
+							})
+					}
+				} else {
+					if fileURL.lastPathComponent == location.provisionningURL.lastPathComponent {
+						try self.updateStatus(
+							.with {
+								$0.name = name
+								$0.status = .provisioning
+							})
+					} else if fileURL.lastPathComponent == location.pidFile.lastPathComponent && location.provisionningURL.fileExists == false {
+						try self.updateStatus(
+							.with {
+								$0.name = location.name
+								$0.status = .running
+							})
+					}
+				}
+			} else if event.dirCreated {
 				try self.updateStatus(
 					.with {
 						$0.name = name
 						$0.status = .new
 					})
-			} else {
+			} else if event.dirRemoved {
 				try self.updateStatus(
 					.with {
 						$0.name = name
 						$0.status = .deleted
 					})
+			} else if event.dirRenamed {
+				// FSEvents emits .renamed for both the old and new path of a move.
+				// Existence check distinguishes which side this event is for.
+				if FileManager.default.fileExists(atPath: event.path) {
+					try self.updateStatus(
+						.with {
+							$0.name = name
+							$0.status = .new
+						})
+				} else {
+					try self.updateStatus(
+						.with {
+							$0.name = name
+							$0.status = .deleted
+						})
+				}
 			}
+		} catch {
+			self.logger.error("Failed to update VM status for \(fileURL.path): \(error)")
 		}
 	}
 
@@ -534,13 +549,7 @@ extension GrandCentralDispatch {
 
 						if let location = try? self.storage.find(fileURL.lastPathComponent.deletingPathExtension) {
 							/// Watch vms directory
-							Task {
-								do {
-									try self.updateStatusVM(event, location: location, fileURL: fileURL)
-								} catch {
-									self.logger.error("Failed to update VM status for \(fileURL.path): \(error)")
-								}
-							}
+							self.updateStatusVM(event, location: location, fileURL: fileURL)
 						}
 					}
 				}
@@ -563,11 +572,7 @@ extension GrandCentralDispatch {
 
 						if let location = try? self.storage.find(name) {
 							/// Watch vms directory
-							do {
-								try self.updateStatusVM(event, location: location, fileURL: fileURL)
-							} catch {
-								self.logger.error("Failed to update VM status for \(fileURL.path): \(error)")
-							}
+							self.updateStatusVM(event, location: location, fileURL: fileURL)
 						}
 					}
 				}
