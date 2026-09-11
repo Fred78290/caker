@@ -559,6 +559,10 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	public var status: VMLocation.Status {
 		switch self.virtualMachine.state {
 		case .running, .starting, .resuming:
+			if self.mode == .provisioning {
+				return .running(.provision)
+			}
+
 			return .running(.init(ProcessInfo.processInfo.processName))
 		case .paused, .pausing:
 			return .paused
@@ -1884,10 +1888,9 @@ extension VirtualMachine {
 	}
 
 	public func startGrandCentralUpdate(frequency: Int32, runMode: Utils.RunMode) async throws {
-		guard gcd == nil, self.config.agent, self.env.mode == .normal else {
+		guard gcd == nil && (self.env.mode == .normal || self.env.mode == .provisioning) else {
 			return
 		}
-
 		let gdc = try GrandCentralUpdater(vm: self, runMode: runMode)
 
 		try await gdc.start(frequency: frequency) {
