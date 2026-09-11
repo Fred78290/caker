@@ -199,6 +199,7 @@ struct Client: ParsableCommand {
 			commandName: "cakectl",
 			version: CI.version,
 			subcommands: [
+				Aliases.self,
 				Build.self,
 				Configure.self,
 				Delete.self,
@@ -211,6 +212,7 @@ struct Client: ParsableCommand {
 				Launch.self,
 				List.self,
 				Networks.self,
+				Provision.self,
 				Purge.self,
 				Remote.self,
 				Rename.self,

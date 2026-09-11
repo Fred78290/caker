@@ -8,6 +8,7 @@
 - [FAQ](faq)
 - [Release Notes](release-notes)
 - [Command Summary](command-summary)
+- [Provisioning & Recording](provisioning)
 - [Compose](compose)
 - [IMDS](imds)
 - [Sandbox](sandbox)

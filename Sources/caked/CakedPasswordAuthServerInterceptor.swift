@@ -230,4 +230,8 @@ struct CakedPasswordAuthServerInterceptor: Caked_ServiceServerInterceptorFactory
 	func makeComposeInterceptors() -> [ServerInterceptor<Caked_ComposeRequest, Caked_Reply>] {
 		return self.interceptors()
 	}
+	
+	func makeProvisionInterceptors() -> [ServerInterceptor<Caked_ProvisionRequest, Caked_ProvisionStreamReply>] {
+		return self.interceptors()
+	}
 }

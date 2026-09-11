@@ -333,7 +333,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	
 	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try self.execute(command: BuildHandler(provider: self, options: request.options.buildOptions(), responseStream: responseStream, context: context) {
-			try await self.gcd.updateStatus(.with {
+			try self.gcd.updateStatus(.with {
 				$0.name = request.options.name
 				$0.status = .new
 			})
@@ -342,7 +342,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	
 	func launch(request: Caked_LaunchRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_LaunchStreamReply>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try self.execute(command: LaunchHandler(request: request, gcd: self.gcd.haveListeners, responseStream: responseStream, context: context) {
-			try await self.gcd.updateStatus(.with {
+			try self.gcd.updateStatus(.with {
 				$0.name = request.options.name
 				$0.status = .new
 			})
@@ -361,7 +361,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		let reply = try self.execute(command: request)
 		
 		if reply.vms.duplicated.duplicated {
-			try await self.gcd.updateStatus(.with {
+			try self.gcd.updateStatus(.with {
 				$0.name = request.to
 				$0.status = .new
 			})
@@ -375,7 +375,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		
 		if reply.vms.delete.success {
 			for name in request.names.list {
-				try await self.gcd.updateStatus(.with {
+				try self.gcd.updateStatus(.with {
 					$0.name = name
 					$0.status = .deleted
 				})
@@ -419,37 +419,31 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	
 	func remote(request: Caked_RemoteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-
+		
 		if request.command == .add || request.command == .delete {
-			Task {
-				await self.gcd.updateStatusRemotes()
-			}
+			self.gcd.updateStatusRemotes()
 		}
-
+		
 		return reply
 	}
 	
 	func template(request: Caked_TemplateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-
+		
 		if request.command == .add || request.command == .delete || request.command == .duplicate {
-			Task {
-				await self.gcd.updateStatusTemplates()
-			}
+			self.gcd.updateStatusTemplates()
 		}
-
+		
 		return reply
 	}
 	
 	func networks(request: Caked_NetworkRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-
+		
 		if request.command == .new || request.command == .remove || request.command == .set {
-			Task {
-				await self.gcd.updateStatusNetworks()
-			}
+			self.gcd.updateStatusNetworks()
 		}
-
+		
 		return reply
 	}
 	
@@ -565,5 +559,8 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func compose(request: Caked_ComposeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
+	func provision(request: Caked_ProvisionRequest, responseStream: Caked_ResponseProvisionStreamReply, context: GRPCAsyncServerCallContext) async throws {
+		_ = try self.execute(command: ProvisionHandler(provider: self, request: request, responseStream: responseStream, runMode: runMode))
+	}
 }

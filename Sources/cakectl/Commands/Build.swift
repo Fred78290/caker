@@ -3,6 +3,7 @@ import Foundation
 import GRPC
 import GRPCLib
 import CakeAgentLib
+import CakedLib
 
 struct Build: AsyncGrpcParsableCommand {
 	static let configuration = BuildOptions.build
@@ -19,6 +20,8 @@ struct Build: AsyncGrpcParsableCommand {
 		if buildOptions.sockets.first(where: { $0.sharedFileDescriptors != nil }) != nil {
 			throw ValidationError(String(localized: "Shared file descriptors are not supported, use caked launch instead"))
 		}
+		
+		try self.buildOptions.mergeProvisionVars(provisionVars: ProvisionVariablesStore.load())
 	}
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
@@ -42,6 +45,10 @@ struct Build: AsyncGrpcParsableCommand {
 					ProgressObserver.progressHandler(.progress(context, progress.fractionCompleted))
 				} else if case .step(let step) = current {
 					ProgressObserver.progressHandler(.step(step))
+				} else if case .substep(let step) = current {
+					ProgressObserver.progressHandler(.substep(step))
+				} else if case .provision(let info) = current {
+					ProgressObserver.progressHandler(.provision(.init(info)))
 				} else if case .terminated(let status) = current {
 					if case .success(let v)? = status.result {
 						ProgressObserver.progressHandler(.terminated(.success(self.buildOptions.name), v))

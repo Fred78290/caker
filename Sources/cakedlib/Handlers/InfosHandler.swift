@@ -3,8 +3,8 @@ import Foundation
 import GRPC
 import GRPCLib
 import NIO
-import Virtualization
 import NIOPortForwarding
+import Virtualization
 
 public struct InfosHandler {
 	public static func infos(vmURL: URL, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
@@ -64,9 +64,11 @@ public struct InfosHandler {
 				infos = try offlineInfos(location: location, config: config, status: .running)
 			}
 
-			if let vncURL = try? VMRunHandler.serviceMode.client(location: location, runMode: runMode).vncInfos {
-				infos.vncURL = vncURL.urls
-				infos.screenSize = vncURL.screenSize
+			if let service = try? VMRunHandler.serviceMode.client(location: location, runMode: runMode) {
+				let vncInfos = service.vncInfos
+
+				infos.vncURL = vncInfos.urls
+				infos.screenSize = vncInfos.screenSize
 			} else {
 				infos.vncURL = nil
 				infos.screenSize = nil

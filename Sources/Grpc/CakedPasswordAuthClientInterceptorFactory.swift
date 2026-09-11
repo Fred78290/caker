@@ -291,5 +291,8 @@ public final class CakedPasswordAuthClientInterceptorFactory: Caked_ServiceClien
 		self.interceptors(self.chainedInterceptors?.makeComposeInterceptors())
 	}
 	
+	public func makeProvisionInterceptors() -> [ClientInterceptor<Caked_ProvisionRequest, Caked_ProvisionStreamReply>] {
+		self.interceptors(self.chainedInterceptors?.makeProvisionInterceptors())
+	}
 }
 

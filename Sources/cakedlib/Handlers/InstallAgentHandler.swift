@@ -32,7 +32,11 @@ public struct InstallAgentHandler {
 				return InstalledAgentReply(name: location.name, installed: false, reason: String(localized: "VM is not running"))
 			}
 
-			let result = try VMRunHandler.serviceMode.client(location: location, runMode: runMode).installAgent(timeout: timeout)
+			guard let client = try VMRunHandler.serviceMode.client(location: location, runMode: runMode) else {
+				return InstalledAgentReply(name: location.name, installed: false, reason: String(localized: "Service is not running"))
+			}
+
+			let result = try client.installAgent(timeout: timeout)
 
 			return InstalledAgentReply(name: location.name, installed: result.installed , reason: result.reason)
 		} catch {

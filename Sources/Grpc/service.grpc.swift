@@ -215,6 +215,12 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     _ request: Caked_Caked.ComposeRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.ComposeRequest, Caked_Caked.Reply>
+
+  func provision(
+    _ request: Caked_Caked.VMRequest.ProvisionRequest,
+    callOptions: CallOptions?,
+    handler: @escaping (Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply) -> Void
+  ) -> ServerStreamingCall<Caked_Caked.VMRequest.ProvisionRequest, Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -942,6 +948,27 @@ extension Caked_ServiceClientProtocol {
       interceptors: self.interceptors?.makeComposeInterceptors() ?? []
     )
   }
+
+  /// Provision a stopped virtual machine.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Provision.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
+  public func provision(
+    _ request: Caked_Caked.VMRequest.ProvisionRequest,
+    callOptions: CallOptions? = nil,
+    handler: @escaping (Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply) -> Void
+  ) -> ServerStreamingCall<Caked_Caked.VMRequest.ProvisionRequest, Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply> {
+    return self.makeServerStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.provision.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeProvisionInterceptors() ?? [],
+      handler: handler
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -1198,6 +1225,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Caked_Caked.ComposeRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.ComposeRequest, Caked_Caked.Reply>
+
+  func makeProvisionCall(
+    _ request: Caked_Caked.VMRequest.ProvisionRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.VMRequest.ProvisionRequest, Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1679,6 +1711,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeComposeInterceptors() ?? []
+    )
+  }
+
+  public func makeProvisionCall(
+    _ request: Caked_Caked.VMRequest.ProvisionRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.VMRequest.ProvisionRequest, Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply> {
+    return self.makeAsyncServerStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.provision.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeProvisionInterceptors() ?? []
     )
   }
 }
@@ -2188,6 +2232,18 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeComposeInterceptors() ?? []
     )
   }
+
+  public func provision(
+    _ request: Caked_Caked.VMRequest.ProvisionRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncResponseStream<Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply> {
+    return self.performAsyncServerStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.provision.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeProvisionInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -2325,6 +2381,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'compose'.
   func makeComposeInterceptors() -> [ClientInterceptor<Caked_Caked.ComposeRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'provision'.
+  func makeProvisionInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.ProvisionRequest, Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -2371,6 +2430,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.certificate,
       Caked_ServiceClientMetadata.Methods.stopService,
       Caked_ServiceClientMetadata.Methods.compose,
+      Caked_ServiceClientMetadata.Methods.provision,
     ]
   )
 
@@ -2608,6 +2668,12 @@ public enum Caked_ServiceClientMetadata {
       path: "/caked.Service/Compose",
       type: GRPCCallType.unary
     )
+
+    public static let provision = GRPCMethodDescriptor(
+      name: "Provision",
+      path: "/caked.Service/Provision",
+      type: GRPCCallType.serverStreaming
+    )
   }
 }
 
@@ -2733,6 +2799,9 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   /// Compose allows for the orchestration of multiple virtual machines and services defined in a compose file.
   func compose(request: Caked_Caked.ComposeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  /// Provision a stopped virtual machine.
+  func provision(request: Caked_Caked.VMRequest.ProvisionRequest, context: StreamingResponseCallContext<Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>) -> EventLoopFuture<GRPCStatus>
 }
 
 extension Caked_ServiceProvider {
@@ -3098,6 +3167,15 @@ extension Caked_ServiceProvider {
         userFunction: self.compose(request:context:)
       )
 
+    case "Provision":
+      return ServerStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.ProvisionRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>(),
+        interceptors: self.interceptors?.makeProvisionInterceptors() ?? [],
+        userFunction: self.provision(request:context:)
+      )
+
     default:
       return nil
     }
@@ -3351,6 +3429,13 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     request: Caked_Caked.ComposeRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
+
+  /// Provision a stopped virtual machine.
+  func provision(
+    request: Caked_Caked.VMRequest.ProvisionRequest,
+    responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>,
+    context: GRPCAsyncServerCallContext
+  ) async throws
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -3723,6 +3808,15 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.compose(request: $0, context: $1) }
       )
 
+    case "Provision":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.ProvisionRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>(),
+        interceptors: self.interceptors?.makeProvisionInterceptors() ?? [],
+        wrapping: { try await self.provision(request: $0, responseStream: $1, context: $2) }
+      )
+
     default:
       return nil
     }
@@ -3886,6 +3980,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'compose'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeComposeInterceptors() -> [ServerInterceptor<Caked_Caked.ComposeRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'provision'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeProvisionInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.ProvisionRequest, Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -3932,6 +4030,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.certificate,
       Caked_ServiceServerMetadata.Methods.stopService,
       Caked_ServiceServerMetadata.Methods.compose,
+      Caked_ServiceServerMetadata.Methods.provision,
     ]
   )
 
@@ -4168,6 +4267,12 @@ public enum Caked_ServiceServerMetadata {
       name: "Compose",
       path: "/caked.Service/Compose",
       type: GRPCCallType.unary
+    )
+
+    public static let provision = GRPCMethodDescriptor(
+      name: "Provision",
+      path: "/caked.Service/Provision",
+      type: GRPCCallType.serverStreaming
     )
   }
 }

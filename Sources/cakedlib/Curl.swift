@@ -79,22 +79,26 @@ class Curl {
 			progressObserver.progress.addChild(task.progress, withPendingUnitCount: progressObserver.progress.totalUnitCount)
 		}
 
-		let channel = AsyncThrowingStream<Data, Error> { continuation in
-			delegate.stream = continuation
-		}
+		return try await withTaskCancellationHandler(operation: {
+			let channel = AsyncThrowingStream<Data, Error> { continuation in
+				delegate.stream = continuation
+			}
 
-		let response =
-			try await withCheckedThrowingContinuation { continuation in
-				delegate.response = continuation
+			let response =
+				try await withCheckedThrowingContinuation { continuation in
+					delegate.response = continuation
 
-				task.resume()
-			} as! HTTPURLResponse
+					task.resume()
+				} as! HTTPURLResponse
 
-		if response.statusCode != 200 {
-			throw URLError(.init(rawValue: response.statusCode))
-		}
+			if response.statusCode != 200 {
+				throw URLError(.init(rawValue: response.statusCode))
+			}
 
-		return (channel, response)
+			return (channel, response)
+		}, onCancel: {
+			task.cancel()
+		})
 	}
 
 	func head(observer: ProgressObserver? = nil) async throws -> (AsyncThrowingStream<Data, Error>, HTTPURLResponse) {

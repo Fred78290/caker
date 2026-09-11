@@ -197,6 +197,36 @@ cakectl networks infos shared-dev
 cakectl networks stop shared-dev
 ```
 
+### 8) Créer une VM macOS depuis un IPSW (Setup Assistant automatisé)
+
+Apple Silicon uniquement. Nécessite `--autoinstall` pour déclencher PackerLite. La version macOS est détectée depuis le nom du fichier IPSW ; sinon précisez `--macos-version` — voir [PackerLite](command-summary#packerlite-fr).
+
+```bash
+cakectl build my-macos-vm --user admin --password admin --autoinstall \
+  https://updates.cdn-apple.com/.../UniversalMac_26.6_25G72_Restore.ipsw
+```
+
+```bash
+# nom de fichier non standard : version macOS explicite requise
+cakectl build my-macos-vm --user admin --password admin --autoinstall --macos-version macos26 ./restore.ipsw
+```
+
+### 9) Créer une VM Linux depuis une ISO non-Ubuntu (provisioning automatisé)
+
+Nécessite `--autoinstall`. Pour Fedora, CentOS Stream, RHEL, openSUSE ou Debian, le template est sélectionné automatiquement depuis le nom du fichier ISO — voir [PackerLite](command-summary#packerlite-fr).
+
+```bash
+cakectl build my-fedora-vm --user admin --password admin --autoinstall \
+  ./Fedora-Workstation-Live-x86_64-42.iso
+```
+
+Pour toute autre distribution, `--template` est requis :
+
+```bash
+cakectl build my-linux-vm --user admin --password admin --autoinstall \
+  --template ./ma-distro.packerlite.yaml ./ma-distro.iso
+```
+
 </div>
 
 <div class="lang-en" style="display:block" markdown="1">
@@ -394,6 +424,36 @@ cakectl networks create --name shared-dev --mode shared --gateway 192.168.105.1 
 cakectl networks start shared-dev
 cakectl networks infos shared-dev
 cakectl networks stop shared-dev
+```
+
+### 8) Create a macOS VM from an IPSW (unattended Setup Assistant)
+
+Apple Silicon only. Requires `--autoinstall` to trigger PackerLite. The macOS version is detected from the IPSW filename; otherwise pass `--macos-version` — see [PackerLite](command-summary#packerlite).
+
+```bash
+cakectl build my-macos-vm --user admin --password admin --autoinstall \
+  https://updates.cdn-apple.com/.../UniversalMac_26.6_25G72_Restore.ipsw
+```
+
+```bash
+# non-standard filename: an explicit macOS version is required
+cakectl build my-macos-vm --user admin --password admin --autoinstall --macos-version macos26 ./restore.ipsw
+```
+
+### 9) Create a Linux VM from a non-Ubuntu ISO (unattended provisioning)
+
+Requires `--autoinstall`. For Fedora, CentOS Stream, RHEL, openSUSE, or Debian, the template is auto-selected from the ISO filename — see [PackerLite](command-summary#packerlite).
+
+```bash
+cakectl build my-fedora-vm --user admin --password admin --autoinstall \
+  ./Fedora-Workstation-Live-x86_64-42.iso
+```
+
+For any other distro, `--template` is required:
+
+```bash
+cakectl build my-linux-vm --user admin --password admin --autoinstall \
+  --template ./my-distro.packerlite.yaml ./my-distro.iso
 ```
 
 </div>

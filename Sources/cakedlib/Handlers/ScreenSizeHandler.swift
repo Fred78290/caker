@@ -31,7 +31,9 @@ public struct ScreenSizeHandler {
 				return ScreenSizeReply(width: 0, height: 0, success: false, reason: String(localized: "VM is not running"))
 			}
 
-			var client = try VMRunHandler.serviceMode.client(location: location, runMode: runMode)
+			guard var client = try VMRunHandler.serviceMode.client(location: location, runMode: runMode) else {
+				return ScreenSizeReply(width: 0, height: 0, success: false, reason: String(localized: "VM service is not running"))
+			}
 
 			client.screenSize = (width: width, height: height)
 			
@@ -63,7 +65,11 @@ public struct ScreenSizeHandler {
 				return ScreenSizeReply(width: 0, height: 0, success: false, reason: String(localized: "VM is not running"))
 			}
 
-			let size = try VMRunHandler.serviceMode.client(location: location, runMode: runMode).screenSize
+			guard let client = try VMRunHandler.serviceMode.client(location: location, runMode: runMode) else {
+				return ScreenSizeReply(width: 0, height: 0, success: false, reason: String(localized: "VM service is not running"))
+			}
+
+			let size = client.screenSize
 
 			return ScreenSizeReply(width: size.0, height: size.1, success: true, reason: String.empty)
 		} catch {

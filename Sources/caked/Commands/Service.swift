@@ -1,3 +1,4 @@
+import AppKit
 import ArgumentParser
 import CakeAgentLib
 import CakedLib
@@ -345,6 +346,15 @@ extension Service {
 		}
 
 		func run() async throws {
+			// 1. Force NSApp to exist under your control, before any window/view is created
+			let app = await NSApplication.shared
+
+			// 2. Set policy immediately — before any NSWindow/NSView allocation
+			await app.setActivationPolicy(.prohibited)   // see caveat below
+
+			// 3. Finish launching manually since you're not using NSApplicationMain
+			await app.finishLaunching()
+
 			let listenAddress = try self.options.getListenAddress(runMode: self.common.runMode)
 			let logger = Logger(self)
 
@@ -489,6 +499,7 @@ extension Service {
 				sigcaught.forEach { sigintSrc in
 					sigintSrc.activate()
 				}
+
 				do {
 					try home.agentPID.writePID()
 				} catch {
