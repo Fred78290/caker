@@ -122,7 +122,7 @@ public enum PackerLiteEngine {
 		if let runningIP, runningIP.isEmpty == false, let postBootCommand = template.postBootCommand, postBootCommand.commands.isEmpty == false {
 			progressHandler(.step(String(localized: "Running post-boot commands…")))
 
-			try await location.executePostBootCommand(postBootCommand, config: config, runningIP: runningIP, runMode: runMode)
+			try await location.executePostBootCommand(postBootCommand, config: config, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
 		}
 
 		progressHandler(.step(String(localized: "Provisioning done")))
@@ -260,9 +260,7 @@ public enum PackerLiteEngine {
 					progressHandler: progressHandler)
 			}
 
-			let runningIP = try location.waitIPWithLease(config: config, wait: 180, runMode: runMode)
-
-			try await Self.provision(vm: vm, template: template, runningIP: runningIP, runMode: runMode, progressHandler: progressHandler)
+			try await Self.provision(vm: vm, template: template, runningIP: nil, runMode: runMode, progressHandler: progressHandler)
 			await destroyVM(nil)
 		} catch {
 			await destroyVM(error)

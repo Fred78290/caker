@@ -1135,7 +1135,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		return true
 	}
 
-	public func executePostBootCommand(_ commands: PackerLiteTemplate.PostCommand, config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode _: Utils.RunMode) async throws {
+	public func executePostBootCommand(_ commands: PackerLiteTemplate.PostCommand, config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode _: Utils.RunMode, progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler) async throws {
 		Logger(self).info("Running post-boot commands on \(self.name)")
 
 		let imageSource = config.source
@@ -1159,6 +1159,8 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		// never by command content, for the same reason.
 		for (index, command) in commands.commands.enumerated() {
 			Logger(self).debug("Running post-boot command #\(index + 1) on \(self.name): \(command)")
+
+			progressHandler(.substep(command))
 
 			let result = try ssh.execute(command) { output in
 				print(output, terminator: "")
