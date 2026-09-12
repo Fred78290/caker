@@ -186,8 +186,10 @@ extension NSView {
 				observer.didUpdateCursor(self)
 			}
 		} else {
-			if let observer = DispatchQueue.main.sync(execute: { self.superview }) as? VNCFramebufferObserver {
-				observer.didUpdateCursor(self)
+			DispatchQueue.main.sync {
+				if let observer = self.superview as? VNCFramebufferObserver {
+					observer.didUpdateCursor(self)
+				}
 			}
 		}
 	}
@@ -200,8 +202,10 @@ extension NSView {
 				observer.didUpdateFrame(self)
 			}
 		} else {
-			if let observer = DispatchQueue.main.sync(execute: { self.superview }) as? VNCFramebufferObserver {
-				observer.didUpdateFrame(self)
+			DispatchQueue.main.sync {
+				if let observer = self.superview as? VNCFramebufferObserver {
+					observer.didUpdateFrame(self)
+				}
 			}
 		}
 	}
