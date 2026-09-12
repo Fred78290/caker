@@ -53,6 +53,10 @@ public struct BuildHandler {
 			let location = storageLocation.location(options.name)
 			let tempVMLocation = directLocation ? location : try VMLocation.tempDirectory(options.identifier, runMode: runMode)
 
+			if directLocation {
+				try FileManager.default.createDirectory(at: tempVMLocation.rootURL, withIntermediateDirectories: true)
+			}
+
 			@Sendable func doCancel() {
 				location.removePID()
 				try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
