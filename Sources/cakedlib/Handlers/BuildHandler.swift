@@ -7,60 +7,29 @@ import SwiftUI
 import Synchronization
 import Virtualization
 
-public struct BuildHandler {
-	private static func provision(_ options: BuildOptions, location: VMLocation, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
-		let config = try location.config()
-		let imageURL = URL(spaced: options.image)!
+extension BuildOptions {
+	// The VM's account is already fully determined by --user/--password (see
+	// `configuredUser`/`configuredPassword` above) — reuse it here instead of
+	// letting the template declare its own, so there's exactly one source of truth.
+	public func setupVariables(_ config: VirtualMachineConfiguration, runMode: Utils.RunMode) -> [String: String] {
+		var variables = self.provisionVarsDict
 
-		// The VM's account is already fully determined by --user/--password (see
-		// `configuredUser`/`configuredPassword` above) — reuse it here instead of
-		// letting the template declare its own, so there's exactly one source of truth.
-		func setupVariables() -> [String: String] {
-			var variables = options.provisionVarsDict
-
-			variables["username"] = config.configuredUser
-			variables["password"] = config.configuredPassword ?? "admin"
-			variables["hostname"] = options.name
-
-			if let keys = try? CloudInit.sshAuthorizedKeys(sshAuthorizedKeyPath: options.sshAuthorizedKey, runMode: runMode) {
-				variables["ssh_authorized_key"] = keys.joined(separator: "\n")
-			}
-
-			return variables
+		variables["username"] = config.configuredUser
+		variables["password"] = config.configuredPassword ?? "admin"
+		
+		if variables["hostname"] == nil {
+			variables["hostname"] = self.name
 		}
 
-		if options.imageSource == .ipsw {
-			// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to
-			// depend on CakedLib) — bridge it to CakedLib's own MacOSVersion by raw value.
-			let explicitMacOSVersion = options.macosVersion.flatMap { MacOSVersion(rawValue: $0.rawValue) }
-
-			// wins, otherwise the resolved macOS version above picks a built-in template. Resolve
-			// throws if neither works.
-			let content = try PackerLiteTemplateResolver.resolve(explicitPath: options.provisionTemplate, explicitVersion: explicitMacOSVersion, ipswURL: imageURL)
-
-			let template = try await PackerLiteTemplate.load(from: content, variables: setupVariables())
-
-			try await PackerLiteEngine.provision(id: options.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
-				progressHandler(progress.progressValue)
-			}
-		} else if options.imageSource == .iso {
-			// An explicit --template always wins; otherwise falls back to a built-in template for
-			// the distro auto-detected from the ISO filename/URL (see PackerLiteTemplateResolver).
-			// Resolves to nil, not an error, for platforms with no PackerLite template — Ubuntu
-			// (its own cloud-init/subiquity autoinstall handles this instead) or an unrecognized
-			// distro — in which case no provisioning runs unless --template was given.
-			let explicitTemplate = (options.provisionTemplate?.isEmpty == false) ? options.provisionTemplate : nil
-
-			if let content = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: explicitTemplate, imageURL: imageURL, desktop: config.osDesktop) {
-				let template = try await PackerLiteTemplate.load(from: content, variables: setupVariables())
-
-				try await PackerLiteEngine.provision(id: options.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
-					progressHandler(progress.progressValue)
-				}
-			}
+		if let keys = try? CloudInit.sshAuthorizedKeys(sshAuthorizedKeyPath: self.sshAuthorizedKey, runMode: runMode) {
+			variables["ssh_authorized_key"] = keys.joined(separator: "\n")
 		}
+
+		return variables
 	}
+}
 
+public struct BuildHandler {
 	public static func build(options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async -> BuildedReply {
 		if options.name.count > URL.maxVirtualMachineNameLength {
 			return BuildedReply(name: options.name, builded: false, reason: String(localized: "Virtual machine name \(options.name) is limited to \(URL.maxVirtualMachineNameLength) characters"))
@@ -79,12 +48,10 @@ public struct BuildHandler {
 				}
 			}
 
-			let tempVMLocation: VMLocation = try VMLocation.tempDirectory(options.identifier, runMode: runMode)
+			let imageSource = options.imageSource!
+			let directLocation = imageSource == .ipsw && Bundle.runInCaker == false
 			let location = storageLocation.location(options.name)
-
-			// Lock the temporary VM directory to prevent it's garbage collection
-			let tmpVMDirLock = try FileLock(lockURL: tempVMLocation.rootURL)
-			try tmpVMDirLock.lock()
+			let tempVMLocation = directLocation ? location : try VMLocation.tempDirectory(options.identifier, runMode: runMode)
 
 			@Sendable func doCancel() {
 				location.removePID()
@@ -104,23 +71,34 @@ public struct BuildHandler {
 							progressHandler(progress)
 						}
 
-						try storageLocation.relocate(options.name, from: tempVMLocation)
+						if directLocation == false {
+							try storageLocation.relocate(options.name, from: tempVMLocation)
+						}
 
-						if result.autoinstall && (result.imageSource == .ipsw || result.imageSource == .iso) {
+						if result.autoinstall && result.imageSource == .iso {
 							try await Task.sleep(nanoseconds: 2 * 100_000_000)
 
-							// Use `result`, not the outer `options` — `VMBuilder.buildVM` resolves
-							// `options.imageId` (a `--macos12`-style shorthand flag) into an actual
-							// `image`/`imageSource`/`macosVersion` internally, and `provision(...)`
-							// below needs that resolved image URL (for `PackerLiteTemplateResolver`)
-							// and macOS version, not whatever `options.image` defaulted to before
-							// resolution.
-							try await provision(result, location: location, runMode: runMode) { progress in
-								if case .terminated(_, _) = progress {
-									terminatedSent = true
-								}
+							// An explicit --template always wins; otherwise falls back to a built-in template for
+							// the distro auto-detected from the ISO filename/URL (see PackerLiteTemplateResolver).
+							// Resolves to nil, not an error, for platforms with no PackerLite template — Ubuntu
+							// (its own cloud-init/subiquity autoinstall handles this instead) or an unrecognized
+							// distro — in which case no provisioning runs unless --template was given.
+							let config = try location.config()
+							let imageURL = URL(spaced: options.image)!
+							let explicitTemplate = (options.provisionTemplate?.isEmpty == false) ? options.provisionTemplate : nil
 
-								progressHandler(progress)
+							if let content = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: explicitTemplate, imageURL: imageURL, desktop: config.osDesktop) {
+								let template = try await PackerLiteTemplate.load(from: content, variables: options.setupVariables(config, runMode: runMode))
+
+								try await PackerLiteEngine.provision(id: options.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
+									let progress = progress.progressValue
+
+									if case .terminated(_, _) = progress {
+										terminatedSent = true
+									}
+
+									progressHandler(progress)
+								}
 							}
 						}
 

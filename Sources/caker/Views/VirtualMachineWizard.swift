@@ -390,9 +390,27 @@ struct VirtualMachineWizard: View {
 					#endif
 				}
 			}
+			.onReceive(VMBuilder.IPSWStartNotification) { notification in
+				self.logger.debug("Notification - IPSWStartNotification")
+				if self.provisioningStarted == false, self.isMyNotification(notification), let virtualMachine = notification.object as? VirtualMachine {
+					self.provisioningStarted = true
+
+					#if DEBUG_PAKERLITE
+						self.openWindow(id: "Debug PackerLite", value: self.wizardID)
+					#else
+						self.provisionnedVM = virtualMachine
+					#endif
+				}
+			}
 			.onReceive(PackerLiteEngine.provisionedTerminatedNotification) { notification in
 				self.logger.debug("Notification - provisionedTerminatedNotification")
 				if self.isMyNotification(notification) {
+					self.provisionnedVM = nil
+				}
+			}
+			.onReceive(VMBuilder.IPSWTerminatedNotification) { notification in
+				self.logger.debug("Notification - IPSWTerminatedNotification")
+				if self.isMyNotification(notification), self.config.autoinstall == false {
 					self.provisionnedVM = nil
 				}
 			}

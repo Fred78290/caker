@@ -1,19 +1,24 @@
 import CakeAgentLib
 import Foundation
 import GRPCLib
-import Virtualization
 import SwiftUI
+import Virtualization
 
 let cloudInitIso = "cloud-init.iso"
 
 public struct VMBuilder {
+	public static let IPSWStartNotification = NSNotification.Name("IPSWStartNotification")
+	public static let IPSWTerminatedNotification = NSNotification.Name("IPSWTerminatedNotification")
+
 	public static let memoryMinSize: UInt64 = 512 * MoB
 
 	#if arch(arm64)
-		private static func installIPSW(location: VMLocation, config: CakeConfig, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
-			let vm = try IPSWInstaller(location: location, config: config, runMode: runMode, queue: queue)
+		private static func installIPSW(location: VMLocation, config: CakeConfig, wizardID: UUID, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> VirtualMachine? {
+			let vm = try IPSWInstaller(location: location, config: config, wizardID: wizardID, runMode: runMode, queue: queue)
 
 			try await vm.installIPSW(ipsw, progressHandler: progressHandler)
+
+			return vm.virtualMachine
 		}
 	#endif
 
@@ -176,7 +181,7 @@ public struct VMBuilder {
 
 			#if arch(arm64)
 				if imageSource == .ipsw {
-					try await installIPSW(location: location, config: config, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
+					let vm = try await installIPSW(location: location, config: config, wizardID: id, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
 					// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to
 					// depend on CakedLib) — bridge it to CakedLib's own MacOSVersion by raw value.
@@ -192,6 +197,29 @@ public struct VMBuilder {
 					config.osRelease = resolvedMacOSVersion.version
 
 					try config.save()
+					
+					if let vm, options.autoinstall {
+						try await Task.sleep(nanoseconds: 2 * 100_000_000)
+
+						try await vm.stopVM()
+						try await vm.startVM()
+
+						FileManager.default.createFile(atPath: location.provisionningURL.path(percentEncoded: false), contents: nil)
+
+						try location.writePID()
+
+						// wins, otherwise the resolved macOS version above picks a built-in template. Resolve
+						// throws if neither works.
+						let content = try PackerLiteTemplateResolver.resolve(explicitPath: options.provisionTemplate, explicitVersion: resolvedMacOSVersion.name, ipswURL: imageURL)
+
+						let template = try await PackerLiteTemplate.load(from: content, variables: options.setupVariables(config, runMode: runMode))
+
+						try await PackerLiteEngine.provision(vm: vm, template: template, runningIP: nil, runMode: runMode, waitIPTimeout: 180) { progress in
+							progressHandler(progress.progressValue)
+						}
+						
+						try await vm.stopVM()
+					}
 				}
 			#endif
 		}
@@ -242,9 +270,9 @@ public struct VMBuilder {
 					imageURL = URL(fileURLWithPath: imageURL.path(percentEncoded: false).expandingTildeInPath)
 				} else if var components = URLComponents(url: imageURL, resolvingAgainstBaseURL: false) {
 					switch scheme {
-						case "qcow2", "imgs", "isos", "ipsw", "https", "ocis":
+					case "qcow2", "imgs", "isos", "ipsw", "https", "ocis":
 						components.scheme = "https"
-						default:
+					default:
 						components.scheme = "http"
 					}
 
@@ -273,9 +301,9 @@ public struct VMBuilder {
 
 			if sourceImage == .ipsw {
 				#if arch(arm64)
-				if imageIsFile == false {
-					options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
-				}
+					if imageIsFile == false {
+						options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
+					}
 				#else
 					throw ServiceError(String(localized: "IPSW is only available on arm64 architecture: \(options.image)"))
 				#endif
@@ -336,9 +364,9 @@ public struct VMBuilder {
 
 		} else if sourceImage == .ipsw {
 			#if arch(arm64)
-			if imageIsFile == false {
-				options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
-			}
+				if imageIsFile == false {
+					options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
+				}
 			#else
 				throw ServiceError(String(localized: "IPSW is only available on arm64 architecture: \(options.image)"))
 			#endif
