@@ -52,10 +52,16 @@ public struct BuildHandler {
 			let directLocation = imageSource == .ipsw && Bundle.runInCaker == false
 			let location = storageLocation.location(options.name)
 			let tempVMLocation = directLocation ? location : try VMLocation.tempDirectory(options.identifier, runMode: runMode)
+			let tmpVMDirLock: FileLock?
 
 			if directLocation {
 				try FileManager.default.createDirectory(at: tempVMLocation.rootURL, withIntermediateDirectories: true)
+				tmpVMDirLock = nil
+			} else {
+				tmpVMDirLock = try FileLock(lockURL: tempVMLocation.rootURL)
 			}
+
+			try tmpVMDirLock?.lock()
 
 			@Sendable func doCancel() {
 				location.removePID()
