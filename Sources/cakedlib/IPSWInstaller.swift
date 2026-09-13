@@ -124,6 +124,8 @@
 
 			self.virtualMachine = virtualMachine
 
+			try virtualMachine.startVMRunService()
+
 			if Bundle.runInCaker {
 				virtualMachine.createVirtualMachineView()
 			} else {

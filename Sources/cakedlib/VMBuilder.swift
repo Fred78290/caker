@@ -6,6 +6,20 @@ import Virtualization
 
 let cloudInitIso = "cloud-init.iso"
 
+extension VirtualMachine {
+	func stopVMRunService() {
+		if let service = self.env.vmrunService {
+			service.stop()
+		}
+	}
+
+	func startVMRunService() throws {
+		try self.env.startVMRunService(.grpc, vm: self)
+
+		self.env.vmrunService.serve()
+	}
+}
+
 public struct VMBuilder {
 	public static let IPSWStartNotification = NSNotification.Name("IPSWStartNotification")
 	public static let IPSWTerminatedNotification = NSNotification.Name("IPSWTerminatedNotification")
@@ -16,6 +30,9 @@ public struct VMBuilder {
 		private static func installIPSW(location: VMLocation, config: CakeConfig, wizardID: UUID, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> VirtualMachine? {
 			let vm = try IPSWInstaller(location: location, config: config, wizardID: wizardID, runMode: runMode, queue: queue)
 
+			FileManager.default.createFile(atPath: location.provisionningURL.path(percentEncoded: false), contents: nil)
+
+			try location.writePID()
 			try await vm.installIPSW(ipsw, progressHandler: progressHandler)
 
 			return vm.virtualMachine
@@ -27,6 +44,10 @@ public struct VMBuilder {
 		let imageURL = URL(spaced: options.image)!
 		var config: CakeConfig! = nil
 		var attachedDisks = options.attachedDisks
+
+		defer {
+			location.removePID()
+		}
 
 		// Create config
 		#if arch(arm64)
@@ -183,6 +204,10 @@ public struct VMBuilder {
 				if imageSource == .ipsw {
 					let vm = try await installIPSW(location: location, config: config, wizardID: id, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
+					defer {
+						vm?.stopVMRunService()
+					}
+
 					// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to
 					// depend on CakedLib) — bridge it to CakedLib's own MacOSVersion by raw value.
 					let explicitMacOSVersion = options.macosVersion.flatMap { MacOSVersion(rawValue: $0.rawValue) }
@@ -203,10 +228,6 @@ public struct VMBuilder {
 
 						try await vm.stopVM()
 						try await vm.startVM()
-
-						FileManager.default.createFile(atPath: location.provisionningURL.path(percentEncoded: false), contents: nil)
-
-						try location.writePID()
 
 						// wins, otherwise the resolved macOS version above picks a built-in template. Resolve
 						// throws if neither works.
