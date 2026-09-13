@@ -8,6 +8,54 @@ import Synchronization
 import Virtualization
 
 extension BuildOptions {
+	/// Resolves `options.imageId` (set by `--alias <id>`, e.g. `--alias macos12`, or decoded off
+	/// the wire for a `cakectl` build — see `BuildOptions.imageId`'s doc comment) into an actual
+	/// `options.image` URL/`options.imageSource`, overriding whatever `--image` argument default
+	/// was already there. Must run before `options.image`/`options.imageSource` are first used,
+	/// i.e. before `cloneImage`. A no-op when `imageId` isn't set.
+	public func resolveImageId() throws -> BuildOptions {
+		guard let imageId = self.imageId else {
+			return self
+		}
+
+		guard let resolution = VMImageCatalog.shared.resolveShorthand(imageId) else {
+			// Shouldn't normally happen — `--alias`'s ids are meant to come from this same
+			// catalog (see `caked aliases`/`cakectl aliases`) — but `imageId` could arrive over
+			// gRPC from a newer cakectl than this caked's catalog knows about, or the caller
+			// could have typed an id by hand.
+			throw ServiceError(String(localized: "Unknown catalog image id '\(imageId)'. Run 'caked aliases' or 'cakectl aliases' to see the known ids, or pass an explicit image URL instead."))
+		}
+
+		var options = self
+
+		options.imageId = nil
+		options.image = resolution.url
+		options.imageSource = resolution.imageSource
+
+		// Bonus synergy: a macOS id (e.g. "macos12") already matches a MacOSVersion raw value —
+		// auto-populate macosVersion from it when the caller didn't already pass --macos-version
+		// explicitly, so PackerLite template selection doesn't have to re-derive it from the
+		// (now catalog-resolved) IPSW filename.
+		if options.macosVersion == nil, let macosVersion = resolution.macosVersion {
+			options.macosVersion = macosVersion
+		}
+
+		// Also raise cpu/memory to the catalog entry's own minimum — the wizard and web
+		// UI already do this when an entry is picked there (see `VMImageEntry
+		// .applyMinimumResources` in `Sources/caker/Views/VirtualMachineWizard.swift` and the
+		// equivalent logic in `webui/src/pages/CreateInstanceModal.tsx`), this brings `--alias`
+		// in line with them; never lowers a value the caller already set higher via
+		// `--cpus`/`--memory`.
+		options.cpu = max(options.cpu, resolution.minCPU)
+		options.memory = max(options.memory, resolution.minMemoryMiB)
+
+		if options.imageSource == .ipsw {
+			options.diskSize = max(options.diskSize, 40)
+		}
+
+		return options
+	}
+
 	// The VM's account is already fully determined by --user/--password (see
 	// `configuredUser`/`configuredPassword` above) — reuse it here instead of
 	// letting the template declare its own, so there's exactly one source of truth.

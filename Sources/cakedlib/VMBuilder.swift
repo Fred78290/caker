@@ -393,51 +393,8 @@ public struct VMBuilder {
 		return options
 	}
 
-	/// Resolves `options.imageId` (set by `--alias <id>`, e.g. `--alias macos12`, or decoded off
-	/// the wire for a `cakectl` build — see `BuildOptions.imageId`'s doc comment) into an actual
-	/// `options.image` URL/`options.imageSource`, overriding whatever `--image` argument default
-	/// was already there. Must run before `options.image`/`options.imageSource` are first used,
-	/// i.e. before `cloneImage`. A no-op when `imageId` isn't set.
-	private static func resolveImageId(_ options: BuildOptions) throws -> BuildOptions {
-		guard let imageId = options.imageId else {
-			return options
-		}
-
-		guard let resolution = VMImageCatalog.shared.resolveShorthand(imageId) else {
-			// Shouldn't normally happen — `--alias`'s ids are meant to come from this same
-			// catalog (see `caked aliases`/`cakectl aliases`) — but `imageId` could arrive over
-			// gRPC from a newer cakectl than this caked's catalog knows about, or the caller
-			// could have typed an id by hand.
-			throw ServiceError(String(localized: "Unknown catalog image id '\(imageId)'. Run 'caked aliases' or 'cakectl aliases' to see the known ids, or pass an explicit image URL instead."))
-		}
-
-		var options = options
-
-		options.image = resolution.url
-		options.imageSource = resolution.imageSource
-
-		// Bonus synergy: a macOS id (e.g. "macos12") already matches a MacOSVersion raw value —
-		// auto-populate macosVersion from it when the caller didn't already pass --macos-version
-		// explicitly, so PackerLite template selection doesn't have to re-derive it from the
-		// (now catalog-resolved) IPSW filename.
-		if options.macosVersion == nil, let macosVersion = resolution.macosVersion {
-			options.macosVersion = macosVersion
-		}
-
-		// Also raise cpu/memory to the catalog entry's own minimum — the wizard and web
-		// UI already do this when an entry is picked there (see `VMImageEntry
-		// .applyMinimumResources` in `Sources/caker/Views/VirtualMachineWizard.swift` and the
-		// equivalent logic in `webui/src/pages/CreateInstanceModal.tsx`), this brings `--alias`
-		// in line with them; never lowers a value the caller already set higher via
-		// `--cpus`/`--memory`.
-		options.cpu = max(options.cpu, resolution.minCPU)
-		options.memory = max(options.memory, resolution.minMemoryMiB)
-
-		return options
-	}
-
 	static func buildVM(_ id: UUID = UUID(), vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
-		let resolvedOptions = try resolveImageId(options)
+		let resolvedOptions = try options.resolveImageId()
 
 		// An `--alias`-resolved ISO already had cpu/memory raised to its catalog entry's own
 		// minimum above (see `resolveImageId`'s "Also raise cpu/memory..." step) — every entry's
