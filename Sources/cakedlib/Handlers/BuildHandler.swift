@@ -96,7 +96,7 @@ public struct BuildHandler {
 				}
 			}
 
-			let imageSource = options.imageSource!
+			let imageSource = options.imageSource ?? .qcow2
 			let directLocation = imageSource == .ipsw && Bundle.runInCaker == false
 			let location = storageLocation.location(options.name)
 			let tempVMLocation = directLocation ? location : try VMLocation.tempDirectory(options.identifier, runMode: runMode)
@@ -187,6 +187,7 @@ public struct BuildHandler {
 				onCancel: {
 					doCancel()
 				})
+
 			return BuildedReply(name: options.name, builded: cancelled == false, reason: cancelled ? String(localized: "Cancelled") : String(localized: "VM created"))
 		} catch {
 			return BuildedReply(name: options.name, builded: false, reason: error.reason)
