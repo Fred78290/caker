@@ -250,4 +250,12 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 	func makeProvisionInterceptors() -> [ClientInterceptor<Caked_ProvisionRequest, Caked_ProvisionStreamReply>] {
 		self.interceptors()
 	}
+
+	func makeListTasksInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Reply>] {
+		self.interceptors()
+	}
+
+	func makeCancelTaskInterceptors() -> [ClientInterceptor<Caked_CancelTaskRequest, Caked_Reply>] {
+		self.interceptors()
+	}
 }

@@ -234,4 +234,12 @@ struct CakedPasswordAuthServerInterceptor: Caked_ServiceServerInterceptorFactory
 	func makeProvisionInterceptors() -> [ServerInterceptor<Caked_ProvisionRequest, Caked_ProvisionStreamReply>] {
 		return self.interceptors()
 	}
+
+	func makeListTasksInterceptors() -> [ServerInterceptor<Caked_Empty, Caked_Reply>] {
+		return self.interceptors()
+	}
+
+	func makeCancelTaskInterceptors() -> [ServerInterceptor<Caked_CancelTaskRequest, Caked_Reply>] {
+		return self.interceptors()
+	}
 }
