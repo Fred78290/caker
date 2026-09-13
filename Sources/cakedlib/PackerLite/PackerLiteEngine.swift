@@ -131,7 +131,7 @@ public enum PackerLiteEngine {
 		try config.save()
 	}
 
-	public static func provision(
+	static func internalProvisionning(
 		id: UUID,
 		location: VMLocation,
 		config: CakeConfig,

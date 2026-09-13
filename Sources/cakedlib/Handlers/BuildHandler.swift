@@ -150,7 +150,7 @@ public struct BuildHandler {
 							if let content = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: explicitTemplate, imageURL: imageURL, desktop: config.osDesktop) {
 								let template = try await PackerLiteTemplate.load(from: content, variables: options.setupVariables(config, runMode: runMode))
 
-								try await PackerLiteEngine.provision(id: options.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
+								try await PackerLiteEngine.internalProvisionning(id: options.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
 									let progress = progress.progressValue
 
 									if case .terminated(_, _) = progress {
