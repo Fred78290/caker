@@ -13,7 +13,7 @@
 
 			{ "id": "centos10-iso", "label": "CentOS Stream 10", "url": "https://mirrors.centos.org/mirrorlist?path=/10-stream/BaseOS/aarch64/iso/CentOS-Stream-10-latest-aarch64-dvd1.iso&redirect=1&protocol=https", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "debian1360", "label": "Debian 13.6.0", "url": "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.6.0-arm64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "debian1370", "label": "Debian 13.7.0", "url": "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.7.0-arm64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "openSUSE161-iso", "label": "openSUSE Leap 16.1", "url": "https://download.opensuse.org/distribution/leap/16.1/installer/iso/agama-installer.aarch64-Leap_16.1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
@@ -65,7 +65,7 @@
 			{ "id": "ubuntu2404Desktop", "label": "Ubuntu 24.04.4 LTS – Desktop", "url": "https://releases.ubuntu.com/noble/ubuntu-24.04.4-desktop-amd64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
 			{ "id": "ubuntu2404Server", "label": "Ubuntu 24.04.4 LTS – Server", "url": "https://releases.ubuntu.com/noble/ubuntu-24.04.4-live-server-amd64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
-			{ "id": "debian1360", "label": "Debian 13.6.0", "url": "https://cdimage.debian.org/cdimage/release/current/amd64/iso-dvd/debian-13.6.0-amd64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "debian1370", "label": "Debian 13.7.0", "url": "https://cdimage.debian.org/cdimage/release/current/amd64/iso-dvd/debian-13.7.0-amd64-DVD-1.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 
 			{ "id": "fedora44Desktop", "label": "Fedora 44 – Workstation", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Workstation/x86_64/iso/Fedora-Workstation-Live-44-1.7.x86_64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
 			{ "id": "fedora44Server", "label": "Fedora 44 – Server", "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/x86_64/iso/Fedora-Server-dvd-x86_64-44-1.7.iso", "minCPU": 2, "minMemoryMiB": 2048 },
