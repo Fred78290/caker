@@ -68,7 +68,7 @@ public struct VMInformations: Sendable, Codable {
 			case .provisioning:
 				self = .provisioning
 			default:
-				self = .stopped
+				self = .unknown
 			}
 		}
 
