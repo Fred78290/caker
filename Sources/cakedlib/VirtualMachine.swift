@@ -1694,11 +1694,19 @@ extension VirtualMachine {
 			return
 		}
 
-		guard let screenshot = vzMachineView?.image() else {
-			return
+		let screenshot: NSImage?
+
+		if Thread.isMainThread {
+			screenshot = vzMachineView?.image()
+		} else {
+			screenshot = DispatchQueue.main.sync {
+				return self.env.vzMachineView?.image()
+			}
 		}
 
-		try screenshot.pngData?.write(to: self.location.screenshotURL)
+		if let screenshot {
+			try screenshot.pngData?.write(to: self.location.screenshotURL)
+		}
 	}
 
 	func deleteScreenshot() throws {

@@ -644,6 +644,10 @@ public struct BuildOptions: ParsableArguments {
 				self.diskFormat = .raw
 			}
 		}
+
+		if self.imageSource == .ipsw {
+			self.diskSize = max(self.diskSize, 40)
+		}
 	}
 }
 

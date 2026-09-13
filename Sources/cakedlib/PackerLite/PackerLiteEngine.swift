@@ -195,9 +195,9 @@ public enum PackerLiteEngine {
 
 		try await vm.startVM()
 
-		try location.writePID()
-
 		FileManager.default.createFile(atPath: location.provisionningURL.path(percentEncoded: false), contents: nil)
+
+		try location.writePID()
 
 		guard vm.vzMachineView != nil else {
 			throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
