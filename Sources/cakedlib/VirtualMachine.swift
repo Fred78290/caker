@@ -1023,7 +1023,11 @@ extension VirtualMachine {
 
 	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
 		if self.env.runMode == .app {
-			try self.location.writePID()
+			if self.mode == .provisioning {
+				try self.location.writeProvisionning()
+			} else {
+				try self.location.writePID()
+			}
 		}
 
 		let config = self.config
@@ -1544,7 +1548,11 @@ extension VirtualMachine {
 				self.virtualMachine.resume { result in
 					if case .success = result {
 						if self.env.runMode == .app {
-							try? self.location.writePID()
+							if self.mode == .provisioning {
+								try? self.location.writeProvisionning()
+							} else {
+								try? self.location.writePID()
+							}
 						}
 					}
 

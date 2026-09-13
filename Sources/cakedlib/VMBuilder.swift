@@ -39,9 +39,7 @@ public struct VMBuilder {
 		private static func installIPSW(location: VMLocation, config: CakeConfig, wizardID: UUID, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> VirtualMachine? {
 			let vm = try IPSWInstaller(location: location, config: config, wizardID: wizardID, runMode: runMode, queue: queue)
 
-			FileManager.default.createFile(atPath: location.provisionningURL.path(percentEncoded: false), contents: nil)
-
-			try location.writePID()
+			try location.writeProvisionning()
 			try await vm.installIPSW(ipsw, progressHandler: progressHandler)
 
 			return vm.virtualMachine
@@ -237,6 +235,8 @@ public struct VMBuilder {
 
 						try await vm.stopVM()
 						try await vm.startVM()
+
+						try vm.location.writeProvisionning()
 
 						// wins, otherwise the resolved macOS version above picks a built-in template. Resolve
 						// throws if neither works.
