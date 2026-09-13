@@ -23,7 +23,7 @@ extension BuildOptions {
 			// catalog (see `caked aliases`/`cakectl aliases`) — but `imageId` could arrive over
 			// gRPC from a newer cakectl than this caked's catalog knows about, or the caller
 			// could have typed an id by hand.
-			throw ServiceError(String(localized: "Unknown catalog image id '\(imageId)'. Run 'caked aliases' or 'cakectl aliases' to see the known ids, or pass an explicit image URL instead."))
+			throw ServiceError(String(format: String(localized: "Unknown catalog image id '%@'. Run 'caked aliases' or 'cakectl aliases' to see the known ids, or pass an explicit image URL instead."), imageId))
 		}
 
 		var options = self
