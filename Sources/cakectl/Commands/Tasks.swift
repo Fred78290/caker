@@ -41,7 +41,7 @@ struct Tasks: ParsableCommand {
 			let reply = try client.cancelTask(.with { $0.id = self.id }, callOptions: callOptions).response.wait().tasks.cancelled
 
 			if reply.success {
-				return self.options.format.render(String(localized: "Task '\(self.id)' cancelled."))
+				return self.options.format.render(String(format: String(localized: "Task '%@' cancelled."), self.id))
 			} else {
 				return self.options.format.render(reply.reason)
 			}
