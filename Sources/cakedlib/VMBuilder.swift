@@ -7,7 +7,7 @@ import Virtualization
 let cloudInitIso = "cloud-init.iso"
 
 extension VirtualMachine {
-	func stopVMRunService() {
+	func stopServiceForProvisionning() {
 		if let timer = self.env.timer {
 			timer.invalidate()
 			self.env.timer = nil
@@ -20,7 +20,7 @@ extension VirtualMachine {
 		}
 	}
 
-	func startVMRunService() throws {
+	func startServiceForProvisionning() throws {
 		try self.env.startVMRunService(.grpc, vm: self)
 
 		self.env.timer = self.startScreenshotTimer(timeInterval: self.env.mode == .provisioning ? kScreenshotProvisioningPeriodSeconds : kScreenshotPeriodSeconds)
@@ -212,7 +212,7 @@ public struct VMBuilder {
 					let vm = try await installIPSW(location: location, config: config, wizardID: id, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
 					defer {
-						vm?.stopVMRunService()
+						vm?.stopServiceForProvisionning()
 					}
 
 					// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to

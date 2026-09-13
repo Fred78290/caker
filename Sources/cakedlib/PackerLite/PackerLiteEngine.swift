@@ -182,6 +182,8 @@ public enum PackerLiteEngine {
 				progressHandler(.infos(.init(vncURL: vncURL, screenSize: .init(vzMachineView.bounds.size), config: CakedConfiguration(config))))
 			}
 
+			try vm.startServiceForProvisionning()
+
 			return vm
 		}
 
@@ -213,6 +215,7 @@ public enum PackerLiteEngine {
 			await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
 				vm.stopVM { _ in
 					location.removePID()
+					vm.stopServiceForProvisionning()
 
 					if let error {
 						let reason: String
