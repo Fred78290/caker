@@ -100,7 +100,13 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 			let logger = Logger("BuildHandler")
 
 			if case .failure(let error) = result {
-				if let message {
+				if error is CancellationError {
+					if let message {
+						logger.error("\(message)")
+					} else {
+						logger.error("Operation cancelled")
+					}
+				} else if let message {
 					logger.error("\(message): \(error)")
 				} else {
 					logger.error("Installation failed: \(error)")
