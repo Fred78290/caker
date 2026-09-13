@@ -171,12 +171,14 @@ public struct BuildHandler {
 						doCancel()
 
 						let nsError = error as NSError
-						
+
 						if nsError.domain == VZErrorDomain && nsError.code == VZError.operationCancelled.rawValue {
 							cancelled = true
 							progressHandler(.terminated(.failure(CancellationError()), "Build VM cancelled"))
-						} else if terminatedSent == false {
-							progressHandler(.terminated(.failure(error), "Build VM failed"))
+						} else {
+							if terminatedSent == false {
+								progressHandler(.terminated(.failure(error), "Build VM failed"))
+							}
 
 							throw error
 						}
