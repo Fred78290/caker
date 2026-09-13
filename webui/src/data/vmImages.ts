@@ -83,9 +83,9 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "debian1360",
-        "label": "Debian 13.6.0",
-        "url": "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.6.0-arm64-DVD-1.iso",
+        "id": "debian1370",
+        "label": "Debian 13.7.0",
+        "url": "https://cdimage.debian.org/cdimage/release/current/arm64/iso-dvd/debian-13.7.0-arm64-DVD-1.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
@@ -343,9 +343,9 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "debian1360",
-        "label": "Debian 13.6.0",
-        "url": "https://cdimage.debian.org/cdimage/release/current/amd64/iso-dvd/debian-13.6.0-amd64-DVD-1.iso",
+        "id": "debian1370",
+        "label": "Debian 13.7.0",
+        "url": "https://cdimage.debian.org/cdimage/release/current/amd64/iso-dvd/debian-13.7.0-amd64-DVD-1.iso",
         "minCPU": 2,
         "minMemoryMiB": 2048
       },
