@@ -51,8 +51,7 @@ let package = Package(
 		.package(url: "https://github.com/fumoboy007/swift-retry", exact: "0.2.4"),
 		.package(url: "https://github.com/getsentry/sentry-cocoa", exact: "8.49.2"),
 		.package(url: "https://github.com/groue/Semaphore", exact: "0.0.8"),
-		.package(url: "https://github.com/grpc/grpc-swift.git", exact: "1.27.2"),
-		.package(url: "https://github.com/vapor/vapor.git", from: "4.121.4"),
+		.package(url: "https://github.com/grpc/grpc-swift.git", exact: "1.27.6"),
 		.package(url: "https://github.com/jozefizso/swift-xattr", exact: "3.0.0"),
 		.package(url: "https://github.com/jpsim/Yams", exact: "5.1.3"),
 		.package(url: "https://github.com/malcommac/SwiftDate", exact: "7.0.0"),
@@ -60,11 +59,12 @@ let package = Package(
 		.package(url: "https://github.com/nicklockwood/SwiftFormat", exact: "0.53.6"),
 		.package(url: "https://github.com/orchetect/SwiftRadix", exact: "1.3.1"),
 		.package(url: "https://github.com/sersoft-gmbh/swift-sysctl.git", exact: "1.8.0"),
-		//.package(url: "https://github.com/swiftlang/swift-subprocess.git", revision: "7928f39b374b3403224c3a243da6326bdf7c918a"),
 		.package(url: "https://github.com/swiftlang/swift-subprocess.git", exact: "0.5.0"),
+		.package(url: "https://github.com/vapor/vapor.git", from: "4.121.4"),
 		//.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
 		//.package(url: "https://github.com/apple/swift-collections.git", exact: "1.2.1"),
 		//.package(url: "https://github.com/apple/swift-nio-transport-services.git", exact: "1.24.0"),
+		//.package(url: "https://github.com/swiftlang/swift-subprocess.git", revision: "7928f39b374b3403224c3a243da6326bdf7c918a"),
 		//.package(url: "https://github.com/the-swift-collective/zlib", branch: "main")
 	] + (isAppStoreBuild ? [] : [
 		.package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.1"),
