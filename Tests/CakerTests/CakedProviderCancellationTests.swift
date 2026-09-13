@@ -43,9 +43,11 @@ final class CakedProviderCancellationTests: XCTestCase {
 
 		func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
 			do {
-			// Long enough that the test would fail waiting for it to finish on its own —
-			// the assertion is that `stop()` cancels it well before this elapses.
-			try await Task.sleep(nanoseconds: 5_000_000_000)
+				// Long enough that the test would fail waiting for it to finish on its own —
+				// the assertion is that `stop()` cancels it well before this elapses.
+				try await Task.sleep(nanoseconds: 5_000_000_000)
+			} catch is CancellationError {
+				self.flag.markCancelled()
 			} catch {
 				// Not expected, but don't let an unrelated error fail this test's own timing.
 			}
