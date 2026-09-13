@@ -8,13 +8,22 @@ let cloudInitIso = "cloud-init.iso"
 
 extension VirtualMachine {
 	func stopVMRunService() {
+		if let timer = self.env.timer {
+			timer.invalidate()
+			self.env.timer = nil
+		}
+
 		if let service = self.env.vmrunService {
 			service.stop()
+			
+			self.env.vmrunService = nil
 		}
 	}
 
 	func startVMRunService() throws {
 		try self.env.startVMRunService(.grpc, vm: self)
+
+		self.env.timer = self.startScreenshotTimer(timeInterval: self.env.mode == .provisioning ? kScreenshotProvisioningPeriodSeconds : kScreenshotPeriodSeconds)
 
 		self.env.vmrunService.serve()
 	}
