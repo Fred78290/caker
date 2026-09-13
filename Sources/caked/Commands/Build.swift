@@ -2,6 +2,7 @@ import ArgumentParser
 import CakedLib
 import GRPCLib
 import CakeAgentLib
+import AppKit
 
 struct Build: AsyncParsableCommand {
 	static let configuration = BuildOptions.build
@@ -35,6 +36,22 @@ struct Build: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(self.common.format.render(await CakedLib.BuildHandler.build(options: self.options, runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)))
+		await NSApplication.shared.setActivationPolicy(.prohibited)
+
+		Root.sigintSrc.cancel()
+		signal(SIGINT, SIG_IGN)
+
+		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+
+		let task = Task {
+			try await Logger.appendNewLine(self.common.format.render(CakedLib.BuildHandler.build(options: self.options.resolveImageId(), runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)))
+		}
+
+		sigintSrc.setEventHandler {
+			task.cancel()
+		}
+		sigintSrc.resume()
+
+		try await task.value
 	}
 }

@@ -5,14 +5,14 @@
 //  Created by Frederic BOLTZ on 19/01/2026.
 //
 import CakeAgentLib
-import Vision
 import Dynamic
 import Foundation
+import GRPCLib
 import ObjectiveC.runtime
 import QuartzCore
 import Synchronization
 import Virtualization
-import GRPCLib
+import Vision
 
 @objc protocol VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?)
@@ -86,20 +86,23 @@ extension NSView {
 					return
 				}
 
-				result = (CGSize(width: capture.imageSize.width, height: capture.imageSize.height), results.compactMap { observation in
-					if let candidate = observation.topCandidates(1).first {
-						let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(capture.imageSize.width), Int(capture.imageSize.height))
-						let flippedBox = CGRect(
-							x: box.origin.x * scaleX,
-							y: box.origin.y * scaleY,
-							width: box.width * scaleX,
-							height: box.height * scaleY)
+				result = (
+					CGSize(width: capture.imageSize.width, height: capture.imageSize.height),
+					results.compactMap { observation in
+						if let candidate = observation.topCandidates(1).first {
+							let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(capture.imageSize.width), Int(capture.imageSize.height))
+							let flippedBox = CGRect(
+								x: box.origin.x * scaleX,
+								y: box.origin.y * scaleY,
+								width: box.width * scaleX,
+								height: box.height * scaleY)
 
-						return RecognizedText(text: candidate.string, box: flippedBox)
+							return RecognizedText(text: candidate.string, box: flippedBox)
+						}
+
+						return nil
 					}
-
-					return nil
-				})
+				)
 			} catch {
 				Logger(self).error("Vision OCR failed: \(error)")
 			}
@@ -178,16 +181,32 @@ extension NSView {
 	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
 		self.swizzled_framebuffer(framebuffer, didUpdateCursor: cursor)
 
-		if let observer = self.superview as? VNCFramebufferObserver {
-			observer.didUpdateCursor(self)
+		if Thread.isMainThread {
+			if let observer = self.superview as? VNCFramebufferObserver {
+				observer.didUpdateCursor(self)
+			}
+		} else {
+			DispatchQueue.main.sync {
+				if let observer = self.superview as? VNCFramebufferObserver {
+					observer.didUpdateCursor(self)
+				}
+			}
 		}
 	}
 
 	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?) {
 		self.swizzled_framebuffer(framebuffer, didUpdateFrame: frame)
 
-		if let observer = self.superview as? VNCFramebufferObserver {
-			observer.didUpdateFrame(self)
+		if Thread.isMainThread {
+			if let observer = self.superview as? VNCFramebufferObserver {
+				observer.didUpdateFrame(self)
+			}
+		} else {
+			DispatchQueue.main.sync {
+				if let observer = self.superview as? VNCFramebufferObserver {
+					observer.didUpdateFrame(self)
+				}
+			}
 		}
 	}
 }
@@ -570,7 +589,8 @@ extension VNCVirtualMachineView {
 			self.logger.debug("keyDown: \(event.dumpEvent)")
 		#endif
 
-		self.actionRecorder?(self,
+		self.actionRecorder?(
+			self,
 			.key(
 				keyCode: CGKeyCode(event.keyCode),
 				modifiers: event.modifierFlags,
@@ -593,7 +613,8 @@ extension VNCVirtualMachineView {
 
 			self.heldModifierKeyCodes = heldModifierKeyCodes
 
-			actionRecorder(self,
+			actionRecorder(
+				self,
 				.key(
 					keyCode: keyCode,
 					modifiers: event.modifierFlags,

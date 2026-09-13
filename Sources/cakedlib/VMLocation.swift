@@ -557,6 +557,12 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		try pidFile.delete()
 	}
 
+	public func writeProvisionning() throws {
+		FileManager.default.createFile(atPath: self.provisionningURL.path(percentEncoded: false), contents: nil)
+		
+		try self.writePID()
+	}
+
 	public func writePID() throws {
 		try pidFile.writePID()
 	}

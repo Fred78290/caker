@@ -10,9 +10,9 @@ import Socket
 import SwiftUI
 import Virtualization
 
-private let kScreenshotProvisioningPeriodSeconds = 1.0
-private let kScreenshotPeriodSeconds = 5.0
-private let kAgentInstallRetryPeriodSeconds: UInt64 = 30
+let kScreenshotProvisioningPeriodSeconds = 1.0
+let kScreenshotPeriodSeconds = 5.0
+let kAgentInstallRetryPeriodSeconds: UInt64 = 30
 
 public protocol VirtualMachineDelegate: AnyObject {
 	func didChangedState(_ vm: VirtualMachine)
@@ -1023,7 +1023,11 @@ extension VirtualMachine {
 
 	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
 		if self.env.runMode == .app {
-			try self.location.writePID()
+			if self.mode == .provisioning {
+				try self.location.writeProvisionning()
+			} else {
+				try self.location.writePID()
+			}
 		}
 
 		let config = self.config
@@ -1544,7 +1548,11 @@ extension VirtualMachine {
 				self.virtualMachine.resume { result in
 					if case .success = result {
 						if self.env.runMode == .app {
-							try? self.location.writePID()
+							if self.mode == .provisioning {
+								try? self.location.writeProvisionning()
+							} else {
+								try? self.location.writePID()
+							}
 						}
 					}
 
@@ -1694,11 +1702,19 @@ extension VirtualMachine {
 			return
 		}
 
-		guard let screenshot = vzMachineView?.image() else {
-			return
+		let screenshot: NSImage?
+
+		if Thread.isMainThread {
+			screenshot = vzMachineView?.image()
+		} else {
+			screenshot = DispatchQueue.main.sync {
+				return self.env.vzMachineView?.image()
+			}
 		}
 
-		try screenshot.pngData?.write(to: self.location.screenshotURL)
+		if let screenshot {
+			try screenshot.pngData?.write(to: self.location.screenshotURL)
+		}
 	}
 
 	func deleteScreenshot() throws {

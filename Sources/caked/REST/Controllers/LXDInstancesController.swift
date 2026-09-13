@@ -364,7 +364,7 @@ struct LXDInstancesController: RouteCollection {
 				.encodeResponse(status: .notFound, for: req)
 		}
 		
-		let (lxdStatus, lxdStatusCode) = lxdStatusFrom(state: info.status)
+		let (lxdStatus, lxdStatusCode) = lxdStatusFrom(state: info.status.rawValue)
 		
 		var networkState: [String: LXDNetworkState]? = nil
 		
@@ -732,6 +732,7 @@ struct LXDInstancesController: RouteCollection {
 	private func lxdStatusFrom(state: String) -> (String, Int) {
 		switch state.lowercased() {
 		case "running": return ("Running", 103)
+		case "provisioning": return ("Provisioning", 103)
 		case "paused": return ("Frozen", 110)
 		default: return ("Stopped", 102)
 		}

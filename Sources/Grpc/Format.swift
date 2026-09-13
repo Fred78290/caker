@@ -235,7 +235,7 @@ extension InfoReply {
 				reply.mounts = mounts
 			}
 
-			reply.status = .init(agentStatus: self.status)
+			reply.status = .init(self.status)
 
 			if let attachedNetworks = self.attachedNetworks {
 				reply.networks = attachedNetworks.map { Caked_InfoReply.AttachedNetwork($0) }

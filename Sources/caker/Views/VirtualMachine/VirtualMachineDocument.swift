@@ -158,6 +158,8 @@ extension UTType {
 				return "error"
 			case .provisioning:
 				return "provisioning"
+			case .deleted:
+				return "deleted"
 			}
 		}
 
@@ -173,6 +175,20 @@ extension UTType {
 		case saving = 8
 		case restoring = 9
 		case provisioning = 10
+		case deleted = 11
+
+		init(_ from: VMInformations.Status) {
+			switch from {
+			case .running:
+				self = .running
+			case .stopped:
+				self = .stopped
+			case .provisioning:
+				self = .provisioning
+			case .unknown:
+				self = .none
+			}
+		}
 
 		init(_ from: CakeAgentLib.Status) {
 			switch from {
@@ -195,7 +211,7 @@ extension UTType {
 			case .paused:
 				self = .paused
 			case .deleted:
-				self = .stopped
+				self = .deleted
 			case .error:
 				self = .error
 			case .provisioning:
@@ -606,7 +622,7 @@ extension VirtualMachineDocument {
 	@MainActor
 	func setStateAsRunning(_ status: Status, vncURL: [URL]?) {
 		#if DEBUG
-			self.logger.debug("setStateAsRunning")
+			self.logger.debug("setStateAsRunning: \(status) vncURL: \(vncURL?.map { $0.absoluteString } ?? [])")
 		#endif
 
 		self.updateCurrentStatus(status, vncURL: vncURL)
@@ -629,6 +645,8 @@ extension VirtualMachineDocument {
 
 	func setState(_ status: Caked_VirtualMachineStatus) {
 		let newStatus = Status(status)
+
+		logger.debug("setState to \(newStatus)")
 
 		func agentIsReady() {
 			self.agent = .installed
@@ -1379,7 +1397,7 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 // MARK: - VNC handling
 extension VirtualMachineDocument {
 	func setVncScreenSize(_ screenSize: ViewSize) {
-		if self.externalRunning && self.status == .running {
+		if self.externalRunning && (self.status == .running || self.status == .provisioning) {
 			#if DEBUG
 				self.logger.debug("setVncScreenSize: \(screenSize.description)")
 			#endif
@@ -1406,9 +1424,10 @@ extension VirtualMachineDocument {
 
 		MainActor.assumeIsolated {
 			if let vncInfos = try? self.connectionManager.vncInfos(vmURL: self.url) {
-				self.logger.info("Found VNC URL: \(vncInfos.urls)")
+				self.logger.info("Retrieved VNC URL, current state \(self.status): \(vncInfos.urls)")
 
-				self.setStateAsRunning(self.status,
+				self.setStateAsRunning(
+					self.status,
 					vncURL: vncInfos.urls.compactMap {
 						URL(string: $0)
 					})
@@ -1524,14 +1543,14 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 					newStatus = .ready
 				}
 			} else if connectionState.status == .disconnecting {
-				if self.status == .starting || self.status == .running {
+				if self.status == .starting || self.status == .running || self.status == .provisioning {
 					newStatus = .connecting
 				}
 			} else if connectionState.status == .disconnected {
 				if self.connection != nil {
 					self.connection = nil
 
-					if self.status == .starting || self.status == .running {
+					if self.status == .starting || self.status == .running || self.status == .provisioning {
 						DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
 							self.tryVNCConnect()
 						}

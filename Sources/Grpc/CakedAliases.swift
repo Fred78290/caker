@@ -508,8 +508,21 @@ extension Caked_VirtualMachineStatus: CustomStringConvertible {
 		}
 	}
 	
-	public init (agentStatus: CakeAgentLib.Status) {
-		switch agentStatus {
+	public init (_ from: VMInformations.Status) {
+		switch from {
+		case .running:
+			self = .running
+		case .stopped:
+			self = .stopped
+		case .provisioning:
+			self = .provisioning
+		case .unknown:
+			self = .error
+		}
+	}
+
+	public init (_ from: CakeAgentLib.Status) {
+		switch from {
 		case .running:
 			self = .running
 		case .stopped:

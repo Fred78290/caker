@@ -690,7 +690,9 @@ struct HostVirtualMachineView: View {
 	}
 
 	func handleDocumentStatusChangedNotification(_ newValue: VirtualMachineDocument.Status) {
-		if newValue.isStopped {
+		if newValue == .deleted {
+			self.dismiss()
+		} else if newValue.isStopped {
 			self.internalModeView = .vz
 			self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
 		}
@@ -853,6 +855,8 @@ struct HostVirtualMachineView: View {
 			return "VM is restoring"
 		case .provisioning:
 			return "VM is provisioning"
+		case .deleted:
+			return "VM is deleted"
 		}
 	}
 
