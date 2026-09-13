@@ -97,6 +97,12 @@ service Service {
 
 	// Provision a stopped virtual machine.
   rpc Provision (Caked.VMRequest.ProvisionRequest) returns (stream Caked.Reply.VirtualMachineReply.ProvisionStreamReply);
+
+  // ListTasks lists every long-running task currently registered on the server (e.g. an
+  // in-progress Build/Launch/Provision call), by id and title.
+  rpc ListTasks (Empty) returns (Caked.Reply);
+  // CancelTask cancels a registered long-running task by id.
+  rpc CancelTask (Caked.CancelTaskRequest) returns (Caked.Reply);
 }
 
 message Empty {}
@@ -454,6 +460,10 @@ message Caked {
     int64  timestamp = 3;
   }
 
+  message CancelTaskRequest {
+    string id = 1;
+  }
+
   message CurrentStatusRequest {
     string name      = 1;
     int32  frequency = 2;
@@ -767,6 +777,27 @@ message Caked {
       VirtualMachineStatus status             = 3;
       int64                request_timestamp  = 4;
       int64                response_timestamp = 5;
+    }
+
+    message TaskReply {
+      message TaskEntry {
+        string id    = 1;
+        string title = 2;
+      }
+
+      message ListTasksReply {
+        repeated TaskEntry tasks = 1;
+      }
+
+      message CancelTaskReply {
+        bool            success = 1;
+        optional string reason  = 2;
+      }
+
+      oneof response {
+        ListTasksReply  list      = 1;
+        CancelTaskReply cancelled = 2;
+      }
     }
 
     message VirtualMachineReply {
@@ -1379,6 +1410,7 @@ message Caked {
       CertificateReply    certificates = 12;
       string              unexpected   = 13;
       ComposeReply        compose      = 14;
+      TaskReply           tasks        = 15;
     }
   }
 

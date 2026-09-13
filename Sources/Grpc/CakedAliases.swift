@@ -153,6 +153,12 @@ public typealias Caked_ProvisionStreamReply = Caked_VirtualMachineReply.Provisio
 public typealias Caked_MacOSVersion = Caked_ProvisionRequest.MacOSVersion
 public typealias Caked_ProvisionVar = Caked_Caked.VMRequest.ProvisionRequest.ProvisionVars.ProvisionVar
 
+public typealias Caked_CancelTaskRequest = Caked.CancelTaskRequest
+public typealias Caked_TaskReply = Caked.Reply.TaskReply
+public typealias Caked_TaskEntry = Caked_TaskReply.TaskEntry
+public typealias Caked_ListTasksReply = Caked_TaskReply.ListTasksReply
+public typealias Caked_CancelTaskReply = Caked_TaskReply.CancelTaskReply
+
 extension VirtualizedOS {
 	public init?(_ from: Caked.Configuration.VirtualizedOS) {
 		switch from {

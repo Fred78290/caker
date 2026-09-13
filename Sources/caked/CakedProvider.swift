@@ -289,15 +289,25 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let shutdown = Mutex<Bool>(false)
 	var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? = nil
 
+	// One in-flight, explicitly-tracked long-running command — see
+	// `executeCancellable(command:title:)`. `title` is purely descriptive (surfaced by `listTasks`/
+	// `cakectl tasks list` so an operator can tell which VM/command a given id belongs to before
+	// deciding whether to cancel it) and plays no role in cancellation itself.
+	private struct RunningTask {
+		let title: String
+		let task: Task<Caked_Reply, Never>
+	}
+
 	// Tracks the in-flight `Task` behind each long-running, streaming RPC (build/launch/provision
-	// — see `executeCancellable(command:)`) so `stop()` can actually cancel them on shutdown.
+	// — see `executeCancellable(command:title:)`) so `stop()` can actually cancel them on shutdown,
+	// and so `listTasks`/`cancelTask` can expose/cancel them individually on request.
 	// `execute(command:)` below never populates this: a `caked list`/`caked info` finishing a beat
 	// late during shutdown is harmless, but a `caked build --autoinstall`/`caked provision` left
 	// running unbounded — the exact bug this registry fixes — would otherwise block the graceful
 	// shutdown future (`servers.map { $0.initiateGracefulShutdown() }` in `Service.Listen`) forever,
 	// since nothing ever told that call's `Task` (created via `EventLoop.makeFutureWithTask`, an
 	// unstructured, uncancellable-from-outside `Task` under the hood) to stop.
-	private let runningTasks = Mutex<[UUID: Task<Caked_Reply, Never>]>([:])
+	private let runningTasks = Mutex<[UUID: RunningTask]>([:])
 
 	init(group: EventLoopGroup, password: String?, runMode: Utils.RunMode) throws {
 		self.runMode = runMode
@@ -327,8 +337,8 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		Logger(self).info("Cancelling \(tasks.count) in-flight long-running task(s)")
 
-		for task in tasks.values {
-			task.cancel()
+		for running in tasks.values {
+			running.task.cancel()
 		}
 	}
 
@@ -367,7 +377,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	/// `CakedLib.BuildHandler.build(...)`/`CakedLib.ProvisionHandler.provision(...)`, which already
 	/// handle `CancellationError` gracefully (the same mechanism `caked build`/`caked provision`'s
 	/// own SIGINT handling already relies on for a local CLI invocation).
-	func executeCancellable(command: CakedCommandAsync) async throws -> Caked_Reply {
+	func executeCancellable(command: CakedCommandAsync, title: String) async throws -> Caked_Reply {
 		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
@@ -382,7 +392,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 			return await command.run(on: eventLoop, runMode: runMode)
 		}
 
-		self.runningTasks.withLock { $0[id] = task }
+		self.runningTasks.withLock { $0[id] = RunningTask(title: title, task: task) }
 
 		// Close a race where `stop()` flips `shutdown` and snapshots `runningTasks` before this call
 		// registers its task.
@@ -397,22 +407,95 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return await task.value
 	}
 
+	/// Lists every task currently tracked in `runningTasks`, by id and descriptive title. Split out
+	/// from the `ListTasks` RPC method below (which just forwards here) so tests can call it
+	/// directly without needing to construct a real `GRPCAsyncServerCallContext` — this method
+	/// never uses `context` in the first place.
+	func listTasks() -> Caked_Reply {
+		let tasks = self.runningTasks.withLock { $0 }
+
+		return Caked_Reply.with {
+			$0.tasks = .with {
+				$0.list = .with {
+					$0.tasks = tasks.map { id, running in
+						.with {
+							$0.id = id.uuidString
+							$0.title = running.title
+						}
+					}
+				}
+			}
+		}
+	}
+
+	func listTasks(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		self.listTasks()
+	}
+
+	/// Cancels the tracked task with the given id. Cancellation propagates the same way `stop()`'s
+	/// does (see `executeCancellable(command:title:)`'s doc comment); this just targets one task
+	/// instead of all of them, and doesn't touch `shutdown`. Split out from the `CancelTask` RPC
+	/// method below for the same test-without-a-real-context reason as `listTasks()` above.
+	func cancelTask(id requestID: String) -> Caked_Reply {
+		guard let id = UUID(uuidString: requestID) else {
+			return Caked_Reply.with {
+				$0.tasks = .with {
+					$0.cancelled = .with {
+						$0.success = false
+						$0.reason = String(localized: "'\(requestID)' is not a valid task id")
+					}
+				}
+			}
+		}
+
+		guard let running = self.runningTasks.withLock({ $0[id] }) else {
+			return Caked_Reply.with {
+				$0.tasks = .with {
+					$0.cancelled = .with {
+						$0.success = false
+						$0.reason = String(localized: "No running task with id '\(requestID)'")
+					}
+				}
+			}
+		}
+
+		Logger(self).info("Cancelling task \(id) (\(running.title))")
+
+		running.task.cancel()
+
+		return Caked_Reply.with {
+			$0.tasks = .with {
+				$0.cancelled = .with {
+					$0.success = true
+				}
+			}
+		}
+	}
+
+	func cancelTask(request: Caked_CancelTaskRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		self.cancelTask(id: request.id)
+	}
+
 	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
-		_ = try await self.executeCancellable(command: BuildHandler(provider: self, options: request.options.buildOptions(), responseStream: responseStream, context: context) {
-			try self.gcd.updateStatus(.with {
-				$0.name = request.options.name
-				$0.status = .new
-			})
-		})
+		_ = try await self.executeCancellable(
+			command: BuildHandler(provider: self, options: request.options.buildOptions(), responseStream: responseStream, context: context) {
+				try self.gcd.updateStatus(.with {
+					$0.name = request.options.name
+					$0.status = .new
+				})
+			},
+			title: "build \(request.options.name)")
 	}
 
 	func launch(request: Caked_LaunchRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_LaunchStreamReply>, context: GRPCAsyncServerCallContext) async throws {
-		_ = try await self.executeCancellable(command: LaunchHandler(request: request, gcd: self.gcd.haveListeners, responseStream: responseStream, context: context) {
-			try self.gcd.updateStatus(.with {
-				$0.name = request.options.name
-				$0.status = .new
-			})
-		})
+		_ = try await self.executeCancellable(
+			command: LaunchHandler(request: request, gcd: self.gcd.haveListeners, responseStream: responseStream, context: context) {
+				try self.gcd.updateStatus(.with {
+					$0.name = request.options.name
+					$0.status = .new
+				})
+			},
+			title: "launch \(request.options.name)")
 	}
 	
 	func start(request: Caked_StartRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
@@ -627,6 +710,8 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func provision(request: Caked_ProvisionRequest, responseStream: Caked_ResponseProvisionStreamReply, context: GRPCAsyncServerCallContext) async throws {
-		_ = try await self.executeCancellable(command: ProvisionHandler(provider: self, request: request, responseStream: responseStream, runMode: runMode))
+		_ = try await self.executeCancellable(
+			command: ProvisionHandler(provider: self, request: request, responseStream: responseStream, runMode: runMode),
+			title: "provision \(request.name)")
 	}
 }

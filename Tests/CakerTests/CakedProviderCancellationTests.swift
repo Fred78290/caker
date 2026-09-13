@@ -67,7 +67,7 @@ final class CakedProviderCancellationTests: XCTestCase {
 		let flag = CancellationFlag()
 
 		let task = Task {
-			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag))
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "sleepy task")
 		}
 
 		// Give `executeCancellable` a moment to register the task and reach the `Task.sleep` call
@@ -93,10 +93,105 @@ final class CakedProviderCancellationTests: XCTestCase {
 		provider.stop()
 
 		do {
-			_ = try await provider.executeCancellable(command: SleepyCommand(flag: CancellationFlag()))
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: CancellationFlag()), title: "sleepy task")
 			XCTFail("executeCancellable should refuse new work once the provider has stopped")
 		} catch {
 			// Expected — the same "Service is shutting down" guard `execute(command:)` already has.
 		}
+	}
+
+	func testListTasksReturnsRegisteredTaskWithTitle() async throws {
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+		defer {
+			XCTAssertNoThrow(try group.syncShutdownGracefully())
+		}
+
+		let provider = try CakedProvider(group: group, password: nil, runMode: .user)
+		let flag = CancellationFlag()
+
+		let running = Task {
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "build my-vm")
+		}
+
+		defer {
+			running.cancel()
+		}
+
+		// Give `executeCancellable` a moment to register the task before listing.
+		try await Task.sleep(nanoseconds: 200_000_000)
+
+		let reply = provider.listTasks()
+
+		XCTAssertEqual(reply.tasks.list.tasks.count, 1)
+		XCTAssertEqual(reply.tasks.list.tasks.first?.title, "build my-vm")
+		XCTAssertNotNil(UUID(uuidString: reply.tasks.list.tasks.first?.id ?? ""), "the listed id should be a real UUID")
+	}
+
+	func testCancelTaskCancelsOnlyTheTargetedTask() async throws {
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+		defer {
+			XCTAssertNoThrow(try group.syncShutdownGracefully())
+		}
+
+		let provider = try CakedProvider(group: group, password: nil, runMode: .user)
+		let targetFlag = CancellationFlag()
+		let otherFlag = CancellationFlag()
+
+		let target = Task {
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: targetFlag), title: "target")
+		}
+		let other = Task {
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: otherFlag), title: "other")
+		}
+
+		defer {
+			other.cancel()
+		}
+
+		try await Task.sleep(nanoseconds: 200_000_000)
+
+		let listed = provider.listTasks()
+		let targetEntry = try XCTUnwrap(listed.tasks.list.tasks.first { $0.title == "target" })
+
+		let cancelReply = provider.cancelTask(id: targetEntry.id)
+
+		XCTAssertTrue(cancelReply.tasks.cancelled.success)
+
+		try await target.value
+
+		XCTAssertTrue(targetFlag.wasCancelled, "the targeted task should have been cancelled")
+		XCTAssertFalse(otherFlag.wasCancelled, "cancelTask should not touch an unrelated task")
+	}
+
+	func testCancelTaskWithUnknownIdFails() async throws {
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+		defer {
+			XCTAssertNoThrow(try group.syncShutdownGracefully())
+		}
+
+		let provider = try CakedProvider(group: group, password: nil, runMode: .user)
+
+		let reply = provider.cancelTask(id: UUID().uuidString)
+
+		XCTAssertFalse(reply.tasks.cancelled.success)
+		XCTAssertTrue(reply.tasks.cancelled.hasReason)
+	}
+
+	func testCancelTaskWithMalformedIdFails() async throws {
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+		defer {
+			XCTAssertNoThrow(try group.syncShutdownGracefully())
+		}
+
+		let provider = try CakedProvider(group: group, password: nil, runMode: .user)
+
+		let reply = provider.cancelTask(id: "not-a-uuid")
+
+		XCTAssertFalse(reply.tasks.cancelled.success)
+		XCTAssertTrue(reply.tasks.cancelled.hasReason)
 	}
 }
