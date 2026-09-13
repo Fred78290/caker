@@ -10,9 +10,9 @@ import Socket
 import SwiftUI
 import Virtualization
 
-private let kScreenshotProvisioningPeriodSeconds = 1.0
-private let kScreenshotPeriodSeconds = 5.0
-private let kAgentInstallRetryPeriodSeconds: UInt64 = 30
+let kScreenshotProvisioningPeriodSeconds = 1.0
+let kScreenshotPeriodSeconds = 5.0
+let kAgentInstallRetryPeriodSeconds: UInt64 = 30
 
 public protocol VirtualMachineDelegate: AnyObject {
 	func didChangedState(_ vm: VirtualMachine)

@@ -64,7 +64,7 @@ extension BuildOptions {
 
 		variables["username"] = config.configuredUser
 		variables["password"] = config.configuredPassword ?? "admin"
-		
+
 		if variables["hostname"] == nil {
 			variables["hostname"] = self.name
 		}
@@ -116,6 +116,8 @@ public struct BuildHandler {
 				try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 			}
 
+			var cancelled = false
+
 			try await withTaskCancellationHandler(
 				operation: {
 					var terminatedSent = false
@@ -161,20 +163,29 @@ public struct BuildHandler {
 						}
 
 						progressHandler(.terminated(.success(location.rootURL), "Build VM finished successfully"))
+					} catch is CancellationError {
+						doCancel()
+						cancelled = true
+						progressHandler(.terminated(.failure(CancellationError()), "Build VM cancelled"))
 					} catch {
 						doCancel()
 
-						if terminatedSent == false {
+						let nsError = error as NSError
+						
+						if nsError.domain == VZErrorDomain && nsError.code == VZError.operationCancelled.rawValue {
+							cancelled = true
+							progressHandler(.terminated(.failure(CancellationError()), "Build VM cancelled"))
+						} else if terminatedSent == false {
 							progressHandler(.terminated(.failure(error), "Build VM failed"))
-						}
 
-						throw error
+							throw error
+						}
 					}
 				},
 				onCancel: {
 					doCancel()
 				})
-			return BuildedReply(name: options.name, builded: true, reason: String(localized: "VM created"))
+			return BuildedReply(name: options.name, builded: cancelled == false, reason: cancelled ? String(localized: "Cancelled") : String(localized: "VM created"))
 		} catch {
 			return BuildedReply(name: options.name, builded: false, reason: error.reason)
 		}

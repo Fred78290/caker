@@ -139,6 +139,7 @@ final class GrandCentralDispatch {
 			if case .status(let value) = status.message {
 				if value == .new {
 					guard self.vmNames.contains(status.name) == false else {
+						self.logger.warn("Discard status for dangling VM: \(status.name), state: \(value)")
 						return
 					}
 
@@ -146,6 +147,7 @@ final class GrandCentralDispatch {
 					self.vmNames.sort()
 				} else if value == .deleted {
 					guard let index = self.vmNames.firstIndex(of: status.name) else {
+						self.logger.warn("Discard status for dangling VM \(status.name), state: \(value)")
 						return
 					}
 					self.vmNames.remove(at: index)
@@ -421,11 +423,14 @@ extension GrandCentralDispatch {
 		}
 	}
 
-	func updateStatusVM(_ event: DirWatcherEvent, location: VMLocation, fileURL: URL) {
-		let name = location.name
+	func updateStatusVM(_ event: DirWatcherEvent, name: String, fileURL: URL) {
 
 		do {
 			if event.fileChange {
+				guard let location = try? self.storage.find(name) else {
+					return
+				}
+
 				if event.fileRemoved {
 					if fileURL.lastPathComponent == location.pidFile.lastPathComponent {
 						try self.updateStatus(
@@ -546,11 +551,8 @@ extension GrandCentralDispatch {
 					if storagePath == templatesRoot {
 						self.updateStatusTemplates()
 					} else if storagePath == root {
-
-						if let location = try? self.storage.find(fileURL.lastPathComponent.deletingPathExtension) {
-							/// Watch vms directory
-							self.updateStatusVM(event, location: location, fileURL: fileURL)
-						}
+						/// Watch vms directory
+						self.updateStatusVM(event, name: fileURL.lastPathComponent.deletingPathExtension, fileURL: fileURL)
 					}
 				}
 			} else if event.fileChange {
@@ -570,10 +572,8 @@ extension GrandCentralDispatch {
 					if path.pathExtension == Home.vmExtension {
 						let name = path.deletingPathExtension().lastPathComponent.deletingPathExtension
 
-						if let location = try? self.storage.find(name) {
-							/// Watch vms directory
-							self.updateStatusVM(event, location: location, fileURL: fileURL)
-						}
+						/// Watch vms directory
+						self.updateStatusVM(event, name: name, fileURL: fileURL)
 					}
 				}
 			}

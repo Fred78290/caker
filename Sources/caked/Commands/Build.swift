@@ -38,6 +38,20 @@ struct Build: AsyncParsableCommand {
 	func run() async throws {
 		await NSApplication.shared.setActivationPolicy(.prohibited)
 
-		try Logger.appendNewLine(self.common.format.render(await CakedLib.BuildHandler.build(options: self.options.resolveImageId(), runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)))
+		Root.sigintSrc.cancel()
+		signal(SIGINT, SIG_IGN)
+
+		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+
+		let task = Task {
+			try await Logger.appendNewLine(self.common.format.render(CakedLib.BuildHandler.build(options: self.options.resolveImageId(), runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)))
+		}
+
+		sigintSrc.setEventHandler {
+			task.cancel()
+		}
+		sigintSrc.resume()
+
+		try await task.value
 	}
 }

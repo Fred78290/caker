@@ -510,7 +510,7 @@ extension ConnectionManager {
 					AppState.shared.removeVirtualMachineDocument(vmURL)
 				}
 			}
-		} else if value == .new {
+		} else if value != .deleted {
 			AppState.shared.addVirtualMachineDocument(vmURL)
 		} else if AppState.shared.connectionManager == self {
 			self.logger.debug("VM : \(vmURL.hiddenPasswordURL) not found for status")
