@@ -382,14 +382,19 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 			return await command.run(on: eventLoop, runMode: runMode)
 		}
 
-		self.runningTasks.withLock { $0[id] = task }
+self.runningTasks.withLock { $0[id] = task }
 
-		defer {
-			self.runningTasks.withLock { $0.removeValue(forKey: id) }
-		}
+// Close a race where `stop()` flips `shutdown` and snapshots `runningTasks` before this call
+// registers its task.
+if self.shutdown.withLock({ $0 }) {
+	task.cancel()
+}
 
-		return await task.value
-	}
+defer {
+	self.runningTasks.withLock { $0.removeValue(forKey: id) }
+}
+
+return await task.value
 	
 	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try await self.executeCancellable(command: BuildHandler(provider: self, options: request.options.buildOptions(), responseStream: responseStream, context: context) {
