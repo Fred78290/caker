@@ -97,13 +97,6 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSE156-iso",
-        "label": "openSUSE Leap 15.6",
-        "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-aarch64-Media.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
         "id": "alpine324-iso",
         "label": "Alpine 3.24",
         "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-virt-3.24.1-aarch64.iso",
@@ -122,7 +115,7 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
       {
         "id": "macos27",
         "label": "macOS 27.0",
-        "url": "https://updates.cdn-apple.com/2026SummerSeed/7b1c2bd9-7617-426d-92e5-ef204407ffaa/UniversalMac_27.0_26A5416b_Restore.ipsw",
+        "url": "https://updates.cdn-apple.com/2026FallFCS/afcfc88e-bbe6-44bf-a5da-07c56eebc06c/UniversalMac_27.0_26A428_Restore.ipsw",
         "minCPU": 6,
         "minMemoryMiB": 8192
       },
@@ -399,13 +392,6 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       },
       {
-        "id": "openSUSE156-iso",
-        "label": "openSUSE Leap 15.6",
-        "url": "https://download.opensuse.org/distribution/leap/15.6/iso/openSUSE-Leap-15.6-DVD-x86_64-Media.iso",
-        "minCPU": 2,
-        "minMemoryMiB": 2048
-      },
-      {
         "id": "alpine324-iso",
         "label": "Alpine 3.24",
         "url": "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/x86_64/alpine-virt-3.24.1-x86_64.iso",
@@ -421,13 +407,6 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
       }
     ],
     "ipsw": [
-      {
-        "id": "macos27",
-        "label": "macOS 27.0",
-        "url": "https://updates.cdn-apple.com/2026SummerSeed/7b1c2bd9-7617-426d-92e5-ef204407ffaa/UniversalMac_27.0_26A5416b_Restore.ipsw",
-        "minCPU": 6,
-        "minMemoryMiB": 8192
-      },
       {
         "id": "macos26",
         "label": "macOS 26.6.2",
