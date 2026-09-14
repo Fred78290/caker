@@ -729,6 +729,9 @@
 		9BFB8908303F558C007AFA2A /* Aliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFB8907303F558C007AFA2A /* Aliases.swift */; };
 		9BFB890A303F55A3007AFA2A /* Aliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFB8909303F55A3007AFA2A /* Aliases.swift */; };
 		9BFB890B303F55B8007AFA2A /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
+		9BFD5B1B305733A800517B3E /* TaskEntryRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B1A305733A800517B3E /* TaskEntryRepresentation.swift */; };
+		9BFD5B1F305734CF00517B3E /* Relocate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B1E305734CF00517B3E /* Relocate.swift */; };
+		9BFD5B21305734F000517B3E /* Tasks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B20305734F000517B3E /* Tasks.swift */; };
 		9BFDBBD7F829EB6E350E6D26 /* PFRedirect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B949D73C13CA664958CF40F /* PFRedirect.swift */; };
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -1560,6 +1563,9 @@
 		9BFA90E12FD092E9007619A5 /* TeeStandardIOWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeStandardIOWrapper.swift; sourceTree = "<group>"; };
 		9BFB8907303F558C007AFA2A /* Aliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aliases.swift; sourceTree = "<group>"; };
 		9BFB8909303F55A3007AFA2A /* Aliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aliases.swift; sourceTree = "<group>"; };
+		9BFD5B1A305733A800517B3E /* TaskEntryRepresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskEntryRepresentation.swift; sourceTree = "<group>"; };
+		9BFD5B1E305734CF00517B3E /* Relocate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Relocate.swift; sourceTree = "<group>"; };
+		9BFD5B20305734F000517B3E /* Tasks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tasks.swift; sourceTree = "<group>"; };
 		9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCIManagement.swift; sourceTree = "<group>"; };
 		9BFE869D2F7E592B005CC9B2 /* caked.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = caked.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BFE871B2F7E6480005CC9B2 /* almalinux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = almalinux.png; sourceTree = "<group>"; };
@@ -1873,6 +1879,7 @@
 				9B2784062FB37A83001F2B6A /* Registry.swift */,
 				9B2784072FB37A83001F2B6A /* RemoteEntry.swift */,
 				9B2784082FB37A83001F2B6A /* SocketDevice.swift */,
+				9BFD5B1A305733A800517B3E /* TaskEntryRepresentation.swift */,
 				9B2784092FB37A83001F2B6A /* Templates.swift */,
 				9B27840A2FB37A83001F2B6A /* TunnelAttachement.swift */,
 				9B27840B2FB37A83001F2B6A /* Validatable.swift */,
@@ -2204,6 +2211,7 @@
 				9B464A822D5A3E0300164BF5 /* Start.swift */,
 				9B464A832D5A3E0300164BF5 /* Stop.swift */,
 				9B1500C02E6B092A00B23147 /* Suspend.swift */,
+				9BFD5B20305734F000517B3E /* Tasks.swift */,
 				9BE2E7C12D5F85FD000CA07F /* Template.swift */,
 				9BD32F862D75FF060066A01E /* Umount.swift */,
 				9BDC05312FEADB0E00802A3C /* Up.swift */,
@@ -2640,6 +2648,7 @@
 				9BEBC6A62DF4400A0092B196 /* Purge.swift */,
 				9BB149212EC760FC0094D950 /* Push.swift */,
 				42281CEC4BB027305E68E921 /* Record.swift */,
+				9BFD5B1E305734CF00517B3E /* Relocate.swift */,
 				9BEBC6A72DF4400A0092B196 /* Remote.swift */,
 				9BEBC6A82DF4400A0092B196 /* Rename.swift */,
 				9BBF7B362F3E058A00F37D2C /* Restart.swift */,
@@ -3914,6 +3923,7 @@
 				9BDC05332FEADB0E00802A3C /* EnvInit.swift in Sources */,
 				9BDC05342FEADB0E00802A3C /* Up.swift in Sources */,
 				9BDC05352FEADB0E00802A3C /* Down.swift in Sources */,
+				9BFD5B21305734F000517B3E /* Tasks.swift in Sources */,
 				9B464B652D5A3E8900164BF5 /* Configure.swift in Sources */,
 				9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */,
 				9B464B662D5A3E8900164BF5 /* Rename.swift in Sources */,
@@ -3971,6 +3981,7 @@
 				9BB3BE272DB3F17500799A6A /* MountOptions.swift in Sources */,
 				9BB3BE282DB3F17500799A6A /* PushOptions.swift in Sources */,
 				9BB3BE292DB3F17500799A6A /* ConfigureOptions.swift in Sources */,
+				9BFD5B1B305733A800517B3E /* TaskEntryRepresentation.swift in Sources */,
 				9B5C52D92F0FB27B002D628C /* GRPCTLSConfiguration.swift in Sources */,
 				9B27840F2FB37A83001F2B6A /* BridgeAttachement.swift in Sources */,
 				9B2784102FB37A83001F2B6A /* BridgedNetwork.swift in Sources */,
@@ -4090,6 +4101,7 @@
 				9BEBC6F22DF4400A0092B196 /* ConfigureHandler.swift in Sources */,
 				9BDC052A2FEADAF100802A3C /* EnvInit.swift in Sources */,
 				9BDC052B2FEADAF100802A3C /* Down.swift in Sources */,
+				9BFD5B1F305734CF00517B3E /* Relocate.swift in Sources */,
 				9BDC052C2FEADAF100802A3C /* Up.swift in Sources */,
 				9BDC052D2FEADAF100802A3C /* Compose.swift in Sources */,
 				9BBF7CAF2F3F1B8E00F37D2C /* ScreenSizeHandler.swift in Sources */,
