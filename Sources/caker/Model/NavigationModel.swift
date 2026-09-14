@@ -32,6 +32,33 @@ enum SelectedElement: Identifiable, Hashable, Equatable {
 	}
 }
 
+/// How `VirtualMachinesView` lays out the VM collection — persisted via `@AppStorage` under the
+/// key `"VirtualMachinesViewMode"`, read independently by both `VirtualMachinesView` (to pick its
+/// layout) and `HomeView` (to decide whether the detail column/toggle applies to the `.virtualMachine`
+/// category at all) rather than threading it through `NavigationModel`, matching how other simple
+/// view-level preferences (e.g. `appearancePreference`) are already shared across unrelated views
+/// in this codebase.
+enum VirtualMachinesViewMode: String, CaseIterable, Identifiable, Codable {
+	case mosaic
+	case list
+
+	var id: Self { self }
+
+	var iconName: String {
+		switch self {
+		case .mosaic: return "square.grid.2x2"
+		case .list: return "list.bullet"
+		}
+	}
+
+	var label: LocalizedStringKey {
+		switch self {
+		case .mosaic: return "Mosaic"
+		case .list: return "List"
+		}
+	}
+}
+
 enum Category: Int, CaseIterable, Codable, Identifiable {
 	case virtualMachine
 	case networks

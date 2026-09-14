@@ -38,6 +38,14 @@ extension BuildHandler {
 					await MainActor.run {
 						progressHandler(.step(step))
 					}
+				} else if case .substep(let step) = current {
+					await MainActor.run {
+						progressHandler(.substep(step))
+					}
+				} else if case .provision(let infos) = current {
+					await MainActor.run {
+						progressHandler(.provision(.init(infos)))
+					}
 				} else if case .terminated(let status) = current {
 					if case .success(let v)? = status.result {
 						await MainActor.run {

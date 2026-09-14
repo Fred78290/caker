@@ -9,12 +9,12 @@ import CakeAgentLib
 import Foundation
 import NIOPortForwarding
 
-public enum VirtualizedOS: String, Codable {
+public enum VirtualizedOS: String, Codable, Sendable {
 	case darwin
 	case linux
 }
 
-public enum Architecture: String, Codable, CustomStringConvertible, Identifiable {
+public enum Architecture: String, Codable, CustomStringConvertible, Identifiable, Sendable {
 	public var description: String {
 		switch self {
 		case .arm64:
@@ -119,7 +119,7 @@ public enum Architecture: String, Codable, CustomStringConvertible, Identifiable
 	}
 }
 
-public enum SupportedDiskFormat: String, Identifiable, Codable, Hashable, CustomStringConvertible, ExpressibleByArgument, CaseIterable {
+public enum SupportedDiskFormat: String, Identifiable, Codable, Hashable, Sendable, CustomStringConvertible, ExpressibleByArgument, CaseIterable {
 
 	public var id: String {
 		self.rawValue
@@ -202,7 +202,7 @@ public enum SupportedDiskFormat: String, Identifiable, Codable, Hashable, Custom
 	}
 }
 
-public enum SupportedPlatform: String, Codable, CaseIterable {
+public enum SupportedPlatform: String, Codable, CaseIterable, Sendable {
 	case ubuntu
 	case centos
 	case macos
@@ -216,8 +216,13 @@ public enum SupportedPlatform: String, Codable, CaseIterable {
 
 	public init(rawValue: String) {
 		let rawValue = rawValue.lowercased()
+		// .openSUSE's raw value is mixed-case ("openSUSE"), so it must be lowercased here too or
+		// it can never match the already-lowercased `rawValue` above — including when reading back
+		// a value this same type previously wrote out via its own `.rawValue` (see CakeConfig.configuredPlatform).
+		// RHEL's official ISO filenames use "rhel", not "redhat" (e.g. "rhel-9.4-x86_64-dvd.iso"), so
+		// .redhat needs that as an additional alias.
 		let value = Self.allCases.first {
-			rawValue.contains($0.rawValue)
+			rawValue.contains($0.rawValue.lowercased()) || ($0 == .redhat && rawValue.contains("rhel"))
 		}
 
 		if let value = value {
@@ -257,6 +262,7 @@ public protocol VirtualMachineConfiguration {
 	var displayRefit: Bool { set get }
 	var instanceID: String { set get }
 	var dhcpClientID: String? { set get }
+	var sshAuthorizedKey: String? { set get }
 	var sshPrivateKeyPath: String? { set get }
 	var sshPrivateKeyPassphrase: String? { set get }
 	var configuredUser: String { set get }
@@ -282,6 +288,7 @@ public protocol VirtualMachineConfiguration {
 	var vncPassword: String? { set get }
 	var ecid: Data? /*VZMacMachineIdentifier*/ { set get }
 	var hardwareModel: Data? /*VZMacHardwareModel?*/ { set get }
+	var provisioned: Bool { set get }
 }
 
 extension Caked.Configuration.VirtualizedOS {

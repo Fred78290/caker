@@ -132,7 +132,7 @@ struct RemoteDetailView: View {
 		}
 		.sheet(isPresented: $createVM) {
 			if let selectedImage {
-				VirtualMachineWizard(sheet: true, presetRemoteImage: (remote: self.remote.name, image: selectedImage))
+				VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetRemoteImage: (remote: self.remote.name, image: selectedImage))
 					.colorSchemeForColor()
 					.restorationState(.disabled)
 					.frame(minWidth: 700, minHeight: 670)

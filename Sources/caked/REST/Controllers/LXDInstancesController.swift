@@ -364,7 +364,7 @@ struct LXDInstancesController: RouteCollection {
 				.encodeResponse(status: .notFound, for: req)
 		}
 		
-		let (lxdStatus, lxdStatusCode) = lxdStatusFrom(state: info.status)
+		let (lxdStatus, lxdStatusCode) = lxdStatusFrom(state: info.status.rawValue)
 		
 		var networkState: [String: LXDNetworkState]? = nil
 		
@@ -732,6 +732,7 @@ struct LXDInstancesController: RouteCollection {
 	private func lxdStatusFrom(state: String) -> (String, Int) {
 		switch state.lowercased() {
 		case "running": return ("Running", 103)
+		case "provisioning": return ("Provisioning", 103)
 		case "paused": return ("Frozen", 110)
 		default: return ("Stopped", 102)
 		}
@@ -743,6 +744,9 @@ struct LXDInstancesController: RouteCollection {
 		// synchronously; the other cases just need a best-effort async store write.
 		switch progress {
 		case .step(let message):
+			return message
+
+		case .substep(let message):
 			return message
 
 		case .progress(_, let fractionCompleted):
@@ -763,6 +767,24 @@ struct LXDInstancesController: RouteCollection {
 				} else {
 					let description = message.map { "Operation succeeded: \($0)" } ?? "Operation succeeded"
 					await LXDOperationStore.shared.complete(id: opID, success: true, description: description)
+				}
+			}
+
+		case .provision(let info):
+			Task {
+				if let info {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisioning: \(info.vncURL)")
+				} else {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisioning")
+				}
+			}
+
+		case .provisioned(let result):
+			Task {
+				if case .failure(let error) = result {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisionning failed: \(error)")
+				} else {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisionning succeeded")
 				}
 			}
 		}

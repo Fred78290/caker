@@ -33,6 +33,10 @@ public struct RestartHandler {
 	public static func restart(location: VMLocation, startMode: StartHandler.StartMode, gcd: Bool, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) -> RestartedObject {
 		do {
 			if case .running(let mode) = location.status {
+				if mode == .provision {
+					throw ServiceError(String(localized: "VM \(location.name) is provisioning, please wait until it is finished"))
+				}
+
 				guard mode.isAllowed else {
 					throw ServiceError(String(localized: "VM \(location.name) is running in Caker application and use it to do action"))
 				}

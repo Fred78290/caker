@@ -75,6 +75,10 @@ if [ $APPSTORE -eq 0 ]; then
 	done
 fi
 
+cp "${PROJECT_ROOT}/Sources/caker/Resources/"* "${CAKER_APP}/Resources"
+cp "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources/"* "${CAKED_APP}/Resources"
+cp "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources/"* "${CAKER_APP}/Resources"
+
 cp "${PROJECT_ROOT}/webui/webui.zip" "${CAKED_APP}/Resources/webui.zip"
 
 if [ $USE_SMAPPSERVICE -eq 1 ]; then
@@ -94,14 +98,17 @@ cp -c "${ASSETS}/Assets.car" "${CAKER_APP}/Resources/Assets.car"
 cp -c "${PROJECT_ROOT}/Resources/Prompt.png" "${CAKER_APP}/Resources/Prompt.png"
 cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${CAKER_APP}/Resources/Icons"
 cp -c "${PROJECT_ROOT}/Resources/Info.plist" "${CAKER_APP}/Info.plist"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKER_APP}/Resources/VMImages.json"
 
 cp -c "${PROJECT_ROOT}/Resources/VM.icns" "${CAKED_APP}/Resources/VM.icns"
 cp -c "${PROJECT_ROOT}/Resources/VM.png" "${CAKED_APP}/Resources/VM.png"
 cp -c "${PROJECT_ROOT}/Resources/caked.plist" "${CAKED_APP}/Info.plist"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKED_APP}/Resources/VMImages.json"
 
 cp -c "${PROJECT_ROOT}/Resources/VM.icns" "${CAKECTL_APP}/Resources/VM.icns"
 cp -c "${PROJECT_ROOT}/Resources/VM.png" "${CAKECTL_APP}/Resources/VM.png"
 cp -c "${PROJECT_ROOT}/Resources/cakectl.plist" "${CAKECTL_APP}/Info.plist"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKECTL_APP}/Resources/VMImages.json"
 
 if [ $APPSTORE -eq 0 ]; then
 	cp -c "${PROJECT_ROOT}/Resources/caker.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"

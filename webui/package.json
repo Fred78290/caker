@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "sync-vm-images": "node scripts/sync-vm-images.mjs",
+    "predev": "npm run sync-vm-images",
     "dev": "vite",
+    "prebuild": "npm run sync-vm-images",
     "build": "tsc -b && vite build",
     "build:debug": "tsc -b && vite build --mode debug",
     "preview": "vite preview"

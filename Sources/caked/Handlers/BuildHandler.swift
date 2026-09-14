@@ -100,6 +100,26 @@ struct BuildHandler: CakedCommandAsync {
 							try await responseStream.send(.with {
 								$0.step = message
 							})
+						} else if case .substep(let message) = progress {
+							try await responseStream.send(.with {
+								$0.substep = message
+							})
+						} else if case .provision(let message) = progress, let message {
+							try await responseStream.send(.with {
+								$0.provision = message.caked
+							})
+						} else if case .provisioned(let result) = progress {
+							if case .failure(let error) = result {
+								try await responseStream.send(.with {
+									$0.provisioned = .with {
+										$0.reason = String(localized: "Installation failed: \(error.reason)")
+									}
+								})
+							} else if case .success(let result) = result, let result {
+								try await responseStream.send(.with {
+									$0.provisioned = result.caked
+								})
+							}
 						}
 					}
 					

@@ -18,7 +18,7 @@ struct CakerMenuBarExtraScene: Scene {
 	@Environment(\.openWindow) private var openWindow
 	@Environment(\.openSettings) private var openSettings
 
-#if DEBUG
+#if TRACE_SWIFTUI_DEALLOC
 	let tracker = TrackDealloc(from: "CakerMenuBarExtraScene")
 #endif
 

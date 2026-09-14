@@ -1,26 +1,60 @@
+import CakeAgentLib
 import Foundation
 import GRPCLib
-import Virtualization
 import SwiftUI
+import Virtualization
 
 let cloudInitIso = "cloud-init.iso"
 
+extension VirtualMachine {
+	func stopServiceForProvisionning() {
+		if let timer = self.env.timer {
+			timer.invalidate()
+			self.env.timer = nil
+		}
+
+		if let service = self.env.vmrunService {
+			service.stop()
+			
+			self.env.vmrunService = nil
+		}
+	}
+
+	func startServiceForProvisionning() throws {
+		try self.env.startVMRunService(.grpc, vm: self)
+
+		self.env.timer = self.startScreenshotTimer(timeInterval: self.env.mode == .provisioning ? kScreenshotProvisioningPeriodSeconds : kScreenshotPeriodSeconds)
+
+		self.env.vmrunService.serve()
+	}
+}
+
 public struct VMBuilder {
+	public static let IPSWStartNotification = NSNotification.Name("IPSWStartNotification")
+	public static let IPSWTerminatedNotification = NSNotification.Name("IPSWTerminatedNotification")
+
 	public static let memoryMinSize: UInt64 = 512 * MoB
 
 	#if arch(arm64)
-		private static func installIPSW(location: VMLocation, config: CakeConfig, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
-			let vm = try IPSWInstaller(location: location, config: config, runMode: runMode, queue: queue)
+		private static func installIPSW(location: VMLocation, config: CakeConfig, wizardID: UUID, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> VirtualMachine? {
+			let vm = try IPSWInstaller(location: location, config: config, wizardID: wizardID, runMode: runMode, queue: queue)
 
+			try location.writeProvisionning()
 			try await vm.installIPSW(ipsw, progressHandler: progressHandler)
+
+			return vm.virtualMachine
 		}
 	#endif
 
-	private static func build(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+	private static func build(id: UUID, vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		let imageSource = options.imageSource!
 		let imageURL = URL(spaced: options.image)!
 		var config: CakeConfig! = nil
 		var attachedDisks = options.attachedDisks
+
+		defer {
+			location.removePID()
+		}
 
 		// Create config
 		#if arch(arm64)
@@ -63,6 +97,7 @@ public struct VMBuilder {
 				config.agent = false
 				config.nested = options.nested
 				config.attachedDisks = attachedDisks
+				config.sshAuthorizedKey = options.sshAuthorizedKey
 			}
 		#endif
 
@@ -114,6 +149,19 @@ public struct VMBuilder {
 				config.agent = imageSource != .iso || autoinstall
 				config.nested = options.nested
 				config.attachedDisks = attachedDisks
+				config.sshAuthorizedKey = options.sshAuthorizedKey
+
+				// Desktop vs. server variant of the same distro (e.g. Fedora Workstation vs. Fedora
+				// Server), detected the same way as configuredPlatform above — from the image
+				// URL/filename, not the ISO's actual contents. Defaults to server (false) when
+				// neither word appears, matching osDesktop's own default. Persisted here (like
+				// osName for macOS) so a later standalone `caked provision` has it without needing
+				// the original ISO.
+				let imageNameLowercased = options.image.lowercased()
+				let plateform = SupportedPlatform(rawValue: imageNameLowercased)
+
+				config.osName = plateform.rawValue
+				config.osDesktop = imageNameLowercased.contains("workstation") || imageNameLowercased.contains("desktop")
 			}
 		}
 
@@ -161,7 +209,47 @@ public struct VMBuilder {
 
 			#if arch(arm64)
 				if imageSource == .ipsw {
-					try await installIPSW(location: location, config: config, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
+					let vm = try await installIPSW(location: location, config: config, wizardID: id, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
+
+					defer {
+						vm?.stopServiceForProvisionning()
+					}
+
+					// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to
+					// depend on CakedLib) — bridge it to CakedLib's own MacOSVersion by raw value.
+					let explicitMacOSVersion = options.macosVersion.flatMap { MacOSVersion(rawValue: $0.rawValue) }
+
+					// Record which macOS version this VM is running — using the exact same detection
+					// PackerLite itself uses (IPSW filename, falling back to --macos-version) — regardless
+					// of whether --autoinstall provisions it right now. `caked packerlite` reads this back
+					// later for VMs provisioned after the fact.
+					let resolvedMacOSVersion = PackerLiteTemplateResolver.resolveVersion(explicitVersion: explicitMacOSVersion, ipswURL: imageURL)
+
+					config.osName = resolvedMacOSVersion.name?.rawValue
+					config.osRelease = resolvedMacOSVersion.version
+
+					try config.save()
+					
+					if let vm, options.autoinstall {
+						try await Task.sleep(nanoseconds: 2 * 100_000_000)
+
+						try await vm.stopVM()
+						try await vm.startVM()
+
+						try vm.location.writeProvisionning()
+
+						// wins, otherwise the resolved macOS version above picks a built-in template. Resolve
+						// throws if neither works.
+						let content = try PackerLiteTemplateResolver.resolve(explicitPath: options.provisionTemplate, explicitVersion: resolvedMacOSVersion.name, ipswURL: imageURL)
+
+						let template = try await PackerLiteTemplate.load(from: content, variables: options.setupVariables(config, runMode: runMode))
+
+						try await PackerLiteEngine.provision(vm: vm, template: template, runningIP: nil, runMode: runMode, waitIPTimeout: 180) { progress in
+							progressHandler(progress.progressValue)
+						}
+						
+						try await vm.stopVM()
+					}
 				}
 			#endif
 		}
@@ -212,9 +300,9 @@ public struct VMBuilder {
 					imageURL = URL(fileURLWithPath: imageURL.path(percentEncoded: false).expandingTildeInPath)
 				} else if var components = URLComponents(url: imageURL, resolvingAgainstBaseURL: false) {
 					switch scheme {
-						case "qcow2", "imgs", "isos", "ipsw", "https", "ocis":
+					case "qcow2", "imgs", "isos", "ipsw", "https", "ocis":
 						components.scheme = "https"
-						default:
+					default:
 						components.scheme = "http"
 					}
 
@@ -243,9 +331,9 @@ public struct VMBuilder {
 
 			if sourceImage == .ipsw {
 				#if arch(arm64)
-				if imageIsFile == false {
-					options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
-				}
+					if imageIsFile == false {
+						options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
+					}
 				#else
 					throw ServiceError(String(localized: "IPSW is only available on arm64 architecture: \(options.image)"))
 				#endif
@@ -306,9 +394,9 @@ public struct VMBuilder {
 
 		} else if sourceImage == .ipsw {
 			#if arch(arm64)
-			if imageIsFile == false {
-				options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
-			}
+				if imageIsFile == false {
+					options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
+				}
 			#else
 				throw ServiceError(String(localized: "IPSW is only available on arm64 architecture: \(options.image)"))
 			#endif
@@ -335,10 +423,24 @@ public struct VMBuilder {
 		return options
 	}
 
-	static func buildVM(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
-		let options = try await self.cloneImage(vmName: vmName, location: location, options: options, runMode: runMode, progressHandler: progressHandler)
+	static func buildVM(_ id: UUID = UUID(), vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
+		let resolvedOptions = try options.resolveImageId()
 
-		try await self.build(vmName: vmName, location: location, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
+		// An `--alias`-resolved ISO already had cpu/memory raised to its catalog entry's own
+		// minimum above (see `resolveImageId`'s "Also raise cpu/memory..." step) — every entry's
+		// minimum is well above the bare defaults, so this only fires for a plain `--image
+		// some.iso` build with no `--alias`/`--cpus`/`--memory` override, where there's no catalog
+		// minimum to fall back on at all. Most ISO installers need more than 1 CPU/512MB to boot
+		// reliably, so this is worth a heads-up rather than a silent under-provisioned build.
+		if resolvedOptions.imageSource == .iso, resolvedOptions.cpu == BuildOptions.defaultCPU, resolvedOptions.memory == BuildOptions.defaultMemory {
+			Logger("VMBuilder").warn(
+				"Building \(vmName) from an ISO image with the default \(BuildOptions.defaultCPU) CPU / \(BuildOptions.defaultMemory)MB memory — most installers need more to boot reliably; pass --cpus/--memory explicitly, or --alias with a matching catalog id, to size the VM appropriately."
+			)
+		}
+
+		let options = try await self.cloneImage(vmName: vmName, location: location, options: resolvedOptions, runMode: runMode, progressHandler: progressHandler)
+
+		try await self.build(id: id, vmName: vmName, location: location, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
 		return options
 	}

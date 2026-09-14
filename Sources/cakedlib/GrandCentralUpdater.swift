@@ -43,19 +43,19 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 		}
 		
 		self.logger.info("Starting Grand Central Updater for VM: \(self.name)")
-		
+
+		var cancellable: Cancellable? = nil
 		let logger = self.logger
 		let vmName = self.name
 		let grpcStream = client.grandCentralUpdate(callOptions: .init(timeLimit: .none))
 		let asyncStream = AsyncThrowingStream.makeStream(of: CurrentStatusHandler.CurrentStatusReply.self)
-		let cancelable = try await CurrentStatusHandler.currentStatus(location: self.vm.location, frequency: frequency, statusStream: asyncStream.continuation, runMode: self.runMode)
-		
+
 		grpcStream.status.whenComplete { result in
 			switch result {
 			case .failure( let error):
 				asyncStream.continuation.finish(throwing: error)
 				logger.info("Grand Central Updater failed for VM: \(vmName), with error: \(error)")
-				
+
 			case .success(let status):
 				if status.isOk == false {
 					asyncStream.continuation.finish(throwing: status)
@@ -65,14 +65,19 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 				}
 			}
 		}
-		
+
+		// Don't start the current status stream if the VM is in provisioning mode
+		if vm.mode == .normal {
+			cancellable = try await CurrentStatusHandler.currentStatus(location: self.vm.location, frequency: frequency, statusStream: asyncStream.continuation, runMode: self.runMode)
+		}
+
 		self.vm.delegate = self
 		self.stream = asyncStream
 		self.taskQueue = TaskQueue.dispatch {
 			defer {
 				onclose()
-				cancelable.cancel()
-				
+				cancellable?.cancel()
+
 				self.taskQueue = nil
 				self.stream = nil
 				self.logger.info("Grand Central Updater stopped for VM: \(vmName)")
@@ -121,6 +126,8 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 			} catch {
 				self.logger.error("Unexpected error: \(error)")
 			}
+
+			logger.info("Grand Central Updater terminated for VM: \(vmName)")
 		}
 	}
 	

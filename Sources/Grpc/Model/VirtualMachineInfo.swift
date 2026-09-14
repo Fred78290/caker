@@ -53,6 +53,34 @@ extension Caked_InfoReplyCpuInfo {
 }
 
 public struct VMInformations: Sendable, Codable {
+	public enum Status: String, Sendable, Codable {
+		case running
+		case stopped
+		case provisioning
+		case unknown
+
+		public init(_ from: Caked_VirtualMachineStatus) {
+			switch from {
+			case .stopped:
+				self = .stopped
+			case .running:
+				self = .running
+			case .provisioning:
+				self = .provisioning
+			default:
+				self = .unknown
+			}
+		}
+
+		public init(_ from: CakeAgentLib.Status) {
+			switch from {
+			case .running: self = .running
+			case .stopped: self = .stopped
+			default: self = .unknown
+			}
+		}
+	}
+
 	public var name: String
 	public var version: String?
 	public var uptime: UInt64?
@@ -119,7 +147,7 @@ public struct VMInformations: Sendable, Codable {
 		self.hostname = from.hostname
 		self.release = from.release
 		self.mounts = from.mounts
-		self.status = from.status
+		self.status = Status(from.status)
 		self.attachedNetworks = nil
 		self.tunnelInfos = nil
 		self.socketInfos = nil
@@ -145,7 +173,7 @@ public struct VMInformations: Sendable, Codable {
 		self.hostname = from.hostname
 		self.release = from.release
 		self.mounts = from.mounts
-		self.status = from.status.agentStatus
+		self.status = Status(from.status)
 		self.agentVersion = from.agentVersion
 		self.numOfProcesses = from.numOfProcesses
 
@@ -259,7 +287,7 @@ public struct VMInformations: Sendable, Codable {
 				reply.mounts = mounts
 			}
 
-			reply.status = .init(agentStatus: self.status)
+			reply.status = .init(self.status)
 
 			if let attachedNetworks = self.attachedNetworks {
 				reply.networks = attachedNetworks.map { Caked_InfoReply.AttachedNetwork($0) }
@@ -607,6 +635,32 @@ public struct BuildedReply: Codable {
 		Caked_BuildedReply.with { object in
 			object.name = name
 			object.builded = builded
+			object.reason = reason
+		}
+	}
+}
+
+public struct ProvisionedReply: Sendable, Codable {
+	public let name: String
+	public let provisioned: Bool
+	public let reason: String
+
+	public init(_ from: Caked_ProvisionedReply) {
+		self.name = from.name
+		self.provisioned = from.provisioned
+		self.reason = from.reason
+	}
+
+	public init(name: String, provisioned: Bool, reason: String) {
+		self.name = name
+		self.provisioned = provisioned
+		self.reason = reason
+	}
+
+	public var caked: Caked_ProvisionedReply {
+		Caked_ProvisionedReply.with { object in
+			object.name = name
+			object.provisioned = provisioned
 			object.reason = reason
 		}
 	}

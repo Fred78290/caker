@@ -343,7 +343,7 @@ final class CloudInitTests: XCTestCase {
 		}
 
 		// Start VM
-		let result = StartHandler.startVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: .foreground, gcd: false, recoveryMode: false, runMode: .user, promise: promise)
+		let result = StartHandler.startVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: .background, gcd: false, recoveryMode: false, runMode: .user, promise: promise)
 
 		defer {
 			try? location.delete()

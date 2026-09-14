@@ -4,6 +4,18 @@
 
 # Notes de version
 
+## 2026-08-01
+
+### Ajouté
+- **PackerLite** : avec `--autoinstall`, après toute installation depuis un `.ipsw`, `caked` pilote désormais automatiquement le Setup Assistant macOS de façon totalement non interactive — plus besoin de cliquer manuellement dans la VM ni de dépendre du binaire `packer` externe et du plugin `packer-plugin-tart`. Pour macOS, le template à utiliser est résolu dans l'ordre : `--template` explicite → détection automatique de la version macOS depuis le nom du fichier IPSW → `--macos-version` (`monterey`, `ventura`, `sonoma`, `sequoia`, `tahoe`, `goldengate`) explicite → échec avec message d'erreur explicite si rien ne correspond. Cinq templates intégrés sont fournis (`monterey`, `ventura`, `sonoma`, `sequoia`, `tahoe`) ; voir la section [PackerLite](command-summary#packerlite-fr) du résumé des commandes.
+- **PackerLite pour Linux** : PackerLite pilote maintenant aussi le premier démarrage d'une VM Linux installée depuis une `.iso`, pour les distributions sans autoinstall natif (tout ce qui n'est pas Ubuntu) — nécessite `--autoinstall` **et** `--template` explicites, aucun template Linux n'étant fourni par défaut. L'assistant de création de VM de Caker.app propose désormais un sélecteur de fichier YAML de provisioning pour ces sources ISO.
+- **`provision <vm>`** : nouvelle commande pour relancer le provisioning PackerLite sur une VM déjà construite qui l'a sauté au moment du build — macOS (résolution automatique depuis la version/plateforme stockée, ou `--template`) comme Linux (idem, avec les cinq templates intégrés désormais fournis pour Fedora/CentOS Stream/RHEL/openSUSE/Debian). Disponible en local (`caked provision`, avec fenêtre visible pour suivre le déroulement) et à distance via `cakectl provision` (gRPC en flux continu, comme `build`/`launch` — le contenu du template est envoyé au serveur, pas seulement son chemin).
+- Nouvelles options `build`/`create`/`launch` : `--template <chemin>`, `--macos-version <version>`, `--var <clé=valeur>`.
+
+### Notes
+- Le compte créé pendant le provisioning utilise toujours les identifiants `--user`/`--password` du build — jamais une valeur déclarée dans le template — afin de garder une source de vérité unique.
+- Aucun template intégré n'existe encore pour `goldengate` (macOS 27) ni pour aucune distribution Linux ; fournissez le vôtre avec `--template` dans ces cas.
+
 ## 2026-06-20 (Résumé du log Git - main)
 
 ### Ajouté
@@ -195,6 +207,18 @@ Copiez/collez ce bloc pour la prochaine mise à jour :
 <div class="lang-en" style="display:block" markdown="1">
 
 # Release Notes
+
+## 2026-08-01
+
+### Added
+- **PackerLite**: with `--autoinstall`, after any `.ipsw`-based build, `caked` now automatically drives macOS's Setup Assistant completely unattended — no more manually clicking through the VM, and no dependency on the external `packer` binary or the `packer-plugin-tart` plugin. For macOS, the template to use is resolved in order: an explicit `--template` → macOS version auto-detected from the IPSW filename → an explicit `--macos-version` (`monterey`, `ventura`, `sonoma`, `sequoia`, `tahoe`, `goldengate`) → failure with a clear error message if nothing matches. Five built-in templates ship out of the box (`monterey`, `ventura`, `sonoma`, `sequoia`, `tahoe`); see the [PackerLite](command-summary#packerlite) section of the command summary.
+- **PackerLite for Linux**: PackerLite now also drives the first boot of a Linux VM installed from an `.iso`, for distros without native autoinstall (anything other than Ubuntu) — requires both `--autoinstall` and an explicit `--template`, since no Linux template ships built in. Caker.app's VM creation wizard now offers a provisioning YAML file picker for these ISO sources.
+- **`provision <vm>`**: new command to re-run PackerLite provisioning against an already-built VM that skipped it at build time — macOS (auto-resolves from the stored version, or `--template`) as well as Linux (same, now with five built-in templates shipping for Fedora/CentOS Stream/RHEL/openSUSE/Debian). Available both locally (`caked provision`, with a visible window so you can watch it run) and remotely via `cakectl provision` (streaming gRPC, like `build`/`launch` — the template's content, not just its path, is sent to the server).
+- New `build`/`create`/`launch` options: `--template <path>`, `--macos-version <version>`, `--var <key=value>`.
+
+### Notes
+- The account provisioning creates always uses the build's `--user`/`--password` credentials — never a template-declared value — keeping a single source of truth.
+- There is no built-in template yet for `goldengate` (macOS 27) or for any Linux distro; provide your own with `--template` in those cases.
 
 ## 2026-06-20 (Git log summary - main)
 
