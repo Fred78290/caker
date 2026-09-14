@@ -401,7 +401,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		}
 
 		defer {
-			self.runningTasks.withLock { $0.removeValue(forKey: id) }
+			_ = self.runningTasks.withLock { $0.removeValue(forKey: id) }
 		}
 
 		return await task.value
