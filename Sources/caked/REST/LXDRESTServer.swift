@@ -134,7 +134,7 @@ private struct CertificateAuthMiddleware: Middleware {
 			// Bridge to async for actor-isolated trust check, then hop back to the event loop
 			let promise = request.eventLoop.makePromise(of: Response.self)
 
-			Task {
+			_ = Task {
 				let trusted = await self.peerChainIsTrusted(chain)
 
 				if trusted {
