@@ -138,21 +138,21 @@ public struct BuildHandler {
 						}
 
 						if result.autoinstall && result.imageSource == .iso {
-							try await Task.sleep(nanoseconds: 2 * 100_000_000)
-
 							// An explicit --template always wins; otherwise falls back to a built-in template for
 							// the distro auto-detected from the ISO filename/URL (see PackerLiteTemplateResolver).
 							// Resolves to nil, not an error, for platforms with no PackerLite template — Ubuntu
 							// (its own cloud-init/subiquity autoinstall handles this instead) or an unrecognized
 							// distro — in which case no provisioning runs unless --template was given.
 							let config = try location.config()
-							let imageURL = URL(spaced: options.image)!
-							let explicitTemplate = (options.provisionTemplate?.isEmpty == false) ? options.provisionTemplate : nil
+							let imageURL = URL(spaced: result.image)!
+							let explicitTemplate = (result.provisionTemplate?.isEmpty == false) ? result.provisionTemplate : nil
 
 							if let content = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: explicitTemplate, imageURL: imageURL, desktop: config.osDesktop) {
-								let template = try await PackerLiteTemplate.load(from: content, variables: options.setupVariables(config, runMode: runMode))
+								let template = try await PackerLiteTemplate.load(from: content, variables: result.setupVariables(config, runMode: runMode))
 
-								try await PackerLiteEngine.internalProvisionning(id: options.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
+								try await Task.sleep(nanoseconds: 2 * 100_000_000)
+
+								try await PackerLiteEngine.internalProvisionning(id: result.identifier, location: location, config: config, template: template, runMode: runMode) { progress in
 									let progress = progress.progressValue
 
 									if case .terminated(_, _) = progress {
@@ -161,6 +161,8 @@ public struct BuildHandler {
 
 									progressHandler(progress)
 								}
+							} else {
+								Logger(self).info("No PackerLite template found for \(imageURL.lastPathComponent), skipping provisioning")
 							}
 						}
 
