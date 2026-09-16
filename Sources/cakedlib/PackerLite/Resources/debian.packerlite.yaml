@@ -106,13 +106,20 @@ boot_command:
       - <enter>
 
   - title: Full name for the new user
-    commands: 
-      - <locate text="Full name for the new user">
+    commands:
+      - <skipCommandIfNotFound text="Please enter real name of this user" timeout=2>
       - ${var.username}
       - <enter>
+
+  - title: Full name for the new user
+    commands:
+      - <locate text="Full name for the new user|Please enter real name of this user">
+      - ${var.username}
+      - <enter>
+
   - title: Username for account
-    commands: 
-      - <locate text="Username for your account">
+    commands:
+      - <locate text="Username for your account|Select a username for the new account">
       - <enter>
 
   - title: Choose a password for the new user
@@ -129,7 +136,7 @@ boot_command:
 
   - title: Configure the clock
     commands: 
-      - <locate text="Configure the clock">
+      - <locate text="Configure the clock|Select your time zone">
       - <enter>
 
   - title: Partition disks - use guided partitioning on the entire disk
@@ -144,7 +151,7 @@ boot_command:
 
   - title: Accept the default partitioning scheme
     commands: 
-      - <locate text="All files in one partition">
+      - <locate text="All files in one partition|The disk can be partitioned using one of several different schemes">
       - <enter>
 
   - title: Finish partitioning and write changes to disk
@@ -165,7 +172,7 @@ boot_command:
 
   - title: Configuring popularity-contest
     commands: 
-      - <locate text="Configuring popularity-contest" timeout=60>
+      - <locate text="Configuring popularity-contest|Participate in the package usage survey" timeout=60>
       - <enter>
 
   - title: Software selection
