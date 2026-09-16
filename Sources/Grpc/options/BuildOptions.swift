@@ -647,6 +647,8 @@ public struct BuildOptions: ParsableArguments {
 
 		if self.imageSource == .ipsw {
 			self.diskSize = max(self.diskSize, 40)
+		} else if (imageURL.absoluteString.contains("debian") || (self.imageId?.contains("debian") ?? false)) && self.user == "admin" {
+			throw ValidationError(String(localized: "Debian 12+ ISO images no longer allow the default user 'admin'. Please use '--user <username>' to specify a different username."))
 		}
 	}
 }

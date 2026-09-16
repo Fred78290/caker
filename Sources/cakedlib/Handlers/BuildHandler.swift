@@ -51,6 +51,8 @@ extension BuildOptions {
 
 		if options.imageSource == .ipsw {
 			options.diskSize = max(options.diskSize, 40)
+		} else if options.image.contains("debian") && self.user == "admin" {
+			throw ServiceError(String(localized: "Debian 12+ ISO images no longer allow the default user 'admin'. Please use '--user <username>' to specify a different username."))
 		}
 
 		return options
