@@ -142,29 +142,7 @@ struct Provision: AsyncParsableCommand {
 
 			sigintSrc.activate()
 
-			// Check also manual launch
-			var gcdTask: Task<Void, Never>? = nil
-
-			if ServiceHandler.isAgentRunning.running {
-				logger.info("Start GCD for VM: \(location.name)")
-
-				gcdTask = Task {
-					do {
-						try await vm.startGrandCentralUpdate(frequency: 1, runMode: self.common.runMode)
-					} catch is CancellationError {
-						// Expected on teardown
-					} catch {
-						logger.error("Failed to start GCD for VM: \(location.name), error: \(error.localizedDescription)")
-					}
-				}
-			}
-
 			promise.futureResult.whenComplete { result in
-				if let gcdTask {
-					vm.stopGrandCentralUpdate()
-					gcdTask.cancel()
-				}
-
 				if case .failure(let error) = result, error as? CancellationError == nil {
 					logger.error("Provisioning failed: \(error.localizedDescription)")
 				}

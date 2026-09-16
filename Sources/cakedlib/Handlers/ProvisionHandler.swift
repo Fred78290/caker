@@ -166,6 +166,24 @@ public struct ProvisionHandler {
 		return try handler.run { address, vm in
 			let logger = Logger(ProvisionHandler.self)
 
+			// Check also manual launch
+			var gcdTask: Task<Void, Never>? = nil
+
+			if ServiceHandler.isAgentRunning.running {
+				logger.info("Start GCD for VM: \(location.name)")
+
+				gcdTask = Task {
+					do {
+						try await vm.startGrandCentralUpdate(frequency: 1, runMode: runMode)
+					} catch is CancellationError {
+						// Expected on teardown
+						logger.debug("Cancelled GCD for VM: \(location.name)")
+					} catch {
+						logger.error("Failed to start GCD for VM: \(location.name), error: \(error.localizedDescription)")
+					}
+				}
+			}
+
 			// Start VNC server as soon as the VM is up
 			if display == .none {
 				_ = vm.createVirtualMachineView()
@@ -195,6 +213,11 @@ public struct ProvisionHandler {
 				}
 
 				vm.terminateVM { _ in
+					if let gcdTask {
+						vm.stopGrandCentralUpdate()
+						gcdTask.cancel()
+					}
+
 					if let error {
 						let reason: String
 
