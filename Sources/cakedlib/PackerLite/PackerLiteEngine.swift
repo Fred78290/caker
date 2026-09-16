@@ -195,15 +195,38 @@ public enum PackerLiteEngine {
 			}
 		}
 
+		// Check also manual launch
+		var gcdTask: Task<Void, Never>? = nil
+
 		try await vm.startVM()
 
 		try location.writeProvisionning()
+
+		if ServiceHandler.isAgentRunning.running {
+			logger.info("Start GCD for VM: \(location.name)")
+
+			gcdTask = Task {
+				do {
+					try await vm.startGrandCentralUpdate(frequency: 1, runMode: runMode)
+				} catch is CancellationError {
+					// Expected on teardown
+					logger.debug("Cancelled GCD for VM: \(location.name)")
+				} catch {
+					logger.error("Failed to start GCD for VM: \(location.name), error: \(error.localizedDescription)")
+				}
+			}
+		}
 
 		guard vm.vzMachineView != nil else {
 			throw ServiceError(String(localized: "Failed to create VM view for provisioning"))
 		}
 
 		func destroyVM(_ error: Error?) async {
+			if let gcdTask {
+				vm.stopGrandCentralUpdate()
+				gcdTask.cancel()
+			}
+
 			vm.stopVncServer()
 
 			await MainActor.run {
