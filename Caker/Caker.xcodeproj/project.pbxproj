@@ -71,6 +71,7 @@
 		9B1835EE2FB070D300D150FD /* LXDExecSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835EB2FB070D300D150FD /* LXDExecSessionStore.swift */; };
 		9B1970002F59867100B424DB /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B196FFF2F59866E00B424DB /* Root.swift */; };
 		9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */; };
+		9B1C21ED305AED6E001E1F46 /* LogManager in Frameworks */ = {isa = PBXBuildFile; productRef = 9B1C21EC305AED6E001E1F46 /* LogManager */; };
 		9B2032F42F48CEA90047E197 /* CurrentStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */; };
 		9B2033702F4A21400047E197 /* GrandCentralUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */; };
 		9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D6002E019FA400BEFB41 /* VMWare.swift */; };
@@ -1617,6 +1618,7 @@
 				9B08B4AD2F7436F1009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */,
 				9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */,
 				9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */,
+				9B1C21ED305AED6E001E1F46 /* LogManager in Frameworks */,
 			);
 		};
 		9B464B4C2D5A3E5C00164BF5 /* Frameworks */ = {
@@ -3102,6 +3104,7 @@
 				9B75308D2E65E557000736B3 /* RoyalVNCKitStatic */,
 				9B13C3422F0AD87C0099F00F /* CakeAgentLib */,
 				9B3E2C682F7BDA1D003BF05E /* Sparkle */,
+				9B1C21EC305AED6E001E1F46 /* LogManager */,
 			);
 			productName = Caker;
 			productReference = 9B464A542D5A3DA000164BF5 /* Caker.app */;
@@ -3494,6 +3497,7 @@
 				9B602FA02FAA5C3800055543 /* XCRemoteSwiftPackageReference "vapor" */,
 				9B96F1462FC5D70B00C25306 /* XCRemoteSwiftPackageReference "swift-collections" */,
 				9B5F529C300E5DC6004DD207 /* XCRemoteSwiftPackageReference "containerization" */,
+				9B1C21EB305AED6E001E1F46 /* XCRemoteSwiftPackageReference "LogManager" */,
 			);
 			preferredProjectObjectVersion = 100;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -5077,6 +5081,14 @@
 				revision = 82bf1ff8dbaccac3359cfd6b49f30db690c8dc38;
 			};
 		};
+		9B1C21EB305AED6E001E1F46 /* XCRemoteSwiftPackageReference "LogManager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Appracatappra/LogManager.git";
+			requirement = {
+				kind = exactVersion;
+				version = 2.0.4;
+			};
+		};
 		9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Fred78290/swift-argument-parser.git";
@@ -5414,6 +5426,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */;
 			productName = CakeAgentLib;
+		};
+		9B1C21EC305AED6E001E1F46 /* LogManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B1C21EB305AED6E001E1F46 /* XCRemoteSwiftPackageReference "LogManager" */;
+			productName = LogManager;
 		};
 		9B21DFF92F4C651800870AD7 /* GRPC */ = {
 			isa = XCSwiftPackageProductDependency;
