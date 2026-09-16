@@ -14,6 +14,14 @@ import Synchronization
 import Virtualization
 import Vision
 
+@available(macOS 27.0, *)
+@objc protocol VZDisplayPresenterObserver {
+	@objc func presenter(_ presenter: NSObject, didUpdateContentHeadroom: Double)
+	@objc func presenter(_ presenter: NSObject, didUpdateCursor: UnsafePointer<UInt8>?)
+	@objc func presenter(_ presenter: NSObject, didUpdateFrame: UnsafePointer<UInt8>?)
+	@objc func presenter(_ presenter: NSObject, didUpdateHostDisplay: UnsafePointer<UInt8>?)
+}
+
 @objc protocol VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?)
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?)
@@ -39,16 +47,16 @@ extension NSView {
 		public let text: String
 		public let box: CGRect
 	}
-
+	
 	@MainActor
 	public func captureImageOCR() -> (pngData: Data, imageSize: CGSize)? {
 		guard let nsImage = self.image(), let pngData = nsImage.pngData else {
 			return nil
 		}
-
+		
 		return (pngData, nsImage.size)
 	}
-
+	
 	/// Uses Vision framework to recognize text in the view's current image representation.
 	/// Box is in NSView coordinates (origin at bottom-left, y increases towards).
 	///
@@ -62,30 +70,30 @@ extension NSView {
 		guard let capture = self.captureImageOCR() else {
 			return nil
 		}
-
+		
 		// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
 		let semaphore = DispatchSemaphore(value: 0)
 		var result: (CGSize, [RecognizedText])?
-
+		
 		// The CGImage and view might differ in size, so scale accordingly
 		let viewHeight = self.bounds.height
 		let viewWidth = self.bounds.width
 		let scaleX = viewWidth / CGFloat(capture.imageSize.width)
 		let scaleY = viewHeight / CGFloat(capture.imageSize.height)
-
+		
 		DispatchQueue.global(qos: .utility).async {
 			defer { semaphore.signal() }
-
+			
 			let request = VNRecognizeTextRequest()
 			request.recognitionLevel = .accurate
-
+			
 			do {
 				try VNImageRequestHandler(data: capture.pngData, options: [:]).perform([request])
-
+				
 				guard let results = request.results, results.isEmpty == false else {
 					return
 				}
-
+				
 				result = (
 					CGSize(width: capture.imageSize.width, height: capture.imageSize.height),
 					results.compactMap { observation in
@@ -96,10 +104,10 @@ extension NSView {
 								y: box.origin.y * scaleY,
 								width: box.width * scaleX,
 								height: box.height * scaleY)
-
+							
 							return RecognizedText(text: candidate.string, box: flippedBox)
 						}
-
+						
 						return nil
 					}
 				)
@@ -107,38 +115,38 @@ extension NSView {
 				Logger(self).error("Vision OCR failed: \(error)")
 			}
 		}
-
+		
 		semaphore.wait()
-
+		
 		return result
 	}
-
+	
 	@objc public var cursor: NSCursor? {
 		return nil
 	}
-
+	
 	@MainActor
 	public func viewRelativePosition(of event: NSEvent) -> CGPoint {
 		viewRelativePosition(of: event.locationInWindow)
 	}
-
+	
 	@MainActor
 	public func viewRelativePosition(of location: NSPoint) -> CGPoint {
 		var position = convert(location, from: nil)
 		position.y = bounds.size.height - position.y
-
+		
 		return position
 	}
-
+	
 	@MainActor
 	public func windowRelativePosition(of point: CGPoint) -> CGPoint {
 		var position = point
-
+		
 		position.y = bounds.size.height - position.y
-
+		
 		return convert(position, to: nil)
 	}
-
+	
 	@MainActor
 	public func currentCursorPositionInView() -> NSPoint? {
 		guard let window = self.window else { return nil }
@@ -154,61 +162,100 @@ extension NSView {
 	}
 
 	func swizzleFramebufferObserver() {
+		guard VNCVirtualMachineView.swizzled == false else {
+			return
+		}
+
 		let protocols = self.protocolNames
 
-		// Check if `self` conforms to the private framebuffer observer protocol using a safe cast
-		if protocols.first(where: { $0 == "_VZFramebufferObserver" }) != nil {
+		if #available(macOS 27.0, *) {
 			// Only attempt to swizzle if the selectors exist on this instance
-			let hasFrameSel = self.responds(to: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)))
-			let hasUpdateCursorSel = self.responds(to: #selector(VZFramebufferObserver.framebuffer(_:didUpdateCursor:)))
+			let hasFrameSel = self.responds(to: #selector(VZDisplayPresenterObserver.presenter(_:didUpdateFrame:)))
+			let hasUpdateCursorSel = self.responds(to: #selector(VZDisplayPresenterObserver.presenter(_:didUpdateCursor:)))
 
 			if hasFrameSel {
 				self.swizzleMethod(
-					originalSelector: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)),
-					swizzledSelector: #selector(swizzled_framebuffer(_:didUpdateFrame:)))
+					originalSelector: #selector(VZDisplayPresenterObserver.presenter(_:didUpdateFrame:)),
+					swizzledSelector: #selector(swizzled_presenter(_:didUpdateFrame:)))
 			}
 
 			if hasUpdateCursorSel {
 				self.swizzleMethod(
-					originalSelector: #selector(VZFramebufferObserver.framebuffer(_:didUpdateCursor:)),
-					swizzledSelector: #selector(swizzled_framebuffer(_:didUpdateCursor:)))
+					originalSelector: #selector(VZDisplayPresenterObserver.presenter(_:didUpdateCursor:)),
+					swizzledSelector: #selector(swizzled_presenter(_:didUpdateCursor:)))
 			}
+		} else {
+			// Check if `self` conforms to the private framebuffer observer protocol using a safe cast
+			if protocols.first(where: { $0 == "_VZFramebufferObserver" }) != nil {
+				// Only attempt to swizzle if the selectors exist on this instance
+				let hasFrameSel = self.responds(to: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)))
+				let hasUpdateCursorSel = self.responds(to: #selector(VZFramebufferObserver.framebuffer(_:didUpdateCursor:)))
 
-			VNCVirtualMachineView.swizzled = true
+				if hasFrameSel {
+					self.swizzleMethod(
+						originalSelector: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)),
+						swizzledSelector: #selector(swizzled_framebuffer(_:didUpdateFrame:)))
+				}
+
+				if hasUpdateCursorSel {
+					self.swizzleMethod(
+						originalSelector: #selector(VZFramebufferObserver.framebuffer(_:didUpdateCursor:)),
+						swizzledSelector: #selector(swizzled_framebuffer(_:didUpdateCursor:)))
+				}
+			}
 		}
+
+		VNCVirtualMachineView.swizzled = true
+	}
+
+	var vncFrameBufferObserver: VNCFramebufferObserver? {
+
+		guard let field = class_getInstanceVariable(type(of: self), "_superview") else {
+			return nil
+		}
+
+		guard let value = object_getIvar(self, field) as? VNCFramebufferObserver else {
+			return nil
+		}
+
+		return value
 	}
 
 	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
 		self.swizzled_framebuffer(framebuffer, didUpdateCursor: cursor)
 
-		if Thread.isMainThread {
-			if let observer = self.superview as? VNCFramebufferObserver {
-				observer.didUpdateCursor(self)
-			}
-		} else {
-			DispatchQueue.main.sync {
-				if let observer = self.superview as? VNCFramebufferObserver {
-					observer.didUpdateCursor(self)
-				}
-			}
+		if let observer = self.vncFrameBufferObserver {
+			observer.didUpdateCursor(self)
 		}
 	}
 
 	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?) {
 		self.swizzled_framebuffer(framebuffer, didUpdateFrame: frame)
 
-		if Thread.isMainThread {
-			if let observer = self.superview as? VNCFramebufferObserver {
-				observer.didUpdateFrame(self)
-			}
-		} else {
-			DispatchQueue.main.sync {
-				if let observer = self.superview as? VNCFramebufferObserver {
-					observer.didUpdateFrame(self)
-				}
-			}
+		if let observer = self.vncFrameBufferObserver {
+			observer.didUpdateFrame(self)
 		}
 	}
+
+
+	@available(macOS 27.0, *)
+	@objc func swizzled_presenter(_ presenter: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
+		self.swizzled_presenter(presenter, didUpdateCursor: cursor)
+
+		if let observer = self.vncFrameBufferObserver {
+			observer.didUpdateCursor(self)
+		}
+	}
+
+	@available(macOS 27.0, *)
+	@objc func swizzled_presenter(_ presenter: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?) {
+		self.swizzled_presenter(presenter, didUpdateFrame: frame)
+
+		if let observer = self.vncFrameBufferObserver {
+			observer.didUpdateFrame(self)
+		}
+	}
+
 }
 
 extension VZVirtualMachineView {
@@ -232,7 +279,35 @@ extension VZVirtualMachineView {
 		return value
 	}
 
-	public var framebuffer: NSObject? {
+	public var haveUnderLayedBuffer: Bool {
+		if #available(macOS 27.0, *) {
+			return self.presenter != nil
+		} else {
+			return self.frameBuffer != nil
+		}
+	}
+
+	public var presenter: NSObject? {
+		if #available(macOS 27.0, *) {
+			guard let framebufferView = self.framebufferView else {
+				return nil
+			}
+
+			guard let field = class_getInstanceVariable(type(of: framebufferView), "_presenter") else {
+				return nil
+			}
+
+			guard let value = object_getIvar(framebufferView, field) as? NSObject else {
+				return nil
+			}
+
+			return value
+		} else {
+			return nil
+		}
+	}
+
+	public var frameBuffer: NSObject? {
 		guard let framebufferView = self.framebufferView else {
 			return nil
 		}
