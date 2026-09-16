@@ -1271,7 +1271,7 @@ extension Utilities {
 			throw ValidationError(String(localized: "\(diskPath) has mounted volumes. Please unmount them before use."))
 		}
 
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 
 		alert.messageText = String(localized: "Disk has mounted volumes")
 		alert.informativeText = String(localized: "\(diskPath) has the following mounted volumes:\n\(volumes.joined(separator: "\n"))\n\nDo you want to unmount them to use this disk with the virtual machine?")

@@ -291,7 +291,7 @@ struct ServiceListView: View {
 					.foregroundStyle(.secondary)
 			}
 			SecureField("Password", text: $enteredPassword)
-				.textFieldStyle(.roundedBorder)
+				.withTextFieldStyle(.roundedBorder)
 				.onSubmit {
 					handlePasswordSubmit { }
 				}
@@ -300,11 +300,10 @@ struct ServiceListView: View {
 					isPresentingPasswordPrompt = false
 					enteredPassword = ""
 				}
-				.buttonStyle(.bordered)
 				AsyncButton("Connect") { done in
 					handlePasswordSubmit { done() }
 				}
-				.buttonStyle(.borderedProminent)
+				.withButtonStyle(.borderedProminent)
 				.keyboardShortcut(.defaultAction)
 				.disabled(enteredPassword.isEmpty)
 			}
@@ -321,7 +320,7 @@ struct ServiceListView: View {
 			VStack(alignment: .leading, spacing: 8) {
 				LabeledContent("Address (host or ip)") {
 					TextField("", text: $manualAddress)
-						.textFieldStyle(.roundedBorder)
+						.withTextFieldStyle(.roundedBorder)
 						.disableAutocorrection(true)
 						.textCase(.lowercase)
 				}
@@ -329,13 +328,13 @@ struct ServiceListView: View {
 				LabeledContent("Port") {
 					Spacer()
 					TextField("", value: $manualPort, format: .number)
-						.textFieldStyle(.roundedBorder)
+						.withTextFieldStyle(.roundedBorder)
 						.frame(width: 50)
 				}
 
 				LabeledContent("Password (optional)") {
 					SecureField("", text: $manualPassword)
-						.textFieldStyle(.roundedBorder)
+						.withTextFieldStyle(.roundedBorder)
 				}
 
 				Toggle("Use TLS", isOn: $manualUseTLS)
@@ -353,12 +352,12 @@ struct ServiceListView: View {
 					isPresentingManualSheet = false
 					manualError = nil
 				}
-				.buttonStyle(.bordered)
+				.withButtonStyle(.bordered)
 				AsyncButton("Connect") { done in
 					self.manualConnect()
 					done()
 				}
-				.buttonStyle(.borderedProminent)
+				.withButtonStyle(.borderedProminent)
 				.keyboardShortcut(.defaultAction)
 				.disabled(manualAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || manualPort == 0)
 			}
@@ -438,7 +437,7 @@ struct ServiceListView: View {
 				} label: {
 					Label("Connect to a server…", systemImage: "link.badge.plus")
 				}
-				.buttonStyle(.bordered)
+				.withButtonStyle(.bordered)
 			}
 			.padding(.horizontal)
 			.padding(.bottom)
@@ -535,12 +534,12 @@ struct ServiceRowView: View {
 					Button("Disconnect") {
 						AppState.shared.connectToLocal()
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 				} else {
 					Button("Connect") {
 						onConnect(service)
 					}
-					.buttonStyle(.borderedProminent)
+					.withButtonStyle(.borderedProminent)
 				}
 			} else {
 				GlossyCircle(color: connected ? .green : .secondary)

@@ -34,7 +34,7 @@ public struct AboutApplication: View {
 		Button("About Caked") {
 			NSApplication.shared.orderFrontStandardAboutPanel(options: [
 				NSApplication.AboutPanelOptionKey.applicationIcon: NSApplication.shared.applicationIconImage as Any,
-				NSApplication.AboutPanelOptionKey.applicationName: "Caked",
+				NSApplication.AboutPanelOptionKey.applicationName: ProcessInfo.processInfo.processName,
 				NSApplication.AboutPanelOptionKey.applicationVersion: CI.version,
 				NSApplication.AboutPanelOptionKey.credits: self.infos,
 			])

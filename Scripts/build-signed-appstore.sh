@@ -45,8 +45,13 @@ jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
   .state.revision = "d554955e8c280aa4c4a05a039a968f0205656e77"
 )' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
 
-/usr/bin/swift build -c release --arch x86_64 --build-path "${PROJECT_ROOT}/.appstore/x86_64-apple-macosx" -Xswiftc -D -Xswiftc USE_SMAPPSERVICE -Xswiftc -D -Xswiftc APPSTORE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND
-/usr/bin/swift build -c release --arch arm64 --build-path "${PROJECT_ROOT}/.appstore/arm64-apple-macosx" -Xswiftc -D -Xswiftc USE_SMAPPSERVICE -Xswiftc -D -Xswiftc APPSTORE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND
+for ARCH in x86_64 arm64; do
+	/usr/bin/swift build -c release \
+		--arch ${ARCH} --build-path "${PROJECT_ROOT}/.appstore/${ARCH}-apple-macosx" \
+		-Xswiftc -D -Xswiftc USE_SMAPPSERVICE \
+		-Xswiftc -D -Xswiftc APPSTORE \
+		-Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND
+done
 
 mkdir -p ${BINARYDIR}
 

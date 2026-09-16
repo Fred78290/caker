@@ -50,6 +50,9 @@
 		9B1835ED2FB070D300D150FD /* LXDExecRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835EA2FB070D300D150FD /* LXDExecRunner.swift */; };
 		9B1835EE2FB070D300D150FD /* LXDExecSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1835EB2FB070D300D150FD /* LXDExecSessionStore.swift */; };
 		9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */; };
+		9B1DFD913013A76200B67CE9 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9B1DFD903013A76200B67CE9 /* Gzip */; };
+		9B1DFD933013A79000B67CE9 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9B1DFD923013A79000B67CE9 /* Gzip */; };
+		9B1DFD953013A88F00B67CE9 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9B1DFD943013A88F00B67CE9 /* Gzip */; };
 		9B2033702F4A21400047E197 /* GrandCentralUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */; };
 		9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D6002E019FA400BEFB41 /* VMWare.swift */; };
 		9B20D6032E019FA400BEFB41 /* Importer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D5FE2E019FA400BEFB41 /* Importer.swift */; };
@@ -206,6 +209,7 @@
 		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
 		9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */; };
 		9B4159B72FFA66F400E2B275 /* ConfigureHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4159B62FFA66F000E2B275 /* ConfigureHandler.swift */; };
+		9B426B27301B9A3800170A05 /* NSGlassEffectAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B426B26301B9A3800170A05 /* NSGlassEffectAlert.swift */; };
 		9B44388A2EBC9C12008BB2BB /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4438892EBC9C12008BB2BB /* Dynamic */; };
 		9B464B5F2D5A3E7F00164BF5 /* CakeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A872D5A3E0300164BF5 /* CakeProvider.swift */; };
 		9B464B602D5A3E7F00164BF5 /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A882D5A3E0300164BF5 /* Client.swift */; };
@@ -440,6 +444,7 @@
 		9BC697712FDC048E00A60AF7 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */; };
 		9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEB1902ED76EB200B29B70 /* VNC.swift */; };
 		9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */; };
+		9BD2F3A3301DDA9400DF99FE /* LogManager in Frameworks */ = {isa = PBXBuildFile; productRef = 9BD2F3A2301DDA9400DF99FE /* LogManager */; };
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
 		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
 		9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */; };
@@ -610,7 +615,6 @@
 		9BEBC7F52DF440BF0092B196 /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC7F42DF440BF0092B196 /* Logging */; };
 		9BEBC7F72DF440BF0092B196 /* Shout in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC7F62DF440BF0092B196 /* Shout */; };
 		9BEBC7F92DF440BF0092B196 /* NIOPortForwarding in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC7F82DF440BF0092B196 /* NIOPortForwarding */; };
-		9BEBC7FB2DF440BF0092B196 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC7FA2DF440BF0092B196 /* Gzip */; };
 		9BEBC7FF2DF440BF0092B196 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC7FE2DF440BF0092B196 /* ArgumentParser */; };
 		9BEBC8012DF440BF0092B196 /* Multipart in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8002DF440BF0092B196 /* Multipart */; };
 		9BEBC8032DF440BF0092B196 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8022DF440BF0092B196 /* CakeAgentLib */; };
@@ -647,7 +651,6 @@
 		9BEBC85E2DF44B9D0092B196 /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC85D2DF44B9D0092B196 /* Logging */; };
 		9BEBC8602DF44B9D0092B196 /* Shout in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC85F2DF44B9D0092B196 /* Shout */; };
 		9BEBC8622DF44B9D0092B196 /* NIOPortForwarding in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8612DF44B9D0092B196 /* NIOPortForwarding */; };
-		9BEBC8642DF44B9D0092B196 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8632DF44B9D0092B196 /* Gzip */; };
 		9BEBC8662DF44B9D0092B196 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8652DF44B9D0092B196 /* ArgumentParser */; };
 		9BEBC8682DF44B9D0092B196 /* Multipart in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8672DF44B9D0092B196 /* Multipart */; };
 		9BEBC86A2DF44B9D0092B196 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC8692DF44B9D0092B196 /* CakeAgentLib */; };
@@ -1019,6 +1022,7 @@
 		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
 		9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdatesView.swift; sourceTree = "<group>"; };
 		9B4159B62FFA66F000E2B275 /* ConfigureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureHandler.swift; sourceTree = "<group>"; };
+		9B426B26301B9A3800170A05 /* NSGlassEffectAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSGlassEffectAlert.swift; sourceTree = "<group>"; };
 		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
 		9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteWizard.swift; sourceTree = "<group>"; };
 		9B4517E62F067E7B0088F093 /* GraphCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphCapsule.swift; sourceTree = "<group>"; };
@@ -1517,6 +1521,7 @@
 				9BF2DA902FE547C400218073 /* libVirtualInstallSPI.a in Frameworks */,
 				9B29F81B2FCAE4B700AEBCB8 /* Steps in Frameworks */,
 				9B29F81C2FCAE4B700AEBCB8 /* RoyalVNCKitStatic in Frameworks */,
+				9B1DFD953013A88F00B67CE9 /* Gzip in Frameworks */,
 				9B29F81D2FCAE4B700AEBCB8 /* libCakedLib.a in Frameworks */,
 				9B29F81E2FCAE4B700AEBCB8 /* CakeAgentLib in Frameworks */,
 				9B29F81F2FCAE4B700AEBCB8 /* libGRPCLib.a in Frameworks */,
@@ -1524,6 +1529,7 @@
 				9B29F8222FCAE4B700AEBCB8 /* libswiftCompatibilitySpan.tbd in Frameworks */,
 				9B29F8232FCAE4B700AEBCB8 /* SwiftletUtilities in Frameworks */,
 				9B29F8242FCAE4B700AEBCB8 /* SwiftTerm in Frameworks */,
+				9BD2F3A3301DDA9400DF99FE /* LogManager in Frameworks */,
 			);
 		};
 		9B464B4C2D5A3E5C00164BF5 /* Frameworks */ = {
@@ -1559,6 +1565,7 @@
 				9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */,
 				9B464C482D5A426200164BF5 /* Logging in Frameworks */,
 				9B464C902D5A492F00164BF5 /* X509 in Frameworks */,
+				9B1DFD913013A76200B67CE9 /* Gzip in Frameworks */,
 				9B464C892D5A48D900164BF5 /* NIOPortForwarding in Frameworks */,
 			);
 		};
@@ -1604,6 +1611,7 @@
 				9BEBC8242DF44B9C0092B196 /* Dynamic in Frameworks */,
 				9BEBC8682DF44B9D0092B196 /* Multipart in Frameworks */,
 				9BEBC8362DF44B9C0092B196 /* SwiftRadix in Frameworks */,
+				9B1DFD933013A79000B67CE9 /* Gzip in Frameworks */,
 				9BEBC85A2DF44B9D0092B196 /* NIOHTTP2 in Frameworks */,
 				9BEBC82E2DF44B9C0092B196 /* Atomics in Frameworks */,
 				9BEBC8302DF44B9C0092B196 /* SwiftFormat in Frameworks */,
@@ -1611,7 +1619,6 @@
 				9BEBC8602DF44B9D0092B196 /* Shout in Frameworks */,
 				9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */,
 				9BEBC85C2DF44B9D0092B196 /* SwiftProtobuf in Frameworks */,
-				9BEBC8642DF44B9D0092B196 /* Gzip in Frameworks */,
 				9BEBC8582DF44B9D0092B196 /* NIOWebSocket in Frameworks */,
 				9BEBC8622DF44B9D0092B196 /* NIOPortForwarding in Frameworks */,
 				9BEBC83A2DF44B9C0092B196 /* DMRetry in Frameworks */,
@@ -1645,7 +1652,6 @@
 			files = (
 				9BB149242EC876640094D950 /* Containerization in Frameworks */,
 				9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */,
-				9BEBC7FB2DF440BF0092B196 /* Gzip in Frameworks */,
 				9BEBC7BF2DF440BF0092B196 /* SwiftDate in Frameworks */,
 				9BEBC7D52DF440BF0092B196 /* Yams in Frameworks */,
 				9BEBC8042DF440BF0092B196 /* libGRPCLib.a in Frameworks */,
@@ -2688,9 +2694,10 @@
 				9B9DCD892F6FFF4900E07852 /* AboutApplication.swift */,
 				9B7D69242F1B92E800FE1B0B /* Extensions.swift */,
 				9B5F49BF2F70032800AE1991 /* LabelView.swift */,
+				9B426B26301B9A3800170A05 /* NSGlassEffectAlert.swift */,
 				9BEBC74B2DF440720092B196 /* VMView.swift */,
-				9B9DCD852F6FF16700E07852 /* WindowAccessor.swift */,
 				9B9DCB352F6EB09900E07852 /* VNC */,
+				9B9DCD852F6FF16700E07852 /* WindowAccessor.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -2940,6 +2947,8 @@
 				9B29F7A72FCAE4B700AEBCB8 /* FileMonitor */,
 				9B29F7A92FCAE4B700AEBCB8 /* RoyalVNCKitStatic */,
 				9B29F7AB2FCAE4B700AEBCB8 /* CakeAgentLib */,
+				9B1DFD943013A88F00B67CE9 /* Gzip */,
+				9BD2F3A2301DDA9400DF99FE /* LogManager */,
 			);
 			productName = Caker;
 			productReference = 9B29F8302FCAE4B700AEBCB8 /* Caker.app */;
@@ -2988,6 +2997,7 @@
 				9B28BFA32DDB25BD00B5A0AF /* ArgumentParser */,
 				9B13C3402F0AD8540099F00F /* CakeAgentLib */,
 				9B5F49C32F70280700AE1991 /* Subprocess */,
+				9B1DFD903013A76200B67CE9 /* Gzip */,
 			);
 			productName = cakectl;
 			productReference = 9B464B4F2D5A3E5C00164BF5 /* cakectl */;
@@ -3116,7 +3126,6 @@
 				9BEBC85D2DF44B9D0092B196 /* Logging */,
 				9BEBC85F2DF44B9D0092B196 /* Shout */,
 				9BEBC8612DF44B9D0092B196 /* NIOPortForwarding */,
-				9BEBC8632DF44B9D0092B196 /* Gzip */,
 				9BEBC8652DF44B9D0092B196 /* ArgumentParser */,
 				9BEBC8672DF44B9D0092B196 /* Multipart */,
 				9BEBC8692DF44B9D0092B196 /* CakeAgentLib */,
@@ -3124,6 +3133,7 @@
 				9B3566802F27E12D00C5E12F /* ZLib */,
 				9BC1F9972F6D469A00A83B33 /* Subprocess */,
 				9B602FA12FAA5C3800055543 /* Vapor */,
+				9B1DFD923013A79000B67CE9 /* Gzip */,
 			);
 			productName = caked;
 			productReference = 9BEBC68E2DF43FEE0092B196 /* caked */;
@@ -3178,7 +3188,6 @@
 				9BEBC7F42DF440BF0092B196 /* Logging */,
 				9BEBC7F62DF440BF0092B196 /* Shout */,
 				9BEBC7F82DF440BF0092B196 /* NIOPortForwarding */,
-				9BEBC7FA2DF440BF0092B196 /* Gzip */,
 				9BEBC7FE2DF440BF0092B196 /* ArgumentParser */,
 				9BEBC8002DF440BF0092B196 /* Multipart */,
 				9BEBC8022DF440BF0092B196 /* CakeAgentLib */,
@@ -3327,6 +3336,7 @@
 				9B3E2C672F7BDA1D003BF05E /* XCRemoteSwiftPackageReference "Sparkle" */,
 				9B602FA02FAA5C3800055543 /* XCRemoteSwiftPackageReference "vapor" */,
 				9B96F1462FC5D70B00C25306 /* XCRemoteSwiftPackageReference "swift-collections" */,
+				9BD2F3A1301DDA6200DF99FE /* XCRemoteSwiftPackageReference "LogManager" */,
 			);
 			preferredProjectObjectVersion = 100;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -4056,6 +4066,7 @@
 				9B081B5B2FC75A1A0029B259 /* Qcow2Error.swift in Sources */,
 				9B081B5C2FC75A1A0029B259 /* Qcow2Converter.swift in Sources */,
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
+				9B426B27301B9A3800170A05 /* NSGlassEffectAlert.swift in Sources */,
 				9B6EC45E30037F6600ABFDED /* VMLifecycleHooks.swift in Sources */,
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
 				9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */,
@@ -5264,6 +5275,14 @@
 				version = 0.5.0;
 			};
 		};
+		9BD2F3A1301DDA6200DF99FE /* XCRemoteSwiftPackageReference "LogManager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Appracatappra/LogManager.git";
+			requirement = {
+				kind = exactVersion;
+				version = 2.0.4;
+			};
+		};
 		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Fred78290/Multipart";
@@ -5287,6 +5306,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */;
 			productName = CakeAgentLib;
+		};
+		9B1DFD903013A76200B67CE9 /* Gzip */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
+			productName = Gzip;
+		};
+		9B1DFD923013A79000B67CE9 /* Gzip */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
+			productName = Gzip;
+		};
+		9B1DFD943013A88F00B67CE9 /* Gzip */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
+			productName = Gzip;
 		};
 		9B21DFF92F4C651800870AD7 /* GRPC */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -5578,6 +5612,11 @@
 			package = 9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */;
 			productName = RoyalVNCKitStatic;
 		};
+		9BD2F3A2301DDA9400DF99FE /* LogManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BD2F3A1301DDA6200DF99FE /* XCRemoteSwiftPackageReference "LogManager" */;
+			productName = LogManager;
+		};
 		9BEAA42F2F3D022A005ACC9D /* FileMonitor */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9B0D1A442E2BAA2700D70267 /* XCRemoteSwiftPackageReference "FileMonitor" */;
@@ -5747,11 +5786,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464BFB2D5A41E600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-portforwarding" */;
 			productName = NIOPortForwarding;
-		};
-		9BEBC7FA2DF440BF0092B196 /* Gzip */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
-			productName = Gzip;
 		};
 		9BEBC7FE2DF440BF0092B196 /* ArgumentParser */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -5927,11 +5961,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464BFB2D5A41E600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-portforwarding" */;
 			productName = NIOPortForwarding;
-		};
-		9BEBC8632DF44B9D0092B196 /* Gzip */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
-			productName = Gzip;
 		};
 		9BEBC8652DF44B9D0092B196 /* ArgumentParser */ = {
 			isa = XCSwiftPackageProductDependency;

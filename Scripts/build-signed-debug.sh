@@ -8,8 +8,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PKGDIR="${PKGDIR:-${PROJECT_ROOT}/dist/Caker.app}"
-BUILDDIR="${PROJECT_ROOT}/.build/debug"
-BINARYDIR="${PROJECT_ROOT}/.build/debug"
+BUILDDIR="${PROJECT_ROOT}/.debug/debug"
+BINARYDIR="${PROJECT_ROOT}/.debug/debug"
 RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
 SNAPSHOT=$(date +%Y.%m.%d)-$(git rev-parse --short=8 HEAD)
@@ -23,7 +23,7 @@ if [ -f ${PROJECT_ROOT}/.env ]; then
 	source ${PROJECT_ROOT}/.env
 fi
 
-sudo rm -rf "${PROJECT_ROOT}/.build" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
+sudo rm -rf "${PROJECT_ROOT}/.debug" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 
 cleanup_swift_mirror() {
   /usr/bin/swift package config unset-mirror --original "${ARGUMENT_PARSER_ORIGINAL}" >/dev/null 2>&1 || true
@@ -39,6 +39,10 @@ jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
   .state.revision = "d554955e8c280aa4c4a05a039a968f0205656e77"
 )' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
 
-/usr/bin/swift build -Xswiftc -D -Xswiftc SPARKLE -Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND -Xswiftc -D -Xswiftc USE_SMAPPSERVICE
+/usr/bin/swift build \
+	-Xswiftc -D -Xswiftc USE_SMAPPSERVICE \
+	-Xswiftc -D -Xswiftc SPARKLE \
+	-Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND \
+	--arch $(arch) --build-path "${PROJECT_ROOT}/.debug/$(arch)-apple-macosx"
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"

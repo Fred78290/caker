@@ -92,7 +92,7 @@ struct AdvancedSettingsView: View {
 						} label: {
 							Image(systemName: showPassphrase ? "eye.fill" : "eye.slash.fill")
 						}
-						.buttonStyle(.borderless)
+						.withButtonStyle(.borderless)
 					}
 					.onSubmit {
 						save(.passphrase, passphrase.isEmpty ? nil : passphrase)
@@ -174,7 +174,7 @@ struct AdvancedSettingsView: View {
 							} label: {
 								Image(systemName: "doc.on.doc")
 							}
-							.buttonStyle(.borderless)
+							.withButtonStyle(.borderless)
 							.help("Copy command")
 						}
 					}

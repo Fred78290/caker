@@ -618,6 +618,7 @@ struct VirtualMachineWizard: View {
 							Text("Previous")
 						}.frame(width: 90)
 					}
+					.withButtonStyle(.bordered)
 					.disabled(self.hasPrevious == false || self.model.createVM)
 
 					Button {
@@ -628,6 +629,7 @@ struct VirtualMachineWizard: View {
 							Image(systemName: "chevron.right")
 						}.frame(width: 70)
 					}
+					.withButtonStyle(.bordered)
 					.disabled(self.hasNext == false || self.model.createVM)
 				}
 				.frame(maxWidth: .infinity, alignment: .center)
@@ -639,6 +641,7 @@ struct VirtualMachineWizard: View {
 						} label: {
 							Text("Cancel").frame(width: 80)
 						}
+						.withButtonStyle(.bordered)
 					}
 
 					AsyncButton { done in
@@ -646,7 +649,7 @@ struct VirtualMachineWizard: View {
 					} label: {
 						Text("Create").frame(width: 80)
 					}
-					.buttonStyle(.borderedProminent)
+					.withButtonStyle(.borderedProminent)
 					.disabled(self.model.configValid == false)
 				}
 			}
@@ -850,7 +853,7 @@ struct VirtualMachineWizard: View {
 						}) {
 							Image(systemName: "key")
 						}
-						.buttonStyle(.borderless)
+						.withButtonStyle(.borderless)
 						.disabled(self.model.createVM)
 					}
 				}
@@ -907,7 +910,7 @@ struct VirtualMachineWizard: View {
 									}) {
 										Image(systemName: "document.badge.gearshape")
 									}
-									.buttonStyle(.borderless)
+									.withButtonStyle(.borderless)
 									.disabled(self.model.createVM)
 								}
 							}
@@ -938,7 +941,7 @@ struct VirtualMachineWizard: View {
 											Image(systemName: "document.badge.gearshape")
 										}
 										.disabled(self.model.createVM)
-										.buttonStyle(.borderless)
+										.withButtonStyle(.borderless)
 									}
 								} else {
 									TextField("Bootable iso url.", text: $config.imageName)
@@ -985,7 +988,7 @@ struct VirtualMachineWizard: View {
 										Image(systemName: "document.badge.gearshape")
 									}
 									.disabled(self.model.createVM)
-									.buttonStyle(.borderless)
+									.withButtonStyle(.borderless)
 								}
 							} else {
 								TextField("MacOS ipsw url.", text: $config.imageName)
@@ -1194,7 +1197,7 @@ struct VirtualMachineWizard: View {
 								Image(systemName: "externaldrive.badge.plus")
 							}
 							.disabled(self.model.createVM)
-							.buttonStyle(.borderless)
+							.withButtonStyle(.borderless)
 							.onChange(of: model.rootDisk) { _, newValue in
 								if newValue.isEmpty {
 									self.config.rootDisk = nil
@@ -1224,7 +1227,7 @@ struct VirtualMachineWizard: View {
 								Image(systemName: "document.badge.gearshape")
 							}
 							.disabled(self.model.createVM)
-							.buttonStyle(.borderless)
+							.withButtonStyle(.borderless)
 						}
 					}
 					LabeledContent("Optional network configuration") {
@@ -1238,7 +1241,7 @@ struct VirtualMachineWizard: View {
 								Image(systemName: "document.badge.gearshape")
 							}
 							.disabled(self.model.createVM)
-							.buttonStyle(.borderless)
+							.withButtonStyle(.borderless)
 						}
 					}
 				}

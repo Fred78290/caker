@@ -71,7 +71,7 @@
 	<key>DTPlatformName</key>
 	<string>macosx</string>
 	<key>DTPlatformVersion</key>
-	<string>26.2</string>
+	<string>15.0</string>
 	<key>DTSDKBuild</key>
 	<string>25C58</string>
 	<key>DTSDKName</key>
@@ -83,7 +83,7 @@
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>15.0</string>
+	<string>26.0</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

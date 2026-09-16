@@ -16,10 +16,11 @@ import SwifterSwiftUI
 
 @MainActor
 func alertError(_ messageText: String, _ informativeText: String, completion: ((NSApplication.ModalResponse) -> Void)? = nil) {
-	let alert = NSAlert()
+	let alert = NSGlassEffectAlert()
 
 	alert.messageText = messageText
 	alert.informativeText = informativeText
+
 	let result = alert.runModal()
 
 	if let completion {
@@ -47,7 +48,7 @@ func alertError(_ error: Error, completion: ((NSApplication.ModalResponse) -> Vo
 
 @MainActor
 func showDiskResizeAlert(informativeText: String, command: String) {
-	let alert = NSAlert()
+	let alert = NSGlassEffectAlert()
 	alert.messageText = String(localized: "Resize Disk Unavailable")
 	alert.informativeText = informativeText
 
@@ -560,7 +561,7 @@ struct MainApp: App {
 		}
 
 		// Prompt for password using a secure text field
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 		alert.messageText = String(localized: "Pass-Phrase Required")
 		alert.informativeText = String(localized: "To install the service, please enter your pass-phrase.")
 		alert.alertStyle = .warning
@@ -837,7 +838,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		let scriptBody = contents.dropFirst().joined(separator: "\n")
 		let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
 
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 		alert.messageText = String(localized: "Admin rights required")
 		alert.informativeText = String(localized: "Could not obtain admin privileges. Please run the following command in Terminal, then relaunch Caker:")
 
@@ -872,7 +873,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	private static func showPrivilegedInstallationConfirmation() -> Bool {
 		NSApp.setActivationPolicy(.regular)
 
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 
 		alert.messageText = String(localized: "Administrator Access Required")
 		alert.informativeText = String(
@@ -892,7 +893,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		let scriptBody = contents.dropFirst().joined(separator: "\n")
 		let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
 
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 
 		alert.messageText = String(localized: "Manual configuration required")
 		alert.informativeText = String(
@@ -936,7 +937,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		private static func showInstallAgentAlert() {
 			NSApp.setActivationPolicy(.regular)
 
-			let alert = NSAlert()
+			let alert = NSGlassEffectAlert()
 
 			alert.messageText = String(localized: "caked Agent Not Installed")
 			alert.informativeText = String(localized: "The caked background agent is not installed. Would you like to install it now to enable full functionality?")
@@ -985,7 +986,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			return .terminateNow
 		}
 
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 		alert.messageText = String(localized: "Virtual Machines Running")
 		alert.informativeText = String(localized: "Some virtual machines are currently running. Do you want to terminate them and quit?")
 		alert.alertStyle = .warning

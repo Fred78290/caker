@@ -18,17 +18,16 @@ public struct AboutCakerView: View {
 
 	public var body: some View {
 		VStack(spacing: 0) {
-			headerSection
-			mainInfoSection
-			componentsSection
+			headerSection.shadow(radius: 10)
+			mainInfoSection.shadow(radius: 10)
+			componentsSection.shadow(radius: 10)
 			if Bundle.isApplicationSandboxed {
-				sandboxSection
+				sandboxSection.shadow(radius: 10)
 			}
 			creditsSection
 		}
 		.frame(maxWidth: 700)
 		.fixedSize(horizontal: false, vertical: true)
-		.shadow(radius: 10)
 	}
 
 	private var headerSection: some View {
@@ -145,19 +144,19 @@ public struct AboutCakerView: View {
 						Label("Sandbox Limitations", systemImage: "info.circle")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 
 					Button(action: openSandboxLocation) {
 						Label("Locate Sandbox", systemImage: "folder")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 
 					Button(action: openDirectDownload) {
 						Label("Get Direct-Download Build", systemImage: "arrow.down.circle")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 				}
 			}
 		}
@@ -183,25 +182,25 @@ public struct AboutCakerView: View {
 						Label("Licenses", systemImage: "book")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 
 					Button(action: openWebsite) {
 						Label("Documentation", systemImage: "safari")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 
 					Button(action: openGitHub) {
 						Label("Source Code", systemImage: "curlybraces")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 
 					Button(action: reportIssue) {
 						Label("Report Issue", systemImage: "ladybug")
 							.font(.caption)
 					}
-					.buttonStyle(.bordered)
+					.withButtonStyle(.bordered)
 				}
 			}
 		}
@@ -247,7 +246,7 @@ public struct AboutCakerView: View {
 	}
 
 	private func showLicenseInfo() {
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 		alert.messageText = NSLocalizedString(
 			"Caker License",
 			comment: "Title of the license information alert in the About window"

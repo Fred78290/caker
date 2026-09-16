@@ -107,7 +107,7 @@ struct RemoteDetailView: View {
 										.frame(width: 16, height: 16)
 								}
 							}
-							.buttonStyle(.borderless)
+							.withButtonStyle(.borderless)
 							.controlSize(.small)
 						} else {
 							Text(ByteCountFormatter.string(fromByteCount: Int64(image.size), countStyle: .file))
