@@ -26,10 +26,6 @@ public struct VMView: NSViewRepresentable {
 		vzMachineView.capturesSystemKeys = true
 		//vzMachineView.showsHostCursor = false
 
-		if vzMachineView.framebuffer == nil {
-			fatalError("No framebuffer")
-		}
-
 		return vzMachineView
 	}
 
