@@ -51,9 +51,14 @@ public struct VMBuilder {
 		let imageURL = URL(spaced: options.image)!
 		var config: CakeConfig! = nil
 		var attachedDisks = options.attachedDisks
+		var password = options.password
 
 		defer {
 			location.removePID()
+		}
+
+		if password == nil && (imageSource == .ipsw || imageSource == .iso) {
+			password = "admin"
 		}
 
 		// Create config
@@ -78,7 +83,7 @@ public struct VMBuilder {
 					os: .darwin,
 					autostart: options.autostart,
 					configuredUser: options.user,
-					configuredPassword: options.password,
+					configuredPassword: password,
 					configuredGroup: options.mainGroup,
 					configuredGroups: options.otherGroup,
 					configuredPlatform: .unknown,
@@ -131,7 +136,7 @@ public struct VMBuilder {
 					os: .linux,
 					autostart: options.autostart,
 					configuredUser: options.user,
-					configuredPassword: options.password,
+					configuredPassword: password,
 					configuredGroup: options.mainGroup,
 					configuredGroups: options.otherGroup,
 					configuredPlatform: SupportedPlatform(rawValue: options.image),
@@ -193,7 +198,7 @@ public struct VMBuilder {
 				let cloudInit = try CloudInit(
 					plateform: SupportedPlatform(rawValue: options.image),
 					userName: options.user,
-					password: options.password,
+					password: password,
 					mainGroup: options.mainGroup,
 					otherGroups: options.otherGroup,
 					clearPassword: options.clearPassword,

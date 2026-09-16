@@ -226,7 +226,7 @@ public struct BuildOptions: ParsableArguments {
 		screenSize: ViewSize = .standard,
 		attachedDisks: [DiskAttachement] = [],
 		user: String = "admin",
-		password: String? = "nil",
+		password: String? = "admin",
 		mainGroup: String = "admin",
 		otherGroups: [String] = ["sudo"],
 		clearPassword: Bool = false,
