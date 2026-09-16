@@ -6,6 +6,7 @@ import Foundation
 import Metal
 import Network
 import QuartzCore
+import CakeAgentLib
 import NIOCore
 
 public protocol VZVNCServer {

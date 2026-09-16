@@ -78,7 +78,7 @@ struct SocketsDetailView: View {
 				HStack {
 					Button(action: chooseSocketFile) {
 						Image(systemName: "powerplug")
-					}.buttonStyle(.borderless)
+					}.withButtonStyle(.borderless)
 					TextField("Host path", text: $currentItem.bind)
 						.rounded(.leading)
 				}.frame(width: 350)

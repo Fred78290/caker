@@ -178,7 +178,7 @@ struct HostVirtualMachineView: View {
 					ToolbarItemGroup(placement: .navigation) {
 						GlossyCircle(color: Self.vmStatusColor(document.status))
 							.frame(width: 11, height: 11)
-
+							.padding(6)
 						powerButton
 
 						Button("Pause", systemImage: "pause") {

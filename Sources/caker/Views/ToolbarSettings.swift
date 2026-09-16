@@ -106,7 +106,7 @@ struct ToolbarSettingLabelStyle: LabelStyle {
 					.frame(minWidth: 65, maxWidth: .infinity, minHeight: 45, maxHeight: 45)
 			}
 			.frame(minWidth: 65, maxWidth: .infinity, minHeight: 45, maxHeight: 45)
-			.padding(0)
+			.padding(4)
 			.cornerRadius(6)
 			.fixedSize(horizontal: false, vertical: true)
 		}
@@ -125,7 +125,7 @@ struct ToolbarSettingLabelStyle: LabelStyle {
 							.font(.subheadline)
 					}
 					.frame(minWidth: 65, maxWidth: .infinity, minHeight: 45, maxHeight: 45)
-					.padding(0)
+					.padding(4)
 					.cornerRadius(6)
 					.fixedSize(horizontal: false, vertical: true)
 					.glassEffect(self.glassEffect, in: RoundedRectangle(cornerRadius: 6))

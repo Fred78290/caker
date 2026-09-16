@@ -31,16 +31,18 @@ struct CreateTemplateView: View {
 			}
 		)
 		.disabled(templateName.isEmpty || AppState.shared.templateExists(name: templateName))
+		.withButtonStyle(.bordered)
 		.onChange(of: templateResult) { _, newValue in
 			isCreateTemplatFailed(templateResult: newValue)
 		}
 
 		Button("Cancel", role: .cancel, action: {})
+			.withButtonStyle(.borderedProminent)
 	}
 
 	private func isCreateTemplatFailed(templateResult: CreateTemplateReply?) {
 		if let templateResult = templateResult, templateResult.created == false {
-			let alert = NSAlert()
+			let alert = NSGlassEffectAlert()
 
 			alert.messageText = String(localized: "Failed to create template")
 			alert.informativeText = templateResult.reason ?? String(localized: "Internal error")

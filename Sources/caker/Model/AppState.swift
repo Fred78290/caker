@@ -661,7 +661,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 
 	func createTemplate(document vm: VirtualMachineDocument) {
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
 
 		alert.messageText = String(localized: "Create template")
@@ -690,7 +690,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 
 	func duplicateVirtualMachine(document vm: VirtualMachineDocument) {
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
 
 		alert.messageText = String(localized: "Duplicate virtual machine")
@@ -781,7 +781,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 
 	func deleteVirtualMachine(document vm: VirtualMachineDocument) {
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 
 		alert.messageText = String(localized: "Delete virtual machine")
 		alert.informativeText = String(localized: "Are you sure you want to delete \(vm.name)? This action cannot be undone.")
@@ -812,7 +812,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 
 	func deleteNetwork(name: String) {
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 
 		alert.messageText = String(localized: "Delete network")
 		alert.informativeText = String(localized: "Are you sure you want to delete network \(name)? This action cannot be undone.")
@@ -834,7 +834,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 
 	func duplicateTemplate(name: String) {
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
 
 		alert.messageText = String(localized: "Clone template")
@@ -864,7 +864,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 
 	func deleteTemplate(name: String) {
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 
 		alert.messageText = String(localized: "Delete template")
 		alert.informativeText = String(localized: "Are you sure you want to delete template \(name)? This action cannot be undone.")
@@ -890,7 +890,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	}
 
 	func deleteRemote(name: String) {
-		let alert = NSAlert()
+		let alert = NSGlassEffectAlert()
 
 		alert.messageText = String(localized: "Delete remote")
 		alert.informativeText = String(localized: "Are you sure you want to delete remote \(name)? This action cannot be undone.")

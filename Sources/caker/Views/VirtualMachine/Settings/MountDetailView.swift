@@ -81,7 +81,7 @@ struct MountDetailView: View {
 				HStack {
 					Button(action: chooseFolder) {
 						Image(systemName: "folder")
-					}.buttonStyle(.borderless)
+					}.withButtonStyle(.borderless)
 
 					TextField("Host path", text: $currentItem.source)
 						.rounded(.leading)

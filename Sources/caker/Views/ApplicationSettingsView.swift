@@ -117,7 +117,7 @@ private struct AppearanceTile: View {
 					.foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
 			}
 		}
-		.buttonStyle(.plain)
+		.withButtonStyle(.plain)
 	}
 
 	private var thumbnailBackground: Color {

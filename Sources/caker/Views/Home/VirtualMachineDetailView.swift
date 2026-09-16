@@ -93,7 +93,7 @@ struct VirtualMachineDetailView: View {
 					Image(systemName: HostVirtualMachineView.vmActionIcon(self.vm.status))
 						.font(.system(size: 14, weight: .medium))
 				}
-				.buttonStyle(.borderless)
+				.withButtonStyle(.borderless)
 				.labelsHidden()
 
 				Menu {
