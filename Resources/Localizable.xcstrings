@@ -3468,6 +3468,17 @@
         }
       }
     },
+    "Debian 12+ ISO images no longer allow the default user 'admin'. Please use '--user <username>' to specify a different username." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les images ISO Debian 12+ n'autorisent plus l'utilisateur par défaut 'admin'. Veuillez utiliser '--user <username>' pour spécifier un nom d'utilisateur différent."
+          }
+        }
+      }
+    },
     "default" : {
       "localizations" : {
         "fr" : {
