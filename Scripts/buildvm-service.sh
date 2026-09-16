@@ -5,23 +5,13 @@ set -e
 
 # Help tool to inspect the disk image
 # qemu-img convert -p -f raw -O vmdk ~/.cake/vms/opensuse/disk.img ~/Virtual\ Machines.localized/ubuntu-desktop.vmwarevm/linux.vmdk
-
+CMD=cakectl
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PKGDIR="${PROJECT_ROOT}/dist/Caker.app"
-
-BUILDDIR="${PROJECT_ROOT}/.build/debug"
-BINARYDIR="${PROJECT_ROOT}/.build/debug"
-RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
-ASSETS="${BUILDDIR}/assets"
 
 if [ -z "${VMNAME}" ]; then
     VMNAME=linux
 fi
-
-/usr/bin/swift build -Xswiftc -D -Xswiftc SPARKLE
-
-source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
 DISK_SIZE=20
@@ -39,7 +29,7 @@ fi
 
 case ${VMNAME} in
     ubuntu*)
-        CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-${ARCH1}.img
+        CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-${ARCH1}.img
         ;;
     plucky*)
         CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-${ARCH1}.img
@@ -54,7 +44,7 @@ case ${VMNAME} in
     opensuse*)
         CLOUD_IMAGE=https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.${ARCH2}-NoCloud.qcow2
         MAINGROUP=root
-        NETIFNAMES=false
+        NETIFNAMES=true
         ;;
     fedora*)
         CLOUD_IMAGE=https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/${ARCH2}/images/Fedora-Cloud-Base-Generic-42-1.1.${ARCH2}.qcow2
@@ -65,12 +55,11 @@ case ${VMNAME} in
 esac
 
 #LXD_IMAGE=images:ubuntu/noble/cloud
-LXD_IMAGE=ubuntu:noble
+LXD_IMAGE=ubuntu:resolute
 #LXD_IMAGE=images:fedora/41/cloud
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
 DOCKER=NO
-CMD="${PKGDIR}/Contents/PlugIns/caked.bundle/Contents/MacOS/cakectl"
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
 
@@ -143,7 +132,7 @@ write_files:
           echo "openstack-dev-k3s-worker-\${SUFFIX}" > /etc/hostname
       fi
 
-      if [ "${DOCKER}" == "YES" ]; then
+      if [ "${DOCKER}" = "YES" ]; then
         if test -n "\$(command -v curl)"
         then
             curl -fsSL https://get.docker.com | sh -
@@ -190,17 +179,17 @@ EOF
 fi
 
 COMMON_OPTIONS="--autostart --user admin --password admin --main-group=${MAINGROUP} --clear-password --display-refit --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=${HOME}/.ssh/id_rsa.pub --cloud-init=/tmp/user-data.yaml"
-NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --network=en0 --network=shared --network=host --console=file"
-NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --network=en0 --console=file"
+NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --bridged --network=shared --network=host --console=file"
+NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=host --bridged --console=file"
 MOUNT_OPTIONS="--mount=~/Projects --mount=~/Downloads"
 
 if [ "${DOCKER}" == "YES" ]; then
   FORWARDS_OPTIONS="--dynamic-port-forwarding --publish 2222:22/tcp --publish tcp:~/.docker/run/docker.sock:/var/run/docker.sock"
 else
-  FORWARDS_OPTIONS=""
+  FORWARDS_OPTIONS="--dynamic-port-forwarding --publish 2222:22/tcp"
 fi
 
-"${CMD}" delete ${VMNAME} 
+"${CMD}" delete ${VMNAME}
 
 if [ -z "${CLOUD_IMAGE}" ]; then
     BUILD_OPTIONS="${COMMON_OPTIONS} ${NETWORKS_OPTIONS} ${FORWARDS_OPTIONS} ${MOUNT_OPTIONS} "
@@ -209,6 +198,3 @@ else
     BUILD_OPTIONS="${COMMON_OPTIONS} ${NETWORKS_OPTIONS} ${MOUNT_OPTIONS}"
     "${CMD}" build ${VMNAME} ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
 fi
-
-#"${CMD}" launch ${VMNAME}  ${BUILD_OPTIONS} ${OCI_IMAGE}
-#"${CMD}" waitip ${VMNAME}  --wait 60

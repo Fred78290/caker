@@ -1,6 +1,9 @@
 {
 	"files.exclude": {
 		"**/.build": true,
+		"**/.appstore": true,
+		"**/.release": true,
+		"**/.debug": true,
 		"DerivedData": true,
 		".swiftpm": true,
 		"actions-runner": true,

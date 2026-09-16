@@ -19,8 +19,8 @@ else
 	KEYCHAIN_OPTIONS=
 fi
 
-BUILDDIR="${PROJECT_ROOT}/.build/release"
-BINARYDIR="${PROJECT_ROOT}/.build/universal/release"
+BUILDDIR="${PROJECT_ROOT}/.release/release"
+BINARYDIR="${PROJECT_ROOT}/.release/universal/release"
 RESOURCESDIR="${PROJECT_ROOT}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
 RELEASE=1
@@ -30,7 +30,7 @@ USE_SMAPPSERVICE=0
 mkdir -p ${BINARYDIR}
 
 for FILE in Caker caked cakectl; do
-	lipo -create "${PROJECT_ROOT}/.build/x86_64-apple-macosx/release/${FILE}" "${PROJECT_ROOT}/.build/arm64-apple-macosx/release/${FILE}" -output "${BINARYDIR}/${FILE}"
+	lipo -create "${PROJECT_ROOT}/.release/x86_64-apple-macosx/release/${FILE}" "${PROJECT_ROOT}/.release/arm64-apple-macosx/release/${FILE}" -output "${BINARYDIR}/${FILE}"
 done
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"

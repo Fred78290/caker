@@ -60,6 +60,8 @@ webui/package-lock.json
 webui/webui.zip
 webui/tsconfig.tsbuildinfo
 .appstore/*
+.release/*
+.debug/*
 appstore/*.app
 *.app.dSYM
 *.app.dSYM.zip
