@@ -103,7 +103,12 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	var selectedNetwork: BridgedNetwork? = nil
 	var selectedVirtualMachine: VirtualMachineDocumentState? = nil
 	var documents: VirtualMachineDocumentStates = [:]
-	
+	var virtualMachinesViewMode: VirtualMachinesViewMode = AppState.shared.virtualMachinesViewMode {
+		didSet {
+			AppState.shared.virtualMachinesViewMode = self.virtualMachinesViewMode
+		}
+	}
+
 	static var categories: [Category] = [.virtualMachine, .networks, .templates, .images]
 
 	init(selectedCategory: Category = .virtualMachine) {
@@ -113,8 +118,13 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	func newSelectedCategory(_ category: Category) {
 		switch category {
 		case .virtualMachine:
-			self.navigationSplitViewColumn = .detail
-			self.navigationSplitViewVisibility = .doubleColumn
+			if self.virtualMachinesViewMode == .list {
+				self.navigationSplitViewColumn = .sidebar
+				self.navigationSplitViewVisibility = .all
+			} else {
+				self.navigationSplitViewColumn = .detail
+				self.navigationSplitViewVisibility = .doubleColumn
+			}
 		case .networks:
 			self.navigationSplitViewColumn = .sidebar
 			self.navigationSplitViewVisibility = .all

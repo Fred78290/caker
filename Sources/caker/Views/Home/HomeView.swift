@@ -19,7 +19,6 @@ struct HomeView: View {
 	@State private var mustShowDetailView: Bool = true
 	@State private var window: NSWindow? = nil
 	@State private var selectedCategory: Category = .virtualMachine
-	@AppStorage("VirtualMachinesViewMode") private var virtualMachinesViewMode: VirtualMachinesViewMode = .mosaic
 
 	init(navigationModel: NavigationModel) {
 		self.navigationModel = navigationModel
@@ -61,7 +60,7 @@ struct HomeView: View {
 
 				if self.selectedCategory == .virtualMachine {
 					ToolbarItem(placement: .automatic) {
-						Picker("View mode", selection: $virtualMachinesViewMode) {
+						Picker("View mode", selection: $navigationModel.virtualMachinesViewMode) {
 							ForEach(VirtualMachinesViewMode.allCases) { mode in
 								Image(systemName: mode.iconName)
 									.help(mode.label)
@@ -193,7 +192,7 @@ struct HomeView: View {
 		guard self.selectedCategory != .virtualMachine else {
 			// Mosaic mode already shows a live screenshot/status on every tile, so the detail
 			// column only makes sense once the VM collection is shown as a plain list.
-			return self.virtualMachinesViewMode == .list
+			return self.navigationModel.virtualMachinesViewMode == .list
 		}
 
 		return true
@@ -203,7 +202,7 @@ struct HomeView: View {
 	var showDetailView: Bool {
 		switch self.selectedCategory {
 		case .virtualMachine:
-			guard self.virtualMachinesViewMode == .list, navigationModel.selectedVirtualMachine != nil else {
+			guard self.navigationModel.virtualMachinesViewMode == .list, navigationModel.selectedVirtualMachine != nil else {
 				return false
 			}
 		case .networks:
@@ -232,7 +231,7 @@ struct HomeView: View {
 		case .networks:
 			return nil
 		case .virtualMachine:
-			guard self.virtualMachinesViewMode == .mosaic else {
+			guard self.navigationModel.virtualMachinesViewMode == .mosaic else {
 				return nil
 			}
 
@@ -249,7 +248,7 @@ struct HomeView: View {
 		case .networks:
 			return 200
 		case .virtualMachine:
-			guard self.virtualMachinesViewMode == .mosaic else {
+			guard self.navigationModel.virtualMachinesViewMode == .mosaic else {
 				return 240
 			}
 
