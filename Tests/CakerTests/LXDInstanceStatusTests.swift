@@ -9,7 +9,10 @@ import XCTest
 /// up as plain "Stopped" in the webui's instance list/dashboard.
 final class LXDInstanceStatusTests: XCTestCase {
 	private func makeInfo(state: String) -> VirtualMachineInfo {
-		VirtualMachineInfo(name: "test-vm", screenSize: nil, state: state, created: nil, updated: nil, lastUsed: nil)
+		var info = Caked_VirtualMachineInfo()
+		info.name = "test-vm"
+		info.state = state
+		return VirtualMachineInfo(info)
 	}
 
 	func testProvisioningStateMapsToProvisioningStatus() {
