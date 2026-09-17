@@ -15,6 +15,14 @@ struct LXDOperationsController: RouteCollection {
 	let group: EventLoopGroup
 	let runMode: Utils.RunMode
 
+	// The gRPC server's own registry of long-running tasks (build/launch/provision triggered
+	// via `cakectl`, not the REST API) — see `CakedProvider.runningTasks`. `listOperations`/
+	// `getOperation`/`deleteOperation` merge this in alongside `LXDOperationStore` so a REST/
+	// webui client sees gRPC-initiated work too, not just REST-initiated work. Unlike
+	// `LXDOperationStore`'s entries, these are never persisted here — they're synthesized fresh
+	// from `provider.listTasks()` on every request.
+	let provider: CakedProvider
+
 	func boot(routes: any RoutesBuilder) throws {
 		let operations = routes.grouped("1.0", "operations")
 		operations.get(use: listOperations)
@@ -31,47 +39,80 @@ struct LXDOperationsController: RouteCollection {
 	@Sendable
 	func listOperations(req: Request) async throws -> Response {
 		let recursion = (req.query[Int.self, at: "recursion"] ?? 0) != 0
+		let taskEntries = self.provider.listTasks().tasks.list.tasks
 
 		if recursion {
-			let operations = await LXDOperationStore.shared.list()
+			var operations = await LXDOperationStore.shared.list()
+
+			operations.append(contentsOf: taskEntries.map(LXDOperationMetadata.from(taskEntry:)))
 
 			return try await LXDResponse<[LXDOperationMetadata]>.syncList(operations).encodeResponse(for: req)
 		}
 
-		let urls = await LXDOperationStore.shared.listURLs()
+		var urls = await LXDOperationStore.shared.listURLs()
+
+		urls.append(contentsOf: taskEntries.map { "/1.0/operations/\($0.id.lowercased())" })
+
 		return try await LXDResponse<LXDStringListMetadata>.syncList(urls).encodeResponse(for: req)
 	}
 
 	// GET /1.0/operations/:id
 	@Sendable
 	func getOperation(req: Request) async throws -> Response {
-		guard let id = req.parameters.get("id") else {
+		guard let rawID = req.parameters.get("id") else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing operation id", code: 400)
 				.encodeResponse(status: .badRequest, for: req)
 		}
 
-		guard let operation = await LXDOperationStore.shared.get(id: id) else {
-			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Operation '\(id)' not found", code: 404)
-				.encodeResponse(status: .notFound, for: req)
+		// `LXDOperationStore` keys are lowercased UUID strings (see `LXDOperationStore.create()`) —
+		// lowercase here so an uppercased UUID in the URL still resolves, instead of only matching
+		// by accident and incorrectly falling through to the gRPC task registry below.
+		let id = rawID.lowercased()
+
+		if let operation = await LXDOperationStore.shared.get(id: id) {
+			return try await LXDResponse<LXDOperationMetadata>.sync(operation).encodeResponse(for: req)
 		}
 
-		return try await LXDResponse<LXDOperationMetadata>.sync(operation).encodeResponse(for: req)
+		if let taskEntry = self.provider.listTasks().tasks.list.tasks.first(where: { $0.id.caseInsensitiveCompare(id) == .orderedSame }) {
+			return try await LXDResponse<LXDOperationMetadata>.sync(LXDOperationMetadata.from(taskEntry: taskEntry)).encodeResponse(for: req)
+		}
+
+		return try await LXDResponse<LXDEmptyMetadata>.error(message: "Operation '\(id)' not found", code: 404)
+			.encodeResponse(status: .notFound, for: req)
 	}
 
 	// DELETE /1.0/operations/:id (cancel)
 	@Sendable
 	func deleteOperation(req: Request) async throws -> Response {
-		guard let id = req.parameters.get("id") else {
+		guard let rawID = req.parameters.get("id") else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing operation id", code: 400)
 				.encodeResponse(status: .badRequest, for: req)
 		}
 
-		guard let deleted = await LXDOperationStore.shared.delete(id: id) else {
-			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Operation '\(id)' not found", code: 404)
-				.encodeResponse(status: .notFound, for: req)
+		// Same case-insensitivity fix as `getOperation` above: `LXDOperationStore` keys are always
+		// lowercased, so an uppercased UUID in the URL must be lowercased here too, or it will
+		// never be found in the store and will incorrectly fall through to `provider.cancelTask`.
+		let id = rawID.lowercased()
+
+		if let deleted = await LXDOperationStore.shared.delete(id: id) {
+			await deleted.cancel()
+
+			return try await LXDResponse<LXDEmptyMetadata>(
+				type: "sync", status: "Success", statusCode: 200,
+				operation: "", errorCode: 0, error: "", metadata: nil
+			).encodeResponse(for: req)
 		}
 
-		await deleted.cancel()
+		// Not a REST-tracked operation — fall back to the gRPC task registry, the same one
+		// `cakectl tasks cancel <id>` targets.
+		let reply = self.provider.cancelTask(id: id)
+
+		guard reply.tasks.cancelled.success else {
+			let message = reply.tasks.cancelled.hasReason ? reply.tasks.cancelled.reason : "Operation '\(id)' not found"
+
+			return try await LXDResponse<LXDEmptyMetadata>.error(message: message, code: 404)
+				.encodeResponse(status: .notFound, for: req)
+		}
 
 		return try await LXDResponse<LXDEmptyMetadata>(
 			type: "sync", status: "Success", statusCode: 200,
@@ -130,5 +171,46 @@ struct LXDOperationsController: RouteCollection {
 
 		// Hold the WebSocket open until the server-side runner closes it.
 		try? await ws.onClose.get()
+	}
+}
+
+extension LXDOperationMetadata {
+	/// Converts one entry from `CakedProvider.listTasks()` (a gRPC-initiated build/launch/
+	/// provision task tracked in `CakedProvider.runningTasks`) into a synthesized
+	/// `LXDOperationMetadata`, so it can be merged into `GET /1.0/operations`'/`GET /1.0/
+	/// operations/:id`'s responses alongside `LXDOperationStore`'s own REST-initiated
+	/// operations. This is never stored in `LXDOperationStore` — it's rebuilt fresh from the
+	/// gRPC registry on every request, so there's nothing to keep in sync between the two
+	/// stores.
+	static func from(taskEntry: Caked_Reply.TaskReply.TaskEntry) -> LXDOperationMetadata {
+		// `CakedProvider.runningTasks` doesn't track when a task actually started, so both
+		// timestamps are approximated as "now" rather than a real creation time.
+		let now = ISO8601DateFormatter().string(from: Date())
+
+		// Best-effort: titles are currently always "<verb> <name>" (e.g. "build myvm"), so
+		// splitting on the first space recovers the instance name for LXD-client compatibility.
+		// A title that doesn't split into exactly two non-empty parts (none today, but titles
+		// aren't guaranteed to stay two words forever) just gets no `resources` entry.
+		var resources: [String: [String]] = [:]
+		let parts = taskEntry.title.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
+
+		if parts.count == 2 {
+			resources = ["instances": ["/1.0/instances/\(parts[1])"]]
+		}
+
+		return LXDOperationMetadata(
+			id: taskEntry.id.lowercased(),
+			type: "task",
+			description: taskEntry.title,
+			createdAt: now,
+			updatedAt: now,
+			status: "Running",
+			statusCode: 103,
+			resources: resources,
+			metadata: nil,
+			mayCancel: true,
+			error: "",
+			cancellable: nil
+		)
 	}
 }
