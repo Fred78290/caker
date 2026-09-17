@@ -64,6 +64,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	case networks
 	case images
 	case templates
+	case tasks
 
 	var id: Self { self }
 	var iconName: String {
@@ -76,6 +77,8 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 			return "network"
 		case .virtualMachine:
 			return "display"
+		case .tasks:
+			return "hourglass"
 		}
 	}
 
@@ -89,6 +92,8 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 			return "Networks"
 		case .virtualMachine:
 			return "Virtual machines"
+		case .tasks:
+			return "Tasks"
 		}
 	}
 }
@@ -109,7 +114,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 		}
 	}
 
-	static var categories: [Category] = [.virtualMachine, .networks, .templates, .images]
+	static var categories: [Category] = [.virtualMachine, .networks, .templates, .images, .tasks]
 
 	init(selectedCategory: Category = .virtualMachine) {
 		self.newSelectedCategory(selectedCategory)
@@ -132,6 +137,9 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 			self.navigationSplitViewColumn = .sidebar
 			self.navigationSplitViewVisibility = .all
 		case .images:
+			self.navigationSplitViewColumn = .sidebar
+			self.navigationSplitViewVisibility = .all
+		case .tasks:
 			self.navigationSplitViewColumn = .sidebar
 			self.navigationSplitViewVisibility = .all
 		}

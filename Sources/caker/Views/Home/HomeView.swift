@@ -42,6 +42,9 @@ struct HomeView: View {
 			return network.usedBy != 0 || [.nat, .bridged].contains(network.mode)
 		case .images:
 			return navigationModel.selectedRemote == nil
+		case .tasks:
+			// Cancellation is done per-row via context menu, not the toolbar Delete button.
+			return true
 		}
 	}
 
@@ -55,7 +58,7 @@ struct HomeView: View {
 
 					Button("Plus", systemImage: "plus") {
 						self.actionPlus()
-					}.disabled(self.selectedCategory == .templates)
+					}.disabled(self.selectedCategory == .templates || self.selectedCategory == .tasks)
 				}
 
 				if self.selectedCategory == .virtualMachine {
@@ -179,6 +182,8 @@ struct HomeView: View {
 				navigationModel.selectedRemote = nil
 			case .templates:
 				navigationModel.selectedTemplate = nil
+			case .tasks:
+				break
 			}
 		}
 
@@ -193,6 +198,11 @@ struct HomeView: View {
 			// Mosaic mode already shows a live screenshot/status on every tile, so the detail
 			// column only makes sense once the VM collection is shown as a plain list.
 			return self.navigationModel.virtualMachinesViewMode == .list
+		}
+
+		// A task entry (id + title) is too sparse to warrant its own detail column.
+		guard self.selectedCategory != .tasks else {
+			return false
 		}
 
 		return true
@@ -217,6 +227,8 @@ struct HomeView: View {
 			guard navigationModel.selectedTemplate != nil else {
 				return false
 			}
+		case .tasks:
+			return false
 		}
 
 		return mustShowDetailView
@@ -229,6 +241,8 @@ struct HomeView: View {
 		case .templates:
 			return nil
 		case .networks:
+			return nil
+		case .tasks:
 			return nil
 		case .virtualMachine:
 			guard self.navigationModel.virtualMachinesViewMode == .mosaic else {
@@ -247,6 +261,8 @@ struct HomeView: View {
 			return 200
 		case .networks:
 			return 200
+		case .tasks:
+			return 200
 		case .virtualMachine:
 			guard self.navigationModel.virtualMachinesViewMode == .mosaic else {
 				return 240
@@ -264,6 +280,8 @@ struct HomeView: View {
 			return 400
 		case .networks:
 			return 450
+		case .tasks:
+			return 400
 		case .virtualMachine:
 			return 340
 		}
@@ -277,14 +295,24 @@ struct HomeView: View {
 			return 200
 		case .networks:
 			return 200
+		case .tasks:
+			return 200
 		case .virtualMachine:
 			return (VirtualMachinesView.cellWidth + VirtualMachinesView.cellSpacing * 2) * max(1, min(3, CGFloat(self.navigationModel.documents.count)))
 		}
 	}
 
+	/// `NavigationModel.categories` itself stays the full static list (other code may reference it
+	/// generically) — the `.tasks` category is filtered out here instead, only when there's no
+	/// separate `caked` process to have tasks in (`.app` connection mode, i.e. VMs running embedded
+	/// in-process). See `TasksHandler`'s doc comment for why there's no `.app`-mode fallback for it.
+	var visibleCategories: [Category] {
+		NavigationModel.categories.filter { $0 != .tasks || self.appState.connectionMode != .app }
+	}
+
 	@ViewBuilder
 	var sidebar: some View {
-		SideBarView(categories: NavigationModel.categories, selectedCategory: $selectedCategory)
+		SideBarView(categories: self.visibleCategories, selectedCategory: $selectedCategory)
 			.frame(minWidth: 200, maxWidth: 200)
 			.navigationSplitViewColumnWidth(200)
 			.navigationSplitViewStyle(.prominentDetail)
@@ -312,6 +340,8 @@ struct HomeView: View {
 				NetworksView(navigationModel: navigationModel)
 			case .virtualMachine:
 				VirtualMachinesView(navigationModel: navigationModel, columns: VirtualMachinesView.buildColumns(geometry.size))
+			case .tasks:
+				TasksView()
 			}
 		}.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
 	}
@@ -372,6 +402,8 @@ struct HomeView: View {
 				} else {
 					EmptyView()
 				}
+			case .tasks:
+				EmptyView()
 			}
 		}
 		.navigationSplitViewColumnWidth(min: self.idealDetailSize, ideal: self.idealDetailSize, max: self.idealDetailSize)
@@ -421,6 +453,10 @@ struct HomeView: View {
 				self.appState.deleteTemplate(name: selectedTemplate.name)
 				navigationModel.selectedTemplate = nil
 			}
+		case .tasks:
+			// Cancellation is done per-row via TasksView's own context menu, not this toolbar button
+			// (see deleteButtonDisabled, which keeps it disabled for this category).
+			break
 		}
 	}
 
@@ -433,6 +469,8 @@ struct HomeView: View {
 		case .images:
 			self.presented = true
 		case .templates:
+			self.presented = false
+		case .tasks:
 			self.presented = false
 		}
 	}
