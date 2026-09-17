@@ -121,7 +121,7 @@ final class CakedProviderCancellationTests: XCTestCase {
 		// Give `executeCancellable` a moment to register the task before listing.
 		try await Task.sleep(nanoseconds: 200_000_000)
 
-		let reply = provider.listTasks()
+		let reply = await provider.listTasks()
 
 		XCTAssertEqual(reply.tasks.list.tasks.count, 1)
 		XCTAssertEqual(reply.tasks.list.tasks.first?.title, "build my-vm")
@@ -152,10 +152,10 @@ final class CakedProviderCancellationTests: XCTestCase {
 
 		try await Task.sleep(nanoseconds: 200_000_000)
 
-		let listed = provider.listTasks()
+		let listed = await provider.listTasks()
 		let targetEntry = try XCTUnwrap(listed.tasks.list.tasks.first { $0.title == "target" })
 
-		let cancelReply = provider.cancelTask(id: targetEntry.id)
+		let cancelReply = await provider.cancelTask(id: targetEntry.id)
 
 		XCTAssertTrue(cancelReply.tasks.cancelled.success)
 
@@ -174,7 +174,7 @@ final class CakedProviderCancellationTests: XCTestCase {
 
 		let provider = try CakedProvider(group: group, password: nil, runMode: .user)
 
-		let reply = provider.cancelTask(id: UUID().uuidString)
+		let reply = await provider.cancelTask(id: UUID().uuidString)
 
 		XCTAssertFalse(reply.tasks.cancelled.success)
 		XCTAssertTrue(reply.tasks.cancelled.hasReason)
@@ -189,7 +189,7 @@ final class CakedProviderCancellationTests: XCTestCase {
 
 		let provider = try CakedProvider(group: group, password: nil, runMode: .user)
 
-		let reply = provider.cancelTask(id: "not-a-uuid")
+		let reply = await provider.cancelTask(id: "not-a-uuid")
 
 		XCTAssertFalse(reply.tasks.cancelled.success)
 		XCTAssertTrue(reply.tasks.cancelled.hasReason)
