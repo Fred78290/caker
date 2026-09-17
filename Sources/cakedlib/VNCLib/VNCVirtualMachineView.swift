@@ -47,16 +47,16 @@ extension NSView {
 		public let text: String
 		public let box: CGRect
 	}
-	
+
 	@MainActor
 	public func captureImageOCR() -> (pngData: Data, imageSize: CGSize)? {
 		guard let nsImage = self.image(), let pngData = nsImage.pngData else {
 			return nil
 		}
-		
+
 		return (pngData, nsImage.size)
 	}
-	
+
 	/// Uses Vision framework to recognize text in the view's current image representation.
 	/// Box is in NSView coordinates (origin at bottom-left, y increases towards).
 	///
@@ -70,30 +70,30 @@ extension NSView {
 		guard let capture = self.captureImageOCR() else {
 			return nil
 		}
-		
+
 		// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
 		let semaphore = DispatchSemaphore(value: 0)
 		var result: (CGSize, [RecognizedText])?
-		
+
 		// The CGImage and view might differ in size, so scale accordingly
 		let viewHeight = self.bounds.height
 		let viewWidth = self.bounds.width
 		let scaleX = viewWidth / CGFloat(capture.imageSize.width)
 		let scaleY = viewHeight / CGFloat(capture.imageSize.height)
-		
+
 		DispatchQueue.global(qos: .utility).async {
 			defer { semaphore.signal() }
-			
+
 			let request = VNRecognizeTextRequest()
 			request.recognitionLevel = .accurate
-			
+
 			do {
 				try VNImageRequestHandler(data: capture.pngData, options: [:]).perform([request])
-				
+
 				guard let results = request.results, results.isEmpty == false else {
 					return
 				}
-				
+
 				result = (
 					CGSize(width: capture.imageSize.width, height: capture.imageSize.height),
 					results.compactMap { observation in
@@ -104,10 +104,10 @@ extension NSView {
 								y: box.origin.y * scaleY,
 								width: box.width * scaleX,
 								height: box.height * scaleY)
-							
+
 							return RecognizedText(text: candidate.string, box: flippedBox)
 						}
-						
+
 						return nil
 					}
 				)
@@ -115,38 +115,38 @@ extension NSView {
 				Logger(self).error("Vision OCR failed: \(error)")
 			}
 		}
-		
+
 		semaphore.wait()
-		
+
 		return result
 	}
-	
+
 	@objc public var cursor: NSCursor? {
 		return nil
 	}
-	
+
 	@MainActor
 	public func viewRelativePosition(of event: NSEvent) -> CGPoint {
 		viewRelativePosition(of: event.locationInWindow)
 	}
-	
+
 	@MainActor
 	public func viewRelativePosition(of location: NSPoint) -> CGPoint {
 		var position = convert(location, from: nil)
 		position.y = bounds.size.height - position.y
-		
+
 		return position
 	}
-	
+
 	@MainActor
 	public func windowRelativePosition(of point: CGPoint) -> CGPoint {
 		var position = point
-		
+
 		position.y = bounds.size.height - position.y
-		
+
 		return convert(position, to: nil)
 	}
-	
+
 	@MainActor
 	public func currentCursorPositionInView() -> NSPoint? {
 		guard let window = self.window else { return nil }
@@ -208,23 +208,24 @@ extension NSView {
 		VNCVirtualMachineView.swizzled = true
 	}
 
-	var vncFrameBufferObserver: VNCFramebufferObserver? {
-
-		guard let field = class_getInstanceVariable(type(of: self), "_superview") else {
-			return nil
+	func doVncFrameBufferObserver(_ handler: @escaping (VNCFramebufferObserver) -> Void) {
+		if Thread.isMainThread {
+			if let value = self.superview as? VNCFramebufferObserver {
+				handler(value)
+			}
+		} else {
+			Task { @MainActor in
+				if let value = self.superview as? VNCFramebufferObserver {
+					handler(value)
+				}
+			}
 		}
-
-		guard let value = object_getIvar(self, field) as? VNCFramebufferObserver else {
-			return nil
-		}
-
-		return value
 	}
 
 	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
 		self.swizzled_framebuffer(framebuffer, didUpdateCursor: cursor)
 
-		if let observer = self.vncFrameBufferObserver {
+		self.doVncFrameBufferObserver { observer in
 			observer.didUpdateCursor(self)
 		}
 	}
@@ -232,17 +233,16 @@ extension NSView {
 	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?) {
 		self.swizzled_framebuffer(framebuffer, didUpdateFrame: frame)
 
-		if let observer = self.vncFrameBufferObserver {
+		self.doVncFrameBufferObserver { observer in
 			observer.didUpdateFrame(self)
 		}
 	}
-
 
 	@available(macOS 27.0, *)
 	@objc func swizzled_presenter(_ presenter: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
 		self.swizzled_presenter(presenter, didUpdateCursor: cursor)
 
-		if let observer = self.vncFrameBufferObserver {
+		self.doVncFrameBufferObserver { observer in
 			observer.didUpdateCursor(self)
 		}
 	}
@@ -251,7 +251,7 @@ extension NSView {
 	@objc func swizzled_presenter(_ presenter: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?) {
 		self.swizzled_presenter(presenter, didUpdateFrame: frame)
 
-		if let observer = self.vncFrameBufferObserver {
+		self.doVncFrameBufferObserver { observer in
 			observer.didUpdateFrame(self)
 		}
 	}
