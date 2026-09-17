@@ -97,7 +97,7 @@ struct TasksView: View {
 		let alert = NSGlassEffectAlert()
 
 		alert.messageText = String(localized: "Cancel task")
-		alert.informativeText = String(localized: "Are you sure you want to cancel \"\(task.title)\"? This action cannot be undone.")
+		alert.informativeText = String(format: String(localized: "Are you sure you want to cancel \"%@\"? This action cannot be undone."), task.title)
 		alert.alertStyle = .critical
 		alert.addButton(withTitle: String(localized: "Cancel Task"))
 		alert.addButton(withTitle: String(localized: "Keep Running"))
