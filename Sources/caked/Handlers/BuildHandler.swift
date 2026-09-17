@@ -12,9 +12,9 @@ struct BuildHandler: CakedCommandAsync {
 	let responseStream: Caked_ResponseBuildStreamReply
 	let handler: () async throws -> Void
 
-	init(provider: CakedProvider, options: BuildOptions, responseStream: Caked_ResponseBuildStreamReply, context: GRPCAsyncServerCallContext, handler: @escaping () async throws -> Void) {
+	init(provider: CakedProvider, options: BuildOptions, responseStream: Caked_ResponseBuildStreamReply, context: GRPCAsyncServerCallContext, handler: @escaping () async throws -> Void) throws {
 		self.responseStream = responseStream
-		self.options = options
+		self.options = try options.resolveImageId()
 		self.handler = handler
 	}
 
@@ -34,7 +34,7 @@ struct BuildHandler: CakedCommandAsync {
 	func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
 		do {
 			let (stream, continuation) = AsyncStream.makeStream(of: ProgressObserver.ProgressValue.self)
-			
+
 			try await withThrowingTaskGroup(of: BuildedReply?.self, returning: Void.self) { group in
 				group.addTask {
 					let result = await CakedLib.BuildHandler.build(options: self.options, runMode: runMode) { progress in
