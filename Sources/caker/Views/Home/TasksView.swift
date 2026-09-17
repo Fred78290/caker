@@ -106,19 +106,21 @@ struct TasksView: View {
 			return
 		}
 
-		do {
-			let result = try TasksHandler.cancelTask(client: AppState.shared.connectionManager.serviceClient, id: task.id)
+		DispatchQueue.global(qos: .utility).async {
+			do {
+				let result = try TasksHandler.cancelTask(client: AppState.shared.connectionManager.serviceClient, id: task.id)
 
-			if result.success {
-				self.refresh()
-			} else {
 				DispatchQueue.main.async {
-					alertError(String(localized: "Cancel failed"), result.reason)
+					if result.success {
+						self.refresh()
+					} else {
+						alertError(String(localized: "Cancel failed"), result.reason)
+					}
 				}
-			}
-		} catch {
-			DispatchQueue.main.async {
-				alertError(error)
+			} catch {
+				DispatchQueue.main.async {
+					alertError(error)
+				}
 			}
 		}
 	}
