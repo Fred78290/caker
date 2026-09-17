@@ -914,7 +914,7 @@ export function InstanceDetailPage() {
           {/* Start/Stop actions */}
           {instance && (
             <div className="ms-3 d-flex gap-2 align-items-center">
-              {instance.status !== 'Running' && (
+              {instance.status !== 'Running' && instance.status !== 'Provisioning' && (
                 <button
                   className="btn btn-outline-success btn-sm"
                   disabled={actionBusy !== null}
@@ -928,7 +928,7 @@ export function InstanceDetailPage() {
                   )}
                 </button>
               )}
-              {instance.status === 'Running' && (
+              {(instance.status === 'Running' || instance.status === 'Provisioning') && (
                 <button
                   className="btn btn-outline-secondary btn-sm"
                   disabled={actionBusy !== null}

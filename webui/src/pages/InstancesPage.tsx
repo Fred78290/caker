@@ -172,7 +172,7 @@ export function InstancesPage() {
                   </td>
                   <td className="text-end" onClick={(e) => e.stopPropagation()}>
                     <div className="btn-group btn-group-sm">
-                      {inst.status !== 'Running' && (
+                      {inst.status !== 'Running' && inst.status !== 'Provisioning' && (
                         <button
                           type="button"
                           className="btn btn-outline-success"
@@ -209,40 +209,40 @@ export function InstancesPage() {
                         </button>
                       )}
                       {inst.status === 'Running' && (
-                        <>
-                          <button
-                            type="button"
-                            className="btn btn-outline-warning"
-                            title="Restart"
-                            disabled={actionBusy !== null}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              doStateChange(inst.name, 'restart')
-                            }}
-                          >
-                            {busy(inst.name, 'restart') ? (
-                              <Spinner size="sm" />
-                            ) : (
-                              <i className="bi bi-arrow-clockwise" />
-                            )}
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline-secondary"
-                            title="Stop"
-                            disabled={actionBusy !== null}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              doStateChange(inst.name, 'stop')
-                            }}
-                          >
-                            {busy(inst.name, 'stop') ? (
-                              <Spinner size="sm" />
-                            ) : (
-                              <i className="bi bi-stop-fill" />
-                            )}
-                          </button>
-                        </>
+                        <button
+                          type="button"
+                          className="btn btn-outline-warning"
+                          title="Restart"
+                          disabled={actionBusy !== null}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            doStateChange(inst.name, 'restart')
+                          }}
+                        >
+                          {busy(inst.name, 'restart') ? (
+                            <Spinner size="sm" />
+                          ) : (
+                            <i className="bi bi-arrow-clockwise" />
+                          )}
+                        </button>
+                      )}
+                      {(inst.status === 'Running' || inst.status === 'Provisioning') && (
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          title="Stop"
+                          disabled={actionBusy !== null}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            doStateChange(inst.name, 'stop')
+                          }}
+                        >
+                          {busy(inst.name, 'stop') ? (
+                            <Spinner size="sm" />
+                          ) : (
+                            <i className="bi bi-stop-fill" />
+                          )}
+                        </button>
                       )}
                       <button
                         type="button"
