@@ -4,6 +4,7 @@ import {
     changeInstanceState,
     deleteInstance,
     listInstances,
+    provisionInstance,
 } from '../api/instances';
 import { waitOperation } from '../api/operations';
 import { ConfirmDialog, openModal } from '../components/ConfirmDialog';
@@ -46,6 +47,18 @@ export function InstancesPage() {
     setActionBusy(name + ':' + action)
     try {
       await changeInstanceState(name, action)
+      setTimeout(() => refresh(false), 1500)
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setActionBusy(null)
+    }
+  }
+
+  const doProvision = async (name: string) => {
+    setActionBusy(name + ':provision')
+    try {
+      await provisionInstance(name)
       setTimeout(() => refresh(false), 1500)
     } catch (e) {
       setError(String(e))
@@ -159,7 +172,7 @@ export function InstancesPage() {
                   </td>
                   <td className="text-end" onClick={(e) => e.stopPropagation()}>
                     <div className="btn-group btn-group-sm">
-                      {inst.status !== 'Running' && (
+                      {inst.status !== 'Running' && inst.status !== 'Provisioning' && (
                         <button
                           type="button"
                           className="btn btn-outline-success"
@@ -177,41 +190,59 @@ export function InstancesPage() {
                           )}
                         </button>
                       )}
+                      {inst.status === 'Stopped' && (
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary"
+                          title="Provision (unattended first-boot setup)"
+                          disabled={actionBusy !== null}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            doProvision(inst.name)
+                          }}
+                        >
+                          {busy(inst.name, 'provision') ? (
+                            <Spinner size="sm" />
+                          ) : (
+                            <i className="bi bi-magic" />
+                          )}
+                        </button>
+                      )}
                       {inst.status === 'Running' && (
-                        <>
-                          <button
-                            type="button"
-                            className="btn btn-outline-warning"
-                            title="Restart"
-                            disabled={actionBusy !== null}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              doStateChange(inst.name, 'restart')
-                            }}
-                          >
-                            {busy(inst.name, 'restart') ? (
-                              <Spinner size="sm" />
-                            ) : (
-                              <i className="bi bi-arrow-clockwise" />
-                            )}
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline-secondary"
-                            title="Stop"
-                            disabled={actionBusy !== null}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              doStateChange(inst.name, 'stop')
-                            }}
-                          >
-                            {busy(inst.name, 'stop') ? (
-                              <Spinner size="sm" />
-                            ) : (
-                              <i className="bi bi-stop-fill" />
-                            )}
-                          </button>
-                        </>
+                        <button
+                          type="button"
+                          className="btn btn-outline-warning"
+                          title="Restart"
+                          disabled={actionBusy !== null}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            doStateChange(inst.name, 'restart')
+                          }}
+                        >
+                          {busy(inst.name, 'restart') ? (
+                            <Spinner size="sm" />
+                          ) : (
+                            <i className="bi bi-arrow-clockwise" />
+                          )}
+                        </button>
+                      )}
+                      {(inst.status === 'Running' || inst.status === 'Provisioning') && (
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          title="Stop"
+                          disabled={actionBusy !== null}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            doStateChange(inst.name, 'stop')
+                          }}
+                        >
+                          {busy(inst.name, 'stop') ? (
+                            <Spinner size="sm" />
+                          ) : (
+                            <i className="bi bi-stop-fill" />
+                          )}
+                        </button>
                       )}
                       <button
                         type="button"

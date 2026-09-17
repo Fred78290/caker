@@ -4,6 +4,7 @@ const STATUS_COLOR: Record<string, string> = {
   Frozen: 'info',
   Starting: 'warning',
   Stopping: 'warning',
+  Provisioning: 'primary',
   Created: 'primary',
   Pending: 'warning',
   Success: 'success',
