@@ -50,6 +50,7 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 		let vmName = self.name
 		let grpcStream = client.grandCentralUpdate(callOptions: .init(timeLimit: .none))
 		let asyncStream = AsyncThrowingStream.makeStream(of: CurrentStatusHandler.CurrentStatusReply.self)
+		var sendEnd = true
 
 		grpcStream.status.whenComplete { result in
 			switch result {
@@ -70,30 +71,27 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 		// Don't start the current status stream if the VM is in provisioning mode
 		if vm.mode == .normal {
 			cancellable = try await CurrentStatusHandler.currentStatus(location: self.vm.location, frequency: frequency, statusStream: asyncStream.continuation, runMode: self.runMode)
-		/*} else if vm.mode == .provisioning {
-			try await grpcStream.sendMessage(
-				.with {
-					$0.status = .provisioning
-					$0.name = self.name
-				}
-			).get()*/
 		}
 
 		self.vm.delegate = self
 		self.stream = asyncStream
 		self.taskQueue = TaskQueue.dispatch {
 			defer {
-				if vm.mode == .provisioning {
-					Task.sync {
-						try? await grpcStream.sendMessage(
-							.with {
-								$0.name = self.name
-								$0.status = .stopped
-							}
-						).get()
+				if sendEnd {
+					if vm.mode == .provisioning {
+						Task.sync {
+							try? await grpcStream.sendMessage(
+								.with {
+									$0.name = self.name
+									$0.status = .stopped
+								}
+							).get()
+						}
 					}
-				}
 
+					try? await grpcStream.sendEnd().get()
+
+				}
 				onclose()
 				cancellable?.cancel()
 
@@ -142,12 +140,11 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 					).get()
 				}
 
-				try? await grpcStream.sendEnd().get()
 			} catch is CancellationError {
 				// Silent
-				try? await grpcStream.sendEnd().get()
 			} catch is GRPCStatusTransformable {
 				// Silent
+				sendEnd = false
 			} catch {
 				self.logger.error("Unexpected error: \(error)")
 			}
