@@ -4,6 +4,7 @@ import {
     changeInstanceState,
     deleteInstance,
     listInstances,
+    provisionInstance,
 } from '../api/instances';
 import { waitOperation } from '../api/operations';
 import { ConfirmDialog, openModal } from '../components/ConfirmDialog';
@@ -46,6 +47,18 @@ export function InstancesPage() {
     setActionBusy(name + ':' + action)
     try {
       await changeInstanceState(name, action)
+      setTimeout(() => refresh(false), 1500)
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setActionBusy(null)
+    }
+  }
+
+  const doProvision = async (name: string) => {
+    setActionBusy(name + ':provision')
+    try {
+      await provisionInstance(name)
       setTimeout(() => refresh(false), 1500)
     } catch (e) {
       setError(String(e))
@@ -174,6 +187,24 @@ export function InstancesPage() {
                             <Spinner size="sm" />
                           ) : (
                             <i className="bi bi-play-fill" />
+                          )}
+                        </button>
+                      )}
+                      {inst.status === 'Stopped' && (
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary"
+                          title="Provision (unattended first-boot setup)"
+                          disabled={actionBusy !== null}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            doProvision(inst.name)
+                          }}
+                        >
+                          {busy(inst.name, 'provision') ? (
+                            <Spinner size="sm" />
+                          ) : (
+                            <i className="bi bi-magic" />
                           )}
                         </button>
                       )}
