@@ -217,7 +217,10 @@ public struct VMBuilder {
 					let vm = try await installIPSW(location: location, config: config, wizardID: id, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
 					defer {
-						vm?.stopServiceForProvisionning()
+						if let vm {
+							vm.stopServiceForProvisionning()
+							vm.stopGrandCentralUpdate()
+						}
 					}
 
 					// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to

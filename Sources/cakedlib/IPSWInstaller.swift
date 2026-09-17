@@ -129,6 +129,21 @@
 			if Bundle.runInCaker {
 				virtualMachine.createVirtualMachineView()
 			} else {
+				if ServiceHandler.isAgentRunning.running {
+					logger.info("Start GCD for VM: \(location.name)")
+
+					Task {
+						do {
+							try await virtualMachine.startGrandCentralUpdate(frequency: 1, runMode: runMode)
+						} catch is CancellationError {
+							// Expected on teardown
+							logger.debug("Cancelled GCD for VM: \(location.name)")
+						} catch {
+							logger.error("Failed to start GCD for VM: \(location.name), error: \(error.localizedDescription)")
+						}
+					}
+				}
+
 				let vncPassword = config.vncPassword ?? UUID().uuidString
 				let vncURL = try virtualMachine.startVncServer(vncPassword: vncPassword, port: 0)
 
