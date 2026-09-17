@@ -85,11 +85,19 @@ struct TasksView: View {
 	}
 
 	private func refresh() {
-		do {
-			self.tasks = try TasksHandler.listTasks(client: AppState.shared.connectionManager.serviceClient)
-			self.loadError = nil
-		} catch {
-			self.loadError = error.localizedDescription
+		DispatchQueue.global(qos: .utility).async {
+			do {
+				let tasks = try TasksHandler.listTasks(client: AppState.shared.connectionManager.serviceClient)
+
+				DispatchQueue.main.async {
+					self.tasks = tasks
+					self.loadError = nil
+				}
+			} catch {
+				DispatchQueue.main.async {
+					self.loadError = error.localizedDescription
+				}
+			}
 		}
 	}
 
