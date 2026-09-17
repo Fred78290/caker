@@ -453,7 +453,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 				$0.tasks = .with {
 					$0.cancelled = .with {
 						$0.success = false
-						$0.reason = String(localized: "No running task with id '\(requestID)'")
+						$0.reason = String(format: String(localized: "No running task with id '%@'"), requestID)
 					}
 				}
 			}
