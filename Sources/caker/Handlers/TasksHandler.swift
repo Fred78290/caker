@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CakedLib
 import GRPCLib
 
 /// Thin gRPC client wrapper around the `ListTasks`/`CancelTask` RPCs (see `CakedProvider.listTasks()`/
