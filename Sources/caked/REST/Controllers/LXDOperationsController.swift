@@ -20,7 +20,17 @@ struct LXDOperationsController: RouteCollection {
 	// `getOperation`/`deleteOperation` merge this in alongside `LXDOperationStore` so a REST/
 	// webui client sees gRPC-initiated work too, not just REST-initiated work. Unlike
 	// `LXDOperationStore`'s entries, these are never persisted here — they're synthesized fresh
-	// from `provider.listTasks()` on every request.
+	// from `provider.nativeRunningTasks()` on every request.
+	//
+	// `listOperations`/`getOperation` deliberately call `provider.nativeRunningTasks()` — the
+	// gRPC-native-only slice — rather than `provider.listTasks()`, which now *also* merges in
+	// `LXDOperationStore`'s own entries (see `CakedProvider.listTasks()`'s doc comment). Calling
+	// the merged method here would double-list every REST-initiated Running operation: once from
+	// this controller's own `LXDOperationStore.shared.list()` call below, and a second time from
+	// `listTasks()`'s merge. `deleteOperation` is unaffected by this distinction — it only reaches
+	// `provider.cancelTask(id:)` once `LXDOperationStore` has already confirmed it doesn't own the
+	// id, so that method's own `LXDOperationStore` fallback is simply a no-op redundant lookup
+	// there, not a double-cancel.
 	let provider: CakedProvider
 
 	func boot(routes: any RoutesBuilder) throws {
@@ -39,7 +49,7 @@ struct LXDOperationsController: RouteCollection {
 	@Sendable
 	func listOperations(req: Request) async throws -> Response {
 		let recursion = (req.query[Int.self, at: "recursion"] ?? 0) != 0
-		let taskEntries = self.provider.listTasks().tasks.list.tasks
+		let taskEntries = self.provider.nativeRunningTasks().tasks.list.tasks
 
 		if recursion {
 			var operations = await LXDOperationStore.shared.list()
@@ -73,7 +83,7 @@ struct LXDOperationsController: RouteCollection {
 			return try await LXDResponse<LXDOperationMetadata>.sync(operation).encodeResponse(for: req)
 		}
 
-		if let taskEntry = self.provider.listTasks().tasks.list.tasks.first(where: { $0.id.caseInsensitiveCompare(id) == .orderedSame }) {
+		if let taskEntry = self.provider.nativeRunningTasks().tasks.list.tasks.first(where: { $0.id.caseInsensitiveCompare(id) == .orderedSame }) {
 			return try await LXDResponse<LXDOperationMetadata>.sync(LXDOperationMetadata.from(taskEntry: taskEntry)).encodeResponse(for: req)
 		}
 
@@ -104,8 +114,10 @@ struct LXDOperationsController: RouteCollection {
 		}
 
 		// Not a REST-tracked operation — fall back to the gRPC task registry, the same one
-		// `cakectl tasks cancel <id>` targets.
-		let reply = self.provider.cancelTask(id: id)
+		// `cakectl tasks cancel <id>` targets. `cancelTask(id:)` also has its own `LXDOperationStore`
+		// fallback now (see its doc comment), but that's a no-op here — the store lookup above
+		// already removed the id if it belonged to a REST-tracked operation.
+		let reply = await self.provider.cancelTask(id: id)
 
 		guard reply.tasks.cancelled.success else {
 			let message = reply.tasks.cancelled.hasReason ? reply.tasks.cancelled.reason : "Operation '\(id)' not found"
@@ -175,7 +187,7 @@ struct LXDOperationsController: RouteCollection {
 }
 
 extension LXDOperationMetadata {
-	/// Converts one entry from `CakedProvider.listTasks()` (a gRPC-initiated build/launch/
+	/// Converts one entry from `CakedProvider.nativeRunningTasks()` (a gRPC-initiated build/launch/
 	/// provision task tracked in `CakedProvider.runningTasks`) into a synthesized
 	/// `LXDOperationMetadata`, so it can be merged into `GET /1.0/operations`'/`GET /1.0/
 	/// operations/:id`'s responses alongside `LXDOperationStore`'s own REST-initiated

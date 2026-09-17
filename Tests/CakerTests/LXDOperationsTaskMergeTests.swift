@@ -127,7 +127,7 @@ final class LXDOperationsTaskMergeTests: XCTestCase {
 		// Give `executeCancellable` a moment to register the task before listing.
 		try await Task.sleep(nanoseconds: 200_000_000)
 
-		let reply = provider.listTasks()
+		let reply = await provider.listTasks()
 		let entries = reply.tasks.list.tasks
 
 		XCTAssertEqual(entries.count, 1)
@@ -157,12 +157,13 @@ final class LXDOperationsTaskMergeTests: XCTestCase {
 
 		try await Task.sleep(nanoseconds: 200_000_000)
 
-		let entry = try XCTUnwrap(provider.listTasks().tasks.list.tasks.first)
+		let listed = await provider.listTasks()
+		let entry = try XCTUnwrap(listed.tasks.list.tasks.first)
 		let metadata = LXDOperationMetadata.from(taskEntry: entry)
 
 		// The REST controller's `deleteOperation` calls `provider.cancelTask(id:)` directly with
 		// the path parameter's id — exercise that exact call, using the id as synthesized above.
-		let cancelReply = provider.cancelTask(id: metadata.id)
+		let cancelReply = await provider.cancelTask(id: metadata.id)
 
 		XCTAssertTrue(cancelReply.tasks.cancelled.success)
 
@@ -171,7 +172,7 @@ final class LXDOperationsTaskMergeTests: XCTestCase {
 		XCTAssertTrue(flag.wasCancelled, "cancelling through the provider should propagate the same way stop()/cakectl tasks cancel already do")
 	}
 
-	func testCancelTaskWithUnknownIdReturnsFailureReason() {
+	func testCancelTaskWithUnknownIdReturnsFailureReason() async throws {
 		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
 		defer {
@@ -179,9 +180,118 @@ final class LXDOperationsTaskMergeTests: XCTestCase {
 		}
 
 		let provider = try? CakedProvider(group: group, password: nil, runMode: .user)
-		let reply = provider?.cancelTask(id: UUID().uuidString)
+		let reply = await provider?.cancelTask(id: UUID().uuidString)
 
 		XCTAssertEqual(reply?.tasks.cancelled.success, false)
 		XCTAssertTrue(reply?.tasks.cancelled.hasReason ?? false)
+	}
+
+	// MARK: - listTasks()/cancelTask(id:) merging in LXDOperationStore, without double-counting
+
+	/// The core regression this file guards against: `listTasks()` (the merged, gRPC-facing method
+	/// backing `ListTasks`/`cakectl tasks list`/the `caker` GUI) must include both a gRPC-native
+	/// task and a REST-initiated `LXDOperationStore` operation exactly once each — while
+	/// `nativeRunningTasks()` (what `LXDOperationsController.listOperations`/`getOperation` call,
+	/// since they already list `LXDOperationStore`'s own entries themselves) must include only the
+	/// gRPC-native one, or a REST-initiated Running operation would be double-listed once both
+	/// call sites feed the same webui/REST response.
+	func testListTasksMergesNativeAndRestOperationsExactlyOnce() async throws {
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+		defer {
+			XCTAssertNoThrow(try group.syncShutdownGracefully())
+		}
+
+		let provider = try CakedProvider(group: group, password: nil, runMode: .user)
+		let flag = CancellationFlag()
+
+		let running = Task {
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "build native-vm")
+		}
+
+		defer {
+			running.cancel()
+		}
+
+		let restOperation = await LXDOperationStore.shared.create(description: "Building rest-vm")
+
+		defer {
+			Task { await LXDOperationStore.shared.delete(id: restOperation.id) }
+		}
+
+		try await Task.sleep(nanoseconds: 200_000_000)
+
+		let merged = await provider.listTasks()
+		let mergedTitles = Set(merged.tasks.list.tasks.map { $0.title })
+		let mergedIDs = Set(merged.tasks.list.tasks.map { $0.id.lowercased() })
+
+		XCTAssertEqual(merged.tasks.list.tasks.count, 2, "listTasks() should include both the gRPC-native task and the Running REST operation, exactly once each")
+		XCTAssertTrue(mergedTitles.contains("build native-vm"))
+		XCTAssertTrue(mergedTitles.contains("Building rest-vm"))
+		XCTAssertTrue(mergedIDs.contains(restOperation.id.lowercased()))
+
+		let native = provider.nativeRunningTasks()
+
+		XCTAssertEqual(native.tasks.list.tasks.count, 1, "nativeRunningTasks() must exclude LXDOperationStore entries, or LXDOperationsController would double-list them")
+		XCTAssertEqual(native.tasks.list.tasks.first?.title, "build native-vm")
+	}
+
+	/// A `Success`/`Failure`-status `LXDOperationStore` operation is done, not "running" — it must
+	/// not show up in `listTasks()`.
+	func testListTasksExcludesCompletedRestOperations() async throws {
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+		defer {
+			XCTAssertNoThrow(try group.syncShutdownGracefully())
+		}
+
+		let provider = try CakedProvider(group: group, password: nil, runMode: .user)
+		let completed = await LXDOperationStore.shared.create(description: "Already finished")
+
+		await LXDOperationStore.shared.complete(id: completed.id, success: true)
+
+		defer {
+			Task { await LXDOperationStore.shared.delete(id: completed.id) }
+		}
+
+		let reply = await provider.listTasks()
+
+		XCTAssertFalse(reply.tasks.list.tasks.contains { $0.id.lowercased() == completed.id.lowercased() }, "a completed REST operation should not be reported as a running task")
+	}
+
+	/// `cancelTask(id:)` must be able to cancel (i.e. remove) an `LXDOperationStore`-backed
+	/// operation by id, exactly like it already does for a `runningTasks`-backed one.
+	func testCancelTaskCancelsRestOperationByID() async throws {
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+		defer {
+			XCTAssertNoThrow(try group.syncShutdownGracefully())
+		}
+
+		let provider = try CakedProvider(group: group, password: nil, runMode: .user)
+		let restOperation = await LXDOperationStore.shared.create(description: "Building rest-vm-2")
+
+		let reply = await provider.cancelTask(id: restOperation.id)
+
+		XCTAssertTrue(reply.tasks.cancelled.success)
+
+		let stillThere = await LXDOperationStore.shared.get(id: restOperation.id)
+		XCTAssertNil(stillThere, "cancelTask(id:) should have removed the REST operation from the store")
+	}
+
+	/// An id belonging to neither `runningTasks` nor `LXDOperationStore` must still fail with the
+	/// original "No running task with id" reason.
+	func testCancelTaskWithIdInNeitherRegistryStillFails() async throws {
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+		defer {
+			XCTAssertNoThrow(try group.syncShutdownGracefully())
+		}
+
+		let provider = try CakedProvider(group: group, password: nil, runMode: .user)
+		let reply = await provider.cancelTask(id: UUID().uuidString)
+
+		XCTAssertFalse(reply.tasks.cancelled.success)
+		XCTAssertTrue(reply.tasks.cancelled.hasReason)
 	}
 }

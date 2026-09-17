@@ -407,36 +407,82 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return await task.value
 	}
 
-	/// Lists every task currently tracked in `runningTasks`, by id and descriptive title. Split out
+	/// The raw gRPC-native slice of `runningTasks`, as `TaskEntry` values — with no `LXDOperationStore`
+	/// merge applied. Split out from `listTasks()`/`nativeRunningTasks()` below so both can share the
+	/// same conversion without either one re-deriving it.
+	private func nativeTaskEntries() -> [Caked_Reply.TaskReply.TaskEntry] {
+		self.runningTasks.withLock { $0 }.map { id, running in
+			.with {
+				$0.id = id.uuidString
+				$0.title = running.title
+			}
+		}
+	}
+
+	/// Lists only the tasks tracked natively in `runningTasks` (gRPC-initiated build/launch/
+	/// provision calls) — no `LXDOperationStore` (REST-initiated) entries included. This exists
+	/// specifically for `LXDOperationsController`'s own `listOperations`/`getOperation`, which
+	/// already lists `LXDOperationStore`'s own entries itself: calling the merged `listTasks()`
+	/// there would double-list every REST-initiated Running operation (once from
+	/// `LXDOperationStore.shared.list()`, once again from `listTasks()`'s own merge). Everything
+	/// else — `cakectl tasks list`, the `caker` GUI's tasks view — should call `listTasks()`
+	/// instead, to see REST-initiated work too.
+	func nativeRunningTasks() -> Caked_Reply {
+		Caked_Reply.with {
+			$0.tasks = .with {
+				$0.list = .with {
+					$0.tasks = self.nativeTaskEntries()
+				}
+			}
+		}
+	}
+
+	/// Lists every task currently tracked in `runningTasks`, merged with every currently-`Running`
+	/// `LXDOperationStore` operation (REST-API-initiated build/provision work — see
+	/// `Sources/caked/REST/LXDOperationStore.swift`) — so a `cakectl tasks list`/the `caker` GUI's
+	/// tasks view sees both gRPC- and REST-initiated long-running work in one place, completing the
+	/// loop `LXDOperationsController` already closed in the other direction (REST clients seeing
+	/// gRPC-initiated tasks via `nativeRunningTasks()` above). `Success`/`Failure`-status
+	/// `LXDOperationStore` entries are excluded — they're finished, not "running tasks". Split out
 	/// from the `ListTasks` RPC method below (which just forwards here) so tests can call it
 	/// directly without needing to construct a real `GRPCAsyncServerCallContext` — this method
 	/// never uses `context` in the first place.
-	func listTasks() -> Caked_Reply {
-		let tasks = self.runningTasks.withLock { $0 }
+	func listTasks() async -> Caked_Reply {
+		var entries = self.nativeTaskEntries()
+
+		entries.append(
+			contentsOf: await LXDOperationStore.shared.list()
+				.filter { $0.status == "Running" }
+				.map { op in
+					.with {
+						$0.id = op.id
+						$0.title = op.description
+					}
+				})
 
 		return Caked_Reply.with {
 			$0.tasks = .with {
 				$0.list = .with {
-					$0.tasks = tasks.map { id, running in
-						.with {
-							$0.id = id.uuidString
-							$0.title = running.title
-						}
-					}
+					$0.tasks = entries
 				}
 			}
 		}
 	}
 
 	func listTasks(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		self.listTasks()
+		await self.listTasks()
 	}
 
-	/// Cancels the tracked task with the given id. Cancellation propagates the same way `stop()`'s
-	/// does (see `executeCancellable(command:title:)`'s doc comment); this just targets one task
-	/// instead of all of them, and doesn't touch `shutdown`. Split out from the `CancelTask` RPC
+	/// Cancels the tracked task with the given id — first checking the gRPC-native `runningTasks`
+	/// registry, then falling back to `LXDOperationStore` (a REST-API-initiated operation) if the id
+	/// isn't found there. Cancellation of a `runningTasks` entry propagates the same way `stop()`'s
+	/// does (see `executeCancellable(command:title:)`'s doc comment); cancellation of an
+	/// `LXDOperationStore` entry removes it from the store and calls its `cancellable` closure, if
+	/// one was set — most REST-initiated build/provision operations don't have one today, so this
+	/// is a known, pre-existing limitation (the operation disappears from the list but isn't
+	/// actually stopped), not something newly introduced here. Split out from the `CancelTask` RPC
 	/// method below for the same test-without-a-real-context reason as `listTasks()` above.
-	func cancelTask(id requestID: String) -> Caked_Reply {
+	func cancelTask(id requestID: String) async -> Caked_Reply {
 		guard let id = UUID(uuidString: requestID) else {
 			return Caked_Reply.with {
 				$0.tasks = .with {
@@ -448,32 +494,46 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 			}
 		}
 
-		guard let running = self.runningTasks.withLock({ $0[id] }) else {
+		if let running = self.runningTasks.withLock({ $0[id] }) {
+			Logger(self).info("Cancelling task \(id) (\(running.title))")
+
+			running.task.cancel()
+
 			return Caked_Reply.with {
 				$0.tasks = .with {
 					$0.cancelled = .with {
-						$0.success = false
-						$0.reason = String(format: String(localized: "No running task with id '%@'"), requestID)
+						$0.success = true
 					}
 				}
 			}
 		}
 
-		Logger(self).info("Cancelling task \(id) (\(running.title))")
+		if let op = await LXDOperationStore.shared.delete(id: requestID.lowercased()) {
+			Logger(self).info("Cancelling REST operation \(op.id) (\(op.description))")
 
-		running.task.cancel()
+			await op.cancel()
+
+			return Caked_Reply.with {
+				$0.tasks = .with {
+					$0.cancelled = .with {
+						$0.success = true
+					}
+				}
+			}
+		}
 
 		return Caked_Reply.with {
 			$0.tasks = .with {
 				$0.cancelled = .with {
-					$0.success = true
+					$0.success = false
+					$0.reason = String(format: String(localized: "No running task with id '%@'"), requestID)
 				}
 			}
 		}
 	}
 
 	func cancelTask(request: Caked_CancelTaskRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		self.cancelTask(id: request.id)
+		await self.cancelTask(id: request.id)
 	}
 
 	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
