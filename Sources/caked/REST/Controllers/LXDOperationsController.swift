@@ -59,10 +59,15 @@ struct LXDOperationsController: RouteCollection {
 	// GET /1.0/operations/:id
 	@Sendable
 	func getOperation(req: Request) async throws -> Response {
-		guard let id = req.parameters.get("id") else {
+		guard let rawID = req.parameters.get("id") else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing operation id", code: 400)
 				.encodeResponse(status: .badRequest, for: req)
 		}
+
+		// `LXDOperationStore` keys are lowercased UUID strings (see `LXDOperationStore.create()`) —
+		// lowercase here so an uppercased UUID in the URL still resolves, instead of only matching
+		// by accident and incorrectly falling through to the gRPC task registry below.
+		let id = rawID.lowercased()
 
 		if let operation = await LXDOperationStore.shared.get(id: id) {
 			return try await LXDResponse<LXDOperationMetadata>.sync(operation).encodeResponse(for: req)
@@ -79,10 +84,15 @@ struct LXDOperationsController: RouteCollection {
 	// DELETE /1.0/operations/:id (cancel)
 	@Sendable
 	func deleteOperation(req: Request) async throws -> Response {
-		guard let id = req.parameters.get("id") else {
+		guard let rawID = req.parameters.get("id") else {
 			return try await LXDResponse<LXDEmptyMetadata>.error(message: "Missing operation id", code: 400)
 				.encodeResponse(status: .badRequest, for: req)
 		}
+
+		// Same case-insensitivity fix as `getOperation` above: `LXDOperationStore` keys are always
+		// lowercased, so an uppercased UUID in the URL must be lowercased here too, or it will
+		// never be found in the store and will incorrectly fall through to `provider.cancelTask`.
+		let id = rawID.lowercased()
 
 		if let deleted = await LXDOperationStore.shared.delete(id: id) {
 			await deleted.cancel()
