@@ -3504,6 +3504,7 @@
 				9B3E2C672F7BDA1D003BF05E /* XCRemoteSwiftPackageReference "Sparkle" */,
 				9B602FA02FAA5C3800055543 /* XCRemoteSwiftPackageReference "vapor" */,
 				9B96F1462FC5D70B00C25306 /* XCRemoteSwiftPackageReference "swift-collections" */,
+				9B1C21EE305AF653001E1F46 /* XCRemoteSwiftPackageReference "LogManager" */,
 			);
 			preferredProjectObjectVersion = 100;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -4595,7 +4596,7 @@
 					"@executable_path/../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -4663,7 +4664,7 @@
 					"@executable_path/../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				OTHER_LIBTOOLFLAGS = "-no_warning_for_no_symbols";
@@ -5202,6 +5203,14 @@
 			requirement = {
 				kind = revision;
 				revision = 82bf1ff8dbaccac3359cfd6b49f30db690c8dc38;
+			};
+		};
+		9B1C21EE305AF653001E1F46 /* XCRemoteSwiftPackageReference "LogManager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Appracatappra/LogManager.git";
+			requirement = {
+				kind = exactVersion;
+				version = 2.0.4;
 			};
 		};
 		9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
