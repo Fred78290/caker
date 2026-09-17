@@ -55,7 +55,7 @@ pre_boot_command:
 
   - title: Boot the GRUB menu's default "Install" entry
     commands:
-      - <locate text="GRUB" timeout=30>
+      - <locate text="GRUB|Install" timeout=30>
       - <enter>
 
   - title: Select a language
@@ -103,12 +103,6 @@ boot_command:
   - title: Leave the root password blank (grants the created user sudo instead)
     commands: 
       - <locate text="enter password to verify">
-      - <enter>
-
-  - title: Full name for the new user
-    commands:
-      - <skipCommandIfNotFound text="Please enter real name of this user" timeout=2>
-      - ${var.username}
       - <enter>
 
   - title: Full name for the new user
