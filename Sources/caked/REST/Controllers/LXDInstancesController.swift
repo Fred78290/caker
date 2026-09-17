@@ -566,7 +566,7 @@ struct LXDInstancesController: RouteCollection {
 						templateName: "",
 						templateContent: nil,
 						macosVersion: nil,
-						variables: [],
+						variables: ProvisionVariablesStore.load().asProvisionVarStrings,
 						runMode: rm,
 						queue: nil,
 						promise: promise
