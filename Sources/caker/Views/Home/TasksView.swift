@@ -20,7 +20,9 @@ import SwiftUI
 struct TasksView: View {
 	private static let pollInterval: Duration = .seconds(3)
 
-	@State private var tasks: [Caked_Reply.TaskReply.TaskEntry] = []
+	@Bindable var navigationModel: NavigationModel
+
+	@State private var tasks: [Caked_TaskEntry] = []
 	@State private var loadError: String? = nil
 
 	var body: some View {
@@ -34,7 +36,7 @@ struct TasksView: View {
 					}
 				}.frame(width: geom.size.width)
 			} else {
-				List(self.tasks, id: \.id) { task in
+				List(self.tasks, id: \.self, selection: $navigationModel.selectedTask) { task in
 					HStack(spacing: 12) {
 						ZStack {
 							RoundedRectangle(cornerRadius: 9)
@@ -58,14 +60,28 @@ struct TasksView: View {
 						}
 
 						Spacer()
+						
+						if task == navigationModel.selectedTask {
+							Button {
+								self.cancelTask(task)
+							} label: {
+								ZStack {
+									RoundedRectangle(cornerRadius: 9)
+										.fill(Color.red.gradient)
+										.frame(width: 30, height: 30)
+									Image(systemName: "trash")
+										.resizable()
+										.aspectRatio(contentMode: .fit)
+										.foregroundStyle(.white)
+										.frame(width: 16, height: 16)
+								}
+							}
+							.withButtonStyle(.borderless)
+							.controlSize(.small)
+						}
 					}
 					.padding(.vertical, 4)
 					.contentShape(Rectangle())
-					.contextMenu {
-						Button("Cancel", role: .destructive) {
-							self.cancelTask(task)
-						}
-					}
 				}
 				.listStyle(.inset(alternatesRowBackgrounds: true))
 				.frame(size: geom.size)
@@ -135,5 +151,5 @@ struct TasksView: View {
 }
 
 #Preview {
-	TasksView()
+	TasksView(navigationModel: .init(selectedCategory: .tasks))
 }

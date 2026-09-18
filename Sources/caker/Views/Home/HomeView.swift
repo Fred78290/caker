@@ -341,7 +341,7 @@ struct HomeView: View {
 			case .virtualMachine:
 				VirtualMachinesView(navigationModel: navigationModel, columns: VirtualMachinesView.buildColumns(geometry.size))
 			case .tasks:
-				TasksView()
+				TasksView(navigationModel: navigationModel)
 			}
 		}.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
 	}

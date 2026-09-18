@@ -107,6 +107,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	var selectedTemplate: TemplateEntry? = nil
 	var selectedNetwork: BridgedNetwork? = nil
 	var selectedVirtualMachine: VirtualMachineDocumentState? = nil
+	var selectedTask: Caked_TaskEntry? = nil
 	var documents: VirtualMachineDocumentStates = [:]
 	var virtualMachinesViewMode: VirtualMachinesViewMode = AppState.shared.virtualMachinesViewMode {
 		didSet {
