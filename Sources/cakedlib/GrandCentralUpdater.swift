@@ -26,7 +26,7 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 	private var taskQueue: TaskQueue?
 	private var stream: AsyncThrowingStreamCurrentStatusReply?
 	private let logger = Logger("GrandCentralUpdater")
-	private var lastStatus = VMLocation.Status.stopped
+	private var lastStatus: VMLocation.Status? = nil
 	private var lastScreenshotData: Data?
 
 	public init(vm: VirtualMachine, runMode: Utils.RunMode) throws {

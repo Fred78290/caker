@@ -15,7 +15,7 @@ extension VirtualMachine {
 
 		if let service = self.env.vmrunService {
 			service.stop()
-			
+
 			self.env.vmrunService = nil
 		}
 	}
@@ -27,6 +27,37 @@ extension VirtualMachine {
 
 		self.env.vmrunService.serve()
 	}
+
+	func restartAfterIPSW() async throws {
+		try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+			self.vmQueue.async {
+				let vm = self.virtualMachine
+
+				func start() {
+					vm.start { result in
+						switch result {
+						case .success():
+							continuation.resume()
+						case .failure(let error):
+							continuation.resume(throwing: error)
+						}
+					}
+				}
+
+				if self.virtualMachine.canStop {
+					self.virtualMachine.stop { error in
+						if let error = error {
+							continuation.resume(throwing: error)
+						} else {
+							start()
+						}
+					}
+				} else if self.virtualMachine.canStart {
+					start()
+				}
+			}
+		}
+	}
 }
 
 public struct VMBuilder {
@@ -36,7 +67,9 @@ public struct VMBuilder {
 	public static let memoryMinSize: UInt64 = 512 * MoB
 
 	#if arch(arm64)
-		private static func installIPSW(location: VMLocation, config: CakeConfig, wizardID: UUID, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> VirtualMachine? {
+		private static func installIPSW(location: VMLocation, config: CakeConfig, wizardID: UUID, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws
+			-> VirtualMachine?
+		{
 			let vm = try IPSWInstaller(location: location, config: config, wizardID: wizardID, runMode: runMode, queue: queue)
 
 			try location.writeProvisionning()
@@ -237,14 +270,11 @@ public struct VMBuilder {
 					config.osRelease = resolvedMacOSVersion.version
 
 					try config.save()
-					
+
 					if let vm, options.autoinstall {
 						try await Task.sleep(nanoseconds: 2 * 100_000_000)
 
-						try await vm.stopVM()
-						try await vm.startVM()
-
-						try vm.location.writeProvisionning()
+						try await vm.restartAfterIPSW()
 
 						// wins, otherwise the resolved macOS version above picks a built-in template. Resolve
 						// throws if neither works.
@@ -255,7 +285,7 @@ public struct VMBuilder {
 						try await PackerLiteEngine.provision(vm: vm, template: template, runningIP: nil, runMode: runMode, waitIPTimeout: 180) { progress in
 							progressHandler(progress.progressValue)
 						}
-						
+
 						try await vm.stopVM()
 					}
 				}

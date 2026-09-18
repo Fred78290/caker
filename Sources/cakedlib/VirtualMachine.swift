@@ -530,7 +530,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	public weak var delegate: VirtualMachineDelegate? = nil
 
 	internal var env: VirtualMachineEnvironment
-	private var vmQueue: DispatchQueue
+	internal var vmQueue: DispatchQueue
 	private let logger = Logger("VirtualMachine")
 	private var gcd: GrandCentralUpdater? = nil
 	private var installAgentRetryTask: Task<Void, Never>? = nil

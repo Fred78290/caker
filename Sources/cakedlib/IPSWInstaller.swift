@@ -124,6 +124,7 @@
 
 			self.virtualMachine = virtualMachine
 
+			try virtualMachine.location.writeProvisionning()
 			try virtualMachine.startServiceForProvisionning()
 
 			if Bundle.runInCaker {
