@@ -437,17 +437,23 @@ public struct ServiceHandler {
 			let run = home.agentPID.isPIDRunning([Home.cakedCommandName])
 
 			if run.running {
-				cachedAgentPID[runMode] = run.pid
+				if cachedAgentPID[runMode] == nil || cachedAgentPID[runMode] == -1 {
+					cachedAgentPID[runMode] = run.pid
+				}
 
 				return (true, home.agentPID, run.pid)
 			}
 
 			if let cached = cachedAgentPID[runMode] {
-				if let running = try? processExist(pid_t(cached)), running.running {
-					return (true, home.agentPID, cached)
+				if cached != -1 {
+					if let running = try? processExist(pid_t(cached)), running.running {
+						return (true, home.agentPID, cached)
+					}
+
+					cachedAgentPID.removeValue(forKey: runMode)
 				}
-							
-				cachedAgentPID.removeValue(forKey: runMode)
+
+				return (false, nil, nil)
 			}
 
 			let domain: String
@@ -460,6 +466,8 @@ public struct ServiceHandler {
 			}
 
 			guard let output = try? Shell.execute(to: "/bin/launchctl", arguments: ["print", "\(domain)/\(launchdAgentName)"]) else {
+				cachedAgentPID[runMode] = -1
+
 				return (false, nil, nil)
 			}
 
