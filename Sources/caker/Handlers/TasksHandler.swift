@@ -20,7 +20,7 @@ public struct TasksHandler {
 		case noClient
 	}
 
-	public static func listTasks(client: CakedServiceClient?) throws -> [Caked_Reply.TaskReply.TaskEntry] {
+	public static func listTasks(client: CakedServiceClient?) throws -> [Caked_TaskEntry] {
 		guard let client else {
 			throw TasksHandlerError.noClient
 		}
@@ -28,7 +28,7 @@ public struct TasksHandler {
 		return try client.listTasks(Caked_Empty()).response.wait().tasks.list.tasks
 	}
 
-	public static func cancelTask(client: CakedServiceClient?, id: String) throws -> Caked_Reply.TaskReply.CancelTaskReply {
+	public static func cancelTask(client: CakedServiceClient?, id: String) throws -> Caked_CancelTaskReply {
 		guard let client else {
 			throw TasksHandlerError.noClient
 		}
