@@ -118,32 +118,32 @@ struct TasksView: View {
 	}
 
 	private func cancelTask(_ task: Caked_Reply.TaskReply.TaskEntry) {
-		let alert = NSGlassEffectAlert()
-
-		alert.messageText = String(localized: "Cancel task")
-		alert.informativeText = String(format: String(localized: "Are you sure you want to cancel \"%@\"? This action cannot be undone."), task.title)
-		alert.alertStyle = .critical
-		alert.addButton(withTitle: String(localized: "Cancel Task"))
-		alert.addButton(withTitle: String(localized: "Keep Running"))
-
-		guard alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn else {
-			return
-		}
-
-		DispatchQueue.global(qos: .utility).async {
-			do {
-				let result = try TasksHandler.cancelTask(client: AppState.shared.connectionManager.serviceClient, id: task.id)
-
-				DispatchQueue.main.async {
-					if result.success {
-						self.refresh()
-					} else {
-						alertError(String(localized: "Cancel failed"), result.reason)
+		DispatchQueue.main.async {
+			let alert = NSGlassEffectAlert()
+			
+			alert.messageText = String(localized: "Cancel task")
+			alert.informativeText = String(localized: "Are you sure you want to cancel \"\(task.title)\"? This action cannot be undone.")
+			alert.alertStyle = .critical
+			alert.addButton(withTitle: String(localized: "Cancel Task"))
+			alert.addButton(withTitle: String(localized: "Keep Running"))
+			
+			if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
+				DispatchQueue.global(qos: .utility).async {
+					do {
+						let result = try TasksHandler.cancelTask(client: AppState.shared.connectionManager.serviceClient, id: task.id)
+						
+						DispatchQueue.main.async {
+							if result.success {
+								self.refresh()
+							} else {
+								alertError(String(localized: "Cancel failed"), result.reason)
+							}
+						}
+					} catch {
+						DispatchQueue.main.async {
+							alertError(error)
+						}
 					}
-				}
-			} catch {
-				DispatchQueue.main.async {
-					alertError(error)
 				}
 			}
 		}
