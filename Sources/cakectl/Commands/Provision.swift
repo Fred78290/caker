@@ -104,20 +104,26 @@ struct Provision: GrpcParsableCommand {
 		func provisionWithoutView() async throws -> String {
 			return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
 				let context: ProgressObserver.ProgressHandlerContext = .init()
-				let (stream, continuation) = AsyncStream.makeStream(of: Caked_ProvisionStreamReply.OneOf_Current?.self)
+				let (stream, continuation) = AsyncThrowingStream.makeStream(of: Caked_ProvisionStreamReply.OneOf_Current?.self)
 				let logger = Logger(self)
 				var result = ""
 
 				group.addTask {
-					defer {
-						continuation.finish()
+					do {
+						let stream = try self.client.provision(Caked_ProvisionRequest(command: self.command)) { stream in
+							continuation.yield(stream.current)
+						}
+						
+						let status = try await stream.status.get()
+						
+						if status.isOk {
+							continuation.finish()
+						} else {
+							continuation.finish(throwing: status)
+						}
+					} catch {
+						continuation.finish(throwing: error)
 					}
-
-					let stream = try self.client.provision(Caked_ProvisionRequest(command: self.command)) { stream in
-						continuation.yield(stream.current)
-					}
-
-					_ = try await stream.status.get()
 
 					logger.debug("Provisioning completed")
 				}

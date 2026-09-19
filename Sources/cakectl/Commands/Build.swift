@@ -27,17 +27,23 @@ struct Build: AsyncGrpcParsableCommand {
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
 		return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
 			let context: ProgressObserver.ProgressHandlerContext = .init()
-			let (stream, continuation) = AsyncStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
+			let (stream, continuation) = AsyncThrowingStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
 			var result: String = String.empty
 
 			group.addTask {
 				let stream = try client.build(Caked_BuildRequest(buildOptions: self.buildOptions)) { stream in
+					print(stream.current.debugDescription)
+
 					continuation.yield(stream.current)
 				}
 				
-				_ = try await stream.status.get()
+				let status = try await stream.status.get()
 
-				continuation.finish()
+				if status.isOk {
+					continuation.finish()
+				} else {
+					continuation.finish(throwing: status)
+				}
 			}
 
 			for try await current in stream {
