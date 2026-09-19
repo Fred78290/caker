@@ -5,25 +5,26 @@
 //  Created by Frederic BOLTZ on 17/01/2026.
 //
 import AppKit
+import Carbon
 import Foundation
-import QuartzCore
 import GRPCLib
+import QuartzCore
 import SwiftUI
 
 extension CGEvent {
 	var dumpEvent: String {
 		var parts: [String] = []
-		
+
 		parts.append("CGEvent: {")
 		parts.append("  flags: \(self.flags)")
 		parts.append("  type: \(self.type)")
 		parts.append("  location: \(self.location)")
 		parts.append("  timestamp: \(self.timestamp)")
-		
+
 		parts.append("  CGEventFields: {")
 		for field in CGEventField.allCases {
 			let value = self.getDoubleValueField(field)
-			
+
 			if value != 0 {
 				if let field = CGEventField.names[field] {
 					parts.append("    \(field): \(value)")
@@ -34,8 +35,221 @@ extension CGEvent {
 		}
 		parts.append("  }")
 		parts.append("}")
-		
+
 		return parts.joined(separator: ",\n")
+	}
+}
+
+extension NSEvent.ModifierFlags: @retroactive CustomStringConvertible {
+	public var description: String {
+		var result: [String] = []
+
+		if contains(.capsLock) { result.append("Caps") }
+		if contains(.shift) { result.append("Shift") }
+		if contains(.control) { result.append("Control") }
+		if contains(.option) { result.append("Option") }
+		if contains(.command) { result.append("Command") }
+		if contains(.numericPad) { result.append("Numeric") }
+		if contains(.help) { result.append("Help") }
+		if contains(.function) { result.append("Function") }
+		if contains(.deviceIndependentFlagsMask) { result.append("DeviceIndependentFlagsMask") }
+
+		return result.joined(separator: ", ")
+	}
+
+	public var keyCodes: [CGKeyCode] {
+		var result: [CGKeyCode] = []
+
+		if contains(.capsLock) { result.append(CGKeyCode(kVK_CapsLock)) }
+		if contains(.shift) { result.append(CGKeyCode(kVK_Shift)) }
+		if contains(.control) { result.append(CGKeyCode(kVK_Control)) }
+		if contains(.option) { result.append(CGKeyCode(kVK_Option)) }
+		if contains(.command) { result.append(CGKeyCode(kVK_Command)) }
+		if contains(.numericPad) { result.append(CGKeyCode(kVK_ANSI_KeypadClear)) }
+		if contains(.help) { result.append(CGKeyCode(kVK_Help)) }
+		if contains(.function) { result.append(CGKeyCode(kVK_Function)) }
+
+		return result
+	}
+}
+
+extension NSEvent.EventType: @retroactive CustomStringConvertible {
+	public var description: String {
+		switch self {
+		case .leftMouseDown:
+			return "leftMouseDown"
+		case .leftMouseUp:
+			return "leftMouseUp"
+		case .rightMouseDown:
+			return "rightMouseDown"
+		case .rightMouseUp:
+			return "rightMouseUp"
+		case .mouseMoved:
+			return "mouseMoved"
+		case .leftMouseDragged:
+			return "leftMouseDragged"
+		case .rightMouseDragged:
+			return "rightMouseDragged"
+		case .mouseEntered:
+			return "mouseEntered"
+		case .mouseExited:
+			return "mouseExited"
+		case .keyDown:
+			return "keyDown"
+		case .keyUp:
+			return "keyUp"
+		case .flagsChanged:
+			return "flagsChanged"
+		case .appKitDefined:
+			return "appKitDefined"
+		case .systemDefined:
+			return "systemDefined"
+		case .applicationDefined:
+			return "applicationDefined"
+		case .periodic:
+			return "periodic"
+		case .cursorUpdate:
+			return "cursorUpdate"
+		case .scrollWheel:
+			return "scrollWheel"
+		case .tabletPoint:
+			return "tabletPoint"
+		case .tabletProximity:
+			return "tabletProximity"
+		case .otherMouseDown:
+			return "otherMouseDown"
+		case .otherMouseUp:
+			return "otherMouseUp"
+		case .otherMouseDragged:
+			return "otherMouseDragged"
+		case .gesture:
+			return "gesture"
+		case .magnify:
+			return "magnify"
+		case .swipe:
+			return "swipe"
+		case .rotate:
+			return "rotate"
+		case .beginGesture:
+			return "beginGesture"
+		case .endGesture:
+			return "endGesture"
+		case .smartMagnify:
+			return "smartMagnify"
+		case .quickLook:
+			return "quickLook"
+		case .pressure:
+			return "pressure"
+		case .directTouch:
+			return "directTouch"
+		case .changeMode:
+			return "changeMode"
+		case .mouseCancelled:
+			return "mouseCancelled"
+		@unknown default:
+			return "unknown"
+		}
+	}
+}
+
+extension NSEvent.EventSubtype: @retroactive CustomStringConvertible {
+	public var description: String {
+		switch self {
+		case .windowExposed:
+			return "windowExposed"
+		case .applicationActivated:
+			return "applicationActivated"
+		case .applicationDeactivated:
+			return "applicationDeactivated"
+		case .windowMoved:
+			return "windowMoved"
+		case .screenChanged:
+			return "screenChanged"
+		case .touch:
+			return "touch"
+		@unknown default:
+			return "unknown"
+		}
+	}
+}
+
+extension NSEvent.Phase: @retroactive CustomStringConvertible {
+	public var description: String {
+		var result: [String] = []
+
+		if contains(.began) { result.append("began") }
+		if contains(.stationary) { result.append("stationary") }
+		if contains(.changed) { result.append("changed") }
+		if contains(.ended) { result.append("ended") }
+		if contains(.cancelled) { result.append("cancelled") }
+		if contains(.mayBegin) { result.append("mayBegin") }
+
+		return result.joined(separator: ", ")
+	}
+}
+
+extension CGEventType: @retroactive CustomStringConvertible {
+	public var description: String {
+		switch self {
+		case .null:
+			return "null"
+		case .leftMouseDown:
+			return "leftMouseDown"
+		case .leftMouseUp:
+			return "leftMouseUp"
+		case .rightMouseDown:
+			return "rightMouseDown"
+		case .rightMouseUp:
+			return "rightMouseUp"
+		case .mouseMoved:
+			return "mouseMoved"
+		case .leftMouseDragged:
+			return "leftMouseDragged"
+		case .rightMouseDragged:
+			return "rightMouseDragged"
+		case .keyDown:
+			return "keyDown"
+		case .keyUp:
+			return "keyUp"
+		case .flagsChanged:
+			return "flagsChanged"
+		case .scrollWheel:
+			return "scrollWheel"
+		case .tabletPointer:
+			return "tabletPointer"
+		case .tabletProximity:
+			return "tabletProximity"
+		case .otherMouseDown:
+			return "otherMouseDown"
+		case .otherMouseUp:
+			return "otherMouseUp"
+		case .otherMouseDragged:
+			return "otherMouseDragged"
+		case .tapDisabledByTimeout:
+			return "tapDisabledByTimeout"
+		case .tapDisabledByUserInput:
+			return "tapDisabledByUserInput"
+		@unknown default:
+			return "unknown"
+		}
+	}
+}
+
+extension CGEventFlags: @retroactive CustomStringConvertible {
+	public var description: String {
+		var result: [String] = []
+
+		if contains(.maskAlphaShift) { result.append("maskAlphaShift") }
+		if contains(.maskShift) { result.append("maskShift") }
+		if contains(.maskControl) { result.append("maskControl") }
+		if contains(.maskAlternate) { result.append("maskAlternate") }
+		if contains(.maskCommand) { result.append("maskCommand") }
+		if contains(.maskHelp) { result.append("maskHelp") }
+		if contains(.maskSecondaryFn) { result.append("maskSecondaryFn") }
+		if contains(.maskNumericPad) { result.append("maskNumericPad") }
+		if contains(.maskNonCoalesced) { result.append("DeviceIndependentFlagsMask") }
+
+		return result.joined(separator: ", ")
 	}
 }
 
@@ -43,9 +257,9 @@ extension NSEvent {
 	var dumpEvent: String {
 		var parts: [String] = []
 
-		parts.append("type: \(self.type)")
+		parts.append("type: \(self.type.description)")
 		parts.append("timestamp: \(self.timestamp)")
-		parts.append("modifierFlags: \(String(self.modifierFlags.rawValue, radix: 16))")
+		parts.append("modifierFlags: \(self.modifierFlags.description)")
 		parts.append("windowNumber: \(self.windowNumber)")
 		if let window = self.window { parts.append("windowFrame: \(NSStringFromRect(window.frame))") }
 
@@ -133,23 +347,68 @@ extension NSEvent {
 			parts.append("  timestamp: \(cgEvent.timestamp)")
 
 			parts.append("  CGEventFields: {")
-				for field in CGEventField.allCases {
-					let value = cgEvent.getDoubleValueField(field)
+			for field in CGEventField.allCases {
+				let value = cgEvent.getDoubleValueField(field)
 
-					if value != 0 {
-						if let field = CGEventField.names[field] {
-							parts.append("    \(field): \(value)")
-						} else {
-							parts.append("    \(field): \(value)")
-						}
+				if value != 0 {
+					if let field = CGEventField.names[field] {
+						parts.append("    \(field): \(value)")
+					} else {
+						parts.append("    \(field): \(value)")
 					}
 				}
+			}
 			parts.append("  }")
 			parts.append("}")
 		}
 
 		return "\nNSEvent: {\n  " + parts.joined(separator: ",\n  ") + "\n}"
 	}
+}
+
+extension NSEvent.EventType {
+	public static let names: [String] = [
+		"leftMouseDown",
+		"leftMouseUp",
+		"rightMouseDown",
+		"rightMouseUp",
+		"mouseMoved",
+		"leftMouseDragged",
+		"rightMouseDragged",
+		"mouseEntered",
+		"mouseExited",
+		"keyDown",
+		"keyUp",
+		"flagsChanged",
+		"appKitDefined",
+		"systemDefined",
+		"applicationDefined",
+		"periodic",
+		"cursorUpdate",
+		"rotate",
+		"beginGesture",
+		"endGesture",
+		"missing21",
+		"scrollWheel",
+		"tabletPoint",
+		"tabletProximity",
+		"otherMouseDown",
+		"otherMouseUp",
+		"otherMouseDragged",
+		"missing28",
+		"gesture",
+		"magnify",
+		"swipe",
+		"smartMagnify",
+		"quickLook",
+		"pressure",
+		"missing35",
+		"missing36",
+		"directTouch",
+		"changeMode",
+		"missing39",
+		"mouseCancelled",
+	]
 }
 
 extension CGEventField: @retroactive CaseIterable {
@@ -218,10 +477,10 @@ extension CGEventField: @retroactive CaseIterable {
 		.scrollWheelEventAcceleratedDeltaAxis1,
 		.scrollWheelEventAcceleratedDeltaAxis2,
 		.scrollWheelEventRawDeltaAxis1,
-		.scrollWheelEventRawDeltaAxis2
+		.scrollWheelEventRawDeltaAxis2,
 	]
-	
-	public static let names: [CGEventField:String] = [
+
+	public static let names: [CGEventField: String] = [
 		.mouseEventNumber: "mouseEventNumber",
 		.mouseEventClickState: "mouseEventClickState",
 		.mouseEventPressure: "mouseEventPressure",
@@ -290,7 +549,6 @@ extension CGEventField: @retroactive CaseIterable {
 	]
 }
 
-
 class IOSurfaceNSBitmapImageRep: NSBitmapImageRep {
 	let surface: UnsafeMutablePointer<UInt8>
 
@@ -304,7 +562,7 @@ class IOSurfaceNSBitmapImageRep: NSBitmapImageRep {
 		var planes: [UnsafeMutablePointer<UInt8>?] = [data]
 		var srcPtr = ioSurface.baseAddress.bindMemory(to: UInt8.self, capacity: ioSurface.allocationSize)
 		var dstPtr = data
-		
+
 		self.surface = data
 
 		for _ in 0..<ioSurface.height {
@@ -320,17 +578,18 @@ class IOSurfaceNSBitmapImageRep: NSBitmapImageRep {
 			dstPtr = dstPtr.advanced(by: bytesPerRow)
 		}
 
-		super.init(bitmapDataPlanes: &planes,
-					pixelsWide: ioSurface.width,
-					pixelsHigh: ioSurface.height,
-					bitsPerSample: 8,
-					samplesPerPixel: ioSurface.bytesPerElement,
-					hasAlpha: true,
-					isPlanar: false,
-					colorSpaceName: .deviceRGB,
-					bitmapFormat: .thirtyTwoBitLittleEndian,
-					bytesPerRow: ioSurface.bytesPerRow,
-					bitsPerPixel: ioSurface.bytesPerElement * 8)
+		super.init(
+			bitmapDataPlanes: &planes,
+			pixelsWide: ioSurface.width,
+			pixelsHigh: ioSurface.height,
+			bitsPerSample: 8,
+			samplesPerPixel: ioSurface.bytesPerElement,
+			hasAlpha: true,
+			isPlanar: false,
+			colorSpaceName: .deviceRGB,
+			bitmapFormat: .thirtyTwoBitLittleEndian,
+			bytesPerRow: ioSurface.bytesPerRow,
+			bitsPerPixel: ioSurface.bytesPerElement * 8)
 	}
 
 	required init?(coder: NSCoder) {
@@ -338,68 +597,70 @@ class IOSurfaceNSBitmapImageRep: NSBitmapImageRep {
 	}
 }
 
-
 extension CALayer {
 	func renderIntoImage() -> CGImage? {
-        // Ensure we have a valid, non-zero size to render
-        let width = Int(ceil(self.bounds.width))
-        let height = Int(ceil(self.bounds.height))
+		// Ensure we have a valid, non-zero size to render
+		let width = Int(ceil(self.bounds.width))
+		let height = Int(ceil(self.bounds.height))
 
 		guard width > 0, height > 0 else {
 			return nil
 		}
 
-        // Create an RGBA8 bitmap context
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bytesPerPixel = 4
+		// Create an RGBA8 bitmap context
+		let colorSpace = CGColorSpaceCreateDeviceRGB()
+		let bytesPerPixel = 4
 
 		// Align bytesPerRow to a multiple of 4 for safe bitmap alignment
-        let rawBytesPerRow = width * bytesPerPixel
-        let bytesPerRow = (rawBytesPerRow + 3) & ~3
-        let dataSize = height * bytesPerRow
-        let data = UnsafeMutablePointer<UInt8>.allocate(capacity: dataSize)
+		let rawBytesPerRow = width * bytesPerPixel
+		let bytesPerRow = (rawBytesPerRow + 3) & ~3
+		let dataSize = height * bytesPerRow
+		let data = UnsafeMutablePointer<UInt8>.allocate(capacity: dataSize)
 
 		defer { data.deallocate() }
 
-        guard let ctx = CGContext(data: data,
-                                  width: width,
-                                  height: height,
-                                  bitsPerComponent: 8,
-                                  bytesPerRow: bytesPerRow,
-                                  space: colorSpace,
-                                  bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue) else {
-            return nil
-        }
+		guard
+			let ctx = CGContext(
+				data: data,
+				width: width,
+				height: height,
+				bitsPerComponent: 8,
+				bytesPerRow: bytesPerRow,
+				space: colorSpace,
+				bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue)
+		else {
+			return nil
+		}
 
-        // Clear and flip the context to AppKit coordinates
-        ctx.clear(CGRect(x: 0, y: 0, width: width, height: height))
-        //ctx.translateBy(x: 0, y: CGFloat(height))
-        //ctx.scaleBy(x: 1, y: -1)
+		// Clear and flip the context to AppKit coordinates
+		ctx.clear(CGRect(x: 0, y: 0, width: width, height: height))
+		//ctx.translateBy(x: 0, y: CGFloat(height))
+		//ctx.scaleBy(x: 1, y: -1)
 
-        // Render the layer hierarchy into the context
-        self.render(in: ctx)
+		// Render the layer hierarchy into the context
+		self.render(in: ctx)
 
-        // Create CGImage and wrap in NSImage
-        return ctx.makeImage()
+		// Create CGImage and wrap in NSImage
+		return ctx.makeImage()
 	}
 }
 
 extension OSType {
 	var string: String {
-	    // OSType is a FourCharCode (UInt32). Interpret as four ASCII bytes in big-endian order.
-	    let value = UInt32(self)
-	    let bytes: [UInt8] = [
-	        UInt8((value >> 24) & 0xFF),
-	        UInt8((value >> 16) & 0xFF),
-	        UInt8((value >> 8) & 0xFF),
-	        UInt8(value & 0xFF)
-	    ]
-	    // Some OSType values may contain non-printable bytes; fall back to hex if decoding fails.
-	    if let str = String(bytes: bytes, encoding: .macOSRoman) ?? String(bytes: bytes, encoding: .ascii) {
-	        return str
-	    } else {
-	        return String(format: "0x%08X", value)
-	    }
+		// OSType is a FourCharCode (UInt32). Interpret as four ASCII bytes in big-endian order.
+		let value = UInt32(self)
+		let bytes: [UInt8] = [
+			UInt8((value >> 24) & 0xFF),
+			UInt8((value >> 16) & 0xFF),
+			UInt8((value >> 8) & 0xFF),
+			UInt8(value & 0xFF),
+		]
+		// Some OSType values may contain non-printable bytes; fall back to hex if decoding fails.
+		if let str = String(bytes: bytes, encoding: .macOSRoman) ?? String(bytes: bytes, encoding: .ascii) {
+			return str
+		} else {
+			return String(format: "0x%08X", value)
+		}
 	}
 }
 
@@ -409,38 +670,38 @@ extension IOSurface {
 	}
 
 	#if false
-	open override var description: String {
-		return """
-\(self.className): \(self.width)x\(self.height)
-  allocationSize: \(self.allocationSize)
-  allowsPixelSizeCasting: \(self.allowsPixelSizeCasting)
-  bytesPerRow: \(self.bytesPerRow)
-  bytesPerElement: \(self.bytesPerElement)
-  elementHeight: \(self.elementHeight)
-  elementWidth: \(self.elementWidth)
-  format: \(self.pixelFormat.string)
-  inUse: \(self.isInUse)
-  localUseCount: \(self.localUseCount)
-  planeCount: \(self.planeCount)
-  seed: \(self.seed)
-  surfaceID: \(self.surfaceID)
-  IOSurfaceGetSubsampling: \(IOSurfaceGetSubsampling(self))
-  IOSurfaceGetBitDepthOfComponentOfPlane[0]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 0))
-  IOSurfaceGetBitDepthOfComponentOfPlane[1]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 1))
-  IOSurfaceGetBitDepthOfComponentOfPlane[2]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 2))
-  IOSurfaceGetBitOffsetOfComponentOfPlane[0]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 0))
-  IOSurfaceGetBitOffsetOfComponentOfPlane[1]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 1))
-  IOSurfaceGetBitOffsetOfComponentOfPlane[2]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 2))
-  IOSurfaceGetTypeOfComponentOfPlane[0]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 0))
-  IOSurfaceGetTypeOfComponentOfPlane[1]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 1))
-  IOSurfaceGetTypeOfComponentOfPlane[2]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 2))
-  IOSurfaceComponentRange[0]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 0))
-  IOSurfaceComponentRange[1]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 1))
-  IOSurfaceComponentRange[2]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 2))
+		open override var description: String {
+			return """
+				\(self.className): \(self.width)x\(self.height)
+				  allocationSize: \(self.allocationSize)
+				  allowsPixelSizeCasting: \(self.allowsPixelSizeCasting)
+				  bytesPerRow: \(self.bytesPerRow)
+				  bytesPerElement: \(self.bytesPerElement)
+				  elementHeight: \(self.elementHeight)
+				  elementWidth: \(self.elementWidth)
+				  format: \(self.pixelFormat.string)
+				  inUse: \(self.isInUse)
+				  localUseCount: \(self.localUseCount)
+				  planeCount: \(self.planeCount)
+				  seed: \(self.seed)
+				  surfaceID: \(self.surfaceID)
+				  IOSurfaceGetSubsampling: \(IOSurfaceGetSubsampling(self))
+				  IOSurfaceGetBitDepthOfComponentOfPlane[0]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 0))
+				  IOSurfaceGetBitDepthOfComponentOfPlane[1]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 1))
+				  IOSurfaceGetBitDepthOfComponentOfPlane[2]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 2))
+				  IOSurfaceGetBitOffsetOfComponentOfPlane[0]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 0))
+				  IOSurfaceGetBitOffsetOfComponentOfPlane[1]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 1))
+				  IOSurfaceGetBitOffsetOfComponentOfPlane[2]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 2))
+				  IOSurfaceGetTypeOfComponentOfPlane[0]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 0))
+				  IOSurfaceGetTypeOfComponentOfPlane[1]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 1))
+				  IOSurfaceGetTypeOfComponentOfPlane[2]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 2))
+				  IOSurfaceComponentRange[0]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 0))
+				  IOSurfaceComponentRange[1]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 1))
+				  IOSurfaceComponentRange[2]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 2))
 
-  attachments: \(self.allAttachments())
-"""
-	}
+				  attachments: \(self.allAttachments())
+				"""
+		}
 	#endif
 
 	public var cgImage: CGImage? {
@@ -448,32 +709,32 @@ extension IOSurface {
 			return nil
 		}
 
-#if XDEBUG
-		var pixels = Data(count: self.allocationSize)
+		#if XDEBUG
+			var pixels = Data(count: self.allocationSize)
 
-		pixels.withUnsafeMutableBytes { ptr in
-			guard var baseAddress = ptr.bindMemory(to: UInt8.self).baseAddress else {
-				return
-			}
-			
-			for line in 0..<self.height {
-				var pRow = baseAddress
-				let idx = line < self.height / 2 ? 0 : 2
-				let value: UInt8 = line < self.height / 2 ? 0x80 : 0x81
-				baseAddress = baseAddress.advanced(by: self.bytesPerRow)
+			pixels.withUnsafeMutableBytes { ptr in
+				guard var baseAddress = ptr.bindMemory(to: UInt8.self).baseAddress else {
+					return
+				}
 
-				for _ in 0..<Int(self.width) {
-					pRow[idx] = value
-					pRow[3] = 255
+				for line in 0..<self.height {
+					var pRow = baseAddress
+					let idx = line < self.height / 2 ? 0 : 2
+					let value: UInt8 = line < self.height / 2 ? 0x80 : 0x81
+					baseAddress = baseAddress.advanced(by: self.bytesPerRow)
 
-					pRow = pRow.advanced(by: 4)
+					for _ in 0..<Int(self.width) {
+						pRow[idx] = value
+						pRow[3] = 255
+
+						pRow = pRow.advanced(by: 4)
+					}
 				}
 			}
-		}
 
-#else
-		var pixels = Data(bytes: self.baseAddress, count: self.allocationSize)
-#endif
+		#else
+			var pixels = Data(bytes: self.baseAddress, count: self.allocationSize)
+		#endif
 
 		guard let provider = CGDataProvider(data: pixels as CFData) else {
 			return nil
@@ -579,6 +840,12 @@ extension NSApplication {
 		}
 
 		self.setActivationPolicy(.regular)
+		// First of three layered activation attempts for processes launched from a terminal/shell
+		// script rather than Finder/LaunchServices — see the "Front-app activation workaround" note
+		// above AppDelegate in Sources/caked/MainApp.swift for the other two and why this one alone
+		// isn't reliably sufficient.
+		NSApp.activate(ignoringOtherApps: true)
+		NSApp.unhide(self)
 
 		if let customIcon /*?? NSImage(named: NSImage.applicationIconName)*/ {
 			self.applicationIconImage = customIcon

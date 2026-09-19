@@ -3,8 +3,23 @@ import Foundation
 import GRPC
 import GRPCLib
 import NIO
-import Virtualization
 import NIOPortForwarding
+import Virtualization
+
+extension VMInformations.Status {
+	public init(_ status: VMLocation.Status) {
+		switch status {
+		case .running(let mode):
+			if mode == .provision {
+				self = .provisioning
+			} else {
+				self = .running
+			}
+		default:
+			self = .stopped
+		}
+	}
+}
 
 public struct InfosHandler {
 	public static func infos(vmURL: URL, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
@@ -15,7 +30,7 @@ public struct InfosHandler {
 		return try InfosHandler.infos(location: StorageLocation(runMode: runMode).find(name), runMode: runMode, client: client, callOptions: callOptions)
 	}
 
-	public static func offlineInfos(location: VMLocation, config: CakeConfig, status: Status = .stopped) throws -> VMInformations {
+	public static func offlineInfos(location: VMLocation, config: CakeConfig, status: VMInformations.Status = .stopped) throws -> VMInformations {
 		var diskInfos: [DiskInfo] = []
 
 		diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.locationURL).absoluteURL.path(percentEncoded: false), mount: "/", fsType: "native", total: config.diskSize, free: 0, used: 0))
@@ -61,12 +76,14 @@ public struct InfosHandler {
 				infos.tunnelInfos = config.forwardedPorts.compactMap { $0.tunnelInfo }
 				infos.socketInfos = config.sockets.compactMap { $0.socketInfo }
 			} else {
-				infos = try offlineInfos(location: location, config: config, status: .running)
+				infos = try offlineInfos(location: location, config: config, status: VMInformations.Status(location.status))
 			}
 
-			if let vncURL = try? VMRunHandler.serviceMode.client(location: location, runMode: runMode).vncInfos {
-				infos.vncURL = vncURL.urls
-				infos.screenSize = vncURL.screenSize
+			if let service = try? VMRunHandler.serviceMode.client(location: location, runMode: runMode) {
+				let vncInfos = service.vncInfos
+
+				infos.vncURL = vncInfos.urls
+				infos.screenSize = vncInfos.screenSize
 			} else {
 				infos.vncURL = nil
 				infos.screenSize = nil

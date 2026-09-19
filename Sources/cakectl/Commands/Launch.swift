@@ -30,7 +30,7 @@ struct Launch: AsyncGrpcParsableCommand {
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
 		return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
 			let context: ProgressObserver.ProgressHandlerContext = .init()
-			let (stream, continuation) = AsyncStream.makeStream(of: Caked_LaunchStreamReply.OneOf_Current?.self)
+			let (stream, continuation) = AsyncThrowingStream.makeStream(of: Caked_LaunchStreamReply.OneOf_Current?.self)
 			var result: String = String.empty
 
 			group.addTask {
@@ -38,9 +38,13 @@ struct Launch: AsyncGrpcParsableCommand {
 					continuation.yield(stream.current)
 				}
 				
-				_ = try await stream.status.get()
-
-				continuation.finish()
+				let status = try await stream.status.get()
+				
+				if status.isOk {
+					continuation.finish()
+				} else {
+					continuation.finish(throwing: status)
+				}
 			}
 
 			for try await current in stream {

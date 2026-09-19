@@ -8,10 +8,42 @@ import Foundation
 import CakeAgentLib
 
 public final class ProgressObserver: NSObject, @unchecked Sendable {
+	public struct ProvisionInfo: Sendable {
+		public let vncURL: URL
+		public let screenSize: ViewSize
+		public let config: CakedConfiguration
+
+		public init(vncURL: URL, screenSize: ViewSize, config: CakedConfiguration) {
+			self.vncURL = vncURL
+			self.screenSize = screenSize
+			self.config = config
+		}
+
+		public init(_ from: Caked_ProvisionStreamReply.ProvisionInfo) {
+			self.vncURL = URL(string: from.vncURL)!
+			self.screenSize = ViewSize(from.screenSize)
+			self.config = CakedConfiguration(from.config)
+		}
+
+		public var caked: Caked_ProvisionStreamReply.ProvisionInfo {
+			.with {
+				$0.vncURL = vncURL.absoluteString
+				$0.config = config.caked
+				$0.screenSize = .with {
+					$0.width = Int32(screenSize.width)
+					$0.height = Int32(screenSize.height)
+				}
+			}
+		}
+	}
+
 	public enum ProgressValue: Sendable {
 		case progress(ProgressHandlerContext, Double)
 		case step(String)
+		case substep(String)
 		case terminated(Result<Sendable?, any Error>, String?)
+		case provision(ProvisionInfo?)
+		case provisioned(Result<ProvisionedReply?, any Error>)
 	}
 
 	public final class ProgressHandlerContext: @unchecked Sendable {
@@ -68,7 +100,13 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 			let logger = Logger("BuildHandler")
 
 			if case .failure(let error) = result {
-				if let message {
+				if error is CancellationError {
+					if let message {
+						logger.error("\(message)")
+					} else {
+						logger.error("Operation cancelled")
+					}
+				} else if let message {
 					logger.error("\(message): \(error)")
 				} else {
 					logger.error("Installation failed: \(error)")
@@ -78,6 +116,10 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 			}
 		} else if case .step(let message) = result {
 			Logger(self).info(message)
+		} else if case .substep(let message) = result {
+			Logger(self).info(message)
+		} else if case .provision(let info) = result, let info {
+			Logger(self).info("Provisioning visible at: \(info.vncURL)")
 		}
 	}
 

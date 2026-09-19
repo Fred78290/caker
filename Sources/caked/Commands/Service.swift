@@ -1,3 +1,4 @@
+import AppKit
 import ArgumentParser
 import CakeAgentLib
 import CakedLib
@@ -345,6 +346,15 @@ extension Service {
 		}
 
 		func run() async throws {
+			// 1. Force NSApp to exist under your control, before any window/view is created
+			let app = await NSApplication.shared
+
+			// 2. Set policy immediately — before any NSWindow/NSView allocation
+			await app.setActivationPolicy(.prohibited)   // see caveat below
+
+			// 3. Finish launching manually since you're not using NSApplicationMain
+			await app.finishLaunching()
+
 			let listenAddress = try self.options.getListenAddress(runMode: self.common.runMode)
 			let logger = Logger(self)
 
@@ -399,16 +409,18 @@ extension Service {
 				logger.info("Start listening on \(address)")
 
 				do {
-					return try ServiceHandler.createServer(
-						eventLoopGroup: eventLoopGroup,
-						runMode: runMode,
-						listeningAddress: URL(string: address),
-						serviceProviders: [provider],
-						password: self.password,
-						caCert: self.options.caCert,
-						tlsCert: self.options.tlsCert,
-						tlsKey: self.options.tlsKey
-					).wait()
+					if let listeningAddress = URL(string: address) {
+						return try (listeningAddress, ServiceHandler.createServer(
+							eventLoopGroup: eventLoopGroup,
+							runMode: runMode,
+							listeningAddress: listeningAddress,
+							serviceProviders: [provider],
+							password: self.password,
+							caCert: self.options.caCert,
+							tlsCert: self.options.tlsCert,
+							tlsKey: self.options.tlsKey
+						).wait())
+					}
 				} catch {
 					logger.error("Failed to start server on \(address): \(error)")
 				}
@@ -439,7 +451,7 @@ extension Service {
 				if let listen = components.url {
 					do {
 						restServer = try await LXDRESTServer(
-							group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.webUIDirectory, restLogLevel: self.options.restLogLevel
+							group: eventLoopGroup, listen: listen, caCert: self.options.caCert, tlsCert: self.options.tlsCert, tlsKey: self.options.tlsKey, runMode: runMode, webUIDirectory: self.webUIDirectory, restLogLevel: self.options.restLogLevel, provider: provider
 						)
 						try restServer?.start()
 						logger.info("LXD REST API listening on \(listen.hiddenPasswordURL)")
@@ -452,6 +464,20 @@ extension Service {
 			Root.sigintSrc.cancel()
 
 			try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+				var resumed = false
+
+				func resume(throwing error: Error? = nil) {
+					if resumed == false {
+						resumed = true
+
+						if let error {
+							continuation.resume(throwing: error)
+						} else {
+							continuation.resume()
+						}
+					}
+				}
+
 				let sigcaught = [SIGINT, SIGHUP, SIGQUIT, SIGTERM, SIGUSR2].map { sig in
 					signal(sig, SIG_IGN)
 
@@ -472,14 +498,34 @@ extension Service {
 							await restServer?.shutdown()
 							provider.stop()
 
-							try? await EventLoopFuture.andAllComplete(
-								servers.map {
-									$0.initiateGracefulShutdown()
-								}, on: eventLoopGroup.next()
-							).get()
+							do {
+								let on = eventLoopGroup.next()
 
-							continuation.resume()
-							logger.info("Server nicely closed")
+								try await EventLoopFuture.andAllComplete(
+									servers.map {
+										let promise = on.makePromise(of: Void.self)
+										let addr = $0.0
+
+										$0.1.initiateGracefulShutdown(promise: promise)
+
+										promise.futureResult.whenComplete { result in
+											switch result {
+											case .failure(let error):
+												logger.error("Failed to gracefully shutdown server \(addr): \(error)")
+											case .success:
+												logger.info("Server \(addr) nicely closed")
+											}
+										}
+
+										return promise.futureResult
+									}, on: on
+								).get()
+							} catch {
+								logger.error("Failed to gracefully shutdown servers: \(error)")
+							}
+
+							resume()
+							logger.info("All servers nicely closed")
 						}
 					}
 
@@ -489,17 +535,18 @@ extension Service {
 				sigcaught.forEach { sigintSrc in
 					sigintSrc.activate()
 				}
+
 				do {
 					try home.agentPID.writePID()
 				} catch {
-					continuation.resume(throwing: error)
+					resume(throwing: error)
 					return
 				}
 
 				// Wait on the server's `onClose` future to stop the program from exiting.
 				let futures = EventLoopFuture.andAllComplete(
 					servers.map {
-						$0.onClose
+						$0.1.onClose
 					}, on: eventLoopGroup.next())
 
 				futures.whenComplete { _ in

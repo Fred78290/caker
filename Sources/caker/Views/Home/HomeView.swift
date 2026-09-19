@@ -42,6 +42,9 @@ struct HomeView: View {
 			return network.usedBy != 0 || [.nat, .bridged].contains(network.mode)
 		case .images:
 			return navigationModel.selectedRemote == nil
+		case .tasks:
+			// Cancellation is done per-row via context menu, not the toolbar Delete button.
+			return true
 		}
 	}
 
@@ -55,7 +58,22 @@ struct HomeView: View {
 
 					Button("Plus", systemImage: "plus") {
 						self.actionPlus()
-					}.disabled(self.selectedCategory == .templates)
+					}.disabled(self.selectedCategory == .templates || self.selectedCategory == .tasks)
+				}
+
+				if self.selectedCategory == .virtualMachine {
+					ToolbarItem(placement: .automatic) {
+						Picker("View mode", selection: $navigationModel.virtualMachinesViewMode) {
+							ForEach(VirtualMachinesViewMode.allCases) { mode in
+								Image(systemName: mode.iconName)
+									.help(mode.label)
+									.tag(mode)
+							}
+						}
+						.pickerStyle(.segmented)
+						.labelsHidden()
+						.frame(width: 76)
+					}
 				}
 
 				if self.haveDetailView {
@@ -164,6 +182,8 @@ struct HomeView: View {
 				navigationModel.selectedRemote = nil
 			case .templates:
 				navigationModel.selectedTemplate = nil
+			case .tasks:
+				break
 			}
 		}
 
@@ -175,6 +195,13 @@ struct HomeView: View {
 
 	var haveDetailView: Bool {
 		guard self.selectedCategory != .virtualMachine else {
+			// Mosaic mode already shows a live screenshot/status on every tile, so the detail
+			// column only makes sense once the VM collection is shown as a plain list.
+			return self.navigationModel.virtualMachinesViewMode == .list
+		}
+
+		// A task entry (id + title) is too sparse to warrant its own detail column.
+		guard self.selectedCategory != .tasks else {
 			return false
 		}
 
@@ -185,7 +212,9 @@ struct HomeView: View {
 	var showDetailView: Bool {
 		switch self.selectedCategory {
 		case .virtualMachine:
-			return false
+			guard self.navigationModel.virtualMachinesViewMode == .list, navigationModel.selectedVirtualMachine != nil else {
+				return false
+			}
 		case .networks:
 			guard navigationModel.selectedNetwork != nil else {
 				return false
@@ -198,6 +227,8 @@ struct HomeView: View {
 			guard navigationModel.selectedTemplate != nil else {
 				return false
 			}
+		case .tasks:
+			return false
 		}
 
 		return mustShowDetailView
@@ -211,7 +242,13 @@ struct HomeView: View {
 			return nil
 		case .networks:
 			return nil
+		case .tasks:
+			return nil
 		case .virtualMachine:
+			guard self.navigationModel.virtualMachinesViewMode == .mosaic else {
+				return nil
+			}
+
 			return VirtualMachinesView.cellWidth + (VirtualMachinesView.cellSpacing * 2)
 		}
 	}
@@ -224,7 +261,13 @@ struct HomeView: View {
 			return 200
 		case .networks:
 			return 200
+		case .tasks:
+			return 200
 		case .virtualMachine:
+			guard self.navigationModel.virtualMachinesViewMode == .mosaic else {
+				return 240
+			}
+
 			return (VirtualMachinesView.cellWidth + (VirtualMachinesView.cellSpacing * 2)) * max(1, min(2, CGFloat(self.navigationModel.documents.count)))
 		}
 	}
@@ -237,8 +280,10 @@ struct HomeView: View {
 			return 400
 		case .networks:
 			return 450
+		case .tasks:
+			return 400
 		case .virtualMachine:
-			return 200
+			return 340
 		}
 	}
 
@@ -250,14 +295,24 @@ struct HomeView: View {
 			return 200
 		case .networks:
 			return 200
+		case .tasks:
+			return 200
 		case .virtualMachine:
 			return (VirtualMachinesView.cellWidth + VirtualMachinesView.cellSpacing * 2) * max(1, min(3, CGFloat(self.navigationModel.documents.count)))
 		}
 	}
 
+	/// `NavigationModel.categories` itself stays the full static list (other code may reference it
+	/// generically) — the `.tasks` category is filtered out here instead, only when there's no
+	/// separate `caked` process to have tasks in (`.app` connection mode, i.e. VMs running embedded
+	/// in-process). See `TasksHandler`'s doc comment for why there's no `.app`-mode fallback for it.
+	var visibleCategories: [Category] {
+		NavigationModel.categories.filter { $0 != .tasks || self.appState.connectionMode != .app }
+	}
+
 	@ViewBuilder
 	var sidebar: some View {
-		SideBarView(categories: NavigationModel.categories, selectedCategory: $selectedCategory)
+		SideBarView(categories: self.visibleCategories, selectedCategory: $selectedCategory)
 			.frame(minWidth: 200, maxWidth: 200)
 			.navigationSplitViewColumnWidth(200)
 			.navigationSplitViewStyle(.prominentDetail)
@@ -285,6 +340,8 @@ struct HomeView: View {
 				NetworksView(navigationModel: navigationModel)
 			case .virtualMachine:
 				VirtualMachinesView(navigationModel: navigationModel, columns: VirtualMachinesView.buildColumns(geometry.size))
+			case .tasks:
+				TasksView(navigationModel: navigationModel)
 			}
 		}.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
 	}
@@ -294,7 +351,12 @@ struct HomeView: View {
 		GeometryReader { geometry in
 			switch self.selectedCategory {
 			case .virtualMachine:
-				Text("Hello, VM!")
+				if let selectedVirtualMachine = navigationModel.selectedVirtualMachine {
+					VirtualMachineDetailView(vm: selectedVirtualMachine)
+						.background(Color(NSColor.tertiarySystemFill))
+				} else {
+					EmptyView()
+				}
 			case .networks:
 				if navigationModel.selectedNetwork != nil {
 					NetworkDetailView(
@@ -340,6 +402,8 @@ struct HomeView: View {
 				} else {
 					EmptyView()
 				}
+			case .tasks:
+				EmptyView()
 			}
 		}
 		.navigationSplitViewColumnWidth(min: self.idealDetailSize, ideal: self.idealDetailSize, max: self.idealDetailSize)
@@ -349,7 +413,7 @@ struct HomeView: View {
 	var sheet: some View {
 		switch self.selectedCategory {
 		case .virtualMachine:
-			VirtualMachineWizard(sheet: true)
+			VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true)
 				.colorSchemeForColor()
 				.restorationState(.disabled)
 				.frame(minWidth: 700, minHeight: 670)
@@ -389,6 +453,10 @@ struct HomeView: View {
 				self.appState.deleteTemplate(name: selectedTemplate.name)
 				navigationModel.selectedTemplate = nil
 			}
+		case .tasks:
+			// Cancellation is done per-row via TasksView's own context menu, not this toolbar button
+			// (see deleteButtonDisabled, which keeps it disabled for this category).
+			break
 		}
 	}
 
@@ -401,6 +469,8 @@ struct HomeView: View {
 		case .images:
 			self.presented = true
 		case .templates:
+			self.presented = false
+		case .tasks:
 			self.presented = false
 		}
 	}

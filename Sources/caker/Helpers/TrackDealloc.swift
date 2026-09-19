@@ -8,7 +8,7 @@
 import CakeAgentLib
 import Foundation
 
-#if DEBUG
+#if TRACE_SWIFTUI_DEALLOC
 class TrackDealloc {
 	let id = UUID().uuidString
 	let from: String

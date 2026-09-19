@@ -5,6 +5,8 @@ import { listNetworks } from '../api/networks';
 import { getOperation } from '../api/operations';
 import { getServerInfo } from '../api/server';
 import { Spinner } from '../components/Spinner';
+import { vmImages } from '../data/vmImages';
+import type { VMImageEntry } from '../data/vmImages';
 import type { LXDNetwork } from '../types/lxd';
 
 interface Props {
@@ -34,109 +36,48 @@ const VM_NAME_ADJECTIVES = ['swift', 'brave', 'calm', 'silent', 'lucky', 'rapid'
 const VM_NAME_NOUNS = ['otter', 'falcon', 'cedar', 'pine', 'ember', 'comet', 'delta', 'harbor']
 const DEFAULT_IMAGE_ALIAS = 'ubuntu:26.04'
 
-const UBUNTU_ISO_BASE = 'https://cdimage.ubuntu.com/ubuntu/releases'
-const UBUNTU_CLOUD_BASE = 'https://cloud-images.ubuntu.com/releases'
-const CENTOS_ISO_BASE = 'https://mirror.centos.org/centos/9-stream/BaseOS'
-const CENTOS_CLOUD_BASE = 'https://cloud.centos.org/centos'
-const FEDORA_ISO_BASE = 'https://download.fedoraproject.org/pub/fedora/linux/releases'
-const FEDORA_CLOUD_BASE = 'https://download.fedoraproject.org/pub/fedora/linux/releases'
-const DEBIAN_CLOUD_BASE = 'https://cloud.debian.org/images/cloud'
-const OPENSUSE_CLOUD_BASE = 'https://download.opensuse.org/repositories/Cloud:/Images:/Leap'
-const ALPINE_CLOUD_BASE = 'https://dl-cdn.alpinelinux.org/alpine'
-const MACOS_1561_IPSW_URL = 'https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw'
-const MACOS_265_IPSW_URL = 'https://updates.cdn-apple.com/2026SpringFCS/fullrestores/122-58869/DFB1CEEF-5619-4591-9924-E20DB2C8FED0/UniversalMac_26.5_25F71_Restore.ipsw'
-const MACOS_1461_IPSW_URL = 'https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw'
-const MACOS_136_IPSW_URL = 'https://updates.cdn-apple.com/2023FallFCS/fullrestores/042-55833/C0830847-A2F8-458F-B680-967991820931/UniversalMac_13.6_22G120_Restore.ipsw'
-
-const LXD_TO_UBUNTU_ARCH: Record<string, string> = {
+const LXD_TO_IMAGE_ARCH: Record<string, 'arm64' | 'amd64'> = {
   x86_64: 'amd64',
+  amd64: 'amd64',
   aarch64: 'arm64',
   arm64: 'arm64',
-  armv7l: 'armhf',
-  ppc64le: 'ppc64el',
-  s390x: 's390x',
-  riscv64: 'riscv64',
 }
 
-const LXD_TO_GENERIC_ARCH: Record<string, string> = {
-  x86_64: 'x86_64',
-  aarch64: 'aarch64',
-  arm64: 'aarch64',
-  armv7l: 'armhfp',
-  ppc64le: 'ppc64le',
-  s390x: 's390x',
+const buildSourceImages = (lxdArch: string, iso: boolean): { label: string; url: string; minCPU?: number; minMemoryMiB?: number }[] => {
+  const arch = LXD_TO_IMAGE_ARCH[lxdArch] ?? 'amd64'
+  const entries = iso ? vmImages[arch].iso : vmImages[arch].cloud
+  return entries.map((entry) => ({ label: entry.label, url: entry.url, minCPU: entry.minCPU, minMemoryMiB: entry.minMemoryMiB }))
 }
 
-const buildSourceImages = (lxdArch: string, iso: boolean): { label: string; url: string }[] => {
-  const ubuntuArch = LXD_TO_UBUNTU_ARCH[lxdArch] ?? 'amd64'
-  const genericArch = LXD_TO_GENERIC_ARCH[lxdArch] ?? 'x86_64'
-  
-  if (iso) {
-  return [
-    // Ubuntu ISOs
-    { label: `Ubuntu 26.04 LTS – Server ISO (${ubuntuArch})`, url: `${UBUNTU_ISO_BASE}/resolute/release/ubuntu-26.04-live-server-${ubuntuArch}.iso` },
-    { label: `Ubuntu 26.04 LTS – Desktop ISO (${ubuntuArch})`, url: `${UBUNTU_ISO_BASE}/resolute/release/ubuntu-26.04-desktop-${ubuntuArch}.iso` },
-    { label: `Ubuntu 24.04.4 LTS – Server ISO (${ubuntuArch})`, url: `${UBUNTU_ISO_BASE}/noble/release/ubuntu-24.04.4-live-server-${ubuntuArch}.iso` },
-    { label: `Ubuntu 24.04.4 LTS – Desktop ISO (${ubuntuArch})`, url: `${UBUNTU_ISO_BASE}/noble/release/ubuntu-24.04.4-desktop-${ubuntuArch}.iso` },
-    { label: `Ubuntu 22.04.5 LTS – Server ISO (${ubuntuArch})`, url: `${UBUNTU_ISO_BASE}/jammy/release/ubuntu-22.04.5-live-server-${ubuntuArch}.iso` },
-    { label: `Ubuntu 22.04.5 LTS – Desktop ISO (${ubuntuArch})`, url: `${UBUNTU_ISO_BASE}/jammy/release/ubuntu-22.04.5-desktop-${ubuntuArch}.iso` },
-    { label: `Ubuntu 20.04.5 LTS – Server ISO (${ubuntuArch})`, url: `${UBUNTU_ISO_BASE}/focal/release/ubuntu-20.04.5-live-server-${ubuntuArch}.iso` },
-    { label: `Ubuntu 20.04.5 LTS – Desktop ISO (${ubuntuArch})`, url: `${UBUNTU_ISO_BASE}/focal/release/ubuntu-20.04.5-desktop-${ubuntuArch}.iso` },
-    { label: `Ubuntu 18.04.6 LTS – Server ISO (${ubuntuArch})`, url: `${UBUNTU_ISO_BASE}/bionic/release/ubuntu-18.04.6-live-server-${ubuntuArch}.iso` },
-    { label: `Ubuntu 18.04.6 LTS – Desktop ISO (${ubuntuArch})`, url: `${UBUNTU_ISO_BASE}/bionic/release/ubuntu-18.04.6-desktop-${ubuntuArch}.iso` },
-    { label: `CentOS Stream 10 – DVD ISO (${genericArch})`, url: `https://mirror.stream.centos.org/10-stream/BaseOS/${genericArch}/iso/CentOS-Stream-10-latest-${genericArch}-dvd1.iso` },
-    { label: `CentOS Stream 9 – DVD ISO (${genericArch})`, url: `${CENTOS_ISO_BASE}/${genericArch}/iso/CentOS-Stream-9-latest-${genericArch}-dvd.iso` },
-    // Fedora ISOs
-    { label: `Fedora 42 – Server ISO (${genericArch})`, url: `${FEDORA_ISO_BASE}/42/Server/${genericArch}/iso/Fedora-Server-dvd-${genericArch}-42-1.1.iso` },
-    { label: `Fedora 41 – Server ISO (${genericArch})`, url: `${FEDORA_ISO_BASE}/41/Server/${genericArch}/iso/Fedora-Server-dvd-${genericArch}-41-1.4.iso` },
-    { label: `Fedora 40 – Server ISO (${genericArch})`, url: `${FEDORA_ISO_BASE}/40/Server/${genericArch}/iso/Fedora-Server-dvd-${genericArch}-40-1.14.iso` },
-  ]
-  } else {
-  return [
-    // Ubuntu Cloud Images
-    { label: `Ubuntu 26.04 LTS – Cloud Image (${ubuntuArch})`, url: `${UBUNTU_CLOUD_BASE}/resolute/release/ubuntu-26.04-server-cloudimg-${ubuntuArch}.img` },
-    { label: `Ubuntu 25.04 – Cloud Image (${ubuntuArch})`, url: `${UBUNTU_CLOUD_BASE}/plucky/release/ubuntu-25.04-server-cloudimg-${ubuntuArch}.img` },
-    { label: `Ubuntu 24.04 LTS – Cloud Image (${ubuntuArch})`, url: `${UBUNTU_CLOUD_BASE}/noble/release/ubuntu-24.04-server-cloudimg-${ubuntuArch}.img` },
-    { label: `Ubuntu 22.04 LTS – Cloud Image (${ubuntuArch})`, url: `${UBUNTU_CLOUD_BASE}/jammy/release/ubuntu-22.04-server-cloudimg-${ubuntuArch}.img` },
-    { label: `Ubuntu 20.04 LTS – Cloud Image (${ubuntuArch})`, url: `${UBUNTU_CLOUD_BASE}/focal/release/ubuntu-20.04-server-cloudimg-${ubuntuArch}.img` },
-    
-    // CentOS Cloud Images
-    { label: `CentOS Stream 10 – Cloud (${genericArch})`, url: `${CENTOS_CLOUD_BASE}/10-stream/${genericArch}/images/CentOS-Stream-GenericCloud-10-20250506.2.${genericArch}.qcow2` },
-    { label: `CentOS Stream 9 – Cloud (${genericArch})`, url: `${CENTOS_CLOUD_BASE}/9-stream/${genericArch}/images/CentOS-Stream-GenericCloud-9-20250526.1.${genericArch}.qcow2` },
-    
-    // Fedora Cloud Images
-    { label: `Fedora 42 – Cloud (${genericArch})`, url: `${FEDORA_CLOUD_BASE}/42/Server/${genericArch}/images/Fedora-Server-Guest-Generic-42-1.1.${genericArch}.qcow2` },
-    { label: `Fedora 41 – Cloud (${genericArch})`, url: `${FEDORA_CLOUD_BASE}/41/Server/${genericArch}/images/Fedora-Server-KVM-41-1.4.${genericArch}.qcow2` },
-    { label: `Fedora 40 – Cloud (${genericArch})`, url: `${FEDORA_CLOUD_BASE}/40/Server/${genericArch}/images/Fedora-Server-KVM-40-1.14.${genericArch}.qcow2` },
-    
-    // Debian Cloud Images
-    { label: `Debian 12 (Bookworm) – Cloud (${genericArch})`, url: `${DEBIAN_CLOUD_BASE}/bookworm/latest/debian-12-generic-${genericArch}.qcow2` },
-    { label: `Debian 11 (Bullseye) – Cloud (${genericArch})`, url: `${DEBIAN_CLOUD_BASE}/bullseye/latest/debian-11-generic-${genericArch}.qcow2` },
-    { label: `Debian 10 (Buster) – Cloud (${genericArch})`, url: `${DEBIAN_CLOUD_BASE}/buster/latest/debian-10-generic-${genericArch}.qcow2` },
-    
-    // openSUSE Cloud Images
-    { label: `openSUSE Leap 15.6 – Cloud (${genericArch})`, url: `${OPENSUSE_CLOUD_BASE}_15.6/images/openSUSE-Leap-15.6.${genericArch}-NoCloud.qcow2` },
-    { label: `openSUSE Leap 15.5 – Cloud (${genericArch})`, url: `${OPENSUSE_CLOUD_BASE}_15.5/images/openSUSE-Leap-15.5.${genericArch}-NoCloud.qcow2` },
-    { label: `openSUSE Leap 15.4 – Cloud (${genericArch})`, url: `${OPENSUSE_CLOUD_BASE}_15.4/images/openSUSE-Leap-15.4.${genericArch}-NoCloud.qcow2` },
-    
-    // Alpine Cloud Images
-    { label: `Alpine 3.22 – Cloud (${genericArch})`, url: `${ALPINE_CLOUD_BASE}/v3.22/releases/cloud/generic_alpine-3.22.1-${genericArch}-uefi-cloudinit-r0.qcow2` },
-    { label: `Alpine 3.21 – Cloud (${genericArch})`, url: `${ALPINE_CLOUD_BASE}/v3.21/releases/cloud/generic_alpine-3.21.2-${genericArch}-uefi-cloudinit-r0.qcow2` },
-    { label: `Alpine 3.20 – Cloud (${genericArch})`, url: `${ALPINE_CLOUD_BASE}/v3.20/releases/cloud/generic_alpine-3.20.7-${genericArch}-uefi-cloudinit-r0.qcow2` },
-  ]
+const buildMacosIpswSources = (lxdArch: string): { label: string; url: string; minCPU?: number; minMemoryMiB?: number }[] => {
+  const arch = LXD_TO_IMAGE_ARCH[lxdArch] ?? 'amd64'
+  if (arch !== 'arm64') return []
+
+  return vmImages.arm64.ipsw.map((entry) => ({
+    label: `${entry.label} – IPSW (Apple Silicon)`,
+    url: entry.url,
+    minCPU: entry.minCPU,
+    minMemoryMiB: entry.minMemoryMiB,
+  }))
+}
+
+// Raises cpu/memoryMB to the selected image's minCPU/minMemoryMiB, if any — never lowers a value
+// the user already raised above the minimum. Mirrors VMImageEntry.applyMinimumResources(to:) in
+// the native wizard (Sources/caker/Views/VirtualMachineWizard.swift).
+const applyMinimumResources = (
+  entry: Pick<VMImageEntry, 'minCPU' | 'minMemoryMiB'> | undefined,
+  currentCpu: string,
+  currentMemoryMB: string,
+): { cpu: string; memoryMB: string } => {
+  if (!entry) return { cpu: currentCpu, memoryMB: currentMemoryMB }
+
+  const cpuValue = Number.parseInt(currentCpu, 10) || 0
+  const memoryValue = Number.parseInt(currentMemoryMB, 10) || 0
+
+  return {
+    cpu: entry.minCPU ? String(Math.max(cpuValue, entry.minCPU)) : currentCpu,
+    memoryMB: entry.minMemoryMiB ? String(Math.max(memoryValue, entry.minMemoryMiB)) : currentMemoryMB,
   }
-}
-
-const buildMacosIpswSources = (lxdArch: string): { label: string; url: string }[] => {
-  const isArm64Server = lxdArch === 'aarch64' || lxdArch === 'arm64'
-  if (!isArm64Server) return []
-
-  return [
-    { label: 'macOS 26.5 – IPSW (Apple Silicon)', url: MACOS_265_IPSW_URL },
-    { label: 'macOS 15.6.1 – IPSW (Apple Silicon)', url: MACOS_1561_IPSW_URL },
-    { label: 'macOS 14.6.1 – IPSW (Apple Silicon)', url: MACOS_1461_IPSW_URL },
-    { label: 'macOS 13.6 – IPSW (Apple Silicon)', url: MACOS_136_IPSW_URL },
-  ]
 }
 
 const isAutoInstallAllowed = (value: string) => {
@@ -425,7 +366,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
     getServerInfo()
       .then((r) => {
         const firstArch = r.data.metadata.environment.architectures?.[0]
-        setServerArch(LXD_TO_UBUNTU_ARCH[firstArch ?? ''] ?? 'amd64')
+        setServerArch(LXD_TO_IMAGE_ARCH[firstArch ?? ''] ?? 'amd64')
       })
       .catch(() => { /* keep default amd64 */ })
   }, [])
@@ -664,6 +605,22 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
 
   const operationProgress = parseProgressPercent(operationDescription)
 
+  const macosIpswSources = buildMacosIpswSources(serverArch)
+  const cloudSources = buildSourceImages(serverArch, false)
+  const isoSources = buildSourceImages(serverArch, true)
+  const imageSourcesByUrl = new Map(
+    [...macosIpswSources, ...cloudSources, ...isoSources].map((entry) => [entry.url, entry]),
+  )
+
+  const onSelectAlias = (value: string) => {
+    setAlias(value)
+    setAutoinstall(isAutoInstallAllowed(value))
+
+    const { cpu: nextCpu, memoryMB: nextMemoryMB } = applyMinimumResources(imageSourcesByUrl.get(value), cpu, memoryMB)
+    setCpu(nextCpu)
+    setMemoryMB(nextMemoryMB)
+  }
+
   return (
     <div
       className="modal fade"
@@ -811,19 +768,10 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                 </div>
                 <div className="mb-3">
                   <label className="form-label fw-medium">Image alias or ISO</label>
-                  {(() => {
-                    const macosIpswSources = buildMacosIpswSources(serverArch)
-                    const cloudSources = buildSourceImages(serverArch, false)
-                    const isoSources = buildSourceImages(serverArch, true)
-
-                    return (
                   <select
                     className="form-select"
                     value={alias}
-                    onChange={(e) => {
-                      setAlias(e.target.value)
-                      setAutoinstall(isAutoInstallAllowed(e.target.value))
-                    }}
+                    onChange={(e) => onSelectAlias(e.target.value)}
                   >
                     <option value="">Select or type image alias...</option>
                     {macosIpswSources.length > 0 && (
@@ -850,18 +798,22 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                       ))}
                     </optgroup>
                   </select>
-                    )
-                  })()}
                   <input
                     type="text"
                     className="form-control mt-2"
                     value={alias}
-                    onChange={(e) => {
-                      setAlias(e.target.value)
-                      setAutoinstall(isAutoInstallAllowed(e.target.value))
-                    }}
+                    onChange={(e) => onSelectAlias(e.target.value)}
                     placeholder="ubuntu:22.04"
                   />
+                  {(() => {
+                    const selected = imageSourcesByUrl.get(alias)
+                    if (!selected?.minCPU && !selected?.minMemoryMiB) return null
+                    return (
+                      <div className="form-text">
+                        Requires at least {selected.minCPU ?? 1} CPU{(selected.minCPU ?? 1) > 1 ? 's' : ''} and {Math.round((selected.minMemoryMiB ?? 0) / 1024)} GB memory — applied automatically on the System tab.
+                      </div>
+                    )
+                  })()}
                 </div>
                 <div className="mb-0">
                   <label className="form-label fw-medium">Description</label>
@@ -880,7 +832,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                     <label className="form-label fw-medium">CPU</label>
                     <input
                       type="number"
-                      min={1}
+                      min={imageSourcesByUrl.get(alias)?.minCPU ?? 1}
                       className="form-control"
                       value={cpu}
                       onChange={(e) => setCpu(e.target.value)}
@@ -891,7 +843,7 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
                     <label className="form-label fw-medium">Memory (MB)</label>
                     <input
                       type="number"
-                      min={256}
+                      min={imageSourcesByUrl.get(alias)?.minMemoryMiB ?? 256}
                       step={256}
                       className="form-control"
                       value={memoryMB}

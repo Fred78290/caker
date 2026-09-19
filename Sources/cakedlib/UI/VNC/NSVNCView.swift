@@ -27,7 +27,7 @@ public class NSVNCView: NSView {
 	private var previousHotKeyMode: UnsafeMutableRawPointer?
 	private var didResizeFramebuffer: Bool = false
 	private var liveViewResize: Bool = false
-
+	private var allowClientResize: Bool = false
 	private let checkVNCReconfigurationTimeoutPeriod: Double = 0.250
 	private var checkVNCReconfigurationTimeoutAttempts: Int = 20
 	private var cancelWaitVNCReconfiguration: DispatchWorkItem?
@@ -105,7 +105,7 @@ public class NSVNCView: NSView {
 		true
 	}
 
-	public init(frame frameRect: CGRect, connection: RoyalVNCKit.VNCConnection) {
+	public init(frame frameRect: CGRect, allowClientResize: Bool, connection: RoyalVNCKit.VNCConnection) {
 		let settings = connection.settings
 
 		self.connection = connection
@@ -113,6 +113,7 @@ public class NSVNCView: NSView {
 		self.inputMode = settings.inputMode
 		self.isScalingEnabled = settings.isScalingEnabled
 		self.useDisplayLink = settings.useDisplayLink
+		self.allowClientResize = allowClientResize
 
 		super.init(frame: frameRect)
 
@@ -671,7 +672,7 @@ extension NSVNCView {
 
 extension NSVNCView {
 	@objc public func setDesktopSize(_ size: CGSize) {
-		guard size != .zero else {
+		guard size != .zero && allowClientResize else {
 			return
 		}
 
