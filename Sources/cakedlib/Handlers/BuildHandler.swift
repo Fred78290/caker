@@ -85,6 +85,14 @@ public struct BuildHandler {
 			return BuildedReply(name: options.name, builded: false, reason: String(localized: "Virtual machine name \(options.name) is limited to \(URL.maxVirtualMachineNameLength) characters"))
 		}
 
+		let handler = progressHandler
+
+		let progressHandler: ProgressObserver.BuildProgressHandler = { progress in
+			print(progress)
+
+			handler(progress)
+		}
+
 		do {
 			let storageLocation = StorageLocation(runMode: runMode)
 
@@ -113,12 +121,12 @@ public struct BuildHandler {
 
 			try tmpVMDirLock?.lock()
 
-			@Sendable func doCancel() {
+			var cancelled = false
+
+			defer {
 				location.removePID()
 				try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 			}
-
-			var cancelled = false
 
 			try await withTaskCancellationHandler(
 				operation: {
@@ -168,12 +176,9 @@ public struct BuildHandler {
 
 						progressHandler(.terminated(.success(location.rootURL), "Build VM finished successfully"))
 					} catch is CancellationError {
-						doCancel()
 						cancelled = true
 						progressHandler(.terminated(.failure(CancellationError()), "Build VM cancelled"))
 					} catch {
-						doCancel()
-
 						let nsError = error as NSError
 
 						if nsError.domain == VZErrorDomain && nsError.code == VZError.operationCancelled.rawValue {
@@ -189,7 +194,7 @@ public struct BuildHandler {
 					}
 				},
 				onCancel: {
-					doCancel()
+					cancelled = true
 				})
 
 			return BuildedReply(name: options.name, builded: cancelled == false, reason: cancelled ? String(localized: "Cancelled") : String(localized: "VM created"))

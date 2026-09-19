@@ -287,6 +287,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let gcd: GrandCentralDispatch
 	let vnc: VNCTunnel
 	let shutdown = Mutex<Bool>(false)
+	let logger = Logger("CakedProvider")
 	var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? = nil
 
 	// One in-flight, explicitly-tracked long-running command — see
@@ -296,6 +297,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	private struct RunningTask {
 		let title: String
 		let task: Task<Caked_Reply, Never>
+		let onCancel: () async -> Void
 	}
 
 	// Tracks the in-flight `Task` behind each long-running, streaming RPC (build/launch/provision
@@ -335,7 +337,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 			return
 		}
 
-		Logger(self).info("Cancelling \(tasks.count) in-flight long-running task(s)")
+		self.logger.info("Cancelling \(tasks.count) in-flight long-running task(s)")
 
 		for running in tasks.values {
 			running.task.cancel()
@@ -377,7 +379,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	/// `CakedLib.BuildHandler.build(...)`/`CakedLib.ProvisionHandler.provision(...)`, which already
 	/// handle `CancellationError` gracefully (the same mechanism `caked build`/`caked provision`'s
 	/// own SIGINT handling already relies on for a local CLI invocation).
-	func executeCancellable(command: CakedCommandAsync, title: String) async throws -> Caked_Reply {
+	func executeCancellable(command: CakedCommandAsync, title: String, onCancel: @escaping @Sendable () async -> Void) async throws -> Caked_Reply {
 		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
@@ -387,12 +389,19 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		let runMode = self.runMode
 
 		let task = Task<Caked_Reply, Never> {
-			var command = command
-
-			return await command.run(on: eventLoop, runMode: runMode)
+			await withTaskCancellationHandler(
+				operation: {
+					var command = command
+					return await command.run(on: eventLoop, runMode: runMode)
+				},
+				onCancel: {
+					Task.sync {
+						await onCancel()
+					}
+				})
 		}
 
-		self.runningTasks.withLock { $0[id] = RunningTask(title: title, task: task) }
+		self.runningTasks.withLock { $0[id] = RunningTask(title: title, task: task, onCancel: onCancel) }
 
 		// Close a race where `stop()` flips `shutdown` and snapshots `runningTasks` before this call
 		// registers its task.
@@ -495,7 +504,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		}
 
 		if let running = self.runningTasks.withLock({ $0[id] }) {
-			Logger(self).info("Cancelling task \(id) (\(running.title))")
+			self.logger.info("Cancelling task \(id) (\(running.title))")
 
 			running.task.cancel()
 
@@ -509,7 +518,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		}
 
 		if let op = await LXDOperationStore.shared.delete(id: requestID.lowercased()) {
-			Logger(self).info("Cancelling REST operation \(op.id) (\(op.description))")
+			self.logger.info("Cancelling REST operation \(op.id) (\(op.description))")
 
 			await op.cancel()
 
@@ -539,212 +548,238 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try await self.executeCancellable(
 			command: BuildHandler(provider: self, options: request.options.buildOptions(), responseStream: responseStream, context: context) {
-				try self.gcd.updateStatus(.with {
-					$0.name = request.options.name
-					$0.status = .new
-				})
+				try self.gcd.updateStatus(
+					.with {
+						$0.name = request.options.name
+						$0.status = .new
+					})
 			},
-			title: "build \(request.options.name)")
+			title: "build \(request.options.name)"
+		) {
+			self.logger.info("Build cancelled")
+			try? await responseStream.send(
+				.with {
+					$0.builded = .with {
+						$0.name = request.options.name
+						$0.builded = false
+						$0.reason = String(localized: "Cancelled")
+					}
+				})
+		}
 	}
 
 	func launch(request: Caked_LaunchRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_LaunchStreamReply>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try await self.executeCancellable(
 			command: LaunchHandler(request: request, gcd: self.gcd.haveListeners, responseStream: responseStream, context: context) {
-				try self.gcd.updateStatus(.with {
-					$0.name = request.options.name
-					$0.status = .new
-				})
+				try self.gcd.updateStatus(
+					.with {
+						$0.name = request.options.name
+						$0.status = .new
+					})
 			},
-			title: "launch \(request.options.name)")
+			title: "launch \(request.options.name)"
+		) {
+			self.logger.info("Launch cancelled")
+			try? await responseStream.send(
+				.with {
+					$0.launched = .with {
+						$0.name = request.options.name
+						$0.launched = false
+						$0.reason = String(localized: "Cancelled")
+					}
+				})
+		}
 	}
-	
+
 	func start(request: Caked_StartRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func restart(request: Caked_RestartRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func duplicate(request: Caked_DuplicateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-		
+
 		if reply.vms.duplicated.duplicated {
-			try self.gcd.updateStatus(.with {
-				$0.name = request.to
-				$0.status = .new
-			})
+			try self.gcd.updateStatus(
+				.with {
+					$0.name = request.to
+					$0.status = .new
+				})
 		}
-		
+
 		return reply
 	}
-	
+
 	func delete(request: Caked_DeleteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-		
+
 		if reply.vms.delete.success {
 			for name in request.names.list {
-				try self.gcd.updateStatus(.with {
-					$0.name = name
-					$0.status = .deleted
-				})
+				try self.gcd.updateStatus(
+					.with {
+						$0.name = name
+						$0.status = .deleted
+					})
 			}
 		}
-		
+
 		return reply
 	}
-	
+
 	func configure(request: Caked_ConfigureRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func purge(request: Caked_PurgeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func login(request: Caked_LoginRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func logout(request: Caked_LogoutRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func clone(request: Caked_CloneRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func push(request: Caked_PushRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func list(request: Caked_ListRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func image(request: Caked_ImageRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func remote(request: Caked_RemoteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-		
+
 		if request.command == .add || request.command == .delete {
 			self.gcd.updateStatusRemotes()
 		}
-		
+
 		return reply
 	}
-	
+
 	func template(request: Caked_TemplateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-		
+
 		if request.command == .add || request.command == .delete || request.command == .duplicate {
 			self.gcd.updateStatusTemplates()
 		}
-		
+
 		return reply
 	}
-	
+
 	func networks(request: Caked_NetworkRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let reply = try self.execute(command: request)
-		
+
 		if request.command == .new || request.command == .remove || request.command == .set {
 			self.gcd.updateStatusNetworks()
 		}
-		
+
 		return reply
 	}
-	
+
 	func waitIP(request: Caked_WaitIPRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func stop(request: Caked_StopRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func suspend(request: Caked_Caked.VMRequest.SuspendRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Caked.Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func rename(request: Caked_RenameRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func run(request: Caked_RunCommand, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try self.execute(command: try ExecuteHandler(provider: self, requestStream: requestStream, responseStream: responseStream, context: context))
 	}
-	
+
 	func mount(request: Caked_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func umount(request: Caked_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func ping(request: Caked_PingRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func currentStatus(request: Caked_CurrentStatusRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try self.execute(command: CurrentStatusHandler(provider: self, request: request, responseStream: responseStream))
 	}
-	
+
 	func vncInfos(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: VNCInfosHandler(request: request))
 	}
-	
+
 	func getScreenSize(request: Caked_GetScreenSizeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func setScreenSize(request: Caked_SetScreenSizeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func installAgent(request: Caked_InstallAgentRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func grandCentralDispatcher(request: Caked_Empty, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, context: GRPCAsyncServerCallContext) async throws {
 		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
-		
+
 		try await gcd.processDispatch(responseStream: responseStream)
 	}
-	
+
 	func grandCentralUpdate(requestStream: GRPCAsyncRequestStream<Caked_CurrentStatus>, context: GRPCAsyncServerCallContext) async throws -> Caked_Empty {
 		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
-		
+
 		return try await gcd.processUpdate(requestStream: requestStream)
 	}
-	
+
 	func vncTunnel(requestStream: GRPCAsyncRequestStream<Caked_VncStream>, responseStream: GRPCAsyncResponseStreamWriter<Caked_VncStream>, context: GRPCAsyncServerCallContext) async throws {
 		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
-		
+
 		try await self.vnc.tunnel(requestStream: requestStream, responseStream: responseStream, context: context)
 	}
-	
+
 	func checkReliability(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
-		
+
 		return .with {
 			$0.ping = .with {
 				$0.message = "pong"
@@ -752,11 +787,11 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 			}
 		}
 	}
-	
+
 	func certificate(request: Caked_CertificateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func stopService(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		// Defer the signal so the reply is delivered before the process exits.
 		DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
@@ -764,7 +799,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		}
 		return Caked_Reply()
 	}
-	
+
 	func compose(request: Caked_ComposeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
@@ -772,6 +807,17 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func provision(request: Caked_ProvisionRequest, responseStream: Caked_ResponseProvisionStreamReply, context: GRPCAsyncServerCallContext) async throws {
 		_ = try await self.executeCancellable(
 			command: ProvisionHandler(provider: self, request: request, responseStream: responseStream, runMode: runMode),
-			title: "provision \(request.name)")
+			title: "provision \(request.name)"
+		) {
+			self.logger.info("Provision cancelled")
+			try? await responseStream.send(
+				.with {
+					$0.provisioned = .with {
+						$0.name = request.name
+						$0.provisioned = false
+						$0.reason = String(localized: "Cancelled")
+					}
+				})
+		}
 	}
 }

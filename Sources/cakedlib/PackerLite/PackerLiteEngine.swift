@@ -243,7 +243,9 @@ public enum PackerLiteEngine {
 					if let error {
 						let reason: String
 
-						if let videoURL = location.existingProvisioningVideoURL {
+						if (error as? CancellationError) != nil {
+							reason = String(localized: "Cancelled")
+						} else if let videoURL = location.existingProvisioningVideoURL {
 							reason = String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason). Debug recording saved to \(videoURL.path)")
 						} else {
 							reason = String(localized: "Provisioning failed for VM \(location.name), error: \(error.reason)")
