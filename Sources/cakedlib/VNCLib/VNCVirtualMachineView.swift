@@ -85,7 +85,11 @@ extension NSView {
 			defer { semaphore.signal() }
 
 			let request = VNRecognizeTextRequest()
-			request.recognitionLevel = .accurate
+
+			request.recognitionLevel = .accurate // try .fast first
+			request.usesLanguageCorrection = false
+			request.minimumTextHeight = 0.02 // optional, skip tiny noise
+			request.recognitionLanguages = ["en-US"] // if appropriate
 
 			do {
 				try VNImageRequestHandler(data: capture.pngData, options: [:]).perform([request])
