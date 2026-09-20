@@ -117,7 +117,7 @@ final class LXDOperationsTaskMergeTests: XCTestCase {
 		let flag = CancellationFlag()
 
 		let running = Task {
-			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "build my-vm")
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "build my-vm") {}
 		}
 
 		defer {
@@ -152,7 +152,7 @@ final class LXDOperationsTaskMergeTests: XCTestCase {
 		let flag = CancellationFlag()
 
 		let running = Task {
-			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "provision my-vm")
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "provision my-vm") {}
 		}
 
 		try await Task.sleep(nanoseconds: 200_000_000)
@@ -206,7 +206,7 @@ final class LXDOperationsTaskMergeTests: XCTestCase {
 		let flag = CancellationFlag()
 
 		let running = Task {
-			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "build native-vm")
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "build native-vm") {}
 		}
 
 		defer {
