@@ -121,7 +121,7 @@ boot_command:
 
   - title: Wait installed and ready for you to use!
     commands:
-      - <locate text="is now successfully installed and ready for you to use!" timeout=1200>
+      - <locate text="is now successfully installed and ready for you to use|reboot your system|Go ahead" timeout=1200>
 
   - title: Reboot System
     commands:
