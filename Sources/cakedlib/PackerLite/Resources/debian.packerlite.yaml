@@ -155,7 +155,7 @@ boot_command:
 
   - title: Confirm writing changes to disk
     commands: 
-      - <locate text="Write the changes to disks?">
+      - <locate text="Write the changes to disks|going to be formatted:">
       - <tab>
       - <enter>
 
