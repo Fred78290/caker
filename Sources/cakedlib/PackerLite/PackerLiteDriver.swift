@@ -898,7 +898,11 @@ final class PackerLiteDriver: @unchecked Sendable {
 		// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
 		return try await Task.detached(priority: .utility) { () throws -> CGPoint? in
 			let request = VNRecognizeTextRequest()
+
 			request.recognitionLevel = .accurate // try .fast first
+			request.usesLanguageCorrection = false
+			request.minimumTextHeight = 0.02 // optional, skip tiny noise
+			request.recognitionLanguages = ["en-US"] // if appropriate
 
 			do {
 				try VNImageRequestHandler(data: pngData, options: [:]).perform([request])
