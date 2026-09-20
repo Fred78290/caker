@@ -252,7 +252,9 @@ struct HostVirtualMachineView: View {
 						}
 
 						Button("Delete", systemImage: "trash") {
-							AppState.shared.deleteVirtualMachine(document: self.document)
+							DispatchQueue.main.async {
+								AppState.shared.deleteVirtualMachine(document: self.document)
+							}
 						}
 						.help("Delete virtual machine")
 						.tint(.red)
