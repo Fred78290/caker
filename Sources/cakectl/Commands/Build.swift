@@ -32,8 +32,6 @@ struct Build: AsyncGrpcParsableCommand {
 
 			group.addTask {
 				let stream = try client.build(Caked_BuildRequest(buildOptions: self.buildOptions)) { stream in
-					print(stream.current.debugDescription)
-
 					continuation.yield(stream.current)
 				}
 				
