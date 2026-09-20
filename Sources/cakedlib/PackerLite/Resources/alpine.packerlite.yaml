@@ -33,10 +33,34 @@
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
 
 boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
+ignore_ip: true
 required_variables:
   - username
   - password
   - hostname
+
+autoconf: |
+  KEYMAPOPTS="us us-mac"
+  HOSTNAMEOPTS=${var.hostname}
+  DEVDOPTS=mdev
+  TIMEZONEOPTS="UTC"
+  PROXYOPTS=none
+  APKREPOSOPTS="-c -1"
+  USEROPTS="-a -u -g audio,input,video,netdev,wheel ${var.username}"
+  USERSSHKEY="${var.ssh_authorized_key}"
+  SSHDOPTS=openssh
+  NTPOPTS=busybox
+  DISKOPTS="-m sys /dev/vda"
+  LBUOPTS=none
+  APKCACHEOPTS=none
+  INTERFACESOPTS="auto lo
+  iface lo inet loopback
+
+  auto eth0
+  iface eth0 inet dhcp
+
+  hostname ${var.hostname}
+  "
 
 pre_boot_command:
   - title: Change keyboard
@@ -52,138 +76,21 @@ pre_boot_command:
   - title: Wait log in to complete
     commands:
       - <locate text="You can setup the system with the command">
-      - setup-alpine
-      - <enter>
-
-  - title: Select keyboard layout
-    commands:
-      - <locate text="Select keyboard layout">
-      - us
-      - <enter>
-
-  - title: Select keyboard variant
-    commands:
-      - <locate text="Select variant">
-      - us-mac
-      - <enter>
-
-  - title: Set hostname
-    commands:
-      - <locate text="Enter system hostname">
-      - ${var.hostname}
-      - <enter>
-
-  - title: Select ethernet interface and configure both
-    commands:
-      - '<skipCommandIfNotFound text="Available interfaces are: eth0 eth1" timeout=2>'
-      - <set inet=2>
-      - <enter>
-      - dhcp
-      - <enter>
-
-      - <skipStepIfNotFound text="IPv6|IPub" steps=1 timeout=2>
-      - auto
-      - <enter>
-
-      - '<locate text="interfaces are: eth1|interfaces are: ethl" timeout=2>'
-      - <enter>
-      - dhcp
-      - <enter>
-
-      - <skipStepIfNotFound text="IPv6|IPub" steps=1 timeout=2>
-      - auto
-      - <enter>
-
-      - <enter>
-      - <wait5s>
-
-  - title: Configure single Ethernet interface eth0
-    condition:
-      - inet != 2
-    commands:
-      - '<skipCommandIfNotFound text="interfaces are: eth0." timeout=2>'
-      - <enter>
-      - dhcp
-      - <enter>
-
-      - <skipStepIfNotFound text="IPv6|IPub" steps=1 timeout=2>
-      - auto
-      - <enter>
-
-      - <enter>
-      - <wait5s>
-
-  - title: Change password for root
-    commands:
-      - <locate text="Root password" timeout=30>
-      - <wait1s>
-      - ${var.password}
-      - <enter>
-      - <wait1s>
-      - ${var.password}
-      - <enter>
-
-  - title: Select time zone
-    commands:
-      - <locate text="Timezone">
-      - <enter>
-
-  - title: Ignore proxy configuration
-    commands:
-      - <locate text="proxy">
-      - <wait1s>
-      - <enter>
-
-  - title: Setup NTP client
-    commands:
-      - <locate text="Network Time Protocol">
-      - <wait1s>
-      - <enter>
-
-  - title: Select APK mirror
-    commands:
-      - <locate text="Enter mirror number or URL">
-      - <wait1s>
-      - <enter>
-
-  - title: Create user account
-    commands:
-      - <locate text="enter a lower-case loginname">
-      - <wait1s>
-      - ${var.username}
-      - <enter>
-      - <locate text="Full name for user">
-      - <enter>
-      - <locate text="Changing password for ${var.username}">
-      - ${var.password}
-      - <enter>
-      - <locate text="Retype password">
-      - ${var.password}
-      - <enter>
-      - <wait1s>
-      - <enter>
-
-  - title: Configure SSH server
-    commands:
-      - <locate text="ssh server">
-      - <wait1s>
-      - <enter>
-
-  - title: Configure Disk
-    commands:
-      - <locate text="Which disk(s) would you like to use">
-      - vda
-      - <enter>
-      - <locate text="How would you like to use it">
-      - sys
-      - <enter>
-      - <locate text="Erase the above disk">
-      - y
+      - <autoconf location="autoconf.conf">
+      - ERASE_DISKS=/dev/vda setup-alpine -e -f autoconf.conf
       - <enter>
 
   - title: Wait for installation to complete
     commands:
-      - <locate text="Installation is complete" timeout=600>
+      - <locate text="Installation is complete|Please reboot" timeout=600>
+      - mount /dev/vda3 /mnt
+      - <enter>
+      - chroot /mnt
+      - <enter>
+      - 'echo "root:${var.password}" | chpasswd'
+      - <enter>
+      - 'echo "${var.username}:${var.password}" | chpasswd'
+      - <enter>
       - reboot
       - <enter>
       - <locate text="GRUB">
@@ -196,8 +103,7 @@ boot_command:
 
   - title: Continue to configure after reboot
     commands:
-      - <locate text="Welcome to Alpine">
-      - '<locate text="login:" timeout=60>'
+      - <locate text="Welcome to Alpine|login:" timeout=30>
       - root
       - <enter>
       - <locate text="Password">
@@ -243,10 +149,5 @@ post_boot_command:
   use_ssh_key: false
   commands:
     - "echo ${var.password} | sudo -S sh -c 'echo \"${var.username} ALL=(ALL:ALL) NOPASSWD: ALL\" > /etc/sudoers.d/${var.username}'"
-    - mkdir -p /home/${var.username}/.ssh
-    - |
-      cat >> /home/${var.username}/.ssh/authorized_keys <<EOF
-      ${var.ssh_authorized_key}
-      EOF
     - sync
     - sync

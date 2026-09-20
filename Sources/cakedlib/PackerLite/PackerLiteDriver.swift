@@ -182,7 +182,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 	private var currentKeyTranslator: any KeyLayoutTranslator
 
 	/// Delay between synthesized key events, so the guest OS doesn't drop rapid-fire input.
-	private static let keyDelayNanoseconds: UInt64 = 100_000_000
+	private static let keyDelayNanoseconds: UInt64 = 50_000_000
 	private static let stepDelayNanoseconds: UInt64 = 250_000_000
 	/// How long clickText retries OCR before giving up, in case the screen is still rendering.
 	public static let clickTextTimeout: TimeInterval = 10
@@ -198,6 +198,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 	private var trackingNumber: Int = 0
 	private let eventSource = CGEventSource(stateID: .combinedSessionState)
 	private let level: Logger.LogLevel
+	private let autoconf: String?
 
 	private var textesFoundOverlay: [CAShapeLayer]?
 	private var textFoundOverlay: CAShapeLayer?
@@ -334,12 +335,13 @@ final class PackerLiteDriver: @unchecked Sendable {
 	}
 
 	@MainActor
-	init(targetVirtualMachine: VirtualMachine, variables: [String: String] = [:]) {
+	init(targetVirtualMachine: VirtualMachine, autoconf: String?, variables: [String: String] = [:]) {
 		self.targetVirtualMachine = targetVirtualMachine
 		self.targetView = targetVirtualMachine.vzMachineView!
 		self.currentKeyTranslator = LayoutTranslator()!
 		self.level = Logger.Level()
 		self.variables = variables
+		self.autoconf = autoconf
 
 		self.parkCursorOutOfView()
 	}
@@ -440,13 +442,16 @@ final class PackerLiteDriver: @unchecked Sendable {
 		case .voiceOverOff:
 			logger.debug("[\(title)]: voice over off")
 			try await self.voiceOverOff(title: title)
-		case .reboot(requestStop: let requestStop):
+		case .reboot(let requestStop):
 			logger.debug("[\(title)]: reboot requestStop=\(requestStop)")
 			try await self.reboot(requestStop)
 
 		case .set(let name, let value):
 			logger.debug("[\(title)]: set \(name)=\(value)")
 			self.variables[name] = value
+		case .autoconf(let location):
+			logger.debug("[\(title)]: autoconf location=\(location)")
+			try await self.autoconf(location)
 		}
 
 		try await Task.sleep(nanoseconds: Self.stepDelayNanoseconds)
@@ -478,6 +483,16 @@ final class PackerLiteDriver: @unchecked Sendable {
 		for step in Self.voiceOverToggleSequence {
 			_ = try await execute(step, title: title)
 		}
+	}
+
+	// MARK: - Autoconf
+	private func autoconf(_ location: String) async throws {
+		guard let autoconf = self.autoconf else {
+			self.logger.warn("Autoconf location not set, skipping autoconf step")
+			return
+		}
+
+		try await self.type("cat > \(location) <<EOF\n\(autoconf)\nEOF\n")
 	}
 
 	// MARK: - Keyboard
@@ -712,17 +727,32 @@ final class PackerLiteDriver: @unchecked Sendable {
 		}
 
 		func translate(char: Character) -> (keyCode: CGKeyCode, modifiers: NSEvent.ModifierFlags, characters: String, charactersIgnoringModifiers: String)? {
-			guard let keyCode = self.characterKeys[char] else {
-				return nil
+			switch char {
+			case "\n":
+				return (CGKeyCodes.return, [], "\n", "\n")
+			case "\r":
+				return (CGKeyCodes.return, [], "\r", "\r")
+			case "\t":
+				return (CGKeyCodes.tab, [], "\t", "\t")
+			case "\u{8}":
+				return (CGKeyCodes.delete, [], "\u{8}", "\u{8}")
+			case "\u{1b}":
+				return (CGKeyCodes.escape, [], "\u{1b}", "\u{1b}")
+			case " ":
+				return (CGKeyCodes.space, [], " ", " ")
+			default:
+				guard let keyCode = self.characterKeys[char] else {
+					return nil
+				}
+
+				var characterIgnoringModifiers: String = String.empty
+
+				if let char = self.keysCharacters[keyCode] {
+					characterIgnoringModifiers = String(char)
+				}
+
+				return (keyCode, self.charactersModifiers[char] ?? [], String(char), characterIgnoringModifiers)
 			}
-
-			var characterIgnoringModifiers: String = String.empty
-
-			if let char = self.keysCharacters[keyCode] {
-				characterIgnoringModifiers = String(char)
-			}
-
-			return (keyCode, self.charactersModifiers[char] ?? [], String(char), characterIgnoringModifiers)
 		}
 
 		private static func translate(keyCode: CGKeyCode, modifiers: UInt32, keyboardLayout: UnsafePointer<UCKeyboardLayout>) -> Character? {
@@ -868,7 +898,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
 		return try await Task.detached(priority: .utility) { () throws -> CGPoint? in
 			let request = VNRecognizeTextRequest()
-			request.recognitionLevel = .accurate
+			request.recognitionLevel = .accurate // try .fast first
 
 			do {
 				try VNImageRequestHandler(data: pngData, options: [:]).perform([request])

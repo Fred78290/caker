@@ -152,6 +152,7 @@ public struct BootCommandStep: Equatable, Sendable {
 			case .skipStepIfNotFound(let text, let steps, let timeout): return "skipStepIfNotFound \(text) steps:\(steps) x\(timeout)s"
 			case .reboot(let requestStop): return "reboot requestStop:\(requestStop)"
 			case .set(let name, let value): return "set \(name)=\(value)"
+			case .autoconf(let location): return "autoconf location=\(location)"
 			}
 		}
 
@@ -175,6 +176,7 @@ public struct BootCommandStep: Equatable, Sendable {
 		/// `boot_command`/`pre_boot_command` title blocks can compare against — see
 		/// `BootCommandStep.meetCondition(_:)`. Parsed from `<set name="value">`.
 		case set(name: String, value: String)
+		case autoconf(location: String)
 	}
 
 	public let title: String
@@ -193,21 +195,36 @@ public struct BootCommandStep: Equatable, Sendable {
 			}
 		}
 
+		var previousCharacter: Character? = nil
+		
 		while let character = remainder.first {
-			if character == "<" {
+			if previousCharacter == "\\" {
+				if character == "n" {
+					literal.append("\n")
+				} else if character == "t" {
+					literal.append("\t")
+				} else {
+					literal.append(character)
+				}
+				remainder = remainder.dropFirst()
+			} else if character == "<" {
 				guard let closeIndex = remainder.firstIndex(of: ">") else {
 					throw BootCommandParseError.unterminatedToken(String(remainder))
 				}
-
+				
 				let tokenBody = String(remainder[remainder.index(after: remainder.startIndex)..<closeIndex])
-
+				
 				flushLiteral()
 				try steps.append(Self.parseToken(tokenBody))
 				remainder = remainder[remainder.index(after: closeIndex)...]
-			} else {
+			} else if character != "\\" {
 				literal.append(character)
 				remainder = remainder.dropFirst()
+			} else {
+				remainder = remainder.dropFirst()
 			}
+
+			previousCharacter = character
 		}
 
 		flushLiteral()
@@ -317,6 +334,10 @@ public struct BootCommandStep: Equatable, Sendable {
 
 		if lower.hasPrefix("click") {
 			return try parseClick(body)
+		}
+
+		if lower.hasPrefix("autoconf") {
+			return try parseAutoconf(body)
 		}
 
 		if lower.hasPrefix("locate") {
@@ -475,6 +496,23 @@ public struct BootCommandStep: Equatable, Sendable {
 		}
 
 		throw BootCommandParseError.malformedKeyboard(body)
+	}
+
+	private static func parseAutoconf(_ body: String) throws -> BootCommandStep.Step {
+		let rest = body.dropFirst("autoconf".count).trimmingCharacters(in: .whitespaces)
+
+		if rest.isEmpty {
+			throw BootCommandParseError.malformedAutoconf(body)
+		}
+
+		let attributes = try parseAttributes("autoconf", input: String(rest))
+
+		if let textValue = attributes["location"] {
+			return .autoconf(location: trimMatchingQuotes(textValue))
+		}
+
+		// Unknown attributes
+		throw BootCommandParseError.malformedAutoconf(body)
 	}
 
 	/// Matches `click 'Some Text'`, `click "Some Text"` (OCR-located click) or `click X,Y` (raw coordinates).
@@ -818,6 +856,7 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 	case malformedSkipStepIfNotFound(String)
 	case malformedScroll(String)
 	case malformedKeyboard(String)
+	case malformedAutoconf(String)
 	case malformedAttribute(String)
 	case malformedVoiceOverOn(String)
 	case malformedReboot(String)
@@ -838,6 +877,7 @@ public enum BootCommandParseError: Error, LocalizedError, Equatable {
 		case .malformedVoiceOverOn(let body): return "Malformed voiceOverOn token: <\(body)>"
 		case .malformedReboot(let body): return "Malformed reboot token: <\(body)>"
 		case .malformedSet(let body): return "Malformed set token: <\(body)>"
+		case .malformedAutoconf(let body): return "Malformed autoconf token: <\(body)>"
 		case .keyboardNotFound(let keyboard): return "Keyboard not found: <\(keyboard)>"
 		}
 	}

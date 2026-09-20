@@ -17,6 +17,7 @@ public struct ParsedPackerLiteTemplate: Sendable {
 	public var preBootCommand: BootCommandSteps
 	public var bootCommand: BootCommandSteps
 	public var postBootCommand: PackerLiteTemplate.PostCommand?
+	public var autoconf: String?
 	/// The fully-resolved `${var.*}` substitution set (declared `variables:` merged with the
 	/// caller's overrides — `--user`/`--password`/`hostname`/etc.), seeded as the starting runtime
 	/// variable set `PackerLiteDriver` mutates via `<set name="value">` and `BootCommandStep.meetCondition(_:)`
@@ -24,12 +25,13 @@ public struct ParsedPackerLiteTemplate: Sendable {
 	/// template-load time, and is baked into `preBootCommand`/`bootCommand`'s literal step text.
 	public var variables: [String: String]
 
-	init(bootTimeout: TimeInterval, ignoreIP: Bool?, installAgent: Bool?, preBootCommand: BootCommandSteps, bootCommand: BootCommandSteps, postBootCommand: PackerLiteTemplate.PostCommand?, variables: [String: String]) {
+	init(bootTimeout: TimeInterval, ignoreIP: Bool?, installAgent: Bool?, preBootCommand: BootCommandSteps, bootCommand: BootCommandSteps, postBootCommand: PackerLiteTemplate.PostCommand?, autoconf: String?, variables: [String: String]) {
 		self.bootTimeout = bootTimeout
 		self.ignoreIP = ignoreIP
 		self.installAgent = installAgent
 		self.postBootCommand = postBootCommand
 		self.preBootCommand = preBootCommand
+		self.autoconf = autoconf
 		self.bootCommand = bootCommand
 		self.variables = variables
 	}
@@ -49,6 +51,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	private var preBootCommand: [Command]?
 	private var bootCommand: [Command]?
 	public var postBootCommand: PostCommand?
+	public var autoconf: String?
 
 	public struct PostCommand: Codable, Sendable {
 		public var useSshKey: Bool
@@ -83,6 +86,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 		case bootCommand = "boot_command"
 		case preBootCommand = "pre_boot_command"
 		case postBootCommand = "post_boot_command"
+		case autoconf
 	}
 
 	public init(
@@ -92,8 +96,8 @@ public struct PackerLiteTemplate: Codable, Sendable {
 		installAgent: Bool = true,
 		bootTimeout: String? = nil,
 		bootCommand: [Command]? = nil,
-		postBootCommand: PostCommand? = nil
-	) {
+		postBootCommand: PostCommand? = nil,
+		autoconf: String? = nil	) {
 		self.variables = variables
 		self.requiredVariables = requiredVariables
 		self.ignoreIP = ignoreIP
@@ -101,6 +105,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 		self.bootTimeout = bootTimeout
 		self.bootCommand = bootCommand
 		self.postBootCommand = postBootCommand
+		self.autoconf = autoconf
 	}
 
 	// MARK: Loading
@@ -121,7 +126,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 	private func parse() throws -> ParsedPackerLiteTemplate {
 		let preBootCommandSteps = try parsedBootCommand(bootCommand: preBootCommand)
 		let bootCommandSteps = try parsedBootCommand(bootCommand: bootCommand)
-
+		
 		return ParsedPackerLiteTemplate(
 			bootTimeout: resolvedBootTimeout,
 			ignoreIP: ignoreIP,
@@ -129,6 +134,7 @@ public struct PackerLiteTemplate: Codable, Sendable {
 			preBootCommand: preBootCommandSteps,
 			bootCommand: bootCommandSteps,
 			postBootCommand: postBootCommand,
+			autoconf: autoconf,
 			variables: resolvedVariables
 		)
 	}
@@ -158,6 +164,12 @@ public struct PackerLiteTemplate: Codable, Sendable {
 
 		resolved.resolvedVariables = merged
 
+		if var autoconf = self.autoconf {
+			autoconf = Self.substitute(autoconf, variables: merged)
+			resolved.autoconf = autoconf
+			merged["autoconf"] = autoconf
+		}
+
 		resolved.preBootCommand = preBootCommand?.map {
 			Self.substitute($0, variables: merged)
 		}
@@ -177,6 +189,16 @@ public struct PackerLiteTemplate: Codable, Sendable {
 		}
 
 		return resolved
+	}
+
+	private static func substitute(_ cmd: String, variables: [String: String]) -> String {
+		var result = cmd
+
+		for (name, value) in variables {
+			result = result.replacingOccurrences(of: "${var.\(name)}", with: value)
+		}
+
+		return result
 	}
 
 	private static func substitute(_ cmd: Command, variables: [String: String]) -> Command {

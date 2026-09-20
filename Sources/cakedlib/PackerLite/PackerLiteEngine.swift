@@ -23,11 +23,12 @@ public enum PackerLiteEngine {
 		targetVirtualMachine: VirtualMachine,
 		commands: BootCommandSteps,
 		resolvedBootTimeout: TimeInterval,
+		autoconf: String?,
 		variables: [String: String] = [:],
 		progressHandler: @escaping ProvisionHandler.ProvisionProgressHandler
 	) async throws -> [String: String] {
 		let logger = Logger("PackerLiteEngine")
-		let driver = await PackerLiteDriver(targetVirtualMachine: targetVirtualMachine, variables: variables)
+		let driver = await PackerLiteDriver(targetVirtualMachine: targetVirtualMachine, autoconf: autoconf, variables: variables)
 
 		return try await withThrowingTaskGroup(of: Void.self, returning: [String: String].self) { group in
 			let context = ProgressObserver.ProgressHandlerContext()
@@ -97,6 +98,7 @@ public enum PackerLiteEngine {
 			targetVirtualMachine: vm,
 			commands: commands,
 			resolvedBootTimeout: template.bootTimeout,
+			autoconf: template.autoconf,
 			variables: template.variables,
 			progressHandler: progressHandler)
 
@@ -282,6 +284,7 @@ public enum PackerLiteEngine {
 					targetVirtualMachine: vm,
 					commands: template.preBootCommand,
 					resolvedBootTimeout: template.bootTimeout,
+					autoconf: template.autoconf,
 					variables: template.variables,
 					progressHandler: progressHandler)
 			}
