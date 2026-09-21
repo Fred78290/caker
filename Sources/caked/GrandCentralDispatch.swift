@@ -139,7 +139,6 @@ final class GrandCentralDispatch {
 			if case .status(let value) = status.message {
 				if value == .new {
 					guard self.vmNames.contains(status.name) == false else {
-						self.logger.warn("Discard status for dangling VM: \(status.name), state: \(value)")
 						return
 					}
 
