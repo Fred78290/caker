@@ -235,49 +235,59 @@ public struct VMBuilder {
 			#if arch(arm64)
 				if imageSource == .ipsw {
 					let installer = try IPSWInstaller(location: location, config: config, wizardID: id, runMode: runMode, queue: queue)
-					let vm = installer.virtualMachine
 
 					try location.writeProvisionning()
-					try await installer.installIPSW(imageURL, progressHandler: progressHandler)
 
-					defer {
+					let vm = try await installer.installIPSW(imageURL, progressHandler: progressHandler)
+
+					func doCancel() {
 						if let vm {
 							vm.stopServiceForProvisionning()
 							vm.stopGrandCentralUpdate()
 						}
 					}
 
-					// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to
-					// depend on CakedLib) — bridge it to CakedLib's own MacOSVersion by raw value.
-					let explicitMacOSVersion = options.macosVersion.flatMap { MacOSVersion(rawValue: $0.rawValue) }
+					defer {
+						doCancel()
+					}
 
-					// Record which macOS version this VM is running — using the exact same detection
-					// PackerLite itself uses (IPSW filename, falling back to --macos-version) — regardless
-					// of whether --autoinstall provisions it right now. `caked packerlite` reads this back
-					// later for VMs provisioned after the fact.
-					let resolvedMacOSVersion = PackerLiteTemplateResolver.resolveVersion(explicitVersion: explicitMacOSVersion, ipswURL: imageURL)
+					do {
+						// options.macosVersion is GRPCLib's MacOSVersion (kept separate so GRPCLib doesn't need to
+						// depend on CakedLib) — bridge it to CakedLib's own MacOSVersion by raw value.
+						let explicitMacOSVersion = options.macosVersion.flatMap { MacOSVersion(rawValue: $0.rawValue) }
 
-					config.osName = resolvedMacOSVersion.name?.rawValue
-					config.osRelease = resolvedMacOSVersion.version
+						// Record which macOS version this VM is running — using the exact same detection
+						// PackerLite itself uses (IPSW filename, falling back to --macos-version) — regardless
+						// of whether --autoinstall provisions it right now. `caked packerlite` reads this back
+						// later for VMs provisioned after the fact.
+						let resolvedMacOSVersion = PackerLiteTemplateResolver.resolveVersion(explicitVersion: explicitMacOSVersion, ipswURL: imageURL)
 
-					try config.save()
+						config.osName = resolvedMacOSVersion.name?.rawValue
+						config.osRelease = resolvedMacOSVersion.version
 
-					if let vm, options.autoinstall {
-						try await Task.sleep(nanoseconds: 2 * 100_000_000)
+						try config.save()
 
-						try await vm.restartAfterIPSW()
+						if let vm, options.autoinstall {
+							try await Task.sleep(nanoseconds: 2 * 100_000_000)
 
-						// wins, otherwise the resolved macOS version above picks a built-in template. Resolve
-						// throws if neither works.
-						let content = try PackerLiteTemplateResolver.resolve(explicitPath: options.provisionTemplate, explicitVersion: resolvedMacOSVersion.name, ipswURL: imageURL)
+							try await vm.restartAfterIPSW()
 
-						let template = try await PackerLiteTemplate.load(from: content, variables: options.setupVariables(config, runMode: runMode))
+							// wins, otherwise the resolved macOS version above picks a built-in template. Resolve
+							// throws if neither works.
+							let content = try PackerLiteTemplateResolver.resolve(explicitPath: options.provisionTemplate, explicitVersion: resolvedMacOSVersion.name, ipswURL: imageURL)
 
-						try await PackerLiteEngine.provision(vm: vm, template: template, runningIP: nil, runMode: runMode, waitIPTimeout: 180) { progress in
-							progressHandler(progress.progressValue)
+							let template = try await PackerLiteTemplate.load(from: content, variables: options.setupVariables(config, runMode: runMode))
+
+							try await PackerLiteEngine.provision(vm: vm, template: template, runningIP: nil, runMode: runMode, waitIPTimeout: 180) { progress in
+								progressHandler(progress.progressValue)
+							}
+
+							try await vm.stopVM()
 						}
-
-						try await vm.stopVM()
+					} catch is CancellationError {
+						Logger(self).info("Provisioning cancelled, stopping VM and service...")
+					} catch {
+						throw error
 					}
 				}
 			#endif
