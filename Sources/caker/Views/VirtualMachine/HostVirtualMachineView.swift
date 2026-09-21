@@ -755,10 +755,16 @@ struct HostVirtualMachineView: View {
 		case .disconnecting:
 			LabelView("VNC disconnecting", size: size)
 		case .ready:
-			VNCView(document: self.document)
-				.frame(size: size)
-				.background(.black)
-				.disabled(self.document.status == .provisioning)
+			if #available(macOS 27.0, *) {
+				VNCView(document: self.document)
+					.frame(size: size)
+					.disabled(self.document.status == .provisioning)
+			} else {
+				VNCView(document: self.document)
+					.frame(size: size)
+					.background(.black)
+					.disabled(self.document.status == .provisioning)
+			}
 		}
 	}
 
