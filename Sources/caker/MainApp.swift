@@ -142,11 +142,12 @@ struct MainApp: App {
 
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
-	var appState: AppState
-	@State var createTemplate = false
-	@State var navigationModel = NavigationModel()
+	@State var createTemplate: Bool
+	@State var navigationModel: NavigationModel
 
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
+
+	var appState: AppState
 
 	// Sparkle updater
 	#if SPARKLE
@@ -155,6 +156,8 @@ struct MainApp: App {
 
 	init() {
 		_ = try? MainAppParseArgument.parse(CommandLine.arguments)
+		self.createTemplate = false
+		self.navigationModel = NavigationModel()
 		self.appState = AppState.shared
 
 		#if SPARKLE
