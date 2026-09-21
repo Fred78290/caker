@@ -52,6 +52,8 @@ struct HomeView: View {
 		self.navigationView
 			.toolbar {
 				ToolbarItemGroup(placement: .navigation) {
+					connectButton
+
 					Button("Delete", systemImage: "trash") {
 						self.actionDelete()
 					}.disabled(self.deleteButtonDisabled)
@@ -82,10 +84,6 @@ struct HomeView: View {
 							self.mustShowDetailView.toggle()
 						}
 					}
-				} else {
-					ToolbarItem(placement: .automatic) {
-						connectButton
-					}.backgroundVisibility(false)
 				}
 			}
 			.sheet(isPresented: $presented) {
