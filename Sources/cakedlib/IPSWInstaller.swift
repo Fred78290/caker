@@ -102,11 +102,16 @@
 			}
 
 			func cancel() {
+				Logger(self).info("Provisioning cancelled, stopping VM and service...")
+
 				self.canceled.withLock {
 					$0 = true
 
 					// Progress.cancel() is thread-safe per Apple SDK contract.
 					self.installer?.progress.cancel()
+
+					self.virtualMachine.stopServiceForProvisionning()
+					self.virtualMachine.stopGrandCentralUpdate()
 				}
 			}
 		}
@@ -389,7 +394,10 @@
 							}
 						},
 						onCancel: {
-							virtualMachine.virtualMachine.stop { _ in }
+							virtualMachine.virtualMachine.stop { _ in
+								virtualMachine.stopServiceForProvisionning()
+								virtualMachine.stopGrandCentralUpdate()
+							}
 						}
 					)
 				} catch {
@@ -403,7 +411,7 @@
 
 		// MARK: - Public entry point
 
-		public func installIPSW(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+		public func installIPSW(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> VirtualMachine? {
 			#if DEBUG
 				self.logger.trace("[\(Thread.currentThread.description)] entering installIPSW")
 			#endif
@@ -431,6 +439,8 @@
 			#endif
 
 			progressHandler(.step(String(localized: "Install macOS from IPSW done...")))
+
+			return self.virtualMachine
 		}
 	}
 #endif
