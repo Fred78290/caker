@@ -28,6 +28,7 @@
 		private let runMode: Utils.RunMode
 		private let wizardID: UUID
 		public var virtualMachine: VirtualMachine?
+        private var vmStateObservation: NSKeyValueObservation? = nil
 
 		final class SendableVZMacOSInstaller: @unchecked Sendable {
 			let canceled: Mutex<Bool> = .init(false)
@@ -132,17 +133,33 @@
 			} else {
 				if ServiceHandler.isAgentRunning.running {
 					logger.info("Start GCD for VM: \(location.name)")
+                    // Observe VM state to start GCD when it becomes running
+                    var didStart = false
 
-					Task {
-						do {
-							try await virtualMachine.startGrandCentralUpdate(frequency: 1, runMode: runMode)
-						} catch is CancellationError {
-							// Expected on teardown
-							logger.debug("Cancelled GCD for VM: \(location.name)")
-						} catch {
-							logger.error("Failed to start GCD for VM: \(location.name), error: \(error.localizedDescription)")
+					self.vmStateObservation = virtualMachine.virtualMachine.observe(\.state, options: [.initial, .new]) { [weak self] vm, change in
+                        guard let self = self else { return }
+                    
+						// Start only once when running
+                        if didStart == false && vm.state == .running {
+                            didStart = true
+                            
+							self.logger.info("Start GCD for VM when running: \(self.location.name)")
+
+							Task {
+								do {
+									try await virtualMachine.startGrandCentralUpdate(frequency: 1, runMode: self.runMode)
+								} catch is CancellationError {
+									self.logger.debug("Cancelled GCD for VM: \(self.location.name)")
+								} catch {
+									self.logger.error("Failed to start GCD for VM: \(self.location.name), error: \(error.localizedDescription)")
+								}
+                            }
+
+							// Invalidate observation after starting
+							self.vmStateObservation?.invalidate()
+							self.vmStateObservation = nil
 						}
-					}
+                    }
 				}
 
 				let vncPassword = config.vncPassword ?? UUID().uuidString
@@ -417,3 +434,4 @@
 		}
 	}
 #endif
+
