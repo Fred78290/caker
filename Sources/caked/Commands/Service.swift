@@ -366,6 +366,7 @@ extension Service {
 			let runMode: Utils.RunMode = self.common.runMode
 			let home = try Home(runMode: runMode)
 			let eventLoopGroup = Utilities.group
+			var exitCode: Int32 = 0
 
 			defer {
 				try? home.agentPID.delete()
@@ -486,6 +487,8 @@ extension Service {
 					sigintSrc.setEventHandler {
 						logger.info("Stop service on SIGINT")
 
+						exitCode = 128
+
 						Task {
 							if let handler = imdsLifecycleHandler, let coordinator = imdsCoordinator {
 								imdsLifecycleHandler = nil
@@ -506,8 +509,6 @@ extension Service {
 										let promise = on.makePromise(of: Void.self)
 										let addr = $0.0
 
-										$0.1.initiateGracefulShutdown(promise: promise)
-
 										promise.futureResult.whenComplete { result in
 											switch result {
 											case .failure(let error):
@@ -516,6 +517,9 @@ extension Service {
 												logger.info("Server \(addr) nicely closed")
 											}
 										}
+
+										//$0.1.initiateGracefulShutdown(promise: promise)
+										$0.1.close(promise: promise)
 
 										return promise.futureResult
 									}, on: on
@@ -557,6 +561,8 @@ extension Service {
 			}
 
 			logger.info("Leave service")
+
+			Foundation.exit(exitCode)
 		}
 	}
 
