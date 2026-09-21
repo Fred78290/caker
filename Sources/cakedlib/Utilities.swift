@@ -558,8 +558,8 @@ public func processExist(_ runningPID: pid_t) throws -> (running: Bool, processN
 
 	// Create our buffer to be filled with the list of processes and allocate it.
 	// Use defer to make sure it's deallocated when the scope ends.
-	var procList: UnsafeMutablePointer<kinfo_proc>?
-	procList = UnsafeMutablePointer.allocate(capacity: bufferSize)
+	let procList: UnsafeMutablePointer<kinfo_proc>? = UnsafeMutablePointer.allocate(capacity: bufferSize)
+
 	defer {
 		procList?.deallocate()
 	}
