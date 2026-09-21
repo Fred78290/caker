@@ -86,10 +86,10 @@ extension NSView {
 
 			let request = VNRecognizeTextRequest()
 
-			request.recognitionLevel = .accurate // try .fast first
+			request.recognitionLevel = .accurate  // try .fast first
 			request.usesLanguageCorrection = false
-			request.minimumTextHeight = 0.02 // optional, skip tiny noise
-			request.recognitionLanguages = ["en-US"] // if appropriate
+			request.minimumTextHeight = 0.02  // optional, skip tiny noise
+			request.recognitionLanguages = ["en-US"]  // if appropriate
 
 			do {
 				try VNImageRequestHandler(data: capture.pngData, options: [:]).perform([request])
@@ -473,8 +473,12 @@ open class VNCFramebufferLayer: CALayer {
 open class VNCVirtualMachineView: VZVirtualMachineView {
 	static var swizzled = false
 	let logger = Logger("VNCVirtualMachineView")
-
 	private let continuation: Mutex<AsyncStream<VNCFrameUpdateState>.Continuation?> = .init(nil)
+
+	// Throttle frame emissions to a target FPS (default 30fps)
+	private static let maxFrameRate: Double = 30.0
+	private let minInterval = 1.0 / maxFrameRate
+	private var lastFrameEmitTime: CFAbsoluteTime = 0
 
 	/// Pure observer tap for `caked record`'s local-window capture path (see `ActionRecorder.swift`
 	/// and `RecordHandler.swift`): called with the already-resolved values for every mouse/keyboard
@@ -493,8 +497,7 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 	/// Physical modifier `keyCode`s currently considered held, used to derive `isDown` for
 	/// `flagsChanged` events — macOS reports which key changed via `event.keyCode` but not whether
 	/// it went down or up, so this view tracks that itself per key (independently of `NSEvent
-	/// .modifierFlags`, which can't distinguish "left shift still held" from "right shift still
-	/// held" once both are down).
+	/// .modifierFlags`, which can't distinguish "left shift still held" from "right shift still held" once both are down).
 	private var heldModifierKeyCodes: Set<CGKeyCode> = []
 
 	#if TRACE_DEINIT
@@ -791,6 +794,15 @@ extension VNCVirtualMachineView: VNCFramebufferObserver {
 	}
 
 	open func didUpdateFrame(_ framebufferView: NSView) {
+		// Throttle to maxFrameRate (default 30 fps)
+		let now = CFAbsoluteTimeGetCurrent()
+
+		if self.lastFrameEmitTime > 0 && (now - self.lastFrameEmitTime) < minInterval {
+			return
+		}
+
+		self.lastFrameEmitTime = now
+
 		self.continuation.withLock {
 			guard let continuation = $0 else {
 				return
