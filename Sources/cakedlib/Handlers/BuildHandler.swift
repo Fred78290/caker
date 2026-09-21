@@ -88,8 +88,6 @@ public struct BuildHandler {
 		let handler = progressHandler
 
 		let progressHandler: ProgressObserver.BuildProgressHandler = { progress in
-			print(progress)
-
 			handler(progress)
 		}
 
