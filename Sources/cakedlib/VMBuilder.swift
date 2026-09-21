@@ -66,19 +66,6 @@ public struct VMBuilder {
 
 	public static let memoryMinSize: UInt64 = 512 * MoB
 
-	#if arch(arm64)
-		private static func installIPSW(location: VMLocation, config: CakeConfig, wizardID: UUID, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws
-			-> VirtualMachine?
-		{
-			let vm = try IPSWInstaller(location: location, config: config, wizardID: wizardID, runMode: runMode, queue: queue)
-
-			try location.writeProvisionning()
-			try await vm.installIPSW(ipsw, progressHandler: progressHandler)
-
-			return vm.virtualMachine
-		}
-	#endif
-
 	private static func build(id: UUID, vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		let imageSource = options.imageSource!
 		let imageURL = URL(spaced: options.image)!
@@ -247,7 +234,11 @@ public struct VMBuilder {
 
 			#if arch(arm64)
 				if imageSource == .ipsw {
-					let vm = try await installIPSW(location: location, config: config, wizardID: id, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
+					let installer = try IPSWInstaller(location: location, config: config, wizardID: id, runMode: runMode, queue: queue)
+					let vm = installer.virtualMachine
+
+					try location.writeProvisionning()
+					try await installer.installIPSW(imageURL, progressHandler: progressHandler)
 
 					defer {
 						if let vm {
