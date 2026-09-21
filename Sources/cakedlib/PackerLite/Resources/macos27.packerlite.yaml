@@ -36,7 +36,7 @@ boot_command:
 
   - title: Select Your Country or Region
     commands:
-      - <click timeout=60 text='Select Your Country or Region'>
+      - <click timeout=120 text='Select Your Country or Region'>
       - united states
       - <leftShiftOn>
       - <tab>
@@ -45,7 +45,7 @@ boot_command:
 
   - title: Transfer Your Data to This Mac
     commands:
-      - <locate timeout=60 text='Transfer Your Data to This Mac'>
+      - <locate timeout=120 text='Transfer Your Data to This Mac'>
       - <wait1s>
       - <tab repeat=3>
       - <spacebar>
@@ -54,7 +54,7 @@ boot_command:
 
   - title: Written and Spoken Languages
     commands:
-      - <locate text='Written and Spoken Languages'>
+      - <locate timeout=120 text='Written and Spoken Languages'>
       - <wait1s>
       - <leftShiftOn>
       - <tab>
@@ -67,7 +67,7 @@ boot_command:
 
   - title: Accessibility
     commands:
-      - <locate timeout=60 text='Accessibility'>
+      - <locate timeout=120 text='Accessibility'>
       - <wait1s>
       - <leftShiftOn>
       - <tab>
@@ -76,7 +76,7 @@ boot_command:
 
   - title: Data & Privacy
     commands:
-      - <locate timeout=60 text='Data & Privacy'>
+      - <locate timeout=120 text='Data & Privacy'>
       - <wait1s>
       - <leftShiftOn>
       - <tab>
@@ -85,7 +85,7 @@ boot_command:
 
   - title: Create a Mac Account
     commands:
-      - <locate timeout=60 text='Create a Mac Account'>
+      - <locate timeout=120 text='Create a Mac Account'>
       - <wait1s>
       - <tab repeat=6>
       - Managed via Caker
@@ -97,11 +97,11 @@ boot_command:
       - ${var.password}
       - <tab repeat=3>
       - <spacebar>
-      - <locate timeout=60 text='Sign In to Your Apple Account'>
+      - <locate timeout=180 text='Sign In to Your Apple Account'>
       - <wait1s>
-      - <locate timeout=60 text='Email or Phone Number'>
+      - <locate timeout=120 text='Email or Phone Number'>
       - <wait1s>
-      - <locate timeout=60 text='Other Sign'>
+      - <locate timeout=120 text='Other Sign'>
       - <wait1s>
 
   - title: Enable Voice Over
@@ -119,14 +119,14 @@ boot_command:
 
   - title: Are you sure you want to skip signing in with an Apple ID?
     commands:
-      - <locate timeout=60 text='Skip'>
+      - <locate timeout=120 text='Skip'>
       - <wait1s>
       - <tab>
       - <spacebar>
 
   - title: Terms and Conditions
     commands:
-      - <locate timeout=60 text='Terms and Conditions'>
+      - <locate timeout=120 text='Terms and Conditions'>
       - <wait1s>
       - <leftShiftOn>
       - <tab>
@@ -135,21 +135,21 @@ boot_command:
 
   - title: I have read and agree to the macOS Software License Agreement
     commands:
-      - <locate timeout=60 text='I have read and agree'>
+      - <locate timeout=120 text='I have read and agree'>
       - <tab>
       - <spacebar>
 
     # Age Range -> Adult
   - title: Age Range -> Adult
     commands:
-      - <locate timeout=60 text='Age Range'>
+      - <locate timeout=120 text='Age Range'>
       - <wait1s>
       - <tab repeat=3>
       - <spacebar>
 
   - title: Choose Your Look
     commands:
-      - <locate timeout=60 text='Choose Your Look'>
+      - <locate timeout=120 text='Choose Your Look'>
       - <wait1s>
       - <leftShiftOn>
       - <tab>
@@ -158,7 +158,7 @@ boot_command:
 
   - title: Enable Location Services
     commands:
-      - <locate timeout=60 text='Enable Location Services'>
+      - <locate timeout=120 text='Enable Location Services'>
       - <wait1s>
       - <leftShiftOn>
       - <tab>
@@ -167,14 +167,14 @@ boot_command:
 
   - title: Are you sure you don't want to use Location Services?
     commands:
-      - <locate timeout=60 text='Use location Services'>
+      - <locate timeout=120 text='Use location Services'>
       - <wait1s>
       - <tab>
       - <spacebar>
 
   - title: Select Your Time Zone
     commands:
-      - <locate timeout=60 text='Select Your Time Zone'>
+      - <locate timeout=120 text='Select Your Time Zone'>
       - <wait1s>
       - <tab repeat=3>
       - UTC
@@ -184,7 +184,7 @@ boot_command:
 
   - title: Analytics
     commands:
-      - <locate timeout=60 text='Analytics'>
+      - <locate timeout=120 text='Analytics'>
       - <wait1s>
       - <leftShiftOn>
       - <tab>
@@ -193,14 +193,14 @@ boot_command:
 
   - title: Screen Time
     commands:
-      - <locate timeout=60 text='Screen Time'>
+      - <locate timeout=120 text='Screen Time'>
       - <wait1s>
       - <tab repeat=2>
       - <spacebar>
 
   - title: Your Mac is Ready for FileVault
     commands:
-      - <locate timeout=60 text='Your Mac is Ready for FileVault'>
+      - <locate timeout=120 text='Your Mac is Ready for FileVault'>
       - <wait1s>
       - <leftShiftOn>
       - <tab repeat=2>
@@ -215,14 +215,14 @@ boot_command:
 
   - title: Update Mac Automatically
     commands:
-      - <locate timeout=60 text='Update Mac Automatically'>
+      - <locate timeout=120 text='Update Mac Automatically'>
       - <wait1s>
       - <tab repeat=2>
       - <spacebar>
 
   - title: Liquid Glass
     commands:
-      - <locate timeout=60 text="Liquid Glass">
+      - <locate timeout=120 text="Liquid Glass">
       - <leftShiftOn>
       - <tab>
       - <leftShiftOff>
@@ -234,7 +234,7 @@ boot_command:
 
   - title: Welcome to Mac
     commands:
-      - <locate timeout=60 text="Get Started">
+      - <locate timeout=120 text="Get Started">
       - <spacebar>
 
   - title: Now that the installation is done, open "Applications folder"

@@ -68,7 +68,7 @@ boot_command:
 
   - title: Accessibility
     commands:
-      - <locate timeout=60 text='Accessibility'>
+      - <locate timeout=120 text='Accessibility'>
       - <wait1s>
       - <leftShiftOn>
       - <tab>
@@ -77,7 +77,7 @@ boot_command:
 
   - title: Data & Privacy
     commands:
-      - <locate timeout=60 text='Data & Privacy'>
+      - <locate timeout=120 text='Data & Privacy'>
       - <wait1s>
       - <leftShiftOn>
       - <tab>
@@ -86,7 +86,7 @@ boot_command:
 
   - title: Create a Mac Account
     commands:
-      - <locate timeout=60 text='Create a Mac Account'>
+      - <locate timeout=120 text='Create a Mac Account'>
       - <wait1s>
       - <tab repeat=6>
       - Managed via Caker
@@ -103,11 +103,11 @@ boot_command:
 
   - title: Sign In to Your Apple Account
     commands:
-      - <locate timeout=120 text='Sign In to use ICloud'>
+      - <locate timeout=180 text='Sign In to use ICloud'>
       - <wait1s>
-      - <locate timeout=60 text='Email or Phone Number'>
+      - <locate timeout=120 text='Email or Phone Number'>
       - <wait1s>
-      - <locate timeout=60 text='Other Sign'>
+      - <locate timeout=120 text='Other Sign'>
       - <wait1s>
       - <voiceOverOn>
       - <wait1s>
@@ -203,7 +203,7 @@ boot_command:
     
   - title: Your Mac is Ready for FileVault
     commands:
-      - <locate timeout=60 text='Your Mac is Ready for FileVault'>
+      - <locate timeout=120 text='Your Mac is Ready for FileVault'>
       - <wait1s>
       - <leftShiftOn>
       - <tab repeat=2>
@@ -218,7 +218,7 @@ boot_command:
 
   - title: Choose Your Look
     commands:
-      - <locate timeout=60 text='Choose Your Look'>
+      - <locate timeout=120 text='Choose Your Look'>
       - <wait1s>
       - <leftShiftOn>
       - <tab>
@@ -227,7 +227,7 @@ boot_command:
 
   - title: Update Mac Automatically
     commands:
-      - <locate timeout=60 text='Update Mac Automatically'>
+      - <locate timeout=120 text='Update Mac Automatically'>
       - <wait1s>
       - <tab repeat=2>
       - <spacebar>
@@ -238,7 +238,7 @@ boot_command:
 
   - title: Welcome to Mac
     commands:
-      - <locate timeout=60 text="Get Started">
+      - <locate timeout=120 text="Get Started">
       - <spacebar>
 
   - title: Now that the installation is done, open "Applications folder"
