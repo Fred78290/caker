@@ -34,7 +34,7 @@ final class CPUUsageMonitor {
 		await monitorCurrentUsage()
 	}
 
-	func cancel(_line: UInt = #line, _file: String = #file) {
+	func cancel() {
 		guard self.isMonitoring else {
 			return
 		}

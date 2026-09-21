@@ -635,11 +635,7 @@ extension VirtualMachineDocument {
 		AppState.shared.openVirtualMachineDocument(self)
 	}
 
-	func setOtherState(status: Status, vncURL: [URL]? = nil, _line: UInt = #line, _file: String = #file) {
-		#if DEBUG
-			self.logger.debug("setOtherState to \(status) at \(_file):\(_line)")
-		#endif
-
+	func setOtherState(status: Status, vncURL: [URL]? = nil) {
 		self.updateCurrentStatus(status, vncURL: vncURL)
 	}
 
@@ -711,21 +707,13 @@ extension VirtualMachineDocument {
 		}
 	}
 
-	func setDocumentSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
+	func setDocumentSize(_ size: ViewSize) {
 		if self.documentSize != size {
-			#if DEBUG
-				self.logger.debug("Setting document \(self.name) size to \(size.description) at \(_file):\(_line)")
-			#endif
-
 			self.documentSize = size
 		}
 	}
 
-	func setScreenSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
-		#if DEBUG
-			self.logger.debug("Setting screen size to \(size.description) at \(_file):\(_line)")
-		#endif
-
+	func setScreenSize(_ size: ViewSize) {
 		if size.width == 0 && size.height == 0 {
 			return
 		}
