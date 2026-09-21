@@ -142,6 +142,7 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 
 			} catch is CancellationError {
 				// Silent
+				self.logger.error("Grand Central Updater cancelled")
 			} catch is GRPCStatusTransformable {
 				// Silent
 				sendEnd = false
