@@ -123,7 +123,9 @@ public struct BuildHandler {
 
 			defer {
 				location.removePID()
-				try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
+				if directLocation == false {
+					try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
+				}
 			}
 
 			try await withTaskCancellationHandler(
