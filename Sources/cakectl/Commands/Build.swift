@@ -31,6 +31,28 @@ struct Build: AsyncGrpcParsableCommand {
 			var result: String = String.empty
 
 			group.addTask {
+				Client.sigintSrc.cancel()
+				signal(SIGINT, SIG_IGN)
+
+				let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+
+				sigintSrc.setEventHandler {
+					Task { @MainActor in
+						Logger(self).debug("SIGINT received, cancelling provisioning task")
+
+						_ = try? await client.cancelTask(.with {
+							$0.id = self.buildOptions.identifier.uuidString
+						}).response.get()
+					}
+					
+					sigintSrc.activate()
+					sigintSrc.setEventHandler {
+						Foundation.exit(128)
+					}
+				}
+
+				sigintSrc.activate()
+
 				let stream = try client.build(Caked_BuildRequest(buildOptions: self.buildOptions)) { stream in
 					continuation.yield(stream.current)
 				}

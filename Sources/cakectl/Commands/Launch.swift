@@ -34,6 +34,26 @@ struct Launch: AsyncGrpcParsableCommand {
 			var result: String = String.empty
 
 			group.addTask {
+				Client.sigintSrc.cancel()
+				signal(SIGINT, SIG_IGN)
+
+				let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+
+				sigintSrc.setEventHandler {
+					Task { @MainActor in
+						Logger(self).debug("SIGINT received, cancelling launch task")
+
+						_ = try? await client.cancelTask(.with {
+							$0.id = self.buildOptions.identifier.uuidString
+						}).response.get()
+					}
+
+					sigintSrc.activate()
+					sigintSrc.setEventHandler {
+						Foundation.exit(128)
+					}
+				}
+
 				let stream = try client.launch(Caked_LaunchRequest(command: self)) { stream in
 					continuation.yield(stream.current)
 				}

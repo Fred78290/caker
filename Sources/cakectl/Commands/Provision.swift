@@ -112,6 +112,28 @@ struct Provision: GrpcParsableCommand {
 
 				group.addTask {
 					do {
+						Client.sigintSrc.cancel()
+						signal(SIGINT, SIG_IGN)
+
+						let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+
+						sigintSrc.setEventHandler {
+							Task { @MainActor in
+								logger.debug("SIGINT received, cancelling provisioning task")
+
+								_ = try? await self.client.cancelTask(.with {
+									$0.id = self.command.identifier.uuidString
+								}).response.get()
+
+								//continuation.finish(throwing: ServiceError(String(localized: "Provisioning cancelled by user")))
+
+								sigintSrc.activate()
+								sigintSrc.setEventHandler {
+									Foundation.exit(128)
+								}
+							}
+						}
+
 						let stream = try self.client.provision(Caked_ProvisionRequest(command: self.command)) { stream in
 							continuation.yield(stream.current)
 						}
