@@ -290,8 +290,8 @@ public struct BuildOptions: ParsableArguments {
 		self.imageId = nil
 	}
 
-	public init(request: Caked_CommonBuildRequest) throws {
-		self.identifier = UUID()
+	public init(request: Caked_CommonBuildRequest, identifier: UUID) throws {
+		self.identifier = identifier
 		self.name = request.name
 		self.displayRefit = false
 		self.autoinstall = request.autoinstall

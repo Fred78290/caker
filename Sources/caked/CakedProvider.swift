@@ -102,8 +102,8 @@ extension Caked_RenameRequest: CreateCakedCommand {
 }
 
 extension Caked_CommonBuildRequest {
-	func buildOptions() throws -> BuildOptions {
-		try BuildOptions(request: self)
+	func buildOptions(taskID: UUID) throws -> BuildOptions {
+		try BuildOptions(request: self, identifier: taskID)
 	}
 }
 
@@ -379,12 +379,11 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	/// `CakedLib.BuildHandler.build(...)`/`CakedLib.ProvisionHandler.provision(...)`, which already
 	/// handle `CancellationError` gracefully (the same mechanism `caked build`/`caked provision`'s
 	/// own SIGINT handling already relies on for a local CLI invocation).
-	func executeCancellable(command: CakedCommandAsync, title: String, onCancel: @escaping @Sendable () async -> Void) async throws -> Caked_Reply {
+	func executeCancellable(command: CakedCommandAsync, title: String, id: UUID, onCancel: @escaping @Sendable () async -> Void) async throws -> Caked_Reply {
 		guard self.shutdown.withLock({ !$0 }) else {
 			throw ServiceError(String(localized: "Service is shutting down"))
 		}
 
-		let id = UUID()
 		let eventLoop = self.group.next()
 		let runMode = self.runMode
 
@@ -546,15 +545,20 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
+		guard let taskID = UUID(uuidString: request.taskID) else {
+			throw ServiceError(String(localized: "'\(request.taskID)' is not a valid task id"))
+		}
+
 		_ = try await self.executeCancellable(
-			command: BuildHandler(provider: self, options: request.options.buildOptions(), responseStream: responseStream, context: context) {
+			command: BuildHandler(provider: self, options: request.options.buildOptions(taskID: taskID), responseStream: responseStream, context: context) {
 				try self.gcd.updateStatus(
 					.with {
 						$0.name = request.options.name
 						$0.status = .new
 					})
 			},
-			title: "build \(request.options.name)"
+			title: "build \(request.options.name)",
+			id: taskID
 		) {
 			self.logger.info("Build cancelled")
 			try? await responseStream.send(
@@ -569,15 +573,20 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func launch(request: Caked_LaunchRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_LaunchStreamReply>, context: GRPCAsyncServerCallContext) async throws {
+		guard let taskID = UUID(uuidString: request.taskID) else {
+			throw ServiceError(String(localized: "'\(request.taskID)' is not a valid task id"))
+		}
+
 		_ = try await self.executeCancellable(
-			command: LaunchHandler(request: request, gcd: self.gcd.haveListeners, responseStream: responseStream, context: context) {
+			command: LaunchHandler(request: request, gcd: self.gcd.haveListeners, responseStream: responseStream, context: context, taskID: taskID) {
 				try self.gcd.updateStatus(
 					.with {
 						$0.name = request.options.name
 						$0.status = .new
 					})
 			},
-			title: "launch \(request.options.name)"
+			title: "launch \(request.options.name)",
+			id: taskID
 		) {
 			self.logger.info("Launch cancelled")
 			try? await responseStream.send(
@@ -805,9 +814,14 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func provision(request: Caked_ProvisionRequest, responseStream: Caked_ResponseProvisionStreamReply, context: GRPCAsyncServerCallContext) async throws {
+		guard let taskID = UUID(uuidString: request.taskID) else {
+			throw ServiceError(String(localized: "'\(request.taskID)' is not a valid task id"))
+		}
+
 		_ = try await self.executeCancellable(
 			command: ProvisionHandler(provider: self, request: request, responseStream: responseStream, runMode: runMode),
-			title: "provision \(request.name)"
+			title: "provision \(request.name)",
+			id: taskID,
 		) {
 			self.logger.info("Provision cancelled")
 			try? await responseStream.send(

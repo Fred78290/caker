@@ -29,6 +29,8 @@ public struct ProvisionOptions: ParsableArguments {
 	@Argument(help: ArgumentHelp(String(localized: cakedRunning ? "Path to the VM disk.img or its name" : "VM name")))
 	public var name: String
 	
+	public var identifier = UUID()
+
 	public init() {
 	}
 

@@ -511,6 +511,7 @@ message Caked {
 
     message BuildRequest {
       CommonBuildRequest options = 1;
+      string             taskId  = 2;
     }
 
     message StartRequest {
@@ -548,6 +549,7 @@ message Caked {
       optional ProvisionVars provisionVars         = 4;
       optional MacOSVersion  macosVersion          = 5;
       optional bool          foreground            = 6;
+      string                 taskId                = 7;
     }
 
     message RestartRequest {
@@ -578,6 +580,7 @@ message Caked {
       optional string     vncPassword   = 4;
       optional int32      vncPort       = 5;
       optional bool       recoveryMode  = 6;
+      string              taskId        = 7;
     }
 
     message ConfigureRequest {

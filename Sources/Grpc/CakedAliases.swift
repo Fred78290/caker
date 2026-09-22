@@ -661,6 +661,7 @@ extension Caked_BuildRequest {
 	public init(buildOptions: BuildOptions) throws {
 		self.init()
 		self.options = try Caked_CommonBuildRequest(buildOptions: buildOptions)
+		self.taskID = buildOptions.identifier.uuidString
 	}
 }
 

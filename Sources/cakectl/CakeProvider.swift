@@ -13,6 +13,7 @@ extension Caked_ProvisionRequest {
 
 		self.name = command.provision.name
 		self.foreground = command.provision.foreground
+		self.taskID = command.identifier.uuidString
 
 		if let macosVersion = command.provision.macosVersion {
 			self.macosVersion = Caked_MacOSVersion(macosVersion)
@@ -113,6 +114,7 @@ extension Caked_LaunchRequest {
 		self.options = try Caked_CommonBuildRequest(buildOptions: command.buildOptions)
 		self.waitIptimeout = Int32(command.waitIPTimeout)
 		self.recoveryMode = command.recoveryMode
+		self.taskID = command.identifier.uuidString
 	}
 }
 

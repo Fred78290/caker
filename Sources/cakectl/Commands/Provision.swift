@@ -32,6 +32,8 @@ struct Provision: GrpcParsableCommand {
 	@Flag(name: .customLong("vnc-debug"), help: ArgumentHelp(String(localized: "Trace vnc traffic"), visibility: .hidden))
 	var vncDebug: Bool = false
 
+	var identifier = UUID()
+
 	mutating func validate() throws {
 		if let template = self.provision.template {
 			let u = URL(fileURLWithPath: template.expandingTildeInPath)
