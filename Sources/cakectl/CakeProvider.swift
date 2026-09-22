@@ -114,7 +114,7 @@ extension Caked_LaunchRequest {
 		self.options = try Caked_CommonBuildRequest(buildOptions: command.buildOptions)
 		self.waitIptimeout = Int32(command.waitIPTimeout)
 		self.recoveryMode = command.recoveryMode
-		self.taskID = command.identifier.uuidString
+		self.taskID = command.buildOptions.identifier.uuidString
 	}
 }
 

@@ -19,8 +19,6 @@ struct Launch: AsyncGrpcParsableCommand {
 	@Flag(name: [.customLong("recovery")], help: ArgumentHelp(String(localized: "Launch vm in recovery mode"), discussion: String(localized: "This option allows starting the MacOS VM in recovery mode")))
 	var recoveryMode: Bool = false
 
-	var identifier = UUID()
-
 	mutating func validate() throws {
 		try buildOptions.validate(remote: true)
 
