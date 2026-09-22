@@ -268,18 +268,23 @@ struct Client: ParsableCommand {
 		Self.exit(withError: error)
 	}
 
+	static let sigintSrc = {
+		// Ensure the default SIGINT handled is disabled,
+		// otherwise there's a race between two handlers
+		signal(SIGINT, SIG_IGN)
+
+		return DispatchSource.makeSignalSource(signal: SIGINT)
+	}()
+
 	public static func main() async throws {
 		// Set up logging to stderr
 		LoggingSystem.bootstrap { label in
 			StreamLogHandler.standardError(label: label)
 		}
 
-		// Ensure the default SIGINT handled is disabled,
-		// otherwise there's a race between two handlers
-		signal(SIGINT, SIG_IGN)
 		// Handle cancellation by Ctrl+C ourselves
 		let task = withUnsafeCurrentTask { $0 }!
-		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT)
+
 		sigintSrc.setEventHandler {
 			task.cancel()
 		}
