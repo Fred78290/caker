@@ -103,6 +103,32 @@ struct Provision: GrpcParsableCommand {
 			}
 		}
 
+		func catchSigInt() {
+			Client.sigintSrc.cancel()
+			signal(SIGINT, SIG_IGN)
+
+			let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
+
+			sigintSrc.setEventHandler {
+				Task { @MainActor in
+					Logger(self).debug("SIGINT received, cancelling provisioning task")
+
+					_ = try? await self.client.cancelTask(.with {
+						$0.id = self.command.identifier.uuidString
+					}).response.get()
+
+					//continuation.finish(throwing: ServiceError(String(localized: "Provisioning cancelled by user")))
+
+					sigintSrc.activate()
+					sigintSrc.setEventHandler {
+						Foundation.exit(128)
+					}
+				}
+			}
+
+			sigintSrc.activate()
+		}
+
 		func provisionWithoutView() async throws -> String {
 			return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
 				let context: ProgressObserver.ProgressHandlerContext = .init()
@@ -112,27 +138,7 @@ struct Provision: GrpcParsableCommand {
 
 				group.addTask {
 					do {
-						Client.sigintSrc.cancel()
-						signal(SIGINT, SIG_IGN)
-
-						let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
-
-						sigintSrc.setEventHandler {
-							Task { @MainActor in
-								logger.debug("SIGINT received, cancelling provisioning task")
-
-								_ = try? await self.client.cancelTask(.with {
-									$0.id = self.command.identifier.uuidString
-								}).response.get()
-
-								//continuation.finish(throwing: ServiceError(String(localized: "Provisioning cancelled by user")))
-
-								sigintSrc.activate()
-								sigintSrc.setEventHandler {
-									Foundation.exit(128)
-								}
-							}
-						}
+						self.catchSigInt()
 
 						let stream = try self.client.provision(Caked_ProvisionRequest(command: self.command)) { stream in
 							continuation.yield(stream.current)
@@ -218,6 +224,8 @@ struct Provision: GrpcParsableCommand {
 										defer {
 											continuation.finish()
 										}
+
+										self.catchSigInt()
 
 										let stream = try self.client.provision(Caked_ProvisionRequest(command: self.command)) { stream in
 											continuation.yield(stream.current)
