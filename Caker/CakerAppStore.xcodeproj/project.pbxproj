@@ -22,6 +22,7 @@
 
 /* Begin PBXBuildFile section */
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
+		17555DDA1E9035403FCDC3C0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
 		3D7E00B2486F50FBBC4AD582 /* VMImageShorthandFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02067348AF43DC92AACA366 /* VMImageShorthandFlags.swift */; };
 		4790DD9E7D6FF54441D137A8 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
@@ -116,7 +117,6 @@
 		9B29F7C22FCAE4B700AEBCB8 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5D7BCD2EAA9602001FB96E /* Color.swift */; };
 		9B29F7C32FCAE4B700AEBCB8 /* VZMacAddressParseableFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */; };
 		9B29F7C42FCAE4B700AEBCB8 /* RemoteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213CC2F37548300B45692 /* RemoteHandler.swift */; };
-		B8986FBA890BF94A260C2932 /* TasksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13849751EACAEB14CBF45D1A /* TasksHandler.swift */; };
 		9B29F7C52FCAE4B700AEBCB8 /* ListHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213CA2F37548300B45692 /* ListHandler.swift */; };
 		9B29F7C62FCAE4B700AEBCB8 /* NetworksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213CB2F37548300B45692 /* NetworksHandler.swift */; };
 		9B29F7C72FCAE4B700AEBCB8 /* DeleteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213C92F37548300B45692 /* DeleteHandler.swift */; };
@@ -156,7 +156,6 @@
 		9B29F7E92FCAE4B700AEBCB8 /* TemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E922E23C92900C13D23 /* TemplatesView.swift */; };
 		9B29F7EA2FCAE4B700AEBCB8 /* VirtualMachineDocumentState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFA7D842FA5F1D900E981F6 /* VirtualMachineDocumentState.swift */; };
 		9B29F7EB2FCAE4B700AEBCB8 /* RemotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */; };
-		17555DDA1E9035403FCDC3C0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		9B29F7EC2FCAE4B700AEBCB8 /* NetworkWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */; };
 		9B29F7ED2FCAE4B700AEBCB8 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E5E2E23BCA300C13D23 /* HomeView.swift */; };
 		9B29F7EE2FCAE4B700AEBCB8 /* SideBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */; };
@@ -742,6 +741,7 @@
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A81E057BF76553D63F16EF15 /* ProvisioningVideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */; };
 		AB8B314DC1C7F91AAF9C7933 /* PackerLiteDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */; };
+		B8986FBA890BF94A260C2932 /* TasksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13849751EACAEB14CBF45D1A /* TasksHandler.swift */; };
 		CA2F8AECC06E0E7FDF5FA524 /* RecordHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8FBE599C35FC78A7C40AEE /* RecordHandler.swift */; };
 		D11AF315177F1969AA5E3F7A /* MacOSVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */; };
 		D206198BD7C0DA5A00B1130A /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42281CEC4BB027305E68E921 /* Record.swift */; };
@@ -951,6 +951,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		13849751EACAEB14CBF45D1A /* TasksHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksHandler.swift; sourceTree = "<group>"; };
 		209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSVersion.swift; sourceTree = "<group>"; };
 		34D83C742935C118E4351E41 /* ActionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorder.swift; sourceTree = "<group>"; };
 		42281CEC4BB027305E68E921 /* Record.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
@@ -959,6 +960,7 @@
 		7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplateResolver.swift; sourceTree = "<group>"; };
 		839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplate.swift; sourceTree = "<group>"; };
 		9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteDriver.swift; sourceTree = "<group>"; };
+		94A112BBD0363BE74540B818 /* TasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksView.swift; sourceTree = "<group>"; };
 		9B001DC9300189A80048894C /* TemplateDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateDetailView.swift; sourceTree = "<group>"; };
 		9B001E8B300191920048894C /* RemoteDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteDetailView.swift; sourceTree = "<group>"; };
 		9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDetailView.swift; sourceTree = "<group>"; };
@@ -1293,7 +1295,6 @@
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
 		9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworksView.swift; sourceTree = "<group>"; };
 		9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemotesView.swift; sourceTree = "<group>"; };
-		94A112BBD0363BE74540B818 /* TasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksView.swift; sourceTree = "<group>"; };
 		9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBarView.swift; sourceTree = "<group>"; };
 		9B9C4E582E23BC8B00C13D23 /* VirtualMachinesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachinesView.swift; sourceTree = "<group>"; };
 		9B9C4E5E2E23BCA300C13D23 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -1352,7 +1353,6 @@
 		9BB213CA2F37548300B45692 /* ListHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListHandler.swift; sourceTree = "<group>"; };
 		9BB213CB2F37548300B45692 /* NetworksHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworksHandler.swift; sourceTree = "<group>"; };
 		9BB213CC2F37548300B45692 /* RemoteHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteHandler.swift; sourceTree = "<group>"; };
-		13849751EACAEB14CBF45D1A /* TasksHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksHandler.swift; sourceTree = "<group>"; };
 		9BB213CD2F37548300B45692 /* TemplateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateHandler.swift; sourceTree = "<group>"; };
 		9BB213D42F375CC700B45692 /* DuplicateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateHandler.swift; sourceTree = "<group>"; };
 		9BB213D62F37838400B45692 /* ImageHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageHandler.swift; sourceTree = "<group>"; };
@@ -5266,7 +5266,7 @@
 			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
 			requirement = {
 				kind = exactVersion;
-				version = 2.9.1;
+				version = 2.10.0;
 			};
 		};
 		9B464B832D5A3F0300164BF5 /* XCRemoteSwiftPackageReference "Dynamic" */ = {

@@ -68,7 +68,7 @@ let package = Package(
 		//.package(url: "https://github.com/swiftlang/swift-subprocess.git", revision: "7928f39b374b3403224c3a243da6326bdf7c918a"),
 		//.package(url: "https://github.com/the-swift-collective/zlib", branch: "main")
 	] + (isAppStoreBuild ? [] : [
-		.package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.1"),
+		.package(url: "https://github.com/sparkle-project/Sparkle", from: "2.10.0"),
 	]),
 	targets: [
 		.target(

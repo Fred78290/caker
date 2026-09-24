@@ -22,6 +22,8 @@
 /* Begin PBXBuildFile section */
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
+		23A4C556139077AA750354DD /* TasksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13849751EACAEB14CBF45D1A /* TasksHandler.swift */; };
+		36481741DA76E20FC5F50AA0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		660249BCF82EC5D70EA3EB3B /* fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
 		7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */; };
@@ -374,7 +376,6 @@
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
 		9B9C4E5A2E23BC8B00C13D23 /* NetworksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */; };
 		9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */; };
-		36481741DA76E20FC5F50AA0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */; };
 		9B9C4E5D2E23BC8B00C13D23 /* VirtualMachinesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E582E23BC8B00C13D23 /* VirtualMachinesView.swift */; };
 		9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E5E2E23BCA300C13D23 /* HomeView.swift */; };
@@ -424,7 +425,6 @@
 		9BB149202EC760F70094D950 /* Pull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB1491F2EC760F20094D950 /* Pull.swift */; };
 		9BB149222EC760FE0094D950 /* Push.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB149212EC760FC0094D950 /* Push.swift */; };
 		9BB213CF2F37548300B45692 /* RemoteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213CC2F37548300B45692 /* RemoteHandler.swift */; };
-		23A4C556139077AA750354DD /* TasksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13849751EACAEB14CBF45D1A /* TasksHandler.swift */; };
 		9BB213D02F37548300B45692 /* ListHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213CA2F37548300B45692 /* ListHandler.swift */; };
 		9BB213D12F37548300B45692 /* NetworksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213CB2F37548300B45692 /* NetworksHandler.swift */; };
 		9BB213D22F37548300B45692 /* DeleteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213C92F37548300B45692 /* DeleteHandler.swift */; };
@@ -937,6 +937,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		13849751EACAEB14CBF45D1A /* TasksHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksHandler.swift; sourceTree = "<group>"; };
 		209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSVersion.swift; sourceTree = "<group>"; };
 		34D83C742935C118E4351E41 /* ActionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorder.swift; sourceTree = "<group>"; };
 		42281CEC4BB027305E68E921 /* Record.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
@@ -946,6 +947,7 @@
 		7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplateResolver.swift; sourceTree = "<group>"; };
 		839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplate.swift; sourceTree = "<group>"; };
 		9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteDriver.swift; sourceTree = "<group>"; };
+		94A112BBD0363BE74540B818 /* TasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksView.swift; sourceTree = "<group>"; };
 		9B001A0C300025340048894C /* cakectl.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = cakectl.provisionprofile; sourceTree = "<group>"; };
 		9B001A0D300025340048894C /* caked.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caked.provisionprofile; sourceTree = "<group>"; };
 		9B001A0E300025340048894C /* caker.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caker.provisionprofile; sourceTree = "<group>"; };
@@ -1280,7 +1282,6 @@
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
 		9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworksView.swift; sourceTree = "<group>"; };
 		9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemotesView.swift; sourceTree = "<group>"; };
-		94A112BBD0363BE74540B818 /* TasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksView.swift; sourceTree = "<group>"; };
 		9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBarView.swift; sourceTree = "<group>"; };
 		9B9C4E582E23BC8B00C13D23 /* VirtualMachinesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachinesView.swift; sourceTree = "<group>"; };
 		9B9C4E5E2E23BCA300C13D23 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -1335,7 +1336,6 @@
 		9BB213CA2F37548300B45692 /* ListHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListHandler.swift; sourceTree = "<group>"; };
 		9BB213CB2F37548300B45692 /* NetworksHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworksHandler.swift; sourceTree = "<group>"; };
 		9BB213CC2F37548300B45692 /* RemoteHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteHandler.swift; sourceTree = "<group>"; };
-		13849751EACAEB14CBF45D1A /* TasksHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksHandler.swift; sourceTree = "<group>"; };
 		9BB213CD2F37548300B45692 /* TemplateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateHandler.swift; sourceTree = "<group>"; };
 		9BB213D42F375CC700B45692 /* DuplicateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateHandler.swift; sourceTree = "<group>"; };
 		9BB213D62F37838400B45692 /* ImageHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageHandler.swift; sourceTree = "<group>"; };
@@ -5143,7 +5143,7 @@
 			repositoryURL = "https://github.com/sparkle-project/Sparkle.git";
 			requirement = {
 				kind = exactVersion;
-				version = 2.9.1;
+				version = 2.10.0;
 			};
 		};
 		9B464B832D5A3F0300164BF5 /* XCRemoteSwiftPackageReference "Dynamic" */ = {
