@@ -75,6 +75,10 @@ public class VNCConnectionAppState: Codable {
 			
 			let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), allowClientResize: appState.allowClientResize, connection: self.appState.connection)
 			
+			// Ensure a black background behind the framebuffer
+			view.wantsLayer = true
+			view.layer?.backgroundColor = NSColor.black.cgColor
+
 			self.appState.vncView = view
 			
 #if DEBUG
