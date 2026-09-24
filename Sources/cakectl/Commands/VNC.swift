@@ -24,7 +24,7 @@ struct VNC: GrpcParsableCommand {
 	@Argument(help: ArgumentHelp(String(localized: "VM name")))
 	var name: String
 
-	private func doVNC(_ vncURL: URL, client: CakedServiceClient, config: CakedConfiguration, screenSize: ViewSize, tunnel: VNCTunnel) {
+	private func doVNC(_ vncURL: URL, client: CakedServiceClient, config: CakedConfiguration, screenSize: ViewSize, tunnel: VNCTunnel) throws {
 		func vmStatus() -> Status {
 			if let result = try? client.info(name: self.name, includeConfig: false).vms.status {
 				if result.infos.status == .running || result.infos.status == .agentReady {
@@ -34,6 +34,8 @@ struct VNC: GrpcParsableCommand {
 			return .stopped
 		}
 
+		let result = try client.info(name: self.name, includeConfig: false).vms.status
+
 		do {
 			try VNCApp.startVncClient(
 				name: self.name,
@@ -42,6 +44,7 @@ struct VNC: GrpcParsableCommand {
 				screenSize: screenSize,
 				tunnel: tunnel,
 				allowClientResize: true,
+				provisionning: result.infos.status == .provisioning,
 				isDebugLoggingEnabled: vncDebug,
 				vmStatus: vmStatus)
 		} catch {
@@ -70,7 +73,7 @@ struct VNC: GrpcParsableCommand {
 		}
 
 		if let vncURL = components.url {
-			self.doVNC(vncURL, client: client, config: CakedConfiguration(result.config), screenSize: screenSize, tunnel: tunnel)
+			try self.doVNC(vncURL, client: client, config: CakedConfiguration(result.config), screenSize: screenSize, tunnel: tunnel)
 		}
 
 		return String.empty

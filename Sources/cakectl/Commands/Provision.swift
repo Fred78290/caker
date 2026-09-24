@@ -66,6 +66,7 @@ struct Provision: GrpcParsableCommand {
 					screenSize: screenSize,
 					tunnel: tunnel,
 					allowClientResize: false,
+					provisionning: true,
 					isDebugLoggingEnabled: command.vncDebug,
 					vmStatus: handlerStatus)
 			} catch {

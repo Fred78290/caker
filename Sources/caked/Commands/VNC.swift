@@ -76,6 +76,12 @@ struct VNC: CakeAgentParsableCommand {
 				return .stopped
 			}
 
+			var provisionning = false
+
+			if case .running(let mode) = location.status {
+				provisionning = mode == .provision
+			}
+
 			try VNCApp.startVncClient(
 				name: self.name,
 				config: result.config,
@@ -83,6 +89,7 @@ struct VNC: CakeAgentParsableCommand {
 				screenSize: screenSize,
 				tunnel: nil,
 				allowClientResize: true,
+				provisionning: provisionning,
 				isDebugLoggingEnabled: vncDebug,
 				vmStatus: vmStatus)
 

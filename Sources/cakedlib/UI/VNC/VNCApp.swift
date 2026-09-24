@@ -136,7 +136,8 @@ public class VNCConnectionAppState: Codable {
 	public var vncStatus: VncStatus
 	public var screenSize: ViewSize
 	public var allowClientResize: Bool
-	
+	public let provisionning: Bool
+
 	private var continuation: VncStatusStreamContinuation? = nil
 	
 	deinit {
@@ -150,6 +151,7 @@ public class VNCConnectionAppState: Codable {
 		screenSize: ViewSize,
 		tunnel: VNCTunnel?,
 		allowClientResize: Bool,
+		provisionning: Bool,
 		isDebugLoggingEnabled: Bool = false,
 		vmStatus: @escaping VMStatusAction
 	) throws {
@@ -182,6 +184,7 @@ public class VNCConnectionAppState: Codable {
 		self.vmStatus = vmStatus
 		self.tunnel = tunnel
 		self.allowClientResize = allowClientResize
+		self.provisionning = provisionning
 	}
 	
 	required public init(from decoder: any Decoder) throws {
@@ -262,7 +265,7 @@ public class VNCConnectionAppState: Codable {
 		case .ready:
 			VNCConnectionAppState.VNCView(self)
 				.frame(width: size.width, height: size.height)
-				.background(.black)
+				.disabled(self.provisionning)
 		}
 	}
 }
@@ -548,6 +551,7 @@ public struct VNCApp: App {
 		screenSize: ViewSize,
 		tunnel: VNCTunnel?,
 		allowClientResize: Bool,
+		provisionning: Bool,
 		isDebugLoggingEnabled: Bool = false,
 		vmStatus: @escaping VNCConnectionAppState.VMStatusAction
 	) throws {
@@ -558,6 +562,7 @@ public struct VNCApp: App {
 			screenSize: screenSize,
 			tunnel: tunnel,
 			allowClientResize: allowClientResize,
+			provisionning: provisionning,
 			isDebugLoggingEnabled: isDebugLoggingEnabled,
 			vmStatus: vmStatus
 		)

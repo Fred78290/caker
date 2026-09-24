@@ -1323,6 +1323,7 @@ struct VirtualMachineWizard: View {
 				screenSize: infos.screenSize,
 				tunnel: tunnel,
 				allowClientResize: false,
+				provisionning: true,
 				isDebugLoggingEnabled: false
 			) {
 				self.provisioningRemoteVM ? .running : .stopped
