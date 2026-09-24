@@ -430,31 +430,33 @@ struct HomeView: View {
 	}
 
 	func actionDelete() {
-		switch self.selectedCategory {
-		case .virtualMachine:
-			if let selectedVirtualMachine = navigationModel.selectedVirtualMachine {
-				selectedVirtualMachine.deleteVirtualMachine()
-				navigationModel.selectedVirtualMachine = nil
+		Task { @MainActor in
+			switch self.selectedCategory {
+			case .virtualMachine:
+				if let selectedVirtualMachine = navigationModel.selectedVirtualMachine {
+					selectedVirtualMachine.deleteVirtualMachine()
+					navigationModel.selectedVirtualMachine = nil
+				}
+			case .networks:
+				if let selectedNetwork = navigationModel.selectedNetwork {
+					self.appState.deleteNetwork(name: selectedNetwork.name)
+					navigationModel.selectedNetwork = nil
+				}
+			case .images:
+				if let selectedRemote = navigationModel.selectedRemote {
+					self.appState.deleteRemote(name: selectedRemote.name)
+					navigationModel.selectedRemote = nil
+				}
+			case .templates:
+				if let selectedTemplate = navigationModel.selectedTemplate {
+					self.appState.deleteTemplate(name: selectedTemplate.name)
+					navigationModel.selectedTemplate = nil
+				}
+			case .tasks:
+				// Cancellation is done per-row via TasksView's own context menu, not this toolbar button
+				// (see deleteButtonDisabled, which keeps it disabled for this category).
+				break
 			}
-		case .networks:
-			if let selectedNetwork = navigationModel.selectedNetwork {
-				self.appState.deleteNetwork(name: selectedNetwork.name)
-				navigationModel.selectedNetwork = nil
-			}
-		case .images:
-			if let selectedRemote = navigationModel.selectedRemote {
-				self.appState.deleteRemote(name: selectedRemote.name)
-				navigationModel.selectedRemote = nil
-			}
-		case .templates:
-			if let selectedTemplate = navigationModel.selectedTemplate {
-				self.appState.deleteTemplate(name: selectedTemplate.name)
-				navigationModel.selectedTemplate = nil
-			}
-		case .tasks:
-			// Cancellation is done per-row via TasksView's own context menu, not this toolbar button
-			// (see deleteButtonDisabled, which keeps it disabled for this category).
-			break
 		}
 	}
 
