@@ -530,6 +530,7 @@ public struct VNCApp: App {
 				.windowToolbarFullScreenVisibility(.onHover)
 				.containerBackground(.windowBackground, for: .window)
 		}
+		.restorationBehavior(.disabled)
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
 		.defaultSize(CGSize(width: CGFloat(appState.screenSize.width), height: CGFloat(appState.screenSize.height)))
