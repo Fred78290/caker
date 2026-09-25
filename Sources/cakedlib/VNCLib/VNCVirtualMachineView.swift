@@ -422,7 +422,7 @@ extension VZVirtualMachineView {
 		renderLayer.bounds = CGRect(x: 0, y: 0, width: surface.width, height: surface.height)
 		renderLayer.contents = surface.cgImage
 
-		guard var cgImage = renderLayer.renderIntoImage() else {
+		guard var cgImage = renderLayer.renderIntoImage(to: self.bounds) else {
 			return nil
 		}
 
