@@ -94,6 +94,8 @@ public class VNCFramebuffer {
 		#if DEBUG
 			if size.width == 0 || size.height == 0 {
 				self.logger.debug("View size is zero, skipping frame capture.")
+			} else {
+				self.logger.debug("Update view size is \(size).")
 			}
 		#endif
 
