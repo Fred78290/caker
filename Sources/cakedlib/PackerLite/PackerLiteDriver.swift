@@ -879,7 +879,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		await clearDebugBox()
 
 		// Capture the current CGImage on the main actor (AppKit view access must be on main).
-		guard let nsImage = await self.targetView.image(), let pngData = nsImage.pngData else {
+		guard let capture = await self.targetView.captureImageOCR() else {
 			return nil
 		}
 
@@ -890,7 +890,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 		// The image and view might differ in size, so scale accordingly
 		let viewHeight = bounds.height
 		let viewWidth = bounds.width
-		let imageSize = nsImage.size
+		let imageSize = capture.imageSize
 		let scaleX = viewWidth / imageSize.width
 		let scaleY = viewHeight / imageSize.height
 		let logger = self.logger
@@ -905,7 +905,7 @@ final class PackerLiteDriver: @unchecked Sendable {
 			request.recognitionLanguages = ["en-US"] // if appropriate
 
 			do {
-				try VNImageRequestHandler(data: pngData, options: [:]).perform([request])
+				try VNImageRequestHandler(data: capture.pngData, options: [:]).perform([request])
 
 				guard let results = request.results, !results.isEmpty else {
 					self.logger.trace("\(title) - OCR no text found")
