@@ -24,7 +24,6 @@
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
 		17555DDA1E9035403FCDC3C0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
-		3D7E00B2486F50FBBC4AD582 /* VMImageShorthandFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02067348AF43DC92AACA366 /* VMImageShorthandFlags.swift */; };
 		4790DD9E7D6FF54441D137A8 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
 		6F24F80EC59144FFB72B9505 /* VirtualMachineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */; };
@@ -255,7 +254,6 @@
 		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
 		9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */; };
 		9B4159B72FFA66F400E2B275 /* ConfigureHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4159B62FFA66F000E2B275 /* ConfigureHandler.swift */; };
-		9B426B27301B9A3800170A05 /* NSGlassEffectAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B426B26301B9A3800170A05 /* NSGlassEffectAlert.swift */; };
 		9B44388A2EBC9C12008BB2BB /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4438892EBC9C12008BB2BB /* Dynamic */; };
 		9B464B5F2D5A3E7F00164BF5 /* CakeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A872D5A3E0300164BF5 /* CakeProvider.swift */; };
 		9B464B602D5A3E7F00164BF5 /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A882D5A3E0300164BF5 /* Client.swift */; };
@@ -354,6 +352,9 @@
 		9B5A37852ED4BDA8007B59B0 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37752ED4BDA8007B59B0 /* VNC.swift */; };
 		9B5A37862ED4BDA8007B59B0 /* VNCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */; };
 		9B5A37872ED4BDA8007B59B0 /* VNCInputHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37792ED4BDA8007B59B0 /* VNCInputHandler.swift */; };
+		9B5A8D9830682F4D00A8C53C /* NSGlassEffectAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B82A038305B09DB00362643 /* NSGlassEffectAlert.swift */; };
+		9B5A8D9A30682FE100A8C53C /* CakeHomeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A8D9930682FE100A8C53C /* CakeHomeHandler.swift */; };
+		9B5A8D9C3068307900A8C53C /* RenameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A8D9B3068307900A8C53C /* RenameHandler.swift */; };
 		9B5C3F3C2F89666C005651BF /* Entitlement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5C3F3B2F896662005651BF /* Entitlement.swift */; };
 		9B5C52D92F0FB27B002D628C /* GRPCTLSConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */; };
 		9B5F49C02F70032800AE1991 /* LabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F49BF2F70032800AE1991 /* LabelView.swift */; };
@@ -1219,6 +1220,8 @@
 		9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeyMapper.swift; sourceTree = "<group>"; };
 		9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCProtocol.swift; sourceTree = "<group>"; };
 		9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCServer.swift; sourceTree = "<group>"; };
+		9B5A8D9930682FE100A8C53C /* CakeHomeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeHomeHandler.swift; sourceTree = "<group>"; };
+		9B5A8D9B3068307900A8C53C /* RenameHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameHandler.swift; sourceTree = "<group>"; };
 		9B5C3F3B2F896662005651BF /* Entitlement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entitlement.swift; sourceTree = "<group>"; };
 		9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRPCTLSConfiguration.swift; sourceTree = "<group>"; };
 		9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUUsageMonitor.swift; sourceTree = "<group>"; };
@@ -1616,7 +1619,6 @@
 		9BFE87442F7E6480005CC9B2 /* VM.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = VM.png; sourceTree = "<group>"; };
 		9BFE87452F7E6480005CC9B2 /* VM.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = VM.xcf; sourceTree = "<group>"; };
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
-		B02067348AF43DC92AACA366 /* VMImageShorthandFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageShorthandFlags.swift; sourceTree = "<group>"; };
 		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		CEBCF840FC996468321E4B7D /* BootCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootCommand.swift; sourceTree = "<group>"; };
 		DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDetailView.swift; sourceTree = "<group>"; };
@@ -2581,8 +2583,8 @@
 		9BB213CE2F37548300B45692 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
-				9B4159B62FFA66F000E2B275 /* ConfigureHandler.swift */,
 				9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */,
+				9B4159B62FFA66F000E2B275 /* ConfigureHandler.swift */,
 				9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */,
 				9BB213C92F37548300B45692 /* DeleteHandler.swift */,
 				9BB213D42F375CC700B45692 /* DuplicateHandler.swift */,
@@ -2592,13 +2594,14 @@
 				9BB213CA2F37548300B45692 /* ListHandler.swift */,
 				9BB213CB2F37548300B45692 /* NetworksHandler.swift */,
 				9BB213CC2F37548300B45692 /* RemoteHandler.swift */,
+				9B5A8D9B3068307900A8C53C /* RenameHandler.swift */,
 				9BBF7B3A2F3E098A00F37D2C /* RestartHandler.swift */,
 				9BBF7CB02F3F1F5300F37D2C /* ScreenSizeHandler.swift */,
 				9BBF7A3A2F3DE0B300F37D2C /* StartHandler.swift */,
 				9BBF7A382F3DE0A900F37D2C /* StopHandler.swift */,
 				9BBF7A3C2F3DE0BD00F37D2C /* SuspendHandler.swift */,
-				9BB213CD2F37548300B45692 /* TemplateHandler.swift */,
 				13849751EACAEB14CBF45D1A /* TasksHandler.swift */,
+				9BB213CD2F37548300B45692 /* TemplateHandler.swift */,
 				9BBF7CB22F3F28F400F37D2C /* VNCInfosHandler.swift */,
 			);
 			path = Handlers;
@@ -2607,7 +2610,6 @@
 		9BB3BE1C2DB3F17500799A6A /* options */ = {
 			isa = PBXGroup;
 			children = (
-				B02067348AF43DC92AACA366 /* VMImageShorthandFlags.swift */,
 				9BB3BE092DB3F17500799A6A /* BuildOptions.swift */,
 				9BB3BE0B2DB3F17500799A6A /* ConfigureOptions.swift */,
 				9BB3BE0C2DB3F17500799A6A /* DeleteOptions.swift */,
@@ -2763,6 +2765,7 @@
 			isa = PBXGroup;
 			children = (
 				9BEBC7162DF440720092B196 /* BuildHandler.swift */,
+				9B5A8D9930682FE100A8C53C /* CakeHomeHandler.swift */,
 				9B9DF6132FEFDBD2006FAE72 /* ComposeHandler.swift */,
 				9BEBC7182DF440720092B196 /* ConfigureHandler.swift */,
 				9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */,
@@ -3830,6 +3833,7 @@
 				9B29F7B82FCAE4B700AEBCB8 /* ViewSize.swift in Sources */,
 				9B29F7B92FCAE4B700AEBCB8 /* MainApp.swift in Sources */,
 				9BDC00A52FEA904300802A3C /* MountPoint.swift in Sources */,
+				9B5A8D9C3068307900A8C53C /* RenameHandler.swift in Sources */,
 				9B29F7BA2FCAE4B700AEBCB8 /* EditableList.swift in Sources */,
 				9B29F7BB2FCAE4B700AEBCB8 /* DuplicateHandler.swift in Sources */,
 				9B29F7BC2FCAE4B700AEBCB8 /* MountNewItemView.swift in Sources */,
@@ -3985,7 +3989,6 @@
 		9B464C592D5A459B00164BF5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
-				3D7E00B2486F50FBBC4AD582 /* VMImageShorthandFlags.swift in Sources */,
 				9B464C652D5A45DF00164BF5 /* FileLock.swift in Sources */,
 				9B464C662D5A45DF00164BF5 /* Format.swift in Sources */,
 				9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */,
@@ -4209,6 +4212,7 @@
 				9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */,
 				9BDC05FD2FEADD6F00802A3C /* ComposeFile.swift in Sources */,
 				9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */,
+				9B5A8D9A30682FE100A8C53C /* CakeHomeHandler.swift in Sources */,
 				9B2033702F4A21400047E197 /* GrandCentralUpdater.swift in Sources */,
 				9BEBC77A2DF440720092B196 /* VZVMNetSocket.swift in Sources */,
 				9BEBC77B2DF440720092B196 /* VMRunService.swift in Sources */,
@@ -4270,6 +4274,7 @@
 				9B5C3F3C2F89666C005651BF /* Entitlement.swift in Sources */,
 				9B5F49C02F70032800AE1991 /* LabelView.swift in Sources */,
 				9B5A184B2FDFFD62006FBD45 /* SpawnHandler.swift in Sources */,
+				9B5A8D9830682F4D00A8C53C /* NSGlassEffectAlert.swift in Sources */,
 				9BEBC7A72DF440720092B196 /* CommunicationHandlers.swift in Sources */,
 				9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */,
 				9B5F49C22F7006B100AE1991 /* VNCConnectionLogger.swift in Sources */,
@@ -4324,7 +4329,6 @@
 				9B081B5B2FC75A1A0029B259 /* Qcow2Error.swift in Sources */,
 				9B081B5C2FC75A1A0029B259 /* Qcow2Converter.swift in Sources */,
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
-				9B426B27301B9A3800170A05 /* NSGlassEffectAlert.swift in Sources */,
 				9B6EC45E30037F6600ABFDED /* VMLifecycleHooks.swift in Sources */,
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
 				9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */,
@@ -5474,7 +5478,7 @@
 			repositoryURL = "https://github.com/Fred78290/swift-nio-portforwarding.git";
 			requirement = {
 				kind = revision;
-				revision = 515b2f06fe60b81825a137a9d37b899e48ebd377;
+				revision = d694f2962c563b6866f4f68927c05f18438e16ee;
 			};
 		};
 		9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */ = {
