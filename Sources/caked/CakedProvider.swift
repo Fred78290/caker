@@ -546,7 +546,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
 		guard let taskID = UUID(uuidString: request.taskID) else {
-			throw ServiceError(String(localized: "'\(request.taskID)' is not a valid task id"))
+			throw ServiceError(String(format: String(localized: "'%@' is not a valid task id"), request.taskID))
 		}
 
 		_ = try await self.executeCancellable(
@@ -574,7 +574,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 	func launch(request: Caked_LaunchRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_LaunchStreamReply>, context: GRPCAsyncServerCallContext) async throws {
 		guard let taskID = UUID(uuidString: request.taskID) else {
-			throw ServiceError(String(localized: "'\(request.taskID)' is not a valid task id"))
+			throw ServiceError(String(format: String(localized: "'%@' is not a valid task id"), request.taskID))
 		}
 
 		_ = try await self.executeCancellable(
@@ -815,7 +815,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 	func provision(request: Caked_ProvisionRequest, responseStream: Caked_ResponseProvisionStreamReply, context: GRPCAsyncServerCallContext) async throws {
 		guard let taskID = UUID(uuidString: request.taskID) else {
-			throw ServiceError(String(localized: "'\(request.taskID)' is not a valid task id"))
+			throw ServiceError(String(format: String(localized: "'%@' is not a valid task id"), request.taskID))
 		}
 
 		_ = try await self.executeCancellable(

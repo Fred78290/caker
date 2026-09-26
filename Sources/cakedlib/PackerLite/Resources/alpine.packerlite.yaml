@@ -149,8 +149,8 @@ post_boot_command:
   use_ssh_key: false
   commands:
     - 'echo ${var.password} | sudo -S sh -c ''echo "${var.username} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/${var.username}'''
-	- sudo apk add cloud-init py3-netifaces util-linux e2fsprogs-extra
-	- sudo rc-update add cloud-init default
-	- 'echo "datasource_list: [ NoCloud, None ]" > /etc/cloud/cloud.cfg.d/100_datasources.cfg'
+    - sudo apk add cloud-init py3-netifaces util-linux e2fsprogs-extra
+    - sudo rc-update add cloud-init default
+    - 'echo "datasource_list: [ NoCloud, None ]" > /etc/cloud/cloud.cfg.d/100_datasources.cfg'
     - sync
     - sync

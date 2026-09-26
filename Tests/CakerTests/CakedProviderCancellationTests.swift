@@ -67,7 +67,7 @@ final class CakedProviderCancellationTests: XCTestCase {
 		let flag = CancellationFlag()
 
 		let task = Task {
-			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "sleepy task") {}
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "sleepy task", id: UUID()) {}
 		}
 
 		// Give `executeCancellable` a moment to register the task and reach the `Task.sleep` call
@@ -93,7 +93,7 @@ final class CakedProviderCancellationTests: XCTestCase {
 		provider.stop()
 
 		do {
-			_ = try await provider.executeCancellable(command: SleepyCommand(flag: CancellationFlag()), title: "sleepy task") {}
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: CancellationFlag()), title: "sleepy task", id: UUID()) {}
 			XCTFail("executeCancellable should refuse new work once the provider has stopped")
 		} catch {
 			// Expected — the same "Service is shutting down" guard `execute(command:)` already has.
@@ -111,7 +111,7 @@ final class CakedProviderCancellationTests: XCTestCase {
 		let flag = CancellationFlag()
 
 		let running = Task {
-			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "build my-vm") {}
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: flag), title: "build my-vm", id: UUID()) {}
 		}
 
 		defer {
@@ -140,10 +140,10 @@ final class CakedProviderCancellationTests: XCTestCase {
 		let otherFlag = CancellationFlag()
 
 		let target = Task {
-			_ = try await provider.executeCancellable(command: SleepyCommand(flag: targetFlag), title: "target") {}
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: targetFlag), title: "target", id: UUID()) {}
 		}
 		let other = Task {
-			_ = try await provider.executeCancellable(command: SleepyCommand(flag: otherFlag), title: "other") {}
+			_ = try await provider.executeCancellable(command: SleepyCommand(flag: otherFlag), title: "other", id: UUID()) {}
 		}
 
 		defer {
