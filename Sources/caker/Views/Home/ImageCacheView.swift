@@ -82,6 +82,26 @@ struct ImageCacheView: View {
 				}
 				.help(String(localized: "Refresh"))
 				.disabled(self.isLoading)
+
+				// Act on the selected cache entry (the row buttons below only show up on the selected row).
+				let selected = self.navigationModel.selectedCachedImage
+				let canCreate = selected.map { CachedImageKind(cacheType: $0.type).canCreateVirtualMachine } ?? false
+
+				Button {
+					if let selected { self.vmFromImage = selected }
+				} label: {
+					Image(systemName: "plus")
+				}
+				.help(String(localized: "Create a virtual machine from this image"))
+				.disabled(canCreate == false)
+
+				Button {
+					if let selected { self.deleteCachedImage(selected) }
+				} label: {
+					Image(systemName: "trash")
+				}
+				.help(String(localized: "Delete this cached image"))
+				.disabled(selected == nil)
 			}
 			.padding(8)
 
@@ -168,44 +188,42 @@ struct ImageCacheView: View {
 
 			Spacer()
 
-			if image == navigationModel.selectedCachedImage {
-				Button {
-					self.deleteCachedImage(image)
-				} label: {
-					ZStack {
-						RoundedRectangle(cornerRadius: 9)
-							.fill(Color.red.gradient)
-							.frame(width: 30, height: 30)
-						Image(systemName: "trash")
-							.resizable()
-							.aspectRatio(contentMode: .fit)
-							.foregroundStyle(.white)
-							.frame(width: 16, height: 16)
-					}
+			Button {
+				self.deleteCachedImage(image)
+			} label: {
+				ZStack {
+					RoundedRectangle(cornerRadius: 9)
+						.fill(Color.red.gradient)
+						.frame(width: 30, height: 30)
+					Image(systemName: "trash")
+						.resizable()
+						.aspectRatio(contentMode: .fit)
+						.foregroundStyle(.white)
+						.frame(width: 16, height: 16)
 				}
-				.withButtonStyle(.borderless)
-				.controlSize(.small)
-				.help(String(localized: "Delete this cached image"))
-
-				Button {
-					self.vmFromImage = image
-				} label: {
-					ZStack {
-						RoundedRectangle(cornerRadius: 9)
-							.fill((kind.canCreateVirtualMachine ? Color.green : Color.gray).gradient)
-							.frame(width: 30, height: 30)
-						Image(systemName: "plus")
-							.resizable()
-							.aspectRatio(contentMode: .fit)
-							.foregroundStyle(.white)
-							.frame(width: 16, height: 16)
-					}
-				}
-				.withButtonStyle(.borderless)
-				.controlSize(.small)
-				.disabled(kind.canCreateVirtualMachine == false)
-				.help(kind.canCreateVirtualMachine ? String(localized: "Create a virtual machine from this image") : String(localized: "A virtual machine can't be created from this kind of cached image"))
 			}
+			.withButtonStyle(.borderless)
+			.controlSize(.small)
+			.help(String(localized: "Delete this cached image"))
+
+			Button {
+				self.vmFromImage = image
+			} label: {
+				ZStack {
+					RoundedRectangle(cornerRadius: 9)
+						.fill((kind.canCreateVirtualMachine ? Color.green : Color.gray).gradient)
+						.frame(width: 30, height: 30)
+					Image(systemName: "plus")
+						.resizable()
+						.aspectRatio(contentMode: .fit)
+						.foregroundStyle(.white)
+						.frame(width: 16, height: 16)
+				}
+			}
+			.withButtonStyle(.borderless)
+			.controlSize(.small)
+			.disabled(kind.canCreateVirtualMachine == false)
+			.help(kind.canCreateVirtualMachine ? String(localized: "Create a virtual machine from this image") : String(localized: "A virtual machine can't be created from this kind of cached image"))
 		}
 		.padding(.vertical, 4)
 		.contentShape(Rectangle())
