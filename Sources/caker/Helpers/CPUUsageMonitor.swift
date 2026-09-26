@@ -77,6 +77,7 @@ final class CPUUsageMonitor {
 						let infos = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
 
 						DispatchQueue.main.sync {
+							self.document?.agent = .installed
 							self.handleAgentHealthCurrentUsage(usage: infos)
 						}
 
