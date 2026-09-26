@@ -264,11 +264,53 @@ struct VirtualMachineWizard: View {
 		return "\(first)-\(second)"
 	}
 
-	init(connectionManager: ConnectionManager, sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil) {
+	init(connectionManager: ConnectionManager, sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil, presetCachedImage: VirtualMachineInfo? = nil) {
 		self.sheet = sheet
 		self.connectionManager = connectionManager
 
-		if let presetTemplate {
+		if let presetCachedImage, let imageSource = CachedImageKind(cacheType: presetCachedImage.type).imageSource, let fqn = presetCachedImage.fqn.first {
+			// A cache entry is built through its FQN (the same alias the LXD REST API/WebUI hand to
+			// BuildOptions.image), so the build pipeline resolves it against the cache like any other URL.
+			var config = VirtualMachineConfig()
+			let kind = CachedImageKind(cacheType: presetCachedImage.type)
+			let model = VirtualMachineWizardStateObject()
+
+			config.vmname = Self.generateRandomVMName()
+			config.source = imageSource
+			config.imageName = fqn
+			config.os = kind.os
+			config.autoinstall = false
+			config.diskFormat = imageSource.supportedDiskFormat(for: .defaultSupportedFormat)
+
+			switch imageSource {
+			case .iso:
+				// Same rule as the ISO picker: "admin" is already used on debian.
+				if SupportedPlatform(rawValue: fqn) == .debian && config.configuredUser == "admin" {
+					config.configuredUser = "administrator"
+				}
+
+				config.cpuCount = max(config.cpuCount, model.isoImageRelease.minCPU)
+				config.memorySizeInMoB = max(config.memorySizeInMoB, model.isoImageRelease.minMemoryMiB)
+				model.showDiskFormat = true
+			case .ipsw:
+				config.cpuCount = max(config.cpuCount, model.ipswRelease.minCPU)
+				config.memorySizeInMoB = max(config.memorySizeInMoB, model.ipswRelease.minMemoryMiB)
+				config.diskSizeInGiB = max(config.diskSizeInGiB, 40)
+				model.showDiskFormat = true
+			case .qcow2:
+				config.cpuCount = max(config.cpuCount, model.cloudImageRelease.minCPU)
+				config.memorySizeInMoB = max(config.memorySizeInMoB, model.cloudImageRelease.minMemoryMiB)
+			default:
+				break
+			}
+
+			model.imageSource = imageSource
+
+			self._config = State(initialValue: config)
+			self._model = State(initialValue: model)
+			self.fromPreset = true
+			self.presetImage = presetCachedImage.name
+		} else if let presetTemplate {
 			var config = VirtualMachineConfig()
 
 			config.source = .template
@@ -853,6 +895,44 @@ struct VirtualMachineWizard: View {
 						Text(config.imageName)
 					}
 				}
+
+				// A cached ISO/IPSW preset is an installer image, so it gets the same provisioning options as a manually chosen one.
+				if self.model.imageSource == .iso || self.model.imageSource == .ipsw {
+					Section {
+						VStack(alignment: .leading) {
+							if self.model.imageSource == .iso {
+								let platform = SupportedPlatform(rawValue: self.config.imageName)
+								let hasBuiltInTemplate = PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: platform)
+
+								LabeledContent(hasBuiltInTemplate ? "Provisioning template (optional)" : "Provisioning template") {
+									HStack {
+										TextField("", text: $model.provisioningTemplate)
+											.frame(width: 300)
+											.rounded(.leading)
+											.disabled(self.model.createVM)
+										Button(action: {
+											if let provisioningTemplate = chooseYAML() {
+												model.provisioningTemplate = provisioningTemplate
+											}
+										}) {
+											Image(systemName: "document.badge.gearshape")
+										}
+										.disabled(self.model.createVM)
+										.withButtonStyle(.borderless)
+									}
+								}
+								Text(hasBuiltInTemplate ? "Leave empty to use the built-in \(platform.rawValue) template or provide a custom one provisioning template" : "Provide a custom one provisioning template")
+									.font(.caption)
+									.foregroundStyle(.secondary)
+								Toggle("Auto configuration with provisioning", isOn: $config.autoinstall).disabled(self.model.createVM)
+							} else {
+								Toggle("Configure automatically the system", isOn: $config.autoinstall).disabled(self.model.createVM)
+							}
+
+							provisionVariablesSection
+						}
+					}
+				}
 			} else {
 				Section {
 					switch self.model.imageSource {
@@ -1414,7 +1494,12 @@ struct VirtualMachineWizard: View {
 
 		if valid && (model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw) {
 			if let url = URL(spaced: config.imageName) {
-				if AppState.shared.connectionMode == .app {
+				// A cache entry preset is identified by its FQN (`iso://…`, `ipsw://…`), which the build pipeline resolves against the cache.
+				let cachedFQN = self.fromPreset && ["iso", "ipsw"].contains(url.scheme)
+
+				if cachedFQN {
+					valid = true
+				} else if AppState.shared.connectionMode == .app {
 					valid =
 						(url.isFileURL && FileManager.default.fileExists(atPath: url.path(percentEncoded: false)))
 						|| ["http", "https"].contains(url.scheme)

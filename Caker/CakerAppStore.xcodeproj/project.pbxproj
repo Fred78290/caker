@@ -23,6 +23,7 @@
 /* Begin PBXBuildFile section */
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
 		17555DDA1E9035403FCDC3C0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
+		E36354EE8CB6B2AC268BD479 /* ImageCacheView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DBF736106B014BE7717C9D9 /* ImageCacheView.swift */; };
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
 		4790DD9E7D6FF54441D137A8 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
@@ -614,6 +615,7 @@
 		9BEBC7A22DF440720092B196 /* SimpleStreams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7142DF440720092B196 /* SimpleStreams.swift */; };
 		9BEBC7A32DF440720092B196 /* NetworksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7232DF440720092B196 /* NetworksHandler.swift */; };
 		9BEBC7A42DF440720092B196 /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7132DF440720092B196 /* ImageCache.swift */; };
+		E0F8C7A5D0E9EED05C753B43 /* CachedImageKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0126D49FEBD9B20C4406BD4 /* CachedImageKind.swift */; };
 		9BEBC7A52DF440720092B196 /* RemoteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7252DF440720092B196 /* RemoteHandler.swift */; };
 		9BEBC7A62DF440720092B196 /* StartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7282DF440720092B196 /* StartHandler.swift */; };
 		9BEBC7A72DF440720092B196 /* CommunicationHandlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC73E2DF440720092B196 /* CommunicationHandlers.swift */; };
@@ -962,6 +964,7 @@
 		839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplate.swift; sourceTree = "<group>"; };
 		9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteDriver.swift; sourceTree = "<group>"; };
 		94A112BBD0363BE74540B818 /* TasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksView.swift; sourceTree = "<group>"; };
+		5DBF736106B014BE7717C9D9 /* ImageCacheView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheView.swift; sourceTree = "<group>"; };
 		9B001DC9300189A80048894C /* TemplateDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateDetailView.swift; sourceTree = "<group>"; };
 		9B001E8B300191920048894C /* RemoteDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteDetailView.swift; sourceTree = "<group>"; };
 		9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDetailView.swift; sourceTree = "<group>"; };
@@ -1482,6 +1485,7 @@
 		9BEBC7112DF440720092B196 /* CloudImageConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudImageConverter.swift; sourceTree = "<group>"; };
 		9BEBC7122DF440720092B196 /* CloudInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudInit.swift; sourceTree = "<group>"; };
 		9BEBC7132DF440720092B196 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
+		D0126D49FEBD9B20C4406BD4 /* CachedImageKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedImageKind.swift; sourceTree = "<group>"; };
 		9BEBC7142DF440720092B196 /* SimpleStreams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleStreams.swift; sourceTree = "<group>"; };
 		9BEBC7162DF440720092B196 /* BuildHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHandler.swift; sourceTree = "<group>"; };
 		9BEBC7182DF440720092B196 /* ConfigureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureHandler.swift; sourceTree = "<group>"; };
@@ -2520,6 +2524,7 @@
 				9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */,
 				DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */,
 				94A112BBD0363BE74540B818 /* TasksView.swift */,
+				5DBF736106B014BE7717C9D9 /* ImageCacheView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -2756,6 +2761,7 @@
 				9BEBC7112DF440720092B196 /* CloudImageConverter.swift */,
 				9BEBC7122DF440720092B196 /* CloudInit.swift */,
 				9BEBC7132DF440720092B196 /* ImageCache.swift */,
+				D0126D49FEBD9B20C4406BD4 /* CachedImageKind.swift */,
 				9BEBC7142DF440720092B196 /* SimpleStreams.swift */,
 			);
 			path = CloudImage;
@@ -3893,6 +3899,7 @@
 				9B29F7EA2FCAE4B700AEBCB8 /* VirtualMachineDocumentState.swift in Sources */,
 				9B29F7EB2FCAE4B700AEBCB8 /* RemotesView.swift in Sources */,
 				17555DDA1E9035403FCDC3C0 /* TasksView.swift in Sources */,
+				E36354EE8CB6B2AC268BD479 /* ImageCacheView.swift in Sources */,
 				9B29F7EC2FCAE4B700AEBCB8 /* NetworkWizard.swift in Sources */,
 				9B29F7ED2FCAE4B700AEBCB8 /* HomeView.swift in Sources */,
 				9B29F7EE2FCAE4B700AEBCB8 /* SideBarView.swift in Sources */,
@@ -4269,6 +4276,7 @@
 				9BEBC7A22DF440720092B196 /* SimpleStreams.swift in Sources */,
 				9BEBC7A32DF440720092B196 /* NetworksHandler.swift in Sources */,
 				9BEBC7A42DF440720092B196 /* ImageCache.swift in Sources */,
+				E0F8C7A5D0E9EED05C753B43 /* CachedImageKind.swift in Sources */,
 				9BEBC7A52DF440720092B196 /* RemoteHandler.swift in Sources */,
 				9BEBC7A62DF440720092B196 /* StartHandler.swift in Sources */,
 				9B5C3F3C2F89666C005651BF /* Entitlement.swift in Sources */,
