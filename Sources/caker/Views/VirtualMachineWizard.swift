@@ -284,6 +284,11 @@ struct VirtualMachineWizard: View {
 
 			switch imageSource {
 			case .iso:
+				// Same rule as the ISO picker: "admin" is already used on debian.
+				if SupportedPlatform(rawValue: fqn) == .debian && config.configuredUser == "admin" {
+					config.configuredUser = "administrator"
+				}
+
 				config.cpuCount = max(config.cpuCount, model.isoImageRelease.minCPU)
 				config.memorySizeInMoB = max(config.memorySizeInMoB, model.isoImageRelease.minMemoryMiB)
 				model.showDiskFormat = true
