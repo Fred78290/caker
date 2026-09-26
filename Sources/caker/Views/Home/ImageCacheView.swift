@@ -31,11 +31,23 @@ struct ImageCacheView: View {
 	private var filteredImages: [VirtualMachineInfo] {
 		let filter = self.filter.trimmingCharacters(in: .whitespaces)
 
-		guard filter.isEmpty == false else {
-			return self.images
+		// Grouped by image source, then by name.
+		let sorted = self.images.sorted { lhs, rhs in
+			let lk = Self.kindLabel(CachedImageKind(cacheType: lhs.type))
+			let rk = Self.kindLabel(CachedImageKind(cacheType: rhs.type))
+
+			if lk != rk {
+				return lk.localizedCaseInsensitiveCompare(rk) == .orderedAscending
+			}
+
+			return (lhs.fqn.first ?? lhs.name).localizedCaseInsensitiveCompare(rhs.fqn.first ?? rhs.name) == .orderedAscending
 		}
 
-		return self.images.filter { image in
+		guard filter.isEmpty == false else {
+			return sorted
+		}
+
+		return sorted.filter { image in
 			image.name.localizedCaseInsensitiveContains(filter)
 				|| image.fqn.contains { $0.localizedCaseInsensitiveContains(filter) }
 				|| (image.fingerprint?.localizedCaseInsensitiveContains(filter) ?? false)
