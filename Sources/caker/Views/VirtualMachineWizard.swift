@@ -292,6 +292,9 @@ struct VirtualMachineWizard: View {
 				config.memorySizeInMoB = max(config.memorySizeInMoB, model.ipswRelease.minMemoryMiB)
 				config.diskSizeInGiB = max(config.diskSizeInGiB, 40)
 				model.showDiskFormat = true
+			case .qcow2:
+				config.cpuCount = max(config.cpuCount, model.cloudImageRelease.minCPU)
+				config.memorySizeInMoB = max(config.memorySizeInMoB, model.cloudImageRelease.minMemoryMiB)
 			default:
 				break
 			}
@@ -1448,7 +1451,12 @@ struct VirtualMachineWizard: View {
 
 		if valid && (model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw) {
 			if let url = URL(spaced: config.imageName) {
-				if AppState.shared.connectionMode == .app {
+				// A cache entry preset is identified by its FQN (`iso://…`, `ipsw://…`), which the build pipeline resolves against the cache.
+				let cachedFQN = self.fromPreset && ["iso", "ipsw"].contains(url.scheme)
+
+				if cachedFQN {
+					valid = true
+				} else if AppState.shared.connectionMode == .app {
 					valid =
 						(url.isFileURL && FileManager.default.fileExists(atPath: url.path(percentEncoded: false)))
 						|| ["http", "https"].contains(url.scheme)
