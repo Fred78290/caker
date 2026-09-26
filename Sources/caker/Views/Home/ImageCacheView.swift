@@ -170,6 +170,24 @@ struct ImageCacheView: View {
 
 			if image == navigationModel.selectedCachedImage {
 				Button {
+					self.deleteCachedImage(image)
+				} label: {
+					ZStack {
+						RoundedRectangle(cornerRadius: 9)
+							.fill(Color.red.gradient)
+							.frame(width: 30, height: 30)
+						Image(systemName: "trash")
+							.resizable()
+							.aspectRatio(contentMode: .fit)
+							.foregroundStyle(.white)
+							.frame(width: 16, height: 16)
+					}
+				}
+				.withButtonStyle(.borderless)
+				.controlSize(.small)
+				.help(String(localized: "Delete this cached image"))
+
+				Button {
 					self.vmFromImage = image
 				} label: {
 					ZStack {
@@ -196,6 +214,57 @@ struct ImageCacheView: View {
 				self.vmFromImage = image
 			}
 			.disabled(kind.canCreateVirtualMachine == false)
+
+			Button("Delete…") {
+				self.deleteCachedImage(image)
+			}
+		}
+	}
+
+	private func deleteCachedImage(_ image: VirtualMachineInfo) {
+		guard let fqn = image.fqn.first else {
+			alertError(String(localized: "Delete failed"), String(localized: "This cached image has no identifier to delete it with"))
+			return
+		}
+
+		// NSAlert.runModal() must run on the main thread.
+		DispatchQueue.main.async {
+			let alert = NSGlassEffectAlert()
+
+			alert.messageText = String(localized: "Delete cached image")
+			alert.informativeText = String(format: String(localized: "Are you sure you want to delete the cached image %@? This action cannot be undone."), fqn)
+			alert.alertStyle = .critical
+			alert.addButton(withTitle: String(localized: "Delete"))
+			alert.addButton(withTitle: String(localized: "Cancel"))
+
+			guard alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn else {
+				return
+			}
+
+			let client = AppState.shared.connectionManager.serviceClient
+			let runMode = AppState.shared.connectionManager.connectionMode.runMode
+
+			DispatchQueue.global(qos: .utility).async {
+				do {
+					let reply = try DeleteHandler.deleteCachedImage(client: client, fqn: fqn, runMode: runMode)
+
+					DispatchQueue.main.async {
+						if reply.success && reply.objects.allSatisfy({ $0.deleted }) {
+							if self.navigationModel.selectedCachedImage == image {
+								self.navigationModel.selectedCachedImage = nil
+							}
+
+							self.refresh()
+						} else {
+							alertError(String(localized: "Delete failed"), reply.objects.first(where: { $0.deleted == false })?.reason ?? reply.reason)
+						}
+					}
+				} catch {
+					DispatchQueue.main.async {
+						alertError(error)
+					}
+				}
+			}
 		}
 	}
 
