@@ -80,7 +80,7 @@ struct ImageCacheView: View {
 				} label: {
 					Image(systemName: "arrow.clockwise")
 				}
-				.help("Refresh")
+				.help(String(localized: "Refresh"))
 				.disabled(self.isLoading)
 			}
 			.padding(8)
@@ -92,11 +92,14 @@ struct ImageCacheView: View {
 		.task(id: AppState.shared.connectionMode) {
 			self.refresh()
 		}
-		.sheet(item: $vmFromImage) { image in
-			VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetCachedImage: image)
-				.colorSchemeForColor()
-				.restorationState(.disabled)
-				.frame(minWidth: 700, minHeight: 670)
+		// Not `sheet(item:)`: cache entries have no `instanceID`, so `VirtualMachineInfo.id` (`instanceID ?? name`) isn't a reliable identity.
+		.sheet(isPresented: Binding(get: { self.vmFromImage != nil }, set: { if $0 == false { self.vmFromImage = nil } })) {
+			if let image = self.vmFromImage {
+				VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetCachedImage: image)
+					.colorSchemeForColor()
+					.restorationState(.disabled)
+					.frame(minWidth: 700, minHeight: 670)
+			}
 		}
 	}
 
