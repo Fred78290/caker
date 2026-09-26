@@ -199,8 +199,7 @@ boot_command:
       - <tab>
       - <wait1s>
       - <click text="Next">
-      - <wait2s>
-      - <click text="Next">
+      - <wait1s>
 
   - title: Start all done
     commands:
@@ -249,3 +248,5 @@ post_boot_command:
     - sudo semodule -i my-cakeagent.pp || true
     - sudo restorecon -Rv /usr/local/bin/cakeagent /etc/cakeagent /etc/sysconfig/cakeagent /var/log/cakeagent.out /var/log/cakeagent.err /etc/cakeagent/ssl/ca.pem /etc/cakeagent/ssl/server.pem /etc/cakeagent/ssl/server.key
     - sudo dnf upgrade -y --refresh
+    - sudo dnf install -y cloud-init cloud-utils-growpart
+    - "sudo sh -c 'echo \"datasource_list: [ NoCloud, None ]\" > /etc/cloud/cloud.cfg.d/100_datasources.cfg'"

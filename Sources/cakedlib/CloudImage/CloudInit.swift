@@ -922,7 +922,8 @@ class CloudInit {
 	}
 
 	init(
-		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, otherGroups: [String]?, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, netIfnames: Bool = true, runMode: Utils.RunMode
+		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, otherGroups: [String]?, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, netIfnames: Bool = true,
+		runMode: Utils.RunMode
 	) throws {
 		self.platform = plateform
 		self.userName = userName
@@ -939,7 +940,8 @@ class CloudInit {
 	}
 
 	convenience init(
-		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, otherGroups: [String]?, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, netIfnames: Bool = true,
+		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, otherGroups: [String]?, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?,
+		netIfnames: Bool = true,
 		runMode: Utils.RunMode
 	)
 		throws
@@ -1303,7 +1305,18 @@ class CloudInit {
 
 		let ssh = AutoInstall.Ssh(enabled: true, authorizedKeys: self.sshAuthorizedKeys ?? [], allowPassword: self.clearPassword)
 		let network = try loadNetworkConfig(config: config)
-		let autoInstall = AutoInstallConfig(ssh: ssh, timezone: TimeZone.current.identifier, userData: userData, network: network)
+		let autoInstall = AutoInstallConfig(
+			ssh: ssh, timezone: TimeZone.current.identifier,
+			packages: ["cloud-init"],
+			lateCommands: [
+				"echo 'datasource_list: [ NoCloud, None ]' > /etc/cloud/cloud.cfg.d/100_datasources.cfg",
+				"systemctl enable cloud-init-local.service",
+				"systemctl enable cloud-init.service",
+				"systemctl enable cloud-config.service",
+				"systemctl enable cloud-final.service",
+				"systemctl start cloud-init.service",
+				
+			], userData: userData, network: network)
 
 		return try autoInstall.toCloudInit()
 	}

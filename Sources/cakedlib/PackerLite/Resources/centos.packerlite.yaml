@@ -150,3 +150,9 @@ post_boot_command:
     - sudo semodule -i my-cakeagent.pp || true
     - sudo restorecon -Rv /usr/local/bin/cakeagent /etc/cakeagent /etc/sysconfig/cakeagent /var/log/cakeagent.out /var/log/cakeagent.err /etc/cakeagent/ssl/ca.pem /etc/cakeagent/ssl/server.pem /etc/cakeagent/ssl/server.key
     - sudo yum update -y
+    - sudo yum install -y cloud-init
+    - sudo systemctl enable cloud-init-local.service
+    - sudo systemctl enable cloud-init.service
+    - sudo systemctl enable cloud-config.service
+    - sudo systemctl enable cloud-final.service
+    - "sudo sh -c 'echo \"datasource_list: [ NoCloud, None ]\" > /etc/cloud/cloud.cfg.d/100_datasources.cfg'"
