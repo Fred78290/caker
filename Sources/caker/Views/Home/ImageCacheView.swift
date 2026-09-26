@@ -82,26 +82,6 @@ struct ImageCacheView: View {
 				}
 				.help(String(localized: "Refresh"))
 				.disabled(self.isLoading)
-
-				// Act on the selected cache entry (the row buttons below only show up on the selected row).
-				let selected = self.navigationModel.selectedCachedImage
-				let canCreate = selected.map { CachedImageKind(cacheType: $0.type).canCreateVirtualMachine } ?? false
-
-				Button {
-					if let selected { self.vmFromImage = selected }
-				} label: {
-					Image(systemName: "plus")
-				}
-				.help(String(localized: "Create a virtual machine from this image"))
-				.disabled(canCreate == false)
-
-				Button {
-					if let selected { self.deleteCachedImage(selected) }
-				} label: {
-					Image(systemName: "trash")
-				}
-				.help(String(localized: "Delete this cached image"))
-				.disabled(selected == nil)
 			}
 			.padding(8)
 
@@ -110,6 +90,9 @@ struct ImageCacheView: View {
 			self.list
 		}
 		.task(id: AppState.shared.connectionMode) {
+			self.refresh()
+		}
+		.onChange(of: self.navigationModel.cacheReloadToken) {
 			self.refresh()
 		}
 		// Not `sheet(item:)`: cache entries have no `instanceID`, so `VirtualMachineInfo.id` (`instanceID ?? name`) isn't a reliable identity.
@@ -240,6 +223,17 @@ struct ImageCacheView: View {
 	}
 
 	private func deleteCachedImage(_ image: VirtualMachineInfo) {
+		Self.confirmAndDelete(image) {
+			if self.navigationModel.selectedCachedImage == image {
+				self.navigationModel.selectedCachedImage = nil
+			}
+
+			self.refresh()
+		}
+	}
+
+	/// Asks for confirmation, then deletes the cache entry. `onDeleted` runs on the main thread after a successful delete.
+	static func confirmAndDelete(_ image: VirtualMachineInfo, onDeleted: @escaping () -> Void) {
 		guard let fqn = image.fqn.first else {
 			alertError(String(localized: "Delete failed"), String(localized: "This cached image has no identifier to delete it with"))
 			return
@@ -268,11 +262,7 @@ struct ImageCacheView: View {
 
 					DispatchQueue.main.async {
 						if reply.success && reply.objects.allSatisfy({ $0.deleted }) {
-							if self.navigationModel.selectedCachedImage == image {
-								self.navigationModel.selectedCachedImage = nil
-							}
-
-							self.refresh()
+							onDeleted()
 						} else {
 							alertError(String(localized: "Delete failed"), reply.objects.first(where: { $0.deleted == false })?.reason ?? reply.reason)
 						}

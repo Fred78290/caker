@@ -5,6 +5,7 @@
 //  Created by Frederic BOLTZ on 13/07/2025.
 //
 
+import CakedLib
 import GRPCLib
 import SwiftUI
 import CakeAgentLib
@@ -42,9 +43,26 @@ struct HomeView: View {
 			return network.usedBy != 0 || [.nat, .bridged].contains(network.mode)
 		case .images:
 			return navigationModel.selectedRemote == nil
-		case .tasks, .cache:
-			// Cancellation/creation are done per-row, not via the toolbar Delete button.
+		case .cache:
+			return navigationModel.selectedCachedImage == nil
+		case .tasks:
+			// Cancellation is done per-row, not via the toolbar Delete button.
 			return true
+		}
+	}
+
+	private var plusButtonDisabled: Bool {
+		switch self.selectedCategory {
+		case .templates, .tasks:
+			return true
+		case .cache:
+			guard let image = navigationModel.selectedCachedImage else {
+				return true
+			}
+
+			return CachedImageKind(cacheType: image.type).canCreateVirtualMachine == false
+		default:
+			return false
 		}
 	}
 
@@ -60,7 +78,7 @@ struct HomeView: View {
 
 					Button("Plus", systemImage: "plus") {
 						self.actionPlus()
-					}.disabled(self.selectedCategory == .templates || self.selectedCategory == .tasks || self.selectedCategory == .cache)
+					}.disabled(self.plusButtonDisabled)
 				}
 
 				if self.selectedCategory == .virtualMachine {
@@ -428,6 +446,13 @@ struct HomeView: View {
 			RemoteWizard()
 				.colorSchemeForColor()
 				.restorationState(.disabled)
+		case .cache:
+			if let image = navigationModel.selectedCachedImage {
+				VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetCachedImage: image)
+					.colorSchemeForColor()
+					.restorationState(.disabled)
+					.frame(minWidth: 700, minHeight: 670)
+			}
 		default:
 			Text("Hello, World!")
 		}
@@ -456,9 +481,16 @@ struct HomeView: View {
 					self.appState.deleteTemplate(name: selectedTemplate.name)
 					navigationModel.selectedTemplate = nil
 				}
-			case .tasks, .cache:
-				// Cancellation/creation are done per-row by TasksView/ImageCacheView, not this toolbar button
-				// (see deleteButtonDisabled, which keeps it disabled for these categories).
+			case .cache:
+				if let image = navigationModel.selectedCachedImage {
+					ImageCacheView.confirmAndDelete(image) {
+						self.navigationModel.selectedCachedImage = nil
+						self.navigationModel.cacheReloadToken += 1
+					}
+				}
+			case .tasks:
+				// Cancellation is done per-row by TasksView, not this toolbar button
+				// (see deleteButtonDisabled, which keeps it disabled for this category).
 				break
 			}
 		}
@@ -474,8 +506,10 @@ struct HomeView: View {
 			self.presented = true
 		case .templates:
 			self.presented = false
-		case .tasks, .cache:
+		case .tasks:
 			self.presented = false
+		case .cache:
+			self.presented = navigationModel.selectedCachedImage != nil
 		}
 	}
 }

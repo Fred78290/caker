@@ -114,6 +114,8 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	var selectedVirtualMachine: VirtualMachineDocumentState? = nil
 	var selectedTask: Caked_TaskEntry? = nil
 	var selectedCachedImage: VirtualMachineInfo? = nil
+	/// Bumped by the toolbar after it changes the image cache so `ImageCacheView` reloads.
+	var cacheReloadToken: Int = 0
 	var documents: VirtualMachineDocumentStates = [:]
 	var virtualMachinesViewMode: VirtualMachinesViewMode = AppState.shared.virtualMachinesViewMode {
 		didSet {
