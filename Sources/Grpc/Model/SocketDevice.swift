@@ -3,7 +3,7 @@ import CakeAgentLib
 import Foundation
 import NIOPortForwarding
 
-public enum SocketMode: String, CustomStringConvertible, Codable, CaseIterable {
+public enum SocketMode: String, CustomStringConvertible, Codable, CaseIterable, Sendable {
 	case bind = "bind"  // Listen on unix socket
 	case connect = "connect"  // Connect to unix socket
 	case tcp = "tcp"  // Listen on tcp socket
@@ -58,7 +58,7 @@ public enum SocketMode: String, CustomStringConvertible, Codable, CaseIterable {
 	}
 }
 
-public struct SocketDevice: Codable, Hashable, Identifiable {
+public struct SocketDevice: Codable, Hashable, Identifiable, Sendable {
 
 	public var mode: SocketMode = .bind
 	public var port: Int = -1

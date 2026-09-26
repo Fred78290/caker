@@ -82,7 +82,7 @@ class InteractiveShell {
 		task.cancel()
 	}
 
-	func closeShell(_line: UInt = #line, _file: String = #file,_ completionHandler: (@MainActor () -> Void)? = nil) {
+	func closeShell(_ completionHandler: (@MainActor () -> Void)? = nil) {
 		defer {
 			self.terminalView = nil
 
@@ -99,10 +99,6 @@ class InteractiveShell {
 		}
 		
 		self.shellStream = nil
-
-#if DEBUG
-		self.logger.debug("Close shell: \(self.name) \(_file):\(_line)")
-#endif
 
 		shellStream.closeShell()
 	}

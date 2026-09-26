@@ -215,6 +215,22 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     _ request: Caked_Caked.ComposeRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.ComposeRequest, Caked_Caked.Reply>
+
+  func provision(
+    _ request: Caked_Caked.VMRequest.ProvisionRequest,
+    callOptions: CallOptions?,
+    handler: @escaping (Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply) -> Void
+  ) -> ServerStreamingCall<Caked_Caked.VMRequest.ProvisionRequest, Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>
+
+  func listTasks(
+    _ request: Caked_Empty,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Empty, Caked_Caked.Reply>
+
+  func cancelTask(
+    _ request: Caked_Caked.CancelTaskRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.CancelTaskRequest, Caked_Caked.Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -942,6 +958,64 @@ extension Caked_ServiceClientProtocol {
       interceptors: self.interceptors?.makeComposeInterceptors() ?? []
     )
   }
+
+  /// Provision a stopped virtual machine.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Provision.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
+  public func provision(
+    _ request: Caked_Caked.VMRequest.ProvisionRequest,
+    callOptions: CallOptions? = nil,
+    handler: @escaping (Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply) -> Void
+  ) -> ServerStreamingCall<Caked_Caked.VMRequest.ProvisionRequest, Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply> {
+    return self.makeServerStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.provision.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeProvisionInterceptors() ?? [],
+      handler: handler
+    )
+  }
+
+  /// ListTasks lists every long-running task currently registered on the server (e.g. an
+  /// in-progress Build/Launch/Provision call), by id and title.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to ListTasks.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func listTasks(
+    _ request: Caked_Empty,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Empty, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.listTasks.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListTasksInterceptors() ?? []
+    )
+  }
+
+  /// CancelTask cancels a registered long-running task by id.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to CancelTask.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func cancelTask(
+    _ request: Caked_Caked.CancelTaskRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.CancelTaskRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.cancelTask.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCancelTaskInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -1198,6 +1272,21 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Caked_Caked.ComposeRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.ComposeRequest, Caked_Caked.Reply>
+
+  func makeProvisionCall(
+    _ request: Caked_Caked.VMRequest.ProvisionRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.VMRequest.ProvisionRequest, Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>
+
+  func makeListTasksCall(
+    _ request: Caked_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Empty, Caked_Caked.Reply>
+
+  func makeCancelTaskCall(
+    _ request: Caked_Caked.CancelTaskRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.CancelTaskRequest, Caked_Caked.Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1679,6 +1768,42 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeComposeInterceptors() ?? []
+    )
+  }
+
+  public func makeProvisionCall(
+    _ request: Caked_Caked.VMRequest.ProvisionRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.VMRequest.ProvisionRequest, Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply> {
+    return self.makeAsyncServerStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.provision.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeProvisionInterceptors() ?? []
+    )
+  }
+
+  public func makeListTasksCall(
+    _ request: Caked_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Empty, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.listTasks.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListTasksInterceptors() ?? []
+    )
+  }
+
+  public func makeCancelTaskCall(
+    _ request: Caked_Caked.CancelTaskRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.CancelTaskRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.cancelTask.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCancelTaskInterceptors() ?? []
     )
   }
 }
@@ -2188,6 +2313,42 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeComposeInterceptors() ?? []
     )
   }
+
+  public func provision(
+    _ request: Caked_Caked.VMRequest.ProvisionRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncResponseStream<Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply> {
+    return self.performAsyncServerStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.provision.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeProvisionInterceptors() ?? []
+    )
+  }
+
+  public func listTasks(
+    _ request: Caked_Empty,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.listTasks.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListTasksInterceptors() ?? []
+    )
+  }
+
+  public func cancelTask(
+    _ request: Caked_Caked.CancelTaskRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.cancelTask.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCancelTaskInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -2325,6 +2486,15 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'compose'.
   func makeComposeInterceptors() -> [ClientInterceptor<Caked_Caked.ComposeRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'provision'.
+  func makeProvisionInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.ProvisionRequest, Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>]
+
+  /// - Returns: Interceptors to use when invoking 'listTasks'.
+  func makeListTasksInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'cancelTask'.
+  func makeCancelTaskInterceptors() -> [ClientInterceptor<Caked_Caked.CancelTaskRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -2371,6 +2541,9 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.certificate,
       Caked_ServiceClientMetadata.Methods.stopService,
       Caked_ServiceClientMetadata.Methods.compose,
+      Caked_ServiceClientMetadata.Methods.provision,
+      Caked_ServiceClientMetadata.Methods.listTasks,
+      Caked_ServiceClientMetadata.Methods.cancelTask,
     ]
   )
 
@@ -2608,6 +2781,24 @@ public enum Caked_ServiceClientMetadata {
       path: "/caked.Service/Compose",
       type: GRPCCallType.unary
     )
+
+    public static let provision = GRPCMethodDescriptor(
+      name: "Provision",
+      path: "/caked.Service/Provision",
+      type: GRPCCallType.serverStreaming
+    )
+
+    public static let listTasks = GRPCMethodDescriptor(
+      name: "ListTasks",
+      path: "/caked.Service/ListTasks",
+      type: GRPCCallType.unary
+    )
+
+    public static let cancelTask = GRPCMethodDescriptor(
+      name: "CancelTask",
+      path: "/caked.Service/CancelTask",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -2733,6 +2924,16 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   /// Compose allows for the orchestration of multiple virtual machines and services defined in a compose file.
   func compose(request: Caked_Caked.ComposeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  /// Provision a stopped virtual machine.
+  func provision(request: Caked_Caked.VMRequest.ProvisionRequest, context: StreamingResponseCallContext<Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>) -> EventLoopFuture<GRPCStatus>
+
+  /// ListTasks lists every long-running task currently registered on the server (e.g. an
+  /// in-progress Build/Launch/Provision call), by id and title.
+  func listTasks(request: Caked_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  /// CancelTask cancels a registered long-running task by id.
+  func cancelTask(request: Caked_Caked.CancelTaskRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 }
 
 extension Caked_ServiceProvider {
@@ -3098,6 +3299,33 @@ extension Caked_ServiceProvider {
         userFunction: self.compose(request:context:)
       )
 
+    case "Provision":
+      return ServerStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.ProvisionRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>(),
+        interceptors: self.interceptors?.makeProvisionInterceptors() ?? [],
+        userFunction: self.provision(request:context:)
+      )
+
+    case "ListTasks":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Empty>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeListTasksInterceptors() ?? [],
+        userFunction: self.listTasks(request:context:)
+      )
+
+    case "CancelTask":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.CancelTaskRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeCancelTaskInterceptors() ?? [],
+        userFunction: self.cancelTask(request:context:)
+      )
+
     default:
       return nil
     }
@@ -3349,6 +3577,26 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   /// Compose allows for the orchestration of multiple virtual machines and services defined in a compose file.
   func compose(
     request: Caked_Caked.ComposeRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  /// Provision a stopped virtual machine.
+  func provision(
+    request: Caked_Caked.VMRequest.ProvisionRequest,
+    responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>,
+    context: GRPCAsyncServerCallContext
+  ) async throws
+
+  /// ListTasks lists every long-running task currently registered on the server (e.g. an
+  /// in-progress Build/Launch/Provision call), by id and title.
+  func listTasks(
+    request: Caked_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  /// CancelTask cancels a registered long-running task by id.
+  func cancelTask(
+    request: Caked_Caked.CancelTaskRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 }
@@ -3723,6 +3971,33 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.compose(request: $0, context: $1) }
       )
 
+    case "Provision":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.ProvisionRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>(),
+        interceptors: self.interceptors?.makeProvisionInterceptors() ?? [],
+        wrapping: { try await self.provision(request: $0, responseStream: $1, context: $2) }
+      )
+
+    case "ListTasks":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Empty>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeListTasksInterceptors() ?? [],
+        wrapping: { try await self.listTasks(request: $0, context: $1) }
+      )
+
+    case "CancelTask":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.CancelTaskRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeCancelTaskInterceptors() ?? [],
+        wrapping: { try await self.cancelTask(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -3886,6 +4161,18 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'compose'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeComposeInterceptors() -> [ServerInterceptor<Caked_Caked.ComposeRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'provision'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeProvisionInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.ProvisionRequest, Caked_Caked.Reply.VirtualMachineReply.ProvisionStreamReply>]
+
+  /// - Returns: Interceptors to use when handling 'listTasks'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeListTasksInterceptors() -> [ServerInterceptor<Caked_Empty, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'cancelTask'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeCancelTaskInterceptors() -> [ServerInterceptor<Caked_Caked.CancelTaskRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -3932,6 +4219,9 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.certificate,
       Caked_ServiceServerMetadata.Methods.stopService,
       Caked_ServiceServerMetadata.Methods.compose,
+      Caked_ServiceServerMetadata.Methods.provision,
+      Caked_ServiceServerMetadata.Methods.listTasks,
+      Caked_ServiceServerMetadata.Methods.cancelTask,
     ]
   )
 
@@ -4167,6 +4457,24 @@ public enum Caked_ServiceServerMetadata {
     public static let compose = GRPCMethodDescriptor(
       name: "Compose",
       path: "/caked.Service/Compose",
+      type: GRPCCallType.unary
+    )
+
+    public static let provision = GRPCMethodDescriptor(
+      name: "Provision",
+      path: "/caked.Service/Provision",
+      type: GRPCCallType.serverStreaming
+    )
+
+    public static let listTasks = GRPCMethodDescriptor(
+      name: "ListTasks",
+      path: "/caked.Service/ListTasks",
+      type: GRPCCallType.unary
+    )
+
+    public static let cancelTask = GRPCMethodDescriptor(
+      name: "CancelTask",
+      path: "/caked.Service/CancelTask",
       type: GRPCCallType.unary
     )
   }

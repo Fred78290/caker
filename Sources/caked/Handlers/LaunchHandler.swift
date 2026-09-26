@@ -15,8 +15,8 @@ struct LaunchHandler: CakedCommandAsync {
 	let responseStream: Caked_ResponseLaunchStreamReply
 	let handler: () async throws -> Void
 
-	init(request: Caked_LaunchRequest, gcd: Bool, responseStream: Caked_ResponseLaunchStreamReply, context: GRPCAsyncServerCallContext, handler: @escaping () async throws -> Void) throws {
-		self.options = try request.options.buildOptions()
+	init(request: Caked_LaunchRequest, gcd: Bool, responseStream: Caked_ResponseLaunchStreamReply, context: GRPCAsyncServerCallContext, taskID: UUID, handler: @escaping () async throws -> Void) throws {
+		self.options = try request.options.buildOptions(taskID: taskID)
 		self.gcd = gcd
 		self.recoveryMode = request.recoveryMode
 		self.startMode = .service

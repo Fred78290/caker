@@ -199,6 +199,7 @@ struct Client: ParsableCommand {
 			commandName: "cakectl",
 			version: CI.version,
 			subcommands: [
+				Aliases.self,
 				Build.self,
 				Configure.self,
 				Delete.self,
@@ -211,6 +212,7 @@ struct Client: ParsableCommand {
 				Launch.self,
 				List.self,
 				Networks.self,
+				Provision.self,
 				Purge.self,
 				Remote.self,
 				Rename.self,
@@ -233,6 +235,7 @@ struct Client: ParsableCommand {
 				Certificate.self,
 				Sandbox.self,
 				Compose.self,
+				Tasks.self,
 			])
 
 #if DEBUG
@@ -265,18 +268,23 @@ struct Client: ParsableCommand {
 		Self.exit(withError: error)
 	}
 
+	static let sigintSrc = {
+		// Ensure the default SIGINT handled is disabled,
+		// otherwise there's a race between two handlers
+		signal(SIGINT, SIG_IGN)
+
+		return DispatchSource.makeSignalSource(signal: SIGINT)
+	}()
+
 	public static func main() async throws {
 		// Set up logging to stderr
 		LoggingSystem.bootstrap { label in
 			StreamLogHandler.standardError(label: label)
 		}
 
-		// Ensure the default SIGINT handled is disabled,
-		// otherwise there's a race between two handlers
-		signal(SIGINT, SIG_IGN)
 		// Handle cancellation by Ctrl+C ourselves
 		let task = withUnsafeCurrentTask { $0 }!
-		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT)
+
 		sigintSrc.setEventHandler {
 			task.cancel()
 		}

@@ -142,11 +142,12 @@ struct MainApp: App {
 
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
-	var appState: AppState
-	@State var createTemplate = false
-	@State var navigationModel = NavigationModel()
+	@State var createTemplate: Bool
+	@State var navigationModel: NavigationModel
 
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
+
+	var appState: AppState
 
 	// Sparkle updater
 	#if SPARKLE
@@ -155,6 +156,8 @@ struct MainApp: App {
 
 	init() {
 		_ = try? MainAppParseArgument.parse(CommandLine.arguments)
+		self.createTemplate = false
+		self.navigationModel = NavigationModel()
 		self.appState = AppState.shared
 
 		#if SPARKLE
@@ -169,6 +172,10 @@ struct MainApp: App {
 		self.navigationModel.sync(with: self.appState)
 
 		Self.app = self
+
+		Task(priority: .background) {
+			try? await VMImageCatalog.refreshFromGitHub()
+		}
 	}
 
 	var agentCondition: (title: LocalizedStringKey, needUpdate: Bool, disabled: Bool) {
@@ -254,6 +261,40 @@ struct MainApp: App {
 		.commands {
 			CommandGroup(replacing: .saveItem, addition: {})
 		}
+
+		#if DEBUG_PAKERLITE
+			WindowGroup(id: "Debug PackerLite", for: UUID.self) { $id in
+				if let id, let vm = PackerLiteEngine.provisioned[id] {
+					let cgSize = vm.config.display.cgSize
+					let params = VMRunHandler(
+						mode: .none,
+						storageLocation: StorageLocation(runMode: .app),
+						location: vm.location,
+						name: vm.location.name,
+						display: .ui,
+						config: vm.config,
+						screenSize: cgSize,
+						vncPassword: "",
+						vncPort: 0,
+						recoveryMode: false,
+						runMode: .app
+					)
+
+					DismissableVMContainer(vm: vm) {
+						VMView(vm, params: params)
+					}
+					.frame(size: vm.config.display.cgSize)
+				} else {
+					Text("Something goes wrong")
+				}
+			}
+			.windowResizability(.contentSize)
+			.windowToolbarStyle(.expanded)
+			.restorationState(.disabled)
+			.commands {
+				CommandGroup(replacing: .saveItem, addition: {})
+			}
+		#endif
 
 		Settings {
 			SettingsView()
@@ -366,26 +407,26 @@ struct MainApp: App {
 		CommandMenu("Control") {
 			Button("Start") {
 				appState.currentDocument.startFromUI()
-			}.disabled(self.appState.isRunning || self.appState.currentDocument == nil)
+			}.disabled(self.appState.isRunning || self.appState.isProvisioning || self.appState.currentDocument == nil)
 
 			Button("Stop") {
 				appState.currentDocument.stopFromUI(force: true)
-			}.disabled(self.appState.isStopped || self.appState.isAgentInstalling || self.appState.currentDocument == nil)
+			}.disabled(self.appState.isStopped || self.appState.isAgentInstalling || self.appState.isProvisioning || self.appState.currentDocument == nil)
 
 			Button("Request stop") {
 				appState.currentDocument.stopFromUI(force: false)
-			}.disabled(self.appState.isStopped || self.appState.isAgentInstalling || self.appState.currentDocument == nil)
+			}.disabled(self.appState.isStopped || self.appState.isAgentInstalling || self.appState.isProvisioning || self.appState.currentDocument == nil)
 
 			if #available(macOS 14, *) {
 				Button("Suspend") {
 					self.appState.currentDocument.suspendFromUI()
-				}.disabled(!self.appState.isSuspendable || self.appState.isAgentInstalling || self.appState.currentDocument == nil)
+				}.disabled(!self.appState.isSuspendable || self.appState.isAgentInstalling || self.appState.isProvisioning || self.appState.currentDocument == nil)
 			}
 
 			Button("Create template") {
 				createTemplate = true
 			}
-			.disabled(self.appState.isRunning || self.appState.currentDocument == nil)
+			.disabled(self.appState.isRunning || self.appState.isProvisioning || self.appState.currentDocument == nil)
 			.alert("Create template", isPresented: $createTemplate) {
 				CreateTemplateView()
 			}
@@ -510,7 +551,7 @@ struct MainApp: App {
 	}
 
 	func newDocWizard() -> some View {
-		VirtualMachineWizard()
+		VirtualMachineWizard(connectionManager: self.appState.connectionManager)
 			.colorSchemeForColor()
 			.restorationState(.disabled)
 			.frame(size: CGSize(width: 700, height: 610))
@@ -698,6 +739,20 @@ struct MainApp: App {
 				}
 			}
 		}
+	}
+}
+
+/// Helper view to wrap VMView with dismiss action on PackerLiteEngine termination notification
+private struct DismissableVMContainer<Content: View>: View {
+	@Environment(\.dismiss) private var dismiss
+	let vm: VirtualMachine
+	@ViewBuilder var content: () -> Content
+
+	var body: some View {
+		content()
+			.onReceive(PackerLiteEngine.provisionedTerminatedNotification, object: vm) { _ in
+				dismiss()
+			}
 	}
 }
 

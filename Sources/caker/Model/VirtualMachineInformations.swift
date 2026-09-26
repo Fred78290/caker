@@ -266,7 +266,7 @@ import SwiftUI
 	var hostname: String? = nil
 	var release: String? = nil
 	var mounts: [String]? = nil
-	var status: Status = .unknown
+	var status: VMInformations.Status = .unknown
 	var attachedNetworks: [AttachedNetwork]? = nil
 	var tunnelInfos: [TunnelInfo]? = nil
 	var socketInfos: [SocketInfo]? = nil
@@ -310,7 +310,7 @@ import SwiftUI
 		self.hostname = infos.hostname
 		self.release = infos.release
 		self.mounts = infos.mounts
-		self.status = infos.status
+		self.status = .init(infos.status)
 		self.attachedNetworks = infos.attachedNetworks
 		self.tunnelInfos = infos.tunnelInfos
 		self.socketInfos = infos.socketInfos
@@ -344,7 +344,7 @@ import SwiftUI
 		self.hostname = infos.hostname
 		self.release = infos.release
 		self.mounts = infos.mounts
-		self.status = infos.status
+		self.status = .init(infos.status)
 		self.attachedNetworks = infos.attachedNetworks
 		self.tunnelInfos = infos.tunnelInfos
 		self.socketInfos = infos.socketInfos

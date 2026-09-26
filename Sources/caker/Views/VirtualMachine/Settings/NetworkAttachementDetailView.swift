@@ -118,9 +118,13 @@ struct NetworkAttachementDetailView: View {
 
 					TextField(String.empty, text: $model.macAddress.text)
 						.rounded(.center)
-						.formatAndValidate($model.macAddress)
+						.formatAndValidate($model.macAddress) {
+							$0?.isValidMAcAddress() ?? false
+						}
 						.onChange(of: model.macAddress.value) { _, newValue in
-							self.currentItem.macAddress = newValue
+							if let newValue, newValue.isValidMAcAddress() {
+								self.currentItem.macAddress = newValue
+							}
 						}
 				}.frame(width: 200)
 			}

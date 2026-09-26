@@ -30,7 +30,11 @@ struct VNCView: NSViewRepresentable {
 			fatalError("Connection is nil")
 		}
 
-		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: connection)
+		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), allowClientResize: true, connection: connection)
+
+        // Ensure a black background behind the framebuffer
+        view.wantsLayer = true
+        view.layer?.backgroundColor = NSColor.black.cgColor
 
 		self.document.vncView = view
 

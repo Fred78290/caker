@@ -159,12 +159,14 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	@ObservationIgnored @AppStorage("HideDockIcon") var isDockIconHidden = true
 	@ObservationIgnored @AppStorage("ShowMenuIcon") var isMenuIconShown = true
 	@ObservationIgnored @AppStorage(CakedKeyConfig.imdsEnabled.rawValue, store: .shared) var awsEC2MetadataEnabled: Bool = true
+	@ObservationIgnored @AppStorage("VirtualMachinesViewMode") var virtualMachinesViewMode: VirtualMachinesViewMode = .mosaic
 
 	private(set) var cakedServiceInstalled: Bool = false
 	private(set) var cakedServiceRunning: Bool = false
 	private(set) var connectionMode: ConnectionManager.ConnectionMode = .app
 	private(set) var isStopped: Bool = true
 	private(set) var isSuspendable: Bool = false
+	private(set) var isProvisioning: Bool = false
 	private(set) var isRunning: Bool = false
 	private(set) var isPaused: Bool = false
 	private(set) var remotes: [RemoteEntry] = []
@@ -266,12 +268,14 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 			self.isRunning = currentDocument.status == .running || currentDocument.status == .starting
 			self.isPaused = currentDocument.status == .paused || currentDocument.status == .pausing
 			self.isSuspendable = currentDocument.status == .running && currentDocument.suspendable
+			self.isProvisioning = currentDocument.status == .provisioning
 		} else {
 			self.isAgentInstalling = false
 			self.isStopped = true
 			self.isRunning = false
 			self.isPaused = false
 			self.isSuspendable = false
+			self.isProvisioning = false
 		}
 	}
 

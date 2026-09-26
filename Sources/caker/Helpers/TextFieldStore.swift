@@ -28,9 +28,9 @@ struct FormatAndValidateTextFieldStore<T, F: ParseableFormatStyle>: ViewModifier
 			if let errorCondition = errorCondition {
 				inputError = errorCondition(value)
 
-				if inputError == false {
+				//if inputError == false {
 					textFieldStore.value = value
-				}
+				//}
 			} else {
 				inputError = false
 				textFieldStore.value = value

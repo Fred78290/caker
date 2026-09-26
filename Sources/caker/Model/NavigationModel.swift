@@ -32,11 +32,40 @@ enum SelectedElement: Identifiable, Hashable, Equatable {
 	}
 }
 
+/// How `VirtualMachinesView` lays out the VM collection — persisted via `@AppStorage` under the
+/// key `"VirtualMachinesViewMode"`, read independently by both `VirtualMachinesView` (to pick its
+/// layout) and `HomeView` (to decide whether the detail column/toggle applies to the `.virtualMachine`
+/// category at all) rather than threading it through `NavigationModel`, matching how other simple
+/// view-level preferences (e.g. `appearancePreference`) are already shared across unrelated views
+/// in this codebase.
+enum VirtualMachinesViewMode: String, CaseIterable, Identifiable, Codable {
+	case mosaic
+	case list
+
+	var id: Self { self }
+
+	var iconName: String {
+		switch self {
+		case .mosaic: return "square.grid.2x2"
+		case .list: return "list.bullet"
+		}
+	}
+
+	var label: LocalizedStringKey {
+		switch self {
+		case .mosaic: return "Mosaic"
+		case .list: return "List"
+		}
+	}
+}
+
 enum Category: Int, CaseIterable, Codable, Identifiable {
 	case virtualMachine
 	case networks
 	case images
 	case templates
+	case tasks
+	case cache
 
 	var id: Self { self }
 	var iconName: String {
@@ -49,6 +78,10 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 			return "network"
 		case .virtualMachine:
 			return "display"
+		case .tasks:
+			return "hourglass"
+		case .cache:
+			return "externaldrive"
 		}
 	}
 
@@ -62,6 +95,10 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 			return "Networks"
 		case .virtualMachine:
 			return "Virtual machines"
+		case .tasks:
+			return "Tasks"
+		case .cache:
+			return "Image cache"
 		}
 	}
 }
@@ -75,9 +112,18 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	var selectedTemplate: TemplateEntry? = nil
 	var selectedNetwork: BridgedNetwork? = nil
 	var selectedVirtualMachine: VirtualMachineDocumentState? = nil
+	var selectedTask: Caked_TaskEntry? = nil
+	var selectedCachedImage: VirtualMachineInfo? = nil
+	/// Bumped by the toolbar after it changes the image cache so `ImageCacheView` reloads.
+	var cacheReloadToken: Int = 0
 	var documents: VirtualMachineDocumentStates = [:]
-	
-	static var categories: [Category] = [.virtualMachine, .networks, .templates, .images]
+	var virtualMachinesViewMode: VirtualMachinesViewMode = AppState.shared.virtualMachinesViewMode {
+		didSet {
+			AppState.shared.virtualMachinesViewMode = self.virtualMachinesViewMode
+		}
+	}
+
+	static var categories: [Category] = [.virtualMachine, .networks, .templates, .images, .cache, .tasks]
 
 	init(selectedCategory: Category = .virtualMachine) {
 		self.newSelectedCategory(selectedCategory)
@@ -86,8 +132,13 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	func newSelectedCategory(_ category: Category) {
 		switch category {
 		case .virtualMachine:
-			self.navigationSplitViewColumn = .detail
-			self.navigationSplitViewVisibility = .doubleColumn
+			if self.virtualMachinesViewMode == .list {
+				self.navigationSplitViewColumn = .sidebar
+				self.navigationSplitViewVisibility = .all
+			} else {
+				self.navigationSplitViewColumn = .detail
+				self.navigationSplitViewVisibility = .doubleColumn
+			}
 		case .networks:
 			self.navigationSplitViewColumn = .sidebar
 			self.navigationSplitViewVisibility = .all
@@ -95,6 +146,9 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 			self.navigationSplitViewColumn = .sidebar
 			self.navigationSplitViewVisibility = .all
 		case .images:
+			self.navigationSplitViewColumn = .sidebar
+			self.navigationSplitViewVisibility = .all
+		case .tasks, .cache:
 			self.navigationSplitViewColumn = .sidebar
 			self.navigationSplitViewVisibility = .all
 		}
@@ -105,6 +159,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 		self.selectedTemplate = nil
 		self.selectedNetwork = nil
 		self.selectedVirtualMachine = nil
+		self.selectedCachedImage = nil
 	}
 	
 	func sync(with appState: AppState) {

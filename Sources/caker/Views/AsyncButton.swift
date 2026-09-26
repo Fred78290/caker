@@ -45,12 +45,20 @@ struct AsyncButton<Label: View>: View {
 				Task.detached {
 					do {
 						return try await action {
+							Task { @MainActor in
+								isDisabled = false
+								showProgressView = false
+								progressViewTask?.cancel()
+							}
+						}
+					} catch {
+						await MainActor.run {
 							isDisabled = false
 							showProgressView = false
 							progressViewTask?.cancel()
+
+							alertError(error)
 						}
-					} catch {
-						await alertError(error)
 					}
 				}
 			},

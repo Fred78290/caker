@@ -134,7 +134,7 @@ struct ForwardedPortDetailView: View {
 		}
 
 		init(item: Binding<TunnelAttachement>) {
-			let hostStyle = OptionalRangeIntegerStyle.hostPortRange
+			let hostStyle = OptionalRangeIntegerStyle.guestPortRange
 			let guestStyle = OptionalRangeIntegerStyle.guestPortRange
 
 			if case .forward(let forward) = item.wrappedValue.oneOf {
@@ -346,7 +346,9 @@ struct ForwardedPortDetailView: View {
 								return RangeIntegerStyle.hostPortRange.outside(value)
 							}
 							.onChange(of: model.hostPort.text) { _, newValue in
-								self.currentItem = model.tunnelAttachement
+								if let value = Int(newValue), RangeIntegerStyle.hostPortRange.inRange(value) {
+									self.currentItem = model.tunnelAttachement
+								}
 							}
 					}
 				}

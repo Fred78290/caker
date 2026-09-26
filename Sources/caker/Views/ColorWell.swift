@@ -64,8 +64,17 @@ struct ColorWellModifier: ViewModifier {
 			target?.setTerminalColor(newValue)
 		}.toolbar {
 			ToolbarItem(placement: placement) {
-				ColorWell(selection: self.$color)
-					.frame(size: .init(width: 10, height: 10))
+				if #available(macOS 27, *) {
+					Button(action: {
+						
+					}, label: {
+						ColorWell(selection: self.$color)
+							.frame(size: .init(width: 25, height: 20))
+					}).buttonStyle(.plain)
+				} else {
+					ColorWell(selection: self.$color)
+						.frame(size: .init(width: 10, height: 10))
+				}
 			}
 		}
 	}
@@ -100,7 +109,11 @@ struct ColorWell: NSViewRepresentable {
 	}
 
 	func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSColorWell, context: Context) -> CGSize? {
-		CGSize(width: 20, height: 20)
+		if #available(macOS 27, *) {
+			CGSize(width: 15, height: 15)
+		} else {
+			CGSize(width: 20, height: 20)
+		}
 	}
 
 	func updateNSView(_ nsView: NSViewType, context: Context) {

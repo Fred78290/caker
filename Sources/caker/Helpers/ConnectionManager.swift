@@ -15,9 +15,9 @@ final class ConnectionManager: Equatable {
 
 	static func == (lhs: ConnectionManager, rhs: ConnectionManager) -> Bool {
 		return lhs.connectionMode == rhs.connectionMode
-		&& lhs.serviceURL == rhs.serviceURL
+			&& lhs.serviceURL == rhs.serviceURL
 	}
-	
+
 	static let appConnectionManager = ConnectionManager(connectionMode: .app)
 	static let userConnectionManager = ConnectionManager(connectionMode: .user)
 	static let systemConnectionManager = ConnectionManager(connectionMode: .system)
@@ -27,7 +27,7 @@ final class ConnectionManager: Equatable {
 		case user
 		case app
 		case remote
-		
+
 		var runMode: Utils.RunMode {
 			switch self {
 			case .system:
@@ -40,7 +40,7 @@ final class ConnectionManager: Equatable {
 				return .user
 			}
 		}
-		
+
 		init(_ from: Utils.RunMode) {
 			switch from {
 			case .system:
@@ -52,7 +52,7 @@ final class ConnectionManager: Equatable {
 			}
 		}
 	}
-	
+
 	let connectionMode: ConnectionMode
 	let serviceURL: URL?
 
@@ -60,6 +60,7 @@ final class ConnectionManager: Equatable {
 	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
 	private var currentStatus: AsyncThrowingStreamCurrentStatus? = nil
 	private var vmsWatcher: DirWatcher? = nil
+	private var vmsWatcherTask: Task<Void, Never>? = nil
 	private var networksWatcher: DirWatcher? = nil
 	private let logger = Logger("ConnectionManager")
 
@@ -91,7 +92,7 @@ final class ConnectionManager: Equatable {
 		guard vmURL.path(percentEncoded: false).isEmpty else {
 			return ConnectionManager(vmURL)
 		}
-		
+
 		if connectionMode == .system {
 			return systemConnectionManager
 		} else if connectionMode == .user {
@@ -129,11 +130,11 @@ final class ConnectionManager: Equatable {
 		if self.connectionMode == .app {
 			return nil
 		}
-		
+
 		if self.connectionMode != .remote {
 			return try? ServiceHandler.createCakedServiceClient(tls: true, runMode: self.connectionMode.runMode)
 		}
-		
+
 		return try? ServiceHandler.createCakedServiceClient(serviceURL: self.serviceURL!, runMode: connectionMode.runMode)
 	}
 
@@ -158,11 +159,11 @@ final class ConnectionManager: Equatable {
 		guard let result = try? NetworksHandler.networks(client: self.serviceClient, runMode: self.connectionMode.runMode) else {
 			return []
 		}
-		
+
 		return result.networks.sorted(using: BridgedNetworkComparator())
 	}
-	
-	func loadRemotes()throws  -> [RemoteEntry] {
+
+	func loadRemotes() throws -> [RemoteEntry] {
 		return try RemoteHandler.listRemote(client: self.serviceClient, runMode: self.connectionMode.runMode).remotes.sorted(using: RemoteHandlerComparator())
 	}
 
@@ -173,15 +174,15 @@ final class ConnectionManager: Equatable {
 	func loadTemplates() throws -> [TemplateEntry] {
 		try TemplateHandler.listTemplate(client: self.serviceClient, runMode: self.connectionMode.runMode).templates.sorted(using: TemplateEntryComparator())
 	}
-	
+
 	func loadImages(remote: String) async throws -> [ImageInfo] {
 		try await ImageHandler.listImage(client: self.serviceClient, remote: remote, runMode: self.connectionMode.runMode).infos
 	}
-	
+
 	func loadVirtualMachines() throws -> ([URL: VirtualMachineDocument]) {
 		return try VirtualMachineDocument.loadVirtualMachineDocuments(connectionManager: self)
 	}
-	
+
 	func createNetwork(network: BridgedNetwork) throws {
 		let vzNetwork = VZSharedNetwork(
 			mode: network.mode == .shared ? .shared : .host,
@@ -192,26 +193,26 @@ final class ConnectionManager: Equatable {
 			interfaceID: network.interfaceID,
 			nat66Prefix: nil
 		)
-		
+
 		_ = try NetworksHandler.create(client: self.serviceClient, networkName: network.name, network: vzNetwork, runMode: self.connectionMode.runMode)
 	}
-	
+
 	func startNetwork(networkName: String) -> StartedNetworkReply {
 		NetworksHandler.start(client: self.serviceClient, networkName: networkName, runMode: self.connectionMode.runMode)
 	}
-	
+
 	func stopNetwork(networkName: String) -> StoppedNetworkReply {
 		NetworksHandler.stop(client: self.serviceClient, networkName: networkName, runMode: self.connectionMode.runMode)
 	}
-	
+
 	func deleteNetwork(networkName: String) -> DeleteNetworkReply {
 		NetworksHandler.delete(client: self.serviceClient, networkName: networkName, runMode: self.connectionMode.runMode)
 	}
-	
+
 	func createTemplate(vmURL: URL, templateName: String) async throws -> CreateTemplateReply {
 		return try await TemplateHandler.createTemplate(client: self.serviceClient, vmURL: vmURL, templateName: templateName, runMode: self.connectionMode.runMode)
 	}
-	
+
 	func deleteTemplate(templateName: String) async throws -> DeleteTemplateReply {
 		return try await TemplateHandler.deleteTemplate(client: self.serviceClient, templateName: templateName, runMode: self.connectionMode.runMode)
 	}
@@ -223,45 +224,46 @@ final class ConnectionManager: Equatable {
 	func templateInfos(templateName: String) async throws -> InfoTemplateReply {
 		return try await TemplateHandler.infos(client: self.serviceClient, templateName: templateName, runMode: self.connectionMode.runMode)
 	}
-	
+
 	@discardableResult
 	func startVirtualMachine(vmURL: URL, screenSize: GRPCLib.ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartHandler.StartMode, recoveryMode: Bool) throws -> StartedReply {
-		let result = try StartHandler.startVM(client: self.serviceClient, vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, recoveryMode: recoveryMode, runMode: self.connectionMode.runMode)
-		
+		let result = try StartHandler.startVM(
+			client: self.serviceClient, vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, recoveryMode: recoveryMode, runMode: self.connectionMode.runMode)
+
 		if result.started == false {
 			throw ServiceError(String(localized: "Failed to start VM"))
 		}
-		
+
 		return result
 	}
-	
+
 	@discardableResult
 	func restartVirtualMachine(vmURL: URL, force: Bool = false, waitIPTimeout: Int = 30) throws -> RestartReply {
 		let result = try RestartHandler.restart(client: self.serviceClient, vmURL: vmURL, force: force, waitIPTimeout: 30, runMode: self.connectionMode.runMode)
-		
+
 		if result.success == false {
 			throw ServiceError(String(localized: "Failed to restart VM"))
 		}
-		
+
 		return result
 	}
-	
+
 	@discardableResult
 	func stopVirtualMachine(vmURL: URL, force: Bool = false) throws -> StopReply {
 		let result = try StopHandler.stopVM(client: self.serviceClient, vmURL: vmURL, force: force, runMode: self.connectionMode.runMode)
-		
+
 		if result.success == false {
 			throw ServiceError(String(localized: "Failed to stop VM"))
 		}
-		
+
 		return result
 	}
-	
+
 	@discardableResult
 	func suspendVirtualMachine(vmURL: URL) throws -> SuspendReply {
 		return try SuspendHandler.suspendVM(client: self.serviceClient, vmURL: vmURL, runMode: self.connectionMode.runMode)
 	}
-	
+
 	func deleteVirtualMachine(vmURL: URL) throws -> DeleteReply {
 		return try DeleteHandler.delete(client: self.serviceClient, vmURL: vmURL, runMode: self.connectionMode.runMode)
 	}
@@ -277,7 +279,7 @@ final class ConnectionManager: Equatable {
 	func setVncScreenSize(vmURL: URL, screenSize: ViewSize) async {
 		do {
 			let result = try ScreenSizeHandler.setScreenSize(client: self.serviceClient, vmURL: vmURL, width: Int(screenSize.width), height: Int(screenSize.height), runMode: self.connectionMode.runMode)
-			
+
 			if result.success == false {
 				await alertError(String(localized: "Failed to set VM screen size"), result.reason)
 			}
@@ -285,11 +287,11 @@ final class ConnectionManager: Equatable {
 			await alertError(error)
 		}
 	}
-	
+
 	func getVncScreenSize(vmURL: URL, _ defaultSize: ViewSize = .zero) -> ViewSize {
 		do {
 			let result = try ScreenSizeHandler.getScreenSize(client: self.serviceClient, vmURL: vmURL, runMode: self.connectionMode.runMode)
-			
+
 			if result.success == false {
 				DispatchQueue.main.async {
 					alertError(String(localized: "Failed to get VM screen size"), result.reason)
@@ -302,28 +304,28 @@ final class ConnectionManager: Equatable {
 				alertError(error)
 			}
 		}
-		
+
 		return defaultSize
 	}
-	
+
 	func vncInfos(vmURL: URL) throws -> VNCInfos {
 		try VNCInfosHandler.vncInfos(client: self.serviceClient, vmURL: vmURL, runMode: self.connectionMode.runMode)
 	}
-	
+
 	func virtualMachineInfos(vmURL: URL) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
 		try InfosHandler.infos(client: self.serviceClient, vmURL: vmURL, runMode: self.connectionMode.runMode)
 	}
-	
+
 	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
 		try await BuildHandler.build(client: self.serviceClient, options: options, runMode: self.connectionMode.runMode, queue: queue, progressHandler: progressHandler)
 	}
 
 	func installAgent(_ url: URL) throws -> Bool {
 		let reply = try InstallAgentHandler.installAgent(client: self.serviceClient, vmURL: url, timeout: 2, runMode: self.connectionMode.runMode)
-		
+
 		return reply.installed
 	}
-	
+
 	func deleteRemote(name: String) throws -> DeleteRemoteReply {
 		try RemoteHandler.deleteRemote(client: self.serviceClient, name: name, runMode: self.connectionMode.runMode)
 	}
@@ -351,8 +353,13 @@ extension ConnectionManager {
 			watcher.stop()
 		}
 
+		if let watcher = self.vmsWatcherTask {
+			watcher.cancel()
+		}
+
 		self.gcd = nil
 		self.vmsWatcher = nil
+		self.vmsWatcherTask = nil
 
 		NotificationCenter.default.post(name: Self.GrandCentralDidTerminateNotification, object: self)
 	}
@@ -374,17 +381,110 @@ extension ConnectionManager {
 			let gcdFuture = Utilities.group.next().makeFutureWithTask {
 				await self.gdc(client: serviceClient)
 			}
-			
+
 			gcdFuture.whenFailure { error in
 				self.logger.error("GCD failed: \(error)")
 			}
-			
+
 			gcdFuture.whenComplete { _ in
 				self.logger.debug("GCD stopped")
 				self.gcd = nil
 			}
-			
+
 			NotificationCenter.default.post(name: Self.GrandCentralDidStartNotification, object: self)
+		}
+	}
+
+	@MainActor
+	private func reloadRemotes() {
+		AppState.shared.reloadRemotes()
+	}
+
+	@MainActor
+	private func reloadNetworks() {
+		AppState.shared.reloadNetworks()
+	}
+
+	@MainActor
+	private func reloadTemplates() {
+		AppState.shared.reloadTemplates()
+	}
+
+	private func handleFileEvent(_ stream: AsyncStream<DirWatcherEvent>, home: Home) async {
+		let storage = StorageLocation(runMode: .app)
+		let templateStorage = StorageLocation(runMode: .app, template: true)
+		let root = storage.rootURL.lastPathComponent
+		let templatesRoot = templateStorage.rootURL.lastPathComponent
+		let networks = home.networkDirectory.lastPathComponent
+		let logger = self.logger
+
+		for try await event in stream {
+			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
+			let fileName = fileURL.lastPathComponent
+
+			if fileName != "screenshot.png" && fileName != ".DS_Store" {
+				#if DEBUG
+				logger.debug("VM directory change: \(event.path) flags: 0x\(String(format: "%X", event.flags)), fileChange: \(event.fileChange), dirChange: \(event.dirChange)")
+				#endif
+
+				let rootChanged = fileURL.deletingLastPathComponent().lastPathComponent
+
+				if event.fileChange {
+					if fileURL.lastPathComponent == Home.remoteFilename {
+						await self.reloadRemotes()
+					} else if fileURL.lastPathComponent == Home.networksFilename && rootChanged == networks {
+						await reloadNetworks()
+					} else if fileURL.lastPathComponent == "vmnet.pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
+						await AppState.shared.updateNetworkStatus(rootChanged, running: fileURL.isPIDRunning().running)
+					} else if fileURL.deletingLastPathComponent().pathExtension == Home.vmExtension {
+						// Handle VM events for screenshots and usage
+						let name = fileURL.deletingLastPathComponent().lastPathComponent.deletingPathExtension
+
+						// Handle event when VM is complete
+						if let location = try? storage.location(name).validate() {
+							if AppState.shared.findVirtualMachineDocument(location.rootURL) == nil {
+								logger.debug("VM created: \(name)")
+								await self.receiveStatus(location.rootURL, value: .new)
+							}
+							// Other event are handled by the document itself
+						}
+					}
+				} else if event.dirChange && fileURL.pathExtension == Home.vmExtension {
+					// Handle directory changes for templates
+					if rootChanged == templatesRoot {
+						logger.debug("Templates directory change: \(fileURL.deletingPathExtension().lastPathComponent)")
+
+						await reloadTemplates()
+					} else if rootChanged == root {
+						logger.debug("VMS directory change: \(fileURL.deletingPathExtension().lastPathComponent)")
+
+						let name = fileURL.deletingPathExtension().lastPathComponent
+						let location = storage.location(name)
+
+						if event.dirCreated {
+							if let location = try? location.validate() {
+								logger.debug("VM directory added: \(name)")
+								await self.receiveStatus(location.rootURL, value: .new)
+							}
+						} else if event.dirRemoved {
+							logger.debug("VM directory deleted: \(name)")
+							await self.receiveStatus(location.rootURL, value: .deleted)
+						} else if event.dirRenamed {
+							// FSEvents emits .renamed for both the old and new path of a move.
+							// Existence check distinguishes which side this event is for.
+							if FileManager.default.fileExists(atPath: event.path) {
+								logger.debug("VM directory renamed in: \(name)")
+								await self.receiveStatus(location.rootURL, value: .new)
+							} else {
+								logger.debug("VM directory renamed out: \(name)")
+								await self.receiveStatus(location.rootURL, value: .deleted)
+							}
+						}
+					} else {
+						logger.debug("Ignore directory event: \(rootChanged)")
+					}
+				}
+			}
 		}
 	}
 
@@ -397,85 +497,30 @@ extension ConnectionManager {
 			return
 		}
 
+		let eventStream = AsyncStream.makeStream(of: DirWatcherEvent.self)
 		let storage = StorageLocation(runMode: .app)
 		let templateStorage = StorageLocation(runMode: .app, template: true)
-		let root = storage.rootURL.lastPathComponent
-		let templatesRoot = templateStorage.rootURL.lastPathComponent
-		let networks = home.networkDirectory.lastPathComponent
-		let logger = self.logger
 		let watcher = DirWatcher([
 			storage.rootURL.path(percentEncoded: false),
 			templateStorage.rootURL.path(percentEncoded: false),
 			home.networkDirectory.path(percentEncoded: false),
-			home.remoteDb.path(percentEncoded: false)
+			home.remoteDb.path(percentEncoded: false),
 		])
 
 		self.vmsWatcher = watcher
+		self.vmsWatcherTask = Task {
+			await withTaskCancellationHandler(
+				operation: {
+					await handleFileEvent(eventStream.stream, home: home)
+				},
+				onCancel: {
+					eventStream.continuation.finish()
+				})
+		}
 
 		watcher.queue = DispatchQueue.global(qos: .utility)
-		watcher.callback = { [weak self] event in
-			guard let self else { return }
-
-			#if DEBUG
-			logger.debug("VM directory change: \(event.path) flags: 0x\(String(format: "%X", event.flags)), fileChange: \(event.fileChange), dirChange: \(event.dirChange)")
-			#endif
-
-			let fileURL = URL(filePath: event.path).resolvingSymlinksInPath()
-
-			if event.fileChange {
-				if fileURL.lastPathComponent == Home.remoteFilename {
-					Task { @MainActor in
-						AppState.shared.reloadRemotes()
-					}
-				} else if fileURL.lastPathComponent == Home.networksFilename && fileURL.deletingLastPathComponent().lastPathComponent == networks {
-					Task { @MainActor in
-						AppState.shared.reloadNetworks()
-					}
-				} else if fileURL.lastPathComponent == "vmnet.pid" && fileURL.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent == networks {
-					Task {
-						await AppState.shared.updateNetworkStatus(fileURL.deletingLastPathComponent().lastPathComponent, running: fileURL.isPIDRunning().running)
-					}
-				}
-
-				return
-			}
-
-			guard event.dirChange, fileURL.pathExtension == Home.vmExtension else {
-				return
-			}
-
-			if fileURL.deletingLastPathComponent().lastPathComponent == templatesRoot {
-				logger.debug("Templates directory change: \(fileURL.deletingPathExtension().lastPathComponent)")
-				Task { @MainActor in
-					AppState.shared.reloadTemplates()
-				}
-				return
-			}
-
-			guard fileURL.deletingLastPathComponent().lastPathComponent == root else {
-				return
-			}
-
-			let name = fileURL.deletingPathExtension().lastPathComponent
-			let location = storage.location(name)
-
-			if event.dirCreated {
-				logger.debug("VM directory added: \(name)")
-				Task { await self.receiveStatus(location.rootURL, value: .new) }
-			} else if event.dirRemoved {
-				self.logger.debug("VM directory deleted: \(name)")
-				Task { await self.receiveStatus(location.rootURL, value: .deleted) }
-			} else if event.dirRenamed {
-				// FSEvents emits .renamed for both the old and new path of a move.
-				// Existence check distinguishes which side this event is for.
-				if FileManager.default.fileExists(atPath: event.path) {
-					logger.debug("VM directory renamed in: \(name)")
-					Task { await self.receiveStatus(location.rootURL, value: .new) }
-				} else {
-					logger.debug("VM directory renamed out: \(name)")
-					Task { await self.receiveStatus(location.rootURL, value: .deleted) }
-				}
-			}
+		watcher.callback = { event in
+			eventStream.continuation.yield(event)
 		}
 
 		watcher.start()
@@ -490,7 +535,7 @@ extension ConnectionManager {
 			self.logger.debug("VM : \(vmURL.hiddenPasswordURL) not found for screenshot")
 		}
 	}
-	
+
 	private func receiveUsage(_ vmURL: URL, value: Caked_CurrentUsageReply) async {
 		if let document = AppState.shared.findVirtualMachineDocument(vmURL) {
 			await document.setUsage(value)
@@ -498,19 +543,19 @@ extension ConnectionManager {
 			self.logger.debug("VM : \(vmURL.hiddenPasswordURL) not found for usage")
 		}
 	}
-	
+
 	private func receiveStatus(_ vmURL: URL, value: Caked_VirtualMachineStatus) async {
 		self.logger.debug("Handle new status \(value) for vm: \(vmURL.hiddenPasswordURL)")
 
 		if let document = AppState.shared.findVirtualMachineDocument(vmURL) {
 			await MainActor.run {
 				document.setState(value)
-				
+
 				if value == .deleted {
 					AppState.shared.removeVirtualMachineDocument(vmURL)
 				}
 			}
-		} else if value == .new {
+		} else if value != .deleted {
 			AppState.shared.addVirtualMachineDocument(vmURL)
 		} else if AppState.shared.connectionManager == self {
 			self.logger.debug("VM : \(vmURL.hiddenPasswordURL) not found for status")
@@ -519,7 +564,7 @@ extension ConnectionManager {
 
 	private func gdc(client: CakedServiceClient) async {
 		let asyncStream: AsyncThrowingStreamCurrentStatus = AsyncThrowingStream.makeStream(of: [Caked_CurrentStatus].self)
-		
+
 		let stream = client.grandCentralDispatcher(.init(), callOptions: .init(timeLimit: .none)) { reply in
 			_ = asyncStream.continuation.yield(reply.status.statuses)
 			// Consider calling asyncStream.continuation.finish() when the stream should end
@@ -580,13 +625,15 @@ extension ConnectionManager {
 					case .networkInfos(let status):
 						await AppState.shared.updateNetworks(status.networks)
 					case .templateInfos(let status):
-						await AppState.shared.updateTemplates(status.templates.map {
-							TemplateEntry($0)
-						})
+						await AppState.shared.updateTemplates(
+							status.templates.map {
+								TemplateEntry($0)
+							})
 					case .remotesInfos(let status):
-						await AppState.shared.updateRemote(status.remotes.map {
-							RemoteEntry($0)
-						})
+						await AppState.shared.updateRemote(
+							status.remotes.map {
+								RemoteEntry($0)
+							})
 					default:
 						break
 					}
@@ -601,4 +648,3 @@ extension ConnectionManager {
 		}
 	}
 }
-
