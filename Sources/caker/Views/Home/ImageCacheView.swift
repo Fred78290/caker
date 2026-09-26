@@ -45,7 +45,7 @@ struct ImageCacheView: View {
 
 	static func kindLabel(_ kind: CachedImageKind) -> String {
 		switch kind {
-		case .cloudImage: return String(localized: "Cloud image")
+		case .cloudImage: return String(localized: "Cloud Image")
 		case .rawImage: return String(localized: "Raw image")
 		case .iso: return String(localized: "ISO")
 		case .ipsw: return String(localized: "IPSW")
