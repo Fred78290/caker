@@ -890,6 +890,44 @@ struct VirtualMachineWizard: View {
 						Text(config.imageName)
 					}
 				}
+
+				// A cached ISO/IPSW preset is an installer image, so it gets the same provisioning options as a manually chosen one.
+				if self.model.imageSource == .iso || self.model.imageSource == .ipsw {
+					Section {
+						VStack(alignment: .leading) {
+							if self.model.imageSource == .iso {
+								let platform = SupportedPlatform(rawValue: self.config.imageName)
+								let hasBuiltInTemplate = PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: platform)
+
+								LabeledContent(hasBuiltInTemplate ? "Provisioning template (optional)" : "Provisioning template") {
+									HStack {
+										TextField("", text: $model.provisioningTemplate)
+											.frame(width: 300)
+											.rounded(.leading)
+											.disabled(self.model.createVM)
+										Button(action: {
+											if let provisioningTemplate = chooseYAML() {
+												model.provisioningTemplate = provisioningTemplate
+											}
+										}) {
+											Image(systemName: "document.badge.gearshape")
+										}
+										.disabled(self.model.createVM)
+										.withButtonStyle(.borderless)
+									}
+								}
+								Text(hasBuiltInTemplate ? "Leave empty to use the built-in \(platform.rawValue) template or provide a custom one provisioning template" : "Provide a custom one provisioning template")
+									.font(.caption)
+									.foregroundStyle(.secondary)
+								Toggle("Auto configuration with provisioning", isOn: $config.autoinstall).disabled(self.model.createVM)
+							} else {
+								Toggle("Configure automatically the system", isOn: $config.autoinstall).disabled(self.model.createVM)
+							}
+
+							provisionVariablesSection
+						}
+					}
+				}
 			} else {
 				Section {
 					switch self.model.imageSource {
