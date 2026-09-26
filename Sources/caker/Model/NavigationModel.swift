@@ -65,6 +65,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	case images
 	case templates
 	case tasks
+	case cache
 
 	var id: Self { self }
 	var iconName: String {
@@ -79,6 +80,8 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 			return "display"
 		case .tasks:
 			return "hourglass"
+		case .cache:
+			return "externaldrive"
 		}
 	}
 
@@ -94,6 +97,8 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 			return "Virtual machines"
 		case .tasks:
 			return "Tasks"
+		case .cache:
+			return "Image cache"
 		}
 	}
 }
@@ -108,6 +113,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	var selectedNetwork: BridgedNetwork? = nil
 	var selectedVirtualMachine: VirtualMachineDocumentState? = nil
 	var selectedTask: Caked_TaskEntry? = nil
+	var selectedCachedImage: VirtualMachineInfo? = nil
 	var documents: VirtualMachineDocumentStates = [:]
 	var virtualMachinesViewMode: VirtualMachinesViewMode = AppState.shared.virtualMachinesViewMode {
 		didSet {
@@ -115,7 +121,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 		}
 	}
 
-	static var categories: [Category] = [.virtualMachine, .networks, .templates, .images, .tasks]
+	static var categories: [Category] = [.virtualMachine, .networks, .templates, .images, .cache, .tasks]
 
 	init(selectedCategory: Category = .virtualMachine) {
 		self.newSelectedCategory(selectedCategory)
@@ -140,7 +146,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 		case .images:
 			self.navigationSplitViewColumn = .sidebar
 			self.navigationSplitViewVisibility = .all
-		case .tasks:
+		case .tasks, .cache:
 			self.navigationSplitViewColumn = .sidebar
 			self.navigationSplitViewVisibility = .all
 		}
@@ -151,6 +157,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 		self.selectedTemplate = nil
 		self.selectedNetwork = nil
 		self.selectedVirtualMachine = nil
+		self.selectedCachedImage = nil
 	}
 	
 	func sync(with appState: AppState) {

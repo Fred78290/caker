@@ -264,11 +264,45 @@ struct VirtualMachineWizard: View {
 		return "\(first)-\(second)"
 	}
 
-	init(connectionManager: ConnectionManager, sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil) {
+	init(connectionManager: ConnectionManager, sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil, presetCachedImage: VirtualMachineInfo? = nil) {
 		self.sheet = sheet
 		self.connectionManager = connectionManager
 
-		if let presetTemplate {
+		if let presetCachedImage, let imageSource = CachedImageKind(cacheType: presetCachedImage.type).imageSource, let fqn = presetCachedImage.fqn.first {
+			// A cache entry is built through its FQN (the same alias the LXD REST API/WebUI hand to
+			// BuildOptions.image), so the build pipeline resolves it against the cache like any other URL.
+			var config = VirtualMachineConfig()
+			let kind = CachedImageKind(cacheType: presetCachedImage.type)
+			let model = VirtualMachineWizardStateObject()
+
+			config.vmname = Self.generateRandomVMName()
+			config.source = imageSource
+			config.imageName = fqn
+			config.os = kind.os
+			config.autoinstall = false
+			config.diskFormat = imageSource.supportedDiskFormat(for: .defaultSupportedFormat)
+
+			switch imageSource {
+			case .iso:
+				config.cpuCount = max(config.cpuCount, model.isoImageRelease.minCPU)
+				config.memorySizeInMoB = max(config.memorySizeInMoB, model.isoImageRelease.minMemoryMiB)
+				model.showDiskFormat = true
+			case .ipsw:
+				config.cpuCount = max(config.cpuCount, model.ipswRelease.minCPU)
+				config.memorySizeInMoB = max(config.memorySizeInMoB, model.ipswRelease.minMemoryMiB)
+				config.diskSizeInGiB = max(config.diskSizeInGiB, 40)
+				model.showDiskFormat = true
+			default:
+				break
+			}
+
+			model.imageSource = imageSource
+
+			self._config = State(initialValue: config)
+			self._model = State(initialValue: model)
+			self.fromPreset = true
+			self.presetImage = presetCachedImage.name
+		} else if let presetTemplate {
 			var config = VirtualMachineConfig()
 
 			config.source = .template

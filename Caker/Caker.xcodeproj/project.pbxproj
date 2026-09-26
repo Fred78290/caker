@@ -24,6 +24,7 @@
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
 		23A4C556139077AA750354DD /* TasksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13849751EACAEB14CBF45D1A /* TasksHandler.swift */; };
 		36481741DA76E20FC5F50AA0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
+		316202E4F9253C385E7E8204 /* ImageCacheView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE2A25301C0D205B1B8B714 /* ImageCacheView.swift */; };
 		660249BCF82EC5D70EA3EB3B /* fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
 		7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */; };
@@ -610,6 +611,7 @@
 		9BEBC7A22DF440720092B196 /* SimpleStreams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7142DF440720092B196 /* SimpleStreams.swift */; };
 		9BEBC7A32DF440720092B196 /* NetworksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7232DF440720092B196 /* NetworksHandler.swift */; };
 		9BEBC7A42DF440720092B196 /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7132DF440720092B196 /* ImageCache.swift */; };
+		3D7893D4D2C2878E1D29EAA1 /* CachedImageKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1276B7682990108E5C70CEB6 /* CachedImageKind.swift */; };
 		9BEBC7A52DF440720092B196 /* RemoteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7252DF440720092B196 /* RemoteHandler.swift */; };
 		9BEBC7A62DF440720092B196 /* StartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7282DF440720092B196 /* StartHandler.swift */; };
 		9BEBC7A72DF440720092B196 /* CommunicationHandlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC73E2DF440720092B196 /* CommunicationHandlers.swift */; };
@@ -948,6 +950,7 @@
 		839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplate.swift; sourceTree = "<group>"; };
 		9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteDriver.swift; sourceTree = "<group>"; };
 		94A112BBD0363BE74540B818 /* TasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksView.swift; sourceTree = "<group>"; };
+		2BE2A25301C0D205B1B8B714 /* ImageCacheView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheView.swift; sourceTree = "<group>"; };
 		9B001A0C300025340048894C /* cakectl.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = cakectl.provisionprofile; sourceTree = "<group>"; };
 		9B001A0D300025340048894C /* caked.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caked.provisionprofile; sourceTree = "<group>"; };
 		9B001A0E300025340048894C /* caker.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = caker.provisionprofile; sourceTree = "<group>"; };
@@ -1469,6 +1472,7 @@
 		9BEBC7112DF440720092B196 /* CloudImageConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudImageConverter.swift; sourceTree = "<group>"; };
 		9BEBC7122DF440720092B196 /* CloudInit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudInit.swift; sourceTree = "<group>"; };
 		9BEBC7132DF440720092B196 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
+		1276B7682990108E5C70CEB6 /* CachedImageKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedImageKind.swift; sourceTree = "<group>"; };
 		9BEBC7142DF440720092B196 /* SimpleStreams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleStreams.swift; sourceTree = "<group>"; };
 		9BEBC7162DF440720092B196 /* BuildHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHandler.swift; sourceTree = "<group>"; };
 		9BEBC7182DF440720092B196 /* ConfigureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureHandler.swift; sourceTree = "<group>"; };
@@ -2505,6 +2509,7 @@
 				9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */,
 				61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */,
 				94A112BBD0363BE74540B818 /* TasksView.swift */,
+				2BE2A25301C0D205B1B8B714 /* ImageCacheView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -2741,6 +2746,7 @@
 				9BEBC7112DF440720092B196 /* CloudImageConverter.swift */,
 				9BEBC7122DF440720092B196 /* CloudInit.swift */,
 				9BEBC7132DF440720092B196 /* ImageCache.swift */,
+				1276B7682990108E5C70CEB6 /* CachedImageKind.swift */,
 				9BEBC7142DF440720092B196 /* SimpleStreams.swift */,
 			);
 			path = CloudImage;
@@ -3864,6 +3870,7 @@
 				9BFA7D852FA5F1DB00E981F6 /* VirtualMachineDocumentState.swift in Sources */,
 				9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */,
 				36481741DA76E20FC5F50AA0 /* TasksView.swift in Sources */,
+				316202E4F9253C385E7E8204 /* ImageCacheView.swift in Sources */,
 				9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */,
 				9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */,
 				9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */,
@@ -4240,6 +4247,7 @@
 				9BEBC7A22DF440720092B196 /* SimpleStreams.swift in Sources */,
 				9BEBC7A32DF440720092B196 /* NetworksHandler.swift in Sources */,
 				9BEBC7A42DF440720092B196 /* ImageCache.swift in Sources */,
+				3D7893D4D2C2878E1D29EAA1 /* CachedImageKind.swift in Sources */,
 				9BEBC7A52DF440720092B196 /* RemoteHandler.swift in Sources */,
 				9BEBC7A62DF440720092B196 /* StartHandler.swift in Sources */,
 				9BDBCAAF2FEEB8FF007241E2 /* ComposeHandler.swift in Sources */,

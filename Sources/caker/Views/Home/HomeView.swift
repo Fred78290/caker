@@ -42,8 +42,8 @@ struct HomeView: View {
 			return network.usedBy != 0 || [.nat, .bridged].contains(network.mode)
 		case .images:
 			return navigationModel.selectedRemote == nil
-		case .tasks:
-			// Cancellation is done per-row via context menu, not the toolbar Delete button.
+		case .tasks, .cache:
+			// Cancellation/creation are done per-row, not via the toolbar Delete button.
 			return true
 		}
 	}
@@ -60,7 +60,7 @@ struct HomeView: View {
 
 					Button("Plus", systemImage: "plus") {
 						self.actionPlus()
-					}.disabled(self.selectedCategory == .templates || self.selectedCategory == .tasks)
+					}.disabled(self.selectedCategory == .templates || self.selectedCategory == .tasks || self.selectedCategory == .cache)
 				}
 
 				if self.selectedCategory == .virtualMachine {
@@ -182,6 +182,8 @@ struct HomeView: View {
 				navigationModel.selectedTemplate = nil
 			case .tasks:
 				break
+			case .cache:
+				navigationModel.selectedCachedImage = nil
 			}
 		}
 
@@ -199,7 +201,7 @@ struct HomeView: View {
 		}
 
 		// A task entry (id + title) is too sparse to warrant its own detail column.
-		guard self.selectedCategory != .tasks else {
+		guard self.selectedCategory != .tasks, self.selectedCategory != .cache else {
 			return false
 		}
 
@@ -225,7 +227,7 @@ struct HomeView: View {
 			guard navigationModel.selectedTemplate != nil else {
 				return false
 			}
-		case .tasks:
+		case .tasks, .cache:
 			return false
 		}
 
@@ -240,7 +242,7 @@ struct HomeView: View {
 			return nil
 		case .networks:
 			return nil
-		case .tasks:
+		case .tasks, .cache:
 			return nil
 		case .virtualMachine:
 			guard self.navigationModel.virtualMachinesViewMode == .mosaic else {
@@ -259,7 +261,7 @@ struct HomeView: View {
 			return 200
 		case .networks:
 			return 200
-		case .tasks:
+		case .tasks, .cache:
 			return 200
 		case .virtualMachine:
 			guard self.navigationModel.virtualMachinesViewMode == .mosaic else {
@@ -278,7 +280,7 @@ struct HomeView: View {
 			return 400
 		case .networks:
 			return 450
-		case .tasks:
+		case .tasks, .cache:
 			return 400
 		case .virtualMachine:
 			return 340
@@ -293,7 +295,7 @@ struct HomeView: View {
 			return 200
 		case .networks:
 			return 200
-		case .tasks:
+		case .tasks, .cache:
 			return 200
 		case .virtualMachine:
 			return (VirtualMachinesView.cellWidth + VirtualMachinesView.cellSpacing * 2) * max(1, min(3, CGFloat(self.navigationModel.documents.count)))
@@ -340,6 +342,8 @@ struct HomeView: View {
 				VirtualMachinesView(navigationModel: navigationModel, columns: VirtualMachinesView.buildColumns(geometry.size))
 			case .tasks:
 				TasksView(navigationModel: navigationModel)
+			case .cache:
+				ImageCacheView(navigationModel: navigationModel)
 			}
 		}.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
 	}
@@ -400,7 +404,7 @@ struct HomeView: View {
 				} else {
 					EmptyView()
 				}
-			case .tasks:
+			case .tasks, .cache:
 				EmptyView()
 			}
 		}
@@ -452,9 +456,9 @@ struct HomeView: View {
 					self.appState.deleteTemplate(name: selectedTemplate.name)
 					navigationModel.selectedTemplate = nil
 				}
-			case .tasks:
-				// Cancellation is done per-row via TasksView's own context menu, not this toolbar button
-				// (see deleteButtonDisabled, which keeps it disabled for this category).
+			case .tasks, .cache:
+				// Cancellation/creation are done per-row by TasksView/ImageCacheView, not this toolbar button
+				// (see deleteButtonDisabled, which keeps it disabled for these categories).
 				break
 			}
 		}
@@ -470,7 +474,7 @@ struct HomeView: View {
 			self.presented = true
 		case .templates:
 			self.presented = false
-		case .tasks:
+		case .tasks, .cache:
 			self.presented = false
 		}
 	}
