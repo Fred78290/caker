@@ -126,7 +126,7 @@ post_boot_command:
     - sudo restorecon -v /usr/local/bin/cakeagent
     - sudo systemctl restart cakeagent
     - sudo zypper addrepo https://download.opensuse.org/repositories/Cloud:Tools/16.0/Cloud:Tools.repo
-    - sudo zypper refresh
+    - sudo zypper --gpg-auto-import-keys refresh
     - sudo zypper update -y
     - sudo zypper clean -a
     - sudo semanage fcontext -a -t initrc_exec_t '/usr/bin/cakeagent'
