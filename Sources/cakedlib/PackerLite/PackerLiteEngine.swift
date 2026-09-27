@@ -130,6 +130,7 @@ public enum PackerLiteEngine {
 		progressHandler(.step(String(localized: "Provisioning done")))
 
 		config.provisioned = true
+		config.useCloudInit = true
 		try config.save()
 	}
 
