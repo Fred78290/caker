@@ -100,6 +100,7 @@ struct ComposeEditorView: View {
 			TextEditor(text: self.$text)
 				.font(.system(size: 12, design: .monospaced))
 				.scrollContentBackground(.hidden)
+				.autocorrectionDisabled()
 				.padding(6)
 				.background(RoundedRectangle(cornerRadius: 6).fill(Color(NSColor.textBackgroundColor)))
 				.overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.25)))
@@ -182,7 +183,7 @@ struct ComposeEditorView: View {
 
 	private func validate() {
 		do {
-			let compose = try YAMLDecoder().decode(ComposeFile.self, from: self.text)
+			let compose = try YAMLDecoder().decode(ComposeFile.self, from: Self.normalizingSmartCharacters(self.text))
 
 			if compose.name.trimmingCharacters(in: .whitespaces).isEmpty {
 				self.parseError = String(localized: "A project needs a non-empty 'name'.")
@@ -197,7 +198,7 @@ struct ComposeEditorView: View {
 	private func save() {
 		self.validate()
 
-		guard self.parseError == nil, let compose = try? YAMLDecoder().decode(ComposeFile.self, from: self.text) else {
+		guard self.parseError == nil, let compose = try? YAMLDecoder().decode(ComposeFile.self, from: Self.normalizingSmartCharacters(self.text)) else {
 			return
 		}
 
@@ -252,6 +253,31 @@ struct ComposeEditorView: View {
 		}
 
 		self.scheduleValidation()
+	}
+
+	/// macOS's `TextEditor` applies system-wide "smart quotes"/"smart dashes" text substitution
+	/// (System Settings > Keyboard > Text Input > Text Replacements) to characters typed into it —
+	/// there's no documented SwiftUI modifier that fully disables this on macOS the way
+	/// `autocorrectionDisabled()` disables spelling correction. A typed straight `"` next to
+	/// existing content (e.g. editing near `"3000:3000"`) or a `-` (e.g. inside a `- app` list item)
+	/// can silently become a typographic “ ” / – / — — which YAML's quoting and block-sequence
+	/// syntax don't recognize, so an edit that looks harmless to the user turns into a genuine parse
+	/// error. Since fighting the substitution at the text-view layer isn't reliably possible from
+	/// plain SwiftUI, normalize back to plain ASCII right before every decode attempt instead —
+	/// this can't regress a legitimately-typed em dash/curly quote in a *comment*, since those don't
+	/// affect YAML parsing either way.
+	private static func normalizingSmartCharacters(_ text: String) -> String {
+		var normalized = text
+
+		for (smart, plain) in [
+			("\u{201C}", "\""), ("\u{201D}", "\""),  // “ ”
+			("\u{2018}", "'"), ("\u{2019}", "'"),  // ‘ ’
+			("\u{2013}", "-"), ("\u{2014}", "-"),  // – —
+		] {
+			normalized = normalized.replacingOccurrences(of: smart, with: plain)
+		}
+
+		return normalized
 	}
 
 	/// New project → `ComposeFile.template`. Editing a registered project → a best-effort
