@@ -22,7 +22,7 @@ struct ComposeHandler {
 			do {
 				let composeFileDatabase = try Home(runMode: runMode).composeFileDatabase()
 				guard let compose = composeFileDatabase.get(request.name) else {
-					return replyError(error: ServiceError(String(localized: "compose \(request.name) not found")))
+					return replyError(error: ServiceError(String(format: String(localized: "compose %@ not found"), request.name)))
 				}
 
 				return .with {
@@ -116,7 +116,7 @@ struct ComposeHandler {
 				}
 
 				guard let compose = composeFileDatabase.get(request.name) else {
-					return replyError(error: ServiceError(String(localized: "compose \(request.name) not found")))
+					return replyError(error: ServiceError(String(format: String(localized: "compose %@ not found"), request.name)))
 				}
 				
 				return .with {
@@ -190,7 +190,7 @@ struct ComposeHandler {
 				}
 
 				guard var compose = composeFileDatabase.get(request.name) else {
-					return replyError(error: ServiceError(String(localized: "compose \(request.name) not found")))
+					return replyError(error: ServiceError(String(format: String(localized: "compose %@ not found"), request.name)))
 				}
 
 				let reply = CakedLib.ComposeHandler.rm(compose: &compose, services: request.services, stop: request.stop, force: request.force, runMode: runMode)

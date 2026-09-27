@@ -52,7 +52,7 @@ public struct ComposeHandler {
 							}
 							
 							if reply.started == false {
-								return ComposeReplyUp(name: appName, success: false, reason: String(localized: "Compose failed to start \(serviceName), \(reply.reason)"))
+								return ComposeReplyUp(name: appName, success: false, reason: String(format: String(localized: "Compose failed to start %@, %@"), serviceName, reply.reason))
 							}
 						} else {
 							warning.append("VM \(vmName) not matched in compose name \(appName)")
@@ -275,7 +275,7 @@ public struct ComposeHandler {
 			}
 			
 			guard networkConfig.driver == .bridge else {
-				throw ServiceError(String(localized: "Only bridge driver is supported for network '\(networkName)'"))
+				throw ServiceError(String(format: String(localized: "Only bridge driver is supported for network '%@'"), networkName))
 			}
 			
 			guard builtinNetworks.contains(networkName) == false else {
