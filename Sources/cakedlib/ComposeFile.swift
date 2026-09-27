@@ -446,7 +446,7 @@ public struct ComposeFile: Codable {
 			}
 		}
 
-		throw ServiceError(String(localized: "No compose.yml found in \(directory.path(percentEncoded: false))"))
+		throw ServiceError(String(format: String(localized: "No compose.yml found in %@"), directory.path(percentEncoded: false)))
 	}
 
 	public static func load(fromFile path: String) throws -> ComposeFile {
@@ -496,14 +496,14 @@ public struct ComposeFile: Codable {
 			}
 
 			guard visiting.contains(n) == false else {
-				throw ServiceError(String(localized: "Circular dependency involving '\(n)'"))
+				throw ServiceError(String(format: String(localized: "Circular dependency involving '%@'"), n))
 			}
 
 			visiting.insert(n)
 
 			for dep in svc.dependsOn?.serviceNames ?? [] {
 				guard let depSvc = services[dep] else {
-					throw ServiceError(String(localized: "'\(n)' depends_on '\(dep)' which is not defined"))
+					throw ServiceError(String(format: String(localized: "'%@' depends_on '%@' which is not defined"), n, dep))
 				}
 
 				// Only follow transitive deps that are in the requested set to avoid
@@ -587,5 +587,26 @@ networks:
   default:
     driver: bridge
 """
+	}
+}
+
+extension ComposeReplyList.ComposeInfo {
+	/// Best-effort reconstruction of a startable `ComposeFile` from what the registry still knows
+	/// about this project (name + each service's image). None of the `ls`/`ps` RPCs return the
+	/// original raw compose definition (ports/volumes/environment/networks/`depends_on`) back to the
+	/// client once a project is registered, so this is the closest the `caker` GUI (sidebar "start"
+	/// action, menu-bar quick actions, the Compose Editor's "edit" seed) can get to it without a
+	/// dedicated new RPC — enough to re-run `compose up` and (re)start already-installed services.
+	public func reconstructedComposeFile() -> ComposeFile {
+		var compose = ComposeFile(name: self.name)
+
+		for service in self.services.sorted(by: { $0.name < $1.name }) {
+			var svc = ComposeService()
+
+			svc.image = (service.image.isEmpty || service.image == "-") ? nil : service.image
+			compose.services[service.name] = svc
+		}
+
+		return compose
 	}
 }

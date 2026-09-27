@@ -4,6 +4,8 @@
 //
 //  Created by Frederic BOLTZ on 26/06/2026.
 //
+import Foundation
+
 public struct ComposeReplyUp: Codable {
 	public var name: String
 	public var success: Bool
@@ -82,7 +84,7 @@ public struct ComposeReplyDelete: Codable {
 	}
 }
 
-public struct ComposeServiceInfo: Codable {
+public struct ComposeServiceInfo: Codable, Hashable {
 	public var name: String
 	public var image: String
 	public var status: String
@@ -143,9 +145,11 @@ public struct ComposeReplyPs: Codable {
 }
 
 public struct ComposeReplyList: Codable {
-	public struct ComposeInfo: Codable {
+	public struct ComposeInfo: Codable, Hashable, Identifiable {
 		public var name: String
 		public var services: [ComposeServiceInfo]
+
+		public var id: String { self.name }
 
 		public var caked: Caked_ComposeReply.ComposeReplyList.ComposeInfo {
 			.with {
@@ -162,6 +166,33 @@ public struct ComposeReplyList: Codable {
 		public init(_ from: Caked_ComposeReply.ComposeReplyList.ComposeInfo) {
 			self.name = from.composeName
 			self.services = from.services.map { ComposeServiceInfo($0) }
+		}
+
+		/// How many services currently have at least one running instance.
+		public var runningServiceCount: Int {
+			self.services.filter { $0.running }.count
+		}
+
+		/// Total number of services declared for this project.
+		public var totalServiceCount: Int {
+			self.services.count
+		}
+
+		/// Short "n/m running" summary shown in list rows — e.g. `"3/5 running"`.
+		public var statusSummary: String {
+			String(format: String(localized: "%d/%d running"), self.runningServiceCount, self.totalServiceCount)
+		}
+
+		/// The primary toggle action a "nice interface" should offer for this project: `.start` when
+		/// nothing is running yet, `.stop` once at least one service is — mirrors how `TasksView`/the
+		/// VM mosaic tile pick their icon/primary action from current status rather than a fixed label.
+		public enum PrimaryAction: Equatable, Sendable {
+			case start
+			case stop
+		}
+
+		public var primaryAction: PrimaryAction {
+			self.runningServiceCount == 0 ? .start : .stop
 		}
 	}
 

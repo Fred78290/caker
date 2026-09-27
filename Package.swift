@@ -189,6 +189,7 @@ let package = Package(
 			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
 			.product(name: "SwiftletUtilities", package: "SwiftletUtilities"),
 			.product(name: "LogManager", package: "LogManager"),
+			.product(name: "Yams", package: "Yams"),
 		] + (isAppStoreBuild ? [] : [
 			.product(name: "Sparkle", package: "Sparkle"),
 		]),

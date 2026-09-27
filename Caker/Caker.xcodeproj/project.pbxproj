@@ -25,6 +25,10 @@
 		23A4C556139077AA750354DD /* TasksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13849751EACAEB14CBF45D1A /* TasksHandler.swift */; };
 		36481741DA76E20FC5F50AA0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		316202E4F9253C385E7E8204 /* ImageCacheView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE2A25301C0D205B1B8B714 /* ImageCacheView.swift */; };
+		19C69B9644E8133BFF5BD130 /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */; };
+		11228D037DE95B454ED84F9C /* ComposeEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */; };
+		AD69BD3097A52D119CD8ED44 /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070CEA8AC4D83C5669773CE7 /* ComposeView.swift */; };
+		7A30A72253748BEB5504A52B /* ComposeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */; };
 		660249BCF82EC5D70EA3EB3B /* fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
 		7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */; };
@@ -940,6 +944,10 @@
 
 /* Begin PBXFileReference section */
 		13849751EACAEB14CBF45D1A /* TasksHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksHandler.swift; sourceTree = "<group>"; };
+		118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
+		DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeEditorView.swift; sourceTree = "<group>"; };
+		070CEA8AC4D83C5669773CE7 /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
+		110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDetailView.swift; sourceTree = "<group>"; };
 		209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSVersion.swift; sourceTree = "<group>"; };
 		34D83C742935C118E4351E41 /* ActionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorder.swift; sourceTree = "<group>"; };
 		42281CEC4BB027305E68E921 /* Record.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
@@ -2510,6 +2518,9 @@
 				61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */,
 				94A112BBD0363BE74540B818 /* TasksView.swift */,
 				2BE2A25301C0D205B1B8B714 /* ImageCacheView.swift */,
+				DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */,
+				070CEA8AC4D83C5669773CE7 /* ComposeView.swift */,
+				110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -2586,6 +2597,7 @@
 				9BB213CC2F37548300B45692 /* RemoteHandler.swift */,
 				9B48B664302BD16600B18C35 /* RenameHandler.swift */,
 				13849751EACAEB14CBF45D1A /* TasksHandler.swift */,
+				118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */,
 				9BBF7B3A2F3E098A00F37D2C /* RestartHandler.swift */,
 				9BBF7CB02F3F1F5300F37D2C /* ScreenSizeHandler.swift */,
 				9BBF7A3A2F3DE0B300F37D2C /* StartHandler.swift */,
@@ -3827,6 +3839,7 @@
 				9B30BA502E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift in Sources */,
 				9BB213CF2F37548300B45692 /* RemoteHandler.swift in Sources */,
 				23A4C556139077AA750354DD /* TasksHandler.swift in Sources */,
+				19C69B9644E8133BFF5BD130 /* ComposeHandler.swift in Sources */,
 				9BB213D02F37548300B45692 /* ListHandler.swift in Sources */,
 				9BB213D12F37548300B45692 /* NetworksHandler.swift in Sources */,
 				9BB031492FF6603F00F4612F /* AdvancedSettingsView.swift in Sources */,
@@ -3871,6 +3884,9 @@
 				9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */,
 				36481741DA76E20FC5F50AA0 /* TasksView.swift in Sources */,
 				316202E4F9253C385E7E8204 /* ImageCacheView.swift in Sources */,
+				11228D037DE95B454ED84F9C /* ComposeEditorView.swift in Sources */,
+				AD69BD3097A52D119CD8ED44 /* ComposeView.swift in Sources */,
+				7A30A72253748BEB5504A52B /* ComposeDetailView.swift in Sources */,
 				9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */,
 				9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */,
 				9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */,

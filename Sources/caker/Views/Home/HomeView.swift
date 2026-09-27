@@ -45,6 +45,8 @@ struct HomeView: View {
 			return navigationModel.selectedRemote == nil
 		case .cache:
 			return navigationModel.selectedCachedImage == nil
+		case .compose:
+			return navigationModel.selectedComposeProject == nil
 		case .tasks:
 			// Cancellation is done per-row, not via the toolbar Delete button.
 			return true
@@ -107,6 +109,12 @@ struct HomeView: View {
 			.sheet(isPresented: $presented) {
 				self.sheet
 					.colorSchemeForColor()
+			}
+			.onAppear {
+				self.applyPendingSidebarRequest()
+			}
+			.onChange(of: self.navigationModel.pendingSidebarCategory) {
+				self.applyPendingSidebarRequest()
 			}
 			.onChange(of: self.appState.connectionMode) {
 				self.navigationModel.resetSelections()
@@ -187,6 +195,27 @@ struct HomeView: View {
 		}
 	}
 
+	/// Picks up a compose "Open"/"New compose project…" request the menu-bar extra made right
+	/// before calling `openWindow(id: "home")` — see `NavigationModel.pendingSidebarCategory`'s doc
+	/// comment for why this bridge exists instead of `CakerMenuBarExtraScene` touching
+	/// `selectedCategory` directly (it's local `@State` here, not part of `NavigationModel`).
+	private func applyPendingSidebarRequest() {
+		guard let category = navigationModel.pendingSidebarCategory else {
+			return
+		}
+
+		navigationModel.pendingSidebarCategory = nil
+
+		if self.selectedCategory != category {
+			self.selectedCategory = category
+		}
+
+		if category == .compose && navigationModel.pendingNewComposeProject {
+			navigationModel.pendingNewComposeProject = false
+			self.presented = true
+		}
+	}
+
 	func selectedCategoryDidChanged(_ oldValue: Category, _ newValue: Category) {
 		func clearSelectection(_ category: Category) {
 			switch category {
@@ -202,6 +231,8 @@ struct HomeView: View {
 				break
 			case .cache:
 				navigationModel.selectedCachedImage = nil
+			case .compose:
+				navigationModel.selectedComposeProject = nil
 			}
 		}
 
@@ -245,6 +276,10 @@ struct HomeView: View {
 			guard navigationModel.selectedTemplate != nil else {
 				return false
 			}
+		case .compose:
+			guard navigationModel.selectedComposeProject != nil else {
+				return false
+			}
 		case .tasks, .cache:
 			return false
 		}
@@ -260,7 +295,7 @@ struct HomeView: View {
 			return nil
 		case .networks:
 			return nil
-		case .tasks, .cache:
+		case .tasks, .cache, .compose:
 			return nil
 		case .virtualMachine:
 			guard self.navigationModel.virtualMachinesViewMode == .mosaic else {
@@ -279,7 +314,7 @@ struct HomeView: View {
 			return 200
 		case .networks:
 			return 200
-		case .tasks, .cache:
+		case .tasks, .cache, .compose:
 			return 200
 		case .virtualMachine:
 			guard self.navigationModel.virtualMachinesViewMode == .mosaic else {
@@ -300,6 +335,8 @@ struct HomeView: View {
 			return 450
 		case .tasks, .cache:
 			return 400
+		case .compose:
+			return 380
 		case .virtualMachine:
 			return 340
 		}
@@ -313,7 +350,7 @@ struct HomeView: View {
 			return 200
 		case .networks:
 			return 200
-		case .tasks, .cache:
+		case .tasks, .cache, .compose:
 			return 200
 		case .virtualMachine:
 			return (VirtualMachinesView.cellWidth + VirtualMachinesView.cellSpacing * 2) * max(1, min(3, CGFloat(self.navigationModel.documents.count)))
@@ -362,6 +399,8 @@ struct HomeView: View {
 				TasksView(navigationModel: navigationModel)
 			case .cache:
 				ImageCacheView(navigationModel: navigationModel)
+			case .compose:
+				ComposeView(navigationModel: navigationModel)
 			}
 		}.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
 	}
@@ -422,6 +461,13 @@ struct HomeView: View {
 				} else {
 					EmptyView()
 				}
+			case .compose:
+				if let selectedComposeProject = navigationModel.selectedComposeProject {
+					ComposeDetailView(project: selectedComposeProject)
+						.background(Color(NSColor.tertiarySystemFill))
+				} else {
+					EmptyView()
+				}
 			case .tasks, .cache:
 				EmptyView()
 			}
@@ -453,6 +499,14 @@ struct HomeView: View {
 					.restorationState(.disabled)
 					.frame(minWidth: 700, minHeight: 670)
 			}
+		case .compose:
+			ComposeEditorView(
+				client: AppState.shared.connectionManager.serviceClient,
+				runMode: AppState.shared.connectionManager.connectionMode.runMode
+			) {
+				self.navigationModel.composeReloadToken += 1
+			}
+			.colorSchemeForColor()
 		default:
 			Text("Hello, World!")
 		}
@@ -488,6 +542,13 @@ struct HomeView: View {
 						self.navigationModel.cacheReloadToken += 1
 					}
 				}
+			case .compose:
+				if let project = navigationModel.selectedComposeProject {
+					ComposeView.confirmAndDelete(project) {
+						self.navigationModel.selectedComposeProject = nil
+						self.navigationModel.composeReloadToken += 1
+					}
+				}
 			case .tasks:
 				// Cancellation is done per-row by TasksView, not this toolbar button
 				// (see deleteButtonDisabled, which keeps it disabled for this category).
@@ -510,6 +571,8 @@ struct HomeView: View {
 			self.presented = false
 		case .cache:
 			self.presented = navigationModel.selectedCachedImage != nil
+		case .compose:
+			self.presented = true
 		}
 	}
 }
