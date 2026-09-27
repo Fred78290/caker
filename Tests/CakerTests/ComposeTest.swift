@@ -338,6 +338,95 @@ final class ComposeTest: XCTestCase {
 		XCTAssertEqual(svc.autostart, false)
 	}
 
+	// MARK: - Network resolution (bridge driver)
+
+	func testBridgedAttachmentNameDefaultsToBridgedForReservedDefaultKey() {
+		var network = ComposeNetwork()
+		network.driver = .bridge
+
+		XCTAssertEqual(network.bridgedAttachmentName(networkKey: "default"), "bridged")
+	}
+
+	func testBridgedAttachmentNameUsesNetworkKeyAsPhysicalInterfaceNameOtherwise() {
+		var network = ComposeNetwork()
+		network.driver = .bridge
+
+		XCTAssertEqual(network.bridgedAttachmentName(networkKey: "en0"), "en0")
+	}
+
+	func testBridgedAttachmentNameExplicitNameOverrideWins() {
+		var network = ComposeNetwork()
+		network.driver = .bridge
+		network.name = "en1"
+
+		// Even for the reserved "default" key, an explicit `name:` override still wins.
+		XCTAssertEqual(network.bridgedAttachmentName(networkKey: "default"), "en1")
+	}
+
+	func testServiceNetworkResolvesDefaultBridgeToBridgedAttachment() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.networks = ["default"]
+
+		var defaultNetwork = ComposeNetwork()
+		defaultNetwork.driver = .bridge
+
+		let composeNetworks: [String: ComposeNetwork?] = ["default": defaultNetwork]
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: composeNetworks)
+
+		XCTAssertEqual(built.options.networks.map { $0.network }, ["bridged"])
+	}
+
+	func testServiceNetworkResolvesCustomBridgeNetworkToItsOwnKey() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.networks = ["lan0"]
+
+		var lanNetwork = ComposeNetwork()
+		lanNetwork.driver = .bridge
+
+		let composeNetworks: [String: ComposeNetwork?] = ["lan0": lanNetwork]
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: composeNetworks)
+
+		XCTAssertEqual(built.options.networks.map { $0.network }, ["lan0"])
+	}
+
+	func testServiceNetworkWithoutTopLevelDefinitionPassesNameThrough() throws {
+		// A service can reference a network name that isn't declared under the compose file's own
+		// top-level `networks:` at all (e.g. an already-existing caker network, or "nat") — this
+		// must keep working exactly as a raw `BridgeAttachement` name, unaffected by the bridge
+		// resolution added for `driver: bridge` entries.
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.networks = ["nat"]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+
+		XCTAssertEqual(built.options.networks.map { $0.network }, ["nat"])
+	}
+
+	func testHandlerUpFailsFastForUnresolvableCustomBridgeNetwork() async throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.networks = ["definitely-not-a-real-interface-xyz"]
+
+		var network = ComposeNetwork()
+		network.driver = .bridge
+
+		var compose = ComposeFile(name: "test-bridge-network", services: ["app": svc])
+		compose.networks = ["definitely-not-a-real-interface-xyz": network]
+		let status = ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
+
+		var mutableStatus = status
+		let reply = await ComposeHandler.up(compose: &mutableStatus, services: [], waitIPTimeout: 5, runMode: .user)
+
+		// Must fail before ever attempting to build a VM — a network that resolves to neither the
+		// default bridged interface nor a real physical interface can never actually attach, so this
+		// should be caught up front instead of silently coming up with no network device at all.
+		XCTAssertFalse(reply.success)
+		XCTAssertFalse(reply.reason.isEmpty)
+	}
+
 	// MARK: - Template round-trip
 
 	func testTemplateParsesWithoutError() throws {

@@ -10,7 +10,9 @@ import Foundation
 import GRPCLib
 
 public struct ComposeHandler {
-	private static let builtinNetworks: Set<String> = ["nat", "default", "host", "none"]
+	// "default" is deliberately not in this set — see `provisionNetworks` below, it now needs to
+	// resolve/validate to caker's own default bridged interface rather than being skipped outright.
+	private static let builtinNetworks: Set<String> = ["nat", "host", "none"]
 	// MARK: - Up
 
 	/// Provisions missing compose networks then starts or creates each service in depends_on order.
@@ -62,7 +64,7 @@ public struct ComposeHandler {
 					}
 				}
 
-				var buildOpts = try serviceSpec.toBuildOptions(name: vmName)
+				var buildOpts = try serviceSpec.toBuildOptions(name: vmName, composeNetworks: compose.composeFile.networks)
 				try buildOpts.options.validate(remote: false)
 
 				defer {
@@ -255,43 +257,47 @@ public struct ComposeHandler {
 
 	// MARK: - Private
 
+	/// Validates that every declared compose network actually resolves to something a VM can
+	/// attach to. `driver: bridge` here always means a real bridged/physical network attachment
+	/// (Apple's Virtualization.framework sense of "bridged"), never a caker-managed shared/hosted
+	/// vmnet network — there is nothing to *create*: a physical interface, or caker's configured
+	/// default bridged interface, either already exists on the host or it doesn't. Failing fast
+	/// here, before any VM is built, replaces what used to be a silent no-op for the reserved
+	/// `"default"` network name (and, for a non-builtin name, fabricating an unrelated caker
+	/// "shared" vmnet network under that name instead) — either way the VM previously came up with
+	/// no working network device for it at all, since nothing at attach time
+	/// (`CakeConfig.collectNetworks`) ever resolves a bare compose network name to caker's default
+	/// bridged interface; it only logs a warning and drops the device.
 	private static func provisionNetworks(compose: ComposeFile, runMode: Utils.RunMode) throws {
 		guard let composeNetworks = compose.networks else { return }
-
-		let home = try Home(runMode: runMode)
-		let existingNetworks = try home.sharedNetworks()
 
 		for (networkName, networkConfig) in composeNetworks.sorted(by: { $0.key < $1.key }) {
 			guard let networkConfig else {
 				continue
 			}
-			
+
 			guard (networkConfig.external ?? false) == false else {
 				continue
 			}
-			
-			guard NetworksHandler.isPhysicalInterface(name: networkName) == false else {
-				continue
-			}
-			
-			guard networkConfig.driver == .bridge else {
-				throw ServiceError(String(format: String(localized: "Only bridge driver is supported for network '%@'"), networkName))
-			}
-			
+
 			guard builtinNetworks.contains(networkName) == false else {
 				continue
 			}
 
-			guard existingNetworks.sharedNetworks[networkName] == nil else {
-				continue
+			guard networkConfig.driver == .bridge else {
+				throw ServiceError(String(format: String(localized: "Only bridge driver is supported for network '%@'"), networkName))
 			}
 
-			let network = networkConfig.composeNetworkSubnet(name: networkName)
-			try network.validate(runMode: runMode)
-			let result = NetworksHandler.create(networkName: networkName, network: network, runMode: runMode)
+			let attachmentName = networkConfig.bridgedAttachmentName(networkKey: networkName)
 
-			if result.created == false {
-				throw ServiceError(result.reason)
+			if attachmentName == "bridged" {
+				guard CakedKeyConfig.bridgedNetwork.string() != nil else {
+					throw ServiceError(String(format: String(localized: "Network '%@' resolves to the default bridged interface, but any bridged network is not configured"), networkName))
+				}
+			} else {
+				guard NetworksHandler.isPhysicalInterface(name: attachmentName) else {
+					throw ServiceError(String(format: String(localized: "Network '%@' must be bridged or a physical interface name (resolved to '%@', which was not found)"), networkName, attachmentName))
+				}
 			}
 		}
 	}

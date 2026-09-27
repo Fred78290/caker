@@ -247,55 +247,34 @@ public struct ComposeResourceLimits: Codable {
 
 public struct ComposeNetwork: Codable {
 	public enum SupportedDriver: String, Codable {
-		case bridge // bridge network
+		case bridge // resolves to a real bridged/physical VM network attachment — see `bridgedAttachmentName(networkKey:)`
 		case none
 	}
-	
+
 	public var driver: SupportedDriver = .none
-	public var external: Bool? = false // true name is already defined network, false create a new one
+	public var external: Bool? = false // true: `name` (or the network's own key) already refers to an existing host interface
 	public var name: String?
-	
-	// driver options depends
-	// bridge -> mode=shared|host, gateway=192.168.105.1/24, dhcp-end=192.168.105.254, dhcp-lease=300
+
 	public var driverOpts: [String: String]?
-	
-	/// Derives a deterministic /24 subnet for a compose network from its name.
-	/// Uses the range 192.168.100.x – 192.168.199.x to avoid conflicts with Caker defaults.
-	private func composeNetworkSubnet(_ name: String, mode: VMNetMode) -> VZSharedNetwork {
-		let hash = name.unicodeScalars.reduce(0) { ($0 &* 31 &+ Int($1.value)) & 0x7FFF_FFFF }
-		let subnet = 100 + (hash % 100)
 
-		return VZSharedNetwork(
-			mode: mode,
-			netmask: "255.255.255.0",
-			dhcpStart: "192.168.\(subnet).1",
-			dhcpEnd: "192.168.\(subnet).254",
-			interfaceID: UUID().uuidString
-		)
-	}
-
-	public func composeNetworkSubnet(name: String) -> VZSharedNetwork {
-		let mode: VMNetMode = self.driverOpts?["mode"].flatMap { VMNetMode.init(argument: $0) } ?? .shared
-		guard let gateway = self.driverOpts?["gateway"] else {
-			return composeNetworkSubnet(name, mode: mode)
+	/// Resolves the `BridgeAttachement.network` name a `driver: bridge` compose network attaches
+	/// to. This is Apple's Virtualization.framework sense of "bridged" (a real host network
+	/// interface), not Docker's own "bridge" driver sense (a private, host-only virtual switch) —
+	/// caker has no equivalent of the latter, so `driver: bridge` here always means "attach the VM
+	/// directly to a physical/bridged interface, or a real physical interface named `networkKey`."
+	/// `name` (an explicit override, e.g. for `external: true`) wins if present; otherwise the
+	/// network's own YAML key is used directly as a physical interface identifier/display name —
+	/// except for the reserved key `"default"` (Docker Compose's own implicit-network convention,
+	/// also `ComposeHandler.builtinNetworks`' historical sentinel), which maps to caker's own
+	/// configured default bridged interface (`CakedKeyConfig.bridgedNetwork`), since there's no way
+	/// to infer which specific host NIC a bare "default" network should bridge to, and requiring
+	/// every compose file to hardcode one would break portability across hosts.
+	public func bridgedAttachmentName(networkKey: String) -> String {
+		if let name, name.isEmpty == false {
+			return name
 		}
 
-		guard let gateway = gateway.toNetwork() else {
-			return composeNetworkSubnet(name, mode: mode)
-		}
-
-		var dhcpEnd = gateway.range.upperBound
-		if let dhcp_end = self.driverOpts?["dhcp_end"], let dhcp_end = IP.V4(dhcp_end) {
-			dhcpEnd = dhcp_end
-		}
-
-		return VZSharedNetwork(
-			mode: mode,
-			netmask: "\(gateway.bits)".cidrToNetmask(),
-			dhcpStart: gateway.range.lowerBound.description,
-			dhcpEnd: dhcpEnd.description,
-			interfaceID: UUID().uuidString
-		)
+		return networkKey == "default" ? "bridged" : networkKey
 	}
 }
 
@@ -329,7 +308,16 @@ public struct ComposeService: Codable {
 	public init() {}
 
 	/// Convert to `BuildOptions`. Environment variables are injected via cloud-init.
-	public func toBuildOptions(name: String) throws -> (options: BuildOptions, cleanup: [URL]) {
+	/// `composeNetworks` is the parent `ComposeFile`'s top-level `networks:` section — needed so a
+	/// service's own `networks: [name, ...]` list can be resolved against each name's `driver`/`name`
+	/// definition (see `ComposeNetwork.bridgedAttachmentName(networkKey:)`) rather than being handed
+	/// straight to `BridgeAttachement` as a raw string, which previously left a `driver: bridge`
+	/// network — including the reserved `"default"` name every new compose project starts with —
+	/// unable to ever resolve to a real network device: nothing here ever created a caker network,
+	/// a physical interface, or the default bridged interface under that literal name, so the VM
+	/// silently came up with no network attachment for it at all (`CakeConfig.collectNetworks` just
+	/// logs a warning and drops the device).
+	public func toBuildOptions(name: String, composeNetworks: [String: ComposeNetwork?]?) throws -> (options: BuildOptions, cleanup: [URL]) {
 		let memoryMB = parseMemoryMB(deploy?.resources?.limits?.memory ?? "") ?? 2048
 		var filesToClean: [URL] = []
 		var mounts: [DirectorySharingAttachment] = []
@@ -355,8 +343,16 @@ public struct ComposeService: Codable {
 		}
 
 		if let networks {
-			ethernets = try networks.compactMap {
-				try BridgeAttachement(parseFrom: $0)
+			ethernets = try networks.compactMap { networkName -> BridgeAttachement in
+				let resolvedName: String
+
+				if let networkDef = composeNetworks?[networkName].flatMap({ $0 }), networkDef.driver == .bridge {
+					resolvedName = networkDef.bridgedAttachmentName(networkKey: networkName)
+				} else {
+					resolvedName = networkName
+				}
+
+				return try BridgeAttachement(parseFrom: resolvedName)
 			}
 		}
 
