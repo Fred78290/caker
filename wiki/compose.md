@@ -89,11 +89,7 @@ services:
 
 networks:
   default:
-    driver: bridge       # bridge (NAT partagé) ou none
-    # driver_opts:
-    #   mode: shared     # shared (défaut) ou host
-    #   gateway: 192.168.105.1/24
-    #   dhcp_end: 192.168.105.254
+    driver: bridge       # attache la VM à un réseau physique/bridgé — voir "Réseaux" ci-dessous
 ```
 
 ### Nommage des VM
@@ -127,9 +123,15 @@ depends_on:
 
 ### Réseaux
 
-Lorsque `driver: bridge` est défini et que `external` n'est pas `true`, Caker crée un nouveau réseau NAT partagé. Un sous-réseau `/24` déterministe est dérivé du nom du réseau (dans la plage `192.168.100.x`–`192.168.199.x`) à moins que vous ne spécifiiez une `gateway` dans `driver_opts`.
+`driver: bridge` attache toujours la VM à un **réseau physique/bridgé réel** — au sens d'Apple Virtualization.framework, pas au sens Docker (qui désigne un simple commutateur virtuel privé, hébergé sur l'hôte). Caker n'a pas d'équivalent au « bridge » de Docker : il n'y a donc rien à *créer*, seulement une interface existante à référencer.
 
-Lorsque `external: true`, Caker attache la VM de service à un réseau nommé existant au lieu d'en créer un.
+La résolution du nom cible fonctionne ainsi :
+
+- Si le réseau déclare un champ `name:`, celui-ci l'emporte — utilisé notamment avec `external: true`, pour désigner une interface déjà existante.
+- Sinon, la **clé** du réseau elle-même sert directement d'identifiant d'interface physique (par ex. `en0`) — Caker vérifie qu'une telle interface existe réellement sur l'hôte et échoue immédiatement sinon (`compose up` renvoie une erreur claire plutôt que de démarrer la VM sans réseau).
+- Exception : la clé réservée **`default`** (la convention Docker Compose de réseau implicite — c'est celle du modèle généré par `compose init`) se résout vers l'interface bridgée par défaut configurée dans Caker (réglable dans `caker` → Réglages avancés → « Bridged network ») — il n'y a pas moyen de deviner quelle carte réseau hôte un réseau `default` nu devrait utiliser.
+
+Lorsque `external: true`, Caker attache simplement la VM de service à l'interface déjà existante, sans validation supplémentaire.
 
 ## Sous-commandes
 
@@ -219,6 +221,14 @@ caked    compose init [--force]
 | Option | Défaut | Description |
 | --- | --- | --- |
 | `-f, --force` | désactivé | Écraser un `compose.yml` existant |
+
+## App Caker (interface graphique)
+
+Au-delà de la CLI, l'app `caker` offre une gestion complète de Compose dans son interface — disponible dans tous les modes de connexion, y compris `.app` (VM embarquées dans le processus, sans `caked` séparé), puisque la logique Compose ne dépend d'aucun processus serveur.
+
+- **Catégorie « Compose » de la barre latérale** — liste tous les projets enregistrés (mise à jour toutes les 3 secondes, il n'y a pas de mécanisme de notification push pour Compose). Chaque ligne affiche un résumé (« n/m en cours »), un indicateur d'état, et propose Éditer / Démarrer-ou-Arrêter / Supprimer une fois sélectionnée. Un panneau de détail affiche le statut de chaque service individuellement.
+- **Éditeur Compose** — un éditeur YAML brut plutôt qu'un formulaire structuré complet (la richesse polymorphe du format — formes courtes/longues pour `depends_on`/`environment`/`ports`/`volumes` — rendrait un formulaire complet disproportionné pour une première version). Pré-rempli avec le modèle par défaut pour un nouveau projet, ou une reconstruction du projet existant pour une édition (seuls le nom et l'image de chaque service sont mémorisés par le registre — ports, volumes, environnement, réseaux et depends_on doivent être ré-ajoutés si nécessaire). Un indicateur « Analyse OK » / « Erreur d'analyse : … » se met à jour en direct pendant la frappe ; « Enregistrer et démarrer » relance simplement `compose up`, qui gère déjà correctement la création et la mise à jour. Un petit formulaire « Ajouter un service » insère un bloc YAML préformaté sans avoir à éditer le YAML brut pour un ajout simple.
+- **Extras de la barre de menus** — un sous-menu « Compose » liste les projets enregistrés avec des actions Ouvrir/Démarrer/Arrêter par projet, plus un élément « Nouveau projet compose… » qui ouvre directement l'éditeur.
 
 ## Différences avec Docker Compose
 
@@ -371,11 +381,7 @@ services:
 
 networks:
   default:
-    driver: bridge       # bridge (shared NAT) or none
-    # driver_opts:
-    #   mode: shared     # shared (default) or host
-    #   gateway: 192.168.105.1/24
-    #   dhcp_end: 192.168.105.254
+    driver: bridge       # attaches the VM to a physical/bridged network — see "Networks" below
 ```
 
 ### VM naming
@@ -409,9 +415,15 @@ depends_on:
 
 ### Networks
 
-When `driver: bridge` is set and `external` is not `true`, Caker creates a new shared NAT network. A deterministic `/24` subnet is derived from the network name (in the range `192.168.100.x`–`192.168.199.x`) unless you specify a `gateway` in `driver_opts`.
+`driver: bridge` always attaches the VM to a **real physical/bridged network** — in Apple Virtualization.framework's sense of "bridged," not Docker's own sense (a private, host-only virtual switch). Caker has no equivalent of Docker's own "bridge" driver, so there is nothing to *create* here, only an existing interface to reference.
 
-When `external: true`, Caker attaches the service VM to an existing named network instead of creating one.
+The target name resolves as follows:
+
+- If the network declares a `name:` field, that wins — typically paired with `external: true`, to point at an interface that already exists.
+- Otherwise, the network's own **key** is used directly as a physical interface identifier (e.g. `en0`) — Caker verifies that interface actually exists on the host and fails immediately if it doesn't (`compose up` returns a clear error instead of starting the VM with no network device).
+- Exception: the reserved key **`default`** (Docker Compose's own implicit-network convention — also what `compose init`'s own template uses) resolves to Caker's configured default bridged interface (set under `caker` → Advanced Settings → "Bridged network") — there's no way to infer which host NIC a bare `default` network should bridge to.
+
+When `external: true`, Caker just attaches the service VM to the already-existing interface, with no further validation.
 
 ## Subcommands
 
@@ -501,6 +513,14 @@ caked    compose init [--force]
 | Flag | Default | Description |
 | --- | --- | --- |
 | `-f, --force` | off | Overwrite an existing `compose.yml` |
+
+## Caker app (GUI)
+
+Beyond the CLI, the `caker` app offers full Compose management in its own interface — available in every connection mode, including `.app` (VMs embedded in-process, no separate `caked`), since the Compose logic has no server-process dependency at all.
+
+- **"Compose" sidebar category** — lists every registered project (polled every 3 seconds; there's no push-notification mechanism for Compose state). Each row shows a summary ("n/m running"), a status indicator, and offers Edit / Start-or-Stop / Delete once selected. A detail pane shows each service's individual status.
+- **Compose Editor** — a raw-YAML editor rather than a fully structured form (the format's polymorphic richness — short/long forms for `depends_on`/`environment`/`ports`/`volumes` — would make a complete structured form out of proportion for a first pass). Seeded from the default template for a new project, or a best-effort reconstruction of an existing one for editing (only each service's name and image are remembered by the registry — ports, volumes, environment, networks and depends_on must be re-added if the project needs them). A live "Parses OK" / "Parse error: …" indicator updates as you type; "Save & Start" simply re-runs `compose up`, which already handles both creation and updates correctly. A small "Add service" form inserts a formatted YAML block for a quick addition without hand-editing the raw YAML.
+- **Menu bar extras** — a "Compose" submenu lists registered projects with per-project Open/Start/Stop actions, plus a "New compose project…" item that opens the editor directly.
 
 ## Differences from Docker Compose
 

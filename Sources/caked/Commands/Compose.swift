@@ -257,11 +257,11 @@ struct ComposeInit: ParsableCommand {
 		let dest = cwd.appendingPathComponent(ComposeFile.filename)
 
 		if FileManager.default.fileExists(atPath: dest.path(percentEncoded: false)) && !force {
-			throw ValidationError(String(localized: "\(ComposeFile.filename) already exists — use --force to overwrite."))
+			throw ValidationError(String(format: String(localized: "%@ already exists — use --force to overwrite."), ComposeFile.filename))
 		}
 
 		try ComposeFile.template.write(to: dest, atomically: true, encoding: .utf8)
-		Logger.appendNewLine(String(localized: "Created \(dest.path(percentEncoded: false))"))
+		Logger.appendNewLine(String(format: String(localized: "Created %@"), dest.path(percentEncoded: false)))
 		Logger.appendNewLine(String(localized: "Edit compose.yml then run `caked compose up` to start your services."))
 	}
 }
