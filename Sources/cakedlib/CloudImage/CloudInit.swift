@@ -75,7 +75,46 @@ extension Data {
 	}
 }
 
-extension Dictionary {
+extension Dictionary where Key == String, Value: Codable {
+	init(contentsOf url: URL) throws {
+		let data = try Data(contentsOf: url)
+		let decoder = JSONDecoder()
+
+		decoder.dateDecodingStrategy = .iso8601
+
+		self = try decoder.decode([String: Value].self, from: data)
+	}
+
+	var jsonData: Data? {
+		let encoder = JSONEncoder()
+
+		encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+		encoder.dateEncodingStrategy = .iso8601
+
+		return try? encoder.encode(self)
+	}
+
+	func toJSONString() -> String? {
+		guard let data = self.jsonData else { return nil }
+
+		return String(data: data, encoding: .utf8)
+	}
+
+	func write(to url: URL) throws {
+		let encoder = JSONEncoder()
+
+		encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+		encoder.dateEncodingStrategy = .iso8601
+
+		let data = try encoder.encode(self)
+
+		try data.write(to: url)
+	}
+}
+
+typealias LazyDictionary = Dictionary<String, Any>
+
+extension LazyDictionary {
 	init(contentsOf: URL) throws {
 		self = try JSONSerialization.jsonObject(with: try Data(contentsOf: contentsOf), options: []) as! Dictionary
 	}
@@ -1315,7 +1354,7 @@ class CloudInit {
 				"systemctl enable cloud-config.service",
 				"systemctl enable cloud-final.service",
 				"systemctl start cloud-init.service",
-				
+
 			], userData: userData, network: network)
 
 		return try autoInstall.toCloudInit()
@@ -1387,7 +1426,7 @@ class CloudInit {
 	}
 
 	func createDefaultCloudInit(config: CakeConfig, name: String, cdromURL: URL) throws {
-		var seed: [String: Any] = [:]
+		var seed: LazyDictionary = [:]
 
 		try? cdromURL.delete()
 
