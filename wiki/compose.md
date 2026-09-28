@@ -74,6 +74,8 @@ services:
     packages:             # paquets apt/dnf/apk/zypper installés via cloud-init à la construction
       - git
       - curl
+    post_commands:        # exécutées après packages/write_files via cloud-init
+      - systemctl enable --now docker
 
   database:
     image: ubuntu:24.04
@@ -146,7 +148,17 @@ packages:
   - curl
 ```
 
-`packages` et `environment` partagent le même document cloud-init `user-data` — les deux sont combinés en un seul fichier lors de la construction, vous pouvez donc utiliser les deux en même temps sans conflit.
+### Commandes post-installation (`post_commands`)
+
+Une autre extension VM Caker : liste de commandes shell exécutées via cloud-init **après** l'installation des paquets et l'écriture des fichiers (`runcmd` de cloud-init s'exécute toujours dans la dernière étape du démarrage, quel que soit l'ordre des sections dans le fichier).
+
+```yaml
+post_commands:
+  - systemctl enable --now docker
+  - usermod -aG docker ubuntu
+```
+
+`packages`, `post_commands` et `environment` partagent le même document cloud-init `user-data` — tous sont combinés en un seul fichier lors de la construction, vous pouvez donc les utiliser ensemble sans conflit.
 
 ## Sous-commandes
 
@@ -250,7 +262,7 @@ Au-delà de la CLI, l'app `caker` offre une gestion complète de Compose dans so
 | Fonctionnalité | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Démon de conteneurs | VM Apple Virtualization.framework |
-| Extensions VM | Non | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages` |
+| Extensions VM | Non | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `post_commands` |
 | `restart` | Politique appliquée | Accepté, non appliqué |
 | Conditions `depends_on` | Appliquées | Ordre uniquement — les conditions sont acceptées mais non vérifiées |
 | Clé `build:` | Build depuis un Dockerfile | Non pris en charge — utilisez `image:` avec une URL d'image cloud ou un alias simplestream |
@@ -381,6 +393,8 @@ services:
     packages:            # apt/dnf/apk/zypper packages installed via cloud-init at build
       - git
       - curl
+    post_commands:       # run after packages/write_files, via cloud-init
+      - systemctl enable --now docker
 
   database:
     image: ubuntu:24.04
@@ -453,7 +467,17 @@ packages:
   - curl
 ```
 
-`packages` and `environment` share the same cloud-init `user-data` document — both are combined into one file at build time, so you can use both together without conflict.
+### Post-install commands (`post_commands`)
+
+Another Caker VM extension: a list of shell commands run via cloud-init **after** packages are installed and files are written (cloud-init's own `runcmd` always executes in the last boot stage, regardless of section order in the file).
+
+```yaml
+post_commands:
+  - systemctl enable --now docker
+  - usermod -aG docker ubuntu
+```
+
+`packages`, `post_commands`, and `environment` all share the same cloud-init `user-data` document — they're combined into one file at build time, so you can use them together without conflict.
 
 ## Subcommands
 
@@ -557,7 +581,7 @@ Beyond the CLI, the `caker` app offers full Compose management in its own interf
 | Feature | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Container daemon | Apple Virtualization.framework VMs |
-| VM extensions | No | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages` |
+| VM extensions | No | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `post_commands` |
 | `restart` | Enforced policy | Accepted, not enforced |
 | `depends_on` conditions | Enforced | Order only — conditions are accepted but not checked |
 | `build:` key | Build from Dockerfile | Not supported — use `image:` with a cloud image URL or simplestream alias |

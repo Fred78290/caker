@@ -332,6 +332,8 @@ final class ComposeTest: XCTestCase {
 		    packages:
 		      - git
 		      - curl
+		    post_commands:
+		      - systemctl enable --now docker
 		"""))
 		let svc = try XCTUnwrap(f.services["app"])
 		XCTAssertEqual(svc.disk, 20)
@@ -340,6 +342,7 @@ final class ComposeTest: XCTestCase {
 		XCTAssertEqual(svc.nested, true)
 		XCTAssertEqual(svc.autostart, false)
 		XCTAssertEqual(svc.packages, ["git", "curl"])
+		XCTAssertEqual(svc.postCommands, ["systemctl enable --now docker"])
 	}
 
 	// MARK: - packages (cloud-init installation at build)
@@ -396,9 +399,79 @@ final class ComposeTest: XCTestCase {
 		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
 		defer { try? FileManager.default.removeItem(at: tmp) }
 
-		// The template's own `packages:` example is commented out (documentation only) — this just
-		// confirms adding the field to ComposeService didn't break decoding the bundled template.
+		// The template's own `packages:`/`post_commands:` examples are commented out (documentation
+		// only) — this just confirms adding the fields to ComposeService didn't break decoding the
+		// bundled template.
 		XCTAssertNoThrow(try ComposeFile.load(fromFile: tmp.path))
+	}
+
+	// MARK: - post_commands (cloud-init runcmd at build)
+
+	func testPostCommandsGenerateCloudInitRuncmd() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.postCommands = ["systemctl enable --now docker", "usermod -aG docker ubuntu"]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("runcmd:"))
+		XCTAssertTrue(content.contains("systemctl enable --now docker"))
+		XCTAssertTrue(content.contains("usermod -aG docker ubuntu"))
+	}
+
+	func testEmptyPostCommandsListDoesNotGenerateUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.postCommands = []
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+
+		XCTAssertNil(built.options.userData)
+	}
+
+	func testPostCommandsSurviveYAMLSpecialCharacters() throws {
+		// Shell commands routinely contain YAML-significant characters (colons, quotes, pipes) —
+		// unlike `packages`/`environment`, this must go through a real encoder rather than naive
+		// string interpolation, or a command like this would produce invalid/misparsed YAML.
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.postCommands = ["echo \"hello: world\" | tee /tmp/greeting.txt"]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		// Round-trip through a real YAML parser rather than substring-matching the raw text, since
+		// the whole point is that the encoder is free to choose whatever quoting style keeps this
+		// valid — a substring check on the exact original text would be the wrong thing to assert.
+		struct RunCmdSection: Codable { let runcmd: [String] }
+		let decoded = try YAMLDecoder().decode(RunCmdSection.self, from: content)
+
+		XCTAssertEqual(decoded.runcmd, ["echo \"hello: world\" | tee /tmp/greeting.txt"])
+	}
+
+	func testPackagesAndPostCommandsShareOneCloudInitDocument() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = ["docker.io"]
+		svc.postCommands = ["systemctl enable --now docker"]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("packages:"))
+		XCTAssertTrue(content.contains("docker.io"))
+		XCTAssertTrue(content.contains("runcmd:"))
+		XCTAssertTrue(content.contains("systemctl enable --now docker"))
 	}
 
 	// MARK: - Network resolution (bridge driver)

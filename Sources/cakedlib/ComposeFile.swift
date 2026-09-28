@@ -298,19 +298,25 @@ public struct ComposeService: Codable {
 	public var password: String?
 	public var nested: Bool?
 	public var autostart: Bool?
-	public var packages: [String]?  // apt/dnf/apk/zypper package names, installed via cloud-init at build
+	public var packages: [String]?      // apt/dnf/apk/zypper package names, installed via cloud-init at build
+	public var postCommands: [String]?  // shell commands run via cloud-init's runcmd, after packages/write_files are applied
 
 	enum CodingKeys: String, CodingKey {
 		case image, ports, sockets, volumes, environment, networks, deploy, restart, hostname
 		case dependsOn = "depends_on"
 		case disk, user, password, nested, autostart, packages
+		case postCommands = "post_commands"
 	}
 
 	public init() {}
 
-	/// Convert to `BuildOptions`. Environment variables and `packages` are both injected via the same
-	/// cloud-init user-data document (`opts.userData`), since a VM only gets one — see the two
-	/// sections collected right before it's written.
+	/// Convert to `BuildOptions`. `environment`, `packages`, and `post_commands` are all injected via
+	/// the same cloud-init user-data document (`opts.userData`), since a VM only gets one — see the
+	/// sections collected right before it's written. `post_commands` maps to cloud-init's own
+	/// `runcmd:` key, which cloud-init always runs in its "final" boot stage — strictly after the
+	/// "config" stage that installs `packages:` and the "init" stage that writes `write_files:` —
+	/// regardless of what order these three sections appear in the generated YAML, so "post" here
+	/// means exactly what it says: after packages are installed and files are written.
 	/// `composeNetworks` is the parent `ComposeFile`'s top-level `networks:` section — needed so a
 	/// service's own `networks: [name, ...]` list can be resolved against each name's `driver`/`name`
 	/// definition (see `ComposeNetwork.bridgedAttachmentName(networkKey:)`) rather than being handed
@@ -400,6 +406,19 @@ public struct ComposeService: Codable {
 		if let packages, packages.isEmpty == false {
 			let packageList = packages.map { "  - \($0)" }.joined(separator: "\n")
 			cloudInitSections.append("packages:\n\(packageList)")
+		}
+
+		if let postCommands, postCommands.isEmpty == false {
+			// Commands are arbitrary shell, far more likely than a package name to contain YAML-
+			// significant characters (colons, quotes, pipes) — hand-formatting them the way
+			// `packages`/`write_files` above do would risk producing invalid or misparsed YAML, so
+			// this goes through a real encoder instead.
+			struct RunCmdSection: Codable {
+				let runcmd: [String]
+			}
+
+			let encoded = try YAMLEncoder().encode(RunCmdSection(runcmd: postCommands))
+			cloudInitSections.append(encoded.trimmingCharacters(in: .whitespacesAndNewlines))
 		}
 
 		if cloudInitSections.isEmpty == false {
@@ -582,6 +601,8 @@ services:
     # packages:       # installed via cloud-init on first boot
     #   - git
     #   - curl
+    # post_commands:  # run via cloud-init after packages/write_files are applied
+    #   - systemctl enable --now docker
 
   database:
     image: ubuntu:24.04
