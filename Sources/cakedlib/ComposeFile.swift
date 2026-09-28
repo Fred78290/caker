@@ -298,16 +298,19 @@ public struct ComposeService: Codable {
 	public var password: String?
 	public var nested: Bool?
 	public var autostart: Bool?
+	public var packages: [String]?  // apt/dnf/apk/zypper package names, installed via cloud-init at build
 
 	enum CodingKeys: String, CodingKey {
 		case image, ports, sockets, volumes, environment, networks, deploy, restart, hostname
 		case dependsOn = "depends_on"
-		case disk, user, password, nested, autostart
+		case disk, user, password, nested, autostart, packages
 	}
 
 	public init() {}
 
-	/// Convert to `BuildOptions`. Environment variables are injected via cloud-init.
+	/// Convert to `BuildOptions`. Environment variables and `packages` are both injected via the same
+	/// cloud-init user-data document (`opts.userData`), since a VM only gets one — see the two
+	/// sections collected right before it's written.
 	/// `composeNetworks` is the parent `ComposeFile`'s top-level `networks:` section — needed so a
 	/// service's own `networks: [name, ...]` list can be resolved against each name's `driver`/`name`
 	/// definition (see `ComposeNetwork.bridgedAttachmentName(networkKey:)`) rather than being handed
@@ -373,26 +376,42 @@ public struct ComposeService: Codable {
 
 		try opts.validateImageSource(remote: false)
 
+		// `environment` and `packages` both need to reach the guest via the same cloud-init
+		// user-data document — `BuildOptions.userData` is a single file path, so both are collected
+		// into one set of top-level cloud-init keys and written together rather than each claiming
+		// the slot independently (which would silently drop whichever one ran second).
+		var cloudInitSections: [String] = []
+
 		if let env = environment {
 			let envLines = env.lines
 			if !envLines.isEmpty {
 				let indented = envLines.map { "        \($0)" }.joined(separator: "\n")
-				let cloudInit = """
-				write_files:
-				  - path: /etc/environment
-				    append: true
-				    content: |
-				\(indented)
-				"""
-
-				let tempFile = URL(fileURLWithPath: NSTemporaryDirectory())
-					.appendingPathComponent("compose-cloud-init-\(UUID().uuidString).yaml")
-
-				try cloudInit.write(to: tempFile, atomically: true, encoding: .utf8)
-
-				opts.userData = tempFile.path(percentEncoded: false)
-				filesToClean.append(tempFile)
+				cloudInitSections.append(
+					"""
+					write_files:
+					  - path: /etc/environment
+					    append: true
+					    content: |
+					\(indented)
+					""")
 			}
+		}
+
+		if let packages, packages.isEmpty == false {
+			let packageList = packages.map { "  - \($0)" }.joined(separator: "\n")
+			cloudInitSections.append("packages:\n\(packageList)")
+		}
+
+		if cloudInitSections.isEmpty == false {
+			let cloudInit = cloudInitSections.joined(separator: "\n")
+
+			let tempFile = URL(fileURLWithPath: NSTemporaryDirectory())
+				.appendingPathComponent("compose-cloud-init-\(UUID().uuidString).yaml")
+
+			try cloudInit.write(to: tempFile, atomically: true, encoding: .utf8)
+
+			opts.userData = tempFile.path(percentEncoded: false)
+			filesToClean.append(tempFile)
 		}
 
 		return (opts, filesToClean)
@@ -560,6 +579,9 @@ services:
     disk: 20          # GiB
     user: ubuntu
     password: ubuntu
+    # packages:       # installed via cloud-init on first boot
+    #   - git
+    #   - curl
 
   database:
     image: ubuntu:24.04

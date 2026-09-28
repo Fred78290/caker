@@ -329,6 +329,9 @@ final class ComposeTest: XCTestCase {
 		    password: secret
 		    nested: true
 		    autostart: false
+		    packages:
+		      - git
+		      - curl
 		"""))
 		let svc = try XCTUnwrap(f.services["app"])
 		XCTAssertEqual(svc.disk, 20)
@@ -336,6 +339,66 @@ final class ComposeTest: XCTestCase {
 		XCTAssertEqual(svc.password, "secret")
 		XCTAssertEqual(svc.nested, true)
 		XCTAssertEqual(svc.autostart, false)
+		XCTAssertEqual(svc.packages, ["git", "curl"])
+	}
+
+	// MARK: - packages (cloud-init installation at build)
+
+	func testPackagesGenerateCloudInitUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = ["git", "curl"]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("packages:"))
+		XCTAssertTrue(content.contains("  - git"))
+		XCTAssertTrue(content.contains("  - curl"))
+	}
+
+	func testEmptyPackagesListDoesNotGenerateUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = []
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+
+		XCTAssertNil(built.options.userData)
+	}
+
+	func testPackagesAndEnvironmentShareOneCloudInitDocument() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = ["git"]
+		svc.environment = .list(["NODE_ENV=production"])
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		// Both sections must land in the same file — BuildOptions.userData is a single path, so
+		// whichever section were generated second would otherwise silently clobber the first.
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("packages:"))
+		XCTAssertTrue(content.contains("  - git"))
+		XCTAssertTrue(content.contains("write_files:"))
+		XCTAssertTrue(content.contains("NODE_ENV=production"))
+	}
+
+	func testPackagesFieldParsesFromTemplate() throws {
+		let tmp = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString + ".yml")
+		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: tmp) }
+
+		// The template's own `packages:` example is commented out (documentation only) — this just
+		// confirms adding the field to ComposeService didn't break decoding the bundled template.
+		XCTAssertNoThrow(try ComposeFile.load(fromFile: tmp.path))
 	}
 
 	// MARK: - Network resolution (bridge driver)

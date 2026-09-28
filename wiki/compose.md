@@ -71,6 +71,9 @@ services:
     password: ubuntu     # mot de passe invité
     nested: false         # activer la virtualisation imbriquée
     autostart: false      # démarrer cette VM au démarrage de caked
+    packages:             # paquets apt/dnf/apk/zypper installés via cloud-init à la construction
+      - git
+      - curl
 
   database:
     image: ubuntu:24.04
@@ -132,6 +135,18 @@ La résolution du nom cible fonctionne ainsi :
 - Exception : la clé réservée **`default`** (la convention Docker Compose de réseau implicite — c'est celle du modèle généré par `compose init`) se résout vers l'interface bridgée par défaut configurée dans Caker (réglable dans `caker` → Réglages avancés → « Bridged network ») — il n'y a pas moyen de deviner quelle carte réseau hôte un réseau `default` nu devrait utiliser.
 
 Lorsque `external: true`, Caker attache simplement la VM de service à l'interface déjà existante, sans validation supplémentaire.
+
+### Paquets (`packages`)
+
+Une extension VM Caker : liste de paquets (`apt`/`dnf`/`apk`/`zypper` selon la distribution de l'image) installés via cloud-init dès le premier démarrage de la VM, avant que `compose up` ne la considère comme prête.
+
+```yaml
+packages:
+  - git
+  - curl
+```
+
+`packages` et `environment` partagent le même document cloud-init `user-data` — les deux sont combinés en un seul fichier lors de la construction, vous pouvez donc utiliser les deux en même temps sans conflit.
 
 ## Sous-commandes
 
@@ -235,7 +250,7 @@ Au-delà de la CLI, l'app `caker` offre une gestion complète de Compose dans so
 | Fonctionnalité | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Démon de conteneurs | VM Apple Virtualization.framework |
-| Extensions VM | Non | `disk`, `user`, `password`, `nested`, `autostart`, `sockets` |
+| Extensions VM | Non | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages` |
 | `restart` | Politique appliquée | Accepté, non appliqué |
 | Conditions `depends_on` | Appliquées | Ordre uniquement — les conditions sont acceptées mais non vérifiées |
 | Clé `build:` | Build depuis un Dockerfile | Non pris en charge — utilisez `image:` avec une URL d'image cloud ou un alias simplestream |
@@ -363,6 +378,9 @@ services:
     password: ubuntu     # guest password
     nested: false        # enable nested virtualisation
     autostart: false     # start this VM when caked starts
+    packages:            # apt/dnf/apk/zypper packages installed via cloud-init at build
+      - git
+      - curl
 
   database:
     image: ubuntu:24.04
@@ -424,6 +442,18 @@ The target name resolves as follows:
 - Exception: the reserved key **`default`** (Docker Compose's own implicit-network convention — also what `compose init`'s own template uses) resolves to Caker's configured default bridged interface (set under `caker` → Advanced Settings → "Bridged network") — there's no way to infer which host NIC a bare `default` network should bridge to.
 
 When `external: true`, Caker just attaches the service VM to the already-existing interface, with no further validation.
+
+### Packages (`packages`)
+
+A Caker VM extension: a list of packages (`apt`/`dnf`/`apk`/`zypper`, depending on the image's distro) installed via cloud-init on the VM's very first boot, before `compose up` considers it ready.
+
+```yaml
+packages:
+  - git
+  - curl
+```
+
+`packages` and `environment` share the same cloud-init `user-data` document — both are combined into one file at build time, so you can use both together without conflict.
 
 ## Subcommands
 
@@ -527,7 +557,7 @@ Beyond the CLI, the `caker` app offers full Compose management in its own interf
 | Feature | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Container daemon | Apple Virtualization.framework VMs |
-| VM extensions | No | `disk`, `user`, `password`, `nested`, `autostart`, `sockets` |
+| VM extensions | No | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages` |
 | `restart` | Enforced policy | Accepted, not enforced |
 | `depends_on` conditions | Enforced | Order only — conditions are accepted but not checked |
 | `build:` key | Build from Dockerfile | Not supported — use `image:` with a cloud image URL or simplestream alias |
