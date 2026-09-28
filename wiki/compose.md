@@ -25,7 +25,7 @@ cakectl compose down
 cakectl compose rm --stop
 ```
 
-Le modèle généré par `compose init` est un exemple complet à deux VM (PostgreSQL + pgAdmin) — voir « Paquets », « Fichiers additionnels » et « Commandes post-installation » ci-dessous pour le détail de son installation via `packages`/`write_files`/`post_commands`.
+Le modèle généré par `compose init` est un exemple complet à deux VM (MariaDB + phpMyAdmin, compatible arm64/amd64) — voir « Paquets », « Fichiers additionnels » et « Commandes post-installation » ci-dessous pour le détail de son installation via `packages`/`write_files`/`post_commands`.
 
 ## Ordre de recherche du fichier
 
@@ -367,7 +367,7 @@ cakectl compose down
 cakectl compose rm --stop
 ```
 
-The template `compose init` generates is a full two-VM example (PostgreSQL + pgAdmin) — see "Packages", "Extra files", and "Post-install commands" below for how it installs each via `packages`/`write_files`/`post_commands`.
+The template `compose init` generates is a full two-VM example (MariaDB + phpMyAdmin, works on both arm64 and amd64) — see "Packages", "Extra files", and "Post-install commands" below for how it installs each via `packages`/`write_files`/`post_commands`.
 
 ## File lookup order
 

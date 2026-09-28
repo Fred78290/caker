@@ -715,8 +715,8 @@ final class ComposeTest: XCTestCase {
 		defer { try? FileManager.default.removeItem(at: tmp) }
 
 		let f = try ComposeFile.load(fromFile: tmp.path)
-		XCTAssertTrue(f.services.keys.contains("postgres"))
-		XCTAssertTrue(f.services.keys.contains("pgadmin"))
+		XCTAssertTrue(f.services.keys.contains("mariadb"))
+		XCTAssertTrue(f.services.keys.contains("phpmyadmin"))
 	}
 
 	func testTemplateDemonstratesPackagesAndPostCommands() throws {
@@ -726,49 +726,50 @@ final class ComposeTest: XCTestCase {
 		defer { try? FileManager.default.removeItem(at: tmp) }
 
 		let f = try ComposeFile.load(fromFile: tmp.path)
-		let postgres = try XCTUnwrap(f.services["postgres"])
-		let pgadmin = try XCTUnwrap(f.services["pgadmin"])
+		let mariadb = try XCTUnwrap(f.services["mariadb"])
+		let phpmyadmin = try XCTUnwrap(f.services["phpmyadmin"])
 
-		XCTAssertEqual(postgres.packages, ["postgresql"])
-		XCTAssertEqual(postgres.postCommands?.isEmpty, false)
-		// pgadmin needs the PGDG apt repo added first, so it can't use `packages:` at all — only
-		// `post_commands:` — this is the whole point of bundling it alongside postgres in the
-		// sample template, as a real illustration of when each field applies.
-		XCTAssertNil(pgadmin.packages)
-		XCTAssertEqual(pgadmin.postCommands?.isEmpty, false)
-		XCTAssertEqual(pgadmin.dependsOn?.serviceNames, ["postgres"])
+		XCTAssertEqual(mariadb.packages, ["mariadb-server"])
+		XCTAssertEqual(mariadb.postCommands?.isEmpty, false)
+		// phpmyadmin's package is debconf-interactive, so it can't use `packages:` at all (that
+		// list installs before any `post_commands:` preseeding can run) — only `post_commands:` —
+		// this is the whole point of bundling it alongside mariadb in the sample template, as a
+		// real illustration of when each field applies.
+		XCTAssertNil(phpmyadmin.packages)
+		XCTAssertEqual(phpmyadmin.postCommands?.isEmpty, false)
+		XCTAssertEqual(phpmyadmin.dependsOn?.serviceNames, ["mariadb"])
 	}
 
-	func testTemplatePostgresCredentialsResolveFromEnvironment() throws {
+	func testTemplateMariadbCredentialsResolveFromEnvironment() throws {
 		let tmp = FileManager.default.temporaryDirectory
 			.appendingPathComponent(UUID().uuidString + ".yml")
 		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
 		defer { try? FileManager.default.removeItem(at: tmp) }
 
 		let f = try ComposeFile.load(fromFile: tmp.path)
-		let postgres = try XCTUnwrap(f.services["postgres"])
-		let postCommands = try XCTUnwrap(postgres.postCommands)
+		let mariadb = try XCTUnwrap(f.services["mariadb"])
+		let postCommands = try XCTUnwrap(mariadb.postCommands)
 
 		// The post_commands pull the password/DB name back out of `environment:` (via
 		// `grep .../etc/environment`) rather than hardcoding them a second time — assert the
 		// wiring actually references the same keys `environment:` declares, not just that some
 		// post_commands exist.
-		XCTAssertTrue(postCommands.contains { $0.contains("POSTGRES_PASSWORD") })
-		XCTAssertTrue(postCommands.contains { $0.contains("POSTGRES_DB") })
+		XCTAssertTrue(postCommands.contains { $0.contains("MYSQL_ROOT_PASSWORD") })
+		XCTAssertTrue(postCommands.contains { $0.contains("MYSQL_DATABASE") })
 	}
 
-	func testTemplatePgadminWriteFilesEntryParses() throws {
+	func testTemplatePhpmyadminWriteFilesEntryParses() throws {
 		let tmp = FileManager.default.temporaryDirectory
 			.appendingPathComponent(UUID().uuidString + ".yml")
 		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
 		defer { try? FileManager.default.removeItem(at: tmp) }
 
 		let f = try ComposeFile.load(fromFile: tmp.path)
-		let pgadmin = try XCTUnwrap(f.services["pgadmin"])
-		let writeFiles = try XCTUnwrap(pgadmin.writeFiles)
+		let phpmyadmin = try XCTUnwrap(f.services["phpmyadmin"])
+		let writeFiles = try XCTUnwrap(phpmyadmin.writeFiles)
 
 		XCTAssertEqual(writeFiles.count, 1)
-		XCTAssertEqual(writeFiles.first?.path, "/etc/motd.d/pgadmin.motd")
+		XCTAssertEqual(writeFiles.first?.path, "/etc/motd.d/phpmyadmin.motd")
 		XCTAssertNotNil(writeFiles.first?.content)
 		XCTAssertNil(writeFiles.first?.source)
 	}

@@ -634,16 +634,18 @@ public struct ComposeFile: Codable {
 # Run `cakectl compose init` to regenerate this file.
 name: template
 services:
-  # PostgreSQL — real package install (via `packages:`) plus first-boot setup (via
-  # `post_commands:`), pulling its admin password/DB name straight out of `environment:` rather
-  # than hardcoding them a second time — a demo of all three fields working together.
-  postgres:
+  # MariaDB — real package install (via `packages:`) plus first-boot setup (via `post_commands:`),
+  # pulling its admin password/DB name straight out of `environment:` rather than hardcoding them
+  # a second time — a demo of all three fields working together. (Not PostgreSQL/pgAdmin: pgAdmin's
+  # apt repo publishes amd64 packages only, no arm64 build, which made that pairing unusable on
+  # Apple Silicon hosts — MariaDB/phpMyAdmin are both in Ubuntu's own default repos for every arch.)
+  mariadb:
     image: ubuntu:24.04
     ports:
-      - "5432:5432"
+      - "3306:3306"
     environment:
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: myapp
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: myapp
     networks:
       - default
     deploy:
@@ -656,18 +658,18 @@ services:
     user: ubuntu
     password: ubuntu
     packages:
-      - postgresql
+      - mariadb-server
     post_commands:
-      - sed -i "s/^#listen_addresses.*/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
-      - echo "host all all 0.0.0.0/0 scram-sha-256" >> /etc/postgresql/*/main/pg_hba.conf
-      - sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$(grep POSTGRES_PASSWORD /etc/environment | cut -d= -f2)'"
-      - sudo -u postgres createdb "$(grep POSTGRES_DB /etc/environment | cut -d= -f2)"
-      - systemctl restart postgresql
+      - sed -i "s/^bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf
+      - systemctl restart mariadb
+      - mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$(grep MYSQL_ROOT_PASSWORD /etc/environment | cut -d= -f2)'; CREATE DATABASE IF NOT EXISTS $(grep MYSQL_DATABASE /etc/environment | cut -d= -f2); GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '$(grep MYSQL_ROOT_PASSWORD /etc/environment | cut -d= -f2)' WITH GRANT OPTION; FLUSH PRIVILEGES;"
 
-  # pgAdmin (web) — needs the PGDG apt repo added before the package even exists, so unlike
-  # postgres above this can't use `packages:` at all (that list is installed before any
-  # `post_commands:` run) — everything here goes through `post_commands:` instead.
-  pgadmin:
+  # phpMyAdmin (web) — the phpmyadmin package is debconf-interactive by default (which webserver to
+  # auto-configure, whether to run its own local dbconfig-common setup) and would hang waiting for
+  # prompts under cloud-init's non-interactive `packages:` install — unlike mariadb above, this has
+  # to preseed those answers via `post_commands:` before installing, same "packages: only works
+  # when nothing needs asking first" lesson the old pgAdmin pairing demonstrated.
+  phpmyadmin:
     image: ubuntu:24.04
     ports:
       - "8080:80"
@@ -682,23 +684,22 @@ services:
     user: ubuntu
     password: ubuntu
     depends_on:
-      - postgres
+      - mariadb
     write_files:
-      - path: /etc/motd.d/pgadmin.motd
+      - path: /etc/motd.d/phpmyadmin.motd
         content: |
-          pgAdmin is reachable at http://<this-vm-ip>/ (forwarded to host port 8080).
+          phpMyAdmin is reachable at http://<this-vm-ip>/ (forwarded to host port 8080). Log in
+          with the mariadb VM's own IP as the server (phpMyAdmin allows an arbitrary server by
+          default) — find it with `cakectl infos compose-template-mariadb`.
         permissions: "0644"
       # - path: /etc/myapp/app.conf  # `source:` reads a file from the host instead of inlining it
       #   source: ./app.conf         # resolved relative to the current directory, like `volumes:`
     post_commands:
-      - "curl -fsSL https://www.pgadmin.org/static/packages_pgadmin_org.pub | gpg --dearmor -o /usr/share/keyrings/packages-pgadmin-org.gpg"
-      - "echo 'deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/noble pgadmin4 main' > /etc/apt/sources.list.d/pgadmin4.list"
-      - apt-get update
-      - PGADMIN_SETUP_EMAIL=admin@example.com PGADMIN_SETUP_PASSWORD=admin DEBIAN_FRONTEND=noninteractive apt-get install -y pgadmin4-web
-      # setup-web.sh reads the two PGADMIN_SETUP_* vars above to skip its login-account prompt,
-      # but may still ask to confirm the Apache webserver reconfiguration depending on the
-      # pgAdmin release — check `cakectl compose ps`/console output if pgadmin isn't reachable.
-      - /usr/pgadmin4/bin/setup-web.sh
+      - debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean false"
+      - debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
+      - DEBIAN_FRONTEND=noninteractive apt-get install -y phpmyadmin
+      - a2enconf phpmyadmin
+      - systemctl reload apache2
 
 networks:
   default:
