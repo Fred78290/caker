@@ -359,8 +359,8 @@ final class ComposeTest: XCTestCase {
 		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
 
 		XCTAssertTrue(content.contains("packages:"))
-		XCTAssertTrue(content.contains("  - git"))
-		XCTAssertTrue(content.contains("  - curl"))
+		XCTAssertTrue(content.contains("- git"))
+		XCTAssertTrue(content.contains("- curl"))
 	}
 
 	func testEmptyPackagesListDoesNotGenerateUserData() throws {
@@ -388,7 +388,7 @@ final class ComposeTest: XCTestCase {
 		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
 
 		XCTAssertTrue(content.contains("packages:"))
-		XCTAssertTrue(content.contains("  - git"))
+		XCTAssertTrue(content.contains("- git"))
 		XCTAssertTrue(content.contains("write_files:"))
 		XCTAssertTrue(content.contains("NODE_ENV=production"))
 	}
@@ -472,6 +472,140 @@ final class ComposeTest: XCTestCase {
 		XCTAssertTrue(content.contains("docker.io"))
 		XCTAssertTrue(content.contains("runcmd:"))
 		XCTAssertTrue(content.contains("systemctl enable --now docker"))
+	}
+
+	// MARK: - write_files (plain content or a host source file, via cloud-init)
+
+	func testWriteFilesWithPlainContentGenerateCloudInitUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.writeFiles = [
+			ComposeWriteFile(path: "/etc/motd.d/compose.motd", content: "Welcome to the compose VM\n", permissions: "0644")
+		]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		struct WF: Codable { let path: String; let content: String; let permissions: String? }
+		struct Doc: Codable { let write_files: [WF] }
+		let decoded = try YAMLDecoder().decode(Doc.self, from: content)
+
+		XCTAssertEqual(decoded.write_files.count, 1)
+		XCTAssertEqual(decoded.write_files.first?.path, "/etc/motd.d/compose.motd")
+		XCTAssertEqual(decoded.write_files.first?.content, "Welcome to the compose VM\n")
+		XCTAssertEqual(decoded.write_files.first?.permissions, "0644")
+	}
+
+	func testWriteFilesReadsSourceFileFromHost() throws {
+		let sourceFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".conf")
+		try "key = value\n".write(to: sourceFile, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: sourceFile) }
+
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.writeFiles = [
+			ComposeWriteFile(path: "/etc/myapp/app.conf", source: sourceFile.path)
+		]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("key = value"))
+	}
+
+	func testWriteFilesBase64EncodesNonUTF8SourceFile() throws {
+		let sourceFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".bin")
+		let binaryData = Data([0xFF, 0xD8, 0xFF, 0x00, 0x01, 0x02])
+		try binaryData.write(to: sourceFile)
+		defer { try? FileManager.default.removeItem(at: sourceFile) }
+
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.writeFiles = [
+			ComposeWriteFile(path: "/opt/asset.bin", source: sourceFile.path)
+		]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("encoding: b64"))
+		XCTAssertTrue(content.contains(binaryData.base64EncodedString()))
+	}
+
+	func testWriteFilesRequiresExactlyOneOfContentOrSource() throws {
+		var missingBoth = ComposeService()
+		missingBoth.image = "ubuntu:24.04"
+		missingBoth.writeFiles = [ComposeWriteFile(path: "/tmp/x")]
+
+		XCTAssertThrowsError(try missingBoth.toBuildOptions(name: "compose-test-app", composeNetworks: nil))
+
+		var bothSet = ComposeService()
+		bothSet.image = "ubuntu:24.04"
+		bothSet.writeFiles = [ComposeWriteFile(path: "/tmp/x", content: "a", source: "/tmp/does-not-matter")]
+
+		XCTAssertThrowsError(try bothSet.toBuildOptions(name: "compose-test-app", composeNetworks: nil))
+	}
+
+	func testWriteFilesAndEnvironmentShareOneWriteFilesKey() throws {
+		// `environment` already generates a /etc/environment write_files entry — a service-supplied
+		// write_files: must be merged into the *same* top-level key, not appended as a second
+		// write_files: section (which YAML doesn't define behavior for — in practice one of the two
+		// would silently be dropped).
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.environment = .list(["NODE_ENV=production"])
+		svc.writeFiles = [ComposeWriteFile(path: "/etc/myapp/app.conf", content: "key = value\n")]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		struct WF: Codable { let path: String }
+		struct Doc: Codable { let write_files: [WF] }
+		let decoded = try YAMLDecoder().decode(Doc.self, from: content)
+
+		XCTAssertEqual(decoded.write_files.count, 2)
+		XCTAssertTrue(decoded.write_files.contains { $0.path == "/etc/environment" })
+		XCTAssertTrue(decoded.write_files.contains { $0.path == "/etc/myapp/app.conf" })
+	}
+
+	func testWriteFilesFieldParsesFromYAML() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    write_files:
+		      - path: /etc/myapp/app.conf
+		        content: "key = value"
+		        permissions: "0644"
+		        owner: root:root
+		      - path: /etc/myapp/from-host.conf
+		        source: ./app.conf
+		        append: true
+		"""))
+		let svc = try XCTUnwrap(f.services["app"])
+		let files = try XCTUnwrap(svc.writeFiles)
+
+		XCTAssertEqual(files.count, 2)
+		XCTAssertEqual(files[0].path, "/etc/myapp/app.conf")
+		XCTAssertEqual(files[0].content, "key = value")
+		XCTAssertEqual(files[0].permissions, "0644")
+		XCTAssertEqual(files[0].owner, "root:root")
+		XCTAssertEqual(files[1].path, "/etc/myapp/from-host.conf")
+		XCTAssertEqual(files[1].source, "./app.conf")
+		XCTAssertEqual(files[1].append, true)
 	}
 
 	// MARK: - Network resolution (bridge driver)
@@ -581,8 +715,62 @@ final class ComposeTest: XCTestCase {
 		defer { try? FileManager.default.removeItem(at: tmp) }
 
 		let f = try ComposeFile.load(fromFile: tmp.path)
-		XCTAssertTrue(f.services.keys.contains("app"))
-		XCTAssertTrue(f.services.keys.contains("database"))
+		XCTAssertTrue(f.services.keys.contains("postgres"))
+		XCTAssertTrue(f.services.keys.contains("pgadmin"))
+	}
+
+	func testTemplateDemonstratesPackagesAndPostCommands() throws {
+		let tmp = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString + ".yml")
+		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: tmp) }
+
+		let f = try ComposeFile.load(fromFile: tmp.path)
+		let postgres = try XCTUnwrap(f.services["postgres"])
+		let pgadmin = try XCTUnwrap(f.services["pgadmin"])
+
+		XCTAssertEqual(postgres.packages, ["postgresql"])
+		XCTAssertEqual(postgres.postCommands?.isEmpty, false)
+		// pgadmin needs the PGDG apt repo added first, so it can't use `packages:` at all — only
+		// `post_commands:` — this is the whole point of bundling it alongside postgres in the
+		// sample template, as a real illustration of when each field applies.
+		XCTAssertNil(pgadmin.packages)
+		XCTAssertEqual(pgadmin.postCommands?.isEmpty, false)
+		XCTAssertEqual(pgadmin.dependsOn?.serviceNames, ["postgres"])
+	}
+
+	func testTemplatePostgresCredentialsResolveFromEnvironment() throws {
+		let tmp = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString + ".yml")
+		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: tmp) }
+
+		let f = try ComposeFile.load(fromFile: tmp.path)
+		let postgres = try XCTUnwrap(f.services["postgres"])
+		let postCommands = try XCTUnwrap(postgres.postCommands)
+
+		// The post_commands pull the password/DB name back out of `environment:` (via
+		// `grep .../etc/environment`) rather than hardcoding them a second time — assert the
+		// wiring actually references the same keys `environment:` declares, not just that some
+		// post_commands exist.
+		XCTAssertTrue(postCommands.contains { $0.contains("POSTGRES_PASSWORD") })
+		XCTAssertTrue(postCommands.contains { $0.contains("POSTGRES_DB") })
+	}
+
+	func testTemplatePgadminWriteFilesEntryParses() throws {
+		let tmp = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString + ".yml")
+		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: tmp) }
+
+		let f = try ComposeFile.load(fromFile: tmp.path)
+		let pgadmin = try XCTUnwrap(f.services["pgadmin"])
+		let writeFiles = try XCTUnwrap(pgadmin.writeFiles)
+
+		XCTAssertEqual(writeFiles.count, 1)
+		XCTAssertEqual(writeFiles.first?.path, "/etc/motd.d/pgadmin.motd")
+		XCTAssertNotNil(writeFiles.first?.content)
+		XCTAssertNil(writeFiles.first?.source)
 	}
 
 	// MARK: - ComposeInit command

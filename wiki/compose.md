@@ -25,6 +25,8 @@ cakectl compose down
 cakectl compose rm --stop
 ```
 
+Le modèle généré par `compose init` est un exemple complet à deux VM (PostgreSQL + pgAdmin) — voir « Paquets », « Fichiers additionnels » et « Commandes post-installation » ci-dessous pour le détail de son installation via `packages`/`write_files`/`post_commands`.
+
 ## Ordre de recherche du fichier
 
 Lorsque `-f` n'est pas spécifié, Caker recherche un fichier compose dans le répertoire courant dans cet ordre :
@@ -74,6 +76,11 @@ services:
     packages:             # paquets apt/dnf/apk/zypper installés via cloud-init à la construction
       - git
       - curl
+    write_files:          # fichiers supplémentaires écrits dans l'invité via cloud-init
+      - path: /etc/myapp/app.conf
+        content: "key = value"   # texte inline …
+      - path: /etc/myapp/from-host.conf
+        source: ./app.conf       # … ou un fichier lu sur l'hôte (résolu comme `volumes:`)
     post_commands:        # exécutées après packages/write_files via cloud-init
       - systemctl enable --now docker
 
@@ -148,6 +155,22 @@ packages:
   - curl
 ```
 
+### Fichiers additionnels (`write_files`)
+
+Une autre extension VM Caker : liste de fichiers écrits dans l'invité via cloud-init au premier démarrage. Chaque entrée précise `path:` et exactement l'un de `content:` (texte inline) ou `source:` (un chemin lu sur l'**hôte**, résolu de la même façon que le côté hôte de `volumes:` — relatif au répertoire courant) ; `permissions:`, `owner:` et `append:` sont optionnels.
+
+```yaml
+write_files:
+  - path: /etc/myapp/app.conf
+    content: "key = value"
+    permissions: "0644"
+  - path: /etc/myapp/from-host.conf
+    source: ./app.conf
+    append: true
+```
+
+Un fichier `source:` qui n'est pas du texte UTF-8 valide est encodé en base64 automatiquement (`encoding: b64`), plutôt que de faire échouer la construction — un petit fichier binaire fonctionne donc aussi.
+
 ### Commandes post-installation (`post_commands`)
 
 Une autre extension VM Caker : liste de commandes shell exécutées via cloud-init **après** l'installation des paquets et l'écriture des fichiers (`runcmd` de cloud-init s'exécute toujours dans la dernière étape du démarrage, quel que soit l'ordre des sections dans le fichier).
@@ -158,7 +181,7 @@ post_commands:
   - usermod -aG docker ubuntu
 ```
 
-`packages`, `post_commands` et `environment` partagent le même document cloud-init `user-data` — tous sont combinés en un seul fichier lors de la construction, vous pouvez donc les utiliser ensemble sans conflit.
+`packages`, `write_files`, `post_commands` et `environment` partagent le même document cloud-init `user-data` — tous sont combinés en un seul fichier lors de la construction (y compris le fichier `/etc/environment` généré par `environment`, fusionné dans la même clé `write_files:` que vos propres entrées), vous pouvez donc les utiliser ensemble sans conflit.
 
 ## Sous-commandes
 
@@ -262,7 +285,7 @@ Au-delà de la CLI, l'app `caker` offre une gestion complète de Compose dans so
 | Fonctionnalité | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Démon de conteneurs | VM Apple Virtualization.framework |
-| Extensions VM | Non | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `post_commands` |
+| Extensions VM | Non | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `write_files`, `post_commands` |
 | `restart` | Politique appliquée | Accepté, non appliqué |
 | Conditions `depends_on` | Appliquées | Ordre uniquement — les conditions sont acceptées mais non vérifiées |
 | Clé `build:` | Build depuis un Dockerfile | Non pris en charge — utilisez `image:` avec une URL d'image cloud ou un alias simplestream |
@@ -344,6 +367,8 @@ cakectl compose down
 cakectl compose rm --stop
 ```
 
+The template `compose init` generates is a full two-VM example (PostgreSQL + pgAdmin) — see "Packages", "Extra files", and "Post-install commands" below for how it installs each via `packages`/`write_files`/`post_commands`.
+
 ## File lookup order
 
 When `-f` is not specified, Caker looks for a compose file in the current directory in this order:
@@ -393,6 +418,11 @@ services:
     packages:            # apt/dnf/apk/zypper packages installed via cloud-init at build
       - git
       - curl
+    write_files:         # extra files written into the guest via cloud-init
+      - path: /etc/myapp/app.conf
+        content: "key = value"   # inline text …
+      - path: /etc/myapp/from-host.conf
+        source: ./app.conf       # … or a file read from the host (resolved like `volumes:`)
     post_commands:       # run after packages/write_files, via cloud-init
       - systemctl enable --now docker
 
@@ -467,6 +497,22 @@ packages:
   - curl
 ```
 
+### Extra files (`write_files`)
+
+Another Caker VM extension: a list of files written into the guest via cloud-init on first boot. Each entry gives `path:` and exactly one of `content:` (inline text) or `source:` (a path read from the **host**, resolved the same way `volumes:`'s host side already is — relative to the current directory); `permissions:`, `owner:`, and `append:` are optional.
+
+```yaml
+write_files:
+  - path: /etc/myapp/app.conf
+    content: "key = value"
+    permissions: "0644"
+  - path: /etc/myapp/from-host.conf
+    source: ./app.conf
+    append: true
+```
+
+A `source:` file that isn't valid UTF-8 text is base64-encoded automatically (`encoding: b64`) instead of failing the build — so a small binary file works too.
+
 ### Post-install commands (`post_commands`)
 
 Another Caker VM extension: a list of shell commands run via cloud-init **after** packages are installed and files are written (cloud-init's own `runcmd` always executes in the last boot stage, regardless of section order in the file).
@@ -477,7 +523,7 @@ post_commands:
   - usermod -aG docker ubuntu
 ```
 
-`packages`, `post_commands`, and `environment` all share the same cloud-init `user-data` document — they're combined into one file at build time, so you can use them together without conflict.
+`packages`, `write_files`, `post_commands`, and `environment` all share the same cloud-init `user-data` document — they're combined into one file at build time (including the `/etc/environment` file `environment` itself generates, merged into the same `write_files:` key as your own entries), so you can use them together without conflict.
 
 ## Subcommands
 
@@ -581,7 +627,7 @@ Beyond the CLI, the `caker` app offers full Compose management in its own interf
 | Feature | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Container daemon | Apple Virtualization.framework VMs |
-| VM extensions | No | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `post_commands` |
+| VM extensions | No | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `write_files`, `post_commands` |
 | `restart` | Enforced policy | Accepted, not enforced |
 | `depends_on` conditions | Enforced | Order only — conditions are accepted but not checked |
 | `build:` key | Build from Dockerfile | Not supported — use `image:` with a cloud image URL or simplestream alias |

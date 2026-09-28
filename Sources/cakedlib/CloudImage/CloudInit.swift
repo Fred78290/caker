@@ -745,13 +745,15 @@ struct WriteFile: Codable {
 	var encoding: String?
 	var permissions: String?
 	var owner: String?
+	var append: Bool?
 
-	init(path: String, content: String, encoding: String? = nil, permissions: String? = nil, owner: String? = nil) {
+	init(path: String, content: String, encoding: String? = nil, permissions: String? = nil, owner: String? = nil, append: Bool? = nil) {
 		self.path = path
 		self.content = content
 		self.encoding = encoding
 		self.permissions = permissions
 		self.owner = owner
+		self.append = append
 	}
 
 	init(from decoder: Decoder) throws {
@@ -762,6 +764,7 @@ struct WriteFile: Codable {
 		self.encoding = try container.decodeIfPresent(String.self, forKey: .encoding)
 		self.permissions = try container.decodeIfPresent(String.self, forKey: .permissions)
 		self.owner = try container.decodeIfPresent(String.self, forKey: .owner)
+		self.append = try container.decodeIfPresent(Bool.self, forKey: .append)
 	}
 
 	func encode(to encoder: Encoder) throws {
@@ -772,6 +775,7 @@ struct WriteFile: Codable {
 		try container.encodeIfPresent(encoding, forKey: .encoding)
 		try container.encodeIfPresent(permissions, forKey: .permissions)
 		try container.encodeIfPresent(owner, forKey: .owner)
+		try container.encodeIfPresent(append, forKey: .append)
 	}
 
 	enum CodingKeys: String, CodingKey {
@@ -780,6 +784,7 @@ struct WriteFile: Codable {
 		case encoding = "encoding"
 		case permissions = "permissions"
 		case owner = "owner"
+		case append = "append"
 	}
 }
 

@@ -278,6 +278,53 @@ public struct ComposeNetwork: Codable {
 	}
 }
 
+/// `write_files:` — a file written into the guest via cloud-init on first boot. Exactly one of
+/// `content`/`source` must be given: `content` is used literally as the file's text; `source` is
+/// a path resolved the same way `volumes:`'s host side already is (relative to the current
+/// working directory) — its bytes are read once, at build time, and embedded in the generated
+/// cloud-init document, since cloud-init itself has no notion of a host path once the VM is
+/// actually booting.
+public struct ComposeWriteFile: Codable {
+	public var path: String
+	public var content: String?
+	public var source: String?
+	public var permissions: String?
+	public var owner: String?
+	public var append: Bool?
+
+	public init(path: String, content: String? = nil, source: String? = nil, permissions: String? = nil, owner: String? = nil, append: Bool? = nil) {
+		self.path = path
+		self.content = content
+		self.source = source
+		self.permissions = permissions
+		self.owner = owner
+		self.append = append
+	}
+
+	/// Resolves this entry to a real cloud-init `WriteFile` — throws if neither or both of
+	/// `content`/`source` are set, or if `source` can't be read. A `source` file that isn't valid
+	/// UTF-8 text is embedded base64-encoded (`encoding: b64`, cloud-init's own convention)
+	/// instead of failing outright, so a small binary asset still works.
+	func resolved() throws -> WriteFile {
+		switch (content, source) {
+		case (let content?, nil):
+			return WriteFile(path: path, content: content, permissions: permissions, owner: owner, append: append)
+		case (nil, let source?):
+			let data = try Data(contentsOf: URL(fileURLWithPath: source.expandingTildeInPath))
+
+			if let text = String(data: data, encoding: .utf8) {
+				return WriteFile(path: path, content: text, permissions: permissions, owner: owner, append: append)
+			}
+
+			return WriteFile(path: path, content: data.base64EncodedString(), encoding: "b64", permissions: permissions, owner: owner, append: append)
+		case (nil, nil):
+			throw ServiceError(String(format: String(localized: "write_files entry for '%@' needs either 'content' or 'source'"), path))
+		case (.some, .some):
+			throw ServiceError(String(format: String(localized: "write_files entry for '%@' cannot set both 'content' and 'source'"), path))
+		}
+	}
+}
+
 // MARK: - Service
 
 public struct ComposeService: Codable {
@@ -298,25 +345,33 @@ public struct ComposeService: Codable {
 	public var password: String?
 	public var nested: Bool?
 	public var autostart: Bool?
-	public var packages: [String]?      // apt/dnf/apk/zypper package names, installed via cloud-init at build
-	public var postCommands: [String]?  // shell commands run via cloud-init's runcmd, after packages/write_files are applied
+	public var packages: [String]?          // apt/dnf/apk/zypper package names, installed via cloud-init at build
+	public var postCommands: [String]?      // shell commands run via cloud-init's runcmd, after packages/write_files are applied
+	public var writeFiles: [ComposeWriteFile]?  // extra files written into the guest via cloud-init at build
 
 	enum CodingKeys: String, CodingKey {
 		case image, ports, sockets, volumes, environment, networks, deploy, restart, hostname
 		case dependsOn = "depends_on"
 		case disk, user, password, nested, autostart, packages
 		case postCommands = "post_commands"
+		case writeFiles = "write_files"
 	}
 
 	public init() {}
 
-	/// Convert to `BuildOptions`. `environment`, `packages`, and `post_commands` are all injected via
-	/// the same cloud-init user-data document (`opts.userData`), since a VM only gets one — see the
-	/// sections collected right before it's written. `post_commands` maps to cloud-init's own
-	/// `runcmd:` key, which cloud-init always runs in its "final" boot stage — strictly after the
-	/// "config" stage that installs `packages:` and the "init" stage that writes `write_files:` —
-	/// regardless of what order these three sections appear in the generated YAML, so "post" here
-	/// means exactly what it says: after packages are installed and files are written.
+	/// Convert to `BuildOptions`. `environment`, `write_files`, `packages`, and `post_commands` are
+	/// all injected via the same cloud-init user-data document (`opts.userData`), since a VM only
+	/// gets one — assembled as a single `GeneratedCloudInit` value and encoded once, rather than as
+	/// independently-generated text fragments concatenated together: `environment` and a
+	/// service-supplied `write_files:` both need to land under the *same* top-level `write_files:`
+	/// key, which a real encoder handles naturally but hand-formatted string concatenation would
+	/// not (YAML doesn't define what happens with a duplicate top-level key — in practice the
+	/// second occurrence would silently win, dropping whichever section ran first). `post_commands`
+	/// maps to cloud-init's own `runcmd:` key, which cloud-init always runs in its "final" boot
+	/// stage — strictly after the "config" stage that installs `packages:` and the "init" stage
+	/// that writes `write_files:` — regardless of what order these sections appear in the generated
+	/// YAML, so "post" here means exactly what it says: after packages are installed and files are
+	/// written.
 	/// `composeNetworks` is the parent `ComposeFile`'s top-level `networks:` section — needed so a
 	/// service's own `networks: [name, ...]` list can be resolved against each name's `driver`/`name`
 	/// definition (see `ComposeNetwork.bridgedAttachmentName(networkKey:)`) rather than being handed
@@ -382,58 +437,61 @@ public struct ComposeService: Codable {
 
 		try opts.validateImageSource(remote: false)
 
-		// `environment` and `packages` both need to reach the guest via the same cloud-init
-		// user-data document — `BuildOptions.userData` is a single file path, so both are collected
-		// into one set of top-level cloud-init keys and written together rather than each claiming
-		// the slot independently (which would silently drop whichever one ran second).
-		var cloudInitSections: [String] = []
+		var generatedWriteFiles: [WriteFile] = []
 
 		if let env = environment {
 			let envLines = env.lines
 			if !envLines.isEmpty {
-				let indented = envLines.map { "        \($0)" }.joined(separator: "\n")
-				cloudInitSections.append(
-					"""
-					write_files:
-					  - path: /etc/environment
-					    append: true
-					    content: |
-					\(indented)
-					""")
+				generatedWriteFiles.append(WriteFile(path: "/etc/environment", content: envLines.joined(separator: "\n") + "\n", append: true))
 			}
+		}
+
+		if let writeFiles {
+			try generatedWriteFiles.append(contentsOf: writeFiles.map { try $0.resolved() })
+		}
+
+		var cloudInit = GeneratedCloudInit()
+
+		if generatedWriteFiles.isEmpty == false {
+			cloudInit.writeFiles = generatedWriteFiles
 		}
 
 		if let packages, packages.isEmpty == false {
-			let packageList = packages.map { "  - \($0)" }.joined(separator: "\n")
-			cloudInitSections.append("packages:\n\(packageList)")
+			cloudInit.packages = packages
 		}
 
 		if let postCommands, postCommands.isEmpty == false {
-			// Commands are arbitrary shell, far more likely than a package name to contain YAML-
-			// significant characters (colons, quotes, pipes) — hand-formatting them the way
-			// `packages`/`write_files` above do would risk producing invalid or misparsed YAML, so
-			// this goes through a real encoder instead.
-			struct RunCmdSection: Codable {
-				let runcmd: [String]
-			}
-
-			let encoded = try YAMLEncoder().encode(RunCmdSection(runcmd: postCommands))
-			cloudInitSections.append(encoded.trimmingCharacters(in: .whitespacesAndNewlines))
+			cloudInit.runcmd = postCommands
 		}
 
-		if cloudInitSections.isEmpty == false {
-			let cloudInit = cloudInitSections.joined(separator: "\n")
+		if cloudInit.writeFiles != nil || cloudInit.packages != nil || cloudInit.runcmd != nil {
+			let encoded = try YAMLEncoder().encode(cloudInit)
 
 			let tempFile = URL(fileURLWithPath: NSTemporaryDirectory())
 				.appendingPathComponent("compose-cloud-init-\(UUID().uuidString).yaml")
 
-			try cloudInit.write(to: tempFile, atomically: true, encoding: .utf8)
+			try encoded.write(to: tempFile, atomically: true, encoding: .utf8)
 
 			opts.userData = tempFile.path(percentEncoded: false)
 			filesToClean.append(tempFile)
 		}
 
 		return (opts, filesToClean)
+	}
+
+	/// The cloud-init user-data document assembled from `environment`/`write_files`/`packages`/
+	/// `post_commands` — see `toBuildOptions`'s own doc comment for why this is one encoded value
+	/// rather than several independently-generated text fragments.
+	private struct GeneratedCloudInit: Codable {
+		var writeFiles: [WriteFile]?
+		var packages: [String]?
+		var runcmd: [String]?
+
+		enum CodingKeys: String, CodingKey {
+			case writeFiles = "write_files"
+			case packages
+			case runcmd
+		}
 	}
 
 	private func parseMemoryMB(_ s: String) -> UInt64? {
@@ -576,17 +634,16 @@ public struct ComposeFile: Codable {
 # Run `cakectl compose init` to regenerate this file.
 name: template
 services:
-  app:
+  # PostgreSQL — real package install (via `packages:`) plus first-boot setup (via
+  # `post_commands:`), pulling its admin password/DB name straight out of `environment:` rather
+  # than hardcoding them a second time — a demo of all three fields working together.
+  postgres:
     image: ubuntu:24.04
     ports:
-      - "3000:3000"
-    # sockets:
-    #   - "/tmp/docker.sock:/var/run/docker.sock"
-    #   - "/tmp/host.sock:/tmp/guest.sock/udp"
-    volumes:
-      - ".:/workspace"
+      - "5432:5432"
     environment:
-      - NODE_ENV=production
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: myapp
     networks:
       - default
     deploy:
@@ -598,29 +655,50 @@ services:
     disk: 20          # GiB
     user: ubuntu
     password: ubuntu
-    # packages:       # installed via cloud-init on first boot
-    #   - git
-    #   - curl
-    # post_commands:  # run via cloud-init after packages/write_files are applied
-    #   - systemctl enable --now docker
+    packages:
+      - postgresql
+    post_commands:
+      - sed -i "s/^#listen_addresses.*/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
+      - echo "host all all 0.0.0.0/0 scram-sha-256" >> /etc/postgresql/*/main/pg_hba.conf
+      - sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$(grep POSTGRES_PASSWORD /etc/environment | cut -d= -f2)'"
+      - sudo -u postgres createdb "$(grep POSTGRES_DB /etc/environment | cut -d= -f2)"
+      - systemctl restart postgresql
 
-  database:
+  # pgAdmin (web) — needs the PGDG apt repo added before the package even exists, so unlike
+  # postgres above this can't use `packages:` at all (that list is installed before any
+  # `post_commands:` run) — everything here goes through `post_commands:` instead.
+  pgadmin:
     image: ubuntu:24.04
-    environment:
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: myapp
+    ports:
+      - "8080:80"
     networks:
       - default
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 4096M
-    disk: 40
+          cpus: "1"
+          memory: 1024M
+    disk: 10          # GiB
     user: ubuntu
     password: ubuntu
     depends_on:
-      - app
+      - postgres
+    write_files:
+      - path: /etc/motd.d/pgadmin.motd
+        content: |
+          pgAdmin is reachable at http://<this-vm-ip>/ (forwarded to host port 8080).
+        permissions: "0644"
+      # - path: /etc/myapp/app.conf  # `source:` reads a file from the host instead of inlining it
+      #   source: ./app.conf         # resolved relative to the current directory, like `volumes:`
+    post_commands:
+      - "curl -fsSL https://www.pgadmin.org/static/packages_pgadmin_org.pub | gpg --dearmor -o /usr/share/keyrings/packages-pgadmin-org.gpg"
+      - "echo 'deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/noble pgadmin4 main' > /etc/apt/sources.list.d/pgadmin4.list"
+      - apt-get update
+      - PGADMIN_SETUP_EMAIL=admin@example.com PGADMIN_SETUP_PASSWORD=admin DEBIAN_FRONTEND=noninteractive apt-get install -y pgadmin4-web
+      # setup-web.sh reads the two PGADMIN_SETUP_* vars above to skip its login-account prompt,
+      # but may still ask to confirm the Apache webserver reconfiguration depending on the
+      # pgAdmin release — check `cakectl compose ps`/console output if pgadmin isn't reachable.
+      - /usr/pgadmin4/bin/setup-web.sh
 
 networks:
   default:
