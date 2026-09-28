@@ -188,7 +188,7 @@ struct ComposeRm: ParsableCommand {
 	var file: String? = nil
 
 	@Flag(
-		name: [.customShort("s"), .customLong("stop")],
+		name: [.customLong("stop")],
 		help: ArgumentHelp(String(localized: "Stop running services before removing")))
 	var stop: Bool = false
 
