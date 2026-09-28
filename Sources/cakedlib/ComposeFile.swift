@@ -446,7 +446,7 @@ public struct ComposeFile: Codable {
 	}
 
 	public static func load(fromFile path: String) throws -> ComposeFile {
-		let content = try String(contentsOfFile: path, encoding: .utf8)
+		let content = try String(contentsOfFile: path.expandingTildeInPath, encoding: .utf8)
 
 		return try YAMLDecoder().decode(ComposeFile.self, from: content)
 	}
