@@ -76,8 +76,14 @@ struct ComposeDetailView: View {
 				Spacer()
 
 				Button {
-					ComposeView.start(self.project) {
-						Task { await self.loadServices() }
+					if self.project.primaryAction == .start {
+						ComposeView.start(self.project) {
+							Task { await self.loadServices() }
+						}
+					} else {
+						ComposeView.confirmAndStop(self.project) {
+							Task { await self.loadServices() }
+						}
 					}
 				} label: {
 					Image(systemName: self.project.primaryAction == .start ? "play.circle.fill" : "stop.circle.fill")
@@ -172,9 +178,14 @@ struct ComposeDetailView: View {
 
 		let client = AppState.shared.connectionManager.serviceClient
 		let runMode = AppState.shared.connectionManager.connectionMode.runMode
+		let projectName = self.project.name
 
 		do {
-			let reply = try ComposeHandler.ps(client: client, name: self.project.name, runMode: runMode)
+			let reply = try await Task.detached(priority: .userInitiated) {
+				try ComposeHandler.ps(client: client, name: projectName, runMode: runMode)
+			}.value
+
+			guard !Task.isCancelled else { return }
 
 			self.loading = false
 
@@ -185,6 +196,8 @@ struct ComposeDetailView: View {
 				self.errorMessage = reply.reason
 			}
 		} catch {
+			guard !Task.isCancelled else { return }
+
 			self.loading = false
 			self.services = []
 			self.errorMessage = error.localizedDescription

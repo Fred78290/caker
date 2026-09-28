@@ -185,7 +185,7 @@ struct ComposeEditorView: View {
 		do {
 			let compose = try YAMLDecoder().decode(ComposeFile.self, from: Self.normalizingSmartCharacters(self.text))
 
-			if compose.name.trimmingCharacters(in: .whitespaces).isEmpty {
+			if compose.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 				self.parseError = String(localized: "A project needs a non-empty 'name'.")
 			} else {
 				self.parseError = nil

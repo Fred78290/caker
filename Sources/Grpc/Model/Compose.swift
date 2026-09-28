@@ -151,6 +151,14 @@ public struct ComposeReplyList: Codable {
 
 		public var id: String { self.name }
 
+		public static func == (lhs: ComposeInfo, rhs: ComposeInfo) -> Bool {
+			lhs.name == rhs.name
+		}
+
+		public func hash(into hasher: inout Hasher) {
+			hasher.combine(self.name)
+		}
+
 		public var caked: Caked_ComposeReply.ComposeReplyList.ComposeInfo {
 			.with {
 				$0.composeName = self.name
