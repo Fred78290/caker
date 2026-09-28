@@ -391,6 +391,64 @@ final class ComposeTest: XCTestCase {
 		XCTAssertFalse(content.contains("package_update"))
 	}
 
+	func testPackageUpgradeGeneratesCloudInitUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packageUpgrade = true
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("package_upgrade: true"))
+		// Upgrading against a stale/empty index can miss updates that exist but were never
+		// fetched, so `package_upgrade: true` must always imply an index refresh too, even with
+		// no `packages:` of its own.
+		XCTAssertTrue(content.contains("package_update: true"))
+	}
+
+	func testPackageUpgradeFalseDoesNotGenerateUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packageUpgrade = false
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+
+		XCTAssertNil(built.options.userData)
+	}
+
+	func testPackageUpgradeAndPackagesShareOneCloudInitDocument() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = ["git"]
+		svc.packageUpgrade = true
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("packages:"))
+		XCTAssertTrue(content.contains("- git"))
+		XCTAssertTrue(content.contains("package_upgrade: true"))
+	}
+
+	func testPackageUpgradeFieldParsesFromYAML() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    package_upgrade: true
+		"""))
+		let svc = try XCTUnwrap(f.services["app"])
+
+		XCTAssertEqual(svc.packageUpgrade, true)
+	}
+
 	func testPackagesAndEnvironmentShareOneCloudInitDocument() throws {
 		var svc = ComposeService()
 		svc.image = "ubuntu:24.04"

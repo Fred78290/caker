@@ -346,6 +346,7 @@ public struct ComposeService: Codable {
 	public var nested: Bool?
 	public var autostart: Bool?
 	public var packages: [String]?          // apt/dnf/apk/zypper package names, installed via cloud-init at build
+	public var packageUpgrade: Bool?        // upgrade every already-installed package too, via cloud-init, at build
 	public var postCommands: [String]?      // shell commands run via cloud-init's runcmd, after packages/write_files are applied
 	public var writeFiles: [ComposeWriteFile]?  // extra files written into the guest via cloud-init at build
 
@@ -353,6 +354,7 @@ public struct ComposeService: Codable {
 		case image, ports, sockets, volumes, environment, networks, deploy, restart, hostname
 		case dependsOn = "depends_on"
 		case disk, user, password, nested, autostart, packages
+		case packageUpgrade = "package_upgrade"
 		case postCommands = "post_commands"
 		case writeFiles = "write_files"
 	}
@@ -465,11 +467,19 @@ public struct ComposeService: Codable {
 			cloudInit.packageUpdate = true
 		}
 
+		if packageUpgrade == true {
+			cloudInit.packageUpgrade = true
+			// Same reasoning as above — upgrading against a stale/empty index can miss updates that
+			// exist but were never fetched, so this always implies a refresh too, whether or not the
+			// service also lists any `packages:` of its own.
+			cloudInit.packageUpdate = true
+		}
+
 		if let postCommands, postCommands.isEmpty == false {
 			cloudInit.runcmd = postCommands
 		}
 
-		if cloudInit.writeFiles != nil || cloudInit.packages != nil || cloudInit.runcmd != nil {
+		if cloudInit.writeFiles != nil || cloudInit.packages != nil || cloudInit.packageUpgrade != nil || cloudInit.runcmd != nil {
 			let encoded = try YAMLEncoder().encode(cloudInit)
 
 			let tempFile = URL(fileURLWithPath: NSTemporaryDirectory())
@@ -485,19 +495,22 @@ public struct ComposeService: Codable {
 	}
 
 	/// The cloud-init user-data document assembled from `environment`/`write_files`/`packages`/
-	/// `post_commands` — see `toBuildOptions`'s own doc comment for why this is one encoded value
-	/// rather than several independently-generated text fragments. `packageUpdate` is never set
-	/// directly from a compose field — `toBuildOptions` always turns it on alongside `packages`.
+	/// `package_upgrade`/`post_commands` — see `toBuildOptions`'s own doc comment for why this is
+	/// one encoded value rather than several independently-generated text fragments.
+	/// `packageUpdate` is never set directly from a compose field — `toBuildOptions` always turns
+	/// it on alongside `packages` or `package_upgrade`.
 	private struct GeneratedCloudInit: Codable {
 		var writeFiles: [WriteFile]?
 		var packages: [String]?
 		var packageUpdate: Bool?
+		var packageUpgrade: Bool?
 		var runcmd: [String]?
 
 		enum CodingKeys: String, CodingKey {
 			case writeFiles = "write_files"
 			case packages
 			case packageUpdate = "package_update"
+			case packageUpgrade = "package_upgrade"
 			case runcmd
 		}
 	}

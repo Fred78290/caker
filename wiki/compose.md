@@ -155,6 +155,12 @@ packages:
   - curl
 ```
 
+`package_upgrade: true` (autre extension VM Caker, indépendante de `packages:`) met à niveau **tous** les paquets déjà installés sur l'image, pas seulement ceux listés — contrairement à la mise à jour de l'index, ceci n'est jamais activé automatiquement : une mise à niveau complète a un coût réel (construction plus lente, image moins reproductible), c'est donc à activer explicitement.
+
+```yaml
+package_upgrade: true
+```
+
 ### Fichiers additionnels (`write_files`)
 
 Une autre extension VM Caker : liste de fichiers écrits dans l'invité via cloud-init au premier démarrage. Chaque entrée précise `path:` et exactement l'un de `content:` (texte inline) ou `source:` (un chemin lu sur l'**hôte**, résolu de la même façon que le côté hôte de `volumes:` — relatif au répertoire courant) ; `permissions:`, `owner:` et `append:` sont optionnels.
@@ -285,7 +291,7 @@ Au-delà de la CLI, l'app `caker` offre une gestion complète de Compose dans so
 | Fonctionnalité | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Démon de conteneurs | VM Apple Virtualization.framework |
-| Extensions VM | Non | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `write_files`, `post_commands` |
+| Extensions VM | Non | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `package_upgrade`, `write_files`, `post_commands` |
 | `restart` | Politique appliquée | Accepté, non appliqué |
 | Conditions `depends_on` | Appliquées | Ordre uniquement — les conditions sont acceptées mais non vérifiées |
 | Clé `build:` | Build depuis un Dockerfile | Non pris en charge — utilisez `image:` avec une URL d'image cloud ou un alias simplestream |
@@ -497,6 +503,12 @@ packages:
   - curl
 ```
 
+`package_upgrade: true` (another Caker VM extension, independent of `packages:`) upgrades **every** already-installed package on the image, not just the ones listed — unlike the index refresh, this is never turned on automatically: a full-system upgrade has a real cost (slower builds, a less reproducible image), so it's opt-in.
+
+```yaml
+package_upgrade: true
+```
+
 ### Extra files (`write_files`)
 
 Another Caker VM extension: a list of files written into the guest via cloud-init on first boot. Each entry gives `path:` and exactly one of `content:` (inline text) or `source:` (a path read from the **host**, resolved the same way `volumes:`'s host side already is — relative to the current directory); `permissions:`, `owner:`, and `append:` are optional.
@@ -627,7 +639,7 @@ Beyond the CLI, the `caker` app offers full Compose management in its own interf
 | Feature | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Container daemon | Apple Virtualization.framework VMs |
-| VM extensions | No | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `write_files`, `post_commands` |
+| VM extensions | No | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `package_upgrade`, `write_files`, `post_commands` |
 | `restart` | Enforced policy | Accepted, not enforced |
 | `depends_on` conditions | Enforced | Order only — conditions are accepted but not checked |
 | `build:` key | Build from Dockerfile | Not supported — use `image:` with a cloud image URL or simplestream alias |
