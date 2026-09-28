@@ -147,7 +147,7 @@ Lorsque `external: true`, Caker attache simplement la VM de service à l'interfa
 
 ### Paquets (`packages`)
 
-Une extension VM Caker : liste de paquets (`apt`/`dnf`/`apk`/`zypper` selon la distribution de l'image) installés via cloud-init dès le premier démarrage de la VM, avant que `compose up` ne la considère comme prête.
+Une extension VM Caker : liste de paquets (`apt`/`dnf`/`apk`/`zypper` selon la distribution de l'image) installés via cloud-init dès le premier démarrage de la VM, avant que `compose up` ne la considère comme prête. Dès que `packages:` est renseigné, Caker active automatiquement la mise à jour de l'index des paquets au préalable — sans quoi l'installation peut échouer sur un index périmé ou vide dans une image fraîchement créée.
 
 ```yaml
 packages:
@@ -489,7 +489,7 @@ When `external: true`, Caker just attaches the service VM to the already-existin
 
 ### Packages (`packages`)
 
-A Caker VM extension: a list of packages (`apt`/`dnf`/`apk`/`zypper`, depending on the image's distro) installed via cloud-init on the VM's very first boot, before `compose up` considers it ready.
+A Caker VM extension: a list of packages (`apt`/`dnf`/`apk`/`zypper`, depending on the image's distro) installed via cloud-init on the VM's very first boot, before `compose up` considers it ready. Whenever `packages:` is set, Caker automatically refreshes the package index first — without it, the install can fail against a stale or empty index on a freshly created image.
 
 ```yaml
 packages:

@@ -361,6 +361,10 @@ final class ComposeTest: XCTestCase {
 		XCTAssertTrue(content.contains("packages:"))
 		XCTAssertTrue(content.contains("- git"))
 		XCTAssertTrue(content.contains("- curl"))
+		// Without this, cloud-init can try to install against a stale/empty package index on a
+		// fresh image and fail an install that would have worked fine had the index been
+		// refreshed first — `packages:` must always imply a package-index update.
+		XCTAssertTrue(content.contains("package_update: true"))
 	}
 
 	func testEmptyPackagesListDoesNotGenerateUserData() throws {
@@ -371,6 +375,20 @@ final class ComposeTest: XCTestCase {
 		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
 
 		XCTAssertNil(built.options.userData)
+	}
+
+	func testPackageUpdateIsNotSetWithoutPackages() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.postCommands = ["echo hello"]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertFalse(content.contains("package_update"))
 	}
 
 	func testPackagesAndEnvironmentShareOneCloudInitDocument() throws {

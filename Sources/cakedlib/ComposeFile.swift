@@ -458,6 +458,11 @@ public struct ComposeService: Codable {
 
 		if let packages, packages.isEmpty == false {
 			cloudInit.packages = packages
+			// Without this, cloud-init may try to install against a stale/empty package index on a
+			// fresh image (no `apt-get update`/equivalent has ever run), failing an install that
+			// would have worked fine had the index been refreshed first — cloud-init's own examples
+			// always pair `packages:` with `package_update: true` for exactly this reason.
+			cloudInit.packageUpdate = true
 		}
 
 		if let postCommands, postCommands.isEmpty == false {
@@ -481,15 +486,18 @@ public struct ComposeService: Codable {
 
 	/// The cloud-init user-data document assembled from `environment`/`write_files`/`packages`/
 	/// `post_commands` — see `toBuildOptions`'s own doc comment for why this is one encoded value
-	/// rather than several independently-generated text fragments.
+	/// rather than several independently-generated text fragments. `packageUpdate` is never set
+	/// directly from a compose field — `toBuildOptions` always turns it on alongside `packages`.
 	private struct GeneratedCloudInit: Codable {
 		var writeFiles: [WriteFile]?
 		var packages: [String]?
+		var packageUpdate: Bool?
 		var runcmd: [String]?
 
 		enum CodingKeys: String, CodingKey {
 			case writeFiles = "write_files"
 			case packages
+			case packageUpdate = "package_update"
 			case runcmd
 		}
 	}
