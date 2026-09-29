@@ -147,12 +147,21 @@ Lorsque `external: true`, Caker attache simplement la VM de service à l'interfa
 
 ### Paquets (`packages`)
 
-Une extension VM Caker : liste de paquets (`apt`/`dnf`/`apk`/`zypper` selon la distribution de l'image) installés via cloud-init dès le premier démarrage de la VM, avant que `compose up` ne la considère comme prête. Dès que `packages:` est renseigné, Caker active automatiquement la mise à jour de l'index des paquets au préalable — sans quoi l'installation peut échouer sur un index périmé ou vide dans une image fraîchement créée.
+Une extension VM Caker : liste de paquets (`apt`/`dnf`/`apk`/`zypper` selon la distribution de l'image) installés via cloud-init dès le premier démarrage de la VM, avant que `compose up` ne la considère comme prête. Dès que `packages:` est renseigné, Caker met par défaut à jour l'index des paquets au préalable (voir `package_update` ci-dessous pour le désactiver) — sans quoi l'installation peut échouer sur un index périmé ou vide dans une image fraîchement créée.
 
 ```yaml
 packages:
   - git
   - curl
+```
+
+`package_update` (autre extension VM Caker) contrôle la mise à jour de l'index des paquets avant l'installation. Par défaut, elle est activée automatiquement dès que `packages:` ou `package_upgrade:` est renseigné ; une valeur explicite l'emporte toujours, dans les deux sens :
+
+- `package_update: true` force la mise à jour même sans `packages:` — utile pour un service qui installe tout depuis `post_commands:` (comme `phpmyadmin` dans le modèle généré par `compose init`), qui sinon partirait d'un index périmé.
+- `package_update: false` désactive la mise à jour implicite (miroir local pré-rempli, ou image de base dont l'index est déjà à jour et pour laquelle l'aller-retour ne fait que ralentir la construction).
+
+```yaml
+package_update: true
 ```
 
 `package_upgrade: true` (autre extension VM Caker, indépendante de `packages:`) met à niveau **tous** les paquets déjà installés sur l'image, pas seulement ceux listés — contrairement à la mise à jour de l'index, ceci n'est jamais activé automatiquement : une mise à niveau complète a un coût réel (construction plus lente, image moins reproductible), c'est donc à activer explicitement.
@@ -291,7 +300,7 @@ Au-delà de la CLI, l'app `caker` offre une gestion complète de Compose dans so
 | Fonctionnalité | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Démon de conteneurs | VM Apple Virtualization.framework |
-| Extensions VM | Non | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `package_upgrade`, `write_files`, `post_commands` |
+| Extensions VM | Non | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `package_update`, `package_upgrade`, `write_files`, `post_commands` |
 | `restart` | Politique appliquée | Accepté, non appliqué |
 | Conditions `depends_on` | Appliquées | Ordre uniquement — les conditions sont acceptées mais non vérifiées |
 | Clé `build:` | Build depuis un Dockerfile | Non pris en charge — utilisez `image:` avec une URL d'image cloud ou un alias simplestream |
@@ -495,12 +504,21 @@ When `external: true`, Caker just attaches the service VM to the already-existin
 
 ### Packages (`packages`)
 
-A Caker VM extension: a list of packages (`apt`/`dnf`/`apk`/`zypper`, depending on the image's distro) installed via cloud-init on the VM's very first boot, before `compose up` considers it ready. Whenever `packages:` is set, Caker automatically refreshes the package index first — without it, the install can fail against a stale or empty index on a freshly created image.
+A Caker VM extension: a list of packages (`apt`/`dnf`/`apk`/`zypper`, depending on the image's distro) installed via cloud-init on the VM's very first boot, before `compose up` considers it ready. Whenever `packages:` is set, Caker refreshes the package index first by default (see `package_update` below to turn that off) — without it, the install can fail against a stale or empty index on a freshly created image.
 
 ```yaml
 packages:
   - git
   - curl
+```
+
+`package_update` (another Caker VM extension) controls refreshing the package index before installing. By default it's turned on automatically whenever `packages:` or `package_upgrade:` is set; an explicit value always wins, in both directions:
+
+- `package_update: true` forces the refresh even with no `packages:` — useful for a service that installs everything from `post_commands:` (like `phpmyadmin` in the template `compose init` generates), which would otherwise start from a stale index.
+- `package_update: false` turns off the implied refresh (a pre-populated local mirror, or a base image whose index is already fresh and where the round trip only slows the build down).
+
+```yaml
+package_update: true
 ```
 
 `package_upgrade: true` (another Caker VM extension, independent of `packages:`) upgrades **every** already-installed package on the image, not just the ones listed — unlike the index refresh, this is never turned on automatically: a full-system upgrade has a real cost (slower builds, a less reproducible image), so it's opt-in.
@@ -639,7 +657,7 @@ Beyond the CLI, the `caker` app offers full Compose management in its own interf
 | Feature | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Container daemon | Apple Virtualization.framework VMs |
-| VM extensions | No | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `package_upgrade`, `write_files`, `post_commands` |
+| VM extensions | No | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `package_update`, `package_upgrade`, `write_files`, `post_commands` |
 | `restart` | Enforced policy | Accepted, not enforced |
 | `depends_on` conditions | Enforced | Order only — conditions are accepted but not checked |
 | `build:` key | Build from Dockerfile | Not supported — use `image:` with a cloud image URL or simplestream alias |

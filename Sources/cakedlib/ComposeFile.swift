@@ -346,6 +346,7 @@ public struct ComposeService: Codable {
 	public var nested: Bool?
 	public var autostart: Bool?
 	public var packages: [String]?          // apt/dnf/apk/zypper package names, installed via cloud-init at build
+	public var packageUpdate: Bool?         // refresh the package index via cloud-init at build — implied by packages/package_upgrade unless set explicitly
 	public var packageUpgrade: Bool?        // upgrade every already-installed package too, via cloud-init, at build
 	public var postCommands: [String]?      // shell commands run via cloud-init's runcmd, after packages/write_files are applied
 	public var writeFiles: [ComposeWriteFile]?  // extra files written into the guest via cloud-init at build
@@ -354,6 +355,7 @@ public struct ComposeService: Codable {
 		case image, ports, sockets, volumes, environment, networks, deploy, restart, hostname
 		case dependsOn = "depends_on"
 		case disk, user, password, nested, autostart, packages
+		case packageUpdate = "package_update"
 		case packageUpgrade = "package_upgrade"
 		case postCommands = "post_commands"
 		case writeFiles = "write_files"
@@ -369,11 +371,12 @@ public struct ComposeService: Codable {
 	/// key, which a real encoder handles naturally but hand-formatted string concatenation would
 	/// not (YAML doesn't define what happens with a duplicate top-level key — in practice the
 	/// second occurrence would silently win, dropping whichever section ran first). `post_commands`
-	/// maps to cloud-init's own `runcmd:` key, which cloud-init always runs in its "final" boot
-	/// stage — strictly after the "config" stage that installs `packages:` and the "init" stage
-	/// that writes `write_files:` — regardless of what order these sections appear in the generated
-	/// YAML, so "post" here means exactly what it says: after packages are installed and files are
-	/// written.
+	/// maps to cloud-init's own `runcmd:` key: the `runcmd` module only writes the commands out as
+	/// a script; `scripts_user` (a "final"-stage module) is what executes it, and cloud-init orders
+	/// that after `package_update_upgrade_install` (also "final" stage, just earlier in the module
+	/// list) and after `write_files` (the "init" stage) — regardless of what order these sections
+	/// appear in the generated YAML, so "post" here means exactly what it says: after packages are
+	/// installed and files are written.
 	/// `composeNetworks` is the parent `ComposeFile`'s top-level `networks:` section — needed so a
 	/// service's own `networks: [name, ...]` list can be resolved against each name's `driver`/`name`
 	/// definition (see `ComposeNetwork.bridgedAttachmentName(networkKey:)`) rather than being handed
@@ -458,20 +461,29 @@ public struct ComposeService: Codable {
 			cloudInit.writeFiles = generatedWriteFiles
 		}
 
-		if let packages, packages.isEmpty == false {
+		let installsPackages = packages?.isEmpty == false
+
+		if let packages, installsPackages {
 			cloudInit.packages = packages
-			// Without this, cloud-init may try to install against a stale/empty package index on a
-			// fresh image (no `apt-get update`/equivalent has ever run), failing an install that
-			// would have worked fine had the index been refreshed first — cloud-init's own examples
-			// always pair `packages:` with `package_update: true` for exactly this reason.
-			cloudInit.packageUpdate = true
 		}
 
 		if packageUpgrade == true {
 			cloudInit.packageUpgrade = true
-			// Same reasoning as above — upgrading against a stale/empty index can miss updates that
-			// exist but were never fetched, so this always implies a refresh too, whether or not the
-			// service also lists any `packages:` of its own.
+		}
+
+		// `package_update` (refresh the package index) is implied on by `packages:` and
+		// `package_upgrade:`: without it, cloud-init may try to install/upgrade against a stale or
+		// empty index on a fresh image (no `apt-get update`/equivalent has ever run), failing an
+		// install that would have worked had the index been refreshed first — cloud-init's own
+		// examples always pair `packages:` with `package_update: true` for exactly this reason. An
+		// explicit `package_update:` on the service always wins over that implication in either
+		// direction: `true` refreshes even with no `packages:`/`package_upgrade:` (e.g. a service
+		// that installs everything from `post_commands:`), and `false` suppresses the implied
+		// refresh (a pre-populated local mirror, or a base image whose index is already fresh and
+		// where the extra round trip is just build time).
+		if let packageUpdate {
+			cloudInit.packageUpdate = packageUpdate
+		} else if installsPackages || packageUpgrade == true {
 			cloudInit.packageUpdate = true
 		}
 
@@ -479,7 +491,7 @@ public struct ComposeService: Codable {
 			cloudInit.runcmd = postCommands
 		}
 
-		if cloudInit.writeFiles != nil || cloudInit.packages != nil || cloudInit.packageUpgrade != nil || cloudInit.runcmd != nil {
+		if cloudInit.writeFiles != nil || cloudInit.packages != nil || cloudInit.packageUpdate != nil || cloudInit.packageUpgrade != nil || cloudInit.runcmd != nil {
 			let encoded = try YAMLEncoder().encode(cloudInit)
 
 			let tempFile = URL(fileURLWithPath: NSTemporaryDirectory())
@@ -495,10 +507,10 @@ public struct ComposeService: Codable {
 	}
 
 	/// The cloud-init user-data document assembled from `environment`/`write_files`/`packages`/
-	/// `package_upgrade`/`post_commands` — see `toBuildOptions`'s own doc comment for why this is
-	/// one encoded value rather than several independently-generated text fragments.
-	/// `packageUpdate` is never set directly from a compose field — `toBuildOptions` always turns
-	/// it on alongside `packages` or `package_upgrade`.
+	/// `package_update`/`package_upgrade`/`post_commands` — see `toBuildOptions`'s own doc comment
+	/// for why this is one encoded value rather than several independently-generated text
+	/// fragments. `packageUpdate` encodes as an explicit `false` too (not just omitted) when a
+	/// service opts out, so it overrides an image-level default rather than merely not repeating it.
 	private struct GeneratedCloudInit: Codable {
 		var writeFiles: [WriteFile]?
 		var packages: [String]?
@@ -678,6 +690,7 @@ services:
     disk: 20          # GiB
     user: ubuntu
     password: ubuntu
+    package_update: true
     packages:
       - mariadb-server
     post_commands:
@@ -704,6 +717,7 @@ services:
     disk: 10          # GiB
     user: ubuntu
     password: ubuntu
+    package_update: true
     depends_on:
       - mariadb
     write_files:

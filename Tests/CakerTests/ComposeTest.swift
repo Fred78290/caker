@@ -391,6 +391,96 @@ final class ComposeTest: XCTestCase {
 		XCTAssertFalse(content.contains("package_update"))
 	}
 
+	func testExplicitPackageUpdateTrueAloneGeneratesUserData() throws {
+		// A service that installs everything from `post_commands:` (no `packages:`) still needs a
+		// fresh index before its own `apt-get install` — an explicit `package_update: true` must be
+		// enough on its own to write the document and refresh, no `packages:` required.
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packageUpdate = true
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("package_update: true"))
+		XCTAssertFalse(content.contains("packages:"))
+		XCTAssertFalse(content.contains("package_upgrade"))
+	}
+
+	func testExplicitPackageUpdateFalseOverridesImpliedRefreshFromPackages() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = ["git"]
+		svc.packageUpdate = false
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		// Explicit `false` wins over the refresh `packages:` would otherwise imply — and is written
+		// out as an explicit `false` (not just omitted) so it also overrides an image-level default.
+		XCTAssertTrue(content.contains("package_update: false"))
+		XCTAssertFalse(content.contains("package_update: true"))
+		XCTAssertTrue(content.contains("- git"))
+	}
+
+	func testExplicitPackageUpdateFalseOverridesImpliedRefreshFromPackageUpgrade() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packageUpgrade = true
+		svc.packageUpdate = false
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("package_upgrade: true"))
+		XCTAssertTrue(content.contains("package_update: false"))
+		XCTAssertFalse(content.contains("package_update: true"))
+	}
+
+	func testExplicitPackageUpdateTrueWithPackagesIsNotDuplicated() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = ["git"]
+		svc.packageUpdate = true
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertEqual(content.components(separatedBy: "package_update").count - 1, 1)
+		XCTAssertTrue(content.contains("package_update: true"))
+	}
+
+	func testPackageUpdateFieldParsesFromYAML() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  on:
+		    image: ubuntu:24.04
+		    package_update: true
+		  off:
+		    image: ubuntu:24.04
+		    package_update: false
+		  unset:
+		    image: ubuntu:24.04
+		"""))
+
+		XCTAssertEqual(f.services["on"]?.packageUpdate, true)
+		XCTAssertEqual(f.services["off"]?.packageUpdate, false)
+		XCTAssertNil(f.services["unset"]?.packageUpdate)
+	}
+
 	func testPackageUpgradeGeneratesCloudInitUserData() throws {
 		var svc = ComposeService()
 		svc.image = "ubuntu:24.04"
@@ -814,6 +904,21 @@ final class ComposeTest: XCTestCase {
 		XCTAssertNil(phpmyadmin.packages)
 		XCTAssertEqual(phpmyadmin.postCommands?.isEmpty, false)
 		XCTAssertEqual(phpmyadmin.dependsOn?.serviceNames, ["mariadb"])
+	}
+
+	func testTemplateServicesRefreshPackageIndexExplicitly() throws {
+		let tmp = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString + ".yml")
+		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: tmp) }
+
+		let f = try ComposeFile.load(fromFile: tmp.path)
+
+		// phpmyadmin has no `packages:` at all (everything goes through `post_commands:`), so nothing
+		// implies a refresh for it — before `package_update` was a real field, this key in the
+		// template was silently ignored and the service relied on a hand-written `apt update`.
+		XCTAssertEqual(f.services["mariadb"]?.packageUpdate, true)
+		XCTAssertEqual(f.services["phpmyadmin"]?.packageUpdate, true)
 	}
 
 	func testTemplateMariadbCredentialsResolveFromEnvironment() throws {
