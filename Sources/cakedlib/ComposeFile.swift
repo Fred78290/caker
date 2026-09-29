@@ -405,7 +405,9 @@ public struct ComposeService: Codable {
 	enum CodingKeys: String, CodingKey {
 		case image, ports, sockets, volumes, environment, networks, deploy, restart, hostname
 		case dependsOn = "depends_on"
-		case disk, user, password, nested, autostart, packages, diskFormat, sshAuthorizedKey
+		case disk, user, password, nested, autostart, packages
+		case diskFormat = "disk_format"
+		case sshAuthorizedKey = "ssh_authorized_key"
 		case packageUpdate = "package_update"
 		case packageUpgrade = "package_upgrade"
 		case postCommands = "post_commands"
@@ -644,7 +646,7 @@ public struct ComposeFile: Codable {
 				let keyURL = URL(fileURLWithPath: sshAuthorizedKey.expandingTildeInPath)
 
 				guard FileManager.default.fileExists(atPath: keyURL.path(percentEncoded: false)) else {
-					throw ServiceError(String(localized: "SSH authorized key file not found at \(keyURL.path(percentEncoded: false))"))
+					throw ServiceError(String(format: String(localized: "SSH authorized key file not found at %@"), keyURL.path(percentEncoded: false)))
 				}
 
 				service.sshAuthorizedKey = try String(contentsOf: keyURL, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)

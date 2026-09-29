@@ -6,6 +6,7 @@
 import XCTest
 import Foundation
 import Yams
+import GRPCLib
 
 @testable import CakedLib
 @testable import cakectl
@@ -343,6 +344,86 @@ final class ComposeTest: XCTestCase {
 		XCTAssertEqual(svc.autostart, false)
 		XCTAssertEqual(svc.packages, ["git", "curl"])
 		XCTAssertEqual(svc.postCommands, ["systemctl enable --now docker"])
+	}
+
+	// MARK: - disk_format / ifnames / dynamic_port_forwarding / ssh_authorized_key
+
+	func testDiskFormatIfnamesAndDynamicPortForwardingFieldsDecodeAndReachBuildOptions() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    disk_format: raw
+		    ifnames: false
+		    dynamic_port_forwarding: true
+		"""))
+		let svc = try XCTUnwrap(f.services["app"])
+		XCTAssertEqual(svc.diskFormat, .raw)
+		XCTAssertEqual(svc.netIfnames, false)
+		XCTAssertEqual(svc.dynamicPortForwarding, true)
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertEqual(built.options.diskFormat, .raw)
+		XCTAssertEqual(built.options.netIfnames, false)
+		XCTAssertEqual(built.options.dynamicPortForwarding, true)
+	}
+
+	func testVMExtensionDefaultsWhenUnset() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		// `diskFormat` is deliberately not asserted here: `BuildOptions.validate` coerces it per image
+		// source (a cloud image always ends up `.raw`), so it says nothing about this field's default.
+		XCTAssertEqual(built.options.user, "admin")
+		XCTAssertEqual(built.options.password, "admin")
+		XCTAssertEqual(built.options.netIfnames, true)
+		XCTAssertEqual(built.options.dynamicPortForwarding, false)
+		XCTAssertNil(built.options.sshAuthorizedKey)
+	}
+
+	func testSSHAuthorizedKeyRawKeyIsKeptAsIs() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    ssh_authorized_key: ssh-ed25519 AAAAC3Nza test@host
+		"""))
+
+		XCTAssertEqual(f.services["app"]?.sshAuthorizedKey, "ssh-ed25519 AAAAC3Nza test@host")
+	}
+
+	func testSSHAuthorizedKeyPathIsResolvedToFileContentAtLoad() throws {
+		let keyFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".pub")
+		try "ssh-ed25519 AAAAC3Nza from-file\n".write(to: keyFile, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: keyFile) }
+
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    ssh_authorized_key: \(keyFile.path)
+		"""))
+
+		// Read and trimmed — the trailing newline must not leak into the authorized_keys line.
+		XCTAssertEqual(f.services["app"]?.sshAuthorizedKey, "ssh-ed25519 AAAAC3Nza from-file")
+	}
+
+	func testSSHAuthorizedKeyMissingFileFailsAtLoad() throws {
+		XCTAssertThrowsError(try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    ssh_authorized_key: /nonexistent/\(UUID().uuidString).pub
+		""")))
 	}
 
 	// MARK: - packages (cloud-init installation at build)
@@ -938,6 +1019,25 @@ final class ComposeTest: XCTestCase {
 		XCTAssertTrue(postCommands.contains { $0.contains("MYSQL_ROOT_PASSWORD") })
 		XCTAssertTrue(postCommands.contains { $0.contains("MYSQL_DATABASE") })
 		XCTAssertTrue(postCommands.contains { $0.contains("^MYSQL_USER=") && $0.contains("^MYSQL_PASSWORD=") })
+	}
+
+	func testTemplateVMExtensionFieldsAreActuallyDecoded() throws {
+		// Unknown YAML keys are silently dropped by Decodable, so a key spelled differently from its
+		// CodingKey (`disk_format` vs `diskFormat`) makes the template line a no-op with no error.
+		let tmp = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString + ".yml")
+		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: tmp) }
+
+		let f = try ComposeFile.load(fromFile: tmp.path)
+
+		for name in ["mariadb", "phpmyadmin"] {
+			let svc = try XCTUnwrap(f.services[name])
+			XCTAssertEqual(svc.diskFormat, .raw, name)
+			XCTAssertEqual(svc.netIfnames, true, name)
+			XCTAssertEqual(svc.dynamicPortForwarding, false, name)
+			XCTAssertEqual(svc.nested, true, name)
+		}
 	}
 
 	func testTemplatePhpmyadminWriteFilesEntryParses() throws {

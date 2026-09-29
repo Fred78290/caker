@@ -25,7 +25,7 @@ cakectl compose down
 cakectl compose rm --stop
 ```
 
-Le modèle généré par `compose init` est un exemple complet à deux VM (MariaDB + phpMyAdmin, compatible arm64/amd64) — voir « Paquets », « Fichiers additionnels » et « Commandes post-installation » ci-dessous pour le détail de son installation via `packages`/`write_files`/`post_commands`.
+Le modèle généré par `compose init` est un exemple complet à deux VM (MariaDB + phpMyAdmin, compatible arm64/amd64), embarqué dans Caker sous forme de fichier `compose-template.yml` — MariaDB y crée un compte dédié `MYSQL_USER`/`MYSQL_PASSWORD` pour se connecter à phpMyAdmin, et phpMyAdmin accepte n'importe quel serveur ou celui indiqué par `PMA_HOST` — voir « Paquets », « Fichiers additionnels » et « Commandes post-installation » ci-dessous pour le détail de son installation via `packages`/`write_files`/`post_commands`.
 
 ## Ordre de recherche du fichier
 
@@ -73,6 +73,10 @@ services:
     password: ubuntu     # mot de passe invité
     nested: false         # activer la virtualisation imbriquée
     autostart: false      # démarrer cette VM au démarrage de caked
+    disk_format: raw      # format du disque (défaut : format par défaut de Caker)
+    ifnames: true         # noms d'interfaces réseau prévisibles (défaut true)
+    dynamic_port_forwarding: false  # redirection de ports dynamique (défaut false)
+    ssh_authorized_key: ~/.ssh/id_ed25519.pub  # clé publique SSH, ou chemin d'un fichier qui la contient
     packages:             # paquets apt/dnf/apk/zypper installés via cloud-init à la construction
       - git
       - curl
@@ -198,6 +202,17 @@ post_commands:
 
 `packages`, `write_files`, `post_commands` et `environment` partagent le même document cloud-init `user-data` — tous sont combinés en un seul fichier lors de la construction (y compris le fichier `/etc/environment` généré par `environment`, fusionné dans la même clé `write_files:` que vos propres entrées), vous pouvez donc les utiliser ensemble sans conflit.
 
+### Autres extensions VM
+
+Quelques extensions VM Caker supplémentaires, toutes facultatives :
+
+- `disk_format` — format du disque de la VM (`raw`, etc.) ; par défaut, le format par défaut de Caker.
+- `ifnames` — noms d'interfaces réseau prévisibles dans l'invité ; `true` par défaut.
+- `dynamic_port_forwarding` — active la redirection de ports dynamique ; `false` par défaut.
+- `ssh_authorized_key` — une clé publique SSH (`ssh-ed25519 AAAA…`) **ou le chemin d'un fichier** qui la contient (`~` est développé). Un chemin est lu et nettoyé dès le chargement du fichier : un fichier introuvable fait échouer `compose up` immédiatement, avant qu'aucune VM de la stack ne soit construite.
+
+Quand `user`/`password` sont omis, l'invité est créé avec `admin`/`admin`.
+
 ## Sous-commandes
 
 > Si `caked` s'exécute en tant que service, utilisez `cakectl compose`. Si vous exécutez `caked` directement (sans service), utilisez `caked compose`.
@@ -300,7 +315,7 @@ Au-delà de la CLI, l'app `caker` offre une gestion complète de Compose dans so
 | Fonctionnalité | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Démon de conteneurs | VM Apple Virtualization.framework |
-| Extensions VM | Non | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `package_update`, `package_upgrade`, `write_files`, `post_commands` |
+| Extensions VM | Non | `disk`, `disk_format`, `user`, `password`, `nested`, `autostart`, `ifnames`, `dynamic_port_forwarding`, `ssh_authorized_key`, `sockets`, `packages`, `package_update`, `package_upgrade`, `write_files`, `post_commands` |
 | `restart` | Politique appliquée | Accepté, non appliqué |
 | Conditions `depends_on` | Appliquées | Ordre uniquement — les conditions sont acceptées mais non vérifiées |
 | Clé `build:` | Build depuis un Dockerfile | Non pris en charge — utilisez `image:` avec une URL d'image cloud ou un alias simplestream |
@@ -382,7 +397,7 @@ cakectl compose down
 cakectl compose rm --stop
 ```
 
-The template `compose init` generates is a full two-VM example (MariaDB + phpMyAdmin, works on both arm64 and amd64) — see "Packages", "Extra files", and "Post-install commands" below for how it installs each via `packages`/`write_files`/`post_commands`.
+The template `compose init` generates is a full two-VM example (MariaDB + phpMyAdmin, works on both arm64 and amd64), shipped inside Caker as a `compose-template.yml` file — MariaDB creates a dedicated `MYSQL_USER`/`MYSQL_PASSWORD` account for logging in to phpMyAdmin, and phpMyAdmin accepts any server or the one given by `PMA_HOST` — see "Packages", "Extra files", and "Post-install commands" below for how it installs each via `packages`/`write_files`/`post_commands`.
 
 ## File lookup order
 
@@ -430,6 +445,10 @@ services:
     password: ubuntu     # guest password
     nested: false        # enable nested virtualisation
     autostart: false     # start this VM when caked starts
+    disk_format: raw     # disk format (default: Caker's default format)
+    ifnames: true        # predictable network interface names (default true)
+    dynamic_port_forwarding: false  # dynamic port forwarding (default false)
+    ssh_authorized_key: ~/.ssh/id_ed25519.pub  # SSH public key, or path to a file holding one
     packages:            # apt/dnf/apk/zypper packages installed via cloud-init at build
       - git
       - curl
@@ -555,6 +574,17 @@ post_commands:
 
 `packages`, `write_files`, `post_commands`, and `environment` all share the same cloud-init `user-data` document — they're combined into one file at build time (including the `/etc/environment` file `environment` itself generates, merged into the same `write_files:` key as your own entries), so you can use them together without conflict.
 
+### Other VM extensions
+
+A few more optional Caker VM extensions:
+
+- `disk_format` — the VM's disk format (`raw`, etc.); defaults to Caker's default format.
+- `ifnames` — predictable network interface names inside the guest; `true` by default.
+- `dynamic_port_forwarding` — turns on dynamic port forwarding; `false` by default.
+- `ssh_authorized_key` — an SSH public key (`ssh-ed25519 AAAA…`) **or the path to a file** holding one (`~` is expanded). A path is read and trimmed as soon as the file is loaded: a missing file makes `compose up` fail immediately, before any VM in the stack is built.
+
+When `user`/`password` are omitted, the guest is created with `admin`/`admin`.
+
 ## Subcommands
 
 > If `caked` is running as a service, use `cakectl compose`. If running `caked` directly (no service), use `caked compose`.
@@ -657,7 +687,7 @@ Beyond the CLI, the `caker` app offers full Compose management in its own interf
 | Feature | Docker Compose | Caker compose |
 | --- | --- | --- |
 | Runtime | Container daemon | Apple Virtualization.framework VMs |
-| VM extensions | No | `disk`, `user`, `password`, `nested`, `autostart`, `sockets`, `packages`, `package_update`, `package_upgrade`, `write_files`, `post_commands` |
+| VM extensions | No | `disk`, `disk_format`, `user`, `password`, `nested`, `autostart`, `ifnames`, `dynamic_port_forwarding`, `ssh_authorized_key`, `sockets`, `packages`, `package_update`, `package_upgrade`, `write_files`, `post_commands` |
 | `restart` | Enforced policy | Accepted, not enforced |
 | `depends_on` conditions | Enforced | Order only — conditions are accepted but not checked |
 | `build:` key | Build from Dockerfile | Not supported — use `image:` with a cloud image URL or simplestream alias |

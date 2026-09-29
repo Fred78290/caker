@@ -15051,6 +15051,17 @@
         }
       }
     },
+    "SSH authorized key file not found at %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fichier de clé SSH autorisée introuvable : %@"
+          }
+        }
+      }
+    },
     "SSH key problem" : {
       "extractionState" : "manual",
       "localizations" : {
