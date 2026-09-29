@@ -5,10 +5,30 @@
 //  Created by Frederic BOLTZ on 22/06/2026.
 //
 
+import CakeAgentLib
 import Foundation
 import GRPCLib
-import CakeAgentLib
 import Yams
+
+/// See `VMImageCatalog.swift`: `Bundle.module` only exists in SPM builds, the Xcode projects compile
+/// `CakedLib` as a plain native target.
+private final class ComposeResourceBundleMarker {}
+
+private let composeResourceBundle: Bundle = {
+	#if SWIFT_PACKAGE
+		return Bundle.module
+	#else
+		let containingBundle = Bundle(for: ComposeResourceBundleMarker.self)
+
+		for candidate in ["Caker_CakedLib.bundle", "CakedLib_CakedLib.bundle"] {
+			if let url = containingBundle.resourceURL?.appendingPathComponent(candidate), let bundle = Bundle(url: url) {
+				return bundle
+			}
+		}
+
+		return containingBundle
+	#endif
+}()
 
 public class ComposeFileDatabase {
 	public struct ServiceStatus: Codable {
@@ -101,8 +121,14 @@ public enum ComposeDepends: Codable {
 
 	public init(from decoder: Decoder) throws {
 		let c = try decoder.singleValueContainer()
-		if let list = try? c.decode([String].self) { self = .list(list); return }
-		if let map = try? c.decode([String: ComposeServiceCondition].self) { self = .conditions(map); return }
+		if let list = try? c.decode([String].self) {
+			self = .list(list)
+			return
+		}
+		if let map = try? c.decode([String: ComposeServiceCondition].self) {
+			self = .conditions(map)
+			return
+		}
 		self = .list([])
 	}
 
@@ -133,8 +159,14 @@ public enum ComposeEnvironment: Codable {
 
 	public init(from decoder: Decoder) throws {
 		let c = try decoder.singleValueContainer()
-		if let list = try? c.decode([String].self) { self = .list(list); return }
-		if let map = try? c.decode([String: String?].self) { self = .map(map); return }
+		if let list = try? c.decode([String].self) {
+			self = .list(list)
+			return
+		}
+		if let map = try? c.decode([String: String?].self) {
+			self = .map(map)
+			return
+		}
 		self = .list([])
 	}
 
@@ -167,9 +199,18 @@ public enum ComposePort: Codable {
 
 	public init(from decoder: Decoder) throws {
 		let c = try decoder.singleValueContainer()
-		if let s = try? c.decode(String.self) { self = .short(s); return }
-		if let n = try? c.decode(Int.self) { self = .short("\(n)"); return }
-		if let l = try? c.decode(ComposePortLong.self) { self = .long(l); return }
+		if let s = try? c.decode(String.self) {
+			self = .short(s)
+			return
+		}
+		if let n = try? c.decode(Int.self) {
+			self = .short("\(n)")
+			return
+		}
+		if let l = try? c.decode(ComposePortLong.self) {
+			self = .long(l)
+			return
+		}
 		throw DecodingError.dataCorruptedError(in: c, debugDescription: "Cannot decode port")
 	}
 
@@ -205,8 +246,14 @@ public enum ComposeVolume: Codable {
 
 	public init(from decoder: Decoder) throws {
 		let c = try decoder.singleValueContainer()
-		if let s = try? c.decode(String.self) { self = .short(s); return }
-		if let l = try? c.decode(ComposeVolumeLong.self) { self = .long(l); return }
+		if let s = try? c.decode(String.self) {
+			self = .short(s)
+			return
+		}
+		if let l = try? c.decode(ComposeVolumeLong.self) {
+			self = .long(l)
+			return
+		}
 		throw DecodingError.dataCorruptedError(in: c, debugDescription: "Cannot decode volume")
 	}
 
@@ -239,7 +286,7 @@ public struct ComposeResources: Codable {
 }
 
 public struct ComposeResourceLimits: Codable {
-	public var cpus: String?    // "2" or "2.0"
+	public var cpus: String?  // "2" or "2.0"
 	public var memory: String?  // "2048M", "2G", "2048m", "2g"
 }
 
@@ -247,12 +294,12 @@ public struct ComposeResourceLimits: Codable {
 
 public struct ComposeNetwork: Codable {
 	public enum SupportedDriver: String, Codable {
-		case bridge // resolves to a real bridged/physical VM network attachment — see `bridgedAttachmentName(networkKey:)`
+		case bridge  // resolves to a real bridged/physical VM network attachment — see `bridgedAttachmentName(networkKey:)`
 		case none
 	}
 
 	public var driver: SupportedDriver = .none
-	public var external: Bool? = false // true: `name` (or the network's own key) already refers to an existing host interface
+	public var external: Bool? = false  // true: `name` (or the network's own key) already refers to an existing host interface
 	public var name: String?
 
 	public var driverOpts: [String: String]?
@@ -340,25 +387,31 @@ public struct ComposeService: Codable {
 	public var hostname: String?
 
 	// Caker VM extensions (not in standard Docker Compose spec)
-	public var disk: UInt64?        // GiB
+	public var disk: UInt64?  // GiB
 	public var user: String?
 	public var password: String?
 	public var nested: Bool?
+	public var diskFormat: SupportedDiskFormat?
+	public var netIfnames: Bool?
 	public var autostart: Bool?
-	public var packages: [String]?          // apt/dnf/apk/zypper package names, installed via cloud-init at build
-	public var packageUpdate: Bool?         // refresh the package index via cloud-init at build — implied by packages/package_upgrade unless set explicitly
-	public var packageUpgrade: Bool?        // upgrade every already-installed package too, via cloud-init, at build
-	public var postCommands: [String]?      // shell commands run via cloud-init's runcmd, after packages/write_files are applied
+	public var packages: [String]?  // apt/dnf/apk/zypper package names, installed via cloud-init at build
+	public var packageUpdate: Bool?  // refresh the package index via cloud-init at build — implied by packages/package_upgrade unless set explicitly
+	public var packageUpgrade: Bool?  // upgrade every already-installed package too, via cloud-init, at build
+	public var postCommands: [String]?  // shell commands run via cloud-init's runcmd, after packages/write_files are applied
 	public var writeFiles: [ComposeWriteFile]?  // extra files written into the guest via cloud-init at build
+	public var dynamicPortForwarding: Bool?
+	public var sshAuthorizedKey: String?
 
 	enum CodingKeys: String, CodingKey {
 		case image, ports, sockets, volumes, environment, networks, deploy, restart, hostname
 		case dependsOn = "depends_on"
-		case disk, user, password, nested, autostart, packages
+		case disk, user, password, nested, autostart, packages, diskFormat, sshAuthorizedKey
 		case packageUpdate = "package_update"
 		case packageUpgrade = "package_upgrade"
 		case postCommands = "post_commands"
 		case writeFiles = "write_files"
+		case dynamicPortForwarding = "dynamic_port_forwarding"
+		case netIfnames = "ifnames"
 	}
 
 	public init() {}
@@ -391,11 +444,12 @@ public struct ComposeService: Codable {
 		var filesToClean: [URL] = []
 		var mounts: [DirectorySharingAttachment] = []
 		var ethernets: [BridgeAttachement] = []
-		var tunnels: [TunnelAttachement] = ports?.compactMap {
-			$0.portString
-		}.compactMap {
-			TunnelAttachement(argument: $0)
-		} ?? []
+		var tunnels: [TunnelAttachement] =
+			ports?.compactMap {
+				$0.portString
+			}.compactMap {
+				TunnelAttachement(argument: $0)
+			} ?? []
 
 		if let sockets {
 			tunnels += sockets.compactMap {
@@ -431,13 +485,18 @@ public struct ComposeService: Codable {
 			cpu: UInt16(max(1.0, Double(deploy?.resources?.limits?.cpus ?? "2") ?? 2.0)),
 			memory: memoryMB,
 			diskSize: disk ?? 10,
-			diskFormat: SupportedDiskFormat.defaultSupportedFormat,
+			diskFormat: self.diskFormat ?? SupportedDiskFormat.defaultSupportedFormat,
+			user: self.user ?? "admin",
+			password: self.password ?? "admin",
 			autostart: autostart ?? false,
 			nested: nested ?? false,
+			netIfnames: self.netIfnames ?? true,
 			image: image ?? defaultUbuntuImage,
+			sshAuthorizedKey: self.sshAuthorizedKey,
 			forwardedPorts: tunnels,
 			mounts: mounts,
-			networks: ethernets
+			networks: ethernets,
+			dynamicPortForwarding: self.dynamicPortForwarding ?? false
 		)
 
 		try opts.validateImageSource(remote: false)
@@ -576,8 +635,25 @@ public struct ComposeFile: Codable {
 
 	public static func load(fromFile path: String) throws -> ComposeFile {
 		let content = try String(contentsOfFile: path.expandingTildeInPath, encoding: .utf8)
+		var compose = try YAMLDecoder().decode(ComposeFile.self, from: content)
 
-		return try YAMLDecoder().decode(ComposeFile.self, from: content)
+		compose.services = try compose.services.mapValues { service in
+			var service = service
+
+			if let sshAuthorizedKey = service.sshAuthorizedKey, sshAuthorizedKey.hasPrefix("ssh-") == false {
+				let keyURL = URL(fileURLWithPath: sshAuthorizedKey.expandingTildeInPath)
+
+				guard FileManager.default.fileExists(atPath: keyURL.path(percentEncoded: false)) else {
+					throw ServiceError(String(localized: "SSH authorized key file not found at \(keyURL.path(percentEncoded: false))"))
+				}
+
+				service.sshAuthorizedKey = try String(contentsOf: keyURL, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+			}
+
+			return service
+		}
+
+		return compose
 	}
 
 	// MARK: Ordering
@@ -587,7 +663,7 @@ public struct ComposeFile: Codable {
 			let unknown = filter.filter { services[$0] == nil }
 
 			if unknown.isEmpty == false {
-				let errorMessage = unknown.count == 1 ? String(localized: "Unknown service") :	String(localized: "Unknown services")
+				let errorMessage = unknown.count == 1 ? String(localized: "Unknown service") : String(localized: "Unknown services")
 
 				throw ServiceError("\(errorMessage): \(unknown.joined(separator: ", "))")
 			}
@@ -595,7 +671,7 @@ public struct ComposeFile: Codable {
 
 		let keys: [String] = filter.isEmpty ? services.keys.sorted() : filter
 
-		return keys.compactMap {k in
+		return keys.compactMap { k in
 			services[k].map {
 				(k, $0)
 			}
@@ -658,88 +734,15 @@ public struct ComposeFile: Codable {
 
 	// MARK: Template
 
+	/// Commented example `compose.yml`, bundled as the `compose-template.yml` CakedLib resource.
 	public static var template: String {
-"""
-# compose.yml — Caker multi-VM environment (docker compose compatible)
-# Run `cakectl compose up` to start all services in depends_on order.
-# Run `cakectl compose down` to stop them in reverse order.
-# Run `cakectl compose ps` to show their status.
-# Run `cakectl compose init` to regenerate this file.
-name: template
-services:
-  # MariaDB — real package install (via `packages:`) plus first-boot setup (via `post_commands:`),
-  # pulling its admin password/DB name straight out of `environment:` rather than hardcoding them
-  # a second time — a demo of all three fields working together. (Not PostgreSQL/pgAdmin: pgAdmin's
-  # apt repo publishes amd64 packages only, no arm64 build, which made that pairing unusable on
-  # Apple Silicon hosts — MariaDB/phpMyAdmin are both in Ubuntu's own default repos for every arch.)
-  mariadb:
-    image: ubuntu:24.04
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: secret
-      MYSQL_DATABASE: myapp
-    networks:
-      - default
-    deploy:
-      resources:
-        limits:
-          cpus: "2"
-          memory: 2048M
-    # Caker VM extensions:
-    disk: 20          # GiB
-    user: ubuntu
-    password: ubuntu
-    package_update: true
-    packages:
-      - mariadb-server
-    post_commands:
-      - sed -i "s/^bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf
-      - systemctl restart mariadb
-      - mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$(grep MYSQL_ROOT_PASSWORD /etc/environment | cut -d= -f2)'; CREATE DATABASE IF NOT EXISTS $(grep MYSQL_DATABASE /etc/environment | cut -d= -f2); GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '$(grep MYSQL_ROOT_PASSWORD /etc/environment | cut -d= -f2)' WITH GRANT OPTION; FLUSH PRIVILEGES;"
+		guard let url = composeResourceBundle.url(forResource: "compose-template", withExtension: "yml"),
+			let content = try? String(contentsOf: url, encoding: .utf8)
+		else {
+			fatalError("compose-template.yml resource is missing from the CakedLib bundle")
+		}
 
-  # phpMyAdmin (web) — the phpmyadmin package is debconf-interactive by default (which webserver to
-  # auto-configure, whether to run its own local dbconfig-common setup) and would hang waiting for
-  # prompts under cloud-init's non-interactive `packages:` install — unlike mariadb above, this has
-  # to preseed those answers via `post_commands:` before installing, same "packages: only works
-  # when nothing needs asking first" lesson the old pgAdmin pairing demonstrated.
-  phpmyadmin:
-    image: ubuntu:24.04
-    ports:
-      - "8080:80"
-    networks:
-      - default
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 1024M
-    disk: 10          # GiB
-    user: ubuntu
-    password: ubuntu
-    package_update: true
-    depends_on:
-      - mariadb
-    write_files:
-      - path: /etc/motd.d/phpmyadmin.motd
-        content: |
-          phpMyAdmin is reachable at http://<this-vm-ip>/ (forwarded to host port 8080). Log in
-          with the mariadb VM's own IP as the server (phpMyAdmin allows an arbitrary server by
-          default) — find it with `cakectl infos compose-template-mariadb`.
-        permissions: "0644"
-      # - path: /etc/myapp/app.conf  # `source:` reads a file from the host instead of inlining it
-      #   source: ./app.conf         # resolved relative to the current directory, like `volumes:`
-    post_commands:
-      - debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean false"
-      - debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2"
-      - DEBIAN_FRONTEND=noninteractive apt-get install -y phpmyadmin
-      - a2enconf phpmyadmin
-      - systemctl reload apache2
-
-networks:
-  default:
-    driver: bridge
-"""
+		return content
 	}
 }
 

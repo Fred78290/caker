@@ -25,6 +25,7 @@
 		17555DDA1E9035403FCDC3C0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
 		4790DD9E7D6FF54441D137A8 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
+		99C0D9A480DB4E12A2BF7BCC /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
 		6F24F80EC59144FFB72B9505 /* VirtualMachineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */; };
 		70F97BECEED1C4B704A9EA72 /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070CEA8AC4D83C5669773CE7 /* ComposeView.swift */; };
@@ -754,6 +755,7 @@
 		9BFB8908303F558C007AFA2A /* Aliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFB8907303F558C007AFA2A /* Aliases.swift */; };
 		9BFB890A303F55A3007AFA2A /* Aliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFB8909303F55A3007AFA2A /* Aliases.swift */; };
 		9BFB890B303F55B8007AFA2A /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
+		062BB2C476CE4B99A3059E9C /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 		9BFD5B1B305733A800517B3E /* TaskEntryRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B1A305733A800517B3E /* TaskEntryRepresentation.swift */; };
 		9BFD5B1F305734CF00517B3E /* Relocate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B1E305734CF00517B3E /* Relocate.swift */; };
 		9BFD5B21305734F000517B3E /* Tasks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B20305734F000517B3E /* Tasks.swift */; };
@@ -773,6 +775,7 @@
 		E36354EE8CB6B2AC268BD479 /* ImageCacheView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DBF736106B014BE7717C9D9 /* ImageCacheView.swift */; };
 		EC403890050087209287101F /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */; };
 		FB20C8CCEAD84F2CA91EE0BC /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
+		E6403D59BF704E5C94AF1280 /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1666,6 +1669,7 @@
 		9BFE87452F7E6480005CC9B2 /* VM.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = VM.xcf; sourceTree = "<group>"; };
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
 		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
+		22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "compose-template.yml"; sourceTree = "<group>"; };
 		CEBCF840FC996468321E4B7D /* BootCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootCommand.swift; sourceTree = "<group>"; };
 		D0126D49FEBD9B20C4406BD4 /* CachedImageKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedImageKind.swift; sourceTree = "<group>"; };
 		DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDetailView.swift; sourceTree = "<group>"; };
@@ -1870,6 +1874,7 @@
 		58DBE321060213C953A161FE /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */,
 				B424710990B7411A855EC5AD /* VMImages.json */,
 			);
 			path = Resources;
@@ -3642,6 +3647,7 @@
 				9B2D37A5304AD80500204614 /* fedora-server.packerlite.yaml in Resources */,
 				9B2D37A6304AD80500204614 /* macos12.packerlite.yaml in Resources */,
 				4790DD9E7D6FF54441D137A8 /* VMImages.json in Resources */,
+				99C0D9A480DB4E12A2BF7BCC /* compose-template.yml in Resources */,
 				9B06995D2FB1A1B800FEAE13 /* VM.icns in Resources */,
 				9B06995E2FB1A1B800FEAE13 /* VM.png in Resources */,
 			);
@@ -3650,6 +3656,7 @@
 			isa = PBXResourcesBuildPhase;
 			files = (
 				FB20C8CCEAD84F2CA91EE0BC /* VMImages.json in Resources */,
+				E6403D59BF704E5C94AF1280 /* compose-template.yml in Resources */,
 				9BC697702FDC048E00A60AF7 /* InfoPlist.xcstrings in Resources */,
 				9B5611A13013502C00E9FA7D /* agent.svg in Resources */,
 				9B5611A23013502C00E9FA7D /* AppIcon.icns in Resources */,
@@ -3712,6 +3719,7 @@
 				9BA9CBD22FCD7BAB00CEBFC0 /* VM.png in Resources */,
 				9BA9CBD32FCD7BB400CEBFC0 /* VM.icns in Resources */,
 				9BFB890B303F55B8007AFA2A /* VMImages.json in Resources */,
+				062BB2C476CE4B99A3059E9C /* compose-template.yml in Resources */,
 			);
 		};
 		CFBB16579F6DEACF77882EAF /* Resources */ = {

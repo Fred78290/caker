@@ -937,6 +937,7 @@ final class ComposeTest: XCTestCase {
 		// post_commands exist.
 		XCTAssertTrue(postCommands.contains { $0.contains("MYSQL_ROOT_PASSWORD") })
 		XCTAssertTrue(postCommands.contains { $0.contains("MYSQL_DATABASE") })
+		XCTAssertTrue(postCommands.contains { $0.contains("^MYSQL_USER=") && $0.contains("^MYSQL_PASSWORD=") })
 	}
 
 	func testTemplatePhpmyadminWriteFilesEntryParses() throws {
@@ -949,10 +950,12 @@ final class ComposeTest: XCTestCase {
 		let phpmyadmin = try XCTUnwrap(f.services["phpmyadmin"])
 		let writeFiles = try XCTUnwrap(phpmyadmin.writeFiles)
 
-		XCTAssertEqual(writeFiles.count, 1)
+		XCTAssertEqual(writeFiles.count, 2)
 		XCTAssertEqual(writeFiles.first?.path, "/etc/motd.d/phpmyadmin.motd")
 		XCTAssertNotNil(writeFiles.first?.content)
 		XCTAssertNil(writeFiles.first?.source)
+		XCTAssertEqual(writeFiles.last?.path, "/etc/phpmyadmin/conf.d/caker.inc.php")
+		XCTAssertEqual(writeFiles.last?.content?.contains("AllowArbitraryServer"), true)
 	}
 
 	// MARK: - ComposeInit command
