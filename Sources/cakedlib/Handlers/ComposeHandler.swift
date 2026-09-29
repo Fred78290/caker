@@ -92,23 +92,58 @@ public struct ComposeHandler {
 				try buildOpts.options.validate(remote: false)
 
 				let vmExistedBeforeBuild = storage.exists(vmName)
-				let reply = await LaunchHandler.buildAndLaunchVM(
-					runMode: runMode,
-					options: buildOpts.options,
-					waitIPTimeout: waitIPTimeout,
-					startMode: .background,
-					gcd: false,
-					recoveryMode: false,
-					progressHandler: ProgressObserver.progressHandler
-				)
+				let reply: LaunchReply
+
+				if vmExistedBeforeBuild {
+					reply = LaunchReply(name: vmName, ip: String.empty, launched: false, reason: String(localized: "VM already exists"))
+				} else {
+					let build = await BuildHandler.build(options: buildOpts.options, runMode: runMode, progressHandler: ProgressObserver.progressHandler)
+
+					if build.builded == false {
+						reply = LaunchReply(name: vmName, ip: String.empty, launched: false, reason: build.reason)
+					} else {
+						// Tag before starting, not after: `StartHandler.startVM` below is what fires
+						// `VMLifecycleHooks.notify(.started(...))`, and `ComposeDNSCoordinator` reads
+						// `composeProject`/`composeService` straight back off the on-disk `CakeConfig` in
+						// response to that event. Tagging only after start returns (as this used to, via
+						// `LaunchHandler.buildAndLaunchVM`'s single combined build+start call) meant the
+						// coordinator's very first read — on a service's *first* `compose up` — always found
+						// the tags still unset, silently skipping DNS registration until the VM was later
+						// restarted (the "already installed" branch above already tags before starting).
+						if let location = try? storage.find(vmName), let config = try? location.config() {
+							config.composeProject = appName
+							config.composeService = serviceName
+							try? config.save()
+						}
+
+						do {
+							let startReply = try StartHandler.startVM(
+								on: Utilities.group.next(),
+								location: storage.find(vmName),
+								screenSize: nil,
+								vncPassword: nil,
+								vncPort: nil,
+								waitIPTimeout: waitIPTimeout,
+								startMode: .background,
+								gcd: false,
+								recoveryMode: false,
+								runMode: runMode
+							)
+
+							reply = LaunchReply(name: startReply.name, ip: startReply.ip, launched: startReply.started, reason: startReply.reason)
+						} catch {
+							reply = LaunchReply(name: vmName, ip: String.empty, launched: false, reason: error.reason)
+						}
+					}
+				}
 
 				if Logger.LoggingLevel() > .info {
 					print(Format.text.render(reply))
 				}
 
 				if reply.launched == false {
-					// `buildAndLaunchVM` reports `launched: false` both when the build failed and when the VM
-					// was built fine but could not be *started* (e.g. no IP within `waitIPTimeout`). In the
+					// `reply.launched` is `false` both when the build failed and when the VM was built fine
+					// but could not be *started* (e.g. no IP within `waitIPTimeout`). In the
 					// second case the VM now exists on disk: if it isn't recorded as this project's, the next
 					// `up` skips the "already installed" branch, tries to build the same name again and fails
 					// with "VM already exists" forever, while `down`/`rm` (which only act on recorded VMs)
@@ -122,10 +157,6 @@ public struct ComposeHandler {
 				} else {
 					let location = try storage.find(vmName)
 					let config = try location.config()
-
-					config.composeProject = appName
-					config.composeService = serviceName
-					try? config.save()
 
 					compose.installed[serviceName] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: config.instanceID)
 				}

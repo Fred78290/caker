@@ -121,6 +121,18 @@ final class ComposeDNSTests: XCTestCase {
 		XCTAssertEqual(Array(response.suffix(4)), [192, 168, 64, 5])
 	}
 
+	func testEncodeResponseANCOUNTMatchesActualRecordsWhenAnAddressIsUnparseable() throws {
+		let query = try DNSMessage.parseQuery(self.encodeQuery(name: "mariadb.myapp.compose.internal"))
+		// Nothing in the registry produces a malformed address, but the codec itself must never
+		// let ANCOUNT overstate what it actually appended, so this covers it directly.
+		let response = DNSMessage.encodeResponse(to: query, addresses: ["not-an-ip", "192.168.64.5"], ttlSeconds: 5)
+		let echoed = try DNSMessage.parseQuery(Array(response))
+
+		XCTAssertEqual(echoed.name, "mariadb.myapp.compose.internal")
+		XCTAssertEqual(UInt16(response[7]), 1, "ANCOUNT must equal the one address that actually encoded, not the two passed in")
+		XCTAssertEqual(Array(response.suffix(4)), [192, 168, 64, 5])
+	}
+
 	func testEncodeResponseWithNoAddressesHasZeroAnswers() throws {
 		let query = try DNSMessage.parseQuery(self.encodeQuery(name: "mariadb.myapp.compose.internal"))
 		let response = DNSMessage.encodeResponse(to: query, addresses: [])

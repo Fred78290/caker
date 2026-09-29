@@ -242,14 +242,16 @@ public enum DNSMessage {
 	/// rebuild/restart, and this resolver has no way to push an update to a client that already
 	/// cached a stale answer, so a short TTL is the only guard against that.
 	public static func encodeResponse(to query: Query, addresses: [String], ttlSeconds: UInt32 = 5) -> Data {
+		// Resolved first, separately from the header: ANCOUNT must equal exactly how many
+		// records end up in the body, and an address that fails to parse (which the registry
+		// itself never produces, but nothing here should assume that) must not overstate it.
+		let octetsList = addresses.compactMap { self.ipv4Octets($0) }
 		var body = Data()
 
-		self.appendHeader(to: &body, query: query, answerCount: UInt16(addresses.count), rcode: .noError)
+		self.appendHeader(to: &body, query: query, answerCount: UInt16(octetsList.count), rcode: .noError)
 		self.appendQuestion(to: &body, query: query)
 
-		for address in addresses {
-			guard let octets = self.ipv4Octets(address) else { continue }
-
+		for octets in octetsList {
 			// NAME: a compression pointer back at the question name (offset 12, right after
 			// the fixed 12-byte header) rather than re-encoding the labels a second time.
 			body.append(contentsOf: [0xC0, 0x0C])
