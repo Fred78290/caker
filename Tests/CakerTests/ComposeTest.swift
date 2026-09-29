@@ -1233,4 +1233,293 @@ final class ComposeTest: XCTestCase {
 
 		XCTAssertTrue(reply.success)
 	}
+
+	// MARK: - Review fixes: volumes
+
+	func testShortVolumeDockerModeIsTranslatedToCakerReadOnlySyntax() throws {
+		XCTAssertEqual(ComposeVolume.short("./data:/data:ro").mountString, "./data:/data,ro")
+		XCTAssertEqual(ComposeVolume.short("./data:/data:RO,z").mountString, "./data:/data,ro")
+		XCTAssertEqual(ComposeVolume.short("./data:/data:rw").mountString, "./data:/data")
+
+		// Caker's own option syntax and the plain two-part form pass through untouched.
+		XCTAssertEqual(ComposeVolume.short("./data:/data,ro,uid=1000").mountString, "./data:/data,ro,uid=1000")
+		XCTAssertEqual(ComposeVolume.short(".:/workspace").mountString, ".:/workspace")
+
+		// End to end: `DirectorySharingAttachment` ignores a third colon-separated part, so without the
+		// translation a Docker-style `:ro` mount came up read-write with no error.
+		let mount = try DirectorySharingAttachment(parseFrom: try XCTUnwrap(ComposeVolume.short("./data:/data:ro").mountString))
+		XCTAssertTrue(mount.readOnly)
+	}
+
+	func testLongVolumeReadOnlyKeyIsDecodedAndReachesBuildOptions() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    volumes:
+		      - type: bind
+		        source: /host/path
+		        target: /guest/path
+		        read_only: true
+		"""))
+		let svc = try XCTUnwrap(f.services["app"])
+
+		XCTAssertEqual(svc.volumes?.compactMap { $0.mountString }, ["/host/path:/guest/path,ro"])
+
+		let built = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertEqual(built.options.mounts.first?.readOnly, true)
+	}
+
+	// MARK: - Review fixes: ports and sockets
+
+	func testUnsupportedPortMappingsAreRejectedInsteadOfBecomingADifferentForward() throws {
+		// `TunnelAttachement(argument:)` turns these into `127:127`, `3000:3000` and a TCP forward.
+		for mapping in ["127.0.0.1:8080:80", "3000-3005:3000-3005", "8080:80/xyz", "abc", "0:80", "70000:80"] {
+			var svc = ComposeService()
+			svc.image = "ubuntu:24.04"
+			svc.ports = [.short(mapping)]
+
+			XCTAssertThrowsError(try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil), "'\(mapping)' must be rejected") { error in
+				XCTAssertTrue(error.reason.contains(mapping), "the error should name the offending mapping: \(error.reason)")
+			}
+		}
+	}
+
+	func testSupportedPortMappingsStillWork() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.ports = [.short("8080:80"), .short("443:443/tcp"), .short("53:53/UDP"), .short("22")]
+
+		let built = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		// An upper-case `/UDP` used to fall through the parser's case-sensitive regex to a TCP forward.
+		XCTAssertEqual(built.options.forwardedPorts.map { "\($0)" }, ["8080:80/tcp", "443:443/tcp", "53:53/udp", "22:22/tcp"])
+	}
+
+	func testLongPortFormWithHostIPIsRejected() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    ports:
+		      - target: 80
+		        published: 8080
+		        host_ip: 127.0.0.1
+		"""))
+		let svc = try XCTUnwrap(f.services["app"])
+
+		// `host_ip` used to be dropped by the decoder, silently widening a loopback-only publish.
+		XCTAssertEqual(svc.ports?.compactMap { $0.portString }, ["8080:80"])
+		XCTAssertThrowsError(try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil))
+	}
+
+	func testMalformedSocketMappingIsRejected() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.sockets = ["no-colon-here"]
+
+		XCTAssertThrowsError(try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil))
+	}
+
+	// MARK: - Review fixes: networks
+
+	func testNetworkDriverOptsKeyIsDecodedFromSnakeCase() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		networks:
+		  lan:
+		    driver: bridge
+		    driver_opts:
+		      foo: bar
+		"""))
+		let network = try XCTUnwrap(f.networks?["lan"] ?? nil)
+
+		XCTAssertEqual(network.driverOpts, ["foo": "bar"])
+
+		// The registry persists definitions as JSON through the same keys.
+		let json = String(decoding: try JSONEncoder().encode(f), as: UTF8.self)
+		XCTAssertTrue(json.contains("driver_opts"))
+		XCTAssertFalse(json.contains("driverOpts"))
+	}
+
+	func testUndeclaredDefaultNetworkResolvesToBridgedAttachment() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.networks = ["default"]
+
+		// Docker Compose's implicit network: valid with no top-level `networks:` at all …
+		let implicit = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+		defer { implicit.cleanup.forEach { try? $0.delete() } }
+
+		// … or with a bare `default:` entry. Passed through as the literal name "default" it matched
+		// nothing, and `CakeConfig.collectNetworks` silently dropped the device: a VM with no NIC.
+		let bareDefault: [String: ComposeNetwork?] = ["default": nil]
+		let bare = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: bareDefault)
+		defer { bare.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertEqual(implicit.options.networks.map { $0.network }, ["bridged"])
+		XCTAssertEqual(bare.options.networks.map { $0.network }, ["bridged"])
+	}
+
+	// MARK: - Review fixes: hostname
+
+	func testHostnameReachesTheCloudInitUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.hostname = "app-host"
+
+		let built = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		// `hostname:` used to be decoded and then never read, so the guest kept the VM name.
+		let userData = try String(contentsOfFile: try XCTUnwrap(built.options.userData), encoding: .utf8)
+		XCTAssertTrue(userData.contains("hostname: app-host"), userData)
+	}
+
+	func testNoHostnameNoUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		let built = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertNil(built.options.userData)
+
+		svc.hostname = ""
+		let empty = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+		defer { empty.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertNil(empty.options.userData)
+	}
+
+	// MARK: - Review fixes: cpus
+
+	func testCPULimitIsClampedInsteadOfTrappingTheDaemon() throws {
+		func cpus(_ value: String) throws -> UInt16 {
+			let f = try load(yaml("""
+			name: p
+			services:
+			  app:
+			    image: ubuntu:24.04
+			    deploy:
+			      resources:
+			        limits:
+			          cpus: "\(value)"
+			"""))
+			let built = try XCTUnwrap(f.services["app"]).toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+			built.cleanup.forEach { try? $0.delete() }
+
+			return built.options.cpu
+		}
+
+		XCTAssertEqual(try cpus("4"), 4)
+		XCTAssertEqual(try cpus("0.2"), 1)
+		XCTAssertEqual(try cpus("nan"), 1)
+		// `UInt16(Double)` traps outside its range: these used to crash the process running `compose up`.
+		XCTAssertEqual(try cpus("1e10"), UInt16.max)
+		XCTAssertEqual(try cpus("inf"), UInt16.max)
+	}
+
+	// MARK: - Review fixes: ComposeHandler bookkeeping
+
+	private func makeTemporaryDatabase() throws -> (database: ComposeFileDatabase, cleanup: () -> Void) {
+		let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".json")
+
+		return (try ComposeFileDatabase(url), { try? FileManager.default.removeItem(at: url) })
+	}
+
+	func testStatusForUpKeepsTheStoredDefinitionWhenNotReplacingIt() throws {
+		let (database, cleanup) = try makeTemporaryDatabase()
+		defer { cleanup() }
+
+		var db = ComposeService()
+		db.image = "mariadb"
+		db.packages = ["mariadb-server"]
+
+		var web = ComposeService()
+		web.image = "ubuntu:24.04"
+		web.dependsOn = .list(["db"])
+		web.ports = [.short("8080:80")]
+
+		var stored = ComposeFileDatabase.ComposeFileStatus(composeFile: ComposeFile(name: "proj", services: ["db": db, "web": web]))
+		stored.installed["db"] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: "id-db")
+		try database.upsert("proj", stored)
+
+		// All the GUI "Start" action has: the names and images the registry still knows.
+		let reconstructed = ComposeReplyList.ComposeInfo(
+			name: "proj",
+			services: [
+				ComposeServiceInfo(name: "db", image: "mariadb", status: "provisioned", running: false),
+				ComposeServiceInfo(name: "web", image: "ubuntu:24.04", status: "provisioned", running: false),
+			]
+		).reconstructedComposeFile()
+
+		let kept = ComposeHandler.statusForUp(database: database, compose: reconstructed, replaceDefinition: false)
+
+		XCTAssertEqual(kept.composeFile.services["web"]?.dependsOn?.serviceNames, ["db"])
+		XCTAssertEqual(kept.composeFile.services["web"]?.ports?.compactMap { $0.portString }, ["8080:80"])
+		XCTAssertEqual(kept.composeFile.services["db"]?.packages, ["mariadb-server"])
+		XCTAssertEqual(kept.installed["db"]?.instanceIdentifier, "id-db")
+
+		// A user-authored definition (the editor's "Save & Start") does replace it — bookkeeping survives.
+		let replaced = ComposeHandler.statusForUp(database: database, compose: reconstructed, replaceDefinition: true)
+
+		XCTAssertNil(replaced.composeFile.services["web"]?.dependsOn)
+		XCTAssertEqual(replaced.installed["db"]?.instanceIdentifier, "id-db")
+	}
+
+	func testStatusForUpCreatesAFreshStatusForAnUnregisteredProject() throws {
+		let (database, cleanup) = try makeTemporaryDatabase()
+		defer { cleanup() }
+
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		let status = ComposeHandler.statusForUp(database: database, compose: ComposeFile(name: "new-proj", services: ["a": svc]), replaceDefinition: false)
+
+		XCTAssertEqual(status.composeFile.name, "new-proj")
+		XCTAssertNotNil(status.composeFile.services["a"])
+		XCTAssertTrue(status.installed.isEmpty)
+	}
+
+	func testStopFailuresOnlyReportsVMsThatAreStillRunning() {
+		let objects = [
+			StoppedObject(name: "stopped", stopped: true, reason: ""),
+			StoppedObject(name: "was-not-running", stopped: false, reason: "VM is not running"),
+			StoppedObject(name: "refused", stopped: false, reason: "VM refused is provisioning, please wait until it is finished"),
+		]
+
+		let failures = ComposeHandler.stopFailures(in: objects) { $0 == "refused" }
+
+		XCTAssertEqual(failures.map { $0.name }, ["refused"])
+		// A VM reported as stopped never counts, whatever a later status probe says.
+		XCTAssertTrue(ComposeHandler.stopFailures(in: objects) { _ in true }.allSatisfy { $0.stopped == false })
+	}
+
+	func testHandlerRmPrunesStaleRecordsSoTheProjectCanBeUnregistered() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		// VMs deleted by hand: the records outlive them. Unique name so no real VM can match.
+		let name = "test-rm-stale-\(UUID().uuidString.prefix(8).lowercased())"
+		var status = ComposeFileDatabase.ComposeFileStatus(composeFile: ComposeFile(name: name, services: ["web": svc, "db": svc]))
+		status.installed["web"] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: "gone-web")
+		status.installed["db"] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: "gone-db")
+
+		let reply = ComposeHandler.rm(compose: &status, services: [], stop: false, force: false, runMode: .user)
+
+		XCTAssertTrue(reply.success)
+		// Nothing was ever deleted, so before the fix `installed` never emptied: callers only unregister a
+		// project once it is empty, which left it listed forever.
+		XCTAssertTrue(status.installed.isEmpty)
+		XCTAssertFalse(reply.reason.isEmpty, "the missing VMs are still reported as warnings")
+	}
 }

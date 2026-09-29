@@ -60,6 +60,7 @@ struct ComposeEditorView: View {
 			self.footer
 		}
 		.frame(minWidth: 640, minHeight: 560)
+		.interactiveDismissDisabled(self.isSaving)
 		.onAppear {
 			self.validate()
 		}
@@ -144,10 +145,14 @@ struct ComposeEditorView: View {
 
 			Spacer()
 
+			// Not while saving: dismissing mid-`up` doesn't stop it (the build keeps running in the
+			// background), and reopening the editor to save again would start a second, concurrent `up`
+			// on the same project — racing the first on the registry and on each VM name.
 			Button("Cancel") {
 				self.dismiss()
 			}
 			.withButtonStyle(.bordered)
+			.disabled(self.isSaving)
 
 			Button {
 				self.save()

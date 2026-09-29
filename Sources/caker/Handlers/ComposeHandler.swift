@@ -43,14 +43,16 @@ extension ComposeHandler {
 	/// Registers (if new) and starts/updates a compose project from an in-memory `ComposeFile` —
 	/// the Compose Editor's "Save & Start" action, and the moral equivalent of `cakectl compose up`
 	/// without requiring a file on disk.
-	public static func up(client: CakedServiceClient?, compose: ComposeFile, services: [String] = [], waitIPTimeout: Int = 180, runMode: Utils.RunMode) async throws -> ComposeReplyUp {
+	///
+	/// `replaceDefinition` (local `.app` mode only) says whether `compose` also replaces an
+	/// already-registered project's stored definition: `true` for a user-authored definition (the
+	/// editor), `false` for the sidebar/menu-bar "Start" action, whose `compose` is only the lossy
+	/// name-and-image reconstruction — see `statusForUp(database:compose:replaceDefinition:)`. Over gRPC
+	/// the server decides on its own (`caked`'s `Up.run` currently keeps the stored definition).
+	public static func up(client: CakedServiceClient?, compose: ComposeFile, services: [String] = [], waitIPTimeout: Int = 180, replaceDefinition: Bool = true, runMode: Utils.RunMode) async throws -> ComposeReplyUp {
 		guard let client else {
 			let database = try Home(runMode: runMode).composeFileDatabase()
-			var status = database.get(compose.name) ?? ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
-
-			// Apply the caller's (possibly edited) definition even when the project already exists —
-			// matches the server-side `Up.run`'s own decode-fresh-then-merge-into-existing behavior.
-			status.composeFile = compose
+			var status = self.statusForUp(database: database, compose: compose, replaceDefinition: replaceDefinition)
 
 			let reply = await self.up(compose: &status, services: services, waitIPTimeout: waitIPTimeout, runMode: runMode)
 

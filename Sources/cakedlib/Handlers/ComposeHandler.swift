@@ -57,22 +57,27 @@ public struct ComposeHandler {
 								return ComposeReplyUp(name: appName, success: false, reason: String(format: String(localized: "Compose failed to start %@, %@"), serviceName, reply.reason))
 							}
 						} else {
-							warning.append("VM \(vmName) not matched in compose name \(appName)")
+							warning.append(String(format: String(localized: "VM %@ not matched in compose name %@"), vmName, appName))
 						}
-						
+
 						continue
 					}
 				}
 
 				var buildOpts = try serviceSpec.toBuildOptions(name: vmName, composeNetworks: compose.composeFile.networks)
-				try buildOpts.options.validate(remote: false)
 
+				// Registered before `validate(remote:)` can throw: `toBuildOptions` has already written the
+				// cloud-init user-data file by now (which can carry `environment:` secrets), and a `defer`
+				// placed after the throwing call would leak it in the temporary directory on that path.
 				defer {
 					buildOpts.cleanup.forEach {
 						try? $0.delete()
 					}
 				}
 
+				try buildOpts.options.validate(remote: false)
+
+				let vmExistedBeforeBuild = storage.exists(vmName)
 				let reply = await LaunchHandler.buildAndLaunchVM(
 					runMode: runMode,
 					options: buildOpts.options,
@@ -88,6 +93,17 @@ public struct ComposeHandler {
 				}
 
 				if reply.launched == false {
+					// `buildAndLaunchVM` reports `launched: false` both when the build failed and when the VM
+					// was built fine but could not be *started* (e.g. no IP within `waitIPTimeout`). In the
+					// second case the VM now exists on disk: if it isn't recorded as this project's, the next
+					// `up` skips the "already installed" branch, tries to build the same name again and fails
+					// with "VM already exists" forever, while `down`/`rm` (which only act on recorded VMs)
+					// can't clean it up either. Only adopt a VM this call created — never one that was
+					// already there (a name clash with someone else's VM makes the same call fail too).
+					if vmExistedBeforeBuild == false, let location = try? storage.find(vmName), let config = try? location.config() {
+						compose.installed[serviceName] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: config.instanceID)
+					}
+
 					return ComposeReplyUp(name: appName, success: false, reason: reply.reason)
 				} else {
 					let location = try storage.find(vmName)
@@ -122,10 +138,10 @@ public struct ComposeHandler {
 					if compose.installed[serviceName]?.instanceIdentifier == config.instanceID {
 						vmToStop.append(vmName)
 					} else {
-						warning.append("VM \(vmName) not matched in compose name \(appName)")
+						warning.append(String(format: String(localized: "VM %@ not matched in compose name %@"), vmName, appName))
 					}
 				} else {
-					warning.append("VM \(vmName) not found in compose name \(appName)")
+					warning.append(String(format: String(localized: "VM %@ not found in compose name %@"), vmName, appName))
 				}
 			}
 
@@ -134,6 +150,24 @@ public struct ComposeHandler {
 
 				if Logger.LoggingLevel() > .info {
 					print(Format.text.render(result.objects))
+				}
+
+				if result.success == false {
+					return ComposeReplyDown(name: appName, success: false, reason: result.reason)
+				}
+
+				// `stopVMs` succeeds as a call even when an individual VM refused to stop (still
+				// provisioning, owned by the Caker app, `stopVirtualMachine` throwing…): that is only
+				// visible in its per-VM results, so `down` used to report success — and the GUI "Stop"
+				// action a clean stop — while services were still running.
+				let failures = Self.stopFailures(in: result.objects) { name in
+					(try? storage.find(name))?.status.isRunning ?? false
+				}
+
+				if failures.isEmpty == false {
+					let reasons = failures.map { String(format: String(localized: "Failed to stop VM %@, %@"), $0.name, $0.reason) }
+
+					return ComposeReplyDown(name: appName, success: false, reason: reasons.joined(separator: "\n"))
 				}
 			}
 
@@ -184,14 +218,27 @@ public struct ComposeHandler {
 			for (serviceName, _) in toRemove {
 				let vmName = "compose-\(appName)-\(serviceName)"
 
-				if let location = try? storage.find(vmName), let config = try? location.config() {
-					if compose.installed[serviceName]?.instanceIdentifier == config.instanceID {
-						vmToDelete[vmName] = serviceName
-					} else {
-						warning.append("VM \(vmName) not matched in compose name \(appName)")
-					}
+				// A record whose VM no longer exists (deleted by hand, or replaced by a different VM that
+				// now holds the name) is stale: pruned here, because `installed` only ever shrinks when a
+				// delete succeeds — a project with one such leftover would never become empty, so `rm`
+				// could never unregister it and it would stay listed forever.
+				guard let location = try? storage.find(vmName) else {
+					warning.append(String(format: String(localized: "VM %@ not found in compose name %@"), vmName, appName))
+					compose.installed[serviceName] = nil
+					continue
+				}
+
+				// Config unreadable: can't tell whose VM this is, so the record is kept.
+				guard let config = try? location.config() else {
+					warning.append(String(format: String(localized: "VM %@ not matched in compose name %@"), vmName, appName))
+					continue
+				}
+
+				if compose.installed[serviceName]?.instanceIdentifier == config.instanceID {
+					vmToDelete[vmName] = serviceName
 				} else {
-					warning.append("VM \(vmName) not found in compose name \(appName)")
+					warning.append(String(format: String(localized: "VM %@ not matched in compose name %@"), vmName, appName))
+					compose.installed[serviceName] = nil
 				}
 			}
 			
@@ -218,6 +265,17 @@ public struct ComposeHandler {
 
 				if result.success == false {
 					return ComposeReplyDelete(name: appName, success: false, reason: result.reason)
+				}
+
+				// `delete(all:names:)` succeeds as a call even when a VM was left in place — a running
+				// one without `--stop` reports `deleted: false, "VM is running"` — which is only visible
+				// per object: without this `rm` claimed success while deleting nothing.
+				let notDeleted = result.objects.filter { $0.deleted == false }
+
+				if notDeleted.isEmpty == false {
+					let reasons = notDeleted.map { String(format: String(localized: "Failed to delete VM %@, %@"), $0.name, $0.reason) }
+
+					return ComposeReplyDelete(name: appName, success: false, reason: reasons.joined(separator: "\n"))
 				}
 			}
 		} catch {
@@ -253,6 +311,37 @@ public struct ComposeHandler {
 		}
 
 		return ComposeReplyList(composeFiles: composeFiles, success: true, reason: "")
+	}
+
+	// MARK: - Helpers
+
+	/// The registry entry `up` should run against for `compose`: a fresh one for an unregistered
+	/// project, otherwise the registered one — keeping its `installed` bookkeeping either way.
+	///
+	/// `replaceDefinition` decides whether a registered project also takes on `compose`'s definition.
+	/// It must be `false` for a caller whose `compose` is only the *lossy* reconstruction the registry
+	/// can offer (`ComposeReplyList.ComposeInfo.reconstructedComposeFile()`: names and images, nothing
+	/// else) — the GUI's "Start" action — because replacing the stored definition with it would
+	/// permanently drop every service's `depends_on`, ports, volumes, environment, packages… (and the
+	/// next `up` would then build any missing service from that image-only stub, in alphabetical
+	/// rather than dependency order).
+	public static func statusForUp(database: ComposeFileDatabase, compose: ComposeFile, replaceDefinition: Bool) -> ComposeFileDatabase.ComposeFileStatus {
+		guard var status = database.get(compose.name) else {
+			return ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
+		}
+
+		if replaceDefinition {
+			status.composeFile = compose
+		}
+
+		return status
+	}
+
+	/// The VMs `StopHandler.stopVMs` could not stop: reported as not stopped **and** still running
+	/// afterwards (`isRunning` looks that up by VM name). A VM that merely wasn't running — reported
+	/// as not stopped too — is not a failure.
+	static func stopFailures(in objects: [StoppedObject], isRunning: (String) -> Bool) -> [StoppedObject] {
+		objects.filter { $0.stopped == false && isRunning($0.name) }
 	}
 
 	// MARK: - Private

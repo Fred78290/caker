@@ -228,6 +228,56 @@ public struct ComposePortLong: Codable {
 	public var published: Int?
 	public var `protocol`: String?
 	public var mode: String?
+	public var hostIP: String?  // Compose spec `host_ip` — binding a port to one host address isn't supported, see `ComposePort.validatedMapping`
+
+	enum CodingKeys: String, CodingKey {
+		case target, published, `protocol`, mode
+		case hostIP = "host_ip"
+	}
+}
+
+extension ComposePort {
+	/// `portString` normalized to what `TunnelAttachement(argument:)` genuinely honours:
+	/// `port[:port][/tcp|udp|both]`, every port in 1...65535, protocol lowercased — or `nil` for
+	/// anything else. That parser is an unanchored regex that accepts far more than it understands
+	/// and silently turns it into a *different* forward: `127.0.0.1:8080:80` becomes `127:127`,
+	/// `3000-3005:3000-3005` just `3000:3000`, `8080:80/UDP` a TCP forward. A wrong forward is worse
+	/// than a refused one, so `toBuildOptions` rejects `nil` instead of handing the string over.
+	var validatedMapping: String? {
+		if case .long(let long) = self, long.hostIP != nil {
+			return nil
+		}
+
+		guard let raw = self.portString else {
+			return nil
+		}
+
+		let parts = raw.split(separator: "/", omittingEmptySubsequences: false)
+
+		guard parts.count <= 2 else {
+			return nil
+		}
+
+		var proto = ""
+
+		if parts.count == 2 {
+			let candidate = parts[1].lowercased()
+
+			guard ["tcp", "udp", "both"].contains(candidate) else {
+				return nil
+			}
+
+			proto = "/\(candidate)"
+		}
+
+		let ports = parts[0].split(separator: ":", omittingEmptySubsequences: false)
+
+		guard (1...2).contains(ports.count), ports.allSatisfy({ (UInt16($0) ?? 0) > 0 }) else {
+			return nil
+		}
+
+		return ports.joined(separator: ":") + proto
+	}
 }
 
 /// Volume mount — short string `"host:container"` or long mapping form.
@@ -235,13 +285,33 @@ public enum ComposeVolume: Codable {
 	case short(String)
 	case long(ComposeVolumeLong)
 
+	/// The mount in `DirectorySharingAttachment`'s own syntax, `host:guest[,ro,...]` — which is
+	/// **not** Docker Compose's `host:container[:mode]`: a mode in a third colon-separated part is
+	/// silently dropped by `DirectorySharingAttachment(parseFrom:)`, so a Docker-style `:ro` mount
+	/// would otherwise come up read-write with no error at all. Both a short-form `:ro` and a
+	/// long-form `read_only: true` are translated to the `,ro` option here.
 	public var mountString: String? {
 		switch self {
-		case .short(let s): return s
+		case .short(let s): return Self.normalizedShortMount(s)
 		case .long(let l):
 			guard let source = l.source, let target = l.target else { return nil }
-			return "\(source):\(target)"
+			return l.readonly == true ? "\(source):\(target),ro" : "\(source):\(target)"
 		}
+	}
+
+	/// Translates a Docker-style `host:container:mode` short mount (`mode` being a comma-separated
+	/// list such as `ro` or `ro,z`) into `host:container[,ro]`. Anything that isn't exactly three
+	/// colon-separated parts — including Caker's own `host:guest,ro,uid=…` form — is returned as is.
+	static func normalizedShortMount(_ s: String) -> String {
+		let parts = s.split(separator: ":", omittingEmptySubsequences: false)
+
+		guard parts.count == 3 else {
+			return s
+		}
+
+		let modes = parts[2].split(separator: ",").map { $0.lowercased() }
+
+		return modes.contains("ro") ? "\(parts[0]):\(parts[1]),ro" : "\(parts[0]):\(parts[1])"
 	}
 
 	public init(from decoder: Decoder) throws {
@@ -270,7 +340,12 @@ public struct ComposeVolumeLong: Codable {
 	public var type: String?
 	public var source: String?
 	public var target: String?
-	public var readonly: Bool?
+	public var readonly: Bool?  // read-only mount — the Compose spec spells the YAML key `read_only`
+
+	enum CodingKeys: String, CodingKey {
+		case type, source, target
+		case readonly = "read_only"
+	}
 }
 
 // MARK: - Deploy / Resources
@@ -302,7 +377,14 @@ public struct ComposeNetwork: Codable {
 	public var external: Bool? = false  // true: `name` (or the network's own key) already refers to an existing host interface
 	public var name: String?
 
-	public var driverOpts: [String: String]?
+	public var driverOpts: [String: String]?  // accepted for compatibility; nothing consumes it yet
+
+	// The Compose spec's key is `driver_opts` — without this mapping the implicit `driverOpts` key
+	// would make a `driver_opts:` block in a compose.yml be dropped without any error.
+	enum CodingKeys: String, CodingKey {
+		case driver, external, name
+		case driverOpts = "driver_opts"
+	}
 
 	/// Resolves the `BridgeAttachement.network` name a `driver: bridge` compose network attaches
 	/// to. This is Apple's Virtualization.framework sense of "bridged" (a real host network
@@ -321,8 +403,13 @@ public struct ComposeNetwork: Codable {
 			return name
 		}
 
-		return networkKey == "default" ? "bridged" : networkKey
+		return networkKey == Self.defaultNetworkKey ? Self.bridgedDefaultAttachmentName : networkKey
 	}
+
+	/// Docker Compose's implicit network name, reserved to mean caker's default bridged interface.
+	static let defaultNetworkKey = "default"
+	/// The `BridgeAttachement.network` value that means "the configured default bridged interface".
+	static let bridgedDefaultAttachmentName = "bridged"
 }
 
 /// `write_files:` — a file written into the guest via cloud-init on first boot. Exactly one of
@@ -446,17 +533,24 @@ public struct ComposeService: Codable {
 		var filesToClean: [URL] = []
 		var mounts: [DirectorySharingAttachment] = []
 		var ethernets: [BridgeAttachement] = []
-		var tunnels: [TunnelAttachement] =
-			ports?.compactMap {
-				$0.portString
-			}.compactMap {
-				TunnelAttachement(argument: $0)
-			} ?? []
+		var tunnels: [TunnelAttachement] = []
 
-		if let sockets {
-			tunnels += sockets.compactMap {
-				parseUnixSocketTunnel($0)
+		// Both loops used to `compactMap`, so a mapping caker couldn't parse simply vanished — the VM
+		// came up without the forward and nothing said why.
+		for port in ports ?? [] {
+			guard let mapping = port.validatedMapping, let tunnel = TunnelAttachement(argument: mapping) else {
+				throw ServiceError(String(format: String(localized: "Unsupported port or socket mapping '%@'"), port.portString ?? String(describing: port)))
 			}
+
+			tunnels.append(tunnel)
+		}
+
+		for socket in sockets ?? [] {
+			guard let tunnel = parseUnixSocketTunnel(socket) else {
+				throw ServiceError(String(format: String(localized: "Unsupported port or socket mapping '%@'"), socket))
+			}
+
+			tunnels.append(tunnel)
 		}
 
 		if let volumes {
@@ -470,9 +564,18 @@ public struct ComposeService: Codable {
 		if let networks {
 			ethernets = try networks.compactMap { networkName -> BridgeAttachement in
 				let resolvedName: String
+				let networkDef = composeNetworks?[networkName].flatMap { $0 }
 
-				if let networkDef = composeNetworks?[networkName].flatMap({ $0 }), networkDef.driver == .bridge {
+				if let networkDef, networkDef.driver == .bridge {
 					resolvedName = networkDef.bridgedAttachmentName(networkKey: networkName)
+				} else if networkName == ComposeNetwork.defaultNetworkKey, networkDef == nil {
+					// Docker Compose's own implicit network: `networks: [default]` is valid without any
+					// top-level `networks:` entry (or with a bare `default:` one). Passed through as the
+					// literal name "default", it would match neither a caker network nor a physical
+					// interface and `CakeConfig.collectNetworks` would silently drop the device, leaving
+					// the VM with no NIC — so it maps to the default bridged interface, exactly like an
+					// explicitly declared `default: {driver: bridge}` does.
+					resolvedName = ComposeNetwork.bridgedDefaultAttachmentName
 				} else {
 					resolvedName = networkName
 				}
@@ -481,10 +584,13 @@ public struct ComposeService: Codable {
 			}
 		}
 
+		// `Double` → `UInt16` traps outside the representable range (`cpus: "1e10"`, `"inf"`), and the
+		// process running this is the daemon — clamp instead of crashing it on an absurd value.
+		let requestedCPUs = Double(deploy?.resources?.limits?.cpus ?? "2") ?? 2.0
+
 		var opts = BuildOptions(
 			name: name,
-			// use Double literals to avoid type-inference/parsing ambiguity
-			cpu: UInt16(max(1.0, Double(deploy?.resources?.limits?.cpus ?? "2") ?? 2.0)),
+			cpu: UInt16(min(Double(UInt16.max), max(1.0, requestedCPUs))),
 			memory: memoryMB,
 			diskSize: disk ?? 10,
 			diskFormat: self.diskFormat ?? SupportedDiskFormat.defaultSupportedFormat,
@@ -552,7 +658,14 @@ public struct ComposeService: Codable {
 			cloudInit.runcmd = postCommands
 		}
 
-		if cloudInit.writeFiles != nil || cloudInit.packages != nil || cloudInit.packageUpdate != nil || cloudInit.packageUpgrade != nil || cloudInit.runcmd != nil {
+		// `hostname:` is documented as the guest hostname but nothing ever read it — the guest kept the
+		// VM name. cloud-init's own `hostname` key sets it (`manage_etc_hosts` is already on in the
+		// vendor-data, so `/etc/hosts` follows).
+		if let hostname, hostname.isEmpty == false {
+			cloudInit.hostname = hostname
+		}
+
+		if cloudInit.writeFiles != nil || cloudInit.packages != nil || cloudInit.packageUpdate != nil || cloudInit.packageUpgrade != nil || cloudInit.runcmd != nil || cloudInit.hostname != nil {
 			let encoded = try YAMLEncoder().encode(cloudInit)
 
 			let tempFile = URL(fileURLWithPath: NSTemporaryDirectory())
@@ -573,6 +686,7 @@ public struct ComposeService: Codable {
 	/// fragments. `packageUpdate` encodes as an explicit `false` too (not just omitted) when a
 	/// service opts out, so it overrides an image-level default rather than merely not repeating it.
 	private struct GeneratedCloudInit: Codable {
+		var hostname: String?
 		var writeFiles: [WriteFile]?
 		var packages: [String]?
 		var packageUpdate: Bool?
@@ -580,6 +694,7 @@ public struct ComposeService: Codable {
 		var runcmd: [String]?
 
 		enum CodingKeys: String, CodingKey {
+			case hostname
 			case writeFiles = "write_files"
 			case packages
 			case packageUpdate = "package_update"

@@ -194,7 +194,7 @@ struct ComposeRm: ParsableCommand {
 
 	@Flag(
 		name: [.customLong("force")],
-		help: ArgumentHelp(String(localized: "Do not error if a service VM is not found")))
+		help: ArgumentHelp(String(localized: "Force stop without graceful shutdown")))
 	var force: Bool = false
 
 	@Argument(help: ArgumentHelp(String(localized: "Services to remove (default: all)")))

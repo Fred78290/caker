@@ -46,7 +46,10 @@ struct ComposeDetailView: View {
 			.padding(20)
 			.frame(maxWidth: .infinity, alignment: .leading)
 		}
-		.task(id: self.project.name) {
+		// Keyed on the running count too, not just the name: `ComposeView` swaps in a fresh `project`
+		// value on every poll, and keying on the name alone loaded the per-service rows once — a VM
+		// stopping (or starting) elsewhere updated the header's "n/m running" but left these dots stale.
+		.task(id: "\(self.project.name)#\(self.project.runningServiceCount)") {
 			await self.loadServices()
 		}
 	}

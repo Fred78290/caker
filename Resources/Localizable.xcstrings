@@ -546,6 +546,17 @@
         }
       }
     },
+    "%d/%d running" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d/%2$d en cours"
+          }
+        }
+      }
+    },
     "%lld instances" : {
       "localizations" : {
         "fr" : {
@@ -5073,6 +5084,17 @@
         }
       }
     },
+    "Failed to delete VM %@, %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la suppression de la machine virtuelle %1$@, %2$@"
+          }
+        }
+      }
+    },
     "Failed to duplicate virtual machine" : {
       "localizations" : {
         "fr" : {
@@ -9404,6 +9426,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Réseau %@ inchangé"
+          }
+        }
+      }
+    },
+    "Network '%@' resolves to the default bridged interface, but any bridged network is not configured" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le réseau '%@' correspond à l'interface pontée par défaut, mais aucun réseau ponté n'est configuré"
+          }
+        }
+      }
+    },
+    "Network '%@' must be bridged or a physical interface name (resolved to '%@', which was not found)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le réseau '%1$@' doit être ponté ou correspondre à un nom d'interface physique (résolu en '%2$@', introuvable)"
           }
         }
       }
@@ -18250,6 +18294,17 @@
         }
       }
     },
+    "Unsupported port or socket mapping '%@'" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redirection de port ou de socket non prise en charge : '%@'"
+          }
+        }
+      }
+    },
     "Unsupported restore image" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -19028,6 +19083,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La VM %@ s’exécute dans l'application Caker. Utilisez la pour cette l'action"
+          }
+        }
+      }
+    },
+    "VM %@ not found in compose name %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM %1$@ est introuvable dans le projet compose %2$@"
+          }
+        }
+      }
+    },
+    "VM %@ not matched in compose name %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La VM %1$@ ne correspond pas au projet compose %2$@"
           }
         }
       }
@@ -19863,6 +19940,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fenêtre"
+          }
+        }
+      }
+    },
+    "write_files entry for '%@' needs either 'content' or 'source'" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'entrée write_files pour '%@' requiert soit 'content', soit 'source'"
+          }
+        }
+      }
+    },
+    "write_files entry for '%@' cannot set both 'content' and 'source'" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'entrée write_files pour '%@' ne peut pas définir à la fois 'content' et 'source'"
           }
         }
       }

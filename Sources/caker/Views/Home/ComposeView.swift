@@ -205,7 +205,8 @@ struct ComposeView: View {
 
 	/// Reconstructs a startable `ComposeFile` from what the registry knows (see
 	/// `ComposeReplyList.ComposeInfo.reconstructedComposeFile()`) and calls `compose up` — not
-	/// destructive, so no confirmation, unlike stop/delete.
+	/// destructive, so no confirmation, unlike stop/delete. The reconstruction is names and images
+	/// only, so it must never replace the project's stored definition (`replaceDefinition: false`).
 	static func start(_ project: ComposeReplyList.ComposeInfo, onDone: @escaping () -> Void) {
 		let client = AppState.shared.connectionManager.serviceClient
 		let runMode = AppState.shared.connectionManager.connectionMode.runMode
@@ -213,7 +214,7 @@ struct ComposeView: View {
 
 		Task {
 			do {
-				let reply = try await ComposeHandler.up(client: client, compose: compose, runMode: runMode)
+				let reply = try await ComposeHandler.up(client: client, compose: compose, replaceDefinition: false, runMode: runMode)
 
 				await MainActor.run {
 					if reply.success {
