@@ -318,6 +318,12 @@ Au-delà de la CLI, l'app `caker` offre une gestion complète de Compose dans so
 - **Éditeur Compose** — un éditeur YAML brut plutôt qu'un formulaire structuré complet (la richesse polymorphe du format — formes courtes/longues pour `depends_on`/`environment`/`ports`/`volumes` — rendrait un formulaire complet disproportionné pour une première version). Pré-rempli avec le modèle par défaut pour un nouveau projet, ou une reconstruction du projet existant pour une édition (seuls le nom et l'image de chaque service sont mémorisés par le registre — ports, volumes, environnement, réseaux et depends_on doivent être ré-ajoutés si nécessaire). Un indicateur « Analyse OK » / « Erreur d'analyse : … » se met à jour en direct pendant la frappe ; « Enregistrer et démarrer » relance simplement `compose up` avec la définition éditée : les nouveaux services sont construits, ceux dont la VM existe déjà sont seulement démarrés (voir `compose up`). Un petit formulaire « Ajouter un service » insère un bloc YAML préformaté sans avoir à éditer le YAML brut pour un ajout simple.
 - **Extras de la barre de menus** — un sous-menu « Compose » liste les projets enregistrés avec des actions Ouvrir/Démarrer/Arrêter par projet, plus un élément « Nouveau projet compose… » qui ouvre directement l'éditeur.
 
+## Résolution DNS entre services
+
+Un service peut joindre un autre service du même projet par son nom, à l'adresse `<service>.<projet>.compose.internal` (par ex. `mariadb.myapp.compose.internal`) — pas besoin de récupérer une IP à la main dans `environment:`. `caked` fait tourner un petit résolveur DNS lié à l'adresse de la passerelle du réseau NAT — le réseau que **chaque** VM possède déjà, quel que soit son système ou son réseau `driver:` principal — et n'y répond que pour ce domaine synthétique ; toute autre requête reçoit `REFUSED`, jamais utilisable comme résolveur ouvert. Chaque VM créée par compose reçoit automatiquement, dans son cloud-init, la configuration `resolvectl` qui route uniquement `*.compose.internal` vers ce résolveur — le reste de la résolution DNS de l'invité n'est pas modifié.
+
+Fonctionnement interne détaillé, mise en garde sur la portée non testée de bout en bout (VM à VM sur le réseau NAT partagé) et code source : voir la section « Compose DNS » de `CLAUDE.md`.
+
 ## Différences avec Docker Compose
 
 | Fonctionnalité | Docker Compose | Caker compose |
@@ -698,6 +704,12 @@ Beyond the CLI, the `caker` app offers full Compose management in its own interf
 - **"Compose" sidebar category** — lists every registered project (polled every 3 seconds; there's no push-notification mechanism for Compose state). Each row shows a summary ("n/m running"), a status indicator, and offers Edit / Start-or-Stop / Delete once selected. A detail pane shows each service's individual status.
 - **Compose Editor** — a raw-YAML editor rather than a fully structured form (the format's polymorphic richness — short/long forms for `depends_on`/`environment`/`ports`/`volumes` — would make a complete structured form out of proportion for a first pass). Seeded from the default template for a new project, or a best-effort reconstruction of an existing one for editing (only each service's name and image are remembered by the registry — ports, volumes, environment, networks and depends_on must be re-added if the project needs them). A live "Parses OK" / "Parse error: …" indicator updates as you type; "Save & Start" simply re-runs `compose up` with the edited definition: new services are built, services whose VM already exists are only started (see `compose up`). A small "Add service" form inserts a formatted YAML block for a quick addition without hand-editing the raw YAML.
 - **Menu bar extras** — a "Compose" submenu lists registered projects with per-project Open/Start/Stop actions, plus a "New compose project…" item that opens the editor directly.
+
+## DNS resolution between services
+
+A service can reach another service in the same project by name, at `<service>.<project>.compose.internal` (e.g. `mariadb.myapp.compose.internal`) — no need to hand-copy an IP into `environment:`. `caked` runs a small DNS resolver bound to the NAT network's gateway address — the network **every** VM already has, regardless of its OS or its primary `driver:` — and answers only for that synthetic domain; any other query gets `REFUSED`, never usable as an open resolver. Every compose-created VM's cloud-init automatically gets the `resolvectl` setup that routes only `*.compose.internal` to this resolver — the rest of the guest's DNS resolution is untouched.
+
+For the full mechanism, and the one caveat worth knowing (VM-to-VM traffic on the shared NAT network is reasoned from code, not yet verified end to end with a real two-VM boot), see the "Compose DNS" section of `CLAUDE.md`.
 
 ## Differences from Docker Compose
 

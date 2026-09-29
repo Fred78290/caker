@@ -396,6 +396,20 @@ extension Service {
 				await coordinator.registerAlreadyRunning()
 			}
 
+			// Compose DNS: resolves <service>.<project>.compose.internal from any VM on the
+			// same NAT network every VM already carries (see ComposeDNS.swift/ComposeDNSCoordinator
+			// for why the NAT network rather than IMDS's own). Always wired up, unlike IMDS's
+			// opt-in toggle — it self-gates on there being at least one compose-tagged VM, so a
+			// host that never runs `compose up` never binds the socket either.
+			let composeDNSCoordinator = ComposeDNSCoordinator(group: eventLoopGroup, runMode: runMode)
+			var composeDNSLifecycleHandler: VMLifecycleHooks.HandlerID? = VMLifecycleHooks.addHandler { event in
+				Task {
+					await composeDNSCoordinator.handle(event)
+				}
+			}
+
+			await composeDNSCoordinator.registerAlreadyRunning()
+
 			try CakedLib.StartHandler.autostart(on: eventLoopGroup.next(), runMode: runMode).whenComplete { result in
 				switch result {
 				case .failure(let error):
@@ -496,6 +510,13 @@ extension Service {
 
 								VMLifecycleHooks.removeHandler(handler)
 								await coordinator.shutdown()
+							}
+
+							if let handler = composeDNSLifecycleHandler {
+								composeDNSLifecycleHandler = nil
+
+								VMLifecycleHooks.removeHandler(handler)
+								await composeDNSCoordinator.shutdown()
 							}
 
 							await restServer?.shutdown()

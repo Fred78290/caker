@@ -21,6 +21,10 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */; };
+		E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */; };
+		1529390CB99D1AC2B7B1ECF0 /* ComposeDNSRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */; };
+		719F4B9EB1F31EF25537390C /* ComposeDNSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B289A477458F279F55546EF /* ComposeDNSServer.swift */; };
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
 		17555DDA1E9035403FCDC3C0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
@@ -979,6 +983,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
+		1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSCoordinator.swift; sourceTree = "<group>"; };
+		F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSRegistry.swift; sourceTree = "<group>"; };
+		1B289A477458F279F55546EF /* ComposeDNSServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSServer.swift; sourceTree = "<group>"; };
 		070CEA8AC4D83C5669773CE7 /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
 		110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDetailView.swift; sourceTree = "<group>"; };
 		118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
@@ -2550,6 +2558,16 @@
 			path = IMDS;
 			sourceTree = "<group>";
 		};
+		68AB87B329B993A41A1A0F0B /* ComposeDNS */ = {
+			isa = PBXGroup;
+			children = (
+				1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */,
+				F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */,
+				1B289A477458F279F55546EF /* ComposeDNSServer.swift */,
+			);
+			path = ComposeDNS;
+			sourceTree = "<group>";
+		};
 		9B8F3F71301F3F52001FA32A /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -2819,6 +2837,7 @@
 				9BEBC6B12DF4400A0092B196 /* Commands */,
 				9BEBC6C92DF4400A0092B196 /* Handlers */,
 				9B6EC46230037FA400ABFDED /* IMDS */,
+				68AB87B329B993A41A1A0F0B /* ComposeDNS */,
 				9B602F962FAA56FA00055543 /* REST */,
 				9B144C0E2F9D28D900F14DEF /* VNCTunnel */,
 			);
@@ -2979,6 +2998,7 @@
 				9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */,
 				9BDC05242FEADADE00802A3C /* CakerEnv.swift */,
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
+				C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */,
 				9BDC05FC2FEADD6F00802A3C /* ComposeFile.swift */,
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
@@ -4244,6 +4264,9 @@
 				9BA941192F3C896F00B51543 /* PingHandler.swift in Sources */,
 				9B6EC46330037FA400ABFDED /* IMDSCoordinator.swift in Sources */,
 				9B6EC46430037FA400ABFDED /* IMDSServer.swift in Sources */,
+				E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */,
+				1529390CB99D1AC2B7B1ECF0 /* ComposeDNSRegistry.swift in Sources */,
+				719F4B9EB1F31EF25537390C /* ComposeDNSServer.swift in Sources */,
 				9B82D3182F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift in Sources */,
 				9BEBC6F42DF4400A0092B196 /* Root.swift in Sources */,
 				9BEBC6F52DF4400A0092B196 /* MainApp.swift in Sources */,
@@ -4314,6 +4337,7 @@
 				9BDC05252FEADADE00802A3C /* CakerEnv.swift in Sources */,
 				9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */,
 				9BDC05FD2FEADD6F00802A3C /* ComposeFile.swift in Sources */,
+				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
 				9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */,
 				9B5A8D9A30682FE100A8C53C /* CakeHomeHandler.swift in Sources */,
 				9B2033702F4A21400047E197 /* GrandCentralUpdater.swift in Sources */,

@@ -41,6 +41,12 @@ public struct ComposeHandler {
 
 						// Check if owned by compose
 						if installed.instanceIdentifier == config.instanceID {
+							// Idempotent, and also backfills the tag on a VM built before it existed —
+							// see `CakeConfig.composeProject`/`composeService`.
+							config.composeProject = appName
+							config.composeService = serviceName
+							try? config.save()
+
 							let reply = StartHandler.startVM(
 								location: location,
 								screenSize: nil,
@@ -72,7 +78,7 @@ public struct ComposeHandler {
 					}
 				}
 
-				var buildOpts = try serviceSpec.toBuildOptions(name: vmName, composeNetworks: compose.composeFile.networks)
+				var buildOpts = try serviceSpec.toBuildOptions(name: vmName, composeNetworks: compose.composeFile.networks, composeDNSGateway: ComposeDNS.natGatewayAddress(runMode: runMode))
 
 				// Registered before `validate(remote:)` can throw: `toBuildOptions` has already written the
 				// cloud-init user-data file by now (which can carry `environment:` secrets), and a `defer`
@@ -116,7 +122,11 @@ public struct ComposeHandler {
 				} else {
 					let location = try storage.find(vmName)
 					let config = try location.config()
-					
+
+					config.composeProject = appName
+					config.composeService = serviceName
+					try? config.save()
+
 					compose.installed[serviceName] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: config.instanceID)
 				}
 			}
