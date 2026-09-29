@@ -75,7 +75,46 @@ extension Data {
 	}
 }
 
-extension Dictionary {
+extension Dictionary where Key == String, Value: Codable {
+	init(contentsOf url: URL) throws {
+		let data = try Data(contentsOf: url)
+		let decoder = JSONDecoder()
+
+		decoder.dateDecodingStrategy = .iso8601
+
+		self = try decoder.decode([String: Value].self, from: data)
+	}
+
+	var jsonData: Data? {
+		let encoder = JSONEncoder()
+
+		encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+		encoder.dateEncodingStrategy = .iso8601
+
+		return try? encoder.encode(self)
+	}
+
+	func toJSONString() -> String? {
+		guard let data = self.jsonData else { return nil }
+
+		return String(data: data, encoding: .utf8)
+	}
+
+	func write(to url: URL) throws {
+		let encoder = JSONEncoder()
+
+		encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+		encoder.dateEncodingStrategy = .iso8601
+
+		let data = try encoder.encode(self)
+
+		try data.write(to: url)
+	}
+}
+
+typealias LazyDictionary = Dictionary<String, Any>
+
+extension LazyDictionary {
 	init(contentsOf: URL) throws {
 		self = try JSONSerialization.jsonObject(with: try Data(contentsOf: contentsOf), options: []) as! Dictionary
 	}
@@ -706,13 +745,15 @@ struct WriteFile: Codable {
 	var encoding: String?
 	var permissions: String?
 	var owner: String?
+	var append: Bool?
 
-	init(path: String, content: String, encoding: String? = nil, permissions: String? = nil, owner: String? = nil) {
+	init(path: String, content: String, encoding: String? = nil, permissions: String? = nil, owner: String? = nil, append: Bool? = nil) {
 		self.path = path
 		self.content = content
 		self.encoding = encoding
 		self.permissions = permissions
 		self.owner = owner
+		self.append = append
 	}
 
 	init(from decoder: Decoder) throws {
@@ -723,6 +764,7 @@ struct WriteFile: Codable {
 		self.encoding = try container.decodeIfPresent(String.self, forKey: .encoding)
 		self.permissions = try container.decodeIfPresent(String.self, forKey: .permissions)
 		self.owner = try container.decodeIfPresent(String.self, forKey: .owner)
+		self.append = try container.decodeIfPresent(Bool.self, forKey: .append)
 	}
 
 	func encode(to encoder: Encoder) throws {
@@ -733,6 +775,7 @@ struct WriteFile: Codable {
 		try container.encodeIfPresent(encoding, forKey: .encoding)
 		try container.encodeIfPresent(permissions, forKey: .permissions)
 		try container.encodeIfPresent(owner, forKey: .owner)
+		try container.encodeIfPresent(append, forKey: .append)
 	}
 
 	enum CodingKeys: String, CodingKey {
@@ -741,6 +784,7 @@ struct WriteFile: Codable {
 		case encoding = "encoding"
 		case permissions = "permissions"
 		case owner = "owner"
+		case append = "append"
 	}
 }
 
@@ -1315,7 +1359,7 @@ class CloudInit {
 				"systemctl enable cloud-config.service",
 				"systemctl enable cloud-final.service",
 				"systemctl start cloud-init.service",
-				
+
 			], userData: userData, network: network)
 
 		return try autoInstall.toCloudInit()
@@ -1387,7 +1431,7 @@ class CloudInit {
 	}
 
 	func createDefaultCloudInit(config: CakeConfig, name: String, cdromURL: URL) throws {
-		var seed: [String: Any] = [:]
+		var seed: LazyDictionary = [:]
 
 		try? cdromURL.delete()
 

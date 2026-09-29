@@ -22,7 +22,7 @@ struct ComposeHandler {
 			do {
 				let composeFileDatabase = try Home(runMode: runMode).composeFileDatabase()
 				guard let compose = composeFileDatabase.get(request.name) else {
-					return replyError(error: ServiceError(String(localized: "compose \(request.name) not found")))
+					return replyError(error: ServiceError(String(format: String(localized: "compose %@ not found"), request.name)))
 				}
 
 				return .with {
@@ -63,20 +63,16 @@ struct ComposeHandler {
 					return replyError(error: ServiceError(String(localized: "compose name must not be empty")))
 				}
 
-				var composeStatus: ComposeFileDatabase.ComposeFileStatus
-
-				if let existingStatus = composeFileDatabase.get(compose.name) {
-					composeStatus = existingStatus
-				} else {
-					composeStatus = ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
-				}
-
-				let reply = await CakedLib.ComposeHandler.up(compose: &composeStatus, services: request.services, waitIPTimeout: Int(request.waitIptimeout), runMode: runMode).caked
-
-				// Persist whatever was successfully launched, even on partial failure.
-				if reply.success || composeStatus.installed.isEmpty == false {
-					try composeFileDatabase.upsert(compose.name, composeStatus)
-				}
+				// `replaceDefinition` is false for a client that predates the field, which keeps the old
+				// behaviour (the registered definition wins) rather than silently changing it under them.
+				let reply = try await CakedLib.ComposeHandler.up(
+					database: composeFileDatabase,
+					compose: compose,
+					replaceDefinition: request.replaceDefinition,
+					services: request.services,
+					waitIPTimeout: Int(request.waitIptimeout),
+					runMode: runMode
+				).caked
 
 				return .with {
 					$0.compose = .with {
@@ -116,7 +112,7 @@ struct ComposeHandler {
 				}
 
 				guard let compose = composeFileDatabase.get(request.name) else {
-					return replyError(error: ServiceError(String(localized: "compose \(request.name) not found")))
+					return replyError(error: ServiceError(String(format: String(localized: "compose %@ not found"), request.name)))
 				}
 				
 				return .with {
@@ -190,7 +186,7 @@ struct ComposeHandler {
 				}
 
 				guard var compose = composeFileDatabase.get(request.name) else {
-					return replyError(error: ServiceError(String(localized: "compose \(request.name) not found")))
+					return replyError(error: ServiceError(String(format: String(localized: "compose %@ not found"), request.name)))
 				}
 
 				let reply = CakedLib.ComposeHandler.rm(compose: &compose, services: request.services, stop: request.stop, force: request.force, runMode: runMode)

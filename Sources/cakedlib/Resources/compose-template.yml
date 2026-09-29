@@ -1,0 +1,112 @@
+# compose.yml — Caker multi-VM environment (docker compose compatible)
+# Run `cakectl compose up` to start all services in depends_on order.
+# Run `cakectl compose down` to stop them in reverse order.
+# Run `cakectl compose ps` to show their status.
+# Run `cakectl compose init` to regenerate this file.
+name: template
+services:
+  # MariaDB — real package install (via `packages:`) plus first-boot setup (via `post_commands:`),
+  # pulling its admin password/DB name straight out of `environment:` rather than hardcoding them
+  # a second time — a demo of all three fields working together. (Not PostgreSQL/pgAdmin: pgAdmin's
+  # apt repo publishes amd64 packages only, no arm64 build, which made that pairing unusable on
+  # Apple Silicon hosts — MariaDB/phpMyAdmin are both in Ubuntu's own default repos for every arch.)
+  mariadb:
+    image: ubuntu:24.04
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: myapp
+      # Dedicated account (granted on MYSQL_DATABASE only) to log in to phpMyAdmin with.
+      MYSQL_USER: myapp
+      MYSQL_PASSWORD: myapp-secret
+    networks:
+      - default
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2048M
+    # Caker VM extensions:
+    disk: 20          # GiB
+    user: ubuntu
+    password: ubuntu
+    nested: true
+    disk_format: raw
+    dynamic_port_forwarding: false
+    ifnames: true
+    package_upgrade: true
+    package_update: true
+    packages:
+      - mariadb-server
+    post_commands:
+      - sed -i "s/^bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf
+      - systemctl restart mariadb
+      # Runs before the root password is set below, while root can still log in over the unix socket.
+      - mysql -u root -e "CREATE USER IF NOT EXISTS '$(grep ^MYSQL_USER= /etc/environment | cut -d= -f2)'@'%' IDENTIFIED BY '$(grep ^MYSQL_PASSWORD= /etc/environment | cut -d= -f2)'; GRANT ALL PRIVILEGES ON $(grep ^MYSQL_DATABASE= /etc/environment | cut -d= -f2).* TO '$(grep ^MYSQL_USER= /etc/environment | cut -d= -f2)'@'%'; FLUSH PRIVILEGES;"
+      - mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$(grep MYSQL_ROOT_PASSWORD /etc/environment | cut -d= -f2)'; CREATE DATABASE IF NOT EXISTS $(grep MYSQL_DATABASE /etc/environment | cut -d= -f2); GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '$(grep MYSQL_ROOT_PASSWORD /etc/environment | cut -d= -f2)' WITH GRANT OPTION; FLUSH PRIVILEGES;"
+
+  # phpMyAdmin (web) — the phpmyadmin package is debconf-interactive by default (which webserver to
+  # auto-configure, whether to run its own local dbconfig-common setup) and would hang waiting for
+  # prompts under cloud-init's non-interactive `packages:` install — unlike mariadb above, this has
+  # to preseed those answers via `post_commands:` before installing, same "packages: only works
+  # when nothing needs asking first" lesson the old pgAdmin pairing demonstrated.
+  phpmyadmin:
+    image: ubuntu:24.04
+    ports:
+      - "8080:80"
+    networks:
+      - default
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+    disk: 10          # GiB
+    user: ubuntu
+    password: ubuntu
+    nested: true
+    disk_format: raw
+    dynamic_port_forwarding: false
+    ifnames: true
+    package_upgrade: true
+    package_update: true
+    # environment:
+    #   PMA_HOST: 192.168.1.20   # the mariadb VM's IP; preselects it on the login form
+    depends_on:
+      - mariadb
+    write_files:
+      - path: /etc/motd.d/phpmyadmin.motd
+        content: |
+          phpMyAdmin is reachable at http://<this-vm-ip>/phpmyadmin (forwarded to host port 8080).
+          Log in with the mariadb service's MYSQL_USER/MYSQL_PASSWORD (or root/MYSQL_ROOT_PASSWORD),
+          and the mariadb VM's IP as the server unless PMA_HOST is set — find it with
+          `cakectl infos compose-template-mariadb`.
+        permissions: "0644"
+      # Debian's phpMyAdmin only talks to `localhost` by default. Point it at PMA_HOST when set,
+      # otherwise let the login form accept any server address.
+      - path: /etc/phpmyadmin/conf.d/caker.inc.php
+        content: |
+          <?php
+          $caker_env = @parse_ini_file('/etc/phpmyadmin/caker.env', false, INI_SCANNER_RAW) ?: [];
+          if (!empty($caker_env['PMA_HOST'])) {
+              $cfg['Servers'][1]['host'] = $caker_env['PMA_HOST'];
+          } else {
+              $cfg['AllowArbitraryServer'] = true;
+          }
+        permissions: "0644"
+      # - path: /etc/myapp/app.conf  # `source:` reads a file from the host instead of inlining it
+      #   source: ./app.conf         # resolved relative to the current directory, like `volumes:`
+    post_commands:
+      - echo "phpmyadmin phpmyadmin/dbconfig-install boolean false" | debconf-set-selections
+      - echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" | debconf-set-selections
+      - DEBIAN_FRONTEND=noninteractive apt-get install -y phpmyadmin
+      - a2enconf phpmyadmin
+      # phpMyAdmin's apache open_basedir can't read /etc/environment, so copy the PMA_* values next to its config.
+      - grep '^PMA_' /etc/environment > /etc/phpmyadmin/caker.env || true
+      - chown root:www-data /etc/phpmyadmin/caker.env && chmod 0640 /etc/phpmyadmin/caker.env
+      - systemctl reload apache2
+
+networks:
+  default:
+    driver: bridge

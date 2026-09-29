@@ -110,9 +110,12 @@ message Empty {}
 message Caked {
   message ComposeRequest {
     message ComposeRequestUp {
-      bytes           composeDatas  = 1;
-      int32           waitIPTimeout = 2;
-      repeated string services      = 3;
+      bytes           composeDatas      = 1;
+      int32           waitIPTimeout     = 2;
+      repeated string services          = 3;
+      // true: composeDatas is a user-authored definition that replaces the one already registered under
+      // its name. false (also what a client predating this field sends): keep the registered definition.
+      bool            replaceDefinition = 4;
     }
 
     message ComposeRequestDown {

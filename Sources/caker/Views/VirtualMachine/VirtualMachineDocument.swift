@@ -414,17 +414,40 @@ extension UTType {
 		self.virtualMachineConfig = config
 		self.screenshot = nil
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
-		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 		self.documentSize = ViewSize(config.display.cgSize)
 		self.cpuInfos = CpuInfos(from: config)
 		self.memoryInfos = MemoryInfo(from: config)
 		self.suspendable = config.suspendable && config.os == .darwin
 		self.monitor = try FileMonitor(directory: location.rootURL, delegate: self)
-		self.status = .init(location.status)
 
 		MainApp.app?.addStateVirtualMachineDocument(with: self)
 
 		try monitor?.start()
+
+		// Read the authoritative on-disk state only *after* the monitor is already watching, not
+		// before: a VM that's built and started in one uninterrupted sequence — e.g. `compose up`,
+		// which builds then immediately launches a brand-new VM the app has never seen before —
+		// can write its PID file within a very short window of this document first being created.
+		// Reading here first and arming the watcher after would let a PID-file write in that gap
+		// slip past both: the one-time read (already stale by the time it runs) and the monitor
+		// (which only delivers changes that happen after it starts), permanently stuck reporting
+		// the VM as stopped in HomeView until the app relaunches. Starting the monitor first closes
+		// that window — either this read already sees the fresh state, or the monitor (already
+		// live) catches the write as a real event moments later.
+		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
+		self.status = .init(location.status)
+
+		// If the PID file already existed by the time the monitor above started watching (the VM
+		// was fully up before this document was even created — plausible for the same reason the
+		// status race above is), no "file added" event will ever fire for it: a `FileMonitor` only
+		// delivers changes that happen *after* it starts, not a backlog of what's already on disk.
+		// `fileDidChanged`'s own `.caked`-mode handling (the only place that otherwise starts agent
+		// monitoring for this run mode) would then never run at all, leaving agent readiness
+		// unnoticed indefinitely. Starting it directly here too is safe — `startAgentMonitoring()`
+		// is a no-op once a monitoring task already exists.
+		if self.status == .running {
+			self.startAgentMonitoring()
+		}
 	}
 
 	private convenience init(vmURL: URL, infos: VMInformations, config: any VirtualMachineConfiguration, connectionManager: ConnectionManager) throws {
@@ -769,6 +792,17 @@ extension VirtualMachineDocument {
 			self.location = location
 			self.agent = self.virtualMachineConfig.agent ? (self.virtualMachineConfig.firstLaunch ? .installing : .installed) : .none
 			self.name = location.name
+
+			if monitor == nil {
+				let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
+				try monitor.start()
+
+				self.monitor = monitor
+			}
+
+			// Read after the monitor is already watching, not before — see the matching comment in
+			// `init(location:)` for why: a PID-file write racing ahead of a one-time disk read is
+			// otherwise permanently missed by a monitor that only starts watching afterward.
 			self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 			self.status = .init(location.status)
 
@@ -779,13 +813,6 @@ extension VirtualMachineDocument {
 			}
 
 			retrieveVNCURL()
-
-			if monitor == nil {
-				let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
-				try monitor.start()
-
-				self.monitor = monitor
-			}
 
 			// Start agent monitoring if VM is running
 			self.startAgentMonitoring()
@@ -1345,6 +1372,19 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 							self.externalRunning = true
 							self.status = .running
 							self.retrieveVNCURL()
+							// Unlike the `.caker` case below (which goes through `setStateAsRunning`,
+							// always starting agent monitoring as part of it), this branch used to
+							// depend entirely on `retrieveVNCURL()` happening to call
+							// `setStateAsRunning` as a side effect of successfully fetching VNC info —
+							// itself an unrelated concern. If that VNC lookup failed or wasn't ready
+							// yet at this exact moment (the only time this event fires), agent
+							// monitoring silently never started at all: a `.caked`-mode VM — exactly
+							// what a background `caked vmrun` process reports, which is what `compose
+							// up` launches — could sit fully running with the agent long since ready,
+							// while this document stayed stuck never noticing. Called directly and
+							// unconditionally here instead; safe to also reach via `retrieveVNCURL()`
+							// afterward, since `startAgentMonitoring()` is a no-op once already running.
+							self.startAgentMonitoring()
 						case .caker:
 							self.externalRunning = false
 							self.setStateAsRunning(.running, vncURL: nil)

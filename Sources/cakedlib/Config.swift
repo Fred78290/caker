@@ -56,7 +56,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 	public var locationURL: URL
 
 	internal final class Config: @unchecked Sendable {
-		var data: [String: Any]
+		var data: LazyDictionary
 		var dirty: Bool
 
 		var serializedRepresentation: Data? {
