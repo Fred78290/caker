@@ -171,6 +171,10 @@ public nonisolated struct Caked_Caked: Sendable {
 
       public var services: [String] = []
 
+      /// true: composeDatas is a user-authored definition that replaces the one already registered under
+      /// its name. false (also what a client predating this field sends): keep the registered definition.
+      public var replaceDefinition: Bool = false
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -6929,7 +6933,7 @@ nonisolated extension Caked_Caked.ComposeRequest: SwiftProtobuf.Message, SwiftPr
 
 nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestUp: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.ComposeRequest.protoMessageName + ".ComposeRequestUp"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}composeDatas\0\u{1}waitIPTimeout\0\u{1}services\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}composeDatas\0\u{1}waitIPTimeout\0\u{1}services\0\u{1}replaceDefinition\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6940,6 +6944,7 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestUp: SwiftProtobuf
       case 1: try { try decoder.decodeSingularBytesField(value: &self.composeDatas) }()
       case 2: try { try decoder.decodeSingularInt32Field(value: &self.waitIptimeout) }()
       case 3: try { try decoder.decodeRepeatedStringField(value: &self.services) }()
+      case 4: try { try decoder.decodeSingularBoolField(value: &self.replaceDefinition) }()
       default: break
       }
     }
@@ -6955,6 +6960,9 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestUp: SwiftProtobuf
     if !self.services.isEmpty {
       try visitor.visitRepeatedStringField(value: self.services, fieldNumber: 3)
     }
+    if self.replaceDefinition != false {
+      try visitor.visitSingularBoolField(value: self.replaceDefinition, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -6962,6 +6970,7 @@ nonisolated extension Caked_Caked.ComposeRequest.ComposeRequestUp: SwiftProtobuf
     if lhs.composeDatas != rhs.composeDatas {return false}
     if lhs.waitIptimeout != rhs.waitIptimeout {return false}
     if lhs.services != rhs.services {return false}
+    if lhs.replaceDefinition != rhs.replaceDefinition {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

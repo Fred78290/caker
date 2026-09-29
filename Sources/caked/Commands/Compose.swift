@@ -58,22 +58,16 @@ struct ComposeUp: AsyncParsableCommand {
 			throw ServiceError(String(localized: "compose name must not be empty"))
 		}
 
-		var composeStatus: ComposeFileDatabase.ComposeFileStatus
-
-		if let existingStatus = composeFileDatabase.get(compose.name) {
-			composeStatus = existingStatus
-		} else {
-			composeStatus = ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
-		}
-
-		let reply = await CakedLib.ComposeHandler.up(compose: &composeStatus, services: services, waitIPTimeout: waitIPTimeout, runMode: common.runMode)
-
-		// Persist whatever was successfully launched, even on partial failure, so the
-		// next `compose up` doesn't attempt to re-create already-existing VMs.
-		if reply.success || composeStatus.installed.isEmpty == false {
-			try composeFileDatabase.upsert(compose.name, composeStatus)
-		}
-
+		// The file on disk is the user's own definition, so it replaces whatever is registered under
+		// its name — that is what lets `up` build a service added to the file since the last run.
+		let reply = try await CakedLib.ComposeHandler.up(
+			database: composeFileDatabase,
+			compose: compose,
+			replaceDefinition: true,
+			services: services,
+			waitIPTimeout: waitIPTimeout,
+			runMode: common.runMode
+		)
 		Logger.appendNewLine(self.common.format.render(reply))
 	}
 

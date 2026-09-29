@@ -14038,6 +14038,28 @@
         }
       }
     },
+    "Service %@ changed in the compose file, but its VM %@ already exists: it was only started, not rebuilt. Remove it (compose rm) and run compose up again to apply the change." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le service %@ a changé dans le fichier compose, mais sa VM %@ existe déjà : elle a seulement été démarrée, pas reconstruite. Supprimez-la (compose rm) puis relancez compose up pour appliquer le changement."
+          }
+        }
+      }
+    },
+    "Service %@ is no longer defined in the compose file: its VM %@ was left untouched." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le service %@ n’est plus défini dans le fichier compose : sa VM %@ a été laissée telle quelle."
+          }
+        }
+      }
+    },
     "Service endpoint" : {
       "extractionState" : "manual",
       "localizations" : {

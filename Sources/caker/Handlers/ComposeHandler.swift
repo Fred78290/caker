@@ -44,25 +44,16 @@ extension ComposeHandler {
 	/// the Compose Editor's "Save & Start" action, and the moral equivalent of `cakectl compose up`
 	/// without requiring a file on disk.
 	///
-	/// `replaceDefinition` (local `.app` mode only) says whether `compose` also replaces an
+	/// `replaceDefinition` says whether `compose` also replaces an
 	/// already-registered project's stored definition: `true` for a user-authored definition (the
 	/// editor), `false` for the sidebar/menu-bar "Start" action, whose `compose` is only the lossy
-	/// name-and-image reconstruction — see `statusForUp(database:compose:replaceDefinition:)`. Over gRPC
-	/// the server decides on its own (`caked`'s `Up.run` currently keeps the stored definition).
+	/// name-and-image reconstruction — see `statusForUp(database:compose:replaceDefinition:)`. It is
+	/// sent to `caked` too (`replaceDefinition` on the request), which applies the same rule.
 	public static func up(client: CakedServiceClient?, compose: ComposeFile, services: [String] = [], waitIPTimeout: Int = 180, replaceDefinition: Bool = true, runMode: Utils.RunMode) async throws -> ComposeReplyUp {
 		guard let client else {
 			let database = try Home(runMode: runMode).composeFileDatabase()
-			var status = self.statusForUp(database: database, compose: compose, replaceDefinition: replaceDefinition)
 
-			let reply = await self.up(compose: &status, services: services, waitIPTimeout: waitIPTimeout, runMode: runMode)
-
-			// Persist whatever was successfully launched, even on partial failure — same rule
-			// `caked`'s own `ComposeHandler.Up.run` uses.
-			if reply.success || status.installed.isEmpty == false {
-				try database.upsert(compose.name, status)
-			}
-
-			return reply
+			return try await self.up(database: database, compose: compose, replaceDefinition: replaceDefinition, services: services, waitIPTimeout: waitIPTimeout, runMode: runMode)
 		}
 
 		let composeDatas = try Data(YAMLEncoder().encode(compose).utf8)
@@ -73,6 +64,7 @@ extension ComposeHandler {
 					$0.composeDatas = composeDatas
 					$0.waitIptimeout = Int32(waitIPTimeout)
 					$0.services = services
+					$0.replaceDefinition = replaceDefinition
 				}
 			}).response.get().compose.up)
 	}

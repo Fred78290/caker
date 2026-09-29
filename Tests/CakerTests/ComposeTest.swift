@@ -1522,4 +1522,89 @@ final class ComposeTest: XCTestCase {
 		XCTAssertTrue(status.installed.isEmpty)
 		XCTAssertFalse(reply.reason.isEmpty, "the missing VMs are still reported as warnings")
 	}
+
+	// MARK: - up applies a changed definition (replaceDefinition)
+
+	func testChangedServicesFlagsOnlyBuiltServicesWhoseDefinitionChanged() {
+		func service(_ image: String, ports: [String] = []) -> ComposeService {
+			var svc = ComposeService()
+			svc.image = image
+			svc.ports = ports.map { .short($0) }
+			return svc
+		}
+
+		let previous = ComposeFile(name: "proj", services: ["a": service("ubuntu:24.04", ports: ["80:80"]), "b": service("ubuntu:24.04"), "c": service("ubuntu:24.04")])
+		// a: port added; b: untouched; c: image changed but never built; d: brand new.
+		let current = ComposeFile(name: "proj", services: ["a": service("ubuntu:24.04", ports: ["80:80", "443:443"]), "b": service("ubuntu:24.04"), "c": service("debian:12"), "d": service("ubuntu:24.04")])
+
+		var installed: [String: ComposeFileDatabase.ServiceStatus] = [:]
+		installed["a"] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: "id-a")
+		installed["b"] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: "id-b")
+
+		// Only a built service can have "an edit that did not take effect": c and d have no VM yet, so
+		// `up` will build them from the new definition.
+		XCTAssertEqual(ComposeHandler.changedServices(previous: previous, current: current, installed: installed), ["a"])
+	}
+
+	func testChangedServicesIgnoresServicesNoLongerDefined() {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		let previous = ComposeFile(name: "proj", services: ["a": svc, "gone": svc])
+		let current = ComposeFile(name: "proj", services: ["a": svc])
+
+		var installed: [String: ComposeFileDatabase.ServiceStatus] = [:]
+		installed["gone"] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: "id-gone")
+
+		// A dropped service is reported separately (as an orphan), not as a changed one.
+		XCTAssertTrue(ComposeHandler.changedServices(previous: previous, current: current, installed: installed).isEmpty)
+	}
+
+	func testUpReplacesTheRegisteredDefinitionWhenAskedTo() async throws {
+		let (database, cleanup) = try makeTemporaryDatabase()
+		defer { cleanup() }
+
+		var stale = ComposeService()
+		stale.image = "ubuntu:24.04"
+
+		// Unique name so no real VM can match; an empty new definition means `up` has nothing to build.
+		let name = "test-up-replace-\(UUID().uuidString.prefix(8).lowercased())"
+		try database.upsert(name, ComposeFileDatabase.ComposeFileStatus(composeFile: ComposeFile(name: name, services: ["old": stale])))
+
+		let reply = try await ComposeHandler.up(database: database, compose: ComposeFile(name: name, services: [:]), replaceDefinition: true, services: [], waitIPTimeout: 1, runMode: .user)
+
+		XCTAssertTrue(reply.success)
+		XCTAssertEqual(database.get(name)?.composeFile.services.isEmpty, true, "the file's definition must replace the registered one")
+	}
+
+	func testUpKeepsTheRegisteredDefinitionWhenNotReplacingIt() async throws {
+		let (database, cleanup) = try makeTemporaryDatabase()
+		defer { cleanup() }
+
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		let name = "test-up-keep-\(UUID().uuidString.prefix(8).lowercased())"
+		try database.upsert(name, ComposeFileDatabase.ComposeFileStatus(composeFile: ComposeFile(name: name, services: ["old": svc])))
+
+		// The lossy definition knows a service the registered one doesn't; with `replaceDefinition: false`
+		// `up` must still be working from the registered one, so asking for it fails as unknown — before
+		// anything is built.
+		let reply = try await ComposeHandler.up(database: database, compose: ComposeFile(name: name, services: ["added": svc]), replaceDefinition: false, services: ["added"], waitIPTimeout: 1, runMode: .user)
+
+		XCTAssertFalse(reply.success)
+		XCTAssertEqual(database.get(name)?.composeFile.services.keys.sorted(), ["old"])
+	}
+
+	func testComposeRequestUpReplaceDefinitionDefaultsToFalseOnTheWire() throws {
+		// A client that predates the field never sets it; the daemon must read that as "keep the
+		// registered definition", the behaviour those clients were written against.
+		XCTAssertFalse(Caked_ComposeRequest.ComposeRequestUp().replaceDefinition)
+
+		let oldClient = try Caked_ComposeRequest.ComposeRequestUp.with { $0.composeDatas = Data("name: p".utf8) }.serializedData()
+		XCTAssertFalse(try Caked_ComposeRequest.ComposeRequestUp(serializedBytes: oldClient).replaceDefinition)
+
+		let newClient = try Caked_ComposeRequest.ComposeRequestUp.with { $0.replaceDefinition = true }.serializedData()
+		XCTAssertTrue(try Caked_ComposeRequest.ComposeRequestUp(serializedBytes: newClient).replaceDefinition)
+	}
 }

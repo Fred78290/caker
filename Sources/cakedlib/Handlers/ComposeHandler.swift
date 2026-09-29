@@ -17,7 +17,11 @@ public struct ComposeHandler {
 
 	/// Provisions missing compose networks then starts or creates each service in depends_on order.
 	/// `output` is called with each rendered result line as it is produced.
-	public static func up(compose: inout ComposeFileDatabase.ComposeFileStatus, services: [String], waitIPTimeout: Int, runMode: Utils.RunMode) async -> ComposeReplyUp {
+	///
+	/// `changedServices` names services whose definition just changed but whose VM already exists: `up` only
+	/// ever *starts* such a VM (its hardware, disk, network and cloud-init are fixed when it is built), so each
+	/// gets a warning saying the edit did not take effect rather than silently doing nothing.
+	public static func up(compose: inout ComposeFileDatabase.ComposeFileStatus, services: [String], waitIPTimeout: Int, changedServices: Set<String> = [], runMode: Utils.RunMode) async -> ComposeReplyUp {
 		let appName = compose.composeFile.name
 		let storage = StorageLocation(runMode: runMode)
 		var warning: [String] = []
@@ -55,6 +59,10 @@ public struct ComposeHandler {
 							
 							if reply.started == false {
 								return ComposeReplyUp(name: appName, success: false, reason: String(format: String(localized: "Compose failed to start %@, %@"), serviceName, reply.reason))
+							}
+
+							if changedServices.contains(serviceName) {
+								warning.append(String(format: String(localized: "Service %@ changed in the compose file, but its VM %@ already exists: it was only started, not rebuilt. Remove it (compose rm) and run compose up again to apply the change."), serviceName, vmName))
 							}
 						} else {
 							warning.append(String(format: String(localized: "VM %@ not matched in compose name %@"), vmName, appName))
@@ -117,6 +125,72 @@ public struct ComposeHandler {
 		} catch {
 			return ComposeReplyUp(name: appName, success: false, reason: error.reason)
 		}
+	}
+
+	/// `up` against the project registry: picks the entry to run against (`statusForUp`), runs it, and
+	/// persists whatever was launched — even on partial failure, so the next `up` doesn't try to re-create
+	/// VMs that now exist. The single implementation behind `caked compose up`, the daemon's `Up` RPC and
+	/// the app's local mode, which used to each carry their own copy of this sequence.
+	///
+	/// `replaceDefinition` is `true` for a definition the user authored (a compose file, the editor's
+	/// "Save & Start") and `false` for the lossy reconstruction behind the app's "Start" action — see
+	/// `statusForUp`. Replacing it is what lets `up` *build* a service added since the project was first
+	/// registered; before, the registered definition was kept unconditionally, so it never knew about it.
+	public static func up(database: ComposeFileDatabase, compose: ComposeFile, replaceDefinition: Bool, services: [String], waitIPTimeout: Int, runMode: Utils.RunMode) async throws -> ComposeReplyUp {
+		let previous = replaceDefinition ? database.get(compose.name) : nil
+		var status = statusForUp(database: database, compose: compose, replaceDefinition: replaceDefinition)
+		let storage = StorageLocation(runMode: runMode)
+
+		var notes: [String] = []
+		var changed: Set<String> = []
+
+		if let previous {
+			changed = changedServices(previous: previous.composeFile, current: status.composeFile, installed: status.installed)
+
+			// A service dropped from the file keeps its VM and its record, but `down`/`rm`/`ps` only walk the
+			// current definition, so from now on they can't reach it: say so, once, instead of leaving it
+			// running unmentioned.
+			for serviceName in status.installed.keys.sorted() where status.composeFile.services[serviceName] == nil {
+				let vmName = "compose-\(compose.name)-\(serviceName)"
+
+				if storage.exists(vmName) {
+					notes.append(String(format: String(localized: "Service %@ is no longer defined in the compose file: its VM %@ was left untouched."), serviceName, vmName))
+				}
+			}
+		}
+
+		var reply = await self.up(compose: &status, services: services, waitIPTimeout: waitIPTimeout, changedServices: changed, runMode: runMode)
+
+		if reply.success || status.installed.isEmpty == false {
+			try database.upsert(compose.name, status)
+		}
+
+		if notes.isEmpty == false {
+			reply.reason = ([reply.reason] + notes).filter { $0.isEmpty == false }.joined(separator: "\n")
+		}
+
+		return reply
+	}
+
+	/// Services already built (`installed`) that `current` still defines but whose definition differs from
+	/// `previous`. Compared through sorted-key JSON: `ComposeService` isn't `Equatable`, and its
+	/// dictionary-valued fields (`environment`, `networks`…) don't encode in a stable order otherwise.
+	static func changedServices(previous: ComposeFile, current: ComposeFile, installed: [String: ComposeFileDatabase.ServiceStatus]) -> Set<String> {
+		let encoder = JSONEncoder()
+		encoder.outputFormatting = [.sortedKeys]
+
+		return Set(
+			installed.keys.filter { name in
+				guard let before = previous.services[name], let after = current.services[name] else {
+					return false
+				}
+
+				guard let lhs = try? encoder.encode(before), let rhs = try? encoder.encode(after) else {
+					return false
+				}
+
+				return lhs != rhs
+			})
 	}
 
 	// MARK: - Down
