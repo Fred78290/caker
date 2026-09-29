@@ -1,3 +1,4 @@
+import CakeAgentLib
 import Foundation
 import GRPCLib
 
@@ -107,6 +108,65 @@ public enum ComposeDNS {
 		guard clientID.isEmpty == false else { return nil }
 
 		return parser[clientID]
+	}
+
+	/// `true` if a compose DNS resolver already appears to be running for `runMode` — read from
+	/// `Home.composeDnsPID`, the PID file `Sources/caked/ComposeDNS/ComposeDNSCoordinator.swift`
+	/// writes once its server actually binds (whether that coordinator lives inside `caked
+	/// service listen` or the standalone `caked dns` command — either one writes the same file,
+	/// so this can't tell which, and doesn't need to). Best-effort: a stale/missing file reads as
+	/// "not running," never throws.
+	public static func isResolverRunning(runMode: Utils.RunMode) -> Bool {
+		guard let home = try? Home(runMode: runMode) else { return false }
+
+		return home.composeDnsPID.isPIDRunning().running
+	}
+
+	/// Ensures a compose DNS resolver is reachable for `runMode` — called from
+	/// `CakedLib.ComposeHandler.up(...)`, the one function every "bring compose services up"
+	/// entry point (`caked compose up`'s own one-shot process, `cakectl compose up` via a running
+	/// `caked service listen`, and `caker`'s `.app` mode) funnels through, so this is what makes
+	/// "ensure the resolver is launched" true regardless of *how* compose was invoked rather than
+	/// requiring the operator to know to run `caked dns` themselves.
+	///
+	/// If `isResolverRunning(runMode:)` is already `true` — including because this same call
+	/// already spawned one moments ago for an earlier service in the same `up` — this is a no-op.
+	/// Otherwise it spawns `caked dns` as a detached background process (`Bundle.runCaked`,
+	/// the same "launch another `caked` subcommand as an independent child" mechanism
+	/// `StartHandler` already uses for `caked vmrun`; a child spawned this way outlives the
+	/// spawning process — e.g. `caked compose up`'s own short-lived invocation — since nothing
+	/// here waits on or explicitly kills it) with its stdout/stderr redirected to
+	/// `Home.composeDnsLog` rather than inherited, so it doesn't interleave with whatever invoked
+	/// `compose up`. Best-effort in every sense: a failure to spawn is logged and otherwise
+	/// ignored — compose itself must keep working even if the resolver can't be started (e.g. no
+	/// writable `<CAKE_HOME>`, or `caked` isn't on the expected path), just without name
+	/// resolution between services.
+	public static func ensureResolverRunning(runMode: Utils.RunMode) {
+		guard Self.isResolverRunning(runMode: runMode) == false else { return }
+
+		let logger = Logger("ComposeDNS")
+
+		do {
+			let home = try Home(runMode: runMode)
+
+			FileManager.default.createFile(atPath: home.composeDnsLog.path(percentEncoded: false), contents: nil)
+
+			let log = try FileHandle(forWritingTo: home.composeDnsLog)
+
+			log.seekToEndOfFile()
+
+			try Bundle.runCaked(
+				with: ["dns", "--log-level=\(Logger.LoggingLevel().rawValue)"],
+				standardInput: nil,
+				standardOutput: log,
+				standardError: log,
+				runMode: runMode
+			)
+
+			logger.info("Started compose DNS resolver in the background (log: \(home.composeDnsLog.path(percentEncoded: false)))")
+		} catch {
+			logger.warn("Could not start the compose DNS resolver automatically: \(error). Name resolution between compose services won't work until `caked dns` is run manually.")
+		}
 	}
 }
 

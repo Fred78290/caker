@@ -400,7 +400,10 @@ extension Service {
 			// same NAT network every VM already carries (see ComposeDNS.swift/ComposeDNSCoordinator
 			// for why the NAT network rather than IMDS's own). Always wired up, unlike IMDS's
 			// opt-in toggle — it self-gates on there being at least one compose-tagged VM, so a
-			// host that never runs `compose up` never binds the socket either.
+			// host that never runs `compose up` never binds the socket either. `startPolling()`
+			// (not just `VMLifecycleHooks`) is what makes this see VMs started by *other*
+			// processes too — `caked compose up`'s own one-shot invocation, or `caker`'s `.app`
+			// mode — not only ones this same `caked service listen` process itself spawned.
 			let composeDNSCoordinator = ComposeDNSCoordinator(group: eventLoopGroup, runMode: runMode)
 			var composeDNSLifecycleHandler: VMLifecycleHooks.HandlerID? = VMLifecycleHooks.addHandler { event in
 				Task {
@@ -408,7 +411,7 @@ extension Service {
 				}
 			}
 
-			await composeDNSCoordinator.registerAlreadyRunning()
+			await composeDNSCoordinator.startPolling()
 
 			try CakedLib.StartHandler.autostart(on: eventLoopGroup.next(), runMode: runMode).whenComplete { result in
 				switch result {

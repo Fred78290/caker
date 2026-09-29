@@ -9,14 +9,23 @@ import NIO
 /// both servers) since they bind different addresses for different reasons: see `ComposeDNS.swift`
 /// for why this one sits on the NAT gateway rather than IMDS's own isolated side channel.
 ///
-/// - Started lazily, on the first VM lifecycle event that turns out to be a compose-managed VM
-///   with an already-resolvable NAT-network IP; torn down once the last registered one stops —
-///   so a host that never runs `compose up` never binds the socket.
-/// - Learns about VM start/stop through the same `VMLifecycleHooks` `IMDSCoordinator` uses
-///   (`VMLifecycleHooks.addHandler` supports multiple independent subscribers — see its own doc
-///   comment) — every VM start/stop is observed, not just Linux ones (unlike IMDS, since the NAT
-///   attachment this rides on isn't OS-gated), and a VM is only registered if `CakeConfig`
-///   carries the `composeProject`/`composeService` tags `CakedLib.ComposeHandler.up(...)` sets.
+/// - **Two discovery mechanisms, because `VMLifecycleHooks` alone isn't enough.** `VMLifecycleHooks`
+///   (`IMDSCoordinator` also uses it, supports multiple independent subscribers) only fires inside
+///   the *same process* that spawned/reaped the VM via `StartHandler` — a VM built by `caked
+///   compose up`'s own one-shot process, or by `caker`'s `.app` mode (VMs embedded in-process, no
+///   `caked` at all — see `CakedLib.ComposeHandler`'s own doc comment), is invisible to a
+///   coordinator running inside a *different* `caked service listen` process, or inside the
+///   standalone `caked dns` command (`Sources/caked/Commands/Dns.swift`). A periodic disk-based
+///   poll (`refreshFromDisk()`, `StorageLocation(runMode:).list()` + `CakeConfig`'s
+///   `composeProject`/`composeService` tags) is the authoritative, process-independent source of
+///   truth; `VMLifecycleHooks` (via `handle(_:)`) is kept purely as a low-latency accelerant for
+///   the one process where it does fire, not relied on for correctness.
+/// - **Lazy vs. eager**: embedded in `caked service listen` (`stopWhenEmpty: true`, the default),
+///   the server still only binds once something is actually registered and shuts itself down once
+///   the registry empties out — a host that never runs `compose up` never pays for the socket. The
+///   standalone `caked dns` command instead calls `start(eager: true)`, which binds immediately and
+///   never self-shuts on an empty registry (0 running compose VMs right now doesn't mean none will
+///   ever `compose up` again — that's the whole point of running it as its own persistent command).
 /// - **What's read from code rather than empirically verified**: that
 ///   `VZNATNetworkDeviceAttachment` genuinely permits VM-to-VM UDP traffic on the shared NAT
 ///   subnet, not only VM-to-host/internet. Everything here is consistent with that (a single,
@@ -37,6 +46,8 @@ public actor ComposeDNSCoordinator {
 
 	private var server: ComposeDNSServer?
 	private var startTask: Task<Void, Error>?
+	private var pollTask: Task<Void, Never>?
+	private var stopWhenEmpty = true
 
 	public init(group: EventLoopGroup, runMode: Utils.RunMode, internalPort: Int = ComposeDNSServer.internalBindPort) {
 		self.group = group
@@ -46,26 +57,89 @@ public actor ComposeDNSCoordinator {
 
 	/// Registers every already-running compose-tagged VM at daemon startup (the daemon
 	/// restarted while VMs kept running) — mirrors `IMDSCoordinator.registerAlreadyRunning()`.
+	/// Superseded by `startPolling(interval:)` for anything running continuously (the poll loop's
+	/// own first pass does the same thing), kept as a separate entry point for a caller that only
+	/// wants the initial snapshot without committing to a recurring poll.
 	public func registerAlreadyRunning() async {
+		await self.refreshFromDisk()
+	}
+
+	/// Starts (or restarts) the recurring poll loop that is this coordinator's real, process-
+	/// independent source of truth — see the type's own doc comment. `eager: true` (used by the
+	/// standalone `caked dns` command) binds the server immediately, before the first poll even
+	/// runs, and disables the "shut down once the registry is empty" behavior the embedded,
+	/// lazy-start use inside `caked service listen` still wants.
+	public func startPolling(interval: TimeInterval = 3, eager: Bool = false) async {
+		self.pollTask?.cancel()
+
+		if eager {
+			self.stopWhenEmpty = false
+			await self.ensureServerRunning()
+		}
+
+		self.pollTask = Task { [weak self] in
+			while Task.isCancelled == false {
+				await self?.refreshFromDisk()
+
+				try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+			}
+		}
+	}
+
+	/// One full rescan: lists every VM, keeps the ones that are both running and compose-tagged
+	/// with a currently-resolvable NAT address, and atomically swaps that whole set into the
+	/// registry (`ComposeDNSRegistry.replaceAll(with:)`) — see that method's own doc comment for
+	/// why a full swap rather than incremental register/unregister calls. Starts the server on
+	/// the first pass that finds anything (mirroring `register(location:)`'s old lazy-start
+	/// behavior) and, for the embedded/lazy use, stops it again once a pass finds nothing.
+	public func refreshFromDisk() async {
 		guard let vms = try? StorageLocation(runMode: self.runMode).list() else { return }
+
+		var current: [(project: String, service: String, ip: String)] = []
 
 		for (_, location) in vms {
 			guard case .running = location.status else { continue }
+			guard let config = try? location.config(), let project = config.composeProject, let service = config.composeService else { continue }
+			guard let address = ComposeDNS.natAddress(for: config) else { continue }
 
-			await self.register(location: location)
+			current.append((project: project, service: service, ip: address))
+		}
+
+		self.registry.replaceAll(with: current)
+
+		if current.isEmpty {
+			if self.stopWhenEmpty, self.server != nil {
+				self.logger.info("No compose-tagged VMs left running; stopping compose DNS server")
+				await self.shutdown(stopPolling: false)
+			}
+		} else {
+			await self.ensureServerRunning()
 		}
 	}
 
 	public func handle(_ event: VMLifecycleEvent) async {
+		// A pure accelerant, not authoritative — see the type doc comment. Either branch just
+		// triggers an immediate rescan instead of hand-updating the registry itself, so this can
+		// never drift from what `refreshFromDisk()` would have found on its own a few seconds
+		// later anyway.
 		switch event {
-		case .started(let location, _):
-			await self.register(location: location)
-		case .stopped(let location, _):
-			await self.unregister(location: location)
+		case .started, .stopped:
+			await self.refreshFromDisk()
 		}
 	}
 
 	public func shutdown() async {
+		await self.shutdown(stopPolling: true)
+	}
+
+	// MARK: - Internals
+
+	private func shutdown(stopPolling: Bool) async {
+		if stopPolling {
+			self.pollTask?.cancel()
+			self.pollTask = nil
+		}
+
 		self.startTask?.cancel()
 		_ = await self.startTask?.result
 		self.startTask = nil
@@ -75,40 +149,12 @@ public actor ComposeDNSCoordinator {
 
 			await server.shutdown()
 			self.server = nil
+
+			if let home = try? Home(runMode: self.runMode) {
+				try? home.composeDnsPID.delete()
+			}
+
 			self.logger.info("Compose DNS server stopped")
-		}
-	}
-
-	// MARK: - Internals
-
-	private func register(location: VMLocation) async {
-		guard let config = try? location.config(), let project = config.composeProject, let service = config.composeService else {
-			return
-		}
-
-		guard let address = ComposeDNS.natAddress(for: config) else {
-			self.logger.warn("Compose service \(project)/\(service) (\(location.name)) has no NAT-network lease yet; skipping compose DNS registration")
-			return
-		}
-
-		self.registry.register(project: project, service: service, ip: address)
-
-		self.logger.info("Registered compose service \(project)/\(service) with compose DNS (\(address))")
-
-		await self.ensureServerRunning()
-	}
-
-	private func unregister(location: VMLocation) async {
-		guard let config = try? location.config(), let project = config.composeProject, let service = config.composeService else {
-			return
-		}
-
-		guard self.registry.unregister(project: project, service: service) else { return }
-
-		self.logger.info("Unregistered compose service \(project)/\(service) from compose DNS")
-
-		if self.registry.isEmpty {
-			await self.shutdown()
 		}
 	}
 
@@ -129,6 +175,13 @@ public actor ComposeDNSCoordinator {
 				try await server.startWithRetry()
 
 				self.logger.info("Compose DNS server started at \(gateway):\(server.internalPort)")
+
+				// So `ComposeDNS.isResolverRunning(runMode:)` — checked by `ensureResolverRunning(runMode:)`
+				// before spawning a standalone `caked dns` — sees this coordinator too, whether it's
+				// embedded in `caked service listen` or itself the standalone command.
+				if let home = try? Home(runMode: self.runMode) {
+					try? home.composeDnsPID.writePID()
+				}
 
 				if server.needsPFRedirect {
 					await self.enableRedirect(gateway: gateway, internalPort: server.internalPort)

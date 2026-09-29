@@ -29,6 +29,18 @@ public final class ComposeDNSRegistry: Sendable {
 		self.entries.withLock { $0.removeValue(forKey: Key(project: project, service: service)) != nil }
 	}
 
+	/// Atomically replaces the whole map with `newEntries` — the poll-based discovery path
+	/// (`ComposeDNSCoordinator.refreshFromDisk()`) uses this instead of individually
+	/// registering/unregistering, since a full rescan already knows the complete, current set
+	/// on every pass: swapping it in one step can't race with itself the way "diff, then issue
+	/// N individual register/unregister calls" could, and there's nothing to keep in sync
+	/// between an old and new snapshot — the new one simply replaces the old.
+	public func replaceAll(with newEntries: [(project: String, service: String, ip: String)]) {
+		self.entries.withLock { entries in
+			entries = Dictionary(uniqueKeysWithValues: newEntries.map { (Key(project: $0.project, service: $0.service), $0.ip) })
+		}
+	}
+
 	/// The current IP for `name`, if it names a service this registry knows about — `nil` for
 	/// anything outside the synthetic domain (see `ComposeDNS.parseServiceName(_:)`) or naming a
 	/// service that isn't currently registered (not compose-managed, or not running).

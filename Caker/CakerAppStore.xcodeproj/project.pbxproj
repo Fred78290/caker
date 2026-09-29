@@ -578,6 +578,7 @@
 		9BEBC6F42DF4400A0092B196 /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6CC2DF4400A0092B196 /* Root.swift */; };
 		9BEBC6F52DF4400A0092B196 /* MainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6CB2DF4400A0092B196 /* MainApp.swift */; };
 		9BEBC6F62DF4400A0092B196 /* Delete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC69B2DF4400A0092B196 /* Delete.swift */; };
+		52E8DBA9AD445449B00B51CE /* Dns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300ABBDC01C9F611E451504D /* Dns.swift */; };
 		9BEBC6F72DF4400A0092B196 /* CakedProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6CA2DF4400A0092B196 /* CakedProvider.swift */; };
 		9BEBC6F82DF4400A0092B196 /* Launch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6A02DF4400A0092B196 /* Launch.swift */; };
 		9BEBC6F92DF4400A0092B196 /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6A42DF4400A0092B196 /* Mount.swift */; };
@@ -1490,6 +1491,7 @@
 		9BEBC6982DF4400A0092B196 /* Certificates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Certificates.swift; sourceTree = "<group>"; };
 		9BEBC69A2DF4400A0092B196 /* Configure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configure.swift; sourceTree = "<group>"; };
 		9BEBC69B2DF4400A0092B196 /* Delete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Delete.swift; sourceTree = "<group>"; };
+		300ABBDC01C9F611E451504D /* Dns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dns.swift; sourceTree = "<group>"; };
 		9BEBC69C2DF4400A0092B196 /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9BEBC69D2DF4400A0092B196 /* Exec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exec.swift; sourceTree = "<group>"; };
 		9BEBC69E2DF4400A0092B196 /* ImagesManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagesManagement.swift; sourceTree = "<group>"; };
@@ -2748,6 +2750,7 @@
 				9BEBC69A2DF4400A0092B196 /* Configure.swift */,
 				9B081CBB2FC88D110029B259 /* Convert.swift */,
 				9BEBC69B2DF4400A0092B196 /* Delete.swift */,
+				300ABBDC01C9F611E451504D /* Dns.swift */,
 				9BDC05272FEADAF100802A3C /* Down.swift */,
 				9BEBC69C2DF4400A0092B196 /* Duplicate.swift */,
 				9BDC05282FEADAF100802A3C /* EnvInit.swift */,
@@ -4273,6 +4276,7 @@
 				9B60313D2FAD2BF700055543 /* LXDCertificateStore.swift in Sources */,
 				9B60313E2FAD2BF700055543 /* LXDStorePersistence.swift in Sources */,
 				9BEBC6F62DF4400A0092B196 /* Delete.swift in Sources */,
+				52E8DBA9AD445449B00B51CE /* Dns.swift in Sources */,
 				9BBF79BD2F3DD73700F37D2C /* CurrentStatusHandler.swift in Sources */,
 				9BEBC6F72DF4400A0092B196 /* CakedProvider.swift in Sources */,
 				9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */,
