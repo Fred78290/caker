@@ -137,6 +137,12 @@ depends_on:
 | `2G` / `2GB` | 2048 Mio |
 | `2048` | 2048 Mio (entier brut) |
 
+### Ports et volumes
+
+`ports:` accepte `hôte:invité[/tcp|udp|both]` (ou un port seul, utilisé des deux côtés) ; tout le reste — une adresse hôte (`127.0.0.1:8080:80`, `host_ip:` en forme longue), une plage de ports, un protocole inconnu — est refusé avec une erreur plutôt que transformé en silence en une redirection différente. Les entrées de `sockets:` illisibles sont refusées de la même façon.
+
+`volumes:` accepte `hôte:invité` ; le `:ro` de Docker (ou `read_only: true` en forme longue) rend le partage en lecture seule.
+
 ### Réseaux
 
 `driver: bridge` attache toujours la VM à un **réseau physique/bridgé réel** — au sens d'Apple Virtualization.framework, pas au sens Docker (qui désigne un simple commutateur virtuel privé, hébergé sur l'hôte). Caker n'a pas d'équivalent au « bridge » de Docker : il n'y a donc rien à *créer*, seulement une interface existante à référencer.
@@ -145,7 +151,7 @@ La résolution du nom cible fonctionne ainsi :
 
 - Si le réseau déclare un champ `name:`, celui-ci l'emporte — utilisé notamment avec `external: true`, pour désigner une interface déjà existante.
 - Sinon, la **clé** du réseau elle-même sert directement d'identifiant d'interface physique (par ex. `en0`) — Caker vérifie qu'une telle interface existe réellement sur l'hôte et échoue immédiatement sinon (`compose up` renvoie une erreur claire plutôt que de démarrer la VM sans réseau).
-- Exception : la clé réservée **`default`** (la convention Docker Compose de réseau implicite — c'est celle du modèle généré par `compose init`) se résout vers l'interface bridgée par défaut configurée dans Caker (réglable dans `caker` → Réglages avancés → « Bridged network ») — il n'y a pas moyen de deviner quelle carte réseau hôte un réseau `default` nu devrait utiliser.
+- Exception : la clé réservée **`default`** (la convention Docker Compose de réseau implicite — c'est celle du modèle généré par `compose init`) se résout vers l'interface bridgée par défaut configurée dans Caker (réglable dans `caker` → Réglages avancés → « Bridged network ») — il n'y a pas moyen de deviner quelle carte réseau hôte un réseau `default` nu devrait utiliser. Un `default` non déclaré (aucune entrée `networks:` de premier niveau, ou un `default:` vide) se résout de la même façon, comme le réseau implicite de Docker Compose.
 
 Lorsque `external: true`, Caker attache simplement la VM de service à l'interface déjà existante, sans validation supplémentaire.
 
@@ -268,15 +274,15 @@ caked    compose ps [-f <file>] [services...]
 Supprime les VM de service et désenregistre le projet.
 
 ```
-cakectl compose rm [-f <file>] [-s] [--force] [services...]
-caked    compose rm [-f <file>] [-s] [--force] [services...]
+cakectl compose rm [-f <file>] [--stop] [--force] [services...]
+caked    compose rm [-f <file>] [--stop] [--force] [services...]
 ```
 
 | Option | Défaut | Description |
 | --- | --- | --- |
 | `-f, --file <path>` | détection auto | Chemin du fichier compose |
-| `-s, --stop` | désactivé | Arrêter les services en cours avant suppression |
-| `--force` | désactivé | Ne pas renvoyer d'erreur si une VM de service est introuvable |
+| `--stop` | désactivé | Arrêter les services en cours avant suppression |
+| `--force` | désactivé | Forcer l'arrêt sans arrêt gracieux (n'a d'effet qu'avec `--stop`) |
 | `[services...]` | tous | Limiter à des services nommés spécifiques |
 
 ### `compose ls`
@@ -317,6 +323,7 @@ Au-delà de la CLI, l'app `caker` offre une gestion complète de Compose dans so
 | Runtime | Démon de conteneurs | VM Apple Virtualization.framework |
 | Extensions VM | Non | `disk`, `disk_format`, `user`, `password`, `nested`, `autostart`, `ifnames`, `dynamic_port_forwarding`, `ssh_authorized_key`, `sockets`, `packages`, `package_update`, `package_upgrade`, `write_files`, `post_commands` |
 | `restart` | Politique appliquée | Accepté, non appliqué |
+| `deploy.replicas`, `deploy.resources.reservations` | Appliqués | Acceptés, non appliqués — une seule VM par service, seules les `limits` sont utilisées |
 | Conditions `depends_on` | Appliquées | Ordre uniquement — les conditions sont acceptées mais non vérifiées |
 | Clé `build:` | Build depuis un Dockerfile | Non pris en charge — utilisez `image:` avec une URL d'image cloud ou un alias simplestream |
 | Volumes nommés | Gérés par Docker | Non pris en charge — utilisez des montages liés dans `volumes:` |
@@ -509,6 +516,12 @@ depends_on:
 | `2G` / `2GB` | 2048 MiB |
 | `2048` | 2048 MiB (bare integer) |
 
+### Ports and volumes
+
+`ports:` accepts `host:guest[/tcp|udp|both]` (or a single port, used on both sides); anything else — a host address (`127.0.0.1:8080:80`, `host_ip:` in the long form), a port range, an unknown protocol — is rejected with an error rather than silently turned into a different forward. An unparseable `sockets:` entry is rejected the same way.
+
+`volumes:` accepts `host:guest`; Docker's `:ro` (or `read_only: true` in the long form) makes the share read-only.
+
 ### Networks
 
 `driver: bridge` always attaches the VM to a **real physical/bridged network** — in Apple Virtualization.framework's sense of "bridged," not Docker's own sense (a private, host-only virtual switch). Caker has no equivalent of Docker's own "bridge" driver, so there is nothing to *create* here, only an existing interface to reference.
@@ -517,7 +530,7 @@ The target name resolves as follows:
 
 - If the network declares a `name:` field, that wins — typically paired with `external: true`, to point at an interface that already exists.
 - Otherwise, the network's own **key** is used directly as a physical interface identifier (e.g. `en0`) — Caker verifies that interface actually exists on the host and fails immediately if it doesn't (`compose up` returns a clear error instead of starting the VM with no network device).
-- Exception: the reserved key **`default`** (Docker Compose's own implicit-network convention — also what `compose init`'s own template uses) resolves to Caker's configured default bridged interface (set under `caker` → Advanced Settings → "Bridged network") — there's no way to infer which host NIC a bare `default` network should bridge to.
+- Exception: the reserved key **`default`** (Docker Compose's own implicit-network convention — also what `compose init`'s own template uses) resolves to Caker's configured default bridged interface (set under `caker` → Advanced Settings → "Bridged network") — there's no way to infer which host NIC a bare `default` network should bridge to. An undeclared `default` (no top-level `networks:` entry at all, or a bare `default:`) resolves the same way, as Docker Compose's implicit network.
 
 When `external: true`, Caker just attaches the service VM to the already-existing interface, with no further validation.
 
@@ -640,15 +653,15 @@ caked    compose ps [-f <file>] [services...]
 Remove (delete) service VMs and unregister the project.
 
 ```
-cakectl compose rm [-f <file>] [-s] [--force] [services...]
-caked    compose rm [-f <file>] [-s] [--force] [services...]
+cakectl compose rm [-f <file>] [--stop] [--force] [services...]
+caked    compose rm [-f <file>] [--stop] [--force] [services...]
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
 | `-f, --file <path>` | auto-detect | Path to compose file |
-| `-s, --stop` | off | Stop running services before removing |
-| `--force` | off | Do not error if a service VM is not found |
+| `--stop` | off | Stop running services before removing |
+| `--force` | off | Force stop without graceful shutdown (only has an effect with `--stop`) |
 | `[services...]` | all | Limit to specific named services |
 
 ### `compose ls`
@@ -689,6 +702,7 @@ Beyond the CLI, the `caker` app offers full Compose management in its own interf
 | Runtime | Container daemon | Apple Virtualization.framework VMs |
 | VM extensions | No | `disk`, `disk_format`, `user`, `password`, `nested`, `autostart`, `ifnames`, `dynamic_port_forwarding`, `ssh_authorized_key`, `sockets`, `packages`, `package_update`, `package_upgrade`, `write_files`, `post_commands` |
 | `restart` | Enforced policy | Accepted, not enforced |
+| `deploy.replicas`, `deploy.resources.reservations` | Enforced | Accepted, not applied — one VM per service, only `limits` are used |
 | `depends_on` conditions | Enforced | Order only — conditions are accepted but not checked |
 | `build:` key | Build from Dockerfile | Not supported — use `image:` with a cloud image URL or simplestream alias |
 | Named volumes | Managed by Docker | Not supported — use bind mounts in `volumes:` |
