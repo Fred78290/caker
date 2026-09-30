@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import GRPCLib
 import XCTest
 import Yams
 
@@ -32,9 +33,76 @@ final class ComposeDNSTests: XCTestCase {
 
 	func testParseServiceNameRejectsWrongLabelCount() {
 		XCTAssertNil(ComposeDNS.parseServiceName("compose.internal"))
+		// One label resolves as a plain VM name now (see testParseQueryNameResolvesOneLabelAsVM
+		// below) rather than being outside the synthetic domain — but it's still not a *service*
+		// name, so parseServiceName specifically must still reject it.
 		XCTAssertNil(ComposeDNS.parseServiceName("mariadb.compose.internal"))
 		XCTAssertNil(ComposeDNS.parseServiceName("a.b.mariadb.myapp.compose.internal"))
 		XCTAssertNil(ComposeDNS.parseServiceName("..compose.internal"))
+	}
+
+	func testParseQueryNameResolvesTwoLabelsAsService() {
+		XCTAssertEqual(ComposeDNS.parseQueryName("mariadb.myapp.compose.internal"), .service(.init(service: "mariadb", project: "myapp")))
+	}
+
+	func testParseQueryNameResolvesOneLabelAsVM() {
+		XCTAssertEqual(ComposeDNS.parseQueryName("myvm.compose.internal"), .vm("myvm"))
+		XCTAssertEqual(ComposeDNS.parseQueryName("MyVM.Compose.Internal."), .vm("myvm"), "case-insensitive and trailing-dot-tolerant, same as the service form")
+	}
+
+	func testParseQueryNameRejectsWrongDomainOrLabelCount() {
+		XCTAssertNil(ComposeDNS.parseQueryName("compose.internal"))
+		XCTAssertNil(ComposeDNS.parseQueryName("myvm.example.com"))
+		XCTAssertNil(ComposeDNS.parseQueryName("a.b.mariadb.myapp.compose.internal"))
+		XCTAssertNil(ComposeDNS.parseQueryName("..compose.internal"))
+	}
+
+	func testFullyQualifiedNameForVMRoundTripsThroughParseQueryName() {
+		let fqdn = ComposeDNS.fullyQualifiedName(vmName: "MyVM")
+
+		XCTAssertEqual(fqdn, "myvm.compose.internal")
+		XCTAssertEqual(ComposeDNS.parseQueryName(fqdn), .vm("myvm"))
+	}
+
+	// MARK: - Configurable domain
+
+	func testNormalizeDomainSuffixTrimsLowercasesAndStripsSurroundingDots() {
+		XCTAssertEqual(ComposeDNS.normalizeDomainSuffix("  MyDomain.Test.  "), "mydomain.test")
+		XCTAssertEqual(ComposeDNS.normalizeDomainSuffix(".internal."), "internal")
+	}
+
+	func testNormalizeDomainSuffixRejectsInvalidCandidates() {
+		XCTAssertNil(ComposeDNS.normalizeDomainSuffix(""))
+		XCTAssertNil(ComposeDNS.normalizeDomainSuffix("   "))
+		XCTAssertNil(ComposeDNS.normalizeDomainSuffix("."))
+		XCTAssertNil(ComposeDNS.normalizeDomainSuffix("-leading-hyphen.test"))
+		XCTAssertNil(ComposeDNS.normalizeDomainSuffix("trailing-hyphen-.test"))
+		XCTAssertNil(ComposeDNS.normalizeDomainSuffix("has a space.test"))
+		XCTAssertNil(ComposeDNS.normalizeDomainSuffix("under_score.test"), "underscore is not a valid DNS label character")
+		XCTAssertNil(ComposeDNS.normalizeDomainSuffix("..double-dot.test"))
+	}
+
+	func testDomainSuffixFallsBackToDefaultWhenUnsetOrInvalid() {
+		let original: String? = CakedKeyConfig.composeDnsDomain.string()
+
+		defer {
+			if let original {
+				CakedKeyConfig.composeDnsDomain.set(original)
+			} else {
+				CakedKeyConfig.composeDnsDomain.removeObject()
+			}
+		}
+
+		CakedKeyConfig.composeDnsDomain.removeObject()
+		XCTAssertEqual(ComposeDNS.domainSuffix, ComposeDNS.defaultDomainSuffix)
+
+		CakedKeyConfig.composeDnsDomain.set("not a valid domain")
+		XCTAssertEqual(ComposeDNS.domainSuffix, ComposeDNS.defaultDomainSuffix, "an invalid stored value must never take the resolver down — it falls back instead")
+
+		CakedKeyConfig.composeDnsDomain.set("Custom.Example")
+		XCTAssertEqual(ComposeDNS.domainSuffix, "custom.example")
+		XCTAssertEqual(ComposeDNS.parseQueryName("myvm.custom.example"), .vm("myvm"))
+		XCTAssertNil(ComposeDNS.parseQueryName("myvm.compose.internal"), "once a custom domain is configured, the old default no longer resolves")
 	}
 
 	// MARK: - DNS wire codec
@@ -159,8 +227,8 @@ final class ComposeDNSTests: XCTestCase {
 
 		registry.register(project: "myapp", service: "mariadb", ip: "192.168.64.5")
 
-		XCTAssertEqual(registry.address(for: .init(service: "mariadb", project: "myapp")), "192.168.64.5")
-		XCTAssertNil(registry.address(for: .init(service: "phpmyadmin", project: "myapp")))
+		XCTAssertEqual(registry.address(for: .service(.init(service: "mariadb", project: "myapp"))), "192.168.64.5")
+		XCTAssertNil(registry.address(for: .service(.init(service: "phpmyadmin", project: "myapp"))))
 	}
 
 	func testRegistryScopesByProject() {
@@ -169,8 +237,8 @@ final class ComposeDNSTests: XCTestCase {
 		registry.register(project: "myapp", service: "mariadb", ip: "192.168.64.5")
 		registry.register(project: "otherapp", service: "mariadb", ip: "192.168.64.9")
 
-		XCTAssertEqual(registry.address(for: .init(service: "mariadb", project: "myapp")), "192.168.64.5")
-		XCTAssertEqual(registry.address(for: .init(service: "mariadb", project: "otherapp")), "192.168.64.9")
+		XCTAssertEqual(registry.address(for: .service(.init(service: "mariadb", project: "myapp"))), "192.168.64.5")
+		XCTAssertEqual(registry.address(for: .service(.init(service: "mariadb", project: "otherapp"))), "192.168.64.9")
 	}
 
 	func testRegistryUnregisterRemovesOnlyThatEntry() {
@@ -180,12 +248,47 @@ final class ComposeDNSTests: XCTestCase {
 		registry.register(project: "myapp", service: "phpmyadmin", ip: "192.168.64.6")
 
 		XCTAssertTrue(registry.unregister(project: "myapp", service: "mariadb"))
-		XCTAssertNil(registry.address(for: .init(service: "mariadb", project: "myapp")))
-		XCTAssertEqual(registry.address(for: .init(service: "phpmyadmin", project: "myapp")), "192.168.64.6")
+		XCTAssertNil(registry.address(for: .service(.init(service: "mariadb", project: "myapp"))))
+		XCTAssertEqual(registry.address(for: .service(.init(service: "phpmyadmin", project: "myapp"))), "192.168.64.6")
 		XCTAssertFalse(registry.isEmpty)
 
 		XCTAssertTrue(registry.unregister(project: "myapp", service: "phpmyadmin"))
 		XCTAssertTrue(registry.isEmpty)
+	}
+
+	func testRegistryReplaceAllPopulatesBothServiceAndVMMaps() {
+		let registry = ComposeDNSRegistry()
+
+		registry.replaceAll(
+			services: [(project: "myapp", service: "mariadb", ip: "192.168.64.5")],
+			vms: [(name: "compose-myapp-mariadb", ip: "192.168.64.5"), (name: "standalone-vm", ip: "192.168.64.9")]
+		)
+
+		// The compose-tagged VM resolves both ways — by its compose identity and by its plain
+		// VM name — while a VM with no compose tags only resolves by name.
+		XCTAssertEqual(registry.address(for: .service(.init(service: "mariadb", project: "myapp"))), "192.168.64.5")
+		XCTAssertEqual(registry.address(for: .vm("compose-myapp-mariadb")), "192.168.64.5")
+		XCTAssertEqual(registry.address(for: .vm("standalone-vm")), "192.168.64.9")
+		XCTAssertNil(registry.address(for: .service(.init(service: "standalone-vm", project: "myapp"))))
+	}
+
+	func testRegistryReplaceAllLooksUpVMNamesCaseInsensitively() {
+		let registry = ComposeDNSRegistry()
+
+		registry.replaceAll(services: [], vms: [(name: "MyVM", ip: "192.168.64.9")])
+
+		XCTAssertEqual(registry.address(for: .vm("myvm")), "192.168.64.9")
+		XCTAssertEqual(registry.address(for: .vm("MYVM")), "192.168.64.9")
+	}
+
+	func testRegistryReplaceAllFullyReplacesThePreviousSnapshot() {
+		let registry = ComposeDNSRegistry()
+
+		registry.replaceAll(services: [], vms: [(name: "stale-vm", ip: "192.168.64.1")])
+		registry.replaceAll(services: [], vms: [(name: "fresh-vm", ip: "192.168.64.2")])
+
+		XCTAssertNil(registry.address(for: .vm("stale-vm")), "a full replace must drop entries not present in the new snapshot")
+		XCTAssertEqual(registry.address(for: .vm("fresh-vm")), "192.168.64.2")
 	}
 
 	// MARK: - Cloud-init injection (ComposeFile.toBuildOptions)

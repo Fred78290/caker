@@ -20,12 +20,20 @@ import NIO
 ///   `composeProject`/`composeService` tags) is the authoritative, process-independent source of
 ///   truth; `VMLifecycleHooks` (via `handle(_:)`) is kept purely as a low-latency accelerant for
 ///   the one process where it does fire, not relied on for correctness.
+/// - **Every running VM is resolvable, not just compose-tagged ones** — `refreshFromDisk()`
+///   registers a plain `<vmname>.<domain>` entry for every running VM with a NAT address,
+///   compose-managed or not, in addition to the `<service>.<project>.<domain>` entry a
+///   compose-tagged VM also gets. This is a deliberate widening from the original "compose
+///   service discovery only" design: once the resolver exists and is reachable from every VM
+///   anyway, there's no reason to withhold plain-name resolution from a VM that just happens not
+///   to be part of a compose project.
 /// - **Lazy vs. eager**: embedded in `caked service listen` (`stopWhenEmpty: true`, the default),
-///   the server still only binds once something is actually registered and shuts itself down once
-///   the registry empties out — a host that never runs `compose up` never pays for the socket. The
-///   standalone `caked dns` command instead calls `start(eager: true)`, which binds immediately and
-///   never self-shuts on an empty registry (0 running compose VMs right now doesn't mean none will
-///   ever `compose up` again — that's the whole point of running it as its own persistent command).
+///   the server still only binds once *any* VM is actually running and shuts itself down once the
+///   registry empties out (no VMs running at all) — a host with nothing running never pays for
+///   the socket. The standalone `caked dns` command instead calls `start(eager: true)`, which
+///   binds immediately and never self-shuts on an empty registry (0 VMs running right now doesn't
+///   mean none will ever start again — that's the whole point of running it as its own persistent
+///   command).
 /// - **What's read from code rather than empirically verified**: that
 ///   `VZNATNetworkDeviceAttachment` genuinely permits VM-to-VM UDP traffic on the shared NAT
 ///   subnet, not only VM-to-host/internet. Everything here is consistent with that (a single,
@@ -86,30 +94,37 @@ public actor ComposeDNSCoordinator {
 		}
 	}
 
-	/// One full rescan: lists every VM, keeps the ones that are both running and compose-tagged
-	/// with a currently-resolvable NAT address, and atomically swaps that whole set into the
-	/// registry (`ComposeDNSRegistry.replaceAll(with:)`) — see that method's own doc comment for
-	/// why a full swap rather than incremental register/unregister calls. Starts the server on
-	/// the first pass that finds anything (mirroring `register(location:)`'s old lazy-start
-	/// behavior) and, for the embedded/lazy use, stops it again once a pass finds nothing.
+	/// One full rescan: lists every VM, keeps the ones that are currently running with a
+	/// resolvable NAT address — every one of those becomes a plain `<vmname>.<domain>` entry,
+	/// and the compose-tagged subset additionally becomes a `<service>.<project>.<domain>` entry
+	/// — and atomically swaps both sets into the registry (`ComposeDNSRegistry.replaceAll(...)`)
+	/// — see that method's own doc comment for why a full swap rather than incremental
+	/// register/unregister calls. Starts the server on the first pass that finds anything running
+	/// at all (mirroring `register(location:)`'s old lazy-start behavior) and, for the
+	/// embedded/lazy use, stops it again once a pass finds nothing running.
 	public func refreshFromDisk() async {
 		guard let vms = try? StorageLocation(runMode: self.runMode).list() else { return }
 
-		var current: [(project: String, service: String, ip: String)] = []
+		var services: [(project: String, service: String, ip: String)] = []
+		var vmNames: [(name: String, ip: String)] = []
 
 		for (_, location) in vms {
 			guard case .running = location.status else { continue }
-			guard let config = try? location.config(), let project = config.composeProject, let service = config.composeService else { continue }
+			guard let config = try? location.config() else { continue }
 			guard let address = ComposeDNS.natAddress(for: config) else { continue }
 
-			current.append((project: project, service: service, ip: address))
+			vmNames.append((name: location.name, ip: address))
+
+			if let project = config.composeProject, let service = config.composeService {
+				services.append((project: project, service: service, ip: address))
+			}
 		}
 
-		self.registry.replaceAll(with: current)
+		self.registry.replaceAll(services: services, vms: vmNames)
 
-		if current.isEmpty {
+		if services.isEmpty, vmNames.isEmpty {
 			if self.stopWhenEmpty, self.server != nil {
-				self.logger.info("No compose-tagged VMs left running; stopping compose DNS server")
+				self.logger.info("No virtual machines left running; stopping compose DNS server")
 				await self.shutdown(stopPolling: false)
 			}
 		} else {

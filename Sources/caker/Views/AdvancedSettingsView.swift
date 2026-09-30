@@ -23,6 +23,7 @@ struct AdvancedSettingsView: View {
 	@State private var errorMessage: String? = nil
 	@State private var cakeHomePath: String
 	@State private var isRelocating: Bool = false
+	@State private var composeDnsDomain: String
 
 	private var bridgedInterfaces: [VZBridgedNetworkInterface] {
 		VZBridgedNetworkInterface.networkInterfaces
@@ -33,6 +34,7 @@ struct AdvancedSettingsView: View {
 		primaryName = CakedKeyConfig.primaryName.string() ?? String.empty
 		passphrase = CakedKeyConfig.passphrase.string() ?? String.empty
 		cakeHomePath = (try? CakedLib.CakeHomeHandler.currentHome(runMode: .app).path(percentEncoded: false)) ?? String.empty
+		composeDnsDomain = CakedKeyConfig.composeDnsDomain.string() ?? ComposeDNS.defaultDomainSuffix
 	}
 
 	var body: some View {
@@ -57,6 +59,22 @@ struct AdvancedSettingsView: View {
 				Label("Networking", systemImage: "network")
 			} footer: {
 				Text("Host network interface used when a virtual machine is attached to a bridged network.")
+					.font(.caption)
+					.foregroundStyle(.secondary)
+			}
+
+			Section {
+				LabeledContent("Domain") {
+					TextField(ComposeDNS.defaultDomainSuffix, text: $composeDnsDomain)
+						.rounded(.leading)
+						.onSubmit {
+							saveComposeDnsDomain()
+						}
+				}
+			} header: {
+				Label("Compose", systemImage: "square.stack.3d.up")
+			} footer: {
+				Text("Domain suffix used to resolve virtual machines and compose services by name, e.g. myvm.\(composeDnsDomain) or mariadb.myapp.\(composeDnsDomain). Only affects virtual machines built after this is changed — an already-built VM keeps using the domain it was built with until rebuilt.")
 					.font(.caption)
 					.foregroundStyle(.secondary)
 			}
@@ -192,6 +210,30 @@ struct AdvancedSettingsView: View {
 
 	private func save(_ key: CakedKeyConfig, _ value: String?) {
 		key.set(value)
+	}
+
+	/// Validates `composeDnsDomain` via the same `ComposeDNS.normalizeDomainSuffix(_:)` the
+	/// resolver itself uses as its own last-resort safety net — an invalid value is rejected
+	/// here rather than ever reaching `UserDefaults.shared`, so `ComposeDNS.domainSuffix`'s own
+	/// fallback-to-default path is only ever exercised by a hand-edited defaults plist, not by
+	/// anything typed into this field. An empty field resets to the built-in default.
+	private func saveComposeDnsDomain() {
+		let trimmed = composeDnsDomain.trimmingCharacters(in: .whitespacesAndNewlines)
+
+		guard trimmed.isEmpty == false else {
+			CakedKeyConfig.composeDnsDomain.removeObject()
+			composeDnsDomain = ComposeDNS.defaultDomainSuffix
+			return
+		}
+
+		guard let normalized = ComposeDNS.normalizeDomainSuffix(trimmed) else {
+			errorMessage = String(localized: "\"\(trimmed)\" is not a valid domain.")
+			composeDnsDomain = CakedKeyConfig.composeDnsDomain.string() ?? ComposeDNS.defaultDomainSuffix
+			return
+		}
+
+		CakedKeyConfig.composeDnsDomain.set(normalized)
+		composeDnsDomain = normalized
 	}
 
 	private func relocateCakeHome() {

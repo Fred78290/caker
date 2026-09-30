@@ -28,9 +28,74 @@ import GRPCLib
 /// `VZNATNetworkDeviceAttachment` genuinely allows VM-to-VM packets, not just VM-to-host/internet
 /// — everything here is consistent with that, but nobody in this codebase relied on it before).
 public enum ComposeDNS {
-	/// The only domain suffix the resolver ever answers for. Anything else is `REFUSED` — this
-	/// is not, and must never become, an open resolver for the shared NAT subnet.
-	public static let domainSuffix = "compose.internal"
+	/// The built-in domain suffix, used whenever `CakedKeyConfig.composeDnsDomain` has no valid
+	/// value configured — the fallback `domainSuffix` itself resolves to, and what every bundled
+	/// compose template/doc reference assumes unless the operator has changed it in Advanced
+	/// Settings.
+	public static let defaultDomainSuffix = "compose.internal"
+
+	/// The domain suffix the resolver currently answers for — anything else is `REFUSED`, this
+	/// is not, and must never become, an open resolver for the shared NAT subnet. Configurable
+	/// via `CakedKeyConfig.composeDnsDomain` (`UserDefaults.shared`, the same app-group-backed
+	/// store `caker`'s Advanced Settings already uses for `bridgedNetwork`/`primaryName`/etc —
+	/// see `AdvancedSettingsView.swift`'s "Compose" section), read fresh on every call rather than
+	/// cached, so a change made in Settings takes effect on the next query without restarting
+	/// `caked`/`caked dns`. An unset or invalid stored value (never possible via the Settings UI,
+	/// which validates before saving, but always possible via a hand-edited defaults plist)
+	/// silently falls back to `defaultDomainSuffix` rather than ever breaking the resolver —
+	/// see `normalizeDomainSuffix(_:)`.
+	///
+	/// Changing this only affects virtual machines *built* afterward: the guest-side split-DNS
+	/// `resolvectl domain '~...'` setup (`ComposeFile.toBuildOptions`) bakes in whatever this
+	/// resolved to at build time, into the VM's own cloud-init — an already-provisioned VM keeps
+	/// pointing at its old domain until rebuilt.
+	public static var domainSuffix: String {
+		guard let stored = CakedKeyConfig.composeDnsDomain.string(), let normalized = Self.normalizeDomainSuffix(stored) else {
+			return Self.defaultDomainSuffix
+		}
+
+		return normalized
+	}
+
+	/// Validates and normalizes a candidate domain suffix: trims surrounding whitespace, strips
+	/// a single leading/trailing dot, lowercases, and requires every dot-separated label to be a
+	/// plausible DNS label (1–63 ASCII letters/digits/hyphens, never starting or ending with a
+	/// hyphen). `nil` for anything that doesn't meet that bar — used both by the Settings UI (to
+	/// reject an invalid value before it's ever saved) and internally by `domainSuffix` itself
+	/// (so a value that somehow got saved invalid can never take the resolver down, it just
+	/// falls back). Deliberately hand-rolled rather than `NSRegularExpression`, since
+	/// `domainSuffix` calls this on every DNS query the server receives.
+	public static func normalizeDomainSuffix(_ candidate: String) -> String? {
+		var value = candidate.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+		if value.hasPrefix(".") {
+			value.removeFirst()
+		}
+
+		if value.hasSuffix(".") {
+			value.removeLast()
+		}
+
+		guard value.isEmpty == false else { return nil }
+
+		let labels = value.split(separator: ".", omittingEmptySubsequences: false)
+
+		for label in labels {
+			guard label.isEmpty == false, label.count <= 63 else { return nil }
+			guard label.allSatisfy({ ("a"..."z").contains($0) || ("0"..."9").contains($0) || $0 == "-" }) else { return nil }
+			guard label.first != "-", label.last != "-" else { return nil }
+		}
+
+		return value
+	}
+
+	/// A query name this resolver will answer for, already split back into what it names —
+	/// either a compose service (two labels, `<service>.<project>`) or a plain virtual machine
+	/// (one label, `<vmname>`), both under `domainSuffix`.
+	public enum QueryName: Equatable, Sendable {
+		case service(ServiceName)
+		case vm(String)
+	}
 
 	/// A query name this resolver will answer, already split back into its compose identity.
 	public struct ServiceName: Equatable, Sendable {
@@ -43,12 +108,13 @@ public enum ComposeDNS {
 		}
 	}
 
-	/// Parses `<service>.<project>.compose.internal` (case-insensitive, trailing dot optional,
-	/// matching how a resolver hands a query name to a stub) back into its two components.
-	/// `nil` for anything outside the synthetic domain, or with more/fewer than the two
-	/// expected labels in front of it — deliberately strict, since a permissive parse here is
-	/// how a resolver becomes something other than "answers for compose service names only."
-	public static func parseServiceName(_ queryName: String) -> ServiceName? {
+	/// Parses a query name (case-insensitive, trailing dot optional, matching how a resolver
+	/// hands a query name to a stub) back into what it names under `domainSuffix` — a compose
+	/// service (`<service>.<project>.<domain>`) or a plain virtual machine (`<vmname>.<domain>`).
+	/// `nil` for anything outside the synthetic domain, or with more than the two labels a
+	/// compose service name allows in front of it — deliberately strict, since a permissive
+	/// parse here is how a resolver becomes something other than "answers for known names only."
+	public static func parseQueryName(_ queryName: String) -> QueryName? {
 		var name = queryName.lowercased()
 
 		if name.hasSuffix(".") {
@@ -64,11 +130,28 @@ public enum ComposeDNS {
 		let prefix = String(name.dropLast(suffix.count))
 		let labels = prefix.split(separator: ".", omittingEmptySubsequences: false)
 
-		guard labels.count == 2, labels.allSatisfy({ $0.isEmpty == false }) else {
+		guard labels.allSatisfy({ $0.isEmpty == false }) else {
 			return nil
 		}
 
-		return ServiceName(service: String(labels[0]), project: String(labels[1]))
+		switch labels.count {
+		case 1:
+			return .vm(String(labels[0]))
+		case 2:
+			return .service(ServiceName(service: String(labels[0]), project: String(labels[1])))
+		default:
+			return nil
+		}
+	}
+
+	/// Parses `<service>.<project>.<domain>` specifically, discarding a plain-VM match — the
+	/// original, narrower entry point kept for callers (and tests) that only ever care about
+	/// compose service names, implemented in terms of `parseQueryName(_:)` so the two never
+	/// drift out of sync on what counts as "in the synthetic domain" in the first place.
+	public static func parseServiceName(_ queryName: String) -> ServiceName? {
+		guard case .service(let name) = Self.parseQueryName(queryName) else { return nil }
+
+		return name
 	}
 
 	/// The query name a client should ask for `service` in `project` — the inverse of
@@ -76,6 +159,12 @@ public enum ComposeDNS {
 	/// service resolves at.
 	public static func fullyQualifiedName(service: String, project: String) -> String {
 		"\(service.lowercased()).\(project.lowercased()).\(self.domainSuffix)"
+	}
+
+	/// The query name a client should ask for a plain virtual machine named `vmName` — the
+	/// inverse of the `.vm(_:)` case of `parseQueryName(_:)`.
+	public static func fullyQualifiedName(vmName: String) -> String {
+		"\(vmName.lowercased()).\(self.domainSuffix)"
 	}
 
 	/// The NAT network's gateway address, stripped of its `/24`-style CIDR suffix — where the

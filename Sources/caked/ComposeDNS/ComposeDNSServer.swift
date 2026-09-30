@@ -9,11 +9,12 @@ import Synchronization
 /// `ComposeDNS.swift`'s doc comment for why this sits on the NAT network's gateway address
 /// rather than IMDS's own (isolated) side channel.
 ///
-/// Answers only `<service>.<project>.compose.internal` A queries, from `registry` — `REFUSED`
-/// for anything outside that domain (never an open resolver on the shared NAT subnet), and
-/// `NXDOMAIN` for a name inside it that isn't currently registered (unknown project/service, or
-/// registered but not currently running). No recursion, no other record types, no TCP fallback
-/// (every answer here is one A record — small enough to never need one).
+/// Answers `<service>.<project>.<domain>` and `<vmname>.<domain>` A queries (see
+/// `ComposeDNS.QueryName`), from `registry` — `REFUSED` for anything outside that domain (never
+/// an open resolver on the shared NAT subnet), and `NXDOMAIN` for a name inside it that isn't
+/// currently registered (unknown project/service/VM, or registered but not currently running).
+/// No recursion, no other record types, no TCP fallback (every answer here is one A record —
+/// small enough to never need one).
 final class ComposeDNSInboundHandler: ChannelInboundHandler {
 	typealias InboundIn = AddressedEnvelope<ByteBuffer>
 	typealias OutboundOut = AddressedEnvelope<ByteBuffer>
@@ -47,16 +48,16 @@ final class ComposeDNSInboundHandler: ChannelInboundHandler {
 
 		let responseData: Data
 
-		if query.type == DNSMessage.typeA, query.qclass == DNSMessage.classIN, let name = ComposeDNS.parseServiceName(query.name) {
+		if query.type == DNSMessage.typeA, query.qclass == DNSMessage.classIN, let name = ComposeDNS.parseQueryName(query.name) {
 			if let address = self.registry.address(for: name) {
 				responseData = DNSMessage.encodeResponse(to: query, addresses: [address])
 			} else {
 				responseData = DNSMessage.encodeError(to: query, rcode: .nxDomain)
 			}
-		} else if ComposeDNS.parseServiceName(query.name) != nil {
-			// A recognized compose name, but not an A/IN query (e.g. AAAA, which this
-			// resolver never has an answer for) — a clean "no data" is more correct than
-			// REFUSED, since the name itself is legitimately ours to answer for.
+		} else if ComposeDNS.parseQueryName(query.name) != nil {
+			// A recognized name (compose service or plain VM), but not an A/IN query (e.g.
+			// AAAA, which this resolver never has an answer for) — a clean "no data" is more
+			// correct than REFUSED, since the name itself is legitimately ours to answer for.
 			responseData = DNSMessage.encodeResponse(to: query, addresses: [])
 		} else {
 			// Outside the synthetic domain entirely — refuse rather than silently ignore, so
