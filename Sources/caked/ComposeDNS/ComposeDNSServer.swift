@@ -89,6 +89,31 @@ final class ComposeDNSInboundHandler: ChannelInboundHandler {
 /// so the compose DNS split-DNS setup guests get (see `ComposeFile.toBuildOptions`) simply does
 /// not work without it — same "needs passwordless sudo configured for caked" caveat as IMDS's own
 /// redirect, silently skipped (and the feature inert, not broken) in a sandboxed build.
+/// Thrown by `ComposeDNSServer.start()`/`startWithRetry()` when the target `bindAddress` isn't
+/// currently assigned to any host network interface — see `gatewayNotPresent`'s own doc comment
+/// for why this gets special handling rather than being just another `bind()` failure.
+public enum ComposeDNSServerError: Error, Equatable, CustomStringConvertible {
+	/// The NAT gateway address isn't currently assigned to any host network interface — typically
+	/// because vmnet hasn't finished bringing the NAT network's own interface up yet (it can lag
+	/// slightly behind the VM that triggered it reaching `.running`, or — on a host with no VM
+	/// ever having used the NAT network yet — not exist at all until one does). Not something a
+	/// bind-and-retry loop can fix on its own timescale: `ComposeDNSCoordinator`'s periodic
+	/// `refreshFromDisk()` poll already calls `ensureServerRunning()` again every few seconds on
+	/// its own, so `startWithRetry` bails out on this immediately instead of burning its own fixed
+	/// retry budget (up to 10s) waiting for an interface that may take longer than that to appear,
+	/// or may never appear at all (e.g. no `vmnet` entitlement) — and, since every running VM now
+	/// keeps the registry non-empty (not just compose-tagged ones), this is hit on every VM start,
+	/// not just a compose-specific one.
+	case gatewayNotPresent(String)
+
+	public var description: String {
+		switch self {
+		case .gatewayNotPresent(let address):
+			return "NAT gateway address \(address) is not currently assigned to any network interface"
+		}
+	}
+}
+
 public final class ComposeDNSServer: Sendable {
 	// `DatagramBootstrap` itself isn't `Sendable`, so it's never stored — built fresh in
 	// `start()` from these plain, genuinely `Sendable` values instead.
@@ -112,7 +137,22 @@ public final class ComposeDNSServer: Sendable {
 		self.needsPFRedirect = runningAsRoot == false
 	}
 
+	/// `true` if `address` is currently assigned to a live host network interface — checked
+	/// before every bind attempt so a missing NAT gateway interface (see
+	/// `ComposeDNSServerError.gatewayNotPresent`) is a distinguishable, fail-fast condition rather
+	/// than an ordinary `bind()` error indistinguishable from e.g. the port still being held by a
+	/// just-stopped previous instance.
+	private static func isAddressAssignedToInterface(_ address: String) -> Bool {
+		guard let devices = try? System.enumerateDevices() else { return false }
+
+		return devices.contains { $0.address?.ipAddress == address }
+	}
+
 	public func start() throws {
+		guard Self.isAddressAssignedToInterface(self.bindAddress) else {
+			throw ComposeDNSServerError.gatewayNotPresent(self.bindAddress)
+		}
+
 		let registry = self.registry
 		let bootstrap = DatagramBootstrap(group: self.group)
 			.channelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
@@ -128,7 +168,10 @@ public final class ComposeDNSServer: Sendable {
 	/// Retries `start()` with a fixed delay until it succeeds or `maxAttempts` is reached —
 	/// mirrors `IMDSServer.startWithRetry(...)` exactly, for the same reason: a transient bind
 	/// failure (e.g. the port briefly held by a just-stopped previous instance) shouldn't be
-	/// fatal to the first VM that needed the server started.
+	/// fatal to the first VM that needed the server started. A `ComposeDNSServerError` is the one
+	/// exception to the "retry" part of that: it's rethrown immediately on the first attempt
+	/// rather than consuming any of `maxAttempts` — see the error's own doc comment for why
+	/// retrying here specifically wouldn't help.
 	public func startWithRetry(maxAttempts: Int = 20, retryDelayNanoseconds: UInt64 = 500_000_000) async throws {
 		var attempts = 0
 
@@ -138,6 +181,8 @@ public final class ComposeDNSServer: Sendable {
 			do {
 				try self.start()
 				return
+			} catch let error as ComposeDNSServerError {
+				throw error
 			} catch {
 				attempts += 1
 

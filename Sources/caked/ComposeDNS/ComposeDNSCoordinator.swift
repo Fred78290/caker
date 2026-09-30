@@ -34,6 +34,19 @@ import NIO
 ///   binds immediately and never self-shuts on an empty registry (0 VMs running right now doesn't
 ///   mean none will ever start again — that's the whole point of running it as its own persistent
 ///   command).
+/// - **A missing NAT gateway interface fails fast, not after a 10s retry.** Since every running
+///   VM now keeps `refreshFromDisk()`'s registry non-empty (not just compose-tagged ones — see
+///   above), `ensureServerRunning()` fires on essentially every VM start — and the gateway
+///   interface vmnet is supposed to bring up for that VM's NAT attachment can briefly lag behind
+///   the VM's own `.running` status, or (on a host where no VM has ever used the NAT network)
+///   not exist yet at all. `ComposeDNSServer.start()` checks the target address is actually
+///   assigned to a host interface before ever attempting to bind, throwing the dedicated
+///   `ComposeDNSServerError.gatewayNotPresent` case if not — `startWithRetry` rethrows that
+///   immediately rather than spending its usual `maxAttempts`/`retryDelayNanoseconds` budget
+///   (up to 10s) on a condition a tight bind-retry loop can't fix. This coordinator's own catch
+///   block logs it at `.debug`, not `.warn`, since `refreshFromDisk()`'s own poll cadence (every
+///   few seconds) will call `ensureServerRunning()` again on its own — the retry story lives at
+///   the poll level, not inside `startWithRetry`, for this specific failure.
 /// - **What's read from code rather than empirically verified**: that
 ///   `VZNATNetworkDeviceAttachment` genuinely permits VM-to-VM UDP traffic on the shared NAT
 ///   subnet, not only VM-to-host/internet. Everything here is consistent with that (a single,
@@ -203,6 +216,17 @@ public actor ComposeDNSCoordinator {
 				}
 			} catch is CancellationError {
 				// Torn down before it managed to start; nothing to log.
+			} catch let error as ComposeDNSServerError {
+				// Expected and transient, not an operational failure — the NAT gateway
+				// interface just isn't up yet (see the error's own doc comment). The next
+				// `refreshFromDisk()` poll tick (a few seconds away) will call
+				// `ensureServerRunning()` again on its own; logging this at `.warn` every
+				// time would be noisy now that any VM starting (not just a compose one)
+				// triggers this same race.
+				self.logger.debug("Compose DNS server not started yet: \(error)")
+
+				self.server = nil
+				self.startTask = nil
 			} catch {
 				self.logger.warn("Compose DNS server could not start: \(error)")
 

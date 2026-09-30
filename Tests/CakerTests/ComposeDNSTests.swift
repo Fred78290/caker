@@ -5,6 +5,7 @@
 
 import Foundation
 import GRPCLib
+import NIOPosix
 import XCTest
 import Yams
 
@@ -219,6 +220,33 @@ final class ComposeDNSTests: XCTestCase {
 	}
 
 	private func UInt16(_ byte: UInt8) -> Swift.UInt16 { Swift.UInt16(byte) }
+
+	// MARK: - Server (gateway-not-present fast path)
+
+	func testStartWithRetryFailsFastWhenGatewayAddressIsNotAssignedToAnInterface() async throws {
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+		defer {
+			XCTAssertNoThrow(try group.syncShutdownGracefully())
+		}
+
+		// RFC 5737 TEST-NET-3 — reserved for documentation, guaranteed not to be assigned to
+		// any real interface on the host running this test.
+		let server = ComposeDNSServer(group: group, registry: ComposeDNSRegistry(), bindAddress: "203.0.113.1")
+		let start = Date()
+
+		do {
+			try await server.startWithRetry()
+			XCTFail("startWithRetry should throw when the bind address isn't assigned to any interface")
+		} catch let error as ComposeDNSServerError {
+			XCTAssertEqual(error, .gatewayNotPresent("203.0.113.1"))
+		}
+
+		// The whole point of the fast path is that this does NOT consume startWithRetry's usual
+		// ~10s retry budget (maxAttempts * retryDelayNanoseconds) — it must fail on the very
+		// first check instead of retrying a condition retrying can't fix.
+		XCTAssertLessThan(Date().timeIntervalSince(start), 2.0)
+	}
 
 	// MARK: - Registry
 
