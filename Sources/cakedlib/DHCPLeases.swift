@@ -21,7 +21,7 @@ struct DHCPLease {
 	let expireAt: Date
 
 	init?(hwAddressProto: UInt8, ipAddress: String, hwAddressAddress: String, hostname: String, expireAt: Date) {
-		guard hwAddressProto != ARPHRD_ETHER && hwAddressProto != 255 else {
+		guard hwAddressProto == ARPHRD_ETHER || hwAddressProto == 255 else {
 			return nil
 		}
 
