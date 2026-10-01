@@ -22,6 +22,9 @@ struct SideBarView: View {
 		case .networks: return .green
 		case .images: return .orange
 		case .templates: return .purple
+		case .tasks: return .indigo
+		case .cache: return .teal
+		case .compose: return .pink
 		}
 	}
 

@@ -11,7 +11,7 @@ open class NSGlassEffectAlert: NSAlert {
 	@discardableResult
 	override open func runModal() -> NSApplication.ModalResponse {
 
-		if #available(macOS 27.0, *) {
+		if #available(macOS 26.0, *) {
 			self.buttons.forEach { button in
 				button.bezelStyle = .glass
 /*				// Apply Liquid Glass effect to each button

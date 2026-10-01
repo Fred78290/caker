@@ -364,7 +364,7 @@ struct LXDInstancesController: RouteCollection {
 				.encodeResponse(status: .notFound, for: req)
 		}
 		
-		let (lxdStatus, lxdStatusCode) = lxdStatusFrom(state: info.status)
+		let (lxdStatus, lxdStatusCode) = lxdStatusFrom(state: info.status.rawValue)
 		
 		var networkState: [String: LXDNetworkState]? = nil
 		
@@ -550,7 +550,40 @@ struct LXDInstancesController: RouteCollection {
 				} catch {
 					await LXDOperationStore.shared.complete(id: opID, success: false, error: error.localizedDescription)
 				}
-				
+
+			case "provision":
+				var currentMessage: String? = "Starting provisioning"
+
+				do {
+					let promise = self.group.next().makePromise(of: Void.self)
+
+					// name-based convenience overload: resolves location/storageLocation from the
+					// name, and auto-detects the built-in template the same way `cakectl provision
+					// <name>` (no --template) does when templateContent is nil.
+					_ = try await CakedLib.ProvisionHandler.provision(
+						name: name,
+						display: .vnc,
+						templateName: "",
+						templateContent: nil,
+						macosVersion: nil,
+						variables: ProvisionVariablesStore.load().asProvisionVarStrings,
+						runMode: rm,
+						queue: nil,
+						promise: promise
+					) { progress in
+						currentMessage = self.progressOperation(opID, progress: progress.progressValue, currentMessage: currentMessage)
+					}
+
+					// `provision(name:...)` returns once the VM is up and the run started —
+					// provisioning itself keeps going in the background, signalled complete (or
+					// failed) via this promise, same as the gRPC/CLI callers of this same handler.
+					try await promise.futureResult.get()
+
+					await LXDOperationStore.shared.complete(id: opID, success: true, description: "Provisioning succeeded")
+				} catch {
+					await LXDOperationStore.shared.complete(id: opID, success: false, error: error.reason)
+				}
+
 			default:
 				await LXDOperationStore.shared.complete(id: opID, success: false, error: "Unknown action: \(action)")
 			}
@@ -732,6 +765,7 @@ struct LXDInstancesController: RouteCollection {
 	private func lxdStatusFrom(state: String) -> (String, Int) {
 		switch state.lowercased() {
 		case "running": return ("Running", 103)
+		case "provisioning": return ("Provisioning", 103)
 		case "paused": return ("Frozen", 110)
 		default: return ("Stopped", 102)
 		}
@@ -743,6 +777,9 @@ struct LXDInstancesController: RouteCollection {
 		// synchronously; the other cases just need a best-effort async store write.
 		switch progress {
 		case .step(let message):
+			return message
+
+		case .substep(let message):
 			return message
 
 		case .progress(_, let fractionCompleted):
@@ -763,6 +800,24 @@ struct LXDInstancesController: RouteCollection {
 				} else {
 					let description = message.map { "Operation succeeded: \($0)" } ?? "Operation succeeded"
 					await LXDOperationStore.shared.complete(id: opID, success: true, description: description)
+				}
+			}
+
+		case .provision(let info):
+			Task {
+				if let info {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisioning: \(info.vncURL)")
+				} else {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisioning")
+				}
+			}
+
+		case .provisioned(let result):
+			Task {
+				if case .failure(let error) = result {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisionning failed: \(error)")
+				} else {
+					await LXDOperationStore.shared.update(id: opID, description: "Provisionning succeeded")
 				}
 			}
 		}

@@ -58,6 +58,7 @@ struct ComposeUp: AsyncGrpcParsableCommand {
 					$0.composeDatas = composeDatas
 					$0.waitIptimeout = Int32(waitIPTimeout)
 					$0.services = services
+					$0.replaceDefinition = true  // the file is the user's own definition
 				}
 			},
 			callOptions: callOptions
@@ -180,13 +181,13 @@ struct ComposeRm: GrpcParsableCommand {
 	var file: String? = nil
 
 	@Flag(
-		name: [.customShort("s"), .customLong("stop")],
+		name: [.customLong("stop")],
 		help: ArgumentHelp(String(localized: "Stop running services before removing")))
 	var stop: Bool = false
 
 	@Flag(
 		name: [.customLong("force")],
-		help: ArgumentHelp(String(localized: "Do not error if a service VM is not found")))
+		help: ArgumentHelp(String(localized: "Force stop without graceful shutdown")))
 	var force: Bool = false
 
 	@Argument(help: ArgumentHelp(String(localized: "Services to remove (default: all)")))
@@ -257,11 +258,11 @@ struct ComposeInit: ParsableCommand {
 		let dest = cwd.appendingPathComponent(ComposeFile.filename)
 
 		if FileManager.default.fileExists(atPath: dest.path(percentEncoded: false)) && !force {
-			throw ValidationError(String(localized: "\(ComposeFile.filename) already exists — use --force to overwrite."))
+			throw ValidationError(String(format: String(localized: "%@ already exists — use --force to overwrite."), ComposeFile.filename))
 		}
 
 		try ComposeFile.template.write(to: dest, atomically: true, encoding: .utf8)
-		print(String(localized: "Created \(dest.path(percentEncoded: false))"))
+		print(String(format: String(localized: "Created %@"), dest.path(percentEncoded: false)))
 		print(String(localized: "Edit compose.yml then run `cakectl compose up` to start your services."))
 	}
 }

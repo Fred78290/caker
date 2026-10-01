@@ -87,6 +87,8 @@ public struct Home {
 	public let temporaryDirectory: URL
 	public let remoteDb: URL
 	public let composeFileDb: URL
+	public let composeDnsPID: URL
+	public let composeDnsLog: URL
 	public let sshPrivateKey: URL
 	public let sshPublicKey: URL
 	public let contentStoreURL: URL
@@ -104,6 +106,8 @@ public struct Home {
 		self.temporaryDirectory = self.cakeHomeDirectory.appendingPathComponent("tmp", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.remoteDb = self.cakeHomeDirectory.appendingPathComponent(Home.remoteFilename, isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.composeFileDb = self.cakeHomeDirectory.appendingPathComponent("compose.json", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
+		self.composeDnsPID = self.cakeHomeDirectory.appendingPathComponent("composedns.pid", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
+		self.composeDnsLog = self.cakeHomeDirectory.appendingPathComponent("composedns.log", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.contentStoreURL = self.cacheDirectory.appendingPathComponent("oci/storage")
 		self.imageStoreURL = cacheDirectory.appendingPathComponent("oci")
 

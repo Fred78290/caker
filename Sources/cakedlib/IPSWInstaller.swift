@@ -26,14 +26,17 @@
 		private let queue: DispatchQueue!
 		private let logger = Logger("IPSWInstaller")
 		private let runMode: Utils.RunMode
+		private let wizardID: UUID
+		public var virtualMachine: VirtualMachine?
+        private var vmStateObservation: NSKeyValueObservation? = nil
 
 		final class SendableVZMacOSInstaller: @unchecked Sendable {
 			let canceled: Mutex<Bool> = .init(false)
 			var installer: VZMacOSInstaller?
-			let virtualMachine: VZVirtualMachine
+			let virtualMachine: VirtualMachine
 			let restoringFromImageAt: URL
 
-			init(_ virtualMachine: VZVirtualMachine, restoringFromImageAt: URL) {
+			init(_ virtualMachine: VirtualMachine, restoringFromImageAt: URL) {
 				self.virtualMachine = virtualMachine
 				self.restoringFromImageAt = restoringFromImageAt
 			}
@@ -47,7 +50,7 @@
 					logger.trace("[\(Thread.currentThread.description)] start ipsw install")
 				#endif
 
-				let installer = VZMacOSInstaller(virtualMachine: virtualMachine, restoringFromImageAt: restoringFromImageAt)
+				let installer = VZMacOSInstaller(virtualMachine: virtualMachine.virtualMachine, restoringFromImageAt: restoringFromImageAt)
 				let isCanceled = self.canceled.withLock { canceled in
 					if canceled {
 						return true
@@ -99,92 +102,100 @@
 			}
 
 			func cancel() {
+				Logger(self).info("Provisioning cancelled, stopping VM and service...")
+
 				self.canceled.withLock {
 					$0 = true
 
 					// Progress.cancel() is thread-safe per Apple SDK contract.
 					self.installer?.progress.cancel()
+
+					self.virtualMachine.stopServiceForProvisionning()
+					self.virtualMachine.stopGrandCentralUpdate()
 				}
 			}
 		}
 
-		public init(location: VMLocation, config: CakeConfig, runMode: Utils.RunMode, queue: DispatchQueue? = nil) throws {
+		public init(location: VMLocation, config: CakeConfig, wizardID: UUID, runMode: Utils.RunMode, queue: DispatchQueue? = nil) throws {
 			self.config = config
 			self.location = location
 			self.queue = queue
 			self.runMode = runMode
+			self.wizardID = wizardID
 		}
 
 		@MainActor
-		private func createVirtualMachine() throws -> VZVirtualMachine {
-			let suspendable = config.suspendable
-			let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
-			let configuration = VZVirtualMachineConfiguration()
-			let plateform = try config.platform(nvramURL: location.nvramURL, needsNestedVirtualization: config.nested)
-			let soundDeviceConfiguration = VZVirtioSoundDeviceConfiguration()
-			let memoryBallons = VZVirtioTraditionalMemoryBalloonDeviceConfiguration()
-			var devices: [VZStorageDeviceConfiguration] = [
-				try config.rootDiskAttachment(rootDiskURL: location.diskURL)
-			]
+		private func createVirtualMachine(_ progressHandler: @escaping ProgressObserver.BuildProgressHandler) throws -> VirtualMachine {
+			let virtualMachine = try VirtualMachine(location: self.location, config: self.config, display: Bundle.runInCaker ? .ui : .vnc, screenSize: self.config.display.cgSize, mode: .provisioning, runMode: self.runMode, queue: self.queue)
 
-			let networkDevices = try networks.map {
-				let vio = VZVirtioNetworkDeviceConfiguration()
+			self.virtualMachine = virtualMachine
 
-				(vio.macAddress, vio.attachment) = try $0.attachment(location: location, runMode: runMode)
+			try virtualMachine.location.writeProvisionning()
+			try virtualMachine.startServiceForProvisionning()
 
-				return vio
-			}
-
-			soundDeviceConfiguration.streams = [VZVirtioSoundDeviceOutputStreamConfiguration()]
-
-			configuration.bootLoader = try plateform.bootLoader()
-			configuration.cpuCount = Int(config.cpuCount)
-			configuration.memorySize = config.memorySize
-			configuration.platform = try plateform.platform()
-			configuration.graphicsDevices = [plateform.graphicsDevice(screenSize: config.display.cgSize)]
-			configuration.audioDevices = [soundDeviceConfiguration]
-			configuration.keyboards = plateform.keyboards(suspendable)
-			configuration.pointingDevices = plateform.pointingDevices(suspendable)
-			configuration.networkDevices = networkDevices
-			configuration.storageDevices = devices
-			configuration.serialPorts = []
-			configuration.memoryBalloonDevices = [memoryBallons]
-
-			let spiceAgentConsoleDevice = VZVirtioConsoleDeviceConfiguration()
-			let spiceAgentPort = VZVirtioConsolePortConfiguration()
-			let spiceAgentPortAttachment = VZSpiceAgentPortAttachment()
-
-			spiceAgentPortAttachment.sharesClipboard = true
-
-			spiceAgentPort.name = VZSpiceAgentPortAttachment.spiceAgentPortName
-			spiceAgentPort.attachment = spiceAgentPortAttachment
-			spiceAgentConsoleDevice.ports[0] = spiceAgentPort
-			configuration.consoleDevices.append(spiceAgentConsoleDevice)
-
-			if config.os == .linux {
-				let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.configURL).absoluteURL
-
-				if FileManager.default.fileExists(atPath: cdromURL.path(percentEncoded: false)) {
-					devices.append(try VirtualMachineEnvironment.createCloudInitDrive(cdromURL: cdromURL))
-				}
-			}
-
-			try configuration.validate()
-
-			if let queue = queue {
-				return VZVirtualMachine(configuration: configuration, queue: queue)
+			if Bundle.runInCaker {
+				virtualMachine.createVirtualMachineView()
 			} else {
-				return VZVirtualMachine(configuration: configuration)
+				if ServiceHandler.isAgentRunning.running {
+					logger.info("Start GCD for VM: \(location.name)")
+                    // Observe VM state to start GCD when it becomes running
+                    var didStart = false
+
+					self.vmStateObservation = virtualMachine.virtualMachine.observe(\.state, options: [.initial, .new]) { [weak self] vm, change in
+                        guard let self = self else { return }
+                    
+						// Start only once when running
+                        if didStart == false && vm.state == .running {
+                            didStart = true
+                            
+							self.logger.info("Start GCD for VM when running: \(self.location.name)")
+
+							Task {
+								do {
+									try await virtualMachine.startGrandCentralUpdate(frequency: 1, runMode: self.runMode)
+								} catch is CancellationError {
+									self.logger.debug("Cancelled GCD for VM: \(self.location.name)")
+								} catch {
+									self.logger.error("Failed to start GCD for VM: \(self.location.name), error: \(error.localizedDescription)")
+								}
+                            }
+
+							// Invalidate observation after starting
+							self.vmStateObservation?.invalidate()
+							self.vmStateObservation = nil
+						}
+                    }
+				}
+
+				let vncPassword = config.vncPassword ?? UUID().uuidString
+				let vncURL = try virtualMachine.startVncServer(vncPassword: vncPassword, port: 0)
+
+				logger.info("VNC server started at \(vncURL.map(\.absoluteString).joined(separator: ", "))")
+
+				guard let vncURL = vncURL.first else {
+					throw ServiceError(String(localized: "Unable to get VNC URL for VM \(location.name)"))
+				}
+
+				progressHandler(.provision(.init(vncURL: vncURL, screenSize: .init(virtualMachine.vzMachineView!.bounds.size), config: CakedConfiguration(config))))
 			}
+
+			NotificationCenter.default.post(name: VMBuilder.IPSWStartNotification, object: virtualMachine, userInfo: ["wizardID": wizardID])
+
+			return virtualMachine
 		}
 
 		// MARK: - VZMacOSInstaller path (default)
 
 		@MainActor
 		private func installIPSWSync(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
-			let installer = try SendableVZMacOSInstaller(self.createVirtualMachine(), restoringFromImageAt: url)
+			let virtualMachine = try self.createVirtualMachine(progressHandler)
+			let installer = SendableVZMacOSInstaller(virtualMachine, restoringFromImageAt: url)
 
 			self.logger.debug("Install IPSW via VZMacOSInstaller")
+
+			defer {
+				NotificationCenter.default.post(name: VMBuilder.IPSWTerminatedNotification, object: virtualMachine, userInfo: ["wizardID": wizardID])
+			}
 
 			try await withTaskCancellationHandler(
 				operation: {
@@ -198,9 +209,16 @@
 		}
 
 		private func installIPSWAsync(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
-			let installer = try SendableVZMacOSInstaller(await self.createVirtualMachine(), restoringFromImageAt: url)
+			let virtualMachine = try await self.createVirtualMachine(progressHandler)
+			let installer = SendableVZMacOSInstaller(virtualMachine, restoringFromImageAt: url)
 
 			self.logger.debug("Install IPSW via VZMacOSInstaller")
+
+			defer {
+				DispatchQueue.main.async {
+					NotificationCenter.default.post(name: VMBuilder.IPSWTerminatedNotification, object: virtualMachine, userInfo: ["wizardID": self.wizardID])
+				}
+			}
 
 			#if DEBUG
 				self.logger.trace("[\(Thread.currentThread.description)] entering installIPSWAsync")
@@ -245,34 +263,38 @@
 		#if USE_VIRTUAL_INSTALL_BACKEND
 			/// Returns true when the AMRestore backend should be used instead of
 			/// `VZMacOSInstaller`. Decision mirrors the UTM/VirtualBuddy logic:
-			/// forced via UserDefaults OR the restore image targets macOS 27+.
+			/// forced via UserDefaults OR conditional restore image targets macOS 27+.
 			@available(macOS 26.0, *)
 			private func shouldUseVirtualInstallBackend(url: URL) async -> Bool {
 				if UserDefaults.standard.bool(forKey: "CakerForceVirtualInstallBackend") {
 					return true
 				}
 
-				guard
-					let image = try? await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<VZMacOSRestoreImage, Error>) in
-						VZMacOSRestoreImage.load(from: url) { result in
-							continuation.resume(with: result)
-						}
-					})
-				else { return false }
+				#if FORCE_USE_VIRTUAL_INSTALL_BACKEND
+					guard
+						let image = try? await withCheckedThrowingContinuation({ (continuation: CheckedContinuation<VZMacOSRestoreImage, Error>) in
+							VZMacOSRestoreImage.load(from: url) { result in
+								continuation.resume(with: result)
+							}
+						})
+					else { return false }
 
-				return image.operatingSystemVersion.majorVersion >= 27
+					return image.operatingSystemVersion.majorVersion >= 27
+				#else
+					return false
+				#endif
 			}
 
 			/// Boots the VM into DFU mode so the AMRestore framework can see it as a
 			/// restorable device.
 			@available(macOS 26.0, *)
-			private func startInDFUMode(_ virtualMachine: VZVirtualMachine) async throws {
+			private func startInDFUMode(_ virtualMachine: VirtualMachine) async throws {
 				let startOptions = VZMacOSVirtualMachineStartOptions()
 				startOptions._forceDFU = true
 
 				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
 					let doStart = {
-						virtualMachine.start(options: startOptions) { error in
+						virtualMachine.virtualMachine.start(options: startOptions) { error in
 							if let error {
 								continuation.resume(throwing: error)
 							} else {
@@ -303,7 +325,13 @@
 
 				progressHandler(.step(String(localized: "Starting VM in DFU mode for macOS 27 install...")))
 
-				let virtualMachine = try await self.createVirtualMachine()
+				let virtualMachine = try await self.createVirtualMachine(progressHandler)
+
+				defer {
+					DispatchQueue.main.async {
+						NotificationCenter.default.post(name: VMBuilder.IPSWTerminatedNotification, object: virtualMachine, userInfo: ["wizardID": self.wizardID])
+					}
+				}
 
 				try await startInDFUMode(virtualMachine)
 
@@ -366,7 +394,10 @@
 							}
 						},
 						onCancel: {
-							virtualMachine.stop { _ in }
+							virtualMachine.virtualMachine.stop { _ in
+								virtualMachine.stopServiceForProvisionning()
+								virtualMachine.stopGrandCentralUpdate()
+							}
 						}
 					)
 				} catch {
@@ -380,7 +411,7 @@
 
 		// MARK: - Public entry point
 
-		public func installIPSW(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+		public func installIPSW(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> VirtualMachine? {
 			#if DEBUG
 				self.logger.trace("[\(Thread.currentThread.description)] entering installIPSW")
 			#endif
@@ -408,6 +439,9 @@
 			#endif
 
 			progressHandler(.step(String(localized: "Install macOS from IPSW done...")))
+
+			return self.virtualMachine
 		}
 	}
 #endif
+

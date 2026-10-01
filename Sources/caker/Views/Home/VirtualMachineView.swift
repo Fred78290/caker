@@ -37,7 +37,7 @@ struct VirtualMachineView: View {
 	private var vm: VirtualMachineDocumentState
 	@State private var screenshot: NSImage?
 
-#if DEBUG
+#if TRACE_SWIFTUI_DEALLOC
 	let tracker: TrackDealloc
 #endif
 
@@ -45,14 +45,14 @@ struct VirtualMachineView: View {
 		self.vm = vm
 		self.selected = selected
 		self.screenshot = vm.lastScreenshot
-#if DEBUG
+#if TRACE_SWIFTUI_DEALLOC
 		self.tracker = TrackDealloc(from: "VirtualMachineView \(vm.url.absoluteString)")
 #endif
 	}
 
 	var body: some View {
-		let lightColor = self.lightColor(vm.status)
-		let imageName = self.imageName(vm.status)
+		let lightColor = HostVirtualMachineView.vmStatusColor(vm.status)
+		let imageName = HostVirtualMachineView.vmActionIcon(vm.status)
 
 		GeometryReader { geometry in
 			RoundedRectangle(cornerRadius: radius)
@@ -69,7 +69,7 @@ struct VirtualMachineView: View {
 									.lineLimit(1)
 								Spacer()
 
-								Button(action: action) {
+								Button(action: { self.vm.toggleAction() }) {
 									Image(systemName: imageName)
 										.font(.system(size: 14, weight: .medium))
 								}
@@ -152,7 +152,7 @@ struct VirtualMachineView: View {
 				Button("Resume") {
 					self.vm.resumeFromUI()
 				}
-			} else {
+			} else if self.vm.canStart {
 				Button("Start") {
 					self.vm.startFromUI()
 				}.disabled(self.vm.status.isRunning)
@@ -160,11 +160,11 @@ struct VirtualMachineView: View {
 
 			Button("Stop") {
 				self.vm.stopFromUI(force: vm.status != .running || NSEvent.modifierFlags.contains(.option))
-			}.disabled(self.vm.status.isStopped)
+			}.disabled(self.vm.canStop == false)
 
 			Button("Pause") {
 				self.vm.suspendFromUI()
-			}.disabled(self.vm.status != .running)
+			}.disabled(self.vm.canPause == false)
 
 			Divider()
 			Button("Duplicate") {
@@ -173,7 +173,7 @@ struct VirtualMachineView: View {
 
 			Button("Rename") {
 				self.vm.renameVirtualMachine()
-			}.disabled(self.vm.status.isRunning || self.vm.status == .paused)
+			}.disabled(self.vm.status.isStopped == false)
 
 			Button("Delete VM") {
 				self.vm.deleteVirtualMachine()
@@ -212,60 +212,9 @@ struct VirtualMachineView: View {
 		}
 	}
 
-	func action() {
-		switch vm.status {
-		case .running, .starting, .stopping, .pausing:
-			self.vm.stopFromUI(force: vm.status != .running || NSEvent.modifierFlags.contains(.option))
-		case .stopped, .paused:
-			self.vm.startFromUI()
-		default:
-			break
-		}
-	}
-
-	func imageName(_ status: VirtualMachineDocument.Status) -> String {
-		switch status {
-		case .starting:
-			return "memories"
-		case .running:
-			return "stop.fill"
-		case .stopping:
-			return "play.fill"
-		case .stopped:
-			return "play.fill"
-		case .pausing:
-			return "arrow.down.circle.badge.pause"
-		case .paused:
-			return "pause.fill"
-		case .error:
-			return "exclamationmark.triangle"
-		case .resuming, .restoring:
-			return "square.and.arrow.up"
-		case .saving:
-			return "square.and.arrow.down"
-		default:
-			return "questionmark.circle.fill"
-		}
-	}
-
-	func lightColor(_ status: VirtualMachineDocument.Status) -> Color {
-		switch status {
-		case .starting:
-			return Color.orange
-		case .running:
-			return Color.green
-		case .stopping:
-			return Color.brown
-		case .stopped:
-			return Color.red
-		case .paused, .pausing:
-			return Color.yellow
-		default:
-			return Color.systemGray3
-		}
-	}
 }
 
 #Preview {
 	VirtualMachineView(.init(AppState.shared.documents.first!), selected: false)
 }
+

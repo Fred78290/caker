@@ -1,0 +1,156 @@
+# alpine.packerlite.yaml
+#
+# Built-in PackerLite template — unattended installation of Alpine Linux 3.24
+# from the official standard/virt install ISO, driven natively by caked/caker
+# after booting from the ISO (see the "PackerLite" section of the wiki's
+# command summary). This is the default template auto-selected for an ISO
+# whose filename/URL identifies it as Alpine (GRPCLib.SupportedPlatform
+# detection) when --autoinstall is passed without an explicit --template —
+# pass --template yourself to override it. Unlike the bundled macOS templates,
+# this one is NOT a guaranteed-working recipe: it has been reviewed for
+# plausibility against the documented `setup-alpine` install flow, but NOT
+# validated end-to-end against a real boot. Treat the prompts and answers
+# below as a first draft to verify/adjust against your own run.
+#
+# Alpine's ISO boots straight to a root shell (no graphical installer, no
+# Anaconda-style hub/spoke) — the whole install is driven by running the
+# interactive `setup-alpine` script and answering its prompts in sequence:
+# keyboard layout/variant, hostname, network interfaces, root password,
+# timezone, proxy, NTP client, APK mirror, one non-root user account, SSH
+# server choice, and finally disk selection/mode (`sys`, whole-disk).
+#
+# After the post-install reboot, this template also uncomments the first
+# HTTP mirror in /etc/apk/repositories (commented out by default), runs
+# `apk update`, installs `sudo`, and grants the created user passwordless
+# sudo before rebooting once more — none of that is part of `setup-alpine`
+# itself.
+#
+# Usage:
+#   cakectl build my-alpine-vm ./alpine-virt-3.24.*-x86_64.iso \
+#     --user admin --password admin --autoinstall
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
+ignore_ip: true
+required_variables:
+  - username
+  - password
+  - hostname
+
+autoconf: |
+  KEYMAPOPTS="us us-mac"
+  HOSTNAMEOPTS=${var.hostname}
+  DEVDOPTS=mdev
+  TIMEZONEOPTS="UTC"
+  PROXYOPTS=none
+  APKREPOSOPTS="-c -1"
+  USEROPTS="-a -u -g audio,input,video,netdev,wheel ${var.username}"
+  USERSSHKEY="${var.ssh_authorized_key}"
+  SSHDOPTS=openssh
+  NTPOPTS=busybox
+  DISKOPTS="-m sys /dev/vda"
+  LBUOPTS=none
+  APKCACHEOPTS=none
+  INTERFACESOPTS="auto lo
+  iface lo inet loopback
+
+  auto eth0
+  iface eth0 inet dhcp
+
+  hostname ${var.hostname}
+  "
+
+pre_boot_command:
+  - title: Change keyboard
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Wait for prompt to login
+    commands:
+      - <locate text="localhost login:" timeout=30>
+      - root
+      - <enter>
+
+  - title: Wait configure to complete
+    commands:
+      - <locate text="You can setup the system with the command">
+      - <autoconf location="autoconf.conf">
+      - ERASE_DISKS=/dev/vda setup-alpine -e -f autoconf.conf
+      - <enter>
+
+  - title: Wait for installation to complete
+    commands:
+      - <locate text="Installation is complete|Please reboot" timeout=600>
+      - mount /dev/vda3 /mnt
+      - <enter>
+      - chroot /mnt
+      - <enter>
+      - 'echo "root:${var.password}" | chpasswd'
+      - <enter>
+      - 'echo "${var.username}:${var.password}" | chpasswd'
+      - <enter>
+      - reboot
+      - <enter>
+      - <locate text="GRUB">
+      - <enter>
+
+boot_command:
+  - title: Change keyboard
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Continue to configure after reboot
+    commands:
+      - <locate text="Welcome to Alpine|login:" timeout=30>
+      - root
+      - <enter>
+      - <locate text="Password">
+      - ${var.password}
+      - <enter>
+      - <locate text="The Alpine Wiki contains">
+      - sed -i -r "/^#http/s/^#//" /etc/apk/repositories
+      - <enter>
+      - echo "PermitRootLogin yes" > /etc/ssh/sshd_config.d/00-permit-root-login.conf
+      - <enter>
+      - echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config.d/00-permit-root-login.conf
+      - <enter>
+      - apk update
+      - <enter>
+      - <locate text="distinct packages available" timeout=60>
+      - apk add sudo
+      - <enter>
+      - apk add acpid
+      - <enter>
+      - rc-update add acpid default
+      - <enter>
+      - rc-service acpid start
+      - <enter>
+      - chmod 640 /etc/sudoers
+      - <enter>
+      - sed -i "/^# %wheel ALL=(ALL:ALL) ALL/s/^# //" /etc/sudoers
+      - <enter>
+      - chmod 440 /etc/sudoers
+      - <enter>
+      - adduser ${var.username} wheel
+      - <enter>
+      - <wait1s>
+
+      - sync
+      - <enter>
+      - sync
+      - <enter>
+
+      - reboot
+      - <enter>
+
+post_boot_command:
+  use_ssh_key: false
+  commands:
+    - 'echo ${var.password} | sudo -S sh -c ''echo "${var.username} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/${var.username}'''
+    - sudo apk add cloud-init py3-netifaces util-linux e2fsprogs-extra
+    - sudo rc-update add cloud-init default
+    - 'echo "datasource_list: [ NoCloud, None ]" > /etc/cloud/cloud.cfg.d/100_datasources.cfg'
+    - sync
+    - sync

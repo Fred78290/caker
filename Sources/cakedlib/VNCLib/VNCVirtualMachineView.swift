@@ -1,16 +1,26 @@
-import CakeAgentLib
-import Dynamic
 //
 //  VNCVZVirtualMachineView.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 19/01/2026.
 //
+import CakeAgentLib
+import Dynamic
 import Foundation
+import GRPCLib
 import ObjectiveC.runtime
 import QuartzCore
 import Synchronization
 import Virtualization
+import Vision
+
+@available(macOS 27.0, *)
+@objc protocol VZDisplayPresenterObserver {
+	@objc func presenter(_ presenter: NSObject, didUpdateContentHeadroom: Double)
+	@objc func presenter(_ presenter: NSObject, didUpdateCursor: UnsafePointer<UInt8>?)
+	@objc func presenter(_ presenter: NSObject, didUpdateFrame: UnsafePointer<UInt8>?)
+	@objc func presenter(_ presenter: NSObject, didUpdateHostDisplay: UnsafePointer<UInt8>?)
+}
 
 @objc protocol VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?)
@@ -19,22 +29,126 @@ import Virtualization
 	@objc func framebufferDidUpdateColorSpace(_ framebuffer: NSObject)
 }
 
+#if TRACE_DEINIT
+	open class VirtualMachineWindow: NSWindow {
+		deinit {
+			print("VirtualMachineWindow deinit")
+		}
+
+		open override func close() {
+			print("VirtualMachineWindow close")
+			super.close()
+		}
+	}
+#endif
+
 extension NSView {
+	public struct RecognizedText: Sendable {
+		public let text: String
+		public let box: CGRect
+	}
+
+	@MainActor
+	public func captureImageOCR() -> (pngData: Data, imageSize: CGSize)? {
+		guard let nsImage = self.image(), let pngData = nsImage.pngData else {
+			return nil
+		}
+
+		return (pngData, nsImage.size)
+	}
+
+	/// Uses Vision framework to recognize text in the view's current image representation.
+	/// Box is in NSView coordinates (origin at bottom-left, y increases towards).
+	///
+	/// Goes through `NSImage`/PNG rather than handing Vision the `CGImage` captured straight off
+	/// `cacheDisplay(in:to:)`. That capture renders via `-[CALayer renderInContext:]` on a
+	/// layer-backed view, which Apple documents as unsupported/unreliable for GPU-composited
+	/// layers (Metal, AV, etc.) — `VZVirtualMachineView`'s framebuffer is exactly that, and the
+	/// raw capture can be blank/stale/partial. A plain CGContext redraw does NOT fix this (tried,
+	/// still failed); only the actual PNG encode/decode round trip does.
+	public func recognizeText() -> (CGSize, [RecognizedText])? {
+		guard let capture = self.captureImageOCR() else {
+			return nil
+		}
+
+		// Perform Vision work off the main actor at a lower priority to avoid QoS inversions.
+		let semaphore = DispatchSemaphore(value: 0)
+		var result: (CGSize, [RecognizedText])?
+
+		// The CGImage and view might differ in size, so scale accordingly
+		let viewHeight = self.bounds.height
+		let viewWidth = self.bounds.width
+		let scaleX = viewWidth / CGFloat(capture.imageSize.width)
+		let scaleY = viewHeight / CGFloat(capture.imageSize.height)
+
+		DispatchQueue.global(qos: .utility).async {
+			defer { semaphore.signal() }
+
+			let request = VNRecognizeTextRequest()
+
+			request.recognitionLevel = .accurate  // try .fast first
+			request.usesLanguageCorrection = false
+			request.minimumTextHeight = 0.02  // optional, skip tiny noise
+			request.recognitionLanguages = ["en-US"]  // if appropriate
+
+			do {
+				try VNImageRequestHandler(data: capture.pngData, options: [:]).perform([request])
+
+				guard let results = request.results, results.isEmpty == false else {
+					return
+				}
+
+				result = (
+					CGSize(width: capture.imageSize.width, height: capture.imageSize.height),
+					results.compactMap { observation in
+						if let candidate = observation.topCandidates(1).first {
+							let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(capture.imageSize.width), Int(capture.imageSize.height))
+							let flippedBox = CGRect(
+								x: box.origin.x * scaleX,
+								y: box.origin.y * scaleY,
+								width: box.width * scaleX,
+								height: box.height * scaleY)
+
+							return RecognizedText(text: candidate.string, box: flippedBox)
+						}
+
+						return nil
+					}
+				)
+			} catch {
+				Logger(self).error("Vision OCR failed: \(error)")
+			}
+		}
+
+		semaphore.wait()
+
+		return result
+	}
+
 	@objc public var cursor: NSCursor? {
 		return nil
 	}
 
 	@MainActor
-	func viewRelativePosition(of event: NSEvent) -> CGPoint {
+	public func viewRelativePosition(of event: NSEvent) -> CGPoint {
 		viewRelativePosition(of: event.locationInWindow)
 	}
 
 	@MainActor
-	func viewRelativePosition(of location: NSPoint) -> CGPoint {
+	public func viewRelativePosition(of location: NSPoint) -> CGPoint {
 		var position = convert(location, from: nil)
 		position.y = bounds.size.height - position.y
 
 		return position
+	}
+
+	@MainActor
+	public func windowRelativePosition(of point: CGPoint) -> CGPoint {
+		var position = point
+
+		position.y = bounds.size.height - position.y
+
+		return convert(position, to: nil)
 	}
 
 	@MainActor
@@ -52,34 +166,70 @@ extension NSView {
 	}
 
 	func swizzleFramebufferObserver() {
+		guard VNCVirtualMachineView.swizzled == false else {
+			return
+		}
+
 		let protocols = self.protocolNames
 
-		// Check if `self` conforms to the private framebuffer observer protocol using a safe cast
-		if protocols.first(where: { $0 == "_VZFramebufferObserver" }) != nil {
+		if #available(macOS 27.0, *) {
 			// Only attempt to swizzle if the selectors exist on this instance
-			let hasFrameSel = self.responds(to: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)))
-			let hasUpdateCursorSel = self.responds(to: #selector(VZFramebufferObserver.framebuffer(_:didUpdateCursor:)))
+			let hasFrameSel = self.responds(to: #selector(VZDisplayPresenterObserver.presenter(_:didUpdateFrame:)))
+			let hasUpdateCursorSel = self.responds(to: #selector(VZDisplayPresenterObserver.presenter(_:didUpdateCursor:)))
 
 			if hasFrameSel {
 				self.swizzleMethod(
-					originalSelector: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)),
-					swizzledSelector: #selector(swizzled_framebuffer(_:didUpdateFrame:)))
+					originalSelector: #selector(VZDisplayPresenterObserver.presenter(_:didUpdateFrame:)),
+					swizzledSelector: #selector(swizzled_presenter(_:didUpdateFrame:)))
 			}
 
 			if hasUpdateCursorSel {
 				self.swizzleMethod(
-					originalSelector: #selector(VZFramebufferObserver.framebuffer(_:didUpdateCursor:)),
-					swizzledSelector: #selector(swizzled_framebuffer(_:didUpdateCursor:)))
+					originalSelector: #selector(VZDisplayPresenterObserver.presenter(_:didUpdateCursor:)),
+					swizzledSelector: #selector(swizzled_presenter(_:didUpdateCursor:)))
 			}
+		} else {
+			// Check if `self` conforms to the private framebuffer observer protocol using a safe cast
+			if protocols.first(where: { $0 == "_VZFramebufferObserver" }) != nil {
+				// Only attempt to swizzle if the selectors exist on this instance
+				let hasFrameSel = self.responds(to: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)))
+				let hasUpdateCursorSel = self.responds(to: #selector(VZFramebufferObserver.framebuffer(_:didUpdateCursor:)))
 
-			VNCVirtualMachineView.swizzled = true
+				if hasFrameSel {
+					self.swizzleMethod(
+						originalSelector: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)),
+						swizzledSelector: #selector(swizzled_framebuffer(_:didUpdateFrame:)))
+				}
+
+				if hasUpdateCursorSel {
+					self.swizzleMethod(
+						originalSelector: #selector(VZFramebufferObserver.framebuffer(_:didUpdateCursor:)),
+						swizzledSelector: #selector(swizzled_framebuffer(_:didUpdateCursor:)))
+				}
+			}
+		}
+
+		VNCVirtualMachineView.swizzled = true
+	}
+
+	func doVncFrameBufferObserver(_ handler: @escaping (VNCFramebufferObserver) -> Void) {
+		if Thread.isMainThread {
+			if let value = self.superview as? VNCFramebufferObserver {
+				handler(value)
+			}
+		} else {
+			Task { @MainActor in
+				if let value = self.superview as? VNCFramebufferObserver {
+					handler(value)
+				}
+			}
 		}
 	}
 
 	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
 		self.swizzled_framebuffer(framebuffer, didUpdateCursor: cursor)
 
-		if let observer = self.superview as? VNCFramebufferObserver {
+		self.doVncFrameBufferObserver { observer in
 			observer.didUpdateCursor(self)
 		}
 	}
@@ -87,10 +237,29 @@ extension NSView {
 	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?) {
 		self.swizzled_framebuffer(framebuffer, didUpdateFrame: frame)
 
-		if let observer = self.superview as? VNCFramebufferObserver {
+		self.doVncFrameBufferObserver { observer in
 			observer.didUpdateFrame(self)
 		}
 	}
+
+	@available(macOS 27.0, *)
+	@objc func swizzled_presenter(_ presenter: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
+		self.swizzled_presenter(presenter, didUpdateCursor: cursor)
+
+		self.doVncFrameBufferObserver { observer in
+			observer.didUpdateCursor(self)
+		}
+	}
+
+	@available(macOS 27.0, *)
+	@objc func swizzled_presenter(_ presenter: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?) {
+		self.swizzled_presenter(presenter, didUpdateFrame: frame)
+
+		self.doVncFrameBufferObserver { observer in
+			observer.didUpdateFrame(self)
+		}
+	}
+
 }
 
 extension VZVirtualMachineView {
@@ -114,7 +283,35 @@ extension VZVirtualMachineView {
 		return value
 	}
 
-	public var framebuffer: NSObject? {
+	public var haveUnderLayedBuffer: Bool {
+		if #available(macOS 27.0, *) {
+			return self.presenter != nil
+		} else {
+			return self.frameBuffer != nil
+		}
+	}
+
+	public var presenter: NSObject? {
+		if #available(macOS 27.0, *) {
+			guard let framebufferView = self.framebufferView else {
+				return nil
+			}
+
+			guard let field = class_getInstanceVariable(type(of: framebufferView), "_presenter") else {
+				return nil
+			}
+
+			guard let value = object_getIvar(framebufferView, field) as? NSObject else {
+				return nil
+			}
+
+			return value
+		} else {
+			return nil
+		}
+	}
+
+	public var frameBuffer: NSObject? {
 		guard let framebufferView = self.framebufferView else {
 			return nil
 		}
@@ -207,21 +404,12 @@ extension VZVirtualMachineView {
 	}
 
 	public func render(in bounds: NSRect) -> CGImage? {
-		var renderLayer: CALayer
-
-		guard let layer = self.layer else {
+		guard let layer = self.layer, let surface = self.surface() else {
 			return nil
 		}
 
-		guard let surface = self.surface() else {
-			return nil
-		}
+		let renderLayer = CALayer(layer: layer)
 
-		//guard let presented  = layer.presentation() else {
-		//	return nil
-		//}
-		renderLayer = CALayer(layer: layer)
-		//renderLayer = presented
 		renderLayer.drawsAsynchronously = true
 		renderLayer.isOpaque = true
 		renderLayer.masksToBounds = false
@@ -231,10 +419,10 @@ extension VZVirtualMachineView {
 		renderLayer.contentsScale = 1
 		renderLayer.contentsGravity = .center
 		renderLayer.contentsFormat = .RGBA8Uint
-		renderLayer.bounds = layer.bounds
+		renderLayer.bounds = CGRect(x: 0, y: 0, width: surface.width, height: surface.height)
 		renderLayer.contents = surface.cgImage
 
-		guard var cgImage = renderLayer.renderIntoImage() else {
+		guard var cgImage = renderLayer.renderIntoImage(to: self.bounds) else {
 			return nil
 		}
 
@@ -285,8 +473,38 @@ open class VNCFramebufferLayer: CALayer {
 open class VNCVirtualMachineView: VZVirtualMachineView {
 	static var swizzled = false
 	let logger = Logger("VNCVirtualMachineView")
-
 	private let continuation: Mutex<AsyncStream<VNCFrameUpdateState>.Continuation?> = .init(nil)
+
+	// Throttle frame emissions to a target FPS (default 30fps)
+	private static let maxFrameRate: Double = 30.0
+	private let minInterval = 1.0 / maxFrameRate
+	private var lastFrameEmitTime: CFAbsoluteTime = 0
+
+	/// Pure observer tap for `caked record`'s local-window capture path (see `ActionRecorder.swift`
+	/// and `RecordHandler.swift`): called with the already-resolved values for every mouse/keyboard
+	/// `NSEvent` this view receives, from the real native event — not a VNC-protocol keysym
+	/// round-trip like `VNCInputHandler.actionRecorder` — never mutating, delaying, or swallowing
+	/// the event itself. Only set while a recording session is actually active — nil (the default)
+	/// is zero overhead for ordinary local-window VM display.
+	public var actionRecorder: RecordedActionHandler?
+
+	/// Running VNC-style button bitmask (bit0=left, bit1=middle, bit2=right — matching
+	/// `VNCInputHandler`'s convention) built up from this view's own mouse down/up overrides, fed
+	/// to `actionRecorder` alongside each pointer event so `ActionRecorder` sees the same shape of
+	/// data it already gets from the VNC-server-tap path.
+	private var capturedButtonMask: UInt8 = 0
+
+	/// Physical modifier `keyCode`s currently considered held, used to derive `isDown` for
+	/// `flagsChanged` events — macOS reports which key changed via `event.keyCode` but not whether
+	/// it went down or up, so this view tracks that itself per key (independently of `NSEvent
+	/// .modifierFlags`, which can't distinguish "left shift still held" from "right shift still held" once both are down).
+	private var heldModifierKeyCodes: Set<CGKeyCode> = []
+
+	#if TRACE_DEINIT
+		deinit {
+			print("VNCVirtualMachineView deinit")
+		}
+	#endif
 
 	public var suppressFrameUpdates: Bool {
 		get {
@@ -319,12 +537,34 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 }
 
 extension VNCVirtualMachineView {
+	/// Bit convention matches `VNCInputHandler`'s VNC-protocol buttonMask, so `ActionRecorder`
+	/// consumes an identical shape regardless of which capture path fed it.
+	private static let leftButtonBit: UInt8 = 0x01
+	private static let middleButtonBit: UInt8 = 0x02
+	private static let rightButtonBit: UInt8 = 0x04
+
+	/// Reports the current pointer position (converted to the same top-left-origin, view-pixel
+	/// coordinate space `RecordedAction.pointer`/`<click point="X,Y">` already use elsewhere — see
+	/// `viewRelativePosition(of:)`) plus `capturedButtonMask` to `actionRecorder`, if armed. Never
+	/// mutates the event or affects dispatch — always called alongside, never instead of, `super`.
+	private func recordPointerEvent(_ event: NSEvent) {
+		guard let actionRecorder else {
+			return
+		}
+
+		let point = self.viewRelativePosition(of: event)
+
+		actionRecorder(self, .pointer(x: Int(point.x), y: Int(point.y), buttonMask: self.capturedButtonMask, timestamp: Date()))
+	}
+
 	public override func mouseDown(with event: NSEvent) {
 		#if DEBUGEVENT
 			self.logger.debug("mouseDown: \(event.dumpEvent)")
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.capturedButtonMask |= Self.leftButtonBit
+		self.recordPointerEvent(event)
 
 		super.mouseDown(with: event)
 	}
@@ -335,6 +575,7 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.recordPointerEvent(event)
 
 		super.mouseDragged(with: event)
 	}
@@ -345,6 +586,8 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.capturedButtonMask &= ~Self.leftButtonBit
+		self.recordPointerEvent(event)
 
 		super.mouseUp(with: event)
 	}
@@ -355,6 +598,8 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.capturedButtonMask |= Self.rightButtonBit
+		self.recordPointerEvent(event)
 
 		super.rightMouseDown(with: event)
 	}
@@ -365,6 +610,7 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.recordPointerEvent(event)
 
 		super.rightMouseDragged(with: event)
 	}
@@ -375,6 +621,8 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.capturedButtonMask &= ~Self.rightButtonBit
+		self.recordPointerEvent(event)
 
 		super.rightMouseUp(with: event)
 	}
@@ -385,6 +633,8 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.capturedButtonMask |= Self.middleButtonBit
+		self.recordPointerEvent(event)
 
 		super.otherMouseDown(with: event)
 	}
@@ -395,6 +645,7 @@ extension VNCVirtualMachineView {
 		#endif
 
 		self.updateCursorPosition(with: event)
+		self.recordPointerEvent(event)
 
 		super.otherMouseDragged(with: event)
 	}
@@ -404,37 +655,94 @@ extension VNCVirtualMachineView {
 			self.logger.debug("otherMouseUp: \(event.dumpEvent)")
 		#endif
 		self.updateCursorPosition(with: event)
+		self.capturedButtonMask &= ~Self.middleButtonBit
+		self.recordPointerEvent(event)
 
 		super.otherMouseUp(with: event)
 	}
-	#if DEBUGEVENT
-		public override func keyDown(with event: NSEvent) {
+
+	// keyDown/flagsChanged/scrollWheel used to only be compiled in under #if DEBUGEVENT (pure
+	// logging, no behavioral difference from Apple's own VZVirtualMachineView default handling).
+	// They're now unconditional so caked record's local-window capture path (see
+	// RecordHandler.swift) has somewhere to hook actionRecorder for keyboard input — the override
+	// itself and its `super` call are always compiled in; only the debug logging stays gated.
+	public override func keyDown(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("keyDown: \(event.dumpEvent)")
+		#endif
 
-			super.keyDown(with: event)
-		}
+		self.actionRecorder?(
+			self,
+			.key(
+				keyCode: CGKeyCode(event.keyCode),
+				modifiers: event.modifierFlags,
+				characters: event.characters ?? String.empty,
+				charactersIgnoringModifiers: event.charactersIgnoringModifiers ?? String.empty,
+				isDown: true,
+				timestamp: Date()))
 
-		public override func flagsChanged(with event: NSEvent) {
+		super.keyDown(with: event)
+	}
+
+	public override func flagsChanged(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("flagsChanged: \(event.dumpEvent)")
+		#endif
 
-			super.flagsChanged(with: event)
+		if let actionRecorder {
+			let keyCode = CGKeyCode(event.keyCode)
+			let (isDown, heldModifierKeyCodes) = Self.toggledModifierState(heldKeyCodes: self.heldModifierKeyCodes, keyCode: keyCode)
+
+			self.heldModifierKeyCodes = heldModifierKeyCodes
+
+			actionRecorder(
+				self,
+				.key(
+					keyCode: keyCode,
+					modifiers: event.modifierFlags,
+					characters: String.empty,
+					charactersIgnoringModifiers: String.empty,
+					isDown: isDown,
+					timestamp: Date()))
 		}
 
-		public override func scrollWheel(with event: NSEvent) {
+		super.flagsChanged(with: event)
+	}
+
+	/// Pure toggle behind `flagsChanged`'s `isDown` derivation, extracted purely so it can be unit
+	/// tested without a real `NSView`/window (see `VNCVirtualMachineViewCaptureTests`). `flagsChanged`
+	/// only tells us *which* physical modifier key changed (via `event.keyCode`), not whether it went
+	/// down or up — `NSEvent.modifierFlags` can't answer that either, since it reports the combined
+	/// current state and can't tell "left shift released, right shift still held" apart from "left
+	/// shift still held" once both map to the same `.shift` bit. Tracking each keyCode's own
+	/// held/released state independently sidesteps that ambiguity entirely.
+	static func toggledModifierState(heldKeyCodes: Set<CGKeyCode>, keyCode: CGKeyCode) -> (isDown: Bool, heldKeyCodes: Set<CGKeyCode>) {
+		var heldKeyCodes = heldKeyCodes
+		let isDown: Bool
+
+		if heldKeyCodes.contains(keyCode) {
+			heldKeyCodes.remove(keyCode)
+			isDown = false
+		} else {
+			heldKeyCodes.insert(keyCode)
+			isDown = true
+		}
+
+		return (isDown, heldKeyCodes)
+	}
+
+	public override func scrollWheel(with event: NSEvent) {
+		#if DEBUGEVENT
 			self.logger.debug("scrollWheel: \(event.dumpEvent)")
+		#endif
 
-			super.scrollWheel(with: event)
-		}
-	#endif
+		super.scrollWheel(with: event)
+	}
 }
 
 extension VNCVirtualMachineView: VNCFrameBufferProducer {
 	public var cursorPosition: NSPoint? {
 		self.currentCursorPositionInView()
-	}
-
-	public var checkIfImageIsChanged: Bool {
-		false
 	}
 
 	public var cgImage: CGImage? {
@@ -486,6 +794,15 @@ extension VNCVirtualMachineView: VNCFramebufferObserver {
 	}
 
 	open func didUpdateFrame(_ framebufferView: NSView) {
+		// Throttle to maxFrameRate (default 30 fps)
+		let now = CFAbsoluteTimeGetCurrent()
+
+		if self.lastFrameEmitTime > 0 && (now - self.lastFrameEmitTime) < minInterval {
+			return
+		}
+
+		self.lastFrameEmitTime = now
+
 		self.continuation.withLock {
 			guard let continuation = $0 else {
 				return

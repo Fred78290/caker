@@ -15,4 +15,18 @@ extension DeleteHandler {
 			}
 		}).response.wait().vms.delete)
 	}
+
+	/// Deletes a cache entry (cloud image, ISO, IPSW, OCI, …) identified by one of its FQNs, like the LXD `DELETE /1.0/images/:fingerprint`.
+	public static func deleteCachedImage(client: CakedServiceClient?, fqn: String, runMode: Utils.RunMode) throws -> DeleteReply {
+		guard let client else {
+			return self.delete(all: false, names: [fqn], runMode: runMode)
+		}
+
+		return try DeleteReply(client.delete(.with {
+			$0.all = false
+			$0.names = .with {
+				$0.list = [fqn]
+			}
+		}).response.wait().vms.delete)
+	}
 }

@@ -294,6 +294,9 @@ extension LXDInstance {
 		case "running":
 			lxdStatus = "Running"
 			lxdStatusCode = 103
+		case "provisioning":
+			lxdStatus = "Provisioning"
+			lxdStatusCode = 103
 		case "paused":
 			lxdStatus = "Frozen"
 			lxdStatusCode = 110

@@ -56,7 +56,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 	public var locationURL: URL
 
 	internal final class Config: @unchecked Sendable {
-		var data: [String: Any]
+		var data: LazyDictionary
 		var dirty: Bool
 
 		var serializedRepresentation: Data? {
@@ -227,6 +227,22 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.cake["osRelease"] as? String }
 	}
 
+	public var osDesktop: Bool {
+		set { self.cake["osDesktop"] = newValue }
+		get { self.cake["osDesktop"] as? Bool ?? false }
+	}
+
+	/// Whether PackerLite has already driven this VM's unattended provisioning to completion —
+	/// either automatically during `build --autoinstall` (IPSW macOS installs, or ISO Linux
+	/// installs given an explicit `--template`) or via a standalone `caked provision` run.
+	/// Setup Assistant/first-boot installers only run once, so provisioning a second time has
+	/// nothing left to do and would just hang waiting for screens that no longer appear —
+	/// callers should refuse to re-provision when this is already true.
+	public var provisioned: Bool {
+		set { self.cake["provisioned"] = newValue }
+		get { self.cake["provisioned"] as? Bool ?? false }
+	}
+
 	public var dynamicPortForwarding: Bool {
 		set { self.cake["dynamicPortForwarding"] = newValue }
 		get { self.cake["dynamicPortForwarding"] as? Bool ?? false }
@@ -245,6 +261,11 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 	public var dhcpClientID: String? {
 		set { self.cake["dhcpClientID"] = newValue }
 		get { self.cake["dhcpClientID"] as? String }
+	}
+
+	public var sshAuthorizedKey: String? {
+		set { self.cake["sshAuthorizedKey"] = newValue }
+		get { self.cake["sshAuthorizedKey"] as? String }
 	}
 
 	public var sshPrivateKeyPath: String? {
@@ -365,6 +386,21 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 	public var imdsMacAddress: String? {
 		set { self.cake["imdsMacAddress"] = newValue }
 		get { self.cake["imdsMacAddress"] as? String }
+	}
+
+	/// The compose project/service this VM belongs to, set by `CakedLib.ComposeHandler.up(...)` right
+	/// after (re)starting it. Lets the compose DNS resolver (`Sources/caked/ComposeDNS/`) identify a
+	/// service unambiguously — reading these back is more reliable than re-splitting the VM's own
+	/// `compose-<project>-<service>` name, which is ambiguous whenever a project or service name itself
+	/// contains a hyphen (a known, pre-existing limitation of that naming convention — see CLAUDE.md).
+	public var composeProject: String? {
+		set { self.cake["composeProject"] = newValue }
+		get { self.cake["composeProject"] as? String }
+	}
+
+	public var composeService: String? {
+		set { self.cake["composeService"] = newValue }
+		get { self.cake["composeService"] as? String }
 	}
 
 	/// Returns the persisted IMDS MAC address, generating and saving one on first use.
@@ -584,6 +620,7 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		self.vncPassword = config.vncPassword
 		self.ecid = config.ecid
 		self.hardwareModel = config.hardwareModel
+		self.provisioned = config.provisioned
 	}
 
 	public func save() throws {
@@ -695,8 +732,8 @@ extension VirtualMachineConfiguration {
 			return false
 		}
 
-		if source == .iso || source == .ipsw {
-			return true
+		if source == .ipsw || source == .iso {
+			return self.provisioned || self.firstLaunch == false
 		}
 
 		return self.firstLaunch
@@ -863,11 +900,13 @@ extension VirtualMachineConfiguration {
 				throw ValidationError(String(localized: "disk \(diskPath) does not exist"))
 			}
 
+			let asif = rootDiskURL.asifDisk
+
 			return VZVirtioBlockDeviceConfiguration(
 				attachment: try VZDiskImageStorageDeviceAttachment(
 					url: rootDiskURL,
 					readOnly: false,
-					cachingMode: self.os == .linux ? .cached : .automatic,
+					cachingMode: asif ? .uncached : self.os == .linux ? .cached : .automatic,
 					synchronizationMode: .full
 				))
 		}

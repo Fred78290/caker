@@ -106,6 +106,12 @@ public class VNCInputHandler {
 	private var trackingNumber: Int = 0
 	private let eventSource = CGEventSource(stateID: .combinedSessionState)
 
+	/// Pure observer tap for `caked record` (see `ActionRecorder.swift`): called with the already
+	/// resolved values for every pointer/key event this handler dispatches to `targetView`, never
+	/// mutating or delaying the event itself. Only set while a recording session is actually
+	/// active — nil (the default) is zero overhead for ordinary provisioning/VNC-viewing sessions.
+	var actionRecorder: RecordedActionHandler?
+
 	// MARK: - First Responder
 	@discardableResult
 	private func ensureFirstResponder() -> Bool {
@@ -128,6 +134,8 @@ public class VNCInputHandler {
 	// MARK: - Mouse Events
 
 	func handlePointerEvent(x: Int, y: Int, buttonMask: UInt8) {
+		self.actionRecorder?(targetView, .pointer(x: x, y: y, buttonMask: buttonMask, timestamp: Date()))
+
 		guard let view = targetView else {
 			return
 		}
@@ -321,6 +329,11 @@ public class VNCInputHandler {
 		ensureFirstResponder()
 
 		keyMapper.mapVNCKey(keySym, isDown: isDown) { keyCode, modifiers, characters, charactersIgnoringModifiers in
+			self.actionRecorder?(targetView,
+				.key(
+					keyCode: keyCode, modifiers: modifiers, characters: characters ?? String.empty, charactersIgnoringModifiers: charactersIgnoringModifiers ?? String.empty, isDown: isDown,
+					timestamp: Date()))
+
 			guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: isDown) else {
 				return
 			}

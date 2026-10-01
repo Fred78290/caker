@@ -100,7 +100,9 @@ struct NetworkDetailView: View {
 							NetworkDetailViewModel.dhcpLeaseRange.outside($0)
 						}
 						.onChange(of: model.dhcpLease.value) { _, newValue in
-							self.currentItem.dhcpLease = "\(newValue)"
+							if NetworkDetailViewModel.dhcpLeaseRange.inRange(newValue) {
+								self.currentItem.dhcpLease = "\(newValue)"
+							}
 						}
 
 						LabeledContent("Network start") {
@@ -113,8 +115,10 @@ struct NetworkDetailView: View {
 							value.isValidIP() == false
 						}
 						.onChange(of: model.dhcpStart.value) { _, newValue in
-							let cidr = model.netmask.value.netmaskToCidr()
-							self.currentItem.gateway = "\(newValue)/\(cidr)"
+							if newValue.isValidIP() {
+								let cidr = model.netmask.value.netmaskToCidr()
+								self.currentItem.gateway = "\(newValue)/\(cidr)"
+							}
 						}
 
 						LabeledContent("Network end") {
@@ -127,8 +131,10 @@ struct NetworkDetailView: View {
 							value.isValidIP() == false
 						}
 						.onChange(of: model.dhcpEnd.value) { _, newValue in
-							let cidr = self.model.netmask.value.netmaskToCidr()
-							self.currentItem.dhcpEnd = "\(newValue)/\(cidr)"
+							if newValue.isValidIP() {
+								let cidr = self.model.netmask.value.netmaskToCidr()
+								self.currentItem.dhcpEnd = "\(newValue)/\(cidr)"
+							}
 						}
 
 						LabeledContent("Netmask") {
@@ -141,9 +147,11 @@ struct NetworkDetailView: View {
 							value.isValidNetmask() == false
 						}
 						.onChange(of: model.netmask.value) { _, newValue in
-							let cidr = newValue.netmaskToCidr()
-							self.currentItem.gateway = "\(self.model.dhcpStart.value)/\(cidr)"
-							self.currentItem.dhcpEnd = "\(self.model.dhcpEnd.value)/\(cidr)"
+							if newValue.isValidNetmask() {
+								let cidr = newValue.netmaskToCidr()
+								self.currentItem.gateway = "\(self.model.dhcpStart.value)/\(cidr)"
+								self.currentItem.dhcpEnd = "\(self.model.dhcpEnd.value)/\(cidr)"
+							}
 						}
 
 						LabeledContent("Interface ID") {

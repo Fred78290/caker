@@ -29,7 +29,7 @@ export const patchInstance = (name: string, body: LXDPatchInstanceRequest) =>
 
 export const changeInstanceState = (
   name: string,
-  action: 'start' | 'stop' | 'restart' | 'freeze' | 'unfreeze',
+  action: 'start' | 'stop' | 'restart' | 'freeze' | 'unfreeze' | 'provision',
   force = false,
 ) =>
   client.put<LXDResponse<LXDOperation>>(`/1.0/instances/${name}/state`, {
@@ -37,6 +37,9 @@ export const changeInstanceState = (
     force,
     timeout: 30,
   })
+
+export const provisionInstance = (name: string) =>
+  changeInstanceState(name, 'provision')
 
 export const execInstance = (
   name: string,

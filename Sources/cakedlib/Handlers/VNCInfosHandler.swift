@@ -23,7 +23,9 @@ public struct VNCInfosHandler {
 
 	public static func vncInfos(location: VMLocation, runMode: Utils.RunMode) throws -> VNCInfos {
 		if case .running = location.status {
-			return try VMRunHandler.serviceMode.client(location: location, runMode: runMode).vncInfos
+			if let client = try VMRunHandler.serviceMode.client(location: location, runMode: runMode) {
+				return client.vncInfos
+			}
 		}
 
 		return VNCInfos()

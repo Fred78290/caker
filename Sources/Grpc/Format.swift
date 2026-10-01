@@ -235,7 +235,7 @@ extension InfoReply {
 				reply.mounts = mounts
 			}
 
-			reply.status = .init(agentStatus: self.status)
+			reply.status = .init(self.status)
 
 			if let attachedNetworks = self.attachedNetworks {
 				reply.networks = attachedNetworks.map { Caked_InfoReply.AttachedNetwork($0) }
@@ -413,6 +413,10 @@ extension CakeAgentLib.Format {
 		return self.renderSingle(BuildedReply(data))
 	}
 	
+	public func render(_ data: ProvisionedReply) -> String {
+		return self.renderSingle(data)
+	}
+
 	public func render(_ data: ClonedReply) -> String {
 		return self.renderSingle(data)
 	}
@@ -657,10 +661,14 @@ extension CakeAgentLib.Format {
 		if self == .json {
 			return self.renderList(data.map { CertificateRepresentation($0) })
 		}
-		
+
 		return self.renderList(data.map { ShortCertificateRepresentation($0) })
 	}
-	
+
+	public func render(_ data: [Caked_TaskEntry]) -> String {
+		return self.renderList(data.map { TaskEntryRepresentation($0) })
+	}
+
 	public func render(_ data: Caked_ListTemplatesReply) -> String {
 		if self == .json {
 			return self.renderList(data.templates.map { TemplateEntry($0) })

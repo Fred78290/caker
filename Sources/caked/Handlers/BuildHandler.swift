@@ -12,9 +12,9 @@ struct BuildHandler: CakedCommandAsync {
 	let responseStream: Caked_ResponseBuildStreamReply
 	let handler: () async throws -> Void
 
-	init(provider: CakedProvider, options: BuildOptions, responseStream: Caked_ResponseBuildStreamReply, context: GRPCAsyncServerCallContext, handler: @escaping () async throws -> Void) {
+	init(provider: CakedProvider, options: BuildOptions, responseStream: Caked_ResponseBuildStreamReply, context: GRPCAsyncServerCallContext, handler: @escaping () async throws -> Void) throws {
 		self.responseStream = responseStream
-		self.options = options
+		self.options = try options.resolveImageId()
 		self.handler = handler
 	}
 
@@ -34,7 +34,7 @@ struct BuildHandler: CakedCommandAsync {
 	func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
 		do {
 			let (stream, continuation) = AsyncStream.makeStream(of: ProgressObserver.ProgressValue.self)
-			
+
 			try await withThrowingTaskGroup(of: BuildedReply?.self, returning: Void.self) { group in
 				group.addTask {
 					let result = await CakedLib.BuildHandler.build(options: self.options, runMode: runMode) { progress in
@@ -100,6 +100,26 @@ struct BuildHandler: CakedCommandAsync {
 							try await responseStream.send(.with {
 								$0.step = message
 							})
+						} else if case .substep(let message) = progress {
+							try await responseStream.send(.with {
+								$0.substep = message
+							})
+						} else if case .provision(let message) = progress, let message {
+							try await responseStream.send(.with {
+								$0.provision = message.caked
+							})
+						} else if case .provisioned(let result) = progress {
+							if case .failure(let error) = result {
+								try await responseStream.send(.with {
+									$0.provisioned = .with {
+										$0.reason = String(localized: "Installation failed: \(error.reason)")
+									}
+								})
+							} else if case .success(let result) = result, let result {
+								try await responseStream.send(.with {
+									$0.provisioned = result.caked
+								})
+							}
 						}
 					}
 					

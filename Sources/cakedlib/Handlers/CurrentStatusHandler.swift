@@ -42,8 +42,12 @@ public extension VMLocation.Status {
 public extension Caked_VirtualMachineStatus {
 	init(_ from: VMLocation.Status) {
 		switch from {
-		case .running:
-			self = .running
+		case .running(let mode):
+			if mode == .provision {
+				self = .provisioning
+			} else {
+				self = .running
+			}
 		case .paused:
 			self = .paused
 		case .stopped:

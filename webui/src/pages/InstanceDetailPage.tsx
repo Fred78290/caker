@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { changeInstanceState, consoleInstance, deleteInstance, execInstance, getInstance, getInstanceLogFile, getInstanceLogs, getInstanceState, patchInstance } from '../api/instances';
+import { changeInstanceState, consoleInstance, deleteInstance, execInstance, getInstance, getInstanceLogFile, getInstanceLogs, getInstanceState, patchInstance, provisionInstance } from '../api/instances';
 import { listNetworks } from '../api/networks';
 import { PageSpinner } from '../components/Spinner';
 import { StatusBadge } from '../components/StatusBadge';
@@ -537,6 +537,23 @@ export function InstanceDetailPage() {
     }
   }
 
+  // Provisioning runs unattended in the background (can take many minutes) and its own
+  // progress is tracked as an LXD operation, so this only waits for the request to be
+  // accepted — the background poll above picks up the "Provisioning" status once the
+  // server starts the VM, the same way it already does for start/stop.
+  const doProvision = async () => {
+    if (!instance) return
+    setActionBusy('provision')
+    setLoadError(null)
+    try {
+      await provisionInstance(instance.name)
+    } catch (e) {
+      setLoadError(String(e))
+    } finally {
+      setActionBusy(null)
+    }
+  }
+
   const refreshInstanceData = useCallback(async () => {
     if (!name) return
     const [instanceRes, stateRes] = await Promise.all([
@@ -897,7 +914,7 @@ export function InstanceDetailPage() {
           {/* Start/Stop actions */}
           {instance && (
             <div className="ms-3 d-flex gap-2 align-items-center">
-              {instance.status !== 'Running' && (
+              {instance.status !== 'Running' && instance.status !== 'Provisioning' && (
                 <button
                   className="btn btn-outline-success btn-sm"
                   disabled={actionBusy !== null}
@@ -911,7 +928,7 @@ export function InstanceDetailPage() {
                   )}
                 </button>
               )}
-              {instance.status === 'Running' && (
+              {(instance.status === 'Running' || instance.status === 'Provisioning') && (
                 <button
                   className="btn btn-outline-secondary btn-sm"
                   disabled={actionBusy !== null}
@@ -922,6 +939,20 @@ export function InstanceDetailPage() {
                     <span className="spinner-border spinner-border-sm" />
                   ) : (
                     <><i className="bi bi-stop-fill me-1" />Stop</>
+                  )}
+                </button>
+              )}
+              {instance.status === 'Stopped' && (
+                <button
+                  className="btn btn-outline-primary btn-sm"
+                  disabled={actionBusy !== null}
+                  title="Run unattended first-boot provisioning (macOS IPSW / Linux ISO builds only)"
+                  onClick={doProvision}
+                >
+                  {actionBusy === 'provision' ? (
+                    <span className="spinner-border spinner-border-sm" />
+                  ) : (
+                    <><i className="bi bi-magic me-1" />Provision</>
                   )}
                 </button>
               )}

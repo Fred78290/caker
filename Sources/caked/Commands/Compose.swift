@@ -58,22 +58,16 @@ struct ComposeUp: AsyncParsableCommand {
 			throw ServiceError(String(localized: "compose name must not be empty"))
 		}
 
-		var composeStatus: ComposeFileDatabase.ComposeFileStatus
-
-		if let existingStatus = composeFileDatabase.get(compose.name) {
-			composeStatus = existingStatus
-		} else {
-			composeStatus = ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
-		}
-
-		let reply = await CakedLib.ComposeHandler.up(compose: &composeStatus, services: services, waitIPTimeout: waitIPTimeout, runMode: common.runMode)
-
-		// Persist whatever was successfully launched, even on partial failure, so the
-		// next `compose up` doesn't attempt to re-create already-existing VMs.
-		if reply.success || composeStatus.installed.isEmpty == false {
-			try composeFileDatabase.upsert(compose.name, composeStatus)
-		}
-
+		// The file on disk is the user's own definition, so it replaces whatever is registered under
+		// its name — that is what lets `up` build a service added to the file since the last run.
+		let reply = try await CakedLib.ComposeHandler.up(
+			database: composeFileDatabase,
+			compose: compose,
+			replaceDefinition: true,
+			services: services,
+			waitIPTimeout: waitIPTimeout,
+			runMode: common.runMode
+		)
 		Logger.appendNewLine(self.common.format.render(reply))
 	}
 
@@ -188,13 +182,13 @@ struct ComposeRm: ParsableCommand {
 	var file: String? = nil
 
 	@Flag(
-		name: [.customShort("s"), .customLong("stop")],
+		name: [.customLong("stop")],
 		help: ArgumentHelp(String(localized: "Stop running services before removing")))
 	var stop: Bool = false
 
 	@Flag(
 		name: [.customLong("force")],
-		help: ArgumentHelp(String(localized: "Do not error if a service VM is not found")))
+		help: ArgumentHelp(String(localized: "Force stop without graceful shutdown")))
 	var force: Bool = false
 
 	@Argument(help: ArgumentHelp(String(localized: "Services to remove (default: all)")))
@@ -257,11 +251,11 @@ struct ComposeInit: ParsableCommand {
 		let dest = cwd.appendingPathComponent(ComposeFile.filename)
 
 		if FileManager.default.fileExists(atPath: dest.path(percentEncoded: false)) && !force {
-			throw ValidationError(String(localized: "\(ComposeFile.filename) already exists — use --force to overwrite."))
+			throw ValidationError(String(format: String(localized: "%@ already exists — use --force to overwrite."), ComposeFile.filename))
 		}
 
 		try ComposeFile.template.write(to: dest, atomically: true, encoding: .utf8)
-		Logger.appendNewLine(String(localized: "Created \(dest.path(percentEncoded: false))"))
+		Logger.appendNewLine(String(format: String(localized: "Created %@"), dest.path(percentEncoded: false)))
 		Logger.appendNewLine(String(localized: "Edit compose.yml then run `caked compose up` to start your services."))
 	}
 }

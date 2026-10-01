@@ -5,6 +5,7 @@
 //  Created by Frederic BOLTZ on 13/07/2025.
 //
 
+import CakedLib
 import GRPCLib
 import SwiftUI
 import CakeAgentLib
@@ -42,6 +43,28 @@ struct HomeView: View {
 			return network.usedBy != 0 || [.nat, .bridged].contains(network.mode)
 		case .images:
 			return navigationModel.selectedRemote == nil
+		case .cache:
+			return navigationModel.selectedCachedImage == nil
+		case .compose:
+			return navigationModel.selectedComposeProject == nil
+		case .tasks:
+			// Cancellation is done per-row, not via the toolbar Delete button.
+			return true
+		}
+	}
+
+	private var plusButtonDisabled: Bool {
+		switch self.selectedCategory {
+		case .templates, .tasks:
+			return true
+		case .cache:
+			guard let image = navigationModel.selectedCachedImage else {
+				return true
+			}
+
+			return CachedImageKind(cacheType: image.type).canCreateVirtualMachine == false
+		default:
+			return false
 		}
 	}
 
@@ -49,13 +72,30 @@ struct HomeView: View {
 		self.navigationView
 			.toolbar {
 				ToolbarItemGroup(placement: .navigation) {
+					connectButton
+
 					Button("Delete", systemImage: "trash") {
 						self.actionDelete()
 					}.disabled(self.deleteButtonDisabled)
 
 					Button("Plus", systemImage: "plus") {
 						self.actionPlus()
-					}.disabled(self.selectedCategory == .templates)
+					}.disabled(self.plusButtonDisabled)
+				}
+
+				if self.selectedCategory == .virtualMachine {
+					ToolbarItem(placement: .automatic) {
+						Picker("View mode", selection: $navigationModel.virtualMachinesViewMode) {
+							ForEach(VirtualMachinesViewMode.allCases) { mode in
+								Image(systemName: mode.iconName)
+									.help(mode.label)
+									.tag(mode)
+							}
+						}
+						.pickerStyle(.segmented)
+						.labelsHidden()
+						.frame(width: 76)
+					}
 				}
 
 				if self.haveDetailView {
@@ -64,15 +104,17 @@ struct HomeView: View {
 							self.mustShowDetailView.toggle()
 						}
 					}
-				} else {
-					ToolbarItem(placement: .automatic) {
-						connectButton
-					}.backgroundVisibility(false)
 				}
 			}
 			.sheet(isPresented: $presented) {
 				self.sheet
 					.colorSchemeForColor()
+			}
+			.onAppear {
+				self.applyPendingSidebarRequest()
+			}
+			.onChange(of: self.navigationModel.pendingSidebarCategory) {
+				self.applyPendingSidebarRequest()
 			}
 			.onChange(of: self.appState.connectionMode) {
 				self.navigationModel.resetSelections()
@@ -153,6 +195,27 @@ struct HomeView: View {
 		}
 	}
 
+	/// Picks up a compose "Open"/"New compose project…" request the menu-bar extra made right
+	/// before calling `openWindow(id: "home")` — see `NavigationModel.pendingSidebarCategory`'s doc
+	/// comment for why this bridge exists instead of `CakerMenuBarExtraScene` touching
+	/// `selectedCategory` directly (it's local `@State` here, not part of `NavigationModel`).
+	private func applyPendingSidebarRequest() {
+		guard let category = navigationModel.pendingSidebarCategory else {
+			return
+		}
+
+		navigationModel.pendingSidebarCategory = nil
+
+		if self.selectedCategory != category {
+			self.selectedCategory = category
+		}
+
+		if category == .compose && navigationModel.pendingNewComposeProject {
+			navigationModel.pendingNewComposeProject = false
+			self.presented = true
+		}
+	}
+
 	func selectedCategoryDidChanged(_ oldValue: Category, _ newValue: Category) {
 		func clearSelectection(_ category: Category) {
 			switch category {
@@ -164,6 +227,12 @@ struct HomeView: View {
 				navigationModel.selectedRemote = nil
 			case .templates:
 				navigationModel.selectedTemplate = nil
+			case .tasks:
+				break
+			case .cache:
+				navigationModel.selectedCachedImage = nil
+			case .compose:
+				navigationModel.selectedComposeProject = nil
 			}
 		}
 
@@ -175,6 +244,13 @@ struct HomeView: View {
 
 	var haveDetailView: Bool {
 		guard self.selectedCategory != .virtualMachine else {
+			// Mosaic mode already shows a live screenshot/status on every tile, so the detail
+			// column only makes sense once the VM collection is shown as a plain list.
+			return self.navigationModel.virtualMachinesViewMode == .list
+		}
+
+		// A task entry (id + title) is too sparse to warrant its own detail column.
+		guard self.selectedCategory != .tasks, self.selectedCategory != .cache else {
 			return false
 		}
 
@@ -185,7 +261,9 @@ struct HomeView: View {
 	var showDetailView: Bool {
 		switch self.selectedCategory {
 		case .virtualMachine:
-			return false
+			guard self.navigationModel.virtualMachinesViewMode == .list, navigationModel.selectedVirtualMachine != nil else {
+				return false
+			}
 		case .networks:
 			guard navigationModel.selectedNetwork != nil else {
 				return false
@@ -198,6 +276,12 @@ struct HomeView: View {
 			guard navigationModel.selectedTemplate != nil else {
 				return false
 			}
+		case .compose:
+			guard navigationModel.selectedComposeProject != nil else {
+				return false
+			}
+		case .tasks, .cache:
+			return false
 		}
 
 		return mustShowDetailView
@@ -211,7 +295,13 @@ struct HomeView: View {
 			return nil
 		case .networks:
 			return nil
+		case .tasks, .cache, .compose:
+			return nil
 		case .virtualMachine:
+			guard self.navigationModel.virtualMachinesViewMode == .mosaic else {
+				return nil
+			}
+
 			return VirtualMachinesView.cellWidth + (VirtualMachinesView.cellSpacing * 2)
 		}
 	}
@@ -224,7 +314,13 @@ struct HomeView: View {
 			return 200
 		case .networks:
 			return 200
+		case .tasks, .cache, .compose:
+			return 200
 		case .virtualMachine:
+			guard self.navigationModel.virtualMachinesViewMode == .mosaic else {
+				return 240
+			}
+
 			return (VirtualMachinesView.cellWidth + (VirtualMachinesView.cellSpacing * 2)) * max(1, min(2, CGFloat(self.navigationModel.documents.count)))
 		}
 	}
@@ -237,8 +333,12 @@ struct HomeView: View {
 			return 400
 		case .networks:
 			return 450
+		case .tasks, .cache:
+			return 400
+		case .compose:
+			return 380
 		case .virtualMachine:
-			return 200
+			return 340
 		}
 	}
 
@@ -250,14 +350,24 @@ struct HomeView: View {
 			return 200
 		case .networks:
 			return 200
+		case .tasks, .cache, .compose:
+			return 200
 		case .virtualMachine:
 			return (VirtualMachinesView.cellWidth + VirtualMachinesView.cellSpacing * 2) * max(1, min(3, CGFloat(self.navigationModel.documents.count)))
 		}
 	}
 
+	/// `NavigationModel.categories` itself stays the full static list (other code may reference it
+	/// generically) — the `.tasks` category is filtered out here instead, only when there's no
+	/// separate `caked` process to have tasks in (`.app` connection mode, i.e. VMs running embedded
+	/// in-process). See `TasksHandler`'s doc comment for why there's no `.app`-mode fallback for it.
+	var visibleCategories: [Category] {
+		NavigationModel.categories.filter { $0 != .tasks || self.appState.connectionMode != .app }
+	}
+
 	@ViewBuilder
 	var sidebar: some View {
-		SideBarView(categories: NavigationModel.categories, selectedCategory: $selectedCategory)
+		SideBarView(categories: self.visibleCategories, selectedCategory: $selectedCategory)
 			.frame(minWidth: 200, maxWidth: 200)
 			.navigationSplitViewColumnWidth(200)
 			.navigationSplitViewStyle(.prominentDetail)
@@ -285,6 +395,12 @@ struct HomeView: View {
 				NetworksView(navigationModel: navigationModel)
 			case .virtualMachine:
 				VirtualMachinesView(navigationModel: navigationModel, columns: VirtualMachinesView.buildColumns(geometry.size))
+			case .tasks:
+				TasksView(navigationModel: navigationModel)
+			case .cache:
+				ImageCacheView(navigationModel: navigationModel)
+			case .compose:
+				ComposeView(navigationModel: navigationModel)
 			}
 		}.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
 	}
@@ -294,7 +410,12 @@ struct HomeView: View {
 		GeometryReader { geometry in
 			switch self.selectedCategory {
 			case .virtualMachine:
-				Text("Hello, VM!")
+				if let selectedVirtualMachine = navigationModel.selectedVirtualMachine {
+					VirtualMachineDetailView(vm: selectedVirtualMachine)
+						.background(Color(NSColor.tertiarySystemFill))
+				} else {
+					EmptyView()
+				}
 			case .networks:
 				if navigationModel.selectedNetwork != nil {
 					NetworkDetailView(
@@ -340,6 +461,15 @@ struct HomeView: View {
 				} else {
 					EmptyView()
 				}
+			case .compose:
+				if let selectedComposeProject = navigationModel.selectedComposeProject {
+					ComposeDetailView(project: selectedComposeProject)
+						.background(Color(NSColor.tertiarySystemFill))
+				} else {
+					EmptyView()
+				}
+			case .tasks, .cache:
+				EmptyView()
 			}
 		}
 		.navigationSplitViewColumnWidth(min: self.idealDetailSize, ideal: self.idealDetailSize, max: self.idealDetailSize)
@@ -349,7 +479,7 @@ struct HomeView: View {
 	var sheet: some View {
 		switch self.selectedCategory {
 		case .virtualMachine:
-			VirtualMachineWizard(sheet: true)
+			VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true)
 				.colorSchemeForColor()
 				.restorationState(.disabled)
 				.frame(minWidth: 700, minHeight: 670)
@@ -362,32 +492,67 @@ struct HomeView: View {
 			RemoteWizard()
 				.colorSchemeForColor()
 				.restorationState(.disabled)
+		case .cache:
+			if let image = navigationModel.selectedCachedImage {
+				VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetCachedImage: image)
+					.colorSchemeForColor()
+					.restorationState(.disabled)
+					.frame(minWidth: 700, minHeight: 670)
+			}
+		case .compose:
+			ComposeEditorView(
+				client: AppState.shared.connectionManager.serviceClient,
+				runMode: AppState.shared.connectionManager.connectionMode.runMode
+			) {
+				self.navigationModel.composeReloadToken += 1
+			}
+			.colorSchemeForColor()
 		default:
 			Text("Hello, World!")
 		}
 	}
 
 	func actionDelete() {
-		switch self.selectedCategory {
-		case .virtualMachine:
-			if let selectedVirtualMachine = navigationModel.selectedVirtualMachine {
-				selectedVirtualMachine.deleteVirtualMachine()
-				navigationModel.selectedVirtualMachine = nil
-			}
-		case .networks:
-			if let selectedNetwork = navigationModel.selectedNetwork {
-				self.appState.deleteNetwork(name: selectedNetwork.name)
-				navigationModel.selectedNetwork = nil
-			}
-		case .images:
-			if let selectedRemote = navigationModel.selectedRemote {
-				self.appState.deleteRemote(name: selectedRemote.name)
-				navigationModel.selectedRemote = nil
-			}
-		case .templates:
-			if let selectedTemplate = navigationModel.selectedTemplate {
-				self.appState.deleteTemplate(name: selectedTemplate.name)
-				navigationModel.selectedTemplate = nil
+		Task { @MainActor in
+			switch self.selectedCategory {
+			case .virtualMachine:
+				if let selectedVirtualMachine = navigationModel.selectedVirtualMachine {
+					selectedVirtualMachine.deleteVirtualMachine()
+					navigationModel.selectedVirtualMachine = nil
+				}
+			case .networks:
+				if let selectedNetwork = navigationModel.selectedNetwork {
+					self.appState.deleteNetwork(name: selectedNetwork.name)
+					navigationModel.selectedNetwork = nil
+				}
+			case .images:
+				if let selectedRemote = navigationModel.selectedRemote {
+					self.appState.deleteRemote(name: selectedRemote.name)
+					navigationModel.selectedRemote = nil
+				}
+			case .templates:
+				if let selectedTemplate = navigationModel.selectedTemplate {
+					self.appState.deleteTemplate(name: selectedTemplate.name)
+					navigationModel.selectedTemplate = nil
+				}
+			case .cache:
+				if let image = navigationModel.selectedCachedImage {
+					ImageCacheView.confirmAndDelete(image) {
+						self.navigationModel.selectedCachedImage = nil
+						self.navigationModel.cacheReloadToken += 1
+					}
+				}
+			case .compose:
+				if let project = navigationModel.selectedComposeProject {
+					ComposeView.confirmAndDelete(project) {
+						self.navigationModel.selectedComposeProject = nil
+						self.navigationModel.composeReloadToken += 1
+					}
+				}
+			case .tasks:
+				// Cancellation is done per-row by TasksView, not this toolbar button
+				// (see deleteButtonDisabled, which keeps it disabled for this category).
+				break
 			}
 		}
 	}
@@ -402,6 +567,12 @@ struct HomeView: View {
 			self.presented = true
 		case .templates:
 			self.presented = false
+		case .tasks:
+			self.presented = false
+		case .cache:
+			self.presented = navigationModel.selectedCachedImage != nil
+		case .compose:
+			self.presented = true
 		}
 	}
 }

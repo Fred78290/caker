@@ -63,6 +63,11 @@ public extension VZVNCServer {
 
 class InternalVNCServer: VZVNCServer {
 	var delegate: (any VNCServerDelegate)?
+	// This alternate implementation wraps Apple's private _VZVNCServer directly instead of our own
+	// VNCInputHandler-based one, so there's no input-handling code here to tap — createVNCServer(...)
+	// above never actually returns this type currently (dead code path), but the stored property
+	// still satisfies VZVNCServer's protocol requirement.
+	var actionRecorder: RecordedActionHandler?
 
 	private let vnc: Dynamic
 	private let password: String  // = UUID().uuidString

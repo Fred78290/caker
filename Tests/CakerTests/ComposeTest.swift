@@ -6,6 +6,7 @@
 import XCTest
 import Foundation
 import Yams
+import GRPCLib
 
 @testable import CakedLib
 @testable import cakectl
@@ -329,6 +330,11 @@ final class ComposeTest: XCTestCase {
 		    password: secret
 		    nested: true
 		    autostart: false
+		    packages:
+		      - git
+		      - curl
+		    post_commands:
+		      - systemctl enable --now docker
 		"""))
 		let svc = try XCTUnwrap(f.services["app"])
 		XCTAssertEqual(svc.disk, 20)
@@ -336,6 +342,606 @@ final class ComposeTest: XCTestCase {
 		XCTAssertEqual(svc.password, "secret")
 		XCTAssertEqual(svc.nested, true)
 		XCTAssertEqual(svc.autostart, false)
+		XCTAssertEqual(svc.packages, ["git", "curl"])
+		XCTAssertEqual(svc.postCommands, ["systemctl enable --now docker"])
+	}
+
+	// MARK: - disk_format / ifnames / dynamic_port_forwarding / ssh_authorized_key
+
+	func testDiskFormatIfnamesAndDynamicPortForwardingFieldsDecodeAndReachBuildOptions() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    disk_format: raw
+		    ifnames: false
+		    dynamic_port_forwarding: true
+		"""))
+		let svc = try XCTUnwrap(f.services["app"])
+		XCTAssertEqual(svc.diskFormat, .raw)
+		XCTAssertEqual(svc.netIfnames, false)
+		XCTAssertEqual(svc.dynamicPortForwarding, true)
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertEqual(built.options.diskFormat, .raw)
+		XCTAssertEqual(built.options.netIfnames, false)
+		XCTAssertEqual(built.options.dynamicPortForwarding, true)
+	}
+
+	func testVMExtensionDefaultsWhenUnset() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		// `diskFormat` is deliberately not asserted here: `BuildOptions.validate` coerces it per image
+		// source (a cloud image always ends up `.raw`), so it says nothing about this field's default.
+		XCTAssertEqual(built.options.user, "admin")
+		XCTAssertEqual(built.options.password, "admin")
+		XCTAssertEqual(built.options.netIfnames, true)
+		XCTAssertEqual(built.options.dynamicPortForwarding, false)
+		XCTAssertNil(built.options.sshAuthorizedKey)
+	}
+
+	func testSSHAuthorizedKeyRawKeyIsKeptAsIs() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    ssh_authorized_key: ssh-ed25519 AAAAC3Nza test@host
+		"""))
+
+		XCTAssertEqual(f.services["app"]?.sshAuthorizedKey, "ssh-ed25519 AAAAC3Nza test@host")
+	}
+
+	func testSSHAuthorizedKeyPathIsResolvedToFileContentAtLoad() throws {
+		let keyFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".pub")
+		try "ssh-ed25519 AAAAC3Nza from-file\n".write(to: keyFile, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: keyFile) }
+
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    ssh_authorized_key: \(keyFile.path)
+		"""))
+
+		// Read and trimmed — the trailing newline must not leak into the authorized_keys line.
+		XCTAssertEqual(f.services["app"]?.sshAuthorizedKey, "ssh-ed25519 AAAAC3Nza from-file")
+	}
+
+	func testSSHAuthorizedKeyMissingFileFailsAtLoad() throws {
+		XCTAssertThrowsError(try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    ssh_authorized_key: /nonexistent/\(UUID().uuidString).pub
+		""")))
+	}
+
+	// MARK: - packages (cloud-init installation at build)
+
+	func testPackagesGenerateCloudInitUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = ["git", "curl"]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("packages:"))
+		XCTAssertTrue(content.contains("- git"))
+		XCTAssertTrue(content.contains("- curl"))
+		// Without this, cloud-init can try to install against a stale/empty package index on a
+		// fresh image and fail an install that would have worked fine had the index been
+		// refreshed first — `packages:` must always imply a package-index update.
+		XCTAssertTrue(content.contains("package_update: true"))
+	}
+
+	func testEmptyPackagesListDoesNotGenerateUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = []
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+
+		XCTAssertNil(built.options.userData)
+	}
+
+	func testPackageUpdateIsNotSetWithoutPackages() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.postCommands = ["echo hello"]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertFalse(content.contains("package_update"))
+	}
+
+	func testExplicitPackageUpdateTrueAloneGeneratesUserData() throws {
+		// A service that installs everything from `post_commands:` (no `packages:`) still needs a
+		// fresh index before its own `apt-get install` — an explicit `package_update: true` must be
+		// enough on its own to write the document and refresh, no `packages:` required.
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packageUpdate = true
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("package_update: true"))
+		XCTAssertFalse(content.contains("packages:"))
+		XCTAssertFalse(content.contains("package_upgrade"))
+	}
+
+	func testExplicitPackageUpdateFalseOverridesImpliedRefreshFromPackages() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = ["git"]
+		svc.packageUpdate = false
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		// Explicit `false` wins over the refresh `packages:` would otherwise imply — and is written
+		// out as an explicit `false` (not just omitted) so it also overrides an image-level default.
+		XCTAssertTrue(content.contains("package_update: false"))
+		XCTAssertFalse(content.contains("package_update: true"))
+		XCTAssertTrue(content.contains("- git"))
+	}
+
+	func testExplicitPackageUpdateFalseOverridesImpliedRefreshFromPackageUpgrade() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packageUpgrade = true
+		svc.packageUpdate = false
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("package_upgrade: true"))
+		XCTAssertTrue(content.contains("package_update: false"))
+		XCTAssertFalse(content.contains("package_update: true"))
+	}
+
+	func testExplicitPackageUpdateTrueWithPackagesIsNotDuplicated() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = ["git"]
+		svc.packageUpdate = true
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertEqual(content.components(separatedBy: "package_update").count - 1, 1)
+		XCTAssertTrue(content.contains("package_update: true"))
+	}
+
+	func testPackageUpdateFieldParsesFromYAML() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  on:
+		    image: ubuntu:24.04
+		    package_update: true
+		  off:
+		    image: ubuntu:24.04
+		    package_update: false
+		  unset:
+		    image: ubuntu:24.04
+		"""))
+
+		XCTAssertEqual(f.services["on"]?.packageUpdate, true)
+		XCTAssertEqual(f.services["off"]?.packageUpdate, false)
+		XCTAssertNil(f.services["unset"]?.packageUpdate)
+	}
+
+	func testPackageUpgradeGeneratesCloudInitUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packageUpgrade = true
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("package_upgrade: true"))
+		// Upgrading against a stale/empty index can miss updates that exist but were never
+		// fetched, so `package_upgrade: true` must always imply an index refresh too, even with
+		// no `packages:` of its own.
+		XCTAssertTrue(content.contains("package_update: true"))
+	}
+
+	func testPackageUpgradeFalseDoesNotGenerateUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packageUpgrade = false
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+
+		XCTAssertNil(built.options.userData)
+	}
+
+	func testPackageUpgradeAndPackagesShareOneCloudInitDocument() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = ["git"]
+		svc.packageUpgrade = true
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("packages:"))
+		XCTAssertTrue(content.contains("- git"))
+		XCTAssertTrue(content.contains("package_upgrade: true"))
+	}
+
+	func testPackageUpgradeFieldParsesFromYAML() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    package_upgrade: true
+		"""))
+		let svc = try XCTUnwrap(f.services["app"])
+
+		XCTAssertEqual(svc.packageUpgrade, true)
+	}
+
+	func testPackagesAndEnvironmentShareOneCloudInitDocument() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = ["git"]
+		svc.environment = .list(["NODE_ENV=production"])
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		// Both sections must land in the same file — BuildOptions.userData is a single path, so
+		// whichever section were generated second would otherwise silently clobber the first.
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("packages:"))
+		XCTAssertTrue(content.contains("- git"))
+		XCTAssertTrue(content.contains("write_files:"))
+		XCTAssertTrue(content.contains("NODE_ENV=production"))
+	}
+
+	func testPackagesFieldParsesFromTemplate() throws {
+		let tmp = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString + ".yml")
+		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: tmp) }
+
+		// The template's own `packages:`/`post_commands:` examples are commented out (documentation
+		// only) — this just confirms adding the fields to ComposeService didn't break decoding the
+		// bundled template.
+		XCTAssertNoThrow(try ComposeFile.load(fromFile: tmp.path))
+	}
+
+	// MARK: - post_commands (cloud-init runcmd at build)
+
+	func testPostCommandsGenerateCloudInitRuncmd() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.postCommands = ["systemctl enable --now docker", "usermod -aG docker ubuntu"]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("runcmd:"))
+		XCTAssertTrue(content.contains("systemctl enable --now docker"))
+		XCTAssertTrue(content.contains("usermod -aG docker ubuntu"))
+	}
+
+	func testEmptyPostCommandsListDoesNotGenerateUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.postCommands = []
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+
+		XCTAssertNil(built.options.userData)
+	}
+
+	func testPostCommandsSurviveYAMLSpecialCharacters() throws {
+		// Shell commands routinely contain YAML-significant characters (colons, quotes, pipes) —
+		// unlike `packages`/`environment`, this must go through a real encoder rather than naive
+		// string interpolation, or a command like this would produce invalid/misparsed YAML.
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.postCommands = ["echo \"hello: world\" | tee /tmp/greeting.txt"]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		// Round-trip through a real YAML parser rather than substring-matching the raw text, since
+		// the whole point is that the encoder is free to choose whatever quoting style keeps this
+		// valid — a substring check on the exact original text would be the wrong thing to assert.
+		struct RunCmdSection: Codable { let runcmd: [String] }
+		let decoded = try YAMLDecoder().decode(RunCmdSection.self, from: content)
+
+		XCTAssertEqual(decoded.runcmd, ["echo \"hello: world\" | tee /tmp/greeting.txt"])
+	}
+
+	func testPackagesAndPostCommandsShareOneCloudInitDocument() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.packages = ["docker.io"]
+		svc.postCommands = ["systemctl enable --now docker"]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("packages:"))
+		XCTAssertTrue(content.contains("docker.io"))
+		XCTAssertTrue(content.contains("runcmd:"))
+		XCTAssertTrue(content.contains("systemctl enable --now docker"))
+	}
+
+	// MARK: - write_files (plain content or a host source file, via cloud-init)
+
+	func testWriteFilesWithPlainContentGenerateCloudInitUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.writeFiles = [
+			ComposeWriteFile(path: "/etc/motd.d/compose.motd", content: "Welcome to the compose VM\n", permissions: "0644")
+		]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		struct WF: Codable { let path: String; let content: String; let permissions: String? }
+		struct Doc: Codable { let write_files: [WF] }
+		let decoded = try YAMLDecoder().decode(Doc.self, from: content)
+
+		XCTAssertEqual(decoded.write_files.count, 1)
+		XCTAssertEqual(decoded.write_files.first?.path, "/etc/motd.d/compose.motd")
+		XCTAssertEqual(decoded.write_files.first?.content, "Welcome to the compose VM\n")
+		XCTAssertEqual(decoded.write_files.first?.permissions, "0644")
+	}
+
+	func testWriteFilesReadsSourceFileFromHost() throws {
+		let sourceFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".conf")
+		try "key = value\n".write(to: sourceFile, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: sourceFile) }
+
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.writeFiles = [
+			ComposeWriteFile(path: "/etc/myapp/app.conf", source: sourceFile.path)
+		]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("key = value"))
+	}
+
+	func testWriteFilesBase64EncodesNonUTF8SourceFile() throws {
+		let sourceFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".bin")
+		let binaryData = Data([0xFF, 0xD8, 0xFF, 0x00, 0x01, 0x02])
+		try binaryData.write(to: sourceFile)
+		defer { try? FileManager.default.removeItem(at: sourceFile) }
+
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.writeFiles = [
+			ComposeWriteFile(path: "/opt/asset.bin", source: sourceFile.path)
+		]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		XCTAssertTrue(content.contains("encoding: b64"))
+		XCTAssertTrue(content.contains(binaryData.base64EncodedString()))
+	}
+
+	func testWriteFilesRequiresExactlyOneOfContentOrSource() throws {
+		var missingBoth = ComposeService()
+		missingBoth.image = "ubuntu:24.04"
+		missingBoth.writeFiles = [ComposeWriteFile(path: "/tmp/x")]
+
+		XCTAssertThrowsError(try missingBoth.toBuildOptions(name: "compose-test-app", composeNetworks: nil))
+
+		var bothSet = ComposeService()
+		bothSet.image = "ubuntu:24.04"
+		bothSet.writeFiles = [ComposeWriteFile(path: "/tmp/x", content: "a", source: "/tmp/does-not-matter")]
+
+		XCTAssertThrowsError(try bothSet.toBuildOptions(name: "compose-test-app", composeNetworks: nil))
+	}
+
+	func testWriteFilesAndEnvironmentShareOneWriteFilesKey() throws {
+		// `environment` already generates a /etc/environment write_files entry — a service-supplied
+		// write_files: must be merged into the *same* top-level key, not appended as a second
+		// write_files: section (which YAML doesn't define behavior for — in practice one of the two
+		// would silently be dropped).
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.environment = .list(["NODE_ENV=production"])
+		svc.writeFiles = [ComposeWriteFile(path: "/etc/myapp/app.conf", content: "key = value\n")]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		let userDataPath = try XCTUnwrap(built.options.userData)
+		let content = try String(contentsOfFile: userDataPath, encoding: .utf8)
+
+		struct WF: Codable { let path: String }
+		struct Doc: Codable { let write_files: [WF] }
+		let decoded = try YAMLDecoder().decode(Doc.self, from: content)
+
+		XCTAssertEqual(decoded.write_files.count, 2)
+		XCTAssertTrue(decoded.write_files.contains { $0.path == "/etc/environment" })
+		XCTAssertTrue(decoded.write_files.contains { $0.path == "/etc/myapp/app.conf" })
+	}
+
+	func testWriteFilesFieldParsesFromYAML() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    write_files:
+		      - path: /etc/myapp/app.conf
+		        content: "key = value"
+		        permissions: "0644"
+		        owner: root:root
+		      - path: /etc/myapp/from-host.conf
+		        source: ./app.conf
+		        append: true
+		"""))
+		let svc = try XCTUnwrap(f.services["app"])
+		let files = try XCTUnwrap(svc.writeFiles)
+
+		XCTAssertEqual(files.count, 2)
+		XCTAssertEqual(files[0].path, "/etc/myapp/app.conf")
+		XCTAssertEqual(files[0].content, "key = value")
+		XCTAssertEqual(files[0].permissions, "0644")
+		XCTAssertEqual(files[0].owner, "root:root")
+		XCTAssertEqual(files[1].path, "/etc/myapp/from-host.conf")
+		XCTAssertEqual(files[1].source, "./app.conf")
+		XCTAssertEqual(files[1].append, true)
+	}
+
+	// MARK: - Network resolution (bridge driver)
+
+	func testBridgedAttachmentNameDefaultsToBridgedForReservedDefaultKey() {
+		var network = ComposeNetwork()
+		network.driver = .bridge
+
+		XCTAssertEqual(network.bridgedAttachmentName(networkKey: "default"), "bridged")
+	}
+
+	func testBridgedAttachmentNameUsesNetworkKeyAsPhysicalInterfaceNameOtherwise() {
+		var network = ComposeNetwork()
+		network.driver = .bridge
+
+		XCTAssertEqual(network.bridgedAttachmentName(networkKey: "en0"), "en0")
+	}
+
+	func testBridgedAttachmentNameExplicitNameOverrideWins() {
+		var network = ComposeNetwork()
+		network.driver = .bridge
+		network.name = "en1"
+
+		// Even for the reserved "default" key, an explicit `name:` override still wins.
+		XCTAssertEqual(network.bridgedAttachmentName(networkKey: "default"), "en1")
+	}
+
+	func testServiceNetworkResolvesDefaultBridgeToBridgedAttachment() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.networks = ["default"]
+
+		var defaultNetwork = ComposeNetwork()
+		defaultNetwork.driver = .bridge
+
+		let composeNetworks: [String: ComposeNetwork?] = ["default": defaultNetwork]
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: composeNetworks)
+
+		XCTAssertEqual(built.options.networks.map { $0.network }, ["bridged"])
+	}
+
+	func testServiceNetworkResolvesCustomBridgeNetworkToItsOwnKey() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.networks = ["lan0"]
+
+		var lanNetwork = ComposeNetwork()
+		lanNetwork.driver = .bridge
+
+		let composeNetworks: [String: ComposeNetwork?] = ["lan0": lanNetwork]
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: composeNetworks)
+
+		XCTAssertEqual(built.options.networks.map { $0.network }, ["lan0"])
+	}
+
+	func testServiceNetworkWithoutTopLevelDefinitionPassesNameThrough() throws {
+		// A service can reference a network name that isn't declared under the compose file's own
+		// top-level `networks:` at all (e.g. an already-existing caker network, or "nat") — this
+		// must keep working exactly as a raw `BridgeAttachement` name, unaffected by the bridge
+		// resolution added for `driver: bridge` entries.
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.networks = ["nat"]
+
+		let built = try svc.toBuildOptions(name: "compose-test-app", composeNetworks: nil)
+
+		XCTAssertEqual(built.options.networks.map { $0.network }, ["nat"])
+	}
+
+	func testHandlerUpFailsFastForUnresolvableCustomBridgeNetwork() async throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.networks = ["definitely-not-a-real-interface-xyz"]
+
+		var network = ComposeNetwork()
+		network.driver = .bridge
+
+		var compose = ComposeFile(name: "test-bridge-network", services: ["app": svc])
+		compose.networks = ["definitely-not-a-real-interface-xyz": network]
+		let status = ComposeFileDatabase.ComposeFileStatus(composeFile: compose)
+
+		var mutableStatus = status
+		let reply = await ComposeHandler.up(compose: &mutableStatus, services: [], waitIPTimeout: 5, runMode: .user)
+
+		// Must fail before ever attempting to build a VM — a network that resolves to neither the
+		// default bridged interface nor a real physical interface can never actually attach, so this
+		// should be caught up front instead of silently coming up with no network device at all.
+		XCTAssertFalse(reply.success)
+		XCTAssertFalse(reply.reason.isEmpty)
 	}
 
 	// MARK: - Template round-trip
@@ -356,8 +962,100 @@ final class ComposeTest: XCTestCase {
 		defer { try? FileManager.default.removeItem(at: tmp) }
 
 		let f = try ComposeFile.load(fromFile: tmp.path)
-		XCTAssertTrue(f.services.keys.contains("app"))
-		XCTAssertTrue(f.services.keys.contains("database"))
+		XCTAssertTrue(f.services.keys.contains("mariadb"))
+		XCTAssertTrue(f.services.keys.contains("phpmyadmin"))
+	}
+
+	func testTemplateDemonstratesPackagesAndPostCommands() throws {
+		let tmp = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString + ".yml")
+		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: tmp) }
+
+		let f = try ComposeFile.load(fromFile: tmp.path)
+		let mariadb = try XCTUnwrap(f.services["mariadb"])
+		let phpmyadmin = try XCTUnwrap(f.services["phpmyadmin"])
+
+		XCTAssertEqual(mariadb.packages, ["mariadb-server"])
+		XCTAssertEqual(mariadb.postCommands?.isEmpty, false)
+		// phpmyadmin's package is debconf-interactive, so it can't use `packages:` at all (that
+		// list installs before any `post_commands:` preseeding can run) — only `post_commands:` —
+		// this is the whole point of bundling it alongside mariadb in the sample template, as a
+		// real illustration of when each field applies.
+		XCTAssertNil(phpmyadmin.packages)
+		XCTAssertEqual(phpmyadmin.postCommands?.isEmpty, false)
+		XCTAssertEqual(phpmyadmin.dependsOn?.serviceNames, ["mariadb"])
+	}
+
+	func testTemplateServicesRefreshPackageIndexExplicitly() throws {
+		let tmp = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString + ".yml")
+		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: tmp) }
+
+		let f = try ComposeFile.load(fromFile: tmp.path)
+
+		// phpmyadmin has no `packages:` at all (everything goes through `post_commands:`), so nothing
+		// implies a refresh for it — before `package_update` was a real field, this key in the
+		// template was silently ignored and the service relied on a hand-written `apt update`.
+		XCTAssertEqual(f.services["mariadb"]?.packageUpdate, true)
+		XCTAssertEqual(f.services["phpmyadmin"]?.packageUpdate, true)
+	}
+
+	func testTemplateMariadbCredentialsResolveFromEnvironment() throws {
+		let tmp = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString + ".yml")
+		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: tmp) }
+
+		let f = try ComposeFile.load(fromFile: tmp.path)
+		let mariadb = try XCTUnwrap(f.services["mariadb"])
+		let postCommands = try XCTUnwrap(mariadb.postCommands)
+
+		// The post_commands pull the password/DB name back out of `environment:` (via
+		// `grep .../etc/environment`) rather than hardcoding them a second time — assert the
+		// wiring actually references the same keys `environment:` declares, not just that some
+		// post_commands exist.
+		XCTAssertTrue(postCommands.contains { $0.contains("MYSQL_ROOT_PASSWORD") })
+		XCTAssertTrue(postCommands.contains { $0.contains("MYSQL_DATABASE") })
+		XCTAssertTrue(postCommands.contains { $0.contains("^MYSQL_USER=") && $0.contains("^MYSQL_PASSWORD=") })
+	}
+
+	func testTemplateVMExtensionFieldsAreActuallyDecoded() throws {
+		// Unknown YAML keys are silently dropped by Decodable, so a key spelled differently from its
+		// CodingKey (`disk_format` vs `diskFormat`) makes the template line a no-op with no error.
+		let tmp = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString + ".yml")
+		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: tmp) }
+
+		let f = try ComposeFile.load(fromFile: tmp.path)
+
+		for name in ["mariadb", "phpmyadmin"] {
+			let svc = try XCTUnwrap(f.services[name])
+			XCTAssertEqual(svc.diskFormat, .raw, name)
+			XCTAssertEqual(svc.netIfnames, true, name)
+			XCTAssertEqual(svc.dynamicPortForwarding, false, name)
+			XCTAssertEqual(svc.nested, true, name)
+		}
+	}
+
+	func testTemplatePhpmyadminWriteFilesEntryParses() throws {
+		let tmp = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString + ".yml")
+		try ComposeFile.template.write(to: tmp, atomically: true, encoding: .utf8)
+		defer { try? FileManager.default.removeItem(at: tmp) }
+
+		let f = try ComposeFile.load(fromFile: tmp.path)
+		let phpmyadmin = try XCTUnwrap(f.services["phpmyadmin"])
+		let writeFiles = try XCTUnwrap(phpmyadmin.writeFiles)
+
+		XCTAssertEqual(writeFiles.count, 2)
+		XCTAssertEqual(writeFiles.first?.path, "/etc/motd.d/phpmyadmin.motd")
+		XCTAssertNotNil(writeFiles.first?.content)
+		XCTAssertNil(writeFiles.first?.source)
+		XCTAssertEqual(writeFiles.last?.path, "/etc/phpmyadmin/conf.d/caker.inc.php")
+		XCTAssertEqual(writeFiles.last?.content?.contains("AllowArbitraryServer"), true)
 	}
 
 	// MARK: - ComposeInit command
@@ -534,5 +1232,379 @@ final class ComposeTest: XCTestCase {
 		let reply = ComposeHandler.down(compose: status, services: ["a"], force: false, runMode: .user)
 
 		XCTAssertTrue(reply.success)
+	}
+
+	// MARK: - Review fixes: volumes
+
+	func testShortVolumeDockerModeIsTranslatedToCakerReadOnlySyntax() throws {
+		XCTAssertEqual(ComposeVolume.short("./data:/data:ro").mountString, "./data:/data,ro")
+		XCTAssertEqual(ComposeVolume.short("./data:/data:RO,z").mountString, "./data:/data,ro")
+		XCTAssertEqual(ComposeVolume.short("./data:/data:rw").mountString, "./data:/data")
+
+		// Caker's own option syntax and the plain two-part form pass through untouched.
+		XCTAssertEqual(ComposeVolume.short("./data:/data,ro,uid=1000").mountString, "./data:/data,ro,uid=1000")
+		XCTAssertEqual(ComposeVolume.short(".:/workspace").mountString, ".:/workspace")
+
+		// End to end: `DirectorySharingAttachment` ignores a third colon-separated part, so without the
+		// translation a Docker-style `:ro` mount came up read-write with no error.
+		let mount = try DirectorySharingAttachment(parseFrom: try XCTUnwrap(ComposeVolume.short("./data:/data:ro").mountString))
+		XCTAssertTrue(mount.readOnly)
+	}
+
+	func testLongVolumeReadOnlyKeyIsDecodedAndReachesBuildOptions() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    volumes:
+		      - type: bind
+		        source: /host/path
+		        target: /guest/path
+		        read_only: true
+		"""))
+		let svc = try XCTUnwrap(f.services["app"])
+
+		XCTAssertEqual(svc.volumes?.compactMap { $0.mountString }, ["/host/path:/guest/path,ro"])
+
+		let built = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertEqual(built.options.mounts.first?.readOnly, true)
+	}
+
+	// MARK: - Review fixes: ports and sockets
+
+	func testUnsupportedPortMappingsAreRejectedInsteadOfBecomingADifferentForward() throws {
+		// `TunnelAttachement(argument:)` turns these into `127:127`, `3000:3000` and a TCP forward.
+		for mapping in ["127.0.0.1:8080:80", "3000-3005:3000-3005", "8080:80/xyz", "abc", "0:80", "70000:80"] {
+			var svc = ComposeService()
+			svc.image = "ubuntu:24.04"
+			svc.ports = [.short(mapping)]
+
+			XCTAssertThrowsError(try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil), "'\(mapping)' must be rejected") { error in
+				XCTAssertTrue(error.reason.contains(mapping), "the error should name the offending mapping: \(error.reason)")
+			}
+		}
+	}
+
+	func testSupportedPortMappingsStillWork() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.ports = [.short("8080:80"), .short("443:443/tcp"), .short("53:53/UDP"), .short("22")]
+
+		let built = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		// An upper-case `/UDP` used to fall through the parser's case-sensitive regex to a TCP forward.
+		XCTAssertEqual(built.options.forwardedPorts.map { "\($0)" }, ["8080:80/tcp", "443:443/tcp", "53:53/udp", "22:22/tcp"])
+	}
+
+	func testLongPortFormWithHostIPIsRejected() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		    ports:
+		      - target: 80
+		        published: 8080
+		        host_ip: 127.0.0.1
+		"""))
+		let svc = try XCTUnwrap(f.services["app"])
+
+		// `host_ip` used to be dropped by the decoder, silently widening a loopback-only publish.
+		XCTAssertEqual(svc.ports?.compactMap { $0.portString }, ["8080:80"])
+		XCTAssertThrowsError(try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil))
+	}
+
+	func testMalformedSocketMappingIsRejected() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.sockets = ["no-colon-here"]
+
+		XCTAssertThrowsError(try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil))
+	}
+
+	// MARK: - Review fixes: networks
+
+	func testNetworkDriverOptsKeyIsDecodedFromSnakeCase() throws {
+		let f = try load(yaml("""
+		name: p
+		services:
+		  app:
+		    image: ubuntu:24.04
+		networks:
+		  lan:
+		    driver: bridge
+		    driver_opts:
+		      foo: bar
+		"""))
+		let network = try XCTUnwrap(f.networks?["lan"] ?? nil)
+
+		XCTAssertEqual(network.driverOpts, ["foo": "bar"])
+
+		// The registry persists definitions as JSON through the same keys.
+		let json = String(decoding: try JSONEncoder().encode(f), as: UTF8.self)
+		XCTAssertTrue(json.contains("driver_opts"))
+		XCTAssertFalse(json.contains("driverOpts"))
+	}
+
+	func testUndeclaredDefaultNetworkResolvesToBridgedAttachment() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.networks = ["default"]
+
+		// Docker Compose's implicit network: valid with no top-level `networks:` at all …
+		let implicit = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+		defer { implicit.cleanup.forEach { try? $0.delete() } }
+
+		// … or with a bare `default:` entry. Passed through as the literal name "default" it matched
+		// nothing, and `CakeConfig.collectNetworks` silently dropped the device: a VM with no NIC.
+		let bareDefault: [String: ComposeNetwork?] = ["default": nil]
+		let bare = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: bareDefault)
+		defer { bare.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertEqual(implicit.options.networks.map { $0.network }, ["bridged"])
+		XCTAssertEqual(bare.options.networks.map { $0.network }, ["bridged"])
+	}
+
+	// MARK: - Review fixes: hostname
+
+	func testHostnameReachesTheCloudInitUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+		svc.hostname = "app-host"
+
+		let built = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		// `hostname:` used to be decoded and then never read, so the guest kept the VM name.
+		let userData = try String(contentsOfFile: try XCTUnwrap(built.options.userData), encoding: .utf8)
+		XCTAssertTrue(userData.contains("hostname: app-host"), userData)
+	}
+
+	func testNoHostnameNoUserData() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		let built = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+		defer { built.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertNil(built.options.userData)
+
+		svc.hostname = ""
+		let empty = try svc.toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+		defer { empty.cleanup.forEach { try? $0.delete() } }
+
+		XCTAssertNil(empty.options.userData)
+	}
+
+	// MARK: - Review fixes: cpus
+
+	func testCPULimitIsClampedInsteadOfTrappingTheDaemon() throws {
+		func cpus(_ value: String) throws -> UInt16 {
+			let f = try load(yaml("""
+			name: p
+			services:
+			  app:
+			    image: ubuntu:24.04
+			    deploy:
+			      resources:
+			        limits:
+			          cpus: "\(value)"
+			"""))
+			let built = try XCTUnwrap(f.services["app"]).toBuildOptions(name: "compose-p-app", composeNetworks: nil)
+			built.cleanup.forEach { try? $0.delete() }
+
+			return built.options.cpu
+		}
+
+		XCTAssertEqual(try cpus("4"), 4)
+		XCTAssertEqual(try cpus("0.2"), 1)
+		XCTAssertEqual(try cpus("nan"), 1)
+		// `UInt16(Double)` traps outside its range: these used to crash the process running `compose up`.
+		XCTAssertEqual(try cpus("1e10"), UInt16.max)
+		XCTAssertEqual(try cpus("inf"), UInt16.max)
+	}
+
+	// MARK: - Review fixes: ComposeHandler bookkeeping
+
+	private func makeTemporaryDatabase() throws -> (database: ComposeFileDatabase, cleanup: () -> Void) {
+		let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".json")
+
+		return (try ComposeFileDatabase(url), { try? FileManager.default.removeItem(at: url) })
+	}
+
+	func testStatusForUpKeepsTheStoredDefinitionWhenNotReplacingIt() throws {
+		let (database, cleanup) = try makeTemporaryDatabase()
+		defer { cleanup() }
+
+		var db = ComposeService()
+		db.image = "mariadb"
+		db.packages = ["mariadb-server"]
+
+		var web = ComposeService()
+		web.image = "ubuntu:24.04"
+		web.dependsOn = .list(["db"])
+		web.ports = [.short("8080:80")]
+
+		var stored = ComposeFileDatabase.ComposeFileStatus(composeFile: ComposeFile(name: "proj", services: ["db": db, "web": web]))
+		stored.installed["db"] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: "id-db")
+		try database.upsert("proj", stored)
+
+		// All the GUI "Start" action has: the names and images the registry still knows.
+		let reconstructed = ComposeReplyList.ComposeInfo(
+			name: "proj",
+			services: [
+				ComposeServiceInfo(name: "db", image: "mariadb", status: "provisioned", running: false),
+				ComposeServiceInfo(name: "web", image: "ubuntu:24.04", status: "provisioned", running: false),
+			]
+		).reconstructedComposeFile()
+
+		let kept = ComposeHandler.statusForUp(database: database, compose: reconstructed, replaceDefinition: false)
+
+		XCTAssertEqual(kept.composeFile.services["web"]?.dependsOn?.serviceNames, ["db"])
+		XCTAssertEqual(kept.composeFile.services["web"]?.ports?.compactMap { $0.portString }, ["8080:80"])
+		XCTAssertEqual(kept.composeFile.services["db"]?.packages, ["mariadb-server"])
+		XCTAssertEqual(kept.installed["db"]?.instanceIdentifier, "id-db")
+
+		// A user-authored definition (the editor's "Save & Start") does replace it — bookkeeping survives.
+		let replaced = ComposeHandler.statusForUp(database: database, compose: reconstructed, replaceDefinition: true)
+
+		XCTAssertNil(replaced.composeFile.services["web"]?.dependsOn)
+		XCTAssertEqual(replaced.installed["db"]?.instanceIdentifier, "id-db")
+	}
+
+	func testStatusForUpCreatesAFreshStatusForAnUnregisteredProject() throws {
+		let (database, cleanup) = try makeTemporaryDatabase()
+		defer { cleanup() }
+
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		let status = ComposeHandler.statusForUp(database: database, compose: ComposeFile(name: "new-proj", services: ["a": svc]), replaceDefinition: false)
+
+		XCTAssertEqual(status.composeFile.name, "new-proj")
+		XCTAssertNotNil(status.composeFile.services["a"])
+		XCTAssertTrue(status.installed.isEmpty)
+	}
+
+	func testStopFailuresOnlyReportsVMsThatAreStillRunning() {
+		let objects = [
+			StoppedObject(name: "stopped", stopped: true, reason: ""),
+			StoppedObject(name: "was-not-running", stopped: false, reason: "VM is not running"),
+			StoppedObject(name: "refused", stopped: false, reason: "VM refused is provisioning, please wait until it is finished"),
+		]
+
+		let failures = ComposeHandler.stopFailures(in: objects) { $0 == "refused" }
+
+		XCTAssertEqual(failures.map { $0.name }, ["refused"])
+		// A VM reported as stopped never counts, whatever a later status probe says.
+		XCTAssertTrue(ComposeHandler.stopFailures(in: objects) { _ in true }.allSatisfy { $0.stopped == false })
+	}
+
+	func testHandlerRmPrunesStaleRecordsSoTheProjectCanBeUnregistered() throws {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		// VMs deleted by hand: the records outlive them. Unique name so no real VM can match.
+		let name = "test-rm-stale-\(UUID().uuidString.prefix(8).lowercased())"
+		var status = ComposeFileDatabase.ComposeFileStatus(composeFile: ComposeFile(name: name, services: ["web": svc, "db": svc]))
+		status.installed["web"] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: "gone-web")
+		status.installed["db"] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: "gone-db")
+
+		let reply = ComposeHandler.rm(compose: &status, services: [], stop: false, force: false, runMode: .user)
+
+		XCTAssertTrue(reply.success)
+		// Nothing was ever deleted, so before the fix `installed` never emptied: callers only unregister a
+		// project once it is empty, which left it listed forever.
+		XCTAssertTrue(status.installed.isEmpty)
+		XCTAssertFalse(reply.reason.isEmpty, "the missing VMs are still reported as warnings")
+	}
+
+	// MARK: - up applies a changed definition (replaceDefinition)
+
+	func testChangedServicesFlagsOnlyBuiltServicesWhoseDefinitionChanged() {
+		func service(_ image: String, ports: [String] = []) -> ComposeService {
+			var svc = ComposeService()
+			svc.image = image
+			svc.ports = ports.map { .short($0) }
+			return svc
+		}
+
+		let previous = ComposeFile(name: "proj", services: ["a": service("ubuntu:24.04", ports: ["80:80"]), "b": service("ubuntu:24.04"), "c": service("ubuntu:24.04")])
+		// a: port added; b: untouched; c: image changed but never built; d: brand new.
+		let current = ComposeFile(name: "proj", services: ["a": service("ubuntu:24.04", ports: ["80:80", "443:443"]), "b": service("ubuntu:24.04"), "c": service("debian:12"), "d": service("ubuntu:24.04")])
+
+		var installed: [String: ComposeFileDatabase.ServiceStatus] = [:]
+		installed["a"] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: "id-a")
+		installed["b"] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: "id-b")
+
+		// Only a built service can have "an edit that did not take effect": c and d have no VM yet, so
+		// `up` will build them from the new definition.
+		XCTAssertEqual(ComposeHandler.changedServices(previous: previous, current: current, installed: installed), ["a"])
+	}
+
+	func testChangedServicesIgnoresServicesNoLongerDefined() {
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		let previous = ComposeFile(name: "proj", services: ["a": svc, "gone": svc])
+		let current = ComposeFile(name: "proj", services: ["a": svc])
+
+		var installed: [String: ComposeFileDatabase.ServiceStatus] = [:]
+		installed["gone"] = ComposeFileDatabase.ServiceStatus(createdAt: Date(), instanceIdentifier: "id-gone")
+
+		// A dropped service is reported separately (as an orphan), not as a changed one.
+		XCTAssertTrue(ComposeHandler.changedServices(previous: previous, current: current, installed: installed).isEmpty)
+	}
+
+	func testUpReplacesTheRegisteredDefinitionWhenAskedTo() async throws {
+		let (database, cleanup) = try makeTemporaryDatabase()
+		defer { cleanup() }
+
+		var stale = ComposeService()
+		stale.image = "ubuntu:24.04"
+
+		// Unique name so no real VM can match; an empty new definition means `up` has nothing to build.
+		let name = "test-up-replace-\(UUID().uuidString.prefix(8).lowercased())"
+		try database.upsert(name, ComposeFileDatabase.ComposeFileStatus(composeFile: ComposeFile(name: name, services: ["old": stale])))
+
+		let reply = try await ComposeHandler.up(database: database, compose: ComposeFile(name: name, services: [:]), replaceDefinition: true, services: [], waitIPTimeout: 1, runMode: .user)
+
+		XCTAssertTrue(reply.success)
+		XCTAssertEqual(database.get(name)?.composeFile.services.isEmpty, true, "the file's definition must replace the registered one")
+	}
+
+	func testUpKeepsTheRegisteredDefinitionWhenNotReplacingIt() async throws {
+		let (database, cleanup) = try makeTemporaryDatabase()
+		defer { cleanup() }
+
+		var svc = ComposeService()
+		svc.image = "ubuntu:24.04"
+
+		let name = "test-up-keep-\(UUID().uuidString.prefix(8).lowercased())"
+		try database.upsert(name, ComposeFileDatabase.ComposeFileStatus(composeFile: ComposeFile(name: name, services: ["old": svc])))
+
+		// The lossy definition knows a service the registered one doesn't; with `replaceDefinition: false`
+		// `up` must still be working from the registered one, so asking for it fails as unknown — before
+		// anything is built.
+		let reply = try await ComposeHandler.up(database: database, compose: ComposeFile(name: name, services: ["added": svc]), replaceDefinition: false, services: ["added"], waitIPTimeout: 1, runMode: .user)
+
+		XCTAssertFalse(reply.success)
+		XCTAssertEqual(database.get(name)?.composeFile.services.keys.sorted(), ["old"])
+	}
+
+	func testComposeRequestUpReplaceDefinitionDefaultsToFalseOnTheWire() throws {
+		// A client that predates the field never sets it; the daemon must read that as "keep the
+		// registered definition", the behaviour those clients were written against.
+		XCTAssertFalse(Caked_ComposeRequest.ComposeRequestUp().replaceDefinition)
+
+		let oldClient = try Caked_ComposeRequest.ComposeRequestUp.with { $0.composeDatas = Data("name: p".utf8) }.serializedData()
+		XCTAssertFalse(try Caked_ComposeRequest.ComposeRequestUp(serializedBytes: oldClient).replaceDefinition)
+
+		let newClient = try Caked_ComposeRequest.ComposeRequestUp.with { $0.replaceDefinition = true }.serializedData()
+		XCTAssertTrue(try Caked_ComposeRequest.ComposeRequestUp(serializedBytes: newClient).replaceDefinition)
 	}
 }

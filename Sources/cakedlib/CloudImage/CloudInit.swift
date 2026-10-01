@@ -6,7 +6,7 @@ import Multipart
 import Virtualization
 import Yams
 
-public let CAKEAGENT_SNAPSHOT = "52d20477"
+public let CAKEAGENT_SNAPSHOT = "72ba73c6"
 
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
 
@@ -75,7 +75,46 @@ extension Data {
 	}
 }
 
-extension Dictionary {
+extension Dictionary where Key == String, Value: Codable {
+	init(contentsOf url: URL) throws {
+		let data = try Data(contentsOf: url)
+		let decoder = JSONDecoder()
+
+		decoder.dateDecodingStrategy = .iso8601
+
+		self = try decoder.decode([String: Value].self, from: data)
+	}
+
+	var jsonData: Data? {
+		let encoder = JSONEncoder()
+
+		encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+		encoder.dateEncodingStrategy = .iso8601
+
+		return try? encoder.encode(self)
+	}
+
+	func toJSONString() -> String? {
+		guard let data = self.jsonData else { return nil }
+
+		return String(data: data, encoding: .utf8)
+	}
+
+	func write(to url: URL) throws {
+		let encoder = JSONEncoder()
+
+		encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+		encoder.dateEncodingStrategy = .iso8601
+
+		let data = try encoder.encode(self)
+
+		try data.write(to: url)
+	}
+}
+
+typealias LazyDictionary = Dictionary<String, Any>
+
+extension LazyDictionary {
 	init(contentsOf: URL) throws {
 		self = try JSONSerialization.jsonObject(with: try Data(contentsOf: contentsOf), options: []) as! Dictionary
 	}
@@ -706,13 +745,15 @@ struct WriteFile: Codable {
 	var encoding: String?
 	var permissions: String?
 	var owner: String?
+	var append: Bool?
 
-	init(path: String, content: String, encoding: String? = nil, permissions: String? = nil, owner: String? = nil) {
+	init(path: String, content: String, encoding: String? = nil, permissions: String? = nil, owner: String? = nil, append: Bool? = nil) {
 		self.path = path
 		self.content = content
 		self.encoding = encoding
 		self.permissions = permissions
 		self.owner = owner
+		self.append = append
 	}
 
 	init(from decoder: Decoder) throws {
@@ -723,6 +764,7 @@ struct WriteFile: Codable {
 		self.encoding = try container.decodeIfPresent(String.self, forKey: .encoding)
 		self.permissions = try container.decodeIfPresent(String.self, forKey: .permissions)
 		self.owner = try container.decodeIfPresent(String.self, forKey: .owner)
+		self.append = try container.decodeIfPresent(Bool.self, forKey: .append)
 	}
 
 	func encode(to encoder: Encoder) throws {
@@ -733,6 +775,7 @@ struct WriteFile: Codable {
 		try container.encodeIfPresent(encoding, forKey: .encoding)
 		try container.encodeIfPresent(permissions, forKey: .permissions)
 		try container.encodeIfPresent(owner, forKey: .owner)
+		try container.encodeIfPresent(append, forKey: .append)
 	}
 
 	enum CodingKeys: String, CodingKey {
@@ -741,6 +784,7 @@ struct WriteFile: Codable {
 		case encoding = "encoding"
 		case permissions = "permissions"
 		case owner = "owner"
+		case append = "append"
 	}
 }
 
@@ -922,7 +966,8 @@ class CloudInit {
 	}
 
 	init(
-		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, otherGroups: [String]?, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, netIfnames: Bool = true, runMode: Utils.RunMode
+		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, otherGroups: [String]?, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, netIfnames: Bool = true,
+		runMode: Utils.RunMode
 	) throws {
 		self.platform = plateform
 		self.userName = userName
@@ -939,7 +984,8 @@ class CloudInit {
 	}
 
 	convenience init(
-		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, otherGroups: [String]?, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, netIfnames: Bool = true,
+		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, otherGroups: [String]?, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?,
+		netIfnames: Bool = true,
 		runMode: Utils.RunMode
 	)
 		throws
@@ -1303,7 +1349,18 @@ class CloudInit {
 
 		let ssh = AutoInstall.Ssh(enabled: true, authorizedKeys: self.sshAuthorizedKeys ?? [], allowPassword: self.clearPassword)
 		let network = try loadNetworkConfig(config: config)
-		let autoInstall = AutoInstallConfig(ssh: ssh, timezone: TimeZone.current.identifier, userData: userData, network: network)
+		let autoInstall = AutoInstallConfig(
+			ssh: ssh, timezone: TimeZone.current.identifier,
+			packages: ["cloud-init"],
+			lateCommands: [
+				"echo 'datasource_list: [ NoCloud, None ]' > /etc/cloud/cloud.cfg.d/100_datasources.cfg",
+				"systemctl enable cloud-init-local.service",
+				"systemctl enable cloud-init.service",
+				"systemctl enable cloud-config.service",
+				"systemctl enable cloud-final.service",
+				"systemctl start cloud-init.service",
+
+			], userData: userData, network: network)
 
 		return try autoInstall.toCloudInit()
 	}
@@ -1374,7 +1431,7 @@ class CloudInit {
 	}
 
 	func createDefaultCloudInit(config: CakeConfig, name: String, cdromURL: URL) throws {
-		var seed: [String: Any] = [:]
+		var seed: LazyDictionary = [:]
 
 		try? cdromURL.delete()
 

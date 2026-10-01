@@ -92,7 +92,9 @@ struct SocketsDetailView: View {
 						RangeIntegerStyle.guestPortRange.outside($0)
 					}
 					.onChange(of: port.value) { _, newValue in
-						self.currentItem.port = newValue
+						if RangeIntegerStyle.guestPortRange.inRange(newValue) {
+							self.currentItem.port = newValue
+						}
 					}
 			}
 		}

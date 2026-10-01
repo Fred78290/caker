@@ -7,6 +7,46 @@ import NIOPosix
 import NIOSSL
 import Semaphore
 
+extension Caked_ProvisionRequest {
+	init(command: Provision) throws {
+		self.init()
+
+		self.name = command.provision.name
+		self.foreground = command.provision.foreground
+		self.taskID = command.identifier.uuidString
+
+		if let macosVersion = command.provision.macosVersion {
+			self.macosVersion = Caked_MacOSVersion(macosVersion)
+		}
+
+		if let template = command.provision.template {
+			let url = URL(fileURLWithPath: template.expandingTildeInPath)
+			
+			self.provisionTemplateName = url.lastPathComponent
+			self.provisionTemplate = try String(contentsOf: url, encoding: .utf8).data(using: .utf8)!
+		}
+		
+		if command.provision.vars.isEmpty == false {
+			self.provisionVars = .with {
+				$0.vars = command.provision.vars.map { value in
+					let value = value.split(separator: "=", maxSplits: 1)
+
+					if value.count > 1 {
+						return Caked_ProvisionVar.with {
+							$0.key = String(value[0])
+							$0.value = String(value[1])
+						}
+					} else {
+						return Caked_ProvisionVar.with {
+							$0.key = String(value[0])
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 extension Caked_RenameRequest {
 	init(command: Rename) {
 		self.init()
@@ -74,6 +114,7 @@ extension Caked_LaunchRequest {
 		self.options = try Caked_CommonBuildRequest(buildOptions: command.buildOptions)
 		self.waitIptimeout = Int32(command.waitIPTimeout)
 		self.recoveryMode = command.recoveryMode
+		self.taskID = command.buildOptions.identifier.uuidString
 	}
 }
 

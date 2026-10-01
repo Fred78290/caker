@@ -20,7 +20,7 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 	public var name: String {
 		get {
 			guard let name = _name else {
-				let raw = _source == "." ? FileManager.default.currentDirectoryPath : _source
+				let raw = _source == "." ? "WorkingDirectory" : _source
 				let source = raw.expandingTildeInPath
 				let name = source.dropFirst().replacingOccurrences(of: "/", with: "_")
 				
