@@ -54,6 +54,8 @@ struct Launch: AsyncGrpcParsableCommand {
 					}
 				}
 
+				sigintSrc.activate()
+
 				let stream = try client.launch(Caked_LaunchRequest(command: self)) { stream in
 					continuation.yield(stream.current)
 				}
