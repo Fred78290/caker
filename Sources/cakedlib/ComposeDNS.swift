@@ -205,10 +205,20 @@ public enum ComposeDNS {
 	/// bind (whether that coordinator lives inside `caked service listen` or the standalone
 	/// `caked dns` command — either one writes the same file, so this can't tell which, and
 	/// doesn't need to). Best-effort: a stale/missing file reads as "not running," never throws.
+	///
+	/// Cheap and side-effect free (`createItIfNotExists: false`, so it never creates the home or
+	/// its certificates/stores just to answer), because `caker` polls it every second to drive the
+	/// Service menu's "Start/Stop caked DNS" item. The PID must also belong to a `caked` process,
+	/// so a stale `composedns.pid` whose PID was since reused by an unrelated process neither
+	/// reads as "running" nor, worse, gets signalled by `stopResolver(runMode:)`.
 	public static func isResolverRunning(runMode: Utils.RunMode) -> Bool {
-		guard let home = try? Home(runMode: runMode) else { return false }
+		guard let home = try? Home(runMode: runMode, createItIfNotExists: false) else { return false }
 
-		return home.composeDnsPID.isPIDRunning().running
+		return Self.isResolverRunning(pidFile: home.composeDnsPID)
+	}
+
+	static func isResolverRunning(pidFile: URL) -> Bool {
+		pidFile.isPIDRunning([Home.cakedCommandName]).running
 	}
 
 	/// Ensures a compose DNS resolver is reachable for `runMode` — called from
@@ -233,28 +243,55 @@ public enum ComposeDNS {
 	public static func ensureResolverRunning(runMode: Utils.RunMode) {
 		guard Self.isResolverRunning(runMode: runMode) == false else { return }
 
-		let logger = Logger("ComposeDNS")
-
 		do {
-			let home = try Home(runMode: runMode)
-
-			FileManager.default.createFile(atPath: home.composeDnsLog.path(percentEncoded: false), contents: nil)
-
-			let log = try FileHandle(forWritingTo: home.composeDnsLog)
-
-			log.seekToEndOfFile()
-
-			try Bundle.runCaked(
-				with: ["dns", "--log-level=\(Logger.LoggingLevel().rawValue)"],
-				standardInput: nil,
-				standardOutput: log,
-				standardError: log,
-				runMode: runMode
-			)
-
-			logger.info("Started compose DNS resolver in the background (log: \(home.composeDnsLog.path(percentEncoded: false)))")
+			try Self.startResolver(runMode: runMode)
 		} catch {
-			logger.warn("Could not start the compose DNS resolver automatically: \(error). Name resolution between compose services won't work until `caked dns` is run manually.")
+			Logger("ComposeDNS").warn("Could not start the compose DNS resolver automatically: \(error). Name resolution between compose services won't work until `caked dns` is run manually.")
+		}
+	}
+
+	/// Spawns `caked dns` as a detached background process for `runMode`, with its stdout/stderr
+	/// redirected to `Home.composeDnsLog`. Unlike `ensureResolverRunning(runMode:)` — which is
+	/// best-effort and never reports a failure to its caller — this throws, so an explicit
+	/// request from `caker`'s Service menu can tell the operator why nothing started. Does *not*
+	/// check `isResolverRunning(runMode:)` first: that's the caller's decision, since the
+	/// automatic path wants a silent no-op and the menu path has already gated on it.
+	public static func startResolver(runMode: Utils.RunMode) throws {
+		let home = try Home(runMode: runMode)
+
+		FileManager.default.createFile(atPath: home.composeDnsLog.path(percentEncoded: false), contents: nil)
+
+		let log = try FileHandle(forWritingTo: home.composeDnsLog)
+
+		log.seekToEndOfFile()
+
+		try Bundle.runCaked(
+			with: ["dns", "--log-level=\(Logger.LoggingLevel().rawValue)"],
+			standardInput: nil,
+			standardOutput: log,
+			standardError: log,
+			runMode: runMode
+		)
+
+		Logger("ComposeDNS").info("Started compose DNS resolver in the background (log: \(home.composeDnsLog.path(percentEncoded: false)))")
+	}
+
+	/// Stops the resolver `isResolverRunning(runMode:)` sees, with `SIGINT` — the signal `caked
+	/// dns` (and `caked service listen`'s embedded coordinator) treats as "tear the UDP server and
+	/// `pf` redirect down cleanly, remove `composedns.pid`, then exit" (see `Dns.run()`), the same
+	/// way `ServiceHandler.stopAgentRunning(runMode:)` stops the daemon. Throws if no `caked`
+	/// process owns the PID file, rather than signalling whatever process happens to have that PID.
+	public static func stopResolver(runMode: Utils.RunMode) throws {
+		try Self.stopResolver(pidFile: try Home(runMode: runMode, createItIfNotExists: false).composeDnsPID)
+	}
+
+	static func stopResolver(pidFile: URL) throws {
+		guard Self.isResolverRunning(pidFile: pidFile) else {
+			throw ServiceError(String(localized: "Compose DNS resolver is not running"))
+		}
+
+		guard pidFile.killPID(SIGINT) == 0 else {
+			throw ServiceError(String(format: String(localized: "Failed to stop the compose DNS resolver (errno %d)"), errno))
 		}
 	}
 }

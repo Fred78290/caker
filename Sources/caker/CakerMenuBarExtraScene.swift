@@ -102,6 +102,22 @@ struct CakerMenuBarExtraScene: Scene {
 						}
 					}
 				}
+
+				// With a caked daemon running, the resolver is embedded in it; otherwise (`.app`
+				// mode) nothing hosts one unless a standalone `caked dns` is started.
+				if self.appState.cakedServiceRunning == false {
+					Divider()
+
+					if self.appState.cakedDnsRunning {
+						Button("Stop caked DNS") {
+							MainApp.stopCakedDns()
+						}
+					} else {
+						Button("Start caked DNS") {
+							MainApp.startCakedDns()
+						}
+					}
+				}
 			}
 			
 			Divider()

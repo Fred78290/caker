@@ -530,6 +530,22 @@ struct MainApp: App {
 					}
 				}
 			#endif
+
+			// With a caked daemon running, the resolver is embedded in it; otherwise (`.app`
+			// mode) nothing hosts one unless a standalone `caked dns` is started.
+			if self.appState.cakedServiceRunning == false {
+				Divider()
+
+				if self.appState.cakedDnsRunning {
+					Button("Stop caked DNS") {
+						Self.stopCakedDns()
+					}
+				} else {
+					Button("Start caked DNS") {
+						Self.startCakedDns()
+					}
+				}
+			}
 		}
 	}
 
@@ -698,6 +714,31 @@ struct MainApp: App {
 	static func startCakedDaemon() {
 		do {
 			try self.runAgent(runMode: .user)
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
+	}
+
+	/// Starts a standalone compose DNS resolver (`caked dns`) for `.app` mode — the mode `caker`
+	/// runs VMs in whenever no caked daemon is running, which is also the only time the Service
+	/// menu offers this.
+	static func startCakedDns() {
+		do {
+			guard ComposeDNS.isResolverRunning(runMode: .app) == false else { return }
+
+			try ComposeDNS.startResolver(runMode: .app)
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
+	}
+
+	static func stopCakedDns() {
+		do {
+			try ComposeDNS.stopResolver(runMode: .app)
 		} catch {
 			DispatchQueue.main.async {
 				alertError(error)
