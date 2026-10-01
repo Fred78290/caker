@@ -532,8 +532,9 @@ struct MainApp: App {
 			#endif
 
 			// With a caked daemon running, the resolver is embedded in it; otherwise (`.app`
-			// mode) nothing hosts one unless a standalone `caked dns` is started.
-			if self.appState.cakedServiceRunning == false {
+			// mode) nothing hosts one unless a standalone `caked dns` is started. Not offered
+			// in a sandboxed build — see `AppState.canManageCakedDns`.
+			if self.appState.canManageCakedDns {
 				Divider()
 
 				if self.appState.cakedDnsRunning {
