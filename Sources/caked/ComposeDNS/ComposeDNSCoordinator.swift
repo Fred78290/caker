@@ -132,6 +132,10 @@ public actor ComposeDNSCoordinator {
 	}
 
 	private func polling(interval: TimeInterval) async {
+		defer {
+			self.logger.info("Compose DNS coordinator stopped")
+		}
+
 		while Task.isCancelled == false {
 			await self.refreshFromDisk()
 
