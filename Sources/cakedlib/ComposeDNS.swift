@@ -290,8 +290,16 @@ public enum ComposeDNS {
 			throw ServiceError(String(localized: "Compose DNS resolver is not running"))
 		}
 
-		guard pidFile.killPID(SIGINT) == 0 else {
-			throw ServiceError(String(format: String(localized: "Failed to stop the compose DNS resolver (errno %d)"), errno))
+		let status = pidFile.killPID(SIGINT)
+
+		// `killPID` returns kill(2)'s own -1 (the real error is in `errno`) or, for a PID file it
+		// couldn't read, a positive errno-style code. Capture it right here, before any other call:
+		// resolving the localized message below can itself set `errno` (Foundation probes missing
+		// bundle paths) and would otherwise replace the actual kill(2) error, e.g. EPERM, with ENOENT.
+		let code = status == -1 ? errno : status
+
+		guard status == 0 else {
+			throw ServiceError(String(format: String(localized: "Failed to stop the compose DNS resolver (errno %d)"), code))
 		}
 	}
 }
