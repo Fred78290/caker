@@ -768,6 +768,17 @@
         }
       }
     },
+    "About" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À propos"
+          }
+        }
+      }
+    },
     "About Caked" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11431,6 +11442,17 @@
         }
       }
     },
+    "Pause recording" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettre l'enregistrement en pause"
+          }
+        }
+      }
+    },
     "paused" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13578,6 +13600,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reprendre"
+          }
+        }
+      }
+    },
+    "Resume recording" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprendre l'enregistrement"
           }
         }
       }
