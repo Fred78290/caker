@@ -201,10 +201,10 @@ public enum ComposeDNS {
 
 	/// `true` if a compose DNS resolver already appears to be running for `runMode` — read from
 	/// `Home.composeDnsPID`, the PID file `Sources/caked/ComposeDNS/ComposeDNSCoordinator.swift`
-	/// writes once its server actually binds (whether that coordinator lives inside `caked
-	/// service listen` or the standalone `caked dns` command — either one writes the same file,
-	/// so this can't tell which, and doesn't need to). Best-effort: a stale/missing file reads as
-	/// "not running," never throws.
+	/// writes as soon as its poll loop starts, not only once its UDP server actually manages to
+	/// bind (whether that coordinator lives inside `caked service listen` or the standalone
+	/// `caked dns` command — either one writes the same file, so this can't tell which, and
+	/// doesn't need to). Best-effort: a stale/missing file reads as "not running," never throws.
 	public static func isResolverRunning(runMode: Utils.RunMode) -> Bool {
 		guard let home = try? Home(runMode: runMode) else { return false }
 

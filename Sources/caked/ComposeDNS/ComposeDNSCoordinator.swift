@@ -94,6 +94,7 @@ public actor ComposeDNSCoordinator {
 	/// it is what lets this function (and `run()` with it) return naturally once a signal fires.
 	public func startPollingSync(interval: TimeInterval = 3, eager: Bool = false) async {
 		self.pollTask?.cancel()
+		self.writePID()
 
 		let task = Task {
 			if eager {
@@ -116,6 +117,7 @@ public actor ComposeDNSCoordinator {
 	/// lazy-start use inside `caked service listen` still wants.
 	public func startPolling(interval: TimeInterval = 3, eager: Bool = false) async {
 		self.pollTask?.cancel()
+		self.writePID()
 
 		if eager {
 			self.stopWhenEmpty = false
@@ -208,12 +210,35 @@ public actor ComposeDNSCoordinator {
 			await server.shutdown()
 			self.server = nil
 
-			if let home = try? Home(runMode: self.runMode) {
-				try? home.composeDnsPID.delete()
-			}
-
 			self.logger.info("Compose DNS server stopped")
 		}
+
+		// Tied to the poll loop stopping, not to a server happening to be bound at this exact
+		// moment — see `writePID()`'s own doc comment for why. `shutdown(stopPolling: false)`
+		// (the registry-emptied-out path in `refreshFromDisk()`) only tears down the UDP server;
+		// the coordinator is still polling and remains "the" compose DNS authority for this
+		// `runMode`, so the PID file must stay in place for `isResolverRunning(runMode:)` to keep
+		// seeing it.
+		if stopPolling, let home = try? Home(runMode: self.runMode) {
+			try? home.composeDnsPID.delete()
+		}
+	}
+
+	/// Writes `Home.composeDnsPID` the moment the poll loop actually starts — this is what makes
+	/// `ComposeDNS.isResolverRunning(runMode:)` (checked by `ensureResolverRunning(runMode:)`
+	/// before spawning a standalone `caked dns`) see this coordinator, whether it's embedded in
+	/// `caked service listen` or itself the standalone command. Deliberately tied to the poll
+	/// loop starting, not to the UDP server actually binding (`ensureServerRunning()`'s own
+	/// `startTask`, which used to write this): the coordinator is "the" compose DNS authority for
+	/// this `runMode` from the moment it starts polling, even during the (possibly extended)
+	/// window where no VM is running yet, or the NAT gateway interface hasn't come up yet (see
+	/// `ComposeDNSServerError.gatewayNotPresent`) — if the PID were only written once a server
+	/// bound, `ensureResolverRunning(runMode:)` could see no PID file during exactly that window
+	/// and spawn a redundant second `caked dns` right on top of an already-running one.
+	private func writePID() {
+		guard let home = try? Home(runMode: self.runMode) else { return }
+
+		try? home.composeDnsPID.writePID()
 	}
 
 	private func ensureServerRunning() async {
@@ -233,13 +258,6 @@ public actor ComposeDNSCoordinator {
 				try await server.startWithRetry()
 
 				self.logger.info("Compose DNS server started at \(gateway):\(server.internalPort)")
-
-				// So `ComposeDNS.isResolverRunning(runMode:)` — checked by `ensureResolverRunning(runMode:)`
-				// before spawning a standalone `caked dns` — sees this coordinator too, whether it's
-				// embedded in `caked service listen` or itself the standalone command.
-				if let home = try? Home(runMode: self.runMode) {
-					try? home.composeDnsPID.writePID()
-				}
 
 				if server.needsPFRedirect {
 					await self.enableRedirect(gateway: gateway, internalPort: server.internalPort)
