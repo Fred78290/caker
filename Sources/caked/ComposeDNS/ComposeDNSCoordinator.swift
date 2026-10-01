@@ -90,6 +90,28 @@ public actor ComposeDNSCoordinator {
 	/// standalone `caked dns` command) binds the server immediately, before the first poll even
 	/// runs, and disables the "shut down once the registry is empty" behavior the embedded,
 	/// lazy-start use inside `caked service listen` still wants.
+	public func startPollingSync(interval: TimeInterval = 3, eager: Bool = false) async {
+		self.pollTask?.cancel()
+
+		let task = Task {
+			if eager {
+				self.stopWhenEmpty = false
+				await self.ensureServerRunning()
+			}
+
+			await self.polling(interval: interval)
+		}
+
+		self.pollTask = task
+		
+		_ = await task.value
+	}
+
+	/// Starts (or restarts) the recurring poll loop that is this coordinator's real, process-
+	/// independent source of truth — see the type's own doc comment. `eager: true` (used by the
+	/// standalone `caked dns` command) binds the server immediately, before the first poll even
+	/// runs, and disables the "shut down once the registry is empty" behavior the embedded,
+	/// lazy-start use inside `caked service listen` still wants.
 	public func startPolling(interval: TimeInterval = 3, eager: Bool = false) async {
 		self.pollTask?.cancel()
 
@@ -99,11 +121,17 @@ public actor ComposeDNSCoordinator {
 		}
 
 		self.pollTask = Task { [weak self] in
-			while Task.isCancelled == false {
-				await self?.refreshFromDisk()
+			guard let self else { return }
 
-				try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
-			}
+			await self.polling(interval: interval)
+		}
+	}
+
+	private func polling(interval: TimeInterval) async {
+		while Task.isCancelled == false {
+			await self.refreshFromDisk()
+
+			try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
 		}
 	}
 
@@ -181,9 +209,9 @@ public actor ComposeDNSCoordinator {
 			if let home = try? Home(runMode: self.runMode) {
 				try? home.composeDnsPID.delete()
 			}
-
-			self.logger.info("Compose DNS server stopped")
 		}
+
+		self.logger.info("Compose DNS server stopped")
 	}
 
 	private func ensureServerRunning() async {
@@ -304,3 +332,4 @@ public actor ComposeDNSCoordinator {
 		}
 	}
 }
+

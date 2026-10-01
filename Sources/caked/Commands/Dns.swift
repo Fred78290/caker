@@ -31,10 +31,21 @@ struct Dns: AsyncParsableCommand {
 	@OptionGroup(title: String(localized: "Global options"))
 	var common: CommonOptions
 
-	@Option(name: [.customLong("internal-port")], help: ArgumentHelp(String(localized: "Unprivileged port the resolver listens on"), discussion: String(localized: "Ignored when caked runs as root, since the resolver then binds the standard port 53 directly. Otherwise, a `pf` redirect (needs passwordless sudo configured for caked) makes port 53 on the gateway reach this port instead — resolvectl has no syntax for a non-standard port, so without that redirect this flag alone isn't enough for guests to actually reach the resolver.")))
+	@Option(
+		name: [.customLong("internal-port")],
+		help: ArgumentHelp(
+			String(localized: "Unprivileged port the resolver listens on"),
+			discussion: String(
+				localized:
+					"Ignored when caked runs as root, since the resolver then binds the standard port 53 directly. Otherwise, a `pf` redirect (needs passwordless sudo configured for caked) makes port 53 on the gateway reach this port instead — resolvectl has no syntax for a non-standard port, so without that redirect this flag alone isn't enough for guests to actually reach the resolver."
+			)))
 	var internalPort: Int = ComposeDNSServer.internalBindPort
 
-	@Option(name: [.customLong("poll-interval")], help: ArgumentHelp(String(localized: "Seconds between rescans for compose-tagged VMs"), discussion: String(localized: "How often the resolver's registry is refreshed from disk. Lower values notice a new/removed service sooner, at the cost of more frequent DHCP-lease-table reads.")))
+	@Option(
+		name: [.customLong("poll-interval")],
+		help: ArgumentHelp(
+			String(localized: "Seconds between rescans for compose-tagged VMs"),
+			discussion: String(localized: "How often the resolver's registry is refreshed from disk. Lower values notice a new/removed service sooner, at the cost of more frequent DHCP-lease-table reads.")))
 	var pollInterval: Double = 3
 
 	func validate() throws {
@@ -50,48 +61,44 @@ struct Dns: AsyncParsableCommand {
 		let runMode = self.common.runMode
 		let coordinator = ComposeDNSCoordinator(group: Utilities.group, runMode: runMode, internalPort: self.internalPort)
 
-		await coordinator.startPolling(interval: self.pollInterval, eager: true)
-
-		logger.info("Compose DNS running (poll interval: \(self.pollInterval)s) — Ctrl-C to stop")
-
 		// Same SIGINT-as-clean-shutdown pattern `caked service listen`/`caked record`/`caked
 		// provision`/`caked build` already use: cancel the default top-level handler (which just
 		// force-exits) and let ours tear the coordinator (server + pf redirect) down properly.
 		Root.sigintSrc.cancel()
 
-		try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-			var resumed = false
+		// Same shape as `caked service listen`'s own SIGINT handling (`Service.swift`):
+		// build every signal source first, `setEventHandler` on each, then `.activate()`
+		// them all in one pass — once activated, a `DispatchSourceSignal` is retained by
+		// libdispatch itself for as long as it's live, so no separate `var` needs to keep
+		// `sigcaught` around past this synchronous closure returning.
+		let sigcaught = [SIGINT, SIGHUP, SIGQUIT, SIGTERM].map { sig in
+			signal(sig, SIG_IGN)
 
-			func resume() {
-				if resumed == false {
-					resumed = true
-					continuation.resume()
-				}
-			}
-
-			// Same shape as `caked service listen`'s own SIGINT handling (`Service.swift`):
-			// build every signal source first, `setEventHandler` on each, then `.activate()`
-			// them all in one pass — once activated, a `DispatchSourceSignal` is retained by
-			// libdispatch itself for as long as it's live, so no separate `var` needs to keep
-			// `sigcaught` around past this synchronous closure returning.
-			let sigcaught = [SIGINT, SIGHUP, SIGQUIT, SIGTERM].map { sig -> any DispatchSourceSignal in
-				signal(sig, SIG_IGN)
-
-				let source: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: sig)
-
-				source.setEventHandler {
-					logger.info("Stopping compose DNS")
-
-					Task {
-						await coordinator.shutdown()
-						resume()
-					}
-				}
-
-				return source
-			}
-
-			sigcaught.forEach { $0.activate() }
+			return DispatchSource.makeSignalSource(signal: sig)
 		}
+
+		sigcaught.forEach {
+			$0.setEventHandler {
+				logger.info("Stopping compose DNS")
+
+				Task {
+					await coordinator.shutdown()
+				}
+
+				sigcaught.forEach {
+					$0.setEventHandler {
+						Foundation.exit(128)
+					}
+
+					$0.activate()
+				}
+			}
+
+			$0.activate()
+		}
+
+		logger.info("Compose DNS running (poll interval: \(self.pollInterval)s) — Ctrl-C to stop")
+
+		await coordinator.startPollingSync(interval: self.pollInterval, eager: true)
 	}
 }
