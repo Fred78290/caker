@@ -21,20 +21,21 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		062BB2C476CE4B99A3059E9C /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 		0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */; };
-		E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */; };
-		1529390CB99D1AC2B7B1ECF0 /* ComposeDNSRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */; };
-		719F4B9EB1F31EF25537390C /* ComposeDNSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B289A477458F279F55546EF /* ComposeDNSServer.swift */; };
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
+		1529390CB99D1AC2B7B1ECF0 /* ComposeDNSRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */; };
 		17555DDA1E9035403FCDC3C0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
 		4790DD9E7D6FF54441D137A8 /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
-		99C0D9A480DB4E12A2BF7BCC /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
+		52E8DBA9AD445449B00B51CE /* Dns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300ABBDC01C9F611E451504D /* Dns.swift */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
 		6F24F80EC59144FFB72B9505 /* VirtualMachineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */; };
 		70F97BECEED1C4B704A9EA72 /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070CEA8AC4D83C5669773CE7 /* ComposeView.swift */; };
 		7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */; };
+		719F4B9EB1F31EF25537390C /* ComposeDNSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B289A477458F279F55546EF /* ComposeDNSServer.swift */; };
 		7EBCF7017495C220912EF643 /* ComposeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */; };
+		99C0D9A480DB4E12A2BF7BCC /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 		9B001DCA300189A80048894C /* TemplateDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001DC9300189A80048894C /* TemplateDetailView.swift */; };
 		9B001E8C300191920048894C /* RemoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B001E8B300191920048894C /* RemoteDetailView.swift */; };
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
@@ -578,7 +579,6 @@
 		9BEBC6F42DF4400A0092B196 /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6CC2DF4400A0092B196 /* Root.swift */; };
 		9BEBC6F52DF4400A0092B196 /* MainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6CB2DF4400A0092B196 /* MainApp.swift */; };
 		9BEBC6F62DF4400A0092B196 /* Delete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC69B2DF4400A0092B196 /* Delete.swift */; };
-		52E8DBA9AD445449B00B51CE /* Dns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300ABBDC01C9F611E451504D /* Dns.swift */; };
 		9BEBC6F72DF4400A0092B196 /* CakedProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6CA2DF4400A0092B196 /* CakedProvider.swift */; };
 		9BEBC6F82DF4400A0092B196 /* Launch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6A02DF4400A0092B196 /* Launch.swift */; };
 		9BEBC6F92DF4400A0092B196 /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6A42DF4400A0092B196 /* Mount.swift */; };
@@ -760,7 +760,6 @@
 		9BFB8908303F558C007AFA2A /* Aliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFB8907303F558C007AFA2A /* Aliases.swift */; };
 		9BFB890A303F55A3007AFA2A /* Aliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFB8909303F55A3007AFA2A /* Aliases.swift */; };
 		9BFB890B303F55B8007AFA2A /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
-		062BB2C476CE4B99A3059E9C /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 		9BFD5B1B305733A800517B3E /* TaskEntryRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B1A305733A800517B3E /* TaskEntryRepresentation.swift */; };
 		9BFD5B1F305734CF00517B3E /* Relocate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B1E305734CF00517B3E /* Relocate.swift */; };
 		9BFD5B21305734F000517B3E /* Tasks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFD5B20305734F000517B3E /* Tasks.swift */; };
@@ -778,9 +777,10 @@
 		DD18FD82084E8F0B3A5B3130 /* ComposeEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */; };
 		E0F8C7A5D0E9EED05C753B43 /* CachedImageKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0126D49FEBD9B20C4406BD4 /* CachedImageKind.swift */; };
 		E36354EE8CB6B2AC268BD479 /* ImageCacheView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DBF736106B014BE7717C9D9 /* ImageCacheView.swift */; };
+		E6403D59BF704E5C94AF1280 /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
+		E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */; };
 		EC403890050087209287101F /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */; };
 		FB20C8CCEAD84F2CA91EE0BC /* VMImages.json in Resources */ = {isa = PBXBuildFile; fileRef = B424710990B7411A855EC5AD /* VMImages.json */; };
-		E6403D59BF704E5C94AF1280 /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -984,15 +984,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
-		1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSCoordinator.swift; sourceTree = "<group>"; };
-		F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSRegistry.swift; sourceTree = "<group>"; };
-		1B289A477458F279F55546EF /* ComposeDNSServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSServer.swift; sourceTree = "<group>"; };
 		070CEA8AC4D83C5669773CE7 /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
 		110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDetailView.swift; sourceTree = "<group>"; };
 		118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
+		1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSCoordinator.swift; sourceTree = "<group>"; };
 		13849751EACAEB14CBF45D1A /* TasksHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksHandler.swift; sourceTree = "<group>"; };
+		1B289A477458F279F55546EF /* ComposeDNSServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSServer.swift; sourceTree = "<group>"; };
 		209D709C8B38AB56871FF3F1 /* MacOSVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacOSVersion.swift; sourceTree = "<group>"; };
+		22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "compose-template.yml"; sourceTree = "<group>"; };
+		300ABBDC01C9F611E451504D /* Dns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dns.swift; sourceTree = "<group>"; };
 		34D83C742935C118E4351E41 /* ActionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorder.swift; sourceTree = "<group>"; };
 		42281CEC4BB027305E68E921 /* Record.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
 		5DBF736106B014BE7717C9D9 /* ImageCacheView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheView.swift; sourceTree = "<group>"; };
@@ -1491,7 +1491,6 @@
 		9BEBC6982DF4400A0092B196 /* Certificates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Certificates.swift; sourceTree = "<group>"; };
 		9BEBC69A2DF4400A0092B196 /* Configure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configure.swift; sourceTree = "<group>"; };
 		9BEBC69B2DF4400A0092B196 /* Delete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Delete.swift; sourceTree = "<group>"; };
-		300ABBDC01C9F611E451504D /* Dns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dns.swift; sourceTree = "<group>"; };
 		9BEBC69C2DF4400A0092B196 /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9BEBC69D2DF4400A0092B196 /* Exec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exec.swift; sourceTree = "<group>"; };
 		9BEBC69E2DF4400A0092B196 /* ImagesManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagesManagement.swift; sourceTree = "<group>"; };
@@ -1679,12 +1678,13 @@
 		9BFE87452F7E6480005CC9B2 /* VM.xcf */ = {isa = PBXFileReference; lastKnownFileType = file; path = VM.xcf; sourceTree = "<group>"; };
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
 		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
-		22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "compose-template.yml"; sourceTree = "<group>"; };
+		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
 		CEBCF840FC996468321E4B7D /* BootCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootCommand.swift; sourceTree = "<group>"; };
 		D0126D49FEBD9B20C4406BD4 /* CachedImageKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedImageKind.swift; sourceTree = "<group>"; };
 		DD74D474122FC6A46EA6C5EF /* VirtualMachineDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDetailView.swift; sourceTree = "<group>"; };
 		DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeEditorView.swift; sourceTree = "<group>"; };
 		DFBFAD2D529C4FA49915B306 /* VMImageCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMImageCatalog.swift; sourceTree = "<group>"; };
+		F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSRegistry.swift; sourceTree = "<group>"; };
 		FA8FBE599C35FC78A7C40AEE /* RecordHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordHandler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1888,6 +1888,16 @@
 				B424710990B7411A855EC5AD /* VMImages.json */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		68AB87B329B993A41A1A0F0B /* ComposeDNS */ = {
+			isa = PBXGroup;
+			children = (
+				1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */,
+				F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */,
+				1B289A477458F279F55546EF /* ComposeDNSServer.swift */,
+			);
+			path = ComposeDNS;
 			sourceTree = "<group>";
 		};
 		9B01EF1C305C2EE4002B2B6E /* Recovered References */ = {
@@ -2335,7 +2345,7 @@
 			path = cakectl;
 			sourceTree = "<group>";
 		};
-		9B464ADB2D5A3E0300164BF5 /* grpc */ = {
+		9B464ADB2D5A3E0300164BF5 /* Grpc */ = {
 			isa = PBXGroup;
 			children = (
 				9B464AD72D5A3E0300164BF5 /* service.proto */,
@@ -2359,7 +2369,7 @@
 				9B27840E2FB37A83001F2B6A /* Model */,
 				9BB3BE1C2DB3F17500799A6A /* options */,
 			);
-			path = grpc;
+			path = Grpc;
 			sourceTree = "<group>";
 		};
 		9B464ADD2D5A3E0300164BF5 /* Sources */ = {
@@ -2369,7 +2379,7 @@
 				9BEBC6CD2DF4400A0092B196 /* caked */,
 				9BEBC7692DF440720092B196 /* cakedlib */,
 				9B2BFAB92DFED25E000045C3 /* caker */,
-				9B464ADB2D5A3E0300164BF5 /* grpc */,
+				9B464ADB2D5A3E0300164BF5 /* Grpc */,
 				9BF2DA822FE5475D00218073 /* VirtualInstallSPI */,
 			);
 			name = Sources;
@@ -2558,16 +2568,6 @@
 				9B6EC46130037FA400ABFDED /* IMDSServer.swift */,
 			);
 			path = IMDS;
-			sourceTree = "<group>";
-		};
-		68AB87B329B993A41A1A0F0B /* ComposeDNS */ = {
-			isa = PBXGroup;
-			children = (
-				1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */,
-				F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */,
-				1B289A477458F279F55546EF /* ComposeDNSServer.swift */,
-			);
-			path = ComposeDNS;
 			sourceTree = "<group>";
 		};
 		9B8F3F71301F3F52001FA32A /* Resources */ = {
