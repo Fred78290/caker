@@ -85,11 +85,13 @@ public actor ComposeDNSCoordinator {
 		await self.refreshFromDisk()
 	}
 
-	/// Starts (or restarts) the recurring poll loop that is this coordinator's real, process-
-	/// independent source of truth — see the type's own doc comment. `eager: true` (used by the
-	/// standalone `caked dns` command) binds the server immediately, before the first poll even
-	/// runs, and disables the "shut down once the registry is empty" behavior the embedded,
-	/// lazy-start use inside `caked service listen` still wants.
+	/// The blocking counterpart to `startPolling(interval:eager:)` below — same setup (cancels
+	/// any existing poll task, optionally starts the server eagerly), but *awaits* the new poll
+	/// task's completion instead of firing it off detached and returning immediately. Used by the
+	/// standalone `caked dns` command's `run()` so the process stays alive via the poll loop
+	/// actually running, not via a separate `CheckedContinuation` kept pending until a signal
+	/// arrives — the poll task *is* the work keeping the process up, and `shutdown()` cancelling
+	/// it is what lets this function (and `run()` with it) return naturally once a signal fires.
 	public func startPollingSync(interval: TimeInterval = 3, eager: Bool = false) async {
 		self.pollTask?.cancel()
 
@@ -103,7 +105,7 @@ public actor ComposeDNSCoordinator {
 		}
 
 		self.pollTask = task
-		
+
 		_ = await task.value
 	}
 
@@ -209,9 +211,9 @@ public actor ComposeDNSCoordinator {
 			if let home = try? Home(runMode: self.runMode) {
 				try? home.composeDnsPID.delete()
 			}
-		}
 
-		self.logger.info("Compose DNS server stopped")
+			self.logger.info("Compose DNS server stopped")
+		}
 	}
 
 	private func ensureServerRunning() async {
@@ -332,4 +334,3 @@ public actor ComposeDNSCoordinator {
 		}
 	}
 }
-

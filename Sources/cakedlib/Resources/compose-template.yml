@@ -72,7 +72,7 @@ services:
     package_upgrade: true
     package_update: true
     environment:
-      PMA_HOST: mariadb.myapp.compose.internal   # the mariadb VM's IP; preselects it on the login form
+      PMA_HOST: mariadb.myapp.compose.internal   # the mariadb VM's compose DNS name; preselects it on the login form
     depends_on:
       - mariadb
     write_files:
