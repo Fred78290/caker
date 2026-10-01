@@ -388,6 +388,21 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		get { self.cake["imdsMacAddress"] as? String }
 	}
 
+	/// The compose project/service this VM belongs to, set by `CakedLib.ComposeHandler.up(...)` right
+	/// after (re)starting it. Lets the compose DNS resolver (`Sources/caked/ComposeDNS/`) identify a
+	/// service unambiguously — reading these back is more reliable than re-splitting the VM's own
+	/// `compose-<project>-<service>` name, which is ambiguous whenever a project or service name itself
+	/// contains a hyphen (a known, pre-existing limitation of that naming convention — see CLAUDE.md).
+	public var composeProject: String? {
+		set { self.cake["composeProject"] = newValue }
+		get { self.cake["composeProject"] as? String }
+	}
+
+	public var composeService: String? {
+		set { self.cake["composeService"] = newValue }
+		get { self.cake["composeService"] as? String }
+	}
+
 	/// Returns the persisted IMDS MAC address, generating and saving one on first use.
 	/// Must be called before generating cloud-init network config so the guest's netplan
 	/// and the VM's attached IMDS network device always agree on the same MAC.

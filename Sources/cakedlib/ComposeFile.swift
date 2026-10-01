@@ -528,7 +528,13 @@ public struct ComposeService: Codable {
 	/// a physical interface, or the default bridged interface under that literal name, so the VM
 	/// silently came up with no network attachment for it at all (`CakeConfig.collectNetworks` just
 	/// logs a warning and drops the device).
-	public func toBuildOptions(name: String, composeNetworks: [String: ComposeNetwork?]?) throws -> (options: BuildOptions, cleanup: [URL]) {
+	/// `composeDNSGateway`, when non-nil, is the compose DNS resolver's bind address (the NAT
+	/// network's gateway — see `ComposeDNS.swift`'s doc comment) — the caller's one, precomputed
+	/// value, never resolved here: this function stays host-independent so every existing test
+	/// call site (none of which pass it) is unaffected, and unset by default so the split-DNS
+	/// setup is opt-in per caller rather than something every `toBuildOptions` result silently
+	/// gained. `ComposeHandler.up(...)` is the one real caller that passes it.
+	public func toBuildOptions(name: String, composeNetworks: [String: ComposeNetwork?]?, composeDNSGateway: String? = nil) throws -> (options: BuildOptions, cleanup: [URL]) {
 		let memoryMB = parseMemoryMB(deploy?.resources?.limits?.memory ?? "") ?? 2048
 		var filesToClean: [URL] = []
 		var mounts: [DirectorySharingAttachment] = []
@@ -654,8 +660,25 @@ public struct ComposeService: Codable {
 			cloudInit.packageUpdate = true
 		}
 
+		var runcmd: [String] = []
+
+		if let composeDNSGateway, opts.imageSource != .ipsw {
+			// Points only *.compose.internal at the compose DNS resolver (see ComposeDNS.swift),
+			// leaving every other lookup on whatever DNS the image/DHCP already configured.
+			// Matched by route rather than a hardcoded interface name/index, since NIC ordering
+			// inside the guest isn't something this code controls precisely enough to hardcode.
+			runcmd.append(
+				"IFACE=$(ip route get \(composeDNSGateway) 2>/dev/null | awk '{for(i=1;i<=NF;i++) if ($i==\"dev\") print $(i+1)}'); "
+					+ "if [ -n \"$IFACE\" ]; then resolvectl dns \"$IFACE\" \(composeDNSGateway); resolvectl domain \"$IFACE\" '~\(ComposeDNS.domainSuffix)'; fi"
+			)
+		}
+
 		if let postCommands, postCommands.isEmpty == false {
-			cloudInit.runcmd = postCommands
+			runcmd.append(contentsOf: postCommands)
+		}
+
+		if runcmd.isEmpty == false {
+			cloudInit.runcmd = runcmd
 		}
 
 		// `hostname:` is documented as the guest hostname but nothing ever read it — the guest kept the

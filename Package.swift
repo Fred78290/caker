@@ -93,7 +93,7 @@ let package = Package(
 			.product(name: "CakeAgentLib", package: "CakeAgent"),
 			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding")
 		],
-		path: "Sources/grpc",
+		path: "Sources/Grpc",
 		exclude: [
 			"generate.sh",
 			"service.proto",

@@ -19,6 +19,7 @@ public enum PFRedirect {
 		static let logger = Logger("PFRedirect")
 	#endif
 	public static let addressAliasAnchorName = "com.apple/caker-alias"
+	public static let composeDNSAnchorName = "com.apple/caker-compose-dns"
 
 	/// Redirects `proto tcp` traffic addressed to `externalAddress:80` to
 	/// `targetAddress:targetPort` — used to make the AWS-style `169.254.169.254` address
@@ -35,6 +36,28 @@ public enum PFRedirect {
 	/// root.
 	public static func disableAddressAlias() throws {
 		try Self.loadAnchor(name: Self.addressAliasAnchorName, rule: "")
+	}
+
+	/// Redirects `proto udp` (DNS is UDP-first; a `tcp` rule too, since a resolver falls back
+	/// to TCP for a truncated/large response, though this server never sends one) traffic
+	/// addressed to `gatewayAddress:53` to `gatewayAddress:internalPort` — the compose DNS
+	/// resolver equivalent of `enableAddressAlias`, except the address doesn't change, only
+	/// the port: guests are told to query the gateway address directly (see
+	/// `ComposeDNS.natGatewayAddress`), they just can't reach port 53 there directly unless
+	/// `caked` is running as root. Must be called as root.
+	public static func enableComposeDNSRedirect(gatewayAddress: String, internalPort: Int) throws {
+		let rule =
+			"rdr pass inet proto udp from any to \(gatewayAddress) port 53 -> \(gatewayAddress) port \(internalPort)\n"
+			+ "rdr pass inet proto tcp from any to \(gatewayAddress) port 53 -> \(gatewayAddress) port \(internalPort)\n"
+
+		try Self.loadAnchor(name: Self.composeDNSAnchorName, rule: rule)
+		try Self.ensureEnabled()
+	}
+
+	/// Removes any redirect previously installed by `enableComposeDNSRedirect`. Must be
+	/// called as root.
+	public static func disableComposeDNSRedirect() throws {
+		try Self.loadAnchor(name: Self.composeDNSAnchorName, rule: "")
 	}
 
 	private static func loadAnchor(name: String, rule: String) throws {

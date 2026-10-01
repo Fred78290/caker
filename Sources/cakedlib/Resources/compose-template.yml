@@ -3,7 +3,7 @@
 # Run `cakectl compose down` to stop them in reverse order.
 # Run `cakectl compose ps` to show their status.
 # Run `cakectl compose init` to regenerate this file.
-name: template
+name: myapp
 services:
   # MariaDB — real package install (via `packages:`) plus first-boot setup (via `post_commands:`),
   # pulling its admin password/DB name straight out of `environment:` rather than hardcoding them
@@ -71,8 +71,8 @@ services:
     ifnames: true
     package_upgrade: true
     package_update: true
-    # environment:
-    #   PMA_HOST: 192.168.1.20   # the mariadb VM's IP; preselects it on the login form
+    environment:
+      PMA_HOST: mariadb.myapp.compose.internal   # the mariadb VM's compose DNS name; preselects it on the login form
     depends_on:
       - mariadb
     write_files:
@@ -81,7 +81,7 @@ services:
           phpMyAdmin is reachable at http://<this-vm-ip>/phpmyadmin (forwarded to host port 8080).
           Log in with the mariadb service's MYSQL_USER/MYSQL_PASSWORD (or root/MYSQL_ROOT_PASSWORD),
           and the mariadb VM's IP as the server unless PMA_HOST is set — find it with
-          `cakectl infos compose-template-mariadb`.
+          `cakectl infos compose-myapp-mariadb`.
         permissions: "0644"
       # Debian's phpMyAdmin only talks to `localhost` by default. Point it at PMA_HOST when set,
       # otherwise let the login form accept any server address.

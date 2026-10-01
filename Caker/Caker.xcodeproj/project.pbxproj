@@ -20,6 +20,10 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */; };
+		E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */; };
+		1529390CB99D1AC2B7B1ECF0 /* ComposeDNSRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */; };
+		719F4B9EB1F31EF25537390C /* ComposeDNSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B289A477458F279F55546EF /* ComposeDNSServer.swift */; };
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
 		11228D037DE95B454ED84F9C /* ComposeEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */; };
 		19C69B9644E8133BFF5BD130 /* ComposeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */; };
@@ -574,6 +578,7 @@
 		9BEBC6F42DF4400A0092B196 /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6CC2DF4400A0092B196 /* Root.swift */; };
 		9BEBC6F52DF4400A0092B196 /* MainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6CB2DF4400A0092B196 /* MainApp.swift */; };
 		9BEBC6F62DF4400A0092B196 /* Delete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC69B2DF4400A0092B196 /* Delete.swift */; };
+		52E8DBA9AD445449B00B51CE /* Dns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300ABBDC01C9F611E451504D /* Dns.swift */; };
 		9BEBC6F72DF4400A0092B196 /* CakedProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6CA2DF4400A0092B196 /* CakedProvider.swift */; };
 		9BEBC6F82DF4400A0092B196 /* Launch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6A02DF4400A0092B196 /* Launch.swift */; };
 		9BEBC6F92DF4400A0092B196 /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6A42DF4400A0092B196 /* Mount.swift */; };
@@ -964,6 +969,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
+		1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSCoordinator.swift; sourceTree = "<group>"; };
+		F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSRegistry.swift; sourceTree = "<group>"; };
+		1B289A477458F279F55546EF /* ComposeDNSServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSServer.swift; sourceTree = "<group>"; };
 		070CEA8AC4D83C5669773CE7 /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
 		110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDetailView.swift; sourceTree = "<group>"; };
 		118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
@@ -1470,6 +1479,7 @@
 		9BEBC6982DF4400A0092B196 /* Certificates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Certificates.swift; sourceTree = "<group>"; };
 		9BEBC69A2DF4400A0092B196 /* Configure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configure.swift; sourceTree = "<group>"; };
 		9BEBC69B2DF4400A0092B196 /* Delete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Delete.swift; sourceTree = "<group>"; };
+		300ABBDC01C9F611E451504D /* Dns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dns.swift; sourceTree = "<group>"; };
 		9BEBC69C2DF4400A0092B196 /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9BEBC69D2DF4400A0092B196 /* Exec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exec.swift; sourceTree = "<group>"; };
 		9BEBC69E2DF4400A0092B196 /* ImagesManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagesManagement.swift; sourceTree = "<group>"; };
@@ -2557,6 +2567,16 @@
 			path = IMDS;
 			sourceTree = "<group>";
 		};
+		68AB87B329B993A41A1A0F0B /* ComposeDNS */ = {
+			isa = PBXGroup;
+			children = (
+				1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */,
+				F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */,
+				1B289A477458F279F55546EF /* ComposeDNSServer.swift */,
+			);
+			path = ComposeDNS;
+			sourceTree = "<group>";
+		};
 		9B9C4E592E23BC8B00C13D23 /* Home */ = {
 			isa = PBXGroup;
 			children = (
@@ -2715,6 +2735,7 @@
 				9BEBC69A2DF4400A0092B196 /* Configure.swift */,
 				9B081CBB2FC88D110029B259 /* Convert.swift */,
 				9BEBC69B2DF4400A0092B196 /* Delete.swift */,
+				300ABBDC01C9F611E451504D /* Dns.swift */,
 				9BDC05952FEADB5800802A3C /* Down.swift */,
 				9BEBC69C2DF4400A0092B196 /* Duplicate.swift */,
 				9BDC05962FEADB5800802A3C /* EnvInit.swift */,
@@ -2804,6 +2825,7 @@
 				9BEBC6B12DF4400A0092B196 /* Commands */,
 				9BEBC6C92DF4400A0092B196 /* Handlers */,
 				9B9438E72FF17EBF00F69AB6 /* IMDS */,
+				68AB87B329B993A41A1A0F0B /* ComposeDNS */,
 				9B602F962FAA56FA00055543 /* REST */,
 				9B144C0E2F9D28D900F14DEF /* VNCTunnel */,
 			);
@@ -2964,6 +2986,7 @@
 				9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */,
 				9BDC05922FEADB4400802A3C /* CakerEnv.swift */,
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
+				C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */,
 				9BDC06562FEADF2B00802A3C /* ComposeFile.swift */,
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
@@ -4151,6 +4174,9 @@
 				9B6031392FAD105700055543 /* LXDIdentitiesController.swift in Sources */,
 				9B60313A2FAD105700055543 /* LXDAuthGroupsController.swift in Sources */,
 				9B9438E82FF17EBF00F69AB6 /* IMDSServer.swift in Sources */,
+				E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */,
+				1529390CB99D1AC2B7B1ECF0 /* ComposeDNSRegistry.swift in Sources */,
+				719F4B9EB1F31EF25537390C /* ComposeDNSServer.swift in Sources */,
 				9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */,
 				9BDBCB092FEEBF5D007241E2 /* ComposeHandler.swift in Sources */,
 				9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */,
@@ -4225,6 +4251,7 @@
 				9B60313D2FAD2BF700055543 /* LXDCertificateStore.swift in Sources */,
 				9B60313E2FAD2BF700055543 /* LXDStorePersistence.swift in Sources */,
 				9BEBC6F62DF4400A0092B196 /* Delete.swift in Sources */,
+				52E8DBA9AD445449B00B51CE /* Dns.swift in Sources */,
 				9BBF79BD2F3DD73700F37D2C /* CurrentStatusHandler.swift in Sources */,
 				9BEBC6F72DF4400A0092B196 /* CakedProvider.swift in Sources */,
 				9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */,
@@ -4286,6 +4313,7 @@
 				9BDC05932FEADB4400802A3C /* CakerEnv.swift in Sources */,
 				9BEBC77E2DF440720092B196 /* mount.pb.swift in Sources */,
 				9BDC06572FEADF2B00802A3C /* ComposeFile.swift in Sources */,
+				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
 				9BBF7BB72F3E0E8D00F37D2C /* VNCInfosHandler.swift in Sources */,
 				9BEBC77F2DF440720092B196 /* VMRunHandler.swift in Sources */,
 				9BEBC7802DF440720092B196 /* Config.swift in Sources */,
