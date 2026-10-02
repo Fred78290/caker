@@ -79,6 +79,9 @@ if [ $APPSTORE -eq 0 ]; then
 	done
 fi
 
+mkdir -p "${CAKER_APP}/Frameworks"
+cp "$(find "$(xcode-select -p)" -name 'libswiftCompatibilitySpan*' | grep 'macosx/libswiftCompatibilitySpan.dylib')" "${CAKER_APP}/Frameworks/"
+
 cp "${PROJECT_ROOT}/Sources/caker/Resources/"* "${CAKER_APP}/Resources"
 cp "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources/"* "${CAKED_APP}/Resources"
 cp "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources/"* "${CAKER_APP}/Resources"

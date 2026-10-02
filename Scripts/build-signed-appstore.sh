@@ -28,17 +28,19 @@ export APPSTORE=1
 USE_SMAPPSERVICE=1
 BASE_VERSION=${BASE_VERSION:-1.0}
 VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
+SWIFTCMD="xcrun swift"
+MACOSSDK="$(xcrun --sdk macosx --show-sdk-path)"
 
 #sudo rm -rf "${PROJECT_ROOT}/.appstore" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app"
 
 cleanup_swift_package_mirror() {
-	/usr/bin/swift package config unset-mirror --original https://github.com/apple/swift-argument-parser || true
+	${SWIFTCMD} package config unset-mirror --original https://github.com/apple/swift-argument-parser || true
 }
 trap cleanup_swift_package_mirror EXIT
 
-/usr/bin/swift package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
-/usr/bin/swift package resolve
+${SWIFTCMD} package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
+${SWIFTCMD} package resolve
 
 jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
   .location = "https://github.com/Fred78290/swift-argument-parser" |
@@ -46,7 +48,8 @@ jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
 )' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
 
 for ARCH in x86_64 arm64; do
-	/usr/bin/swift build -c release \
+	${SWIFTCMD} build -c release \
+		--sdk "${MACOSSDK}" -Xlinker -platform_version -Xlinker macos -Xlinker 15.0 -Xlinker 27.0 \
 		--arch ${ARCH} --build-path "${PROJECT_ROOT}/.appstore/${ARCH}-apple-macosx" \
 		-Xswiftc -D -Xswiftc USE_SMAPPSERVICE \
 		-Xswiftc -D -Xswiftc APPSTORE \

@@ -18,7 +18,8 @@ APPSTORE=0
 USE_SMAPPSERVICE=0
 ARGUMENT_PARSER_ORIGINAL="https://github.com/apple/swift-argument-parser"
 ARGUMENT_PARSER_MIRROR="https://github.com/Fred78290/swift-argument-parser"
-SWIFTCMD=$(xcrun --find swift 2>/dev/null || echo /usr/bin/swift)
+SWIFTCMD="xcrun swift"
+MACOSSDK="$(xcrun --sdk macosx --show-sdk-path)"
 
 if [ -f ${PROJECT_ROOT}/.env ]; then
 	source ${PROJECT_ROOT}/.env
@@ -41,6 +42,8 @@ jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
 )' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
 
 ${SWIFTCMD} build \
+	--sdk "${MACOSSDK}" \
+	-Xlinker -platform_version -Xlinker macos -Xlinker 15.0 -Xlinker 27.0 \
 	-Xswiftc -D -Xswiftc USE_SMAPPSERVICE \
 	-Xswiftc -D -Xswiftc SPARKLE \
 	-Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND \

@@ -26,7 +26,8 @@ ASSETS="${BUILDDIR}/assets"
 RELEASE=1
 APPSTORE=0
 USE_SMAPPSERVICE=0
-SWIFTCMD=$(xcrun --find swift 2>/dev/null || echo /usr/bin/swift)
+SWIFTCMD="xcrun swift"
+MACOSSDK="$(xcrun --sdk macosx --show-sdk-path)"
 
 sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 #sudo rm -rf ""${PROJECT_ROOT}/.debug"
@@ -46,6 +47,7 @@ jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
 
 for ARCH in x86_64 arm64; do
 	${SWIFTCMD} build -c release \
+		--sdk "${MACOSSDK}" -Xlinker -platform_version -Xlinker macos -Xlinker 15.0 -Xlinker 27.0 \
 		--arch ${ARCH} --build-path "${PROJECT_ROOT}/.release/${ARCH}-apple-macosx" \
 		-Xswiftc -D -Xswiftc SPARKLE \
 		-Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND \
