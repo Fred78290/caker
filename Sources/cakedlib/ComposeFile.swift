@@ -876,9 +876,11 @@ public struct ComposeFile: Codable {
 
 	/// Commented example `compose.yml`, bundled as the `compose-template.yml` CakedLib resource.
 	public static var template: String {
-		guard let url = composeResourceBundle.url(forResource: "compose-template", withExtension: "yml"),
-			let content = try? String(contentsOf: url, encoding: .utf8)
-		else {
+		if let url = Bundle.main.url(forResource: "compose-template", withExtension: "yml"), let content = try? String(contentsOf: url, encoding: .utf8) {
+			return content
+		}
+
+		guard let url = composeResourceBundle.url(forResource: "compose-template", withExtension: "yml"), let content = try? String(contentsOf: url, encoding: .utf8) else {
 			fatalError("compose-template.yml resource is missing from the CakedLib bundle")
 		}
 
