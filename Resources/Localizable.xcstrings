@@ -2931,6 +2931,7 @@
       }
     },
     "Compose DNS resolver is not running" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -2938,7 +2939,8 @@
             "value" : "Le résolveur DNS compose n'est pas en cours d'exécution"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Compose failed to start %@, %@" : {
       "extractionState" : "manual",
@@ -5581,6 +5583,7 @@
       }
     },
     "Failed to stop the compose DNS resolver (errno %d)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -5588,7 +5591,8 @@
             "value" : "Impossible d'arrêter le résolveur DNS compose (errno %d)"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Failed to stop VM" : {
       "localizations" : {
@@ -15477,10 +15481,16 @@
     },
     "Start caked DNS" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start the compose DNS resolver"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Démarrer le DNS caked"
+            "value" : "Démarrer le résolveur DNS compose"
           }
         }
       }
@@ -15752,10 +15762,16 @@
     },
     "Stop caked DNS" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop the compose DNS resolver"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Arrêter le DNS caked"
+            "value" : "Arrêter le résolveur DNS compose"
           }
         }
       }
