@@ -28,7 +28,6 @@ rm -Rf "${PKGDIR}"
 mkdir -p "${ASSETS}" "${CAKER_APP}/Frameworks" \
 	"${CAKER_APP}/MacOS" \
 	"${CAKER_APP}/Resources" \
-	"${CAKER_APP}/Resources/Icons" \
 	"${CAKER_APP}/PlugIns" \
 	\
 	"${CAKED_APP}/Resources" \
@@ -101,19 +100,25 @@ cp -c "${ASSETS}/AppIcon.icns" "${CAKER_APP}/Resources/AppIcon.icns"
 cp -c "${ASSETS}/Assets.car" "${CAKER_APP}/Resources/Assets.car"
 
 cp -c "${PROJECT_ROOT}/Resources/Prompt.png" "${CAKER_APP}/Resources/Prompt.png"
-cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${CAKER_APP}/Resources/Icons"
+cp -c "${PROJECT_ROOT}/Resources/Icons/"*.png "${CAKER_APP}/Resources/"
 cp -c "${PROJECT_ROOT}/Resources/Info.plist" "${CAKER_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKER_APP}/Resources/VMImages.json"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-template.yml" "${CAKER_APP}/Resources/compose-template.yml"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKER_APP}/Resources/"
 
 cp -c "${PROJECT_ROOT}/Resources/VM.icns" "${CAKED_APP}/Resources/VM.icns"
 cp -c "${PROJECT_ROOT}/Resources/VM.png" "${CAKED_APP}/Resources/VM.png"
 cp -c "${PROJECT_ROOT}/Resources/caked.plist" "${CAKED_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKED_APP}/Resources/VMImages.json"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-template.yml" "${CAKED_APP}/Resources/compose-template.yml"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKED_APP}/Resources/"
 
 cp -c "${PROJECT_ROOT}/Resources/VM.icns" "${CAKECTL_APP}/Resources/VM.icns"
 cp -c "${PROJECT_ROOT}/Resources/VM.png" "${CAKECTL_APP}/Resources/VM.png"
 cp -c "${PROJECT_ROOT}/Resources/cakectl.plist" "${CAKECTL_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKECTL_APP}/Resources/VMImages.json"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-template.yml" "${CAKED_APP}/Resources/compose-template.yml"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKECTL_APP}/Resources/"
 
 if [ $APPSTORE -eq 0 ]; then
 	cp -c "${PROJECT_ROOT}/Resources/caker.provisionprofile" "${CAKER_APP}/embedded.provisionprofile"
