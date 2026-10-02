@@ -163,7 +163,20 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 	private(set) var cakedServiceInstalled: Bool = false
 	private(set) var cakedServiceRunning: Bool = false
+	/// `true` while a standalone `caked dns` resolver is running for `.app` mode. Only ever
+	/// meaningful while `cakedServiceRunning` is `false` — with a `caked` daemon running, the
+	/// resolver is embedded in it and the Service menu doesn't offer to manage it separately.
+	private(set) var cakedDnsRunning: Bool = false
 	private(set) var connectionMode: ConnectionManager.ConnectionMode = .app
+
+	/// Whether the Service menus offer "Start/Stop caked DNS". Never in a sandboxed (App Store)
+	/// build: the resolver can't be reached from VMs there (no `pf` redirect, no `sudo`) and the
+	/// app can't signal the process it spawned to stop it, so the item could only mislead. Also
+	/// hidden while a caked daemon is running, since the resolver is then embedded in it.
+	var canManageCakedDns: Bool {
+		self.cakedServiceRunning == false && Bundle.isApplicationSandboxed == false
+	}
+
 	private(set) var isStopped: Bool = true
 	private(set) var isSuspendable: Bool = false
 	private(set) var isProvisioning: Bool = false
@@ -343,6 +356,13 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		let runMode = ServiceHandler.runningMode
 		let connectionMode = ConnectionManager.ConnectionMode(runMode)
 		let installed = MainApp.isAgentInstalled()
+		let dnsRunning = Bundle.isApplicationSandboxed == false && connectionMode == .app && ComposeDNS.isResolverRunning(runMode: .app)
+
+		if self.cakedDnsRunning != dnsRunning {
+			DispatchQueue.main.async {
+				self.cakedDnsRunning = dnsRunning
+			}
+		}
 
 		if self.cakedServiceInstalled != installed || self.connectionMode != connectionMode {
 			// Suspend timer

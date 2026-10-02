@@ -319,6 +319,40 @@ final class ComposeDNSTests: XCTestCase {
 		XCTAssertEqual(registry.address(for: .vm("fresh-vm")), "192.168.64.2")
 	}
 
+	// MARK: - Start/stop (Service menu)
+
+	private func makeTemporaryPIDFile(_ contents: String?) throws -> URL {
+		let directory = FileManager.default.temporaryDirectory.appendingPathComponent("ComposeDNSTests-\(UUID().uuidString)", isDirectory: true)
+
+		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+		addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+
+		let pidFile = directory.appendingPathComponent("composedns.pid", isDirectory: false)
+
+		if let contents {
+			try contents.write(to: pidFile, atomically: true, encoding: .ascii)
+		}
+
+		return pidFile
+	}
+
+	func testResolverIsNotRunningWithoutAPIDFile() throws {
+		let pidFile = try self.makeTemporaryPIDFile(nil)
+
+		XCTAssertFalse(ComposeDNS.isResolverRunning(pidFile: pidFile))
+		XCTAssertThrowsError(try ComposeDNS.stopResolver(pidFile: pidFile))
+	}
+
+	func testStopResolverNeverSignalsAProcessThatIsNotCaked() throws {
+		// A stale composedns.pid whose PID was reused by an unrelated process — here, this very
+		// test process, which is certainly alive and certainly not named `caked`. It must read as
+		// "not running" and must not be sent SIGINT (which would end the test run).
+		let pidFile = try self.makeTemporaryPIDFile("\(getpid())")
+
+		XCTAssertFalse(ComposeDNS.isResolverRunning(pidFile: pidFile))
+		XCTAssertThrowsError(try ComposeDNS.stopResolver(pidFile: pidFile))
+	}
+
 	// MARK: - Cloud-init injection (ComposeFile.toBuildOptions)
 
 	func testToBuildOptionsWithNoGatewayInjectsNoSplitDNSSetup() throws {
