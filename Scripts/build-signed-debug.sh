@@ -18,6 +18,7 @@ APPSTORE=0
 USE_SMAPPSERVICE=0
 ARGUMENT_PARSER_ORIGINAL="https://github.com/apple/swift-argument-parser"
 ARGUMENT_PARSER_MIRROR="https://github.com/Fred78290/swift-argument-parser"
+SWIFTCMD=$(xcrun --find swift 2>/dev/null || echo /usr/bin/swift)
 
 if [ -f ${PROJECT_ROOT}/.env ]; then
 	source ${PROJECT_ROOT}/.env
@@ -26,23 +27,29 @@ fi
 sudo rm -rf "${PROJECT_ROOT}/.debug" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 
 cleanup_swift_mirror() {
-  /usr/bin/swift package config unset-mirror --original "${ARGUMENT_PARSER_ORIGINAL}" >/dev/null 2>&1 || true
+  ${SWIFTCMD} package config unset-mirror --original "${ARGUMENT_PARSER_ORIGINAL}" >/dev/null 2>&1 || true
 }
 
 trap cleanup_swift_mirror EXIT
 
-/usr/bin/swift package config set-mirror --original "${ARGUMENT_PARSER_ORIGINAL}" --mirror "${ARGUMENT_PARSER_MIRROR}"
-/usr/bin/swift package resolve
+${SWIFTCMD} package config set-mirror --original "${ARGUMENT_PARSER_ORIGINAL}" --mirror "${ARGUMENT_PARSER_MIRROR}"
+${SWIFTCMD} package resolve
 
 jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
   .location = "https://github.com/Fred78290/swift-argument-parser" |
   .state.revision = "d554955e8c280aa4c4a05a039a968f0205656e77"
 )' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
 
-/usr/bin/swift build \
+${SWIFTCMD} build \
 	-Xswiftc -D -Xswiftc USE_SMAPPSERVICE \
 	-Xswiftc -D -Xswiftc SPARKLE \
 	-Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND \
 	--arch $(arch) --build-path "${PROJECT_ROOT}/.debug/$(arch)-apple-macosx"
+
+mkdir -p ${BINARYDIR}
+
+for FILE in Caker caked cakectl; do
+	cp ${PROJECT_ROOT}/.debug/$(arch)-apple-macosx/debug/${FILE} "${BINARYDIR}/${FILE}"
+done
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"

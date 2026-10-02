@@ -26,17 +26,18 @@ ASSETS="${BUILDDIR}/assets"
 RELEASE=1
 APPSTORE=0
 USE_SMAPPSERVICE=0
+SWIFTCMD=$(xcrun --find swift 2>/dev/null || echo /usr/bin/swift)
 
 sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 #sudo rm -rf ""${PROJECT_ROOT}/.debug"
 
 cleanup_swift_package_mirror() {
-	/usr/bin/swift package config unset-mirror --original https://github.com/apple/swift-argument-parser || true
+	${SWIFTCMD} package config unset-mirror --original https://github.com/apple/swift-argument-parser || true
 }
 trap cleanup_swift_package_mirror EXIT
 
-/usr/bin/swift package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
-/usr/bin/swift package resolve
+${SWIFTCMD} package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
+${SWIFTCMD} package resolve
 
 jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
   .location = "https://github.com/Fred78290/swift-argument-parser" |
@@ -44,7 +45,7 @@ jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
 )' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
 
 for ARCH in x86_64 arm64; do
-	/usr/bin/swift build -c release \
+	${SWIFTCMD} build -c release \
 		--arch ${ARCH} --build-path "${PROJECT_ROOT}/.release/${ARCH}-apple-macosx" \
 		-Xswiftc -D -Xswiftc SPARKLE \
 		-Xswiftc -D -Xswiftc USE_VIRTUAL_INSTALL_BACKEND \
