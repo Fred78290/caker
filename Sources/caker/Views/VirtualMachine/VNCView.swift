@@ -14,7 +14,7 @@ import CakeAgentLib
 struct VNCView: NSViewRepresentable {
 	typealias NSViewType = NSVNCView
 
-	private weak let document: VirtualMachineDocument!
+	private weak var document: VirtualMachineDocument!
 	private let logger = Logger("HostVirtualMachineView")
 
 	init(document: VirtualMachineDocument) {

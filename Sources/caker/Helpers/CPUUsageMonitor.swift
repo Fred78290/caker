@@ -14,7 +14,7 @@ import SwiftUI
 typealias AsyncThrowingStreamCakeAgentCurrentUsageReply = (stream: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>, continuation: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>.Continuation)
 
 final class CPUUsageMonitor {
-	private weak let document: VirtualMachineDocument?
+	private weak var document: VirtualMachineDocument?
 	private let name: String
 	private var isMonitoring: Bool = false
 	private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil

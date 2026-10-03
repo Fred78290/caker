@@ -19,7 +19,7 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 	
 	private let fontPickerDelegate: FontPickerDelegate
 	private let fontManager = NSFontManager.shared
-	private weak let terminalView: NSViewType!
+	private weak var terminalView: NSViewType!
 	
 	var terminalColor: SwiftUI.Color {
 		self.terminalView.fontColor.uiColor
