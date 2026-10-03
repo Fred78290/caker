@@ -882,7 +882,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 			#if !APPSTORE
 				if let pluginPath = pluginPaths.first, needsSudoersFile {
-					let sudoersContent = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
+					let sudoersContent = "%everyone ALL=(root:wheel) NOPASSWD:SETENV: \(pluginPath)caked\n"
 					try contents.append(contentsOf: installRootOwnedFile(content: sudoersContent, to: sudoersFile, mode: "0440"))
 				}
 			#endif
@@ -905,7 +905,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 						#endif
 						MainActor.assumeIsolated {
 							showCommandToPasteAlert(contents)
-						}
+                        }
 					}
 				} else {
 					do {
@@ -916,7 +916,9 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 						}
 					}
 				}
-			}
+
+                AppState.shared.reloadNetworks()
+            }
 		} catch {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
 
@@ -956,14 +958,12 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		alert.addButton(withTitle: String(localized: "Copy & Quit"))
 		alert.addButton(withTitle: String(localized: "Quit"))
 
-		let response = alert.runModal()
-		if response == .alertFirstButtonReturn {
+		if alert.runModal() == .alertFirstButtonReturn {
 			NSPasteboard.general.clearContents()
 			NSPasteboard.general.setString(sudoScript, forType: .string)
 		}
 
 		NSApp.terminate(self)
-		return
 	}
 
 	@MainActor
@@ -1011,13 +1011,16 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		scrollView.borderType = .bezelBorder
 
 		alert.accessoryView = scrollView
-		alert.addButton(withTitle: String(localized: "Copy"))
+		alert.addButton(withTitle: String(localized: "Copy & Quit"))
+        alert.addButton(withTitle: String(localized: "Quit"))
 
-		_ = alert.runModal()
+        if alert.runModal() == .alertFirstButtonReturn {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(sudoScript, forType: .string)
+        }
 
-		NSPasteboard.general.clearContents()
-		NSPasteboard.general.setString(sudoScript, forType: .string)
-	}
+        NSApp.terminate(self)
+    }
 
 	static func askUserToInstallCakedAgent() {
 		#if USE_SMAPPSERVICE
