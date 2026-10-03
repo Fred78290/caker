@@ -89,8 +89,9 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 						}
 					}
 
-					try? await grpcStream.sendEnd().get()
-
+                    Task.sync {
+                        try? await grpcStream.sendEnd().get()
+                    }
 				}
 				onclose()
 				cancellable?.cancel()
