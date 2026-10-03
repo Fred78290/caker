@@ -1006,14 +1006,24 @@ public struct NetworksHandler {
 	}
 
 	public static func natNetworkInfos() throws -> String {
-		if #available(macOS 26, *) {
-			return "192.168.64.1/24"
-		} else {
-			let address = try Shell.bash(to: "defaults", arguments: ["read", "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist", "Shared_Net_Address"])
-			let netmask = try Shell.bash(to: "defaults", arguments: ["read", "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist", "Shared_Net_Mask"])
+        let defaultNetwork = "192.168.64.1/24"
+        let configFile = "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist"
 
-			return "\(address)/\(netmask.netmaskToCidr())"
-		}
+        if #available(macOS 26, *) {
+			return defaultNetwork
+        } else if FileManager.default.fileExists(atPath: configFile) {
+			let address = try Shell.bash(to: "defaults", arguments: ["read", configFile, "Shared_Net_Address"])
+			let netmask = try Shell.bash(to: "defaults", arguments: ["read", configFile, "Shared_Net_Mask"])
+
+            // No virtualization ready
+            if address.isEmpty || netmask.isEmpty {
+                return defaultNetwork
+            }
+
+            return "\(address)/\(netmask.netmaskToCidr())"
+        } else {
+            return defaultNetwork
+        }
 	}
 
 	private static var _defaultNatNetwork: BridgedNetwork?
@@ -1030,8 +1040,9 @@ public struct NetworksHandler {
 		var dhcpStart = String.empty
 		var dhcpEnd = String.empty
 		var dhcpLease = String.empty
+        var failed = false
 
-		if let lease = try? getDHCPLease() {
+        if let lease = try? getDHCPLease() {
 			dhcpLease = "\(lease)"
 		}
 
@@ -1047,21 +1058,35 @@ public struct NetworksHandler {
 					dhcpStart = sudo.standardOutput.trimmingCharacters(in: .whitespacesAndNewlines)
 				}
 			}
-
-			if dhcpStart.isEmpty == false {
-				if let network = dhcpStart.toNetwork() {
-					dhcpEnd = "\(network.range.upperBound.description)/\(network.bits)"
-				}
-			}
 		} catch {
-			Logger("NetworksHandler").error("Unable to get nat infos: \(error)")
+			Logger("NetworksHandler").error("Unable to get nat infos: \(error), use default")
+            
+            dhcpStart = "192.168.64.1/24"
+            failed = true
 		}
 
-		let defaultNatNetwork = BridgedNetwork(
-			name: "nat", mode: .nat, description: "NAT shared network", gateway: dhcpStart, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: "nat", endpoint: String.empty, running: true, managed: false,
+        if dhcpStart.isEmpty == false {
+            if let network = dhcpStart.toNetwork() {
+                dhcpEnd = "\(network.range.upperBound.description)/\(network.bits)"
+            }
+        }
+
+        let defaultNatNetwork = BridgedNetwork(
+			name: "nat",
+            mode: .nat,
+            description: "NAT shared network",
+            gateway: dhcpStart,
+            dhcpEnd: dhcpEnd,
+            dhcpLease: dhcpLease,
+            interfaceID: "nat",
+            endpoint: String.empty,
+            running: true,
+            managed: false,
 			usedBy: referencedNetworks.usage(name: "nat"))
 
-		self._defaultNatNetwork = defaultNatNetwork
+        if failed == false {
+            self._defaultNatNetwork = defaultNatNetwork
+        }
 
 		return defaultNatNetwork
 	}
