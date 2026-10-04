@@ -133,16 +133,24 @@ public struct VMImageCatalog: Codable, Sendable {
 	}
 
 	private static func loadBundled() -> VMImageCatalog {
-		guard let url = vmImageCatalogResourceBundle.url(forResource: "VMImages", withExtension: "json") ?? Bundle.main.url(forResource: "VMImages", withExtension: "json") else {
+		func loadCatalog(_ url: URL) -> VMImageCatalog {
+			do {
+				let data = try Data(contentsOf: url)
+				return try JSONDecoder().decode(VMImageCatalog.self, from: data)
+			} catch {
+				fatalError("Failed to load VMImages.json: \(error)")
+			}
+		}
+
+		if let url = Bundle.main.url(forResource: "VMImages", withExtension: "json") {
+			return loadCatalog(url)
+		}
+
+		guard let url = vmImageCatalogResourceBundle.url(forResource: "VMImages", withExtension: "json") else {
 			fatalError("VMImages.json resource not found in the app bundle — add it to the target's \"Copy Bundle Resources\" build phase in Xcode")
 		}
 
-		do {
-			let data = try Data(contentsOf: url)
-			return try JSONDecoder().decode(VMImageCatalog.self, from: data)
-		} catch {
-			fatalError("Failed to load VMImages.json: \(error)")
-		}
+		return loadCatalog(url)
 	}
 
 	/// Load order: a `<CAKE_HOME>/VMImages.json` override, if present and valid, else the bundled
