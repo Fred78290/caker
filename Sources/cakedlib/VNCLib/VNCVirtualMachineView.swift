@@ -387,12 +387,16 @@ extension VZVirtualMachineView {
 		return Dynamic(self.framebufferView).cursor
 	}
 
-	func surface() -> IOSurface? {
-		guard let surface = self.framebufferView?.layer?.contents as? IOSurface else {
+	func surface() -> (surface: IOSurface, scaleFactor: CGFloat)? {
+		guard let layer = self.framebufferView?.layer else {
 			return nil
 		}
 
-		return surface
+		guard let surface = layer.contents as? IOSurface else {
+			return nil
+		}
+
+		return (surface, layer.contentsScale)
 	}
 
 	func contents() -> Data? {
@@ -408,6 +412,9 @@ extension VZVirtualMachineView {
 			return nil
 		}
 
+		// If IOSurface is sized in physical (backing) pixels; convert it to logical points
+		// so the rendered image lines up with the view's own bounds used for cropping below.
+		let logicalBounds = CGRect(origin: .zero, size: CGSize(width: CGFloat(surface.surface.width) / surface.scaleFactor, height: CGFloat(surface.surface.height) / surface.scaleFactor))
 		let renderLayer = CALayer(layer: layer)
 
 		renderLayer.drawsAsynchronously = true
@@ -415,14 +422,13 @@ extension VZVirtualMachineView {
 		renderLayer.masksToBounds = false
 		renderLayer.allowsEdgeAntialiasing = false
 		renderLayer.backgroundColor = .clear
-
 		renderLayer.contentsScale = 1
 		renderLayer.contentsGravity = .center
 		renderLayer.contentsFormat = .RGBA8Uint
-		renderLayer.bounds = CGRect(x: 0, y: 0, width: surface.width, height: surface.height)
-		renderLayer.contents = surface.cgImage
+		renderLayer.bounds = CGRect(origin: .zero, size: CGSize(width: surface.surface.width, height: surface.surface.height))
+		renderLayer.contents = surface.surface.cgImage
 
-		guard var cgImage = renderLayer.renderIntoImage(to: self.bounds) else {
+		guard var cgImage = renderLayer.renderIntoImage(to: logicalBounds) else {
 			return nil
 		}
 
