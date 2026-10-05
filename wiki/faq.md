@@ -124,6 +124,10 @@ Lorsque le redimensionnement est refusé, l'application Caker affiche la command
 
 Oui, le service de métadonnées d'instance (IMDS) pour les VM Linux fonctionne dans la version sandboxée, sur son port non privilégié (`--imds-port`, `28080` par défaut) — les invités le joignent directement, sans root ni `sudo`. Seul le fait de le joindre à l'adresse `169.254.169.254` de style AWS est indisponible en version sandboxée, car cela nécessite `sudo` pour sa redirection `pf` d'alias d'adresse, que l'App Sandbox macOS interdit. Voir [IMDS](imds) pour plus de détails.
 
+### La résolution DNS de Compose est-elle disponible dans la version App Store ?
+
+Non. Le résolveur DNS de Compose (joindre une VM par son nom, par exemple `mariadb.myapp.compose.internal`) a besoin d'une redirection `pf` du port 53, installée par un petit assistant root via `sudo` — ce que l'App Sandbox de macOS ne permet pas. Dans la version sandboxée, le résolveur tourne mais reste injoignable depuis les VM : la résolution par nom ne fonctionne donc pas, sans message d'erreur, et les éléments « Démarrer/Arrêter caked DNS » du menu Service de Caker.app n'y sont pas proposés. Pour contourner, joignez les VM par leur adresse IP (`cakectl infos <vm>`) ou utilisez la version en téléchargement direct. Voir [Compose](compose) et [Sandbox](sandbox).
+
 ## Questions d'utilisation
 
 ### Puis-je exécuter plusieurs VM simultanément ?
@@ -320,6 +324,10 @@ When the resize is refused, the Caker application shows the exact command to run
 ### Is IMDS available in the App Store version?
 
 Yes, the instance metadata service (IMDS) for Linux VMs works in the sandboxed version, on its unprivileged port (`--imds-port`, default `28080`) — guests reach it directly there, no root or `sudo` involved. Only reaching it at the AWS-style `169.254.169.254` address is unavailable in the sandboxed version, since that needs `sudo` for its `pf` address-alias redirect, which the macOS App Sandbox blocks. See [IMDS](imds) for details.
+
+### Is Compose DNS resolution available in the App Store version?
+
+No. The Compose DNS resolver (reaching a VM by name, for example `mariadb.myapp.compose.internal`) needs a `pf` redirect of port 53, installed by a small root helper through `sudo` — which the macOS App Sandbox doesn't allow. In the sandboxed version the resolver runs but stays unreachable from any VM, so name resolution doesn't work, with no error message, and the "Start/Stop caked DNS" items in Caker.app's Service menu aren't offered there. To work around it, reach VMs by IP address (`cakectl infos <vm>`) or use the direct-download build. See [Compose](compose) and [Sandbox](sandbox).
 
 ## Usage Questions
 
