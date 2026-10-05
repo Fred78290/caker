@@ -6,12 +6,31 @@ import Foundation
 // App Store builds must not depend on or link Sparkle.framework, since it is
 // excluded from the app bundle (Sparkle isn't permitted on the Mac App Store).
 let isAppStoreBuild = ProcessInfo.processInfo.environment["APPSTORE"] == "1"
+let supportedVersions: [SupportedPlatform]
+let linkerSettings: [LinkerSetting]?
+
+if isAppStoreBuild {
+	supportedVersions = [
+		.macOS(.v26)
+	]
+
+	linkerSettings = nil
+} else {
+	supportedVersions = [
+		.macOS(.v15)
+	]
+
+	linkerSettings = [
+		.unsafeFlags([
+			"-Xlinker", "-rpath",
+			"-Xlinker", "@executable_path/../../../../Frameworks"
+		])
+	]
+}
 
 let package = Package(
 	name: "Caker",
-	platforms: [
-		.macOS(.v15)
-	],
+	platforms: supportedVersions,
 	products: [
 		.executable(name: "caked", targets: ["caked"]),
 		.executable(name: "Caker", targets: ["caker"]),
@@ -50,7 +69,6 @@ let package = Package(
 		.package(url: "https://github.com/asam139/Steps.git", exact: "0.3.9"),
 		.package(url: "https://github.com/cfilipov/TextTable", branch: "master"),
 		.package(url: "https://github.com/fumoboy007/swift-retry", exact: "0.2.4"),
-		.package(url: "https://github.com/getsentry/sentry-cocoa", exact: "8.49.2"),
 		.package(url: "https://github.com/groue/Semaphore", exact: "0.0.8"),
 		.package(url: "https://github.com/grpc/grpc-swift.git", exact: "1.27.6"),
 		.package(url: "https://github.com/jozefizso/swift-xattr", exact: "3.0.0"),
@@ -127,7 +145,6 @@ let package = Package(
 			.product(name: "NIOSSL", package: "swift-nio-ssl"),
 			.product(name: "NIOTLS", package: "swift-nio"),
 			.product(name: "Semaphore", package: "Semaphore"),
-			.product(name: "Sentry", package: "sentry-cocoa"),
 			.product(name: "Shout", package: "Shout"),
 			.product(name: "SwiftDate", package: "SwiftDate"),
 			.product(name: "SwiftRadix", package: "SwiftRadix"),
@@ -213,12 +230,7 @@ let package = Package(
 			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
 			.product(name: "Vapor", package: "vapor"),
 		],
-		linkerSettings: [
-			.unsafeFlags([
-				"-Xlinker", "-rpath",
-				"-Xlinker", "@executable_path/../../../../Frameworks"
-			])
-		]),
+		linkerSettings: linkerSettings),
 		.executableTarget(name: "cakectl", dependencies: [
 			.target(name: "GRPCLib"),
 			.target(name: "CakedLib"),
@@ -244,7 +256,6 @@ let package = Package(
 			.product(name: "NIOSSL", package: "swift-nio-ssl"),
 			.product(name: "NIOTLS", package: "swift-nio"),
 			.product(name: "Semaphore", package: "Semaphore"),
-			.product(name: "Sentry", package: "sentry-cocoa"),
 			.product(name: "SwiftDate", package: "SwiftDate"),
 			.product(name: "SwiftRadix", package: "SwiftRadix"),
 			.product(name: "Sysctl", package: "swift-sysctl"),
@@ -253,12 +264,7 @@ let package = Package(
 			.product(name: "XAttr", package: "swift-xattr"),
 			.product(name: "Yams", package: "Yams"),
 		],
-		linkerSettings: [
-			.unsafeFlags([
-				"-Xlinker", "-rpath",
-				"-Xlinker", "@executable_path/../../../../Frameworks"
-			])
-		]),
+		linkerSettings: linkerSettings),
 		.testTarget(name: "CakerTests", dependencies: [
 			"GRPCLib",
 			"CakedLib",

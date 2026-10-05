@@ -30,6 +30,7 @@ BASE_VERSION=${BASE_VERSION:-1.0}
 VERSION="${VERSION:-${BASE_VERSION}.$(git rev-list --count HEAD)}"
 SWIFTCMD="xcrun swift"
 MACOSSDK="$(xcrun --sdk macosx --show-sdk-path)"
+MINIMUM_SYSTEM_VERSION=26.0
 
 #sudo rm -rf "${PROJECT_ROOT}/.appstore" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
 sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app"
@@ -48,8 +49,8 @@ jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
 )' Package.resolved > Package.resolved.tmp && mv Package.resolved.tmp Package.resolved
 
 for ARCH in x86_64 arm64; do
+#	--sdk "${MACOSSDK}" -Xlinker -platform_version -Xlinker macos -Xlinker 15.0 -Xlinker 27.0 \
 	${SWIFTCMD} build -c release \
-		--sdk "${MACOSSDK}" -Xlinker -platform_version -Xlinker macos -Xlinker 15.0 -Xlinker 27.0 \
 		--arch ${ARCH} --build-path "${PROJECT_ROOT}/.appstore/${ARCH}-apple-macosx" \
 		-Xswiftc -D -Xswiftc USE_SMAPPSERVICE \
 		-Xswiftc -D -Xswiftc APPSTORE \

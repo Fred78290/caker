@@ -8,6 +8,7 @@ RELEASE=${RELEASE:-0}
 APPSTORE=${APPSTORE:-0}
 USE_SMAPPSERVICE=${USE_SMAPPSERVICE:-0}
 SPARKLE_VERSION=2.10.0
+MINIMUM_SYSTEM_VERSION=${MINIMUM_SYSTEM_VERSION:-15.0}
 
 CAKER_APP="${PKGDIR}/Contents"
 CAKED_APP="${CAKER_APP}/PlugIns/caked.app/Contents"
@@ -62,6 +63,7 @@ actool "${RESOURCESDIR}/Assets.xcassets" \
 	--platform macosx
 
 if [ $APPSTORE -eq 0 ]; then
+	mkdir -p "${CAKER_APP}/Frameworks"
 	mkdir -p "${PROJECT_ROOT}/tmp"
 	curl -L https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz -o "${PROJECT_ROOT}/tmp/Sparkle-${SPARKLE_VERSION}.tar.xz"
 	tar -xf "${PROJECT_ROOT}/tmp/Sparkle-${SPARKLE_VERSION}.tar.xz" -C "${BUILDDIR}" Sparkle.framework
@@ -77,10 +79,9 @@ if [ $APPSTORE -eq 0 ]; then
 			rm -rf "${FILE}"
 		fi
 	done
-fi
 
-mkdir -p "${CAKER_APP}/Frameworks"
-cp "$(find "$(xcode-select -p)" -name 'libswiftCompatibilitySpan*' | grep 'macosx/libswiftCompatibilitySpan.dylib')" "${CAKER_APP}/Frameworks/"
+	cp "$(find "$(xcode-select -p)" -name 'libswiftCompatibilitySpan*' | grep 'macosx/libswiftCompatibilitySpan.dylib')" "${CAKER_APP}/Frameworks/"
+fi
 
 cp "${PROJECT_ROOT}/Sources/caker/Resources/"* "${CAKER_APP}/Resources"
 cp "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources/"* "${CAKED_APP}/Resources"
@@ -150,16 +151,25 @@ elif [ $APPSTORE -eq 1 ]; then
 	plutil -remove SUScheduledCheckInterval "${CAKER_APP}/Info.plist" 2>/dev/null || true
 fi
 
+plutil -replace LSMinimumSystemVersion -string "${MINIMUM_SYSTEM_VERSION}" "${CAKER_APP}/Info.plist"
 plutil -replace CFBundleShortVersionString -string "${VERSION}" "${CAKER_APP}/Info.plist"
 plutil -replace CFBundleVersion -string "${VERSION}" "${CAKER_APP}/Info.plist"
 
+plutil -replace LSMinimumSystemVersion -string "${MINIMUM_SYSTEM_VERSION}" "${CAKED_APP}/Info.plist"
 plutil -replace CFBundleShortVersionString -string "${VERSION}" "${CAKED_APP}/Info.plist"
 plutil -replace CFBundleVersion -string "${VERSION}" "${CAKED_APP}/Info.plist"
 
+plutil -replace LSMinimumSystemVersion -string "${MINIMUM_SYSTEM_VERSION}" "${CAKECTL_APP}/Info.plist"
 plutil -replace CFBundleShortVersionString -string "${VERSION}" "${CAKECTL_APP}/Info.plist"
 plutil -replace CFBundleVersion -string "${VERSION}" "${CAKECTL_APP}/Info.plist"
 
 if [ "${APPSTORE}" -eq 1 ]; then
+	#codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
+	#	--options runtime \
+	#	--timestamp \
+	#	--strip-disallowed-xattrs \
+	#	--force "${CAKER_APP}/Frameworks/libswiftCompatibilitySpan.dylib"
+
 	codesign ${KEYCHAIN_OPTIONS} --sign "Apple Distribution: ${DEVELOPER_ID}" \
 		--options runtime \
 		--identifier "com.aldunelabs.caker.cakectl" \
@@ -213,6 +223,11 @@ if [ "${APPSTORE}" -eq 1 ]; then
 
 elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 	echo "Build and sign release binaries for version ${VERSION}, developer ID ${DEVELOPER_ID}"
+
+	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+		--options runtime \
+		--timestamp \
+		--force "${CAKER_APP}/Frameworks/libswiftCompatibilitySpan.dylib"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 		--options runtime \
@@ -329,6 +344,7 @@ else
 	echo "Build unsigned debug binaries"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/cakectl.entitlements" --force "${CAKECTL_APP}/MacOS/cakectl"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKED_APP}/MacOS/caked"
+	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/Frameworks/libswiftCompatibilitySpan.dylib"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/Frameworks/Sparkle.framework/Versions/Current"
 	codesign --sign - --entitlements "${PROJECT_ROOT}/Resources/debug/caker.entitlements" --force "${CAKER_APP}/MacOS/Caker"
 fi
