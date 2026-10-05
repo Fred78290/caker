@@ -14,7 +14,7 @@ struct CakerMenuBarExtraScene: Scene {
 	@State var model: NavigationModel
 	@State private var composeMenuModel = ComposeMenuBarPoller()
 
-	@AppStorage("ShowMenuIcon") private var isMenuIconShown: Bool = false
+	@AppStorage("ShowMenuIcon") private var isMenuIconShown: Bool = true
 	@AppStorage("HideDockIcon") private var isDockIconHidden: Bool = false
 	@Environment(\.openWindow) private var openWindow
 	@Environment(\.openSettings) private var openSettings

@@ -18,7 +18,7 @@ extension Binding where Value == Bool {
 }
 
 struct ApplicationSettingsView: View {
-	@AppStorage("HideDockIcon") var isDockIconHidden = true
+	@AppStorage("HideDockIcon") var isDockIconHidden = false
 	@AppStorage("ShowMenuIcon") var isMenuIconShown = true
 
 	@State private var state: AppState = AppState.shared

@@ -156,7 +156,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 	@ObservationIgnored @AppStorage("AppearancePreference") var appearancePreference: AppearancePreference = .system
 	@ObservationIgnored @AppStorage("ClipboardRedirectionEnabled") var isClipboardRedirectionEnabled = false
 	@ObservationIgnored @AppStorage("DebugVNCMessageEnabled") var debugVNCMessageEnabled: Bool = false
-	@ObservationIgnored @AppStorage("HideDockIcon") var isDockIconHidden = true
+	@ObservationIgnored @AppStorage("HideDockIcon") var isDockIconHidden = false
 	@ObservationIgnored @AppStorage("ShowMenuIcon") var isMenuIconShown = true
 	@ObservationIgnored @AppStorage(CakedKeyConfig.imdsEnabled.rawValue, store: .shared) var awsEC2MetadataEnabled: Bool = true
 	@ObservationIgnored @AppStorage("VirtualMachinesViewMode") var virtualMachinesViewMode: VirtualMachinesViewMode = .mosaic
