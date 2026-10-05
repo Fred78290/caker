@@ -3853,7 +3853,7 @@
 				"# Type a script or drag a script file from your workspace to insert its path.",
 				"set -e",
 				"",
-				"cp \"${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}/caker.provisionprofile\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile\"",
+				"cp \"${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}/${EXECUTABLE_NAME}.provisionprofile\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile\"",
 				"",
 			);
 		};
@@ -4841,14 +4841,16 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/cakectl.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = LE7988HTRN;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readwrite;
 				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
 				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
@@ -4996,7 +4998,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/cakectl.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -5076,10 +5078,12 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caked.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = LE7988HTRN;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_FILE_ACCESS_DOWNLOADS_FOLDER = readwrite;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -5220,7 +5224,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Caker/AppStore/$(CONFIGURATION)/caked.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
