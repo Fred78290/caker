@@ -634,6 +634,7 @@ extension VirtualMachineDocument {
 		self.externalRunning = false
 		self.agentCondition = ("Install agent", false, true)
 		self.agentReady = false
+		self.virtualMachine = nil
 
 		disconnectVNC()
 
