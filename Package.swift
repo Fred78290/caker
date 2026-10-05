@@ -212,6 +212,12 @@ let package = Package(
 			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding"),
 			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
 			.product(name: "Vapor", package: "vapor"),
+		],
+		linkerSettings: [
+			.unsafeFlags([
+				"-Xlinker", "-rpath",
+				"-Xlinker", "@executable_path/../../../../Frameworks"
+			])
 		]),
 		.executableTarget(name: "cakectl", dependencies: [
 			.target(name: "GRPCLib"),
@@ -246,6 +252,12 @@ let package = Package(
 			.product(name: "X509", package: "swift-certificates"),
 			.product(name: "XAttr", package: "swift-xattr"),
 			.product(name: "Yams", package: "Yams"),
+		],
+		linkerSettings: [
+			.unsafeFlags([
+				"-Xlinker", "-rpath",
+				"-Xlinker", "@executable_path/../../../../Frameworks"
+			])
 		]),
 		.testTarget(name: "CakerTests", dependencies: [
 			"GRPCLib",
