@@ -3754,7 +3754,7 @@
 			shellPath = /bin/sh;
 			shellScript = (
 				"# Type a script or drag a script file from your workspace to insert its path.",
-				"cp ${SOURCE_ROOT}/../Resources/caked.provisionprofile ${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
+				"cp \"${SOURCE_ROOT}/../Resources/caked.provisionprofile\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile\"",
 				"",
 			);
 		};
@@ -3804,11 +3804,11 @@
 			shellPath = /bin/sh;
 			shellScript = (
 				"# Type a script or drag a script file from your workspace to insert its path.",
-				"source ${HOME}/.profile",
+				"source \"${HOME}/.profile\"",
 				"",
 				"set -ex",
 				"",
-				"pushd ${SOURCE_ROOT}/../webui",
+				"pushd \"${SOURCE_ROOT}/../webui\"",
 				"",
 				"ls -l",
 				"npm install",
@@ -3820,10 +3820,10 @@
 				"fi",
 				"",
 				"pushd dist",
-				"zip -r ../webui.zip .",
+				"zip -r \"../webui.zip\" .",
 				"popd",
 				"",
-				"cp webui.zip ${METAL_LIBRARY_OUTPUT_DIR}",
+				"cp webui.zip \"${METAL_LIBRARY_OUTPUT_DIR}\"",
 				"",
 				"popd",
 				"",

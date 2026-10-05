@@ -3835,7 +3835,7 @@
 				"# Type a script or drag a script file from your workspace to insert its path.",
 				"set -e",
 				"",
-				"cp ${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}/${EXECUTABLE_NAME}.provisionprofile ${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
+				"cp \"${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}/${EXECUTABLE_NAME}.provisionprofile\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile\"",
 				"",
 			);
 		};
@@ -3853,7 +3853,7 @@
 				"# Type a script or drag a script file from your workspace to insert its path.",
 				"set -e",
 				"",
-				"cp ${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}/caker.provisionprofile ${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile",
+				"cp \"${SOURCE_ROOT}/Caker/AppStore/${CONFIGURATION}/caker.provisionprofile\" \"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/embedded.provisionprofile\"",
 				"",
 			);
 		};
