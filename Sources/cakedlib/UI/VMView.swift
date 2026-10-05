@@ -22,7 +22,7 @@ public struct VMView: NSViewRepresentable {
 
 		vzMachineView.virtualMachine = vm.virtualMachine
 		vzMachineView.autoresizingMask = [.width, .height]
-		vzMachineView.automaticallyReconfiguresDisplay = true
+		vzMachineView.automaticallyReconfiguresDisplay = vm.config.displayRefit
 		vzMachineView.capturesSystemKeys = true
 		//vzMachineView.showsHostCursor = false
 
