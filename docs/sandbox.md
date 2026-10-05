@@ -10,7 +10,7 @@ nav_order: 11
 
 # Sandbox (bac à sable)
 
-Caker propose deux versions : une version en téléchargement direct, sans App Sandbox, et une version App Store qui s'exécute dans l'App Sandbox de macOS (entitlement `com.apple.security.app-sandbox`). La version sandboxée ne peut lire et écrire que dans un ensemble de répertoires précis, et Caker applique en plus ses propres restrictions pour deux fonctionnalités liées aux VM : les sockets Unix et les répertoires partagés Virtio-FS. Cette page documente les deux.
+Caker propose deux versions : une version en téléchargement direct, sans App Sandbox, et une version App Store qui s'exécute dans l'App Sandbox de macOS (entitlement `com.apple.security.app-sandbox`). La version sandboxée ne peut lire et écrire que dans un ensemble de répertoires précis, et Caker applique en plus ses propres restrictions pour deux fonctionnalités liées aux VM : les sockets Unix et les répertoires partagés Virtio-FS. Quelques autres fonctionnalités sont tout simplement indisponibles dans cette version, comme le résolveur DNS de Compose. Cette page documente les deux familles de limitations.
 
 ## Vérifier si vous êtes en version sandboxée
 
@@ -49,6 +49,16 @@ Notez que cette liste d'autorisation est plus restreinte que les exceptions de l
 
 Dans l'interface graphique de Caker.app, le sélecteur de montage démarre par défaut sur `~/Public` en version sandboxée (au lieu de tout votre répertoire personnel), pour indiquer un dossier garanti fonctionnel.
 
+## Fonctionnalités indisponibles
+
+Au-delà des filtres de chemins ci-dessus, certaines fonctionnalités ne peuvent pas fonctionner dans l'App Sandbox. Caker.app les rappelle au premier lancement de la version App Store, dans la fenêtre « Exécution dans l'App Sandbox » :
+
+- **Résolveur DNS de Compose** — joindre une VM par son nom : `<service>.<projet>.compose.internal` pour un service compose, `<nomvm>.compose.internal` pour n'importe quelle VM (par exemple `mariadb.myapp.compose.internal`). Le résolveur a besoin d'une redirection `pf` installée par un petit assistant root, ce que le bac à sable de l'App Store n'autorise pas : il tourne, mais reste injoignable depuis les VM, sans qu'aucune erreur ne soit affichée. Pour la même raison, les éléments « Démarrer/Arrêter caked DNS » du menu Service de Caker.app ne sont pas proposés dans cette version. Contournement : joindre les VM par leur adresse IP (`cakectl infos <vm>`), ou utiliser la version en téléchargement direct. Voir [Compose](compose) (« Résolution DNS entre services »).
+- **Joindre IMDS à l'adresse `169.254.169.254`** de style AWS — même cause, la redirection `pf` d'alias d'adresse. IMDS lui-même reste joignable à l'adresse de la passerelle, sur son port non privilégié. Voir [IMDS](imds).
+- **Redimensionner un disque ASIF** et **attacher des périphériques de bloc physiques** depuis la ligne de commande. Voir [Dépannage](troubleshooting) et la [FAQ](faq).
+
+La version en téléchargement direct n'a aucune de ces limitations.
+
 ## Voir aussi
 
 - [Résumé des commandes](command-summary) — référence complète des options `--mount`, `--socket`, `--disk`
@@ -61,7 +71,7 @@ Dans l'interface graphique de Caker.app, le sélecteur de montage démarre par d
 
 # Sandbox
 
-Caker ships two builds: a direct-download build with no App Sandbox, and an App Store build that runs inside the macOS App Sandbox (`com.apple.security.app-sandbox`). The sandboxed build can only read and write a fixed set of locations, and Caker enforces additional restrictions of its own on top of that for two VM-facing features: Unix domain sockets and Virtio-FS shared directories. This page documents both.
+Caker ships two builds: a direct-download build with no App Sandbox, and an App Store build that runs inside the macOS App Sandbox (`com.apple.security.app-sandbox`). The sandboxed build can only read and write a fixed set of locations, and Caker enforces additional restrictions of its own on top of that for two VM-facing features: Unix domain sockets and Virtio-FS shared directories. A few other features are simply unavailable in this build, such as the Compose DNS resolver. This page documents both kinds of limitation.
 
 ## Checking whether you're sandboxed
 
@@ -99,6 +109,16 @@ Anything else — an external volume, a path under a project directory, or a hom
 Note that this allow-list is narrower than the read-only/read-write home-relative exceptions declared in the app's entitlements (`~/.ssh/`, `~/.tart/`, `~/.docker/`, UTM/VirtualBuddy support directories, etc.) — those exist to let Caker *import* VMs/keys from other tools, they don't extend what you can pass to `--mount` or attach as an extra disk.
 
 In the Caker.app GUI, the mount picker defaults to browsing `~/Public` when sandboxed (instead of your full home directory) as a hint toward a folder that's guaranteed to work.
+
+## Features that are unavailable
+
+Beyond the path filters above, some features cannot work inside the App Sandbox. Caker.app reminds you of them the first time the App Store build launches, in the "Running in the App Sandbox" window:
+
+- **Compose DNS resolver** — reaching a VM by name: `<service>.<project>.compose.internal` for a compose service, `<vmname>.compose.internal` for any VM (for example `mariadb.myapp.compose.internal`). The resolver needs a `pf` redirect installed by a small root helper, which the App Store sandbox doesn't allow: it runs, but stays unreachable from any VM, with no error shown. For the same reason, the "Start/Stop caked DNS" items in Caker.app's Service menu aren't offered in this build. Workaround: reach VMs by IP address (`cakectl infos <vm>`), or use the direct-download build. See [Compose](compose) ("DNS resolution between services").
+- **Reaching IMDS at the AWS-style `169.254.169.254` address** — same cause, the `pf` address-alias redirect. IMDS itself is still reachable at the gateway address, on its unprivileged port. See [IMDS](imds).
+- **Resizing an ASIF disk** and **attaching physical block devices** from the command line. See [Troubleshooting](troubleshooting) and the [FAQ](faq).
+
+The direct-download build has none of these limitations.
 
 ## See also
 
