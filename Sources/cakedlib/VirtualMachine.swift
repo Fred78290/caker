@@ -669,9 +669,9 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		}
 
 		if let surface = vzMachineView.surface() {
-			try? surface.surface.contents.write(to: self.location.rootURL.appendingPathComponent("surface.data"))
+			try? surface.contents.write(to: self.location.rootURL.appendingPathComponent("surface.data"))
 
-			if let cgImage = surface.surface.cgImage {
+			if let cgImage = surface.cgImage {
 				let image = NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
 
 				if let data = image.pngData {
@@ -679,7 +679,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 				}
 			}
 
-			if let bitmapRep = surface.surface.bitmapRepresentation {
+			if let bitmapRep = surface.bitmapRepresentation {
 				try? bitmapRep.tiffRepresentation?.write(to: self.location.rootURL.appendingPathComponent("surface.tiff"))
 			}
 		}
