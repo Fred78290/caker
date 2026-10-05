@@ -284,7 +284,7 @@ extension UTType {
 		return launchVMExternally
 	}
 
-	var virtualMachineConfig: VirtualMachineConfig = .init()
+	private(set) var virtualMachineConfig: VirtualMachineConfig = .init()
 	var externalRunning: Bool = false
 	var canStart: Bool = false
 	var canStop: Bool = false
@@ -1111,8 +1111,10 @@ extension VirtualMachineDocument {
 		try self.connectionManager.renameVirtualMachine(vmURL: self.url, to: to)
 	}
 
-	func saveConfiguration() {
+	func saveConfiguration(_ config: VirtualMachineConfig) {
 		let connectionMode = self.connectionManager.connectionMode
+
+		self.virtualMachineConfig = config
 
 		do {
 			if connectionMode != .app {

@@ -113,8 +113,7 @@ struct VirtualMachineSettingsView: View {
 				.withButtonStyle(.bordered)
 
 				Button {
-					self.document.virtualMachineConfig = self.config
-					AppState.shared.saveConfiguration(document: self.document)
+					self.document.saveConfiguration(self.config)
 					dismiss()
 				} label: {
 					Text("Save")

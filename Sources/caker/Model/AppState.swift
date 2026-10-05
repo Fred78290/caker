@@ -796,10 +796,6 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 		}
 	}
 
-	func saveConfiguration(document vm: VirtualMachineDocument) {
-		vm.saveConfiguration()
-	}
-
 	func deleteVirtualMachine(document vm: VirtualMachineDocument) {
 		let alert = NSGlassEffectAlert()
 
