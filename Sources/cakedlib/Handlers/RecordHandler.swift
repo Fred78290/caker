@@ -21,6 +21,7 @@ import CakeAgentLib
 import Foundation
 import GRPCLib
 import Combine
+import NIO
 
 public struct RecordHandler {
 	public static var currentSession: Session?
@@ -191,6 +192,7 @@ public struct RecordHandler {
 		location: VMLocation,
 		storageLocation: StorageLocation,
 		destination: URL,
+		promise: EventLoopPromise<Void>? = nil,
 		runMode: Utils.RunMode
 	) throws -> (Session, VMRunHandler) {
 		let config = try location.config()
@@ -211,6 +213,7 @@ public struct RecordHandler {
 			vncPassword: config.vncPassword ?? UUID().uuidString,
 			vncPort: 0,
 			vmMode: .recording,
+			promise: promise,
 			runMode: runMode)
 
 		return (try handler.run { _, vm in

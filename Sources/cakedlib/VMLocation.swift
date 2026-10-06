@@ -764,6 +764,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		mode: VirtualMachine.Mode,
 		runMode: Utils.RunMode,
 		queue: DispatchQueue?,
+		promise: EventLoopPromise<Void>? = nil,
 		completionHandler: VirtualMachine.StartCompletionHandler? = nil
 	) throws -> (address: EventLoopFuture<String?>, vm: VirtualMachine) {
 		let vm = try VirtualMachine(
@@ -776,7 +777,9 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			queue: queue)
 
 		let runningIP = try vm.runInBackground(
-			serviceMode, on: on,
+			serviceMode,
+			on: on,
+			promise: promise,
 			completionHandler: completionHandler)
 
 		try self.writePID()

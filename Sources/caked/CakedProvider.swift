@@ -36,10 +36,10 @@ extension CakedCommand {
 extension CakedCommandAsync {
 	mutating func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		do {
-			var handler = self
+			var command = self
 
 			return try on.makeFutureWithTask {
-				return await handler.run(on: on, runMode: runMode)
+				return await command.run(on: on, runMode: runMode)
 			}.wait()
 		} catch {
 			return self.replyError(error: error)

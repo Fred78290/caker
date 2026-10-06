@@ -1,3 +1,4 @@
+import AppKit
 import ArgumentParser
 import CakeAgentLib
 import Foundation
@@ -1021,7 +1022,7 @@ extension VirtualMachine {
 		}
 	}
 
-	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
+	private func startedVM(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
 		if self.env.runMode == .app {
 			if self.mode == .provisioning {
 				try self.location.writeProvisionning()
@@ -1058,10 +1059,6 @@ extension VirtualMachine {
 		}
 
 		response.whenSuccess { runningIP in
-			if let promise = promise {
-				promise.succeed(runningIP)
-			}
-
 			if let runningIP {
 				self.env.runningIP = runningIP
 			}
@@ -1090,10 +1087,6 @@ extension VirtualMachine {
 		}
 
 		response.whenFailure { error in
-			if let promise = promise {
-				promise.fail(error)
-			}
-
 			self.didChangedState(false)
 
 			self.logger.error("VM \(self.location.name) failed to get primary IP: \(error)")
@@ -1102,9 +1095,13 @@ extension VirtualMachine {
 		return response
 	}
 
-	private func start(_ mode: VMRunServiceMode, completionHandler: StartCompletionHandler? = nil) async throws {
+	private func start(_ mode: VMRunServiceMode, promise: EventLoopPromise<Void>? = nil, completionHandler: StartCompletionHandler? = nil) async throws {
 
 		let finalPromise = Utilities.group.next().makePromise(of: Void.self)
+
+		if let promise = promise {
+			finalPromise.futureResult.cascade(to: promise)
+		}
 
 		self.finalPromise = finalPromise
 		try self.env.startVMRunService(mode, vm: self)
@@ -1277,7 +1274,7 @@ extension VirtualMachine {
 	public func runInBackground(
 		_ mode: VMRunServiceMode,
 		on: EventLoop,
-		promise: EventLoopPromise<String?>? = nil,
+		promise: EventLoopPromise<Void>? = nil,
 		completionHandler: StartCompletionHandler? = nil
 	) throws -> EventLoopFuture<String?> {
 
@@ -1289,7 +1286,7 @@ extension VirtualMachine {
 			}
 
 			do {
-				try await self.start(mode, completionHandler: completionHandler)
+				try await self.start(mode, promise: promise, completionHandler: completionHandler)
 			} catch {
 				status = 1
 			}
@@ -1313,7 +1310,7 @@ extension VirtualMachine {
 			self.catchUserSignals(task)
 		}
 
-		return try self.startedVM(on: on, promise: promise, runMode: self.env.runMode)
+		return try self.startedVM(on: on, runMode: self.env.runMode)
 	}
 }
 

@@ -36,8 +36,6 @@ struct Build: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		await NSApplication.shared.setActivationPolicy(.prohibited)
-
 		Root.sigintSrc.cancel()
 		signal(SIGINT, SIG_IGN)
 
