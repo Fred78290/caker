@@ -98,6 +98,12 @@ struct Record: AsyncParsableCommand {
 
 		sigintSrc.setEventHandler {
 			stopAndSave()
+
+			sigintSrc.setEventHandler {
+				Foundation.exit(128)
+			}
+
+			sigintSrc.activate()
 		}
 
 		sigintSrc.activate()

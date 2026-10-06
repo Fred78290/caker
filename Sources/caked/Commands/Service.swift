@@ -506,6 +506,12 @@ extension Service {
 
 						exitCode = 128
 
+						sigintSrc.setEventHandler {
+							Foundation.exit(128)
+						}
+
+						sigintSrc.activate()
+
 						Task {
 							if let handler = imdsLifecycleHandler, let coordinator = imdsCoordinator {
 								imdsLifecycleHandler = nil

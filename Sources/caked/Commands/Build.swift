@@ -49,8 +49,14 @@ struct Build: AsyncParsableCommand {
 
 		sigintSrc.setEventHandler {
 			task.cancel()
+			
+			sigintSrc.setEventHandler {
+				Foundation.exit(128)
+			}
+
+			sigintSrc.activate()
 		}
-		sigintSrc.resume()
+		sigintSrc.activate()
 
 		try await task.value
 	}

@@ -138,6 +138,12 @@ struct Provision: AsyncParsableCommand {
 
 			sigintSrc.setEventHandler {
 				cancellation.cancel()
+
+				sigintSrc.setEventHandler {
+					Foundation.exit(128)
+				}
+
+				sigintSrc.activate()
 			}
 
 			sigintSrc.activate()
