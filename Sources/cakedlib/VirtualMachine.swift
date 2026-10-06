@@ -1289,6 +1289,12 @@ extension VirtualMachine {
 				try await self.start(mode, promise: promise, completionHandler: completionHandler)
 			} catch {
 				status = 1
+
+				self.logger.error("VM \(self.location.name) failed to run: \(error)")
+
+				// `start` only completes `finalPromise` on a clean exit: fail it here so whoever waits
+				// on it (e.g. headless `caked vmrun`) is woken up instead of hanging forever.
+				self.finalPromise?.fail(error)
 			}
 
 			self.location.removePID()
