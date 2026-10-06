@@ -100,7 +100,7 @@ struct Provision: AsyncParsableCommand {
 			location, template: templatePath?.path(percentEncoded: false),
 			macosVersion: self.provision.macosVersion, variables: self.provision.vars, runMode: self.common.runMode)
 
-		var promise = Utilities.group.next().makePromise(of: Void.self)
+		let promise = Utilities.group.next().makePromise(of: Void.self)
 		let semaphore = AsyncSemaphore(value: 0)
 
 		defer {
