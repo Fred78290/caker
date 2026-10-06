@@ -23,7 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	}
 
 	func applicationWillFinishLaunching(_ notification: Notification) {
-		NSApp.setDockIcon()
+		NSApplication.shared.setDockIcon()
 		self.showSplashWindow()
 	}
 

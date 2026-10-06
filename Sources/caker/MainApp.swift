@@ -817,11 +817,11 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		Self.askUserToInstallCakedAgent()
 
 		if isDockIconHidden {
-			NSApp.setActivationPolicy(.accessory)
+			NSApplication.shared.setActivationPolicy(.accessory)
 		} else {
-			NSApp.setActivationPolicy(.regular)
+			NSApplication.shared.setActivationPolicy(.regular)
 			EnvironmentValues().openWindow(id: "home")
-			NSApp.windows.first?.makeKeyAndOrderFront(nil)
+			NSApplication.shared.windows.first?.makeKeyAndOrderFront(nil)
 		}
 
 		if Bundle.isApplicationSandboxed && hasSeenSandboxSplash == false {
@@ -840,7 +840,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 				alertError(String(localized: "Certificates"), String(localized: "Failed to install certificates. Please check the logs for more information."))
 			}
 
-			NSApp.terminate(self)
+			NSApplication.shared.terminate(self)
 		}
 	}
 
@@ -892,7 +892,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 					showPrivilegedInstallationConfirmation()
 				}
 				guard shouldContinue else {
-					NSApp.terminate(self)
+					NSApplication.shared.terminate(self)
 					return
 				}
 
@@ -926,13 +926,13 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 				alertError(String(localized: "Admin rights"), String(localized: "Failed to ensure privileged bootstrap files"))
 			}
 
-			NSApp.terminate(self)
+			NSApplication.shared.terminate(self)
 		}
 	}
 
 	@MainActor
 	private static func showRunInTerminalAlert(_ contents: [String]) {
-		NSApp.setActivationPolicy(.regular)
+		NSApplication.shared.setActivationPolicy(.regular)
 
 		let scriptBody = contents.dropFirst().joined(separator: "\n")
 		let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
@@ -963,12 +963,12 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			NSPasteboard.general.setString(sudoScript, forType: .string)
 		}
 
-		NSApp.terminate(self)
+		NSApplication.shared.terminate(self)
 	}
 
 	@MainActor
 	private static func showPrivilegedInstallationConfirmation() -> Bool {
-		NSApp.setActivationPolicy(.regular)
+		NSApplication.shared.setActivationPolicy(.regular)
 
 		let alert = NSGlassEffectAlert()
 
@@ -985,7 +985,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 	@MainActor
 	private static func showCommandToPasteAlert(_ contents: [String]) {
-		NSApp.setActivationPolicy(.regular)
+		NSApplication.shared.setActivationPolicy(.regular)
 
 		let scriptBody = contents.dropFirst().joined(separator: "\n")
 		let sudoScript = "sudo sh << 'SUDOEOF'\n\(scriptBody)\nSUDOEOF"
@@ -1019,7 +1019,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
             NSPasteboard.general.setString(sudoScript, forType: .string)
         }
 
-        NSApp.terminate(self)
+		NSApplication.shared.terminate(self)
     }
 
 	static func askUserToInstallCakedAgent() {
@@ -1035,7 +1035,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	#if USE_SMAPPSERVICE
 		@MainActor
 		private static func showInstallAgentAlert() {
-			NSApp.setActivationPolicy(.regular)
+			NSApplication.shared.setActivationPolicy(.regular)
 
 			let alert = NSGlassEffectAlert()
 

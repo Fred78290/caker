@@ -31,7 +31,7 @@ struct ApplicationSettingsView: View {
 					ForEach(AppearancePreference.allCases, id: \.self) { pref in
 						AppearanceTile(pref: pref, isSelected: state.appearancePreference == pref) {
 							if pref == .system {
-								state.appearancePreference = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? .dark : .light
+								state.appearancePreference = NSApplication.shared.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? .dark : .light
 								DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
 									state.appearancePreference = .system
 								}

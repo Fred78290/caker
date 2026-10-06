@@ -283,13 +283,13 @@ struct Provision: GrpcParsableCommand {
 									tunnel.close().whenComplete { _ in
 										DispatchQueue.main.async {
 											logger.debug("Terminating application after provisioning")
-											NSApp.terminate(nil)
+											NSApplication.shared.terminate(nil)
 										}
 									}
 								} else {
 									DispatchQueue.main.async {
 										logger.debug("Terminating application after provisioning")
-										NSApp.terminate(nil)
+										NSApplication.shared.terminate(nil)
 									}
 								}
 							}

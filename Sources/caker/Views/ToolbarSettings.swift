@@ -227,7 +227,7 @@ struct ToolbarSettings<Item: ToolbarSettingItem<ID>, ID>: ToolbarContent where I
 			.padding(0)
 			.navigationTitle(self.maps[self.selectedItem]?.title ?? "")
 			//.onAppear {
-			//   if let window = NSApp.mainWindow {
+			//   if let window = NSApplication.shared.mainWindow {
 			// Set the desired position of the window
 			//	   window.setFrameOrigin(NSPoint(x: desiredX, y: desiredY))
 			//   }

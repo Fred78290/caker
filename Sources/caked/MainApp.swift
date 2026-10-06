@@ -303,7 +303,7 @@ struct MainApp: App {
 	}
 
 	static func activate() {
-		NSApp.activate()
+		NSApplication.shared.activate()
 	}
 
 	static func runUI(_ vm: VirtualMachine, params: VMRunHandler, cancellation: Cancellable?) {
@@ -326,12 +326,12 @@ struct MainApp: App {
 // The three layers below are a deliberate belt-and-braces workaround, not redundant flourishes;
 // each exists because the one before it wasn't reliably sufficient on its own across launch
 // contexts observed in practice:
-//   1. `setDockIcon()` (Extensions.swift) calls `NSApp.activate(ignoringOtherApps:)` immediately
+//   1. `setDockIcon()` (Extensions.swift) calls `NSApplication.shared.activate(ignoringOtherApps:)` immediately
 //      from `applicationDidFinishLaunching`.
 //   2. The splash `NSWindow` below is created at `.floating` level, so it visually surfaces
 //      above other apps' windows even before this process becomes the system-designated
 //      active app — activation state and window-server ordering aren't the same thing.
-//   3. `SplashScreenView` schedules a delayed `NSApp.activate()` retry, in case (1) lost a race
+//   3. `SplashScreenView` schedules a delayed `NSApplication.shared.activate()` retry, in case (1) lost a race
 //      against window-server/App Nap state still settling right after process launch.
 //
 // Once real activation lands (`applicationDidBecomeActive`), the splash window is torn down and
@@ -355,7 +355,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		if MainApp.displayUI {
-			NSApp.setDockIcon()
+			NSApplication.shared.setDockIcon()
 			self.showSplashWindow()
 		}
 	}
@@ -420,7 +420,7 @@ extension AppDelegate {
 		// EnvironmentValues() is how a plain NSObject opens the "VM" WindowGroup by id.
 		EnvironmentValues().openWindow(id: "VM")
 		DispatchQueue.main.async {
-			NSApp.orderedWindows
+			NSApplication.shared.orderedWindows
 				.first(where: { $0.isVisible && !$0.isMiniaturized && $0.canBecomeKey })?
 				.makeKeyAndOrderFront(nil)
 		}

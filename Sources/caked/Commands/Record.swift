@@ -110,8 +110,8 @@ struct Record: AsyncParsableCommand {
 		// CLAUDE.md's "SwiftUI front-app activation from a terminal launch" note), then block the
 		// same way Provision.swift's non-foreground path does until stopAndSave() above calls
 		// NSApplication.terminate().
-		//NSApp.setDockIcon()
-		//NSApp.windows.forEach { $0.makeKeyAndOrderFront(nil) }
+		//NSApplication.shared.setDockIcon()
+		//NSApplication.shared.windows.forEach { $0.makeKeyAndOrderFront(nil) }
 		//NSApplication.shared.run()
 
 		MainApp.runUI(session.vm, params: handler, cancellation: session)
