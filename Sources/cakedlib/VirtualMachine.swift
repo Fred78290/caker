@@ -1801,20 +1801,22 @@ extension VirtualMachine: VNCServerDelegate {
 				framebufferView.frame = NSRect(origin: .zero, size: vmView.bounds.size)
 			}
 
-			#if TRACE_DEINIT
-				let window: NSWindow = VirtualMachineWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
-			#else
-				let window: NSWindow = NSWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
-			#endif
+			let bounds = NSRect(origin: NSPoint(x: -20_000, y: -20_000), size: vmView.bounds.size)
+			let window = OffscreenWindow(contentRect: bounds, styleMask: .borderless, backing: .buffered, defer: false)
 
 			window.isReleasedWhenClosed = false
 			window.hidesOnDeactivate = canHide
+			window.backgroundColor = .clear
 			window.canHide = canHide
 			window.contentView = vmView
-			window.makeKeyAndOrderFront(nil)
+			window.hasShadow = false
+			window.isExcludedFromWindowsMenu = true
+			window.collectionBehavior = [.transient, .ignoresCycle, .fullScreenNone]
+			window.level = .normal
 			#if DEBUG
 				window.delegate = self
 			#endif
+			window.orderFrontRegardless()
 			self.env.vzMachineWindow = window
 		}
 	}

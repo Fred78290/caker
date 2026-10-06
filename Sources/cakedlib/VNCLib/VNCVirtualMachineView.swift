@@ -29,18 +29,26 @@ import Vision
 	@objc func framebufferDidUpdateColorSpace(_ framebuffer: NSObject)
 }
 
-#if TRACE_DEINIT
-	open class VirtualMachineWindow: NSWindow {
+final class OffscreenWindow: NSWindow {
+	#if TRACE_DEINIT
 		deinit {
-			print("VirtualMachineWindow deinit")
+			print("OffscreenWindow deinit")
 		}
 
 		open override func close() {
-			print("VirtualMachineWindow close")
+			print("OffscreenWindow close")
 			super.close()
 		}
+	#endif
+
+	// By default AppKit pulls a window back onto a screen. This stops it.
+	override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect {
+		frameRect
 	}
-#endif
+
+	override var canBecomeKey: Bool { false }
+	override var canBecomeMain: Bool { false }
+}
 
 extension NSView {
 	public struct RecognizedText: Sendable {
