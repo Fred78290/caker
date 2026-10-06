@@ -498,6 +498,7 @@
 		9BC1F99A2F6D475800A83B33 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9BC1F9992F6D475800A83B33 /* Subprocess */; };
 		9BC697702FDC048E00A60AF7 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */; };
 		9BC697712FDC048E00A60AF7 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */; };
+		9BCE820F3074DD6500414C1F /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCE820E3074DD6500414C1F /* Gzip */; };
 		9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEB1902ED76EB200B29B70 /* VNC.swift */; };
 		9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */; };
 		9BD2F3A3301DDA9400DF99FE /* LogManager in Frameworks */ = {isa = PBXBuildFile; productRef = 9BD2F3A2301DDA9400DF99FE /* LogManager */; };
@@ -1840,6 +1841,7 @@
 				9BEBC7C32DF440BF0092B196 /* Atomics in Frameworks */,
 				9BEBC7C52DF440BF0092B196 /* SwiftFormat in Frameworks */,
 				9BEBC7DF2DF440BF0092B196 /* NIO in Frameworks */,
+				9BCE820F3074DD6500414C1F /* Gzip in Frameworks */,
 				9BEBC7CF2DF440BF0092B196 /* DMRetry in Frameworks */,
 				9BEBC7C12DF440BF0092B196 /* Antlr4Static in Frameworks */,
 				9BEBC7D72DF440BF0092B196 /* X509 in Frameworks */,
@@ -3492,6 +3494,7 @@
 				9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */,
 				9BEAA42F2F3D022A005ACC9D /* FileMonitor */,
 				9BC1F9992F6D475800A83B33 /* Subprocess */,
+				9BCE820E3074DD6500414C1F /* Gzip */,
 			);
 			productName = CakedLib;
 			productReference = 9BEBC7072DF440560092B196 /* libCakedLib.a */;
@@ -6028,6 +6031,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9BC1F9962F6D469A00A83B33 /* XCRemoteSwiftPackageReference "swift-subprocess" */;
 			productName = Subprocess;
+		};
+		9BCE820E3074DD6500414C1F /* Gzip */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
+			productName = Gzip;
 		};
 		9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */ = {
 			isa = XCSwiftPackageProductDependency;
