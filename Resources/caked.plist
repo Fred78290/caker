@@ -43,5 +43,7 @@
 	<string>Fred78290</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Caker needs SSH access to running VM and create virtual network</string>
+	<key>LSUIElement</key>
+	<true/>
 </dict>
 </plist>
