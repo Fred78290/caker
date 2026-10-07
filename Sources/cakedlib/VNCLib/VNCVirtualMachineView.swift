@@ -56,9 +56,14 @@ extension NSView {
 		public let box: CGRect
 	}
 
+	@objc
+	open func imageForOCR() -> NSImage? {
+		return self.image()
+	}
+
 	@MainActor
-	public func captureImageOCR() -> (pngData: Data, imageSize: CGSize)? {
-		guard let nsImage = self.image(), let pngData = nsImage.pngData else {
+	func captureImageOCR() -> (pngData: Data, imageSize: CGSize)? {
+		guard let nsImage = self.imageForOCR(), let pngData = nsImage.pngData else {
 			return nil
 		}
 
@@ -107,7 +112,7 @@ extension NSView {
 				}
 
 				result = (
-					CGSize(width: capture.imageSize.width, height: capture.imageSize.height),
+					CGSize(width: capture.imageSize.width * scaleX, height: capture.imageSize.height * scaleX),
 					results.compactMap { observation in
 						if let candidate = observation.topCandidates(1).first {
 							let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(capture.imageSize.width), Int(capture.imageSize.height))
@@ -415,12 +420,20 @@ extension VZVirtualMachineView {
 		return surface.contents
 	}
 
-	public func render(in bounds: NSRect) -> CGImage? {
+	override open func imageForOCR() -> NSImage? {
+		guard let cgImage = self.render(in: self.bounds, forOCR: true) else {
+			return nil
+		}
+
+		return NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
+	}
+
+	public func render(in bounds: NSRect, forOCR: Bool = false) -> CGImage? {
 		guard let layer = self.layer, let surface = self.surface() else {
 			return nil
 		}
 
-		let scaleFactor = self.automaticallyReconfiguresDisplay ? layer.contentsScale : 1.0
+		let scaleFactor = (self.automaticallyReconfiguresDisplay && forOCR == false) ? layer.contentsScale : 1.0
 		let surfaceSize = CGSize(width: surface.width, height: surface.height)
 		let surfaceImage = surface.cgImage
 
