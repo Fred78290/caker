@@ -421,7 +421,7 @@ extension VZVirtualMachineView {
 	}
 
 	override open func imageForOCR() -> NSImage? {
-		guard let cgImage = self.render(in: self.bounds, forOCR: true) else {
+		guard let surface = self.surface(), let cgImage = surface.cgImage else {
 			return nil
 		}
 
