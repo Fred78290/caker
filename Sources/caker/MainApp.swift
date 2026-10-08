@@ -1129,7 +1129,6 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 	private static func runPrivileged(_ commands: [String]) throws -> String {
 		let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString).sh")
-		let appleScript = "do shell script \"\(temporaryFile.path(percentEncoded: false))\" with administrator privileges"
 
 		try commands.joined(separator: "\n").write(to: temporaryFile, atomically: true, encoding: .utf8)
 
@@ -1137,8 +1136,17 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			try? FileManager.default.removeItem(at: temporaryFile)
 		}
 
-		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: temporaryFile.path(percentEncoded: false))
-		return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
+		try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: temporaryFile.path(percentEncoded: false))
+
+		let authorization = try Authorization.requestAdminAuthorizationIfNeeded()
+
+		defer {
+			if let authorization {
+				AuthorizationFree(authorization, [.destroyRights])
+			}
+		}
+
+		return try Authorization.runPrivilegedScript(temporaryFile, authorization: authorization)
 	}
 
 	private static func runPrivilegedWithBundledScript(pathsContent: String) throws -> String {

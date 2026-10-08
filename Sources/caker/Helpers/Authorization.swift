@@ -123,53 +123,82 @@ public struct Authorization {
 			throw ServiceError(String(localized: "Missing Authorization Services reference for privileged operation"))
 		}
 
-		let RTLD_DEFAULT = UnsafeMutableRawPointer(bitPattern: -2)
-		var authorizationExecuteWithPrivileges: @convention(c) (
+		typealias AuthorizationExecuteWithPrivileges = @convention(c) (
 			AuthorizationRef,
 			UnsafePointer<CChar>,  // path
 			AuthorizationFlags,
-			UnsafePointer<UnsafePointer<CChar>?>,  // args
-			UnsafeMutablePointer<UnsafeMutablePointer<FILE>>?
+			UnsafePointer<UnsafeMutablePointer<CChar>?>,  // args
+			UnsafeMutablePointer<UnsafeMutablePointer<FILE>?>?
 		) -> OSStatus
 
-		authorizationExecuteWithPrivileges = unsafeBitCast(
-			dlsym(RTLD_DEFAULT, "AuthorizationExecuteWithPrivileges"),
-			to: type(of: authorizationExecuteWithPrivileges)
-		)
-
-		let command = command.cString(using: .utf8)!
-		let arguments = arguments.map { $0.cString(using: .utf8)! }
-		var args = Array<UnsafePointer<CChar>?>(
-			repeating: nil,
-			count: arguments.count + 1
-		)
-
-		for (idx, arg) in arguments.enumerated() {
-			args[idx] = UnsafePointer<CChar>?(arg)
+		// AuthorizationExecuteWithPrivileges is deprecated and no longer exported by the Swift overlay, resolve it at runtime.
+		guard let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "AuthorizationExecuteWithPrivileges") else {
+			throw ServiceError(String(localized: "AuthorizationExecuteWithPrivileges is not available"))
 		}
-		
-		var file = FILE()
-		let fh = try withUnsafeMutablePointer(to: &file) { file in
-			var pipe = file
-			return try args.withUnsafeBufferPointer { buffer in
-				// `args` always has at least one element (the terminating nil),
-				// so `baseAddress` is non-nil here.
-				let argsPointer = buffer.baseAddress!
-				let err = authorizationExecuteWithPrivileges(authorization, command, [], argsPointer, &pipe)
 
-				guard err == errAuthorizationSuccess else {
-					throw ServiceError(String(localized: "Authorization failed: \(err)"))
-				}
+		let authorizationExecuteWithPrivileges = unsafeBitCast(symbol, to: AuthorizationExecuteWithPrivileges.self)
 
-				return FileHandle(fileDescriptor: fileno(pipe), closeOnDealloc: true)
+		// NULL terminated argv, the strings must outlive the call
+		let args: [UnsafeMutablePointer<CChar>?] = arguments.map { strdup($0) } + [nil]
+
+		defer {
+			args.forEach { free($0) }
+		}
+
+		var pipe: UnsafeMutablePointer<FILE>? = nil
+		let err = command.withCString { command in
+			args.withUnsafeBufferPointer { argv in
+				authorizationExecuteWithPrivileges(authorization, command, [], argv.baseAddress!, &pipe)
 			}
 		}
 
-		guard let output = try fh.readToEnd() else {
+		guard err == errAuthorizationSuccess, let pipe else {
+			throw ServiceError(String(format: String(localized: "Authorization failed: %d"), err))
+		}
+
+		defer {
+			fclose(pipe)
+		}
+
+		// Read until the privileged process closes its standard output, then reap it
+		let output = try FileHandle(fileDescriptor: fileno(pipe), closeOnDealloc: false).readToEnd()
+		var status: Int32 = 0
+
+		wait(&status)
+
+		guard let output else {
 			return String.empty
 		}
 
-		return String(data: output, encoding: .utf8)!
+		return String(decoding: output, as: UTF8.self)
+	}
+
+	/// Run a shell script as root and fail if the script exits with a non-zero status.
+	/// AuthorizationExecuteWithPrivileges does not report the exit status of the launched process,
+	/// so the script is wrapped to print it as the last line of its output.
+	public static func runPrivilegedScript(_ script: URL, authorization: AuthorizationRef?) throws -> String {
+		let marker = "caker-exit-status:"
+		let wrapper = "/bin/sh \"$0\" 2>&1; echo \"\(marker)$?\""
+		let output = try Self.runPrivileged("/bin/sh", arguments: ["-c", wrapper, script.path(percentEncoded: false)], authorization: authorization)
+		var lines = output.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+
+		while let last = lines.last, last.isEmpty {
+			lines.removeLast()
+		}
+
+		guard let last = lines.last, last.hasPrefix(marker), let exitCode = Int32(last.dropFirst(marker.count)) else {
+			throw ServiceError(String(localized: "Unable to get the exit status of the privileged script"))
+		}
+
+		lines.removeLast()
+
+		let result = lines.joined(separator: "\n")
+
+		guard exitCode == 0 else {
+			throw ServiceError(String(format: String(localized: "Privileged script failed with exit code %d: %@"), exitCode, result))
+		}
+
+		return result
 	}
 
 	public static func runPrivileged(_ command: String) throws -> String {
