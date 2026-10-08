@@ -112,7 +112,7 @@ extension NSView {
 				}
 
 				result = (
-					CGSize(width: capture.imageSize.width * scaleX, height: capture.imageSize.height * scaleX),
+					CGSize(width: capture.imageSize.width * scaleX, height: capture.imageSize.height * scaleY),
 					results.compactMap { observation in
 						if let candidate = observation.topCandidates(1).first {
 							let box = VNImageRectForNormalizedRect(observation.boundingBox, Int(capture.imageSize.width), Int(capture.imageSize.height))
