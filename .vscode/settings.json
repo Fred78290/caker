@@ -19,4 +19,14 @@
 	"python.testing.pytestEnabled": true,
 	"java.compile.nullAnalysis.mode": "disabled",
 	"js/ts.experimental.useTsgo": false,
+	"swift.additionalTestArguments": [
+		"-Xswiftc",
+		"-D",
+		"-Xswiftc",
+		"SPARKLE",
+		"-Xswiftc",
+		"-D",
+		"-Xswiftc",
+		"USE_VIRTUAL_INSTALL_BACKEND"
+	],
 }
