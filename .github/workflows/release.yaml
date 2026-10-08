@@ -21,7 +21,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   RUN_PYTEST: ${{ vars.RUN_PYTEST }}
   RUN_SWIFT_TESTS: ${{ vars.RUN_SWIFT_TESTS }}
-  CAKE_HOME: "${{ github.workspace }}/.cake"
+  CAKE_HOME: "/tmp/.cake" # Use a temporary directory for Cake home to ensure a clean environment
   PKGDIR: "${{ github.workspace }}/.ci/pkg/Caker.app"
   NOTARYZATION: ${{ vars.NOTARYZATION }}
   SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
@@ -272,7 +272,6 @@ jobs:
             echo "Keychain at ${KEYCHAIN_PATH} does not exist, skipping deletion."
           fi
 
-
       - name: 🧹 Clean up repo
         id: cleanup-repo
         if: always()
@@ -280,6 +279,7 @@ jobs:
           # Reset git working directory
           git clean -fd
           git reset --hard HEAD
+          rm -rf "${CAKE_HOME}"
 
   publish:
     if: needs.build.outputs.build_package == 'true'

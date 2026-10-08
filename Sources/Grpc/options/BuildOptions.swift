@@ -516,6 +516,8 @@ public struct BuildOptions: ParsableArguments {
 			self.sshAuthorizedKey = try String(contentsOfFile: sshAuthorizedKey.expandingTildeInPath, encoding: .utf8)
 		}
 
+		let name = self.name
+
 		if name.contains("/") {
 			throw ValidationError(String(localized: "\(name) should be a local name"))
 		}
