@@ -375,7 +375,6 @@
 		9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 9B9123802E29253A006DD682 /* SwiftTerm */; };
 		9B9438E82FF17EBF00F69AB6 /* IMDSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9438E62FF17EBF00F69AB6 /* IMDSServer.swift */; };
 		9B9620CB2EAB62EF0075CD18 /* ToolbarSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */; };
-		9B96B0182F4B68480069C970 /* TestPlan.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 9B96B00A2F4B67250069C970 /* TestPlan.xctestplan */; };
 		9B96B0192F4B68540069C970 /* ProcessWithSharedFileHandleTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */; };
 		9B96B01A2F4B68540069C970 /* RemoteTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C132DB4EB700047D00B /* RemoteTest.swift */; };
 		9B96B01B2F4B68540069C970 /* GrpcTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0F2DB4EB700047D00B /* GrpcTestCase.swift */; };
@@ -409,6 +408,7 @@
 		9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */; };
 		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
 		9BA22F102E250F6900172D25 /* VirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */; };
+		9BA4A2F0307837D5005EEA30 /* ComposeDNSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA4A2EF307837D5005EEA30 /* ComposeDNSTests.swift */; };
 		9BA4CDB118A1637675D760D5 /* PFRedirect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDED2FD321364180ED54517 /* PFRedirect.swift */; };
 		9BA7B0222F56010F004AFAE8 /* VirtualMachineConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */; };
 		9BA7B0242F5601DF004AFAE8 /* ImageSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */; };
@@ -1148,7 +1148,6 @@
 		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
 		9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdatesView.swift; sourceTree = "<group>"; };
 		9B415A682FFA89D400E2B275 /* ConfigureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureHandler.swift; sourceTree = "<group>"; };
-		9B426B24301B96D000170A05 /* NSGlassEffectAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSGlassEffectAlert.swift; sourceTree = "<group>"; };
 		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
 		9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteWizard.swift; sourceTree = "<group>"; };
 		9B4517E62F067E7B0088F093 /* GraphCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphCapsule.swift; sourceTree = "<group>"; };
@@ -1314,7 +1313,6 @@
 		9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B9438E62FF17EBF00F69AB6 /* IMDSServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMDSServer.swift; sourceTree = "<group>"; };
 		9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarSettings.swift; sourceTree = "<group>"; };
-		9B96B00A2F4B67250069C970 /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 		9B96B00F2F4B68380069C970 /* CakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B9711BF2DFF3284005B161B /* Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		9B9711C12DFF32A0005B161B /* ImportHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHandler.swift; sourceTree = "<group>"; };
@@ -1345,6 +1343,7 @@
 		9BA22FFD2E26512500172D25 /* CoreAudioTypes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioTypes.framework; path = System/Library/Frameworks/CoreAudioTypes.framework; sourceTree = SDKROOT; };
 		9BA22FFE2E26512500172D25 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		9BA22FFF2E26512500172D25 /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
+		9BA4A2EF307837D5005EEA30 /* ComposeDNSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSTests.swift; sourceTree = "<group>"; };
 		9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfiguration.swift; sourceTree = "<group>"; };
 		9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSource.swift; sourceTree = "<group>"; };
 		9BA941162F3C890C00B51543 /* PingHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingHandler.swift; sourceTree = "<group>"; };
@@ -2103,6 +2102,7 @@
 				9BDD149A306A58820091E8DC /* CachedImageKindTests.swift */,
 				9BDD149B306A58820091E8DC /* CakedProviderCancellationTests.swift */,
 				9B345C0C2DB4EB700047D00B /* CloudInitTest.swift */,
+				9BA4A2EF307837D5005EEA30 /* ComposeDNSTests.swift */,
 				9BDD149C306A58820091E8DC /* ComposeProjectStatusTests.swift */,
 				9BDD149D306A58820091E8DC /* ComposeTest.swift */,
 				9B345C0E2DB4EB700047D00B /* GrpcTcpSocketTest.swift */,
@@ -2123,7 +2123,6 @@
 				9BDD14A7306A58820091E8DC /* VMLocationLogURLTests.swift */,
 				9BDD14A8306A58820091E8DC /* VNCVirtualMachineViewCaptureTests.swift */,
 				9BDD14A9306A58820091E8DC /* ZLibStreamTest.swift */,
-				9B96B00A2F4B67250069C970 /* TestPlan.xctestplan */,
 			);
 			path = CakerTests;
 			sourceTree = "<group>";
@@ -2245,7 +2244,6 @@
 				9B464ADD2D5A3E0300164BF5 /* Sources */,
 				9B345C152DB4EB700047D00B /* Tests */,
 				9B352F032FAF43C100F8F6B6 /* webui */,
-				9B839A71305C251F00558A5C /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -2524,14 +2522,6 @@
 				9B602F912FAA56FA00055543 /* Controllers */,
 			);
 			path = REST;
-			sourceTree = "<group>";
-		};
-		9B839A71305C251F00558A5C /* Recovered References */ = {
-			isa = PBXGroup;
-			children = (
-				9B426B24301B96D000170A05 /* NSGlassEffectAlert.swift */,
-			);
-			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		9B8F3F5C301F3DCA001FA32A /* Resources */ = {
@@ -3712,7 +3702,6 @@
 		9B96B00D2F4B68380069C970 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
-				9B96B0182F4B68480069C970 /* TestPlan.xctestplan in Resources */,
 			);
 		};
 		9BD69DEE2FCEE8F1005E24AF /* Resources */ = {
@@ -4128,6 +4117,7 @@
 				9BDD14AD306A58820091E8DC /* ComposeTest.swift in Sources */,
 				9BDD14AE306A58820091E8DC /* CachedImageKindTests.swift in Sources */,
 				9BDD14AF306A58820091E8DC /* VMImageCatalogURLTests.swift in Sources */,
+				9BA4A2F0307837D5005EEA30 /* ComposeDNSTests.swift in Sources */,
 				9BDD14B0306A58820091E8DC /* VMImageCatalogResolutionTests.swift in Sources */,
 				9BDD14B1306A58820091E8DC /* LXDIdentityStoreTests.swift in Sources */,
 				9BDD14B2306A58820091E8DC /* ProvisioningVideoRecorderTests.swift in Sources */,
