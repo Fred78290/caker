@@ -52,138 +52,138 @@ final class PackerLiteTests: XCTestCase {
 	/// `BootCommand.parse` takes a `{title, commands}` `PackerLiteTemplate.Command` (`commands` is a
 	/// list of token fragments concatenated together, not a bare string) — this wraps a single raw
 	/// boot_command string for tests that only care about the parsed steps.
-	private func parseSteps(_ raw: String, title: String = "test") async throws -> [BootCommandStep.Step] {
-		try await BootCommand.parse(PackerLiteTemplate.Command(title: title, commands: [raw])).steps
+	private func parseSteps(_ raw: String, title: String = "test") throws -> [BootCommandStep.Step] {
+		try BootCommand.parse(PackerLiteTemplate.Command(title: title, commands: [raw])).steps
 	}
 
-	func testWaitTokenUnits() async throws {
-		let a = try await parseSteps("<wait60s><spacebar>")
+	func testWaitTokenUnits() throws {
+		let a = try parseSteps("<wait60s><spacebar>")
 		XCTAssertEqual(a, [.wait(60), .press(.spacebar)])
-		let b = try await parseSteps("<wait5>")
+		let b = try parseSteps("<wait5>")
 		XCTAssertEqual(b, [.wait(5)])
-		let c = try await parseSteps("<wait1m>")
+		let c = try parseSteps("<wait1m>")
 		XCTAssertEqual(c, [.wait(60)])
-		let d = try await parseSteps("<wait>")
+		let d = try parseSteps("<wait>")
 		XCTAssertEqual(d, [.wait(1)])
 	}
 
-	func testLiteralTypingBetweenTokens() async throws {
-		let parsed = try await parseSteps("<wait30s>italiano<esc>english<enter>")
+	func testLiteralTypingBetweenTokens() throws {
+		let parsed = try parseSteps("<wait30s>italiano<esc>english<enter>")
 		XCTAssertEqual(
 			parsed,
 			[.wait(30), .type("italiano"), .press(.esc), .type("english"), .press(.enter)]
 		)
 	}
 
-	func testModifierOnOffPairing() async throws {
-		let parsed = try await parseSteps("<leftShiftOn><tab><leftShiftOff><spacebar>")
+	func testModifierOnOffPairing() throws {
+		let parsed = try parseSteps("<leftShiftOn><tab><leftShiftOff><spacebar>")
 		XCTAssertEqual(
 			parsed,
 			[.modifierOn(.leftShift), .press(.tab), .modifierOff(.leftShift), .press(.spacebar)]
 		)
 	}
 
-	func testFnModifierOnOffPairing() async throws {
-		let parsed = try await parseSteps("<leftAltOn><fnOn><f5><fnOff><leftAltOff>")
+	func testFnModifierOnOffPairing() throws {
+		let parsed = try parseSteps("<leftAltOn><fnOn><f5><fnOff><leftAltOff>")
 		XCTAssertEqual(
 			parsed,
 			[.modifierOn(.leftAlt), .modifierOn(.function), .press(.function(5)), .modifierOff(.function), .modifierOff(.leftAlt)]
 		)
 	}
 
-	func testRepeatSuffixOnNamedKey() async throws {
-		let parsed = try await parseSteps("<enter repeat=3>")
+	func testRepeatSuffixOnNamedKey() throws {
+		let parsed = try parseSteps("<enter repeat=3>")
 		XCTAssertEqual(parsed, [.press(.enter, repeated: 3)])
 	}
 
-	func testClickTextLegacyQuotedTokenDefaultsTimeoutToTen() async throws {
-		let parsed = try await parseSteps("<wait30s><click 'Select Your Country or Region'><wait5s>united states")
+	func testClickTextLegacyQuotedTokenDefaultsTimeoutToTen() throws {
+		let parsed = try parseSteps("<wait30s><click 'Select Your Country or Region'><wait5s>united states")
 		XCTAssertEqual(
 			parsed,
 			[.wait(30), .clickText(["Select Your Country or Region"], timeout: 10), .wait(5), .type("united states")]
 		)
 	}
 
-	func testClickTextAttributeStyleWithExplicitTimeout() async throws {
-		let parsed = try await parseSteps("<click timeout=30 text='Select Your Country or Region'>")
+	func testClickTextAttributeStyleWithExplicitTimeout() throws {
+		let parsed = try parseSteps("<click timeout=30 text='Select Your Country or Region'>")
 		XCTAssertEqual(parsed, [.clickText(["Select Your Country or Region"], timeout: 30)])
 	}
 
-	func testClickCoordinatesToken() async throws {
-		let parsed = try await parseSteps("<click 100,200>")
+	func testClickCoordinatesToken() throws {
+		let parsed = try parseSteps("<click 100,200>")
 		XCTAssertEqual(parsed, [.click(CGPoint(x: 100, y: 200))])
 	}
 
-	func testClickPointAttributeStyle() async throws {
-		let parsed = try await parseSteps("<click point=\"100,200\">")
+	func testClickPointAttributeStyle() throws {
+		let parsed = try parseSteps("<click point=\"100,200\">")
 		XCTAssertEqual(parsed, [.click(CGPoint(x: 100, y: 200))])
 	}
 
-	func testLocateTokenAttributeStyle() async throws {
-		let parsed = try await parseSteps("<locate timeout=15 text='Continue'>")
+	func testLocateTokenAttributeStyle() throws {
+		let parsed = try parseSteps("<locate timeout=15 text='Continue'>")
 		XCTAssertEqual(parsed, [.locate(["Continue"], timeout: 15)])
 	}
 
-	func testLocateTokenQuotedForm() async throws {
-		let parsed = try await parseSteps("<locate 'Continue'>")
+	func testLocateTokenQuotedForm() throws {
+		let parsed = try parseSteps("<locate 'Continue'>")
 		XCTAssertEqual(parsed, [.locate(["Continue"], timeout: 10)])
 	}
 
-	func testLocateTokenMultiTextOrMatching() async throws {
-		let parsed = try await parseSteps("<locate timeout=15 text='Accept|Continue'>")
+	func testLocateTokenMultiTextOrMatching() throws {
+		let parsed = try parseSteps("<locate timeout=15 text='Accept|Continue'>")
 		XCTAssertEqual(parsed, [.locate(["Accept", "Continue"], timeout: 15)])
 	}
 
-	func testSkipCommandIfNotFoundAttributeStyle() async throws {
-		let parsed = try await parseSteps("<skipCommandIfNotFound timeout=15 text='Continue'>")
+	func testSkipCommandIfNotFoundAttributeStyle() throws {
+		let parsed = try parseSteps("<skipCommandIfNotFound timeout=15 text='Continue'>")
 		XCTAssertEqual(parsed, [.skipCommandIfNotFound(["Continue"], timeout: 15)])
 	}
 
-	func testSkipCommandIfNotFoundQuotedForm() async throws {
-		let parsed = try await parseSteps("<skipCommandIfNotFound 'Continue'>")
+	func testSkipCommandIfNotFoundQuotedForm() throws {
+		let parsed = try parseSteps("<skipCommandIfNotFound 'Continue'>")
 		XCTAssertEqual(parsed, [.skipCommandIfNotFound(["Continue"], timeout: 10)])
 	}
 
-	func testSkipCommandIfNotFoundMultiTextOrMatching() async throws {
-		let parsed = try await parseSteps("<skipCommandIfNotFound timeout=15 text='Accept|Continue'>")
+	func testSkipCommandIfNotFoundMultiTextOrMatching() throws {
+		let parsed = try parseSteps("<skipCommandIfNotFound timeout=15 text='Accept|Continue'>")
 		XCTAssertEqual(parsed, [.skipCommandIfNotFound(["Accept", "Continue"], timeout: 15)])
 	}
 
-	func testSkipStepIfNotFoundAttributeStyle() async throws {
-		let parsed = try await parseSteps("<skipStepIfNotFound timeout=5 steps=2 text='Optional Screen'>")
+	func testSkipStepIfNotFoundAttributeStyle() throws {
+		let parsed = try parseSteps("<skipStepIfNotFound timeout=5 steps=2 text='Optional Screen'>")
 		XCTAssertEqual(parsed, [.skipStepIfNotFound(["Optional Screen"], 2, timeout: 5)])
 	}
 
-	func testSkipStepIfNotFoundQuotedFormDefaultsStepsAndTimeout() async throws {
-		let parsed = try await parseSteps("<skipStepIfNotFound 'Optional Screen'>")
+	func testSkipStepIfNotFoundQuotedFormDefaultsStepsAndTimeout() throws {
+		let parsed = try parseSteps("<skipStepIfNotFound 'Optional Screen'>")
 		XCTAssertEqual(parsed, [.skipStepIfNotFound(["Optional Screen"], 1, timeout: 10)])
 	}
 
-	func testScrollTokenAttributeStyle() async throws {
-		let parsed = try await parseSteps("<scroll horizontal=5 vertical=-10>")
+	func testScrollTokenAttributeStyle() throws {
+		let parsed = try parseSteps("<scroll horizontal=5 vertical=-10>")
 		XCTAssertEqual(parsed, [.scroll(horizontal: 5, vertical: -10)])
 	}
 
-	func testScrollTokenBareVerticalForm() async throws {
-		let parsed = try await parseSteps("<scroll 20>")
+	func testScrollTokenBareVerticalForm() throws {
+		let parsed = try parseSteps("<scroll 20>")
 		XCTAssertEqual(parsed, [.scroll(horizontal: 0, vertical: 20)])
 	}
 
 	// MARK: - <set> token and condition: gating
 
-	func testSetTokenQuotedValue() async throws {
-		let parsed = try await parseSteps("<set version=\"44\">")
+	func testSetTokenQuotedValue() throws {
+		let parsed = try parseSteps("<set version=\"44\">")
 		XCTAssertEqual(parsed, [.set(name: "version", value: "44")])
 	}
 
-	func testSetTokenBareValue() async throws {
-		let parsed = try await parseSteps("<set version=44>")
+	func testSetTokenBareValue() throws {
+		let parsed = try parseSteps("<set version=44>")
 		XCTAssertEqual(parsed, [.set(name: "version", value: "44")])
 	}
 
-	func testSetTokenWithoutAttributeIsMalformed() async throws {
+	func testSetTokenWithoutAttributeIsMalformed() throws {
 		do {
-			_ = try await parseSteps("<set>")
+			_ = try parseSteps("<set>")
 			XCTFail("Expected malformedSet to be thrown")
 		} catch BootCommandParseError.malformedSet {
 			// expected
@@ -206,17 +206,17 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertEqual(command.conditions, ["version != \"44\""])
 	}
 
-	func testMeetConditionWithNoConditionsAlwaysRuns() async throws {
-		let step = try await BootCommand.parse(PackerLiteTemplate.Command(title: "test", commands: ["<wait1s>"]))
+	func testMeetConditionWithNoConditionsAlwaysRuns() throws {
+		let step = try BootCommand.parse(PackerLiteTemplate.Command(title: "test", commands: ["<wait1s>"]))
 		XCTAssertTrue(step.meetCondition([:]))
 	}
 
-	func testMeetConditionNotEqualsTreatsMissingVariableAsEmptyString() async throws {
+	func testMeetConditionNotEqualsTreatsMissingVariableAsEmptyString() throws {
 		// This is exactly the Fedora-43-fallback shape in fedora.packerlite.yaml: if the earlier
 		// <set version="44"> step never ran (its title block was skipped because Fedora 44's own
 		// welcome screen wasn't found), `version` was never set at all -- not "set to something
 		// other than 44" -- and the fallback block should still run.
-		let step = try await BootCommand.parse(
+		let step = try BootCommand.parse(
 			PackerLiteTemplate.Command(title: "test", commands: ["<wait1s>"], conditions: ["version != \"44\""]))
 
 		XCTAssertTrue(step.meetCondition([:]))
@@ -224,8 +224,8 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertFalse(step.meetCondition(["version": "44"]))
 	}
 
-	func testMeetConditionEqualsOperator() async throws {
-		let step = try await BootCommand.parse(
+	func testMeetConditionEqualsOperator() throws {
+		let step = try BootCommand.parse(
 			PackerLiteTemplate.Command(title: "test", commands: ["<wait1s>"], conditions: ["version == \"44\""]))
 
 		XCTAssertFalse(step.meetCondition([:]))
@@ -233,8 +233,8 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertFalse(step.meetCondition(["version": "43"]))
 	}
 
-	func testMeetConditionMultipleConditionsRequireAll() async throws {
-		let step = try await BootCommand.parse(
+	func testMeetConditionMultipleConditionsRequireAll() throws {
+		let step = try BootCommand.parse(
 			PackerLiteTemplate.Command(title: "test", commands: ["<wait1s>"], conditions: ["version == \"44\"", "arch == \"arm64\""]))
 
 		XCTAssertTrue(step.meetCondition(["version": "44", "arch": "arm64"]))
@@ -242,54 +242,54 @@ final class PackerLiteTests: XCTestCase {
 		XCTAssertFalse(step.meetCondition([:]))
 	}
 
-	func testVoiceOverOnBareToken() async throws {
-		let parsed = try await parseSteps("<voiceOverOn>")
+	func testVoiceOverOnBareToken() throws {
+		let parsed = try parseSteps("<voiceOverOn>")
 		XCTAssertEqual(parsed, [.voiceOverOn(confirm: false)])
 	}
 
-	func testVoiceOverOnConfirmAttribute() async throws {
-		let parsed = try await parseSteps("<voiceOverOn confirm=true>")
+	func testVoiceOverOnConfirmAttribute() throws {
+		let parsed = try parseSteps("<voiceOverOn confirm=true>")
 		XCTAssertEqual(parsed, [.voiceOverOn(confirm: true)])
 	}
 
-	func testVoiceOverOnConfirmAttributeQuotedForm() async throws {
+	func testVoiceOverOnConfirmAttributeQuotedForm() throws {
 		// This is the exact shape ActionRecorder.Step.command(...) emits for a recorded
 		// .voiceOverOn(confirm: true) step (Sources/cakedlib/PackerLite/ActionRecorder.swift) —
 		// confirms the recorder's own output round-trips through the parser correctly.
-		let parsed = try await parseSteps("<voiceOverOn confirm=\"true\">")
+		let parsed = try parseSteps("<voiceOverOn confirm=\"true\">")
 		XCTAssertEqual(parsed, [.voiceOverOn(confirm: true)])
 	}
 
-	func testVoiceOverOffToken() async throws {
-		let parsed = try await parseSteps("<voiceOverOff>")
+	func testVoiceOverOffToken() throws {
+		let parsed = try parseSteps("<voiceOverOff>")
 		XCTAssertEqual(parsed, [.voiceOverOff])
 	}
 
-	func testFunctionKeyToken() async throws {
-		let parsed = try await parseSteps("<leftAltOn><f5><leftAltOff>")
+	func testFunctionKeyToken() throws {
+		let parsed = try parseSteps("<leftAltOn><f5><leftAltOff>")
 		XCTAssertEqual(
 			parsed,
 			[.modifierOn(.leftAlt), .press(.function(5)), .modifierOff(.leftAlt)]
 		)
 	}
 
-	func testFunctionKeyTokenUpToF20() async throws {
-		let parsed = try await parseSteps("<f20>")
+	func testFunctionKeyTokenUpToF20() throws {
+		let parsed = try parseSteps("<f20>")
 		XCTAssertEqual(parsed, [.press(.function(20))])
 	}
 
-	func testUnknownTokenThrows() async {
+	func testUnknownTokenThrows() {
 		do {
-			_ = try await parseSteps("<notAToken>")
+			_ = try parseSteps("<notAToken>")
 			XCTFail("expected unknownToken error")
 		} catch {
 			XCTAssertEqual(error as? BootCommandParseError, .unknownToken("notAToken"))
 		}
 	}
 
-	func testUnterminatedTokenThrows() async {
+	func testUnterminatedTokenThrows() {
 		do {
-			_ = try await parseSteps("<wait30s")
+			_ = try parseSteps("<wait30s")
 			XCTFail("expected unterminatedToken error")
 		} catch {
 			guard case .unterminatedToken = error as? BootCommandParseError else {
@@ -298,9 +298,9 @@ final class PackerLiteTests: XCTestCase {
 		}
 	}
 
-	func testMalformedClickThrows() async {
+	func testMalformedClickThrows() {
 		do {
-			_ = try await parseSteps("<click 'unterminated>")
+			_ = try parseSteps("<click 'unterminated>")
 			XCTFail("expected malformedClick error")
 		} catch {
 			guard case .malformedClick = error as? BootCommandParseError else {
