@@ -1160,7 +1160,6 @@
 		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
 		9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdatesView.swift; sourceTree = "<group>"; };
 		9B4159B62FFA66F000E2B275 /* ConfigureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureHandler.swift; sourceTree = "<group>"; };
-		9B426B26301B9A3800170A05 /* NSGlassEffectAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSGlassEffectAlert.swift; sourceTree = "<group>"; };
 		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
 		9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteWizard.swift; sourceTree = "<group>"; };
 		9B4517E62F067E7B0088F093 /* GraphCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphCapsule.swift; sourceTree = "<group>"; };
@@ -1272,8 +1271,6 @@
 		9B5F49C82F7028F200AE1991 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9B5F4B522F728AF200AE1991 /* Authorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authorization.swift; sourceTree = "<group>"; };
 		9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
-		9B5FA1002F8BABF50077EF64 /* en.xcloc */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = en.xcloc; sourceTree = "<group>"; };
-		9B5FA1012F8BABF50077EF64 /* fr.xcloc */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = fr.xcloc; sourceTree = "<group>"; };
 		9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		9B602F8C2FAA56FA00055543 /* LXDImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDImagesController.swift; sourceTree = "<group>"; };
 		9B602F8D2FAA56FA00055543 /* LXDInstancesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDInstancesController.swift; sourceTree = "<group>"; };
@@ -1902,14 +1899,6 @@
 			path = ComposeDNS;
 			sourceTree = "<group>";
 		};
-		9B01EF1C305C2EE4002B2B6E /* Recovered References */ = {
-			isa = PBXGroup;
-			children = (
-				9B426B26301B9A3800170A05 /* NSGlassEffectAlert.swift */,
-			);
-			name = "Recovered References";
-			sourceTree = "<group>";
-		};
 		9B081B592FC75A1A0029B259 /* Qcow2 */ = {
 			isa = PBXGroup;
 			children = (
@@ -2266,13 +2255,11 @@
 			children = (
 				9B5611973013502C00E9FA7D /* Caker */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
-				9B5FA1022F8BABF50077EF64 /* Localizations */,
 				9B464A552D5A3DA000164BF5 /* Products */,
 				9BFE87462F7E6480005CC9B2 /* Resources */,
 				9B464ADD2D5A3E0300164BF5 /* Sources */,
 				9B345C152DB4EB700047D00B /* Tests */,
 				9B352F032FAF43C100F8F6B6 /* webui */,
-				9B01EF1C305C2EE4002B2B6E /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -2516,16 +2503,6 @@
 			);
 			path = VNCLib;
 			sourceTree = "<group>";
-		};
-		9B5FA1022F8BABF50077EF64 /* Localizations */ = {
-			isa = PBXGroup;
-			children = (
-				9B5FA1002F8BABF50077EF64 /* en.xcloc */,
-				9B5FA1012F8BABF50077EF64 /* fr.xcloc */,
-			);
-			name = Localizations;
-			path = ../Localizations;
-			sourceTree = SOURCE_ROOT;
 		};
 		9B602F912FAA56FA00055543 /* Controllers */ = {
 			isa = PBXGroup;

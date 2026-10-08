@@ -1259,8 +1259,6 @@
 		9B5F49C82F7028F200AE1991 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9B5F4B522F728AF200AE1991 /* Authorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authorization.swift; sourceTree = "<group>"; };
 		9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
-		9B5FA1002F8BABF50077EF64 /* en.xcloc */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = en.xcloc; sourceTree = "<group>"; };
-		9B5FA1012F8BABF50077EF64 /* fr.xcloc */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = fr.xcloc; sourceTree = "<group>"; };
 		9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		9B602F8C2FAA56FA00055543 /* LXDImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDImagesController.swift; sourceTree = "<group>"; };
 		9B602F8D2FAA56FA00055543 /* LXDInstancesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDInstancesController.swift; sourceTree = "<group>"; };
@@ -2242,7 +2240,6 @@
 			children = (
 				9B56125C301350FB00E9FA7D /* Caker */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
-				9B5FA1022F8BABF50077EF64 /* Localizations */,
 				9B464A552D5A3DA000164BF5 /* Products */,
 				9BFE87462F7E6480005CC9B2 /* Resources */,
 				9B464ADD2D5A3E0300164BF5 /* Sources */,
@@ -2492,16 +2489,6 @@
 			);
 			path = VNCLib;
 			sourceTree = "<group>";
-		};
-		9B5FA1022F8BABF50077EF64 /* Localizations */ = {
-			isa = PBXGroup;
-			children = (
-				9B5FA1002F8BABF50077EF64 /* en.xcloc */,
-				9B5FA1012F8BABF50077EF64 /* fr.xcloc */,
-			);
-			name = Localizations;
-			path = ../Localizations;
-			sourceTree = SOURCE_ROOT;
 		};
 		9B602F912FAA56FA00055543 /* Controllers */ = {
 			isa = PBXGroup;
