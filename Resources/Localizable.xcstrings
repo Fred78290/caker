@@ -20520,6 +20520,36 @@
           }
         }
       }
+    },
+    "AuthorizationExecuteWithPrivileges is not available" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AuthorizationExecuteWithPrivileges n'est pas disponible"
+          }
+        }
+      }
+    },
+    "Unable to get the exit status of the privileged script" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d'obtenir le code de sortie du script privilégié"
+          }
+        }
+      }
+    },
+    "Privileged script failed with exit code %d: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le script privilégié a échoué avec le code de sortie %1$d : %2$@"
+          }
+        }
+      }
     }
   },
   "version" : "1.3"
