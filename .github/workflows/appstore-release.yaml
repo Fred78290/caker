@@ -7,7 +7,7 @@ on:
       - "appstore-prerelease"
 
 env:
-  BUILD_APPSTORE_CERTIFICATE_BASE64: ${{ secrets.BUILD_APPSTORE_CERTIFICATE_BASE64 }}
+  BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
   P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
   KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
   APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -96,7 +96,7 @@ jobs:
       - name: 🛠️ Setup Homebrew
         id: homebrew
         if: steps.check.outputs.install_brew == 'true'
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@1f8e202ffddf94def7f42f6fa3a482e821489f9c # 2026.07.10.1
 
       - name: 🛠️ Setup Python
         id: python
