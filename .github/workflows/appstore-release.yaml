@@ -154,7 +154,7 @@ jobs:
         id: setup_keychain
         if: ${{ steps.check.outputs.setup_keychain == 'true' }}
         run: |
-          ./.ci/setup-appstore-keychain.sh "${KEYCHAIN_PATH}"
+          ./.ci/setup-keychain.sh "${KEYCHAIN_PATH}"
 
       - name: 👷 Build Swift package for App Store
         id: build
