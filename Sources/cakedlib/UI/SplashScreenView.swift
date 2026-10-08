@@ -12,7 +12,7 @@ public struct SplashScreenView: View {
 	
 	public var body: some View {
 		VStack(spacing: 12) {
-			Image(nsImage: NSApp.applicationIconImage ?? NSImage(named: NSImage.applicationIconName)!)
+			Image(nsImage: NSApplication.shared.applicationIconImage ?? NSImage(named: NSImage.applicationIconName)!)
 				.resizable()
 				.frame(width: 64, height: 64)
 			
@@ -29,7 +29,7 @@ public struct SplashScreenView: View {
 			// Fallback retry in case setDockIcon()'s activate() call at launch lost the race —
 			// see the "Front-app activation workaround" note above AppDelegate.
 			DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-				NSApp.activate()
+				NSApplication.shared.activate()
 			}
 		}
 	}

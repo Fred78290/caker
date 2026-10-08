@@ -152,7 +152,7 @@ struct CakerMenuBarExtraScene: Scene {
 
 			Divider()
 			Button("Quit") {
-				NSApp.terminate(self)
+				NSApplication.shared.terminate(self)
 			}
 			.keyboardShortcut("Q")
 			.help("Terminate Caker and stop all running VMs.")

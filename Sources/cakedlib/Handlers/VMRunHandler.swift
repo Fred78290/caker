@@ -38,6 +38,7 @@ public struct VMRunHandler {
 	public let vncPort: Int
 	public let screenSize: CGSize
 	public let vmMode: VirtualMachine.Mode
+	public let promise: EventLoopPromise<Void>?
 
 	public init(
 		serviceMode: VMRunServiceMode,
@@ -50,6 +51,7 @@ public struct VMRunHandler {
 		vncPassword: String,
 		vncPort: Int,
 		vmMode: VirtualMachine.Mode,
+		promise: EventLoopPromise<Void>? = nil,
 		runMode: Utils.RunMode
 	) {
 		self.storageLocation = storageLocation
@@ -63,6 +65,7 @@ public struct VMRunHandler {
 		self.vncPassword = vncPassword
 		self.screenSize = screenSize
 		self.vmMode = vmMode
+		self.promise = promise
 	}
 
 	public typealias CompletionHandler<T> = (EventLoopFuture<String?>, VirtualMachine) throws -> T
@@ -102,7 +105,8 @@ public struct VMRunHandler {
 			vncPort: vncPort,
 			mode: vmMode,
 			runMode: runMode,
-			queue: queue)
+			queue: queue,
+			promise: promise)
 
 		return try completionHandler(result.address, result.vm)
 	}
@@ -140,6 +144,7 @@ public struct VMRunHandler {
 			vncPort: vncPort,
 			mode: vmMode,
 			runMode: runMode,
-			queue: queue)
+			queue: queue,
+			promise: promise)
 	}
 }

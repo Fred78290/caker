@@ -346,15 +346,6 @@ extension Service {
 		}
 
 		func run() async throws {
-			// 1. Force NSApp to exist under your control, before any window/view is created
-			let app = await NSApplication.shared
-
-			// 2. Set policy immediately — before any NSWindow/NSView allocation
-			await app.setActivationPolicy(.prohibited)   // see caveat below
-
-			// 3. Finish launching manually since you're not using NSApplicationMain
-			await app.finishLaunching()
-
 			let listenAddress = try self.options.getListenAddress(runMode: self.common.runMode)
 			let logger = Logger(self)
 
@@ -505,6 +496,12 @@ extension Service {
 						logger.info("Stop service on SIGINT")
 
 						exitCode = 128
+
+						sigintSrc.setEventHandler {
+							Foundation.exit(128)
+						}
+
+						sigintSrc.activate()
 
 						Task {
 							if let handler = imdsLifecycleHandler, let coordinator = imdsCoordinator {

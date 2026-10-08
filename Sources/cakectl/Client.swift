@@ -287,7 +287,14 @@ struct Client: ParsableCommand {
 
 		sigintSrc.setEventHandler {
 			task.cancel()
+
+			sigintSrc.setEventHandler {
+				Foundation.exit(128)
+			}
+
+			sigintSrc.activate()
 		}
+
 		sigintSrc.activate()
 
 		// Set line-buffered output for stdout

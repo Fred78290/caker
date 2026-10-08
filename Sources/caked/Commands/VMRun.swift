@@ -11,6 +11,7 @@ import NIOPortForwarding
 import System
 import Virtualization
 import Darwin
+import Semaphore
 
 struct VMRun: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(commandName: "vmrun", abstract: String(localized: "Run VM"), shouldDisplay: false, aliases: ["run"])
@@ -147,6 +148,8 @@ struct VMRun: AsyncParsableCommand {
 		}
 
 		let runMode = self.common.runMode
+		var promise = (display == .ui || display == .all) ? nil : Utilities.group.next().makePromise(of: Void.self)
+		let semaphore = AsyncSemaphore(value: 0)
 		let handler = CakedLib.VMRunHandler(
 			serviceMode: mode,
 			storageLocation: storageLocation,
@@ -158,13 +161,24 @@ struct VMRun: AsyncParsableCommand {
 			vncPassword: vncPassword,
 			vncPort: vncPort,
 			vmMode: self.recoveryMode ? .recovery : .normal,
+			promise: promise,
 			runMode: runMode)
 
 		defer {
+			if let promise {
+				promise.succeed()
+			}
+
 			location.removePID()
 		}
 
-		try handler.run { address, vm in
+		if let promise {
+			promise.futureResult.whenComplete { _ in
+				semaphore.signal()
+			}
+		}
+
+		let vm = try handler.run { address, vm in
 			let logger = Logger(self)
 
 			address.whenSuccess { ip in
@@ -193,14 +207,16 @@ struct VMRun: AsyncParsableCommand {
 				vm.createVirtualMachineView()
 			}
 
-			if display == .ui || display == .all {
-				MainApp.runUI(vm, params: handler, cancellation: cancellable)
-			} else {
-				NSApplication.shared.setActivationPolicy(.prohibited)
-				NSApplication.shared.run()
+			return vm
+		}
 
-				cancellable?.cancel()
-			}
+		if display == .ui || display == .all {
+			MainApp.runUI(vm, params: handler, cancellation: cancellable)
+		} else {
+			await semaphore.wait()
+
+			promise = nil
+			cancellable?.cancel()
 		}
 	}
 }

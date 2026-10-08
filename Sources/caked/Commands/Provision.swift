@@ -5,6 +5,8 @@ import CakedLib
 import Combine
 import Foundation
 import GRPCLib
+import NIO
+import Semaphore
 
 /// Drives an already-installed macOS VM's Setup Assistant unattended via PackerLite — the same
 /// engine `caked build`/`create` run automatically for `.ipsw` sources with `--autoinstall`, exposed
@@ -98,11 +100,12 @@ struct Provision: AsyncParsableCommand {
 			location, template: templatePath?.path(percentEncoded: false),
 			macosVersion: self.provision.macosVersion, variables: self.provision.vars, runMode: self.common.runMode)
 
+		let promise = Utilities.group.next().makePromise(of: Void.self)
+		let semaphore = AsyncSemaphore(value: 0)
+
 		defer {
 			location.removePID()
 		}
-
-		let promise = Utilities.group.next().makePromise(of: Void.self)
 
 		do {
 			FileManager.default.createFile(atPath: location.provisionningURL.path(percentEncoded: false), contents: nil)
@@ -138,6 +141,12 @@ struct Provision: AsyncParsableCommand {
 
 			sigintSrc.setEventHandler {
 				cancellation.cancel()
+
+				sigintSrc.setEventHandler {
+					Foundation.exit(128)
+				}
+
+				sigintSrc.activate()
 			}
 
 			sigintSrc.activate()
@@ -150,15 +159,18 @@ struct Provision: AsyncParsableCommand {
 				location.removePID()
 
 				DispatchQueue.main.async {
-					NSApplication.shared.terminate(self)
+					if self.provision.foreground {
+						NSApplication.shared.terminate(self)
+					} else {
+						semaphore.signal()
+					}
 				}
 			}
 
 			if self.provision.foreground {
 				MainApp.runUI(vm, params: handler, cancellation: cancellation)
 			} else {
-				NSApplication.shared.setActivationPolicy(.prohibited)
-				NSApplication.shared.run()
+				await semaphore.wait()
 			}
 		} catch {
 			promise.fail(error)

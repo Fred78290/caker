@@ -1,3 +1,4 @@
+import AppKit
 import ArgumentParser
 import CakeAgentLib
 import Foundation
@@ -1021,7 +1022,7 @@ extension VirtualMachine {
 		}
 	}
 
-	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
+	private func startedVM(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
 		if self.env.runMode == .app {
 			if self.mode == .provisioning {
 				try self.location.writeProvisionning()
@@ -1058,10 +1059,6 @@ extension VirtualMachine {
 		}
 
 		response.whenSuccess { runningIP in
-			if let promise = promise {
-				promise.succeed(runningIP)
-			}
-
 			if let runningIP {
 				self.env.runningIP = runningIP
 			}
@@ -1090,10 +1087,6 @@ extension VirtualMachine {
 		}
 
 		response.whenFailure { error in
-			if let promise = promise {
-				promise.fail(error)
-			}
-
 			self.didChangedState(false)
 
 			self.logger.error("VM \(self.location.name) failed to get primary IP: \(error)")
@@ -1102,9 +1095,13 @@ extension VirtualMachine {
 		return response
 	}
 
-	private func start(_ mode: VMRunServiceMode, completionHandler: StartCompletionHandler? = nil) async throws {
+	private func start(_ mode: VMRunServiceMode, promise: EventLoopPromise<Void>? = nil, completionHandler: StartCompletionHandler? = nil) async throws {
 
 		let finalPromise = Utilities.group.next().makePromise(of: Void.self)
+
+		if let promise = promise {
+			finalPromise.futureResult.cascade(to: promise)
+		}
 
 		self.finalPromise = finalPromise
 		try self.env.startVMRunService(mode, vm: self)
@@ -1277,7 +1274,7 @@ extension VirtualMachine {
 	public func runInBackground(
 		_ mode: VMRunServiceMode,
 		on: EventLoop,
-		promise: EventLoopPromise<String?>? = nil,
+		promise: EventLoopPromise<Void>? = nil,
 		completionHandler: StartCompletionHandler? = nil
 	) throws -> EventLoopFuture<String?> {
 
@@ -1289,9 +1286,15 @@ extension VirtualMachine {
 			}
 
 			do {
-				try await self.start(mode, completionHandler: completionHandler)
+				try await self.start(mode, promise: promise, completionHandler: completionHandler)
 			} catch {
 				status = 1
+
+				self.logger.error("VM \(self.location.name) failed to run: \(error)")
+
+				// `start` only completes `finalPromise` on a clean exit: fail it here so whoever waits
+				// on it (e.g. headless `caked vmrun`) is woken up instead of hanging forever.
+				self.finalPromise?.fail(error)
 			}
 
 			self.location.removePID()
@@ -1313,7 +1316,7 @@ extension VirtualMachine {
 			self.catchUserSignals(task)
 		}
 
-		return try self.startedVM(on: on, promise: promise, runMode: self.env.runMode)
+		return try self.startedVM(on: on, runMode: self.env.runMode)
 	}
 }
 
@@ -1801,20 +1804,22 @@ extension VirtualMachine: VNCServerDelegate {
 				framebufferView.frame = NSRect(origin: .zero, size: vmView.bounds.size)
 			}
 
-			#if TRACE_DEINIT
-				let window: NSWindow = VirtualMachineWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
-			#else
-				let window: NSWindow = NSWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
-			#endif
+			let bounds = NSRect(origin: NSPoint(x: -20_000, y: -20_000), size: vmView.bounds.size)
+			let window = OffscreenWindow(contentRect: bounds, styleMask: .borderless, backing: .buffered, defer: false)
 
 			window.isReleasedWhenClosed = false
 			window.hidesOnDeactivate = canHide
+			window.backgroundColor = .clear
 			window.canHide = canHide
 			window.contentView = vmView
-			window.makeKeyAndOrderFront(nil)
+			window.hasShadow = false
+			window.isExcludedFromWindowsMenu = true
+			window.collectionBehavior = [.transient, .ignoresCycle, .fullScreenNone]
+			window.level = .normal
 			#if DEBUG
 				window.delegate = self
 			#endif
+			window.orderFrontRegardless()
 			self.env.vzMachineWindow = window
 		}
 	}

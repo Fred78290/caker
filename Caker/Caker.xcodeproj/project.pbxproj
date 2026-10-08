@@ -1421,6 +1421,7 @@
 		9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServiceClient.swift; sourceTree = "<group>"; };
 		9BC1F6822F66B20B00A83B33 /* VirtualMachineTerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineTerminalView.swift; sourceTree = "<group>"; };
 		9BC1F6842F66B25A00A83B33 /* ColorWell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorWell.swift; sourceTree = "<group>"; };
+		9BCE821030753FB200414C1F /* cakectl.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = cakectl.plist; sourceTree = "<group>"; };
 		9BCEB1902ED76EB200B29B70 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
@@ -3128,28 +3129,29 @@
 			isa = PBXGroup;
 			children = (
 				9BFE87362F7E6480005CC9B2 /* AppIcon.icns */,
-				9BFE873C2F7E6480005CC9B2 /* Document.icns */,
-				9BFE87DB2F7E6B67005CC9B2 /* VM.icns */,
-				9BFE87372F7E6480005CC9B2 /* caked.plist */,
-				9BB7AEFA2FFFC3E300B7DD6D /* com.aldunelabs.caker.caked.plist */,
-				9BFE873F2F7E6480005CC9B2 /* Info.plist */,
-				9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */,
-				9BFE873D2F7E6480005CC9B2 /* Document.png */,
-				9BFE87402F7E6480005CC9B2 /* menubar.png */,
-				9BFE87422F7E6480005CC9B2 /* Prompt.png */,
-				9BFE87442F7E6480005CC9B2 /* VM.png */,
+				9BCE821030753FB200414C1F /* cakectl.plist */,
 				9B001A0C300025340048894C /* cakectl.provisionprofile */,
+				9BFE87372F7E6480005CC9B2 /* caked.plist */,
 				9B001A0D300025340048894C /* caked.provisionprofile */,
-				9B001A0E300025340048894C /* caker.provisionprofile */,
 				9BFE87382F7E6480005CC9B2 /* Caked.xcf */,
+				9BFE87392F7E6480005CC9B2 /* CakedAppIcon.png */,
+				9B001A0E300025340048894C /* caker.provisionprofile */,
+				9BB7AEFA2FFFC3E300B7DD6D /* com.aldunelabs.caker.caked.plist */,
+				9B22CCE02FF3CA3D001D626A /* debug */,
+				9BFE873C2F7E6480005CC9B2 /* Document.icns */,
+				9BFE873D2F7E6480005CC9B2 /* Document.png */,
 				9BFE873E2F7E6480005CC9B2 /* Document.xcf */,
-				9BFE87412F7E6480005CC9B2 /* menubar.xcf */,
-				9BFE87452F7E6480005CC9B2 /* VM.xcf */,
+				9BFE87342F7E6480005CC9B2 /* Icons */,
+				9BFE873F2F7E6480005CC9B2 /* Info.plist */,
 				9B5FA35E2F8D5AE80077EF64 /* InfoPlist.xcstrings */,
 				9B5FA0FE2F8B94F50077EF64 /* Localizable.xcstrings */,
-				9B22CCE02FF3CA3D001D626A /* debug */,
-				9BFE87342F7E6480005CC9B2 /* Icons */,
+				9BFE87402F7E6480005CC9B2 /* menubar.png */,
+				9BFE87412F7E6480005CC9B2 /* menubar.xcf */,
+				9BFE87422F7E6480005CC9B2 /* Prompt.png */,
 				9B22CCE32FF3CA48001D626A /* release */,
+				9BFE87DB2F7E6B67005CC9B2 /* VM.icns */,
+				9BFE87442F7E6480005CC9B2 /* VM.png */,
+				9BFE87452F7E6480005CC9B2 /* VM.xcf */,
 			);
 			name = Resources;
 			path = ../Resources;
