@@ -8,20 +8,36 @@ import XCTest
 /// `--alias <id>`). See `VMImageCatalogURLTests.swift` for catalog-shape/reachability coverage —
 /// this file is specifically about the resolution logic.
 final class VMImageCatalogResolutionTests: XCTestCase {
-	func testIPSWIdResolvesToIPSWSourceAndMatchingMacOSVersion() throws {
-		let catalog = VMImageCatalog.shared
+	/// The `amd64` section has no `ipsw` list, and an arm64 build still decodes it: the key must be
+	/// optional, or the bundled catalog fails to load. Uses `loadBundled()` rather than `shared`, which
+	/// would prefer a `<CAKE_HOME>/VMImages.json` override and mask a failure here.
+	func testBundledCatalogDecodesWithoutIPSWInAmd64Section() throws {
+		let catalog = VMImageCatalog.loadBundled()
 
-		let resolution = try XCTUnwrap(catalog.resolveShorthand("macos12"))
-		let entry = try XCTUnwrap(catalog.current.ipsw.first(where: { $0.id == "macos12" }))
-
-		XCTAssertEqual(resolution.url, entry.url)
-		XCTAssertEqual(resolution.imageSource, .ipsw)
-		XCTAssertEqual(resolution.macosVersion, .macos12)
-		XCTAssertEqual(resolution.minCPU, entry.minCPU)
-		XCTAssertEqual(resolution.minMemoryMiB, entry.minMemoryMiB)
-		XCTAssertEqual(resolution.minCPU, 4)
-		XCTAssertEqual(resolution.minMemoryMiB, 4096)
+		XCTAssertFalse(catalog.amd64.iso.isEmpty)
+		XCTAssertFalse(catalog.amd64.cloud.isEmpty)
+		#if arch(arm64)
+			XCTAssertTrue(catalog.amd64.ipsw.isEmpty)
+			XCTAssertFalse(catalog.arm64.ipsw.isEmpty)
+		#endif
 	}
+
+	#if arch(arm64)
+		func testIPSWIdResolvesToIPSWSourceAndMatchingMacOSVersion() throws {
+			let catalog = VMImageCatalog.shared
+
+			let resolution = try XCTUnwrap(catalog.resolveShorthand("macos12"))
+			let entry = try XCTUnwrap(catalog.current.ipsw.first(where: { $0.id == "macos12" }))
+
+			XCTAssertEqual(resolution.url, entry.url)
+			XCTAssertEqual(resolution.imageSource, .ipsw)
+			XCTAssertEqual(resolution.macosVersion, .macos12)
+			XCTAssertEqual(resolution.minCPU, entry.minCPU)
+			XCTAssertEqual(resolution.minMemoryMiB, entry.minMemoryMiB)
+			XCTAssertEqual(resolution.minCPU, 4)
+			XCTAssertEqual(resolution.minMemoryMiB, 4096)
+		}
+	#endif
 
 	func testISOIdResolvesToISOSourceWithNoMacOSVersion() throws {
 		let catalog = VMImageCatalog.shared
@@ -81,9 +97,10 @@ final class VMImageCatalogResolutionTests: XCTestCase {
 		let entries = catalog.aliasEntries
 
 		XCTAssertFalse(entries.isEmpty)
-
+		#if arch(arm64)
 		let macos12 = try XCTUnwrap(entries.first(where: { $0.id == "macos12" }))
 		XCTAssertEqual(macos12.category, "ipsw")
+		#endif
 
 		let ubuntu2604 = try XCTUnwrap(entries.first(where: { $0.id == "ubuntu2604" }))
 		XCTAssertEqual(ubuntu2604.category, "cloud")

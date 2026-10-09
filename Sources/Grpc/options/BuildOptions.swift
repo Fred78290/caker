@@ -605,10 +605,10 @@ public struct BuildOptions: ParsableArguments {
 
 					if imageURL.host == nil {
 						switch imageSource {
-						case .raw, .qcow2, .iso, .ipsw:
-							self.image = URL(fileURLWithPath: imageURL.path(percentEncoded: false).expandingTildeInPath).absoluteString
-						default:
+						case .oci, .stream, .template:
 							break
+						default:
+							self.image = URL(fileURLWithPath: imageURL.path(percentEncoded: false).expandingTildeInPath).absoluteString
 						}
 					} else if var components = URLComponents(url: imageURL, resolvingAgainstBaseURL: false) {
 						switch scheme {
@@ -647,7 +647,7 @@ public struct BuildOptions: ParsableArguments {
 			}
 		}
 
-		if self.imageSource == .ipsw {
+		if self.imageSource?.isMacOS ?? false {
 			self.diskSize = max(self.diskSize, 40)
 		} else if (imageURL.absoluteString.contains("debian") || (self.imageId?.contains("debian") ?? false)) && self.user == "admin" {
 			throw ValidationError(String(localized: "Debian 12+ ISO images no longer allow the default user 'admin'. Please use '--user <username>' to specify a different username."))

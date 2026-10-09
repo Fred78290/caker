@@ -27,8 +27,30 @@ public struct VMImageEntry: Codable, Identifiable, Hashable, Sendable {
 
 public struct VMImageArchCatalog: Codable, Sendable {
 	public let iso: [VMImageEntry]
-	public let ipsw: [VMImageEntry]
 	public let cloud: [VMImageEntry]
+	#if arch(arm64)
+		public let ipsw: [VMImageEntry]
+	#endif
+
+	enum CodingKeys: String, CodingKey {
+		case iso
+		case cloud
+		#if arch(arm64)
+			case ipsw
+		#endif
+	}
+
+	public init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+
+		self.iso = try container.decode([VMImageEntry].self, forKey: .iso)
+		self.cloud = try container.decode([VMImageEntry].self, forKey: .cloud)
+		#if arch(arm64)
+			// Optional: the `amd64` section has no `ipsw` list (macOS guests need Apple Silicon), but an
+			// arm64 build still decodes that section, so a required key would fail the whole catalog.
+			self.ipsw = try container.decodeIfPresent([VMImageEntry].self, forKey: .ipsw) ?? []
+		#endif
+	}
 }
 
 /// `Bundle.module` only exists in genuine `swift build`/`swift test` builds (SPM generates its accessor
@@ -82,9 +104,19 @@ public struct VMImageCatalog: Codable, Sendable {
 		current.iso
 	}
 
-	public var availableIPSWImages: [VMImageEntry] {
-		current.ipsw
-	}
+	#if arch(arm64)
+		public var availableIPSWImages: [VMImageEntry] {
+			current.ipsw
+		}
+		public func ipswImage(_ id: String) -> VMImageEntry {
+			guard let entry = current.ipsw.first(where: { $0.id == id }) else {
+				fatalError("Unknown IPSW image id \(id) in VMImages.json")
+			}
+
+			return entry
+		}
+
+	#endif
 
 	public var availableCloudImages: [VMImageEntry] {
 		current.cloud
@@ -93,14 +125,6 @@ public struct VMImageCatalog: Codable, Sendable {
 	public func isoImage(_ id: String) -> VMImageEntry {
 		guard let entry = current.iso.first(where: { $0.id == id }) else {
 			fatalError("Unknown ISO image id \(id) in VMImages.json")
-		}
-
-		return entry
-	}
-
-	public func ipswImage(_ id: String) -> VMImageEntry {
-		guard let entry = current.ipsw.first(where: { $0.id == id }) else {
-			fatalError("Unknown IPSW image id \(id) in VMImages.json")
 		}
 
 		return entry
@@ -132,7 +156,9 @@ public struct VMImageCatalog: Codable, Sendable {
 		return try? JSONDecoder().decode(VMImageCatalog.self, from: Data(contentsOf: url))
 	}
 
-	private static func loadBundled() -> VMImageCatalog {
+	/// `internal` (not `private`) so tests can load the bundled file directly — `shared` prefers a
+	/// `<CAKE_HOME>/VMImages.json` override, which would hide a bundled-file decoding failure.
+	static func loadBundled() -> VMImageCatalog {
 		func loadCatalog(_ url: URL) -> VMImageCatalog {
 			do {
 				let data = try Data(contentsOf: url)
@@ -199,9 +225,11 @@ public struct VMImageCatalog: Codable, Sendable {
 	}
 
 	private var usesOnlyHTTPS: Bool {
-		[arm64, amd64].allSatisfy { arch in
-			(arch.iso + arch.ipsw + arch.cloud).allSatisfy { $0.url.hasPrefix("https://") }
-		}
+		#if arch(arm64)
+			(arm64.iso + arm64.ipsw + arm64.cloud).allSatisfy { $0.url.hasPrefix("https://") }
+		#else
+			(amd64.iso + amd64.cloud).allSatisfy { $0.url.hasPrefix("https://") }
+		#endif
 	}
 }
 
@@ -237,9 +265,11 @@ extension VMImageCatalog {
 	/// shouldn't normally happen, since `--alias`'s ids are meant to come from this same catalog,
 	/// but a caller should still handle it rather than force-unwrapping.
 	public func resolveShorthand(_ id: String) -> VMImageCatalogResolution? {
-		if let entry = current.ipsw.first(where: { $0.id == id }) {
-			return VMImageCatalogResolution(url: entry.url, imageSource: .ipsw, macosVersion: MacOSVersion(rawValue: id), minCPU: entry.minCPU, minMemoryMiB: entry.minMemoryMiB)
-		}
+		#if arch(arm64)
+			if let entry = current.ipsw.first(where: { $0.id == id }) {
+				return VMImageCatalogResolution(url: entry.url, imageSource: .ipsw, macosVersion: MacOSVersion(rawValue: id), minCPU: entry.minCPU, minMemoryMiB: entry.minMemoryMiB)
+			}
+		#endif
 
 		if let entry = current.iso.first(where: { $0.id == id }) {
 			return VMImageCatalogResolution(url: entry.url, imageSource: .iso, macosVersion: nil, minCPU: entry.minCPU, minMemoryMiB: entry.minMemoryMiB)
@@ -270,9 +300,14 @@ extension VMImageCatalog {
 	/// Every `--alias`-able id in `current` (arch-appropriate), across all three categories —
 	/// the data behind the `aliases` command in both `caked` and `cakectl`.
 	public var aliasEntries: [VMImageAliasEntry] {
-		current.ipsw.map { VMImageAliasEntry(id: $0.id, category: "ipsw", label: $0.label) }
-			+ current.iso.map { VMImageAliasEntry(id: $0.id, category: "iso", label: $0.label) }
-			+ current.cloud.map { VMImageAliasEntry(id: $0.id, category: "cloud", label: $0.label) }
+		#if arch(arm64)
+			current.ipsw.map { VMImageAliasEntry(id: $0.id, category: "ipsw", label: $0.label) }
+				+ current.iso.map { VMImageAliasEntry(id: $0.id, category: "iso", label: $0.label) }
+				+ current.cloud.map { VMImageAliasEntry(id: $0.id, category: "cloud", label: $0.label) }
+		#else
+			current.iso.map { VMImageAliasEntry(id: $0.id, category: "iso", label: $0.label) }
+				+ current.cloud.map { VMImageAliasEntry(id: $0.id, category: "cloud", label: $0.label) }
+		#endif
 	}
 }
 

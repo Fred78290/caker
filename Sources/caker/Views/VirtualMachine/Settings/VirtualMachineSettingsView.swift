@@ -277,7 +277,7 @@ struct VirtualMachineSettingsView: View {
 
 			if self.noRootDisk {
 				HStack {
-					let range = RangeIntegerStyle.ranged(Int(max(self.initialDiskSize, self.config.source == .ipsw ? 40 : 5))...2048)
+					let range = RangeIntegerStyle.ranged(Int(max(self.initialDiskSize, self.config.source.isMacOS ? 40 : 5))...2048)
 
 					Text("Disk size (GiB)")
 					Spacer()
@@ -285,7 +285,7 @@ struct VirtualMachineSettingsView: View {
 						.rounded(.center)
 						.frame(width: 50)
 						.onChange(of: self.diskSizeInGiB) { _, newValue in
-							let minDisk = max(self.initialDiskSize, self.config.source == .ipsw ? 40 : 5)
+							let minDisk = max(self.initialDiskSize, self.config.source.isMacOS ? 40 : 5)
 							let clamped = min(max(newValue, minDisk), 2048)
 
 							self.diskSizeInGiB = clamped

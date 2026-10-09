@@ -77,7 +77,7 @@ public struct VMBuilder {
 			location.removePID()
 		}
 
-		if password == nil && (imageSource == .ipsw || imageSource == .iso) {
+		if password == nil && imageSource.supportProvisionning {
 			password = "admin"
 		}
 
@@ -368,7 +368,7 @@ public struct VMBuilder {
 				throw ServiceError(String(localized: "Root disk not found at expected location: \(root)"))
 			}
 
-			if sourceImage == .ipsw {
+			if sourceImage?.isMacOS ?? false {
 				#if arch(arm64)
 					if imageIsFile == false {
 						options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
@@ -431,7 +431,7 @@ public struct VMBuilder {
 				options.image = try await CloudImageConverter.downloadISO(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
 			}
 
-		} else if sourceImage == .ipsw {
+		} else if sourceImage?.isMacOS ?? false {
 			#if arch(arm64)
 				if imageIsFile == false {
 					options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString

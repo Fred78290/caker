@@ -9,9 +9,11 @@ final class CachedImageKindTests: XCTestCase {
 	func testCacheTypesMapToImageSources() {
 		XCTAssertEqual(CachedImageKind(cacheType: "cloud-images").imageSource, .qcow2)
 		XCTAssertEqual(CachedImageKind(cacheType: "iso").imageSource, .iso)
-		XCTAssertEqual(CachedImageKind(cacheType: "ipsw").imageSource, .ipsw)
 		XCTAssertEqual(CachedImageKind(cacheType: "oci").imageSource, .oci)
 		XCTAssertEqual(CachedImageKind(cacheType: "simplestream").imageSource, .stream)
+		#if arch(arm64)
+			XCTAssertEqual(CachedImageKind(cacheType: "ipsw").imageSource, .ipsw)
+		#endif
 	}
 
 	func testKindsThatCannotBeBuiltFromCacheAreDisabled() {
@@ -28,9 +30,11 @@ final class CachedImageKindTests: XCTestCase {
 	}
 
 	func testOnlyIPSWIsDarwin() {
-		XCTAssertEqual(CachedImageKind.ipsw.os, .darwin)
 		XCTAssertEqual(CachedImageKind.iso.os, .linux)
 		XCTAssertEqual(CachedImageKind.cloudImage.os, .linux)
+		#if arch(arm64)
+			XCTAssertEqual(CachedImageKind.ipsw.os, .darwin)
+		#endif
 	}
 
 	func testTemplatesAreNotListed() {

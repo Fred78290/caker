@@ -273,7 +273,6 @@ let package = Package(
 			"caker"
 		], exclude: [
 			"echo.py",
-			"TestPlan.xctestplan",
 		])
 	],
 	swiftLanguageModes: [

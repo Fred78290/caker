@@ -895,7 +895,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			}
 		}
 
-		if config.firstLaunch && (config.source == .iso || config.source == .ipsw) {
+		if config.firstLaunch && config.source.supportProvisionning {
 			return try waitIPWithLease(config: config, wait: wait, runMode: runMode, startedProcess: startedProcess)
 		} else if config.agent {
 			return try waitIPWithAgent(wait: wait, runMode: runMode, startedProcess: startedProcess)
@@ -1131,7 +1131,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 		let agentBinary = try await Utilities.cakeagentBinary(os: config.os, runMode: runMode)
 
-		if imageSource == .ipsw {
+		if imageSource.isMacOS {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
 			try ssh.authenticate(
@@ -1171,7 +1171,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 
 		ssh.ptyType = .xterm
 
-		if imageSource == .ipsw {
+		if imageSource.isMacOS {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath, commands.useSshKey {
 			try ssh.authenticate(

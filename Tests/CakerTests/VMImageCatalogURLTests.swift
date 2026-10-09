@@ -19,14 +19,15 @@ final class VMImageCatalogURLTests: XCTestCase {
 				XCTAssertEqual(entry.minCPU, 2, "\(entry.id) is a headless cloud image")
 				XCTAssertEqual(entry.minMemoryMiB, 2048, "\(entry.id) is a headless cloud image")
 			}
-
-			// A macOS install has its own, higher minimums than the Linux conventions above. Every entry
-			// declares them (the fields aren't optional) and `BuildOptions.resolveImageId` raises a build's
-			// cpu/memory to them, so what matters is that they are real, not that they are absent.
-			for entry in archCatalog.ipsw {
-				XCTAssertGreaterThanOrEqual(entry.minCPU, 4, "\(entry.id) is a macOS install")
-				XCTAssertGreaterThanOrEqual(entry.minMemoryMiB, 4096, "\(entry.id) is a macOS install")
-			}
+			#if arch(arm64)
+				// A macOS install has its own, higher minimums than the Linux conventions above. Every entry
+				// declares them (the fields aren't optional) and `BuildOptions.resolveImageId` raises a build's
+				// cpu/memory to them, so what matters is that they are real, not that they are absent.
+				for entry in archCatalog.ipsw {
+					XCTAssertGreaterThanOrEqual(entry.minCPU, 4, "\(entry.id) is a macOS install")
+					XCTAssertGreaterThanOrEqual(entry.minMemoryMiB, 4096, "\(entry.id) is a macOS install")
+				}
+			#endif
 		}
 	}
 

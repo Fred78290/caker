@@ -124,7 +124,7 @@ public enum SupportedDiskFormat: String, Identifiable, Codable, Hashable, Sendab
 	public var id: String {
 		self.rawValue
 	}
-	
+
 	case raw
 	case asif
 
@@ -460,8 +460,10 @@ extension Caked_ImageSource {
 			self = .stream
 		case .iso:
 			self = .iso
-		case .ipsw:
-			self = .ipsw
+		#if arch(arm64)
+			case .ipsw:
+				self = .ipsw
+		#endif
 		}
 	}
 }

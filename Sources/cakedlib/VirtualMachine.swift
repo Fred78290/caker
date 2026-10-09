@@ -965,9 +965,7 @@ extension VirtualMachine {
 // MARK: - Run VM
 extension VirtualMachine {
 	private func shouldRetryAgentInstall(for config: CakeConfig) -> Bool {
-		let source = config.source
-
-		return source == .iso || source == .ipsw
+		return config.source.supportProvisionning
 	}
 
 	private func cancelAgentInstallRetry() {

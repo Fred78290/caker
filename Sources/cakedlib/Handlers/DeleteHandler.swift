@@ -24,7 +24,7 @@ public struct DeleteHandler {
 				return try doIt(location)
 			} else if let vmURL = URL(spaced: name) {
 				let location: VMLocation
-				
+
 				if vmURL.isFileURL || VMLocation.supportedSchemes.contains(vmURL.scheme) {
 					location = try VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode)
 				} else {
@@ -41,10 +41,10 @@ public struct DeleteHandler {
 	}
 
 	public static func delete(names: [String], runMode: Utils.RunMode) throws -> [DeletedObject] {
-		func listRemotes() throws -> [String:SimpleStreamsImageCache] {
+		func listRemotes() throws -> [String: SimpleStreamsImageCache] {
 			let remoteDb = try Home(runMode: runMode).remoteDatabase()
 			var imageCaches: [String: SimpleStreamsImageCache] = [:]
-			
+
 			try remoteDb.remote.forEach { (key, value) in
 				if let url = URL(string: value), let name = url.host(percentEncoded: false) {
 					imageCaches[key] = try SimpleStreamsImageCache(name: name, runMode: runMode)
@@ -55,16 +55,19 @@ public struct DeleteHandler {
 		}
 
 		return try names.compactMap { name in
-			if let u = URL(spaced: name), let scheme = u.scheme, (VMLocation.supportedSchemes.contains(scheme) == false && u.isFileURL == false) {
+			if let u = URL(spaced: name), let scheme = u.scheme, VMLocation.supportedSchemes.contains(scheme) == false && u.isFileURL == false {
 				let remotes = try listRemotes()
-				let purgeableStorages: [String: CommonCacheImageCache] = [
+				var purgeableStorages: [String: CommonCacheImageCache] = [
 					CloudImageCache.scheme: try CloudImageCache(runMode: runMode),
 					RawImageCache.scheme: try RawImageCache(runMode: runMode),
-					IPSWCache.scheme: try IPSWCache(runMode: runMode),
 					IsoCache.scheme: try IsoCache(runMode: runMode),
 					OCIImageCache.scheme: try OCIImageCache(runMode: runMode),
 					SimpleStreamsImageCache.scheme: try SimpleStreamsImageCache(runMode: runMode),
 				]
+
+				#if arch(arm64)
+					purgeableStorages[IPSWCache.scheme] = try IPSWCache(runMode: runMode)
+				#endif
 
 				if scheme == OCIImageCache.scheme {
 					let contentStore = try PurgeableContentStore(runMode: runMode)
@@ -78,15 +81,15 @@ public struct DeleteHandler {
 						return DeletedObject(source: scheme, name: purgeable.name, deleted: true, reason: String.empty)
 					}
 				}
-				
+
 				if let cache = purgeableStorages[scheme] {
 					let purgeables = try cache.purgeables()
-					
+
 					if let purgeable = purgeables.first(where: { cache.fqn($0).contains(u.absoluteString) }) {
 						try purgeable.delete()
 						return DeletedObject(source: cache.location, name: purgeable.name, deleted: true, reason: String.empty)
 					}
-					
+
 				} else if let cache = remotes[scheme] {
 					if let entry = cache.findCache(fingerprintOrAlias: u.vmName) {
 						try cache.deleteCache(fingerprint: entry.fingerprint)
@@ -108,14 +111,16 @@ public struct DeleteHandler {
 		do {
 			try location.delete()
 
-			return DeleteReply(objects: [
-				DeletedObject(source: "vm", name: location.name, deleted: true, reason: String(localized: "VM not found"))
-			], success: true, reason: String(localized: "Success"))
+			return DeleteReply(
+				objects: [
+					DeletedObject(source: "vm", name: location.name, deleted: true, reason: String(localized: "VM not found"))
+				], success: true, reason: String(localized: "Success"))
 
 		} catch {
-			return DeleteReply(objects: [
-				DeletedObject(source: "vm", name: location.name, deleted: false, reason: String(localized: "VM not found"))
-			], success: false, reason: error.reason)
+			return DeleteReply(
+				objects: [
+					DeletedObject(source: "vm", name: location.name, deleted: false, reason: String(localized: "VM not found"))
+				], success: false, reason: error.reason)
 		}
 	}
 
@@ -125,9 +130,10 @@ public struct DeleteHandler {
 
 			return delete(location: location, runMode: runMode)
 		} catch {
-			return DeleteReply(objects: [
-				DeletedObject(source: "vm", name: name, deleted: false, reason: error.reason)
-			], success: false, reason: error.reason)
+			return DeleteReply(
+				objects: [
+					DeletedObject(source: "vm", name: name, deleted: false, reason: error.reason)
+				], success: false, reason: error.reason)
 		}
 	}
 
@@ -137,9 +143,10 @@ public struct DeleteHandler {
 
 			return delete(location: location, runMode: runMode)
 		} catch {
-			return DeleteReply(objects: [
-				DeletedObject(source: "vm", name: vmURL.absoluteString, deleted: false, reason: String(localized: "VM not found"))
-			], success: false, reason: error.reason)
+			return DeleteReply(
+				objects: [
+					DeletedObject(source: "vm", name: vmURL.absoluteString, deleted: false, reason: String(localized: "VM not found"))
+				], success: false, reason: error.reason)
 		}
 	}
 

@@ -83,7 +83,7 @@ struct Provision: AsyncParsableCommand {
 			throw ServiceError(String(localized: "The VM is already running"))
 		}
 
-		guard config.source == .ipsw || config.source == .iso else {
+		guard config.source.supportProvisionning else {
 			throw ServiceError(String(localized: "Provisioning is only supported for macOS VMs or Linux VMs from iso"))
 		}
 

@@ -60,7 +60,9 @@ struct ImageCacheView: View {
 		case .cloudImage: return String(localized: "Cloud Image")
 		case .rawImage: return String(localized: "Raw image")
 		case .iso: return String(localized: "ISO")
-		case .ipsw: return String(localized: "IPSW")
+		#if arch(arm64)
+			case .ipsw: return String(localized: "IPSW")
+		#endif
 		case .oci: return String(localized: "OCI")
 		case .ociLayers: return String(localized: "OCI layers")
 		case .simpleStream: return String(localized: "Simple stream")
@@ -74,7 +76,9 @@ struct ImageCacheView: View {
 		case .cloudImage, .simpleStream: return "cloud"
 		case .rawImage: return "internaldrive"
 		case .iso: return "opticaldisc"
-		case .ipsw: return "apple.logo"
+		#if arch(arm64)
+			case .ipsw: return "apple.logo"
+		#endif
 		case .oci, .ociLayers: return "shippingbox"
 		case .template: return "books.vertical.fill"
 		case .unknown: return "questionmark.folder"
