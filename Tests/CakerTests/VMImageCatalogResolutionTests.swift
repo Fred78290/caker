@@ -8,6 +8,20 @@ import XCTest
 /// `--alias <id>`). See `VMImageCatalogURLTests.swift` for catalog-shape/reachability coverage —
 /// this file is specifically about the resolution logic.
 final class VMImageCatalogResolutionTests: XCTestCase {
+	/// The `amd64` section has no `ipsw` list, and an arm64 build still decodes it: the key must be
+	/// optional, or the bundled catalog fails to load. Uses `loadBundled()` rather than `shared`, which
+	/// would prefer a `<CAKE_HOME>/VMImages.json` override and mask a failure here.
+	func testBundledCatalogDecodesWithoutIPSWInAmd64Section() throws {
+		let catalog = VMImageCatalog.loadBundled()
+
+		XCTAssertFalse(catalog.amd64.iso.isEmpty)
+		XCTAssertFalse(catalog.amd64.cloud.isEmpty)
+		#if arch(arm64)
+			XCTAssertTrue(catalog.amd64.ipsw.isEmpty)
+			XCTAssertFalse(catalog.arm64.ipsw.isEmpty)
+		#endif
+	}
+
 	#if arch(arm64)
 		func testIPSWIdResolvesToIPSWSourceAndMatchingMacOSVersion() throws {
 			let catalog = VMImageCatalog.shared

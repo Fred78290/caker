@@ -1,9 +1,9 @@
 import ArgumentParser
+import CakeAgentLib
 import Foundation
 import GRPCLib
 import NIOCore
 import SystemConfiguration
-import CakeAgentLib
 
 public struct ListHandler {
 	public static func list(vmonly: Bool, includeConfig: Bool, runMode: Utils.RunMode) -> VirtualMachineInfoReply {
@@ -47,16 +47,19 @@ public struct ListHandler {
 			}
 
 			if vmonly == false {
-				let purgeableStorages: [PurgeableStorage] = [
+				var purgeableStorages: [PurgeableStorage] = [
 					try TemplateImageCache(runMode: runMode),
 					try PurgeableContentStore(runMode: runMode),
 					try OCIImageCache(runMode: runMode),
 					try CloudImageCache(runMode: runMode),
 					try RawImageCache(runMode: runMode),
-					try IPSWCache(runMode: runMode),
 					try IsoCache(runMode: runMode),
 					try SimpleStreamsImageCache(name: String.empty, runMode: runMode),
 				]
+
+				#if arch(arm64)
+					purgeableStorages.append(try IPSWCache(runMode: runMode))
+				#endif
 
 				_ = try purgeableStorages.map { imageCache in
 					var purgeables = try imageCache.purgeables()

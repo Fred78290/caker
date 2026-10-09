@@ -140,17 +140,19 @@ public class RawImageCache: CommonCacheImageCache {
 	}
 }
 
-public class IPSWCache: CommonCacheImageCache {
-	static let scheme = "ipsw"
+#if arch(arm64)
+	public class IPSWCache: CommonCacheImageCache {
+		static let scheme = "ipsw"
 
-	public convenience init(runMode: Utils.RunMode) throws {
-		try self.init(name: String.empty, runMode: runMode)
-	}
+		public convenience init(runMode: Utils.RunMode) throws {
+			try self.init(name: String.empty, runMode: runMode)
+		}
 
-	public init(name: String, runMode: Utils.RunMode) throws {
-		try super.init(scheme: Self.scheme, location: "ipsw", name: name, ext: "ipsw", runMode: runMode)
+		public init(name: String, runMode: Utils.RunMode) throws {
+			try super.init(scheme: Self.scheme, location: "ipsw", name: name, ext: "ipsw", runMode: runMode)
+		}
 	}
-}
+#endif
 
 public class IsoCache: CommonCacheImageCache {
 	static let scheme = "iso"
@@ -473,11 +475,11 @@ public class OCIImageCache: CommonCacheImageCache {
 		func creationDate() throws -> Date {
 			try self._url.creationDate()
 		}
-		
+
 		func updatedDate() throws -> Date {
 			try self._url.updatedDate()
 		}
-		
+
 		func accessDate() throws -> Date {
 			try self._url.accessDate()
 		}

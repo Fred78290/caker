@@ -113,7 +113,9 @@ struct ShortImageInfoComparator: SortComparator {
 	var selectedRemoteImage: ShortImageInfo.ID
 	var cloudImageRelease: VMImageEntry
 	var isoImageRelease: VMImageEntry
-	var ipswRelease: VMImageEntry
+	#if arch(arm64)
+		var ipswRelease: VMImageEntry
+	#endif
 	var createVM: Bool
 	var fractionCompleted: Double
 	var createVMMessage: String
@@ -136,7 +138,9 @@ struct ShortImageInfoComparator: SortComparator {
 		self.selectedRemoteImage = String.empty
 		self.cloudImageRelease = VMImageCatalog.shared.cloudImage("ubuntu2604")
 		self.isoImageRelease = VMImageCatalog.shared.isoImage("ubuntu2604Server")
-		self.ipswRelease = VMImageCatalog.shared.ipswImage("macos26")
+		#if arch(arm64)
+			self.ipswRelease = VMImageCatalog.shared.ipswImage("macos27")
+		#endif
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
@@ -159,7 +163,9 @@ struct ShortImageInfoComparator: SortComparator {
 		self.selectedRemoteImage = String.empty
 		self.cloudImageRelease = VMImageCatalog.shared.cloudImage("ubuntu2604")
 		self.isoImageRelease = VMImageCatalog.shared.isoImage("ubuntu2604Server")
-		self.ipswRelease = VMImageCatalog.shared.ipswImage("macos26")
+		#if arch(arm64)
+			self.ipswRelease = VMImageCatalog.shared.ipswImage("macos27")
+		#endif
 		self.createVM = false
 		self.fractionCompleted = 0
 		self.createVMMessage = String.empty
@@ -292,14 +298,16 @@ struct VirtualMachineWizard: View {
 				config.cpuCount = max(config.cpuCount, model.isoImageRelease.minCPU)
 				config.memorySizeInMoB = max(config.memorySizeInMoB, model.isoImageRelease.minMemoryMiB)
 				model.showDiskFormat = true
-			case .ipsw:
-				config.cpuCount = max(config.cpuCount, model.ipswRelease.minCPU)
-				config.memorySizeInMoB = max(config.memorySizeInMoB, model.ipswRelease.minMemoryMiB)
-				config.diskSizeInGiB = max(config.diskSizeInGiB, 40)
-				model.showDiskFormat = true
 			case .qcow2:
 				config.cpuCount = max(config.cpuCount, model.cloudImageRelease.minCPU)
 				config.memorySizeInMoB = max(config.memorySizeInMoB, model.cloudImageRelease.minMemoryMiB)
+			#if arch(arm64)
+				case .ipsw:
+					config.cpuCount = max(config.cpuCount, model.ipswRelease.minCPU)
+					config.memorySizeInMoB = max(config.memorySizeInMoB, model.ipswRelease.minMemoryMiB)
+					config.diskSizeInGiB = max(config.diskSizeInGiB, 40)
+					model.showDiskFormat = true
+			#endif
 			default:
 				break
 			}
@@ -432,30 +440,32 @@ struct VirtualMachineWizard: View {
 					#endif
 				}
 			}
-			.onReceive(VMBuilder.IPSWStartNotification) { notification in
-				self.logger.debug("Notification - IPSWStartNotification")
-				if self.provisioningStarted == false, self.isMyNotification(notification), let virtualMachine = notification.object as? VirtualMachine {
-					self.provisioningStarted = true
-
-					#if DEBUG_PAKERLITE
-						self.openWindow(id: "Debug PackerLite", value: self.wizardID)
-					#else
-						self.provisionnedVM = virtualMachine
-					#endif
-				}
-			}
 			.onReceive(PackerLiteEngine.provisionedTerminatedNotification) { notification in
 				self.logger.debug("Notification - provisionedTerminatedNotification")
 				if self.isMyNotification(notification) {
 					self.provisionnedVM = nil
 				}
 			}
-			.onReceive(VMBuilder.IPSWTerminatedNotification) { notification in
-				self.logger.debug("Notification - IPSWTerminatedNotification")
-				if self.isMyNotification(notification), self.config.autoinstall == false {
-					self.provisionnedVM = nil
+			#if arch(arm64)
+				.onReceive(VMBuilder.IPSWStartNotification) { notification in
+					self.logger.debug("Notification - IPSWStartNotification")
+					if self.provisioningStarted == false, self.isMyNotification(notification), let virtualMachine = notification.object as? VirtualMachine {
+						self.provisioningStarted = true
+
+						#if DEBUG_PAKERLITE
+							self.openWindow(id: "Debug PackerLite", value: self.wizardID)
+						#else
+							self.provisionnedVM = virtualMachine
+						#endif
+					}
 				}
-			}
+				.onReceive(VMBuilder.IPSWTerminatedNotification) { notification in
+					self.logger.debug("Notification - IPSWTerminatedNotification")
+					if self.isMyNotification(notification), self.config.autoinstall == false {
+						self.provisionnedVM = nil
+					}
+				}
+			#endif
 
 			.onAppear {
 				self.validateConfig(config: self.config)
@@ -649,7 +659,9 @@ struct VirtualMachineWizard: View {
 		switch model.imageSource {
 		case .iso: return model.isoImageRelease.minCPU
 		case .qcow2: return model.cloudImageRelease.minCPU
-		case .ipsw: return model.ipswRelease.minCPU
+		#if arch(arm64)
+			case .ipsw: return model.ipswRelease.minCPU
+		#endif
 		default: return 1
 		}
 	}
@@ -662,7 +674,9 @@ struct VirtualMachineWizard: View {
 		switch model.imageSource {
 		case .iso: return model.isoImageRelease.minMemoryMiB
 		case .qcow2: return model.cloudImageRelease.minMemoryMiB
-		case .ipsw: return model.ipswRelease.minMemoryMiB
+		#if arch(arm64)
+			case .ipsw: return model.ipswRelease.minMemoryMiB
+		#endif
 		default: return 512
 		}
 	}
@@ -759,7 +773,7 @@ struct VirtualMachineWizard: View {
 				Toggle("Nested virtualization", isOn: $config.nestedVirtualization).disabled(self.model.createVM)
 				Toggle("Use network ifnames", isOn: $config.ifname).disabled(self.model.createVM)
 
-				if self.model.imageSource == .ipsw {
+				if self.model.imageSource.isMacOS {
 					Toggle("Suspendable", isOn: $config.suspendable).disabled(self.model.createVM)
 				}
 			}
@@ -897,7 +911,7 @@ struct VirtualMachineWizard: View {
 				}
 
 				// A cached ISO/IPSW preset is an installer image, so it gets the same provisioning options as a manually chosen one.
-				if self.model.imageSource == .iso || self.model.imageSource == .ipsw {
+				if self.model.imageSource.supportProvisionning {
 					Section {
 						VStack(alignment: .leading) {
 							if self.model.imageSource == .iso {
@@ -1041,49 +1055,50 @@ struct VirtualMachineWizard: View {
 
 							provisionVariablesSection
 						}
-
-					case .ipsw:
-						VStack(alignment: .leading) {
-							LabeledContent {
-								if AppState.shared.connectionMode == .app {
-									HStack {
-										TextField("IPSW Image", text: $config.imageName)
+					#if arch(arm64)
+						case .ipsw:
+							VStack(alignment: .leading) {
+								LabeledContent {
+									if AppState.shared.connectionMode == .app {
+										HStack {
+											TextField("IPSW Image", text: $config.imageName)
+												.frame(width: 460)
+												.rounded(.leading)
+												.disabled(self.model.createVM)
+											Button(action: {
+												if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
+													self.config.imageName = "file://\(imageName)"
+												}
+											}) {
+												Image(systemName: "document.badge.gearshape")
+											}
+											.disabled(self.model.createVM)
+											.withButtonStyle(.borderless)
+										}
+									} else {
+										TextField("MacOS ipsw url.", text: $config.imageName)
 											.frame(width: 460)
 											.rounded(.leading)
 											.disabled(self.model.createVM)
-										Button(action: {
-											if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
-												self.config.imageName = "file://\(imageName)"
-											}
-										}) {
-											Image(systemName: "document.badge.gearshape")
+									}
+								} label: {
+									Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
+										ForEach(VMImageCatalog.shared.availableIPSWImages) { os in
+											Text(os.label).tag(os)
 										}
-										.disabled(self.model.createVM)
-										.withButtonStyle(.borderless)
 									}
-								} else {
-									TextField("MacOS ipsw url.", text: $config.imageName)
-										.frame(width: 460)
-										.rounded(.leading)
-										.disabled(self.model.createVM)
-								}
-							} label: {
-								Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
-									ForEach(VMImageCatalog.shared.availableIPSWImages) { os in
-										Text(os.label).tag(os)
+									.pickerStyle(.menu)
+									.disabled(self.model.createVM)
+									.labelsHidden()
+									.onChange(of: model.ipswRelease) { _, newValue in
+										self.config.imageName = newValue.url
 									}
 								}
-								.pickerStyle(.menu)
-								.disabled(self.model.createVM)
-								.labelsHidden()
-								.onChange(of: model.ipswRelease) { _, newValue in
-									self.config.imageName = newValue.url
-								}
-							}
-						Toggle("Configure automatically the system", isOn: $config.autoinstall).disabled(self.model.createVM)
+								Toggle("Configure automatically the system", isOn: $config.autoinstall).disabled(self.model.createVM)
 
-							provisionVariablesSection
-						}
+								provisionVariablesSection
+							}
+					#endif
 					case .qcow2:
 						LabeledContent {
 							TextField("Cloud Image", text: $config.imageName)
@@ -1157,9 +1172,15 @@ struct VirtualMachineWizard: View {
 										Text(source.description).tag(source)
 									}
 								} else {
-									ForEach([ImageSource.iso, ImageSource.ipsw], id: \.self) { source in
-										Text(source.description).tag(source)
-									}
+									#if arch(arm64)
+										ForEach([ImageSource.iso, ImageSource.ipsw], id: \.self) { source in
+											Text(source.description).tag(source)
+										}
+									#else
+										ForEach([ImageSource.iso], id: \.self) { source in
+											Text(source.description).tag(source)
+										}
+									#endif
 								}
 							}.onChange(of: self.model.imageSource) { _, newValue in
 								self.config.source = newValue
@@ -1211,18 +1232,20 @@ struct VirtualMachineWizard: View {
 									self.config.os = .linux
 									self.model.provisioningTemplate = String.empty
 									self.model.provisionVars = ProvisionVariablesStore.load()
-								case .ipsw:
-									self.config.autoinstall = true
-									self.config.imageName = self.model.ipswRelease.url
-									self.config.cpuCount = max(self.config.cpuCount, self.model.ipswRelease.minCPU)
-									self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, self.model.ipswRelease.minMemoryMiB)
-									self.config.diskSizeInGiB = max(self.config.diskSizeInGiB, 40)
-									self.model.showDiskFormat = true
-									self.config.diskFormat = .defaultSupportedFormat
-									self.config.os = .darwin
-									self.config.autoinstall = false
-									self.model.provisioningTemplate = String.empty
-									self.model.provisionVars = ProvisionVariablesStore.load()
+								#if arch(arm64)
+									case .ipsw:
+										self.config.autoinstall = true
+										self.config.imageName = self.model.ipswRelease.url
+										self.config.cpuCount = max(self.config.cpuCount, self.model.ipswRelease.minCPU)
+										self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, self.model.ipswRelease.minMemoryMiB)
+										self.config.diskSizeInGiB = max(self.config.diskSizeInGiB, 40)
+										self.model.showDiskFormat = true
+										self.config.diskFormat = .defaultSupportedFormat
+										self.config.os = .darwin
+										self.config.autoinstall = false
+										self.model.provisioningTemplate = String.empty
+										self.model.provisionVars = ProvisionVariablesStore.load()
+								#endif
 								}
 							}
 							.pickerStyle(.menu)
@@ -1248,7 +1271,7 @@ struct VirtualMachineWizard: View {
 								.disabled(self.model.createVM && noRootDisk == false)
 								.foregroundStyle(diskSizeValueIsInvalid ? Color.red : Color.primary)
 								.onChange(of: config.diskSizeInGiB) { oldValue, newValue in
-									let clamped = max(newValue, self.config.source == .ipsw ? 40 : 5)
+									let clamped = max(newValue, self.config.source.isMacOS ? 40 : 5)
 									self.diskSizeValueIsInvalid = clamped != newValue
 								}
 							Stepper(value: $config.diskSizeInGiB, in: diskRange, step: 1) {
@@ -1279,7 +1302,7 @@ struct VirtualMachineWizard: View {
 					}
 				}
 
-				if model.imageSource == .iso || model.imageSource == .ipsw {
+				if model.imageSource.supportProvisionning {
 					LabeledContent("Optional existing root disk (no copy)") {
 						HStack {
 							TextField("path", text: $model.rootDisk)
@@ -1296,7 +1319,7 @@ struct VirtualMachineWizard: View {
 								if newValue.isEmpty {
 									self.config.rootDisk = nil
 								} else {
-									if self.model.imageSource != .ipsw && self.model.imageSource != .iso {
+									if self.model.imageSource.supportProvisionning == false {
 										self.model.imageSource = .iso
 									}
 
@@ -1492,10 +1515,16 @@ struct VirtualMachineWizard: View {
 			valid = self.model.provisioningTemplate.isEmpty == false || PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: platform)
 		}
 
-		if valid && (model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw) {
+		if valid && (model.imageSource.supportProvisionning || model.imageSource == .raw) {
 			if let url = URL(spaced: config.imageName) {
 				// A cache entry preset is identified by its FQN (`iso://…`, `ipsw://…`), which the build pipeline resolves against the cache.
-				let cachedFQN = self.fromPreset && ["iso", "ipsw"].contains(url.scheme)
+				#if arch(arm64)
+					// On Apple Silicon, the cache is only used for ISO/IPSW presets, so only those are considered valid.
+					let cachedFQN = self.fromPreset && ["iso", "ipsw"].contains(url.scheme)
+				#else
+					// On Intel, the cache is used for ISO presets and raw disk images, so those are considered valid.
+					let cachedFQN = self.fromPreset && ["iso"].contains(url.scheme)
+				#endif
 
 				if cachedFQN {
 					valid = true

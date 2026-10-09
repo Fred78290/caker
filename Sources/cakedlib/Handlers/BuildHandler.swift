@@ -49,7 +49,7 @@ extension BuildOptions {
 		options.cpu = max(options.cpu, resolution.minCPU)
 		options.memory = max(options.memory, resolution.minMemoryMiB)
 
-		if options.imageSource == .ipsw {
+		if options.imageSource?.isMacOS ?? false {
 			options.diskSize = max(options.diskSize, 40)
 		} else if options.image.contains("debian") && self.user == "admin" {
 			throw ServiceError(String(localized: "Debian 12+ ISO images no longer allow the default user 'admin'. Please use '--user <username>' to specify a different username."))
@@ -105,7 +105,7 @@ public struct BuildHandler {
 			}
 
 			let imageSource = options.imageSource ?? .qcow2
-			let directLocation = imageSource == .ipsw && Bundle.runInCaker == false
+			let directLocation = imageSource.isMacOS && Bundle.runInCaker == false
 			let location = storageLocation.location(options.name)
 			let tempVMLocation = directLocation ? location : try VMLocation.tempDirectory(options.identifier, runMode: runMode)
 			let tmpVMDirLock: FileLock?

@@ -1,6 +1,6 @@
+import CakeAgentLib
 import Foundation
 import GRPCLib
-import CakeAgentLib
 import SwiftUI
 
 public class CloudImageConverter {
@@ -44,7 +44,7 @@ public class CloudImageConverter {
 			throw ServiceError(String(localized: "file already exists: \(toURL.path(percentEncoded: false))"))
 		}
 		var pathExtension = fromURL.pathExtension
-		
+
 		if pathExtension.isEmpty {
 			pathExtension = "img"
 		}
@@ -77,12 +77,14 @@ public class CloudImageConverter {
 		return try await downloadRemoteFile(fromURL: remoteURL, toURL: cacheLocation, runMode: runMode, progressHandler: progressHandler)
 	}
 
-	public static func downloadIPSW(remoteURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
-		// Check if we already have this linux image in cache
-		let imageCache = try IPSWCache(name: remoteURL.host()!, runMode: runMode)
+	#if arch(arm64)
+		public static func downloadIPSW(remoteURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
+			// Check if we already have this linux image in cache
+			let imageCache = try IPSWCache(name: remoteURL.host()!, runMode: runMode)
 
-		return try await downloadRemoteToCache(remoteURL: remoteURL.redirectedURL, imageCache: imageCache, runMode: runMode, progressHandler: progressHandler)
-	}
+			return try await downloadRemoteToCache(remoteURL: remoteURL.redirectedURL, imageCache: imageCache, runMode: runMode, progressHandler: progressHandler)
+		}
+	#endif
 
 	public static func downloadISO(remoteURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
 		// Check if we already have this linux image in cache

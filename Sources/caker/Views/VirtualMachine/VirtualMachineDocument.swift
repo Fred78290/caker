@@ -60,9 +60,11 @@ extension UTType {
 		UTType(filenameExtension: "cdr")!
 	}
 
-	static var ipsw: UTType {
-		UTType(filenameExtension: "ipsw")!
-	}
+	#if arch(arm64)
+		static var ipsw: UTType {
+			UTType(filenameExtension: "ipsw")!
+		}
+	#endif
 
 	static var sshPublicKey: UTType {
 		UTType(filenameExtension: "pub")!

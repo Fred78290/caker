@@ -1,39 +1,35 @@
 import ArgumentParser
+import CakeAgentLib
 import Foundation
 import GRPCLib
 import NIOCore
 import SwiftDate
-import CakeAgentLib
 
 public struct PurgeHandler {
 	@discardableResult
 	public static func purge(direct: Bool, runMode: Utils.RunMode, options: PurgeOptions) -> PurgeReply {
 		do {
-			let purgeableStorages: [PurgeableStorage]
+			var purgeableStorages: [PurgeableStorage]
 
-			if options.entries == .caches {
-				purgeableStorages = [
-					try OCIImageCache(runMode: runMode),
-					try PurgeableContentStore(runMode: runMode),
-					try CloudImageCache(runMode: runMode),
-					try RawImageCache(runMode: runMode),
-					try IPSWCache(runMode: runMode),
-					try IsoCache(runMode: runMode),
-					try SimpleStreamsImageCache(name: String.empty, runMode: runMode),
-				]
-			} else if options.entries == .vms {
+			if options.entries == .vms {
 				purgeableStorages = [StorageLocation(runMode: runMode)]
 			} else {
 				purgeableStorages = [
-					StorageLocation(runMode: runMode),
 					try OCIImageCache(runMode: runMode),
 					try PurgeableContentStore(runMode: runMode),
 					try CloudImageCache(runMode: runMode),
 					try RawImageCache(runMode: runMode),
-					try IPSWCache(runMode: runMode),
 					try IsoCache(runMode: runMode),
 					try SimpleStreamsImageCache(name: String.empty, runMode: runMode),
 				]
+
+				if options.entries != .caches {
+					purgeableStorages.append(StorageLocation(runMode: runMode))
+				}
+
+				#if arch(arm64)
+					purgeableStorages.append(try IPSWCache(runMode: runMode))
+				#endif
 			}
 
 			if let olderThan = options.olderThan {

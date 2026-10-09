@@ -10,7 +10,9 @@ public enum CachedImageKind: Equatable, Sendable {
 	case cloudImage
 	case rawImage
 	case iso
-	case ipsw
+	#if arch(arm64)
+		case ipsw
+	#endif
 	case oci
 	case ociLayers
 	case simpleStream
@@ -22,11 +24,13 @@ public enum CachedImageKind: Equatable, Sendable {
 		case "cloud-images": self = .cloudImage
 		case "raw-images": self = .rawImage
 		case "iso": self = .iso
-		case "ipsw": self = .ipsw
 		case "oci": self = .oci
 		case "OCIs": self = .ociLayers
 		case "simplestream": self = .simpleStream
 		case "templates": self = .template
+		#if arch(arm64)
+			case "ipsw": self = .ipsw
+		#endif
 		default: self = .unknown(cacheType)
 		}
 	}
@@ -38,15 +42,21 @@ public enum CachedImageKind: Equatable, Sendable {
 		switch self {
 		case .cloudImage: return .qcow2
 		case .iso: return .iso
-		case .ipsw: return .ipsw
 		case .oci: return .oci
 		case .simpleStream: return .stream
 		case .rawImage, .ociLayers, .template, .unknown: return nil
+		#if arch(arm64)
+			case .ipsw: return .ipsw
+		#endif
 		}
 	}
 
 	public var os: VirtualizedOS {
-		self == .ipsw ? .darwin : .linux
+		#if arch(arm64)
+			self == .ipsw ? .darwin : .linux
+		#else
+			.linux
+		#endif
 	}
 
 	public var canCreateVirtualMachine: Bool {

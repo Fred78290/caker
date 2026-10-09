@@ -368,7 +368,7 @@ public struct VMBuilder {
 				throw ServiceError(String(localized: "Root disk not found at expected location: \(root)"))
 			}
 
-			if sourceImage == .ipsw {
+			if sourceImage?.isMacOS ?? false {
 				#if arch(arm64)
 					if imageIsFile == false {
 						options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
@@ -430,6 +430,15 @@ public struct VMBuilder {
 			if imageIsFile == false {
 				options.image = try await CloudImageConverter.downloadISO(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
 			}
+
+		} else if sourceImage?.isMacOS ?? false {
+			#if arch(arm64)
+				if imageIsFile == false {
+					options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
+				}
+			#else
+				throw ServiceError(String(localized: "IPSW is only available on arm64 architecture: \(options.image)"))
+			#endif
 		} else if sourceImage == .stream {
 			let scheme = imageURL.scheme!
 
@@ -447,16 +456,6 @@ public struct VMBuilder {
 
 			try await image.retrieveSimpleStreamImageAndConvert(to: diskURL, runMode: runMode, progressHandler: progressHandler)
 		} else {
-			#if arch(arm64)
-				if sourceImage == .ipsw {
-					if imageIsFile == false {
-						options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
-					}
-
-					return options
-				}
-			#endif
-
 			throw ServiceError(String(localized: "unsupported image url: \(options.image)"))
 		}
 
