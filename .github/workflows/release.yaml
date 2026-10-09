@@ -118,9 +118,20 @@ jobs:
       - name: 📊 Version
         id: version
         run: |
-          BASE_VERSION="${BASE_VERSION:-1.0}"
-          VERSION="${BASE_VERSION}.$(git rev-list --count HEAD)"
           PACKAGE=false
+
+          if [[ "${GITHUB_REF_NAME}" == "prerelease" ]]; then
+            PACKAGE=true
+            BUILDRELEASE=false
+            BASE_VERSION="0.0"
+          elif [[ "${GITHUB_REF_NAME}" == "release" ]]; then
+            PACKAGE=true
+            BUILDRELEASE=true
+            BASE_VERSION="1.0"
+          fi
+
+          VERSION="${BASE_VERSION}.$(git rev-list --count HEAD)"
+
           if [ "${{ steps.check.outputs.install_brew }}" == "true" ]; then
             brew install create-dmg gettext jq libxml2
           else
@@ -135,14 +146,6 @@ jobs:
             fi
           fi
 
-          if [[ "${GITHUB_REF_NAME}" == "prerelease" ]]; then
-            PACKAGE=true
-            BUILDRELEASE=false
-          elif [[ "${GITHUB_REF_NAME}" == "release" ]]; then
-            PACKAGE=true
-            BUILDRELEASE=true
-          fi
-
           if [ ${PACKAGE} == "true" ] && [ ${GITHUB_EVENT_NAME} != "push" ]; then
             PACKAGE=false
           fi
@@ -153,6 +156,7 @@ jobs:
 
           echo "PKG_PATH=${PKG_PATH}" | tee -a ${GITHUB_ENV}
           echo "DMG_PATH=${DMG_PATH}" | tee -a ${GITHUB_ENV}
+          echo "BASE_VERSION=${BASE_VERSION}" | tee -a ${GITHUB_ENV}
           echo "VERSION=${VERSION}" | tee -a ${GITHUB_ENV}
           echo "PACKAGE=${PACKAGE}" | tee -a ${GITHUB_ENV}
           echo "BUILDRELEASE=${BUILDRELEASE}" | tee -a ${GITHUB_ENV}
