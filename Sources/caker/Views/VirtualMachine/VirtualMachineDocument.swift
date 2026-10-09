@@ -1437,7 +1437,7 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 						self.setScreenshot(screenshot)
 					}
 				}
-			} else if file.lastPathComponent == "config.json" || file.lastPathComponent == "cake.json" {
+			} else if file.lastPathComponent == location.configURL.lastPathComponent || file.lastPathComponent == location.cakeURL.lastPathComponent {
 				DispatchQueue.main.async {
 					self.updateConfiguration()
 				}
