@@ -406,43 +406,6 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minMemoryMiB": 2048
       }
     ],
-    "ipsw": [
-      {
-        "id": "macos26",
-        "label": "macOS 26.6.2",
-        "url": "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-75212/A2A24B94-1FC1-45A3-93F7-C51B02AF1F4D/UniversalMac_26.6.2_25G83_Restore.ipsw",
-        "minCPU": 6,
-        "minMemoryMiB": 8192
-      },
-      {
-        "id": "macos15",
-        "label": "macOS 15.6.1",
-        "url": "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "macos14",
-        "label": "macOS 14.6.1",
-        "url": "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "macos13",
-        "label": "macOS 13.6",
-        "url": "https://updates.cdn-apple.com/2023FallFCS/fullrestores/042-55833/C0830847-A2F8-458F-B680-967991820931/UniversalMac_13.6_22G120_Restore.ipsw",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      },
-      {
-        "id": "macos12",
-        "label": "macOS 12.6.1",
-        "url": "https://updates.cdn-apple.com/2022FallFCS/fullrestores/012-66032/8D8D90C6-A876-4FFF-BBF4-D158939B3841/UniversalMac_12.6.1_21G217_Restore.ipsw",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
-      }
-    ],
     "cloud": [
       {
         "id": "ubuntu2604",
@@ -612,6 +575,7 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "minCPU": 2,
         "minMemoryMiB": 2048
       }
-    ]
+    ],
+    "ipsw": []
   }
 }

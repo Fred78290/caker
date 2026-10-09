@@ -16,6 +16,9 @@ const catalog = JSON.parse(readFileSync(sourcePath, 'utf8'))
 
 for (const arch of ['arm64', 'amd64']) {
   if (!catalog[arch]) throw new Error(`VMImages.json is missing the "${arch}" architecture`)
+  // macOS guests need Apple Silicon, so `amd64` has no `ipsw` list (VMImageCatalog.swift decodes it
+  // as optional too). Default it to [] so the generated catalog keeps the same shape for both arches.
+  catalog[arch].ipsw ??= []
   for (const category of ['iso', 'ipsw', 'cloud']) {
     if (!Array.isArray(catalog[arch][category])) throw new Error(`VMImages.json is missing "${arch}.${category}"`)
   }
