@@ -1,8 +1,8 @@
 import ArgumentParser
+import CakeAgentLib
 import CakedLib
 import Foundation
 import GRPCLib
-import CakeAgentLib
 
 struct Launch: AsyncParsableCommand {
 	static let configuration = BuildOptions.launch
@@ -37,13 +37,23 @@ struct Launch: AsyncParsableCommand {
 			throw ValidationError(String(localized: "\(self.options.name) already exists"))
 		}
 		if let imageSource = self.options.imageSource, foreground == false {
-			if imageSource == .iso || imageSource == .ipsw {
-				throw ValidationError(String(localized: "Imagesource \(imageSource.description) need display to launch it"))
-			}
+			#if arch(arm64)
+				if imageSource == .iso || imageSource == .ipsw {
+					throw ValidationError(String(localized: "Imagesource \(imageSource.description) need display to launch it"))
+				}
+			#else
+				if imageSource == .iso {
+					throw ValidationError(String(localized: "Imagesource \(imageSource.description) need display to launch it"))
+				}
+			#endif
 		}
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(self.common.format.render(await CakedLib.LaunchHandler.buildAndLaunchVM(runMode: self.common.runMode, options: options, waitIPTimeout: self.waitIPTimeout, startMode: self.foreground ? .foreground : .background, gcd: false, recoveryMode: self.recoveryMode, progressHandler: ProgressObserver.progressHandler)))
+		Logger.appendNewLine(
+			self.common.format.render(
+				await CakedLib.LaunchHandler.buildAndLaunchVM(
+					runMode: self.common.runMode, options: options, waitIPTimeout: self.waitIPTimeout, startMode: self.foreground ? .foreground : .background, gcd: false, recoveryMode: self.recoveryMode,
+					progressHandler: ProgressObserver.progressHandler)))
 	}
 }

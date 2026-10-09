@@ -738,7 +738,7 @@ extension VirtualMachineConfiguration {
 			return false
 		}
 
-		if source == .ipsw || source == .iso {
+		if source.supportProvisionning {
 			return self.provisioned || self.firstLaunch == false
 		}
 

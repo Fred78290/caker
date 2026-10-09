@@ -1,3 +1,4 @@
+import ArgumentParser
 //
 //  ImageSource.swift
 //  Caker
@@ -5,30 +6,48 @@
 //  Created by Frederic BOLTZ on 02/03/2026.
 //
 import Foundation
-import ArgumentParser
 
 public enum ImageSource: Int, Sendable, Codable, CaseIterable, CustomStringConvertible, ExpressibleByArgument {
-	
-	public static let schemes : [String:ImageSource] = [
-		"http" : .qcow2,
-		"https" : .qcow2,
-		"qcow2" : .qcow2,
-		
-		"file" : .raw,
-		"img" : .raw,
-		"imgs" : .raw,
-		
-		"oci" : .oci,
-		"ocis" : .oci,
-		
-		"template" : .template,
-		
-		"iso" : .iso,
-		"isos" : .iso,
-		
-		"ipsw" : .ipsw,
-	]
-	
+
+	#if arch(arm64)
+		public static let schemes: [String: ImageSource] = [
+			"http": .qcow2,
+			"https": .qcow2,
+			"qcow2": .qcow2,
+
+			"file": .raw,
+			"img": .raw,
+			"imgs": .raw,
+
+			"oci": .oci,
+			"ocis": .oci,
+
+			"template": .template,
+
+			"iso": .iso,
+			"isos": .iso,
+			"ipsw": .ipsw,
+		]
+	#else
+		public static let schemes: [String: ImageSource] = [
+			"http": .qcow2,
+			"https": .qcow2,
+			"qcow2": .qcow2,
+
+			"file": .raw,
+			"img": .raw,
+			"imgs": .raw,
+
+			"oci": .oci,
+			"ocis": .oci,
+
+			"template": .template,
+
+			"iso": .iso,
+			"isos": .iso,
+		]
+	#endif
+
 	public var description: String {
 		switch self {
 		case .raw: return "raw"
@@ -37,18 +56,22 @@ public enum ImageSource: Int, Sendable, Codable, CaseIterable, CustomStringConve
 		case .template: return "template"
 		case .stream: return "stream"
 		case .iso: return "iso"
-		case .ipsw: return "ipsw"
+		#if arch(arm64)
+			case .ipsw: return "ipsw"
+		#endif
 		}
 	}
-	
+
 	case raw
 	case qcow2
 	case oci
 	case template
 	case stream
 	case iso
-	case ipsw
-	
+	#if arch(arm64)
+		case ipsw
+	#endif
+
 	public init?(argument: String) {
 		switch argument.lowercased() {
 		case "iso": self = .iso
@@ -57,12 +80,14 @@ public enum ImageSource: Int, Sendable, Codable, CaseIterable, CustomStringConve
 		case "oci": self = .oci
 		case "template": self = .template
 		case "stream": self = .stream
-		case "ipsw": self = .ipsw
+		#if arch(arm64)
+			case "ipsw": self = .ipsw
+		#endif
 		default:
 			return nil
 		}
 	}
-	
+
 	public init(stringValue: String) {
 		switch stringValue.lowercased() {
 		case "iso": self = .iso
@@ -71,29 +96,62 @@ public enum ImageSource: Int, Sendable, Codable, CaseIterable, CustomStringConve
 		case "oci": self = .oci
 		case "template": self = .template
 		case "stream": self = .stream
-		case "ipsw": self = .ipsw
+		#if arch(arm64)
+			case "ipsw": self = .ipsw
+		#endif
 		default:
 			self = .iso
 		}
 	}
-	
+
 	static var allCases: [String] {
-		["iso", "ipsw", "raw", "qcow2", "oci", "template", "stream"]
+		#if arch(arm64)
+			["iso", "ipsw", "raw", "qcow2", "oci", "template", "stream"]
+		#else
+			["iso", "raw", "qcow2", "oci", "template", "stream"]
+		#endif
 	}
-	
-	public var supportCloudInit: Bool {
-		if self == .ipsw || self == .iso {
+
+	public var isMacOS: Bool {
+		#if arch(arm64)
+			return self == .ipsw
+		#else
 			return false
-		}
-		
+		#endif
+	}
+
+	public var supportProvisionning: Bool {
+		#if arch(arm64)
+			if self == .ipsw || self == .iso {
+				return true
+			}
+		#else
+			if self == .iso {
+				return true
+			}
+		#endif
+
+		return false
+	}
+
+	public var supportCloudInit: Bool {
+		#if arch(arm64)
+			if self == .ipsw || self == .iso {
+				return false
+			}
+		#else
+			if self == .iso {
+				return false
+			}
+		#endif
 		return true
 	}
-	
+
 	public static func resolveHttpSchemeURL(imageURL: URL) -> URL {
 		guard var components = URLComponents(url: imageURL, resolvingAgainstBaseURL: false) else {
 			return imageURL
 		}
-		
+
 		switch imageURL.scheme {
 		case "qcow2":
 			components.scheme = "file"
@@ -104,11 +162,11 @@ public enum ImageSource: Int, Sendable, Codable, CaseIterable, CustomStringConve
 		default:
 			return imageURL
 		}
-		
+
 		if let imageURL = components.url {
 			return imageURL
 		}
-		
+
 		return imageURL
 	}
 
@@ -116,9 +174,8 @@ public enum ImageSource: Int, Sendable, Codable, CaseIterable, CustomStringConve
 		switch self {
 		case .raw, .qcow2, .oci, .stream:
 			return .raw
-		case .template, .iso, .ipsw:
+		default:
 			return format
 		}
 	}
 }
-

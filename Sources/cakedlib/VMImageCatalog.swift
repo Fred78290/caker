@@ -27,8 +27,10 @@ public struct VMImageEntry: Codable, Identifiable, Hashable, Sendable {
 
 public struct VMImageArchCatalog: Codable, Sendable {
 	public let iso: [VMImageEntry]
-	public let ipsw: [VMImageEntry]
 	public let cloud: [VMImageEntry]
+	#if arch(arm64)
+		public let ipsw: [VMImageEntry]
+	#endif
 }
 
 /// `Bundle.module` only exists in genuine `swift build`/`swift test` builds (SPM generates its accessor
@@ -82,9 +84,19 @@ public struct VMImageCatalog: Codable, Sendable {
 		current.iso
 	}
 
-	public var availableIPSWImages: [VMImageEntry] {
-		current.ipsw
-	}
+	#if arch(arm64)
+		public var availableIPSWImages: [VMImageEntry] {
+			current.ipsw
+		}
+		public func ipswImage(_ id: String) -> VMImageEntry {
+			guard let entry = current.ipsw.first(where: { $0.id == id }) else {
+				fatalError("Unknown IPSW image id \(id) in VMImages.json")
+			}
+
+			return entry
+		}
+
+	#endif
 
 	public var availableCloudImages: [VMImageEntry] {
 		current.cloud
@@ -93,14 +105,6 @@ public struct VMImageCatalog: Codable, Sendable {
 	public func isoImage(_ id: String) -> VMImageEntry {
 		guard let entry = current.iso.first(where: { $0.id == id }) else {
 			fatalError("Unknown ISO image id \(id) in VMImages.json")
-		}
-
-		return entry
-	}
-
-	public func ipswImage(_ id: String) -> VMImageEntry {
-		guard let entry = current.ipsw.first(where: { $0.id == id }) else {
-			fatalError("Unknown IPSW image id \(id) in VMImages.json")
 		}
 
 		return entry

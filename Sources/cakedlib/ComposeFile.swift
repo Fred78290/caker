@@ -662,7 +662,7 @@ public struct ComposeService: Codable {
 
 		var runcmd: [String] = []
 
-		if let composeDNSGateway, opts.imageSource != .ipsw {
+		if let composeDNSGateway, opts.imageSource?.isMacOS == false {
 			// Points only *.compose.internal at the compose DNS resolver (see ComposeDNS.swift),
 			// leaving every other lookup on whatever DNS the image/DHCP already configured.
 			// Matched by route rather than a hardcoded interface name/index, since NIC ordering
