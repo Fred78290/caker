@@ -32,9 +32,9 @@ final class CachedImageKindTests: XCTestCase {
 	func testOnlyIPSWIsDarwin() {
 		XCTAssertEqual(CachedImageKind.iso.os, .linux)
 		XCTAssertEqual(CachedImageKind.cloudImage.os, .linux)
-#if arch(arm64)
-	XCTAssertEqual(CachedImageKind.ipsw.os, .darwin)
-#endif
+		#if arch(arm64)
+			XCTAssertEqual(CachedImageKind.ipsw.os, .darwin)
+		#endif
 	}
 
 	func testTemplatesAreNotListed() {
