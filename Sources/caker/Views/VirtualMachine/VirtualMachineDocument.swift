@@ -241,6 +241,7 @@ extension UTType {
 	private let logger = Logger("VirtualMachineDocument")
 	private var agentMonitoring: Task<Void, Never>?
 	private var inView: Bool = false
+	private var savingConfiguration: Bool = false
 
 	/// Held for the duration of a `startRecording(output:)`/`stopRecording()` session — see the
 	/// "Recording" extension below. `nil` whenever `isRecording == false`.
@@ -1111,10 +1112,25 @@ extension VirtualMachineDocument {
 		try self.connectionManager.renameVirtualMachine(vmURL: self.url, to: to)
 	}
 
+	func updateConfiguration() {
+		guard savingConfiguration == false else {
+			return
+		}
+
+		if let location = self.location, let newConfig = try? location.reloadConfig() {
+			self.virtualMachineConfig = VirtualMachineConfig(name: self.name, config: newConfig)
+		}
+	}
+
 	func saveConfiguration(_ config: VirtualMachineConfig) {
 		let connectionMode = self.connectionManager.connectionMode
 
+		defer {
+			self.savingConfiguration = false
+		}
+
 		self.virtualMachineConfig = config
+		self.savingConfiguration = true
 
 		do {
 			if connectionMode != .app {
@@ -1410,6 +1426,10 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 					DispatchQueue.main.async {
 						self.setScreenshot(screenshot)
 					}
+				}
+			} else if (file.lastPathComponent == "config.json" || file.lastPathComponent == "cake.json") && self.savingConfiguration == false {
+				DispatchQueue.main.async {
+					self.updateConfiguration()
 				}
 			}
 		}
