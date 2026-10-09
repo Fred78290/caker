@@ -241,7 +241,12 @@ extension UTType {
 	private let logger = Logger("VirtualMachineDocument")
 	private var agentMonitoring: Task<Void, Never>?
 	private var inView: Bool = false
-	private var savingConfiguration: Bool = false
+	/// When this document last wrote its own configuration (see `saveConfiguration(_:)`). File
+	/// events are delivered asynchronously, after the save has returned, so a flag cleared at the
+	/// end of the save can't filter them: `updateConfiguration()` ignores config file events
+	/// arriving within `configurationSaveGracePeriod` of this instead.
+	private var lastConfigurationSave: Date?
+	private static let configurationSaveGracePeriod: TimeInterval = 2
 
 	/// Held for the duration of a `startRecording(output:)`/`stopRecording()` session — see the
 	/// "Recording" extension below. `nil` whenever `isRecording == false`.
@@ -1113,24 +1118,29 @@ extension VirtualMachineDocument {
 	}
 
 	func updateConfiguration() {
-		guard savingConfiguration == false else {
+		if let lastConfigurationSave, Date().timeIntervalSince(lastConfigurationSave) < Self.configurationSaveGracePeriod {
 			return
 		}
 
 		if let location = self.location, let newConfig = try? location.reloadConfig() {
-			self.virtualMachineConfig = VirtualMachineConfig(name: self.name, config: newConfig)
+			let config = VirtualMachineConfig(name: self.name, config: newConfig)
+
+			if config != self.virtualMachineConfig {
+				self.virtualMachineConfig = config
+			}
 		}
 	}
 
 	func saveConfiguration(_ config: VirtualMachineConfig) {
 		let connectionMode = self.connectionManager.connectionMode
 
+		// Stamped once the save has written to disk (whether it succeeded or not), so the
+		// grace period covers the file events that write produces.
 		defer {
-			self.savingConfiguration = false
+			self.lastConfigurationSave = Date()
 		}
 
 		self.virtualMachineConfig = config
-		self.savingConfiguration = true
 
 		do {
 			if connectionMode != .app {
@@ -1427,7 +1437,7 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 						self.setScreenshot(screenshot)
 					}
 				}
-			} else if (file.lastPathComponent == "config.json" || file.lastPathComponent == "cake.json") && self.savingConfiguration == false {
+			} else if file.lastPathComponent == "config.json" || file.lastPathComponent == "cake.json" {
 				DispatchQueue.main.async {
 					self.updateConfiguration()
 				}
