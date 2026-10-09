@@ -623,6 +623,12 @@ public final class CakeConfig: VirtualMachineConfiguration, @unchecked Sendable 
 		self.provisioned = config.provisioned
 	}
 
+	public func update(_ from: CakeConfig) {
+		self.cake = from.cake
+		self.config = from.config
+		self.diskSize = from.diskSize
+	}
+
 	public func save() throws {
 		try self.config.save(to: self.locationURL.appendingPathComponent(ConfigFileName.config.rawValue))
 		try self.cake.save(to: self.locationURL.appendingPathComponent(ConfigFileName.cake.rawValue))

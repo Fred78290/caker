@@ -259,21 +259,40 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			&& FileManager.default.fileExists(atPath: nvramURL.path(percentEncoded: false))
 	}
 
+	public func reloadConfig() throws -> CakeConfig {
+		let config = try loadConfig()
+
+		if let cachedConfig = self.cachedConfig {
+			cachedConfig.update(config)
+		} else {
+			self.cachedConfig = config
+		}
+
+		return config
+	}
+
+	public func loadConfig() throws -> CakeConfig {
+		let config = try CakeConfig(location: rootURL)
+		let diskURL: URL
+
+		if let rootDisk = config.rootDisk, rootDisk.isEmpty == false {
+			let expanded = rootDisk.expandingTildeInPath
+			diskURL = expanded.hasPrefix("/") ? URL(fileURLWithPath: expanded).resolvingSymlinksInPath() : buildURL(expanded)
+		} else {
+			diskURL = buildURL("disk.img")
+		}
+
+		config.diskSize = diskURL.diskSize
+
+		return config
+	}
+
 	public func config() throws -> CakeConfig {
 		guard let cachedConfig else {
-			let config = try CakeConfig(location: rootURL)
-			let diskURL: URL
-
-			if let rootDisk = config.rootDisk, rootDisk.isEmpty == false {
-				let expanded = rootDisk.expandingTildeInPath
-				diskURL = expanded.hasPrefix("/") ? URL(fileURLWithPath: expanded).resolvingSymlinksInPath() : buildURL(expanded)
-			} else {
-				diskURL = buildURL("disk.img")
-			}
-
-			config.diskSize = diskURL.diskSize
+			let config = try loadConfig()
 
 			self.cachedConfig = config
+
 			return config
 		}
 

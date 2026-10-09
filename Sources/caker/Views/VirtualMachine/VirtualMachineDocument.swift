@@ -241,6 +241,12 @@ extension UTType {
 	private let logger = Logger("VirtualMachineDocument")
 	private var agentMonitoring: Task<Void, Never>?
 	private var inView: Bool = false
+	/// When this document last wrote its own configuration (see `saveConfiguration(_:)`). File
+	/// events are delivered asynchronously, after the save has returned, so a flag cleared at the
+	/// end of the save can't filter them: `updateConfiguration()` ignores config file events
+	/// arriving within `configurationSaveGracePeriod` of this instead.
+	private var lastConfigurationSave: Date?
+	private static let configurationSaveGracePeriod: TimeInterval = 2
 
 	/// Held for the duration of a `startRecording(output:)`/`stopRecording()` session — see the
 	/// "Recording" extension below. `nil` whenever `isRecording == false`.
@@ -1111,8 +1117,28 @@ extension VirtualMachineDocument {
 		try self.connectionManager.renameVirtualMachine(vmURL: self.url, to: to)
 	}
 
+	func updateConfiguration() {
+		if let lastConfigurationSave, Date().timeIntervalSince(lastConfigurationSave) < Self.configurationSaveGracePeriod {
+			return
+		}
+
+		if let location = self.location, let newConfig = try? location.reloadConfig() {
+			let config = VirtualMachineConfig(name: self.name, config: newConfig)
+
+			if config != self.virtualMachineConfig {
+				self.virtualMachineConfig = config
+			}
+		}
+	}
+
 	func saveConfiguration(_ config: VirtualMachineConfig) {
 		let connectionMode = self.connectionManager.connectionMode
+
+		// Stamped once the save has written to disk (whether it succeeded or not), so the
+		// grace period covers the file events that write produces.
+		defer {
+			self.lastConfigurationSave = Date()
+		}
 
 		self.virtualMachineConfig = config
 
@@ -1410,6 +1436,10 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 					DispatchQueue.main.async {
 						self.setScreenshot(screenshot)
 					}
+				}
+			} else if file.lastPathComponent == location.configURL.lastPathComponent || file.lastPathComponent == location.cakeURL.lastPathComponent {
+				DispatchQueue.main.async {
+					self.updateConfiguration()
 				}
 			}
 		}
