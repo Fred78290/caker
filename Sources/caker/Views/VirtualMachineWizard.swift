@@ -151,31 +151,6 @@ struct ShortImageInfoComparator: SortComparator {
 		self.provisioningTemplate = String.empty
 		self.provisionVars = ProvisionVariablesStore.load()
 	}
-
-	func reset() {
-		self.currentStep = .name
-		self.configValid = false
-		self.password = String.empty
-		self.showPassword = false
-		self.imageSource = .qcow2
-		self.remoteImage = "ubuntu"
-		self.remoteImages = []
-		self.selectedRemoteImage = String.empty
-		self.cloudImageRelease = VMImageCatalog.shared.cloudImage("ubuntu2604")
-		self.isoImageRelease = VMImageCatalog.shared.isoImage("ubuntu2604Server")
-		#if arch(arm64)
-			self.ipswRelease = VMImageCatalog.shared.ipswImage("macos27")
-		#endif
-		self.createVM = false
-		self.fractionCompleted = 0
-		self.createVMMessage = String.empty
-		self.createVMSubtitle = String.empty
-		self.rootDisk = String.empty
-		self.mountPoints = []
-		self.showDiskFormat = false
-		self.provisioningTemplate = String.empty
-		self.provisionVars = ProvisionVariablesStore.load()
-	}
 }
 
 struct WizardVirtualMachineView: NSViewRepresentable {
@@ -234,11 +209,14 @@ struct VirtualMachineWizard: View {
 	@State private var provisionInfos: ProgressObserver.ProvisionInfo? = nil
 	@State private var vncState: VNCConnectionAppState? = nil
 	@State private var wasCancelled: Bool = false
+	@State private var wizardID = UUID()
 
-	private let wizardID = UUID()
 	private let listHeight: CGFloat = 460
 	private let fromPreset: Bool
 	private let presetImage: String
+	private let presetTemplate: TemplateEntry?
+	private let presetRemoteImage: (remote: String, image: ImageInfo)?
+	private let presetCachedImage: VirtualMachineInfo?
 	private let connectionManager: ConnectionManager
 	private let logger = Logger("VirtualMachineWizard")
 
@@ -272,9 +250,23 @@ struct VirtualMachineWizard: View {
 	}
 
 	init(connectionManager: ConnectionManager, sheet: Bool = false, presetTemplate: TemplateEntry? = nil, presetRemoteImage: (remote: String, image: ImageInfo)? = nil, presetCachedImage: VirtualMachineInfo? = nil) {
+		let initial = Self.initialState(presetTemplate: presetTemplate, presetRemoteImage: presetRemoteImage, presetCachedImage: presetCachedImage)
+
 		self.sheet = sheet
 		self.connectionManager = connectionManager
+		self.presetTemplate = presetTemplate
+		self.presetRemoteImage = presetRemoteImage
+		self.presetCachedImage = presetCachedImage
+		self._config = State(initialValue: initial.config)
+		self._model = State(initialValue: initial.model)
+		self.fromPreset = initial.presetImage != nil
+		self.presetImage = initial.presetImage ?? ""
+	}
 
+	/// The state a new wizard starts with. `presetImage` is nil unless a preset was applied.
+	private static func initialState(
+		presetTemplate: TemplateEntry?, presetRemoteImage: (remote: String, image: ImageInfo)?, presetCachedImage: VirtualMachineInfo?
+	) -> (config: VirtualMachineConfig, model: VirtualMachineWizardStateObject, presetImage: String?) {
 		if let presetCachedImage, let imageSource = CachedImageKind(cacheType: presetCachedImage.type).imageSource, let fqn = presetCachedImage.fqn.first {
 			// A cache entry is built through its FQN (the same alias the LXD REST API/WebUI hand to
 			// BuildOptions.image), so the build pipeline resolves it against the cache like any other URL.
@@ -315,10 +307,7 @@ struct VirtualMachineWizard: View {
 
 			model.imageSource = imageSource
 
-			self._config = State(initialValue: config)
-			self._model = State(initialValue: model)
-			self.fromPreset = true
-			self.presetImage = presetCachedImage.name
+			return (config, model, presetCachedImage.name)
 		} else if let presetTemplate {
 			var config = VirtualMachineConfig()
 
@@ -330,10 +319,7 @@ struct VirtualMachineWizard: View {
 
 			model.imageSource = .template
 
-			self._config = State(initialValue: config)
-			self._model = State(initialValue: model)
-			self.fromPreset = true
-			self.presetImage = presetTemplate.name
+			return (config, model, presetTemplate.name)
 		} else if let presetRemoteImage {
 			var config = VirtualMachineConfig()
 
@@ -351,10 +337,7 @@ struct VirtualMachineWizard: View {
 			model.selectedRemoteImage = presetRemoteImage.image.fingerprint
 			model.remoteImages = [image]
 
-			self._config = State(initialValue: config)
-			self._model = State(initialValue: model)
-			self.fromPreset = true
-			self.presetImage = image.description
+			return (config, model, image.description)
 		} else {
 			var config = VirtualMachineConfig()
 
@@ -372,10 +355,7 @@ struct VirtualMachineWizard: View {
 			model.imageSource = .qcow2
 			model.cloudImageRelease = defaultCloudImage
 
-			self._config = State(initialValue: config)
-			self._model = State(initialValue: model)
-			self.fromPreset = false
-			self.presetImage = ""
+			return (config, model, nil)
 		}
 	}
 
@@ -415,6 +395,21 @@ struct VirtualMachineWizard: View {
 		self.provisioningStarted = false
 
 		return result
+	}
+
+	/// Puts the wizard back in the state `init` builds, with a new `wizardID` for the next build.
+	private func resetToInitialState() {
+		let initial = Self.initialState(presetTemplate: self.presetTemplate, presetRemoteImage: self.presetRemoteImage, presetCachedImage: self.presetCachedImage)
+
+		self.cleanup()
+		self.config = initial.config
+		self.model = initial.model
+		self.wizardID = UUID()
+		self.currentTab = 0
+		self.diskSizeValueIsInvalid = false
+		self.allowsOverrideMinimumResources = false
+		self.wasCancelled = false
+		self.validateConfig(config: initial.config)
 	}
 
 	var body: some View {
@@ -469,7 +464,13 @@ struct VirtualMachineWizard: View {
 			#endif
 
 			.onAppear {
-				self.validateConfig(config: self.config)
+				// The "New virtual machine" window is a `Window` scene: closing and reopening it keeps this
+				// view's state and doesn't call init again, so start over as a new wizard. A sheet is a new view.
+				if self.sheet == false && self.model.createVM == false {
+					self.resetToInitialState()
+				} else {
+					self.validateConfig(config: self.config)
+				}
 			}
 			.onDisappear {
 				self.model.createVirtualMachineTask?.cancel()
@@ -1597,8 +1598,7 @@ struct VirtualMachineWizard: View {
 								openVM(config.vmname)
 							}
 
-							self.config = VirtualMachineConfig()
-							self.model.reset()
+							self.resetToInitialState()
 						} else if self.wasCancelled == false && !(error is CancellationError) {
 							alertError(error)
 						}
@@ -1615,8 +1615,7 @@ struct VirtualMachineWizard: View {
 							self.closeWindow()
 						}
 
-						self.config = VirtualMachineConfig()
-						self.model.reset()
+						self.resetToInitialState()
 					}
 
 					done()
