@@ -487,6 +487,7 @@
 		9BC1F99A2F6D475800A83B33 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9BC1F9992F6D475800A83B33 /* Subprocess */; };
 		9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEB1902ED76EB200B29B70 /* VNC.swift */; };
 		9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */; };
+		9BCEEB8A307A964E006D282F /* GlassedSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEEB89307A964E006D282F /* GlassedSheet.swift */; };
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
 		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
 		9BD69DF62FCEE912005E24AF /* VM.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9BFE87DB2F7E6B67005CC9B2 /* VM.icns */; };
@@ -1420,6 +1421,7 @@
 		9BC1F6842F66B25A00A83B33 /* ColorWell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorWell.swift; sourceTree = "<group>"; };
 		9BCE821030753FB200414C1F /* cakectl.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = cakectl.plist; sourceTree = "<group>"; };
 		9BCEB1902ED76EB200B29B70 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
+		9BCEEB89307A964E006D282F /* GlassedSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassedSheet.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
 		9BD69DF02FCEE8F1005E24AF /* cakectl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = cakectl.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2926,6 +2928,7 @@
 			children = (
 				9B9DCD892F6FFF4900E07852 /* AboutApplication.swift */,
 				9B7D69242F1B92E800FE1B0B /* Extensions.swift */,
+				9BCEEB89307A964E006D282F /* GlassedSheet.swift */,
 				9B5F49BF2F70032800AE1991 /* LabelView.swift */,
 				9B839A72305C263900558A5C /* NSGlassEffectAlert.swift */,
 				9BD85B22303317EA00AD9100 /* SplashScreenView.swift */,
@@ -4312,6 +4315,7 @@
 				9BEBC7852DF440720092B196 /* CloudImageConverter.swift in Sources */,
 				9BEBC7862DF440720092B196 /* CloudInit.swift in Sources */,
 				9BEBC7872DF440720092B196 /* CommunicationDevices.swift in Sources */,
+				9BCEEB8A307A964E006D282F /* GlassedSheet.swift in Sources */,
 				9BEBC7882DF440720092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC7892DF440720092B196 /* Utilities.swift in Sources */,
 				9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */,

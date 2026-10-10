@@ -219,6 +219,7 @@ struct WizardVirtualMachineView: NSViewRepresentable {
 struct VirtualMachineWizard: View {
 	static let wizardQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 
+	@Environment(\.dismissGlassedSheet) private var dismissGlassedSheet
 	@Environment(\.dismiss) private var dismiss
 	@Environment(\.openWindow) private var openWindow
 
@@ -611,7 +612,7 @@ struct VirtualMachineWizard: View {
 				HStack(spacing: 8) {
 					if self.sheet {
 						Button {
-							self.dismiss()
+							self.closeWindow()
 						} label: {
 							Text("Cancel").frame(width: 80)
 						}
@@ -1583,7 +1584,7 @@ struct VirtualMachineWizard: View {
 								if let vmURL = URL(string: "vm://\(vmName)") {
 									Task {
 										await MainApp.app.openVirtualMachine(vmURL)
-										await self.dismiss()
+										await self.closeWindow()
 									}
 								}
 							}
@@ -1611,7 +1612,7 @@ struct VirtualMachineWizard: View {
 
 						Task {
 							await MainApp.app.openVirtualMachine(vmURL)
-							self.dismiss()
+							self.closeWindow()
 						}
 
 						self.config = VirtualMachineConfig()
@@ -1757,6 +1758,15 @@ struct VirtualMachineWizard: View {
 
 		validateConfig(config: self.config)
 		self.model.currentStep = WizardModel.SelectedItem(rawValue: self.model.currentStep.rawValue + 1)!
+	}
+
+	@MainActor
+	func closeWindow() {
+		if self.sheet {
+			self.dismissGlassedSheet()
+		} else {
+			self.dismiss()
+		}
 	}
 }
 

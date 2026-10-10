@@ -106,7 +106,7 @@ struct HomeView: View {
 					}
 				}
 			}
-			.sheet(isPresented: $presented) {
+			.glassedSheet(isPresented: $presented) {
 				self.sheet
 					.colorSchemeForColor()
 			}
