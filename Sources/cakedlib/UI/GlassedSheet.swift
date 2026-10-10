@@ -22,7 +22,8 @@ extension EnvironmentValues {
 
 extension View {
 	/// Presents `content` as a native AppKit sheet on the window hosting this view.
-	/// It is a drop-in replacement for `.sheet(isPresented:onDismiss:content:)`.
+	/// It is a drop-in replacement for `.sheet(isPresented:onDismiss:content:)`: Escape dismisses it,
+	/// unless the content uses `glassedSheetDismissDisabled(_:)` (not `interactiveDismissDisabled(_:)`).
 	@ViewBuilder
 	public func glassedSheet<Content: View>(
 		isPresented: Binding<Bool>,
@@ -41,10 +42,7 @@ extension View {
 			)
 		} else {
 			sheet(isPresented: isPresented, onDismiss: onDismiss) {
-				content().environment(
-					\.dismissGlassedSheet,
-					GlassedSheetDismissAction { EnvironmentValues().dismiss() }
-				)
+				GlassedSheetFallbackRoot(content: content())
 			}
 		}
 	}
@@ -67,17 +65,52 @@ extension View {
 			}
 		}
 	}
+
+	/// The `glassedSheet` counterpart of `interactiveDismissDisabled(_:)`: while `isDisabled` is true,
+	/// Escape doesn't close the enclosing glassed sheet. `dismissGlassedSheet` still does.
+	public func glassedSheetDismissDisabled(_ isDisabled: Bool = true) -> some View {
+		self
+			.interactiveDismissDisabled(isDisabled)
+			.preference(key: GlassedSheetDismissDisabledKey.self, value: isDisabled)
+	}
+}
+
+/// Carries `glassedSheetDismissDisabled(_:)` from the content up to the AppKit sheet.
+private struct GlassedSheetDismissDisabledKey: PreferenceKey {
+	static let defaultValue = false
+
+	static func reduce(value: inout Bool, nextValue: () -> Bool) {
+		value = value || nextValue()
+	}
 }
 
 // MARK: - Root view placed inside the sheet window
 
 private struct GlassedSheetRoot<Content: View>: View {
 	let dismiss: GlassedSheetDismissAction
+	let onDismissDisabledChange: @MainActor @Sendable (Bool) -> Void
 	let content: Content
 
 	var body: some View {
 		content
 			.environment(\.dismissGlassedSheet, dismiss)
+			.onPreferenceChange(GlassedSheetDismissDisabledKey.self) { isDisabled in
+				MainActor.assumeIsolated {
+					onDismissDisabledChange(isDisabled)
+				}
+			}
+	}
+}
+
+/// Root of the `.sheet` fallback: forwards `dismissGlassedSheet` to the sheet's own `dismiss`.
+/// `EnvironmentValues().dismiss` can't be used here, a fresh environment isn't tied to the sheet.
+private struct GlassedSheetFallbackRoot<Content: View>: View {
+	@Environment(\.dismiss) private var dismiss
+	let content: Content
+
+	var body: some View {
+		content
+			.environment(\.dismissGlassedSheet, GlassedSheetDismissAction { dismiss() })
 	}
 }
 
@@ -123,15 +156,61 @@ private struct GlassedSheetPresenter<Content: View>: NSViewRepresentable {
 	}
 }
 
-/// Reports when the sheet leaves the screen, whoever dismissed it (code, Escape, ...).
+/// kVK_Escape
+private let glassedSheetEscapeKeyCode: UInt16 = 0x35
+
+/// Reports when the sheet leaves the screen, whoever dismissed it (binding, `dismissGlassedSheet`,
+/// Escape, teardown), and turns Escape into `onCancel`: AppKit itself never closes an attached sheet.
 private final class GlassedSheetHostingController<Content: View>:
 	NSHostingController<Content>
 {
 	var onDisappear: (() -> Void)?
+	var onCancel: (() -> Void)?
+
+	private var escapeMonitor: Any?
+
+	/// Escape (or ⌘.) arrives here through the responder chain, after key equivalents, so a button
+	/// with `.keyboardShortcut(.cancelAction)` still wins. Never call `super`: `NSResponder` declares
+	/// `cancelOperation(_:)` without implementing it, and forwarding raises "unrecognized selector".
+	override func cancelOperation(_ sender: Any?) {
+		onCancel?()
+	}
+
+	override func viewDidAppear() {
+		super.viewDidAppear()
+
+		guard escapeMonitor == nil else { return }
+
+		escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+			MainActor.assumeIsolated {
+				self?.routeEscape(event)
+			}
+			return event
+		}
+	}
 
 	override func viewDidDisappear() {
 		super.viewDidDisappear()
+
+		if let escapeMonitor {
+			NSEvent.removeMonitor(escapeMonitor)
+			self.escapeMonitor = nil
+		}
+
 		onDisappear?()
+	}
+
+	/// With nothing focused the sheet window is its own first responder, and Escape stops there without
+	/// reaching `cancelOperation(_:)`. Making the hosting view first responder puts this controller back
+	/// in the chain; the event itself is left alone and dispatched normally.
+	private func routeEscape(_ event: NSEvent) {
+		guard event.keyCode == glassedSheetEscapeKeyCode,
+			let window = view.window,
+			event.window === window,
+			window.firstResponder === window
+		else { return }
+
+		window.makeFirstResponder(view)
 	}
 }
 
@@ -156,6 +235,7 @@ private final class GlassedSheetCoordinator<Content: View> {
 	private var hostingController: NSHostingController<GlassedSheetRoot<Content>>?
 	private var presenter: NSViewController?
 	private var isDismissing = false
+	private var isDismissDisabled = false
 	private var syncScheduled = false
 
 	init(parent: GlassedSheetPresenter<Content>) {
@@ -192,6 +272,9 @@ private final class GlassedSheetCoordinator<Content: View> {
 			dismiss: GlassedSheetDismissAction { [weak self] in
 				self?.requestDismiss()
 			},
+			onDismissDisabledChange: { [weak self] isDisabled in
+				self?.isDismissDisabled = isDisabled
+			},
 			content: parent.content()
 		)
 	}
@@ -215,11 +298,22 @@ private final class GlassedSheetCoordinator<Content: View> {
 				self.didDisappear()
 			}
 		}
+		sheetController.onCancel = { [weak self] in
+			MainActor.assumeIsolated {
+				self?.cancel()
+			}
+		}
 
 		presenter.presentAsSheet(sheetController)
 
 		self.hostingController = sheetController
 		self.presenter = presenter
+	}
+
+	/// Escape: dismiss like `.sheet` does, unless the content asked not to.
+	private func cancel() {
+		guard !isDismissDisabled else { return }
+		requestDismiss()
 	}
 
 	private func requestDismiss() {
@@ -243,6 +337,7 @@ private final class GlassedSheetCoordinator<Content: View> {
 		hostingController = nil
 		presenter = nil
 		isDismissing = false
+		isDismissDisabled = false
 
 		if parent.isPresented {
 			parent.isPresented = false

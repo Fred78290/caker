@@ -266,7 +266,7 @@ struct HostVirtualMachineView: View {
 						.help("Configure virtual machine")
 						.disabled(document.status.isStopped == false)
 					}
-				}.sheet(isPresented: $displaySettings) {
+				}.glassedSheet(isPresented: $displaySettings) {
 					VirtualMachineSettingsView(document: document).frame(width: 700)
 				}.alert("Create template", isPresented: $createTemplate) {
 					CreateTemplateView()

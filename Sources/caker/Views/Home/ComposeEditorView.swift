@@ -24,7 +24,7 @@ import Yams
 /// (re)started, only new/changed ones are built), so this is also the correct way to apply an edit
 /// to an already-registered project, not just to create a new one.
 struct ComposeEditorView: View {
-	@Environment(\.dismiss) private var dismiss
+	@Environment(\.dismissGlassedSheet) private var dismiss
 
 	let client: CakedServiceClient?
 	let runMode: Utils.RunMode
@@ -60,11 +60,11 @@ struct ComposeEditorView: View {
 			self.footer
 		}
 		.frame(minWidth: 640, minHeight: 560)
-		.interactiveDismissDisabled(self.isSaving)
+		.glassedSheetDismissDisabled(self.isSaving)
 		.onAppear {
 			self.validate()
 		}
-		.sheet(isPresented: self.$showQuickAdd) {
+		.glassedSheet(isPresented: self.$showQuickAdd) {
 			ComposeQuickAddServiceView { name, image, ports in
 				self.insertQuickAddService(name: name, image: image, ports: ports)
 			}
@@ -311,7 +311,7 @@ struct ComposeEditorView: View {
 /// rather than attempting a fully structured per-field form (out of proportion for `ComposeService`'s
 /// real complexity, see `ComposeEditorView`'s own doc comment).
 private struct ComposeQuickAddServiceView: View {
-	@Environment(\.dismiss) private var dismiss
+	@Environment(\.dismissGlassedSheet) private var dismiss
 
 	@State private var name: String = ""
 	@State private var image: String = "ubuntu:24.04"

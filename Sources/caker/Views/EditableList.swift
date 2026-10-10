@@ -4,6 +4,7 @@
 //
 //  Created by Frederic BOLTZ on 14/06/2025.
 //
+import CakedLib
 import SwiftUI
 
 typealias TotalCollection = RandomAccessCollection & MutableCollection & RangeReplaceableCollection & Hashable
@@ -82,11 +83,11 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 			.padding(.vertical, 3)
 			.background(Color(NSColor.controlBackgroundColor))
 		}
-		.sheet(isPresented: $displayAddItemView, onDismiss: { displayAddItemView = false }) {
+		.glassedSheet(isPresented: $displayAddItemView, onDismiss: { displayAddItemView = false }) {
 			Group {
 				self.editItemClosure(nil)
 			}.frame(width: 550).padding()
-		}.sheet(isPresented: $displayEditItemView, onDismiss: { displayEditItemView = false }) {
+		}.glassedSheet(isPresented: $displayEditItemView, onDismiss: { displayEditItemView = false }) {
 			Group {
 				self.editItemClosure(selection)
 			}.frame(width: 550).padding()

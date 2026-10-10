@@ -111,8 +111,8 @@ struct ImageCacheView: View {
 		.onChange(of: self.navigationModel.cacheReloadToken) {
 			self.refresh()
 		}
-		// Not `sheet(item:)`: cache entries have no `instanceID`, so `VirtualMachineInfo.id` (`instanceID ?? name`) isn't a reliable identity.
-		.sheet(isPresented: Binding(get: { self.vmFromImage != nil }, set: { if $0 == false { self.vmFromImage = nil } })) {
+		// Not `glassedSheet(item:)`: cache entries have no `instanceID`, so `VirtualMachineInfo.id` (`instanceID ?? name`) isn't a reliable identity.
+		.glassedSheet(isPresented: Binding(get: { self.vmFromImage != nil }, set: { if $0 == false { self.vmFromImage = nil } })) {
 			if let image = self.vmFromImage {
 				VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetCachedImage: image)
 					.colorSchemeForColor()

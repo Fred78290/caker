@@ -62,7 +62,7 @@ struct ComposeView: View {
 		.onChange(of: self.navigationModel.composeReloadToken) {
 			self.refresh()
 		}
-		.sheet(item: self.$editorTarget) { target in
+		.glassedSheet(item: self.$editorTarget) { target in
 			let existingProject: ComposeReplyList.ComposeInfo? = {
 				switch target {
 				case .new: return nil

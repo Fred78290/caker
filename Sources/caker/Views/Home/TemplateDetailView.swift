@@ -64,7 +64,7 @@ struct TemplateDetailView: View {
 		.task(id: template.id) {
 			await self.loadInfos()
 		}
-		.sheet(item: self.$vmFromTemplate) { template in
+		.glassedSheet(item: self.$vmFromTemplate) { template in
 			VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetTemplate: template)
 				.colorSchemeForColor()
 				.restorationState(.disabled)

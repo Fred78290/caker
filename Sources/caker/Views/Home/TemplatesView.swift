@@ -5,6 +5,7 @@
 //  Created by Frederic BOLTZ on 13/07/2025.
 //
 
+import CakedLib
 import GRPCLib
 import SwiftUI
 
@@ -66,7 +67,7 @@ struct TemplatesView: View {
 				.frame(size: geom.size)
 			}
 		}
-		.sheet(item: $vmFromTemplate) { template in
+		.glassedSheet(item: $vmFromTemplate) { template in
 			VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetTemplate: template)
 				.colorSchemeForColor()
 				.restorationState(.disabled)
