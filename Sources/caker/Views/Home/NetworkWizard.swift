@@ -11,7 +11,7 @@ import GRPCLib
 import SwiftUI
 
 struct NetworkWizard: View {
-	@Environment(\.dismiss) private var dismiss
+	@Environment(\.dismissGlassedSheet) private var dismiss
 	@State private var vzNetwork: VZSharedNetwork?
 	@State private var currentItem: BridgedNetwork
 	@State private var reason: String?

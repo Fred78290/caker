@@ -13,7 +13,7 @@ import Virtualization
 
 struct VirtualMachineSettingsView: View {
 
-	@Environment(\.dismiss) var dismiss
+	@Environment(\.dismissGlassedSheet) var dismiss
 
 	enum SettingsTab: Int, MultiplatformTabIdentifier {
 		static func < (lhs: VirtualMachineSettingsView.SettingsTab, rhs: VirtualMachineSettingsView.SettingsTab) -> Bool {

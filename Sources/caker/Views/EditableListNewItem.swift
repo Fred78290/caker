@@ -5,11 +5,12 @@
 //  Created by Frederic BOLTZ on 23/06/2025.
 //
 
+import CakedLib
 import GRPCLib
 import SwiftUI
 
 struct EditableListNewItem<Element, Content: View>: View where Element: Hashable & Identifiable & GRPCLib.Validatable {
-	@Environment(\.dismiss) var dismiss
+	@Environment(\.dismissGlassedSheet) var dismiss
 	@Binding var elements: [Element]
 	@Binding var currentItem: Element
 	@State var configChanged: Bool

@@ -10,7 +10,7 @@ import GRPCLib
 import SwiftUI
 
 struct RemoteWizard: View {
-	@Environment(\.dismiss) private var dismiss
+	@Environment(\.dismissGlassedSheet) private var dismiss
 
 	@State private var name: String = String.empty
 	@State private var url: String = String.empty

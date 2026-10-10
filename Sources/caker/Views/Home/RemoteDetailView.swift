@@ -130,7 +130,7 @@ struct RemoteDetailView: View {
 		.task(id: self.remote.id) {
 			await self.loadImages()
 		}
-		.sheet(isPresented: $createVM) {
+		.glassedSheet(isPresented: $createVM) {
 			if let selectedImage {
 				VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetRemoteImage: (remote: self.remote.name, image: selectedImage))
 					.colorSchemeForColor()

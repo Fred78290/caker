@@ -466,10 +466,10 @@ struct ServiceListView: View {
 				})
 			}
 		}
-        .sheet(isPresented: $isPresentingPasswordPrompt) {
+        .glassedSheet(isPresented: $isPresentingPasswordPrompt) {
 			self.askPassword()
         }
-        .sheet(isPresented: $isPresentingManualSheet) {
+        .glassedSheet(isPresented: $isPresentingManualSheet) {
 			self.askManualConnection()
         }
 	}

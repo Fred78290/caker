@@ -361,6 +361,7 @@
 		9B5A37862ED4BDA8007B59B0 /* VNCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */; };
 		9B5A37872ED4BDA8007B59B0 /* VNCInputHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37792ED4BDA8007B59B0 /* VNCInputHandler.swift */; };
 		9B5A8D9830682F4D00A8C53C /* NSGlassEffectAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B82A038305B09DB00362643 /* NSGlassEffectAlert.swift */; };
+		9BCEEB8A307A964E006D282F /* GlassedSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEEB89307A964E006D282F /* GlassedSheet.swift */; };
 		9B5A8D9A30682FE100A8C53C /* CakeHomeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A8D9930682FE100A8C53C /* CakeHomeHandler.swift */; };
 		9B5A8D9C3068307900A8C53C /* RenameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A8D9B3068307900A8C53C /* RenameHandler.swift */; };
 		9B5C3F3C2F89666C005651BF /* Entitlement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5C3F3B2F896662005651BF /* Entitlement.swift */; };
@@ -1310,6 +1311,7 @@
 		9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHelper.swift; sourceTree = "<group>"; };
 		9B7D69242F1B92E800FE1B0B /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		9B82A038305B09DB00362643 /* NSGlassEffectAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSGlassEffectAlert.swift; sourceTree = "<group>"; };
+		9BCEEB89307A964E006D282F /* GlassedSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassedSheet.swift; sourceTree = "<group>"; };
 		9B82D3172F960DBC00B3281B /* CakedPasswordAuthServerInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthServerInterceptor.swift; sourceTree = "<group>"; };
 		9B82D31B2F9628F200B3281B /* CakedPasswordAuthClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPasswordAuthClientInterceptorFactory.swift; sourceTree = "<group>"; };
 		9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldStore.swift; sourceTree = "<group>"; };
@@ -2942,6 +2944,7 @@
 			children = (
 				9B9DCD892F6FFF4900E07852 /* AboutApplication.swift */,
 				9B7D69242F1B92E800FE1B0B /* Extensions.swift */,
+				9BCEEB89307A964E006D282F /* GlassedSheet.swift */,
 				9B5F49BF2F70032800AE1991 /* LabelView.swift */,
 				9B82A038305B09DB00362643 /* NSGlassEffectAlert.swift */,
 				9B48B6663033687600B18C35 /* SplashScreenView.swift */,
@@ -4387,6 +4390,7 @@
 				9B5F49C02F70032800AE1991 /* LabelView.swift in Sources */,
 				9B5A184B2FDFFD62006FBD45 /* SpawnHandler.swift in Sources */,
 				9B5A8D9830682F4D00A8C53C /* NSGlassEffectAlert.swift in Sources */,
+				9BCEEB8A307A964E006D282F /* GlassedSheet.swift in Sources */,
 				9BEBC7A72DF440720092B196 /* CommunicationHandlers.swift in Sources */,
 				9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */,
 				9B5F49C22F7006B100AE1991 /* VNCConnectionLogger.swift in Sources */,
