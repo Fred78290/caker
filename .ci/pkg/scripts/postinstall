@@ -8,6 +8,12 @@ if [ -z "${HOME_USER}" ] || [ "${HOME_USER}" = "root" ] || [ "${HOME_USER}" = "l
 	HOME_USER=$(whoami)
 fi
 
+# caked and cakectl ship as separate helper apps in Caker.app/Contents/PlugIns
+# (see CAKED_APP/CAKECTL_APP in Scripts/build.inc.sh).
+CAKED_DIR="/Applications/Caker.app/Contents/PlugIns/caked.app/Contents/MacOS"
+CAKECTL_DIR="/Applications/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS"
+CAKED="${CAKED_DIR}/caked"
+
 HOME=$(dscl . -read "/Users/${HOME_USER}" NFSHomeDirectory 2>/dev/null | awk '{print $2}')
 if [ -z "${HOME}" ]; then
 	HOME="${HOME:-/var/root}"
@@ -31,13 +37,13 @@ mkdir -p "${HOME}/Library/Logs/Caker"
     echo "Home user: ${HOME_USER}"
 
     echo "Setting up PATH..."
-    echo "/Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS" > /etc/paths.d/com.aldunelabs.caker
+    printf '%s\n%s\n' "${CAKED_DIR}" "${CAKECTL_DIR}" > /etc/paths.d/com.aldunelabs.caker
 
     echo "Creating sudoers file..."
     # Create sudoers file for Caker
     cat <<EOF > /etc/sudoers.d/caked
 # Caker sudoers file
-%everyone ALL=(root:wheel) NOPASSWD: /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked
+%everyone ALL=(root:wheel) NOPASSWD: ${CAKED}
 EOF
 
     echo "Setting permissions..."
@@ -46,7 +52,7 @@ EOF
 
     echo "Generating certificates..."
     # Install the Caker service with proper UID
-    sudo -u "${HOME_USER}" /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked certificates generate
+    sudo -u "${HOME_USER}" "${CAKED}" certificates generate
 
     echo "Installing Caker service..."
     # Prompt for passphrase if not provided
@@ -71,10 +77,10 @@ EOF
     
     # Install the Caker service with proper UID
     if [ -n "${PASSWORD}" ]; then
-        sudo -S -u "${HOME_USER}" /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked set local.passphrase="${PASSWORD}" 2>/dev/null || echo "Failed to set passphrase, proceeding without it..."
+        sudo -S -u "${HOME_USER}" "${CAKED}" set local.passphrase="${PASSWORD}" 2>/dev/null || echo "Failed to set passphrase, proceeding without it..."
     fi
 
-    sudo -u "${HOME_USER}" /Applications/Caker.app/Contents/PlugIns/caked.bundle/Contents/MacOS/caked service install --tcp --rest || echo "Failed to install Caker service, please check the log for details."
+    sudo -u "${HOME_USER}" "${CAKED}" service install --tcp --rest || echo "Failed to install Caker service, please check the log for details."
 
     echo "=== Caker Post-Installation Completed at $(date) ==="
 } 2>&1 | tee "${LOG_FILE}"
