@@ -73,12 +73,10 @@ check_git_status() {
 check_changes() {
     cd "${PROJECT_ROOT}"
     
-    # Check if there are changes in docs/appcast/
-    if git diff --quiet docs/appcast/; then
-        if git diff --cached --quiet docs/appcast/; then
-            echo -e "${YELLOW}📄 No changes detected in docs/appcast/${NC}"
-            return 1
-        fi
+    # Check if there are changes in docs/appcast/ (status, not diff: a first appcast-prerelease.xml is untracked)
+    if [ -z "$(git status --porcelain -- docs/appcast/)" ]; then
+        echo -e "${YELLOW}📄 No changes detected in docs/appcast/${NC}"
+        return 1
     fi
     
     echo -e "${GREEN}📄 Changes detected in docs/appcast/${NC}"
@@ -104,42 +102,68 @@ show_changes() {
     echo -e "${GREEN}  ... (${item_count} release items total)${NC}"
 }
 
+APPCAST_WORKTREE_DIR=""
+
+cleanup_appcast_worktree() {
+    if [ -n "${APPCAST_WORKTREE_DIR}" ]; then
+        git -C "${PROJECT_ROOT}" worktree remove --force "${APPCAST_WORKTREE_DIR}/worktree" >/dev/null 2>&1 || true
+        rm -rf "${APPCAST_WORKTREE_DIR}"
+        git -C "${PROJECT_ROOT}" worktree prune >/dev/null 2>&1 || true
+    fi
+}
+
 deploy_appcast() {
     cd "${PROJECT_ROOT}"
-    
+
+    local branch="${1:-main}"
+    local github_repository="${2:-Fred78290/caker}"
+    local appcast_name="$(basename "${APPCAST_FILE}")"
+
     echo -e "${YELLOW}🚀 Deploying appcast to GitHub Pages...${NC}"
-    
-    # Configure git user if not set (for CI environments)
+
+    # Configure git user if not set (for CI environments). Local config only: this also runs on
+    # self-hosted runners, whose global git config belongs to the machine's user.
     if [ -z "$(git config user.name || true)" ]; then
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
     fi
-    git config --global user.name "${GITHUB_REPOSITORY%%/*}"
-    # Add appcast files
-    git add "${APPCAST_FILE}"
-    
+
+    # The release workflow checks out the release tag, not ${branch}: committing on top of it and
+    # pushing HEAD:${branch} is rejected as soon as ${branch} has moved past the tag. Commit the
+    # appcast on top of the current ${branch} in a separate worktree instead.
+    APPCAST_WORKTREE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/caker-appcast.XXXXXX")"
+    trap cleanup_appcast_worktree EXIT
+
+    local worktree="${APPCAST_WORKTREE_DIR}/worktree"
+
+    git fetch origin "${branch}"
+    git worktree add --detach "${worktree}" FETCH_HEAD
+
+    mkdir -p "${worktree}/docs/appcast"
+    cp "${APPCAST_FILE}" "${worktree}/docs/appcast/${appcast_name}"
+    git -C "${worktree}" add "docs/appcast/${appcast_name}"
+
     # Create commit
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     local item_count=$(grep -c '<item>' "${APPCAST_FILE}" || echo "0")
-    
-    git commit -m "🌐 Update Sparkle appcast - ${item_count} releases (${timestamp})" || {
+
+    git -C "${worktree}" commit -m "🌐 Update Sparkle appcast ${appcast_name} - ${item_count} releases (${timestamp})" || {
         echo -e "${YELLOW}⚠️  No changes to commit${NC}"
         return 0
     }
-    
-    # Push to remote
-    local branch="${1:-main}"
-    local github_repository="${2:-Fred78290/caker}"
+
+    # Push to remote, rebasing once if ${branch} moved while we were committing
     echo -e "${YELLOW}📤 Pushing to branch: ${branch}${NC}"
-    
-    if git push origin HEAD:$branch; then
+
+    if git -C "${worktree}" push origin "HEAD:${branch}" || \
+        { git -C "${worktree}" pull --rebase origin "${branch}" && git -C "${worktree}" push origin "HEAD:${branch}"; }; then
         echo -e "${GREEN}✅ Successfully deployed appcast${NC}"
-        
+
         # Show deployment URL
         echo
         echo -e "${BLUE}🌐 Appcast URLs:${NC}"
-        echo -e "   Production: ${GREEN}https://caker.aldunelabs.com/appcast/$(basename "${APPCAST_FILE}")${NC}"
-        echo -e "   GitHub: ${GREEN}https://github.com/${github_repository}/blob/${branch}/docs/appcast/$(basename "${APPCAST_FILE}")${NC}"
+        echo -e "   Production: ${GREEN}https://caker.aldunelabs.com/appcast/${appcast_name}${NC}"
+        echo -e "   GitHub: ${GREEN}https://github.com/${github_repository}/blob/${branch}/docs/appcast/${appcast_name}${NC}"
     else
         echo -e "${RED}❌ Failed to push changes${NC}"
         exit 1
@@ -207,7 +231,9 @@ main() {
         esac
     done
 
-    if [[ "${VERSION}" =~ SNAPSHOT ]]; then
+    # Same channel choice as sparkle-sign-release.sh and Scripts/build.inc.sh (SUFeedURL): anything
+    # but BUILDRELEASE=true is a prerelease.
+    if [[ "${VERSION:-}" =~ SNAPSHOT || "${BUILDRELEASE:-false}" != "true" ]]; then
         APPCAST_FILE="${APPCAST_DIR}/appcast-prerelease.xml"
     else
         APPCAST_FILE="${APPCAST_DIR}/appcast.xml"

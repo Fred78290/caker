@@ -7,14 +7,25 @@ NOTARYZATION=${NOTARYZATION:=false}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PKGDIR=$(dirname "${PKGDIR:-${PROJECT_ROOT}/dist/Caker.app}")
+APP_PATH="${PKGDIR:-${PROJECT_ROOT}/dist/Caker.app}"
 PKG_PATH="${PKG_PATH:-${PROJECT_ROOT}/build/Caker.pkg}"
-BUILD_DIR="${PROJECT_ROOT}/.ci/pkg/components"
-COMPONENT_PLIST="$(mktemp "/tmp/standalone.XXXXXX.plist")"
-trap 'rm -f "${COMPONENT_PLIST}"' EXIT
 
-mkdir -p "$(dirname "${PKG_PATH}")"
-mkdir -p "${BUILD_DIR}"
+# Stage Caker.app alone in a fresh root: pkgbuild installs everything under --root into
+# --install-location, so using the app's parent directory (.ci/pkg) shipped components/,
+# distribution.xml, resources/ and scripts/ into /Applications next to Caker.app.
+WORK_DIR="$(mktemp -d "/tmp/caker-pkg.XXXXXX")"
+PKG_ROOT="${WORK_DIR}/root"
+BUILD_DIR="${WORK_DIR}/components"
+COMPONENT_PLIST="${WORK_DIR}/component.plist"
+trap 'rm -rf "${WORK_DIR}"' EXIT
+
+if [ ! -d "${APP_PATH}" ]; then
+	echo "Error: Caker.app not found at ${APP_PATH}"
+	exit 1
+fi
+
+mkdir -p "$(dirname "${PKG_PATH}")" "${PKG_ROOT}" "${BUILD_DIR}"
+ditto "${APP_PATH}" "${PKG_ROOT}/Caker.app"
 
 if [ -f "${PROJECT_ROOT}/.env" ]; then
 	source "${PROJECT_ROOT}/.env"
@@ -28,10 +39,10 @@ fi
 
 echo "Creating package for version ${VERSION}, team ID ${TEAM_ID}"
 
-pkgbuild --analyze --root "${PKGDIR}" "${COMPONENT_PLIST}"
+pkgbuild --analyze --root "${PKG_ROOT}" "${COMPONENT_PLIST}"
 plutil -replace BundleIsRelocatable -bool NO "${COMPONENT_PLIST}"
 
-pkgbuild ${KEYCHAIN_OPTIONS} --root "${PKGDIR}" \
+pkgbuild ${KEYCHAIN_OPTIONS} --root "${PKG_ROOT}" \
 		--component-plist "${COMPONENT_PLIST}" \
 		--identifier com.aldunelabs.caker \
 		--version ${VERSION} \

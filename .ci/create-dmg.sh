@@ -34,6 +34,10 @@ fi
 rm -f "${DMG_PATH}"
 
 if [ -f "${PROJECT_ROOT}/.ci/dmg-resources/DS_Store" ]; then
+	# Start from an empty staging folder: build/ is git-ignored, so on a self-hosted runner it survives
+	# between runs and ditto would merge the new Caker.app into the previous one (stale files break the
+	# app's code signature).
+	rm -rf "${DMG_DIR}/dmg-resources"
 	mkdir -p "${DMG_DIR}/dmg-resources/.background"
 
 	ditto "${PKGDIR}" "${DMG_DIR}/dmg-resources/Caker.app"
