@@ -58,6 +58,13 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
   - `ls` — liste tous les projets compose enregistrés (`cakectl` uniquement).
   - `init [-f/--force]` — écrit un modèle `compose.yml` commenté dans le répertoire courant.
 
+### Environnements `.cakerenv`
+
+- `init`, `up`, `down` (commandes de premier niveau, à ne pas confondre avec `compose init/up/down`). Gèrent la ou les VM de développement décrites dans un fichier `.cakerenv` à la racine d'un projet. Voir [Environnements `.cakerenv`](cakerenv) pour le format du fichier.
+  - `init [-f/--force]` — écrit un modèle `.cakerenv` commenté dans le répertoire courant.
+  - `up [-f/--env-file path] [--wait-ip-timeout N] [vm...]` — crée les VM absentes et démarre les autres, dans l'ordre de `depends-on`.
+  - `down [-f/--env-file path] [--force] [vm...]` — arrête les VM dans l'ordre inverse.
+
 ## Commandes spécifiques à `caked`
 
 - groupe `certificates` :
@@ -457,6 +464,13 @@ This page summarizes the `ArgumentParser` commands implemented in:
   - `rm [-f file] [-s/--stop] [--force] [services...]` — remove service VMs and unregister the project.
   - `ls` — list all registered compose projects (`cakectl` only).
   - `init [-f/--force]` — write a commented `compose.yml` template in the current directory.
+
+### `.cakerenv` environments
+
+- `init`, `up`, `down` (top-level commands, not to be confused with `compose init/up/down`). Manage the development VM(s) described by a `.cakerenv` file at a project's root. See [`.cakerenv` environments](cakerenv) for the file format.
+  - `init [-f/--force]` — write a commented `.cakerenv` template in the current directory.
+  - `up [-f/--env-file path] [--wait-ip-timeout N] [vm...]` — create missing VMs and start the others, in `depends-on` order.
+  - `down [-f/--env-file path] [--force] [vm...]` — stop VMs in reverse order.
 
 ## `caked`-specific commands
 

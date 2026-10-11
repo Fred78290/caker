@@ -536,7 +536,7 @@ Wiki source lives in `wiki/` — edit this, not `docs/`. Publish manually:
 GH_TOKEN="${GITHUB_TOKEN}" ./Scripts/publish-wiki.sh <owner> <repo>
 ```
 
-On push to `main`, `publish-wiki.yaml` syncs `wiki/` to the GitHub wiki, and `sync-docs-from-wiki.yaml` regenerates the Jekyll site under `docs/` (published at `caker.aldunelabs.com`) from it. `docs/` is generated output — changes there are overwritten by the sync.
+On push to `main`, `publish-wiki.yaml` syncs `wiki/` to the GitHub wiki, and `sync-docs-from-wiki.yaml` regenerates the Jekyll site under `docs/` (published at `caker.aldunelabs.com`) from it. `docs/` is generated output — changes there are overwritten by the sync. `Scripts/sync-docs-from-wiki.sh` converts a **hard-coded list** of pages: a new wiki page must also get a `convert_wiki_to_docs` line there, or it never reaches `docs/` (`imds.md` and `provisioning.md` currently don't). Run the script locally (`GITHUB_REPOSITORY=Fred78290/caker ./Scripts/sync-docs-from-wiki.sh`) and commit the regenerated `docs/` with the wiki change. The site renders with kramdown, which keeps the backslash of `\|` inside a code span in a table — avoid pipes in table code cells.
 
 ## Tests
 

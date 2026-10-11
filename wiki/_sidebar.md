@@ -10,6 +10,7 @@
 - [Command Summary](command-summary)
 - [Provisioning & Recording](provisioning)
 - [Compose](compose)
+- [.cakerenv Environments](cakerenv)
 - [IMDS](imds)
 - [Sandbox](sandbox)
 - [Cheat Sheet](cheat-sheet)

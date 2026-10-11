@@ -106,6 +106,11 @@ if [[ -f "${WIKI_DIR}/sandbox.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/sandbox.md" "${DOCS_DIR}/sandbox.md" "Sandbox" "11"
 fi
 
+# .cakerenv environments (nav_order: 12)
+if [[ -f "${WIKI_DIR}/cakerenv.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/cakerenv.md" "${DOCS_DIR}/cakerenv.md" "Environments (.cakerenv)" "12"
+fi
+
 # Privacy Policy (nav_order: 99)
 if [[ -f "${WIKI_DIR}/privacy-policy.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/privacy-policy.md" "${DOCS_DIR}/privacy-policy.md" "Privacy Policy / Politique de confidentialité" "99"

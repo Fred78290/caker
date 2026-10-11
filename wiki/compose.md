@@ -6,6 +6,8 @@
 
 Caker compose vous permet de définir et gérer des environnements multi-VM à partir d'un fichier `compose.yml`, dans un format compatible avec Docker Compose.
 
+Pour une ou deux VM de développement liées à un dépôt, le format plus léger [`.cakerenv`](cakerenv) (`cakectl init/up/down`) peut suffire — voir la [comparaison des deux formats](cakerenv#choisir-entre-cakerenv-et-compose).
+
 ## Démarrage rapide
 
 ```bash
@@ -400,6 +402,8 @@ cakectl compose ls
 # Compose
 
 Caker compose lets you define and manage multi-VM environments from a `compose.yml` file, using a format compatible with Docker Compose.
+
+For one or two development VMs tied to a repository, the lighter [`.cakerenv`](cakerenv) format (`cakectl init/up/down`) may be enough — see the [comparison of the two formats](cakerenv#choosing-between-cakerenv-and-compose).
 
 ## Quick start
 
