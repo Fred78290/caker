@@ -48,7 +48,7 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
   - `up [-f file] [--wait-ip-timeout N] [services...]` — crée et démarre les services dans l'ordre de `depends_on`.
   - `down [-f file] [--force] [services...]` — arrête les services dans l'ordre inverse.
   - `ps [-f file] [services...]` — affiche le statut des services.
-  - `rm [-f file] [-s/--stop] [--force] [services...]` — supprime les VM de service et désenregistre le projet.
+  - `rm [-f file] [--stop] [--force] [services...]` — supprime les VM de service et désenregistre le projet.
   - `ls` — liste tous les projets compose enregistrés (`cakectl` uniquement).
   - `init [-f/--force]` — écrit un modèle `compose.yml` commenté dans le répertoire courant.
 
@@ -455,7 +455,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
   - `up [-f file] [--wait-ip-timeout N] [services...]` — create and start services in `depends_on` order.
   - `down [-f file] [--force] [services...]` — stop services in reverse order.
   - `ps [-f file] [services...]` — show service status.
-  - `rm [-f file] [-s/--stop] [--force] [services...]` — remove service VMs and unregister the project.
+  - `rm [-f file] [--stop] [--force] [services...]` — remove service VMs and unregister the project.
   - `ls` — list all registered compose projects (`cakectl` only).
   - `init [-f/--force]` — write a commented `compose.yml` template in the current directory.
 
