@@ -111,6 +111,16 @@ if [[ -f "${WIKI_DIR}/cakerenv.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/cakerenv.md" "${DOCS_DIR}/cakerenv.md" "Environments (.cakerenv)" "12"
 fi
 
+# IMDS (nav_order: 13)
+if [[ -f "${WIKI_DIR}/imds.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/imds.md" "${DOCS_DIR}/imds.md" "IMDS" "13"
+fi
+
+# Provisioning & Recording (nav_order: 14)
+if [[ -f "${WIKI_DIR}/provisioning.md" ]]; then
+  convert_wiki_to_docs "${WIKI_DIR}/provisioning.md" "${DOCS_DIR}/provisioning.md" "Provisioning & Recording" "14"
+fi
+
 # Privacy Policy (nav_order: 99)
 if [[ -f "${WIKI_DIR}/privacy-policy.md" ]]; then
   convert_wiki_to_docs "${WIKI_DIR}/privacy-policy.md" "${DOCS_DIR}/privacy-policy.md" "Privacy Policy / Politique de confidentialité" "99"
