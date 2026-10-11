@@ -33,7 +33,7 @@ MACOSSDK="$(xcrun --sdk macosx --show-sdk-path)"
 MINIMUM_SYSTEM_VERSION=26.0
 
 #sudo rm -rf "${PROJECT_ROOT}/.appstore" "${PROJECT_ROOT}"/*.o "${PROJECT_ROOT}"/*.d "${PROJECT_ROOT}"/*.swiftdeps "${PROJECT_ROOT}"/*.swiftdeps~
-sudo rm -rf "${PROJECT_ROOT}/.ci/pkg/Caker.app"
+sudo rm -rf "${PKGDIR}"
 
 cleanup_swift_package_mirror() {
 	${SWIFTCMD} package config unset-mirror --original https://github.com/apple/swift-argument-parser || true
@@ -69,8 +69,9 @@ OUTDIR="${PROJECT_ROOT}/appstore"
 PKGNAME="${PKGNAME:-Caker.pkg}"
 PKGPATH="${PKGPATH:-${OUTDIR}/${PKGNAME}}"
 
-xattr -r -d com.apple.quarantine "${OUTDIR}/Caker.app" 2>/dev/null || true
+# Package the bundle build.inc.sh just assembled and signed (PKGDIR), wherever PKGDIR points.
+xattr -r -d com.apple.quarantine "${PKGDIR}" 2>/dev/null || true
 productbuild ${KEYCHAIN_OPTIONS} \
 	--sign "3rd Party Mac Developer Installer: ${DEVELOPER_ID}" \
-	--component "${OUTDIR}/Caker.app" /Applications \
+	--component "${PKGDIR}" /Applications \
 	"${PKGPATH}"

@@ -10,7 +10,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/common.sh"
 
 RELEASE_PATHS="${RELEASE_PATHS:-Sources wiki}"
-SECTION_TITLE="## ${DATE_VALUE} (Git log summary - ${BRANCH_NAME})"
+read -r -a PATH_FILTERS <<< "${RELEASE_PATHS}"
+SECTION_TITLE="${DATE_VALUE} (Git log summary - ${GITHUB_REF_NAME:-${BRANCH_NAME}})"
 
 # Parameter validation
 if [[ $# -lt 2 ]]; then
@@ -65,12 +66,22 @@ echo
 # Generate release information
 RELEASE_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
 RELEASE_NOTES_FILE="/tmp/release-notes.html"
-LAST_RELEASE_TAG="$(gh release list --repo ${GITHUB_REPOSITORY} --exclude-pre-releases --json name,tagName,publishedAt,isDraft,isPrerelease | jq -r '.[1].tagName//""')"
+
+# Previous release on the same channel: a stable release lists changes since the last stable release,
+# a prerelease since the last release of any kind. The current tag is skipped whatever its position.
+# (A plain string, not an array: an empty array trips `set -u` in macOS's bash 3.2.)
+if [[ "${BUILDRELEASE:-false}" == "true" ]]; then
+    RELEASE_LIST_OPTIONS="--exclude-pre-releases"
+else
+    RELEASE_LIST_OPTIONS=""
+fi
+
+LAST_RELEASE_TAG="$(gh release list --repo "${GITHUB_REPOSITORY}" ${RELEASE_LIST_OPTIONS} --json tagName | jq -r --arg current "v${VERSION}" 'map(select(.tagName != $current)) | .[0].tagName // ""')"
 
 if [ -n "${LAST_RELEASE_TAG}" ]; then
-    SINCE_TAG="${LAST_RELEASE_TAG}...HEAD"
+    SINCE_TAG="${LAST_RELEASE_TAG}..HEAD"
     FIRST_RELEASE=false
-    COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'<li>%s</li>' "${SINCE_TAG}" -- "${RELEASE_PATHS}")"
+    COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'<li>%s</li>' "${SINCE_TAG}" -- "${PATH_FILTERS[@]}")"
 
     if [[ -z "${COMMITS_RAW}" ]]; then
     COMMITS_RAW="$(git -C "${PROJECT_ROOT}" --no-pager log --no-merges --pretty=format:'<li>%s</li>' "${SINCE_TAG}")"
@@ -80,9 +91,10 @@ else
   COMMITS_RAW="<li>First release</li>"
 fi
 
+# Still publish the appcast without a change list, otherwise the feed keeps offering the previous version.
 if [[ -z "${COMMITS_RAW}" ]]; then
-  echo "${YELLOW}⚠️ No commits found to generate summary.${NC}"
-  exit 0
+  echo -e "${YELLOW}⚠️ No commits found to generate summary.${NC}"
+  COMMITS_RAW="<li>Maintenance release</li>"
 fi
 
 cat > "${RELEASE_NOTES_FILE}" << EOF

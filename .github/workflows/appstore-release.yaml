@@ -175,7 +175,7 @@ jobs:
         if: vars.RUN_SWIFT_TESTS == 'true'
         run: |
           set -o pipefail
-          export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns/caked.app/Contents/MacOS:appstore/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS:${PATH}
+          export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns/caked.app/Contents/MacOS:${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS:${PATH}
           swift package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
           swift package resolve
           jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
@@ -190,7 +190,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns:${PATH}
+          export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns/caked.app/Contents/MacOS:${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS:${PATH}
           if [ -z "$(command -v virtualenv)" ]; then
             brew install virtualenv
           fi
@@ -251,7 +251,8 @@ jobs:
     if: needs.build.outputs.build_package == 'true'
     needs: [build]
     runs-on: self-hosted
-    timeout-minutes: 30
+    # Submitting waits for App Store Connect to process the upload (BUILD_PROCESSING_TIMEOUT).
+    timeout-minutes: 90
     steps:
       - name: 🛠️ checkout
         id: checkout
@@ -285,6 +286,12 @@ jobs:
         if: github.ref_name == 'appstore'
         env:
           VERSION: "${{ needs.build.outputs.version }}"
+          BUILD_PROCESSING_TIMEOUT: "3600"
+          # Export compliance answer for the build ("true"/"false"); Info.plist has no
+          # ITSAppUsesNonExemptEncryption key, so without it the build cannot be submitted.
+          USES_NON_EXEMPT_ENCRYPTION: ${{ vars.USES_NON_EXEMPT_ENCRYPTION }}
+          # "What's New in This Version" for localizations that have none (required for updates).
+          WHATS_NEW: ${{ vars.APPSTORE_WHATS_NEW || 'Bug fixes and improvements.' }}
         run: |
           VENV_DIR="${RUNNER_TEMP}/appstore-submit-venv"
           python3 -m venv "${VENV_DIR}"

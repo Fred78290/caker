@@ -65,7 +65,8 @@ actool "${RESOURCESDIR}/Assets.xcassets" \
 if [ $APPSTORE -eq 0 ]; then
 	mkdir -p "${CAKER_APP}/Frameworks"
 	mkdir -p "${PROJECT_ROOT}/tmp"
-	curl -L https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz -o "${PROJECT_ROOT}/tmp/Sparkle-${SPARKLE_VERSION}.tar.xz"
+	curl -fsSL https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz -o "${PROJECT_ROOT}/tmp/Sparkle-${SPARKLE_VERSION}.tar.xz"
+	rm -rf "${BUILDDIR}/Sparkle.framework"
 	tar -xf "${PROJECT_ROOT}/tmp/Sparkle-${SPARKLE_VERSION}.tar.xz" -C "${BUILDDIR}" Sparkle.framework
 
 	SPARKLE_FRAMEWORK="${CAKER_APP}/Frameworks/Sparkle.framework"
@@ -121,7 +122,7 @@ cp -c "${PROJECT_ROOT}/Resources/VM.icns" "${CAKECTL_APP}/Resources/VM.icns"
 cp -c "${PROJECT_ROOT}/Resources/VM.png" "${CAKECTL_APP}/Resources/VM.png"
 cp -c "${PROJECT_ROOT}/Resources/cakectl.plist" "${CAKECTL_APP}/Info.plist"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/VMImages.json" "${CAKECTL_APP}/Resources/VMImages.json"
-cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-template.yml" "${CAKED_APP}/Resources/compose-template.yml"
+cp -c "${PROJECT_ROOT}/Sources/cakedlib/Resources/compose-template.yml" "${CAKECTL_APP}/Resources/compose-template.yml"
 cp -c "${PROJECT_ROOT}/Sources/cakedlib/PackerLite/Resources"/* "${CAKECTL_APP}/Resources/"
 
 if [ $APPSTORE -eq 0 ]; then
@@ -237,6 +238,7 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 		--options runtime \
 		--timestamp \
+		--preserve-metadata=entitlements \
 		--force "${SPARKLE_FRAMEWORK}/Versions/Current/XPCServices/Downloader.xpc"
 
 	codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
@@ -285,7 +287,7 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
 			--timestamp \
-			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
+			--entitlements "${PROJECT_ROOT}/Resources/release/caked.entitlements" \
 			--requirement="${CODESIGN_REQUIREMENT/__IDENTIFIER__/com.aldunelabs.caker.caked}" \
 			--force "${CAKER_APP}/PlugIns/caked.app"
 
@@ -307,36 +309,43 @@ elif [ "${RELEASE}" -eq 1 ] && [ -n "${DEVELOPER_ID}" ]; then
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
-			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements "${PROJECT_ROOT}/Resources/release/caked.entitlements" \
-			--force "${CAKED_APP}/MacOS/caked"
-
-		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
-			--options runtime \
+			--timestamp \
+			--identifier "com.aldunelabs.caker.cakectl" \
 			--preserve-metadata=identifier,entitlements,flags \
 			--entitlements "${PROJECT_ROOT}/Resources/release/cakectl.entitlements" \
 			--force "${CAKECTL_APP}/MacOS/cakectl"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
+			--timestamp \
+			--identifier "com.aldunelabs.caker.caked" \
 			--preserve-metadata=identifier,entitlements,flags \
-			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
+			--entitlements "${PROJECT_ROOT}/Resources/release/caked.entitlements" \
 			--force "${CAKED_APP}/MacOS/caked"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
+			--timestamp \
+			--identifier "com.aldunelabs.caker" \
 			--preserve-metadata=identifier,entitlements,flags \
+			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
+			--force "${CAKER_APP}/MacOS/Caker"
+
+		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
+			--options runtime \
+			--timestamp \
 			--entitlements "${PROJECT_ROOT}/Resources/release/caked.entitlements" \
 			--force "${CAKER_APP}/PlugIns/caked.app"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
-			--preserve-metadata=identifier,entitlements,flags \
+			--timestamp \
 			--entitlements "${PROJECT_ROOT}/Resources/release/cakectl.entitlements" \
 			--force "${CAKER_APP}/PlugIns/cakectl.app"
 
 		codesign ${KEYCHAIN_OPTIONS} --sign "Developer ID Application: ${DEVELOPER_ID}" \
 			--options runtime \
+			--timestamp \
 			--entitlements "${PROJECT_ROOT}/Resources/release/caker.entitlements" \
 			--force "${PKGDIR}"
 	fi

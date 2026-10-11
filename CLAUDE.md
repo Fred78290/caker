@@ -529,6 +529,14 @@ if: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_reques
 
 Workflows: `release.yaml` (GitHub release + DMG), `appstore-release.yaml` (App Store submission), `publish-wiki.yaml` (wiki → GitHub Pages sync), `sync-docs-from-wiki.yaml` (wiki → `docs/` Jekyll site → GitHub Pages).
 
+**Release pipeline facts that have broken before** (fixed together; the `.app` layout is `Scripts/build.inc.sh`'s `CAKER_APP`/`CAKED_APP`/`CAKECTL_APP`):
+- `release.yaml` is triggered by pushing the moving tags `prerelease`/`release`, `appstore-release.yaml` by `appstore-prerelease`/`appstore`. Each run tags `v<VERSION>` (`v<VERSION>-appstore`).
+- **Resources are copied flat into each app's `Contents/Resources`**, and CakedLib's loaders (`VMImageCatalog.loadBundled`, `ComposeFile.template`, `PackerLiteTemplateResolver`) try `Bundle.main` before `Bundle.module`. In a `swift build` binary, `Bundle.module` only finds `Caker_CakedLib.bundle` next to the `.app` or in the CI runner's own `.build` directory, so a resource missing from an app's `Resources` works on the runner (the maintainer's Mac) and `fatalError`s everywhere else. `cakectl.app` was missing `compose-template.yml` this way. Any new CakedLib resource needs a `cp` into all three apps.
+- `caked.app`/`cakectl.app` must be signed with their own entitlements: the bundle signature is the main executable's, and `caker.entitlements` carries `application-identifier …caker`, which `caked.provisionprofile` does not allow.
+- `.ci/create-pkg.sh` stages `Caker.app` alone in a temp root. Using `.ci/pkg` as `pkgbuild --root` installed `components/`, `distribution.xml`, `resources/` and `scripts/` into `/Applications`. `postinstall` points at `PlugIns/caked.app` and `PlugIns/cakectl.app` (the old `caked.bundle` path made every install fail).
+- Sparkle: `BUILDRELEASE` (`true` = `appcast.xml`, anything else = `appcast-prerelease.xml`) must reach both `sparkle-sign-release.sh` and `sparkle-deploy-appcast.sh`. The `sparkle-sign` job runs for both channels, and `SPARKLE_VERSION` in `release.yaml` must match `build.inc.sh`. The deploy commits the appcast on top of `origin/main` in a temporary worktree, because the job checks out the tag. It then dispatches `sync-docs-from-wiki.yaml`, since Pages is only built by that workflow and a `GITHUB_TOKEN` push triggers nothing.
+- App Store review (`.ci/submit-appstore-review.py`, `appstore` tag only) waits for the uploaded build to be processed, then reuses, renames or creates the macOS version `VERSION`, attaches the build and submits it through `reviewSubmissions`. It needs the repository variable `USES_NON_EXEMPT_ENCRYPTION` (`true`/`false`) because `Info.plist` has no `ITSAppUsesNonExemptEncryption`. `APPSTORE_WHATS_NEW` optionally overrides the default "What's New" text.
+
 ## Documentation / Wiki
 
 Wiki source lives in `wiki/` — edit this, not `docs/`. Publish manually:
