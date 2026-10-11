@@ -87,6 +87,20 @@ Référence rapide des commandes pour les opérations quotidiennes courantes.
 - Utiliser un fichier personnalisé :
   - `cakectl compose up -f ./infra/staging.yml`
 
+## Environnement `.cakerenv` (`cakectl init/up/down`)
+
+- Créer un modèle `.cakerenv` dans le répertoire courant :
+  - `cakectl init`
+- Créer/démarrer toutes les VM du fichier :
+  - `cakectl up`
+- Démarrer certaines VM seulement (leurs dépendances ne sont pas démarrées) :
+  - `cakectl up app database`
+- Arrêter toutes les VM (ordre inverse de `depends-on`) :
+  - `cakectl down`
+- Utiliser un fichier personnalisé :
+  - `cakectl up -f ./envs/dev.cakerenv`
+- Référence du format : [Environnements `.cakerenv`](cakerenv)
+
 ## Démon local/admin (`caked`)
 
 - Exécuter une commande du démon directement :
@@ -315,6 +329,20 @@ Quick command reference for common daily operations.
   - `cakectl compose ls`
 - Use a custom file:
   - `cakectl compose up -f ./infra/staging.yml`
+
+## `.cakerenv` environment (`cakectl init/up/down`)
+
+- Create a `.cakerenv` template in the current directory:
+  - `cakectl init`
+- Create/start every VM in the file:
+  - `cakectl up`
+- Start only some VMs (their dependencies are not started):
+  - `cakectl up app database`
+- Stop every VM (reverse `depends-on` order):
+  - `cakectl down`
+- Use a custom file:
+  - `cakectl up -f ./envs/dev.cakerenv`
+- Format reference: [`.cakerenv` environments](cakerenv)
 
 ## Local daemon/admin (`caked`)
 

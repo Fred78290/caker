@@ -19,6 +19,8 @@ caked service listen --imds-port 9000        # change le port non privilégié (
 | --- | --- |
 | `--imds-port <port>` | Port non privilégié sur lequel IMDS écoute (par défaut `28080`). Ignoré si `caked` tourne en root. |
 
+<a name="reseau-et-adressage"></a>
+
 ## Réseau et adressage
 
 Chaque VM Linux reçoit une interface réseau dédiée « imds » (host-only), toutes les VM partageant le même commutateur virtuel `imds`. Le framework `vmnet` d'Apple n'acceptant que des sous-réseaux privés classiques (`192.168.0.0/16`), le sous-réseau réel est `192.168.169.0/24`, avec la passerelle `192.168.169.1` — pas l'adresse `169.254.169.x` habituelle d'AWS.
@@ -32,7 +34,7 @@ Une route statique `169.254.169.254/32` via cette passerelle est ajoutée à la 
 - **`caked` tourne en root** (`service listen --system`) : IMDS lie directement `192.168.169.1:80`, aucune étape supplémentaire.
 - **`caked` tourne sans privilège** (cas courant, y compris en version sandboxée) : IMDS lie `192.168.169.1:<imds-port>` — les invités peuvent déjà le joindre là, sans `sudo`.
 
-Indépendamment de ce qui précède, un court appel `sudo` installe aussi l'alias d'adresse `169.254.169.254` mentionné dans [Réseau et adressage](#réseau-et-adressage) — mis en place automatiquement au démarrage d'IMDS, que `caked` tourne en root ou non, et de même indisponible (avec la passerelle toujours pleinement joignable) en version sandboxée. C'est cet alias, et lui seul, qui expose IMDS sur le port standard 80 lorsque `caked` tourne sans privilège — voir [`caked networks imds-redirect`](command-summary), une sous-commande interne.
+Indépendamment de ce qui précède, un court appel `sudo` installe aussi l'alias d'adresse `169.254.169.254` mentionné dans [Réseau et adressage](#reseau-et-adressage) — mis en place automatiquement au démarrage d'IMDS, que `caked` tourne en root ou non, et de même indisponible (avec la passerelle toujours pleinement joignable) en version sandboxée. C'est cet alias, et lui seul, qui expose IMDS sur le port standard 80 lorsque `caked` tourne sans privilège — voir [`caked networks imds-redirect`](command-summary), une sous-commande interne.
 
 ## Utiliser IMDS depuis l'invité
 

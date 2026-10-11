@@ -54,9 +54,16 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
   - `up [-f file] [--wait-ip-timeout N] [services...]` — crée et démarre les services dans l'ordre de `depends_on`.
   - `down [-f file] [--force] [services...]` — arrête les services dans l'ordre inverse.
   - `ps [-f file] [services...]` — affiche le statut des services.
-  - `rm [-f file] [-s/--stop] [--force] [services...]` — supprime les VM de service et désenregistre le projet.
+  - `rm [-f file] [--stop] [--force] [services...]` — supprime les VM de service et désenregistre le projet.
   - `ls` — liste tous les projets compose enregistrés (`cakectl` uniquement).
   - `init [-f/--force]` — écrit un modèle `compose.yml` commenté dans le répertoire courant.
+
+### Environnements `.cakerenv`
+
+- `init`, `up`, `down` (commandes de premier niveau, à ne pas confondre avec `compose init/up/down`). Gèrent la ou les VM de développement décrites dans un fichier `.cakerenv` à la racine d'un projet. Voir [Environnements `.cakerenv`](cakerenv) pour le format du fichier.
+  - `init [-f/--force]` — écrit un modèle `.cakerenv` commenté dans le répertoire courant.
+  - `up [-f/--env-file path] [--wait-ip-timeout N] [vm...]` — crée les VM absentes et démarre les autres, dans l'ordre de `depends-on`.
+  - `down [-f/--env-file path] [--force] [vm...]` — arrête les VM dans l'ordre inverse.
 
 ## Commandes spécifiques à `caked`
 
@@ -454,9 +461,16 @@ This page summarizes the `ArgumentParser` commands implemented in:
   - `up [-f file] [--wait-ip-timeout N] [services...]` — create and start services in `depends_on` order.
   - `down [-f file] [--force] [services...]` — stop services in reverse order.
   - `ps [-f file] [services...]` — show service status.
-  - `rm [-f file] [-s/--stop] [--force] [services...]` — remove service VMs and unregister the project.
+  - `rm [-f file] [--stop] [--force] [services...]` — remove service VMs and unregister the project.
   - `ls` — list all registered compose projects (`cakectl` only).
   - `init [-f/--force]` — write a commented `compose.yml` template in the current directory.
+
+### `.cakerenv` environments
+
+- `init`, `up`, `down` (top-level commands, not to be confused with `compose init/up/down`). Manage the development VM(s) described by a `.cakerenv` file at a project's root. See [`.cakerenv` environments](cakerenv) for the file format.
+  - `init [-f/--force]` — write a commented `.cakerenv` template in the current directory.
+  - `up [-f/--env-file path] [--wait-ip-timeout N] [vm...]` — create missing VMs and start the others, in `depends-on` order.
+  - `down [-f/--env-file path] [--force] [vm...]` — stop VMs in reverse order.
 
 ## `caked`-specific commands
 

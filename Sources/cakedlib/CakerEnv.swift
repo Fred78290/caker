@@ -76,6 +76,8 @@ public struct CakerEnvVM: Codable {
 			memory: memory ?? 2048,
 			diskSize: disk ?? 10,
 			diskFormat: SupportedDiskFormat.defaultSupportedFormat,
+			user: user ?? "admin",
+			password: password ?? "admin",
 			autostart: autostart ?? false,
 			nested: nested ?? false,
 			image: image ?? defaultUbuntuImage,
