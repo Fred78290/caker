@@ -434,6 +434,7 @@
 		9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */; };
 		9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */; };
 		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
+		9AC1EA3DEA5CA70E93E5CA4D /* CakerEnvTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D777B8DF669779B5A4A93A72 /* CakerEnvTests.swift */; };
 		9BA4A2F2307839DC005EEA30 /* ComposeDNSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA4A2F1307839DC005EEA30 /* ComposeDNSTests.swift */; };
 		9BA7B0222F56010F004AFAE8 /* VirtualMachineConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */; };
 		9BA7B0242F5601DF004AFAE8 /* ImageSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */; };
@@ -1364,6 +1365,7 @@
 		9BA22FFD2E26512500172D25 /* CoreAudioTypes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioTypes.framework; path = System/Library/Frameworks/CoreAudioTypes.framework; sourceTree = SDKROOT; };
 		9BA22FFE2E26512500172D25 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		9BA22FFF2E26512500172D25 /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
+		D777B8DF669779B5A4A93A72 /* CakerEnvTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakerEnvTests.swift; sourceTree = "<group>"; };
 		9BA4A2F1307839DC005EEA30 /* ComposeDNSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSTests.swift; sourceTree = "<group>"; };
 		9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfiguration.swift; sourceTree = "<group>"; };
 		9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSource.swift; sourceTree = "<group>"; };
@@ -2101,6 +2103,7 @@
 				9BDD14C1306A7E3E0091E8DC /* BuildOptionsTests.swift */,
 				9BDD14C2306A7E3E0091E8DC /* CachedImageKindTests.swift */,
 				9BDD14C3306A7E3E0091E8DC /* CakedProviderCancellationTests.swift */,
+				D777B8DF669779B5A4A93A72 /* CakerEnvTests.swift */,
 				9B345C0C2DB4EB700047D00B /* CloudInitTest.swift */,
 				9BA4A2F1307839DC005EEA30 /* ComposeDNSTests.swift */,
 				9BDD14C4306A7E3E0091E8DC /* ComposeProjectStatusTests.swift */,
@@ -4147,6 +4150,7 @@
 				9BDD14D6306A7E3E0091E8DC /* BuildOptionsTests.swift in Sources */,
 				9BDD14D7306A7E3E0091E8DC /* CachedImageKindTests.swift in Sources */,
 				9BA4A2F2307839DC005EEA30 /* ComposeDNSTests.swift in Sources */,
+				9AC1EA3DEA5CA70E93E5CA4D /* CakerEnvTests.swift in Sources */,
 				9BDD14D8306A7E3E0091E8DC /* LXDCreateInstanceRequestTests.swift in Sources */,
 				9BDD14D9306A7E3E0091E8DC /* VMLocationLogURLTests.swift in Sources */,
 				9BDD14DA306A7E3E0091E8DC /* VNCVirtualMachineViewCaptureTests.swift in Sources */,

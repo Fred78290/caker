@@ -100,7 +100,8 @@ Les mêmes champs s'utilisent au premier niveau (mode VM unique) ou sous chaque 
 | `autostart` | booléen | `false` | Démarrer la VM au lancement de `caked`. |
 | `nested` | booléen | `false` | Activer la virtualisation imbriquée (désactivée silencieusement si l'hôte ne la prend pas en charge). |
 | `depends-on` | liste | aucun | Noms d'autres VM du même fichier à démarrer avant celle-ci (mode multi-VM uniquement). |
-| `user`, `password` | chaîne | — | **Acceptés mais ignorés pour l'instant** : la VM est toujours créée avec le compte par défaut `admin`/`admin`. Utilisez un bloc `cloud-init` pour créer un autre utilisateur. |
+| `user` | chaîne | `admin` | Nom du compte créé dans l'invité à la construction de la VM. |
+| `password` | chaîne | `admin` | Mot de passe de ce compte. |
 
 Le format du disque n'est pas configurable : c'est le format par défaut de Caker pour la plateforme. Les clés inconnues sont ignorées sans erreur — une faute de frappe dans un nom de champ ne produit aucun message.
 
@@ -174,7 +175,6 @@ Choisissez `.cakerenv` pour une ou deux VM de développement liées à un dépô
 ## Limites
 
 - **Noms non isolés** : les VM portent exactement le nom donné dans le fichier. Si une VM `app` existe déjà (créée à la main ou par un autre `.cakerenv`), `up` la démarre au lieu d'en créer une, et `down` l'arrête.
-- `user` et `password` sont ignorés (voir le tableau des champs).
 - Pas de reconfiguration des VM existantes (voir plus haut).
 - Avec `cakectl up`, l'image doit être distante (pas de chemin local) et les chemins de montage relatifs sont résolus côté démon.
 - Les clés inconnues et les entrées de `ports`/`sockets` illisibles sont ignorées sans erreur.
@@ -287,7 +287,8 @@ The same fields work at the top level (single-VM mode) or under each `vms:` entr
 | `autostart` | boolean | `false` | Start the VM when `caked` starts. |
 | `nested` | boolean | `false` | Enable nested virtualization (silently turned off if the host doesn't support it). |
 | `depends-on` | list | none | Names of other VMs in the same file to start before this one (multi-VM mode only). |
-| `user`, `password` | string | — | **Accepted but currently ignored**: the VM is always created with the default `admin`/`admin` account. Use a `cloud-init` block to create another user. |
+| `user` | string | `admin` | Name of the account created in the guest when the VM is built. |
+| `password` | string | `admin` | That account's password. |
 
 The disk format isn't configurable: it is Caker's default format for the platform. Unknown keys are ignored without an error — a typo in a field name produces no message.
 
@@ -361,7 +362,6 @@ Pick `.cakerenv` for one or two development VMs tied to a repository; pick Compo
 ## Limitations
 
 - **Names aren't isolated**: VMs get exactly the name written in the file. If a VM named `app` already exists (created by hand or by another `.cakerenv`), `up` starts it instead of creating one, and `down` stops it.
-- `user` and `password` are ignored (see the field table).
 - Existing VMs aren't reconfigured (see above).
 - With `cakectl up`, the image must be remote (no local path) and relative mount paths are resolved on the daemon side.
 - Unknown keys and unparseable `ports`/`sockets` entries are ignored without an error.
