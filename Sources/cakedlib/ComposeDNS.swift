@@ -32,7 +32,7 @@ public enum ComposeDNS {
 	/// value configured — the fallback `domainSuffix` itself resolves to, and what every bundled
 	/// compose template/doc reference assumes unless the operator has changed it in Advanced
 	/// Settings.
-	public static let defaultDomainSuffix = "compose.internal"
+	public static let defaultDomainSuffix = CakedKeyConfig.defaultComposeDnsDomain
 
 	/// The domain suffix the resolver currently answers for — anything else is `REFUSED`, this
 	/// is not, and must never become, an open resolver for the shared NAT subnet. Configurable
