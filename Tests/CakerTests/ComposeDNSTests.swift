@@ -84,7 +84,7 @@ final class ComposeDNSTests: XCTestCase {
 	}
 
 	func testDomainSuffixFallsBackToDefaultWhenUnsetOrInvalid() {
-		let original: String? = CakedKeyConfig.composeDnsDomain.string()
+		let original: String? = CakedKeyConfig.composeDnsDomain.get()
 
 		defer {
 			if let original {

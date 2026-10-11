@@ -38,12 +38,25 @@ public struct SetOptions: ParsableCommand {
 				throw ValidationError(String(localized: "Invalid key"))
 			}
 
+			let value: String?
+
 			if keyValue.count == 2 {
-				config.set(String(keyValue[1]))
+				value = String(keyValue[1])
 			} else {
 				print("\(String(localized: "Value for")) \(String(keyValue[0])):", terminator: " ")
 
-				config.set(readLine())
+				value = readLine()
+			}
+
+			// Store a boolean key as a `Bool`, the type Caker.app's `@AppStorage` reads.
+			if config.isBoolean, let value {
+				guard let flag = CakedKeyConfig.parseBool(value) else {
+					throw ValidationError(String(format: String(localized: "Invalid value '%@' for %@: expected true or false"), value, config.rawValue))
+				}
+
+				config.set(flag)
+			} else {
+				config.set(value)
 			}
 		}
 	}
