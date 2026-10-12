@@ -74,7 +74,7 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
     - `--rest-port <port>` — modifie le port d'écoute de l'API REST.
     - `--web-ui <path>` — sert l'interface Web fournie depuis un répertoire ou une archive `.zip` sur `/ui`.
     - `--address` / `-l` — modifie l'adresse d'écoute gRPC.
-    - `--insecure` — désactive TLS.
+    - `--disable-tls` — désactive TLS.
     - `--imds-port <port>` — port non privilégié sur lequel IMDS écoute, joignable directement par les invités sans root (par défaut `28080`). Voir [IMDS](imds).
   - `status` — rapporte le statut du démon.
   - `stop` — arrête le démon en cours d'exécution.
@@ -481,7 +481,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
     - `--rest-port <port>` — override the REST API listen port.
     - `--web-ui <path>` — serve the bundled web UI from a directory or `.zip` archive at `/ui`.
     - `--address` / `-l` — override the gRPC listen address.
-    - `--insecure` — disable TLS.
+    - `--disable-tls` — disable TLS.
     - `--imds-port <port>` — unprivileged port IMDS listens on, directly reachable by guests with no root needed (default `28080`). See [IMDS](imds).
   - `status` — report daemon status.
   - `stop` — stop the running daemon.
