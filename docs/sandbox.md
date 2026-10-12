@@ -16,7 +16,7 @@ Caker propose deux versions : une version en téléchargement direct, sans App S
 
 ```bash
 cakectl sandbox                 # sandboxed: true / false
-caked sandbox --format json     # {"sandboxed": true}
+caked sandbox --json            # {"sandboxed": true}
 ```
 
 `Bundle.isApplicationSandboxed` est la source de vérité unique utilisée dans tout le code ; elle est calculée une seule fois (puis mise en cache) à partir de la signature de code du binaire en cours d'exécution, en vérifiant la présence de l'entitlement `com.apple.security.app-sandbox`.
@@ -77,7 +77,7 @@ Caker ships two builds: a direct-download build with no App Sandbox, and an App 
 
 ```bash
 cakectl sandbox                 # sandboxed: true / false
-caked sandbox --format json     # {"sandboxed": true}
+caked sandbox --json            # {"sandboxed": true}
 ```
 
 `Bundle.isApplicationSandboxed` is the single source of truth used throughout the codebase; it's derived once (and cached) from the running binary's code signature, by checking for the `com.apple.security.app-sandbox` entitlement.
