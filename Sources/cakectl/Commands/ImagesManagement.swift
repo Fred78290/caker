@@ -50,7 +50,7 @@ struct ImagesManagement: ParsableCommand {
 	}
 
 	struct PullImage: GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: String(localized: "Show useful information about images"))
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "pull", abstract: String(localized: "Pull image"))
 
 		@OptionGroup(title: String(localized: "Client options"))
 		var options: Client.Options
