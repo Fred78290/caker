@@ -8,7 +8,8 @@
 //  `Sources/caker/Resources/VMImages.json`) and was only ever consulted by the wizard. It moved
 //  here so `caked`/`cakectl` — which don't depend on `caker` — can resolve catalog ids too (see
 //  `BuildOptions.alias`, e.g. `--alias macos12`, and its resolution in `VMBuilder.swift`, plus
-//  `aliasEntries` below, used by the `caked aliases`/`cakectl aliases` commands to list them).
+//  `aliasEntries` below, listed by `caked aliases` and served to `cakectl aliases` through caked's
+//  `Aliases` RPC).
 //
 
 import CakeAgentLib
@@ -298,7 +299,7 @@ public struct VMImageAliasEntry: Codable, Sendable {
 
 extension VMImageCatalog {
 	/// Every `--alias`-able id in `current` (arch-appropriate), across all three categories —
-	/// the data behind the `aliases` command in both `caked` and `cakectl`.
+	/// the data behind `caked aliases` and the `Aliases` RPC that `cakectl aliases` calls.
 	public var aliasEntries: [VMImageAliasEntry] {
 		#if arch(arm64)
 			current.ipsw.map { VMImageAliasEntry(id: $0.id, category: "ipsw", label: $0.label) }
@@ -308,6 +309,32 @@ extension VMImageCatalog {
 			current.iso.map { VMImageAliasEntry(id: $0.id, category: "iso", label: $0.label) }
 				+ current.cloud.map { VMImageAliasEntry(id: $0.id, category: "cloud", label: $0.label) }
 		#endif
+	}
+}
+
+extension VMImageAliasEntry {
+	/// Rebuilds an entry received from caked's `Aliases` RPC (`cakectl aliases`).
+	public init(_ from: Caked_AliasEntry) {
+		self.init(id: from.id, category: from.category, label: from.label)
+	}
+
+	public var caked: Caked_AliasEntry {
+		Caked_AliasEntry.with {
+			$0.id = self.id
+			$0.category = self.category
+			$0.label = self.label
+		}
+	}
+}
+
+extension VMImageCatalog {
+	/// The `Aliases` RPC's reply: `aliasEntries` in wire form.
+	public var aliasesReply: Caked_Reply {
+		Caked_Reply.with {
+			$0.aliases = .with {
+				$0.aliases = self.aliasEntries.map(\.caked)
+			}
+		}
 	}
 }
 

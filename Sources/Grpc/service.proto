@@ -103,6 +103,8 @@ service Service {
   rpc ListTasks (Empty) returns (Caked.Reply);
   // CancelTask cancels a registered long-running task by id.
   rpc CancelTask (Caked.CancelTaskRequest) returns (Caked.Reply);
+  // Aliases lists the VM image catalog ids (VMImages.json) the server accepts for build/launch --alias.
+  rpc Aliases (Empty) returns (Caked.Reply);
 }
 
 message Empty {}
@@ -806,6 +808,16 @@ message Caked {
       }
     }
 
+    message AliasesReply {
+      message AliasEntry {
+        string id       = 1;
+        string category = 2;
+        string label    = 3;
+      }
+
+      repeated AliasEntry aliases = 1;
+    }
+
     message VirtualMachineReply {
       message VirtualMachineInfoReply {
         message VirtualMachineInfo {
@@ -1417,6 +1429,7 @@ message Caked {
       string              unexpected   = 13;
       ComposeReply        compose      = 14;
       TaskReply           tasks        = 15;
+      AliasesReply        aliases      = 16;
     }
   }
 

@@ -302,5 +302,9 @@ public final class CakedPasswordAuthClientInterceptorFactory: Caked_ServiceClien
 	public func makeCancelTaskInterceptors() -> [ClientInterceptor<Caked_CancelTaskRequest, Caked_Reply>] {
 		self.interceptors(self.chainedInterceptors?.makeCancelTaskInterceptors())
 	}
+
+	public func makeAliasesInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Reply>] {
+		self.interceptors(self.chainedInterceptors?.makeAliasesInterceptors())
+	}
 }
 
