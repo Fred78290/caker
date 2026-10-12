@@ -144,6 +144,10 @@ if [ $APPSTORE -eq 0 ] && [ -n "${SPARKLE_PUBLIC_KEY}" ]; then
 
 	plutil -replace SUFeedURL -string "${APPCAST_URL}" "${CAKER_APP}/Info.plist"
 	plutil -replace SUPublicEDKey -string "${SPARKLE_PUBLIC_KEY}" "${CAKER_APP}/Info.plist"
+
+	# Read by `caked check-update`/`cakectl check-update`, so they check the same channel as Caker.app
+	plutil -replace SUFeedURL -string "${APPCAST_URL}" "${CAKED_APP}/Info.plist"
+	plutil -replace SUFeedURL -string "${APPCAST_URL}" "${CAKECTL_APP}/Info.plist"
 elif [ $APPSTORE -eq 1 ]; then
 	plutil -remove SUFeedURL "${CAKER_APP}/Info.plist" 2>/dev/null || true
 	plutil -remove SUPublicEDKey "${CAKER_APP}/Info.plist" 2>/dev/null || true
