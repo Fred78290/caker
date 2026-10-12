@@ -172,6 +172,8 @@ caked aliases
 cakectl aliases
 ```
 
+`caked aliases` lit le catalogue local, tandis que `cakectl aliases` interroge le `caked` connecté (gRPC) : la liste affichée est donc celle contre laquelle ce `caked` résoudra `--alias`, y compris son propre `<CAKE_HOME>/VMImages.json`, même s'il tourne sur une autre machine.
+
 Le catalogue lui-même — `<CAKE_HOME>/VMImages.json`, s'il existe, prend le pas sur la version embarquée dans l'application ; voir `VMImageCatalog.refreshFromGitHub()` pour le rafraîchir depuis le dépôt.
 
 <a name="provision-fr"></a>
@@ -578,6 +580,8 @@ To list every id `--alias` accepts, tagged with its category (`ipsw`/`iso`/`clou
 caked aliases
 cakectl aliases
 ```
+
+`caked aliases` reads the local catalog, while `cakectl aliases` asks the connected `caked` over gRPC, so it lists the ids that `caked` will actually resolve `--alias` against, including its own `<CAKE_HOME>/VMImages.json`, even when it runs on another host.
 
 The catalog itself — `<CAKE_HOME>/VMImages.json`, if present, overrides the version bundled with the app; see `VMImageCatalog.refreshFromGitHub()` to refresh it from the repo.
 

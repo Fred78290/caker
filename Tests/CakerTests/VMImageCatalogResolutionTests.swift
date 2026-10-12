@@ -90,7 +90,7 @@ final class VMImageCatalogResolutionTests: XCTestCase {
 		XCTAssertNil(catalog.resolveShorthand("not-a-real-catalog-id"))
 	}
 
-	/// `aliasEntries` is what the `caked aliases`/`cakectl aliases` commands render — every id
+	/// `aliasEntries` is what `caked aliases` and caked's `Aliases` RPC (`cakectl aliases`) render — every id
 	/// resolvable via `--alias` should show up here, tagged with its category.
 	func testAliasEntriesListsEveryResolvableId() throws {
 		let catalog = VMImageCatalog.shared
@@ -104,5 +104,19 @@ final class VMImageCatalogResolutionTests: XCTestCase {
 
 		let ubuntu2604 = try XCTUnwrap(entries.first(where: { $0.id == "ubuntu2604" }))
 		XCTAssertEqual(ubuntu2604.category, "cloud")
+	}
+
+	/// `cakectl aliases` renders what caked's `Aliases` RPC sends (`aliasesReply`), mapped back to
+	/// `VMImageAliasEntry` — the round trip must keep every entry, in order, so the client prints
+	/// exactly what `caked aliases` prints on the server's host.
+	func testAliasesReplyRoundTripsAliasEntries() throws {
+		let catalog = VMImageCatalog.shared
+		let expected = catalog.aliasEntries
+		let wire = try Caked_Reply(serializedBytes: catalog.aliasesReply.serializedData())
+		let received = wire.aliases.aliases.map { VMImageAliasEntry($0) }
+
+		XCTAssertEqual(received.map(\.id), expected.map(\.id))
+		XCTAssertEqual(received.map(\.category), expected.map(\.category))
+		XCTAssertEqual(received.map(\.label), expected.map(\.label))
 	}
 }

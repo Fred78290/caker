@@ -8170,6 +8170,17 @@
         }
       }
     },
+    "Lists every id from the connected caked's VMImages.json for its architecture, e.g. macos12, ubuntu2604, fedora44Server." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liste tous les ids du VMImages.json du caked connecté pour son architecture, par ex. macos12, ubuntu2604, fedora44Server."
+          }
+        }
+      }
+    },
     "Lists every id from VMImages.json for the current architecture, e.g. macos12, ubuntu2604, fedora44Server." : {
       "extractionState" : "manual",
       "localizations" : {

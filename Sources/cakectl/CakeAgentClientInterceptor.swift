@@ -258,4 +258,8 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 	func makeCancelTaskInterceptors() -> [ClientInterceptor<Caked_CancelTaskRequest, Caked_Reply>] {
 		self.interceptors()
 	}
+
+	func makeAliasesInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Reply>] {
+		self.interceptors()
+	}
 }
