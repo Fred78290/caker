@@ -3315,6 +3315,14 @@ public nonisolated struct Caked_Caked: Sendable {
 
         public var label: String = String()
 
+        /// Download URL and minimum resources, for Caker.app's wizard pickers. Empty/0 from a caked
+        /// that predates them.
+        public var url: String = String()
+
+        public var minCpu: UInt32 = 0
+
+        public var minMemoryMiB: UInt64 = 0
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public init() {}
@@ -11754,7 +11762,7 @@ nonisolated extension Caked_Caked.Reply.AliasesReply: SwiftProtobuf.Message, Swi
 
 nonisolated extension Caked_Caked.Reply.AliasesReply.AliasEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.AliasesReply.protoMessageName + ".AliasEntry"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}category\0\u{1}label\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}category\0\u{1}label\0\u{1}url\0\u{1}minCPU\0\u{1}minMemoryMiB\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -11765,6 +11773,9 @@ nonisolated extension Caked_Caked.Reply.AliasesReply.AliasEntry: SwiftProtobuf.M
       case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.category) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.label) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.url) }()
+      case 5: try { try decoder.decodeSingularUInt32Field(value: &self.minCpu) }()
+      case 6: try { try decoder.decodeSingularUInt64Field(value: &self.minMemoryMiB) }()
       default: break
       }
     }
@@ -11780,6 +11791,15 @@ nonisolated extension Caked_Caked.Reply.AliasesReply.AliasEntry: SwiftProtobuf.M
     if !self.label.isEmpty {
       try visitor.visitSingularStringField(value: self.label, fieldNumber: 3)
     }
+    if !self.url.isEmpty {
+      try visitor.visitSingularStringField(value: self.url, fieldNumber: 4)
+    }
+    if self.minCpu != 0 {
+      try visitor.visitSingularUInt32Field(value: self.minCpu, fieldNumber: 5)
+    }
+    if self.minMemoryMiB != 0 {
+      try visitor.visitSingularUInt64Field(value: self.minMemoryMiB, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -11787,6 +11807,9 @@ nonisolated extension Caked_Caked.Reply.AliasesReply.AliasEntry: SwiftProtobuf.M
     if lhs.id != rhs.id {return false}
     if lhs.category != rhs.category {return false}
     if lhs.label != rhs.label {return false}
+    if lhs.url != rhs.url {return false}
+    if lhs.minCpu != rhs.minCpu {return false}
+    if lhs.minMemoryMiB != rhs.minMemoryMiB {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -179,6 +179,17 @@ final class ConnectionManager: Equatable {
 		try await ImageHandler.listImage(client: self.serviceClient, remote: remote, runMode: self.connectionMode.runMode).infos
 	}
 
+	/// The connected caked's image catalog (`Aliases` RPC), for the VM wizard's pickers, so they offer
+	/// what that caked's host can build. Nil without a caked (`.app` mode) or when it sends nothing
+	/// usable (one that predates the catalog fields): the caller then keeps this app's own catalog.
+	func loadImageCatalog() async throws -> VMImageArchCatalog? {
+		guard let client = self.serviceClient else {
+			return nil
+		}
+
+		return try await VMImageArchCatalog(client.aliases(Caked_Empty()).response.get().aliases)
+	}
+
 	func loadVirtualMachines() throws -> ([URL: VirtualMachineDocument]) {
 		return try VirtualMachineDocument.loadVirtualMachineDocuments(connectionManager: self)
 	}

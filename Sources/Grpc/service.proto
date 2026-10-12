@@ -810,9 +810,14 @@ message Caked {
 
     message AliasesReply {
       message AliasEntry {
-        string id       = 1;
-        string category = 2;
-        string label    = 3;
+        string id           = 1;
+        string category     = 2;
+        string label        = 3;
+        // Download URL and minimum resources, for Caker.app's wizard pickers. Empty/0 from a caked
+        // that predates them.
+        string url          = 4;
+        uint32 minCPU       = 5;
+        uint64 minMemoryMiB = 6;
       }
 
       repeated AliasEntry aliases = 1;

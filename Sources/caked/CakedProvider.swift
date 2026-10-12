@@ -544,11 +544,11 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		await self.cancelTask(id: request.id)
 	}
 
-	/// Lists the `--alias` ids of this server's own catalog (`VMImageCatalog.shared`, including a
-	/// `<CAKE_HOME>/VMImages.json` override) — the one `build`/`launch --alias` are resolved against
-	/// here, so `cakectl aliases` shows what this caked accepts rather than the client's local copy.
+	/// This server's own catalog (including a `<CAKE_HOME>/VMImages.json` override, re-read if it
+	/// changed since caked started) — the one `build`/`launch --alias` are resolved against here, so
+	/// `cakectl aliases` and Caker.app's wizard show what this caked offers rather than their local copy.
 	func aliases(request: Caked_Empty, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		VMImageCatalog.shared.aliasesReply
+		VMImageCatalog.reloadIfChanged().aliasesReply
 	}
 
 	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
