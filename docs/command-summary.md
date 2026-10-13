@@ -67,7 +67,7 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
 
 ### Mises à jour
 
-- `check-update` — indique si une version de Caker plus récente que celle installée est publiée, en lisant le même flux (appcast Sparkle) que « Vérifier les mises à jour… » dans Caker.app, sur le même canal (`appcast.xml` ou `appcast-prerelease.xml`). La commande ne fait qu'informer : `caked` et `cakectl` étant livrés dans Caker.app, installez la nouvelle version (ou utilisez « Vérifier les mises à jour… ») pour mettre à jour les trois. Elle s'exécute en local : `cakectl check-update` n'interroge pas le `caked` connecté, lancez `caked check-update` sur la machine d'un démon distant. `--format json` renvoie `currentVersion`, `latestVersion`, `updateAvailable`, `downloadURL`, `releaseNotesURL`, `publishedAt` et `feedURL`. Absente de la version App Store, mise à jour par l'App Store.
+- `check-update` — indique si une version de Caker plus récente que celle installée est publiée, en lisant le même flux (appcast Sparkle) que « Vérifier les mises à jour… » dans Caker.app, sur le même canal (`appcast.xml` ou `appcast-prerelease.xml`). La commande ne fait qu'informer : `caked` et `cakectl` étant livrés dans Caker.app, installez la nouvelle version (ou utilisez « Vérifier les mises à jour… ») pour mettre à jour les trois. Elle s'exécute en local : `cakectl check-update` n'interroge pas le `caked` connecté, lancez `caked check-update` sur la machine d'un démon distant. `--json` renvoie `currentVersion`, `latestVersion`, `updateAvailable`, `downloadURL`, `releaseNotesURL`, `publishedAt` et `feedURL`. Absente de la version App Store, mise à jour par l'App Store.
 
 ## Commandes spécifiques à `caked`
 
@@ -481,7 +481,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
 
 ### Updates
 
-- `check-update` — tell whether a Caker release newer than the installed one is published, by reading the same feed (Sparkle appcast) as Caker.app's "Check for Updates…", on the same channel (`appcast.xml` or `appcast-prerelease.xml`). It only reports: `caked` and `cakectl` ship inside Caker.app, so install the new release (or use "Check for Updates…") to update all three. It runs locally: `cakectl check-update` doesn't ask the connected `caked`, so run `caked check-update` on a remote daemon's host. `--format json` returns `currentVersion`, `latestVersion`, `updateAvailable`, `downloadURL`, `releaseNotesURL`, `publishedAt` and `feedURL`. Not available in the App Store build, which the App Store updates.
+- `check-update` — tell whether a Caker release newer than the installed one is published, by reading the same feed (Sparkle appcast) as Caker.app's "Check for Updates…", on the same channel (`appcast.xml` or `appcast-prerelease.xml`). It only reports: `caked` and `cakectl` ship inside Caker.app, so install the new release (or use "Check for Updates…") to update all three. It runs locally: `cakectl check-update` doesn't ask the connected `caked`, so run `caked check-update` on a remote daemon's host. `--json` returns `currentVersion`, `latestVersion`, `updateAvailable`, `downloadURL`, `releaseNotesURL`, `publishedAt` and `feedURL`. Not available in the App Store build, which the App Store updates.
 
 ## `caked`-specific commands
 
