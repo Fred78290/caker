@@ -199,6 +199,7 @@ struct NetworkDetailView: View {
 							}
 						}
 						.disabled(networkActionRunning)
+						.withButtonStyle(.bordered)
 					} else {
 						AsyncButton("Stop network") { done in
 							let name = currentItem.name
@@ -223,7 +224,9 @@ struct NetworkDetailView: View {
 									}
 								}
 							}
-						}.disabled(networkActionRunning)
+						}
+						.disabled(networkActionRunning)
+						.withButtonStyle(.bordered)
 					}
 				}
 			}
