@@ -18,15 +18,15 @@ public struct AboutCakerView: View {
 
 	public var body: some View {
 		VStack(spacing: 0) {
-			headerSection.shadow(radius: 10)
-			mainInfoSection.shadow(radius: 10)
-			componentsSection.shadow(radius: 10)
+			headerSection
+			mainInfoSection
+			componentsSection
 			if Bundle.isApplicationSandboxed {
-				sandboxSection.shadow(radius: 10)
+				sandboxSection
 			}
 			creditsSection
 		}
-		.frame(maxWidth: 700)
+		.frame(maxWidth: 550)
 		.fixedSize(horizontal: false, vertical: true)
 	}
 
@@ -70,6 +70,7 @@ public struct AboutCakerView: View {
 		}
 		.padding(.top, 32)
 		.padding(.bottom, 24)
+		.shadow(radius: 10)
 	}
 
 	private var mainInfoSection: some View {
@@ -96,18 +97,20 @@ public struct AboutCakerView: View {
 				FeatureRow(icon: "gear", text: String(localized: "Automatic integrated agent"))
 				FeatureRow(icon: "terminal", text: String(localized: "Integrated VNC and terminal interfaces"))
 				FeatureRow(icon: "bonjour", text: String(localized: "Remote control via CLI and API via GUI and Web"))
+				FeatureRow(icon: "person.2.badge.gearshape", text: String(localized: "Automated Provisioning and Recording (PackerLite)"))
 			}
 			.padding()
 		}
 		.padding(.horizontal, 24)
+		.shadow(radius: 10)
 	}
 
 	private var componentsSection: some View {
-		VStack(spacing: 12) {
+		VStack(spacing: 16) {
 			Divider()
 				.padding(.horizontal)
 
-			VStack(spacing: 8) {
+			VStack(spacing: 12) {
 				Text("Components")
 					.font(.headline)
 					.foregroundStyle(.primary)
@@ -118,16 +121,17 @@ public struct AboutCakerView: View {
 					ComponentRow(name: String(localized: "Caker.app"), description: String(localized: "macOS GUI application"))
 				}
 				.padding(.horizontal)
-			}
+			}.padding(.horizontal, 24)
 		}
+		.shadow(radius: 10)
 	}
 
 	private var sandboxSection: some View {
-		VStack(spacing: 8) {
+		VStack(spacing: 16) {
 			Divider()
 				.padding(.horizontal)
 
-			VStack(spacing: 8) {
+			VStack(spacing: 12) {
 				Label("App Store Version", systemImage: "shield.lefthalf.filled")
 					.font(.headline)
 					.foregroundStyle(.primary)
@@ -138,27 +142,30 @@ public struct AboutCakerView: View {
 					.multilineTextAlignment(.center)
 					.fixedSize(horizontal: false, vertical: true)
 					.padding(.horizontal, 24)
-
-				HStack(spacing: 12) {
-					Button(action: openSandboxWiki) {
-						Label("Sandbox Limitations", systemImage: "info.circle")
-							.font(.caption)
-					}
-					.withButtonStyle(.bordered)
-
-					Button(action: openSandboxLocation) {
-						Label("Locate Sandbox", systemImage: "folder")
-							.font(.caption)
-					}
-					.withButtonStyle(.bordered)
-
-					Button(action: openDirectDownload) {
-						Label("Get Direct-Download Build", systemImage: "arrow.down.circle")
-							.font(.caption)
-					}
-					.withButtonStyle(.bordered)
-				}
 			}
+			.padding(.horizontal, 24)
+			.shadow(radius: 10)
+
+			HStack(spacing: 12) {
+				Button(action: openSandboxWiki) {
+					Label("Sandbox Limitations", systemImage: "info.circle")
+						.font(.caption)
+				}
+				.withButtonStyle(.bordered)
+
+				Button(action: openSandboxLocation) {
+					Label("Locate Sandbox", systemImage: "folder")
+						.font(.caption)
+				}
+				.withButtonStyle(.bordered)
+
+				Button(action: openDirectDownload) {
+					Label("Get Direct-Download Build", systemImage: "arrow.down.circle")
+						.font(.caption)
+				}
+				.withButtonStyle(.bordered)
+			}
+
 		}
 		.padding(.top, 8)
 	}
@@ -172,10 +179,11 @@ public struct AboutCakerView: View {
 				Text("Developed by")
 					.font(.headline)
 					.foregroundStyle(.primary)
-
+					.shadow(radius: 10)
 				Text("Fred78290 / Aldune Labs")
 					.font(.body)
 					.foregroundStyle(Color.accentColor)
+					.shadow(radius: 10)
 
 				HStack(spacing: 12) {
 					Button(action: showLicenseInfo) {
