@@ -188,6 +188,10 @@ struct Root: ParsableCommand {
 			configuration.subcommands.append(Relocate.self)
 		#endif
 
+		#if SPARKLE
+			configuration.subcommands.append(CheckUpdate.self)
+		#endif
+
 		if try tryForkCommand() {
 			return
 		}
