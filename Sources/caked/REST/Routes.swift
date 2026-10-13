@@ -19,4 +19,5 @@ func registerLXDRoutes(_ app: Application, group: EventLoopGroup, runMode: Utils
 	try app.register(collection: LXDAuthGroupsController(group: group, runMode: runMode))
 	try app.register(collection: LXDIdentitiesController(group: group, runMode: runMode))
 	try app.register(collection: LXDCertificatesController(group: group, runMode: runMode))
+	try app.register(collection: LXDVMImagesController())
 }

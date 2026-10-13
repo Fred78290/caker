@@ -184,7 +184,7 @@ struct Root: ParsableCommand {
 	}
 
 	public static func main() async throws {
-		#if !APPLESTORE
+		#if !APPSTORE
 			configuration.subcommands.append(Relocate.self)
 		#endif
 

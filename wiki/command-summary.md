@@ -84,6 +84,7 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
   - `stop` — arrête le démon en cours d'exécution.
 - `vmrun` — commande interne d'exécution de VM (masquée/interne).
 - `import` — importe une VM externe (Multipass ou VMware Fusion) depuis un fichier/URL.
+- `relocate <chemin>` — déplace le répertoire cake home (`CAKE_HOME` : VM, images, caches) vers un autre dossier ou volume et le mémorise pour les exécutions suivantes. Refusé tant que le démon `caked`, une VM ou un réseau est en cours d'exécution. Équivalent dans Caker.app : Réglages > Avancé > Stockage > Déplace…. **Indisponible dans la version App Store**, dont le cake home est toujours le conteneur App Group — voir [Sandbox](sandbox).
 - sous-commandes internes/admin supplémentaires de `networks` :
   - `nat-infos`
   - `set-dhcp-lease`
@@ -497,6 +498,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
   - `stop` — stop the running daemon.
 - `vmrun` — internal VM runtime command (hidden/internal).
 - `import` — import external VM (Multipass or VMware Fusion) from file/URL.
+- `relocate <path>` — move the cake home directory (`CAKE_HOME`: VMs, images, caches) to another folder or volume and remember it for later runs. Refused while the `caked` daemon, a VM or a network is running. Caker.app equivalent: Settings > Advanced > Storage > Relocate…. **Not available in the App Store build**, whose cake home is always its App Group container — see [Sandbox](sandbox).
 - `networks` extra internal/admin subcommands:
   - `nat-infos`
   - `set-dhcp-lease`

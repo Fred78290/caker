@@ -321,6 +321,7 @@
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B48B6673033687600B18C35 /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B48B6663033687600B18C35 /* SplashScreenView.swift */; };
 		9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */; };
+		705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */; };
 		9B5611A13013502C00E9FA7D /* agent.svg in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611733013502C00E9FA7D /* agent.svg */; };
 		9B5611A23013502C00E9FA7D /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611743013502C00E9FA7D /* AppIcon.icns */; };
 		9B5611A33013502C00E9FA7D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9B5611753013502C00E9FA7D /* Assets.xcassets */; };
@@ -1204,6 +1205,7 @@
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B48B6663033687600B18C35 /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
 		9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDRemotesController.swift; sourceTree = "<group>"; };
+		50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDVMImagesController.swift; sourceTree = "<group>"; };
 		9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstanceDetailPage.tsx; sourceTree = "<group>"; };
 		9B4C09B82FB8D72100101F0E /* RemotesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = RemotesPage.tsx; sourceTree = "<group>"; };
 		9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswiftCompatibilitySpan.dylib; path = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib"; sourceTree = "<absolute>"; };
@@ -2530,6 +2532,7 @@
 				9B602F8E2FAA56FA00055543 /* LXDNetworksController.swift */,
 				9B602F8F2FAA56FA00055543 /* LXDOperationsController.swift */,
 				9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */,
+				50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */,
 				9B602F902FAA56FA00055543 /* LXDRootController.swift */,
 			);
 			path = Controllers;
@@ -4234,6 +4237,7 @@
 				9BEBC6E72DF4400A0092B196 /* Networks.swift in Sources */,
 				9BBE597A2F49B561005B3359 /* GrandCentralDispatch.swift in Sources */,
 				9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */,
+				705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */,
 				9B602F972FAA56FA00055543 /* LXDInstancesController.swift in Sources */,
 				9B602F982FAA56FA00055543 /* LXDRootController.swift in Sources */,
 				9B602F992FAA56FA00055543 /* LXDModels.swift in Sources */,

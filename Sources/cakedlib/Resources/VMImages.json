@@ -1,6 +1,8 @@
 {
 	"arm64": {
 		"iso": [
+			{ "id": "ubuntu2610Desktop", "label": "Ubuntu 26.10 – Desktop", "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-desktop-arm64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
+			{ "id": "ubuntu2610Server", "label": "Ubuntu 26.10 – Server", "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-live-server-arm64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
 			{ "id": "ubuntu2604Desktop", "label": "Ubuntu 26.04 LTS – Desktop", "url": "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-desktop-arm64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
 			{ "id": "ubuntu2604Server", "label": "Ubuntu 26.04 LTS – Server", "url": "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-live-server-arm64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "ubuntu2404Desktop", "label": "Ubuntu 24.04.4 LTS – Desktop", "url": "https://cdimage.ubuntu.com/ubuntu/releases/noble/release/ubuntu-24.04.4-desktop-arm64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
@@ -21,7 +23,8 @@
 			{ "id": "alpine323-iso", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/aarch64/alpine-virt-3.23.5-aarch64.iso", "minCPU": 2, "minMemoryMiB": 2048 }
 		],
 		"ipsw": [
-			{ "id": "macos27", "label": "macOS 27.0", "url": "https://updates.cdn-apple.com/2026FallFCS/afcfc88e-bbe6-44bf-a5da-07c56eebc06c/UniversalMac_27.0_26A428_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
+			{ "id": "macos272", "label": "macOS 27.2 beta3", "url": "https://updates.cdn-apple.com/2026FallSeed/be28b1ac-a2ec-40db-a9ad-29bef37820f8/UniversalMac_27.2_26B5101f_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
+			{ "id": "macos27", "label": "macOS 27.0.1", "url": "https://updates.cdn-apple.com/2026FallFCS/59241290-5d51-4ca8-9df4-31624b9a4eac/UniversalMac_27.0.1_26A434_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
 			{ "id": "macos26", "label": "macOS 26.6.2", "url": "https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-75212/A2A24B94-1FC1-45A3-93F7-C51B02AF1F4D/UniversalMac_26.6.2_25G83_Restore.ipsw", "minCPU": 6, "minMemoryMiB": 8192  },
 			{ "id": "macos15", "label": "macOS 15.6.1", "url": "https://updates.cdn-apple.com/2025SummerFCS/fullrestores/093-10809/CFD6DD38-DAF0-40DA-854F-31AAD1294C6F/UniversalMac_15.6.1_24G90_Restore.ipsw", "minCPU": 4, "minMemoryMiB": 4096  },
 			{ "id": "macos14", "label": "macOS 14.6.1", "url": "https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-52859/932E0A8F-6644-4759-82DA-F8FA8DEA806A/UniversalMac_14.6.1_23G93_Restore.ipsw", "minCPU": 4, "minMemoryMiB": 4096  },
@@ -29,6 +32,8 @@
 			{ "id": "macos12", "label": "macOS 12.6.1", "url": "https://updates.cdn-apple.com/2022FallFCS/fullrestores/012-66032/8D8D90C6-A876-4FFF-BBF4-D158939B3841/UniversalMac_12.6.1_21G217_Restore.ipsw", "minCPU": 4, "minMemoryMiB": 4096  }
 		],
 		"cloud": [
+			{ "id": "ubuntu2610", "label": "Ubuntu 26.10", "url": "https://cloud-images.ubuntu.com/stonking/current/stonking-server-cloudimg-arm64.img", "minCPU": 2, "minMemoryMiB": 2048 },
+
 			{ "id": "ubuntu2604", "label": "Ubuntu 26.04 LTS", "url": "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-arm64.img", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "ubuntu2504", "label": "Ubuntu 25.04", "url": "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-arm64.img", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "ubuntu2404", "label": "Ubuntu 24.04 LTS", "url": "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img", "minCPU": 2, "minMemoryMiB": 2048 },
@@ -60,6 +65,8 @@
 	},
 	"amd64": {
 		"iso": [
+			{ "id": "ubuntu2610Desktop", "label": "Ubuntu 26.10 – Desktop", "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-desktop-amd64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
+			{ "id": "ubuntu2610Server", "label": "Ubuntu 26.10 – Server", "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-live-server-amd64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
 			{ "id": "ubuntu2604Desktop", "label": "Ubuntu 26.04 LTS – Desktop", "url": "https://releases.ubuntu.com/resolute/ubuntu-26.04.1-desktop-amd64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
 			{ "id": "ubuntu2604Server", "label": "Ubuntu 26.04 LTS – Server", "url": "https://releases.ubuntu.com/resolute/ubuntu-26.04.1-live-server-amd64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "ubuntu2404Desktop", "label": "Ubuntu 24.04.4 LTS – Desktop", "url": "https://releases.ubuntu.com/noble/ubuntu-24.04.4-desktop-amd64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
@@ -80,6 +87,9 @@
 			{ "id": "alpine323-iso", "label": "Alpine 3.23", "url": "https://dl-cdn.alpinelinux.org/alpine/v3.23/releases/x86_64/alpine-virt-3.23.5-x86_64.iso", "minCPU": 2, "minMemoryMiB": 2048 }
 		],
 		"cloud": [
+			{ "id": "ubuntu2610v3", "label": "Ubuntu 26.10 amd64v3", "url": "https://cloud-images.ubuntu.com/stonking/current/stonking-server-cloudimg-amd64v3.img", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "ubuntu2610", "label": "Ubuntu 26.10", "url": "https://cloud-images.ubuntu.com/stonking/current/stonking-server-cloudimg-amd64.img", "minCPU": 2, "minMemoryMiB": 2048 },
+			{ "id": "ubuntu2604v3", "label": "Ubuntu 26.04 LTS amd64v3", "url": "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-amd64v3.img", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "ubuntu2604", "label": "Ubuntu 26.04 LTS", "url": "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-amd64.img", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "ubuntu2504", "label": "Ubuntu 25.04", "url": "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-amd64.img", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "ubuntu2404", "label": "Ubuntu 24.04 LTS", "url": "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img", "minCPU": 2, "minMemoryMiB": 2048 },
