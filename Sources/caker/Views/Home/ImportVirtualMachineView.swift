@@ -24,7 +24,7 @@ extension ImporterDelegate {
 struct ImportVirtualMachineView: View {
 	@Environment(\.dismiss) private var dismiss
 
-	@State private var vmPath: String = ""
+	@State private var vmPath: String
 	@State private var targetName: String = ""
 	@State private var userName: String = "admin"
 	@State private var password: String = ""
@@ -57,15 +57,25 @@ struct ImportVirtualMachineView: View {
 	}
 
 	init(_ text: LocalizedStringKey, appName: String, mustCopyImageDisk: Bool, delegate: ImporterDelegate) {
+		let names = delegate.listVirtualMachines()
+		var vmPath = ""
+
+		if let path = names.first?.path(percentEncoded: false) {
+			vmPath = path
+		}
+		
 		self.description = text
 		self.appName = appName
 		self.delegate = delegate
-		self.names = delegate.listVirtualMachines()
+		self.names = names
+		self.vmPath = vmPath
+
 		#if APPSTORE
 			self.mustCopyImageDisk = true
 		#else
 			self.mustCopyImageDisk = mustCopyImageDisk
 		#endif
+
 	}
 
 	var body: some View {
@@ -133,13 +143,11 @@ struct ImportVirtualMachineView: View {
 						}
 					}
 				} else {
-					LabeledContent("Virtual machine name") {
-						Picker("", selection: $vmPath) {
-							ForEach(names, id: \.self) { url in
-								Text(url.lastPathComponent.deletingPathExtension).tag(url.path(percentEncoded: false))
-							}
+					Picker("Virtual machine name", selection: $vmPath) {
+						ForEach(names, id: \.self) { url in
+							Text(url.lastPathComponent.deletingPathExtension).tag(url.path(percentEncoded: false))
 						}
-					}
+					}.pickerStyle(.menu)
 				}
 			}
 
