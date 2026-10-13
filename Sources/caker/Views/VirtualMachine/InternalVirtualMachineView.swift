@@ -22,11 +22,15 @@ class CakerVZVirtualMachineView: VNCVirtualMachineView {
 	}
 
 	func attachtoDocument(showsHostCursor: Bool) {
-		self.virtualMachine = document.virtualMachine.getVM()
-		self.document.virtualMachine.vzMachineView = self
-		self.showsHostCursor = showsHostCursor
-		if #available(macOS 14.0, *) {
-			self.automaticallyReconfiguresDisplay = document.virtualMachineConfig.displayRefit || (document.virtualMachineConfig.os == .darwin)
+		if let virtualMachine = self.document.virtualMachine {
+			virtualMachine.vzMachineView = self
+
+			self.virtualMachine = virtualMachine.getVM()
+			self.showsHostCursor = showsHostCursor
+
+			if #available(macOS 14.0, *) {
+				self.automaticallyReconfiguresDisplay = document.virtualMachineConfig.displayRefit || (document.virtualMachineConfig.os == .darwin)
+			}
 		}
 	}
 

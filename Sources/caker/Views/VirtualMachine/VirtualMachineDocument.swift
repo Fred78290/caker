@@ -1028,6 +1028,8 @@ extension VirtualMachineDocument {
 			return
 		}
 
+		self.setOtherState(status: .stopping)
+
 		if self.externalRunning {
 			Task {
 				do {
@@ -1044,9 +1046,19 @@ extension VirtualMachineDocument {
 				self.haveRequestStop = true
 
 				if self.virtualMachineConfig.os == .linux {
-					virtualMachine.requestStopFromUI(completionHandler: completionHandler)
+					virtualMachine.requestStopFromUI { result in
+						Task { @MainActor in
+							self.setStateAsStopped()
+							completionHandler?(result)
+						}
+					}
 				} else if self.virtualMachineConfig.agent == false {
-					virtualMachine.suspendFromUI(completionHandler: completionHandler)
+					virtualMachine.suspendFromUI { result in
+						Task { @MainActor in
+							self.setStateAsStopped()
+							completionHandler?(result)
+						}
+					}
 				} else if let location = self.location {
 					Task {
 						do {
