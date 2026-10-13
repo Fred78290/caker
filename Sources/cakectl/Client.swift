@@ -242,6 +242,10 @@ struct Client: ParsableCommand {
 		conf.subcommands.append(GrandCentralDispatch.self)
 #endif
 
+#if SPARKLE
+		conf.subcommands.append(CheckUpdate.self)
+#endif
+
 		return conf
 	}
 

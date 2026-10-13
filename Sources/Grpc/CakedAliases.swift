@@ -159,6 +159,9 @@ public typealias Caked_TaskEntry = Caked_TaskReply.TaskEntry
 public typealias Caked_ListTasksReply = Caked_TaskReply.ListTasksReply
 public typealias Caked_CancelTaskReply = Caked_TaskReply.CancelTaskReply
 
+public typealias Caked_AliasesReply = Caked.Reply.AliasesReply
+public typealias Caked_AliasEntry = Caked_AliasesReply.AliasEntry
+
 extension VirtualizedOS {
 	public init?(_ from: Caked.Configuration.VirtualizedOS) {
 		switch from {

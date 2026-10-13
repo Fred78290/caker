@@ -57,6 +57,8 @@ Au-delà des filtres de chemins ci-dessus, certaines fonctionnalités ne peuvent
 - **Joindre IMDS à l'adresse `169.254.169.254`** de style AWS — même cause, la redirection `pf` d'alias d'adresse. IMDS lui-même reste joignable à l'adresse de la passerelle, sur son port non privilégié. Voir [IMDS](imds).
 - **Redimensionner un disque ASIF** et **attacher des périphériques de bloc physiques** depuis la ligne de commande. Voir [Dépannage](troubleshooting) et la [FAQ](faq).
 
+Le déplacement du répertoire cake home n'est pas proposé non plus : la version sandboxée garde toujours ses données dans son conteneur App Group. La commande `caked relocate` n'existe pas dans cette version, et l'onglet Avancé des réglages de Caker.app n'a pas de section Stockage. Voir [Résumé des commandes](command-summary).
+
 La version en téléchargement direct n'a aucune de ces limitations.
 
 ## Voir aussi
@@ -117,6 +119,8 @@ Beyond the path filters above, some features cannot work inside the App Sandbox.
 - **Compose DNS resolver** — reaching a VM by name: `<service>.<project>.compose.internal` for a compose service, `<vmname>.compose.internal` for any VM (for example `mariadb.myapp.compose.internal`). The resolver needs a `pf` redirect installed by a small root helper, which the App Store sandbox doesn't allow: it runs, but stays unreachable from any VM, with no error shown. For the same reason, the "Start/Stop caked DNS" items in Caker.app's Service menu aren't offered in this build. Workaround: reach VMs by IP address (`cakectl infos <vm>`), or use the direct-download build. See [Compose](compose) ("DNS resolution between services").
 - **Reaching IMDS at the AWS-style `169.254.169.254` address** — same cause, the `pf` address-alias redirect. IMDS itself is still reachable at the gateway address, on its unprivileged port. See [IMDS](imds).
 - **Resizing an ASIF disk** and **attaching physical block devices** from the command line. See [Troubleshooting](troubleshooting) and the [FAQ](faq).
+
+Relocating the cake home directory isn't offered either: the sandboxed build always keeps its data in its App Group container. The `caked relocate` command doesn't exist in this build, and the Advanced tab of Caker.app's settings has no Storage section. See [Command Summary](command-summary).
 
 The direct-download build has none of these limitations.
 

@@ -90,7 +90,7 @@ final class VMImageCatalogResolutionTests: XCTestCase {
 		XCTAssertNil(catalog.resolveShorthand("not-a-real-catalog-id"))
 	}
 
-	/// `aliasEntries` is what the `caked aliases`/`cakectl aliases` commands render — every id
+	/// `aliasEntries` is what `caked aliases` and caked's `Aliases` RPC (`cakectl aliases`) render — every id
 	/// resolvable via `--alias` should show up here, tagged with its category.
 	func testAliasEntriesListsEveryResolvableId() throws {
 		let catalog = VMImageCatalog.shared
@@ -104,5 +104,88 @@ final class VMImageCatalogResolutionTests: XCTestCase {
 
 		let ubuntu2604 = try XCTUnwrap(entries.first(where: { $0.id == "ubuntu2604" }))
 		XCTAssertEqual(ubuntu2604.category, "cloud")
+	}
+
+	/// `cakectl aliases` renders what caked's `Aliases` RPC sends (`aliasesReply`), mapped back to
+	/// `VMImageAliasEntry` — the round trip must keep every entry, in order, so the client prints
+	/// exactly what `caked aliases` prints on the server's host.
+	func testAliasesReplyRoundTripsAliasEntries() throws {
+		let catalog = VMImageCatalog.shared
+		let expected = catalog.aliasEntries
+		let wire = try Caked_Reply(serializedBytes: catalog.aliasesReply.serializedData())
+		let received = wire.aliases.aliases.map { VMImageAliasEntry($0) }
+
+		XCTAssertEqual(received.map(\.id), expected.map(\.id))
+		XCTAssertEqual(received.map(\.category), expected.map(\.category))
+		XCTAssertEqual(received.map(\.label), expected.map(\.label))
+	}
+
+	/// Caker.app's wizard rebuilds its pickers from the same reply when it is connected to a caked
+	/// (`ConnectionManager.loadImageCatalog()`): every category must come back with the same entries,
+	/// URLs and minimum resources, in order.
+	func testAliasesReplyRebuildsTheArchCatalog() throws {
+		let catalog = VMImageCatalog.shared
+		let wire = try Caked_Reply(serializedBytes: catalog.aliasesReply.serializedData())
+		let rebuilt = try XCTUnwrap(VMImageArchCatalog(wire.aliases))
+
+		XCTAssertEqual(rebuilt.iso, catalog.current.iso)
+		XCTAssertEqual(rebuilt.cloud, catalog.current.cloud)
+		#if arch(arm64)
+			XCTAssertEqual(rebuilt.ipsw, catalog.current.ipsw)
+		#endif
+	}
+
+	/// A caked that predates the `url` field sends entries without one: the wizard must keep its own
+	/// catalog rather than offer images it can't download.
+	func testAliasesReplyWithoutURLsGivesNoArchCatalog() {
+		let reply = Caked_AliasesReply.with {
+			$0.aliases = [
+				.with {
+					$0.id = "ubuntu2604"
+					$0.category = "cloud"
+					$0.label = "Ubuntu"
+				}
+			]
+		}
+
+		XCTAssertNil(VMImageArchCatalog(reply))
+		XCTAssertNil(VMImageArchCatalog(Caked_AliasesReply()))
+	}
+
+	/// A long-running caked re-reads `<CAKE_HOME>/VMImages.json` when the file changes (Caker.app's
+	/// `refreshFromGitHub()`, a hand edit) or disappears, and only then. Points `reloadIfChanged` at a
+	/// temporary file; the `defer` puts `shared` back on the real `<CAKE_HOME>` for the other tests.
+	func testReloadIfChangedFollowsTheOverrideFile() throws {
+		let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+		let file = directory.appendingPathComponent("VMImages.json", isDirectory: false)
+
+		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+		defer {
+			try? FileManager.default.removeItem(at: directory)
+			_ = VMImageCatalog.reloadIfChanged()
+		}
+
+		func write(_ id: String, modified: Date) throws {
+			let entry = #"{"id":"\#(id)","label":"\#(id)","url":"https://example.invalid/\#(id).img","minCPU":1,"minMemoryMiB":512}"#
+			let arch = #"{"iso":[],"cloud":[\#(entry)]}"#
+
+			try Data(#"{"arm64":\#(arch),"amd64":\#(arch)}"#.utf8).write(to: file)
+			try FileManager.default.setAttributes([.modificationDate: modified], ofItemAtPath: file.path(percentEncoded: false))
+		}
+
+		try write("first", modified: Date(timeIntervalSince1970: 1_000_000))
+		XCTAssertEqual(VMImageCatalog.reloadIfChanged(overrideURL: file).current.cloud.map(\.id), ["first"])
+		XCTAssertEqual(VMImageCatalog.shared.current.cloud.map(\.id), ["first"])
+
+		// Same modification date: not re-read.
+		try write("unchanged", modified: Date(timeIntervalSince1970: 1_000_000))
+		XCTAssertEqual(VMImageCatalog.reloadIfChanged(overrideURL: file).current.cloud.map(\.id), ["first"])
+
+		try write("second", modified: Date(timeIntervalSince1970: 2_000_000))
+		XCTAssertEqual(VMImageCatalog.reloadIfChanged(overrideURL: file).current.cloud.map(\.id), ["second"])
+
+		try FileManager.default.removeItem(at: file)
+		XCTAssertEqual(VMImageCatalog.reloadIfChanged(overrideURL: file).current.cloud, VMImageCatalog.loadBundled().current.cloud)
 	}
 }

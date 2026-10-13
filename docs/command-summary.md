@@ -65,6 +65,10 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
   - `up [-f/--env-file path] [--wait-ip-timeout N] [vm...]` — crée les VM absentes et démarre les autres, dans l'ordre de `depends-on`.
   - `down [-f/--env-file path] [--force] [vm...]` — arrête les VM dans l'ordre inverse.
 
+### Mises à jour
+
+- `check-update` — indique si une version de Caker plus récente que celle installée est publiée, en lisant le même flux (appcast Sparkle) que « Vérifier les mises à jour… » dans Caker.app, sur le même canal (`appcast.xml` ou `appcast-prerelease.xml`). La commande ne fait qu'informer : `caked` et `cakectl` étant livrés dans Caker.app, installez la nouvelle version (ou utilisez « Vérifier les mises à jour… ») pour mettre à jour les trois. Elle s'exécute en local : `cakectl check-update` n'interroge pas le `caked` connecté, lancez `caked check-update` sur la machine d'un démon distant. `--format json` renvoie `currentVersion`, `latestVersion`, `updateAvailable`, `downloadURL`, `releaseNotesURL`, `publishedAt` et `feedURL`. Absente de la version App Store, mise à jour par l'App Store.
+
 ## Commandes spécifiques à `caked`
 
 - groupe `certificates` :
@@ -86,6 +90,7 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
   - `stop` — arrête le démon en cours d'exécution.
 - `vmrun` — commande interne d'exécution de VM (masquée/interne).
 - `import` — importe une VM externe (Multipass ou VMware Fusion) depuis un fichier/URL.
+- `relocate <chemin>` — déplace le répertoire cake home (`CAKE_HOME` : VM, images, caches) vers un autre dossier ou volume et le mémorise pour les exécutions suivantes. Refusé tant que le démon `caked`, une VM ou un réseau est en cours d'exécution. Équivalent dans Caker.app : Réglages > Avancé > Stockage > Déplace…. **Indisponible dans la version App Store**, dont le cake home est toujours le conteneur App Group — voir [Sandbox](sandbox).
 - sous-commandes internes/admin supplémentaires de `networks` :
   - `nat-infos`
   - `set-dhcp-lease`
@@ -171,6 +176,8 @@ Pour lister tous les identifiants acceptés par `--alias`, avec leur catégorie 
 caked aliases
 cakectl aliases
 ```
+
+`caked aliases` lit le catalogue local, tandis que `cakectl aliases` interroge le `caked` connecté (gRPC) : la liste affichée est donc celle contre laquelle ce `caked` résoudra `--alias`, y compris son propre `<CAKE_HOME>/VMImages.json`, même s'il tourne sur une autre machine.
 
 Le catalogue lui-même — `<CAKE_HOME>/VMImages.json`, s'il existe, prend le pas sur la version embarquée dans l'application ; voir `VMImageCatalog.refreshFromGitHub()` pour le rafraîchir depuis le dépôt.
 
@@ -472,6 +479,10 @@ This page summarizes the `ArgumentParser` commands implemented in:
   - `up [-f/--env-file path] [--wait-ip-timeout N] [vm...]` — create missing VMs and start the others, in `depends-on` order.
   - `down [-f/--env-file path] [--force] [vm...]` — stop VMs in reverse order.
 
+### Updates
+
+- `check-update` — tell whether a Caker release newer than the installed one is published, by reading the same feed (Sparkle appcast) as Caker.app's "Check for Updates…", on the same channel (`appcast.xml` or `appcast-prerelease.xml`). It only reports: `caked` and `cakectl` ship inside Caker.app, so install the new release (or use "Check for Updates…") to update all three. It runs locally: `cakectl check-update` doesn't ask the connected `caked`, so run `caked check-update` on a remote daemon's host. `--format json` returns `currentVersion`, `latestVersion`, `updateAvailable`, `downloadURL`, `releaseNotesURL`, `publishedAt` and `feedURL`. Not available in the App Store build, which the App Store updates.
+
 ## `caked`-specific commands
 
 - `certificates` group:
@@ -493,6 +504,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
   - `stop` — stop the running daemon.
 - `vmrun` — internal VM runtime command (hidden/internal).
 - `import` — import external VM (Multipass or VMware Fusion) from file/URL.
+- `relocate <path>` — move the cake home directory (`CAKE_HOME`: VMs, images, caches) to another folder or volume and remember it for later runs. Refused while the `caked` daemon, a VM or a network is running. Caker.app equivalent: Settings > Advanced > Storage > Relocate…. **Not available in the App Store build**, whose cake home is always its App Group container — see [Sandbox](sandbox).
 - `networks` extra internal/admin subcommands:
   - `nat-infos`
   - `set-dhcp-lease`
@@ -578,6 +590,8 @@ To list every id `--alias` accepts, tagged with its category (`ipsw`/`iso`/`clou
 caked aliases
 cakectl aliases
 ```
+
+`caked aliases` reads the local catalog, while `cakectl aliases` asks the connected `caked` over gRPC, so it lists the ids that `caked` will actually resolve `--alias` against, including its own `<CAKE_HOME>/VMImages.json`, even when it runs on another host.
 
 The catalog itself — `<CAKE_HOME>/VMImages.json`, if present, overrides the version bundled with the app; see `VMImageCatalog.refreshFromGitHub()` to refresh it from the repo.
 

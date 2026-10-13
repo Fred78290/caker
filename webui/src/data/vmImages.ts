@@ -20,6 +20,20 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
   "arm64": {
     "iso": [
       {
+        "id": "ubuntu2610Desktop",
+        "label": "Ubuntu 26.10 – Desktop",
+        "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-desktop-arm64.iso",
+        "minCPU": 4,
+        "minMemoryMiB": 4096
+      },
+      {
+        "id": "ubuntu2610Server",
+        "label": "Ubuntu 26.10 – Server",
+        "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-live-server-arm64.iso",
+        "minCPU": 4,
+        "minMemoryMiB": 4096
+      },
+      {
         "id": "ubuntu2604Desktop",
         "label": "Ubuntu 26.04 LTS – Desktop",
         "url": "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-desktop-arm64.iso",
@@ -113,9 +127,16 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
     ],
     "ipsw": [
       {
+        "id": "macos272",
+        "label": "macOS 27.2 beta3",
+        "url": "https://updates.cdn-apple.com/2026FallSeed/be28b1ac-a2ec-40db-a9ad-29bef37820f8/UniversalMac_27.2_26B5101f_Restore.ipsw",
+        "minCPU": 6,
+        "minMemoryMiB": 8192
+      },
+      {
         "id": "macos27",
-        "label": "macOS 27.0",
-        "url": "https://updates.cdn-apple.com/2026FallFCS/afcfc88e-bbe6-44bf-a5da-07c56eebc06c/UniversalMac_27.0_26A428_Restore.ipsw",
+        "label": "macOS 27.0.1",
+        "url": "https://updates.cdn-apple.com/2026FallFCS/59241290-5d51-4ca8-9df4-31624b9a4eac/UniversalMac_27.0.1_26A434_Restore.ipsw",
         "minCPU": 6,
         "minMemoryMiB": 8192
       },
@@ -156,6 +177,13 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
       }
     ],
     "cloud": [
+      {
+        "id": "ubuntu2610",
+        "label": "Ubuntu 26.10",
+        "url": "https://cloud-images.ubuntu.com/stonking/current/stonking-server-cloudimg-arm64.img",
+        "minCPU": 2,
+        "minMemoryMiB": 2048
+      },
       {
         "id": "ubuntu2604",
         "label": "Ubuntu 26.04 LTS",
@@ -315,6 +343,20 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
   "amd64": {
     "iso": [
       {
+        "id": "ubuntu2610Desktop",
+        "label": "Ubuntu 26.10 – Desktop",
+        "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-desktop-amd64.iso",
+        "minCPU": 4,
+        "minMemoryMiB": 4096
+      },
+      {
+        "id": "ubuntu2610Server",
+        "label": "Ubuntu 26.10 – Server",
+        "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-live-server-amd64.iso",
+        "minCPU": 4,
+        "minMemoryMiB": 4096
+      },
+      {
         "id": "ubuntu2604Desktop",
         "label": "Ubuntu 26.04 LTS – Desktop",
         "url": "https://releases.ubuntu.com/resolute/ubuntu-26.04.1-desktop-amd64.iso",
@@ -407,6 +449,27 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
       }
     ],
     "cloud": [
+      {
+        "id": "ubuntu2610v3",
+        "label": "Ubuntu 26.10 amd64v3",
+        "url": "https://cloud-images.ubuntu.com/stonking/current/stonking-server-cloudimg-amd64v3.img",
+        "minCPU": 2,
+        "minMemoryMiB": 2048
+      },
+      {
+        "id": "ubuntu2610",
+        "label": "Ubuntu 26.10",
+        "url": "https://cloud-images.ubuntu.com/stonking/current/stonking-server-cloudimg-amd64.img",
+        "minCPU": 2,
+        "minMemoryMiB": 2048
+      },
+      {
+        "id": "ubuntu2604v3",
+        "label": "Ubuntu 26.04 LTS amd64v3",
+        "url": "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-amd64v3.img",
+        "minCPU": 2,
+        "minMemoryMiB": 2048
+      },
       {
         "id": "ubuntu2604",
         "label": "Ubuntu 26.04 LTS",

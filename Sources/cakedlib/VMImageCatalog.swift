@@ -8,7 +8,8 @@
 //  `Sources/caker/Resources/VMImages.json`) and was only ever consulted by the wizard. It moved
 //  here so `caked`/`cakectl` — which don't depend on `caker` — can resolve catalog ids too (see
 //  `BuildOptions.alias`, e.g. `--alias macos12`, and its resolution in `VMBuilder.swift`, plus
-//  `aliasEntries` below, used by the `caked aliases`/`cakectl aliases` commands to list them).
+//  `aliasEntries` below, listed by `caked aliases` and served to `cakectl aliases` through caked's
+//  `Aliases` RPC).
 //
 
 import CakeAgentLib
@@ -80,13 +81,41 @@ public struct VMImageCatalog: Codable, Sendable {
 	public let arm64: VMImageArchCatalog
 	public let amd64: VMImageArchCatalog
 
+	/// The loaded catalog, and the modification date of the `<CAKE_HOME>/VMImages.json` override it
+	/// was read with (nil: no override) — what `reloadIfChanged()` compares against.
+	private struct Loaded: Sendable {
+		let catalog: VMImageCatalog
+		let overrideDate: Date?
+	}
+
 	// `shared` is read from the UI and written by `refreshFromGitHub()`'s background task —
 	// `Mutex` (matching the pattern already used for e.g. `ARPParser`'s static cache) keeps that
 	// safe instead of racing on a bare `static var`.
-	private static let storage: Mutex<VMImageCatalog> = Mutex(load())
+	private static let storage: Mutex<Loaded> = Mutex(load())
 
 	public static var shared: VMImageCatalog {
-		storage.withLock { $0 }
+		storage.withLock { $0.catalog }
+	}
+
+	/// `shared`, re-read first when `<CAKE_HOME>/VMImages.json` was added, changed or removed since it
+	/// was loaded. For a long-running caked, which would otherwise keep serving (and resolving
+	/// `--alias` against) the catalog it read at startup after Caker.app's `refreshFromGitHub()`
+	/// or a hand edit replaces the file. Costs one `stat` per call.
+	public static func reloadIfChanged() -> VMImageCatalog {
+		reloadIfChanged(overrideURL: cakeHomeCatalogURL(createHomeIfNeeded: false))
+	}
+
+	/// `internal` so tests can point it at a temporary file instead of the real `<CAKE_HOME>`.
+	static func reloadIfChanged(overrideURL: URL?) -> VMImageCatalog {
+		let date = modificationDate(overrideURL)
+
+		return storage.withLock { loaded in
+			if loaded.overrideDate != date {
+				loaded = Loaded(catalog: load(overrideURL: overrideURL) ?? loadBundled(), overrideDate: date)
+			}
+
+			return loaded.catalog
+		}
 	}
 
 	/// Raw JSON on the `main` branch — kept in sync with `Sources/cakedlib/Resources/VMImages.json`.
@@ -148,12 +177,20 @@ public struct VMImageCatalog: Codable, Sendable {
 		return home.appendingPathComponent("VMImages.json", isDirectory: false)
 	}
 
-	private static func loadFromCakeHome() -> VMImageCatalog? {
-		guard let url = cakeHomeCatalogURL(createHomeIfNeeded: false), FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) else {
+	private static func load(overrideURL: URL?) -> VMImageCatalog? {
+		guard let url = overrideURL, FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) else {
 			return nil
 		}
 
 		return try? JSONDecoder().decode(VMImageCatalog.self, from: Data(contentsOf: url))
+	}
+
+	private static func modificationDate(_ url: URL?) -> Date? {
+		guard let url else {
+			return nil
+		}
+
+		return (try? FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false)))?[.modificationDate] as? Date
 	}
 
 	/// `internal` (not `private`) so tests can load the bundled file directly — `shared` prefers a
@@ -182,8 +219,10 @@ public struct VMImageCatalog: Codable, Sendable {
 	/// Load order: a `<CAKE_HOME>/VMImages.json` override, if present and valid, else the bundled
 	/// resource. A malformed override is skipped (falls through) rather than crashing the app, since
 	/// unlike the bundled resource it's user-supplied state, not a packaging invariant.
-	private static func load() -> VMImageCatalog {
-		loadFromCakeHome() ?? loadBundled()
+	private static func load() -> Loaded {
+		let overrideURL = cakeHomeCatalogURL(createHomeIfNeeded: false)
+
+		return Loaded(catalog: load(overrideURL: overrideURL) ?? loadBundled(), overrideDate: modificationDate(overrideURL))
 	}
 
 	/// Downloads the latest catalog from GitHub, caches it to `<CAKE_HOME>/VMImages.json`, and updates
@@ -219,7 +258,9 @@ public struct VMImageCatalog: Codable, Sendable {
 			try? data.write(to: destination, options: .atomic)
 		}
 
-		storage.withLock { $0 = catalog }
+		let overrideDate = modificationDate(cakeHomeCatalogURL(createHomeIfNeeded: false))
+
+		storage.withLock { $0 = Loaded(catalog: catalog, overrideDate: overrideDate) }
 
 		return catalog
 	}
@@ -297,16 +338,72 @@ public struct VMImageAliasEntry: Codable, Sendable {
 }
 
 extension VMImageCatalog {
-	/// Every `--alias`-able id in `current` (arch-appropriate), across all three categories —
-	/// the data behind the `aliases` command in both `caked` and `cakectl`.
-	public var aliasEntries: [VMImageAliasEntry] {
+	/// Every entry of `current` (arch-appropriate) tagged with its category, in `ipsw` → `iso` →
+	/// `cloud` order — the one list `aliasEntries` and `aliasesReply` are both built from.
+	var categorizedEntries: [(category: String, entry: VMImageEntry)] {
 		#if arch(arm64)
-			current.ipsw.map { VMImageAliasEntry(id: $0.id, category: "ipsw", label: $0.label) }
-				+ current.iso.map { VMImageAliasEntry(id: $0.id, category: "iso", label: $0.label) }
-				+ current.cloud.map { VMImageAliasEntry(id: $0.id, category: "cloud", label: $0.label) }
+			current.ipsw.map { (category: "ipsw", entry: $0) } + current.iso.map { (category: "iso", entry: $0) } + current.cloud.map { (category: "cloud", entry: $0) }
 		#else
-			current.iso.map { VMImageAliasEntry(id: $0.id, category: "iso", label: $0.label) }
-				+ current.cloud.map { VMImageAliasEntry(id: $0.id, category: "cloud", label: $0.label) }
+			current.iso.map { (category: "iso", entry: $0) } + current.cloud.map { (category: "cloud", entry: $0) }
+		#endif
+	}
+
+	/// Every `--alias`-able id in `current` (arch-appropriate), across all three categories —
+	/// the data behind `caked aliases` and the `Aliases` RPC that `cakectl aliases` calls.
+	public var aliasEntries: [VMImageAliasEntry] {
+		categorizedEntries.map { VMImageAliasEntry(id: $0.entry.id, category: $0.category, label: $0.entry.label) }
+	}
+
+	/// The `Aliases` RPC's reply: every entry of `current` with its category, URL and minimum
+	/// resources — `cakectl aliases` lists it, Caker.app's wizard rebuilds its pickers from it
+	/// (`VMImageArchCatalog.init?(_:)`).
+	public var aliasesReply: Caked_Reply {
+		Caked_Reply.with {
+			$0.aliases = .with {
+				$0.aliases = self.categorizedEntries.map { item in
+					Caked_AliasEntry.with {
+						$0.id = item.entry.id
+						$0.category = item.category
+						$0.label = item.entry.label
+						$0.url = item.entry.url
+						$0.minCpu = UInt32(item.entry.minCPU)
+						$0.minMemoryMiB = item.entry.minMemoryMiB
+					}
+				}
+			}
+		}
+	}
+}
+
+extension VMImageAliasEntry {
+	/// Rebuilds an entry received from caked's `Aliases` RPC (`cakectl aliases`).
+	public init(_ from: Caked_AliasEntry) {
+		self.init(id: from.id, category: from.category, label: from.label)
+	}
+}
+
+extension VMImageArchCatalog {
+	/// Rebuilds a caked's catalog from its `Aliases` reply, for Caker.app's wizard pickers when it is
+	/// connected to a caked. Entries without a URL are dropped (a caked that predates the `url` field
+	/// sends none), and so are `ipsw` entries in an x86_64 build, which can't offer macOS guests. Nil
+	/// when no usable entry is left, so the caller keeps its own catalog.
+	public init?(_ from: Caked_AliasesReply) {
+		let usable = from.aliases.filter { $0.url.isEmpty == false }
+
+		guard usable.isEmpty == false else {
+			return nil
+		}
+
+		func entries(_ category: String) -> [VMImageEntry] {
+			usable.filter { $0.category == category }.map {
+				VMImageEntry(id: $0.id, label: $0.label, url: $0.url, minCPU: UInt16(clamping: $0.minCpu), minMemoryMiB: $0.minMemoryMiB)
+			}
+		}
+
+		self.iso = entries("iso")
+		self.cloud = entries("cloud")
+		#if arch(arm64)
+			self.ipsw = entries("ipsw")
 		#endif
 	}
 }

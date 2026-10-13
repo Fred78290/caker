@@ -111,6 +111,14 @@ struct ShortImageInfoComparator: SortComparator {
 	var remoteImage: String
 	var remoteImages: [ShortImageInfo]
 	var selectedRemoteImage: ShortImageInfo.ID
+	/// The connected caked's catalog, once it arrives (`VirtualMachineWizard.loadImageCatalog()`).
+	var cakedImageCatalog: VMImageArchCatalog? = nil
+
+	/// What the ISO/IPSW/cloud pickers offer: caked's catalog, else this app's own, read live so a
+	/// `refreshFromGitHub()` that completes while the wizard is open still shows up.
+	var imageCatalog: VMImageArchCatalog {
+		self.cakedImageCatalog ?? VMImageCatalog.shared.current
+	}
 	var cloudImageRelease: VMImageEntry
 	var isoImageRelease: VMImageEntry
 	#if arch(arm64)
@@ -410,6 +418,77 @@ struct VirtualMachineWizard: View {
 		self.allowsOverrideMinimumResources = false
 		self.wasCancelled = false
 		self.validateConfig(config: initial.config)
+		self.loadImageCatalog()
+	}
+
+	/// Replaces the pickers' local catalog with the connected caked's, so they offer what that caked's
+	/// host can build (its architecture, its `<CAKE_HOME>/VMImages.json`). Keeps the local one in `.app`
+	/// mode, on error (e.g. a caked without the `Aliases` RPC) or when caked sends nothing usable.
+	private func loadImageCatalog() {
+		let connectionManager = self.connectionManager
+
+		guard connectionManager.connectionMode != .app else {
+			return
+		}
+
+		Task {
+			do {
+				if let catalog = try await connectionManager.loadImageCatalog() {
+					self.applyImageCatalog(catalog)
+				}
+			} catch {
+				self.logger.warn("Unable to load the image catalog from caked, using the local one: \(error)")
+			}
+		}
+	}
+
+	/// Switches the pickers to `catalog`, keeping each selection by id (else the category's first entry).
+	/// The config follows only while it still uses the previous entry's URL, so a URL the user typed, a
+	/// chosen file or a preset image is left alone.
+	private func applyImageCatalog(_ catalog: VMImageArchCatalog) {
+		guard self.model.createVM == false else {
+			return
+		}
+
+		let previous: VMImageEntry?
+
+		switch self.model.imageSource {
+		case .qcow2: previous = self.model.cloudImageRelease
+		case .iso: previous = self.model.isoImageRelease
+		#if arch(arm64)
+			case .ipsw: previous = self.model.ipswRelease
+		#endif
+		default: previous = nil
+		}
+
+		self.model.cakedImageCatalog = catalog
+		self.model.cloudImageRelease = Self.entry(like: self.model.cloudImageRelease, in: catalog.cloud)
+		self.model.isoImageRelease = Self.entry(like: self.model.isoImageRelease, in: catalog.iso)
+		#if arch(arm64)
+			self.model.ipswRelease = Self.entry(like: self.model.ipswRelease, in: catalog.ipsw)
+		#endif
+
+		let selected: VMImageEntry?
+
+		switch self.model.imageSource {
+		case .qcow2: selected = self.model.cloudImageRelease
+		case .iso: selected = self.model.isoImageRelease
+		#if arch(arm64)
+			case .ipsw: selected = self.model.ipswRelease
+		#endif
+		default: selected = nil
+		}
+
+		if let previous, let selected, self.config.imageName == previous.url {
+			self.config.imageName = selected.url
+			selected.applyMinimumResources(to: &self.config)
+		}
+
+		self.validateConfig(config: self.config)
+	}
+
+	private static func entry(like current: VMImageEntry, in entries: [VMImageEntry]) -> VMImageEntry {
+		entries.first { $0.id == current.id } ?? entries.first ?? current
 	}
 
 	var body: some View {
@@ -470,6 +549,7 @@ struct VirtualMachineWizard: View {
 					self.resetToInitialState()
 				} else {
 					self.validateConfig(config: self.config)
+					self.loadImageCatalog()
 				}
 			}
 			.onDisappear {
@@ -1008,12 +1088,12 @@ struct VirtualMachineWizard: View {
 								}
 							} label: {
 								Picker("Preconfigured ISO", selection: $model.isoImageRelease) {
-									ForEach(VMImageCatalog.shared.availableISOImages) { os in
+									ForEach(model.imageCatalog.iso) { os in
 										Text(os.label).tag(os)
 									}
 								}
 								.pickerStyle(.menu)
-								.disabled(self.model.createVM)
+								.disabled(self.model.createVM || model.imageCatalog.iso.isEmpty)
 								.labelsHidden()
 								.onChange(of: model.isoImageRelease) { _, newValue in
 									let plateform = SupportedPlatform(rawValue: newValue.label)
@@ -1085,12 +1165,12 @@ struct VirtualMachineWizard: View {
 									}
 								} label: {
 									Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
-										ForEach(VMImageCatalog.shared.availableIPSWImages) { os in
+										ForEach(model.imageCatalog.ipsw) { os in
 											Text(os.label).tag(os)
 										}
 									}
 									.pickerStyle(.menu)
-									.disabled(self.model.createVM)
+									.disabled(self.model.createVM || model.imageCatalog.ipsw.isEmpty)
 									.labelsHidden()
 									.onChange(of: model.ipswRelease) { _, newValue in
 										self.config.imageName = newValue.url
@@ -1109,12 +1189,12 @@ struct VirtualMachineWizard: View {
 								.disabled(self.model.createVM)
 						} label: {
 							Picker("Preconfigured image", selection: $model.cloudImageRelease) {
-								ForEach(VMImageCatalog.shared.availableCloudImages) { os in
+								ForEach(model.imageCatalog.cloud) { os in
 									Text(os.label).tag(os)
 								}
 							}
 							.pickerStyle(.menu)
-							.disabled(self.model.createVM)
+							.disabled(self.model.createVM || model.imageCatalog.cloud.isEmpty)
 							.labelsHidden()
 							.onChange(of: model.cloudImageRelease) { _, newValue in
 								self.config.imageName = newValue.url

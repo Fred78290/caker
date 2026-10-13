@@ -2975,6 +2975,14 @@ public nonisolated struct Caked_Caked: Sendable {
       set {response = .tasks(newValue)}
     }
 
+    public var aliases: Caked_Caked.Reply.AliasesReply {
+      get {
+        if case .aliases(let v)? = response {return v}
+        return Caked_Caked.Reply.AliasesReply()
+      }
+      set {response = .aliases(newValue)}
+    }
+
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
     public nonisolated enum OneOf_Response: Equatable, Sendable {
@@ -2993,6 +3001,7 @@ public nonisolated struct Caked_Caked: Sendable {
       case unexpected(String)
       case compose(Caked_Caked.ComposeReply)
       case tasks(Caked_Caked.Reply.TaskReply)
+      case aliases(Caked_Caked.Reply.AliasesReply)
 
     }
 
@@ -3281,6 +3290,42 @@ public nonisolated struct Caked_Caked: Sendable {
         public init() {}
 
         fileprivate var _reason: String? = nil
+      }
+
+      public init() {}
+    }
+
+    public nonisolated struct AliasesReply: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var aliases: [Caked_Caked.Reply.AliasesReply.AliasEntry] = []
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public nonisolated struct AliasEntry: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var id: String = String()
+
+        public var category: String = String()
+
+        public var label: String = String()
+
+        /// Download URL and minimum resources, for Caker.app's wizard pickers. Empty/0 from a caked
+        /// that predates them.
+        public var url: String = String()
+
+        public var minCpu: UInt32 = 0
+
+        public var minMemoryMiB: UInt64 = 0
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
       }
 
       public init() {}
@@ -10768,7 +10813,7 @@ nonisolated extension Caked_Caked.VMRequest.ExecuteRequest.TerminalSize: SwiftPr
 
 nonisolated extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Reply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vms\0\u{1}images\0\u{1}networks\0\u{1}remotes\0\u{1}templates\0\u{1}run\0\u{1}mounts\0\u{1}oci\0\u{1}ping\0\u{1}status\0\u{1}screenSize\0\u{1}certificates\0\u{1}unexpected\0\u{1}compose\0\u{1}tasks\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vms\0\u{1}images\0\u{1}networks\0\u{1}remotes\0\u{1}templates\0\u{1}run\0\u{1}mounts\0\u{1}oci\0\u{1}ping\0\u{1}status\0\u{1}screenSize\0\u{1}certificates\0\u{1}unexpected\0\u{1}compose\0\u{1}tasks\0\u{1}aliases\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -10966,6 +11011,19 @@ nonisolated extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._M
           self.response = .tasks(v)
         }
       }()
+      case 16: try {
+        var v: Caked_Caked.Reply.AliasesReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .aliases(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .aliases(v)
+        }
+      }()
       default: break
       }
     }
@@ -11036,6 +11094,10 @@ nonisolated extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._M
     case .tasks?: try {
       guard case .tasks(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 15)
+    }()
+    case .aliases?: try {
+      guard case .aliases(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
     }()
     case nil: break
     }
@@ -11663,6 +11725,91 @@ nonisolated extension Caked_Caked.Reply.TaskReply.CancelTaskReply: SwiftProtobuf
   public static func ==(lhs: Caked_Caked.Reply.TaskReply.CancelTaskReply, rhs: Caked_Caked.Reply.TaskReply.CancelTaskReply) -> Bool {
     if lhs.success != rhs.success {return false}
     if lhs._reason != rhs._reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.Reply.AliasesReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".AliasesReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}aliases\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.aliases) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.aliases.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.aliases, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.AliasesReply, rhs: Caked_Caked.Reply.AliasesReply) -> Bool {
+    if lhs.aliases != rhs.aliases {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Caked_Caked.Reply.AliasesReply.AliasEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.AliasesReply.protoMessageName + ".AliasEntry"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}category\0\u{1}label\0\u{1}url\0\u{1}minCPU\0\u{1}minMemoryMiB\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.category) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.label) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.url) }()
+      case 5: try { try decoder.decodeSingularUInt32Field(value: &self.minCpu) }()
+      case 6: try { try decoder.decodeSingularUInt64Field(value: &self.minMemoryMiB) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if !self.category.isEmpty {
+      try visitor.visitSingularStringField(value: self.category, fieldNumber: 2)
+    }
+    if !self.label.isEmpty {
+      try visitor.visitSingularStringField(value: self.label, fieldNumber: 3)
+    }
+    if !self.url.isEmpty {
+      try visitor.visitSingularStringField(value: self.url, fieldNumber: 4)
+    }
+    if self.minCpu != 0 {
+      try visitor.visitSingularUInt32Field(value: self.minCpu, fieldNumber: 5)
+    }
+    if self.minMemoryMiB != 0 {
+      try visitor.visitSingularUInt64Field(value: self.minMemoryMiB, fieldNumber: 6)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.AliasesReply.AliasEntry, rhs: Caked_Caked.Reply.AliasesReply.AliasEntry) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.category != rhs.category {return false}
+    if lhs.label != rhs.label {return false}
+    if lhs.url != rhs.url {return false}
+    if lhs.minCpu != rhs.minCpu {return false}
+    if lhs.minMemoryMiB != rhs.minMemoryMiB {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

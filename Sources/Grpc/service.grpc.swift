@@ -231,6 +231,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     _ request: Caked_Caked.CancelTaskRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.CancelTaskRequest, Caked_Caked.Reply>
+
+  func aliases(
+    _ request: Caked_Empty,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Empty, Caked_Caked.Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -1016,6 +1021,24 @@ extension Caked_ServiceClientProtocol {
       interceptors: self.interceptors?.makeCancelTaskInterceptors() ?? []
     )
   }
+
+  /// Aliases lists the VM image catalog ids (VMImages.json) the server accepts for build/launch --alias.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Aliases.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func aliases(
+    _ request: Caked_Empty,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Empty, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.aliases.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeAliasesInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -1287,6 +1310,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Caked_Caked.CancelTaskRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.CancelTaskRequest, Caked_Caked.Reply>
+
+  func makeAliasesCall(
+    _ request: Caked_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Empty, Caked_Caked.Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1804,6 +1832,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeCancelTaskInterceptors() ?? []
+    )
+  }
+
+  public func makeAliasesCall(
+    _ request: Caked_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Empty, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.aliases.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeAliasesInterceptors() ?? []
     )
   }
 }
@@ -2349,6 +2389,18 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeCancelTaskInterceptors() ?? []
     )
   }
+
+  public func aliases(
+    _ request: Caked_Empty,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.aliases.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeAliasesInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -2495,6 +2547,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'cancelTask'.
   func makeCancelTaskInterceptors() -> [ClientInterceptor<Caked_Caked.CancelTaskRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'aliases'.
+  func makeAliasesInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -2544,6 +2599,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.provision,
       Caked_ServiceClientMetadata.Methods.listTasks,
       Caked_ServiceClientMetadata.Methods.cancelTask,
+      Caked_ServiceClientMetadata.Methods.aliases,
     ]
   )
 
@@ -2799,6 +2855,12 @@ public enum Caked_ServiceClientMetadata {
       path: "/caked.Service/CancelTask",
       type: GRPCCallType.unary
     )
+
+    public static let aliases = GRPCMethodDescriptor(
+      name: "Aliases",
+      path: "/caked.Service/Aliases",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -2934,6 +2996,9 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   /// CancelTask cancels a registered long-running task by id.
   func cancelTask(request: Caked_Caked.CancelTaskRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  /// Aliases lists the VM image catalog ids (VMImages.json) the server accepts for build/launch --alias.
+  func aliases(request: Caked_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 }
 
 extension Caked_ServiceProvider {
@@ -3326,6 +3391,15 @@ extension Caked_ServiceProvider {
         userFunction: self.cancelTask(request:context:)
       )
 
+    case "Aliases":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Empty>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeAliasesInterceptors() ?? [],
+        userFunction: self.aliases(request:context:)
+      )
+
     default:
       return nil
     }
@@ -3597,6 +3671,12 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   /// CancelTask cancels a registered long-running task by id.
   func cancelTask(
     request: Caked_Caked.CancelTaskRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  /// Aliases lists the VM image catalog ids (VMImages.json) the server accepts for build/launch --alias.
+  func aliases(
+    request: Caked_Empty,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 }
@@ -3998,6 +4078,15 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.cancelTask(request: $0, context: $1) }
       )
 
+    case "Aliases":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Empty>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeAliasesInterceptors() ?? [],
+        wrapping: { try await self.aliases(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -4173,6 +4262,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'cancelTask'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeCancelTaskInterceptors() -> [ServerInterceptor<Caked_Caked.CancelTaskRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'aliases'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeAliasesInterceptors() -> [ServerInterceptor<Caked_Empty, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -4222,6 +4315,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.provision,
       Caked_ServiceServerMetadata.Methods.listTasks,
       Caked_ServiceServerMetadata.Methods.cancelTask,
+      Caked_ServiceServerMetadata.Methods.aliases,
     ]
   )
 
@@ -4475,6 +4569,12 @@ public enum Caked_ServiceServerMetadata {
     public static let cancelTask = GRPCMethodDescriptor(
       name: "CancelTask",
       path: "/caked.Service/CancelTask",
+      type: GRPCCallType.unary
+    )
+
+    public static let aliases = GRPCMethodDescriptor(
+      name: "Aliases",
+      path: "/caked.Service/Aliases",
       type: GRPCCallType.unary
     )
   }

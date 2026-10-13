@@ -184,8 +184,12 @@ struct Root: ParsableCommand {
 	}
 
 	public static func main() async throws {
-		#if !APPLESTORE
+		#if !APPSTORE
 			configuration.subcommands.append(Relocate.self)
+		#endif
+
+		#if SPARKLE
+			configuration.subcommands.append(CheckUpdate.self)
 		#endif
 
 		if try tryForkCommand() {

@@ -242,4 +242,8 @@ struct CakedPasswordAuthServerInterceptor: Caked_ServiceServerInterceptorFactory
 	func makeCancelTaskInterceptors() -> [ServerInterceptor<Caked_CancelTaskRequest, Caked_Reply>] {
 		return self.interceptors()
 	}
+
+	func makeAliasesInterceptors() -> [ServerInterceptor<Caked_Empty, Caked_Reply>] {
+		return self.interceptors()
+	}
 }
