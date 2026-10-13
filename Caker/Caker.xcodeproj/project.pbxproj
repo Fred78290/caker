@@ -247,6 +247,7 @@
 		9B48B663302BD0F600B18C35 /* CakeHomeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B48B662302BD0F600B18C35 /* CakeHomeHandler.swift */; };
 		9B48B665302BD16600B18C35 /* RenameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B48B664302BD16600B18C35 /* RenameHandler.swift */; };
 		9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */; };
+		705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */; };
 		9B4D214A3045E2D300082830 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B4D21493045E2D300082830 /* alpine.packerlite.yaml */; };
 		9B4D214B3045E2D300082830 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B4D21493045E2D300082830 /* alpine.packerlite.yaml */; };
 		9B4EA8292F7692170044C18E /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; };
@@ -1191,6 +1192,7 @@
 		9B48B662302BD0F600B18C35 /* CakeHomeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeHomeHandler.swift; sourceTree = "<group>"; };
 		9B48B664302BD16600B18C35 /* RenameHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameHandler.swift; sourceTree = "<group>"; };
 		9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDRemotesController.swift; sourceTree = "<group>"; };
+		50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDVMImagesController.swift; sourceTree = "<group>"; };
 		9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstanceDetailPage.tsx; sourceTree = "<group>"; };
 		9B4C09B82FB8D72100101F0E /* RemotesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = RemotesPage.tsx; sourceTree = "<group>"; };
 		9B4D21493045E2D300082830 /* alpine.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = alpine.packerlite.yaml; sourceTree = "<group>"; };
@@ -2507,6 +2509,7 @@
 				9B602F8E2FAA56FA00055543 /* LXDNetworksController.swift */,
 				9B602F8F2FAA56FA00055543 /* LXDOperationsController.swift */,
 				9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */,
+				50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */,
 				9B602F902FAA56FA00055543 /* LXDRootController.swift */,
 			);
 			path = Controllers;
@@ -4208,6 +4211,7 @@
 				9BEBC6E72DF4400A0092B196 /* Networks.swift in Sources */,
 				9BBE597A2F49B561005B3359 /* GrandCentralDispatch.swift in Sources */,
 				9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */,
+				705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */,
 				9B21F6B43020FD2400289DB5 /* Provision.swift in Sources */,
 				9B602F972FAA56FA00055543 /* LXDInstancesController.swift in Sources */,
 				9B602F982FAA56FA00055543 /* LXDRootController.swift in Sources */,

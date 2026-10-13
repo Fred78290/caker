@@ -4,9 +4,10 @@ import { createInstance } from '../api/instances';
 import { listNetworks } from '../api/networks';
 import { getOperation } from '../api/operations';
 import { getServerInfo } from '../api/server';
+import { getVMImages } from '../api/vmImages';
 import { Spinner } from '../components/Spinner';
 import { vmImages } from '../data/vmImages';
-import type { VMImageEntry } from '../data/vmImages';
+import type { VMImageCatalog, VMImageEntry } from '../data/vmImages';
 import type { LXDNetwork } from '../types/lxd';
 
 interface Props {
@@ -43,17 +44,14 @@ const LXD_TO_IMAGE_ARCH: Record<string, 'arm64' | 'amd64'> = {
   arm64: 'arm64',
 }
 
-const buildSourceImages = (lxdArch: string, iso: boolean): { label: string; url: string; minCPU?: number; minMemoryMiB?: number }[] => {
-  const arch = LXD_TO_IMAGE_ARCH[lxdArch] ?? 'amd64'
-  const entries = iso ? vmImages[arch].iso : vmImages[arch].cloud
+const buildSourceImages = (catalog: VMImageCatalog, iso: boolean): { label: string; url: string; minCPU?: number; minMemoryMiB?: number }[] => {
+  const entries = iso ? catalog.iso : catalog.cloud
   return entries.map((entry) => ({ label: entry.label, url: entry.url, minCPU: entry.minCPU, minMemoryMiB: entry.minMemoryMiB }))
 }
 
-const buildMacosIpswSources = (lxdArch: string): { label: string; url: string; minCPU?: number; minMemoryMiB?: number }[] => {
-  const arch = LXD_TO_IMAGE_ARCH[lxdArch] ?? 'amd64'
-  if (arch !== 'arm64') return []
-
-  return vmImages.arm64.ipsw.map((entry) => ({
+// Empty for an x86_64 caked: its catalog has no IPSW entries (macOS guests need Apple Silicon).
+const buildMacosIpswSources = (catalog: VMImageCatalog): { label: string; url: string; minCPU?: number; minMemoryMiB?: number }[] => {
+  return catalog.ipsw.map((entry) => ({
     label: `${entry.label} – IPSW (Apple Silicon)`,
     url: entry.url,
     minCPU: entry.minCPU,
@@ -166,7 +164,10 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
   const [networkInterfaces, setNetworkInterfaces] = useState<NetworkInterfaceItem[]>([])
   const [selectedNetwork, setSelectedNetwork] = useState('')
   const [loadingNetworks, setLoadingNetworks] = useState(false)
-  const [serverArch, setServerArch] = useState('amd64')
+  const [serverArch, setServerArch] = useState<'arm64' | 'amd64'>('amd64')
+  // The connected caked's catalog (GET /1.0/vm-images); null until it arrives, or when caked
+  // predates that endpoint — the copy bundled into the web UI at build time is used meanwhile.
+  const [serverCatalog, setServerCatalog] = useState<VMImageCatalog | null>(null)
   const [networkLoadError, setNetworkLoadError] = useState<string | null>(null)
   const [networkInterfacesError, setNetworkInterfacesError] = useState<string | null>(null)
   const [forwardedPortsError, setForwardedPortsError] = useState<string | null>(null)
@@ -369,6 +370,15 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
         setServerArch(LXD_TO_IMAGE_ARCH[firstArch ?? ''] ?? 'amd64')
       })
       .catch(() => { /* keep default amd64 */ })
+
+    getVMImages()
+      .then((r) => {
+        const catalog = r.data.metadata
+        if (Array.isArray(catalog?.iso) && Array.isArray(catalog?.cloud)) {
+          setServerCatalog({ iso: catalog.iso, cloud: catalog.cloud, ipsw: Array.isArray(catalog.ipsw) ? catalog.ipsw : [] })
+        }
+      })
+      .catch(() => { /* older caked without /1.0/vm-images: keep the bundled catalog */ })
   }, [])
 
   useEffect(() => {
@@ -605,9 +615,10 @@ export function CreateInstanceModal({ onCreated, initialAlias, onClose }: Props)
 
   const operationProgress = parseProgressPercent(operationDescription)
 
-  const macosIpswSources = buildMacosIpswSources(serverArch)
-  const cloudSources = buildSourceImages(serverArch, false)
-  const isoSources = buildSourceImages(serverArch, true)
+  const imageCatalog = serverCatalog ?? vmImages[serverArch]
+  const macosIpswSources = buildMacosIpswSources(imageCatalog)
+  const cloudSources = buildSourceImages(imageCatalog, false)
+  const isoSources = buildSourceImages(imageCatalog, true)
   const imageSourcesByUrl = new Map(
     [...macosIpswSources, ...cloudSources, ...isoSources].map((entry) => [entry.url, entry]),
   )
