@@ -30,6 +30,8 @@ Pour ajouter ou modifier une entrée, il suffit d'éditer `VMImages.json` — au
 
 Séparément, `VMImageCatalog.refreshFromGitHub()` télécharge la version courante de `VMImages.json` depuis la branche `main` sur GitHub, la met en cache dans `<CAKE_HOME>/VMImages.json`, et met à jour `VMImageCatalog.shared` en place. `MainApp.init()` déclenche cet appel en tâche de fond (best-effort, erreurs ignorées) au lancement de l'application — comme les vues de l'assistant relisent `VMImageCatalog.shared` à chaque rendu plutôt que de le mettre en cache dans un `@State`, une session déjà lancée profite du catalogue rafraîchi dès que le téléchargement aboutit, sans redémarrage.
 
+Ceci vaut pour le mode `.app`. Connecté à un `caked` (mode service ou distant), l'assistant liste le catalogue de ce `caked`, obtenu par la RPC `Aliases` (la même que `cakectl aliases`, qui renvoie aussi l'URL et les ressources minimales de chaque entrée) à chaque ouverture : les listes proposent donc ce que l'hôte de ce `caked` peut construire (son architecture, son propre `<CAKE_HOME>/VMImages.json`). Si la RPC échoue ou si le `caked` est trop ancien pour renvoyer les URL, l'assistant garde son propre catalogue. De son côté, `caked` relit `<CAKE_HOME>/VMImages.json` dès que le fichier change (`VMImageCatalog.reloadIfChanged()`), si bien qu'un rafraîchissement GitHub fait par Caker.app est pris en compte sans redémarrer le service.
+
 ## Tests
 
 Emplacements principaux des tests :
@@ -183,6 +185,8 @@ To add or update an entry, edit `VMImages.json` — no Swift changes needed. `Te
 2. **The bundled `VMImages.json` resource**, following the same `Bundle.module`/native-target fallback already used by `PackerLiteTemplateResolver` for `CakedLib`'s other bundled resources: `Bundle.module` for `swift build`/`swift test` builds, falling back to a `Bundle(for:)`-plus-`.bundle`-lookup dance for `Caker.xcodeproj`/`CakerAppStore.xcodeproj`, which mirror `CakedLib` as a native Xcode target with no generated `Bundle.module` accessor. Any new file added under `Sources/cakedlib/Resources/` therefore also needs to be added by hand to both `.xcodeproj` files (file reference + the `CakedLib`/`Caker`/`caked.app` targets' Resources build phases, as applicable) to stay available in Xcode-built binaries.
 
 Separately, `VMImageCatalog.refreshFromGitHub()` downloads the current `VMImages.json` from the `main` branch on GitHub, caches it to `<CAKE_HOME>/VMImages.json`, and updates `VMImageCatalog.shared` in place. `MainApp.init()` fires this in a background task (best-effort, errors ignored) at app launch — since the wizard's views re-read `VMImageCatalog.shared` on every render rather than caching it in `@State`, an already-running session picks up the refreshed catalog as soon as the download completes, no restart needed.
+
+That holds in `.app` mode. Connected to a `caked` (service or remote mode), the wizard lists that `caked`'s catalog instead, fetched with the `Aliases` RPC (the one behind `cakectl aliases`, which also returns each entry's URL and minimum resources) every time the wizard opens, so the pickers offer what that `caked`'s host can build (its architecture, its own `<CAKE_HOME>/VMImages.json`). If the RPC fails, or the `caked` is too old to send URLs, the wizard keeps its own catalog. On its side, `caked` re-reads `<CAKE_HOME>/VMImages.json` whenever the file changes (`VMImageCatalog.reloadIfChanged()`), so a GitHub refresh done by Caker.app is picked up without restarting the service.
 
 ## Tests
 

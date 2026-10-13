@@ -18,7 +18,7 @@ extension BuildOptions {
 			return self
 		}
 
-		guard let resolution = VMImageCatalog.shared.resolveShorthand(imageId) else {
+		guard let resolution = VMImageCatalog.reloadIfChanged().resolveShorthand(imageId) else {
 			// Shouldn't normally happen — `--alias`'s ids are meant to come from this same
 			// catalog (see `caked aliases`/`cakectl aliases`) — but `imageId` could arrive over
 			// gRPC from a newer cakectl than this caked's catalog knows about, or the caller
