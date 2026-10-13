@@ -216,7 +216,7 @@ The Settings window has three tabs.
 
 - **Application**: light, dark or system appearance; Dock and menu bar icons; and **Install command-line tools**, which makes `caked` and `cakectl` available from Terminal.
 - **Virtual machines**: whether VMs launch inside the app, whether closing a VM's window shuts it down, screenshots, sending the clipboard to VMs over VNC, and the restore method used for macOS installs.
-- **Advanced**: the bridged network interface, the Compose DNS domain, the default VM for `cakectl sh`/`exec`, the service pass-phrase, moving all VMs and images to another folder or disk (**Relocate…**), and an AWS-style metadata service (`169.254.169.254`) for Linux guests.
+- **Advanced**: the bridged network interface, the Compose DNS domain, the default VM for `cakectl sh`/`exec`, the service pass-phrase, moving all VMs and images to another folder or disk (**Relocate…**, direct-download edition only), and an AWS-style metadata service (`169.254.169.254`) for Linux guests.
 
 > 📸 **Screenshot 21 — Settings, Advanced tab.** *The Networking, Compose and Storage sections.*
 
