@@ -247,8 +247,7 @@ private final class GlassedSheetCoordinator<Content: View> {
 	func scheduleSync() {
 		guard !syncScheduled else { return }
 		syncScheduled = true
-		Task { @MainActor [weak self] in
-			guard let self else { return }
+		DispatchQueue.main.async {
 			self.syncScheduled = false
 			self.sync()
 		}
