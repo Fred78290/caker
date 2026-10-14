@@ -112,12 +112,12 @@ message Empty {}
 message Caked {
   message ComposeRequest {
     message ComposeRequestUp {
-      bytes           composeDatas      = 1;
-      int32           waitIPTimeout     = 2;
-      repeated string services          = 3;
+      bytes           composeDatas  = 1;
+      int32           waitIPTimeout = 2;
+      repeated string services      = 3;
       // true: composeDatas is a user-authored definition that replaces the one already registered under
       // its name. false (also what a client predating this field sends): keep the registered definition.
-      bool            replaceDefinition = 4;
+      bool replaceDefinition = 4;
     }
 
     message ComposeRequestDown {
@@ -810,9 +810,9 @@ message Caked {
 
     message AliasesReply {
       message AliasEntry {
-        string id           = 1;
-        string category     = 2;
-        string label        = 3;
+        string id       = 1;
+        string category = 2;
+        string label    = 3;
         // Download URL and minimum resources, for Caker.app's wizard pickers. Empty/0 from a caked
         // that predates them.
         string url          = 4;
@@ -1141,17 +1141,18 @@ message Caked {
 
     message ImageReply {
       message ImageInfo {
-        repeated string    aliases      = 1;
-        string             architecture = 2;
-        bool               pub          = 3;
-        string             fileName     = 4;
-        string             fingerprint  = 5;
-        uint64             size         = 6;
-        string             type         = 7;
-        optional string    created      = 8;
-        optional string    expires      = 9;
-        optional string    uploaded     = 10;
-        map<string,string> properties   = 11;
+        string             name         = 1;
+        repeated string    aliases      = 2;
+        string             architecture = 3;
+        bool               pub          = 4;
+        string             fileName     = 5;
+        string             fingerprint  = 6;
+        uint64             size         = 7;
+        string             type         = 8;
+        optional string    created      = 9;
+        optional string    expires      = 10;
+        optional string    uploaded     = 11;
+        map<string,string> properties   = 12;
       }
 
       message ListImagesInfoReply {
@@ -1168,12 +1169,13 @@ message Caked {
 
       message PulledImageInfoReply {
         message PulledImageInfo {
-          optional string alias       = 1;
-          string          path        = 2;
-          uint64          size        = 3;
-          string          fingerprint = 4;
-          string          remoteName  = 5;
-          string          description = 6;
+          string          name        = 1;
+          optional string alias       = 2;
+          string          path        = 3;
+          uint64          size        = 4;
+          string          fingerprint = 5;
+          string          remoteName  = 6;
+          string          description = 7;
         }
 
         optional PulledImageInfo info    = 1;

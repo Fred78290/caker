@@ -36,7 +36,7 @@ class Streamable {
 				}
 			}
 
-			try simpleStreamCache.addCache(fingerprint: etag, url: remoteURL, kind: kind, alias: [cachedFile])
+			try simpleStreamCache.addCache(name: remoteName, fingerprint: etag, url: remoteURL, kind: kind, alias: [cachedFile])
 		}
 
 		#if DEBUG
@@ -171,6 +171,9 @@ public struct SimpleStreamProduct: Codable {
 	public let variant: String
 	public let version: String?
 	public let versions: [String: ImageVersion]
+	public var name: String {
+		return self.os.capitalized + " " + self.releaseTitle
+	}
 
 	enum CodingKeys: String, CodingKey {
 		case aliases
@@ -326,7 +329,7 @@ extension LinuxContainerImage {
 			}
 		}
 
-		try imageCache.addCache(fingerprint: fingerprint, url: self.path.absoluteURL, kind: CacheEntryKind.image, alias: self.alias)
+		try imageCache.addCache(name: self.name, fingerprint: fingerprint, url: self.path.absoluteURL, kind: CacheEntryKind.image, alias: self.alias)
 
 		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: nil, cacheLocation: cacheLocation, runMode: runMode, progressHandler: progressHandler)
 	}
@@ -346,7 +349,7 @@ extension LinuxContainerImage {
 			}
 		}
 
-		try imageCache.addCache(fingerprint: fingerprint, url: self.path.absoluteURL, kind: CacheEntryKind.image, alias: self.alias)
+		try imageCache.addCache(name: self.name, fingerprint: fingerprint, url: self.path.absoluteURL, kind: CacheEntryKind.image, alias: self.alias)
 
 		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: to, cacheLocation: cacheLocation, runMode: runMode, progressHandler: progressHandler)
 	}
@@ -502,9 +505,10 @@ public class SimpleStreamProtocol {
 
 			return LinuxContainerImage(
 				remoteName: self.name,
+				name: product.name,
 				fingerprint: imageDisk.sha256,
 				alias: product.aliases.components(separatedBy: ","),
-				description: "\(product.os) \(product.releaseTitle) \(product.arch) (\(product.release)) \(imageVersion.0)",
+				description: "\(product.os.capitalized) \(product.releaseTitle) \(product.arch) (\(product.release)) \(imageVersion.0)",
 				path: URL(string: imageDisk.path, relativeTo: self.baseURL)!.absoluteURL,
 				size: imageDisk.size)
 		}

@@ -173,6 +173,7 @@ public enum CacheEntryKind: String, Codable {
 }
 
 public struct CacheEntry: Codable {
+	public let name: String
 	public let url: URL
 	public let kind: CacheEntryKind
 	public let fingerprint: String
@@ -318,8 +319,8 @@ public class SimpleStreamsImageCache: CommonCacheImageCache {
 		}
 	}
 
-	public func addCache(fingerprint: String, url: URL, kind: CacheEntryKind, alias: [String]?) throws {
-		self.cache?.addCache(fingerprint: fingerprint, entry: CacheEntry(url: url, kind: kind, fingerprint: fingerprint, alias: alias))
+	public func addCache(name: String, fingerprint: String, url: URL, kind: CacheEntryKind, alias: [String]?) throws {
+		self.cache?.addCache(fingerprint: fingerprint, entry: CacheEntry(name: name, url: url, kind: kind, fingerprint: fingerprint, alias: alias))
 		try? self.cache?.save(to: URL(fileURLWithPath: "cache.plist", relativeTo: self.baseURL))
 	}
 
@@ -337,6 +338,7 @@ public class SimpleStreamsImageCache: CommonCacheImageCache {
 	}
 
 	private class SimpleStreamsImageCachePurgeable: Purgeable {
+		let _name: String
 		let _url: URL
 		let _remote: String
 		let _fingerprint: String
@@ -344,9 +346,10 @@ public class SimpleStreamsImageCache: CommonCacheImageCache {
 		let _source: String
 		let _cache: SimpleStreamsImageCache
 
-		init(remote: String, fingerprint: String, aliases: [String]?, url: URL, source: String, cache: SimpleStreamsImageCache) {
+		init(remote: String, name: String, fingerprint: String, aliases: [String]?, url: URL, source: String, cache: SimpleStreamsImageCache) {
 			self._url = url
 			self._remote = remote
+			self._name = name
 			self._fingerprint = fingerprint
 			self._aliases = aliases
 			self._source = source
@@ -362,7 +365,7 @@ public class SimpleStreamsImageCache: CommonCacheImageCache {
 		}
 
 		var name: String {
-			self._fingerprint
+			self._name
 		}
 
 		var fingerprint: String? {
@@ -415,7 +418,7 @@ public class SimpleStreamsImageCache: CommonCacheImageCache {
 					let baseURL = self.baseURL.appendingPathComponent("\(key)/disk.img")
 					let source = baseURL.lastPathComponent
 
-					result.append(SimpleStreamsImageCachePurgeable(remote: remote, fingerprint: key, aliases: cache.alias, url: baseURL, source: source, cache: self))
+					result.append(SimpleStreamsImageCachePurgeable(remote: remote, name: cache.name, fingerprint: key, aliases: cache.alias, url: baseURL, source: source, cache: self))
 				}
 			}
 		}
