@@ -4144,6 +4144,16 @@
         }
       }
     },
+    "Deleted" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimé"
+          }
+        }
+      }
+    },
     "Deletes VMs for services defined in compose.yml, in reverse depends_on order. Use --stop to stop running services first." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5023,6 +5033,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "erreur"
+          }
+        }
+      }
+    },
+    "Error" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En erreur"
           }
         }
       }
@@ -9254,6 +9274,9 @@
       },
       "shouldTranslate" : false
     },
+    "Name:" : {
+
+    },
     "NAT shared network" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11601,6 +11624,16 @@
         }
       }
     },
+    "Paused" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En pause"
+          }
+        }
+      }
+    },
     "Paused recording" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11608,6 +11641,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enregistrement en pause"
+          }
+        }
+      }
+    },
+    "Pausing" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mise en pause en cours"
           }
         }
       }
@@ -12210,6 +12253,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "configuration"
+          }
+        }
+      }
+    },
+    "Provisioning" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuration en cours"
           }
         }
       }
@@ -13757,6 +13810,16 @@
         }
       }
     },
+    "Restoring" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restauration en cours"
+          }
+        }
+      }
+    },
     "Resume" : {
       "localizations" : {
         "fr" : {
@@ -13801,6 +13864,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reprise de la machine virtuelle"
+          }
+        }
+      }
+    },
+    "Resuming" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprise en cours"
           }
         }
       }
@@ -14034,6 +14107,16 @@
         }
       }
     },
+    "Running" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exécution en cours"
+          }
+        }
+      }
+    },
     "Running in the App Sandbox" : {
       "comment" : "Title of the sandbox limitations splash screen.",
       "localizations" : {
@@ -14147,6 +14230,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enregistrer les captures d'écran sur le disque"
+          }
+        }
+      }
+    },
+    "Saving" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrement en cours"
           }
         }
       }
@@ -15784,6 +15877,16 @@
         }
       }
     },
+    "Starting" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrage en cours"
+          }
+        }
+      }
+    },
     "Starting pre-boot commands" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16099,6 +16202,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "arrêté"
+          }
+        }
+      }
+    },
+    "Stopped" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A l’arrêt"
+          }
+        }
+      }
+    },
+    "Stopping" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêt en cours"
           }
         }
       }

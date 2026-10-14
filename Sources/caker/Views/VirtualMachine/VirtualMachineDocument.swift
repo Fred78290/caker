@@ -134,6 +134,37 @@ extension UTType {
 			}
 		}
 
+		var humanReadable: LocalizedStringKey {
+			switch self {
+			case .running:
+				return "Running"
+			case .stopped:
+				return "Stopped"
+			case .starting:
+				return "Starting"
+			case .pausing:
+				return "Pausing"
+			case .resuming:
+				return "Resuming"
+			case .stopping:
+				return "Stopping"
+			case .saving:
+				return "Saving"
+			case .restoring:
+				return "Restoring"
+			case .none:
+				return "None"
+			case .paused:
+				return "Paused"
+			case .error:
+				return "Error"
+			case .provisioning:
+				return "Provisioning"
+			case .deleted:
+				return "Deleted"
+			}
+		}
+
 		var description: String {
 			switch self {
 			case .running:

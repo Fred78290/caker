@@ -100,7 +100,7 @@ struct VirtualMachinesView: View {
 				Text(document.name)
 					.font(.system(size: 13, weight: .semibold))
 					.lineLimit(1)
-				Text(document.status.description.capitalized)
+				Text(document.status.humanReadable)
 					.font(.system(size: 11))
 					.foregroundStyle(.secondary)
 			}

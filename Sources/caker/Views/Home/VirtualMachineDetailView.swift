@@ -33,7 +33,7 @@ struct VirtualMachineDetailView: View {
 				self.header
 
 				self.section(title: "Information", systemImage: "info.circle") {
-					self.row(icon: "power", title: "Status", value: self.vm.status.description.capitalized)
+					self.row(icon: "power", title: "Status", value: self.vm.status.humanReadable.stringValue())
 					Divider().padding(.leading, 38)
 					self.row(icon: "number", title: "Instance ID", value: self.vm.instanceID)
 				}
@@ -81,7 +81,7 @@ struct VirtualMachineDetailView: View {
 					HStack(spacing: 6) {
 						GlossyCircle(color: HostVirtualMachineView.vmStatusColor(self.vm.status))
 							.frame(width: 8, height: 8)
-						Text(self.vm.status.description.capitalized)
+						Text(self.vm.status.humanReadable)
 							.font(.system(size: 12))
 							.foregroundStyle(.secondary)
 					}
