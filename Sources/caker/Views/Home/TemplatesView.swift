@@ -71,7 +71,7 @@ struct TemplatesView: View {
 			VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetTemplate: template)
 				.colorSchemeForColor()
 				.restorationState(.disabled)
-				.frame(minWidth: 700, minHeight: 670)
+				.frame(width: 700, height: 750)
 		}
 	}
 }
