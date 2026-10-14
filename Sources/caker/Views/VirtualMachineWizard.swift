@@ -368,7 +368,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	@ViewBuilder
-	func Content(currentStep: WizardModel.SelectedItem) -> some View {
+	func content(_ currentStep: WizardModel.SelectedItem) -> some View {
 		switch currentStep {
 		case .name:
 			chooseVMName()
@@ -387,6 +387,11 @@ struct VirtualMachineWizard: View {
 		case .sockets:
 			socketsView()
 		}
+	}
+
+	@ViewBuilder
+	func Content(currentStep: WizardModel.SelectedItem) -> some View {
+		self.content(currentStep).scrollDisabled(true)
 	}
 
 	@discardableResult
@@ -613,31 +618,6 @@ struct VirtualMachineWizard: View {
 			}
 			.toolbarTitleDisplayMode(.inlineLarge)
 		}
-	}
-
-	func Middle() -> some View {
-		VStack {
-			switch self.model.currentStep {
-			case .name:
-				chooseVMName()
-			case .os:
-				chooseOSImage()
-			case .cpuAndRam:
-				generalSettings()
-			case .sharing:
-				mountsView()
-			case .disk:
-				diskAttachementView()
-			case .network:
-				networksView()
-			case .ports:
-				forwardPortsView()
-			case .sockets:
-				socketsView()
-			}
-		}
-		.animation(.easeInOut, value: self.model.currentStep)
-		.padding()
 	}
 
 	func Footer() -> some View {
