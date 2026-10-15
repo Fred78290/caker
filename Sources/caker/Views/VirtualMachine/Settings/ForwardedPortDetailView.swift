@@ -260,12 +260,12 @@ struct ForwardedPortDetailView: View {
 				.padding(.vertical, 2)
 				.background(Capsule().fill(.secondary.opacity(0.10)))
 		}
-		.padding(.vertical, 4)
+		.padding(4)
 	}
 
 	@ViewBuilder
 	var fullForm: some View {
-		VStack {
+		VStack(spacing: 12) {
 			LabeledContent("Mode") {
 				HStack {
 					Spacer()
@@ -359,7 +359,7 @@ struct ForwardedPortDetailView: View {
 						.onChange(of: model.guestPath) { _, newValue in
 							self.currentItem = model.tunnelAttachement
 						}
-						.frame(width: 350)
+						.frame(width: 340)
 				}
 
 				LabeledContent("Host path") {
@@ -372,10 +372,10 @@ struct ForwardedPortDetailView: View {
 						Button(action: chooseSocketFile) {
 							Image(systemName: "powerplug")
 						}.withButtonStyle(.borderless)
-					}.frame(width: 350)
+					}.frame(width: 340)
 				}
 			}
-		}
+		}.padding(4)
 	}
 
 	func chooseSocketFile() {

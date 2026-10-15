@@ -61,7 +61,7 @@ struct SocketsDetailView: View {
 
 	@ViewBuilder
 	var fullForm: some View {
-		VStack {
+		VStack(spacing: 12) {
 			LabeledContent("Socket mode") {
 				HStack {
 					Spacer()
@@ -81,7 +81,7 @@ struct SocketsDetailView: View {
 					}.withButtonStyle(.borderless)
 					TextField("Host path", text: $currentItem.bind)
 						.rounded(.leading)
-				}.frame(width: 350)
+				}.frame(width: 340)
 			}
 
 			LabeledContent("Guest port") {
@@ -97,7 +97,7 @@ struct SocketsDetailView: View {
 						}
 					}
 			}
-		}
+		}.padding(4)
 	}
 
 	func chooseSocketFile() {
