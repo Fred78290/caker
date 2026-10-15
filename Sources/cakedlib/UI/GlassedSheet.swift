@@ -289,7 +289,7 @@ private final class GlassedSheetCoordinator<Content: View> {
 		let sheetController = GlassedSheetHostingController(
 			rootView: makeRoot()
 		)
-		sheetController.sizingOptions = [.preferredContentSize]
+		sheetController.sizingOptions = [.minSize]
 		sheetController.onDisappear = { [weak self, weak sheetController] in
 			MainActor.assumeIsolated {
 				guard let self, self.hostingController === sheetController

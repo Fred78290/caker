@@ -19,7 +19,7 @@ struct DiskAttachementView: View {
 			EditableList($attachedDisks, selection: $selection) { $item in
 				DiskAttachementDetailView(currentItem: $item)
 			}.onEditItem("Attached disks must be in sandbox, or Public, Documents, Downloads user folder to be mounted with caked command into virtual machine", selection: $selection, disabled: $disabled) { editItem in
-				DiskAttachementNewItemView($attachedDisks, editItem: editItem)
+				DiskAttachementNewItemView($attachedDisks, editItem: editItem).frame(height: geometry.size.height)
 			} deleteItem: {
 				self.attachedDisks.removeAll {
 					$0.id == selection

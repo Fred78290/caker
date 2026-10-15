@@ -19,7 +19,7 @@ struct ForwardedPortView: View {
 			EditableList($forwardPorts, selection: $selection) { $item in
 				ForwardedPortDetailView(currentItem: $item)
 			}.onEditItem("Socket path must be in the sandbox folder and must be less than 103 characters to be usable with caked command", selection: $selection, disabled: $disabled) {
-				ForwardedPortNewItemView($forwardPorts, editItem: $0)
+				ForwardedPortNewItemView($forwardPorts, editItem: $0).frame(height: geometry.size.height)
 			} deleteItem: {
 				self.forwardPorts.removeAll {
 					$0.id == selection
