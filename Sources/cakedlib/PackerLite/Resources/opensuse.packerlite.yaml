@@ -77,7 +77,9 @@ boot_command:
       - <tab repeat=4>
       - <enter>
       - <wait2s>
-      - <click point="111,43">
+      - <leftSuperOn>
+      - <left>
+      - <leftSuperOff>
 
   - title: Start installation
     commands:
