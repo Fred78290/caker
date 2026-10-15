@@ -586,8 +586,11 @@ struct VirtualMachineWizard: View {
 		if self.sheet {
 			VStack(spacing: 12) {
 				if let provisionnedVM = self.provisionnedVM {
-					WizardVirtualMachineView(provisionnedVM)
-						.disabled(true)
+					GeometryReader { geom in
+						WizardVirtualMachineView(provisionnedVM)
+							.disabled(true)
+							.frame(width: geom.size.width, height: (geom.size.width * CGFloat(config.display.height)) / CGFloat(config.display.width))
+					}
 				} else if let vncState = self.vncState {
 					GeometryReader { geom in
 						vncState.view(geom.size)
@@ -600,8 +603,11 @@ struct VirtualMachineWizard: View {
 		} else {
 			VStack(spacing: 12) {
 				if let provisionnedVM = self.provisionnedVM {
-					WizardVirtualMachineView(provisionnedVM)
-						.disabled(true)
+					GeometryReader { geom in
+						WizardVirtualMachineView(provisionnedVM)
+							.disabled(true)
+							.frame(width: geom.size.width, height: (geom.size.width * CGFloat(config.display.height)) / CGFloat(config.display.width))
+					}
 				} else if let vncState = self.vncState {
 					GeometryReader { geom in
 						vncState.view(geom.size)
