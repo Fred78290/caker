@@ -128,4 +128,15 @@ extension View {
 			self.buttonStyle(style)
 		}
 	}
+
+	@ViewBuilder
+	public func withCircleButtonStyle() -> some View {
+		if #available(macOS 26.0, *) {
+			self.buttonStyle(.glass)
+				.buttonBorderShape(.circle)
+		} else {
+			self.buttonStyle(.bordered)
+				.buttonBorderShape(.circle)
+		}
+	}
 }

@@ -41,14 +41,14 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 
 			content
 			Divider()
-			HStack(spacing: 0) {
+			HStack(spacing: 4) {
 				Button(action: {
 					displayAddItemView = true
 				}) {
 					Image(systemName: "plus")
-						.frame(width: 28, height: 22)
+						.frame(width: 22, height: 22)
 				}
-				.withButtonStyle(.borderless)
+				.withCircleButtonStyle()
 				.font(.system(size: 13))
 				.disabled(self.disabled)
 
@@ -58,9 +58,9 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 						deleteItem()
 					}) {
 						Image(systemName: "minus")
-							.frame(width: 28, height: 22)
+							.frame(width: 22, height: 22)
 					}
-					.withButtonStyle(.borderless)
+					.withCircleButtonStyle()
 					.font(.system(size: 13))
 					.disabled(self.selection == nil || self.disabled)
 				}
@@ -71,9 +71,9 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 					displayEditItemView = true
 				}) {
 					Image(systemName: "pencil")
-						.frame(width: 28, height: 22)
+						.frame(width: 22, height: 22)
 				}
-				.withButtonStyle(.borderless)
+				.withCircleButtonStyle()
 				.font(.system(size: 13))
 				.disabled(self.selection == nil || self.disabled)
 
