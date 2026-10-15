@@ -1141,18 +1141,20 @@ message Caked {
 
     message ImageReply {
       message ImageInfo {
-        string             name         = 1;
-        repeated string    aliases      = 2;
-        string             architecture = 3;
-        bool               pub          = 4;
-        string             fileName     = 5;
-        string             fingerprint  = 6;
-        uint64             size         = 7;
-        string             type         = 8;
-        optional string    created      = 9;
-        optional string    expires      = 10;
-        optional string    uploaded     = 11;
-        map<string,string> properties   = 12;
+        repeated string    aliases      = 1;
+        string             architecture = 2;
+        bool               pub          = 3;
+        string             fileName     = 4;
+        string             fingerprint  = 5;
+        uint64             size         = 6;
+        string             type         = 7;
+        optional string    created      = 8;
+        optional string    expires      = 9;
+        optional string    uploaded     = 10;
+        map<string,string> properties   = 11;
+        // Display name. Added after the other fields, never renumbered, so a client and a caked of
+        // different versions still decode each other; empty from a caked that predates it.
+        string             name         = 12;
       }
 
       message ListImagesInfoReply {
@@ -1169,13 +1171,14 @@ message Caked {
 
       message PulledImageInfoReply {
         message PulledImageInfo {
-          string          name        = 1;
-          optional string alias       = 2;
-          string          path        = 3;
-          uint64          size        = 4;
-          string          fingerprint = 5;
-          string          remoteName  = 6;
-          string          description = 7;
+          optional string alias       = 1;
+          string          path        = 2;
+          uint64          size        = 3;
+          string          fingerprint = 4;
+          string          remoteName  = 5;
+          string          description = 6;
+          // Display name, appended for the same reason as ImageInfo.name.
+          string          name        = 7;
         }
 
         optional PulledImageInfo info    = 1;
