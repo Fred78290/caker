@@ -428,12 +428,12 @@ extension VZVirtualMachineView {
 		return NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
 	}
 
-	public func render(in bounds: NSRect, forOCR: Bool = false) -> CGImage? {
+	public func render(in bounds: NSRect) -> CGImage? {
 		guard let layer = self.layer, let surface = self.surface() else {
 			return nil
 		}
 
-		let scaleFactor = (self.automaticallyReconfiguresDisplay && forOCR == false) ? layer.contentsScale : 1.0
+		let scaleFactor = self.automaticallyReconfiguresDisplay ? layer.contentsScale : 1.0
 		let surfaceSize = CGSize(width: surface.width, height: surface.height)
 		let surfaceImage = surface.cgImage
 
