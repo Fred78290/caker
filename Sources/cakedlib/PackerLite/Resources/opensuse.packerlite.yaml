@@ -38,6 +38,7 @@
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
 
 boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
+ignore_ip: true
 required_variables:
   - username
   - password
