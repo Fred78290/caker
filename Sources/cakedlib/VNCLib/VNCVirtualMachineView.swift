@@ -447,10 +447,10 @@ extension VZVirtualMachineView {
 		renderLayer.masksToBounds = false
 		renderLayer.allowsEdgeAntialiasing = false
 		renderLayer.backgroundColor = .clear
-		renderLayer.contentsScale = 1
+		renderLayer.contentsScale = scaleFactor
 		renderLayer.contentsGravity = .center
 		renderLayer.contentsFormat = .RGBA8Uint
-		renderLayer.bounds = CGRect(origin: .zero, size: CGSize(width: surfaceSize.width, height: surfaceSize.height))
+		renderLayer.bounds = logicalBounds
 		renderLayer.contents = surfaceImage
 
 		guard var cgImage = renderLayer.renderIntoImage(to: logicalBounds) else {
