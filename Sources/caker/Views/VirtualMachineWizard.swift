@@ -677,14 +677,12 @@ struct VirtualMachineWizard: View {
 				.frame(maxWidth: .infinity, alignment: .center)
 
 				HStack(spacing: 8) {
-					if self.sheet {
-						Button {
-							self.closeWindow()
-						} label: {
-							Text("Cancel").frame(width: 80)
-						}
-						.withButtonStyle(.bordered)
+					Button {
+						self.closeWindow()
+					} label: {
+						Text("Cancel").frame(width: 80)
 					}
+					.withButtonStyle(.bordered)
 
 					AsyncButton { done in
 						self.model.createVirtualMachineTask = Task {
