@@ -127,6 +127,24 @@ typedef struct {
 
 typedef struct {
   EFI_TABLE_HEADER Hdr;
+  VOID *GetTime;
+  VOID *SetTime;
+  VOID *GetWakeupTime;
+  VOID *SetWakeupTime;
+  VOID *SetVirtualAddressMap;
+  VOID *ConvertPointer;
+  EFI_STATUS (*GetVariable)(CHAR16 *VariableName, EFI_GUID *VendorGuid, UINT32 *Attributes, UINTN *DataSize, VOID *Data);
+  VOID *GetNextVariableName;
+  EFI_STATUS (*SetVariable)(CHAR16 *VariableName, EFI_GUID *VendorGuid, UINT32 Attributes, UINTN DataSize, VOID *Data);
+} EFI_RUNTIME_SERVICES;
+
+#define EFI_VARIABLE_NON_VOLATILE 0x1
+#define EFI_VARIABLE_BOOTSERVICE_ACCESS 0x2
+#define EFI_VARIABLE_RUNTIME_ACCESS 0x4
+#define LOAD_OPTION_ACTIVE 0x1
+
+typedef struct {
+  EFI_TABLE_HEADER Hdr;
   CHAR16 *FirmwareVendor;
   UINT32 FirmwareRevision;
   EFI_HANDLE ConsoleInHandle;
@@ -135,7 +153,7 @@ typedef struct {
   VOID *ConOut;
   EFI_HANDLE StandardErrorHandle;
   VOID *StdErr;
-  VOID *RuntimeServices;
+  EFI_RUNTIME_SERVICES *RuntimeServices;
   EFI_BOOT_SERVICES *BootServices;
 } EFI_SYSTEM_TABLE;
 
@@ -144,6 +162,7 @@ typedef struct {
   EFI_HANDLE ParentHandle;
   EFI_SYSTEM_TABLE *SystemTable;
   EFI_HANDLE DeviceHandle;
+  EFI_DEVICE_PATH_PROTOCOL *FilePath;
 } EFI_LOADED_IMAGE_PROTOCOL;
 
 // Graphics output protocol

@@ -72,18 +72,28 @@ cakectl build my-vm ./restore.ipsw --autoinstall --var greeting=hello
 
 **Linux** : neuf templates Linux sont également fournis en ressources embarquées (les préfixes `linux-`/`vanilla-` ont depuis été retirés de tous les noms de fichiers embarqués, macOS compris) : `fedora` (Fedora Workstation, Anaconda — ISO Live, boot dans un bureau live puis assistant graphique de premier démarrage GNOME ; sélectionné quand l'URL/nom de fichier contient « workstation » ou « desktop »), `fedora-server` (Fedora Server, Anaconda — même flux qu'un ISO CentOS/RHEL, boot direct sans session live ; sélectionné par défaut sinon), `centos` (CentOS Stream, Anaconda), `redhat` (RHEL, Anaconda — `redhat` **et** `rhel` sont tous deux reconnus dans le nom de fichier), `opensuse` (openSUSE Leap, installeur YaST), `debian` (Debian, debian-installer), `alpine` (Alpine, `setup-alpine`), et `ubuntu`/`ubuntu-server` (Ubuntu Desktop et Server). La plupart ont depuis été réécrits pour utiliser une navigation synchronisée par OCR (`<locate>`) plutôt que des clics/délais fixes, au fil de plusieurs passes de correction visant explicitement à coller à ce que l'installeur affiche réellement — contrairement à leur état d'origine (relu pour la plausibilité seulement), cela suppose une itération contre de vrais démarrages, même si aucun commit ne revendique une validation de bout en bout complète ; attendez-vous malgré tout à devoir ajuster ponctuellement des cibles de clic. Le template `opensuse` cible l'installeur YaST (openSUSE Leap ≤ 15.6) — les ISO Leap 16.0/16.1 récemment ajoutées à `VMImages.json` utilisent le nouvel installeur Agama, non couvert par ce template ; fournissez votre propre `--template` pour ces versions en attendant. Ubuntu conserve aussi son propre mécanisme d'installation automatisée natif (cloud-init/subiquity, via l'option de démarrage « autoinstall ») — les templates `ubuntu*` sont une alternative optionnelle qui passe par la même approche PackerLite pilotée par OCR que toutes les autres distributions ; contrairement aux autres templates Linux embarqués, leur `boot_command` ne saisit pas les identifiants du compte, il se contente de naviguer le menu GRUB et le clavier puis d'attendre que le flux « autoinstall » natif d'Ubuntu se termine de lui-même. Toute autre distribution nécessite un `--template` personnalisé.
 
-**Windows 11** : un dixième template, `windows11`, installe Windows 11 (ARM64 ou x64) depuis l'ISO officiel de Microsoft. Il est sélectionné quand le nom de fichier ou l'URL contient `windows`, `win11` ou `win10` (les ISO de Microsoft s'appellent par exemple `Win11_25H2_English_Arm64_v2.iso`). Comme pour les autres templates Linux, il a été écrit d'après le flux documenté de Windows Setup/OOBE mais **n'a pas été validé de bout en bout sur un vrai démarrage** : ajustez les ancres OCR à votre version de Windows. Particularités :
+**Windows 11 (ARM64)** : Windows s'installe sans surveillance, mais **pas** par PackerLite : son installateur n'affiche rien à l'écran (le firmware d'Apple ne fournit pas de framebuffer à Windows) et un `boot_command` piloté par OCR n'aurait donc rien à lire. `build --autoinstall` sur un ISO Windows 11 pour ARM (le nom de fichier ou l'URL contient `windows`, `win11` ou `win10`) fait à la place :
 
-- **Pas de TPM ni de Secure Boot.** Virtualization.framework n'expose aucun TPM (Windows ne lie qu'un TPM décrit par une table ACPI, et un périphérique virtio n'a pas de pilote Windows). Le template ouvre la console de Windows Setup (Maj+F10) et positionne les valeurs `HKLM\SYSTEM\Setup\LabConfig` `BypassTPMCheck`, `BypassSecureBootCheck`, `BypassRAMCheck`, `BypassCPUCheck` et `BypassStorageCheck` avant de cliquer sur « Install now ». La VM n'a donc pas de TPM : BitLocker et le chiffrement d'appareil sont indisponibles.
-- **Périphériques adaptés à Windows.** Windows n'embarque aucun pilote virtio : pour un invité Windows (plateforme `windows` détectée), `caked` expose le disque système en NVMe et l'ISO d'installation en périphérique de stockage de masse USB en lecture seule. La carte réseau virtio n'a pas non plus de pilote : la VM démarre sans réseau (installez NetKVM depuis l'ISO virtio-win si besoin), d'où la création d'un compte local pendant l'OOBE.
-- **Pas d'agent ni d'IP.** Le template positionne `ignore_ip: true` et `install_agent: false`, et aucune graine cloud-init n'est générée.
-- **Dimensionnement recommandé** : au moins 2 CPU, 4 Gio de mémoire et 64 Go de disque (un avertissement est journalisé en dessous).
+1. un disque d'installation GPT est construit à partir de l'ISO (l'ISO tel quel ne démarre pas : il n'a qu'un enregistrement El Torito, que le firmware ne lit pas sur un disque USB) ; l'image WinPE (`boot.wim`) est modifiée avec `wimlib` pour que son shell lance un script d'installation au lieu de Windows Setup ;
+2. la VM démarre sur ce disque : le script partitionne le disque système, applique l'image Windows (`dism`), y ajoute les pilotes virtio (écran et réseau, depuis l'ISO virtio-win téléchargé et mis en cache) et un fichier de réponses qui crée le compte `--user`/`--password` avec ouverture de session automatique, puis éteint la VM ;
+3. la VM démarre sur Windows, qui se configure (plusieurs redémarrages : Virtualization.framework arrête une VM dont l'invité redémarre, donc elle est relancée jusqu'à ce que Windows laisse son marqueur `done` sur la partition EFI et s'éteigne).
+
+L'installation dure environ 8 minutes. Windows démarre ensuite normalement (`cakectl start`), avec un écran et un réseau fonctionnels.
 
 ```bash
-cakectl build my-win11 ./Win11_25H2_English_Arm64_v2.iso \
-  --cpus 4 --memory 8192 --disk-size 80 \
-  --user admin --password admin --autoinstall
+brew install wimlib    # nécessaire pour modifier l'image WinPE
+cakectl build my-win11 iso:///chemin/Windows11_Client_arm64_en-us_26300_9457.iso \
+  --cpus 4 --memory 8192 --disk-size 64 --user admin --password admin --autoinstall
 ```
+
+Particularités :
+
+- **L'ISO se passe en `iso:///chemin/absolu.iso`** : un chemin nu est traité comme une image disque brute.
+- **Pas de TPM.** Virtualization.framework n'en expose aucun (Windows ne lie qu'un TPM décrit par une table ACPI, et un périphérique virtio n'a pas de pilote Windows). L'installation ne passe pas par Windows Setup, donc ses contrôles TPM/Secure Boot ne s'appliquent pas, mais BitLocker et le chiffrement d'appareil sont indisponibles.
+- **Matériel adapté à Windows.** Disque système en NVMe, support d'installation en périphérique de stockage de masse USB, deux fonctions CPU activées par des API privées (voir ci-dessous) et un petit pilote UEFI (`Tools/WindowsEFI`) qui fournit le framebuffer que Windows exige.
+- **Seul l'anglais est configuré** pour le moment (la langue de l'image est reprise dans le fichier de réponses).
+- **Hors version App Store** : l'installation lance `hdiutil`, `diskutil` et `wimlib`, et le pilote CPU repose sur des API privées.
+- **Dimensionnement minimal** : 2 CPU, 4 Gio de mémoire, 64 Go de disque (un avertissement est journalisé en dessous).
 
 Certains templates Linux (`{centos,debian,fedora,opensuse,redhat}.packerlite.yaml`) déclarent désormais aussi un `pre_boot_command:` optionnel, exécuté juste après le démarrage de la VM — avant qu'une IP soit disponible — pour envoyer les frappes de navigation du menu GRUB au tout début du boot, réduisant l'attente aveugle initiale à 5s (au lieu d'environ 30s).
 
@@ -326,18 +336,28 @@ cakectl build my-vm ./restore.ipsw --autoinstall --var greeting=hello
 
 **Linux**: nine Linux templates also ship as embedded resources (the `linux-`/`vanilla-` filename prefixes have since been dropped from every bundled template, macOS included): `fedora` (Fedora Workstation, Anaconda — Live ISO, boots into a live desktop and then GNOME's graphical first-boot setup wizard; selected when the URL/filename contains "workstation" or "desktop"), `fedora-server` (Fedora Server, Anaconda — same flow as a CentOS/RHEL ISO, boots straight in with no live session; selected by default otherwise), `centos` (CentOS Stream, Anaconda), `redhat` (RHEL, Anaconda — both `redhat` and `rhel` are recognized in the filename), `opensuse` (openSUSE Leap, YaST installer), `debian` (Debian, debian-installer), `alpine` (Alpine, `setup-alpine`), and `ubuntu`/`ubuntu-server` (Ubuntu Desktop and Server). Most have since been rewritten to use OCR-synchronized (`<locate>`) navigation instead of fixed clicks/delays, across several fix passes explicitly aimed at matching what the real installer actually shows — unlike their original "reviewed for plausibility only" state, that implies iteration against real boots, though no commit claims full end-to-end validation; still expect to need to nudge the occasional click target. `opensuse` targets the YaST installer (openSUSE Leap ≤ 15.6) — the newly-added Leap 16.0/16.1 ISOs in `VMImages.json` use the new Agama installer instead, which this template doesn't cover; bring your own `--template` for those versions in the meantime. Ubuntu also still has its own native unattended-install mechanism (cloud-init/subiquity, via the "autoinstall" boot option) — the `ubuntu*` templates are an optional alternative that goes through the same OCR-driven PackerLite approach every other distro here uses; unlike the other bundled Linux templates, their `boot_command` never types the account credentials, it just navigates the GRUB menu and keyboard layout, then waits for Ubuntu's own autoinstall flow to finish on its own. Any other distro needs a custom `--template`.
 
-**Windows 11**: a tenth template, `windows11`, installs Windows 11 (ARM64 or x64) from Microsoft's official ISO. It is selected when the filename or URL contains `windows`, `win11` or `win10` (Microsoft's ISOs are named like `Win11_25H2_English_Arm64_v2.iso`). Like the other Linux templates it was written against the documented Windows Setup/OOBE flow but **has not been validated end to end against a real boot**: adjust the OCR anchors to your Windows release. Specifics:
+**Windows 11 (ARM64)**: Windows installs unattended, but **not** through PackerLite: its installer shows nothing on screen (Apple's firmware gives Windows no framebuffer), so an OCR-driven `boot_command` would have nothing to read. `build --autoinstall` on a Windows 11 for ARM ISO (the filename or URL contains `windows`, `win11` or `win10`) does this instead:
 
-- **No TPM or Secure Boot.** Virtualization.framework exposes no TPM (Windows only binds a TPM described by an ACPI table, and a virtio device has no Windows driver). The template opens Windows Setup's console (Shift+F10) and sets the `HKLM\SYSTEM\Setup\LabConfig` values `BypassTPMCheck`, `BypassSecureBootCheck`, `BypassRAMCheck`, `BypassCPUCheck` and `BypassStorageCheck` before clicking "Install now". The VM therefore has no TPM: BitLocker and device encryption are unavailable.
-- **Windows-friendly devices.** Windows ships no virtio drivers, so for a Windows guest (platform `windows` detected) `caked` exposes the system disk as NVMe and the install ISO as a read-only USB mass storage device. The virtio network card has no inbox driver either: the VM comes up without a network (install NetKVM from the virtio-win ISO if you need one), which is why a local account is created during OOBE.
-- **No agent, no IP.** The template sets `ignore_ip: true` and `install_agent: false`, and no cloud-init seed is generated.
-- **Recommended sizing**: at least 2 CPUs, 4 GiB of memory and a 64 GB disk (a warning is logged below that).
+1. a GPT installation disk is built from the ISO (the ISO as is doesn't boot: it only has an El Torito boot record, which firmware doesn't read on a USB disk); WinPE's image (`boot.wim`) is edited with `wimlib` so its shell runs an install script instead of Windows Setup;
+2. the VM boots that disk: the script partitions the system disk, applies the Windows image (`dism`), adds the virtio drivers (display and network, from the virtio-win ISO, downloaded and cached) and an answer file that creates the `--user`/`--password` account with automatic logon, then powers the VM off;
+3. the VM boots Windows, which sets itself up (several restarts: Virtualization.framework stops a VM whose guest reboots, so it is started again until Windows leaves its `done` marker on the EFI partition and powers off).
+
+Installing takes about 8 minutes. Windows then starts normally (`cakectl start`), with a working display and network.
 
 ```bash
-cakectl build my-win11 ./Win11_25H2_English_Arm64_v2.iso \
-  --cpus 4 --memory 8192 --disk-size 80 \
-  --user admin --password admin --autoinstall
+brew install wimlib    # needed to edit the WinPE image
+cakectl build my-win11 iso:///path/to/Windows11_Client_arm64_en-us_26300_9457.iso \
+  --cpus 4 --memory 8192 --disk-size 64 --user admin --password admin --autoinstall
 ```
+
+Specifics:
+
+- **Pass the ISO as `iso:///absolute/path.iso`**: a bare path is treated as a raw disk image.
+- **No TPM.** Virtualization.framework exposes none (Windows only binds a TPM described by an ACPI table, and a virtio device has no Windows driver). The install doesn't go through Windows Setup, so its TPM/Secure Boot checks don't apply, but BitLocker and device encryption are unavailable.
+- **Windows-friendly hardware.** NVMe system disk, USB mass storage installation media, two CPU features enabled through private API (see below), and a small UEFI driver (`Tools/WindowsEFI`) that supplies the framebuffer Windows requires.
+- **Only English is configured** for now (the image's language is carried into the answer file).
+- **Not in the App Store build**: the install runs `hdiutil`, `diskutil` and `wimlib`, and the CPU feature setup relies on private API.
+- **Minimum sizing**: 2 CPUs, 4 GiB of memory, 64 GB of disk (a warning is logged below that).
 
 Several Linux templates (`{centos,debian,fedora,opensuse,redhat}.packerlite.yaml`) now also declare an optional `pre_boot_command:`, run immediately after the VM starts — before an IP is available — to send GRUB boot-menu keystrokes right at the start of boot, cutting the initial blind wait down to 5s (from roughly 30s).
 

@@ -23,6 +23,10 @@
 /* Begin PBXBuildFile section */
 		062BB2C476CE4B99A3059E9C /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 		0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */; };
+		8E3915A998D8A419A5BF06A8 /* WindowsInstallResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2277924602801C96A1C85DD /* WindowsInstallResources.swift */; };
+		DFE1BF8599918E88E5CE0B71 /* WindowsInstallationMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A2706E9158E4CB064FBCB9 /* WindowsInstallationMedia.swift */; };
+		4DB04CFDA26AE16AB65C1DE4 /* WindowsInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD76FFB59F6B86585688341D /* WindowsInstaller.swift */; };
+		CE31DF57331EB931E62803C4 /* WindowsEFIBinaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7D990FCDDDC3A9FD878A93 /* WindowsEFIBinaries.swift */; };
 		DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */; };
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
 		1529390CB99D1AC2B7B1ECF0 /* ComposeDNSRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */; };
@@ -229,7 +233,6 @@
 		9B2D379A304AD80500204614 /* debian.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378B304AD80500204614 /* debian.packerlite.yaml */; };
 		9B2D379B304AD80500204614 /* fedora.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378D304AD80500204614 /* fedora.packerlite.yaml */; };
 		9B2D379C304AD80500204614 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D3789304AD80500204614 /* alpine.packerlite.yaml */; };
-		8697771ED3C0B795C2927889 /* windows11.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 785C519F5B7071EB2FCF4A29 /* windows11.packerlite.yaml */; };
 		9B2D379D304AD80500204614 /* macos13.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378F304AD80500204614 /* macos13.packerlite.yaml */; };
 		9B2D379E304AD80500204614 /* macos15.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D3791304AD80500204614 /* macos15.packerlite.yaml */; };
 		9B2D379F304AD80500204614 /* centos.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378A304AD80500204614 /* centos.packerlite.yaml */; };
@@ -245,7 +248,6 @@
 		9B2D37A9304AD80500204614 /* debian.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378B304AD80500204614 /* debian.packerlite.yaml */; };
 		9B2D37AA304AD80500204614 /* fedora.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378D304AD80500204614 /* fedora.packerlite.yaml */; };
 		9B2D37AB304AD80500204614 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D3789304AD80500204614 /* alpine.packerlite.yaml */; };
-		F9CCEA3419C2F1E34E5891CC /* windows11.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 785C519F5B7071EB2FCF4A29 /* windows11.packerlite.yaml */; };
 		9B2D37AC304AD80500204614 /* macos13.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378F304AD80500204614 /* macos13.packerlite.yaml */; };
 		9B2D37AD304AD80500204614 /* macos15.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D3791304AD80500204614 /* macos15.packerlite.yaml */; };
 		9B2D37AE304AD80500204614 /* centos.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378A304AD80500204614 /* centos.packerlite.yaml */; };
@@ -1092,7 +1094,6 @@
 		9B2D37843048578B00204614 /* ProvisionVariableNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionVariableNewItemView.swift; sourceTree = "<group>"; };
 		9B2D37853048578B00204614 /* ProvisionVariablesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionVariablesView.swift; sourceTree = "<group>"; };
 		9B2D3789304AD80500204614 /* alpine.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = alpine.packerlite.yaml; sourceTree = "<group>"; };
-		785C519F5B7071EB2FCF4A29 /* windows11.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = windows11.packerlite.yaml; sourceTree = "<group>"; };
 		9B2D378A304AD80500204614 /* centos.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = centos.packerlite.yaml; sourceTree = "<group>"; };
 		9B2D378B304AD80500204614 /* debian.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = debian.packerlite.yaml; sourceTree = "<group>"; };
 		9B2D378C304AD80500204614 /* fedora-server.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "fedora-server.packerlite.yaml"; sourceTree = "<group>"; };
@@ -1693,6 +1694,10 @@
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
 		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
+		C2277924602801C96A1C85DD /* WindowsInstallResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowsInstallResources.swift; sourceTree = "<group>"; };
+		B7A2706E9158E4CB064FBCB9 /* WindowsInstallationMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowsInstallationMedia.swift; sourceTree = "<group>"; };
+		AD76FFB59F6B86585688341D /* WindowsInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowsInstaller.swift; sourceTree = "<group>"; };
+		7A7D990FCDDDC3A9FD878A93 /* WindowsEFIBinaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowsEFIBinaries.swift; sourceTree = "<group>"; };
 		0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateChecker.swift; sourceTree = "<group>"; };
 		CEBCF840FC996468321E4B7D /* BootCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootCommand.swift; sourceTree = "<group>"; };
 		D0126D49FEBD9B20C4406BD4 /* CachedImageKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedImageKind.swift; sourceTree = "<group>"; };
@@ -2574,7 +2579,6 @@
 			isa = PBXGroup;
 			children = (
 				9B2D3789304AD80500204614 /* alpine.packerlite.yaml */,
-				785C519F5B7071EB2FCF4A29 /* windows11.packerlite.yaml */,
 				9B2D378A304AD80500204614 /* centos.packerlite.yaml */,
 				9B2D378B304AD80500204614 /* debian.packerlite.yaml */,
 				9B2D378C304AD80500204614 /* fedora-server.packerlite.yaml */,
@@ -3004,6 +3008,10 @@
 				9BDC05242FEADADE00802A3C /* CakerEnv.swift */,
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
 				C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */,
+				C2277924602801C96A1C85DD /* WindowsInstallResources.swift */,
+				B7A2706E9158E4CB064FBCB9 /* WindowsInstallationMedia.swift */,
+				AD76FFB59F6B86585688341D /* WindowsInstaller.swift */,
+				7A7D990FCDDDC3A9FD878A93 /* WindowsEFIBinaries.swift */,
 				9BDC05FC2FEADD6F00802A3C /* ComposeFile.swift */,
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
@@ -3664,7 +3672,6 @@
 				9B2D379A304AD80500204614 /* debian.packerlite.yaml in Resources */,
 				9B2D379B304AD80500204614 /* fedora.packerlite.yaml in Resources */,
 				9B2D379C304AD80500204614 /* alpine.packerlite.yaml in Resources */,
-				8697771ED3C0B795C2927889 /* windows11.packerlite.yaml in Resources */,
 				9B2D379D304AD80500204614 /* macos13.packerlite.yaml in Resources */,
 				9B2D379E304AD80500204614 /* macos15.packerlite.yaml in Resources */,
 				9B2D379F304AD80500204614 /* centos.packerlite.yaml in Resources */,
@@ -3701,7 +3708,6 @@
 				9B2D37A9304AD80500204614 /* debian.packerlite.yaml in Resources */,
 				9B2D37AA304AD80500204614 /* fedora.packerlite.yaml in Resources */,
 				9B2D37AB304AD80500204614 /* alpine.packerlite.yaml in Resources */,
-				F9CCEA3419C2F1E34E5891CC /* windows11.packerlite.yaml in Resources */,
 				9B2D37AC304AD80500204614 /* macos13.packerlite.yaml in Resources */,
 				9B2D37AD304AD80500204614 /* macos15.packerlite.yaml in Resources */,
 				9B2D37AE304AD80500204614 /* centos.packerlite.yaml in Resources */,
@@ -4353,6 +4359,10 @@
 				9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */,
 				9BDC05FD2FEADD6F00802A3C /* ComposeFile.swift in Sources */,
 				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
+				8E3915A998D8A419A5BF06A8 /* WindowsInstallResources.swift in Sources */,
+				DFE1BF8599918E88E5CE0B71 /* WindowsInstallationMedia.swift in Sources */,
+				4DB04CFDA26AE16AB65C1DE4 /* WindowsInstaller.swift in Sources */,
+				CE31DF57331EB931E62803C4 /* WindowsEFIBinaries.swift in Sources */,
 				DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */,
 				9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */,
 				9B5A8D9A30682FE100A8C53C /* CakeHomeHandler.swift in Sources */,
