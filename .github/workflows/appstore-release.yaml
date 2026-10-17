@@ -25,7 +25,7 @@ env:
   RUN_PYTEST: ${{ vars.RUN_PYTEST }}
   RUN_SWIFT_TESTS: ${{ vars.RUN_SWIFT_TESTS }}
   CAKE_HOME: "${{ github.workspace }}/.cake"
-  PKGDIR: "${{ github.workspace }}/appstore/Caker.app"
+  PKGDIR: "${{ github.workspace }}/build/appstore/Caker.app"
   CODESIGN_REQUIREMENT: ${{ vars.CODESIGN_REQUIREMENT }}
   BASE_VERSION: ${{ vars.BASE_VERSION }}
 permissions:
@@ -141,7 +141,7 @@ jobs:
           fi
 
           mkdir -p "${GITHUB_WORKSPACE}/appstore"
-          PKG_PATH="${GITHUB_WORKSPACE}/appstore/Caker.pkg"
+          PKG_PATH="${GITHUB_WORKSPACE}/build/appstore/Caker.pkg"
 
           echo "CAKE_HOME=${HOME}/Library/Containers/com.aldunelabs.caker/Data/.cake" >> ${GITHUB_ENV}
           echo "PKG_PATH=${PKG_PATH}" >> ${GITHUB_ENV}
@@ -151,9 +151,9 @@ jobs:
           echo "build_package=${PACKAGE}" >> ${GITHUB_OUTPUT}
           echo "version=${VERSION}" >> ${GITHUB_OUTPUT}
           echo "pkg_path=${PKG_PATH}" >> ${GITHUB_OUTPUT}
-          echo "version_path=${GITHUB_WORKSPACE}/appstore/version.txt" >> ${GITHUB_OUTPUT}
+          echo "version_path=${GITHUB_WORKSPACE}/build/appstore/version.txt" >> ${GITHUB_OUTPUT}
 
-          echo -n "${VERSION}" > "${GITHUB_WORKSPACE}/appstore/version.txt"
+          echo -n "${VERSION}" > "${GITHUB_WORKSPACE}/build/appstore/version.txt"
 
       - name: 🛠️ Install the Apple Distribution certificate
         id: setup_keychain
@@ -175,7 +175,7 @@ jobs:
         if: vars.RUN_SWIFT_TESTS == 'true'
         run: |
           set -o pipefail
-          export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns/caked.app/Contents/MacOS:${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS:${PATH}
+          export PATH=${GITHUB_WORKSPACE}/build/appstore/Caker.app/Contents/PlugIns/caked.app/Contents/MacOS:${GITHUB_WORKSPACE}/build/appstore/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS:${PATH}
           swift package config set-mirror --original https://github.com/apple/swift-argument-parser --mirror https://github.com/Fred78290/swift-argument-parser
           swift package resolve
           jq '(.pins[] | select(.identity == "swift-argument-parser")) |= (
@@ -190,7 +190,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          export PATH=${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns/caked.app/Contents/MacOS:${GITHUB_WORKSPACE}/appstore/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS:${PATH}
+          export PATH=${GITHUB_WORKSPACE}/build/appstore/Caker.app/Contents/PlugIns/caked.app/Contents/MacOS:${GITHUB_WORKSPACE}/build/appstore/Caker.app/Contents/PlugIns/cakectl.app/Contents/MacOS:${PATH}
           if [ -z "$(command -v virtualenv)" ]; then
             brew install virtualenv
           fi
@@ -277,7 +277,7 @@ jobs:
       - name: 🚀 Upload to TestFlight / App Store Connect
         env:
           VERSION: "${{ needs.build.outputs.version }}"
-          PKG_PATH: "${{ github.workspace }}/appstore/Caker.pkg"
+          PKG_PATH: "${{ github.workspace }}/build/appstore/Caker.pkg"
         run: |
           chmod +x ./.ci/upload-appstore.sh
           ./.ci/upload-appstore.sh

@@ -6,7 +6,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PKGDIR="${PKGDIR:-${PROJECT_ROOT}/appstore/Caker.app}"
+PKGDIR="${PKGDIR:-${PROJECT_ROOT}/build/appstore/Caker.app}"
 KEYCHAIN_OPTIONS=${1:-}
 
 if [ -f ${PROJECT_ROOT}/.env ]; then
@@ -65,7 +65,7 @@ done
 
 source "${PROJECT_ROOT}/Scripts/build.inc.sh"
 
-OUTDIR="${PROJECT_ROOT}/appstore"
+OUTDIR="${PROJECT_ROOT}/build/appstore"
 PKGNAME="${PKGNAME:-Caker.pkg}"
 PKGPATH="${PKGPATH:-${OUTDIR}/${PKGNAME}}"
 

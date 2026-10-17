@@ -32,7 +32,6 @@ __pycache__/
 *.egg-info/
 *.egg
 *.whl
-
 .ci/dmg/
 build/
 *.dmg
@@ -44,26 +43,17 @@ releases/
 release-notes-*.html
 /.cake/
 .vars
-
 Caker Localizations/
-
 traductions/
-
 *.profraw
-
 Package.resolved
-
 webui/node_modules/
-
 webui/package-lock.json
-
 webui/webui.zip
 webui/tsconfig.tsbuildinfo
 .appstore/*
 .release/*
 .debug/*
-appstore/*.app
 *.app.dSYM
 *.app.dSYM.zip
-
 .claude/

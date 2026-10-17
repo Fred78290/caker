@@ -4,7 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-PKG_PATH="${PKG_PATH:-${PROJECT_ROOT}/appstore/Caker.pkg}"
+PKG_PATH="${PKG_PATH:-${PROJECT_ROOT}/build/appstore/Caker.pkg}"
 
 if [ ! -f "${PKG_PATH}" ]; then
 	echo "Error: package not found at ${PKG_PATH}"
