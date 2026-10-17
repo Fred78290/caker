@@ -1,0 +1,215 @@
+# windows11.packerlite.yaml
+#
+# Built-in PackerLite template — unattended installation of Windows 11 (ARM64
+# or x64) from the official Microsoft install ISO, driven natively by
+# caked/caker after booting from the ISO. This is the default template
+# auto-selected for an ISO whose filename/URL contains "windows", "win11" or
+# "win10" (GRPCLib.SupportedPlatform detection, e.g. Win11_25H2_English_Arm64_v2.iso)
+# when --autoinstall is passed without an explicit --template — pass --template
+# yourself to override it. Like the Linux templates, this one is NOT a
+# guaranteed-working recipe: it has been written against the documented
+# Windows 11 Setup/OOBE flow but NOT validated end-to-end against a real boot.
+# Treat the OCR anchors below as a first draft to adjust against your own run
+# (Setup and OOBE wording changes between Windows 11 releases).
+#
+# Why the registry keys: Windows 11 Setup refuses to install without a TPM 2.0
+# and Secure Boot, and the Virtualization framework provides neither a TPM nor a
+# way to expose one (Windows only binds a TPM described by an ACPI table, and a
+# virtio device has no Windows driver). Setup honours the documented
+# HKLM\SYSTEM\Setup\LabConfig bypass values, which this template sets from
+# Setup's own Shift+F10 console before clicking "Install now". The guest has no
+# TPM afterwards, so BitLocker/device encryption and anything else that needs
+# one is unavailable.
+#
+# Devices: Windows ships no virtio drivers, so caked exposes the system disk as
+# NVMe and the install ISO as a USB mass storage device for a Windows guest. The
+# virtio network card has no inbox driver either — the VM comes up without a
+# network, which is why the account is created locally during OOBE. Install the
+# NetKVM driver from the virtio-win ISO afterwards if you need networking. The
+# cakeagent does not exist for Windows (install_agent: false) and there is no IP
+# to wait for (ignore_ip: true).
+#
+# Recommended sizing: at least 2 CPUs, 4 GiB of memory and a 64 GB disk, e.g.
+#   cakectl build my-win11 ./Win11_25H2_English_Arm64_v2.iso \
+#     --cpus 4 --memory 8192 --disk-size 80 \
+#     --user admin --password admin --autoinstall
+#
+# ${var.username}/${var.password} below resolve to the VM's actual account,
+# i.e. whatever --user/--password (or the UI) configured — not declared here.
+
+boot_timeout: 90m # copying, expanding and the OOBE reboots take a long time
+ignore_ip: true
+install_agent: false
+required_variables:
+  - username
+  - password
+
+pre_boot_command:
+  - title: Press any key to boot from the Windows ISO
+    commands:
+      - <wait5s>
+      - <spacebar>
+      - <wait1s>
+      - <spacebar>
+      - <wait1s>
+      - <spacebar>
+      - <wait1s>
+      - <spacebar>
+      - <wait1s>
+      - <spacebar>
+      - <wait1s>
+      - <spacebar>
+
+boot_command:
+  - title: Change keyboard
+    commands:
+      - <keyboard 'com.apple.keylayout.US'>
+
+  - title: Wait for Windows Setup
+    commands:
+      - <locate text="Language to install|Languages to install|Windows Setup" timeout=900>
+      - <wait2s>
+
+  - title: Bypass the TPM, Secure Boot, RAM, CPU and storage checks
+    commands:
+      - <leftShiftOn>
+      - <f10>
+      - <leftShiftOff>
+      - <wait3s>
+      - reg add HKLM\\SYSTEM\\Setup\\LabConfig /v BypassTPMCheck /t REG_DWORD /d 1 /f
+      - <enter>
+      - <wait1s>
+      - reg add HKLM\\SYSTEM\\Setup\\LabConfig /v BypassSecureBootCheck /t REG_DWORD /d 1 /f
+      - <enter>
+      - <wait1s>
+      - reg add HKLM\\SYSTEM\\Setup\\LabConfig /v BypassRAMCheck /t REG_DWORD /d 1 /f
+      - <enter>
+      - <wait1s>
+      - reg add HKLM\\SYSTEM\\Setup\\LabConfig /v BypassCPUCheck /t REG_DWORD /d 1 /f
+      - <enter>
+      - <wait1s>
+      - reg add HKLM\\SYSTEM\\Setup\\LabConfig /v BypassStorageCheck /t REG_DWORD /d 1 /f
+      - <enter>
+      - <wait1s>
+      - exit
+      - <enter>
+      - <wait2s>
+
+  - title: Start the installation
+    commands:
+      - <click text="Next">
+      - <wait2s>
+      - <click text="Install now">
+
+  - title: Skip the product key
+    commands:
+      - <skipCommandIfNotFound text="have a product key|Activate Windows" timeout=60>
+      - <click text="have a product key">
+      - <wait2s>
+
+  - title: Select the edition
+    commands:
+      - <skipCommandIfNotFound text="Select the operating system|operating system you want to install" timeout=30>
+      - <click text="Next">
+      - <wait2s>
+
+  - title: Accept the license terms
+    commands:
+      - <locate text="Applicable notices and license terms|license terms" timeout=120>
+      - <click text="I accept">
+      - <wait1s>
+      - <click text="Next">
+      - <wait2s>
+
+  - title: Choose a custom installation
+    commands:
+      - '<locate text="Which type of installation do you want|Custom: Install Windows only" timeout=60>'
+      - '<click text="Custom: Install Windows only">'
+      - <wait2s>
+
+  - title: Install on the NVMe disk
+    commands:
+      - <locate text="Where do you want to install Windows" timeout=60>
+      - <wait1s>
+      - <click text="Next">
+
+  - title: Wait for the files to be copied and the first reboot
+    commands:
+      - <locate text="Installing Windows|Getting files ready|Getting ready" timeout=300>
+
+  - title: Wait for the out-of-box experience
+    commands:
+      - <locate text="right country or region|start with your region|Is this the right" timeout=3600>
+      - <wait2s>
+      - <click text="Yes">
+      - <wait3s>
+
+  - title: Keyboard layout
+    commands:
+      - <locate text="right keyboard layout|keyboard layout or input method" timeout=120>
+      - <wait1s>
+      - <click text="Yes">
+      - <wait3s>
+      - <skipCommandIfNotFound text="second keyboard layout" timeout=15>
+      - <click text="Skip">
+      - <wait3s>
+
+  - title: Create a local account
+    # The VM has no network adapter driver, so OOBE jumps to the account page. Opening a console and
+    # starting the local-account flow avoids the mandatory Microsoft account.
+    commands:
+      - <locate text="Sign in|Microsoft account|add your account|Let's add" timeout=600>
+      - <wait2s>
+      - <leftShiftOn>
+      - <f10>
+      - <leftShiftOff>
+      - <wait3s>
+      - start ms-cxh:localonly
+      - <enter>
+      - <wait2s>
+      - exit
+      - <enter>
+      - <wait3s>
+
+  - title: Fill the local account
+    commands:
+      - <locate text="Create a user for this PC|Who's going to use this PC|Username" timeout=120>
+      - <wait1s>
+      - ${var.username}
+      - <tab>
+      - ${var.password}
+      - <tab>
+      - ${var.password}
+      - <enter>
+      - <wait3s>
+
+  - title: Security questions
+    # Some builds ask for three security questions; answer them with the account name.
+    commands:
+      - <skipCommandIfNotFound text="security questions|Choose a security question" timeout=20>
+      - <tab>
+      - <down>
+      - <tab>
+      - ${var.username}
+      - <tab>
+      - <down>
+      - <tab>
+      - ${var.username}
+      - <tab>
+      - <down>
+      - <tab>
+      - ${var.username}
+      - <enter>
+      - <wait3s>
+
+  - title: Privacy settings
+    commands:
+      - <locate text="Choose privacy settings|privacy settings for your device" timeout=600>
+      - <wait1s>
+      - <click text="Accept">
+      - <wait3s>
+
+  - title: Wait for the desktop
+    commands:
+      - <locate text="Recycle Bin" timeout=1800>
+      - <wait10s>

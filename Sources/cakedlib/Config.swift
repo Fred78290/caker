@@ -715,6 +715,13 @@ extension CakeConfig {
 }
 
 extension VirtualMachineConfiguration {
+	/// A Windows guest: EFI/generic-platform like a Linux VM (`os == .linux`), but with the device set a
+	/// stock Windows installer can drive and without the Linux-only cloud-init/agent/IMDS plumbing.
+	/// `os` stays `.linux` rather than gaining a case, since that value is also a wire/proto enum.
+	public var isWindowsGuest: Bool {
+		self.os == .linux && self.configuredPlatform == .windows
+	}
+
 	public func getMacAddress() -> VZMACAddress? {
 		if let addr = self.macAddress {
 			return VZMACAddress(string: addr)
@@ -900,7 +907,7 @@ extension VirtualMachineConfiguration {
 				readOnly: false,
 				synchronizationMode: .full)
 
-			return VZVirtioBlockDeviceConfiguration(attachment: blockAttachment)
+			return self.rootStorageDevice(attachment: blockAttachment)
 		} else {
 			if FileManager.default.fileExists(atPath: diskPath) == false {
 				throw ValidationError(String(localized: "disk \(diskPath) does not exist"))
@@ -908,7 +915,7 @@ extension VirtualMachineConfiguration {
 
 			let asif = rootDiskURL.asifDisk
 
-			return VZVirtioBlockDeviceConfiguration(
+			return self.rootStorageDevice(
 				attachment: try VZDiskImageStorageDeviceAttachment(
 					url: rootDiskURL,
 					readOnly: false,
@@ -916,6 +923,16 @@ extension VirtualMachineConfiguration {
 					synchronizationMode: .full
 				))
 		}
+	}
+
+	/// A Windows guest has no inbox virtio-blk driver, so its system disk is exposed as an NVMe
+	/// namespace (Windows Setup and PE both ship `stornvme`); every other guest keeps virtio-blk.
+	private func rootStorageDevice(attachment: VZStorageDeviceAttachment) -> VZStorageDeviceConfiguration {
+		if self.isWindowsGuest {
+			return VZNVMExpressControllerDeviceConfiguration(attachment: attachment)
+		}
+
+		return VZVirtioBlockDeviceConfiguration(attachment: attachment)
 	}
 
 	public func additionalDiskAttachments() throws -> [VZStorageDeviceConfiguration] {
@@ -935,7 +952,7 @@ extension VirtualMachineConfiguration {
 				}
 
 				do {
-					return try $0.configuration(relativeTo: self.locationURL)
+					return try $0.configuration(relativeTo: self.locationURL, windowsGuest: self.isWindowsGuest)
 				} catch {
 					Logger(self).error("Failed to create disk attachment for \($0.description): \(error)")
 					return nil
