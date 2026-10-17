@@ -812,7 +812,6 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 		let clientID = config.dhcpClientID ?? macAddress
 		var leases: DHCPLeaseProvider
 		var count = 0
-		let useNat = config.networks.first { $0.network == "nat" } != nil
 
 		guard macAddress.isEmpty == false && clientID.isEmpty == false else {
 			throw ShellError(terminationStatus: -1, error: String(localized: "Unable to get MAC address for VM \(self.name)"), message: String(localized: "Any mac address or client ID is not configured"))
@@ -824,7 +823,7 @@ public final class VMLocation: @unchecked Sendable, Hashable, Equatable, Purgeab
 			}
 
 			// Try also arp if dhcp is disabled
-			if useNat == false || count & 1 == 1 {
+			if count & 1 == 1 {
 				leases = try ARPParser()
 
 				if let runningIP = leases[macAddress] {

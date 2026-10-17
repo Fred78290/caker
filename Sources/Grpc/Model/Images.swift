@@ -28,6 +28,7 @@ public struct ImageEntry: Codable {
 }
 
 public class LinuxContainerImage: Codable {
+	public let name: String
 	public let alias: [String]?
 	public let path: URL
 	public let size: UInt64
@@ -36,6 +37,7 @@ public class LinuxContainerImage: Codable {
 	public let description: String
 
 	public init(_ from: Caked_PulledImageInfo) {
+		self.name = from.name
 		self.alias = from.hasAlias ? from.alias.split(separator: ",").map { String($0) } : nil
 		self.path = URL(fileURLWithPath: from.path)
 		self.size = from.size
@@ -44,7 +46,8 @@ public class LinuxContainerImage: Codable {
 		self.description = from.description_p
 	}
 
-	public init(remoteName: String = String.empty, fingerprint: String = String.empty, alias: [String]? = nil, description: String = String.empty, path: URL = URL(fileURLWithPath: "/dev/null"), size: UInt64 = 0) {
+	public init(remoteName: String = String.empty, name: String = String.empty, fingerprint: String = String.empty, alias: [String]? = nil, description: String = String.empty, path: URL = URL(fileURLWithPath: "/dev/null"), size: UInt64 = 0) {
+		self.name = name
 		self.alias = alias
 		self.path = path
 		self.size = size
@@ -55,6 +58,7 @@ public class LinuxContainerImage: Codable {
 
 	public var caked: Caked_PulledImageInfo {
 		Caked_PulledImageInfo.with { image in
+			image.name = self.name
 			image.alias = self.alias?.joined(separator: ",") ?? String.empty
 			image.path = self.path.absoluteURL.path(percentEncoded: false)
 			image.size = self.size
@@ -68,6 +72,7 @@ public class LinuxContainerImage: Codable {
 public struct ImageInfo: Codable, Identifiable, Hashable {
 	public typealias ID = String
 
+	public let name: String
 	public let aliases: Aliases
 	public let architecture: String
 	public let pub: Bool
@@ -85,6 +90,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 	}
 
 	public init(_ from: Caked_ImageInfo) {
+		self.name = from.name
 		self.aliases = from.aliases
 		self.architecture = from.architecture
 		self.pub = from.pub
@@ -99,6 +105,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 	}
 
 	public init(
+		name: String = String.empty,
 		aliases: Aliases = [],
 		architecture: String = String.empty,
 		pub: Bool = false,
@@ -111,6 +118,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 		uploaded: String? = nil,
 		properties: [String: String] = [:]
 	) {
+		self.name = name
 		self.aliases = aliases
 		self.architecture = architecture
 		self.pub = pub
@@ -126,6 +134,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 
 	public var caked: Caked_ImageInfo {
 		Caked_ImageInfo.with { image in
+			image.name = self.name
 			image.aliases = self.aliases
 			image.architecture = self.architecture
 			image.pub = self.pub
@@ -150,8 +159,9 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 	}
 
 	public var text: String {
-		var text = "Fingerprint: \(fingerprint)\n"
+		var text = "Name: \(name)\n"
 
+		text += "Fingerprint: \(fingerprint)\n"
 		text += "Size: \(Double(size) / 1024 / 1024)MiB\n"
 		text += "Architecture: \(architecture)\n"
 		text += "Type: \(type)\n"
@@ -177,6 +187,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 	}
 
 	public enum CodingKeys: String, CodingKey {
+		case name = "name"
 		case aliases = "aliases"
 		case architecture = "architecture"
 		case pub = "public"
@@ -192,6 +203,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 }
 
 public struct ShortImageInfo: Codable, Hashable, Identifiable {
+	public let name: String
 	public let alias: String
 	public let fingerprint: String
 	public let pub: String
@@ -206,6 +218,7 @@ public struct ShortImageInfo: Codable, Hashable, Identifiable {
 	}
 
 	public enum CodingKeys: String, CodingKey {
+		case name = "NAME"
 		case alias = "ALIAS"
 		case fingerprint = "FINGERPRINT"
 		case pub = "PUBLIC"
@@ -217,6 +230,7 @@ public struct ShortImageInfo: Codable, Hashable, Identifiable {
 	}
 
 	public init(_ from: Caked_ImageInfo) {
+		self.name = from.name
 		self.alias = from.aliases.description
 		self.fingerprint = from.fingerprint.substring(..<12)
 		self.pub = from.pub ? "yes" : "no"
@@ -228,6 +242,7 @@ public struct ShortImageInfo: Codable, Hashable, Identifiable {
 	}
 
 	public init(_ imageInfo: ImageInfo) {
+		self.name = imageInfo.name
 		self.alias = imageInfo.aliases.description
 		self.fingerprint = imageInfo.fingerprint.substring(..<12)
 		self.pub = imageInfo.pub ? "yes" : "no"
@@ -240,12 +255,14 @@ public struct ShortImageInfo: Codable, Hashable, Identifiable {
 }
 
 public struct ShortLinuxContainerImage: Codable {
+	public let name: String
 	public let alias: String
 	public let fingerprint: String
 	public let description: String
 	public let size: String
 
 	public enum CodingKeys: String, CodingKey {
+		case name = "NAME"
 		case alias = "ALIAS"
 		case fingerprint = "FINGERPRINT"
 		case description = "DESCRIPTION"
@@ -253,6 +270,7 @@ public struct ShortLinuxContainerImage: Codable {
 	}
 
 	public init(_ image: LinuxContainerImage) {
+		self.name = image.name
 		self.alias = image.alias?.description ?? String.empty
 		self.fingerprint = image.fingerprint.substring(..<12)
 		self.description = image.description

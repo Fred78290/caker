@@ -4955,6 +4955,10 @@ public nonisolated struct Caked_Caked: Sendable {
 
         public var properties: Dictionary<String,String> = [:]
 
+        /// Display name. Added after the other fields, never renumbered, so a client and a caked of
+        /// different versions still decode each other; empty from a caked that predates it.
+        public var name: String = String()
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public init() {}
@@ -5072,6 +5076,9 @@ public nonisolated struct Caked_Caked: Sendable {
           public var remoteName: String = String()
 
           public var description_p: String = String()
+
+          /// Display name, appended for the same reason as ImageInfo.name.
+          public var name: String = String()
 
           public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -14457,7 +14464,7 @@ nonisolated extension Caked_Caked.Reply.ImageReply: SwiftProtobuf.Message, Swift
 
 nonisolated extension Caked_Caked.Reply.ImageReply.ImageInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.ImageReply.protoMessageName + ".ImageInfo"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}aliases\0\u{1}architecture\0\u{1}pub\0\u{1}fileName\0\u{1}fingerprint\0\u{1}size\0\u{1}type\0\u{1}created\0\u{1}expires\0\u{1}uploaded\0\u{1}properties\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}aliases\0\u{1}architecture\0\u{1}pub\0\u{1}fileName\0\u{1}fingerprint\0\u{1}size\0\u{1}type\0\u{1}created\0\u{1}expires\0\u{1}uploaded\0\u{1}properties\0\u{1}name\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -14476,6 +14483,7 @@ nonisolated extension Caked_Caked.Reply.ImageReply.ImageInfo: SwiftProtobuf.Mess
       case 9: try { try decoder.decodeSingularStringField(value: &self._expires) }()
       case 10: try { try decoder.decodeSingularStringField(value: &self._uploaded) }()
       case 11: try { try decoder.decodeMapField(fieldType: SwiftProtobuf._ProtobufMap<SwiftProtobuf.ProtobufString,SwiftProtobuf.ProtobufString>.self, value: &self.properties) }()
+      case 12: try { try decoder.decodeSingularStringField(value: &self.name) }()
       default: break
       }
     }
@@ -14519,6 +14527,9 @@ nonisolated extension Caked_Caked.Reply.ImageReply.ImageInfo: SwiftProtobuf.Mess
     if !self.properties.isEmpty {
       try visitor.visitMapField(fieldType: SwiftProtobuf._ProtobufMap<SwiftProtobuf.ProtobufString,SwiftProtobuf.ProtobufString>.self, value: self.properties, fieldNumber: 11)
     }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 12)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -14534,6 +14545,7 @@ nonisolated extension Caked_Caked.Reply.ImageReply.ImageInfo: SwiftProtobuf.Mess
     if lhs._expires != rhs._expires {return false}
     if lhs._uploaded != rhs._uploaded {return false}
     if lhs.properties != rhs.properties {return false}
+    if lhs.name != rhs.name {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -14673,7 +14685,7 @@ nonisolated extension Caked_Caked.Reply.ImageReply.PulledImageInfoReply: SwiftPr
 
 nonisolated extension Caked_Caked.Reply.ImageReply.PulledImageInfoReply.PulledImageInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.ImageReply.PulledImageInfoReply.protoMessageName + ".PulledImageInfo"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}alias\0\u{1}path\0\u{1}size\0\u{1}fingerprint\0\u{1}remoteName\0\u{1}description\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}alias\0\u{1}path\0\u{1}size\0\u{1}fingerprint\0\u{1}remoteName\0\u{1}description\0\u{1}name\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -14687,6 +14699,7 @@ nonisolated extension Caked_Caked.Reply.ImageReply.PulledImageInfoReply.PulledIm
       case 4: try { try decoder.decodeSingularStringField(value: &self.fingerprint) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self.remoteName) }()
       case 6: try { try decoder.decodeSingularStringField(value: &self.description_p) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self.name) }()
       default: break
       }
     }
@@ -14715,6 +14728,9 @@ nonisolated extension Caked_Caked.Reply.ImageReply.PulledImageInfoReply.PulledIm
     if !self.description_p.isEmpty {
       try visitor.visitSingularStringField(value: self.description_p, fieldNumber: 6)
     }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 7)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -14725,6 +14741,7 @@ nonisolated extension Caked_Caked.Reply.ImageReply.PulledImageInfoReply.PulledIm
     if lhs.fingerprint != rhs.fingerprint {return false}
     if lhs.remoteName != rhs.remoteName {return false}
     if lhs.description_p != rhs.description_p {return false}
+    if lhs.name != rhs.name {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

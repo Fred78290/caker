@@ -6,7 +6,7 @@ import GRPCLib
 public let defaultRemotes: [String: String] = [
 	"images": "https://images.linuxcontainers.org/",
 	"ubuntu": "https://cloud-images.ubuntu.com/releases/",
-		//	"canonical": "https://images.lxd.canonical.com/"
+	"canonical": "https://images.lxd.canonical.com/"
 ]
 
 public class RemoteDatabase {

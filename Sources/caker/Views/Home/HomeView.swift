@@ -482,7 +482,7 @@ struct HomeView: View {
 			VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true)
 				.colorSchemeForColor()
 				.restorationState(.disabled)
-				.frame(minWidth: 700, minHeight: 670)
+				.frame(width: 730, height: 750)
 		case .networks:
 			NetworkWizard()
 				.colorSchemeForColor()
@@ -497,7 +497,7 @@ struct HomeView: View {
 				VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetCachedImage: image)
 					.colorSchemeForColor()
 					.restorationState(.disabled)
-					.frame(minWidth: 700, minHeight: 670)
+					.frame(width: 700, height: 750)
 			}
 		case .compose:
 			ComposeEditorView(

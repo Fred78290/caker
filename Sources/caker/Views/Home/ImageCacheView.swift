@@ -117,7 +117,7 @@ struct ImageCacheView: View {
 				VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetCachedImage: image)
 					.colorSchemeForColor()
 					.restorationState(.disabled)
-					.frame(minWidth: 700, minHeight: 670)
+					.frame(width: 700, height: 750)
 			}
 		}
 	}
@@ -160,10 +160,16 @@ struct ImageCacheView: View {
 			}
 
 			VStack(alignment: .leading, spacing: 2) {
-				Text(image.fqn.first ?? image.name)
+				Text(image.name)
 					.font(.system(size: 13, weight: .semibold))
 					.lineLimit(1)
 					.truncationMode(.middle)
+
+				Text(image.fqn.first ?? image.name)
+					.font(.system(size: 11))
+					.lineLimit(1)
+					.truncationMode(.middle)
+					.foregroundStyle(.secondary)
 
 				HStack(spacing: 6) {
 					Text(Self.kindLabel(kind))
@@ -175,14 +181,6 @@ struct ImageCacheView: View {
 				}
 				.font(.system(size: 11))
 				.foregroundStyle(.secondary)
-
-				if let fingerprint = image.fingerprint, fingerprint.isEmpty == false {
-					Text(fingerprint)
-						.font(.system(size: 10, design: .monospaced))
-						.foregroundStyle(.secondary)
-						.lineLimit(1)
-						.truncationMode(.middle)
-				}
 			}
 
 			Spacer()

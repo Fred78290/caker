@@ -67,7 +67,7 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
 
 ### Mises à jour
 
-- `check-update` — indique si une version de Caker plus récente que celle installée est publiée, en lisant le même flux (appcast Sparkle) que « Vérifier les mises à jour… » dans Caker.app, sur le même canal (`appcast.xml` ou `appcast-prerelease.xml`). La commande ne fait qu'informer : `caked` et `cakectl` étant livrés dans Caker.app, installez la nouvelle version (ou utilisez « Vérifier les mises à jour… ») pour mettre à jour les trois. Elle s'exécute en local : `cakectl check-update` n'interroge pas le `caked` connecté, lancez `caked check-update` sur la machine d'un démon distant. `--format json` renvoie `currentVersion`, `latestVersion`, `updateAvailable`, `downloadURL`, `releaseNotesURL`, `publishedAt` et `feedURL`. Absente de la version App Store, mise à jour par l'App Store.
+- `check-update` — indique si une version de Caker plus récente que celle installée est publiée, en lisant le même flux (appcast Sparkle) que « Vérifier les mises à jour… » dans Caker.app, sur le même canal (`appcast.xml` ou `appcast-prerelease.xml`). La commande ne fait qu'informer : `caked` et `cakectl` étant livrés dans Caker.app, installez la nouvelle version (ou utilisez « Vérifier les mises à jour… ») pour mettre à jour les trois. Elle s'exécute en local : `cakectl check-update` n'interroge pas le `caked` connecté, lancez `caked check-update` sur la machine d'un démon distant. `--json` renvoie `currentVersion`, `latestVersion`, `updateAvailable`, `downloadURL`, `releaseNotesURL`, `publishedAt` et `feedURL`. Absente de la version App Store, mise à jour par l'App Store.
 
 ## Commandes spécifiques à `caked`
 
@@ -84,7 +84,7 @@ Cette page résume les commandes `ArgumentParser` implémentées dans :
     - `--rest-port <port>` — modifie le port d'écoute de l'API REST.
     - `--web-ui <path>` — sert l'interface Web fournie depuis un répertoire ou une archive `.zip` sur `/ui`.
     - `--address` / `-l` — modifie l'adresse d'écoute gRPC.
-    - `--insecure` — désactive TLS.
+    - `--disable-tls` — désactive TLS.
     - `--imds-port <port>` — port non privilégié sur lequel IMDS écoute, joignable directement par les invités sans root (par défaut `28080`). Voir [IMDS](imds).
   - `status` — rapporte le statut du démon.
   - `stop` — arrête le démon en cours d'exécution.
@@ -481,7 +481,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
 
 ### Updates
 
-- `check-update` — tell whether a Caker release newer than the installed one is published, by reading the same feed (Sparkle appcast) as Caker.app's "Check for Updates…", on the same channel (`appcast.xml` or `appcast-prerelease.xml`). It only reports: `caked` and `cakectl` ship inside Caker.app, so install the new release (or use "Check for Updates…") to update all three. It runs locally: `cakectl check-update` doesn't ask the connected `caked`, so run `caked check-update` on a remote daemon's host. `--format json` returns `currentVersion`, `latestVersion`, `updateAvailable`, `downloadURL`, `releaseNotesURL`, `publishedAt` and `feedURL`. Not available in the App Store build, which the App Store updates.
+- `check-update` — tell whether a Caker release newer than the installed one is published, by reading the same feed (Sparkle appcast) as Caker.app's "Check for Updates…", on the same channel (`appcast.xml` or `appcast-prerelease.xml`). It only reports: `caked` and `cakectl` ship inside Caker.app, so install the new release (or use "Check for Updates…") to update all three. It runs locally: `cakectl check-update` doesn't ask the connected `caked`, so run `caked check-update` on a remote daemon's host. `--json` returns `currentVersion`, `latestVersion`, `updateAvailable`, `downloadURL`, `releaseNotesURL`, `publishedAt` and `feedURL`. Not available in the App Store build, which the App Store updates.
 
 ## `caked`-specific commands
 
@@ -498,7 +498,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
     - `--rest-port <port>` — override the REST API listen port.
     - `--web-ui <path>` — serve the bundled web UI from a directory or `.zip` archive at `/ui`.
     - `--address` / `-l` — override the gRPC listen address.
-    - `--insecure` — disable TLS.
+    - `--disable-tls` — disable TLS.
     - `--imds-port <port>` — unprivileged port IMDS listens on, directly reachable by guests with no root needed (default `28080`). See [IMDS](imds).
   - `status` — report daemon status.
   - `stop` — stop the running daemon.

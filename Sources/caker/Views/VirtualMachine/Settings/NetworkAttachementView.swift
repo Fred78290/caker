@@ -18,7 +18,7 @@ struct NetworkAttachementView: View {
 			EditableList($networks, selection: $selection) { $item in
 				NetworkAttachementDetailView(currentItem: $item)
 			}.onEditItem(selection: $selection, disabled: $disabled) { editItem in
-				NetworkAttachementNewItemView($networks, editItem: editItem)
+				NetworkAttachementNewItemView($networks, editItem: editItem).frame(height: geometry.size.height)
 			} deleteItem: {
 				self.networks.removeAll {
 					$0.id == selection

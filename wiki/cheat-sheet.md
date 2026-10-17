@@ -54,7 +54,7 @@ Référence rapide des commandes pour les opérations quotidiennes courantes.
   - `cakectl login <host>`
   - `cakectl logout <host>`
 - Push/pull d'images de VM :
-  - `cakectl pull <name> <image>`
+  - `cakectl pull <image> <name>`
   - `cakectl push <local-name> <remote-name>`
 
 ## Réseaux (`cakectl`)
@@ -125,7 +125,7 @@ Référence rapide des commandes pour les opérations quotidiennes courantes.
 - `cakectl --disable-tls`
 - `cakectl --system`
 - `caked --log-level <level>`
-- `caked --format json`
+- `caked --json`
 
 ## Liens vers la documentation
 
@@ -139,25 +139,25 @@ Référence rapide des commandes pour les opérations quotidiennes courantes.
 depuis un registre OCI
 
 ```bash
-cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G oci://ghcr.io/example/image:latest
+cakectl build --cpus 4 --memory 8192 --disk-size 40 demo-vm oci://ghcr.io/example/image:latest
 ```
 
 depuis https
 
 ```bash
-cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+cakectl build --cpus 4 --memory 8192 --disk-size 40 demo-vm https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
 ```
 
 depuis un remote simplestream
 
 ```bash
-cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G ubuntu:noble
+cakectl build --cpus 4 --memory 8192 --disk-size 40 demo-vm ubuntu:noble
 ```
 
 en choisissant le format du disque racine (`asif` est le défaut sur macOS 26+, `raw` sur les hôtes plus anciens — voir [Formats de disque](command-summary#disk-formats-raw-and-asif-fr))
 
 ```bash
-cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G --disk-format asif ubuntu:noble
+cakectl build --cpus 4 --memory 8192 --disk-size 40 --disk-format asif demo-vm ubuntu:noble
 ```
 
 > ⚠️ Dans la version App Store (sandboxée), le redimensionnement d'un disque **ASIF** avec `configure --disk-size` n'est pas disponible en ligne de commande — utilisez l'application Caker ou exécutez la commande `diskutil image resize` affichée dans le message d'erreur.
@@ -177,14 +177,14 @@ cakectl shell demo-vm
 cakectl exec demo-vm -- uname -a
 ```
 
-### 6) Se connecter à l'affichage de la VM via VNC
+### 4) Se connecter à l'affichage de la VM via VNC
 
 ```bash
 cakectl start demo-vm
 cakectl vnc demo-vm
 ```
 
-### 7) Convertir une image QCOW2 ou VMDK en raw
+### 5) Convertir une image QCOW2 ou VMDK en raw
 
 ```bash
 # QCOW2 (par défaut)
@@ -194,7 +194,7 @@ caked convert ubuntu-cloud.qcow2 ubuntu.raw
 caked convert --source-format vmdk disk.vmdk disk.raw
 ```
 
-### 4) Pousser une image de VM locale vers un registre distant
+### 6) Pousser une image de VM locale vers un registre distant
 
 ```bash
 cakectl login ghcr.io --username <username> --password <password>
@@ -202,10 +202,10 @@ cakectl push demo-vm ghcr.io/<owner>/demo-vm:latest
 cakectl logout ghcr.io
 ```
 
-### 5) Créer et gérer un réseau partagé
+### 7) Créer et gérer un réseau partagé
 
 ```bash
-cakectl networks create --name shared-dev --mode shared --gateway 192.168.105.1 --dhcp-end 192.168.105.254 --netmask 255.255.255.0
+cakectl networks create --mode shared --gateway 192.168.105.1 --dhcp-end 192.168.105.254 --netmask 255.255.255.0 shared-dev
 cakectl networks start shared-dev
 cakectl networks infos shared-dev
 cakectl networks stop shared-dev
@@ -297,7 +297,7 @@ Quick command reference for common daily operations.
   - `cakectl login <host>`
   - `cakectl logout <host>`
 - Push/pull VM images:
-  - `cakectl pull <name> <image>`
+  - `cakectl pull <image> <name>`
   - `cakectl push <local-name> <remote-name>`
 
 ## Networks (`cakectl`)
@@ -368,7 +368,7 @@ Quick command reference for common daily operations.
 - `cakectl --disable-tls`
 - `cakectl --system`
 - `caked --log-level <level>`
-- `caked --format json`
+- `caked --json`
 
 ## Docs links
 
@@ -382,25 +382,25 @@ Quick command reference for common daily operations.
 from OCI registry
 
 ```bash
-cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G oci://ghcr.io/example/image:latest
+cakectl build --cpus 4 --memory 8192 --disk-size 40 demo-vm oci://ghcr.io/example/image:latest
 ```
 
 from https
 
 ```bash
-cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+cakectl build --cpus 4 --memory 8192 --disk-size 40 demo-vm https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
 ```
 
 from simplestream remote
 
 ```bash
-cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G ubuntu:noble
+cakectl build --cpus 4 --memory 8192 --disk-size 40 demo-vm ubuntu:noble
 ```
 
 choosing the root-disk format (`asif` is the default on macOS 26+, `raw` on older hosts — see [Disk formats](command-summary#disk-formats-raw-and-asif))
 
 ```bash
-cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G --disk-format asif ubuntu:noble
+cakectl build --cpus 4 --memory 8192 --disk-size 40 --disk-format asif demo-vm ubuntu:noble
 ```
 
 > ⚠️ In the App Store (sandboxed) version, resizing an **ASIF** disk with `configure --disk-size` is not available from the command line — use the Caker application or run the `diskutil image resize` command shown in the error message.
@@ -420,14 +420,14 @@ cakectl shell demo-vm
 cakectl exec demo-vm -- uname -a
 ```
 
-### 6) Connect to VM display via VNC
+### 4) Connect to VM display via VNC
 
 ```bash
 cakectl start demo-vm
 cakectl vnc demo-vm
 ```
 
-### 7) Convert a QCOW2 or VMDK image to raw
+### 5) Convert a QCOW2 or VMDK image to raw
 
 ```bash
 # QCOW2 (default)
@@ -437,7 +437,7 @@ caked convert ubuntu-cloud.qcow2 ubuntu.raw
 caked convert --source-format vmdk disk.vmdk disk.raw
 ```
 
-### 4) Push a local VM image to remote registry
+### 6) Push a local VM image to remote registry
 
 ```bash
 cakectl login ghcr.io --username <username> --password <password>
@@ -445,10 +445,10 @@ cakectl push demo-vm ghcr.io/<owner>/demo-vm:latest
 cakectl logout ghcr.io
 ```
 
-### 5) Create and manage a shared network
+### 7) Create and manage a shared network
 
 ```bash
-cakectl networks create --name shared-dev --mode shared --gateway 192.168.105.1 --dhcp-end 192.168.105.254 --netmask 255.255.255.0
+cakectl networks create --mode shared --gateway 192.168.105.1 --dhcp-end 192.168.105.254 --netmask 255.255.255.0 shared-dev
 cakectl networks start shared-dev
 cakectl networks infos shared-dev
 cakectl networks stop shared-dev

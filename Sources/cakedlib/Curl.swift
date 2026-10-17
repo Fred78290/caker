@@ -107,18 +107,26 @@ class Curl {
 
 	func get(store: URL, observer: ProgressObserver? = nil) async throws {
 		let result = try await self.fetch(request: URLRequest(url: self.fromURL), progressObserver: observer)
+		let path = store.path(percentEncoded: false)
 
-		FileManager.default.createFile(atPath: store.path(percentEncoded: false), contents: nil)
+		FileManager.default.createFile(atPath: path, contents: nil)
 
 		let lock = try FileLock(lockURL: store)
 		try lock.lock()
 
 		let fileHandle = try FileHandle(forWritingTo: store)
 
-		for try await chunk in result.channel {
-			fileHandle.write(chunk)
+		defer {
+			try? fileHandle.close()
 		}
 
-		try fileHandle.close()
+		try await withTaskCancellationHandler(operation: {
+			for try await chunk in result.channel {
+				fileHandle.write(chunk)
+			}
+		}, onCancel: {
+			try? fileHandle.close()
+			try? FileManager.default.removeItem(at: store)
+		})
 	}
 }

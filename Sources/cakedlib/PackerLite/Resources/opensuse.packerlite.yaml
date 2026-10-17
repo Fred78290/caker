@@ -38,6 +38,7 @@
 # i.e. whatever --user/--password (or the UI) configured — not declared here.
 
 boot_timeout: 60m # a full install can legitimately take 20-30+ minutes
+ignore_ip: true
 required_variables:
   - username
   - password
@@ -50,6 +51,18 @@ pre_boot_command:
       - <enter>
 
 boot_command:
+  - title: Select a mode
+    commands:
+      - <skipCommandIfNotFound text="Select a mode" timeout=90>
+      - <tab repeat=6>
+      - <spacebar>
+      - <tab>
+      - <spacebar>
+      - <tab>
+      - <spacebar>
+      - <tab repeat=2>
+      - <spacebar>
+
   - title: Wait installation to start
     commands:
       - <locate text="Take a moment to review the installation settings" timeout=90>
@@ -77,7 +90,9 @@ boot_command:
       - <tab repeat=4>
       - <enter>
       - <wait2s>
-      - <click point="111,43">
+      - <leftSuperOn>
+      - <left>
+      - <leftSuperOff>
 
   - title: Start installation
     commands:

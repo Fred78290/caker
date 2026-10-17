@@ -54,7 +54,7 @@ extension ImageInfo {
 
 		var properties: [String: String] = [
 			"architecture": product.arch.description,
-			"description": "\(product.os) \(product.releaseTitle) \(product.arch) (\(product.release)) \(serial)",
+			"description": "\(product.name) \(product.arch) (\(product.release)) \(serial)",
 			"os": product.os,
 			"release": product.release,
 			"serial": serial,
@@ -64,13 +64,27 @@ extension ImageInfo {
 			properties["label"] = label
 		}
 
+		if let pubname = imageVersion.pubname {
+			properties["pubname"] = pubname
+		}
+
 		if let version = product.version {
 			properties["version"] = version
 		}
 
 		self.init(
-			aliases: aliases, architecture: product.arch.rawValue, pub: true, fileName: imageDisk.path.components(separatedBy: "/").last!, fingerprint: imageDisk.sha256, size: imageDisk.size, type: "virtual-machine", created: created,
-			expires: expires, uploaded: created, properties: properties)
+			name: product.name,
+			aliases: aliases,
+			architecture: product.arch.rawValue,
+			pub: true,
+			fileName: imageDisk.path.components(separatedBy: "/").last!,
+			fingerprint: imageDisk.sha256,
+			size: imageDisk.size,
+			type: "virtual-machine",
+			created: created,
+			expires: expires,
+			uploaded: created,
+			properties: properties)
 	}
 }
 

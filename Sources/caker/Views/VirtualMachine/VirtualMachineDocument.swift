@@ -134,6 +134,37 @@ extension UTType {
 			}
 		}
 
+		var humanReadable: LocalizedStringKey {
+			switch self {
+			case .running:
+				return "Running"
+			case .stopped:
+				return "Stopped"
+			case .starting:
+				return "Starting"
+			case .pausing:
+				return "Pausing"
+			case .resuming:
+				return "Resuming"
+			case .stopping:
+				return "Stopping"
+			case .saving:
+				return "Saving"
+			case .restoring:
+				return "Restoring"
+			case .none:
+				return "None"
+			case .paused:
+				return "Paused"
+			case .error:
+				return "Error"
+			case .provisioning:
+				return "Provisioning"
+			case .deleted:
+				return "Deleted"
+			}
+		}
+
 		var description: String {
 			switch self {
 			case .running:
@@ -1028,6 +1059,8 @@ extension VirtualMachineDocument {
 			return
 		}
 
+		self.setOtherState(status: .stopping)
+
 		if self.externalRunning {
 			Task {
 				do {
@@ -1044,9 +1077,19 @@ extension VirtualMachineDocument {
 				self.haveRequestStop = true
 
 				if self.virtualMachineConfig.os == .linux {
-					virtualMachine.requestStopFromUI(completionHandler: completionHandler)
+					virtualMachine.requestStopFromUI { result in
+						Task { @MainActor in
+							self.setStateAsStopped()
+							completionHandler?(result)
+						}
+					}
 				} else if self.virtualMachineConfig.agent == false {
-					virtualMachine.suspendFromUI(completionHandler: completionHandler)
+					virtualMachine.suspendFromUI { result in
+						Task { @MainActor in
+							self.setStateAsStopped()
+							completionHandler?(result)
+						}
+					}
 				} else if let location = self.location {
 					Task {
 						do {

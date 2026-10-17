@@ -47,7 +47,7 @@ struct DiskAttachementDetailView: View {
 
 			Spacer()
 
-			HStack(spacing: 4) {
+			HStack(spacing: 2) {
 				if Utilities.isValidSharePoint(currentItem.diskPath.expandingTildeInPath, runMode: .current) {
 					if currentItem.diskOptions.readOnly {
 						Text("ro")
@@ -73,7 +73,7 @@ struct DiskAttachementDetailView: View {
 
 	@ViewBuilder
 	var fullForm: some View {
-		VStack {
+		VStack(spacing: 12) {
 			LabeledContent("Disk path") {
 				HStack {
 					TextField("Disk image path", text: $currentItem.diskPath)
@@ -81,7 +81,7 @@ struct DiskAttachementDetailView: View {
 					Button(action: chooseDiskImage) {
 						Image(systemName: "opticaldiscdrive")
 					}.withButtonStyle(.borderless)
-				}.frame(width: 350)
+				}.frame(width: 340)
 			}
 
 			LabeledContent("Syncing") {
@@ -108,7 +108,7 @@ struct DiskAttachementDetailView: View {
 				.labelsHidden()
 				.pickerStyle(.menu)
 			}
-		}
+		}.padding(4)
 	}
 
 	func chooseDiskImage() {

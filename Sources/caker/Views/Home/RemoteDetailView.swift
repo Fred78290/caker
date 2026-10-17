@@ -43,13 +43,24 @@ struct RemoteDetailView: View {
 						GeometryReader { geom in
 							VStack(alignment: .leading, spacing: 2) {
 								LabeledContent(content: {
-									Text(image.aliases.joined(separator: ", "))
+									Text(image.name)
 										.font(.system(size: 13, weight: .semibold))
 										.lineLimit(1)
 										.frame(width: geom.size.width - labelWidth, alignment: .leading)
 								}, label: {
-									Text("Aliases:")
+									Text("Name:")
 										.font(.system(size: 13, weight: .semibold))
+								})
+
+								LabeledContent(content: {
+									Text(image.aliases.joined(separator: ", "))
+										.font(.system(size: 11))
+										.lineLimit(1)
+										.frame(width: geom.size.width - labelWidth, alignment: .leading)
+								}, label: {
+									Text("Aliases:")
+										.font(.system(size: 11, weight: .semibold))
+										.foregroundStyle(.secondary)
 								})
 
 								LabeledContent(content: {
@@ -135,7 +146,7 @@ struct RemoteDetailView: View {
 				VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true, presetRemoteImage: (remote: self.remote.name, image: selectedImage))
 					.colorSchemeForColor()
 					.restorationState(.disabled)
-					.frame(minWidth: 700, minHeight: 670)
+					.frame(width: 700, height: 750)
 			}
 		}
 	}

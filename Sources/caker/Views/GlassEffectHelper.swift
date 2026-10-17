@@ -97,7 +97,7 @@ extension View {
 
 	@ViewBuilder
 	public func withTextFieldStyle<S: TextFieldStyle>(_ style: S) -> some View {
-		if #available(macOS 27.0, *) {
+		if #available(macOS 26.0, *) {
 			// Map bordered styles to glass variants when available; otherwise, forward the style.
 			if style is RoundedBorderTextFieldStyle {
 				self.textFieldStyle(style)
@@ -115,7 +115,7 @@ extension View {
 
 	@ViewBuilder
 	public func withButtonStyle<S: PrimitiveButtonStyle>(_ style: S) -> some View {
-		if #available(macOS 27.0, *) {
+		if #available(macOS 26.0, *) {
 			// Map bordered styles to glass variants when available; otherwise, forward the style.
 			if style is BorderedButtonStyle {
 				self.buttonStyle(.glass)
@@ -126,6 +126,17 @@ extension View {
 			}
 		} else {
 			self.buttonStyle(style)
+		}
+	}
+
+	@ViewBuilder
+	public func withCircleButtonStyle() -> some View {
+		if #available(macOS 26.0, *) {
+			self.buttonStyle(.glass)
+				.buttonBorderShape(.circle)
+		} else {
+			self.buttonStyle(.bordered)
+				.buttonBorderShape(.circle)
 		}
 	}
 }

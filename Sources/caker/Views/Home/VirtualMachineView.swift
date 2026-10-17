@@ -143,43 +143,49 @@ struct VirtualMachineView: View {
 				}
 		}
 		.contextMenu {
-			Button("Open") {
+			Self.contextMenu(self.vm) {
 				self.open()
 			}
-			Divider()
-			
-			if self.vm.status == .paused {
-				Button("Resume") {
-					self.vm.resumeFromUI()
-				}
-			} else if self.vm.canStart {
-				Button("Start") {
-					self.vm.startFromUI()
-				}.disabled(self.vm.status.isRunning)
+		}
+	}
+
+	@ViewBuilder
+	static func contextMenu(_ vm: VirtualMachineDocumentState, open: @escaping () -> Void) -> some View {
+		Button("Open") {
+			open()
+		}
+		Divider()
+		
+		if vm.status == .paused {
+			Button("Resume") {
+				vm.resumeFromUI()
 			}
-
-			Button("Stop") {
-				self.vm.stopFromUI(force: vm.status != .running || NSEvent.modifierFlags.contains(.option))
-			}.disabled(self.vm.canStop == false)
-
-			Button("Pause") {
-				self.vm.suspendFromUI()
-			}.disabled(self.vm.canPause == false)
-
-			Divider()
-			Button("Duplicate") {
-				self.vm.duplicateVirtualMachine()
-			}.disabled(self.vm.status.isRunning)
-
-			Button("Rename") {
-				self.vm.renameVirtualMachine()
-			}.disabled(self.vm.status.isStopped == false)
-
-			Button("Delete VM") {
-				self.vm.deleteVirtualMachine()
+		} else if vm.status.isStopped {
+			Button("Start") {
+				vm.startFromUI()
 			}.disabled(vm.status.isRunning)
+		} else if vm.status.isRunning {
+			Button("Stop") {
+				vm.stopFromUI(force: vm.status != .running || NSEvent.modifierFlags.contains(.option))
+			}.disabled(vm.canStop == false)
+			
+			Button("Pause") {
+				vm.suspendFromUI()
+			}.disabled(vm.canPause == false)
 		}
 
+		Divider()
+		Button("Duplicate") {
+			vm.duplicateVirtualMachine()
+		}.disabled(vm.status.isRunning)
+
+		Button("Rename") {
+			vm.renameVirtualMachine()
+		}.disabled(vm.status.isStopped == false)
+
+		Button("Delete VM") {
+			vm.deleteVirtualMachine()
+		}.disabled(vm.status.isRunning)
 	}
 
 	@ViewBuilder

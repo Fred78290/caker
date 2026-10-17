@@ -82,7 +82,7 @@ struct NetworkAttachementDetailView: View {
 	var fullForm: some View {
 		@Bindable var model = self.model
 
-		VStack {
+		VStack(spacing: 12) {
 			LabeledContent("Network name") {
 				HStack {
 					Spacer()
@@ -128,7 +128,7 @@ struct NetworkAttachementDetailView: View {
 						}
 				}.frame(width: 200)
 			}
-		}
+		}.padding(4)
 	}
 }
 

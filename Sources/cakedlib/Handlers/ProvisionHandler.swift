@@ -65,7 +65,11 @@ public struct ProvisionHandler {
 
 		func start() {
 			self.task = Task.detached {
-				await self.handler()
+				await withTaskCancellationHandler(operation: {
+					await self.handler()
+				}, onCancel: {
+					Logger(self).warn("Cancellation received for VM \(self.vm.location.name), cleanup...")
+				})
 
 				self.vm.delegate = self.chained
 				self.task = nil
@@ -285,6 +289,7 @@ public struct ProvisionHandler {
 					)
 				} catch is CancellationError {
 					// Task was cancelled, likely due to the VM being stopped or the provisioning process being interrupted. Handle any necessary cleanup here if needed.
+					logger.warn("Provisioning cancelled by user for VM \(location.name)")
 					catchableError = CancellationError()
 				} catch {
 					catchableError = error

@@ -33,7 +33,7 @@ struct VirtualMachineDetailView: View {
 				self.header
 
 				self.section(title: "Information", systemImage: "info.circle") {
-					self.row(icon: "power", title: "Status", value: self.vm.status.description.capitalized)
+					self.row(icon: "power", title: "Status", value: self.vm.status.humanReadable.stringValue())
 					Divider().padding(.leading, 38)
 					self.row(icon: "number", title: "Instance ID", value: self.vm.instanceID)
 				}
@@ -81,7 +81,7 @@ struct VirtualMachineDetailView: View {
 					HStack(spacing: 6) {
 						GlossyCircle(color: HostVirtualMachineView.vmStatusColor(self.vm.status))
 							.frame(width: 8, height: 8)
-						Text(self.vm.status.description.capitalized)
+						Text(self.vm.status.humanReadable)
 							.font(.system(size: 12))
 							.foregroundStyle(.secondary)
 					}
@@ -97,42 +97,9 @@ struct VirtualMachineDetailView: View {
 				.labelsHidden()
 
 				Menu {
-					Button("Open") {
+					VirtualMachineView.contextMenu(vm){
 						self.open()
 					}
-					Divider()
-
-					if self.vm.status == .paused {
-						Button("Resume") {
-							self.vm.resumeFromUI()
-						}
-					} else if self.vm.canStart {
-						Button("Start") {
-							self.vm.startFromUI()
-						}.disabled(self.vm.status.isRunning)
-					}
-
-					Button("Stop") {
-						self.vm.stopFromUI(force: self.vm.status != .running || NSEvent.modifierFlags.contains(.option))
-					}.disabled(self.vm.canStop == false)
-
-					Button("Pause") {
-						self.vm.suspendFromUI()
-					}.disabled(self.vm.canPause == false)
-
-					Divider()
-
-					Button("Duplicate") {
-						self.vm.duplicateVirtualMachine()
-					}.disabled(self.vm.status.isRunning)
-
-					Button("Rename") {
-						self.vm.renameVirtualMachine()
-					}.disabled(self.vm.status.isStopped == false)
-
-					Button("Delete VM", role: .destructive) {
-						self.vm.deleteVirtualMachine()
-					}.disabled(self.vm.status.isRunning)
 				} label: {
 					Image(systemName: "ellipsis.circle")
 				}

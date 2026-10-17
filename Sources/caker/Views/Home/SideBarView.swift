@@ -46,7 +46,7 @@ struct SideBarView: View {
 							.symbolRenderingMode(.hierarchical)
 							.font(.system(size: 13, weight: .semibold))
 							.foregroundStyle(.white)
-					}
+					}.padding([.leading, .trailing], 4)
 				}
 			}
 		}

@@ -76,7 +76,7 @@ struct MountDetailView: View {
 
 	@ViewBuilder
 	var fullForm: some View {
-		VStack {
+		VStack(spacing: 12) {
 			LabeledContent("Host path") {
 				HStack {
 					Button(action: chooseFolder) {
@@ -85,7 +85,7 @@ struct MountDetailView: View {
 
 					TextField("Host path", text: $currentItem.source)
 						.rounded(.leading)
-				}.frame(width: 350)
+				}.frame(width: 340)
 			}
 
 			if currentItem.shared == false {
@@ -95,13 +95,13 @@ struct MountDetailView: View {
 						.onChange(of: name) { _, newValue in
 							currentItem.name = newValue
 						}
-						.frame(width: 350)
+						.frame(width: 340)
 				}
 
 				LabeledContent("Guest path") {
 					TextField("Guest path", value: $currentItem.destination, format: .optional)
 						.rounded(.leading)
-						.frame(width: 350)
+						.frame(width: 340)
 				}
 			}
 
@@ -128,7 +128,7 @@ struct MountDetailView: View {
 					.rounded(.center)
 					.frame(width: 80)
 			}
-		}
+		}.padding(4)
 	}
 
 	func chooseFolder() {

@@ -18,7 +18,7 @@ struct SocketsView: View {
 			EditableList($sockets, selection: $selection) { $item in
 				SocketsDetailView(currentItem: $item)
 			}.onEditItem("Socket path must be in the sandbox folder and must less than 103 characters to be usable with caked command", selection: $selection, disabled: $disabled) { editItem in
-				SocketsNewItemView($sockets, editItem: editItem)
+				SocketsNewItemView($sockets, editItem: editItem).frame(height: geometry.size.height)
 			} deleteItem: {
 				self.sockets.removeAll {
 					$0.id == selection

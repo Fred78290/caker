@@ -247,8 +247,7 @@ private final class GlassedSheetCoordinator<Content: View> {
 	func scheduleSync() {
 		guard !syncScheduled else { return }
 		syncScheduled = true
-		Task { @MainActor [weak self] in
-			guard let self else { return }
+		DispatchQueue.main.async {
 			self.syncScheduled = false
 			self.sync()
 		}
@@ -290,7 +289,7 @@ private final class GlassedSheetCoordinator<Content: View> {
 		let sheetController = GlassedSheetHostingController(
 			rootView: makeRoot()
 		)
-		sheetController.sizingOptions = [.preferredContentSize]
+		sheetController.sizingOptions = [.minSize]
 		sheetController.onDisappear = { [weak self, weak sheetController] in
 			MainActor.assumeIsolated {
 				guard let self, self.hostingController === sheetController

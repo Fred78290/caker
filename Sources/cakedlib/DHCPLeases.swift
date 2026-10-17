@@ -17,10 +17,10 @@ struct DHCPLease {
 	let hwAddressProto: UInt8
 	let ipAddress: String
 	let hwAddressAddress: String
-	let hostname: String
+	let hostname: String?
 	let expireAt: Date
 
-	init?(hwAddressProto: UInt8, ipAddress: String, hwAddressAddress: String, hostname: String, expireAt: Date) {
+	init?(hwAddressProto: UInt8, ipAddress: String, hwAddressAddress: String, hostname: String?, expireAt: Date) {
 		guard hwAddressProto == ARPHRD_ETHER || hwAddressProto == 255 else {
 			return nil
 		}
@@ -100,14 +100,11 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 	}
 
 	private static func createLease(_ from: [String: String]) -> DHCPLease? {
-		guard let ipAddress = from["ip_address"],
-			let hwAddress = from["hw_address"],
-			let hostname = from["name"],
-			let lease = from["lease"]
-		else {
+		guard let ipAddress = from["ip_address"], let hwAddress = from["hw_address"], let lease = from["lease"] else {
 			return nil
 		}
 
+		let hostname = from["name"]
 		let hwAddressSplits = hwAddress.split(separator: ",").map { String($0) }
 
 		guard hwAddressSplits.count == 2 else {

@@ -489,7 +489,7 @@ extension CakeAgentLib.Format {
 										VirtualMachineInfo(
 											type: vm.type,
 											source: vm.source,
-											name: fqn.stringAfter(after: "//"),
+											name: vm.name,
 											fqn: [$0],
 											vncURL: vm.vncURL,
 											screenSize: vm.screenSize,

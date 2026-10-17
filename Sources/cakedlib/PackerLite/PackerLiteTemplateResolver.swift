@@ -102,7 +102,7 @@ public enum PackerLiteTemplateResolver {
 	/// Defaults to `false` (server) so existing callers that don't care about the distinction don't
 	/// need to change.
 	public static func resolveLinuxTemplate(explicitPath: String?, imageURL: URL, desktop: Bool = false) throws -> String? {
-		try resolveLinuxTemplate(explicitPath: explicitPath, platform: SupportedPlatform(rawValue: imageURL.lastPathComponent), desktop: desktop, source: imageURL.lastPathComponent)
+		try resolveLinuxTemplate(explicitPath: explicitPath, platform: SupportedPlatform(rawValue: imageURL.absoluteString), desktop: desktop, source: imageURL.lastPathComponent)
 	}
 
 	/// Same resolution as above, but for a VM whose platform is already known (e.g. an already-built

@@ -59,7 +59,8 @@ struct ComposeEditorView: View {
 
 			self.footer
 		}
-		.frame(minWidth: 640, minHeight: 560)
+		// glassedSheet sizes the sheet to the view's ideal size, and a TextEditor's ideal height is its whole text
+		.frame(minWidth: 640, idealWidth: 760, minHeight: 560, idealHeight: 680)
 		.glassedSheetDismissDisabled(self.isSaving)
 		.onAppear {
 			self.validate()

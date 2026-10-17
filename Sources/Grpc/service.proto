@@ -112,12 +112,12 @@ message Empty {}
 message Caked {
   message ComposeRequest {
     message ComposeRequestUp {
-      bytes           composeDatas      = 1;
-      int32           waitIPTimeout     = 2;
-      repeated string services          = 3;
+      bytes           composeDatas  = 1;
+      int32           waitIPTimeout = 2;
+      repeated string services      = 3;
       // true: composeDatas is a user-authored definition that replaces the one already registered under
       // its name. false (also what a client predating this field sends): keep the registered definition.
-      bool            replaceDefinition = 4;
+      bool replaceDefinition = 4;
     }
 
     message ComposeRequestDown {
@@ -810,9 +810,9 @@ message Caked {
 
     message AliasesReply {
       message AliasEntry {
-        string id           = 1;
-        string category     = 2;
-        string label        = 3;
+        string id       = 1;
+        string category = 2;
+        string label    = 3;
         // Download URL and minimum resources, for Caker.app's wizard pickers. Empty/0 from a caked
         // that predates them.
         string url          = 4;
@@ -1152,6 +1152,9 @@ message Caked {
         optional string    expires      = 9;
         optional string    uploaded     = 10;
         map<string,string> properties   = 11;
+        // Display name. Added after the other fields, never renumbered, so a client and a caked of
+        // different versions still decode each other; empty from a caked that predates it.
+        string             name         = 12;
       }
 
       message ListImagesInfoReply {
@@ -1174,6 +1177,8 @@ message Caked {
           string          fingerprint = 4;
           string          remoteName  = 5;
           string          description = 6;
+          // Display name, appended for the same reason as ImageInfo.name.
+          string          name        = 7;
         }
 
         optional PulledImageInfo info    = 1;

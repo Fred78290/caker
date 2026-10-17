@@ -368,7 +368,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	@ViewBuilder
-	func Content(currentStep: WizardModel.SelectedItem) -> some View {
+	func content(_ currentStep: WizardModel.SelectedItem) -> some View {
 		switch currentStep {
 		case .name:
 			chooseVMName()
@@ -387,6 +387,11 @@ struct VirtualMachineWizard: View {
 		case .sockets:
 			socketsView()
 		}
+	}
+
+	@ViewBuilder
+	func Content(currentStep: WizardModel.SelectedItem) -> some View {
+		self.content(currentStep).scrollDisabled(true)
 	}
 
 	@discardableResult
@@ -581,8 +586,11 @@ struct VirtualMachineWizard: View {
 		if self.sheet {
 			VStack(spacing: 12) {
 				if let provisionnedVM = self.provisionnedVM {
-					WizardVirtualMachineView(provisionnedVM)
-						.disabled(true)
+					GeometryReader { geom in
+						WizardVirtualMachineView(provisionnedVM)
+							.disabled(true)
+							.frame(width: geom.size.width, height: (geom.size.width * CGFloat(config.display.height)) / CGFloat(config.display.width))
+					}
 				} else if let vncState = self.vncState {
 					GeometryReader { geom in
 						vncState.view(geom.size)
@@ -595,8 +603,11 @@ struct VirtualMachineWizard: View {
 		} else {
 			VStack(spacing: 12) {
 				if let provisionnedVM = self.provisionnedVM {
-					WizardVirtualMachineView(provisionnedVM)
-						.disabled(true)
+					GeometryReader { geom in
+						WizardVirtualMachineView(provisionnedVM)
+							.disabled(true)
+							.frame(width: geom.size.width, height: (geom.size.width * CGFloat(config.display.height)) / CGFloat(config.display.width))
+					}
 				} else if let vncState = self.vncState {
 					GeometryReader { geom in
 						vncState.view(geom.size)
@@ -613,31 +624,6 @@ struct VirtualMachineWizard: View {
 			}
 			.toolbarTitleDisplayMode(.inlineLarge)
 		}
-	}
-
-	func Middle() -> some View {
-		VStack {
-			switch self.model.currentStep {
-			case .name:
-				chooseVMName()
-			case .os:
-				chooseOSImage()
-			case .cpuAndRam:
-				generalSettings()
-			case .sharing:
-				mountsView()
-			case .disk:
-				diskAttachementView()
-			case .network:
-				networksView()
-			case .ports:
-				forwardPortsView()
-			case .sockets:
-				socketsView()
-			}
-		}
-		.animation(.easeInOut, value: self.model.currentStep)
-		.padding()
 	}
 
 	func Footer() -> some View {
@@ -691,14 +677,12 @@ struct VirtualMachineWizard: View {
 				.frame(maxWidth: .infinity, alignment: .center)
 
 				HStack(spacing: 8) {
-					if self.sheet {
-						Button {
-							self.closeWindow()
-						} label: {
-							Text("Cancel").frame(width: 80)
-						}
-						.withButtonStyle(.bordered)
+					Button {
+						self.closeWindow()
+					} label: {
+						Text("Cancel").frame(width: 80)
 					}
+					.withButtonStyle(.bordered)
 
 					AsyncButton { done in
 						self.model.createVirtualMachineTask = Task {

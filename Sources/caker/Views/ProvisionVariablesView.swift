@@ -17,7 +17,7 @@ struct ProvisionVariablesView: View {
 			EditableList($variables, selection: $selection) { $item in
 				ProvisionVariableDetailView(currentItem: $item)
 			}.onEditItem(selection: $selection, disabled: $disabled) { editItem in
-				ProvisionVariableNewItemView($variables, editItem: editItem)
+				ProvisionVariableNewItemView($variables, editItem: editItem).frame(height: geometry.size.height)
 			} deleteItem: {
 				self.variables.removeAll {
 					$0.id == selection
