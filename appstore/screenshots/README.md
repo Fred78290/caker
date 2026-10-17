@@ -16,7 +16,9 @@ swift Scripts/appstore-screenshots.swift appstore/screenshots/shots.json
 - Launch Caker in the language you need, e.g.
   `open -a Caker --args -AppleLanguages "(fr)" -AppleLocale fr_FR`.
   A running Caker ignores launch arguments, so quit it first. VMs started
-  with `caked start <vm>` keep running when Caker quits.
+  with `caked start <vm>` keep running when Caker quits, but their window
+  shows no IP address or CPU/memory meter: for a VM window shot, start the VM
+  from Caker itself and wait for the meter to appear.
 - Bring the window to the front, so it's captured in its active state.
 - Capture it without a shadow (the script draws its own), from a terminal that
   has Screen Recording permission:
