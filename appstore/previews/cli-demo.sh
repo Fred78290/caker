@@ -19,7 +19,7 @@ caked() { "${CAKER_APP}/Contents/PlugIns/caked.app/Contents/MacOS/caked" "$@"; }
 cakectl() { "${CAKER_APP}/Contents/PlugIns/cakectl.app/Contents/MacOS/cakectl" "$@"; }
 
 # Window title, position (pixels from the top-left of the screen) and size (rows; columns).
-printf '\e]0;caker\a\e[3;%d;%dt\e[8;%d;%dt' "${DEMO_X:-300}" "${DEMO_Y:-180}" "${DEMO_ROWS:-34}" "${DEMO_COLS:-150}"
+printf '\e]0;caker\a\e[3;%d;%dt\e[8;%d;%dt' "${DEMO_X:-300}" "${DEMO_Y:-180}" "${DEMO_ROWS:-34}" "${DEMO_COLS:-158}"
 clear
 
 prompt() {
