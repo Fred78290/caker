@@ -91,6 +91,9 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 			("openSUSE-Leap-15.6-DVD-x86_64-Media.iso", .openSUSE),
 			("debian-12.5.0-amd64-DVD-1.iso", .debian),
 			("alpine-standard-3.23.0-x86_64.iso", .alpine),
+			// Microsoft's own ISO filenames never contain the word "windows".
+			("Win11_25H2_English_Arm64_v2.iso", .windows),
+			("windows-11-enterprise-eval.iso", .windows),
 		]
 
 		for (filename, platform) in cases {
@@ -102,7 +105,7 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 	}
 
 	func testAllBundledLinuxPlatformsResolveDirectly() throws {
-		for platform: GRPCLib.SupportedPlatform in [.fedora, .centos, .redhat, .openSUSE, .debian, .alpine] {
+		for platform: GRPCLib.SupportedPlatform in [.fedora, .centos, .redhat, .openSUSE, .debian, .alpine, .windows] {
 			let resolved = try PackerLiteTemplateResolver.resolveLinuxTemplate(explicitPath: nil, platform: platform)
 
 			XCTAssertNotNil(resolved, "\(platform.rawValue) should resolve a bundled template")

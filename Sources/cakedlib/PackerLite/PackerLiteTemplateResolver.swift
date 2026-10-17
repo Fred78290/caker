@@ -45,6 +45,7 @@ extension SupportedPlatform {
 		case .debian: return "debian.packerlite"
 		case .alpine: return "alpine.packerlite"
 		case .ubuntu: return desktop ? "ubuntu.packerlite" : "ubuntu-server.packerlite"
+		case .windows: return "windows11.packerlite"
 		default: return nil
 		}
 	}

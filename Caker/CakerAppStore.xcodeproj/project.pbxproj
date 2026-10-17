@@ -229,6 +229,7 @@
 		9B2D379A304AD80500204614 /* debian.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378B304AD80500204614 /* debian.packerlite.yaml */; };
 		9B2D379B304AD80500204614 /* fedora.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378D304AD80500204614 /* fedora.packerlite.yaml */; };
 		9B2D379C304AD80500204614 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D3789304AD80500204614 /* alpine.packerlite.yaml */; };
+		8697771ED3C0B795C2927889 /* windows11.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 785C519F5B7071EB2FCF4A29 /* windows11.packerlite.yaml */; };
 		9B2D379D304AD80500204614 /* macos13.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378F304AD80500204614 /* macos13.packerlite.yaml */; };
 		9B2D379E304AD80500204614 /* macos15.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D3791304AD80500204614 /* macos15.packerlite.yaml */; };
 		9B2D379F304AD80500204614 /* centos.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378A304AD80500204614 /* centos.packerlite.yaml */; };
@@ -244,6 +245,7 @@
 		9B2D37A9304AD80500204614 /* debian.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378B304AD80500204614 /* debian.packerlite.yaml */; };
 		9B2D37AA304AD80500204614 /* fedora.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378D304AD80500204614 /* fedora.packerlite.yaml */; };
 		9B2D37AB304AD80500204614 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D3789304AD80500204614 /* alpine.packerlite.yaml */; };
+		F9CCEA3419C2F1E34E5891CC /* windows11.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 785C519F5B7071EB2FCF4A29 /* windows11.packerlite.yaml */; };
 		9B2D37AC304AD80500204614 /* macos13.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378F304AD80500204614 /* macos13.packerlite.yaml */; };
 		9B2D37AD304AD80500204614 /* macos15.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D3791304AD80500204614 /* macos15.packerlite.yaml */; };
 		9B2D37AE304AD80500204614 /* centos.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B2D378A304AD80500204614 /* centos.packerlite.yaml */; };
@@ -1090,6 +1092,7 @@
 		9B2D37843048578B00204614 /* ProvisionVariableNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionVariableNewItemView.swift; sourceTree = "<group>"; };
 		9B2D37853048578B00204614 /* ProvisionVariablesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisionVariablesView.swift; sourceTree = "<group>"; };
 		9B2D3789304AD80500204614 /* alpine.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = alpine.packerlite.yaml; sourceTree = "<group>"; };
+		785C519F5B7071EB2FCF4A29 /* windows11.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = windows11.packerlite.yaml; sourceTree = "<group>"; };
 		9B2D378A304AD80500204614 /* centos.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = centos.packerlite.yaml; sourceTree = "<group>"; };
 		9B2D378B304AD80500204614 /* debian.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = debian.packerlite.yaml; sourceTree = "<group>"; };
 		9B2D378C304AD80500204614 /* fedora-server.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "fedora-server.packerlite.yaml"; sourceTree = "<group>"; };
@@ -2571,6 +2574,7 @@
 			isa = PBXGroup;
 			children = (
 				9B2D3789304AD80500204614 /* alpine.packerlite.yaml */,
+				785C519F5B7071EB2FCF4A29 /* windows11.packerlite.yaml */,
 				9B2D378A304AD80500204614 /* centos.packerlite.yaml */,
 				9B2D378B304AD80500204614 /* debian.packerlite.yaml */,
 				9B2D378C304AD80500204614 /* fedora-server.packerlite.yaml */,
@@ -3660,6 +3664,7 @@
 				9B2D379A304AD80500204614 /* debian.packerlite.yaml in Resources */,
 				9B2D379B304AD80500204614 /* fedora.packerlite.yaml in Resources */,
 				9B2D379C304AD80500204614 /* alpine.packerlite.yaml in Resources */,
+				8697771ED3C0B795C2927889 /* windows11.packerlite.yaml in Resources */,
 				9B2D379D304AD80500204614 /* macos13.packerlite.yaml in Resources */,
 				9B2D379E304AD80500204614 /* macos15.packerlite.yaml in Resources */,
 				9B2D379F304AD80500204614 /* centos.packerlite.yaml in Resources */,
@@ -3696,6 +3701,7 @@
 				9B2D37A9304AD80500204614 /* debian.packerlite.yaml in Resources */,
 				9B2D37AA304AD80500204614 /* fedora.packerlite.yaml in Resources */,
 				9B2D37AB304AD80500204614 /* alpine.packerlite.yaml in Resources */,
+				F9CCEA3419C2F1E34E5891CC /* windows11.packerlite.yaml in Resources */,
 				9B2D37AC304AD80500204614 /* macos13.packerlite.yaml in Resources */,
 				9B2D37AD304AD80500204614 /* macos15.packerlite.yaml in Resources */,
 				9B2D37AE304AD80500204614 /* centos.packerlite.yaml in Resources */,

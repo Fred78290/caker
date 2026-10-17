@@ -210,7 +210,10 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		(self.diskPath, self.diskOptions) = try Self.parseOptions(parseFrom)
 	}
 
-	public func configuration(relativeTo: URL) throws -> VZStorageDeviceConfiguration {
+	/// `windowsGuest` selects devices a stock Windows installer has inbox drivers for: Windows ships no
+	/// virtio-blk driver, so a read-only `.iso` is exposed as a USB mass storage device (what EFI firmware
+	/// and Windows PE both boot from) and any other image as an NVMe namespace.
+	public func configuration(relativeTo: URL, windowsGuest: Bool = false) throws -> VZStorageDeviceConfiguration {
 		if #available(macOS 14, *) {
 			let diskURL = URL(spaced: diskPath)!
 
@@ -261,16 +264,27 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 			return VZVirtioBlockDeviceConfiguration(attachment: blockAttachment)
 		}
 
-		if try self.diskOptions.readOnly == false && !FileLock(lockURL: diskURL).trylock() {
+		let windowsInstallMedia = windowsGuest && diskURL.pathExtension.lowercased() == "iso"
+		let readOnly = self.diskOptions.readOnly || windowsInstallMedia
+
+		if try readOnly == false && !FileLock(lockURL: diskURL).trylock() {
 			throw ValidationError(String(localized: "disk \(diskURL.path(percentEncoded: false)) seems to be already in use, unmount it first in Finder"))
 		}
 
 		let diskImageAttachment = try VZDiskImageStorageDeviceAttachment(
 			url: diskURL,
-			readOnly: self.diskOptions.readOnly,
+			readOnly: readOnly,
 			cachingMode: try VZDiskImageCachingMode(description: self.diskOptions.cachingMode),
 			synchronizationMode: try VZDiskImageSynchronizationMode(description: self.diskOptions.syncMode)
 		)
+
+		if windowsGuest {
+			if windowsInstallMedia {
+				return VZUSBMassStorageDeviceConfiguration(attachment: diskImageAttachment)
+			}
+
+			return VZNVMExpressControllerDeviceConfiguration(attachment: diskImageAttachment)
+		}
 
 		return VZVirtioBlockDeviceConfiguration(attachment: diskImageAttachment)
 	}
