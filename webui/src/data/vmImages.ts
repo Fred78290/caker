@@ -30,8 +30,8 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "id": "ubuntu2610Server",
         "label": "Ubuntu 26.10 – Server",
         "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-live-server-arm64.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
+        "minCPU": 2,
+        "minMemoryMiB": 2048
       },
       {
         "id": "ubuntu2604Desktop",
@@ -353,8 +353,8 @@ export const vmImages: Record<'arm64' | 'amd64', VMImageCatalog> = {
         "id": "ubuntu2610Server",
         "label": "Ubuntu 26.10 – Server",
         "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-live-server-amd64.iso",
-        "minCPU": 4,
-        "minMemoryMiB": 4096
+        "minCPU": 2,
+        "minMemoryMiB": 2048
       },
       {
         "id": "ubuntu2604Desktop",
