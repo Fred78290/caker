@@ -1,0 +1,293 @@
+{
+	"canvas": [
+		1920,
+		1080
+	],
+	"fps": 30,
+	"crossfade": 0.6,
+	"raw": "raw",
+	"output": ".",
+	"languages": {
+		"en": "en-US",
+		"fr": "fr-FR"
+	},
+	"previews": [
+		{
+			"name": "virtual-machines",
+			"clips": [
+				{
+					"file": "home.mov",
+					"still": "home.png",
+					"headline": {
+						"en": "All your virtual machines at a glance",
+						"fr": "Toutes vos machines virtuelles d’un coup d’œil"
+					},
+					"subtitle": {
+						"en": "Live previews, status and resources for every macOS and Linux VM.",
+						"fr": "Aperçu en direct, état et ressources de chaque VM macOS et Linux."
+					},
+					"in": {
+						"en": 0.3,
+						"fr": 0.3
+					},
+					"out": {
+						"en": 16.9,
+						"fr": 16.9
+					}
+				},
+				{
+					"file": "vm.mov",
+					"still": "vm.png",
+					"headline": {
+						"en": "macOS and Linux at native speed",
+						"fr": "macOS et Linux à vitesse native"
+					},
+					"subtitle": {
+						"en": "Each VM runs in its own window, with live CPU and memory usage.",
+						"fr": "Chaque VM tourne dans sa fenêtre, avec processeur et mémoire en direct."
+					},
+					"in": {
+						"en": 0.5,
+						"fr": 0.5
+					},
+					"out": {
+						"en": 8.8,
+						"fr": 8.8
+					}
+				}
+			]
+		},
+		{
+			"name": "create-vm",
+			"clips": [
+				{
+					"file": "wizard.mov",
+					"still": "wizard.png",
+					"headline": {
+						"en": "Create a VM in a few clicks",
+						"fr": "Créez une VM en quelques clics"
+					},
+					"subtitle": {
+						"en": "Pick an image, set CPUs, memory, disks, networks and ports.",
+						"fr": "Choisissez une image, réglez processeurs, mémoire, disques, réseaux et ports."
+					},
+					"in": {
+						"en": 1.5,
+						"fr": 1.5
+					},
+					"out": {
+						"en": 22.0,
+						"fr": 22.0
+					}
+				}
+			]
+		},
+		{
+			"name": "compose-images-networks",
+			"clips": [
+				{
+					"file": "tour.mov",
+					"still": "tour.png",
+					"headline": {
+						"en": "Multi-VM stacks with Compose",
+						"fr": "Des environnements multi-VM avec Compose"
+					},
+					"subtitle": {
+						"en": "Describe your services in a compose.yml and start them together.",
+						"fr": "Décrivez vos services dans un compose.yml et démarrez-les ensemble."
+					},
+					"in": {
+						"en": 1.2,
+						"fr": 1.2
+					},
+					"out": {
+						"en": 8.6,
+						"fr": 8.6
+					}
+				},
+				{
+					"file": "tour.mov",
+					"still": "tour.png",
+					"headline": {
+						"en": "Start from ready-made cloud images",
+						"fr": "Partez d’images cloud prêtes à l’emploi"
+					},
+					"subtitle": {
+						"en": "Browse image servers for Alpine, Debian, Fedora, Ubuntu and more.",
+						"fr": "Parcourez les serveurs d’images Alpine, Debian, Fedora, Ubuntu et bien d’autres."
+					},
+					"in": {
+						"en": 10.0,
+						"fr": 10.0
+					},
+					"out": {
+						"en": 17.9,
+						"fr": 17.9
+					}
+				},
+				{
+					"file": "tour.mov",
+					"still": "tour.png",
+					"headline": {
+						"en": "Networking your way",
+						"fr": "Le réseau à votre façon"
+					},
+					"subtitle": {
+						"en": "NAT, bridged, shared and VLAN networks, each with its own DHCP range.",
+						"fr": "Réseaux NAT, pont, partagés et VLAN, chacun avec sa plage DHCP."
+					},
+					"in": {
+						"en": 17.9,
+						"fr": 17.9
+					},
+					"out": {
+						"en": 25.5,
+						"fr": 25.5
+					}
+				}
+			]
+		},
+		{
+			"name": "command-line",
+			"clips": [
+				{
+					"file": "cli.mov",
+					"still": "cli.png",
+					"crop": [
+						0,
+						32,
+						1599,
+						660
+					],
+					"radius": 12,
+					"in": {
+						"fr": 0.5,
+						"en": 0.5
+					},
+					"out": {
+						"fr": 12.0,
+						"en": 12.1
+					},
+					"headline": {
+						"en": "Script it from the command line",
+						"fr": "Pilotez tout en ligne de commande"
+					},
+					"subtitle": {
+						"en": "caked and cakectl drive the same VMs from your terminal.",
+						"fr": "caked et cakectl gèrent les mêmes VM depuis votre terminal."
+					}
+				},
+				{
+					"file": "cli.mov",
+					"still": "cli.png",
+					"crop": [
+						0,
+						32,
+						1599,
+						660
+					],
+					"radius": 12,
+					"in": {
+						"fr": 12.9,
+						"en": 13.4
+					},
+					"out": {
+						"fr": 16.0,
+						"en": 16.3
+					},
+					"headline": {
+						"en": "Start a VM, run commands inside",
+						"fr": "Démarrez une VM, exécutez-y des commandes"
+					},
+					"subtitle": {
+						"en": "No SSH setup: commands go through the built-in guest agent.",
+						"fr": "Sans configurer SSH : tout passe par l’agent intégré."
+					}
+				},
+				{
+					"file": "cli.mov",
+					"still": "cli.png",
+					"crop": [
+						0,
+						32,
+						1599,
+						660
+					],
+					"radius": 12,
+					"join": true,
+					"in": {
+						"fr": 27.9,
+						"en": 27.4
+					},
+					"out": {
+						"fr": 30.5,
+						"en": 30.0
+					},
+					"headline": {
+						"en": "Start a VM, run commands inside",
+						"fr": "Démarrez une VM, exécutez-y des commandes"
+					},
+					"subtitle": {
+						"en": "No SSH setup: commands go through the built-in guest agent.",
+						"fr": "Sans configurer SSH : tout passe par l’agent intégré."
+					}
+				},
+				{
+					"file": "cli.mov",
+					"still": "cli.png",
+					"crop": [
+						0,
+						32,
+						1599,
+						660
+					],
+					"radius": 12,
+					"join": true,
+					"in": {
+						"fr": 35.9,
+						"en": 35.5
+					},
+					"out": {
+						"fr": 41.2,
+						"en": 40.7
+					},
+					"headline": {
+						"en": "Start a VM, run commands inside",
+						"fr": "Démarrez une VM, exécutez-y des commandes"
+					},
+					"subtitle": {
+						"en": "No SSH setup: commands go through the built-in guest agent.",
+						"fr": "Sans configurer SSH : tout passe par l’agent intégré."
+					}
+				},
+				{
+					"file": "cli.mov",
+					"still": "cli.png",
+					"crop": [
+						0,
+						32,
+						1599,
+						660
+					],
+					"radius": 12,
+					"in": {
+						"fr": 41.2,
+						"en": 40.7
+					},
+					"out": {
+						"fr": 47.2,
+						"en": 46.5
+					},
+					"headline": {
+						"en": "Inspect and automate",
+						"fr": "Inspectez et automatisez"
+					},
+					"subtitle": {
+						"en": "IP addresses, CPUs and memory, ready for your scripts.",
+						"fr": "Adresses IP, processeurs et mémoire, prêts pour vos scripts."
+					}
+				}
+			]
+		}
+	]
+}
