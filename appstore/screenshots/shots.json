@@ -1,0 +1,98 @@
+{
+	"canvas": [
+		1440,
+		900
+	],
+	"raw": "raw",
+	"output": ".",
+	"languages": {
+		"en": "en-US",
+		"fr": "fr-FR"
+	},
+	"shots": [
+		{
+			"file": "home.png",
+			"fit": "crop",
+			"headline": {
+				"en": "All your virtual machines at a glance",
+				"fr": "Toutes vos machines virtuelles d’un coup d’œil"
+			},
+			"subtitle": {
+				"en": "Live previews, status and resources for every macOS and Linux VM.",
+				"fr": "Aperçu en direct, état et ressources de chaque VM macOS et Linux."
+			}
+		},
+		{
+			"file": "macos-vm.png",
+			"fit": "crop",
+			"headline": {
+				"en": "macOS and Linux at native speed",
+				"fr": "macOS et Linux à vitesse native"
+			},
+			"subtitle": {
+				"en": "Built on Apple’s Virtualization framework for Apple silicon.",
+				"fr": "Basé sur le framework Virtualization d’Apple, pour Apple silicon."
+			}
+		},
+		{
+			"file": "wizard.png",
+			"fit": "crop",
+			"headline": {
+				"en": "Create a VM in a few clicks",
+				"fr": "Créez une VM en quelques clics"
+			},
+			"subtitle": {
+				"en": "Pick an OS, set CPUs and memory, and let Caker install it for you.",
+				"fr": "Choisissez un OS, réglez processeurs et mémoire, Caker l’installe pour vous."
+			}
+		},
+		{
+			"file": "detail.png",
+			"fit": "crop",
+			"headline": {
+				"en": "Every VM, one click away",
+				"fr": "Chaque VM à portée de clic"
+			},
+			"subtitle": {
+				"en": "Start, stop and inspect your machines from the list view.",
+				"fr": "Démarrez, arrêtez et inspectez vos machines depuis la vue liste."
+			}
+		},
+		{
+			"file": "compose.png",
+			"fit": "crop",
+			"headline": {
+				"en": "Multi-VM stacks with Compose",
+				"fr": "Des environnements multi-VM avec Compose"
+			},
+			"subtitle": {
+				"en": "Describe your services in a compose.yml and start them together.",
+				"fr": "Décrivez vos services dans un compose.yml et démarrez-les ensemble."
+			}
+		},
+		{
+			"file": "images.png",
+			"fit": "crop",
+			"headline": {
+				"en": "Start from ready-made cloud images",
+				"fr": "Partez d’images cloud prêtes à l’emploi"
+			},
+			"subtitle": {
+				"en": "Browse image servers for Alpine, Debian, Fedora, Ubuntu and more.",
+				"fr": "Parcourez les serveurs d’images Alpine, Debian, Fedora, Ubuntu et bien d’autres."
+			}
+		},
+		{
+			"file": "networks.png",
+			"fit": "crop",
+			"headline": {
+				"en": "Networking your way",
+				"fr": "Le réseau à votre façon"
+			},
+			"subtitle": {
+				"en": "NAT, bridged, shared and VLAN networks, each with its own DHCP range.",
+				"fr": "Réseaux NAT, pont, partagés et VLAN, chacun avec sa plage DHCP."
+			}
+		}
+	]
+}
