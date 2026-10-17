@@ -576,38 +576,6 @@ final class PackerLiteTests: XCTestCase {
 		try await assertLinuxTemplateLoadsAndParses("ubuntu.packerlite.yaml", expectsTypedPassword: false)
 	}
 
-	func testWindows11PackerLiteTemplateFileLoadsAndParses() async throws {
-		let template = try await PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("windows11.packerlite.yaml").path,
-			variables: ["username": "admin", "password": "hunter2"])
-
-		XCTAssertFalse(template.preBootCommand.isEmpty)
-		XCTAssertFalse(template.bootCommand.isEmpty)
-		XCTAssertEqual(template.ignoreIP, true, "Windows has no cakeagent and no network driver, so there is no IP to wait for")
-		XCTAssertEqual(template.installAgent, false)
-		XCTAssertTrue(containsText(template.bootCommand, "hunter2"))
-		XCTAssertFalse(containsUnsubstitutedVariable(template.bootCommand), "all ${var.*} placeholders should have been substituted")
-	}
-
-	/// The whole point of the template: each LabConfig value must be typed with real backslashes. The
-	/// boot-command parser drops a lone `\` as an escape, so the YAML has to double them.
-	func testWindows11TemplateTypesLabConfigBypassKeysWithBackslashes() async throws {
-		let template = try await PackerLiteTemplate.load(
-			fromFile: Self.macTemplatesDirectory.appendingPathComponent("windows11.packerlite.yaml").path,
-			variables: ["username": "admin", "password": "hunter2"])
-
-		let typed: [String] = template.bootCommand.flatMap { $0.steps }.compactMap {
-			if case .type(let text) = $0 { return text }
-			return nil
-		}
-
-		for key in ["BypassTPMCheck", "BypassSecureBootCheck", "BypassRAMCheck", "BypassCPUCheck", "BypassStorageCheck"] {
-			XCTAssertTrue(
-				typed.contains { $0 == "reg add HKLM\\SYSTEM\\Setup\\LabConfig /v \(key) /t REG_DWORD /d 1 /f" },
-				"missing \(key) registry command")
-		}
-	}
-
 	private func assertLinuxTemplateLoadsAndParses(_ filename: String, expectsTypedPassword: Bool = true) async throws {
 		let template = try await PackerLiteTemplate.load(
 			fromFile: Self.macTemplatesDirectory.appendingPathComponent(filename).path,

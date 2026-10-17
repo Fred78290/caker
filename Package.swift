@@ -184,7 +184,6 @@ let package = Package(
 			.copy("PackerLite/Resources/macos15.packerlite.yaml"),
 			.copy("PackerLite/Resources/macos14.packerlite.yaml"),
 			.copy("PackerLite/Resources/alpine.packerlite.yaml"),
-			.copy("PackerLite/Resources/windows11.packerlite.yaml"),
 			.copy("PackerLite/Resources/centos.packerlite.yaml"),
 			.copy("PackerLite/Resources/debian.packerlite.yaml"),
 			.copy("PackerLite/Resources/opensuse.packerlite.yaml"),

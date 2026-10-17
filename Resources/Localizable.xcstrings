@@ -20830,6 +20830,256 @@
           }
         }
       }
+    },
+    "%@ failed (%d): %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ a échoué (%2$d) : %3$@"
+          }
+        }
+      }
+    },
+    "%@ is not a Windows installation ISO" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ n’est pas un ISO d’installation de Windows"
+          }
+        }
+      }
+    },
+    "%@ is not a Windows on ARM installation ISO" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ n’est pas un ISO d’installation de Windows sur ARM"
+          }
+        }
+      }
+    },
+    "Can't attach %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d’attacher %@"
+          }
+        }
+      }
+    },
+    "Can't mount %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de monter %@"
+          }
+        }
+      }
+    },
+    "Copying the Windows installation files" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copie des fichiers d’installation de Windows"
+          }
+        }
+      }
+    },
+    "Copying the virtio drivers" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copie des pilotes virtio"
+          }
+        }
+      }
+    },
+    "Creating the installation disk" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Création du disque d’installation"
+          }
+        }
+      }
+    },
+    "Installing Windows" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installation de Windows"
+          }
+        }
+      }
+    },
+    "Installing Windows needs wimlib: run `brew install wimlib`" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’installation de Windows nécessite wimlib : exécutez `brew install wimlib`"
+          }
+        }
+      }
+    },
+    "Preparing the Windows installation media" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préparation du support d’installation de Windows"
+          }
+        }
+      }
+    },
+    "Preparing the Windows installer" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Préparation de l’installateur de Windows"
+          }
+        }
+      }
+    },
+    "Reading the Windows installation ISO" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecture de l’ISO d’installation de Windows"
+          }
+        }
+      }
+    },
+    "Starting Windows for the first time" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premier démarrage de Windows"
+          }
+        }
+      }
+    },
+    "The Windows installation ISO has no image to install" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’ISO d’installation de Windows ne contient aucune image à installer"
+          }
+        }
+      }
+    },
+    "The installation disk has no GPT" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le disque d’installation n’a pas de table GPT"
+          }
+        }
+      }
+    },
+    "The installation disk has no such partition" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le disque d’installation n’a pas cette partition"
+          }
+        }
+      }
+    },
+    "The virtio-win ISO has no ARM64 %@ driver" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’ISO virtio-win n’a pas de pilote %@ pour ARM64"
+          }
+        }
+      }
+    },
+    "Windows VMs are not supported in the App Store build" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les VM Windows ne sont pas prises en charge dans la version App Store"
+          }
+        }
+      }
+    },
+    "Windows VMs are not supported on this version of macOS (missing %@)" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les VM Windows ne sont pas prises en charge sur cette version de macOS (%@ manquant)"
+          }
+        }
+      }
+    },
+    "Windows did not finish setting itself up" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windows n’a pas terminé sa configuration"
+          }
+        }
+      }
+    },
+    "Windows installation failed:\n%@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l’installation de Windows :\n%@"
+          }
+        }
+      }
+    },
+    "Windows installation timed out" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Délai dépassé pour l’installation de Windows"
+          }
+        }
+      }
+    },
+    "Windows can only be installed unattended: pass --autoinstall" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windows ne peut être installé que sans surveillance : ajoutez --autoinstall"
+          }
+        }
+      }
+    },
+    "Windows installation is not available in the App Store build" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’installation de Windows n’est pas disponible dans la version App Store"
+          }
+        }
+      }
     }
   },
   "version" : "1.3"

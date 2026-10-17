@@ -149,7 +149,15 @@ public struct VMBuilder {
 				_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
 
 				if imageSource == .iso {
-					attachedDisks.append(DiskAttachement(diskPath: URL(spaced: options.image)!))
+					if SupportedPlatform(rawValue: options.image) == .windows {
+						// The ISO can't be attached as is (see WindowsInstallationMedia): WindowsInstaller builds the
+						// bootable media from it, which only makes sense when it also runs the unattended install.
+						guard options.autoinstall else {
+							throw ServiceError(String(localized: "Windows can only be installed unattended: pass --autoinstall"))
+						}
+					} else {
+						attachedDisks.append(DiskAttachement(diskPath: URL(spaced: options.image)!))
+					}
 				}
 
 				config = CakeConfig(

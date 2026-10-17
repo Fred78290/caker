@@ -145,7 +145,20 @@ public struct BuildHandler {
 							try storageLocation.relocate(options.name, from: tempVMLocation)
 						}
 
-						if result.autoinstall && result.imageSource == .iso {
+						if result.autoinstall && result.imageSource == .iso && SupportedPlatform(rawValue: result.image) == .windows {
+							// Windows has its own unattended installer (see WindowsInstaller); PackerLite's OCR-driven
+							// templates can't drive it, since nothing is shown while Windows' installer runs.
+							let config = try location.config()
+
+							try await WindowsInstaller.install(
+								location: location,
+								config: config,
+								windowsISO: URL(spaced: result.image)!,
+								username: config.configuredUser,
+								password: config.configuredPassword ?? "admin",
+								runMode: runMode,
+								progressHandler: progressHandler)
+						} else if result.autoinstall && result.imageSource == .iso {
 							// An explicit --template always wins; otherwise falls back to a built-in template for
 							// the distro auto-detected from the ISO filename/URL (see PackerLiteTemplateResolver).
 							// Resolves to nil, not an error, for platforms with no PackerLite template — Ubuntu

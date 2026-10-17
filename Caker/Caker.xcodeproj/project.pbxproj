@@ -21,6 +21,10 @@
 
 /* Begin PBXBuildFile section */
 		0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */; };
+		8E3915A998D8A419A5BF06A8 /* WindowsInstallResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2277924602801C96A1C85DD /* WindowsInstallResources.swift */; };
+		DFE1BF8599918E88E5CE0B71 /* WindowsInstallationMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A2706E9158E4CB064FBCB9 /* WindowsInstallationMedia.swift */; };
+		4DB04CFDA26AE16AB65C1DE4 /* WindowsInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD76FFB59F6B86585688341D /* WindowsInstaller.swift */; };
+		CE31DF57331EB931E62803C4 /* WindowsEFIBinaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7D990FCDDDC3A9FD878A93 /* WindowsEFIBinaries.swift */; };
 		DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */; };
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
 		11228D037DE95B454ED84F9C /* ComposeEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */; };
@@ -251,9 +255,7 @@
 		9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */; };
 		705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */; };
 		9B4D214A3045E2D300082830 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B4D21493045E2D300082830 /* alpine.packerlite.yaml */; };
-		A6CC73FF929C3324D988D3D5 /* windows11.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = E1DAFFC16F54404C91456113 /* windows11.packerlite.yaml */; };
 		9B4D214B3045E2D300082830 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B4D21493045E2D300082830 /* alpine.packerlite.yaml */; };
-		ED5543FC2B6434C3F03E3106 /* windows11.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = E1DAFFC16F54404C91456113 /* windows11.packerlite.yaml */; };
 		9B4EA8292F7692170044C18E /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; };
 		9B561266301350FB00E9FA7D /* agent.svg in Resources */ = {isa = PBXBuildFile; fileRef = 9B561238301350FB00E9FA7D /* agent.svg */; };
 		9B561267301350FB00E9FA7D /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9B561239301350FB00E9FA7D /* AppIcon.icns */; };
@@ -1202,7 +1204,6 @@
 		9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstanceDetailPage.tsx; sourceTree = "<group>"; };
 		9B4C09B82FB8D72100101F0E /* RemotesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = RemotesPage.tsx; sourceTree = "<group>"; };
 		9B4D21493045E2D300082830 /* alpine.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = alpine.packerlite.yaml; sourceTree = "<group>"; };
-		E1DAFFC16F54404C91456113 /* windows11.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = windows11.packerlite.yaml; sourceTree = "<group>"; };
 		9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswiftCompatibilitySpan.dylib; path = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib"; sourceTree = "<absolute>"; };
 		9B561226301350FB00E9FA7D /* cakectl.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cakectl.entitlements; sourceTree = "<group>"; };
 		9B561227301350FB00E9FA7D /* cakectl.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = cakectl.provisionprofile; sourceTree = "<group>"; };
@@ -1679,6 +1680,10 @@
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
 		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
+		C2277924602801C96A1C85DD /* WindowsInstallResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowsInstallResources.swift; sourceTree = "<group>"; };
+		B7A2706E9158E4CB064FBCB9 /* WindowsInstallationMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowsInstallationMedia.swift; sourceTree = "<group>"; };
+		AD76FFB59F6B86585688341D /* WindowsInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowsInstaller.swift; sourceTree = "<group>"; };
+		7A7D990FCDDDC3A9FD878A93 /* WindowsEFIBinaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowsEFIBinaries.swift; sourceTree = "<group>"; };
 		0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateChecker.swift; sourceTree = "<group>"; };
 		CEBCF840FC996468321E4B7D /* BootCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootCommand.swift; sourceTree = "<group>"; };
 		DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeEditorView.swift; sourceTree = "<group>"; };
@@ -2549,7 +2554,6 @@
 			isa = PBXGroup;
 			children = (
 				9B4D21493045E2D300082830 /* alpine.packerlite.yaml */,
-				E1DAFFC16F54404C91456113 /* windows11.packerlite.yaml */,
 				9B32F9743025C31F0099D3A5 /* centos.packerlite.yaml */,
 				9B32F9753025C31F0099D3A5 /* debian.packerlite.yaml */,
 				DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */,
@@ -2988,6 +2992,10 @@
 				9BDC05922FEADB4400802A3C /* CakerEnv.swift */,
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
 				C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */,
+				C2277924602801C96A1C85DD /* WindowsInstallResources.swift */,
+				B7A2706E9158E4CB064FBCB9 /* WindowsInstallationMedia.swift */,
+				AD76FFB59F6B86585688341D /* WindowsInstaller.swift */,
+				7A7D990FCDDDC3A9FD878A93 /* WindowsEFIBinaries.swift */,
 				9BDC06562FEADF2B00802A3C /* ComposeFile.swift */,
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
@@ -3657,7 +3665,6 @@
 				9B32F97B3025C31F0099D3A5 /* fedora.packerlite.yaml in Resources */,
 				9B2D376F30471A3D00204614 /* ubuntu-server.packerlite.yaml in Resources */,
 				9B4D214B3045E2D300082830 /* alpine.packerlite.yaml in Resources */,
-				ED5543FC2B6434C3F03E3106 /* windows11.packerlite.yaml in Resources */,
 				D43FC446B6C30CD981F6FA33 /* fedora-server.packerlite.yaml in Resources */,
 				9B32F97C3025C31F0099D3A5 /* centos.packerlite.yaml in Resources */,
 				9B32F97D3025C31F0099D3A5 /* redhat.packerlite.yaml in Resources */,
@@ -3692,7 +3699,6 @@
 				9B561272301350FB00E9FA7D /* elementary-os.png in Resources */,
 				9B561273301350FB00E9FA7D /* fedora.png in Resources */,
 				9B4D214A3045E2D300082830 /* alpine.packerlite.yaml in Resources */,
-				A6CC73FF929C3324D988D3D5 /* windows11.packerlite.yaml in Resources */,
 				9B32F97E3025C31F0099D3A5 /* opensuse.packerlite.yaml in Resources */,
 				9B32F97F3025C31F0099D3A5 /* debian.packerlite.yaml in Resources */,
 				9B32F9803025C31F0099D3A5 /* fedora.packerlite.yaml in Resources */,
@@ -4324,6 +4330,10 @@
 				9BEBC77E2DF440720092B196 /* mount.pb.swift in Sources */,
 				9BDC06572FEADF2B00802A3C /* ComposeFile.swift in Sources */,
 				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
+				8E3915A998D8A419A5BF06A8 /* WindowsInstallResources.swift in Sources */,
+				DFE1BF8599918E88E5CE0B71 /* WindowsInstallationMedia.swift in Sources */,
+				4DB04CFDA26AE16AB65C1DE4 /* WindowsInstaller.swift in Sources */,
+				CE31DF57331EB931E62803C4 /* WindowsEFIBinaries.swift in Sources */,
 				DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */,
 				9BBF7BB72F3E0E8D00F37D2C /* VNCInfosHandler.swift in Sources */,
 				9BEBC77F2DF440720092B196 /* VMRunHandler.swift in Sources */,
