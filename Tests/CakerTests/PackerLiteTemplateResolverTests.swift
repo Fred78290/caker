@@ -95,6 +95,7 @@ final class PackerLiteTemplateResolverTests: XCTestCase {
 			("Win11_25H2_English_Arm64_v2.iso", .windows),
 			("windows-11-enterprise-eval.iso", .windows),
 			("Windows11_Client_arm64_fr-fr_26300_9457.iso", .windows),
+			("Windows11_Client_arm64_en-us_26300_9457.iso", .windows),
 		]
 
 		for (filename, platform) in cases {
