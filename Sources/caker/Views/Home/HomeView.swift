@@ -417,14 +417,17 @@ struct HomeView: View {
 					EmptyView()
 				}
 			case .networks:
-				if navigationModel.selectedNetwork != nil {
+				if let selectedNetwork = navigationModel.selectedNetwork {
+					// The outgoing view can still read/write the binding after the selection is cleared.
 					NetworkDetailView(
 						Binding<BridgedNetwork>(
 							get: {
-								navigationModel.selectedNetwork!
+								navigationModel.selectedNetwork ?? selectedNetwork
 							},
 							set: { newValue in
-								navigationModel.selectedNetwork = newValue
+								if navigationModel.selectedNetwork != nil {
+									navigationModel.selectedNetwork = newValue
+								}
 							}
 						),
 						reloadNetwork: Binding<Bool>(
@@ -436,8 +439,12 @@ struct HomeView: View {
 									DispatchQueue.main.async {
 										self.appState.reloadNetworks()
 
+										guard let id = navigationModel.selectedNetwork?.id else {
+											return
+										}
+
 										navigationModel.selectedNetwork = self.appState.networks.first {
-											$0.id == navigationModel.selectedNetwork!.id
+											$0.id == id
 										}
 									}
 								}
