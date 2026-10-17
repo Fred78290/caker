@@ -2,7 +2,7 @@
 
 `en-US/` and `fr-FR/` hold four Mac App Store app previews per language:
 1920×1080 (the only size App Store Connect accepts for Mac previews), 30 fps
-H.264 with a silent stereo AAC track, 20 to 25 seconds each (the limit is 15
+H.264 with a silent stereo AAC track, 20 to 27 seconds each (the limit is 15
 to 30).
 
 1. `01-virtual-machines.mp4`: home mosaic, list view and detail pane, then a
