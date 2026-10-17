@@ -2,7 +2,7 @@
 	"arm64": {
 		"iso": [
 			{ "id": "ubuntu2610Desktop", "label": "Ubuntu 26.10 – Desktop", "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-desktop-arm64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
-			{ "id": "ubuntu2610Server", "label": "Ubuntu 26.10 – Server", "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-live-server-arm64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
+			{ "id": "ubuntu2610Server", "label": "Ubuntu 26.10 – Server", "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-live-server-arm64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "ubuntu2604Desktop", "label": "Ubuntu 26.04 LTS – Desktop", "url": "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-desktop-arm64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
 			{ "id": "ubuntu2604Server", "label": "Ubuntu 26.04 LTS – Server", "url": "https://cdimage.ubuntu.com/ubuntu/releases/resolute/release/ubuntu-26.04-live-server-arm64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "ubuntu2404Desktop", "label": "Ubuntu 24.04.4 LTS – Desktop", "url": "https://cdimage.ubuntu.com/ubuntu/releases/noble/release/ubuntu-24.04.4-desktop-arm64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
@@ -66,7 +66,7 @@
 	"amd64": {
 		"iso": [
 			{ "id": "ubuntu2610Desktop", "label": "Ubuntu 26.10 – Desktop", "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-desktop-amd64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
-			{ "id": "ubuntu2610Server", "label": "Ubuntu 26.10 – Server", "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-live-server-amd64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
+			{ "id": "ubuntu2610Server", "label": "Ubuntu 26.10 – Server", "url": "https://cdimage.ubuntu.com/ubuntu/releases/stonking/release/snapshot-4/ubuntu-26.10-snapshot4-live-server-amd64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "ubuntu2604Desktop", "label": "Ubuntu 26.04 LTS – Desktop", "url": "https://releases.ubuntu.com/resolute/ubuntu-26.04.1-desktop-amd64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
 			{ "id": "ubuntu2604Server", "label": "Ubuntu 26.04 LTS – Server", "url": "https://releases.ubuntu.com/resolute/ubuntu-26.04.1-live-server-amd64.iso", "minCPU": 2, "minMemoryMiB": 2048 },
 			{ "id": "ubuntu2404Desktop", "label": "Ubuntu 24.04.4 LTS – Desktop", "url": "https://releases.ubuntu.com/noble/ubuntu-24.04.4-desktop-amd64.iso", "minCPU": 4, "minMemoryMiB": 4096 },
