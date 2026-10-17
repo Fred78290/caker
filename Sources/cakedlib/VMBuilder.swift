@@ -65,6 +65,9 @@ public struct VMBuilder {
 	public static let IPSWTerminatedNotification = NSNotification.Name("IPSWTerminatedNotification")
 
 	public static let memoryMinSize: UInt64 = 512 * MoB
+	static let windowsMinCPU: UInt16 = 2
+	static let windowsMinMemory: UInt64 = 4096
+	static let windowsMinDiskSize: UInt64 = 64
 
 	private static func build(id: UUID, vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		let imageSource = options.imageSource!
@@ -170,8 +173,12 @@ public struct VMBuilder {
 
 				let autoinstall = options.autoinstall && imageSource == .iso
 
-				config.useCloudInit = imageSource != .iso || autoinstall
-				config.agent = imageSource != .iso || autoinstall
+				// Windows has neither cloud-init nor the cakeagent: its ISO is installed purely through the
+				// PackerLite boot_command (windows11.packerlite.yaml), never through a cloud-init seed.
+				let windowsGuest = config.isWindowsGuest
+
+				config.useCloudInit = (imageSource != .iso || autoinstall) && windowsGuest == false
+				config.agent = (imageSource != .iso || autoinstall) && windowsGuest == false
 				config.nested = options.nested
 				config.attachedDisks = attachedDisks
 				config.sshAuthorizedKey = options.sshAuthorizedKey
@@ -475,6 +482,15 @@ public struct VMBuilder {
 			Logger("VMBuilder").warn(
 				"Building \(vmName) from an ISO image with the default \(BuildOptions.defaultCPU) CPU / \(BuildOptions.defaultMemory)MB memory — most installers need more to boot reliably; pass --cpus/--memory explicitly, or --alias with a matching catalog id, to size the VM appropriately."
 			)
+		}
+
+		// Windows 11's own minimums (4 GiB RAM, 2 CPUs, 64 GB disk). The bundled template bypasses Setup's
+		// hardware checks, which only lets the install start — it doesn't make a smaller VM usable.
+		if resolvedOptions.imageSource == .iso, SupportedPlatform(rawValue: resolvedOptions.image) == .windows,
+			resolvedOptions.cpu < Self.windowsMinCPU || resolvedOptions.memory < Self.windowsMinMemory || resolvedOptions.diskSize < Self.windowsMinDiskSize
+		{
+			Logger("VMBuilder").warn(
+				"Windows 11 needs at least \(Self.windowsMinCPU) CPUs, \(Self.windowsMinMemory)MB memory and a \(Self.windowsMinDiskSize)GB disk; \(vmName) is configured with \(resolvedOptions.cpu) CPUs, \(resolvedOptions.memory)MB and \(resolvedOptions.diskSize)GB — pass --cpus/--memory/--disk-size accordingly.")
 		}
 
 		let options = try await self.cloneImage(vmName: vmName, location: location, options: resolvedOptions, runMode: runMode, progressHandler: progressHandler)

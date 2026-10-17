@@ -220,9 +220,12 @@ public enum SupportedPlatform: String, Codable, CaseIterable, Sendable {
 		// it can never match the already-lowercased `rawValue` above — including when reading back
 		// a value this same type previously wrote out via its own `.rawValue` (see CakeConfig.configuredPlatform).
 		// RHEL's official ISO filenames use "rhel", not "redhat" (e.g. "rhel-9.4-x86_64-dvd.iso"), so
-		// .redhat needs that as an additional alias.
+		// .redhat needs that as an additional alias. Microsoft's own Windows ISO filenames never contain the
+		// word "windows" either (e.g. "Win11_25H2_English_Arm64_v2.iso"), so .windows matches "win10"/"win11".
 		let value = Self.allCases.first {
-			rawValue.contains($0.rawValue.lowercased()) || ($0 == .redhat && rawValue.contains("rhel"))
+			rawValue.contains($0.rawValue.lowercased())
+				|| ($0 == .redhat && rawValue.contains("rhel"))
+				|| ($0 == .windows && (rawValue.contains("win11") || rawValue.contains("win10")))
 		}
 
 		if let value = value {

@@ -251,7 +251,9 @@
 		9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */; };
 		705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */; };
 		9B4D214A3045E2D300082830 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B4D21493045E2D300082830 /* alpine.packerlite.yaml */; };
+		A6CC73FF929C3324D988D3D5 /* windows11.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = E1DAFFC16F54404C91456113 /* windows11.packerlite.yaml */; };
 		9B4D214B3045E2D300082830 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B4D21493045E2D300082830 /* alpine.packerlite.yaml */; };
+		ED5543FC2B6434C3F03E3106 /* windows11.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = E1DAFFC16F54404C91456113 /* windows11.packerlite.yaml */; };
 		9B4EA8292F7692170044C18E /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; };
 		9B561266301350FB00E9FA7D /* agent.svg in Resources */ = {isa = PBXBuildFile; fileRef = 9B561238301350FB00E9FA7D /* agent.svg */; };
 		9B561267301350FB00E9FA7D /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9B561239301350FB00E9FA7D /* AppIcon.icns */; };
@@ -1200,6 +1202,7 @@
 		9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstanceDetailPage.tsx; sourceTree = "<group>"; };
 		9B4C09B82FB8D72100101F0E /* RemotesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = RemotesPage.tsx; sourceTree = "<group>"; };
 		9B4D21493045E2D300082830 /* alpine.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = alpine.packerlite.yaml; sourceTree = "<group>"; };
+		E1DAFFC16F54404C91456113 /* windows11.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = windows11.packerlite.yaml; sourceTree = "<group>"; };
 		9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libswiftCompatibilitySpan.dylib; path = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib"; sourceTree = "<absolute>"; };
 		9B561226301350FB00E9FA7D /* cakectl.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = cakectl.entitlements; sourceTree = "<group>"; };
 		9B561227301350FB00E9FA7D /* cakectl.provisionprofile */ = {isa = PBXFileReference; lastKnownFileType = file; path = cakectl.provisionprofile; sourceTree = "<group>"; };
@@ -2546,6 +2549,7 @@
 			isa = PBXGroup;
 			children = (
 				9B4D21493045E2D300082830 /* alpine.packerlite.yaml */,
+				E1DAFFC16F54404C91456113 /* windows11.packerlite.yaml */,
 				9B32F9743025C31F0099D3A5 /* centos.packerlite.yaml */,
 				9B32F9753025C31F0099D3A5 /* debian.packerlite.yaml */,
 				DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */,
@@ -3653,6 +3657,7 @@
 				9B32F97B3025C31F0099D3A5 /* fedora.packerlite.yaml in Resources */,
 				9B2D376F30471A3D00204614 /* ubuntu-server.packerlite.yaml in Resources */,
 				9B4D214B3045E2D300082830 /* alpine.packerlite.yaml in Resources */,
+				ED5543FC2B6434C3F03E3106 /* windows11.packerlite.yaml in Resources */,
 				D43FC446B6C30CD981F6FA33 /* fedora-server.packerlite.yaml in Resources */,
 				9B32F97C3025C31F0099D3A5 /* centos.packerlite.yaml in Resources */,
 				9B32F97D3025C31F0099D3A5 /* redhat.packerlite.yaml in Resources */,
@@ -3687,6 +3692,7 @@
 				9B561272301350FB00E9FA7D /* elementary-os.png in Resources */,
 				9B561273301350FB00E9FA7D /* fedora.png in Resources */,
 				9B4D214A3045E2D300082830 /* alpine.packerlite.yaml in Resources */,
+				A6CC73FF929C3324D988D3D5 /* windows11.packerlite.yaml in Resources */,
 				9B32F97E3025C31F0099D3A5 /* opensuse.packerlite.yaml in Resources */,
 				9B32F97F3025C31F0099D3A5 /* debian.packerlite.yaml in Resources */,
 				9B32F9803025C31F0099D3A5 /* fedora.packerlite.yaml in Resources */,
