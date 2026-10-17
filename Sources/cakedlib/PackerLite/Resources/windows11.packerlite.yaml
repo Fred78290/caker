@@ -29,6 +29,14 @@
 # cakeagent does not exist for Windows (install_agent: false) and there is no IP
 # to wait for (ignore_ip: true).
 #
+# Languages: the OCR anchors list English and French wording side by side
+# (pipe-separated alternatives, accent-free because the OCR pass is English-only).
+# A French ISO (e.g. Windows11_Client_arm64_fr-fr_*.iso) is detected on Setup's
+# first screen; it switches the host-side keyboard translator to French-PC (a
+# physical match for Windows' AZERTY layout) and types each backslash as
+# AltGr+8, since the French layout has no plain backslash key. Another language
+# needs its own anchors and keyboard layout: copy this file and pass --template.
+#
 # Recommended sizing: at least 2 CPUs, 4 GiB of memory and a 64 GB disk, e.g.
 #   cakectl build my-win11 ./Win11_25H2_English_Arm64_v2.iso \
 #     --cpus 4 --memory 8192 --disk-size 80 \
@@ -61,16 +69,32 @@ pre_boot_command:
       - <spacebar>
 
 boot_command:
+  - title: Wait for Windows Setup
+    commands:
+      - <locate text="Language to install|Languages to install|Windows Setup|Langue|installation de Windows" timeout=900>
+      - <wait2s>
+
+  - title: Detect French installation media
+    # "Langue" is not a substring of any English Setup wording, so finding it means a French ISO.
+    commands:
+      - <skipCommandIfNotFound text="Langue|Format de l|Clavier ou" timeout=5>
+      - <set lang="fr">
+
   - title: Change keyboard
+    condition:
+      - lang != "fr"
     commands:
       - <keyboard 'com.apple.keylayout.US'>
 
-  - title: Wait for Windows Setup
+  - title: Change keyboard (French AZERTY)
+    condition:
+      - lang == "fr"
     commands:
-      - <locate text="Language to install|Languages to install|Windows Setup" timeout=900>
-      - <wait2s>
+      - <keyboard 'com.apple.keylayout.French-PC'>
 
   - title: Bypass the TPM, Secure Boot, RAM, CPU and storage checks
+    condition:
+      - lang != "fr"
     commands:
       - <leftShiftOn>
       - <f10>
@@ -95,70 +119,101 @@ boot_command:
       - <enter>
       - <wait2s>
 
+  - title: Bypass the TPM, Secure Boot, RAM, CPU and storage checks (French AZERTY)
+    # AltGr (right Alt) + the "8" key is the French backslash; "_" is that key unshifted in French-PC.
+    condition:
+      - lang == "fr"
+    commands:
+      - <leftShiftOn>
+      - <f10>
+      - <leftShiftOff>
+      - <wait3s>
+      - set K=HKLM<rightAltOn>_<rightAltOff>SYSTEM<rightAltOn>_<rightAltOff>Setup<rightAltOn>_<rightAltOff>LabConfig
+      - <enter>
+      - <wait1s>
+      - reg add %K% /v BypassTPMCheck /t REG_DWORD /d 1 /f
+      - <enter>
+      - <wait1s>
+      - reg add %K% /v BypassSecureBootCheck /t REG_DWORD /d 1 /f
+      - <enter>
+      - <wait1s>
+      - reg add %K% /v BypassRAMCheck /t REG_DWORD /d 1 /f
+      - <enter>
+      - <wait1s>
+      - reg add %K% /v BypassCPUCheck /t REG_DWORD /d 1 /f
+      - <enter>
+      - <wait1s>
+      - reg add %K% /v BypassStorageCheck /t REG_DWORD /d 1 /f
+      - <enter>
+      - <wait1s>
+      - exit
+      - <enter>
+      - <wait2s>
+
   - title: Start the installation
     commands:
-      - <click text="Next">
+      - <click text="Next|Suivant">
       - <wait2s>
-      - <click text="Install now">
+      - <click text="Install now|Installer maintenant">
 
   - title: Skip the product key
     commands:
-      - <skipCommandIfNotFound text="have a product key|Activate Windows" timeout=60>
-      - <click text="have a product key">
+      - <skipCommandIfNotFound text="have a product key|Activate Windows|pas de cl|Activer Windows" timeout=60>
+      - <click text="have a product key|pas de cl">
       - <wait2s>
 
   - title: Select the edition
     commands:
-      - <skipCommandIfNotFound text="Select the operating system|operating system you want to install" timeout=30>
-      - <click text="Next">
+      - <skipCommandIfNotFound text="Select the operating system|operating system you want to install|lectionnez le syst" timeout=30>
+      - <click text="Next|Suivant">
       - <wait2s>
 
   - title: Accept the license terms
     commands:
-      - <locate text="Applicable notices and license terms|license terms" timeout=120>
-      - <click text="I accept">
+      - <locate text="Applicable notices and license terms|license terms|contrat de licence" timeout=120>
+      - <click text="I accept|accepte">
       - <wait1s>
-      - <click text="Next">
+      - <click text="Next|Suivant">
       - <wait2s>
 
   - title: Choose a custom installation
     commands:
-      - '<locate text="Which type of installation do you want|Custom: Install Windows only" timeout=60>'
-      - '<click text="Custom: Install Windows only">'
+      - '<locate text="Which type of installation do you want|Custom: Install Windows only|type d installation|Personnalis" timeout=60>'
+      - '<click text="Custom: Install Windows only|Personnalis">'
       - <wait2s>
 
   - title: Install on the NVMe disk
     commands:
-      - <locate text="Where do you want to install Windows" timeout=60>
+      - <locate text="Where do you want to install Windows|souhaitez-vous installer|installer Windows" timeout=60>
       - <wait1s>
-      - <click text="Next">
+      - <click text="Next|Suivant">
 
   - title: Wait for the files to be copied and the first reboot
     commands:
-      - <locate text="Installing Windows|Getting files ready|Getting ready" timeout=300>
+      - <locate text="Installing Windows|Getting files ready|Getting ready|Installation de Windows|Installation de|Pr paration" timeout=300>
 
   - title: Wait for the out-of-box experience
     commands:
-      - <locate text="right country or region|start with your region|Is this the right" timeout=3600>
+      - <locate text="right country or region|start with your region|Is this the right|pays ou la bonne|bon pays|votre r gion" timeout=3600>
       - <wait2s>
-      - <click text="Yes">
+      - <click text="Yes|Oui">
       - <wait3s>
 
   - title: Keyboard layout
     commands:
-      - <locate text="right keyboard layout|keyboard layout or input method" timeout=120>
+      - <locate text="right keyboard layout|keyboard layout or input method|disposition de clavier|bonne disposition" timeout=120>
       - <wait1s>
-      - <click text="Yes">
+      - <click text="Yes|Oui">
       - <wait3s>
-      - <skipCommandIfNotFound text="second keyboard layout" timeout=15>
-      - <click text="Skip">
+      - <skipCommandIfNotFound text="second keyboard layout|deuxi" timeout=15>
+      - <click text="Skip|Ignorer">
       - <wait3s>
 
   - title: Create a local account
     # The VM has no network adapter driver, so OOBE jumps to the account page. Opening a console and
     # starting the local-account flow avoids the mandatory Microsoft account.
     commands:
-      - <locate text="Sign in|Microsoft account|add your account|Let's add" timeout=600>
+      - <locate text="Sign in|Microsoft account|add your account|Let's add|Se connecter|Compte Microsoft|Ajoutons|Ajouter votre compte" timeout=600>
       - <wait2s>
       - <leftShiftOn>
       - <f10>
@@ -173,7 +228,7 @@ boot_command:
 
   - title: Fill the local account
     commands:
-      - <locate text="Create a user for this PC|Who's going to use this PC|Username" timeout=120>
+      - <locate text="Create a user for this PC|Who's going to use this PC|Username|utilisateur pour ce PC|Qui va utiliser|Nom d" timeout=120>
       - <wait1s>
       - ${var.username}
       - <tab>
@@ -186,7 +241,7 @@ boot_command:
   - title: Security questions
     # Some builds ask for three security questions; answer them with the account name.
     commands:
-      - <skipCommandIfNotFound text="security questions|Choose a security question" timeout=20>
+      - <skipCommandIfNotFound text="security questions|Choose a security question|questions de s" timeout=20>
       - <tab>
       - <down>
       - <tab>
@@ -204,12 +259,12 @@ boot_command:
 
   - title: Privacy settings
     commands:
-      - <locate text="Choose privacy settings|privacy settings for your device" timeout=600>
+      - <locate text="Choose privacy settings|privacy settings for your device|confidentialit" timeout=600>
       - <wait1s>
-      - <click text="Accept">
+      - <click text="Accept|Accepter">
       - <wait3s>
 
   - title: Wait for the desktop
     commands:
-      - <locate text="Recycle Bin" timeout=1800>
+      - <locate text="Recycle Bin|Corbeille" timeout=1800>
       - <wait10s>
