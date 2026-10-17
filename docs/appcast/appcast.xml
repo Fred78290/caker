@@ -6,59 +6,19 @@
     <language>en</language>
     <link>https://github.com/Fred78290/caker</link>
     <item>
-      <title>Caker 1.0.3715</title>
-      <description><![CDATA[<h2>Caker 1.0.3715</h2>
+      <title>Caker 1.0.3720</title>
+      <description><![CDATA[<h2>Caker 1.0.3720</h2>
 <p>New version of Caker with improvements and bug fixes.</p>
 
 <h3>2026-10-17 (Git log summary - release)</h3>
 <ul>
-    <li>fix: lower min requirements for Ubuntu 26.10 Server images</li>
-<li>fix(ui): widen VM wizard sheet to fit content</li>
-<li>fix(ui): add horizontal padding to sidebar status icon</li>
-<li>fix(vm): always show Cancel button in wizard footer</li>
-<li>fix(vm): Correctly apply display scaling to VNC render layer</li>
-<li>refactor(vm): remove dedicated scaling logic for OCR rendering</li>
-<li>fix(packer): ignore IP address detection for OpenSUSE builds</li>
-<li>fix(vm): log provisioning task cancellation for easier debugging</li>
-<li>fix(packer): handle opensuse installer mode selection screen in boot command</li>
-<li>fix(vm): Only enable automatic display refit in normal mode</li>
-<li>fix(grpc): append the image name fields instead of renumbering</li>
-<li>fix(dhcp): allow missing hostname when parsing DHCP leases</li>
-<li>fix(packer): replace coordinate click with keyboard shortcut in opensuse boot command</li>
-<li>fix(vm): always fall back to ARP lookup regardless of network type</li>
-<li>fix(ui): constrain provisioned VM preview to configured display aspect ratio</li>
-<li>fix(packer): match SupportedPlatform against full image URL</li>
-<li>fix(ui): tighten spacing and field widths across VM settings detail views</li>
-<li>fix(ui): fix sheet sizing for editable list edit views</li>
-<li>fix(ui): use circular glass buttons for editable list controls</li>
-<li>fix(ui): simplify sheet sync main thread dispatch</li>
-<li>fix(vm): reduce VM wizard window height</li>
-<li>fix(vm): disable scrolling in wizard content and drop dead code</li>
-<li>fix(vm): clean up partial download file on cancellation</li>
-<li>fix(vm): enlarge VM wizard window to fit content</li>
-<li>feat(vm): add localized human-readable status labels for VMs</li>
-<li>feat(images): add a name field to image metadata across gRPC and UI</li>
-<li>fix(vm): default import picker to first VM and fix layout</li>
-<li>fix(vm): guard against nil VM and track stopping state through completion</li>
-<li>refactor(home): share VM context menu between grid and detail views</li>
-<li>feat(about): add PackerLite feature row and tighten About window layout</li>
-<li>fix(glass): correct glass effect availability check to macOS 26.0</li>
-<li>fix(networks): give Start/Stop network buttons a bordered style</li>
-<li>fix(compose): give the Compose sheet a sane ideal size, not its text's height</li>
-<li>docs(wiki): check-update's JSON output is --json, not --format json</li>
-<li>feat(webui): list the connected caked's image catalog in the create dialog</li>
-<li>chore(resources): add Ubuntu 26.10 images and update macOS 27 IPSW entries</li>
-<li>fix(service): skip starting Compose DNS if already running</li>
-<li>fix(caked): hide relocate in the App Store build</li>
-<li>feat(caker): list the connected caked's image catalog in the VM wizard</li>
-<li>feat(caked,cakectl): add check-update to report new Caker releases</li>
-<li>docs(wiki): service listen disables TLS with --disable-tls</li>
-<li>feat(cakectl): list --alias ids from caked over gRPC</li>
-<li>fix(cakectl): register `image pull` under its real name</li>
-<li>docs(wiki): fix wrong command examples in the cheat sheet</li>
+    <li>docs(appstore): retake the macOS VM screenshot with the CPU meter</li>
+<li>docs(appstore): add Mac App Store screenshots in English and French</li>
+<li>fix(l10n): translate the "Name:" label into French</li>
+<li>🌐 Update Sparkle appcast appcast.xml - 1 releases (2026-10-17 13:15:40)</li>
 </ul>]]></description>
-      <pubDate>sam., 17 oct. 2026 11:15:39 +0000</pubDate>
-      <enclosure url="https://github.com/Fred78290/caker/releases/download/v1.0.3715/Caker.dmg" sparkle:version="1.0.3715" sparkle:shortVersionString="1.0.3715" type="application/octet-stream" sparkle:edSignature="4rn6qnfoNkRAuLbMZZkjzACznqX7KignoOD0fkIqmo5Drselj0XvGzouoZnh/UulinXo5eBqGLGRK1+52UexCg==" length="199346631"/>
+      <pubDate>sam., 17 oct. 2026 14:04:04 +0000</pubDate>
+      <enclosure url="https://github.com/Fred78290/caker/releases/download/v1.0.3720/Caker.dmg" sparkle:version="1.0.3720" sparkle:shortVersionString="1.0.3720" type="application/octet-stream" sparkle:edSignature="xwSu68+pDx9B3LHZDpSKJlI+wVB9I3FgcSIIcHubk7q0AI98x4/pIMyKrijgFxEL9lns6xbLXBcx0iwglDTJDA==" length="199342875"/>
     </item>
   </channel>
 </rss>
