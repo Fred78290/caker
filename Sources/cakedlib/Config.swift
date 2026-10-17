@@ -676,7 +676,7 @@ extension CakeConfig {
 				return DarwinPlateform(nvramURL: nvramURL, ecid: self.getECID(), hardwareModel: self.getHardwareModel()!)
 		#endif
 		case .linux:
-			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization)
+			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization, windowsGuest: self.isWindowsGuest)
 		#if !arch(arm64)
 			default:
 				throw ServiceError(String(localized: "Unsupported plateform"))

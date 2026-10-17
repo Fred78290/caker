@@ -188,6 +188,9 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		}
 	}
 
+	/// File extension of the bootable disk image built from a Windows ISO.
+	public static let windowsMediaExtension = "winmedia"
+
 	public init() {
 		self.diskPath = String.empty
 		self.diskOptions = .init(readOnly: false, syncMode: "full", cachingMode: VZDiskImageCachingMode.automatic.description)
@@ -264,8 +267,11 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 			return VZVirtioBlockDeviceConfiguration(attachment: blockAttachment)
 		}
 
-		let windowsInstallMedia = windowsGuest && diskURL.pathExtension.lowercased() == "iso"
-		let readOnly = self.diskOptions.readOnly || windowsInstallMedia
+		// A raw ISO is read-only install media; a ".winmedia" image is the writable disk caked builds from
+		// that ISO (see WindowsInstallationMedia), which the installer writes its result and log back to.
+		let windowsISO = windowsGuest && diskURL.pathExtension.lowercased() == "iso"
+		let windowsInstallMedia = windowsISO || (windowsGuest && diskURL.pathExtension.lowercased() == Self.windowsMediaExtension)
+		let readOnly = self.diskOptions.readOnly || windowsISO
 
 		if try readOnly == false && !FileLock(lockURL: diskURL).trylock() {
 			throw ValidationError(String(localized: "disk \(diskURL.path(percentEncoded: false)) seems to be already in use, unmount it first in Finder"))

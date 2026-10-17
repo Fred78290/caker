@@ -1,6 +1,7 @@
+import CakeAgentLib
+import Dynamic
 import Foundation
 import Virtualization
-import CakeAgentLib
 
 public protocol GuestPlateForm {
 	func bootLoader() throws -> VZBootLoader
@@ -13,6 +14,9 @@ public protocol GuestPlateForm {
 struct LinuxPlateform: GuestPlateForm {
 	let nvramURL: URL
 	let needsNestedVirtualization: Bool
+	/// A Windows guest shares the generic platform and EFI boot of a Linux one, but Windows Boot Manager
+	/// needs the CPU features `enableWindowsCPUFeatures(_:)` turns on.
+	var windowsGuest: Bool = false
 
 	func bootLoader() throws -> VZBootLoader {
 		let result = VZEFIBootLoader()
@@ -29,7 +33,36 @@ struct LinuxPlateform: GuestPlateForm {
 			config.isNestedVirtualizationEnabled = needsNestedVirtualization
 		}
 
+		if windowsGuest {
+			try Self.enableWindowsCPUFeatures(config)
+		}
+
 		return config
+	}
+
+	/// Windows Boot Manager never gets past its first instructions unless the virtual CPU emulates the
+	/// performance monitoring unit (and the fine-grained traps that go with it). The framework only
+	/// offers these as private setters, so they are looked up by selector at run time: a macOS that
+	/// dropped them fails the Windows VM up front with a clear error instead of hanging at boot.
+	/// Not available in the App Store build, which can't ship private API.
+	static func enableWindowsCPUFeatures(_ config: VZGenericPlatformConfiguration) throws {
+		#if APPSTORE
+			throw ServiceError(String(localized: "Windows VMs are not supported in the App Store build"))
+		#else
+			Dynamic(config)._setPerformanceMonitoringUnitEmulationEnabled(true)
+			Dynamic(config)._setFineGrainedTrapsEmulationEnabled(true)
+		/*typealias BoolSetter = @convention(c) (AnyObject, Selector, Bool) -> Void
+
+			for name in ["_setPerformanceMonitoringUnitEmulationEnabled:", "_setFineGrainedTrapsEmulationEnabled:"] {
+				let selector = NSSelectorFromString(name)
+
+				guard config.responds(to: selector), let implementation = config.method(for: selector) else {
+					throw ServiceError(String(format: String(localized: "Windows VMs are not supported on this version of macOS (missing %@)"), name))
+				}
+
+				unsafeBitCast(implementation, to: BoolSetter.self)(config, selector, true)
+			}*/
+		#endif
 	}
 
 	func graphicsDevice(screenSize: CGSize) -> VZGraphicsDeviceConfiguration {
