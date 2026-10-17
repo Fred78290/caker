@@ -482,7 +482,7 @@ struct HomeView: View {
 			VirtualMachineWizard(connectionManager: AppState.shared.connectionManager, sheet: true)
 				.colorSchemeForColor()
 				.restorationState(.disabled)
-				.frame(width: 700, height: 750)
+				.frame(width: 730, height: 750)
 		case .networks:
 			NetworkWizard()
 				.colorSchemeForColor()
