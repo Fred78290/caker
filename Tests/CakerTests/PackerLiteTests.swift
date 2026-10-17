@@ -608,6 +608,28 @@ final class PackerLiteTests: XCTestCase {
 		}
 	}
 
+	/// A French ISO is detected on Setup's first screen and switches to an AZERTY-aware path: the
+	/// French-only blocks must be gated on `lang == "fr"` (and the English ones on `!=`), and the
+	/// French LabConfig block must produce each backslash as AltGr (right Alt) + the "8" key.
+	func testWindows11TemplateHasFrenchAzertyPath() async throws {
+		let template = try await PackerLiteTemplate.load(
+			fromFile: Self.macTemplatesDirectory.appendingPathComponent("windows11.packerlite.yaml").path,
+			variables: ["username": "admin", "password": "hunter2"])
+
+		let french = template.bootCommand.filter { $0.conditions == ["lang == \"fr\""] }
+		let other = template.bootCommand.filter { $0.conditions == ["lang != \"fr\""] }
+
+		XCTAssertEqual(french.count, 2, "French keyboard + French LabConfig blocks")
+		XCTAssertEqual(other.count, 2, "US keyboard + English LabConfig blocks")
+
+		let labConfig = try XCTUnwrap(french.last)
+		let altGrOn = labConfig.steps.filter { if case .modifierOn(.rightAlt) = $0 { return true } else { return false } }
+
+		XCTAssertEqual(altGrOn.count, 3, "HKLM, SYSTEM, Setup and LabConfig are joined by three AltGr+8 backslashes")
+		XCTAssertTrue(containsText(french, "BypassTPMCheck"))
+		XCTAssertTrue(template.bootCommand.contains { $0.steps.contains { if case .set(let name, let value) = $0 { return name == "lang" && value == "fr" } else { return false } } })
+	}
+
 	private func assertLinuxTemplateLoadsAndParses(_ filename: String, expectsTypedPassword: Bool = true) async throws {
 		let template = try await PackerLiteTemplate.load(
 			fromFile: Self.macTemplatesDirectory.appendingPathComponent(filename).path,
