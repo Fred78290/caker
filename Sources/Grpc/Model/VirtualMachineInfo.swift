@@ -131,7 +131,7 @@ public struct VMInformations: Sendable, Codable {
 		self.numOfProcesses = 0
 	}
 
-	public init(_ from: InfoReply, networks: [BridgeAttachement]) {
+	public init(_ from: InfoReply, networks: [BridgeAttachement], vncURL: [String]? = nil, screenSize: ViewSize? = nil) {
 		let networksByName: [String: BridgeAttachement] = networks.reduce(into: [:]) { result, network in
 			result[network.network] = network
 		}
@@ -154,6 +154,8 @@ public struct VMInformations: Sendable, Codable {
 		self.cpuInfos = from.cpuInfo
 		self.agentVersion = from.agentVersion
 		self.numOfProcesses = from.numOfProcesses
+		self.vncURL = vncURL
+		self.screenSize = screenSize
 		self.attachedNetworks = from.attachedNetworks?.map { inf in
 			if let network = networksByName[inf.network] {
 				return AttachedNetwork(network: inf.network, mode: network.mode?.description ?? nil, macAddress: inf.macAddress, ipAddresses: inf.ipAddresses)

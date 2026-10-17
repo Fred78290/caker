@@ -350,7 +350,7 @@ extension CakeAgentLib.Format {
 	}
 	
 	public func render(_ data: Caked_InfoReply) -> String {
-		return self.render(InfoReply.with(infos: data))
+		return self.render(VMInformations(data))
 	}
 	
 	public func render(_ data: [DeletedObject]) -> String {
