@@ -9275,7 +9275,14 @@
       "shouldTranslate" : false
     },
     "Name:" : {
-
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom:"
+          }
+        }
+      }
     },
     "NAT shared network" : {
       "extractionState" : "manual",
