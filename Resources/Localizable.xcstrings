@@ -404,7 +404,8 @@
             "value" : "%1$@ a échoué (%2$d) : %3$@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%@ has mounted volumes. Please unmount them before use." : {
       "extractionState" : "manual",
@@ -459,7 +460,8 @@
             "value" : "%@ n’est pas un ISO d’installation de Windows"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%@ is not a Windows on ARM installation ISO" : {
       "extractionState" : "stale",
@@ -470,7 +472,8 @@
             "value" : "%@ n’est pas un ISO d’installation de Windows sur ARM"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "%@ is not sudoable" : {
       "extractionState" : "manual",
@@ -2244,7 +2247,8 @@
             "value" : "Impossible d’attacher %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Can't autodetect a supported shell." : {
       "extractionState" : "manual",
@@ -2310,7 +2314,8 @@
             "value" : "Impossible de monter %@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Can't serialize vmnet network: %@" : {
       "extractionState" : "manual",
@@ -3507,7 +3512,8 @@
             "value" : "Copie des pilotes virtio"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Copying the Windows installation files" : {
       "extractionState" : "stale",
@@ -3518,7 +3524,8 @@
             "value" : "Copie des fichiers d’installation de Windows"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Could not determine the macOS version from the IPSW filename '%@'. Specify --macos-version (%@) or provide your own template with --template." : {
       "extractionState" : "manual",
@@ -3886,7 +3893,8 @@
             "value" : "Création du disque d’installation"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Creation date not available for: %@" : {
       "extractionState" : "manual",
@@ -7158,7 +7166,8 @@
             "value" : "Installation de Windows"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Installing Windows needs wimlib: run `brew install wimlib`" : {
       "extractionState" : "stale",
@@ -7169,7 +7178,8 @@
             "value" : "L’installation de Windows nécessite wimlib : exécutez `brew install wimlib`"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Instance %@ is deleted and cannot be imported." : {
       "extractionState" : "manual",
@@ -12266,7 +12276,8 @@
             "value" : "Préparation du support d’installation de Windows"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Preparing the Windows installer" : {
       "extractionState" : "stale",
@@ -12277,7 +12288,8 @@
             "value" : "Préparation de l’installateur de Windows"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Preset image" : {
       "localizations" : {
@@ -12985,7 +12997,8 @@
             "value" : "Lecture de l’ISO d’installation de Windows"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Reads .cakerenv from the current directory (or --env-file) and stops VMs in reverse depends-on order." : {
       "extractionState" : "manual",
@@ -16068,7 +16081,8 @@
             "value" : "Premier démarrage de Windows"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Starts services defined in compose.yml in depends_on order. Creates VMs that do not yet exist." : {
       "extractionState" : "manual",
@@ -17047,7 +17061,8 @@
             "value" : "Le disque d’installation n’a pas de table GPT"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The installation disk has no such partition" : {
       "extractionState" : "stale",
@@ -17058,7 +17073,8 @@
             "value" : "Le disque d’installation n’a pas cette partition"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The IPv6 prefix to use with shared mode" : {
       "extractionState" : "manual",
@@ -17402,7 +17418,8 @@
             "value" : "L’ISO virtio-win n’a pas de pilote %@ pour ARM64"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "The virtual machine is running. Do you want terminate it them and quit?" : {
       "extractionState" : "manual",
@@ -17464,7 +17481,8 @@
             "value" : "L’ISO d’installation de Windows ne contient aucune image à installer"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "This App Store build of Caker runs inside the macOS App Sandbox, which restricts which files, sockets, and directories it may access. A few features are limited as a result:" : {
       "comment" : "Body text of the sandbox limitations splash screen.",
@@ -20751,7 +20769,8 @@
             "value" : "Windows ne peut être installé que sans surveillance : ajoutez --autoinstall"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Windows did not finish setting itself up" : {
       "extractionState" : "stale",
@@ -20762,7 +20781,8 @@
             "value" : "Windows n’a pas terminé sa configuration"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Windows installation failed:\n%@" : {
       "extractionState" : "stale",
@@ -20773,7 +20793,8 @@
             "value" : "Échec de l’installation de Windows :\n%@"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Windows installation is not available in the App Store build" : {
       "extractionState" : "stale",
@@ -20784,7 +20805,8 @@
             "value" : "L’installation de Windows n’est pas disponible dans la version App Store"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Windows installation timed out" : {
       "extractionState" : "stale",
@@ -20795,7 +20817,8 @@
             "value" : "Délai dépassé pour l’installation de Windows"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Windows VMs are not supported in the App Store build" : {
       "extractionState" : "stale",
@@ -20806,7 +20829,8 @@
             "value" : "Les VM Windows ne sont pas prises en charge dans la version App Store"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "Windows VMs are not supported on this version of macOS (missing %@)" : {
       "extractionState" : "stale",
@@ -20817,7 +20841,8 @@
             "value" : "Les VM Windows ne sont pas prises en charge sur cette version de macOS (%@ manquant)"
           }
         }
-      }
+      },
+      "shouldTranslate" : false
     },
     "write_files entry for '%@' cannot set both 'content' and 'source'" : {
       "extractionState" : "manual",
