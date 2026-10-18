@@ -169,6 +169,8 @@ extension VirtualizedOS {
 			self = .darwin
 		case .linux:
 			self = .linux
+		case .microsoft:
+			self = .windows
 		default:
 			return nil
 		}

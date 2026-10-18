@@ -626,7 +626,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 			#else
 				return VZVirtualMachineStartOptions()
 			#endif
-		case .linux:
+		case .linux, .windows:
 			return VZVirtualMachineStartOptions()
 		}
 	}
