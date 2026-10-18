@@ -675,9 +675,9 @@ extension CakeConfig {
 			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization, machineIdentifier: self.getMachineIdentitier())
 		case .windows:
 			#if APPSTORE
-				throw ServiceError(String(localized: "Windows VMs are not supported in the App Store build"))
+				throw ServiceError(String(localized: "Windows 11 ISO installation is not supported in the App Store version of Caked. Please use the direct download version from https://caked.app/download"))
 			#else
-			return WindowsPlatform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization, machineIdentifier: self.getMachineIdentitier())
+				return WindowsPlatform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization, machineIdentifier: self.getMachineIdentitier())
 			#endif
 
 		#if arch(arm64)

@@ -97,6 +97,8 @@ public class WindowsInstaller: @unchecked Sendable {
 		let options = WindowsInstallationMedia.Options(username: username, password: password, computerName: Self.computerName(for: location.name))
 		let windowsISO = self.windowsISO
 
+		self.logger.debug("Preparing the Windows installation media")
+
 		progressHandler(.step(String(localized: "Preparing the Windows installation media")))
 
 		let media = try await Task.detached {
@@ -122,6 +124,8 @@ public class WindowsInstaller: @unchecked Sendable {
 			virtualMachine.stopGrandCentralUpdate()
 		}
 
+		self.logger.info("Boot the Windows installation media")
+
 		try await run(timeout: installTimeout, progressHandler)
 
 		let result = try media.installResult()
@@ -131,6 +135,8 @@ public class WindowsInstaller: @unchecked Sendable {
 
 		guard result.succeeded else {
 			let tail = result.log.split(whereSeparator: \.isNewline).suffix(20).joined(separator: "\n")
+
+			self.logger.error("Windows installation failed \(tail)")
 
 			throw ServiceError(String(format: String(localized: "Windows installation failed:\n%@"), tail))
 		}
@@ -142,12 +148,12 @@ public class WindowsInstaller: @unchecked Sendable {
 				throw CancellationError()
 			}
 
-			logger.info("Windows first boot, run \(attempt) of \(maxFirstBootRuns)")
+			self.logger.info("Windows first boot, run \(attempt) of \(maxFirstBootRuns)")
 
 			try await run(timeout: firstBootTimeout, progressHandler)
 
 			if let marker = try firstBootMarker(location: location) {
-				// What SetupComplete.cmd installed, as exit codes (0 = fine)
+				self.logger.info("Windows first boot completed")
 				if marker.contains("winfsp=0") == false || marker.contains("service=0") == false {
 					logger.warn("Windows setup finished, but directory sharing may not work: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
 				}

@@ -165,8 +165,12 @@ public struct VMBuilder {
 
 				if imageSource == .iso {
 					if plateform == .windows {
-						virtualizedOS = .windows
-						autoinstall = true
+						#if APPSTORE
+							throw ServiceError(String(localized: "Windows 11 ISO installation is not supported in the App Store version of Caked. Please use the direct download version from https://caked.app/download"))
+						#else
+							virtualizedOS = .windows
+							autoinstall = true
+						#endif
 					} else {
 						attachedDisks.append(DiskAttachement(diskPath: URL(spaced: options.image)!))
 					}
