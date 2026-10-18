@@ -29,6 +29,34 @@ public protocol VirtualMachineDelegate: AnyObject {
 	}
 #endif
 
+extension VZVirtualMachine.State {
+	public var description: String {
+		switch self {
+		case .stopped:
+			return "stopped"
+		case .running:
+			return "running"
+		case .paused:
+			return "paused"
+		case .error:
+			return "error"
+		case .starting:
+			return "starting"
+		case .pausing:
+			return "pausing"
+		case .resuming:
+			return "resuming"
+		case .stopping:
+			return "stopping"
+		case .saving:
+			return "saving"
+		case .restoring:
+			return "restoring"
+		@unknown default:
+			return "unknown"
+		}
+	}
+}
 extension SSHError.Kind {
 	var description: String {
 		switch self {
