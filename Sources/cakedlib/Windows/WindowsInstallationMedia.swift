@@ -13,7 +13,7 @@
 //   - an exFAT partition holding install.wim, the virtio drivers and the `caker` folder with the install
 //     scripts. WinPE gives that volume a drive letter, which it doesn't for the (hidden) system partition.
 //
-//  WinPE's own boot.wim is edited with wimlib so its shell runs our script instead of Windows Setup.
+//  WinPE's own boot.wim is edited (see WIMArchive) so its shell runs our script instead of Windows Setup.
 //
 
 import Foundation
@@ -57,13 +57,7 @@ struct WindowsInstallationMedia {
 	}
 
 	static func create(at url: URL, windowsISO: URL, virtioWinISO: URL, options: Options, progress: (String) -> Void) throws -> WindowsInstallationMedia {
-		let wimlib = try Tools.wimlib()
 		let fileManager = FileManager.default
-		let workDirectory = fileManager.temporaryDirectory.appendingPathComponent("caker-windows-\(UUID().uuidString)", isDirectory: true)
-
-		try fileManager.createDirectory(at: workDirectory, withIntermediateDirectories: true)
-		defer { try? fileManager.removeItem(at: workDirectory) }
-
 		progress(String(localized: "Reading the Windows installation ISO"))
 
 		let isoMount = try attachISO(windowsISO)
@@ -72,7 +66,7 @@ struct WindowsInstallationMedia {
 		try validate(isoRoot: isoMount, name: windowsISO.lastPathComponent)
 
 		let installImage = ["install.wim", "install.esd"].map { isoMount.appendingPathComponent("sources/\($0)") }.first { fileManager.fileExists(atPath: $0.path) }!
-		let images = try WIMInfo.images(of: installImage, wimlib: wimlib)
+		let images = try WIMArchive(url: installImage).images()
 
 		guard let image = images.first(where: { $0.name == "Windows 11 Pro" }) ?? images.first else {
 			throw ServiceError(String(localized: "The Windows installation ISO has no image to install"))
@@ -96,7 +90,7 @@ struct WindowsInstallationMedia {
 		try handle.close()
 
 		do {
-			try populate(url, isoRoot: isoMount, installImage: installImage, image: image, virtioWinISO: virtioWinISO, options: options, wimlib: wimlib, workDirectory: workDirectory, progress: progress)
+			try populate(url, isoRoot: isoMount, installImage: installImage, image: image, virtioWinISO: virtioWinISO, options: options, progress: progress)
 			try setEFISystemPartition(of: url, partition: 2)
 		} catch {
 			try? fileManager.removeItem(at: url)
@@ -106,7 +100,7 @@ struct WindowsInstallationMedia {
 		return WindowsInstallationMedia(url: url)
 	}
 
-	private static func populate(_ url: URL, isoRoot: URL, installImage: URL, image: WIMInfo.Image, virtioWinISO: URL, options: Options, wimlib: URL, workDirectory: URL, progress: (String) -> Void) throws {
+	private static func populate(_ url: URL, isoRoot: URL, installImage: URL, image: WIMArchive.ImageInfo, virtioWinISO: URL, options: Options, progress: (String) -> Void) throws {
 		let device = try Disk.attach(url, readOnly: false, raw: true)
 
 		defer { Disk.detach(device) }
@@ -128,24 +122,15 @@ struct WindowsInstallationMedia {
 
 		progress(String(localized: "Preparing the Windows installer"))
 
-		// WinPE's shell: the install script instead of Windows Setup
-		let bootImage = workDirectory.appendingPathComponent("boot.wim")
-		let bootImageOnMedia = bootVolume.appendingPathComponent("sources/boot.wim")
+		// WinPE's shell: the install script instead of Windows Setup. The files go into System32, which is always
+		// on the PATH and in the RAM disk WinPE boots from.
+		let boot = try WIMArchive(url: bootVolume.appendingPathComponent("sources/boot.wim"))
 
-		try FileManager.default.copyItem(at: bootImageOnMedia, to: bootImage)
-
-		let winpeshl = workDirectory.appendingPathComponent("winpeshl.ini")
-		let peScript = workDirectory.appendingPathComponent("pe.cmd")
-
-		try WindowsInstallResources.winpeshl.write(to: winpeshl, atomically: true, encoding: .utf8)
-		try WindowsInstallResources.peScript.write(to: peScript, atomically: true, encoding: .utf8)
-
-		let bootIndex = try WIMInfo.bootIndex(of: bootImage, wimlib: wimlib)
-
-		_ = try Process.capture(wimlib.path, ["update", bootImage.path, String(bootIndex)], input: "add \(winpeshl.path) /Windows/System32/winpeshl.ini\nadd \(peScript.path) /caker/pe.cmd\n")
-
-		try FileManager.default.removeItem(at: bootImageOnMedia)
-		try FileManager.default.copyItem(at: bootImage, to: bootImageOnMedia)
+		try boot.addFiles(
+			[
+				("winpeshl.ini", Data(WindowsInstallResources.winpeshl.utf8)),
+				("pe.cmd", Data(WindowsInstallResources.peScript.utf8)),
+			], toDirectory: ["Windows", "System32"], ofImage: boot.bootIndex)
 
 		// Our loader starts the framebuffer driver, then Windows Boot Manager
 		let efiBoot = bootVolume.appendingPathComponent("efi/boot", isDirectory: true)
@@ -296,74 +281,6 @@ struct WindowsInstallationMedia {
 // MARK: - Helpers
 
 extension WindowsInstallationMedia {
-	enum Tools {
-		/// wimlib's command line tool (`brew install wimlib`), which edits WinPE's boot image: a WIM can't be
-		/// modified with anything macOS ships.
-		static func wimlib() throws -> URL {
-			let search = (ProcessInfo.processInfo.environment["PATH"] ?? "").split(separator: ":").map(String.init) + ["/opt/homebrew/bin", "/usr/local/bin"]
-
-			for directory in search {
-				let candidate = URL(fileURLWithPath: directory).appendingPathComponent("wimlib-imagex")
-
-				if FileManager.default.isExecutableFile(atPath: candidate.path) {
-					return candidate
-				}
-			}
-
-			throw ServiceError(String(localized: "Installing Windows needs wimlib: run `brew install wimlib`"))
-		}
-	}
-
-	enum WIMInfo {
-		struct Image {
-			let index: Int
-			let name: String
-			let language: String
-		}
-
-		static func images(of wim: URL, wimlib: URL) throws -> [Image] {
-			let output = try Process.capture(wimlib.path, ["info", wim.path])
-			var images: [Image] = []
-
-			for block in output.components(separatedBy: "\n\n") {
-				var index: Int?
-				var name: String?
-				var language: String?
-
-				for line in block.split(separator: "\n") {
-					let parts = line.split(separator: ":", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
-
-					guard parts.count == 2 else { continue }
-
-					switch parts[0] {
-					case "Index": index = Int(parts[1])
-					case "Name": name = parts[1]
-					case "Default Language": language = parts[1]
-					default: break
-					}
-				}
-
-				if let index, let name {
-					images.append(Image(index: index, name: name, language: language ?? "en-US"))
-				}
-			}
-
-			return images
-		}
-
-		static func bootIndex(of wim: URL, wimlib: URL) throws -> Int {
-			let output = try Process.capture(wimlib.path, ["info", wim.path])
-
-			for line in output.split(separator: "\n") where line.hasPrefix("Boot Index:") {
-				if let index = Int(line.split(separator: ":")[1].trimmingCharacters(in: .whitespaces)), index > 0 {
-					return index
-				}
-			}
-
-			return 2
-		}
-	}
-
 	enum Disk {
 		/// Attaches a disk image without mounting it and returns its whole-disk device (`/dev/diskN`).
 		/// `raw` is for a plain disk file such as the installation media; `diskutil image attach` only attaches

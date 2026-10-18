@@ -67,7 +67,7 @@ public class WindowsInstaller: @unchecked Sendable {
 	}
 
 	public func install(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
-		// The installer drives hdiutil, diskutil and wimlib, which a sandboxed app can't launch
+		// The installer drives hdiutil, diskutil and rsync, which a sandboxed app can't launch
 		guard Bundle.isApplicationSandboxed == false else {
 			throw ServiceError(String(localized: "Windows installation is not available in the App Store build"))
 		}
