@@ -153,7 +153,7 @@ public class WindowsInstaller: @unchecked Sendable {
 			try await run(timeout: firstBootTimeout, progressHandler)
 
 			if let marker = try firstBootMarker(location: location) {
-				self.logger.info("Windows first boot completed")
+				self.logger.info("Windows first boot completed: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
 				if marker.contains("winfsp=0") == false || marker.contains("service=0") == false {
 					logger.warn("Windows setup finished, but directory sharing may not work: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
 				}

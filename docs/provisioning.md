@@ -97,6 +97,7 @@ Particularités :
 - **Pas de TPM.** Virtualization.framework n'en expose aucun (Windows ne lie qu'un TPM décrit par une table ACPI, et un périphérique virtio n'a pas de pilote Windows). L'installation ne passe pas par Windows Setup, donc ses contrôles TPM/Secure Boot ne s'appliquent pas, mais BitLocker et le chiffrement d'appareil sont indisponibles.
 - **Matériel adapté à Windows.** Disque système en NVMe, support d'installation en périphérique de stockage de masse USB, deux fonctions CPU activées par des API privées (voir ci-dessous) et un petit pilote UEFI (`Tools/WindowsEFI`) qui fournit le framebuffer que Windows exige.
 - **Partage de dossiers.** Les pilotes virtio-fs (`viofs`) et WinFsp 2.1 (téléchargé depuis les versions officielles de WinFsp, somme SHA-256 vérifiée) sont installés, ainsi que le service virtio-fs : un dossier partagé avec `--mount` apparaît dans Windows comme un lecteur (`Z:`), en lecture et en écriture.
+- **Sockets virtio (vsock).** Le pilote `viosock` (avec son service Winsock) est installé : Windows peut ouvrir des connexions `AF_VSOCK` vers l'hôte.
 - **Seul l'anglais est configuré** pour le moment (la langue de l'image est reprise dans le fichier de réponses).
 - **Hors version App Store** : l'installation lance `hdiutil`, `diskutil` et `rsync`, et le pilote CPU repose sur des API privées.
 - **Dimensionnement minimal** : 2 CPU, 4 Gio de mémoire, 64 Go de disque (un avertissement est journalisé en dessous).
@@ -361,6 +362,7 @@ Specifics:
 - **No TPM.** Virtualization.framework exposes none (Windows only binds a TPM described by an ACPI table, and a virtio device has no Windows driver). The install doesn't go through Windows Setup, so its TPM/Secure Boot checks don't apply, but BitLocker and device encryption are unavailable.
 - **Windows-friendly hardware.** NVMe system disk, USB mass storage installation media, two CPU features enabled through private API (see below), and a small UEFI driver (`Tools/WindowsEFI`) that supplies the framebuffer Windows requires.
 - **Shared folders.** The virtio-fs driver (`viofs`) and WinFsp 2.1 (downloaded from WinFsp's official releases, SHA-256 verified) are installed along with the virtio-fs service: a folder shared with `--mount` shows up in Windows as a drive (`Z:`), readable and writable.
+- **virtio sockets (vsock).** The `viosock` driver (with its Winsock provider service) is installed, so Windows can open `AF_VSOCK` connections to the host.
 - **Only English is configured** for now (the image's language is carried into the answer file).
 - **Not in the App Store build**: the install runs `hdiutil`, `diskutil` and `rsync`, and the CPU feature setup relies on private API.
 - **Minimum sizing**: 2 CPUs, 4 GiB of memory, 64 GB of disk (a warning is logged below that).

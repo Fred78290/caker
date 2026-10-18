@@ -166,7 +166,12 @@ enum WindowsInstallResources {
 		ping -n 11 127.0.0.1 >nul
 		if exist Z:\ (set SHARE=mounted) else (set SHARE=none)
 
-		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%)> S:\EFI\caker\installed
+		rem virtio-vsock: the viosock driver is demand-start, so it only runs when the VM has a vsock device
+		set VSOCK=none
+		sc query VirtioSocket >nul 2>&1 && set VSOCK=installed
+		sc query VirtioSocket | find "RUNNING" >nul 2>&1 && set VSOCK=running
+
+		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%)> S:\EFI\caker\installed
 		mountvol S: /D
 		shutdown /s /t 5 /c "caker: Windows installation complete"
 		"""#)

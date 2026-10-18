@@ -323,6 +323,10 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			let consoleURL = try config.consoleAttachment()
 
 			communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+		} else if config.isWindowsGuest {
+			// Windows binds its virtio-vsock driver (installed with the other virtio drivers) when the device is
+			// there, and the first boot should see the same hardware as every later one.
+			configuration.socketDevices.append(VZVirtioSocketDeviceConfiguration())
 		}
 
 		if mode != .provisioning && location.template == false && runMode != .app {

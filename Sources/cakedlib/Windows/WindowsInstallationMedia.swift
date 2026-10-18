@@ -39,7 +39,7 @@ struct WindowsInstallationMedia {
 
 	/// Driver folders to take from the virtio-win ISO: display (so the screen works once Windows has taken over from
 	/// the firmware), network and shared folders. Windows has an inbox NVMe and USB driver, so storage needs nothing.
-	static let virtioDrivers = ["viostor", "viogpudo", "NetKVM", "viorng", "viofs"]
+	static let virtioDrivers = ["viostor", "viogpudo", "NetKVM", "viorng", "viofs", "viosock"]
 
 	private static let bootPartitionSize = "1700m"
 	private static let efiSystemPartitionType = "C12A7328-F81F-11D2-BA4B-00A0C93EC93B"

@@ -261,6 +261,11 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertTrue(install.contains("copy /y %T%\\virtiofs.exe W:\\ProgramData\\caker\\virtiofs.exe"))
 	}
 
+	func testMediaCarriesTheSocketDriver() {
+		XCTAssertTrue(WindowsInstallationMedia.virtioDrivers.contains("viosock"), "virtio-vsock, so the guest can talk to the host over AF_VSOCK")
+		XCTAssertTrue(WindowsInstallResources.setupComplete.contains("vsock=%VSOCK%"), "the driver state goes in the marker")
+	}
+
 	func testMediaCarriesTheFileSystemDriverAndAPinnedWinFsp() {
 		XCTAssertTrue(WindowsInstallationMedia.virtioDrivers.contains("viofs"))
 		XCTAssertEqual(WindowsInstallationMedia.winFspSHA256.count, 64)
