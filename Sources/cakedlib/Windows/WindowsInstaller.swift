@@ -94,7 +94,11 @@ public class WindowsInstaller: @unchecked Sendable {
 		let virtioWinISO = try await CloudImageConverter.downloadISO(remoteURL: WindowsInstallationMedia.virtioWinURL, runMode: runMode, progressHandler: progressHandler)
 		let winFspMSI = try await downloadWinFsp(progressHandler: progressHandler)
 		let mediaURL = location.rootURL.appendingPathComponent(mediaFileName)
-		let options = WindowsInstallationMedia.Options(username: username, password: password, computerName: Self.computerName(for: location.name))
+		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
+		let agent = try await Utilities.cakeagentWindowsBinary(runMode: runMode)
+		let options = WindowsInstallationMedia.Options(
+			username: username, password: password, computerName: Self.computerName(for: location.name),
+			cakeAgent: .init(executable: agent, caCert: certificates.caCertURL, serverCert: certificates.serverCertURL, serverKey: certificates.serverKeyURL))
 		let windowsISO = self.windowsISO
 
 		self.logger.debug("Preparing the Windows installation media")
@@ -154,10 +158,16 @@ public class WindowsInstaller: @unchecked Sendable {
 
 			if let marker = try firstBootMarker(location: location) {
 				self.logger.info("Windows first boot completed: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
+				if marker.contains("agent=0") == false {
+					logger.warn("Windows setup finished, but the cakeagent service may not be running: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
+				}
+
 				if marker.contains("winfsp=0") == false || marker.contains("service=0") == false {
 					logger.warn("Windows setup finished, but directory sharing may not work: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
 				}
 
+				// "agent=<install exit code>-running": the service is up, so the host can talk to it
+				config.agent = marker.contains("agent=0-running")
 				config.provisioned = true
 				try config.save()
 
@@ -204,7 +214,16 @@ public class WindowsInstaller: @unchecked Sendable {
 
 		let volume = try WindowsInstallationMedia.Disk.mount("\(device)s1", readOnly: true)
 
-		return try? String(contentsOf: volume.appendingPathComponent("EFI/caker/installed"), encoding: .utf8)
+		guard let marker = try? String(contentsOf: volume.appendingPathComponent("EFI/caker/installed"), encoding: .utf8) else {
+			return nil
+		}
+
+		// Only there when the agent service wasn't running and setup ran it in front to see why
+		if let agentLog = try? String(contentsOf: volume.appendingPathComponent("EFI/caker/agent.log"), encoding: .utf8), agentLog.isEmpty == false {
+			logger.warn("cakeagent output: \(agentLog.replacingOccurrences(of: "\r\n", with: " | "))")
+		}
+
+		return marker
 	}
 
 	/// Runs the VM until it stops, however it stops, or stops it and throws once `timeout` has passed.

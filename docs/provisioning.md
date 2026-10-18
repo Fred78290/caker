@@ -98,6 +98,7 @@ Particularités :
 - **Matériel adapté à Windows.** Disque système en NVMe, support d'installation en périphérique de stockage de masse USB, deux fonctions CPU activées par des API privées (voir ci-dessous) et un petit pilote UEFI (`Tools/WindowsEFI`) qui fournit le framebuffer que Windows exige.
 - **Partage de dossiers.** Les pilotes virtio-fs (`viofs`) et WinFsp 2.1 (téléchargé depuis les versions officielles de WinFsp, somme SHA-256 vérifiée) sont installés, ainsi que le service virtio-fs : un dossier partagé avec `--mount` apparaît dans Windows comme un lecteur (`Z:`), en lecture et en écriture.
 - **Sockets virtio (vsock).** Le pilote `viosock` (avec son service Winsock) est installé : Windows peut ouvrir des connexions `AF_VSOCK` vers l'hôte.
+- **Agent (cakeagent).** L'agent Windows de cakeagent est téléchargé (version `CAKEAGENT_SNAPSHOT`, comme pour Linux et macOS), copié avec les certificats de l'agent sur le support, puis installé en service au premier démarrage, à l'écoute sur vsock (`vsock://any:5000`) avec TLS mutuel : l'hôte lui parle par le socket `agent` de la VM. Il faut un cakeagent qui sait écouter sur vsock sous Windows.
 - **Seul l'anglais est configuré** pour le moment (la langue de l'image est reprise dans le fichier de réponses).
 - **Hors version App Store** : l'installation lance `hdiutil`, `diskutil` et `rsync`, et le pilote CPU repose sur des API privées.
 - **Dimensionnement minimal** : 2 CPU, 4 Gio de mémoire, 64 Go de disque (un avertissement est journalisé en dessous).
@@ -363,6 +364,7 @@ Specifics:
 - **Windows-friendly hardware.** NVMe system disk, USB mass storage installation media, two CPU features enabled through private API (see below), and a small UEFI driver (`Tools/WindowsEFI`) that supplies the framebuffer Windows requires.
 - **Shared folders.** The virtio-fs driver (`viofs`) and WinFsp 2.1 (downloaded from WinFsp's official releases, SHA-256 verified) are installed along with the virtio-fs service: a folder shared with `--mount` shows up in Windows as a drive (`Z:`), readable and writable.
 - **virtio sockets (vsock).** The `viosock` driver (with its Winsock provider service) is installed, so Windows can open `AF_VSOCK` connections to the host.
+- **Agent (cakeagent).** The Windows cakeagent is downloaded (the `CAKEAGENT_SNAPSHOT` release, like Linux and macOS), copied with the agent certificates onto the media, and installed as a service on first boot, listening on vsock (`vsock://any:5000`) with mutual TLS: the host talks to it through the VM's `agent` socket. It needs a cakeagent build that can listen on vsock on Windows.
 - **Only English is configured** for now (the image's language is carried into the answer file).
 - **Not in the App Store build**: the install runs `hdiutil`, `diskutil` and `rsync`, and the CPU feature setup relies on private API.
 - **Minimum sizing**: 2 CPUs, 4 GiB of memory, 64 GB of disk (a warning is logged below that).

@@ -112,6 +112,12 @@ enum WindowsInstallResources {
 		copy /y %T%\winfsp.msi W:\ProgramData\caker\winfsp.msi >> %LOG% || goto fail
 		copy /y %T%\virtiofs.exe W:\ProgramData\caker\virtiofs.exe >> %LOG% || goto fail
 
+		rem cakeagent: SetupComplete.cmd installs the service from these copies (the media is gone by then)
+		if exist %T%\cakeagent.exe (
+		  copy /y %T%\cakeagent.exe W:\ProgramData\caker\cakeagent.exe >> %LOG% || goto fail
+		  xcopy /y /i /q %T%\certs W:\ProgramData\caker\certs >> %LOG% || goto fail
+		)
+
 		call :say Writing the boot files
 		bcdboot W:\Windows /s S: /f UEFI >> %LOG% 2>&1 || goto fail
 		mkdir S:\EFI\caker 2>nul
@@ -148,6 +154,7 @@ enum WindowsInstallResources {
 	static let setupComplete = crlf(
 		#"""
 		@echo off
+		setlocal EnableDelayedExpansion
 		powercfg /hibernate off
 
 		rem Directory sharing: WinFsp (the user-mode file system layer) and the virtio-fs service from the virtio-win
@@ -166,12 +173,33 @@ enum WindowsInstallResources {
 		ping -n 11 127.0.0.1 >nul
 		if exist Z:\ (set SHARE=mounted) else (set SHARE=none)
 
+		rem cakeagent: listens on vsock (the viosock driver) like the Linux and macOS agents, authenticated with the certificates.
+		set AGENT=none
+		if exist C:\ProgramData\caker\cakeagent.exe (
+		  mkdir "C:\Program Files\CakeAgent" "C:\ProgramData\CakeAgent\certs" 2>nul
+		  copy /y C:\ProgramData\caker\cakeagent.exe "C:\Program Files\CakeAgent\cakeagent.exe"
+		  copy /y C:\ProgramData\caker\certs\* C:\ProgramData\CakeAgent\certs\
+		  rem the private key is for the administrators and the service (SYSTEM) only
+		  icacls C:\ProgramData\CakeAgent /inheritance:r /grant:r "SYSTEM:(OI)(CI)F" "Administrators:(OI)(CI)F"
+		  "C:\Program Files\CakeAgent\cakeagent.exe" service install --listen=vsock://any:5000 --ca-cert=C:\ProgramData\CakeAgent\certs\ca.pem --tls-cert=C:\ProgramData\CakeAgent\certs\server.pem --tls-key=C:\ProgramData\CakeAgent\certs\server.key
+		  set AGENT=!errorlevel!
+		  ping -n 6 127.0.0.1 >nul
+		  sc query cakeagent | find "RUNNING" >nul 2>&1 && set AGENT=!AGENT!-running
+		  rem a service that isn't running can't say why: run the agent in front for a few seconds and keep what it prints
+		  if "!AGENT!"=="!AGENT:running=!" (
+		    sc stop cakeagent >nul 2>&1
+		    start "" /b "C:\Program Files\CakeAgent\cakeagent.exe" serve --listen=vsock://any:5000 --ca-cert=C:\ProgramData\CakeAgent\certs\ca.pem --tls-cert=C:\ProgramData\CakeAgent\certs\server.pem --tls-key=C:\ProgramData\CakeAgent\certs\server.key > S:\EFI\caker\agent.log 2>&1
+		    ping -n 9 127.0.0.1 >nul
+		    taskkill /f /im cakeagent.exe >nul 2>&1
+		  )
+		)
+
 		rem virtio-vsock: the viosock driver is demand-start, so it only runs when the VM has a vsock device
 		set VSOCK=none
 		sc query VirtioSocket >nul 2>&1 && set VSOCK=installed
 		sc query VirtioSocket | find "RUNNING" >nul 2>&1 && set VSOCK=running
 
-		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%)> S:\EFI\caker\installed
+		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%& echo agent=%AGENT%)> S:\EFI\caker\installed
 		mountvol S: /D
 		shutdown /s /t 5 /c "caker: Windows installation complete"
 		"""#)

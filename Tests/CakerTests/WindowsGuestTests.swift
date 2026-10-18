@@ -261,6 +261,34 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertTrue(install.contains("copy /y %T%\\virtiofs.exe W:\\ProgramData\\caker\\virtiofs.exe"))
 	}
 
+	func testSetupInstallsTheCakeAgentServiceOverVsockWithCertificates() {
+		let setup = WindowsInstallResources.setupComplete
+
+		XCTAssertTrue(setup.contains("setlocal EnableDelayedExpansion"), "the exit code is read inside a block")
+		XCTAssertTrue(setup.contains("cakeagent.exe\" service install --listen=vsock://any:\(VMLocation.defaultAgentListenPort)"), "the host reaches the agent through the VM's vsock device")
+		XCTAssertTrue(setup.contains("--ca-cert=") && setup.contains("--tls-cert=") && setup.contains("--tls-key="))
+		XCTAssertTrue(setup.contains("icacls C:\\ProgramData\\CakeAgent /inheritance:r"), "the private key is not readable by everyone")
+		XCTAssertFalse(setup.contains("netsh"), "vsock is not IP traffic: no firewall rule")
+		XCTAssertTrue(setup.contains("agent=%AGENT%"))
+
+		let install = WindowsInstallResources.installScript
+
+		XCTAssertTrue(install.contains("copy /y %T%\\cakeagent.exe W:\\ProgramData\\caker\\cakeagent.exe"))
+		XCTAssertTrue(install.contains("xcopy /y /i /q %T%\\certs W:\\ProgramData\\caker\\certs"))
+	}
+
+	func testSetupRunsTheAgentInFrontWhenTheServiceIsNotRunning() {
+		let setup = WindowsInstallResources.setupComplete
+
+		XCTAssertTrue(setup.contains("serve --listen=vsock://any:5000"), "to see why the service isn't running")
+		XCTAssertTrue(setup.contains("> S:\\EFI\\caker\\agent.log 2>&1"), "the output goes where the host can read it")
+		XCTAssertTrue(setup.contains("taskkill /f /im cakeagent.exe"))
+	}
+
+	func testMediaCopiesTheCakeAgentAndItsCertificatesOnlyWhenGiven() {
+		XCTAssertNil(WindowsInstallationMedia.Options(username: "a", password: "b", computerName: "c").cakeAgent)
+	}
+
 	func testMediaCarriesTheSocketDriver() {
 		XCTAssertTrue(WindowsInstallationMedia.virtioDrivers.contains("viosock"), "virtio-vsock, so the guest can talk to the host over AF_VSOCK")
 		XCTAssertTrue(WindowsInstallResources.setupComplete.contains("vsock=%VSOCK%"), "the driver state goes in the marker")

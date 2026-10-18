@@ -1098,6 +1098,23 @@ public struct Utilities {
 		return localAgent
 	}
 
+	/// The Windows build of the agent (an `.exe`, which the Linux/macOS scripts' `cakeagent-<os>-<arch>` naming doesn't cover).
+	public static func cakeagentWindowsBinary(runMode: Utils.RunMode) async throws -> URL {
+		let arch = Architecture.current().rawValue
+		let home: Home = try Home(runMode: runMode)
+		let localAgent = home.agentDirectory.appendingPathComponent("cakeagent-\(CAKEAGENT_SNAPSHOT)-windows-\(arch).exe", isDirectory: false)
+
+		if FileManager.default.fileExists(atPath: localAgent.path(percentEncoded: false)) == false {
+			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-windows-\(arch).exe") else {
+				throw ServiceError(String(localized: "unable to get remote cakeagent"))
+			}
+
+			try await Curl(fromURL: remoteURL).get(store: localAgent)
+		}
+
+		return localAgent
+	}
+
 	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, vmURL: URL, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
 		return try createCakeAgentClient(on: on, runMode: runMode, location: try VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode).validate(), retries: retries)
 	}

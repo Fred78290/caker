@@ -997,7 +997,8 @@ extension VirtualMachine {
 // MARK: - Run VM
 extension VirtualMachine {
 	private func shouldRetryAgentInstall(for config: CakeConfig) -> Bool {
-		return config.source.supportProvisionning
+		// A Windows guest gets its agent from the installer's first boot, not over SSH
+		return config.source.supportProvisionning && config.isWindowsGuest == false
 	}
 
 	private func cancelAgentInstallRetry() {

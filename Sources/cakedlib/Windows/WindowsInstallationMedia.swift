@@ -19,10 +19,20 @@
 import Foundation
 
 struct WindowsInstallationMedia {
+	/// What the cakeagent service needs: the Windows build of the agent and the certificates it authenticates clients with.
+	struct CakeAgent {
+		var executable: URL
+		var caCert: URL
+		var serverCert: URL
+		var serverKey: URL
+	}
+
 	struct Options {
 		var username: String
 		var password: String
 		var computerName: String
+		/// Installed as a service on first boot when set.
+		var cakeAgent: CakeAgent?
 	}
 
 	struct InstallResult {
@@ -187,6 +197,16 @@ struct WindowsInstallationMedia {
 
 		try FileManager.default.copyItem(at: viofs, to: caker.appendingPathComponent("virtiofs.exe"))
 		try FileManager.default.copyItem(at: winFspMSI, to: caker.appendingPathComponent("winfsp.msi"))
+
+		if let agent = options.cakeAgent {
+			let certs = caker.appendingPathComponent("certs", isDirectory: true)
+
+			try FileManager.default.createDirectory(at: certs, withIntermediateDirectories: true)
+			try FileManager.default.copyItem(at: agent.executable, to: caker.appendingPathComponent("cakeagent.exe"))
+			try FileManager.default.copyItem(at: agent.caCert, to: certs.appendingPathComponent("ca.pem"))
+			try FileManager.default.copyItem(at: agent.serverCert, to: certs.appendingPathComponent("server.pem"))
+			try FileManager.default.copyItem(at: agent.serverKey, to: certs.appendingPathComponent("server.key"))
+		}
 
 		// macOS keeps extended attributes on FAT and exFAT in "._" files, which DISM trips over when it
 		// looks for *.inf files
