@@ -33,7 +33,7 @@ public enum WindowsInstaller {
 	private static let maxFirstBootRuns = 8
 
 	public static func install(location: VMLocation, config: CakeConfig, windowsISO: URL, username: String, password: String, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
-		// The installer drives hdiutil, diskutil and wimlib, which a sandboxed app can't launch
+		// The installer drives hdiutil, diskutil and rsync, which a sandboxed app can't launch
 		guard Bundle.isApplicationSandboxed == false else {
 			throw ServiceError(String(localized: "Windows installation is not available in the App Store build"))
 		}

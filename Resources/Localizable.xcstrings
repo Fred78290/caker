@@ -20921,16 +20921,6 @@
         }
       }
     },
-    "Installing Windows needs wimlib: run `brew install wimlib`" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’installation de Windows nécessite wimlib : exécutez `brew install wimlib`"
-          }
-        }
-      }
-    },
     "Preparing the Windows installation media" : {
       "localizations" : {
         "fr" : {
@@ -21077,6 +21067,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "L’installation de Windows n’est pas disponible dans la version App Store"
+          }
+        }
+      }
+    },
+    "Not a Windows image (WIM) file" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce n’est pas un fichier image Windows (WIM)"
+          }
+        }
+      }
+    },
+    "Unsupported Windows image: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image Windows non prise en charge : %@"
+          }
+        }
+      }
+    },
+    "Corrupt Windows image: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image Windows corrompue : %@"
+          }
+        }
+      }
+    },
+    "Not found in the Windows image: %@" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introuvable dans l’image Windows : %@"
           }
         }
       }

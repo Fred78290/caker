@@ -23,7 +23,7 @@ enum WindowsInstallResources {
 		#"""
 		[LaunchApps]
 		%SYSTEMDRIVE%\Windows\System32\wpeinit.exe
-		%SYSTEMDRIVE%\Windows\System32\cmd.exe, /c %SYSTEMDRIVE%\caker\pe.cmd
+		%SYSTEMDRIVE%\Windows\System32\cmd.exe, /c %SYSTEMDRIVE%\Windows\System32\pe.cmd
 		"""#)
 
 	/// Finds the installation media (the volume holding `caker\media.id`, which gets a drive letter some

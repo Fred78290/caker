@@ -80,14 +80,13 @@ cakectl build my-vm ./restore.ipsw --autoinstall --var greeting=hello
 
 **Windows 11 (ARM64)** : Windows s'installe sans surveillance, mais **pas** par PackerLite : son installateur n'affiche rien à l'écran (le firmware d'Apple ne fournit pas de framebuffer à Windows) et un `boot_command` piloté par OCR n'aurait donc rien à lire. `build --autoinstall` sur un ISO Windows 11 pour ARM (le nom de fichier ou l'URL contient `windows`, `win11` ou `win10`) fait à la place :
 
-1. un disque d'installation GPT est construit à partir de l'ISO (l'ISO tel quel ne démarre pas : il n'a qu'un enregistrement El Torito, que le firmware ne lit pas sur un disque USB) ; l'image WinPE (`boot.wim`) est modifiée avec `wimlib` pour que son shell lance un script d'installation au lieu de Windows Setup ;
+1. un disque d'installation GPT est construit à partir de l'ISO (l'ISO tel quel ne démarre pas : il n'a qu'un enregistrement El Torito, que le firmware ne lit pas sur un disque USB) ; l'image WinPE (`boot.wim`) est modifiée (par du code Swift qui lit et complète le format WIM, sans outil externe) pour que son shell lance un script d'installation au lieu de Windows Setup ;
 2. la VM démarre sur ce disque : le script partitionne le disque système, applique l'image Windows (`dism`), y ajoute les pilotes virtio (écran et réseau, depuis l'ISO virtio-win téléchargé et mis en cache) et un fichier de réponses qui crée le compte `--user`/`--password` avec ouverture de session automatique, puis éteint la VM ;
 3. la VM démarre sur Windows, qui se configure (plusieurs redémarrages : Virtualization.framework arrête une VM dont l'invité redémarre, donc elle est relancée jusqu'à ce que Windows laisse son marqueur `done` sur la partition EFI et s'éteigne).
 
 L'installation dure environ 8 minutes. Windows démarre ensuite normalement (`cakectl start`), avec un écran et un réseau fonctionnels.
 
 ```bash
-brew install wimlib    # nécessaire pour modifier l'image WinPE
 cakectl build my-win11 iso:///chemin/Windows11_Client_arm64_en-us_26300_9457.iso \
   --cpus 4 --memory 8192 --disk-size 64 --user admin --password admin --autoinstall
 ```
@@ -98,7 +97,7 @@ Particularités :
 - **Pas de TPM.** Virtualization.framework n'en expose aucun (Windows ne lie qu'un TPM décrit par une table ACPI, et un périphérique virtio n'a pas de pilote Windows). L'installation ne passe pas par Windows Setup, donc ses contrôles TPM/Secure Boot ne s'appliquent pas, mais BitLocker et le chiffrement d'appareil sont indisponibles.
 - **Matériel adapté à Windows.** Disque système en NVMe, support d'installation en périphérique de stockage de masse USB, deux fonctions CPU activées par des API privées (voir ci-dessous) et un petit pilote UEFI (`Tools/WindowsEFI`) qui fournit le framebuffer que Windows exige.
 - **Seul l'anglais est configuré** pour le moment (la langue de l'image est reprise dans le fichier de réponses).
-- **Hors version App Store** : l'installation lance `hdiutil`, `diskutil` et `wimlib`, et le pilote CPU repose sur des API privées.
+- **Hors version App Store** : l'installation lance `hdiutil`, `diskutil` et `rsync`, et le pilote CPU repose sur des API privées.
 - **Dimensionnement minimal** : 2 CPU, 4 Gio de mémoire, 64 Go de disque (un avertissement est journalisé en dessous).
 
 Certains templates Linux (`{centos,debian,fedora,opensuse,redhat}.packerlite.yaml`) déclarent désormais aussi un `pre_boot_command:` optionnel, exécuté juste après le démarrage de la VM — avant qu'une IP soit disponible — pour envoyer les frappes de navigation du menu GRUB au tout début du boot, réduisant l'attente aveugle initiale à 5s (au lieu d'environ 30s).
@@ -344,14 +343,13 @@ cakectl build my-vm ./restore.ipsw --autoinstall --var greeting=hello
 
 **Windows 11 (ARM64)**: Windows installs unattended, but **not** through PackerLite: its installer shows nothing on screen (Apple's firmware gives Windows no framebuffer), so an OCR-driven `boot_command` would have nothing to read. `build --autoinstall` on a Windows 11 for ARM ISO (the filename or URL contains `windows`, `win11` or `win10`) does this instead:
 
-1. a GPT installation disk is built from the ISO (the ISO as is doesn't boot: it only has an El Torito boot record, which firmware doesn't read on a USB disk); WinPE's image (`boot.wim`) is edited with `wimlib` so its shell runs an install script instead of Windows Setup;
+1. a GPT installation disk is built from the ISO (the ISO as is doesn't boot: it only has an El Torito boot record, which firmware doesn't read on a USB disk); WinPE's image (`boot.wim`) is edited (by Swift code that reads and extends the WIM format, no external tool) so its shell runs an install script instead of Windows Setup;
 2. the VM boots that disk: the script partitions the system disk, applies the Windows image (`dism`), adds the virtio drivers (display and network, from the virtio-win ISO, downloaded and cached) and an answer file that creates the `--user`/`--password` account with automatic logon, then powers the VM off;
 3. the VM boots Windows, which sets itself up (several restarts: Virtualization.framework stops a VM whose guest reboots, so it is started again until Windows leaves its `done` marker on the EFI partition and powers off).
 
 Installing takes about 8 minutes. Windows then starts normally (`cakectl start`), with a working display and network.
 
 ```bash
-brew install wimlib    # needed to edit the WinPE image
 cakectl build my-win11 iso:///path/to/Windows11_Client_arm64_en-us_26300_9457.iso \
   --cpus 4 --memory 8192 --disk-size 64 --user admin --password admin --autoinstall
 ```
@@ -362,7 +360,7 @@ Specifics:
 - **No TPM.** Virtualization.framework exposes none (Windows only binds a TPM described by an ACPI table, and a virtio device has no Windows driver). The install doesn't go through Windows Setup, so its TPM/Secure Boot checks don't apply, but BitLocker and device encryption are unavailable.
 - **Windows-friendly hardware.** NVMe system disk, USB mass storage installation media, two CPU features enabled through private API (see below), and a small UEFI driver (`Tools/WindowsEFI`) that supplies the framebuffer Windows requires.
 - **Only English is configured** for now (the image's language is carried into the answer file).
-- **Not in the App Store build**: the install runs `hdiutil`, `diskutil` and `wimlib`, and the CPU feature setup relies on private API.
+- **Not in the App Store build**: the install runs `hdiutil`, `diskutil` and `rsync`, and the CPU feature setup relies on private API.
 - **Minimum sizing**: 2 CPUs, 4 GiB of memory, 64 GB of disk (a warning is logged below that).
 
 Several Linux templates (`{centos,debian,fedora,opensuse,redhat}.packerlite.yaml`) now also declare an optional `pre_boot_command:`, run immediately after the VM starts — before an IP is available — to send GRUB boot-menu keystrokes right at the start of boot, cutting the initial blind wait down to 5s (from roughly 30s).
