@@ -57,9 +57,10 @@ enum WindowsInstallResources {
 		set LOG=%T%\install.log
 		echo [%time%] start > %LOG%
 		call %T%\config.cmd
+		call :say Installing Windows
 
 		rem The target is the only disk without partitions (the installation media always has some).
-		rem diskpart's output is localized, so rely on its exit codes: selecting a partition fails on an empty disk.
+		rem diskpart's output is localized, so rely on exit codes: selecting a partition fails on an empty disk.
 		set N=0
 		for /l %%d in (0,1,7) do (
 		  > X:\probe.txt echo select disk %%d
@@ -68,8 +69,8 @@ enum WindowsInstallResources {
 		    diskpart /s X:\probe.txt >nul 2>&1 || (set DISK=%%d& set /a N+=1)
 		  )
 		)
-		if not "%N%"=="1" (echo expected exactly one empty disk, found %N% >> %LOG% & goto fail)
-		echo [%time%] target disk %DISK% >> %LOG%
+		if not "%N%"=="1" (call :say expected exactly one empty disk, found %N% & goto fail)
+		call :say Target disk %DISK%
 
 		(
 		echo select disk %DISK%
@@ -83,21 +84,28 @@ enum WindowsInstallResources {
 		echo format quick fs=ntfs label=Windows
 		echo assign letter=W
 		) > X:\partition.txt
+		call :say Partitioning the disk
 		diskpart /s X:\partition.txt >> %LOG% 2>&1 || goto fail
 
 		set WIM=%M%\sources\install.wim
 		if not exist %WIM% set WIM=%M%\sources\install.esd
-		echo [%time%] applying image %IMAGE% >> %LOG%
-		dism /Apply-Image /ImageFile:%WIM% %IMAGE% /ApplyDir:W:\ >> %LOG% 2>&1 || goto fail
+		call :say Applying the Windows image (%IMAGE%), this takes a few minutes
+		dism /Apply-Image /ImageFile:%WIM% %IMAGE% /ApplyDir:W:\
+		set RESULT=%errorlevel%
+		copy /y X:\Windows\Logs\DISM\dism.log %T%\dism.log >nul 2>&1
+		if not "%RESULT%"=="0" goto fail
 
-		echo [%time%] adding drivers >> %LOG%
-		dism /Image:W:\ /Add-Driver /Driver:%T%\drivers /Recurse >> %LOG% 2>&1 || goto fail
+		call :say Adding the virtio drivers
+		dism /Image:W:\ /Add-Driver /Driver:%T%\drivers /Recurse
+		set RESULT=%errorlevel%
+		copy /y X:\Windows\Logs\DISM\dism.log %T%\dism.log >nul 2>&1
+		if not "%RESULT%"=="0" goto fail
 
 		mkdir W:\Windows\Panther W:\Windows\Setup\Scripts 2>nul
 		copy /y %T%\unattend.xml W:\Windows\Panther\unattend.xml >> %LOG% || goto fail
 		copy /y %T%\SetupComplete.cmd W:\Windows\Setup\Scripts\SetupComplete.cmd >> %LOG% || goto fail
 
-		echo [%time%] boot files >> %LOG%
+		call :say Writing the boot files
 		bcdboot W:\Windows /s S: /f UEFI >> %LOG% 2>&1 || goto fail
 		mkdir S:\EFI\caker 2>nul
 		copy /y %T%\framebuffer.efi S:\EFI\caker\framebuffer.efi >> %LOG% || goto fail
@@ -107,15 +115,21 @@ enum WindowsInstallResources {
 		copy /y S:\EFI\Microsoft\Boot\bootmgfw.efi S:\EFI\BOOT\windows.efi >> %LOG% || goto fail
 		copy /y %T%\loader.efi S:\EFI\BOOT\BOOTAA64.EFI >> %LOG% || goto fail
 
-		echo [%time%] done >> %LOG%
+		call :say Done, powering off
 		echo OK> %T%\result
 		goto end
 
 		:fail
-		echo [%time%] failed >> %LOG%
+		call :say Installation failed
 		echo FAILED> %T%\result
 
 		:end
+		exit /b 0
+
+		rem Shows a progress line and keeps it in the log
+		:say
+		echo %*
+		echo [%time%] %* >> %LOG%
 		exit /b 0
 		"""#)
 

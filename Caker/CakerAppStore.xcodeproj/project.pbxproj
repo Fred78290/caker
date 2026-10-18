@@ -60,6 +60,8 @@
 		9B11BFF93084B510005BBCBD /* WindowsInstallationMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFF43084B510005BBCBD /* WindowsInstallationMedia.swift */; };
 		9B11BFFA3084B510005BBCBD /* WindowsInstallResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFF63084B510005BBCBD /* WindowsInstallResources.swift */; };
 		9B11BFFB3084B510005BBCBD /* WindowsInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFF53084B510005BBCBD /* WindowsInstaller.swift */; };
+		1645E6A7DCB0A66278074CF7 /* LZXDecompressor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7B0811B999A63F1927B4 /* LZXDecompressor.swift */; };
+		7C2FC4494EB875AB23F18FFA /* WIMArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39973FDCDE153589358A712E /* WIMArchive.swift */; };
 		9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3402F0AD8540099F00F /* CakeAgentLib */; };
 		9B144C102F9D291C00F14DEF /* VNCTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */; };
 		9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */; };
@@ -1039,6 +1041,8 @@
 		9B11BFF33084B510005BBCBD /* WindowsEFIBinaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsEFIBinaries.swift; sourceTree = "<group>"; };
 		9B11BFF43084B510005BBCBD /* WindowsInstallationMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsInstallationMedia.swift; sourceTree = "<group>"; };
 		9B11BFF53084B510005BBCBD /* WindowsInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsInstaller.swift; sourceTree = "<group>"; };
+		B0BA7B0811B999A63F1927B4 /* LZXDecompressor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WIM/LZXDecompressor.swift; sourceTree = "<group>"; };
+		39973FDCDE153589358A712E /* WIMArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WIM/WIMArchive.swift; sourceTree = "<group>"; };
 		9B11BFF63084B510005BBCBD /* WindowsInstallResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsInstallResources.swift; sourceTree = "<group>"; };
 		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
@@ -1956,6 +1960,8 @@
 				9B11BFF33084B510005BBCBD /* WindowsEFIBinaries.swift */,
 				9B11BFF43084B510005BBCBD /* WindowsInstallationMedia.swift */,
 				9B11BFF53084B510005BBCBD /* WindowsInstaller.swift */,
+				B0BA7B0811B999A63F1927B4 /* LZXDecompressor.swift */,
+				39973FDCDE153589358A712E /* WIMArchive.swift */,
 				9B11BFF63084B510005BBCBD /* WindowsInstallResources.swift */,
 			);
 			path = Windows;
@@ -4374,6 +4380,8 @@
 				9B11BFF93084B510005BBCBD /* WindowsInstallationMedia.swift in Sources */,
 				9B11BFFA3084B510005BBCBD /* WindowsInstallResources.swift in Sources */,
 				9B11BFFB3084B510005BBCBD /* WindowsInstaller.swift in Sources */,
+				1645E6A7DCB0A66278074CF7 /* LZXDecompressor.swift in Sources */,
+				7C2FC4494EB875AB23F18FFA /* WIMArchive.swift in Sources */,
 				9B2033702F4A21400047E197 /* GrandCentralUpdater.swift in Sources */,
 				9BEBC77A2DF440720092B196 /* VZVMNetSocket.swift in Sources */,
 				9BEBC77B2DF440720092B196 /* VMRunService.swift in Sources */,
