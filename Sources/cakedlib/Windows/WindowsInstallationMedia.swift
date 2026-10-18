@@ -33,9 +33,13 @@ struct WindowsInstallationMedia {
 	/// Where the virtio-win driver ISO comes from (the Fedora project's stable build, which Red Hat signs).
 	static let virtioWinURL = URL(string: "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso")!
 
+	/// WinFsp, which the virtio-fs service needs to present the host's shared folders. Pinned: it runs as SYSTEM.
+	static let winFspURL = URL(string: "https://github.com/winfsp/winfsp/releases/download/v2.1/winfsp-2.1.25156.msi")!
+	static let winFspSHA256 = "073a70e00f77423e34bed98b86e600def93393ba5822204fac57a29324db9f7a"
+
 	/// Driver folders to take from the virtio-win ISO: display (so the screen works once Windows has taken over from
-	/// the firmware) and network. Windows has an inbox NVMe and USB driver, so storage needs nothing.
-	static let virtioDrivers = ["viogpudo", "NetKVM"]
+	/// the firmware), network and shared folders. Windows has an inbox NVMe and USB driver, so storage needs nothing.
+	static let virtioDrivers = ["viogpudo", "NetKVM", "viofs"]
 
 	private static let bootPartitionSize = "1700m"
 	private static let efiSystemPartitionType = "C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
@@ -56,7 +60,7 @@ struct WindowsInstallationMedia {
 		}
 	}
 
-	static func create(at url: URL, windowsISO: URL, virtioWinISO: URL, options: Options, progress: (String) -> Void) throws -> WindowsInstallationMedia {
+	static func create(at url: URL, windowsISO: URL, virtioWinISO: URL, winFspMSI: URL, options: Options, progress: (String) -> Void) throws -> WindowsInstallationMedia {
 		let fileManager = FileManager.default
 		progress(String(localized: "Reading the Windows installation ISO"))
 
@@ -90,7 +94,7 @@ struct WindowsInstallationMedia {
 		try handle.close()
 
 		do {
-			try populate(url, isoRoot: isoMount, installImage: installImage, image: image, virtioWinISO: virtioWinISO, options: options, progress: progress)
+			try populate(url, isoRoot: isoMount, installImage: installImage, image: image, virtioWinISO: virtioWinISO, winFspMSI: winFspMSI, options: options, progress: progress)
 			try setEFISystemPartition(of: url, partition: 2)
 		} catch {
 			try? fileManager.removeItem(at: url)
@@ -100,7 +104,7 @@ struct WindowsInstallationMedia {
 		return WindowsInstallationMedia(url: url)
 	}
 
-	private static func populate(_ url: URL, isoRoot: URL, installImage: URL, image: WIMArchive.ImageInfo, virtioWinISO: URL, options: Options, progress: (String) -> Void) throws {
+	private static func populate(_ url: URL, isoRoot: URL, installImage: URL, image: WIMArchive.ImageInfo, virtioWinISO: URL, winFspMSI: URL, options: Options, progress: (String) -> Void) throws {
 		let device = try Disk.attach(url, readOnly: false, raw: true)
 
 		defer { Disk.detach(device) }
@@ -173,6 +177,16 @@ struct WindowsInstallationMedia {
 				try? FileManager.default.removeItem(at: file)
 			}
 		}
+
+		// The virtio-fs service (it's an .exe next to the driver, not part of the driver package) and WinFsp
+		let viofs = virtioMount.appendingPathComponent("viofs/w11/ARM64/virtiofs.exe")
+
+		guard FileManager.default.fileExists(atPath: viofs.path) else {
+			throw ServiceError(String(localized: "The virtio-win ISO has no virtio-fs service for ARM64"))
+		}
+
+		try FileManager.default.copyItem(at: viofs, to: caker.appendingPathComponent("virtiofs.exe"))
+		try FileManager.default.copyItem(at: winFspMSI, to: caker.appendingPathComponent("winfsp.msi"))
 
 		// macOS keeps extended attributes on FAT and exFAT in "._" files, which DISM trips over when it
 		// looks for *.inf files

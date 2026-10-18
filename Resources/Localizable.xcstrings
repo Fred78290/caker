@@ -396,7 +396,6 @@
       }
     },
     "%@ failed (%d): %@" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -404,8 +403,7 @@
             "value" : "%1$@ a échoué (%2$d) : %3$@"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "%@ has mounted volumes. Please unmount them before use." : {
       "extractionState" : "manual",
@@ -452,7 +450,6 @@
       }
     },
     "%@ is not a Windows installation ISO" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -460,11 +457,9 @@
             "value" : "%@ n’est pas un ISO d’installation de Windows"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "%@ is not a Windows on ARM installation ISO" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -472,8 +467,7 @@
             "value" : "%@ n’est pas un ISO d’installation de Windows sur ARM"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "%@ is not sudoable" : {
       "extractionState" : "manual",
@@ -2239,7 +2233,6 @@
       }
     },
     "Can't attach %@" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -2247,8 +2240,7 @@
             "value" : "Impossible d’attacher %@"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Can't autodetect a supported shell." : {
       "extractionState" : "manual",
@@ -2306,7 +2298,6 @@
       }
     },
     "Can't mount %@" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -2314,8 +2305,7 @@
             "value" : "Impossible de monter %@"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Can't serialize vmnet network: %@" : {
       "extractionState" : "manual",
@@ -3504,7 +3494,6 @@
       }
     },
     "Copying the virtio drivers" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -3512,11 +3501,9 @@
             "value" : "Copie des pilotes virtio"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Copying the Windows installation files" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -3524,8 +3511,7 @@
             "value" : "Copie des fichiers d’installation de Windows"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Could not determine the macOS version from the IPSW filename '%@'. Specify --macos-version (%@) or provide your own template with --template." : {
       "extractionState" : "manual",
@@ -3885,7 +3871,6 @@
       }
     },
     "Creating the installation disk" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -3893,8 +3878,7 @@
             "value" : "Création du disque d’installation"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Creation date not available for: %@" : {
       "extractionState" : "manual",
@@ -7158,7 +7142,6 @@
       }
     },
     "Installing Windows" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -7166,8 +7149,7 @@
             "value" : "Installation de Windows"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Installing Windows needs wimlib: run `brew install wimlib`" : {
       "extractionState" : "stale",
@@ -12268,7 +12250,6 @@
       }
     },
     "Preparing the Windows installation media" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -12276,11 +12257,9 @@
             "value" : "Préparation du support d’installation de Windows"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Preparing the Windows installer" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -12288,8 +12267,7 @@
             "value" : "Préparation de l’installateur de Windows"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Preset image" : {
       "localizations" : {
@@ -12989,7 +12967,6 @@
       }
     },
     "Reading the Windows installation ISO" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -12997,8 +12974,7 @@
             "value" : "Lecture de l’ISO d’installation de Windows"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Reads .cakerenv from the current directory (or --env-file) and stops VMs in reverse depends-on order." : {
       "extractionState" : "manual",
@@ -16073,7 +16049,6 @@
       }
     },
     "Starting Windows for the first time" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -16081,8 +16056,7 @@
             "value" : "Premier démarrage de Windows"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Starts services defined in compose.yml in depends_on order. Creates VMs that do not yet exist." : {
       "extractionState" : "manual",
@@ -17053,7 +17027,6 @@
       }
     },
     "The installation disk has no GPT" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -17061,11 +17034,9 @@
             "value" : "Le disque d’installation n’a pas de table GPT"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "The installation disk has no such partition" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -17073,8 +17044,7 @@
             "value" : "Le disque d’installation n’a pas cette partition"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "The IPv6 prefix to use with shared mode" : {
       "extractionState" : "manual",
@@ -17410,7 +17380,6 @@
       }
     },
     "The virtio-win ISO has no ARM64 %@ driver" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -17418,8 +17387,7 @@
             "value" : "L’ISO virtio-win n’a pas de pilote %@ pour ARM64"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "The virtual machine is running. Do you want terminate it them and quit?" : {
       "extractionState" : "manual",
@@ -17473,7 +17441,6 @@
       }
     },
     "The Windows installation ISO has no image to install" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -17481,8 +17448,7 @@
             "value" : "L’ISO d’installation de Windows ne contient aucune image à installer"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "This App Store build of Caker runs inside the macOS App Sandbox, which restricts which files, sockets, and directories it may access. A few features are limited as a result:" : {
       "comment" : "Body text of the sandbox limitations splash screen.",
@@ -20761,7 +20727,6 @@
       }
     },
     "Windows can only be installed unattended: pass --autoinstall" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -20769,11 +20734,9 @@
             "value" : "Windows ne peut être installé que sans surveillance : ajoutez --autoinstall"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Windows did not finish setting itself up" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -20781,11 +20744,9 @@
             "value" : "Windows n’a pas terminé sa configuration"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Windows installation failed:\n%@" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -20793,11 +20754,9 @@
             "value" : "Échec de l’installation de Windows :\n%@"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Windows installation is not available in the App Store build" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -20805,11 +20764,9 @@
             "value" : "L’installation de Windows n’est pas disponible dans la version App Store"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Windows installation timed out" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -20817,11 +20774,9 @@
             "value" : "Délai dépassé pour l’installation de Windows"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Windows VMs are not supported in the App Store build" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -20829,11 +20784,9 @@
             "value" : "Les VM Windows ne sont pas prises en charge dans la version App Store"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "Windows VMs are not supported on this version of macOS (missing %@)" : {
-      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -20841,8 +20794,7 @@
             "value" : "Les VM Windows ne sont pas prises en charge sur cette version de macOS (%@ manquant)"
           }
         }
-      },
-      "shouldTranslate" : false
+      }
     },
     "write_files entry for '%@' cannot set both 'content' and 'source'" : {
       "extractionState" : "manual",
@@ -21131,246 +21083,6 @@
         }
       }
     },
-    "%@ failed (%d): %@" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ a échoué (%2$d) : %3$@"
-          }
-        }
-      }
-    },
-    "%@ is not a Windows installation ISO" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ n’est pas un ISO d’installation de Windows"
-          }
-        }
-      }
-    },
-    "%@ is not a Windows on ARM installation ISO" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ n’est pas un ISO d’installation de Windows sur ARM"
-          }
-        }
-      }
-    },
-    "Can't attach %@" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible d’attacher %@"
-          }
-        }
-      }
-    },
-    "Can't mount %@" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de monter %@"
-          }
-        }
-      }
-    },
-    "Copying the Windows installation files" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copie des fichiers d’installation de Windows"
-          }
-        }
-      }
-    },
-    "Copying the virtio drivers" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copie des pilotes virtio"
-          }
-        }
-      }
-    },
-    "Creating the installation disk" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Création du disque d’installation"
-          }
-        }
-      }
-    },
-    "Installing Windows" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installation de Windows"
-          }
-        }
-      }
-    },
-    "Preparing the Windows installation media" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Préparation du support d’installation de Windows"
-          }
-        }
-      }
-    },
-    "Preparing the Windows installer" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Préparation de l’installateur de Windows"
-          }
-        }
-      }
-    },
-    "Reading the Windows installation ISO" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lecture de l’ISO d’installation de Windows"
-          }
-        }
-      }
-    },
-    "Starting Windows for the first time" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Premier démarrage de Windows"
-          }
-        }
-      }
-    },
-    "The Windows installation ISO has no image to install" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’ISO d’installation de Windows ne contient aucune image à installer"
-          }
-        }
-      }
-    },
-    "The installation disk has no GPT" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le disque d’installation n’a pas de table GPT"
-          }
-        }
-      }
-    },
-    "The installation disk has no such partition" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le disque d’installation n’a pas cette partition"
-          }
-        }
-      }
-    },
-    "The virtio-win ISO has no ARM64 %@ driver" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’ISO virtio-win n’a pas de pilote %@ pour ARM64"
-          }
-        }
-      }
-    },
-    "Windows VMs are not supported in the App Store build" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les VM Windows ne sont pas prises en charge dans la version App Store"
-          }
-        }
-      }
-    },
-    "Windows VMs are not supported on this version of macOS (missing %@)" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les VM Windows ne sont pas prises en charge sur cette version de macOS (%@ manquant)"
-          }
-        }
-      }
-    },
-    "Windows did not finish setting itself up" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Windows n’a pas terminé sa configuration"
-          }
-        }
-      }
-    },
-    "Windows installation failed:\n%@" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Échec de l’installation de Windows :\n%@"
-          }
-        }
-      }
-    },
-    "Windows installation timed out" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Délai dépassé pour l’installation de Windows"
-          }
-        }
-      }
-    },
-    "Windows can only be installed unattended: pass --autoinstall" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Windows ne peut être installé que sans surveillance : ajoutez --autoinstall"
-          }
-        }
-      }
-    },
-    "Windows installation is not available in the App Store build" : {
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’installation de Windows n’est pas disponible dans la version App Store"
-          }
-        }
-      }
-    },
     "Not a Windows image (WIM) file" : {
       "localizations" : {
         "fr" : {
@@ -21407,6 +21119,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Introuvable dans l’image Windows : %@"
+          }
+        }
+      }
+    },
+    "The virtio-win ISO has no virtio-fs service for ARM64" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’ISO virtio-win n’a pas de service virtio-fs pour ARM64"
+          }
+        }
+      }
+    },
+    "The WinFsp installer doesn't match its expected checksum (%@)" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’installateur WinFsp ne correspond pas à la somme de contrôle attendue (%@)"
           }
         }
       }

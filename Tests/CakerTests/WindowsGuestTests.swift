@@ -236,4 +236,35 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertTrue(device is VZUSBMassStorageDeviceConfiguration)
 		XCTAssertEqual((device.attachment as? VZDiskImageStorageDeviceAttachment)?.isReadOnly, false)
 	}
+
+	func testPEShellLoadsTheGPUDriverBeforeInstalling() {
+		let script = WindowsInstallResources.peScript
+		let driver = script.range(of: "drvload %M%\\caker\\drivers\\viogpudo\\viogpudo.inf")
+		let install = script.range(of: "call %M%\\caker\\install.cmd")
+
+		XCTAssertNotNil(driver)
+		XCTAssertNotNil(install)
+		XCTAssertLessThan(driver!.lowerBound, install!.lowerBound)
+	}
+
+	func testSharingSupportIsInstalledOnFirstBoot() {
+		let setup = WindowsInstallResources.setupComplete
+
+		XCTAssertTrue(setup.contains("start /wait \"\" msiexec /i C:\\ProgramData\\caker\\winfsp.msi /qn /norestart"), "msiexec must be waited for to get its exit code")
+		XCTAssertTrue(setup.contains("sc create VirtioFsSvc binpath= C:\\ProgramData\\caker\\virtiofs.exe start= auto depend= WinFsp.Launcher/VirtioFsDrv"))
+		XCTAssertTrue(setup.contains("winfsp=%MSI%") && setup.contains("service=%SVC%") && setup.contains("share=%SHARE%"), "the outcome goes in the marker the host reads")
+		XCTAssertFalse(setup.contains("from-windows"), "setup must not write into the user's shared folders")
+
+		let install = WindowsInstallResources.installScript
+
+		XCTAssertTrue(install.contains("copy /y %T%\\winfsp.msi W:\\ProgramData\\caker\\winfsp.msi"))
+		XCTAssertTrue(install.contains("copy /y %T%\\virtiofs.exe W:\\ProgramData\\caker\\virtiofs.exe"))
+	}
+
+	func testMediaCarriesTheFileSystemDriverAndAPinnedWinFsp() {
+		XCTAssertTrue(WindowsInstallationMedia.virtioDrivers.contains("viofs"))
+		XCTAssertEqual(WindowsInstallationMedia.winFspSHA256.count, 64)
+		XCTAssertEqual(WindowsInstallationMedia.winFspURL.scheme, "https")
+		XCTAssertTrue(WindowsInstallationMedia.winFspURL.lastPathComponent.hasSuffix(".msi"))
+	}
 }

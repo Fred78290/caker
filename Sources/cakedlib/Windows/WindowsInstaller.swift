@@ -16,6 +16,7 @@
 
 import AppKit
 import CakeAgentLib
+import CryptoKit
 import Foundation
 import GRPCLib
 import Synchronization
@@ -91,6 +92,7 @@ public class WindowsInstaller: @unchecked Sendable {
 
 	public func doInstall(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		let virtioWinISO = try await CloudImageConverter.downloadISO(remoteURL: WindowsInstallationMedia.virtioWinURL, runMode: runMode, progressHandler: progressHandler)
+		let winFspMSI = try await downloadWinFsp(progressHandler: progressHandler)
 		let mediaURL = location.rootURL.appendingPathComponent(mediaFileName)
 		let options = WindowsInstallationMedia.Options(username: username, password: password, computerName: Self.computerName(for: location.name))
 		let windowsISO = self.windowsISO
@@ -98,7 +100,7 @@ public class WindowsInstaller: @unchecked Sendable {
 		progressHandler(.step(String(localized: "Preparing the Windows installation media")))
 
 		let media = try await Task.detached {
-			try WindowsInstallationMedia.create(at: mediaURL, windowsISO: windowsISO, virtioWinISO: virtioWinISO, options: options) { step in
+			try WindowsInstallationMedia.create(at: mediaURL, windowsISO: windowsISO, virtioWinISO: virtioWinISO, winFspMSI: winFspMSI, options: options) { step in
 				progressHandler(.substep(step))
 			}
 		}.value
@@ -144,7 +146,12 @@ public class WindowsInstaller: @unchecked Sendable {
 
 			try await run(timeout: firstBootTimeout, progressHandler)
 
-			if try firstBootCompleted(location: location) {
+			if let marker = try firstBootMarker(location: location) {
+				// What SetupComplete.cmd installed, as exit codes (0 = fine)
+				if marker.contains("winfsp=0") == false || marker.contains("service=0") == false {
+					logger.warn("Windows setup finished, but directory sharing may not work: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
+				}
+
 				config.provisioned = true
 				try config.save()
 
@@ -167,15 +174,31 @@ public class WindowsInstaller: @unchecked Sendable {
 		return name
 	}
 
-	/// Whether Windows' setup left its marker on the EFI system partition (the first partition the install script creates).
-	private func firstBootCompleted(location: VMLocation) throws -> Bool {
+	/// WinFsp's installer, checked against its known hash before it goes on the media: it runs as SYSTEM.
+	private func downloadWinFsp(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> URL {
+		let cache = try CommonCacheImageCache(scheme: "msi", location: "installers", name: WindowsInstallationMedia.winFspURL.host()!, ext: "msi", runMode: runMode)
+		let msi = try await CloudImageConverter.downloadRemoteToCache(remoteURL: WindowsInstallationMedia.winFspURL, imageCache: cache, runMode: runMode, progressHandler: progressHandler)
+		let hash = SHA256.hash(data: try Data(contentsOf: msi)).map { String(format: "%02x", $0) }.joined()
+
+		guard hash == WindowsInstallationMedia.winFspSHA256 else {
+			try? FileManager.default.removeItem(at: msi)
+
+			throw ServiceError(String(format: String(localized: "The WinFsp installer doesn't match its expected checksum (%@)"), hash))
+		}
+
+		return msi
+	}
+
+	/// What Windows' setup left on the EFI system partition (the first partition the install script creates), or
+	/// `nil` if it hasn't finished.
+	private func firstBootMarker(location: VMLocation) throws -> String? {
 		let device = try WindowsInstallationMedia.Disk.attach(location.diskURL, readOnly: true)
 
 		defer { WindowsInstallationMedia.Disk.detach(device) }
 
 		let volume = try WindowsInstallationMedia.Disk.mount("\(device)s1", readOnly: true)
 
-		return FileManager.default.fileExists(atPath: volume.appendingPathComponent("EFI/caker/installed").path)
+		return try? String(contentsOf: volume.appendingPathComponent("EFI/caker/installed"), encoding: .utf8)
 	}
 
 	/// Runs the VM until it stops, however it stops, or stops it and throws once `timeout` has passed.

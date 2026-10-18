@@ -41,6 +41,8 @@ enum WindowsInstallResources {
 		ping -n 3 127.0.0.1 >nul
 		goto media
 		:found
+		rem Load the virtio GPU driver so the display can take over from the firmware's (see EFI\framebuffer.c).
+		drvload %M%\caker\drivers\viogpudo\viogpudo.inf >nul 2>&1
 		call %M%\caker\install.cmd %M%
 		:done
 		wpeutil shutdown
@@ -105,6 +107,11 @@ enum WindowsInstallResources {
 		copy /y %T%\unattend.xml W:\Windows\Panther\unattend.xml >> %LOG% || goto fail
 		copy /y %T%\SetupComplete.cmd W:\Windows\Setup\Scripts\SetupComplete.cmd >> %LOG% || goto fail
 
+		rem Directory sharing: WinFsp and the virtio-fs service are installed by SetupComplete.cmd on first boot
+		mkdir W:\ProgramData\caker 2>nul
+		copy /y %T%\winfsp.msi W:\ProgramData\caker\winfsp.msi >> %LOG% || goto fail
+		copy /y %T%\virtiofs.exe W:\ProgramData\caker\virtiofs.exe >> %LOG% || goto fail
+
 		call :say Writing the boot files
 		bcdboot W:\Windows /s S: /f UEFI >> %LOG% 2>&1 || goto fail
 		mkdir S:\EFI\caker 2>nul
@@ -133,17 +140,33 @@ enum WindowsInstallResources {
 		exit /b 0
 		"""#)
 
-	/// Runs once as SYSTEM when the installed Windows finishes setting itself up. It leaves a marker on the
-	/// EFI system partition (a FAT32 volume the host can read) and powers the VM off, which is how the host
-	/// knows first boot is over: Virtualization.framework stops a VM whose guest reboots, so a stop alone says
-	/// nothing about whether setup is complete.
+	/// Runs once as SYSTEM when the installed Windows finishes setting itself up. It installs the sharing support,
+	/// leaves a marker on the EFI system partition (a FAT32 volume the host can read, holding the exit codes of
+	/// what it installed) and powers the VM off, which is how the host knows first boot is over:
+	/// Virtualization.framework stops a VM whose guest reboots, so a stop alone says nothing about whether setup
+	/// is complete.
 	static let setupComplete = crlf(
 		#"""
 		@echo off
 		powercfg /hibernate off
+
+		rem Directory sharing: WinFsp (the user-mode file system layer) and the virtio-fs service from the virtio-win
+		rem drivers, which mounts each share the host exposes. The service waits for WinFsp's launcher and for the
+		rem virtio-fs driver, which install.cmd added to the image.
+		start /wait "" msiexec /i C:\ProgramData\caker\winfsp.msi /qn /norestart
+		set MSI=%errorlevel%
+		sc create VirtioFsSvc binpath= C:\ProgramData\caker\virtiofs.exe start= auto depend= WinFsp.Launcher/VirtioFsDrv DisplayName= "Virtio FS Service"
+		set SVC=%errorlevel%
+
 		mountvol S: /S
 		mkdir S:\EFI\caker 2>nul
-		echo done> S:\EFI\caker\installed
+
+		rem Start the service now to see whether a share shows up (it only does if the VM has directory shares)
+		net start VirtioFsSvc >nul 2>&1
+		ping -n 11 127.0.0.1 >nul
+		if exist Z:\ (set SHARE=mounted) else (set SHARE=none)
+
+		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%)> S:\EFI\caker\installed
 		mountvol S: /D
 		shutdown /s /t 5 /c "caker: Windows installation complete"
 		"""#)
