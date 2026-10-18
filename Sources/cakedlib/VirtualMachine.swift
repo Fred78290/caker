@@ -258,7 +258,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		// from the guest with no root/sudo required (see IMDSServer). Only reaching it at
 		// the AWS-style 169.254.169.254 address needs a pf redirect via sudo and is
 		// unavailable there.
-		if IMDSNetworkInterface.imdsEnabled && config.os == .linux && config.isWindowsGuest == false {
+		if IMDSNetworkInterface.imdsEnabled {
 			networks.append(IMDSNetworkInterface(macAddress: try config.ensureImdsMacAddress()))
 		}
 

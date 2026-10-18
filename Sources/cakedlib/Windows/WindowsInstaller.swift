@@ -18,29 +18,82 @@ import AppKit
 import CakeAgentLib
 import Foundation
 import GRPCLib
+import Synchronization
 
-public enum WindowsInstaller {
-	private static let logger = Logger("WindowsInstaller")
+public class WindowsInstaller: @unchecked Sendable {
+	private let logger = Logger("WindowsInstaller")
 
 	/// Name of the installation media image inside the VM's folder.
-	static let mediaFileName = "install.\(DiskAttachement.windowsMediaExtension)"
+	private let mediaFileName = "install.\(DiskAttachement.windowsMediaExtension)"
 
 	/// How long each VM run may take: applying the image and Windows' own first-boot setup are both slow.
-	private static let installTimeout: TimeInterval = 90 * 60
-	private static let firstBootTimeout: TimeInterval = 45 * 60
+	private let installTimeout: TimeInterval = 90 * 60
+	private let firstBootTimeout: TimeInterval = 45 * 60
 
 	/// Windows restarts itself a few times while it sets up.
-	private static let maxFirstBootRuns = 8
+	private let maxFirstBootRuns = 8
 
-	public static func install(location: VMLocation, config: CakeConfig, windowsISO: URL, username: String, password: String, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+	private let location: VMLocation
+	private let config: CakeConfig
+	private let windowsISO: URL
+	private let username: String
+	private let password: String
+	private let runMode: Utils.RunMode
+	private let wizardID: UUID
+	private let queue: DispatchQueue
+	private var vmStateObservation: NSKeyValueObservation? = nil
+	private let canceled: Mutex<Bool> = .init(false)
+	public var virtualMachine: VirtualMachine?
+
+	public init(location: VMLocation, config: CakeConfig, windowsISO: URL, username: String, password: String, wizardID: UUID, queue: DispatchQueue?, runMode: Utils.RunMode) {
+		self.location = location
+		self.config = config
+		self.windowsISO = windowsISO
+		self.username = username
+		self.password = password
+		self.runMode = runMode
+		self.wizardID = wizardID
+		self.queue = queue ?? DispatchQueue.main
+	}
+
+	public func cancel() {
+		self.canceled.withLock {
+			$0 = true
+
+			self.virtualMachine?.stopServiceForProvisionning()
+			self.virtualMachine?.stopGrandCentralUpdate()
+			self.virtualMachine?.stopVM()
+		}
+	}
+
+	public func install(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		// The installer drives hdiutil, diskutil and wimlib, which a sandboxed app can't launch
 		guard Bundle.isApplicationSandboxed == false else {
 			throw ServiceError(String(localized: "Windows installation is not available in the App Store build"))
 		}
 
+		defer {
+			if let virtualMachine = self.virtualMachine {
+				DispatchQueue.main.async {
+					NotificationCenter.default.post(name: VMBuilder.IPSWTerminatedNotification, object: virtualMachine, userInfo: ["wizardID": self.wizardID])
+				}
+			}
+		}
+
+		try await withTaskCancellationHandler(
+			operation: {
+				try await self.doInstall(progressHandler: progressHandler)
+			},
+			onCancel: {
+				self.cancel()
+			})
+	}
+
+	public func doInstall(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		let virtioWinISO = try await CloudImageConverter.downloadISO(remoteURL: WindowsInstallationMedia.virtioWinURL, runMode: runMode, progressHandler: progressHandler)
 		let mediaURL = location.rootURL.appendingPathComponent(mediaFileName)
 		let options = WindowsInstallationMedia.Options(username: username, password: password, computerName: computerName(for: location.name))
+		let windowsISO = self.windowsISO
 
 		progressHandler(.step(String(localized: "Preparing the Windows installation media")))
 
@@ -58,7 +111,16 @@ public enum WindowsInstaller {
 
 		progressHandler(.step(String(localized: "Installing Windows")))
 
-		try await run(location: location, config: config, runMode: runMode, timeout: installTimeout)
+		let virtualMachine = try await createVirtualMachine(progressHandler)
+
+		self.virtualMachine = virtualMachine
+
+		defer {
+			virtualMachine.stopServiceForProvisionning()
+			virtualMachine.stopGrandCentralUpdate()
+		}
+
+		try await run(timeout: installTimeout, progressHandler)
 
 		let result = try media.installResult()
 
@@ -74,9 +136,13 @@ public enum WindowsInstaller {
 		progressHandler(.step(String(localized: "Starting Windows for the first time")))
 
 		for attempt in 1...maxFirstBootRuns {
+			if canceled.withLock({ $0 }) {
+				throw CancellationError()
+			}
+
 			logger.info("Windows first boot, run \(attempt) of \(maxFirstBootRuns)")
 
-			try await run(location: location, config: config, runMode: runMode, timeout: firstBootTimeout)
+			try await run(timeout: firstBootTimeout, progressHandler)
 
 			if try firstBootCompleted(location: location) {
 				config.provisioned = true
@@ -90,7 +156,7 @@ public enum WindowsInstaller {
 	}
 
 	/// Windows computer names are at most 15 characters from `A-Z a-z 0-9 -`, and may not be all digits.
-	static func computerName(for vmName: String) -> String {
+	private func computerName(for vmName: String) -> String {
 		let allowed = Set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-")
 		var name = String(vmName.map { allowed.contains($0) ? $0 : "-" }.prefix(15)).trimmingCharacters(in: CharacterSet(charactersIn: "-"))
 
@@ -102,7 +168,7 @@ public enum WindowsInstaller {
 	}
 
 	/// Whether Windows' setup left its marker on the EFI system partition (the first partition the install script creates).
-	static func firstBootCompleted(location: VMLocation) throws -> Bool {
+	private func firstBootCompleted(location: VMLocation) throws -> Bool {
 		let device = try WindowsInstallationMedia.Disk.attach(location.diskURL, readOnly: true)
 
 		defer { WindowsInstallationMedia.Disk.detach(device) }
@@ -113,22 +179,82 @@ public enum WindowsInstaller {
 	}
 
 	/// Runs the VM until it stops, however it stops, or stops it and throws once `timeout` has passed.
-	@MainActor
-	private static func run(location: VMLocation, config: CakeConfig, runMode: Utils.RunMode, timeout: TimeInterval) async throws {
-		let virtualMachine = try VirtualMachine(location: location, config: config, display: .none, screenSize: config.display.cgSize, mode: .provisioning, runMode: runMode, queue: nil)
-		let waiter = StopWaiter(virtualMachine)
+	private func run(timeout: TimeInterval, _ progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+		if let virtualMachine = self.virtualMachine {
+			let waiter = await StopWaiter(virtualMachine)
 
-		virtualMachine.delegate = waiter
+			virtualMachine.delegate = waiter
 
-		try await virtualMachine.startVM()
+			try await virtualMachine.startVM()
 
-		let stopped = await waiter.waitUntilStopped(timeout: timeout)
+			let stopped = await waiter.waitUntilStopped(timeout: timeout)
 
-		if stopped == false {
-			try? await virtualMachine.stopVM()
+			if stopped == false {
+				try? await virtualMachine.stopVM()
 
-			throw ServiceError(String(localized: "Windows installation timed out"))
+				throw ServiceError(String(localized: "Windows installation timed out"))
+			}
 		}
+	}
+
+	@MainActor
+	private func createVirtualMachine(_ progressHandler: @escaping ProgressObserver.BuildProgressHandler) throws -> VirtualMachine {
+		let virtualMachine = try VirtualMachine(location: self.location, config: self.config, display: Bundle.runInCaker ? .ui : .vnc, screenSize: self.config.display.cgSize, mode: .provisioning, runMode: self.runMode, queue: self.queue)
+
+		self.virtualMachine = virtualMachine
+
+		try virtualMachine.location.writeProvisionning()
+		try virtualMachine.startServiceForProvisionning()
+
+		if Bundle.runInCaker {
+			virtualMachine.createVirtualMachineView()
+		} else {
+			if ServiceHandler.isAgentRunning.running {
+				logger.info("Start GCD for VM: \(location.name)")
+				// Observe VM state to start GCD when it becomes running
+				var didStart = false
+
+				self.vmStateObservation = virtualMachine.virtualMachine.observe(\.state, options: [.initial, .new]) { [weak self] vm, change in
+					guard let self = self else { return }
+
+					// Start only once when running
+					if didStart == false && vm.state == .running {
+						didStart = true
+
+						self.logger.info("Start GCD for VM when running: \(self.location.name)")
+
+						Task {
+							do {
+								try await virtualMachine.startGrandCentralUpdate(frequency: 1, runMode: self.runMode)
+							} catch is CancellationError {
+								self.logger.debug("Cancelled GCD for VM: \(self.location.name)")
+							} catch {
+								self.logger.error("Failed to start GCD for VM: \(self.location.name), error: \(error.localizedDescription)")
+							}
+						}
+
+						// Invalidate observation after starting
+						self.vmStateObservation?.invalidate()
+						self.vmStateObservation = nil
+					}
+				}
+			}
+
+			let vncPassword = config.vncPassword ?? UUID().uuidString
+			let vncURL = try virtualMachine.startVncServer(vncPassword: vncPassword, port: 0)
+
+			logger.info("VNC server started at \(vncURL.map(\.absoluteString).joined(separator: ", "))")
+
+			guard let vncURL = vncURL.first else {
+				throw ServiceError(String(localized: "Unable to get VNC URL for VM \(location.name)"))
+			}
+
+			progressHandler(.provision(.init(vncURL: vncURL, screenSize: .init(virtualMachine.vzMachineView!.bounds.size), config: CakedConfiguration(config))))
+		}
+
+		NotificationCenter.default.post(name: VMBuilder.WinPEStartNotification, object: virtualMachine, userInfo: ["wizardID": wizardID])
+
+		return virtualMachine
 	}
 }
 

@@ -1408,7 +1408,7 @@ extension VirtualMachineDocument {
 extension VirtualMachineDocument: VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine) {
 		#if DEBUG
-			self.logger.debug("didChangedState: \(vm.virtualMachine.state)")
+		self.logger.debug("didChangedState: \(vm.virtualMachine.state.description)")
 		#endif
 
 		guard let status = Status(rawValue: vm.virtualMachine.state.rawValue) else {

@@ -24,6 +24,14 @@ public struct VMImageEntry: Codable, Identifiable, Hashable, Sendable {
 	/// Minimum CPU count / memory (MiB) the wizard should apply when this entry is selected.
 	public let minCPU: UInt16
 	public let minMemoryMiB: UInt64
+	
+	public init(id: String, label: String, url: String, minCPU: UInt16, minMemoryMiB: UInt64) {
+		self.id = id
+		self.label = label
+		self.url = url
+		self.minCPU = minCPU
+		self.minMemoryMiB = minMemoryMiB
+	}
 }
 
 public struct VMImageArchCatalog: Codable, Sendable {

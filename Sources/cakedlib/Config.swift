@@ -671,17 +671,37 @@ extension CakeConfig {
 
 	public func platform(nvramURL: URL, needsNestedVirtualization: Bool) throws -> GuestPlateForm {
 		switch self.os {
+		case .linux:
+			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization, machineIdentifier: self.getMachineIdentitier())
+		case .windows:
+			#if APPSTORE
+				throw ServiceError(String(localized: "Windows VMs are not supported in the App Store build"))
+			#else
+			return WindowsPlatform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization, machineIdentifier: self.getMachineIdentitier())
+			#endif
+
 		#if arch(arm64)
 			case .darwin:
 				return DarwinPlateform(nvramURL: nvramURL, ecid: self.getECID(), hardwareModel: self.getHardwareModel()!)
-		#endif
-		case .linux:
-			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization, windowsGuest: self.isWindowsGuest)
-		#if !arch(arm64)
+		#else
 			default:
 				throw ServiceError(String(localized: "Unsupported plateform"))
 		#endif
 		}
+	}
+
+	public func setMachineIdentitier(_ machineIdentifier: VZGenericMachineIdentifier) {
+		self.ecid = machineIdentifier.dataRepresentation
+	}
+
+	public func getMachineIdentitier() -> VZGenericMachineIdentifier {
+		if let ecid = self.ecid {
+			if let ecid = VZGenericMachineIdentifier(dataRepresentation: ecid) {
+				return ecid
+			}
+		}
+
+		return VZGenericMachineIdentifier()
 	}
 
 	#if arch(arm64)
@@ -719,7 +739,7 @@ extension VirtualMachineConfiguration {
 	/// stock Windows installer can drive and without the Linux-only cloud-init/agent/IMDS plumbing.
 	/// `os` stays `.linux` rather than gaining a case, since that value is also a wire/proto enum.
 	public var isWindowsGuest: Bool {
-		self.os == .linux && self.configuredPlatform == .windows
+		self.os == .windows || (self.os == .linux && self.configuredPlatform == .windows)
 	}
 
 	public func getMacAddress() -> VZMACAddress? {
@@ -928,7 +948,7 @@ extension VirtualMachineConfiguration {
 	/// A Windows guest has no inbox virtio-blk driver, so its system disk is exposed as an NVMe
 	/// namespace (Windows Setup and PE both ship `stornvme`); every other guest keeps virtio-blk.
 	private func rootStorageDevice(attachment: VZStorageDeviceAttachment) -> VZStorageDeviceConfiguration {
-		if self.isWindowsGuest {
+		if self.os == .windows {
 			return VZNVMExpressControllerDeviceConfiguration(attachment: attachment)
 		}
 
@@ -952,7 +972,7 @@ extension VirtualMachineConfiguration {
 				}
 
 				do {
-					return try $0.configuration(relativeTo: self.locationURL, windowsGuest: self.isWindowsGuest)
+					return try $0.configuration(relativeTo: self.locationURL, windowsGuest: self.os == .windows)
 				} catch {
 					Logger(self).error("Failed to create disk attachment for \($0.description): \(error)")
 					return nil
