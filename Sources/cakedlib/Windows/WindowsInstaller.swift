@@ -92,7 +92,7 @@ public class WindowsInstaller: @unchecked Sendable {
 	public func doInstall(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		let virtioWinISO = try await CloudImageConverter.downloadISO(remoteURL: WindowsInstallationMedia.virtioWinURL, runMode: runMode, progressHandler: progressHandler)
 		let mediaURL = location.rootURL.appendingPathComponent(mediaFileName)
-		let options = WindowsInstallationMedia.Options(username: username, password: password, computerName: computerName(for: location.name))
+		let options = WindowsInstallationMedia.Options(username: username, password: password, computerName: Self.computerName(for: location.name))
 		let windowsISO = self.windowsISO
 
 		progressHandler(.step(String(localized: "Preparing the Windows installation media")))
@@ -156,7 +156,7 @@ public class WindowsInstaller: @unchecked Sendable {
 	}
 
 	/// Windows computer names are at most 15 characters from `A-Z a-z 0-9 -`, and may not be all digits.
-	private func computerName(for vmName: String) -> String {
+	static func computerName(for vmName: String) -> String {
 		let allowed = Set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-")
 		var name = String(vmName.map { allowed.contains($0) ? $0 : "-" }.prefix(15)).trimmingCharacters(in: CharacterSet(charactersIn: "-"))
 

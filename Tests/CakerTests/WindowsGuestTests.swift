@@ -101,7 +101,7 @@ final class WindowsGuestTests: XCTestCase {
 	func testRootDiskIsNVMeForWindowsAndVirtioBlockOtherwise() throws {
 		let disk = try self.makeImage(named: "disk.img")
 
-		XCTAssertTrue(try self.makeConfig(platform: .windows).rootDiskAttachment(rootDiskURL: disk) is VZNVMExpressControllerDeviceConfiguration)
+		XCTAssertTrue(try self.makeConfig(os: .windows, platform: .windows).rootDiskAttachment(rootDiskURL: disk) is VZNVMExpressControllerDeviceConfiguration)
 		XCTAssertTrue(try self.makeConfig(platform: .ubuntu).rootDiskAttachment(rootDiskURL: disk) is VZVirtioBlockDeviceConfiguration)
 	}
 
