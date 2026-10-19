@@ -1076,7 +1076,7 @@ extension VirtualMachineDocument {
 			} else {
 				self.haveRequestStop = true
 
-				if self.virtualMachineConfig.os == .linux {
+				if self.virtualMachineConfig.os != .darwin {
 					virtualMachine.requestStopFromUI { result in
 						Task { @MainActor in
 							self.setStateAsStopped()
@@ -1408,7 +1408,7 @@ extension VirtualMachineDocument {
 extension VirtualMachineDocument: VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine) {
 		#if DEBUG
-			self.logger.debug("didChangedState: \(vm.virtualMachine.state)")
+		self.logger.debug("didChangedState: \(vm.virtualMachine.state.description)")
 		#endif
 
 		guard let status = Status(rawValue: vm.virtualMachine.state.rawValue) else {

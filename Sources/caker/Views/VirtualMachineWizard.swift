@@ -134,6 +134,33 @@ struct ShortImageInfoComparator: SortComparator {
 	var createVirtualMachineTask: Task<Void, Never>?
 	var provisioningTemplate: String
 	var provisionVars: ProvisionVariables
+	var supportedPlatform: SupportedPlatform
+
+	#if arch(arm64)
+		var ipswCatalog: [VMImageEntry] {
+			var catalog = [
+				VMImageEntry(id: "", label: String(localized: "Custom"), url: "", minCPU: 4, minMemoryMiB: 4096)
+			]
+
+			catalog.append(contentsOf: self.imageCatalog.ipsw)
+
+			return catalog
+		}
+	#endif
+
+	var isoCatalog: [VMImageEntry] {
+		var catalog = [
+			VMImageEntry(id: "", label: String(localized: "Custom"), url: "", minCPU: 1, minMemoryMiB: 512)
+		]
+
+		catalog.append(contentsOf: self.imageCatalog.iso)
+
+		#if !APPSTORE
+			catalog.append(VMImageEntry(id: "windows", label: "Windows", url: "", minCPU: 4, minMemoryMiB: 4096))
+		#endif
+
+		return catalog
+	}
 
 	init() {
 		self.currentStep = .name
@@ -142,6 +169,7 @@ struct ShortImageInfoComparator: SortComparator {
 		self.showPassword = false
 		self.imageSource = .qcow2
 		self.remoteImage = "ubuntu"
+		self.supportedPlatform = .ubuntu
 		self.remoteImages = []
 		self.selectedRemoteImage = String.empty
 		self.cloudImageRelease = VMImageCatalog.shared.cloudImage("ubuntu2604")
@@ -291,23 +319,29 @@ struct VirtualMachineWizard: View {
 
 			switch imageSource {
 			case .iso:
+				let supportedPlatform = SupportedPlatform(rawValue: fqn)
+
 				// Same rule as the ISO picker: "admin" is already used on debian.
-				if SupportedPlatform(rawValue: fqn) == .debian && config.configuredUser == "admin" {
+				if supportedPlatform == .debian && config.configuredUser == "admin" {
 					config.configuredUser = "administrator"
 				}
 
 				config.cpuCount = max(config.cpuCount, model.isoImageRelease.minCPU)
 				config.memorySizeInMoB = max(config.memorySizeInMoB, model.isoImageRelease.minMemoryMiB)
 				model.showDiskFormat = true
+				model.supportedPlatform = supportedPlatform
+				config.diskSizeInGiB = max(config.diskSizeInGiB, supportedPlatform == .windows ? 64 : 20)
 			case .qcow2:
 				config.cpuCount = max(config.cpuCount, model.cloudImageRelease.minCPU)
 				config.memorySizeInMoB = max(config.memorySizeInMoB, model.cloudImageRelease.minMemoryMiB)
+				model.supportedPlatform = SupportedPlatform(rawValue: fqn)
 			#if arch(arm64)
 				case .ipsw:
 					config.cpuCount = max(config.cpuCount, model.ipswRelease.minCPU)
 					config.memorySizeInMoB = max(config.memorySizeInMoB, model.ipswRelease.minMemoryMiB)
 					config.diskSizeInGiB = max(config.diskSizeInGiB, 40)
 					model.showDiskFormat = true
+					model.supportedPlatform = .macos
 			#endif
 			default:
 				break
@@ -344,6 +378,7 @@ struct VirtualMachineWizard: View {
 			model.remoteImage = presetRemoteImage.remote
 			model.selectedRemoteImage = presetRemoteImage.image.fingerprint
 			model.remoteImages = [image]
+			model.supportedPlatform = SupportedPlatform(rawValue: presetRemoteImage.image.name)
 
 			return (config, model, image.description)
 		} else {
@@ -362,6 +397,7 @@ struct VirtualMachineWizard: View {
 
 			model.imageSource = .qcow2
 			model.cloudImageRelease = defaultCloudImage
+			model.supportedPlatform = .ubuntu
 
 			return (config, model, nil)
 		}
@@ -526,6 +562,21 @@ struct VirtualMachineWizard: View {
 					self.provisionnedVM = nil
 				}
 			}
+			#if !APPSTORE
+				.onReceive(VMBuilder.WinPEStartNotification) { notification in
+					self.logger.debug("Notification - WinPEStartNotification")
+					if self.provisioningStarted == false, self.isMyNotification(notification), let virtualMachine = notification.object as? VirtualMachine {
+						self.provisioningStarted = true
+						self.provisionnedVM = virtualMachine
+					}
+				}
+				.onReceive(VMBuilder.WinPETerminatedNotification) { notification in
+					self.logger.debug("Notification - WinPETerminatedNotification")
+					if self.isMyNotification(notification), self.config.autoinstall == false {
+						self.provisionnedVM = nil
+					}
+				}
+			#endif
 			#if arch(arm64)
 				.onReceive(VMBuilder.IPSWStartNotification) { notification in
 					self.logger.debug("Notification - IPSWStartNotification")
@@ -1027,6 +1078,7 @@ struct VirtualMachineWizard: View {
 									Button(action: {
 										if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
 											self.config.imageName = "file://\(imageName)"
+											self.model.supportedPlatform = SupportedPlatform(rawValue: self.config.imageName)
 										}
 									}) {
 										Image(systemName: "document.badge.gearshape")
@@ -1044,8 +1096,6 @@ struct VirtualMachineWizard: View {
 						}
 					case .iso:
 						VStack(alignment: .leading) {
-							let platform = SupportedPlatform(rawValue: self.config.imageName)
-
 							LabeledContent {
 								if AppState.shared.connectionMode == .app {
 									HStack {
@@ -1057,6 +1107,7 @@ struct VirtualMachineWizard: View {
 										Button(action: {
 											if let imageName = chooseDiskImage(ofTypes: [UTType.iso9660, UTType.cdr]) {
 												self.config.imageName = "file://\(imageName)"
+												self.model.supportedPlatform = SupportedPlatform(rawValue: self.config.imageName)
 											}
 										}) {
 											Image(systemName: "document.badge.gearshape")
@@ -1071,13 +1122,15 @@ struct VirtualMachineWizard: View {
 										.disabled(self.model.createVM)
 								}
 							} label: {
+								let imageCatalog = model.isoCatalog
+
 								Picker("Preconfigured ISO", selection: $model.isoImageRelease) {
-									ForEach(model.imageCatalog.iso) { os in
+									ForEach(imageCatalog) { os in
 										Text(os.label).tag(os)
 									}
 								}
 								.pickerStyle(.menu)
-								.disabled(self.model.createVM || model.imageCatalog.iso.isEmpty)
+								.disabled(self.model.createVM || imageCatalog.isEmpty)
 								.labelsHidden()
 								.onChange(of: model.isoImageRelease) { _, newValue in
 									let plateform = SupportedPlatform(rawValue: newValue.label)
@@ -1088,38 +1141,42 @@ struct VirtualMachineWizard: View {
 									}
 
 									self.config.imageName = newValue.url
+									self.model.supportedPlatform = plateform
+
 									newValue.applyMinimumResources(to: &self.config)
 								}
 							}
 
-							// Alpine/Ubuntu/Fedora/CentOS/RHEL/openSUSE/Debian ship a built-in template (see
-							// PackerLiteTemplateResolver) auto-selected from the detected platform, so the
-							// picker below is only required to override it or for a platform with no default.
-							let hasBuiltInTemplate = PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: platform)
+							if self.model.supportedPlatform != .windows {
+								// Alpine/Ubuntu/Fedora/CentOS/RHEL/openSUSE/Debian ship a built-in template (see
+								// PackerLiteTemplateResolver) auto-selected from the detected platform, so the
+								// picker below is only required to override it or for a platform with no default.
+								let hasBuiltInTemplate = PackerLiteTemplateResolver.hasBuiltInLinuxTemplate(for: self.model.supportedPlatform)
 
-							LabeledContent(hasBuiltInTemplate ? "Provisioning template (optional)" : "Provisioning template") {
-								HStack {
-									TextField("", text: $model.provisioningTemplate)
-										.frame(width: 300)
-										.rounded(.leading)
-										.disabled(self.model.createVM)
-									Button(action: {
-										if let provisioningTemplate = chooseYAML() {
-											model.provisioningTemplate = provisioningTemplate
+								LabeledContent(hasBuiltInTemplate ? "Provisioning template (optional)" : "Provisioning template") {
+									HStack {
+										TextField("", text: $model.provisioningTemplate)
+											.frame(width: 300)
+											.rounded(.leading)
+											.disabled(self.model.createVM)
+										Button(action: {
+											if let provisioningTemplate = chooseYAML() {
+												model.provisioningTemplate = provisioningTemplate
+											}
+										}) {
+											Image(systemName: "document.badge.gearshape")
 										}
-									}) {
-										Image(systemName: "document.badge.gearshape")
+										.disabled(self.model.createVM)
+										.withButtonStyle(.borderless)
 									}
-									.disabled(self.model.createVM)
-									.withButtonStyle(.borderless)
 								}
-							}
-							Text(hasBuiltInTemplate ? "Leave empty to use the built-in \(platform.rawValue) template or provide a custom one provisioning template" : "Provide a custom one provisioning template")
-								.font(.caption)
-								.foregroundStyle(.secondary)
-							Toggle("Auto configuration with provisioning", isOn: $config.autoinstall).disabled(self.model.createVM)
+								Text(hasBuiltInTemplate ? "Leave empty to use the built-in \(self.model.supportedPlatform.rawValue) template or provide a custom one provisioning template" : "Provide a custom one provisioning template")
+									.font(.caption)
+									.foregroundStyle(.secondary)
+								Toggle("Auto configuration with provisioning", isOn: $config.autoinstall).disabled(self.model.createVM)
 
-							provisionVariablesSection
+								provisionVariablesSection
+							}
 						}
 					#if arch(arm64)
 						case .ipsw:
@@ -1134,6 +1191,7 @@ struct VirtualMachineWizard: View {
 											Button(action: {
 												if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
 													self.config.imageName = "file://\(imageName)"
+													self.model.supportedPlatform = .macos
 												}
 											}) {
 												Image(systemName: "document.badge.gearshape")
@@ -1148,13 +1206,15 @@ struct VirtualMachineWizard: View {
 											.disabled(self.model.createVM)
 									}
 								} label: {
+									let imageCatalog = model.ipswCatalog
+
 									Picker("Preconfigured IPSW", selection: $model.ipswRelease) {
-										ForEach(model.imageCatalog.ipsw) { os in
+										ForEach(imageCatalog) { os in
 											Text(os.label).tag(os)
 										}
 									}
 									.pickerStyle(.menu)
-									.disabled(self.model.createVM || model.imageCatalog.ipsw.isEmpty)
+									.disabled(self.model.createVM || imageCatalog.isEmpty)
 									.labelsHidden()
 									.onChange(of: model.ipswRelease) { _, newValue in
 										self.config.imageName = newValue.url
@@ -1172,16 +1232,19 @@ struct VirtualMachineWizard: View {
 								.frame(width: 460)
 								.disabled(self.model.createVM)
 						} label: {
+							let imageCatalog = model.imageCatalog.cloud
+
 							Picker("Preconfigured image", selection: $model.cloudImageRelease) {
-								ForEach(model.imageCatalog.cloud) { os in
+								ForEach(imageCatalog) { os in
 									Text(os.label).tag(os)
 								}
 							}
 							.pickerStyle(.menu)
-							.disabled(self.model.createVM || model.imageCatalog.cloud.isEmpty)
+							.disabled(self.model.createVM || imageCatalog.isEmpty)
 							.labelsHidden()
 							.onChange(of: model.cloudImageRelease) { _, newValue in
 								self.config.imageName = newValue.url
+								self.model.supportedPlatform = SupportedPlatform(rawValue: self.config.imageName)
 								newValue.applyMinimumResources(to: &self.config)
 							}
 						}
@@ -1227,6 +1290,7 @@ struct VirtualMachineWizard: View {
 							}
 						}.onChange(of: model.selectedRemoteImage) { _, newValue in
 							self.config.imageName = "\(self.model.remoteImage)://\(newValue)"
+							self.model.supportedPlatform = SupportedPlatform(rawValue: self.config.imageName)
 						}
 					}
 				} header: {
@@ -1255,6 +1319,7 @@ struct VirtualMachineWizard: View {
 								switch newValue {
 								case .raw:
 									self.config.imageName = String.empty
+									self.model.supportedPlatform = .unknown
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
@@ -1262,14 +1327,16 @@ struct VirtualMachineWizard: View {
 									self.model.provisioningTemplate = String.empty
 								case .qcow2:
 									self.config.imageName = model.cloudImageRelease.url
-									model.cloudImageRelease.applyMinimumResources(to: &self.config)
+									self.model.cloudImageRelease.applyMinimumResources(to: &self.config)
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
+									self.model.supportedPlatform = SupportedPlatform(rawValue: self.config.imageName)
 								case .oci:
 									self.config.imageName = String.empty
+									self.model.supportedPlatform = .unknown
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.os = .linux
@@ -1277,12 +1344,14 @@ struct VirtualMachineWizard: View {
 									self.model.provisioningTemplate = String.empty
 								case .template:
 									self.config.imageName = String.empty
+									self.model.supportedPlatform = .unknown
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
 									self.config.autoinstall = false
 									self.model.provisioningTemplate = String.empty
 								case .stream:
 									self.config.imageName = String.empty
+									self.model.supportedPlatform = .unknown
 									self.model.showDiskFormat = false
 									self.model.showDiskFormat = false
 									self.config.diskFormat = .raw
@@ -1292,6 +1361,7 @@ struct VirtualMachineWizard: View {
 								case .iso:
 									self.config.autoinstall = false
 									self.config.imageName = self.model.isoImageRelease.url
+									self.model.supportedPlatform = SupportedPlatform(rawValue: self.config.imageName)
 									self.model.isoImageRelease.applyMinimumResources(to: &self.config)
 									self.model.showDiskFormat = true
 									self.config.diskFormat = .defaultSupportedFormat
@@ -1311,6 +1381,7 @@ struct VirtualMachineWizard: View {
 										self.config.autoinstall = false
 										self.model.provisioningTemplate = String.empty
 										self.model.provisionVars = ProvisionVariablesStore.load()
+										self.model.supportedPlatform = .macos
 								#endif
 								}
 							}
@@ -1429,7 +1500,9 @@ struct VirtualMachineWizard: View {
 					}
 				}
 			}
-		}.formStyle(.grouped).disabled(self.model.createVM)
+		}
+		.formStyle(.grouped)
+		.disabled(self.model.createVM)
 	}
 
 	/// Shown below the ISO/IPSW image picker in the "Choose OS" step — lets the user add/edit

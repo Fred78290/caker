@@ -29,6 +29,34 @@ public protocol VirtualMachineDelegate: AnyObject {
 	}
 #endif
 
+extension VZVirtualMachine.State {
+	public var description: String {
+		switch self {
+		case .stopped:
+			return "stopped"
+		case .running:
+			return "running"
+		case .paused:
+			return "paused"
+		case .error:
+			return "error"
+		case .starting:
+			return "starting"
+		case .pausing:
+			return "pausing"
+		case .resuming:
+			return "resuming"
+		case .stopping:
+			return "stopping"
+		case .saving:
+			return "saving"
+		case .restoring:
+			return "restoring"
+		@unknown default:
+			return "unknown"
+		}
+	}
+}
 extension SSHError.Kind {
 	var description: String {
 		switch self {
@@ -230,7 +258,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		// from the guest with no root/sudo required (see IMDSServer). Only reaching it at
 		// the AWS-style 169.254.169.254 address needs a pf redirect via sudo and is
 		// unavailable there.
-		if IMDSNetworkInterface.imdsEnabled && config.os == .linux && config.isWindowsGuest == false {
+		if IMDSNetworkInterface.imdsEnabled {
 			networks.append(IMDSNetworkInterface(macAddress: try config.ensureImdsMacAddress()))
 		}
 
@@ -295,6 +323,10 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			let consoleURL = try config.consoleAttachment()
 
 			communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+		} else if config.isWindowsGuest {
+			// Windows binds its virtio-vsock driver (installed with the other virtio drivers) when the device is
+			// there, and the first boot should see the same hardware as every later one.
+			configuration.socketDevices.append(VZVirtioSocketDeviceConfiguration())
 		}
 
 		if mode != .provisioning && location.template == false && runMode != .app {
@@ -598,7 +630,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 			#else
 				return VZVirtualMachineStartOptions()
 			#endif
-		case .linux:
+		case .linux, .windows:
 			return VZVirtualMachineStartOptions()
 		}
 	}
@@ -965,7 +997,8 @@ extension VirtualMachine {
 // MARK: - Run VM
 extension VirtualMachine {
 	private func shouldRetryAgentInstall(for config: CakeConfig) -> Bool {
-		return config.source.supportProvisionning
+		// A Windows guest gets its agent from the installer's first boot, not over SSH
+		return config.source.supportProvisionning && config.isWindowsGuest == false
 	}
 
 	private func cancelAgentInstallRetry() {

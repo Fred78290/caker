@@ -8,8 +8,9 @@
 //  firmware reads on optical media but not on the 512-byte-sector USB disk a VM gets. So the image is a GPT
 //  disk with:
 //   - a FAT32 partition typed as EFI system partition, holding the ISO's files except install.wim (which is
-//     over 4 GB, FAT32's file size limit), with `EFI\BOOT\BOOTAA64.EFI` replaced by our loader (see
-//     EFI/loader.c) and Windows Boot Manager moved next to it as `windows.efi`; and
+//     over 4 GB, FAT32's file size limit). `EFI\BOOT\BOOT<arch>.EFI` is replaced by our loader (see
+//     EFI/loader.c) and Windows Boot Manager moved next to it as `windows.efi`, unless the guest does without the
+//     framebuffer helpers (see WindowsArchitecture.usesFramebufferShim); and
 //   - an exFAT partition holding install.wim, the virtio drivers and the `caker` folder with the install
 //     scripts. WinPE gives that volume a drive letter, which it doesn't for the (hidden) system partition.
 //
@@ -19,10 +20,20 @@
 import Foundation
 
 struct WindowsInstallationMedia {
+	/// What the cakeagent service needs: the Windows build of the agent and the certificates it authenticates clients with.
+	struct CakeAgent {
+		var executable: URL
+		var caCert: URL
+		var serverCert: URL
+		var serverKey: URL
+	}
+
 	struct Options {
 		var username: String
 		var password: String
 		var computerName: String
+		/// Installed as a service on first boot when set.
+		var cakeAgent: CakeAgent?
 	}
 
 	struct InstallResult {
@@ -33,9 +44,13 @@ struct WindowsInstallationMedia {
 	/// Where the virtio-win driver ISO comes from (the Fedora project's stable build, which Red Hat signs).
 	static let virtioWinURL = URL(string: "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso")!
 
+	/// WinFsp, which the virtio-fs service needs to present the host's shared folders. Pinned: it runs as SYSTEM.
+	static let winFspURL = URL(string: "https://github.com/winfsp/winfsp/releases/download/v2.1/winfsp-2.1.25156.msi")!
+	static let winFspSHA256 = "073a70e00f77423e34bed98b86e600def93393ba5822204fac57a29324db9f7a"
+
 	/// Driver folders to take from the virtio-win ISO: display (so the screen works once Windows has taken over from
-	/// the firmware) and network. Windows has an inbox NVMe and USB driver, so storage needs nothing.
-	static let virtioDrivers = ["viogpudo", "NetKVM"]
+	/// the firmware), network and shared folders. Windows has an inbox NVMe and USB driver, so storage needs nothing.
+	static let virtioDrivers = ["viostor", "viogpudo", "NetKVM", "viorng", "viofs", "viosock"]
 
 	private static let bootPartitionSize = "1700m"
 	private static let efiSystemPartitionType = "C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
@@ -44,26 +59,26 @@ struct WindowsInstallationMedia {
 
 	// MARK: - Creating the media
 
-	static func validate(isoRoot: URL, name: String) throws {
+	/// Checks that `isoRoot` is a Windows installation ISO the host can install, and returns the guest's architecture.
+	@discardableResult
+	static func validate(isoRoot: URL, name: String, host: WindowsArchitecture = .host) throws -> WindowsArchitecture {
 		let exists = { (path: String) in FileManager.default.fileExists(atPath: isoRoot.appendingPathComponent(path).path) }
 
 		if !exists("sources/install.wim") && !exists("sources/install.esd") {
 			throw ServiceError(String(format: String(localized: "%@ is not a Windows installation ISO"), name))
 		}
 
-		if !exists("efi/boot/bootaa64.efi") {
-			throw ServiceError(String(format: String(localized: "%@ is not a Windows on ARM installation ISO"), name))
-		}
+		return try WindowsArchitecture.detect(name: name, host: host, exists: exists)
 	}
 
-	static func create(at url: URL, windowsISO: URL, virtioWinISO: URL, options: Options, progress: (String) -> Void) throws -> WindowsInstallationMedia {
+	static func create(at url: URL, windowsISO: URL, virtioWinISO: URL, winFspMSI: URL, options: Options, progress: (String) -> Void) throws -> WindowsInstallationMedia {
 		let fileManager = FileManager.default
 		progress(String(localized: "Reading the Windows installation ISO"))
 
 		let isoMount = try attachISO(windowsISO)
 		defer { detachISO(isoMount) }
 
-		try validate(isoRoot: isoMount, name: windowsISO.lastPathComponent)
+		let architecture = try validate(isoRoot: isoMount, name: windowsISO.lastPathComponent)
 
 		let installImage = ["install.wim", "install.esd"].map { isoMount.appendingPathComponent("sources/\($0)") }.first { fileManager.fileExists(atPath: $0.path) }!
 		let images = try WIMArchive(url: installImage).images()
@@ -90,7 +105,7 @@ struct WindowsInstallationMedia {
 		try handle.close()
 
 		do {
-			try populate(url, isoRoot: isoMount, installImage: installImage, image: image, virtioWinISO: virtioWinISO, options: options, progress: progress)
+			try populate(url, architecture: architecture, isoRoot: isoMount, installImage: installImage, image: image, virtioWinISO: virtioWinISO, winFspMSI: winFspMSI, options: options, progress: progress)
 			try setEFISystemPartition(of: url, partition: 2)
 		} catch {
 			try? fileManager.removeItem(at: url)
@@ -100,7 +115,7 @@ struct WindowsInstallationMedia {
 		return WindowsInstallationMedia(url: url)
 	}
 
-	private static func populate(_ url: URL, isoRoot: URL, installImage: URL, image: WIMArchive.ImageInfo, virtioWinISO: URL, options: Options, progress: (String) -> Void) throws {
+	private static func populate(_ url: URL, architecture: WindowsArchitecture, isoRoot: URL, installImage: URL, image: WIMArchive.ImageInfo, virtioWinISO: URL, winFspMSI: URL, options: Options, progress: (String) -> Void) throws {
 		let device = try Disk.attach(url, readOnly: false, raw: true)
 
 		defer { Disk.detach(device) }
@@ -133,13 +148,15 @@ struct WindowsInstallationMedia {
 			], toDirectory: ["Windows", "System32"], ofImage: boot.bootIndex)
 
 		// Our loader starts the framebuffer driver, then Windows Boot Manager
-		let efiBoot = bootVolume.appendingPathComponent("efi/boot", isDirectory: true)
-		let efiCaker = bootVolume.appendingPathComponent("efi/caker", isDirectory: true)
+		if architecture.usesFramebufferShim {
+			let efiBoot = bootVolume.appendingPathComponent("efi/boot", isDirectory: true)
+			let efiCaker = bootVolume.appendingPathComponent("efi/caker", isDirectory: true)
 
-		try FileManager.default.moveItem(at: efiBoot.appendingPathComponent("bootaa64.efi"), to: efiBoot.appendingPathComponent("windows.efi"))
-		try WindowsEFIBinaries.loader.write(to: efiBoot.appendingPathComponent("bootaa64.efi"))
-		try FileManager.default.createDirectory(at: efiCaker, withIntermediateDirectories: true)
-		try WindowsEFIBinaries.framebuffer.write(to: efiCaker.appendingPathComponent("framebuffer.efi"))
+			try FileManager.default.moveItem(at: efiBoot.appendingPathComponent(architecture.bootFile), to: efiBoot.appendingPathComponent("windows.efi"))
+			try WindowsEFIBinaries.loader(for: architecture).write(to: efiBoot.appendingPathComponent(architecture.bootFile))
+			try FileManager.default.createDirectory(at: efiCaker, withIntermediateDirectories: true)
+			try WindowsEFIBinaries.framebuffer(for: architecture).write(to: efiCaker.appendingPathComponent("framebuffer.efi"))
+		}
 
 		// The install script and what it installs
 		let caker = sourceVolume.appendingPathComponent("caker", isDirectory: true)
@@ -147,12 +164,15 @@ struct WindowsInstallationMedia {
 
 		try FileManager.default.createDirectory(at: drivers, withIntermediateDirectories: true)
 		try Data("caker".utf8).write(to: caker.appendingPathComponent("media.id"))
-		try WindowsInstallResources.installScript.write(to: caker.appendingPathComponent("install.cmd"), atomically: true, encoding: .utf8)
+		try WindowsInstallResources.installScript(for: architecture).write(to: caker.appendingPathComponent("install.cmd"), atomically: true, encoding: .utf8)
 		try WindowsInstallResources.setupComplete.write(to: caker.appendingPathComponent("SetupComplete.cmd"), atomically: true, encoding: .utf8)
 		try WindowsInstallResources.config(imageIndex: image.index).write(to: caker.appendingPathComponent("config.cmd"), atomically: true, encoding: .utf8)
-		try WindowsInstallResources.unattend(username: options.username, password: options.password, computerName: options.computerName, language: image.language).write(to: caker.appendingPathComponent("unattend.xml"), atomically: true, encoding: .utf8)
-		try WindowsEFIBinaries.framebuffer.write(to: caker.appendingPathComponent("framebuffer.efi"))
-		try WindowsEFIBinaries.loader.write(to: caker.appendingPathComponent("loader.efi"))
+		try WindowsInstallResources.unattend(username: options.username, password: options.password, computerName: options.computerName, language: image.language, architecture: architecture).write(to: caker.appendingPathComponent("unattend.xml"), atomically: true, encoding: .utf8)
+
+		if architecture.usesFramebufferShim {
+			try WindowsEFIBinaries.framebuffer(for: architecture).write(to: caker.appendingPathComponent("framebuffer.efi"))
+			try WindowsEFIBinaries.loader(for: architecture).write(to: caker.appendingPathComponent("loader.efi"))
+		}
 
 		progress(String(localized: "Copying the virtio drivers"))
 
@@ -160,10 +180,10 @@ struct WindowsInstallationMedia {
 		defer { detachISO(virtioMount) }
 
 		for driver in virtioDrivers {
-			let folder = virtioMount.appendingPathComponent("\(driver)/w11/ARM64", isDirectory: true)
+			let folder = virtioMount.appendingPathComponent("\(driver)/w11/\(architecture.virtioFolder)", isDirectory: true)
 
 			guard FileManager.default.fileExists(atPath: folder.path) else {
-				throw ServiceError(String(format: String(localized: "The virtio-win ISO has no ARM64 %@ driver"), driver))
+				throw ServiceError(String(format: String(localized: "The virtio-win ISO has no %@ driver for %@"), driver, architecture.displayName))
 			}
 
 			try FileManager.default.copyItem(at: folder, to: drivers.appendingPathComponent(driver.lowercased(), isDirectory: true))
@@ -172,6 +192,26 @@ struct WindowsInstallationMedia {
 			for case let file as URL in FileManager.default.enumerator(at: drivers.appendingPathComponent(driver.lowercased()), includingPropertiesForKeys: nil)! where file.pathExtension.lowercased() == "pdb" {
 				try? FileManager.default.removeItem(at: file)
 			}
+		}
+
+		// The virtio-fs service (it's an .exe next to the driver, not part of the driver package) and WinFsp
+		let viofs = virtioMount.appendingPathComponent("viofs/w11/\(architecture.virtioFolder)/virtiofs.exe")
+
+		guard FileManager.default.fileExists(atPath: viofs.path) else {
+			throw ServiceError(String(format: String(localized: "The virtio-win ISO has no virtio-fs service for %@"), architecture.displayName))
+		}
+
+		try FileManager.default.copyItem(at: viofs, to: caker.appendingPathComponent("virtiofs.exe"))
+		try FileManager.default.copyItem(at: winFspMSI, to: caker.appendingPathComponent("winfsp.msi"))
+
+		if let agent = options.cakeAgent {
+			let certs = caker.appendingPathComponent("certs", isDirectory: true)
+
+			try FileManager.default.createDirectory(at: certs, withIntermediateDirectories: true)
+			try FileManager.default.copyItem(at: agent.executable, to: caker.appendingPathComponent("cakeagent.exe"))
+			try FileManager.default.copyItem(at: agent.caCert, to: certs.appendingPathComponent("ca.pem"))
+			try FileManager.default.copyItem(at: agent.serverCert, to: certs.appendingPathComponent("server.pem"))
+			try FileManager.default.copyItem(at: agent.serverKey, to: certs.appendingPathComponent("server.key"))
 		}
 
 		// macOS keeps extended attributes on FAT and exFAT in "._" files, which DISM trips over when it

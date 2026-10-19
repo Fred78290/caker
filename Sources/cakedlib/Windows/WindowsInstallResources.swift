@@ -41,13 +41,33 @@ enum WindowsInstallResources {
 		ping -n 3 127.0.0.1 >nul
 		goto media
 		:found
+		rem Load the virtio GPU driver so the display can take over from the firmware's (see EFI\framebuffer.c).
+		drvload %M%\caker\drivers\viogpudo\viogpudo.inf >nul 2>&1
 		call %M%\caker\install.cmd %M%
 		:done
 		wpeutil shutdown
 		"""#)
 
 	/// Partitions the empty system disk, applies the Windows image, adds the virtio drivers and the boot files.
-	static let installScript = crlf(
+	static func installScript(for architecture: WindowsArchitecture) -> String {
+		self.installScript(for: architecture, usingFramebufferShim: architecture.usesFramebufferShim)
+	}
+
+	static func installScript(for architecture: WindowsArchitecture, usingFramebufferShim: Bool) -> String {
+		// The framebuffer helpers and the loader that starts them (see WindowsArchitecture.usesFramebufferShim)
+		let shim =
+			usingFramebufferShim
+			? #"""
+			mkdir S:\EFI\caker 2>nul
+			copy /y %T%\framebuffer.efi S:\EFI\caker\framebuffer.efi >> %LOG% || goto fail
+			rem Windows Boot Manager moves to windows.efi and the loader takes its place at the removable media path,
+			rem so the framebuffer driver is up before Windows starts (see EFI\loader.c).
+			mkdir S:\EFI\BOOT 2>nul
+			copy /y S:\EFI\Microsoft\Boot\bootmgfw.efi S:\EFI\BOOT\windows.efi >> %LOG% || goto fail
+			copy /y %T%\loader.efi \#(architecture.removableBootPath) >> %LOG% || goto fail
+			"""# : "rem Windows Boot Manager stays at the removable media path, no EFI helper is needed"
+
+		return crlf(
 		#"""
 		@echo off
 		rem Installs Windows from WinPE: install.cmd <installation media drive>, e.g. install.cmd C:
@@ -57,9 +77,10 @@ enum WindowsInstallResources {
 		set LOG=%T%\install.log
 		echo [%time%] start > %LOG%
 		call %T%\config.cmd
+		call :say Installing Windows
 
 		rem The target is the only disk without partitions (the installation media always has some).
-		rem diskpart's output is localized, so rely on its exit codes: selecting a partition fails on an empty disk.
+		rem diskpart's output is localized, so rely on exit codes: selecting a partition fails on an empty disk.
 		set N=0
 		for /l %%d in (0,1,7) do (
 		  > X:\probe.txt echo select disk %%d
@@ -68,8 +89,8 @@ enum WindowsInstallResources {
 		    diskpart /s X:\probe.txt >nul 2>&1 || (set DISK=%%d& set /a N+=1)
 		  )
 		)
-		if not "%N%"=="1" (echo expected exactly one empty disk, found %N% >> %LOG% & goto fail)
-		echo [%time%] target disk %DISK% >> %LOG%
+		if not "%N%"=="1" (call :say expected exactly one empty disk, found %N% & goto fail)
+		call :say Target disk %DISK%
 
 		(
 		echo select disk %DISK%
@@ -83,60 +104,122 @@ enum WindowsInstallResources {
 		echo format quick fs=ntfs label=Windows
 		echo assign letter=W
 		) > X:\partition.txt
+		call :say Partitioning the disk
 		diskpart /s X:\partition.txt >> %LOG% 2>&1 || goto fail
 
 		set WIM=%M%\sources\install.wim
 		if not exist %WIM% set WIM=%M%\sources\install.esd
-		echo [%time%] applying image %IMAGE% >> %LOG%
-		dism /Apply-Image /ImageFile:%WIM% %IMAGE% /ApplyDir:W:\ >> %LOG% 2>&1 || goto fail
+		call :say Applying the Windows image (%IMAGE%), this takes a few minutes
+		dism /Apply-Image /ImageFile:%WIM% %IMAGE% /ApplyDir:W:\
+		set RESULT=%errorlevel%
+		copy /y X:\Windows\Logs\DISM\dism.log %T%\dism.log >nul 2>&1
+		if not "%RESULT%"=="0" goto fail
 
-		echo [%time%] adding drivers >> %LOG%
-		dism /Image:W:\ /Add-Driver /Driver:%T%\drivers /Recurse >> %LOG% 2>&1 || goto fail
+		call :say Adding the virtio drivers
+		dism /Image:W:\ /Add-Driver /Driver:%T%\drivers /Recurse
+		set RESULT=%errorlevel%
+		copy /y X:\Windows\Logs\DISM\dism.log %T%\dism.log >nul 2>&1
+		if not "%RESULT%"=="0" goto fail
 
 		mkdir W:\Windows\Panther W:\Windows\Setup\Scripts 2>nul
 		copy /y %T%\unattend.xml W:\Windows\Panther\unattend.xml >> %LOG% || goto fail
 		copy /y %T%\SetupComplete.cmd W:\Windows\Setup\Scripts\SetupComplete.cmd >> %LOG% || goto fail
 
-		echo [%time%] boot files >> %LOG%
-		bcdboot W:\Windows /s S: /f UEFI >> %LOG% 2>&1 || goto fail
-		mkdir S:\EFI\caker 2>nul
-		copy /y %T%\framebuffer.efi S:\EFI\caker\framebuffer.efi >> %LOG% || goto fail
-		rem Windows Boot Manager moves to windows.efi and the loader takes its place at the removable media path,
-		rem so the framebuffer driver is up before Windows starts (see EFI\loader.c).
-		mkdir S:\EFI\BOOT 2>nul
-		copy /y S:\EFI\Microsoft\Boot\bootmgfw.efi S:\EFI\BOOT\windows.efi >> %LOG% || goto fail
-		copy /y %T%\loader.efi S:\EFI\BOOT\BOOTAA64.EFI >> %LOG% || goto fail
+		rem Directory sharing: WinFsp and the virtio-fs service are installed by SetupComplete.cmd on first boot
+		mkdir W:\ProgramData\caker 2>nul
+		copy /y %T%\winfsp.msi W:\ProgramData\caker\winfsp.msi >> %LOG% || goto fail
+		copy /y %T%\virtiofs.exe W:\ProgramData\caker\virtiofs.exe >> %LOG% || goto fail
 
-		echo [%time%] done >> %LOG%
+		rem cakeagent: SetupComplete.cmd installs the service from these copies (the media is gone by then)
+		if exist %T%\cakeagent.exe (
+		  copy /y %T%\cakeagent.exe W:\ProgramData\caker\cakeagent.exe >> %LOG% || goto fail
+		  xcopy /y /i /q %T%\certs W:\ProgramData\caker\certs >> %LOG% || goto fail
+		)
+
+		call :say Writing the boot files
+		bcdboot W:\Windows /s S: /f UEFI >> %LOG% 2>&1 || goto fail
+		\#(shim)
+
+		call :say Done, powering off
 		echo OK> %T%\result
 		goto end
 
 		:fail
-		echo [%time%] failed >> %LOG%
+		call :say Installation failed
 		echo FAILED> %T%\result
 
 		:end
 		exit /b 0
-		"""#)
 
-	/// Runs once as SYSTEM when the installed Windows finishes setting itself up. It leaves a marker on the
-	/// EFI system partition (a FAT32 volume the host can read) and powers the VM off, which is how the host
-	/// knows first boot is over: Virtualization.framework stops a VM whose guest reboots, so a stop alone says
-	/// nothing about whether setup is complete.
+		rem Shows a progress line and keeps it in the log
+		:say
+		echo %*
+		echo [%time%] %* >> %LOG%
+		exit /b 0
+		"""#)
+	}
+
+	/// Runs once as SYSTEM when the installed Windows finishes setting itself up. It installs the sharing support,
+	/// leaves a marker on the EFI system partition (a FAT32 volume the host can read, holding the exit codes of
+	/// what it installed) and powers the VM off, which is how the host knows first boot is over:
+	/// Virtualization.framework stops a VM whose guest reboots, so a stop alone says nothing about whether setup
+	/// is complete.
 	static let setupComplete = crlf(
 		#"""
 		@echo off
+		setlocal EnableDelayedExpansion
 		powercfg /hibernate off
+
+		rem Directory sharing: WinFsp (the user-mode file system layer) and the virtio-fs service from the virtio-win
+		rem drivers, which mounts each share the host exposes. The service waits for WinFsp's launcher and for the
+		rem virtio-fs driver, which install.cmd added to the image.
+		start /wait "" msiexec /i C:\ProgramData\caker\winfsp.msi /qn /norestart
+		set MSI=%errorlevel%
+		sc create VirtioFsSvc binpath= C:\ProgramData\caker\virtiofs.exe start= auto depend= WinFsp.Launcher/VirtioFsDrv DisplayName= "Virtio FS Service"
+		set SVC=%errorlevel%
+
 		mountvol S: /S
 		mkdir S:\EFI\caker 2>nul
-		echo done> S:\EFI\caker\installed
+
+		rem Start the service now to see whether a share shows up (it only does if the VM has directory shares)
+		net start VirtioFsSvc >nul 2>&1
+		ping -n 11 127.0.0.1 >nul
+		if exist Z:\ (set SHARE=mounted) else (set SHARE=none)
+
+		rem cakeagent: listens on vsock (the viosock driver) like the Linux and macOS agents, authenticated with the certificates.
+		set AGENT=none
+		if exist C:\ProgramData\caker\cakeagent.exe (
+		  mkdir "C:\Program Files\CakeAgent" "C:\ProgramData\CakeAgent\certs" 2>nul
+		  copy /y C:\ProgramData\caker\cakeagent.exe "C:\Program Files\CakeAgent\cakeagent.exe"
+		  copy /y C:\ProgramData\caker\certs\* C:\ProgramData\CakeAgent\certs\
+		  rem the private key is for the administrators and the service (SYSTEM) only
+		  icacls C:\ProgramData\CakeAgent /inheritance:r /grant:r "SYSTEM:(OI)(CI)F" "Administrators:(OI)(CI)F"
+		  "C:\Program Files\CakeAgent\cakeagent.exe" service install --listen=vsock://any:5000 --ca-cert=C:\ProgramData\CakeAgent\certs\ca.pem --tls-cert=C:\ProgramData\CakeAgent\certs\server.pem --tls-key=C:\ProgramData\CakeAgent\certs\server.key
+		  set AGENT=!errorlevel!
+		  ping -n 6 127.0.0.1 >nul
+		  sc query cakeagent | find "RUNNING" >nul 2>&1 && set AGENT=!AGENT!-running
+		  rem a service that isn't running can't say why: run the agent in front for a few seconds and keep what it prints
+		  if "!AGENT!"=="!AGENT:running=!" (
+		    sc stop cakeagent >nul 2>&1
+		    start "" /b "C:\Program Files\CakeAgent\cakeagent.exe" serve --listen=vsock://any:5000 --ca-cert=C:\ProgramData\CakeAgent\certs\ca.pem --tls-cert=C:\ProgramData\CakeAgent\certs\server.pem --tls-key=C:\ProgramData\CakeAgent\certs\server.key > S:\EFI\caker\agent.log 2>&1
+		    ping -n 9 127.0.0.1 >nul
+		    taskkill /f /im cakeagent.exe >nul 2>&1
+		  )
+		)
+
+		rem virtio-vsock: the viosock driver is demand-start, so it only runs when the VM has a vsock device
+		set VSOCK=none
+		sc query VirtioSocket >nul 2>&1 && set VSOCK=installed
+		sc query VirtioSocket | find "RUNNING" >nul 2>&1 && set VSOCK=running
+
+		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%& echo agent=%AGENT%)> S:\EFI\caker\installed
 		mountvol S: /D
 		shutdown /s /t 5 /c "caker: Windows installation complete"
 		"""#)
 
 	/// The answer file for the installed system: a local administrator account that logs on automatically,
 	/// and no out-of-box experience. `language` is the image's default (e.g. `en-US`).
-	static func unattend(username: String, password: String, computerName: String, language: String) -> String {
+	static func unattend(username: String, password: String, computerName: String, language: String, architecture: WindowsArchitecture) -> String {
 		func escaped(_ value: String) -> String {
 			value.replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "<", with: "&lt;").replacingOccurrences(of: ">", with: "&gt;")
 		}
@@ -146,19 +229,19 @@ enum WindowsInstallResources {
 			<?xml version="1.0" encoding="utf-8"?>
 			<unattend xmlns="urn:schemas-microsoft-com:unattend" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
 			  <settings pass="specialize">
-			    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="arm64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="\(architecture.unattendArchitecture)" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
 			      <ComputerName>\(escaped(computerName))</ComputerName>
 			      <TimeZone>UTC</TimeZone>
 			    </component>
 			  </settings>
 			  <settings pass="oobeSystem">
-			    <component name="Microsoft-Windows-International-Core" processorArchitecture="arm64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			    <component name="Microsoft-Windows-International-Core" processorArchitecture="\(architecture.unattendArchitecture)" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
 			      <InputLocale>\(escaped(language))</InputLocale>
 			      <SystemLocale>\(escaped(language))</SystemLocale>
 			      <UILanguage>\(escaped(language))</UILanguage>
 			      <UserLocale>\(escaped(language))</UserLocale>
 			    </component>
-			    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="arm64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="\(architecture.unattendArchitecture)" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
 			      <OOBE>
 			        <HideEULAPage>true</HideEULAPage>
 			        <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>

@@ -856,6 +856,7 @@ public nonisolated struct Caked_Caked: Sendable {
       case unsupported // = 0
       case darwin // = 1
       case linux // = 2
+      case microsoft // = 3
       case UNRECOGNIZED(Int)
 
       public init() {
@@ -867,6 +868,7 @@ public nonisolated struct Caked_Caked: Sendable {
         case 0: self = .unsupported
         case 1: self = .darwin
         case 2: self = .linux
+        case 3: self = .microsoft
         default: self = .UNRECOGNIZED(rawValue)
         }
       }
@@ -876,6 +878,7 @@ public nonisolated struct Caked_Caked: Sendable {
         case .unsupported: return 0
         case .darwin: return 1
         case .linux: return 2
+        case .microsoft: return 3
         case .UNRECOGNIZED(let i): return i
         }
       }
@@ -885,6 +888,7 @@ public nonisolated struct Caked_Caked: Sendable {
         .unsupported,
         .darwin,
         .linux,
+        .microsoft,
       ]
 
     }
@@ -8227,7 +8231,7 @@ nonisolated extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftPro
 }
 
 nonisolated extension Caked_Caked.Configuration.VirtualizedOS: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0unsupported\0\u{1}darwin\0\u{1}linux\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0unsupported\0\u{1}darwin\0\u{1}linux\0\u{1}microsoft\0")
 }
 
 nonisolated extension Caked_Caked.Configuration.Architecture: SwiftProtobuf._ProtoNameProviding {

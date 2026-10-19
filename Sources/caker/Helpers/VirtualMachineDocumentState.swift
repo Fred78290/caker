@@ -35,6 +35,7 @@ private let knownOSImageNames = [
 	"syllable",
 	"ubuntu",
 	"webos",
+	"windows",
 	"xubuntu",
 ]
 

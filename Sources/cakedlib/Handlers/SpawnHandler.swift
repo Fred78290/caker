@@ -1,7 +1,7 @@
+import CakeAgentLib
 import Foundation
 import GRPCLib
 import Virtualization
-import CakeAgentLib
 
 public struct SpawnHandler {
 	public static func spawn(options: SpawnOptions, runMode: Utils.RunMode) async -> BuildedReply {
@@ -61,30 +61,30 @@ public struct SpawnHandler {
 		var hardwareModel: Data? = nil
 		var ecid: Data? = nil
 
-#if arch(arm64)
-		if options.os == .darwin {
-			if let nvram = options.nvram {
-				try FileManager.default.copyItem(atPath: nvram.expandingTildeInPath, toPath: location.nvramURL.path(percentEncoded: false))
-			} else {
-				let restoreImage = try await VZMacOSRestoreImage.latestSupported
+		#if arch(arm64)
+			if options.os == .darwin {
+				if let nvram = options.nvram {
+					try FileManager.default.copyItem(atPath: nvram.expandingTildeInPath, toPath: location.nvramURL.path(percentEncoded: false))
+				} else {
+					let restoreImage = try await VZMacOSRestoreImage.latestSupported
 
-				guard let requirements = restoreImage.mostFeaturefulSupportedConfiguration else {
-					throw ServiceError(String(localized: "Unsupported restore image"))
+					guard let requirements = restoreImage.mostFeaturefulSupportedConfiguration else {
+						throw ServiceError(String(localized: "Unsupported restore image"))
+					}
+
+					cpuCountMin = max(UInt16(requirements.minimumSupportedCPUCount), options.cpu)
+					memorySize = max(requirements.minimumSupportedMemorySize, options.memory * MoB)
+					memorySizeMin = requirements.minimumSupportedMemorySize
+					hardwareModel = requirements.hardwareModel.dataRepresentation
+					ecid = VZMacMachineIdentifier().dataRepresentation
+
+					_ = try VZMacAuxiliaryStorage(creatingStorageAt: location.nvramURL, hardwareModel: requirements.hardwareModel)
 				}
-
-				cpuCountMin = max(UInt16(requirements.minimumSupportedCPUCount), options.cpu)
-				memorySize = max(requirements.minimumSupportedMemorySize, options.memory * MoB)
-				memorySizeMin = requirements.minimumSupportedMemorySize
-				hardwareModel = requirements.hardwareModel.dataRepresentation
-				ecid = VZMacMachineIdentifier().dataRepresentation
-
-				_ = try VZMacAuxiliaryStorage(creatingStorageAt: location.nvramURL, hardwareModel: requirements.hardwareModel)
+			} else {
+				_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
 			}
-		} else {
-			_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
-		}
 		#else
-		_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
+			_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
 		#endif
 
 		let config = CakeConfig(

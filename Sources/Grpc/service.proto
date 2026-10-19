@@ -263,6 +263,7 @@ message Caked {
       unsupported = 0;
       darwin      = 1;
       linux       = 2;
+      microsoft   = 3;
     }
 
 // Architecture represents the CPU architecture

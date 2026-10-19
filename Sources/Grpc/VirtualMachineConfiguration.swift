@@ -12,6 +12,7 @@ import NIOPortForwarding
 public enum VirtualizedOS: String, Codable, Sendable {
 	case darwin
 	case linux
+	case windows
 }
 
 public enum Architecture: String, Codable, CustomStringConvertible, Identifiable, Sendable {
@@ -225,7 +226,7 @@ public enum SupportedPlatform: String, Codable, CaseIterable, Sendable {
 		let value = Self.allCases.first {
 			rawValue.contains($0.rawValue.lowercased())
 				|| ($0 == .redhat && rawValue.contains("rhel"))
-				|| ($0 == .windows && (rawValue.contains("win11") || rawValue.contains("win10")))
+				|| ($0 == .windows && (rawValue.contains("windows11") || rawValue.contains("win11") || rawValue.contains("win10")))
 		}
 
 		if let value = value {
@@ -301,6 +302,8 @@ extension Caked.Configuration.VirtualizedOS {
 			self = .linux
 		case .darwin:
 			self = .darwin
+		case .windows:
+			self = .microsoft
 		}
 	}
 }

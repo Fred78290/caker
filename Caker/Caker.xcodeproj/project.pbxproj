@@ -21,13 +21,6 @@
 
 /* Begin PBXBuildFile section */
 		0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */; };
-		8E3915A998D8A419A5BF06A8 /* WindowsInstallResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2277924602801C96A1C85DD /* WindowsInstallResources.swift */; };
-		DFE1BF8599918E88E5CE0B71 /* WindowsInstallationMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7A2706E9158E4CB064FBCB9 /* WindowsInstallationMedia.swift */; };
-		4DB04CFDA26AE16AB65C1DE4 /* WindowsInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD76FFB59F6B86585688341D /* WindowsInstaller.swift */; };
-		39E0E32CAA8530CB198B70D4 /* LZXDecompressor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C72C29B6A0B8408035D52C5 /* LZXDecompressor.swift */; };
-		AFBBCAD8E7FCE3CF448AAB4E /* WIMArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C43060A17D35B78D277FF1E /* WIMArchive.swift */; };
-		CE31DF57331EB931E62803C4 /* WindowsEFIBinaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7D990FCDDDC3A9FD878A93 /* WindowsEFIBinaries.swift */; };
-		DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */; };
 		0D721E7D8BED0A636A0EFA80 /* ActionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D83C742935C118E4351E41 /* ActionRecorder.swift */; };
 		11228D037DE95B454ED84F9C /* ComposeEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */; };
 		1529390CB99D1AC2B7B1ECF0 /* ComposeDNSRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F055332C6C565995AED3355D /* ComposeDNSRegistry.swift */; };
@@ -36,12 +29,15 @@
 		1ED813BC537D55E18DBCA966 /* BootCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEBCF840FC996468321E4B7D /* BootCommand.swift */; };
 		23A4C556139077AA750354DD /* TasksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13849751EACAEB14CBF45D1A /* TasksHandler.swift */; };
 		316202E4F9253C385E7E8204 /* ImageCacheView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE2A25301C0D205B1B8B714 /* ImageCacheView.swift */; };
+		3340A1D1820CF4D06E274F76 /* ReleaseUpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */; };
 		36481741DA76E20FC5F50AA0 /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A112BBD0363BE74540B818 /* TasksView.swift */; };
 		3D7893D4D2C2878E1D29EAA1 /* CachedImageKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1276B7682990108E5C70CEB6 /* CachedImageKind.swift */; };
 		50B325E5494C4C8396E606DB /* compose-template.yml in Resources */ = {isa = PBXBuildFile; fileRef = 22EDDA1F8CBD4E2A917F75C0 /* compose-template.yml */; };
 		52E8DBA9AD445449B00B51CE /* Dns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300ABBDC01C9F611E451504D /* Dns.swift */; };
 		660249BCF82EC5D70EA3EB3B /* fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */; };
+		6C35D6F42A709BA2C8E7C99E /* CakerEnvTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F0FA43D0D41CEB953302854 /* CakerEnvTests.swift */; };
 		6E50D8721B6D40BF6106B1FD /* PackerLiteEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */; };
+		705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */; };
 		7193096E6EED4E89811B36E1 /* PackerLiteTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839D1F78DE5FACFEEFB01EBE /* PackerLiteTemplate.swift */; };
 		719F4B9EB1F31EF25537390C /* ComposeDNSServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B289A477458F279F55546EF /* ComposeDNSServer.swift */; };
 		7A30A72253748BEB5504A52B /* ComposeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */; };
@@ -74,6 +70,12 @@
 		9B0A37F62FF58C0A004609F2 /* DirWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0A37F52FF58C0A004609F2 /* DirWatcher.swift */; };
 		9B0BEE55300EB500003EE9E9 /* SandboxLimitationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0BEE54300EB500003EE9E9 /* SandboxLimitationsView.swift */; };
 		9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0D1A452E2BAA2700D70267 /* FileMonitor */; };
+		9B11BFEF3084B4E1005BBCBD /* WindowsEFIBinaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFEA3084B4E1005BBCBD /* WindowsEFIBinaries.swift */; };
+		9B11BFF03084B4E1005BBCBD /* WindowsInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFEC3084B4E1005BBCBD /* WindowsInstaller.swift */; };
+		9B11BFF13084B4E1005BBCBD /* WindowsInstallationMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFEB3084B4E1005BBCBD /* WindowsInstallationMedia.swift */; };
+		9B11BFF23084B4E1005BBCBD /* WindowsInstallResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFED3084B4E1005BBCBD /* WindowsInstallResources.swift */; };
+		9B11BFF23084B4E1005B7A02 /* WindowsArchitecture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B11BFED3084B4E1005B7A01 /* WindowsArchitecture.swift */; };
+		9B11BFFD3084C577005BBCBD /* windows.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B11BFFC3084C577005BBCBD /* windows.png */; };
 		9B1389CF2F97A718000329B1 /* BonjourServiceLister.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */; };
 		9B1389D12F97A98A000329B1 /* ServiceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389D02F97A98A000329B1 /* ServiceListView.swift */; };
 		9B1389D32F97A9D0000329B1 /* CakedServerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1389D22F97A9D0000329B1 /* CakedServerView.swift */; };
@@ -93,6 +95,8 @@
 		9B1970002F59867100B424DB /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B196FFF2F59866E00B424DB /* Root.swift */; };
 		9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */; };
 		9B1C21ED305AED6E001E1F46 /* LogManager in Frameworks */ = {isa = PBXBuildFile; productRef = 9B1C21EC305AED6E001E1F46 /* LogManager */; };
+		9B1D8FD1308523EE009515C6 /* LZXDecompressor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1D8FCE308523EE009515C6 /* LZXDecompressor.swift */; };
+		9B1D8FD2308523EE009515C6 /* WIMArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1D8FCF308523EE009515C6 /* WIMArchive.swift */; };
 		9B2032F42F48CEA90047E197 /* CurrentStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */; };
 		9B2033702F4A21400047E197 /* GrandCentralUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */; };
 		9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D6002E019FA400BEFB41 /* VMWare.swift */; };
@@ -187,7 +191,6 @@
 		9B3601A52E21175900889BFD /* ApplicationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */; };
 		9B3601AB2E211A6800889BFD /* CreateTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */; };
 		9B3792E12FD5687200D3D54C /* Sandbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3792E02FD5687200D3D54C /* Sandbox.swift */; };
-		ECB6C82ECA356471B4EE4C45 /* CheckUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */; };
 		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
 		9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */; };
 		9B3E2C692F7BDA1D003BF05E /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3E2C682F7BDA1D003BF05E /* Sparkle */; };
@@ -255,7 +258,6 @@
 		9B48B663302BD0F600B18C35 /* CakeHomeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B48B662302BD0F600B18C35 /* CakeHomeHandler.swift */; };
 		9B48B665302BD16600B18C35 /* RenameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B48B664302BD16600B18C35 /* RenameHandler.swift */; };
 		9B4C09B62FB8D6E300101F0E /* LXDRemotesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */; };
-		705E962C4E43EF8F3218B63E /* LXDVMImagesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */; };
 		9B4D214A3045E2D300082830 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B4D21493045E2D300082830 /* alpine.packerlite.yaml */; };
 		9B4D214B3045E2D300082830 /* alpine.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 9B4D21493045E2D300082830 /* alpine.packerlite.yaml */; };
 		9B4EA8292F7692170044C18E /* libswiftCompatibilitySpan.dylib in Compatibility */ = {isa = PBXBuildFile; fileRef = 9B4EA8262F7691920044C18E /* libswiftCompatibilitySpan.dylib */; };
@@ -417,10 +419,7 @@
 		9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */; };
 		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
 		9BA22F102E250F6900172D25 /* VirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */; };
-		A424451134385526A101CD0D /* CakedKeyConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 671D5302DFC9A3D2FBD581D8 /* CakedKeyConfigTests.swift */; };
-		6C35D6F42A709BA2C8E7C99E /* CakerEnvTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F0FA43D0D41CEB953302854 /* CakerEnvTests.swift */; };
 		9BA4A2F0307837D5005EEA30 /* ComposeDNSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA4A2EF307837D5005EEA30 /* ComposeDNSTests.swift */; };
-		3340A1D1820CF4D06E274F76 /* ReleaseUpdateCheckerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */; };
 		9BA4CDB118A1637675D760D5 /* PFRedirect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDED2FD321364180ED54517 /* PFRedirect.swift */; };
 		9BA7B0222F56010F004AFAE8 /* VirtualMachineConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */; };
 		9BA7B0242F5601DF004AFAE8 /* ImageSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */; };
@@ -784,6 +783,7 @@
 		9BFE86A72F7E59DC005CC9B2 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BFE87182F7E6202005CC9B2 /* caked.app in Bundle */ = {isa = PBXBuildFile; fileRef = 9BFE869D2F7E592B005CC9B2 /* caked.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A199C421AA7B30AB6695C4A5 /* VirtualMachineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */; };
+		A424451134385526A101CD0D /* CakedKeyConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 671D5302DFC9A3D2FBD581D8 /* CakedKeyConfigTests.swift */; };
 		A81E057BF76553D63F16EF15 /* ProvisioningVideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */; };
 		AB8B314DC1C7F91AAF9C7933 /* PackerLiteDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9043B7EA4CAC53D2AC2E87B3 /* PackerLiteDriver.swift */; };
 		AD69BD3097A52D119CD8ED44 /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070CEA8AC4D83C5669773CE7 /* ComposeView.swift */; };
@@ -793,7 +793,9 @@
 		D206198BD7C0DA5A00B1130A /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42281CEC4BB027305E68E921 /* Record.swift */; };
 		D3041F78F1BE1C54A952AEF4 /* PackerLiteTemplateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */; };
 		D43FC446B6C30CD981F6FA33 /* fedora-server.packerlite.yaml in Resources */ = {isa = PBXBuildFile; fileRef = DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */; };
+		DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */; };
 		E770198B18B9EDF41AF08375 /* ComposeDNSCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1319D6F15FC23BCA9ED3EEE7 /* ComposeDNSCoordinator.swift */; };
+		ECB6C82ECA356471B4EE4C45 /* CheckUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -983,6 +985,8 @@
 
 /* Begin PBXFileReference section */
 		070CEA8AC4D83C5669773CE7 /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
+		0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateChecker.swift; sourceTree = "<group>"; };
+		0F0FA43D0D41CEB953302854 /* CakerEnvTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakerEnvTests.swift; sourceTree = "<group>"; };
 		110D63CD67F33A745D32FB65 /* ComposeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDetailView.swift; sourceTree = "<group>"; };
 		118FCE99141BFA7C37EA1911 /* ComposeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHandler.swift; sourceTree = "<group>"; };
 		1276B7682990108E5C70CEB6 /* CachedImageKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedImageKind.swift; sourceTree = "<group>"; };
@@ -995,7 +999,10 @@
 		300ABBDC01C9F611E451504D /* Dns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dns.swift; sourceTree = "<group>"; };
 		34D83C742935C118E4351E41 /* ActionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRecorder.swift; sourceTree = "<group>"; };
 		42281CEC4BB027305E68E921 /* Record.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
+		42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckUpdate.swift; sourceTree = "<group>"; };
+		50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDVMImagesController.swift; sourceTree = "<group>"; };
 		61F51FFCEBD6BF972E6B15F0 /* VirtualMachineDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDetailView.swift; sourceTree = "<group>"; };
+		671D5302DFC9A3D2FBD581D8 /* CakedKeyConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfigTests.swift; sourceTree = "<group>"; };
 		7658E4BA2509F4F9DA1A97F4 /* PackerLiteEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteEngine.swift; sourceTree = "<group>"; };
 		7AEEECDE5BA47EE4FEFFF19C /* ProvisioningVideoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisioningVideoRecorder.swift; sourceTree = "<group>"; };
 		7B68A6E530005FBB71881873 /* PackerLiteTemplateResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackerLiteTemplateResolver.swift; sourceTree = "<group>"; };
@@ -1025,6 +1032,13 @@
 		9B09566E2FDDC7E60027FF96 /* Spawn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spawn.swift; sourceTree = "<group>"; };
 		9B0A37F52FF58C0A004609F2 /* DirWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirWatcher.swift; sourceTree = "<group>"; };
 		9B0BEE54300EB500003EE9E9 /* SandboxLimitationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SandboxLimitationsView.swift; sourceTree = "<group>"; };
+		9B11BFEA3084B4E1005BBCBD /* WindowsEFIBinaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsEFIBinaries.swift; sourceTree = "<group>"; };
+		9B11BFEB3084B4E1005BBCBD /* WindowsInstallationMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsInstallationMedia.swift; sourceTree = "<group>"; };
+		9B11BFEC3084B4E1005BBCBD /* WindowsInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsInstaller.swift; sourceTree = "<group>"; };
+		9B11BFED3084B4E1005BBCBD /* WindowsInstallResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsInstallResources.swift; sourceTree = "<group>"; };
+		9B11BFED3084B4E1005B7A01 /* WindowsArchitecture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsArchitecture.swift; sourceTree = "<group>"; };
+		9B11BFFC3084C577005BBCBD /* windows.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = windows.png; sourceTree = "<group>"; };
+		9B11BFFE3084F7E8005BBCBD /* windows.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = windows.png; sourceTree = "<group>"; };
 		9B1389CE2F97A716000329B1 /* BonjourServiceLister.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourServiceLister.swift; sourceTree = "<group>"; };
 		9B1389D02F97A98A000329B1 /* ServiceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceListView.swift; sourceTree = "<group>"; };
 		9B1389D22F97A9D0000329B1 /* CakedServerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServerView.swift; sourceTree = "<group>"; };
@@ -1041,6 +1055,8 @@
 		9B1835EB2FB070D300D150FD /* LXDExecSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDExecSessionStore.swift; sourceTree = "<group>"; };
 		9B196FFF2F59866E00B424DB /* Root.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Root.swift; sourceTree = "<group>"; };
 		9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCVirtualMachineView.swift; sourceTree = "<group>"; };
+		9B1D8FCE308523EE009515C6 /* LZXDecompressor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LZXDecompressor.swift; sourceTree = "<group>"; };
+		9B1D8FCF308523EE009515C6 /* WIMArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WIMArchive.swift; sourceTree = "<group>"; };
 		9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentStatusHandler.swift; sourceTree = "<group>"; };
 		9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralUpdater.swift; sourceTree = "<group>"; };
 		9B20D5FE2E019FA400BEFB41 /* Importer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Importer.swift; sourceTree = "<group>"; };
@@ -1158,7 +1174,6 @@
 		9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSettingsView.swift; sourceTree = "<group>"; };
 		9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTemplateView.swift; sourceTree = "<group>"; };
 		9B3792E02FD5687200D3D54C /* Sandbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sandbox.swift; sourceTree = "<group>"; };
-		42A07394EA92DE7CBD3ED308 /* CheckUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckUpdate.swift; sourceTree = "<group>"; };
 		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
 		9B3E2C6A2F7BDAD2003BF05E /* CheckForUpdatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckForUpdatesView.swift; sourceTree = "<group>"; };
 		9B415A682FFA89D400E2B275 /* ConfigureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureHandler.swift; sourceTree = "<group>"; };
@@ -1202,7 +1217,6 @@
 		9B48B662302BD0F600B18C35 /* CakeHomeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeHomeHandler.swift; sourceTree = "<group>"; };
 		9B48B664302BD16600B18C35 /* RenameHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameHandler.swift; sourceTree = "<group>"; };
 		9B4C09B52FB8D6E300101F0E /* LXDRemotesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDRemotesController.swift; sourceTree = "<group>"; };
-		50D31B6E34FE537C45D60BAE /* LXDVMImagesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LXDVMImagesController.swift; sourceTree = "<group>"; };
 		9B4C09B72FB8D72100101F0E /* InstanceDetailPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = InstanceDetailPage.tsx; sourceTree = "<group>"; };
 		9B4C09B82FB8D72100101F0E /* RemotesPage.tsx */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.typescript; path = RemotesPage.tsx; sourceTree = "<group>"; };
 		9B4D21493045E2D300082830 /* alpine.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = alpine.packerlite.yaml; sourceTree = "<group>"; };
@@ -1358,10 +1372,7 @@
 		9BA22FFD2E26512500172D25 /* CoreAudioTypes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioTypes.framework; path = System/Library/Frameworks/CoreAudioTypes.framework; sourceTree = SDKROOT; };
 		9BA22FFE2E26512500172D25 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		9BA22FFF2E26512500172D25 /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
-		671D5302DFC9A3D2FBD581D8 /* CakedKeyConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedKeyConfigTests.swift; sourceTree = "<group>"; };
-		0F0FA43D0D41CEB953302854 /* CakerEnvTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakerEnvTests.swift; sourceTree = "<group>"; };
 		9BA4A2EF307837D5005EEA30 /* ComposeDNSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNSTests.swift; sourceTree = "<group>"; };
-		C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateCheckerTests.swift; sourceTree = "<group>"; };
 		9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfiguration.swift; sourceTree = "<group>"; };
 		9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSource.swift; sourceTree = "<group>"; };
 		9BA941162F3C890C00B51543 /* PingHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingHandler.swift; sourceTree = "<group>"; };
@@ -1682,13 +1693,7 @@
 		9BFE87DB2F7E6B67005CC9B2 /* VM.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VM.icns; sourceTree = "<group>"; };
 		B424710990B7411A855EC5AD /* VMImages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VMImages.json; sourceTree = "<group>"; };
 		C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeDNS.swift; sourceTree = "<group>"; };
-		C2277924602801C96A1C85DD /* WindowsInstallResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowsInstallResources.swift; sourceTree = "<group>"; };
-		B7A2706E9158E4CB064FBCB9 /* WindowsInstallationMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowsInstallationMedia.swift; sourceTree = "<group>"; };
-		AD76FFB59F6B86585688341D /* WindowsInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowsInstaller.swift; sourceTree = "<group>"; };
-		8C72C29B6A0B8408035D52C5 /* LZXDecompressor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WIM/LZXDecompressor.swift; sourceTree = "<group>"; };
-		1C43060A17D35B78D277FF1E /* WIMArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WIM/WIMArchive.swift; sourceTree = "<group>"; };
-		7A7D990FCDDDC3A9FD878A93 /* WindowsEFIBinaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows/WindowsEFIBinaries.swift; sourceTree = "<group>"; };
-		0B55224143FDF8B00263F009 /* ReleaseUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateChecker.swift; sourceTree = "<group>"; };
+		C7A4B2346493A0FF5BE34FE3 /* ReleaseUpdateCheckerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseUpdateCheckerTests.swift; sourceTree = "<group>"; };
 		CEBCF840FC996468321E4B7D /* BootCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootCommand.swift; sourceTree = "<group>"; };
 		DEC1FB40C59C7217DBFF2029 /* ComposeEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeEditorView.swift; sourceTree = "<group>"; };
 		DF2B0651E51F47D5AEF8715F /* fedora-server.packerlite.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "fedora-server.packerlite.yaml"; sourceTree = "<group>"; };
@@ -1938,12 +1943,34 @@
 			path = Vmdk;
 			sourceTree = "<group>";
 		};
+		9B11BFEE3084B4E1005BBCBD /* Windows */ = {
+			isa = PBXGroup;
+			children = (
+				9B11BFEA3084B4E1005BBCBD /* WindowsEFIBinaries.swift */,
+				9B11BFEB3084B4E1005BBCBD /* WindowsInstallationMedia.swift */,
+				9B11BFEC3084B4E1005BBCBD /* WindowsInstaller.swift */,
+				9B11BFED3084B4E1005BBCBD /* WindowsInstallResources.swift */,
+				9B11BFED3084B4E1005B7A01 /* WindowsArchitecture.swift */,
+				9B1D8FD0308523EE009515C6 /* WIM */,
+			);
+			path = Windows;
+			sourceTree = "<group>";
+		};
 		9B144C0E2F9D28D900F14DEF /* VNCTunnel */ = {
 			isa = PBXGroup;
 			children = (
 				9B144C0F2F9D291C00F14DEF /* VNCTunnel.swift */,
 			);
 			path = VNCTunnel;
+			sourceTree = "<group>";
+		};
+		9B1D8FD0308523EE009515C6 /* WIM */ = {
+			isa = PBXGroup;
+			children = (
+				9B1D8FCE308523EE009515C6 /* LZXDecompressor.swift */,
+				9B1D8FCF308523EE009515C6 /* WIMArchive.swift */,
+			);
+			path = WIM;
 			sourceTree = "<group>";
 		};
 		9B20D6012E019FA400BEFB41 /* Importers */ = {
@@ -2479,6 +2506,7 @@
 				9B561254301350FB00E9FA7D /* syllable.png */,
 				9B561255301350FB00E9FA7D /* ubuntu.png */,
 				9B561256301350FB00E9FA7D /* webos.png */,
+				9B11BFFC3084C577005BBCBD /* windows.png */,
 				9B561257301350FB00E9FA7D /* xubuntu.png */,
 			);
 			path = Icons;
@@ -2996,12 +3024,6 @@
 				9BDC05922FEADB4400802A3C /* CakerEnv.swift */,
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
 				C559FD91632D2F6CD943E8B3 /* ComposeDNS.swift */,
-				C2277924602801C96A1C85DD /* WindowsInstallResources.swift */,
-				B7A2706E9158E4CB064FBCB9 /* WindowsInstallationMedia.swift */,
-				AD76FFB59F6B86585688341D /* WindowsInstaller.swift */,
-				8C72C29B6A0B8408035D52C5 /* LZXDecompressor.swift */,
-				1C43060A17D35B78D277FF1E /* WIMArchive.swift */,
-				7A7D990FCDDDC3A9FD878A93 /* WindowsEFIBinaries.swift */,
 				9BDC06562FEADF2B00802A3C /* ComposeFile.swift */,
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
@@ -3049,6 +3071,7 @@
 				9BEBC7522DF440720092B196 /* VMNet */,
 				9BEBC73C2DF440720092B196 /* VMRunService */,
 				9B5A377E2ED4BDA8007B59B0 /* VNCLib */,
+				9B11BFEE3084B4E1005BBCBD /* Windows */,
 			);
 			path = cakedlib;
 			sourceTree = "<group>";
@@ -3136,6 +3159,7 @@
 				9BFE87302F7E6480005CC9B2 /* syllable.png */,
 				9BFE87312F7E6480005CC9B2 /* ubuntu.png */,
 				9BFE87322F7E6480005CC9B2 /* webos.png */,
+				9B11BFFE3084F7E8005BBCBD /* windows.png */,
 				9BFE87332F7E6480005CC9B2 /* xubuntu.png */,
 			);
 			path = Icons;
@@ -3730,6 +3754,7 @@
 				9B56127E301350FB00E9FA7D /* red-hat.png in Resources */,
 				9B56127F301350FB00E9FA7D /* slackware.png in Resources */,
 				9B561280301350FB00E9FA7D /* suse.png in Resources */,
+				9B11BFFD3084C577005BBCBD /* windows.png in Resources */,
 				9B561281301350FB00E9FA7D /* syllable.png in Resources */,
 				9B2D37B8304AD81600204614 /* ubuntu.packerlite.yaml in Resources */,
 				9B561282301350FB00E9FA7D /* ubuntu.png in Resources */,
@@ -4336,12 +4361,6 @@
 				9BEBC77E2DF440720092B196 /* mount.pb.swift in Sources */,
 				9BDC06572FEADF2B00802A3C /* ComposeFile.swift in Sources */,
 				0B8EE5CCB0B8FD5D4E7CA6CC /* ComposeDNS.swift in Sources */,
-				8E3915A998D8A419A5BF06A8 /* WindowsInstallResources.swift in Sources */,
-				DFE1BF8599918E88E5CE0B71 /* WindowsInstallationMedia.swift in Sources */,
-				4DB04CFDA26AE16AB65C1DE4 /* WindowsInstaller.swift in Sources */,
-				39E0E32CAA8530CB198B70D4 /* LZXDecompressor.swift in Sources */,
-				AFBBCAD8E7FCE3CF448AAB4E /* WIMArchive.swift in Sources */,
-				CE31DF57331EB931E62803C4 /* WindowsEFIBinaries.swift in Sources */,
 				DB44BB8D90C71651CE3EC16B /* ReleaseUpdateChecker.swift in Sources */,
 				9BBF7BB72F3E0E8D00F37D2C /* VNCInfosHandler.swift in Sources */,
 				9BEBC77F2DF440720092B196 /* VMRunHandler.swift in Sources */,
@@ -4362,6 +4381,8 @@
 				9BEBC7852DF440720092B196 /* CloudImageConverter.swift in Sources */,
 				9BEBC7862DF440720092B196 /* CloudInit.swift in Sources */,
 				9BEBC7872DF440720092B196 /* CommunicationDevices.swift in Sources */,
+				9B1D8FD1308523EE009515C6 /* LZXDecompressor.swift in Sources */,
+				9B1D8FD2308523EE009515C6 /* WIMArchive.swift in Sources */,
 				9BCEEB8A307A964E006D282F /* GlassedSheet.swift in Sources */,
 				9BEBC7882DF440720092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC7892DF440720092B196 /* Utilities.swift in Sources */,
@@ -4464,6 +4485,11 @@
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
 				9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */,
 				9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */,
+				9B11BFEF3084B4E1005BBCBD /* WindowsEFIBinaries.swift in Sources */,
+				9B11BFF03084B4E1005BBCBD /* WindowsInstaller.swift in Sources */,
+				9B11BFF13084B4E1005BBCBD /* WindowsInstallationMedia.swift in Sources */,
+				9B11BFF23084B4E1005BBCBD /* WindowsInstallResources.swift in Sources */,
+				9B11BFF23084B4E1005B7A02 /* WindowsArchitecture.swift in Sources */,
 				9BF1A0103001000000AA0010 /* AppleMobileDeviceRestoreBackend.swift in Sources */,
 				9BF1A0113001000000AA0011 /* DeviceRestoreBackend.swift in Sources */,
 				9BF1A0123001000000AA0012 /* DeviceRestoreDriver.swift in Sources */,
