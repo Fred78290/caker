@@ -130,6 +130,8 @@ public class WindowsInstaller: @unchecked Sendable {
 
 		self.logger.info("Boot the Windows installation media")
 
+		progressHandler(.substep(String(localized: "Booting the Windows installation media")))
+
 		try await run(timeout: installTimeout, progressHandler)
 
 		let result = try media.installResult()
@@ -139,6 +141,8 @@ public class WindowsInstaller: @unchecked Sendable {
 
 		guard result.succeeded else {
 			let tail = result.log.split(whereSeparator: \.isNewline).suffix(20).joined(separator: "\n")
+
+			progressHandler(.substep(String(localized: "Windows installation failed")))
 
 			self.logger.error("Windows installation failed \(tail)")
 
@@ -157,22 +161,30 @@ public class WindowsInstaller: @unchecked Sendable {
 			try await run(timeout: firstBootTimeout, progressHandler)
 
 			if let marker = try firstBootMarker(location: location) {
+				let agentInstalled = marker.contains("agent=0") == false
+
 				self.logger.info("Windows first boot completed: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
-				if marker.contains("agent=0") == false {
+
+				if agentInstalled == false {
+					progressHandler(.substep(String(localized: "Windows setup finished, but the cakeagent service may not be running")))
 					logger.warn("Windows setup finished, but the cakeagent service may not be running: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
 				}
 
 				if marker.contains("winfsp=0") == false || marker.contains("service=0") == false {
+					progressHandler(.substep(String(localized: "Windows setup finished, but directory sharing may not work")))
 					logger.warn("Windows setup finished, but directory sharing may not work: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
 				}
 
 				// "agent=<install exit code>-running": the service is up, so the host can talk to it
-				config.agent = marker.contains("agent=0-running")
+				config.agent = agentInstalled
 				config.provisioned = true
 				try config.save()
 
+				progressHandler(.provisioned(.success(.init(name: location.name, provisioned: true, reason: String(localized: "Windows setup finished successfully")))))
 				return
 			}
+
+			progressHandler(.substep(String(localized: "Windows first boot, run \(attempt) of \(maxFirstBootRuns)")))
 		}
 
 		throw ServiceError(String(localized: "Windows did not finish setting itself up"))
