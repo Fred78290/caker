@@ -1097,10 +1097,11 @@ struct VirtualMachineWizard: View {
 					case .iso:
 						VStack(alignment: .leading) {
 							LabeledContent {
+
 								if AppState.shared.connectionMode == .app {
 									HStack {
 										TextField("Choose an ISO image disk.", text: $config.imageName)
-											.frame(width: 300)
+											.frame(width: self.model.supportedPlatform == .windows ? 500 : 300)
 											.rounded(.leading)
 											.disabled(self.model.createVM)
 
@@ -1117,7 +1118,7 @@ struct VirtualMachineWizard: View {
 									}
 								} else {
 									TextField("Bootable iso url.", text: $config.imageName)
-										.frame(width: 340)
+										.frame(width: self.model.supportedPlatform == .windows ? 540 : 340)
 										.rounded(.leading)
 										.disabled(self.model.createVM)
 								}
@@ -1135,15 +1136,19 @@ struct VirtualMachineWizard: View {
 								.onChange(of: model.isoImageRelease) { _, newValue in
 									let plateform = SupportedPlatform(rawValue: newValue.label)
 
-									// Admin is already used on debian
-									if plateform == .debian && self.config.configuredUser == "admin" {
-										self.config.configuredUser = "administrator"
-									}
-
 									self.config.imageName = newValue.url
 									self.model.supportedPlatform = plateform
-
+									
 									newValue.applyMinimumResources(to: &self.config)
+
+									if plateform == .windows {
+										config.diskSizeInGiB = max(config.diskSizeInGiB, 64)
+									} else {
+										// Admin is already used on debian
+										if plateform == .debian && self.config.configuredUser == "admin" {
+											self.config.configuredUser = "administrator"
+										}
+									}
 								}
 							}
 
