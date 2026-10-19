@@ -6,19 +6,922 @@
     <language>en</language>
     <link>https://github.com/Fred78290/caker</link>
     <item>
-      <title>Caker 1.0.3720</title>
-      <description><![CDATA[<h2>Caker 1.0.3720</h2>
+      <title>Caker 1.0.3732</title>
+      <description><![CDATA[<h2>Caker 1.0.3732</h2>
 <p>New version of Caker with improvements and bug fixes.</p>
 
 <h3>2026-10-17 (Git log summary - release)</h3>
 <ul>
-    <li>docs(appstore): retake the macOS VM screenshot with the CPU meter</li>
-<li>docs(appstore): add Mac App Store screenshots in English and French</li>
-<li>fix(l10n): translate the "Name:" label into French</li>
-<li>🌐 Update Sparkle appcast appcast.xml - 1 releases (2026-10-17 13:15:40)</li>
+    <li>fix: include vncURL and screenSize when rendering VM info</li>
+<li>chore: move App Store build artifacts under appstore/build/</li>
+<li>fix(caker): don't force-unwrap the selected network in HomeView's detail pane</li>
+<li>fix: lower min requirements for Ubuntu 26.10 Server images</li>
+<li>fix(ui): widen VM wizard sheet to fit content</li>
+<li>fix(ui): add horizontal padding to sidebar status icon</li>
+<li>fix(vm): always show Cancel button in wizard footer</li>
+<li>fix(vm): Correctly apply display scaling to VNC render layer</li>
+<li>refactor(vm): remove dedicated scaling logic for OCR rendering</li>
+<li>fix(packer): ignore IP address detection for OpenSUSE builds</li>
+<li>fix(vm): log provisioning task cancellation for easier debugging</li>
+<li>fix(packer): handle opensuse installer mode selection screen in boot command</li>
+<li>fix(vm): Only enable automatic display refit in normal mode</li>
+<li>fix(grpc): append the image name fields instead of renumbering</li>
+<li>fix(dhcp): allow missing hostname when parsing DHCP leases</li>
+<li>fix(packer): replace coordinate click with keyboard shortcut in opensuse boot command</li>
+<li>fix(vm): always fall back to ARP lookup regardless of network type</li>
+<li>fix(ui): constrain provisioned VM preview to configured display aspect ratio</li>
+<li>fix(packer): match SupportedPlatform against full image URL</li>
+<li>fix(ui): tighten spacing and field widths across VM settings detail views</li>
+<li>fix(ui): fix sheet sizing for editable list edit views</li>
+<li>fix(ui): use circular glass buttons for editable list controls</li>
+<li>fix(ui): simplify sheet sync main thread dispatch</li>
+<li>fix(vm): reduce VM wizard window height</li>
+<li>fix(vm): disable scrolling in wizard content and drop dead code</li>
+<li>fix(vm): clean up partial download file on cancellation</li>
+<li>fix(vm): enlarge VM wizard window to fit content</li>
+<li>feat(vm): add localized human-readable status labels for VMs</li>
+<li>feat(images): add a name field to image metadata across gRPC and UI</li>
+<li>fix(vm): default import picker to first VM and fix layout</li>
+<li>fix(vm): guard against nil VM and track stopping state through completion</li>
+<li>refactor(home): share VM context menu between grid and detail views</li>
+<li>feat(about): add PackerLite feature row and tighten About window layout</li>
+<li>fix(glass): correct glass effect availability check to macOS 26.0</li>
+<li>fix(networks): give Start/Stop network buttons a bordered style</li>
+<li>fix(compose): give the Compose sheet a sane ideal size, not its text's height</li>
+<li>docs(wiki): check-update's JSON output is --json, not --format json</li>
+<li>feat(webui): list the connected caked's image catalog in the create dialog</li>
+<li>chore(resources): add Ubuntu 26.10 images and update macOS 27 IPSW entries</li>
+<li>fix(service): skip starting Compose DNS if already running</li>
+<li>fix(caked): hide relocate in the App Store build</li>
+<li>feat(caker): list the connected caked's image catalog in the VM wizard</li>
+<li>feat(caked,cakectl): add check-update to report new Caker releases</li>
+<li>docs(wiki): service listen disables TLS with --disable-tls</li>
+<li>feat(cakectl): list --alias ids from caked over gRPC</li>
+<li>fix(cakectl): register `image pull` under its real name</li>
+<li>docs(wiki): fix wrong command examples in the cheat sheet</li>
+<li>fix(config): give each CakedKeyConfig key its real default</li>
+<li>docs(wiki): link the IMDS and provisioning pages from the home page</li>
+<li>docs: publish the IMDS and provisioning pages on the docs site</li>
+<li>docs(wiki): drop the nonexistent -s short flag from compose rm</li>
+<li>fix(cakerenv): apply the user and password fields when building a VM</li>
+<li>docs(wiki): document the .cakerenv environment file</li>
+<li>ci: fix release and App Store release pipelines</li>
+<li>fix(caker): reset the New virtual machine wizard each time its window opens</li>
+<li>feat(caker): present every sheet with glassedSheet, with Escape dismissal</li>
+<li>feat(caker): add GlassedSheet for native AppKit sheet presentation</li>
+<li>fix: complete x86_64 build without IPSW support</li>
+<li>refactor: make IPSW image source arm64-only</li>
+<li>fix(caker): match config file names from VMLocation instead of hardcoding them</li>
+<li>fix(caker): ignore config file events caused by the document's own save</li>
+<li>fix(caker): reload VM configuration when config.json/cake.json change on disk</li>
+<li>ci: set BASE_VERSION per branch before computing release VERSION</li>
+<li>ci: isolate Cake home and fix self-capture in build name handling</li>
+<li>build: import all required signing certificate types into keychain</li>
+<li>Use Authorization Services instead of osascript for privileged bootstrap</li>
+<li>build: pin setup-homebrew action and rename appstore certificate secret</li>
+<li>build: rename setup-appstore-keychain.sh to setup-keychain.sh</li>
+<li>Fix scaling calculation for image size</li>
+<li>fix: read OCR frame straight from the surface instead of rendering it</li>
+<li>fix: render VM frames directly for OCR to avoid stray window/icon</li>
+<li>fix: use let for immutable promise declaration</li>
+<li>fix: fail finalPromise when VM start throws so headless vmrun doesn't hang</li>
+<li>fix: avoid NSApplication run loop for headless VM commands</li>
+<li>fix: force exit on second SIGINT if cancellation hangs</li>
+<li>fix: render VM window offscreen to avoid dock icon and visible artifacts</li>
+<li>fix: use NSApplication.shared instead of NSApp global throughout UI code</li>
+<li>docs(sandbox): list the Compose DNS resolver as unavailable in the App Store build</li>
+<li>refactor: move config assignment into saveConfiguration and restrict direct property access</li>
+<li>fix: nil out virtualMachine reference on VM teardown</li>
+<li>fix: tie VM surface capture scale factor to auto-reconfigure setting</li>
+<li>fix: make VM display auto-reconfiguration configurable per VM</li>
+<li>fix: swap default menu bar icon and dock icon visibility</li>
+<li>fix: prefer Bundle.main over resource bundle when loading VMImages.json</li>
+<li>fix: scale VM surface capture to logical points before rendering</li>
+<li>Enhances the sudoers rule for the caked agent to include `SETENV:`, ensuring environment variables are preserved when the agent runs with elevated privileges.</li>
+<li>fix: improve NAT network info reliability with default fallbacks</li>
+<li>fix: synchronize GRPC stream termination</li>
+<li>fix: declare weak properties as variables</li>
+<li>fix: fall back to Bundle.main when loading compose-template.yml resource</li>
+<li>Capture errno right after killPID in ComposeDNS.stopResolver</li>
+<li>Hide the caked DNS menu items in sandboxed builds</li>
+<li>Add Start/Stop caked DNS to the Service menu when no daemon is running</li>
+<li>Activate sigintSrc before launching client</li>
+<li>fix(compose-dns): log when the coordinator's poll loop stops</li>
+<li>fix(compose-dns): write composeDnsPID when polling starts, not when the server binds</li>
+<li>docs(compose-dns): sync docs with upstream commits, fix two small regressions</li>
+<li>fix(compose-template): use DNS hostname and `myapp` name instead of IP placeholder</li>
+<li>fix(compose-dns): make `caked dns` block on the poll loop instead of a continuation</li>
+<li>fix(dhcp): only accept Ethernet and protocol-255 leases, not reject them</li>
+<li>fix(compose-dns): fail fast, not after a 10s retry, when the NAT gateway is not up</li>
+<li>docs(compose): note DNS resolution is unavailable in a sandboxed build</li>
+<li>feat(compose-dns): resolve every VM by name, make the domain configurable</li>
+<li>fix(compose-dns): ensure the resolver is launched in every compose up path</li>
+<li>fix(compose): address Copilot review on PR #125</li>
+<li>feat(compose): DNS resolution between services on the NAT network</li>
+<li>fix(compose): make `compose up` apply the file's definition to a registered project</li>
+<li>docs(compose): sync wiki and CLAUDE.md with the review fixes and open items</li>
+<li>fix(compose): stop mis-parsing or dropping compose input, and fix up/down/rm bookkeeping</li>
+<li>fix(compose): map disk_format/ssh_authorized_key keys and sync docs</li>
+<li>feat(compose): extract template to bundled compose-template.yml resource and add new VM extension fields</li>
+<li>feat(compose): add user-settable package_update for cloud-init</li>
+<li>feat(compose): add package_upgrade for full package upgrades via cloud-init</li>
+<li>fix(caker): start agent monitoring for compose-created (.caked-mode) VMs</li>
+<li>fix(compose): always set package_update: true when packages: is used</li>
+<li>fix(caker): fix compose-created VM appearing stuck as stopped in HomeView</li>
+<li>feat(compose): replace postgres/pgadmin sample template with mariadb/phpmyadmin</li>
+<li>fix(compose-ui): address code review feedback</li>
+<li>feat(compose): add write_files (plain content or host source file)</li>
+<li>feat(compose): run post-install commands via cloud-init at build</li>
+<li>feat(compose): install packages via cloud-init at build</li>
+<li>fix(compose): use "WorkingDirectory" as display name when source is current directory</li>
+<li>fix(compose): remove `-s` short flag alias from `compose rm --stop`</li>
+<li>refactor(cloud-init): introduce `LazyDictionary` typealias and type-constrained `Dictionary` extension</li>
+<li>fix(compose): expand tilde in path when loading compose file</li>
+<li>docs(compose): document the GUI feature and the bridge-network fix</li>
+<li>fix(compose): resolve driver:bridge networks to a real bridged/physical attachment</li>
+<li>fix(compose): guard editor decode against smart-quote/dash substitution</li>
+<li>feat(caker): Compose Editor, sidebar management, and menu-bar quick actions</li>
+<li>fix(compose): avoid string-interpolation-in-localized-key bug in error messages</li>
+<li>feat(packer-lite): enable cloud-init on provisioned VMs</li>
+<li>fix(opensuse): auto-import GPG keys during zypper refresh</li>
+<li>fix(caker): use "administrator" as default user for cached Debian ISO presets</li>
+<li>fix(caker): show provisioning options for cached ISO/IPSW presets</li>
+<li>feat(caker): sort the image cache by image source then name</li>
+<li>fix(caker): let cached-image presets pass wizard validation</li>
+<li>fix(caker): connect window toolbar plus/delete to the selected cache entry</li>
+<li>fix(caker): make image cache create/delete buttons reliably available</li>
+<li>feat(caker): delete cached images from the image cache view</li>
+<li>fix(caker): reuse translated "Cloud Image" key in image cache view</li>
+<li>fix(caker): address Copilot review on image cache view</li>
+<li>feat(caker): add Image cache sidebar category with create-VM-from-cache</li>
+<li>fix: alpine template tab indentation, taskId message localization, test signatures</li>
+<li>feat(cakedlib): install and enable cloud-init in all platform templates</li>
+<li>fix(caker): mark agent as installed when CPU usage info is successfully received</li>
+<li>refactor(cakedlib): replace separate image/pngData capture with unified captureImageOCR result</li>
+<li>feat(cakedlib): add debug-only logging for view update size in framebuffer</li>
+<li>fix(cakedlib): render VNC layer into view bounds instead of layer bounds</li>
+<li>feat(cakedlib): add debug-only window resize logging via NSWindowDelegate</li>
+<li>fix(cakedlib): increase framebuffer update timer rate to 30 fps</li>
+<li>fix(cakedlib): disable window state restoration for VNC app</li>
+<li>feat(cakedlib): disable VNC interaction when VM is in provisioning mode</li>
+<li>fix(caker): set black layer background on VNC view instead of SwiftUI modifier</li>
+<li>fix(caker): wrap actionDelete switch statement in a MainActor task</li>
+<li>fix(caker): guard model updates behind validation checks in network and port detail views</li>
+<li>refactor(cakectl): extract SIGINT handler setup into a reusable `catchSigInt` method on Provision</li>
+<li>fix(cakedlib): skip temp VM directory removal when using a direct location</li>
+<li>feat(cakectl): cancel in-flight task on SIGINT for build, launch, and provision commands</li>
+<li>refactor(cakectl): initialize SIGINT dispatch source as a static property</li>
+<li>fix(cakectl): source launch task ID from buildOptions instead of a local UUID</li>
+<li>feat(grpc): propagate client-generated task ID through build, launch, and provision requests</li>
+<li>fix(cakedlib): handle cancellation gracefully during IPSW provisioning flow</li>
+<li>fix(caked): exit with code 128 on SIGINT and close channel instead of graceful shutdown</li>
+<li>refactor(caked): remove noisy warn log for discarded dangling VM status</li>
+<li>fix(cakedlib): stop provisioning services on cancellation and return VM from installIPSW</li>
+<li>refactor(cakedlib): inline IPSW installation logic directly into build function</li>
+<li>fix(cakedlib): log cancellation error in Grand Central Updater</li>
+<li>perf(cakedlib): throttle VNC frame emissions to a configurable max frame rate</li>
+<li>fix(cakedlib): defer GCD start until VM reaches running state via KVO observation</li>
+<li>refactor(caker): move connectButton into navigation toolbar group unconditionally</li>
+<li>fix(caker): dispatch alertError to main queue in terminal connection handler</li>
+<li>refactor(caker): replace closure-based DirWatcher callback with AsyncStream and structured concurrency</li>
+<li>fix(cakedlib): double locate/click timeouts in macOS 26 and 27 packer templates</li>
+<li>refactor(caker): initialize @State properties explicitly in init and reorder appState declaration</li>
+<li>refactor(cakedlib): remove stray debug print from build progress handler</li>
+<li>fix(caker): adjust ColorWell and VNCView layout for macOS 27 compatibility</li>
+<li>refactor(caker): remove debug-tracing parameters from cancel, closeShell, and size-setter methods</li>
+<li>refactor(utilities): combine procList declaration and allocation into single let binding</li>
+<li>fix(packerlite): broaden Debian disk confirmation screen match pattern</li>
+<li>chore(cakectl): remove debug print from build stream handler</li>
+<li>fix(packerlite): tune VNRecognizeTextRequest for faster, more reliable OCR</li>
+<li>fix(packerlite): correct Alpine boot command step title from "log in" to "configure"</li>
+<li>fix(packerlite): tune VNRecognizeTextRequest for faster, more reliable OCR</li>
+<li>fix(packerlite): broaden Fedora post-install wait to match multiple completion screens</li>
+<li>feat(packerlite): add autoconf support for unattended Alpine setup-alpine installations</li>
+<li>fix(vm): ensure delete virtual machine is called on the main thread</li>
+<li>fix(service): track server addresses alongside instances and guard continuation resumption</li>
+<li>fix(build/launch/provision): propagate non-OK gRPC status as errors through async streams</li>
+<li>feat(cancellable): send cancellation reply to client when build/launch/provision tasks are cancelled</li>
+<li>fix(tasks): ensure cancel task alert is shown on the main thread</li>
+<li>refactor(tasks): flatten return types from nested reply types to top-level protobuf types</li>
+<li>fix(ui): correct macOS availability check from 27.0 to 26.0 for glass bezel style</li>
+<li>feat(tasks): add selection state to TasksView and replace context menu with inline cancel button</li>
+<li>feat(ipsw): write provisioning marker and restart VM atomically after IPSW install</li>
+<li>fix(service): use sentinel PID to short-circuit repeated launchctl lookups and guard cached PID overwrites</li>
+<li>feat(ipsw): start and stop GrandCentralUpdate alongside VM provisioning</li>
+<li>Refactor refresh method to use async tasks loading</li>
+<li>Refactor task cancellation to use async dispatch</li>
+<li>Remove unused import of CakedLib</li>
+<li>Update alert informative text formatting</li>
+<li>feat(caker): add Tasks sidebar category showing caked's running tasks</li>
+<li>feat(caked): merge LXDOperationStore's Running operations into ListTasks/CancelTask</li>
+<li>fix(rest): lowercase operation id before querying LXDOperationStore</li>
+<li>feat(rest): surface and cancel gRPC-initiated tasks via LXD operations API</li>
+<li>fix(build): resolve image ID eagerly in BuildHandler initializer</li>
+<li>Load variables from ProvisionVariablesStore</li>
+<li>feat(webui): surface provisioning status and add a Provision action</li>
+<li>docs(claude-md): sync 55-commit batch (PR #119 follow-ups, GCD lifecycle, macOS 27 UI, misc fixes)</li>
+<li>fix(packerlite): simplify Debian GRUB detection and deduplicate full-name prompt step</li>
+<li>fix(vnc): replace ivar-based superview access with thread-safe observer dispatch</li>
+<li>fix(grpc): skip sendEnd on GRPC status errors to prevent double-close</li>
+<li>fix(packerlite): broaden Debian installer prompt matching to support multiple distro variants</li>
+<li>fix(build): default password to "admin" for IPSW and ISO image sources</li>
+<li>fix(rest): propagate errors from async certificate auth task to the event loop promise</li>
+<li>fix(ui): use process name instead of hardcoded "Caked" in About panel</li>
+<li>feat(ui): add NSGlassEffectAlert and withButtonStyle/withTextFieldStyle helpers for macOS 27 Liquid Glass</li>
+<li>fix(ui): remove fatal framebuffer nil check from VMView setup</li>
+<li>feat(vnc): add macOS 27 VZDisplayPresenter swizzling support alongside legacy framebuffer path</li>
+<li>fix(build): switch autoinstall provisioning to use resolved result instead of raw options</li>
+<li>feat(packer-lite): integrate GCD lifecycle into PackerLiteEngine VM provisioning</li>
+<li>fix(build): reject default 'admin' user when building with Debian ISO images</li>
+<li>refactor(provision): move GCD lifecycle management into ProvisionHandler</li>
+<li>refactor(home): move virtualMachinesViewMode state into NavigationModel</li>
+<li>fix(caked): silence unused result warning on Task in CertificateAuthMiddleware</li>
+<li>feat(vnc): import NIOCore in VNCServer</li>
+<li>fix(caked): silence unused result warning on runningTasks.removeValue in defer block</li>
+<li>Fix string formatting for task cancellation message</li>
+<li>Fix localized error message formatting for task ID</li>
+<li>feat(grpc): add ListTasks/CancelTask RPCs to inspect and cancel long-running tasks</li>
+<li>fix(caked): restore missing brace and cancellation assertion dropped by autofix</li>
+<li>Improve task handling during shutdown</li>
+<li>fix(caked): cancel in-flight build/launch/provision gRPC tasks on service shutdown</li>
+<li>refactor(vm): rename `startVMRunService`/`stopVMRunService` to `startServiceForProvisionning`/`stopServiceForProvisionning`</li>
+<li>refactor(packer): make `provision` internal and rename to `internalProvisionning`</li>
+<li>docs(claude-md): sync IPSW in-place provisioning, GCD/provisioning-status changes; bump Debian ISO to 13.7.0</li>
+<li>fix(build): default imageSource to .qcow2 instead of force-unwrapping</li>
+<li>fix(build): ensure error is always rethrown when build VM fails</li>
+<li>Change default case to set state as unknown</li>
+<li>Refactor error message formatting for unknown image id</li>
+<li>feat(build): handle build cancellation gracefully and add deleted VM status</li>
+<li>refactor(vm): extract provisioning marker and PID write into `writeProvisionning()`</li>
+<li>fix(vm): invalidate screenshot timer and nil out service reference on stop</li>
+<li>fix(grpc): log cancellation errors without the redundant error detail</li>
+<li>chore(images): update macOS 27.0 IPSW URL to FCS release build 26A428</li>
+<li>fix(build): enforce minimum 40 GB disk size when image source is IPSW</li>
+<li>fix(build): start gRPC run service after IPSW install and move provisioning file/PID writes earlier</li>
+<li>refactor(build): move `resolveImageId` from `VMBuilder` to `BuildOptions` as an instance method</li>
+<li>fix(build): suppress Dock icon and resolve image ID before building in caked CLI</li>
+<li>fix(build): acquire file lock on temp VM directory when not using direct location</li>
+<li>fix(vnc): move superview cast inside main-thread sync block for framebuffer observer callbacks</li>
+<li>fix(build): create final VM directory before build when using direct location</li>
+<li>feat(ipsw): show VM view during IPSW install and run provisioning in-place without temp directory</li>
+<li>feat(packer): surface post-boot command progress and skip IP wait before provisioning</li>
+<li>feat(vm): report provisioning status and enable GCD updater in provisioning mode</li>
+<li>feat(gcd): start GCD updater during provisioning and detect PID file removal as stopped status</li>
+<li>refactor(provider): drop `async`/`Task` wrappers from gcd status update call sites</li>
+<li>refactor(gcd): implement VM status deduplication and synchronous file-watcher event handling</li>
+<li>refactor(dirwatcher): move FSEvent flag parsing into FSEventStreamEventFlags extension</li>
+<li>docs(claude-md): sync provisioning-status/SIGINT/list-mode changes; fix stale VM catalog id tests</li>
+<li>fix(ui): left-align stat badges in VirtualMachineDetailView</li>
+<li>feat(ui): add context menu and selection gesture to VM list mode</li>
+<li>feat(watcher): watch VM storage directory and stub updateStatusVM handler</li>
+<li>fix(pr-116): address Copilot review findings on VirtualMachinesView list mode</li>
+<li>Refactor variable name for clarity in openDocument</li>
+<li>feat(ui): add list layout to VirtualMachinesView with a detail pane</li>
+<li>refactor(grpc): reorder VirtualMachineStatus cases to place UNRECOGNIZED last</li>
+<li>fix(provision): handle Ctrl-C as stop-and-save by routing SIGINT through cancellation instead of force-exit</li>
+<li>fix(packerlite): stabilize macOS 26/27 setup flows and harden SSH key provisioning</li>
+<li>feat(ui): wire provisioning status into HostVirtualMachineView controls and VNC display</li>
+<li>feat(ui): add provisioning status support to VM list and context menu</li>
+<li>fix(vmlocation): detect provision state via provisioning URL existence instead of PID matching</li>
+<li>feat(vmbuilder): warn when building from an ISO with default cpu/memory</li>
+<li>Fix comment formatting in VMBuilder.swift</li>
+<li>feat(vmimages): apply catalog minCPU/minMemoryMiB when resolving --alias</li>
+<li>Refactor cursor parking logic to use view bounds</li>
+<li>feat(packerlite): park guest mouse cursor out of view at start of provisioning</li>
+<li>fix(packerlite): suppress step recording during VoiceOver toggle and add completion callback to toogleVoiceOver</li>
+<li>fix(packerlite): pass confirm flag through to toogleVoiceOver and consolidate key-send delays</li>
+<li>feat(packerlite): implement NSView.toogleVoiceOver(confirm:)</li>
+<li>fix(tests): update ActionRecorderTests for keysym/targetView API changes</li>
+<li>fix(packerlite): increase boot locate timeout to 60s and harden SSH key setup across all macOS templates</li>
+<li>fix(packerlite): append SSH authorized key using heredoc instead of overwriting with echo</li>
+<li>refactor(vm): remove static createCloudInitDrive helper from VirtualMachine</li>
+<li>feat(images): update macOS 27.0 IPSW to 26A5425a and remove it from x86_64</li>
+<li>feat(packerlite): wire targetView into ActionRecorder to drive VoiceOver toggling</li>
+<li>refactor(packerlite): remove static keysym methods now that KeyToken/ModifierToken carry their own keysym property</li>
+<li>refactor(packerlite): move keysym lookup from PackerLiteDriver onto KeyToken/ModifierToken</li>
+<li>chore(cloud-init): bump cakeagent snapshot to 72ba73c6</li>
+<li>fix(packerlite): use heredoc append for authorized_keys and fix Alpine dual-NIC detection</li>
+<li>feat(config): use uncached disk I/O mode for ASIF disk images</li>
+<li>fix(packerlite): add missing localization strings and clean up minor string formatting issues</li>
+<li>docs: sync CLAUDE.md/wiki for reboot token, PostCommand struct, and template rename fallout</li>
+<li>feat(wizard): hide step indicator toolbar when a VM has already been provisioned</li>
+<li>fix(packerlite): use initrc_exec_t SELinux context for cakeagent and restart service after labelling</li>
+<li>feat(vmimages): remove openSUSE Leap 15.6 from available VM images</li>
+<li>feat(packerlite): move SSH key and sudoers setup from boot_command into post_boot_command</li>
+<li>feat(packerlite): include IP address in agent install progress message and extend install timeout</li>
+<li>fix(vmlocation): fall back to root:root ownership when adm group is absent</li>
+<li>feat(provision): propagate variables from pre-boot provisioning into subsequent steps</li>
+<li>feat(packerlite): propagate variables from pre-boot provisioning into the template</li>
+<li>feat(grpc): change sshAuthorizedKey field from bytes to string</li>
+<li>fix(packerlite): add version conditions to Fedora timezone boot steps and simplify Fedora 43 city search</li>
+<li>Fix typo in logging message for provisioning command</li>
+<li>feat(packerlite): implement conditional boot_command title blocks</li>
+<li>feat(packerlite): add post-boot SSH key, sudoers, and SELinux setup to RHEL-family and fedora templates</li>
+<li>fix(provision): stream post-boot command output in real time instead of capturing it</li>
+<li>feat(packerlite): add post-boot SSH key and passwordless sudo setup to all macOS templates</li>
+<li>fix(provision): set PTY type to xterm before SSH authentication</li>
+<li>feat(packerlite): declare `username`, `password`, and `hostname` as required variables in all OS templates</li>
+<li>fix(provision): pass SSH authorized key content instead of private key path to CloudInit</li>
+<li>feat(packerlite): replace post-boot command array with `PostCommand` struct supporting SSH key auth toggle</li>
+<li>feat(provision): inject hostname and SSH authorized keys into template variables</li>
+<li>feat(config): store SSH authorized key content instead of file path</li>
+<li>feat(localization): add French translation for "Paused recording" UI label</li>
+<li>fix(packerlite): add sudoers config and dnf upgrade steps to Fedora boot sequence</li>
+<li>fix(packerlite): fix Fedora boot sequence for installer UI changes</li>
+<li>refactor(virtualMachine): consolidate stop/start reboot logic into `rebootVM(requestStop:)`</li>
+<li>refactor(packerlite): rename template files to drop `linux-` and `vanilla-` prefixes</li>
+<li>fix(packerlite): address Copilot review on post_boot_command</li>
+<li>feat(packerlite): add reboot boot command and pass VirtualMachine to driver</li>
+<li>refactor(packerlite): extract mergeProvisionVars and detect duplicate variables</li>
+<li>fix(packerlite): rewrite Fedora template boot sequence for live-installer flow</li>
+<li>feat(packerlite): execute post_boot_command shell commands after agent install</li>
+<li>docs: sync CLAUDE.md/wiki for provisioning-variables and Ubuntu templates</li>
+<li>fix(packerlite): wire up Ubuntu templates and fix broken test fixtures</li>
+<li>feat(caked/cakectl): prepend stored provision variables to build and provision commands</li>
+<li>feat(wizard): mask password fields and import CakedLib in provision variable views</li>
+<li>fix(wizard): scope provisionVars reload to iso and custom image types only</li>
+<li>feat(cakedlib): move ProvisionVariable into cakedlib and make API public</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>feat(packerlite): add `required_variables` support with validation at resolve time</li>
+<li>fix(state): add OS name aliases for "redhat" → "red-hat" and "pop"/"popos" → "pop-os"</li>
+<li>chore(images): remove older Fedora, openSUSE, and CentOS Stream 9 VM image entries</li>
+<li>fix(packerlite): replace `${var.username}-vm` hostname with `${var.hostname}` and add SSH key setup across Linux templates</li>
+<li>feat(wizard): add provisioning-variables editor for ISO/IPSW images</li>
+<li>refactor(build): extract shared `setupVariables()` and add `hostname`/`ssh_authorized_key` to provision vars</li>
+<li>fix(packerlite): update Ubuntu boot wait to detect "Not listed?" instead of "login:"</li>
+<li>chore(images): remove EOL Ubuntu and CentOS Stream 9 VM image entries; update amd64 Ubuntu URLs</li>
+<li>fix(packerlite): overhaul Red Hat boot sequence and pass credentials via vars</li>
+<li>feat(packerlite): map Ubuntu to server template when not in desktop mode</li>
+<li>refactor(vnc): extract image capture into `captureImageOCR` and move scale calculation out of background thread</li>
+<li>fix(packerlite): reorder CentOS boot sequence to wait for Anaconda before interacting</li>
+<li>fix(packerlite): restore app activation policy after provisioning completes</li>
+<li>feat(packerlite): add `install_agent` template option to skip agent installation</li>
+<li>feat(packerlite): add Ubuntu Server and Ubuntu Desktop built-in PackerLite templates</li>
+<li>fix(packerlite): add missing dhcp/auto responses and acpid setup to Alpine template</li>
+<li>fix(VNCVirtualMachineView): flip Y coordinate before converting to window space</li>
+<li>feat(VirtualMachineDocument): track pending stop request to enable force-stop after graceful stop is initiated</li>
+<li>chore(cakeagent): bump snapshot to b3b1eafc and improve clickText debug logging</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>docs(command-summary): update `--alias` description to reflect Cloud-suffixed ids for CentOS and Alpine</li>
+<li>refactor(VNCVirtualMachineView): combine guard clauses and convert renderLayer to a constant</li>
+<li>fix(vmImages): add `-iso` suffix to ISO image ids and remove openSUSE Leap 15.4 cloud image</li>
+<li>docs(catalog): update resolveShorthand docs to reflect Cloud-suffixed ids replacing priority-order disambiguation</li>
+<li>refactor(packerlite): rename skipNotFound token to skipCommandIfNotFound</li>
+<li>fix(vnc): size render layer to surface dimensions instead of layer bounds</li>
+<li>refactor(dealloc): gate TrackDealloc behind TRACE_SWIFTUI_DEALLOC instead of DEBUG</li>
+<li>fix(packerlite): wire up linux-alpine template, sync docs for recent work</li>
+<li>fix(agent): add sync trap to install script and preserve temp file when debug logging is active</li>
+<li>fix(packerlite): update Alpine boot sequence to match current installer prompts and harden post-install config</li>
+<li>feat(packerlite): add `skipStepIfNotFound` command and multi-text OR matching for locate/click/skip</li>
+<li>fix(packerlite): overhaul Alpine Linux boot sequence to match actual installer prompts</li>
+<li>feat(packerlite): add built-in Alpine Linux unattended install template</li>
+<li>fix(packerlite): rewrite openSUSE boot sequence to use locate-based navigation</li>
+<li>feat(cakedlib): add Alpine 3.23 and 3.24 images and clean up label formatting</li>
+<li>fix(cakedlib): use stopFromUI instead of stopVM when finishing a recording</li>
+<li>fix(packerlite): extend Debian template to complete login after installation</li>
+<li>feat(packerlite): expose waitIPTimeout parameter and add progress/log feedback when acquiring IP</li>
+<li>fix(packerlite): wait for GRUB screen before sending enter in pre-boot commands</li>
+<li>fix(packerlite): downgrade OCR debug prints to trace level</li>
+<li>fix(packerlite): overhaul Debian boot script to use OCR-based locate commands, fix indentation across Linux templates</li>
+<li>feat(packerlite): add `ignore_ip` and `post_boot_command` template fields, fix Debian user conflict</li>
+<li>fix(l10n): rename "macOS Setup Assistant" progress string to "Virtual Machine Setup Assistant"</li>
+<li>docs(packerlite): explain why PNG round-trip is required for Vision OCR on VZVirtualMachineView</li>
+<li>fix(packerlite): switch Vision image source from CGImage to PNG data for OCR text location</li>
+<li>feat(packerlite): migrate CentOS and Fedora boot commands to OCR-based locate commands</li>
+<li>fix(packerlite): split debug overlays into separate text/click layers and fix coordinate scaling</li>
+<li>fix(packerlite): use pre-scaled view-space coordinates for OCR text boxes and click targets</li>
+<li>fix(packerlite): correct associated value binding syntax and trailing comma</li>
+<li>feat(packerlite): pass title context into OCR locate functions for improved debug logging</li>
+<li>Potential fix for pull request finding</li>
+<li>feat(caker): add locate-mode, reset, and VoiceOver controls to in-app recording</li>
+<li>feat(packerlite): add vanilla Fedora Server boot command template</li>
+<li>fix(provision): add 10-second delay before executing pre-boot commands</li>
+<li>fix(vm-builder): store normalized osName via SupportedPlatform when building from ISO</li>
+<li>fix(cloud-image): resolve URL redirects at download time instead of eagerly</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>feat(caker): add boot_command recording to the VM app window</li>
+<li>fix(packerlite): correct VoiceOver toggle key and recorded token quoting</li>
+<li>feat(caked): constrain window max size to display dimensions during recording and provisioning</li>
+<li>feat(record): show VoiceOver toolbar button only on macOS targets</li>
+<li>feat(caked): add force-stop option to Stop button and quit dialog</li>
+<li>feat(record): add ``/`` PackerLite commands and recording toolbar button</li>
+<li>refactor(record): select clickText/locate by mouse button, not modifier</li>
+<li>docs(wiki): split provisioning and record docs into a dedicated page</li>
+<li>fix(record): address Copilot review feedback on PR #105</li>
+<li>fix(record): fold clickText/locate wait gaps into their own timeout=</li>
+<li>refactor(record): use Option+click, not Shift+click, to select clickText</li>
+<li>fix(record): arm OCR-assist locate mode from the toolbar instead of holding Fn</li>
+<li>feat(record): extract RecordingControls view and add live Reset button with `hasRecordedActions` tracking</li>
+<li>refactor(vnc): replace async Task/withAsyncResult OCR dispatch with DispatchSemaphore on a utility queue</li>
+<li>fix(record): tighten main-actor session teardown and window refocus</li>
+<li>fix(test): update ActionRecorderTests for os:/sender-NSView API changes; docs(record): document Mode enum, OCR-assisted clicks, MainApp pause/resume UI, and pre_boot_command routing</li>
+<li>fix(record): keep recorder view updates on main and refocus VM window</li>
+<li>feat(record): add OCR-assisted `clickText`/`locate` recording with visual overlay on modifier key</li>
+<li>feat(record): route first boot command into `pre_boot_command` for non-Darwin VMs</li>
+<li>feat(record): integrate recording session into MainApp UI with pause/resume toolbar controls</li>
+<li>refactor(record): thread sender NSView through RecordedActionHandler and ActionRecorder.record(_:_:)</li>
+<li>feat(view): add Vision OCR `recognizeText()` to NSView for screen-content inspection</li>
+<li>refactor(vm): replace `recoveryMode`/`provisioning` booleans with a unified `VirtualMachine.Mode` enum</li>
+<li>Potential fix for pull request finding</li>
+<li>feat(record): capture caked record via local-window NSEvents instead of a VNC-server tap</li>
+<li>docs: document `caked record` in CLAUDE.md and the command-summary wiki</li>
+<li>feat(caked): add `caked record` to capture a manual VM setup as a PackerLite template</li>
+<li>docs(wiki): document --alias and aliases command</li>
+<li>fix(vmimages): correct arm64 debian11 URL and amd64 centos10 URL in VMImages.json</li>
+<li>fix(caker): update wizard defaults to renamed catalog image ids</li>
+<li>refactor(build): replace --<id> shorthand flags with a single --alias option</li>
+<li>refactor(wizard): update default image IDs to simplified major-version-only format</li>
+<li>feat(packerlite): use a faster screenshot interval during provisioning</li>
+<li>refactor(packerlite): make ProvisioningVideoRecorder's sync queue a static property</li>
+<li>refactor(provisioning): move success/failure logging to ProvisionedReply construction sites</li>
+<li>feat(build): add catalog-driven --<id> shorthand flags to build/launch</li>
+<li>refactor(cakedlib): move VM image catalog from caker into CakedLib</li>
+<li>feat(packerlite): record and auto-manage a debug video during provisioning</li>
+<li>refactor(VMImages): simplify image IDs to major-version-only format</li>
+<li>fix(wizard): suppress error alert and terminated event when user cancels VM creation</li>
+<li>refactor(wizard): replace NSNotification-based progress with direct state updates</li>
+<li>fix(build): prevent duplicate `terminated` events when provisioning follows VM build</li>
+<li>feat(build): add `provisioned` progress event to separate provision result from stream termination</li>
+<li>fix(build): clean up PID and temp VM directory on cancellation and error</li>
+<li>fix(packer): remove PID and post termination notification after VM stops</li>
+<li>chore(views): remove unused MultiplatformTabBar import from VirtualMachineWizard</li>
+<li>refactor(packer): simplify task group cancellation and fix progress reporting in provisioning engine</li>
+<li>fix(templates): adjust tab counts and add waits in vanilla-macos27 timezone and sharing steps</li>
+<li>fix(packer): increase key and step delays to prevent dropped input in guest OS</li>
+<li>fix(templates): add Select Your Country or Region step to vanilla-macos27 boot sequence</li>
+<li>refactor(provision): load and validate template before starting the VM</li>
+<li>fix(templates): update vanilla-macos27 boot sequence to match macOS 27 setup assistant flow</li>
+<li>fix(templates): replace fixed waits with locate commands in vanilla-macos26 boot sequence</li>
+<li>fix(grpc): move debug log inside success path and correct its message</li>
+<li>feat(catalog): update macOS 27.0 IPSW URL to build 26A5416b</li>
+<li>fix(config): treat IPSW/ISO VMs with a completed first launch as ready</li>
+<li>fix(installer): gate VZMacOSRestoreImage version check behind FORCE_USE_VIRTUAL_INSTALL_BACKEND flag</li>
+<li>fix(vm): always set up communication devices for non-provisioning VMs and gate delegate on port-forwarding config</li>
+<li>fix(driver): emit mouse movement before click and track last position in clickText</li>
+<li>feat(catalog): add minCPU/minMemoryMiB to IPSW entries and make resource fields non-optional</li>
+<li>fix(boot): improve macOS 26 vanilla setup reliability with longer timeouts and wait states</li>
+<li>feat(options): add `MacOSVersion` initializer from OS release string</li>
+<li>fix(provision): fall back to `osRelease` when resolving macOS version from config</li>
+<li>debug(packer): visualize click point in debug builds</li>
+<li>fix(boot): format click point coordinates as integers in description</li>
+<li>fix(provision): use `NSApplication.shared` instead of `NSApp` to terminate the app</li>
+<li>fix(service): validate cached agent PID against running process before trusting it</li>
+<li>feat(state): add `isProvisioning` flag to VM state</li>
+<li>fix(provisioning): disable VM controls while a VM is being provisioned</li>
+<li>fix(build): suppress `.provisioned` progress event during provisioning</li>
+<li>refactor(wizard): remove rounded-corner clipping from provisioned VM view</li>
+<li>fix(wizard): clear `createVMSubtitle` when VM creation completes</li>
+<li>fix(wizard): initiate VNC connection after setting provisioning state</li>
+<li>refactor(vm): rename `TRACE` compilation flag to `TRACE_DEINIT`</li>
+<li>refactor(grpc): rename `TRACE` compilation flag to `TRACE_STREAM`</li>
+<li>feat(wizard): embed VNC view during provisioning and tear it down on termination</li>
+<li>fix(vm): skip communication devices, signal handlers, and port forwarding for provisioning VMs</li>
+<li>feat(wizard): inject `ConnectionManager` explicitly into `VirtualMachineWizard`</li>
+<li>feat(vnc): add `allowClientResize` flag to control VNC window resizability</li>
+<li>feat(grpc): propagate `substep` and `provision` info through build stream</li>
+<li>feat(grpc): add `provisioning` status to `VirtualMachineStatus` enum</li>
+<li>fix(provisioning): tie provisioning status to PID file and fix async VM teardown</li>
+<li>fix(templates): correct macOS 26.6.2 image ID from `macos26_6_2` to `macos26_6`</li>
+<li>fix(app): remove PID file on application termination</li>
+<li>perf(service): cache agent PID lookup to avoid repeated process checks</li>
+<li>fix(vm): remove redundant `contentView = nil` reset before window teardown</li>
+<li>feat(status): add `provisioning` VM status to distinguish active provisioning runs</li>
+<li>feat(build): remove inline PackerLite provisioning from VMBuilder</li>
+<li>feat(build): add post-build PackerLite provisioning for IPSW and ISO images</li>
+<li>chore: move deinit logging from `#if DEBUG` to `#if TRACE` compilation condition</li>
+<li>fix(vmrunservice): use weak vm reference and add debug deinit logging to aid memory lifecycle debugging</li>
+<li>chore: normalize trailing whitespace across source files</li>
+<li>feat(updater): log termination message when Grand Central Updater exits for a VM</li>
+<li>fix(provision): uniquify temp template paths</li>
+<li>fix(vnc): close tunnel listener on shutdown</li>
+<li>fix(cakectl): guard foreground provision resume</li>
+<li>fix(provision): propagate pre-boot failures</li>
+<li>refactor(vnc): Make VNCTunnel optional to support direct VNC connections without a tunnel</li>
+<li>refactor(provision): Extract Provisionner class and close VNC tunnel on termination</li>
+<li>refactor(grpc): Introduce VNCTunnel class to manage VNC tunnel lifecycle and connections</li>
+<li>fix(vm): Suppress agent-install disabled log during provisioning</li>
+<li>revert(provision): Remove direct stopGrandCentralUpdate() call from destroyVM</li>
+<li>feat(provision): Emit progress steps around pre-boot command execution</li>
+<li>refactor(provision): Remove unused `vm` parameter from `PackerLiteEngine.provision`</li>
+<li>fix(grpc): Dispatch errorCaught to the event loop to avoid thread-safety violation</li>
+<li>fix(vm): Skip GrandCentral updates during provisioning</li>
+<li>fix(provision): Call stopGrandCentralUpdate() directly in destroyVM</li>
+<li>fix(vm): Break VirtualMachine <-> GrandCentralUpdater retain cycle</li>
+<li>fix(vnc): Fix VNCServer.stop() skipping teardown before the listener is ready</li>
+<li>fix(vnc): Prevent retain cycle and crash in timer-based framebuffer update fallback</li>
+<li>fix(vm): Guard port forwarding against provisioning mode and double-stop</li>
+<li>refactor(provision): Validate VM source and provisioned state eagerly, add `ProvisionTask` delegate chaining, and improve error propagation</li>
+<li>refactor(vm): Move `provisioning` flag to environment, fix window lifecycle, and replace `Foundation.exit` with `NSApplication.terminate`</li>
+<li>debug(vnc): Add `VirtualMachineWindow` subclass to trace window lifecycle in DEBUG builds</li>
+<li>refactor(vnc): Delegate framebuffer producer responsibilities to source view when it conforms to `VNCFrameBufferProducer`</li>
+<li>refactor(service): Replace `none` case with `disabled` and make `client()` return optional</li>
+<li>chore(images): Update macOS 26.6 IPSW to 26.6.2</li>
+<li>fix(vm): Break VirtualMachine <-> vmrunService retain cycle</li>
+<li>refactor(vm): Replace `internalCall` flag with explicit `provisioning` parameter across VM lifecycle</li>
+<li>refactor(provision): Support headless display mode and unify VM teardown in ProvisionHandler</li>
+<li>chore(provision): Add debug log on exit and import CakeAgentLib in ProvisionHandler</li>
+<li>refactor(provision): Replace `.grpc` mode with `.none` for provisioning VM runs</li>
+<li>refactor(provision): Replace `terminated` oneof field with `provisioned` in ProvisionStreamReply</li>
+<li>refactor(provision): Replace `foreground: Bool` with `display: VMRunHandler.DisplayMode` in ProvisionHandler API</li>
+<li>refactor(packer): Replace try/catch VM cleanup with defer block</li>
+<li>fix(provision): Resolve provisioning promise/progress even without an IP</li>
+<li>docs: Sync CLAUDE.md and wiki with VNC-during-provisioning and template refactor</li>
+<li>fix(service): Initialize NSApp and set activation policy before run loop starts</li>
+<li>fix(provision): Guard continuation against double-resume using `Mutex`</li>
+<li>feat(ui): Set window title and stable ID on `VNCApp` window group</li>
+<li>refactor(provision): Remove unused `result` string accumulation from task group</li>
+<li>feat(provision): Launch VNC client inline during provisioning using `infos` stream event</li>
+<li>feat(provision): Forward `infos` progress events to response stream and update progress handler signature</li>
+<li>refactor(vnc): Normalize formatting and import ordering in `VNCApp.swift`</li>
+<li>refactor(ui): Move `SplashScreenView` to `cakedlib` and extract window creation into a static factory method</li>
+<li>feat(vnc): Show splash screen on launch and open VM window once app becomes active</li>
+<li>feat(vnc): Add `name` property to VNCConnectionAppState</li>
+<li>refactor(grpc): Replace VNC tunnel handler callback with direct return of Channel and port</li>
+<li>refactor(vm): Extract disconnectVNC helper and track VNC channel for proper cleanup</li>
+<li>feat(provision): Add ProvisionInfo and ProvisionProgressHandler types to replace generic BuildProgressHandler</li>
+<li>feat(grpc): Add ProvisionInfo message to ProvisionStreamReply with VNC URL, screen size, and config</li>
+<li>fix(images): Remove trailing comma from last openSUSE Leap 15.5 entries</li>
+<li>fix(vm): Log error when agent install is skipped due to disabled VM</li>
+<li>fix(config): Treat ISO source the same as IPSW when checking if restore is needed</li>
+<li>fix(splash): Reduce activation retry delay from 5 s to 2 s</li>
+<li>refactor(provision): Remove async from boot command parsing and consolidate provision flow</li>
+<li>refactor(provision): Extract template loading, support pre-boot commands, and clean up PID on exit</li>
+<li>WIP on feature/macos-templates</li>
+<li>refactor(template): Await `PackerLiteTemplate.load` now that it is async</li>
+<li>refactor(template): Introduce `ParsedPackerLiteTemplate` to separate parsing from the raw template model</li>
+<li>chore(style): Replace empty lines using spaces with trailing whitespace in VMRunHandler</li>
+<li>refactor(provision): Inline `provisionQueue` reference instead of storing it as an instance property</li>
+<li>fix(packerlite): Address Copilot review findings on Fedora desktop/server PR</li>
+<li>feat(packerlite): Auto-select Fedora Server vs Workstation provisioning template</li>
+<li>feat(config): Add `osDesktop` property to CakeConfig</li>
+<li>docs(templates): Drop stale cross-reference to removed Packer HCL files</li>
+<li>chore(templates): Remove legacy Packer/Tart macOS build scripts and templates</li>
+<li>refactor(resources): Remove Gatekeeper-disable steps from macOS 15 and 26 templates</li>
+<li>fix(build): Update Package.swift and tests for macOS-version rename</li>
+<li>feat(resources): Add Debian images and macOS 27.0, clean up ISO labels</li>
+<li>fix(cakedlib): Add 200 ms delay before autoinstall begins</li>
+<li>refactor(cakedlib): Pass `CakeConfig` into `waitIPWithLease` instead of reading it internally</li>
+<li>fix(cakedlib): Add double `sync` call at end of install agent script</li>
+<li>feat(cakedlib): Add `async`/`await` overloads for `startVM` and `stopVM`</li>
+<li>fix(cakedlib): Include `repeated` count in press debug log message</li>
+<li>feat(caker): Wrap VM view in rounded-corner container and consolidate wizard dispatch queue</li>
+<li>feat(cakedlib): Rename macOS version identifiers from marketing names to version numbers</li>
+<li>fix(cakedlib): Introduce `malformedAttribute` parse error and thread token name into `parseAttributes`</li>
+<li>feat(cakedlib): Introduce `pre_boot_command` phase and refactor provisioning into two-stage pipeline</li>
+<li>fix(cakedlib): Enable framebuffer autoresizing for VNC server when display mode is `.none`</li>
+<li>feat(caker): Surface provisioned VM view inline in the wizard during PackerLite setup</li>
+<li>feat(cakedlib): Thread a stable UUID through the build pipeline to identify build sessions</li>
+<li>docs(caked): Document the NSWindow splash-screen activation workaround</li>
+<li>refactor(caked): Remove macOS 26-specific code paths and simplify AppDelegate/MainApp</li>
+<li>feat(caked): Refactor MainApp to support macOS 26 scene representation with splash screen</li>
+<li>fix(cakedlib): Replace fixed waits with UI element locators in Monterey boot template</li>
+<li>fix(cakedlib): Replace fixed-text locators with more reliable anchors in macOS templates</li>
+<li>fix(cakedlib): Activate and unhide the app after setting a regular activation policy</li>
+<li>fix(cakedlib): Unwrap `vzMachineView` once and access `framebufferView` as a property</li>
+<li>fix(cakedlib): Persist agent flag in config after successful agent install</li>
+<li>refactor(provision): Replace `display: VMRunHandler.DisplayMode` parameter with `foreground: Bool`</li>
+<li>refactor(provision): Extract `ProvisionOptions` into a shared `ParsableArguments` type</li>
+<li>feat(caked): Gate `Relocate` subcommand behind `!APPLESTORE` build flag</li>
+<li>fix(cakedlib): Retry agent connection up to 5 times on first launch</li>
+<li>fix(caker): Address Copilot review findings on VM rename</li>
+<li>fix(packer-lite): Remove dead `create_grace_time` template field</li>
+<li>feat(caker): Add Rename VM command to HomeView context menu</li>
+<li>fix(caker): Reload AppState after relocating the cake home in .app mode</li>
+<li>fix(caked): Address Copilot review findings on cake home relocation</li>
+<li>feat(caker,caked): Allow relocating the cake home directory (non-App Store builds)</li>
+<li>feat(packer-lite): Add `skipNotFound` boot command step and overhaul macOS setup wizard sequences</li>
+<li>fix(packer-lite): Wire up `<scroll>` boot_command dispatch and document the current token vocabulary</li>
+<li>fix(packer): Update macOS Sequoia boot command sequence and scheme args</li>
+<li>fix(packer): Fix OCR coordinate conversion and add scroll step execution</li>
+<li>feat(packer): Add `scroll` boot command step for sending scroll events</li>
+<li>fix(packer): Enable full keyboard access before navigating System Settings</li>
+<li>fix(packer): Add key delay after setting keyboard layout</li>
+<li>fix(packer): Convert OCR bounding box from normalized to image coordinates before returning midpoint</li>
+<li>feat(packer): Add `locate` boot command step for OCR-based screen synchronisation</li>
+<li>feat(packer): Return normalized CGPoint from OCR locate and simplify handlePointerEvent signature</li>
+<li>feat(packer): Replace click x/y coordinates with CGPoint and add configurable timeout to clickText</li>
+<li>feat(wizard): Add toggle to override VM minimum CPU and memory requirements</li>
+<li>fix(wizard): Scope VM creation notifications to the originating wizard instance</li>
+<li>fix(vmimages): Update CentOS URLs to use mirrorlist redirects and latest cloud images</li>
+<li>feat(vm): Resolve HTTP redirects on image URLs before building</li>
+<li>fix(wizard): Enforce per-image CPU/memory minimums past initial selection</li>
+<li>feat(wizard): Add minCPU/minMemoryMiB to VMImages.json, apply in wizard</li>
+<li>fix(wizard): Address review feedback on VMImages.json arch-split PR</li>
+<li>feat(wizard): Split VMImages.json by architecture, load from CAKE_HOME/GitHub</li>
+<li>chore(wizard): Move file header comment above imports in VirtualMachineWizard.swift</li>
+<li>docs(wiki): Document the VM image catalog (VMImageCatalog.swift/VMImages.json)</li>
+<li>fix(wizard): Address review feedback on VM image catalog PR</li>
+<li>feat(wizard): Replace ISOImage/IPSWImage/OSCloudImage enums with a JSON resource catalog</li>
+<li>feat(wizard): Add Fedora 43/44 images, split Fedora variants into Desktop/Server, and temporarily disable Debian entries</li>
+<li>fix(packer-lite): Overhaul vanilla-sequoia boot commands for Sharing and Gatekeeper steps</li>
+<li>feat(packer-lite): Add `repeat=N` support to key press boot command steps</li>
+<li>feat(provision): Add `--foreground` flag to show VM display window during provisioning</li>
+<li>fix(provision): Thread `queue` parameter through provision overloads and dispatch termination on main queue</li>
+<li>fix(packer-lite): Guard debug window and provisioned registry behind `Bundle.runInCaker` check</li>
+<li>refactor(templates): Replace single `command` string with `commands` array in boot command steps</li>
+<li>fix(provision): Use `stopFromUI` when stopping VM after provisioning</li>
+<li>fix(provision): Thread `display` mode through provision overloads and defer task start until VM has an IP</li>
+<li>fix(templates): Use `` wrapper around F2 key in macOS menu bar navigation</li>
+<li>docs(provision): Document `cakectl provision` gRPC path alongside `caked provision`</li>
+<li>fix(provision): Wire `--var` flags through to provisioning engine and register `caked provision` unconditionally</li>
+<li>feat(cakectl): Add `provision` command to cakectl CLI with gRPC streaming support</li>
+<li>fix(proto): Correct typos in macOS version enum names (`Sequioa` → `Sequoia`, `GoldGate` → `GoldenGate`)</li>
+<li>feat(provision): Expose VM provisioning as a gRPC server-streaming endpoint</li>
+<li>refactor(vm-run): Make `run` generic so the completion handler can return a value</li>
+<li>refactor(packer-lite): Move NSEvent extensions to UI layer and use lookup table for function keys</li>
+<li>fix(packer-lite): Add 10s wait before spacebar in macOS boot commands</li>
+<li>feat(wizard): Add Debian and openSUSE ISO options and improve provisioning template UX</li>
+<li>feat(packer-lite): Bundle Linux templates as built-in resources with auto-detection by distro</li>
+<li>docs: Add reference Linux PackerLite templates and document ISO provisioning support</li>
+<li>fix(packer-lite): Handle IPSW filenames with no minor version component in `MacOSVersion.detect`</li>
+<li>feat(provision): Extend PackerLite provisioning to Linux VMs and add `fn` modifier key support</li>
+<li>fix(packer-lite): Reduce Voice Over wait from 120s to 60s and add blank lines between boot commands in Sequoia template</li>
+<li>fix(packer-lite): Swap Alt/Super → Command/Option key mappings</li>
+<li>fix(packer-lite): Add `CustomStringConvertible` to `ModifierFlags` and include active modifiers in debug logs</li>
+<li>feat(packer-lite): Expand function key range from F1–F12 to F1–F20</li>
+<li>feat(packer-lite): Add titles to `boot_command` entries and surface them as progress substeps</li>
+<li>refactor(packer-lite): Remove `setupKeyMapper` helper and its call sites from `PackerLiteEngine`</li>
+<li>refactor(packer-lite): Replace `VNCInputHandler` with native AppKit event synthesis for keyboard and mouse input</li>
+<li>feat(packer-lite): Resolve `` token to a `KeyLayoutTranslator` at parse time and add initial `` to all macOS templates</li>
+<li>feat(packer-lite): Switch `` token to use TIS source IDs instead of language tags</li>
+<li>feat(packer-lite): Add `` boot command to switch key layout translation at runtime</li>
+<li>feat(packer-lite): Refactor `Provision` to run the VM via `VMRunHandler` and add keyboard layout translation</li>
+<li>refactor(packer-lite): Rename `PackerLiteRun` command to `Provision` with `caked provision` subcommand name</li>
+<li>feat(packer-lite): Record macOS version in config and add standalone re-provisioning command</li>
+<li>chore(packer-lite): Unwrap multi-line comments onto single lines in vanilla-tahoe template</li>
+<li>feat(packer-lite): Move Vision OCR off the main actor and add debug window for provisioning VMs</li>
+<li>fix(curl): Cancel underlying URL session task on cooperative cancellation</li>
+<li>feat(vnc): Expand VNCKeyCode mappings with modifier keys, navigation, function, and lock keys</li>
+<li>fix(caker): Cancel VM creation task on wizard dismiss and clean up task reference</li>
+<li>feat(caker): Make autoinstall opt-in for IPSW builds and add toggle to wizard</li>
+<li>fix(grpc): avoid duplicate --var crash in BuildOptions</li>
+<li>fix(caker): Wrap AsyncButton completion state reset in MainActor task</li>
+<li>fix(packer): Pass isDown parameter through to inputHandler instead of hardcoding true</li>
+<li>fix(packer): Mark input handler methods @MainActor and fix switch indentation</li>
+<li>feat(packer): Add step progress reporting to PackerLite engine</li>
+<li>fix(build): Explicitly initialize provisionTemplate and macosVersion to nil</li>
+<li>feat(ipsw): Add PackerLite engine for unattended macOS Setup Assistant provisioning</li>
+<li>feat(templates): Add macOS Tahoe support and make version configurable via script argument</li>
+<li>feat(vm): Trigger app state update when agent status changes on current document</li>
+<li>fix(grpc): Run async task as detached with userInitiated priority to avoid actor isolation issues</li>
+<li>fix(paths): Replace `.path` with `.path(percentEncoded: false)` throughout to handle spaces in file paths</li>
+<li>fix(network): Run stopNetwork in a detached task to avoid blocking the UI</li>
+<li>fix(network): Run startNetwork in a detached task to avoid blocking the UI</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>feat(utilities): Load additional PATH entries from /etc/paths.d/com.aldunelabs.caker</li>
+<li>feat(config): Add default value support to CakedKeyConfig accessors and enable IMDS/dock/menu features by default</li>
+<li>refactor(settings): Remove invalid disk size state in favor of value clamping</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>feat(settings): Replace CPU/memory pickers and text fields with sliders</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>feat(sandbox): Add sandbox limitations splash and About-window info</li>
+<li>docs: wire wiki/sandbox.md into the GitHub Pages sync</li>
+<li>docs(wiki): Add Sandbox page documenting App Sandbox restrictions and behavior</li>
+<li>refactor(Config): Apply consistent formatting and code style cleanup</li>
+<li>fix(symlink): Gracefully handle symlink creation failures instead of throwing</li>
+<li>fix(socket): Correct path length guard logic and sandbox check in socketPath</li>
+<li>refactor(VMLocation): Simplify status check in waitIP using guard statement</li>
+<li>feat(sandbox): Add --sandbox flag to caked CLI and make isApplicationSandboxed settable</li>
+<li>feat(sandbox): Expand valid share points to include Documents and Downloads folders, and surface sandbox violations in UI</li>
+<li>feat(sandbox): Enforce file access restrictions for disks, sockets, and share points under sandboxed App Store builds</li>
+<li>fix(mount-point): Change default source path from `~` to `~/Public/`</li>
+<li>feat(ui): Add `directoryURL` parameter to `selectFolder` to set the initial directory</li>
+<li>feat(sandbox): Add sandbox path validation helpers for share points and home directories</li>
+<li>fix(cloud-init): Accept raw SSH public key strings in addition to file paths</li>
+<li>feat(import): Add App Store build support with auto-discovery and temp home for sandboxed imports</li>
+<li>fix(lxd): Pass `all: true` when fetching networks in REST controller</li>
+<li>fix(lxd): Use network managed flag and running state for network status</li>
+<li>fix(imds): Log correct port when IMDS server needs PF redirect</li>
+<li>feat(ui): Add item validation to all new-item settings views with localized error messages</li>
+<li>refactor(ui): Replace `loadNetworks()` call with `networks` property in network attachment views</li>
+<li>refactor(grpc): Move `Validatable` conformances for tunnel attachment types out of gRPC layer</li>
+<li>fix(grpc): Reject socket bind paths that exceed the Unix domain socket length limit</li>
+<li>feat(ui): Add custom validation support with inline error messages to EditableListNewItem</li>
+<li>feat(ui): Add predefined port range styles for host and guest port fields</li>
+<li>feat(core): Derive max name lengths from socket path limit for networks and VMs</li>
+<li>refactor(core): Change VMNet control socket path from extension-based to directory-based naming</li>
+<li>feat(core): Enforce 8-character limit on network names in CLI and UI</li>
+<li>fix(core): Use home directory as socket fallback path in sandboxed apps</li>
+<li>feat(ui): Add well-known service picker to forwarded port configuration</li>
+<li>refactor(core): Extract maxSocketPathLength constant and shorten socket path names</li>
+<li>feat(core): Introduce global RunMode.current to track active run context</li>
+<li>feat(ui): Exclude NAT networks from bridge attachment selection</li>
+<li>feat(ui): Display read-only preset image source in VM wizard</li>
+<li>feat(ui): Guide users to configure IMDSv2 firewall rules</li>
+<li>feat(ui): Center install command-line tools button</li>
+<li>feat(images): sort loaded images by alias, upload date, or fingerprint</li>
+<li>feat(ui): accept LocalizedStringKey for AsyncButton labels</li>
+<li>feat(ui): prefill VM wizard with sensible defaults and random name</li>
+<li>feat(ui): replace double-tap with explicit create VM button</li>
+<li>fix: reject invalid stop flag combinations</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>fix(imds): apply arp_notify sysctl immediately on first boot</li>
+<li>docs(imds): sync public-ipv4 resolution comments and wiki with ARP-first order</li>
+<li>fix(imds): apply arp_notify sysctl immediately on first boot</li>
+<li>refactor(network): delete stale socket and PID files</li>
+<li>feat(imds): enhance public IP resolution using agent and ARP probe</li>
+<li>feat(l10n): add new localization strings and correct casing</li>
+<li>refactor(pf): enhance pfctl debugging and output handling</li>
+<li>feat(imds): implement /latest endpoint and update API versions</li>
+<li>refactor: Enhance file permission error logging</li>
+<li>refactor(imds): consolidate pf redirects and remove --imds-redirect</li>
+<li>feat(imds): add public-ipv4 and public-hostname metadata endpoints</li>
+<li>feat(imds): implement GET / returning the supported API version list</li>
+<li>refactor: Centralize and harden pfctl command execution</li>
+<li>feat(options): Default network interface naming to ifnames</li>
+<li>refactor: Use Swift Concurrency for non-blocking wait in waitPID</li>
+<li>Migrates config storage from Keychain to UserDefaults</li>
+<li>feat(networks): Implement start and stop all networks functionality</li>
+<li>fix(networks): Implement robust vmnet crash handling with cleanup and exit</li>
+<li>fix(imds): honor imdsEnabled in VZVMNetConfig's decode path too</li>
+<li>fix(review): address findings from full-branch code review</li>
+<li>style(Sudo): change log level from info to debug for SUDO command logging</li>
+<li>Gates IMDS behind a runtime feature flag</li>
+<li>Makes IMDS network support opt-in via settings</li>
+<li>style(Shell): format code for improved readability and consistency</li>
+<li>fix(PFRedirect): add debug logging and fix anchor name format</li>
+<li>feat(imds): enable port 80 redirect by default when unsandboxed</li>
+<li>docs(wiki): document the 169.254.169.254 pf address alias</li>
+<li>feat(imds): make 169.254.169.254 actually reachable via a pf address alias</li>
+<li>fix(imds): always pre-start the IMDS network in autostart, not just when a Linux VM is in the batch</li>
+<li>fix(imds): pre-start the IMDS network in StartHandler.autostart</li>
+<li>docs(wiki): correct IMDS sandboxed-availability claims</li>
+<li>fix(imds): make core IMDS available in sandboxed builds too</li>
+<li>docs(wiki): document the IMDS feature</li>
+<li>fix(imds): enable IMDS by default, make pf redirect its own opt-in</li>
+<li>feat(imds): make IMDS opt-in via --imds, add --imds-port</li>
+<li>fix(imds): don't start IMDSCoordinator at all in sandboxed builds</li>
+<li>fix(imds): don't attach the IMDS network or start the server when sandboxed</li>
+<li>fix(imds): skip pf redirect when root, and when sandboxed</li>
+<li>fix(imds): serve port 80 via pf redirect instead of a privileged bind</li>
+<li>fix(imds): move IMDS subnet into 192.168.0.0/16 (vmnet rejects link-local)</li>
+<li>fix(imds): address code-review findings on daemon-side IMDS</li>
+<li>refactor(VMNet): Reuse status variable for vmnet API calls</li>
+<li>fix(imds): Handle failure during IMDS network startup</li>
+<li>Remove print</li>
+<li>feat(imds): Register IMDS network as non-visible default</li>
+<li>refactor(imds): move IMDS server lifecycle from vmrun to service listen</li>
+<li>fix(imds): fix non-functional IMDS network and address code-review findings</li>
+<li>feat(imds): implement AWS Instance Metadata Service for Linux VMs</li>
+<li>refactor: remove redundant --disable-tls flag</li>
+<li>fix: sort remotes and templates on update</li>
+<li>Update docs and integration tests to reflect --secure → --disable-tls rename</li>
+<li>Remove hardcoded --rest/--tcp flags and address forwarding from daemon launch arguments</li>
+<li>Expose --disable-tls flag with localized help text</li>
+<li>Rename service --secure/--insecure flags to --disable-tls</li>
+<li>Run template duplicate operation asynchronously using a detached task</li>
+<li>Trigger template status update on duplicate command and fix status method call</li>
+<li>Fix inverted condition for template creation success check</li>
+<li>Adds real-time template and remote status streaming</li>
+<li>feat: implement file monitoring for templates and remotes</li>
+<li>refactor: extract magic strings to Home static constants</li>
+<li>feat: add rm/ls aliases to delete/list subcommands</li>
+<li>refactor: consolidate isAgentRunning into single tuple-returning var</li>
+<li>Fix blocking gRPC calls on MainActor in addRemote and templateInfos</li>
+<li>Add French localization for template management options and fix Config.plist error key casing</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>feat: add remote image browsing and add-remote wizard</li>
+<li>feat: add template duplicate/info support and detail view UI</li>
+<li>fix: update running state and defer cleanup on main actor</li>
+<li>fix: normalize machine identifier string and add missing localizations</li>
+<li>fix: use async buttons for network start/stop actions</li>
+<li>refactor: move appService to Service and add plain Process.bash overload</li>
+<li>chore: Update plugin paths from .bundle to .app extension in CI workflows</li>
+<li>Fix: Import GRPCLib in DeviceRestoreDriver</li>
+<li>fix: use SMAppService.status for isAgentInstalled in USE_SMAPPSERVICE builds</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Fix: Adopt SMAppService for caked launch agent management</li>
+<li>Fix: Package daemon and CLI tools as .app bundles</li>
+<li>Fix: Handle multipass authentication errors by requiring re-authentication</li>
+<li>Fix: Adapt home directory and virtual install storage for sandboxing</li>
+<li>chore: Refine manual connection button icon</li>
+<li>docs: reconcile AMRestore availability and add French disk-format anchor</li>
+<li>feat: Enhance documentation bilingual support with class-based toggling</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>feat: Add French localization to documentation and generalize language toggle</li>
+<li>fix: Add 'both' case to TunnelInfo.ProtocolEnum</li>
+<li>chore: Conditionally retrieve bridged network configuration</li>
+<li>chore: Always use ephemeral keychains in CI workflows</li>
+<li>chore: Conditionally unlock keychain for release workflow</li>
+<li>chore: Conditionally unlock keychain for CI tests</li>
+<li>feat: Add password to common build request</li>
+<li>feat: Improve ASIF disk format handling in sandboxed environments</li>
+<li>refactor: Update diskSize initialization logic in VM config</li>
+<li>feat: Propagate disk format across VM configuration types</li>
+<li>Fix: Copilot goes wrong</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>feat: Document ASIF disk format, defaults, and App Store resize constraints</li>
+<li>fix: flush sandboxed pipe handlers before reading output</li>
+<li>feat: Enhance disk configuration and sandboxed command execution robustness</li>
+<li>feat: Enhance sandboxed ASIF disk handling and provide resize guidance</li>
+<li>feat: Cache VM config in VMLocation and mark types as Sendable</li>
+<li>refactor: Replace NIO future/promise pattern with synchronous `Task.sync` in `runCakedWithUnixTask`</li>
+<li>fix: Pass size as `G`-suffixed string to `diskutil image` instead of computing bytes manually</li>
+<li>fix: Move `diskSize` default initialisation into `init` and correct GiB unit naming</li>
+<li>fix: prevent saving invalid VM settings values</li>
+<li>feat: Refactor `Shell.exec` to accept a completion handler and add sandbox-safe disk and process execution utilities</li>
+<li>fix: Switch `SupportedDiskFormat` raw type from `Int` to `String` and add `Identifiable` conformance</li>
+<li>feat: Add debug logging for shell exec commands and minor style cleanups</li>
+<li>fix: Correct `diskutil image` CLI arguments and dispatch logic for ASIF disk operations</li>
+<li>fix: Change `diskFormat` config key to use `String` type instead of `Int`</li>
+<li>feat: Add ASIF disk format support alongside existing raw format</li>
+<li>ci: Remove verbose flag and debug certificate listing from release build step</li>
+<li>ci: Unlock default keychain using login password secret</li>
+<li>ci: Unlock default keychain and add verbose flag when skipping keychain setup</li>
+<li>ci: Fix keychain setup on self-hosted runners and improve cleanup robustness</li>
+<li>ci: Move keychain setup decision into the check step for both release workflows</li>
+<li>ci: Add certificate diagnostic step before signing in release workflow</li>
+<li>fix(import): Make `copyDisk` parameter explicit at call sites</li>
+<li>Potential fix for pull request finding</li>
+<li>fix(import): Address review findings for Tart, UTM, and VirtualBuddy importers</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>fix(url): Handle spaces in paths and names by percent-encoding before URL construction</li>
+<li>feat(import): Add VM import support for Tart, UTM, and VirtualBuddy</li>
+<li>refactor(settings): Load advanced settings config in init instead of onAppear</li>
+<li>Potential fix for pull request finding</li>
+<li>feat(settings): Add Advanced settings tab for networking, client, and service options</li>
+<li>feat(cli): Add command aliases for delete and network subcommands</li>
+<li>fix(networks): Replace assignment sort with in-place sort and fix missing closing brace</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>feat(networks): Generate random unique network configuration in NetworkWizard</li>
+<li>feat(networks): Detect and propagate networks.json changes as full network list updates</li>
+<li>fix(concurrency): Await async calls to updateNetworkStatus</li>
+<li>Fix thread safety and error handling in network status updates</li>
+<li>Streams network status changes from daemon to client via gRPC</li>
+<li>Moves DirWatcher to cakedlib and exposes its API as public</li>
+<li>Adds network directory monitoring for live reload</li>
+<li>Migrate to runCakedWithUnixTask and adjust fork args</li>
+<li>Refactor agent launch and VM start handling</li>
+<li>fix: handle SIGHUP, SIGQUIT, SIGTERM, SIGUSR2 for graceful shutdown</li>
+<li>Adds sandbox safety checks for process creation</li>
+<li>Add `fork` subcommand passthrough to re-execute caked without logging setup</li>
+<li>Replace process name check with explicit `runInCaker` flag for sandbox detection</li>
+<li>Fix network status indicator to use running state instead of endpoint presence</li>
+<li>Harden sandboxed VM startup sequencing</li>
+<li>Fix sandboxed VM start race and network service startup</li>
+<li>Use Bundle.runCaked in SharedNetworkInterface for sandbox-safe network start</li>
+<li>Use Bundle.runCaked in caker app NetworksHandler.start and StartHandler.startVM</li>
+<li>Support sandboxed `caker` execution of `caked` helper</li>
+<li>Simplifies network management access control</li>
+<li>Updates VM launch button icons and help text</li>
+<li>Implement GRPC control plane for sandboxed vmnet services</li>
+<li>Refactor VM network entitlement and management</li>
+<li>Activate app to ensure critical alerts are visible</li>
+<li>Add 'managed' flag to network configurations</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>Potential fix for pull request finding</li>
+<li>fix(xpc-serialization): Improve nil-safety when handling XPC data</li>
+<li>fix(vmnet-service): Synchronize access to vmnet network state</li>
+<li>fix(network): Validate socket existence when detecting active network</li>
+<li>refactor(network): Remove obsolete parent process check</li>
+<li>feat(network): Implement TLS for vmnet gRPC communication</li>
+<li>feat(vmnet-service): Switch vmnet communication from XPC to gRPC over UDS</li>
+<li>fix(network): Provide socket path to VZVMNetNative for daemon communication</li>
+<li>fix(service): Standardize service mode and improve XPC connection reliability</li>
+<li>feat(network): Implement native vmnet handling with XPC and dedicated process</li>
+<li>feat(network): Add 'running' status to network model</li>
+<li>chore(strings): Standardize ellipsis character in localized text</li>
+<li>chore(ci): Set CAKE_HOME for App Store release workflow</li>
+<li>chore(ci): Condition keychain operations to GitHub-hosted runners</li>
 </ul>]]></description>
-      <pubDate>sam., 17 oct. 2026 14:04:04 +0000</pubDate>
-      <enclosure url="https://github.com/Fred78290/caker/releases/download/v1.0.3720/Caker.dmg" sparkle:version="1.0.3720" sparkle:shortVersionString="1.0.3720" type="application/octet-stream" sparkle:edSignature="xwSu68+pDx9B3LHZDpSKJlI+wVB9I3FgcSIIcHubk7q0AI98x4/pIMyKrijgFxEL9lns6xbLXBcx0iwglDTJDA==" length="199342875"/>
+      <pubDate>sam., 17 oct. 2026 19:50:19 +0000</pubDate>
+      <enclosure url="https://github.com/Fred78290/caker/releases/download/v1.0.3732/Caker.dmg" sparkle:version="1.0.3732" sparkle:shortVersionString="1.0.3732" type="application/octet-stream" sparkle:edSignature="po+fee87LeUIBJKh1kKqIVW9pDXtGg78jivcO3zaWDdRWVc3hfO1jmm4NrWS5zxx7bDBQcDuCs5EpelAD87oAQ==" length="199328298"/>
     </item>
   </channel>
 </rss>
