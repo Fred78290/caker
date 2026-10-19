@@ -28,12 +28,23 @@ struct WindowsInstallationMedia {
 		var serverKey: URL
 	}
 
+	/// The OpenSSH server (Win32-OpenSSH): Windows 11 ships the client only, and the server is a Feature on Demand that
+	/// needs Windows Update, so it goes on the media and `SetupComplete.cmd` installs it from there.
+	struct OpenSSH {
+		/// Win32-OpenSSH's release archive for the guest's architecture.
+		var archive: URL
+		/// Public keys allowed to log in as an administrator (`administrators_authorized_keys`).
+		var authorizedKeys: [String]
+	}
+
 	struct Options {
 		var username: String
 		var password: String
 		var computerName: String
 		/// Installed as a service on first boot when set.
 		var cakeAgent: CakeAgent?
+		/// Installed and started on first boot when set.
+		var openSSH: OpenSSH?
 	}
 
 	struct InstallResult {
@@ -47,6 +58,47 @@ struct WindowsInstallationMedia {
 	/// WinFsp, which the virtio-fs service needs to present the host's shared folders. Pinned: it runs as SYSTEM.
 	static let winFspURL = URL(string: "https://github.com/winfsp/winfsp/releases/download/v2.1/winfsp-2.1.25156.msi")!
 	static let winFspSHA256 = "073a70e00f77423e34bed98b86e600def93393ba5822204fac57a29324db9f7a"
+
+	/// Win32-OpenSSH's release, whose archives are pinned by hash because they run as SYSTEM. The digests are the
+	/// ones GitHub publishes for the release assets.
+	static let openSSHRelease = "10.0.0.0p2-Preview"
+
+	static func openSSHArchive(for architecture: WindowsArchitecture) -> (url: URL, sha256: String) {
+		let name: String
+		let sha256: String
+
+		switch architecture {
+		case .arm64:
+			name = "OpenSSH-ARM64.zip"
+			sha256 = "698c6aec31c1dd0fb996206e8741f4531a97355686b5431ef347d531b07fcd42"
+		case .amd64:
+			name = "OpenSSH-Win64.zip"
+			sha256 = "23f50f3458c4c5d0b12217c6a5ddfde0137210a30fa870e98b29827f7b43aba5"
+		}
+
+		return (URL(string: "https://github.com/PowerShell/Win32-OpenSSH/releases/download/\(openSSHRelease)/\(name)")!, sha256)
+	}
+
+	/// Unzips a Win32-OpenSSH archive into `folder`: the archive has one top-level folder (`OpenSSH-ARM64`,
+	/// `OpenSSH-Win64`) holding `sshd.exe` and the scripts, and its content is what lands in `folder`.
+	static func extractOpenSSH(_ archive: URL, to folder: URL) throws {
+		let fileManager = FileManager.default
+		let scratch = fileManager.temporaryDirectory.appendingPathComponent("openssh-\(UUID().uuidString)", isDirectory: true)
+
+		try fileManager.createDirectory(at: scratch, withIntermediateDirectories: true)
+		defer { try? fileManager.removeItem(at: scratch) }
+
+		_ = try Process.capture("/usr/bin/unzip", ["-q", "-o", archive.path, "-d", scratch.path])
+
+		let top = try fileManager.contentsOfDirectory(at: scratch, includingPropertiesForKeys: nil).filter { $0.lastPathComponent != "__MACOSX" }
+		let root = top.count == 1 && top[0].hasDirectoryPath ? top[0] : scratch
+
+		guard fileManager.fileExists(atPath: root.appendingPathComponent("sshd.exe").path) else {
+			throw ServiceError(String(localized: "The OpenSSH archive has no sshd.exe"))
+		}
+
+		try fileManager.moveItem(at: root, to: folder)
+	}
 
 	/// Driver folders to take from the virtio-win ISO: display (so the screen works once Windows has taken over from
 	/// the firmware), network and shared folders. Windows has an inbox NVMe and USB driver, so storage needs nothing.
@@ -203,6 +255,14 @@ struct WindowsInstallationMedia {
 
 		try FileManager.default.copyItem(at: viofs, to: caker.appendingPathComponent("virtiofs.exe"))
 		try FileManager.default.copyItem(at: winFspMSI, to: caker.appendingPathComponent("winfsp.msi"))
+
+		if let openSSH = options.openSSH {
+			try extractOpenSSH(openSSH.archive, to: caker.appendingPathComponent("openssh", isDirectory: true))
+
+			if openSSH.authorizedKeys.isEmpty == false {
+				try (openSSH.authorizedKeys.joined(separator: "\n") + "\n").write(to: caker.appendingPathComponent("authorized_keys"), atomically: true, encoding: .utf8)
+			}
+		}
 
 		if let agent = options.cakeAgent {
 			let certs = caker.appendingPathComponent("certs", isDirectory: true)

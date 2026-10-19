@@ -130,6 +130,12 @@ enum WindowsInstallResources {
 		copy /y %T%\winfsp.msi W:\ProgramData\caker\winfsp.msi >> %LOG% || goto fail
 		copy /y %T%\virtiofs.exe W:\ProgramData\caker\virtiofs.exe >> %LOG% || goto fail
 
+		rem OpenSSH server: SetupComplete.cmd installs it from this copy (the media is gone by then)
+		if exist %T%\openssh\sshd.exe (
+		  xcopy /e /i /y /q %T%\openssh W:\ProgramData\caker\openssh >> %LOG% || goto fail
+		  if exist %T%\authorized_keys copy /y %T%\authorized_keys W:\ProgramData\caker\authorized_keys >> %LOG% || goto fail
+		)
+
 		rem cakeagent: SetupComplete.cmd installs the service from these copies (the media is gone by then)
 		if exist %T%\cakeagent.exe (
 		  copy /y %T%\cakeagent.exe W:\ProgramData\caker\cakeagent.exe >> %LOG% || goto fail
@@ -186,6 +192,27 @@ enum WindowsInstallResources {
 		ping -n 11 127.0.0.1 >nul
 		if exist Z:\ (set SHARE=mounted) else (set SHARE=none)
 
+		rem OpenSSH server (a Feature on Demand that isn't in the image): the Win32-OpenSSH build from the media, as a
+		rem service that starts with Windows. Administrators log in with the keys in administrators_authorized_keys,
+		rem which sshd only trusts when only SYSTEM and Administrators can write it; the password works too.
+		set SSH=none
+		if exist C:\ProgramData\caker\openssh\sshd.exe (
+		  xcopy /e /i /y /q C:\ProgramData\caker\openssh "C:\Program Files\OpenSSH"
+		  powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Program Files\OpenSSH\install-sshd.ps1"
+		  set SSH=!errorlevel!
+		  mkdir C:\ProgramData\ssh 2>nul
+		  if not exist C:\ProgramData\ssh\ssh_host_ed25519_key "C:\Program Files\OpenSSH\ssh-keygen.exe" -A
+		  powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Program Files\OpenSSH\FixHostFilePermissions.ps1" -Confirm:$false
+		  if exist C:\ProgramData\caker\authorized_keys (
+		    copy /y C:\ProgramData\caker\authorized_keys C:\ProgramData\ssh\administrators_authorized_keys
+		    icacls C:\ProgramData\ssh\administrators_authorized_keys /inheritance:r /grant "SYSTEM:F" "Administrators:F"
+		  )
+		  netsh advfirewall firewall add rule name="OpenSSH Server (sshd)" dir=in action=allow protocol=TCP localport=22
+		  sc config sshd start= auto
+		  net start sshd
+		  sc query sshd | find "RUNNING" >nul 2>&1 && set SSH=!SSH!-running
+		)
+
 		rem cakeagent: listens on vsock (the viosock driver) like the Linux and macOS agents, authenticated with the certificates.
 		set AGENT=none
 		if exist C:\ProgramData\caker\cakeagent.exe (
@@ -212,7 +239,7 @@ enum WindowsInstallResources {
 		sc query VirtioSocket >nul 2>&1 && set VSOCK=installed
 		sc query VirtioSocket | find "RUNNING" >nul 2>&1 && set VSOCK=running
 
-		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%& echo agent=%AGENT%)> S:\EFI\caker\installed
+		(echo done& echo winfsp=%MSI%& echo service=%SVC%& echo share=%SHARE%& echo vsock=%VSOCK%& echo agent=%AGENT%& echo ssh=%SSH%)> S:\EFI\caker\installed
 		mountvol S: /D
 		shutdown /s /t 5 /c "caker: Windows installation complete"
 		"""#)

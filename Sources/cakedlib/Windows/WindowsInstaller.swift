@@ -96,9 +96,12 @@ public class WindowsInstaller: @unchecked Sendable {
 		let mediaURL = location.rootURL.appendingPathComponent(mediaFileName)
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let agent = try await Utilities.cakeagentWindowsBinary(runMode: runMode)
+		let openSSH = try await downloadOpenSSH(progressHandler: progressHandler)
+		let authorizedKeys = (try? CloudInit.sshAuthorizedKeys(sshAuthorizedKeyPath: config.sshAuthorizedKey, runMode: runMode)) ?? []
 		let options = WindowsInstallationMedia.Options(
 			username: username, password: password, computerName: Self.computerName(for: location.name),
-			cakeAgent: .init(executable: agent, caCert: certificates.caCertURL, serverCert: certificates.serverCertURL, serverKey: certificates.serverKeyURL))
+			cakeAgent: .init(executable: agent, caCert: certificates.caCertURL, serverCert: certificates.serverCertURL, serverKey: certificates.serverKeyURL),
+			openSSH: .init(archive: openSSH, authorizedKeys: authorizedKeys))
 		let windowsISO = self.windowsISO
 
 		self.logger.debug("Preparing the Windows installation media")
@@ -170,6 +173,11 @@ public class WindowsInstaller: @unchecked Sendable {
 					logger.warn("Windows setup finished, but the cakeagent service may not be running: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
 				}
 
+				if marker.contains("ssh=0-running") == false {
+					progressHandler(.substep(String(localized: "Windows setup finished, but the OpenSSH server may not be running")))
+					logger.warn("Windows setup finished, but the OpenSSH server may not be running: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
+				}
+
 				if marker.contains("winfsp=0") == false || marker.contains("service=0") == false {
 					progressHandler(.substep(String(localized: "Windows setup finished, but directory sharing may not work")))
 					logger.warn("Windows setup finished, but directory sharing may not work: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
@@ -215,6 +223,22 @@ public class WindowsInstaller: @unchecked Sendable {
 		}
 
 		return msi
+	}
+
+	/// Win32-OpenSSH's archive for this Mac's architecture (a guest only runs on its host's), checked against its known hash.
+	private func downloadOpenSSH(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> URL {
+		let release = WindowsInstallationMedia.openSSHArchive(for: .host)
+		let cache = try CommonCacheImageCache(scheme: "zip", location: "installers", name: release.url.host()!, ext: "zip", runMode: runMode)
+		let archive = try await CloudImageConverter.downloadRemoteToCache(remoteURL: release.url, imageCache: cache, runMode: runMode, progressHandler: progressHandler)
+		let hash = SHA256.hash(data: try Data(contentsOf: archive)).map { String(format: "%02x", $0) }.joined()
+
+		guard hash == release.sha256 else {
+			try? FileManager.default.removeItem(at: archive)
+
+			throw ServiceError(String(format: String(localized: "The OpenSSH archive doesn't match its expected checksum (%@)"), hash))
+		}
+
+		return archive
 	}
 
 	/// What Windows' setup left on the EFI system partition (the first partition the install script creates), or

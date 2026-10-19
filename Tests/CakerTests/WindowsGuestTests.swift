@@ -293,7 +293,7 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertTrue(setup.contains("cakeagent.exe\" service install --listen=vsock://any:\(VMLocation.defaultAgentListenPort)"), "the host reaches the agent through the VM's vsock device")
 		XCTAssertTrue(setup.contains("--ca-cert=") && setup.contains("--tls-cert=") && setup.contains("--tls-key="))
 		XCTAssertTrue(setup.contains("icacls C:\\ProgramData\\CakeAgent /inheritance:r"), "the private key is not readable by everyone")
-		XCTAssertFalse(setup.contains("netsh"), "vsock is not IP traffic: no firewall rule")
+		XCTAssertFalse(setup.contains("name=\"CakeAgent\""), "vsock is not IP traffic: no firewall rule for the agent")
 		XCTAssertTrue(setup.contains("agent=%AGENT%"))
 
 		let install = WindowsInstallResources.installScript(for: .arm64)
@@ -469,5 +469,83 @@ final class WindowsGuestTests: XCTestCase {
 		defer { _ = try? Process.capture("/usr/bin/hdiutil", ["detach", mount.path]) }
 
 		XCTAssertEqual(try WindowsInstallationMedia.validate(isoRoot: mount, name: URL(fileURLWithPath: path).lastPathComponent), WindowsArchitecture.host)
+	}
+
+	// MARK: - OpenSSH server
+
+	func testSetupInstallsTheOpenSSHServerFromTheMedia() {
+		let setup = WindowsInstallResources.setupComplete
+
+		XCTAssertTrue(setup.contains("install-sshd.ps1"), "the Win32-OpenSSH installer registers the service")
+		XCTAssertTrue(setup.contains("administrators_authorized_keys"), "the host's keys are for the administrators")
+		XCTAssertTrue(setup.contains("icacls C:\\ProgramData\\ssh\\administrators_authorized_keys /inheritance:r"), "sshd ignores a keys file others can write")
+		XCTAssertTrue(setup.contains("localport=22"))
+		XCTAssertTrue(setup.contains("sc config sshd start= auto"), "it starts with Windows")
+		XCTAssertTrue(setup.contains("net start sshd"))
+		XCTAssertTrue(setup.contains("ssh=%SSH%"), "the outcome goes in the marker the host reads")
+
+		let install = WindowsInstallResources.installScript(for: .arm64)
+
+		XCTAssertTrue(install.contains("xcopy /e /i /y /q %T%\\openssh W:\\ProgramData\\caker\\openssh"))
+		XCTAssertTrue(install.contains("copy /y %T%\\authorized_keys W:\\ProgramData\\caker\\authorized_keys"))
+	}
+
+	func testOpenSSHArchivesArePinnedPerArchitecture() {
+		let arm = WindowsInstallationMedia.openSSHArchive(for: .arm64)
+		let intel = WindowsInstallationMedia.openSSHArchive(for: .amd64)
+
+		XCTAssertEqual(arm.url.lastPathComponent, "OpenSSH-ARM64.zip")
+		XCTAssertEqual(intel.url.lastPathComponent, "OpenSSH-Win64.zip")
+
+		for release in [arm, intel] {
+			XCTAssertEqual(release.url.scheme, "https")
+			XCTAssertTrue(release.url.path.contains(WindowsInstallationMedia.openSSHRelease), "the archive comes from the pinned release")
+			XCTAssertEqual(release.sha256.count, 64)
+		}
+
+		XCTAssertNotEqual(arm.sha256, intel.sha256)
+	}
+
+	private func makeOpenSSHZip(topFolder: String?, includingSshd: Bool) throws -> URL {
+		let directory = FileManager.default.temporaryDirectory.appendingPathComponent("openssh-test-\(UUID().uuidString)", isDirectory: true)
+		let content = topFolder.map { directory.appendingPathComponent("tree/\($0)", isDirectory: true) } ?? directory.appendingPathComponent("tree", isDirectory: true)
+
+		try FileManager.default.createDirectory(at: content, withIntermediateDirectories: true)
+		try Data("exe".utf8).write(to: content.appendingPathComponent(includingSshd ? "sshd.exe" : "ssh.exe"))
+		try Data("ps1".utf8).write(to: content.appendingPathComponent("install-sshd.ps1"))
+		addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
+
+		let archive = directory.appendingPathComponent("OpenSSH.zip")
+
+		_ = try Process.capture("/bin/sh", ["-c", "cd '\(directory.appendingPathComponent("tree").path)' && /usr/bin/zip -q -r '\(archive.path)' ."])
+
+		return archive
+	}
+
+	func testExtractOpenSSHDropsTheTopLevelFolder() throws {
+		let archive = try self.makeOpenSSHZip(topFolder: "OpenSSH-ARM64", includingSshd: true)
+		let destination = archive.deletingLastPathComponent().appendingPathComponent("out", isDirectory: true)
+
+		try WindowsInstallationMedia.extractOpenSSH(archive, to: destination)
+
+		XCTAssertEqual(try Data(contentsOf: destination.appendingPathComponent("sshd.exe")), Data("exe".utf8))
+		XCTAssertTrue(FileManager.default.fileExists(atPath: destination.appendingPathComponent("install-sshd.ps1").path))
+	}
+
+	func testExtractOpenSSHAcceptsAFlatArchive() throws {
+		let archive = try self.makeOpenSSHZip(topFolder: nil, includingSshd: true)
+		let destination = archive.deletingLastPathComponent().appendingPathComponent("out", isDirectory: true)
+
+		try WindowsInstallationMedia.extractOpenSSH(archive, to: destination)
+
+		XCTAssertTrue(FileManager.default.fileExists(atPath: destination.appendingPathComponent("sshd.exe").path))
+	}
+
+	func testExtractOpenSSHRejectsAnArchiveWithoutTheServer() throws {
+		let archive = try self.makeOpenSSHZip(topFolder: "OpenSSH-ARM64", includingSshd: false)
+		let destination = archive.deletingLastPathComponent().appendingPathComponent("out", isDirectory: true)
+
+		XCTAssertThrowsError(try WindowsInstallationMedia.extractOpenSSH(archive, to: destination))
+		XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
 	}
 }
