@@ -264,6 +264,10 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 				readOnly: self.diskOptions.readOnly,
 				synchronizationMode: try VZDiskSynchronizationMode(description: self.diskOptions.syncMode))
 
+			if windowsGuest {
+				return VZNVMExpressControllerDeviceConfiguration(attachment: blockAttachment)
+			}
+
 			return VZVirtioBlockDeviceConfiguration(attachment: blockAttachment)
 		}
 
