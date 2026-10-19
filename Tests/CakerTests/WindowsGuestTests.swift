@@ -548,4 +548,30 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertThrowsError(try WindowsInstallationMedia.extractOpenSSH(archive, to: destination))
 		XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
 	}
+
+	// MARK: - Display resizing
+
+	func testSetupStartsTheDisplayScriptAtLogon() {
+		let setup = WindowsInstallResources.setupComplete
+
+		XCTAssertTrue(setup.contains("CurrentVersion\\Run /v CakerDisplay"), "it runs in the session of whoever logs on")
+		XCTAssertFalse(setup.contains("schtasks"), "a task created by SYSTEM would run as SYSTEM, with no access to the user's display")
+		XCTAssertTrue(setup.contains("-File C:\\ProgramData\\caker\\display.ps1"))
+		XCTAssertTrue(setup.contains("gpu=%GPU%"), "the outcome goes in the marker the host reads")
+
+		for architecture in WindowsArchitecture.allCases {
+			XCTAssertTrue(WindowsInstallResources.installScript(for: architecture).contains("copy /y %T%\\display.ps1 W:\\ProgramData\\caker\\display.ps1"))
+		}
+	}
+
+	func testDisplayScriptAsksTheDriverForTheHostsSize() {
+		let script = WindowsInstallResources.displayScript
+
+		XCTAssertTrue(script.contains("PCI\\VEN_1AF4&DEV_1050"), "it finds the virtio GPU among the display devices, not at index 0")
+		XCTAssertTrue(script.contains("D3DKMTEscape"), "the driver's private escape reports the size the host wants")
+		XCTAssertTrue(script.contains("ChangeDisplaySettingsEx"))
+		XCTAssertTrue(script.contains("$wanted -ne $last"), "only a change of the host's request is applied")
+		XCTAssertTrue(script.contains("\r\n"), "Windows tools want CRLF")
+		XCTAssertFalse(script.contains("\n\n\r"))
+	}
 }

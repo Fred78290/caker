@@ -1065,7 +1065,8 @@ extension VirtualMachine {
 		let config = self.config
 		let response = try self.location.waitIP(on: on, config: config, wait: 120, runMode: runMode).flatMapWithEventLoop { runningIP, eventLoop in
 			return eventLoop.makeFutureWithTask {
-				if let runningIP = runningIP, config.agent == false {
+				// A Windows guest gets its agent from the installer's first boot: the SSH install is for Linux and macOS
+				if let runningIP = runningIP, config.agent == false, config.isWindowsGuest == false {
 					if config.installAgent {
 						do {
 							config.agent = try await self.location.installAgent(updateAgent: false, config: config, runningIP: runningIP, runMode: runMode)

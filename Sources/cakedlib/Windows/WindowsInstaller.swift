@@ -173,6 +173,11 @@ public class WindowsInstaller: @unchecked Sendable {
 					logger.warn("Windows setup finished, but the cakeagent service may not be running: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
 				}
 
+				if marker.contains("gpu=0") == false {
+					progressHandler(.substep(String(localized: "Windows setup finished, but resizing the display may not work")))
+					logger.warn("Windows setup finished, but resizing the display may not work: \(marker.replacingOccurrences(of: "\r\n", with: " "))")
+				}
+
 				if marker.contains("ssh=0-running") == false {
 					progressHandler(.substep(String(localized: "Windows setup finished, but the OpenSSH server may not be running")))
 					logger.warn("Windows setup finished, but the OpenSSH server may not be running: \(marker.replacingOccurrences(of: "\r\n", with: " "))")

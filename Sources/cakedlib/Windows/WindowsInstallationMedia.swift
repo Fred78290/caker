@@ -254,6 +254,10 @@ struct WindowsInstallationMedia {
 		}
 
 		try FileManager.default.copyItem(at: viofs, to: caker.appendingPathComponent("virtiofs.exe"))
+
+		// Display resizing: the GPU driver learns the size the host wants but the helper virtio-win ships to apply it
+		// (viogpuap) never finds the adapter here, so this script does it (see WindowsInstallResources.displayScript)
+		try WindowsInstallResources.displayScript.write(to: caker.appendingPathComponent("display.ps1"), atomically: true, encoding: .utf8)
 		try FileManager.default.copyItem(at: winFspMSI, to: caker.appendingPathComponent("winfsp.msi"))
 
 		if let openSSH = options.openSSH {
