@@ -62,12 +62,13 @@ enum WindowsArchitecture: String, CaseIterable, Sendable {
 		self.rawValue
 	}
 
-	/// Whether the guest needs the EFI framebuffer helpers (`Tools/WindowsEFI`). Apple silicon's firmware exposes a
-	/// GPU that can only blit, so Windows would draw into nothing. Nobody has checked what the Intel firmware does:
-	/// until WINDOWS_INTEL_PLAN.md step 3 says otherwise, an x64 guest boots Windows Boot Manager directly, and the
-	/// helpers (built for AArch64 only) are not copied.
+	/// Whether the guest boots through the EFI framebuffer helpers (`Tools/WindowsEFI`, built for both architectures).
+	/// Apple silicon's firmware exposes a GPU that can only blit, so Windows would draw into nothing. Nobody has
+	/// checked what the Intel firmware does (WINDOWS_INTEL_PLAN.md step 3): the driver leaves a GPU that already has a
+	/// linear framebuffer alone, so using it on x64 is harmless if it isn't needed. Return `false` for `.amd64` to
+	/// boot Windows Boot Manager directly instead, which is the experiment that step describes.
 	var usesFramebufferShim: Bool {
-		self == .arm64
+		true
 	}
 
 	/// Finds the architecture of a Windows installation ISO from the boot loader it carries (`efi/boot/bootaa64.efi`

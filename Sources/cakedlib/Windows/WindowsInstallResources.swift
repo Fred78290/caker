@@ -50,9 +50,13 @@ enum WindowsInstallResources {
 
 	/// Partitions the empty system disk, applies the Windows image, adds the virtio drivers and the boot files.
 	static func installScript(for architecture: WindowsArchitecture) -> String {
+		self.installScript(for: architecture, usingFramebufferShim: architecture.usesFramebufferShim)
+	}
+
+	static func installScript(for architecture: WindowsArchitecture, usingFramebufferShim: Bool) -> String {
 		// The framebuffer helpers and the loader that starts them (see WindowsArchitecture.usesFramebufferShim)
 		let shim =
-			architecture.usesFramebufferShim
+			usingFramebufferShim
 			? #"""
 			mkdir S:\EFI\caker 2>nul
 			copy /y %T%\framebuffer.efi S:\EFI\caker\framebuffer.efi >> %LOG% || goto fail

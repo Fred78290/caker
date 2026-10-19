@@ -1,4 +1,4 @@
-// UEFI application installed as \EFI\BOOT\BOOTAA64.EFI on the Windows installation media and on the
+// UEFI application installed as \EFI\BOOT\BOOTAA64.EFI (BOOTX64.EFI on x64) on the Windows installation media and on the
 // installed system's EFI system partition. It starts the framebuffer driver (\EFI\caker\framebuffer.efi
 // on the same volume), then Windows Boot Manager, which is kept as \EFI\BOOT\windows.efi so the firmware
 // never starts it on its own.

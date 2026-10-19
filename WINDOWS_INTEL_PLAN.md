@@ -90,7 +90,11 @@ built on); only the checkpoints in phases 0, 2 and 4 need the Intel Mac.
   and driver folder; an ISO fixture tree with only `bootx64.efi` validates as amd64; the wrong-host combination throws.
 - `swift build --arch x86_64` and `swift test` stay green.
 
-### Phase 2 — x64 EFI helpers (only if step 3 says they are needed)
+### Phase 2 — x64 EFI helpers (built; whether Intel needs them is still step 3)
+Done: the Makefile builds `x86_64-unknown-windows` (`-mno-red-zone`) next to AArch64, `WindowsEFIBinaries` has per-architecture constants, tests check the PE `Machine`
+field. The ARM64 output is byte-identical to before. **Not run on Intel firmware**: the C sources were not changed beyond a comment, and `RegisterDriverOption` / the
+timer callback are unverified on x64. `WindowsArchitecture.usesFramebufferShim` is true for both; set it false for `.amd64` to run step 3's no-shim experiment.
+Original notes:
 - `Tools/WindowsEFI/Makefile`: build both targets (`aarch64-unknown-windows`, `x86_64-unknown-windows`; start from the
   same flags, drop `-mno-implicit-float` if clang rejects it, add `-mno-red-zone`). The sources are plain C against
   `efi.h`; re-check the GOP/`ReinstallProtocolInterface`/timer code for anything that assumed ARM (cache maintenance,

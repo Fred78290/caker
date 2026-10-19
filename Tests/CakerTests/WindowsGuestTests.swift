@@ -222,11 +222,36 @@ final class WindowsGuestTests: XCTestCase {
 		}
 	}
 
-	func testEmbeddedEFIBinariesArePortableExecutables() {
-		for binary in [WindowsEFIBinaries.framebuffer, WindowsEFIBinaries.loader] {
-			XCTAssertEqual(binary.prefix(2), Data("MZ".utf8))
-			XCTAssertLessThan(binary.count, 16 * 1024)
+	/// The `Machine` field of a PE image's COFF header, which firmware compares with its own architecture before loading.
+	private func machineType(of image: Data) -> UInt16? {
+		guard image.count > 0x40, image.prefix(2) == Data("MZ".utf8) else {
+			return nil
 		}
+
+		let peOffset = Int(image.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: 0x3c, as: UInt32.self) })
+
+		guard image.count >= peOffset + 6, image.subdata(in: peOffset..<(peOffset + 4)) == Data([0x50, 0x45, 0, 0]) else {
+			return nil
+		}
+
+		return image.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: peOffset + 4, as: UInt16.self) }
+	}
+
+	func testEmbeddedEFIBinariesArePortableExecutables() {
+		for architecture in WindowsArchitecture.allCases {
+			for binary in [WindowsEFIBinaries.framebuffer(for: architecture), WindowsEFIBinaries.loader(for: architecture)] {
+				XCTAssertNotNil(self.machineType(of: binary), "\(architecture)")
+				XCTAssertLessThan(binary.count, 16 * 1024)
+			}
+		}
+	}
+
+	func testEmbeddedEFIBinariesMatchTheirGuestArchitecture() {
+		// IMAGE_FILE_MACHINE_ARM64 / IMAGE_FILE_MACHINE_AMD64: firmware refuses an image of another machine type
+		XCTAssertEqual(self.machineType(of: WindowsEFIBinaries.framebuffer(for: .arm64)), 0xAA64)
+		XCTAssertEqual(self.machineType(of: WindowsEFIBinaries.loader(for: .arm64)), 0xAA64)
+		XCTAssertEqual(self.machineType(of: WindowsEFIBinaries.framebuffer(for: .amd64)), 0x8664)
+		XCTAssertEqual(self.machineType(of: WindowsEFIBinaries.loader(for: .amd64)), 0x8664)
 	}
 
 	func testWindowsMediaDiskIsWritableUSBStorage() throws {
@@ -319,9 +344,10 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertEqual(WindowsArchitecture.host.agentSuffix, Architecture.current().rawValue)
 	}
 
-	func testOnlyTheARMGuestUsesTheFramebufferShim() {
-		XCTAssertTrue(WindowsArchitecture.arm64.usesFramebufferShim)
-		XCTAssertFalse(WindowsArchitecture.amd64.usesFramebufferShim, "the helpers are built for AArch64 only")
+	func testBothGuestsBootThroughTheFramebufferShimUntilIntelSaysOtherwise() {
+		for architecture in WindowsArchitecture.allCases {
+			XCTAssertTrue(architecture.usesFramebufferShim, "\(architecture)")
+		}
 	}
 
 	func testDetectFindsTheArchitectureFromTheBootLoader() throws {
@@ -390,32 +416,43 @@ final class WindowsGuestTests: XCTestCase {
 		XCTAssertFalse(arm64.contains("amd64"))
 	}
 
-	func testARMInstallScriptPutsTheLoaderAtTheRemovableMediaPath() {
-		let script = WindowsInstallResources.installScript(for: .arm64)
+	func testInstallScriptPutsTheLoaderAtTheArchitecturesRemovableMediaPath() {
+		let arm64 = WindowsInstallResources.installScript(for: .arm64)
+		let amd64 = WindowsInstallResources.installScript(for: .amd64)
 
-		XCTAssertTrue(script.contains("copy /y %T%\\loader.efi S:\\EFI\\BOOT\\BOOTAA64.EFI"))
-		XCTAssertTrue(script.contains("copy /y S:\\EFI\\Microsoft\\Boot\\bootmgfw.efi S:\\EFI\\BOOT\\windows.efi"))
-		XCTAssertTrue(script.contains("framebuffer.efi"))
-		XCTAssertFalse(script.contains("\\#"), "the interpolation of a raw string must be resolved")
+		XCTAssertTrue(arm64.contains("copy /y %T%\\loader.efi S:\\EFI\\BOOT\\BOOTAA64.EFI"))
+		XCTAssertFalse(arm64.contains("BOOTX64"))
+		XCTAssertTrue(amd64.contains("copy /y %T%\\loader.efi S:\\EFI\\BOOT\\BOOTX64.EFI"))
+		XCTAssertFalse(amd64.contains("BOOTAA64"))
+
+		for script in [arm64, amd64] {
+			XCTAssertTrue(script.contains("copy /y S:\\EFI\\Microsoft\\Boot\\bootmgfw.efi S:\\EFI\\BOOT\\windows.efi"))
+			XCTAssertTrue(script.contains("framebuffer.efi"))
+			XCTAssertFalse(script.contains("\\#"), "the interpolation of a raw string must be resolved")
+		}
 	}
 
-	func testAMD64InstallScriptLeavesWindowsBootManagerInPlace() {
-		let script = WindowsInstallResources.installScript(for: .amd64)
+	func testInstallScriptWithoutTheShimLeavesWindowsBootManagerInPlace() {
+		for architecture in WindowsArchitecture.allCases {
+			let script = WindowsInstallResources.installScript(for: architecture, usingFramebufferShim: false)
 
-		XCTAssertFalse(script.contains("loader.efi"))
-		XCTAssertFalse(script.contains("framebuffer.efi"))
-		XCTAssertFalse(script.contains("BOOTAA64"))
-		XCTAssertTrue(script.contains("bcdboot W:\\Windows /s S: /f UEFI"), "bcdboot still writes the boot files")
-		XCTAssertTrue(script.contains("echo OK> %T%\\result"))
+			XCTAssertFalse(script.contains("loader.efi"))
+			XCTAssertFalse(script.contains("framebuffer.efi"))
+			XCTAssertFalse(script.contains("windows.efi"))
+			XCTAssertTrue(script.contains("bcdboot W:\\Windows /s S: /f UEFI"), "bcdboot still writes the boot files")
+			XCTAssertTrue(script.contains("echo OK> %T%\\result"))
+		}
 	}
 
 	func testInstallScriptsDifferOnlyByTheShim() {
-		let arm64 = WindowsInstallResources.installScript(for: .arm64).components(separatedBy: "\r\n")
-		let amd64 = WindowsInstallResources.installScript(for: .amd64).components(separatedBy: "\r\n")
+		for architecture in WindowsArchitecture.allCases {
+			let with = WindowsInstallResources.installScript(for: architecture, usingFramebufferShim: true).components(separatedBy: "\r\n")
+			let without = WindowsInstallResources.installScript(for: architecture, usingFramebufferShim: false).components(separatedBy: "\r\n")
 
-		XCTAssertEqual(arm64.first, amd64.first)
-		XCTAssertEqual(arm64.last, amd64.last)
-		XCTAssertGreaterThan(arm64.count, amd64.count)
+			XCTAssertEqual(with.first, without.first)
+			XCTAssertEqual(with.last, without.last)
+			XCTAssertGreaterThan(with.count, without.count)
+		}
 	}
 
 	/// Opt-in check against a real Windows ISO: `CAKER_WINDOWS_ISO=/path/to/Win11.iso swift test --filter testRealISO`.

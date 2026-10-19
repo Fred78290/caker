@@ -8,9 +8,9 @@
 //  firmware reads on optical media but not on the 512-byte-sector USB disk a VM gets. So the image is a GPT
 //  disk with:
 //   - a FAT32 partition typed as EFI system partition, holding the ISO's files except install.wim (which is
-//     over 4 GB, FAT32's file size limit). On a guest that needs the framebuffer helpers (see
-//     WindowsArchitecture.usesFramebufferShim) `EFI\BOOT\BOOTAA64.EFI` is replaced by our loader (see
-//     EFI/loader.c) and Windows Boot Manager moved next to it as `windows.efi`; and
+//     over 4 GB, FAT32's file size limit). `EFI\BOOT\BOOT<arch>.EFI` is replaced by our loader (see
+//     EFI/loader.c) and Windows Boot Manager moved next to it as `windows.efi`, unless the guest does without the
+//     framebuffer helpers (see WindowsArchitecture.usesFramebufferShim); and
 //   - an exFAT partition holding install.wim, the virtio drivers and the `caker` folder with the install
 //     scripts. WinPE gives that volume a drive letter, which it doesn't for the (hidden) system partition.
 //
@@ -153,9 +153,9 @@ struct WindowsInstallationMedia {
 			let efiCaker = bootVolume.appendingPathComponent("efi/caker", isDirectory: true)
 
 			try FileManager.default.moveItem(at: efiBoot.appendingPathComponent(architecture.bootFile), to: efiBoot.appendingPathComponent("windows.efi"))
-			try WindowsEFIBinaries.loader.write(to: efiBoot.appendingPathComponent(architecture.bootFile))
+			try WindowsEFIBinaries.loader(for: architecture).write(to: efiBoot.appendingPathComponent(architecture.bootFile))
 			try FileManager.default.createDirectory(at: efiCaker, withIntermediateDirectories: true)
-			try WindowsEFIBinaries.framebuffer.write(to: efiCaker.appendingPathComponent("framebuffer.efi"))
+			try WindowsEFIBinaries.framebuffer(for: architecture).write(to: efiCaker.appendingPathComponent("framebuffer.efi"))
 		}
 
 		// The install script and what it installs
@@ -170,8 +170,8 @@ struct WindowsInstallationMedia {
 		try WindowsInstallResources.unattend(username: options.username, password: options.password, computerName: options.computerName, language: image.language, architecture: architecture).write(to: caker.appendingPathComponent("unattend.xml"), atomically: true, encoding: .utf8)
 
 		if architecture.usesFramebufferShim {
-			try WindowsEFIBinaries.framebuffer.write(to: caker.appendingPathComponent("framebuffer.efi"))
-			try WindowsEFIBinaries.loader.write(to: caker.appendingPathComponent("loader.efi"))
+			try WindowsEFIBinaries.framebuffer(for: architecture).write(to: caker.appendingPathComponent("framebuffer.efi"))
+			try WindowsEFIBinaries.loader(for: architecture).write(to: caker.appendingPathComponent("loader.efi"))
 		}
 
 		progress(String(localized: "Copying the virtio drivers"))
